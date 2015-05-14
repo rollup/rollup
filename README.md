@@ -2,9 +2,7 @@
 
 *I roll up, I roll up, I roll up, Shawty I roll up*
 
-*I roll up, I roll up, I roll up*
-
-                -- [Wiz Khalifa](https://www.youtube.com/watch?v=UhQz-0QVmQ0)
+*I roll up, I roll up, I roll up* &ndash;[Wiz Khalifa](https://www.youtube.com/watch?v=UhQz-0QVmQ0)
 
 This is an experimental project. You definitely shouldn't try and use it, yet.
 
