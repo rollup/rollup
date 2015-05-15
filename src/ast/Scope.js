@@ -3,6 +3,7 @@ export default class Scope {
 		options = options || {};
 
 		this.parent = options.parent;
+		this.depth = this.parent ? this.parent.depth + 1 : 0;
 		this.names = options.params || [];
 		this.isBlockScope = !!options.block;
 	}
@@ -18,14 +19,18 @@ export default class Scope {
 	}
 
 	contains ( name ) {
+		return !!this.findDefiningScope( name );
+	}
+
+	findDefiningScope ( name ) {
 		if ( ~this.names.indexOf( name ) ) {
-			return true;
+			return this;
 		}
 
 		if ( this.parent ) {
-			return this.parent.contains( name );
+			return this.parent.findDefiningScope( name );
 		}
 
-		return false;
+		return null;
 	}
 }

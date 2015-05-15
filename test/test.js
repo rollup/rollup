@@ -19,7 +19,7 @@ describe( 'rollup', function () {
 	sander.readdirSync( SAMPLES ).forEach( function ( dir ) {
 		var config = require( SAMPLES + '/' + dir + '/_config' );
 
-		it( config.description, function () {
+		( config.solo ? it.only : it )( config.description, function () {
 			return rollup.rollup( SAMPLES + '/' + dir + '/main.js' )
 				.then( function ( bundle ) {
 					var result = bundle.generate({

@@ -2,7 +2,8 @@ import Bundle from './Bundle';
 
 export function rollup ( entry, options = {} ) {
 	const bundle = new Bundle({
-		entry
+		entry,
+		base: options.base || process.cwd()
 	});
 
 	return bundle.collect().then( () => {
