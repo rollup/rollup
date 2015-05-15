@@ -1,3 +1,4 @@
+import { writeFile } from 'sander';
 import Bundle from './Bundle';
 
 export function rollup ( entry, options = {} ) {
@@ -9,8 +10,10 @@ export function rollup ( entry, options = {} ) {
 	return bundle.collect().then( () => {
 		return {
 			generate: options => bundle.generate( options ),
-			write: () => {
-				throw new Error( 'TODO' );
+			write: ( dest, options ) => {
+				const generated = bundle.generate( options );
+
+				return writeFile( dest, generated.code );
 			}
 		};
 	});

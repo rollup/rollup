@@ -1,3 +1,4 @@
 module.exports = {
-	description: 'imports a default function'
+	description: 'imports a default function',
+	// solo: true
 };

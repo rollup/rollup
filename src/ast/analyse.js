@@ -41,6 +41,7 @@ export default function analyse ( ast, code ) {
 		statement._defines = {};
 		statement._modifies = {};
 		statement._dependsOn = {};
+		statement._imported = false;
 
 		// store the actual code, for easy regeneration
 		statement._source = code.snip( previous, statement.end );
@@ -50,33 +51,42 @@ export default function analyse ( ast, code ) {
 
 		walk( statement, {
 			enter ( node, parent ) {
+				let newScope;
+
 				switch ( node.type ) {
 					case 'FunctionExpression':
 					case 'FunctionDeclaration':
 					case 'ArrowFunctionExpression':
-						if ( node.id ) {
-							addToScope( node );
-						}
-
 						let names = node.params.map( getName );
 
-						scope = new Scope({
+						if ( node.type === 'FunctionDeclaration' ) {
+							addToScope( node );
+						} else if ( node.type === 'FunctionExpression' && node.id ) {
+							names.push( node.id.name );
+						}
+
+						newScope = new Scope({
 							parent: scope,
 							params: names, // TODO rest params?
 							block: false
 						});
 
-						Object.defineProperty( node, '_scope', { value: scope });
-
 						break;
 
 					case 'BlockStatement':
-						scope = new Scope({
+						newScope = new Scope({
 							parent: scope,
 							block: true
 						});
 
-						Object.defineProperty( node, '_scope', { value: scope });
+						break;
+
+					case 'CatchClause':
+						newScope = new Scope({
+							parent: scope,
+							params: [ node.param.name ],
+							block: true
+						});
 
 						break;
 
@@ -89,19 +99,19 @@ export default function analyse ( ast, code ) {
 						addToScope( node );
 						break;
 				}
+
+				if ( newScope ) {
+					Object.defineProperty( node, '_scope', { value: newScope });
+					scope = newScope;
+				}
 			},
 			leave ( node ) {
 				if ( node === currentTopLevelStatement ) {
 					currentTopLevelStatement = null;
 				}
 
-				switch ( node.type ) {
-					case 'FunctionExpression':
-					case 'FunctionDeclaration':
-					case 'ArrowFunctionExpression':
-					case 'BlockStatement':
-						scope = scope.parent;
-						break;
+				if ( node._scope ) {
+					scope = scope.parent;
 				}
 			}
 		});
@@ -112,6 +122,11 @@ export default function analyse ( ast, code ) {
 	ast.body.forEach( statement => {
 		function checkForReads ( node, parent ) {
 			if ( node.type === 'Identifier' ) {
+				// disregard the `bar` in `foo.bar` - these appear as Identifier nodes
+				if ( parent.type === 'MemberExpression' && node !== parent.object ) {
+					return;
+				}
+
 				const definingScope = scope.findDefiningScope( node.name );
 
 				if ( ( !definingScope || definingScope.depth === 0 ) && !statement._defines[ node.name ] ) {

@@ -2,8 +2,8 @@
   "name": "rollup",
   "version": "0.1.0",
   "description": "Next-generation ES6 module bundler",
-  "main": "dist/index.js",
-  "jsnext:main": "src/index.js",
+  "main": "dist/rollup.js",
+  "jsnext:main": "src/rollup.js",
   "scripts": {
     "test": "mocha",
     "pretest": "npm run build",

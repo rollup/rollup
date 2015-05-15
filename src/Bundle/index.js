@@ -4,6 +4,7 @@ import MagicString from 'magic-string';
 import { hasOwnProp } from '../utils/object';
 import { sequence } from '../utils/promise';
 import Module from '../Module/index';
+import finalisers from '../finalisers/index';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -20,6 +21,8 @@ export default class Bundle {
 		// this will store per-module names, and enable deconflicting
 		this.names = {};
 		this.usedNames = {};
+
+		this.externalModules = [];
 	}
 
 	collect () {
@@ -71,16 +74,24 @@ export default class Bundle {
 			});
 	}
 
-	generate () {
-		const bundle = new MagicString.Bundle();
+	generate ( options = {} ) {
+		let magicString = new MagicString.Bundle();
 
 		this.body.forEach( statement => {
-			bundle.addSource( statement._source );
+			magicString.addSource( statement._source );
 		});
 
+		const finalise = finalisers[ options.format || 'es6' ];
+
+		if ( !finalise ) {
+			throw new Error( `You must specify an output type - valid options are ${Object.keys( finalisers ).join( ', ' )}` );
+		}
+
+		magicString = finalise( this, magicString, options );
+
 		return {
-			code: bundle.toString(),
-			map: null // TODO use bundle.generateMap()
+			code: magicString.toString(),
+			map: null // TODO use magicString.generateMap()
 		};
 
 		// try {
