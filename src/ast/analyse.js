@@ -42,9 +42,9 @@ export default function analyse ( ast, magicString, module ) {
 			_defines:   { value: {} },
 			_modifies:  { value: {} },
 			_dependsOn: { value: {} },
-			_imported:  { value: false, writable: true },
+			_included:  { value: false, writable: true },
 			_module:    { value: module },
-			_source:    { value: magicString.snip( previous, statement.end ) }
+			_source:    { value: magicString.snip( previous, statement.end ) } // TODO don't use snip, it's a waste of memory
 		});
 
 		previous = statement.end;

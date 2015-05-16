@@ -173,8 +173,7 @@ export default class Module {
 		// The definition is in this module
 		else if ( name === 'default' && this.exports.default.isDeclaration ) {
 			// We have something like `export default foo` - so we just start again,
-			// searching for `foo` instead of default. First, sync up names
-			this.rename( 'default', this.exports.default.name );
+			// searching for `foo` instead of default
 			promise = this.define( this.exports.default.name );
 		}
 
@@ -188,7 +187,7 @@ export default class Module {
 
 				statement = this.exports.default.node;
 
-				if ( !statement._imported ) {
+				if ( !statement._included ) {
 					// if we have `export default foo`, we don't want to turn it into `var foo = foo`
 					// - we want to remove it altogether (but keep the statement, so we can include
 					// its dependencies). TODO is there an easier way to do this?
@@ -210,34 +209,50 @@ export default class Module {
 				}
 			}
 
-			if ( statement && !statement._imported ) {
-				const nodes = [];
+			if ( statement && !statement._included ) {
+				const result = [];
 
 				const include = statement => {
-					if ( statement._imported ) return emptyArrayPromise;
+					if ( statement._included ) return emptyArrayPromise;
+					statement._included = true;
 
+					// We have a statement, and it hasn't been included yet. First, include
+					// the statements it depends on
 					const dependencies = Object.keys( statement._dependsOn );
 
-					return sequence( dependencies, name => this.define( name ) )
-						.then( definitions => {
-							definitions.forEach( definition => nodes.push.apply( nodes, definition ) );
-						})
-						.then( () => {
-							statement._imported = true;
-							nodes.push( statement );
+					return sequence( dependencies, name => {
+						return this.define( name ).then( definition => {
+							result.push.apply( result, definition );
+						});
+					})
 
+					// then include the statement itself
+						.then( () => {
+							result.push( statement );
+						})
+
+					// then include any statements that could modify the
+					// thing(s) this statement defines
+						.then( () => {
 							const modifications = has( this.modifications, name ) && this.modifications[ name ];
 
 							if ( modifications ) {
-								return sequence( modifications, include );
+								return sequence( modifications, statement => {
+									if ( !statement._included ) {
+										return include( statement );
+									}
+								});
 							}
 						})
+
+					// the `result` is an array of statements needed to define `name`
 						.then( () => {
-							return nodes;
+
+							return result;
 						});
 				};
 
-				promise = include( statement );
+				promise = !statement._included ? include( statement ) : emptyArrayPromise;
 			}
 		}
 
