@@ -9,7 +9,7 @@ function isStatement ( node, parent ) {
 	       node.type === 'FunctionDeclaration'; // TODO or any of the other various statement-ish things it could be
 }
 
-export default function analyse ( ast, code ) {
+export default function analyse ( ast, magicString ) {
 	let scope = new Scope();
 	let topLevelStatements = [];
 	let currentTopLevelStatement;
@@ -44,7 +44,7 @@ export default function analyse ( ast, code ) {
 		statement._imported = false;
 
 		// store the actual code, for easy regeneration
-		statement._source = code.snip( previous, statement.end );
+		statement._source = magicString.snip( previous, statement.end );
 		previous = statement.end;
 
 		currentTopLevelStatement = statement; // so we can attach scoping info
@@ -52,6 +52,8 @@ export default function analyse ( ast, code ) {
 		walk( statement, {
 			enter ( node, parent ) {
 				let newScope;
+
+				magicString.addSourcemapLocation( node.start );
 
 				switch ( node.type ) {
 					case 'FunctionExpression':
@@ -137,7 +139,19 @@ export default function analyse ( ast, code ) {
 		}
 
 		function checkForWrites ( node ) {
+			if ( node.type === 'AssignmentExpression' ) {
+				let assignee = node.left;
 
+				while ( assignee.type === 'MemberExpression' ) {
+					assignee = assignee.object;
+				}
+
+				if ( assignee.type !== 'Identifier' ) { // could be a ThisExpression
+					return;
+				}
+
+				statement._modifies[ assignee.name ] = true;
+			}
 		}
 
 		walk( statement, {
