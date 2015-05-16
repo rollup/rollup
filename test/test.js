@@ -36,6 +36,10 @@ describe( 'rollup', function () {
 						console.log( result.code );
 						throw err;
 					}
+
+					if ( config.show ) {
+						console.log( result.code + '\n\n\n' );
+					}
 				});
 		});
 	});

@@ -165,7 +165,7 @@ export default function analyse ( ast, magicString, module ) {
 				node.arguments.forEach( addNode );
 			}
 
-			// TODO UpdateExpression
+			// TODO UpdateExpressions, method calls?
 		}
 
 		walk( statement, {
