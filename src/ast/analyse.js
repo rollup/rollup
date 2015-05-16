@@ -145,19 +145,27 @@ export default function analyse ( ast, magicString, module ) {
 		}
 
 		function checkForWrites ( node ) {
-			if ( node.type === 'AssignmentExpression' ) {
-				let assignee = node.left;
-
-				while ( assignee.type === 'MemberExpression' ) {
-					assignee = assignee.object;
+			function addNode ( node ) {
+				while ( node.type === 'MemberExpression' ) {
+					node = node.object;
 				}
 
-				if ( assignee.type !== 'Identifier' ) { // could be a ThisExpression
+				if ( node.type !== 'Identifier' ) {
 					return;
 				}
 
-				statement._modifies[ assignee.name ] = true;
+				statement._modifies[ node.name ] = true;
 			}
+
+			if ( node.type === 'AssignmentExpression' ) {
+				addNode( node.left );
+			}
+
+			else if ( node.type === 'CallExpression' ) {
+				node.arguments.forEach( addNode );
+			}
+
+			// TODO UpdateExpression
 		}
 
 		walk( statement, {
