@@ -38,18 +38,16 @@ export default function analyse ( ast, magicString, module ) {
 	let previous = 0;
 
 	ast.body.forEach( statement => {
-		statement._defines = {};
-		statement._modifies = {};
-		statement._dependsOn = {};
-		statement._imported = false;
+		Object.defineProperties( statement, {
+			_defines:   { value: {} },
+			_modifies:  { value: {} },
+			_dependsOn: { value: {} },
+			_imported:  { value: false, writable: true },
+			_module:    { value: module },
+			_source:    { value: magicString.snip( previous, statement.end ) }
+		});
 
-		// link back to the module
-		statement._module = module;
-
-		// store the actual code, for easy regeneration
-		statement._source = magicString.snip( previous, statement.end );
 		previous = statement.end;
-
 		currentTopLevelStatement = statement; // so we can attach scoping info
 
 		walk( statement, {
@@ -129,6 +127,11 @@ export default function analyse ( ast, magicString, module ) {
 			if ( node.type === 'Identifier' ) {
 				// disregard the `bar` in `foo.bar` - these appear as Identifier nodes
 				if ( parent.type === 'MemberExpression' && node !== parent.object ) {
+					return;
+				}
+
+				// disregard the `bar` in { bar: foo }
+				if ( parent.type === 'Property' && node !== parent.value ) {
 					return;
 				}
 
