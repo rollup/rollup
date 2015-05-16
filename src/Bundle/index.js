@@ -110,6 +110,7 @@ export default class Bundle {
 		let definers = {};
 		let conflicts = {};
 
+		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
 		this.body.forEach( statement => {
 			keys( statement._defines ).forEach( name => {
 				if ( has( definers, name ) ) {
@@ -124,6 +125,7 @@ export default class Bundle {
 			});
 		});
 
+		// Rename conflicting identifiers so they can live in the same scope
 		keys( conflicts ).forEach( name => {
 			const modules = definers[ name ];
 
@@ -134,10 +136,9 @@ export default class Bundle {
 			});
 		});
 
+		// Apply new names
 		this.body.forEach( statement => {
 			let replacements = {};
-
-
 
 			keys( statement._dependsOn )
 				.concat( keys( statement._defines ) )
@@ -177,41 +178,5 @@ export default class Bundle {
 
 			})
 		};
-	}
-
-	getSafeReplacement ( name, requestingModule ) {
-		// assume name is safe until proven otherwise
-		let safe = true;
-
-		name = sanitize( name );
-
-		let pathParts = requestingModule.relativePath.split( sep );
-
-		do {
-			let safe = true;
-
-			let i = this.modulesArray.length;
-			while ( safe && i-- ) {
-				const module = this.modulesArray[i];
-				if ( module === requestingModule ) continue;
-
-				let j = module.definedNames.length;
-				while ( safe && j-- ) {
-					if ( module.definedNames[j] === name ) {
-						safe = false;
-					}
-				}
-			}
-
-			if ( !safe ) {
-				if ( pathParts.length ) {
-					name = sanitize( pathParts.pop() ) + `__${name}`;
-				} else {
-					name = `_${name}`;
-				}
-			}
-		} while ( !safe );
-
-		return name;
 	}
 }
