@@ -1,4 +1,5 @@
 require( 'source-map-support' ).install();
+require( 'console-group' ).install();
 
 var path = require( 'path' );
 var sander = require( 'sander' );
@@ -17,6 +18,8 @@ describe( 'rollup', function () {
 	});
 
 	sander.readdirSync( SAMPLES ).forEach( function ( dir ) {
+		if ( dir[0] === '.' ) return; // .DS_Store...
+
 		var config = require( SAMPLES + '/' + dir + '/_config' );
 
 		( config.solo ? it.only : it )( config.description, function () {

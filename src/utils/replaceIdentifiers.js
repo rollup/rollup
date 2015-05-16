@@ -1,5 +1,5 @@
 import walk from '../ast/walk';
-import { hasOwnProp } from './object';
+import { has } from './object';
 
 export default function replaceIdentifiers ( statement, snippet, names ) {
 	const replacementStack = [ names ];
@@ -33,11 +33,7 @@ export default function replaceIdentifiers ( statement, snippet, names ) {
 			}
 
 			if ( node.type === 'Identifier' && parent.type !== 'MemberExpression' ) {
-				let name = node.name;
-
-				while ( hasOwnProp.call( names, name ) && name !== names[ name ] ) {
-					name = names[ name ];
-				}
+				const name = has( names, node.name ) && names[ node.name ];
 
 				if ( name && name !== node.name ) {
 					snippet.overwrite( node.start, node.end, name );

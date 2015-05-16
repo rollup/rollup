@@ -8,7 +8,7 @@ export default function umd ( bundle, magicString, options ) {
 			factory((global.${options.globalName} = {}));
 		}(this, function (exports) { 'use strict';
 
-		`.replace( /^\t\t/gm, '' ).replace( /^\t/g, indentStr );
+		`.replace( /^\t\t/gm, '' ).replace( /^\t/gm, indentStr );
 
 	const exports = bundle.entryModule.exports;
 

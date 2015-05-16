@@ -3,7 +3,7 @@ import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
 import analyse from '../ast/analyse';
-import { hasOwnProp } from '../utils/object';
+import { has } from '../utils/object';
 import { sequence } from '../utils/promise';
 
 const emptyArrayPromise = Promise.resolve([]);
@@ -20,9 +20,18 @@ export default class Module {
 			sourceType: 'module'
 		});
 
+		this.analyse();
+
+		this.deconflict();
+	}
+
+	analyse () {
 		analyse( this.ast, this.code, this );
 
+		this.definedNames = this.ast._scope.names.slice();
+
 		this.nameReplacements = {};
+		this.canonicalNames = {};
 
 		this.definitions = {};
 		this.definitionPromises = {};
@@ -34,7 +43,7 @@ export default class Module {
 			});
 
 			Object.keys( statement._modifies ).forEach( name => {
-				if ( !hasOwnProp.call( this.modifications, name ) ) {
+				if ( !has( this.modifications, name ) ) {
 					this.modifications[ name ] = [];
 				}
 
@@ -46,6 +55,8 @@ export default class Module {
 		this.exports = {};
 
 		this.ast.body.forEach( node => {
+			// import foo from './foo';
+			// import { bar } from './bar';
 			if ( node.type === 'ImportDeclaration' ) {
 				const source = node.source.value;
 
@@ -61,6 +72,9 @@ export default class Module {
 				});
 			}
 
+			// export default function foo () {}
+			// export default foo;
+			// export default 42;
 			else if ( node.type === 'ExportDefaultDeclaration' ) {
 				const isDeclaration = /Declaration$/.test( node.declaration.type );
 
@@ -68,31 +82,17 @@ export default class Module {
 					node,
 					name: 'default',
 					localName: isDeclaration ? node.declaration.id.name : 'default',
-					isDeclaration
+					isDeclaration,
+					module: null // filled in later
 				};
 			}
 
+			// export { foo, bar, baz }
+			// export var foo = 42;
+			// export function foo () {}
 			else if ( node.type === 'ExportNamedDeclaration' ) {
-				let declaration = node.declaration;
-
-				if ( declaration ) {
-					let name;
-
-					if ( declaration.type === 'VariableDeclaration' ) {
-						// `export var foo = /*...*/`
-						name = declaration.declarations[0].id.name;
-					} else {
-						// `export function foo () {/*...*/}`
-						name = declaration.id.name;
-					}
-
-					this.exports[ name ] = {
-						localName: name,
-						expression: node.declaration
-					};
-				}
-
-				else if ( node.specifiers ) {
+				if ( node.specifiers.length ) {
+					// export { foo, bar, baz }
 					node.specifiers.forEach( specifier => {
 						const localName = specifier.local.name;
 						const exportedName = specifier.exported.name;
@@ -103,116 +103,193 @@ export default class Module {
 					});
 				}
 
+				else {
+					let declaration = node.declaration;
+
+					let name;
+
+					if ( declaration.type === 'VariableDeclaration' ) {
+						// export var foo = 42
+						name = declaration.declarations[0].id.name;
+					} else {
+						// export function foo () {}
+						name = declaration.id.name;
+					}
+
+					this.exports[ name ] = {
+						localName: name,
+						expression: declaration
+					};
+				}
 			}
 		});
 	}
 
+	getCanonicalName ( name ) {
+		if ( has( this.imports, name ) ) {
+			const importDeclaration = this.imports[ name ];
+			const module = importDeclaration.module;
+			const exportDeclaration = module.exports[ importDeclaration.name ];
+
+			return module.getCanonicalName( exportDeclaration.localName );
+		}
+
+		if ( name === 'default' ) {
+			name = this.defaultExportName;
+		}
+
+		return has( this.canonicalNames, name ) ? this.canonicalNames[ name ] : name;
+	}
+
+	deconflict () {
+
+	}
+
 	define ( name ) {
 		// shortcut cycles. TODO this won't work everywhere...
-		if ( hasOwnProp.call( this.definitionPromises, name ) ) {
+		if ( has( this.definitionPromises, name ) ) {
 			return emptyArrayPromise;
 		}
 
-		if ( !hasOwnProp.call( this.definitionPromises, name ) ) {
-			let promise;
+		let promise;
 
-			// The definition for this name is in a different module
-			if ( hasOwnProp.call( this.imports, name ) ) {
-				const importDeclaration = this.imports[ name ];
-				const path = resolve( dirname( this.path ), importDeclaration.source ) + '.js';
+		// The definition for this name is in a different module
+		if ( has( this.imports, name ) ) {
+			const importDeclaration = this.imports[ name ];
+			const path = resolve( dirname( this.path ), importDeclaration.source ) + '.js';
 
-				promise = this.bundle.fetchModule( path )
-					.then( module => {
-						const exportDeclaration = module.exports[ importDeclaration.name ];
+			promise = this.bundle.fetchModule( path )
+				.then( module => {
+					importDeclaration.module = module;
 
-						if ( !exportDeclaration ) {
-							throw new Error( `Module ${module.path} does not export ${importDeclaration.name} (imported by ${this.path})` );
-						}
+					const exportDeclaration = module.exports[ importDeclaration.name ];
 
-						const globalName = module.nameReplacements[ exportDeclaration.localName ];
-						if ( globalName ) {
-							this.rename( importDeclaration.localName, globalName );
-						} else {
-							module.rename( exportDeclaration.localName, importDeclaration.localName );
-						}
+					if ( !exportDeclaration ) {
+						throw new Error( `Module ${module.path} does not export ${importDeclaration.name} (imported by ${this.path})` );
+					}
 
-						return module.define( exportDeclaration.localName );
-					});
-			}
+					if ( importDeclaration.name === 'default' ) {
+						module.suggestDefaultName( importDeclaration.localName );
+					}
 
-			// The definition is in this module
-			else if ( name === 'default' && this.exports.default.isDeclaration ) {
-				// We have something like `export default foo` - so we just start again,
-				// searching for `foo` instead of default. First, sync up names
-				this.rename( 'default', this.exports.default.name );
-				promise = this.define( this.exports.default.name );
+					// const globalName = module.nameReplacements[ exportDeclaration.localName ];
+					// if ( globalName ) {
+					// 	this.rename( importDeclaration.localName, globalName, true );
+					// } else {
+					// 	module.rename( exportDeclaration.localName, importDeclaration.localName );
+					// }
+
+					return module.define( exportDeclaration.localName );
+				});
+		}
+
+		// The definition is in this module
+		else if ( name === 'default' && this.exports.default.isDeclaration ) {
+			// We have something like `export default foo` - so we just start again,
+			// searching for `foo` instead of default. First, sync up names
+			this.rename( 'default', this.exports.default.name );
+			promise = this.define( this.exports.default.name );
+		}
+
+		else {
+			let statement;
+
+			if ( name === 'default' ) {
+				// We have an expression, e.g. `export default 42`. We have
+				// to assign that expression to a variable
+				const replacement = this.defaultExportName;
+
+				statement = this.exports.default.node;
+
+				if ( !statement._imported ) {
+					// if we have `export default foo`, we don't want to turn it into `var foo = foo`
+					// - we want to remove it altogether (but keep the statement, so we can include
+					// its dependencies). TODO is there an easier way to do this?
+					const shouldRemove = statement.declaration.type === 'Identifier' && statement.declaration.name === replacement;
+
+					if ( shouldRemove ) {
+						statement._source.remove( statement.start, statement.end );
+					} else {
+						statement._source.overwrite( statement.start, statement.declaration.start, `var ${replacement} = ` );
+					}
+				}
 			}
 
 			else {
-				let statement;
+				statement = this.definitions[ name ];
 
-				if ( name === 'default' ) {
-					// We have an expression, e.g. `export default 42`. We have
-					// to assign that expression to a variable
-					const replacement = this.nameReplacements.default;
-
-					statement = this.exports.default.node;
-
-					if ( !statement._imported ) {
-						statement._source.overwrite( statement.start, statement.declaration.start, `var ${replacement} = ` )
-					}
-				}
-
-				else {
-					statement = this.definitions[ name ];
-
-					if ( statement && /^Export/.test( statement.type ) ) {
-						statement._source.remove( statement.start, statement.declaration.start );
-					}
-				}
-
-				if ( statement && !statement._imported ) {
-					const nodes = [];
-
-					const include = statement => {
-						if ( statement._imported ) return emptyArrayPromise;
-
-						const dependencies = Object.keys( statement._dependsOn );
-
-						return sequence( dependencies, name => this.define( name ) )
-							.then( definitions => {
-								definitions.forEach( definition => nodes.push.apply( nodes, definition ) );
-							})
-							.then( () => {
-								statement._imported = true;
-								nodes.push( statement );
-
-								const modifications = hasOwnProp.call( this.modifications, name ) && this.modifications[ name ];
-
-								if ( modifications ) {
-									return sequence( modifications, include );
-								}
-							})
-							.then( () => {
-								return nodes;
-							});
-					};
-
-					promise = include( statement );
+				if ( statement && /^Export/.test( statement.type ) ) {
+					statement._source.remove( statement.start, statement.declaration.start );
 				}
 			}
 
-			this.definitionPromises[ name ] = promise || emptyArrayPromise;
+			if ( statement && !statement._imported ) {
+				const nodes = [];
+
+				const include = statement => {
+					if ( statement._imported ) return emptyArrayPromise;
+
+					const dependencies = Object.keys( statement._dependsOn );
+
+					return sequence( dependencies, name => this.define( name ) )
+						.then( definitions => {
+							definitions.forEach( definition => nodes.push.apply( nodes, definition ) );
+						})
+						.then( () => {
+							statement._imported = true;
+							nodes.push( statement );
+
+							const modifications = has( this.modifications, name ) && this.modifications[ name ];
+
+							if ( modifications ) {
+								return sequence( modifications, include );
+							}
+						})
+						.then( () => {
+							return nodes;
+						});
+				};
+
+				promise = include( statement );
+			}
 		}
 
+
+
+		this.definitionPromises[ name ] = promise || emptyArrayPromise;
 		return this.definitionPromises[ name ];
 	}
 
 	rename ( name, replacement ) {
-		if ( hasOwnProp.call( this.nameReplacements, name ) ) {
-			throw new Error( 'Cannot rename an identifier twice' );
-		}
-
-		this.nameReplacements[ name ] = replacement;
+		this.canonicalNames[ name ] = replacement;
 	}
+
+	suggestDefaultName ( name ) {
+		if ( !this.defaultExportName ) {
+			this.defaultExportName = name;
+		}
+	}
+
+	// rename ( name, replacement, force ) {
+	// 	if ( has( this.nameReplacements, name ) ) {
+	// 		throw new Error( 'Cannot rename an identifier twice' );
+	// 	}
+
+	// 	if ( !force ) {
+	// 		replacement = this.bundle.getSafeReplacement( replacement, this );
+	// 	}
+
+	// 	if ( name === replacement ) {
+	// 		return;
+	// 	}
+
+	// 	console.log( 'renamining %s : %s -> %s (%s)', this.relativePath, name, replacement, force );
+
+	// 	const index = this.definedNames.indexOf( name );
+	// 	if ( ~index ) {
+	// 		this.definedNames[ index ] = replacement;
+	// 	}
+
+	// 	this.nameReplacements[ name ] = replacement;
+	// }
 }

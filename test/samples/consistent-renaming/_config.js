@@ -1,3 +1,3 @@
 module.exports = {
-	description: 'renames identifiers consistently'
+	description: 'consistent renaming test'
 };
