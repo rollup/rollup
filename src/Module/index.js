@@ -21,8 +21,6 @@ export default class Module {
 		});
 
 		this.analyse();
-
-		this.deconflict();
 	}
 
 	analyse () {
@@ -141,10 +139,6 @@ export default class Module {
 		return has( this.canonicalNames, name ) ? this.canonicalNames[ name ] : name;
 	}
 
-	deconflict () {
-
-	}
-
 	define ( name ) {
 		// shortcut cycles. TODO this won't work everywhere...
 		if ( has( this.definitionPromises, name ) ) {
@@ -171,13 +165,6 @@ export default class Module {
 					if ( importDeclaration.name === 'default' ) {
 						module.suggestDefaultName( importDeclaration.localName );
 					}
-
-					// const globalName = module.nameReplacements[ exportDeclaration.localName ];
-					// if ( globalName ) {
-					// 	this.rename( importDeclaration.localName, globalName, true );
-					// } else {
-					// 	module.rename( exportDeclaration.localName, importDeclaration.localName );
-					// }
 
 					return module.define( exportDeclaration.localName );
 				});
@@ -269,27 +256,4 @@ export default class Module {
 			this.defaultExportName = name;
 		}
 	}
-
-	// rename ( name, replacement, force ) {
-	// 	if ( has( this.nameReplacements, name ) ) {
-	// 		throw new Error( 'Cannot rename an identifier twice' );
-	// 	}
-
-	// 	if ( !force ) {
-	// 		replacement = this.bundle.getSafeReplacement( replacement, this );
-	// 	}
-
-	// 	if ( name === replacement ) {
-	// 		return;
-	// 	}
-
-	// 	console.log( 'renamining %s : %s -> %s (%s)', this.relativePath, name, replacement, force );
-
-	// 	const index = this.definedNames.indexOf( name );
-	// 	if ( ~index ) {
-	// 		this.definedNames[ index ] = replacement;
-	// 	}
-
-	// 	this.nameReplacements[ name ] = replacement;
-	// }
 }

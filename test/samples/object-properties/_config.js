@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'includes object properties in definitions',
-	// solo: true
+	description: 'includes object properties in definitions'
 };
