@@ -9,7 +9,7 @@ function isStatement ( node, parent ) {
 	       node.type === 'FunctionDeclaration'; // TODO or any of the other various statement-ish things it could be
 }
 
-export default function analyse ( ast, magicString ) {
+export default function analyse ( ast, magicString, module ) {
 	let scope = new Scope();
 	let topLevelStatements = [];
 	let currentTopLevelStatement;
@@ -42,6 +42,9 @@ export default function analyse ( ast, magicString ) {
 		statement._modifies = {};
 		statement._dependsOn = {};
 		statement._imported = false;
+
+		// link back to the module
+		statement._module = module;
 
 		// store the actual code, for easy regeneration
 		statement._source = magicString.snip( previous, statement.end );

@@ -5,6 +5,7 @@ import { hasOwnProp } from '../utils/object';
 import { sequence } from '../utils/promise';
 import Module from '../Module/index';
 import finalisers from '../finalisers/index';
+import replaceIdentifiers from '../utils/replaceIdentifiers';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -78,6 +79,9 @@ export default class Bundle {
 		let magicString = new MagicString.Bundle();
 
 		this.body.forEach( statement => {
+			const module = statement._module;
+
+			replaceIdentifiers( statement, statement._source, module.nameReplacements );
 			magicString.addSource( statement._source );
 		});
 

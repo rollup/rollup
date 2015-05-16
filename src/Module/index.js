@@ -5,7 +5,6 @@ import MagicString from 'magic-string';
 import analyse from '../ast/analyse';
 import { hasOwnProp } from '../utils/object';
 import { sequence } from '../utils/promise';
-import replaceIdentifiers from '../utils/replaceIdentifiers';
 
 const emptyArrayPromise = Promise.resolve([]);
 
@@ -21,7 +20,7 @@ export default class Module {
 			sourceType: 'module'
 		});
 
-		analyse( this.ast, this.code );
+		analyse( this.ast, this.code, this );
 
 		this.nameReplacements = {};
 
@@ -130,10 +129,12 @@ export default class Module {
 							throw new Error( `Module ${module.path} does not export ${importDeclaration.name} (imported by ${this.path})` );
 						}
 
-						// we 'suggest' that the bundle use our local name for this import
-						// throughout the bundle. If that causes a conflict, we'll end up
-						// with something slightly different
-						module.nameReplacements[ exportDeclaration.localName ] = importDeclaration.localName;
+						const globalName = module.nameReplacements[ exportDeclaration.localName ];
+						if ( globalName ) {
+							this.rename( importDeclaration.localName, globalName );
+						} else {
+							module.rename( exportDeclaration.localName, importDeclaration.localName );
+						}
 
 						return module.define( exportDeclaration.localName );
 					});
@@ -143,16 +144,12 @@ export default class Module {
 			else if ( name === 'default' && this.exports.default.isDeclaration ) {
 				// We have something like `export default foo` - so we just start again,
 				// searching for `foo` instead of default. First, sync up names
-				this.nameReplacements.default = this.exports.default.name;
+				this.rename( 'default', this.exports.default.name );
 				promise = this.define( this.exports.default.name );
 			}
 
 			else {
 				let statement;
-
-				if ( !name ) {
-					console.log( new Error( 'no name' ).stack );
-				}
 
 				if ( name === 'default' ) {
 					// We have an expression, e.g. `export default 42`. We have
@@ -176,9 +173,6 @@ export default class Module {
 
 				if ( statement && !statement._imported ) {
 					const nodes = [];
-
-					// replace identifiers, as necessary
-					replaceIdentifiers( statement, statement._source, this.nameReplacements );
 
 					const include = statement => {
 						if ( statement._imported ) return emptyArrayPromise;
@@ -214,7 +208,11 @@ export default class Module {
 		return this.definitionPromises[ name ];
 	}
 
-	replaceName ( name, replacement ) {
+	rename ( name, replacement ) {
+		if ( hasOwnProp.call( this.nameReplacements, name ) ) {
+			throw new Error( 'Cannot rename an identifier twice' );
+		}
+
 		this.nameReplacements[ name ] = replacement;
 	}
 }
