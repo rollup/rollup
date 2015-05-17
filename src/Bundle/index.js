@@ -28,13 +28,6 @@ export default class Bundle {
 		this.externalModules = [];
 	}
 
-	collect () {
-		return this.build()
-			.then( () => {
-				return this;
-			});
-	}
-
 	fetchModule ( path ) {
 		if ( !has( this.modulePromises, path ) ) {
 			this.modulePromises[ path ] = readFile( path, { encoding: 'utf-8' })

@@ -29,15 +29,20 @@ export default function replaceIdentifiers ( statement, snippet, names ) {
 					return this.skip();
 				}
 
+				names = newNames;
 				replacementStack.push( newNames );
 			}
 
-			if ( node.type === 'Identifier' && parent.type !== 'MemberExpression' ) {
-				const name = has( names, node.name ) && names[ node.name ];
+			// We want to rewrite identifiers (that aren't property names)
+			if ( node.type !== 'Identifier' ) return;
+			if ( parent.type === 'MemberExpression' && node !== parent.object ) return;
+			if ( parent.type === 'Property' && node !== parent.value ) return;
+			// TODO others...?
 
-				if ( name && name !== node.name ) {
-					snippet.overwrite( node.start, node.end, name );
-				}
+			const name = has( names, node.name ) && names[ node.name ];
+
+			if ( name && name !== node.name ) {
+				snippet.overwrite( node.start, node.end, name );
 			}
 		},
 

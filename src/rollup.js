@@ -11,7 +11,7 @@ export function rollup ( entry, options = {} ) {
 		base: options.base || process.cwd()
 	});
 
-	return bundle.collect().then( () => {
+	return bundle.build().then( () => {
 		return {
 			generate: options => bundle.generate( options ),
 			write: ( dest, options ) => {
