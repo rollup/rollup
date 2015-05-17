@@ -1,9 +1,8 @@
-import { resolve, sep } from 'path';
+import { resolve } from 'path';
 import { readFile } from 'sander';
 import MagicString from 'magic-string';
 import { keys, has } from '../utils/object';
 import { sequence } from '../utils/promise';
-import sanitize from '../utils/sanitize';
 import Module from '../Module/index';
 import finalisers from '../finalisers/index';
 import replaceIdentifiers from '../utils/replaceIdentifiers';
@@ -16,7 +15,6 @@ export default class Bundle {
 
 		this.modulePromises = {};
 		this.modules = {};
-		this.modulesArray = [];
 
 		// this will store the top-level AST nodes we import
 		this.body = [];
@@ -38,16 +36,7 @@ export default class Bundle {
 						bundle: this
 					});
 
-					//const bindingNames = bundle.getBindingNamesFor( module );
-
-					// we need to ensure that this module's top-level
-					// declarations don't conflict with the bundle so far
-					module.definedNames.forEach( name => {
-
-					});
-
 					this.modules[ path ] = module;
-					this.modulesArray.push( module );
 					return module;
 				});
 		}

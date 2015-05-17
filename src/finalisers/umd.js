@@ -13,7 +13,7 @@ export default function umd ( bundle, magicString, options ) {
 	const exports = bundle.entryModule.exports;
 
 	const exportBlock = '\n\n' + Object.keys( exports ).map( name => {
-		return `exports.${name} = ${exports[name].localName};`
+		return `exports.${name} = ${exports[name].localName};`;
 	}).join( '\n' );
 
 	return magicString

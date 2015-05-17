@@ -2,16 +2,8 @@ import walk from './walk';
 import Scope from './Scope';
 import { getName } from '../utils/map-helpers';
 
-function isStatement ( node, parent ) {
-	return node.type === 'ExportDefaultDeclaration' ||
-	       node.type === 'ExpressionStatement' ||
-	       node.type === 'VariableDeclaration' ||
-	       node.type === 'FunctionDeclaration'; // TODO or any of the other various statement-ish things it could be
-}
-
 export default function analyse ( ast, magicString, module ) {
 	let scope = new Scope();
-	let topLevelStatements = [];
 	let currentTopLevelStatement;
 
 	function addToScope ( declarator ) {
@@ -51,7 +43,7 @@ export default function analyse ( ast, magicString, module ) {
 		currentTopLevelStatement = statement; // so we can attach scoping info
 
 		walk( statement, {
-			enter ( node, parent ) {
+			enter ( node ) {
 				let newScope;
 
 				magicString.addSourcemapLocation( node.start );
