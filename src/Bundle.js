@@ -1,11 +1,11 @@
 import { resolve } from 'path';
 import { readFile } from 'sander';
 import MagicString from 'magic-string';
-import { keys, has } from '../utils/object';
-import { sequence } from '../utils/promise';
-import Module from '../Module/index';
-import finalisers from '../finalisers/index';
-import replaceIdentifiers from '../utils/replaceIdentifiers';
+import { keys, has } from './utils/object';
+import { sequence } from './utils/promise';
+import Module from './Module';
+import finalisers from './finalisers/index';
+import replaceIdentifiers from './utils/replaceIdentifiers';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -26,7 +26,7 @@ export default class Bundle {
 		this.externalModules = [];
 	}
 
-	fetchModule ( path ) {
+	fetchModule ( path, id ) {
 		if ( !has( this.modulePromises, path ) ) {
 			this.modulePromises[ path ] = readFile( path, { encoding: 'utf-8' })
 				.then( code => {
@@ -38,6 +38,25 @@ export default class Bundle {
 
 					this.modules[ path ] = module;
 					return module;
+				}, err => {
+					if ( err.code === 'ENOENT' ) {
+						if ( id[0] === '.' ) {
+							// external modules can't have relative paths
+							throw err;
+						}
+
+						// most likely an external module
+						// TODO fire an event, or otherwise allow some way for
+						// users to control external modules better?
+						const module = {
+							id,
+							isExternal: true,
+							specifiers: []
+						};
+
+						this.externalModules.push( module );
+						return module;
+					}
 				});
 		}
 

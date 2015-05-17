@@ -2,9 +2,9 @@ import { dirname, relative, resolve } from 'path';
 import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
-import analyse from '../ast/analyse';
-import { has } from '../utils/object';
-import { sequence } from '../utils/promise';
+import analyse from './ast/analyse';
+import { has } from './utils/object';
+import { sequence } from './utils/promise';
 
 const emptyArrayPromise = Promise.resolve([]);
 
@@ -127,6 +127,8 @@ export default class Module {
 		if ( has( this.imports, name ) ) {
 			const importDeclaration = this.imports[ name ];
 			const module = importDeclaration.module;
+
+			// TODO handle external modules
 			const exportDeclaration = module.exports[ importDeclaration.name ];
 
 			return module.getCanonicalName( exportDeclaration.localName );
@@ -152,8 +154,13 @@ export default class Module {
 			const importDeclaration = this.imports[ name ];
 			const path = resolve( dirname( this.path ), importDeclaration.source ) + '.js';
 
-			promise = this.bundle.fetchModule( path )
+			promise = this.bundle.fetchModule( path, importDeclaration.source )
 				.then( module => {
+					if ( module.isExternal ) {
+						module.specifiers.push( importDeclaration );
+						return emptyArrayPromise;
+					}
+
 					importDeclaration.module = module;
 
 					const exportDeclaration = module.exports[ importDeclaration.name ];
