@@ -12,7 +12,9 @@ export default class Module {
 	constructor ({ path, code, bundle }) {
 		this.path = path;
 		this.relativePath = relative( bundle.base, path ).slice( 0, -3 ); // remove .js
-		this.code = new MagicString( code );
+		this.code = new MagicString( code, {
+			filename: path
+		});
 		this.bundle = bundle;
 
 		this.ast = parse( code, {
@@ -56,10 +58,12 @@ export default class Module {
 		this.exportStatements = [];
 
 		this.ast.body.forEach( node => {
+			let source;
+
 			// import foo from './foo';
 			// import { bar } from './bar';
 			if ( node.type === 'ImportDeclaration' ) {
-				const source = node.source.value;
+				source = node.source.value;
 
 				node.specifiers.forEach( specifier => {
 					const isDefault = specifier.type === 'ImportDefaultSpecifier';
@@ -97,6 +101,9 @@ export default class Module {
 				// export var foo = 42;
 				// export function foo () {}
 				else if ( node.type === 'ExportNamedDeclaration' ) {
+					// export { foo } from './foo';
+					source = node.source && node.source.value;
+
 					if ( node.specifiers.length ) {
 						// export { foo, bar, baz }
 						node.specifiers.forEach( specifier => {
@@ -107,6 +114,14 @@ export default class Module {
 								localName,
 								exportedName
 							};
+
+							if ( source ) {
+								this.imports[ localName ] = {
+									source,
+									localName,
+									name: exportedName
+								};
+							}
 						});
 					}
 
