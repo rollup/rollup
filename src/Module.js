@@ -184,9 +184,8 @@ export default class Module {
 		// The definition for this name is in a different module
 		if ( has( this.imports, name ) ) {
 			const importDeclaration = this.imports[ name ];
-			const path = resolve( dirname( this.path ), importDeclaration.source ) + '.js';
 
-			promise = this.bundle.fetchModule( path, importDeclaration.source )
+			promise = this.bundle.fetchModule( importDeclaration.source, this.path )
 				.then( module => {
 					importDeclaration.module = module;
 

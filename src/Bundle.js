@@ -8,12 +8,15 @@ import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import replaceIdentifiers from './utils/replaceIdentifiers';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
+import { defaultResolver } from './utils/resolvePath';
 
 export default class Bundle {
 	constructor ( options ) {
-		this.base = options.base;
-		this.entryPath = resolve( this.base, options.entry );
+		this.base = options.base || process.cwd();
+		this.entryPath = resolve( this.base, options.entry ).replace( /\.js$/, '' ) + '.js';
 		this.entryModule = null;
+
+		this.resolvePath = options.resolvePath || defaultResolver;
 
 		this.modulePromises = {};
 		this.modules = {};
@@ -28,9 +31,19 @@ export default class Bundle {
 		this.externalModules = [];
 	}
 
-	fetchModule ( path, id ) {
-		// TODO currently, we'll get different ExternalModule objects
-		// depending on where they're imported from...
+	fetchModule ( importee, importer ) {
+		const path = this.resolvePath( importee, importer );
+
+		if ( !path ) {
+			// external module
+			if ( !has( this.modulePromises, importee ) ) {
+				const module = new ExternalModule( importee );
+				this.externalModules.push( module );
+				this.modulePromises[ importee ] = Promise.resolve( module );
+			}
+
+			return this.modulePromises[ importee ];
+		}
 
 		if ( !has( this.modulePromises, path ) ) {
 			this.modulePromises[ path ] = readFile( path, { encoding: 'utf-8' })
@@ -43,21 +56,6 @@ export default class Bundle {
 
 					this.modules[ path ] = module;
 					return module;
-				}, err => {
-					if ( err.code === 'ENOENT' ) {
-						if ( id[0] === '.' ) {
-							// external modules can't have relative paths
-							throw err;
-						}
-
-						// most likely an external module
-						// TODO fire an event, or otherwise allow some way for
-						// users to control external modules better?
-						const module = new ExternalModule( id );
-
-						this.externalModules.push( module );
-						return module;
-					}
 				});
 		}
 
