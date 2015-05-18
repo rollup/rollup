@@ -1,7 +1,6 @@
 import { keys } from '../utils/object';
-import makeLegalIdentifier from '../utils/makeLegalIdentifier';
 
-export default function cjs ( bundle, magicString, options ) {
+export default function cjs ( bundle, magicString ) {
 	let intro = `'use strict';\n\n`;
 
 	// TODO handle ambiguous default imports
@@ -20,7 +19,7 @@ export default function cjs ( bundle, magicString, options ) {
 	const exportBlock = keys( bundle.entryModule.exports )
 		.map( key => {
 			const specifier = bundle.entryModule.exports[ key ];
-			return `exports.${key} = ${specifier.localName}`;
+			return `exports.${key} = ${specifier.localName};`;
 		})
 		.join( '\n' );
 
