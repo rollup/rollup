@@ -4,8 +4,10 @@ import MagicString from 'magic-string';
 import { keys, has } from './utils/object';
 import { sequence } from './utils/promise';
 import Module from './Module';
+import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import replaceIdentifiers from './utils/replaceIdentifiers';
+import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -27,6 +29,9 @@ export default class Bundle {
 	}
 
 	fetchModule ( path, id ) {
+		// TODO currently, we'll get different ExternalModule objects
+		// depending on where they're imported from...
+
 		if ( !has( this.modulePromises, path ) ) {
 			this.modulePromises[ path ] = readFile( path, { encoding: 'utf-8' })
 				.then( code => {
@@ -48,11 +53,7 @@ export default class Bundle {
 						// most likely an external module
 						// TODO fire an event, or otherwise allow some way for
 						// users to control external modules better?
-						const module = {
-							id,
-							isExternal: true,
-							specifiers: []
-						};
+						const module = new ExternalModule( id );
 
 						this.externalModules.push( module );
 						return module;
@@ -61,14 +62,6 @@ export default class Bundle {
 		}
 
 		return this.modulePromises[ path ];
-	}
-
-	getBindingNamesFor ( module ) {
-		if ( !has( this.bindingNames, module.path ) ) {
-			this.bindingNames[ module.path ] = {};
-		}
-
-		return this.bindingNames[ module.path ];
 	}
 
 	build () {
@@ -108,6 +101,18 @@ export default class Bundle {
 	}
 
 	deconflict () {
+		// TODO this probably needs to happen at generate time, since
+		// treatment of external modules differs between formats
+		// e.g. this...
+		//
+		//     import { relative } from 'path'`;
+		//     console.log( relative( 'foo', 'bar' ) );
+		//
+		// ...would look very similar when bundled as ES6, but in
+		// a CommonJS bundle would become this:
+		//
+		//     var path = require( 'path' );
+		//     console.log( path.relative( 'foo', 'bar' ) );
 		let definers = {};
 		let conflicts = {};
 
@@ -124,6 +129,17 @@ export default class Bundle {
 				// per module... but some people write bad js
 				definers[ name ].push( statement._module );
 			});
+		});
+
+		// Assign names to external modules
+		this.externalModules.forEach( module => {
+			let name = makeLegalIdentifier( module.id );
+
+			while ( has( definers, name ) ) {
+				name = `_${name}`;
+			}
+
+			module.name = name;
 		});
 
 		// Rename conflicting identifiers so they can live in the same scope
@@ -156,12 +172,27 @@ export default class Bundle {
 	}
 
 	generate ( options = {} ) {
-		let magicString = new MagicString.Bundle();
+		let magicString = new MagicString.Bundle({ separator: '' });
+
+		this.entryModule.exportStatements.forEach( statement => {
+			if ( statement.specifiers.length ) {
+				// we don't need to include `export { foo }`, it's already handled
+				return;
+			}
+
+			if ( statement.declaration.type === 'VariableDeclaration' ) {
+				const declarator = statement.declaration.declarations[0];
+				statement._source.remove( statement.start, statement.declaration.start );
+			} else {
+				// TODO function, class declarations
+			}
+
+			// TODO are there situations where the export needs to be
+			// placed higher up, i.e. kept in situ? probably...
+			this.body.push( statement );
+		});
 
 		this.body.forEach( statement => {
-			const module = statement._module;
-
-			replaceIdentifiers( statement, statement._source, module.nameReplacements );
 			magicString.addSource( statement._source );
 		});
 

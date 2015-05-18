@@ -28,7 +28,6 @@ export default class Module {
 
 		this.definedNames = this.ast._scope.names.slice();
 
-		this.nameReplacements = {};
 		this.canonicalNames = {};
 
 		this.definitions = {};
@@ -49,8 +48,12 @@ export default class Module {
 			});
 		});
 
+		// imports and exports, indexed by ID
 		this.imports = {};
 		this.exports = {};
+
+		// an array of export statements, used for the entry module
+		this.exportStatements = [];
 
 		this.ast.body.forEach( node => {
 			// import foo from './foo';
@@ -59,65 +62,73 @@ export default class Module {
 				const source = node.source.value;
 
 				node.specifiers.forEach( specifier => {
-					const name = specifier.local.name;
 					const isDefault = specifier.type === 'ImportDefaultSpecifier';
+					const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
 
-					this.imports[ name ] = {
+					const localName = specifier.local.name;
+					const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
+
+					this.imports[ localName ] = {
 						source,
-						name: isDefault ? 'default' : specifier.imported.name,
-						localName: name
+						name,
+						localName
 					};
 				});
 			}
 
-			// export default function foo () {}
-			// export default foo;
-			// export default 42;
-			else if ( node.type === 'ExportDefaultDeclaration' ) {
-				const isDeclaration = /Declaration$/.test( node.declaration.type );
+			else if ( /^Export/.test( node.type ) ) {
+				this.exportStatements.push( node );
 
-				this.exports.default = {
-					node,
-					name: 'default',
-					localName: isDeclaration ? node.declaration.id.name : 'default',
-					isDeclaration,
-					module: null // filled in later
-				};
-			}
+				// export default function foo () {}
+				// export default foo;
+				// export default 42;
+				if ( node.type === 'ExportDefaultDeclaration' ) {
+					const isDeclaration = /Declaration$/.test( node.declaration.type );
 
-			// export { foo, bar, baz }
-			// export var foo = 42;
-			// export function foo () {}
-			else if ( node.type === 'ExportNamedDeclaration' ) {
-				if ( node.specifiers.length ) {
-					// export { foo, bar, baz }
-					node.specifiers.forEach( specifier => {
-						const localName = specifier.local.name;
-						const exportedName = specifier.exported.name;
-
-						this.exports[ exportedName ] = {
-							localName
-						};
-					});
+					this.exports.default = {
+						node,
+						name: 'default',
+						localName: isDeclaration ? node.declaration.id.name : 'default',
+						isDeclaration
+					};
 				}
 
-				else {
-					let declaration = node.declaration;
+				// export { foo, bar, baz }
+				// export var foo = 42;
+				// export function foo () {}
+				else if ( node.type === 'ExportNamedDeclaration' ) {
+					if ( node.specifiers.length ) {
+						// export { foo, bar, baz }
+						node.specifiers.forEach( specifier => {
+							const localName = specifier.local.name;
+							const exportedName = specifier.exported.name;
 
-					let name;
-
-					if ( declaration.type === 'VariableDeclaration' ) {
-						// export var foo = 42
-						name = declaration.declarations[0].id.name;
-					} else {
-						// export function foo () {}
-						name = declaration.id.name;
+							this.exports[ exportedName ] = {
+								localName,
+								exportedName
+							};
+						});
 					}
 
-					this.exports[ name ] = {
-						localName: name,
-						expression: declaration
-					};
+					else {
+						let declaration = node.declaration;
+
+						let name;
+
+						if ( declaration.type === 'VariableDeclaration' ) {
+							// export var foo = 42
+							name = declaration.declarations[0].id.name;
+						} else {
+							// export function foo () {}
+							name = declaration.id.name;
+						}
+
+						this.exports[ name ] = {
+							node,
+							localName: name,
+							expression: declaration
+						};
+					}
 				}
 			}
 		});
@@ -128,10 +139,16 @@ export default class Module {
 			const importDeclaration = this.imports[ name ];
 			const module = importDeclaration.module;
 
-			// TODO handle external modules
-			const exportDeclaration = module.exports[ importDeclaration.name ];
+			let exporterLocalName;
 
-			return module.getCanonicalName( exportDeclaration.localName );
+			if ( module.isExternal ) {
+				exporterLocalName = name;
+			} else {
+				const exportDeclaration = module.exports[ importDeclaration.name ];
+				exporterLocalName = exportDeclaration.localName;
+			}
+
+			return module.getCanonicalName( exporterLocalName );
 		}
 
 		if ( name === 'default' ) {
@@ -156,21 +173,21 @@ export default class Module {
 
 			promise = this.bundle.fetchModule( path, importDeclaration.source )
 				.then( module => {
-					if ( module.isExternal ) {
-						module.specifiers.push( importDeclaration );
-						return emptyArrayPromise;
+					importDeclaration.module = module;
+
+					if ( importDeclaration.name === 'default' ) {
+						module.suggestDefaultName( importDeclaration.localName );
 					}
 
-					importDeclaration.module = module;
+					if ( module.isExternal ) {
+						module.importedByBundle.push( importDeclaration );
+						return emptyArrayPromise;
+					}
 
 					const exportDeclaration = module.exports[ importDeclaration.name ];
 
 					if ( !exportDeclaration ) {
 						throw new Error( `Module ${module.path} does not export ${importDeclaration.name} (imported by ${this.path})` );
-					}
-
-					if ( importDeclaration.name === 'default' ) {
-						module.suggestDefaultName( importDeclaration.localName );
 					}
 
 					return module.define( exportDeclaration.localName );
