@@ -85,10 +85,19 @@ export default class Bundle {
 				})
 					.then( () => {
 						entryModule.ast.body.forEach( node => {
-							// exclude imports and exports, include everything else
-							if ( !/^(?:Im|Ex)port/.test( node.type ) ) {
-								this.body.push( node );
+							// Exclude imports
+							if ( /^Import/.test( node.type ) ) return;
+
+							if ( node.type === 'ExportNamedDeclaration' ) {
+								// Exclude specifier exports
+								if ( node.specifiers.length ) return;
+
+								// Remove the `export` from everything else
+								node._source.remove( node.start, node.declaration.start );
 							}
+
+							// Include everything else
+							this.body.push( node );
 						});
 					});
 			})
@@ -157,7 +166,7 @@ export default class Bundle {
 
 		// TODO we shouldn't be adding export statements back into the entry
 		// module, they shouldn't be removed in the first place
-		this.entryModule.exportStatements.forEach( statement => {
+		/*this.entryModule.exportStatements.forEach( statement => {
 			if ( statement.specifiers.length ) {
 				// we don't need to include `export { foo }`, it's already handled
 				return;
@@ -170,7 +179,7 @@ export default class Bundle {
 			}
 
 			this.body.push( statement );
-		});
+		});*/
 
 		// Apply new names and add to the output bundle
 		this.body.forEach( statement => {

@@ -19,7 +19,9 @@ export default function cjs ( bundle, magicString ) {
 	const exportBlock = keys( bundle.entryModule.exports )
 		.map( key => {
 			const specifier = bundle.entryModule.exports[ key ];
-			return `exports.${key} = ${specifier.localName};`;
+			const name = bundle.entryModule.getCanonicalName( specifier.localName );
+
+			return `exports.${key} = ${name};`;
 		})
 		.join( '\n' );
 
