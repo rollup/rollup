@@ -8,11 +8,14 @@ export default class ExternalModule {
 
 		this.canonicalNames = {};
 		this.defaultExportName = null;
+
+		this.needsDefault = null;
+		this.needsNamed = null;
 	}
 
 	getCanonicalName ( name ) {
 		if ( name === 'default' ) {
-			return `${this.name}__default`; // TODO...
+			return this.needsNamed ? `${this.name}__default` : this.name;
 		}
 
 		if ( name === '*' ) {

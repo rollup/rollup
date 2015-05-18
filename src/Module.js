@@ -190,6 +190,12 @@ export default class Module {
 					}
 
 					if ( module.isExternal ) {
+						if ( importDeclaration.name === 'default' ) {
+							module.needsDefault = true;
+						} else {
+							module.needsNamed = true;
+						}
+
 						module.importedByBundle.push( importDeclaration );
 						return emptyArrayPromise;
 					}

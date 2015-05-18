@@ -6,7 +6,16 @@ export default function cjs ( bundle, magicString ) {
 	// TODO handle ambiguous default imports
 	// TODO handle empty imports, once they're supported
 	const importBlock = bundle.externalModules
-		.map( module => `var ${module.name} = require('${module.id}');` )
+		.map( module => {
+			let requireStatement = `var ${module.name} = require('${module.id}');`;
+
+			if ( module.needsDefault ) {
+				requireStatement += '\n' + ( module.needsNamed ? `var ${module.name}__default = ` : `${module.name} = ` ) +
+					`'default' in ${module.name} ? ${module.name}['default'] : ${module.name};`;
+			}
+
+			return requireStatement;
+		})
 		.join( '\n' );
 
 	if ( importBlock ) {
