@@ -10,12 +10,13 @@ const emptyArrayPromise = Promise.resolve([]);
 
 export default class Module {
 	constructor ({ path, code, bundle }) {
+		this.bundle = bundle;
 		this.path = path;
 		this.relativePath = relative( bundle.base, path ).slice( 0, -3 ); // remove .js
+
 		this.code = new MagicString( code, {
 			filename: path
 		});
-		this.bundle = bundle;
 
 		this.ast = parse( code, {
 			ecmaVersion: 6,
@@ -54,9 +55,6 @@ export default class Module {
 		this.imports = {};
 		this.exports = {};
 
-		// an array of export statements, used for the entry module
-		this.exportStatements = [];
-
 		this.ast.body.forEach( node => {
 			let source;
 
@@ -81,8 +79,6 @@ export default class Module {
 			}
 
 			else if ( /^Export/.test( node.type ) ) {
-				this.exportStatements.push( node );
-
 				// export default function foo () {}
 				// export default foo;
 				// export default 42;

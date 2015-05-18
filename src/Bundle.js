@@ -14,20 +14,11 @@ export default class Bundle {
 	constructor ( options ) {
 		this.base = options.base || process.cwd();
 		this.entryPath = resolve( this.base, options.entry ).replace( /\.js$/, '' ) + '.js';
-		this.entryModule = null;
-
 		this.resolvePath = options.resolvePath || defaultResolver;
 
+		this.entryModule = null;
 		this.modulePromises = {};
-		this.modules = {};
-
-		// this will store the top-level AST nodes we import
-		this.body = [];
-
-		// this will store per-module names, and enable deconflicting
-		this.bindingNames = {};
-		this.usedNames = {};
-
+		this.statements = [];
 		this.externalModules = [];
 	}
 
@@ -54,7 +45,6 @@ export default class Bundle {
 						bundle: this
 					});
 
-					this.modules[ path ] = module;
 					return module;
 				});
 		}
@@ -70,17 +60,11 @@ export default class Bundle {
 
 				const importedNames = keys( entryModule.imports );
 
-				entryModule.definedNames
-					.concat( importedNames )
-					.forEach( name => {
-						this.usedNames[ name ] = true;
-					});
-
 				// pull in imports
 				return sequence( importedNames, name => {
 					return entryModule.define( name )
 						.then( nodes => {
-							this.body.push.apply( this.body, nodes );
+							this.statements.push.apply( this.statements, nodes );
 						});
 				})
 					.then( () => {
@@ -97,7 +81,7 @@ export default class Bundle {
 							}
 
 							// Include everything else
-							this.body.push( node );
+							this.statements.push( node );
 						});
 					});
 			})
@@ -108,23 +92,11 @@ export default class Bundle {
 	}
 
 	deconflict () {
-		// TODO this probably needs to happen at generate time, since
-		// treatment of external modules differs between formats
-		// e.g. this...
-		//
-		//     import { relative } from 'path'`;
-		//     console.log( relative( 'foo', 'bar' ) );
-		//
-		// ...would look very similar when bundled as ES6, but in
-		// a CommonJS bundle would become this:
-		//
-		//     var path = require( 'path' );
-		//     console.log( path.relative( 'foo', 'bar' ) );
 		let definers = {};
 		let conflicts = {};
 
 		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
-		this.body.forEach( statement => {
+		this.statements.forEach( statement => {
 			keys( statement._defines ).forEach( name => {
 				if ( has( definers, name ) ) {
 					conflicts[ name ] = true;
@@ -164,25 +136,8 @@ export default class Bundle {
 	generate ( options = {} ) {
 		let magicString = new MagicString.Bundle({ separator: '' });
 
-		// TODO we shouldn't be adding export statements back into the entry
-		// module, they shouldn't be removed in the first place
-		/*this.entryModule.exportStatements.forEach( statement => {
-			if ( statement.specifiers.length ) {
-				// we don't need to include `export { foo }`, it's already handled
-				return;
-			}
-
-			if ( statement.declaration.type === 'VariableDeclaration' ) {
-				statement._source.remove( statement.start, statement.declaration.start );
-			} else {
-				// TODO function, class declarations
-			}
-
-			this.body.push( statement );
-		});*/
-
 		// Apply new names and add to the output bundle
-		this.body.forEach( statement => {
+		this.statements.forEach( statement => {
 			let replacements = {};
 
 			keys( statement._dependsOn )
