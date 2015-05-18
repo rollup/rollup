@@ -152,8 +152,29 @@ export default class Bundle {
 				module.rename( name, name + '$' + ~~( Math.random() * 100000 ) ); // TODO proper deconfliction mechanism
 			});
 		});
+	}
 
-		// Apply new names
+	generate ( options = {} ) {
+		let magicString = new MagicString.Bundle({ separator: '' });
+
+		// TODO we shouldn't be adding export statements back into the entry
+		// module, they shouldn't be removed in the first place
+		this.entryModule.exportStatements.forEach( statement => {
+			if ( statement.specifiers.length ) {
+				// we don't need to include `export { foo }`, it's already handled
+				return;
+			}
+
+			if ( statement.declaration.type === 'VariableDeclaration' ) {
+				statement._source.remove( statement.start, statement.declaration.start );
+			} else {
+				// TODO function, class declarations
+			}
+
+			this.body.push( statement );
+		});
+
+		// Apply new names and add to the output bundle
 		this.body.forEach( statement => {
 			let replacements = {};
 
@@ -167,33 +188,10 @@ export default class Bundle {
 					}
 				});
 
-			replaceIdentifiers( statement, statement._source, replacements );
-		});
-	}
+			const source = statement._source.clone();
 
-	generate ( options = {} ) {
-		let magicString = new MagicString.Bundle({ separator: '' });
-
-		this.entryModule.exportStatements.forEach( statement => {
-			if ( statement.specifiers.length ) {
-				// we don't need to include `export { foo }`, it's already handled
-				return;
-			}
-
-			if ( statement.declaration.type === 'VariableDeclaration' ) {
-				const declarator = statement.declaration.declarations[0];
-				statement._source.remove( statement.start, statement.declaration.start );
-			} else {
-				// TODO function, class declarations
-			}
-
-			// TODO are there situations where the export needs to be
-			// placed higher up, i.e. kept in situ? probably...
-			this.body.push( statement );
-		});
-
-		this.body.forEach( statement => {
-			magicString.addSource( statement._source );
+			replaceIdentifiers( statement, source, replacements );
+			magicString.addSource( source );
 		});
 
 		const finalise = finalisers[ options.format || 'es6' ];
@@ -207,7 +205,7 @@ export default class Bundle {
 		return {
 			code: magicString.toString(),
 			map: magicString.generateMap({
-
+				// TODO
 			})
 		};
 	}

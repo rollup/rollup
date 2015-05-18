@@ -1,5 +1,3 @@
-import { has } from './utils/object';
-
 export default class ExternalModule {
 	constructor ( id ) {
 		this.id = id;
@@ -15,6 +13,10 @@ export default class ExternalModule {
 	getCanonicalName ( name ) {
 		if ( name === 'default' ) {
 			return `${this.name}__default`; // TODO...
+		}
+
+		if ( name === '*' ) {
+			return this.name;
 		}
 
 		// TODO this depends on the output format... works for CJS etc but not ES6

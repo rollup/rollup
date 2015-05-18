@@ -142,7 +142,7 @@ export default class Module {
 			let exporterLocalName;
 
 			if ( module.isExternal ) {
-				exporterLocalName = name;
+				exporterLocalName = importDeclaration.name;
 			} else {
 				const exportDeclaration = module.exports[ importDeclaration.name ];
 				exporterLocalName = exportDeclaration.localName;
