@@ -205,6 +205,8 @@ export default class Bundle {
 		return {
 			code: magicString.toString(),
 			map: magicString.generateMap({
+				includeContent: true,
+				file: options.dest
 				// TODO
 			})
 		};
