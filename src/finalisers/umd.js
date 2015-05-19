@@ -1,4 +1,4 @@
-export default function umd ( bundle, magicString, options ) {
+export default function umd ( bundle, magicString, exportMode, options ) {
 	const indentStr = magicString.getIndentString();
 
 	const intro =

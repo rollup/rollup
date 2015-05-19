@@ -30,12 +30,14 @@ describe( 'rollup', function () {
 					});
 
 					try {
-						var fn = new Function( 'require', 'exports', 'assert', result.code );
-						var exports = {};
-						fn( require, exports, assert );
+						var fn = new Function( 'require', 'module', 'exports', 'assert', result.code );
+						var module = {
+							exports: {}
+						};
+						fn( require, module, module.exports, assert );
 
 						if ( config.exports ) {
-							config.exports( exports, assert );
+							config.exports( module.exports, assert );
 						}
 					} catch ( err ) {
 						console.log( result.code );
