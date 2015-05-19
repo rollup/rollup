@@ -24,8 +24,6 @@ export default function analyse ( ast, magicString, module ) {
 		}
 	}
 
-	// TODO include imports in top-level scope?
-
 	// first we need to generate comprehensive scope info
 	let previous = 0;
 
