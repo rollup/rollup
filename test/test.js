@@ -8,6 +8,16 @@ var rollup = require( '../dist/rollup' );
 
 var SAMPLES = path.resolve( __dirname, 'samples' );
 
+function extend ( target ) {
+	[].slice.call( arguments, 1 ).forEach( function ( source ) {
+		source && Object.keys( source ).forEach( function ( key ) {
+			target[ key ] = source[ key ];
+		});
+	});
+
+	return target;
+}
+
 describe( 'rollup', function () {
 	it( 'exists', function () {
 		assert.ok( !!rollup );
@@ -23,11 +33,11 @@ describe( 'rollup', function () {
 		var config = require( SAMPLES + '/' + dir + '/_config' );
 
 		( config.solo ? it.only : it )( config.description, function () {
-			return rollup.rollup( SAMPLES + '/' + dir + '/main.js' )
+			return rollup.rollup( SAMPLES + '/' + dir + '/main.js', extend( {}, config.options ) )
 				.then( function ( bundle ) {
-					var result = bundle.generate({
+					var result = bundle.generate( extend( {}, config.bundleOptions, {
 						format: 'cjs'
-					});
+					}));
 
 					try {
 						var fn = new Function( 'require', 'exports', 'assert', result.code );

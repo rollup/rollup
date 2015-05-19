@@ -92,7 +92,13 @@ The example below is aspirational. It isn't yet implemented - it exists in the n
 
 ```js
 rollup.rollup( 'app.js', {
-  /* options */
+  // Override the default path resolution
+  resolvePath: function ( importee, importer ) {
+    // return a string or a falsy value - if falsy,
+    // import is kept external to the bundle.
+    // Alternative, return a Promise that fulfils
+    // with a string or falsy value
+  }
 }).then( function ( bundle ) {
   // generate code and a sourcemap
   const { code, map } = bundle.generate({

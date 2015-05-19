@@ -1,5 +1,5 @@
-import { resolve } from 'path';
-import { readFile } from 'sander';
+import { dirname, resolve } from 'path';
+import { readFile, Promise } from 'sander';
 import MagicString from 'magic-string';
 import { keys, has } from './utils/object';
 import { sequence } from './utils/promise';
@@ -12,8 +12,9 @@ import { defaultResolver } from './utils/resolvePath';
 
 export default class Bundle {
 	constructor ( options ) {
-		this.base = options.base || process.cwd();
-		this.entryPath = resolve( this.base, options.entry ).replace( /\.js$/, '' ) + '.js';
+		this.entryPath = resolve( options.entry ).replace( /\.js$/, '' ) + '.js';
+		this.base = dirname( this.entryPath );
+
 		this.resolvePath = options.resolvePath || defaultResolver;
 
 		this.entryModule = null;
@@ -23,38 +24,39 @@ export default class Bundle {
 	}
 
 	fetchModule ( importee, importer ) {
-		const path = this.resolvePath( importee, importer );
+		return Promise.resolve( importer === null ? importee : this.resolvePath( importee, importer ) )
+			.then( path => {
+				if ( !path ) {
+					// external module
+					if ( !has( this.modulePromises, importee ) ) {
+						const module = new ExternalModule( importee );
+						this.externalModules.push( module );
+						this.modulePromises[ importee ] = Promise.resolve( module );
+					}
 
-		if ( !path ) {
-			// external module
-			if ( !has( this.modulePromises, importee ) ) {
-				const module = new ExternalModule( importee );
-				this.externalModules.push( module );
-				this.modulePromises[ importee ] = Promise.resolve( module );
-			}
+					return this.modulePromises[ importee ];
+				}
 
-			return this.modulePromises[ importee ];
-		}
+				if ( !has( this.modulePromises, path ) ) {
+					this.modulePromises[ path ] = readFile( path, { encoding: 'utf-8' })
+						.then( code => {
+							const module = new Module({
+								path,
+								code,
+								bundle: this
+							});
 
-		if ( !has( this.modulePromises, path ) ) {
-			this.modulePromises[ path ] = readFile( path, { encoding: 'utf-8' })
-				.then( code => {
-					const module = new Module({
-						path,
-						code,
-						bundle: this
-					});
+							return module;
+						});
+				}
 
-					return module;
-				});
-		}
-
-		return this.modulePromises[ path ];
+				return this.modulePromises[ path ];
+			});
 	}
 
 	build () {
 		// bring in top-level AST nodes from the entry module
-		return this.fetchModule( this.entryPath )
+		return this.fetchModule( this.entryPath, null )
 			.then( entryModule => {
 				this.entryModule = entryModule;
 

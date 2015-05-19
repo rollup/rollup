@@ -8,7 +8,7 @@ SOURCEMAPPING_URL += 'ppingURL';
 export function rollup ( entry, options = {} ) {
 	const bundle = new Bundle({
 		entry,
-		base: options.base || process.cwd()
+		resolvePath: options.resolvePath
 	});
 
 	return bundle.build().then( () => {
