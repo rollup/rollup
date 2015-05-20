@@ -219,7 +219,10 @@ export default class Module {
 					importDeclaration.module = module;
 
 					if ( importDeclaration.name === 'default' ) {
-						module.suggestName( 'default', importDeclaration.localName );
+						// TODO this seems ropey
+						const localName = importDeclaration.localName;
+						const suggestion = has( this.suggestedNames, localName ) ? this.suggestedNames[ localName ] : localName;
+						module.suggestName( 'default', suggestion );
 					}
 
 					if ( module.isExternal ) {

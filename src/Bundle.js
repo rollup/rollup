@@ -65,6 +65,16 @@ export default class Bundle {
 		return this.fetchModule( this.entryPath, null )
 			.then( entryModule => {
 				this.entryModule = entryModule;
+
+				if ( entryModule.exports.default ) {
+					let defaultExportName = makeLegalIdentifier( basename( this.entryPath ).slice( 0, -extname( this.entryPath ).length ) );
+					while ( entryModule.ast._scope.contains( defaultExportName ) ) {
+						defaultExportName = `_${defaultExportName}`;
+					}
+
+					entryModule.suggestName( 'default', defaultExportName );
+				}
+
 				return entryModule.expandAllStatements( true );
 			})
 			.then( statements => {
@@ -174,7 +184,7 @@ export default class Bundle {
 		const namespaceBlock = this.internalNamespaceModules.map( module => {
 			const exportKeys = keys( module.exports );
 
-			return `var ${module.suggestedNames['*']} = {\n` +
+			return `var ${module.getCanonicalName('*')} = {\n` +
 				exportKeys.map( key => `${indentString}get ${key} () { return ${module.getCanonicalName(key)}; }` ).join( ',\n' ) +
 			`\n};\n\n`;
 		}).join( '' );
