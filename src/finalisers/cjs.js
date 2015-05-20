@@ -1,6 +1,6 @@
 import { keys } from '../utils/object';
 
-export default function cjs ( bundle, magicString ) {
+export default function cjs ( bundle, magicString, exportMode ) {
 	let intro = `'use strict';\n\n`;
 
 	// TODO handle ambiguous default imports
@@ -24,15 +24,19 @@ export default function cjs ( bundle, magicString ) {
 
 	magicString.prepend( intro );
 
-	// TODO handle default exports
-	const exportBlock = keys( bundle.entryModule.exports )
-		.map( key => {
-			const specifier = bundle.entryModule.exports[ key ];
-			const name = bundle.entryModule.getCanonicalName( specifier.localName );
+	let exportBlock;
+	if ( exportMode === 'default' && bundle.entryModule.exports.default ) {
+		exportBlock = `module.exports = ${bundle.defaultExportName};`;
+	} else if ( exportMode === 'named' ) {
+		exportBlock = keys( bundle.entryModule.exports )
+			.map( key => {
+				const specifier = bundle.entryModule.exports[ key ];
+				const name = bundle.entryModule.getCanonicalName( specifier.localName );
 
-			return `exports.${key} = ${name};`;
-		})
-		.join( '\n' );
+				return `exports.${key} = ${name};`;
+			})
+			.join( '\n' );
+	}
 
 	if ( exportBlock ) {
 		magicString.append( '\n\n' + exportBlock );
