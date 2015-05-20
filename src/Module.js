@@ -37,30 +37,6 @@ export default class Module {
 	}
 
 	analyse () {
-		analyse( this.ast, this.code, this );
-
-		this.definedNames = this.ast._scope.names.slice();
-
-		this.canonicalNames = {};
-
-		this.definitions = {};
-		this.definitionPromises = {};
-		this.modifications = {};
-
-		this.ast.body.forEach( statement => {
-			Object.keys( statement._defines ).forEach( name => {
-				this.definitions[ name ] = statement;
-			});
-
-			Object.keys( statement._modifies ).forEach( name => {
-				if ( !has( this.modifications, name ) ) {
-					this.modifications[ name ] = [];
-				}
-
-				this.modifications[ name ].push( statement );
-			});
-		});
-
 		// imports and exports, indexed by ID
 		this.imports = {};
 		this.exports = {};
@@ -159,6 +135,32 @@ export default class Module {
 					}
 				}
 			}
+		});
+
+
+
+		analyse( this.ast, this.code, this );
+
+		this.definedNames = this.ast._scope.names.slice();
+
+		this.canonicalNames = {};
+
+		this.definitions = {};
+		this.definitionPromises = {};
+		this.modifications = {};
+
+		this.ast.body.forEach( statement => {
+			Object.keys( statement._defines ).forEach( name => {
+				this.definitions[ name ] = statement;
+			});
+
+			Object.keys( statement._modifies ).forEach( name => {
+				if ( !has( this.modifications, name ) ) {
+					this.modifications[ name ] = [];
+				}
+
+				this.modifications[ name ].push( statement );
+			});
 		});
 	}
 

@@ -1,10 +1,12 @@
+var path = require( 'path' );
 var assert = require( 'assert' );
 
 module.exports = {
 	description: 'disallows reassignments to namespace exports',
 	error: function ( err ) {
-		console.log( err );
-		assert.ok( false, 'TODO figure out correct error' );
+		assert.equal( err.file, path.resolve( __dirname, 'main.js' ) );
+		assert.deepEqual( err.loc, { line: 3, column: 0 });
+		assert.ok( /Illegal reassignment/.test( err.message ) );
 	}
 };
 

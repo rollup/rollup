@@ -1,9 +1,12 @@
+var path = require( 'path' );
 var assert = require( 'assert' );
 
 module.exports = {
 	description: 'disallows updates to imported bindings',
 	error: function ( err ) {
-		assert.ok( false, 'TODO choose error' );
+		assert.equal( err.file, path.resolve( __dirname, 'main.js' ) );
+		assert.deepEqual( err.loc, { line: 3, column: 0 });
+		assert.ok( /Illegal reassignment/.test( err.message ) );
 	}
 };
 

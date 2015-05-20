@@ -1,6 +1,8 @@
 import walk from './walk';
 import Scope from './Scope';
 import { getName } from '../utils/map-helpers';
+import { has } from '../utils/object';
+import getLocation from '../utils/getLocation';
 
 export default function analyse ( ast, magicString, module ) {
 	let scope = new Scope();
@@ -135,9 +137,17 @@ export default function analyse ( ast, magicString, module ) {
 		}
 
 		function checkForWrites ( node ) {
-			function addNode ( node ) {
+			function addNode ( node, disallowImportReassignments ) {
 				while ( node.type === 'MemberExpression' ) {
 					node = node.object;
+				}
+
+				// disallow assignments/updates to imported bindings and namespaces
+				if ( disallowImportReassignments && has( module.imports, node.name ) && !scope.contains( node.name ) ) {
+					const err = new Error( `Illegal reassignment to import '${node.name}'` );
+					err.file = module.path;
+					err.loc = getLocation( module.code.toString(), node.start );
+					throw err;
 				}
 
 				if ( node.type !== 'Identifier' ) {
@@ -148,11 +158,15 @@ export default function analyse ( ast, magicString, module ) {
 			}
 
 			if ( node.type === 'AssignmentExpression' ) {
-				addNode( node.left );
+				addNode( node.left, true );
+			}
+
+			else if ( node.type === 'UpdateExpression' ) {
+				addNode( node.argument, true );
 			}
 
 			else if ( node.type === 'CallExpression' ) {
-				node.arguments.forEach( addNode );
+				node.arguments.forEach( arg => addNode( arg, false ) );
 			}
 
 			// TODO UpdateExpressions, method calls?
