@@ -3,7 +3,7 @@ import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
 import analyse from './ast/analyse';
-import { has } from './utils/object';
+import { has, keys } from './utils/object';
 import { sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
@@ -241,7 +241,7 @@ export default class Module {
 							this.bundle.internalNamespaceModules.push( module );
 						}
 
-						return module.includeAllStatements();
+						return module.expandAllStatements();
 					}
 
 					const exportDeclaration = module.exports[ importDeclaration.name ];
@@ -294,68 +294,74 @@ export default class Module {
 			}
 
 			if ( statement && !statement._included ) {
-				const result = [];
-
-				const include = statement => {
-					if ( statement._included ) return emptyArrayPromise;
-					statement._included = true;
-
-					// We have a statement, and it hasn't been included yet. First, include
-					// the statements it depends on
-					const dependencies = Object.keys( statement._dependsOn );
-
-					return sequence( dependencies, name => {
-						return this.define( name ).then( definition => {
-							result.push.apply( result, definition );
-						});
-					})
-
-					// then include the statement itself
-						.then( () => {
-							result.push( statement );
-						})
-
-					// then include any statements that could modify the
-					// thing(s) this statement defines
-						.then( () => {
-							const modifications = has( this.modifications, name ) && this.modifications[ name ];
-
-							if ( modifications ) {
-								return sequence( modifications, statement => {
-									if ( !statement._included ) {
-										return include( statement );
-									}
-								});
-							}
-						})
-
-					// the `result` is an array of statements needed to define `name`
-						.then( () => {
-
-							return result;
-						});
-				};
-
-				promise = !statement._included ? include( statement ) : emptyArrayPromise;
+				promise = this.expandStatement( statement );
 			}
 		}
-
-
 
 		this.definitionPromises[ name ] = promise || emptyArrayPromise;
 		return this.definitionPromises[ name ];
 	}
 
-	includeAllStatements () {
-		return this.ast.body.filter( statement => {
+	expandStatement ( statement ) {
+		if ( statement._included ) return emptyArrayPromise;
+		statement._included = true;
+
+		let result = [];
+
+		// We have a statement, and it hasn't been included yet. First, include
+		// the statements it depends on
+		const dependencies = Object.keys( statement._dependsOn );
+
+		return sequence( dependencies, name => {
+			return this.define( name ).then( definition => {
+				result.push.apply( result, definition );
+			});
+		})
+
+		// then include the statement itself
+			.then( () => {
+				result.push( statement );
+			})
+
+		// then include any statements that could modify the
+		// thing(s) this statement defines
+			.then( () => {
+				const definedByThisStatement = keys( statement._defines );
+
+				return sequence( keys( statement._defines ), name => {
+					const modifications = has( this.modifications, name ) && this.modifications[ name ];
+
+					if ( modifications ) {
+						return sequence( modifications, statement => {
+							if ( !statement._included ) {
+								return this.expandStatement( statement )
+									.then( statements => {
+										result.push.apply( result, statements );
+									});
+							}
+						})
+					}
+				});
+			})
+
+		// the `result` is an array of statements needed to define `name`
+			.then( () => {
+				return result;
+			});
+	}
+
+	expandAllStatements () {
+		let allStatements = [];
+
+		return sequence( this.ast.body, statement => {
 			// skip already-included statements
-			if ( statement._included ) return false;
+			if ( statement._included ) return;
 
 			// skip import declarations
-			if ( /^Import/.test( statement.type ) ) return false;
+			if ( /^Import/.test( statement.type ) ) return;
 
 			// skip `export { foo, bar, baz }`
-			if ( statement.type === 'ExportNamedDeclaration' && statement.specifiers.length ) return false;
+			if ( statement.type === 'ExportNamedDeclaration' && statement.specifiers.length ) return;
 
 			// include everything else
 
@@ -379,7 +385,12 @@ export default class Module {
 				}
 			}
 
-			return true;
+			return this.expandStatement( statement )
+				.then( statements => {
+					allStatements.push.apply( allStatements, statements );
+				});
+		}).then( () => {
+			return allStatements;
 		});
 	}
 

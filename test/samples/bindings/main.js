@@ -1,5 +1,5 @@
 import { count, incr } from './foo';
 
-assert.equal (count, 0 );
+assert.equal(count, 0);
 incr();
-assert.equal( count, 1 );
+assert.equal(count, 1);

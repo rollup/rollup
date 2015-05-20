@@ -65,53 +65,10 @@ export default class Bundle {
 		return this.fetchModule( this.entryPath, null )
 			.then( entryModule => {
 				this.entryModule = entryModule;
-
-				const importedNames = keys( entryModule.imports );
-
-				// pull in imports
-				return sequence( importedNames, name => {
-					return entryModule.define( name )
-						.then( nodes => {
-							this.statements.push.apply( this.statements, nodes );
-						});
-				})
-					.then( () => {
-						entryModule.ast.body.forEach( node => {
-							// Exclude imports
-							if ( /^Import/.test( node.type ) ) return;
-
-							// Exclude default exports that proxy a name
-							// e.g. `export default foo`
-							if ( node.type === 'ExportDefaultDeclaration' && /Declaration$/.test( node.declaration.type ) ) return;
-
-							// Exclude specifier exports
-							// e.g. `export { foo }`
-							if ( node.type === 'ExportNamedDeclaration' && node.specifiers.length ) return;
-
-							// Include everything else...
-
-							if ( node.type === 'ExportDefaultDeclaration' ) {
-								// TODO generic 'get deconflicted name' mechanism
-								let defaultExportName = makeLegalIdentifier( basename( this.entryPath ).slice( 0, -extname( this.entryPath ).length ) );
-								while ( this.entryModule.ast._scope.contains( defaultExportName ) ) {
-									defaultExportName = `_${defaultExportName}`;
-								}
-
-								entryModule.suggestedNames.default = defaultExportName;
-								node._source.overwrite( node.start, node.declaration.start, `var ${defaultExportName} = ` );
-							}
-
-							if ( node.type === 'ExportNamedDeclaration' ) {
-								// Remove the `export`
-								node._source.remove( node.start, node.declaration.start );
-							}
-
-							// Include everything else
-							this.statements.push( node );
-						});
-					});
+				return entryModule.expandAllStatements();
 			})
-			.then( () => {
+			.then( statements => {
+				this.statements = statements;
 				this.deconflict();
 			});
 
