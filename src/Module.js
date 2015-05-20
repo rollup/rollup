@@ -5,6 +5,7 @@ import MagicString from 'magic-string';
 import analyse from './ast/analyse';
 import { has } from './utils/object';
 import { sequence } from './utils/promise';
+import getLocation from './utils/getLocation';
 
 const emptyArrayPromise = Promise.resolve([]);
 
@@ -75,6 +76,13 @@ export default class Module {
 
 					const localName = specifier.local.name;
 					const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
+
+					if ( has( this.imports, localName ) ) {
+						const err = new Error( `Duplicated import '${localName}'` );
+						err.file = this.path;
+						err.loc = getLocation( this.code.original, specifier.start );
+						throw err;
+					}
 
 					this.imports[ localName ] = {
 						source,
