@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import { dirname, resolve } from 'path';
+import { basename, dirname, extname, resolve } from 'path';
 import { readFile, Promise } from 'sander';
-=======
-import { basename, extname, resolve } from 'path';
-import { readFile } from 'sander';
->>>>>>> 281d5ca00ac28f62b06bb265987ba59cae7b2eff
 import MagicString from 'magic-string';
 import { keys, has } from './utils/object';
 import { sequence } from './utils/promise';
