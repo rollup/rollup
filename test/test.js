@@ -39,7 +39,7 @@ describe( 'rollup', function () {
 			config = { description: dir };
 		}
 
-		( config.solo ? it.only : it )( dir, function () {
+		( config.skip ? it.skip : config.solo ? it.only : it )( dir, function () {
 			return rollup.rollup( SAMPLES + '/' + dir + '/main.js', extend( {}, config.options ) )
 				.then( function ( bundle ) {
 					var unintendedError;
