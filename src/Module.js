@@ -6,6 +6,7 @@ import analyse from './ast/analyse';
 import { has } from './utils/object';
 import { sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
+import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
 const emptyArrayPromise = Promise.resolve([]);
 
@@ -18,6 +19,8 @@ export default class Module {
 		this.code = new MagicString( code, {
 			filename: path
 		});
+
+		this.suggestedNames = {};
 
 		try {
 			this.ast = parse( code, {
@@ -160,27 +163,41 @@ export default class Module {
 	}
 
 	getCanonicalName ( name ) {
-		if ( has( this.imports, name ) ) {
-			const importDeclaration = this.imports[ name ];
-			const module = importDeclaration.module;
+		if ( has( this.suggestedNames, name ) ) {
+			name = this.suggestedNames[ name ];
+		}
 
-			let exporterLocalName;
+		if ( !has( this.canonicalNames, name ) ) {
+			let canonicalName;
 
-			if ( module.isExternal ) {
-				exporterLocalName = importDeclaration.name;
-			} else {
-				const exportDeclaration = module.exports[ importDeclaration.name ];
-				exporterLocalName = exportDeclaration.localName;
+			if ( has( this.imports, name ) ) {
+				const importDeclaration = this.imports[ name ];
+				const module = importDeclaration.module;
+
+				if ( importDeclaration.name === '*' ) {
+					canonicalName = module.suggestedNames[ '*' ];
+				} else {
+					let exporterLocalName;
+
+					if ( module.isExternal ) {
+						exporterLocalName = importDeclaration.name;
+					} else {
+						const exportDeclaration = module.exports[ importDeclaration.name ];
+						exporterLocalName = exportDeclaration.localName;
+					}
+
+					canonicalName = module.getCanonicalName( exporterLocalName );
+				}
 			}
 
-			return module.getCanonicalName( exporterLocalName );
+			else {
+				canonicalName = name;
+			}
+
+			this.canonicalNames[ name ] = canonicalName;
 		}
 
-		if ( name === 'default' ) {
-			name = this.defaultExportName;
-		}
-
-		return has( this.canonicalNames, name ) ? this.canonicalNames[ name ] : name;
+		return this.canonicalNames[ name ];
 	}
 
 	define ( name ) {
@@ -200,7 +217,7 @@ export default class Module {
 					importDeclaration.module = module;
 
 					if ( importDeclaration.name === 'default' ) {
-						module.suggestDefaultName( importDeclaration.localName );
+						module.suggestName( 'default', importDeclaration.localName );
 					}
 
 					if ( module.isExternal ) {
@@ -212,6 +229,17 @@ export default class Module {
 
 						module.importedByBundle.push( importDeclaration );
 						return emptyArrayPromise;
+					}
+
+					if ( importDeclaration.name === '*' ) {
+						module.suggestName( '*', importDeclaration.localName );
+
+						// we need to create an internal namespace
+						if ( !~this.bundle.internalNamespaceModules.indexOf( module ) ) {
+							this.bundle.internalNamespaceModules.push( module );
+						}
+
+						return module.includeAllStatements();
 					}
 
 					const exportDeclaration = module.exports[ importDeclaration.name ];
@@ -237,7 +265,7 @@ export default class Module {
 			if ( name === 'default' ) {
 				// We have an expression, e.g. `export default 42`. We have
 				// to assign that expression to a variable
-				const replacement = this.defaultExportName;
+				const replacement = this.suggestedNames.default;
 
 				statement = this.exports.default.node;
 
@@ -316,13 +344,50 @@ export default class Module {
 		return this.definitionPromises[ name ];
 	}
 
+	includeAllStatements () {
+		return this.ast.body.filter( statement => {
+			// skip already-included statements
+			if ( statement._included ) return false;
+
+			// skip import declarations
+			if ( /^Import/.test( statement.type ) ) return false;
+
+			// skip `export { foo, bar, baz }`
+			if ( statement.type === 'ExportNamedDeclaration' && statement.specifiers.length ) return false;
+
+			// include everything else
+
+
+
+			// modify exports as necessary
+			if ( /^Export/.test( statement.type ) ) {
+				// remove `export` from `export var foo = 42`
+				if ( statement.type === 'ExportNamedDeclaration' && statement.declaration.type === 'VariableDeclaration' ) {
+					statement._source.remove( statement.start, statement.declaration.start );
+				}
+
+				// remove `export` from `export class Foo {...}` or `export default Foo`
+				else if ( statement.declaration.id ) {
+					statement._source.remove( statement.start, statement.declaration.start );
+				}
+
+				// declare variables for expressions
+				else {
+					statement._source.overwrite( statement.start, statement.declaration.start, `var TODO = ` );
+				}
+			}
+
+			return true;
+		});
+	}
+
 	rename ( name, replacement ) {
 		this.canonicalNames[ name ] = replacement;
 	}
 
-	suggestDefaultName ( name ) {
-		if ( !this.defaultExportName ) {
-			this.defaultExportName = name;
+	suggestName ( exportName, suggestion ) {
+		if ( !this.suggestedNames[ exportName ] ) {
+			this.suggestedNames[ exportName ] = makeLegalIdentifier( suggestion );
 		}
 	}
 }

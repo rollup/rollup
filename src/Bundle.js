@@ -26,6 +26,7 @@ export default class Bundle {
 		this.statements = [];
 		this.externalModules = [];
 		this.defaultExportName = null;
+		this.internalNamespaceModules = [];
 	}
 
 	fetchModule ( importee, importer ) {
@@ -96,7 +97,7 @@ export default class Bundle {
 									defaultExportName = `_${defaultExportName}`;
 								}
 
-								this.defaultExportName = defaultExportName;
+								entryModule.suggestedNames.default = defaultExportName;
 								node._source.overwrite( node.start, node.declaration.start, `var ${defaultExportName} = ` );
 							}
 
@@ -183,6 +184,18 @@ export default class Bundle {
 			replaceIdentifiers( statement, source, replacements );
 			magicString.addSource( source );
 		});
+
+		// prepend bundle with internal namespaces
+		const indentString = magicString.getIndentString();
+		const namespaceBlock = this.internalNamespaceModules.map( module => {
+			const exportKeys = keys( module.exports );
+
+			return `var ${module.suggestedNames['*']} = {\n` +
+				exportKeys.map( key => `${indentString}get ${key} () { return ${module.getCanonicalName(key)}; }` ).join( ',\n' ) +
+			`\n};\n\n`;
+		}).join( '' );
+
+		magicString.prepend( namespaceBlock );
 
 		const finalise = finalisers[ options.format || 'es6' ];
 
