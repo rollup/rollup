@@ -65,7 +65,7 @@ export default class Bundle {
 		return this.fetchModule( this.entryPath, null )
 			.then( entryModule => {
 				this.entryModule = entryModule;
-				return entryModule.expandAllStatements();
+				return entryModule.expandAllStatements( true );
 			})
 			.then( statements => {
 				this.statements = statements;

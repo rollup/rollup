@@ -164,16 +164,16 @@ export default class Module {
 		});
 	}
 
-	getCanonicalName ( name ) {
-		if ( has( this.suggestedNames, name ) ) {
-			name = this.suggestedNames[ name ];
+	getCanonicalName ( localName ) {
+		if ( has( this.suggestedNames, localName ) ) {
+			localName = this.suggestedNames[ localName ];
 		}
 
-		if ( !has( this.canonicalNames, name ) ) {
+		if ( !has( this.canonicalNames, localName ) ) {
 			let canonicalName;
 
-			if ( has( this.imports, name ) ) {
-				const importDeclaration = this.imports[ name ];
+			if ( has( this.imports, localName ) ) {
+				const importDeclaration = this.imports[ localName ];
 				const module = importDeclaration.module;
 
 				if ( importDeclaration.name === '*' ) {
@@ -193,13 +193,13 @@ export default class Module {
 			}
 
 			else {
-				canonicalName = name;
+				canonicalName = localName;
 			}
 
-			this.canonicalNames[ name ] = canonicalName;
+			this.canonicalNames[ localName ] = canonicalName;
 		}
 
-		return this.canonicalNames[ name ];
+		return this.canonicalNames[ localName ];
 	}
 
 	define ( name ) {
@@ -326,8 +326,6 @@ export default class Module {
 		// then include any statements that could modify the
 		// thing(s) this statement defines
 			.then( () => {
-				const definedByThisStatement = keys( statement._defines );
-
 				return sequence( keys( statement._defines ), name => {
 					const modifications = has( this.modifications, name ) && this.modifications[ name ];
 
@@ -350,7 +348,7 @@ export default class Module {
 			});
 	}
 
-	expandAllStatements () {
+	expandAllStatements ( isEntryModule ) {
 		let allStatements = [];
 
 		return sequence( this.ast.body, statement => {
@@ -361,7 +359,10 @@ export default class Module {
 			if ( /^Import/.test( statement.type ) ) return;
 
 			// skip `export { foo, bar, baz }`
-			if ( statement.type === 'ExportNamedDeclaration' && statement.specifiers.length ) return;
+			if ( statement.type === 'ExportNamedDeclaration' && statement.specifiers.length ) {
+				// but ensure they are defined, if this is the entry module
+				return isEntryModule ? this.expandStatement( statement ) : null;
+			}
 
 			// include everything else
 

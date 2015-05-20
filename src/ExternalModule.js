@@ -2,6 +2,7 @@ export default class ExternalModule {
 	constructor ( id ) {
 		this.id = id;
 		this.name = null;
+		this.module = null;
 
 		this.isExternal = true;
 		this.importedByBundle = [];
