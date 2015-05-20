@@ -89,7 +89,6 @@ export default function analyse ( ast, magicString, module ) {
 						node.declarations.forEach( node.kind === 'let' ? addToBlockScope : addToScope ); // TODO const?
 						break;
 
-					case 'ClassExpression':
 					case 'ClassDeclaration':
 						addToScope( node );
 						break;
