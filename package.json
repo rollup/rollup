@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/rich-harris/rollup",
   "devDependencies": {
+    "babel-core": "^5.4.4",
     "console-group": "^0.1.1",
     "gobble": "^0.10.1",
     "gobble-babel": "^5.1.0",

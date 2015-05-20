@@ -4,6 +4,7 @@ require( 'console-group' ).install();
 var path = require( 'path' );
 var sander = require( 'sander' );
 var assert = require( 'assert' );
+var babel = require( 'babel-core' );
 var rollup = require( '../dist/rollup' );
 
 var SAMPLES = path.resolve( __dirname, 'samples' );
@@ -66,9 +67,18 @@ describe( 'rollup', function () {
 
 					if ( unintendedError ) throw unintendedError;
 
+					var code;
 
 					try {
-						var fn = new Function( 'require', 'module', 'exports', 'assert', result.code );
+						if ( config.babel ) {
+							code = babel.transform( code, {
+								whitelist: config.babel
+							}).code;
+						} else {
+							code = result.code;
+						}
+
+						var fn = new Function( 'require', 'module', 'exports', 'assert', code );
 						var module = {
 							exports: {}
 						};
@@ -89,11 +99,11 @@ describe( 'rollup', function () {
 						}
 					}
 
-					if ( unintendedError ) throw unintendedError;
-
-					if ( config.show ) {
-						console.log( result.code + '\n\n\n' );
+					if ( config.show || unintendedError ) {
+						console.log( code + '\n\n\n' );
 					}
+
+					if ( unintendedError ) throw unintendedError;
 				}, function ( err ) {
 					if ( config.error ) {
 						config.error( err );
