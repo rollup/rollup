@@ -18,10 +18,16 @@ export default class Module {
 			filename: path
 		});
 
-		this.ast = parse( code, {
-			ecmaVersion: 6,
-			sourceType: 'module'
-		});
+		try {
+			this.ast = parse( code, {
+				ecmaVersion: 6,
+				sourceType: 'module'
+			});
+		} catch ( err ) {
+			err.file = path;
+			throw err;
+		}
+
 
 		this.analyse();
 	}
