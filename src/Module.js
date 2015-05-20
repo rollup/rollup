@@ -238,6 +238,7 @@ export default class Module {
 
 					if ( importDeclaration.name === '*' ) {
 						module.suggestName( '*', importDeclaration.localName );
+						module.suggestName( 'default', `${importDeclaration.localName}__default` );
 
 						// we need to create an internal namespace
 						if ( !~this.bundle.internalNamespaceModules.indexOf( module ) ) {

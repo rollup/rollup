@@ -168,7 +168,7 @@ export default class Bundle {
 
 				// declare variables for expressions
 				else {
-					const name = statement.type === 'ExportDefaultDeclaration' ? 'default' : 'wut';
+					const name = statement.type === 'ExportDefaultDeclaration' ? 'default' : 'TODO';
 					const canonicalName = statement._module.getCanonicalName( name );
 					source.overwrite( statement.start, statement.declaration.start, `var ${canonicalName} = ` );
 				}
