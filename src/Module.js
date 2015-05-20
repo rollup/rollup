@@ -356,7 +356,22 @@ export default class Module {
 			if ( statement._included ) return;
 
 			// skip import declarations
-			if ( /^Import/.test( statement.type ) ) return;
+			if ( statement.type === 'ImportDeclaration' ) {
+				// unless they're empty, in which case assume we're importing them for the side-effects
+				// THIS IS NOT FOOLPROOF. Probably need /*rollup: include */ or similar
+				if ( !statement.specifiers.length ) {
+					return this.bundle.fetchModule( statement.source.value, this.path )
+						.then( module => {
+							statement.module = module;
+							return module.expandAllStatements();
+						})
+						.then( statements => {
+							allStatements.push.apply( allStatements, statements );
+						});
+				}
+
+				return;
+			}
 
 			// skip `export { foo, bar, baz }`
 			if ( statement.type === 'ExportNamedDeclaration' && statement.specifiers.length ) {
