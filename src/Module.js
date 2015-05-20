@@ -265,32 +265,12 @@ export default class Module {
 			let statement;
 
 			if ( name === 'default' ) {
-				// We have an expression, e.g. `export default 42`. We have
-				// to assign that expression to a variable
-				const replacement = this.suggestedNames.default;
-
+				// TODO can we use this.definitions[ name ], as below?
 				statement = this.exports.default.node;
-
-				if ( !statement._included ) {
-					// if we have `export default foo`, we don't want to turn it into `var foo = foo`
-					// - we want to remove it altogether (but keep the statement, so we can include
-					// its dependencies). TODO is there an easier way to do this?
-					const shouldRemove = statement.declaration.type === 'Identifier' && statement.declaration.name === replacement;
-
-					if ( shouldRemove ) {
-						statement._source.remove( statement.start, statement.end );
-					} else {
-						statement._source.overwrite( statement.start, statement.declaration.start, `var ${replacement} = ` );
-					}
-				}
 			}
 
 			else {
 				statement = this.definitions[ name ];
-
-				if ( statement && /^Export/.test( statement.type ) ) {
-					statement._source.remove( statement.start, statement.declaration.start );
-				}
 			}
 
 			if ( statement && !statement._included ) {
@@ -376,30 +356,37 @@ export default class Module {
 			// skip `export { foo, bar, baz }`
 			if ( statement.type === 'ExportNamedDeclaration' && statement.specifiers.length ) {
 				// but ensure they are defined, if this is the entry module
-				return isEntryModule ? this.expandStatement( statement ) : null;
+				if ( isEntryModule ) {
+					return this.expandStatement( statement )
+						.then( statements => {
+							allStatements.push.apply( allStatements, statements );
+						});
+				}
+
+				return;
 			}
 
 			// include everything else
 
 
 
-			// modify exports as necessary
-			if ( /^Export/.test( statement.type ) ) {
-				// remove `export` from `export var foo = 42`
-				if ( statement.type === 'ExportNamedDeclaration' && statement.declaration.type === 'VariableDeclaration' ) {
-					statement._source.remove( statement.start, statement.declaration.start );
-				}
-
-				// remove `export` from `export class Foo {...}` or `export default Foo`
-				else if ( statement.declaration.id ) {
-					statement._source.remove( statement.start, statement.declaration.start );
-				}
-
-				// declare variables for expressions
-				else {
-					statement._source.overwrite( statement.start, statement.declaration.start, `var TODO = ` );
-				}
-			}
+			// // modify exports as necessary
+			// if ( /^Export/.test( statement.type ) ) {
+			// 	// remove `export` from `export var foo = 42`
+			// 	if ( statement.type === 'ExportNamedDeclaration' && statement.declaration.type === 'VariableDeclaration' ) {
+			// 		statement._source.remove( statement.start, statement.declaration.start );
+			// 	}
+			//
+			// 	// remove `export` from `export class Foo {...}` or `export default Foo`
+			// 	else if ( statement.declaration.id ) {
+			// 		statement._source.remove( statement.start, statement.declaration.start );
+			// 	}
+			//
+			// 	// declare variables for expressions
+			// 	else {
+			// 		statement._source.overwrite( statement.start, statement.declaration.start, `var TODO = ` );
+			// 	}
+			// }
 
 			return this.expandStatement( statement )
 				.then( statements => {

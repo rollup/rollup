@@ -138,6 +138,33 @@ export default class Bundle {
 
 			const source = statement._source.clone();
 
+			// modify exports as necessary
+			if ( /^Export/.test( statement.type ) ) {
+				// skip `export { foo, bar, baz }`
+				if ( statement.type === 'ExportNamedDeclaration' && statement.specifiers.length ) {
+					return;
+				}
+
+				// remove `export` from `export var foo = 42`
+				if ( statement.type === 'ExportNamedDeclaration' && statement.declaration.type === 'VariableDeclaration' ) {
+					source.remove( statement.start, statement.declaration.start );
+				}
+
+				// remove `export` from `export class Foo {...}` or `export default Foo`
+				// TODO default exports need different treatment
+				else if ( statement.declaration.id ) {
+					source.remove( statement.start, statement.declaration.start );
+				}
+
+				// declare variables for expressions
+				else {
+					const name = statement.type === 'ExportDefaultDeclaration' ? 'default' : 'wut';
+					const canonicalName = statement._module.getCanonicalName( name );
+					source.overwrite( statement.start, statement.declaration.start, `var ${canonicalName} = ` );
+				}
+			}
+
+
 			replaceIdentifiers( statement, source, replacements );
 			magicString.addSource( source );
 		});
