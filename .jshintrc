@@ -3,6 +3,8 @@
 	"undef": true,
 	"unused": true,
 	"globals": {
-		"process": true
+		"process": true,
+		"module": true,
+		"assert": true
 	}
 }
