@@ -1,12 +1,4 @@
-import walk from './walk';
-import Scope from './Scope';
-import { getName } from '../utils/map-helpers';
-import { has } from '../utils/object';
-import getLocation from '../utils/getLocation';
-
 export default function analyse ( magicString, module ) {
-	let scope = new Scope();
-
 	// first we need to generate comprehensive scope info
 	let previousStatement = null;
 	let commentIndex = 0;

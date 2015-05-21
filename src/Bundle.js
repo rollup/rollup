@@ -5,7 +5,6 @@ import { keys, has } from './utils/object';
 import Module from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
-import replaceIdentifiers from './utils/replaceIdentifiers';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 import { defaultResolver } from './utils/resolvePath';
 
@@ -167,10 +166,10 @@ export default class Bundle {
 					}
 				});
 
-			const source = statement.magicString.clone().trim();
+			const source = statement.replaceIdentifiers( replacements );
 
 			// modify exports as necessary
-			if ( /^Export/.test( statement.node.type ) ) {
+			if ( statement.isExportDeclaration ) {
 				// skip `export { foo, bar, baz }`
 				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
 					return;
@@ -202,8 +201,6 @@ export default class Bundle {
 					throw new Error( 'Unhandled export' );
 				}
 			}
-
-			replaceIdentifiers( statement.node, source, replacements );
 
 			// add leading comments
 			if ( statement.leadingComments.length ) {
