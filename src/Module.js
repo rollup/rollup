@@ -279,11 +279,8 @@ export default class Module {
 			let statement;
 
 			if ( name === 'default' ) {
-				// TODO can we use this.definitions[ name ], as below?
 				statement = this.exports.default.statement;
-			}
-
-			else {
+			} else {
 				statement = this.definitions[ name ];
 			}
 
