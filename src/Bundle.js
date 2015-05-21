@@ -2,7 +2,6 @@ import { basename, dirname, extname, resolve } from 'path';
 import { readFile, Promise } from 'sander';
 import MagicString from 'magic-string';
 import { keys, has } from './utils/object';
-import { sequence } from './utils/promise';
 import Module from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';

@@ -2,8 +2,6 @@ import { has } from '../utils/object';
 import { getName, quoteId } from '../utils/map-helpers';
 
 export default function amd ( bundle, magicString, exportMode, options ) {
-	const indentStr = magicString.getIndentString();
-
 	let deps = bundle.externalModules.map( quoteId );
 	let args = bundle.externalModules.map( getName );
 

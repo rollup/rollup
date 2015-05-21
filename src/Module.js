@@ -1,4 +1,4 @@
-import { dirname, relative, resolve } from 'path';
+import { relative } from 'path';
 import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
@@ -41,10 +41,6 @@ export default class Module {
 		// imports and exports, indexed by ID
 		this.imports = {};
 		this.exports = {};
-
-		let commentIndex = 0;
-		let previousNode;
-		let previousEnd = 0;
 
 		this.ast.body.forEach( node => {
 			let source;
@@ -329,7 +325,7 @@ export default class Module {
 										result.push.apply( result, statements );
 									});
 							}
-						})
+						});
 					}
 				});
 			})

@@ -17,7 +17,7 @@ export default function umd ( bundle, magicString, exportMode, options ) {
 	if ( exportMode === 'named' ) {
 		amdDeps.unshift( `'exports'` );
 		cjsDeps.unshift( `'exports'` );
-		globalDeps.unshift( `(global.${moduleName} = {})` );
+		globalDeps.unshift( `(global.${options.moduleName} = {})` );
 
 		args.unshift( 'exports' );
 	}
