@@ -1,8 +1,11 @@
 import { has, keys } from './utils/object';
+import { sequence } from './utils/promise';
 import { getName } from './utils/map-helpers';
 import getLocation from './utils/getLocation';
 import walk from './ast/walk';
 import Scope from './ast/Scope';
+
+const emptyArrayPromise = Promise.resolve([]);
 
 export default class Statement {
 	constructor ( node, magicString, module ) {
@@ -183,6 +186,52 @@ export default class Statement {
 		else if ( node.type === 'CallExpression' ) {
 			node.arguments.forEach( arg => addNode( arg, false ) );
 		}
+	}
+
+	expand () {
+		if ( this.isIncluded ) return emptyArrayPromise;
+		this.isIncluded = true;
+
+		let result = [];
+
+		// We have a statement, and it hasn't been included yet. First, include
+		// the statements it depends on
+		const dependencies = Object.keys( this.dependsOn );
+
+		return sequence( dependencies, name => {
+			return this.module.define( name ).then( definition => {
+				result.push.apply( result, definition );
+			});
+		})
+
+		// then include the statement itself
+			.then( () => {
+				result.push( this );
+			})
+
+		// then include any statements that could modify the
+		// thing(s) this statement defines
+			.then( () => {
+				return sequence( keys( this.defines ), name => {
+					const modifications = has( this.module.modifications, name ) && this.module.modifications[ name ];
+
+					if ( modifications ) {
+						return sequence( modifications, statement => {
+							if ( !statement.isIncluded ) {
+								return statement.expand()
+									.then( statements => {
+										result.push.apply( result, statements );
+									});
+							}
+						});
+					}
+				});
+			})
+
+		// the `result` is an array of statements needed to define `name`
+			.then( () => {
+				return result;
+			});
 	}
 
 	replaceIdentifiers ( names ) {

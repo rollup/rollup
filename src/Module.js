@@ -288,58 +288,12 @@ export default class Module {
 			}
 
 			if ( statement && !statement.isIncluded ) {
-				promise = this.expandStatement( statement );
+				promise = statement.expand();
 			}
 		}
 
 		this.definitionPromises[ name ] = promise || emptyArrayPromise;
 		return this.definitionPromises[ name ];
-	}
-
-	expandStatement ( statement ) {
-		if ( statement.isIncluded ) return emptyArrayPromise;
-		statement.isIncluded = true;
-
-		let result = [];
-
-		// We have a statement, and it hasn't been included yet. First, include
-		// the statements it depends on
-		const dependencies = Object.keys( statement.dependsOn );
-
-		return sequence( dependencies, name => {
-			return this.define( name ).then( definition => {
-				result.push.apply( result, definition );
-			});
-		})
-
-		// then include the statement itself
-			.then( () => {
-				result.push( statement );
-			})
-
-		// then include any statements that could modify the
-		// thing(s) this statement defines
-			.then( () => {
-				return sequence( keys( statement.defines ), name => {
-					const modifications = has( this.modifications, name ) && this.modifications[ name ];
-
-					if ( modifications ) {
-						return sequence( modifications, statement => {
-							if ( !statement.isIncluded ) {
-								return this.expandStatement( statement )
-									.then( statements => {
-										result.push.apply( result, statements );
-									});
-							}
-						});
-					}
-				});
-			})
-
-		// the `result` is an array of statements needed to define `name`
-			.then( () => {
-				return result;
-			});
 	}
 
 	expandAllStatements ( isEntryModule ) {
@@ -349,9 +303,9 @@ export default class Module {
 			// skip already-included statements
 			if ( statement.isIncluded ) return;
 
-			// skip import declarations
-			if ( statement.node.type === 'ImportDeclaration' ) {
-				// unless they're empty, in which case assume we're importing them for the side-effects
+			// skip import declarations...
+			if ( statement.isImportDeclaration ) {
+				// ...unless they're empty, in which case assume we're importing them for the side-effects
 				// THIS IS NOT FOOLPROOF. Probably need /*rollup: include */ or similar
 				if ( !statement.node.specifiers.length ) {
 					return this.bundle.fetchModule( statement.node.source.value, this.path )
@@ -367,24 +321,22 @@ export default class Module {
 				return;
 			}
 
-			// skip `export { foo, bar, baz }`
+			// skip `export { foo, bar, baz }`...
 			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
-				// but ensure they are defined, if this is the entry module
+				// ...but ensure they are defined, if this is the entry module
 				if ( isEntryModule ) {
-					return this.expandStatement( statement )
-						.then( statements => {
-							allStatements.push.apply( allStatements, statements );
-						});
+					return statement.expand().then( statements => {
+						allStatements.push.apply( allStatements, statements );
+					});
 				}
 
 				return;
 			}
 
 			// include everything else
-			return this.expandStatement( statement )
-				.then( statements => {
-					allStatements.push.apply( allStatements, statements );
-				});
+			return statement.expand().then( statements => {
+				allStatements.push.apply( allStatements, statements );
+			});
 		}).then( () => {
 			return allStatements;
 		});
