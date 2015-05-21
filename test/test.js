@@ -125,36 +125,39 @@ describe( 'rollup', function () {
 			{ format: 'amd' },
 			{ format: 'cjs' },
 			{ format: 'es6' },
+			{ format: 'iife' },
 			{ format: 'umd' }
 		];
 
 		sander.readdirSync( FORM ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
-			var config;
+			describe( dir, function () {
+				var config;
 
-			try {
-				config = require( FORM + '/' + dir + '/_config' );
-			} catch ( err ) {
-				config = { description: dir };
-			}
+				try {
+					config = require( FORM + '/' + dir + '/_config' );
+				} catch ( err ) {
+					config = { description: dir };
+				}
 
-			var bundlePromise = rollup.rollup( FORM + '/' + dir + '/main.js', extend( {}, config.options ) );
+				var bundlePromise = rollup.rollup( FORM + '/' + dir + '/main.js', extend( {}, config.options ) );
 
-			profiles.forEach( function ( profile ) {
-				( config.skip ? it.skip : config.solo ? it.only : it )( dir + ' (' + profile.format + ')', function () {
-					return bundlePromise.then( function ( bundle ) {
-						var actual = bundle.generate({
-							format: profile.format
-						}).code.trim();
+				profiles.forEach( function ( profile ) {
+					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
+						return bundlePromise.then( function ( bundle ) {
+							var actual = bundle.generate({
+								format: profile.format
+							}).code.trim();
 
-						try {
-							var expected = sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ).toString().trim();
-						} catch ( err ) {
-							assert.equal( actual, 'missing file' );
-						}
+							try {
+								var expected = sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ).toString().trim();
+							} catch ( err ) {
+								assert.equal( actual, 'missing file' );
+							}
 
-						assert.equal( actual, expected );
+							assert.equal( actual, expected );
+						});
 					});
 				});
 			});

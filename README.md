@@ -102,7 +102,7 @@ rollup.rollup( 'app.js', {
 }).then( function ( bundle ) {
   // generate code and a sourcemap
   const { code, map } = bundle.generate({
-    // output format - 'amd', 'cjs', 'es6', 'umd'
+    // output format - 'amd', 'cjs', 'es6', 'iife', 'umd'
     format: 'amd',
 
     // exports - 'auto', 'none', 'default', 'named'
