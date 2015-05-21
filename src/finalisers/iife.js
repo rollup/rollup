@@ -1,4 +1,4 @@
-export default function es6 ( bundle, magicString, exportMode, options ) {
+export default function iife ( bundle, magicString, exportMode, options ) {
 
 	const intro = `(function () { 'use strict';\n\n`;
 	const outro = `\n\n})();`;

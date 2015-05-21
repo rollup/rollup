@@ -239,6 +239,12 @@ export default class Statement {
 		const replacementStack = [ names ];
 		const nameList = keys( names );
 
+		let deshadowList = [];
+		nameList.forEach( name => {
+			const replacement = names[ name ];
+			deshadowList.push( replacement.split( '.' )[0] );
+		});
+
 		if ( nameList.length > 0 ) {
 			walk( this.node, {
 				enter ( node, parent ) {
@@ -248,9 +254,16 @@ export default class Statement {
 						let newNames = {};
 						let hasReplacements;
 
-						nameList.forEach( key => {
+						keys( names ).forEach( key => {
 							if ( !~scope.names.indexOf( key ) ) {
 								newNames[ key ] = names[ key ];
+								hasReplacements = true;
+							}
+						});
+
+						deshadowList.forEach( name => {
+							if ( ~scope.names.indexOf( name ) ) {
+								newNames[ name ] = name + '$$'; // TODO better mechanism
 								hasReplacements = true;
 							}
 						});
