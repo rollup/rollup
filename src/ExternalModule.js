@@ -2,7 +2,6 @@ export default class ExternalModule {
 	constructor ( id ) {
 		this.id = id;
 		this.name = null;
-		this.module = null;
 
 		this.isExternal = true;
 		this.importedByBundle = [];
@@ -10,8 +9,8 @@ export default class ExternalModule {
 		this.canonicalNames = {};
 		this.suggestedNames = {};
 
-		this.needsDefault = null;
-		this.needsNamed = null;
+		this.needsDefault = false;
+		this.needsNamed = false;
 	}
 
 	getCanonicalName ( name ) {

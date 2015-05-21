@@ -223,11 +223,17 @@ export default class Module {
 				.then( module => {
 					importDeclaration.module = module;
 
+					// suggest names. TODO should this apply to non default/* imports?
 					if ( importDeclaration.name === 'default' ) {
 						// TODO this seems ropey
 						const localName = importDeclaration.localName;
 						const suggestion = has( this.suggestedNames, localName ) ? this.suggestedNames[ localName ] : localName;
 						module.suggestName( 'default', suggestion );
+					} else if ( importDeclaration.name === '*' ) {
+						const localName = importDeclaration.localName;
+						const suggestion = has( this.suggestedNames, localName ) ? this.suggestedNames[ localName ] : localName;
+						module.suggestName( '*', suggestion );
+						module.suggestName( 'default', `${suggestion}__default` );
 					}
 
 					if ( module.isExternal ) {
@@ -242,9 +248,6 @@ export default class Module {
 					}
 
 					if ( importDeclaration.name === '*' ) {
-						module.suggestName( '*', importDeclaration.localName );
-						module.suggestName( 'default', `${importDeclaration.localName}__default` );
-
 						// we need to create an internal namespace
 						if ( !~this.bundle.internalNamespaceModules.indexOf( module ) ) {
 							this.bundle.internalNamespaceModules.push( module );

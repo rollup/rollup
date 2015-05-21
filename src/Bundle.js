@@ -105,7 +105,8 @@ export default class Bundle {
 
 		// Assign names to external modules
 		this.externalModules.forEach( module => {
-			let name = makeLegalIdentifier( module.id );
+			// TODO is this right?
+			let name = makeLegalIdentifier( module.suggestedNames['*'] || module.suggestedNames.default || module.id );
 
 			if ( has( definers, name ) ) {
 				conflicts[ name ] = true;
