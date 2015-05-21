@@ -13,7 +13,7 @@ export default function analyse ( ast, magicString, module ) {
 		scope.add( name, false );
 
 		if ( !scope.parent ) {
-			currentTopLevelStatement._defines[ name ] = true;
+			currentTopLevelStatement.defines[ name ] = true;
 		}
 	}
 
@@ -22,7 +22,7 @@ export default function analyse ( ast, magicString, module ) {
 		scope.add( name, true );
 
 		if ( !scope.parent ) {
-			currentTopLevelStatement._defines[ name ] = true;
+			currentTopLevelStatement.defines[ name ] = true;
 		}
 	}
 
@@ -34,18 +34,6 @@ export default function analyse ( ast, magicString, module ) {
 		currentTopLevelStatement = statement; // so we can attach scoping info
 
 		const node = statement.node;
-
-		Object.defineProperties( statement, {
-			_defines:          { value: {} },
-			_modifies:         { value: {} },
-			_dependsOn:        { value: {} },
-			_included:         { value: false, writable: true },
-			_module:           { value: module },
-			_source:           { value: magicString.snip( node.start, node.end ) }, // TODO don't use snip, it's a waste of memory
-			_margin:           { value: [ 0, 0 ] },
-			_leadingComments:  { value: [] },
-			_trailingComment:  { value: null, writable: true },
-		});
 
 		let trailing = !!previousStatement;
 
@@ -67,12 +55,12 @@ export default function analyse ( ast, magicString, module ) {
 
 			// attach any trailing comment to the previous statement
 			if ( trailing && !/\n/.test( magicString.slice( previousStatement.node.end, comment.start ) ) ) {
-				previousStatement._trailingComment = comment;
+				previousStatement.trailingComment = comment;
 			}
 
 			// then attach leading comments to this statement
 			else {
-				statement._leadingComments.push( comment );
+				statement.leadingComments.push( comment );
 			}
 
 			commentIndex += 1;
@@ -80,14 +68,14 @@ export default function analyse ( ast, magicString, module ) {
 		} while ( module.comments[ commentIndex ] );
 
 		// determine margin
-		const previousEnd = previousStatement ? ( previousStatement._trailingComment || previousStatement.node ).end : 0;
-		const start = ( statement._leadingComments[0] || node ).start;
+		const previousEnd = previousStatement ? ( previousStatement.trailingComment || previousStatement.node ).end : 0;
+		const start = ( statement.leadingComments[0] || node ).start;
 
 		const gap = magicString.original.slice( previousEnd, start );
 		const margin = gap.split( '\n' ).length;
 
-		if ( previousStatement ) previousStatement._margin[1] = margin;
-		statement._margin[0] = margin;
+		if ( previousStatement ) previousStatement.margin[1] = margin;
+		statement.margin[0] = margin;
 
 		walk( statement.node, {
 			enter ( node ) {
@@ -177,8 +165,8 @@ export default function analyse ( ast, magicString, module ) {
 
 				const definingScope = scope.findDefiningScope( node.name );
 
-				if ( ( !definingScope || definingScope.depth === 0 ) && !statement._defines[ node.name ] ) {
-					statement._dependsOn[ node.name ] = true;
+				if ( ( !definingScope || definingScope.depth === 0 ) && !statement.defines[ node.name ] ) {
+					statement.dependsOn[ node.name ] = true;
 				}
 			}
 
@@ -202,7 +190,7 @@ export default function analyse ( ast, magicString, module ) {
 					return;
 				}
 
-				statement._modifies[ node.name ] = true;
+				statement.modifies[ node.name ] = true;
 			}
 
 			if ( node.type === 'AssignmentExpression' ) {

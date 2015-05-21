@@ -89,7 +89,7 @@ export default class Bundle {
 
 		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
 		this.statements.forEach( statement => {
-			keys( statement._defines ).forEach( name => {
+			keys( statement.defines ).forEach( name => {
 				if ( has( definers, name ) ) {
 					conflicts[ name ] = true;
 				} else {
@@ -98,7 +98,7 @@ export default class Bundle {
 
 				// TODO in good js, there shouldn't be duplicate definitions
 				// per module... but some people write bad js
-				definers[ name ].push( statement._module );
+				definers[ name ].push( statement.module );
 			});
 		});
 
@@ -151,17 +151,17 @@ export default class Bundle {
 		this.statements.forEach( statement => {
 			let replacements = {};
 
-			keys( statement._dependsOn )
-				.concat( keys( statement._defines ) )
+			keys( statement.dependsOn )
+				.concat( keys( statement.defines ) )
 				.forEach( name => {
-					const canonicalName = statement._module.getCanonicalName( name );
+					const canonicalName = statement.module.getCanonicalName( name );
 
 					if ( name !== canonicalName ) {
 						replacements[ name ] = canonicalName;
 					}
 				});
 
-			const source = statement._source.clone().trim();
+			const source = statement.source.clone().trim();
 
 			// modify exports as necessary
 			if ( /^Export/.test( statement.node.type ) ) {
@@ -182,7 +182,7 @@ export default class Bundle {
 				}
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					const module = statement._module;
+					const module = statement.module;
 					const canonicalName = module.getCanonicalName( 'default' );
 
 					if ( statement.node.declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( statement.node.declaration.name ) ) {
@@ -200,8 +200,8 @@ export default class Bundle {
 			replaceIdentifiers( statement.node, source, replacements );
 
 			// add leading comments
-			if ( statement._leadingComments.length ) {
-				const commentBlock = statement._leadingComments.map( comment => {
+			if ( statement.leadingComments.length ) {
+				const commentBlock = statement.leadingComments.map( comment => {
 					return comment.block ?
 						`/*${comment.text}*/` :
 						`//${comment.text}`;
@@ -211,7 +211,7 @@ export default class Bundle {
 			}
 
 			// add margin
-			const margin = Math.max( statement._margin[0], previousMargin );
+			const margin = Math.max( statement.margin[0], previousMargin );
 			const newLines = new Array( margin ).join( '\n' );
 
 			// add the statement itself
@@ -221,7 +221,7 @@ export default class Bundle {
 			});
 
 			// add trailing comments
-			const comment = statement._trailingComment;
+			const comment = statement.trailingComment;
 			if ( comment ) {
 				const commentBlock = comment.block ?
 					` /*${comment.text}*/` :
@@ -230,7 +230,7 @@ export default class Bundle {
 				magicString.append( commentBlock );
 			}
 
-			previousMargin = statement._margin[1];
+			previousMargin = statement.margin[1];
 		});
 
 		// prepend bundle with internal namespaces

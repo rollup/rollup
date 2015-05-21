@@ -36,7 +36,8 @@ export default class Module {
 		}
 
 		this.statements = this.ast.body.map( node => {
-			return new Statement( node );
+			const source = this.code.snip( node.start, node.end );
+			return new Statement( node, source, this );
 		});
 
 		this.analyse();
@@ -159,11 +160,11 @@ export default class Module {
 		this.modifications = {};
 
 		this.statements.forEach( statement => {
-			Object.keys( statement._defines ).forEach( name => {
+			Object.keys( statement.defines ).forEach( name => {
 				this.definitions[ name ] = statement;
 			});
 
-			Object.keys( statement._modifies ).forEach( name => {
+			Object.keys( statement.modifies ).forEach( name => {
 				if ( !has( this.modifications, name ) ) {
 					this.modifications[ name ] = [];
 				}
@@ -289,7 +290,7 @@ export default class Module {
 				statement = this.definitions[ name ];
 			}
 
-			if ( statement && !statement._included ) {
+			if ( statement && !statement.isIncluded ) {
 				promise = this.expandStatement( statement );
 			}
 		}
@@ -299,14 +300,14 @@ export default class Module {
 	}
 
 	expandStatement ( statement ) {
-		if ( statement._included ) return emptyArrayPromise;
-		statement._included = true;
+		if ( statement.isIncluded ) return emptyArrayPromise;
+		statement.isIncluded = true;
 
 		let result = [];
 
 		// We have a statement, and it hasn't been included yet. First, include
 		// the statements it depends on
-		const dependencies = Object.keys( statement._dependsOn );
+		const dependencies = Object.keys( statement.dependsOn );
 
 		return sequence( dependencies, name => {
 			return this.define( name ).then( definition => {
@@ -322,12 +323,12 @@ export default class Module {
 		// then include any statements that could modify the
 		// thing(s) this statement defines
 			.then( () => {
-				return sequence( keys( statement._defines ), name => {
+				return sequence( keys( statement.defines ), name => {
 					const modifications = has( this.modifications, name ) && this.modifications[ name ];
 
 					if ( modifications ) {
 						return sequence( modifications, statement => {
-							if ( !statement._included ) {
+							if ( !statement.isIncluded ) {
 								return this.expandStatement( statement )
 									.then( statements => {
 										result.push.apply( result, statements );
@@ -349,7 +350,7 @@ export default class Module {
 
 		return sequence( this.statements, statement => {
 			// skip already-included statements
-			if ( statement._included ) return;
+			if ( statement.isIncluded ) return;
 
 			// skip import declarations
 			if ( statement.node.type === 'ImportDeclaration' ) {
