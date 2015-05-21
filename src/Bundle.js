@@ -107,10 +107,13 @@ export default class Bundle {
 		this.externalModules.forEach( module => {
 			let name = makeLegalIdentifier( module.id );
 
-			while ( has( definers, name ) ) {
-				name = `_${name}`;
+			if ( has( definers, name ) ) {
+				conflicts[ name ] = true;
+			} else {
+				definers[ name ] = [];
 			}
 
+			definers[ name ].push( module );
 			module.name = name;
 		});
 
@@ -121,9 +124,19 @@ export default class Bundle {
 			modules.pop(); // the module closest to the entryModule gets away with keeping things as they are
 
 			modules.forEach( module => {
-				module.rename( name, name + '$' + ~~( Math.random() * 100000 ) ); // TODO proper deconfliction mechanism
+				const replacement = getSafeName( name );
+				module.rename( name, replacement );
 			});
 		});
+
+		function getSafeName ( name ) {
+			while ( has( conflicts, name ) ) {
+				name = `_${name}`;
+			}
+
+			conflicts[ name ] = true;
+			return name;
+		}
 	}
 
 	generate ( options = {} ) {
@@ -168,11 +181,19 @@ export default class Bundle {
 					source.remove( statement.start, statement.declaration.start );
 				}
 
-				// declare variables for expressions
-				else {
-					const name = statement.type === 'ExportDefaultDeclaration' ? 'default' : 'TODO';
-					const canonicalName = statement._module.getCanonicalName( name );
+				else if ( statement.type === 'ExportDefaultDeclaration' ) {
+					const module = statement._module;
+					const canonicalName = module.getCanonicalName( 'default' );
+
+					if ( statement.declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( statement.declaration.name ) ) {
+						return;
+					}
+
 					source.overwrite( statement.start, statement.declaration.start, `var ${canonicalName} = ` );
+				}
+
+				else {
+					throw new Error( 'Unhandled export' );
 				}
 			}
 
