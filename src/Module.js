@@ -47,7 +47,8 @@ export default class Module {
 		this.imports = {};
 		this.exports = {};
 
-		this.statements.forEach( node => {
+		this.statements.forEach( statement => {
+			const node = statement.node;
 			let source;
 
 			// import foo from './foo';
@@ -85,7 +86,8 @@ export default class Module {
 					const isDeclaration = /Declaration$/.test( node.declaration.type );
 
 					this.exports.default = {
-						node,
+						node, // TODO remove this
+						statement,
 						name: 'default',
 						localName: isDeclaration ? node.declaration.id.name : 'default',
 						isDeclaration
@@ -134,7 +136,8 @@ export default class Module {
 						}
 
 						this.exports[ name ] = {
-							node,
+							node, // TODO remove
+							statement,
 							localName: name,
 							expression: declaration
 						};
@@ -279,7 +282,7 @@ export default class Module {
 
 			if ( name === 'default' ) {
 				// TODO can we use this.definitions[ name ], as below?
-				statement = this.exports.default.node;
+				statement = this.exports.default.statement;
 			}
 
 			else {
@@ -349,13 +352,13 @@ export default class Module {
 			if ( statement._included ) return;
 
 			// skip import declarations
-			if ( statement.type === 'ImportDeclaration' ) {
+			if ( statement.node.type === 'ImportDeclaration' ) {
 				// unless they're empty, in which case assume we're importing them for the side-effects
 				// THIS IS NOT FOOLPROOF. Probably need /*rollup: include */ or similar
-				if ( !statement.specifiers.length ) {
-					return this.bundle.fetchModule( statement.source.value, this.path )
+				if ( !statement.node.specifiers.length ) {
+					return this.bundle.fetchModule( statement.node.source.value, this.path )
 						.then( module => {
-							statement.module = module;
+							statement.module = module; // TODO what is this for? what does it do? why not _module?
 							return module.expandAllStatements();
 						})
 						.then( statements => {
@@ -367,7 +370,7 @@ export default class Module {
 			}
 
 			// skip `export { foo, bar, baz }`
-			if ( statement.type === 'ExportNamedDeclaration' && statement.specifiers.length ) {
+			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
 				// but ensure they are defined, if this is the entry module
 				if ( isEntryModule ) {
 					return this.expandStatement( statement )

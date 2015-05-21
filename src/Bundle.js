@@ -164,32 +164,32 @@ export default class Bundle {
 			const source = statement._source.clone().trim();
 
 			// modify exports as necessary
-			if ( /^Export/.test( statement.type ) ) {
+			if ( /^Export/.test( statement.node.type ) ) {
 				// skip `export { foo, bar, baz }`
-				if ( statement.type === 'ExportNamedDeclaration' && statement.specifiers.length ) {
+				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
 					return;
 				}
 
 				// remove `export` from `export var foo = 42`
-				if ( statement.type === 'ExportNamedDeclaration' && statement.declaration.type === 'VariableDeclaration' ) {
-					source.remove( statement.start, statement.declaration.start );
+				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.declaration.type === 'VariableDeclaration' ) {
+					source.remove( statement.node.start, statement.node.declaration.start );
 				}
 
 				// remove `export` from `export class Foo {...}` or `export default Foo`
 				// TODO default exports need different treatment
-				else if ( statement.declaration.id ) {
-					source.remove( statement.start, statement.declaration.start );
+				else if ( statement.node.declaration.id ) {
+					source.remove( statement.node.start, statement.node.declaration.start );
 				}
 
-				else if ( statement.type === 'ExportDefaultDeclaration' ) {
+				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
 					const module = statement._module;
 					const canonicalName = module.getCanonicalName( 'default' );
 
-					if ( statement.declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( statement.declaration.name ) ) {
+					if ( statement.node.declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( statement.node.declaration.name ) ) {
 						return;
 					}
 
-					source.overwrite( statement.start, statement.declaration.start, `var ${canonicalName} = ` );
+					source.overwrite( statement.node.start, statement.node.declaration.start, `var ${canonicalName} = ` );
 				}
 
 				else {

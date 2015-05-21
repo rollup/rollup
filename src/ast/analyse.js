@@ -33,13 +33,15 @@ export default function analyse ( ast, magicString, module ) {
 	module.statements.forEach( statement => {
 		currentTopLevelStatement = statement; // so we can attach scoping info
 
+		const node = statement.node;
+
 		Object.defineProperties( statement, {
 			_defines:          { value: {} },
 			_modifies:         { value: {} },
 			_dependsOn:        { value: {} },
 			_included:         { value: false, writable: true },
 			_module:           { value: module },
-			_source:           { value: magicString.snip( statement.start, statement.end ) }, // TODO don't use snip, it's a waste of memory
+			_source:           { value: magicString.snip( node.start, node.end ) }, // TODO don't use snip, it's a waste of memory
 			_margin:           { value: [ 0, 0 ] },
 			_leadingComments:  { value: [] },
 			_trailingComment:  { value: null, writable: true },
@@ -55,16 +57,16 @@ export default function analyse ( ast, magicString, module ) {
 			// prevent comments inside the previous statement being
 			// appended to it
 			if ( previousStatement ) {
-				while ( comment && comment.start < previousStatement.end ) {
+				while ( comment && comment.start < previousStatement.node.end ) {
 					commentIndex += 1;
 					comment = module.comments[ commentIndex ];
 				}
 			}
 
-			if ( !comment || ( comment.end > statement.start ) ) break;
+			if ( !comment || ( comment.end > node.start ) ) break;
 
 			// attach any trailing comment to the previous statement
-			if ( trailing && !/\n/.test( magicString.slice( previousStatement.end, comment.start ) ) ) {
+			if ( trailing && !/\n/.test( magicString.slice( previousStatement.node.end, comment.start ) ) ) {
 				previousStatement._trailingComment = comment;
 			}
 
@@ -78,8 +80,8 @@ export default function analyse ( ast, magicString, module ) {
 		} while ( module.comments[ commentIndex ] );
 
 		// determine margin
-		const previousEnd = previousStatement ? ( previousStatement._trailingComment || previousStatement ).end : 0;
-		const start = ( statement._leadingComments[0] || statement ).start;
+		const previousEnd = previousStatement ? ( previousStatement._trailingComment || previousStatement.node ).end : 0;
+		const start = ( statement._leadingComments[0] || node ).start;
 
 		const gap = magicString.original.slice( previousEnd, start );
 		const margin = gap.split( '\n' ).length;
@@ -218,7 +220,7 @@ export default function analyse ( ast, magicString, module ) {
 			// TODO UpdateExpressions, method calls?
 		}
 
-		walk( statement, {
+		walk( statement.node, {
 			enter ( node, parent ) {
 				// skip imports
 				if ( /^Import/.test( node.type ) ) return this.skip();
