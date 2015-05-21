@@ -1,11 +1,13 @@
+function noop () {}
+
 (function () {
-	alert( '1' ) // line comment after statement
+	noop( '1' ) // line comment after statement
 
 	/*
 	BLOCK COMMENT
 	*/
 
-	alert( '2' );
+	noop( '2' );
 
 	// standalone comment
 })();
