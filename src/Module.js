@@ -2,6 +2,7 @@ import { relative } from 'path';
 import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
+import Statement from './Statement';
 import analyse from './ast/analyse';
 import { has, keys } from './utils/object';
 import { sequence } from './utils/promise';
@@ -34,6 +35,10 @@ export default class Module {
 			throw err;
 		}
 
+		this.statements = this.ast.body.map( node => {
+			return new Statement( node );
+		});
+
 		this.analyse();
 	}
 
@@ -42,7 +47,7 @@ export default class Module {
 		this.imports = {};
 		this.exports = {};
 
-		this.ast.body.forEach( node => {
+		this.statements.forEach( node => {
 			let source;
 
 			// import foo from './foo';
@@ -142,7 +147,7 @@ export default class Module {
 
 		analyse( this.ast, this.code, this );
 
-		this.definedNames = this.ast._scope.names.slice();
+		this.definedNames = this.scope.names.slice(); // TODO is this used?
 
 		this.canonicalNames = {};
 
@@ -150,7 +155,7 @@ export default class Module {
 		this.definitionPromises = {};
 		this.modifications = {};
 
-		this.ast.body.forEach( statement => {
+		this.statements.forEach( statement => {
 			Object.keys( statement._defines ).forEach( name => {
 				this.definitions[ name ] = statement;
 			});
@@ -339,7 +344,7 @@ export default class Module {
 	expandAllStatements ( isEntryModule ) {
 		let allStatements = [];
 
-		return sequence( this.ast.body, statement => {
+		return sequence( this.statements, statement => {
 			// skip already-included statements
 			if ( statement._included ) return;
 

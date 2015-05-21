@@ -67,7 +67,7 @@ export default class Bundle {
 
 				if ( entryModule.exports.default ) {
 					let defaultExportName = makeLegalIdentifier( basename( this.entryPath ).slice( 0, -extname( this.entryPath ).length ) );
-					while ( entryModule.ast._scope.contains( defaultExportName ) ) {
+					while ( entryModule.scope.contains( defaultExportName ) ) {
 						defaultExportName = `_${defaultExportName}`;
 					}
 
@@ -197,7 +197,7 @@ export default class Bundle {
 				}
 			}
 
-			replaceIdentifiers( statement, source, replacements );
+			replaceIdentifiers( statement.node, source, replacements );
 
 			// add leading comments
 			if ( statement._leadingComments.length ) {

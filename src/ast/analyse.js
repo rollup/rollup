@@ -30,7 +30,7 @@ export default function analyse ( ast, magicString, module ) {
 	let previousStatement = null;
 	let commentIndex = 0;
 
-	ast.body.forEach( statement => {
+	module.statements.forEach( statement => {
 		currentTopLevelStatement = statement; // so we can attach scoping info
 
 		Object.defineProperties( statement, {
@@ -87,7 +87,7 @@ export default function analyse ( ast, magicString, module ) {
 		if ( previousStatement ) previousStatement._margin[1] = margin;
 		statement._margin[0] = margin;
 
-		walk( statement, {
+		walk( statement.node, {
 			enter ( node ) {
 				let newScope;
 
@@ -160,7 +160,7 @@ export default function analyse ( ast, magicString, module ) {
 
 	// then, we need to find which top-level dependencies this statement has,
 	// and which it potentially modifies
-	ast.body.forEach( statement => {
+	module.statements.forEach( statement => {
 		function checkForReads ( node, parent ) {
 			if ( node.type === 'Identifier' ) {
 				// disregard the `bar` in `foo.bar` - these appear as Identifier nodes
@@ -237,5 +237,5 @@ export default function analyse ( ast, magicString, module ) {
 		});
 	});
 
-	ast._scope = scope;
+	module.scope = scope;
 }
