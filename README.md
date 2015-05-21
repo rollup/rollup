@@ -102,7 +102,20 @@ rollup.rollup( 'app.js', {
 }).then( function ( bundle ) {
   // generate code and a sourcemap
   const { code, map } = bundle.generate({
-    format: 'amd'
+    // output format - 'amd', 'cjs', 'es6', 'umd'
+    format: 'amd',
+
+    // exports - 'auto', 'none', 'default', 'named'
+    exports: 'auto',
+
+    // amd/umd options
+    moduleId: 'my-library',
+
+    // umd options
+    moduleName: 'MyLibrary', // necessary if the bundle has exports
+    globals: {
+      backbone: 'Backbone'
+    }
   });
 
   fs.writeFileSync( 'bundle.js', code + '\n//# sourceMappingURL=bundle.js.map' );

@@ -197,7 +197,7 @@ export default class Bundle {
 			throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
 		}
 
-		magicString = finalise( this, magicString, exportMode, options );
+		magicString = finalise( this, magicString.trim(), exportMode, options );
 
 		return {
 			code: magicString.toString(),

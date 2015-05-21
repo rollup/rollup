@@ -1,3 +1,7 @@
 export default function es6 ( bundle, magicString, exportMode, options ) {
-	throw new Error( 'TODO' );
+	// TODO
+	const introBlock = '';
+	const exportBlock = '';
+
+	return magicString.trim();
 }
