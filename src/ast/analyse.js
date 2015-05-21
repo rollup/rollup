@@ -27,20 +27,55 @@ export default function analyse ( ast, magicString, module ) {
 	}
 
 	// first we need to generate comprehensive scope info
-	let previous = 0;
+	let previousStatement = null;
+	let commentIndex = 0;
 
 	ast.body.forEach( statement => {
+		currentTopLevelStatement = statement; // so we can attach scoping info
+
 		Object.defineProperties( statement, {
-			_defines:   { value: {} },
-			_modifies:  { value: {} },
-			_dependsOn: { value: {} },
-			_included:  { value: false, writable: true },
-			_module:    { value: module },
-			_source:    { value: magicString.snip( previous, statement.end ) } // TODO don't use snip, it's a waste of memory
+			_defines:          { value: {} },
+			_modifies:         { value: {} },
+			_dependsOn:        { value: {} },
+			_included:         { value: false, writable: true },
+			_module:           { value: module },
+			_source:           { value: magicString.snip( statement.start, statement.end ) }, // TODO don't use snip, it's a waste of memory
+			_margin:           { value: [ 0, 0 ] },
+			_leadingComments:  { value: [] },
+			_trailingComment:  { value: null, writable: true },
 		});
 
-		previous = statement.end;
-		currentTopLevelStatement = statement; // so we can attach scoping info
+		let trailing = !!previousStatement;
+
+		// attach leading comment
+		do {
+			const comment = module.comments[ commentIndex ];
+
+			if ( !comment || ( comment.end > statement.start ) ) break;
+
+			// attach any trailing comment to the previous statement
+			if ( trailing && !/\n/.test( magicString.slice( previousStatement.end, comment.start ) ) ) {
+				previousStatement._trailingComment = comment;
+			}
+
+			// then attach leading comments to this statement
+			else {
+				statement._leadingComments.push( comment );
+			}
+
+			commentIndex += 1;
+			trailing = false;
+		} while ( module.comments[ commentIndex ] );
+
+		// determine margin
+		const previousEnd = previousStatement ? ( previousStatement._trailingComment || previousStatement ).end : 0;
+		const start = ( statement._leadingComments[0] || statement ).start;
+
+		const gap = magicString.original.slice( previousEnd, start );
+		const margin = gap.split( '\n' ).length;
+
+		if ( previousStatement ) previousStatement._margin[1] = margin;
+		statement._margin[0] = margin;
 
 		walk( statement, {
 			enter ( node ) {
@@ -109,6 +144,8 @@ export default function analyse ( ast, magicString, module ) {
 				}
 			}
 		});
+
+		previousStatement = statement;
 	});
 
 	// then, we need to find which top-level dependencies this statement has,

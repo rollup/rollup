@@ -132,6 +132,8 @@ export default class Bundle {
 		// Determine export mode - 'default', 'named', 'none'
 		let exportMode = this.getExportMode( options.exports );
 
+		let previousMargin = 0;
+
 		// Apply new names and add to the output bundle
 		this.statements.forEach( statement => {
 			let replacements = {};
@@ -146,7 +148,7 @@ export default class Bundle {
 					}
 				});
 
-			const source = statement._source.clone();
+			const source = statement._source.clone().trim();
 
 			// modify exports as necessary
 			if ( /^Export/.test( statement.type ) ) {
@@ -174,9 +176,40 @@ export default class Bundle {
 				}
 			}
 
-
 			replaceIdentifiers( statement, source, replacements );
-			magicString.addSource( source );
+
+			// add leading comments
+			if ( statement._leadingComments.length ) {
+				const commentBlock = statement._leadingComments.map( comment => {
+					return comment.block ?
+						`/*${comment.text}*/` :
+						`//${comment.text}`;
+				}).join( '\n' );
+
+				magicString.addSource( new MagicString( commentBlock ) );
+			}
+
+			// add margin
+			const margin = Math.max( statement._margin[0], previousMargin );
+			const newLines = new Array( margin ).join( '\n' );
+
+			// add the statement itself
+			magicString.addSource({
+				content: source,
+				separator: newLines
+			});
+
+			// add trailing comments
+			const comment = statement._trailingComment;
+			if ( comment ) {
+				const commentBlock = comment.block ?
+					` /*${comment.text}*/` :
+					` //${comment.text}`;
+
+				magicString.append( commentBlock );
+			}
+
+			previousMargin = statement._margin[1];
 		});
 
 		// prepend bundle with internal namespaces

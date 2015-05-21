@@ -21,17 +21,18 @@ export default class Module {
 		});
 
 		this.suggestedNames = {};
+		this.comments = [];
 
 		try {
 			this.ast = parse( code, {
 				ecmaVersion: 6,
-				sourceType: 'module'
+				sourceType: 'module',
+				onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end })
 			});
 		} catch ( err ) {
 			err.file = path;
 			throw err;
 		}
-
 
 		this.analyse();
 	}
@@ -40,6 +41,10 @@ export default class Module {
 		// imports and exports, indexed by ID
 		this.imports = {};
 		this.exports = {};
+
+		let commentIndex = 0;
+		let previousNode;
+		let previousEnd = 0;
 
 		this.ast.body.forEach( node => {
 			let source;
@@ -371,27 +376,6 @@ export default class Module {
 			}
 
 			// include everything else
-
-
-
-			// // modify exports as necessary
-			// if ( /^Export/.test( statement.type ) ) {
-			// 	// remove `export` from `export var foo = 42`
-			// 	if ( statement.type === 'ExportNamedDeclaration' && statement.declaration.type === 'VariableDeclaration' ) {
-			// 		statement._source.remove( statement.start, statement.declaration.start );
-			// 	}
-			//
-			// 	// remove `export` from `export class Foo {...}` or `export default Foo`
-			// 	else if ( statement.declaration.id ) {
-			// 		statement._source.remove( statement.start, statement.declaration.start );
-			// 	}
-			//
-			// 	// declare variables for expressions
-			// 	else {
-			// 		statement._source.overwrite( statement.start, statement.declaration.start, `var TODO = ` );
-			// 	}
-			// }
-
 			return this.expandStatement( statement )
 				.then( statements => {
 					allStatements.push.apply( allStatements, statements );
