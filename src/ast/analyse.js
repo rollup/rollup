@@ -47,9 +47,19 @@ export default function analyse ( ast, magicString, module ) {
 
 		let trailing = !!previousStatement;
 
+		// TODO surely this can be neater
 		// attach leading comment
 		do {
-			const comment = module.comments[ commentIndex ];
+			let comment = module.comments[ commentIndex ];
+
+			// prevent comments inside the previous statement being
+			// appended to it
+			if ( previousStatement ) {
+				while ( comment && comment.start < previousStatement.end ) {
+					commentIndex += 1;
+					comment = module.comments[ commentIndex ];
+				}
+			}
 
 			if ( !comment || ( comment.end > statement.start ) ) break;
 
