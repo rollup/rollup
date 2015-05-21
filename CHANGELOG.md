@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.3.0
+
+* Basic functionality present, mostly spec-compliant 
+
 ## 0.2.1
 
 * Include dist files in npm package (duh)
