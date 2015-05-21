@@ -44,10 +44,10 @@ export default class Bundle {
 
 				if ( !has( this.modulePromises, path ) ) {
 					this.modulePromises[ path ] = readFile( path, { encoding: 'utf-8' })
-						.then( code => {
+						.then( source => {
 							const module = new Module({
 								path,
-								code,
+								source,
 								bundle: this
 							});
 
@@ -67,7 +67,13 @@ export default class Bundle {
 
 				if ( entryModule.exports.default ) {
 					let defaultExportName = makeLegalIdentifier( basename( this.entryPath ).slice( 0, -extname( this.entryPath ).length ) );
-					while ( entryModule.scope.contains( defaultExportName ) ) {
+
+					let topLevelNames = [];
+					entryModule.statements.forEach( statement => {
+						keys( statement.defines ).forEach( name => topLevelNames.push( name ) );
+					});
+
+					while ( ~topLevelNames.indexOf( defaultExportName ) ) {
 						defaultExportName = `_${defaultExportName}`;
 					}
 
@@ -161,7 +167,7 @@ export default class Bundle {
 					}
 				});
 
-			const source = statement.source.clone().trim();
+			const source = statement.magicString.clone().trim();
 
 			// modify exports as necessary
 			if ( /^Export/.test( statement.node.type ) ) {

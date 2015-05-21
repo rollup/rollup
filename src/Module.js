@@ -6,39 +6,47 @@ import Statement from './Statement';
 import analyse from './ast/analyse';
 import { has, keys } from './utils/object';
 import { sequence } from './utils/promise';
+import { isImportDeclaration, isExportDeclaration } from './utils/map-helpers';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
 const emptyArrayPromise = Promise.resolve([]);
 
 export default class Module {
-	constructor ({ path, code, bundle }) {
+	constructor ({ path, source, bundle }) {
+		this.source = source;
+
 		this.bundle = bundle;
 		this.path = path;
 		this.relativePath = relative( bundle.base, path ).slice( 0, -3 ); // remove .js
 
-		this.code = new MagicString( code, {
+		this.magicString = new MagicString( source, {
 			filename: path
 		});
 
 		this.suggestedNames = {};
 		this.comments = [];
 
+		// Try to extract a list of top-level statements/declarations. If
+		// the parse fails, attach file info and abort
 		try {
-			this.ast = parse( code, {
+			const ast = parse( source, {
 				ecmaVersion: 6,
 				sourceType: 'module',
 				onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end })
+			});
+
+			this.statements = ast.body.map( node => {
+				const magicString = this.magicString.snip( node.start, node.end );
+				return new Statement( node, magicString, this );
 			});
 		} catch ( err ) {
 			err.file = path;
 			throw err;
 		}
 
-		this.statements = this.ast.body.map( node => {
-			const source = this.code.snip( node.start, node.end );
-			return new Statement( node, source, this );
-		});
+		this.importDeclarations = this.statements.filter( isImportDeclaration );
+		this.exportDeclarations = this.statements.filter( isExportDeclaration );
 
 		this.analyse();
 	}
@@ -48,110 +56,99 @@ export default class Module {
 		this.imports = {};
 		this.exports = {};
 
-		this.statements.forEach( statement => {
+		this.importDeclarations.forEach( statement => {
 			const node = statement.node;
-			let source;
+			const source = node.source.value;
 
-			// import foo from './foo';
-			// import { bar } from './bar';
-			if ( node.type === 'ImportDeclaration' ) {
-				source = node.source.value;
+			node.specifiers.forEach( specifier => {
+				const isDefault = specifier.type === 'ImportDefaultSpecifier';
+				const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
 
-				node.specifiers.forEach( specifier => {
-					const isDefault = specifier.type === 'ImportDefaultSpecifier';
-					const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
+				const localName = specifier.local.name;
+				const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
 
-					const localName = specifier.local.name;
-					const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
-
-					if ( has( this.imports, localName ) ) {
-						const err = new Error( `Duplicated import '${localName}'` );
-						err.file = this.path;
-						err.loc = getLocation( this.code.original, specifier.start );
-						throw err;
-					}
-
-					this.imports[ localName ] = {
-						source,
-						name,
-						localName
-					};
-				});
-			}
-
-			else if ( /^Export/.test( node.type ) ) {
-				// export default function foo () {}
-				// export default foo;
-				// export default 42;
-				if ( node.type === 'ExportDefaultDeclaration' ) {
-					const isDeclaration = /Declaration$/.test( node.declaration.type );
-
-					this.exports.default = {
-						node, // TODO remove this
-						statement,
-						name: 'default',
-						localName: isDeclaration ? node.declaration.id.name : 'default',
-						isDeclaration
-					};
+				if ( has( this.imports, localName ) ) {
+					const err = new Error( `Duplicated import '${localName}'` );
+					err.file = this.path;
+					err.loc = getLocation( this.source, specifier.start );
+					throw err;
 				}
 
-				// export { foo, bar, baz }
-				// export var foo = 42;
-				// export function foo () {}
-				else if ( node.type === 'ExportNamedDeclaration' ) {
-					// export { foo } from './foo';
-					source = node.source && node.source.value;
+				this.imports[ localName ] = {
+					source,
+					name,
+					localName
+				};
+			});
+		});
 
-					if ( node.specifiers.length ) {
-						// export { foo, bar, baz }
-						node.specifiers.forEach( specifier => {
-							const localName = specifier.local.name;
-							const exportedName = specifier.exported.name;
+		this.exportDeclarations.forEach( statement => {
+			const node = statement.node;
+			const source = node.source && node.source.value;
 
-							this.exports[ exportedName ] = {
-								localName,
-								exportedName
-							};
+			// export default function foo () {}
+			// export default foo;
+			// export default 42;
+			if ( node.type === 'ExportDefaultDeclaration' ) {
+				const isDeclaration = /Declaration$/.test( node.declaration.type );
 
-							if ( source ) {
-								this.imports[ localName ] = {
-									source,
-									localName,
-									name: exportedName
-								};
-							}
-						});
-					}
+				this.exports.default = {
+					statement,
+					name: 'default',
+					localName: isDeclaration ? node.declaration.id.name : 'default',
+					isDeclaration
+				};
+			}
 
-					else {
-						let declaration = node.declaration;
+			// export { foo, bar, baz }
+			// export var foo = 42;
+			// export function foo () {}
+			else if ( node.type === 'ExportNamedDeclaration' ) {
+				if ( node.specifiers.length ) {
+					// export { foo, bar, baz }
+					node.specifiers.forEach( specifier => {
+						const localName = specifier.local.name;
+						const exportedName = specifier.exported.name;
 
-						let name;
-
-						if ( declaration.type === 'VariableDeclaration' ) {
-							// export var foo = 42
-							name = declaration.declarations[0].id.name;
-						} else {
-							// export function foo () {}
-							name = declaration.id.name;
-						}
-
-						this.exports[ name ] = {
-							node, // TODO remove
-							statement,
-							localName: name,
-							expression: declaration
+						this.exports[ exportedName ] = {
+							localName,
+							exportedName
 						};
+
+						// export { foo } from './foo';
+						if ( source ) {
+							this.imports[ localName ] = {
+								source,
+								localName,
+								name: exportedName
+							};
+						}
+					});
+				}
+
+				else {
+					let declaration = node.declaration;
+
+					let name;
+
+					if ( declaration.type === 'VariableDeclaration' ) {
+						// export var foo = 42
+						name = declaration.declarations[0].id.name;
+					} else {
+						// export function foo () {}
+						name = declaration.id.name;
 					}
+
+					this.exports[ name ] = {
+						statement,
+						localName: name,
+						expression: declaration
+					};
 				}
 			}
 		});
 
-
-
-		analyse( this.ast, this.code, this );
-
-		this.definedNames = this.scope.names.slice(); // TODO is this used?
+		analyse( this.magicString, this );
 
 		this.canonicalNames = {};
 
