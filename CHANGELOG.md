@@ -1,8 +1,13 @@
 # rollup changelog
 
+## 0.3.1
+
+* Saner deconflicting
+* Rename namespace imports from external modules correctly
+
 ## 0.3.0
 
-* Basic functionality present, mostly spec-compliant 
+* Basic functionality present, mostly spec-compliant
 
 ## 0.2.1
 
