@@ -1,11 +1,11 @@
 (function () {
-	console.log( '1' ) // not an ID. should fix!
+	alert( '1' ) // line comment after statement
 
 	/*
 	BLOCK COMMENT
 	*/
 
-	console.log( '2' );
+	alert( '2' );
 
 	// standalone comment
 })();
