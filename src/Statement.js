@@ -278,7 +278,7 @@ export default class Statement {
 
 					// We want to rewrite identifiers (that aren't property names)
 					if ( node.type !== 'Identifier' ) return;
-					if ( parent.type === 'MemberExpression' && node !== parent.object ) return;
+					if ( parent.type === 'MemberExpression' && !parent.computed && node !== parent.object ) return;
 					if ( parent.type === 'Property' && node !== parent.value ) return;
 					// TODO others...?
 
