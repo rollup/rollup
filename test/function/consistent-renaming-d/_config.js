@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'consistent renaming test d',
-	// solo: true
+	description: 'consistent renaming test d'
 };
