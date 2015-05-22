@@ -4,7 +4,7 @@ import { parse } from 'acorn';
 import MagicString from 'magic-string';
 import Statement from './Statement';
 import analyse from './ast/analyse';
-import { has, keys } from './utils/object';
+import { blank, has, keys } from './utils/object';
 import { sequence } from './utils/promise';
 import { isImportDeclaration, isExportDeclaration } from './utils/map-helpers';
 import getLocation from './utils/getLocation';
@@ -229,7 +229,13 @@ export default class Module {
 					if ( importDeclaration.name === 'default' ) {
 						// TODO this seems ropey
 						const localName = importDeclaration.localName;
-						const suggestion = has( this.suggestedNames, localName ) ? this.suggestedNames[ localName ] : localName;
+						let suggestion = has( this.suggestedNames, localName ) ? this.suggestedNames[ localName ] : localName;
+
+						// special case - the module has its own import by this name
+						while ( !module.isExternal && has( module.imports, suggestion ) ) {
+							suggestion = `_${suggestion}`;
+						}
+
 						module.suggestName( 'default', suggestion );
 					} else if ( importDeclaration.name === '*' ) {
 						const localName = importDeclaration.localName;
