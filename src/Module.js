@@ -297,8 +297,18 @@ export default class Module {
 		let allStatements = [];
 
 		return sequence( this.statements, statement => {
-			// skip already-included statements
-			if ( statement.isIncluded ) return;
+			// A statement may have already been included, in which case we need to
+			// curb rollup's enthusiasm and move it down here. It remains to be seen
+			// if this approach is bulletproof
+			if ( statement.isIncluded ) {
+				const index = allStatements.indexOf( statement );
+				if ( ~index ) {
+					allStatements.splice( index, 1 );
+					allStatements.push( statement );
+				}
+
+				return;
+			}
 
 			// skip import declarations...
 			if ( statement.isImportDeclaration ) {
