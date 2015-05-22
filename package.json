@@ -34,6 +34,7 @@
     "gobble-babel": "^5.1.0",
     "gobble-cli": "^0.4.2",
     "gobble-esperanto-bundle": "^0.2.0",
+    "gobble-rollup": "^0.1.1",
     "mocha": "^2.2.4",
     "source-map-support": "^0.2.10"
   },
