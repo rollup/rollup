@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.4.1
+
+* More import name deconflicting
+
 ## 0.4.0
 
 * Self-hosting! `rollup.rollup` now rolls up rollup
