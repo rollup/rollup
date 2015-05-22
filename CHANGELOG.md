@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 0.4.0
+
+* Self-hosting! `rollup.rollup` now rolls up rollup
+* Fix bug with comments inside a statement later being appended to it
+* Prevent shadowing of external modules
+* Rewrite computed property identifiers where necessary
+* Preserve original statement order where possible
+* Internal refactoring
+
 ## 0.3.1
 
 * Saner deconflicting
