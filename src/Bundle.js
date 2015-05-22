@@ -94,7 +94,24 @@ export default class Bundle {
 
 		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
 		this.statements.forEach( statement => {
-			keys( statement.defines ).forEach( name => {
+			const module = statement.module;
+			const names = keys( statement.defines );
+
+			// with default exports that are expressions (`export default 42`),
+			// we need to ensure that the name chosen for the expression does
+			// not conflict
+			if ( statement.node.type === 'ExportDefaultDeclaration' ) {
+				const name = module.getCanonicalName( 'default' );
+
+				const isProxy = statement.node.declaration && statement.node.declaration.type === 'Identifier';
+				const shouldDeconflict = !isProxy || ( module.getCanonicalName( statement.node.declaration.name ) !== name );
+
+				if ( shouldDeconflict && !~names.indexOf( name ) ) {
+					names.push( name );
+				}
+			}
+
+			names.forEach( name => {
 				if ( has( definers, name ) ) {
 					conflicts[ name ] = true;
 				} else {
@@ -103,7 +120,7 @@ export default class Bundle {
 
 				// TODO in good js, there shouldn't be duplicate definitions
 				// per module... but some people write bad js
-				definers[ name ].push( statement.module );
+				definers[ name ].push( module );
 			});
 		});
 
