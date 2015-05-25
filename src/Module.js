@@ -120,7 +120,7 @@ export default class Module {
 							this.imports[ localName ] = {
 								source,
 								localName,
-								name: exportedName
+								name: localName
 							};
 						}
 					});
