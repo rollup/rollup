@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.6.3
+
+* Fix exports and external module imports with some output formats
+* Fix endless cycle bug on Windows ([#3](https://github.com/rollup/rollup/pull/3)) - thanks @Bobris
+
 ## 0.6.2
 
 * Permit assignments to properties of imported bindings
