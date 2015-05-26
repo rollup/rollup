@@ -1,4 +1,4 @@
-import { dirname, isAbsolute, resolve } from 'path';
+import { dirname, isAbsolute, resolve, parse } from 'path';
 import { readFileSync } from 'sander';
 
 export function defaultResolver ( importee, importer, options ) {
@@ -18,9 +18,10 @@ export function defaultResolver ( importee, importer, options ) {
 
 export function defaultExternalResolver ( id, importer, options ) {
 	// for now, only node_modules is supported, and only jsnext:main
-	let dir = dirname( importer );
+	let parsed = parse( importer );
+	let dir = parsed.dir;
 
-	while ( dir !== '/' ) {
+	while ( dir !== parsed.root ) {
 		const pkgPath = resolve( dir, 'node_modules', id, 'package.json' );
 		let pkgJson;
 
