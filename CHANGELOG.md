@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.6.2
+
+* Permit assignments to properties of imported bindings
+
 ## 0.6.1
 
 * Support for basic transformers
