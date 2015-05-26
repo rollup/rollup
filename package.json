@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Next-generation ES6 module bundler",
   "main": "dist/rollup.js",
   "jsnext:main": "src/rollup.js",
@@ -37,7 +37,7 @@
     "gobble-babel": "^5.1.0",
     "gobble-cli": "^0.4.2",
     "gobble-esperanto-bundle": "^0.2.0",
-    "gobble-rollup": "^0.1.1",
+    "gobble-rollup": "^0.2.0",
     "mocha": "^2.2.4",
     "source-map-support": "^0.2.10",
     "source-map": "^0.1.40"

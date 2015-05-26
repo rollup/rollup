@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 0.6.0
+
+* BREAKING - `rollup.rollup` and `bundle.write` both take a single options argument
+* BREAKING - external modules must be declared upfront with `options.external: [...]`
+* Non-relative module paths will be resolved by looking for `jsnext:main` fields in the appropriate `package.json` files. This behaviour can be overridden by passing an alternative `resolveExternal` function
+* Fix sourcemap options
+* Include CLI files in npm package (duh)
+
 ## 0.5.0
 
 * Command line interface
