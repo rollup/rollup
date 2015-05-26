@@ -97,16 +97,7 @@ rollup.rollup({
 
   // Any external modules you don't want to include
   // in the bundle (includes node built-ins)
-  external: [ 'path', 'fs', 'some-other-lib' ],
-
-  // Override the default path resolution
-  resolvePath: function ( importee, importer, options ) {
-    // return a string or a falsy value - if falsy,
-    // import is kept external to the bundle. Alternatively,
-    // return a Promise that fulfils with a string or falsy
-    // value. `options` is whatever you passed to `rollup`
-    // initially
-  }
+  external: [ 'path', 'fs', 'some-other-lib' ]
 }).then( function ( bundle ) {
   // generate code and a sourcemap
   const { code, map } = bundle.generate({
