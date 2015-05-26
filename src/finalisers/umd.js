@@ -26,11 +26,12 @@ export default function umd ( bundle, magicString, exportMode, options ) {
 		( has( options, 'moduleId' ) ? `['${options.moduleId}'], ` : `` ) +
 		( amdDeps.length ? `[${amdDeps.join( ', ' )}], ` : `` );
 
+	const cjsExport = exportMode === 'default' ? `module.exports = ` : ``;
 	const defaultExport = exportMode === 'default' ? `global.${options.moduleName} = ` : '';
 
 	const intro =
 		`(function (global, factory) {
-			typeof exports === 'object' && typeof module !== 'undefined' ? factory(${cjsDeps.join( ', ' )}) :
+			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join( ', ' )}) :
 			typeof define === 'function' && define.amd ? define(${amdParams}factory) :
 			${defaultExport}factory(${globalDeps});
 		}(this, function (${args}) { 'use strict';
