@@ -155,9 +155,11 @@ describe( 'rollup', function () {
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
 						return bundlePromise.then( function ( bundle ) {
-							var actual = bundle.generate({
+							var options = extend( {}, config.options, {
 								format: profile.format
-							}).code.trim();
+							});
+
+							var actual = bundle.generate( options ).code.trim();
 
 							try {
 								var expected = sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ).toString().trim();

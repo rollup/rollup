@@ -97,7 +97,6 @@ export default class Bundle {
 				this.statements = statements;
 				this.deconflict();
 			});
-
 	}
 
 	deconflict () {

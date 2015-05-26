@@ -23,13 +23,16 @@ export default function amd ( bundle, magicString, exportMode, options ) {
 	if ( exportMode === 'default' ) {
 		exportBlock = `return ${bundle.entryModule.getCanonicalName('default')};`;
 	} else {
-		exportBlock = '\n\n' + Object.keys( exports ).map( name => {
+		exportBlock = Object.keys( exports ).map( name => {
 			return `exports.${name} = ${exports[name].localName};`;
 		}).join( '\n' );
 	}
 
+	if ( exportBlock ) {
+		magicString.append( '\n\n' + exportBlock );
+	}
+
 	return magicString
-		.append( exportBlock )
 		.trim()
 		.indent()
 		.append( '\n\n});' )
