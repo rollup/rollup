@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.6.1
+
+* Support for basic transformers
+
 ## 0.6.0
 
 * BREAKING - `rollup.rollup` and `bundle.write` both take a single options argument
