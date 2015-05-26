@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.6.4
+
+* Fix CJS bundling with default export
+
 ## 0.6.3
 
 * Fix exports and external module imports with some output formats
