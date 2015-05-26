@@ -7,7 +7,7 @@ import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 import ensureArray from './utils/ensureArray';
-import { defaultResolver } from './utils/resolvePath';
+import { defaultResolver, defaultExternalResolver } from './utils/resolvePath';
 import { defaultLoader } from './utils/load';
 
 function badExports ( option, keys ) {
@@ -23,7 +23,8 @@ export default class Bundle {
 		this.load = options.load || defaultLoader;
 
 		this.resolvePathOptions = {
-			external: ensureArray( options.external )
+			external: ensureArray( options.external ),
+			resolveExternal: options.resolveExternal || defaultExternalResolver
 		};
 
 		this.loadOptions = {

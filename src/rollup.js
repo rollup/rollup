@@ -20,16 +20,8 @@ export function rollup ( options ) {
 					throw new Error( 'You must supply options.dest to bundle.write' );
 				}
 
-				let { code, map } = bundle.generate({
-					dest,
-					format: options.format,
-					globalName: options.globalName,
-
-					// sourcemap options
-					sourceMap: !!options.sourceMap,
-					sourceMapFile: options.sourceMapFile,
-					// sourceMapRoot: options.sourceMapRoot
-				});
+				const dest = options.dest;
+				let { code, map } = bundle.generate( options );
 
 				let promises = [ writeFile( dest, code ) ];
 

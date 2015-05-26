@@ -1,0 +1,1 @@
+export default { isExternal: true };
