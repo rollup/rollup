@@ -21,17 +21,27 @@ export function rollup ( entry, options = {} ) {
 					globalName: options.globalName,
 
 					// sourcemap options
-					sourceMap: options.sourceMap,
+					sourceMap: !!options.sourceMap,
 					sourceMapFile: options.sourceMapFile,
-					sourceMapRoot: options.sourceMapRoot
+					// sourceMapRoot: options.sourceMapRoot
 				});
 
-				code += `\n//# ${SOURCEMAPPING_URL}=${basename( dest )}.map`;
+				let promises = [ writeFile( dest, code ) ];
 
-				return Promise.all([
-					writeFile( dest, code ),
-					writeFile( dest + '.map', map.toString() )
-				]);
+				if ( options.sourceMap ) {
+					let url;
+
+					if ( options.sourceMap === 'inline' ) {
+						url = map.toUrl();
+					} else {
+						url = `${basename( dest )}.map`;
+						promises.push( writeFile( dest + '.map', map.toString() ) );
+					}
+
+					code += `\n//# ${SOURCEMAPPING_URL}=${url}`;
+				}
+
+				return Promise.all( promises );
 			}
 		};
 	});

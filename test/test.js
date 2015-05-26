@@ -179,6 +179,7 @@ describe( 'rollup', function () {
 						return bundlePromise.then( function ( bundle ) {
 							var result = bundle.generate({
 								format: profile.format,
+								sourceMap: true,
 								sourceMapFile: 'bundle.js'
 							});
 

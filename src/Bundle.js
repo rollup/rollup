@@ -274,17 +274,21 @@ export default class Bundle {
 		magicString = finalise( this, magicString.trim(), exportMode, options );
 
 		const code = magicString.toString();
-		let map = magicString.generateMap({
-			includeContent: true,
-			file: options.sourceMapFile || options.dest
-			// TODO
-		});
+		let map = null;
 
-		// make sources relative. TODO fix this upstream?
-		const dir = dirname( map.file );
-		map.sources = map.sources.map( source => {
-			return source ? relative( dir, source ) : null
-		});
+		if ( options.sourceMap ) {
+			map = magicString.generateMap({
+				includeContent: true,
+				file: options.sourceMapFile || options.dest
+				// TODO
+			});
+
+			// make sources relative. TODO fix this upstream?
+			const dir = dirname( map.file );
+			map.sources = map.sources.map( source => {
+				return source ? relative( dir, source ) : null
+			});
+		}
 
 		return { code, map };
 	}
