@@ -33,13 +33,16 @@ function bundle ( options, method ) {
 		handleError({ code: 'MISSING_INPUT_OPTION' });
 	}
 
-	return rollup.rollup( options.input ).then( function ( bundle ) {
+	return rollup.rollup({
+		entry: options.input
+	}).then( function ( bundle ) {
 		var generateOptions = {
+			dest: options.output,
 			format: options.format
 		};
 
 		if ( options.output ) {
-			return bundle.write( options.output, generateOptions );
+			return bundle.write( generateOptions );
 		}
 
 		if ( options.sourcemap && options.sourcemap !== 'inline' ) {

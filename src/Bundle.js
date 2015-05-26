@@ -6,7 +6,9 @@ import Module from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
+import ensureArray from './utils/ensureArray';
 import { defaultResolver } from './utils/resolvePath';
+import { defaultLoader } from './utils/load';
 
 function badExports ( option, keys ) {
 	throw new Error( `'${option}' was specified for options.exports, but entry module has following exports: ${keys.join(', ')}` );
@@ -18,6 +20,15 @@ export default class Bundle {
 		this.base = dirname( this.entryPath );
 
 		this.resolvePath = options.resolvePath || defaultResolver;
+		this.load = options.load || defaultLoader;
+
+		this.resolvePathOptions = {
+			external: ensureArray( options.external )
+		};
+
+		this.loadOptions = {
+			transform: ensureArray( options.transform )
+		};
 
 		this.entryModule = null;
 		this.modulePromises = {};
@@ -28,7 +39,7 @@ export default class Bundle {
 	}
 
 	fetchModule ( importee, importer ) {
-		return Promise.resolve( importer === null ? importee : this.resolvePath( importee, importer ) )
+		return Promise.resolve( importer === null ? importee : this.resolvePath( importee, importer, this.resolvePathOptions ) )
 			.then( path => {
 				if ( !path ) {
 					// external module
@@ -42,7 +53,7 @@ export default class Bundle {
 				}
 
 				if ( !has( this.modulePromises, path ) ) {
-					this.modulePromises[ path ] = readFile( path, { encoding: 'utf-8' })
+					this.modulePromises[ path ] = Promise.resolve( this.load( path, this.loadOptions ) )
 						.then( source => {
 							const module = new Module({
 								path,

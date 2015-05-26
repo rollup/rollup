@@ -1,6 +1,6 @@
 var gobble = require( 'gobble' );
 
-var selfhost = 1;
+var selfhost = 0;
 
 module.exports = selfhost ?
 	gobble( 'src' )

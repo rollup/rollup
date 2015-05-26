@@ -54,7 +54,11 @@ describe( 'rollup', function () {
 			}
 
 			( config.skip ? it.skip : config.solo ? it.only : it )( dir, function () {
-				return rollup.rollup( FUNCTION + '/' + dir + '/main.js', extend( {}, config.options ) )
+				var options = extend( {}, config.options, {
+					entry: FUNCTION + '/' + dir + '/main.js'
+				})
+
+				return rollup.rollup( options )
 					.then( function ( bundle ) {
 						var unintendedError;
 
@@ -142,7 +146,11 @@ describe( 'rollup', function () {
 					config = { description: dir };
 				}
 
-				var bundlePromise = rollup.rollup( FORM + '/' + dir + '/main.js', extend( {}, config.options ) );
+				var options = extend( {}, config.options, {
+					entry: FORM + '/' + dir + '/main.js'
+				});
+
+				var bundlePromise = rollup.rollup( options );
 
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
@@ -172,7 +180,11 @@ describe( 'rollup', function () {
 			describe( dir, function () {
 				var config = require( SOURCEMAPS + '/' + dir + '/_config' );
 
-				var bundlePromise = rollup.rollup( SOURCEMAPS + '/' + dir + '/main.js', extend( {}, config.options ) );
+				var options = extend( {}, config.options, {
+					entry: SOURCEMAPS + '/' + dir + '/main.js'
+				});
+
+				var bundlePromise = rollup.rollup( options );
 
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {

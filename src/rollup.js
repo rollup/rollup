@@ -5,16 +5,21 @@ import Bundle from './Bundle';
 let SOURCEMAPPING_URL = 'sourceMa';
 SOURCEMAPPING_URL += 'ppingURL';
 
-export function rollup ( entry, options = {} ) {
-	const bundle = new Bundle({
-		entry,
-		resolvePath: options.resolvePath
-	});
+export function rollup ( options ) {
+	if ( !options || !options.entry ) {
+		throw new Error( 'You must supply options.entry to rollup' );
+	}
+
+	const bundle = new Bundle( options );
 
 	return bundle.build().then( () => {
 		return {
 			generate: options => bundle.generate( options ),
-			write: ( dest, options = {} ) => {
+			write: options => {
+				if ( !options || !options.dest ) {
+					throw new Error( 'You must supply options.dest to bundle.write' );
+				}
+
 				let { code, map } = bundle.generate({
 					dest,
 					format: options.format,
