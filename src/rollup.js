@@ -18,7 +18,12 @@ export function rollup ( entry, options = {} ) {
 				let { code, map } = bundle.generate({
 					dest,
 					format: options.format,
-					globalName: options.globalName
+					globalName: options.globalName,
+
+					// sourcemap options
+					sourceMap: options.sourceMap,
+					sourceMapFile: options.sourceMapFile,
+					sourceMapRoot: options.sourceMapRoot
 				});
 
 				code += `\n//# ${SOURCEMAPPING_URL}=${basename( dest )}.map`;

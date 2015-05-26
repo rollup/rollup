@@ -3,6 +3,7 @@ import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
 import Statement from './Statement';
+import walk from './ast/walk';
 import analyse from './ast/analyse';
 import { blank, has, keys } from './utils/object';
 import { sequence } from './utils/promise';
@@ -36,11 +37,18 @@ export default class Module {
 				onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end })
 			});
 
+			walk( ast, {
+				enter: node => {
+					this.magicString.addSourcemapLocation( node.start );
+				}
+			});
+
 			this.statements = ast.body.map( node => {
 				const magicString = this.magicString.snip( node.start, node.end );
 				return new Statement( node, magicString, this );
 			});
 		} catch ( err ) {
+			err.code = 'PARSE_ERROR';
 			err.file = path;
 			throw err;
 		}

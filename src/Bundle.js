@@ -1,4 +1,4 @@
-import { basename, dirname, extname, resolve } from 'path';
+import { basename, dirname, extname, relative, resolve } from 'path';
 import { readFile, Promise } from 'sander';
 import MagicString from 'magic-string';
 import { keys, has } from './utils/object';
@@ -273,14 +273,20 @@ export default class Bundle {
 
 		magicString = finalise( this, magicString.trim(), exportMode, options );
 
-		return {
-			code: magicString.toString(),
-			map: magicString.generateMap({
-				includeContent: true,
-				file: options.dest
-				// TODO
-			})
-		};
+		const code = magicString.toString();
+		let map = magicString.generateMap({
+			includeContent: true,
+			file: options.sourceMapFile || options.dest
+			// TODO
+		});
+
+		// make sources relative. TODO fix this upstream?
+		const dir = dirname( map.file );
+		map.sources = map.sources.map( source => {
+			return source ? relative( dir, source ) : null
+		});
+
+		return { code, map };
 	}
 
 	getExportMode ( exportMode ) {

@@ -10,6 +10,15 @@ var rollup = require( '../dist/rollup' );
 
 var FUNCTION = path.resolve( __dirname, 'function' );
 var FORM = path.resolve( __dirname, 'form' );
+var SOURCEMAPS = path.resolve( __dirname, 'sourcemaps' );
+
+var PROFILES = [
+	{ format: 'amd' },
+	{ format: 'cjs' },
+	{ format: 'es6' },
+	{ format: 'iife' },
+	{ format: 'umd' }
+];
 
 function extend ( target ) {
 	[].slice.call( arguments, 1 ).forEach( function ( source ) {
@@ -121,14 +130,6 @@ describe( 'rollup', function () {
 	});
 
 	describe( 'form', function () {
-		var profiles = [
-			{ format: 'amd' },
-			{ format: 'cjs' },
-			{ format: 'es6' },
-			{ format: 'iife' },
-			{ format: 'umd' }
-		];
-
 		sander.readdirSync( FORM ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
@@ -143,7 +144,7 @@ describe( 'rollup', function () {
 
 				var bundlePromise = rollup.rollup( FORM + '/' + dir + '/main.js', extend( {}, config.options ) );
 
-				profiles.forEach( function ( profile ) {
+				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
 						return bundlePromise.then( function ( bundle ) {
 							var actual = bundle.generate({
@@ -157,6 +158,31 @@ describe( 'rollup', function () {
 							}
 
 							assert.equal( actual, expected );
+						});
+					});
+				});
+			});
+		});
+	});
+
+	describe( 'sourcemaps', function () {
+		sander.readdirSync( SOURCEMAPS ).sort().forEach( function ( dir ) {
+			if ( dir[0] === '.' ) return; // .DS_Store...
+
+			describe( dir, function () {
+				var config = require( SOURCEMAPS + '/' + dir + '/_config' );
+
+				var bundlePromise = rollup.rollup( SOURCEMAPS + '/' + dir + '/main.js', extend( {}, config.options ) );
+
+				PROFILES.forEach( function ( profile ) {
+					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
+						return bundlePromise.then( function ( bundle ) {
+							var result = bundle.generate({
+								format: profile.format,
+								sourceMapFile: 'bundle.js'
+							});
+
+							config.test( result.code, result.map );
 						});
 					});
 				});
