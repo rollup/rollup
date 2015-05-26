@@ -1,9 +1,12 @@
 {
   "name": "rollup",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Next-generation ES6 module bundler",
   "main": "dist/rollup.js",
   "jsnext:main": "src/rollup.js",
+  "bin": {
+    "rollup": "./bin/index.js"
+  },
   "scripts": {
     "test": "mocha",
     "pretest": "npm run build",
@@ -36,11 +39,14 @@
     "gobble-esperanto-bundle": "^0.2.0",
     "gobble-rollup": "^0.1.1",
     "mocha": "^2.2.4",
-    "source-map-support": "^0.2.10"
+    "source-map-support": "^0.2.10",
+    "source-map": "^0.1.40"
   },
   "dependencies": {
     "acorn": "^1.1.0",
-    "magic-string": "^0.5.1",
+    "chalk": "^1.0.0",
+    "magic-string": "^0.5.3",
+    "minimist": "^1.1.1",
     "sander": "^0.3.3"
   },
   "files": [

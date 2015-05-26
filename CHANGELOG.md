@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.5.0
+
+* Command line interface
+* Sourcemap generation
+* Correct behaviour with `export { x as y } from 'z'`
+
 ## 0.4.1
 
 * More import name deconflicting
