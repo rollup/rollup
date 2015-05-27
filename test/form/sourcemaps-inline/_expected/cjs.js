@@ -1,0 +1,14 @@
+'use strict';
+
+console.log( 'hello from main.js' );
+
+function foo () {
+	console.log( 'hello from foo.js' );
+}
+
+foo();
+function bar () {
+	console.log( 'hello from bar.js' );
+}
+bar();
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiY2pzLmpzIiwic291cmNlcyI6WyIuLi9tYWluLmpzIiwiLi4vZm9vLmpzIiwiLi4vYmFyLmpzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBmb28gZnJvbSAnLi9mb28nO1xuaW1wb3J0IGJhciBmcm9tICcuL2Jhcic7XG5cbmNvbnNvbGUubG9nKCAnaGVsbG8gZnJvbSBtYWluLmpzJyApO1xuXG5mb28oKTtcbmJhcigpO1xuIiwiZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gZm9vICgpIHtcblx0Y29uc29sZS5sb2coICdoZWxsbyBmcm9tIGZvby5qcycgKTtcbn1cbiIsImV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIGJhciAoKSB7XG5cdGNvbnNvbGUubG9nKCAnaGVsbG8gZnJvbSBiYXIuanMnICk7XG59XG4iXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7QUFHQSxPQUFPLENBQUMsR0FBRyxFQUFFLG9CQUFvQixFQUFFOztBQ0hwQixTQUFTLEdBQUcsSUFBSTtBQUMvQixDQUFDLE9BQU8sQ0FBQyxHQUFHLEVBQUUsbUJBQW1CLEVBQUU7QUFDbkM7O0FER0EsR0FBRyxFQUFFO0FFTFUsU0FBUyxHQUFHLElBQUk7QUFDL0IsQ0FBQyxPQUFPLENBQUMsR0FBRyxFQUFFLG1CQUFtQixFQUFFO0FBQ25DO0FGSUEsR0FBRyxFQUFFIn0=
