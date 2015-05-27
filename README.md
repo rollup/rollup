@@ -91,14 +91,13 @@ This is not a trivial task. There are almost certainly a great many complex edge
 The example below is aspirational. It isn't yet implemented - it exists in the name of [README driven development](http://tom.preston-werner.com/2010/08/23/readme-driven-development.html).
 
 ```js
-rollup.rollup( 'app.js', {
-  // Override the default path resolution
-  resolvePath: function ( importee, importer ) {
-    // return a string or a falsy value - if falsy,
-    // import is kept external to the bundle.
-    // Alternative, return a Promise that fulfils
-    // with a string or falsy value
-  }
+rollup.rollup({
+  // The bundle's starting point
+  entry: 'app.js',
+
+  // Any external modules you don't want to include
+  // in the bundle (includes node built-ins)
+  external: [ 'path', 'fs', 'some-other-lib' ]
 }).then( function ( bundle ) {
   // generate code and a sourcemap
   const { code, map } = bundle.generate({

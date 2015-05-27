@@ -5,28 +5,25 @@ import Bundle from './Bundle';
 let SOURCEMAPPING_URL = 'sourceMa';
 SOURCEMAPPING_URL += 'ppingURL';
 
-export function rollup ( entry, options = {} ) {
-	const bundle = new Bundle({
-		entry,
-		resolvePath: options.resolvePath
-	});
+export function rollup ( options ) {
+	if ( !options || !options.entry ) {
+		throw new Error( 'You must supply options.entry to rollup' );
+	}
+
+	const bundle = new Bundle( options );
 
 	return bundle.build().then( () => {
 		return {
 			generate: options => bundle.generate( options ),
-			write: ( dest, options = {} ) => {
-				let { code, map } = bundle.generate({
-					dest,
-					format: options.format,
-					globalName: options.globalName,
+			write: options => {
+				if ( !options || !options.dest ) {
+					throw new Error( 'You must supply options.dest to bundle.write' );
+				}
 
-					// sourcemap options
-					sourceMap: !!options.sourceMap,
-					sourceMapFile: options.sourceMapFile,
-					// sourceMapRoot: options.sourceMapRoot
-				});
+				const dest = options.dest;
+				let { code, map } = bundle.generate( options );
 
-				let promises = [ writeFile( dest, code ) ];
+				let promises = [];
 
 				if ( options.sourceMap ) {
 					let url;
@@ -41,6 +38,7 @@ export function rollup ( entry, options = {} ) {
 					code += `\n//# ${SOURCEMAPPING_URL}=${url}`;
 				}
 
+				promises.push( writeFile( dest, code ) );
 				return Promise.all( promises );
 			}
 		};

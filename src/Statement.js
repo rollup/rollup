@@ -156,16 +156,29 @@ export default class Statement {
 
 	checkForWrites ( scope, node ) {
 		const addNode = ( node, disallowImportReassignments ) => {
+			let depth = 0; // determine whether we're illegally modifying a binding or namespace
+
 			while ( node.type === 'MemberExpression' ) {
 				node = node.object;
+				depth += 1;
 			}
 
 			// disallow assignments/updates to imported bindings and namespaces
-			if ( disallowImportReassignments && has( this.module.imports, node.name ) && !scope.contains( node.name ) ) {
-				const err = new Error( `Illegal reassignment to import '${node.name}'` );
-				err.file = this.module.path;
-				err.loc = getLocation( this.module.magicString.toString(), node.start );
-				throw err;
+			if ( disallowImportReassignments ) {
+				const importSpecifier = this.module.imports[ node.name ];
+
+				if ( importSpecifier && !scope.contains( node.name ) ) {
+					const minDepth = importSpecifier.name === '*' ?
+						2 : // cannot do e.g. `namespace.foo = bar`
+						1;  // cannot do e.g. `foo = bar`, but `foo.bar = bar` is fine
+
+					if ( depth < minDepth ) {
+						const err = new Error( `Illegal reassignment to import '${node.name}'` );
+						err.file = this.module.path;
+						err.loc = getLocation( this.module.magicString.toString(), node.start );
+						throw err;
+					}
+				}
 			}
 
 			if ( node.type !== 'Identifier' ) {
