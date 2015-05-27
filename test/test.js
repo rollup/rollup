@@ -54,7 +54,11 @@ describe( 'rollup', function () {
 			}
 
 			( config.skip ? it.skip : config.solo ? it.only : it )( dir, function () {
-				return rollup.rollup( FUNCTION + '/' + dir + '/main.js', extend( {}, config.options ) )
+				var options = extend( {}, config.options, {
+					entry: FUNCTION + '/' + dir + '/main.js'
+				})
+
+				return rollup.rollup( options )
 					.then( function ( bundle ) {
 						var unintendedError;
 
@@ -134,15 +138,13 @@ describe( 'rollup', function () {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
 			describe( dir, function () {
-				var config;
+				var config = require( FORM + '/' + dir + '/_config' );
 
-				try {
-					config = require( FORM + '/' + dir + '/_config' );
-				} catch ( err ) {
-					config = { description: dir };
-				}
+				var options = extend( {}, config.options, {
+					entry: FORM + '/' + dir + '/main.js'
+				});
 
-				var bundlePromise = rollup.rollup( FORM + '/' + dir + '/main.js', extend( {}, config.options ) );
+				var bundlePromise = rollup.rollup( options );
 
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
@@ -166,10 +168,11 @@ describe( 'rollup', function () {
 
 								try {
 									actualMap = JSON.parse( sander.readFileSync( FORM, dir, '_actual', profile.format + '.js.map' ).toString() );
+								} catch ( err ) {}
+
+								try {
 									expectedMap = JSON.parse( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js.map' ).toString() );
-								} catch ( err ) {
-									// that's okay, may not have sourcemaps
-								}
+								} catch ( err ) {}
 
 								assert.equal( actualCode, expectedCode );
 								assert.deepEqual( actualMap, expectedMap );
@@ -188,7 +191,11 @@ describe( 'rollup', function () {
 			describe( dir, function () {
 				var config = require( SOURCEMAPS + '/' + dir + '/_config' );
 
-				var bundlePromise = rollup.rollup( SOURCEMAPS + '/' + dir + '/main.js', extend( {}, config.options ) );
+				var options = extend( {}, config.options, {
+					entry: SOURCEMAPS + '/' + dir + '/main.js'
+				});
+
+				var bundlePromise = rollup.rollup( options );
 
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
