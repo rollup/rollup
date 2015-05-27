@@ -1,3 +1,6 @@
 module.exports = {
-	description: 'external modules are not shadowed'
+	description: 'external modules are not shadowed',
+	options: {
+		external: [ 'path' ]
+	}
 };

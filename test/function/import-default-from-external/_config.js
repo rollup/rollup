@@ -1,3 +1,6 @@
 module.exports = {
-	description: 'imports default from external module'
+	description: 'imports default from external module',
+	options: {
+		external: [ 'path' ]
+	}
 };
