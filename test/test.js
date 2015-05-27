@@ -147,17 +147,33 @@ describe( 'rollup', function () {
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
 						return bundlePromise.then( function ( bundle ) {
-							var actual = bundle.generate({
+							var options = extend( {}, config.options, {
+								dest: FORM + '/' + dir + '/_actual/' + profile.format + '.js',
 								format: profile.format
-							}).code.trim();
+							});
 
-							try {
-								var expected = sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ).toString().trim();
-							} catch ( err ) {
-								assert.equal( actual, 'missing file' );
-							}
+							return bundle.write( options ).then( function () {
+								var actualCode = sander.readFileSync( FORM, dir, '_actual', profile.format + '.js' ).toString().trim();
+								var expectedCode;
+								var actualMap;
+								var expectedMap;
 
-							assert.equal( actual, expected );
+								try {
+									expectedCode = sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ).toString().trim();
+								} catch ( err ) {
+									expectedCode = 'missing file';
+								}
+
+								try {
+									actualMap = JSON.parse( sander.readFileSync( FORM, dir, '_actual', profile.format + '.js.map' ).toString() );
+									expectedMap = JSON.parse( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js.map' ).toString() );
+								} catch ( err ) {
+									// that's okay, may not have sourcemaps
+								}
+
+								assert.equal( actualCode, expectedCode );
+								assert.deepEqual( actualMap, expectedMap );
+							});
 						});
 					});
 				});
