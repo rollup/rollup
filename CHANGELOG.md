@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.6.5
+
+* Add sourceMappingURL comment to code, as appropriate
+* Higher resolution sourcemaps
+
 ## 0.6.4
 
 * Fix CJS bundling with default export
