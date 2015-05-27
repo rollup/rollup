@@ -19,7 +19,6 @@ export default class Module {
 
 		this.bundle = bundle;
 		this.path = path;
-		this.relativePath = relative( bundle.base, path ).slice( 0, -3 ); // remove .js
 
 		this.magicString = new MagicString( source, {
 			filename: path
