@@ -35,7 +35,6 @@ export default class Bundle {
 		this.modulePromises = {};
 		this.statements = [];
 		this.externalModules = [];
-		this.defaultExportName = null;
 		this.internalNamespaceModules = [];
 	}
 
