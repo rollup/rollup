@@ -11,7 +11,7 @@ This is an experimental project. You definitely shouldn't try and use it, yet.
 
 Right now, you have a few different options if you want to create a bundle out of your ES6 modules:
 
-* The best option, in terms of performance, size of the resulting bundle, and accurate representation of ES6 module semantics, is to use [esperanto](esperantojs.org). It's used by [ractive.js](ractivejs.org), [moment.js](http://momentjs.com/), Facebook's [immutable.js](https://github.com/facebook/immutable-js), the jQuery Foundation's [pointer events polyfill](https://github.com/jquery/PEP), [Ember CLI](http://www.ember-cli.com/) and a bunch of other libraries and apps
+* The best option, in terms of performance, size of the resulting bundle, and accurate representation of ES6 module semantics, is to use [esperanto](http://esperantojs.org). It's used by [ractive.js](http://ractivejs.org), [moment.js](http://momentjs.com/), Facebook's [immutable.js](https://github.com/facebook/immutable-js), the jQuery Foundation's [pointer events polyfill](https://github.com/jquery/PEP), [Ember CLI](http://www.ember-cli.com/) and a bunch of other libraries and apps
 * You could use [jspm](http://jspm.io/), which combines a module bundler with a loader and a package manager
 * Or you could use [browserify](http://browserify.org/) or [webpack](http://webpack.github.io/), transpiling your modules into CommonJS along the way
 
