@@ -1,11 +1,10 @@
-import { relative } from 'path';
 import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
 import Statement from './Statement';
 import walk from './ast/walk';
 import analyse from './ast/analyse';
-import { blank, has, keys } from './utils/object';
+import { has, keys } from './utils/object';
 import { sequence } from './utils/promise';
 import { isImportDeclaration, isExportDeclaration } from './utils/map-helpers';
 import getLocation from './utils/getLocation';
@@ -165,11 +164,11 @@ export default class Module {
 		this.modifications = {};
 
 		this.statements.forEach( statement => {
-			Object.keys( statement.defines ).forEach( name => {
+			keys( statement.defines ).forEach( name => {
 				this.definitions[ name ] = statement;
 			});
 
-			Object.keys( statement.modifies ).forEach( name => {
+			keys( statement.modifies ).forEach( name => {
 				if ( !has( this.modifications, name ) ) {
 					this.modifications[ name ] = [];
 				}
