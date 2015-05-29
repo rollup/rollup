@@ -44,7 +44,7 @@ export default class Module {
 			});
 
 			this.statements = ast.body.map( node => {
-				const magicString = this.magicString.snip( node.start, node.end );
+				const magicString = this.magicString.snip( node.start, node.end ).append( '\n' );
 				return new Statement( node, magicString, this );
 			});
 		} catch ( err ) {
