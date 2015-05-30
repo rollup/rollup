@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 0.7.0
+
+* Ensure statements are always separated by a newline ([#9](https://github.com/rollup/rollup/pull/9))
+* Use CommonJS `exports` correctly (UMD exports)
+* Throw error if `moduleName` is required but missing (UMD exports)
+* Attach IIFE global to `this` rather than `window`
+* Allow names inside bundle to the the names of `Object.prototype` properties ([#12](https://github.com/rollup/rollup/pull/12))
+* Keep exports live ([#11](https://github.com/rollup/rollup/pull/11))
+
 ## 0.6.5
 
 * Add sourceMappingURL comment to code, as appropriate
