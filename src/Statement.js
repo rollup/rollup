@@ -248,7 +248,7 @@ export default class Statement {
 	}
 
 	replaceIdentifiers ( names ) {
-		const magicString = this.magicString.clone().trim();
+		const magicString = this.magicString.clone();
 		const replacementStack = [ names ];
 		const nameList = keys( names );
 
