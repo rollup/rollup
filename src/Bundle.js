@@ -240,8 +240,9 @@ export default class Bundle {
 				magicString.addSource( new MagicString( commentBlock ) );
 			}
 
-			// add margin
-			const margin = Math.max( statement.margin[0], previousMargin );
+			// ensure there is always a newline between statements, and add
+			// additional newlines as necessary to reflect original source
+			const margin = Math.max( 2, statement.margin[0], previousMargin );
 			const newLines = new Array( margin ).join( '\n' );
 
 			// add the statement itself
