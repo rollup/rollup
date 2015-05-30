@@ -27,6 +27,8 @@ export default function iife ( bundle, magicString, exportMode, options ) {
 		magicString.append( `\n\nreturn ${bundle.entryModule.getCanonicalName('default')};` );
 	}
 
+	// TODO named exports
+
 	return magicString
 		.indent()
 		.prepend( intro )

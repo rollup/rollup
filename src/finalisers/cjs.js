@@ -27,7 +27,7 @@ export default function cjs ( bundle, magicString, exportMode ) {
 	if ( exportMode === 'default' && bundle.entryModule.exports.default ) {
 		exportBlock = `module.exports = ${bundle.entryModule.getCanonicalName('default')};`;
 	} else if ( exportMode === 'named' ) {
-		exportBlock = keys( bundle.entryModule.exports )
+		exportBlock = bundle.toExport
 			.map( key => {
 				const specifier = bundle.entryModule.exports[ key ];
 				const name = bundle.entryModule.getCanonicalName( specifier.localName );

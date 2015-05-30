@@ -32,6 +32,10 @@ export default class Bundle {
 		};
 
 		this.entryModule = null;
+
+		this.varExports = blank();
+		this.toExport = null;
+
 		this.modulePromises = blank();
 		this.statements = [];
 		this.externalModules = [];
@@ -179,21 +183,59 @@ export default class Bundle {
 
 		let previousMargin = 0;
 
+		// If we have named exports from the bundle, and those exports
+		// are assigned to *within* the bundle, we may need to rewrite e.g.
+		//
+		//   export let count = 0;
+		//   export function incr () { count++ }
+		//
+		// might become...
+		//
+		//   exports.count = 0;
+		//   function incr () {
+		//     exports.count += 1;
+		//   }
+		//   exports.incr = incr;
+		//
+		// TODO This doesn't apply if the bundle is exported as ES6!
+		let allBundleExports = blank();
+
+		keys( this.entryModule.exports ).forEach( key => {
+			const exportDeclaration = this.entryModule.exports[ key ];
+
+			const originalDeclaration = this.entryModule.findDeclaration( exportDeclaration.localName );
+
+			if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
+				const canonicalName = this.entryModule.getCanonicalName( exportDeclaration.localName );
+
+				allBundleExports[ canonicalName ] = `exports.${key}`;
+				this.varExports[ key ] = true;
+			}
+		});
+
+		// since we're rewriting variable exports, we want to
+		// ensure we don't try and export them again at the bottom
+		this.toExport = keys( this.entryModule.exports )
+			.filter( key => !this.varExports[ key ] );
+
 		// Apply new names and add to the output bundle
 		this.statements.forEach( statement => {
 			let replacements = blank();
+			let bundleExports = blank();
 
 			keys( statement.dependsOn )
 				.concat( keys( statement.defines ) )
 				.forEach( name => {
 					const canonicalName = statement.module.getCanonicalName( name );
 
-					if ( name !== canonicalName ) {
+					if ( allBundleExports[ canonicalName ] ) {
+						bundleExports[ name ] = replacements[ name ] = allBundleExports[ canonicalName ];
+					} else if ( name !== canonicalName ) {
 						replacements[ name ] = canonicalName;
 					}
 				});
 
-			const source = statement.replaceIdentifiers( replacements );
+			const source = statement.replaceIdentifiers( replacements, bundleExports );
 
 			// modify exports as necessary
 			if ( statement.isExportDeclaration ) {

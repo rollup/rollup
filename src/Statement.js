@@ -37,24 +37,6 @@ export default class Statement {
 
 		let scope = this.scope;
 
-		function addToScope ( declarator ) {
-			var name = declarator.id.name;
-			scope.add( name, false );
-
-			if ( !scope.parent ) {
-				statement.defines[ name ] = true;
-			}
-		}
-
-		function addToBlockScope ( declarator ) {
-			var name = declarator.id.name;
-			scope.add( name, true );
-
-			if ( !scope.parent ) {
-				statement.defines[ name ] = true;
-			}
-		}
-
 		walk( this.node, {
 			enter ( node ) {
 				let newScope;
@@ -65,19 +47,21 @@ export default class Statement {
 					case 'FunctionExpression':
 					case 'FunctionDeclaration':
 					case 'ArrowFunctionExpression':
-						let names = node.params.map( getName );
-
 						if ( node.type === 'FunctionDeclaration' ) {
-							addToScope( node );
-						} else if ( node.type === 'FunctionExpression' && node.id ) {
-							names.push( node.id.name );
+							scope.addDeclaration( node.id.name, node );
 						}
 
 						newScope = new Scope({
 							parent: scope,
-							params: names, // TODO rest params?
+							params: node.params, // TODO rest params?
 							block: false
 						});
+
+						// named function expressions - the name is considered
+						// part of the function's scope
+						if ( node.type === 'FunctionExpression' && node.id ) {
+							newScope.addDeclaration( node.id.name, node );
+						}
 
 						break;
 
@@ -92,18 +76,20 @@ export default class Statement {
 					case 'CatchClause':
 						newScope = new Scope({
 							parent: scope,
-							params: [ node.param.name ],
+							params: [ node.param ],
 							block: true
 						});
 
 						break;
 
 					case 'VariableDeclaration':
-						node.declarations.forEach( node.kind === 'let' ? addToBlockScope : addToScope ); // TODO const?
+						node.declarations.forEach( declarator => {
+							scope.addDeclaration( declarator.id.name, node );
+						});
 						break;
 
 					case 'ClassDeclaration':
-						addToScope( node );
+						scope.addDeclaration( node.id.name, node );
 						break;
 				}
 
@@ -132,6 +118,10 @@ export default class Statement {
 				}
 			});
 		}
+
+		keys( scope.declarations ).forEach( name => {
+			statement.defines[ name ] = true;
+		});
 	}
 
 	checkForReads ( scope, node, parent ) {
@@ -247,7 +237,9 @@ export default class Statement {
 			});
 	}
 
-	replaceIdentifiers ( names ) {
+	replaceIdentifiers ( names, bundleExports ) {
+		const module = this.module;
+
 		const magicString = this.magicString.clone();
 		const replacementStack = [ names ];
 		const nameList = keys( names );
@@ -258,24 +250,60 @@ export default class Statement {
 			deshadowList.push( replacement.split( '.' )[0] );
 		});
 
-		if ( nameList.length > 0 ) {
+		if ( nameList.length > 0 || keys( bundleExports ).length ) {
+			let topLevel = true;
+
 			walk( this.node, {
 				enter ( node, parent ) {
+					if ( node._skip ) return this.skip();
+
+					// special case - variable declarations that need to be rewritten
+					// as bundle exports
+					if ( topLevel ) {
+						if ( node.type === 'VariableDeclaration' ) {
+							// if this contains a single declarator, and it's one that
+							// needs to be rewritten, we replace the whole lot
+							const name = node.declarations[0].id.name;
+							if ( node.declarations.length === 1 && bundleExports[ name ] ) {
+								magicString.overwrite( node.start, node.declarations[0].id.end, bundleExports[ name ] );
+								node.declarations[0].id._skip = true;
+							}
+
+							// otherwise, we insert the `exports.foo = foo` after the declaration
+							else {
+								const exportInitialisers = node.declarations
+									.map( declarator => declarator.id.name )
+									.filter( name => !!bundleExports[ name ] )
+									.map( name => `\n${bundleExports[name]} = ${name};` )
+									.join( '' );
+
+								// TODO clean this up
+								try {
+									magicString.insert( node.end, exportInitialisers );
+								} catch ( err ) {
+									magicString.append( exportInitialisers );
+								}
+							}
+						}
+					}
+
 					const scope = node._scope;
 
 					if ( scope ) {
+						topLevel = false;
+
 						let newNames = blank();
 						let hasReplacements;
 
 						keys( names ).forEach( key => {
-							if ( !~scope.names.indexOf( key ) ) {
+							if ( !scope.declarations[ key ] ) {
 								newNames[ key ] = names[ key ];
 								hasReplacements = true;
 							}
 						});
 
 						deshadowList.forEach( name => {
-							if ( ~scope.names.indexOf( name ) ) {
+							if ( ~scope.declarations[ name ] ) {
 								newNames[ name ] = name + '$$'; // TODO better mechanism
 								hasReplacements = true;
 							}
@@ -289,7 +317,7 @@ export default class Statement {
 						replacementStack.push( newNames );
 					}
 
-					// We want to rewrite identifiers (that aren't property names)
+					// We want to rewrite identifiers (that aren't property names etc)
 					if ( node.type !== 'Identifier' ) return;
 					if ( parent.type === 'MemberExpression' && !parent.computed && node !== parent.object ) return;
 					if ( parent.type === 'Property' && node !== parent.value ) return;

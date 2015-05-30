@@ -37,4 +37,8 @@ export default class ExternalModule {
 			this.suggestedNames[ exportName ] = suggestion;
 		}
 	}
+
+	findDefiningStatement () {
+		return null;
+	}
 }

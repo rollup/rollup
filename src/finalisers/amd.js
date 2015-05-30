@@ -22,7 +22,7 @@ export default function amd ( bundle, magicString, exportMode, options ) {
 	if ( exportMode === 'default' ) {
 		exportBlock = `return ${bundle.entryModule.getCanonicalName('default')};`;
 	} else {
-		exportBlock = Object.keys( exports ).map( name => {
+		exportBlock = bundle.toExport.map( name => {
 			return `exports.${name} = ${exports[name].localName};`;
 		}).join( '\n' );
 	}

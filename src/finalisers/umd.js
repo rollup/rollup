@@ -50,7 +50,7 @@ export default function umd ( bundle, magicString, exportMode, options ) {
 		const canonicalName = bundle.entryModule.getCanonicalName( 'default' );
 		exportBlock = `return ${canonicalName};`;
 	} else {
-		exportBlock = Object.keys( exports ).map( name => {
+		exportBlock = bundle.toExport.map( name => {
 			const canonicalName = bundle.entryModule.getCanonicalName( exports[ name ].localName );
 			return `exports.${name} = ${canonicalName};`;
 		}).join( '\n' );

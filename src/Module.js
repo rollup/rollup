@@ -178,6 +178,32 @@ export default class Module {
 		});
 	}
 
+	findDeclaration ( localName ) {
+		const importDeclaration = this.imports[ localName ];
+
+		// name was defined by another module
+		if ( importDeclaration ) {
+			const module = importDeclaration.module;
+
+			if ( module.isExternal ) return null;
+
+			const exportDeclaration = module.exports[ importDeclaration.name ];
+			return module.findDeclaration( exportDeclaration.localName );
+		}
+
+		// name was defined by this module, if any
+		let i = this.statements.length;
+		while ( i-- ) {
+			const statement = this.statements[i];
+			const declaration = this.statements[i].scope.declarations[ localName ];
+			if ( declaration ) {
+				return declaration;
+			}
+		}
+
+		return null;
+	}
+
 	getCanonicalName ( localName ) {
 		if ( this.suggestedNames[ localName ] ) {
 			localName = this.suggestedNames[ localName ];
