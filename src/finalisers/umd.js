@@ -2,6 +2,10 @@ import { has } from '../utils/object';
 import { getName, quoteId, req } from '../utils/map-helpers';
 
 export default function umd ( bundle, magicString, exportMode, options ) {
+	if ( exportMode !== 'none' && !options.moduleName ) {
+		throw new Error( 'You must supply options.moduleName for UMD bundles' );
+	}
+
 	const indentStr = magicString.getIndentString();
 
 	const globalNames = options.globals || {};
