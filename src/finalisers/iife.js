@@ -15,7 +15,7 @@ export default function iife ( bundle, magicString, exportMode, options ) {
 	}
 
 	if ( exportMode === 'named' ) {
-		dependencies.unshift( `(window.${options.moduleName} = {})` );
+		dependencies.unshift( `(this.${options.moduleName} = {})` );
 		args.unshift( 'exports' );
 	}
 
