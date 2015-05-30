@@ -220,6 +220,11 @@ export default class Bundle {
 
 		// Apply new names and add to the output bundle
 		this.statements.forEach( statement => {
+			// skip `export { foo, bar, baz }`
+			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
+				return;
+			}
+
 			let replacements = blank();
 			let bundleExports = blank();
 
@@ -239,11 +244,6 @@ export default class Bundle {
 
 			// modify exports as necessary
 			if ( statement.isExportDeclaration ) {
-				// skip `export { foo, bar, baz }`
-				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
-					return;
-				}
-
 				// remove `export` from `export var foo = 42`
 				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.declaration.type === 'VariableDeclaration' ) {
 					source.remove( statement.node.start, statement.node.declaration.start );
