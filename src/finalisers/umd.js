@@ -1,4 +1,4 @@
-import { has } from '../utils/object';
+import { blank } from '../utils/object';
 import { getName, quoteId, req } from '../utils/map-helpers';
 
 export default function umd ( bundle, magicString, exportMode, options ) {
@@ -8,12 +8,12 @@ export default function umd ( bundle, magicString, exportMode, options ) {
 
 	const indentStr = magicString.getIndentString();
 
-	const globalNames = options.globals || {};
+	const globalNames = options.globals || blank();
 
 	let amdDeps = bundle.externalModules.map( quoteId );
 	let cjsDeps = bundle.externalModules.map( req );
 	let globalDeps = bundle.externalModules.map( module => {
-		return has( globalNames, module.id ) ? globalNames[ module.id ] : module.name;
+		return globalNames[ module.id ] || module.name;
 	});
 
 	let args = bundle.externalModules.map( getName );
@@ -27,7 +27,7 @@ export default function umd ( bundle, magicString, exportMode, options ) {
 	}
 
 	const amdParams =
-		( has( options, 'moduleId' ) ? `['${options.moduleId}'], ` : `` ) +
+		( options.moduleId ? `['${options.moduleId}'], ` : `` ) +
 		( amdDeps.length ? `[${amdDeps.join( ', ' )}], ` : `` );
 
 	const cjsExport = exportMode === 'default' ? `module.exports = ` : ``;

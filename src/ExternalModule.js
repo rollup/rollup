@@ -1,3 +1,5 @@
+import { blank } from './utils/object';
+
 export default class ExternalModule {
 	constructor ( id ) {
 		this.id = id;
@@ -6,8 +8,8 @@ export default class ExternalModule {
 		this.isExternal = true;
 		this.importedByBundle = [];
 
-		this.canonicalNames = {};
-		this.suggestedNames = {};
+		this.canonicalNames = blank();
+		this.suggestedNames = blank();
 
 		this.needsDefault = false;
 		this.needsNamed = false;

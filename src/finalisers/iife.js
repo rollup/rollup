@@ -1,11 +1,11 @@
-import { has } from '../utils/object';
+import { blank } from '../utils/object';
 import { getName } from '../utils/map-helpers';
 
 export default function iife ( bundle, magicString, exportMode, options ) {
-	const globalNames = options.globals || {};
+	const globalNames = options.globals || blank();
 
 	let dependencies = bundle.externalModules.map( module => {
-		return has( globalNames, module.id ) ? globalNames[ module.id ] : module.name;
+		return globalNames[ module.id ] || module.name;
 	});
 
 	let args = bundle.externalModules.map( getName );

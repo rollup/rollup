@@ -1,4 +1,4 @@
-import { has, keys } from './utils/object';
+import { blank, keys } from './utils/object';
 import { sequence } from './utils/promise';
 import { getName } from './utils/map-helpers';
 import getLocation from './utils/getLocation';
@@ -14,9 +14,9 @@ export default class Statement {
 		this.magicString = magicString;
 
 		this.scope = new Scope();
-		this.defines = {};
-		this.modifies = {};
-		this.dependsOn = {};
+		this.defines = blank();
+		this.modifies = blank();
+		this.dependsOn = blank();
 
 		this.isIncluded = false;
 
@@ -226,7 +226,7 @@ export default class Statement {
 		// thing(s) this statement defines
 			.then( () => {
 				return sequence( keys( this.defines ), name => {
-					const modifications = has( this.module.modifications, name ) && this.module.modifications[ name ];
+					const modifications = this.module.modifications[ name ];
 
 					if ( modifications ) {
 						return sequence( modifications, statement => {
@@ -264,7 +264,7 @@ export default class Statement {
 					const scope = node._scope;
 
 					if ( scope ) {
-						let newNames = {};
+						let newNames = blank();
 						let hasReplacements;
 
 						keys( names ).forEach( key => {
@@ -295,7 +295,7 @@ export default class Statement {
 					if ( parent.type === 'Property' && node !== parent.value ) return;
 					// TODO others...?
 
-					const name = has( names, node.name ) && names[ node.name ];
+					const name = names[ node.name ];
 
 					if ( name && name !== node.name ) {
 						magicString.overwrite( node.start, node.end, name );

@@ -4,7 +4,7 @@ import MagicString from 'magic-string';
 import Statement from './Statement';
 import walk from './ast/walk';
 import analyse from './ast/analyse';
-import { has, keys } from './utils/object';
+import { blank, keys } from './utils/object';
 import { sequence } from './utils/promise';
 import { isImportDeclaration, isExportDeclaration } from './utils/map-helpers';
 import getLocation from './utils/getLocation';
@@ -23,7 +23,7 @@ export default class Module {
 			filename: path
 		});
 
-		this.suggestedNames = {};
+		this.suggestedNames = blank();
 		this.comments = [];
 
 		// Try to extract a list of top-level statements/declarations. If
@@ -60,8 +60,8 @@ export default class Module {
 
 	analyse () {
 		// imports and exports, indexed by ID
-		this.imports = {};
-		this.exports = {};
+		this.imports = blank();
+		this.exports = blank();
 
 		this.importDeclarations.forEach( statement => {
 			const node = statement.node;
@@ -74,7 +74,7 @@ export default class Module {
 				const localName = specifier.local.name;
 				const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
 
-				if ( has( this.imports, localName ) ) {
+				if ( this.imports[ localName ] ) {
 					const err = new Error( `Duplicated import '${localName}'` );
 					err.file = this.path;
 					err.loc = getLocation( this.source, specifier.start );
@@ -157,11 +157,11 @@ export default class Module {
 
 		analyse( this.magicString, this );
 
-		this.canonicalNames = {};
+		this.canonicalNames = blank();
 
-		this.definitions = {};
-		this.definitionPromises = {};
-		this.modifications = {};
+		this.definitions = blank();
+		this.definitionPromises = blank();
+		this.modifications = blank();
 
 		this.statements.forEach( statement => {
 			keys( statement.defines ).forEach( name => {
@@ -169,7 +169,7 @@ export default class Module {
 			});
 
 			keys( statement.modifies ).forEach( name => {
-				if ( !has( this.modifications, name ) ) {
+				if ( !this.modifications[ name ] ) {
 					this.modifications[ name ] = [];
 				}
 
@@ -179,14 +179,14 @@ export default class Module {
 	}
 
 	getCanonicalName ( localName ) {
-		if ( has( this.suggestedNames, localName ) ) {
+		if ( this.suggestedNames[ localName ] ) {
 			localName = this.suggestedNames[ localName ];
 		}
 
-		if ( !has( this.canonicalNames, localName ) ) {
+		if ( !this.canonicalNames[ localName ] ) {
 			let canonicalName;
 
-			if ( has( this.imports, localName ) ) {
+			if ( this.imports[ localName ] ) {
 				const importDeclaration = this.imports[ localName ];
 				const module = importDeclaration.module;
 
@@ -218,14 +218,14 @@ export default class Module {
 
 	define ( name ) {
 		// shortcut cycles. TODO this won't work everywhere...
-		if ( has( this.definitionPromises, name ) ) {
+		if ( this.definitionPromises[ name ] ) {
 			return emptyArrayPromise;
 		}
 
 		let promise;
 
 		// The definition for this name is in a different module
-		if ( has( this.imports, name ) ) {
+		if ( this.imports[ name ] ) {
 			const importDeclaration = this.imports[ name ];
 
 			promise = this.bundle.fetchModule( importDeclaration.source, this.path )
@@ -236,17 +236,17 @@ export default class Module {
 					if ( importDeclaration.name === 'default' ) {
 						// TODO this seems ropey
 						const localName = importDeclaration.localName;
-						let suggestion = has( this.suggestedNames, localName ) ? this.suggestedNames[ localName ] : localName;
+						let suggestion = this.suggestedNames[ localName ] || localName;
 
 						// special case - the module has its own import by this name
-						while ( !module.isExternal && has( module.imports, suggestion ) ) {
+						while ( !module.isExternal && module.imports[ suggestion ] ) {
 							suggestion = `_${suggestion}`;
 						}
 
 						module.suggestName( 'default', suggestion );
 					} else if ( importDeclaration.name === '*' ) {
 						const localName = importDeclaration.localName;
-						const suggestion = has( this.suggestedNames, localName ) ? this.suggestedNames[ localName ] : localName;
+						const suggestion = this.suggestedNames[ localName ] || localName;
 						module.suggestName( '*', suggestion );
 						module.suggestName( 'default', `${suggestion}__default` );
 					}

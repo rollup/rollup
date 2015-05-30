@@ -1,4 +1,3 @@
-import { has } from '../utils/object';
 import { getName, quoteId } from '../utils/map-helpers';
 
 export default function amd ( bundle, magicString, exportMode, options ) {
@@ -11,7 +10,7 @@ export default function amd ( bundle, magicString, exportMode, options ) {
 	}
 
 	const params =
-		( has( options, 'moduleId' ) ? `['${options.moduleId}'], ` : `` ) +
+		( options.moduleId ? `['${options.moduleId}'], ` : `` ) +
 		( deps.length ? `[${deps.join( ', ' )}], ` : `` );
 
 	const intro = `define(${params}function (${args.join( ', ' )}) { 'use strict';\n\n`;

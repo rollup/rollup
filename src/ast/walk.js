@@ -1,3 +1,5 @@
+import { blank } from '../utils/object';
+
 let shouldSkip;
 let shouldAbort;
 
@@ -11,7 +13,7 @@ let context = {
 	abort: () => shouldAbort = true
 };
 
-let childKeys = {};
+let childKeys = blank();
 
 let toString = Object.prototype.toString;
 

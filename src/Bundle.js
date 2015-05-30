@@ -1,7 +1,7 @@
 import { basename, dirname, extname, relative, resolve } from 'path';
 import { readFile, Promise } from 'sander';
 import MagicString from 'magic-string';
-import { keys, has } from './utils/object';
+import { blank, keys } from './utils/object';
 import Module from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
@@ -32,7 +32,7 @@ export default class Bundle {
 		};
 
 		this.entryModule = null;
-		this.modulePromises = {};
+		this.modulePromises = blank();
 		this.statements = [];
 		this.externalModules = [];
 		this.internalNamespaceModules = [];
@@ -43,7 +43,7 @@ export default class Bundle {
 			.then( path => {
 				if ( !path ) {
 					// external module
-					if ( !has( this.modulePromises, importee ) ) {
+					if ( !this.modulePromises[ importee ] ) {
 						const module = new ExternalModule( importee );
 						this.externalModules.push( module );
 						this.modulePromises[ importee ] = Promise.resolve( module );
@@ -52,7 +52,7 @@ export default class Bundle {
 					return this.modulePromises[ importee ];
 				}
 
-				if ( !has( this.modulePromises, path ) ) {
+				if ( !this.modulePromises[ path ] ) {
 					this.modulePromises[ path ] = Promise.resolve( this.load( path, this.loadOptions ) )
 						.then( source => {
 							const module = new Module({
@@ -99,8 +99,8 @@ export default class Bundle {
 	}
 
 	deconflict () {
-		let definers = {};
-		let conflicts = {};
+		let definers = blank();
+		let conflicts = blank();
 
 		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
 		this.statements.forEach( statement => {
@@ -122,7 +122,7 @@ export default class Bundle {
 			}
 
 			names.forEach( name => {
-				if ( has( definers, name ) ) {
+				if ( definers[ name ] ) {
 					conflicts[ name ] = true;
 				} else {
 					definers[ name ] = [];
@@ -139,7 +139,7 @@ export default class Bundle {
 			// TODO is this right?
 			let name = makeLegalIdentifier( module.suggestedNames['*'] || module.suggestedNames.default || module.id );
 
-			if ( has( definers, name ) ) {
+			if ( definers[ name ] ) {
 				conflicts[ name ] = true;
 			} else {
 				definers[ name ] = [];
@@ -162,7 +162,7 @@ export default class Bundle {
 		});
 
 		function getSafeName ( name ) {
-			while ( has( conflicts, name ) ) {
+			while ( conflicts[ name ] ) {
 				name = `_${name}`;
 			}
 
@@ -181,7 +181,7 @@ export default class Bundle {
 
 		// Apply new names and add to the output bundle
 		this.statements.forEach( statement => {
-			let replacements = {};
+			let replacements = blank();
 
 			keys( statement.dependsOn )
 				.concat( keys( statement.defines ) )
