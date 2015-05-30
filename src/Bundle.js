@@ -180,6 +180,7 @@ export default class Bundle {
 
 		// Determine export mode - 'default', 'named', 'none'
 		let exportMode = this.getExportMode( options.exports );
+		const format = options.format || 'es6';
 
 		let previousMargin = 0;
 
@@ -200,18 +201,20 @@ export default class Bundle {
 		// TODO This doesn't apply if the bundle is exported as ES6!
 		let allBundleExports = blank();
 
-		keys( this.entryModule.exports ).forEach( key => {
-			const exportDeclaration = this.entryModule.exports[ key ];
+		if ( format !== 'es6' ) {
+			keys( this.entryModule.exports ).forEach( key => {
+				const exportDeclaration = this.entryModule.exports[ key ];
 
-			const originalDeclaration = this.entryModule.findDeclaration( exportDeclaration.localName );
+				const originalDeclaration = this.entryModule.findDeclaration( exportDeclaration.localName );
 
-			if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
-				const canonicalName = this.entryModule.getCanonicalName( exportDeclaration.localName );
+				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
+					const canonicalName = this.entryModule.getCanonicalName( exportDeclaration.localName );
 
-				allBundleExports[ canonicalName ] = `exports.${key}`;
-				this.varExports[ key ] = true;
-			}
-		});
+					allBundleExports[ canonicalName ] = `exports.${key}`;
+					this.varExports[ key ] = true;
+				}
+			});
+		}
 
 		// since we're rewriting variable exports, we want to
 		// ensure we don't try and export them again at the bottom
@@ -318,7 +321,7 @@ export default class Bundle {
 
 		magicString.prepend( namespaceBlock );
 
-		const finalise = finalisers[ options.format || 'es6' ];
+		const finalise = finalisers[ format ];
 
 		if ( !finalise ) {
 			throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
