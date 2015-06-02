@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.7.1
+
+* Named functions can be used as default exports from a bundle
+* Method calls are assumed to mutate the owner (i.e. `foo.bar()` mutates `foo`) ([#13](https://github.com/rollup/rollup/issues/13))
+* `options.indent` can be used to control indentation of resulting bundle. `options.true` (default) means 'auto', `options.false` means empty string. Alternatively specify whitespace e.g. `'  '` or `'\t'` ([#5](https://github.com/rollup/rollup/issues/5))
+
 ## 0.7.0
 
 * Ensure statements are always separated by a newline ([#9](https://github.com/rollup/rollup/pull/9))
