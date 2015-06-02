@@ -56,7 +56,7 @@ describe( 'rollup', function () {
 			( config.skip ? it.skip : config.solo ? it.only : it )( dir, function () {
 				var options = extend( {}, config.options, {
 					entry: FUNCTION + '/' + dir + '/main.js'
-				})
+				});
 
 				return rollup.rollup( options )
 					.then( function ( bundle ) {

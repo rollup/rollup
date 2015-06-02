@@ -77,21 +77,34 @@ export default class Bundle {
 		// bring in top-level AST nodes from the entry module
 		return this.fetchModule( this.entryPath, null )
 			.then( entryModule => {
+				const defaultExport = entryModule.exports.default;
+
 				this.entryModule = entryModule;
 
-				if ( entryModule.exports.default ) {
-					let defaultExportName = makeLegalIdentifier( basename( this.entryPath ).slice( 0, -extname( this.entryPath ).length ) );
-
-					let topLevelNames = [];
-					entryModule.statements.forEach( statement => {
-						keys( statement.defines ).forEach( name => topLevelNames.push( name ) );
-					});
-
-					while ( ~topLevelNames.indexOf( defaultExportName ) ) {
-						defaultExportName = `_${defaultExportName}`;
+				if ( defaultExport ) {
+					// `export default function foo () {...}` -
+					// use the declared name for the export
+					if ( defaultExport.declaredName ) {
+						entryModule.suggestName( 'default', defaultExport.declaredName );
 					}
 
-					entryModule.suggestName( 'default', defaultExportName );
+					// `export default a + b` - generate an export name
+					// based on the filename of the entry module
+					else {
+						let defaultExportName = makeLegalIdentifier( basename( this.entryPath ).slice( 0, -extname( this.entryPath ).length ) );
+
+						// deconflict
+						let topLevelNames = [];
+						entryModule.statements.forEach( statement => {
+							keys( statement.defines ).forEach( name => topLevelNames.push( name ) );
+						});
+
+						while ( ~topLevelNames.indexOf( defaultExportName ) ) {
+							defaultExportName = `_${defaultExportName}`;
+						}
+
+						entryModule.suggestName( 'default', defaultExportName );
+					}
 				}
 
 				return entryModule.expandAllStatements( true );

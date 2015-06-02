@@ -98,11 +98,13 @@ export default class Module {
 			// export default 42;
 			if ( node.type === 'ExportDefaultDeclaration' ) {
 				const isDeclaration = /Declaration$/.test( node.declaration.type );
+				const declaredName = isDeclaration && node.declaration.id.name;
 
 				this.exports.default = {
 					statement,
 					name: 'default',
-					localName: isDeclaration ? node.declaration.id.name : 'default',
+					localName: declaredName || 'default',
+					declaredName,
 					isDeclaration
 				};
 			}
