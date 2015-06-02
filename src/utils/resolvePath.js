@@ -1,9 +1,11 @@
-import { dirname, isAbsolute, resolve, parse } from 'path';
+import { dirname, resolve, parse } from 'path';
 import { readFileSync } from 'sander';
+
+const absolutePath = /^(?:\/|(?:[A-Za-z]:)?\\)/;
 
 export function defaultResolver ( importee, importer, options ) {
 	// absolute paths are left untouched
-	if ( isAbsolute( importee ) ) return importee;
+	if ( absolutePath.test( importee ) ) return importee;
 
 	// we try to resolve external modules
 	if ( importee[0] !== '.' ) {
