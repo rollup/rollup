@@ -188,6 +188,11 @@ export default class Statement {
 
 		else if ( node.type === 'CallExpression' ) {
 			node.arguments.forEach( arg => addNode( arg, false ) );
+
+			// `foo.bar()` is assumed to mutate foo
+			if ( node.callee.type === 'MemberExpression' ) {
+				addNode( node.callee );
+			}
 		}
 	}
 
