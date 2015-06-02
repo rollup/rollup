@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.7.2
+
+* Fix sourcemap paths on Windows ([#6](https://github.com/rollup/rollup/pull/6))
+
 ## 0.7.1
 
 * Named functions can be used as default exports from a bundle
