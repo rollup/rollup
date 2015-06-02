@@ -45,7 +45,7 @@
   "dependencies": {
     "acorn": "^1.1.0",
     "chalk": "^1.0.0",
-    "magic-string": "^0.5.3",
+    "magic-string": "^0.6.2",
     "minimist": "^1.1.1",
     "sander": "^0.3.3"
   },

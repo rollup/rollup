@@ -1,7 +1,7 @@
 import { blank } from '../utils/object';
 import { getName, quoteId, req } from '../utils/map-helpers';
 
-export default function umd ( bundle, magicString, exportMode, options ) {
+export default function umd ( bundle, magicString, { exportMode, indentString }, options ) {
 	if ( exportMode !== 'none' && !options.moduleName ) {
 		throw new Error( 'You must supply options.moduleName for UMD bundles' );
 	}
@@ -40,7 +40,7 @@ export default function umd ( bundle, magicString, exportMode, options ) {
 			${defaultExport}factory(${globalDeps});
 		}(this, function (${args}) { 'use strict';
 
-		`.replace( /^\t\t/gm, '' ).replace( /^\t/gm, indentStr );
+		`.replace( /^\t\t/gm, '' ).replace( /^\t/gm, magicString.getIndentString() );
 
 	const exports = bundle.entryModule.exports;
 
@@ -62,7 +62,7 @@ export default function umd ( bundle, magicString, exportMode, options ) {
 
 	return magicString
 		.trim()
-		.indent()
+		.indent( indentString )
 		.append( '\n\n}));' )
 		.prepend( intro );
 }

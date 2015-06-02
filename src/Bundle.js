@@ -9,10 +9,8 @@ import makeLegalIdentifier from './utils/makeLegalIdentifier';
 import ensureArray from './utils/ensureArray';
 import { defaultResolver, defaultExternalResolver } from './utils/resolvePath';
 import { defaultLoader } from './utils/load';
-
-function badExports ( option, keys ) {
-	throw new Error( `'${option}' was specified for options.exports, but entry module has following exports: ${keys.join(', ')}` );
-}
+import getExportMode from './utils/getExportMode';
+import getIndentString from './utils/getIndentString';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -191,8 +189,6 @@ export default class Bundle {
 	generate ( options = {} ) {
 		let magicString = new MagicString.Bundle({ separator: '' });
 
-		// Determine export mode - 'default', 'named', 'none'
-		let exportMode = this.getExportMode( options.exports );
 		const format = options.format || 'es6';
 
 		let previousMargin = 0;
@@ -340,7 +336,13 @@ export default class Bundle {
 			throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
 		}
 
-		magicString = finalise( this, magicString.trim(), exportMode, options );
+		magicString = finalise( this, magicString.trim(), {
+			// Determine export mode - 'default', 'named', 'none'
+			exportMode: getExportMode( this, options.exports ),
+
+			// Determine indentation
+			indentString: getIndentString( magicString, options )
+		}, options );
 
 		const code = magicString.toString();
 		let map = null;
@@ -360,33 +362,5 @@ export default class Bundle {
 		}
 
 		return { code, map };
-	}
-
-	getExportMode ( exportMode ) {
-		const exportKeys = keys( this.entryModule.exports );
-
-		if ( exportMode === 'default' ) {
-			if ( exportKeys.length !== 1 || exportKeys[0] !== 'default' ) {
-				badExports( 'default', exportKeys );
-			}
-		} else if ( exportMode === 'none' && exportKeys.length ) {
-			badExports( 'none', exportKeys );
-		}
-
-		if ( !exportMode || exportMode === 'auto' ) {
-			if ( exportKeys.length === 0 ) {
-				exportMode = 'none';
-			} else if ( exportKeys.length === 1 && exportKeys[0] === 'default' ) {
-				exportMode = 'default';
-			} else {
-				exportMode = 'named';
-			}
-		}
-
-		if ( !/(?:default|named|none)/.test( exportMode ) ) {
-			throw new Error( `options.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')` );
-		}
-
-		return exportMode;
 	}
 }

@@ -1,6 +1,6 @@
 import { keys } from '../utils/object';
 
-export default function es6 ( bundle, magicString, exportMode, options ) {
+export default function es6 ( bundle, magicString, { exportMode }, options ) {
 	const introBlock = ''; // TODO...
 
 	const exports = bundle.entryModule.exports;

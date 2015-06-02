@@ -1,6 +1,6 @@
 import { keys } from '../utils/object';
 
-export default function cjs ( bundle, magicString, exportMode ) {
+export default function cjs ( bundle, magicString, { exportMode }) {
 	let intro = `'use strict';\n\n`;
 
 	// TODO handle empty imports, once they're supported

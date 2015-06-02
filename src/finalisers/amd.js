@@ -1,6 +1,6 @@
 import { getName, quoteId } from '../utils/map-helpers';
 
-export default function amd ( bundle, magicString, exportMode, options ) {
+export default function amd ( bundle, magicString, { exportMode, indentString }, options ) {
 	let deps = bundle.externalModules.map( quoteId );
 	let args = bundle.externalModules.map( getName );
 
@@ -32,8 +32,7 @@ export default function amd ( bundle, magicString, exportMode, options ) {
 	}
 
 	return magicString
-		.trim()
-		.indent()
+		.indent( indentString )
 		.append( '\n\n});' )
 		.prepend( intro );
 }

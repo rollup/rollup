@@ -1,7 +1,7 @@
 import { blank } from '../utils/object';
 import { getName } from '../utils/map-helpers';
 
-export default function iife ( bundle, magicString, exportMode, options ) {
+export default function iife ( bundle, magicString, { exportMode, indentString }, options ) {
 	const globalNames = options.globals || blank();
 
 	let dependencies = bundle.externalModules.map( module => {
@@ -30,7 +30,7 @@ export default function iife ( bundle, magicString, exportMode, options ) {
 	// TODO named exports
 
 	return magicString
-		.indent()
+		.indent( indentString )
 		.prepend( intro )
 		.append( outro );
 }
