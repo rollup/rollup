@@ -11,6 +11,11 @@ import { defaultResolver, defaultExternalResolver } from './utils/resolvePath';
 import { defaultLoader } from './utils/load';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
+import { unixizePath } from './utils/normalizePlatform.js';
+
+function badExports ( option, keys ) {
+	throw new Error( `'${option}' was specified for options.exports, but entry module has following exports: ${keys.join(', ')}` );
+}
 
 export default class Bundle {
 	constructor ( options ) {
@@ -357,7 +362,7 @@ export default class Bundle {
 			// make sources relative. TODO fix this upstream?
 			const dir = dirname( map.file );
 			map.sources = map.sources.map( source => {
-				return source ? relative( dir, source ) : null
+				return source ? unixizePath( relative( dir, source ) ) : null
 			});
 		}
 
