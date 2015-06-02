@@ -58,6 +58,8 @@ describe( 'rollup', function () {
 					entry: FUNCTION + '/' + dir + '/main.js'
 				});
 
+				if ( config.solo ) console.group( dir );
+
 				return rollup.rollup( options )
 					.then( function ( bundle ) {
 						var unintendedError;
@@ -121,6 +123,8 @@ describe( 'rollup', function () {
 							console.log( code + '\n\n\n' );
 						}
 
+						if ( config.solo ) console.groupEnd();
+
 						if ( unintendedError ) throw unintendedError;
 					}, function ( err ) {
 						if ( config.error ) {
@@ -148,6 +152,8 @@ describe( 'rollup', function () {
 
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
+						if ( config.solo ) console.group( dir );
+
 						return bundlePromise.then( function ( bundle ) {
 							var options = extend( {}, config.options, {
 								dest: FORM + '/' + dir + '/_actual/' + profile.format + '.js',
@@ -176,6 +182,8 @@ describe( 'rollup', function () {
 
 								assert.equal( actualCode, expectedCode );
 								assert.deepEqual( actualMap, expectedMap );
+
+								if ( config.solo ) console.groupEnd();
 							});
 						});
 					});
