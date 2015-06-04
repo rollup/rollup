@@ -1,7 +1,7 @@
 var assert = require( 'assert' );
 
 module.exports = {
-	description: 'uses a custom path resolver (synchronous)',
+	description: 'uses a custom path resolver (asynchronous)',
 	options: {
 		resolvePath: function ( importee, importer ) {
 			var Promise = require( 'sander' ).Promise;
