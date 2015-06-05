@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.7.3
+
+* Default exports are not bound. To enable this, statements within a module are sorted to retain their original order ([#15](https://github.com/rollup/rollup/issues/15))
+* Better positioning of comments ([#14](https://github.com/rollup/rollup/issues/14))
+* Various fixes to get Travis-CI rigged up
+
 ## 0.7.2
 
 * Fix sourcemap paths on Windows ([#6](https://github.com/rollup/rollup/pull/6))
