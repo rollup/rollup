@@ -176,6 +176,17 @@ export default class Statement {
 				return;
 			}
 
+			// special case = `export default foo; foo += 1;` - we'll
+			// need to assign a new variable so that the exported
+			// value is not updated by the second statement
+			if ( this.module.exports.default && this.module.exports.default.identifier === node.name ) {
+				// but only if this is a) inside a function body or
+				// b) after the export declaration
+				if ( !!scope.parent || node.start > this.module.exports.default.statement.node.start ) {
+					this.module.exports.default.isModified = true;
+				}
+			}
+
 			this.modifies[ node.name ] = true;
 		};
 

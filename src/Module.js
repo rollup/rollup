@@ -99,13 +99,16 @@ export default class Module {
 			if ( node.type === 'ExportDefaultDeclaration' ) {
 				const isDeclaration = /Declaration$/.test( node.declaration.type );
 				const declaredName = isDeclaration && node.declaration.id.name;
+				const identifier = node.declaration.type === 'Identifier' && node.declaration.name;
 
 				this.exports.default = {
 					statement,
 					name: 'default',
 					localName: declaredName || 'default',
 					declaredName,
-					isDeclaration
+					identifier,
+					isDeclaration,
+					isModified: false // in case of `export default foo; foo = somethingElse`
 				};
 			}
 
@@ -207,6 +210,16 @@ export default class Module {
 	}
 
 	getCanonicalName ( localName ) {
+		// Special case
+		if ( localName === 'default' && this.exports.default && this.exports.default.isModified ) {
+			let canonicalName = makeLegalIdentifier( this.path.replace( this.bundle.base + '/', '' ).replace( /\.js$/, '' ) );
+			while ( this.definitions[ canonicalName ] ) {
+				canonicalName = `_${canonicalName}`;
+			}
+
+			return canonicalName;
+		}
+
 		if ( this.suggestedNames[ localName ] ) {
 			localName = this.suggestedNames[ localName ];
 		}
@@ -358,7 +371,7 @@ export default class Module {
 				if ( !statement.node.specifiers.length ) {
 					return this.bundle.fetchModule( statement.node.source.value, this.path )
 						.then( module => {
-							statement.module = module; // TODO what is this for? what does it do? why not _module?
+							statement.module = module;
 							return module.expandAllStatements();
 						})
 						.then( statements => {
