@@ -7,8 +7,10 @@ function foo () {
 }
 
 foo();
+
 function bar () {
 	console.log( 'hello from bar.js' );
 }
+
 bar();
 //# sourceMappingURL=cjs.js.map

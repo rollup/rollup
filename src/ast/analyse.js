@@ -7,6 +7,7 @@ export default function analyse ( magicString, module ) {
 		const node = statement.node;
 
 		let trailing = !!previousStatement;
+		let previousComment;
 
 		// TODO surely this can be neater
 		// attach leading comment
@@ -31,7 +32,12 @@ export default function analyse ( magicString, module ) {
 
 			// then attach leading comments to this statement
 			else {
-				statement.leadingComments.push( comment );
+				statement.leadingComments.push({
+					separator: previousComment ? magicString.slice( previousComment.end, comment.start ) : '\n',
+					comment
+				});
+
+				previousComment = comment;
 			}
 
 			commentIndex += 1;
@@ -39,10 +45,15 @@ export default function analyse ( magicString, module ) {
 		} while ( module.comments[ commentIndex ] );
 
 		// determine margin
-		const previousEnd = previousStatement ? ( previousStatement.trailingComment || previousStatement.node ).end : 0;
-		const start = ( statement.leadingComments[0] || node ).start;
+		const previousEnd = previousComment ?
+			previousComment.end :
+			previousStatement ?
+				( previousStatement.trailingComment || previousStatement.node ).end :
+				0;
 
-		const gap = magicString.original.slice( previousEnd, start );
+		//const start = ( statement.leadingComments[0] || node ).start;
+
+		const gap = magicString.original.slice( previousEnd, node.start );
 		const margin = gap.split( '\n' ).length;
 
 		if ( previousStatement ) previousStatement.margin[1] = margin;

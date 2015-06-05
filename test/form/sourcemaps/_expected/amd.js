@@ -7,9 +7,11 @@ define(function () { 'use strict';
 	}
 
 	foo();
+
 	function bar () {
 		console.log( 'hello from bar.js' );
 	}
+
 	bar();
 
 });

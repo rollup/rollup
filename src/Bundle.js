@@ -196,8 +196,6 @@ export default class Bundle {
 
 		const format = options.format || 'es6';
 
-		let previousMargin = 0;
-
 		// If we have named exports from the bundle, and those exports
 		// are assigned to *within* the bundle, we may need to rewrite e.g.
 		//
@@ -212,7 +210,7 @@ export default class Bundle {
 		//   }
 		//   exports.incr = incr;
 		//
-		// TODO This doesn't apply if the bundle is exported as ES6!
+		// This doesn't apply if the bundle is exported as ES6!
 		let allBundleExports = blank();
 
 		if ( format !== 'es6' ) {
@@ -236,6 +234,10 @@ export default class Bundle {
 			.filter( key => !this.varExports[ key ] );
 
 		// Apply new names and add to the output bundle
+		let previousModule = null;
+		let previousIndex = -1;
+		let previousMargin = 0;
+
 		this.statements.forEach( statement => {
 			// skip `export { foo, bar, baz }`
 			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
@@ -288,21 +290,23 @@ export default class Bundle {
 				}
 			}
 
-			// add leading comments
-			if ( statement.leadingComments.length ) {
-				const commentBlock = statement.leadingComments.map( comment => {
-					return comment.block ?
-						`/*${comment.text}*/` :
-						`//${comment.text}`;
-				}).join( '\n' );
-
-				magicString.addSource( new MagicString( commentBlock ) );
-			}
-
 			// ensure there is always a newline between statements, and add
 			// additional newlines as necessary to reflect original source
-			const margin = Math.max( 2, statement.margin[0], previousMargin );
-			const newLines = new Array( margin ).join( '\n' );
+			const minSeparation = ( previousModule !== statement.module ) || ( statement.index !== previousIndex + 1 ) ? 3 : 2;
+			const margin = Math.max( minSeparation, statement.margin[0], previousMargin );
+			let newLines = new Array( margin ).join( '\n' );
+
+			// add leading comments
+			if ( statement.leadingComments.length ) {
+				const commentBlock = newLines + statement.leadingComments.map( ({ separator, comment }) => {
+					return separator + ( comment.block ?
+						`/*${comment.text}*/` :
+						`//${comment.text}` );
+				}).join( '' );
+
+				magicString.addSource( new MagicString( commentBlock ) );
+				newLines = new Array( statement.margin[0] ).join( '\n' ); // TODO handle gaps between comment block and statement
+			}
 
 			// add the statement itself
 			magicString.addSource({
@@ -321,6 +325,8 @@ export default class Bundle {
 			}
 
 			previousMargin = statement.margin[1];
+			previousModule = statement.module;
+			previousIndex  = statement.index;
 		});
 
 		// prepend bundle with internal namespaces

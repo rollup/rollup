@@ -42,9 +42,9 @@ export default class Module {
 				}
 			});
 
-			this.statements = ast.body.map( node => {
+			this.statements = ast.body.map( ( node, i ) => {
 				const magicString = this.magicString.snip( node.start, node.end ).trim();
-				return new Statement( node, magicString, this );
+				return new Statement( node, magicString, this, i );
 			});
 		} catch ( err ) {
 			err.code = 'PARSE_ERROR';

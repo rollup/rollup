@@ -5,8 +5,10 @@ function foo () {
 }
 
 foo();
+
 function bar () {
 	console.log( 'hello from bar.js' );
 }
+
 bar();
 //# sourceMappingURL=es6.js.map

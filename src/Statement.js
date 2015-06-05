@@ -8,10 +8,11 @@ import Scope from './ast/Scope';
 const emptyArrayPromise = Promise.resolve([]);
 
 export default class Statement {
-	constructor ( node, magicString, module ) {
+	constructor ( node, magicString, module, index ) {
 		this.node = node;
 		this.module = module;
 		this.magicString = magicString;
+		this.index = index;
 
 		this.scope = new Scope();
 		this.defines = blank();
