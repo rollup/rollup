@@ -12,7 +12,8 @@ command = minimist( process.argv.slice( 2 ), {
 		f: 'format',
 		m: 'sourcemap',
 		n: 'name',
-		u: 'id'
+		u: 'id',
+		e: 'external'
 	}
 });
 
