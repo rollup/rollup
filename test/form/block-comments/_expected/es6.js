@@ -1,7 +1,3 @@
-function foo () {
-	return embiggen( 6, 7 );
-}
-
 /**
  * Embiggens a number
  * @param {number} num - the number to embiggen
@@ -10,6 +6,10 @@ function foo () {
  */
 function embiggen ( num, factor ) {
 	return num * factor;
+}
+
+function foo () {
+	return embiggen( 6, 7 );
 }
 
 alert( foo() );

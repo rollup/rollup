@@ -5,12 +5,12 @@ define(function () { 'use strict';
 	console.log( 1 );
 	console.log( 2 ); // comment alongside 2
 
-	function foo () {
-		return bar();
-	}
-
 	function bar () {
 		return 42;
+	}
+
+	function foo () {
+		return bar();
 	}
 
 	foo();
