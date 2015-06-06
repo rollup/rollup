@@ -355,13 +355,12 @@ export default class Module {
 					// TODO could this be statements.pop()?
 					statements.splice( statements.indexOf( defaultExportStatement ), 1 );
 
-					const len = statements.length;
-					let i;
+					let i = statements.length;
 					let inserted = false;
 
-					for ( i = 0; i < len; i += 1 ) {
-						if ( statements[i].module === this && statements[i].index > defaultExportStatement.index ) {
-							statements.splice( i, 0, defaultExportStatement );
+					while ( i-- ) {
+						if ( statements[i].module === this && statements[i].index < defaultExportStatement.index ) {
+							statements.splice( i + 1, 0, defaultExportStatement );
 							inserted = true;
 							break;
 						}
