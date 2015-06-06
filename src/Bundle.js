@@ -238,13 +238,6 @@ export default class Bundle {
 		let previousIndex = -1;
 		let previousMargin = 0;
 
-		// within a module, statements should preserve their original order
-		// TODO is this foolproof?
-		this.statements.sort( ( a, b ) => {
-			if ( a.module !== b.module ) return -1; // no change
-			return a.index - b.index;
-		});
-
 		this.statements.forEach( statement => {
 			// skip `export { foo, bar, baz }`
 			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
