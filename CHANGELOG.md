@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.7.6
+
+* Better placement of `export default` statements ([#21](https://github.com/rollup/rollup/issues/21))
+* Prevent function calls and property assignments from being treated as rebinding for sake of unbound default exports
+* Add `--external foo,bar,baz` option to CLI (equivalent to `external: ['foo', 'bar', 'baz']`)
+* Add CLI tests
+
 ## 0.7.5
 
 * Prevent accidental conflicts with the global namespace ([#20](https://github.com/rollup/rollup/issues/20))
