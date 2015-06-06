@@ -1,6 +1,6 @@
-import value from './foo';
+import a from './foo';
 import { change } from './foo';
 
-assert.equal( value, 42 );
+assert.equal( a, 42 );
 change();
-assert.equal( value, 42, 'default export should not be bound' );
+assert.equal( a, 42, 'default export should not be bound' );
