@@ -332,14 +332,36 @@ export default class Module {
 		else {
 			let statement;
 
-			if ( name === 'default' ) {
-				statement = this.exports.default.statement;
-			} else {
-				statement = this.definitions[ name ];
-			}
+			statement = name === 'default' ? this.exports.default.statement : this.definitions[ name ];
+			promise = statement && !statement.isIncluded ? statement.expand() : emptyArrayPromise;
 
-			if ( statement && !statement.isIncluded ) {
-				promise = statement.expand();
+			// Special case - `export default foo; foo += 1` - need to be
+			// vigilant about maintaining the correct order of the export
+			// declaration. Otherwise, the export declaration will always
+			// go at the end of the expansion, because the expansion of
+			// `foo` will include statements *after* the declaration
+			if ( name === 'default' && this.exports.default.identifier && this.exports.default.isModified ) {
+				const defaultExportStatement = this.exports.default.statement;
+				promise = promise.then( statements => {
+					// remove the default export statement...
+					// TODO could this be statements.pop()?
+					statements.splice( statements.indexOf( defaultExportStatement ), 1 );
+
+					const len = statements.length;
+					let i;
+					let inserted = false;
+
+					for ( i = 0; i < len; i += 1 ) {
+						if ( statements[i].module === this && statements[i].index > defaultExportStatement.index ) {
+							statements.splice( i, 0, defaultExportStatement );
+							inserted = true;
+							break;
+						}
+					}
+
+					if ( !inserted ) statements.push( statement );
+					return statements;
+				});
 			}
 		}
 
