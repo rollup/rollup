@@ -4,6 +4,7 @@ require( 'console-group' ).install();
 var path = require( 'path' );
 var sander = require( 'sander' );
 var assert = require( 'assert' );
+var exec = require( 'child_process' ).exec;
 var babel = require( 'babel-core' );
 var sequence = require( './utils/promiseSequence' );
 var rollup = require( '../dist/rollup' );
@@ -11,6 +12,7 @@ var rollup = require( '../dist/rollup' );
 var FUNCTION = path.resolve( __dirname, 'function' );
 var FORM = path.resolve( __dirname, 'form' );
 var SOURCEMAPS = path.resolve( __dirname, 'sourcemaps' );
+var CLI = path.resolve( __dirname, 'cli' );
 
 var PROFILES = [
 	{ format: 'amd' },
@@ -216,6 +218,66 @@ describe( 'rollup', function () {
 
 							config.test( result.code, result.map );
 						});
+					});
+				});
+			});
+		});
+	});
+
+	describe( 'cli', function () {
+		sander.readdirSync( CLI ).sort().forEach( function ( dir ) {
+			if ( dir[0] === '.' ) return; // .DS_Store...
+
+			describe( dir, function () {
+				var config = require( CLI + '/' + dir + '/_config' );
+
+				( config.skip ? it.skip : config.solo ? it.only : it )( dir, function ( done ) {
+					process.chdir( path.resolve( CLI, dir ) );
+
+					exec( config.command, function ( err, code, stderr ) {
+						if ( err ) return done( err );
+
+						if ( stderr ) console.error( stderr );
+
+						var unintendedError;
+
+						if ( config.execute ) {
+							try {
+								if ( config.babel ) {
+									code = babel.transform( code, {
+										whitelist: config.babel
+									}).code;
+								}
+
+								var fn = new Function( 'require', 'module', 'exports', 'assert', code );
+								var module = {
+									exports: {}
+								};
+								fn( require, module, module.exports, assert );
+
+								if ( config.error ) {
+									unintendedError = new Error( 'Expected an error while executing output' );
+								}
+
+								if ( config.exports ) {
+									config.exports( module.exports );
+								}
+							} catch ( err ) {
+								if ( config.error ) {
+									config.error( err );
+								} else {
+									unintendedError = err;
+								}
+							}
+
+							if ( config.show || unintendedError ) {
+								console.log( code + '\n\n\n' );
+							}
+
+							if ( config.solo ) console.groupEnd();
+
+							unintendedError ? done( unintendedError ) : done();
+						}
 					});
 				});
 			});
