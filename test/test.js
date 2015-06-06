@@ -234,7 +234,11 @@ describe( 'rollup', function () {
 				( config.skip ? it.skip : config.solo ? it.only : it )( dir, function ( done ) {
 					process.chdir( path.resolve( CLI, dir ) );
 
-					exec( config.command, function ( err, code, stderr ) {
+					exec( config.command, {
+						env: {
+							PATH: path.resolve( __dirname, '../bin' ) + ':' + process.env.PATH
+						}
+					}, function ( err, code, stderr ) {
 						if ( err ) return done( err );
 
 						if ( stderr ) console.error( stderr );

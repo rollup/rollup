@@ -5,7 +5,7 @@
   "main": "dist/rollup.js",
   "jsnext:main": "src/rollup.js",
   "bin": {
-    "rollup": "./bin/index.js"
+    "rollup": "./bin/rollup"
   },
   "scripts": {
     "test": "mocha",
