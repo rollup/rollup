@@ -146,7 +146,7 @@ export default class Statement {
 	}
 
 	checkForWrites ( scope, node ) {
-		const addNode = ( node, disallowImportReassignments ) => {
+		const addNode = ( node, isAssignment ) => {
 			let depth = 0; // determine whether we're illegally modifying a binding or namespace
 
 			while ( node.type === 'MemberExpression' ) {
@@ -155,7 +155,7 @@ export default class Statement {
 			}
 
 			// disallow assignments/updates to imported bindings and namespaces
-			if ( disallowImportReassignments ) {
+			if ( isAssignment ) {
 				const importSpecifier = this.module.imports[ node.name ];
 
 				if ( importSpecifier && !scope.contains( node.name ) ) {
@@ -170,21 +170,21 @@ export default class Statement {
 						throw err;
 					}
 				}
+
+				// special case = `export default foo; foo += 1;` - we'll
+				// need to assign a new variable so that the exported
+				// value is not updated by the second statement
+				if ( this.module.exports.default && depth === 0 && this.module.exports.default.identifier === node.name ) {
+					// but only if this is a) inside a function body or
+					// b) after the export declaration
+					if ( !!scope.parent || node.start > this.module.exports.default.statement.node.start ) {
+						this.module.exports.default.isModified = true;
+					}
+				}
 			}
 
 			if ( node.type === 'Identifier' ) {
 				this.modifies[ node.name ] = true;
-			}
-
-			// special case = `export default foo; foo += 1;` - we'll
-			// need to assign a new variable so that the exported
-			// value is not updated by the second statement
-			if ( this.module.exports.default && depth === 0 && this.module.exports.default.identifier === node.name ) {
-				// but only if this is a) inside a function body or
-				// b) after the export declaration
-				if ( !!scope.parent || node.start > this.module.exports.default.statement.node.start ) {
-					this.module.exports.default.isModified = true;
-				}
 			}
 		};
 
