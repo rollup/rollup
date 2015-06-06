@@ -39,7 +39,6 @@
     "gobble-esperanto-bundle": "^0.2.0",
     "gobble-rollup": "^0.2.0",
     "mocha": "^2.2.4",
-    "source-map-support": "^0.2.10",
     "source-map": "^0.1.40"
   },
   "dependencies": {
@@ -47,7 +46,8 @@
     "chalk": "^1.0.0",
     "magic-string": "^0.6.2",
     "minimist": "^1.1.1",
-    "sander": "^0.3.3"
+    "sander": "^0.3.3",
+    "source-map-support": "^0.3.1"
   },
   "files": [
     "src",
