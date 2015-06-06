@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.7.4
+
+* More precise statement re-ordering to satisfy `export default` constraint (fixes bug introduced in 0.7.3)
+
 ## 0.7.3
 
 * Default exports are not bound. To enable this, statements within a module are sorted to retain their original order ([#15](https://github.com/rollup/rollup/issues/15))
