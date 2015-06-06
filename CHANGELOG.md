@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.7.5
+
+* Prevent accidental conflicts with the global namespace ([#20](https://github.com/rollup/rollup/issues/20))
+
 ## 0.7.4
 
 * More precise statement re-ordering to satisfy `export default` constraint (fixes bug introduced in 0.7.3)
