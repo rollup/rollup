@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.7.7
+
+* Promise `source-map-support` from `devDependencies` to `dependencies` ([#23](https://github.com/rollup/rollup/issues/23))
+
 ## 0.7.6
 
 * Better placement of `export default` statements ([#21](https://github.com/rollup/rollup/issues/21))
