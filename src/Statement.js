@@ -172,8 +172,8 @@ export default class Statement {
 				}
 			}
 
-			if ( node.type !== 'Identifier' ) {
-				return;
+			if ( node.type === 'Identifier' ) {
+				this.modifies[ node.name ] = true;
 			}
 
 			// special case = `export default foo; foo += 1;` - we'll
@@ -186,8 +186,6 @@ export default class Statement {
 					this.module.exports.default.isModified = true;
 				}
 			}
-
-			this.modifies[ node.name ] = true;
 		};
 
 		if ( node.type === 'AssignmentExpression' ) {
@@ -209,7 +207,7 @@ export default class Statement {
 	}
 
 	expand () {
-		if ( this.isIncluded ) return emptyArrayPromise;
+		if ( this.isIncluded ) return emptyArrayPromise; // TODO can this happen?
 		this.isIncluded = true;
 
 		let result = [];
@@ -248,7 +246,8 @@ export default class Statement {
 				});
 			})
 
-		// the `result` is an array of statements needed to define `name`
+		// the `result` is an array of all statements that need
+		// to be included if this one is
 			.then( () => {
 				return result;
 			});
