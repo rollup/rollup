@@ -181,6 +181,14 @@ export default class Module {
 				this.modifications[ name ].push( statement );
 			});
 		});
+
+		this.statements.forEach( statement => {
+			keys( statement.dependsOn ).forEach( name => {
+				if ( !this.definitions[ name ] && !this.imports[ name ] ) {
+					this.bundle.assumedGlobals[ name ] = true;
+				}
+			});
+		});
 	}
 
 	findDeclaration ( localName ) {

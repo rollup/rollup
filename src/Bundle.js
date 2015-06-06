@@ -43,6 +43,7 @@ export default class Bundle {
 		this.statements = [];
 		this.externalModules = [];
 		this.internalNamespaceModules = [];
+		this.assumedGlobals = blank();
 	}
 
 	fetchModule ( importee, importer ) {
@@ -169,11 +170,23 @@ export default class Bundle {
 			module.name = name;
 		});
 
+		// Ensure we don't conflict with globals
+		keys( this.assumedGlobals ).forEach( name => {
+			if ( definers[ name ] ) {
+				conflicts[ name ] = true;
+			}
+		});
+
 		// Rename conflicting identifiers so they can live in the same scope
 		keys( conflicts ).forEach( name => {
 			const modules = definers[ name ];
 
-			modules.pop(); // the module closest to the entryModule gets away with keeping things as they are
+			if ( !this.assumedGlobals[ name ] ) {
+				// the module closest to the entryModule gets away with
+				// keeping things as they are, unless we have a conflict
+				// with a global name
+				modules.pop();
+			}
 
 			modules.forEach( module => {
 				const replacement = getSafeName( name );
