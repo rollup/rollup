@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.7.8
+
+* Avoid using `path.parse` - unsupported in node 0.10
+
 ## 0.7.7
 
 * Promise `source-map-support` from `devDependencies` to `dependencies` ([#23](https://github.com/rollup/rollup/issues/23))
