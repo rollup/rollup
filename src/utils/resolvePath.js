@@ -1,4 +1,4 @@
-import { dirname, resolve, parse } from 'path';
+import { dirname, resolve } from 'path';
 import { readFileSync } from 'sander';
 
 const absolutePath = /^(?:\/|(?:[A-Za-z]:)?\\)/;
@@ -20,10 +20,10 @@ export function defaultResolver ( importee, importer, options ) {
 
 export function defaultExternalResolver ( id, importer, options ) {
 	// for now, only node_modules is supported, and only jsnext:main
-	let parsed = parse( importer );
-	let dir = parsed.dir;
+	const root = absolutePath.exec( importer )[0];
+	let dir = dirname( importer );
 
-	while ( dir !== parsed.root ) {
+	while ( dir !== root ) {
 		const pkgPath = resolve( dir, 'node_modules', id, 'package.json' );
 		let pkgJson;
 
