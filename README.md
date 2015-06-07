@@ -4,7 +4,7 @@
 
 *I roll up, I roll up, I roll up* &ndash;[Wiz Khalifa](https://www.youtube.com/watch?v=UhQz-0QVmQ0)
 
-This is an experimental project. You definitely shouldn't try and use it, yet.
+This is an early stage project under active development. If you find a bug, [please raise an issue!](https://github.com/rollup/rollup/issues).
 
 
 ## A next-generation ES6 module bundler
