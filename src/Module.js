@@ -28,29 +28,58 @@ export default class Module {
 
 		// Try to extract a list of top-level statements/declarations. If
 		// the parse fails, attach file info and abort
+		let ast;
+
 		try {
-			const ast = parse( source, {
+			ast = parse( source, {
 				ecmaVersion: 6,
 				sourceType: 'module',
 				onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end })
-			});
-
-			walk( ast, {
-				enter: node => {
-					this.magicString.addSourcemapLocation( node.start );
-					this.magicString.addSourcemapLocation( node.end );
-				}
-			});
-
-			this.statements = ast.body.map( ( node, i ) => {
-				const magicString = this.magicString.snip( node.start, node.end ).trim();
-				return new Statement( node, magicString, this, i );
 			});
 		} catch ( err ) {
 			err.code = 'PARSE_ERROR';
 			err.file = path;
 			throw err;
 		}
+
+		walk( ast, {
+			enter: node => {
+				this.magicString.addSourcemapLocation( node.start );
+				this.magicString.addSourcemapLocation( node.end );
+			}
+		});
+
+		this.statements = [];
+
+		ast.body.map( node => {
+			// special case - top-level var declarations with multiple declarators
+			// should be split up. Otherwise, we may end up including code we
+			// don't need, just because an unwanted declarator is included
+			if ( node.type === 'VariableDeclaration' && node.declarations.length > 1 ) {
+				node.declarations.forEach( declarator => {
+					const magicString = this.magicString.snip( declarator.start, declarator.end ).trim();
+					magicString.prepend( `${node.kind} ` ).append( ';' );
+
+					const syntheticNode = {
+						type: 'VariableDeclaration',
+						kind: node.kind,
+						start: node.start,
+						end: node.end,
+						declarations: [ declarator ]
+					};
+
+					const statement = new Statement( syntheticNode, magicString, this, this.statements.length );
+					this.statements.push( statement );
+				});
+			}
+
+			else {
+				const magicString = this.magicString.snip( node.start, node.end ).trim();
+				const statement = new Statement( node, magicString, this, this.statements.length );
+
+				this.statements.push( statement );
+			}
+		});
 
 		this.importDeclarations = this.statements.filter( isImportDeclaration );
 		this.exportDeclarations = this.statements.filter( isExportDeclaration );
