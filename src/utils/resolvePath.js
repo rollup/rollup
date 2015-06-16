@@ -18,7 +18,7 @@ export function defaultResolver ( importee, importer, options ) {
 	return resolve( dirname( importer ), importee ).replace( /\.js$/, '' ) + '.js';
 }
 
-export function defaultExternalResolver ( id, importer, options ) {
+export function defaultExternalResolver ( id, importer ) {
 	// for now, only node_modules is supported, and only jsnext:main
 	const root = absolutePath.exec( importer )[0];
 	let dir = dirname( importer );

@@ -6,8 +6,6 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 		throw new Error( 'You must supply options.moduleName for UMD bundles' );
 	}
 
-	const indentStr = magicString.getIndentString();
-
 	const globalNames = options.globals || blank();
 
 	let amdDeps = bundle.externalModules.map( quoteId );

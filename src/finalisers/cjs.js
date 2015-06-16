@@ -1,5 +1,3 @@
-import { keys } from '../utils/object';
-
 export default function cjs ( bundle, magicString, { exportMode }) {
 	let intro = `'use strict';\n\n`;
 

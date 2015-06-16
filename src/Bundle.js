@@ -1,5 +1,5 @@
 import { basename, dirname, extname, relative, resolve } from 'path';
-import { readFile, Promise } from 'sander';
+import { Promise } from 'sander';
 import MagicString from 'magic-string';
 import { blank, keys } from './utils/object';
 import Module from './Module';
@@ -12,10 +12,6 @@ import { defaultLoader } from './utils/load';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
-
-function badExports ( option, keys ) {
-	throw new Error( `'${option}' was specified for options.exports, but entry module has following exports: ${keys.join(', ')}` );
-}
 
 export default class Bundle {
 	constructor ( options ) {
@@ -381,7 +377,7 @@ export default class Bundle {
 			// make sources relative. TODO fix this upstream?
 			const dir = dirname( map.file );
 			map.sources = map.sources.map( source => {
-				return source ? unixizePath( relative( dir, source ) ) : null
+				return source ? unixizePath( relative( dir, source ) ) : null;
 			});
 		}
 

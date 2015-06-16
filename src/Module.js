@@ -236,7 +236,6 @@ export default class Module {
 		// name was defined by this module, if any
 		let i = this.statements.length;
 		while ( i-- ) {
-			const statement = this.statements[i];
 			const declaration = this.statements[i].scope.declarations[ localName ];
 			if ( declaration ) {
 				return declaration;

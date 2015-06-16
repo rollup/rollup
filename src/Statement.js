@@ -1,6 +1,5 @@
 import { blank, keys } from './utils/object';
 import { sequence } from './utils/promise';
-import { getName } from './utils/map-helpers';
 import getLocation from './utils/getLocation';
 import walk from './ast/walk';
 import Scope from './ast/Scope';
@@ -254,8 +253,6 @@ export default class Statement {
 	}
 
 	replaceIdentifiers ( names, bundleExports ) {
-		const module = this.module;
-
 		const magicString = this.magicString.clone();
 		const replacementStack = [ names ];
 		const nameList = keys( names );
