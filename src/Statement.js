@@ -266,94 +266,102 @@ export default class Statement {
 			deshadowList.push( replacement.split( '.' )[0] );
 		});
 
-		if ( nameList.length > 0 || keys( bundleExports ).length ) {
-			let topLevel = true;
+		let topLevel = true;
+		let depth = 0;
 
-			walk( this.node, {
-				enter ( node, parent ) {
-					if ( node._skip ) return this.skip();
+		walk( this.node, {
+			enter ( node, parent ) {
+				if ( node._skip ) return this.skip();
 
-					// special case - variable declarations that need to be rewritten
-					// as bundle exports
-					if ( topLevel ) {
-						if ( node.type === 'VariableDeclaration' ) {
-							// if this contains a single declarator, and it's one that
-							// needs to be rewritten, we replace the whole lot
-							const name = node.declarations[0].id.name;
-							if ( node.declarations.length === 1 && bundleExports[ name ] ) {
-								magicString.overwrite( node.start, node.declarations[0].id.end, bundleExports[ name ] );
-								node.declarations[0].id._skip = true;
-							}
+				if ( /^Function/.test( node.type ) ) depth += 1;
 
-							// otherwise, we insert the `exports.foo = foo` after the declaration
-							else {
-								const exportInitialisers = node.declarations
-									.map( declarator => declarator.id.name )
-									.filter( name => !!bundleExports[ name ] )
-									.map( name => `\n${bundleExports[name]} = ${name};` )
-									.join( '' );
+				// `this` is undefined at the top level of ES6 modules
+				if ( node.type === 'ThisExpression' && depth === 0 ) {
+					magicString.overwrite( node.start, node.end, 'undefined' );
+				}
 
-								// TODO clean this up
-								try {
-									magicString.insert( node.end, exportInitialisers );
-								} catch ( err ) {
-									magicString.append( exportInitialisers );
-								}
-							}
-						}
-					}
-
-					const scope = node._scope;
-
-					if ( scope ) {
-						topLevel = false;
-
-						let newNames = blank();
-						let hasReplacements;
-
-						keys( names ).forEach( key => {
-							if ( !scope.declarations[ key ] ) {
-								newNames[ key ] = names[ key ];
-								hasReplacements = true;
-							}
-						});
-
-						deshadowList.forEach( name => {
-							if ( ~scope.declarations[ name ] ) {
-								newNames[ name ] = name + '$$'; // TODO better mechanism
-								hasReplacements = true;
-							}
-						});
-
-						if ( !hasReplacements ) {
-							return this.skip();
+				// special case - variable declarations that need to be rewritten
+				// as bundle exports
+				if ( topLevel ) {
+					if ( node.type === 'VariableDeclaration' ) {
+						// if this contains a single declarator, and it's one that
+						// needs to be rewritten, we replace the whole lot
+						const name = node.declarations[0].id.name;
+						if ( node.declarations.length === 1 && bundleExports[ name ] ) {
+							magicString.overwrite( node.start, node.declarations[0].id.end, bundleExports[ name ] );
+							node.declarations[0].id._skip = true;
 						}
 
-						names = newNames;
-						replacementStack.push( newNames );
-					}
+						// otherwise, we insert the `exports.foo = foo` after the declaration
+						else {
+							const exportInitialisers = node.declarations
+								.map( declarator => declarator.id.name )
+								.filter( name => !!bundleExports[ name ] )
+								.map( name => `\n${bundleExports[name]} = ${name};` )
+								.join( '' );
 
-					// We want to rewrite identifiers (that aren't property names etc)
-					if ( node.type !== 'Identifier' ) return;
-					if ( parent.type === 'MemberExpression' && !parent.computed && node !== parent.object ) return;
-					if ( parent.type === 'Property' && node !== parent.value ) return;
-					// TODO others...?
-
-					const name = names[ node.name ];
-
-					if ( name && name !== node.name ) {
-						magicString.overwrite( node.start, node.end, name );
-					}
-				},
-
-				leave ( node ) {
-					if ( node._scope ) {
-						replacementStack.pop();
-						names = replacementStack[ replacementStack.length - 1 ];
+							// TODO clean this up
+							try {
+								magicString.insert( node.end, exportInitialisers );
+							} catch ( err ) {
+								magicString.append( exportInitialisers );
+							}
+						}
 					}
 				}
-			});
-		}
+
+				const scope = node._scope;
+
+				if ( scope ) {
+					topLevel = false;
+
+					let newNames = blank();
+					let hasReplacements;
+
+					keys( names ).forEach( key => {
+						if ( !scope.declarations[ key ] ) {
+							newNames[ key ] = names[ key ];
+							hasReplacements = true;
+						}
+					});
+
+					deshadowList.forEach( name => {
+						if ( ~scope.declarations[ name ] ) {
+							newNames[ name ] = name + '$$'; // TODO better mechanism
+							hasReplacements = true;
+						}
+					});
+
+					if ( !hasReplacements && depth > 0 ) {
+						return this.skip();
+					}
+
+					names = newNames;
+					replacementStack.push( newNames );
+				}
+
+				// We want to rewrite identifiers (that aren't property names etc)
+				if ( node.type !== 'Identifier' ) return;
+				if ( parent.type === 'MemberExpression' && !parent.computed && node !== parent.object ) return;
+				if ( parent.type === 'Property' && node !== parent.value ) return;
+				// TODO others...?
+
+				const name = names[ node.name ];
+
+				if ( name && name !== node.name ) {
+					magicString.overwrite( node.start, node.end, name );
+				}
+			},
+
+			leave ( node ) {
+				if ( /^Function/.test( node.type ) ) depth -= 1;
+
+				if ( node._scope ) {
+					replacementStack.pop();
+					names = replacementStack[ replacementStack.length - 1 ];
+				}
+			}
+		});
 
 		return magicString;
 	}
