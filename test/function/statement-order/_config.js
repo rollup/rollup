@@ -9,7 +9,5 @@ module.exports = {
 	},
 	exports: function ( exports ) {
 		assert.equal( exports, 'right' );
-	},
-	solo: true,
-	show: true
+	}
 };
