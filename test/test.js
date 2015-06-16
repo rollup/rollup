@@ -93,7 +93,7 @@ describe( 'rollup', function () {
 
 						try {
 							if ( config.babel ) {
-								code = babel.transform( code, {
+								code = babel.transform( result.code, {
 									whitelist: config.babel
 								}).code;
 							} else {
