@@ -100,11 +100,24 @@ describe( 'rollup', function () {
 								code = result.code;
 							}
 
-							var fn = new Function( 'require', 'module', 'exports', 'assert', code );
 							var module = {
 								exports: {}
 							};
-							fn( require, module, module.exports, assert );
+
+							var context = extend({
+								require: require,
+								module: module,
+								exports: module.exports,
+								assert: assert
+							}, config.context || {} );
+
+							var contextKeys = Object.keys( context );
+							var contextValues = contextKeys.map( function ( key ) {
+								return context[ key ];
+							});
+
+							var fn = new Function( contextKeys, code );
+							fn.apply( {}, contextValues );
 
 							if ( config.error ) {
 								unintendedError = new Error( 'Expected an error while executing output' );
