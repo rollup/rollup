@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.8.0
+
+* Top-level variable declarations with multiple declarators are split up, to avoid unnecessary code importing and incorrectly-ordered statements ([#26](https://github.com/rollup/rollup/issues/26))
+* `this` at the top level is `undefined` ([#28](https://github.com/rollup/rollup/issues/28))
+
 ## 0.7.8
 
 * Avoid using `path.parse` - unsupported in node 0.10

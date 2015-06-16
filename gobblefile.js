@@ -1,13 +1,14 @@
 var gobble = require( 'gobble' );
 
-var selfhost = 0;
+var selfhost = 1;
 
 module.exports = selfhost ?
 	gobble( 'src' )
 		.transform( 'babel' )
 		.transform( 'rollup', {
-			entry: 'rollup',
-			format: 'cjs'
+			entry: 'rollup.js',
+			format: 'cjs',
+			external: [ 'sander', 'path', 'acorn', 'magic-string' ]
 		}) :
 
 	gobble( 'src' )
