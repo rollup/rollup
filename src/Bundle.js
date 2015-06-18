@@ -291,7 +291,12 @@ export default class Bundle {
 						return;
 					}
 
-					source.overwrite( statement.node.start, statement.node.declaration.start, `var ${canonicalName} = ` );
+					// anonymous functions should be converted into declarations
+					if ( statement.node.declaration.type === 'FunctionExpression' ) {
+						source.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${canonicalName}` );
+					} else {
+						source.overwrite( statement.node.start, statement.node.declaration.start, `var ${canonicalName} = ` );
+					}
 				}
 
 				else {

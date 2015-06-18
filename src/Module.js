@@ -127,6 +127,8 @@ export default class Module {
 			// export default 42;
 			if ( node.type === 'ExportDefaultDeclaration' ) {
 				const isDeclaration = /Declaration$/.test( node.declaration.type );
+				const isAnonymous = /(?:Class|Function)Expression$/.test( node.declaration.type );
+
 				const declaredName = isDeclaration && node.declaration.id.name;
 				const identifier = node.declaration.type === 'Identifier' && node.declaration.name;
 
@@ -137,6 +139,7 @@ export default class Module {
 					declaredName,
 					identifier,
 					isDeclaration,
+					isAnonymous,
 					isModified: false // in case of `export default foo; foo = somethingElse`
 				};
 			}
@@ -464,9 +467,18 @@ export default class Module {
 		this.canonicalNames[ name ] = replacement;
 	}
 
-	suggestName ( exportName, suggestion ) {
-		if ( !this.suggestedNames[ exportName ] ) {
-			this.suggestedNames[ exportName ] = makeLegalIdentifier( suggestion );
+	suggestName ( defaultOrBatch, suggestion ) {
+		// deconflict anonymous default exports with this module's definitions
+		const shouldDeconflict = this.exports.default && this.exports.default.isAnonymous;
+
+		if ( shouldDeconflict ) {
+			while ( suggestion in this.definitions ) {
+				suggestion = `_${suggestion}`;
+			}
+		}
+
+		if ( !this.suggestedNames[ defaultOrBatch ] ) {
+			this.suggestedNames[ defaultOrBatch ] = makeLegalIdentifier( suggestion );
 		}
 	}
 }
