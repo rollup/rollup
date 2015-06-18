@@ -94,7 +94,7 @@ describe( 'rollup', function () {
 						try {
 							if ( config.babel ) {
 								code = babel.transform( result.code, {
-									whitelist: config.babel
+									blacklist: [ 'es6.modules' ]
 								}).code;
 							} else {
 								code = result.code;
@@ -262,7 +262,7 @@ describe( 'rollup', function () {
 							try {
 								if ( config.babel ) {
 									code = babel.transform( code, {
-										whitelist: config.babel
+										blacklist: [ 'es6.modules' ]
 									}).code;
 								}
 
