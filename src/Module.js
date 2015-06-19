@@ -1,3 +1,4 @@
+import { dirname } from 'path';
 import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
@@ -251,7 +252,7 @@ export default class Module {
 	getCanonicalName ( localName ) {
 		// Special case
 		if ( localName === 'default' && this.exports.default && this.exports.default.isModified ) {
-			let canonicalName = makeLegalIdentifier( this.path.replace( this.bundle.base + '/', '' ).replace( /\.js$/, '' ) );
+			let canonicalName = makeLegalIdentifier( this.path.replace( dirname( this.bundle.entryModule.path ) + '/', '' ).replace( /\.js$/, '' ) );
 			while ( this.definitions[ canonicalName ] ) {
 				canonicalName = `_${canonicalName}`;
 			}

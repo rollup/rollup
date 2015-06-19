@@ -1,4 +1,4 @@
-import { basename, dirname, extname, relative, resolve } from 'path';
+import { basename, dirname, extname, relative } from 'path';
 import { Promise } from 'sander';
 import MagicString from 'magic-string';
 import { blank, keys } from './utils/object';
@@ -15,9 +15,11 @@ import { unixizePath } from './utils/normalizePlatform.js';
 
 export default class Bundle {
 	constructor ( options ) {
-		this.entryPath = resolve( options.entry ).replace( /\.js$/, '' ) + '.js';
-		this.base = dirname( this.entryPath );
+		this.entry = options.entry;
+		this.entryModule = null;
 
+		// TODO resolvePath is incorrect - it may not be a filesystem path, but
+		// something more abstract
 		this.resolvePath = options.resolvePath || defaultResolver;
 		this.load = options.load || defaultLoader;
 
@@ -30,8 +32,6 @@ export default class Bundle {
 			transform: ensureArray( options.transform )
 		};
 
-		this.entryModule = null;
-
 		this.varExports = blank();
 		this.toExport = null;
 
@@ -43,7 +43,7 @@ export default class Bundle {
 	}
 
 	fetchModule ( importee, importer ) {
-		return Promise.resolve( importer === null ? importee : this.resolvePath( importee, importer, this.resolvePathOptions ) )
+		return Promise.resolve( this.resolvePath( importee, importer, this.resolvePathOptions ) )
 			.then( path => {
 				if ( !path ) {
 					// external module
@@ -75,7 +75,7 @@ export default class Bundle {
 
 	build () {
 		// bring in top-level AST nodes from the entry module
-		return this.fetchModule( this.entryPath, null )
+		return this.fetchModule( this.entry, undefined )
 			.then( entryModule => {
 				const defaultExport = entryModule.exports.default;
 
@@ -91,7 +91,7 @@ export default class Bundle {
 					// `export default a + b` - generate an export name
 					// based on the filename of the entry module
 					else {
-						let defaultExportName = makeLegalIdentifier( basename( this.entryPath ).slice( 0, -extname( this.entryPath ).length ) );
+						let defaultExportName = makeLegalIdentifier( basename( this.entryModule.path ).slice( 0, -extname( this.entryModule.path ).length ) );
 
 						// deconflict
 						let topLevelNames = [];

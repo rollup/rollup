@@ -7,6 +7,9 @@ export function defaultResolver ( importee, importer, options ) {
 	// absolute paths are left untouched
 	if ( absolutePath.test( importee ) ) return importee;
 
+	// if this is the entry point, resolve against cwd
+	if ( importer === undefined ) return resolve( importee );
+
 	// we try to resolve external modules
 	if ( importee[0] !== '.' ) {
 		// unless we want to keep it external, that is
