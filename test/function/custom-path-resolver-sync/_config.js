@@ -1,12 +1,12 @@
+var path = require( 'path' );
 var assert = require( 'assert' );
 
 module.exports = {
 	description: 'uses a custom path resolver (synchronous)',
 	options: {
 		resolvePath: function ( importee, importer ) {
-			if ( importee === 'foo' ) {
-				return require( 'path' ).resolve( __dirname, 'bar.js' );
-			}
+			if ( importee === path.resolve( __dirname, 'main.js' ) ) return importee;
+			if ( importee === 'foo' ) return path.resolve( __dirname, 'bar.js' );
 
 			return false;
 		}
