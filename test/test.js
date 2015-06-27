@@ -295,6 +295,20 @@ describe( 'rollup', function () {
 
 							unintendedError ? done( unintendedError ) : done();
 						}
+
+						else if ( config.result ) {
+							try {
+								config.result( code );
+							} catch ( err ) {
+								done( err );
+							}
+						}
+
+						else {
+							var expected = sander.readFileSync( '_expected.js' ).toString();
+							assert.equal( code.trim(), expected.trim() );
+							done();
+						}
 					});
 				});
 			});

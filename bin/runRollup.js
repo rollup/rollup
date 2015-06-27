@@ -39,7 +39,9 @@ function bundle ( options, method ) {
 	}).then( function ( bundle ) {
 		var generateOptions = {
 			dest: options.output,
-			format: options.format
+			format: options.format,
+			moduleId: options.id,
+			moduleName: options.name
 		};
 
 		if ( options.output ) {
