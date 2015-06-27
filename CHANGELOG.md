@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.8.2
+
+* Support `moduleId` and `moduleName` via CLI ([#24](https://github.com/rollup/rollup/issues/24))
+
 ## 0.8.1
 
 * Anonymous functions that are exported as default are converted to named function declarations for correct hoisting, rather than being bound to functions ([#29](https://github.com/rollup/rollup/issues/29))
