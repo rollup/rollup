@@ -164,7 +164,7 @@ export default class Statement {
 
 					if ( depth < minDepth ) {
 						const err = new Error( `Illegal reassignment to import '${node.name}'` );
-						err.file = this.module.path;
+						err.file = this.module.id;
 						err.loc = getLocation( this.module.magicString.toString(), node.start );
 						throw err;
 					}

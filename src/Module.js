@@ -22,14 +22,16 @@ function deconflict ( name, names ) {
 }
 
 export default class Module {
-	constructor ({ path, source, bundle }) {
+	constructor ({ id, source, bundle }) {
 		this.source = source;
 
 		this.bundle = bundle;
-		this.path = path;
+		this.id = id;
 
+		// By default, `id` is the filename. Custom resolvers and loaders
+		// can change that, but it makes sense to use it for the source filename
 		this.magicString = new MagicString( source, {
-			filename: path
+			filename: id
 		});
 
 		this.suggestedNames = blank();
@@ -47,7 +49,7 @@ export default class Module {
 			});
 		} catch ( err ) {
 			err.code = 'PARSE_ERROR';
-			err.file = path;
+			err.file = id; // see above - not necessarily true, but true enough
 			throw err;
 		}
 
@@ -114,7 +116,7 @@ export default class Module {
 
 				if ( this.imports[ localName ] ) {
 					const err = new Error( `Duplicated import '${localName}'` );
-					err.file = this.path;
+					err.file = this.id;
 					err.loc = getLocation( this.source, specifier.start );
 					throw err;
 				}
@@ -260,7 +262,7 @@ export default class Module {
 	getCanonicalName ( localName ) {
 		// Special case
 		if ( localName === 'default' && ( this.exports.default.isModified || !this.suggestedNames.default ) ) {
-			let canonicalName = makeLegalIdentifier( this.path.replace( dirname( this.bundle.entryModule.path ) + '/', '' ).replace( /\.js$/, '' ) );
+			let canonicalName = makeLegalIdentifier( this.id.replace( dirname( this.bundle.entryModule.id ) + '/', '' ).replace( /\.js$/, '' ) );
 			return deconflict( canonicalName, this.definitions );
 		}
 
@@ -313,7 +315,7 @@ export default class Module {
 		if ( this.imports[ name ] ) {
 			const importDeclaration = this.imports[ name ];
 
-			promise = this.bundle.fetchModule( importDeclaration.source, this.path )
+			promise = this.bundle.fetchModule( importDeclaration.source, this.id )
 				.then( module => {
 					importDeclaration.module = module;
 
@@ -359,7 +361,7 @@ export default class Module {
 					const exportDeclaration = module.exports[ importDeclaration.name ];
 
 					if ( !exportDeclaration ) {
-						throw new Error( `Module ${module.path} does not export ${importDeclaration.name} (imported by ${this.path})` );
+						throw new Error( `Module ${module.id} does not export ${importDeclaration.name} (imported by ${this.id})` );
 					}
 
 					return module.define( exportDeclaration.localName );
@@ -434,7 +436,7 @@ export default class Module {
 				// ...unless they're empty, in which case assume we're importing them for the side-effects
 				// THIS IS NOT FOOLPROOF. Probably need /*rollup: include */ or similar
 				if ( !statement.node.specifiers.length ) {
-					return this.bundle.fetchModule( statement.node.source.value, this.path )
+					return this.bundle.fetchModule( statement.node.source.value, this.id )
 						.then( module => {
 							statement.module = module;
 							return module.expandAllStatements();

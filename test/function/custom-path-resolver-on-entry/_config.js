@@ -10,7 +10,7 @@ module.exports = {
 	description: 'applies custom resolver to entry point',
 	//solo: true,
 	options: {
-		resolvePath: function ( importee, importer ) {
+		resolveId: function ( importee, importer ) {
 			if ( importer === undefined ) {
 				return '@' + path.relative( __dirname, importee );
 			}

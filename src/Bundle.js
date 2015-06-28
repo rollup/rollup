@@ -7,7 +7,7 @@ import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 import ensureArray from './utils/ensureArray';
-import { defaultResolver, defaultExternalResolver } from './utils/resolvePath';
+import { defaultResolver, defaultExternalResolver } from './utils/resolveId';
 import { defaultLoader } from './utils/load';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
@@ -18,12 +18,10 @@ export default class Bundle {
 		this.entry = options.entry;
 		this.entryModule = null;
 
-		// TODO resolvePath is incorrect - it may not be a filesystem path, but
-		// something more abstract
-		this.resolvePath = options.resolvePath || defaultResolver;
+		this.resolveId = options.resolveId || defaultResolver;
 		this.load = options.load || defaultLoader;
 
-		this.resolvePathOptions = {
+		this.resolveOptions = {
 			external: ensureArray( options.external ),
 			resolveExternal: options.resolveExternal || defaultExternalResolver
 		};
@@ -43,9 +41,9 @@ export default class Bundle {
 	}
 
 	fetchModule ( importee, importer ) {
-		return Promise.resolve( this.resolvePath( importee, importer, this.resolvePathOptions ) )
-			.then( path => {
-				if ( !path ) {
+		return Promise.resolve( this.resolveId( importee, importer, this.resolveOptions ) )
+			.then( id => {
+				if ( !id ) {
 					// external module
 					if ( !this.modulePromises[ importee ] ) {
 						const module = new ExternalModule( importee );
@@ -56,11 +54,11 @@ export default class Bundle {
 					return this.modulePromises[ importee ];
 				}
 
-				if ( !this.modulePromises[ path ] ) {
-					this.modulePromises[ path ] = Promise.resolve( this.load( path, this.loadOptions ) )
+				if ( !this.modulePromises[ id ] ) {
+					this.modulePromises[ id ] = Promise.resolve( this.load( id, this.loadOptions ) )
 						.then( source => {
 							const module = new Module({
-								path,
+								id,
 								source,
 								bundle: this
 							});
@@ -69,7 +67,7 @@ export default class Bundle {
 						});
 				}
 
-				return this.modulePromises[ path ];
+				return this.modulePromises[ id ];
 			});
 	}
 
@@ -89,9 +87,9 @@ export default class Bundle {
 					}
 
 					// `export default a + b` - generate an export name
-					// based on the filename of the entry module
+					// based on the id of the entry module
 					else {
-						let defaultExportName = makeLegalIdentifier( basename( this.entryModule.path ).slice( 0, -extname( this.entryModule.path ).length ) );
+						let defaultExportName = makeLegalIdentifier( basename( this.entryModule.id ).slice( 0, -extname( this.entryModule.id ).length ) );
 
 						// deconflict
 						let topLevelNames = [];

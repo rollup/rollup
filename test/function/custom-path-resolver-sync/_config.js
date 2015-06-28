@@ -4,7 +4,7 @@ var assert = require( 'assert' );
 module.exports = {
 	description: 'uses a custom path resolver (synchronous)',
 	options: {
-		resolvePath: function ( importee, importer ) {
+		resolveId: function ( importee, importer ) {
 			if ( importee === path.resolve( __dirname, 'main.js' ) ) return importee;
 			if ( importee === 'foo' ) return path.resolve( __dirname, 'bar.js' );
 
