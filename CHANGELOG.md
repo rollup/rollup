@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.8.3
+
+* Correctly rename functions that have arguments with the same name ([#32](https://github.com/rollup/rollup/issues/32))
+* Ensure unused default exports are given a legal name ([#33](https://github.com/rollup/rollup/issues/33))
+
 ## 0.8.2
 
 * Support `moduleId` and `moduleName` via CLI ([#24](https://github.com/rollup/rollup/issues/24))
