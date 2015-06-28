@@ -315,15 +315,20 @@ export default class Statement {
 					let newNames = blank();
 					let hasReplacements;
 
-					keys( names ).forEach( key => {
-						if ( !scope.declarations[ key ] ) {
-							newNames[ key ] = names[ key ];
+					// special case = function foo ( foo ) {...}
+					if ( node.id && names[ node.id.name ] && scope.declarations[ node.id.name ] ) {
+						magicString.overwrite( node.id.start, node.id.end, names[ node.id.name ] );
+					}
+
+					keys( names ).forEach( name => {
+						if ( !scope.declarations[ name ] ) {
+							newNames[ name ] = names[ name ];
 							hasReplacements = true;
 						}
 					});
 
 					deshadowList.forEach( name => {
-						if ( ~scope.declarations[ name ] ) {
+						if ( ~scope.declarations[ name ] ) { // TODO is this right? no indexOf?
 							newNames[ name ] = name + '$$'; // TODO better mechanism
 							hasReplacements = true;
 						}

@@ -13,6 +13,14 @@ import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
 const emptyArrayPromise = Promise.resolve([]);
 
+function deconflict ( name, names ) {
+	while ( name in names ) {
+		name = `_${name}`;
+	}
+
+	return name;
+}
+
 export default class Module {
 	constructor ({ path, source, bundle }) {
 		this.source = source;
@@ -251,13 +259,9 @@ export default class Module {
 
 	getCanonicalName ( localName ) {
 		// Special case
-		if ( localName === 'default' && this.exports.default && this.exports.default.isModified ) {
+		if ( localName === 'default' && ( this.exports.default.isModified || !this.suggestedNames.default ) ) {
 			let canonicalName = makeLegalIdentifier( this.path.replace( dirname( this.bundle.entryModule.path ) + '/', '' ).replace( /\.js$/, '' ) );
-			while ( this.definitions[ canonicalName ] ) {
-				canonicalName = `_${canonicalName}`;
-			}
-
-			return canonicalName;
+			return deconflict( canonicalName, this.definitions );
 		}
 
 		if ( this.suggestedNames[ localName ] ) {
@@ -472,11 +476,7 @@ export default class Module {
 		// deconflict anonymous default exports with this module's definitions
 		const shouldDeconflict = this.exports.default && this.exports.default.isAnonymous;
 
-		if ( shouldDeconflict ) {
-			while ( suggestion in this.definitions ) {
-				suggestion = `_${suggestion}`;
-			}
-		}
+		if ( shouldDeconflict ) suggestion = deconflict( suggestion, this.definitions );
 
 		if ( !this.suggestedNames[ defaultOrBatch ] ) {
 			this.suggestedNames[ defaultOrBatch ] = makeLegalIdentifier( suggestion );
