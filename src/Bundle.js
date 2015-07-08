@@ -35,6 +35,8 @@ export default class Bundle {
 		this.varExports = blank();
 		this.toExport = null;
 
+		this.allowReassignments = !!options.allowReassignments;
+
 		this.modulePromises = blank();
 		this.statements = [];
 		this.externalModules = [];
