@@ -111,7 +111,9 @@ export default class Statement {
 					if ( node._scope ) scope = node._scope;
 
 					this.checkForReads( scope, node, parent );
-					this.checkForWrites( scope, node );
+					this.checkForWrites( scope, node, {
+						allowReassignments: this.module.bundle.allowReassignments
+					});
 				},
 				leave: ( node ) => {
 					if ( node._scope ) scope = scope.parent;
@@ -144,7 +146,7 @@ export default class Statement {
 		}
 	}
 
-	checkForWrites ( scope, node ) {
+	checkForWrites ( scope, node, { allowReassignments }) {
 		const addNode = ( node, isAssignment ) => {
 			let depth = 0; // determine whether we're illegally modifying a binding or namespace
 
@@ -157,7 +159,7 @@ export default class Statement {
 			if ( isAssignment ) {
 				const importSpecifier = this.module.imports[ node.name ];
 
-				if ( importSpecifier && !scope.contains( node.name ) ) {
+				if ( !allowReassignments && importSpecifier && !scope.contains( node.name ) ) {
 					const minDepth = importSpecifier.name === '*' ?
 						2 : // cannot do e.g. `namespace.foo = bar`
 						1;  // cannot do e.g. `foo = bar`, but `foo.bar = bar` is fine

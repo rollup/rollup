@@ -35,7 +35,8 @@ function bundle ( options, method ) {
 
 	return rollup.rollup({
 		entry: options.input,
-		external: options.external && options.external.split( ',' )
+		external: options.external && options.external.split( ',' ),
+		allowReassignments: options[ 'allow-reassignments' ]
 	}).then( function ( bundle ) {
 		var generateOptions = {
 			dest: options.output,
