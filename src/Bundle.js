@@ -247,6 +247,16 @@ export default class Bundle {
 		let previousIndex = -1;
 		let previousMargin = 0;
 
+		this.statements.forEach( ( statement, i ) => {
+			statement.bundleIndex = i;
+		});
+
+		this.statements.sort( ( a, b ) => {
+			return a.module !== b.module ?
+				a.bundleIndex - b.bundleIndex :
+				a.index - b.index;
+		});
+
 		this.statements.forEach( statement => {
 			// skip `export { foo, bar, baz }`
 			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
