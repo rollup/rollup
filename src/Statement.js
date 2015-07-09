@@ -137,6 +137,9 @@ export default class Statement {
 				return;
 			}
 
+			// disregard the `bar` in `class Foo { bar () {...} }`
+			if ( parent.type === 'MethodDefinition' ) return;
+
 			const definingScope = scope.findDefiningScope( node.name );
 
 			if ( ( !definingScope || definingScope.depth === 0 ) && !this.defines[ node.name ] ) {
