@@ -221,6 +221,8 @@ export default class Statement {
 		const dependencies = Object.keys( this.dependsOn );
 
 		return sequence( dependencies, name => {
+			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
+
 			return this.module.define( name ).then( definition => {
 				result.push.apply( result, definition );
 			});
