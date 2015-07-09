@@ -206,8 +206,7 @@ export default class Statement {
 	}
 
 	expand () {
-		if ( this.isIncluded ) return emptyArrayPromise; // TODO can this happen?
-		this.isIncluded = true;
+		this.isIncluded = true; // prevent statement being included twice
 
 		let result = [];
 
