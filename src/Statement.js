@@ -17,6 +17,7 @@ export default class Statement {
 		this.defines = blank();
 		this.modifies = blank();
 		this.dependsOn = blank();
+		this.stronglyDependsOn = blank();
 
 		this.isIncluded = false;
 
@@ -140,6 +141,8 @@ export default class Statement {
 
 			if ( ( !definingScope || definingScope.depth === 0 ) && !this.defines[ node.name ] ) {
 				this.dependsOn[ node.name ] = true;
+
+				if ( !scope.parent ) this.stronglyDependsOn[ node.name ] = true;
 			}
 		}
 	}
