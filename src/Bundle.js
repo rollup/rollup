@@ -112,6 +112,7 @@ export default class Bundle {
 			.then( statements => {
 				this.statements = statements;
 				this.deconflict();
+				this.sort();
 			});
 	}
 
@@ -198,6 +199,76 @@ export default class Bundle {
 			conflicts[ name ] = true;
 			return name;
 		}
+	}
+
+	sort () {
+		// TODO avoid this work whenever possible...
+
+		let definitions = blank();
+
+		// gather definitions
+		this.statements.forEach( statement => {
+			keys( statement.defines ).forEach( name => {
+				const canonicalName = statement.module.getCanonicalName( name );
+				definitions[ canonicalName ] = statement;
+			});
+		});
+
+		let strongDeps = blank();
+		let stronglyDependsOn = blank();
+
+		this.statements.forEach( statement => {
+			const id = statement.id;
+			strongDeps[ id ] = [];
+			stronglyDependsOn[ id ] = {};
+
+			keys( statement.stronglyDependsOn ).forEach( name => {
+				if ( statement.defines[ name ] ) return; // TODO seriously... need to fix this
+				const canonicalName = statement.module.getCanonicalName( name );
+				const definition = definitions[ canonicalName ];
+
+				if ( definition ) strongDeps[ statement.id ].push( definition );
+			});
+		});
+
+		// add second (and third...) order strong dependencies
+		this.statements.forEach( statement => {
+			const id = statement.id;
+
+			// add second (and third...) order dependencies
+			function addStrongDependencies ( dependency ) {
+				if ( stronglyDependsOn[ id ][ dependency.id ] ) return;
+
+				stronglyDependsOn[ id ][ dependency.id ] = true;
+				strongDeps[ dependency.id ].forEach( addStrongDependencies );
+			}
+
+			strongDeps[ id ].forEach( addStrongDependencies );
+		});
+
+		// reinsert each statement, ensuring its strong dependencies appear first
+		let sorted = [];
+		let included = blank();
+
+		this.statements.forEach( statement => {
+			strongDeps[ statement.id ].forEach( place );
+
+			function place ( dependency ) {
+				if ( !stronglyDependsOn[ dependency.id ][ statement.id ] && !included[ dependency.id ] ) {
+					strongDeps[ dependency.id ].forEach( place );
+					sorted.push( dependency );
+
+					included[ dependency.id ] = true;
+				}
+			}
+
+			if ( !included[ statement.id ] ) {
+				sorted.push( statement );
+				included[ statement.id ] = true;
+			}
+		});
+
+		this.statements = sorted;
 	}
 
 	generate ( options = {} ) {

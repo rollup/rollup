@@ -14,6 +14,5 @@ module.exports = {
 		assert.ok( exports.c2.isC );
 		assert.ok( exports.c2.isD );
 		assert.ok( exports.d.isD );
-	},
-	solo: true
+	}
 };
