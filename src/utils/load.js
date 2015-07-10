@@ -1,10 +1,10 @@
 import { readFileSync } from 'sander';
 
-export function defaultLoader ( path, options ) {
+export function defaultLoader ( id, options ) {
 	// TODO support plugins e.g. !css and !json?
-	const source = readFileSync( path, { encoding: 'utf-8' });
+	const source = readFileSync( id, { encoding: 'utf-8' });
 
 	return options.transform.reduce( ( source, transformer ) => {
-		return transformer( source, path );
+		return transformer( source, id );
 	}, source );
 }

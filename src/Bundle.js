@@ -1,4 +1,4 @@
-import { basename, dirname, extname, relative, resolve } from 'path';
+import { basename, dirname, extname, relative } from 'path';
 import { Promise } from 'sander';
 import MagicString from 'magic-string';
 import { blank, keys } from './utils/object';
@@ -7,7 +7,7 @@ import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 import ensureArray from './utils/ensureArray';
-import { defaultResolver, defaultExternalResolver } from './utils/resolvePath';
+import { defaultResolver, defaultExternalResolver } from './utils/resolveId';
 import { defaultLoader } from './utils/load';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
@@ -15,13 +15,13 @@ import { unixizePath } from './utils/normalizePlatform.js';
 
 export default class Bundle {
 	constructor ( options ) {
-		this.entryPath = resolve( options.entry ).replace( /\.js$/, '' ) + '.js';
-		this.base = dirname( this.entryPath );
+		this.entry = options.entry;
+		this.entryModule = null;
 
-		this.resolvePath = options.resolvePath || defaultResolver;
+		this.resolveId = options.resolveId || defaultResolver;
 		this.load = options.load || defaultLoader;
 
-		this.resolvePathOptions = {
+		this.resolveOptions = {
 			external: ensureArray( options.external ),
 			resolveExternal: options.resolveExternal || defaultExternalResolver
 		};
@@ -29,8 +29,6 @@ export default class Bundle {
 		this.loadOptions = {
 			transform: ensureArray( options.transform )
 		};
-
-		this.entryModule = null;
 
 		this.varExports = blank();
 		this.toExport = null;
@@ -43,9 +41,9 @@ export default class Bundle {
 	}
 
 	fetchModule ( importee, importer ) {
-		return Promise.resolve( importer === null ? importee : this.resolvePath( importee, importer, this.resolvePathOptions ) )
-			.then( path => {
-				if ( !path ) {
+		return Promise.resolve( this.resolveId( importee, importer, this.resolveOptions ) )
+			.then( id => {
+				if ( !id ) {
 					// external module
 					if ( !this.modulePromises[ importee ] ) {
 						const module = new ExternalModule( importee );
@@ -56,11 +54,11 @@ export default class Bundle {
 					return this.modulePromises[ importee ];
 				}
 
-				if ( !this.modulePromises[ path ] ) {
-					this.modulePromises[ path ] = Promise.resolve( this.load( path, this.loadOptions ) )
+				if ( !this.modulePromises[ id ] ) {
+					this.modulePromises[ id ] = Promise.resolve( this.load( id, this.loadOptions ) )
 						.then( source => {
 							const module = new Module({
-								path,
+								id,
 								source,
 								bundle: this
 							});
@@ -69,13 +67,13 @@ export default class Bundle {
 						});
 				}
 
-				return this.modulePromises[ path ];
+				return this.modulePromises[ id ];
 			});
 	}
 
 	build () {
 		// bring in top-level AST nodes from the entry module
-		return this.fetchModule( this.entryPath, null )
+		return this.fetchModule( this.entry, undefined )
 			.then( entryModule => {
 				const defaultExport = entryModule.exports.default;
 
@@ -89,9 +87,9 @@ export default class Bundle {
 					}
 
 					// `export default a + b` - generate an export name
-					// based on the filename of the entry module
+					// based on the id of the entry module
 					else {
-						let defaultExportName = makeLegalIdentifier( basename( this.entryPath ).slice( 0, -extname( this.entryPath ).length ) );
+						let defaultExportName = makeLegalIdentifier( basename( this.entryModule.id ).slice( 0, -extname( this.entryModule.id ).length ) );
 
 						// deconflict
 						let topLevelNames = [];
@@ -112,6 +110,7 @@ export default class Bundle {
 			.then( statements => {
 				this.statements = statements;
 				this.deconflict();
+				this.sort();
 			});
 	}
 
@@ -198,6 +197,76 @@ export default class Bundle {
 			conflicts[ name ] = true;
 			return name;
 		}
+	}
+
+	sort () {
+		// TODO avoid this work whenever possible...
+
+		let definitions = blank();
+
+		// gather definitions
+		this.statements.forEach( statement => {
+			keys( statement.defines ).forEach( name => {
+				const canonicalName = statement.module.getCanonicalName( name );
+				definitions[ canonicalName ] = statement;
+			});
+		});
+
+		let strongDeps = blank();
+		let stronglyDependsOn = blank();
+
+		this.statements.forEach( statement => {
+			const id = statement.id;
+			strongDeps[ id ] = [];
+			stronglyDependsOn[ id ] = {};
+
+			keys( statement.stronglyDependsOn ).forEach( name => {
+				if ( statement.defines[ name ] ) return; // TODO seriously... need to fix this
+				const canonicalName = statement.module.getCanonicalName( name );
+				const definition = definitions[ canonicalName ];
+
+				if ( definition ) strongDeps[ statement.id ].push( definition );
+			});
+		});
+
+		// add second (and third...) order strong dependencies
+		this.statements.forEach( statement => {
+			const id = statement.id;
+
+			// add second (and third...) order dependencies
+			function addStrongDependencies ( dependency ) {
+				if ( stronglyDependsOn[ id ][ dependency.id ] ) return;
+
+				stronglyDependsOn[ id ][ dependency.id ] = true;
+				strongDeps[ dependency.id ].forEach( addStrongDependencies );
+			}
+
+			strongDeps[ id ].forEach( addStrongDependencies );
+		});
+
+		// reinsert each statement, ensuring its strong dependencies appear first
+		let sorted = [];
+		let included = blank();
+
+		this.statements.forEach( statement => {
+			strongDeps[ statement.id ].forEach( place );
+
+			function place ( dependency ) {
+				if ( !stronglyDependsOn[ dependency.id ][ statement.id ] && !included[ dependency.id ] ) {
+					strongDeps[ dependency.id ].forEach( place );
+					sorted.push( dependency );
+
+					included[ dependency.id ] = true;
+				}
+			}
+
+			if ( !included[ statement.id ] ) {
+				sorted.push( statement );
+				included[ statement.id ] = true;
+			}
+		});
+
+		this.statements = sorted;
 	}
 
 	generate ( options = {} ) {
