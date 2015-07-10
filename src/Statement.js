@@ -10,7 +10,7 @@ export default class Statement {
 		this.module = module;
 		this.magicString = magicString;
 		this.index = index;
-		this.id = module.path + '#' + index;
+		this.id = module.id + '#' + index;
 
 		this.scope = new Scope();
 		this.defines = blank();
