@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.9.0
+
+* BREAKING - `resolvePath` is now `resolveId`. The returned `id` (which by default is a filepath) is passed to the `load` function, which can optionally be overridden, and which is applied to all modules including the entry module. This allows custom resolver and loading logic for integration with third party systems (e.g. JSPM) or, eventually, in-browser usage ([#30](https://github.com/rollup/rollup/issues/30))
+* A statement cannot appear after later statements from the same bundle ([#34](https://github.com/rollup/rollup/issues/34))
+* Tricky cyclical dependencies are handled ([#36](https://github.com/rollup/rollup/issues/36))
+* `sourcemap` option is used by CLI (was omitted previously)
+
 ## 0.8.3
 
 * Correctly rename functions that have arguments with the same name ([#32](https://github.com/rollup/rollup/issues/32))
