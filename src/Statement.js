@@ -4,19 +4,19 @@ import getLocation from './utils/getLocation';
 import walk from './ast/walk';
 import Scope from './ast/Scope';
 
-const emptyArrayPromise = Promise.resolve([]);
-
 export default class Statement {
 	constructor ( node, magicString, module, index ) {
 		this.node = node;
 		this.module = module;
 		this.magicString = magicString;
 		this.index = index;
+		this.id = module.path + '#' + index;
 
 		this.scope = new Scope();
 		this.defines = blank();
 		this.modifies = blank();
 		this.dependsOn = blank();
+		this.stronglyDependsOn = blank();
 
 		this.isIncluded = false;
 
@@ -136,10 +136,15 @@ export default class Statement {
 				return;
 			}
 
+			// disregard the `bar` in `class Foo { bar () {...} }`
+			if ( parent.type === 'MethodDefinition' ) return;
+
 			const definingScope = scope.findDefiningScope( node.name );
 
 			if ( ( !definingScope || definingScope.depth === 0 ) && !this.defines[ node.name ] ) {
 				this.dependsOn[ node.name ] = true;
+
+				if ( !scope.parent ) this.stronglyDependsOn[ node.name ] = true;
 			}
 		}
 	}
@@ -206,8 +211,7 @@ export default class Statement {
 	}
 
 	expand () {
-		if ( this.isIncluded ) return emptyArrayPromise; // TODO can this happen?
-		this.isIncluded = true;
+		this.isIncluded = true; // prevent statement being included twice
 
 		let result = [];
 
@@ -216,6 +220,8 @@ export default class Statement {
 		const dependencies = Object.keys( this.dependsOn );
 
 		return sequence( dependencies, name => {
+			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
+
 			return this.module.define( name ).then( definition => {
 				result.push.apply( result, definition );
 			});
