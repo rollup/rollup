@@ -234,6 +234,43 @@ export default class Module {
 		});
 	}
 
+	consolidateDependencies () {
+		let strongDependencies = blank();
+
+		this.statements.forEach( statement => {
+			if ( statement.isImportDeclaration && !statement.node.specifiers.length ) {
+				// include module for its side-effects
+				strongDependencies[ statement.module.id ] = statement.module; // TODO is this right? `statement.module` should be `this`, surely?
+			}
+
+			keys( statement.stronglyDependsOn ).forEach( name => {
+				if ( statement.defines[ name ] ) return;
+
+				const importDeclaration = this.imports[ name ];
+
+				if ( importDeclaration && importDeclaration.module && !importDeclaration.module.isExternal ) {
+					strongDependencies[ importDeclaration.module.id ] = importDeclaration.module;
+				}
+			});
+		});
+
+		let weakDependencies = blank();
+
+		this.statements.forEach( statement => {
+			keys( statement.dependsOn ).forEach( name => {
+				if ( statement.defines[ name ] ) return;
+
+				const importDeclaration = this.imports[ name ];
+
+				if ( importDeclaration && importDeclaration.module && !importDeclaration.module.isExternal ) {
+					weakDependencies[ importDeclaration.module.id ] = importDeclaration.module;
+				}
+			});
+		});
+
+		return { strongDependencies, weakDependencies };
+	}
+
 	findDeclaration ( localName ) {
 		const importDeclaration = this.imports[ localName ];
 
