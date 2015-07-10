@@ -4,6 +4,10 @@ import getLocation from './utils/getLocation';
 import walk from './ast/walk';
 import Scope from './ast/Scope';
 
+function isIife ( node, parent ) {
+	return parent && parent.type === 'CallExpression' && node === parent.callee;
+}
+
 export default class Statement {
 	constructor ( node, magicString, module, index ) {
 		this.node = node;
@@ -38,7 +42,7 @@ export default class Statement {
 		let scope = this.scope;
 
 		walk( this.node, {
-			enter ( node ) {
+			enter ( node, parent ) {
 				let newScope;
 
 				magicString.addSourcemapLocation( node.start );
@@ -66,10 +70,12 @@ export default class Statement {
 						break;
 
 					case 'BlockStatement':
-						newScope = new Scope({
-							parent: scope,
-							block: true
-						});
+						if ( !/Function/.test( parent.type ) ) {
+							newScope = new Scope({
+								parent: scope,
+								block: true
+							});
+						}
 
 						break;
 
@@ -105,16 +111,35 @@ export default class Statement {
 			}
 		});
 
+		// This allows us to track whether we're looking at code that will
+		// be executed immediately (either outside a function, or immediately
+		// inside an IIFE), for the purposes of determining whether dependencies
+		// are strong or weak. It's not bulletproof, since it wouldn't catch...
+		//
+		//    var calledImmediately = function () {
+		//      doSomethingWith( strongDependency );
+		//    }
+		//    calledImmediately();
+		//
+		// ...but it's better than nothing
+		let depth = 0;
+
 		if ( !this.isImportDeclaration ) {
 			walk( this.node, {
 				enter: ( node, parent ) => {
-					if ( node._scope ) scope = node._scope;
+					if ( node._scope ) {
+						if ( !scope.isBlockScope && !isIife( node, parent ) ) depth += 1;
+						scope = node._scope;
+					}
 
-					this.checkForReads( scope, node, parent );
+					this.checkForReads( scope, node, parent, !depth );
 					this.checkForWrites( scope, node );
 				},
-				leave: ( node ) => {
-					if ( node._scope ) scope = scope.parent;
+				leave: ( node, parent ) => {
+					if ( node._scope ) {
+						if ( !scope.isBlockScope && !isIife( node, parent ) ) depth -= 1;
+						scope = scope.parent;
+					}
 				}
 			});
 		}
@@ -124,7 +149,7 @@ export default class Statement {
 		});
 	}
 
-	checkForReads ( scope, node, parent ) {
+	checkForReads ( scope, node, parent, strong ) {
 		if ( node.type === 'Identifier' ) {
 			// disregard the `bar` in `foo.bar` - these appear as Identifier nodes
 			if ( parent.type === 'MemberExpression' && node !== parent.object ) {
@@ -143,8 +168,7 @@ export default class Statement {
 
 			if ( ( !definingScope || definingScope.depth === 0 ) && !this.defines[ node.name ] ) {
 				this.dependsOn[ node.name ] = true;
-
-				if ( !scope.parent ) this.stronglyDependsOn[ node.name ] = true;
+				if ( strong ) this.stronglyDependsOn[ node.name ] = true;
 			}
 		}
 	}
