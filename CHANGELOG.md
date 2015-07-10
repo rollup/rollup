@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.9.1
+
+* Much faster statement insertion (fixes major 0.9.0 performance regression)
+
 ## 0.9.0
 
 * BREAKING - `resolvePath` is now `resolveId`. The returned `id` (which by default is a filepath) is passed to the `load` function, which can optionally be overridden, and which is applied to all modules including the entry module. This allows custom resolver and loading logic for integration with third party systems (e.g. JSPM) or, eventually, in-browser usage ([#30](https://github.com/rollup/rollup/issues/30))
