@@ -248,22 +248,39 @@ export default class Bundle {
 		let sorted = [];
 		let included = blank();
 
-		this.statements.forEach( statement => {
-			strongDeps[ statement.id ].forEach( place );
+		function include ( statement ) {
+			if ( included[ statement.id ] ) return;
+			included[ statement.id ] = true;
 
-			function place ( dependency ) {
-				if ( !stronglyDependsOn[ dependency.id ][ statement.id ] && !included[ dependency.id ] ) {
-					strongDeps[ dependency.id ].forEach( place );
-					sorted.push( dependency );
+			const len = sorted.length;
+			let i = 0;
+			let alreadyIncluded = false;
 
-					included[ dependency.id ] = true;
+			for ( i = 0; i < len; i += 1 ) {
+				// ensure that this statement appears above later statements
+				// from the same module - in rare situations (#34) they can
+				// become jumbled
+				const existing = sorted[i];
+				if ( existing.module === statement.module && existing.index > statement.index ) {
+					sorted.splice( i, 0, statement );
+					alreadyIncluded = true;
 				}
 			}
 
-			if ( !included[ statement.id ] ) {
-				sorted.push( statement );
-				included[ statement.id ] = true;
+			if ( !alreadyIncluded ) sorted.push( statement );
+		}
+
+		this.statements.forEach( statement => {
+			strongDeps[ statement.id ].forEach( includeStrongDependency );
+
+			function includeStrongDependency ( dependency ) {
+				if ( !stronglyDependsOn[ dependency.id ][ statement.id ] && !included[ dependency.id ] ) {
+					strongDeps[ dependency.id ].forEach( includeStrongDependency );
+					include( dependency );
+				}
 			}
+
+			include( statement );
 		});
 
 		this.statements = sorted;
@@ -315,16 +332,6 @@ export default class Bundle {
 		let previousModule = null;
 		let previousIndex = -1;
 		let previousMargin = 0;
-
-		this.statements.forEach( ( statement, i ) => {
-			statement.bundleIndex = i;
-		});
-
-		this.statements.sort( ( a, b ) => {
-			return a.module !== b.module ?
-				a.bundleIndex - b.bundleIndex :
-				a.index - b.index;
-		});
 
 		this.statements.forEach( statement => {
 			// skip `export { foo, bar, baz }`
