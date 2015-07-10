@@ -247,27 +247,37 @@ export default class Bundle {
 		// reinsert each statement, ensuring its strong dependencies appear first
 		let sorted = [];
 		let included = blank();
+		let highestIndex = blank();
 
 		function include ( statement ) {
 			if ( included[ statement.id ] ) return;
 			included[ statement.id ] = true;
 
-			const len = sorted.length;
-			let i = 0;
 			let alreadyIncluded = false;
 
-			for ( i = 0; i < len; i += 1 ) {
-				// ensure that this statement appears above later statements
-				// from the same module - in rare situations (#34) they can
-				// become jumbled
-				const existing = sorted[i];
-				if ( existing.module === statement.module && existing.index > statement.index ) {
-					sorted.splice( i, 0, statement );
-					alreadyIncluded = true;
+			const unordered = statement.index < highestIndex[ statement.module.id ];
+			highestIndex[ statement.module.id ] = Math.max(
+				statement.index,
+				highestIndex[ statement.module.id ] || 0
+			);
+
+			if ( unordered ) {
+				const len = sorted.length;
+				let i = 0;
+
+				for ( i = 0; i < len; i += 1 ) {
+					// ensure that this statement appears above later statements
+					// from the same module - in rare situations (#34) they can
+					// become jumbled
+					const existing = sorted[i];
+					if ( existing.module === statement.module && existing.index > statement.index ) {
+						sorted.splice( i, 0, statement );
+						return
+					}
 				}
 			}
 
-			if ( !alreadyIncluded ) sorted.push( statement );
+			sorted.push( statement );
 		}
 
 		this.statements.forEach( statement => {
