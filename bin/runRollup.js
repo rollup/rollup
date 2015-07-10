@@ -41,7 +41,8 @@ function bundle ( options, method ) {
 			dest: options.output,
 			format: options.format,
 			moduleId: options.id,
-			moduleName: options.name
+			moduleName: options.name,
+			sourceMap: options.sourcemap
 		};
 
 		if ( options.output ) {
