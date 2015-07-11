@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.10.0
+
+* Better sorting algorithm – sorting happens at the module level, rather than the statement level. This avoids certain edge cases
+* IIFEs are ignored for the purposes of distinguishing between 'strong' and 'weak' dependencies
+* Empty `var` declarations for exported bindings are omitted
+
 ## 0.9.1
 
 * Much faster statement insertion (fixes major 0.9.0 performance regression)
