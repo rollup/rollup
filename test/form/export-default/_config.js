@@ -3,5 +3,4 @@ module.exports = {
 	options: {
 		moduleName: 'myBundle'
 	}
-	// solo: true
 };

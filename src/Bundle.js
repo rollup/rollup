@@ -13,6 +13,15 @@ import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
 
+function isEmptyExportedVarDeclaration ( node, module, allBundleExports ) {
+	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
+
+	const name = node.declarations[0].id.name;
+	const canonicalName = module.getCanonicalName( name );
+
+	return canonicalName in allBundleExports;
+}
+
 export default class Bundle {
 	constructor ( options ) {
 		this.entry = options.entry;
@@ -345,9 +354,17 @@ export default class Bundle {
 
 		this.orderedStatements.forEach( statement => {
 			// skip `export { foo, bar, baz }`
-			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
-				return;
+			if ( statement.node.type === 'ExportNamedDeclaration' ) {
+				// skip `export { foo, bar, baz }`
+				if ( statement.node.specifiers.length ) return;
+
+				// skip `export var foo;` if foo is exported
+				if ( isEmptyExportedVarDeclaration( statement.node.declaration, statement.module, allBundleExports ) ) return;
 			}
+
+			// skip empty var declarations for exported bindings
+			// (otherwise we're left with `exports.foo;`, which is useless)
+			if ( isEmptyExportedVarDeclaration( statement.node, statement.module, allBundleExports ) ) return;
 
 			let replacements = blank();
 			let bundleExports = blank();
