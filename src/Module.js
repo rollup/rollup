@@ -1,4 +1,4 @@
-import { dirname } from 'path';
+import { dirname } from './utils/path';
 import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';

@@ -5,8 +5,8 @@
 		"es6.classes",
 		"es6.constants",
 		"es6.destructuring",
-		"es6.parameters.default",
 		"es6.parameters.rest",
+		"es6.parameters.default",
 		"es6.properties.shorthand",
 		"es6.spread",
 		"es6.templateLiterals"
