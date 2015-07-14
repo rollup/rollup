@@ -1,14 +1,12 @@
-import { dirname, resolve } from 'path';
+import { absolutePath, dirname, isAbsolute, resolve } from './path';
 import { readFileSync } from 'sander';
-
-const absolutePath = /^(?:\/|(?:[A-Za-z]:)?\\)/;
 
 export function defaultResolver ( importee, importer, options ) {
 	// absolute paths are left untouched
-	if ( absolutePath.test( importee ) ) return importee;
+	if ( isAbsolute( importee ) ) return importee;
 
 	// if this is the entry point, resolve against cwd
-	if ( importer === undefined ) return resolve( importee );
+	if ( importer === undefined ) return resolve( process.cwd(), importee );
 
 	// we try to resolve external modules
 	if ( importee[0] !== '.' ) {

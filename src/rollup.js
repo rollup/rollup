@@ -1,4 +1,4 @@
-import { basename } from 'path';
+import { basename } from './utils/path';
 import { writeFile } from 'sander';
 import Bundle from './Bundle';
 
