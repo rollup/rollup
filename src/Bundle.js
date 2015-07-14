@@ -45,14 +45,13 @@ export default class Bundle {
 		this.modulePromises = blank();
 		this.modules = [];
 
-		this.statements = [];
+		this.statements = null;
 		this.externalModules = [];
 		this.internalNamespaceModules = [];
 		this.assumedGlobals = blank();
 	}
 
 	build () {
-		// bring in top-level AST nodes from the entry module
 		return this.fetchModule( this.entry, undefined )
 			.then( entryModule => {
 				const defaultExport = entryModule.exports.default;
@@ -87,11 +86,9 @@ export default class Bundle {
 
 				return entryModule.expandAllStatements( true );
 			})
-			.then( statements => {
-				this.statements = statements;
+			.then( () => {
+				this.statements = this.sort();
 				this.deconflict();
-
-				this.orderedStatements = this.sort();
 			});
 	}
 
@@ -260,7 +257,7 @@ export default class Bundle {
 		let previousIndex = -1;
 		let previousMargin = 0;
 
-		this.orderedStatements.forEach( statement => {
+		this.statements.forEach( statement => {
 			// skip `export { foo, bar, baz }`
 			if ( statement.node.type === 'ExportNamedDeclaration' ) {
 				// skip `export { foo, bar, baz }`

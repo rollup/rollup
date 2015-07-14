@@ -37,173 +37,11 @@ export default class Module {
 		this.suggestedNames = blank();
 		this.comments = [];
 
-		// Try to extract a list of top-level statements/declarations. If
-		// the parse fails, attach file info and abort
-		let ast;
+		this.statements = this._parse();
 
-		try {
-			ast = parse( source, {
-				ecmaVersion: 6,
-				sourceType: 'module',
-				onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end })
-			});
-		} catch ( err ) {
-			err.code = 'PARSE_ERROR';
-			err.file = id; // see above - not necessarily true, but true enough
-			throw err;
-		}
-
-		walk( ast, {
-			enter: node => {
-				this.magicString.addSourcemapLocation( node.start );
-				this.magicString.addSourcemapLocation( node.end );
-			}
-		});
-
-		this.statements = [];
-
-		ast.body.map( node => {
-			// special case - top-level var declarations with multiple declarators
-			// should be split up. Otherwise, we may end up including code we
-			// don't need, just because an unwanted declarator is included
-			if ( node.type === 'VariableDeclaration' && node.declarations.length > 1 ) {
-				node.declarations.forEach( declarator => {
-					const magicString = this.magicString.snip( declarator.start, declarator.end ).trim();
-					magicString.prepend( `${node.kind} ` ).append( ';' );
-
-					const syntheticNode = {
-						type: 'VariableDeclaration',
-						kind: node.kind,
-						start: node.start,
-						end: node.end,
-						declarations: [ declarator ]
-					};
-
-					const statement = new Statement( syntheticNode, magicString, this, this.statements.length );
-					this.statements.push( statement );
-				});
-			}
-
-			else {
-				const magicString = this.magicString.snip( node.start, node.end ).trim();
-				const statement = new Statement( node, magicString, this, this.statements.length );
-
-				this.statements.push( statement );
-			}
-		});
-
-		this.importDeclarations = this.statements.filter( isImportDeclaration );
-		this.exportDeclarations = this.statements.filter( isExportDeclaration );
-
-		this.analyse();
-	}
-
-	analyse () {
 		// imports and exports, indexed by ID
 		this.imports = blank();
 		this.exports = blank();
-
-		this.importDeclarations.forEach( statement => {
-			const node = statement.node;
-			const source = node.source.value;
-
-			node.specifiers.forEach( specifier => {
-				const isDefault = specifier.type === 'ImportDefaultSpecifier';
-				const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
-
-				const localName = specifier.local.name;
-				const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
-
-				if ( this.imports[ localName ] ) {
-					const err = new Error( `Duplicated import '${localName}'` );
-					err.file = this.id;
-					err.loc = getLocation( this.source, specifier.start );
-					throw err;
-				}
-
-				this.imports[ localName ] = {
-					source,
-					name,
-					localName
-				};
-			});
-		});
-
-		this.exportDeclarations.forEach( statement => {
-			const node = statement.node;
-			const source = node.source && node.source.value;
-
-			// export default function foo () {}
-			// export default foo;
-			// export default 42;
-			if ( node.type === 'ExportDefaultDeclaration' ) {
-				const isDeclaration = /Declaration$/.test( node.declaration.type );
-				const isAnonymous = /(?:Class|Function)Expression$/.test( node.declaration.type );
-
-				const declaredName = isDeclaration && node.declaration.id.name;
-				const identifier = node.declaration.type === 'Identifier' && node.declaration.name;
-
-				this.exports.default = {
-					statement,
-					name: 'default',
-					localName: declaredName || 'default',
-					declaredName,
-					identifier,
-					isDeclaration,
-					isAnonymous,
-					isModified: false // in case of `export default foo; foo = somethingElse`
-				};
-			}
-
-			// export { foo, bar, baz }
-			// export var foo = 42;
-			// export function foo () {}
-			else if ( node.type === 'ExportNamedDeclaration' ) {
-				if ( node.specifiers.length ) {
-					// export { foo, bar, baz }
-					node.specifiers.forEach( specifier => {
-						const localName = specifier.local.name;
-						const exportedName = specifier.exported.name;
-
-						this.exports[ exportedName ] = {
-							localName,
-							exportedName
-						};
-
-						// export { foo } from './foo';
-						if ( source ) {
-							this.imports[ localName ] = {
-								source,
-								localName,
-								name: localName
-							};
-						}
-					});
-				}
-
-				else {
-					let declaration = node.declaration;
-
-					let name;
-
-					if ( declaration.type === 'VariableDeclaration' ) {
-						// export var foo = 42
-						name = declaration.declarations[0].id.name;
-					} else {
-						// export function foo () {}
-						name = declaration.id.name;
-					}
-
-					this.exports[ name ] = {
-						statement,
-						localName: name,
-						expression: declaration
-					};
-				}
-			}
-		});
-
-		analyse( this.magicString, this );
 
 		this.canonicalNames = blank();
 
@@ -211,20 +49,131 @@ export default class Module {
 		this.definitionPromises = blank();
 		this.modifications = blank();
 
+		this.analyse();
+	}
+
+	addExport ( statement ) {
+		const node = statement.node;
+		const source = node.source && node.source.value;
+
+		// export default function foo () {}
+		// export default foo;
+		// export default 42;
+		if ( node.type === 'ExportDefaultDeclaration' ) {
+			const isDeclaration = /Declaration$/.test( node.declaration.type );
+			const isAnonymous = /(?:Class|Function)Expression$/.test( node.declaration.type );
+
+			const declaredName = isDeclaration && node.declaration.id.name;
+			const identifier = node.declaration.type === 'Identifier' && node.declaration.name;
+
+			this.exports.default = {
+				statement,
+				name: 'default',
+				localName: declaredName || 'default',
+				declaredName,
+				identifier,
+				isDeclaration,
+				isAnonymous,
+				isModified: false // in case of `export default foo; foo = somethingElse`
+			};
+		}
+
+		// export { foo, bar, baz }
+		// export var foo = 42;
+		// export function foo () {}
+		else if ( node.type === 'ExportNamedDeclaration' ) {
+			if ( node.specifiers.length ) {
+				// export { foo, bar, baz }
+				node.specifiers.forEach( specifier => {
+					const localName = specifier.local.name;
+					const exportedName = specifier.exported.name;
+
+					this.exports[ exportedName ] = {
+						localName,
+						exportedName
+					};
+
+					// export { foo } from './foo';
+					if ( source ) {
+						this.imports[ localName ] = {
+							source,
+							localName,
+							name: localName
+						};
+					}
+				});
+			}
+
+			else {
+				let declaration = node.declaration;
+
+				let name;
+
+				if ( declaration.type === 'VariableDeclaration' ) {
+					// export var foo = 42
+					name = declaration.declarations[0].id.name;
+				} else {
+					// export function foo () {}
+					name = declaration.id.name;
+				}
+
+				this.exports[ name ] = {
+					statement,
+					localName: name,
+					expression: declaration
+				};
+			}
+		}
+	}
+
+	addImport ( statement ) {
+		const node = statement.node;
+		const source = node.source.value;
+
+		node.specifiers.forEach( specifier => {
+			const isDefault = specifier.type === 'ImportDefaultSpecifier';
+			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
+
+			const localName = specifier.local.name;
+			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
+
+			if ( this.imports[ localName ] ) {
+				const err = new Error( `Duplicated import '${localName}'` );
+				err.file = this.id;
+				err.loc = getLocation( this.source, specifier.start );
+				throw err;
+			}
+
+			this.imports[ localName ] = {
+				source,
+				name,
+				localName
+			};
+		});
+	}
+
+	analyse () {
+		// discover this module's imports and exports
+		this.statements.forEach( statement => {
+			if ( isImportDeclaration( statement ) ) this.addImport( statement );
+			else if ( isExportDeclaration( statement ) ) this.addExport( statement );
+		});
+
+		analyse( this.magicString, this );
+
+		// consolidate names that are defined/modified in this module
 		this.statements.forEach( statement => {
 			keys( statement.defines ).forEach( name => {
 				this.definitions[ name ] = statement;
 			});
 
 			keys( statement.modifies ).forEach( name => {
-				if ( !this.modifications[ name ] ) {
-					this.modifications[ name ] = [];
-				}
-
-				this.modifications[ name ].push( statement );
+				( this.modifications[ name ] || ( this.modifications[ name ] = [] ) ).push( statement );
 			});
 		});
 
+		// if names are referenced that are neither defined nor imported
+		// in this module, we assume that they're globals
 		this.statements.forEach( statement => {
 			keys( statement.dependsOn ).forEach( name => {
 				if ( !this.definitions[ name ] && !this.imports[ name ] ) {
@@ -505,6 +454,66 @@ export default class Module {
 		}
 
 		return this.canonicalNames[ localName ];
+	}
+
+	// TODO rename this to parse, once https://github.com/rollup/rollup/issues/42 is fixed
+	_parse () {
+		// Try to extract a list of top-level statements/declarations. If
+		// the parse fails, attach file info and abort
+		let ast;
+
+		try {
+			ast = parse( this.source, {
+				ecmaVersion: 6,
+				sourceType: 'module',
+				onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end })
+			});
+		} catch ( err ) {
+			err.code = 'PARSE_ERROR';
+			err.file = this.id; // see above - not necessarily true, but true enough
+			throw err;
+		}
+
+		walk( ast, {
+			enter: node => {
+				this.magicString.addSourcemapLocation( node.start );
+				this.magicString.addSourcemapLocation( node.end );
+			}
+		});
+
+		let statements = [];
+
+		ast.body.map( node => {
+			// special case - top-level var declarations with multiple declarators
+			// should be split up. Otherwise, we may end up including code we
+			// don't need, just because an unwanted declarator is included
+			if ( node.type === 'VariableDeclaration' && node.declarations.length > 1 ) {
+				node.declarations.forEach( declarator => {
+					const magicString = this.magicString.snip( declarator.start, declarator.end ).trim();
+					magicString.prepend( `${node.kind} ` ).append( ';' );
+
+					const syntheticNode = {
+						type: 'VariableDeclaration',
+						kind: node.kind,
+						start: node.start,
+						end: node.end,
+						declarations: [ declarator ]
+					};
+
+					const statement = new Statement( syntheticNode, magicString, this, statements.length );
+					statements.push( statement );
+				});
+			}
+
+			else {
+				const magicString = this.magicString.snip( node.start, node.end ).trim();
+				const statement = new Statement( node, magicString, this, statements.length );
+
+				statements.push( statement );
+			}
+		});
+
+		return statements;
 	}
 
 	rename ( name, replacement ) {
