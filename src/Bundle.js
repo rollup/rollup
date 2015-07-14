@@ -45,47 +45,13 @@ export default class Bundle {
 		this.modulePromises = blank();
 		this.modules = [];
 
-		this.statements = [];
+		this.statements = null;
 		this.externalModules = [];
 		this.internalNamespaceModules = [];
 		this.assumedGlobals = blank();
 	}
 
-	fetchModule ( importee, importer ) {
-		return Promise.resolve( this.resolveId( importee, importer, this.resolveOptions ) )
-			.then( id => {
-				if ( !id ) {
-					// external module
-					if ( !this.modulePromises[ importee ] ) {
-						const module = new ExternalModule( importee );
-						this.externalModules.push( module );
-						this.modulePromises[ importee ] = Promise.resolve( module );
-					}
-
-					return this.modulePromises[ importee ];
-				}
-
-				if ( !this.modulePromises[ id ] ) {
-					this.modulePromises[ id ] = Promise.resolve( this.load( id, this.loadOptions ) )
-						.then( source => {
-							const module = new Module({
-								id,
-								source,
-								bundle: this
-							});
-
-							this.modules.push( module );
-
-							return module;
-						});
-				}
-
-				return this.modulePromises[ id ];
-			});
-	}
-
 	build () {
-		// bring in top-level AST nodes from the entry module
 		return this.fetchModule( this.entry, undefined )
 			.then( entryModule => {
 				const defaultExport = entryModule.exports.default;
@@ -118,13 +84,14 @@ export default class Bundle {
 					}
 				}
 
-				return entryModule.expandAllStatements( true );
+				return entryModule.markAllStatements( true );
 			})
-			.then( statements => {
-				this.statements = statements;
+			.then( () => {
+				return this.markAllModifierStatements();
+			})
+			.then( () => {
+				this.statements = this.sort();
 				this.deconflict();
-
-				this.orderedStatements = this.sort();
 			});
 	}
 
@@ -213,96 +180,37 @@ export default class Bundle {
 		}
 	}
 
-	sort () {
-		let seen = {};
-		let ordered = [];
-		let hasCycles;
-
-		let strongDeps = {};
-		let stronglyDependsOn = {};
-
-		function visit ( module ) {
-			seen[ module.id ] = true;
-
-			const { strongDependencies, weakDependencies } = module.consolidateDependencies();
-
-			strongDeps[ module.id ] = [];
-			stronglyDependsOn[ module.id ] = {};
-
-			keys( strongDependencies ).forEach( id => {
-				const imported = strongDependencies[ id ];
-
-				strongDeps[ module.id ].push( imported );
-
-				if ( seen[ id ] ) {
-					// we need to prevent an infinite loop, and note that
-					// we need to check for strong/weak dependency relationships
-					hasCycles = true;
-					return;
-				}
-
-				visit( imported );
-			});
-
-			keys( weakDependencies ).forEach( id => {
-				const imported = weakDependencies[ id ];
-
-				if ( seen[ id ] ) {
-					// we need to prevent an infinite loop, and note that
-					// we need to check for strong/weak dependency relationships
-					hasCycles = true;
-					return;
-				}
-
-				visit( imported );
-			});
-
-			// add second (and third...) order dependencies
-			function addStrongDependencies ( dependency ) {
-				if ( stronglyDependsOn[ module.id ][ dependency.id ] ) return;
-
-				stronglyDependsOn[ module.id ][ dependency.id ] = true;
-				strongDeps[ dependency.id ].forEach( addStrongDependencies );
-			}
-
-			strongDeps[ module.id ].forEach( addStrongDependencies );
-
-			ordered.push( module );
-		}
-
-		visit( this.entryModule );
-
-		if ( hasCycles ) {
-			let unordered = ordered;
-			ordered = [];
-
-			// unordered is actually semi-ordered, as [ fewer dependencies ... more dependencies ]
-			unordered.forEach( module => {
-				// ensure strong dependencies of `module` that don't strongly depend on `module` go first
-				strongDeps[ module.id ].forEach( place );
-
-				function place ( dep ) {
-					if ( !stronglyDependsOn[ dep.id ][ module.id ] && !~ordered.indexOf( dep ) ) {
-						strongDeps[ dep.id ].forEach( place );
-						ordered.push( dep );
+	fetchModule ( importee, importer ) {
+		return Promise.resolve( this.resolveId( importee, importer, this.resolveOptions ) )
+			.then( id => {
+				if ( !id ) {
+					// external module
+					if ( !this.modulePromises[ importee ] ) {
+						const module = new ExternalModule( importee );
+						this.externalModules.push( module );
+						this.modulePromises[ importee ] = Promise.resolve( module );
 					}
+
+					return this.modulePromises[ importee ];
 				}
 
-				if ( !~ordered.indexOf( module ) ) {
-					ordered.push( module );
+				if ( !this.modulePromises[ id ] ) {
+					this.modulePromises[ id ] = Promise.resolve( this.load( id, this.loadOptions ) )
+						.then( source => {
+							const module = new Module({
+								id,
+								source,
+								bundle: this
+							});
+
+							this.modules.push( module );
+
+							return module;
+						});
 				}
+
+				return this.modulePromises[ id ];
 			});
-		}
-
-		let statements = [];
-
-		ordered.forEach( module => {
-			module.statements.forEach( statement => {
-				if ( statement.isIncluded ) statements.push( statement );
-			});
-		});
-
-		return statements;
 	}
 
 	generate ( options = {} ) {
@@ -352,7 +260,7 @@ export default class Bundle {
 		let previousIndex = -1;
 		let previousMargin = 0;
 
-		this.orderedStatements.forEach( statement => {
+		this.statements.forEach( statement => {
 			// skip `export { foo, bar, baz }`
 			if ( statement.node.type === 'ExportNamedDeclaration' ) {
 				// skip `export { foo, bar, baz }`
@@ -497,5 +405,146 @@ export default class Bundle {
 		}
 
 		return { code, map };
+	}
+
+	markAllModifierStatements () {
+		let settled = true;
+		let promises = [];
+
+		this.modules.forEach( module => {
+			module.statements.forEach( statement => {
+				if ( statement.isIncluded ) return;
+
+				keys( statement.modifies ).forEach( name => {
+					const definingStatement = module.definitions[ name ];
+					const exportDeclaration = module.exports[ name ];
+
+					const shouldMark = ( definingStatement && definingStatement.isIncluded ) ||
+					                   ( exportDeclaration && exportDeclaration.isUsed );
+
+					if ( shouldMark ) {
+						settled = false;
+						promises.push( statement.mark() );
+						return;
+					}
+
+					// special case - https://github.com/rollup/rollup/pull/40
+					const importDeclaration = module.imports[ name ];
+					if ( !importDeclaration ) return;
+
+					const promise = Promise.resolve( importDeclaration.module || this.fetchModule( importDeclaration.source, module.id ) )
+						.then( module => {
+							importDeclaration.module = module;
+							const exportDeclaration = module.exports[ importDeclaration.name ];
+							// TODO things like `export default a + b` don't apply here... right?
+							return module.findDefiningStatement( exportDeclaration.localName );
+						})
+						.then( definingStatement => {
+							if ( !definingStatement ) return;
+
+							settled = false;
+							return statement.mark();
+						});
+
+					promises.push( promise );
+				});
+			});
+		});
+
+		return Promise.all( promises ).then( () => {
+			if ( !settled ) return this.markAllModifierStatements();
+		});
+	}
+
+	sort () {
+		let seen = {};
+		let ordered = [];
+		let hasCycles;
+
+		let strongDeps = {};
+		let stronglyDependsOn = {};
+
+		function visit ( module ) {
+			seen[ module.id ] = true;
+
+			const { strongDependencies, weakDependencies } = module.consolidateDependencies();
+
+			strongDeps[ module.id ] = [];
+			stronglyDependsOn[ module.id ] = {};
+
+			keys( strongDependencies ).forEach( id => {
+				const imported = strongDependencies[ id ];
+
+				strongDeps[ module.id ].push( imported );
+
+				if ( seen[ id ] ) {
+					// we need to prevent an infinite loop, and note that
+					// we need to check for strong/weak dependency relationships
+					hasCycles = true;
+					return;
+				}
+
+				visit( imported );
+			});
+
+			keys( weakDependencies ).forEach( id => {
+				const imported = weakDependencies[ id ];
+
+				if ( seen[ id ] ) {
+					// we need to prevent an infinite loop, and note that
+					// we need to check for strong/weak dependency relationships
+					hasCycles = true;
+					return;
+				}
+
+				visit( imported );
+			});
+
+			// add second (and third...) order dependencies
+			function addStrongDependencies ( dependency ) {
+				if ( stronglyDependsOn[ module.id ][ dependency.id ] ) return;
+
+				stronglyDependsOn[ module.id ][ dependency.id ] = true;
+				strongDeps[ dependency.id ].forEach( addStrongDependencies );
+			}
+
+			strongDeps[ module.id ].forEach( addStrongDependencies );
+
+			ordered.push( module );
+		}
+
+		visit( this.entryModule );
+
+		if ( hasCycles ) {
+			let unordered = ordered;
+			ordered = [];
+
+			// unordered is actually semi-ordered, as [ fewer dependencies ... more dependencies ]
+			unordered.forEach( module => {
+				// ensure strong dependencies of `module` that don't strongly depend on `module` go first
+				strongDeps[ module.id ].forEach( place );
+
+				function place ( dep ) {
+					if ( !stronglyDependsOn[ dep.id ][ module.id ] && !~ordered.indexOf( dep ) ) {
+						strongDeps[ dep.id ].forEach( place );
+						ordered.push( dep );
+					}
+				}
+
+				if ( !~ordered.indexOf( module ) ) {
+					ordered.push( module );
+				}
+			});
+		}
+
+		let statements = [];
+
+		ordered.forEach( module => {
+			module.statements.forEach( statement => {
+				if ( statement.isIncluded ) statements.push( statement );
+			});
+		});
+
+		return statements;
 	}
 }
