@@ -1,1 +1,1 @@
-export default function asap() {}
+export default function asap () {}
