@@ -32,12 +32,11 @@ export function relative ( from, to ) {
 	}
 
 	while ( toParts[0] && toParts[0][0] === '.' ) {
-		if ( toParts[0] === '.' ) {
-			toParts.shift();
-		} else if ( toParts[0] === '..' ) {
+		const toPart = toParts.shift();
+		if ( toPart === '..' ) {
 			fromParts.pop();
-		} else {
-			throw new Error( `Unexpected path part (${toParts[0]})` );
+		} else if ( toPart !== '.' ) {
+			throw new Error( `Unexpected path part (${toPart})` );
 		}
 	}
 
@@ -58,10 +57,11 @@ export function resolve ( ...paths ) {
 			const parts = path.split( /[\/\\]/ );
 
 			while ( parts[0] && parts[0][0] === '.' ) {
-				if ( parts[0] === '.' ) {
-					parts.shift();
-				} else if ( parts[0] === '..' ) {
+				const part = parts.shift();
+				if ( part === '..' ) {
 					resolvedParts.pop();
+				} else if ( part !== '.' ) {
+					throw new Error( `Unexpected path part (${part})` );
 				}
 			}
 
