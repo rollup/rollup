@@ -220,7 +220,7 @@ export default class Module {
 		return { strongDependencies, weakDependencies };
 	}
 
-	define ( name ) {
+	mark ( name ) {
 		// shortcut cycles. TODO this won't work everywhere...
 		if ( this.definitionPromises[ name ] ) {
 			return emptyArrayPromise;
@@ -272,7 +272,7 @@ export default class Module {
 							this.bundle.internalNamespaceModules.push( module );
 						}
 
-						return module.expandAllStatements();
+						return module.markAllStatements();
 					}
 
 					const exportDeclaration = module.exports[ importDeclaration.name ];
@@ -281,7 +281,7 @@ export default class Module {
 						throw new Error( `Module ${module.id} does not export ${importDeclaration.name} (imported by ${this.id})` );
 					}
 
-					return module.define( exportDeclaration.localName );
+					return module.mark( exportDeclaration.localName );
 				});
 		}
 
@@ -289,14 +289,14 @@ export default class Module {
 		else if ( name === 'default' && this.exports.default.isDeclaration ) {
 			// We have something like `export default foo` - so we just start again,
 			// searching for `foo` instead of default
-			promise = this.define( this.exports.default.name );
+			promise = this.mark( this.exports.default.name );
 		}
 
 		else {
 			let statement;
 
 			statement = name === 'default' ? this.exports.default.statement : this.definitions[ name ];
-			promise = statement && !statement.isIncluded ? statement.expand() : emptyArrayPromise;
+			promise = statement && !statement.isIncluded ? statement.mark() : emptyArrayPromise;
 
 			// Special case - `export default foo; foo += 1` - need to be
 			// vigilant about maintaining the correct order of the export
@@ -331,22 +331,9 @@ export default class Module {
 		return this.definitionPromises[ name ];
 	}
 
-	expandAllStatements ( isEntryModule ) {
-		let allStatements = [];
-
+	markAllStatements ( isEntryModule ) {
 		return sequence( this.statements, statement => {
-			// A statement may have already been included, in which case we need to
-			// curb rollup's enthusiasm and move it down here. It remains to be seen
-			// if this approach is bulletproof
-			if ( statement.isIncluded ) {
-				const index = allStatements.indexOf( statement );
-				if ( ~index ) {
-					allStatements.splice( index, 1 );
-					allStatements.push( statement );
-				}
-
-				return;
-			}
+			if ( statement.isIncluded ) return; // TODO can this happen? probably not...
 
 			// skip import declarations...
 			if ( statement.isImportDeclaration ) {
@@ -356,10 +343,7 @@ export default class Module {
 					return this.bundle.fetchModule( statement.node.source.value, this.id )
 						.then( module => {
 							statement.module = module;
-							return module.expandAllStatements();
-						})
-						.then( statements => {
-							allStatements.push.apply( allStatements, statements );
+							return module.markAllStatements();
 						});
 				}
 
@@ -370,20 +354,14 @@ export default class Module {
 			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
 				// ...but ensure they are defined, if this is the entry module
 				if ( isEntryModule ) {
-					return statement.expand().then( statements => {
-						allStatements.push.apply( allStatements, statements );
-					});
+					return statement.mark();
 				}
 
 				return;
 			}
 
 			// include everything else
-			return statement.expand().then( statements => {
-				allStatements.push.apply( allStatements, statements );
-			});
-		}).then( () => {
-			return allStatements;
+			return statement.mark();
 		});
 	}
 

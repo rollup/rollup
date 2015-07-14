@@ -84,7 +84,10 @@ export default class Bundle {
 					}
 				}
 
-				return entryModule.expandAllStatements( true );
+				return entryModule.markAllStatements( true );
+			})
+			.then( () => {
+				return this.markAllModifierStatements();
 			})
 			.then( () => {
 				this.statements = this.sort();
@@ -402,6 +405,34 @@ export default class Bundle {
 		}
 
 		return { code, map };
+	}
+
+	markAllModifierStatements () {
+		let settled = true;
+		let promises = [];
+
+		this.modules.forEach( module => {
+			module.statements.forEach( statement => {
+				if ( statement.isIncluded ) return;
+
+				keys( statement.modifies ).forEach( name => {
+					const definingStatement = module.definitions[ name ];
+					const exportDeclaration = module.exports[ name ];
+
+					const shouldMark = ( definingStatement && definingStatement.isIncluded ) ||
+					                   ( exportDeclaration && exportDeclaration.isUsed );
+
+					if ( shouldMark ) {
+						settled = false;
+						promises.push( statement.mark() );
+					}
+				});
+			});
+		});
+
+		return Promise.all( promises ).then( () => {
+			if ( !settled ) return this.markAllModifierStatements();
+		});
 	}
 
 	sort () {

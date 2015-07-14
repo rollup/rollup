@@ -234,52 +234,16 @@ export default class Statement {
 		}
 	}
 
-	expand () {
-		this.isIncluded = true; // prevent statement being included twice
+	mark () {
+		if ( this.included ) return; // prevent infinite loops
+		this.isIncluded = true;
 
-		let result = [];
-
-		// We have a statement, and it hasn't been included yet. First, include
-		// the statements it depends on
 		const dependencies = Object.keys( this.dependsOn );
 
 		return sequence( dependencies, name => {
 			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
-
-			return this.module.define( name ).then( definition => {
-				result.push.apply( result, definition );
-			});
-		})
-
-		// then include the statement itself
-			.then( () => {
-				result.push( this );
-			})
-
-		// then include any statements that could modify the
-		// thing(s) this statement defines
-			.then( () => {
-				return sequence( keys( this.defines ), name => {
-					const modifications = this.module.modifications[ name ];
-
-					if ( modifications ) {
-						return sequence( modifications, statement => {
-							if ( !statement.isIncluded ) {
-								return statement.expand()
-									.then( statements => {
-										result.push.apply( result, statements );
-									});
-							}
-						});
-					}
-				});
-			})
-
-		// the `result` is an array of all statements that need
-		// to be included if this one is
-			.then( () => {
-				return result;
-			});
+			return this.module.mark( name );
+		});
 	}
 
 	replaceIdentifiers ( names, bundleExports ) {
