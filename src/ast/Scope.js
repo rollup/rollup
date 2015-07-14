@@ -43,11 +43,6 @@ export default class Scope {
 		}
 	}
 
-	getDeclaration ( name ) {
-		return this.declarations[ name ] ||
-		       this.parent && this.parent.getDeclaration( name );
-	}
-
 	contains ( name ) {
 		return !!this.getDeclaration( name );
 	}
@@ -62,5 +57,10 @@ export default class Scope {
 		}
 
 		return null;
+	}
+
+	getDeclaration ( name ) {
+		return this.declarations[ name ] ||
+		       this.parent && this.parent.getDeclaration( name );
 	}
 }

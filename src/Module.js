@@ -271,75 +271,6 @@ export default class Module {
 		return { strongDependencies, weakDependencies };
 	}
 
-	findDeclaration ( localName ) {
-		const importDeclaration = this.imports[ localName ];
-
-		// name was defined by another module
-		if ( importDeclaration ) {
-			const module = importDeclaration.module;
-
-			if ( module.isExternal ) return null;
-
-			const exportDeclaration = module.exports[ importDeclaration.name ];
-			return module.findDeclaration( exportDeclaration.localName );
-		}
-
-		// name was defined by this module, if any
-		let i = this.statements.length;
-		while ( i-- ) {
-			const declaration = this.statements[i].scope.declarations[ localName ];
-			if ( declaration ) {
-				return declaration;
-			}
-		}
-
-		return null;
-	}
-
-	getCanonicalName ( localName ) {
-		// Special case
-		if ( localName === 'default' && ( this.exports.default.isModified || !this.suggestedNames.default ) ) {
-			let canonicalName = makeLegalIdentifier( this.id.replace( dirname( this.bundle.entryModule.id ) + '/', '' ).replace( /\.js$/, '' ) );
-			return deconflict( canonicalName, this.definitions );
-		}
-
-		if ( this.suggestedNames[ localName ] ) {
-			localName = this.suggestedNames[ localName ];
-		}
-
-		if ( !this.canonicalNames[ localName ] ) {
-			let canonicalName;
-
-			if ( this.imports[ localName ] ) {
-				const importDeclaration = this.imports[ localName ];
-				const module = importDeclaration.module;
-
-				if ( importDeclaration.name === '*' ) {
-					canonicalName = module.suggestedNames[ '*' ];
-				} else {
-					let exporterLocalName;
-
-					if ( module.isExternal ) {
-						exporterLocalName = importDeclaration.name;
-					} else {
-						const exportDeclaration = module.exports[ importDeclaration.name ];
-						exporterLocalName = exportDeclaration.localName;
-					}
-
-					canonicalName = module.getCanonicalName( exporterLocalName );
-				}
-			}
-
-			else {
-				canonicalName = localName;
-			}
-
-			this.canonicalNames[ localName ] = canonicalName;
-		}
-
-		return this.canonicalNames[ localName ];
-	}
-
 	define ( name ) {
 		// shortcut cycles. TODO this won't work everywhere...
 		if ( this.definitionPromises[ name ] ) {
@@ -505,6 +436,75 @@ export default class Module {
 		}).then( () => {
 			return allStatements;
 		});
+	}
+
+	findDeclaration ( localName ) {
+		const importDeclaration = this.imports[ localName ];
+
+		// name was defined by another module
+		if ( importDeclaration ) {
+			const module = importDeclaration.module;
+
+			if ( module.isExternal ) return null;
+
+			const exportDeclaration = module.exports[ importDeclaration.name ];
+			return module.findDeclaration( exportDeclaration.localName );
+		}
+
+		// name was defined by this module, if any
+		let i = this.statements.length;
+		while ( i-- ) {
+			const declaration = this.statements[i].scope.declarations[ localName ];
+			if ( declaration ) {
+				return declaration;
+			}
+		}
+
+		return null;
+	}
+
+	getCanonicalName ( localName ) {
+		// Special case
+		if ( localName === 'default' && ( this.exports.default.isModified || !this.suggestedNames.default ) ) {
+			let canonicalName = makeLegalIdentifier( this.id.replace( dirname( this.bundle.entryModule.id ) + '/', '' ).replace( /\.js$/, '' ) );
+			return deconflict( canonicalName, this.definitions );
+		}
+
+		if ( this.suggestedNames[ localName ] ) {
+			localName = this.suggestedNames[ localName ];
+		}
+
+		if ( !this.canonicalNames[ localName ] ) {
+			let canonicalName;
+
+			if ( this.imports[ localName ] ) {
+				const importDeclaration = this.imports[ localName ];
+				const module = importDeclaration.module;
+
+				if ( importDeclaration.name === '*' ) {
+					canonicalName = module.suggestedNames[ '*' ];
+				} else {
+					let exporterLocalName;
+
+					if ( module.isExternal ) {
+						exporterLocalName = importDeclaration.name;
+					} else {
+						const exportDeclaration = module.exports[ importDeclaration.name ];
+						exporterLocalName = exportDeclaration.localName;
+					}
+
+					canonicalName = module.getCanonicalName( exporterLocalName );
+				}
+			}
+
+			else {
+				canonicalName = localName;
+			}
+
+			this.canonicalNames[ localName ] = canonicalName;
+		}
+
+		return this.canonicalNames[ localName ];
 	}
 
 	rename ( name, replacement ) {

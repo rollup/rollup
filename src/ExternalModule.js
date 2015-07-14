@@ -15,6 +15,10 @@ export default class ExternalModule {
 		this.needsNamed = false;
 	}
 
+	findDefiningStatement () {
+		return null;
+	}
+
 	getCanonicalName ( name ) {
 		if ( name === 'default' ) {
 			return this.needsNamed ? `${this.name}__default` : this.name;
@@ -36,9 +40,5 @@ export default class ExternalModule {
 		if ( !this.suggestedNames[ exportName ] ) {
 			this.suggestedNames[ exportName ] = suggestion;
 		}
-	}
-
-	findDefiningStatement () {
-		return null;
 	}
 }
