@@ -425,7 +425,28 @@ export default class Bundle {
 					if ( shouldMark ) {
 						settled = false;
 						promises.push( statement.mark() );
+						return;
 					}
+
+					// special case - https://github.com/rollup/rollup/pull/40
+					const importDeclaration = module.imports[ name ];
+					if ( !importDeclaration ) return;
+
+					const promise = Promise.resolve( importDeclaration.module || this.fetchModule( importDeclaration.source, module.id ) )
+						.then( module => {
+							importDeclaration.module = module;
+							const exportDeclaration = module.exports[ importDeclaration.name ];
+							// TODO things like `export default a + b` don't apply here... right?
+							return module.findDefiningStatement( exportDeclaration.localName );
+						})
+						.then( definingStatement => {
+							if ( !definingStatement ) return;
+
+							settled = false;
+							return statement.mark();
+						});
+
+					promises.push( promise );
 				});
 			});
 		});

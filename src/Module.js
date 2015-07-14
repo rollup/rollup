@@ -220,6 +220,90 @@ export default class Module {
 		return { strongDependencies, weakDependencies };
 	}
 
+	findDefiningStatement ( name ) {
+		if ( this.definitions[ name ] ) return this.definitions[ name ];
+
+		// TODO what about `default`/`*`?
+
+		const importDeclaration = this.imports[ name ];
+		if ( !importDeclaration ) return null;
+
+		return Promise.resolve( importDeclaration.module || this.bundle.fetchModule( importDeclaration.source, this.id ) )
+			.then( module => {
+				importDeclaration.module = module;
+				return module.findDefiningStatement( name );
+			});
+	}
+
+	findDeclaration ( localName ) {
+		const importDeclaration = this.imports[ localName ];
+
+		// name was defined by another module
+		if ( importDeclaration ) {
+			const module = importDeclaration.module;
+
+			if ( module.isExternal ) return null;
+
+			const exportDeclaration = module.exports[ importDeclaration.name ];
+			return module.findDeclaration( exportDeclaration.localName );
+		}
+
+		// name was defined by this module, if any
+		let i = this.statements.length;
+		while ( i-- ) {
+			const declaration = this.statements[i].scope.declarations[ localName ];
+			if ( declaration ) {
+				return declaration;
+			}
+		}
+
+		return null;
+	}
+
+	getCanonicalName ( localName ) {
+		// Special case
+		if ( localName === 'default' && ( this.exports.default.isModified || !this.suggestedNames.default ) ) {
+			let canonicalName = makeLegalIdentifier( this.id.replace( dirname( this.bundle.entryModule.id ) + '/', '' ).replace( /\.js$/, '' ) );
+			return deconflict( canonicalName, this.definitions );
+		}
+
+		if ( this.suggestedNames[ localName ] ) {
+			localName = this.suggestedNames[ localName ];
+		}
+
+		if ( !this.canonicalNames[ localName ] ) {
+			let canonicalName;
+
+			if ( this.imports[ localName ] ) {
+				const importDeclaration = this.imports[ localName ];
+				const module = importDeclaration.module;
+
+				if ( importDeclaration.name === '*' ) {
+					canonicalName = module.suggestedNames[ '*' ];
+				} else {
+					let exporterLocalName;
+
+					if ( module.isExternal ) {
+						exporterLocalName = importDeclaration.name;
+					} else {
+						const exportDeclaration = module.exports[ importDeclaration.name ];
+						exporterLocalName = exportDeclaration.localName;
+					}
+
+					canonicalName = module.getCanonicalName( exporterLocalName );
+				}
+			}
+
+			else {
+				canonicalName = localName;
+			}
+
+			this.canonicalNames[ localName ] = canonicalName;
+		}
+
+		return this.canonicalNames[ localName ];
+	}
+
 	mark ( name ) {
 		// shortcut cycles. TODO this won't work everywhere...
 		if ( this.definitionPromises[ name ] ) {
@@ -363,75 +447,6 @@ export default class Module {
 			// include everything else
 			return statement.mark();
 		});
-	}
-
-	findDeclaration ( localName ) {
-		const importDeclaration = this.imports[ localName ];
-
-		// name was defined by another module
-		if ( importDeclaration ) {
-			const module = importDeclaration.module;
-
-			if ( module.isExternal ) return null;
-
-			const exportDeclaration = module.exports[ importDeclaration.name ];
-			return module.findDeclaration( exportDeclaration.localName );
-		}
-
-		// name was defined by this module, if any
-		let i = this.statements.length;
-		while ( i-- ) {
-			const declaration = this.statements[i].scope.declarations[ localName ];
-			if ( declaration ) {
-				return declaration;
-			}
-		}
-
-		return null;
-	}
-
-	getCanonicalName ( localName ) {
-		// Special case
-		if ( localName === 'default' && ( this.exports.default.isModified || !this.suggestedNames.default ) ) {
-			let canonicalName = makeLegalIdentifier( this.id.replace( dirname( this.bundle.entryModule.id ) + '/', '' ).replace( /\.js$/, '' ) );
-			return deconflict( canonicalName, this.definitions );
-		}
-
-		if ( this.suggestedNames[ localName ] ) {
-			localName = this.suggestedNames[ localName ];
-		}
-
-		if ( !this.canonicalNames[ localName ] ) {
-			let canonicalName;
-
-			if ( this.imports[ localName ] ) {
-				const importDeclaration = this.imports[ localName ];
-				const module = importDeclaration.module;
-
-				if ( importDeclaration.name === '*' ) {
-					canonicalName = module.suggestedNames[ '*' ];
-				} else {
-					let exporterLocalName;
-
-					if ( module.isExternal ) {
-						exporterLocalName = importDeclaration.name;
-					} else {
-						const exportDeclaration = module.exports[ importDeclaration.name ];
-						exporterLocalName = exportDeclaration.localName;
-					}
-
-					canonicalName = module.getCanonicalName( exporterLocalName );
-				}
-			}
-
-			else {
-				canonicalName = localName;
-			}
-
-			this.canonicalNames[ localName ] = canonicalName;
-		}
-
-		return this.canonicalNames[ localName ];
 	}
 
 	// TODO rename this to parse, once https://github.com/rollup/rollup/issues/42 is fixed
