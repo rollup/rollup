@@ -23,8 +23,8 @@ export function extname ( path ) {
 }
 
 export function relative ( from, to ) {
-	const fromParts = from.split( /[\/\\]/ );
-	const toParts = to.split( /[\/\\]/ );
+	const fromParts = from.split( /[\/\\]/ ).filter( Boolean );
+	const toParts = to.split( /[\/\\]/ ).filter( Boolean );
 
 	while ( fromParts[0] && toParts[0] && fromParts[0] === toParts[0] ) {
 		fromParts.shift();

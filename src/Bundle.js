@@ -1,4 +1,4 @@
-import { basename, dirname, extname, relative } from './utils/path';
+import { basename, extname } from './utils/path';
 import { Promise } from 'sander';
 import MagicString from 'magic-string';
 import { blank, keys } from './utils/object';
@@ -486,18 +486,14 @@ export default class Bundle {
 		let map = null;
 
 		if ( options.sourceMap ) {
+			const file = options.sourceMapFile || options.dest;
 			map = magicString.generateMap({
 				includeContent: true,
-				file: options.sourceMapFile || options.dest
+				file
 				// TODO
 			});
 
-			// make sources relative. TODO fix this upstream?
-			const dir = dirname( map.file );
-			map.sources = map.sources.map( source => {
-				// TODO is unixizePath still necessary, given internal helper rather than node builtin?
-				return source ? unixizePath( relative( dir, source ) ) : null;
-			});
+			map.sources = map.sources.map( unixizePath );
 		}
 
 		return { code, map };
