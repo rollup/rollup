@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.11.0
+
+* Experimental browser-friendly build (`dist/rollup.browser.js`) ([#25](https://github.com/rollup/rollup/issues/25))
+* Internal re-architecting to make discovery process simpler and more performant
+* Preservation of side-effects that happen in a separate module to the affected definition ([#39](https://github.com/rollup/rollup/issues/39))
+
 ## 0.10.0
 
 * Better sorting algorithm – sorting happens at the module level, rather than the statement level. This avoids certain edge cases
