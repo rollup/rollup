@@ -31,6 +31,7 @@ export default class Statement {
 		// some facts about this statement...
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
 		this.isExportDeclaration = /^Export/.test( node.type );
+		this.isExportAllDeclaration = /^ExportAll/.test( node.type );
 	}
 
 	analyse () {

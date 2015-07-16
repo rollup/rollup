@@ -20,3 +20,23 @@ export function sequence ( arr, callback ) {
 
 	return promise.then( () => results );
 }
+
+
+export function first ( arr, fail, callback ) {
+	const len = arr.length;
+
+	let promise = Promise.reject( fail );
+
+	function next ( i ) {
+		return promise
+			.catch(() => callback( arr[i], i ));
+	}
+
+	let i;
+
+	for ( i = 0; i < len; i += 1 ) {
+		promise = next( i );
+	}
+
+	return promise;
+}

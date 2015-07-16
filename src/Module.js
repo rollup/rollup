@@ -6,7 +6,7 @@ import Statement from './Statement';
 import walk from './ast/walk';
 import analyse from './ast/analyse';
 import { blank, keys } from './utils/object';
-import { sequence } from './utils/promise';
+import { first, sequence } from './utils/promise';
 import { isImportDeclaration, isExportDeclaration } from './utils/map-helpers';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
@@ -42,6 +42,11 @@ export default class Module {
 		// imports and exports, indexed by ID
 		this.imports = blank();
 		this.exports = blank();
+
+		this.exportAlls = blank();
+
+		// array of all-export sources
+		this.exportDelegates = [];
 
 		this.canonicalNames = blank();
 
@@ -124,6 +129,15 @@ export default class Module {
 				};
 			}
 		}
+
+		// Store `export * from '...'` statements in an array of delegates.
+		// When an unknown import is encountered, we see if one of them can satisfy it.
+		else {
+			this.exportDelegates.push({
+				statement,
+				source
+			});
+		}
 	}
 
 	addImport ( statement ) {
@@ -194,6 +208,13 @@ export default class Module {
 
 			keys( statement.stronglyDependsOn ).forEach( name => {
 				if ( statement.defines[ name ] ) return;
+
+				const exportAllDeclaration = this.exportAlls[ name ];
+
+				if ( exportAllDeclaration && exportAllDeclaration.module && !exportAllDeclaration.module.isExternal ) {
+					strongDependencies[ exportAllDeclaration.module.id ] = exportAllDeclaration.module;
+					return;
+				}
 
 				const importDeclaration = this.imports[ name ];
 
@@ -287,7 +308,13 @@ export default class Module {
 						exporterLocalName = importDeclaration.name;
 					} else {
 						const exportDeclaration = module.exports[ importDeclaration.name ];
-						exporterLocalName = exportDeclaration.localName;
+
+						// The export declaration of the particular name is known.
+						if (exportDeclaration) {
+							exporterLocalName = exportDeclaration.localName;
+						} else { // export * from '...'
+							exporterLocalName = importDeclaration.name;
+						}
 					}
 
 					canonicalName = module.getCanonicalName( exporterLocalName );
@@ -362,7 +389,27 @@ export default class Module {
 					const exportDeclaration = module.exports[ importDeclaration.name ];
 
 					if ( !exportDeclaration ) {
-						throw new Error( `Module ${module.id} does not export ${importDeclaration.name} (imported by ${this.id})` );
+						const noExport = new Error( `Module ${module.id} does not export ${importDeclaration.name} (imported by ${this.id})` );
+
+						// See if there exists an export delegate that defines `name`.
+						return first( module.exportDelegates, noExport, declaration => {
+							return module.bundle.fetchModule( declaration.source, module.id ).then( submodule => {
+								declaration.module = submodule;
+
+								return submodule.mark( name ).then( result => {
+									if ( !result.length ) throw noExport;
+
+									// It's found! This module exports `name` through declaration.
+									// It is however not imported into this scope.
+									module.exportAlls[ name ] = declaration;
+
+									declaration.statement.dependsOn[ name ] =
+									declaration.statement.stronglyDependsOn[ name ] = result;
+
+									return result;
+								});
+							});
+						});
 					}
 
 					return module.mark( exportDeclaration.localName );
