@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.11.1
+
+* Support for `export * from '..'` ([#46](https://github.com/rollup/rollup/pull/46))
+
 ## 0.11.0
 
 * Experimental browser-friendly build (`dist/rollup.browser.js`) ([#25](https://github.com/rollup/rollup/issues/25))
