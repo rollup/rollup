@@ -175,10 +175,24 @@ export default class Statement {
 	}
 
 	checkForWrites ( scope, node ) {
+		const parent = node;
+
 		const addNode = ( node, isAssignment ) => {
 			let depth = 0; // determine whether we're illegally modifying a binding or namespace
 
 			while ( node.type === 'MemberExpression' ) {
+
+				// In a situation like that below, make sure the assignments
+				// depend on `a` and `b`.
+				//
+				//    var a = 1, b = 0;
+				//
+				//    arr[a] = arr[b] = true;
+				//
+				if ( node.computed ) {
+					this.checkForReads( scope, node.property, parent, true );
+				}
+
 				node = node.object;
 				depth += 1;
 			}
