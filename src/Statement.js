@@ -134,7 +134,7 @@ export default class Statement {
 					}
 
 					this.checkForReads( scope, node, parent, !depth );
-					this.checkForWrites( scope, node );
+					this.checkForWrites( scope, node, !depth );
 				},
 				leave: ( node, parent ) => {
 					if ( node._scope ) {
@@ -174,7 +174,7 @@ export default class Statement {
 		}
 	}
 
-	checkForWrites ( scope, node ) {
+	checkForWrites ( scope, node, strong ) {
 		const parent = node;
 
 		const addNode = ( node, isAssignment ) => {
@@ -183,14 +183,14 @@ export default class Statement {
 			while ( node.type === 'MemberExpression' ) {
 
 				// In a situation like that below, make sure the assignments
-				// depend on `a` and `b`.
+				// to arr depend on `a` and `b`.
 				//
 				//    var a = 1, b = 0;
 				//
 				//    arr[a] = arr[b] = true;
 				//
 				if ( node.computed ) {
-					this.checkForReads( scope, node.property, parent, true );
+					this.checkForReads( scope, node.property, parent, strong );
 				}
 
 				node = node.object;
