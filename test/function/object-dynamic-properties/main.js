@@ -1,4 +1,5 @@
 import tags from './tags';
 
-assert(tags['[object Object]'], true);
-assert(Object.keys(tags).length, 6);
+assert.equal(tags['[object Object]'], true);
+assert.equal(tags['[object Number]'], false);
+assert.equal(Object.keys(tags).length, 6);
