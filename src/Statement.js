@@ -134,7 +134,7 @@ export default class Statement {
 					}
 
 					this.checkForReads( scope, node, parent, !depth );
-					this.checkForWrites( scope, node, !depth );
+					this.checkForWrites( scope, node );
 				},
 				leave: ( node, parent ) => {
 					if ( node._scope ) {
@@ -153,7 +153,7 @@ export default class Statement {
 	checkForReads ( scope, node, parent, strong ) {
 		if ( node.type === 'Identifier' ) {
 			// disregard the `bar` in `foo.bar` - these appear as Identifier nodes
-			if ( parent.type === 'MemberExpression' && node !== parent.object ) {
+			if ( parent.type === 'MemberExpression' && !parent.computed && node !== parent.object ) {
 				return;
 			}
 
@@ -174,25 +174,11 @@ export default class Statement {
 		}
 	}
 
-	checkForWrites ( scope, node, strong ) {
-		const parent = node;
-
+	checkForWrites ( scope, node ) {
 		const addNode = ( node, isAssignment ) => {
 			let depth = 0; // determine whether we're illegally modifying a binding or namespace
 
 			while ( node.type === 'MemberExpression' ) {
-
-				// In a situation like that below, make sure the assignments
-				// to arr depend on `a` and `b`.
-				//
-				//    var a = 1, b = 0;
-				//
-				//    arr[a] = arr[b] = true;
-				//
-				if ( node.computed ) {
-					this.checkForReads( scope, node.property, parent, strong );
-				}
-
 				node = node.object;
 				depth += 1;
 			}
@@ -250,7 +236,7 @@ export default class Statement {
 	}
 
 	mark () {
-		if ( this.isIncluded ) return; // prevent infinite loops
+		if ( this.included ) return; // prevent infinite loops
 		this.isIncluded = true;
 
 		const dependencies = Object.keys( this.dependsOn );
