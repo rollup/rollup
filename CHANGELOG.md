@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.11.2
+
+* Correctly handle computed properties (e.g. `foo[bar]`) when discovering dependencies ([#47](https://github.com/rollup/rollup/pull/47))
+
 ## 0.11.1
 
 * Support for `export * from '..'` ([#46](https://github.com/rollup/rollup/pull/46))
