@@ -99,6 +99,22 @@ export default class Bundle {
 		let definers = blank();
 		let conflicts = blank();
 
+		// Assign names to external modules
+		this.externalModules.forEach( module => {
+			// TODO is this right?
+			let name = makeLegalIdentifier( module.suggestedNames['*'] || module.suggestedNames.default || module.id );
+
+			if ( definers[ name ] ) {
+				conflicts[ name ] = true;
+			} else {
+				definers[ name ] = [];
+			}
+
+			definers[ name ].push( module );
+			module.name = name;
+			this.assumedGlobals[ name ] = true;
+		});
+
 		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
 		this.statements.forEach( statement => {
 			const module = statement.module;
@@ -129,21 +145,6 @@ export default class Bundle {
 				// per module... but some people write bad js
 				definers[ name ].push( module );
 			});
-		});
-
-		// Assign names to external modules
-		this.externalModules.forEach( module => {
-			// TODO is this right?
-			let name = makeLegalIdentifier( module.suggestedNames['*'] || module.suggestedNames.default || module.id );
-
-			if ( definers[ name ] ) {
-				conflicts[ name ] = true;
-			} else {
-				definers[ name ] = [];
-			}
-
-			definers[ name ].push( module );
-			module.name = name;
 		});
 
 		// Ensure we don't conflict with globals
