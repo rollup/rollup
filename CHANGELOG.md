@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.11.3
+
+* Class methods are not incorrectly renamed ([#42](https://github.com/rollup/rollup/issues/42))
+* External modules are assigned names before canonical names are determined ([#42](https://github.com/rollup/rollup/issues/42))
+
 ## 0.11.2
 
 * Correctly handle computed properties (e.g. `foo[bar]`) when discovering dependencies ([#47](https://github.com/rollup/rollup/pull/47))
