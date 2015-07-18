@@ -341,6 +341,7 @@ export default class Statement {
 				if ( node.type !== 'Identifier' ) return;
 				if ( parent.type === 'MemberExpression' && !parent.computed && node !== parent.object ) return;
 				if ( parent.type === 'Property' && node !== parent.value ) return;
+				if ( parent.type === 'MethodDefinition' && node === parent.key ) return;
 				// TODO others...?
 
 				const name = names[ node.name ];
