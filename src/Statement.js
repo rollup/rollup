@@ -236,7 +236,7 @@ export default class Statement {
 	}
 
 	mark () {
-		if ( this.included ) return; // prevent infinite loops
+		if ( this.isIncluded ) return; // prevent infinite loops
 		this.isIncluded = true;
 
 		const dependencies = Object.keys( this.dependsOn );
