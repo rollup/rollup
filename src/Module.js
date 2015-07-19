@@ -412,6 +412,7 @@ export default class Module {
 						});
 					}
 
+					exportDeclaration.isUsed = true;
 					return module.mark( exportDeclaration.localName );
 				});
 		}

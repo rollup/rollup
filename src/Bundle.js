@@ -418,7 +418,9 @@ export default class Bundle {
 
 				keys( statement.modifies ).forEach( name => {
 					const definingStatement = module.definitions[ name ];
-					const exportDeclaration = module.exports[ name ];
+					const exportDeclaration = module.exports[ name ] || (
+						module.exports.default && module.exports.default.identifier === name && module.exports.default
+					);
 
 					const shouldMark = ( definingStatement && definingStatement.isIncluded ) ||
 					                   ( exportDeclaration && exportDeclaration.isUsed );
