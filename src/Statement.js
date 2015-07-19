@@ -8,6 +8,14 @@ function isIife ( node, parent ) {
 	return parent && parent.type === 'CallExpression' && node === parent.callee;
 }
 
+function isFunctionDeclaration ( node, parent ) {
+	// `function foo () {}`
+	if ( node.type === 'FunctionDeclaration' ) return true;
+
+	// `var foo = function () {}` - same thing for present purposes
+	if ( node.type === 'FunctionExpression' && parent.type === 'VariableDeclarator' ) return true;
+}
+
 export default class Statement {
 	constructor ( node, magicString, module, index ) {
 		this.node = node;
@@ -123,22 +131,34 @@ export default class Statement {
 		//    calledImmediately();
 		//
 		// ...but it's better than nothing
-		let depth = 0;
+		let readDepth = 0;
+
+		// This allows us to track whether a modifying statement (i.e. assignment
+		// /update expressions) need to be captured
+		let writeDepth = 0;
 
 		if ( !this.isImportDeclaration ) {
 			walk( this.node, {
 				enter: ( node, parent ) => {
 					if ( node._scope ) {
-						if ( !scope.isBlockScope && !isIife( node, parent ) ) depth += 1;
+						if ( !scope.isBlockScope ) {
+							if ( !isIife( node, parent ) ) readDepth += 1;
+							if ( isFunctionDeclaration( node, parent ) ) writeDepth += 1;
+						}
+
 						scope = node._scope;
 					}
 
-					this.checkForReads( scope, node, parent, !depth );
-					this.checkForWrites( scope, node );
+					this.checkForReads( scope, node, parent, !readDepth );
+					this.checkForWrites( scope, node, writeDepth );
 				},
 				leave: ( node, parent ) => {
 					if ( node._scope ) {
-						if ( !scope.isBlockScope && !isIife( node, parent ) ) depth -= 1;
+						if ( !scope.isBlockScope ) {
+							if ( !isIife( node, parent ) ) readDepth -= 1;
+							if ( isFunctionDeclaration( node, parent ) ) writeDepth -= 1;
+						}
+
 						scope = scope.parent;
 					}
 				}
@@ -174,7 +194,7 @@ export default class Statement {
 		}
 	}
 
-	checkForWrites ( scope, node ) {
+	checkForWrites ( scope, node, writeDepth ) {
 		const addNode = ( node, isAssignment ) => {
 			let depth = 0; // determine whether we're illegally modifying a binding or namespace
 
@@ -212,7 +232,13 @@ export default class Statement {
 				}
 			}
 
-			if ( node.type === 'Identifier' ) {
+			// we only care about writes that happen a) at the top level,
+			// or b) inside a function that could be immediately invoked.
+			// Writes inside named functions are only relevant if the
+			// function is called, in which case we don't need to do
+			// anything (but we still need to call checkForWrites to
+			// catch illegal reassignments to imported bindings)
+			if ( writeDepth === 0 && node.type === 'Identifier' ) {
 				this.modifies[ node.name ] = true;
 			}
 		};
