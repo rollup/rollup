@@ -13,8 +13,14 @@ mutate1( foo );
 	foo[ letter ] = i;
 });
 
-function mutate1 ( obj ) {
-	obj.mutated = 1;
+function mutate1 () {
+	foo.mutated = 1;
 }
+
+({
+	mutate2: function () {
+		foo.mutated = 2;
+	}
+}).mutate2();
 
 console.log( foo );
