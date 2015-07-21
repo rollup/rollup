@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.11.4
+
+* Side-effect preservation applies to internal default exports ([#43](https://github.com/rollup/rollup/issues/43))
+
 ## 0.11.3
 
 * Class methods are not incorrectly renamed ([#42](https://github.com/rollup/rollup/issues/42))
