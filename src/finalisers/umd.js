@@ -11,7 +11,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 	let amdDeps = bundle.externalModules.map( quoteId );
 	let cjsDeps = bundle.externalModules.map( req );
 	let globalDeps = bundle.externalModules.map( module => {
-		return globalNames[ module.id ] || module.name;
+		return 'global.' + (globalNames[ module.id ] || module.name);
 	});
 
 	let args = bundle.externalModules.map( getName );
