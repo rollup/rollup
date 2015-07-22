@@ -201,7 +201,7 @@ export default class Module {
 		let strongDependencies = blank();
 
 		this.statements.forEach( statement => {
-			if ( statement.isImportDeclaration && !statement.node.specifiers.length ) {
+			if ( statement.isImportDeclaration && !statement.node.specifiers.length && !statement.module.isExternal ) {
 				// include module for its side-effects
 				strongDependencies[ statement.module.id ] = statement.module; // TODO is this right? `statement.module` should be `this`, surely?
 			}
@@ -475,6 +475,9 @@ export default class Module {
 					return this.bundle.fetchModule( statement.node.source.value, this.id )
 						.then( module => {
 							statement.module = module;
+							if ( module.isExternal ) {
+								return;
+							}
 							return module.markAllStatements();
 						});
 				}
