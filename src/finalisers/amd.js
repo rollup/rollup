@@ -1,4 +1,5 @@
 import { getName, quoteId } from '../utils/map-helpers';
+import getInteropBlock from './shared/getInteropBlock';
 
 export default function amd ( bundle, magicString, { exportMode, indentString }, options ) {
 	let deps = bundle.externalModules.map( quoteId );
@@ -15,6 +16,10 @@ export default function amd ( bundle, magicString, { exportMode, indentString },
 
 	const intro = `define(${params}function (${args.join( ', ' )}) { 'use strict';\n\n`;
 
+	// var foo__default = 'default' in foo ? foo['default'] : foo;
+	const interopBlock = getInteropBlock( bundle );
+	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
+
 	const exports = bundle.entryModule.exports;
 
 	let exportBlock;
@@ -27,9 +32,7 @@ export default function amd ( bundle, magicString, { exportMode, indentString },
 		}).join( '\n' );
 	}
 
-	if ( exportBlock ) {
-		magicString.append( '\n\n' + exportBlock );
-	}
+	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 
 	return magicString
 		.indent( indentString )

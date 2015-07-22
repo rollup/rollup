@@ -1,5 +1,6 @@
 import { blank } from '../utils/object';
 import { getName } from '../utils/map-helpers';
+import getInteropBlock from './shared/getInteropBlock';
 
 export default function iife ( bundle, magicString, { exportMode, indentString }, options ) {
 	const globalNames = options.globals || blank();
@@ -21,6 +22,10 @@ export default function iife ( bundle, magicString, { exportMode, indentString }
 
 	let intro = `(function (${args}) { 'use strict';\n\n`;
 	let outro = `\n\n})(${dependencies});`;
+
+	// var foo__default = 'default' in foo ? foo['default'] : foo;
+	const interopBlock = getInteropBlock( bundle );
+	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
 
 	if ( exportMode === 'default' ) {
 		intro = `var ${options.moduleName} = ${intro}`;

@@ -1,5 +1,6 @@
 import { blank } from '../utils/object';
 import { getName, quoteId, req } from '../utils/map-helpers';
+import getInteropBlock from './shared/getInteropBlock';
 
 export default function umd ( bundle, magicString, { exportMode, indentString }, options ) {
 	if ( exportMode !== 'none' && !options.moduleName ) {
@@ -39,6 +40,10 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 		}(this, function (${args}) { 'use strict';
 
 		`.replace( /^\t\t/gm, '' ).replace( /^\t/gm, magicString.getIndentString() );
+
+	// var foo__default = 'default' in foo ? foo['default'] : foo;
+	const interopBlock = getInteropBlock( bundle );
+	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
 
 	const exports = bundle.entryModule.exports;
 
