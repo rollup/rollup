@@ -3,33 +3,28 @@ import { keys } from '../utils/object';
 export default function es6 ( bundle, magicString, { exportMode }, options ) {
 	const importBlock = bundle.externalModules
 		.map( module => {
-			let defaultSpecifier = null;
-			let namedSpecifiers = null;
+			const specifiers = [];
 
 			if ( module.needsDefault ) {
-				const defaultImportDeclaration = module.importedByBundle.filter( declaration => declaration.name === 'default' )[0];
-				defaultSpecifier = defaultImportDeclaration.localName;
+				specifiers.push( module.importedByBundle.filter( declaration =>
+					declaration.name === 'default' )[0].localName );
+			}
+
+			if ( module.needsAll ) {
+				specifiers.push( '* as ' + module.importedByBundle.filter( declaration =>
+					declaration.name === '*' )[0].localName );
 			}
 
 			if ( module.needsNamed ) {
-				namedSpecifiers = '{ ' + module.importedByBundle
-					.filter( declaration => declaration.name !== 'default' )
-					.map( declaration => {
-						const { name, localName } = declaration;
-
-						return name === localName ?
-							name :
-							`${name} as ${localName}`;
-					})
-					.join( ', ' ) + ' }';
+				specifiers.push( '{ ' + module.importedByBundle
+					.filter( declaration => !/^(default|\*)$/.test( declaration.name ) )
+					.map( ({ name, localName }) =>
+						name === localName ? name : `${name} as ${localName}` )
+					.join( ', ' ) + ' }' );
 			}
 
-			const specifiers = module.needsDefault && module.needsNamed ?
-				`${defaultSpecifier}, ${namedSpecifiers}` :
-				( defaultSpecifier || namedSpecifiers );
-
-			return specifiers ?
-				`import ${specifiers} from '${module.id}';` :
+			return specifiers.length ?
+				`import ${specifiers.join( ', ' )} from '${module.id}';` :
 				`import '${module.id}';`;
 		})
 		.join( '\n' );

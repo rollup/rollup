@@ -369,6 +369,8 @@ export default class Module {
 					if ( module.isExternal ) {
 						if ( importDeclaration.name === 'default' ) {
 							module.needsDefault = true;
+						} else if ( importDeclaration.name === '*' ) {
+							module.needsAll = true;
 						} else {
 							module.needsNamed = true;
 						}
