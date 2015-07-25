@@ -26,17 +26,16 @@ export default class ExternalModule {
 		return null;
 	}
 
-	getCanonicalName ( name ) {
+	getCanonicalName ( name, es6 ) {
 		if ( name === 'default' ) {
-			return this.needsNamed ? `${this.name}__default` : this.name;
+			return this.needsNamed && !es6 ? `${this.name}__default` : this.name;
 		}
 
 		if ( name === '*' ) {
-			return this.name;
+			return this.name; // TODO is this correct in ES6?
 		}
 
-		// TODO this depends on the output format... works for CJS etc but not ES6
-		return `${this.name}.${name}`;
+		return es6 ? ( this.canonicalNames[ name ] || name ) : `${this.name}.${name}`;
 	}
 
 	rename ( name, replacement ) {
