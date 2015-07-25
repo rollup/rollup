@@ -5,6 +5,5 @@ module.exports = {
 		globals: {
 			jquery: 'jQuery'
 		}
-	},
-	solo: true
+	}
 };
