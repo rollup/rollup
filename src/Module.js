@@ -545,22 +545,26 @@ export default class Module {
 			// should be split up. Otherwise, we may end up including code we
 			// don't need, just because an unwanted declarator is included
 			if ( node.type === 'VariableDeclaration' && node.declarations.length > 1 ) {
-				throw new Error( 'TODO' );
-				// node.declarations.forEach( declarator => {
-				// 	const magicString = this.magicString.snip( declarator.start, declarator.end ).trim();
-				// 	magicString.prepend( `${node.kind} ` ).append( ';' );
-				//
-				// 	const syntheticNode = {
-				// 		type: 'VariableDeclaration',
-				// 		kind: node.kind,
-				// 		start: node.start,
-				// 		end: node.end,
-				// 		declarations: [ declarator ]
-				// 	};
-				//
-				// 	const statement = new Statement( syntheticNode, magicString, this, statements.length );
-				// 	statements.push( statement );
-				// });
+
+				node.declarations.forEach( ( declarator, i ) => {
+					//const magicString = this.magicString.snip( declarator.start, declarator.end ).trim();
+					const nextDeclarator = node.declarations[ i + 1 ];
+
+					if ( nextDeclarator ) {
+						this.magicString.overwrite( declarator.end, nextDeclarator.start, `;\n${node.kind} ` ); // TODO indentation
+					}
+
+					const syntheticNode = {
+						type: 'VariableDeclaration',
+						kind: node.kind,
+						start: node.start,
+						end: node.end,
+						declarations: [ declarator ]
+					};
+
+					const statement = new Statement( syntheticNode, this, node.start, node.end ); // TODO this is almost certainly wrong...
+					statements.push( statement );
+				});
 			}
 
 			else {
@@ -707,7 +711,7 @@ export default class Module {
 			// previousIndex  = statement.index;
 		});
 
-		return magicString;
+		return magicString.trim();
 	}
 
 	suggestName ( defaultOrBatch, suggestion ) {
