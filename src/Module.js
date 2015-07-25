@@ -539,6 +539,8 @@ export default class Module {
 		});
 
 		let statements = [];
+		let lastChar = 0;
+		let commentIndex = 0;
 
 		ast.body.forEach( node => {
 			// special case - top-level var declarations with multiple declarators
@@ -550,9 +552,9 @@ export default class Module {
 					//const magicString = this.magicString.snip( declarator.start, declarator.end ).trim();
 					const nextDeclarator = node.declarations[ i + 1 ];
 
-					if ( nextDeclarator ) {
-						this.magicString.overwrite( declarator.end, nextDeclarator.start, `;\n${node.kind} ` ); // TODO indentation
-					}
+					// if ( nextDeclarator ) {
+					// 	this.magicString.overwrite( declarator.end, nextDeclarator.start, `;\n${node.kind} ` ); // TODO indentation
+					// }
 
 					const syntheticNode = {
 						type: 'VariableDeclaration',
@@ -562,15 +564,32 @@ export default class Module {
 						declarations: [ declarator ]
 					};
 
-					const statement = new Statement( syntheticNode, this, node.start, node.end ); // TODO this is almost certainly wrong...
+					const start = i === 0 ? node.start : declarator.start;
+					const end = declarator.end;
+
+					const statement = new Statement( syntheticNode, this, start, end ); // TODO this is almost certainly wrong...
 					statements.push( statement );
 				});
+
+				lastChar = node.end; // TODO account for trailing line comment
 			}
 
 			else {
-				const statement = new Statement( node, this, node.start, node.end ); // TODO should be comment start, comment end
+				let comment;
+				do {
+					comment = this.comments[ commentIndex ];
+					if ( !comment ) break;
+					if ( comment.start > node.start ) break;
+					commentIndex += 1;
+				} while ( comment.end < lastChar );
 
+				const start = comment ? Math.min( comment.start, node.start ) : node.start;
+				const end = node.end; // TODO account for trailing line comment
+
+				const statement = new Statement( node, this, start, end );
 				statements.push( statement );
+
+				lastChar = end;
 			}
 		});
 

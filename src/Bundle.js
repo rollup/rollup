@@ -496,7 +496,10 @@ export default class Bundle {
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
 		this.orderedModules.forEach( module => {
-			magicString.addSource( module.render( allBundleExports, format ) );
+			const source = module.render( allBundleExports, format );
+			if ( source.toString().length ) {
+				magicString.addSource( source );
+			}
 		});
 
 		// prepend bundle with internal namespaces
