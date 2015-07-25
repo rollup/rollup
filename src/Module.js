@@ -547,27 +547,22 @@ export default class Module {
 			// should be split up. Otherwise, we may end up including code we
 			// don't need, just because an unwanted declarator is included
 			if ( node.type === 'VariableDeclaration' && node.declarations.length > 1 ) {
+				// remove the leading var/let/const
+				this.magicString.remove( node.start, node.declarations[0].start );
 
 				node.declarations.forEach( ( declarator, i ) => {
-					//const magicString = this.magicString.snip( declarator.start, declarator.end ).trim();
-					const nextDeclarator = node.declarations[ i + 1 ];
-
-					// if ( nextDeclarator ) {
-					// 	this.magicString.overwrite( declarator.end, nextDeclarator.start, `;\n${node.kind} ` ); // TODO indentation
-					// }
+					const { start, end } = declarator;
 
 					const syntheticNode = {
 						type: 'VariableDeclaration',
 						kind: node.kind,
-						start: node.start,
-						end: node.end,
-						declarations: [ declarator ]
+						start,
+						end,
+						declarations: [ declarator ],
+						isSynthetic: true
 					};
 
-					const start = i === 0 ? node.start : declarator.start;
-					const end = declarator.end;
-
-					const statement = new Statement( syntheticNode, this, start, end ); // TODO this is almost certainly wrong...
+					const statement = new Statement( syntheticNode, this, start, end );
 					statements.push( statement );
 				});
 
@@ -612,7 +607,7 @@ export default class Module {
 		let previousIndex = -1;
 		let previousMargin = 0;
 
-		this.statements.forEach( statement => {
+		this.statements.forEach( ( statement, i ) => {
 			if ( !statement.isIncluded ) {
 				magicString.remove( statement.start, statement.next );
 				return;
@@ -638,6 +633,12 @@ export default class Module {
 			if ( isEmptyExportedVarDeclaration( statement.node, statement.module, allBundleExports, format === 'es6' ) ) {
 				magicString.remove( statement.start, statement.next );
 				return;
+			}
+
+			// split up/remove var declarations as necessary
+			if ( statement.node.isSynthetic ) {
+				magicString.insert( statement.start, `${statement.node.kind} ` );
+				magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
 			}
 
 			let replacements = blank();
