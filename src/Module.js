@@ -691,43 +691,6 @@ export default class Module {
 					throw new Error( 'Unhandled export' );
 				}
 			}
-
-			// // ensure there is always a newline between statements, and add
-			// // additional newlines as necessary to reflect original source
-			// const minSeparation = ( statement.index !== previousIndex + 1 ) ? 3 : 2;
-			// const margin = Math.max( minSeparation, statement.margin[0], previousMargin );
-			// let newLines = new Array( margin ).join( '\n' );
-			//
-			// // add leading comments
-			// if ( statement.leadingComments.length ) {
-			// 	const commentBlock = newLines + statement.leadingComments.map( ({ separator, comment }) => {
-			// 		return separator + ( comment.block ?
-			// 			`/*${comment.text}*/` :
-			// 			`//${comment.text}` );
-			// 	}).join( '' );
-			//
-			// 	magicString.addSource( new MagicString( commentBlock ) );
-			// 	newLines = new Array( statement.margin[0] ).join( '\n' ); // TODO handle gaps between comment block and statement
-			// }
-			//
-			// // add the statement itself
-			// magicString.addSource({
-			// 	content: source,
-			// 	separator: newLines
-			// });
-			//
-			// // add trailing comments
-			// const comment = statement.trailingComment;
-			// if ( comment ) {
-			// 	const commentBlock = comment.block ?
-			// 		` /*${comment.text}*/` :
-			// 		` //${comment.text}`;
-			//
-			// 	magicString.append( commentBlock );
-			// }
-			//
-			// previousMargin = statement.margin[1];
-			// previousIndex  = statement.index;
 		});
 
 		return magicString.trim();
