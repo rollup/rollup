@@ -1,8 +1,8 @@
 var foo;
 foo = 42;
 
-var bar, baz;
-
+var bar;
+var baz;
 bar = 43;
 baz = 44;
 
