@@ -281,7 +281,7 @@ export default class Module {
 		return null;
 	}
 
-	getCanonicalName ( localName ) {
+	getCanonicalName ( localName, es6 ) {
 		// Special case
 		if ( localName === 'default' && ( this.exports.default.isModified || !this.suggestedNames.default ) ) {
 			let canonicalName = makeLegalIdentifier( this.id.replace( dirname( this.bundle.entryModule.id ) + '/', '' ).replace( /\.js$/, '' ) );
@@ -292,7 +292,9 @@ export default class Module {
 			localName = this.suggestedNames[ localName ];
 		}
 
-		if ( !this.canonicalNames[ localName ] ) {
+		const id = localName + ( es6 ? '-es6' : '' ); // TODO ugh this seems like a terrible hack
+
+		if ( !this.canonicalNames[ id ] ) {
 			let canonicalName;
 
 			if ( this.imports[ localName ] ) {
@@ -317,7 +319,7 @@ export default class Module {
 						}
 					}
 
-					canonicalName = module.getCanonicalName( exporterLocalName );
+					canonicalName = module.getCanonicalName( exporterLocalName, es6 );
 				}
 			}
 
@@ -325,10 +327,10 @@ export default class Module {
 				canonicalName = localName;
 			}
 
-			this.canonicalNames[ localName ] = canonicalName;
+			this.canonicalNames[ id ] = canonicalName;
 		}
 
-		return this.canonicalNames[ localName ];
+		return this.canonicalNames[ id ];
 	}
 
 	mark ( name ) {
@@ -369,6 +371,8 @@ export default class Module {
 					if ( module.isExternal ) {
 						if ( importDeclaration.name === 'default' ) {
 							module.needsDefault = true;
+						} else if ( importDeclaration.name === '*' ) {
+							module.needsAll = true;
 						} else {
 							module.needsNamed = true;
 						}
@@ -561,7 +565,8 @@ export default class Module {
 	}
 
 	rename ( name, replacement ) {
-		this.canonicalNames[ name ] = replacement;
+		// TODO again, hacky...
+		this.canonicalNames[ name ] = this.canonicalNames[ name + '-es6' ] = replacement;
 	}
 
 	suggestName ( defaultOrBatch, suggestion ) {

@@ -12,24 +12,30 @@ export default class ExternalModule {
 		this.suggestedNames = blank();
 
 		this.needsDefault = false;
+
+		// Invariant: needsNamed and needsAll are never both true at once.
+		// Because an import with both a namespace and named import is invalid:
+		//
+		// 		import * as ns, { a } from '...'
+		//
 		this.needsNamed = false;
+		this.needsAll = false;
 	}
 
 	findDefiningStatement () {
 		return null;
 	}
 
-	getCanonicalName ( name ) {
+	getCanonicalName ( name, es6 ) {
 		if ( name === 'default' ) {
-			return this.needsNamed ? `${this.name}__default` : this.name;
+			return this.needsNamed && !es6 ? `${this.name}__default` : this.name;
 		}
 
 		if ( name === '*' ) {
-			return this.name;
+			return this.name; // TODO is this correct in ES6?
 		}
 
-		// TODO this depends on the output format... works for CJS etc but not ES6
-		return `${this.name}.${name}`;
+		return es6 ? ( this.canonicalNames[ name ] || name ) : `${this.name}.${name}`;
 	}
 
 	rename ( name, replacement ) {
