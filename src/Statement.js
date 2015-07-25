@@ -286,11 +286,13 @@ export default class Statement {
 								.map( name => `\n${bundleExports[name]} = ${name};` )
 								.join( '' );
 
-							// TODO clean this up
-							try {
-								magicString.insert( node.end, exportInitialisers );
-							} catch ( err ) {
-								magicString.append( exportInitialisers );
+							if ( exportInitialisers ) {
+								// TODO clean this up
+								try {
+									magicString.insert( node.end, exportInitialisers );
+								} catch ( err ) {
+									magicString.append( exportInitialisers );
+								}
 							}
 						}
 					}
