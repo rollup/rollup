@@ -13,11 +13,11 @@ import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
 
-function isEmptyExportedVarDeclaration ( node, module, allBundleExports ) {
+function isEmptyExportedVarDeclaration ( node, module, allBundleExports, es6 ) {
 	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
 
 	const name = node.declarations[0].id.name;
-	const canonicalName = module.getCanonicalName( name );
+	const canonicalName = module.getCanonicalName( name, es6 );
 
 	return canonicalName in allBundleExports;
 }
@@ -91,11 +91,10 @@ export default class Bundle {
 			})
 			.then( () => {
 				this.statements = this.sort();
-				this.deconflict();
 			});
 	}
 
-	deconflict () {
+	deconflict ( es6 ) {
 		let definers = blank();
 		let conflicts = blank();
 
@@ -124,10 +123,10 @@ export default class Bundle {
 			// we need to ensure that the name chosen for the expression does
 			// not conflict
 			if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-				const name = module.getCanonicalName( 'default' );
+				const name = module.getCanonicalName( 'default', es6 );
 
 				const isProxy = statement.node.declaration && statement.node.declaration.type === 'Identifier';
-				const shouldDeconflict = !isProxy || ( module.getCanonicalName( statement.node.declaration.name ) !== name );
+				const shouldDeconflict = !isProxy || ( module.getCanonicalName( statement.node.declaration.name, es6 ) !== name );
 
 				if ( shouldDeconflict && !~names.indexOf( name ) ) {
 					names.push( name );
@@ -218,6 +217,7 @@ export default class Bundle {
 		let magicString = new MagicString.Bundle({ separator: '' });
 
 		const format = options.format || 'es6';
+		this.deconflict( format === 'es6' );
 
 		// If we have named exports from the bundle, and those exports
 		// are assigned to *within* the bundle, we may need to rewrite e.g.
@@ -243,7 +243,7 @@ export default class Bundle {
 				const originalDeclaration = this.entryModule.findDeclaration( exportDeclaration.localName );
 
 				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
-					const canonicalName = this.entryModule.getCanonicalName( exportDeclaration.localName );
+					const canonicalName = this.entryModule.getCanonicalName( exportDeclaration.localName, false );
 
 					allBundleExports[ canonicalName ] = `exports.${key}`;
 					this.varExports[ key ] = true;
@@ -268,12 +268,12 @@ export default class Bundle {
 				if ( statement.node.specifiers.length ) return;
 
 				// skip `export var foo;` if foo is exported
-				if ( isEmptyExportedVarDeclaration( statement.node.declaration, statement.module, allBundleExports ) ) return;
+				if ( isEmptyExportedVarDeclaration( statement.node.declaration, statement.module, allBundleExports, format === 'es6' ) ) return;
 			}
 
 			// skip empty var declarations for exported bindings
 			// (otherwise we're left with `exports.foo;`, which is useless)
-			if ( isEmptyExportedVarDeclaration( statement.node, statement.module, allBundleExports ) ) return;
+			if ( isEmptyExportedVarDeclaration( statement.node, statement.module, allBundleExports, format === 'es6' ) ) return;
 
 			let replacements = blank();
 			let bundleExports = blank();
@@ -281,7 +281,7 @@ export default class Bundle {
 			keys( statement.dependsOn )
 				.concat( keys( statement.defines ) )
 				.forEach( name => {
-					const canonicalName = statement.module.getCanonicalName( name );
+					const canonicalName = statement.module.getCanonicalName( name, format === 'es6' );
 
 					if ( allBundleExports[ canonicalName ] ) {
 						bundleExports[ name ] = replacements[ name ] = allBundleExports[ canonicalName ];
@@ -307,9 +307,9 @@ export default class Bundle {
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
 					const module = statement.module;
-					const canonicalName = module.getCanonicalName( 'default' );
+					const canonicalName = module.getCanonicalName( 'default', format === 'es6' );
 
-					if ( statement.node.declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( statement.node.declaration.name ) ) {
+					if ( statement.node.declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( statement.node.declaration.name, format === 'es6' ) ) {
 						return;
 					}
 
@@ -370,8 +370,8 @@ export default class Bundle {
 		const namespaceBlock = this.internalNamespaceModules.map( module => {
 			const exportKeys = keys( module.exports );
 
-			return `var ${module.getCanonicalName('*')} = {\n` +
-				exportKeys.map( key => `${indentString}get ${key} () { return ${module.getCanonicalName(key)}; }` ).join( ',\n' ) +
+			return `var ${module.getCanonicalName('*', format === 'es6')} = {\n` +
+				exportKeys.map( key => `${indentString}get ${key} () { return ${module.getCanonicalName(key, format === 'es6')}; }` ).join( ',\n' ) +
 			`\n};\n\n`;
 		}).join( '' );
 
