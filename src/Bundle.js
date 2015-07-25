@@ -13,15 +13,6 @@ import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
 
-function isEmptyExportedVarDeclaration ( node, module, allBundleExports, es6 ) {
-	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
-
-	const name = node.declarations[0].id.name;
-	const canonicalName = module.getCanonicalName( name, es6 );
-
-	return canonicalName in allBundleExports;
-}
-
 export default class Bundle {
 	constructor ( options ) {
 		this.entry = options.entry;
@@ -90,7 +81,7 @@ export default class Bundle {
 				return this.markAllModifierStatements();
 			})
 			.then( () => {
-				this.statements = this.sort();
+				this.orderedModules = this.sort();
 			});
 	}
 
@@ -115,34 +106,35 @@ export default class Bundle {
 		});
 
 		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
-		this.statements.forEach( statement => {
-			const module = statement.module;
-			const names = keys( statement.defines );
+		this.orderedModules.forEach( module => {
+			module.statements.forEach( statement => {
+				const names = keys( statement.defines );
 
-			// with default exports that are expressions (`export default 42`),
-			// we need to ensure that the name chosen for the expression does
-			// not conflict
-			if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-				const name = module.getCanonicalName( 'default', es6 );
+				// with default exports that are expressions (`export default 42`),
+				// we need to ensure that the name chosen for the expression does
+				// not conflict
+				if ( statement.node.type === 'ExportDefaultDeclaration' ) {
+					const name = module.getCanonicalName( 'default', es6 );
 
-				const isProxy = statement.node.declaration && statement.node.declaration.type === 'Identifier';
-				const shouldDeconflict = !isProxy || ( module.getCanonicalName( statement.node.declaration.name, es6 ) !== name );
+					const isProxy = statement.node.declaration && statement.node.declaration.type === 'Identifier';
+					const shouldDeconflict = !isProxy || ( module.getCanonicalName( statement.node.declaration.name, es6 ) !== name );
 
-				if ( shouldDeconflict && !~names.indexOf( name ) ) {
-					names.push( name );
-				}
-			}
-
-			names.forEach( name => {
-				if ( definers[ name ] ) {
-					conflicts[ name ] = true;
-				} else {
-					definers[ name ] = [];
+					if ( shouldDeconflict && !~names.indexOf( name ) ) {
+						names.push( name );
+					}
 				}
 
-				// TODO in good js, there shouldn't be duplicate definitions
-				// per module... but some people write bad js
-				definers[ name ].push( module );
+				names.forEach( name => {
+					if ( definers[ name ] ) {
+						conflicts[ name ] = true;
+					} else {
+						definers[ name ] = [];
+					}
+
+					// TODO in good js, there shouldn't be duplicate definitions
+					// per module... but some people write bad js
+					definers[ name ].push( module );
+				});
 			});
 		});
 
@@ -459,6 +451,97 @@ export default class Bundle {
 		});
 	}
 
+	render ( options = {} ) {
+		const format = options.format || 'es6';
+		this.deconflict( format === 'es6' );
+
+		// If we have named exports from the bundle, and those exports
+		// are assigned to *within* the bundle, we may need to rewrite e.g.
+		//
+		//   export let count = 0;
+		//   export function incr () { count++ }
+		//
+		// might become...
+		//
+		//   exports.count = 0;
+		//   function incr () {
+		//     exports.count += 1;
+		//   }
+		//   exports.incr = incr;
+		//
+		// This doesn't apply if the bundle is exported as ES6!
+		let allBundleExports = blank();
+
+		if ( format !== 'es6' ) {
+			keys( this.entryModule.exports ).forEach( key => {
+				const exportDeclaration = this.entryModule.exports[ key ];
+
+				const originalDeclaration = this.entryModule.findDeclaration( exportDeclaration.localName );
+
+				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
+					const canonicalName = this.entryModule.getCanonicalName( exportDeclaration.localName, false );
+
+					allBundleExports[ canonicalName ] = `exports.${key}`;
+					this.varExports[ key ] = true;
+				}
+			});
+		}
+
+		// since we're rewriting variable exports, we want to
+		// ensure we don't try and export them again at the bottom
+		this.toExport = keys( this.entryModule.exports )
+			.filter( key => !this.varExports[ key ] );
+
+
+		let magicString = new MagicString.Bundle({ separator: '\n\n' });
+
+		this.orderedModules.forEach( module => {
+			magicString.addSource( module.render( allBundleExports, format ) );
+		});
+
+		// prepend bundle with internal namespaces
+		const indentString = magicString.getIndentString();
+		const namespaceBlock = this.internalNamespaceModules.map( module => {
+			const exportKeys = keys( module.exports );
+
+			return `var ${module.getCanonicalName('*', format === 'es6')} = {\n` +
+				exportKeys.map( key => `${indentString}get ${key} () { return ${module.getCanonicalName(key, format === 'es6')}; }` ).join( ',\n' ) +
+			`\n};\n\n`;
+		}).join( '' );
+
+		magicString.prepend( namespaceBlock );
+
+		const finalise = finalisers[ format ];
+
+		if ( !finalise ) {
+			throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
+		}
+
+		magicString = finalise( this, magicString.trim(), {
+			// Determine export mode - 'default', 'named', 'none'
+			exportMode: getExportMode( this, options.exports ),
+
+			// Determine indentation
+			indentString: getIndentString( magicString, options )
+		}, options );
+
+		const code = magicString.toString();
+		let map = null;
+
+		if ( options.sourceMap ) {
+			const file = options.sourceMapFile || options.dest;
+			map = magicString.generateMap({
+				includeContent: true,
+				file
+				// TODO
+			});
+
+			map.sources = map.sources.map( unixizePath );
+		}
+
+		return { code, map };
+	}
+
 	sort () {
 		let seen = {};
 		let ordered = [];
@@ -540,14 +623,6 @@ export default class Bundle {
 			});
 		}
 
-		let statements = [];
-
-		ordered.forEach( module => {
-			module.statements.forEach( statement => {
-				if ( statement.isIncluded ) statements.push( statement );
-			});
-		});
-
-		return statements;
+		return ordered;
 	}
 }

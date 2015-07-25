@@ -21,6 +21,15 @@ function deconflict ( name, names ) {
 	return name;
 }
 
+function isEmptyExportedVarDeclaration ( node, module, allBundleExports, es6 ) {
+	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
+
+	const name = node.declarations[0].id.name;
+	const canonicalName = module.getCanonicalName( name, es6 );
+
+	return canonicalName in allBundleExports;
+}
+
 export default class Module {
 	constructor ({ id, source, bundle }) {
 		this.source = source;
@@ -531,34 +540,39 @@ export default class Module {
 
 		let statements = [];
 
-		ast.body.map( node => {
+		ast.body.forEach( node => {
 			// special case - top-level var declarations with multiple declarators
 			// should be split up. Otherwise, we may end up including code we
 			// don't need, just because an unwanted declarator is included
 			if ( node.type === 'VariableDeclaration' && node.declarations.length > 1 ) {
-				node.declarations.forEach( declarator => {
-					const magicString = this.magicString.snip( declarator.start, declarator.end ).trim();
-					magicString.prepend( `${node.kind} ` ).append( ';' );
-
-					const syntheticNode = {
-						type: 'VariableDeclaration',
-						kind: node.kind,
-						start: node.start,
-						end: node.end,
-						declarations: [ declarator ]
-					};
-
-					const statement = new Statement( syntheticNode, magicString, this, statements.length );
-					statements.push( statement );
-				});
+				throw new Error( 'TODO' );
+				// node.declarations.forEach( declarator => {
+				// 	const magicString = this.magicString.snip( declarator.start, declarator.end ).trim();
+				// 	magicString.prepend( `${node.kind} ` ).append( ';' );
+				//
+				// 	const syntheticNode = {
+				// 		type: 'VariableDeclaration',
+				// 		kind: node.kind,
+				// 		start: node.start,
+				// 		end: node.end,
+				// 		declarations: [ declarator ]
+				// 	};
+				//
+				// 	const statement = new Statement( syntheticNode, magicString, this, statements.length );
+				// 	statements.push( statement );
+				// });
 			}
 
 			else {
-				const magicString = this.magicString.snip( node.start, node.end ).trim();
-				const statement = new Statement( node, magicString, this, statements.length );
+				const statement = new Statement( node, this, node.start, node.end ); // TODO should be comment start, comment end
 
 				statements.push( statement );
 			}
+		});
+
+		statements.forEach( ( statement, i ) => {
+			const nextStatement = statements[ i + 1 ];
+			statement.next = nextStatement ? nextStatement.start : statement.end;
 		});
 
 		return statements;
@@ -567,6 +581,133 @@ export default class Module {
 	rename ( name, replacement ) {
 		// TODO again, hacky...
 		this.canonicalNames[ name ] = this.canonicalNames[ name + '-es6' ] = replacement;
+	}
+
+	render ( allBundleExports, format ) {
+		let magicString = this.magicString.clone();
+
+		let previousIndex = -1;
+		let previousMargin = 0;
+
+		this.statements.forEach( statement => {
+			if ( !statement.isIncluded ) {
+				magicString.remove( statement.start, statement.next );
+				return;
+			}
+
+			// skip `export { foo, bar, baz }`
+			if ( statement.node.type === 'ExportNamedDeclaration' ) {
+				// skip `export { foo, bar, baz }`
+				if ( statement.node.specifiers.length ) {
+					magicString.remove( statement.start, statement.next );
+					return;
+				};
+
+				// skip `export var foo;` if foo is exported
+				if ( isEmptyExportedVarDeclaration( statement.node.declaration, statement.module, allBundleExports, format === 'es6' ) ) {
+					magicString.remove( statement.start, statement.next );
+					return;
+				}
+			}
+
+			// skip empty var declarations for exported bindings
+			// (otherwise we're left with `exports.foo;`, which is useless)
+			if ( isEmptyExportedVarDeclaration( statement.node, statement.module, allBundleExports, format === 'es6' ) ) {
+				magicString.remove( statement.start, statement.next );
+				return;
+			}
+
+			let replacements = blank();
+			let bundleExports = blank();
+
+			keys( statement.dependsOn )
+				.concat( keys( statement.defines ) )
+				.forEach( name => {
+					const canonicalName = statement.module.getCanonicalName( name, format === 'es6' );
+
+					if ( allBundleExports[ canonicalName ] ) {
+						bundleExports[ name ] = replacements[ name ] = allBundleExports[ canonicalName ];
+					} else if ( name !== canonicalName ) {
+						replacements[ name ] = canonicalName;
+					}
+				});
+
+			statement.replaceIdentifiers( magicString, replacements, bundleExports );
+
+			// modify exports as necessary
+			if ( statement.isExportDeclaration ) {
+				// remove `export` from `export var foo = 42`
+				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.declaration.type === 'VariableDeclaration' ) {
+					magicString.remove( statement.node.start, statement.node.declaration.start );
+				}
+
+				// remove `export` from `export class Foo {...}` or `export default Foo`
+				// TODO default exports need different treatment
+				else if ( statement.node.declaration.id ) {
+					magicString.remove( statement.node.start, statement.node.declaration.start );
+				}
+
+				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
+					const module = statement.module;
+					const canonicalName = module.getCanonicalName( 'default', format === 'es6' );
+
+					if ( statement.node.declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( statement.node.declaration.name, format === 'es6' ) ) {
+						magicString.remove( statement.start, statement.next );
+						return;
+					}
+
+					// anonymous functions should be converted into declarations
+					if ( statement.node.declaration.type === 'FunctionExpression' ) {
+						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${canonicalName}` );
+					} else {
+						magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${canonicalName} = ` );
+					}
+				}
+
+				else {
+					throw new Error( 'Unhandled export' );
+				}
+			}
+
+			// // ensure there is always a newline between statements, and add
+			// // additional newlines as necessary to reflect original source
+			// const minSeparation = ( statement.index !== previousIndex + 1 ) ? 3 : 2;
+			// const margin = Math.max( minSeparation, statement.margin[0], previousMargin );
+			// let newLines = new Array( margin ).join( '\n' );
+			//
+			// // add leading comments
+			// if ( statement.leadingComments.length ) {
+			// 	const commentBlock = newLines + statement.leadingComments.map( ({ separator, comment }) => {
+			// 		return separator + ( comment.block ?
+			// 			`/*${comment.text}*/` :
+			// 			`//${comment.text}` );
+			// 	}).join( '' );
+			//
+			// 	magicString.addSource( new MagicString( commentBlock ) );
+			// 	newLines = new Array( statement.margin[0] ).join( '\n' ); // TODO handle gaps between comment block and statement
+			// }
+			//
+			// // add the statement itself
+			// magicString.addSource({
+			// 	content: source,
+			// 	separator: newLines
+			// });
+			//
+			// // add trailing comments
+			// const comment = statement.trailingComment;
+			// if ( comment ) {
+			// 	const commentBlock = comment.block ?
+			// 		` /*${comment.text}*/` :
+			// 		` //${comment.text}`;
+			//
+			// 	magicString.append( commentBlock );
+			// }
+			//
+			// previousMargin = statement.margin[1];
+			// previousIndex  = statement.index;
+		});
+
+		return magicString;
 	}
 
 	suggestName ( defaultOrBatch, suggestion ) {
