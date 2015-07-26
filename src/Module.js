@@ -4,7 +4,6 @@ import { parse } from 'acorn';
 import MagicString from 'magic-string';
 import Statement from './Statement';
 import walk from './ast/walk';
-import analyse from './ast/analyse';
 import { blank, keys } from './utils/object';
 import { first, sequence } from './utils/promise';
 import { isImportDeclaration, isExportDeclaration } from './utils/map-helpers';
@@ -180,12 +179,10 @@ export default class Module {
 		this.statements.forEach( statement => {
 			if ( isImportDeclaration( statement ) ) this.addImport( statement );
 			else if ( isExportDeclaration( statement ) ) this.addExport( statement );
-		});
 
-		analyse( this.magicString, this );
+			statement.analyse();
 
-		// consolidate names that are defined/modified in this module
-		this.statements.forEach( statement => {
+			// consolidate names that are defined/modified in this module
 			keys( statement.defines ).forEach( name => {
 				this.definitions[ name ] = statement;
 			});

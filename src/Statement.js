@@ -24,10 +24,6 @@ export default class Statement {
 
 		this.isIncluded = false;
 
-		this.leadingComments = [];
-		this.trailingComment = null;
-		this.margin = [ 0, 0 ];
-
 		// some facts about this statement...
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
 		this.isExportDeclaration = /^Export/.test( node.type );
