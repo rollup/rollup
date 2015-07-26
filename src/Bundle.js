@@ -194,6 +194,10 @@ export default class Bundle {
 					return this.modulePromises[ importee ];
 				}
 
+				if ( id === importer ) {
+					throw new Error( `A module cannot import itself (${id})` );
+				}
+
 				if ( !this.modulePromises[ id ] ) {
 					this.modulePromises[ id ] = Promise.resolve( this.load( id, this.loadOptions ) )
 						.then( source => {
