@@ -12,7 +12,7 @@ export default function amd ( bundle, magicString, { exportMode, indentString },
 	}
 
 	const params =
-		( options.moduleId ? `['${options.moduleId}'], ` : `` ) +
+		( options.moduleId ? `'${options.moduleId}', ` : `` ) +
 		( deps.length ? `[${deps.join( ', ' )}], ` : `` );
 
 	const intro = `define(${params}function (${args.join( ', ' )}) { 'use strict';\n\n`;

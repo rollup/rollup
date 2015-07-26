@@ -27,7 +27,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 	}
 
 	const amdParams =
-		( options.moduleId ? `['${options.moduleId}'], ` : `` ) +
+		( options.moduleId ? `'${options.moduleId}', ` : `` ) +
 		( amdDeps.length ? `[${amdDeps.join( ', ' )}], ` : `` );
 
 	const cjsExport = exportMode === 'default' ? `module.exports = ` : ``;
