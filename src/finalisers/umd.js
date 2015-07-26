@@ -1,6 +1,7 @@
 import { blank } from '../utils/object';
 import { getName, quoteId, req } from '../utils/map-helpers';
 import getInteropBlock from './shared/getInteropBlock';
+import getExportBlock from './shared/getExportBlock';
 
 export default function umd ( bundle, magicString, { exportMode, indentString }, options ) {
 	if ( exportMode !== 'none' && !options.moduleName ) {
@@ -45,23 +46,8 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 	const interopBlock = getInteropBlock( bundle );
 	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
 
-	const exports = bundle.entryModule.exports;
-
-	let exportBlock;
-
-	if ( exportMode === 'default' ) {
-		const canonicalName = bundle.entryModule.getCanonicalName( 'default' );
-		exportBlock = `return ${canonicalName};`;
-	} else {
-		exportBlock = bundle.toExport.map( name => {
-			const canonicalName = bundle.entryModule.getCanonicalName( exports[ name ].localName );
-			return `exports.${name} = ${canonicalName};`;
-		}).join( '\n' );
-	}
-
-	if ( exportBlock ) {
-		magicString.append( '\n\n' + exportBlock );
-	}
+	const exportBlock = getExportBlock( bundle, exportMode );
+	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 
 	return magicString
 		.trim()
