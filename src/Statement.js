@@ -24,10 +24,8 @@ export default class Statement {
 
 		this.isIncluded = false;
 
-		// some facts about this statement...
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
 		this.isExportDeclaration = /^Export/.test( node.type );
-		this.isExportAllDeclaration = /^ExportAll/.test( node.type );
 	}
 
 	analyse () {

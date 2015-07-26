@@ -6,7 +6,6 @@ import Statement from './Statement';
 import walk from './ast/walk';
 import { blank, keys } from './utils/object';
 import { first, sequence } from './utils/promise';
-import { isImportDeclaration, isExportDeclaration } from './utils/map-helpers';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
@@ -177,8 +176,8 @@ export default class Module {
 	analyse () {
 		// discover this module's imports and exports
 		this.statements.forEach( statement => {
-			if ( isImportDeclaration( statement ) ) this.addImport( statement );
-			else if ( isExportDeclaration( statement ) ) this.addExport( statement );
+			if ( statement.isImportDeclaration ) this.addImport( statement );
+			else if ( statement.isExportDeclaration ) this.addExport( statement );
 
 			statement.analyse();
 
