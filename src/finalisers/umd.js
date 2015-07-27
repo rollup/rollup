@@ -33,12 +33,14 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 	const cjsExport = exportMode === 'default' ? `module.exports = ` : ``;
 	const defaultExport = exportMode === 'default' ? `global.${options.moduleName} = ` : '';
 
+	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
+
 	const intro =
 		`(function (global, factory) {
 			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join( ', ' )}) :
 			typeof define === 'function' && define.amd ? define(${amdParams}factory) :
 			${defaultExport}factory(${globalDeps});
-		}(this, function (${args}) { 'use strict';
+		}(this, function (${args}) {${useStrict}
 
 		`.replace( /^\t\t/gm, '' ).replace( /^\t/gm, magicString.getIndentString() );
 

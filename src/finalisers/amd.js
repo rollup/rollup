@@ -15,7 +15,8 @@ export default function amd ( bundle, magicString, { exportMode, indentString },
 		( options.moduleId ? `'${options.moduleId}', ` : `` ) +
 		( deps.length ? `[${deps.join( ', ' )}], ` : `` );
 
-	const intro = `define(${params}function (${args.join( ', ' )}) { 'use strict';\n\n`;
+	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
+	const intro = `define(${params}function (${args.join( ', ' )}) {${useStrict}\n\n`;
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
 	const interopBlock = getInteropBlock( bundle );

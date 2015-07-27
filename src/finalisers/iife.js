@@ -21,7 +21,8 @@ export default function iife ( bundle, magicString, { exportMode, indentString }
 		args.unshift( 'exports' );
 	}
 
-	let intro = `(function (${args}) { 'use strict';\n\n`;
+	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
+	let intro = `(function (${args}) {${useStrict}\n\n`;
 	let outro = `\n\n})(${dependencies});`;
 
 	if ( exportMode === 'default' ) {

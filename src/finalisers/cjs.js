@@ -1,7 +1,7 @@
 import getExportBlock from './shared/getExportBlock';
 
-export default function cjs ( bundle, magicString, { exportMode }) {
-	let intro = `'use strict';\n\n`;
+export default function cjs ( bundle, magicString, { exportMode }, options ) {
+	let intro = options.useStrict === false ? `` : `'use strict';\n\n`;
 
 	// TODO handle empty imports, once they're supported
 	const importBlock = bundle.externalModules
