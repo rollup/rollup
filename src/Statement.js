@@ -327,18 +327,28 @@ export default class Statement {
 					replacementStack.push( newNames );
 				}
 
-				// We want to rewrite identifiers (that aren't property names etc)
 				if ( node.type !== 'Identifier' ) return;
+
+				// if there's no replacement, or it's the same, there's nothing more to do
+				const name = names[ node.name ];
+				if ( !name || name === node.name ) return;
+
+				// shorthand properties (`obj = { foo }`) need to be expanded
+				if ( parent.type === 'Property' && parent.shorthand ) {
+					magicString.insert( node.end, `: ${name}` );
+					parent.key._skip = true;
+					parent.value._skip = true; // redundant, but defensive
+					return;
+				}
+
+				// property names etc can be disregarded
 				if ( parent.type === 'MemberExpression' && !parent.computed && node !== parent.object ) return;
 				if ( parent.type === 'Property' && node !== parent.value ) return;
 				if ( parent.type === 'MethodDefinition' && node === parent.key ) return;
 				// TODO others...?
 
-				const name = names[ node.name ];
-
-				if ( name && name !== node.name ) {
-					magicString.overwrite( node.start, node.end, name );
-				}
+				// all other identifiers should be overwritten
+				magicString.overwrite( node.start, node.end, name );
 			},
 
 			leave ( node ) {
