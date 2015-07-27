@@ -8,7 +8,6 @@
 		return 42;
 	}
 
-
 	// comment before 1
 
 	console.log( 1 );

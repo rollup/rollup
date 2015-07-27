@@ -18,14 +18,14 @@ export function rollup ( options ) {
 			imports: bundle.externalModules.map( module => module.id ),
 			exports: keys( bundle.entryModule.exports ),
 
-			generate: options => bundle.generate( options ),
+			generate: options => bundle.render( options ),
 			write: options => {
 				if ( !options || !options.dest ) {
 					throw new Error( 'You must supply options.dest to bundle.write' );
 				}
 
 				const dest = options.dest;
-				let { code, map } = bundle.generate( options );
+				let { code, map } = bundle.render( options );
 
 				let promises = [];
 
