@@ -4,10 +4,8 @@ import { parse } from 'acorn';
 import MagicString from 'magic-string';
 import Statement from './Statement';
 import walk from './ast/walk';
-import analyse from './ast/analyse';
 import { blank, keys } from './utils/object';
 import { first, sequence } from './utils/promise';
-import { isImportDeclaration, isExportDeclaration } from './utils/map-helpers';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
@@ -19,6 +17,15 @@ function deconflict ( name, names ) {
 	}
 
 	return name;
+}
+
+function isEmptyExportedVarDeclaration ( node, module, allBundleExports, es6 ) {
+	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
+
+	const name = node.declarations[0].id.name;
+	const canonicalName = module.getCanonicalName( name, es6 );
+
+	return canonicalName in allBundleExports;
 }
 
 export default class Module {
@@ -169,14 +176,12 @@ export default class Module {
 	analyse () {
 		// discover this module's imports and exports
 		this.statements.forEach( statement => {
-			if ( isImportDeclaration( statement ) ) this.addImport( statement );
-			else if ( isExportDeclaration( statement ) ) this.addExport( statement );
-		});
+			if ( statement.isImportDeclaration ) this.addImport( statement );
+			else if ( statement.isExportDeclaration ) this.addExport( statement );
 
-		analyse( this.magicString, this );
+			statement.analyse();
 
-		// consolidate names that are defined/modified in this module
-		this.statements.forEach( statement => {
+			// consolidate names that are defined/modified in this module
 			keys( statement.defines ).forEach( name => {
 				this.definitions[ name ] = statement;
 			});
@@ -530,35 +535,58 @@ export default class Module {
 		});
 
 		let statements = [];
+		let lastChar = 0;
+		let commentIndex = 0;
 
-		ast.body.map( node => {
+		ast.body.forEach( node => {
 			// special case - top-level var declarations with multiple declarators
 			// should be split up. Otherwise, we may end up including code we
 			// don't need, just because an unwanted declarator is included
 			if ( node.type === 'VariableDeclaration' && node.declarations.length > 1 ) {
-				node.declarations.forEach( declarator => {
-					const magicString = this.magicString.snip( declarator.start, declarator.end ).trim();
-					magicString.prepend( `${node.kind} ` ).append( ';' );
+				// remove the leading var/let/const
+				this.magicString.remove( node.start, node.declarations[0].start );
+
+				node.declarations.forEach( ( declarator, i ) => {
+					const { start, end } = declarator;
 
 					const syntheticNode = {
 						type: 'VariableDeclaration',
 						kind: node.kind,
-						start: node.start,
-						end: node.end,
-						declarations: [ declarator ]
+						start,
+						end,
+						declarations: [ declarator ],
+						isSynthetic: true
 					};
 
-					const statement = new Statement( syntheticNode, magicString, this, statements.length );
+					const statement = new Statement( syntheticNode, this, start, end );
 					statements.push( statement );
 				});
+
+				lastChar = node.end; // TODO account for trailing line comment
 			}
 
 			else {
-				const magicString = this.magicString.snip( node.start, node.end ).trim();
-				const statement = new Statement( node, magicString, this, statements.length );
+				let comment;
+				do {
+					comment = this.comments[ commentIndex ];
+					if ( !comment ) break;
+					if ( comment.start > node.start ) break;
+					commentIndex += 1;
+				} while ( comment.end < lastChar );
 
+				const start = comment ? Math.min( comment.start, node.start ) : node.start;
+				const end = node.end; // TODO account for trailing line comment
+
+				const statement = new Statement( node, this, start, end );
 				statements.push( statement );
+
+				lastChar = end;
 			}
+		});
+
+		statements.forEach( ( statement, i ) => {
+			const nextStatement = statements[ i + 1 ];
+			statement.next = nextStatement ? nextStatement.start : statement.end;
 		});
 
 		return statements;
@@ -567,6 +595,102 @@ export default class Module {
 	rename ( name, replacement ) {
 		// TODO again, hacky...
 		this.canonicalNames[ name ] = this.canonicalNames[ name + '-es6' ] = replacement;
+	}
+
+	render ( allBundleExports, format ) {
+		let magicString = this.magicString.clone();
+
+		let previousIndex = -1;
+		let previousMargin = 0;
+
+		this.statements.forEach( ( statement, i ) => {
+			if ( !statement.isIncluded ) {
+				magicString.remove( statement.start, statement.next );
+				return;
+			}
+
+			// skip `export { foo, bar, baz }`
+			if ( statement.node.type === 'ExportNamedDeclaration' ) {
+				// skip `export { foo, bar, baz }`
+				if ( statement.node.specifiers.length ) {
+					magicString.remove( statement.start, statement.next );
+					return;
+				};
+
+				// skip `export var foo;` if foo is exported
+				if ( isEmptyExportedVarDeclaration( statement.node.declaration, statement.module, allBundleExports, format === 'es6' ) ) {
+					magicString.remove( statement.start, statement.next );
+					return;
+				}
+			}
+
+			// skip empty var declarations for exported bindings
+			// (otherwise we're left with `exports.foo;`, which is useless)
+			if ( isEmptyExportedVarDeclaration( statement.node, statement.module, allBundleExports, format === 'es6' ) ) {
+				magicString.remove( statement.start, statement.next );
+				return;
+			}
+
+			// split up/remove var declarations as necessary
+			if ( statement.node.isSynthetic ) {
+				magicString.insert( statement.start, `${statement.node.kind} ` );
+				magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
+			}
+
+			let replacements = blank();
+			let bundleExports = blank();
+
+			keys( statement.dependsOn )
+				.concat( keys( statement.defines ) )
+				.forEach( name => {
+					const canonicalName = statement.module.getCanonicalName( name, format === 'es6' );
+
+					if ( allBundleExports[ canonicalName ] ) {
+						bundleExports[ name ] = replacements[ name ] = allBundleExports[ canonicalName ];
+					} else if ( name !== canonicalName ) {
+						replacements[ name ] = canonicalName;
+					}
+				});
+
+			statement.replaceIdentifiers( magicString, replacements, bundleExports );
+
+			// modify exports as necessary
+			if ( statement.isExportDeclaration ) {
+				// remove `export` from `export var foo = 42`
+				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.declaration.type === 'VariableDeclaration' ) {
+					magicString.remove( statement.node.start, statement.node.declaration.start );
+				}
+
+				// remove `export` from `export class Foo {...}` or `export default Foo`
+				// TODO default exports need different treatment
+				else if ( statement.node.declaration.id ) {
+					magicString.remove( statement.node.start, statement.node.declaration.start );
+				}
+
+				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
+					const module = statement.module;
+					const canonicalName = module.getCanonicalName( 'default', format === 'es6' );
+
+					if ( statement.node.declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( statement.node.declaration.name, format === 'es6' ) ) {
+						magicString.remove( statement.start, statement.next );
+						return;
+					}
+
+					// anonymous functions should be converted into declarations
+					if ( statement.node.declaration.type === 'FunctionExpression' ) {
+						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${canonicalName}` );
+					} else {
+						magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${canonicalName} = ` );
+					}
+				}
+
+				else {
+					throw new Error( 'Unhandled export' );
+				}
+			}
+		});
+
+		return magicString.trim();
 	}
 
 	suggestName ( defaultOrBatch, suggestion ) {

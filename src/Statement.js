@@ -9,12 +9,12 @@ function isIife ( node, parent ) {
 }
 
 export default class Statement {
-	constructor ( node, magicString, module, index ) {
+	constructor ( node, module, start, end ) {
 		this.node = node;
 		this.module = module;
-		this.magicString = magicString;
-		this.index = index;
-		this.id = module.id + '#' + index;
+		this.start = start;
+		this.end = end;
+		this.next = null; // filled in later
 
 		this.scope = new Scope();
 		this.defines = blank();
@@ -24,29 +24,18 @@ export default class Statement {
 
 		this.isIncluded = false;
 
-		this.leadingComments = [];
-		this.trailingComment = null;
-		this.margin = [ 0, 0 ];
-
-		// some facts about this statement...
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
 		this.isExportDeclaration = /^Export/.test( node.type );
-		this.isExportAllDeclaration = /^ExportAll/.test( node.type );
 	}
 
 	analyse () {
 		if ( this.isImportDeclaration ) return; // nothing to analyse
-
-		const statement = this; // TODO use arrow functions instead
-		const magicString = this.magicString;
 
 		let scope = this.scope;
 
 		walk( this.node, {
 			enter ( node, parent ) {
 				let newScope;
-
-				magicString.addSourcemapLocation( node.start );
 
 				switch ( node.type ) {
 					case 'FunctionExpression':
@@ -146,7 +135,7 @@ export default class Statement {
 		}
 
 		keys( scope.declarations ).forEach( name => {
-			statement.defines[ name ] = true;
+			this.defines[ name ] = true;
 		});
 	}
 
@@ -247,8 +236,7 @@ export default class Statement {
 		});
 	}
 
-	replaceIdentifiers ( names, bundleExports ) {
-		const magicString = this.magicString.clone();
+	replaceIdentifiers ( magicString, names, bundleExports ) {
 		const replacementStack = [ names ];
 		const nameList = keys( names );
 
@@ -292,11 +280,13 @@ export default class Statement {
 								.map( name => `\n${bundleExports[name]} = ${name};` )
 								.join( '' );
 
-							// TODO clean this up
-							try {
-								magicString.insert( node.end, exportInitialisers );
-							} catch ( err ) {
-								magicString.append( exportInitialisers );
+							if ( exportInitialisers ) {
+								// TODO clean this up
+								try {
+									magicString.insert( node.end, exportInitialisers );
+								} catch ( err ) {
+									magicString.append( exportInitialisers );
+								}
 							}
 						}
 					}
