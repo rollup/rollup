@@ -38,6 +38,21 @@ class ExternalName extends InternalName {
   }
 }
 
+class ExportName extends ExternalName {
+  constructor ( name ) {
+    super( 'exports', name );
+    this.reassigned = false;
+  }
+
+  get ( direct ) {
+    if ( this.reassigned ) {
+      return super.get( direct );
+    }
+
+    return this.name;
+  }
+}
+
 class ReferenceName {
   constructor ( scope, id ) {
     this.scope = scope;
