@@ -23,12 +23,12 @@ export default function cjs ( bundle, magicString, { exportMode }) {
 
 	let exportBlock;
 	if ( exportMode === 'default' && bundle.entryModule.exports.default ) {
-		exportBlock = `module.exports = ${bundle.entryModule.getCanonicalName('default')};`;
+		exportBlock = `module.exports = ${bundle.entryModule.getCanonicalName( 'default', false )};`;
 	} else if ( exportMode === 'named' ) {
 		exportBlock = bundle.toExport
 			.map( key => {
 				const specifier = bundle.entryModule.exports[ key ];
-				const name = bundle.entryModule.getCanonicalName( specifier.localName );
+				const name = bundle.entryModule.getCanonicalName( specifier.localName, false /* direct */ );
 
 				return `exports.${key} = ${name};`;
 			})

@@ -1,4 +1,4 @@
-import { dirname } from './utils/path';
+// import { dirname } from './utils/path';
 import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
@@ -7,17 +7,18 @@ import walk from './ast/walk';
 import { blank, keys } from './utils/object';
 import { first, sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
-import makeLegalIdentifier from './utils/makeLegalIdentifier';
+import inferModuleName from './utils/inferModuleName';
+// import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
 const emptyArrayPromise = Promise.resolve([]);
 
-function deconflict ( name, names ) {
-	while ( name in names ) {
-		name = `_${name}`;
-	}
-
-	return name;
-}
+// function deconflict ( name, names ) {
+// 	while ( name in names ) {
+// 		name = `_${name}`;
+// 	}
+//
+// 	return name;
+// }
 
 function isEmptyExportedVarDeclaration ( node, module, allBundleExports, es6 ) {
 	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
@@ -29,11 +30,12 @@ function isEmptyExportedVarDeclaration ( node, module, allBundleExports, es6 ) {
 }
 
 export default class Module {
-	constructor ({ id, source, bundle }) {
+	constructor ({ id, source, bundle, scope }) {
 		this.source = source;
 
 		this.bundle = bundle;
 		this.id = id;
+		this.scope = scope;
 
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
@@ -41,7 +43,7 @@ export default class Module {
 			filename: id
 		});
 
-		this.suggestedNames = blank();
+		// this.suggestedNames = blank();
 		this.comments = [];
 
 		this.statements = this._parse();
@@ -55,7 +57,7 @@ export default class Module {
 		// array of all-export sources
 		this.exportDelegates = [];
 
-		this.canonicalNames = blank();
+		// this.canonicalNames = blank();
 
 		this.definitions = blank();
 		this.definitionPromises = blank();
@@ -77,6 +79,12 @@ export default class Module {
 
 			const declaredName = isDeclaration && node.declaration.id.name;
 			const identifier = node.declaration.type === 'Identifier' && node.declaration.name;
+
+
+			this.scope.suggest( 'default', declaredName || inferModuleName( this.id ) );
+
+
+			this.definitions[ 'default' ] = statement;
 
 			this.exports.default = {
 				statement,
@@ -156,7 +164,8 @@ export default class Module {
 			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
 
 			const localName = specifier.local.name;
-			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
+			const name = isDefault ? 'default' :
+				( isNamespace ? '*' : specifier.imported.name );
 
 			if ( this.imports[ localName ] ) {
 				const err = new Error( `Duplicated import '${localName}'` );
@@ -183,6 +192,7 @@ export default class Module {
 
 			// consolidate names that are defined/modified in this module
 			keys( statement.defines ).forEach( name => {
+				this.scope.add( name );
 				this.definitions[ name ] = statement;
 			});
 
@@ -197,6 +207,7 @@ export default class Module {
 			keys( statement.dependsOn ).forEach( name => {
 				if ( !this.definitions[ name ] && !this.imports[ name ] ) {
 					this.bundle.assumedGlobals[ name ] = true;
+					this.scope.addFixed( name );
 				}
 			});
 		});
@@ -286,56 +297,57 @@ export default class Module {
 		return null;
 	}
 
-	getCanonicalName ( localName, es6 ) {
-		// Special case
-		if ( localName === 'default' && ( this.exports.default.isModified || !this.suggestedNames.default ) ) {
-			let canonicalName = makeLegalIdentifier( this.id.replace( dirname( this.bundle.entryModule.id ) + '/', '' ).replace( /\.js$/, '' ) );
-			return deconflict( canonicalName, this.definitions );
-		}
-
-		if ( this.suggestedNames[ localName ] ) {
-			localName = this.suggestedNames[ localName ];
-		}
-
-		const id = localName + ( es6 ? '-es6' : '' ); // TODO ugh this seems like a terrible hack
-
-		if ( !this.canonicalNames[ id ] ) {
-			let canonicalName;
-
-			if ( this.imports[ localName ] ) {
-				const importDeclaration = this.imports[ localName ];
-				const module = importDeclaration.module;
-
-				if ( importDeclaration.name === '*' ) {
-					canonicalName = module.suggestedNames[ '*' ];
-				} else {
-					let exporterLocalName;
-
-					if ( module.isExternal ) {
-						exporterLocalName = importDeclaration.name;
-					} else {
-						const exportDeclaration = module.exports[ importDeclaration.name ];
-
-						// The export declaration of the particular name is known.
-						if (exportDeclaration) {
-							exporterLocalName = exportDeclaration.localName;
-						} else { // export * from '...'
-							exporterLocalName = importDeclaration.name;
-						}
-					}
-
-					canonicalName = module.getCanonicalName( exporterLocalName, es6 );
-				}
-			}
-
-			else {
-				canonicalName = localName;
-			}
-
-			this.canonicalNames[ id ] = canonicalName;
-		}
-
-		return this.canonicalNames[ id ];
+	getCanonicalName ( localName, direct ) {
+		return this.scope.get( localName, direct || !!this.definitions[ localName ] );
+		// // Special case
+		// if ( localName === 'default' && ( this.exports.default.isModified || !this.suggestedNames.default ) ) {
+		// 	let canonicalName = makeLegalIdentifier( this.id.replace( dirname( this.bundle.entryModule.id ) + '/', '' ).replace( /\.js$/, '' ) );
+		// 	return deconflict( canonicalName, this.definitions );
+		// }
+		//
+		// if ( this.suggestedNames[ localName ] ) {
+		// 	localName = this.suggestedNames[ localName ];
+		// }
+		//
+		// const id = localName + ( es6 ? '-es6' : '' ); // TODO ugh this seems like a terrible hack
+		//
+		// if ( !this.canonicalNames[ id ] ) {
+		// 	let canonicalName;
+		//
+		// 	if ( this.imports[ localName ] ) {
+		// 		const importDeclaration = this.imports[ localName ];
+		// 		const module = importDeclaration.module;
+		//
+		// 		if ( importDeclaration.name === '*' ) {
+		// 			canonicalName = module.suggestedNames[ '*' ];
+		// 		} else {
+		// 			let exporterLocalName;
+		//
+		// 			if ( module.isExternal ) {
+		// 				exporterLocalName = importDeclaration.name;
+		// 			} else {
+		// 				const exportDeclaration = module.exports[ importDeclaration.name ];
+		//
+		// 				// The export declaration of the particular name is known.
+		// 				if (exportDeclaration) {
+		// 					exporterLocalName = exportDeclaration.localName;
+		// 				} else { // export * from '...'
+		// 					exporterLocalName = importDeclaration.name;
+		// 				}
+		// 			}
+		//
+		// 			canonicalName = module.getCanonicalName( exporterLocalName, es6 );
+		// 		}
+		// 	}
+		//
+		// 	else {
+		// 		canonicalName = localName;
+		// 	}
+		//
+		// 	this.canonicalNames[ id ] = canonicalName;
+		// }
+		//
+		// return this.canonicalNames[ id ];
 	}
 
 	mark ( name ) {
@@ -366,6 +378,7 @@ export default class Module {
 						}
 
 						module.suggestName( 'default', suggestion );
+						this.scope.link( name, module.scope.getRef( 'default' ));
 					} else if ( importDeclaration.name === '*' ) {
 						const localName = importDeclaration.localName;
 						const suggestion = this.suggestedNames[ localName ] || localName;
@@ -382,6 +395,7 @@ export default class Module {
 							module.needsNamed = true;
 						}
 
+						this.scope.link( name, module.scope.getRef( name ) );
 						module.importedByBundle.push( importDeclaration );
 						return emptyArrayPromise;
 					}
@@ -593,8 +607,10 @@ export default class Module {
 	}
 
 	rename ( name, replacement ) {
+		console.log(`Module.rename(${name}, ${replacement})`);
+		this.scope.rename( name, replacement );
 		// TODO again, hacky...
-		this.canonicalNames[ name ] = this.canonicalNames[ name + '-es6' ] = replacement;
+		// this.canonicalNames[ name ] = this.canonicalNames[ name + '-es6' ] = replacement;
 	}
 
 	render ( allBundleExports, format ) {
@@ -640,17 +656,17 @@ export default class Module {
 			let replacements = blank();
 			let bundleExports = blank();
 
-			keys( statement.dependsOn )
-				.concat( keys( statement.defines ) )
-				.forEach( name => {
-					const canonicalName = statement.module.getCanonicalName( name, format === 'es6' );
-
-					if ( allBundleExports[ canonicalName ] ) {
-						bundleExports[ name ] = replacements[ name ] = allBundleExports[ canonicalName ];
-					} else if ( name !== canonicalName ) {
-						replacements[ name ] = canonicalName;
-					}
-				});
+			// keys( statement.dependsOn )
+			// 	.concat( keys( statement.defines ) )
+			// 	.forEach( name => {
+			// 		const canonicalName = statement.module.getCanonicalName( name, format === 'es6' );
+			//
+			// 		if ( allBundleExports[ canonicalName ] ) {
+			// 			bundleExports[ name ] = replacements[ name ] = allBundleExports[ canonicalName ];
+			// 		} else if ( name !== canonicalName ) {
+			// 			replacements[ name ] = canonicalName;
+			// 		}
+			// 	});
 
 			statement.replaceIdentifiers( magicString, replacements, bundleExports );
 
@@ -694,13 +710,15 @@ export default class Module {
 	}
 
 	suggestName ( defaultOrBatch, suggestion ) {
-		// deconflict anonymous default exports with this module's definitions
-		const shouldDeconflict = this.exports.default && this.exports.default.isAnonymous;
+		this.scope.suggest( defaultOrBatch, suggestion );
 
-		if ( shouldDeconflict ) suggestion = deconflict( suggestion, this.definitions );
-
-		if ( !this.suggestedNames[ defaultOrBatch ] ) {
-			this.suggestedNames[ defaultOrBatch ] = makeLegalIdentifier( suggestion );
-		}
+		// // deconflict anonymous default exports with this module's definitions
+		// const shouldDeconflict = this.exports.default && this.exports.default.isAnonymous;
+		//
+		// if ( shouldDeconflict ) suggestion = deconflict( suggestion, this.definitions );
+		//
+		// if ( !this.suggestedNames[ defaultOrBatch ] ) {
+		// 	this.suggestedNames[ defaultOrBatch ] = makeLegalIdentifier( suggestion );
+		// }
 	}
 }

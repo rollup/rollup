@@ -237,6 +237,8 @@ export default class Statement {
 	}
 
 	replaceIdentifiers ( magicString, names, bundleExports ) {
+		const module = this.module;
+
 		const replacementStack = [ names ];
 		const nameList = keys( names );
 
@@ -330,8 +332,10 @@ export default class Statement {
 				if ( node.type !== 'Identifier' ) return;
 
 				// if there's no replacement, or it's the same, there's nothing more to do
-				const name = names[ node.name ];
+				const name = module.scope.get( node.name );
+				// const name = names[ node.name ];
 				if ( !name || name === node.name ) return;
+				console.log( `// Replacing ${node.name} --> ${name}.` );
 
 				// shorthand properties (`obj = { foo }`) need to be expanded
 				if ( parent.type === 'Property' && parent.shorthand ) {
