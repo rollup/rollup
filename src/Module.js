@@ -391,6 +391,8 @@ export default class Module {
 					});
 				}
 
+				this.scope.link( name, module.scope.getRef( name ) );
+
 				exportDeclaration.isUsed = true;
 				return module.mark( exportDeclaration.localName );
 			});

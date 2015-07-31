@@ -13,7 +13,7 @@ class InternalName {
     this.name = name;
   }
 
-  get ( direct ) { //jshint unused: false
+  get ( localName, direct ) { //jshint unused: false
     return this.name;
   }
 }
@@ -29,8 +29,11 @@ class FixedName extends InternalName {
 }
 
 class ExternalName extends InternalName {
-  get ( direct ) {
-    if ( direct ) return this.name;
+  get ( localName, direct ) {
+    if ( direct ) {
+      return this.name === 'default' ?
+        localName : this.name;
+    }
 
     return this.name === 'default' ?
       `${this.moduleName}['default']` :
@@ -76,8 +79,8 @@ class ReferenceName {
     this.deref().name = value;
   }
 
-  get ( direct ) {
-    return this.deref().get( direct );
+  get ( localName, direct ) {
+    return this.deref().get( localName, direct );
   }
 }
 
@@ -126,12 +129,12 @@ export default class BundleScope {
     });
   }
 
-  get ( nameId, direct ) {
+  get ( nameId, localName, direct ) {
     const name = this.names[ nameId ];
 
     if ( !name ) throw new Error(`No name found with id ${nameId}!`);
 
-    return name.get( direct );
+    return name.get( localName, direct );
   }
 
   link ( nameId, otherId ) {
@@ -191,7 +194,7 @@ class ModuleScope {
   }
 
   get ( name, direct ) {
-    const res = this.parent.get( this.getRef( name ), direct );
+    const res = this.parent.get( this.getRef( name ), name, direct );
     // console.log(`// NS: Get ${this.name}.${name} == '${res}'`);
     return res;
   }
@@ -213,7 +216,7 @@ class ModuleScope {
 
     // if ( typeof ref === 'string' ) ref = this.getRef( ref );
 
-    // console.log(`Linking ${this.name}.${name} <--> '${this.parent.get(ref, false)}'!`);
+    // console.log(`Linking ${this.name}.${name} <--> '${this.parent.get(ref, name, false)}'!`);
     this.localNames[ name ] = this.parent.add( new ReferenceName( this.parent, ref ) );
   }
 
