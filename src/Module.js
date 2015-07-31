@@ -12,13 +12,6 @@ import inferModuleName from './utils/inferModuleName';
 
 const emptyArrayPromise = Promise.resolve([]);
 
-// function deconflict ( name, names ) {
-// 	while ( name in names ) {
-// 		name = `_${name}`;
-// 	}
-//
-// 	return name;
-// }
 
 function isEmptyExportedVarDeclaration ( node, module, allBundleExports, es6 ) {
 	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
@@ -81,7 +74,11 @@ export default class Module {
 			const identifier = node.declaration.type === 'Identifier' && node.declaration.name;
 
 
-			this.scope.suggest( 'default', declaredName || inferModuleName( this.id ) );
+			if ( node.declaration.type !== 'Literal' ) {
+				this.scope.link( 'default', this.scope.getRef( declaredName ) );
+			} else {
+				this.scope.suggest( 'default', inferModuleName( this.id ) );
+			}
 
 
 			this.definitions[ 'default' ] = statement;
@@ -257,6 +254,14 @@ export default class Module {
 		return { strongDependencies, weakDependencies };
 	}
 
+	fetchModule ( importDeclaration ) {
+		if ( importDeclaration.module )
+			return Promise.resolve( importDeclaration.module );
+
+		return this.bundle.fetchModule( importDeclaration.source, this.id )
+			.then( module => importDeclaration.module = module );
+	}
+
 	findDefiningStatement ( name ) {
 		if ( this.definitions[ name ] ) return this.definitions[ name ];
 
@@ -298,56 +303,7 @@ export default class Module {
 	}
 
 	getCanonicalName ( localName, direct ) {
-		return this.scope.get( localName, direct || !!this.definitions[ localName ] );
-		// // Special case
-		// if ( localName === 'default' && ( this.exports.default.isModified || !this.suggestedNames.default ) ) {
-		// 	let canonicalName = makeLegalIdentifier( this.id.replace( dirname( this.bundle.entryModule.id ) + '/', '' ).replace( /\.js$/, '' ) );
-		// 	return deconflict( canonicalName, this.definitions );
-		// }
-		//
-		// if ( this.suggestedNames[ localName ] ) {
-		// 	localName = this.suggestedNames[ localName ];
-		// }
-		//
-		// const id = localName + ( es6 ? '-es6' : '' ); // TODO ugh this seems like a terrible hack
-		//
-		// if ( !this.canonicalNames[ id ] ) {
-		// 	let canonicalName;
-		//
-		// 	if ( this.imports[ localName ] ) {
-		// 		const importDeclaration = this.imports[ localName ];
-		// 		const module = importDeclaration.module;
-		//
-		// 		if ( importDeclaration.name === '*' ) {
-		// 			canonicalName = module.suggestedNames[ '*' ];
-		// 		} else {
-		// 			let exporterLocalName;
-		//
-		// 			if ( module.isExternal ) {
-		// 				exporterLocalName = importDeclaration.name;
-		// 			} else {
-		// 				const exportDeclaration = module.exports[ importDeclaration.name ];
-		//
-		// 				// The export declaration of the particular name is known.
-		// 				if (exportDeclaration) {
-		// 					exporterLocalName = exportDeclaration.localName;
-		// 				} else { // export * from '...'
-		// 					exporterLocalName = importDeclaration.name;
-		// 				}
-		// 			}
-		//
-		// 			canonicalName = module.getCanonicalName( exporterLocalName, es6 );
-		// 		}
-		// 	}
-		//
-		// 	else {
-		// 		canonicalName = localName;
-		// 	}
-		//
-		// 	this.canonicalNames[ id ] = canonicalName;
-		// }
-		//
-		// return this.canonicalNames[ id ];
+		return this.scope.get( localName, direct );
 	}
 
 	mark ( name ) {
@@ -362,82 +318,71 @@ export default class Module {
 		if ( this.imports[ name ] ) {
 			const importDeclaration = this.imports[ name ];
 
-			promise = this.bundle.fetchModule( importDeclaration.source, this.id )
-				.then( module => {
-					importDeclaration.module = module;
+			promise = this.fetchModule( importDeclaration ).then( module => {
 
-					// suggest names. TODO should this apply to non default/* imports?
+				// suggest names. TODO should this apply to non default/* imports?
+				if ( importDeclaration.name === 'default' ) {
+					this.scope.link( name, module.scope.getRef( 'default' ));
+
+				} else if ( importDeclaration.name === '*' ) {
+					const localName = importDeclaration.localName;
+					const suggestion = this.suggestedNames[ localName ] || localName;
+					module.suggestName( '*', suggestion );
+					module.suggestName( 'default', `${suggestion}__default` );
+				}
+
+				if ( module.isExternal ) {
 					if ( importDeclaration.name === 'default' ) {
-						// TODO this seems ropey
-						const localName = importDeclaration.localName;
-						let suggestion = this.suggestedNames[ localName ] || localName;
-
-						// special case - the module has its own import by this name
-						while ( !module.isExternal && module.imports[ suggestion ] ) {
-							suggestion = `_${suggestion}`;
-						}
-
-						module.suggestName( 'default', suggestion );
-						this.scope.link( name, module.scope.getRef( 'default' ));
+						module.needsDefault = true;
 					} else if ( importDeclaration.name === '*' ) {
-						const localName = importDeclaration.localName;
-						const suggestion = this.suggestedNames[ localName ] || localName;
-						module.suggestName( '*', suggestion );
-						module.suggestName( 'default', `${suggestion}__default` );
+						module.needsAll = true;
+					} else {
+						module.needsNamed = true;
 					}
 
-					if ( module.isExternal ) {
-						if ( importDeclaration.name === 'default' ) {
-							module.needsDefault = true;
-						} else if ( importDeclaration.name === '*' ) {
-							module.needsAll = true;
-						} else {
-							module.needsNamed = true;
-						}
+					this.scope.link( name, module.scope.getRef( name ) );
+					module.importedByBundle.push( importDeclaration );
+					return emptyArrayPromise;
+				}
 
-						this.scope.link( name, module.scope.getRef( name ) );
-						module.importedByBundle.push( importDeclaration );
-						return emptyArrayPromise;
+				if ( importDeclaration.name === '*' ) {
+					// we need to create an internal namespace
+					if ( !~this.bundle.internalNamespaceModules.indexOf( module ) ) {
+						this.bundle.internalNamespaceModules.push( module );
 					}
 
-					if ( importDeclaration.name === '*' ) {
-						// we need to create an internal namespace
-						if ( !~this.bundle.internalNamespaceModules.indexOf( module ) ) {
-							this.bundle.internalNamespaceModules.push( module );
-						}
+					return module.markAllStatements();
+				}
 
-						return module.markAllStatements();
-					}
+				const exportDeclaration = module.exports[ importDeclaration.name ];
 
-					const exportDeclaration = module.exports[ importDeclaration.name ];
+				if ( !exportDeclaration ) {
+					const noExport = new Error( `Module ${module.id} does not export ${importDeclaration.name} (imported by ${this.id})` );
 
-					if ( !exportDeclaration ) {
-						const noExport = new Error( `Module ${module.id} does not export ${importDeclaration.name} (imported by ${this.id})` );
+					// See if there exists an export delegate that defines `name`.
+					return first( module.exportDelegates, noExport, declaration => {
+						return module.bundle.fetchModule( declaration.source, module.id ).then( submodule => {
+							declaration.module = submodule;
 
-						// See if there exists an export delegate that defines `name`.
-						return first( module.exportDelegates, noExport, declaration => {
-							return module.bundle.fetchModule( declaration.source, module.id ).then( submodule => {
-								declaration.module = submodule;
+							return submodule.mark( name ).then( result => {
+								if ( !result.length ) throw noExport;
 
-								return submodule.mark( name ).then( result => {
-									if ( !result.length ) throw noExport;
+								// It's found! This module exports `name` through declaration.
+								// It is however not imported into this scope.
+								module.exportAlls[ name ] = declaration;
 
-									// It's found! This module exports `name` through declaration.
-									// It is however not imported into this scope.
-									module.exportAlls[ name ] = declaration;
+								declaration.statement.dependsOn[ name ] =
+								declaration.statement.stronglyDependsOn[ name ] = result;
 
-									declaration.statement.dependsOn[ name ] =
-									declaration.statement.stronglyDependsOn[ name ] = result;
-
-									return result;
-								});
+								return result;
 							});
 						});
-					}
+					});
+				}
 
-					exportDeclaration.isUsed = true;
-					return module.mark( exportDeclaration.localName );
-				});
+				exportDeclaration.isUsed = true;
+				return module.mark( exportDeclaration.localName );
+			});
 		}
 
 		// The definition is in this module
@@ -560,7 +505,7 @@ export default class Module {
 				// remove the leading var/let/const
 				this.magicString.remove( node.start, node.declarations[0].start );
 
-				node.declarations.forEach( ( declarator, i ) => {
+				node.declarations.forEach( declarator => {
 					const { start, end } = declarator;
 
 					const syntheticNode = {
@@ -616,10 +561,7 @@ export default class Module {
 	render ( allBundleExports, format ) {
 		let magicString = this.magicString.clone();
 
-		let previousIndex = -1;
-		let previousMargin = 0;
-
-		this.statements.forEach( ( statement, i ) => {
+		this.statements.forEach( statement => {
 			if ( !statement.isIncluded ) {
 				magicString.remove( statement.start, statement.next );
 				return;
@@ -631,7 +573,7 @@ export default class Module {
 				if ( statement.node.specifiers.length ) {
 					magicString.remove( statement.start, statement.next );
 					return;
-				};
+				}
 
 				// skip `export var foo;` if foo is exported
 				if ( isEmptyExportedVarDeclaration( statement.node.declaration, statement.module, allBundleExports, format === 'es6' ) ) {
@@ -711,14 +653,5 @@ export default class Module {
 
 	suggestName ( defaultOrBatch, suggestion ) {
 		this.scope.suggest( defaultOrBatch, suggestion );
-
-		// // deconflict anonymous default exports with this module's definitions
-		// const shouldDeconflict = this.exports.default && this.exports.default.isAnonymous;
-		//
-		// if ( shouldDeconflict ) suggestion = deconflict( suggestion, this.definitions );
-		//
-		// if ( !this.suggestedNames[ defaultOrBatch ] ) {
-		// 	this.suggestedNames[ defaultOrBatch ] = makeLegalIdentifier( suggestion );
-		// }
 	}
 }

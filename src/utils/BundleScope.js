@@ -132,16 +132,6 @@ export default class BundleScope {
     if ( !name ) throw new Error(`No name found with id ${nameId}!`);
 
     return name.get( direct );
-
-    // if ( name === 'default' ) {
-    //   return direct ? module.name : `${module.name}["default"]`;
-    // }
-    //
-    // if ( name === '*' ) {
-    //   return module.name;
-    // }
-    //
-		// return direct ? unique : `${module.name}.${name}`;
   }
 
   link ( nameId, otherId ) {
@@ -181,6 +171,9 @@ class ModuleScope {
   }
 
   add ( name ) {
+    // Don't redefine the name.
+    if ( name in this.localNames ) return;
+
     this.localNames[ name ] = this.parent.add( new this.Name( this.name, name ) );
   }
 
@@ -199,7 +192,7 @@ class ModuleScope {
       this.add( name );
     }
 
-    const ref =  this.localNames[ name ];
+    const ref = this.localNames[ name ];
     // console.log(`//     &${this.name}.${name} == '${ref}'`);
     return ref;
   }
@@ -207,10 +200,19 @@ class ModuleScope {
   // Link the local name `name` of this module,
   // to another modules name reference `ref`.
   link ( name, ref ) {
-    if ( this.localNames[ name ] ) throw new Error(`Name ${name} is already bound!`);
+    if ( name in this.localNames ) throw new Error(`Name ${name} is already bound!`);
+
+    // if ( typeof ref === 'string' ) ref = this.getRef( ref );
 
     // console.log(`// NS: Linking ${this.name}.${name} <--> '${ref}'!`);
     this.localNames[ name ] = this.parent.add( new ReferenceName( this.parent, ref ) );
+  }
+
+  // Exports the local name `name` from this module.
+  export ( name ) {
+    if ( name in this.localNames ) throw new Error(`Name ${name} is already bound!`);
+
+    this.localNames[ name ] = this.parent.add( new ExportName( name ) );
   }
 
   rename ( name, replacement ) {
