@@ -176,7 +176,8 @@ export default class Bundle {
 								id,
 								source,
 								bundle: this,
-								scope: this.scope.child( inferModuleName( id ) )
+								scope: this.scope.child( inferModuleName( id ) ),
+								entry: importer === undefined
 							});
 
 							this.modules.push( module );
@@ -242,7 +243,9 @@ export default class Bundle {
 
 	render ( options = {} ) {
 		const format = options.format || 'es6';
-		this.deconflict( format === 'es6' );
+		const direct = format === 'es6';
+
+		this.deconflict( direct );
 
 		// If we have named exports from the bundle, and those exports
 		// are assigned to *within* the bundle, we may need to rewrite e.g.
@@ -261,7 +264,7 @@ export default class Bundle {
 		// This doesn't apply if the bundle is exported as ES6!
 		let allBundleExports = blank();
 
-		if ( format !== 'es6' ) {
+		if ( !direct ) {
 			keys( this.entryModule.exports ).forEach( key => {
 				const exportDeclaration = this.entryModule.exports[ key ];
 
@@ -285,7 +288,7 @@ export default class Bundle {
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
 		this.orderedModules.forEach( module => {
-			const source = module.render( allBundleExports, format );
+			const source = module.render( allBundleExports, direct );
 			if ( source.toString().length ) {
 				magicString.addSource( source );
 			}
@@ -296,8 +299,8 @@ export default class Bundle {
 		const namespaceBlock = this.internalNamespaceModules.map( module => {
 			const exportKeys = keys( module.exports );
 
-			return `var ${module.getCanonicalName('*', format === 'es6')} = {\n` +
-				exportKeys.map( key => `${indentString}get ${key} () { return ${module.getCanonicalName(key, format === 'es6')}; }` ).join( ',\n' ) +
+			return `var ${module.getCanonicalName('*', direct)} = {\n` +
+				exportKeys.map( key => `${indentString}get ${key} () { return ${module.getCanonicalName(key, direct)}; }` ).join( ',\n' ) +
 			`\n};\n\n`;
 		}).join( '' );
 

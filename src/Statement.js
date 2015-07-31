@@ -236,15 +236,13 @@ export default class Statement {
 		});
 	}
 
-	replaceIdentifiers ( magicString, names, bundleExports ) {
+	replaceIdentifiers ( magicString, replacements, bundleExports, direct ) {
 		const module = this.module;
-
-		const replacementStack = [ names ];
-		const nameList = keys( names );
+		const replacementStack = [ replacements ];
 
 		let deshadowList = [];
-		nameList.forEach( name => {
-			const replacement = names[ name ];
+		keys( replacements ).forEach( name => {
+			const replacement = replacements[ name ];
 			deshadowList.push( replacement.split( '.' )[0] );
 		});
 
@@ -299,24 +297,24 @@ export default class Statement {
 				if ( scope ) {
 					topLevel = false;
 
-					let newNames = blank();
+					let newReplacements = blank();
 					let hasReplacements;
 
 					// special case = function foo ( foo ) {...}
-					if ( node.id && names[ node.id.name ] && scope.declarations[ node.id.name ] ) {
-						magicString.overwrite( node.id.start, node.id.end, names[ node.id.name ] );
+					if ( node.id && replacements[ node.id.name ] && scope.declarations[ node.id.name ] ) {
+						magicString.overwrite( node.id.start, node.id.end, replacements[ node.id.name ] );
 					}
 
-					keys( names ).forEach( name => {
+					keys( replacements ).forEach( name => {
 						if ( !scope.declarations[ name ] ) {
-							newNames[ name ] = names[ name ];
+							newReplacements[ name ] = replacements[ name ];
 							hasReplacements = true;
 						}
 					});
 
 					deshadowList.forEach( name => {
 						if ( ~scope.declarations[ name ] ) { // TODO is this right? no indexOf?
-							newNames[ name ] = name + '$$'; // TODO better mechanism
+							newReplacements[ name ] = name + '$$'; // TODO better mechanism
 							hasReplacements = true;
 						}
 					});
@@ -325,15 +323,14 @@ export default class Statement {
 						return this.skip();
 					}
 
-					names = newNames;
-					replacementStack.push( newNames );
+					replacements = newReplacements;
+					replacementStack.push( newReplacements );
 				}
 
 				if ( node.type !== 'Identifier' ) return;
 
 				// if there's no replacement, or it's the same, there's nothing more to do
-				const name = module.scope.get( node.name );
-				// const name = names[ node.name ];
+				const name = module.scope.get( node.name, direct );
 				if ( !name || name === node.name ) return;
 				console.log( `// Replacing ${node.name} --> ${name}.` );
 
@@ -360,7 +357,7 @@ export default class Statement {
 
 				if ( node._scope ) {
 					replacementStack.pop();
-					names = replacementStack[ replacementStack.length - 1 ];
+					replacements = replacementStack[ replacementStack.length - 1 ];
 				}
 			}
 		});

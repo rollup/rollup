@@ -44,13 +44,14 @@ class ExportName extends ExternalName {
     this.reassigned = false;
   }
 
-  get ( direct ) {
-    if ( this.reassigned ) {
-      return super.get( direct );
-    }
-
-    return this.name;
-  }
+  // TODO: maybe diffrentiate on reassignment.
+  // get ( direct ) {
+  //   if ( this.reassigned ) {
+  //     return super.get( direct );
+  //   }
+  //
+  //   return this.name;
+  // }
 }
 
 class ReferenceName {
@@ -79,7 +80,6 @@ class ReferenceName {
     return this.deref().get( direct );
   }
 }
-
 
 export default class BundleScope {
   constructor () {
@@ -148,6 +148,12 @@ export default class BundleScope {
     name.name = replacement;
   }
 
+  set (nameId, name ) {
+    if ( !( nameId in this.names ) ) throw new Error(`Can't redefine non-existant id ${nameId}!`);
+
+    this.names[ nameId ] = name;
+  }
+
   suggest ( nameId, suggestion ) {
     const name = this.names[ nameId ];
 
@@ -171,6 +177,9 @@ class ModuleScope {
   }
 
   add ( name ) {
+    if ( typeof name !== 'string' )
+      throw new TypeError(`ModuleScope.add got a non-string '${name}'!`);
+
     // Don't redefine the name.
     if ( name in this.localNames ) return;
 
@@ -200,17 +209,20 @@ class ModuleScope {
   // Link the local name `name` of this module,
   // to another modules name reference `ref`.
   link ( name, ref ) {
-    if ( name in this.localNames ) throw new Error(`Name ${name} is already bound!`);
+    if ( name in this.localNames ) return;
 
     // if ( typeof ref === 'string' ) ref = this.getRef( ref );
 
-    // console.log(`// NS: Linking ${this.name}.${name} <--> '${ref}'!`);
+    // console.log(`Linking ${this.name}.${name} <--> '${this.parent.get(ref, false)}'!`);
     this.localNames[ name ] = this.parent.add( new ReferenceName( this.parent, ref ) );
   }
 
   // Exports the local name `name` from this module.
   export ( name ) {
-    if ( name in this.localNames ) throw new Error(`Name ${name} is already bound!`);
+    if ( name in this.localNames ) {
+      //throw new Error(`Name ${name} is already bound!`);
+      this.localNames[ name ] = this.parent.set( this.localNames[ name ], new ExportName( name ) );
+    }
 
     this.localNames[ name ] = this.parent.add( new ExportName( name ) );
   }

@@ -23,12 +23,14 @@ function isEmptyExportedVarDeclaration ( node, module, allBundleExports, es6 ) {
 }
 
 export default class Module {
-	constructor ({ id, source, bundle, scope }) {
+	constructor ({ id, source, bundle, scope, entry }) {
 		this.source = source;
 
 		this.bundle = bundle;
 		this.id = id;
 		this.scope = scope;
+
+		this.isEntryModule = entry;
 
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
@@ -75,11 +77,12 @@ export default class Module {
 
 
 			if ( node.declaration.type !== 'Literal' ) {
-				this.scope.link( 'default', this.scope.getRef( declaredName ) );
+				this.scope.link( 'default', this.scope.getRef( declaredName || identifier ) );
 			} else {
 				this.scope.suggest( 'default', inferModuleName( this.id ) );
 			}
 
+			// this.scope.export( 'default' );
 
 			this.definitions[ 'default' ] = statement;
 
@@ -110,6 +113,8 @@ export default class Module {
 						exportedName
 					};
 
+					this.scope.add( exportedName );
+
 					// export { foo } from './foo';
 					if ( source ) {
 						this.imports[ localName ] = {
@@ -132,6 +137,12 @@ export default class Module {
 				} else {
 					// export function foo () {}
 					name = declaration.id.name;
+				}
+
+				if ( this.isEntryModule ) {
+					this.scope.export( name );
+				} else {
+					this.scope.add( name );
 				}
 
 				this.exports[ name ] = {
@@ -326,9 +337,9 @@ export default class Module {
 
 				} else if ( importDeclaration.name === '*' ) {
 					const localName = importDeclaration.localName;
-					const suggestion = this.suggestedNames[ localName ] || localName;
-					module.suggestName( '*', suggestion );
-					module.suggestName( 'default', `${suggestion}__default` );
+
+					module.suggestName( '*', localName );
+					module.suggestName( 'default', `${localName}__default` );
 				}
 
 				if ( module.isExternal ) {
@@ -558,7 +569,7 @@ export default class Module {
 		// this.canonicalNames[ name ] = this.canonicalNames[ name + '-es6' ] = replacement;
 	}
 
-	render ( allBundleExports, format ) {
+	render ( allBundleExports, direct ) {
 		let magicString = this.magicString.clone();
 
 		this.statements.forEach( statement => {
@@ -576,7 +587,7 @@ export default class Module {
 				}
 
 				// skip `export var foo;` if foo is exported
-				if ( isEmptyExportedVarDeclaration( statement.node.declaration, statement.module, allBundleExports, format === 'es6' ) ) {
+				if ( isEmptyExportedVarDeclaration( statement.node.declaration, statement.module, allBundleExports, direct ) ) {
 					magicString.remove( statement.start, statement.next );
 					return;
 				}
@@ -584,7 +595,7 @@ export default class Module {
 
 			// skip empty var declarations for exported bindings
 			// (otherwise we're left with `exports.foo;`, which is useless)
-			if ( isEmptyExportedVarDeclaration( statement.node, statement.module, allBundleExports, format === 'es6' ) ) {
+			if ( isEmptyExportedVarDeclaration( statement.node, statement.module, allBundleExports, direct ) ) {
 				magicString.remove( statement.start, statement.next );
 				return;
 			}
@@ -598,47 +609,57 @@ export default class Module {
 			let replacements = blank();
 			let bundleExports = blank();
 
-			// keys( statement.dependsOn )
-			// 	.concat( keys( statement.defines ) )
-			// 	.forEach( name => {
-			// 		const canonicalName = statement.module.getCanonicalName( name, format === 'es6' );
-			//
-			// 		if ( allBundleExports[ canonicalName ] ) {
-			// 			bundleExports[ name ] = replacements[ name ] = allBundleExports[ canonicalName ];
-			// 		} else if ( name !== canonicalName ) {
-			// 			replacements[ name ] = canonicalName;
-			// 		}
-			// 	});
+			keys( statement.dependsOn )
+				.concat( keys( statement.defines ) )
+				.forEach( name => {
+					const canonicalName = statement.module.getCanonicalName( name, direct );
 
-			statement.replaceIdentifiers( magicString, replacements, bundleExports );
+					if ( allBundleExports[ canonicalName ] ) {
+						bundleExports[ name ] = replacements[ name ] = allBundleExports[ canonicalName ];
+					} else if ( name !== canonicalName ) {
+						replacements[ name ] = canonicalName;
+					}
+				});
+
+			statement.replaceIdentifiers( magicString, replacements, bundleExports, direct );
 
 			// modify exports as necessary
 			if ( statement.isExportDeclaration ) {
+				const nodeStart = statement.node.start;
+				const declaration = statement.node.declaration;
+				const declStart = declaration.start;
+
 				// remove `export` from `export var foo = 42`
-				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.declaration.type === 'VariableDeclaration' ) {
-					magicString.remove( statement.node.start, statement.node.declaration.start );
+				if ( statement.node.type === 'ExportNamedDeclaration' && declaration.type === 'VariableDeclaration' ) {
+					magicString.remove( nodeStart, declStart );
+
+					// If it's not a direct access (i.e. through `exports`),
+					// also remove `var`, `let` or `const` from `var exports.foo = 42`
+					if ( !direct ) {
+						magicString.remove( declStart, declStart + declaration.kind.length + 1 );
+					}
 				}
 
 				// remove `export` from `export class Foo {...}` or `export default Foo`
 				// TODO default exports need different treatment
-				else if ( statement.node.declaration.id ) {
-					magicString.remove( statement.node.start, statement.node.declaration.start );
+				else if ( declaration.id ) {
+					magicString.remove( nodeStart, declStart );
 				}
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
 					const module = statement.module;
-					const canonicalName = module.getCanonicalName( 'default', format === 'es6' );
+					const canonicalName = module.getCanonicalName( 'default', direct );
 
-					if ( statement.node.declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( statement.node.declaration.name, format === 'es6' ) ) {
+					if ( declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( declaration.name, direct ) ) {
 						magicString.remove( statement.start, statement.next );
 						return;
 					}
 
 					// anonymous functions should be converted into declarations
-					if ( statement.node.declaration.type === 'FunctionExpression' ) {
-						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${canonicalName}` );
+					if ( declaration.type === 'FunctionExpression' ) {
+						magicString.overwrite( nodeStart, declStart + 8, `function ${canonicalName}` );
 					} else {
-						magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${canonicalName} = ` );
+						magicString.overwrite( nodeStart, declStart, `var ${canonicalName} = ` );
 					}
 				}
 
