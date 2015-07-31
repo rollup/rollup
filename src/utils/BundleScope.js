@@ -16,6 +16,12 @@ class InternalName {
   get ( localName, direct ) { //jshint unused: false
     return this.name;
   }
+
+  fullname () {
+    return this.name === 'default' ?
+      `${this.moduleName}['default']` :
+      `${this.moduleName}.${this.name}`;
+  }
 }
 
 class FixedName extends InternalName {
@@ -35,9 +41,7 @@ class ExternalName extends InternalName {
         localName : this.name;
     }
 
-    return this.name === 'default' ?
-      `${this.moduleName}['default']` :
-      `${this.moduleName}.${this.name}`;
+    return this.fullname();
   }
 }
 
@@ -55,33 +59,6 @@ class ExportName extends ExternalName {
   //
   //   return this.name;
   // }
-}
-
-class ReferenceName {
-  constructor ( scope, id ) {
-    this.scope = scope;
-    this.id = id;
-  }
-
-  deref () {
-    return this.scope.names[ this.id ];
-  }
-
-  get original () {
-    return this.deref().original;
-  }
-
-  get name () {
-    return this.deref().name;
-  }
-
-  set name ( value ) {
-    this.deref().name = value;
-  }
-
-  get ( localName, direct ) {
-    return this.deref().get( localName, direct );
-  }
 }
 
 export default class BundleScope {
@@ -112,57 +89,75 @@ export default class BundleScope {
   }
 
   externalChild ( name ) {
+    name = this.unusedNameLike( name, undefined );
+    this.inUse[ name ] = `<External Module "${name}">`;
     return (this.children[ name ] = new ModuleScope( this, name, ExternalName ));
   }
 
   deconflict () {
-    this.names.filter( isChangableName ).forEach( n => {
-      let name = n.name;
+    // console.log(this.names);
+    this.names.filter( isChangableName ).forEach( name => {
+      const newName = this.unusedNameLike(name.name, name);
 
-      while ( name in this.inUse && this.inUse[ name ] !== n ) {
-        name = '_' + name;
-      }
+      this.inUse[ newName ] = name;
 
-      this.inUse[ name ] = n;
-
-      n.name = name;
+      name.name = newName;
     });
+    // console.log(this.names);
   }
 
   get ( nameId, localName, direct ) {
-    const name = this.names[ nameId ];
+    const name = this.resolveName( nameId );
 
     if ( !name ) throw new Error(`No name found with id ${nameId}!`);
 
     return name.get( localName, direct );
   }
 
-  link ( nameId, otherId ) {
-    this.names[ nameId ] = Object.create( otherId );
+  isExported ( nameId ) {
+    return this.resolveName( nameId ) instanceof ExportName;
   }
 
-  rename ( nameId, replacement ) {
-    const name = this.names[ nameId ];
-
-    if ( !name ) {
-      console.error('No name with:', nameId);
+  resolveName ( ref ) {
+    while ( typeof ref === 'number' ) {
+      ref = this.names[ ref ];
     }
 
-    name.name = replacement;
+    return ref;
   }
 
-  set (nameId, name ) {
-    if ( !( nameId in this.names ) ) throw new Error(`Can't redefine non-existant id ${nameId}!`);
+  resolveReference ( ref ) {
+    while ( typeof this.names[ ref ] === 'number' ) {
+      ref = this.names[ ref ];
+    }
+    return ref;
+  }
 
-    this.names[ nameId ] = name;
+  set ( nameId, name ) {
+    const ref = this.resolveReference( nameId );
+
+    if ( ref < 0 || ref >= this.names.length ) {
+      throw new Error(`Can't set name with unknown id '${nameId}' (-> ${ref})!`);
+    }
+
+    this.names[ ref ] = name;
   }
 
   suggest ( nameId, suggestion ) {
-    const name = this.names[ nameId ];
+    const name = this.resolveName( nameId );
 
-    if ( name.name === name.original ) {
+    if ( name.name === 'default' || name.name === '*' ) {
       name.name = suggestion;
     }
+  }
+
+  unusedNameLike ( name, x ) {
+    while ( name in this.inUse && this.inUse[ name ] !== x ) {
+      // console.log(`// Name '${n.moduleName}.${n.name}' in use by`, this.inUse[ name ]);
+      name = `_${name}`;
+    }
+
+    return name;
   }
 }
 
@@ -204,24 +199,25 @@ class ModuleScope {
       this.add( name );
     }
 
-    const ref = this.localNames[ name ];
-    // console.log(`//     &${this.name}.${name} == '${ref}'`);
-    return ref;
+    return this.localNames[ name ];
+  }
+
+  isExported ( name ) {
+    return this.parent.isExported( this.localNames[ name ] );
   }
 
   // Link the local name `name` of this module,
-  // to another modules name reference `ref`.
+  // to another module's name reference `ref`.
   link ( name, ref ) {
     if ( name in this.localNames ) return;
 
-    // if ( typeof ref === 'string' ) ref = this.getRef( ref );
-
     // console.log(`Linking ${this.name}.${name} <--> '${this.parent.get(ref, name, false)}'!`);
-    this.localNames[ name ] = this.parent.add( new ReferenceName( this.parent, ref ) );
+    this.localNames[ name ] = this.parent.add( ref );
   }
 
   // Exports the local name `name` from this module.
   export ( name ) {
+    console.log('//', this.name, 'exports', name);
     if ( name in this.localNames ) {
       //throw new Error(`Name ${name} is already bound!`);
       this.localNames[ name ] = this.parent.set( this.localNames[ name ], new ExportName( name ) );
@@ -230,14 +226,12 @@ class ModuleScope {
     this.localNames[ name ] = this.parent.add( new ExportName( name ) );
   }
 
-  rename ( name, replacement ) {
-    // console.log(`// NS: Renaming ${this.name}.${name} ~~~> '${replacement}'!`);
-    this.localNames[ name ].name = replacement;
-    // this.parent.rename( this.getRef( name ), replacement );
-  }
-
   suggest ( name, suggestion ) {
     // console.log(`// NS: Suggesting ${this.name}.${name} -?-> '${suggestion}'!`);
-    this.parent.suggest( this.getRef( name ), suggestion );
+    const ref = this.getRef( name );
+
+    this.parent.suggest( ref, suggestion );
+
+    return ref;
   }
 }

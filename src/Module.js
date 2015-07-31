@@ -76,7 +76,7 @@ export default class Module {
 			const identifier = node.declaration.type === 'Identifier' && node.declaration.name;
 
 
-			if ( node.declaration.type !== 'Literal' ) {
+			if ( (declaredName || identifier) ) {
 				this.scope.link( 'default', this.scope.getRef( declaredName || identifier ) );
 			} else {
 				this.scope.suggest( 'default', inferModuleName( this.id ) );
@@ -113,8 +113,6 @@ export default class Module {
 						exportedName
 					};
 
-					this.scope.add( exportedName );
-
 					// export { foo } from './foo';
 					if ( source ) {
 						this.imports[ localName ] = {
@@ -122,6 +120,10 @@ export default class Module {
 							localName,
 							name: localName
 						};
+
+						// Scope binding to other modules is done in `mark( name )`.
+					} else {
+						this.scope.add( exportedName );
 					}
 				});
 			}
@@ -331,17 +333,6 @@ export default class Module {
 
 			promise = this.fetchModule( importDeclaration ).then( module => {
 
-				// suggest names. TODO should this apply to non default/* imports?
-				if ( importDeclaration.name === 'default' ) {
-					this.scope.link( name, module.scope.getRef( 'default' ));
-
-				} else if ( importDeclaration.name === '*' ) {
-					const localName = importDeclaration.localName;
-
-					module.suggestName( '*', localName );
-					module.suggestName( 'default', `${localName}__default` );
-				}
-
 				if ( module.isExternal ) {
 					if ( importDeclaration.name === 'default' ) {
 						module.needsDefault = true;
@@ -352,9 +343,29 @@ export default class Module {
 					}
 
 					this.scope.link( name, module.scope.getRef( name ) );
+
+					if ( this.exports[ name ] ) {
+						console.log(`// ${this.scope.name} exports external ${name}!`);
+						this.scope.export( name );
+					}
+
 					module.importedByBundle.push( importDeclaration );
 					return emptyArrayPromise;
 				}
+
+
+				// suggest names. TODO should this apply to non default/* imports?
+				if ( importDeclaration.name === 'default' ) {
+					module.scope.suggest( 'default', name );
+					this.scope.link( name, module.scope.getRef( 'default' ) );
+
+				} else if ( importDeclaration.name === '*' ) {
+					const localName = importDeclaration.localName;
+
+					module.suggestName( '*', localName );
+					module.suggestName( 'default', `${localName}__default` );
+				}
+
 
 				if ( importDeclaration.name === '*' ) {
 					// we need to create an internal namespace
@@ -391,7 +402,12 @@ export default class Module {
 					});
 				}
 
-				this.scope.link( name, module.scope.getRef( name ) );
+				this.scope.link( name, module.scope.getRef( importDeclaration.name ) );
+
+				if ( this.exports[ name ] ) {
+					console.log(`// ${this.scope.name} exports internal ${name}!`);
+					this.scope.export( name );
+				}
 
 				exportDeclaration.isUsed = true;
 				return module.mark( exportDeclaration.localName );
@@ -565,10 +581,7 @@ export default class Module {
 	}
 
 	rename ( name, replacement ) {
-		console.log(`Module.rename(${name}, ${replacement})`);
 		this.scope.rename( name, replacement );
-		// TODO again, hacky...
-		// this.canonicalNames[ name ] = this.canonicalNames[ name + '-es6' ] = replacement;
 	}
 
 	render ( allBundleExports, direct ) {
@@ -580,16 +593,19 @@ export default class Module {
 				return;
 			}
 
+			const node = statement.node;
+			const module = statement.module;
+
 			// skip `export { foo, bar, baz }`
-			if ( statement.node.type === 'ExportNamedDeclaration' ) {
+			if ( node.type === 'ExportNamedDeclaration' ) {
 				// skip `export { foo, bar, baz }`
-				if ( statement.node.specifiers.length ) {
+				if ( node.specifiers.length ) {
 					magicString.remove( statement.start, statement.next );
 					return;
 				}
 
 				// skip `export var foo;` if foo is exported
-				if ( isEmptyExportedVarDeclaration( statement.node.declaration, statement.module, allBundleExports, direct ) ) {
+				if ( isEmptyExportedVarDeclaration( node.declaration, module, allBundleExports, direct ) ) {
 					magicString.remove( statement.start, statement.next );
 					return;
 				}
@@ -597,14 +613,14 @@ export default class Module {
 
 			// skip empty var declarations for exported bindings
 			// (otherwise we're left with `exports.foo;`, which is useless)
-			if ( isEmptyExportedVarDeclaration( statement.node, statement.module, allBundleExports, direct ) ) {
+			if ( isEmptyExportedVarDeclaration( node, module, allBundleExports, direct ) ) {
 				magicString.remove( statement.start, statement.next );
 				return;
 			}
 
 			// split up/remove var declarations as necessary
-			if ( statement.node.isSynthetic ) {
-				magicString.insert( statement.start, `${statement.node.kind} ` );
+			if ( node.isSynthetic ) {
+				magicString.insert( statement.start, `${node.kind} ` );
 				magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
 			}
 
@@ -614,7 +630,7 @@ export default class Module {
 			keys( statement.dependsOn )
 				.concat( keys( statement.defines ) )
 				.forEach( name => {
-					const canonicalName = statement.module.getCanonicalName( name, direct );
+					const canonicalName = module.getCanonicalName( name, direct );
 
 					if ( allBundleExports[ canonicalName ] ) {
 						bundleExports[ name ] = replacements[ name ] = allBundleExports[ canonicalName ];
@@ -627,29 +643,27 @@ export default class Module {
 
 			// modify exports as necessary
 			if ( statement.isExportDeclaration ) {
-				const nodeStart = statement.node.start;
-				const declaration = statement.node.declaration;
+				const declaration = node.declaration;
 				const declStart = declaration.start;
 
 				// remove `export` from `export var foo = 42`
-				if ( statement.node.type === 'ExportNamedDeclaration' && declaration.type === 'VariableDeclaration' ) {
-					magicString.remove( nodeStart, declStart );
+				if ( node.type === 'ExportNamedDeclaration' && declaration.type === 'VariableDeclaration' ) {
+					magicString.remove( node.start, declStart );
 
 					// If it's not a direct access (i.e. through `exports`),
 					// also remove `var`, `let` or `const` from `var exports.foo = 42`
-					if ( !direct ) {
-						magicString.remove( declStart, declStart + declaration.kind.length + 1 );
-					}
+					// if ( !direct ) {
+					// 	magicString.remove( node.start, declStart + declaration.kind.length + 1 );
+					// }
 				}
 
 				// remove `export` from `export class Foo {...}` or `export default Foo`
 				// TODO default exports need different treatment
 				else if ( declaration.id ) {
-					magicString.remove( nodeStart, declStart );
+					magicString.remove( node.start, declStart );
 				}
 
-				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					const module = statement.module;
+				else if ( node.type === 'ExportDefaultDeclaration' ) {
 					const canonicalName = module.getCanonicalName( 'default', direct );
 
 					if ( declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( declaration.name, direct ) ) {
@@ -659,9 +673,9 @@ export default class Module {
 
 					// anonymous functions should be converted into declarations
 					if ( declaration.type === 'FunctionExpression' ) {
-						magicString.overwrite( nodeStart, declStart + 8, `function ${canonicalName}` );
+						magicString.overwrite( node.start, declStart + 8, `function ${canonicalName}` );
 					} else {
-						magicString.overwrite( nodeStart, declStart, `var ${canonicalName} = ` );
+						magicString.overwrite( node.start, declStart, `var ${canonicalName} = ` );
 					}
 				}
 
