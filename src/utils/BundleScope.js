@@ -11,16 +11,20 @@ class InternalName {
     this.moduleName = moduleName;
     this.original = name;
     this.name = name;
+    this.modified = false;
+  }
+
+  fullname () {
+    return this.original === 'default' ?
+      this.name : `${this.moduleName}.${this.name}`;
   }
 
   get ( localName, direct ) { //jshint unused: false
     return this.name;
   }
 
-  fullname () {
-    return this.name === 'default' ?
-      `${this.moduleName}['default']` :
-      `${this.moduleName}.${this.name}`;
+  modify () {
+    this.modified = true;
   }
 }
 
@@ -118,6 +122,10 @@ export default class BundleScope {
     return this.resolveName( nameId ) instanceof ExportName;
   }
 
+  modify ( nameId ) {
+    this.resolveName( nameId ).modify();
+  }
+
   resolveName ( ref ) {
     while ( typeof ref === 'number' ) {
       ref = this.names[ ref ];
@@ -188,6 +196,18 @@ class ModuleScope {
     this.localNames[ name ] = this.parent.addFixed( new FixedName( this.name, name ) );
   }
 
+  // Exports the local name `name` from this module.
+  export ( name ) {
+    console.log('//', this.name, 'exports', name);
+    if ( name in this.localNames ) {
+      //throw new Error(`Name ${name} is already bound!`);
+      this.localNames[ name ] = this.parent.set( this.localNames[ name ], new ExportName( name ) );
+      return;
+    }
+
+    this.localNames[ name ] = this.parent.add( new ExportName( name ) );
+  }
+
   get ( name, direct ) {
     const res = this.parent.get( this.getRef( name ), name, direct );
     // console.log(`// NS: Get ${this.name}.${name} == '${res}'`);
@@ -206,24 +226,24 @@ class ModuleScope {
     return this.parent.isExported( this.localNames[ name ] );
   }
 
+  isModified ( name ) {
+    return this.parent.resolveName( this.getRef( name ) ).modified;
+  }
+
   // Link the local name `name` of this module,
   // to another module's name reference `ref`.
   link ( name, ref ) {
-    if ( name in this.localNames ) return;
+    if ( name in this.localNames ) {
+      this.localNames[ name ] = ref;
+      return;
+    }
 
     // console.log(`Linking ${this.name}.${name} <--> '${this.parent.get(ref, name, false)}'!`);
     this.localNames[ name ] = this.parent.add( ref );
   }
 
-  // Exports the local name `name` from this module.
-  export ( name ) {
-    console.log('//', this.name, 'exports', name);
-    if ( name in this.localNames ) {
-      //throw new Error(`Name ${name} is already bound!`);
-      this.localNames[ name ] = this.parent.set( this.localNames[ name ], new ExportName( name ) );
-    }
-
-    this.localNames[ name ] = this.parent.add( new ExportName( name ) );
+  modify ( name ) {
+    this.parent.modify( this.getRef( name ) );
   }
 
   suggest ( name, suggestion ) {
