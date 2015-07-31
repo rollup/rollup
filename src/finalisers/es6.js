@@ -37,7 +37,7 @@ export default function es6 ( bundle, magicString, { exportMode }, options ) {
 	const exportBlock = keys( exports ).map( exportedName => {
 		const specifier = exports[ exportedName ];
 
-		const canonicalName = bundle.entryModule.getCanonicalName( specifier.localName. true /* direct */ );
+		const canonicalName = bundle.entryModule.getCanonicalName( specifier.localName, true /* direct */ );
 
 		if ( exportedName === 'default' ) {
 			return `export default ${canonicalName};`;
