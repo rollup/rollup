@@ -41,6 +41,13 @@ export default class Module {
 			filename: id
 		});
 
+		// remove existing sourceMappingURL comments
+		const pattern = /\/\/#\s+sourceMappingURL=.+\n?/g;
+		let match;
+		while ( match = pattern.exec( source ) ) {
+			this.magicString.remove( match.index, match.index + match[0].length );
+		}
+
 		this.suggestedNames = blank();
 		this.comments = [];
 
