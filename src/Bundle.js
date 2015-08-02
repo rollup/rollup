@@ -337,6 +337,9 @@ export default class Bundle {
 			indentString: getIndentString( magicString, options )
 		}, options );
 
+		if ( options.banner ) magicString.prepend( options.banner + '\n' );
+		if ( options.footer ) magicString.append( '\n' + options.footer );
+
 		const code = magicString.toString();
 		let map = null;
 
