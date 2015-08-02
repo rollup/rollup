@@ -323,7 +323,10 @@ export default class Bundle {
 			const exportKeys = keys( module.exports );
 
 			return `var ${module.getCanonicalName('*', format === 'es6')} = {\n` +
-				exportKeys.map( key => `${indentString}get ${key} () { return ${module.getCanonicalName(key, format === 'es6')}; }` ).join( ',\n' ) +
+				exportKeys.map( key => {
+					const localName = module.exports[ key ].localName;
+					return `${indentString}get ${key} () { return ${module.getCanonicalName(localName, format === 'es6')}; }`;
+				}).join( ',\n' ) +
 			`\n};\n\n`;
 		}).join( '' );
 

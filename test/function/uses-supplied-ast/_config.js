@@ -12,7 +12,7 @@ var modules = {
 			sourceType: 'module'
 		})
 	},
-	
+
 	'baz': 'export default 42;'
 };
 
@@ -30,6 +30,5 @@ module.exports = {
 
 			return modules[ id ];
 		}
-	},
-	solo: true
+	}
 };
