@@ -317,7 +317,7 @@ export default class Statement {
 					});
 
 					deshadowList.forEach( name => {
-						if ( ~scope.declarations[ name ] ) { // TODO is this right? no indexOf?
+						if ( scope.declarations[ name ] ) {
 							newNames[ name ] = name + '$$'; // TODO better mechanism
 							hasReplacements = true;
 						}

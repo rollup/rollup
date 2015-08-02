@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 0.12.1
+
+* Don't attempt to mark statements belonging to external modules ([#68](https://github.com/rollup/rollup/issues/68))
+* Correctly deshadow variables that conflict with imports ([#68](https://github.com/rollup/rollup/issues/68))
+
+## 0.12.0
+
+* Internal re-architecting, resulting in more efficient bundling with reduced memory usage
+* Shorthand properties are expanded if necessary ([#61](https://github.com/rollup/rollup/issues/61))
+* Fixed various bugs with bundle external dependencies, particularly when generating ES6 bundles ([#59](https://github.com/rollup/rollup/issues/59))
+* Add `--globals` option to CLI ([#60](https://github.com/rollup/rollup/pull/60))
+* Allow imports of external modules for side-effects ([#55](https://github.com/rollup/rollup/pull/55))
+* Prevent Rollup hanging on non-existent external module ([#54](https://github.com/rollup/rollup/pull/54))
+
 ## 0.11.4
 
 * Side-effect preservation applies to internal default exports ([#43](https://github.com/rollup/rollup/issues/43))
