@@ -90,7 +90,11 @@ export default class Statement {
 				}
 
 				if ( newScope ) {
-					Object.defineProperty( node, '_scope', { value: newScope });
+					Object.defineProperty( node, '_scope', {
+						value: newScope,
+						configurable: true
+					});
+
 					scope = newScope;
 				}
 			},
