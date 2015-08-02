@@ -6,7 +6,5 @@ module.exports = {
 		assert.deepEqual( Object.keys( exports ), [ 'a', 'b' ] );
 		assert.equal( exports.a, 'A' );
 		assert.equal( exports.b, 42 );
-	},
-	solo: true,
-	show: true
+	}
 };
