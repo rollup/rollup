@@ -39,7 +39,9 @@ export default class Bundle {
 		this.statements = null;
 		this.externalModules = [];
 		this.internalNamespaceModules = [];
+
 		this.assumedGlobals = blank();
+		this.assumedGlobals.exports = true; // TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 	}
 
 	build () {
