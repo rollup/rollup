@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'method of external named import used inside prototype method',
+	description: 'method of external named import used inside prototype method (#68)',
 	context: {
 		// override require here, making "foo" appear as a global module
 		require: function ( name ) {
@@ -11,5 +11,5 @@ module.exports = {
 	},
 	options: {
 		external: [ 'bar' ]
-	},
+	}
 };
