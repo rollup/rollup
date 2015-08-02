@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.12.1
+
+* Don't attempt to mark statements belonging to external modules ([#68](https://github.com/rollup/rollup/issues/68))
+* Correctly deshadow variables that conflict with imports ([#68](https://github.com/rollup/rollup/issues/68))
+
 ## 0.12.0
 
 * Internal re-architecting, resulting in more efficient bundling with reduced memory usage
