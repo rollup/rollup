@@ -47,7 +47,9 @@ export default class Bundle {
 		this.statements = null;
 		this.externalModules = [];
 		this.internalNamespaceModules = [];
+
 		this.assumedGlobals = blank();
+		this.assumedGlobals.exports = true; // TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 	}
 
 	build () {
@@ -169,12 +171,24 @@ export default class Bundle {
 					return this.modulePromises[ importee ];
 				}
 
+				if ( id === importer ) {
+					throw new Error( `A module cannot import itself (${id})` );
+				}
+
 				if ( !this.modulePromises[ id ] ) {
 					this.modulePromises[ id ] = Promise.resolve( this.load( id, this.loadOptions ) )
 						.then( source => {
+							let ast;
+
+							if ( typeof source === 'object' ) {
+								ast = source.ast;
+								source = source.code;
+							}
+
 							const module = new Module({
 								id,
 								source,
+								ast,
 								bundle: this,
 								scope: this.scope.child( inferModuleName( id ) ),
 								entry: importer === undefined
@@ -302,7 +316,10 @@ export default class Bundle {
 			const exportKeys = keys( module.exports );
 
 			return `var ${module.getCanonicalName('*', direct)} = {\n` +
-				exportKeys.map( key => `${indentString}get ${key} () { return ${module.getCanonicalName(key, direct)}; }` ).join( ',\n' ) +
+				exportKeys.map( key => {
+					const localName = module.exports[ key ].localName;
+					return `${indentString}get ${key} () { return ${module.getCanonicalName(localName, direct)}; }`;
+				}).join( ',\n' ) +
 			`\n};\n\n`;
 		}).join( '' );
 
@@ -321,6 +338,9 @@ export default class Bundle {
 			// Determine indentation
 			indentString: getIndentString( magicString, options )
 		}, options );
+
+		if ( options.banner ) magicString.prepend( options.banner + '\n' );
+		if ( options.footer ) magicString.append( '\n' + options.footer );
 
 		const code = magicString.toString();
 		let map = null;
