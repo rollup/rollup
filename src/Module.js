@@ -641,7 +641,11 @@ export default class Module {
 
 			// split up/remove var declarations as necessary
 			if ( statement.node.isSynthetic ) {
-				magicString.insert( statement.start, `${statement.node.kind} ` );
+				// insert `var/let/const` if necessary
+				if ( !allBundleExports[ statement.node.declarations[0].id.name ] ) {
+					magicString.insert( statement.start, `${statement.node.kind} ` );
+				}
+
 				magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
 			}
 
