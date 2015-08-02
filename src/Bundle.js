@@ -234,6 +234,8 @@ export default class Bundle {
 
 					const promise = Promise.resolve( importDeclaration.module || this.fetchModule( importDeclaration.source, module.id ) )
 						.then( module => {
+							if ( module.isExternal ) return null;
+
 							importDeclaration.module = module;
 							const exportDeclaration = module.exports[ importDeclaration.name ];
 							// TODO things like `export default a + b` don't apply here... right?
