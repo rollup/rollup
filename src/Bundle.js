@@ -191,9 +191,17 @@ export default class Bundle {
 				if ( !this.modulePromises[ id ] ) {
 					this.modulePromises[ id ] = Promise.resolve( this.load( id, this.loadOptions ) )
 						.then( source => {
+							let ast;
+
+							if ( typeof source === 'object' ) {
+								ast = source.ast;
+								source = source.code;
+							}
+
 							const module = new Module({
 								id,
 								source,
+								ast,
 								bundle: this
 							});
 
