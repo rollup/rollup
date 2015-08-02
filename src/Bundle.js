@@ -91,16 +91,14 @@ export default class Bundle {
 
 		// Assign names to external modules
 		this.externalModules.forEach( module => {
-			// TODO is this right?
 			let name = makeLegalIdentifier( module.suggestedNames['*'] || module.suggestedNames.default || module.id );
 
-			if ( definers[ name ] ) {
+			while ( definers[ name ] ) {
 				conflicts[ name ] = true;
-			} else {
-				definers[ name ] = [];
+				name = `_${name}`;
 			}
 
-			definers[ name ].push( module );
+			definers[ name ] = [ module ];
 			module.name = name;
 			this.assumedGlobals[ name ] = true;
 		});
