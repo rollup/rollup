@@ -201,6 +201,8 @@ export default class Statement {
 					// b) after the export declaration
 					if ( !!scope.parent || node.start > this.module.exports.default.statement.node.start ) {
 						this.module.exports.default.isModified = true;
+						this.module.scope.unlink( 'default' );
+						this.module.scope.suggest( 'default', this.module.scope.name );
 					}
 				}
 			}
@@ -336,7 +338,6 @@ export default class Statement {
 				// if there's no replacement, or it's the same, there's nothing more to do
 				const name = module.scope.get( node.name, direct );
 				if ( !name || name === node.name ) return;
-				console.log( `// Replacing ${node.name} --> ${name}.` );
 
 				// shorthand properties (`obj = { foo }`) need to be expanded
 				if ( parent.type === 'Property' && parent.shorthand ) {

@@ -35,10 +35,6 @@ export default class ExternalModule {
 		return this.scope.get( name, !this.needsNamed && direct );
 	}
 
-	rename ( name, replacement ) {
-		this.scope.rename( name, replacement );
-	}
-
 	suggestName ( exportName, suggestion ) {
 		this.scope.suggest( exportName, suggestion );
 	}

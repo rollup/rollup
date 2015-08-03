@@ -52,12 +52,11 @@ class ExternalName extends InternalName {
 class ExportName extends ExternalName {
   constructor ( name ) {
     super( 'exports', name );
-    this.reassigned = false;
   }
 
   // TODO: maybe diffrentiate on reassignment.
   // get ( direct ) {
-  //   if ( this.reassigned ) {
+  //   if ( this.modified ) {
   //     return super.get( direct );
   //   }
   //
@@ -99,7 +98,6 @@ export default class BundleScope {
   }
 
   deconflict () {
-    // console.log(this.names);
     this.names.filter( isChangableName ).forEach( name => {
       const newName = this.unusedNameLike(name.name, name);
 
@@ -107,7 +105,6 @@ export default class BundleScope {
 
       name.name = newName;
     });
-    // console.log(this.names);
   }
 
   get ( nameId, localName, direct ) {
@@ -138,14 +135,17 @@ export default class BundleScope {
     while ( typeof this.names[ ref ] === 'number' ) {
       ref = this.names[ ref ];
     }
+
+    if ( ref < 0 || ref >= this.names.length ) {
+      throw new Error(`Invalid name reference!`);
+    }
+
     return ref;
   }
 
-  set ( nameId, name ) {
-    const ref = this.resolveReference( nameId );
-
+  set ( ref, name ) {
     if ( ref < 0 || ref >= this.names.length ) {
-      throw new Error(`Can't set name with unknown id '${nameId}' (-> ${ref})!`);
+      throw new Error(`Invalid name reference '${ref}'!`);
     }
 
     this.names[ ref ] = name;
@@ -198,10 +198,11 @@ class ModuleScope {
 
   // Exports the local name `name` from this module.
   export ( name ) {
-    console.log('//', this.name, 'exports', name);
     if ( name in this.localNames ) {
-      //throw new Error(`Name ${name} is already bound!`);
-      this.localNames[ name ] = this.parent.set( this.localNames[ name ], new ExportName( name ) );
+      const ref = this.parent.resolveReference( this.localNames[ name ] );
+      this.localNames[ name ] = ref;
+
+      this.parent.set( ref, new ExportName( name ) );
       return;
     }
 
@@ -209,9 +210,7 @@ class ModuleScope {
   }
 
   get ( name, direct ) {
-    const res = this.parent.get( this.getRef( name ), name, direct );
-    // console.log(`// NS: Get ${this.name}.${name} == '${res}'`);
-    return res;
+    return this.parent.get( this.getRef( name ), name, direct );
   }
 
   getRef ( name ) {
@@ -234,11 +233,10 @@ class ModuleScope {
   // to another module's name reference `ref`.
   link ( name, ref ) {
     if ( name in this.localNames ) {
-      this.localNames[ name ] = ref;
+      this.parent.set( this.localNames[ name ], ref );
       return;
     }
 
-    // console.log(`Linking ${this.name}.${name} <--> '${this.parent.get(ref, name, false)}'!`);
     this.localNames[ name ] = this.parent.add( ref );
   }
 
@@ -247,11 +245,28 @@ class ModuleScope {
   }
 
   suggest ( name, suggestion ) {
-    // console.log(`// NS: Suggesting ${this.name}.${name} -?-> '${suggestion}'!`);
     const ref = this.getRef( name );
 
     this.parent.suggest( ref, suggestion );
 
     return ref;
   }
+
+  unlink ( name ) {
+    this.parent.set(this.localNames[ name ], new this.Name( this.name, name ) );
+  }
+}
+
+// debug(ModuleScope);
+
+function debug (cls) {
+  Object.keys(cls.prototype).forEach( name => {
+    console.log( name );
+    const m = cls.prototype[ name ];
+
+    cls.prototype[ name ] = function () {
+      console.log(`ModuleScope<${this.name}>::${name}(${[].join.call(arguments, ', ')})`);
+      return m.apply(this, arguments);
+    };
+  });
 }

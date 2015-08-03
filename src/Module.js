@@ -84,7 +84,7 @@ export default class Module {
 			const identifier = node.declaration.type === 'Identifier' && node.declaration.name;
 
 
-			if ( (declaredName || identifier) ) {
+			if ( isDeclaration || identifier ) {
 				this.scope.link( 'default', this.scope.getRef( declaredName || identifier ) );
 			} else {
 				this.scope.suggest( 'default', inferModuleName( this.id ) );
@@ -410,7 +410,8 @@ export default class Module {
 					});
 				}
 
-				this.scope.link( name, module.scope.getRef( importDeclaration.name ) );
+				this.scope.link( name, module.scope.getRef(
+					module.exports[ importDeclaration.name ].localName ) );
 
 				if ( this.exports[ name ] ) {
 					console.log(`// ${this.scope.name} exports internal ${name}!`);
@@ -587,10 +588,6 @@ export default class Module {
 		});
 
 		return statements;
-	}
-
-	rename ( name, replacement ) {
-		this.scope.rename( name, replacement );
 	}
 
 	render ( allBundleExports, direct ) {
