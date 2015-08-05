@@ -342,15 +342,16 @@ export default class Module {
 			promise = this.fetchModule( importDeclaration ).then( module => {
 
 				if ( module.isExternal ) {
-					if ( importDeclaration.name === 'default' ) {
+					const importName = importDeclaration.name;
+					if ( importName === 'default' ) {
 						module.needsDefault = true;
-					} else if ( importDeclaration.name === '*' ) {
+					} else if ( importName === '*' ) {
 						module.needsAll = true;
 					} else {
 						module.needsNamed = true;
 					}
 
-					this.scope.link( name, module.scope.getRef( name ) );
+					this.scope.link( name, module.scope.getRef( importName ) );
 
 					if ( this.exports[ name ] ) {
 						console.log(`// ${this.scope.name} exports external ${name}!`);
