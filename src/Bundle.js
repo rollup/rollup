@@ -190,7 +190,7 @@ export default class Bundle {
 								source,
 								ast,
 								bundle: this,
-								scope: this.scope.child( inferModuleName( id ) ),
+								scope: this.scope.child( inferModuleName( id || importee ) ),
 								entry: importer === undefined
 							});
 
@@ -286,12 +286,14 @@ export default class Bundle {
 
 				const originalDeclaration = this.entryModule.findDeclaration( exportDeclaration.localName );
 
-				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
-					const canonicalName = this.entryModule.getCanonicalName( exportDeclaration.localName, false );
+				// console.log('Bundle.render: Exporting', key);
 
-					allBundleExports[ canonicalName ] = `exports.${key}`;
-					this.varExports[ key ] = true;
-				}
+				// if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
+				// 	const canonicalName = this.entryModule.getCanonicalName( exportDeclaration.localName, false );
+				//
+				// 	allBundleExports[ canonicalName ] = `exports.${key}`;
+				// 	this.varExports[ key ] = true;
+				// }
 			});
 		}
 

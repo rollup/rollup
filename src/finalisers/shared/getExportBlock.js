@@ -6,7 +6,7 @@ export default function getExportBlock ( bundle, exportMode, mechanism = 'return
 	return bundle.toExport
 		.map( name => {
 			const prop = name === 'default' ? `['default']` : `.${name}`;
-			return `exports${prop} = ${bundle.entryModule.getCanonicalName(name, false)};`;
+			return `exports${prop} = ${bundle.entryModule.scope.getExportName(name, false)};`;
 		})
 		.join( '\n' );
 }

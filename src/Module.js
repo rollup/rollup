@@ -13,11 +13,11 @@ import inferModuleName from './utils/inferModuleName';
 const emptyArrayPromise = Promise.resolve([]);
 
 
-function isEmptyExportedVarDeclaration ( node, module, allBundleExports, es6 ) {
+function isEmptyExportedVarDeclaration ( node, module, allBundleExports, direct ) {
 	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
 
 	const name = node.declarations[0].id.name;
-	const canonicalName = module.getCanonicalName( name, es6 );
+	const canonicalName = module.getCanonicalName( name, direct );
 
 	return canonicalName in allBundleExports;
 }
@@ -118,7 +118,8 @@ export default class Module {
 
 					this.exports[ exportedName ] = {
 						localName,
-						exportedName
+						exportedName,
+						source
 					};
 
 					// export { foo } from './foo';
@@ -129,9 +130,11 @@ export default class Module {
 							name: localName
 						};
 
-						// Scope binding to other modules is done in `mark( name )`.
+						// Exporting references from another module is handled in `mark( name )`.
+						// this.scope.export( exportedName, null );
 					} else {
-						this.scope.add( exportedName );
+						// We can export the local reference immediately.
+						this.scope.export( exportedName, this.scope.getRef( localName ) );
 					}
 				});
 			}
@@ -149,11 +152,7 @@ export default class Module {
 					name = declaration.id.name;
 				}
 
-				if ( this.isEntryModule ) {
-					this.scope.export( name );
-				} else {
-					this.scope.add( name );
-				}
+				this.scope.export( name, this.scope.add( name ) );
 
 				this.exports[ name ] = {
 					statement,
@@ -343,19 +342,23 @@ export default class Module {
 
 				if ( module.isExternal ) {
 					const importName = importDeclaration.name;
+					const ref = module.scope.getExportRef( importName );
+
+					this.scope.link( name, ref );
+
 					if ( importName === 'default' ) {
 						module.needsDefault = true;
+						console.log('// suggesting default name', module.scope.name );
+						this.scope.suggest( name, module.scope.name );
 					} else if ( importName === '*' ) {
 						module.needsAll = true;
 					} else {
 						module.needsNamed = true;
 					}
 
-					this.scope.link( name, module.scope.getRef( importName ) );
-
 					if ( this.exports[ name ] ) {
 						console.log(`// ${this.scope.name} exports external ${name}!`);
-						this.scope.export( name );
+						this.scope.export( name, ref );
 					}
 
 					module.importedByBundle.push( importDeclaration );
@@ -411,16 +414,30 @@ export default class Module {
 					});
 				}
 
-				this.scope.link( name, module.scope.getRef(
-					module.exports[ importDeclaration.name ].localName ) );
+				const localName = module.exports[ importDeclaration.name ].localName;
+				const ref = module.scope.getRef( localName );
 
-				if ( this.exports[ name ] ) {
-					console.log(`// ${this.scope.name} exports internal ${name}!`);
-					this.scope.export( name );
+				this.scope.link( name, ref );
+
+				// TODO: this might be all wrong.
+				if ( exportDeclaration ) {
+					console.log(`// ${this.scope.name} exports internal ${name} as ${localName}!`);
+					this.scope.export( name, ref );
+				} else {
+					console.log(`// has internal ${name}`);
 				}
 
 				exportDeclaration.isUsed = true;
 				return module.mark( exportDeclaration.localName );
+			});
+		}
+
+		// export { a as b, ... } from 'source'
+		else if ( this.exports[ name ] && this.exports[ name ].source ) {
+			return this.fetchModule( this.exports[ name ] ).then( module => {
+				const localName = this.exports[ name ].localName;
+				this.scope.export( name, module.scope.getExportRef( localName ) );
+				return module.mark( localName );
 			});
 		}
 
