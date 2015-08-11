@@ -1,4 +1,3 @@
-import { basename, extname } from './utils/path';
 import { Promise } from 'sander';
 import MagicString from 'magic-string';
 import { blank, keys } from './utils/object';
@@ -11,12 +10,10 @@ import { defaultResolver, defaultExternalResolver } from './utils/resolveId';
 import { defaultLoader } from './utils/load';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
-import { unixizePath } from './utils/normalizePlatform.js';
-import BundleScope from './utils/BundleScope.js';
+import { unixizePath } from './utils/normalizePlatform';
+import BundleScope from './utils/BundleScope';
+import inferModuleName from './utils/inferModuleName';
 
-function inferModuleName ( id ) {
-	return makeLegalIdentifier( basename( id ).slice( 0, -extname( id ).length ) );
-}
 
 export default class Bundle {
 	constructor ( options ) {
@@ -36,7 +33,6 @@ export default class Bundle {
 		};
 
 		this.scope = new BundleScope();
-		this.exportScope = this.scope.exportScope();
 
 		this.varExports = blank();
 		this.toExport = null;

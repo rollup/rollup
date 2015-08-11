@@ -1,6 +1,8 @@
 import { blank } from './object';
 
 
+// Given an element of a BundleScope's `names` array,
+// return true if the name can be changed.
 function isChangableName ( name ) {
   return typeof name !== 'number' && name.constructor !== FixedName;
 }
@@ -45,10 +47,15 @@ class ExternalName extends InternalName {
 
 export default class BundleScope {
   constructor () {
+    // Array of names (inheriting from InternalName) and numbers (references).
     this.names = [];
+
+    // The names that are in use within the scope of the bundle.
     this.inUse = blank();
 
-    this.children = blank();
+    // Implicitly expect exports to always exist.
+    // Simplifies deconflicting logic.
+    this.inUse[ 'exports' ] = '<Implicit Module "exports">';
   }
 
   add ( name ) {
@@ -64,17 +71,15 @@ export default class BundleScope {
 
   // Creates a new child called `name`.
   child ( name ) {
-    return (this.children[ name ] = new ModuleScope( this, name, InternalName ));
+    return new ModuleScope( this, name, InternalName );
   }
 
-  exportScope () {
-    return this.externalChild( 'exports' );
-  }
-
+  // Creates a ModuleScope for an external module,
+  // that uses an unused name like `name`.
   externalChild ( name ) {
     name = this.unusedNameLike( name, undefined );
     this.inUse[ name ] = `<External Module "${name}">`;
-    return (this.children[ name ] = new ModuleScope( this, name, ExternalName ));
+    return new ModuleScope( this, name, ExternalName );
   }
 
   deconflict () {
@@ -157,9 +162,10 @@ class ModuleScope {
     this.parent = parent;
     this.name = name;
 
+    // The Name constructor used by the module to create its names.
     this.Name = Name;
 
-    // Mapping from local name to global name id.
+    // Mappings from local and exported names to global name ids.
     this.localNames = blank();
     this.exportedNames = blank();
   }

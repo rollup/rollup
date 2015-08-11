@@ -1,4 +1,3 @@
-// import { dirname } from './utils/path';
 import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
@@ -7,8 +6,6 @@ import walk from './ast/walk';
 import { blank, keys } from './utils/object';
 import { first, sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
-import inferModuleName from './utils/inferModuleName';
-// import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
 const emptyArrayPromise = Promise.resolve([]);
 
@@ -85,12 +82,16 @@ export default class Module {
 
 
 			if ( isDeclaration || identifier ) {
+				// Link the default to the identifier/declaredName.
+				// If the value of the identifier is changed, the default is unlinked.
 				this.scope.link( 'default', this.scope.getRef( declaredName || identifier ) );
 			} else {
-				this.scope.suggest( 'default', inferModuleName( this.id ) );
+				// Other values can be used as is. Just suggest a name.
+				this.scope.suggest( 'default', this.scope.name );
 			}
 
-			// this.scope.export( 'default' );
+			// Export the default.
+			this.scope.export( 'default', this.scope.getRef( 'default' ) );
 
 			this.definitions[ 'default' ] = statement;
 
@@ -165,6 +166,7 @@ export default class Module {
 		// Store `export * from '...'` statements in an array of delegates.
 		// When an unknown import is encountered, we see if one of them can satisfy it.
 		else {
+			// TODO: How should this work for ModuleScopes?
 			this.exportDelegates.push({
 				statement,
 				source
@@ -354,14 +356,15 @@ export default class Module {
 						this.scope.suggest( name, name );
 					} else if ( importName === '*' ) {
 						module.needsAll = true;
+						this.scope.suggest( name, name );
 					} else {
 						module.needsNamed = true;
 					}
 
-					if ( this.exports[ name ] ) {
-						console.log(`// ${this.scope.name} exports external ${name}!`);
-						this.scope.export( name, ref );
-					}
+					// if ( this.exports[ name ] ) {
+					// 	console.log(`// ${this.scope.name} exports external ${name}!`);
+					// 	this.scope.export( name, ref );
+					// }
 
 					module.importedByBundle.push( importDeclaration );
 					return emptyArrayPromise;
@@ -424,7 +427,12 @@ export default class Module {
 				// TODO: this might be all wrong.
 				if ( exportDeclaration ) {
 					console.log(`// ${this.scope.name} exports internal ${name} as ${localName}!`);
-					this.scope.export( name, ref );
+
+					if ( !this.scope.isExported( name ) ) {
+						this.scope.export( name, ref );
+					} else {
+						console.log(`//\t${name} already exported`);
+					}
 				} else {
 					console.log(`// has internal ${name}`);
 				}

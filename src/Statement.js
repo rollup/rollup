@@ -1,4 +1,4 @@
-import { blank, keys } from './utils/object';
+import { blank, hasOwn, keys } from './utils/object';
 import { sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
 import walk from './ast/walk';
@@ -282,7 +282,7 @@ export default class Statement {
 						else {
 							const exportInitialisers = node.declarations
 								.map( declarator => declarator.id.name )
-								.filter( name => !!bundleExports[ name ] )
+								.filter( name => hasOwn( bundleExports, name ) )
 								.map( name => `\n${bundleExports[name]} = ${name};` )
 								.join( '' );
 
@@ -335,10 +335,10 @@ export default class Statement {
 
 				if ( node.type !== 'Identifier' ) return;
 
-				// if there's no replacement, or it's the same, there's nothing more to do
-				const name = module.scope.get( node.name, direct );
+				const name = replacements[ node.name ] || module.scope.get( node.name, direct );
 				const exportName = bundleExports[ node.name ];
 
+				// if there's no replacement, or it's the same, there's nothing more to do
 				if ( !name || name === node.name && !exportName ) return;
 
 				// shorthand properties (`obj = { foo }`) need to be expanded
