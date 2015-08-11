@@ -128,10 +128,6 @@ export default class BundleScope {
     return name.get( localName, direct );
   }
 
-  isExported ( nameId ) {
-    return this.resolveName( nameId ) instanceof ExportName;
-  }
-
   modify ( nameId ) {
     this.resolveName( nameId ).modify();
   }
@@ -226,7 +222,8 @@ class ModuleScope {
   }
 
   getExportName ( name, direct ) {
-    return this.parent.get( this.getExportRef( name ), name, direct );
+    return ( direct ? '' : 'exports.' ) +
+      this.parent.get( this.getExportRef( name ), name, true );
   }
 
   getExportRef ( name ) {
@@ -250,7 +247,7 @@ class ModuleScope {
   }
 
   isExported ( name ) {
-    return this.parent.isExported( this.localNames[ name ] );
+    return name in this.exportedNames;
   }
 
   isModified ( name ) {

@@ -677,13 +677,6 @@ export default class Module {
 				// remove `export` from `export var foo = 42`
 				if ( node.type === 'ExportNamedDeclaration' && declaration.type === 'VariableDeclaration' ) {
 					magicString.remove( node.start, declStart );
-
-					// If it's not a direct access (i.e. through `exports`),
-					// also remove `var`, `let` or `const` from `var exports.foo = 42`
-					// TODO: hack! only handles single identifiers
-					if ( module.scope.isExported( declaration.declarations[0].id.name ) && !direct ) {
-						magicString.remove( node.start, declStart + declaration.kind.length + 1 );
-					}
 				}
 
 				// remove `export` from `export class Foo {...}` or `export default Foo`

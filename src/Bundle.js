@@ -286,14 +286,14 @@ export default class Bundle {
 
 				const originalDeclaration = this.entryModule.findDeclaration( exportDeclaration.localName );
 
-				// console.log('Bundle.render: Exporting', key);
+				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
+					const canonicalName = this.entryModule.getCanonicalName( exportDeclaration.localName, false );
 
-				// if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
-				// 	const canonicalName = this.entryModule.getCanonicalName( exportDeclaration.localName, false );
-				//
-				// 	allBundleExports[ canonicalName ] = `exports.${key}`;
-				// 	this.varExports[ key ] = true;
-				// }
+					allBundleExports[ canonicalName ] =
+						this.entryModule.scope.getExportName( exportDeclaration.localName, false );
+
+					this.varExports[ key ] = true;
+				}
 			});
 		}
 

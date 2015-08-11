@@ -337,7 +337,9 @@ export default class Statement {
 
 				// if there's no replacement, or it's the same, there's nothing more to do
 				const name = module.scope.get( node.name, direct );
-				if ( !name || name === node.name ) return;
+				const exportName = bundleExports[ node.name ];
+
+				if ( !name || name === node.name && !exportName ) return;
 
 				// shorthand properties (`obj = { foo }`) need to be expanded
 				if ( parent.type === 'Property' && parent.shorthand ) {
@@ -354,7 +356,7 @@ export default class Statement {
 				// TODO others...?
 
 				// all other identifiers should be overwritten
-				magicString.overwrite( node.start, node.end, name );
+				magicString.overwrite( node.start, node.end, exportName ? exportName : name );
 			},
 
 			leave ( node ) {
