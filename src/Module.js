@@ -348,8 +348,10 @@ export default class Module {
 
 					if ( importName === 'default' ) {
 						module.needsDefault = true;
-						console.log('// suggesting default name', module.scope.name );
-						this.scope.suggest( name, module.scope.name );
+						console.log('// suggesting default name', module.scope.name, 'for', name );
+						// HACK! Rename the scope to the same name as the suggested name.
+						module.scope.renameScope( name );
+						this.scope.suggest( name, name );
 					} else if ( importName === '*' ) {
 						module.needsAll = true;
 					} else {

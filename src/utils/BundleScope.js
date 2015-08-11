@@ -2,13 +2,13 @@ import { blank } from './object';
 
 
 function isChangableName ( name ) {
-  return name.constructor === InternalName || name.constructor === ExternalName;
+  return typeof name !== 'number' && name.constructor !== FixedName;
 }
 
 
 class InternalName {
-  constructor ( moduleName, name ) {
-    this.moduleName = moduleName;
+  constructor ( scope, name ) {
+    this.scope = scope;
     this.original = name;
     this.name = name;
     this.modified = false;
@@ -17,9 +17,9 @@ class InternalName {
   fullname () {
     switch ( this.original ) {
       case 'default': return this.name;
-      case '*': return this.moduleName;
+      case '*': return this.scope.name;
     }
-    return `${this.moduleName}.${this.name}`;
+    return `${this.scope.name}.${this.name}`;
   }
 
   get ( localName, direct ) { //jshint unused: false
@@ -35,40 +35,12 @@ class InternalName {
   }
 }
 
-class FixedName extends InternalName {
-  constructor ( moduleName, name ) {
-    super( moduleName, name );
-    Object.defineProperty(this, 'name', {
-      get: () => name,
-      set: () => { throw new Error(`Can't set name of FixedName!`); }
-    });
-  }
-}
+class FixedName extends InternalName {}
 
 class ExternalName extends InternalName {
   get ( localName, direct ) {
-    if ( direct ) {
-      return this.name === 'default' ?
-        localName : this.name;
-    }
-
-    return this.fullname();
+    return direct ? this.name : this.fullname();
   }
-}
-
-class ExportName extends ExternalName {
-  constructor ( name ) {
-    super( 'exports', name );
-  }
-
-  // TODO: maybe diffrentiate on reassignment.
-  // get ( direct ) {
-  //   if ( this.modified ) {
-  //     return super.get( direct );
-  //   }
-  //
-  //   return this.name;
-  // }
 }
 
 export default class BundleScope {
@@ -199,11 +171,11 @@ class ModuleScope {
     // Don't redefine the name.
     if ( name in this.localNames ) return;
 
-    return ( this.localNames[ name ] = this.parent.add( new this.Name( this.name, name ) ) );
+    return ( this.localNames[ name ] = this.parent.add( new this.Name( this, name ) ) );
   }
 
   addFixed ( name ) {
-    this.localNames[ name ] = this.parent.addFixed( new FixedName( this.name, name ) );
+    this.localNames[ name ] = this.parent.addFixed( new FixedName( this, name ) );
   }
 
   // Add an export called `name` which refers to the variable `ref`.
@@ -218,7 +190,7 @@ class ModuleScope {
   }
 
   get ( name, direct ) {
-    return this.parent.get( this.getRef( name ), name, direct );
+    return this.parent.get( this.getRef( name ), name, direct ) || (console.log(this.parent.names) || null);
   }
 
   getExportName ( name, direct ) {
@@ -269,6 +241,23 @@ class ModuleScope {
     this.parent.modify( this.getRef( name ) );
   }
 
+  renameScope( name ) {
+    // No renaming takes place. :)
+    if ( name === this.name ) return;
+
+    console.warn(`I don't like renaming modules...`);
+    const usage = this.parent.inUse[ this.name ];
+    delete this.parent.inUse[ this.name ];
+    const similarName = this.parent.unusedNameLike( name, usage );
+
+    if ( similarName !== name ) {
+      throw new Error(`Scope renaming '${this.name}' to '${name}' results in collision!`);
+    }
+
+    this.name = name;
+    this.parent.inUse[ name ] = usage;
+  }
+
   suggest ( name, suggestion ) {
     const ref = this.getRef( name );
 
@@ -278,7 +267,7 @@ class ModuleScope {
   }
 
   unlink ( name ) {
-    this.parent.set(this.localNames[ name ], new this.Name( this.name, name ) );
+    this.parent.set(this.localNames[ name ], new this.Name( this, name ) );
   }
 }
 
@@ -287,12 +276,16 @@ class ModuleScope {
 //jshint unused: false
 function debug (cls) {
   Object.keys(cls.prototype).forEach( name => {
-    console.log( name );
     const m = cls.prototype[ name ];
 
     cls.prototype[ name ] = function () {
       console.log(`ModuleScope<${this.name}>::${name}(${[].join.call(arguments, ', ')})`);
-      return m.apply(this, arguments);
+      const res = m.apply(this, arguments);
+
+      if (res !== undefined)
+        console.log(`\t-> ${res}\n`);
+
+      return res;
     };
   });
 }
