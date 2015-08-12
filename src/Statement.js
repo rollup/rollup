@@ -17,6 +17,10 @@ export default class Statement {
 		this.next = null; // filled in later
 
 		this.scope = new Scope();
+
+		// All these collections only refer to names as strings.
+		// This is insufficient when working with ES6 modules that have
+		// local names and export names.
 		this.defines = blank();
 		this.modifies = blank();
 		this.dependsOn = blank();
@@ -158,6 +162,10 @@ export default class Statement {
 			// disregard the `bar` in `class Foo { bar () {...} }`
 			if ( parent.type === 'MethodDefinition' ) return;
 
+			// Disregard the `x` in `export { x as y }`.
+			// Marking `y` should result in `x` being marked.
+			if ( parent.type === 'ExportSpecifier' && node === parent.local ) return;
+
 			const definingScope = scope.findDefiningScope( node.name );
 
 			if ( ( !definingScope || definingScope.depth === 0 ) && !this.defines[ node.name ] ) {
@@ -234,7 +242,7 @@ export default class Statement {
 		if ( this.isIncluded ) return; // prevent infinite loops
 		this.isIncluded = true;
 
-		const dependencies = Object.keys( this.dependsOn );
+		const dependencies = keys( this.dependsOn );
 
 		return sequence( dependencies, name => {
 			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
@@ -366,6 +374,11 @@ export default class Statement {
 					replacementStack.pop();
 					replacements = replacementStack[ replacementStack.length - 1 ];
 				}
+
+				// TODO: insert namespace logic
+				// if ( node.type === 'MemberExpression' && !node.computed ) {
+				//
+				// }
 			}
 		});
 

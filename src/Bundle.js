@@ -158,7 +158,7 @@ export default class Bundle {
 					// external module
 					if ( !this.modulePromises[ importee ] ) {
 						const module = new ExternalModule( importee,
-							this.scope.externalChild( makeLegalIdentifier( importee ) ) );
+							this.scope.externalModule( makeLegalIdentifier( importee ) ) );
 
 						this.externalModules.push( module );
 						this.modulePromises[ importee ] = Promise.resolve( module );
@@ -186,7 +186,7 @@ export default class Bundle {
 								source,
 								ast,
 								bundle: this,
-								scope: this.scope.child( inferModuleName( id || importee ) ),
+								scope: this.scope.internalModule( inferModuleName( id || importee ) ),
 								entry: importer === undefined
 							});
 
@@ -279,6 +279,10 @@ export default class Bundle {
 		if ( !direct ) {
 			keys( this.entryModule.exports ).forEach( key => {
 				const exportDeclaration = this.entryModule.exports[ key ];
+
+				if ( exportDeclaration.source ) {
+					throw new Error( `UNIMPLEMENTED!` );
+				}
 
 				const originalDeclaration = this.entryModule.findDeclaration( exportDeclaration.localName );
 

@@ -27,6 +27,8 @@ export default class Module {
 		this.id = id;
 		this.scope = scope;
 
+		this.scope.module = this;
+
 		this.isEntryModule = entry;
 
 		// By default, `id` is the filename. Custom resolvers and loaders
@@ -132,7 +134,6 @@ export default class Module {
 						};
 
 						// Exporting references from another module is handled in `mark( name )`.
-						// this.scope.export( exportedName, null );
 					} else {
 						// We can export the local reference immediately.
 						this.scope.export( exportedName, this.scope.getRef( localName ) );
@@ -224,7 +225,12 @@ export default class Module {
 		// in this module, we assume that they're globals
 		this.statements.forEach( statement => {
 			keys( statement.dependsOn ).forEach( name => {
-				if ( !this.definitions[ name ] && !this.imports[ name ] ) {
+				// TODO: fix last condition...
+				// Handles `export { x as y } from '...'`
+				const exported = this.exports[ name ];
+
+				if ( !this.definitions[ name ] && !this.imports[ name ] &&
+						( !exported || !this.imports[ exported.localName ] ) ) {
 					this.bundle.assumedGlobals[ name ] = true;
 					this.scope.addFixed( name );
 				}
@@ -270,6 +276,10 @@ export default class Module {
 				if ( importDeclaration && importDeclaration.module && !importDeclaration.module.isExternal ) {
 					weakDependencies[ importDeclaration.module.id ] = importDeclaration.module;
 				}
+
+				// // FIXME: This is not safe! See `Statement.constructor`!
+				// const n = this.scope.getExport( name );
+				// weakDependencies[ n.module.module.id ] = n.module.module;
 			});
 		});
 
@@ -305,6 +315,11 @@ export default class Module {
 		// name was defined by another module
 		if ( importDeclaration ) {
 			const module = importDeclaration.module;
+
+			if ( !module ) {
+				throw new Error(`Can't find defining module for '${this.scope.name}.${localName}'`);
+				// return null;
+			}
 
 			if ( module.isExternal ) return null;
 
@@ -350,7 +365,6 @@ export default class Module {
 
 					if ( importName === 'default' ) {
 						module.needsDefault = true;
-						console.log('// suggesting default name', module.scope.name, 'for', name );
 						// HACK! Rename the scope to the same name as the suggested name.
 						module.scope.renameScope( name );
 						this.scope.suggest( name, name );
@@ -426,15 +440,16 @@ export default class Module {
 
 				// TODO: this might be all wrong.
 				if ( exportDeclaration ) {
-					console.log(`// ${this.scope.name} exports internal ${name} as ${localName}!`);
+					// console.log(`// ${this.scope.name} exports internal ${name} as ${localName}!`);
 
-					if ( !this.scope.isExported( name ) ) {
+					// If the given name isn't exported, but it is defined in `addExport`.
+					if ( !this.scope.isExported( name ) && this.exports[ name ] ) {
 						this.scope.export( name, ref );
-					} else {
-						console.log(`//\t${name} already exported`);
+					// } else {
+					// 	console.log(`//\t${name} already exported`);
 					}
-				} else {
-					console.log(`// has internal ${name}`);
+				// } else {
+				// 	console.log(`// has internal ${name}`);
 				}
 
 				exportDeclaration.isUsed = true;
@@ -444,8 +459,14 @@ export default class Module {
 
 		// export { a as b, ... } from 'source'
 		else if ( this.exports[ name ] && this.exports[ name ].source ) {
-			return this.fetchModule( this.exports[ name ] ).then( module => {
+			// console.log(`I should be here, exporting { ${this.exports[ name ].localName} as ${name} }`);
+
+			promise = this.fetchModule( this.exports[ name ] ).then( module => {
 				const localName = this.exports[ name ].localName;
+
+				// // HACK: `localName` isn't imported like this...
+				// this.imports[ localName ].module = module;
+
 				this.scope.export( name, module.scope.getExportRef( localName ) );
 				return module.mark( localName );
 			});
@@ -512,7 +533,7 @@ export default class Module {
 							if ( module.isExternal ) {
 								return;
 							}
-							return module.markAllStatements();
+							return module.markAllStatements( false );
 						});
 				}
 

@@ -9,8 +9,8 @@ function isChangableName ( name ) {
 
 
 class InternalName {
-  constructor ( scope, name ) {
-    this.scope = scope;
+  constructor ( module, name ) {
+    this.module = module;
     this.original = name;
     this.name = name;
     this.modified = false;
@@ -19,9 +19,10 @@ class InternalName {
   fullname () {
     switch ( this.original ) {
       case 'default': return this.name;
-      case '*': return this.scope.name;
+      case '*': return this.module.name;
     }
-    return `${this.scope.name}.${this.name}`;
+
+    return `${this.module.name}.${this.name}`;
   }
 
   get ( localName, direct ) { //jshint unused: false
@@ -50,6 +51,8 @@ export default class BundleScope {
     // Array of names (inheriting from InternalName) and numbers (references).
     this.names = [];
 
+    this.entry = null;
+
     // The names that are in use within the scope of the bundle.
     this.inUse = blank();
 
@@ -63,26 +66,38 @@ export default class BundleScope {
   }
 
   // Add a name which must remain the same.
+  // TODO: rename `addGlobal( name: string )`?
   addFixed ( name ) {
     // TODO: make sure the name isn't already in use.
     this.inUse[ name.name ] = name;
     return this.names.push( name ) - 1;
   }
 
-  // Creates a new child called `name`.
-  child ( name ) {
-    return new ModuleScope( this, name, InternalName );
+  // Creates a new internal module called `name`.
+  internalModule ( name ) {
+    const mod = new ModuleScope( this, name, InternalName );
+
+    if ( !this.entry ) {
+      this.entry = mod;
+      mod.isEntry = true;
+    }
+
+    return mod;
   }
 
   // Creates a ModuleScope for an external module,
   // that uses an unused name like `name`.
-  externalChild ( name ) {
+  externalModule ( name ) {
     name = this.unusedNameLike( name, undefined );
     this.inUse[ name ] = `<External Module "${name}">`;
     return new ModuleScope( this, name, ExternalName );
   }
 
   deconflict () {
+    // Try to bind the exports as directly to the exports as possible.
+    // TODO: See export-from-renamed, optimize to: `exports.y = 42;`
+
+    // Deconflict all changable names in the bundle's scope.
     this.names.filter( isChangableName ).forEach( name => {
       // TODO: make a better check for when a sole 'default'/'*' import can
       // use the name of the module.
@@ -130,6 +145,7 @@ export default class BundleScope {
   }
 
   set ( ref, name ) {
+    if (typeof ref !== 'number' ) throw new Error(`Ref must be number!`);
     if ( ref < 0 || ref >= this.names.length ) {
       throw new Error(`Invalid name reference '${ref}'!`);
     }
@@ -162,12 +178,18 @@ class ModuleScope {
     this.parent = parent;
     this.name = name;
 
+    // Is set to true for the EntryModule in `BundleScope.internalModule`.
+    this.isEntry = false;
+
     // The Name constructor used by the module to create its names.
     this.Name = Name;
 
     // Mappings from local and exported names to global name ids.
     this.localNames = blank();
     this.exportedNames = blank();
+
+    // HACK: :(
+    this.module = null;
   }
 
   add ( name ) {
@@ -187,26 +209,43 @@ class ModuleScope {
   // Add an export called `name` which refers to the variable `ref`.
   export ( name, ref ) {
     if ( typeof ref === 'undefined' ) throw new Error('need ref');
+    if ( typeof ref !== 'number' ) throw new Error(`Ref should be number, got ${typeof ref}!`);
 
-    if ( name in this.exportedNames && this.exportedNames[ name ] !== null ) {
-      throw new Error(`Re-exported '${name}'`);
+    if ( name in this.exportedNames ) {
+      if ( this.exportedNames[ name ] !== null ) {
+        throw new Error(`Re-exported '${name}'`);
+      } else {
+        this.parent.set( this.exportedNames[ name ], ref );
+      }
     }
 
-    this.exportedNames[ name ] = ref;
+    this.exportedNames[ name ] = this.parent.add( ref );
   }
 
   get ( name, direct ) {
     return this.parent.get( this.getRef( name ), name, direct ) || (console.log(this.parent.names) || null);
   }
 
+  getExport ( name ) {
+    return this.parent.resolveName( this.getExportRef( name ) );
+  }
+
   getExportName ( name, direct ) {
-    return ( direct ? '' : 'exports.' ) +
-      this.parent.get( this.getExportRef( name ), name, true );
+    const resolved = this.parent.resolveName( this.getExportRef( name ) );
+
+    if ( resolved.module.isEntry ) {
+      return 'exports.' + resolved.get( name, direct );
+    }
+
+    return resolved.get( name, direct );
+    // return ( direct || !this.isEntry ? '' : 'exports.' ) +
+    //   this.parent.get( this.getExportRef( name ), name, true );
   }
 
   getExportRef ( name ) {
     if ( !( name in this.exportedNames ) ) {
       if ( this.Name === ExternalName ) { // is external module
+        // TODO: should it be `new this.Name( this, name )` instead of `this.add( name )`?
         this.exportedNames[ name ] = this.add( name );
       } else {
         throw new Error(`Module '${this.name}' doesn't export '${name}'.`);
@@ -247,6 +286,7 @@ class ModuleScope {
     this.parent.modify( this.getRef( name ) );
   }
 
+  // TODO: remove if possible.
   renameScope( name ) {
     // No renaming takes place. :)
     if ( name === this.name ) return;
@@ -289,7 +329,7 @@ function debug (cls) {
       const res = m.apply(this, arguments);
 
       if (res !== undefined)
-        console.log(`\t-> ${res}\n`);
+        console.log(`\t-> ${res}`);
 
       return res;
     };
