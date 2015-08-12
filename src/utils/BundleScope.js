@@ -22,7 +22,7 @@ class InternalName {
       case '*': return this.module.name;
     }
 
-    return `${this.module.name}.${this.name}`;
+    return `${this.module.name}.${this.original}`;
   }
 
   get ( localName, direct ) { //jshint unused: false
