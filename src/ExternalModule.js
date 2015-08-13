@@ -1,9 +1,10 @@
 import { blank } from './utils/object';
 
 export default class ExternalModule {
-	constructor ( id ) {
+	constructor ( id, scope ) {
 		this.id = id;
-		this.name = null;
+
+		this.scope = scope;
 
 		this.isExternal = true;
 		this.importedByBundle = [];
@@ -22,29 +23,19 @@ export default class ExternalModule {
 		this.needsAll = false;
 	}
 
+	get name () {
+		return this.scope.name;
+	}
+
 	findDefiningStatement () {
 		return null;
 	}
 
-	getCanonicalName ( name, es6 ) {
-		if ( name === 'default' ) {
-			return this.needsNamed && !es6 ? `${this.name}__default` : this.name;
-		}
-
-		if ( name === '*' ) {
-			return this.name; // TODO is this correct in ES6?
-		}
-
-		return es6 ? ( this.canonicalNames[ name ] || name ) : `${this.name}.${name}`;
-	}
-
-	rename ( name, replacement ) {
-		this.canonicalNames[ name ] = replacement;
+	getCanonicalName ( name, direct ) {
+		return this.scope.get( name, !this.needsNamed && direct );
 	}
 
 	suggestName ( exportName, suggestion ) {
-		if ( !this.suggestedNames[ exportName ] ) {
-			this.suggestedNames[ exportName ] = suggestion;
-		}
+		this.scope.suggest( exportName, suggestion );
 	}
 }

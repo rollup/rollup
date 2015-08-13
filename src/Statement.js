@@ -1,4 +1,4 @@
-import { blank, keys } from './utils/object';
+import { blank, hasOwn, keys } from './utils/object';
 import { sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
 import walk from './ast/walk';
@@ -17,6 +17,10 @@ export default class Statement {
 		this.next = null; // filled in later
 
 		this.scope = new Scope();
+
+		// All these collections only refer to names as strings.
+		// This is insufficient when working with ES6 modules that have
+		// local names and export names.
 		this.defines = blank();
 		this.modifies = blank();
 		this.dependsOn = blank();
@@ -158,6 +162,10 @@ export default class Statement {
 			// disregard the `bar` in `class Foo { bar () {...} }`
 			if ( parent.type === 'MethodDefinition' ) return;
 
+			// Disregard the `x` in `export { x as y }`.
+			// Marking `y` should result in `x` being marked.
+			if ( parent.type === 'ExportSpecifier' && node === parent.local ) return;
+
 			const definingScope = scope.findDefiningScope( node.name );
 
 			if ( ( !definingScope || definingScope.depth === 0 ) && !this.defines[ node.name ] ) {
@@ -201,6 +209,8 @@ export default class Statement {
 					// b) after the export declaration
 					if ( !!scope.parent || node.start > this.module.exports.default.statement.node.start ) {
 						this.module.exports.default.isModified = true;
+						this.module.scope.unlink( 'default' );
+						this.module.scope.suggest( 'default', this.module.scope.name );
 					}
 				}
 			}
@@ -232,7 +242,7 @@ export default class Statement {
 		if ( this.isIncluded ) return; // prevent infinite loops
 		this.isIncluded = true;
 
-		const dependencies = Object.keys( this.dependsOn );
+		const dependencies = keys( this.dependsOn );
 
 		return sequence( dependencies, name => {
 			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
@@ -240,13 +250,13 @@ export default class Statement {
 		});
 	}
 
-	replaceIdentifiers ( magicString, names, bundleExports ) {
-		const replacementStack = [ names ];
-		const nameList = keys( names );
+	replaceIdentifiers ( magicString, replacements, bundleExports, direct ) {
+		const module = this.module;
+		const replacementStack = [ replacements ];
 
 		let deshadowList = [];
-		nameList.forEach( name => {
-			const replacement = names[ name ];
+		keys( replacements ).forEach( name => {
+			const replacement = replacements[ name ];
 			deshadowList.push( replacement.split( '.' )[0] );
 		});
 
@@ -280,7 +290,7 @@ export default class Statement {
 						else {
 							const exportInitialisers = node.declarations
 								.map( declarator => declarator.id.name )
-								.filter( name => !!bundleExports[ name ] )
+								.filter( name => hasOwn( bundleExports, name ) )
 								.map( name => `\n${bundleExports[name]} = ${name};` )
 								.join( '' );
 
@@ -301,24 +311,24 @@ export default class Statement {
 				if ( scope ) {
 					topLevel = false;
 
-					let newNames = blank();
+					let newReplacements = blank();
 					let hasReplacements;
 
 					// special case = function foo ( foo ) {...}
-					if ( node.id && names[ node.id.name ] && scope.declarations[ node.id.name ] ) {
-						magicString.overwrite( node.id.start, node.id.end, names[ node.id.name ] );
+					if ( node.id && replacements[ node.id.name ] && scope.declarations[ node.id.name ] ) {
+						magicString.overwrite( node.id.start, node.id.end, replacements[ node.id.name ] );
 					}
 
-					keys( names ).forEach( name => {
+					keys( replacements ).forEach( name => {
 						if ( !scope.declarations[ name ] ) {
-							newNames[ name ] = names[ name ];
+							newReplacements[ name ] = replacements[ name ];
 							hasReplacements = true;
 						}
 					});
 
 					deshadowList.forEach( name => {
 						if ( scope.declarations[ name ] ) {
-							newNames[ name ] = name + '$$'; // TODO better mechanism
+							newReplacements[ name ] = name + '$$'; // TODO better mechanism
 							hasReplacements = true;
 						}
 					});
@@ -327,15 +337,17 @@ export default class Statement {
 						return this.skip();
 					}
 
-					names = newNames;
-					replacementStack.push( newNames );
+					replacements = newReplacements;
+					replacementStack.push( newReplacements );
 				}
 
 				if ( node.type !== 'Identifier' ) return;
 
+				const name = replacements[ node.name ] || module.scope.get( node.name, direct );
+				const exportName = bundleExports[ node.name ];
+
 				// if there's no replacement, or it's the same, there's nothing more to do
-				const name = names[ node.name ];
-				if ( !name || name === node.name ) return;
+				if ( !name || name === node.name && !exportName ) return;
 
 				// shorthand properties (`obj = { foo }`) need to be expanded
 				if ( parent.type === 'Property' && parent.shorthand ) {
@@ -352,7 +364,7 @@ export default class Statement {
 				// TODO others...?
 
 				// all other identifiers should be overwritten
-				magicString.overwrite( node.start, node.end, name );
+				magicString.overwrite( node.start, node.end, exportName ? exportName : name );
 			},
 
 			leave ( node ) {
@@ -360,8 +372,13 @@ export default class Statement {
 
 				if ( node._scope ) {
 					replacementStack.pop();
-					names = replacementStack[ replacementStack.length - 1 ];
+					replacements = replacementStack[ replacementStack.length - 1 ];
 				}
+
+				// TODO: insert namespace logic
+				// if ( node.type === 'MemberExpression' && !node.computed ) {
+				//
+				// }
 			}
 		});
 

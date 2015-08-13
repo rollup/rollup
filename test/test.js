@@ -1,3 +1,6 @@
+/* global require, __dirname, describe, it */
+/* jshint evil: true */
+
 require( 'source-map-support' ).install();
 require( 'console-group' ).install();
 
@@ -6,7 +9,6 @@ var sander = require( 'sander' );
 var assert = require( 'assert' );
 var exec = require( 'child_process' ).exec;
 var babel = require( 'babel-core' );
-var sequence = require( './utils/promiseSequence' );
 var rollup = require( '../dist/rollup' );
 
 var FUNCTION = path.resolve( __dirname, 'function' );
@@ -64,7 +66,7 @@ describe( 'rollup', function () {
 
 				return rollup.rollup( options )
 					.then( function ( bundle ) {
-						var unintendedError;
+						var unintendedError, result;
 
 						if ( config.error ) {
 							throw new Error( 'Expected an error while rolling up' );
@@ -72,7 +74,7 @@ describe( 'rollup', function () {
 
 						// try to generate output
 						try {
-							var result = bundle.generate( extend( {}, config.bundleOptions, {
+							result = bundle.generate( extend( {}, config.bundleOptions, {
 								format: 'cjs'
 							}));
 

@@ -1,4 +1,3 @@
-import { basename, extname } from './utils/path';
 import { Promise } from 'sander';
 import MagicString from 'magic-string';
 import { blank, keys } from './utils/object';
@@ -11,7 +10,10 @@ import { defaultResolver, defaultExternalResolver } from './utils/resolveId';
 import { defaultLoader } from './utils/load';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
-import { unixizePath } from './utils/normalizePlatform.js';
+import { unixizePath } from './utils/normalizePlatform';
+import BundleScope from './utils/BundleScope';
+import inferModuleName from './utils/inferModuleName';
+
 
 export default class Bundle {
 	constructor ( options ) {
@@ -30,6 +32,8 @@ export default class Bundle {
 			transform: ensureArray( options.transform )
 		};
 
+		this.scope = new BundleScope();
+
 		this.varExports = blank();
 		this.toExport = null;
 
@@ -47,35 +51,7 @@ export default class Bundle {
 	build () {
 		return this.fetchModule( this.entry, undefined )
 			.then( entryModule => {
-				const defaultExport = entryModule.exports.default;
-
 				this.entryModule = entryModule;
-
-				if ( defaultExport ) {
-					// `export default function foo () {...}` -
-					// use the declared name for the export
-					if ( defaultExport.declaredName ) {
-						entryModule.suggestName( 'default', defaultExport.declaredName );
-					}
-
-					// `export default a + b` - generate an export name
-					// based on the id of the entry module
-					else {
-						let defaultExportName = makeLegalIdentifier( basename( this.entryModule.id ).slice( 0, -extname( this.entryModule.id ).length ) );
-
-						// deconflict
-						let topLevelNames = [];
-						entryModule.statements.forEach( statement => {
-							keys( statement.defines ).forEach( name => topLevelNames.push( name ) );
-						});
-
-						while ( ~topLevelNames.indexOf( defaultExportName ) ) {
-							defaultExportName = `_${defaultExportName}`;
-						}
-
-						entryModule.suggestName( 'default', defaultExportName );
-					}
-				}
 
 				return entryModule.markAllStatements( true );
 			})
@@ -87,89 +63,92 @@ export default class Bundle {
 			});
 	}
 
-	deconflict ( es6 ) {
-		let definers = blank();
-		let conflicts = blank();
-
-		// Assign names to external modules
-		this.externalModules.forEach( module => {
-			let name = makeLegalIdentifier( module.suggestedNames['*'] || module.suggestedNames.default || module.id );
-
-			while ( definers[ name ] ) {
-				conflicts[ name ] = true;
-				name = `_${name}`;
-			}
-
-			definers[ name ] = [ module ];
-			module.name = name;
-			this.assumedGlobals[ name ] = true;
-		});
-
-		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
-		this.orderedModules.forEach( module => {
-			module.statements.forEach( statement => {
-				const names = keys( statement.defines );
-
-				// with default exports that are expressions (`export default 42`),
-				// we need to ensure that the name chosen for the expression does
-				// not conflict
-				if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					const name = module.getCanonicalName( 'default', es6 );
-
-					const isProxy = statement.node.declaration && statement.node.declaration.type === 'Identifier';
-					const shouldDeconflict = !isProxy || ( module.getCanonicalName( statement.node.declaration.name, es6 ) !== name );
-
-					if ( shouldDeconflict && !~names.indexOf( name ) ) {
-						names.push( name );
-					}
-				}
-
-				names.forEach( name => {
-					if ( definers[ name ] ) {
-						conflicts[ name ] = true;
-					} else {
-						definers[ name ] = [];
-					}
-
-					// TODO in good js, there shouldn't be duplicate definitions
-					// per module... but some people write bad js
-					definers[ name ].push( module );
-				});
-			});
-		});
-
-		// Ensure we don't conflict with globals
-		keys( this.assumedGlobals ).forEach( name => {
-			if ( definers[ name ] ) {
-				conflicts[ name ] = true;
-			}
-		});
-
-		// Rename conflicting identifiers so they can live in the same scope
-		keys( conflicts ).forEach( name => {
-			const modules = definers[ name ];
-
-			if ( !this.assumedGlobals[ name ] ) {
-				// the module closest to the entryModule gets away with
-				// keeping things as they are, unless we have a conflict
-				// with a global name
-				modules.pop();
-			}
-
-			modules.forEach( module => {
-				const replacement = getSafeName( name );
-				module.rename( name, replacement );
-			});
-		});
-
-		function getSafeName ( name ) {
-			while ( conflicts[ name ] ) {
-				name = `_${name}`;
-			}
-
-			conflicts[ name ] = true;
-			return name;
-		}
+	deconflict () {
+		this.scope.deconflict();
+		// let definers = blank();
+		// let conflicts = blank();
+		//
+		// // Assign names to external modules
+		// this.externalModules.forEach( module => {
+		// 	// TODO is this right?
+		// 	let name = makeLegalIdentifier( module.suggestedNames['*'] || module.suggestedNames.default || module.id );
+		//
+		// 	if ( definers[ name ] ) {
+		// 		conflicts[ name ] = true;
+		// 	} else {
+		// 		definers[ name ] = [];
+		// 	}
+		//
+		// 	definers[ name ].push( module );
+		// 	module.name = name;
+		// 	this.assumedGlobals[ name ] = true;
+		// });
+		//
+		// // Discover conflicts (i.e. two statements in separate modules both define `foo`)
+		// this.orderedModules.forEach( module => {
+		// 	module.statements.forEach( statement => {
+		// 		const names = keys( statement.defines );
+		//
+		// 		// with default exports that are expressions (`export default 42`),
+		// 		// we need to ensure that the name chosen for the expression does
+		// 		// not conflict
+		// 		if ( statement.node.type === 'ExportDefaultDeclaration' ) {
+		// 			const name = module.getCanonicalName( 'default', es6 );
+		//
+		// 			const isProxy = statement.node.declaration && statement.node.declaration.type === 'Identifier';
+		// 			const shouldDeconflict = !isProxy || ( module.getCanonicalName( statement.node.declaration.name, es6 ) !== name );
+		//
+		// 			if ( shouldDeconflict && !~names.indexOf( name ) ) {
+		// 				names.push( name );
+		// 			}
+		// 		}
+		//
+		// 		names.forEach( name => {
+		// 			if ( definers[ name ] ) {
+		// 				conflicts[ name ] = true;
+		// 			} else {
+		// 				definers[ name ] = [];
+		// 			}
+		//
+		// 			// TODO in good js, there shouldn't be duplicate definitions
+		// 			// per module... but some people write bad js
+		// 			definers[ name ].push( module );
+		// 		});
+		// 	});
+		// });
+		//
+		// // Ensure we don't conflict with globals
+		// keys( this.assumedGlobals ).forEach( name => {
+		// 	if ( definers[ name ] ) {
+		// 		conflicts[ name ] = true;
+		// 	}
+		// });
+		//
+		// // Rename conflicting identifiers so they can live in the same scope
+		// keys( conflicts ).forEach( name => {
+		// 	const modules = definers[ name ];
+		//
+		// 	if ( !this.assumedGlobals[ name ] ) {
+		// 		// the module closest to the entryModule gets away with
+		// 		// keeping things as they are, unless we have a conflict
+		// 		// with a global name
+		// 		modules.pop();
+		// 	}
+		//
+		// 	modules.forEach( module => {
+		// 		const replacement = getSafeName( name );
+		// 		module.rename( name, replacement );
+		// 	});
+		// });
+		//
+		// function getSafeName ( name ) {
+		// 	while ( conflicts[ name ] ) {
+		// 		name = `_${name}`;
+		// 	}
+		//
+		// 	conflicts[ name ] = true;
+		// 	return name;
+		// }
 	}
 
 	fetchModule ( importee, importer ) {
@@ -178,7 +157,9 @@ export default class Bundle {
 				if ( !id ) {
 					// external module
 					if ( !this.modulePromises[ importee ] ) {
-						const module = new ExternalModule( importee );
+						const module = new ExternalModule( importee,
+							this.scope.externalModule( makeLegalIdentifier( importee ) ) );
+
 						this.externalModules.push( module );
 						this.modulePromises[ importee ] = Promise.resolve( module );
 					}
@@ -204,7 +185,9 @@ export default class Bundle {
 								id,
 								source,
 								ast,
-								bundle: this
+								bundle: this,
+								scope: this.scope.internalModule( inferModuleName( id || importee ) ),
+								entry: importer === undefined
 							});
 
 							this.modules.push( module );
@@ -272,7 +255,9 @@ export default class Bundle {
 
 	render ( options = {} ) {
 		const format = options.format || 'es6';
-		this.deconflict( format === 'es6' );
+		const direct = format === 'es6';
+
+		this.deconflict( direct );
 
 		// If we have named exports from the bundle, and those exports
 		// are assigned to *within* the bundle, we may need to rewrite e.g.
@@ -291,16 +276,22 @@ export default class Bundle {
 		// This doesn't apply if the bundle is exported as ES6!
 		let allBundleExports = blank();
 
-		if ( format !== 'es6' ) {
+		if ( !direct ) {
 			keys( this.entryModule.exports ).forEach( key => {
 				const exportDeclaration = this.entryModule.exports[ key ];
+
+				if ( exportDeclaration.source ) {
+					throw new Error( `UNIMPLEMENTED!` );
+				}
 
 				const originalDeclaration = this.entryModule.findDeclaration( exportDeclaration.localName );
 
 				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
 					const canonicalName = this.entryModule.getCanonicalName( exportDeclaration.localName, false );
 
-					allBundleExports[ canonicalName ] = `exports.${key}`;
+					allBundleExports[ canonicalName ] =
+						this.entryModule.scope.getExportName( exportDeclaration.localName, false );
+
 					this.varExports[ key ] = true;
 				}
 			});
@@ -315,7 +306,7 @@ export default class Bundle {
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
 		this.orderedModules.forEach( module => {
-			const source = module.render( allBundleExports, format );
+			const source = module.render( allBundleExports, direct );
 			if ( source.toString().length ) {
 				magicString.addSource( source );
 			}
@@ -326,10 +317,10 @@ export default class Bundle {
 		const namespaceBlock = this.internalNamespaceModules.map( module => {
 			const exportKeys = keys( module.exports );
 
-			return `var ${module.getCanonicalName('*', format === 'es6')} = {\n` +
+			return `var ${module.getCanonicalName('*', direct)} = {\n` +
 				exportKeys.map( key => {
 					const localName = module.exports[ key ].localName;
-					return `${indentString}get ${key} () { return ${module.getCanonicalName(localName, format === 'es6')}; }`;
+					return `${indentString}get ${key} () { return ${module.getCanonicalName(localName, direct)}; }`;
 				}).join( ',\n' ) +
 			`\n};\n\n`;
 		}).join( '' );
