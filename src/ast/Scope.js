@@ -48,7 +48,7 @@ export default class Scope {
 	}
 
 	findDefiningScope ( name ) {
-		if ( !!this.declarations[ name ] ) {
+		if ( this.declarations[ name ] ) {
 			return this;
 		}
 

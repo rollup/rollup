@@ -1,3 +1,3 @@
-export function unixizePath( path ) {
-    return path.split( /[\/\\]/ ).join( '/' );
+export function unixizePath ( path ) {
+	return path.split( /[\/\\]/ ).join( '/' );
 }

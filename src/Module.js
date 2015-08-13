@@ -554,7 +554,7 @@ export default class Module {
 				// remove the leading var/let/const
 				this.magicString.remove( node.start, node.declarations[0].start );
 
-				node.declarations.forEach( ( declarator, i ) => {
+				node.declarations.forEach( declarator => {
 					const { start, end } = declarator;
 
 					const syntheticNode = {
@@ -608,10 +608,7 @@ export default class Module {
 	render ( allBundleExports, format ) {
 		let magicString = this.magicString.clone();
 
-		let previousIndex = -1;
-		let previousMargin = 0;
-
-		this.statements.forEach( ( statement, i ) => {
+		this.statements.forEach( statement => {
 			if ( !statement.isIncluded ) {
 				magicString.remove( statement.start, statement.next );
 				return;
@@ -623,7 +620,7 @@ export default class Module {
 				if ( statement.node.specifiers.length ) {
 					magicString.remove( statement.start, statement.next );
 					return;
-				};
+				}
 
 				// skip `export var foo;` if foo is exported
 				if ( isEmptyExportedVarDeclaration( statement.node.declaration, statement.module, allBundleExports, format === 'es6' ) ) {
