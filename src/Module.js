@@ -29,7 +29,7 @@ function isEmptyExportedVarDeclaration ( node, module, allBundleExports, es6 ) {
 }
 
 export default class Module {
-	constructor ({ id, source, bundle }) {
+	constructor ({ id, source, ast, bundle }) {
 		this.source = source;
 
 		this.bundle = bundle;
@@ -41,10 +41,17 @@ export default class Module {
 			filename: id
 		});
 
+		// remove existing sourceMappingURL comments
+		const pattern = /\/\/#\s+sourceMappingURL=.+\n?/g;
+		let match;
+		while ( match = pattern.exec( source ) ) {
+			this.magicString.remove( match.index, match.index + match[0].length );
+		}
+
 		this.suggestedNames = blank();
 		this.comments = [];
 
-		this.statements = this._parse();
+		this.statements = this._parse( ast );
 
 		// imports and exports, indexed by ID
 		this.imports = blank();
@@ -510,21 +517,22 @@ export default class Module {
 	}
 
 	// TODO rename this to parse, once https://github.com/rollup/rollup/issues/42 is fixed
-	_parse () {
-		// Try to extract a list of top-level statements/declarations. If
-		// the parse fails, attach file info and abort
-		let ast;
-
-		try {
-			ast = parse( this.source, {
-				ecmaVersion: 6,
-				sourceType: 'module',
-				onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end })
-			});
-		} catch ( err ) {
-			err.code = 'PARSE_ERROR';
-			err.file = this.id; // see above - not necessarily true, but true enough
-			throw err;
+	_parse ( ast ) {
+		// The ast can be supplied programmatically (but usually won't be)
+		if ( !ast ) {
+			// Try to extract a list of top-level statements/declarations. If
+			// the parse fails, attach file info and abort
+			try {
+				ast = parse( this.source, {
+					ecmaVersion: 6,
+					sourceType: 'module',
+					onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end })
+				});
+			} catch ( err ) {
+				err.code = 'PARSE_ERROR';
+				err.file = this.id; // see above - not necessarily true, but true enough
+				throw err;
+			}
 		}
 
 		walk( ast, {
@@ -633,7 +641,11 @@ export default class Module {
 
 			// split up/remove var declarations as necessary
 			if ( statement.node.isSynthetic ) {
-				magicString.insert( statement.start, `${statement.node.kind} ` );
+				// insert `var/let/const` if necessary
+				if ( !allBundleExports[ statement.node.declarations[0].id.name ] ) {
+					magicString.insert( statement.start, `${statement.node.kind} ` );
+				}
+
 				magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
 			}
 

@@ -39,7 +39,9 @@ export default class Bundle {
 		this.statements = null;
 		this.externalModules = [];
 		this.internalNamespaceModules = [];
+
 		this.assumedGlobals = blank();
+		this.assumedGlobals.exports = true; // TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 	}
 
 	build () {
@@ -91,16 +93,14 @@ export default class Bundle {
 
 		// Assign names to external modules
 		this.externalModules.forEach( module => {
-			// TODO is this right?
 			let name = makeLegalIdentifier( module.suggestedNames['*'] || module.suggestedNames.default || module.id );
 
-			if ( definers[ name ] ) {
+			while ( definers[ name ] ) {
 				conflicts[ name ] = true;
-			} else {
-				definers[ name ] = [];
+				name = `_${name}`;
 			}
 
-			definers[ name ].push( module );
+			definers[ name ] = [ module ];
 			module.name = name;
 			this.assumedGlobals[ name ] = true;
 		});
@@ -186,12 +186,24 @@ export default class Bundle {
 					return this.modulePromises[ importee ];
 				}
 
+				if ( id === importer ) {
+					throw new Error( `A module cannot import itself (${id})` );
+				}
+
 				if ( !this.modulePromises[ id ] ) {
 					this.modulePromises[ id ] = Promise.resolve( this.load( id, this.loadOptions ) )
 						.then( source => {
+							let ast;
+
+							if ( typeof source === 'object' ) {
+								ast = source.ast;
+								source = source.code;
+							}
+
 							const module = new Module({
 								id,
 								source,
+								ast,
 								bundle: this
 							});
 
@@ -315,7 +327,10 @@ export default class Bundle {
 			const exportKeys = keys( module.exports );
 
 			return `var ${module.getCanonicalName('*', format === 'es6')} = {\n` +
-				exportKeys.map( key => `${indentString}get ${key} () { return ${module.getCanonicalName(key, format === 'es6')}; }` ).join( ',\n' ) +
+				exportKeys.map( key => {
+					const localName = module.exports[ key ].localName;
+					return `${indentString}get ${key} () { return ${module.getCanonicalName(localName, format === 'es6')}; }`;
+				}).join( ',\n' ) +
 			`\n};\n\n`;
 		}).join( '' );
 
@@ -334,6 +349,9 @@ export default class Bundle {
 			// Determine indentation
 			indentString: getIndentString( magicString, options )
 		}, options );
+
+		if ( options.banner ) magicString.prepend( options.banner + '\n' );
+		if ( options.footer ) magicString.append( '\n' + options.footer );
 
 		const code = magicString.toString();
 		let map = null;
