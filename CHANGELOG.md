@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 0.13.0
+
+* Support `banner` and `footer` options ([#66](https://github.com/rollup/rollup/pull/66))
+* Remove pre-existing sourcemap comments ([#66](https://github.com/rollup/rollup/pull/66))
+* Deconflict external imports ([#66](https://github.com/rollup/rollup/pull/66))
+* Use existing AST, if provided ([#66](https://github.com/rollup/rollup/pull/66))
+* Rename internal namespace exports as appropriate ([#66](https://github.com/rollup/rollup/pull/66))
+* Remove uninitialised var declarations that get exported ([#66](https://github.com/rollup/rollup/pull/66))
+* Rename variables named `exports` to avoid conflicts ([#66](https://github.com/rollup/rollup/pull/66))
+
 ## 0.12.1
 
 * Don't attempt to mark statements belonging to external modules ([#68](https://github.com/rollup/rollup/issues/68))
