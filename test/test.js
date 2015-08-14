@@ -153,7 +153,7 @@ describe( 'rollup', function () {
 		});
 	});
 
-	describe( 'form', function () {
+	describe.skip( 'form', function () {
 		sander.readdirSync( FORM ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
