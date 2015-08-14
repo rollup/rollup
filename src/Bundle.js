@@ -108,6 +108,8 @@ export default class Bundle {
 		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
 		this.orderedModules.forEach( module => {
 			module.statements.forEach( statement => {
+				if ( !statement.isIncluded ) return;
+
 				const names = keys( statement.defines );
 
 				// with default exports that are expressions (`export default 42`),
