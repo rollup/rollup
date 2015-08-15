@@ -171,7 +171,6 @@ export default class Bundle {
 				if ( defaultExport.declaredName && !defaultExport.isModified ) return; // TODO encapsulate check for whether we need synthetic default name
 
 				const defaultName = getSafeName( module.suggestedNames.default );
-
 				module.replacements.default = defaultName;
 			}
 
@@ -201,7 +200,16 @@ export default class Bundle {
 			const otherModule = importDeclaration.module;
 
 			if ( otherModule.isExternal ) {
-				// TODO ES6
+				if ( es6 ) throw new Error( 'TODO ES6' );
+
+				if ( importDeclaration.name === 'default' ) {
+					return otherModule.needsNamed ?
+						`${otherModule.name}__default` :
+						otherModule.name;
+				}
+
+				// TODO namespaces
+
 				return `${otherModule.name}.${importDeclaration.name}`;
 			}
 
@@ -214,7 +222,7 @@ export default class Bundle {
 		// with getCanonicalName)
 
 		function getSafeName ( name ) {
-			while ( conflicts[ name ] ) {
+			while ( definers[ name ] || conflicts[ name ] ) { // TODO this seems wonky
 				name = `_${name}`;
 			}
 
