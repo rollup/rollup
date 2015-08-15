@@ -110,23 +110,7 @@ export default class Bundle {
 			module.statements.forEach( statement => {
 				if ( !statement.isIncluded ) return;
 
-				const names = keys( statement.defines );
-
-				// with default exports that are expressions (`export default 42`),
-				// we need to ensure that the name chosen for the expression does
-				// not conflict
-				if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					const name = module.getCanonicalName( 'default', es6 );
-
-					const isProxy = statement.node.declaration && statement.node.declaration.type === 'Identifier';
-					const shouldDeconflict = !isProxy || ( module.getCanonicalName( statement.node.declaration.name, es6 ) !== name );
-
-					if ( shouldDeconflict && !~names.indexOf( name ) ) {
-						names.push( name );
-					}
-				}
-
-				names.forEach( name => {
+				keys( statement.defines ).forEach( name => {
 					if ( definers[ name ] ) {
 						conflicts[ name ] = true;
 					} else {
@@ -163,6 +147,10 @@ export default class Bundle {
 				module.rename( name, replacement );
 			});
 		});
+
+		// TODO assign names to default/namespace exports, based on suggestions
+		// TODO trace bindings and rename within modules here (rather than later
+		// with getCanonicalName)
 
 		function getSafeName ( name ) {
 			while ( conflicts[ name ] ) {
