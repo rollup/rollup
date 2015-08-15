@@ -116,7 +116,7 @@ export default class Module {
 					if ( source ) {
 						this.imports[ localName ] = {
 							source,
-							localName,
+							localName: exportedName,
 							name: localName
 						};
 					}
