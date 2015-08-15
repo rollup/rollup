@@ -223,7 +223,18 @@ export default class Bundle {
 			}
 
 			const exportDeclaration = otherModule.exports[ importDeclaration.name ];
-			return trace( otherModule, exportDeclaration.localName );
+			if ( exportDeclaration ) return trace( otherModule, exportDeclaration.localName );
+
+			for ( let i = 0; i < otherModule.exportDelegates.length; i += 1 ) {
+				const delegate = otherModule.exportDelegates[i];
+				const delegateExportDeclaration = delegate.module.exports[ importDeclaration.name ];
+
+				if ( delegateExportDeclaration ) {
+					return trace( delegate.module, delegateExportDeclaration.localName );
+				}
+			}
+
+			throw new Error( 'Could not trace binding' );
 		}
 
 		function getSafeName ( name ) {
