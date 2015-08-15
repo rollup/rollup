@@ -23,7 +23,7 @@ function isEmptyExportedVarDeclaration ( node, module, allBundleExports, moduleR
 	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
 
 	const name = node.declarations[0].id.name;
-	const canonicalName = moduleReplacements[ name ];
+	const canonicalName = moduleReplacements[ name ] || name;
 
 	return canonicalName in allBundleExports;
 }

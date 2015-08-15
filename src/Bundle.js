@@ -52,6 +52,8 @@ export default class Bundle {
 				this.entryModule = entryModule;
 
 				if ( defaultExport ) {
+					entryModule.needsDefault = true;
+
 					// `export default function foo () {...}` -
 					// use the declared name for the export
 					if ( defaultExport.declaredName ) {
@@ -203,10 +205,8 @@ export default class Bundle {
 			const otherModule = importDeclaration.module;
 
 			if ( otherModule.isExternal ) {
-				if ( es6 ) throw new Error( 'TODO ES6' );
-
 				if ( importDeclaration.name === 'default' ) {
-					return otherModule.needsNamed ?
+					return otherModule.needsNamed && !es6 ?
 						`${otherModule.name}__default` :
 						otherModule.name;
 				}
@@ -215,7 +215,9 @@ export default class Bundle {
 					return otherModule.name;
 				}
 
-				return `${otherModule.name}.${importDeclaration.name}`;
+				return es6 ?
+					importDeclaration.name :
+					`${otherModule.name}.${importDeclaration.name}`;
 			}
 
 			if ( importDeclaration.name === '*' ) {
@@ -238,7 +240,7 @@ export default class Bundle {
 		}
 
 		function getSafeName ( name ) {
-			while ( definers[ name ] || conflicts[ name ] ) { // TODO this seems wonky
+			while ( conflicts[ name ] ) { // TODO this seems wonky
 				name = `_${name}`;
 			}
 

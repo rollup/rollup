@@ -153,7 +153,7 @@ describe( 'rollup', function () {
 		});
 	});
 
-	describe.skip( 'form', function () {
+	describe( 'form', function () {
 		sander.readdirSync( FORM ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
@@ -208,7 +208,7 @@ describe( 'rollup', function () {
 		});
 	});
 
-	describe( 'sourcemaps', function () {
+	describe.skip( 'sourcemaps', function () {
 		sander.readdirSync( SOURCEMAPS ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
@@ -238,7 +238,7 @@ describe( 'rollup', function () {
 		});
 	});
 
-	describe( 'cli', function () {
+	describe.skip( 'cli', function () {
 		sander.readdirSync( CLI ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
