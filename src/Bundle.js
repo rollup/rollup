@@ -394,8 +394,17 @@ export default class Bundle {
 
 			return `var ${module.replacements['*']} = {\n` +
 				exportKeys.map( key => {
-					let localName = module.exports[ key ].localName;
-					localName = module.replacements[ localName ] || localName;
+					let actualModule = module;
+					let exportDeclaration = module.exports[ key ];
+
+					// special case - `export { default as foo } from './foo'`
+					while ( exportDeclaration.linkedImport ) {
+						actualModule = exportDeclaration.linkedImport.module;
+						exportDeclaration = actualModule.exports[ exportDeclaration.linkedImport.name ];
+					}
+
+					let localName = exportDeclaration.localName;
+					localName = actualModule.replacements[ localName ] || localName;
 					return `${indentString}get ${key} () { return ${localName}; }`; // TODO...
 				}).join( ',\n' ) +
 			`\n};\n\n`;

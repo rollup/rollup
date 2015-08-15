@@ -108,11 +108,6 @@ export default class Module {
 					const localName = specifier.local.name;
 					const exportedName = specifier.exported.name;
 
-					this.exports[ exportedName ] = {
-						localName,
-						exportedName
-					};
-
 					// export { foo } from './foo';
 					if ( source ) {
 						this.imports[ localName ] = {
@@ -121,6 +116,12 @@ export default class Module {
 							name: localName
 						};
 					}
+
+					this.exports[ exportedName ] = {
+						localName,
+						exportedName,
+						linkedImport: source ? this.imports[ localName ] : null
+					};
 				});
 			}
 
@@ -350,7 +351,7 @@ export default class Module {
 							this.bundle.internalNamespaceModules.push( module );
 						}
 
-						return module.markAllStatements();
+						return module.markAllExportStatements();
 					}
 
 					const exportDeclaration = module.exports[ importDeclaration.name ];
@@ -464,6 +465,14 @@ export default class Module {
 
 			// include everything else
 			return statement.mark();
+		});
+	}
+
+	markAllExportStatements () {
+		return sequence( this.statements, statement => {
+			return statement.isExportDeclaration ?
+				statement.mark() :
+				null;
 		});
 	}
 
