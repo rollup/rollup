@@ -167,15 +167,17 @@ export default class Bundle {
 				module.replacements[ '*' ] = namespaceName;
 			}
 
-			const defaultExport = module.exports.default;
+			if ( module.needsDefault || module.needsAll && module.exports.default ) {
+				const defaultExport = module.exports.default;
 
-			// only create a new name if either
-			//   a) it's an expression (`export default 42`) or
-			//   b) it's a name that is reassigned to (`export var a = 1; a = 2`)
-			if ( defaultExport.declaredName && !defaultExport.isModified ) return; // TODO encapsulate check for whether we need synthetic default name
+				// only create a new name if either
+				//   a) it's an expression (`export default 42`) or
+				//   b) it's a name that is reassigned to (`export var a = 1; a = 2`)
+				if ( defaultExport && defaultExport.declaredName && !defaultExport.isModified ) return; // TODO encapsulate check for whether we need synthetic default name
 
-			const defaultName = getSafeName( module.suggestedNames.default );
-			module.replacements.default = defaultName;
+				const defaultName = getSafeName( module.suggestedNames.default );
+				module.replacements.default = defaultName;
+			}
 		});
 
 		this.orderedModules.forEach( module => {

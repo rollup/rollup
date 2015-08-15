@@ -277,6 +277,7 @@ export default class Module {
 			const module = importDeclaration.module;
 
 			if ( module.isExternal ) return null;
+			if ( importDeclaration.name === '*' ) return null;
 
 			const exportDeclaration = module.exports[ importDeclaration.name ];
 			return module.findDeclaration( exportDeclaration.localName );
