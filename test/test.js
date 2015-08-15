@@ -208,7 +208,7 @@ describe( 'rollup', function () {
 		});
 	});
 
-	describe.skip( 'sourcemaps', function () {
+	describe( 'sourcemaps', function () {
 		sander.readdirSync( SOURCEMAPS ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
@@ -238,7 +238,7 @@ describe( 'rollup', function () {
 		});
 	});
 
-	describe.skip( 'cli', function () {
+	describe( 'cli', function () {
 		sander.readdirSync( CLI ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
