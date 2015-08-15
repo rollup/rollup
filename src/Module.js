@@ -19,11 +19,11 @@ function deconflict ( name, names ) {
 	return name;
 }
 
-function isEmptyExportedVarDeclaration ( node, module, allBundleExports, es6 ) {
+function isEmptyExportedVarDeclaration ( node, module, allBundleExports, moduleReplacements, es6 ) {
 	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
 
 	const name = node.declarations[0].id.name;
-	const canonicalName = module.getCanonicalName( name, es6 );
+	const canonicalName = moduleReplacements[ name ];
 
 	return canonicalName in allBundleExports;
 }
@@ -62,7 +62,8 @@ export default class Module {
 		// array of all-export sources
 		this.exportDelegates = [];
 
-		this.canonicalNames = blank();
+		this.canonicalNames = blank(); // TODO still necessary?
+		this.replacements = blank();
 
 		this.definitions = blank();
 		this.definitionPromises = blank();
@@ -293,58 +294,6 @@ export default class Module {
 		return null;
 	}
 
-	getCanonicalName ( localName, es6 ) {
-		// Special case
-		if ( localName === 'default' && ( this.exports.default.isModified || !this.suggestedNames.default ) ) {
-			let canonicalName = makeLegalIdentifier( this.id.replace( dirname( this.bundle.entryModule.id ) + '/', '' ).replace( /\.js$/, '' ) );
-			return deconflict( canonicalName, this.definitions );
-		}
-
-		if ( this.suggestedNames[ localName ] ) {
-			localName = this.suggestedNames[ localName ];
-		}
-
-		const id = localName + ( es6 ? '-es6' : '' ); // TODO ugh this seems like a terrible hack
-
-		if ( !this.canonicalNames[ id ] ) {
-			let canonicalName;
-
-			if ( this.imports[ localName ] ) {
-				const importDeclaration = this.imports[ localName ];
-				const module = importDeclaration.module;
-
-				if ( importDeclaration.name === '*' ) {
-					canonicalName = module.suggestedNames[ '*' ];
-				} else {
-					let exporterLocalName;
-
-					if ( module.isExternal ) {
-						exporterLocalName = importDeclaration.name;
-					} else {
-						const exportDeclaration = module.exports[ importDeclaration.name ];
-
-						// The export declaration of the particular name is known.
-						if (exportDeclaration) {
-							exporterLocalName = exportDeclaration.localName;
-						} else { // export * from '...'
-							exporterLocalName = importDeclaration.name;
-						}
-					}
-
-					canonicalName = module.getCanonicalName( exporterLocalName, es6 );
-				}
-			}
-
-			else {
-				canonicalName = localName;
-			}
-
-			this.canonicalNames[ id ] = canonicalName;
-		}
-
-		return this.canonicalNames[ id ];
-	}
-
 	mark ( name ) {
 		// shortcut cycles. TODO this won't work everywhere...
 		if ( this.definitionPromises[ name ] ) {
@@ -356,6 +305,7 @@ export default class Module {
 		// The definition for this name is in a different module
 		if ( this.imports[ name ] ) {
 			const importDeclaration = this.imports[ name ];
+			importDeclaration.isUsed = true;
 
 			promise = this.bundle.fetchModule( importDeclaration.source, this.id )
 				.then( module => {
@@ -380,15 +330,15 @@ export default class Module {
 						module.suggestName( 'default', `${suggestion}__default` );
 					}
 
-					if ( module.isExternal ) {
-						if ( importDeclaration.name === 'default' ) {
-							module.needsDefault = true;
-						} else if ( importDeclaration.name === '*' ) {
-							module.needsAll = true;
-						} else {
-							module.needsNamed = true;
-						}
+					if ( importDeclaration.name === 'default' ) {
+						module.needsDefault = true;
+					} else if ( importDeclaration.name === '*' ) {
+						module.needsAll = true;
+					} else {
+						module.needsNamed = true;
+					}
 
+					if ( module.isExternal ) {
 						module.importedByBundle.push( importDeclaration );
 						return emptyArrayPromise;
 					}
@@ -601,11 +551,10 @@ export default class Module {
 	}
 
 	rename ( name, replacement ) {
-		// TODO again, hacky...
-		this.canonicalNames[ name ] = this.canonicalNames[ name + '-es6' ] = replacement;
+		this.replacements[ name ] = replacement;
 	}
 
-	render ( allBundleExports, format ) {
+	render ( allBundleExports, moduleReplacements, format ) {
 		let magicString = this.magicString.clone();
 
 		this.statements.forEach( statement => {
@@ -623,7 +572,7 @@ export default class Module {
 				}
 
 				// skip `export var foo;` if foo is exported
-				if ( isEmptyExportedVarDeclaration( statement.node.declaration, this, allBundleExports, format === 'es6' ) ) {
+				if ( isEmptyExportedVarDeclaration( statement.node.declaration, this, allBundleExports, moduleReplacements, format === 'es6' ) ) {
 					magicString.remove( statement.start, statement.next );
 					return;
 				}
@@ -631,7 +580,7 @@ export default class Module {
 
 			// skip empty var declarations for exported bindings
 			// (otherwise we're left with `exports.foo;`, which is useless)
-			if ( isEmptyExportedVarDeclaration( statement.node, this, allBundleExports, format === 'es6' ) ) {
+			if ( isEmptyExportedVarDeclaration( statement.node, this, allBundleExports, moduleReplacements, format === 'es6' ) ) {
 				magicString.remove( statement.start, statement.next );
 				return;
 			}
@@ -652,12 +601,12 @@ export default class Module {
 			keys( statement.dependsOn )
 				.concat( keys( statement.defines ) )
 				.forEach( name => {
-					const canonicalName = this.getCanonicalName( name, format === 'es6' );
+					const bundleName = moduleReplacements[ name ] || name;
 
-					if ( allBundleExports[ canonicalName ] ) {
-						bundleExports[ name ] = replacements[ name ] = allBundleExports[ canonicalName ];
-					} else if ( name !== canonicalName ) {
-						replacements[ name ] = canonicalName;
+					if ( allBundleExports[ bundleName ] ) {
+						bundleExports[ name ] = replacements[ name ] = allBundleExports[ bundleName ];
+					} else if ( bundleName !== name ) { // TODO weird structure
+						replacements[ name ] = bundleName;
 					}
 				});
 
@@ -677,9 +626,16 @@ export default class Module {
 				}
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					const canonicalName = this.getCanonicalName( 'default', format === 'es6' );
+					//const canonicalName = this.getCanonicalName( 'default', format === 'es6' );
+					let canonicalName;
+					if ( this.replacements.default ) {
+						canonicalName = this.replacements.default;
+					} else {
+						canonicalName = statement.node.declaration.name; // TODO declaredName?
+						canonicalName = this.replacements[ canonicalName ] || canonicalName;
+					}
 
-					if ( statement.node.declaration.type === 'Identifier' && canonicalName === this.getCanonicalName( statement.node.declaration.name, format === 'es6' ) ) {
+					if ( statement.node.declaration.type === 'Identifier' && canonicalName === ( moduleReplacements[ statement.node.declaration.name ] || statement.node.declaration.name ) ) {
 						magicString.remove( statement.start, statement.next );
 						return;
 					}
