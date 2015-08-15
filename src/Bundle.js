@@ -162,19 +162,20 @@ export default class Bundle {
 		this.orderedModules.forEach( module => {
 			if ( !module.needsDefault && !module.needsAll ) return;
 
-			if ( module.needsDefault ) {
-				const defaultExport = module.exports.default;
-
-				// only create a new name if either
-				//   a) it's an expression (`export default 42`) or
-				//   b) it's a name that is reassigned to (`export var a = 1; a = 2`)
-				if ( defaultExport.declaredName && !defaultExport.isModified ) return; // TODO encapsulate check for whether we need synthetic default name
-
-				const defaultName = getSafeName( module.suggestedNames.default );
-				module.replacements.default = defaultName;
+			if ( module.needsAll ) {
+				const namespaceName = getSafeName( module.suggestedNames[ '*' ] );
+				module.replacements[ '*' ] = namespaceName;
 			}
 
-			// TODO namespace
+			const defaultExport = module.exports.default;
+
+			// only create a new name if either
+			//   a) it's an expression (`export default 42`) or
+			//   b) it's a name that is reassigned to (`export var a = 1; a = 2`)
+			if ( defaultExport.declaredName && !defaultExport.isModified ) return; // TODO encapsulate check for whether we need synthetic default name
+
+			const defaultName = getSafeName( module.suggestedNames.default );
+			module.replacements.default = defaultName;
 		});
 
 		this.orderedModules.forEach( module => {
@@ -208,18 +209,20 @@ export default class Bundle {
 						otherModule.name;
 				}
 
-				// TODO namespaces
+				if ( importDeclaration.name === '*' ) {
+					return otherModule.name;
+				}
 
 				return `${otherModule.name}.${importDeclaration.name}`;
+			}
+
+			if ( importDeclaration.name === '*' ) {
+				return otherModule.replacements[ '*' ];
 			}
 
 			const exportDeclaration = otherModule.exports[ importDeclaration.name ];
 			return trace( otherModule, exportDeclaration.localName );
 		}
-
-		// TODO assign names to default/namespace exports, based on suggestions
-		// TODO trace bindings and rename within modules here (rather than later
-		// with getCanonicalName)
 
 		function getSafeName ( name ) {
 			while ( definers[ name ] || conflicts[ name ] ) { // TODO this seems wonky
@@ -387,9 +390,10 @@ export default class Bundle {
 		const namespaceBlock = this.internalNamespaceModules.map( module => {
 			const exportKeys = keys( module.exports );
 
-			return `var ${module.namespaceName} = {\n` +
+			return `var ${module.replacements['*']} = {\n` +
 				exportKeys.map( key => {
-					const localName = module.exports[ key ].localName;
+					let localName = module.exports[ key ].localName;
+					localName = module.replacements[ localName ] || localName;
 					return `${indentString}get ${key} () { return ${localName}; }`; // TODO...
 				}).join( ',\n' ) +
 			`\n};\n\n`;

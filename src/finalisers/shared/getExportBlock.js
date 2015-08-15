@@ -1,7 +1,10 @@
 export default function getExportBlock ( bundle, exportMode, mechanism = 'return' ) {
 	if ( exportMode === 'default' ) {
 		const defaultExport = bundle.entryModule.exports.default;
-		let defaultExportName = bundle.entryModule.replacements.default || defaultExport.statement.node.declaration.name;
+
+		const defaultExportName = bundle.entryModule.replacements.default ||
+			defaultExport.declaredName || // TODO can these be unified?
+			defaultExport.statement.node.declaration.name;
 
 		return `${mechanism} ${defaultExportName};`;
 	}
