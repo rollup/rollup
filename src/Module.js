@@ -623,7 +623,7 @@ export default class Module {
 				}
 
 				// skip `export var foo;` if foo is exported
-				if ( isEmptyExportedVarDeclaration( statement.node.declaration, statement.module, allBundleExports, format === 'es6' ) ) {
+				if ( isEmptyExportedVarDeclaration( statement.node.declaration, this, allBundleExports, format === 'es6' ) ) {
 					magicString.remove( statement.start, statement.next );
 					return;
 				}
@@ -631,7 +631,7 @@ export default class Module {
 
 			// skip empty var declarations for exported bindings
 			// (otherwise we're left with `exports.foo;`, which is useless)
-			if ( isEmptyExportedVarDeclaration( statement.node, statement.module, allBundleExports, format === 'es6' ) ) {
+			if ( isEmptyExportedVarDeclaration( statement.node, this, allBundleExports, format === 'es6' ) ) {
 				magicString.remove( statement.start, statement.next );
 				return;
 			}
@@ -652,7 +652,7 @@ export default class Module {
 			keys( statement.dependsOn )
 				.concat( keys( statement.defines ) )
 				.forEach( name => {
-					const canonicalName = statement.module.getCanonicalName( name, format === 'es6' );
+					const canonicalName = this.getCanonicalName( name, format === 'es6' );
 
 					if ( allBundleExports[ canonicalName ] ) {
 						bundleExports[ name ] = replacements[ name ] = allBundleExports[ canonicalName ];
@@ -677,10 +677,9 @@ export default class Module {
 				}
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					const module = statement.module;
-					const canonicalName = module.getCanonicalName( 'default', format === 'es6' );
+					const canonicalName = this.getCanonicalName( 'default', format === 'es6' );
 
-					if ( statement.node.declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( statement.node.declaration.name, format === 'es6' ) ) {
+					if ( statement.node.declaration.type === 'Identifier' && canonicalName === this.getCanonicalName( statement.node.declaration.name, format === 'es6' ) ) {
 						magicString.remove( statement.start, statement.next );
 						return;
 					}
