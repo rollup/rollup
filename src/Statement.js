@@ -367,4 +367,8 @@ export default class Statement {
 
 		return magicString;
 	}
+
+	toString () {
+		return this.module.magicString.slice( this.start, this.end );
+	}
 }
