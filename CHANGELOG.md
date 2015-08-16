@@ -2,7 +2,10 @@
 
 ## 0.14.0
 
-* TK
+* Internal refactoring
+* Correctly deconflict generated default export names ([#72](https://github.com/rollup/rollup/issues/72))
+* Handle `export { x } from 'y'` declarations ([#74](https://github.com/rollup/rollup/issues/74))
+* Dedupe named imports from external modules in ES6 bundles ([#77](https://github.com/rollup/rollup/issues/77))
 
 ## 0.13.0
 
