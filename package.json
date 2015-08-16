@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "Next-generation ES6 module bundler",
   "main": "dist/rollup.js",
   "jsnext:main": "src/rollup.js",
@@ -11,7 +11,8 @@
     "test": "mocha",
     "pretest": "npm run build",
     "build": "gobble build -f dist",
-    "prepublish": "npm test"
+    "prepublish": "npm test",
+    "lint": "eslint src"
   },
   "repository": {
     "type": "git",
@@ -33,12 +34,13 @@
   "devDependencies": {
     "babel-core": "^5.5.8",
     "console-group": "^0.1.2",
+    "eslint": "^1.1.0",
     "gobble": "^0.10.1",
     "gobble-babel": "^5.5.8",
     "gobble-browserify": "^0.6.1",
     "gobble-cli": "^0.4.2",
     "gobble-esperanto-bundle": "^0.2.0",
-    "gobble-rollup": "^0.5.0",
+    "gobble-rollup": "^0.6.0",
     "gobble-rollup-babel": "^0.1.0",
     "mocha": "^2.2.4",
     "source-map": "^0.1.40"

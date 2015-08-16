@@ -158,6 +158,9 @@ export default class Statement {
 			// disregard the `bar` in `class Foo { bar () {...} }`
 			if ( parent.type === 'MethodDefinition' ) return;
 
+			// disregard the `bar` in `export { foo as bar }`
+			if ( parent.type === 'ExportSpecifier' && node !== parent.local ) return;
+
 			const definingScope = scope.findDefiningScope( node.name );
 
 			if ( ( !definingScope || definingScope.depth === 0 ) && !this.defines[ node.name ] ) {
@@ -366,5 +369,9 @@ export default class Statement {
 		});
 
 		return magicString;
+	}
+
+	toString () {
+		return this.module.magicString.slice( this.start, this.end );
 	}
 }

@@ -9,7 +9,7 @@ import { first, sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
-const emptyArrayPromise = Promise.resolve([]);
+const emptyPromise = Promise.resolve();
 
 function deconflict ( name, names ) {
 	while ( name in names ) {
@@ -19,11 +19,11 @@ function deconflict ( name, names ) {
 	return name;
 }
 
-function isEmptyExportedVarDeclaration ( node, module, allBundleExports, es6 ) {
+function isEmptyExportedVarDeclaration ( node, module, allBundleExports, moduleReplacements, es6 ) {
 	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
 
 	const name = node.declarations[0].id.name;
-	const canonicalName = module.getCanonicalName( name, es6 );
+	const canonicalName = moduleReplacements[ name ] || name;
 
 	return canonicalName in allBundleExports;
 }
@@ -51,7 +51,7 @@ export default class Module {
 		this.suggestedNames = blank();
 		this.comments = [];
 
-		this.statements = this._parse( ast );
+		this.statements = this.parse( ast );
 
 		// imports and exports, indexed by ID
 		this.imports = blank();
@@ -62,7 +62,7 @@ export default class Module {
 		// array of all-export sources
 		this.exportDelegates = [];
 
-		this.canonicalNames = blank();
+		this.replacements = blank();
 
 		this.definitions = blank();
 		this.definitionPromises = blank();
@@ -82,14 +82,16 @@ export default class Module {
 			const isDeclaration = /Declaration$/.test( node.declaration.type );
 			const isAnonymous = /(?:Class|Function)Expression$/.test( node.declaration.type );
 
-			const declaredName = isDeclaration && node.declaration.id.name;
-			const identifier = node.declaration.type === 'Identifier' && node.declaration.name;
+			const identifier = isDeclaration ?
+				node.declaration.id.name :
+				node.declaration.type === 'Identifier' ?
+					node.declaration.name :
+					null;
 
 			this.exports.default = {
 				statement,
 				name: 'default',
-				localName: declaredName || 'default',
-				declaredName,
+				localName: identifier || 'default',
 				identifier,
 				isDeclaration,
 				isAnonymous,
@@ -107,19 +109,21 @@ export default class Module {
 					const localName = specifier.local.name;
 					const exportedName = specifier.exported.name;
 
-					this.exports[ exportedName ] = {
-						localName,
-						exportedName
-					};
-
 					// export { foo } from './foo';
 					if ( source ) {
 						this.imports[ localName ] = {
 							source,
-							localName,
+							localName: exportedName,
 							name: localName
 						};
 					}
+
+					this.exports[ exportedName ] = {
+						statement,
+						localName,
+						exportedName,
+						linkedImport: source ? this.imports[ localName ] : null
+					};
 				});
 			}
 
@@ -253,6 +257,18 @@ export default class Module {
 		return { strongDependencies, weakDependencies };
 	}
 
+	defaultName () {
+		const defaultExport = this.exports.default;
+
+		if ( !defaultExport ) return null;
+
+		const name = defaultExport.identifier && !defaultExport.isModified ?
+			defaultExport.identifier :
+			this.replacements.default;
+
+		return this.replacements[ name ] || name;
+	}
+
 	findDefiningStatement ( name ) {
 		if ( this.definitions[ name ] ) return this.definitions[ name ];
 
@@ -276,6 +292,8 @@ export default class Module {
 			const module = importDeclaration.module;
 
 			if ( module.isExternal ) return null;
+			if ( importDeclaration.name === '*' ) return null;
+			if ( importDeclaration.name === 'default' ) return null;
 
 			const exportDeclaration = module.exports[ importDeclaration.name ];
 			return module.findDeclaration( exportDeclaration.localName );
@@ -293,62 +311,10 @@ export default class Module {
 		return null;
 	}
 
-	getCanonicalName ( localName, es6 ) {
-		// Special case
-		if ( localName === 'default' && ( this.exports.default.isModified || !this.suggestedNames.default ) ) {
-			let canonicalName = makeLegalIdentifier( this.id.replace( dirname( this.bundle.entryModule.id ) + '/', '' ).replace( /\.js$/, '' ) );
-			return deconflict( canonicalName, this.definitions );
-		}
-
-		if ( this.suggestedNames[ localName ] ) {
-			localName = this.suggestedNames[ localName ];
-		}
-
-		const id = localName + ( es6 ? '-es6' : '' ); // TODO ugh this seems like a terrible hack
-
-		if ( !this.canonicalNames[ id ] ) {
-			let canonicalName;
-
-			if ( this.imports[ localName ] ) {
-				const importDeclaration = this.imports[ localName ];
-				const module = importDeclaration.module;
-
-				if ( importDeclaration.name === '*' ) {
-					canonicalName = module.suggestedNames[ '*' ];
-				} else {
-					let exporterLocalName;
-
-					if ( module.isExternal ) {
-						exporterLocalName = importDeclaration.name;
-					} else {
-						const exportDeclaration = module.exports[ importDeclaration.name ];
-
-						// The export declaration of the particular name is known.
-						if (exportDeclaration) {
-							exporterLocalName = exportDeclaration.localName;
-						} else { // export * from '...'
-							exporterLocalName = importDeclaration.name;
-						}
-					}
-
-					canonicalName = module.getCanonicalName( exporterLocalName, es6 );
-				}
-			}
-
-			else {
-				canonicalName = localName;
-			}
-
-			this.canonicalNames[ id ] = canonicalName;
-		}
-
-		return this.canonicalNames[ id ];
-	}
-
 	mark ( name ) {
-		// shortcut cycles. TODO this won't work everywhere...
+		// shortcut cycles
 		if ( this.definitionPromises[ name ] ) {
-			return emptyArrayPromise;
+			return emptyPromise;
 		}
 
 		let promise;
@@ -356,6 +322,7 @@ export default class Module {
 		// The definition for this name is in a different module
 		if ( this.imports[ name ] ) {
 			const importDeclaration = this.imports[ name ];
+			importDeclaration.isUsed = true;
 
 			promise = this.bundle.fetchModule( importDeclaration.source, this.id )
 				.then( module => {
@@ -380,17 +347,17 @@ export default class Module {
 						module.suggestName( 'default', `${suggestion}__default` );
 					}
 
-					if ( module.isExternal ) {
-						if ( importDeclaration.name === 'default' ) {
-							module.needsDefault = true;
-						} else if ( importDeclaration.name === '*' ) {
-							module.needsAll = true;
-						} else {
-							module.needsNamed = true;
-						}
+					if ( importDeclaration.name === 'default' && ( module.isExternal || !module.exports.default.linkedImport ) ) { // special case - exclude `export { default } from ...`
+						module.needsDefault = true;
+					} else if ( importDeclaration.name === '*' ) {
+						module.needsAll = true;
+					} else {
+						module.needsNamed = true;
+					}
 
+					if ( module.isExternal ) {
 						module.importedByBundle.push( importDeclaration );
-						return emptyArrayPromise;
+						return emptyPromise;
 					}
 
 					if ( importDeclaration.name === '*' ) {
@@ -399,7 +366,7 @@ export default class Module {
 							this.bundle.internalNamespaceModules.push( module );
 						}
 
-						return module.markAllStatements();
+						return module.markAllExportStatements();
 					}
 
 					const exportDeclaration = module.exports[ importDeclaration.name ];
@@ -429,53 +396,21 @@ export default class Module {
 					}
 
 					exportDeclaration.isUsed = true;
+
+					if ( importDeclaration.name === 'default' ) {
+						return exportDeclaration.statement.mark();
+					}
+
 					return module.mark( exportDeclaration.localName );
 				});
 		}
 
-		// The definition is in this module
-		else if ( name === 'default' && this.exports.default.isDeclaration ) {
-			// We have something like `export default foo` - so we just start again,
-			// searching for `foo` instead of default
-			promise = this.mark( this.exports.default.name );
-		}
-
 		else {
-			let statement;
-
-			statement = name === 'default' ? this.exports.default.statement : this.definitions[ name ];
-			promise = statement && !statement.isIncluded ? statement.mark() : emptyArrayPromise;
-
-			// Special case - `export default foo; foo += 1` - need to be
-			// vigilant about maintaining the correct order of the export
-			// declaration. Otherwise, the export declaration will always
-			// go at the end of the expansion, because the expansion of
-			// `foo` will include statements *after* the declaration
-			if ( name === 'default' && this.exports.default.identifier && this.exports.default.isModified ) {
-				const defaultExportStatement = this.exports.default.statement;
-				promise = promise.then( statements => {
-					// remove the default export statement...
-					// TODO could this be statements.pop()?
-					statements.splice( statements.indexOf( defaultExportStatement ), 1 );
-
-					let i = statements.length;
-					let inserted = false;
-
-					while ( i-- ) {
-						if ( statements[i].module === this && statements[i].index < defaultExportStatement.index ) {
-							statements.splice( i + 1, 0, defaultExportStatement );
-							inserted = true;
-							break;
-						}
-					}
-
-					if ( !inserted ) statements.push( statement );
-					return statements;
-				});
-			}
+			const statement = name === 'default' ? this.exports.default.statement : this.definitions[ name ];
+			promise = statement && statement.mark();
 		}
 
-		this.definitionPromises[ name ] = promise || emptyArrayPromise;
+		this.definitionPromises[ name ] = promise || emptyPromise;
 		return this.definitionPromises[ name ];
 	}
 
@@ -516,8 +451,15 @@ export default class Module {
 		});
 	}
 
-	// TODO rename this to parse, once https://github.com/rollup/rollup/issues/42 is fixed
-	_parse ( ast ) {
+	markAllExportStatements () {
+		return sequence( this.statements, statement => {
+			return statement.isExportDeclaration ?
+				statement.mark() :
+				null;
+		});
+	}
+
+	parse ( ast ) {
 		// The ast can be supplied programmatically (but usually won't be)
 		if ( !ast ) {
 			// Try to extract a list of top-level statements/declarations. If
@@ -554,7 +496,7 @@ export default class Module {
 				// remove the leading var/let/const
 				this.magicString.remove( node.start, node.declarations[0].start );
 
-				node.declarations.forEach( ( declarator, i ) => {
+				node.declarations.forEach( declarator => {
 					const { start, end } = declarator;
 
 					const syntheticNode = {
@@ -601,17 +543,13 @@ export default class Module {
 	}
 
 	rename ( name, replacement ) {
-		// TODO again, hacky...
-		this.canonicalNames[ name ] = this.canonicalNames[ name + '-es6' ] = replacement;
+		this.replacements[ name ] = replacement;
 	}
 
-	render ( allBundleExports, format ) {
+	render ( allBundleExports, moduleReplacements, format ) {
 		let magicString = this.magicString.clone();
 
-		let previousIndex = -1;
-		let previousMargin = 0;
-
-		this.statements.forEach( ( statement, i ) => {
+		this.statements.forEach( statement => {
 			if ( !statement.isIncluded ) {
 				magicString.remove( statement.start, statement.next );
 				return;
@@ -623,10 +561,10 @@ export default class Module {
 				if ( statement.node.specifiers.length ) {
 					magicString.remove( statement.start, statement.next );
 					return;
-				};
+				}
 
 				// skip `export var foo;` if foo is exported
-				if ( isEmptyExportedVarDeclaration( statement.node.declaration, statement.module, allBundleExports, format === 'es6' ) ) {
+				if ( isEmptyExportedVarDeclaration( statement.node.declaration, this, allBundleExports, moduleReplacements, format === 'es6' ) ) {
 					magicString.remove( statement.start, statement.next );
 					return;
 				}
@@ -634,7 +572,7 @@ export default class Module {
 
 			// skip empty var declarations for exported bindings
 			// (otherwise we're left with `exports.foo;`, which is useless)
-			if ( isEmptyExportedVarDeclaration( statement.node, statement.module, allBundleExports, format === 'es6' ) ) {
+			if ( isEmptyExportedVarDeclaration( statement.node, this, allBundleExports, moduleReplacements, format === 'es6' ) ) {
 				magicString.remove( statement.start, statement.next );
 				return;
 			}
@@ -655,12 +593,12 @@ export default class Module {
 			keys( statement.dependsOn )
 				.concat( keys( statement.defines ) )
 				.forEach( name => {
-					const canonicalName = statement.module.getCanonicalName( name, format === 'es6' );
+					const bundleName = moduleReplacements[ name ] || name;
 
-					if ( allBundleExports[ canonicalName ] ) {
-						bundleExports[ name ] = replacements[ name ] = allBundleExports[ canonicalName ];
-					} else if ( name !== canonicalName ) {
-						replacements[ name ] = canonicalName;
+					if ( allBundleExports[ bundleName ] ) {
+						bundleExports[ name ] = replacements[ name ] = allBundleExports[ bundleName ];
+					} else if ( bundleName !== name ) { // TODO weird structure
+						replacements[ name ] = bundleName;
 					}
 				});
 
@@ -680,11 +618,16 @@ export default class Module {
 				}
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					const module = statement.module;
-					const canonicalName = module.getCanonicalName( 'default', format === 'es6' );
+					const canonicalName = this.defaultName();
 
-					if ( statement.node.declaration.type === 'Identifier' && canonicalName === module.getCanonicalName( statement.node.declaration.name, format === 'es6' ) ) {
+					if ( statement.node.declaration.type === 'Identifier' && canonicalName === ( moduleReplacements[ statement.node.declaration.name ] || statement.node.declaration.name ) ) {
 						magicString.remove( statement.start, statement.next );
+						return;
+					}
+
+					// prevent `var undefined = sideEffectyDefault(foo)`
+					if ( canonicalName === undefined ) {
+						magicString.remove( statement.start, statement.node.declaration.start );
 						return;
 					}
 
