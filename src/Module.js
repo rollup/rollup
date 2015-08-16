@@ -294,6 +294,7 @@ export default class Module {
 
 			if ( module.isExternal ) return null;
 			if ( importDeclaration.name === '*' ) return null;
+			if ( importDeclaration.name === 'default' ) return null;
 
 			const exportDeclaration = module.exports[ importDeclaration.name ];
 			return module.findDeclaration( exportDeclaration.localName );
