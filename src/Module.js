@@ -120,6 +120,7 @@ export default class Module {
 					}
 
 					this.exports[ exportedName ] = {
+						statement,
 						localName,
 						exportedName,
 						linkedImport: source ? this.imports[ localName ] : null
@@ -257,6 +258,14 @@ export default class Module {
 		return { strongDependencies, weakDependencies };
 	}
 
+	defaultName () {
+		const defaultExport = this.exports.default;
+
+		if ( !defaultExport ) return null;
+		if ( defaultExport.identifier && !defaultExport.isModified ) return defaultExport.identifier;
+		return this.replacements.default;
+	}
+
 	findDefiningStatement ( name ) {
 		if ( this.definitions[ name ] ) return this.definitions[ name ];
 
@@ -380,6 +389,10 @@ export default class Module {
 								});
 							});
 						});
+					}
+
+					if ( importDeclaration.name === 'default' ) {
+						return exportDeclaration.statement.mark();
 					}
 
 					exportDeclaration.isUsed = true;
@@ -610,14 +623,7 @@ export default class Module {
 				}
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					//const canonicalName = this.getCanonicalName( 'default', format === 'es6' );
-					let canonicalName;
-					if ( this.replacements.default ) {
-						canonicalName = this.replacements.default;
-					} else {
-						canonicalName = statement.node.declaration.name; // TODO declaredName?
-						canonicalName = this.replacements[ canonicalName ] || canonicalName;
-					}
+					const canonicalName = this.defaultName();
 
 					if ( statement.node.declaration.type === 'Identifier' && canonicalName === ( moduleReplacements[ statement.node.declaration.name ] || statement.node.declaration.name ) ) {
 						magicString.remove( statement.start, statement.next );

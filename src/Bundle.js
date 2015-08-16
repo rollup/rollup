@@ -198,6 +198,7 @@ export default class Bundle {
 
 			// defined in this module
 			if ( !importDeclaration ) {
+				if ( localName === 'default' ) return module.defaultName();
 				return module.replacements[ localName ] || localName;
 			}
 
@@ -224,6 +225,10 @@ export default class Bundle {
 				return otherModule.replacements[ '*' ];
 			}
 
+			if ( importDeclaration.name === 'default' ) {
+				return otherModule.defaultName();
+			}
+
 			const exportDeclaration = otherModule.exports[ importDeclaration.name ];
 			if ( exportDeclaration ) return trace( otherModule, exportDeclaration.localName );
 
@@ -240,7 +245,7 @@ export default class Bundle {
 		}
 
 		function getSafeName ( name ) {
-			while ( conflicts[ name ] ) { // TODO this seems wonky
+			while ( definers[ name ] || conflicts[ name ] ) { // TODO this seems wonky
 				name = `_${name}`;
 			}
 
