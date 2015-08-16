@@ -83,14 +83,16 @@ export default class Module {
 			const isDeclaration = /Declaration$/.test( node.declaration.type );
 			const isAnonymous = /(?:Class|Function)Expression$/.test( node.declaration.type );
 
-			const declaredName = isDeclaration && node.declaration.id.name;
-			const identifier = node.declaration.type === 'Identifier' && node.declaration.name;
+			const identifier = isDeclaration ?
+				node.declaration.id.name :
+				node.declaration.type === 'Identifier' ?
+					node.declaration.name :
+					null;
 
 			this.exports.default = {
 				statement,
 				name: 'default',
-				localName: declaredName || 'default',
-				declaredName,
+				localName: identifier || 'default',
 				identifier,
 				isDeclaration,
 				isAnonymous,
@@ -389,7 +391,7 @@ export default class Module {
 		else if ( name === 'default' && this.exports.default.isDeclaration ) {
 			// We have something like `export default foo` - so we just start again,
 			// searching for `foo` instead of default
-			promise = this.mark( this.exports.default.name );
+			promise = this.mark( this.exports.default.name ); // TODO this can't be right... this.exports.default.name === 'default'
 		}
 
 		else {

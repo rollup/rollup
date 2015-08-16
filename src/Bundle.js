@@ -56,8 +56,8 @@ export default class Bundle {
 
 					// `export default function foo () {...}` -
 					// use the declared name for the export
-					if ( defaultExport.declaredName ) {
-						entryModule.suggestName( 'default', defaultExport.declaredName );
+					if ( defaultExport.identifier ) {
+						entryModule.suggestName( 'default', defaultExport.identifier );
 					}
 
 					// `export default a + b` - generate an export name
@@ -175,7 +175,7 @@ export default class Bundle {
 				// only create a new name if either
 				//   a) it's an expression (`export default 42`) or
 				//   b) it's a name that is reassigned to (`export var a = 1; a = 2`)
-				if ( defaultExport && defaultExport.declaredName && !defaultExport.isModified ) return; // TODO encapsulate check for whether we need synthetic default name
+				if ( defaultExport && defaultExport.identifier && !defaultExport.isModified ) return; // TODO encapsulate check for whether we need synthetic default name
 
 				const defaultName = getSafeName( module.suggestedNames.default );
 				module.replacements.default = defaultName;
