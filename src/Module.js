@@ -9,7 +9,7 @@ import { first, sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
-const emptyArrayPromise = Promise.resolve([]);
+const emptyPromise = Promise.resolve();
 
 function deconflict ( name, names ) {
 	while ( name in names ) {
@@ -62,7 +62,6 @@ export default class Module {
 		// array of all-export sources
 		this.exportDelegates = [];
 
-		this.canonicalNames = blank(); // TODO still necessary?
 		this.replacements = blank();
 
 		this.definitions = blank();
@@ -313,9 +312,9 @@ export default class Module {
 	}
 
 	mark ( name ) {
-		// shortcut cycles. TODO this won't work everywhere...
+		// shortcut cycles
 		if ( this.definitionPromises[ name ] ) {
-			return emptyArrayPromise;
+			return emptyPromise;
 		}
 
 		let promise;
@@ -358,7 +357,7 @@ export default class Module {
 
 					if ( module.isExternal ) {
 						module.importedByBundle.push( importDeclaration );
-						return emptyArrayPromise;
+						return emptyPromise;
 					}
 
 					if ( importDeclaration.name === '*' ) {
@@ -406,21 +405,12 @@ export default class Module {
 				});
 		}
 
-		// The definition is in this module
-		else if ( name === 'default' && this.exports.default.isDeclaration ) {
-			// We have something like `export default foo` - so we just start again,
-			// searching for `foo` instead of default
-			promise = this.mark( this.exports.default.name ); // TODO this can't be right... this.exports.default.name === 'default'
-		}
-
 		else {
-			let statement;
-
-			statement = name === 'default' ? this.exports.default.statement : this.definitions[ name ];
-			promise = statement && !statement.isIncluded ? statement.mark() : emptyArrayPromise;
+			const statement = name === 'default' ? this.exports.default.statement : this.definitions[ name ];
+			promise = statement && statement.mark();
 		}
 
-		this.definitionPromises[ name ] = promise || emptyArrayPromise;
+		this.definitionPromises[ name ] = promise || emptyPromise;
 		return this.definitionPromises[ name ];
 	}
 

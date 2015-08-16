@@ -8,7 +8,6 @@ export default class ExternalModule {
 		this.isExternal = true;
 		this.importedByBundle = [];
 
-		this.canonicalNames = blank();
 		this.suggestedNames = blank();
 
 		this.needsDefault = false;
@@ -27,7 +26,7 @@ export default class ExternalModule {
 	}
 
 	rename ( name, replacement ) {
-		this.canonicalNames[ name ] = replacement;
+		// noop
 	}
 
 	suggestName ( exportName, suggestion ) {
