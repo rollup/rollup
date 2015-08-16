@@ -308,8 +308,12 @@ describe( 'rollup', function () {
 
 						else {
 							var expected = sander.readFileSync( '_expected.js' ).toString();
-							assert.equal( code.trim(), expected.trim() );
-							done();
+							try {
+								assert.equal( code.trim(), expected.trim() );
+								done();
+							} catch ( err ) {
+								done( err );
+							}
 						}
 					});
 				});
