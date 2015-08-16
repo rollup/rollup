@@ -343,7 +343,7 @@ export default class Module {
 						module.suggestName( 'default', `${suggestion}__default` );
 					}
 
-					if ( importDeclaration.name === 'default' ) {
+					if ( importDeclaration.name === 'default' && ( module.isExternal || !module.exports.default.linkedImport ) ) { // special case - exclude `export { default } from ...`
 						module.needsDefault = true;
 					} else if ( importDeclaration.name === '*' ) {
 						module.needsAll = true;
