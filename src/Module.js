@@ -636,6 +636,12 @@ export default class Module {
 						return;
 					}
 
+					// prevent `var undefined = sideEffectyDefault(foo)`
+					if ( canonicalName === undefined ) {
+						magicString.remove( statement.start, statement.node.declaration.start );
+						return;
+					}
+
 					// anonymous functions should be converted into declarations
 					if ( statement.node.declaration.type === 'FunctionExpression' ) {
 						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${canonicalName}` );
