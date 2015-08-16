@@ -262,8 +262,12 @@ export default class Module {
 		const defaultExport = this.exports.default;
 
 		if ( !defaultExport ) return null;
-		if ( defaultExport.identifier && !defaultExport.isModified ) return defaultExport.identifier;
-		return this.replacements.default;
+
+		const name = defaultExport.identifier && !defaultExport.isModified ?
+			defaultExport.identifier :
+			this.replacements.default;
+
+		return this.replacements[ name ] || name;
 	}
 
 	findDefiningStatement ( name ) {
