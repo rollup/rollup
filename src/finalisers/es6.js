@@ -1,4 +1,14 @@
-import { keys } from '../utils/object';
+import { blank, keys } from '../utils/object';
+
+function uniqueNames ( declarations ) {
+	let uniques = blank();
+
+	declarations
+		.filter( declaration => !/^(default|\*)$/.test( declaration.name ) )
+		.forEach( declaration => uniques[ declaration.name ] = true );
+
+	return keys( uniques );
+}
 
 export default function es6 ( bundle, magicString ) {
 	const importBlock = bundle.externalModules
@@ -16,10 +26,7 @@ export default function es6 ( bundle, magicString ) {
 			}
 
 			if ( module.needsNamed ) {
-				specifiers.push( '{ ' + module.importedByBundle
-					.filter( declaration => !/^(default|\*)$/.test( declaration.name ) )
-					.map( ({ name, localName }) =>
-						name === localName ? name : `${name} as ${localName}` )
+				specifiers.push( '{ ' + uniqueNames( module.importedByBundle )
 					.join( ', ' ) + ' }' );
 			}
 
