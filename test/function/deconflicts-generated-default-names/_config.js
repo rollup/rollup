@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'deconflicts generated default export names',
-	solo: true
+	description: 'deconflicts generated default export names'
 };
