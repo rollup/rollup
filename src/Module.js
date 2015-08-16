@@ -395,11 +395,12 @@ export default class Module {
 						});
 					}
 
+					exportDeclaration.isUsed = true;
+
 					if ( importDeclaration.name === 'default' ) {
 						return exportDeclaration.statement.mark();
 					}
 
-					exportDeclaration.isUsed = true;
 					return module.mark( exportDeclaration.localName );
 				});
 		}
