@@ -51,7 +51,7 @@ export default class Module {
 		this.suggestedNames = blank();
 		this.comments = [];
 
-		this.statements = this._parse( ast );
+		this.statements = this.parse( ast );
 
 		// imports and exports, indexed by ID
 		this.imports = blank();
@@ -459,8 +459,7 @@ export default class Module {
 		});
 	}
 
-	// TODO rename this to parse, once https://github.com/rollup/rollup/issues/42 is fixed
-	_parse ( ast ) {
+	parse ( ast ) {
 		// The ast can be supplied programmatically (but usually won't be)
 		if ( !ast ) {
 			// Try to extract a list of top-level statements/declarations. If
