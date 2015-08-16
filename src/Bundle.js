@@ -30,7 +30,6 @@ export default class Bundle {
 			transform: ensureArray( options.transform )
 		};
 
-		this.varExports = blank();
 		this.toExport = null;
 
 		this.modulePromises = blank();
@@ -186,63 +185,12 @@ export default class Bundle {
 			keys( module.imports ).forEach( localName => {
 				if ( !module.imports[ localName ].isUsed ) return;
 
-				const bundleName = trace( module, localName );
+				const bundleName = this.trace( module, localName, es6 );
 				if ( bundleName !== localName ) {
 					allReplacements[ module.id ][ localName ] = bundleName;
 				}
 			});
 		});
-
-		function trace ( module, localName ) {
-			const importDeclaration = module.imports[ localName ];
-
-			// defined in this module
-			if ( !importDeclaration ) {
-				if ( localName === 'default' ) return module.defaultName();
-				return module.replacements[ localName ] || localName;
-			}
-
-			// defined elsewhere
-			const otherModule = importDeclaration.module;
-
-			if ( otherModule.isExternal ) {
-				if ( importDeclaration.name === 'default' ) {
-					return otherModule.needsNamed && !es6 ?
-						`${otherModule.name}__default` :
-						otherModule.name;
-				}
-
-				if ( importDeclaration.name === '*' ) {
-					return otherModule.name;
-				}
-
-				return es6 ?
-					importDeclaration.name :
-					`${otherModule.name}.${importDeclaration.name}`;
-			}
-
-			if ( importDeclaration.name === '*' ) {
-				return otherModule.replacements[ '*' ];
-			}
-
-			if ( importDeclaration.name === 'default' ) {
-				return otherModule.defaultName();
-			}
-
-			const exportDeclaration = otherModule.exports[ importDeclaration.name ];
-			if ( exportDeclaration ) return trace( otherModule, exportDeclaration.localName );
-
-			for ( let i = 0; i < otherModule.exportDelegates.length; i += 1 ) {
-				const delegate = otherModule.exportDelegates[i];
-				const delegateExportDeclaration = delegate.module.exports[ importDeclaration.name ];
-
-				if ( delegateExportDeclaration ) {
-					return trace( delegate.module, delegateExportDeclaration.localName );
-				}
-			}
-
-			throw new Error( 'Could not trace binding' );
-		}
 
 		function getSafeName ( name ) {
 			while ( definers[ name ] || conflicts[ name ] ) { // TODO this seems wonky
@@ -374,6 +322,7 @@ export default class Bundle {
 		//
 		// This doesn't apply if the bundle is exported as ES6!
 		let allBundleExports = blank();
+		let varExports = blank();
 
 		if ( format !== 'es6' ) {
 			keys( this.entryModule.exports ).forEach( key => {
@@ -382,10 +331,10 @@ export default class Bundle {
 				const originalDeclaration = this.entryModule.findDeclaration( exportDeclaration.localName );
 
 				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
-					const canonicalName = this.entryModule.replacements[ exportDeclaration.localName ] || exportDeclaration.localName;
+					const canonicalName = this.trace( this.entryModule, exportDeclaration.localName, false );
 
 					allBundleExports[ canonicalName ] = `exports.${key}`;
-					this.varExports[ key ] = true;
+					varExports[ key ] = true;
 				}
 			});
 		}
@@ -393,7 +342,7 @@ export default class Bundle {
 		// since we're rewriting variable exports, we want to
 		// ensure we don't try and export them again at the bottom
 		this.toExport = keys( this.entryModule.exports )
-			.filter( key => !this.varExports[ key ] );
+			.filter( key => !varExports[ key ] );
 
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
@@ -546,5 +495,56 @@ export default class Bundle {
 		}
 
 		return ordered;
+	}
+
+	trace ( module, localName, es6 ) {
+		const importDeclaration = module.imports[ localName ];
+
+		// defined in this module
+		if ( !importDeclaration ) {
+			if ( localName === 'default' ) return module.defaultName();
+			return module.replacements[ localName ] || localName;
+		}
+
+		// defined elsewhere
+		const otherModule = importDeclaration.module;
+
+		if ( otherModule.isExternal ) {
+			if ( importDeclaration.name === 'default' ) {
+				return otherModule.needsNamed && !es6 ?
+					`${otherModule.name}__default` :
+					otherModule.name;
+			}
+
+			if ( importDeclaration.name === '*' ) {
+				return otherModule.name;
+			}
+
+			return es6 ?
+				importDeclaration.name :
+				`${otherModule.name}.${importDeclaration.name}`;
+		}
+
+		if ( importDeclaration.name === '*' ) {
+			return otherModule.replacements[ '*' ];
+		}
+
+		if ( importDeclaration.name === 'default' ) {
+			return otherModule.defaultName();
+		}
+
+		const exportDeclaration = otherModule.exports[ importDeclaration.name ];
+		if ( exportDeclaration ) return this.trace( otherModule, exportDeclaration.localName );
+
+		for ( let i = 0; i < otherModule.exportDelegates.length; i += 1 ) {
+			const delegate = otherModule.exportDelegates[i];
+			const delegateExportDeclaration = delegate.module.exports[ importDeclaration.name ];
+
+			if ( delegateExportDeclaration ) {
+				return this.trace( delegate.module, delegateExportDeclaration.localName );
+			}
+		}
+
+		throw new Error( 'Could not trace binding' );
 	}
 }
