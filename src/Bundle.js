@@ -90,8 +90,10 @@ export default class Bundle {
 
 	// TODO would be better to deconflict once, rather than per-render
 	deconflict ( es6 ) {
-		let definers = blank();
-		let conflicts = blank();
+		let usedNames = blank();
+
+		// ensure no conflicts with globals
+		keys( this.assumedGlobals ).forEach( name => usedNames[ name ] = true );
 
 		let allReplacements = blank();
 
@@ -100,64 +102,27 @@ export default class Bundle {
 			// while we're here...
 			allReplacements[ module.id ] = blank();
 
+			// TODO is this necessary in the ES6 case?
 			let name = makeLegalIdentifier( module.suggestedNames['*'] || module.suggestedNames.default || module.id );
-
-			while ( definers[ name ] ) {
-				conflicts[ name ] = true;
-				name = `_${name}`;
-			}
-
-			definers[ name ] = [ module ];
-			module.name = name;
-			this.assumedGlobals[ name ] = true;
+			module.name = getSafeName( name );
 		});
 
 		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
-		this.orderedModules.forEach( module => {
+		let i = this.orderedModules.length;
+		while ( i-- ) {
+			const module = this.orderedModules[i];
+
 			// while we're here...
 			allReplacements[ module.id ] = blank();
 
-			module.statements.forEach( statement => {
-				if ( !statement.isIncluded ) return;
-
-				keys( statement.defines ).forEach( name => {
-					if ( definers[ name ] ) {
-						conflicts[ name ] = true;
-					} else {
-						definers[ name ] = [];
-					}
-
-					// TODO in good js, there shouldn't be duplicate definitions
-					// per module... but some people write bad js
-					definers[ name ].push( module );
-				});
+			keys( module.definitions ).forEach( name => {
+				const safeName = getSafeName( name );
+				if ( safeName !== name ) {
+					module.rename( name, safeName );
+					allReplacements[ module.id ][ name ] = safeName;
+				}
 			});
-		});
-
-		// Ensure we don't conflict with globals
-		keys( this.assumedGlobals ).forEach( name => {
-			if ( definers[ name ] ) {
-				conflicts[ name ] = true;
-			}
-		});
-
-		// Rename conflicting identifiers so they can live in the same scope
-		keys( conflicts ).forEach( name => {
-			const modules = definers[ name ];
-
-			if ( !this.assumedGlobals[ name ] ) {
-				// the module closest to the entryModule gets away with
-				// keeping things as they are, unless we have a conflict
-				// with a global name
-				modules.pop();
-			}
-
-			modules.forEach( module => {
-				const replacement = getSafeName( name );
-				module.rename( name, replacement );
-				allReplacements[ module.id ][ name ] = replacement;
-			});
-		});
+		}
 
 		// Assign non-conflicting names to internal default/namespace export
 		this.orderedModules.forEach( module => {
@@ -193,11 +158,11 @@ export default class Bundle {
 		});
 
 		function getSafeName ( name ) {
-			while ( definers[ name ] || conflicts[ name ] ) { // TODO this seems wonky
+			while ( usedNames[ name ] ) {
 				name = `_${name}`;
 			}
 
-			conflicts[ name ] = true;
+			usedNames[ name ] = true;
 			return name;
 		}
 
