@@ -306,6 +306,9 @@ export default class Bundle {
 		const format = options.format || 'es6';
 		const allReplacements = this.deconflict( format === 'es6' );
 
+		// Determine export mode - 'default', 'named', 'none'
+		const exportMode = getExportMode( this, options.exports );
+
 		// If we have named exports from the bundle, and those exports
 		// are assigned to *within* the bundle, we may need to rewrite e.g.
 		//
@@ -324,7 +327,7 @@ export default class Bundle {
 		let allBundleExports = blank();
 		let varExports = blank();
 
-		if ( format !== 'es6' ) {
+		if ( format !== 'es6' && exportMode === 'named' ) {
 			keys( this.entryModule.exports ).forEach( key => {
 				const exportDeclaration = this.entryModule.exports[ key ];
 
@@ -387,7 +390,7 @@ export default class Bundle {
 
 		magicString = finalise( this, magicString.trim(), {
 			// Determine export mode - 'default', 'named', 'none'
-			exportMode: getExportMode( this, options.exports ),
+			exportMode,
 
 			// Determine indentation
 			indentString: getIndentString( magicString, options )
