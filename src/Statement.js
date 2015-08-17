@@ -26,6 +26,7 @@ export default class Statement {
 
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
 		this.isExportDeclaration = /^Export/.test( node.type );
+		this.isReexportDeclaration = this.isExportDeclaration && !!node.source;
 	}
 
 	analyse () {
@@ -235,6 +236,17 @@ export default class Statement {
 		if ( this.isIncluded ) return; // prevent infinite loops
 		this.isIncluded = true;
 
+		// `export { name } from './other'` is a special case
+		if ( this.isReexportDeclaration ) {
+			return this.module.bundle.fetchModule( this.node.source.value, this.module.id )
+				.then( otherModule => {
+					return sequence( this.node.specifiers, specifier => {
+						this.module.reexports[ specifier.exported.name ].module = otherModule;
+						return otherModule.markExport( specifier.local.name );
+					});
+				});
+		}
+
 		const dependencies = Object.keys( this.dependsOn );
 
 		return sequence( dependencies, name => {
@@ -369,6 +381,10 @@ export default class Statement {
 		});
 
 		return magicString;
+	}
+
+	source () {
+		return this.module.source.slice( this.start, this.end );
 	}
 
 	toString () {

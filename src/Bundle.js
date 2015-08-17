@@ -224,7 +224,7 @@ export default class Bundle {
 
 				keys( statement.modifies ).forEach( name => {
 					const definingStatement = module.definitions[ name ];
-					const exportDeclaration = module.exports[ name ] || (
+					const exportDeclaration = module.exports[ name ] || module.reexports[ name ] || (
 						module.exports.default && module.exports.default.identifier === name && module.exports.default
 					);
 
@@ -305,11 +305,25 @@ export default class Bundle {
 					varExports[ key ] = true;
 				}
 			});
+
+			keys( this.entryModule.reexports ).forEach( key => {
+				const reexportDeclaration = this.entryModule.reexports[ key ];
+
+				const originalDeclaration = reexportDeclaration.module.findDeclaration( reexportDeclaration.importedName );
+
+				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
+					const canonicalName = this.trace( reexportDeclaration.module, reexportDeclaration.importedName, false );
+
+					allBundleExports[ canonicalName ] = `exports.${key}`;
+					varExports[ key ] = true;
+				}
+			});
 		}
 
 		// since we're rewriting variable exports, we want to
 		// ensure we don't try and export them again at the bottom
 		this.toExport = keys( this.entryModule.exports )
+			.concat( keys( this.entryModule.reexports ) )
 			.filter( key => !varExports[ key ] );
 
 
@@ -476,40 +490,50 @@ export default class Bundle {
 
 		// defined elsewhere
 		const otherModule = importDeclaration.module;
+		const name = importDeclaration.name;
 
 		if ( otherModule.isExternal ) {
-			if ( importDeclaration.name === 'default' ) {
+			if ( name === 'default' ) {
 				return otherModule.needsNamed && !es6 ?
 					`${otherModule.name}__default` :
 					otherModule.name;
 			}
 
-			if ( importDeclaration.name === '*' ) {
+			if ( name === '*' ) {
 				return otherModule.name;
 			}
 
 			return es6 ?
-				importDeclaration.name :
-				`${otherModule.name}.${importDeclaration.name}`;
+				name :
+				`${otherModule.name}.${name}`;
 		}
 
-		if ( importDeclaration.name === '*' ) {
+		if ( name === '*' ) {
 			return otherModule.replacements[ '*' ];
 		}
 
-		if ( importDeclaration.name === 'default' ) {
+		if ( name === 'default' ) {
 			return otherModule.defaultName();
 		}
 
-		const exportDeclaration = otherModule.exports[ importDeclaration.name ];
-		if ( exportDeclaration ) return this.trace( otherModule, exportDeclaration.localName );
+		return this.traceExport( otherModule, name, es6 );
+	}
 
-		for ( let i = 0; i < otherModule.exportDelegates.length; i += 1 ) {
-			const delegate = otherModule.exportDelegates[i];
-			const delegateExportDeclaration = delegate.module.exports[ importDeclaration.name ];
+	traceExport ( module, name, es6 ) {
+		const reexportDeclaration = module.reexports[ name ];
+		if ( reexportDeclaration ) {
+			return this.traceExport( reexportDeclaration.module, reexportDeclaration.importedName );
+		}
+
+		const exportDeclaration = module.exports[ name ];
+		if ( exportDeclaration ) return this.trace( module, exportDeclaration.localName );
+
+		for ( let i = 0; i < module.exportDelegates.length; i += 1 ) {
+			const delegate = module.exportDelegates[i];
+			const delegateExportDeclaration = delegate.module.exports[ name ];
 
 			if ( delegateExportDeclaration ) {
-				return this.trace( delegate.module, delegateExportDeclaration.localName );
+				return this.trace( delegate.module, delegateExportDeclaration.localName, es6 );
 			}
 		}
 
