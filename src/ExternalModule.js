@@ -25,7 +25,7 @@ export default class ExternalModule {
 		return null;
 	}
 
-	rename ( name, replacement ) {
+	rename () {
 		// noop
 	}
 

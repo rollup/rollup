@@ -1,4 +1,3 @@
-import { dirname } from './utils/path';
 import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
@@ -19,7 +18,7 @@ function deconflict ( name, names ) {
 	return name;
 }
 
-function isEmptyExportedVarDeclaration ( node, module, allBundleExports, moduleReplacements, es6 ) {
+function isEmptyExportedVarDeclaration ( node, allBundleExports, moduleReplacements ) {
 	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
 
 	const name = node.declarations[0].id.name;
@@ -546,7 +545,7 @@ export default class Module {
 		this.replacements[ name ] = replacement;
 	}
 
-	render ( allBundleExports, moduleReplacements, format ) {
+	render ( allBundleExports, moduleReplacements ) {
 		let magicString = this.magicString.clone();
 
 		this.statements.forEach( statement => {
@@ -564,7 +563,7 @@ export default class Module {
 				}
 
 				// skip `export var foo;` if foo is exported
-				if ( isEmptyExportedVarDeclaration( statement.node.declaration, this, allBundleExports, moduleReplacements, format === 'es6' ) ) {
+				if ( isEmptyExportedVarDeclaration( statement.node.declaration, allBundleExports, moduleReplacements ) ) {
 					magicString.remove( statement.start, statement.next );
 					return;
 				}
@@ -572,7 +571,7 @@ export default class Module {
 
 			// skip empty var declarations for exported bindings
 			// (otherwise we're left with `exports.foo;`, which is useless)
-			if ( isEmptyExportedVarDeclaration( statement.node, this, allBundleExports, moduleReplacements, format === 'es6' ) ) {
+			if ( isEmptyExportedVarDeclaration( statement.node, allBundleExports, moduleReplacements ) ) {
 				magicString.remove( statement.start, statement.next );
 				return;
 			}
