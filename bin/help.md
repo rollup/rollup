@@ -16,7 +16,7 @@ Basic options:
 -n, --name               Name for UMD export
 -u, --id                 ID for AMD module (default is anonymous)
 -m, --sourcemap          Generate sourcemap (`-m inline` for inline map)
-
+--no-strict              Don't emit a `"use strict";` in the generated modules.
 
 Examples:
 
