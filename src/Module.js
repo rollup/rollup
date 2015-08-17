@@ -233,19 +233,21 @@ export default class Module {
 			}
 
 			else if ( statement.isReexportDeclaration ) {
-				statement.node.specifiers.forEach( specifier => {
-					let reexport;
+				if ( statement.node.specifiers ) {
+					statement.node.specifiers.forEach( specifier => {
+						let reexport;
 
-					let module = this;
-					let name = specifier.exported.name;
-					while ( module.reexports[ name ] && module.reexports[ name ].isUsed ) {
-						reexport = module.reexports[ name ];
-						module = reexport.module;
-						name = reexport.importedName;
-					}
+						let module = this;
+						let name = specifier.exported.name;
+						while ( module.reexports[ name ] && module.reexports[ name ].isUsed ) {
+							reexport = module.reexports[ name ];
+							module = reexport.module;
+							name = reexport.importedName;
+						}
 
-					addDependency( strongDependencies, reexport );
-				});
+						addDependency( strongDependencies, reexport );
+					});
+				}
 			}
 
 			else {
