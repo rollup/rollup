@@ -246,7 +246,9 @@ export default class Statement {
 						reexport.isUsed = true;
 						reexport.module = otherModule;
 
-						return otherModule.markExport( specifier.local.name, specifier.exported.name, this.module );
+						return otherModule.isExternal ?
+							null :
+							otherModule.markExport( specifier.local.name, specifier.exported.name, this.module );
 					});
 				});
 		}

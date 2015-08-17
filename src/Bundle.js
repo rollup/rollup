@@ -309,6 +309,7 @@ export default class Bundle {
 			keys( this.entryModule.reexports ).forEach( key => {
 				const reexportDeclaration = this.entryModule.reexports[ key ];
 
+				if ( reexportDeclaration.module.isExternal ) return;
 				const originalDeclaration = reexportDeclaration.module.findDeclaration( reexportDeclaration.importedName );
 
 				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
@@ -530,6 +531,22 @@ export default class Bundle {
 	traceExport ( module, name, es6 ) {
 		const reexportDeclaration = module.reexports[ name ];
 		if ( reexportDeclaration ) {
+			if ( reexportDeclaration.module.isExternal ) {
+				if ( name === 'default' ) {
+					return reexportDeclaration.module.needsNamed && !es6 ?
+						`${reexportDeclaration.module.name}__default` :
+						reexportDeclaration.module.name;
+				}
+
+				if ( name === '*' ) {
+					return reexportDeclaration.module.name;
+				}
+
+				return es6 ?
+					name :
+					`${reexportDeclaration.module.name}.${name}`;
+			}
+
 			return this.traceExport( reexportDeclaration.module, reexportDeclaration.importedName );
 		}
 

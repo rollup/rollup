@@ -239,7 +239,7 @@ export default class Module {
 
 						let module = this;
 						let name = specifier.exported.name;
-						while ( module.reexports[ name ] && module.reexports[ name ].isUsed ) {
+						while ( !module.isExternal && module.reexports[ name ] && module.reexports[ name ].isUsed ) {
 							reexport = module.reexports[ name ];
 							module = reexport.module;
 							name = reexport.importedName;
@@ -266,15 +266,6 @@ export default class Module {
 			keys( statement.dependsOn ).forEach( name => {
 				if ( statement.defines[ name ] ) return;
 
-				let module = this;
-				let reexportDeclaration;
-				while ( module.reexports[ name ] ) {
-					reexportDeclaration = module.reexports[ name ];
-					module = reexportDeclaration.module;
-					name = reexportDeclaration.importedName;
-				}
-
-				addDependency( weakDependencies, reexportDeclaration ) ||
 				addDependency( weakDependencies, this.exportAlls[ name ] ) ||
 				addDependency( weakDependencies, this.imports[ name ] );
 			});
@@ -395,7 +386,7 @@ export default class Module {
 						return module.markAllExportStatements();
 					}
 
-					return module.markExport( importDeclaration.name, 'TODO_suggestedName', this );
+					return module.markExport( importDeclaration.name, name, this );
 				});
 		}
 
@@ -461,7 +452,7 @@ export default class Module {
 			return this.bundle.fetchModule( reexportDeclaration.source, this.id )
 				.then( otherModule => {
 					reexportDeclaration.module = otherModule;
-					return otherModule.markExport( reexportDeclaration.importedName, 'TODO_suggestedName', this );
+					return otherModule.markExport( reexportDeclaration.importedName, suggestedName, this );
 				});
 		}
 
