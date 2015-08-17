@@ -1,19 +1,43 @@
 # rollup
 
-*I roll up, I roll up, I roll up, Shawty I roll up*
-
-*I roll up, I roll up, I roll up* &ndash;[Wiz Khalifa](https://www.youtube.com/watch?v=UhQz-0QVmQ0)
+> *I roll up, I roll up, I roll up, Shawty I roll up *
+> *I roll up, I roll up, I roll up*
+> &ndash;[Wiz Khalifa](https://www.youtube.com/watch?v=UhQz-0QVmQ0)
 
 This is an early stage project under active development. If you find a bug, [please raise an issue!](https://github.com/rollup/rollup/issues).
 
+## Usage
+Rollup includes both an [API](#api) and a CLI tool.
+
+To bundle an app without any external dependencies, just choose the output module format (`--format/-f`) and point rollup at the entry file.
+
+```sh
+rollup --format iife -- src/app.js > build/app.js
+# With inline sourcemaps:
+rollup -f iife --sourcemap inline -- src/app.js > build/app.js
+```
+
+When you have external dependencies, specify them with `--external/-e`.
+```sh
+rollup --format cjs -e acorn,chalk,magic-string -- src/main.js > lib/main.js
+
+# When building UMD, you may need to name the globals
+rollup -f umd --globals jquery:jQuery,lodash:_ -- src/app.js > build.app.js
+```
+
+If your external dependency is packaged through npm and has a `jsnext:main` field in its package.json file, rollup won't treat it as an external dependency and can be clever about extracting only the required variable bindings.
+
+For the complete set of options, run `rollup --help`.
 
 ## A next-generation ES6 module bundler
 
 Right now, you have a few different options if you want to create a bundle out of your ES6 modules:
 
-* The best option, in terms of performance, size of the resulting bundle, and accurate representation of ES6 module semantics, is to use [esperanto](http://esperantojs.org). It's used by [ractive.js](http://ractivejs.org), [moment.js](http://momentjs.com/), Facebook's [immutable.js](https://github.com/facebook/immutable-js), the jQuery Foundation's [pointer events polyfill](https://github.com/jquery/PEP), [Ember CLI](http://www.ember-cli.com/) and a bunch of other libraries and apps
+* The best option, in terms of performance, size of the resulting bundle, and accurate representation of ES6 module semantics, is to use [esperanto](http://esperantojs.org)<sup>1</sup>. It's used by [ractive.js](http://ractivejs.org), [moment.js](http://momentjs.com/), Facebook's [immutable.js](https://github.com/facebook/immutable-js), the jQuery Foundation's [pointer events polyfill](https://github.com/jquery/PEP), [Ember CLI](http://www.ember-cli.com/) and a bunch of other libraries and apps
 * You could use [jspm](http://jspm.io/), which combines a module bundler with a loader and a package manager
 * Or you could use [browserify](http://browserify.org/) or [webpack](http://webpack.github.io/), transpiling your modules into CommonJS along the way
+
+<small>1. Esperanto has recently been deprecated in favor of rollup. :)</small>
 
 But there's a flaw in how these systems work. Pretend it's the future, and lodash is available as an ES6 module, and you want to use a single helper function from it:
 
