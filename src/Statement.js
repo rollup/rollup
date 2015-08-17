@@ -241,8 +241,12 @@ export default class Statement {
 			return this.module.bundle.fetchModule( this.node.source.value, this.module.id )
 				.then( otherModule => {
 					return sequence( this.node.specifiers, specifier => {
-						this.module.reexports[ specifier.exported.name ].module = otherModule;
-						return otherModule.markExport( specifier.local.name );
+						const reexport = this.module.reexports[ specifier.exported.name ];
+
+						reexport.isUsed = true;
+						reexport.module = otherModule;
+
+						return otherModule.markExport( specifier.local.name, specifier.exported.name, this.module );
 					});
 				});
 		}

@@ -232,21 +232,30 @@ export default class Module {
 				strongDependencies[ statement.module.id ] = statement.module; // TODO is this right? `statement.module` should be `this`, surely?
 			}
 
-			keys( statement.stronglyDependsOn ).forEach( name => {
-				if ( statement.defines[ name ] ) return;
+			else if ( statement.isReexportDeclaration ) {
+				statement.node.specifiers.forEach( specifier => {
+					let reexport;
 
-				let module = this;
-				let reexportDeclaration;
-				while ( module.reexports[ name ] ) {
-					reexportDeclaration = module.reexports[ name ];
-					module = reexportDeclaration.module;
-					name = reexportDeclaration.importedName;
-				}
+					let module = this;
+					let name = specifier.exported.name;
+					while ( module.reexports[ name ] && module.reexports[ name ].isUsed ) {
+						reexport = module.reexports[ name ];
+						module = reexport.module;
+						name = reexport.importedName;
+					}
 
-				addDependency( strongDependencies, reexportDeclaration ) ||
-				addDependency( strongDependencies, this.exportAlls[ name ] ) ||
-				addDependency( strongDependencies, this.imports[ name ] );
-			});
+					addDependency( strongDependencies, reexport );
+				});
+			}
+
+			else {
+				keys( statement.stronglyDependsOn ).forEach( name => {
+					if ( statement.defines[ name ] ) return;
+
+					addDependency( strongDependencies, this.exportAlls[ name ] ) ||
+					addDependency( strongDependencies, this.imports[ name ] );
+				});
+			}
 		});
 
 		let weakDependencies = blank();
@@ -384,7 +393,7 @@ export default class Module {
 						return module.markAllExportStatements();
 					}
 
-					return module.markExport( importDeclaration.name, this );
+					return module.markExport( importDeclaration.name, 'TODO_suggestedName', this );
 				});
 		}
 
@@ -442,7 +451,7 @@ export default class Module {
 		});
 	}
 
-	markExport ( name, importer ) {
+	markExport ( name, suggestedName, importer ) {
 		const reexportDeclaration = this.reexports[ name ];
 		if ( reexportDeclaration ) {
 			reexportDeclaration.isUsed = true;
@@ -450,7 +459,7 @@ export default class Module {
 			return this.bundle.fetchModule( reexportDeclaration.source, this.id )
 				.then( otherModule => {
 					reexportDeclaration.module = otherModule;
-					return otherModule.markExport( reexportDeclaration.importedName );
+					return otherModule.markExport( reexportDeclaration.importedName, 'TODO_suggestedName', this );
 				});
 		}
 
@@ -458,6 +467,8 @@ export default class Module {
 		if ( exportDeclaration ) {
 			exportDeclaration.isUsed = true;
 			if ( name === 'default' ) {
+				this.needsDefault = true;
+				this.suggestName( 'default', suggestedName );
 				return exportDeclaration.statement.mark();
 			}
 
