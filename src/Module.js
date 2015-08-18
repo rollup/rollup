@@ -208,7 +208,7 @@ export default class Module {
 		// if names are referenced that are neither defined nor imported
 		// in this module, we assume that they're globals
 		this.statements.forEach( statement => {
-			if ( statement.isExportDeclaration ) return;
+			if ( statement.isReexportDeclaration ) return;
 
 			keys( statement.dependsOn ).forEach( name => {
 				if ( !this.definitions[ name ] && !this.imports[ name ] ) {

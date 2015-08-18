@@ -164,7 +164,7 @@ export default class Statement {
 
 			const definingScope = scope.findDefiningScope( node.name );
 
-			if ( ( !definingScope || definingScope.depth === 0 ) && !this.defines[ node.name ] ) {
+			if ( !definingScope || definingScope.depth === 0 ) {
 				this.dependsOn[ node.name ] = true;
 				if ( strong ) this.stronglyDependsOn[ node.name ] = true;
 			}
