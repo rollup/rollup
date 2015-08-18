@@ -310,10 +310,10 @@ export default class Bundle {
 				const reexportDeclaration = this.entryModule.reexports[ key ];
 
 				if ( reexportDeclaration.module.isExternal ) return;
-				const originalDeclaration = reexportDeclaration.module.findDeclaration( reexportDeclaration.importedName );
+				const originalDeclaration = reexportDeclaration.module.findDeclaration( reexportDeclaration.localName );
 
 				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
-					const canonicalName = this.trace( reexportDeclaration.module, reexportDeclaration.importedName, false );
+					const canonicalName = this.trace( reexportDeclaration.module, reexportDeclaration.localName, false );
 
 					allBundleExports[ canonicalName ] = `exports.${key}`;
 					varExports[ key ] = true;
@@ -356,7 +356,7 @@ export default class Bundle {
 				while ( exportingModule.reexports[ key ] ) {
 					reexport = exportingModule.reexports[ key ];
 					exportingModule = reexport.module;
-					key = reexport.importedName;
+					key = reexport.localName;
 				}
 
 				key = exportingModule.replacements[ key ] || key;
@@ -547,7 +547,7 @@ export default class Bundle {
 					`${reexportDeclaration.module.name}.${name}`;
 			}
 
-			return this.traceExport( reexportDeclaration.module, reexportDeclaration.importedName );
+			return this.traceExport( reexportDeclaration.module, reexportDeclaration.localName );
 		}
 
 		const exportDeclaration = module.exports[ name ];

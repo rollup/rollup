@@ -90,7 +90,7 @@ export default class Module {
 				node.specifiers.forEach( specifier => {
 					this.reexports[ specifier.exported.name ] = {
 						source,
-						importedName: specifier.local.name,
+						localName: specifier.local.name,
 						module: null // filled in later
 					};
 				});
@@ -208,6 +208,8 @@ export default class Module {
 		// if names are referenced that are neither defined nor imported
 		// in this module, we assume that they're globals
 		this.statements.forEach( statement => {
+			if ( statement.isExportDeclaration ) return;
+
 			keys( statement.dependsOn ).forEach( name => {
 				if ( !this.definitions[ name ] && !this.imports[ name ] ) {
 					this.bundle.assumedGlobals[ name ] = true;
@@ -242,7 +244,7 @@ export default class Module {
 						while ( !module.isExternal && module.reexports[ name ] && module.reexports[ name ].isUsed ) {
 							reexport = module.reexports[ name ];
 							module = reexport.module;
-							name = reexport.importedName;
+							name = reexport.localName;
 						}
 
 						addDependency( strongDependencies, reexport );
@@ -452,7 +454,7 @@ export default class Module {
 			return this.bundle.fetchModule( reexportDeclaration.source, this.id )
 				.then( otherModule => {
 					reexportDeclaration.module = otherModule;
-					return otherModule.markExport( reexportDeclaration.importedName, suggestedName, this );
+					return otherModule.markExport( reexportDeclaration.localName, suggestedName, this );
 				});
 		}
 
