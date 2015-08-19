@@ -26,6 +26,7 @@ export default class Statement {
 
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
 		this.isExportDeclaration = /^Export/.test( node.type );
+		this.isReexportDeclaration = this.isExportDeclaration && !!node.source;
 	}
 
 	analyse () {
@@ -42,7 +43,7 @@ export default class Statement {
 					case 'FunctionDeclaration':
 					case 'ArrowFunctionExpression':
 						if ( node.type === 'FunctionDeclaration' ) {
-							scope.addDeclaration( node.id.name, node );
+							scope.addDeclaration( node.id.name, node, false );
 						}
 
 						newScope = new Scope({
@@ -54,7 +55,7 @@ export default class Statement {
 						// named function expressions - the name is considered
 						// part of the function's scope
 						if ( node.type === 'FunctionExpression' && node.id ) {
-							newScope.addDeclaration( node.id.name, node );
+							newScope.addDeclaration( node.id.name, node, false );
 						}
 
 						break;
@@ -80,12 +81,12 @@ export default class Statement {
 
 					case 'VariableDeclaration':
 						node.declarations.forEach( declarator => {
-							scope.addDeclaration( declarator.id.name, node );
+							scope.addDeclaration( declarator.id.name, node, true );
 						});
 						break;
 
 					case 'ClassDeclaration':
-						scope.addDeclaration( node.id.name, node );
+						scope.addDeclaration( node.id.name, node, false );
 						break;
 				}
 
@@ -163,7 +164,7 @@ export default class Statement {
 
 			const definingScope = scope.findDefiningScope( node.name );
 
-			if ( ( !definingScope || definingScope.depth === 0 ) && !this.defines[ node.name ] ) {
+			if ( !definingScope || definingScope.depth === 0 ) {
 				this.dependsOn[ node.name ] = true;
 				if ( strong ) this.stronglyDependsOn[ node.name ] = true;
 			}
@@ -234,6 +235,23 @@ export default class Statement {
 	mark () {
 		if ( this.isIncluded ) return; // prevent infinite loops
 		this.isIncluded = true;
+
+		// `export { name } from './other'` is a special case
+		if ( this.isReexportDeclaration ) {
+			return this.module.bundle.fetchModule( this.node.source.value, this.module.id )
+				.then( otherModule => {
+					return sequence( this.node.specifiers, specifier => {
+						const reexport = this.module.reexports[ specifier.exported.name ];
+
+						reexport.isUsed = true;
+						reexport.module = otherModule;
+
+						return otherModule.isExternal ?
+							null :
+							otherModule.markExport( specifier.local.name, specifier.exported.name, this.module );
+					});
+				});
+		}
 
 		const dependencies = Object.keys( this.dependsOn );
 
@@ -369,6 +387,10 @@ export default class Statement {
 		});
 
 		return magicString;
+	}
+
+	source () {
+		return this.module.source.slice( this.start, this.end );
 	}
 
 	toString () {

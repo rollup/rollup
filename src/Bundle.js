@@ -224,7 +224,7 @@ export default class Bundle {
 
 				keys( statement.modifies ).forEach( name => {
 					const definingStatement = module.definitions[ name ];
-					const exportDeclaration = module.exports[ name ] || (
+					const exportDeclaration = module.exports[ name ] || module.reexports[ name ] || (
 						module.exports.default && module.exports.default.identifier === name && module.exports.default
 					);
 
@@ -290,28 +290,41 @@ export default class Bundle {
 		//
 		// This doesn't apply if the bundle is exported as ES6!
 		let allBundleExports = blank();
+		let isVarDeclaration = blank();
 		let varExports = blank();
+		let getterExports = [];
+
+		this.orderedModules.forEach( module => {
+			module.varDeclarations.forEach( name => {
+				isVarDeclaration[ module.replacements[ name ] || name ] = true;
+			});
+		});
 
 		if ( format !== 'es6' && exportMode === 'named' ) {
-			keys( this.entryModule.exports ).forEach( key => {
-				const exportDeclaration = this.entryModule.exports[ key ];
+			keys( this.entryModule.exports )
+				.concat( keys( this.entryModule.reexports ) )
+				.forEach( name => {
+					const canonicalName = this.traceExport( this.entryModule, name );
 
-				const originalDeclaration = this.entryModule.findDeclaration( exportDeclaration.localName );
+					if ( isVarDeclaration[ canonicalName ] ) {
+						varExports[ name ] = true;
 
-				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
-					const canonicalName = this.trace( this.entryModule, exportDeclaration.localName, false );
-
-					allBundleExports[ canonicalName ] = `exports.${key}`;
-					varExports[ key ] = true;
-				}
-			});
+						// if the same binding is exported multiple ways, we need to
+						// use getters to keep all exports in sync
+						if ( allBundleExports[ canonicalName ] ) {
+							getterExports.push({ key: name, value: allBundleExports[ canonicalName ] });
+						} else {
+							allBundleExports[ canonicalName ] = `exports.${name}`;
+						}
+					}
+				});
 		}
 
 		// since we're rewriting variable exports, we want to
 		// ensure we don't try and export them again at the bottom
 		this.toExport = keys( this.entryModule.exports )
+			.concat( keys( this.entryModule.reexports ) )
 			.filter( key => !varExports[ key ] );
-
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
@@ -323,29 +336,30 @@ export default class Bundle {
 		});
 
 		// prepend bundle with internal namespaces
-		const indentString = magicString.getIndentString();
+		const indentString = getIndentString( magicString, options );
 		const namespaceBlock = this.internalNamespaceModules.map( module => {
-			const exportKeys = keys( module.exports );
+			const exports = keys( module.exports )
+				.concat( keys( module.reexports ) )
+				.map( name => {
+					const canonicalName = this.traceExport( module, name );
+					return `${indentString}get ${name} () { return ${canonicalName}; }`;
+				});
 
 			return `var ${module.replacements['*']} = {\n` +
-				exportKeys.map( key => {
-					let actualModule = module;
-					let exportDeclaration = module.exports[ key ];
-
-					// special case - `export { default as foo } from './foo'`
-					while ( exportDeclaration.linkedImport ) {
-						actualModule = exportDeclaration.linkedImport.module;
-						exportDeclaration = actualModule.exports[ exportDeclaration.linkedImport.name ];
-					}
-
-					let localName = exportDeclaration.localName;
-					localName = actualModule.replacements[ localName ] || localName;
-					return `${indentString}get ${key} () { return ${localName}; }`; // TODO...
-				}).join( ',\n' ) +
+				exports.join( ',\n' ) +
 			`\n};\n\n`;
 		}).join( '' );
 
 		magicString.prepend( namespaceBlock );
+
+		if ( getterExports.length ) {
+			// TODO offer ES3-safe (but not spec-compliant) alternative?
+			const getterExportsBlock = `Object.defineProperties(exports, {\n` +
+				getterExports.map( ({ key, value }) => indentString + `${key}: { get: function () { return ${value}; } }` ).join( ',\n' ) +
+			`\n});`;
+
+			magicString.append( '\n\n' + getterExportsBlock );
+		}
 
 		const finalise = finalisers[ format ];
 
@@ -353,13 +367,7 @@ export default class Bundle {
 			throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
 		}
 
-		magicString = finalise( this, magicString.trim(), {
-			// Determine export mode - 'default', 'named', 'none'
-			exportMode,
-
-			// Determine indentation
-			indentString: getIndentString( magicString, options )
-		}, options );
+		magicString = finalise( this, magicString.trim(), { exportMode, indentString }, options );
 
 		if ( options.banner ) magicString.prepend( options.banner + '\n' );
 		if ( options.footer ) magicString.append( '\n' + options.footer );
@@ -469,50 +477,39 @@ export default class Bundle {
 		const importDeclaration = module.imports[ localName ];
 
 		// defined in this module
-		if ( !importDeclaration ) {
-			if ( localName === 'default' ) return module.defaultName();
-			return module.replacements[ localName ] || localName;
-		}
+		if ( !importDeclaration ) return module.replacements[ localName ] || localName;
 
 		// defined elsewhere
-		const otherModule = importDeclaration.module;
+		return this.traceExport( importDeclaration.module, importDeclaration.name, es6 );
+	}
 
-		if ( otherModule.isExternal ) {
-			if ( importDeclaration.name === 'default' ) {
-				return otherModule.needsNamed && !es6 ?
-					`${otherModule.name}__default` :
-					otherModule.name;
-			}
-
-			if ( importDeclaration.name === '*' ) {
-				return otherModule.name;
-			}
-
-			return es6 ?
-				importDeclaration.name :
-				`${otherModule.name}.${importDeclaration.name}`;
+	traceExport ( module, name, es6 ) {
+		if ( module.isExternal ) {
+			if ( name === 'default' ) return module.needsNamed && !es6 ? `${module.name}__default` : module.name;
+			if ( name === '*' ) return module.name;
+			return es6 ? name : `${module.name}.${name}`;
 		}
 
-		if ( importDeclaration.name === '*' ) {
-			return otherModule.replacements[ '*' ];
+		const reexportDeclaration = module.reexports[ name ];
+		if ( reexportDeclaration ) {
+			return this.traceExport( reexportDeclaration.module, reexportDeclaration.localName );
 		}
 
-		if ( importDeclaration.name === 'default' ) {
-			return otherModule.defaultName();
-		}
+		if ( name === '*' ) return module.replacements[ '*' ];
+		if ( name === 'default' ) return module.defaultName();
 
-		const exportDeclaration = otherModule.exports[ importDeclaration.name ];
-		if ( exportDeclaration ) return this.trace( otherModule, exportDeclaration.localName );
+		const exportDeclaration = module.exports[ name ];
+		if ( exportDeclaration ) return this.trace( module, exportDeclaration.localName );
 
-		for ( let i = 0; i < otherModule.exportDelegates.length; i += 1 ) {
-			const delegate = otherModule.exportDelegates[i];
-			const delegateExportDeclaration = delegate.module.exports[ importDeclaration.name ];
+		for ( let i = 0; i < module.exportDelegates.length; i += 1 ) {
+			const delegate = module.exportDelegates[i];
+			const delegateExportDeclaration = delegate.module.exports[ name ];
 
 			if ( delegateExportDeclaration ) {
-				return this.trace( delegate.module, delegateExportDeclaration.localName );
+				return this.trace( delegate.module, delegateExportDeclaration.localName, es6 );
 			}
 		}
 
-		throw new Error( 'Could not trace binding' );
+		throw new Error( `Could not trace binding '${name}' from ${module.id}` );
 	}
 }

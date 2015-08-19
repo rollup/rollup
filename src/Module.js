@@ -55,6 +55,7 @@ export default class Module {
 		// imports and exports, indexed by ID
 		this.imports = blank();
 		this.exports = blank();
+		this.reexports = blank();
 
 		this.exportAlls = blank();
 
@@ -62,6 +63,8 @@ export default class Module {
 		this.exportDelegates = [];
 
 		this.replacements = blank();
+
+		this.varDeclarations = [];
 
 		this.definitions = blank();
 		this.definitionPromises = blank();
@@ -74,10 +77,32 @@ export default class Module {
 		const node = statement.node;
 		const source = node.source && node.source.value;
 
+		// export { name } from './other'
+		if ( source ) {
+			if ( node.type === 'ExportAllDeclaration' ) {
+				// Store `export * from '...'` statements in an array of delegates.
+				// When an unknown import is encountered, we see if one of them can satisfy it.
+				this.exportDelegates.push({
+					statement,
+					source
+				});
+			}
+
+			else {
+				node.specifiers.forEach( specifier => {
+					this.reexports[ specifier.exported.name ] = {
+						source,
+						localName: specifier.local.name,
+						module: null // filled in later
+					};
+				});
+			}
+		}
+
 		// export default function foo () {}
 		// export default foo;
 		// export default 42;
-		if ( node.type === 'ExportDefaultDeclaration' ) {
+		else if ( node.type === 'ExportDefaultDeclaration' ) {
 			const isDeclaration = /Declaration$/.test( node.declaration.type );
 			const isAnonymous = /(?:Class|Function)Expression$/.test( node.declaration.type );
 
@@ -108,20 +133,10 @@ export default class Module {
 					const localName = specifier.local.name;
 					const exportedName = specifier.exported.name;
 
-					// export { foo } from './foo';
-					if ( source ) {
-						this.imports[ localName ] = {
-							source,
-							localName: exportedName,
-							name: localName
-						};
-					}
-
 					this.exports[ exportedName ] = {
 						statement,
 						localName,
-						exportedName,
-						linkedImport: source ? this.imports[ localName ] : null
+						exportedName
 					};
 				});
 			}
@@ -145,15 +160,6 @@ export default class Module {
 					expression: declaration
 				};
 			}
-		}
-
-		// Store `export * from '...'` statements in an array of delegates.
-		// When an unknown import is encountered, we see if one of them can satisfy it.
-		else {
-			this.exportDelegates.push({
-				statement,
-				source
-			});
 		}
 	}
 
@@ -196,6 +202,10 @@ export default class Module {
 				this.definitions[ name ] = statement;
 			});
 
+			statement.scope.varDeclarations.forEach( name => {
+				this.varDeclarations.push( name );
+			});
+
 			keys( statement.modifies ).forEach( name => {
 				( this.modifications[ name ] || ( this.modifications[ name ] = [] ) ).push( statement );
 			});
@@ -204,6 +214,8 @@ export default class Module {
 		// if names are referenced that are neither defined nor imported
 		// in this module, we assume that they're globals
 		this.statements.forEach( statement => {
+			if ( statement.isReexportDeclaration ) return;
+
 			keys( statement.dependsOn ).forEach( name => {
 				if ( !this.definitions[ name ] && !this.imports[ name ] ) {
 					this.bundle.assumedGlobals[ name ] = true;
@@ -215,28 +227,45 @@ export default class Module {
 	consolidateDependencies () {
 		let strongDependencies = blank();
 
+		function addDependency ( dependencies, declaration ) {
+			if ( declaration && declaration.module && !declaration.module.isExternal ) {
+				dependencies[ declaration.module.id ] = declaration.module;
+				return true;
+			}
+		}
+
 		this.statements.forEach( statement => {
 			if ( statement.isImportDeclaration && !statement.node.specifiers.length && !statement.module.isExternal ) {
 				// include module for its side-effects
 				strongDependencies[ statement.module.id ] = statement.module; // TODO is this right? `statement.module` should be `this`, surely?
 			}
 
-			keys( statement.stronglyDependsOn ).forEach( name => {
-				if ( statement.defines[ name ] ) return;
+			else if ( statement.isReexportDeclaration ) {
+				if ( statement.node.specifiers ) {
+					statement.node.specifiers.forEach( specifier => {
+						let reexport;
 
-				const exportAllDeclaration = this.exportAlls[ name ];
+						let module = this;
+						let name = specifier.exported.name;
+						while ( !module.isExternal && module.reexports[ name ] && module.reexports[ name ].isUsed ) {
+							reexport = module.reexports[ name ];
+							module = reexport.module;
+							name = reexport.localName;
+						}
 
-				if ( exportAllDeclaration && exportAllDeclaration.module && !exportAllDeclaration.module.isExternal ) {
-					strongDependencies[ exportAllDeclaration.module.id ] = exportAllDeclaration.module;
-					return;
+						addDependency( strongDependencies, reexport );
+					});
 				}
+			}
 
-				const importDeclaration = this.imports[ name ];
+			else {
+				keys( statement.stronglyDependsOn ).forEach( name => {
+					if ( statement.defines[ name ] ) return;
 
-				if ( importDeclaration && importDeclaration.module && !importDeclaration.module.isExternal ) {
-					strongDependencies[ importDeclaration.module.id ] = importDeclaration.module;
-				}
-			});
+					addDependency( strongDependencies, this.exportAlls[ name ] ) ||
+					addDependency( strongDependencies, this.imports[ name ] );
+				});
+			}
 		});
 
 		let weakDependencies = blank();
@@ -245,11 +274,8 @@ export default class Module {
 			keys( statement.dependsOn ).forEach( name => {
 				if ( statement.defines[ name ] ) return;
 
-				const importDeclaration = this.imports[ name ];
-
-				if ( importDeclaration && importDeclaration.module && !importDeclaration.module.isExternal ) {
-					weakDependencies[ importDeclaration.module.id ] = importDeclaration.module;
-				}
+				addDependency( weakDependencies, this.exportAlls[ name ] ) ||
+				addDependency( weakDependencies, this.imports[ name ] );
 			});
 		});
 
@@ -281,33 +307,6 @@ export default class Module {
 				importDeclaration.module = module;
 				return module.findDefiningStatement( name );
 			});
-	}
-
-	findDeclaration ( localName ) {
-		const importDeclaration = this.imports[ localName ];
-
-		// name was defined by another module
-		if ( importDeclaration ) {
-			const module = importDeclaration.module;
-
-			if ( module.isExternal ) return null;
-			if ( importDeclaration.name === '*' ) return null;
-			if ( importDeclaration.name === 'default' ) return null;
-
-			const exportDeclaration = module.exports[ importDeclaration.name ];
-			return module.findDeclaration( exportDeclaration.localName );
-		}
-
-		// name was defined by this module, if any
-		let i = this.statements.length;
-		while ( i-- ) {
-			const declaration = this.statements[i].scope.declarations[ localName ];
-			if ( declaration ) {
-				return declaration;
-			}
-		}
-
-		return null;
 	}
 
 	mark ( name ) {
@@ -346,7 +345,7 @@ export default class Module {
 						module.suggestName( 'default', `${suggestion}__default` );
 					}
 
-					if ( importDeclaration.name === 'default' && ( module.isExternal || !module.exports.default.linkedImport ) ) { // special case - exclude `export { default } from ...`
+					if ( importDeclaration.name === 'default' ) {
 						module.needsDefault = true;
 					} else if ( importDeclaration.name === '*' ) {
 						module.needsAll = true;
@@ -368,39 +367,7 @@ export default class Module {
 						return module.markAllExportStatements();
 					}
 
-					const exportDeclaration = module.exports[ importDeclaration.name ];
-
-					if ( !exportDeclaration ) {
-						const noExport = new Error( `Module ${module.id} does not export ${importDeclaration.name} (imported by ${this.id})` );
-
-						// See if there exists an export delegate that defines `name`.
-						return first( module.exportDelegates, noExport, declaration => {
-							return module.bundle.fetchModule( declaration.source, module.id ).then( submodule => {
-								declaration.module = submodule;
-
-								return submodule.mark( name ).then( result => {
-									if ( !result.length ) throw noExport;
-
-									// It's found! This module exports `name` through declaration.
-									// It is however not imported into this scope.
-									module.exportAlls[ name ] = declaration;
-
-									declaration.statement.dependsOn[ name ] =
-									declaration.statement.stronglyDependsOn[ name ] = result;
-
-									return result;
-								});
-							});
-						});
-					}
-
-					exportDeclaration.isUsed = true;
-
-					if ( importDeclaration.name === 'default' ) {
-						return exportDeclaration.statement.mark();
-					}
-
-					return module.mark( exportDeclaration.localName );
+					return module.markExport( importDeclaration.name, name, this );
 				});
 		}
 
@@ -455,6 +422,53 @@ export default class Module {
 			return statement.isExportDeclaration ?
 				statement.mark() :
 				null;
+		});
+	}
+
+	markExport ( name, suggestedName, importer ) {
+		const reexportDeclaration = this.reexports[ name ];
+		if ( reexportDeclaration ) {
+			reexportDeclaration.isUsed = true;
+
+			return this.bundle.fetchModule( reexportDeclaration.source, this.id )
+				.then( otherModule => {
+					reexportDeclaration.module = otherModule;
+					return otherModule.markExport( reexportDeclaration.localName, suggestedName, this );
+				});
+		}
+
+		const exportDeclaration = this.exports[ name ];
+		if ( exportDeclaration ) {
+			exportDeclaration.isUsed = true;
+			if ( name === 'default' ) {
+				this.needsDefault = true;
+				this.suggestName( 'default', suggestedName );
+				return exportDeclaration.statement.mark();
+			}
+
+			return this.mark( exportDeclaration.localName );
+		}
+
+		const noExport = new Error( `Module ${this.id} does not export ${name} (imported by ${importer.id})` );
+
+		// See if there exists an export delegate that defines `name`.
+		return first( this.exportDelegates, noExport, declaration => {
+			return this.bundle.fetchModule( declaration.source, this.id ).then( submodule => {
+				declaration.module = submodule;
+
+				return submodule.mark( name ).then( result => {
+					if ( !result.length ) throw noExport;
+
+					// It's found! This module exports `name` through declaration.
+					// It is however not imported into this scope.
+					this.exportAlls[ name ] = declaration;
+
+					declaration.statement.dependsOn[ name ] =
+					declaration.statement.stronglyDependsOn[ name ] = result;
+
+					return result;
+				});
+			});
 		});
 	}
 
