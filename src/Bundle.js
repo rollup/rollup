@@ -338,31 +338,15 @@ export default class Bundle {
 		// prepend bundle with internal namespaces
 		const indentString = magicString.getIndentString();
 		const namespaceBlock = this.internalNamespaceModules.map( module => {
-			const exports = keys( module.exports ).map( key => {
-				const exportDeclaration = module.exports[ key ];
-
-				let localName = exportDeclaration.localName;
-				localName = module.replacements[ localName ] || localName;
-				return `${indentString}get ${key} () { return ${localName}; }`;
-			});
-
-			const reexports = keys( module.reexports ).map( key => {
-				let exportingModule = module;
-				let actualKey = key;
-				let reexport;
-
-				while ( exportingModule.reexports[ key ] ) {
-					reexport = exportingModule.reexports[ key ];
-					exportingModule = reexport.module;
-					key = reexport.localName;
-				}
-
-				key = exportingModule.replacements[ key ] || key;
-				return `${indentString}get ${actualKey} () { return ${key}; }`;
-			});
+			const exports = keys( module.exports )
+				.concat( keys( module.reexports ) )
+				.map( name => {
+					const canonicalName = this.traceExport( module, name );
+					return `${indentString}get ${name} () { return ${canonicalName}; }`;
+				});
 
 			return `var ${module.replacements['*']} = {\n` +
-				exports.concat( reexports ).join( ',\n' ) +
+				exports.join( ',\n' ) +
 			`\n};\n\n`;
 		}).join( '' );
 
