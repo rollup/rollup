@@ -3,6 +3,9 @@
 ## 0.14.1
 
 * `export { name } from './other'` does not create a local binding ([#16](https://github.com/rollup/rollup/issues/16))
+* A single binding can be exported under multiple names ([#18](https://github.com/rollup/rollup/issues/18))
+* `useStrict` option exposed to CLI as `--strict`/`--no-strict` ([#81](https://github.com/rollup/rollup/issues/81))
+* Neater exports from ES6 bundles
 
 ## 0.14.0
 
