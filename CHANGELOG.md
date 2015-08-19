@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.14.1
+
+* `export { name } from './other'` does not create a local binding ([#16](https://github.com/rollup/rollup/issues/16))
+
 ## 0.14.0
 
 * Internal refactoring
