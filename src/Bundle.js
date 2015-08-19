@@ -295,7 +295,7 @@ export default class Bundle {
 		let getterExports = [];
 
 		this.orderedModules.forEach( module => {
-			keys( module.varDeclarations ).forEach( name => {
+			module.varDeclarations.forEach( name => {
 				varDeclarations[ module.replacements[ name ] || name ] = true;
 			});
 		});

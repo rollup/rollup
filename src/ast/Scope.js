@@ -12,8 +12,9 @@ export default class Scope {
 		this.parent = options.parent;
 		this.depth = this.parent ? this.parent.depth + 1 : 0;
 		this.declarations = blank();
-		this.varDeclarations = blank();
 		this.isBlockScope = !!options.block;
+
+		this.varDeclarations = [];
 
 		if ( options.params ) {
 			options.params.forEach( param => {
@@ -31,7 +32,7 @@ export default class Scope {
 			this.parent.addDeclaration( name, declaration, isVar );
 		} else {
 			this.declarations[ name ] = declaration;
-			if ( isVar ) this.varDeclarations[ name ] = true;
+			if ( isVar ) this.varDeclarations.push( name )
 		}
 	}
 

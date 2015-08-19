@@ -18,7 +18,6 @@ export default class Statement {
 
 		this.scope = new Scope();
 		this.defines = blank();
-		this.declaresVar = blank();
 		this.modifies = blank();
 		this.dependsOn = blank();
 		this.stronglyDependsOn = blank();
@@ -142,10 +141,6 @@ export default class Statement {
 
 		keys( scope.declarations ).forEach( name => {
 			this.defines[ name ] = true;
-		});
-
-		keys( scope.varDeclarations ).forEach( name => {
-			this.declaresVar[ name ] = true;
 		});
 	}
 

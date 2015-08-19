@@ -64,8 +64,9 @@ export default class Module {
 
 		this.replacements = blank();
 
+		this.varDeclarations = [];
+
 		this.definitions = blank();
-		this.varDeclarations = blank();
 		this.definitionPromises = blank();
 		this.modifications = blank();
 
@@ -201,8 +202,8 @@ export default class Module {
 				this.definitions[ name ] = statement;
 			});
 
-			keys( statement.declaresVar ).forEach( name => {
-				this.varDeclarations[ name ] = statement;
+			statement.scope.varDeclarations.forEach( name => {
+				this.varDeclarations.push( name );
 			});
 
 			keys( statement.modifies ).forEach( name => {
