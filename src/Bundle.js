@@ -336,7 +336,7 @@ export default class Bundle {
 		});
 
 		// prepend bundle with internal namespaces
-		const indentString = magicString.getIndentString();
+		const indentString = getIndentString( magicString, options );
 		const namespaceBlock = this.internalNamespaceModules.map( module => {
 			const exports = keys( module.exports )
 				.concat( keys( module.reexports ) )
@@ -477,63 +477,26 @@ export default class Bundle {
 		const importDeclaration = module.imports[ localName ];
 
 		// defined in this module
-		if ( !importDeclaration ) {
-			if ( localName === 'default' ) return module.defaultName();
-			return module.replacements[ localName ] || localName;
-		}
+		if ( !importDeclaration ) return module.replacements[ localName ] || localName;
 
 		// defined elsewhere
-		const otherModule = importDeclaration.module;
-		const name = importDeclaration.name;
-
-		if ( otherModule.isExternal ) {
-			if ( name === 'default' ) {
-				return otherModule.needsNamed && !es6 ?
-					`${otherModule.name}__default` :
-					otherModule.name;
-			}
-
-			if ( name === '*' ) {
-				return otherModule.name;
-			}
-
-			return es6 ?
-				name :
-				`${otherModule.name}.${name}`;
-		}
-
-		if ( name === '*' ) {
-			return otherModule.replacements[ '*' ];
-		}
-
-		if ( name === 'default' ) {
-			return otherModule.defaultName();
-		}
-
-		return this.traceExport( otherModule, name, es6 );
+		return this.traceExport( importDeclaration.module, importDeclaration.name, es6 );
 	}
 
 	traceExport ( module, name, es6 ) {
+		if ( module.isExternal ) {
+			if ( name === 'default' ) return module.needsNamed && !es6 ? `${module.name}__default` : module.name;
+			if ( name === '*' ) return module.name;
+			return es6 ? name : `${module.name}.${name}`;
+		}
+
 		const reexportDeclaration = module.reexports[ name ];
 		if ( reexportDeclaration ) {
-			if ( reexportDeclaration.module.isExternal ) {
-				if ( name === 'default' ) {
-					return reexportDeclaration.module.needsNamed && !es6 ?
-						`${reexportDeclaration.module.name}__default` :
-						reexportDeclaration.module.name;
-				}
-
-				if ( name === '*' ) {
-					return reexportDeclaration.module.name;
-				}
-
-				return es6 ?
-					name :
-					`${reexportDeclaration.module.name}.${name}`;
-			}
-
 			return this.traceExport( reexportDeclaration.module, reexportDeclaration.localName );
 		}
+
+		if ( name === '*' ) return module.replacements[ '*' ];
+		if ( name === 'default' ) return module.defaultName();
 
 		const exportDeclaration = module.exports[ name ];
 		if ( exportDeclaration ) return this.trace( module, exportDeclaration.localName );
@@ -547,6 +510,6 @@ export default class Bundle {
 			}
 		}
 
-		throw new Error( 'Could not trace binding' );
+		throw new Error( `Could not trace binding '${name}' from ${module.id}` );
 	}
 }
