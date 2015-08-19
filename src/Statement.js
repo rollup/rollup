@@ -18,6 +18,7 @@ export default class Statement {
 
 		this.scope = new Scope();
 		this.defines = blank();
+		this.declaresVar = blank();
 		this.modifies = blank();
 		this.dependsOn = blank();
 		this.stronglyDependsOn = blank();
@@ -43,7 +44,7 @@ export default class Statement {
 					case 'FunctionDeclaration':
 					case 'ArrowFunctionExpression':
 						if ( node.type === 'FunctionDeclaration' ) {
-							scope.addDeclaration( node.id.name, node );
+							scope.addDeclaration( node.id.name, node, false );
 						}
 
 						newScope = new Scope({
@@ -55,7 +56,7 @@ export default class Statement {
 						// named function expressions - the name is considered
 						// part of the function's scope
 						if ( node.type === 'FunctionExpression' && node.id ) {
-							newScope.addDeclaration( node.id.name, node );
+							newScope.addDeclaration( node.id.name, node, false );
 						}
 
 						break;
@@ -81,12 +82,12 @@ export default class Statement {
 
 					case 'VariableDeclaration':
 						node.declarations.forEach( declarator => {
-							scope.addDeclaration( declarator.id.name, node );
+							scope.addDeclaration( declarator.id.name, node, true );
 						});
 						break;
 
 					case 'ClassDeclaration':
-						scope.addDeclaration( node.id.name, node );
+						scope.addDeclaration( node.id.name, node, false );
 						break;
 				}
 
@@ -141,6 +142,10 @@ export default class Statement {
 
 		keys( scope.declarations ).forEach( name => {
 			this.defines[ name ] = true;
+		});
+
+		keys( scope.varDeclarations ).forEach( name => {
+			this.declaresVar[ name ] = true;
 		});
 	}
 

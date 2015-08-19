@@ -65,6 +65,7 @@ export default class Module {
 		this.replacements = blank();
 
 		this.definitions = blank();
+		this.varDeclarations = blank();
 		this.definitionPromises = blank();
 		this.modifications = blank();
 
@@ -200,6 +201,10 @@ export default class Module {
 				this.definitions[ name ] = statement;
 			});
 
+			keys( statement.declaresVar ).forEach( name => {
+				this.varDeclarations[ name ] = statement;
+			});
+
 			keys( statement.modifies ).forEach( name => {
 				( this.modifications[ name ] || ( this.modifications[ name ] = [] ) ).push( statement );
 			});
@@ -301,33 +306,6 @@ export default class Module {
 				importDeclaration.module = module;
 				return module.findDefiningStatement( name );
 			});
-	}
-
-	findDeclaration ( localName ) {
-		const importDeclaration = this.imports[ localName ];
-
-		// name was defined by another module
-		if ( importDeclaration ) {
-			const module = importDeclaration.module;
-
-			if ( module.isExternal ) return null;
-			if ( importDeclaration.name === '*' ) return null;
-			if ( importDeclaration.name === 'default' ) return null;
-
-			const exportDeclaration = module.exports[ importDeclaration.name ];
-			return module.findDeclaration( exportDeclaration.localName );
-		}
-
-		// name was defined by this module, if any
-		let i = this.statements.length;
-		while ( i-- ) {
-			const declaration = this.statements[i].scope.declarations[ localName ];
-			if ( declaration ) {
-				return declaration;
-			}
-		}
-
-		return null;
 	}
 
 	mark ( name ) {

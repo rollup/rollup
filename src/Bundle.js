@@ -290,35 +290,34 @@ export default class Bundle {
 		//
 		// This doesn't apply if the bundle is exported as ES6!
 		let allBundleExports = blank();
+		let varDeclarations = blank();
 		let varExports = blank();
+		let getterExports = [];
+
+		this.orderedModules.forEach( module => {
+			keys( module.varDeclarations ).forEach( name => {
+				varDeclarations[ module.replacements[ name ] || name ] = true;
+			});
+		});
 
 		if ( format !== 'es6' && exportMode === 'named' ) {
-			keys( this.entryModule.exports ).forEach( key => {
-				const exportDeclaration = this.entryModule.exports[ key ];
+			keys( this.entryModule.exports )
+				.concat( keys( this.entryModule.reexports ) )
+				.forEach( name => {
+					const canonicalName = this.traceExport( this.entryModule, name );
 
-				const originalDeclaration = this.entryModule.findDeclaration( exportDeclaration.localName );
+					if ( varDeclarations[ canonicalName ] ) {
+						varExports[ name ] = true;
 
-				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
-					const canonicalName = this.trace( this.entryModule, exportDeclaration.localName, false );
-
-					allBundleExports[ canonicalName ] = `exports.${key}`;
-					varExports[ key ] = true;
-				}
-			});
-
-			keys( this.entryModule.reexports ).forEach( key => {
-				const reexportDeclaration = this.entryModule.reexports[ key ];
-
-				if ( reexportDeclaration.module.isExternal ) return;
-				const originalDeclaration = reexportDeclaration.module.findDeclaration( reexportDeclaration.localName );
-
-				if ( originalDeclaration && originalDeclaration.type === 'VariableDeclaration' ) {
-					const canonicalName = this.trace( reexportDeclaration.module, reexportDeclaration.localName, false );
-
-					allBundleExports[ canonicalName ] = `exports.${key}`;
-					varExports[ key ] = true;
-				}
-			});
+						// if the same binding is exported multiple ways, we need to
+						// use getters to keep all exports in sync
+						if ( allBundleExports[ canonicalName ] ) {
+							getterExports.push({ key: name, value: allBundleExports[ canonicalName ] });
+						} else {
+							allBundleExports[ canonicalName ] = `exports.${name}`;
+						}
+					}
+				});
 		}
 
 		// since we're rewriting variable exports, we want to
@@ -326,7 +325,6 @@ export default class Bundle {
 		this.toExport = keys( this.entryModule.exports )
 			.concat( keys( this.entryModule.reexports ) )
 			.filter( key => !varExports[ key ] );
-
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
@@ -369,6 +367,16 @@ export default class Bundle {
 		}).join( '' );
 
 		magicString.prepend( namespaceBlock );
+
+		if ( getterExports.length ) {
+			// TODO offer ES3-safe (but not spec-compliant) alternative?
+			const indent = magicString.getIndentString();
+			const getterExportsBlock = `Object.defineProperties(exports, {\n` +
+				getterExports.map( ({ key, value }) => indent + `${key}: { get: function () { return ${value}; } }` ).join( ',\n' ) +
+			`\n});`;
+
+			magicString.append( '\n\n' + getterExportsBlock );
+		}
 
 		const finalise = finalisers[ format ];
 

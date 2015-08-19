@@ -12,6 +12,7 @@ export default class Scope {
 		this.parent = options.parent;
 		this.depth = this.parent ? this.parent.depth + 1 : 0;
 		this.declarations = blank();
+		this.varDeclarations = blank();
 		this.isBlockScope = !!options.block;
 
 		if ( options.params ) {
@@ -21,25 +22,16 @@ export default class Scope {
 		}
 	}
 
-	// add ( name, isBlockDeclaration ) {
-	// 	if ( !isBlockDeclaration && this.isBlockScope ) {
-	// 		// it's a `var` or function declaration, and this
-	// 		// is a block scope, so we need to go up
-	// 		this.parent.add( name, isBlockDeclaration );
-	// 	} else {
-	// 		this.names.push( name );
-	// 	}
-	// }
-
-	addDeclaration ( name, declaration ) {
+	addDeclaration ( name, declaration, isVar ) {
 		const isBlockDeclaration = declaration.type === 'VariableDeclaration' && blockDeclarations[ declaration.kind ];
 
 		if ( !isBlockDeclaration && this.isBlockScope ) {
 			// it's a `var` or function declaration, and this
 			// is a block scope, so we need to go up
-			this.parent.addDeclaration( name, declaration );
+			this.parent.addDeclaration( name, declaration, isVar );
 		} else {
 			this.declarations[ name ] = declaration;
+			if ( isVar ) this.varDeclarations[ name ] = true;
 		}
 	}
 
