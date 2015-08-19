@@ -290,13 +290,13 @@ export default class Bundle {
 		//
 		// This doesn't apply if the bundle is exported as ES6!
 		let allBundleExports = blank();
-		let varDeclarations = blank();
+		let isVarDeclaration = blank();
 		let varExports = blank();
 		let getterExports = [];
 
 		this.orderedModules.forEach( module => {
 			module.varDeclarations.forEach( name => {
-				varDeclarations[ module.replacements[ name ] || name ] = true;
+				isVarDeclaration[ module.replacements[ name ] || name ] = true;
 			});
 		});
 
@@ -306,7 +306,7 @@ export default class Bundle {
 				.forEach( name => {
 					const canonicalName = this.traceExport( this.entryModule, name );
 
-					if ( varDeclarations[ canonicalName ] ) {
+					if ( isVarDeclaration[ canonicalName ] ) {
 						varExports[ name ] = true;
 
 						// if the same binding is exported multiple ways, we need to
@@ -354,9 +354,8 @@ export default class Bundle {
 
 		if ( getterExports.length ) {
 			// TODO offer ES3-safe (but not spec-compliant) alternative?
-			const indent = magicString.getIndentString();
 			const getterExportsBlock = `Object.defineProperties(exports, {\n` +
-				getterExports.map( ({ key, value }) => indent + `${key}: { get: function () { return ${value}; } }` ).join( ',\n' ) +
+				getterExports.map( ({ key, value }) => indentString + `${key}: { get: function () { return ${value}; } }` ).join( ',\n' ) +
 			`\n});`;
 
 			magicString.append( '\n\n' + getterExportsBlock );
@@ -368,13 +367,7 @@ export default class Bundle {
 			throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
 		}
 
-		magicString = finalise( this, magicString.trim(), {
-			// Determine export mode - 'default', 'named', 'none'
-			exportMode,
-
-			// Determine indentation
-			indentString: getIndentString( magicString, options )
-		}, options );
+		magicString = finalise( this, magicString.trim(), { exportMode, indentString }, options );
 
 		if ( options.banner ) magicString.prepend( options.banner + '\n' );
 		if ( options.footer ) magicString.append( '\n' + options.footer );
