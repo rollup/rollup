@@ -14,18 +14,6 @@ function notDefault ( name ) {
 	return name !== 'default';
 }
 
-function getSpecifiers ( exports, replacements ) {
-	return keys( exports ).filter( notDefault ).map( name => {
-		const specifier = exports[ name ];
-		console.log( 'specifier', specifier )
-		const canonicalName = replacements[ specifier.localName ] || specifier.localName;
-
-		return canonicalName === name ?
-			name :
-			`${canonicalName} as ${name}`;
-	});
-}
-
 export default function es6 ( bundle, magicString ) {
 	const importBlock = bundle.externalModules
 		.map( module => {
@@ -58,8 +46,13 @@ export default function es6 ( bundle, magicString ) {
 
 	const module = bundle.entryModule;
 
-	const specifiers = getSpecifiers( module.exports, module.replacements )
-		.concat( getSpecifiers( module.reexports, module.replacements ) );
+	const specifiers = bundle.toExport.filter( notDefault ).map( name => {
+		const canonicalName = bundle.traceExport( module, name );
+
+		return canonicalName === name ?
+			name :
+			`${canonicalName} as ${name}`;
+	});
 
 	let exportBlock = specifiers.length ? `export { ${specifiers.join(', ')} };` : '';
 
