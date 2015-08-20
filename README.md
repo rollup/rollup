@@ -15,13 +15,13 @@ Rollup can be used via a [JavaScript API](https://github.com/rollup/rollup/wiki/
 
 ## A next-generation ES6 module bundler
 
-When you're developing software, it's much easier to break your library or application apart into separate pieces that you can work on separately. It's also very likely that you'll have dependencies on third party libraries. The result is lots of small files – but that's bad news for browsers, which get slowed down by having to make many requests.
+When you're developing software, it's much easier to break your library or application apart into separate pieces that you can work on separately. It's also very likely that you'll have dependencies on third party libraries. The result is lots of small files – but that's bad news for browsers, which get slowed down by having to make many requests. (It's also [bad news for Node!](https://kev.inburke.com/kevin/node-require-is-dog-slow/))
 
-The solution is to write you code as **modules**, and use a **module bundler** to concatenate everything into a single file. [Browserify](http://browserify.org/) and [Webpack](http://webpack.github.io/) are examples of module bundlers.
+The solution is to write your code as **modules**, and use a **module bundler** to concatenate everything into a single file. [Browserify](http://browserify.org/) and [Webpack](http://webpack.github.io/) are examples of module bundlers.
 
 So far, so good, **but there's a problem**. When you include a library in your bundle...
 
-```
+```js
 var utils = require( 'utils' );
 
 var query = 'Rollup';
