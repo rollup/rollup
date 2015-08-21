@@ -72,7 +72,30 @@ If you minify code with something like [UglifyJS](https://github.com/mishoo/Ugli
 
 A minifier can detect that `foo` gets called, but that `bar` doesn't. When we remove `bar`, it turns out that we can also remove `baz`.
 
-Unfortunately, **traditional modules – CommonJS and AMD – make this kind of optimisation next to impossible**. Rather than *excluding dead code*, we should be *including live code*. That's only possible with ES6 modules.
+But because of the limitations of static analysis, and the dynamic nature of JavaScript, it can't do the same thing with code like this:
+
+```js
+(function () {
+  var obj = {
+    foo: function () {
+      console.log( 'this method was included!' );
+    },
+
+    bar: function () {
+      console.log( 'so was this :-(' );
+      this.baz();
+    },
+
+    baz: function () {
+      console.log( 'and this :-(' );
+    }
+  };
+
+  obj.foo();
+})();
+```
+
+Unfortunately, **traditional modules – CommonJS and AMD – result in code more like the second example than the first, making them next-to-impossible to optimise**. Rather than *excluding dead code*, we should be *including live code*. That's only possible with ES6 modules.
 
 
 ## What's the catch?
@@ -80,6 +103,8 @@ Unfortunately, **traditional modules – CommonJS and AMD – make this kind of
 Most libraries that you depend on aren't written as ES6 modules, so Rollup can't work with them directly. (You *can* bundle your own app or library code with Rollup as a CommonJS module, then pass the result over to Webpack or Browserify, of course.)
 
 **You can help!** It's possible to write libraries as ES6 modules while still making it easy for other developers to use your code as they already do, using the [jsnext:main](https://github.com/rollup/rollup/wiki/jsnext:main) field in your package.json. You'll be writing your code in a more future-proof way, and helping to bring an end to the [dark days of JavaScript package management](https://medium.com/@trek/last-week-i-had-a-small-meltdown-on-twitter-about-npms-future-plans-around-front-end-packaging-b424dd8d367a).
+
+See [rollup-starter-project](https://github.com/eventualbuddha/rollup-starter-project) for inspiration on how to get started.
 
 
 ## License
