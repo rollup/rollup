@@ -290,13 +290,13 @@ export default class Bundle {
 		//
 		// This doesn't apply if the bundle is exported as ES6!
 		let allBundleExports = blank();
-		let isVarDeclaration = blank();
+		let isReassignedVarDeclaration = blank();
 		let varExports = blank();
 		let getterExports = [];
 
 		this.orderedModules.forEach( module => {
-			module.varDeclarations.forEach( name => {
-				isVarDeclaration[ module.replacements[ name ] || name ] = true;
+			module.reassignments.forEach( name => {
+				isReassignedVarDeclaration[ module.replacements[ name ] || name ] = true;
 			});
 		});
 
@@ -306,7 +306,7 @@ export default class Bundle {
 				.forEach( name => {
 					const canonicalName = this.traceExport( this.entryModule, name );
 
-					if ( isVarDeclaration[ canonicalName ] ) {
+					if ( isReassignedVarDeclaration[ canonicalName ] ) {
 						varExports[ name ] = true;
 
 						// if the same binding is exported multiple ways, we need to

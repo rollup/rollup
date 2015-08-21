@@ -30,6 +30,8 @@ export default class Statement {
 		this.dependsOn = blank();
 		this.stronglyDependsOn = blank();
 
+		this.reassigns = blank();
+
 		this.isIncluded = false;
 
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
@@ -226,6 +228,17 @@ export default class Statement {
 					if ( !!scope.parent || node.start > this.module.exports.default.statement.node.start ) {
 						this.module.exports.default.isModified = true;
 					}
+				}
+
+				// we track updates/reassignments to variables, to know whether we
+				// need to rewrite it later from `foo` to `exports.foo` to keep
+				// bindings live
+				if (
+					depth === 0 &&
+					writeDepth > 0 &&
+					!scope.contains( node.name )
+				) {
+					this.reassigns[ node.name ] = true;
 				}
 			}
 

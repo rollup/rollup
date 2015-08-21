@@ -1,4 +1,4 @@
-const FOO = 'foo';
+var FOO = 'foo';
 
 console.log( FOO );
 console.log( FOO );
