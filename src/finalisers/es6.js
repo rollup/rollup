@@ -1,25 +1,68 @@
-import { keys } from '../utils/object';
+import { blank, keys } from '../utils/object';
 
-export default function es6 ( bundle, magicString, { exportMode }, options ) {
-	const introBlock = ''; // TODO...
+function uniqueNames ( declarations ) {
+	let uniques = blank();
 
-	const exports = bundle.entryModule.exports;
-	const exportBlock = keys( exports ).map( exportedName => {
-		const specifier = exports[ exportedName ];
+	declarations
+		.filter( declaration => !/^(default|\*)$/.test( declaration.name ) )
+		.forEach( declaration => uniques[ declaration.name ] = true );
 
-		const canonicalName = bundle.entryModule.getCanonicalName( specifier.localName );
+	return keys( uniques );
+}
 
-		if ( exportedName === 'default' ) {
-			return `export default ${canonicalName};`;
-		}
+function notDefault ( name ) {
+	return name !== 'default';
+}
 
-		return exportedName === canonicalName ?
-			`export { ${exportedName} };` :
-			`export { ${canonicalName} as ${exportedName} };`;
-	}).join( '\n' );
+export default function es6 ( bundle, magicString ) {
+	const importBlock = bundle.externalModules
+		.map( module => {
+			const specifiers = [];
+
+			if ( module.needsDefault ) {
+				specifiers.push( module.importedByBundle.filter( declaration =>
+					declaration.name === 'default' )[0].localName );
+			}
+
+			if ( module.needsAll ) {
+				specifiers.push( '* as ' + module.importedByBundle.filter( declaration =>
+					declaration.name === '*' )[0].localName );
+			}
+
+			if ( module.needsNamed ) {
+				specifiers.push( '{ ' + uniqueNames( module.importedByBundle )
+					.join( ', ' ) + ' }' );
+			}
+
+			return specifiers.length ?
+				`import ${specifiers.join( ', ' )} from '${module.id}';` :
+				`import '${module.id}';`;
+		})
+		.join( '\n' );
+
+	if ( importBlock ) {
+		magicString.prepend( importBlock + '\n\n' );
+	}
+
+	const module = bundle.entryModule;
+
+	const specifiers = bundle.toExport.filter( notDefault ).map( name => {
+		const canonicalName = bundle.traceExport( module, name );
+
+		return canonicalName === name ?
+			name :
+			`${canonicalName} as ${name}`;
+	});
+
+	let exportBlock = specifiers.length ? `export { ${specifiers.join(', ')} };` : '';
+
+	const defaultExport = module.exports.default || module.reexports.default;
+	if ( defaultExport ) {
+		exportBlock += `export default ${bundle.traceExport(module,'default')};`;
+	}
 
 	if ( exportBlock ) {
-		magicString.append( '\n\n' + exportBlock );
+		magicString.append( '\n\n' + exportBlock.trim() );
 	}
 
 	return magicString.trim();

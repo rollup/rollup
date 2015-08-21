@@ -1,8 +1,5 @@
 require( 'source-map-support' ).install();
 
-var path = require( 'path' );
-var sander = require( 'sander' );
-var Promise = sander.Promise;
 var handleError = require( './handleError' );
 var rollup = require( '../' );
 
@@ -19,6 +16,26 @@ module.exports = function ( options ) {
 		options.input = options._[0];
 	}
 
+	var external = options.external ? options.external.split( ',' ) : [];
+
+	if ( options.globals ) {
+		var globals = Object.create( null );
+
+		options.globals.split( ',' ).forEach(function ( str ) {
+			var names = str.split( ':' );
+			globals[ names[0] ] = names[1];
+
+			// Add missing Module IDs to external.
+			if ( external.indexOf( names[0] ) === -1 ) {
+				external.push( names[0] );
+			}
+		});
+
+		options.globals = globals;
+	}
+
+	options.external = external;
+
 	try {
 		bundle( options ).catch( handleError );
 	} catch ( err ) {
@@ -27,19 +44,18 @@ module.exports = function ( options ) {
 };
 
 function bundle ( options, method ) {
-	var bundleOptions, file;
-
 	if ( !options.input ) {
 		handleError({ code: 'MISSING_INPUT_OPTION' });
 	}
 
 	return rollup.rollup({
 		entry: options.input,
-		external: options.external && options.external.split( ',' )
+		external: options.external
 	}).then( function ( bundle ) {
 		var generateOptions = {
 			dest: options.output,
 			format: options.format,
+			globals: options.globals,
 			moduleId: options.id,
 			moduleName: options.name,
 			sourceMap: options.sourcemap
@@ -55,7 +71,8 @@ function bundle ( options, method ) {
 
 		var result = bundle.generate( generateOptions );
 
-		var code = result.code;
+		var code = result.code,
+			map = result.map;
 
 		if ( options.sourcemap === 'inline' ) {
 			code += '\n//# sourceMappingURL=' + map.toUrl();

@@ -1,5 +1,7 @@
 import { blank } from '../utils/object';
 import { getName } from '../utils/map-helpers';
+import getInteropBlock from './shared/getInteropBlock';
+import getExportBlock from './shared/getExportBlock';
 
 export default function iife ( bundle, magicString, { exportMode, indentString }, options ) {
 	const globalNames = options.globals || blank();
@@ -19,15 +21,20 @@ export default function iife ( bundle, magicString, { exportMode, indentString }
 		args.unshift( 'exports' );
 	}
 
-	let intro = `(function (${args}) { 'use strict';\n\n`;
+	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
+	let intro = `(function (${args}) {${useStrict}\n\n`;
 	let outro = `\n\n})(${dependencies});`;
 
 	if ( exportMode === 'default' ) {
 		intro = `var ${options.moduleName} = ${intro}`;
-		magicString.append( `\n\nreturn ${bundle.entryModule.getCanonicalName('default')};` );
 	}
 
-	// TODO named exports
+	// var foo__default = 'default' in foo ? foo['default'] : foo;
+	const interopBlock = getInteropBlock( bundle );
+	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
+
+	const exportBlock = getExportBlock( bundle, exportMode );
+	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 
 	return magicString
 		.indent( indentString )

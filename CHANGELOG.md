@@ -1,5 +1,47 @@
 # rollup changelog
 
+## 0.14.1
+
+* `export { name } from './other'` does not create a local binding ([#16](https://github.com/rollup/rollup/issues/16))
+* A single binding can be exported under multiple names ([#18](https://github.com/rollup/rollup/issues/18))
+* `useStrict` option exposed to CLI as `--strict`/`--no-strict` ([#81](https://github.com/rollup/rollup/issues/81))
+* Neater exports from ES6 bundles
+
+## 0.14.0
+
+* Internal refactoring
+* Correctly deconflict generated default export names ([#72](https://github.com/rollup/rollup/issues/72))
+* Handle `export { x } from 'y'` declarations ([#74](https://github.com/rollup/rollup/issues/74))
+* Dedupe named imports from external modules in ES6 bundles ([#77](https://github.com/rollup/rollup/issues/77))
+
+## 0.13.0
+
+* Support `banner` and `footer` options ([#66](https://github.com/rollup/rollup/pull/66))
+* Remove pre-existing sourcemap comments ([#66](https://github.com/rollup/rollup/pull/66))
+* Deconflict external imports ([#66](https://github.com/rollup/rollup/pull/66))
+* Use existing AST, if provided ([#66](https://github.com/rollup/rollup/pull/66))
+* Rename internal namespace exports as appropriate ([#66](https://github.com/rollup/rollup/pull/66))
+* Remove uninitialised var declarations that get exported ([#66](https://github.com/rollup/rollup/pull/66))
+* Rename variables named `exports` to avoid conflicts ([#66](https://github.com/rollup/rollup/pull/66))
+
+## 0.12.1
+
+* Don't attempt to mark statements belonging to external modules ([#68](https://github.com/rollup/rollup/issues/68))
+* Correctly deshadow variables that conflict with imports ([#68](https://github.com/rollup/rollup/issues/68))
+
+## 0.12.0
+
+* Internal re-architecting, resulting in more efficient bundling with reduced memory usage
+* Shorthand properties are expanded if necessary ([#61](https://github.com/rollup/rollup/issues/61))
+* Fixed various bugs with bundle external dependencies, particularly when generating ES6 bundles ([#59](https://github.com/rollup/rollup/issues/59))
+* Add `--globals` option to CLI ([#60](https://github.com/rollup/rollup/pull/60))
+* Allow imports of external modules for side-effects ([#55](https://github.com/rollup/rollup/pull/55))
+* Prevent Rollup hanging on non-existent external module ([#54](https://github.com/rollup/rollup/pull/54))
+
+## 0.11.4
+
+* Side-effect preservation applies to internal default exports ([#43](https://github.com/rollup/rollup/issues/43))
+
 ## 0.11.3
 
 * Class methods are not incorrectly renamed ([#42](https://github.com/rollup/rollup/issues/42))

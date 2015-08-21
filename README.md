@@ -1,136 +1,112 @@
-# rollup
+# Rollup
 
-*I roll up, I roll up, I roll up, Shawty I roll up*
+> *I roll up, I roll up, I roll up, Shawty I roll up*
+>
+> *I roll up, I roll up, I roll up*
+> &ndash;[Wiz Khalifa](https://www.youtube.com/watch?v=UhQz-0QVmQ0)
 
-*I roll up, I roll up, I roll up* &ndash;[Wiz Khalifa](https://www.youtube.com/watch?v=UhQz-0QVmQ0)
 
-This is an early stage project under active development. If you find a bug, [please raise an issue!](https://github.com/rollup/rollup/issues).
+## Quickstart
+
+Rollup can be used via a [JavaScript API](https://github.com/rollup/rollup/wiki/JavaScript-API) or a [Command Line Interface](https://github.com/rollup/rollup/wiki/Command-Line-Interface). Install with `npm install -g rollup` and run `rollup --help` to get started.
+
+[Dive into the wiki](https://github.com/rollup/rollup/wiki) when you're ready to learn more about Rollup and ES6 modules.
 
 
 ## A next-generation ES6 module bundler
 
-Right now, you have a few different options if you want to create a bundle out of your ES6 modules:
+When you're developing software, it's much easier to break your library or application apart into separate pieces that you can work on separately. It's also very likely that you'll have dependencies on third party libraries. The result is lots of small files – but that's bad news for browsers, which get slowed down by having to make many requests. (It's also [bad news for Node!](https://kev.inburke.com/kevin/node-require-is-dog-slow/))
 
-* The best option, in terms of performance, size of the resulting bundle, and accurate representation of ES6 module semantics, is to use [esperanto](http://esperantojs.org). It's used by [ractive.js](http://ractivejs.org), [moment.js](http://momentjs.com/), Facebook's [immutable.js](https://github.com/facebook/immutable-js), the jQuery Foundation's [pointer events polyfill](https://github.com/jquery/PEP), [Ember CLI](http://www.ember-cli.com/) and a bunch of other libraries and apps
-* You could use [jspm](http://jspm.io/), which combines a module bundler with a loader and a package manager
-* Or you could use [browserify](http://browserify.org/) or [webpack](http://webpack.github.io/), transpiling your modules into CommonJS along the way
+The solution is to write your code as **modules**, and use a **module bundler** to concatenate everything into a single file. [Browserify](http://browserify.org/) and [Webpack](http://webpack.github.io/) are examples of module bundlers.
 
-But there's a flaw in how these systems work. Pretend it's the future, and lodash is available as an ES6 module, and you want to use a single helper function from it:
+So far, so good, **but there's a problem**. When you include a library in your bundle...
 
 ```js
-// app.js
-import { pluck } from 'lodash';
+var utils = require( 'utils' );
+
+var query = 'Rollup';
+utils.ajax( 'https://api.example.com?search=' + query ).then( handleResponse );
 ```
 
-With that single import statement, you've just caused the whole of [lodash](https://lodash.com/) to be included in your bundle, even though you only need to use a tiny fraction of the code therein.
+...you include the *whole* library, including lots of code you're not actually using.
 
-If you're using esperanto, that's not totally disastrous, because a sufficiently good minifier will be able to determine through [static analysis](http://en.wikipedia.org/wiki/Static_program_analysis) that most of the code will never run, and so remove it. But there are lots of situations where static analysis fails, and unused code will continue to clutter up your bundle.
-
-If you're using any of the other tools, static analysis won't be able to even begin to determine which of lodash's exports aren't used by your app (AFAIK! please correct me if I'm wrong).
-
-
-### The current solution is not future-proof
-
-I picked lodash because it does offer one solution to this problem: modular builds. Today, in your CommonJS modules, you can do this:
+**ES6 modules solve this problem.** Instead of importing the whole of `utils`, we can just import the `ajax` function we need:
 
 ```js
-var pluck = require( 'lodash/collection/pluck' );
+import { ajax } from 'utils';
+
+var query = 'Rollup';
+ajax( 'https://api.example.com?search=' + query ).then( handleResponse );
 ```
 
-**This is not the answer.** Using a folder structure to define an interface is a bad idea - it makes it harder to guarantee backwards compatibility, it imposes awkward constraints on library authors, and it allows developers to do this sort of thing:
+Rollup statically analyses your code, and your dependencies, and includes the bare minimum in your bundle.
+
+
+## Shouldn't we be writing those utilities as small modules anyway?
+
+[Not always, no.](https://medium.com/@Rich_Harris/small-modules-it-s-not-quite-that-simple-3ca532d65de4)
+
+
+## Don't minifiers already do this?
+
+If you minify code with something like [UglifyJS](https://github.com/mishoo/UglifyJS2) (and you should!) then some unused code will be removed:
 
 ```js
-var cheekyHack = require( 'undocumented/private/module' );
+(function () {
+  function foo () {
+    console.log( 'this function was included!' );
+  }
+
+  function bar () {
+    console.log( 'this function was not' );
+    baz();
+  }
+
+  function baz () {
+    console.log( 'neither was this' );
+  }
+
+  foo();
+})();
 ```
 
-Sure enough, you [won't be able to do this with ES6 modules](https://github.com/esperantojs/esperanto/issues/68#issuecomment-73302346).
+A minifier can detect that `foo` gets called, but that `bar` doesn't. When we remove `bar`, it turns out that we can also remove `baz`.
 
-
-### A better approach?
-
-This project is an attempt to prove a different idea: ES6 modules should define their interface through a single file (which, by convention, is currently exposed as the `jsnext:main` field in your package.json file), like so...
+But because of the limitations of static analysis, and the dynamic nature of JavaScript, it can't do the same thing with code like this:
 
 ```js
-// snippet from future-lodash.js
-export { partition } from './src/collection/partition';
-export { pluck } from './src/collection/pluck';
-export { reduce } from './src/collection/reduce';
-/* ...and so on... */
-```
+(function () {
+  var obj = {
+    foo: function () {
+      console.log( 'this method was included!' );
+    },
 
-...and ES6 *bundlers* should handle importing in a much more granular fashion. Rather than importing an entire module, an intelligent bundler should be able to reason like so:
+    bar: function () {
+      console.log( 'so was this :-(' );
+      this.baz();
+    },
 
-* I need to import `pluck` from `future-lodash.js`
-* According to `future-lodash.js`, the definition of `pluck` can be found in `lodash/src/collection/pluck.js`
-* It seems that `pluck` depends on `map` and `property`, which are in... *these* files
-* ...
-* Right, I've found all the function definitions I need. I can just include those in my bundle and disregard the rest
-
-In other words, the 'tree-shaking' approach of throwing everything in then removing the bits you don't need is all wrong - instead, we should be selective about what we include in the first place.
-
-This is not a trivial task. There are almost certainly a great many complex edge cases. Perhaps it's not possible. But I intend to find out.
-
-
-## Goals
-
-* Maximally efficient bundling
-* Ease of use
-* Flexible output - CommonJS, AMD, UMD, globals, ES6, System etc
-* Speed
-* Character-accurate sourcemaps
-* Eventually, port the functionality to esperanto
-
-### Secondary goals
-
-* Support for legacy module formats
-* Respect for original formatting and code comments
-
-
-### API
-
-The example below is aspirational. It isn't yet implemented - it exists in the name of [README driven development](http://tom.preston-werner.com/2010/08/23/readme-driven-development.html).
-
-```js
-rollup.rollup({
-  // The bundle's starting point
-  entry: 'app.js',
-
-  // Any external modules you don't want to include
-  // in the bundle (includes node built-ins)
-  external: [ 'path', 'fs', 'some-other-lib' ]
-}).then( function ( bundle ) {
-  // generate code and a sourcemap
-  const { code, map } = bundle.generate({
-    // output format - 'amd', 'cjs', 'es6', 'iife', 'umd'
-    format: 'amd',
-
-    // exports - 'auto', 'none', 'default', 'named'
-    exports: 'auto',
-
-    // amd/umd options
-    moduleId: 'my-library',
-
-    // umd options
-    moduleName: 'MyLibrary', // necessary if the bundle has exports
-    globals: {
-      backbone: 'Backbone'
+    baz: function () {
+      console.log( 'and this :-(' );
     }
-  });
+  };
 
-  fs.writeFileSync( 'bundle.js', code + '\n//# sourceMappingURL=bundle.js.map' );
-  fs.writeFileSync( 'bundle.js.map', map.toString() );
-
-  // possible convenience method
-  bundle.write({
-    dest: 'bundle.js', // also writes sourcemap
-    format: 'amd'
-  });
-});
+  obj.foo();
+})();
 ```
 
-The duplication (`rollup.rollup`) is intentional. You have to say it like you're in the circus, otherwise it won't work.
+Unfortunately, **traditional modules – CommonJS and AMD – result in code more like the second example than the first, making them next-to-impossible to optimise**. Rather than *excluding dead code*, we should be *including live code*. That's only possible with ES6 modules.
+
+
+## What's the catch?
+
+Most libraries that you depend on aren't written as ES6 modules, so Rollup can't work with them directly. (You *can* bundle your own app or library code with Rollup as a CommonJS module, then pass the result over to Webpack or Browserify, of course.)
+
+**You can help!** It's possible to write libraries as ES6 modules while still making it easy for other developers to use your code as they already do, using the [jsnext:main](https://github.com/rollup/rollup/wiki/jsnext:main) field in your package.json. You'll be writing your code in a more future-proof way, and helping to bring an end to the [dark days of JavaScript package management](https://medium.com/@trek/last-week-i-had-a-small-meltdown-on-twitter-about-npms-future-plans-around-front-end-packaging-b424dd8d367a).
+
+See [rollup-starter-project](https://github.com/eventualbuddha/rollup-starter-project) for inspiration on how to get started.
 
 
 ## License
 
-Not that there's any code here at the time of writing, but this project is released under the MIT license.
+Released under the [MIT license](TK).

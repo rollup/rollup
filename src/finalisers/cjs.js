@@ -1,5 +1,7 @@
-export default function cjs ( bundle, magicString, { exportMode }) {
-	let intro = `'use strict';\n\n`;
+import getExportBlock from './shared/getExportBlock';
+
+export default function cjs ( bundle, magicString, { exportMode }, options ) {
+	let intro = options.useStrict === false ? `` : `'use strict';\n\n`;
 
 	// TODO handle empty imports, once they're supported
 	const importBlock = bundle.externalModules
@@ -21,23 +23,8 @@ export default function cjs ( bundle, magicString, { exportMode }) {
 
 	magicString.prepend( intro );
 
-	let exportBlock;
-	if ( exportMode === 'default' && bundle.entryModule.exports.default ) {
-		exportBlock = `module.exports = ${bundle.entryModule.getCanonicalName('default')};`;
-	} else if ( exportMode === 'named' ) {
-		exportBlock = bundle.toExport
-			.map( key => {
-				const specifier = bundle.entryModule.exports[ key ];
-				const name = bundle.entryModule.getCanonicalName( specifier.localName );
-
-				return `exports.${key} = ${name};`;
-			})
-			.join( '\n' );
-	}
-
-	if ( exportBlock ) {
-		magicString.append( '\n\n' + exportBlock );
-	}
+	const exportBlock = getExportBlock( bundle, exportMode, 'module.exports =' );
+	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 
 	return magicString;
 }

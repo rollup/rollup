@@ -1,5 +1,7 @@
 import { blank } from '../utils/object';
 import { getName, quoteId, req } from '../utils/map-helpers';
+import getInteropBlock from './shared/getInteropBlock';
+import getExportBlock from './shared/getExportBlock';
 
 export default function umd ( bundle, magicString, { exportMode, indentString }, options ) {
 	if ( exportMode !== 'none' && !options.moduleName ) {
@@ -11,7 +13,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 	let amdDeps = bundle.externalModules.map( quoteId );
 	let cjsDeps = bundle.externalModules.map( req );
 	let globalDeps = bundle.externalModules.map( module => {
-		return globalNames[ module.id ] || module.name;
+		return 'global.' + (globalNames[ module.id ] || module.name);
 	});
 
 	let args = bundle.externalModules.map( getName );
@@ -25,38 +27,29 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 	}
 
 	const amdParams =
-		( options.moduleId ? `['${options.moduleId}'], ` : `` ) +
+		( options.moduleId ? `'${options.moduleId}', ` : `` ) +
 		( amdDeps.length ? `[${amdDeps.join( ', ' )}], ` : `` );
 
 	const cjsExport = exportMode === 'default' ? `module.exports = ` : ``;
 	const defaultExport = exportMode === 'default' ? `global.${options.moduleName} = ` : '';
+
+	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
 
 	const intro =
 		`(function (global, factory) {
 			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join( ', ' )}) :
 			typeof define === 'function' && define.amd ? define(${amdParams}factory) :
 			${defaultExport}factory(${globalDeps});
-		}(this, function (${args}) { 'use strict';
+		}(this, function (${args}) {${useStrict}
 
 		`.replace( /^\t\t/gm, '' ).replace( /^\t/gm, magicString.getIndentString() );
 
-	const exports = bundle.entryModule.exports;
+	// var foo__default = 'default' in foo ? foo['default'] : foo;
+	const interopBlock = getInteropBlock( bundle );
+	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
 
-	let exportBlock;
-
-	if ( exportMode === 'default' ) {
-		const canonicalName = bundle.entryModule.getCanonicalName( 'default' );
-		exportBlock = `return ${canonicalName};`;
-	} else {
-		exportBlock = bundle.toExport.map( name => {
-			const canonicalName = bundle.entryModule.getCanonicalName( exports[ name ].localName );
-			return `exports.${name} = ${canonicalName};`;
-		}).join( '\n' );
-	}
-
-	if ( exportBlock ) {
-		magicString.append( '\n\n' + exportBlock );
-	}
+	const exportBlock = getExportBlock( bundle, exportMode );
+	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 
 	return magicString
 		.trim()

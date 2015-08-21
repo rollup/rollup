@@ -5,15 +5,20 @@ var minimist = require( 'minimist' ),
 
 command = minimist( process.argv.slice( 2 ), {
 	alias: {
-		i: 'input',
-		o: 'output',
-		v: 'version',
-		h: 'help',
+		// Aliases
+		strict: 'useStrict',
+
+		// Short options
+		e: 'external',
 		f: 'format',
+		g: 'globals',
+		h: 'help',
+		i: 'input',
 		m: 'sourcemap',
 		n: 'name',
+		o: 'output',
 		u: 'id',
-		e: 'external'
+		v: 'version'
 	}
 });
 

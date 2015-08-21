@@ -8,11 +8,9 @@ var node = src
 		entry: 'rollup.js',
 		dest: 'rollup.js',
 		format: 'cjs',
-		external: [ 'sander', 'path', 'acorn', 'magic-string' ]
+		external: [ 'sander', 'acorn' ]
 	})
 	.transform( 'babel' );
-
-var absolutePath = /^(?:\/|(?:[A-Za-z]:)?\\)/;
 
 var browserPlaceholders = {
 	sander: fs.readFileSync( 'browser/sander.js' ).toString()
@@ -27,7 +25,7 @@ var browser = src
 			if ( ~id.indexOf( 'sander.js' ) ) return browserPlaceholders.sander;
 			return fs.readFileSync( id ).toString();
 		},
-		external: [ 'acorn', 'magic-string' ]
+		external: [ 'acorn' ]
 	})
 	.transform( 'browserify', {
 		entries: [ './rollup.browser' ],
