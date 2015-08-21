@@ -40,7 +40,7 @@
     "gobble-browserify": "^0.6.1",
     "gobble-cli": "^0.4.2",
     "gobble-esperanto-bundle": "^0.2.0",
-    "gobble-rollup": "^0.6.0",
+    "gobble-rollup": "^0.7.0",
     "gobble-rollup-babel": "^0.1.0",
     "mocha": "^2.2.4",
     "source-map": "^0.1.40"
@@ -48,7 +48,7 @@
   "dependencies": {
     "acorn": "^1.1.0",
     "chalk": "^1.0.0",
-    "magic-string": "^0.6.4",
+    "magic-string": "^0.6.5",
     "minimist": "^1.1.1",
     "sander": "^0.3.3",
     "source-map-support": "^0.3.1"
