@@ -1,5 +1,23 @@
 import { absolutePath, dirname, isAbsolute, resolve } from './path';
-import { readFileSync } from 'sander';
+import { readdirSync, readFileSync } from 'sander';
+
+function dirExists ( dir ) {
+	try {
+		readdirSync( dir );
+		return true;
+	} catch ( err ) {
+		return false;
+	}
+}
+
+function fileExists ( dir ) {
+	try {
+		readFileSync( dir );
+		return true;
+	} catch ( err ) {
+		return false;
+	}
+}
 
 export function defaultResolver ( importee, importer, options ) {
 	// absolute paths are left untouched
@@ -10,8 +28,10 @@ export function defaultResolver ( importee, importer, options ) {
 
 	// we try to resolve external modules
 	if ( importee[0] !== '.' ) {
+		const [ id ] = importee.split( /[\/\\]/ );
+
 		// unless we want to keep it external, that is
-		if ( ~options.external.indexOf( importee ) ) return null;
+		if ( ~options.external.indexOf( id ) ) return null;
 
 		return options.resolveExternal( importee, importer, options );
 	}
@@ -24,29 +44,33 @@ export function defaultExternalResolver ( id, importer ) {
 	const root = absolutePath.exec( importer )[0];
 	let dir = dirname( importer );
 
+	// `foo` should use jsnext:main, but `foo/src/bar` shouldn't
+	const parts = id.split( /[\/\\]/ );
+
 	while ( dir !== root ) {
-		const pkgPath = resolve( dir, 'node_modules', id, 'package.json' );
-		let pkgJson;
+		const modulePath = resolve( dir, 'node_modules', parts[0] );
 
-		try {
-			pkgJson = readFileSync( pkgPath ).toString();
-		} catch ( err ) {
-			// noop
-		}
+		if ( dirExists( modulePath ) ) {
+			// `foo/src/bar`
+			if ( parts.length > 1 ) {
+				return resolve( modulePath, ...parts.slice( 1 ) ).replace( /\.js$/, '' ) + '.js';
+			}
 
-		if ( pkgJson ) {
+			// `foo`
+			const pkgPath = resolve( modulePath, 'package.json' );
+			let pkgJson;
 			let pkg;
 
 			try {
-				pkg = JSON.parse( pkgJson );
+				pkg = JSON.parse( readFileSync( pkgPath ).toString() );
 			} catch ( err ) {
-				throw new Error( `Malformed JSON: ${pkgPath}` );
+				throw new Error( `Missing or malformed package.json: ${modulePath}` );
 			}
 
 			const main = pkg[ 'jsnext:main' ];
 
 			if ( !main ) {
-				throw new Error( `Package ${id} does not have a jsnext:main field, and so cannot be included in your rollup. Try adding it as an external module instead (e.g. options.external = ['${id}']). See https://github.com/rollup/rollup/wiki/jsnext:main for more info` );
+				throw new Error( `Package ${id} (imported by ${importer}) does not have a jsnext:main field, and so cannot be included in your rollup. Try adding it as an external module instead (e.g. options.external = ['${id}']). See https://github.com/rollup/rollup/wiki/jsnext:main for more info` );
 			}
 
 			return resolve( dirname( pkgPath ), main ).replace( /\.js$/, '' ) + '.js';

@@ -1,5 +1,5 @@
 import { Promise } from 'sander';
-import { parse } from 'acorn';
+import { parse } from 'acorn/src/index';
 import MagicString from 'magic-string';
 import Statement from './Statement';
 import walk from './ast/walk';

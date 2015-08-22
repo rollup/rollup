@@ -8,7 +8,7 @@ var node = src
 		entry: 'rollup.js',
 		dest: 'rollup.js',
 		format: 'cjs',
-		external: [ 'sander', 'acorn' ]
+		external: [ 'sander' ]
 	})
 	.transform( 'babel' );
 
@@ -24,8 +24,7 @@ var browser = src
 		load: function ( id ) {
 			if ( ~id.indexOf( 'sander.js' ) ) return browserPlaceholders.sander;
 			return fs.readFileSync( id ).toString();
-		},
-		external: [ 'acorn' ]
+		}
 	})
 	.transform( 'browserify', {
 		entries: [ './rollup.browser' ],
