@@ -1,5 +1,5 @@
 function x () {
-	console.log( 'after' );
+	return 'after';
 }
 
 export { x as after };

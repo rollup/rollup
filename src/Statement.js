@@ -49,29 +49,23 @@ export default class Statement {
 				let newScope;
 
 				switch ( node.type ) {
-					case 'FunctionExpression':
 					case 'FunctionDeclaration':
-					case 'ArrowFunctionExpression':
-						if ( node.type === 'FunctionDeclaration' ) {
-							scope.addDeclaration( node.id.name, node, false );
-						}
-
-						newScope = new Scope({
-							parent: scope,
-							params: node.params, // TODO rest params?
-							block: false
-						});
-
-						// named function expressions - the name is considered
-						// part of the function's scope
-						if ( node.type === 'FunctionExpression' && node.id ) {
-							newScope.addDeclaration( node.id.name, node, false );
-						}
-
-						break;
+						scope.addDeclaration( node.id.name, node, false );
 
 					case 'BlockStatement':
-						if ( !/Function/.test( parent.type ) ) {
+						if ( parent && /Function/.test( parent.type ) ) {
+							newScope = new Scope({
+								parent: scope,
+								block: false,
+								params: parent.params
+							});
+
+							// named function expressions - the name is considered
+							// part of the function's scope
+							if ( parent.type === 'FunctionExpression' && parent.id ) {
+								newScope.addDeclaration( parent.id.name, parent, false );
+							}
+						} else {
 							newScope = new Scope({
 								parent: scope,
 								block: true
@@ -136,27 +130,19 @@ export default class Statement {
 		if ( !this.isImportDeclaration ) {
 			walk( this.node, {
 				enter: ( node, parent ) => {
-					if ( node._scope ) {
-						if ( !scope.isBlockScope ) {
-							if ( !isIife( node, parent ) ) readDepth += 1;
-							if ( isFunctionDeclaration( node, parent ) ) writeDepth += 1;
-						}
+					if ( isFunctionDeclaration( node, parent ) ) writeDepth += 1;
+					if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth += 1;
 
-						scope = node._scope;
-					}
+					if ( node._scope ) scope = node._scope;
 
 					this.checkForReads( scope, node, parent, !readDepth );
 					this.checkForWrites( scope, node, writeDepth );
 				},
 				leave: ( node, parent ) => {
-					if ( node._scope ) {
-						if ( !scope.isBlockScope ) {
-							if ( !isIife( node, parent ) ) readDepth -= 1;
-							if ( isFunctionDeclaration( node, parent ) ) writeDepth -= 1;
-						}
+					if ( isFunctionDeclaration( node, parent ) ) writeDepth -= 1;
+					if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth -= 1;
 
-						scope = scope.parent;
-					}
+					if ( node._scope ) scope = scope.parent;
 				}
 			});
 		}
@@ -364,11 +350,6 @@ export default class Statement {
 					let newNames = blank();
 					let hasReplacements;
 
-					// special case = function foo ( foo ) {...}
-					if ( node.id && names[ node.id.name ] && scope.declarations[ node.id.name ] ) {
-						magicString.overwrite( node.id.start, node.id.end, names[ node.id.name ] );
-					}
-
 					keys( names ).forEach( name => {
 						if ( !scope.declarations[ name ] ) {
 							newNames[ name ] = names[ name ];
@@ -409,6 +390,8 @@ export default class Statement {
 				if ( parent.type === 'MemberExpression' && !parent.computed && node !== parent.object ) return;
 				if ( parent.type === 'Property' && node !== parent.value ) return;
 				if ( parent.type === 'MethodDefinition' && node === parent.key ) return;
+				if ( parent.type === 'FunctionExpression' ) return;
+				if ( /Function/.test( parent.type ) && ~parent.params.indexOf( node ) ) return;
 				// TODO others...?
 
 				// all other identifiers should be overwritten

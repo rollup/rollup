@@ -1,5 +1,5 @@
 function x () {
-	console.log( 'before' );
+	return 'before';
 }
 
 export { x as before };
