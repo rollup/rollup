@@ -197,41 +197,36 @@ export default class Bundle {
 				this.modules.push( module );
 				this.moduleById[ id ] = module;
 
-				const promises = this.fetchAllModules( module, module.imports )
-					.concat( this.fetchAllModules( module, module.reexports ) );
-
-				return Promise.all( promises ).then( () => module );
+				return this.fetchAllDependencies( module ).then( () => module );
 			});
 	}
 
-	fetchAllModules ( module, specifiers ) {
-		return keys( specifiers )
-			.map( name => {
-				const specifier = specifiers[ name ];
+	fetchAllDependencies ( module ) {
+		const promises = module.dependencies.map( source => {
+			return Promise.resolve( this.resolveId( source, module.id, this.resolveOptions ) )
+				.then( resolvedId => {
+					module.resolvedIds[ source ] = resolvedId || source;
 
-				return Promise.resolve( this.resolveId( specifier.source, module.id, this.resolveOptions ) )
-					.then( resolvedId => {
-						// external module
-						if ( !resolvedId ) {
-							if ( !this.moduleById[ specifier.source ] ) {
-								const module = new ExternalModule( specifier.source );
-								this.externalModules.push( module );
-								this.moduleById[ specifier.source ] = module;
-							}
-
-							specifier.module = this.moduleById[ specifier.source ];
+					// external module
+					if ( !resolvedId ) {
+						if ( !this.moduleById[ source ] ) {
+							const module = new ExternalModule( source );
+							this.externalModules.push( module );
+							this.moduleById[ source ] = module;
 						}
+					}
 
-						else if ( resolvedId === module.id ) {
-							throw new Error( `A module cannot import itself (${resolvedId})` );
-						}
+					else if ( resolvedId === module.id ) {
+						throw new Error( `A module cannot import itself (${resolvedId})` );
+					}
 
-						else {
-							specifier.id = resolvedId;
-							return this.fetchModule( resolvedId );
-						}
-					});
-			});
+					else {
+						return this.fetchModule( resolvedId );
+					}
+				});
+		});
+
+		return Promise.all( promises );
 	}
 
 	markAllModifierStatements () {

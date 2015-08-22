@@ -52,7 +52,12 @@ export default class Module {
 
 		this.statements = this.parse( ast );
 
-		// imports and exports, indexed by ID
+		// all dependencies
+		this.dependencies = [];
+		this.resolvedIds = blank();
+		this.boundImportSpecifiers = false;
+
+		// imports and exports, indexed by local name
 		this.imports = blank();
 		this.exports = blank();
 		this.reexports = blank();
@@ -80,6 +85,8 @@ export default class Module {
 
 		// export { name } from './other'
 		if ( source ) {
+			if ( !~this.dependencies.indexOf( source ) ) this.dependencies.push( source );
+
 			if ( node.type === 'ExportAllDeclaration' ) {
 				// Store `export * from '...'` statements in an array of delegates.
 				// When an unknown import is encountered, we see if one of them can satisfy it.
@@ -168,6 +175,8 @@ export default class Module {
 		const node = statement.node;
 		const source = node.source.value;
 
+		if ( !~this.dependencies.indexOf( source ) ) this.dependencies.push( source );
+
 		node.specifiers.forEach( specifier => {
 			const isDefault = specifier.type === 'ImportDefaultSpecifier';
 			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
@@ -226,15 +235,25 @@ export default class Module {
 	}
 
 	bindImportSpecifiers () {
+		if ( this.boundImportSpecifiers ) return;
+		this.boundImportSpecifiers = true;
+
 		[ this.imports, this.reexports ].forEach( specifiers => {
 			keys( specifiers ).forEach( name => {
 				const specifier = specifiers[ name ];
 
 				if ( specifier.module ) return;
 
-				specifier.module = this.bundle.moduleById[ specifier.id ];
-				specifier.module.bindImportSpecifiers();
+				const id = this.resolvedIds[ specifier.source ];
+				specifier.module = this.bundle.moduleById[ id ];
 			});
+		});
+
+		this.dependencies.forEach( source => {
+			const id = this.resolvedIds[ source ];
+			const module = this.bundle.moduleById[ id ];
+
+			if ( !module.isExternal ) module.bindImportSpecifiers();
 		});
 	}
 
@@ -249,9 +268,12 @@ export default class Module {
 		}
 
 		this.statements.forEach( statement => {
-			if ( statement.isImportDeclaration && !statement.node.specifiers.length && !statement.module.isExternal ) {
+			if ( statement.isImportDeclaration && !statement.node.specifiers.length ) {
 				// include module for its side-effects
-				strongDependencies[ statement.module.id ] = statement.module; // TODO is this right? `statement.module` should be `this`, surely?
+				const id = this.resolvedIds[ statement.node.source.value ];
+				const module = this.bundle.moduleById[ id ];
+
+				if ( !module.isExternal ) strongDependencies[ module.id ] = module;
 			}
 
 			else if ( statement.isReexportDeclaration ) {
@@ -390,20 +412,12 @@ export default class Module {
 			if ( statement.isImportDeclaration ) {
 				// ...unless they're empty, in which case assume we're importing them for the side-effects
 				// THIS IS NOT FOOLPROOF. Probably need /*rollup: include */ or similar
+				if ( !statement.node.specifiers.length ) {
+					const id = this.resolvedIds[ statement.node.source.value ];
+					const otherModule = this.bundle.moduleById[ id ];
 
-				// TODO...
-				// if ( !statement.node.specifiers.length ) {
-				// 	return this.bundle.fetchModule( statement.node.source.value, this.id )
-				// 		.then( module => {
-				// 			statement.module = module;
-				// 			if ( module.isExternal ) {
-				// 				return;
-				// 			}
-				// 			return module.markAllStatements();
-				// 		});
-				// }
-				//
-				// return;
+					if ( !otherModule.isExternal ) otherModule.markAllStatements();
+				}
 			}
 
 			// skip `export { foo, bar, baz }`...
