@@ -66,6 +66,7 @@ export default class Module {
 
 		this.varDeclarations = [];
 
+		this.marked = blank();
 		this.definitions = blank();
 		this.definitionPromises = blank();
 		this.modifications = blank();
@@ -224,6 +225,19 @@ export default class Module {
 		});
 	}
 
+	bindImportSpecifiers () {
+		[ this.imports, this.reexports ].forEach( specifiers => {
+			keys( specifiers ).forEach( name => {
+				const specifier = specifiers[ name ];
+
+				if ( specifier.module ) return;
+
+				specifier.module = this.bundle.moduleById[ specifier.id ];
+				specifier.module.bindImportSpecifiers();
+			});
+		});
+	}
+
 	consolidateDependencies () {
 		let strongDependencies = blank();
 
@@ -302,139 +316,120 @@ export default class Module {
 		const importDeclaration = this.imports[ name ];
 		if ( !importDeclaration ) return null;
 
-		return Promise.resolve( importDeclaration.module || this.bundle.fetchModule( importDeclaration.source, this.id ) )
-			.then( module => {
-				importDeclaration.module = module;
-				return module.findDefiningStatement( name );
-			});
+		return importDeclaration.module.findDefiningStatement( name );
 	}
 
 	mark ( name ) {
 		// shortcut cycles
-		if ( this.definitionPromises[ name ] ) {
-			return emptyPromise;
-		}
-
-		let promise;
+		if ( this.marked[ name ] ) return;
+		this.marked[ name ] = true;
 
 		// The definition for this name is in a different module
 		if ( this.imports[ name ] ) {
 			const importDeclaration = this.imports[ name ];
 			importDeclaration.isUsed = true;
 
-			promise = this.bundle.fetchModule( importDeclaration.source, this.id )
-				.then( module => {
-					importDeclaration.module = module;
+			const module = importDeclaration.module;
 
-					// suggest names. TODO should this apply to non default/* imports?
-					if ( importDeclaration.name === 'default' ) {
-						// TODO this seems ropey
-						const localName = importDeclaration.localName;
-						let suggestion = this.suggestedNames[ localName ] || localName;
+			// suggest names. TODO should this apply to non default/* imports?
+			if ( importDeclaration.name === 'default' ) {
+				// TODO this seems ropey
+				const localName = importDeclaration.localName;
+				let suggestion = this.suggestedNames[ localName ] || localName;
 
-						// special case - the module has its own import by this name
-						while ( !module.isExternal && module.imports[ suggestion ] ) {
-							suggestion = `_${suggestion}`;
-						}
+				// special case - the module has its own import by this name
+				while ( !module.isExternal && module.imports[ suggestion ] ) {
+					suggestion = `_${suggestion}`;
+				}
 
-						module.suggestName( 'default', suggestion );
-					} else if ( importDeclaration.name === '*' ) {
-						const localName = importDeclaration.localName;
-						const suggestion = this.suggestedNames[ localName ] || localName;
-						module.suggestName( '*', suggestion );
-						module.suggestName( 'default', `${suggestion}__default` );
-					}
+				module.suggestName( 'default', suggestion );
+			} else if ( importDeclaration.name === '*' ) {
+				const localName = importDeclaration.localName;
+				const suggestion = this.suggestedNames[ localName ] || localName;
+				module.suggestName( '*', suggestion );
+				module.suggestName( 'default', `${suggestion}__default` );
+			}
 
-					if ( importDeclaration.name === 'default' ) {
-						module.needsDefault = true;
-					} else if ( importDeclaration.name === '*' ) {
-						module.needsAll = true;
-					} else {
-						module.needsNamed = true;
-					}
+			if ( importDeclaration.name === 'default' ) {
+				module.needsDefault = true;
+			} else if ( importDeclaration.name === '*' ) {
+				module.needsAll = true;
+			} else {
+				module.needsNamed = true;
+			}
 
-					if ( module.isExternal ) {
-						module.importedByBundle.push( importDeclaration );
-						return emptyPromise;
-					}
+			if ( module.isExternal ) {
+				module.importedByBundle.push( importDeclaration );
+			}
 
-					if ( importDeclaration.name === '*' ) {
-						// we need to create an internal namespace
-						if ( !~this.bundle.internalNamespaceModules.indexOf( module ) ) {
-							this.bundle.internalNamespaceModules.push( module );
-						}
+			else if ( importDeclaration.name === '*' ) {
+				// we need to create an internal namespace
+				if ( !~this.bundle.internalNamespaceModules.indexOf( module ) ) {
+					this.bundle.internalNamespaceModules.push( module );
+				}
 
-						return module.markAllExportStatements();
-					}
+				module.markAllExportStatements();
+			}
 
-					return module.markExport( importDeclaration.name, name, this );
-				});
+			else {
+				module.markExport( importDeclaration.name, name, this );
+			}
 		}
 
 		else {
 			const statement = name === 'default' ? this.exports.default.statement : this.definitions[ name ];
-			promise = statement && statement.mark();
+			if ( statement ) statement.mark();
 		}
-
-		this.definitionPromises[ name ] = promise || emptyPromise;
-		return this.definitionPromises[ name ];
 	}
 
 	markAllStatements ( isEntryModule ) {
-		return sequence( this.statements, statement => {
+		this.statements.forEach( statement => {
 			if ( statement.isIncluded ) return; // TODO can this happen? probably not...
 
 			// skip import declarations...
 			if ( statement.isImportDeclaration ) {
 				// ...unless they're empty, in which case assume we're importing them for the side-effects
 				// THIS IS NOT FOOLPROOF. Probably need /*rollup: include */ or similar
-				if ( !statement.node.specifiers.length ) {
-					return this.bundle.fetchModule( statement.node.source.value, this.id )
-						.then( module => {
-							statement.module = module;
-							if ( module.isExternal ) {
-								return;
-							}
-							return module.markAllStatements();
-						});
-				}
 
-				return;
+				// TODO...
+				// if ( !statement.node.specifiers.length ) {
+				// 	return this.bundle.fetchModule( statement.node.source.value, this.id )
+				// 		.then( module => {
+				// 			statement.module = module;
+				// 			if ( module.isExternal ) {
+				// 				return;
+				// 			}
+				// 			return module.markAllStatements();
+				// 		});
+				// }
+				//
+				// return;
 			}
 
 			// skip `export { foo, bar, baz }`...
-			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
+			else if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
 				// ...but ensure they are defined, if this is the entry module
-				if ( isEntryModule ) {
-					return statement.mark();
-				}
-
-				return;
+				if ( isEntryModule ) statement.mark();
 			}
 
 			// include everything else
-			return statement.mark();
+			else {
+				statement.mark();
+			}
 		});
 	}
 
 	markAllExportStatements () {
-		return sequence( this.statements, statement => {
-			return statement.isExportDeclaration ?
-				statement.mark() :
-				null;
+		this.statements.forEach( statement => {
+			if ( statement.isExportDeclaration ) statement.mark();
 		});
 	}
 
 	markExport ( name, suggestedName, importer ) {
-		const reexportDeclaration = this.reexports[ name ];
-		if ( reexportDeclaration ) {
-			reexportDeclaration.isUsed = true;
-
-			return this.bundle.fetchModule( reexportDeclaration.source, this.id )
-				.then( otherModule => {
-					reexportDeclaration.module = otherModule;
-					return otherModule.markExport( reexportDeclaration.localName, suggestedName, this );
-				});
+		const reexport = this.reexports[ name ];
+		if ( reexport ) {
+			reexport.isUsed = true;
+			reexport.module.markExport( reexport.localName, suggestedName, this );
 		}
 
 		const exportDeclaration = this.exports[ name ];
@@ -452,24 +447,22 @@ export default class Module {
 		const noExport = new Error( `Module ${this.id} does not export ${name} (imported by ${importer.id})` );
 
 		// See if there exists an export delegate that defines `name`.
-		return first( this.exportDelegates, noExport, declaration => {
-			return this.bundle.fetchModule( declaration.source, this.id ).then( submodule => {
-				declaration.module = submodule;
+		for ( i = 0; i < this.exportDelegates.length; i += 1 ) {
+			const declaration = this.exportDelegates[i];
 
-				return submodule.mark( name ).then( result => {
-					if ( !result.length ) throw noExport;
+			const result = declaration.module.mark( name );
 
-					// It's found! This module exports `name` through declaration.
-					// It is however not imported into this scope.
-					this.exportAlls[ name ] = declaration;
+			if ( !result.length ) throw noExport;
 
-					declaration.statement.dependsOn[ name ] =
-					declaration.statement.stronglyDependsOn[ name ] = result;
+			// It's found! This module exports `name` through declaration.
+			// It is however not imported into this scope.
+			this.exportAlls[ name ] = declaration;
 
-					return result;
-				});
-			});
-		});
+			declaration.statement.dependsOn[ name ] =
+			declaration.statement.stronglyDependsOn[ name ] = result;
+
+			return result;
+		}
 	}
 
 	parse ( ast ) {

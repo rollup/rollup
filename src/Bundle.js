@@ -32,7 +32,8 @@ export default class Bundle {
 
 		this.toExport = null;
 
-		this.modulePromises = blank();
+		this.pending = blank();
+		this.moduleById = blank();
 		this.modules = [];
 
 		this.statements = null;
@@ -44,8 +45,11 @@ export default class Bundle {
 	}
 
 	build () {
-		return this.fetchModule( this.entry, undefined )
+		return Promise.resolve( this.resolveId( this.entry, undefined, this.resolveOptions ) )
+			.then( id => this.fetchModule( id ) )
 			.then( entryModule => {
+				entryModule.bindImportSpecifiers();
+
 				const defaultExport = entryModule.exports.default;
 
 				this.entryModule = entryModule;
@@ -169,48 +173,64 @@ export default class Bundle {
 		return allReplacements;
 	}
 
-	fetchModule ( importee, importer ) {
-		return Promise.resolve( this.resolveId( importee, importer, this.resolveOptions ) )
-			.then( id => {
-				if ( !id ) {
-					// external module
-					if ( !this.modulePromises[ importee ] ) {
-						const module = new ExternalModule( importee );
-						this.externalModules.push( module );
-						this.modulePromises[ importee ] = Promise.resolve( module );
-					}
+	fetchModule ( id ) {
+		// short-circuit cycles
+		if ( this.pending[ id ] ) return null;
+		this.pending[ id ] = true;
 
-					return this.modulePromises[ importee ];
+		return Promise.resolve( this.load( id, this.loadOptions ) )
+			.then( source => {
+				let ast;
+
+				if ( typeof source === 'object' ) {
+					ast = source.ast;
+					source = source.code;
 				}
 
-				if ( id === importer ) {
-					throw new Error( `A module cannot import itself (${id})` );
-				}
+				const module = new Module({
+					id,
+					source,
+					ast,
+					bundle: this
+				});
 
-				if ( !this.modulePromises[ id ] ) {
-					this.modulePromises[ id ] = Promise.resolve( this.load( id, this.loadOptions ) )
-						.then( source => {
-							let ast;
+				this.modules.push( module );
+				this.moduleById[ id ] = module;
 
-							if ( typeof source === 'object' ) {
-								ast = source.ast;
-								source = source.code;
+				const promises = this.fetchAllModules( module, module.imports )
+					.concat( this.fetchAllModules( module, module.reexports ) );
+
+				return Promise.all( promises ).then( () => module );
+			});
+	}
+
+	fetchAllModules ( module, specifiers ) {
+		return keys( specifiers )
+			.map( name => {
+				const specifier = specifiers[ name ];
+
+				return Promise.resolve( this.resolveId( specifier.source, module.id, this.resolveOptions ) )
+					.then( resolvedId => {
+						// external module
+						if ( !resolvedId ) {
+							if ( !this.moduleById[ specifier.source ] ) {
+								const module = new ExternalModule( specifier.source );
+								this.externalModules.push( module );
+								this.moduleById[ specifier.source ] = module;
 							}
 
-							const module = new Module({
-								id,
-								source,
-								ast,
-								bundle: this
-							});
+							specifier.module = this.moduleById[ specifier.source ];
+						}
 
-							this.modules.push( module );
+						else if ( resolvedId === module.id ) {
+							throw new Error( `A module cannot import itself (${resolvedId})` );
+						}
 
-							return module;
-						});
-				}
-
-				return this.modulePromises[ id ];
+						else {
+							specifier.id = resolvedId;
+							return this.fetchModule( resolvedId );
+						}
+					});
 			});
 	}
 

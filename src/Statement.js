@@ -263,27 +263,25 @@ export default class Statement {
 		this.isIncluded = true;
 
 		// `export { name } from './other'` is a special case
-		if ( this.isReexportDeclaration ) {
-			return this.module.bundle.fetchModule( this.node.source.value, this.module.id )
-				.then( otherModule => {
-					return sequence( this.node.specifiers, specifier => {
-						const reexport = this.module.reexports[ specifier.exported.name ];
+		// if ( this.isReexportDeclaration ) {
+		// 	return this.module.bundle.fetchModule( this.node.source.value, this.module.id )
+		// 		.then( otherModule => {
+		// 			return sequence( this.node.specifiers, specifier => {
+		// 				const reexport = this.module.reexports[ specifier.exported.name ];
+		//
+		// 				reexport.isUsed = true;
+		// 				reexport.module = otherModule;
+		//
+		// 				return otherModule.isExternal ?
+		// 					null :
+		// 					otherModule.markExport( specifier.local.name, specifier.exported.name, this.module );
+		// 			});
+		// 		});
+		// }
 
-						reexport.isUsed = true;
-						reexport.module = otherModule;
-
-						return otherModule.isExternal ?
-							null :
-							otherModule.markExport( specifier.local.name, specifier.exported.name, this.module );
-					});
-				});
-		}
-
-		const dependencies = Object.keys( this.dependsOn );
-
-		return sequence( dependencies, name => {
+		Object.keys( this.dependsOn ).forEach( name => {
 			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
-			return this.module.mark( name );
+			this.module.mark( name );
 		});
 	}
 
