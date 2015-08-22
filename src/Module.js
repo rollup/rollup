@@ -64,7 +64,7 @@ export default class Module {
 
 		this.replacements = blank();
 
-		this.varDeclarations = [];
+		this.reassignments = [];
 
 		this.definitions = blank();
 		this.definitionPromises = blank();
@@ -202,12 +202,20 @@ export default class Module {
 				this.definitions[ name ] = statement;
 			});
 
-			statement.scope.varDeclarations.forEach( name => {
-				this.varDeclarations.push( name );
-			});
-
 			keys( statement.modifies ).forEach( name => {
 				( this.modifications[ name ] || ( this.modifications[ name ] = [] ) ).push( statement );
+			});
+		});
+
+		// discover variables that are reassigned inside function
+		// bodies, so we can keep bindings live, e.g.
+		//
+		//   export var count = 0;
+		//   export function incr () { count += 1 }
+		let reassigned = blank();
+		this.statements.forEach( statement => {
+			keys( statement.reassigns ).forEach( name => {
+				reassigned[ name ] = true;
 			});
 		});
 
@@ -215,6 +223,13 @@ export default class Module {
 		// in this module, we assume that they're globals
 		this.statements.forEach( statement => {
 			if ( statement.isReexportDeclaration ) return;
+
+			// while we're here, mark reassignments
+			statement.scope.varDeclarations.forEach( name => {
+				if ( reassigned[ name ] && !~this.reassignments.indexOf( name ) ) {
+					this.reassignments.push( name );
+				}
+			});
 
 			keys( statement.dependsOn ).forEach( name => {
 				if ( !this.definitions[ name ] && !this.imports[ name ] ) {
