@@ -82,12 +82,8 @@ export default class Bundle {
 					}
 				}
 
-				return entryModule.markAllStatements( true );
-			})
-			.then( () => {
-				return this.markAllModifierStatements();
-			})
-			.then( () => {
+				entryModule.markAllStatements( true );
+				this.markAllModifierStatements();
 				this.orderedModules = this.sort();
 			});
 	}
@@ -231,7 +227,6 @@ export default class Bundle {
 
 	markAllModifierStatements () {
 		let settled = true;
-		let promises = [];
 
 		this.modules.forEach( module => {
 			module.statements.forEach( statement => {
@@ -248,38 +243,28 @@ export default class Bundle {
 
 					if ( shouldMark ) {
 						settled = false;
-						promises.push( statement.mark() );
+						statement.mark();
 						return;
 					}
 
 					// special case - https://github.com/rollup/rollup/pull/40
+					// TODO refactor this? it's a bit confusing
 					const importDeclaration = module.imports[ name ];
-					if ( !importDeclaration ) return;
+					if ( !importDeclaration || importDeclaration.module.isExternal ) return;
 
-					const promise = Promise.resolve( importDeclaration.module || this.fetchModule( importDeclaration.source, module.id ) )
-						.then( module => {
-							if ( module.isExternal ) return null;
+					const otherExportDeclaration = importDeclaration.module.exports[ importDeclaration.name ];
+					// TODO things like `export default a + b` don't apply here... right?
+					const otherDefiningStatement = module.findDefiningStatement( otherExportDeclaration.localName );
 
-							importDeclaration.module = module;
-							const exportDeclaration = module.exports[ importDeclaration.name ];
-							// TODO things like `export default a + b` don't apply here... right?
-							return module.findDefiningStatement( exportDeclaration.localName );
-						})
-						.then( definingStatement => {
-							if ( !definingStatement ) return;
+					if ( !otherDefiningStatement ) return;
 
-							settled = false;
-							return statement.mark();
-						});
-
-					promises.push( promise );
+					settled = false;
+					statement.mark();
 				});
 			});
 		});
 
-		return Promise.all( promises ).then( () => {
-			if ( !settled ) return this.markAllModifierStatements();
-		});
+		if ( !settled ) this.markAllModifierStatements();
 	}
 
 	render ( options = {} ) {

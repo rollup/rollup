@@ -4,7 +4,6 @@ import MagicString from 'magic-string';
 import Statement from './Statement';
 import walk from './ast/walk';
 import { blank, keys } from './utils/object';
-import { first, sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 

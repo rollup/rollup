@@ -1,5 +1,4 @@
 import { blank, keys } from './utils/object';
-import { sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
 import walk from './ast/walk';
 import Scope from './ast/Scope';
