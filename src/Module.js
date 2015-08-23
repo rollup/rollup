@@ -444,13 +444,14 @@ export default class Module {
 
 	markExport ( name, suggestedName, importer ) {
 		const reexport = this.reexports[ name ];
+		const exportDeclaration = this.exports[ name ];
+
 		if ( reexport ) {
 			reexport.isUsed = true;
 			reexport.module.markExport( reexport.localName, suggestedName, this );
 		}
 
-		const exportDeclaration = this.exports[ name ];
-		if ( exportDeclaration ) {
+		else if ( exportDeclaration ) {
 			exportDeclaration.isUsed = true;
 			if ( name === 'default' ) {
 				this.needsDefault = true;
@@ -458,28 +459,30 @@ export default class Module {
 				return exportDeclaration.statement.mark();
 			}
 
-			return this.mark( exportDeclaration.localName );
+			this.mark( exportDeclaration.localName );
 		}
 
-		// See if there exists an export delegate that defines `name`.
-		let i;
-		for ( i = 0; i < this.exportAlls.length; i += 1 ) {
-			const declaration = this.exportAlls[i];
+		else {
+			// See if there exists an export delegate that defines `name`.
+			let i;
+			for ( i = 0; i < this.exportAlls.length; i += 1 ) {
+				const declaration = this.exportAlls[i];
 
-			if ( declaration.module.exports[ name ] ) {
-				// It's found! This module exports `name` through declaration.
-				// It is however not imported into this scope.
-				this.exportDelegates[ name ] = declaration;
-				declaration.module.markExport( name );
+				if ( declaration.module.exports[ name ] ) {
+					// It's found! This module exports `name` through declaration.
+					// It is however not imported into this scope.
+					this.exportDelegates[ name ] = declaration;
+					declaration.module.markExport( name );
 
-				declaration.statement.dependsOn[ name ] =
-				declaration.statement.stronglyDependsOn[ name ] = true;
+					declaration.statement.dependsOn[ name ] =
+					declaration.statement.stronglyDependsOn[ name ] = true;
 
-				return;
+					return;
+				}
 			}
-		}
 
-		throw new Error( `Module ${this.id} does not export ${name} (imported by ${importer.id})` );
+			throw new Error( `Module ${this.id} does not export ${name} (imported by ${importer.id})` );
+		}
 	}
 
 	parse ( ast ) {
