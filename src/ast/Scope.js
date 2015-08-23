@@ -32,7 +32,7 @@ export default class Scope {
 			this.parent.addDeclaration( name, declaration, isVar );
 		} else {
 			this.declarations[ name ] = declaration;
-			if ( isVar ) this.varDeclarations.push( name )
+			if ( isVar ) this.varDeclarations.push( name );
 		}
 	}
 

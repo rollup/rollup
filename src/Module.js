@@ -1,4 +1,3 @@
-import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
 import Statement from './Statement';
@@ -6,8 +5,6 @@ import walk from './ast/walk';
 import { blank, keys } from './utils/object';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
-
-const emptyPromise = Promise.resolve();
 
 function deconflict ( name, names ) {
 	while ( name in names ) {
