@@ -61,11 +61,9 @@ export default class Module {
 		this.imports = blank();
 		this.exports = blank();
 		this.reexports = blank();
+		this.exportDelegates = blank();
 
-		this.exportAlls = blank();
-
-		// array of all-export sources
-		this.exportDelegates = [];
+		this.exportAlls = [];
 
 		this.replacements = blank();
 
@@ -90,7 +88,7 @@ export default class Module {
 			if ( node.type === 'ExportAllDeclaration' ) {
 				// Store `export * from '...'` statements in an array of delegates.
 				// When an unknown import is encountered, we see if one of them can satisfy it.
-				this.exportDelegates.push({
+				this.exportAlls.push({
 					statement,
 					source
 				});
@@ -249,6 +247,11 @@ export default class Module {
 			});
 		});
 
+		this.exportAlls.forEach( delegate => {
+			const id = this.resolvedIds[ delegate.source ];
+			delegate.module = this.bundle.moduleById[ id ];
+		});
+
 		this.dependencies.forEach( source => {
 			const id = this.resolvedIds[ source ];
 			const module = this.bundle.moduleById[ id ];
@@ -298,7 +301,7 @@ export default class Module {
 				keys( statement.stronglyDependsOn ).forEach( name => {
 					if ( statement.defines[ name ] ) return;
 
-					addDependency( strongDependencies, this.exportAlls[ name ] ) ||
+					addDependency( strongDependencies, this.exportDelegates[ name ] ) ||
 					addDependency( strongDependencies, this.imports[ name ] );
 				});
 			}
@@ -310,7 +313,7 @@ export default class Module {
 			keys( statement.dependsOn ).forEach( name => {
 				if ( statement.defines[ name ] ) return;
 
-				addDependency( weakDependencies, this.exportAlls[ name ] ) ||
+				addDependency( weakDependencies, this.exportDelegates[ name ] ) ||
 				addDependency( weakDependencies, this.imports[ name ] );
 			});
 		});
@@ -458,25 +461,25 @@ export default class Module {
 			return this.mark( exportDeclaration.localName );
 		}
 
-		const noExport = new Error( `Module ${this.id} does not export ${name} (imported by ${importer.id})` );
-
 		// See if there exists an export delegate that defines `name`.
-		for ( i = 0; i < this.exportDelegates.length; i += 1 ) {
-			const declaration = this.exportDelegates[i];
+		let i;
+		for ( i = 0; i < this.exportAlls.length; i += 1 ) {
+			const declaration = this.exportAlls[i];
 
-			const result = declaration.module.mark( name );
+			if ( declaration.module.exports[ name ] ) {
+				// It's found! This module exports `name` through declaration.
+				// It is however not imported into this scope.
+				this.exportDelegates[ name ] = declaration;
+				declaration.module.markExport( name );
 
-			if ( !result.length ) throw noExport;
+				declaration.statement.dependsOn[ name ] =
+				declaration.statement.stronglyDependsOn[ name ] = true;
 
-			// It's found! This module exports `name` through declaration.
-			// It is however not imported into this scope.
-			this.exportAlls[ name ] = declaration;
-
-			declaration.statement.dependsOn[ name ] =
-			declaration.statement.stronglyDependsOn[ name ] = result;
-
-			return result;
+				return;
+			}
 		}
+
+		throw new Error( `Module ${this.id} does not export ${name} (imported by ${importer.id})` );
 	}
 
 	parse ( ast ) {

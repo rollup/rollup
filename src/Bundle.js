@@ -516,14 +516,8 @@ export default class Bundle {
 		const exportDeclaration = module.exports[ name ];
 		if ( exportDeclaration ) return this.trace( module, exportDeclaration.localName );
 
-		for ( let i = 0; i < module.exportDelegates.length; i += 1 ) {
-			const delegate = module.exportDelegates[i];
-			const delegateExportDeclaration = delegate.module.exports[ name ];
-
-			if ( delegateExportDeclaration ) {
-				return this.trace( delegate.module, delegateExportDeclaration.localName, es6 );
-			}
-		}
+		const exportDelegate = module.exportDelegates[ name ];
+		if ( exportDelegate ) return this.traceExport( exportDelegate.module, name, es6 );
 
 		throw new Error( `Could not trace binding '${name}' from ${module.id}` );
 	}
