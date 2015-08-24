@@ -26,12 +26,16 @@
     "optimizer"
   ],
   "author": "Rich Harris",
+  "contributors": [
+    "Oskar Segersvärd <victorystick@gmail.com>"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/rich-harris/rollup/issues"
   },
   "homepage": "https://github.com/rich-harris/rollup",
   "devDependencies": {
+    "babel": "^5.8.21",
     "babel-core": "^5.5.8",
     "console-group": "^0.1.2",
     "eslint": "^1.1.0",
