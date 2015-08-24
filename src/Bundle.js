@@ -32,7 +32,8 @@ export default class Bundle {
 
 		this.toExport = null;
 
-		this.modulePromises = blank();
+		this.pending = blank();
+		this.moduleById = blank();
 		this.modules = [];
 
 		this.statements = null;
@@ -44,8 +45,11 @@ export default class Bundle {
 	}
 
 	build () {
-		return this.fetchModule( this.entry, undefined )
+		return Promise.resolve( this.resolveId( this.entry, undefined, this.resolveOptions ) )
+			.then( id => this.fetchModule( id ) )
 			.then( entryModule => {
+				entryModule.bindImportSpecifiers();
+
 				const defaultExport = entryModule.exports.default;
 
 				this.entryModule = entryModule;
@@ -78,12 +82,8 @@ export default class Bundle {
 					}
 				}
 
-				return entryModule.markAllStatements( true );
-			})
-			.then( () => {
-				return this.markAllModifierStatements();
-			})
-			.then( () => {
+				entryModule.markAllStatements( true );
+				this.markAllModifierStatements();
 				this.orderedModules = this.sort();
 			});
 	}
@@ -169,54 +169,64 @@ export default class Bundle {
 		return allReplacements;
 	}
 
-	fetchModule ( importee, importer ) {
-		return Promise.resolve( this.resolveId( importee, importer, this.resolveOptions ) )
-			.then( id => {
-				if ( !id ) {
+	fetchModule ( id ) {
+		// short-circuit cycles
+		if ( this.pending[ id ] ) return null;
+		this.pending[ id ] = true;
+
+		return Promise.resolve( this.load( id, this.loadOptions ) )
+			.then( source => {
+				let ast;
+
+				if ( typeof source === 'object' ) {
+					ast = source.ast;
+					source = source.code;
+				}
+
+				const module = new Module({
+					id,
+					source,
+					ast,
+					bundle: this
+				});
+
+				this.modules.push( module );
+				this.moduleById[ id ] = module;
+
+				return this.fetchAllDependencies( module ).then( () => module );
+			});
+	}
+
+	fetchAllDependencies ( module ) {
+		const promises = module.dependencies.map( source => {
+			return Promise.resolve( this.resolveId( source, module.id, this.resolveOptions ) )
+				.then( resolvedId => {
+					module.resolvedIds[ source ] = resolvedId || source;
+
 					// external module
-					if ( !this.modulePromises[ importee ] ) {
-						const module = new ExternalModule( importee );
-						this.externalModules.push( module );
-						this.modulePromises[ importee ] = Promise.resolve( module );
+					if ( !resolvedId ) {
+						if ( !this.moduleById[ source ] ) {
+							const module = new ExternalModule( source );
+							this.externalModules.push( module );
+							this.moduleById[ source ] = module;
+						}
 					}
 
-					return this.modulePromises[ importee ];
-				}
+					else if ( resolvedId === module.id ) {
+						throw new Error( `A module cannot import itself (${resolvedId})` );
+					}
 
-				if ( id === importer ) {
-					throw new Error( `A module cannot import itself (${id})` );
-				}
+					else {
+						return this.fetchModule( resolvedId );
+					}
+				});
+		});
 
-				if ( !this.modulePromises[ id ] ) {
-					this.modulePromises[ id ] = Promise.resolve( this.load( id, this.loadOptions ) )
-						.then( source => {
-							let ast;
-
-							if ( typeof source === 'object' ) {
-								ast = source.ast;
-								source = source.code;
-							}
-
-							const module = new Module({
-								id,
-								source,
-								ast,
-								bundle: this
-							});
-
-							this.modules.push( module );
-
-							return module;
-						});
-				}
-
-				return this.modulePromises[ id ];
-			});
+		return Promise.all( promises );
 	}
 
 	markAllModifierStatements () {
 		let settled = true;
-		let promises = [];
 
 		this.modules.forEach( module => {
 			module.statements.forEach( statement => {
@@ -233,38 +243,28 @@ export default class Bundle {
 
 					if ( shouldMark ) {
 						settled = false;
-						promises.push( statement.mark() );
+						statement.mark();
 						return;
 					}
 
 					// special case - https://github.com/rollup/rollup/pull/40
+					// TODO refactor this? it's a bit confusing
 					const importDeclaration = module.imports[ name ];
-					if ( !importDeclaration ) return;
+					if ( !importDeclaration || importDeclaration.module.isExternal ) return;
 
-					const promise = Promise.resolve( importDeclaration.module || this.fetchModule( importDeclaration.source, module.id ) )
-						.then( module => {
-							if ( module.isExternal ) return null;
+					const otherExportDeclaration = importDeclaration.module.exports[ importDeclaration.name ];
+					// TODO things like `export default a + b` don't apply here... right?
+					const otherDefiningStatement = module.findDefiningStatement( otherExportDeclaration.localName );
 
-							importDeclaration.module = module;
-							const exportDeclaration = module.exports[ importDeclaration.name ];
-							// TODO things like `export default a + b` don't apply here... right?
-							return module.findDefiningStatement( exportDeclaration.localName );
-						})
-						.then( definingStatement => {
-							if ( !definingStatement ) return;
+					if ( !otherDefiningStatement ) return;
 
-							settled = false;
-							return statement.mark();
-						});
-
-					promises.push( promise );
+					settled = false;
+					statement.mark();
 				});
 			});
 		});
 
-		return Promise.all( promises ).then( () => {
-			if ( !settled ) return this.markAllModifierStatements();
-		});
+		if ( !settled ) this.markAllModifierStatements();
 	}
 
 	render ( options = {} ) {
@@ -501,14 +501,8 @@ export default class Bundle {
 		const exportDeclaration = module.exports[ name ];
 		if ( exportDeclaration ) return this.trace( module, exportDeclaration.localName );
 
-		for ( let i = 0; i < module.exportDelegates.length; i += 1 ) {
-			const delegate = module.exportDelegates[i];
-			const delegateExportDeclaration = delegate.module.exports[ name ];
-
-			if ( delegateExportDeclaration ) {
-				return this.trace( delegate.module, delegateExportDeclaration.localName, es6 );
-			}
-		}
+		const exportDelegate = module.exportDelegates[ name ];
+		if ( exportDelegate ) return this.traceExport( exportDelegate.module, name, es6 );
 
 		throw new Error( `Could not trace binding '${name}' from ${module.id}` );
 	}

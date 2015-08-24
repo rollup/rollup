@@ -1,5 +1,4 @@
 import { blank, keys } from './utils/object';
-import { sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
 import walk from './ast/walk';
 import Scope from './ast/Scope';
@@ -264,26 +263,24 @@ export default class Statement {
 
 		// `export { name } from './other'` is a special case
 		if ( this.isReexportDeclaration ) {
-			return this.module.bundle.fetchModule( this.node.source.value, this.module.id )
-				.then( otherModule => {
-					return sequence( this.node.specifiers, specifier => {
-						const reexport = this.module.reexports[ specifier.exported.name ];
+			const id = this.module.resolvedIds[ this.node.source.value ];
+			const otherModule = this.module.bundle.moduleById[ id ];
 
-						reexport.isUsed = true;
-						reexport.module = otherModule;
+			this.node.specifiers.forEach( specifier => {
+				const reexport = this.module.reexports[ specifier.exported.name ];
 
-						return otherModule.isExternal ?
-							null :
-							otherModule.markExport( specifier.local.name, specifier.exported.name, this.module );
-					});
-				});
+				reexport.isUsed = true;
+				reexport.module = otherModule; // TODO still necessary?
+
+				if ( !otherModule.isExternal ) otherModule.markExport( specifier.local.name, specifier.exported.name, this.module );
+			});
+
+			return;
 		}
 
-		const dependencies = Object.keys( this.dependsOn );
-
-		return sequence( dependencies, name => {
+		Object.keys( this.dependsOn ).forEach( name => {
 			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
-			return this.module.mark( name );
+			this.module.mark( name );
 		});
 	}
 

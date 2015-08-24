@@ -1,14 +1,10 @@
-import { Promise } from 'sander';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
 import Statement from './Statement';
 import walk from './ast/walk';
 import { blank, keys } from './utils/object';
-import { first, sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
-
-const emptyPromise = Promise.resolve();
 
 function deconflict ( name, names ) {
 	while ( name in names ) {
@@ -52,20 +48,24 @@ export default class Module {
 
 		this.statements = this.parse( ast );
 
-		// imports and exports, indexed by ID
+		// all dependencies
+		this.dependencies = [];
+		this.resolvedIds = blank();
+		this.boundImportSpecifiers = false;
+
+		// imports and exports, indexed by local name
 		this.imports = blank();
 		this.exports = blank();
 		this.reexports = blank();
+		this.exportDelegates = blank();
 
-		this.exportAlls = blank();
-
-		// array of all-export sources
-		this.exportDelegates = [];
+		this.exportAlls = [];
 
 		this.replacements = blank();
 
 		this.varDeclarations = [];
 
+		this.marked = blank();
 		this.definitions = blank();
 		this.definitionPromises = blank();
 		this.modifications = blank();
@@ -79,10 +79,12 @@ export default class Module {
 
 		// export { name } from './other'
 		if ( source ) {
+			if ( !~this.dependencies.indexOf( source ) ) this.dependencies.push( source );
+
 			if ( node.type === 'ExportAllDeclaration' ) {
 				// Store `export * from '...'` statements in an array of delegates.
 				// When an unknown import is encountered, we see if one of them can satisfy it.
-				this.exportDelegates.push({
+				this.exportAlls.push({
 					statement,
 					source
 				});
@@ -167,6 +169,8 @@ export default class Module {
 		const node = statement.node;
 		const source = node.source.value;
 
+		if ( !~this.dependencies.indexOf( source ) ) this.dependencies.push( source );
+
 		node.specifiers.forEach( specifier => {
 			const isDefault = specifier.type === 'ImportDefaultSpecifier';
 			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
@@ -224,6 +228,34 @@ export default class Module {
 		});
 	}
 
+	bindImportSpecifiers () {
+		if ( this.boundImportSpecifiers ) return;
+		this.boundImportSpecifiers = true;
+
+		[ this.imports, this.reexports ].forEach( specifiers => {
+			keys( specifiers ).forEach( name => {
+				const specifier = specifiers[ name ];
+
+				if ( specifier.module ) return;
+
+				const id = this.resolvedIds[ specifier.source ];
+				specifier.module = this.bundle.moduleById[ id ];
+			});
+		});
+
+		this.exportAlls.forEach( delegate => {
+			const id = this.resolvedIds[ delegate.source ];
+			delegate.module = this.bundle.moduleById[ id ];
+		});
+
+		this.dependencies.forEach( source => {
+			const id = this.resolvedIds[ source ];
+			const module = this.bundle.moduleById[ id ];
+
+			if ( !module.isExternal ) module.bindImportSpecifiers();
+		});
+	}
+
 	consolidateDependencies () {
 		let strongDependencies = blank();
 
@@ -235,9 +267,12 @@ export default class Module {
 		}
 
 		this.statements.forEach( statement => {
-			if ( statement.isImportDeclaration && !statement.node.specifiers.length && !statement.module.isExternal ) {
+			if ( statement.isImportDeclaration && !statement.node.specifiers.length ) {
 				// include module for its side-effects
-				strongDependencies[ statement.module.id ] = statement.module; // TODO is this right? `statement.module` should be `this`, surely?
+				const id = this.resolvedIds[ statement.node.source.value ];
+				const module = this.bundle.moduleById[ id ];
+
+				if ( !module.isExternal ) strongDependencies[ module.id ] = module;
 			}
 
 			else if ( statement.isReexportDeclaration ) {
@@ -262,7 +297,7 @@ export default class Module {
 				keys( statement.stronglyDependsOn ).forEach( name => {
 					if ( statement.defines[ name ] ) return;
 
-					addDependency( strongDependencies, this.exportAlls[ name ] ) ||
+					addDependency( strongDependencies, this.exportDelegates[ name ] ) ||
 					addDependency( strongDependencies, this.imports[ name ] );
 				});
 			}
@@ -274,7 +309,7 @@ export default class Module {
 			keys( statement.dependsOn ).forEach( name => {
 				if ( statement.defines[ name ] ) return;
 
-				addDependency( weakDependencies, this.exportAlls[ name ] ) ||
+				addDependency( weakDependencies, this.exportDelegates[ name ] ) ||
 				addDependency( weakDependencies, this.imports[ name ] );
 			});
 		});
@@ -302,86 +337,74 @@ export default class Module {
 		const importDeclaration = this.imports[ name ];
 		if ( !importDeclaration ) return null;
 
-		return Promise.resolve( importDeclaration.module || this.bundle.fetchModule( importDeclaration.source, this.id ) )
-			.then( module => {
-				importDeclaration.module = module;
-				return module.findDefiningStatement( name );
-			});
+		return importDeclaration.module.findDefiningStatement( name );
 	}
 
 	mark ( name ) {
 		// shortcut cycles
-		if ( this.definitionPromises[ name ] ) {
-			return emptyPromise;
-		}
-
-		let promise;
+		if ( this.marked[ name ] ) return;
+		this.marked[ name ] = true;
 
 		// The definition for this name is in a different module
 		if ( this.imports[ name ] ) {
 			const importDeclaration = this.imports[ name ];
 			importDeclaration.isUsed = true;
 
-			promise = this.bundle.fetchModule( importDeclaration.source, this.id )
-				.then( module => {
-					importDeclaration.module = module;
+			const module = importDeclaration.module;
 
-					// suggest names. TODO should this apply to non default/* imports?
-					if ( importDeclaration.name === 'default' ) {
-						// TODO this seems ropey
-						const localName = importDeclaration.localName;
-						let suggestion = this.suggestedNames[ localName ] || localName;
+			// suggest names. TODO should this apply to non default/* imports?
+			if ( importDeclaration.name === 'default' ) {
+				// TODO this seems ropey
+				const localName = importDeclaration.localName;
+				let suggestion = this.suggestedNames[ localName ] || localName;
 
-						// special case - the module has its own import by this name
-						while ( !module.isExternal && module.imports[ suggestion ] ) {
-							suggestion = `_${suggestion}`;
-						}
+				// special case - the module has its own import by this name
+				while ( !module.isExternal && module.imports[ suggestion ] ) {
+					suggestion = `_${suggestion}`;
+				}
 
-						module.suggestName( 'default', suggestion );
-					} else if ( importDeclaration.name === '*' ) {
-						const localName = importDeclaration.localName;
-						const suggestion = this.suggestedNames[ localName ] || localName;
-						module.suggestName( '*', suggestion );
-						module.suggestName( 'default', `${suggestion}__default` );
-					}
+				module.suggestName( 'default', suggestion );
+			} else if ( importDeclaration.name === '*' ) {
+				const localName = importDeclaration.localName;
+				const suggestion = this.suggestedNames[ localName ] || localName;
+				module.suggestName( '*', suggestion );
+				module.suggestName( 'default', `${suggestion}__default` );
+			}
 
-					if ( importDeclaration.name === 'default' ) {
-						module.needsDefault = true;
-					} else if ( importDeclaration.name === '*' ) {
-						module.needsAll = true;
-					} else {
-						module.needsNamed = true;
-					}
+			if ( importDeclaration.name === 'default' ) {
+				module.needsDefault = true;
+			} else if ( importDeclaration.name === '*' ) {
+				module.needsAll = true;
+			} else {
+				module.needsNamed = true;
+			}
 
-					if ( module.isExternal ) {
-						module.importedByBundle.push( importDeclaration );
-						return emptyPromise;
-					}
+			if ( module.isExternal ) {
+				module.importedByBundle.push( importDeclaration );
+			}
 
-					if ( importDeclaration.name === '*' ) {
-						// we need to create an internal namespace
-						if ( !~this.bundle.internalNamespaceModules.indexOf( module ) ) {
-							this.bundle.internalNamespaceModules.push( module );
-						}
+			else if ( importDeclaration.name === '*' ) {
+				// we need to create an internal namespace
+				if ( !~this.bundle.internalNamespaceModules.indexOf( module ) ) {
+					this.bundle.internalNamespaceModules.push( module );
+				}
 
-						return module.markAllExportStatements();
-					}
+				module.markAllExportStatements();
+			}
 
-					return module.markExport( importDeclaration.name, name, this );
-				});
+			else {
+				module.markExport( importDeclaration.name, name, this );
+			}
 		}
 
 		else {
 			const statement = name === 'default' ? this.exports.default.statement : this.definitions[ name ];
-			promise = statement && statement.mark();
+			if ( statement ) statement.mark();
 		}
-
-		this.definitionPromises[ name ] = promise || emptyPromise;
-		return this.definitionPromises[ name ];
 	}
 
 	markAllStatements ( isEntryModule ) {
-		return sequence( this.statements, statement => {
+		this.statements.forEach( statement => {
 			if ( statement.isIncluded ) return; // TODO can this happen? probably not...
 
 			// skip import declarations...
@@ -389,56 +412,42 @@ export default class Module {
 				// ...unless they're empty, in which case assume we're importing them for the side-effects
 				// THIS IS NOT FOOLPROOF. Probably need /*rollup: include */ or similar
 				if ( !statement.node.specifiers.length ) {
-					return this.bundle.fetchModule( statement.node.source.value, this.id )
-						.then( module => {
-							statement.module = module;
-							if ( module.isExternal ) {
-								return;
-							}
-							return module.markAllStatements();
-						});
-				}
+					const id = this.resolvedIds[ statement.node.source.value ];
+					const otherModule = this.bundle.moduleById[ id ];
 
-				return;
+					if ( !otherModule.isExternal ) otherModule.markAllStatements();
+				}
 			}
 
 			// skip `export { foo, bar, baz }`...
-			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
+			else if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
 				// ...but ensure they are defined, if this is the entry module
-				if ( isEntryModule ) {
-					return statement.mark();
-				}
-
-				return;
+				if ( isEntryModule ) statement.mark();
 			}
 
 			// include everything else
-			return statement.mark();
+			else {
+				statement.mark();
+			}
 		});
 	}
 
 	markAllExportStatements () {
-		return sequence( this.statements, statement => {
-			return statement.isExportDeclaration ?
-				statement.mark() :
-				null;
+		this.statements.forEach( statement => {
+			if ( statement.isExportDeclaration ) statement.mark();
 		});
 	}
 
 	markExport ( name, suggestedName, importer ) {
-		const reexportDeclaration = this.reexports[ name ];
-		if ( reexportDeclaration ) {
-			reexportDeclaration.isUsed = true;
+		const reexport = this.reexports[ name ];
+		const exportDeclaration = this.exports[ name ];
 
-			return this.bundle.fetchModule( reexportDeclaration.source, this.id )
-				.then( otherModule => {
-					reexportDeclaration.module = otherModule;
-					return otherModule.markExport( reexportDeclaration.localName, suggestedName, this );
-				});
+		if ( reexport ) {
+			reexport.isUsed = true;
+			reexport.module.markExport( reexport.localName, suggestedName, this );
 		}
 
-		const exportDeclaration = this.exports[ name ];
-		if ( exportDeclaration ) {
+		else if ( exportDeclaration ) {
 			exportDeclaration.isUsed = true;
 			if ( name === 'default' ) {
 				this.needsDefault = true;
@@ -446,30 +455,30 @@ export default class Module {
 				return exportDeclaration.statement.mark();
 			}
 
-			return this.mark( exportDeclaration.localName );
+			this.mark( exportDeclaration.localName );
 		}
 
-		const noExport = new Error( `Module ${this.id} does not export ${name} (imported by ${importer.id})` );
+		else {
+			// See if there exists an export delegate that defines `name`.
+			let i;
+			for ( i = 0; i < this.exportAlls.length; i += 1 ) {
+				const declaration = this.exportAlls[i];
 
-		// See if there exists an export delegate that defines `name`.
-		return first( this.exportDelegates, noExport, declaration => {
-			return this.bundle.fetchModule( declaration.source, this.id ).then( submodule => {
-				declaration.module = submodule;
-
-				return submodule.mark( name ).then( result => {
-					if ( !result.length ) throw noExport;
-
+				if ( declaration.module.exports[ name ] ) {
 					// It's found! This module exports `name` through declaration.
 					// It is however not imported into this scope.
-					this.exportAlls[ name ] = declaration;
+					this.exportDelegates[ name ] = declaration;
+					declaration.module.markExport( name );
 
 					declaration.statement.dependsOn[ name ] =
-					declaration.statement.stronglyDependsOn[ name ] = result;
+					declaration.statement.stronglyDependsOn[ name ] = true;
 
-					return result;
-				});
-			});
-		});
+					return;
+				}
+			}
+
+			throw new Error( `Module ${this.id} does not export ${name} (imported by ${importer.id})` );
+		}
 	}
 
 	parse ( ast ) {
