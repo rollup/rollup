@@ -1,14 +1,11 @@
-import { blank } from './utils/object';
 
 export default class ExternalModule {
-	constructor ( id ) {
+	constructor ( { id, bundle } ) {
 		this.id = id;
-		this.name = null;
+		this.name = id;
 
 		this.isExternal = true;
 		this.importedByBundle = [];
-
-		this.suggestedNames = blank();
 
 		this.needsDefault = false;
 
@@ -19,19 +16,19 @@ export default class ExternalModule {
 		//
 		this.needsNamed = false;
 		this.needsAll = false;
+
+		this.exports = bundle.scope.virtual();
 	}
 
 	findDefiningStatement () {
 		return null;
 	}
 
-	rename () {
-		// noop
-	}
-
 	suggestName ( exportName, suggestion ) {
-		if ( !this.suggestedNames[ exportName ] ) {
-			this.suggestedNames[ exportName ] = suggestion;
+		const id = this.exports.lookup( exportName );
+
+		if ( id.name === id.originalName ) {
+			id.name = suggestion;
 		}
 	}
 }

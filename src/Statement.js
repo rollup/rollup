@@ -189,6 +189,7 @@ export default class Statement {
 
 			// disallow assignments/updates to imported bindings and namespaces
 			if ( isAssignment ) {
+				// FIXME: imports is no longer used.
 				const importSpecifier = this.module.imports[ node.name ];
 
 				if ( importSpecifier && !scope.contains( node.name ) ) {
@@ -207,11 +208,12 @@ export default class Statement {
 				// special case = `export default foo; foo += 1;` - we'll
 				// need to assign a new variable so that the exported
 				// value is not updated by the second statement
-				if ( this.module.exports.default && depth === 0 && this.module.exports.default.identifier === node.name ) {
+				const def = this.module.exports.lookup( 'default' );
+				if ( def && depth === 0 && def.identifier === node.name ) {
 					// but only if this is a) inside a function body or
 					// b) after the export declaration
-					if ( !!scope.parent || node.start > this.module.exports.default.statement.node.start ) {
-						this.module.exports.default.isModified = true;
+					if ( !!scope.parent || node.start > def.statement.node.start ) {
+						def.isModified = true;
 					}
 				}
 
@@ -260,18 +262,14 @@ export default class Statement {
 		if ( this.isIncluded ) return; // prevent infinite loops
 		this.isIncluded = true;
 
+		console.log( 'marking definer of', keys( this.defines ) );
+
 		// `export { name } from './other'` is a special case
 		if ( this.isReexportDeclaration ) {
-			const id = this.module.resolvedIds[ this.node.source.value ];
-			const otherModule = this.module.bundle.moduleById[ id ];
+			const otherModule = this.module.getModule( this.node.source.value );
 
 			this.node.specifiers.forEach( specifier => {
-				const reexport = this.module.reexports[ specifier.exported.name ];
-
-				reexport.isUsed = true;
-				reexport.module = otherModule; // TODO still necessary?
-
-				if ( !otherModule.isExternal ) otherModule.markExport( specifier.local.name, specifier.exported.name, this.module );
+				otherModule.exports.lookup( specifier.local.name ).statement.mark();
 			});
 
 			return;
@@ -284,6 +282,7 @@ export default class Statement {
 	}
 
 	replaceIdentifiers ( magicString, names, bundleExports ) {
+		console.log( magicString.slice(this.start, this.end) );
 		const replacementStack = [ names ];
 		const nameList = keys( names );
 

@@ -4,23 +4,15 @@ import Statement from './Statement';
 import walk from './ast/walk';
 import { blank, keys } from './utils/object';
 import getLocation from './utils/getLocation';
-import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
-function deconflict ( name, names ) {
-	while ( name in names ) {
-		name = `_${name}`;
-	}
-
-	return name;
-}
-
-function isEmptyExportedVarDeclaration ( node, allBundleExports, moduleReplacements ) {
+function isEmptyExportedVarDeclaration ( node, exports, toExport ) {
 	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
 
 	const name = node.declarations[0].id.name;
-	const canonicalName = moduleReplacements[ name ] || name;
 
-	return canonicalName in allBundleExports;
+	const id = exports.lookup( name );
+
+	return !~toExport.indexOf( id.name );
 }
 
 export default class Module {
@@ -29,6 +21,9 @@ export default class Module {
 
 		this.bundle = bundle;
 		this.id = id;
+
+		// Implement Identifier interface.
+		this.name = id;
 
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
@@ -49,15 +44,14 @@ export default class Module {
 		this.statements = this.parse( ast );
 
 		// all dependencies
-		this.dependencies = [];
 		this.resolvedIds = blank();
 		this.boundImportSpecifiers = false;
 
 		// imports and exports, indexed by local name
 		this.imports = blank();
-		this.exports = blank();
-		this.reexports = blank();
-		this.exportDelegates = blank();
+
+		this.locals = bundle.scope.virtual();
+		this.exports = bundle.scope.virtual();
 
 		this.exportAlls = [];
 
@@ -70,7 +64,7 @@ export default class Module {
 		this.definitionPromises = blank();
 		this.modifications = blank();
 
-		this.analyse();
+		this.dependencies = this.collectDependencies();
 	}
 
 	addExport ( statement ) {
@@ -79,24 +73,19 @@ export default class Module {
 
 		// export { name } from './other'
 		if ( source ) {
-			if ( !~this.dependencies.indexOf( source ) ) this.dependencies.push( source );
+			const module = this.getModule( source );
 
 			if ( node.type === 'ExportAllDeclaration' ) {
 				// Store `export * from '...'` statements in an array of delegates.
 				// When an unknown import is encountered, we see if one of them can satisfy it.
-				this.exportAlls.push({
-					statement,
-					source
-				});
+				this.exportAlls.push( module );
 			}
 
 			else {
 				node.specifiers.forEach( specifier => {
-					this.reexports[ specifier.exported.name ] = {
-						source,
-						localName: specifier.local.name,
-						module: null // filled in later
-					};
+					// Bind the export of this module, to the export of the other.
+					this.exports.bind( specifier.exported.name,
+						module.exports.reference( specifier.local.name ) );
 				});
 			}
 		}
@@ -114,15 +103,23 @@ export default class Module {
 					node.declaration.name :
 					null;
 
-			this.exports.default = {
-				statement,
-				name: 'default',
-				localName: identifier || 'default',
-				identifier,
-				isDeclaration,
-				isAnonymous,
-				isModified: false // in case of `export default foo; foo = somethingElse`
-			};
+			if ( identifier ) {
+				// If the default export has an identifier, bind to it.
+				this.exports.bind( 'default', this.locals.reference( identifier ) );
+			} else {
+				this.exports.define({
+					originalName: 'default',
+					name: 'default',
+
+					statement,
+					localName: 'default',
+					identifier,
+					isDeclaration,
+					isAnonymous,
+					isModified: false // in case of `export default foo; foo = somethingElse`
+				});
+			}
+
 		}
 
 		// export { foo, bar, baz }
@@ -135,11 +132,7 @@ export default class Module {
 					const localName = specifier.local.name;
 					const exportedName = specifier.exported.name;
 
-					this.exports[ exportedName ] = {
-						statement,
-						localName,
-						exportedName
-					};
+					this.exports.bind( exportedName, this.locals.reference( localName ) );
 				});
 			}
 
@@ -156,40 +149,44 @@ export default class Module {
 					name = declaration.id.name;
 				}
 
-				this.exports[ name ] = {
+				this.exports.bind({
+					originalName: name,
+					name,
+
 					statement,
 					localName: name,
 					expression: declaration
-				};
+				});
 			}
 		}
 	}
 
 	addImport ( statement ) {
 		const node = statement.node;
-		const source = node.source.value;
-
-		if ( !~this.dependencies.indexOf( source ) ) this.dependencies.push( source );
+		const module = this.getModule( node.source.value );
 
 		node.specifiers.forEach( specifier => {
 			const isDefault = specifier.type === 'ImportDefaultSpecifier';
 			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
 
+			const name = isDefault ? 'default' : specifier.imported.name;
 			const localName = specifier.local.name;
-			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
 
-			if ( this.imports[ localName ] ) {
+			// console.log( `import ${localName} as ${name} ...`);
+
+			if ( this.locals.defines( localName ) ) {
 				const err = new Error( `Duplicated import '${localName}'` );
 				err.file = this.id;
 				err.loc = getLocation( this.source, specifier.start );
 				throw err;
 			}
 
-			this.imports[ localName ] = {
-				source,
-				name,
-				localName
-			};
+			if ( isNamespace ) {
+				// If it's a namespace import, we bind the localName to the module itself.
+				this.locals.bind( localName, module );
+			} else {
+				this.locals.bind( localName, module.exports.reference( name ) );
+			}
 		});
 	}
 
@@ -203,6 +200,15 @@ export default class Module {
 
 			// consolidate names that are defined/modified in this module
 			keys( statement.defines ).forEach( name => {
+				this.locals.define({
+					originalName: name,
+					name,
+
+					statement,
+					module: this
+				});
+
+				// FIXME: remove?
 				this.definitions[ name ] = statement;
 			});
 
@@ -243,32 +249,17 @@ export default class Module {
 		});
 	}
 
-	bindImportSpecifiers () {
-		if ( this.boundImportSpecifiers ) return;
-		this.boundImportSpecifiers = true;
+	// Returns the set of imported module ids by going through all import/exports statements.
+	collectDependencies () {
+		const importedModules = blank();
 
-		[ this.imports, this.reexports ].forEach( specifiers => {
-			keys( specifiers ).forEach( name => {
-				const specifier = specifiers[ name ];
-
-				if ( specifier.module ) return;
-
-				const id = this.resolvedIds[ specifier.source ];
-				specifier.module = this.bundle.moduleById[ id ];
-			});
+		this.statements.forEach( statement => {
+			if ( statement.isImportDeclaration || ( statement.isExportDeclaration && statement.node.source ) ) {
+				importedModules[ statement.node.source.value ] = true;
+			}
 		});
 
-		this.exportAlls.forEach( delegate => {
-			const id = this.resolvedIds[ delegate.source ];
-			delegate.module = this.bundle.moduleById[ id ];
-		});
-
-		this.dependencies.forEach( source => {
-			const id = this.resolvedIds[ source ];
-			const module = this.bundle.moduleById[ id ];
-
-			if ( !module.isExternal ) module.bindImportSpecifiers();
-		});
+		return keys( importedModules );
 	}
 
 	consolidateDependencies () {
@@ -284,8 +275,7 @@ export default class Module {
 		this.statements.forEach( statement => {
 			if ( statement.isImportDeclaration && !statement.node.specifiers.length ) {
 				// include module for its side-effects
-				const id = this.resolvedIds[ statement.node.source.value ];
-				const module = this.bundle.moduleById[ id ];
+				const module = this.getModule( statement.node.source.value );
 
 				if ( !module.isExternal ) strongDependencies[ module.id ] = module;
 			}
@@ -293,17 +283,11 @@ export default class Module {
 			else if ( statement.isReexportDeclaration ) {
 				if ( statement.node.specifiers ) {
 					statement.node.specifiers.forEach( specifier => {
-						let reexport;
-
-						let module = this;
 						let name = specifier.exported.name;
-						while ( !module.isExternal && module.reexports[ name ] && module.reexports[ name ].isUsed ) {
-							reexport = module.reexports[ name ];
-							module = reexport.module;
-							name = reexport.localName;
-						}
 
-						addDependency( strongDependencies, reexport );
+						let id = this.locals.lookup( name );
+
+						addDependency( strongDependencies, id );
 					});
 				}
 			}
@@ -312,8 +296,7 @@ export default class Module {
 				keys( statement.stronglyDependsOn ).forEach( name => {
 					if ( statement.defines[ name ] ) return;
 
-					addDependency( strongDependencies, this.exportDelegates[ name ] ) ||
-					addDependency( strongDependencies, this.imports[ name ] );
+					addDependency( strongDependencies, this.locals.lookup( name ) );
 				});
 			}
 		});
@@ -324,8 +307,7 @@ export default class Module {
 			keys( statement.dependsOn ).forEach( name => {
 				if ( statement.defines[ name ] ) return;
 
-				addDependency( weakDependencies, this.exportDelegates[ name ] ) ||
-				addDependency( weakDependencies, this.imports[ name ] );
+				addDependency( weakDependencies, this.locals.lookup( name ) );
 			});
 		});
 
@@ -355,66 +337,19 @@ export default class Module {
 		return importDeclaration.module.findDefiningStatement( name );
 	}
 
+	getModule ( source ) {
+		return this.bundle.moduleById[ this.resolvedIds[ source ] ];
+	}
+
 	mark ( name ) {
-		// shortcut cycles
-		if ( this.marked[ name ] ) return;
-		this.marked[ name ] = true;
+		const id = this.locals.lookup( name );
 
-		// The definition for this name is in a different module
-		if ( this.imports[ name ] ) {
-			const importDeclaration = this.imports[ name ];
-			importDeclaration.isUsed = true;
+		if ( id && !id.statement)
+			console.log(id)
 
-			const module = importDeclaration.module;
-
-			// suggest names. TODO should this apply to non default/* imports?
-			if ( importDeclaration.name === 'default' ) {
-				// TODO this seems ropey
-				const localName = importDeclaration.localName;
-				let suggestion = this.suggestedNames[ localName ] || localName;
-
-				// special case - the module has its own import by this name
-				while ( !module.isExternal && module.imports[ suggestion ] ) {
-					suggestion = `_${suggestion}`;
-				}
-
-				module.suggestName( 'default', suggestion );
-			} else if ( importDeclaration.name === '*' ) {
-				const localName = importDeclaration.localName;
-				const suggestion = this.suggestedNames[ localName ] || localName;
-				module.suggestName( '*', suggestion );
-				module.suggestName( 'default', `${suggestion}__default` );
-			}
-
-			if ( importDeclaration.name === 'default' ) {
-				module.needsDefault = true;
-			} else if ( importDeclaration.name === '*' ) {
-				module.needsAll = true;
-			} else {
-				module.needsNamed = true;
-			}
-
-			if ( module.isExternal ) {
-				module.importedByBundle.push( importDeclaration );
-			}
-
-			else if ( importDeclaration.name === '*' ) {
-				// we need to create an internal namespace
-				if ( !~this.bundle.internalNamespaceModules.indexOf( module ) ) {
-					this.bundle.internalNamespaceModules.push( module );
-				}
-
-				module.markAllExportStatements();
-			}
-
-			else {
-				module.markExport( importDeclaration.name, name, this );
-			}
-		}
-
-		else {
-			const statement = name === 'default' ? this.exports.default.statement : this.definitions[ name ];
-			if ( statement ) statement.mark();
+		if ( id && id.statement ) {
+			// Assert that statement is defined. It isn't for external modules.
+			id.statement.mark();
 		}
 	}
 
@@ -427,8 +362,7 @@ export default class Module {
 				// ...unless they're empty, in which case assume we're importing them for the side-effects
 				// THIS IS NOT FOOLPROOF. Probably need /*rollup: include */ or similar
 				if ( !statement.node.specifiers.length ) {
-					const id = this.resolvedIds[ statement.node.source.value ];
-					const otherModule = this.bundle.moduleById[ id ];
+					const otherModule = this.getModule( statement.node.source.value );
 
 					if ( !otherModule.isExternal ) otherModule.markAllStatements();
 				}
@@ -454,46 +388,27 @@ export default class Module {
 	}
 
 	markExport ( name, suggestedName, importer ) {
-		const reexport = this.reexports[ name ];
-		const exportDeclaration = this.exports[ name ];
+		const id = this.exports.lookup( name );
 
-		if ( reexport ) {
-			reexport.isUsed = true;
-			reexport.module.markExport( reexport.localName, suggestedName, this );
+		if ( id ) {
+			// Assert that statement is defined. It isn't for external modules.
+			if ( id.statement ) id.statement.mark();
+
+			return;
 		}
 
-		else if ( exportDeclaration ) {
-			exportDeclaration.isUsed = true;
-			if ( name === 'default' ) {
-				this.needsDefault = true;
-				this.suggestName( 'default', suggestedName );
-				return exportDeclaration.statement.mark();
+		for ( const module of this.exportAlls ) {
+			const id = module.exports.lookup( name );
+
+			if ( id ) {
+				// Assert that statement is defined. It isn't for external modules.
+				if ( id.statement ) id.statement.mark();
+
+				return;
 			}
-
-			this.mark( exportDeclaration.localName );
 		}
 
-		else {
-			// See if there exists an export delegate that defines `name`.
-			let i;
-			for ( i = 0; i < this.exportAlls.length; i += 1 ) {
-				const declaration = this.exportAlls[i];
-
-				if ( declaration.module.exports[ name ] ) {
-					// It's found! This module exports `name` through declaration.
-					// It is however not imported into this scope.
-					this.exportDelegates[ name ] = declaration;
-					declaration.module.markExport( name );
-
-					declaration.statement.dependsOn[ name ] =
-					declaration.statement.stronglyDependsOn[ name ] = true;
-
-					return;
-				}
-			}
-
-			throw new Error( `Module ${this.id} does not export ${name} (imported by ${importer.id})` );
-		}
+		throw new Error( `Module ${this.id} does not export ${name} (imported by ${importer.id})` );
 	}
 
 	parse ( ast ) {
@@ -579,15 +494,12 @@ export default class Module {
 		return statements;
 	}
 
-	rename ( name, replacement ) {
-		this.replacements[ name ] = replacement;
-	}
-
-	render ( allBundleExports, moduleReplacements ) {
+	render ( toExport ) {
 		let magicString = this.magicString.clone();
 
 		this.statements.forEach( statement => {
 			if ( !statement.isIncluded ) {
+				console.log( 'removing definer of', keys( statement.defines ) );
 				magicString.remove( statement.start, statement.next );
 				return;
 			}
@@ -601,7 +513,7 @@ export default class Module {
 				}
 
 				// skip `export var foo;` if foo is exported
-				if ( isEmptyExportedVarDeclaration( statement.node.declaration, allBundleExports, moduleReplacements ) ) {
+				if ( isEmptyExportedVarDeclaration( statement.node.declaration, this.exports, toExport ) ) {
 					magicString.remove( statement.start, statement.next );
 					return;
 				}
@@ -609,7 +521,7 @@ export default class Module {
 
 			// skip empty var declarations for exported bindings
 			// (otherwise we're left with `exports.foo;`, which is useless)
-			if ( isEmptyExportedVarDeclaration( statement.node, allBundleExports, moduleReplacements ) ) {
+			if ( isEmptyExportedVarDeclaration( statement.node, this.exports, toExport ) ) {
 				magicString.remove( statement.start, statement.next );
 				return;
 			}
@@ -617,9 +529,10 @@ export default class Module {
 			// split up/remove var declarations as necessary
 			if ( statement.node.isSynthetic ) {
 				// insert `var/let/const` if necessary
-				if ( !allBundleExports[ statement.node.declarations[0].id.name ] ) {
-					magicString.insert( statement.start, `${statement.node.kind} ` );
-				}
+				// FIXME: !!
+				// if ( !allBundleExports[ statement.node.declarations[0].id.name ] ) {
+				// 	magicString.insert( statement.start, `${statement.node.kind} ` );
+				// }
 
 				magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
 			}
@@ -630,10 +543,12 @@ export default class Module {
 			keys( statement.dependsOn )
 				.concat( keys( statement.defines ) )
 				.forEach( name => {
-					const bundleName = moduleReplacements[ name ] || name;
+					// console.log ( name, statement.node );
+					// console.log( this.locals );
+					const bundleName = this.locals.lookup( name ).name;
 
-					if ( allBundleExports[ bundleName ] ) {
-						bundleExports[ name ] = replacements[ name ] = allBundleExports[ bundleName ];
+					if ( !~toExport.indexOf( bundleName ) ) {
+						bundleExports[ name ] = replacements[ name ] = bundleName;
 					} else if ( bundleName !== name ) { // TODO weird structure
 						replacements[ name ] = bundleName;
 					}
@@ -657,10 +572,11 @@ export default class Module {
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
 					const canonicalName = this.defaultName();
 
-					if ( statement.node.declaration.type === 'Identifier' && canonicalName === ( moduleReplacements[ statement.node.declaration.name ] || statement.node.declaration.name ) ) {
-						magicString.remove( statement.start, statement.next );
-						return;
-					}
+					// FIXME: dunno what to do here yet.
+					// if ( statement.node.declaration.type === 'Identifier' && canonicalName === ( moduleReplacements[ statement.node.declaration.name ] || statement.node.declaration.name ) ) {
+					// 	magicString.remove( statement.start, statement.next );
+					// 	return;
+					// }
 
 					// prevent `var undefined = sideEffectyDefault(foo)`
 					if ( canonicalName === undefined ) {
@@ -683,16 +599,5 @@ export default class Module {
 		});
 
 		return magicString.trim();
-	}
-
-	suggestName ( defaultOrBatch, suggestion ) {
-		// deconflict anonymous default exports with this module's definitions
-		const shouldDeconflict = this.exports.default && this.exports.default.isAnonymous;
-
-		if ( shouldDeconflict ) suggestion = deconflict( suggestion, this.definitions );
-
-		if ( !this.suggestedNames[ defaultOrBatch ] ) {
-			this.suggestedNames[ defaultOrBatch ] = makeLegalIdentifier( suggestion );
-		}
 	}
 }

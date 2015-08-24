@@ -12,6 +12,7 @@ import { defaultLoader } from './utils/load';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
+import Scope from './Scope';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -29,6 +30,8 @@ export default class Bundle {
 		this.loadOptions = {
 			transform: ensureArray( options.transform )
 		};
+
+		this.scope = new Scope();
 
 		this.toExport = null;
 
@@ -48,8 +51,6 @@ export default class Bundle {
 		return Promise.resolve( this.resolveId( this.entry, undefined, this.resolveOptions ) )
 			.then( id => this.fetchModule( id ) )
 			.then( entryModule => {
-				entryModule.bindImportSpecifiers();
-
 				const defaultExport = entryModule.exports.default;
 
 				this.entryModule = entryModule;
@@ -85,88 +86,10 @@ export default class Bundle {
 				entryModule.markAllStatements( true );
 				this.markAllModifierStatements();
 				this.orderedModules = this.sort();
+
+				// As a last step, deconflict all identifier names, once.
+				this.scope.deconflict();
 			});
-	}
-
-	// TODO would be better to deconflict once, rather than per-render
-	deconflict ( es6 ) {
-		let usedNames = blank();
-
-		// ensure no conflicts with globals
-		keys( this.assumedGlobals ).forEach( name => usedNames[ name ] = true );
-
-		let allReplacements = blank();
-
-		// Assign names to external modules
-		this.externalModules.forEach( module => {
-			// while we're here...
-			allReplacements[ module.id ] = blank();
-
-			// TODO is this necessary in the ES6 case?
-			let name = makeLegalIdentifier( module.suggestedNames['*'] || module.suggestedNames.default || module.id );
-			module.name = getSafeName( name );
-		});
-
-		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
-		let i = this.orderedModules.length;
-		while ( i-- ) {
-			const module = this.orderedModules[i];
-
-			// while we're here...
-			allReplacements[ module.id ] = blank();
-
-			keys( module.definitions ).forEach( name => {
-				const safeName = getSafeName( name );
-				if ( safeName !== name ) {
-					module.rename( name, safeName );
-					allReplacements[ module.id ][ name ] = safeName;
-				}
-			});
-		}
-
-		// Assign non-conflicting names to internal default/namespace export
-		this.orderedModules.forEach( module => {
-			if ( !module.needsDefault && !module.needsAll ) return;
-
-			if ( module.needsAll ) {
-				const namespaceName = getSafeName( module.suggestedNames[ '*' ] );
-				module.replacements[ '*' ] = namespaceName;
-			}
-
-			if ( module.needsDefault || module.needsAll && module.exports.default ) {
-				const defaultExport = module.exports.default;
-
-				// only create a new name if either
-				//   a) it's an expression (`export default 42`) or
-				//   b) it's a name that is reassigned to (`export var a = 1; a = 2`)
-				if ( defaultExport && defaultExport.identifier && !defaultExport.isModified ) return; // TODO encapsulate check for whether we need synthetic default name
-
-				const defaultName = getSafeName( module.suggestedNames.default );
-				module.replacements.default = defaultName;
-			}
-		});
-
-		this.orderedModules.forEach( module => {
-			keys( module.imports ).forEach( localName => {
-				if ( !module.imports[ localName ].isUsed ) return;
-
-				const bundleName = this.trace( module, localName, es6 );
-				if ( bundleName !== localName ) {
-					allReplacements[ module.id ][ localName ] = bundleName;
-				}
-			});
-		});
-
-		function getSafeName ( name ) {
-			while ( usedNames[ name ] ) {
-				name = `_${name}`;
-			}
-
-			usedNames[ name ] = true;
-			return name;
-		}
-
-		return allReplacements;
 	}
 
 	fetchModule ( id ) {
@@ -193,7 +116,13 @@ export default class Bundle {
 				this.modules.push( module );
 				this.moduleById[ id ] = module;
 
-				return this.fetchAllDependencies( module ).then( () => module );
+				return this.fetchAllDependencies( module ).then( () => {
+					// Analyze the module once all its dependencies have been resolved.
+					// This means that any dependencies of a module has already been
+					// analysed when it's time for the module itself.
+					module.analyse();
+					return module;
+				});
 			});
 	}
 
@@ -206,7 +135,7 @@ export default class Bundle {
 					// external module
 					if ( !resolvedId ) {
 						if ( !this.moduleById[ source ] ) {
-							const module = new ExternalModule( source );
+							const module = new ExternalModule( { id: source, bundle: this } );
 							this.externalModules.push( module );
 							this.moduleById[ source ] = module;
 						}
@@ -269,7 +198,7 @@ export default class Bundle {
 
 	render ( options = {} ) {
 		const format = options.format || 'es6';
-		const allReplacements = this.deconflict( format === 'es6' );
+		const allReplacements = blank();
 
 		// Determine export mode - 'default', 'named', 'none'
 		const exportMode = getExportMode( this, options.exports );
@@ -322,14 +251,12 @@ export default class Bundle {
 
 		// since we're rewriting variable exports, we want to
 		// ensure we don't try and export them again at the bottom
-		this.toExport = keys( this.entryModule.exports )
-			.concat( keys( this.entryModule.reexports ) )
-			.filter( key => !varExports[ key ] );
+		this.toExport = this.entryModule.exports.usedNames();
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
 		this.orderedModules.forEach( module => {
-			const source = module.render( allBundleExports, allReplacements[ module.id ], format );
+			const source = module.render( this.toExport, format );
 			if ( source.toString().length ) {
 				magicString.addSource( source );
 			}
@@ -337,13 +264,10 @@ export default class Bundle {
 
 		// prepend bundle with internal namespaces
 		const indentString = getIndentString( magicString, options );
+
 		const namespaceBlock = this.internalNamespaceModules.map( module => {
-			const exports = keys( module.exports )
-				.concat( keys( module.reexports ) )
-				.map( name => {
-					const canonicalName = this.traceExport( module, name );
-					return `${indentString}get ${name} () { return ${canonicalName}; }`;
-				});
+			const exports = module.exports.localIds().map( ( [ name, id ] ) =>
+				`${indentString}get ${name} () { return ${id.name}; }`);
 
 			return `var ${module.replacements['*']} = {\n` +
 				exports.join( ',\n' ) +

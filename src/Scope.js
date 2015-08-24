@@ -37,10 +37,6 @@ export default class Scope {
 
 	// Binds the `name` to the given reference `ref`.
 	bind ( name, ref ) {
-		if ( isntReference( ref ) ) {
-			throw new TypeError( `` );
-		}
-
 		this.ids[ this.index( name ) ] = ref;
 	}
 
@@ -71,6 +67,11 @@ export default class Scope {
 		}
 	}
 
+	// TODO: rename! Too similar to `define`.
+	defines ( name ) {
+		return name in this.names;
+	}
+
 	// !! private, don't use !!
 	//
 	// Lookup the `ids` index of `name`.
@@ -82,6 +83,11 @@ export default class Scope {
 		}
 
 		return this.names[ name ];
+	}
+
+	// Returns a list of [ localName, identifier ] tuples.
+	localIds () {
+		return keys( this.names ).map( name => [ name, this.lookup( name ) ] );
 	}
 
 	// Lookup the identifier referred to by `name`.
@@ -97,7 +103,11 @@ export default class Scope {
 
 	// Get a reference to the identifier `name` in this scope.
 	reference ( name ) {
-		return new Reference( this, this.names[ name ] );
+		if ( !this.defines( name ) ) {
+			this.define( name );
+		}
+
+		return new Reference( this, this.index( name ) );
 	}
 
 	// Return the names currently in use in the scope.
