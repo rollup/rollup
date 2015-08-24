@@ -43,10 +43,10 @@
     "gobble-rollup": "^0.7.0",
     "gobble-rollup-babel": "^0.1.0",
     "mocha": "^2.2.4",
-    "source-map": "^0.1.40"
+    "source-map": "^0.4.4"
   },
   "dependencies": {
-    "acorn": "^1.1.0",
+    "acorn": "^2.3.0",
     "chalk": "^1.0.0",
     "magic-string": "^0.6.5",
     "minimist": "^1.1.1",
