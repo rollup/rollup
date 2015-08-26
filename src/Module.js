@@ -111,6 +111,7 @@ export default class Module {
 					originalName: 'default',
 					name: 'default',
 
+					module: this,
 					statement,
 					localName: 'default',
 					identifier,
@@ -121,7 +122,7 @@ export default class Module {
 
 				this.exports.define( id );
 
-				// Rename it to avoid generating the `default` idenntifier,
+				// Rename it to avoid generating the `default` identifier,
 				// which is invalid.
 				id.name = this.name;
 			}
@@ -159,6 +160,7 @@ export default class Module {
 					originalName: name,
 					name,
 
+					module: this,
 					statement,
 					localName: name,
 					expression: declaration
