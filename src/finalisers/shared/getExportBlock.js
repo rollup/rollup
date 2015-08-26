@@ -1,9 +1,6 @@
 export default function getExportBlock ( bundle, exportMode, mechanism = 'return' ) {
 	if ( exportMode === 'default' ) {
-		const defaultExport = bundle.entryModule.exports.default;
-
-		const defaultExportName = bundle.entryModule.replacements.default ||
-			defaultExport.identifier;
+		const defaultExportName = bundle.exports.lookup( 'default' ).name;
 
 		return `${mechanism} ${defaultExportName};`;
 	}
