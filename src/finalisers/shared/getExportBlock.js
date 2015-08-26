@@ -11,8 +11,8 @@ export default function getExportBlock ( bundle, exportMode, mechanism = 'return
 	return bundle.toExport
 		.map( name => {
 			const prop = name === 'default' ? `['default']` : `.${name}`;
-			name = bundle.traceExport( bundle.entryModule, name );
-			return `exports${prop} = ${name};`;
+			const id = bundle.exports.lookup( name );
+			return `exports${prop} = ${id.name};`;
 		})
 		.join( '\n' );
 }

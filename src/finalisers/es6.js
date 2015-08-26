@@ -19,9 +19,8 @@ export default function es6 ( bundle, magicString ) {
 		.map( module => {
 			const specifiers = [];
 
-			if ( module.needsDefault ) {
-				specifiers.push( module.importedByBundle.filter( declaration =>
-					declaration.name === 'default' )[0].localName );
+			if ( module.exports.inScope( 'default' ) ) {
+				specifiers.push( module.exports.lookup( 'default' ).name );
 			}
 
 			if ( module.needsAll ) {
@@ -47,18 +46,18 @@ export default function es6 ( bundle, magicString ) {
 	const module = bundle.entryModule;
 
 	const specifiers = bundle.toExport.filter( notDefault ).map( name => {
-		const canonicalName = bundle.traceExport( module, name );
+		const id = bundle.exports.lookup( name );
 
-		return canonicalName === name ?
+		return id.name === name ?
 			name :
-			`${canonicalName} as ${name}`;
+			`${id.name} as ${name}`;
 	});
 
 	let exportBlock = specifiers.length ? `export { ${specifiers.join(', ')} };` : '';
 
-	const defaultExport = module.exports.default || module.reexports.default;
+	const defaultExport = module.exports.lookup( 'default' );
 	if ( defaultExport ) {
-		exportBlock += `export default ${bundle.traceExport(module,'default')};`;
+		exportBlock += `export default ${ defaultExport.name };`;
 	}
 
 	if ( exportBlock ) {
