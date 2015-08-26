@@ -106,8 +106,7 @@ export default class Module {
 				// If the default export has an identifier, bind to it.
 				this.exports.bind( 'default', this.locals.reference( identifier ) );
 			} else {
-				// Define the default identifier.
-				const id = {
+				this.exports.define( this.name, {
 					originalName: 'default',
 					name: 'default',
 
@@ -118,13 +117,7 @@ export default class Module {
 					isDeclaration,
 					isAnonymous,
 					isModified: false // in case of `export default foo; foo = somethingElse`
-				};
-
-				this.exports.define( id );
-
-				// Rename it to avoid generating the `default` identifier,
-				// which is invalid.
-				id.name = this.name;
+				});
 			}
 
 		}
@@ -196,6 +189,15 @@ export default class Module {
 				this.locals.bind( localName, module );
 			} else {
 				this.locals.bind( localName, module.exports.reference( name ) );
+
+				// For compliance with earlier Rollup versions.
+				// If the module is external, and we access the default.
+				// Rewrite the module name, and the default name to the
+				// `localName` we use for it.
+				if ( module.isExternal && isDefault ) {
+					const id = module.exports.lookup( name );
+					module.name = id.name = localName;
+				}
 			}
 		});
 	}
@@ -210,7 +212,7 @@ export default class Module {
 
 			// consolidate names that are defined/modified in this module
 			keys( statement.defines ).forEach( name => {
-				this.locals.define({
+				this.locals.define( name, {
 					originalName: name,
 					name,
 
@@ -537,14 +539,16 @@ export default class Module {
 				.concat( keys( statement.defines ) )
 				.forEach( name => {
 					const bundleName = this.locals.lookup( name ).name;
+					console.log( name, bundleName, toExport[ bundleName ] );
 
-					if ( ~toExport.indexOf( bundleName ) ) {
-						bundleExports[ name ] = replacements[ name ] = bundleName;
+					if ( toExport[ bundleName ] ) {
+						bundleExports[ name ] = replacements[ name ] = toExport[ bundleName ];
 					} else if ( bundleName !== name ) { // TODO weird structure
 						replacements[ name ] = bundleName;
 					}
 				});
 
+			console.log( replacements );
 			statement.replaceIdentifiers( magicString, replacements, bundleExports );
 
 			// modify exports as necessary

@@ -24,9 +24,16 @@ export default class ExternalModule {
 		// Override reference.
 		this.exports.reference = name => {
 			if ( !this.exports.defines( name ) ) {
-				this.exports.define({
-					originalName: name,
-					name,
+				let idName = name;
+
+				if (name === 'default' ) {
+					idName = this.name;
+					this.needsDefault = true;
+				}
+
+				this.exports.define( name, {
+					originalName: idName,
+					name: idName,
 
 					module: this
 				});

@@ -64,13 +64,10 @@ export default class Scope {
 		});
 	}
 
-	// Defines `name` in the scope. `name` must be a `string` or an `Identifier`.
-	define ( name ) {
-		if ( typeof name === 'string' ) {
-			this.ids[ this.index( name ) ] = new Identifier( name );
-		} else {
-			this.ids[ this.index( name.name ) ] = name;
-		}
+	// Defines `name` in the scope to be `id`.
+	// If no `id` is supplied, a plain `Identifier` is created.
+	define ( name, id = new Identifier( name ) ) {
+		this.ids[ this.index( name ) ] = id;
 	}
 
 	// TODO: rename! Too similar to `define`.

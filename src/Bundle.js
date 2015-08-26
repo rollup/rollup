@@ -29,8 +29,11 @@ export default class Bundle {
 			transform: ensureArray( options.transform )
 		};
 
+		// The global scope, and the bundle's internal scope.
 		this.globals = new Scope();
 		this.scope = new Scope( this.globals );
+		// Alias for entryModule.exports.
+		this.exports = null;
 
 		this.toExport = null;
 
@@ -51,6 +54,7 @@ export default class Bundle {
 			.then( id => this.fetchModule( id ) )
 			.then( entryModule => {
 				this.entryModule = entryModule;
+				this.exports = entryModule.exports;
 
 				entryModule.markAllStatements( true );
 				this.markAllModifierStatements();
@@ -200,10 +204,9 @@ export default class Bundle {
 		});
 
 		if ( format !== 'es6' && exportMode === 'named' ) {
-			keys( this.entryModule.exports )
-				.concat( keys( this.entryModule.reexports ) )
+			keys( this.exports.names )
 				.forEach( name => {
-					const canonicalName = this.traceExport( this.entryModule, name );
+					const canonicalName = this.exports.lookup( name ).name;
 
 					if ( isReassignedVarDeclaration[ canonicalName ] ) {
 						varExports[ name ] = true;
@@ -221,12 +224,13 @@ export default class Bundle {
 
 		// since we're rewriting variable exports, we want to
 		// ensure we don't try and export them again at the bottom
-		this.toExport = this.entryModule.exports.usedNames();
+		this.toExport = keys( this.exports.names )
+			.filter( key => !varExports[ key ] );
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
 		this.orderedModules.forEach( module => {
-			const source = module.render( this.toExport, format );
+			const source = module.render( allBundleExports, format );
 			if ( source.toString().length ) {
 				magicString.addSource( source );
 			}
