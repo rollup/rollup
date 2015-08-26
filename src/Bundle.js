@@ -370,38 +370,4 @@ export default class Bundle {
 
 		return ordered;
 	}
-
-	trace ( module, localName, es6 ) {
-		const importDeclaration = module.imports[ localName ];
-
-		// defined in this module
-		if ( !importDeclaration ) return module.replacements[ localName ] || localName;
-
-		// defined elsewhere
-		return this.traceExport( importDeclaration.module, importDeclaration.name, es6 );
-	}
-
-	traceExport ( module, name, es6 ) {
-		if ( module.isExternal ) {
-			if ( name === 'default' ) return module.needsNamed && !es6 ? `${module.name}__default` : module.name;
-			if ( name === '*' ) return module.name;
-			return es6 ? name : `${module.name}.${name}`;
-		}
-
-		const reexportDeclaration = module.reexports[ name ];
-		if ( reexportDeclaration ) {
-			return this.traceExport( reexportDeclaration.module, reexportDeclaration.localName );
-		}
-
-		if ( name === '*' ) return module.replacements[ '*' ];
-		if ( name === 'default' ) return module.defaultName();
-
-		const exportDeclaration = module.exports[ name ];
-		if ( exportDeclaration ) return this.trace( module, exportDeclaration.localName );
-
-		const exportDelegate = module.exportDelegates[ name ];
-		if ( exportDelegate ) return this.traceExport( exportDelegate.module, name, es6 );
-
-		throw new Error( `Could not trace binding '${name}' from ${module.id}` );
-	}
 }
