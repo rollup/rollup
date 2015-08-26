@@ -189,10 +189,9 @@ export default class Statement {
 
 			// disallow assignments/updates to imported bindings and namespaces
 			if ( isAssignment ) {
-				// FIXME: imports is no longer used.
-				const importSpecifier = this.module.imports[ node.name ];
+				const importSpecifier = this.module.locals.lookup( node.name );
 
-				if ( importSpecifier && !scope.contains( node.name ) ) {
+				if ( importSpecifier && importSpecifier.module !== this.module && !scope.contains( node.name ) ) {
 					const minDepth = importSpecifier.name === '*' ?
 						2 : // cannot do e.g. `namespace.foo = bar`
 						1;  // cannot do e.g. `foo = bar`, but `foo.bar = bar` is fine
@@ -273,7 +272,7 @@ export default class Statement {
 			return;
 		}
 
-		Object.keys( this.dependsOn ).forEach( name => {
+		keys( this.dependsOn ).forEach( name => {
 			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
 			this.module.mark( name );
 		});
