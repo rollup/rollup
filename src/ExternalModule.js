@@ -26,9 +26,11 @@ export default class ExternalModule {
 			if ( !this.exports.defines( name ) ) {
 				let idName = name;
 
-				if (name === 'default' ) {
+				if ( name === 'default' ) {
 					idName = this.name;
 					this.needsDefault = true;
+				} else {
+					this.needsNamed = true;
 				}
 
 				this.exports.define( name, {

@@ -1,13 +1,13 @@
-import { blank, keys } from '../utils/object';
+import { keys } from '../utils/object';
 
-function uniqueNames ( declarations ) {
-	let uniques = blank();
+function specifiersFor ( scope ) {
+	return keys( scope.names )
+		.filter( notDefault )
+		.map( name => {
+			const id = scope.lookup( name );
 
-	declarations
-		.filter( declaration => !/^(default|\*)$/.test( declaration.name ) )
-		.forEach( declaration => uniques[ declaration.name ] = true );
-
-	return keys( uniques );
+			return name !== id.name ? `${name} as ${id.name}` : name;
+		});
 }
 
 function notDefault ( name ) {
@@ -19,7 +19,7 @@ export default function es6 ( bundle, magicString ) {
 		.map( module => {
 			const specifiers = [];
 
-			if ( module.exports.inScope( 'default' ) ) {
+			if ( module.needsDefault ) {
 				specifiers.push( module.exports.lookup( 'default' ).name );
 			}
 
@@ -29,7 +29,7 @@ export default function es6 ( bundle, magicString ) {
 			}
 
 			if ( module.needsNamed ) {
-				specifiers.push( '{ ' + uniqueNames( module.importedByBundle )
+				specifiers.push( '{ ' + specifiersFor( module.exports )
 					.join( ', ' ) + ' }' );
 			}
 
