@@ -29,10 +29,11 @@ function underscorePrefix ( x ) {
 // ## Scope
 // A Scope is a mapping from string names to `Identifiers`.
 export default class Scope {
-	constructor () {
+	constructor ( parent ) {
 		this.ids = [];
 		this.names = blank();
 
+		this.parent = parent || null;
 		this.used = blank();
 	}
 
@@ -89,6 +90,13 @@ export default class Scope {
 		return this.names[ name ];
 	}
 
+	// Returns true if `name` is in Scope.
+	inScope ( name ) {
+		if ( name in this.names ) return true;
+
+		return this.parent ? this.parent.inScope( name ) : false;
+	}
+
 	// Returns a list of `[ name, identifier ]` tuples.
 	localIds () {
 		return keys( this.names ).map( name => [ name, this.lookup( name ) ] );
@@ -96,6 +104,10 @@ export default class Scope {
 
 	// Lookup the identifier referred to by `name`.
 	lookup ( name ) {
+		if ( !( name in this.names ) && this.parent ) {
+			return this.parent.lookup( name );
+		}
+
 		let id = this.ids[ this.names[ name ] ];
 
 		while ( id instanceof Reference ) {
@@ -121,6 +133,7 @@ export default class Scope {
 	virtual () {
 		const scope = new Scope();
 		scope.ids = this.ids;
+		scope.parent = this.parent;
 		return scope;
 	}
 }

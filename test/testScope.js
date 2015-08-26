@@ -18,6 +18,27 @@ describe( 'Scope', function () {
 		assert.equal( scope.lookup( 'b' ), scope.lookup( 'a' ) );
 	});
 
+	describe( 'parent:', function () {
+		var parent = new Scope(),
+			child = new Scope( parent );
+
+		it( 'allows children access to its names', function () {
+			parent.define( 'a' );
+
+			assert.equal( child.lookup( 'a' ), parent.lookup( 'a' ) );
+		});
+
+		it( 'names in the child scope shadows the parent', function () {
+			child.define( 'a' );
+
+			assert.notEqual( child.lookup( 'a' ), parent.lookup( 'a' ) );
+
+			child.define( 'b' );
+
+			assert.equal( parent.lookup( 'b' ), undefined );
+		});
+	});
+
 	describe( 'virtual scope:', function () {
 		var real, a, b;
 
