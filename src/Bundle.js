@@ -1,11 +1,9 @@
-import { basename, extname } from './utils/path';
 import { Promise } from 'sander';
 import MagicString from 'magic-string';
 import { blank, keys } from './utils/object';
 import Module from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
-import makeLegalIdentifier from './utils/makeLegalIdentifier';
 import ensureArray from './utils/ensureArray';
 import { defaultResolver, defaultExternalResolver } from './utils/resolveId';
 import { defaultLoader } from './utils/load';
@@ -52,37 +50,7 @@ export default class Bundle {
 		return Promise.resolve( this.resolveId( this.entry, undefined, this.resolveOptions ) )
 			.then( id => this.fetchModule( id ) )
 			.then( entryModule => {
-				const defaultExport = entryModule.exports.default;
-
 				this.entryModule = entryModule;
-
-				if ( defaultExport ) {
-					entryModule.needsDefault = true;
-
-					// `export default function foo () {...}` -
-					// use the declared name for the export
-					if ( defaultExport.identifier ) {
-						entryModule.suggestName( 'default', defaultExport.identifier );
-					}
-
-					// `export default a + b` - generate an export name
-					// based on the id of the entry module
-					else {
-						let defaultExportName = makeLegalIdentifier( basename( this.entryModule.id ).slice( 0, -extname( this.entryModule.id ).length ) );
-
-						// deconflict
-						let topLevelNames = [];
-						entryModule.statements.forEach( statement => {
-							keys( statement.defines ).forEach( name => topLevelNames.push( name ) );
-						});
-
-						while ( ~topLevelNames.indexOf( defaultExportName ) ) {
-							defaultExportName = `_${defaultExportName}`;
-						}
-
-						entryModule.suggestName( 'default', defaultExportName );
-					}
-				}
 
 				entryModule.markAllStatements( true );
 				this.markAllModifierStatements();

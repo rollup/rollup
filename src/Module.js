@@ -1,3 +1,4 @@
+import { basename, extname } from './utils/path';
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
 import Statement from './Statement';
@@ -32,7 +33,7 @@ export default class Module {
 		this.id = id;
 
 		// Implement Identifier interface.
-		this.name = makeLegalIdentifier( id );
+		this.name = makeLegalIdentifier( basename( id ).slice( 0, -extname( id ).length ) );
 
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename

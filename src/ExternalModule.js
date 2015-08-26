@@ -39,12 +39,4 @@ export default class ExternalModule {
 	findDefiningStatement () {
 		return null;
 	}
-
-	suggestName ( exportName, suggestion ) {
-		const id = this.exports.lookup( exportName );
-
-		if ( id.name === id.originalName ) {
-			id.name = suggestion;
-		}
-	}
 }
