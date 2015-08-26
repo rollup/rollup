@@ -48,6 +48,18 @@ export default class Scope {
 	deconflict ( rename = underscorePrefix ) {
 		const names = this.used;
 
+		this.ids.filter( ref => ref instanceof Reference ).forEach( ref => {
+			// Same scope.
+			if ( ref.scope.ids === this.ids ) return;
+
+			// Another scope!
+			while ( ref instanceof Reference ) {
+				ref = dereference( ref );
+			}
+
+			names[ ref.name ] = ref;
+		});
+
 		this.ids.filter( isntReference ).forEach( id => {
 			if ( typeof id === 'string' ) {
 				throw new Error( `Required name ${id} undefined!` );
