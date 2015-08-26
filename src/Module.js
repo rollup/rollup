@@ -254,6 +254,7 @@ export default class Module {
 			keys( statement.dependsOn ).forEach( name => {
 				if ( !this.locals.inScope( name ) ) {
 					this.bundle.globals.define( name );
+					this.locals.bind( name, this.bundle.globals.reference( name ) );
 				}
 			});
 		});
@@ -533,7 +534,9 @@ export default class Module {
 					.forEach( name => {
 						const id = this.locals.lookup( name );
 
-						if ( id.module && id.module.isExternal ) {
+						// HACK: We check that `id` isn't its own module,
+						// since that is the case for external defaults.
+						if ( id.module && id !== id.module && id.module.isExternal ) {
 							replacements[ name ] = `${id.module.name}.${id.originalName}`;
 						}
 					});

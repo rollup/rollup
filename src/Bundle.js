@@ -32,6 +32,12 @@ export default class Bundle {
 		// The global scope, and the bundle's internal scope.
 		this.globals = new Scope();
 		this.scope = new Scope( this.globals );
+
+		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
+		// However, the deconfliction logic is greatly simplified by being the same for all formats.
+		this.globals.define( 'exports' );
+		this.scope.bind( 'exports', this.globals.reference( 'exports' ) );
+
 		// Alias for entryModule.exports.
 		this.exports = null;
 
@@ -44,9 +50,6 @@ export default class Bundle {
 		this.statements = null;
 		this.externalModules = [];
 		this.internalNamespaceModules = [];
-
-		this.assumedGlobals = blank();
-		this.assumedGlobals.exports = true; // TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 	}
 
 	build () {
