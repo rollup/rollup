@@ -17,6 +17,7 @@ export default class ExternalModule {
 		this.needsNamed = false;
 		this.needsAll = false;
 
+		bundle.scope.define( this.name, this );
 		this.exports = bundle.scope.virtual();
 
 		const ref = this.exports.reference;
@@ -43,9 +44,5 @@ export default class ExternalModule {
 
 			return ref.call( this.exports, name );
 		};
-	}
-
-	findDefiningStatement () {
-		return null;
 	}
 }

@@ -137,15 +137,10 @@ export default class Bundle {
 				if ( statement.isIncluded ) return;
 
 				keys( statement.modifies ).forEach( name => {
-					const definingStatement = module.definitions[ name ];
-					const exportDeclaration = module.exports[ name ] || module.reexports[ name ] || (
-						module.exports.default && module.exports.default.identifier === name && module.exports.default
-					);
+					const local = module.locals.lookup( name );
+					const exported = module.exports.lookup( name );
 
-					const shouldMark = ( definingStatement && definingStatement.isIncluded ) ||
-					                   ( exportDeclaration && exportDeclaration.isUsed );
-
-					if ( shouldMark ) {
+					if ( local && local.module === module || exported && exported.isUsed ) {
 						settled = false;
 						statement.mark();
 						return;
@@ -153,14 +148,8 @@ export default class Bundle {
 
 					// special case - https://github.com/rollup/rollup/pull/40
 					// TODO refactor this? it's a bit confusing
-					const importDeclaration = module.imports[ name ];
-					if ( !importDeclaration || importDeclaration.module.isExternal ) return;
-
-					const otherExportDeclaration = importDeclaration.module.exports[ importDeclaration.name ];
 					// TODO things like `export default a + b` don't apply here... right?
-					const otherDefiningStatement = module.findDefiningStatement( otherExportDeclaration.localName );
-
-					if ( !otherDefiningStatement ) return;
+					if ( !local || !local.statement || !local.module || local.module.isExternal ) return;
 
 					settled = false;
 					statement.mark();
@@ -230,7 +219,7 @@ export default class Bundle {
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
 		this.orderedModules.forEach( module => {
-			const source = module.render( allBundleExports, format );
+			const source = module.render( allBundleExports, format === 'es6' );
 			if ( source.toString().length ) {
 				magicString.addSource( source );
 			}

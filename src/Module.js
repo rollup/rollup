@@ -106,9 +106,9 @@ export default class Module {
 				// If the default export has an identifier, bind to it.
 				this.exports.bind( 'default', this.locals.reference( identifier ) );
 			} else {
-				this.exports.define( this.name, {
-					originalName: 'default',
-					name: 'default',
+				this.exports.define( 'default', {
+					originalName: this.name,
+					name: this.name,
 
 					module: this,
 					statement,
@@ -328,12 +328,6 @@ export default class Module {
 		return this.name;
 	}
 
-	findDefiningStatement ( name ) {
-		if ( this.definitions[ name ] ) return this.definitions[ name ];
-
-		return null;
-	}
-
 	getModule ( source ) {
 		return this.bundle.moduleById[ this.resolvedIds[ source ] ];
 	}
@@ -488,7 +482,7 @@ export default class Module {
 		return statements;
 	}
 
-	render ( toExport ) {
+	render ( toExport, direct ) {
 		let magicString = this.magicString.clone();
 
 		this.statements.forEach( statement => {
@@ -533,6 +527,18 @@ export default class Module {
 			let replacements = blank();
 			let bundleExports = blank();
 
+			// Indirect identifier access.
+			if ( !direct ) {
+				keys( statement.dependsOn )
+					.forEach( name => {
+						const id = this.locals.lookup( name );
+
+						if ( id.module && id.module.isExternal ) {
+							replacements[ name ] = `${id.module.name}.${id.originalName}`;
+						}
+					});
+			}
+
 			keys( statement.dependsOn )
 				.concat( keys( statement.defines ) )
 				.forEach( name => {
@@ -564,10 +570,10 @@ export default class Module {
 					const canonicalName = this.defaultName();
 
 					// FIXME: dunno what to do here yet.
-					// if ( statement.node.declaration.type === 'Identifier' && canonicalName === ( moduleReplacements[ statement.node.declaration.name ] || statement.node.declaration.name ) ) {
-					// 	magicString.remove( statement.start, statement.next );
-					// 	return;
-					// }
+					if ( statement.node.declaration.type === 'Identifier' && canonicalName === ( replacements[ statement.node.declaration.name ] || statement.node.declaration.name ) ) {
+						magicString.remove( statement.start, statement.next );
+						return;
+					}
 
 					// prevent `var undefined = sideEffectyDefault(foo)`
 					if ( canonicalName === undefined ) {
