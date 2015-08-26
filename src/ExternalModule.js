@@ -2,7 +2,11 @@
 export default class ExternalModule {
 	constructor ( { id, bundle } ) {
 		this.id = id;
+
+		// Implement `Identifier` interface.
+		this.originalName = id;
 		this.name = id;
+		this.module = this;
 
 		this.isExternal = true;
 		this.importedByBundle = [];
@@ -17,32 +21,39 @@ export default class ExternalModule {
 		this.needsNamed = false;
 		this.needsAll = false;
 
-		bundle.scope.define( this.name, this );
+		bundle.scope.define( this.originalName, this );
 		this.exports = bundle.scope.virtual();
 
-		const ref = this.exports.reference;
+		const { lookup, reference } = this.exports;
 
 		// Override reference.
 		this.exports.reference = name => {
-			if ( !this.exports.defines( name ) ) {
-				let idName = name;
+			if ( name === 'default' ) {
+				this.needsDefault = true;
+				return bundle.scope.reference( this.originalName );
+			}
 
-				if ( name === 'default' ) {
-					idName = this.name;
-					this.needsDefault = true;
-				} else {
-					this.needsNamed = true;
-				}
+			if ( !this.exports.defines( name ) ) {
+				this.needsNamed = true;
 
 				this.exports.define( name, {
-					originalName: idName,
-					name: idName,
+					originalName: name,
+					name,
 
 					module: this
 				});
 			}
 
-			return ref.call( this.exports, name );
+			return reference.call( this.exports, name );
+		};
+
+		// Override lookup.
+		this.exports.lookup = name => {
+			if ( name === 'default' ) {
+				return this;
+			}
+
+			return lookup.call( this.exports, name );
 		};
 	}
 }
