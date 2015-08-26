@@ -71,4 +71,29 @@ describe( 'Scope', function () {
 			assert.deepEqual( real.usedNames(), 'abcdefghijklmnopqrstuvwxyz'.split('') );
 		});
 	});
+
+	it( 'dedupes-external-imports', function () {
+		var real = new Scope();
+
+		var external = real.virtual(),
+			locals = real.virtual(),
+			exports = real.virtual();
+
+		external.define( 'Component' );
+
+		locals.bind( 'Comp', external.reference( 'Component' ) );
+
+		exports.bind( 'default', locals.reference( 'Foo' ) );
+
+		try {
+			real.deconflict();
+			assert.ok( false, 'Scope.deconflict should throw with "Foo" undefined' );
+		} catch ( ignore ) {
+			// as expected
+		}
+
+		locals.define( 'Foo' );
+
+		real.deconflict();
+	});
 });

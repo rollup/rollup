@@ -26,7 +26,8 @@ function underscorePrefix ( x ) {
 	return '_' + x;
 }
 
-// A Scope is a mapping from name to identifiers.
+// ## Scope
+// A Scope is a mapping from string names to `Identifiers`.
 export default class Scope {
 	constructor () {
 		this.ids = [];
@@ -42,11 +43,15 @@ export default class Scope {
 
 	// Deconflict all names within the scope,
 	// using the given renaming function.
-	// If no function is supplied, the name is simply prefixed with '_'.
+	// If no function is supplied, `underscorePrefix` is used.
 	deconflict ( rename = underscorePrefix ) {
 		const names = this.used;
 
 		this.ids.filter( isntReference ).forEach( id => {
+			if ( typeof id === 'string' ) {
+				throw new Error( `Required name ${id} undefined!` );
+			}
+
 			let name = id.name;
 
 			while ( name in names && names[ name ] !== id ) {
@@ -72,20 +77,19 @@ export default class Scope {
 		return name in this.names;
 	}
 
-	// !! private, don't use !!
+	// *private, don't use*
 	//
-	// Lookup the `ids` index of `name`.
+	// Return `name`'s index in the `ids` array if it exists,
+	// otherwise returns the index to a new placeholder slot.
 	index ( name ) {
 		if ( !( name in this.names ) ) {
-			// The `undefined` value of this push is a placeholder
-			// that should be overwritten by the caller.
-			return this.names[ name ] = this.ids.push();
+			return this.names[ name ] = this.ids.push( `"${name}"` ) - 1;
 		}
 
 		return this.names[ name ];
 	}
 
-	// Returns a list of [ localName, identifier ] tuples.
+	// Returns a list of `[ name, identifier ]` tuples.
 	localIds () {
 		return keys( this.names ).map( name => [ name, this.lookup( name ) ] );
 	}
@@ -103,21 +107,17 @@ export default class Scope {
 
 	// Get a reference to the identifier `name` in this scope.
 	reference ( name ) {
-		if ( !this.defines( name ) ) {
-			this.define( name );
-		}
-
 		return new Reference( this, this.index( name ) );
 	}
 
-	// Return the names currently in use in the scope.
-	// Names aren't considered used until they're deconflicted.
+	// Return the used names of the scope.
+	// Names aren't considered used unless they're deconflicted.
 	usedNames () {
 		return keys( this.used ).sort();
 	}
 
-	// Create and return a virtual scope, bound to
-	// the actual scope of this Scope.
+	// Create and return a virtual `Scope` instance, bound to
+	// the actual scope of `this`.
 	virtual () {
 		const scope = new Scope();
 		scope.ids = this.ids;
