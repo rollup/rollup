@@ -31,7 +31,8 @@ export default class Bundle {
 			transform: ensureArray( options.transform )
 		};
 
-		this.scope = new Scope();
+		this.globals = new Scope();
+		this.scope = new Scope( this.globals );
 
 		this.toExport = null;
 
@@ -120,6 +121,8 @@ export default class Bundle {
 					// Analyze the module once all its dependencies have been resolved.
 					// This means that any dependencies of a module has already been
 					// analysed when it's time for the module itself.
+					//
+					// FIXME: Except for cyclic dependencies...
 					module.analyse();
 					return module;
 				});
@@ -198,7 +201,6 @@ export default class Bundle {
 
 	render ( options = {} ) {
 		const format = options.format || 'es6';
-		const allReplacements = blank();
 
 		// Determine export mode - 'default', 'named', 'none'
 		const exportMode = getExportMode( this, options.exports );
@@ -225,7 +227,7 @@ export default class Bundle {
 
 		this.orderedModules.forEach( module => {
 			module.reassignments.forEach( name => {
-				isReassignedVarDeclaration[ module.replacements[ name ] || name ] = true;
+				isReassignedVarDeclaration[ module.exports.lookup( name ) ] = true;
 			});
 		});
 

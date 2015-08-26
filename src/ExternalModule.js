@@ -18,6 +18,22 @@ export default class ExternalModule {
 		this.needsAll = false;
 
 		this.exports = bundle.scope.virtual();
+
+		const ref = this.exports.reference;
+
+		// Override reference.
+		this.exports.reference = name => {
+			if ( !this.exports.defines( name ) ) {
+				this.exports.define({
+					originalName: name,
+					name,
+
+					module: this
+				});
+			}
+
+			return ref.call( this.exports, name );
+		};
 	}
 
 	findDefiningStatement () {

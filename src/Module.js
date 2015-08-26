@@ -4,6 +4,7 @@ import Statement from './Statement';
 import walk from './ast/walk';
 import { blank, keys } from './utils/object';
 import getLocation from './utils/getLocation';
+import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
 function isEmptyExportedVarDeclaration ( node, exports, toExport ) {
 	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
@@ -15,6 +16,14 @@ function isEmptyExportedVarDeclaration ( node, exports, toExport ) {
 	return !~toExport.indexOf( id.name );
 }
 
+function removeSourceMappingURLComments ( source, magicString ) {
+	const pattern = /\/\/#\s+sourceMappingURL=.+\n?/g;
+	let match;
+	while ( match = pattern.exec( source ) ) {
+		magicString.remove( match.index, match.index + match[0].length );
+	}
+}
+
 export default class Module {
 	constructor ({ id, source, ast, bundle }) {
 		this.source = source;
@@ -23,7 +32,7 @@ export default class Module {
 		this.id = id;
 
 		// Implement Identifier interface.
-		this.name = id;
+		this.name = makeLegalIdentifier( id );
 
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
@@ -31,31 +40,20 @@ export default class Module {
 			filename: id
 		});
 
-		// remove existing sourceMappingURL comments
-		const pattern = /\/\/#\s+sourceMappingURL=.+\n?/g;
-		let match;
-		while ( match = pattern.exec( source ) ) {
-			this.magicString.remove( match.index, match.index + match[0].length );
-		}
+		removeSourceMappingURLComments( source, this.magicString );
 
-		this.suggestedNames = blank();
 		this.comments = [];
 
 		this.statements = this.parse( ast );
 
 		// all dependencies
 		this.resolvedIds = blank();
-		this.boundImportSpecifiers = false;
 
-		// imports and exports, indexed by local name
-		this.imports = blank();
-
+		// Virtual scopes for the local and exported names.
 		this.locals = bundle.scope.virtual();
 		this.exports = bundle.scope.virtual();
 
 		this.exportAlls = [];
-
-		this.replacements = blank();
 
 		this.reassignments = [];
 
@@ -107,7 +105,8 @@ export default class Module {
 				// If the default export has an identifier, bind to it.
 				this.exports.bind( 'default', this.locals.reference( identifier ) );
 			} else {
-				this.exports.define({
+				// Define the default identifier.
+				const id = {
 					originalName: 'default',
 					name: 'default',
 
@@ -117,7 +116,13 @@ export default class Module {
 					isDeclaration,
 					isAnonymous,
 					isModified: false // in case of `export default foo; foo = somethingElse`
-				});
+				};
+
+				this.exports.define( id );
+
+				// Rename it to avoid generating the `default` idenntifier,
+				// which is invalid.
+				id.name = this.name;
 			}
 
 		}
@@ -149,7 +154,7 @@ export default class Module {
 					name = declaration.id.name;
 				}
 
-				this.exports.bind({
+				this.locals.define({
 					originalName: name,
 					name,
 
@@ -157,6 +162,8 @@ export default class Module {
 					localName: name,
 					expression: declaration
 				});
+
+				this.exports.bind( name, this.locals.reference( name ) );
 			}
 		}
 	}
@@ -242,8 +249,8 @@ export default class Module {
 			});
 
 			keys( statement.dependsOn ).forEach( name => {
-				if ( !this.definitions[ name ] && !this.imports[ name ] ) {
-					this.bundle.assumedGlobals[ name ] = true;
+				if ( !this.locals.inScope( name ) ) {
+					this.bundle.globals.define( name );
 				}
 			});
 		});
@@ -315,26 +322,13 @@ export default class Module {
 	}
 
 	defaultName () {
-		const defaultExport = this.exports.default;
-
-		if ( !defaultExport ) return null;
-
-		const name = defaultExport.identifier && !defaultExport.isModified ?
-			defaultExport.identifier :
-			this.replacements.default;
-
-		return this.replacements[ name ] || name;
+		return this.name;
 	}
 
 	findDefiningStatement ( name ) {
 		if ( this.definitions[ name ] ) return this.definitions[ name ];
 
-		// TODO what about `default`/`*`?
-
-		const importDeclaration = this.imports[ name ];
-		if ( !importDeclaration ) return null;
-
-		return importDeclaration.module.findDefiningStatement( name );
+		return null;
 	}
 
 	getModule ( source ) {
@@ -343,9 +337,6 @@ export default class Module {
 
 	mark ( name ) {
 		const id = this.locals.lookup( name );
-
-		if ( id && !id.statement)
-			console.log(id)
 
 		if ( id && id.statement ) {
 			// Assert that statement is defined. It isn't for external modules.
@@ -499,7 +490,6 @@ export default class Module {
 
 		this.statements.forEach( statement => {
 			if ( !statement.isIncluded ) {
-				console.log( 'removing definer of', keys( statement.defines ) );
 				magicString.remove( statement.start, statement.next );
 				return;
 			}
@@ -543,11 +533,9 @@ export default class Module {
 			keys( statement.dependsOn )
 				.concat( keys( statement.defines ) )
 				.forEach( name => {
-					// console.log ( name, statement.node );
-					// console.log( this.locals );
 					const bundleName = this.locals.lookup( name ).name;
 
-					if ( !~toExport.indexOf( bundleName ) ) {
+					if ( ~toExport.indexOf( bundleName ) ) {
 						bundleExports[ name ] = replacements[ name ] = bundleName;
 					} else if ( bundleName !== name ) { // TODO weird structure
 						replacements[ name ] = bundleName;

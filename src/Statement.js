@@ -262,8 +262,6 @@ export default class Statement {
 		if ( this.isIncluded ) return; // prevent infinite loops
 		this.isIncluded = true;
 
-		console.log( 'marking definer of', keys( this.defines ) );
-
 		// `export { name } from './other'` is a special case
 		if ( this.isReexportDeclaration ) {
 			const otherModule = this.module.getModule( this.node.source.value );
@@ -282,7 +280,6 @@ export default class Statement {
 	}
 
 	replaceIdentifiers ( magicString, names, bundleExports ) {
-		console.log( magicString.slice(this.start, this.end) );
 		const replacementStack = [ names ];
 		const nameList = keys( names );
 
@@ -312,10 +309,12 @@ export default class Statement {
 					if ( node.type === 'VariableDeclaration' ) {
 						// if this contains a single declarator, and it's one that
 						// needs to be rewritten, we replace the whole lot
-						const name = node.declarations[0].id.name;
+						const id = node.declarations[0].id;
+						const name = id.name;
+
 						if ( node.declarations.length === 1 && bundleExports[ name ] ) {
-							magicString.overwrite( node.start, node.declarations[0].id.end, bundleExports[ name ], true );
-							node.declarations[0].id._skip = true;
+							magicString.overwrite( node.start, id.end, bundleExports[ name ], true );
+							id._skip = true;
 						}
 
 						// otherwise, we insert the `exports.foo = foo` after the declaration
