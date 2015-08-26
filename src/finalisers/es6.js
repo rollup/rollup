@@ -19,8 +19,10 @@ export default function es6 ( bundle, magicString ) {
 		.map( module => {
 			const specifiers = [];
 
-			if ( module.needsDefault ) {
-				specifiers.push( module.exports.lookup( 'default' ).name );
+			const id = module.exports.lookup( 'default' );
+
+			if ( id ) {
+				specifiers.push( id.name );
 			}
 
 			if ( module.needsAll ) {

@@ -14,7 +14,7 @@ function isEmptyExportedVarDeclaration ( node, exports, toExport ) {
 
 	const id = exports.lookup( name );
 
-	return !~toExport.indexOf( id.name );
+	return id.name in toExport;
 }
 
 function removeSourceMappingURLComments ( source, magicString ) {
@@ -172,7 +172,6 @@ export default class Module {
 			const isDefault = specifier.type === 'ImportDefaultSpecifier';
 			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
 
-			const name = isDefault ? 'default' : specifier.imported.name;
 			const localName = specifier.local.name;
 
 			if ( this.locals.defines( localName ) ) {
@@ -186,6 +185,8 @@ export default class Module {
 				// If it's a namespace import, we bind the localName to the module itself.
 				this.locals.bind( localName, module );
 			} else {
+				const name = isDefault ? 'default' : specifier.imported.name;
+
 				this.locals.bind( localName, module.exports.reference( name ) );
 
 				// For compliance with earlier Rollup versions.
@@ -296,7 +297,7 @@ export default class Module {
 					statement.node.specifiers.forEach( specifier => {
 						let name = specifier.exported.name;
 
-						let id = this.locals.lookup( name );
+						let id = this.exports.lookup( name );
 
 						addDependency( strongDependencies, id );
 					});
@@ -534,10 +535,10 @@ export default class Module {
 					.forEach( name => {
 						const id = this.locals.lookup( name );
 
-						// HACK: We check that `id` isn't its own module,
-						// since that is the case for external defaults.
-						if ( id.module && id !== id.module && id.module.isExternal ) {
-							replacements[ name ] = `${id.module.name}.${id.originalName}`;
+						if ( id.module && id.module.isExternal ) {
+							replacements[ name ] = id.originalName === 'default' ?
+								`${id.module.name}['default']` :
+								`${id.module.name}.${id.originalName}`;
 						}
 					});
 			}
@@ -549,7 +550,7 @@ export default class Module {
 
 					if ( toExport[ bundleName ] ) {
 						bundleExports[ name ] = replacements[ name ] = toExport[ bundleName ];
-					} else if ( bundleName !== name ) { // TODO weird structure
+					} else if ( bundleName !== name && !replacements[ name ] ) { // TODO weird structure
 						replacements[ name ] = bundleName;
 					}
 				});

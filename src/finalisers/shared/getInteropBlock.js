@@ -1,7 +1,7 @@
 export default function getInteropBlock ( bundle ) {
 	return bundle.externalModules
 		.map( module => {
-			if ( !module.needsDefault ) return;
+			if ( !module.exports.inScope( 'default' ) ) return;
 
 			if ( module.needsNamed ) {
 				return `var ${module.name}__default = 'default' in ${module.name} ? ${module.name}['default'] : ${module.name};`;
