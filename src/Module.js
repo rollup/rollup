@@ -175,8 +175,6 @@ export default class Module {
 			const name = isDefault ? 'default' : specifier.imported.name;
 			const localName = specifier.local.name;
 
-			// console.log( `import ${localName} as ${name} ...`);
-
 			if ( this.locals.defines( localName ) ) {
 				const err = new Error( `Duplicated import '${localName}'` );
 				err.file = this.id;
@@ -539,7 +537,6 @@ export default class Module {
 				.concat( keys( statement.defines ) )
 				.forEach( name => {
 					const bundleName = this.locals.lookup( name ).name;
-					console.log( name, bundleName, toExport[ bundleName ] );
 
 					if ( toExport[ bundleName ] ) {
 						bundleExports[ name ] = replacements[ name ] = toExport[ bundleName ];
@@ -548,7 +545,6 @@ export default class Module {
 					}
 				});
 
-			console.log( replacements );
 			statement.replaceIdentifiers( magicString, replacements, bundleExports );
 
 			// modify exports as necessary
