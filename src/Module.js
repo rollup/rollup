@@ -51,14 +51,16 @@ export default class Module {
 		this.resolvedIds = blank();
 
 		// Virtual scopes for the local and exported names.
-		this.locals = bundle.scope.virtual();
-		this.exports = bundle.scope.virtual();
+		this.locals = bundle.scope.virtual( true );
+		this.exports = bundle.scope.virtual( false );
 
 		const { reference, inScope } = this.exports;
 
 		this.exports.reference = name => {
 			// If we have it, grab it.
-			if ( inScope.call( this.exports, name ) ) return reference.call( this.exports, name );
+			if ( inScope.call( this.exports, name ) ) {
+				return reference.call( this.exports, name );
+			}
 
 			// ... otherwise search exportAlls.
 			for ( const module of this.exportAlls ) {
@@ -67,7 +69,8 @@ export default class Module {
 				}
 			}
 
-			throw new Error( `The name ${name} is never exported!` );
+			// throw new Error( `The name "${name}" is never exported (from ${this.id})!` );
+			return reference.call( this.exports, name );
 		};
 
 		this.exports.inScope = name => {
@@ -185,7 +188,7 @@ export default class Module {
 					name = declaration.id.name;
 				}
 
-				this.locals.define({
+				this.locals.define( name, {
 					originalName: name,
 					name,
 

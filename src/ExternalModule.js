@@ -22,7 +22,7 @@ export default class ExternalModule {
 		this.needsNamed = false;
 		this.needsAll = false;
 
-		this.exports = bundle.scope.virtual();
+		this.exports = bundle.scope.virtual( false );
 
 		const { reference } = this.exports;
 

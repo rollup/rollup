@@ -143,11 +143,10 @@ export default class Scope {
 	}
 
 	// Create and return a virtual `Scope` instance, bound to
-	// the actual scope of `this`.
-	virtual () {
-		const scope = new Scope();
+	// the actual scope of `this`, optionally inherit the parent scope.
+	virtual ( inheritParent ) {
+		const scope = new Scope( inheritParent ? this.parent : null );
 		scope.ids = this.ids;
-		scope.parent = this.parent;
 		return scope;
 	}
 }
