@@ -323,6 +323,11 @@ export default class Module {
 			});
 		});
 
+		// `Bundle.sort` gets stuck in an infinite loop if a module has
+		// `strongDependencies` to itself. Make sure it doesn't happen.
+		delete strongDependencies[ this.id ];
+		delete weakDependencies[ this.id ];
+
 		return { strongDependencies, weakDependencies };
 	}
 
