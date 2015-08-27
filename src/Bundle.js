@@ -196,7 +196,7 @@ export default class Bundle {
 		});
 
 		if ( format !== 'es6' && exportMode === 'named' ) {
-			keys( this.exports.names )
+			this.exports.getNames()
 				.forEach( name => {
 					const canonicalName = this.exports.lookup( name ).name;
 
@@ -216,7 +216,7 @@ export default class Bundle {
 
 		// since we're rewriting variable exports, we want to
 		// ensure we don't try and export them again at the bottom
-		this.toExport = keys( this.exports.names )
+		this.toExport = this.exports.getNames()
 			.filter( key => !varExports[ key ] );
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
@@ -280,12 +280,17 @@ export default class Bundle {
 	}
 
 	sort () {
-		let seen = {};
+		// Set of visited module ids.
+		let seen = blank();
+
 		let ordered = [];
 		let hasCycles;
 
-		let strongDeps = {};
-		let stronglyDependsOn = {};
+		// Map from module id to list of modules.
+		let strongDeps = blank();
+
+		// Map from module id to boolean.
+		let stronglyDependsOn = blank();
 
 		function visit ( module ) {
 			seen[ module.id ] = true;

@@ -1,7 +1,6 @@
-import { keys } from '../utils/object';
 
 function specifiersFor ( scope ) {
-	return keys( scope.names )
+	return scope.getNames()
 		.filter( notDefault )
 		.map( name => {
 			const id = scope.lookup( name );

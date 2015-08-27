@@ -62,7 +62,7 @@ export default class Scope {
 
 		this.ids.filter( isntReference ).forEach( id => {
 			if ( typeof id === 'string' ) {
-				throw new Error( `Required name ${id} undefined!` );
+				throw new Error( `Required name "${id}" is undefined!` );
 			}
 
 			let name = id.name;
@@ -78,13 +78,18 @@ export default class Scope {
 
 	// Defines `name` in the scope to be `id`.
 	// If no `id` is supplied, a plain `Identifier` is created.
-	define ( name, id = new Identifier( name ) ) {
-		this.ids[ this.index( name ) ] = id;
+	define ( name, id ) {
+		this.ids[ this.index( name ) ] = id || new Identifier( name );
 	}
 
 	// TODO: rename! Too similar to `define`.
 	defines ( name ) {
 		return name in this.names;
+	}
+
+	// Return the names referenced to in the scope.
+	getNames () {
+		return keys( this.names );
 	}
 
 	// *private, don't use*
@@ -93,7 +98,7 @@ export default class Scope {
 	// otherwise returns the index to a new placeholder slot.
 	index ( name ) {
 		if ( !( name in this.names ) ) {
-			return this.names[ name ] = this.ids.push( `"${name}"` ) - 1;
+			return this.names[ name ] = this.ids.push( name ) - 1;
 		}
 
 		return this.names[ name ];
