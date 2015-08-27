@@ -65,6 +65,16 @@ export default class Bundle {
 
 				// As a last step, deconflict all identifier names, once.
 				this.scope.deconflict();
+
+				// Alias the default import to the external module named
+				// for external modules that don't need named imports.
+				this.externalModules.forEach( module => {
+					const externalDefault = module.exports.lookup( 'default' );
+
+					if ( externalDefault && !module.needsNamed ) {
+						externalDefault.name = module.name;
+					}
+				});
 			});
 	}
 

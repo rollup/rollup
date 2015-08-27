@@ -601,7 +601,9 @@ export default class Module {
 
 						if ( id.module && id.module.isExternal ) {
 							replacements[ name ] = id.originalName === 'default' ?
-								`${id.module.name}['default']` :
+								// default names are always directly accessed
+								id.name :
+								// other names are indirectly accessed
 								`${id.module.name}.${id.originalName}`;
 						}
 					});

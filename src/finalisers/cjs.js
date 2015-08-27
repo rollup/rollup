@@ -1,3 +1,4 @@
+import getInteropBlock from './shared/getInteropBlock';
 import getExportBlock from './shared/getExportBlock';
 
 export default function cjs ( bundle, magicString, { exportMode }, options ) {
@@ -5,16 +6,8 @@ export default function cjs ( bundle, magicString, { exportMode }, options ) {
 
 	// TODO handle empty imports, once they're supported
 	const importBlock = bundle.externalModules
-		.map( module => {
-			let requireStatement = `var ${module.name} = require('${module.id}');`;
-
-			if ( module.needsDefault ) {
-				requireStatement += '\n' + ( module.needsNamed ? `var ${module.name}__default = ` : `${module.name} = ` ) +
-					`'default' in ${module.name} ? ${module.name}['default'] : ${module.name};`;
-			}
-
-			return requireStatement;
-		})
+		.map( module => `var ${module.name} = require('${module.id}');`)
+		.concat( getInteropBlock( bundle ) )
 		.join( '\n' );
 
 	if ( importBlock ) {
