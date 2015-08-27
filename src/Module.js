@@ -102,24 +102,24 @@ export default class Module {
 					node.declaration.name :
 					null;
 
+			// Always define a new `Identifier` for the default export.
+			this.exports.define( 'default', {
+				originalName: this.name,
+				name: this.name,
+
+				module: this,
+				statement,
+				localName: 'default',
+				identifier,
+				isDeclaration,
+				isAnonymous,
+				isModified: false // in case of `export default foo; foo = somethingElse`
+			});
+
+			// If it was assigned by an identifier, remember which one, in case it doesn't get modified.
 			if ( identifier ) {
-				// If the default export has an identifier, bind to it.
-				this.exports.bind( 'default', this.locals.reference( identifier ) );
-			} else {
-				this.exports.define( 'default', {
-					originalName: this.name,
-					name: this.name,
-
-					module: this,
-					statement,
-					localName: 'default',
-					identifier,
-					isDeclaration,
-					isAnonymous,
-					isModified: false // in case of `export default foo; foo = somethingElse`
-				});
+				this.defaultIdentifier = identifier;
 			}
-
 		}
 
 		// export { foo, bar, baz }
@@ -253,12 +253,22 @@ export default class Module {
 			});
 
 			keys( statement.dependsOn ).forEach( name => {
+				// For each name we depend on that isn't in scope,
+				// add a new global and bind the local name to it.
 				if ( !this.locals.inScope( name ) ) {
 					this.bundle.globals.define( name );
 					this.locals.bind( name, this.bundle.globals.reference( name ) );
 				}
 			});
 		});
+
+		// OPTIMIZATION!
+		// If we have a default export and it's value is never modified,
+		// bind to it directly.
+		const def = this.exports.lookup( 'default' );
+		if ( def && !def.isModified && this.defaultIdentifier ) {
+			this.exports.bind( 'default', this.locals.reference( this.defaultIdentifier ) );
+		}
 	}
 
 	// Returns the set of imported module ids by going through all import/exports statements.
@@ -344,6 +354,7 @@ export default class Module {
 
 		if ( id && id.statement ) {
 			// Assert that statement is defined. It isn't for external modules.
+			id.isUsed = true;
 			id.statement.mark();
 		}
 	}
@@ -371,6 +382,11 @@ export default class Module {
 
 			// include everything else
 			else {
+				// Be sure to mark the default export for the entry module.
+				if ( isEntryModule && statement.node.type === 'ExportDefaultDeclaration' ) {
+					this.markExport( 'default', null, this );
+				}
+
 				statement.mark();
 			}
 		});
@@ -386,6 +402,8 @@ export default class Module {
 		const id = this.exports.lookup( name );
 
 		if ( id ) {
+			id.isUsed = true;
+
 			// Assert that statement is defined. It isn't for external modules.
 			if ( id.statement ) id.statement.mark();
 
@@ -396,6 +414,8 @@ export default class Module {
 			const id = module.exports.lookup( name );
 
 			if ( id ) {
+				id.isUsed = true;
+
 				// Assert that statement is defined. It isn't for external modules.
 				if ( id.statement ) id.statement.mark();
 
@@ -576,25 +596,25 @@ export default class Module {
 				}
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					const canonicalName = this.defaultName();
+					const def = this.exports.lookup( 'default' );
 
 					// FIXME: dunno what to do here yet.
-					if ( statement.node.declaration.type === 'Identifier' && canonicalName === ( replacements[ statement.node.declaration.name ] || statement.node.declaration.name ) ) {
+					if ( statement.node.declaration.type === 'Identifier' && def.name === ( replacements[ statement.node.declaration.name ] || statement.node.declaration.name ) ) {
 						magicString.remove( statement.start, statement.next );
 						return;
 					}
 
 					// prevent `var undefined = sideEffectyDefault(foo)`
-					if ( canonicalName === undefined ) {
+					if ( !def.isUsed ) {
 						magicString.remove( statement.start, statement.node.declaration.start );
 						return;
 					}
 
 					// anonymous functions should be converted into declarations
 					if ( statement.node.declaration.type === 'FunctionExpression' ) {
-						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${canonicalName}` );
+						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${def.name}` );
 					} else {
-						magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${canonicalName} = ` );
+						magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${def.name} = ` );
 					}
 				}
 

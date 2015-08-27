@@ -208,7 +208,7 @@ export default class Statement {
 				// need to assign a new variable so that the exported
 				// value is not updated by the second statement
 				const def = this.module.exports.lookup( 'default' );
-				if ( def && depth === 0 && def.identifier === node.name ) {
+				if ( def && depth === 0 && def.name === node.name ) {
 					// but only if this is a) inside a function body or
 					// b) after the export declaration
 					if ( !!scope.parent || node.start > def.statement.node.start ) {
@@ -266,7 +266,7 @@ export default class Statement {
 			const otherModule = this.module.getModule( this.node.source.value );
 
 			this.node.specifiers.forEach( specifier => {
-				otherModule.exports.lookup( specifier.local.name ).statement.mark();
+				otherModule.markExport( specifier.local.name, null, this.module );
 			});
 
 			return;
