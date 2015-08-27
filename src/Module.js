@@ -54,6 +54,37 @@ export default class Module {
 		this.locals = bundle.scope.virtual();
 		this.exports = bundle.scope.virtual();
 
+		const { reference, inScope } = this.exports;
+
+		this.exports.reference = name => {
+			// If we have it, grab it.
+			if ( inScope.call( this.exports, name ) ) return reference.call( this.exports, name );
+
+			// ... otherwise search exportAlls.
+			for ( const module of this.exportAlls ) {
+				if ( module.exports.inScope( name ) ) {
+					return module.exports.reference( name );
+				}
+			}
+
+			throw new Error( `The name ${name} is never exported!` );
+		};
+
+		this.exports.inScope = name => {
+			if ( inScope.call( this.exports, name ) ) return true;
+
+			for ( const module of this.exportAlls ) {
+				if ( module.exports.inScope( name ) ) return true;
+			}
+
+			return false;
+		};
+
+		// Create a unique virtual scope for references to the module.
+		// const unique = bundle.scope.virtual();
+		// unique.define( this.name, this );
+		// this.reference = unique.reference( this.name );
+
 		this.exportAlls = [];
 
 		this.reassignments = [];
@@ -77,6 +108,11 @@ export default class Module {
 			if ( node.type === 'ExportAllDeclaration' ) {
 				// Store `export * from '...'` statements in an array of delegates.
 				// When an unknown import is encountered, we see if one of them can satisfy it.
+
+				if ( module.isExternal ) {
+					throw new Error( `Cannot trace 'export *' references through external modules.` );
+				}
+
 				this.exportAlls.push( module );
 			}
 

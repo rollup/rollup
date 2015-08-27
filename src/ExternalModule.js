@@ -8,6 +8,9 @@ export default class ExternalModule {
 		this.name = id;
 		this.module = this;
 
+		// Define the external module's name in the bundle scope.
+		bundle.scope.define( id, this );
+
 		this.isExternal = true;
 		this.importedByBundle = [];
 
