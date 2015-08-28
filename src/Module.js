@@ -140,25 +140,26 @@ export default class Module {
 				node.declaration.type === 'Identifier' ?
 					node.declaration.name :
 					null;
+			const name = identifier || this.name;
 
 			// Always define a new `Identifier` for the default export.
 			this.exports.define( 'default', {
-				originalName: this.name,
-				name: this.name,
+				originalName: name,
+				name,
 
 				module: this,
 				statement,
-				localName: 'default',
-				identifier,
-				isDeclaration,
-				isAnonymous,
-				isModified: false // in case of `export default foo; foo = somethingElse`
-			});
 
-			// If it was assigned by an identifier, remember which one, in case it doesn't get modified.
-			if ( identifier ) {
-				this.defaultIdentifier = identifier;
-			}
+				// Keep the identifier name, if one exists.
+				// We can optimize the newly created default `Identifier` away,
+				// if it is never modified.
+				// in case of `export default foo; foo = somethingElse`
+				identifier,
+				isModified: false,
+
+				isDeclaration,
+				isAnonymous
+			});
 		}
 
 		// export { foo, bar, baz }
@@ -222,6 +223,7 @@ export default class Module {
 
 			if ( isNamespace ) {
 				// If it's a namespace import, we bind the localName to the module itself.
+				module.needsAll = true;
 				this.locals.bind( localName, module );
 			} else {
 				const name = isDefault ? 'default' : specifier.imported.name;
@@ -305,8 +307,8 @@ export default class Module {
 		// If we have a default export and it's value is never modified,
 		// bind to it directly.
 		const def = this.exports.lookup( 'default' );
-		if ( def && !def.isModified && this.defaultIdentifier ) {
-			this.exports.bind( 'default', this.locals.reference( this.defaultIdentifier ) );
+		if ( def && !def.isModified && def.identifier ) {
+			this.exports.bind( 'default', this.locals.reference( def.identifier ) );
 		}
 	}
 
