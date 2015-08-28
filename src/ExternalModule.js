@@ -8,6 +8,7 @@ export default class ExternalModule {
 		// Implement `Identifier` interface.
 		this.originalName = this.name = makeLegalIdentifier( id );
 		this.module = this;
+		this.isModule = true;
 
 		// Define the external module's name in the bundle scope.
 		bundle.scope.define( id, this );

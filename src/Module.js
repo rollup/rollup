@@ -32,6 +32,7 @@ export default class Module {
 		this.bundle = bundle;
 		this.id = id;
 		this.module = this;
+		this.isModule = true;
 
 		// Implement Identifier interface.
 		this.name = makeLegalIdentifier( basename( id ).slice( 0, -extname( id ).length ) );
