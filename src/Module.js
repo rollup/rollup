@@ -224,6 +224,7 @@ export default class Module {
 			if ( isNamespace ) {
 				// If it's a namespace import, we bind the localName to the module itself.
 				module.needsAll = true;
+				module.name = localName;
 				this.locals.bind( localName, module );
 			} else {
 				const name = isDefault ? 'default' : specifier.imported.name;
@@ -237,6 +238,7 @@ export default class Module {
 				if ( module.isExternal && isDefault ) {
 					const id = module.exports.lookup( name );
 					module.name = id.name = localName;
+					id.name += '__default';
 				}
 			}
 		});
@@ -393,10 +395,16 @@ export default class Module {
 	mark ( name ) {
 		const id = this.locals.lookup( name );
 
-		if ( id && id.statement ) {
-			// Assert that statement is defined. It isn't for external modules.
-			id.isUsed = true;
-			id.statement.mark();
+		if ( id && id.module ) {
+			if ( id.module.isExternal ) {
+				id.module.importedByBundle[ id.originalName ] = true;
+			}
+
+			if ( id.statement ) {
+				// Assert that statement is defined. It isn't for external modules.
+				id.isUsed = true;
+				id.statement.mark();
+			}
 		}
 	}
 
@@ -601,7 +609,11 @@ export default class Module {
 					.forEach( name => {
 						const id = this.locals.lookup( name );
 
-						if ( id.module && id.module.isExternal ) {
+						// We shouldn't create a replacement for `id` if
+						//   1. `id` is a Global, in which case it has no module property
+						//   2. `id.module` isn't external, which means we have direct access
+						//   3. `id` is its own module, in the case of namespace imports
+						if ( id.module && id.module.isExternal && id.module !== id ) {
 							replacements[ name ] = id.originalName === 'default' ?
 								// default names are always directly accessed
 								id.name :

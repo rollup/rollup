@@ -1,18 +1,19 @@
+import { blank } from './utils/object';
+import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
 export default class ExternalModule {
 	constructor ( { id, bundle } ) {
 		this.id = id;
 
 		// Implement `Identifier` interface.
-		this.originalName = id;
-		this.name = id;
+		this.originalName = this.name = makeLegalIdentifier( id );
 		this.module = this;
 
 		// Define the external module's name in the bundle scope.
 		bundle.scope.define( id, this );
 
 		this.isExternal = true;
-		this.importedByBundle = [];
+		this.importedByBundle = blank();
 
 		// Invariant: needsNamed and needsAll are never both true at once.
 		// Because an import with both a namespace and named import is invalid:
