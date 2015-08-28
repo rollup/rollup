@@ -1,3 +1,7 @@
+function propertyAccess ( name ) {
+	return name === 'default' ? `['default']` : `.${name}`;
+}
+
 export default function getExportBlock ( bundle, exportMode, mechanism = 'return' ) {
 	if ( exportMode === 'default' ) {
 		const defaultExportName = bundle.exports.lookup( 'default' ).name;
@@ -7,9 +11,12 @@ export default function getExportBlock ( bundle, exportMode, mechanism = 'return
 
 	return bundle.toExport
 		.map( name => {
-			const prop = name === 'default' ? `['default']` : `.${name}`;
 			const id = bundle.exports.lookup( name );
-			return `exports${prop} = ${id.name};`;
+
+			const reference = ( id.originalName !== 'default' && id.module && id.module.isExternal ) ?
+				id.module.name + propertyAccess( id.name ) : id.name;
+
+			return `exports${propertyAccess( name )} = ${reference};`;
 		})
 		.join( '\n' );
 }
