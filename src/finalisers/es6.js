@@ -1,9 +1,11 @@
+import { keys } from '../utils/object';
 
-function specifiersFor ( scope ) {
-	return scope.getNames()
+function specifiersFor ( externalModule ) {
+	return keys( externalModule.importedByBundle )
 		.filter( notDefault )
+		.sort()
 		.map( name => {
-			const id = scope.lookup( name );
+			const id = externalModule.exports.lookup( name );
 
 			return name !== id.name ? `${name} as ${id.name}` : name;
 		});
@@ -25,13 +27,11 @@ export default function es6 ( bundle, magicString ) {
 			}
 
 			if ( module.needsAll ) {
-				specifiers.push( '* as ' + module.importedByBundle.filter( declaration =>
-					declaration.name === '*' )[0].localName );
+				specifiers.push( '* as ' + module.name );
 			}
 
 			if ( module.needsNamed ) {
-				specifiers.push( '{ ' + specifiersFor( module.exports )
-					.join( ', ' ) + ' }' );
+				specifiers.push( '{ ' + specifiersFor( module ).join( ', ' ) + ' }' );
 			}
 
 			return specifiers.length ?
