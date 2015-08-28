@@ -435,7 +435,7 @@ export default class Module {
 			else {
 				// Be sure to mark the default export for the entry module.
 				if ( isEntryModule && statement.node.type === 'ExportDefaultDeclaration' ) {
-					this.markExport( 'default', null, this );
+					this.markExport( 'default', this );
 				}
 
 				statement.mark();
@@ -449,7 +449,7 @@ export default class Module {
 		});
 	}
 
-	markExport ( name, suggestedName, importer ) {
+	markExport ( name, importer ) {
 		const id = this.exports.lookup( name );
 
 		if ( id ) {

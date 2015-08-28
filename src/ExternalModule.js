@@ -45,4 +45,6 @@ export default class ExternalModule {
 			return reference.call( this.exports, name );
 		};
 	}
+
+	markExport () {}
 }

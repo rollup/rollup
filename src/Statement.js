@@ -266,7 +266,7 @@ export default class Statement {
 			const otherModule = this.module.getModule( this.node.source.value );
 
 			this.node.specifiers.forEach( specifier => {
-				otherModule.markExport( specifier.local.name, null, this.module );
+				otherModule.markExport( specifier.local.name, this.module );
 			});
 
 			return;
