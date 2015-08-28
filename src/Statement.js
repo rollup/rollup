@@ -279,7 +279,7 @@ export default class Statement {
 	}
 
 	replaceIdentifiers ( magicString, names, bundleExports ) {
-		const replacementStack = [ names ];
+		const replacementStack = [];
 		const nameList = keys( names );
 
 		let deshadowList = [];
@@ -396,8 +396,7 @@ export default class Statement {
 				if ( /^Function/.test( node.type ) ) depth -= 1;
 
 				if ( node._scope ) {
-					replacementStack.pop();
-					names = replacementStack[ replacementStack.length - 1 ];
+					names = replacementStack.pop();
 				}
 			}
 		});
