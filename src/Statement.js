@@ -31,6 +31,10 @@ export default class Statement {
 
 		this.reassigns = blank();
 
+		// TODO: make this more efficient
+		this.dependantIds = [];
+		this.namespaceReplacements = [];
+
 		this.isIncluded = false;
 
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
@@ -126,6 +130,10 @@ export default class Statement {
 		// /update expressions) need to be captured
 		let writeDepth = 0;
 
+		// Used to track
+		let currentMemberExpression = null;
+		let namespace = null;
+
 		if ( !this.isImportDeclaration ) {
 			walk( this.node, {
 				enter: ( node, parent ) => {
@@ -142,6 +150,47 @@ export default class Statement {
 					if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth -= 1;
 
 					if ( node._scope ) scope = scope.parent;
+
+					if ( node.type === 'MemberExpression' && ( !currentMemberExpression || node.object === currentMemberExpression ) ) {
+						currentMemberExpression = node;
+
+						if ( !namespace ) {
+							const id = this.module.locals.lookup( node.object.name );
+
+							if ( !id || !id.isModule || id.isExternal ) return;
+
+							namespace = id;
+						}
+
+						const name = node.property.name || ( node.property.type === 'Literal' ? node.property.value : null );
+
+						if ( !name ) {
+							namespace.dynamicAccess();
+
+							namespace = null;
+							currentMemberExpression = null;
+							return;
+						}
+
+						const id = namespace.exports.lookup( name );
+
+						if ( !id ) {
+							throw new Error( `Module doesn't define "${name}"!` );
+						}
+
+						// We can't resolve deeper. Replace the member chain.
+						if ( parent.type !== 'MemberExpression' || !( id.isModule && !id.isExternal ) ) {
+							if ( !~this.dependantIds.indexOf( id ) ) {
+								this.dependantIds.push( id );
+							}
+							this.namespaceReplacements.push( [ node, id ] );
+							namespace = null;
+							currentMemberExpression = null;
+							return;
+						}
+
+						namespace = id;
+					}
 				}
 			});
 		}
@@ -272,6 +321,19 @@ export default class Statement {
 			return;
 		}
 
+		this.dependantIds.forEach( id => {
+			// FIXME: what should be done about modules?
+			if ( id.isModule ) {
+				if ( id.isExternal ) {
+
+				} else {
+
+				}
+			}
+
+			id.module && id.module.markExport( id.originalName, this.module );
+		});
+
 		keys( this.dependsOn ).forEach( name => {
 			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
 			this.module.mark( name );
@@ -279,6 +341,8 @@ export default class Statement {
 	}
 
 	replaceIdentifiers ( magicString, names, bundleExports ) {
+		const statement = this;
+
 		const replacementStack = [];
 		const nameList = keys( names );
 
@@ -364,6 +428,18 @@ export default class Statement {
 
 					names = newNames;
 					replacementStack.push( newNames );
+				}
+
+				if ( node.type === 'MemberExpression' ) {
+					const replacements = statement.namespaceReplacements;
+					for ( let i = 0; i < replacements.length; i += 1 ) {
+						const [ top, id ] = replacements[ i ];
+
+						if ( node === top ) {
+							magicString.overwrite( node.start, node.end, id.name );
+							return this.skip();
+						}
+					}
 				}
 
 				if ( node.type !== 'Identifier' ) return;
