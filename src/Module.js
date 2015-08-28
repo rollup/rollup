@@ -31,6 +31,7 @@ export default class Module {
 
 		this.bundle = bundle;
 		this.id = id;
+		this.module = this;
 
 		// Implement Identifier interface.
 		this.name = makeLegalIdentifier( basename( id ).slice( 0, -extname( id ).length ) );
@@ -92,10 +93,8 @@ export default class Module {
 
 		this.reassignments = [];
 
-		this.marked = blank();
-		this.definitions = blank();
-		this.definitionPromises = blank();
-		this.modifications = blank();
+		// TODO: change to false, and detect when it's necessary.
+		this.needsDynamicAccess = false;
 
 		this.dependencies = this.collectDependencies();
 	}
@@ -261,9 +260,6 @@ export default class Module {
 					statement,
 					module: this
 				});
-
-				// FIXME: remove?
-				this.definitions[ name ] = statement;
 			});
 
 			keys( statement.modifies ).forEach( name => {
@@ -384,8 +380,14 @@ export default class Module {
 		return { strongDependencies, weakDependencies };
 	}
 
-	defaultName () {
-		return this.name;
+	// Enforce dynamic access of the module's properties.
+	dynamicAccess () {
+		this.needsDynamicAccess = true;
+		this.markAllExportStatements();
+
+		if ( !~this.bundle.internalNamespaceModules.indexOf( this ) ) {
+			this.bundle.internalNamespaceModules.push( this );
+		}
 	}
 
 	getModule ( source ) {

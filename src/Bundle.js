@@ -63,6 +63,12 @@ export default class Bundle {
 				this.markAllModifierStatements();
 				this.orderedModules = this.sort();
 
+				this.exports.localIds().forEach( ([ , id ]) => {
+					// If the export is a module (namespace), we need
+					// all its exports dynamically accessible.
+					if ( id.module === id ) id.dynamicAccess();
+				});
+
 				// As a last step, deconflict all identifier names, once.
 				this.scope.deconflict();
 
@@ -71,7 +77,7 @@ export default class Bundle {
 				this.externalModules.forEach( module => {
 					const externalDefault = module.exports.lookup( 'default' );
 
-					if ( externalDefault && !module.needsNamed ) {
+					if ( externalDefault && !( module.needsNamed || module.needsAll ) ) {
 						externalDefault.name = module.name;
 					}
 				});
@@ -245,7 +251,7 @@ export default class Bundle {
 			const exports = module.exports.localIds().map( ( [ name, id ] ) =>
 				`${indentString}get ${name} () { return ${id.name}; }`);
 
-			return `var ${module.replacements['*']} = {\n` +
+			return `var ${module.name} = {\n` +
 				exports.join( ',\n' ) +
 			`\n};\n\n`;
 		}).join( '' );
