@@ -4,6 +4,8 @@
 	var number = 5;
 
 	/** A comment for obj */
-	exports.obj = { number };
+	var obj = { number };
+
+	exports.obj = obj;
 
 })((this.myBundle = {}));

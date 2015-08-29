@@ -4,9 +4,12 @@
 	factory((global.myBundle = {}));
 }(this, function (exports) { 'use strict';
 
-	exports.foo = 42;
+	var FOO = 'foo';
 
-	exports.bar = 43;
-	exports.baz = 44;
+	console.log( FOO );
+	console.log( FOO );
+	console.log( FOO );
+
+	exports.FOO = FOO;
 
 }));

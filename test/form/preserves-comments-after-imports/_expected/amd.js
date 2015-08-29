@@ -4,6 +4,8 @@ define(['exports'], function (exports) { 'use strict';
 	var number = 5;
 
 	/** A comment for obj */
-	exports.obj = { number };
+	var obj = { number };
+
+	exports.obj = obj;
 
 });
