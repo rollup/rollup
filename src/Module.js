@@ -279,10 +279,6 @@ export default class Module {
 					}
 				});
 			});
-
-			keys( statement.modifies ).forEach( name => {
-				( this.modifications[ name ] || ( this.modifications[ name ] = [] ) ).push( statement );
-			});
 		});
 
 		// discover variables that are reassigned inside function

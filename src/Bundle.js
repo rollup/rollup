@@ -207,7 +207,7 @@ export default class Bundle {
 
 		this.orderedModules.forEach( module => {
 			module.reassignments.forEach( name => {
-				isReassignedVarDeclaration[ module.exports.lookup( name ) ] = true;
+				isReassignedVarDeclaration[ module.locals.lookup( name ).name ] = true;
 			});
 		});
 
