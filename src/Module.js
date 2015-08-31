@@ -14,7 +14,7 @@ function isEmptyExportedVarDeclaration ( node, exports, toExport ) {
 
 	const id = exports.lookup( name );
 
-	return id.name in toExport;
+	return id && id.name in toExport;
 }
 
 function removeSourceMappingURLComments ( source, magicString ) {
