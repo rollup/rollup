@@ -151,6 +151,7 @@ export default class Statement {
 
 					if ( node._scope ) scope = scope.parent;
 
+					// Optimize namespace lookups, which manifests as MemberExpressions.
 					if ( node.type === 'MemberExpression' && ( !currentMemberExpression || node.object === currentMemberExpression ) ) {
 						currentMemberExpression = node;
 
@@ -162,9 +163,20 @@ export default class Statement {
 							namespace = id;
 						}
 
-						const name = node.property.name || ( node.property.type === 'Literal' ? node.property.value : null );
+						// Extract the name of the accessed property, from and Identifier or Literal.
+						// Any eventual Literal value is converted to a string.
+						const name = node.property.name ||
+							( node.property.type === 'Literal' ? String( node.property.value ) : null );
 
-						if ( !name ) {
+						// If we can't resolve the name being accessed,
+						// we require the namespace to be dynamically accessible.
+						//
+						//     // resolvable
+						//     console.log( javascript.keywords[ 6 ] )
+						//
+						//     // unresolvable
+						//     console.log( javascript.keywords[ 1 + 5 ] )
+						if ( name === null ) {
 							namespace.dynamicAccess();
 
 							namespace = null;
@@ -312,31 +324,21 @@ export default class Statement {
 
 		// `export { name } from './other'` is a special case
 		if ( this.isReexportDeclaration ) {
-			const otherModule = this.module.getModule( this.node.source.value );
-
+			// TODO: If we add the specifiers to `dependantIds`,
+			// we can remove this special case.
 			this.node.specifiers.forEach( specifier => {
-				otherModule.markExport( specifier.local.name, this.module );
+				this.module.exports.lookup( specifier.exported.name ).mark();
 			});
 
 			return;
 		}
 
-		this.dependantIds.forEach( id => {
-			// FIXME: what should be done about modules?
-			if ( id.isModule ) {
-				if ( id.isExternal ) {
+		this.dependantIds.forEach( id => id.mark() );
 
-				} else {
-
-				}
-			}
-
-			id.module && id.module.markExport( id.originalName, this.module );
-		});
-
+		// TODO: perhaps these could also be added?
 		keys( this.dependsOn ).forEach( name => {
 			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
-			this.module.mark( name );
+			this.module.locals.lookup( name ).mark();
 		});
 	}
 

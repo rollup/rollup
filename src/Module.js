@@ -144,10 +144,14 @@ export default class Module {
 
 			// Always define a new `Identifier` for the default export.
 			this.exports.define( 'default', {
-				originalName: name,
+				originalName: 'default',
 				name,
 
 				module: this,
+				mark () {
+					this.isUsed = true;
+					this.statement.mark();
+				},
 				statement,
 
 				// Keep the identifier name, if one exists.
@@ -194,6 +198,10 @@ export default class Module {
 					name,
 
 					module: this,
+					mark () {
+						this.isUsed = true;
+						this.statement.mark();
+					},
 					statement,
 					localName: name,
 					expression: declaration
@@ -259,7 +267,11 @@ export default class Module {
 					name,
 
 					statement,
-					module: this
+					module: this,
+					mark () {
+						this.isUsed = true;
+						this.statement.mark();
+					}
 				});
 			});
 
@@ -296,7 +308,11 @@ export default class Module {
 				// For each name we depend on that isn't in scope,
 				// add a new global and bind the local name to it.
 				if ( !this.locals.inScope( name ) ) {
-					this.bundle.globals.define( name );
+					this.bundle.globals.define( name, {
+						originalName: name,
+						name,
+						mark () {}
+					});
 					this.locals.bind( name, this.bundle.globals.reference( name ) );
 				}
 			});
@@ -383,6 +399,8 @@ export default class Module {
 
 	// Enforce dynamic access of the module's properties.
 	dynamicAccess () {
+		if ( this.needsDynamicAccess ) return;
+
 		this.needsDynamicAccess = true;
 		this.markAllExportStatements();
 
@@ -395,20 +413,8 @@ export default class Module {
 		return this.bundle.moduleById[ this.resolvedIds[ source ] ];
 	}
 
-	mark ( name ) {
-		const id = this.locals.lookup( name );
-
-		if ( id && id.module ) {
-			if ( id.module.isExternal ) {
-				id.module.importedByBundle[ id.originalName ] = true;
-			}
-
-			if ( id.statement ) {
-				// Assert that statement is defined. It isn't for external modules.
-				id.isUsed = true;
-				id.statement.mark();
-			}
-		}
+	mark () {
+		this.dynamicAccess();
 	}
 
 	markAllStatements ( isEntryModule ) {
@@ -436,7 +442,7 @@ export default class Module {
 			else {
 				// Be sure to mark the default export for the entry module.
 				if ( isEntryModule && statement.node.type === 'ExportDefaultDeclaration' ) {
-					this.markExport( 'default', this );
+					this.exports.lookup( 'default' ).mark();
 				}
 
 				statement.mark();
@@ -448,34 +454,6 @@ export default class Module {
 		this.statements.forEach( statement => {
 			if ( statement.isExportDeclaration ) statement.mark();
 		});
-	}
-
-	markExport ( name, importer ) {
-		const id = this.exports.lookup( name );
-
-		if ( id ) {
-			id.isUsed = true;
-
-			// Assert that statement is defined. It isn't for external modules.
-			if ( id.statement ) id.statement.mark();
-
-			return;
-		}
-
-		for ( const module of this.exportAlls ) {
-			const id = module.exports.lookup( name );
-
-			if ( id ) {
-				id.isUsed = true;
-
-				// Assert that statement is defined. It isn't for external modules.
-				if ( id.statement ) id.statement.mark();
-
-				return;
-			}
-		}
-
-		throw new Error( `Module ${this.id} does not export ${name} (imported by ${importer.id})` );
 	}
 
 	parse ( ast ) {

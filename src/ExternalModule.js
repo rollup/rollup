@@ -39,7 +39,10 @@ export default class ExternalModule {
 					originalName: name,
 					name,
 
-					module: this
+					module: this,
+					mark: () => {
+						this.importedByBundle[ name ] = true;
+					}
 				});
 			}
 
@@ -47,5 +50,9 @@ export default class ExternalModule {
 		};
 	}
 
-	markExport () {}
+	// External modules are always marked for inclusion in the bundle.
+	// Marking an external module signals its use as a namespace.
+	mark () {
+		this.needsAll = true;
+	}
 }
