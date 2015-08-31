@@ -172,7 +172,8 @@ export default class Statement {
 						}
 
 						// If a namespace is the left hand side of an assignment, throw an error.
-						if ( parent.type === 'AssignmentExpression' && parent.left === node ) {
+						if ( parent.type === 'AssignmentExpression' && parent.left === node ||
+								parent.type === 'UpdateExpression' && parent.argument === node ) {
 							const err = new Error( `Illegal reassignment to import '${chainedMemberExpression( node )}'` );
 							err.file = this.module.id;
 							err.loc = getLocation( this.module.magicString.toString(), node.start );
