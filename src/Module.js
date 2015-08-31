@@ -69,8 +69,9 @@ export default class Module {
 				return reference.call( this.exports, name );
 			}
 
-			// ... otherwise search exportAlls.
-			for ( const module of this.exportAlls ) {
+			// ... otherwise search exportAlls
+			for ( let i = 0; i < this.exportAlls.length; i += 1 ) {
+				const module = this.exportAlls[i];
 				if ( module.exports.inScope( name ) ) {
 					return module.exports.reference( name );
 				}
@@ -83,11 +84,7 @@ export default class Module {
 		this.exports.inScope = name => {
 			if ( inScope.call( this.exports, name ) ) return true;
 
-			for ( const module of this.exportAlls ) {
-				if ( module.exports.inScope( name ) ) return true;
-			}
-
-			return false;
+			return this.exportAlls.some( module => module.exports.inScope( name ) );
 		};
 
 		// Create a unique virtual scope for references to the module.
