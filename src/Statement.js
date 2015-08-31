@@ -15,6 +15,14 @@ function isFunctionDeclaration ( node, parent ) {
 	if ( node.type === 'FunctionExpression' && parent.type === 'VariableDeclarator' ) return true;
 }
 
+function chainedMemberExpression ( node ) {
+	if ( node.object.type === 'MemberExpression' ) {
+		return chainedMemberExpression( node.object ) + '.' + node.property.name;
+	}
+
+	return node.object.name + '.' + node.property.name;
+}
+
 export default class Statement {
 	constructor ( node, module, start, end ) {
 		this.node = node;
@@ -161,6 +169,14 @@ export default class Statement {
 							if ( !id || !id.isModule || id.isExternal ) return;
 
 							namespace = id;
+						}
+
+						// If a namespace is the left hand side of an assignment, throw an error.
+						if ( parent.type === 'AssignmentExpression' && parent.left === node ) {
+							const err = new Error( `Illegal reassignment to import '${chainedMemberExpression( node )}'` );
+							err.file = this.module.id;
+							err.loc = getLocation( this.module.magicString.toString(), node.start );
+							throw err;
 						}
 
 						// Extract the name of the accessed property, from and Identifier or Literal.
