@@ -37,6 +37,11 @@ export default class Module {
 		// Implement Identifier interface.
 		this.name = makeLegalIdentifier( basename( id ).slice( 0, -extname( id ).length ) );
 
+		// HACK: If `id` isn't a path, the above code yields the empty string.
+		if ( !this.name ) {
+			this.name = makeLegalIdentifier( id );
+		}
+
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
 		this.magicString = new MagicString( source, {
