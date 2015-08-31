@@ -6,7 +6,6 @@ var sander = require( 'sander' );
 var assert = require( 'assert' );
 var exec = require( 'child_process' ).exec;
 var babel = require( 'babel-core' );
-var sequence = require( './utils/promiseSequence' );
 var rollup = require( '../dist/rollup' );
 
 var FUNCTION = path.resolve( __dirname, 'function' );
@@ -164,13 +163,11 @@ describe( 'rollup', function () {
 					entry: FORM + '/' + dir + '/main.js'
 				});
 
-				var bundlePromise = rollup.rollup( options );
-
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
 						if ( config.solo ) console.group( dir );
 
-						return bundlePromise.then( function ( bundle ) {
+						return rollup.rollup( options ).then( function ( bundle ) {
 							var options = extend( {}, config.options, {
 								dest: FORM + '/' + dir + '/_actual/' + profile.format + '.js',
 								format: profile.format
@@ -219,11 +216,9 @@ describe( 'rollup', function () {
 					entry: SOURCEMAPS + '/' + dir + '/main.js'
 				});
 
-				var bundlePromise = rollup.rollup( options );
-
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
-						return bundlePromise.then( function ( bundle ) {
+						return rollup.rollup( options ).then( function ( bundle ) {
 							var options = extend( {}, config.options, {
 								format: profile.format,
 								sourceMap: true,
