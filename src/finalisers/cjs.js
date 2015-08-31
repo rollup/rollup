@@ -5,10 +5,15 @@ export default function cjs ( bundle, magicString, { exportMode }, options ) {
 	let intro = options.useStrict === false ? `` : `'use strict';\n\n`;
 
 	// TODO handle empty imports, once they're supported
-	const importBlock = bundle.externalModules
+	let importBlock = bundle.externalModules
 		.map( module => `var ${module.name} = require('${module.id}');`)
-		.concat( getInteropBlock( bundle ) )
-		.join( '\n' );
+		.join('\n');
+
+	const interopBlock = getInteropBlock( bundle );
+
+	if ( interopBlock ) {
+		importBlock += '\n' + interopBlock;
+	}
 
 	if ( importBlock ) {
 		intro += importBlock + '\n\n';
