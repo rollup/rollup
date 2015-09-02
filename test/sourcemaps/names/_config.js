@@ -9,23 +9,19 @@ module.exports = {
 		moduleName: 'myModule'
 	},
 	test: function ( code, map ) {
-		var smc = new SourceMapConsumer( map );
-		var generatedLoc, originalLoc;
-
 		var match = /Object\.create\( ([^\.]+)\.prototype/.exec( code );
-		if ( !match ) throw new Error( 'errr...' );
 
 		var deconflictedName = match[1];
 		if ( deconflictedName === 'Foo' ) throw new Error( 'Need to update this test!' );
 
-		var pattern = new RegExp( deconflictedName, 'g' );
+		var smc = new SourceMapConsumer( map );
 
 		var index = code.indexOf( deconflictedName );
-		generatedLoc = getLocation( code, index );
-		originalLoc = smc.originalPositionFor( generatedLoc );
+		var generatedLoc = getLocation( code, index );
+		var originalLoc = smc.originalPositionFor( generatedLoc );
 		assert.equal( originalLoc.name, 'Foo' );
 
-		var index = code.indexOf( deconflictedName, index + 1 );
+		index = code.indexOf( deconflictedName, index + 1 );
 		generatedLoc = getLocation( code, index );
 		originalLoc = smc.originalPositionFor( generatedLoc );
 		assert.equal( originalLoc.name, 'Bar' );
