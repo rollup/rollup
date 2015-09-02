@@ -304,7 +304,7 @@ export default class Statement {
 
 				// `this` is undefined at the top level of ES6 modules
 				if ( node.type === 'ThisExpression' && depth === 0 ) {
-					magicString.overwrite( node.start, node.end, 'undefined' );
+					magicString.overwrite( node.start, node.end, 'undefined', true );
 				}
 
 				// special case - variable declarations that need to be rewritten
@@ -315,7 +315,7 @@ export default class Statement {
 						// needs to be rewritten, we replace the whole lot
 						const name = node.declarations[0].id.name;
 						if ( node.declarations.length === 1 && bundleExports[ name ] ) {
-							magicString.overwrite( node.start, node.declarations[0].id.end, bundleExports[ name ] );
+							magicString.overwrite( node.start, node.declarations[0].id.end, bundleExports[ name ], true );
 							node.declarations[0].id._skip = true;
 						}
 
@@ -392,7 +392,7 @@ export default class Statement {
 				// TODO others...?
 
 				// all other identifiers should be overwritten
-				magicString.overwrite( node.start, node.end, name );
+				magicString.overwrite( node.start, node.end, name, true );
 			},
 
 			leave ( node ) {
