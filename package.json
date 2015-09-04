@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "description": "Next-generation ES6 module bundler",
   "main": "dist/rollup.js",
   "jsnext:main": "src/rollup.js",
@@ -48,7 +48,7 @@
   "dependencies": {
     "acorn": "^2.3.0",
     "chalk": "^1.0.0",
-    "magic-string": "^0.6.5",
+    "magic-string": "^0.7.0",
     "minimist": "^1.1.1",
     "sander": "^0.3.3",
     "source-map-support": "^0.3.1"

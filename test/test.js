@@ -224,12 +224,13 @@ describe( 'rollup', function () {
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
 						return bundlePromise.then( function ( bundle ) {
-							var result = bundle.generate({
+							var options = extend( {}, config.options, {
 								format: profile.format,
 								sourceMap: true,
 								sourceMapFile: 'bundle.js'
 							});
 
+							var result = bundle.generate( options );
 							config.test( result.code, result.map );
 						});
 					});
