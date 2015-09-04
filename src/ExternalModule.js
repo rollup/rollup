@@ -1,6 +1,22 @@
 import { blank } from './utils/object';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
+// An external identifier.
+class Id {
+	constructor ( module, name ) {
+		this.originalName = this.name = name;
+		this.module = module;
+
+		this.modifierStatements = [];
+	}
+
+	// Flags the identifier as imported by the bundle when marked.
+	mark () {
+		this.module.importedByBundle[ this.originalName ] = true;
+		this.modifierStatements.forEach( stmt => stmt.mark() );
+	}
+}
+
 export default class ExternalModule {
 	constructor ( { id, bundle } ) {
 		this.id = id;
@@ -35,15 +51,7 @@ export default class ExternalModule {
 			}
 
 			if ( !this.exports.defines( name ) ) {
-				this.exports.define( name, {
-					originalName: name,
-					name,
-
-					module: this,
-					mark: () => {
-						this.importedByBundle[ name ] = true;
-					}
-				});
+				this.exports.define( name, new Id( this, name ) );
 			}
 
 			return reference.call( this.exports, name );

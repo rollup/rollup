@@ -25,6 +25,29 @@ function removeSourceMappingURLComments ( source, magicString ) {
 	}
 }
 
+function assign ( target, source ) {
+	for ( var key in source ) target[ key ] = source[ key ];
+}
+
+class Id {
+	constructor ( module, name, statement ) {
+		this.originalName = this.name = name;
+		this.module = module;
+		this.statement = statement;
+
+		this.modifierStatements = [];
+
+		// modifiers
+		this.isUsed = false;
+	}
+
+	mark () {
+		this.isUsed = true;
+		this.statement.mark();
+		this.modifierStatements.forEach( stmt => stmt.mark() );
+	}
+}
+
 export default class Module {
 	constructor ({ id, source, ast, bundle }) {
 		this.source = source;
@@ -145,27 +168,15 @@ export default class Module {
 			const name = identifier || this.name;
 
 			// Always define a new `Identifier` for the default export.
-			this.exports.define( 'default', {
-				originalName: 'default',
-				name,
+			const id = new Id( this, name, statement );
 
-				module: this,
-				mark () {
-					this.isUsed = true;
-					this.statement.mark();
-				},
-				statement,
+			// Keep the identifier name, if one exists.
+			// We can optimize the newly created default `Identifier` away,
+			// if it is never modified.
+			// in case of `export default foo; foo = somethingElse`
+			assign( id, { isDeclaration, isAnonymous, identifier } );
 
-				// Keep the identifier name, if one exists.
-				// We can optimize the newly created default `Identifier` away,
-				// if it is never modified.
-				// in case of `export default foo; foo = somethingElse`
-				identifier,
-				isModified: false,
-
-				isDeclaration,
-				isAnonymous
-			});
+			this.exports.define( 'default', id );
 		}
 
 		// export { foo, bar, baz }
@@ -195,20 +206,7 @@ export default class Module {
 					name = declaration.id.name;
 				}
 
-				this.locals.define( name, {
-					originalName: name,
-					name,
-
-					module: this,
-					mark () {
-						this.isUsed = true;
-						this.statement.mark();
-					},
-					statement,
-					localName: name,
-					expression: declaration
-				});
-
+				this.locals.define( name, new Id( this, name, statement ) );
 				this.exports.bind( name, this.locals.reference( name ) );
 			}
 		}
@@ -264,17 +262,7 @@ export default class Module {
 
 			// consolidate names that are defined/modified in this module
 			keys( statement.defines ).forEach( name => {
-				this.locals.define( name, {
-					originalName: name,
-					name,
-
-					statement,
-					module: this,
-					mark () {
-						this.isUsed = true;
-						this.statement.mark();
-					}
-				});
+				this.locals.define( name, new Id( this, name, statement ) );
 			});
 		});
 
@@ -384,6 +372,17 @@ export default class Module {
 				if ( statement.defines[ name ] ) return;
 
 				addDependency( weakDependencies, this.locals.lookup( name ) );
+			});
+		});
+
+		this.locals.getNames().forEach( name => {
+			const id = this.locals.lookup( name );
+
+			if ( !id.modifierStatements ) return;
+
+			id.modifierStatements.forEach( statement => {
+				const module = statement.module;
+				weakDependencies[ module.id ] = module;
 			});
 		});
 
