@@ -4,16 +4,16 @@
 	factory();
 }(this, function () { 'use strict';
 
-	var _bar = 42;
+	var bar = 42;
 
 	function foo () {
-		return _bar;
+		return bar;
 	}
 
-	function bar () {
+	function _bar () {
 		alert( foo() );
 	}
 
-	bar();
+	_bar();
 
 }));
