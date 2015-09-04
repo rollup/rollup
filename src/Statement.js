@@ -53,6 +53,19 @@ export default class Statement {
 	analyse () {
 		if ( this.isImportDeclaration ) return; // nothing to analyse
 
+		// `export { name } from './other'` is a special case
+		if ( this.isReexportDeclaration ) {
+			this.node.specifiers && this.node.specifiers.forEach( specifier => {
+				const id = this.module.exports.lookup( specifier.exported.name );
+
+				if ( !~this.dependantIds.indexOf( id ) ) {
+					this.dependantIds.push( id );
+				}
+			});
+
+			return;
+		}
+
 		let scope = this.scope;
 
 		walk( this.node, {
@@ -338,17 +351,6 @@ export default class Statement {
 	mark () {
 		if ( this.isIncluded ) return; // prevent infinite loops
 		this.isIncluded = true;
-
-		// `export { name } from './other'` is a special case
-		if ( this.isReexportDeclaration ) {
-			// TODO: If we add the specifiers to `dependantIds`,
-			// we can remove this special case.
-			this.node.specifiers.forEach( specifier => {
-				this.module.exports.lookup( specifier.exported.name ).mark();
-			});
-
-			return;
-		}
 
 		this.dependantIds.forEach( id => id.mark() );
 
