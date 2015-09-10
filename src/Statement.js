@@ -151,6 +151,7 @@ export default class Statement {
 		let writeDepth = 0;
 
 		// Used to track
+		let topName;
 		let currentMemberExpression = null;
 		let namespace = null;
 
@@ -176,7 +177,8 @@ export default class Statement {
 						currentMemberExpression = node;
 
 						if ( !namespace ) {
-							const id = this.module.locals.lookup( node.object.name );
+							topName = node.object.name;
+							const id = this.module.locals.lookup( topName );
 
 							if ( !id || !id.isModule || id.isExternal ) return;
 
@@ -224,6 +226,17 @@ export default class Statement {
 							if ( !~this.dependantIds.indexOf( id ) ) {
 								this.dependantIds.push( id );
 							}
+
+							// FIXME: do this better
+							// If we depend on this name...
+							if ( this.dependsOn[ topName ] ) {
+								// ... decrement the count...
+								if ( !--this.dependsOn[ topName ] ) {
+									// ... and remove it if the count is 0.
+									delete this.dependsOn[ topName ];
+								}
+							}
+
 							this.namespaceReplacements.push( [ node, id ] );
 							namespace = null;
 							currentMemberExpression = null;
@@ -262,7 +275,11 @@ export default class Statement {
 			const definingScope = scope.findDefiningScope( node.name );
 
 			if ( !definingScope || definingScope.depth === 0 ) {
-				this.dependsOn[ node.name ] = true;
+				if ( !( node.name in this.dependsOn ) ) {
+					this.dependsOn[ node.name ] = 0;
+				}
+
+				this.dependsOn[ node.name ]++;
 				if ( strong ) this.stronglyDependsOn[ node.name ] = true;
 			}
 		}
