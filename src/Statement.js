@@ -33,7 +33,6 @@ export default class Statement {
 
 		this.scope = new Scope();
 		this.defines = blank();
-		this.modifies = blank();
 		this.dependsOn = blank();
 		this.stronglyDependsOn = blank();
 
@@ -326,7 +325,11 @@ export default class Statement {
 			// anything (but we still need to call checkForWrites to
 			// catch illegal reassignments to imported bindings)
 			if ( writeDepth === 0 && node.type === 'Identifier' ) {
-				this.modifies[ node.name ] = true;
+				const id = this.module.locals.lookup( node.name );
+
+				if ( id && id.modifierStatements && !~id.modifierStatements.indexOf( this ) ) {
+					id.modifierStatements.push( this );
+				}
 			}
 		};
 

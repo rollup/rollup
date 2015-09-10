@@ -60,7 +60,6 @@ export default class Bundle {
 				this.exports = entryModule.exports;
 
 				entryModule.markAllStatements( true );
-				this.markAllModifierStatements();
 				this.orderedModules = this.sort();
 
 				this.exports.localIds().forEach( ([ , id ]) => {
@@ -146,37 +145,6 @@ export default class Bundle {
 		});
 
 		return Promise.all( promises );
-	}
-
-	markAllModifierStatements () {
-		let settled = true;
-
-		this.modules.forEach( module => {
-			module.statements.forEach( statement => {
-				if ( statement.isIncluded ) return;
-
-				keys( statement.modifies ).forEach( name => {
-					const local = module.locals.lookup( name );
-					const exported = module.exports.lookup( name );
-
-					if ( local && local.module === module || exported && exported.isUsed ) {
-						settled = false;
-						statement.mark();
-						return;
-					}
-
-					// special case - https://github.com/rollup/rollup/pull/40
-					// TODO refactor this? it's a bit confusing
-					// TODO things like `export default a + b` don't apply here... right?
-					if ( !local || !local.statement || !local.module || local.module.isExternal ) return;
-
-					settled = false;
-					statement.mark();
-				});
-			});
-		});
-
-		if ( !settled ) this.markAllModifierStatements();
 	}
 
 	render ( options = {} ) {
