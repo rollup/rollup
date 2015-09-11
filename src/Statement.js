@@ -172,7 +172,7 @@ export default class Statement {
 
 					if ( node._scope ) scope = scope.parent;
 
-					// Optimize namespace lookups, which manifests as MemberExpressions.
+					// Optimize namespace lookups, which manifest as MemberExpressions.
 					if ( node.type === 'MemberExpression' && ( !currentMemberExpression || node.object === currentMemberExpression ) ) {
 						currentMemberExpression = node;
 
@@ -196,16 +196,19 @@ export default class Statement {
 
 						// Extract the name of the accessed property, from and Identifier or Literal.
 						// Any eventual Literal value is converted to a string.
-						const name = node.property.name ||
+						const name = !node.computed ? node.property.name :
 							( node.property.type === 'Literal' ? String( node.property.value ) : null );
 
-						// If we can't resolve the name being accessed,
+						// If we can't resolve the name being accessed statically,
 						// we require the namespace to be dynamically accessible.
 						//
 						//     // resolvable
+						//     console.log( javascript.keywords.for )
+						//     console.log( javascript.keywords[ 'for' ] )
 						//     console.log( javascript.keywords[ 6 ] )
 						//
 						//     // unresolvable
+						//     console.log( javascript.keywords[ index ] )
 						//     console.log( javascript.keywords[ 1 + 5 ] )
 						if ( name === null ) {
 							namespace.dynamicAccess();
@@ -217,6 +220,8 @@ export default class Statement {
 
 						const id = namespace.exports.lookup( name );
 
+						// If the namespace doesn't define the given name,
+						// we can throw an error (even for nested namespaces).
 						if ( !id ) {
 							throw new Error( `Module doesn't define "${name}"!` );
 						}
