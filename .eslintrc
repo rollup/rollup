@@ -1,15 +1,19 @@
 {
 	"rules": {
-		"indent": [ 2, "tab", { "SwitchCase": 1}],
+		"indent": [ 2, "tab", { "SwitchCase": 1 } ],
 		"quotes": [ 2, "single" ],
 		"linebreak-style": [ 2, "unix" ],
 		"semi": [ 2, "always" ],
+		"space-after-keywords": [ 2, "always" ],
+		"space-before-blocks": [ 2, "always" ],
+		"space-before-function-paren": [ 2, "always" ],
 		"no-mixed-spaces-and-tabs": [ 2, "smart-tabs" ],
 		"no-cond-assign": [ 0 ]
 	},
 	"env": {
 		"es6": true,
 		"browser": true,
+		"mocha": true,
 		"node": true
 	},
 	"extends": "eslint:recommended",

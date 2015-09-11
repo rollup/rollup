@@ -1,17 +1,16 @@
-import { basename, extname } from './utils/path';
 import { Promise } from 'sander';
 import MagicString from 'magic-string';
 import { blank, keys } from './utils/object';
 import Module from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
-import makeLegalIdentifier from './utils/makeLegalIdentifier';
 import ensureArray from './utils/ensureArray';
 import { defaultResolver, defaultExternalResolver } from './utils/resolveId';
 import { defaultLoader } from './utils/load';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
+import Scope from './Scope';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -30,6 +29,18 @@ export default class Bundle {
 			transform: ensureArray( options.transform )
 		};
 
+		// The global scope, and the bundle's internal scope.
+		this.globals = new Scope();
+		this.scope = new Scope( this.globals );
+
+		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
+		// However, the deconfliction logic is greatly simplified by being the same for all formats.
+		this.globals.define( 'exports' );
+		this.scope.bind( 'exports', this.globals.reference( 'exports' ) );
+
+		// Alias for entryModule.exports.
+		this.exports = null;
+
 		this.toExport = null;
 
 		this.pending = blank();
@@ -39,134 +50,37 @@ export default class Bundle {
 		this.statements = null;
 		this.externalModules = [];
 		this.internalNamespaceModules = [];
-
-		this.assumedGlobals = blank();
-		this.assumedGlobals.exports = true; // TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 	}
 
 	build () {
 		return Promise.resolve( this.resolveId( this.entry, undefined, this.resolveOptions ) )
 			.then( id => this.fetchModule( id ) )
 			.then( entryModule => {
-				entryModule.bindImportSpecifiers();
-
-				const defaultExport = entryModule.exports.default;
-
 				this.entryModule = entryModule;
-
-				if ( defaultExport ) {
-					entryModule.needsDefault = true;
-
-					// `export default function foo () {...}` -
-					// use the declared name for the export
-					if ( defaultExport.identifier ) {
-						entryModule.suggestName( 'default', defaultExport.identifier );
-					}
-
-					// `export default a + b` - generate an export name
-					// based on the id of the entry module
-					else {
-						let defaultExportName = makeLegalIdentifier( basename( this.entryModule.id ).slice( 0, -extname( this.entryModule.id ).length ) );
-
-						// deconflict
-						let topLevelNames = [];
-						entryModule.statements.forEach( statement => {
-							keys( statement.defines ).forEach( name => topLevelNames.push( name ) );
-						});
-
-						while ( ~topLevelNames.indexOf( defaultExportName ) ) {
-							defaultExportName = `_${defaultExportName}`;
-						}
-
-						entryModule.suggestName( 'default', defaultExportName );
-					}
-				}
+				this.exports = entryModule.exports;
 
 				entryModule.markAllStatements( true );
-				this.markAllModifierStatements();
 				this.orderedModules = this.sort();
+
+				this.exports.localIds().forEach( ([ , id ]) => {
+					// If the export is a module (namespace), we need
+					// all its exports dynamically accessible.
+					if ( id.module === id ) id.dynamicAccess();
+				});
+
+				// As a last step, deconflict all identifier names, once.
+				this.scope.deconflict();
+
+				// Alias the default import to the external module named
+				// for external modules that don't need named imports.
+				this.externalModules.forEach( module => {
+					const externalDefault = module.exports.lookup( 'default' );
+
+					if ( externalDefault && !( module.needsNamed || module.needsAll ) ) {
+						externalDefault.name = module.name;
+					}
+				});
 			});
-	}
-
-	// TODO would be better to deconflict once, rather than per-render
-	deconflict ( es6 ) {
-		let usedNames = blank();
-
-		// ensure no conflicts with globals
-		keys( this.assumedGlobals ).forEach( name => usedNames[ name ] = true );
-
-		let allReplacements = blank();
-
-		// Assign names to external modules
-		this.externalModules.forEach( module => {
-			// while we're here...
-			allReplacements[ module.id ] = blank();
-
-			// TODO is this necessary in the ES6 case?
-			let name = makeLegalIdentifier( module.suggestedNames['*'] || module.suggestedNames.default || module.id );
-			module.name = getSafeName( name );
-		});
-
-		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
-		let i = this.orderedModules.length;
-		while ( i-- ) {
-			const module = this.orderedModules[i];
-
-			// while we're here...
-			allReplacements[ module.id ] = blank();
-
-			keys( module.definitions ).forEach( name => {
-				const safeName = getSafeName( name );
-				if ( safeName !== name ) {
-					module.rename( name, safeName );
-					allReplacements[ module.id ][ name ] = safeName;
-				}
-			});
-		}
-
-		// Assign non-conflicting names to internal default/namespace export
-		this.orderedModules.forEach( module => {
-			if ( !module.needsDefault && !module.needsAll ) return;
-
-			if ( module.needsAll ) {
-				const namespaceName = getSafeName( module.suggestedNames[ '*' ] );
-				module.replacements[ '*' ] = namespaceName;
-			}
-
-			if ( module.needsDefault || module.needsAll && module.exports.default ) {
-				const defaultExport = module.exports.default;
-
-				// only create a new name if either
-				//   a) it's an expression (`export default 42`) or
-				//   b) it's a name that is reassigned to (`export var a = 1; a = 2`)
-				if ( defaultExport && defaultExport.identifier && !defaultExport.isModified ) return; // TODO encapsulate check for whether we need synthetic default name
-
-				const defaultName = getSafeName( module.suggestedNames.default );
-				module.replacements.default = defaultName;
-			}
-		});
-
-		this.orderedModules.forEach( module => {
-			keys( module.imports ).forEach( localName => {
-				if ( !module.imports[ localName ].isUsed ) return;
-
-				const bundleName = this.trace( module, localName, es6 );
-				if ( bundleName !== localName ) {
-					allReplacements[ module.id ][ localName ] = bundleName;
-				}
-			});
-		});
-
-		function getSafeName ( name ) {
-			while ( usedNames[ name ] ) {
-				name = `_${name}`;
-			}
-
-			usedNames[ name ] = true;
-			return name;
-		}
-
-		return allReplacements;
 	}
 
 	fetchModule ( id ) {
@@ -193,7 +107,13 @@ export default class Bundle {
 				this.modules.push( module );
 				this.moduleById[ id ] = module;
 
-				return this.fetchAllDependencies( module ).then( () => module );
+				return this.fetchAllDependencies( module ).then( () => {
+					// Analyze the module once all its dependencies have been resolved.
+					// This means that any dependencies of a module has already been
+					// analysed when it's time for the module itself.
+					module.analyse();
+					return module;
+				});
 			});
 	}
 
@@ -206,7 +126,7 @@ export default class Bundle {
 					// external module
 					if ( !resolvedId ) {
 						if ( !this.moduleById[ source ] ) {
-							const module = new ExternalModule( source );
+							const module = new ExternalModule( { id: source, bundle: this } );
 							this.externalModules.push( module );
 							this.moduleById[ source ] = module;
 						}
@@ -225,51 +145,8 @@ export default class Bundle {
 		return Promise.all( promises );
 	}
 
-	markAllModifierStatements () {
-		let settled = true;
-
-		this.modules.forEach( module => {
-			module.statements.forEach( statement => {
-				if ( statement.isIncluded ) return;
-
-				keys( statement.modifies ).forEach( name => {
-					const definingStatement = module.definitions[ name ];
-					const exportDeclaration = module.exports[ name ] || module.reexports[ name ] || (
-						module.exports.default && module.exports.default.identifier === name && module.exports.default
-					);
-
-					const shouldMark = ( definingStatement && definingStatement.isIncluded ) ||
-					                   ( exportDeclaration && exportDeclaration.isUsed );
-
-					if ( shouldMark ) {
-						settled = false;
-						statement.mark();
-						return;
-					}
-
-					// special case - https://github.com/rollup/rollup/pull/40
-					// TODO refactor this? it's a bit confusing
-					const importDeclaration = module.imports[ name ];
-					if ( !importDeclaration || importDeclaration.module.isExternal ) return;
-
-					const otherExportDeclaration = importDeclaration.module.exports[ importDeclaration.name ];
-					// TODO things like `export default a + b` don't apply here... right?
-					const otherDefiningStatement = module.findDefiningStatement( otherExportDeclaration.localName );
-
-					if ( !otherDefiningStatement ) return;
-
-					settled = false;
-					statement.mark();
-				});
-			});
-		});
-
-		if ( !settled ) this.markAllModifierStatements();
-	}
-
 	render ( options = {} ) {
 		const format = options.format || 'es6';
-		const allReplacements = this.deconflict( format === 'es6' );
 
 		// Determine export mode - 'default', 'named', 'none'
 		const exportMode = getExportMode( this, options.exports );
@@ -296,15 +173,14 @@ export default class Bundle {
 
 		this.orderedModules.forEach( module => {
 			module.reassignments.forEach( name => {
-				isReassignedVarDeclaration[ module.replacements[ name ] || name ] = true;
+				isReassignedVarDeclaration[ module.locals.lookup( name ).name ] = true;
 			});
 		});
 
 		if ( format !== 'es6' && exportMode === 'named' ) {
-			keys( this.entryModule.exports )
-				.concat( keys( this.entryModule.reexports ) )
+			this.exports.getNames()
 				.forEach( name => {
-					const canonicalName = this.traceExport( this.entryModule, name );
+					const canonicalName = this.exports.lookup( name ).name;
 
 					if ( isReassignedVarDeclaration[ canonicalName ] ) {
 						varExports[ name ] = true;
@@ -322,14 +198,13 @@ export default class Bundle {
 
 		// since we're rewriting variable exports, we want to
 		// ensure we don't try and export them again at the bottom
-		this.toExport = keys( this.entryModule.exports )
-			.concat( keys( this.entryModule.reexports ) )
+		this.toExport = this.exports.getNames()
 			.filter( key => !varExports[ key ] );
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
 		this.orderedModules.forEach( module => {
-			const source = module.render( allBundleExports, allReplacements[ module.id ], format );
+			const source = module.render( allBundleExports, format === 'es6' );
 			if ( source.toString().length ) {
 				magicString.addSource( source );
 			}
@@ -337,15 +212,12 @@ export default class Bundle {
 
 		// prepend bundle with internal namespaces
 		const indentString = getIndentString( magicString, options );
-		const namespaceBlock = this.internalNamespaceModules.map( module => {
-			const exports = keys( module.exports )
-				.concat( keys( module.reexports ) )
-				.map( name => {
-					const canonicalName = this.traceExport( module, name );
-					return `${indentString}get ${name} () { return ${canonicalName}; }`;
-				});
 
-			return `var ${module.replacements['*']} = {\n` +
+		const namespaceBlock = this.internalNamespaceModules.map( module => {
+			const exports = module.exports.localIds().map( ( [ name, id ] ) =>
+				`${indentString}get ${name} () { return ${id.name}; }`);
+
+			return `var ${module.name} = {\n` +
 				exports.join( ',\n' ) +
 			`\n};\n\n`;
 		}).join( '' );
@@ -390,12 +262,17 @@ export default class Bundle {
 	}
 
 	sort () {
-		let seen = {};
+		// Set of visited module ids.
+		let seen = blank();
+
 		let ordered = [];
 		let hasCycles;
 
-		let strongDeps = {};
-		let stronglyDependsOn = {};
+		// Map from module id to list of modules.
+		let strongDeps = blank();
+
+		// Map from module id to boolean.
+		let stronglyDependsOn = blank();
 
 		function visit ( module ) {
 			seen[ module.id ] = true;
@@ -471,39 +348,5 @@ export default class Bundle {
 		}
 
 		return ordered;
-	}
-
-	trace ( module, localName, es6 ) {
-		const importDeclaration = module.imports[ localName ];
-
-		// defined in this module
-		if ( !importDeclaration ) return module.replacements[ localName ] || localName;
-
-		// defined elsewhere
-		return this.traceExport( importDeclaration.module, importDeclaration.name, es6 );
-	}
-
-	traceExport ( module, name, es6 ) {
-		if ( module.isExternal ) {
-			if ( name === 'default' ) return module.needsNamed && !es6 ? `${module.name}__default` : module.name;
-			if ( name === '*' ) return module.name;
-			return es6 ? name : `${module.name}.${name}`;
-		}
-
-		const reexportDeclaration = module.reexports[ name ];
-		if ( reexportDeclaration ) {
-			return this.traceExport( reexportDeclaration.module, reexportDeclaration.localName );
-		}
-
-		if ( name === '*' ) return module.replacements[ '*' ];
-		if ( name === 'default' ) return module.defaultName();
-
-		const exportDeclaration = module.exports[ name ];
-		if ( exportDeclaration ) return this.trace( module, exportDeclaration.localName );
-
-		const exportDelegate = module.exportDelegates[ name ];
-		if ( exportDelegate ) return this.traceExport( exportDelegate.module, name, es6 );
-
-		throw new Error( `Could not trace binding '${name}' from ${module.id}` );
 	}
 }

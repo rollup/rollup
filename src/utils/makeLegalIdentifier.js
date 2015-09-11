@@ -8,7 +8,10 @@ reservedWords.concat( builtins ).forEach( word => blacklisted[ word ] = true );
 
 
 export default function makeLegalIdentifier ( str ) {
-	str = str.replace( /[^$_a-zA-Z0-9]/g, '_' );
+	str = str
+		.replace( /-(\w)/g, ( _, letter ) => letter.toUpperCase() )
+		.replace( /[^$_a-zA-Z0-9]/g, '_' );
+
 	if ( /\d/.test( str[0] ) || blacklisted[ str ] ) str = `_${str}`;
 
 	return str;
