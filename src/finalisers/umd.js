@@ -37,6 +37,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 
 	const intro =
 		`(function (global, factory) {
+			if(typeof global === 'undefined') global = window;
 			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join( ', ' )}) :
 			typeof define === 'function' && define.amd ? define(${amdParams}factory) :
 			${defaultExport}factory(${globalDeps});
