@@ -111,8 +111,6 @@ export default class Bundle {
 					// Analyze the module once all its dependencies have been resolved.
 					// This means that any dependencies of a module has already been
 					// analysed when it's time for the module itself.
-					//
-					// FIXME: Except for cyclic dependencies...
 					module.analyse();
 					return module;
 				});
