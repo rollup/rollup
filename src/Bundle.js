@@ -1,5 +1,6 @@
 import { Promise } from 'sander';
 import MagicString from 'magic-string';
+import attempt from './utils/attempt.js';
 import { blank, keys } from './utils/object';
 import Module from './Module';
 import ExternalModule from './ExternalModule';
@@ -17,12 +18,16 @@ export default class Bundle {
 		this.entry = options.entry;
 		this.entryModule = null;
 
-		this.resolveId = options.resolveId || defaultResolver;
-		this.load = options.load || defaultLoader;
+		this.resolveId = ensureArray( options.resolveId )
+			.reduce( attempt, defaultResolver );
+
+		this.load = ensureArray( options.load )
+			.reduce( attempt, defaultLoader );
 
 		this.resolveOptions = {
 			external: ensureArray( options.external ),
-			resolveExternal: options.resolveExternal || defaultExternalResolver
+			resolveExternal: ensureArray( options.resolveExternal )
+				.reduce( attempt, defaultExternalResolver )
 		};
 
 		this.loadOptions = {
