@@ -156,17 +156,15 @@ describe( 'rollup', function () {
 		sander.readdirSync( FORM ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
-			describe( dir, function () {
-				var config = require( FORM + '/' + dir + '/_config' );
+			var config = require( FORM + '/' + dir + '/_config' );
 
-				var options = extend( {}, config.options, {
-					entry: FORM + '/' + dir + '/main.js'
-				});
+			var options = extend( {}, config.options, {
+				entry: FORM + '/' + dir + '/main.js'
+			});
 
+			( config.skip ? describe.skip : config.solo ? describe.only : describe)( dir, function () {
 				PROFILES.forEach( function ( profile ) {
-					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
-						if ( config.solo ) console.group( dir );
-
+					it( 'generates ' + profile.format, function () {
 						return rollup.rollup( options ).then( function ( bundle ) {
 							var options = extend( {}, config.options, {
 								dest: FORM + '/' + dir + '/_actual/' + profile.format + '.js',
@@ -195,8 +193,6 @@ describe( 'rollup', function () {
 
 								assert.equal( actualCode, expectedCode );
 								assert.deepEqual( actualMap, expectedMap );
-
-								if ( config.solo ) console.groupEnd();
 							});
 						});
 					});
