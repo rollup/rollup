@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rich-harris/rollup"
+    "url": "https://github.com/rollup/rollup"
   },
   "keywords": [
     "modules",
@@ -31,9 +31,9 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rich-harris/rollup/issues"
+    "url": "https://github.com/rollup/rollup/issues"
   },
-  "homepage": "https://github.com/rich-harris/rollup",
+  "homepage": "https://github.com/rollup/rollup",
   "devDependencies": {
     "babel": "^5.8.21",
     "babel-core": "^5.5.8",
