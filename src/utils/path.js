@@ -1,6 +1,6 @@
 // TODO does this all work on windows?
 
-export const absolutePath = /^(?:\/|(?:[A-Za-z]:)?\\)/;
+export const absolutePath = /^(?:\/|(?:[A-Za-z]:)?[\\|\/])/;
 
 export function isAbsolute ( path ) {
 	return absolutePath.test( path );
