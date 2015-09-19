@@ -118,8 +118,8 @@ export default class Scope {
 	}
 
 	// Returns a list of `[ name, identifier ]` tuples.
-	localIds () {
-		return keys( this.names ).map( name => [ name, this.lookup( name ) ] );
+	getIds () {
+		return keys( this.names ).map( name => this.lookup( name ) );
 	}
 
 	// Lookup the identifier referred to by `name`.

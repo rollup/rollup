@@ -26,7 +26,7 @@ function removeSourceMappingURLComments ( source, magicString ) {
 }
 
 function assign ( target, source ) {
-	for ( var key in source ) target[ key ] = source[ key ];
+	for ( let key in source ) target[ key ] = source[ key ];
 }
 
 class Id {
@@ -92,9 +92,9 @@ export default class Module {
 				return reference.call( this.exports, name );
 			}
 
-			// ... otherwise search exportAlls
-			for ( let i = 0; i < this.exportAlls.length; i += 1 ) {
-				const module = this.exportAlls[i];
+			// ... otherwise search allExportsFrom
+			for ( let i = 0; i < this.allExportsFrom.length; i += 1 ) {
+				const module = this.allExportsFrom[i];
 				if ( module.exports.inScope( name ) ) {
 					return module.exports.reference( name );
 				}
@@ -107,7 +107,7 @@ export default class Module {
 		this.exports.inScope = name => {
 			if ( inScope.call( this.exports, name ) ) return true;
 
-			return this.exportAlls.some( module => module.exports.inScope( name ) );
+			return this.allExportsFrom.some( module => module.exports.inScope( name ) );
 		};
 
 		// Create a unique virtual scope for references to the module.
@@ -115,7 +115,9 @@ export default class Module {
 		// unique.define( this.name, this );
 		// this.reference = unique.reference( this.name );
 
-		this.exportAlls = [];
+		// As far as we know, all our exported bindings have been resolved.
+		this.allExportsResolved = true;
+		this.allExportsFrom = [];
 
 		this.reassignments = [];
 
@@ -138,10 +140,18 @@ export default class Module {
 				// When an unknown import is encountered, we see if one of them can satisfy it.
 
 				if ( module.isExternal ) {
-					throw new Error( `Cannot trace 'export *' references through external modules.` );
+					let err = new Error( `Cannot trace 'export *' references through external modules.` );
+					err.file = this.id;
+					err.loc = getLocation( this.source, node.start );
+					throw err;
 				}
 
-				this.exportAlls.push( module );
+				// It seems like we must re-export all exports from another module...
+				this.allExportsResolved = false;
+
+				if ( !~this.allExportsFrom.indexOf( module ) ) {
+					this.allExportsFrom.push( module );
+				}
 			}
 
 			else {
@@ -266,6 +276,23 @@ export default class Module {
 			});
 		});
 
+		// If all exports aren't resolved, but all our delegate modules are...
+		if ( !this.allExportsResolved && this.allExportsFrom.every( module => module.allExportsResolved )) {
+			// .. then all our exports should be as well.
+			this.allExportsResolved = true;
+
+			// For all modules we export all from, iterate through its exported names.
+			// If we don't already define the binding 'name',
+			// bind the name to the other module's reference.
+			this.allExportsFrom.forEach( module => {
+				module.exports.getNames().forEach( name => {
+					if ( !this.exports.defines( name ) ) {
+						this.exports.bind( name, module.exports.reference( name ) );
+					}
+				});
+			});
+		}
+
 		// discover variables that are reassigned inside function
 		// bodies, so we can keep bindings live, e.g.
 		//
@@ -375,8 +402,12 @@ export default class Module {
 			});
 		});
 
-		this.locals.getNames().forEach( name => {
-			const id = this.locals.lookup( name );
+		// Go through all our local and exported ids and make us depend on
+		// the defining modules as well as
+		this.exports.getIds().concat(this.locals.getIds()).forEach( id => {
+			if ( id.module && !id.module.isExternal ) {
+				weakDependencies[ id.module.id ] = id.module;
+			}
 
 			if ( !id.modifierStatements ) return;
 
@@ -394,24 +425,16 @@ export default class Module {
 		return { strongDependencies, weakDependencies };
 	}
 
-	// Enforce dynamic access of the module's properties.
-	dynamicAccess () {
-		if ( this.needsDynamicAccess ) return;
-
-		this.needsDynamicAccess = true;
-		this.markAllExportStatements();
-
-		if ( !~this.bundle.internalNamespaceModules.indexOf( this ) ) {
-			this.bundle.internalNamespaceModules.push( this );
-		}
-	}
-
 	getModule ( source ) {
 		return this.bundle.moduleById[ this.resolvedIds[ source ] ];
 	}
 
+	// If a module is marked, enforce dynamic access of its properties.
 	mark () {
-		this.dynamicAccess();
+		if ( this.needsDynamicAccess ) return;
+		this.needsDynamicAccess = true;
+
+		this.markAllExports();
 	}
 
 	markAllStatements ( isEntryModule ) {
@@ -447,10 +470,9 @@ export default class Module {
 		});
 	}
 
-	markAllExportStatements () {
-		this.statements.forEach( statement => {
-			if ( statement.isExportDeclaration ) statement.mark();
-		});
+	// Marks all exported identifiers.
+	markAllExports () {
+		this.exports.getIds().forEach( id => id.mark() );
 	}
 
 	parse ( ast ) {
@@ -619,6 +641,11 @@ export default class Module {
 				// remove `export` from `export var foo = 42`
 				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.declaration.type === 'VariableDeclaration' ) {
 					magicString.remove( statement.node.start, statement.node.declaration.start );
+				}
+
+				else if ( statement.node.type === 'ExportAllDeclaration' ) {
+					// TODO: remove once `export * from 'external'` is supported.
+					magicString.remove( statement.start, statement.next );
 				}
 
 				// remove `export` from `export class Foo {...}` or `export default Foo`

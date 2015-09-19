@@ -206,7 +206,7 @@ export default class Statement {
 							( node.property.type === 'Literal' ? String( node.property.value ) : null );
 
 						// If we can't resolve the name being accessed statically,
-						// we require the namespace to be dynamically accessible.
+						// we mark the whole namespace for inclusion in the bundle.
 						//
 						//     // resolvable
 						//     console.log( javascript.keywords.for )
@@ -217,7 +217,7 @@ export default class Statement {
 						//     console.log( javascript.keywords[ index ] )
 						//     console.log( javascript.keywords[ 1 + 5 ] )
 						if ( name === null ) {
-							namespace.dynamicAccess();
+							namespace.mark();
 
 							namespace = null;
 							currentMemberExpression = null;
