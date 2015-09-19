@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.16.1
+
+* Handle assignment patterns, and destructured/rest parameters, when analysing scopes
+* Fix bug preventing project from self-building (make base `Identifier` class markable)
+
 ## 0.16.0
 
 * Internal refactoring ([#99](https://github.com/rollup/rollup/pull/99))
