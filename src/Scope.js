@@ -2,8 +2,14 @@ import { blank, keys } from './utils/object';
 
 // A minimal `Identifier` implementation. Anything that has an `originalName`,
 // and a mutable `name` property can be used as an `Identifier`.
-function Identifier ( name ) {
-	this.originalName = this.name = name;
+class Identifier {
+	constructor ( name ) {
+		this.originalName = this.name = name;
+	}
+
+	mark () {
+		// noop
+	}
 }
 
 // A reference to an `Identifier`.
