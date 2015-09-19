@@ -32,6 +32,10 @@ function extend ( target ) {
 	return target;
 }
 
+function normaliseOutput ( code ) {
+	return code.toString().trim().replace( /\r\n/g, '\n' );
+}
+
 describe( 'rollup', function () {
 	describe( 'sanity checks', function () {
 		it( 'exists', function () {
@@ -175,13 +179,13 @@ describe( 'rollup', function () {
 							});
 
 							return bundle.write( options ).then( function () {
-								var actualCode = sander.readFileSync( FORM, dir, '_actual', profile.format + '.js' ).toString().trim();
+								var actualCode = normaliseOutput( sander.readFileSync( FORM, dir, '_actual', profile.format + '.js' ) );
 								var expectedCode;
 								var actualMap;
 								var expectedMap;
 
 								try {
-									expectedCode = sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ).toString().trim();
+									expectedCode = normaliseOutput( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ) );
 								} catch ( err ) {
 									expectedCode = 'missing file';
 								}
