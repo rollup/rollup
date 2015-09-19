@@ -33,10 +33,16 @@ export default class Bundle {
 		this.globals = new Scope();
 		this.scope = new Scope( this.globals );
 
-		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
+		// Strictly speaking, these globals only apply to non-ES6, non-default-only bundles.
 		// However, the deconfliction logic is greatly simplified by being the same for all formats.
-		this.globals.define( 'exports' );
-		this.scope.bind( 'exports', this.globals.reference( 'exports' ) );
+		// * CommonJS needs `module` and `exports` ( and `require`? ) to be in scope.
+		// * SystemJS needs a reference to a function for its `exports`,
+		//   and another one for any `module` it imports. These global names can be reused!
+		[ 'exports', 'module' ]
+			.forEach( name => {
+				this.globals.define( name );
+				this.scope.bind( name, this.globals.reference( name ) );
+			});
 
 		// Alias for entryModule.exports.
 		this.exports = null;
