@@ -44,7 +44,7 @@
     "gobble-browserify": "^0.6.1",
     "gobble-cli": "^0.4.2",
     "gobble-esperanto-bundle": "^0.2.0",
-    "gobble-rollup": "^0.7.0",
+    "gobble-rollup": "^0.8.0",
     "gobble-rollup-babel": "^0.1.0",
     "mocha": "^2.2.4",
     "source-map": "^0.4.4"
