@@ -5,7 +5,7 @@ version: "{build}"
 clone_depth: 10
 
 init:
-  - git config --global core.autocrlf true
+  - git config --global core.autocrlf false
 
 environment:
   matrix:
