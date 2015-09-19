@@ -192,10 +192,12 @@ describe( 'rollup', function () {
 
 								try {
 									actualMap = JSON.parse( sander.readFileSync( FORM, dir, '_actual', profile.format + '.js.map' ).toString() );
+									actualMap.sourcesContent = actualMap.sourcesContent.map( normaliseOutput );
 								} catch ( err ) {}
 
 								try {
 									expectedMap = JSON.parse( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js.map' ).toString() );
+									expectedMap.sourcesContent = expectedMap.sourcesContent.map( normaliseOutput );
 								} catch ( err ) {}
 
 								assert.equal( actualCode, expectedCode );
@@ -314,7 +316,7 @@ describe( 'rollup', function () {
 						else {
 							var expected = sander.readFileSync( '_expected.js' ).toString();
 							try {
-								assert.equal( code.trim(), expected.trim() );
+								assert.equal( normaliseOutput( code ), normaliseOutput( expected ) );
 								done();
 							} catch ( err ) {
 								done( err );
