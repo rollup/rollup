@@ -2,6 +2,7 @@ require( 'source-map-support' ).install();
 require( 'console-group' ).install();
 
 var path = require( 'path' );
+var os = require( 'os' );
 var sander = require( 'sander' );
 var assert = require( 'assert' );
 var exec = require( 'child_process' ).exec;
@@ -244,9 +245,13 @@ describe( 'rollup', function () {
 				( config.skip ? it.skip : config.solo ? it.only : it )( dir, function ( done ) {
 					process.chdir( path.resolve( CLI, dir ) );
 
+					if (os.platform() === 'win32') {
+						config.command = "node " + path.resolve( __dirname, '../bin' ) + path.sep + config.command;
+					}
+
 					exec( config.command, {
 						env: {
-							PATH: path.resolve( __dirname, '../bin' ) + ':' + process.env.PATH
+							PATH: path.resolve( __dirname, '../bin' ) + path.delimiter + process.env.PATH
 						}
 					}, function ( err, code, stderr ) {
 						if ( err ) return done( err );

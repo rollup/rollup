@@ -24,7 +24,7 @@ export function defaultExternalResolver ( id, importer ) {
 	const root = absolutePath.exec( importer )[0];
 	let dir = dirname( importer );
 
-	while ( dir !== root ) {
+	while ( dir !== root  && dir !== "." ) {
 		const pkgPath = resolve( dir, 'node_modules', id, 'package.json' );
 		let pkgJson;
 
