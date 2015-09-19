@@ -3,6 +3,11 @@ import getLocation from './utils/getLocation';
 import walk from './ast/walk';
 import Scope from './ast/Scope';
 
+const blockDeclarations = {
+	'const': true,
+	'let': true
+};
+
 function isIife ( node, parent ) {
 	return parent && parent.type === 'CallExpression' && node === parent.callee;
 }
@@ -73,7 +78,7 @@ export default class Statement {
 
 				switch ( node.type ) {
 					case 'FunctionDeclaration':
-						scope.addDeclaration( node.id.name, node, false );
+						scope.addDeclaration( node, false, false );
 
 					case 'BlockStatement':
 						if ( parent && /Function/.test( parent.type ) ) {
@@ -86,7 +91,7 @@ export default class Statement {
 							// named function expressions - the name is considered
 							// part of the function's scope
 							if ( parent.type === 'FunctionExpression' && parent.id ) {
-								newScope.addDeclaration( parent.id.name, parent, false );
+								newScope.addDeclaration( parent, false, false );
 							}
 						} else {
 							newScope = new Scope({
@@ -108,12 +113,13 @@ export default class Statement {
 
 					case 'VariableDeclaration':
 						node.declarations.forEach( declarator => {
-							scope.addDeclaration( declarator.id.name, node, true );
+							const isBlockDeclaration = node.type === 'VariableDeclaration' && blockDeclarations[ node.kind ];
+							scope.addDeclaration( declarator, isBlockDeclaration, true );
 						});
 						break;
 
 					case 'ClassDeclaration':
-						scope.addDeclaration( node.id.name, node, false );
+						scope.addDeclaration( node, false, false );
 						break;
 				}
 
