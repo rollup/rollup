@@ -49,7 +49,6 @@ export default class Bundle {
 
 		this.statements = null;
 		this.externalModules = [];
-		this.internalNamespaceModules = [];
 	}
 
 	build () {
@@ -60,13 +59,10 @@ export default class Bundle {
 				this.exports = entryModule.exports;
 
 				entryModule.markAllStatements( true );
-				this.orderedModules = this.sort();
+				entryModule.markAllExports();
 
-				this.exports.localIds().forEach( ([ , id ]) => {
-					// If the export is a module (namespace), we need
-					// all its exports dynamically accessible.
-					if ( id.module === id ) id.dynamicAccess();
-				});
+				// Sort the modules.
+				this.orderedModules = this.sort();
 
 				// As a last step, deconflict all identifier names, once.
 				this.scope.deconflict();
@@ -213,9 +209,11 @@ export default class Bundle {
 		// prepend bundle with internal namespaces
 		const indentString = getIndentString( magicString, options );
 
-		const namespaceBlock = this.internalNamespaceModules.map( module => {
-			const exports = module.exports.localIds().map( ( [ name, id ] ) =>
-				`${indentString}get ${name} () { return ${id.name}; }`);
+		const namespaceBlock = this.modules.filter( module => module.needsDynamicAccess ).map( module => {
+			const exports = module.exports.getNames().map( name => {
+				const id = module.exports.lookup( name );
+				return `${indentString}get ${name} () { return ${id.name}; }`;
+			});
 
 			return `var ${module.name} = {\n` +
 				exports.join( ',\n' ) +
