@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.16.0
+
+* Internal refactoring ([#99](https://github.com/rollup/rollup/pull/99))
+* Optimisation for statically-analysable namespace imports ([#99](https://github.com/rollup/rollup/pull/99))
+* Windows support (theoretically!) ([#117](https://github.com/rollup/rollup/pull/117) / [#119](https://github.com/rollup/rollup/pull/119))
+
 ## 0.15.0
 
 * Load all modules specified by `import` statements, and do tree-shaking synchronously once loading is complete. This results in simpler and faster code, and enables future improvements ([#97](https://github.com/rollup/rollup/pull/97))
