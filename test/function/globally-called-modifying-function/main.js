@@ -1,3 +1,3 @@
 import value from './module.js';
 
-assert.equal( value, 'changed' );
+assert.equal( value, 3 );
