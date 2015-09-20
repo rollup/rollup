@@ -67,6 +67,11 @@ export default class Bundle {
 				entryModule.markAllStatements( true );
 				entryModule.markAllExports();
 
+				// Include all side-effects
+				this.modules.forEach( module => {
+					module.markAllSideEffects();
+				});
+
 				// Sort the modules.
 				this.orderedModules = this.sort();
 

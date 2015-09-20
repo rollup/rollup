@@ -437,6 +437,12 @@ export default class Module {
 		this.markAllExports();
 	}
 
+	markAllSideEffects () {
+		this.statements.forEach( statement => {
+			if ( statement.hasSideEffects ) statement.mark();
+		});
+	}
+
 	markAllStatements ( isEntryModule ) {
 		this.statements.forEach( statement => {
 			if ( statement.isIncluded ) return; // TODO can this happen? probably not...
