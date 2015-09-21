@@ -10,15 +10,6 @@ function dirExists ( dir ) {
 	}
 }
 
-function fileExists ( dir ) {
-	try {
-		readFileSync( dir );
-		return true;
-	} catch ( err ) {
-		return false;
-	}
-}
-
 export function defaultResolver ( importee, importer, options ) {
 	// absolute paths are left untouched
 	if ( isAbsolute( importee ) ) return importee;
@@ -47,7 +38,7 @@ export function defaultExternalResolver ( id, importer ) {
 	// `foo` should use jsnext:main, but `foo/src/bar` shouldn't
 	const parts = id.split( /[\/\\]/ );
 
-	while ( dir !== root ) {
+	while ( dir !== root && dir !== '.' ) {
 		const modulePath = resolve( dir, 'node_modules', parts[0] );
 
 		if ( dirExists( modulePath ) ) {
@@ -58,7 +49,6 @@ export function defaultExternalResolver ( id, importer ) {
 
 			// `foo`
 			const pkgPath = resolve( modulePath, 'package.json' );
-			let pkgJson;
 			let pkg;
 
 			try {

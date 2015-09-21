@@ -1,8 +1,17 @@
 import { blank, keys } from './utils/object';
-import { sequence } from './utils/promise';
 import getLocation from './utils/getLocation';
 import walk from './ast/walk';
 import Scope from './ast/Scope';
+
+const blockDeclarations = {
+	'const': true,
+	'let': true
+};
+
+const modifierNodes = {
+	AssignmentExpression: 'left',
+	UpdateExpression: 'argument'
+};
 
 function isIife ( node, parent ) {
 	return parent && parent.type === 'CallExpression' && node === parent.callee;
@@ -16,6 +25,14 @@ function isFunctionDeclaration ( node, parent ) {
 	if ( node.type === 'FunctionExpression' && parent.type === 'VariableDeclarator' ) return true;
 }
 
+function chainedMemberExpression ( node ) {
+	if ( node.object.type === 'MemberExpression' ) {
+		return chainedMemberExpression( node.object ) + '.' + node.property.name;
+	}
+
+	return node.object.name + '.' + node.property.name;
+}
+
 export default class Statement {
 	constructor ( node, module, start, end ) {
 		this.node = node;
@@ -26,9 +43,14 @@ export default class Statement {
 
 		this.scope = new Scope();
 		this.defines = blank();
-		this.modifies = blank();
 		this.dependsOn = blank();
 		this.stronglyDependsOn = blank();
+
+		this.reassigns = blank();
+
+		// TODO: make this more efficient
+		this.dependantIds = [];
+		this.namespaceReplacements = [];
 
 		this.isIncluded = false;
 
@@ -40,6 +62,19 @@ export default class Statement {
 	analyse () {
 		if ( this.isImportDeclaration ) return; // nothing to analyse
 
+		// `export { name } from './other'` is a special case
+		if ( this.isReexportDeclaration ) {
+			this.node.specifiers && this.node.specifiers.forEach( specifier => {
+				const id = this.module.exports.lookup( specifier.exported.name );
+
+				if ( !~this.dependantIds.indexOf( id ) ) {
+					this.dependantIds.push( id );
+				}
+			});
+
+			return;
+		}
+
 		let scope = this.scope;
 
 		walk( this.node, {
@@ -47,29 +82,23 @@ export default class Statement {
 				let newScope;
 
 				switch ( node.type ) {
-					case 'FunctionExpression':
 					case 'FunctionDeclaration':
-					case 'ArrowFunctionExpression':
-						if ( node.type === 'FunctionDeclaration' ) {
-							scope.addDeclaration( node.id.name, node, false );
-						}
-
-						newScope = new Scope({
-							parent: scope,
-							params: node.params, // TODO rest params?
-							block: false
-						});
-
-						// named function expressions - the name is considered
-						// part of the function's scope
-						if ( node.type === 'FunctionExpression' && node.id ) {
-							newScope.addDeclaration( node.id.name, node, false );
-						}
-
-						break;
+						scope.addDeclaration( node, false, false );
 
 					case 'BlockStatement':
-						if ( !/Function/.test( parent.type ) ) {
+						if ( parent && /Function/.test( parent.type ) ) {
+							newScope = new Scope({
+								parent: scope,
+								block: false,
+								params: parent.params
+							});
+
+							// named function expressions - the name is considered
+							// part of the function's scope
+							if ( parent.type === 'FunctionExpression' && parent.id ) {
+								newScope.addDeclaration( parent, false, false );
+							}
+						} else {
 							newScope = new Scope({
 								parent: scope,
 								block: true
@@ -89,12 +118,13 @@ export default class Statement {
 
 					case 'VariableDeclaration':
 						node.declarations.forEach( declarator => {
-							scope.addDeclaration( declarator.id.name, node, true );
+							const isBlockDeclaration = node.type === 'VariableDeclaration' && blockDeclarations[ node.kind ];
+							scope.addDeclaration( declarator, isBlockDeclaration, true );
 						});
 						break;
 
 					case 'ClassDeclaration':
-						scope.addDeclaration( node.id.name, node, false );
+						scope.addDeclaration( node, false, false );
 						break;
 				}
 
@@ -131,29 +161,105 @@ export default class Statement {
 		// /update expressions) need to be captured
 		let writeDepth = 0;
 
+		// Used to track
+		let topName;
+		let currentMemberExpression = null;
+		let namespace = null;
+
 		if ( !this.isImportDeclaration ) {
 			walk( this.node, {
 				enter: ( node, parent ) => {
-					if ( node._scope ) {
-						if ( !scope.isBlockScope ) {
-							if ( !isIife( node, parent ) ) readDepth += 1;
-							if ( isFunctionDeclaration( node, parent ) ) writeDepth += 1;
-						}
+					if ( isFunctionDeclaration( node, parent ) ) writeDepth += 1;
+					if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth += 1;
 
-						scope = node._scope;
-					}
+					if ( node._scope ) scope = node._scope;
 
 					this.checkForReads( scope, node, parent, !readDepth );
 					this.checkForWrites( scope, node, writeDepth );
 				},
 				leave: ( node, parent ) => {
-					if ( node._scope ) {
-						if ( !scope.isBlockScope ) {
-							if ( !isIife( node, parent ) ) readDepth -= 1;
-							if ( isFunctionDeclaration( node, parent ) ) writeDepth -= 1;
+					if ( isFunctionDeclaration( node, parent ) ) writeDepth -= 1;
+					if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth -= 1;
+
+					if ( node._scope ) scope = scope.parent;
+
+					// Optimize namespace lookups, which manifest as MemberExpressions.
+					if ( node.type === 'MemberExpression' && ( !currentMemberExpression || node.object === currentMemberExpression ) ) {
+						currentMemberExpression = node;
+
+						if ( !namespace ) {
+							topName = node.object.name;
+							const id = this.module.locals.lookup( topName );
+
+							if ( !id || !id.isModule || id.isExternal ) return;
+
+							namespace = id;
 						}
 
-						scope = scope.parent;
+						// If a namespace is the left hand side of an assignment, throw an error.
+						if ( parent.type === 'AssignmentExpression' && parent.left === node ||
+								parent.type === 'UpdateExpression' && parent.argument === node ) {
+							const err = new Error( `Illegal reassignment to import '${chainedMemberExpression( node )}'` );
+							err.file = this.module.id;
+							err.loc = getLocation( this.module.magicString.toString(), node.start );
+							throw err;
+						}
+
+						// Extract the name of the accessed property, from and Identifier or Literal.
+						// Any eventual Literal value is converted to a string.
+						const name = !node.computed ? node.property.name :
+							( node.property.type === 'Literal' ? String( node.property.value ) : null );
+
+						// If we can't resolve the name being accessed statically,
+						// we mark the whole namespace for inclusion in the bundle.
+						//
+						//     // resolvable
+						//     console.log( javascript.keywords.for )
+						//     console.log( javascript.keywords[ 'for' ] )
+						//     console.log( javascript.keywords[ 6 ] )
+						//
+						//     // unresolvable
+						//     console.log( javascript.keywords[ index ] )
+						//     console.log( javascript.keywords[ 1 + 5 ] )
+						if ( name === null ) {
+							namespace.mark();
+
+							namespace = null;
+							currentMemberExpression = null;
+							return;
+						}
+
+						const id = namespace.exports.lookup( name );
+
+						// If the namespace doesn't define the given name,
+						// we can throw an error (even for nested namespaces).
+						if ( !id ) {
+							throw new Error( `Module doesn't define "${name}"!` );
+						}
+
+						// We can't resolve deeper. Replace the member chain.
+						if ( parent.type !== 'MemberExpression' || !( id.isModule && !id.isExternal ) ) {
+							if ( !~this.dependantIds.indexOf( id ) ) {
+								this.dependantIds.push( id );
+							}
+
+							// FIXME: do this better
+							// If we depend on this name...
+							if ( this.dependsOn[ topName ] ) {
+								// ... decrement the count...
+								if ( !--this.dependsOn[ topName ] ) {
+									// ... and remove it if the count is 0.
+									delete this.dependsOn[ topName ];
+								}
+							}
+
+							this.namespaceReplacements.push( [ node, id ] );
+							namespace = null;
+							currentMemberExpression = null;
+							return;
+						}
+
+						namespace = id;
 					}
 				}
 			});
@@ -185,7 +291,11 @@ export default class Statement {
 			const definingScope = scope.findDefiningScope( node.name );
 
 			if ( !definingScope || definingScope.depth === 0 ) {
-				this.dependsOn[ node.name ] = true;
+				if ( !( node.name in this.dependsOn ) ) {
+					this.dependsOn[ node.name ] = 0;
+				}
+
+				this.dependsOn[ node.name ]++;
 				if ( strong ) this.stronglyDependsOn[ node.name ] = true;
 			}
 		}
@@ -202,9 +312,9 @@ export default class Statement {
 
 			// disallow assignments/updates to imported bindings and namespaces
 			if ( isAssignment ) {
-				const importSpecifier = this.module.imports[ node.name ];
+				const importSpecifier = this.module.locals.lookup( node.name );
 
-				if ( importSpecifier && !scope.contains( node.name ) ) {
+				if ( importSpecifier && importSpecifier.module !== this.module && !scope.contains( node.name ) ) {
 					const minDepth = importSpecifier.name === '*' ?
 						2 : // cannot do e.g. `namespace.foo = bar`
 						1;  // cannot do e.g. `foo = bar`, but `foo.bar = bar` is fine
@@ -220,12 +330,24 @@ export default class Statement {
 				// special case = `export default foo; foo += 1;` - we'll
 				// need to assign a new variable so that the exported
 				// value is not updated by the second statement
-				if ( this.module.exports.default && depth === 0 && this.module.exports.default.identifier === node.name ) {
+				const def = this.module.exports.lookup( 'default' );
+				if ( def && depth === 0 && def.name === node.name ) {
 					// but only if this is a) inside a function body or
 					// b) after the export declaration
-					if ( !!scope.parent || node.start > this.module.exports.default.statement.node.start ) {
-						this.module.exports.default.isModified = true;
+					if ( !!scope.parent || node.start > def.statement.node.start ) {
+						def.isModified = true;
 					}
+				}
+
+				// we track updates/reassignments to variables, to know whether we
+				// need to rewrite it later from `foo` to `exports.foo` to keep
+				// bindings live
+				if (
+					depth === 0 &&
+					writeDepth > 0 &&
+					!scope.contains( node.name )
+				) {
+					this.reassigns[ node.name ] = true;
 				}
 			}
 
@@ -236,7 +358,11 @@ export default class Statement {
 			// anything (but we still need to call checkForWrites to
 			// catch illegal reassignments to imported bindings)
 			if ( writeDepth === 0 && node.type === 'Identifier' ) {
-				this.modifies[ node.name ] = true;
+				const id = this.module.locals.lookup( node.name );
+
+				if ( id && id.modifierStatements && !~id.modifierStatements.indexOf( this ) ) {
+					id.modifierStatements.push( this );
+				}
 			}
 		};
 
@@ -262,33 +388,42 @@ export default class Statement {
 		if ( this.isIncluded ) return; // prevent infinite loops
 		this.isIncluded = true;
 
-		// `export { name } from './other'` is a special case
-		if ( this.isReexportDeclaration ) {
-			return this.module.bundle.fetchModule( this.node.source.value, this.module.id )
-				.then( otherModule => {
-					return sequence( this.node.specifiers, specifier => {
-						const reexport = this.module.reexports[ specifier.exported.name ];
+		this.dependantIds.forEach( id => id.mark() );
 
-						reexport.isUsed = true;
-						reexport.module = otherModule;
-
-						return otherModule.isExternal ?
-							null :
-							otherModule.markExport( specifier.local.name, specifier.exported.name, this.module );
-					});
-				});
-		}
-
-		const dependencies = Object.keys( this.dependsOn );
-
-		return sequence( dependencies, name => {
+		// TODO: perhaps these could also be added?
+		keys( this.dependsOn ).forEach( name => {
 			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
-			return this.module.mark( name );
+			this.module.locals.lookup( name ).mark();
+		});
+	}
+
+	markSideEffect () {
+		const statement = this;
+
+		walk( this.node, {
+			enter ( node, parent ) {
+				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) return this.skip();
+
+				// If this is a top-level call expression, or an assignment to a global,
+				// this statement will need to be marked
+				if ( node.type === 'CallExpression' ) {
+					statement.mark();
+				}
+
+				else if ( node.type in modifierNodes ) {
+					let subject = node[ modifierNodes[ node.type ] ];
+					while ( subject.type === 'MemberExpression' ) subject = subject.object;
+
+					if ( statement.module.bundle.globals.defines( subject.name ) ) statement.mark();
+				}
+			}
 		});
 	}
 
 	replaceIdentifiers ( magicString, names, bundleExports ) {
-		const replacementStack = [ names ];
+		const statement = this;
+
+		const replacementStack = [];
 		const nameList = keys( names );
 
 		let deshadowList = [];
@@ -308,7 +443,7 @@ export default class Statement {
 
 				// `this` is undefined at the top level of ES6 modules
 				if ( node.type === 'ThisExpression' && depth === 0 ) {
-					magicString.overwrite( node.start, node.end, 'undefined' );
+					magicString.overwrite( node.start, node.end, 'undefined', true );
 				}
 
 				// special case - variable declarations that need to be rewritten
@@ -317,10 +452,12 @@ export default class Statement {
 					if ( node.type === 'VariableDeclaration' ) {
 						// if this contains a single declarator, and it's one that
 						// needs to be rewritten, we replace the whole lot
-						const name = node.declarations[0].id.name;
+						const id = node.declarations[0].id;
+						const name = id.name;
+
 						if ( node.declarations.length === 1 && bundleExports[ name ] ) {
-							magicString.overwrite( node.start, node.declarations[0].id.end, bundleExports[ name ] );
-							node.declarations[0].id._skip = true;
+							magicString.overwrite( node.start, id.end, bundleExports[ name ], true );
+							id._skip = true;
 						}
 
 						// otherwise, we insert the `exports.foo = foo` after the declaration
@@ -351,11 +488,6 @@ export default class Statement {
 					let newNames = blank();
 					let hasReplacements;
 
-					// special case = function foo ( foo ) {...}
-					if ( node.id && names[ node.id.name ] && scope.declarations[ node.id.name ] ) {
-						magicString.overwrite( node.id.start, node.id.end, names[ node.id.name ] );
-					}
-
 					keys( names ).forEach( name => {
 						if ( !scope.declarations[ name ] ) {
 							newNames[ name ] = names[ name ];
@@ -378,6 +510,18 @@ export default class Statement {
 					replacementStack.push( newNames );
 				}
 
+				if ( node.type === 'MemberExpression' ) {
+					const replacements = statement.namespaceReplacements;
+					for ( let i = 0; i < replacements.length; i += 1 ) {
+						const [ top, id ] = replacements[ i ];
+
+						if ( node === top ) {
+							magicString.overwrite( node.start, node.end, id.name );
+							return this.skip();
+						}
+					}
+				}
+
 				if ( node.type !== 'Identifier' ) return;
 
 				// if there's no replacement, or it's the same, there's nothing more to do
@@ -396,18 +540,19 @@ export default class Statement {
 				if ( parent.type === 'MemberExpression' && !parent.computed && node !== parent.object ) return;
 				if ( parent.type === 'Property' && node !== parent.value ) return;
 				if ( parent.type === 'MethodDefinition' && node === parent.key ) return;
+				if ( parent.type === 'FunctionExpression' ) return;
+				if ( /Function/.test( parent.type ) && ~parent.params.indexOf( node ) ) return;
 				// TODO others...?
 
 				// all other identifiers should be overwritten
-				magicString.overwrite( node.start, node.end, name );
+				magicString.overwrite( node.start, node.end, name, true );
 			},
 
 			leave ( node ) {
 				if ( /^Function/.test( node.type ) ) depth -= 1;
 
 				if ( node._scope ) {
-					replacementStack.pop();
-					names = replacementStack[ replacementStack.length - 1 ];
+					names = replacementStack.pop();
 				}
 			}
 		});

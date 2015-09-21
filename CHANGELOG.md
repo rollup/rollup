@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 0.16.1
+
+* Handle assignment patterns, and destructured/rest parameters, when analysing scopes
+* Fix bug preventing project from self-building (make base `Identifier` class markable)
+
+## 0.16.0
+
+* Internal refactoring ([#99](https://github.com/rollup/rollup/pull/99))
+* Optimisation for statically-analysable namespace imports ([#99](https://github.com/rollup/rollup/pull/99))
+* Windows support (theoretically!) ([#117](https://github.com/rollup/rollup/pull/117) / [#119](https://github.com/rollup/rollup/pull/119))
+
+## 0.15.0
+
+* Load all modules specified by `import` statements, and do tree-shaking synchronously once loading is complete. This results in simpler and faster code, and enables future improvements ([#97](https://github.com/rollup/rollup/pull/97))
+* Only rewrite `foo` as `exports.foo` when it makes sense to ([#92](https://github.com/rollup/rollup/issues/92))
+* Fix bug with shadowed variables that are eventually exported ([#91](https://github.com/rollup/rollup/issues/91))
+* Exclude unused function declarations that happen to modify a used name ([#90](https://github.com/rollup/rollup/pull/90))
+* Simplify internal `Scope` model – scopes always attach to blocks, never function expressions/declarations
+
 ## 0.14.1
 
 * `export { name } from './other'` does not create a local binding ([#16](https://github.com/rollup/rollup/issues/16))

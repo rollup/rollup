@@ -4,7 +4,10 @@
 	factory((global.myBundle = {}));
 }(this, function (exports) { 'use strict';
 
-	exports.foo = 1;
-	exports.bar = 2;
+	var foo = 1;
+	var bar = 2;
+
+	exports.foo = foo;
+	exports.bar = bar;
 
 }));

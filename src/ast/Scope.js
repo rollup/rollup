@@ -1,9 +1,37 @@
 import { blank } from '../utils/object';
 
-const blockDeclarations = {
-	'const': true,
-	'let': true
+const extractors = {
+	Identifier ( names, param ) {
+		names.push( param.name );
+	},
+
+	ObjectPattern ( names, param ) {
+		param.properties.forEach( prop => {
+			extractors[ prop.key.type ]( names, prop.key );
+		});
+	},
+
+	ArrayPattern ( names, param ) {
+		param.elements.forEach( element => {
+			if ( element ) extractors[ element.type ]( names, element );
+		});
+	},
+
+	RestElement ( names, param ) {
+		extractors[ param.argument.type ]( names, param.argument );
+	},
+
+	AssignmentPattern ( names, param ) {
+		return extractors[ param.left.type ]( names, param.left );
+	}
 };
+
+function extractNames ( param ) {
+	let names = [];
+
+	extractors[ param.type ]( names, param );
+	return names;
+}
 
 export default class Scope {
 	constructor ( options ) {
@@ -18,26 +46,29 @@ export default class Scope {
 
 		if ( options.params ) {
 			options.params.forEach( param => {
-				this.declarations[ param.name ] = param;
+				extractNames( param ).forEach( name => {
+					this.declarations[ name ] = true;
+				});
 			});
 		}
 	}
 
-	addDeclaration ( name, declaration, isVar ) {
-		const isBlockDeclaration = declaration.type === 'VariableDeclaration' && blockDeclarations[ declaration.kind ];
-
+	addDeclaration ( declaration, isBlockDeclaration, isVar ) {
 		if ( !isBlockDeclaration && this.isBlockScope ) {
-			// it's a `var` or function declaration, and this
+			// it's a `var` or function node, and this
 			// is a block scope, so we need to go up
-			this.parent.addDeclaration( name, declaration, isVar );
+			this.parent.addDeclaration( declaration, isBlockDeclaration, isVar );
 		} else {
-			this.declarations[ name ] = declaration;
-			if ( isVar ) this.varDeclarations.push( name )
+			extractNames( declaration.id ).forEach( name => {
+				this.declarations[ name ] = true;
+				if ( isVar ) this.varDeclarations.push( name );
+			});
 		}
 	}
 
 	contains ( name ) {
-		return !!this.getDeclaration( name );
+		return this.declarations[ name ] ||
+		       ( this.parent ? this.parent.contains( name ) : false );
 	}
 
 	findDefiningScope ( name ) {
@@ -50,10 +81,5 @@ export default class Scope {
 		}
 
 		return null;
-	}
-
-	getDeclaration ( name ) {
-		return this.declarations[ name ] ||
-		       this.parent && this.parent.getDeclaration( name );
 	}
 }

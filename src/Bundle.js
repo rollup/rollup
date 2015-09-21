@@ -1,17 +1,16 @@
-import { basename, extname } from './utils/path';
 import { Promise } from 'sander';
 import MagicString from 'magic-string';
 import { blank, keys } from './utils/object';
 import Module from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
-import makeLegalIdentifier from './utils/makeLegalIdentifier';
 import ensureArray from './utils/ensureArray';
 import { defaultResolver, defaultExternalResolver } from './utils/resolveId';
 import { defaultLoader } from './utils/load';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
+import Scope from './Scope';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -30,246 +29,131 @@ export default class Bundle {
 			transform: ensureArray( options.transform )
 		};
 
+		// The global scope, and the bundle's internal scope.
+		this.globals = new Scope();
+		this.scope = new Scope( this.globals );
+
+		// Strictly speaking, these globals only apply to non-ES6, non-default-only bundles.
+		// However, the deconfliction logic is greatly simplified by being the same for all formats.
+		// * CommonJS needs `module` and `exports` ( and `require`? ) to be in scope.
+		// * SystemJS needs a reference to a function for its `exports`,
+		//   and another one for any `module` it imports. These global names can be reused!
+		[ 'exports', 'module' ]
+			.forEach( name => {
+				this.globals.define( name );
+				this.scope.bind( name, this.globals.reference( name ) );
+			});
+
+		// Alias for entryModule.exports.
+		this.exports = null;
+
 		this.toExport = null;
 
-		this.modulePromises = blank();
+		this.pending = blank();
+		this.moduleById = blank();
 		this.modules = [];
 
 		this.statements = null;
 		this.externalModules = [];
-		this.internalNamespaceModules = [];
-
-		this.assumedGlobals = blank();
-		this.assumedGlobals.exports = true; // TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 	}
 
 	build () {
-		return this.fetchModule( this.entry, undefined )
+		return Promise.resolve( this.resolveId( this.entry, undefined, this.resolveOptions ) )
+			.then( id => this.fetchModule( id ) )
 			.then( entryModule => {
-				const defaultExport = entryModule.exports.default;
-
 				this.entryModule = entryModule;
+				this.exports = entryModule.exports;
 
-				if ( defaultExport ) {
-					entryModule.needsDefault = true;
+				entryModule.markAllStatements( true );
+				entryModule.markAllExports();
 
-					// `export default function foo () {...}` -
-					// use the declared name for the export
-					if ( defaultExport.identifier ) {
-						entryModule.suggestName( 'default', defaultExport.identifier );
-					}
+				// Include all side-effects
+				this.modules.forEach( module => {
+					module.markAllSideEffects();
+				});
 
-					// `export default a + b` - generate an export name
-					// based on the id of the entry module
-					else {
-						let defaultExportName = makeLegalIdentifier( basename( this.entryModule.id ).slice( 0, -extname( this.entryModule.id ).length ) );
-
-						// deconflict
-						let topLevelNames = [];
-						entryModule.statements.forEach( statement => {
-							keys( statement.defines ).forEach( name => topLevelNames.push( name ) );
-						});
-
-						while ( ~topLevelNames.indexOf( defaultExportName ) ) {
-							defaultExportName = `_${defaultExportName}`;
-						}
-
-						entryModule.suggestName( 'default', defaultExportName );
-					}
-				}
-
-				return entryModule.markAllStatements( true );
-			})
-			.then( () => {
-				return this.markAllModifierStatements();
-			})
-			.then( () => {
+				// Sort the modules.
 				this.orderedModules = this.sort();
-			});
-	}
 
-	// TODO would be better to deconflict once, rather than per-render
-	deconflict ( es6 ) {
-		let usedNames = blank();
+				// As a last step, deconflict all identifier names, once.
+				this.scope.deconflict();
 
-		// ensure no conflicts with globals
-		keys( this.assumedGlobals ).forEach( name => usedNames[ name ] = true );
+				// Alias the default import to the external module named
+				// for external modules that don't need named imports.
+				this.externalModules.forEach( module => {
+					const externalDefault = module.exports.lookup( 'default' );
 
-		let allReplacements = blank();
-
-		// Assign names to external modules
-		this.externalModules.forEach( module => {
-			// while we're here...
-			allReplacements[ module.id ] = blank();
-
-			// TODO is this necessary in the ES6 case?
-			let name = makeLegalIdentifier( module.suggestedNames['*'] || module.suggestedNames.default || module.id );
-			module.name = getSafeName( name );
-		});
-
-		// Discover conflicts (i.e. two statements in separate modules both define `foo`)
-		let i = this.orderedModules.length;
-		while ( i-- ) {
-			const module = this.orderedModules[i];
-
-			// while we're here...
-			allReplacements[ module.id ] = blank();
-
-			keys( module.definitions ).forEach( name => {
-				const safeName = getSafeName( name );
-				if ( safeName !== name ) {
-					module.rename( name, safeName );
-					allReplacements[ module.id ][ name ] = safeName;
-				}
-			});
-		}
-
-		// Assign non-conflicting names to internal default/namespace export
-		this.orderedModules.forEach( module => {
-			if ( !module.needsDefault && !module.needsAll ) return;
-
-			if ( module.needsAll ) {
-				const namespaceName = getSafeName( module.suggestedNames[ '*' ] );
-				module.replacements[ '*' ] = namespaceName;
-			}
-
-			if ( module.needsDefault || module.needsAll && module.exports.default ) {
-				const defaultExport = module.exports.default;
-
-				// only create a new name if either
-				//   a) it's an expression (`export default 42`) or
-				//   b) it's a name that is reassigned to (`export var a = 1; a = 2`)
-				if ( defaultExport && defaultExport.identifier && !defaultExport.isModified ) return; // TODO encapsulate check for whether we need synthetic default name
-
-				const defaultName = getSafeName( module.suggestedNames.default );
-				module.replacements.default = defaultName;
-			}
-		});
-
-		this.orderedModules.forEach( module => {
-			keys( module.imports ).forEach( localName => {
-				if ( !module.imports[ localName ].isUsed ) return;
-
-				const bundleName = this.trace( module, localName, es6 );
-				if ( bundleName !== localName ) {
-					allReplacements[ module.id ][ localName ] = bundleName;
-				}
-			});
-		});
-
-		function getSafeName ( name ) {
-			while ( usedNames[ name ] ) {
-				name = `_${name}`;
-			}
-
-			usedNames[ name ] = true;
-			return name;
-		}
-
-		return allReplacements;
-	}
-
-	fetchModule ( importee, importer ) {
-		return Promise.resolve( this.resolveId( importee, importer, this.resolveOptions ) )
-			.then( id => {
-				if ( !id ) {
-					// external module
-					if ( !this.modulePromises[ importee ] ) {
-						const module = new ExternalModule( importee );
-						this.externalModules.push( module );
-						this.modulePromises[ importee ] = Promise.resolve( module );
+					if ( externalDefault && !( module.needsNamed || module.needsAll ) ) {
+						externalDefault.name = module.name;
 					}
-
-					return this.modulePromises[ importee ];
-				}
-
-				if ( id === importer ) {
-					throw new Error( `A module cannot import itself (${id})` );
-				}
-
-				if ( !this.modulePromises[ id ] ) {
-					this.modulePromises[ id ] = Promise.resolve( this.load( id, this.loadOptions ) )
-						.then( source => {
-							let ast;
-
-							if ( typeof source === 'object' ) {
-								ast = source.ast;
-								source = source.code;
-							}
-
-							const module = new Module({
-								id,
-								source,
-								ast,
-								bundle: this
-							});
-
-							this.modules.push( module );
-
-							return module;
-						});
-				}
-
-				return this.modulePromises[ id ];
-			});
-	}
-
-	markAllModifierStatements () {
-		let settled = true;
-		let promises = [];
-
-		this.modules.forEach( module => {
-			module.statements.forEach( statement => {
-				if ( statement.isIncluded ) return;
-
-				keys( statement.modifies ).forEach( name => {
-					const definingStatement = module.definitions[ name ];
-					const exportDeclaration = module.exports[ name ] || module.reexports[ name ] || (
-						module.exports.default && module.exports.default.identifier === name && module.exports.default
-					);
-
-					const shouldMark = ( definingStatement && definingStatement.isIncluded ) ||
-					                   ( exportDeclaration && exportDeclaration.isUsed );
-
-					if ( shouldMark ) {
-						settled = false;
-						promises.push( statement.mark() );
-						return;
-					}
-
-					// special case - https://github.com/rollup/rollup/pull/40
-					const importDeclaration = module.imports[ name ];
-					if ( !importDeclaration ) return;
-
-					const promise = Promise.resolve( importDeclaration.module || this.fetchModule( importDeclaration.source, module.id ) )
-						.then( module => {
-							if ( module.isExternal ) return null;
-
-							importDeclaration.module = module;
-							const exportDeclaration = module.exports[ importDeclaration.name ];
-							// TODO things like `export default a + b` don't apply here... right?
-							return module.findDefiningStatement( exportDeclaration.localName );
-						})
-						.then( definingStatement => {
-							if ( !definingStatement ) return;
-
-							settled = false;
-							return statement.mark();
-						});
-
-					promises.push( promise );
 				});
 			});
+	}
+
+	fetchModule ( id ) {
+		// short-circuit cycles
+		if ( this.pending[ id ] ) return null;
+		this.pending[ id ] = true;
+
+		return Promise.resolve( this.load( id, this.loadOptions ) )
+			.then( source => {
+				let ast;
+
+				if ( typeof source === 'object' ) {
+					ast = source.ast;
+					source = source.code;
+				}
+
+				const module = new Module({
+					id,
+					source,
+					ast,
+					bundle: this
+				});
+
+				this.modules.push( module );
+				this.moduleById[ id ] = module;
+
+				return this.fetchAllDependencies( module ).then( () => {
+					// Analyze the module once all its dependencies have been resolved.
+					// This means that any dependencies of a module has already been
+					// analysed when it's time for the module itself.
+					module.analyse();
+					return module;
+				});
+			});
+	}
+
+	fetchAllDependencies ( module ) {
+		const promises = module.dependencies.map( source => {
+			return Promise.resolve( this.resolveId( source, module.id, this.resolveOptions ) )
+				.then( resolvedId => {
+					module.resolvedIds[ source ] = resolvedId || source;
+
+					// external module
+					if ( !resolvedId ) {
+						if ( !this.moduleById[ source ] ) {
+							const module = new ExternalModule( { id: source, bundle: this } );
+							this.externalModules.push( module );
+							this.moduleById[ source ] = module;
+						}
+					}
+
+					else if ( resolvedId === module.id ) {
+						throw new Error( `A module cannot import itself (${resolvedId})` );
+					}
+
+					else {
+						return this.fetchModule( resolvedId );
+					}
+				});
 		});
 
-		return Promise.all( promises ).then( () => {
-			if ( !settled ) return this.markAllModifierStatements();
-		});
+		return Promise.all( promises );
 	}
 
 	render ( options = {} ) {
 		const format = options.format || 'es6';
-		const allReplacements = this.deconflict( format === 'es6' );
 
 		// Determine export mode - 'default', 'named', 'none'
 		const exportMode = getExportMode( this, options.exports );
@@ -290,23 +174,22 @@ export default class Bundle {
 		//
 		// This doesn't apply if the bundle is exported as ES6!
 		let allBundleExports = blank();
-		let isVarDeclaration = blank();
+		let isReassignedVarDeclaration = blank();
 		let varExports = blank();
 		let getterExports = [];
 
 		this.orderedModules.forEach( module => {
-			module.varDeclarations.forEach( name => {
-				isVarDeclaration[ module.replacements[ name ] || name ] = true;
+			module.reassignments.forEach( name => {
+				isReassignedVarDeclaration[ module.locals.lookup( name ).name ] = true;
 			});
 		});
 
 		if ( format !== 'es6' && exportMode === 'named' ) {
-			keys( this.entryModule.exports )
-				.concat( keys( this.entryModule.reexports ) )
+			this.exports.getNames()
 				.forEach( name => {
-					const canonicalName = this.traceExport( this.entryModule, name );
+					const canonicalName = this.exports.lookup( name ).name;
 
-					if ( isVarDeclaration[ canonicalName ] ) {
+					if ( isReassignedVarDeclaration[ canonicalName ] ) {
 						varExports[ name ] = true;
 
 						// if the same binding is exported multiple ways, we need to
@@ -322,14 +205,13 @@ export default class Bundle {
 
 		// since we're rewriting variable exports, we want to
 		// ensure we don't try and export them again at the bottom
-		this.toExport = keys( this.entryModule.exports )
-			.concat( keys( this.entryModule.reexports ) )
+		this.toExport = this.exports.getNames()
 			.filter( key => !varExports[ key ] );
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
 		this.orderedModules.forEach( module => {
-			const source = module.render( allBundleExports, allReplacements[ module.id ], format );
+			const source = module.render( allBundleExports, format === 'es6' );
 			if ( source.toString().length ) {
 				magicString.addSource( source );
 			}
@@ -337,15 +219,14 @@ export default class Bundle {
 
 		// prepend bundle with internal namespaces
 		const indentString = getIndentString( magicString, options );
-		const namespaceBlock = this.internalNamespaceModules.map( module => {
-			const exports = keys( module.exports )
-				.concat( keys( module.reexports ) )
-				.map( name => {
-					const canonicalName = this.traceExport( module, name );
-					return `${indentString}get ${name} () { return ${canonicalName}; }`;
-				});
 
-			return `var ${module.replacements['*']} = {\n` +
+		const namespaceBlock = this.modules.filter( module => module.needsDynamicAccess ).map( module => {
+			const exports = module.exports.getNames().map( name => {
+				const id = module.exports.lookup( name );
+				return `${indentString}get ${name} () { return ${id.name}; }`;
+			});
+
+			return `var ${module.name} = {\n` +
 				exports.join( ',\n' ) +
 			`\n};\n\n`;
 		}).join( '' );
@@ -390,12 +271,17 @@ export default class Bundle {
 	}
 
 	sort () {
-		let seen = {};
+		// Set of visited module ids.
+		let seen = blank();
+
 		let ordered = [];
 		let hasCycles;
 
-		let strongDeps = {};
-		let stronglyDependsOn = {};
+		// Map from module id to list of modules.
+		let strongDeps = blank();
+
+		// Map from module id to boolean.
+		let stronglyDependsOn = blank();
 
 		function visit ( module ) {
 			seen[ module.id ] = true;
@@ -471,45 +357,5 @@ export default class Bundle {
 		}
 
 		return ordered;
-	}
-
-	trace ( module, localName, es6 ) {
-		const importDeclaration = module.imports[ localName ];
-
-		// defined in this module
-		if ( !importDeclaration ) return module.replacements[ localName ] || localName;
-
-		// defined elsewhere
-		return this.traceExport( importDeclaration.module, importDeclaration.name, es6 );
-	}
-
-	traceExport ( module, name, es6 ) {
-		if ( module.isExternal ) {
-			if ( name === 'default' ) return module.needsNamed && !es6 ? `${module.name}__default` : module.name;
-			if ( name === '*' ) return module.name;
-			return es6 ? name : `${module.name}.${name}`;
-		}
-
-		const reexportDeclaration = module.reexports[ name ];
-		if ( reexportDeclaration ) {
-			return this.traceExport( reexportDeclaration.module, reexportDeclaration.localName );
-		}
-
-		if ( name === '*' ) return module.replacements[ '*' ];
-		if ( name === 'default' ) return module.defaultName();
-
-		const exportDeclaration = module.exports[ name ];
-		if ( exportDeclaration ) return this.trace( module, exportDeclaration.localName );
-
-		for ( let i = 0; i < module.exportDelegates.length; i += 1 ) {
-			const delegate = module.exportDelegates[i];
-			const delegateExportDeclaration = delegate.module.exports[ name ];
-
-			if ( delegateExportDeclaration ) {
-				return this.trace( delegate.module, delegateExportDeclaration.localName, es6 );
-			}
-		}
-
-		throw new Error( `Could not trace binding '${name}' from ${module.id}` );
 	}
 }

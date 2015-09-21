@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "0.14.1",
+  "version": "0.16.1",
   "description": "Next-generation ES6 module bundler",
   "main": "dist/rollup.js",
   "jsnext:main": "src/rollup.js",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rich-harris/rollup"
+    "url": "https://github.com/rollup/rollup"
   },
   "keywords": [
     "modules",
@@ -26,12 +26,16 @@
     "optimizer"
   ],
   "author": "Rich Harris",
+  "contributors": [
+    "Oskar Segersvärd <victorystick@gmail.com>"
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rich-harris/rollup/issues"
+    "url": "https://github.com/rollup/rollup/issues"
   },
-  "homepage": "https://github.com/rich-harris/rollup",
+  "homepage": "https://github.com/rollup/rollup",
   "devDependencies": {
+    "babel": "^5.8.21",
     "babel-core": "^5.5.8",
     "console-group": "^0.1.2",
     "eslint": "^1.1.0",
@@ -40,15 +44,15 @@
     "gobble-browserify": "^0.6.1",
     "gobble-cli": "^0.4.2",
     "gobble-esperanto-bundle": "^0.2.0",
-    "gobble-rollup": "^0.7.0",
+    "gobble-rollup": "^0.8.0",
     "gobble-rollup-babel": "^0.1.0",
     "mocha": "^2.2.4",
-    "source-map": "^0.1.40"
+    "source-map": "^0.4.4"
   },
   "dependencies": {
-    "acorn": "^1.1.0",
+    "acorn": "^2.3.0",
     "chalk": "^1.0.0",
-    "magic-string": "^0.6.5",
+    "magic-string": "^0.7.0",
     "minimist": "^1.1.1",
     "sander": "^0.3.3",
     "source-map-support": "^0.3.1"

@@ -1,21 +1,19 @@
+import getInteropBlock from './shared/getInteropBlock';
 import getExportBlock from './shared/getExportBlock';
 
 export default function cjs ( bundle, magicString, { exportMode }, options ) {
 	let intro = options.useStrict === false ? `` : `'use strict';\n\n`;
 
 	// TODO handle empty imports, once they're supported
-	const importBlock = bundle.externalModules
-		.map( module => {
-			let requireStatement = `var ${module.name} = require('${module.id}');`;
+	let importBlock = bundle.externalModules
+		.map( module => `var ${module.name} = require('${module.id}');`)
+		.join('\n');
 
-			if ( module.needsDefault ) {
-				requireStatement += '\n' + ( module.needsNamed ? `var ${module.name}__default = ` : `${module.name} = ` ) +
-					`'default' in ${module.name} ? ${module.name}['default'] : ${module.name};`;
-			}
+	const interopBlock = getInteropBlock( bundle );
 
-			return requireStatement;
-		})
-		.join( '\n' );
+	if ( interopBlock ) {
+		importBlock += '\n' + interopBlock;
+	}
 
 	if ( importBlock ) {
 		intro += importBlock + '\n\n';

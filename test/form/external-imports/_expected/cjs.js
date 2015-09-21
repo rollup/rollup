@@ -1,10 +1,10 @@
 'use strict';
 
 var factory = require('factory');
-factory = 'default' in factory ? factory['default'] : factory;
 var baz = require('baz');
 var containers = require('shipping-port');
 var alphabet = require('alphabet');
+factory = 'default' in factory ? factory['default'] : factory;
 var alphabet__default = 'default' in alphabet ? alphabet['default'] : alphabet;
 
 factory( null );

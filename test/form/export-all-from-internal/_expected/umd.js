@@ -1,12 +1,15 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	factory((global.myBundle = {}));
+	factory((global.exposedInternals = {}));
 }(this, function (exports) { 'use strict';
 
-	exports.foo = 42;
+	const a = 1;
+	const b = 2;
+	var internal = 42;
 
-	exports.bar = 43;
-	exports.baz = 44;
+	exports.a = a;
+	exports.b = b;
+	exports['default'] = internal;
 
 }));

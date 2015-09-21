@@ -1,5 +1,24 @@
 # Rollup
 
+<p align="center">
+  <a href="https://travis-ci.org/rollup/rollup">
+    <img src="http://img.shields.io/travis/rollup/rollup.svg"
+         alt="build status">
+  </a>
+  <a href="https://npmjs.org/package/rollup">
+    <img src="https://img.shields.io/npm/v/rollup.svg"
+         alt="npm version">
+  </a>
+  <a href="https://github.com/rollup/rollup/blob/master/LICENSE.md">
+    <img src="https://img.shields.io/npm/l/rollup.svg"
+         alt="license">
+  </a>
+  <a href="https://david-dm.org/rollup/rollup">
+    <img src="https://david-dm.org/rollup/rollup.svg"
+         alt="dependency status">
+  </a>
+</p>
+
 > *I roll up, I roll up, I roll up, Shawty I roll up*
 >
 > *I roll up, I roll up, I roll up*

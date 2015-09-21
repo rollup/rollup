@@ -2,11 +2,11 @@ require( 'source-map-support' ).install();
 require( 'console-group' ).install();
 
 var path = require( 'path' );
+var os = require( 'os' );
 var sander = require( 'sander' );
 var assert = require( 'assert' );
 var exec = require( 'child_process' ).exec;
 var babel = require( 'babel-core' );
-var sequence = require( './utils/promiseSequence' );
 var rollup = require( '../dist/rollup' );
 
 var FUNCTION = path.resolve( __dirname, 'function' );
@@ -30,6 +30,10 @@ function extend ( target ) {
 	});
 
 	return target;
+}
+
+function normaliseOutput ( code ) {
+	return code.toString().trim().replace( /\r\n/g, '\n' );
 }
 
 describe( 'rollup', function () {
@@ -157,49 +161,45 @@ describe( 'rollup', function () {
 		sander.readdirSync( FORM ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
-			describe( dir, function () {
-				var config = require( FORM + '/' + dir + '/_config' );
+			var config = require( FORM + '/' + dir + '/_config' );
 
-				var options = extend( {}, config.options, {
-					entry: FORM + '/' + dir + '/main.js'
-				});
+			var options = extend( {}, config.options, {
+				entry: FORM + '/' + dir + '/main.js'
+			});
 
-				var bundlePromise = rollup.rollup( options );
-
+			( config.skip ? describe.skip : config.solo ? describe.only : describe)( dir, function () {
 				PROFILES.forEach( function ( profile ) {
-					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
-						if ( config.solo ) console.group( dir );
-
-						return bundlePromise.then( function ( bundle ) {
+					it( 'generates ' + profile.format, function () {
+						return rollup.rollup( options ).then( function ( bundle ) {
 							var options = extend( {}, config.options, {
 								dest: FORM + '/' + dir + '/_actual/' + profile.format + '.js',
 								format: profile.format
 							});
 
 							return bundle.write( options ).then( function () {
-								var actualCode = sander.readFileSync( FORM, dir, '_actual', profile.format + '.js' ).toString().trim();
+								var actualCode = normaliseOutput( sander.readFileSync( FORM, dir, '_actual', profile.format + '.js' ) );
 								var expectedCode;
 								var actualMap;
 								var expectedMap;
 
 								try {
-									expectedCode = sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ).toString().trim();
+									expectedCode = normaliseOutput( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ) );
 								} catch ( err ) {
 									expectedCode = 'missing file';
 								}
 
 								try {
 									actualMap = JSON.parse( sander.readFileSync( FORM, dir, '_actual', profile.format + '.js.map' ).toString() );
+									actualMap.sourcesContent = actualMap.sourcesContent.map( normaliseOutput );
 								} catch ( err ) {}
 
 								try {
 									expectedMap = JSON.parse( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js.map' ).toString() );
+									expectedMap.sourcesContent = expectedMap.sourcesContent.map( normaliseOutput );
 								} catch ( err ) {}
 
 								assert.equal( actualCode, expectedCode );
 								assert.deepEqual( actualMap, expectedMap );
-
-								if ( config.solo ) console.groupEnd();
 							});
 						});
 					});
@@ -219,17 +219,16 @@ describe( 'rollup', function () {
 					entry: SOURCEMAPS + '/' + dir + '/main.js'
 				});
 
-				var bundlePromise = rollup.rollup( options );
-
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
-						return bundlePromise.then( function ( bundle ) {
-							var result = bundle.generate({
+						return rollup.rollup( options ).then( function ( bundle ) {
+							var options = extend( {}, config.options, {
 								format: profile.format,
 								sourceMap: true,
 								sourceMapFile: 'bundle.js'
 							});
 
+							var result = bundle.generate( options );
 							config.test( result.code, result.map );
 						});
 					});
@@ -248,9 +247,13 @@ describe( 'rollup', function () {
 				( config.skip ? it.skip : config.solo ? it.only : it )( dir, function ( done ) {
 					process.chdir( path.resolve( CLI, dir ) );
 
+					if (os.platform() === 'win32') {
+						config.command = "node " + path.resolve( __dirname, '../bin' ) + path.sep + config.command;
+					}
+
 					exec( config.command, {
 						env: {
-							PATH: path.resolve( __dirname, '../bin' ) + ':' + process.env.PATH
+							PATH: path.resolve( __dirname, '../bin' ) + path.delimiter + process.env.PATH
 						}
 					}, function ( err, code, stderr ) {
 						if ( err ) return done( err );
@@ -309,7 +312,7 @@ describe( 'rollup', function () {
 						else {
 							var expected = sander.readFileSync( '_expected.js' ).toString();
 							try {
-								assert.equal( code.trim(), expected.trim() );
+								assert.equal( normaliseOutput( code ), normaliseOutput( expected ) );
 								done();
 							} catch ( err ) {
 								done( err );

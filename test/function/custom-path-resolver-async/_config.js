@@ -8,7 +8,7 @@ module.exports = {
 			var Promise = require( 'sander' ).Promise;
 			var resolved;
 
-			if ( importee === path.resolve( __dirname, 'main.js' ) ) return importee;
+			if ( path.normalize(importee) === path.resolve( __dirname, 'main.js' ) ) return importee;
 
 			if ( importee === 'foo' ) {
 				resolved = path.resolve( __dirname, 'bar.js' );
