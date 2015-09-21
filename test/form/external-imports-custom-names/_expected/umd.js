@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('jquery')) :
 	typeof define === 'function' && define.amd ? define(['jquery'], factory) :
 	factory(global.jQuery);
-}(this || (typeof window !== 'undefined' && window), function ($) { 'use strict';
+}(this, function ($) { 'use strict';
 
 	$ = 'default' in $ ? $['default'] : $;
 

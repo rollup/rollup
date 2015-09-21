@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('external')) :
 	typeof define === 'function' && define.amd ? define(['external'], factory) :
 	factory(global.external);
-}(this || (typeof window !== 'undefined' && window), function (external) { 'use strict';
+}(this, function (external) { 'use strict';
 
 	class Foo extends external.Component {
 		constructor () {
