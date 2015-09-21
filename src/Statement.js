@@ -52,7 +52,6 @@ export default class Statement {
 		this.dependantIds = [];
 		this.namespaceReplacements = [];
 
-		this.hasSideEffects = false;
 		this.isIncluded = false;
 
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
@@ -172,19 +171,6 @@ export default class Statement {
 				enter: ( node, parent ) => {
 					if ( isFunctionDeclaration( node, parent ) ) writeDepth += 1;
 					if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth += 1;
-
-					// If this is a top-level call expression, or an assignment to a global,
-					// this statement will need to be marked
-					if ( !readDepth ) {
-						if ( node.type === 'CallExpression' ) {
-							this.hasSideEffects = true;
-						} else if ( node.type in modifierNodes ) {
-							let subject = node[ modifierNodes[ node.type ] ];
-							while ( subject.type === 'MemberExpression' ) subject = subject.object;
-
-							if ( !this.module.locals.defines( subject.name ) ) this.hasSideEffects = true;
-						}
-					}
 
 					if ( node._scope ) scope = node._scope;
 
@@ -408,6 +394,29 @@ export default class Statement {
 		keys( this.dependsOn ).forEach( name => {
 			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
 			this.module.locals.lookup( name ).mark();
+		});
+	}
+
+	markSideEffect () {
+		const statement = this;
+
+		walk( this.node, {
+			enter ( node, parent ) {
+				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) return this.skip();
+
+				// If this is a top-level call expression, or an assignment to a global,
+				// this statement will need to be marked
+				if ( node.type === 'CallExpression' ) {
+					statement.mark();
+				}
+
+				else if ( node.type in modifierNodes ) {
+					let subject = node[ modifierNodes[ node.type ] ];
+					while ( subject.type === 'MemberExpression' ) subject = subject.object;
+
+					if ( statement.module.bundle.globals.defines( subject.name ) ) statement.mark();
+				}
+			}
 		});
 	}
 

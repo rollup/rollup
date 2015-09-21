@@ -439,7 +439,7 @@ export default class Module {
 
 	markAllSideEffects () {
 		this.statements.forEach( statement => {
-			if ( statement.hasSideEffects ) statement.mark();
+			statement.markSideEffect();
 		});
 	}
 
