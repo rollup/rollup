@@ -1,3 +1,7 @@
+export function readdirSync () {
+	throw new Error( 'Cannot use sander.readdirSync inside browser' );
+}
+
 export function readFile () {
 	throw new Error( 'Cannot use sander.readFile inside browser' );
 }
