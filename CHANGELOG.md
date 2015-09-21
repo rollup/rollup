@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.16.2
+
+* Top-level function calls and assignments to globals are treated as side-effects, and always included
+* Import files from subdirectories of external packages, e.g. `import mod from 'foo/sub/mod'` ([#126](https://github.com/rollup/rollup/issues/126))
+
 ## 0.16.1
 
 * Handle assignment patterns, and destructured/rest parameters, when analysing scopes
