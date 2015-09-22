@@ -225,7 +225,7 @@ describe( 'rollup', function () {
 							var options = extend( {}, config.options, {
 								format: profile.format,
 								sourceMap: true,
-								sourceMapFile: 'bundle.js'
+								sourceMapFile: path.resolve( __dirname, 'bundle.js' )
 							});
 
 							var result = bundle.generate( options );
