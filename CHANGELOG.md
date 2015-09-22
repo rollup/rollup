@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.16.3
+
+* Prevent adjacent blocks of multiple var declarations causing magic-string failure ([#105](https://github.com/rollup/rollup/issues/105))
+
 ## 0.16.2
 
 * Top-level function calls and assignments to globals are treated as side-effects, and always included
