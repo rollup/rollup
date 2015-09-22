@@ -128,9 +128,8 @@ describe( 'rollup', function () {
 								unintendedError = new Error( 'Expected an error while executing output' );
 							}
 
-							if ( config.exports ) {
-								config.exports( module.exports );
-							}
+							if ( config.exports ) config.exports( module.exports );
+							if ( config.bundle ) config.bundle( bundle );
 						} catch ( err ) {
 							if ( config.error ) {
 								config.error( err );
