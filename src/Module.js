@@ -515,8 +515,12 @@ export default class Module {
 			// should be split up. Otherwise, we may end up including code we
 			// don't need, just because an unwanted declarator is included
 			if ( node.type === 'VariableDeclaration' && node.declarations.length > 1 ) {
-				// remove the leading var/let/const
-				this.magicString.remove( node.start, node.declarations[0].start );
+				// remove the leading var/let/const... UNLESS the previous node
+				// was also a synthetic node, in which case it'll get removed anyway
+				const lastStatement = statements[ statements.length - 1 ];
+				if ( !lastStatement || !lastStatement.node.isSynthetic ) {
+					this.magicString.remove( node.start, node.declarations[0].start );
+				}
 
 				node.declarations.forEach( declarator => {
 					const { start, end } = declarator;
