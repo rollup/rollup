@@ -3,3 +3,4 @@ node_modules
 .gobble*
 dist
 _actual
+coverage
