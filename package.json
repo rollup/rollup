@@ -8,10 +8,11 @@
     "rollup": "./bin/rollup"
   },
   "scripts": {
+    "pretest": "npm run build",
     "test": "mocha",
+    "pretest-coverage": "npm run build",
     "test-coverage": "istanbul cover --report cobertura node_modules/.bin/_mocha -- -u exports -R spec test/test.js",
     "ci": "npm run test-coverage && codecov < coverage/cobertura-coverage.xml",
-    "pretest": "npm run build",
     "build": "gobble build -f dist",
     "prepublish": "npm test",
     "lint": "eslint src"
