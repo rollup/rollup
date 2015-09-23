@@ -35,12 +35,10 @@ export function relative ( from, to ) {
 		toParts.shift();
 	}
 
-	while ( toParts[0] && toParts[0][0] === '.' ) {
+	while ( toParts[0] === '.' || toParts[0] === '..' ) {
 		const toPart = toParts.shift();
 		if ( toPart === '..' ) {
 			fromParts.pop();
-		} else if ( toPart !== '.' ) {
-			throw new Error( `Unexpected path part (${toPart})` );
 		}
 	}
 
