@@ -1,10 +1,8 @@
 import { basename } from './utils/path';
 import { writeFile } from 'sander';
 import { keys } from './utils/object';
+import SOURCEMAPPING_URL from './utils/sourceMappingUrl';
 import Bundle from './Bundle';
-
-let SOURCEMAPPING_URL = 'sourceMa';
-SOURCEMAPPING_URL += 'ppingURL';
 
 export function rollup ( options ) {
 	if ( !options || !options.entry ) {

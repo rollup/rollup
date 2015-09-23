@@ -6,6 +6,7 @@ import walk from './ast/walk';
 import { blank, keys } from './utils/object';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
+import SOURCEMAPPING_URL from './utils/sourceMappingUrl';
 
 function isEmptyExportedVarDeclaration ( node, exports, toExport ) {
 	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
@@ -18,9 +19,10 @@ function isEmptyExportedVarDeclaration ( node, exports, toExport ) {
 }
 
 function removeSourceMappingURLComments ( source, magicString ) {
-	const pattern = /\/\/#\s+sourceMappingURL=.+\n?/g;
+	const SOURCEMAPPING_URL_PATTERN = new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' );
 	let match;
-	while ( match = pattern.exec( source ) ) {
+
+	while ( match = SOURCEMAPPING_URL_PATTERN.exec( source ) ) {
 		magicString.remove( match.index, match.index + match[0].length );
 	}
 }
