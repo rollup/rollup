@@ -18,7 +18,7 @@ module.exports = {
 
 		assert.equal( originalLoc.line, 4 );
 		assert.equal( originalLoc.column, 0 );
-		assert.equal( path.resolve( originalLoc.source ), path.resolve( __dirname, 'main.js' ) );
+		assert.equal( originalLoc.source, 'sourcemaps/basic-support/main.js' );
 
 		// foo.js
 		generatedLoc = getLocation( code, code.indexOf( "console.log( 'hello from foo.js' )" ) );
@@ -26,7 +26,7 @@ module.exports = {
 
 		assert.equal( originalLoc.line, 2 );
 		assert.equal( originalLoc.column, 1 );
-		assert.equal( path.resolve( originalLoc.source ), path.resolve( __dirname, 'foo.js' ) );
+		assert.equal( originalLoc.source, 'sourcemaps/basic-support/foo.js' );
 
 		// bar.js
 		generatedLoc = getLocation( code, code.indexOf( "console.log( 'hello from bar.js' )" ) );
@@ -34,6 +34,6 @@ module.exports = {
 
 		assert.equal( originalLoc.line, 2 );
 		assert.equal( originalLoc.column, 1 );
-		assert.equal( path.resolve( originalLoc.source ), path.resolve( __dirname, 'bar.js' ) );
+		assert.equal( originalLoc.source, 'sourcemaps/basic-support/bar.js' );
 	}
 };

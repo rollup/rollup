@@ -1,4 +1,3 @@
-import { basename, extname } from './utils/path';
 import { Promise } from 'sander';
 import MagicString from 'magic-string';
 import { blank, keys } from './utils/object';
@@ -66,7 +65,7 @@ export default class Bundle {
 					// `export default a + b` - generate an export name
 					// based on the id of the entry module
 					else {
-						let defaultExportName = makeLegalIdentifier( basename( this.entryModule.id ).slice( 0, -extname( this.entryModule.id ).length ) );
+						let defaultExportName = this.entryModule.basename();
 
 						// deconflict
 						let topLevelNames = [];
@@ -84,16 +83,23 @@ export default class Bundle {
 
 				entryModule.markAllStatements( true );
 				this.markAllModifierStatements();
+
+				// Include all side-effects
+				// TODO does this obviate the need for markAllStatements throughout?
+				this.modules.forEach( module => {
+					module.markAllSideEffects();
+				});
+
 				this.orderedModules = this.sort();
 			});
 	}
 
 	// TODO would be better to deconflict once, rather than per-render
 	deconflict ( es6 ) {
-		let usedNames = blank();
+		let nameCount = blank();
 
 		// ensure no conflicts with globals
-		keys( this.assumedGlobals ).forEach( name => usedNames[ name ] = true );
+		keys( this.assumedGlobals ).forEach( name => nameCount[ name ] = 0 );
 
 		let allReplacements = blank();
 
@@ -158,11 +164,15 @@ export default class Bundle {
 		});
 
 		function getSafeName ( name ) {
-			while ( usedNames[ name ] ) {
-				name = `_${name}`;
+			if ( name in nameCount ) {
+				nameCount[ name ] += 1;
+				name = `${name}$${nameCount[ name ]}`;
+
+				while ( name in nameCount ) name = `_${name}`; // just to avoid any crazy edge cases
+				return name;
 			}
 
-			usedNames[ name ] = true;
+			nameCount[ name ] = 0;
 			return name;
 		}
 
@@ -322,8 +332,7 @@ export default class Bundle {
 
 		// since we're rewriting variable exports, we want to
 		// ensure we don't try and export them again at the bottom
-		this.toExport = keys( this.entryModule.exports )
-			.concat( keys( this.entryModule.reexports ) )
+		this.toExport = this.entryModule.getExports()
 			.filter( key => !varExports[ key ] );
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
@@ -501,8 +510,12 @@ export default class Bundle {
 		const exportDeclaration = module.exports[ name ];
 		if ( exportDeclaration ) return this.trace( module, exportDeclaration.localName );
 
-		const exportDelegate = module.exportDelegates[ name ];
-		if ( exportDelegate ) return this.traceExport( exportDelegate.module, name, es6 );
+		for ( let i = 0; i < module.exportAlls.length; i += 1 ) {
+			const declaration = module.exportAlls[i];
+			if ( declaration.module.exports[ name ] ) {
+				return this.traceExport( declaration.module, name, es6 );
+			}
+		}
 
 		throw new Error( `Could not trace binding '${name}' from ${module.id}` );
 	}

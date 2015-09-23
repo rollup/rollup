@@ -1,6 +1,6 @@
 // TODO does this all work on windows?
 
-export const absolutePath = /^(?:\/|(?:[A-Za-z]:)?\\)/;
+export const absolutePath = /^(?:\/|(?:[A-Za-z]:)?[\\|\/])/;
 
 export function isAbsolute ( path ) {
 	return absolutePath.test( path );
@@ -35,12 +35,10 @@ export function relative ( from, to ) {
 		toParts.shift();
 	}
 
-	while ( toParts[0] && toParts[0][0] === '.' ) {
+	while ( toParts[0] === '.' || toParts[0] === '..' ) {
 		const toPart = toParts.shift();
 		if ( toPart === '..' ) {
 			fromParts.pop();
-		} else if ( toPart !== '.' ) {
-			throw new Error( `Unexpected path part (${toPart})` );
 		}
 	}
 

@@ -3,8 +3,10 @@ import MagicString from 'magic-string';
 import Statement from './Statement';
 import walk from './ast/walk';
 import { blank, keys } from './utils/object';
+import { basename, extname } from './utils/path';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
+import SOURCEMAPPING_URL from './utils/sourceMappingURL';
 
 function deconflict ( name, names ) {
 	while ( name in names ) {
@@ -37,7 +39,7 @@ export default class Module {
 		});
 
 		// remove existing sourceMappingURL comments
-		const pattern = /\/\/#\s+sourceMappingURL=.+\n?/g;
+		const pattern = new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' );
 		let match;
 		while ( match = pattern.exec( source ) ) {
 			this.magicString.remove( match.index, match.index + match[0].length );
@@ -243,6 +245,10 @@ export default class Module {
 		});
 	}
 
+	basename () {
+		return makeLegalIdentifier( basename( this.id ).slice( 0, -extname( this.id ).length ) );
+	}
+
 	bindImportSpecifiers () {
 		if ( this.boundImportSpecifiers ) return;
 		this.boundImportSpecifiers = true;
@@ -329,6 +335,16 @@ export default class Module {
 			});
 		});
 
+		// special case – `export { ... } from './other'` in entry module
+		if ( this.exportAlls.length ) {
+			this.exportAlls.forEach( ({ source }) => {
+				const resolved = this.resolvedIds[ source ];
+				const otherModule = this.bundle.moduleById[ resolved ];
+
+				strongDependencies[ otherModule.id ] = otherModule;
+			});
+		}
+
 		return { strongDependencies, weakDependencies };
 	}
 
@@ -353,6 +369,26 @@ export default class Module {
 		if ( !importDeclaration ) return null;
 
 		return importDeclaration.module.findDefiningStatement( name );
+	}
+
+	getExports () {
+		let exports = blank();
+
+		keys( this.exports ).forEach( name => {
+			exports[ name ] = true;
+		});
+
+		keys( this.reexports ).forEach( name => {
+			exports[ name ] = true;
+		});
+
+		this.exportAlls.forEach( ({ module }) => {
+			module.getExports().forEach( name => {
+				if ( name !== 'default' ) exports[ name ] = true;
+			});
+		});
+
+		return keys( exports );
 	}
 
 	mark ( name ) {
@@ -416,6 +452,12 @@ export default class Module {
 			const statement = name === 'default' ? this.exports.default.statement : this.definitions[ name ];
 			if ( statement ) statement.mark();
 		}
+	}
+
+	markAllSideEffects () {
+		this.statements.forEach( statement => {
+			statement.markSideEffect();
+		});
 	}
 
 	markAllStatements ( isEntryModule ) {
@@ -530,8 +572,12 @@ export default class Module {
 			// should be split up. Otherwise, we may end up including code we
 			// don't need, just because an unwanted declarator is included
 			if ( node.type === 'VariableDeclaration' && node.declarations.length > 1 ) {
-				// remove the leading var/let/const
-				this.magicString.remove( node.start, node.declarations[0].start );
+				// remove the leading var/let/const... UNLESS the previous node
+				// was also a synthetic node, in which case it'll get removed anyway
+				const lastStatement = statements[ statements.length - 1 ];
+				if ( !lastStatement || !lastStatement.node.isSynthetic ) {
+					this.magicString.remove( node.start, node.declarations[0].start );
+				}
 
 				node.declarations.forEach( declarator => {
 					const { start, end } = declarator;
@@ -642,7 +688,12 @@ export default class Module {
 			statement.replaceIdentifiers( magicString, replacements, bundleExports );
 
 			// modify exports as necessary
-			if ( statement.isExportDeclaration ) {
+			if ( statement.isReexportDeclaration ) {
+				// remove `export { foo } from './other'` and `export * from './other'`
+				magicString.remove( statement.start, statement.next );
+			}
+
+			else if ( statement.isExportDeclaration ) {
 				// remove `export` from `export var foo = 42`
 				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.declaration.type === 'VariableDeclaration' ) {
 					magicString.remove( statement.node.start, statement.node.declaration.start );

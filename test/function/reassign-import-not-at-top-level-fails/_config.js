@@ -4,7 +4,7 @@ var assert = require( 'assert' );
 module.exports = {
 	description: 'disallows assignments to imported bindings not at the top level',
 	error: function ( err ) {
-		assert.equal( err.file, path.resolve( __dirname, 'main.js' ) );
+		assert.equal( path.normalize(err.file), path.resolve( __dirname, 'main.js' ) );
 		assert.deepEqual( err.loc, { line: 7, column: 2 });
 		assert.ok( /Illegal reassignment/.test( err.message ) );
 	}

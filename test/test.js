@@ -2,11 +2,11 @@ require( 'source-map-support' ).install();
 require( 'console-group' ).install();
 
 var path = require( 'path' );
+var os = require( 'os' );
 var sander = require( 'sander' );
 var assert = require( 'assert' );
 var exec = require( 'child_process' ).exec;
 var babel = require( 'babel-core' );
-var sequence = require( './utils/promiseSequence' );
 var rollup = require( '../dist/rollup' );
 
 var FUNCTION = path.resolve( __dirname, 'function' );
@@ -32,6 +32,10 @@ function extend ( target ) {
 	return target;
 }
 
+function normaliseOutput ( code ) {
+	return code.toString().trim().replace( /\r\n/g, '\n' );
+}
+
 describe( 'rollup', function () {
 	describe( 'sanity checks', function () {
 		it( 'exists', function () {
@@ -40,6 +44,36 @@ describe( 'rollup', function () {
 
 		it( 'has a rollup method', function () {
 			assert.equal( typeof rollup.rollup, 'function' );
+		});
+
+		it( 'fails without options or options.entry', function () {
+			assert.throws( function () {
+				rollup.rollup();
+			}, /must supply options\.entry/ );
+
+			assert.throws( function () {
+				rollup.rollup({});
+			}, /must supply options\.entry/ );
+		});
+	});
+
+	describe( 'bundle.write()', function () {
+		it( 'fails without options or options.dest', function () {
+			return rollup.rollup({
+				entry: 'x',
+				resolveId: function () { return 'test'; },
+				load: function () {
+					return '// empty';
+				}
+			}).then( function ( bundle ) {
+				assert.throws( function () {
+					bundle.write();
+				}, /must supply options\.dest/ );
+
+				assert.throws( function () {
+					bundle.write({});
+				}, /must supply options\.dest/ );
+			});
 		});
 	});
 
@@ -76,60 +110,60 @@ describe( 'rollup', function () {
 								format: 'cjs'
 							}));
 
-							if ( config.error ) {
+							if ( config.generateError ) {
 								unintendedError = new Error( 'Expected an error while generating output' );
 							}
 						} catch ( err ) {
-							if ( config.error ) {
-								config.error( err );
+							if ( config.generateError ) {
+								config.generateError( err );
 							} else {
 								unintendedError = err;
 							}
 						}
 
 						if ( unintendedError ) throw unintendedError;
+						if ( config.error || config.generateError ) return;
 
 						var code;
 
+						if ( config.babel ) {
+							code = babel.transform( result.code, {
+								blacklist: [ 'es6.modules' ],
+								loose: [ 'es6.classes' ]
+							}).code;
+						} else {
+							code = result.code;
+						}
+
+						var module = {
+							exports: {}
+						};
+
+						var context = extend({
+							require: require,
+							module: module,
+							exports: module.exports,
+							assert: assert
+						}, config.context || {} );
+
+						var contextKeys = Object.keys( context );
+						var contextValues = contextKeys.map( function ( key ) {
+							return context[ key ];
+						});
+
 						try {
-							if ( config.babel ) {
-								code = babel.transform( result.code, {
-									blacklist: [ 'es6.modules' ],
-									loose: [ 'es6.classes' ]
-								}).code;
-							} else {
-								code = result.code;
-							}
-
-							var module = {
-								exports: {}
-							};
-
-							var context = extend({
-								require: require,
-								module: module,
-								exports: module.exports,
-								assert: assert
-							}, config.context || {} );
-
-							var contextKeys = Object.keys( context );
-							var contextValues = contextKeys.map( function ( key ) {
-								return context[ key ];
-							});
-
 							var fn = new Function( contextKeys, code );
 							fn.apply( {}, contextValues );
 
-							if ( config.error ) {
+							if ( config.runtimeError ) {
 								unintendedError = new Error( 'Expected an error while executing output' );
-							}
-
-							if ( config.exports ) {
-								config.exports( module.exports );
+							} else {
+								if ( config.exports ) config.exports( module.exports );
+								if ( config.bundle ) config.bundle( bundle );
 							}
 						} catch ( err ) {
-							if ( config.error ) {
-								config.error( err );
+							if ( config.runtimeError ) {
+								config.runtimeError( err );
 							} else {
 								unintendedError = err;
 							}
@@ -157,49 +191,45 @@ describe( 'rollup', function () {
 		sander.readdirSync( FORM ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
-			describe( dir, function () {
-				var config = require( FORM + '/' + dir + '/_config' );
+			var config = require( FORM + '/' + dir + '/_config' );
 
-				var options = extend( {}, config.options, {
-					entry: FORM + '/' + dir + '/main.js'
-				});
+			var options = extend( {}, config.options, {
+				entry: FORM + '/' + dir + '/main.js'
+			});
 
-				var bundlePromise = rollup.rollup( options );
-
+			( config.skip ? describe.skip : config.solo ? describe.only : describe)( dir, function () {
 				PROFILES.forEach( function ( profile ) {
-					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
-						if ( config.solo ) console.group( dir );
-
-						return bundlePromise.then( function ( bundle ) {
+					it( 'generates ' + profile.format, function () {
+						return rollup.rollup( options ).then( function ( bundle ) {
 							var options = extend( {}, config.options, {
 								dest: FORM + '/' + dir + '/_actual/' + profile.format + '.js',
 								format: profile.format
 							});
 
 							return bundle.write( options ).then( function () {
-								var actualCode = sander.readFileSync( FORM, dir, '_actual', profile.format + '.js' ).toString().trim();
+								var actualCode = normaliseOutput( sander.readFileSync( FORM, dir, '_actual', profile.format + '.js' ) );
 								var expectedCode;
 								var actualMap;
 								var expectedMap;
 
 								try {
-									expectedCode = sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ).toString().trim();
+									expectedCode = normaliseOutput( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ) );
 								} catch ( err ) {
 									expectedCode = 'missing file';
 								}
 
 								try {
 									actualMap = JSON.parse( sander.readFileSync( FORM, dir, '_actual', profile.format + '.js.map' ).toString() );
+									actualMap.sourcesContent = actualMap.sourcesContent.map( normaliseOutput );
 								} catch ( err ) {}
 
 								try {
 									expectedMap = JSON.parse( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js.map' ).toString() );
+									expectedMap.sourcesContent = expectedMap.sourcesContent.map( normaliseOutput );
 								} catch ( err ) {}
 
 								assert.equal( actualCode, expectedCode );
 								assert.deepEqual( actualMap, expectedMap );
-
-								if ( config.solo ) console.groupEnd();
 							});
 						});
 					});
@@ -219,15 +249,13 @@ describe( 'rollup', function () {
 					entry: SOURCEMAPS + '/' + dir + '/main.js'
 				});
 
-				var bundlePromise = rollup.rollup( options );
-
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
-						return bundlePromise.then( function ( bundle ) {
+						return rollup.rollup( options ).then( function ( bundle ) {
 							var options = extend( {}, config.options, {
 								format: profile.format,
 								sourceMap: true,
-								sourceMapFile: 'bundle.js'
+								sourceMapFile: path.resolve( __dirname, 'bundle.js' )
 							});
 
 							var result = bundle.generate( options );
@@ -249,9 +277,13 @@ describe( 'rollup', function () {
 				( config.skip ? it.skip : config.solo ? it.only : it )( dir, function ( done ) {
 					process.chdir( path.resolve( CLI, dir ) );
 
+					if (os.platform() === 'win32') {
+						config.command = "node " + path.resolve( __dirname, '../bin' ) + path.sep + config.command;
+					}
+
 					exec( config.command, {
 						env: {
-							PATH: path.resolve( __dirname, '../bin' ) + ':' + process.env.PATH
+							PATH: path.resolve( __dirname, '../bin' ) + path.delimiter + process.env.PATH
 						}
 					}, function ( err, code, stderr ) {
 						if ( err ) return done( err );
@@ -310,7 +342,7 @@ describe( 'rollup', function () {
 						else {
 							var expected = sander.readFileSync( '_expected.js' ).toString();
 							try {
-								assert.equal( code.trim(), expected.trim() );
+								assert.equal( normaliseOutput( code ), normaliseOutput( expected ) );
 								done();
 							} catch ( err ) {
 								done( err );

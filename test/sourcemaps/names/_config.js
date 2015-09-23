@@ -1,4 +1,3 @@
-var path = require( 'path' );
 var assert = require( 'assert' );
 var getLocation = require( '../../utils/getLocation' );
 var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
@@ -9,21 +8,20 @@ module.exports = {
 		moduleName: 'myModule'
 	},
 	test: function ( code, map ) {
-		var match = /Object\.create\( ([^\.]+)\.prototype/.exec( code );
-
-		var deconflictedName = match[1];
-		if ( deconflictedName === 'Foo' ) throw new Error( 'Need to update this test!' );
-
 		var smc = new SourceMapConsumer( map );
 
-		var index = code.indexOf( deconflictedName );
-		var generatedLoc = getLocation( code, index );
-		var originalLoc = smc.originalPositionFor( generatedLoc );
-		assert.equal( originalLoc.name, 'Foo' );
+		var pattern = /Object\.create\( ([\w\$\d]+)\.prototype \)/;
+		var match = pattern.exec( code );
 
-		index = code.indexOf( deconflictedName, index + 1 );
-		generatedLoc = getLocation( code, index );
-		originalLoc = smc.originalPositionFor( generatedLoc );
-		assert.equal( originalLoc.name, 'Bar' );
+		var generatedLoc = getLocation( code, match.index + 'Object.create ( '.length );
+		var original = smc.originalPositionFor( generatedLoc );
+		assert.equal( original.name, 'Bar' );
+
+		pattern = /function Foo([\w\$\d]+)/;
+		match = pattern.exec( code );
+
+		generatedLoc = getLocation( code, match.index + 'function '.length );
+		original = smc.originalPositionFor( generatedLoc );
+		assert.equal( original.name, 'Foo' );
 	}
 };

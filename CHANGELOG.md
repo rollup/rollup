@@ -1,5 +1,32 @@
 # rollup changelog
 
+## 0.16.4
+
+* Fix import paths with `.` ([#133](https://github.com/rollup/rollup/issues/133))
+* Prevent sourceMappingURL confusion leading to broken sourcemap
+* Add code coverage reporting [#130](https://github.com/rollup/rollup/pull/130))
+* Add `modules` property to user-facing `bundle` – an array with `{id}` objects ([#128](https://github.com/rollup/rollup/issues/128))
+
+## 0.16.3
+
+* Prevent adjacent blocks of multiple var declarations causing magic-string failure ([#105](https://github.com/rollup/rollup/issues/105))
+
+## 0.16.2
+
+* Top-level function calls and assignments to globals are treated as side-effects, and always included
+* Import files from subdirectories of external packages, e.g. `import mod from 'foo/sub/mod'` ([#126](https://github.com/rollup/rollup/issues/126))
+
+## 0.16.1
+
+* Handle assignment patterns, and destructured/rest parameters, when analysing scopes
+* Fix bug preventing project from self-building (make base `Identifier` class markable)
+
+## 0.16.0
+
+* Internal refactoring ([#99](https://github.com/rollup/rollup/pull/99))
+* Optimisation for statically-analysable namespace imports ([#99](https://github.com/rollup/rollup/pull/99))
+* Windows support (theoretically!) ([#117](https://github.com/rollup/rollup/pull/117) / [#119](https://github.com/rollup/rollup/pull/119))
+
 ## 0.15.0
 
 * Load all modules specified by `import` statements, and do tree-shaking synchronously once loading is complete. This results in simpler and faster code, and enables future improvements ([#97](https://github.com/rollup/rollup/pull/97))

@@ -8,7 +8,8 @@ var node = src
 		entry: 'rollup.js',
 		dest: 'rollup.js',
 		format: 'cjs',
-		external: [ 'sander', 'acorn' ]
+		external: [ 'sander', 'acorn' ],
+		sourceMap: true
 	})
 	.transform( 'babel' );
 

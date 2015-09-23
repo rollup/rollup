@@ -3,6 +3,16 @@ import getLocation from './utils/getLocation';
 import walk from './ast/walk';
 import Scope from './ast/Scope';
 
+const blockDeclarations = {
+	'const': true,
+	'let': true
+};
+
+const modifierNodes = {
+	AssignmentExpression: 'left',
+	UpdateExpression: 'argument'
+};
+
 function isIife ( node, parent ) {
 	return parent && parent.type === 'CallExpression' && node === parent.callee;
 }
@@ -31,6 +41,7 @@ export default class Statement {
 
 		this.reassigns = blank();
 
+		this.hasSideEffects = false;
 		this.isIncluded = false;
 
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
@@ -49,7 +60,8 @@ export default class Statement {
 
 				switch ( node.type ) {
 					case 'FunctionDeclaration':
-						scope.addDeclaration( node.id.name, node, false );
+						scope.addDeclaration( node, false, false );
+						break;
 
 					case 'BlockStatement':
 						if ( parent && /Function/.test( parent.type ) ) {
@@ -62,7 +74,7 @@ export default class Statement {
 							// named function expressions - the name is considered
 							// part of the function's scope
 							if ( parent.type === 'FunctionExpression' && parent.id ) {
-								newScope.addDeclaration( parent.id.name, parent, false );
+								newScope.addDeclaration( parent, false, false );
 							}
 						} else {
 							newScope = new Scope({
@@ -84,12 +96,13 @@ export default class Statement {
 
 					case 'VariableDeclaration':
 						node.declarations.forEach( declarator => {
-							scope.addDeclaration( declarator.id.name, node, true );
+							const isBlockDeclaration = node.type === 'VariableDeclaration' && blockDeclarations[ node.kind ];
+							scope.addDeclaration( declarator, isBlockDeclaration, true );
 						});
 						break;
 
 					case 'ClassDeclaration':
-						scope.addDeclaration( node.id.name, node, false );
+						scope.addDeclaration( node, false, false );
 						break;
 				}
 
@@ -265,14 +278,22 @@ export default class Statement {
 			const id = this.module.resolvedIds[ this.node.source.value ];
 			const otherModule = this.module.bundle.moduleById[ id ];
 
-			this.node.specifiers.forEach( specifier => {
-				const reexport = this.module.reexports[ specifier.exported.name ];
+			if ( this.node.specifiers ) {
+				this.node.specifiers.forEach( specifier => {
+					const reexport = this.module.reexports[ specifier.exported.name ];
 
-				reexport.isUsed = true;
-				reexport.module = otherModule; // TODO still necessary?
+					reexport.isUsed = true;
+					reexport.module = otherModule; // TODO still necessary?
 
-				if ( !otherModule.isExternal ) otherModule.markExport( specifier.local.name, specifier.exported.name, this.module );
-			});
+					if ( !otherModule.isExternal ) otherModule.markExport( specifier.local.name, specifier.exported.name, this.module );
+				});
+			} else {
+				otherModule.needsAll = true;
+
+				otherModule.getExports().forEach( name => {
+					if ( name !== 'default' ) otherModule.markExport( name, name, this.module );
+				});
+			}
 
 			return;
 		}
@@ -280,6 +301,32 @@ export default class Statement {
 		Object.keys( this.dependsOn ).forEach( name => {
 			if ( this.defines[ name ] ) return; // TODO maybe exclude from `this.dependsOn` in the first place?
 			this.module.mark( name );
+		});
+	}
+
+	markSideEffect () {
+		const statement = this;
+
+		walk( this.node, {
+			enter ( node, parent ) {
+				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) return this.skip();
+
+				// If this is a top-level call expression, or an assignment to a global,
+				// this statement will need to be marked
+				if ( node.type === 'CallExpression' ) {
+					statement.mark();
+				}
+
+				else if ( node.type in modifierNodes ) {
+					let subject = node[ modifierNodes[ node.type ] ];
+					while ( subject.type === 'MemberExpression' ) subject = subject.object;
+
+					const bundle = statement.module.bundle;
+					const canonicalName = bundle.trace( statement.module, subject.name );
+
+					if ( bundle.assumedGlobals[ canonicalName ] ) statement.mark();
+				}
+			}
 		});
 	}
 

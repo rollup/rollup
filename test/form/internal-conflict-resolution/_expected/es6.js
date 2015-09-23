@@ -1,7 +1,7 @@
-var _bar = 42;
+var bar$1 = 42;
 
 function foo () {
-	return _bar;
+	return bar$1;
 }
 
 function bar () {

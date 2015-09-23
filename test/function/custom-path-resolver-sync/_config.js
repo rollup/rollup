@@ -5,7 +5,7 @@ module.exports = {
 	description: 'uses a custom path resolver (synchronous)',
 	options: {
 		resolveId: function ( importee, importer ) {
-			if ( importee === path.resolve( __dirname, 'main.js' ) ) return importee;
+			if ( path.normalize(importee) === path.resolve( __dirname, 'main.js' ) ) return importee;
 			if ( importee === 'foo' ) return path.resolve( __dirname, 'bar.js' );
 
 			return false;

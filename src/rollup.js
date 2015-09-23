@@ -1,10 +1,8 @@
 import { basename } from './utils/path';
 import { writeFile } from 'sander';
 import { keys } from './utils/object';
+import SOURCEMAPPING_URL from './utils/sourceMappingURL';
 import Bundle from './Bundle';
-
-let SOURCEMAPPING_URL = 'sourceMa';
-SOURCEMAPPING_URL += 'ppingURL';
 
 export function rollup ( options ) {
 	if ( !options || !options.entry ) {
@@ -17,6 +15,9 @@ export function rollup ( options ) {
 		return {
 			imports: bundle.externalModules.map( module => module.id ),
 			exports: keys( bundle.entryModule.exports ),
+			modules: bundle.orderedModules.map( module => {
+				return { id: module.id };
+			}),
 
 			generate: options => bundle.render( options ),
 			write: options => {
