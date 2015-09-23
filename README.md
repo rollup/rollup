@@ -17,6 +17,9 @@
     <img src="https://david-dm.org/rollup/rollup.svg"
          alt="dependency status">
   </a>
+  <a href="http://codecov.io/github/rollup/rollup?branch=master">
+    <img src="http://codecov.io/github/rollup/rollup/coverage.svg?branch=master" alt="Coverage via Codecov" />
+  </a>
 </p>
 
 > *I roll up, I roll up, I roll up, Shawty I roll up*
