@@ -6,7 +6,7 @@ import walk from './ast/walk';
 import { blank, keys } from './utils/object';
 import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
-import SOURCEMAPPING_URL from './utils/sourceMappingUrl';
+import SOURCEMAPPING_URL from './utils/sourceMappingURL';
 
 function isEmptyExportedVarDeclaration ( node, exports, toExport ) {
 	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;

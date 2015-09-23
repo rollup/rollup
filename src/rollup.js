@@ -1,7 +1,7 @@
 import { basename } from './utils/path';
 import { writeFile } from 'sander';
 import { keys } from './utils/object';
-import SOURCEMAPPING_URL from './utils/sourceMappingUrl';
+import SOURCEMAPPING_URL from './utils/sourceMappingURL';
 import Bundle from './Bundle';
 
 export function rollup ( options ) {
