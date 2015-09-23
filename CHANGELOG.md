@@ -5,6 +5,7 @@
 * Fix import paths with `.` ([#133](https://github.com/rollup/rollup/issues/133))
 * Prevent sourceMappingURL confusion leading to broken sourcemap
 * Add code coverage reporting [#130](https://github.com/rollup/rollup/pull/130))
+* Add `modules` property to user-facing `bundle` – an array with `{id}` objects ([#128](https://github.com/rollup/rollup/issues/128))
 
 ## 0.16.3
 
