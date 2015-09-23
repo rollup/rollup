@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.16.4
+
+* Fix import paths with `.` ([#133](https://github.com/rollup/rollup/issues/133))
+* Prevent sourceMappingURL confusion leading to broken sourcemap
+* Add code coverage reporting [#130](https://github.com/rollup/rollup/pull/130))
+
 ## 0.16.3
 
 * Prevent adjacent blocks of multiple var declarations causing magic-string failure ([#105](https://github.com/rollup/rollup/issues/105))
