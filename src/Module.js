@@ -288,7 +288,7 @@ export default class Module {
 			// bind the name to the other module's reference.
 			this.allExportsFrom.forEach( module => {
 				module.exports.getNames().forEach( name => {
-					if ( !this.exports.defines( name ) ) {
+					if ( name !== 'default' && !this.exports.defines( name ) ) {
 						this.exports.bind( name, module.exports.reference( name ) );
 					}
 				});
