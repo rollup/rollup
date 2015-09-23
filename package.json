@@ -8,8 +8,12 @@
     "rollup": "./bin/rollup"
   },
   "scripts": {
-    "test": "mocha",
     "pretest": "npm run build",
+    "test": "mocha",
+    "pretest-coverage": "npm run build",
+    "test-coverage": "istanbul cover --report json node_modules/.bin/_mocha -- -u exports -R spec test/test.js",
+    "posttest-coverage": "remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.json -b dist",
+    "ci": "npm run test-coverage && codecov < coverage/coverage-remapped.json",
     "build": "gobble build -f dist",
     "prepublish": "npm test",
     "lint": "eslint src"
@@ -37,6 +41,7 @@
   "devDependencies": {
     "babel": "^5.8.21",
     "babel-core": "^5.5.8",
+    "codecov.io": "^0.1.6",
     "console-group": "^0.1.2",
     "eslint": "^1.1.0",
     "gobble": "^0.10.1",
@@ -46,7 +51,9 @@
     "gobble-esperanto-bundle": "^0.2.0",
     "gobble-rollup": "^0.8.0",
     "gobble-rollup-babel": "^0.1.0",
+    "istanbul": "^0.3.20",
     "mocha": "^2.2.4",
+    "remap-istanbul": "^0.2.0",
     "source-map": "^0.4.4"
   },
   "dependencies": {

@@ -1,9 +1,10 @@
 sudo: false
 language: node_js
 node_js:
-  - "0.10"
   - "0.12"
   - "iojs"
 env:
   global:
     - BUILD_TIMEOUT=10000
+install: npm install
+script: npm run ci
