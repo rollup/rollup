@@ -45,6 +45,36 @@ describe( 'rollup', function () {
 		it( 'has a rollup method', function () {
 			assert.equal( typeof rollup.rollup, 'function' );
 		});
+
+		it( 'fails without options or options.entry', function () {
+			assert.throws( function () {
+				rollup.rollup();
+			}, /must supply options\.entry/ );
+
+			assert.throws( function () {
+				rollup.rollup({});
+			}, /must supply options\.entry/ );
+		});
+	});
+
+	describe( 'bundle.write()', function () {
+		it( 'fails without options or options.dest', function () {
+			return rollup.rollup({
+				entry: 'x',
+				resolveId: function () { return 'test'; },
+				load: function () {
+					return '// empty';
+				}
+			}).then( function ( bundle ) {
+				assert.throws( function () {
+					bundle.write();
+				}, /must supply options\.dest/ );
+
+				assert.throws( function () {
+					bundle.write({});
+				}, /must supply options\.dest/ );
+			});
+		});
 	});
 
 	describe( 'function', function () {
