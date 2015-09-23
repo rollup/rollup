@@ -53,6 +53,7 @@
     "gobble-rollup-babel": "^0.1.0",
     "istanbul": "^0.3.20",
     "mocha": "^2.2.4",
+    "remap-istanbul": "^0.2.0",
     "source-map": "^0.4.4"
   },
   "dependencies": {
