@@ -81,6 +81,7 @@ export default class Scope {
 		});
 
 		this.ids.filter( isntReference ).forEach( id => {
+			// TODO: can this be removed?
 			if ( typeof id === 'string' ) {
 				throw new Error( `Required name "${id}" is undefined!` );
 			}
@@ -153,7 +154,11 @@ export default class Scope {
 
 	// Get a reference to the identifier `name` in this scope.
 	reference ( name ) {
-		return new Reference( this, this.index( name ) );
+		if ( !( name in this.names ) ) {
+			throw new Error( `Cannot reference undefined identifier "${name}"` );
+		}
+
+		return new Reference( this, this.names[ name ] );
 	}
 
 	// Return the used names of the scope.
