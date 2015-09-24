@@ -25,12 +25,19 @@ function isFunctionDeclaration ( node, parent ) {
 	if ( node.type === 'FunctionExpression' && parent.type === 'VariableDeclarator' ) return true;
 }
 
+// Extract the property access from a MemberExpression.
+function property ( node ) {
+	return node.name ? `.${node.name}` : `[${node.value}]`;
+}
+
+// Recursively traverse the chain of member expressions from `node`,
+// returning the access, e.g. `foo.bar[17]`
 function chainedMemberExpression ( node ) {
 	if ( node.object.type === 'MemberExpression' ) {
-		return chainedMemberExpression( node.object ) + '.' + node.property.name;
+		return chainedMemberExpression( node.object ) + property( node.property );
 	}
 
-	return node.object.name + '.' + node.property.name;
+	return node.object.name + property( node.property );
 }
 
 export default class Statement {
@@ -161,10 +168,10 @@ export default class Statement {
 		// /update expressions) need to be captured
 		let writeDepth = 0;
 
-		// Used to track
-		let topName;
-		let currentMemberExpression = null;
-		let namespace = null;
+		// Used to track and optimize lookups through namespaces.
+		let localName;        // The local name of the top-most imported namespace.
+		let topNode = null;   // The top-node of the member expression.
+		let namespace = null; // An instance of `Module`.
 
 		if ( !this.isImportDeclaration ) {
 			walk( this.node, {
@@ -184,13 +191,21 @@ export default class Statement {
 					if ( node._scope ) scope = scope.parent;
 
 					// Optimize namespace lookups, which manifest as MemberExpressions.
-					if ( node.type === 'MemberExpression' && ( !currentMemberExpression || node.object === currentMemberExpression ) ) {
-						currentMemberExpression = node;
+					if ( node.type === 'MemberExpression' && ( !topNode || node.object === topNode ) ) {
+						// Ignore anything that doesn't begin with an identifier.
+						if ( !topNode && node.object.type !== 'Identifier') return;
 
+						topNode = node;
+
+						// If we don't already have a namespace,
+						// we aren't currently exploring any chain of member expressions.
 						if ( !namespace ) {
-							topName = node.object.name;
-							const id = this.module.locals.lookup( topName );
+							localName = node.object.name;
 
+							// At first, we don't have a namespace, so we'll try to look one up.
+							const id = this.module.locals.lookup( localName );
+
+							// It only counts if it exists, is a module, and isn't external.
 							if ( !id || !id.isModule || id.isExternal ) return;
 
 							namespace = id;
@@ -225,16 +240,16 @@ export default class Statement {
 							namespace.mark();
 
 							namespace = null;
-							currentMemberExpression = null;
+							topNode = null;
 							return;
 						}
 
 						const id = namespace.exports.lookup( name );
 
-						// If the namespace doesn't define the given name,
+						// If the namespace doesn't export the given name,
 						// we can throw an error (even for nested namespaces).
 						if ( !id ) {
-							throw new Error( `Module doesn't define "${name}"!` );
+							throw new Error( `Module "${namespace.id}" doesn't export "${name}"!` );
 						}
 
 						// We can't resolve deeper. Replace the member chain.
@@ -244,18 +259,18 @@ export default class Statement {
 							}
 
 							// FIXME: do this better
-							// If we depend on this name...
-							if ( this.dependsOn[ topName ] ) {
+							// If an earlier stage detected that we depend on this name...
+							if ( this.dependsOn[ localName ] ) {
 								// ... decrement the count...
-								if ( !--this.dependsOn[ topName ] ) {
+								if ( !--this.dependsOn[ localName ] ) {
 									// ... and remove it if the count is 0.
-									delete this.dependsOn[ topName ];
+									delete this.dependsOn[ localName ];
 								}
 							}
 
-							this.namespaceReplacements.push( [ node, id ] );
+							this.namespaceReplacements.push( [ topNode, id ] );
 							namespace = null;
-							currentMemberExpression = null;
+							topNode = null;
 							return;
 						}
 
@@ -486,7 +501,8 @@ export default class Statement {
 					topLevel = false;
 
 					let newNames = blank();
-					let hasReplacements;
+					// Consider a scope to have replacements if there are any namespaceReplacements.
+					let hasReplacements = statement.namespaceReplacements.length > 0;
 
 					keys( names ).forEach( name => {
 						if ( !scope.declarations[ name ] ) {
