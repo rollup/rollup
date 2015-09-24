@@ -93,7 +93,7 @@ describe( 'Scope', function () {
 		});
 	});
 
-	it( 'dedupes-external-imports', function () {
+	it( 'cannot reference undefined names', function () {
 		var real = new Scope();
 
 		var external = real.virtual(),
@@ -104,17 +104,11 @@ describe( 'Scope', function () {
 
 		locals.bind( 'Comp', external.reference( 'Component' ) );
 
-		exports.bind( 'default', locals.reference( 'Foo' ) );
-
-		try {
-			real.deconflict();
-			assert.ok( false, 'Scope.deconflict should throw with "Foo" undefined' );
-		} catch ( ignore ) {
-			// as expected
-		}
+		assert.throws( function () {
+			exports.bind( 'default', locals.reference( 'Foo' ) );
+		}, 'Cannot reference undefined identifier "Foo"' );
 
 		locals.define( 'Foo' );
-
-		real.deconflict();
+		exports.bind( 'default', locals.reference( 'Foo' ) );
 	});
 });
