@@ -27,9 +27,23 @@ function isntReference ( id ) {
 	return !( id instanceof Reference );
 }
 
-// Prefix the argument with '_'.
-function underscorePrefix ( x ) {
-	return '_' + x;
+// Returns a function that will prefix its argument with '_'
+// and append a number if called with the same argument more than once.
+function underscorePrefix () {
+	function number ( x ) {
+		if ( !( x in map ) ) {
+			map[ x ] = 0;
+			return '';
+		}
+
+		return map[ x ]++;
+	}
+
+	var map = blank();
+
+	return function ( x ) {
+		return '_' + x + number( x );
+	}
 }
 
 // ## Scope
@@ -51,7 +65,7 @@ export default class Scope {
 	// Deconflict all names within the scope,
 	// using the given renaming function.
 	// If no function is supplied, `underscorePrefix` is used.
-	deconflict ( rename = underscorePrefix ) {
+	deconflict ( rename = underscorePrefix() ) {
 		const names = this.used;
 
 		this.ids.filter( ref => ref instanceof Reference ).forEach( ref => {
@@ -67,6 +81,7 @@ export default class Scope {
 		});
 
 		this.ids.filter( isntReference ).forEach( id => {
+			// TODO: can this be removed?
 			if ( typeof id === 'string' ) {
 				throw new Error( `Required name "${id}" is undefined!` );
 			}
@@ -139,7 +154,11 @@ export default class Scope {
 
 	// Get a reference to the identifier `name` in this scope.
 	reference ( name ) {
-		return new Reference( this, this.index( name ) );
+		if ( !( name in this.names ) ) {
+			throw new Error( `Cannot reference undefined identifier "${name}"` );
+		}
+
+		return new Reference( this, this.names[ name ] );
 	}
 
 	// Return the used names of the scope.

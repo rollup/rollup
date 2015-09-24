@@ -50,6 +50,18 @@ class Id {
 	}
 }
 
+class LateBoundIdPlaceholder {
+	constructor ( module, name ) {
+		this.module = module;
+		this.name = name;
+		this.placeholder = true;
+	}
+
+	mark () {
+		throw new Error(`The imported name "${this.name}" is never exported by "${this.module.id}".`);
+	}
+}
+
 export default class Module {
 	constructor ({ id, source, ast, bundle }) {
 		this.source = source;
@@ -103,6 +115,7 @@ export default class Module {
 			}
 
 			// throw new Error( `The name "${name}" is never exported (from ${this.id})!` );
+			this.exports.define( name, new LateBoundIdPlaceholder( this, name ) );
 			return reference.call( this.exports, name );
 		};
 
@@ -288,7 +301,7 @@ export default class Module {
 			// bind the name to the other module's reference.
 			this.allExportsFrom.forEach( module => {
 				module.exports.getNames().forEach( name => {
-					if ( !this.exports.defines( name ) ) {
+					if ( name !== 'default' && !this.exports.defines( name ) ) {
 						this.exports.bind( name, module.exports.reference( name ) );
 					}
 				});
