@@ -474,24 +474,6 @@ export default class Statement {
 							magicString.overwrite( node.start, id.end, bundleExports[ name ], true );
 							id._skip = true;
 						}
-
-						// otherwise, we insert the `exports.foo = foo` after the declaration
-						else {
-							const exportInitialisers = node.declarations
-								.map( declarator => declarator.id.name )
-								.filter( name => !!bundleExports[ name ] )
-								.map( name => `\n${bundleExports[name]} = ${name};` )
-								.join( '' );
-
-							if ( exportInitialisers ) {
-								// TODO clean this up
-								try {
-									magicString.insert( node.end, exportInitialisers );
-								} catch ( err ) {
-									magicString.append( exportInitialisers );
-								}
-							}
-						}
 					}
 				}
 

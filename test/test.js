@@ -45,6 +45,36 @@ describe( 'rollup', function () {
 		it( 'has a rollup method', function () {
 			assert.equal( typeof rollup.rollup, 'function' );
 		});
+
+		it( 'fails without options or options.entry', function () {
+			assert.throws( function () {
+				rollup.rollup();
+			}, /must supply options\.entry/ );
+
+			assert.throws( function () {
+				rollup.rollup({});
+			}, /must supply options\.entry/ );
+		});
+	});
+
+	describe( 'bundle.write()', function () {
+		it( 'fails without options or options.dest', function () {
+			return rollup.rollup({
+				entry: 'x',
+				resolveId: function () { return 'test'; },
+				load: function () {
+					return '// empty';
+				}
+			}).then( function ( bundle ) {
+				assert.throws( function () {
+					bundle.write();
+				}, /must supply options\.dest/ );
+
+				assert.throws( function () {
+					bundle.write({});
+				}, /must supply options\.dest/ );
+			});
+		});
 	});
 
 	describe( 'function', function () {
@@ -80,63 +110,56 @@ describe( 'rollup', function () {
 								format: 'cjs'
 							}));
 
-							if ( config.error ) {
+							if ( config.generateError ) {
 								unintendedError = new Error( 'Expected an error while generating output' );
 							}
 						} catch ( err ) {
-							if ( config.error ) {
-								config.error( err );
+							if ( config.generateError ) {
+								config.generateError( err );
 							} else {
 								unintendedError = err;
 							}
 						}
 
 						if ( unintendedError ) throw unintendedError;
+						if ( config.error || config.generateError ) return;
 
 						var code;
 
-						try {
-							if ( config.babel ) {
-								code = babel.transform( result.code, {
-									blacklist: [ 'es6.modules' ],
-									loose: [ 'es6.classes' ]
-								}).code;
-							} else {
-								code = result.code;
-							}
-
-							var module = {
-								exports: {}
-							};
-
-							var context = extend({
-								require: require,
-								module: module,
-								exports: module.exports,
-								assert: assert
-							}, config.context || {} );
-
-							var contextKeys = Object.keys( context );
-							var contextValues = contextKeys.map( function ( key ) {
-								return context[ key ];
-							});
-
-							var fn = new Function( contextKeys, code );
-							fn.apply( {}, contextValues );
-
-							if ( config.error ) {
-								unintendedError = new Error( 'Expected an error while executing output' );
-							}
-
-							if ( config.exports ) config.exports( module.exports );
-							if ( config.bundle ) config.bundle( bundle );
-						} catch ( err ) {
-							if ( config.error ) {
-								config.error( err );
-							} else {
-								unintendedError = err;
-							}
+						if ( config.babel ) {
+							code = babel.transform( result.code, {
+								blacklist: [ 'es6.modules' ],
+								loose: [ 'es6.classes' ]
+							}).code;
+						} else {
+							code = result.code;
 						}
+
+						var module = {
+							exports: {}
+						};
+
+						var context = extend({
+							require: require,
+							module: module,
+							exports: module.exports,
+							assert: assert
+						}, config.context || {} );
+
+						var contextKeys = Object.keys( context );
+						var contextValues = contextKeys.map( function ( key ) {
+							return context[ key ];
+						});
+
+						var fn = new Function( contextKeys, code );
+						fn.apply( {}, contextValues );
+
+						if ( config.error ) {
+							unintendedError = new Error( 'Expected an error while executing output' );
+						}
+
+						if ( config.exports ) config.exports( module.exports );
+						if ( config.bundle ) config.bundle( bundle );
 
 						if ( config.show || unintendedError ) {
 							console.log( code + '\n\n\n' );

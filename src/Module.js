@@ -599,19 +599,6 @@ export default class Module {
 					magicString.remove( statement.start, statement.next );
 					return;
 				}
-
-				// skip `export var foo;` if foo is exported
-				if ( isEmptyExportedVarDeclaration( statement.node.declaration, this.exports, toExport ) ) {
-					magicString.remove( statement.start, statement.next );
-					return;
-				}
-			}
-
-			// skip empty var declarations for exported bindings
-			// (otherwise we're left with `exports.foo;`, which is useless)
-			if ( isEmptyExportedVarDeclaration( statement.node, this.exports, toExport ) ) {
-				magicString.remove( statement.start, statement.next );
-				return;
 			}
 
 			// split up/remove var declarations as necessary
