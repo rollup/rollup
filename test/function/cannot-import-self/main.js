@@ -1,0 +1,1 @@
+import me from './main';
