@@ -110,63 +110,56 @@ describe( 'rollup', function () {
 								format: 'cjs'
 							}));
 
-							if ( config.error ) {
+							if ( config.generateError ) {
 								unintendedError = new Error( 'Expected an error while generating output' );
 							}
 						} catch ( err ) {
-							if ( config.error ) {
-								config.error( err );
+							if ( config.generateError ) {
+								config.generateError( err );
 							} else {
 								unintendedError = err;
 							}
 						}
 
 						if ( unintendedError ) throw unintendedError;
+						if ( config.error || config.generateError ) return;
 
 						var code;
 
-						try {
-							if ( config.babel ) {
-								code = babel.transform( result.code, {
-									blacklist: [ 'es6.modules' ],
-									loose: [ 'es6.classes' ]
-								}).code;
-							} else {
-								code = result.code;
-							}
-
-							var module = {
-								exports: {}
-							};
-
-							var context = extend({
-								require: require,
-								module: module,
-								exports: module.exports,
-								assert: assert
-							}, config.context || {} );
-
-							var contextKeys = Object.keys( context );
-							var contextValues = contextKeys.map( function ( key ) {
-								return context[ key ];
-							});
-
-							var fn = new Function( contextKeys, code );
-							fn.apply( {}, contextValues );
-
-							if ( config.error ) {
-								unintendedError = new Error( 'Expected an error while executing output' );
-							}
-
-							if ( config.exports ) config.exports( module.exports );
-							if ( config.bundle ) config.bundle( bundle );
-						} catch ( err ) {
-							if ( config.error ) {
-								config.error( err );
-							} else {
-								unintendedError = err;
-							}
+						if ( config.babel ) {
+							code = babel.transform( result.code, {
+								blacklist: [ 'es6.modules' ],
+								loose: [ 'es6.classes' ]
+							}).code;
+						} else {
+							code = result.code;
 						}
+
+						var module = {
+							exports: {}
+						};
+
+						var context = extend({
+							require: require,
+							module: module,
+							exports: module.exports,
+							assert: assert
+						}, config.context || {} );
+
+						var contextKeys = Object.keys( context );
+						var contextValues = contextKeys.map( function ( key ) {
+							return context[ key ];
+						});
+
+						var fn = new Function( contextKeys, code );
+						fn.apply( {}, contextValues );
+
+						if ( config.error ) {
+							unintendedError = new Error( 'Expected an error while executing output' );
+						}
+
+						if ( config.exports ) config.exports( module.exports );
+						if ( config.bundle ) config.bundle( bundle );
 
 						if ( config.show || unintendedError ) {
 							console.log( code + '\n\n\n' );
