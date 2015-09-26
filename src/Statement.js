@@ -91,6 +91,7 @@ export default class Statement {
 				switch ( node.type ) {
 					case 'FunctionDeclaration':
 						scope.addDeclaration( node, false, false );
+						break;
 
 					case 'BlockStatement':
 						if ( parent && /Function/.test( parent.type ) ) {

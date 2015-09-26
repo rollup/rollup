@@ -41,9 +41,7 @@ function underscorePrefix () {
 
 	var map = blank();
 
-	return function ( x ) {
-		return '_' + x + number( x );
-	}
+	return x => `_${x}${number( x )}`;
 }
 
 // ## Scope

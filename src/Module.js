@@ -8,16 +8,6 @@ import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL';
 
-function isEmptyExportedVarDeclaration ( node, exports, toExport ) {
-	if ( node.type !== 'VariableDeclaration' || node.declarations[0].init ) return false;
-
-	const name = node.declarations[0].id.name;
-
-	const id = exports.lookup( name );
-
-	return id && id.name in toExport;
-}
-
 function removeSourceMappingURLComments ( source, magicString ) {
 	const SOURCEMAPPING_URL_PATTERN = new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' );
 	let match;
