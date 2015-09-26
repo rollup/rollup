@@ -151,15 +151,23 @@ describe( 'rollup', function () {
 							return context[ key ];
 						});
 
-						var fn = new Function( contextKeys, code );
-						fn.apply( {}, contextValues );
+						try {
+							var fn = new Function( contextKeys, code );
+							fn.apply( {}, contextValues );
 
-						if ( config.error ) {
-							unintendedError = new Error( 'Expected an error while executing output' );
+							if ( config.runtimeError ) {
+								unintendedError = new Error( 'Expected an error while executing output' );
+							} else {
+								if ( config.exports ) config.exports( module.exports );
+								if ( config.bundle ) config.bundle( bundle );
+							}
+						} catch ( err ) {
+							if ( config.runtimeError ) {
+								config.runtimeError( err );
+							} else {
+								unintendedError = err;
+							}
 						}
-
-						if ( config.exports ) config.exports( module.exports );
-						if ( config.bundle ) config.bundle( bundle );
 
 						if ( config.show || unintendedError ) {
 							console.log( code + '\n\n\n' );
