@@ -359,7 +359,7 @@ export default class Module {
 	}
 
 	consolidateDependencies () {
-		let strongDependencies = blank();
+		const strongDependencies = blank();
 
 		function addDependency ( dependencies, declaration ) {
 			if ( declaration && declaration.module && !declaration.module.isExternal ) {
@@ -397,7 +397,7 @@ export default class Module {
 			}
 		});
 
-		let weakDependencies = blank();
+		const weakDependencies = blank();
 
 		this.statements.forEach( statement => {
 			keys( statement.dependsOn ).forEach( name => {
@@ -407,19 +407,22 @@ export default class Module {
 			});
 		});
 
+		// Make us weakly depend on all our dependencies.
+		// If we don't, these modules (and their side-effects) won't be included.
+		this.dependencies.forEach( source => {
+			const module = this.getModule( source );
+
+			if ( !module.isExternal ) {
+				weakDependencies[ module.id ] = module;
+			}
+		});
+
 		// Go through all our local and exported ids and make us depend on
-		// the defining modules as well as
-		this.exports.getIds().concat(this.locals.getIds()).forEach( id => {
+		// the defining modules.
+		this.exports.getIds().concat( this.locals.getIds() ).forEach( id => {
 			if ( id.module && !id.module.isExternal ) {
 				weakDependencies[ id.module.id ] = id.module;
 			}
-
-			if ( !id.modifierStatements ) return;
-
-			id.modifierStatements.forEach( statement => {
-				const module = statement.module;
-				weakDependencies[ module.id ] = module;
-			});
 		});
 
 		// `Bundle.sort` gets stuck in an infinite loop if a module has
