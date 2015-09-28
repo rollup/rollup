@@ -12,6 +12,8 @@ import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
 import Scope from './Scope';
 
+import optimiseNamespaceLookups from './optimise/namespace-lookup.js';
+
 export default class Bundle {
 	constructor ( options ) {
 		this.entry = options.entry;
@@ -61,6 +63,10 @@ export default class Bundle {
 		return Promise.resolve( this.resolveId( this.entry, undefined, this.resolveOptions ) )
 			.then( id => this.fetchModule( id ) )
 			.then( entryModule => {
+				this.modules.forEach( module => {
+					module.statements.forEach( optimiseNamespaceLookups );
+				});
+
 				this.entryModule = entryModule;
 				this.exports = entryModule.exports;
 
