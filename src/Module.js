@@ -41,14 +41,15 @@ class Id {
 }
 
 class LateBoundIdPlaceholder {
-	constructor ( module, name ) {
+	constructor ( module, name, local ) {
 		this.module = module;
 		this.name = name;
 		this.placeholder = true;
+		this.local = local || false;
 	}
 
 	mark () {
-		throw new Error(`The imported name "${this.name}" is never exported by "${this.module.id}".`);
+		throw new Error( `The name "${this.name}" is never ${ this.local ? 'defined' : 'exported' } by "${this.module.id}".` );
 	}
 }
 
@@ -104,7 +105,6 @@ export default class Module {
 				}
 			}
 
-			// throw new Error( `The name "${name}" is never exported (from ${this.id})!` );
 			this.exports.define( name, new LateBoundIdPlaceholder( this, name ) );
 			return reference.call( this.exports, name );
 		};
@@ -203,6 +203,13 @@ export default class Module {
 				node.specifiers.forEach( specifier => {
 					const localName = specifier.local.name;
 					const exportedName = specifier.exported.name;
+
+					// HACK: Fix Ractive builds.
+					// If we try to export something that doesn't exists in the current
+					// local scope, create a placeholder for it.
+					if ( !this.locals.defines( localName ) ) {
+						this.locals.define( localName, new LateBoundIdPlaceholder( this, localName, true ) );
+					}
 
 					this.exports.bind( exportedName, this.locals.reference( localName ) );
 				});
