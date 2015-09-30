@@ -262,14 +262,19 @@ export default class Bundle {
 					const importDeclaration = module.imports[ name ];
 					if ( !importDeclaration || importDeclaration.module.isExternal ) return;
 
-					const otherExportDeclaration = importDeclaration.module.exports[ importDeclaration.name ];
-					// TODO things like `export default a + b` don't apply here... right?
-					const otherDefiningStatement = module.findDefiningStatement( otherExportDeclaration.localName );
+					if ( importDeclaration.name === '*' ) {
+						importDeclaration.module.markAllExportStatements();
+					} else {
+						const otherExportDeclaration = importDeclaration.module.exports[ importDeclaration.name ];
+						// TODO things like `export default a + b` don't apply here... right?
+						const otherDefiningStatement = module.findDefiningStatement( otherExportDeclaration.localName );
 
-					if ( !otherDefiningStatement ) return;
+						if ( !otherDefiningStatement ) return;
+
+						statement.mark();
+					}
 
 					settled = false;
-					statement.mark();
 				});
 			});
 		});
