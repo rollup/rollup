@@ -58,12 +58,10 @@ export function resolve ( ...paths ) {
 		} else {
 			const parts = path.split( /[\/\\]/ );
 
-			while ( parts[0] && parts[0][0] === '.' ) {
+			while ( parts[0] === '.' || parts[0] === '..' ) {
 				const part = parts.shift();
 				if ( part === '..' ) {
 					resolvedParts.pop();
-				} else if ( part !== '.' ) {
-					throw new Error( `Unexpected path part (${part})` );
 				}
 			}
 
