@@ -129,6 +129,11 @@ Most libraries that you depend on aren't written as ES6 modules, so Rollup can't
 See [rollup-starter-project](https://github.com/eventualbuddha/rollup-starter-project) for inspiration on how to get started.
 
 
+## How does this compare to JSPM/SystemJS?
+
+[JSPM](http://jspm.io/) is awesome! It's a little different to this project though – it combines a repository with a package manager and a client-side module loader, as opposed to simply bundling modules. JSPM allows you to use any module format and even develop without a build step, so it's a great choice for creating applications. Rollup generates smaller bundles that don't use the complex SystemJS format, and so is a better choice for creating libraries. A future version of JSPM [may use Rollup internally](https://github.com/systemjs/builder/pull/205), so you'll get the best of both worlds.
+
+
 ## License
 
 Released under the [MIT license](TK).
