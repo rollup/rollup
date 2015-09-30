@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.17.1
+
+* Allow namespaces to be passed to a function ([#149](https://github.com/rollup/rollup/issues/149))
+
 ## 0.17.0
 
 * Roll back to 0.15.0 and reapply subsequent fixes pending resolution of ([#132](https://github.com/rollup/rollup/issues/132)) and related issues
