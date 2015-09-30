@@ -3,14 +3,14 @@ import z from './z';
 
 z();
 
-const p = {
+var p = {
 	q: function () {
 		b.nope();
 	}
 };
 
 (function () {
-	const p = {
+	var p = {
 		q: function () {
 			b.nope();
 		}

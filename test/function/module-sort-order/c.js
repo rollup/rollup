@@ -1,3 +1,3 @@
 import { b } from './b';
 
-export const c = function () {};
+export var c = function () {};
