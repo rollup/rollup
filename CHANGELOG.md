@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.17.0
+
+* Roll back to 0.15.0 and reapply subsequent fixes pending resolution of ([#132](https://github.com/rollup/rollup/issues/132)) and related issues
+
 ## 0.16.4
 
 * Fix import paths with `.` ([#133](https://github.com/rollup/rollup/issues/133))
