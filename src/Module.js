@@ -500,6 +500,7 @@ export default class Module {
 			} catch ( err ) {
 				err.code = 'PARSE_ERROR';
 				err.file = this.id; // see above - not necessarily true, but true enough
+				err.message += ` in ${this.id}`;
 				throw err;
 			}
 		}
