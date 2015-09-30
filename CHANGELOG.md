@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.17.4
+
+* Allow imports from hidden directories (replay of [#133](https://github.com/rollup/rollup/issues/133))
+
 ## 0.17.3
 
 * Handle parenthesised default exports ([#136](https://github.com/rollup/rollup/issues/136))
