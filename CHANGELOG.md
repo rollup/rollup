@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.17.2
+
+* Allow use of scoped npm packages ([#131](https://github.com/rollup/rollup/issues/131))
+
 ## 0.17.1
 
 * Allow namespaces to be passed to a function ([#149](https://github.com/rollup/rollup/issues/149))
