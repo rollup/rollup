@@ -38,6 +38,12 @@ export function defaultExternalResolver ( id, importer ) {
 	// `foo` should use jsnext:main, but `foo/src/bar` shouldn't
 	const parts = id.split( /[\/\\]/ );
 
+	// npm scoped packages – @user/package
+	if ( parts[0][0] === '@' && parts[1] ) {
+		var user = parts.shift();
+		parts[0] = user + '/' + parts[0];
+	}
+
 	while ( dir !== root && dir !== '.' ) {
 		const modulePath = resolve( dir, 'node_modules', parts[0] );
 
