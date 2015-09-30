@@ -495,7 +495,8 @@ export default class Module {
 				ast = parse( this.source, {
 					ecmaVersion: 6,
 					sourceType: 'module',
-					onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end })
+					onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end }),
+					preserveParens: true
 				});
 			} catch ( err ) {
 				err.code = 'PARSE_ERROR';
