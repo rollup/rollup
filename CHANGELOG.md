@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.17.3
+
+* Handle parenthesised default exports ([#136](https://github.com/rollup/rollup/issues/136))
+
 ## 0.17.2
 
 * Allow use of scoped npm packages ([#131](https://github.com/rollup/rollup/issues/131))
