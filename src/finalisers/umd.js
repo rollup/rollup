@@ -40,7 +40,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join( ', ' )}) :
 			typeof define === 'function' && define.amd ? define(${amdParams}factory) :
 			${defaultExport}factory(${globalDeps});
-		}(this, function (${args}) {${useStrict}
+		}(this || (typeof window !== 'undefined' && window), function (${args}) {${useStrict}
 
 		`.replace( /^\t\t/gm, '' ).replace( /^\t/gm, magicString.getIndentString() );
 
