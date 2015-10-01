@@ -281,7 +281,7 @@ export default class Bundle {
 		let seen = blank();
 
 		let ordered = [];
-		let hasCycles;
+		let hasCycles = false;
 
 		// Map from module id to list of modules.
 		let strongDeps = blank();
