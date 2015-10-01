@@ -398,8 +398,8 @@ export default class Statement {
 						return this.skip();
 					}
 
+					replacementStack.push( names );
 					names = newNames;
-					replacementStack.push( newNames );
 				}
 
 				if ( node.type === 'MemberExpression' ) {
@@ -414,30 +414,49 @@ export default class Statement {
 					}
 				}
 
-				if ( node.type !== 'Identifier' ) return;
+				function replaceNode( node, parent ) {
+					if ( node.type !== 'Identifier' ) return;
 
-				// if there's no replacement, or it's the same, there's nothing more to do
-				const name = names[ node.name ];
-				if ( !name || name === node.name ) return;
+					// if there's no replacement, or it's the same, there's nothing more to do
+					const name = names[node.name];
+					if (!name || name === node.name) return;
 
-				// shorthand properties (`obj = { foo }`) need to be expanded
-				if ( parent.type === 'Property' && parent.shorthand ) {
-					magicString.insert( node.end, `: ${name}` );
-					parent.key._skip = true;
-					parent.value._skip = true; // redundant, but defensive
-					return;
+					if ( parent ) {
+						// shorthand properties (`obj = { foo }`) need to be expanded
+						if ( parent.type === 'Property' && parent.shorthand ) {
+							magicString.insert( node.end, `: ${name}` );
+							parent.key._skip = true;
+							parent.value._skip = true; // redundant, but defensive
+							return;
+						}
+
+						// property names etc can be disregarded
+						if ( parent.type === 'MemberExpression' && !parent.computed && node !== parent.object ) return;
+						if ( parent.type === 'Property' && node !== parent.value ) return;
+						if ( parent.type === 'MethodDefinition' && node === parent.key ) return;
+						// don't rename function params and don't rename function expression name
+						// (see later on for where this happens)
+						if ( parent.type === 'FunctionExpression') return;
+						if ( /Function/.test(parent.type) && parent.params.indexOf(node) >= 0 ) return;
+						// TODO others...?
+					}
+
+					// all other identifiers should be overwritten
+					magicString.overwrite( node.start, node.end, name, true );
 				}
+				replaceNode( node, parent );
 
-				// property names etc can be disregarded
-				if ( parent.type === 'MemberExpression' && !parent.computed && node !== parent.object ) return;
-				if ( parent.type === 'Property' && node !== parent.value ) return;
-				if ( parent.type === 'MethodDefinition' && node === parent.key ) return;
-				if ( parent.type === 'FunctionExpression' ) return;
-				if ( /Function/.test( parent.type ) && ~parent.params.indexOf( node ) ) return;
-				// TODO others...?
+				if ( parent && /Function/.test(parent.type) && node.type === 'BlockStatement' ) {
+					// we skipped the params and function name in a function expression
+					// but now we are in the function block scope, we can perform the rename
 
-				// all other identifiers should be overwritten
-				magicString.overwrite( node.start, node.end, name, true );
+					parent.params.forEach( function( param ) {
+						replaceNode( param );
+					} );
+					if ( parent.type === 'FunctionExpression' && parent.id ) {
+						replaceNode( parent.id );
+					}
+				}
 			},
 
 			leave ( node ) {
