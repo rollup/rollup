@@ -228,6 +228,10 @@ describe( 'rollup', function () {
 									expectedMap.sourcesContent = expectedMap.sourcesContent.map( normaliseOutput );
 								} catch ( err ) {}
 
+								if ( config.show ) {
+									console.log( actualCode + '\n\n\n' );
+								}
+
 								assert.equal( actualCode, expectedCode );
 								assert.deepEqual( actualMap, expectedMap );
 							});

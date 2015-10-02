@@ -1,19 +1,25 @@
 define(function () { 'use strict';
 
-	function bar$1 () {
-		return 'main-bar';
+	function x () {
+		return 'foo';
 	}
 
-	function bar () {
-		return 'foo-bar';
+	var foo = { x };
+
+	function x$1 () {
+		return 'bar';
 	}
 
-	var foo = {
-		bar,
-		baz: bar$1
-	};
+	var bar = { x: x$1 };
 
-	assert.equal( bar$1(), 'main-bar' );
-	assert.equal( foo.bar(), 'foo-bar' );
+	function x$2 () {
+		return 'baz';
+	}
+
+	var baz = { x: x$2 };
+
+	assert.equal( foo.x(), 'foo' );
+	assert.equal( bar.x(), 'bar' );
+	assert.equal( baz.x(), 'baz' );
 
 });

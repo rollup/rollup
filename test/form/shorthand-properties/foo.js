@@ -1,10 +1,7 @@
-import baz from './baz.js';
-
-function bar () {
-	return 'foo-bar';
+function x () {
+	return 'foo';
 }
 
-export var foo = {
-	bar,
-	baz
-};
+var foo = { x };
+
+export { foo };
