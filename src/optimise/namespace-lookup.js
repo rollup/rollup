@@ -39,7 +39,10 @@ export default function ( statement ) {
 					const id = statement.module.locals.lookup( localName );
 
 					// It only counts if it exists, is a module, and isn't external.
-					if ( !id || !id.isModule || id.isExternal ) return;
+					if ( !id || !id.isModule || id.isExternal ) {
+						topNode = null;
+						return;
+					}
 
 					namespace = id;
 				}
