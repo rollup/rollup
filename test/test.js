@@ -15,11 +15,11 @@ var SOURCEMAPS = path.resolve( __dirname, 'sourcemaps' );
 var CLI = path.resolve( __dirname, 'cli' );
 
 var PROFILES = [
-	{ format: 'amd' },
+	// { format: 'amd' },
 	{ format: 'cjs' },
-	{ format: 'es6' },
-	{ format: 'iife' },
-	{ format: 'umd' }
+	// { format: 'es6' },
+	// { format: 'iife' },
+	// { format: 'umd' }
 ];
 
 function extend ( target ) {
@@ -227,6 +227,10 @@ describe( 'rollup', function () {
 									expectedMap = JSON.parse( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js.map' ).toString() );
 									expectedMap.sourcesContent = expectedMap.sourcesContent.map( normaliseOutput );
 								} catch ( err ) {}
+
+								if ( config.show || unintendedError ) {
+									console.log( actualCode + '\n\n\n' );
+								}
 
 								assert.equal( actualCode, expectedCode );
 								assert.deepEqual( actualMap, expectedMap );

@@ -33,35 +33,38 @@ function extractNames ( param ) {
 	return names;
 }
 
+class Declaration {
+	constructor ( node ) {
+		this.references = [];
+	}
+}
+
 export default class Scope {
 	constructor ( options ) {
 		options = options || {};
 
 		this.parent = options.parent;
-		this.depth = this.parent ? this.parent.depth + 1 : 0;
-		this.declarations = blank();
 		this.isBlockScope = !!options.block;
 
-		this.varDeclarations = [];
+		this.declarations = blank();
 
 		if ( options.params ) {
 			options.params.forEach( param => {
 				extractNames( param ).forEach( name => {
-					this.declarations[ name ] = true;
+					this.declarations[ name ] = new Declaration( param );
 				});
 			});
 		}
 	}
 
-	addDeclaration ( declaration, isBlockDeclaration, isVar ) {
+	addDeclaration ( node, isBlockDeclaration, isVar ) {
 		if ( !isBlockDeclaration && this.isBlockScope ) {
 			// it's a `var` or function node, and this
 			// is a block scope, so we need to go up
-			this.parent.addDeclaration( declaration, isBlockDeclaration, isVar );
+			this.parent.addDeclaration( node, isBlockDeclaration, isVar );
 		} else {
-			extractNames( declaration.id ).forEach( name => {
-				this.declarations[ name ] = true;
-				if ( isVar ) this.varDeclarations.push( name );
+			extractNames( node.id ).forEach( name => {
+				this.declarations[ name ] = new Declaration( node );
 			});
 		}
 	}
@@ -69,6 +72,11 @@ export default class Scope {
 	contains ( name ) {
 		return this.declarations[ name ] ||
 		       ( this.parent ? this.parent.contains( name ) : false );
+	}
+
+	findDeclaration ( name ) {
+		return this.declarations[ name ] ||
+		       ( this.parent && this.parent.findDeclaration( name ) );
 	}
 
 	findDefiningScope ( name ) {
