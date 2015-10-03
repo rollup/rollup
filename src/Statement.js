@@ -123,7 +123,7 @@ export default class Statement {
 
 				// If this is a top-level call expression, or an assignment to a global,
 				// this statement will need to be marked
-				if ( node.type === 'CallExpression' ) {
+				if ( node.type === 'CallExpression' || node.type === 'NewExpression' ) {
 					statement.mark();
 				}
 
@@ -131,10 +131,10 @@ export default class Statement {
 					let subject = node[ modifierNodes[ node.type ] ];
 					while ( subject.type === 'MemberExpression' ) subject = subject.object;
 
-					const bundle = statement.module.bundle;
-					const canonicalName = bundle.trace( statement.module, subject.name );
+					const declaration = statement.module.trace( subject.name );
 
-					if ( bundle.assumedGlobals[ canonicalName ] ) statement.mark();
+					// global
+					if ( !declaration ) statement.mark();
 				}
 			}
 		});

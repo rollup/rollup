@@ -247,9 +247,9 @@ export default class Module {
 
 		const name = defaultExport.identifier && !defaultExport.isModified ?
 			defaultExport.identifier :
-			this.replacements.default;
+			this.basename(); // TODO should be deconflictable
 
-		return this.replacements[ name ] || name;
+		return name;
 	}
 
 	getExports () {
@@ -514,39 +514,45 @@ export default class Module {
 		this.statements.forEach( statement => {
 			if ( !statement.isIncluded ) {
 				magicString.remove( statement.start, statement.next );
+				return;
 			}
 
 			statement.references.forEach( reference => {
 				const declaration = reference.declaration;
 
 				if ( reference.declaration ) {
-					const { start, end } = reference.node;
+					const { start } = reference.node;
 					const name = ( !es6 && declaration.isExternal ) ?
 						`${declaration.module.name}.${declaration.name}` :
 						declaration.name;
 
-					magicString.overwrite( start, end, name );
+					magicString.overwrite( start, start + reference.name.length, name );
 				}
 			});
 
 			// modify exports as necessary
 			if ( statement.isExportDeclaration ) {
-				// remove `export` from `export class Foo {...}` or `export default Foo`
-				// TODO default exports need different treatment
-				if ( statement.node.declaration.id ) {
+				// remove `export` from `export var foo = 42`
+				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.declaration.type === 'VariableDeclaration' ) {
 					magicString.remove( statement.node.start, statement.node.declaration.start );
 				}
 
-				// else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-				// 	const defaultExport = this.exports.default;
-				//
-				// 	// anonymous functions should be converted into declarations
-				// 	if ( statement.node.declaration.type === 'FunctionExpression' ) {
-				// 		magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${defaultExport.name}` );
-				// 	} else {
-				// 		magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${defaultExport.name} = ` );
-				// 	}
-				// }
+				// remove `export` from `export class Foo {...}` or `export default Foo`
+				// TODO default exports need different treatment
+				else if ( statement.node.declaration.id ) {
+					magicString.remove( statement.node.start, statement.node.declaration.start );
+				}
+
+				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
+					const defaultExport = this.exports.default;
+
+					// anonymous functions should be converted into declarations
+					if ( statement.node.declaration.type === 'FunctionExpression' ) {
+						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${this.defaultName()}` );
+					} else {
+						magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${this.defaultName()} = ` );
+					}
+				}
 
 				else {
 					throw new Error( 'Unhandled export' );
@@ -586,7 +592,7 @@ export default class Module {
 				throw new Error( 'TODO default expression exports' );
 			}
 
-			return this.trace( exportDeclaration.name );
+			return this.trace( exportDeclaration.localName );
 		}
 
 		// TODO export *

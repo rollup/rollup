@@ -49,6 +49,8 @@ export default class Bundle {
 		return Promise.resolve( this.resolveId( this.entry, undefined, this.resolveOptions ) )
 			.then( id => this.fetchModule( id ) )
 			.then( entryModule => {
+				this.entryModule = entryModule;
+
 				this.modules.forEach( module => {
 					module.bindImportSpecifiers();
 					module.bindReferences();
@@ -58,39 +60,8 @@ export default class Bundle {
 					module.markAllSideEffects();
 				});
 
-				const defaultExport = entryModule.exports.default;
+				this.entryModule.markAllExportStatements();
 
-				this.entryModule = entryModule;
-
-				if ( defaultExport ) {
-					entryModule.needsDefault = true;
-
-					// `export default function foo () {...}` -
-					// use the declared name for the export
-					if ( defaultExport.identifier ) {
-						entryModule.suggestName( 'default', defaultExport.identifier );
-					}
-
-					// `export default a + b` - generate an export name
-					// based on the id of the entry module
-					else {
-						let defaultExportName = this.entryModule.basename();
-
-						// deconflict
-						let topLevelNames = [];
-						entryModule.statements.forEach( statement => {
-							keys( statement.defines ).forEach( name => topLevelNames.push( name ) );
-						});
-
-						while ( ~topLevelNames.indexOf( defaultExportName ) ) {
-							defaultExportName = `_${defaultExportName}`;
-						}
-
-						entryModule.suggestName( 'default', defaultExportName );
-					}
-				}
-
-				entryModule.markAllStatements( true );
 				this.markAllModifierStatements();
 
 				this.orderedModules = this.sort();
@@ -216,7 +187,7 @@ export default class Bundle {
 			throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
 		}
 
-		this.toExport = []; // TODO
+		this.toExport = this.entryModule.getExports(); // TODO
 		magicString = finalise( this, magicString.trim(), { exportMode, indentString }, options );
 
 		if ( options.banner ) magicString.prepend( options.banner + '\n' );
@@ -321,43 +292,5 @@ export default class Bundle {
 		}
 
 		return ordered;
-	}
-
-	trace ( module, localName, es6 ) {
-		const importDeclaration = module.imports[ localName ];
-
-		// defined in this module
-		if ( !importDeclaration ) return module.replacements[ localName ] || localName;
-
-		// defined elsewhere
-		return this.traceExport( importDeclaration.module, importDeclaration.name, es6 );
-	}
-
-	traceExport ( module, name, es6 ) {
-		if ( module.isExternal ) {
-			if ( name === 'default' ) return module.needsNamed && !es6 ? `${module.name}__default` : module.name;
-			if ( name === '*' ) return module.name;
-			return es6 ? name : `${module.name}.${name}`;
-		}
-
-		const reexportDeclaration = module.reexports[ name ];
-		if ( reexportDeclaration ) {
-			return this.traceExport( reexportDeclaration.module, reexportDeclaration.localName );
-		}
-
-		if ( name === '*' ) return module.replacements[ '*' ];
-		if ( name === 'default' ) return module.defaultName();
-
-		const exportDeclaration = module.exports[ name ];
-		if ( exportDeclaration ) return this.trace( module, exportDeclaration.localName );
-
-		for ( let i = 0; i < module.exportAlls.length; i += 1 ) {
-			const declaration = module.exportAlls[i];
-			if ( declaration.module.exports[ name ] ) {
-				return this.traceExport( declaration.module, name, es6 );
-			}
-		}
-
-		throw new Error( `Could not trace binding '${name}' from ${module.id}` );
 	}
 }
