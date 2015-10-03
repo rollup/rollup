@@ -522,8 +522,8 @@ export default class Module {
 
 				if ( reference.declaration ) {
 					const { start } = reference.node;
-					const name = ( !es6 && declaration.isExternal ) ?
-						declaration.getName() :
+					const name = declaration.isExternal ?
+						declaration.getName( es6 ) :
 						declaration.name;
 
 					magicString.overwrite( start, start + reference.name.length, name );
@@ -535,6 +535,11 @@ export default class Module {
 				// remove `export` from `export var foo = 42`
 				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.declaration.type === 'VariableDeclaration' ) {
 					magicString.remove( statement.node.start, statement.node.declaration.start );
+				}
+
+				else if ( statement.node.type === 'ExportAllDeclaration' ) {
+					// TODO: remove once `export * from 'external'` is supported.
+					magicString.remove( statement.start, statement.next );
 				}
 
 				// remove `export` from `export class Foo {...}` or `export default Foo`

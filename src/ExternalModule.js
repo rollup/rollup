@@ -4,9 +4,7 @@ import makeLegalIdentifier from './utils/makeLegalIdentifier';
 class ExternalDeclaration {
 	constructor ( module, name ) {
 		this.module = module;
-		this.importedAs = name;
-
-		this.name = null;
+		this.name = name;
 		this.isExternal = true;
 
 		this.references = [];
@@ -14,21 +12,24 @@ class ExternalDeclaration {
 
 	addReference ( reference ) {
 		reference.declaration = this;
-		this.name = reference.name;
+
+		if ( this.name === 'default' || this.name === '*' ) {
+			this.module.suggestName( reference.name );
+		}
 	}
 
-	getName () {
-		if ( this.importedAs === '*' ) {
+	getName ( es6 ) {
+		if ( this.name === '*' ) {
 			return this.module.name;
 		}
 
-		if ( this.importedAs === 'default' ) {
+		if ( this.name === 'default' ) {
 			return this.module.needsNamed ?
 				`${this.module.name}__default` :
 				this.module.name;
 		}
 
-		return `${this.module.name}.${this.name}`;
+		return es6 ? this.name : `${this.module.name}.${this.name}`;
 	}
 }
 
@@ -36,6 +37,9 @@ export default class ExternalModule {
 	constructor ( id ) {
 		this.id = id;
 		this.name = makeLegalIdentifier( id );
+
+		this.nameSuggestions = blank();
+		this.mostCommonSuggestion = 0;
 
 		this.isExternal = true;
 		this.declarations = blank();
@@ -49,6 +53,16 @@ export default class ExternalModule {
 		//
 		this.needsNamed = false;
 		this.needsAll = false;
+	}
+
+	suggestName ( name ) {
+		if ( !this.nameSuggestions[ name ] ) this.nameSuggestions[ name ] = 0;
+		this.nameSuggestions[ name ] += 1;
+
+		if ( this.nameSuggestions[ name ] > this.mostCommonSuggestion ) {
+			this.mostCommonSuggestion = this.nameSuggestions[ name ];
+			this.name = name;
+		}
 	}
 
 	traceExport ( name ) {

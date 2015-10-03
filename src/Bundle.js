@@ -156,10 +156,10 @@ export default class Bundle {
 		const exportMode = getExportMode( this, options.exports );
 
 		// Assign names to external modules
-		this.externalModules.forEach( module => {
-			const override = module.declarations['*'] || module.declarations.default;
-			if ( override ) module.name = override.name;
-		});
+		// this.externalModules.forEach( module => {
+		// 	const override = module.declarations['*'] || module.declarations.default;
+		// 	if ( override ) module.name = override.name;
+		// });
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
