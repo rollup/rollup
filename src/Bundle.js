@@ -4,7 +4,6 @@ import { blank, keys } from './utils/object';
 import Module from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
-import makeLegalIdentifier from './utils/makeLegalIdentifier';
 import ensureArray from './utils/ensureArray';
 import { defaultResolver, defaultExternalResolver } from './utils/resolveId';
 import { defaultLoader } from './utils/load';
@@ -60,7 +59,11 @@ export default class Bundle {
 					module.markAllSideEffects();
 				});
 
-				this.entryModule.markAllExportStatements();
+				// mark all export statements
+				entryModule.getExports().forEach( name => {
+					const declaration = entryModule.traceExport( name );
+					declaration.statement.mark();
+				});
 
 				this.markAllModifierStatements();
 
@@ -69,7 +72,7 @@ export default class Bundle {
 	}
 
 	// TODO would be better to deconflict once, rather than per-render
-	deconflict ( es6 ) {
+	deconflict () {
 		let nameCount = blank();
 
 		// ensure no conflicts with globals
@@ -225,6 +228,7 @@ export default class Bundle {
 		let stronglyDependsOn = {};
 
 		function visit ( module ) {
+			if ( seen[ module.id ] ) return;
 			seen[ module.id ] = true;
 
 			const { strongDependencies, weakDependencies } = module.consolidateDependencies();

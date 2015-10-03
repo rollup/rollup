@@ -81,10 +81,8 @@ export default class Statement {
 			declaration.statement = this;
 		});
 
-		let references = this.references;
-
 		// find references
-		let scope = this.scope;
+		let { references, scope } = this;
 
 		walk( this.node, {
 			enter ( node, parent ) {
@@ -138,10 +136,6 @@ export default class Statement {
 				}
 			}
 		});
-	}
-
-	replaceIdentifiers ( magicString ) {
-		return magicString;
 	}
 
 	source () {

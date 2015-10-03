@@ -24,7 +24,7 @@ class ExternalDeclaration {
 		}
 
 		if ( this.name === 'default' ) {
-			return this.module.needsNamed ?
+			return !es6 && this.module.needsNamed ?
 				`${this.module.name}__default` :
 				this.module.name;
 		}

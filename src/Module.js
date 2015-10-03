@@ -8,6 +8,21 @@ import getLocation from './utils/getLocation';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL';
 
+class SyntheticDefaultDeclaration {
+	constructor ( node, statement, name ) {
+		this.node = node;
+		this.statement = statement;
+		this.name = name;
+		
+		this.references = [];
+	}
+
+	addReference ( reference ) {
+		reference.declaration = this;
+		this.name = reference.name;
+	}
+}
+
 export default class Module {
 	constructor ({ id, source, ast, bundle }) {
 		this.source = source;
@@ -98,6 +113,11 @@ export default class Module {
 				isAnonymous,
 				isModified: false // in case of `export default foo; foo = somethingElse`
 			};
+
+			if ( !identifier ) {
+				// create a synthetic declaration
+				this.declarations.default = new SyntheticDefaultDeclaration( node, statement, this.defaultName() );
+			}
 		}
 
 		// export { foo, bar, baz }
@@ -272,69 +292,6 @@ export default class Module {
 		return keys( exports );
 	}
 
-	mark ( name ) {
-		// shortcut cycles
-		if ( this.marked[ name ] ) return;
-		this.marked[ name ] = true;
-
-		// The definition for this name is in a different module
-		if ( this.imports[ name ] ) {
-			const importDeclaration = this.imports[ name ];
-			importDeclaration.isUsed = true;
-
-			const module = importDeclaration.module;
-
-			// suggest names. TODO should this apply to non default/* imports?
-			if ( importDeclaration.name === 'default' ) {
-				// TODO this seems ropey
-				const localName = importDeclaration.localName;
-				let suggestion = this.suggestedNames[ localName ] || localName;
-
-				// special case - the module has its own import by this name
-				while ( !module.isExternal && module.imports[ suggestion ] ) {
-					suggestion = `_${suggestion}`;
-				}
-
-				module.suggestName( 'default', suggestion );
-			} else if ( importDeclaration.name === '*' ) {
-				const localName = importDeclaration.localName;
-				const suggestion = this.suggestedNames[ localName ] || localName;
-				module.suggestName( '*', suggestion );
-				module.suggestName( 'default', `${suggestion}__default` );
-			}
-
-			if ( importDeclaration.name === 'default' ) {
-				module.needsDefault = true;
-			} else if ( importDeclaration.name === '*' ) {
-				module.needsAll = true;
-			} else {
-				module.needsNamed = true;
-			}
-
-			if ( module.isExternal ) {
-				module.importedByBundle.push( importDeclaration );
-			}
-
-			else if ( importDeclaration.name === '*' ) {
-				// we need to create an internal namespace
-				if ( !~this.bundle.internalNamespaceModules.indexOf( module ) ) {
-					this.bundle.internalNamespaceModules.push( module );
-				}
-
-				module.markAllExportStatements();
-			}
-
-			else {
-				module.markExport( importDeclaration.name, name, this );
-			}
-		}
-
-		else {
-			const statement = name === 'default' ? this.exports.default.statement : this.definitions[ name ];
-			if ( statement ) statement.mark();
-		}
-	}
-
 	markAllSideEffects () {
 		this.statements.forEach( statement => {
 			statement.markSideEffect();
@@ -367,12 +324,6 @@ export default class Module {
 			else {
 				statement.mark();
 			}
-		});
-	}
-
-	markAllExportStatements () {
-		this.statements.forEach( statement => {
-			if ( statement.isExportDeclaration ) statement.mark();
 		});
 	}
 
@@ -517,6 +468,15 @@ export default class Module {
 				return;
 			}
 
+			// skip `export { foo, bar, baz }`
+			if ( statement.node.type === 'ExportNamedDeclaration' ) {
+				// skip `export { foo, bar, baz }`
+				if ( statement.node.specifiers.length ) {
+					magicString.remove( statement.start, statement.next );
+					return;
+				}
+			}
+
 			statement.references.forEach( reference => {
 				const declaration = reference.declaration;
 
@@ -526,7 +486,9 @@ export default class Module {
 						declaration.getName( es6 ) :
 						declaration.name;
 
-					magicString.overwrite( start, start + reference.name.length, name );
+					if ( reference.name !== name ) {
+						magicString.overwrite( start, start + reference.name.length, name );
+					}
 				}
 			});
 
@@ -549,8 +511,6 @@ export default class Module {
 				}
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					const defaultExport = this.exports.default;
-
 					// anonymous functions should be converted into declarations
 					if ( statement.node.declaration.type === 'FunctionExpression' ) {
 						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${this.defaultName()}` );
@@ -594,13 +554,19 @@ export default class Module {
 					return this.trace( exportDeclaration.identifier );
 				}
 
-				throw new Error( 'TODO default expression exports' );
+				return this.declarations.default;
 			}
 
 			return this.trace( exportDeclaration.localName );
 		}
 
-		// TODO export *
+		for ( let i = 0; i < this.exportAlls.length; i += 1 ) {
+			const exportAll = this.exportAlls[i];
+			const declaration = exportAll.module.traceExport( name );
+
+			if ( declaration ) return declaration;
+		}
+
 		return null;
 	}
 }
