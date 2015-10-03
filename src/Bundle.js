@@ -78,20 +78,23 @@ export default class Bundle {
 		// ensure no conflicts with globals
 		keys( this.assumedGlobals ).forEach( name => used[ name ] = 1 );
 
+		function getSafeName ( name ) {
+			if ( used[ name ] ) {
+				return `${name}$${used[name]++}`;
+			}
+
+			used[ name ] = 1;
+			return name;
+		}
+
 		this.externalModules.forEach( module => {
-			// TODO treat external module names/imports as globals
+			module.name = getSafeName( module.name );
 		});
 
 		this.modules.forEach( module => {
 			keys( module.declarations ).forEach( originalName => {
 				const declaration = module.declarations[ originalName ];
-				const name = declaration.name;
-
-				if ( used[ name ] ) {
-					declaration.name = `${name}$${used[name]++}`;
-				} else {
-					used[ name ] = 1;
-				}
+				declaration.name = getSafeName( declaration.name );
 			});
 		});
 	}
