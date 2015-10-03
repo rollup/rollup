@@ -92,6 +92,18 @@ export default class Statement {
 					const reference = new Reference( node, scope );
 					references.push( reference );
 
+					if ( node.type === 'Identifier' ) {
+						// `foo = bar`
+						if ( parent.type === 'AssignmentExpression' && node === parent.left ) {
+							reference.isReassignment = true;
+						}
+
+						// `foo++`
+						if ( parent.type === 'UpdateExpression' && node === parent.argument ) {
+							reference.isReassignment = true;
+						}
+					}
+
 					this.skip(); // don't descend from `foo.bar.baz` into `foo.bar`
 				}
 			},

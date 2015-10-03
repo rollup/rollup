@@ -6,6 +6,5 @@ module.exports = {
 		assert.equal( exports.count, 0 );
 		exports.incr();
 		assert.equal( exports.count, 1 );
-	},
-	// solo: true
+	}
 };

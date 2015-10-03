@@ -21,6 +21,10 @@ class SyntheticDefaultDeclaration {
 		reference.declaration = this;
 		this.name = reference.name;
 	}
+
+	render () {
+		return this.name;
+	}
 }
 
 export default class Module {
@@ -298,78 +302,6 @@ export default class Module {
 		});
 	}
 
-	markAllStatements ( isEntryModule ) {
-		this.statements.forEach( statement => {
-			if ( statement.isIncluded ) return; // TODO can this happen? probably not...
-
-			// skip import declarations...
-			if ( statement.isImportDeclaration ) {
-				// ...unless they're empty, in which case assume we're importing them for the side-effects
-				// THIS IS NOT FOOLPROOF. Probably need /*rollup: include */ or similar
-				if ( !statement.node.specifiers.length ) {
-					const id = this.resolvedIds[ statement.node.source.value ];
-					const otherModule = this.bundle.moduleById[ id ];
-
-					if ( !otherModule.isExternal ) otherModule.markAllStatements();
-				}
-			}
-
-			// skip `export { foo, bar, baz }`...
-			else if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
-				// ...but ensure they are defined, if this is the entry module
-				if ( isEntryModule ) statement.mark();
-			}
-
-			// include everything else
-			else {
-				statement.mark();
-			}
-		});
-	}
-
-	markExport ( name, suggestedName, importer ) {
-		const reexport = this.reexports[ name ];
-		const exportDeclaration = this.exports[ name ];
-
-		if ( reexport ) {
-			reexport.isUsed = true;
-			reexport.module.markExport( reexport.localName, suggestedName, this );
-		}
-
-		else if ( exportDeclaration ) {
-			exportDeclaration.isUsed = true;
-			if ( name === 'default' ) {
-				this.needsDefault = true;
-				this.suggestName( 'default', suggestedName );
-				return exportDeclaration.statement.mark();
-			}
-
-			this.mark( exportDeclaration.localName );
-		}
-
-		else {
-			// See if there exists an export delegate that defines `name`.
-			let i;
-			for ( i = 0; i < this.exportAlls.length; i += 1 ) {
-				const declaration = this.exportAlls[i];
-
-				if ( declaration.module.exports[ name ] ) {
-					// It's found! This module exports `name` through declaration.
-					// It is however not imported into this scope.
-					this.exportDelegates[ name ] = declaration;
-					declaration.module.markExport( name );
-
-					declaration.statement.dependsOn[ name ] =
-					declaration.statement.stronglyDependsOn[ name ] = true;
-
-					return;
-				}
-			}
-
-			throw new Error( `Module ${this.id} does not export ${name} (imported by ${importer.id})` );
-		}
-	}
-
 	parse ( ast ) {
 		// The ast can be supplied programmatically (but usually won't be)
 		if ( !ast ) {
@@ -482,9 +414,7 @@ export default class Module {
 
 				if ( reference.declaration ) {
 					const { start } = reference.node;
-					const name = declaration.isExternal ?
-						declaration.getName( es6 ) :
-						declaration.name;
+					const name = declaration.render( es6 );
 
 					if ( reference.name !== name ) {
 						magicString.overwrite( start, start + reference.name.length, name );
@@ -496,7 +426,14 @@ export default class Module {
 			if ( statement.isExportDeclaration ) {
 				// remove `export` from `export var foo = 42`
 				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.declaration.type === 'VariableDeclaration' ) {
-					magicString.remove( statement.node.start, statement.node.declaration.start );
+					const name = statement.node.declaration.declarations[0].id.name;
+					const declaration = this.declarations[ name ];
+
+					const end = declaration.isExported && declaration.isReassigned ?
+						statement.node.declaration.declarations[0].start :
+						statement.node.declaration.start;
+
+					magicString.remove( statement.node.start, end );
 				}
 
 				else if ( statement.node.type === 'ExportAllDeclaration' ) {

@@ -18,7 +18,7 @@ class ExternalDeclaration {
 		}
 	}
 
-	getName ( es6 ) {
+	render ( es6 ) {
 		if ( this.name === '*' ) {
 			return this.module.name;
 		}

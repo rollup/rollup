@@ -38,11 +38,22 @@ class Declaration {
 		this.references = [];
 		this.statement = null;
 		this.name = null;
+
+		this.isReassigned = false;
 	}
 
 	addReference ( reference ) {
 		reference.declaration = this;
 		this.name = reference.name; // TODO handle differences of opinion
+
+		if ( reference.isReassignment ) this.isReassigned = true;
+	}
+
+	render ( es6 ) {
+		if ( es6 ) return this.name;
+		if ( !this.isReassigned || !this.isExported ) return this.name;
+
+		return `exports.${this.name}`;
 	}
 }
 
