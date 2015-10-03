@@ -1,4 +1,4 @@
-import walk from './walk';
+import { walk } from 'estree-walker';
 import Scope from './Scope';
 
 const blockDeclarations = {

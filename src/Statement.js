@@ -1,4 +1,4 @@
-import walk from './ast/walk';
+import { walk } from 'estree-walker';
 import Scope from './ast/Scope';
 import attachScopes from './ast/attachScopes';
 

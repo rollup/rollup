@@ -1,7 +1,7 @@
 import { parse } from 'acorn';
 import MagicString from 'magic-string';
+import { walk } from 'estree-walker';
 import Statement from './Statement';
-import walk from './ast/walk';
 import { blank, keys } from './utils/object';
 import { basename, extname } from './utils/path';
 import getLocation from './utils/getLocation';
@@ -20,8 +20,6 @@ class SyntheticDefaultDeclaration {
 	addReference ( reference ) {
 		reference.declaration = this;
 		this.name = reference.name;
-
-		console.log( 'this.name', this.name )
 	}
 }
 
