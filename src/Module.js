@@ -215,7 +215,7 @@ export default class Module {
 
 				if ( declaration ) {
 					reference.declaration = declaration;
-					declaration.references.push( reference );
+					declaration.addReference( reference );
 				} else {
 					// TODO handle globals
 					this.bundle.assumedGlobals[ reference.name ] = true;
@@ -523,7 +523,7 @@ export default class Module {
 				if ( reference.declaration ) {
 					const { start } = reference.node;
 					const name = ( !es6 && declaration.isExternal ) ?
-						`${declaration.module.name}.${declaration.name}` :
+						declaration.getName() :
 						declaration.name;
 
 					magicString.overwrite( start, start + reference.name.length, name );

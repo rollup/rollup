@@ -4,10 +4,31 @@ import makeLegalIdentifier from './utils/makeLegalIdentifier';
 class ExternalDeclaration {
 	constructor ( module, name ) {
 		this.module = module;
-		this.name = name;
+		this.importedAs = name;
+
+		this.name = null;
 		this.isExternal = true;
 
 		this.references = [];
+	}
+
+	addReference ( reference ) {
+		reference.declaration = this;
+		this.name = reference.name;
+	}
+
+	getName () {
+		if ( this.importedAs === '*' ) {
+			return this.module.name;
+		}
+
+		if ( this.importedAs === 'default' ) {
+			return this.module.needsNamed ?
+				`${this.module.name}__default` :
+				this.module.name;
+		}
+
+		return `${this.module.name}.${this.name}`;
 	}
 }
 
@@ -18,8 +39,6 @@ export default class ExternalModule {
 
 		this.isExternal = true;
 		this.declarations = blank();
-
-		this.suggestedNames = blank();
 
 		this.needsDefault = false;
 
@@ -32,23 +51,12 @@ export default class ExternalModule {
 		this.needsAll = false;
 	}
 
-	findDefiningStatement () {
-		return null;
-	}
-
-	rename () {
-		// noop
-	}
-
-	suggestName ( exportName, suggestion ) {
-		if ( !this.suggestedNames[ exportName ] ) {
-			this.suggestedNames[ exportName ] = suggestion;
-		}
-	}
-
 	traceExport ( name ) {
+		// TODO is this necessary? where is it used?
 		if ( name === 'default' ) {
 			this.needsDefault = true;
+		} else if ( name === '*' ) {
+			this.needsAll = true;
 		} else {
 			this.needsNamed = true;
 		}

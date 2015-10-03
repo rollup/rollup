@@ -34,10 +34,15 @@ function extractNames ( param ) {
 }
 
 class Declaration {
-	constructor ( name ) {
+	constructor () {
 		this.references = [];
 		this.statement = null;
-		this.name = name;
+		this.name = null;
+	}
+
+	addReference ( reference ) {
+		reference.declaration = this;
+		this.name = reference.name; // TODO handle differences of opinion
 	}
 }
 
