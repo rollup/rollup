@@ -30,7 +30,7 @@ export default function es6 ( bundle, magicString ) {
 			}
 
 			if ( module.needsNamed ) {
-				specifiers.push( '{ ' + uniqueNames( module.importedByBundle )
+				specifiers.push( '{ ' + keys( module.declarations )
 					.join( ', ' ) + ' }' );
 			}
 

@@ -40,7 +40,7 @@ export default class Bundle {
 		this.internalNamespaceModules = [];
 
 		this.assumedGlobals = blank();
-		
+
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports' ].forEach( global => this.assumedGlobals[ global ] = true );
 	}
@@ -180,7 +180,6 @@ export default class Bundle {
 
 	render ( options = {} ) {
 		const format = options.format || 'es6';
-		const allReplacements = this.deconflict( format === 'es6' );
 
 		// Determine export mode - 'default', 'named', 'none'
 		const exportMode = getExportMode( this, options.exports );
@@ -188,7 +187,7 @@ export default class Bundle {
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
 		this.orderedModules.forEach( module => {
-			const source = module.render();
+			const source = module.render( format === 'es6' );
 			if ( source.toString().length ) {
 				magicString.addSource( source );
 			}

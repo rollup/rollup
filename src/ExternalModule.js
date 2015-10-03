@@ -1,12 +1,23 @@
 import { blank } from './utils/object';
+import makeLegalIdentifier from './utils/makeLegalIdentifier';
+
+class ExternalDeclaration {
+	constructor ( module, name ) {
+		this.module = module;
+		this.name = name;
+		this.isExternal = true;
+
+		this.references = [];
+	}
+}
 
 export default class ExternalModule {
 	constructor ( id ) {
 		this.id = id;
-		this.name = null;
+		this.name = makeLegalIdentifier( id );
 
 		this.isExternal = true;
-		this.importedByBundle = [];
+		this.declarations = blank();
 
 		this.suggestedNames = blank();
 
@@ -33,5 +44,17 @@ export default class ExternalModule {
 		if ( !this.suggestedNames[ exportName ] ) {
 			this.suggestedNames[ exportName ] = suggestion;
 		}
+	}
+
+	traceExport ( name ) {
+		if ( name === 'default' ) {
+			this.needsDefault = true;
+		} else {
+			this.needsNamed = true;
+		}
+
+		return this.declarations[ name ] || (
+			this.declarations[ name ] = new ExternalDeclaration( this, name )
+		);
 	}
 }

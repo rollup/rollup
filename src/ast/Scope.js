@@ -34,9 +34,10 @@ function extractNames ( param ) {
 }
 
 class Declaration {
-	constructor () {
+	constructor ( name ) {
 		this.references = [];
 		this.statement = null;
+		this.name = name;
 	}
 }
 
@@ -52,7 +53,7 @@ export default class Scope {
 		if ( options.params ) {
 			options.params.forEach( param => {
 				extractNames( param ).forEach( name => {
-					this.declarations[ name ] = new Declaration();
+					this.declarations[ name ] = new Declaration( name );
 				});
 			});
 		}
@@ -65,7 +66,7 @@ export default class Scope {
 			this.parent.addDeclaration( node, isBlockDeclaration, isVar );
 		} else {
 			extractNames( node.id ).forEach( name => {
-				this.declarations[ name ] = new Declaration();
+				this.declarations[ name ] = new Declaration( name );
 			});
 		}
 	}

@@ -508,13 +508,26 @@ export default class Module {
 		return statements;
 	}
 
-	render () {
+	render ( es6 ) {
 		let magicString = this.magicString.clone();
 
 		this.statements.forEach( statement => {
 			if ( !statement.isIncluded ) {
 				magicString.remove( statement.start, statement.next );
 			}
+
+			statement.references.forEach( reference => {
+				const declaration = reference.declaration;
+
+				if ( reference.declaration ) {
+					const { start, end } = reference.node;
+					const name = ( !es6 && declaration.isExternal ) ?
+						`${declaration.module.name}.${declaration.name}` :
+						declaration.name;
+
+					magicString.overwrite( start, end, name );
+				}
+			});
 
 			// modify exports as necessary
 			if ( statement.isExportDeclaration ) {
