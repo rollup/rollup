@@ -75,6 +75,12 @@ export default class Statement {
 		// attach scopes
 		attachScopes( this );
 
+		// attach statement to each top-level declaration,
+		// so we can mark statements easily
+		this.scope.eachDeclaration( ( name, declaration ) => {
+			declaration.statement = this;
+		});
+
 		let references = this.references;
 
 		// find references
@@ -102,8 +108,8 @@ export default class Statement {
 		this.isIncluded = true;
 
 		this.references.forEach( reference => {
-			if ( reference.definingStatement ) {
-				reference.definingStatement.mark();
+			if ( reference.declaration && reference.declaration.statement ) {
+				reference.declaration.statement.mark();
 			}
 		});
 	}

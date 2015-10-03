@@ -40,7 +40,9 @@ export default class Bundle {
 		this.internalNamespaceModules = [];
 
 		this.assumedGlobals = blank();
-		this.assumedGlobals.exports = true; // TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
+		
+		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
+		[ 'module', 'exports' ].forEach( global => this.assumedGlobals[ global ] = true );
 	}
 
 	build () {
@@ -50,9 +52,11 @@ export default class Bundle {
 				this.modules.forEach( module => {
 					module.bindImportSpecifiers();
 					module.bindReferences();
-					module.markAllSideEffects();
 				});
 
+				this.modules.forEach( module => {
+					module.markAllSideEffects();
+				});
 
 				const defaultExport = entryModule.exports.default;
 

@@ -15,11 +15,11 @@ var SOURCEMAPS = path.resolve( __dirname, 'sourcemaps' );
 var CLI = path.resolve( __dirname, 'cli' );
 
 var PROFILES = [
-	// { format: 'amd' },
+	{ format: 'amd' },
 	{ format: 'cjs' },
-	// { format: 'es6' },
-	// { format: 'iife' },
-	// { format: 'umd' }
+	{ format: 'es6' },
+	{ format: 'iife' },
+	{ format: 'umd' }
 ];
 
 function extend ( target ) {
@@ -228,7 +228,7 @@ describe( 'rollup', function () {
 									expectedMap.sourcesContent = expectedMap.sourcesContent.map( normaliseOutput );
 								} catch ( err ) {}
 
-								if ( config.show || unintendedError ) {
+								if ( config.show ) {
 									console.log( actualCode + '\n\n\n' );
 								}
 

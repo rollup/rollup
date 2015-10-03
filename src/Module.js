@@ -2,7 +2,6 @@ import { parse } from 'acorn';
 import MagicString from 'magic-string';
 import Statement from './Statement';
 import walk from './ast/walk';
-import Scope from './ast/Scope';
 import { blank, keys } from './utils/object';
 import { basename, extname } from './utils/path';
 import getLocation from './utils/getLocation';
@@ -45,8 +44,7 @@ export default class Module {
 
 		this.exportAlls = [];
 
-		this.scope = new Scope();
-		this.definitions = blank();
+		this.declarations = blank();
 		this.analyse();
 	}
 
@@ -178,9 +176,8 @@ export default class Module {
 
 			statement.analyse();
 
-			keys( statement.scope.declarations ).forEach( name => {
-				const declaration = statement.scope.declarations[ name ];
-				this.definitions[ name ] = { statement, declaration };
+			statement.scope.eachDeclaration( ( name, declaration ) => {
+				this.declarations[ name ] = declaration;
 			});
 		});
 	}
@@ -208,38 +205,20 @@ export default class Module {
 	}
 
 	bindReferences () {
-		this.statements.forEach( ( statement, i ) => {
+		this.statements.forEach( statement => {
 			statement.references.forEach( reference => {
 				let declaration;
 
 				// find in local scope...
-				declaration = reference.scope.findDeclaration( reference.name );
+				declaration = reference.scope.findDeclaration( reference.name ) ||
+				              this.trace( reference.name );
 
 				if ( declaration ) {
 					reference.declaration = declaration;
-					reference.definingStatement = statement;
-					return;
-				}
-
-				let definition;
-
-				// ...or in module...
-				definition = this.definitions[ reference.name ];
-
-				// ...or from import
-				if ( !definition ) {
-					const importDeclaration = this.imports[ reference.name ];
-					if ( importDeclaration ) {
-						definition = importDeclaration.module.traceExport( importDeclaration.name );
-					}
-				}
-
-				if ( definition ) {
-					reference.declaration = definition.declaration;
-					reference.definingStatement = definition.statement;
-					definition.declaration.references.push( reference );
+					declaration.references.push( reference );
 				} else {
-					//console.log( 'TODO no declaration. global?' );
+					// TODO handle globals
+					this.bundle.assumedGlobals[ reference.name ] = true;
 				}
 			});
 		});
@@ -251,8 +230,8 @@ export default class Module {
 
 		this.statements.forEach( statement => {
 			statement.references.forEach( reference => {
-				if ( reference.definingStatement ) {
-					const module = reference.definingStatement.module;
+				if ( reference.declaration && reference.declaration.statement ) {
+					const module = reference.declaration.statement.module;
 					weakDependencies[ module.id ] = module;
 				}
 			});
@@ -271,17 +250,6 @@ export default class Module {
 			this.replacements.default;
 
 		return this.replacements[ name ] || name;
-	}
-
-	findDefiningStatement ( name ) {
-		if ( this.definitions[ name ] ) return this.definitions[ name ];
-
-		// TODO what about `default`/`*`?
-
-		const importDeclaration = this.imports[ name ];
-		if ( !importDeclaration ) return null;
-
-		return importDeclaration.module.findDefiningStatement( name );
 	}
 
 	getExports () {
@@ -547,16 +515,41 @@ export default class Module {
 			if ( !statement.isIncluded ) {
 				magicString.remove( statement.start, statement.next );
 			}
+
+			// modify exports as necessary
+			if ( statement.isExportDeclaration ) {
+				// remove `export` from `export class Foo {...}` or `export default Foo`
+				// TODO default exports need different treatment
+				if ( statement.node.declaration.id ) {
+					magicString.remove( statement.node.start, statement.node.declaration.start );
+				}
+
+				// else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
+				// 	const defaultExport = this.exports.default;
+				//
+				// 	// anonymous functions should be converted into declarations
+				// 	if ( statement.node.declaration.type === 'FunctionExpression' ) {
+				// 		magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${defaultExport.name}` );
+				// 	} else {
+				// 		magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${defaultExport.name} = ` );
+				// 	}
+				// }
+
+				else {
+					throw new Error( 'Unhandled export' );
+				}
+			}
 		});
 
 		return magicString.trim();
 	}
 
 	trace ( name ) {
-		if ( name in this.definitions ) return this.definitions[ name ];
+		if ( name in this.declarations ) return this.declarations[ name ];
 		if ( name in this.imports ) {
-			const otherModule = this.imports[ name ].module;
-			return otherModule.traceExport( name );
+			const importDeclaration = this.imports[ name ];
+			const otherModule = importDeclaration.module;
+			return otherModule.traceExport( importDeclaration.name );
 		}
 
 		return null;
@@ -584,6 +577,6 @@ export default class Module {
 		}
 
 		// TODO export *
-		throw new Error( 'could not trace export', name );
+		return null;
 	}
 }

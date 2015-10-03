@@ -1,4 +1,4 @@
-import { blank } from '../utils/object';
+import { blank, keys } from '../utils/object';
 
 const extractors = {
 	Identifier ( names, param ) {
@@ -34,8 +34,9 @@ function extractNames ( param ) {
 }
 
 class Declaration {
-	constructor ( node ) {
+	constructor () {
 		this.references = [];
+		this.statement = null;
 	}
 }
 
@@ -51,7 +52,7 @@ export default class Scope {
 		if ( options.params ) {
 			options.params.forEach( param => {
 				extractNames( param ).forEach( name => {
-					this.declarations[ name ] = new Declaration( param );
+					this.declarations[ name ] = new Declaration();
 				});
 			});
 		}
@@ -64,7 +65,7 @@ export default class Scope {
 			this.parent.addDeclaration( node, isBlockDeclaration, isVar );
 		} else {
 			extractNames( node.id ).forEach( name => {
-				this.declarations[ name ] = new Declaration( node );
+				this.declarations[ name ] = new Declaration();
 			});
 		}
 	}
@@ -72,6 +73,12 @@ export default class Scope {
 	contains ( name ) {
 		return this.declarations[ name ] ||
 		       ( this.parent ? this.parent.contains( name ) : false );
+	}
+
+	eachDeclaration ( fn ) {
+		keys( this.declarations ).forEach( key => {
+			fn( key, this.declarations[ key ] );
+		});
 	}
 
 	findDeclaration ( name ) {
