@@ -68,19 +68,32 @@ export default class Bundle {
 				this.markAllModifierStatements();
 
 				this.orderedModules = this.sort();
+				this.deconflict();
 			});
 	}
 
-	// TODO would be better to deconflict once, rather than per-render
 	deconflict () {
-		let nameCount = blank();
+		let used = blank();
 
 		// ensure no conflicts with globals
-		keys( this.assumedGlobals ).forEach( name => nameCount[ name ] = 0 );
+		keys( this.assumedGlobals ).forEach( name => used[ name ] = 1 );
 
-		let allReplacements = blank();
+		this.externalModules.forEach( module => {
+			// TODO treat external module names/imports as globals
+		});
 
-		return allReplacements;
+		this.modules.forEach( module => {
+			keys( module.declarations ).forEach( originalName => {
+				const declaration = module.declarations[ originalName ];
+				const name = declaration.name;
+
+				if ( used[ name ] ) {
+					declaration.name = `${name}$${used[name]++}`;
+				} else {
+					used[ name ] = 1;
+				}
+			});
+		});
 	}
 
 	fetchModule ( id ) {

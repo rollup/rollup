@@ -13,13 +13,15 @@ class SyntheticDefaultDeclaration {
 		this.node = node;
 		this.statement = statement;
 		this.name = name;
-		
+
 		this.references = [];
 	}
 
 	addReference ( reference ) {
 		reference.declaration = this;
 		this.name = reference.name;
+
+		console.log( 'this.name', this.name )
 	}
 }
 
@@ -511,11 +513,13 @@ export default class Module {
 				}
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
+					const defaultName = this.declarations.default.name;
+
 					// anonymous functions should be converted into declarations
 					if ( statement.node.declaration.type === 'FunctionExpression' ) {
-						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${this.defaultName()}` );
+						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${defaultName}` );
 					} else {
-						magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${this.defaultName()} = ` );
+						magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${defaultName} = ` );
 					}
 				}
 
