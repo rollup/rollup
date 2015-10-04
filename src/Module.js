@@ -52,12 +52,12 @@ class SyntheticNamespaceDeclaration {
 	addReference ( reference ) {
 		// if we have e.g. `foo.bar`, we can optimise
 		// the reference by pointing directly to `bar`
-		if ( reference.parts.length > 1 ) {
-			reference.parts.shift();
-			//reference.name += `.${reference.parts[0]}`;
-			reference.name = reference.parts[0];
+		if ( reference.parts.length ) {
+			reference.name = reference.parts.shift();
 
-			const original = this.originals[ reference.parts[0]];
+			reference.end += reference.name.length + 1; // TODO this is brittle
+
+			const original = this.originals[ reference.name ];
 
 			original.addReference( reference );
 			return;
@@ -530,14 +530,14 @@ export default class Module {
 				const declaration = reference.declaration;
 
 				if ( reference.declaration ) {
-					const { start, end } = reference.node;
+					const { start, end } = reference;
 					const name = declaration.render( es6 );
 
 					if ( reference.name !== name ) {
 						if ( reference.isShorthandProperty ) {
 							magicString.insert( end, `: ${name}` );
 						} else {
-							magicString.overwrite( start, start + reference.name.length, name, true );
+							magicString.overwrite( start, end, name, true );
 						}
 					}
 				}

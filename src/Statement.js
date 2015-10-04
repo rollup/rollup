@@ -19,7 +19,7 @@ function isReference ( node, parent ) {
 
 	if ( node.type === 'Identifier' ) {
 		// TODO is this right?
-		if ( parent.type === 'MemberExpression' ) return node === parent.object;
+		if ( parent.type === 'MemberExpression' ) return parent.computed || node === parent.object;
 
 		// disregard the `bar` in { bar: foo }
 		if ( parent.type === 'Property' && node !== parent.value ) return false;
@@ -49,8 +49,10 @@ class Reference {
 			root = root.object;
 		}
 
-		this.parts.unshift( root.name );
 		this.name = root.name;
+
+		this.start = node.start;
+		this.end = node.start + this.name.length; // can be overridden in the case of namespace members
 	}
 }
 
