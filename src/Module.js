@@ -314,6 +314,12 @@ export default class Module {
 		}
 
 		this.statements.forEach( statement => {
+			// skip `export { foo, bar, baz }`...
+			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
+				// ...unless this is the entry module
+				if ( this !== this.bundle.entryModule ) return;
+			};
+
 			statement.references.forEach( reference => {
 				const declaration = reference.scope.findDeclaration( reference.name ) ||
 				                    this.trace( reference.name );
