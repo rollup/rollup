@@ -113,16 +113,4 @@ export default class Scope {
 		return this.declarations[ name ] ||
 		       ( this.parent && this.parent.findDeclaration( name ) );
 	}
-
-	findDefiningScope ( name ) {
-		if ( this.declarations[ name ] ) {
-			return this;
-		}
-
-		if ( this.parent ) {
-			return this.parent.findDefiningScope( name );
-		}
-
-		return null;
-	}
 }
