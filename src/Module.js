@@ -535,7 +535,7 @@ export default class Module {
 			statement.references.forEach( reference => {
 				const declaration = reference.declaration;
 
-				if ( reference.declaration ) {
+				if ( declaration ) {
 					const { start, end } = reference;
 					const name = declaration.render( es6 );
 

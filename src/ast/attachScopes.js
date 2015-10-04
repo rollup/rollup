@@ -11,8 +11,6 @@ export default function attachScopes ( statement ) {
 
 	walk( node, {
 		enter ( node, parent ) {
-			let newScope;
-
 			// function foo () {...}
 			// class Foo {...}
 			if ( /(Function|Class)Declaration/.test( node.type ) ) {
@@ -28,6 +26,8 @@ export default function attachScopes ( statement ) {
 					scope.addDeclaration( declarator, isBlockDeclaration, true );
 				});
 			}
+
+			let newScope;
 
 			// create new function scope
 			if ( /Function/.test( node.type ) ) {

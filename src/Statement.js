@@ -135,7 +135,13 @@ export default class Statement {
 				}
 
 				if ( isReference( node, parent ) ) {
-					const reference = new Reference( node, scope );
+					// function declaration IDs are a special case – they're associated
+					// with the parent scope
+					const referenceScope = parent.type === 'FunctionDeclaration' && node === parent.id ?
+						scope.parent :
+						scope;
+
+					const reference = new Reference( node, referenceScope );
 					references.push( reference );
 
 					reference.isImmediatelyUsed = !readDepth;
