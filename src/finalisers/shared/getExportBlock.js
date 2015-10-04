@@ -1,6 +1,6 @@
 export default function getExportBlock ( bundle, exportMode, mechanism = 'return' ) {
 	if ( exportMode === 'default' ) {
-		return `${mechanism} ${bundle.entryModule.defaultName()};`;
+		return `${mechanism} ${bundle.entryModule.declarations.default.render( false )};`;
 	}
 
 	return bundle.toExport
