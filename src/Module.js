@@ -35,6 +35,72 @@ class SyntheticDefaultDeclaration {
 	}
 }
 
+class SyntheticNamespaceDeclaration {
+	constructor ( module ) {
+		this.module = module;
+		this.name = null;
+
+		this.references = [];
+		this.needsNamespaceBlock = false;
+
+		this.originals = blank();
+		module.getExports().forEach( name => {
+			this.originals[ name ] = module.traceExport( name );
+		});
+	}
+
+	addReference ( reference ) {
+		// if we have e.g. `foo.bar`, we can optimise
+		// the reference by pointing directly to `bar`
+		if ( reference.parts.length > 1 ) {
+			reference.parts.shift();
+			//reference.name += `.${reference.parts[0]}`;
+			reference.name = reference.parts[0];
+
+			const original = this.originals[ reference.parts[0]];
+
+			original.addReference( reference );
+			return;
+		}
+
+		// otherwise we're accessing the namespace directly,
+		// which means we need to mark all of this module's
+		// exports and render a namespace block in the bundle
+		if ( !this.needsNamespaceBlock ) {
+			this.needsNamespaceBlock = true;
+			this.module.bundle.internalNamespaces.push( this );
+
+			keys( this.originals ).forEach( name => {
+				const original = this.originals[ name ];
+				original.statement.mark();
+			});
+		}
+
+		this.references.push( reference );
+
+		reference.declaration = this;
+		this.name = reference.name;
+	}
+
+	renderBlock ( indentString ) {
+		const members = keys( this.originals ).map( name => {
+			const original = this.originals[ name ];
+
+			if ( original.isReassigned ) {
+				return `${indentString}get ${name} () { return ${original.render()}; }`;
+			}
+
+			return `${indentString}${name}: ${original.render()}`;
+		});
+
+		return `var ${this.render()} = {\n${members.join( ',\n' )}\n};\n\n`;
+	}
+
+	render () {
+		return this.name;
+	}
+}
+
 export default class Module {
 	constructor ({ id, source, ast, bundle }) {
 		this.source = source;
@@ -119,7 +185,7 @@ export default class Module {
 			this.exports.default = {
 				statement,
 				name: 'default',
-				localName: identifier || 'default',
+				localName: 'default',
 				identifier,
 				isDeclaration,
 				isAnonymous,
@@ -334,6 +400,14 @@ export default class Module {
 		return hasSideEffect;
 	}
 
+	namespace () {
+		if ( !this.declarations['*'] ) {
+			this.declarations['*'] = new SyntheticNamespaceDeclaration( this );
+		}
+
+		return this.declarations['*'];
+	}
+
 	parse ( ast ) {
 		// The ast can be supplied programmatically (but usually won't be)
 		if ( !ast ) {
@@ -445,7 +519,7 @@ export default class Module {
 			if ( statement.node.isSynthetic ) {
 				// insert `var/let/const` if necessary
 				const declaration = this.declarations[ statement.node.declarations[0].id.name ];
-				if ( !declaration.isExported ) {
+				if ( !( declaration.isExported && declaration.isReassigned ) ) { // TODO encapsulate this
 					magicString.insert( statement.start, `${statement.node.kind} ` );
 				}
 
@@ -495,7 +569,6 @@ export default class Module {
 				}
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					// TODO unify these
 					const defaultDeclaration = this.declarations.default;
 
 					// prevent `var foo = foo`
@@ -526,6 +599,12 @@ export default class Module {
 			}
 		});
 
+		// add namespace block if necessary
+		const namespace = this.declarations['*'];
+		if ( namespace && namespace.needsNamespaceBlock ) {
+			magicString.append( '\n\n' + namespace.renderBlock( magicString.getIndentString() ) );
+		}
+
 		return magicString.trim();
 	}
 
@@ -534,6 +613,11 @@ export default class Module {
 		if ( name in this.imports ) {
 			const importDeclaration = this.imports[ name ];
 			const otherModule = importDeclaration.module;
+
+			if ( importDeclaration.name === '*' && !otherModule.isExternal ) {
+				return otherModule.namespace();
+			}
+
 			return otherModule.traceExport( importDeclaration.name );
 		}
 
@@ -549,10 +633,6 @@ export default class Module {
 
 		const exportDeclaration = this.exports[ name ];
 		if ( exportDeclaration ) {
-			if ( name === 'default' ) {
-				return this.declarations.default;
-			}
-
 			return this.trace( exportDeclaration.localName );
 		}
 

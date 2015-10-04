@@ -36,7 +36,7 @@ export default class Bundle {
 
 		this.statements = null;
 		this.externalModules = [];
-		this.internalNamespaceModules = [];
+		this.internalNamespaces = [];
 
 		this.assumedGlobals = blank();
 
@@ -172,12 +172,6 @@ export default class Bundle {
 		// Determine export mode - 'default', 'named', 'none'
 		const exportMode = getExportMode( this, options.exports );
 
-		// Assign names to external modules
-		// this.externalModules.forEach( module => {
-		// 	const override = module.declarations['*'] || module.declarations.default;
-		// 	if ( override ) module.name = override.name;
-		// });
-
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 
 		this.orderedModules.forEach( module => {
@@ -187,22 +181,7 @@ export default class Bundle {
 			}
 		});
 
-		// prepend bundle with internal namespaces
 		const indentString = getIndentString( magicString, options );
-		const namespaceBlock = this.internalNamespaceModules.map( module => {
-			const exports = keys( module.exports )
-				.concat( keys( module.reexports ) )
-				.map( name => {
-					const canonicalName = this.traceExport( module, name );
-					return `${indentString}get ${name} () { return ${canonicalName}; }`;
-				});
-
-			return `var ${module.replacements['*']} = {\n` +
-				exports.join( ',\n' ) +
-			`\n};\n\n`;
-		}).join( '' );
-
-		magicString.prepend( namespaceBlock );
 
 		const finalise = finalisers[ format ];
 
