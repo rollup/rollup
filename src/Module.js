@@ -626,17 +626,17 @@ export default class Module {
 				return otherModule.namespace();
 			}
 
-			return otherModule.traceExport( importDeclaration.name );
+			return otherModule.traceExport( importDeclaration.name, this );
 		}
 
 		return null;
 	}
 
-	traceExport ( name ) {
+	traceExport ( name, importer ) {
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexports[ name ];
 		if ( reexportDeclaration ) {
-			return reexportDeclaration.module.traceExport( reexportDeclaration.localName );
+			return reexportDeclaration.module.traceExport( reexportDeclaration.localName, this );
 		}
 
 		const exportDeclaration = this.exports[ name ];
@@ -646,11 +646,14 @@ export default class Module {
 
 		for ( let i = 0; i < this.exportAlls.length; i += 1 ) {
 			const exportAll = this.exportAlls[i];
-			const declaration = exportAll.module.traceExport( name );
+			const declaration = exportAll.module.traceExport( name, this );
 
 			if ( declaration ) return declaration;
 		}
 
-		return null;
+		let errorMessage = `Module ${this.id} does not export ${name}`;
+		if ( importer ) errorMessage += ` (imported by ${importer.id})`;
+
+		throw new Error( errorMessage );
 	}
 }
