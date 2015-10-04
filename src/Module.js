@@ -16,6 +16,11 @@ class SyntheticDefaultDeclaration {
 
 		this.original = null;
 		this.isExported = false;
+		this.aliases = [];
+	}
+
+	addAlias ( declaration ) {
+		this.aliases.push( declaration );
 	}
 
 	addReference ( reference ) {
@@ -36,6 +41,8 @@ class SyntheticDefaultDeclaration {
 	use () {
 		this.isUsed = true;
 		this.statement.mark();
+
+		this.aliases.forEach( alias => alias.use() );
 	}
 }
 
@@ -45,11 +52,16 @@ class SyntheticNamespaceDeclaration {
 		this.name = null;
 
 		this.needsNamespaceBlock = false;
+		this.aliases = [];
 
 		this.originals = blank();
 		module.getExports().forEach( name => {
 			this.originals[ name ] = module.traceExport( name );
 		});
+	}
+
+	addAlias ( declaration ) {
+		this.aliases.push( declaration );
 	}
 
 	addReference ( reference ) {
@@ -102,7 +114,8 @@ class SyntheticNamespaceDeclaration {
 	}
 
 	use () {
-		// noop
+		// noop?
+		this.aliases.forEach( alias => alias.use() );
 	}
 }
 
@@ -285,6 +298,21 @@ export default class Module {
 
 	basename () {
 		return makeLegalIdentifier( basename( this.id ).slice( 0, -extname( this.id ).length ) );
+	}
+
+	bindAliases () {
+		keys( this.declarations ).forEach( name => {
+			const declaration = this.declarations[ name ];
+			const statement = declaration.statement;
+			if ( statement.node.type !== 'VariableDeclaration' ) return;
+
+			statement.references.forEach( reference => {
+				if ( reference.name === name || !reference.isImmediatelyUsed ) return;
+
+				const otherDeclaration = this.trace( reference.name );
+				if ( otherDeclaration ) otherDeclaration.addAlias( declaration );
+			});
+		});
 	}
 
 	bindImportSpecifiers () {

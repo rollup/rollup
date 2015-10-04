@@ -39,6 +39,11 @@ class Declaration {
 		this.name = null;
 
 		this.isReassigned = false;
+		this.aliases = [];
+	}
+
+	addAlias ( declaration ) {
+		this.aliases.push( declaration );
 	}
 
 	addReference ( reference ) {
@@ -58,6 +63,8 @@ class Declaration {
 	use () {
 		this.isUsed = true;
 		if ( this.statement ) this.statement.mark();
+
+		this.aliases.forEach( alias => alias.use() );
 	}
 }
 

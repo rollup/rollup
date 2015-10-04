@@ -8,6 +8,10 @@ class ExternalDeclaration {
 		this.isExternal = true;
 	}
 
+	addAlias () {
+		// noop
+	}
+
 	addReference ( reference ) {
 		reference.declaration = this;
 

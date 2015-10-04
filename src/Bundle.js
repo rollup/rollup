@@ -51,6 +51,7 @@ export default class Bundle {
 				this.entryModule = entryModule;
 
 				this.modules.forEach( module => module.bindImportSpecifiers() );
+				this.modules.forEach( module => module.bindAliases() );
 				this.modules.forEach( module => module.bindReferences() );
 
 				// mark all export statements
