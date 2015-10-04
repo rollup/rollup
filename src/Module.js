@@ -122,9 +122,20 @@ class SyntheticNamespaceDeclaration {
 export default class Module {
 	constructor ({ id, source, ast, bundle }) {
 		this.source = source;
-
 		this.bundle = bundle;
 		this.id = id;
+
+		// all dependencies
+		this.dependencies = [];
+		this.resolvedIds = blank();
+
+		// imports and exports, indexed by local name
+		this.imports = blank();
+		this.exports = blank();
+		this.reexports = blank();
+
+		this.exportAllSources = [];
+		this.exportAllModules = null;
 
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
@@ -143,18 +154,6 @@ export default class Module {
 
 		this.statements = this.parse( ast );
 
-		// all dependencies
-		this.dependencies = [];
-		this.resolvedIds = blank();
-
-		// imports and exports, indexed by local name
-		this.imports = blank();
-		this.exports = blank();
-		this.reexports = blank();
-		this.exportDelegates = blank();
-
-		this.exportAlls = [];
-
 		this.declarations = blank();
 		this.analyse();
 	}
@@ -170,10 +169,7 @@ export default class Module {
 			if ( node.type === 'ExportAllDeclaration' ) {
 				// Store `export * from '...'` statements in an array of delegates.
 				// When an unknown import is encountered, we see if one of them can satisfy it.
-				this.exportAlls.push({
-					statement,
-					source
-				});
+				this.exportAllSources.push( source );
 			}
 
 			else {
@@ -211,7 +207,7 @@ export default class Module {
 			};
 
 			// create a synthetic declaration
-			this.declarations.default = new SyntheticDefaultDeclaration( node, statement, this.defaultName() );
+			this.declarations.default = new SyntheticDefaultDeclaration( node, statement, identifier || this.basename() );
 		}
 
 		// export { foo, bar, baz }
@@ -327,9 +323,9 @@ export default class Module {
 			});
 		});
 
-		this.exportAlls.forEach( delegate => {
-			const id = this.resolvedIds[ delegate.source ];
-			delegate.module = this.bundle.moduleById[ id ];
+		this.exportAllModules = this.exportAllSources.map( source => {
+			const id = this.resolvedIds[ source ];
+			return this.bundle.moduleById[ id ];
 		});
 	}
 
@@ -346,7 +342,7 @@ export default class Module {
 			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
 				// ...unless this is the entry module
 				if ( this !== this.bundle.entryModule ) return;
-			};
+			}
 
 			statement.references.forEach( reference => {
 				const declaration = reference.scope.findDeclaration( reference.name ) ||
@@ -397,19 +393,6 @@ export default class Module {
 		return { strongDependencies, weakDependencies };
 	}
 
-	// TODO this seems superfluous
-	defaultName () {
-		const defaultExport = this.exports.default;
-
-		if ( !defaultExport ) return null;
-
-		const name = defaultExport.identifier && !defaultExport.isModified ?
-			defaultExport.identifier :
-			this.basename(); // TODO should be deconflictable
-
-		return name;
-	}
-
 	getExports () {
 		let exports = blank();
 
@@ -421,7 +404,7 @@ export default class Module {
 			exports[ name ] = true;
 		});
 
-		this.exportAlls.forEach( ({ module }) => {
+		this.exportAllModules.forEach( module => {
 			module.getExports().forEach( name => {
 				if ( name !== 'default' ) exports[ name ] = true;
 			});
@@ -694,9 +677,9 @@ export default class Module {
 			return this.trace( exportDeclaration.localName );
 		}
 
-		for ( let i = 0; i < this.exportAlls.length; i += 1 ) {
-			const exportAll = this.exportAlls[i];
-			const declaration = exportAll.module.traceExport( name, this );
+		for ( let i = 0; i < this.exportAllModules.length; i += 1 ) {
+			const module = this.exportAllModules[i];
+			const declaration = module.traceExport( name, this );
 
 			if ( declaration ) return declaration;
 		}

@@ -18,13 +18,10 @@ export default function attachScopes ( statement ) {
 			}
 
 			// var foo = 1
-			// TODO can we have multiple declarations at this point? when
-			// do we create synthetic var nodes?
 			if ( node.type === 'VariableDeclaration' ) {
 				const isBlockDeclaration = blockDeclarations[ node.kind ];
-				node.declarations.forEach( declarator => {
-					scope.addDeclaration( declarator, isBlockDeclaration, true );
-				});
+				// only one declarator per block, because we split them up already
+				scope.addDeclaration( node.declarations[0], isBlockDeclaration, true );
 			}
 
 			let newScope;
