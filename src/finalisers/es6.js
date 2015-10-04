@@ -1,4 +1,4 @@
-import { blank, keys } from '../utils/object';
+import { keys } from '../utils/object';
 
 function notDefault ( name ) {
 	return name !== 'default';

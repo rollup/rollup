@@ -100,8 +100,7 @@ export default class Bundle {
 				const declaration = module.declarations[ originalName ];
 
 				if ( originalName === 'default' ) {
-					const defaultExport = module.exports.default;
-					if ( defaultExport.identifier && !declaration.original.isReassigned ) return;
+					if ( declaration.original && !declaration.original.isReassigned ) return;
 				}
 
 				declaration.name = getSafeName( declaration.name );

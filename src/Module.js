@@ -187,23 +187,11 @@ export default class Module {
 		// export default foo;
 		// export default 42;
 		else if ( node.type === 'ExportDefaultDeclaration' ) {
-			const isDeclaration = /Declaration$/.test( node.declaration.type );
-			const isAnonymous = /(?:Class|Function)Expression$/.test( node.declaration.type );
-
-			const identifier = isDeclaration ?
-				node.declaration.id.name :
-				node.declaration.type === 'Identifier' ?
-					node.declaration.name :
-					null;
+			const identifier = ( node.declaration.id && node.declaration.id.name ) || node.declaration.name;
 
 			this.exports.default = {
-				statement,
-				name: 'default',
 				localName: 'default',
-				identifier,
-				isDeclaration,
-				isAnonymous,
-				isModified: false // in case of `export default foo; foo = somethingElse`
+				identifier
 			};
 
 			// create a synthetic declaration
@@ -220,11 +208,8 @@ export default class Module {
 					const localName = specifier.local.name;
 					const exportedName = specifier.exported.name;
 
-					this.exports[ exportedName ] = {
-						statement,
-						localName,
-						exportedName
-					};
+					// TODO can it just be = localName?
+					this.exports[ exportedName ] = { localName };
 				});
 			}
 
@@ -241,11 +226,7 @@ export default class Module {
 					name = declaration.id.name;
 				}
 
-				this.exports[ name ] = {
-					statement,
-					localName: name,
-					expression: declaration
-				};
+				this.exports[ name ] = { localName: name };
 			}
 		}
 	}
@@ -315,8 +296,6 @@ export default class Module {
 		[ this.imports, this.reexports ].forEach( specifiers => {
 			keys( specifiers ).forEach( name => {
 				const specifier = specifiers[ name ];
-
-				if ( specifier.module ) return;
 
 				const id = this.resolvedIds[ specifier.source ];
 				specifier.module = this.bundle.moduleById[ id ];
