@@ -1,12 +1,12 @@
-export default function getExportBlock ( bundle, exportMode, mechanism = 'return' ) {
+export default function getExportBlock ( entryModule, exportMode, mechanism = 'return' ) {
 	if ( exportMode === 'default' ) {
-		return `${mechanism} ${bundle.entryModule.declarations.default.render( false )};`;
+		return `${mechanism} ${entryModule.declarations.default.render( false )};`;
 	}
 
-	return bundle.toExport
+	return entryModule.getExports()
 		.map( name => {
 			const prop = name === 'default' ? `['default']` : `.${name}`;
-			const declaration = bundle.entryModule.traceExport( name );
+			const declaration = entryModule.traceExport( name );
 
 			const lhs = `exports${prop}`;
 			const rhs = declaration.render( false );

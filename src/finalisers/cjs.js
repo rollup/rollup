@@ -23,7 +23,7 @@ export default function cjs ( bundle, magicString, { exportMode }, options ) {
 
 	magicString.prepend( intro );
 
-	const exportBlock = getExportBlock( bundle, exportMode, 'module.exports =' );
+	const exportBlock = getExportBlock( bundle.entryModule, exportMode, 'module.exports =' );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 
 	return magicString;

@@ -151,7 +151,6 @@ export default class Module {
 		}
 
 		this.comments = [];
-
 		this.statements = this.parse( ast );
 
 		this.declarations = blank();
@@ -238,11 +237,7 @@ export default class Module {
 		if ( !~this.dependencies.indexOf( source ) ) this.dependencies.push( source );
 
 		node.specifiers.forEach( specifier => {
-			const isDefault = specifier.type === 'ImportDefaultSpecifier';
-			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
-
 			const localName = specifier.local.name;
-			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
 
 			if ( this.imports[ localName ] ) {
 				const err = new Error( `Duplicated import '${localName}'` );
@@ -251,11 +246,11 @@ export default class Module {
 				throw err;
 			}
 
-			this.imports[ localName ] = {
-				source,
-				name,
-				localName
-			};
+			const isDefault = specifier.type === 'ImportDefaultSpecifier';
+			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
+
+			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
+			this.imports[ localName ] = { source, name, module: null };
 		});
 	}
 
@@ -360,8 +355,7 @@ export default class Module {
 					const module = declaration.statement.module;
 					if ( module === this ) return;
 
-					// TODO handle references inside IIFEs, and disregard
-					// function declarations
+					// TODO disregard function declarations
 					if ( reference.isImmediatelyUsed ) {
 						strongDependencies[ module.id ] = module;
 					}

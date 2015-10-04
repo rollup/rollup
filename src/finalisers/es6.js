@@ -35,7 +35,7 @@ export default function es6 ( bundle, magicString ) {
 
 	const module = bundle.entryModule;
 
-	const specifiers = bundle.toExport.filter( notDefault ).map( name => {
+	const specifiers = module.getExports().filter( notDefault ).map( name => {
 		const declaration = module.traceExport( name );
 
 		return declaration.name === name ?

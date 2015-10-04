@@ -28,13 +28,10 @@ export default class Bundle {
 			transform: ensureArray( options.transform )
 		};
 
-		this.toExport = null;
-
 		this.pending = blank();
 		this.moduleById = blank();
 		this.modules = [];
 
-		this.statements = null;
 		this.externalModules = [];
 		this.internalNamespaces = [];
 
@@ -122,12 +119,7 @@ export default class Bundle {
 					source = source.code;
 				}
 
-				const module = new Module({
-					id,
-					source,
-					ast,
-					bundle: this
-				});
+				const module = new Module({ id, source, ast, bundle: this });
 
 				this.modules.push( module );
 				this.moduleById[ id ] = module;
@@ -182,12 +174,8 @@ export default class Bundle {
 		const indentString = getIndentString( magicString, options );
 
 		const finalise = finalisers[ format ];
+		if ( !finalise ) throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
 
-		if ( !finalise ) {
-			throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
-		}
-
-		this.toExport = this.entryModule.getExports(); // TODO
 		magicString = finalise( this, magicString.trim(), { exportMode, indentString }, options );
 
 		if ( options.banner ) magicString.prepend( options.banner + '\n' );
