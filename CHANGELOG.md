@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.18.0
+
+* Internal rewrite
+* Reinstate statically-analysable namespace imports
+* Avoid using getters in namespace blocks where possible ([#144](https://github.com/rollup/rollup/issues/144))
+* Track variable aliases ([#96](https://github.com/rollup/rollup/issues/96))
+
 ## 0.17.4
 
 * Allow imports from hidden directories (replay of [#133](https://github.com/rollup/rollup/issues/133))
