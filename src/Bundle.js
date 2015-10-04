@@ -68,7 +68,10 @@ export default class Bundle {
 				entryModule.getExports().forEach( name => {
 					const declaration = entryModule.traceExport( name );
 					declaration.isExported = true;
-					declaration.statement.mark();
+
+					if ( declaration.statement ) {
+						declaration.statement.mark();
+					}
 				});
 
 				this.markAllModifierStatements();

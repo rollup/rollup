@@ -254,9 +254,19 @@ export default class Module {
 
 		this.statements.forEach( statement => {
 			statement.references.forEach( reference => {
-				if ( reference.declaration && reference.declaration.statement ) {
-					const module = reference.declaration.statement.module;
+				const declaration = reference.declaration;
+
+				if ( declaration && declaration.statement ) {
+					const module = declaration.statement.module;
+					if ( module === this ) return;
+
 					weakDependencies[ module.id ] = module;
+
+					// TODO handle references inside IIFEs, and disregard
+					// function declarations
+					if ( !reference.scope.parent ) {
+						strongDependencies[ module.id ] = module;
+					}
 				}
 			});
 		});
