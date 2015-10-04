@@ -233,14 +233,10 @@ export default class Module {
 	bindReferences () {
 		this.statements.forEach( statement => {
 			statement.references.forEach( reference => {
-				let declaration;
-
-				// find in local scope...
-				declaration = reference.scope.findDeclaration( reference.name ) ||
-				              this.trace( reference.name );
+				const declaration = reference.scope.findDeclaration( reference.name ) ||
+				                    this.trace( reference.name );
 
 				if ( declaration ) {
-					reference.declaration = declaration;
 					declaration.addReference( reference );
 				} else {
 					// TODO handle globals
