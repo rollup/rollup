@@ -55,9 +55,14 @@ export default class Bundle {
 					module.bindReferences();
 				});
 
-				this.modules.forEach( module => {
-					module.markAllSideEffects();
-				});
+				let settled = false;
+				while ( !settled ) {
+					settled = true;
+
+					this.modules.forEach( module => {
+						if ( module.markAllSideEffects() ) settled = false;
+					});
+				}
 
 				// mark all export statements
 				entryModule.getExports().forEach( name => {

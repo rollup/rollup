@@ -297,9 +297,13 @@ export default class Module {
 	}
 
 	markAllSideEffects () {
+		let hasSideEffect = false;
+
 		this.statements.forEach( statement => {
-			statement.markSideEffect();
+			if ( statement.markSideEffect() ) hasSideEffect = true;
 		});
+
+		return hasSideEffect;
 	}
 
 	parse ( ast ) {

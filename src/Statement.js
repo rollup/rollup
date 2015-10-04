@@ -107,7 +107,7 @@ export default class Statement {
 					this.skip(); // don't descend from `foo.bar.baz` into `foo.bar`
 				}
 			},
-			leave: ( node ) => {
+			leave ( node ) {
 				if ( node._scope ) scope = scope.parent;
 			}
 		});
@@ -125,7 +125,10 @@ export default class Statement {
 	}
 
 	markSideEffect () {
+		if ( this.isIncluded ) return;
+
 		const statement = this;
+		let hasSideEffect = false;
 
 		walk( this.node, {
 			enter ( node, parent ) {
@@ -134,7 +137,7 @@ export default class Statement {
 				// If this is a top-level call expression, or an assignment to a global,
 				// this statement will need to be marked
 				if ( node.type === 'CallExpression' || node.type === 'NewExpression' ) {
-					statement.mark();
+					hasSideEffect = true;
 				}
 
 				else if ( node.type in modifierNodes ) {
@@ -143,11 +146,17 @@ export default class Statement {
 
 					const declaration = statement.module.trace( subject.name );
 
-					// global
-					if ( !declaration ) statement.mark();
+					if ( !declaration || declaration.statement.isIncluded ) {
+						hasSideEffect = true;
+					}
 				}
+
+				if ( hasSideEffect ) this.skip();
 			}
 		});
+
+		if ( hasSideEffect ) statement.mark();
+		return hasSideEffect;
 	}
 
 	source () {
