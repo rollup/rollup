@@ -13,52 +13,52 @@ export default function attachScopes ( statement ) {
 		enter ( node, parent ) {
 			let newScope;
 
-			switch ( node.type ) {
-				case 'FunctionDeclaration':
-					scope.addDeclaration( node, false, false );
-					break;
+			// function foo () {...}
+			// class Foo {...}
+			if ( /(Function|Class)Declaration/.test( node.type ) ) {
+				scope.addDeclaration( node, false, false );
+			}
 
-				case 'BlockStatement':
-					if ( parent && /Function/.test( parent.type ) ) {
-						newScope = new Scope({
-							parent: scope,
-							block: false,
-							params: parent.params
-						});
+			// var foo = 1
+			// TODO can we have multiple declarations at this point? when
+			// do we create synthetic var nodes?
+			if ( node.type === 'VariableDeclaration' ) {
+				const isBlockDeclaration = blockDeclarations[ node.kind ];
+				node.declarations.forEach( declarator => {
+					scope.addDeclaration( declarator, isBlockDeclaration, true );
+				});
+			}
 
-						// named function expressions - the name is considered
-						// part of the function's scope
-						if ( parent.type === 'FunctionExpression' && parent.id ) {
-							newScope.addDeclaration( parent, false, false );
-						}
-					} else {
-						newScope = new Scope({
-							parent: scope,
-							block: true
-						});
-					}
+			// create new function scope
+			if ( /Function/.test( node.type ) ) {
+				newScope = new Scope({
+					parent: scope,
+					block: false,
+					params: node.params
+				});
 
-					break;
+				// named function expressions - the name is considered
+				// part of the function's scope
+				if ( node.type === 'FunctionExpression' && node.id ) {
+					newScope.addDeclaration( node, false, false );
+				}
+			}
 
-				case 'CatchClause':
-					newScope = new Scope({
-						parent: scope,
-						params: [ node.param ],
-						block: true
-					});
+			// create new block scope
+			if ( node.type === 'BlockStatement' && !/Function/.test( parent.type ) ) {
+				newScope = new Scope({
+					parent: scope,
+					block: true
+				});
+			}
 
-					break;
-
-				case 'VariableDeclaration':
-					node.declarations.forEach( declarator => {
-						const isBlockDeclaration = node.type === 'VariableDeclaration' && blockDeclarations[ node.kind ];
-						scope.addDeclaration( declarator, isBlockDeclaration, true );
-					});
-					break;
-
-				case 'ClassDeclaration':
-					scope.addDeclaration( node, false, false );
-					break;
+			// catch clause has its own block scope
+			if ( node.type === 'CatchClause' ) {
+				newScope = new Scope({
+					parent: scope,
+					params: [ node.param ],
+					block: true
+				});
 			}
 
 			if ( newScope ) {

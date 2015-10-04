@@ -106,17 +106,7 @@ export default class Statement {
 				}
 
 				if ( isReference( node, parent ) ) {
-					// TODO this feels terribly kludgy. Function expression IDs and
-					// function parameters will show up in the parent scope – this
-					// hack fixes that
-					let realScope = scope;
-					if ( /Function/.test( parent.type ) ) {
-						if ( parent.type !== 'FunctionDeclaration' || node !== parent.id ) {
-							realScope = parent.body._scope;
-						}
-					}
-
-					const reference = new Reference( node, realScope );
+					const reference = new Reference( node, scope );
 					references.push( reference );
 
 					if ( node.type === 'Identifier' ) {
