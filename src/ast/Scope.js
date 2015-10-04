@@ -1,4 +1,4 @@
-import { blank } from '../utils/object';
+import { blank, keys } from '../utils/object';
 
 const extractors = {
 	Identifier ( names, param ) {
@@ -33,35 +33,67 @@ function extractNames ( param ) {
 	return names;
 }
 
+class Declaration {
+	constructor () {
+		this.statement = null;
+		this.name = null;
+
+		this.isReassigned = false;
+		this.aliases = [];
+	}
+
+	addAlias ( declaration ) {
+		this.aliases.push( declaration );
+	}
+
+	addReference ( reference ) {
+		reference.declaration = this;
+		this.name = reference.name; // TODO handle differences of opinion
+
+		if ( reference.isReassignment ) this.isReassigned = true;
+	}
+
+	render ( es6 ) {
+		if ( es6 ) return this.name;
+		if ( !this.isReassigned || !this.isExported ) return this.name;
+
+		return `exports.${this.name}`;
+	}
+
+	use () {
+		this.isUsed = true;
+		if ( this.statement ) this.statement.mark();
+
+		this.aliases.forEach( alias => alias.use() );
+	}
+}
+
 export default class Scope {
 	constructor ( options ) {
 		options = options || {};
 
 		this.parent = options.parent;
-		this.depth = this.parent ? this.parent.depth + 1 : 0;
-		this.declarations = blank();
 		this.isBlockScope = !!options.block;
 
-		this.varDeclarations = [];
+		this.declarations = blank();
 
 		if ( options.params ) {
 			options.params.forEach( param => {
 				extractNames( param ).forEach( name => {
-					this.declarations[ name ] = true;
+					this.declarations[ name ] = new Declaration( name );
 				});
 			});
 		}
 	}
 
-	addDeclaration ( declaration, isBlockDeclaration, isVar ) {
+	addDeclaration ( node, isBlockDeclaration, isVar ) {
 		if ( !isBlockDeclaration && this.isBlockScope ) {
 			// it's a `var` or function node, and this
 			// is a block scope, so we need to go up
-			this.parent.addDeclaration( declaration, isBlockDeclaration, isVar );
+			this.parent.addDeclaration( node, isBlockDeclaration, isVar );
 		} else {
-			extractNames( declaration.id ).forEach( name => {
-				this.declarations[ name ] = true;
-				if ( isVar ) this.varDeclarations.push( name );
+			extractNames( node.id ).forEach( name => {
+				this.declarations[ name ] = new Declaration( name );
 			});
 		}
 	}
@@ -71,15 +103,14 @@ export default class Scope {
 		       ( this.parent ? this.parent.contains( name ) : false );
 	}
 
-	findDefiningScope ( name ) {
-		if ( this.declarations[ name ] ) {
-			return this;
-		}
+	eachDeclaration ( fn ) {
+		keys( this.declarations ).forEach( key => {
+			fn( key, this.declarations[ key ] );
+		});
+	}
 
-		if ( this.parent ) {
-			return this.parent.findDefiningScope( name );
-		}
-
-		return null;
+	findDeclaration ( name ) {
+		return this.declarations[ name ] ||
+		       ( this.parent && this.parent.findDeclaration( name ) );
 	}
 }

@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 0.17.4
+
+* Allow imports from hidden directories (replay of [#133](https://github.com/rollup/rollup/issues/133))
+
+## 0.17.3
+
+* Handle parenthesised default exports ([#136](https://github.com/rollup/rollup/issues/136))
+
+## 0.17.2
+
+* Allow use of scoped npm packages ([#131](https://github.com/rollup/rollup/issues/131))
+
+## 0.17.1
+
+* Allow namespaces to be passed to a function ([#149](https://github.com/rollup/rollup/issues/149))
+
+## 0.17.0
+
+* Roll back to 0.15.0 and reapply subsequent fixes pending resolution of ([#132](https://github.com/rollup/rollup/issues/132)) and related issues
+
 ## 0.16.4
 
 * Fix import paths with `.` ([#133](https://github.com/rollup/rollup/issues/133))

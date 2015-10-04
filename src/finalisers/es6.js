@@ -1,16 +1,5 @@
 import { keys } from '../utils/object';
 
-function specifiersFor ( externalModule ) {
-	return keys( externalModule.importedByBundle )
-		.filter( notDefault )
-		.sort()
-		.map( name => {
-			const id = externalModule.exports.lookup( name );
-
-			return name !== id.name ? `${name} as ${id.name}` : name;
-		});
-}
-
 function notDefault ( name ) {
 	return name !== 'default';
 }
@@ -19,19 +8,19 @@ export default function es6 ( bundle, magicString ) {
 	const importBlock = bundle.externalModules
 		.map( module => {
 			const specifiers = [];
+			const importedNames = keys( module.declarations )
+				.filter( name => name !== '*' && name !== 'default' );
 
-			const id = module.exports.lookup( 'default' );
-
-			if ( id ) {
-				specifiers.push( id.name );
+			if ( module.declarations.default ) {
+				specifiers.push( module.name );
 			}
 
-			if ( module.needsAll ) {
-				specifiers.push( '* as ' + module.name );
+			if ( module.declarations['*'] ) {
+				specifiers.push( `* as ${module.name}` );
 			}
 
-			if ( module.needsNamed ) {
-				specifiers.push( '{ ' + specifiersFor( module ).join( ', ' ) + ' }' );
+			if ( importedNames.length ) {
+				specifiers.push( `{ ${importedNames.join( ', ' )} }` );
 			}
 
 			return specifiers.length ?
@@ -46,19 +35,19 @@ export default function es6 ( bundle, magicString ) {
 
 	const module = bundle.entryModule;
 
-	const specifiers = bundle.toExport.filter( notDefault ).map( name => {
-		const id = bundle.exports.lookup( name );
+	const specifiers = module.getExports().filter( notDefault ).map( name => {
+		const declaration = module.traceExport( name );
 
-		return id.name === name ?
+		return declaration.name === name ?
 			name :
-			`${id.name} as ${name}`;
+			`${declaration.name} as ${name}`;
 	});
 
 	let exportBlock = specifiers.length ? `export { ${specifiers.join(', ')} };` : '';
 
-	const defaultExport = module.exports.lookup( 'default' );
+	const defaultExport = module.exports.default || module.reexports.default;
 	if ( defaultExport ) {
-		exportBlock += `\nexport default ${ defaultExport.name };`;
+		exportBlock += `export default ${module.traceExport( 'default' ).name};`;
 	}
 
 	if ( exportBlock ) {

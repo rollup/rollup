@@ -1,12 +1,11 @@
 export default function getInteropBlock ( bundle ) {
 	return bundle.externalModules
 		.map( module => {
-			const def = module.exports.lookup( 'default' );
-
-			if ( !def ) return;
-
-			return ( module.needsNamed ? 'var ' : '' ) +
-				`${def.name} = 'default' in ${module.name} ? ${module.name}['default'] : ${module.name};`;
+			return module.declarations.default ?
+				( module.exportsNames ?
+					`var ${module.name}__default = 'default' in ${module.name} ? ${module.name}['default'] : ${module.name};` :
+					`${module.name} = 'default' in ${module.name} ? ${module.name}['default'] : ${module.name};` ) :
+				null;
 		})
 		.filter( Boolean )
 		.join( '\n' );
