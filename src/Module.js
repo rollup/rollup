@@ -532,6 +532,8 @@ export default class Module {
 				magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
 			}
 
+			let toDeshadow = blank();
+
 			statement.references.forEach( reference => {
 				const declaration = reference.declaration;
 
@@ -543,6 +545,12 @@ export default class Module {
 					// namespace optimisation – name of `foo.bar` could be `bar`
 					if ( reference.name === name && name.length === reference.end - reference.start ) return;
 
+					// prevent local variables from shadowing renamed references
+					const identifier = name.match( /[^\.]+/ )[0];
+					if ( reference.scope.contains( identifier ) ) {
+						toDeshadow[ identifier ] = `${identifier}$$`; // TODO more robust mechanism
+					}
+
 					if ( reference.isShorthandProperty ) {
 						magicString.insert( end, `: ${name}` );
 					} else {
@@ -550,6 +558,14 @@ export default class Module {
 					}
 				}
 			});
+
+			if ( keys( toDeshadow ).length ) {
+				statement.references.forEach( reference => {
+					if ( reference.name in toDeshadow ) {
+						magicString.overwrite( reference.start, reference.end, toDeshadow[ reference.name ], true );
+					}
+				});
+			}
 
 			// modify exports as necessary
 			if ( statement.isExportDeclaration ) {
