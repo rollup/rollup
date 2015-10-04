@@ -18,6 +18,8 @@ class SyntheticDefaultDeclaration {
 	}
 
 	addReference ( reference ) {
+		this.references.push( reference );
+
 		reference.declaration = this;
 		this.name = reference.name;
 	}
@@ -252,6 +254,17 @@ export default class Module {
 		let strongDependencies = blank();
 		let weakDependencies = blank();
 
+		// treat all imports as weak dependencies
+		this.dependencies.forEach( source => {
+			const id = this.resolvedIds[ source ];
+			const dependency = this.bundle.moduleById[ id ];
+
+			if ( !dependency.isExternal ) {
+				weakDependencies[ dependency.id ] = dependency;
+			}
+		});
+
+		// identify strong dependencies to break ties in case of cycles
 		this.statements.forEach( statement => {
 			statement.references.forEach( reference => {
 				const declaration = reference.declaration;
@@ -259,8 +272,6 @@ export default class Module {
 				if ( declaration && declaration.statement ) {
 					const module = declaration.statement.module;
 					if ( module === this ) return;
-
-					weakDependencies[ module.id ] = module;
 
 					// TODO handle references inside IIFEs, and disregard
 					// function declarations
@@ -431,7 +442,7 @@ export default class Module {
 					const name = declaration.render( es6 );
 
 					if ( reference.name !== name ) {
-						magicString.overwrite( start, start + reference.name.length, name );
+						magicString.overwrite( start, start + reference.name.length, name, true );
 					}
 				}
 			});
@@ -462,7 +473,14 @@ export default class Module {
 				}
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					const defaultName = this.declarations.default.name;
+					const defaultDeclaration = this.declarations.default;
+					const defaultName = defaultDeclaration.name;
+
+					// prevent `var undefined = sideEffectyDefault(foo)`
+					if ( !defaultDeclaration.isExported && !defaultDeclaration.references.length ) {
+						magicString.remove( statement.start, statement.node.declaration.start );
+						return;
+					}
 
 					// anonymous functions should be converted into declarations
 					if ( statement.node.declaration.type === 'FunctionExpression' ) {
@@ -496,7 +514,7 @@ export default class Module {
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexports[ name ];
 		if ( reexportDeclaration ) {
-			return reexportDeclaration.module.traceExport( reexportDeclaration.name );
+			return reexportDeclaration.module.traceExport( reexportDeclaration.localName );
 		}
 
 		const exportDeclaration = this.exports[ name ];
