@@ -24,8 +24,14 @@ class SyntheticDefaultDeclaration {
 		this.name = reference.name;
 	}
 
+	bind ( declaration ) {
+		this.original = declaration;
+	}
+
 	render () {
-		return this.name;
+		return !this.original || this.original.isReassigned ?
+			this.name :
+			this.original.render();
 	}
 }
 
@@ -120,10 +126,8 @@ export default class Module {
 				isModified: false // in case of `export default foo; foo = somethingElse`
 			};
 
-			if ( !identifier ) {
-				// create a synthetic declaration
-				this.declarations.default = new SyntheticDefaultDeclaration( node, statement, this.defaultName() );
-			}
+			// create a synthetic declaration
+			this.declarations.default = new SyntheticDefaultDeclaration( node, statement, this.defaultName() );
 		}
 
 		// export { foo, bar, baz }
@@ -231,6 +235,13 @@ export default class Module {
 	}
 
 	bindReferences () {
+		if ( this.declarations.default ) {
+			if ( this.exports.default.identifier ) {
+				const declaration = this.trace( this.exports.default.identifier );
+				if ( declaration ) this.declarations.default.bind( declaration );
+			}
+		}
+
 		this.statements.forEach( statement => {
 			statement.references.forEach( reference => {
 				const declaration = reference.scope.findDeclaration( reference.name ) ||
@@ -484,8 +495,16 @@ export default class Module {
 				}
 
 				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
+					// TODO unify these
 					const defaultDeclaration = this.declarations.default;
-					const defaultName = defaultDeclaration.name;
+
+					// prevent `var foo = foo`
+					if ( defaultDeclaration.original && !defaultDeclaration.original.isReassigned ) {
+						magicString.remove( statement.start, statement.next );
+						return;
+					}
+
+					const defaultName = defaultDeclaration.render();
 
 					// prevent `var undefined = sideEffectyDefault(foo)`
 					if ( !defaultDeclaration.isExported && !defaultDeclaration.references.length ) {
@@ -530,12 +549,7 @@ export default class Module {
 
 		const exportDeclaration = this.exports[ name ];
 		if ( exportDeclaration ) {
-			// TODO defaults should not be live...
 			if ( name === 'default' ) {
-				if ( exportDeclaration.identifier ) {
-					return this.trace( exportDeclaration.identifier );
-				}
-
 				return this.declarations.default;
 			}
 

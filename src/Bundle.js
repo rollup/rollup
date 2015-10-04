@@ -99,6 +99,12 @@ export default class Bundle {
 		this.modules.forEach( module => {
 			keys( module.declarations ).forEach( originalName => {
 				const declaration = module.declarations[ originalName ];
+
+				if ( originalName === 'default' ) {
+					const defaultExport = module.exports.default;
+					if ( defaultExport.identifier && !declaration.original.isReassigned ) return;
+				}
+
 				declaration.name = getSafeName( declaration.name );
 			});
 		});

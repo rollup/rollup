@@ -1,15 +1,5 @@
 import { blank, keys } from '../utils/object';
 
-function uniqueNames ( declarations ) {
-	let uniques = blank();
-
-	declarations
-		.filter( declaration => !/^(default|\*)$/.test( declaration.name ) )
-		.forEach( declaration => uniques[ declaration.name ] = true );
-
-	return keys( uniques );
-}
-
 function notDefault ( name ) {
 	return name !== 'default';
 }
