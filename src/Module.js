@@ -207,7 +207,6 @@ export default class Module {
 					const localName = specifier.local.name;
 					const exportedName = specifier.exported.name;
 
-					// TODO can it just be = localName?
 					this.exports[ exportedName ] = { localName };
 				});
 			}
