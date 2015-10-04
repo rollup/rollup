@@ -89,6 +89,15 @@ export default class Statement {
 			enter ( node, parent ) {
 				if ( node._scope ) scope = node._scope;
 
+				// special case – shorthand properties. because node.key === node.value,
+				// we can't differentiate once we've descended into the node
+				if ( node.type === 'Property' && node.shorthand ) {
+					const reference = new Reference( node.key, scope );
+					reference.isShorthandProperty = true; // TODO feels a bit kludgy
+					references.push( reference );
+					return this.skip();
+				}
+
 				if ( isReference( node, parent ) ) {
 					const reference = new Reference( node, scope );
 					references.push( reference );

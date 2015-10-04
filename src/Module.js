@@ -438,11 +438,15 @@ export default class Module {
 				const declaration = reference.declaration;
 
 				if ( reference.declaration ) {
-					const { start } = reference.node;
+					const { start, end } = reference.node;
 					const name = declaration.render( es6 );
 
 					if ( reference.name !== name ) {
-						magicString.overwrite( start, start + reference.name.length, name, true );
+						if ( reference.isShorthandProperty ) {
+							magicString.insert( end, `: ${name}` );
+						} else {
+							magicString.overwrite( start, start + reference.name.length, name, true );
+						}
 					}
 				}
 			});

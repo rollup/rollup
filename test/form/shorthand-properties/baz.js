@@ -1,3 +1,7 @@
-export default function bar () {
-	return 'main-bar';
+function x () {
+	return 'baz';
 }
+
+var baz = { x };
+
+export { baz };

@@ -1,5 +1,7 @@
-import bar from './baz.js';
 import { foo } from './foo';
+import { bar } from './bar';
+import { baz } from './baz';
 
-assert.equal( bar(), 'main-bar' );
-assert.equal( foo.bar(), 'foo-bar' );
+assert.equal( foo.x(), 'foo' );
+assert.equal( bar.x(), 'bar' );
+assert.equal( baz.x(), 'baz' );
