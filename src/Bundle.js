@@ -50,19 +50,8 @@ export default class Bundle {
 			.then( entryModule => {
 				this.entryModule = entryModule;
 
-				this.modules.forEach( module => {
-					module.bindImportSpecifiers();
-					module.bindReferences();
-				});
-
-				let settled = false;
-				while ( !settled ) {
-					settled = true;
-
-					this.modules.forEach( module => {
-						if ( module.markAllSideEffects() ) settled = false;
-					});
-				}
+				this.modules.forEach( module => module.bindImportSpecifiers() );
+				this.modules.forEach( module => module.bindReferences() );
 
 				// mark all export statements
 				entryModule.getExports().forEach( name => {
@@ -74,7 +63,14 @@ export default class Bundle {
 					}
 				});
 
-				this.markAllModifierStatements();
+				let settled = false;
+				while ( !settled ) {
+					settled = true;
+
+					this.modules.forEach( module => {
+						if ( module.markAllSideEffects() ) settled = false;
+					});
+				}
 
 				this.orderedModules = this.sort();
 				this.deconflict();
@@ -162,19 +158,6 @@ export default class Bundle {
 		});
 
 		return Promise.all( promises );
-	}
-
-	markAllModifierStatements () {
-		let settled = true;
-
-		this.modules.forEach( module => {
-			module.statements.forEach( statement => {
-				if ( statement.isIncluded ) return;
-				// TODO...
-			});
-		});
-
-		if ( !settled ) this.markAllModifierStatements();
 	}
 
 	render ( options = {} ) {

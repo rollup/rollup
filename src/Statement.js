@@ -18,6 +18,9 @@ function isReference ( node, parent ) {
 	}
 
 	if ( node.type === 'Identifier' ) {
+		// TODO is this right?
+		if ( parent.type === 'MemberExpression' ) return node === parent.object;
+
 		// disregard the `bar` in { bar: foo }
 		if ( parent.type === 'Property' && node !== parent.value ) return false;
 
