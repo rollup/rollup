@@ -13,7 +13,7 @@ function isIife ( node, parent ) {
 
 function isReference ( node, parent ) {
 	if ( node.type === 'MemberExpression' ) {
-		return !node.computed;
+		return !node.computed && isReference( node.object, node );
 	}
 
 	if ( node.type === 'Identifier' ) {
