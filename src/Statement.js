@@ -155,9 +155,7 @@ export default class Statement {
 		this.isIncluded = true;
 
 		this.references.forEach( reference => {
-			if ( reference.declaration && reference.declaration.statement ) {
-				reference.declaration.statement.mark();
-			}
+			if ( reference.declaration ) reference.declaration.use();
 		});
 	}
 

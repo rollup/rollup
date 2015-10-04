@@ -14,12 +14,11 @@ class SyntheticDefaultDeclaration {
 		this.statement = statement;
 		this.name = name;
 
-		this.references = [];
+		this.original = null;
+		this.isExported = false;
 	}
 
 	addReference ( reference ) {
-		this.references.push( reference );
-
 		reference.declaration = this;
 		this.name = reference.name;
 	}
@@ -33,6 +32,11 @@ class SyntheticDefaultDeclaration {
 			this.name :
 			this.original.render();
 	}
+
+	use () {
+		this.isUsed = true;
+		this.statement.mark();
+	}
 }
 
 class SyntheticNamespaceDeclaration {
@@ -40,7 +44,6 @@ class SyntheticNamespaceDeclaration {
 		this.module = module;
 		this.name = null;
 
-		this.references = [];
 		this.needsNamespaceBlock = false;
 
 		this.originals = blank();
@@ -72,11 +75,9 @@ class SyntheticNamespaceDeclaration {
 
 			keys( this.originals ).forEach( name => {
 				const original = this.originals[ name ];
-				original.statement.mark();
+				original.use();
 			});
 		}
-
-		this.references.push( reference );
 
 		reference.declaration = this;
 		this.name = reference.name;
@@ -98,6 +99,10 @@ class SyntheticNamespaceDeclaration {
 
 	render () {
 		return this.name;
+	}
+
+	use () {
+		// noop
 	}
 }
 
@@ -581,7 +586,7 @@ export default class Module {
 					const defaultName = defaultDeclaration.render();
 
 					// prevent `var undefined = sideEffectyDefault(foo)`
-					if ( !defaultDeclaration.isExported && !defaultDeclaration.references.length ) {
+					if ( !defaultDeclaration.isExported && !defaultDeclaration.isUsed ) {
 						magicString.remove( statement.start, statement.node.declaration.start );
 						return;
 					}

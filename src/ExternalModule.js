@@ -6,8 +6,6 @@ class ExternalDeclaration {
 		this.module = module;
 		this.name = name;
 		this.isExternal = true;
-
-		this.references = [];
 	}
 
 	addReference ( reference ) {
@@ -30,6 +28,10 @@ class ExternalDeclaration {
 		}
 
 		return es6 ? this.name : `${this.module.name}.${this.name}`;
+	}
+
+	use () {
+		// noop?
 	}
 }
 

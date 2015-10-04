@@ -35,7 +35,6 @@ function extractNames ( param ) {
 
 class Declaration {
 	constructor () {
-		this.references = [];
 		this.statement = null;
 		this.name = null;
 
@@ -54,6 +53,11 @@ class Declaration {
 		if ( !this.isReassigned || !this.isExported ) return this.name;
 
 		return `exports.${this.name}`;
+	}
+
+	use () {
+		this.isUsed = true;
+		if ( this.statement ) this.statement.mark();
 	}
 }
 
