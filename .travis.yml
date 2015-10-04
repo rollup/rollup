@@ -6,3 +6,5 @@ node_js:
 env:
   global:
     - BUILD_TIMEOUT=10000
+install: npm install
+script: npm run ci

@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'tracks mutations of aliased objects',
-	skip: true
+	description: 'tracks mutations of aliased objects'
 };
