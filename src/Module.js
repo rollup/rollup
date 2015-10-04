@@ -539,12 +539,14 @@ export default class Module {
 					const { start, end } = reference;
 					const name = declaration.render( es6 );
 
-					if ( reference.name !== name ) {
-						if ( reference.isShorthandProperty ) {
-							magicString.insert( end, `: ${name}` );
-						} else {
-							magicString.overwrite( start, end, name, true );
-						}
+					// the second part of this check is necessary because of
+					// namespace optimisation – name of `foo.bar` could be `bar`
+					if ( reference.name === name && name.length === reference.end - reference.start ) return;
+
+					if ( reference.isShorthandProperty ) {
+						magicString.insert( end, `: ${name}` );
+					} else {
+						magicString.overwrite( start, end, name, true );
 					}
 				}
 			});
