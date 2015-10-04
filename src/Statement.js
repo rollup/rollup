@@ -1,6 +1,7 @@
 import { walk } from 'estree-walker';
 import Scope from './ast/Scope';
 import attachScopes from './ast/attachScopes';
+import getLocation from './utils/getLocation';
 
 const modifierNodes = {
 	AssignmentExpression: 'left',
@@ -82,7 +83,7 @@ export default class Statement {
 		});
 
 		// find references
-		let { references, scope } = this;
+		let { module, references, scope } = this;
 
 		walk( this.node, {
 			enter ( node, parent ) {
@@ -93,13 +94,30 @@ export default class Statement {
 					references.push( reference );
 
 					if ( node.type === 'Identifier' ) {
-						// `foo = bar`
-						if ( parent.type === 'AssignmentExpression' && node === parent.left ) {
-							reference.isReassignment = true;
-						}
+						if ( parent.type in modifierNodes ) {
+							let subject = parent[ modifierNodes[ parent.type ] ];
+							let depth = 0;
 
-						// `foo++`
-						if ( parent.type === 'UpdateExpression' && node === parent.argument ) {
+							while ( subject.type === 'MemberExpression' ) {
+								subject = subject.object;
+								depth += 1;
+							}
+
+							const importDeclaration = module.imports[ subject.name ];
+
+							if ( !scope.contains( subject.name ) && importDeclaration ) {
+								const minDepth = importDeclaration.name === '*' ?
+									2 : // cannot do e.g. `namespace.foo = bar`
+									1;  // cannot do e.g. `foo = bar`, but `foo.bar = bar` is fine
+
+								if ( depth < minDepth ) {
+									const err = new Error( `Illegal reassignment to import '${subject.name}'` );
+									err.file = module.id;
+									err.loc = getLocation( module.magicString.toString(), subject.start );
+									throw err;
+								}
+							}
+
 							reference.isReassignment = true;
 						}
 					}
