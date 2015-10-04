@@ -348,7 +348,7 @@ export default class Module {
 
 					// TODO handle references inside IIFEs, and disregard
 					// function declarations
-					if ( !reference.scope.parent ) {
+					if ( reference.isImmediatelyUsed ) {
 						strongDependencies[ module.id ] = module;
 					}
 				}

@@ -89,10 +89,12 @@ export default class Statement {
 
 		// find references
 		let { module, references, scope } = this;
+		let readDepth = 0;
 
 		walk( this.node, {
 			enter ( node, parent ) {
 				if ( node._scope ) scope = node._scope;
+				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth += 1;
 
 				// special case – shorthand properties. because node.key === node.value,
 				// we can't differentiate once we've descended into the node
@@ -104,7 +106,17 @@ export default class Statement {
 				}
 
 				if ( isReference( node, parent ) ) {
-					const reference = new Reference( node, scope );
+					// TODO this feels terribly kludgy. Function expression IDs and
+					// function parameters will show up in the parent scope – this
+					// hack fixes that
+					let realScope = scope;
+					if ( /Function/.test( parent.type ) ) {
+						if ( parent.type !== 'FunctionDeclaration' || node !== parent.id ) {
+							realScope = parent.body._scope;
+						}
+					}
+
+					const reference = new Reference( node, realScope );
 					references.push( reference );
 
 					if ( node.type === 'Identifier' ) {
@@ -136,11 +148,14 @@ export default class Statement {
 						}
 					}
 
+					reference.isImmediatelyUsed = !readDepth;
+
 					this.skip(); // don't descend from `foo.bar.baz` into `foo.bar`
 				}
 			},
-			leave ( node ) {
+			leave ( node, parent ) {
 				if ( node._scope ) scope = scope.parent;
+				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth -= 1;
 			}
 		});
 	}
