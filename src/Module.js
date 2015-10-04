@@ -358,6 +358,7 @@ export default class Module {
 		return { strongDependencies, weakDependencies };
 	}
 
+	// TODO this seems superfluous
 	defaultName () {
 		const defaultExport = this.exports.default;
 

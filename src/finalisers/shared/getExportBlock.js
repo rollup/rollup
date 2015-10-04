@@ -8,8 +8,13 @@ export default function getExportBlock ( bundle, exportMode, mechanism = 'return
 			const prop = name === 'default' ? `['default']` : `.${name}`;
 			const declaration = bundle.entryModule.traceExport( name );
 
-			if ( declaration.isReassigned ) return null;
-			return `exports${prop} = ${declaration.render( false )};`;
+			const lhs = `exports${prop}`;
+			const rhs = declaration.render( false );
+
+			// prevent `exports.count = exports.count`
+			if ( lhs === rhs ) return null;
+
+			return `${lhs} = ${rhs};`;
 		})
 		.filter( Boolean )
 		.join( '\n' );
