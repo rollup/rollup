@@ -8,8 +8,8 @@ export default function cjs ( bundle, magicString, { exportMode }, options ) {
 		.map( module => {
 			let requireStatement = `var ${module.name} = require('${module.id}');`;
 
-			if ( module.needsDefault ) {
-				requireStatement += '\n' + ( module.needsNamed ? `var ${module.name}__default = ` : `${module.name} = ` ) +
+			if ( module.declarations.default ) {
+				requireStatement += '\n' + ( module.exportsNames ? `var ${module.name}__default = ` : `${module.name} = ` ) +
 					`'default' in ${module.name} ? ${module.name}['default'] : ${module.name};`;
 			}
 

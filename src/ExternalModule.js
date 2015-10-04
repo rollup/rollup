@@ -26,7 +26,7 @@ class ExternalDeclaration {
 		}
 
 		if ( this.name === 'default' ) {
-			return !es6 && this.module.needsNamed ?
+			return !es6 && this.module.exportsNames ?
 				`${this.module.name}__default` :
 				this.module.name;
 		}
@@ -50,15 +50,7 @@ export default class ExternalModule {
 		this.isExternal = true;
 		this.declarations = blank();
 
-		this.needsDefault = false;
-
-		// Invariant: needsNamed and needsAll are never both true at once.
-		// Because an import with both a namespace and named import is invalid:
-		//
-		// 		import * as ns, { a } from '...'
-		//
-		this.needsNamed = false;
-		this.needsAll = false;
+		this.exportsNames = false;
 	}
 
 	suggestName ( name ) {
@@ -72,13 +64,8 @@ export default class ExternalModule {
 	}
 
 	traceExport ( name ) {
-		// TODO is this necessary? where is it used?
-		if ( name === 'default' ) {
-			this.needsDefault = true;
-		} else if ( name === '*' ) {
-			this.needsAll = true;
-		} else {
-			this.needsNamed = true;
+		if ( name !== 'default' && name !== '*' ) {
+			this.exportsNames = true;
 		}
 
 		return this.declarations[ name ] || (
