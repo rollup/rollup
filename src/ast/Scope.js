@@ -86,7 +86,6 @@ export default class Scope {
 			this.parent.addDeclaration( node, isBlockDeclaration, isVar );
 		} else {
 			extractNames( node.id ).forEach( name => {
-				if ( this.declarations[ name ] ) throw new Error( `Duplicate declaration (${name})` );
 				this.declarations[ name ] = new Declaration( name );
 			});
 		}
