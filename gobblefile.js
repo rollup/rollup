@@ -25,7 +25,7 @@ var browser = src
 		format: 'umd',
 		moduleName: 'rollup',
 		load: function ( id ) {
-			if ( ~id.indexOf( 'utils/fs' ) ) return browserPlaceholders.fs;
+			if ( ~id.indexOf( 'fs.js' ) ) return browserPlaceholders.fs;
 			if ( ~id.indexOf( 'es6-promise' ) ) return browserPlaceholders.promise;
 			return fs.readFileSync( id ).toString();
 		}
