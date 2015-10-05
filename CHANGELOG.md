@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.18.3
+
+* Crop indent exclusion ranges to exclude enclosing quotes ([#166](https://github.com/rollup/rollup/issues/166))
+
 ## 0.18.2
 
 * Include definitions of namespace members that are exported as defaults
