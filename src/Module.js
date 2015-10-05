@@ -42,6 +42,8 @@ class SyntheticDefaultDeclaration {
 		this.isUsed = true;
 		this.statement.mark();
 
+		if ( this.original ) this.original.use();
+
 		this.aliases.forEach( alias => alias.use() );
 	}
 }
@@ -84,11 +86,6 @@ class SyntheticNamespaceDeclaration {
 		if ( !this.needsNamespaceBlock ) {
 			this.needsNamespaceBlock = true;
 			this.module.bundle.internalNamespaces.push( this );
-
-			keys( this.originals ).forEach( name => {
-				const original = this.originals[ name ];
-				original.use();
-			});
 		}
 
 		reference.declaration = this;
@@ -114,7 +111,10 @@ class SyntheticNamespaceDeclaration {
 	}
 
 	use () {
-		// noop?
+		keys( this.originals ).forEach( name => {
+			this.originals[ name ].use();
+		});
+
 		this.aliases.forEach( alias => alias.use() );
 	}
 }
