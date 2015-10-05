@@ -1,66 +1,75 @@
 import { blank } from './utils/object';
 import makeLegalIdentifier from './utils/makeLegalIdentifier';
 
-// An external identifier.
-class Id {
+class ExternalDeclaration {
 	constructor ( module, name ) {
-		this.originalName = this.name = name;
 		this.module = module;
-
-		this.modifierStatements = [];
+		this.name = name;
+		this.isExternal = true;
 	}
 
-	// Flags the identifier as imported by the bundle when marked.
-	mark () {
-		this.module.importedByBundle[ this.originalName ] = true;
-		this.modifierStatements.forEach( stmt => stmt.mark() );
+	addAlias () {
+		// noop
+	}
+
+	addReference ( reference ) {
+		reference.declaration = this;
+
+		if ( this.name === 'default' || this.name === '*' ) {
+			this.module.suggestName( reference.name );
+		}
+	}
+
+	render ( es6 ) {
+		if ( this.name === '*' ) {
+			return this.module.name;
+		}
+
+		if ( this.name === 'default' ) {
+			return !es6 && this.module.exportsNames ?
+				`${this.module.name}__default` :
+				this.module.name;
+		}
+
+		return es6 ? this.name : `${this.module.name}.${this.name}`;
+	}
+
+	use () {
+		// noop?
 	}
 }
 
 export default class ExternalModule {
-	constructor ( { id, bundle } ) {
+	constructor ( id ) {
 		this.id = id;
+		this.name = makeLegalIdentifier( id );
 
-		// Implement `Identifier` interface.
-		this.originalName = this.name = makeLegalIdentifier( id );
-		this.module = this;
-		this.isModule = true;
-
-		// Define the external module's name in the bundle scope.
-		bundle.scope.define( id, this );
+		this.nameSuggestions = blank();
+		this.mostCommonSuggestion = 0;
 
 		this.isExternal = true;
-		this.importedByBundle = blank();
+		this.declarations = blank();
 
-		// Invariant: needsNamed and needsAll are never both true at once.
-		// Because an import with both a namespace and named import is invalid:
-		//
-		// 		import * as ns, { a } from '...'
-		//
-		this.needsNamed = false;
-		this.needsAll = false;
-
-		this.exports = bundle.scope.virtual( false );
-
-		const { reference } = this.exports;
-
-		// Override reference.
-		this.exports.reference = name => {
-			if ( name !== 'default' ) {
-				this.needsNamed = true;
-			}
-
-			if ( !this.exports.defines( name ) ) {
-				this.exports.define( name, new Id( this, name ) );
-			}
-
-			return reference.call( this.exports, name );
-		};
+		this.exportsNames = false;
 	}
 
-	// External modules are always marked for inclusion in the bundle.
-	// Marking an external module signals its use as a namespace.
-	mark () {
-		this.needsAll = true;
+	suggestName ( name ) {
+		if ( !this.nameSuggestions[ name ] ) this.nameSuggestions[ name ] = 0;
+		this.nameSuggestions[ name ] += 1;
+
+		if ( this.nameSuggestions[ name ] > this.mostCommonSuggestion ) {
+			this.mostCommonSuggestion = this.nameSuggestions[ name ];
+			this.name = name;
+		}
+	}
+
+	traceExport ( name ) {
+		if ( name !== 'default' && name !== '*' ) {
+			this.exportsNames = true;
+		}
+
+		return this.declarations[ name ] || (
+			this.declarations[ name ] = new ExternalDeclaration( this, name )
+		);
 	}
 }

@@ -1,15 +1,15 @@
 define(function () { 'use strict';
 
-	var bar = 42;
+	var bar$1 = 42;
 
 	function foo () {
-		return bar;
+		return bar$1;
 	}
 
-	function _bar () {
+	function bar () {
 		alert( foo() );
 	}
 
-	_bar();
+	bar();
 
 });

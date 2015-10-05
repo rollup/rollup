@@ -58,7 +58,8 @@ function bundle ( options, method ) {
 			globals: options.globals,
 			moduleId: options.id,
 			moduleName: options.name,
-			sourceMap: options.sourcemap
+			sourceMap: options.sourcemap,
+			indent: options.indent !== false
 		};
 
 		if ( options.output ) {

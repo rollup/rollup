@@ -1,24 +1,21 @@
-function wrapAccess ( id ) {
-	return ( id.originalName !== 'default' && id.module && id.module.isExternal ) ?
-		id.module.name + propertyAccess( id.originalName ) : id.name;
-}
-
-function propertyAccess ( name ) {
-	return name === 'default' ? `['default']` : `.${name}`;
-}
-
-export default function getExportBlock ( bundle, exportMode, mechanism = 'return' ) {
+export default function getExportBlock ( entryModule, exportMode, mechanism = 'return' ) {
 	if ( exportMode === 'default' ) {
-		const id = bundle.exports.lookup( 'default' );
-
-		return `${mechanism} ${wrapAccess( id )};`;
+		return `${mechanism} ${entryModule.declarations.default.render( false )};`;
 	}
 
-	return bundle.toExport
+	return entryModule.getExports()
 		.map( name => {
-			const id = bundle.exports.lookup( name );
+			const prop = name === 'default' ? `['default']` : `.${name}`;
+			const declaration = entryModule.traceExport( name );
 
-			return `exports${propertyAccess( name )} = ${wrapAccess( id )};`;
+			const lhs = `exports${prop}`;
+			const rhs = declaration.render( false );
+
+			// prevent `exports.count = exports.count`
+			if ( lhs === rhs ) return null;
+
+			return `${lhs} = ${rhs};`;
 		})
+		.filter( Boolean )
 		.join( '\n' );
 }

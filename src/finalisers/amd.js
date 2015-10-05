@@ -22,7 +22,7 @@ export default function amd ( bundle, magicString, { exportMode, indentString },
 	const interopBlock = getInteropBlock( bundle );
 	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
 
-	const exportBlock = getExportBlock( bundle, exportMode );
+	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 
 	return magicString

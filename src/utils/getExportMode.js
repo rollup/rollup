@@ -5,7 +5,9 @@ function badExports ( option, keys ) {
 }
 
 export default function getExportMode ( bundle, exportMode ) {
-	const exportKeys = keys( bundle.entryModule.exports.names );
+	const exportKeys = keys( bundle.entryModule.exports )
+		.concat( keys( bundle.entryModule.reexports ) )
+		.concat( bundle.entryModule.exportAllSources ); // not keys, but makes our job easier this way
 
 	if ( exportMode === 'default' ) {
 		if ( exportKeys.length !== 1 || exportKeys[0] !== 'default' ) {

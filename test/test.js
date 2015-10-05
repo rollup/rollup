@@ -75,6 +75,28 @@ describe( 'rollup', function () {
 				}, /must supply options\.dest/ );
 			});
 		});
+
+		it( 'expects options.moduleName for IIFE and UMD bundles', function () {
+			return rollup.rollup({
+				entry: 'x',
+				resolveId: function () { return 'test'; },
+				load: function () {
+					return 'export var foo = 42;';
+				}
+			}).then( function ( bundle ) {
+				assert.throws( function () {
+					bundle.generate({
+						format: 'umd'
+					});
+				}, /You must supply options\.moduleName for UMD bundles/ );
+
+				assert.throws( function () {
+					bundle.generate({
+						format: 'iife'
+					});
+				}, /You must supply options\.moduleName for IIFE bundles/ );
+			});
+		});
 	});
 
 	describe( 'function', function () {
@@ -227,6 +249,10 @@ describe( 'rollup', function () {
 									expectedMap = JSON.parse( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js.map' ).toString() );
 									expectedMap.sourcesContent = expectedMap.sourcesContent.map( normaliseOutput );
 								} catch ( err ) {}
+
+								if ( config.show ) {
+									console.log( actualCode + '\n\n\n' );
+								}
 
 								assert.equal( actualCode, expectedCode );
 								assert.deepEqual( actualMap, expectedMap );
