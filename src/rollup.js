@@ -1,5 +1,5 @@
 import { basename } from './utils/path';
-import { writeFile } from 'sander';
+import { writeFile } from './utils/fs';
 import { keys } from './utils/object';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL';
 import Bundle from './Bundle';

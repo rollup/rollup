@@ -8,13 +8,14 @@ var node = src
 		entry: 'rollup.js',
 		dest: 'rollup.js',
 		format: 'cjs',
-		external: [ 'sander', 'acorn' ],
+		external: [ 'fs', 'acorn' ],
 		sourceMap: true
 	})
 	.transform( 'babel' );
 
 var browserPlaceholders = {
-	sander: fs.readFileSync( 'browser/sander.js' ).toString()
+	fs: fs.readFileSync( 'browser/fs.js' ).toString(),
+	promise: fs.readFileSync( 'browser/promise.js' ).toString()
 };
 
 var browser = src
@@ -23,7 +24,8 @@ var browser = src
 		dest: 'rollup.browser.js',
 		format: 'cjs',
 		load: function ( id ) {
-			if ( ~id.indexOf( 'sander.js' ) ) return browserPlaceholders.sander;
+			if ( ~id.indexOf( 'utils/fs' ) ) return browserPlaceholders.fs;
+			if ( ~id.indexOf( 'es6-promise' ) ) return browserPlaceholders.promise;
 			return fs.readFileSync( id ).toString();
 		},
 		external: [ 'acorn' ]
@@ -31,7 +33,8 @@ var browser = src
 	.transform( 'browserify', {
 		entries: [ './rollup.browser' ],
 		dest: 'rollup.browser.js',
-		standalone: 'rollup'
+		standalone: 'rollup',
+		builtins: false
 	});
 
 module.exports = gobble([ node, browser ]);

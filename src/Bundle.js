@@ -1,4 +1,4 @@
-import { Promise } from 'sander';
+import Promise from 'es6-promise/lib/es6-promise/promise';
 import MagicString from 'magic-string';
 import { blank, keys } from './utils/object';
 import Module from './Module';

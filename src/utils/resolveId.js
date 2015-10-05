@@ -1,5 +1,5 @@
 import { absolutePath, dirname, isAbsolute, resolve } from './path';
-import { readdirSync, readFileSync } from 'sander';
+import { readdirSync, readFileSync } from './fs';
 
 function dirExists ( dir ) {
 	try {
@@ -58,7 +58,7 @@ export function defaultExternalResolver ( id, importer ) {
 			let pkg;
 
 			try {
-				pkg = JSON.parse( readFileSync( pkgPath ).toString() );
+				pkg = JSON.parse( readFileSync( pkgPath, 'utf-8' ) );
 			} catch ( err ) {
 				throw new Error( `Missing or malformed package.json: ${modulePath}` );
 			}

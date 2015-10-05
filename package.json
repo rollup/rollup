@@ -50,7 +50,7 @@
     "gobble-cli": "^0.4.2",
     "gobble-esperanto-bundle": "^0.2.0",
     "gobble-rollup": "^0.8.0",
-    "gobble-rollup-babel": "^0.1.0",
+    "gobble-rollup-babel": "^0.3.0",
     "istanbul": "^0.3.20",
     "mocha": "^2.2.4",
     "remap-istanbul": "^0.2.0",
