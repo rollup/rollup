@@ -8,7 +8,7 @@ var node = src
 		entry: 'rollup.js',
 		dest: 'rollup.js',
 		format: 'cjs',
-		external: [ 'fs', 'acorn' ],
+		external: [ 'fs' ],
 		sourceMap: true
 	})
 	.transform( 'babel' );
@@ -22,19 +22,13 @@ var browser = src
 	.transform( 'rollup-babel', {
 		entry: 'rollup.js',
 		dest: 'rollup.browser.js',
-		format: 'cjs',
+		format: 'umd',
+		moduleName: 'rollup',
 		load: function ( id ) {
 			if ( ~id.indexOf( 'utils/fs' ) ) return browserPlaceholders.fs;
 			if ( ~id.indexOf( 'es6-promise' ) ) return browserPlaceholders.promise;
 			return fs.readFileSync( id ).toString();
-		},
-		external: [ 'acorn' ]
-	})
-	.transform( 'browserify', {
-		entries: [ './rollup.browser' ],
-		dest: 'rollup.browser.js',
-		standalone: 'rollup',
-		builtins: false
+		}
 	});
 
 module.exports = gobble([ node, browser ]);
