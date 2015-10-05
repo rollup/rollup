@@ -17,6 +17,7 @@ Basic options:
 -u, --id                 ID for AMD module (default is anonymous)
 -m, --sourcemap          Generate sourcemap (`-m inline` for inline map)
 --no-strict              Don't emit a `"use strict";` in the generated modules.
+--no-indent              Don't indent result
 
 Examples:
 
