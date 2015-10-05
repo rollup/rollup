@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.18.1
+
+* Include `acorn.parse` in bundle, remove `sander` from dependencies, simplify build
+
 ## 0.18.0
 
 * Internal rewrite

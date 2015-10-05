@@ -14,5 +14,6 @@
 	"loose": [
 		"es6.classes",
 		"es6.destructuring"
-	]
+	],
+	"compact": false
 }
