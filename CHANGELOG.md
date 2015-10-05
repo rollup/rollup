@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.18.2
+
+* Include definitions of namespace members that are exported as defaults
+
 ## 0.18.1
 
 * Include `acorn.parse` in bundle, remove `sander` from dependencies, simplify build
