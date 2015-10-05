@@ -6,6 +6,7 @@
 * Reinstate statically-analysable namespace imports
 * Avoid using getters in namespace blocks where possible ([#144](https://github.com/rollup/rollup/issues/144))
 * Track variable aliases ([#96](https://github.com/rollup/rollup/issues/96))
+* Prevent multiline strings being indented ([#164](https://github.com/rollup/rollup/issues/164))
 
 ## 0.17.4
 
