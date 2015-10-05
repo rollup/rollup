@@ -53,6 +53,7 @@ class Reference {
 
 		this.start = node.start;
 		this.end = node.start + this.name.length; // can be overridden in the case of namespace members
+		this.rewritten = false;
 	}
 }
 
