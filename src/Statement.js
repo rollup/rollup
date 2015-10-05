@@ -67,6 +67,7 @@ export default class Statement {
 		this.scope = new Scope();
 
 		this.references = [];
+		this.stringLiteralRanges = [];
 
 		this.isIncluded = false;
 
@@ -88,11 +89,14 @@ export default class Statement {
 		});
 
 		// find references
-		let { module, references, scope } = this;
+		let { module, references, scope, stringLiteralRanges } = this;
 		let readDepth = 0;
 
 		walk( this.node, {
 			enter ( node, parent ) {
+				const isStringLiteral = node.type === 'TemplateElement' || ( node.type === 'Literal' && typeof node.value === 'string' );
+				if ( isStringLiteral ) stringLiteralRanges.push([ node.start, node.end ]);
+
 				if ( node._scope ) scope = node._scope;
 				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth += 1;
 

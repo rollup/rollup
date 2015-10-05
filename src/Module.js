@@ -140,7 +140,8 @@ export default class Module {
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
 		this.magicString = new MagicString( source, {
-			filename: id
+			filename: id,
+			indentExclusionRanges: []
 		});
 
 		// remove existing sourceMappingURL comments
@@ -500,6 +501,8 @@ export default class Module {
 				magicString.remove( statement.start, statement.next );
 				return;
 			}
+
+			statement.stringLiteralRanges.forEach( range => magicString.indentExclusionRanges.push( range ) );
 
 			// skip `export { foo, bar, baz }`
 			if ( statement.node.type === 'ExportNamedDeclaration' ) {
