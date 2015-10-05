@@ -95,8 +95,10 @@ export default class Statement {
 
 		walk( this.node, {
 			enter ( node, parent ) {
-				const isStringLiteral = node.type === 'TemplateElement' || ( node.type === 'Literal' && typeof node.value === 'string' );
-				if ( isStringLiteral ) stringLiteralRanges.push([ node.start, node.end ]);
+				if ( node.type === 'TemplateElement' ) stringLiteralRanges.push([ node.start, node.end ]);
+				if ( node.type === 'Literal' && typeof node.value === 'string' && /\n/.test( node.raw ) ) {
+					stringLiteralRanges.push([ node.start + 1, node.end - 1 ]);
+				}
 
 				if ( node._scope ) scope = node._scope;
 				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth += 1;
