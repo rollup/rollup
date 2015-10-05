@@ -436,6 +436,8 @@ export default class Module {
 		let commentIndex = 0;
 
 		ast.body.forEach( node => {
+			if ( node.type === 'EmptyStatement' ) return;
+
 			// special case - top-level var declarations with multiple declarators
 			// should be split up. Otherwise, we may end up including code we
 			// don't need, just because an unwanted declarator is included
