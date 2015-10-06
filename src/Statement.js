@@ -195,7 +195,7 @@ export default class Statement {
 
 					const declaration = statement.module.trace( subject.name );
 
-					if ( !declaration || declaration.statement.isIncluded ) {
+					if ( !declaration || declaration.isExternal || declaration.statement.isIncluded ) {
 						hasSideEffect = true;
 					}
 				}
