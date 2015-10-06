@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.18.4
+
+* Make external modules configurable (i.e. `external.config.foo = 'bar'`) without erroring
+
 ## 0.18.3
 
 * Crop indent exclusion ranges to exclude enclosing quotes ([#166](https://github.com/rollup/rollup/issues/166))
