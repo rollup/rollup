@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.18.5
+
+* Allow namespaces to be assigned to variables ([#168](https://github.com/rollup/rollup/issues/168))
+* Promote `chalk` and `source-map-support` to `dependencies`, as they're used by the CLI [#167](https://github.com/rollup/rollup/pull/167))
+
 ## 0.18.4
 
 * Make external modules configurable (i.e. `external.config.foo = 'bar'`) without erroring
