@@ -80,7 +80,7 @@ class SyntheticNamespaceDeclaration {
 			if ( !original ) {
 				const err = new Error( `Export '${reference.name}' is not defined by '${this.module.id}'` );
 				err.code = 'MISSING_EXPORT';
-				err.file = this.id;
+				err.file = this.module.id;
 				throw err;
 			}
 
