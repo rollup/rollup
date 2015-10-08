@@ -76,6 +76,14 @@ class SyntheticNamespaceDeclaration {
 
 			const original = this.originals[ reference.name ];
 
+			// throw with an informative error message if the reference doesn't exist.
+			if ( !original ) {
+				const err = new Error( `Export '${reference.name}' is not defined by '${this.module.id}'` );
+				err.code = 'MISSING_EXPORT';
+				err.file = this.module.id;
+				throw err;
+			}
+
 			original.addReference( reference );
 			return;
 		}
