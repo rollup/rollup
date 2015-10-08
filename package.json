@@ -41,7 +41,6 @@
   "devDependencies": {
     "acorn": "^2.3.0",
     "babel-core": "^5.5.8",
-    "chalk": "^1.0.0",
     "codecov.io": "^0.1.6",
     "console-group": "^0.1.2",
     "es6-promise": "^3.0.2",
@@ -57,11 +56,12 @@
     "mocha": "^2.2.4",
     "remap-istanbul": "^0.2.0",
     "sander": "^0.3.3",
-    "source-map": "^0.4.4",
-    "source-map-support": "^0.3.1"
+    "source-map": "^0.4.4"
   },
   "dependencies": {
-    "minimist": "^1.1.1"
+    "minimist": "^1.1.1",
+    "chalk": "^1.0.0",
+    "source-map-support": "^0.3.1"
   },
   "files": [
     "src",
