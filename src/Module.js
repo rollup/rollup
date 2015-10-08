@@ -274,8 +274,11 @@ export default class Module {
 
 	bindAliases () {
 		keys( this.declarations ).forEach( name => {
+			if ( name === '*' ) return;
+
 			const declaration = this.declarations[ name ];
 			const statement = declaration.statement;
+
 			if ( statement.node.type !== 'VariableDeclaration' ) return;
 
 			statement.references.forEach( reference => {
