@@ -1,6 +1,6 @@
 import Promise from 'es6-promise/lib/es6-promise/promise';
 import MagicString from 'magic-string';
-import attempt from './utils/attempt.js';
+import first from './utils/first.js';
 import { blank, keys } from './utils/object';
 import Module from './Module';
 import ExternalModule from './ExternalModule';
@@ -17,16 +17,12 @@ export default class Bundle {
 		this.entry = options.entry;
 		this.entryModule = null;
 
-		this.resolveId = ensureArray( options.resolveId )
-			.reduce( attempt, defaultResolver );
-
-		this.load = ensureArray( options.load )
-			.reduce( attempt, defaultLoader );
+		this.resolveId = first( ensureArray( options.resolveId ).concat( defaultResolver ) );
+		this.load = first( ensureArray( options.load ).concat( defaultLoader ) );
 
 		this.resolveOptions = {
 			external: ensureArray( options.external ),
-			resolveExternal: ensureArray( options.resolveExternal )
-				.reduce( attempt, defaultExternalResolver )
+			resolveExternal: first( ensureArray( options.resolveExternal ).concat( defaultExternalResolver ) )
 		};
 
 		this.loadOptions = {
