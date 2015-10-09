@@ -208,6 +208,7 @@ export default class Module {
 
 		// export { foo, bar, baz }
 		// export var foo = 42;
+		// export var a = 1, b = 2, c = 3;
 		// export function foo () {}
 		else if ( node.type === 'ExportNamedDeclaration' ) {
 			if ( node.specifiers.length ) {
@@ -449,6 +450,33 @@ export default class Module {
 		ast.body.forEach( node => {
 			if ( node.type === 'EmptyStatement' ) return;
 
+			if (
+				node.type === 'ExportNamedDeclaration' &&
+				node.declaration &&
+				node.declaration.type === 'VariableDeclaration' &&
+				node.declaration.declarations &&
+				node.declaration.declarations.length > 1
+			) {
+				// push a synthetic export declaration
+				const syntheticNode = {
+					type: 'ExportNamedDeclaration',
+					specifiers: node.declaration.declarations.map( declarator => {
+						const id = { name: declarator.id.name };
+						return {
+							local: id,
+							exported: id
+						};
+					}),
+					isSynthetic: true
+				};
+
+				const statement = new Statement( syntheticNode, this, node.start, node.start );
+				statements.push( statement );
+
+				this.magicString.remove( node.start, node.declaration.start );
+				node = node.declaration;
+			}
+
 			// special case - top-level var declarations with multiple declarators
 			// should be split up. Otherwise, we may end up including code we
 			// don't need, just because an unwanted declarator is included
@@ -498,10 +526,12 @@ export default class Module {
 			}
 		});
 
-		statements.forEach( ( statement, i ) => {
-			const nextStatement = statements[ i + 1 ];
-			statement.next = nextStatement ? nextStatement.start : statement.end;
-		});
+		let i = statements.length;
+		let next = this.source.length;
+		while ( i-- ) {
+			statements[i].next = next;
+			if ( !statements[i].isSynthetic ) next = statements[i].start;
+		}
 
 		return statements;
 	}
@@ -519,6 +549,8 @@ export default class Module {
 
 			// skip `export { foo, bar, baz }`
 			if ( statement.node.type === 'ExportNamedDeclaration' ) {
+				if ( statement.node.isSynthetic ) return;
+
 				// skip `export { foo, bar, baz }`
 				if ( statement.node.specifiers.length ) {
 					magicString.remove( statement.start, statement.next );
