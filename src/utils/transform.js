@@ -13,6 +13,8 @@ export default function transform ( source, id, transformers ) {
 	let code = transformers.reduce( ( previous, transformer ) => {
 		let result = transformer( previous, id );
 
+		if ( result == null ) return previous;
+
 		if ( typeof result === 'string' ) {
 			result = {
 				code: result,
