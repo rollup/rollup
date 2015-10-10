@@ -5,7 +5,6 @@ var getLocation = require( '../../utils/getLocation' );
 var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
 
 module.exports = {
-	solo: true,
 	description: 'preserves sourcemap chains when transforming',
 	options: {
 		transform: [
