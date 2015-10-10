@@ -1,9 +1,19 @@
 # rollup changelog
 
+## 0.19.0
+
+* **breaking** The `transform` option is no longer pass through to custom loaders. Loaders should only concern themselves with providing source code; transformation will *always* take place
+* `options.transform` functions can return a string, or a `{code, map, ast}` object. Where possible, sourcemap chains will be flattened ([#175](https://github.com/rollup/rollup/pull/175))
+* `options.resolveId` and `options.load` can each be a function or an array of functions. If an array, the first non-null/undefined return value is used. In both cases, failed resolution/loading will fall back to the defaults, unless an error is thrown. ([#174](https://github.com/rollup/rollup/pull/174))
+* New `intro` and `outro` options – similar to `banner` and `footer` except inserted *inside* any format-specific wrapper
+* Multiple var declarations in an export block (e.g. `export let a = 1, b = 2`) are split up to facilitate tree-shaking ([#171](https://github.com/rollup/rollup/issues/171))
+* More informative error when using a missing namespace property  ([#169](https://github.com/rollup/rollup/pull/169))
+* Update various dependencies
+
 ## 0.18.5
 
 * Allow namespaces to be assigned to variables ([#168](https://github.com/rollup/rollup/issues/168))
-* Promote `chalk` and `source-map-support` to `dependencies`, as they're used by the CLI [#167](https://github.com/rollup/rollup/pull/167))
+* Promote `chalk` and `source-map-support` to `dependencies`, as they're used by the CLI ([#167](https://github.com/rollup/rollup/pull/167))
 
 ## 0.18.4
 
