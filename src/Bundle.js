@@ -171,6 +171,9 @@ export default class Bundle {
 			}
 		});
 
+		if ( options.intro ) magicString.prepend( options.intro + '\n' );
+		if ( options.outro ) magicString.append( '\n' + options.outro );
+
 		const indentString = getIndentString( magicString, options );
 
 		const finalise = finalisers[ format ];
