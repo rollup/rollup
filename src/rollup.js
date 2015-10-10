@@ -4,6 +4,8 @@ import { keys } from './utils/object';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL';
 import Bundle from './Bundle';
 
+export const VERSION = '<@VERSION@>';
+
 export function rollup ( options ) {
 	if ( !options || !options.entry ) {
 		throw new Error( 'You must supply options.entry to rollup' );
