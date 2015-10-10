@@ -17,7 +17,7 @@ module.exports = {
 
 			function ( source, id ) {
 				var s = new MagicString( source );
-				s.prepend( '// this is a comment\n' );
+				s.append( '\nassert.equal( 1 + 1, 2 );\nassert.equal( 2 + 2, 4 );' );
 
 				return {
 					code: s.toString(),
@@ -29,7 +29,7 @@ module.exports = {
 	test: function ( code, map ) {
 		var smc = new SourceMapConsumer( map );
 
-		var generatedLoc = getLocation( code, code.indexOf( 42 ) );
+		var generatedLoc = getLocation( code, code.indexOf( '42' ) );
 		var originalLoc = smc.originalPositionFor( generatedLoc );
 
 		assert.ok( /foo/.test( originalLoc.source ) );

@@ -270,9 +270,11 @@ describe( 'rollup', function () {
 
 			describe( dir, function () {
 				var config = require( SOURCEMAPS + '/' + dir + '/_config' );
+				var entry = path.resolve( SOURCEMAPS, dir, 'main.js' );
+				var dest = path.resolve( SOURCEMAPS, dir, '_actual/bundle.js' );
 
 				var options = extend( {}, config.options, {
-					entry: SOURCEMAPS + '/' + dir + '/main.js'
+					entry: entry
 				});
 
 				PROFILES.forEach( function ( profile ) {
@@ -281,8 +283,10 @@ describe( 'rollup', function () {
 							var options = extend( {}, config.options, {
 								format: profile.format,
 								sourceMap: true,
-								sourceMapFile: path.resolve( __dirname, 'bundle.js' )
+								dest: dest
 							});
+
+							bundle.write( options );
 
 							var result = bundle.generate( options );
 							config.test( result.code, result.map );
