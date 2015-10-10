@@ -10,6 +10,8 @@ import { defaultLoader } from './utils/load';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
+import transform from './utils/transform';
+import collapseSourcemaps from './utils/collapseSourcemaps';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -24,9 +26,8 @@ export default class Bundle {
 			resolveExternal: options.resolveExternal || defaultExternalResolver
 		};
 
-		this.loadOptions = {
-			transform: ensureArray( options.transform )
-		};
+		this.loadOptions = {};
+		this.transformers = ensureArray( options.transform );
 
 		this.pending = blank();
 		this.moduleById = blank();
@@ -111,15 +112,11 @@ export default class Bundle {
 		this.pending[ id ] = true;
 
 		return Promise.resolve( this.load( id, this.loadOptions ) )
+			.then( source => transform( source, id, this.transformers ) )
 			.then( source => {
-				let ast;
+				const { code, ast, sourceMapChain } = source;
 
-				if ( typeof source === 'object' ) {
-					ast = source.ast;
-					source = source.code;
-				}
-
-				const module = new Module({ id, source, ast, bundle: this });
+				const module = new Module({ id, code, ast, sourceMapChain, bundle: this });
 
 				this.modules.push( module );
 				this.moduleById[ id ] = module;
@@ -163,11 +160,13 @@ export default class Bundle {
 		const exportMode = getExportMode( this, options.exports );
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
+		let usedModules = [];
 
 		this.orderedModules.forEach( module => {
 			const source = module.render( format === 'es6' );
 			if ( source.toString().length ) {
 				magicString.addSource( source );
+				usedModules.push( module );
 			}
 		});
 
@@ -192,6 +191,7 @@ export default class Bundle {
 				// TODO
 			});
 
+			if ( this.transformers.length ) map = collapseSourcemaps( map, usedModules );
 			map.sources = map.sources.map( unixizePath );
 		}
 
