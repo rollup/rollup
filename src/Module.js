@@ -128,8 +128,9 @@ class SyntheticNamespaceDeclaration {
 }
 
 export default class Module {
-	constructor ({ id, code, ast, sourceMapChain, bundle }) {
+	constructor ({ id, code, originalCode, ast, sourceMapChain, bundle }) {
 		this.code = code;
+		this.originalCode = originalCode;
 		this.sourceMapChain = sourceMapChain;
 
 		this.bundle = bundle;

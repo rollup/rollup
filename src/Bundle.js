@@ -115,9 +115,9 @@ export default class Bundle {
 		return Promise.resolve( this.load( id, this.loadOptions ) )
 			.then( source => transform( source, id, this.transformers ) )
 			.then( source => {
-				const { code, ast, sourceMapChain } = source;
+				const { code, originalCode, ast, sourceMapChain } = source;
 
-				const module = new Module({ id, code, ast, sourceMapChain, bundle: this });
+				const module = new Module({ id, code, originalCode, ast, sourceMapChain, bundle: this });
 
 				this.modules.push( module );
 				this.moduleById[ id ] = module;

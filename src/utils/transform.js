@@ -8,6 +8,7 @@ export default function transform ( source, id, transformers ) {
 		};
 	}
 
+	let originalCode = source.code;
 	let ast = source.ast;
 
 	let code = transformers.reduce( ( previous, transformer ) => {
@@ -29,5 +30,5 @@ export default function transform ( source, id, transformers ) {
 		return result.code;
 	}, source.code );
 
-	return { code, ast, sourceMapChain };
+	return { code, originalCode, ast, sourceMapChain };
 }

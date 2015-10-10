@@ -63,6 +63,7 @@ export default function collapseSourcemaps ( map, modules ) {
 		return tracedLine;
 	});
 
+	map.sourcesContent = modules.map( module => module.originalCode );
 	map.mappings = encode( tracedMappings );
 	return map;
 }
