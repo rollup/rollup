@@ -6,6 +6,8 @@ function traceSegment ( loc, mappings ) {
 
 	const segments = mappings[ line ];
 
+	if ( !segments ) return null;
+
 	for ( let i = 0; i < segments.length; i += 1 ) {
 		const segment = segments[i];
 
