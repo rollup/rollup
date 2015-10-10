@@ -18,8 +18,6 @@ module.exports = {
 			if ( importer[0] === '@' ) {
 				return path.resolve( __dirname, importee ) + '.js';
 			}
-
-			return path.resolve( path.dirname( importer ), importee ) + '.js';
 		},
 		load: function ( moduleId ) {
 			if ( moduleId[0] === '@' ) {

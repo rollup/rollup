@@ -128,8 +128,11 @@ class SyntheticNamespaceDeclaration {
 }
 
 export default class Module {
-	constructor ({ id, source, ast, bundle }) {
-		this.source = source;
+	constructor ({ id, code, originalCode, ast, sourceMapChain, bundle }) {
+		this.code = code;
+		this.originalCode = originalCode;
+		this.sourceMapChain = sourceMapChain;
+
 		this.bundle = bundle;
 		this.id = id;
 
@@ -147,7 +150,7 @@ export default class Module {
 
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
-		this.magicString = new MagicString( source, {
+		this.magicString = new MagicString( code, {
 			filename: id,
 			indentExclusionRanges: []
 		});
@@ -155,7 +158,7 @@ export default class Module {
 		// remove existing sourceMappingURL comments
 		const pattern = new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' );
 		let match;
-		while ( match = pattern.exec( source ) ) {
+		while ( match = pattern.exec( code ) ) {
 			this.magicString.remove( match.index, match.index + match[0].length );
 		}
 
@@ -251,7 +254,7 @@ export default class Module {
 			if ( this.imports[ localName ] ) {
 				const err = new Error( `Duplicated import '${localName}'` );
 				err.file = this.id;
-				err.loc = getLocation( this.source, specifier.start );
+				err.loc = getLocation( this.code, specifier.start );
 				throw err;
 			}
 
@@ -422,7 +425,7 @@ export default class Module {
 			// Try to extract a list of top-level statements/declarations. If
 			// the parse fails, attach file info and abort
 			try {
-				ast = parse( this.source, {
+				ast = parse( this.code, {
 					ecmaVersion: 6,
 					sourceType: 'module',
 					onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end }),
@@ -527,7 +530,7 @@ export default class Module {
 		});
 
 		let i = statements.length;
-		let next = this.source.length;
+		let next = this.code.length;
 		while ( i-- ) {
 			statements[i].next = next;
 			if ( !statements[i].isSynthetic ) next = statements[i].start;

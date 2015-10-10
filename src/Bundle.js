@@ -1,5 +1,6 @@
 import Promise from 'es6-promise/lib/es6-promise/promise';
 import MagicString from 'magic-string';
+import first from './utils/first.js';
 import { blank, keys } from './utils/object';
 import Module from './Module';
 import ExternalModule from './ExternalModule';
@@ -10,23 +11,24 @@ import { defaultLoader } from './utils/load';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
+import transform from './utils/transform';
+import collapseSourcemaps from './utils/collapseSourcemaps';
 
 export default class Bundle {
 	constructor ( options ) {
 		this.entry = options.entry;
 		this.entryModule = null;
 
-		this.resolveId = options.resolveId || defaultResolver;
-		this.load = options.load || defaultLoader;
+		this.resolveId = first( ensureArray( options.resolveId ).concat( defaultResolver ) );
+		this.load = first( ensureArray( options.load ).concat( defaultLoader ) );
 
 		this.resolveOptions = {
 			external: ensureArray( options.external ),
-			resolveExternal: options.resolveExternal || defaultExternalResolver
+			resolveExternal: first( ensureArray( options.resolveExternal ).concat( defaultExternalResolver ) )
 		};
 
-		this.loadOptions = {
-			transform: ensureArray( options.transform )
-		};
+		this.loadOptions = {};
+		this.transformers = ensureArray( options.transform );
 
 		this.pending = blank();
 		this.moduleById = blank();
@@ -111,15 +113,11 @@ export default class Bundle {
 		this.pending[ id ] = true;
 
 		return Promise.resolve( this.load( id, this.loadOptions ) )
+			.then( source => transform( source, id, this.transformers ) )
 			.then( source => {
-				let ast;
+				const { code, originalCode, ast, sourceMapChain } = source;
 
-				if ( typeof source === 'object' ) {
-					ast = source.ast;
-					source = source.code;
-				}
-
-				const module = new Module({ id, source, ast, bundle: this });
+				const module = new Module({ id, code, originalCode, ast, sourceMapChain, bundle: this });
 
 				this.modules.push( module );
 				this.moduleById[ id ] = module;
@@ -163,13 +161,18 @@ export default class Bundle {
 		const exportMode = getExportMode( this, options.exports );
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
+		let usedModules = [];
 
 		this.orderedModules.forEach( module => {
 			const source = module.render( format === 'es6' );
 			if ( source.toString().length ) {
 				magicString.addSource( source );
+				usedModules.push( module );
 			}
 		});
+
+		if ( options.intro ) magicString.prepend( options.intro + '\n' );
+		if ( options.outro ) magicString.append( '\n' + options.outro );
 
 		const indentString = getIndentString( magicString, options );
 
@@ -192,6 +195,7 @@ export default class Bundle {
 				// TODO
 			});
 
+			if ( this.transformers.length ) map = collapseSourcemaps( map, usedModules );
 			map.sources = map.sources.map( unixizePath );
 		}
 
