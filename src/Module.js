@@ -281,7 +281,10 @@ export default class Module {
 	}
 
 	basename () {
-		return makeLegalIdentifier( basename( this.id ).slice( 0, -extname( this.id ).length ) );
+		const base = basename( this.id );
+		const ext = extname( this.id );
+
+		return makeLegalIdentifier( ext ? base.slice( 0, -ext.length ) : base );
 	}
 
 	bindAliases () {
