@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.19.1
+
+* Fix `module.basename()` when used with custom `resolveId` function
+* Use [rollup-babel](https://github.com/rollup/rollup-babel) to build self
+
 ## 0.19.0
 
 * **breaking** The `transform` option is no longer pass through to custom loaders. Loaders should only concern themselves with providing source code; transformation will *always* take place
