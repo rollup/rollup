@@ -53,7 +53,7 @@
     "gobble-rollup-babel": "^0.5.0",
     "istanbul": "^0.3.20",
     "magic-string": "^0.7.0",
-    "mocha": "^2.2.4",
+    "mocha": "^2.3.3",
     "remap-istanbul": "^0.3.0",
     "sander": "^0.3.3",
     "source-map": "^0.5.1"
