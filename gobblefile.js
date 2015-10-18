@@ -2,11 +2,18 @@ var gobble = require( 'gobble' );
 var fs = require( 'fs' );
 
 var version = require( './package.json' ).version;
+var commitHash = (function () {
+	try {
+		return fs.readFileSync( '.commithash', 'utf-8' );
+	} catch ( err ) {
+		return 'unknown';
+	}
+})();
 
 var banner = fs.readFileSync( 'src/banner.js' ).toString()
 	.replace( '${version}', version )
 	.replace( '${time}', new Date() )
-	.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
+	.replace( '${commitHash}', commitHash );
 
 var src = gobble( 'src' );
 
