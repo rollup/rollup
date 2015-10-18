@@ -27,7 +27,10 @@ function traceSegment ( loc, mappings ) {
 
 export default function collapseSourcemaps ( map, modules ) {
 	const chains = modules.map( module => {
-		return module.sourceMapChain.map( map => decode( map.mappings ) );
+		return module.sourceMapChain.map( map => {
+			if ( !map ) throw new Error( 'Cannot generate a sourcemap if non-sourcemap-generating transformers are used' );
+			return decode( map.mappings );
+		});
 	});
 
 	const decodedMappings = decode( map.mappings );
