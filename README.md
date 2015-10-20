@@ -136,4 +136,4 @@ See [rollup-starter-project](https://github.com/eventualbuddha/rollup-starter-pr
 
 ## License
 
-Released under the [MIT license](TK).
+Released under the [MIT license](https://github.com/rollup/rollup/blob/master/LICENSE.md).
