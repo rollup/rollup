@@ -19,6 +19,8 @@ export default class Bundle {
 		this.entry = options.entry;
 		this.entryModule = null;
 
+		this.plugins = ensureArray( options.plugins );
+
 		this.resolveId = first( ensureArray( options.resolveId ).concat( defaultResolver ) );
 		this.load = first( ensureArray( options.load ).concat( defaultLoader ) );
 
@@ -28,7 +30,9 @@ export default class Bundle {
 		};
 
 		this.loadOptions = {};
-		this.transformers = ensureArray( options.transform );
+		this.transformers = ensureArray( options.transform ).concat(
+			this.plugins.map( plugin => plugin.transform ).filter( Boolean )
+		);
 
 		this.pending = blank();
 		this.moduleById = blank();
@@ -171,7 +175,14 @@ export default class Bundle {
 			}
 		});
 
-		if ( options.intro ) magicString.prepend( options.intro + '\n' );
+		const intro = [ options.intro ]
+			.concat(
+				this.plugins.map( plugin => plugin.intro && plugin.intro() )
+			)
+			.filter( Boolean )
+			.join( '\n\n' );
+
+		if ( intro ) magicString.prepend( intro + '\n' );
 		if ( options.outro ) magicString.append( '\n' + options.outro );
 
 		const indentString = getIndentString( magicString, options );
