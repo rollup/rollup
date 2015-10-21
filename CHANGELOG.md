@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.19.2
+
+* Fix exporting namespaces to include all of their exports ([#204](https://github.com/rollup/rollup/issues/204))
+* Namespace exotic objects are frozen to ensure that its properties cannot be modified, reconfigured, redefined or deleted ([#203](https://github.com/rollup/rollup/pulls/203))
+* Fix `ReferenceError: Promise is not defined` in node v0.10 ([#189](https://github.com/rollup/rollup/issues/189))
+
 ## 0.19.1
 
 * Fix `module.basename()` when used with custom `resolveId` function
