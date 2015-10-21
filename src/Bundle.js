@@ -58,7 +58,7 @@ export default class Bundle {
 					const declaration = entryModule.traceExport( name );
 					declaration.isExported = true;
 
-					if ( declaration.statement ) declaration.use();
+					declaration.use();
 				});
 
 				let settled = false;
