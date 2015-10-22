@@ -6,7 +6,7 @@ import Module from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import ensureArray from './utils/ensureArray';
-import { load, resolveId } from './utils/defaults';
+import { load, onwarn, resolveId } from './utils/defaults';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
@@ -46,6 +46,9 @@ export default class Bundle {
 		this.internalNamespaces = [];
 
 		this.assumedGlobals = blank();
+
+		this.external = options.external;
+		this.onwarn = options.onwarn || onwarn;
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports' ].forEach( global => this.assumedGlobals[ global ] = true );
@@ -138,10 +141,10 @@ export default class Bundle {
 		const promises = module.dependencies.map( source => {
 			return Promise.resolve( this.resolveId( source, module.id ) )
 				.then( resolvedId => {
-					module.resolvedIds[ source ] = resolvedId || source;
-
-					// external module
 					if ( !resolvedId ) {
+						if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
+						module.resolvedIds[ source ] = source;
+
 						if ( !this.moduleById[ source ] ) {
 							const module = new ExternalModule( source );
 							this.externalModules.push( module );
@@ -149,11 +152,12 @@ export default class Bundle {
 						}
 					}
 
-					else if ( resolvedId === module.id ) {
-						throw new Error( `A module cannot import itself (${resolvedId})` );
-					}
-
 					else {
+						if ( resolvedId === module.id ) {
+							throw new Error( `A module cannot import itself (${resolvedId})` );
+						}
+
+						module.resolvedIds[ source ] = resolvedId;
 						return this.fetchModule( resolvedId );
 					}
 				});

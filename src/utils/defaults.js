@@ -12,5 +12,12 @@ export function resolveId ( importee, importer ) {
 	// if this is the entry point, resolve against cwd
 	if ( importer === undefined ) return resolve( process.cwd(), importee );
 
+	// external modules are skipped at this stage
+	if ( importee[0] !== '.' ) return null;
+
 	return resolve( dirname( importer ), importee ).replace( /\.js$/, '' ) + '.js';
+}
+
+export function onwarn ( msg ) {
+	console.error( msg );
 }
