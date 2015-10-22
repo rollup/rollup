@@ -6,8 +6,7 @@ import Module from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import ensureArray from './utils/ensureArray';
-import { defaultResolver, defaultExternalResolver } from './utils/resolveId';
-import { defaultLoader } from './utils/load';
+import { load, resolveId } from './utils/defaults';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
@@ -21,15 +20,20 @@ export default class Bundle {
 
 		this.plugins = ensureArray( options.plugins );
 
-		this.resolveId = first( ensureArray( options.resolveId ).concat( defaultResolver ) );
-		this.load = first( ensureArray( options.load ).concat( defaultLoader ) );
+		this.resolveId = first(
+			this.plugins
+				.map( plugin => plugin.resolveId )
+				.filter( Boolean )
+				.concat( resolveId )
+		);
 
-		this.resolveOptions = {
-			external: ensureArray( options.external ),
-			resolveExternal: first( ensureArray( options.resolveExternal ).concat( defaultExternalResolver ) )
-		};
+		this.load = first(
+			this.plugins
+				.map( plugin => plugin.load )
+				.filter( Boolean )
+				.concat( load )
+		);
 
-		this.loadOptions = {};
 		this.transformers = ensureArray( options.transform ).concat(
 			this.plugins.map( plugin => plugin.transform ).filter( Boolean )
 		);
@@ -48,7 +52,7 @@ export default class Bundle {
 	}
 
 	build () {
-		return Promise.resolve( this.resolveId( this.entry, undefined, this.resolveOptions ) )
+		return Promise.resolve( this.resolveId( this.entry, undefined ) )
 			.then( id => this.fetchModule( id ) )
 			.then( entryModule => {
 				this.entryModule = entryModule;
@@ -116,7 +120,7 @@ export default class Bundle {
 		if ( this.pending[ id ] ) return null;
 		this.pending[ id ] = true;
 
-		return Promise.resolve( this.load( id, this.loadOptions ) )
+		return Promise.resolve( this.load( id ) )
 			.then( source => transform( source, id, this.transformers ) )
 			.then( source => {
 				const { code, originalCode, ast, sourceMapChain } = source;
@@ -132,7 +136,7 @@ export default class Bundle {
 
 	fetchAllDependencies ( module ) {
 		const promises = module.dependencies.map( source => {
-			return Promise.resolve( this.resolveId( source, module.id, this.resolveOptions ) )
+			return Promise.resolve( this.resolveId( source, module.id ) )
 				.then( resolvedId => {
 					module.resolvedIds[ source ] = resolvedId || source;
 
