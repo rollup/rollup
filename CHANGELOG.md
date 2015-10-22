@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.20.0
+
+* Support for [plugins](TK_WIKI) ([#207](https://github.com/rollup/rollup/pulls/207))
+* BREAKING – `options.transform`, `options.load`, `options.resolveId`, `options.resolveExternal` and `options.external` are no longer supported, and should be handled by plugins. [More info](TK)
+
 ## 0.19.2
 
 * Fix exporting namespaces to include all of their exports ([#204](https://github.com/rollup/rollup/issues/204))
