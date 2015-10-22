@@ -47,7 +47,7 @@ export default class Bundle {
 
 		this.assumedGlobals = blank();
 
-		this.external = options.external;
+		this.external = options.external || [];
 		this.onwarn = options.onwarn || onwarn;
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
