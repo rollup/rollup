@@ -61,10 +61,12 @@ describe( 'rollup', function () {
 		it( 'fails without options or options.dest', function () {
 			return rollup.rollup({
 				entry: 'x',
-				resolveId: function () { return 'test'; },
-				load: function () {
-					return '// empty';
-				}
+				plugins: [{
+					resolveId: function () { return 'test'; },
+					load: function () {
+						return '// empty';
+					}
+				}]
 			}).then( function ( bundle ) {
 				assert.throws( function () {
 					bundle.write();
@@ -79,10 +81,12 @@ describe( 'rollup', function () {
 		it( 'expects options.moduleName for IIFE and UMD bundles', function () {
 			return rollup.rollup({
 				entry: 'x',
-				resolveId: function () { return 'test'; },
-				load: function () {
-					return 'export var foo = 42;';
-				}
+				plugins: [{
+					resolveId: function () { return 'test'; },
+					load: function () {
+						return 'export var foo = 42;';
+					}
+				}]
 			}).then( function ( bundle ) {
 				assert.throws( function () {
 					bundle.generate({
