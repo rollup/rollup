@@ -2,8 +2,8 @@
 
 ## 0.20.0
 
-* Support for [plugins](TK_WIKI) ([#207](https://github.com/rollup/rollup/pulls/207))
-* BREAKING – `options.transform`, `options.load`, `options.resolveId`, `options.resolveExternal` and `options.external` are no longer supported, and should be handled by plugins. [More info](TK)
+* Support for [plugins](https://github.com/rollup/rollup/wiki/Plugins) ([#207](https://github.com/rollup/rollup/pulls/207))
+* BREAKING – `options.transform`, `options.load`, `options.resolveId`, `options.resolveExternal` and `options.external` are no longer supported, and should be handled by plugins. [More info](https://github.com/rollup/rollup/wiki/Plugins)
 
 ## 0.19.2
 
