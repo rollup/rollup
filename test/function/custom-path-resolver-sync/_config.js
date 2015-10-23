@@ -4,12 +4,14 @@ var assert = require( 'assert' );
 module.exports = {
 	description: 'uses a custom path resolver (synchronous)',
 	options: {
-		resolveId: function ( importee, importer ) {
-			if ( path.normalize(importee) === path.resolve( __dirname, 'main.js' ) ) return importee;
-			if ( importee === 'foo' ) return path.resolve( __dirname, 'bar.js' );
+		plugins: [{
+			resolveId: function ( importee, importer ) {
+				if ( path.normalize(importee) === path.resolve( __dirname, 'main.js' ) ) return importee;
+				if ( importee === 'foo' ) return path.resolve( __dirname, 'bar.js' );
 
-			return false;
-		}
+				return false;
+			}
+		}]
 	},
 	exports: function ( exports ) {
 		assert.strictEqual( exports.path, require( 'path' ) );
