@@ -55,7 +55,7 @@
     "magic-string": "^0.8.0",
     "mocha": "^2.3.3",
     "remap-istanbul": "^0.3.1",
-    "sander": "^0.3.3",
+    "sander": "^0.4.0",
     "source-map": "^0.5.1"
   },
   "dependencies": {
