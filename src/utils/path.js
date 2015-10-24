@@ -21,7 +21,7 @@ export function dirname ( path ) {
 }
 
 export function extname ( path ) {
-	const match = /\.[^\.]+$/.exec( path );
+	const match = /\.[^\.]+$/.exec( basename( path ) );
 	if ( !match ) return '';
 	return match[0];
 }
