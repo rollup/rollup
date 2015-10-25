@@ -49,7 +49,7 @@
     "gobble": "^0.10.1",
     "gobble-babel": "^5.5.8",
     "gobble-cli": "^0.6.0",
-    "gobble-rollup": "^0.10.0",
+    "gobble-rollup": "^0.11.0",
     "gobble-rollup-babel": "^0.6.1",
     "istanbul": "^0.4.0",
     "magic-string": "^0.8.0",
