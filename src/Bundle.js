@@ -56,7 +56,7 @@ export default class Bundle {
 
 	build () {
 		return Promise.resolve( this.resolveId( this.entry, undefined ) )
-			.then( id => this.fetchModule( id ) )
+			.then( id => this.fetchModule( id, undefined ) )
 			.then( entryModule => {
 				this.entryModule = entryModule;
 
@@ -118,12 +118,19 @@ export default class Bundle {
 		});
 	}
 
-	fetchModule ( id ) {
+	fetchModule ( id, importer ) {
 		// short-circuit cycles
 		if ( this.pending[ id ] ) return null;
 		this.pending[ id ] = true;
 
 		return Promise.resolve( this.load( id ) )
+			.catch( err => {
+				let msg = `Could not load ${id}`;
+				if ( importer ) msg += ` (imported by ${importer})`;
+
+				msg += `: ${err.message}`;
+				throw new Error( msg );
+			})
 			.then( source => transform( source, id, this.transformers ) )
 			.then( source => {
 				const { code, originalCode, ast, sourceMapChain } = source;
@@ -158,7 +165,7 @@ export default class Bundle {
 						}
 
 						module.resolvedIds[ source ] = resolvedId;
-						return this.fetchModule( resolvedId );
+						return this.fetchModule( resolvedId, module.id );
 					}
 				});
 		});
