@@ -34,9 +34,9 @@ export default class Bundle {
 				.concat( load )
 		);
 
-		this.transformers = ensureArray( options.transform ).concat(
-			this.plugins.map( plugin => plugin.transform ).filter( Boolean )
-		);
+		this.transformers = this.plugins
+			.map( plugin => plugin.transform )
+			.filter( Boolean );
 
 		this.pending = blank();
 		this.moduleById = blank();
