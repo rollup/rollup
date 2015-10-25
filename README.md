@@ -117,14 +117,17 @@ But because of the limitations of static analysis, and the dynamic nature of Jav
 })();
 ```
 
-Unfortunately, **traditional modules – CommonJS and AMD – result in code more like the second example than the first, making them next-to-impossible to optimise**. Rather than *excluding dead code*, we should be *including live code*. That's only possible with ES6 modules.
+Unfortunately, **traditional modules – CommonJS and AMD – result in code more like the second example than the first, making them next-to-impossible to optimise**. Rather than *excluding dead code*, we should be *including live code* (aka 'tree-shaking'). That's only possible with ES6 modules.
 
 
-## What's the catch?
+## Can I use it with my non-ES6 dependencies?
 
-Most libraries that you depend on aren't written as ES6 modules, so Rollup can't work with them directly. (You *can* bundle your own app or library code with Rollup as a CommonJS module, then pass the result over to Webpack or Browserify, of course.)
+[Yes!](https://github.com/rollup/rollup/wiki/Bundling-CommonJS-modules) Rollup can't work its tree-shaking magic on CommonJS modules, but it can convert them to ES6 via [plugins](https://github.com/rollup/rollup/wiki/Plugins).
 
-**You can help!** It's possible to write libraries as ES6 modules while still making it easy for other developers to use your code as they already do, using the [jsnext:main](https://github.com/rollup/rollup/wiki/jsnext:main) field in your package.json. You'll be writing your code in a more future-proof way, and helping to bring an end to the [dark days of JavaScript package management](https://medium.com/@trek/last-week-i-had-a-small-meltdown-on-twitter-about-npms-future-plans-around-front-end-packaging-b424dd8d367a).
+
+## Can I distribute my package as an ES6 module?
+
+If your `package.json` has a `jsnext:main` field, ES6-aware tools like Rollup can import the ES6 version of the package instead of the legacy CommonJS or UMD version. You'll be writing your code in a more future-proof way, and helping to bring an end to the [dark days of JavaScript package management](https://medium.com/@trek/last-week-i-had-a-small-meltdown-on-twitter-about-npms-future-plans-around-front-end-packaging-b424dd8d367a). [Learn more here.](https://github.com/rollup/rollup/wiki/jsnext:main)
 
 See [rollup-starter-project](https://github.com/eventualbuddha/rollup-starter-project) for inspiration on how to get started.
 
