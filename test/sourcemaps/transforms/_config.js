@@ -7,22 +7,26 @@ var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
 module.exports = {
 	description: 'preserves sourcemap chains when transforming',
 	options: {
-		transform: [
-			function ( source, id ) {
-				return babel.transform( source, {
-					blacklist: [ 'es6.modules' ],
-					sourceMap: true
-				});
+		plugins: [
+			{
+				transform: function ( source, id ) {
+					return babel.transform( source, {
+						blacklist: [ 'es6.modules' ],
+						sourceMap: true
+					});
+				}
 			},
 
-			function ( source, id ) {
-				var s = new MagicString( source );
-				s.append( '\nassert.equal( 1 + 1, 2 );\nassert.equal( 2 + 2, 4 );' );
+			{
+				transform: function ( source, id ) {
+					var s = new MagicString( source );
+					s.append( '\nassert.equal( 1 + 1, 2 );\nassert.equal( 2 + 2, 4 );' );
 
-				return {
-					code: s.toString(),
-					map: s.generateMap({ hires: true })
-				};
+					return {
+						code: s.toString(),
+						map: s.generateMap({ hires: true })
+					};
+				}
 			}
 		]
 	},

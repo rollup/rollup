@@ -6,8 +6,7 @@ import Module from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import ensureArray from './utils/ensureArray';
-import { defaultResolver, defaultExternalResolver } from './utils/resolveId';
-import { defaultLoader } from './utils/load';
+import { load, onwarn, resolveId } from './utils/defaults';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { unixizePath } from './utils/normalizePlatform.js';
@@ -19,16 +18,25 @@ export default class Bundle {
 		this.entry = options.entry;
 		this.entryModule = null;
 
-		this.resolveId = first( ensureArray( options.resolveId ).concat( defaultResolver ) );
-		this.load = first( ensureArray( options.load ).concat( defaultLoader ) );
+		this.plugins = ensureArray( options.plugins );
 
-		this.resolveOptions = {
-			external: ensureArray( options.external ),
-			resolveExternal: first( ensureArray( options.resolveExternal ).concat( defaultExternalResolver ) )
-		};
+		this.resolveId = first(
+			this.plugins
+				.map( plugin => plugin.resolveId )
+				.filter( Boolean )
+				.concat( resolveId )
+		);
 
-		this.loadOptions = {};
-		this.transformers = ensureArray( options.transform );
+		this.load = first(
+			this.plugins
+				.map( plugin => plugin.load )
+				.filter( Boolean )
+				.concat( load )
+		);
+
+		this.transformers = this.plugins
+			.map( plugin => plugin.transform )
+			.filter( Boolean );
 
 		this.pending = blank();
 		this.moduleById = blank();
@@ -39,13 +47,16 @@ export default class Bundle {
 
 		this.assumedGlobals = blank();
 
+		this.external = options.external || [];
+		this.onwarn = options.onwarn || onwarn;
+
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports' ].forEach( global => this.assumedGlobals[ global ] = true );
 	}
 
 	build () {
-		return Promise.resolve( this.resolveId( this.entry, undefined, this.resolveOptions ) )
-			.then( id => this.fetchModule( id ) )
+		return Promise.resolve( this.resolveId( this.entry, undefined ) )
+			.then( id => this.fetchModule( id, undefined ) )
 			.then( entryModule => {
 				this.entryModule = entryModule;
 
@@ -107,12 +118,19 @@ export default class Bundle {
 		});
 	}
 
-	fetchModule ( id ) {
+	fetchModule ( id, importer ) {
 		// short-circuit cycles
 		if ( this.pending[ id ] ) return null;
 		this.pending[ id ] = true;
 
-		return Promise.resolve( this.load( id, this.loadOptions ) )
+		return Promise.resolve( this.load( id ) )
+			.catch( err => {
+				let msg = `Could not load ${id}`;
+				if ( importer ) msg += ` (imported by ${importer})`;
+
+				msg += `: ${err.message}`;
+				throw new Error( msg );
+			})
 			.then( source => transform( source, id, this.transformers ) )
 			.then( source => {
 				const { code, originalCode, ast, sourceMapChain } = source;
@@ -128,12 +146,12 @@ export default class Bundle {
 
 	fetchAllDependencies ( module ) {
 		const promises = module.dependencies.map( source => {
-			return Promise.resolve( this.resolveId( source, module.id, this.resolveOptions ) )
+			return Promise.resolve( this.resolveId( source, module.id ) )
 				.then( resolvedId => {
-					module.resolvedIds[ source ] = resolvedId || source;
-
-					// external module
 					if ( !resolvedId ) {
+						if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
+						module.resolvedIds[ source ] = source;
+
 						if ( !this.moduleById[ source ] ) {
 							const module = new ExternalModule( source );
 							this.externalModules.push( module );
@@ -141,12 +159,13 @@ export default class Bundle {
 						}
 					}
 
-					else if ( resolvedId === module.id ) {
-						throw new Error( `A module cannot import itself (${resolvedId})` );
-					}
-
 					else {
-						return this.fetchModule( resolvedId );
+						if ( resolvedId === module.id ) {
+							throw new Error( `A module cannot import itself (${resolvedId})` );
+						}
+
+						module.resolvedIds[ source ] = resolvedId;
+						return this.fetchModule( resolvedId, module.id );
 					}
 				});
 		});
@@ -171,7 +190,14 @@ export default class Bundle {
 			}
 		});
 
-		if ( options.intro ) magicString.prepend( options.intro + '\n' );
+		const intro = [ options.intro ]
+			.concat(
+				this.plugins.map( plugin => plugin.intro && plugin.intro() )
+			)
+			.filter( Boolean )
+			.join( '\n\n' );
+
+		if ( intro ) magicString.prepend( intro + '\n' );
 		if ( options.outro ) magicString.append( '\n' + options.outro );
 
 		const indentString = getIndentString( magicString, options );

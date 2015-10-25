@@ -19,16 +19,18 @@ var modules = {
 module.exports = {
 	description: 'uses supplied AST',
 	options: {
-		resolveId: function ( importee, importer ) {
-			if ( !importer ) return 'main';
-			return importee;
-		},
-		load: function ( id ) {
-			if ( id === 'bar' ) {
-				throw new Error( 'loaded incorrect module' );
-			}
+		plugins: [{
+			resolveId: function ( importee, importer ) {
+				if ( !importer ) return 'main';
+				return importee;
+			},
+			load: function ( id ) {
+				if ( id === 'bar' ) {
+					throw new Error( 'loaded incorrect module' );
+				}
 
-			return modules[ id ];
-		}
+				return modules[ id ];
+			}
+		}]
 	}
 };

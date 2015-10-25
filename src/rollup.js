@@ -11,6 +11,10 @@ export function rollup ( options ) {
 		throw new Error( 'You must supply options.entry to rollup' );
 	}
 
+	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
+		throw new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
+	}
+
 	const bundle = new Bundle( options );
 
 	return bundle.build().then( () => {

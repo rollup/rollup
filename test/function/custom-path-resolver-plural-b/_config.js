@@ -3,17 +3,21 @@ var assert = require( 'assert' );
 module.exports = {
 	description: 'resolver error is not caught',
 	options: {
-		resolveId: [
-			function () {
-				throw new Error( 'nope' );
+		plugins: [
+			{
+				resolveId: function () {
+					throw new Error( 'nope' );
+				},
+				load: function ( id ) {
+					if ( id === 'main' ) return 'assert.ok( false );'
+				}
 			},
-			function ( importee, importer ) {
-				return 'main';
+			{
+				resolveId: function ( importee, importer ) {
+					return 'main';
+				}
 			}
-		],
-		load: function ( id ) {
-			if ( id === 'main' ) return 'assert.ok( false );'
-		}
+		]
 	},
 	error: function ( err ) {
 		assert.equal( err.message, 'nope' );
