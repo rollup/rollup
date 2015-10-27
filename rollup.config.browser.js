@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs';
 import config from './rollup.config.js';
 
 config.plugins.push({

@@ -39,5 +39,6 @@ export default {
 	],
 	external: [ 'fs' ],
 	banner: banner,
-	sourceMap: true
+	sourceMap: true,
+	moduleName: 'rollup'
 };
