@@ -93,8 +93,8 @@ export default class Bundle {
 		keys( this.assumedGlobals ).forEach( name => used[ name ] = 1 );
 
 		function getSafeName ( name ) {
-			if ( used[ name ] ) {
-				return `${name}$${used[name]++}`;
+			while ( used[ name ] ) {
+				name += `$${used[name]++}`;
 			}
 
 			used[ name ] = 1;
