@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.20.2
+
+* Handle errors in build config file
+* More robust deconflicting, in cases where e.g. `foo$1` already exists
+* Use Rollup CLI for own build process
+
 ## 0.20.1
 
 * Support `--config` file to enable plugins with CLI ([#226](https://github.com/rollup/rollup/pulls/226))
