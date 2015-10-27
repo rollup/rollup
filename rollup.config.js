@@ -1,9 +1,10 @@
 import { readFileSync } from 'fs';
-import babel from 'rollup-plugins-babel';
-import replace from 'rollup-plugins-replace';
+import babel from 'rollup-plugin-babel';
+import npm from 'rollup-plugin-npm';
+import replace from 'rollup-plugin-replace';
 
 var pkg = JSON.parse( readFileSync( 'package.json', 'utf-8' ) );
-var version = JSON.parse( pkg.version );
+
 var commitHash = (function () {
 	try {
 		return readFileSync( '.commithash', 'utf-8' );
@@ -13,7 +14,7 @@ var commitHash = (function () {
 })();
 
 var banner = readFileSync( 'src/banner.js', 'utf-8' )
-	.replace( '${version}', version )
+	.replace( '${version}', pkg.version )
 	.replace( '${time}', new Date() )
 	.replace( '${commitHash}', commitHash );
 
@@ -21,9 +22,19 @@ export default {
 	entry: 'src/rollup.js',
 	format: 'cjs',
 	plugins: [
-		babel(),
+		babel({
+			//include: [ 'src/**', 'node_modules/acorn/**' ]
+		}),
+
+		npm({
+			jsnext: true
+		}),
+
 		replace({
-			'VERSION': pkg.version
+			include: 'src/rollup.js',
+			delimiters: [ '<@', '@>' ],
+			sourceMap: true,
+			values: { 'VERSION': pkg.version }
 		})
 	],
 	external: [ 'fs' ],
