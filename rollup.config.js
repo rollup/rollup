@@ -23,7 +23,7 @@ export default {
 	format: 'cjs',
 	plugins: [
 		babel({
-			//include: [ 'src/**', 'node_modules/acorn/**' ]
+			include: [ 'src/**', 'node_modules/acorn/**' ]
 		}),
 
 		npm({
