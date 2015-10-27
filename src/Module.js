@@ -24,6 +24,9 @@ class SyntheticDefaultDeclaration {
 	}
 
 	addReference ( reference ) {
+		// Don't change the name to `default`; it's not a valid identifier name.
+		if ( reference.name === 'default' ) return;
+
 		reference.declaration = this;
 		this.name = reference.name;
 	}
