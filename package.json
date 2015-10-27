@@ -51,7 +51,7 @@
     "magic-string": "^0.8.0",
     "mocha": "^2.3.3",
     "remap-istanbul": "^0.3.1",
-    "rollup": "^0.20.1",
+    "rollup": "^0.20.2",
     "rollup-plugin-babel": "^1.0.0",
     "rollup-plugin-npm": "^1.0.0",
     "rollup-plugin-replace": "^1.0.1",
