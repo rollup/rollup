@@ -1,27 +1,72 @@
 require( 'source-map-support' ).install();
 
+var path = require( 'path' );
 var handleError = require( './handleError' );
 var rollup = require( '../' );
 
-module.exports = function ( options ) {
-	if ( options._.length > 1 ) {
+module.exports = function ( command ) {
+	if ( command._.length > 1 ) {
 		handleError({ code: 'ONE_AT_A_TIME' });
 	}
 
-	if ( options._.length === 1 ) {
-		if ( options.input ) {
+	if ( command._.length === 1 ) {
+		if ( command.input ) {
 			handleError({ code: 'DUPLICATE_IMPORT_OPTIONS' });
 		}
 
-		options.input = options._[0];
+		command.input = command._[0];
 	}
 
-	var external = options.external ? options.external.split( ',' ) : [];
+	var config = command.config === true ? 'rollup.config.js' : command.config;
 
-	if ( options.globals ) {
+	if ( config ) {
+		config = path.resolve( config );
+
+		rollup.rollup({
+			entry: config,
+			onwarn: function () {}
+		}).then( function ( bundle ) {
+			var code = bundle.generate({
+				format: 'cjs'
+			}).code;
+
+			// temporarily override require
+			var defaultLoader = require.extensions[ '.js' ];
+			require.extensions[ '.js' ] = function ( m, filename ) {
+				if ( filename === config ) {
+					m._compile( code, filename );
+				} else {
+					defaultLoader( m, filename );
+				}
+			};
+
+			const options = require( path.resolve( config ) );
+			execute( options, command );
+
+			require.extensions[ '.js' ] = defaultLoader;
+		});
+	} else {
+		execute( {}, command );
+	}
+};
+
+var equivalents = {
+	input: 'entry',
+	output: 'dest',
+	name: 'moduleName',
+	format: 'format',
+	globals: 'globals',
+	id: 'moduleId',
+	sourcemap: 'sourceMap'
+};
+
+function execute ( options, command ) {
+	var external = command.external ? command.external.split( ',' ) : [];
+
+	if ( command.globals ) {
 		var globals = Object.create( null );
 
-		options.globals.split( ',' ).forEach(function ( str ) {
+		command.globals.split( ',' ).forEach(function ( str ) {
 			var names = str.split( ':' );
 			globals[ names[0] ] = names[1];
 
@@ -31,51 +76,45 @@ module.exports = function ( options ) {
 			}
 		});
 
-		options.globals = globals;
+		command.globals = globals;
 	}
 
 	options.external = external;
+	options.indent = command.indent !== false;
+
+	Object.keys( equivalents ).forEach( function ( cliOption ) {
+		if ( command[ cliOption ] ) {
+			options[ equivalents[ cliOption ] ] = command[ cliOption ];
+		}
+	});
 
 	try {
 		bundle( options ).catch( handleError );
 	} catch ( err ) {
 		handleError( err );
 	}
-};
+}
 
-function bundle ( options, method ) {
-	if ( !options.input ) {
+function bundle ( options ) {
+	if ( !options.entry ) {
 		handleError({ code: 'MISSING_INPUT_OPTION' });
 	}
 
-	return rollup.rollup({
-		entry: options.input,
-		external: options.external
-	}).then( function ( bundle ) {
-		var generateOptions = {
-			dest: options.output,
-			format: options.format,
-			globals: options.globals,
-			moduleId: options.id,
-			moduleName: options.name,
-			sourceMap: options.sourcemap,
-			indent: options.indent !== false
-		};
-
-		if ( options.output ) {
-			return bundle.write( generateOptions );
+	return rollup.rollup( options ).then( function ( bundle ) {
+		if ( options.dest ) {
+			return bundle.write( options );
 		}
 
-		if ( options.sourcemap && options.sourcemap !== 'inline' ) {
+		if ( options.sourceMap && options.sourceMap !== 'inline' ) {
 			handleError({ code: 'MISSING_OUTPUT_OPTION' });
 		}
 
-		var result = bundle.generate( generateOptions );
+		var result = bundle.generate( options );
 
 		var code = result.code,
 			map = result.map;
 
-		if ( options.sourcemap === 'inline' ) {
+		if ( options.sourceMap === 'inline' ) {
 			code += '\n//# sourceMappingURL=' + map.toUrl();
 		}
 

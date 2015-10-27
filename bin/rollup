@@ -9,6 +9,7 @@ command = minimist( process.argv.slice( 2 ), {
 		strict: 'useStrict',
 
 		// Short options
+		c: 'config',
 		d: 'indent',
 		e: 'external',
 		f: 'format',

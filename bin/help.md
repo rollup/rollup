@@ -7,6 +7,8 @@ Basic options:
 
 -v, --version            Show version number
 -h, --help               Show this help message
+-c, --config             Use this config file (if argument is used but value
+                           is unspecified, defaults to rollup.config.js)
 -i, --input              Input (alternative to <entry file>)
 -o, --output <output>    Output (if absent, prints to stdout)
 -f, --format [es6]       Type of output (amd, cjs, es6, iife, umd)
@@ -20,6 +22,8 @@ Basic options:
 --no-indent              Don't indent result
 
 Examples:
+
+rollup -c
 
 rollup --format=cjs --output=bundle.js -- src/main.js
 
