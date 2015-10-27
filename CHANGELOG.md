@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.20.1
+
+* Support `--config` file to enable plugins with CLI ([#226](https://github.com/rollup/rollup/pulls/226))
+* Prevent `default` being used as variable name ([#215](https://github.com/rollup/rollup/issues/215))
+* Update deps
+
 ## 0.20.0
 
 * Support for [plugins](https://github.com/rollup/rollup/wiki/Plugins) ([#207](https://github.com/rollup/rollup/pulls/207))
