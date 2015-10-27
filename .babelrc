@@ -15,5 +15,6 @@
 		"es6.classes",
 		"es6.destructuring"
 	],
-	"compact": false
+	"compact": false,
+	"sourceMap": true
 }

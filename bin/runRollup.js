@@ -40,7 +40,12 @@ module.exports = function ( command ) {
 				}
 			};
 
-			const options = require( path.resolve( config ) );
+			try {
+				var options = require( path.resolve( config ) );
+			} catch ( err ) {
+				handleError( err );
+			}
+
 			execute( options, command );
 
 			require.extensions[ '.js' ] = defaultLoader;
