@@ -1,6 +1,6 @@
 import Promise from 'es6-promise/lib/es6-promise/promise';
 import MagicString from 'magic-string';
-import first from './utils/first.js';
+import first from './utils/first';
 import { blank, keys } from './utils/object';
 import Module from './Module';
 import ExternalModule from './ExternalModule';
@@ -9,7 +9,7 @@ import ensureArray from './utils/ensureArray';
 import { load, onwarn, resolveId } from './utils/defaults';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
-import { unixizePath } from './utils/normalizePlatform.js';
+import { unixizePath } from './utils/normalizePlatform';
 import transform from './utils/transform';
 import collapseSourcemaps from './utils/collapseSourcemaps';
 
