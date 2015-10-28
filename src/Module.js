@@ -1,12 +1,12 @@
-import { parse } from 'acorn/src/index';
+import { parse } from 'acorn/src/index.js';
 import MagicString from 'magic-string';
 import { walk } from 'estree-walker';
-import Statement from './Statement';
-import { blank, keys } from './utils/object';
-import { basename, extname } from './utils/path';
-import getLocation from './utils/getLocation';
-import makeLegalIdentifier from './utils/makeLegalIdentifier';
-import SOURCEMAPPING_URL from './utils/sourceMappingURL';
+import Statement from './Statement.js';
+import { blank, keys } from './utils/object.js';
+import { basename, extname } from './utils/path.js';
+import getLocation from './utils/getLocation.js';
+import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
+import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 
 class SyntheticDefaultDeclaration {
 	constructor ( node, statement, name ) {
@@ -176,7 +176,7 @@ export default class Module {
 		const node = statement.node;
 		const source = node.source && node.source.value;
 
-		// export { name } from './other'
+		// export { name } from './other.js'
 		if ( source ) {
 			if ( !~this.dependencies.indexOf( source ) ) this.dependencies.push( source );
 
@@ -697,7 +697,7 @@ export default class Module {
 	}
 
 	traceExport ( name, importer ) {
-		// export { foo } from './other'
+		// export { foo } from './other.js'
 		const reexportDeclaration = this.reexports[ name ];
 		if ( reexportDeclaration ) {
 			return reexportDeclaration.module.traceExport( reexportDeclaration.localName, this );

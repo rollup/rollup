@@ -1,7 +1,7 @@
 import { walk } from 'estree-walker';
-import Scope from './ast/Scope';
-import attachScopes from './ast/attachScopes';
-import getLocation from './utils/getLocation';
+import Scope from './ast/Scope.js';
+import attachScopes from './ast/attachScopes.js';
+import getLocation from './utils/getLocation.js';
 
 const modifierNodes = {
 	AssignmentExpression: 'left',

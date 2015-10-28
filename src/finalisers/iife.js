@@ -1,7 +1,7 @@
-import { blank } from '../utils/object';
-import { getName } from '../utils/map-helpers';
-import getInteropBlock from './shared/getInteropBlock';
-import getExportBlock from './shared/getExportBlock';
+import { blank } from '../utils/object.js';
+import { getName } from '../utils/map-helpers.js';
+import getInteropBlock from './shared/getInteropBlock.js';
+import getExportBlock from './shared/getExportBlock.js';
 
 export default function iife ( bundle, magicString, { exportMode, indentString }, options ) {
 	const globalNames = options.globals || blank();

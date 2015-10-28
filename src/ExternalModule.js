@@ -1,5 +1,5 @@
-import { blank } from './utils/object';
-import makeLegalIdentifier from './utils/makeLegalIdentifier';
+import { blank } from './utils/object.js';
+import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 
 class ExternalDeclaration {
 	constructor ( module, name ) {

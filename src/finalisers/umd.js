@@ -1,7 +1,7 @@
-import { blank } from '../utils/object';
-import { getName, quoteId, req } from '../utils/map-helpers';
-import getInteropBlock from './shared/getInteropBlock';
-import getExportBlock from './shared/getExportBlock';
+import { blank } from '../utils/object.js';
+import { getName, quoteId, req } from '../utils/map-helpers.js';
+import getInteropBlock from './shared/getInteropBlock.js';
+import getExportBlock from './shared/getExportBlock.js';
 
 export default function umd ( bundle, magicString, { exportMode, indentString }, options ) {
 	if ( exportMode !== 'none' && !options.moduleName ) {

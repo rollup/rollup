@@ -1,5 +1,5 @@
 import { walk } from 'estree-walker';
-import Scope from './Scope';
+import Scope from './Scope.js';
 
 const blockDeclarations = {
 	'const': true,

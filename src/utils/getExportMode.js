@@ -1,4 +1,4 @@
-import { keys } from './object';
+import { keys } from './object.js';
 
 function badExports ( option, keys ) {
 	throw new Error( `'${option}' was specified for options.exports, but entry module has following exports: ${keys.join(', ')}` );

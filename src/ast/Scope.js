@@ -1,4 +1,4 @@
-import { blank, keys } from '../utils/object';
+import { blank, keys } from '../utils/object.js';
 
 const extractors = {
 	Identifier ( names, param ) {
