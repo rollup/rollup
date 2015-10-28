@@ -1,8 +1,8 @@
-import { basename } from './utils/path';
-import { writeFile } from './utils/fs';
-import { keys } from './utils/object';
-import SOURCEMAPPING_URL from './utils/sourceMappingURL';
-import Bundle from './Bundle';
+import { basename } from './utils/path.js';
+import { writeFile } from './utils/fs.js';
+import { keys } from './utils/object.js';
+import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
+import Bundle from './Bundle.js';
 
 export const VERSION = '<@VERSION@>';
 

@@ -1,5 +1,5 @@
-import { readFileSync } from './fs';
-import { dirname, extname, isAbsolute, resolve } from './path';
+import { readFileSync } from './fs.js';
+import { dirname, extname, isAbsolute, resolve } from './path.js';
 
 export function load ( id ) {
 	return readFileSync( id, 'utf-8' );

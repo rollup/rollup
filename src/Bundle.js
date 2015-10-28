@@ -1,17 +1,17 @@
 import Promise from 'es6-promise/lib/es6-promise/promise';
 import MagicString from 'magic-string';
-import first from './utils/first';
-import { blank, keys } from './utils/object';
-import Module from './Module';
-import ExternalModule from './ExternalModule';
-import finalisers from './finalisers/index';
-import ensureArray from './utils/ensureArray';
-import { load, onwarn, resolveId } from './utils/defaults';
-import getExportMode from './utils/getExportMode';
-import getIndentString from './utils/getIndentString';
-import { unixizePath } from './utils/normalizePlatform';
-import transform from './utils/transform';
-import collapseSourcemaps from './utils/collapseSourcemaps';
+import first from './utils/first.js';
+import { blank, keys } from './utils/object.js';
+import Module from './Module.js';
+import ExternalModule from './ExternalModule.js';
+import finalisers from './finalisers/index.js';
+import ensureArray from './utils/ensureArray.js';
+import { load, onwarn, resolveId } from './utils/defaults.js';
+import getExportMode from './utils/getExportMode.js';
+import getIndentString from './utils/getIndentString.js';
+import { unixizePath } from './utils/normalizePlatform.js';
+import transform from './utils/transform.js';
+import collapseSourcemaps from './utils/collapseSourcemaps.js';
 
 export default class Bundle {
 	constructor ( options ) {

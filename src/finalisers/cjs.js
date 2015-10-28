@@ -1,4 +1,4 @@
-import getExportBlock from './shared/getExportBlock';
+import getExportBlock from './shared/getExportBlock.js';
 
 export default function cjs ( bundle, magicString, { exportMode }, options ) {
 	let intro = options.useStrict === false ? `` : `'use strict';\n\n`;
