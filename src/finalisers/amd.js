@@ -1,4 +1,4 @@
-import { getName, quoteId } from '../utils/map-helpers';
+import { getName, quoteId } from '../utils/map-helpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 

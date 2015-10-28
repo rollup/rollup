@@ -1,5 +1,5 @@
-import { blank } from '../utils/object';
-import { getName, quoteId, req } from '../utils/map-helpers';
+import { blank } from '../utils/object.js';
+import { getName, quoteId, req } from '../utils/map-helpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 

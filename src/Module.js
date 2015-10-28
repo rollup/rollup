@@ -1,4 +1,4 @@
-import { parse } from 'acorn/src/index';
+import { parse } from 'acorn/src/index.js';
 import MagicString from 'magic-string';
 import { walk } from 'estree-walker';
 import Statement from './Statement.js';
