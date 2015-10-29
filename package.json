@@ -41,7 +41,7 @@
   "homepage": "https://github.com/rollup/rollup",
   "devDependencies": {
     "acorn": "^2.5.0",
-    "babel-core": "^5.8.29",
+    "babel-core": "^5.8.32",
     "codecov.io": "^0.1.6",
     "console-group": "^0.1.2",
     "es6-promise": "^3.0.2",
