@@ -81,10 +81,9 @@ class SyntheticNamespaceDeclaration {
 
 			// throw with an informative error message if the reference doesn't exist.
 			if ( !original ) {
-				const err = new Error( `Export '${reference.name}' is not defined by '${this.module.id}'` );
-				err.code = 'MISSING_EXPORT';
-				err.file = this.module.id;
-				throw err;
+				this.module.bundle.onwarn( `Export '${reference.name}' is not defined by '${this.module.id}'` );
+				reference.isUndefined = true;
+				return;
 			}
 
 			original.addReference( reference );
@@ -581,15 +580,20 @@ export default class Module {
 			let toDeshadow = blank();
 
 			statement.references.forEach( reference => {
+				const { start, end } = reference;
+
+				if ( reference.isUndefined ) {
+					magicString.overwrite( start, end, 'undefined', true );
+				}
+
 				const declaration = reference.declaration;
 
 				if ( declaration ) {
-					const { start, end } = reference;
 					const name = declaration.render( es6 );
 
 					// the second part of this check is necessary because of
 					// namespace optimisation – name of `foo.bar` could be `bar`
-					if ( reference.name === name && name.length === reference.end - reference.start ) return;
+					if ( reference.name === name && name.length === end - start ) return;
 
 					reference.rewritten = true;
 
