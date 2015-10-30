@@ -1,6 +1,6 @@
-import Promise from 'es6-promise/lib/es6-promise/promise';
+import Promise from 'es6-promise/lib/es6-promise/promise.js';
 import * as fs from 'fs';
-import { dirname } from './path';
+import { dirname } from './path.js';
 
 function mkdirpath ( path ) {
 	const dir = dirname( path );
