@@ -12,6 +12,7 @@ import getIndentString from './utils/getIndentString.js';
 import { unixizePath } from './utils/normalizePlatform.js';
 import transform from './utils/transform.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
+import callIfFunction from './utils/callIfFunction.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -207,8 +208,20 @@ export default class Bundle {
 
 		magicString = finalise( this, magicString.trim(), { exportMode, indentString }, options );
 
-		if ( options.banner ) magicString.prepend( options.banner + '\n' );
-		if ( options.footer ) magicString.append( '\n' + options.footer );
+		const banner = [ options.banner ]
+			.concat( this.plugins.map( plugin => plugin.banner ) )
+			.map( callIfFunction )
+			.filter( Boolean )
+			.join( '\n' );
+
+		const footer = [ options.footer ]
+			.concat( this.plugins.map( plugin => plugin.footer ) )
+			.map( callIfFunction )
+			.filter( Boolean )
+			.join( '\n' );
+
+		if ( banner ) magicString.prepend( banner + '\n' );
+		if ( footer ) magicString.append( '\n' + footer );
 
 		const code = magicString.toString();
 		let map = null;
