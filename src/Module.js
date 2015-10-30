@@ -81,10 +81,9 @@ class SyntheticNamespaceDeclaration {
 
 			// throw with an informative error message if the reference doesn't exist.
 			if ( !original ) {
-				const err = new Error( `Export '${reference.name}' is not defined by '${this.module.id}'` );
-				err.code = 'MISSING_EXPORT';
-				err.file = this.module.id;
-				throw err;
+				this.module.bundle.onwarn( `Export '${reference.name}' is not defined by '${this.module.id}'` );
+				reference.isUndefined = true;
+				return;
 			}
 
 			original.addReference( reference );
@@ -581,15 +580,20 @@ export default class Module {
 			let toDeshadow = blank();
 
 			statement.references.forEach( reference => {
+				const { start, end } = reference;
+
+				if ( reference.isUndefined ) {
+					magicString.overwrite( start, end, 'undefined', true );
+				}
+
 				const declaration = reference.declaration;
 
 				if ( declaration ) {
-					const { start, end } = reference;
 					const name = declaration.render( es6 );
 
 					// the second part of this check is necessary because of
 					// namespace optimisation – name of `foo.bar` could be `bar`
-					if ( reference.name === name && name.length === reference.end - reference.start ) return;
+					if ( reference.name === name && name.length === end - start ) return;
 
 					reference.rewritten = true;
 
@@ -690,17 +694,20 @@ export default class Module {
 				return otherModule.namespace();
 			}
 
-			return otherModule.traceExport( importDeclaration.name, this );
+			const declaration = otherModule.traceExport( importDeclaration.name );
+
+			if ( !declaration ) throw new Error( `Module ${otherModule.id} does not export ${importDeclaration.name} (imported by ${this.id})` );
+			return declaration;
 		}
 
 		return null;
 	}
 
-	traceExport ( name, importer ) {
+	traceExport ( name ) {
 		// export { foo } from './other.js'
 		const reexportDeclaration = this.reexports[ name ];
 		if ( reexportDeclaration ) {
-			return reexportDeclaration.module.traceExport( reexportDeclaration.localName, this );
+			return reexportDeclaration.module.traceExport( reexportDeclaration.localName );
 		}
 
 		const exportDeclaration = this.exports[ name ];
@@ -710,14 +717,9 @@ export default class Module {
 
 		for ( let i = 0; i < this.exportAllModules.length; i += 1 ) {
 			const module = this.exportAllModules[i];
-			const declaration = module.traceExport( name, this );
+			const declaration = module.traceExport( name );
 
 			if ( declaration ) return declaration;
 		}
-
-		let errorMessage = `Module ${this.id} does not export ${name}`;
-		if ( importer ) errorMessage += ` (imported by ${importer.id})`;
-
-		throw new Error( errorMessage );
 	}
 }

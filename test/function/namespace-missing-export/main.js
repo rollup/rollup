@@ -1,3 +1,3 @@
 import * as mod from './empty.js';
 
-mod.foo();
+assert.equal( typeof mod.foo, 'undefined' );
