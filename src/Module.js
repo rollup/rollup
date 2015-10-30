@@ -690,17 +690,20 @@ export default class Module {
 				return otherModule.namespace();
 			}
 
-			return otherModule.traceExport( importDeclaration.name, this );
+			const declaration = otherModule.traceExport( importDeclaration.name );
+
+			if ( !declaration ) throw new Error( `Module ${otherModule.id} does not export ${importDeclaration.name} (imported by ${this.id})` );
+			return declaration;
 		}
 
 		return null;
 	}
 
-	traceExport ( name, importer ) {
+	traceExport ( name ) {
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexports[ name ];
 		if ( reexportDeclaration ) {
-			return reexportDeclaration.module.traceExport( reexportDeclaration.localName, this );
+			return reexportDeclaration.module.traceExport( reexportDeclaration.localName );
 		}
 
 		const exportDeclaration = this.exports[ name ];
@@ -710,14 +713,9 @@ export default class Module {
 
 		for ( let i = 0; i < this.exportAllModules.length; i += 1 ) {
 			const module = this.exportAllModules[i];
-			const declaration = module.traceExport( name, this );
+			const declaration = module.traceExport( name );
 
 			if ( declaration ) return declaration;
 		}
-
-		let errorMessage = `Module ${this.id} does not export ${name}`;
-		if ( importer ) errorMessage += ` (imported by ${importer.id})`;
-
-		throw new Error( errorMessage );
 	}
 }
