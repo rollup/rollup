@@ -95,6 +95,11 @@ export default class Statement {
 
 		walk( this.node, {
 			enter ( node, parent ) {
+				// warn about eval
+				if ( node.type === 'CallExpression' && node.callee.name === 'eval' && !scope.contains( 'eval' ) ) {
+					module.bundle.onwarn( `Use of \`eval\` (in ${module.id}) is discouraged, as it may cause issues with minification. See https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval for more details` );
+				}
+
 				if ( node.type === 'TemplateElement' ) stringLiteralRanges.push([ node.start, node.end ]);
 				if ( node.type === 'Literal' && typeof node.value === 'string' && /\n/.test( node.raw ) ) {
 					stringLiteralRanges.push([ node.start + 1, node.end - 1 ]);
