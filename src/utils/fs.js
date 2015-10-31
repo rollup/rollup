@@ -12,6 +12,15 @@ function mkdirpath ( path ) {
 	}
 }
 
+export function isFile ( file ) {
+	try {
+		const stats = fs.statSync( file );
+		return stats.isFile();
+	} catch ( err ) {
+		return false;
+	}
+}
+
 export function writeFile ( dest, data ) {
 	return new Promise( ( fulfil, reject ) => {
 		mkdirpath( dest );
