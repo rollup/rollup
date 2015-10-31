@@ -1,26 +1,30 @@
-import { readFileSync } from './fs.js';
+import { isFile, readFileSync } from './fs.js';
 import { dirname, extname, isAbsolute, resolve } from './path.js';
 
 export function load ( id ) {
 	return readFileSync( id, 'utf-8' );
 }
 
-function addExt ( id ) {
-	if ( !extname( id ) ) id += '.js';
-	return id;
+function addJsExtensionIfNecessary ( file ) {
+	if ( isFile( file ) ) return file;
+
+	file += '.js';
+	if ( isFile( file ) ) return file;
+
+	return null;
 }
 
 export function resolveId ( importee, importer ) {
 	// absolute paths are left untouched
-	if ( isAbsolute( importee ) ) return addExt( importee );
+	if ( isAbsolute( importee ) ) return addJsExtensionIfNecessary( importee );
 
 	// if this is the entry point, resolve against cwd
-	if ( importer === undefined ) return resolve( process.cwd(), addExt( importee ) );
+	if ( importer === undefined ) return addJsExtensionIfNecessary( resolve( process.cwd(), importee ) );
 
 	// external modules are skipped at this stage
 	if ( importee[0] !== '.' ) return null;
 
-	return resolve( dirname( importer ), addExt( importee ) );
+	return addJsExtensionIfNecessary( resolve( dirname( importer ), importee ) );
 }
 
 export function onwarn ( msg ) {
