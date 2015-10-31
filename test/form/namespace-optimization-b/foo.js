@@ -1,2 +1,3 @@
-export function foo() {
-};
+export function foo () {
+	console.log( 'foo' );
+}

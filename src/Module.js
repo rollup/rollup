@@ -35,6 +35,10 @@ class SyntheticDefaultDeclaration {
 		this.original = declaration;
 	}
 
+	mutates () {
+		return this.original.mutates();
+	}
+
 	render () {
 		return !this.original || this.original.isReassigned ?
 			this.name :

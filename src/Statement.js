@@ -185,13 +185,59 @@ export default class Statement {
 		let hasSideEffect = false;
 
 		walk( this.node, {
-			enter ( node, parent ) {
-				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) return this.skip();
+			enter ( node ) {
+				// Don't descend into (quasi) function declarations – we'll worry about those
+				// if they get called
+				if ( node.type === 'FunctionDeclaration' || node.type === 'VariableDeclarator' && node.init && /FunctionExpression/.test( node.init.type ) ) {
+					return this.skip();
+				}
 
 				// If this is a top-level call expression, or an assignment to a global,
 				// this statement will need to be marked
-				if ( node.type === 'CallExpression' || node.type === 'NewExpression' ) {
+				if ( node.type === 'NewExpression' ) {
 					hasSideEffect = true;
+				}
+
+				else if ( node.type === 'CallExpression' ) {
+					if ( node.callee.type === 'Identifier' ) {
+						const declaration = statement.module.trace( node.callee.name );
+
+						if ( !declaration || !declaration.isFunctionDeclaration ) {
+							hasSideEffect = true;
+						}
+
+						else {
+							const mutatedByFunction = declaration.mutates();
+							let i = mutatedByFunction.length;
+							while ( i-- ) {
+								const mutatedDeclaration = statement.module.trace( mutatedByFunction[i] );
+
+								if ( !mutatedDeclaration || mutatedDeclaration.isUsed ) {
+									hasSideEffect = true;
+									break;
+								}
+							}
+
+							// if ( declaration.hasSideEffect() ) {
+							// 	// if calling this function creates side-effects...
+							// 	hasSideEffect = true;
+							// }
+							//
+							// else {
+							// 	// ...or mutates inputs that are included...
+							// 	hasSideEffect = true;
+							// }
+
+							// TODO does function mutate inputs that are needed?
+						}
+					}
+
+					else if ( node.callee.type === 'MemberExpression' ) {
+						// if we're calling e.g. Object.keys(thing), there are no side-effects
+						// TODO
+
+						hasSideEffect = true;
+					}
 				}
 
 				else if ( node.type in modifierNodes ) {
