@@ -244,6 +244,7 @@ export default class Module {
 			const dependency = this.bundle.moduleById[ id ];
 
 			if ( !dependency.isExternal ) {
+				// TODO this is a weird data structure
 				weakDependencies[ dependency.id ] = dependency;
 			}
 		});
@@ -253,23 +254,6 @@ export default class Module {
 				strongDependencies[ module.id ] = module;
 			}
 		});
-
-		// // identify strong dependencies to break ties in case of cycles
-		// this.statements.forEach( statement => {
-		// 	statement.references.forEach( reference => {
-		// 		const declaration = reference.declaration;
-		//
-		// 		if ( declaration && declaration.statement ) {
-		// 			const module = declaration.statement.module;
-		// 			if ( module === this ) return;
-		//
-		// 			// TODO disregard function declarations
-		// 			if ( reference.isImmediatelyUsed ) {
-		// 				strongDependencies[ module.id ] = module;
-		// 			}
-		// 		}
-		// 	});
-		// });
 
 		return { strongDependencies, weakDependencies };
 	}
@@ -294,15 +278,10 @@ export default class Module {
 		return keys( exports );
 	}
 
-	markAllSideEffects () {
-		// console.group( this.id )
-
+	markStatements () {
 		this.statements.forEach( statement => {
 			statement.secondPass( this.strongDependencies );
 		});
-
-		// console.log( this.strongDependencies.map(m=>m.id) )
-		// console.groupEnd()
 	}
 
 	namespace () {

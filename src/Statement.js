@@ -157,26 +157,12 @@ export default class Statement {
 	}
 
 	secondPass ( strongDependencies ) {
-		// console.group( 'second pass: %s', this.toString() )
-		// console.log( 'this.isIncluded', this.isIncluded )
-		// console.log( 'this.isImportDeclaration', this.isImportDeclaration )
-		// console.log( 'this.isFunctionDeclaration', this.isFunctionDeclaration )
-
-		if ( this.didSecondPassAlready || this.isImportDeclaration || this.isFunctionDeclaration ) {
-			// console.log( '>>> skipping' )
-			// console.groupEnd()
-			return;
-		}
-
-		this.didSecondPassAlready = true;
+		if ( this.isImportDeclaration || this.isFunctionDeclaration ) return;
 
 		if ( testForSideEffects( this.node, this.scope, this, strongDependencies ) ) {
 			this.mark();
-			// console.groupEnd()
 			return true;
 		}
-
-		// console.groupEnd()
 	}
 
 	source () {

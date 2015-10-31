@@ -73,9 +73,8 @@ export default class Bundle {
 					declaration.use();
 				});
 
-				this.modules.forEach( module => {
-					module.markAllSideEffects();
-				});
+				// mark statements that should appear in the bundle
+				this.modules.forEach( module => module.markStatements() );
 
 				this.orderedModules = this.sort();
 				this.deconflict();
