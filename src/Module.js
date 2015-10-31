@@ -49,6 +49,8 @@ export default class Module {
 
 		this.declarations = blank();
 		this.analyse();
+
+		this.strongDependencies = [];
 	}
 
 	addExport ( statement ) {
@@ -154,7 +156,7 @@ export default class Module {
 			if ( statement.isImportDeclaration ) this.addImport( statement );
 			else if ( statement.isExportDeclaration ) this.addExport( statement );
 
-			statement.analyse();
+			statement.firstPass();
 
 			statement.scope.eachDeclaration( ( name, declaration ) => {
 				this.declarations[ name ] = declaration;
@@ -246,22 +248,28 @@ export default class Module {
 			}
 		});
 
-		// identify strong dependencies to break ties in case of cycles
-		this.statements.forEach( statement => {
-			statement.references.forEach( reference => {
-				const declaration = reference.declaration;
-
-				if ( declaration && declaration.statement ) {
-					const module = declaration.statement.module;
-					if ( module === this ) return;
-
-					// TODO disregard function declarations
-					if ( reference.isImmediatelyUsed ) {
-						strongDependencies[ module.id ] = module;
-					}
-				}
-			});
+		this.strongDependencies.forEach( module => {
+			if ( module !== this ) {
+				strongDependencies[ module.id ] = module;
+			}
 		});
+
+		// // identify strong dependencies to break ties in case of cycles
+		// this.statements.forEach( statement => {
+		// 	statement.references.forEach( reference => {
+		// 		const declaration = reference.declaration;
+		//
+		// 		if ( declaration && declaration.statement ) {
+		// 			const module = declaration.statement.module;
+		// 			if ( module === this ) return;
+		//
+		// 			// TODO disregard function declarations
+		// 			if ( reference.isImmediatelyUsed ) {
+		// 				strongDependencies[ module.id ] = module;
+		// 			}
+		// 		}
+		// 	});
+		// });
 
 		return { strongDependencies, weakDependencies };
 	}
@@ -287,9 +295,14 @@ export default class Module {
 	}
 
 	markAllSideEffects () {
+		// console.group( this.id )
+
 		this.statements.forEach( statement => {
-			statement.markSideEffect();
+			statement.secondPass( this.strongDependencies );
 		});
+
+		// console.log( this.strongDependencies.map(m=>m.id) )
+		// console.groupEnd()
 	}
 
 	namespace () {

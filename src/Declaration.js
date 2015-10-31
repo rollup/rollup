@@ -31,8 +31,9 @@ export default class Declaration {
 		if ( reference.isReassignment ) this.isReassigned = true;
 	}
 
-	hasSideEffect () {
-		return testForSideEffects( this.functionBody, this.statement.scope, this.statement );
+	testForSideEffects ( strongDependencies ) {
+		if ( !this.statement ) return;
+		return testForSideEffects( this.functionBody, this.statement.scope, this.statement, strongDependencies );
 	}
 
 	render ( es6 ) {
@@ -77,13 +78,13 @@ export class SyntheticDefaultDeclaration {
 		this.original = declaration;
 	}
 
-	hasSideEffect () {
+	testForSideEffects ( strongDependencies ) {
 		if ( this.original ) {
-			return this.original.hasSideEffect();
+			return this.original.testForSideEffects( strongDependencies );
 		}
 
 		if ( /FunctionExpression/.test( this.node.declaration.type ) ) {
-			return testForSideEffects( this.node.declaration.body, this.statement.scope, this.statement );
+			return testForSideEffects( this.node.declaration.body, this.statement.scope, this.statement, strongDependencies );
 		}
 	}
 

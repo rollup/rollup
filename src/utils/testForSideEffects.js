@@ -1,5 +1,7 @@
 import { walk } from 'estree-walker';
 import modifierNodes from '../ast/modifierNodes.js';
+import isFunctionDeclaration from '../ast/isFunctionDeclaration.js';
+import isReference from '../ast/isReference.js';
 import flatten from '../ast/flatten';
 
 let pureFunctions = {};
@@ -8,70 +10,75 @@ let pureFunctions = {};
 	'Object.keys'
 ].forEach( name => pureFunctions[ name ] = true );
 
-export default function testForSideEffects ( node, scope, statement ) {
+export default function testForSideEffects ( node, scope, statement, strongDependencies, force ) {
 	let hasSideEffect = false;
 
 	walk( node, {
-		enter ( node ) {
-			if ( hasSideEffect ) return this.skip();
-			if ( /Function/.test( node.type ) ) return this.skip();
+		enter ( node, parent ) {
+			if ( !force && /Function/.test( node.type ) ) return this.skip();
 
 			if ( node._scope ) scope = node._scope;
 
-			// If this is a top-level call expression, or an assignment to a global,
-			// this statement will need to be marked
-			if ( node.type === 'NewExpression' ) {
-				hasSideEffect = true;
-				return this.skip();
+			if ( isReference( node, parent ) ) {
+				const flattened = flatten( node );
+
+				if ( !scope.contains( flattened.name ) ) {
+					const declaration = statement.module.trace( flattened.name );
+					if ( declaration && !declaration.isExternal ) {
+						const module = declaration.module || declaration.statement.module; // TODO is this right?
+						if ( !~strongDependencies.indexOf( module ) ) strongDependencies.push( module );
+					}
+				}
 			}
 
-			if ( node.type === 'CallExpression' ) {
-				if ( node.callee.type === 'Identifier' && !scope.contains( node.callee.name ) ) {
-					const declaration = statement.module.trace( node.callee.name );
+			// If this is a top-level call expression, or an assignment to a global,
+			// this statement will need to be marked
+			else if ( node.type === 'NewExpression' ) {
+				hasSideEffect = true;
+			}
+
+			else if ( node.type === 'CallExpression' ) {
+				if ( node.callee.type === 'Identifier' ) {
+					const declaration = scope.findDeclaration( node.callee.name ) ||
+					                    statement.module.trace( node.callee.name );
 
 					if ( !declaration || declaration.isExternal ) {
 						// we're calling a global or an external function. Assume side-effects
 						hasSideEffect = true;
-						return this.skip();
 					}
 
 					// we're calling a function defined in this bundle
-					if ( declaration.hasSideEffect() ) {
+					else if ( declaration.testForSideEffects( strongDependencies ) ) {
 						hasSideEffect = true;
-						return this.skip();
 					}
 
 					// TODO does function mutate inputs that are needed?
-					return;
 				}
 
-				if ( node.callee.type === 'MemberExpression' ) {
+				else if ( node.callee.type === 'MemberExpression' ) {
 					const flattened = flatten( node.callee );
 
-					if ( !flattened ) {
+					if ( flattened ) {
+						// if we're calling e.g. Object.keys(thing), there are no side-effects
+						// TODO make pureFunctions configurable
+						const declaration = statement.module.trace( flattened.name );
+						if ( !!declaration || !pureFunctions[ flattened.keypath ] ) {
+							hasSideEffect = true;
+						}
+					} else {
 						// is not a keypath like `foo.bar.baz` – could be e.g.
 						// `(a || b).foo()`. Err on the side of caution
 						hasSideEffect = true;
-						return;
 					}
-
-					// if we're calling e.g. Object.keys(thing), there are no side-effects
-					// TODO make pureFunctions configurable
-					const declaration = statement.module.trace( flattened.name );
-					if ( !declaration && pureFunctions[ flattened.keypath ] ) return;
-
-					hasSideEffect = true;
-					return this.skip();
 				}
 
 				// otherwise we're probably dealing with a function expression
-				if ( testForSideEffects( node.callee, scope, statement ) ) {
+				else if ( testForSideEffects( node.callee, scope, statement, strongDependencies, true ) ) {
 					hasSideEffect = true;
-					return this.skip();
 				}
 			}
 
-			if ( node.type in modifierNodes ) {
+			else if ( node.type in modifierNodes ) {
 				let subject = node[ modifierNodes[ node.type ] ];
 				while ( subject.type === 'MemberExpression' ) subject = subject.object;
 
@@ -79,7 +86,6 @@ export default function testForSideEffects ( node, scope, statement ) {
 
 				if ( !declaration || declaration.isExternal || declaration.statement.isIncluded ) {
 					hasSideEffect = true;
-					return this.skip();
 				}
 			}
 		},

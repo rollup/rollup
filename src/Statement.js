@@ -2,30 +2,10 @@ import { walk } from 'estree-walker';
 import Scope from './ast/Scope.js';
 import attachScopes from './ast/attachScopes.js';
 import modifierNodes from './ast/modifierNodes.js';
+import isFunctionDeclaration from './ast/isFunctionDeclaration.js';
+import isReference from './ast/isReference.js';
 import getLocation from './utils/getLocation.js';
 import testForSideEffects from './utils/testForSideEffects.js';
-
-function isReference ( node, parent ) {
-	if ( node.type === 'MemberExpression' ) {
-		return !node.computed && isReference( node.object, node );
-	}
-
-	if ( node.type === 'Identifier' ) {
-		// TODO is this right?
-		if ( parent.type === 'MemberExpression' ) return parent.computed || node === parent.object;
-
-		// disregard the `bar` in { bar: foo }
-		if ( parent.type === 'Property' && node !== parent.value ) return false;
-
-		// disregard the `bar` in `class Foo { bar () {...} }`
-		if ( parent.type === 'MethodDefinition' ) return false;
-
-		// disregard the `bar` in `export { foo as bar }`
-		if ( parent.type === 'ExportSpecifier' && node !== parent.local ) return;
-
-		return true;
-	}
-}
 
 class Reference {
 	constructor ( node, scope, statement ) {
@@ -69,9 +49,12 @@ export default class Statement {
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
 		this.isExportDeclaration = /^Export/.test( node.type );
 		this.isReexportDeclaration = this.isExportDeclaration && !!node.source;
+
+		this.isFunctionDeclaration = isFunctionDeclaration( node ) ||
+			this.isExportDeclaration && isFunctionDeclaration( node.declaration );
 	}
 
-	analyse () {
+	firstPass () {
 		if ( this.isImportDeclaration ) return; // nothing to analyse
 
 		// attach scopes
@@ -173,13 +156,27 @@ export default class Statement {
 		});
 	}
 
-	markSideEffect () {
-		if ( this.isIncluded ) return;
+	secondPass ( strongDependencies ) {
+		// console.group( 'second pass: %s', this.toString() )
+		// console.log( 'this.isIncluded', this.isIncluded )
+		// console.log( 'this.isImportDeclaration', this.isImportDeclaration )
+		// console.log( 'this.isFunctionDeclaration', this.isFunctionDeclaration )
 
-		if ( testForSideEffects( this.node, this.scope, this ) ) {
+		if ( this.didSecondPassAlready || this.isImportDeclaration || this.isFunctionDeclaration ) {
+			// console.log( '>>> skipping' )
+			// console.groupEnd()
+			return;
+		}
+
+		this.didSecondPassAlready = true;
+
+		if ( testForSideEffects( this.node, this.scope, this, strongDependencies ) ) {
 			this.mark();
+			// console.groupEnd()
 			return true;
 		}
+
+		// console.groupEnd()
 	}
 
 	source () {
