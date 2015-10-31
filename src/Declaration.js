@@ -17,7 +17,6 @@ export default class Declaration {
 		this.name = null;
 
 		this.isReassigned = false;
-		this.mutations = [];
 		this.aliases = [];
 	}
 
@@ -30,9 +29,6 @@ export default class Declaration {
 		this.name = reference.name; // TODO handle differences of opinion
 
 		if ( reference.isReassignment ) this.isReassigned = true;
-		if ( reference.isMutation && !~this.mutations.indexOf( reference.statement ) ) {
-			this.mutations.push( reference.statement );
-		}
 	}
 
 	hasSideEffect () {
@@ -85,7 +81,7 @@ export class SyntheticDefaultDeclaration {
 		if ( this.original ) {
 			return this.original.hasSideEffect();
 		}
-		
+
 		if ( /FunctionExpression/.test( this.node.declaration.type ) ) {
 			return testForSideEffects( this.node.declaration.body, this.statement.scope, this.statement );
 		}

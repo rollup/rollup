@@ -112,10 +112,9 @@ export default class Statement {
 					return this.skip();
 				}
 
-				const isMutation = parent && parent.type in modifierNodes;
 				let isReassignment;
 
-				if ( isMutation ) {
+				if ( parent && parent.type in modifierNodes ) {
 					let subject = parent[ modifierNodes[ parent.type ] ];
 					let depth = 0;
 
@@ -154,7 +153,6 @@ export default class Statement {
 
 					reference.isImmediatelyUsed = !readDepth;
 					reference.isReassignment = isReassignment;
-					reference.isMutation = !readDepth && isMutation;
 
 					this.skip(); // don't descend from `foo.bar.baz` into `foo.bar`
 				}
