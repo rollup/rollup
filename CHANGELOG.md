@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.20.3
+
+* Fix bug where multiple `export *` declarations caused error ([#244](https://github.com/rollup/rollup/pulls/244))
+* Missing namespace exports are a warning, not an error ([#244](https://github.com/rollup/rollup/pulls/244))
+* Plugins can provide `banner` and `footer` options (string, or function that returns a string) ([#235](https://github.com/rollup/rollup/issues/235))
+* Warn on encountering `eval` ([#186](https://github.com/rollup/rollup/issues/186))
+
 ## 0.20.2
 
 * Handle errors in build config file
