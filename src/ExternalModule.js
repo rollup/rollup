@@ -1,43 +1,6 @@
 import { blank } from './utils/object.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
-
-class ExternalDeclaration {
-	constructor ( module, name ) {
-		this.module = module;
-		this.name = name;
-		this.isExternal = true;
-	}
-
-	addAlias () {
-		// noop
-	}
-
-	addReference ( reference ) {
-		reference.declaration = this;
-
-		if ( this.name === 'default' || this.name === '*' ) {
-			this.module.suggestName( reference.name );
-		}
-	}
-
-	render ( es6 ) {
-		if ( this.name === '*' ) {
-			return this.module.name;
-		}
-
-		if ( this.name === 'default' ) {
-			return !es6 && this.module.exportsNames ?
-				`${this.module.name}__default` :
-				this.module.name;
-		}
-
-		return es6 ? this.name : `${this.module.name}.${this.name}`;
-	}
-
-	use () {
-		// noop?
-	}
-}
+import { ExternalDeclaration } from './Declaration.js';
 
 export default class ExternalModule {
 	constructor ( id ) {

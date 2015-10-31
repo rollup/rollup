@@ -73,14 +73,9 @@ export default class Bundle {
 					declaration.use();
 				});
 
-				let settled = false;
-				while ( !settled ) {
-					settled = true;
-
-					this.modules.forEach( module => {
-						if ( module.markAllSideEffects() ) settled = false;
-					});
-				}
+				this.modules.forEach( module => {
+					module.markAllSideEffects();
+				});
 
 				this.orderedModules = this.sort();
 				this.deconflict();

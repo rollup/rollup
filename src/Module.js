@@ -7,131 +7,7 @@ import { basename, extname } from './utils/path.js';
 import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
-
-class SyntheticDefaultDeclaration {
-	constructor ( node, statement, name ) {
-		this.node = node;
-		this.statement = statement;
-		this.name = name;
-
-		this.original = null;
-		this.isExported = false;
-		this.aliases = [];
-	}
-
-	addAlias ( declaration ) {
-		this.aliases.push( declaration );
-	}
-
-	addReference ( reference ) {
-		// Don't change the name to `default`; it's not a valid identifier name.
-		if ( reference.name === 'default' ) return;
-
-		reference.declaration = this;
-		this.name = reference.name;
-	}
-
-	bind ( declaration ) {
-		this.original = declaration;
-	}
-
-	mutates () {
-		return this.original.mutates();
-	}
-
-	render () {
-		return !this.original || this.original.isReassigned ?
-			this.name :
-			this.original.render();
-	}
-
-	use () {
-		this.isUsed = true;
-		this.statement.mark();
-
-		if ( this.original ) this.original.use();
-
-		this.aliases.forEach( alias => alias.use() );
-	}
-}
-
-class SyntheticNamespaceDeclaration {
-	constructor ( module ) {
-		this.module = module;
-		this.name = null;
-
-		this.needsNamespaceBlock = false;
-		this.aliases = [];
-
-		this.originals = blank();
-		module.getExports().forEach( name => {
-			this.originals[ name ] = module.traceExport( name );
-		});
-	}
-
-	addAlias ( declaration ) {
-		this.aliases.push( declaration );
-	}
-
-	addReference ( reference ) {
-		// if we have e.g. `foo.bar`, we can optimise
-		// the reference by pointing directly to `bar`
-		if ( reference.parts.length ) {
-			reference.name = reference.parts.shift();
-
-			reference.end += reference.name.length + 1; // TODO this is brittle
-
-			const original = this.originals[ reference.name ];
-
-			// throw with an informative error message if the reference doesn't exist.
-			if ( !original ) {
-				this.module.bundle.onwarn( `Export '${reference.name}' is not defined by '${this.module.id}'` );
-				reference.isUndefined = true;
-				return;
-			}
-
-			original.addReference( reference );
-			return;
-		}
-
-		// otherwise we're accessing the namespace directly,
-		// which means we need to mark all of this module's
-		// exports and render a namespace block in the bundle
-		if ( !this.needsNamespaceBlock ) {
-			this.needsNamespaceBlock = true;
-			this.module.bundle.internalNamespaces.push( this );
-		}
-
-		reference.declaration = this;
-		this.name = reference.name;
-	}
-
-	renderBlock ( indentString ) {
-		const members = keys( this.originals ).map( name => {
-			const original = this.originals[ name ];
-
-			if ( original.isReassigned ) {
-				return `${indentString}get ${name} () { return ${original.render()}; }`;
-			}
-
-			return `${indentString}${name}: ${original.render()}`;
-		});
-
-		return `var ${this.render()} = Object.freeze({\n${members.join( ',\n' )}\n});\n\n`;
-	}
-
-	render () {
-		return this.name;
-	}
-
-	use () {
-		keys( this.originals ).forEach( name => {
-			this.originals[ name ].use();
-		});
-
-		this.aliases.forEach( alias => alias.use() );
-	}
-}
+import { SyntheticDefaultDeclaration, SyntheticNamespaceDeclaration } from './Declaration.js';
 
 export default class Module {
 	constructor ({ id, code, originalCode, ast, sourceMapChain, bundle }) {
@@ -411,13 +287,9 @@ export default class Module {
 	}
 
 	markAllSideEffects () {
-		let hasSideEffect = false;
-
 		this.statements.forEach( statement => {
-			if ( statement.markSideEffect() ) hasSideEffect = true;
+			statement.markSideEffect();
 		});
-
-		return hasSideEffect;
 	}
 
 	namespace () {

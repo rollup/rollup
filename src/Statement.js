@@ -1,16 +1,9 @@
 import { walk } from 'estree-walker';
 import Scope from './ast/Scope.js';
 import attachScopes from './ast/attachScopes.js';
+import modifierNodes from './ast/modifierNodes.js';
 import getLocation from './utils/getLocation.js';
-
-const modifierNodes = {
-	AssignmentExpression: 'left',
-	UpdateExpression: 'argument'
-};
-
-function isIife ( node, parent ) {
-	return parent && parent.type === 'CallExpression' && node === parent.callee;
-}
+import testForSideEffects from './utils/testForSideEffects.js';
 
 function isReference ( node, parent ) {
 	if ( node.type === 'MemberExpression' ) {
@@ -35,9 +28,10 @@ function isReference ( node, parent ) {
 }
 
 class Reference {
-	constructor ( node, scope ) {
+	constructor ( node, scope, statement ) {
 		this.node = node;
 		this.scope = scope;
+		this.statement = statement;
 
 		this.declaration = null; // bound later
 
@@ -90,6 +84,7 @@ export default class Statement {
 		});
 
 		// find references
+		const statement = this;
 		let { module, references, scope, stringLiteralRanges } = this;
 		let readDepth = 0;
 
@@ -106,7 +101,7 @@ export default class Statement {
 				}
 
 				if ( node._scope ) scope = node._scope;
-				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth += 1;
+				if ( /Function/.test( node.type ) ) readDepth += 1;
 
 				// special case – shorthand properties. because node.key === node.value,
 				// we can't differentiate once we've descended into the node
@@ -117,9 +112,10 @@ export default class Statement {
 					return this.skip();
 				}
 
+				const isMutation = parent && parent.type in modifierNodes;
 				let isReassignment;
 
-				if ( parent && parent.type in modifierNodes ) {
+				if ( isMutation ) {
 					let subject = parent[ modifierNodes[ parent.type ] ];
 					let depth = 0;
 
@@ -153,18 +149,19 @@ export default class Statement {
 						scope.parent :
 						scope;
 
-					const reference = new Reference( node, referenceScope );
+					const reference = new Reference( node, referenceScope, statement );
 					references.push( reference );
 
 					reference.isImmediatelyUsed = !readDepth;
 					reference.isReassignment = isReassignment;
+					reference.isMutation = !readDepth && isMutation;
 
 					this.skip(); // don't descend from `foo.bar.baz` into `foo.bar`
 				}
 			},
-			leave ( node, parent ) {
+			leave ( node ) {
 				if ( node._scope ) scope = scope.parent;
-				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth -= 1;
+				if ( /Function/.test( node.type ) ) readDepth -= 1;
 			}
 		});
 	}
@@ -181,82 +178,10 @@ export default class Statement {
 	markSideEffect () {
 		if ( this.isIncluded ) return;
 
-		const statement = this;
-		let hasSideEffect = false;
-
-		walk( this.node, {
-			enter ( node ) {
-				// Don't descend into (quasi) function declarations – we'll worry about those
-				// if they get called
-				if ( node.type === 'FunctionDeclaration' || node.type === 'VariableDeclarator' && node.init && /FunctionExpression/.test( node.init.type ) ) {
-					return this.skip();
-				}
-
-				// If this is a top-level call expression, or an assignment to a global,
-				// this statement will need to be marked
-				if ( node.type === 'NewExpression' ) {
-					hasSideEffect = true;
-				}
-
-				else if ( node.type === 'CallExpression' ) {
-					if ( node.callee.type === 'Identifier' ) {
-						const declaration = statement.module.trace( node.callee.name );
-
-						if ( !declaration || !declaration.isFunctionDeclaration ) {
-							hasSideEffect = true;
-						}
-
-						else {
-							const mutatedByFunction = declaration.mutates();
-							let i = mutatedByFunction.length;
-							while ( i-- ) {
-								const mutatedDeclaration = statement.module.trace( mutatedByFunction[i] );
-
-								if ( !mutatedDeclaration || mutatedDeclaration.isUsed ) {
-									hasSideEffect = true;
-									break;
-								}
-							}
-
-							// if ( declaration.hasSideEffect() ) {
-							// 	// if calling this function creates side-effects...
-							// 	hasSideEffect = true;
-							// }
-							//
-							// else {
-							// 	// ...or mutates inputs that are included...
-							// 	hasSideEffect = true;
-							// }
-
-							// TODO does function mutate inputs that are needed?
-						}
-					}
-
-					else if ( node.callee.type === 'MemberExpression' ) {
-						// if we're calling e.g. Object.keys(thing), there are no side-effects
-						// TODO
-
-						hasSideEffect = true;
-					}
-				}
-
-				else if ( node.type in modifierNodes ) {
-					let subject = node[ modifierNodes[ node.type ] ];
-					while ( subject.type === 'MemberExpression' ) subject = subject.object;
-
-					const declaration = statement.module.trace( subject.name );
-
-					if ( !declaration || declaration.isExternal || declaration.statement.isIncluded ) {
-						hasSideEffect = true;
-					}
-				}
-
-				if ( hasSideEffect ) this.skip();
-			}
-		});
-
-		if ( hasSideEffect ) statement.mark();
-		return hasSideEffect;
+		if ( testForSideEffects( this.node, this.scope, this ) ) {
+			this.mark();
+			return true;
+		}
 	}
 
 	source () {
