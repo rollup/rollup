@@ -8,7 +8,7 @@ module.exports = {
 	options: {
 		onwarn: function ( message ) {
 			warned = true;
-			assert.equal( message, 'Use of `eval` (in ' + path.resolve( __dirname, 'main.js' ) + ') is discouraged, as it may cause issues with minification. See https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval for more details' );
+			assert.ok( /Use of `eval` \(in .+?main\.js\) is discouraged, as it may cause issues with minification\. See https:\/\/github.com\/rollup\/rollup\/wiki\/Troubleshooting#avoiding-eval for more details/.test( message ) );
 		}
 	},
 	exports: function () {
