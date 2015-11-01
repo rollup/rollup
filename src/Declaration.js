@@ -33,9 +33,16 @@ export default class Declaration {
 	}
 
 	testForSideEffects ( strongDependencies ) {
-		// TODO memoize this
-		if ( !this.statement || !this.functionNode ) return;
-		return testForSideEffects( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies );
+		if ( this.tested ) return this.hasSideEffects;
+		this.tested = true;
+
+		if ( !this.statement || !this.functionNode ) {
+			this.hasSideEffects = false;
+		} else {
+			this.hasSideEffects = testForSideEffects( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies );
+		}
+
+		return this.hasSideEffects;
 	}
 
 	render ( es6 ) {
