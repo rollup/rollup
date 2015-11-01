@@ -30,7 +30,7 @@ export default function run ( node, scope, statement, strongDependencies, force 
 					const declaration = statement.module.trace( flattened.name );
 					if ( declaration && !declaration.isExternal ) {
 						const module = declaration.module || declaration.statement.module; // TODO is this right?
-						if ( !~strongDependencies.indexOf( module ) ) strongDependencies.push( module );
+						if ( !module.isExternal && !~strongDependencies.indexOf( module ) ) strongDependencies.push( module );
 					}
 				}
 			}

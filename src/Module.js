@@ -238,25 +238,21 @@ export default class Module {
 	}
 
 	consolidateDependencies () {
-		let strongDependencies = blank();
-		let weakDependencies = blank();
+		let strongDependencies = [];
+		let weakDependencies = [];
 
 		// treat all imports as weak dependencies
 		this.dependencies.forEach( source => {
 			const id = this.resolvedIds[ source ];
 			const dependency = this.bundle.moduleById[ id ];
 
-			if ( !dependency.isExternal ) {
-				// TODO this is a weird data structure
-				weakDependencies[ dependency.id ] = dependency;
+			if ( !dependency.isExternal && !~weakDependencies.indexOf( dependency ) ) {
+				weakDependencies.push( dependency );
 			}
 		});
 
-		this.strongDependencies.forEach( module => {
-			if ( module !== this ) {
-				strongDependencies[ module.id ] = module;
-			}
-		});
+		strongDependencies = this.strongDependencies
+			.filter( module => module !== this );
 
 		return { strongDependencies, weakDependencies };
 	}

@@ -274,12 +274,10 @@ export default class Bundle {
 			strongDeps[ module.id ] = [];
 			stronglyDependsOn[ module.id ] = {};
 
-			keys( strongDependencies ).forEach( id => {
-				const imported = strongDependencies[ id ];
-
+			strongDependencies.forEach( imported => {
 				strongDeps[ module.id ].push( imported );
 
-				if ( seen[ id ] ) {
+				if ( seen[ imported.id ] ) {
 					// we need to prevent an infinite loop, and note that
 					// we need to check for strong/weak dependency relationships
 					hasCycles = true;
@@ -289,10 +287,8 @@ export default class Bundle {
 				visit( imported );
 			});
 
-			keys( weakDependencies ).forEach( id => {
-				const imported = weakDependencies[ id ];
-
-				if ( seen[ id ] ) {
+			weakDependencies.forEach( imported => {
+				if ( seen[ imported.id ] ) {
 					// we need to prevent an infinite loop, and note that
 					// we need to check for strong/weak dependency relationships
 					hasCycles = true;
