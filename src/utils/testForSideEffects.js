@@ -50,16 +50,6 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 						hasSideEffect = true;
 					}
 
-					if ( !declaration || declaration.isExternal ) {
-						// we're calling a global or an external function. Assume side-effects
-						hasSideEffect = true;
-					}
-
-					// we're calling a function defined in this bundle
-					else if ( declaration.testForSideEffects( strongDependencies ) ) {
-						hasSideEffect = true;
-					}
-
 					// TODO does function mutate inputs that are needed?
 				}
 
