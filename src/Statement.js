@@ -133,10 +133,9 @@ export default class Statement {
 						scope;
 
 					const reference = new Reference( node, referenceScope, statement );
-					references.push( reference );
-
-					reference.isImmediatelyUsed = !readDepth;
 					reference.isReassignment = isReassignment;
+
+					references.push( reference );
 
 					this.skip(); // don't descend from `foo.bar.baz` into `foo.bar`
 				}

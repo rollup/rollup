@@ -180,8 +180,11 @@ export default class Module {
 
 			if ( statement.node.type !== 'VariableDeclaration' ) return;
 
+			const init = statement.node.declarations[0].init;
+			if ( !init || init.type === 'FunctionExpression' ) return;
+
 			statement.references.forEach( reference => {
-				if ( reference.name === name || !reference.isImmediatelyUsed ) return;
+				if ( reference.name === name ) return;
 
 				const otherDeclaration = this.trace( reference.name );
 				if ( otherDeclaration ) otherDeclaration.addAlias( declaration );
