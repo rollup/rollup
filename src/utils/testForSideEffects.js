@@ -36,7 +36,7 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 			else if ( node.type === 'ThrowStatement' ) {
 				// we only care about errors thrown at the top level, otherwise
 				// any function with error checking gets included if called
-				hasSideEffect = !scope.parent;
+				hasSideEffect = scope.isTopLevel;
 			}
 
 			else if ( node.type === 'CallExpression' || node.type === 'NewExpression' ) {

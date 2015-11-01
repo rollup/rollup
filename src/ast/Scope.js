@@ -40,6 +40,7 @@ export default class Scope {
 
 		this.parent = options.parent;
 		this.isBlockScope = !!options.block;
+		this.isTopLevel = !this.parent || ( this.parent.isTopLevel && this.isBlockScope );
 
 		this.declarations = blank();
 
