@@ -1,4 +1,4 @@
-let env;
+var env;
 
 if ( typeof window !== 'undefined' ) {
 	env = function () {
