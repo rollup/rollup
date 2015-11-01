@@ -24,7 +24,9 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 			if ( isReference( node, parent ) ) {
 				const flattened = flatten( node );
 
-				if ( !scope.contains( flattened.name ) ) {
+				if ( flattened.name === 'arguments' ) {
+					hasSideEffect = true;
+				} if ( !scope.contains( flattened.name ) ) {
 					const declaration = statement.module.trace( flattened.name );
 					if ( declaration && !declaration.isExternal ) {
 						const module = declaration.module || declaration.statement.module; // TODO is this right?
