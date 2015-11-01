@@ -26,3 +26,7 @@ class Baz extends external.Component {
 const foo = new Foo();
 const bar = new Bar();
 const baz = new Baz();
+
+exports.foo = foo;
+exports.bar = bar;
+exports.baz = baz;

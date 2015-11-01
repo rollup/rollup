@@ -2,6 +2,6 @@ import Foo from './foo';
 import Bar from './bar';
 import Baz from './baz';
 
-const foo = new Foo();
-const bar = new Bar();
-const baz = new Baz();
+export const foo = new Foo();
+export const bar = new Bar();
+export const baz = new Baz();
