@@ -5,7 +5,7 @@ import modifierNodes from './ast/modifierNodes.js';
 import isFunctionDeclaration from './ast/isFunctionDeclaration.js';
 import isReference from './ast/isReference.js';
 import getLocation from './utils/getLocation.js';
-import testForSideEffects from './utils/testForSideEffects.js';
+import run from './utils/run.js';
 
 class Reference {
 	constructor ( node, scope, statement ) {
@@ -45,6 +45,7 @@ export default class Statement {
 		this.stringLiteralRanges = [];
 
 		this.isIncluded = false;
+		this.ran = false;
 
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
 		this.isExportDeclaration = /^Export/.test( node.type );
@@ -156,11 +157,11 @@ export default class Statement {
 		});
 	}
 
-	secondPass ( strongDependencies ) {
-		if ( ( this.tested && this.isIncluded ) || this.isImportDeclaration || this.isFunctionDeclaration ) return;
-		this.tested = true;
+	run ( strongDependencies ) {
+		if ( ( this.ran && this.isIncluded ) || this.isImportDeclaration || this.isFunctionDeclaration ) return;
+		this.ran = true;
 
-		if ( testForSideEffects( this.node, this.scope, this, strongDependencies ) ) {
+		if ( run( this.node, this.scope, this, strongDependencies ) ) {
 			this.mark();
 			return true;
 		}

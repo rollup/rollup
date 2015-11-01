@@ -12,7 +12,7 @@ let pureFunctions = {};
 	'Object', 'Object.keys'
 ].forEach( name => pureFunctions[ name ] = true );
 
-export default function testForSideEffects ( node, scope, statement, strongDependencies, force ) {
+export default function run ( node, scope, statement, strongDependencies, force ) {
 	let hasSideEffect = false;
 
 	walk( node, {
@@ -47,7 +47,7 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 					                    statement.module.trace( node.callee.name );
 
 					if ( declaration ) {
-						if ( declaration.isExternal || declaration.testForSideEffects( strongDependencies ) ) {
+						if ( declaration.isExternal || declaration.run( strongDependencies ) ) {
 							hasSideEffect = true;
 						}
 					} else if ( !pureFunctions[ node.callee.name ] ) {
@@ -74,7 +74,7 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 				}
 
 				// otherwise we're probably dealing with a function expression
-				else if ( testForSideEffects( node.callee, scope, statement, strongDependencies, true ) ) {
+				else if ( run( node.callee, scope, statement, strongDependencies, true ) ) {
 					hasSideEffect = true;
 				}
 			}

@@ -1,5 +1,5 @@
 import { blank, keys } from './utils/object.js';
-import testForSideEffects from './utils/testForSideEffects.js';
+import run from './utils/run.js';
 
 export default class Declaration {
 	constructor ( node, isParam ) {
@@ -32,24 +32,24 @@ export default class Declaration {
 		if ( reference.isReassignment ) this.isReassigned = true;
 	}
 
-	testForSideEffects ( strongDependencies ) {
+	render ( es6 ) {
+		if ( es6 ) return this.name;
+		if ( !this.isReassigned || !this.isExported ) return this.name;
+
+		return `exports.${this.name}`;
+	}
+
+	run ( strongDependencies ) {
 		if ( this.tested ) return this.hasSideEffects;
 		this.tested = true;
 
 		if ( !this.statement || !this.functionNode ) {
 			this.hasSideEffects = true; // err on the side of caution. TODO handle unambiguous `var x; x = y => z` cases
 		} else {
-			this.hasSideEffects = testForSideEffects( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies );
+			this.hasSideEffects = run( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies );
 		}
 
 		return this.hasSideEffects;
-	}
-
-	render ( es6 ) {
-		if ( es6 ) return this.name;
-		if ( !this.isReassigned || !this.isExported ) return this.name;
-
-		return `exports.${this.name}`;
 	}
 
 	use () {
@@ -87,20 +87,20 @@ export class SyntheticDefaultDeclaration {
 		this.original = declaration;
 	}
 
-	testForSideEffects ( strongDependencies ) {
-		if ( this.original ) {
-			return this.original.testForSideEffects( strongDependencies );
-		}
-
-		if ( /FunctionExpression/.test( this.node.declaration.type ) ) {
-			return testForSideEffects( this.node.declaration.body, this.statement.scope, this.statement, strongDependencies );
-		}
-	}
-
 	render () {
 		return !this.original || this.original.isReassigned ?
 			this.name :
 			this.original.render();
+	}
+
+	run ( strongDependencies ) {
+		if ( this.original ) {
+			return this.original.run( strongDependencies );
+		}
+
+		if ( /FunctionExpression/.test( this.node.declaration.type ) ) {
+			return run( this.node.declaration.body, this.statement.scope, this.statement, strongDependencies );
+		}
 	}
 
 	use () {

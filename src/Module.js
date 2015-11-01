@@ -278,16 +278,6 @@ export default class Module {
 		return keys( exports );
 	}
 
-	markStatements () {
-		let marked = false;
-
-		this.statements.forEach( statement => {
-			marked = marked || statement.secondPass( this.strongDependencies );
-		});
-
-		return marked;
-	}
-
 	namespace () {
 		if ( !this.declarations['*'] ) {
 			this.declarations['*'] = new SyntheticNamespaceDeclaration( this );
@@ -554,6 +544,16 @@ export default class Module {
 		}
 
 		return magicString.trim();
+	}
+
+	run () {
+		let marked = false;
+
+		this.statements.forEach( statement => {
+			marked = marked || statement.run( this.strongDependencies );
+		});
+
+		return marked;
 	}
 
 	trace ( name ) {
