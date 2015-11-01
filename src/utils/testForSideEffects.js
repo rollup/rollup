@@ -38,7 +38,7 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 			else if ( node.type === 'ThrowStatement' ) {
 				// we only care about errors thrown at the top level, otherwise
 				// any function with error checking gets included if called
-				hasSideEffect = scope.isTopLevel;
+				if ( scope.isTopLevel ) hasSideEffect = true;
 			}
 
 			else if ( node.type === 'CallExpression' || node.type === 'NewExpression' ) {
@@ -86,7 +86,7 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 				let declaration = scope.findDeclaration( subject.name );
 
 				if ( declaration ) {
-					hasSideEffect = declaration.isParam;
+					if ( declaration.isParam ) hasSideEffect = true;
 				} else {
 					declaration = statement.module.trace( subject.name );
 
