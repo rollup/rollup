@@ -50,6 +50,7 @@ export default class Bundle {
 
 		this.external = options.external || [];
 		this.onwarn = options.onwarn || onwarn;
+		this.aggressive = options.aggressive;
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports' ].forEach( global => this.assumedGlobals[ global ] = true );
@@ -74,7 +75,11 @@ export default class Bundle {
 				});
 
 				// mark statements that should appear in the bundle
-				this.modules.forEach( module => module.markStatements() );
+				if ( this.aggressive ) {
+					entryModule.markStatements();
+				} else {
+					this.modules.forEach( module => module.markStatements() );
+				}
 
 				this.orderedModules = this.sort();
 				this.deconflict();
