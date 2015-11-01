@@ -6,8 +6,12 @@ import flatten from '../ast/flatten';
 
 let pureFunctions = {};
 [
-	// TODO add others to this list
-	'Object.keys'
+	// TODO add others to this list from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
+	'Array', 'Array.isArray',
+
+	'Error', 'EvalError', 'InternalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError',
+
+	'Object', 'Object.keys'
 ].forEach( name => pureFunctions[ name ] = true );
 
 export default function testForSideEffects ( node, scope, statement, strongDependencies, force ) {
@@ -31,13 +35,11 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 				}
 			}
 
-			// If this is a top-level call expression, or an assignment to a global,
-			// this statement will need to be marked
-			else if ( node.type === 'NewExpression' ) {
+			else if ( node.type === 'ThrowStatement' ) {
 				hasSideEffect = true;
 			}
 
-			else if ( node.type === 'CallExpression' ) {
+			else if ( node.type === 'CallExpression' || node.type === 'NewExpression' ) {
 				if ( node.callee.type === 'Identifier' ) {
 					const declaration = scope.findDeclaration( node.callee.name ) ||
 					                    statement.module.trace( node.callee.name );
