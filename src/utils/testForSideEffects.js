@@ -42,6 +42,14 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 					const declaration = scope.findDeclaration( node.callee.name ) ||
 					                    statement.module.trace( node.callee.name );
 
+					if ( declaration ) {
+						if ( declaration.isExternal || declaration.testForSideEffects( strongDependencies ) ) {
+							hasSideEffect = true;
+						}
+					} else if ( !pureFunctions[ node.callee.name ] ) {
+						hasSideEffect = true;
+					}
+
 					if ( !declaration || declaration.isExternal ) {
 						// we're calling a global or an external function. Assume side-effects
 						hasSideEffect = true;
