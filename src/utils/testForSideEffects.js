@@ -8,9 +8,7 @@ let pureFunctions = {};
 [
 	// TODO add others to this list from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
 	'Array', 'Array.isArray',
-
 	'Error', 'EvalError', 'InternalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError',
-
 	'Object', 'Object.keys'
 ].forEach( name => pureFunctions[ name ] = true );
 
@@ -51,8 +49,6 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 					} else if ( !pureFunctions[ node.callee.name ] ) {
 						hasSideEffect = true;
 					}
-
-					// TODO does function mutate inputs that are needed?
 				}
 
 				else if ( node.callee.type === 'MemberExpression' ) {
@@ -83,8 +79,12 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 				let subject = node[ modifierNodes[ node.type ] ];
 				while ( subject.type === 'MemberExpression' ) subject = subject.object;
 
-				if ( !scope.findDeclaration( subject.name ) ) {
-					const declaration = statement.module.trace( subject.name );
+				let declaration = scope.findDeclaration( subject.name );
+
+				if ( declaration ) {
+					hasSideEffect = declaration.isParam;
+				} else {
+					declaration = statement.module.trace( subject.name );
 
 					if ( !declaration || declaration.isExternal || declaration.isUsed ) {
 						hasSideEffect = true;

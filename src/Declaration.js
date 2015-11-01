@@ -2,7 +2,7 @@ import { blank, keys } from './utils/object.js';
 import testForSideEffects from './utils/testForSideEffects.js';
 
 export default class Declaration {
-	constructor ( node ) {
+	constructor ( node, isParam ) {
 		if ( node ) {
 			if ( node.type === 'FunctionDeclaration' ) {
 				this.isFunctionDeclaration = true;
@@ -15,6 +15,7 @@ export default class Declaration {
 
 		this.statement = null;
 		this.name = null;
+		this.isParam = isParam;
 
 		this.isReassigned = false;
 		this.aliases = [];
@@ -32,6 +33,7 @@ export default class Declaration {
 	}
 
 	testForSideEffects ( strongDependencies ) {
+		// TODO memoize this
 		if ( !this.statement || !this.functionNode ) return;
 		return testForSideEffects( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies );
 	}

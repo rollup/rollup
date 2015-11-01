@@ -46,7 +46,7 @@ export default class Scope {
 		if ( options.params ) {
 			options.params.forEach( param => {
 				extractNames( param ).forEach( name => {
-					this.declarations[ name ] = new Declaration();
+					this.declarations[ name ] = new Declaration( param, true );
 				});
 			});
 		}
