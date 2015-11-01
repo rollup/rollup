@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'excludes functions that are known to be pure',
+	description: 'accounts for local scopes when tested function purity',
 	options: {
 		moduleName: 'myBundle'
 	}

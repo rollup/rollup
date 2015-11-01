@@ -37,7 +37,7 @@ export default class Declaration {
 		this.tested = true;
 
 		if ( !this.statement || !this.functionNode ) {
-			this.hasSideEffects = false;
+			this.hasSideEffects = true; // err on the side of caution. TODO handle unambiguous `var x; x = y => z` cases
 		} else {
 			this.hasSideEffects = testForSideEffects( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies );
 		}
