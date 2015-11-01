@@ -75,10 +75,19 @@ export default class Bundle {
 				});
 
 				// mark statements that should appear in the bundle
-				if ( this.aggressive ) {
-					entryModule.markStatements();
-				} else {
-					this.modules.forEach( module => module.markStatements() );
+				let settled = false;
+				while ( !settled ) {
+					settled = true;
+
+					if ( this.aggressive ) {
+						settled = !entryModule.markStatements();
+					} else {
+						this.modules.forEach( module => {
+							if ( module.markStatements() ) {
+								settled = false;
+							}
+						});
+					}
 				}
 
 				this.orderedModules = this.sort();

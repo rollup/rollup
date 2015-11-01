@@ -157,7 +157,8 @@ export default class Statement {
 	}
 
 	secondPass ( strongDependencies ) {
-		if ( this.isImportDeclaration || this.isFunctionDeclaration ) return;
+		if ( ( this.tested && this.isIncluded ) || this.isImportDeclaration || this.isFunctionDeclaration ) return;
+		this.tested = true;
 
 		if ( testForSideEffects( this.node, this.scope, this, strongDependencies ) ) {
 			this.mark();

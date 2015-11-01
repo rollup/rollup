@@ -279,9 +279,13 @@ export default class Module {
 	}
 
 	markStatements () {
+		let marked = false;
+
 		this.statements.forEach( statement => {
-			statement.secondPass( this.strongDependencies );
+			marked = marked || statement.secondPass( this.strongDependencies );
 		});
+
+		return marked;
 	}
 
 	namespace () {
