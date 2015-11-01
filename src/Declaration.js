@@ -6,10 +6,10 @@ export default class Declaration {
 		if ( node ) {
 			if ( node.type === 'FunctionDeclaration' ) {
 				this.isFunctionDeclaration = true;
-				this.functionBody = node.body;
+				this.functionNode = node;
 			} else if ( node.type === 'VariableDeclarator' && node.init && /FunctionExpression/.test( node.init.type ) ) {
 				this.isFunctionDeclaration = true;
-				this.functionBody = node.init.body;
+				this.functionNode = node.init;
 			}
 		}
 
@@ -32,8 +32,8 @@ export default class Declaration {
 	}
 
 	testForSideEffects ( strongDependencies ) {
-		if ( !this.statement ) return;
-		return testForSideEffects( this.functionBody, this.statement.scope, this.statement, strongDependencies );
+		if ( !this.statement || !this.functionNode ) return;
+		return testForSideEffects( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies );
 	}
 
 	render ( es6 ) {
