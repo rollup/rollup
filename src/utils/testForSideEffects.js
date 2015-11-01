@@ -82,10 +82,12 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 				let subject = node[ modifierNodes[ node.type ] ];
 				while ( subject.type === 'MemberExpression' ) subject = subject.object;
 
-				const declaration = statement.module.trace( subject.name );
+				if ( !scope.findDeclaration( subject.name ) ) {
+					const declaration = statement.module.trace( subject.name );
 
-				if ( !declaration || declaration.isExternal || declaration.statement.isIncluded ) {
-					hasSideEffect = true;
+					if ( !declaration || declaration.isExternal || declaration.isUsed ) {
+						hasSideEffect = true;
+					}
 				}
 			}
 		},
