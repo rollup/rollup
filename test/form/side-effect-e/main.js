@@ -1,6 +1,12 @@
 function foo () {
-	var a, b, c;
-	b = 1;
+	var Object = {
+		keys: function () {
+			console.log( 'side-effect' );
+		}
+	};
+
+	var obj = { foo: 1, bar: 2 };
+	var keys = Object.keys( obj );
 }
 
 foo();

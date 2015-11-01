@@ -1,6 +1,5 @@
 module.exports = {
-	solo: true,
-	description: 'disregards side-effects that are contained within a function',
+	description: 'excludes functions that are known to be pure',
 	options: {
 		moduleName: 'myBundle'
 	}

@@ -69,7 +69,8 @@ export default function testForSideEffects ( node, scope, statement, strongDepen
 					if ( flattened ) {
 						// if we're calling e.g. Object.keys(thing), there are no side-effects
 						// TODO make pureFunctions configurable
-						const declaration = statement.module.trace( flattened.name );
+						const declaration = scope.findDeclaration( flattened.name ) || statement.module.trace( flattened.name );
+
 						if ( !!declaration || !pureFunctions[ flattened.keypath ] ) {
 							hasSideEffect = true;
 						}
