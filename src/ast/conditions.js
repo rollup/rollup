@@ -8,8 +8,8 @@ function isNotEqualTest ( node ) {
 
 function nodesAreEqual ( a, b ) {
 	if ( a.type !== b.type ) return false;
-	if ( a.type === 'Literal' ) return a.value === b.value;
-	if ( a.type === 'Identifier' ) return a.name === b.name;
+	if ( a.type === 'Literal' ) return a.value === b.value
+	if ( a.type === 'Identifier' ) return a.name === b.name && a.name !== 'NaN';
 
 	return false;
 }
@@ -17,7 +17,7 @@ function nodesAreEqual ( a, b ) {
 function nodesAreNotEqual ( a, b ) {
 	if ( a.type !== b.type ) return false;
 	if ( a.type === 'Literal' ) return a.value != b.value;
-	if ( a.type === 'Identifier' ) return a.name != b.name;
+	if ( a.type === 'Identifier' ) return a.name != b.name || a.name === 'NaN';
 
 	return false;
 }
