@@ -7,5 +7,5 @@ function bar () {
 	console.log( 'this should be included' );
 }
 
-if ( NaN === NaN ) obj.foo();
+if ( 42 != '42' ) obj.foo();
 bar();

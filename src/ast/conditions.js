@@ -14,7 +14,6 @@ function not ( value ) {
 
 function equals ( a, b, strict ) {
 	if ( a.type !== b.type ) return undefined;
-	if ( a.type === 'Identifier' ) return a.name === b.name && a.name !== 'NaN';
 	if ( a.type === 'Literal' ) return strict ? a.value === b.value : a.value == b.value;
 }
 
