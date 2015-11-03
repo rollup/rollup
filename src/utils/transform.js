@@ -1,3 +1,5 @@
+import Promise from 'es6-promise/lib/es6-promise/promise.js';
+
 export default function transform ( source, id, transformers ) {
 	let sourceMapChain = [];
 
@@ -11,24 +13,27 @@ export default function transform ( source, id, transformers ) {
 	let originalCode = source.code;
 	let ast = source.ast;
 
-	let code = transformers.reduce( ( previous, transformer ) => {
-		let result = transformer( previous, id );
+	return transformers.reduce( ( promise, transformer ) => {
+		return promise.then( previous => {
+			return Promise.resolve( transformer( previous, id ) ).then( result => {
+				if ( result == null ) return previous;
 
-		if ( result == null ) return previous;
+				if ( typeof result === 'string' ) {
+					result = {
+						code: result,
+						ast: null,
+						map: null
+					};
+				}
 
-		if ( typeof result === 'string' ) {
-			result = {
-				code: result,
-				ast: null,
-				map: null
-			};
-		}
+				sourceMapChain.push( result.map );
+				ast = result.ast;
 
-		sourceMapChain.push( result.map );
-		ast = result.ast;
+				return result.code;
+			});
+		});
 
-		return result.code;
-	}, source.code );
+	}, Promise.resolve( source.code ) )
 
-	return { code, originalCode, ast, sourceMapChain };
+	.then( code => ({ code, originalCode, ast, sourceMapChain }) );
 }
