@@ -344,7 +344,7 @@ export default class Module {
 
 				if ( declaration ) {
 					declaration.addReference( reference );
-				} else if ( statement.node.type !== 'ExportNamedDeclaration' || !this.reexports[ reference.name ] ) {
+				} else {
 					// TODO handle globals
 					this.bundle.assumedGlobals[ reference.name ] = true;
 				}
