@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 0.20.4
+
+* Check file exists at resolve time, to allow filenames with non-extension dots in them ([#250](https://github.com/rollup/rollup/pull/250))
+* Import `Promise` where used, for Node 0.10 support ([#254](https://github.com/rollup/rollup/issues/254))
+* Allow asynchronous transformer plugins ([#260](https://github.com/rollup/rollup/issues/260))
+* Don't assume re-exported bindings are globals when deconflicting ([#267](https://github.com/rollup/rollup/issues/267))
+
+
 ## 0.20.3
 
 * Fix bug where multiple `export *` declarations caused error ([#244](https://github.com/rollup/rollup/pulls/244))
