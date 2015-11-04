@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.20.5
+
+* Ensure re-exports don't create a local binding ([#270](https://github.com/rollup/rollup/pull/270))
+
 ## 0.20.4
 
 * Check file exists at resolve time, to allow filenames with non-extension dots in them ([#250](https://github.com/rollup/rollup/pull/250))
