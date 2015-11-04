@@ -17,11 +17,10 @@ export default function attachScopes ( statement ) {
 				scope.addDeclaration( node, false, false );
 			}
 
-			// var foo = 1
+			// var foo = 1, bar = 2
 			if ( node.type === 'VariableDeclaration' ) {
 				const isBlockDeclaration = blockDeclarations[ node.kind ];
-				// only one declarator per block, because we split them up already
-				scope.addDeclaration( node.declarations[0], isBlockDeclaration, true );
+				node.declarations.forEach( declaration => scope.addDeclaration( declaration, isBlockDeclaration, true ) );
 			}
 
 			let newScope;
