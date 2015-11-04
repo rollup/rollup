@@ -344,7 +344,11 @@ export default class Module {
 
 				if ( declaration ) {
 					declaration.addReference( reference );
-				} else if ( statement.node.type !== 'ExportNamedDeclaration' || !this.reexports[ reference.name ] ) {
+				} else if ( !this.reexports[ reference.name ] ||
+						statement.node.type !== 'ExportNamedDeclaration' ||
+						(statement.node.declaration && !statement.node.declaration.declarations.some ( declaration => declaration.id.name === reference.name ) ) ) {
+					// A re-export does not introduce a global: export {foo} from "./foo";
+					// But a named export can: export var foo = global();
 					// TODO handle globals
 					this.bundle.assumedGlobals[ reference.name ] = true;
 				}
