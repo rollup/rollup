@@ -100,6 +100,9 @@ export default class Statement {
 					module.bundle.onwarn( `Use of \`eval\` (in ${module.id}) is discouraged, as it may cause issues with minification. See https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval for more details` );
 				}
 
+				// skip re-export declarations
+				if ( node.type === 'ExportNamedDeclaration' && node.source ) return this.skip();
+
 				if ( node.type === 'TemplateElement' ) stringLiteralRanges.push([ node.start, node.end ]);
 				if ( node.type === 'Literal' && typeof node.value === 'string' && /\n/.test( node.raw ) ) {
 					stringLiteralRanges.push([ node.start + 1, node.end - 1 ]);
