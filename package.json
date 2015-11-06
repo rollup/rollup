@@ -8,7 +8,7 @@
     "rollup": "./bin/rollup"
   },
   "scripts": {
-    "pretest": "npm run build",
+    "pretest": "eslint src/**/*.js && npm run build",
     "test": "mocha",
     "pretest-coverage": "npm run build",
     "test-coverage": "rm -rf coverage/* && istanbul cover --report json node_modules/.bin/_mocha -- -u exports -R spec test/test.js",
