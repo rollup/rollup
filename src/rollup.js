@@ -33,7 +33,16 @@ export function rollup ( options ) {
 				}
 
 				const dest = options.dest;
-				let { code, map } = bundle.render( options );
+				let result = bundle.render( options );
+
+				if (typeof options.transform === 'function') {
+					result = options.transform(result);
+					if (typeof result !== 'object' || result === null) {
+						throw new Error( 'options.transform should return { code, map }' );
+					}
+				}
+
+				let { code, map } = result;
 
 				let promises = [];
 
