@@ -17,6 +17,8 @@ class SyntheticDefaultDeclaration {
 		this.original = null;
 		this.isExported = false;
 		this.aliases = [];
+
+		this.isUsed = false;
 	}
 
 	addAlias ( declaration ) {
@@ -42,6 +44,8 @@ class SyntheticDefaultDeclaration {
 	}
 
 	use () {
+		if ( this.isUsed ) return;
+
 		this.isUsed = true;
 		this.statement.mark();
 
