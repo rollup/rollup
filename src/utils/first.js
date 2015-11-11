@@ -9,5 +9,5 @@ export default function first ( candidates ) {
 				result :
 				Promise.resolve( candidate( ...args ) ) );
 		}, Promise.resolve() );
-	}
+	};
 }

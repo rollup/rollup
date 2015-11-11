@@ -8,7 +8,7 @@
     "rollup": "./bin/rollup"
   },
   "scripts": {
-    "pretest": "npm run build",
+    "pretest": "npm run lint && npm run build",
     "test": "mocha",
     "pretest-coverage": "npm run build",
     "test-coverage": "rm -rf coverage/* && istanbul cover --report json node_modules/.bin/_mocha -- -u exports -R spec test/test.js",
@@ -17,7 +17,7 @@
     "build": "git rev-parse HEAD > .commithash && rollup -c -o dist/rollup.js",
     "build:browser": "git rev-parse HEAD > .commithash && rollup -c rollup.config.browser.js -o dist/rollup.browser.js",
     "prepublish": "npm test && npm run build:browser",
-    "lint": "eslint src"
+    "lint": "eslint src browser"
   },
   "repository": {
     "type": "git",
