@@ -4,6 +4,9 @@ var path = require( 'path' );
 var handleError = require( './handleError' );
 var rollup = require( '../' );
 
+// log to stderr to keep `rollup main.js > bundle.js` from breaking
+var log = console.error.bind(console);
+
 module.exports = function ( command ) {
 	if ( command._.length > 1 ) {
 		handleError({ code: 'ONE_AT_A_TIME' });
@@ -24,7 +27,7 @@ module.exports = function ( command ) {
 
 		rollup.rollup({
 			entry: config,
-			onwarn: function () {}
+			onwarn: log
 		}).then( function ( bundle ) {
 			var code = bundle.generate({
 				format: 'cjs'
@@ -49,7 +52,8 @@ module.exports = function ( command ) {
 			execute( options, command );
 
 			require.extensions[ '.js' ] = defaultLoader;
-		});
+		})
+		.catch(log);
 	} else {
 		execute( {}, command );
 	}
@@ -83,6 +87,8 @@ function execute ( options, command ) {
 
 		command.globals = globals;
 	}
+
+	options.onwarn = options.onwarn || log;
 
 	options.external = external;
 	options.indent = command.indent !== false;
