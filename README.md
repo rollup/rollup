@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://travis-ci.org/rollup/rollup">
-    <img src="http://img.shields.io/travis/rollup/rollup.svg"
+    <img src="https://api.travis-ci.org/rollup/rollup.svg?branch=master"
          alt="build status">
   </a>
   <a href="https://npmjs.org/package/rollup">
