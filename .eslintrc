@@ -16,9 +16,6 @@
 		"mocha": true,
 		"node": true
 	},
-	"globals": {
-		"Promise": false
-	},
 	"extends": "eslint:recommended",
 	"ecmaFeatures": {
 		"modules": true
