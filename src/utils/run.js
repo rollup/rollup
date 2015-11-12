@@ -1,6 +1,5 @@
 import { walk } from 'estree-walker';
 import modifierNodes from '../ast/modifierNodes.js';
-import isFunctionDeclaration from '../ast/isFunctionDeclaration.js';
 import isReference from '../ast/isReference.js';
 import flatten from '../ast/flatten';
 

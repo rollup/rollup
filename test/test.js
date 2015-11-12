@@ -161,6 +161,8 @@ describe( 'rollup', function () {
 							code = result.code;
 						}
 
+						if ( config.code ) config.code( code );
+
 						var module = {
 							exports: {}
 						};

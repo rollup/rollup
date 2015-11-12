@@ -8,6 +8,8 @@ import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import { SyntheticDefaultDeclaration, SyntheticNamespaceDeclaration } from './Declaration.js';
+import { isFalsy, isTruthy } from './ast/conditions.js';
+import { emptyBlockStatement } from './ast/create.js';
 
 export default class Module {
 	constructor ({ id, code, originalCode, ast, sourceMapChain, bundle }) {
@@ -307,6 +309,17 @@ export default class Module {
 
 		walk( ast, {
 			enter: node => {
+				// eliminate dead branches early
+				if ( node.type === 'IfStatement' ) {
+					if ( isFalsy( node.test ) ) {
+						this.magicString.overwrite( node.consequent.start, node.consequent.end, '{}' );
+						node.consequent = emptyBlockStatement( node.consequent.start, node.consequent.end );
+					} else if ( node.alternate && isTruthy( node.test ) ) {
+						this.magicString.overwrite( node.alternate.start, node.alternate.end, '{}' );
+						node.alternate = emptyBlockStatement( node.alternate.start, node.alternate.end );
+					}
+				}
+
 				this.magicString.addSourcemapLocation( node.start );
 				this.magicString.addSourcemapLocation( node.end );
 			}
