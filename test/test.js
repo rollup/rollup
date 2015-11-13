@@ -47,13 +47,13 @@ describe( 'rollup', function () {
 		});
 
 		it( 'fails without options or options.entry', function () {
-			assert.throws( function () {
-				rollup.rollup();
-			}, /must supply options\.entry/ );
+			rollup.rollup().catch( function (err) {
+				assert( /must supply options\.entry/.test( err.toString() ) );
+			});
 
-			assert.throws( function () {
-				rollup.rollup({});
-			}, /must supply options\.entry/ );
+			rollup.rollup().catch( function (err) {
+				assert( /must supply options\.entry/.test( err.toString() ) );
+			});
 		});
 	});
 
