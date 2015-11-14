@@ -43,7 +43,7 @@ export default class Declaration {
 		if ( this.tested ) return this.hasSideEffects;
 		this.tested = true;
 
-		if ( !this.statement || !this.functionNode ) {
+		if ( !this.functionNode ) {
 			this.hasSideEffects = true; // err on the side of caution. TODO handle unambiguous `var x; x = y => z` cases
 		} else {
 			this.hasSideEffects = run( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies, false, safe );
@@ -222,6 +222,10 @@ export class ExternalDeclaration {
 		}
 
 		return es6 ? this.name : `${this.module.name}.${this.name}`;
+	}
+
+	run ( strongDependencies, safe ) {
+		return safe;
 	}
 
 	use () {

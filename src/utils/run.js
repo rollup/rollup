@@ -83,7 +83,7 @@ export default function run ( node, scope, statement, strongDependencies, force,
 					                    statement.module.trace( node.callee.name );
 
 					if ( declaration ) {
-						if ( declaration.isExternal || declaration.run( strongDependencies, safe ) ) {
+						if ( declaration.run( strongDependencies, safe ) ) {
 							hasSideEffect = true;
 						}
 					} else if ( safe && !pureFunctions[ node.callee.name ] ) {
@@ -104,7 +104,7 @@ export default function run ( node, scope, statement, strongDependencies, force,
 						}
 					} else {
 						// is not a keypath like `foo.bar.baz` – could be e.g.
-						// `(a || b).foo()`. Err on the side of caution
+						// `foo[bar].baz()`. Err on the side of caution
 						hasSideEffect = true;
 					}
 				}
