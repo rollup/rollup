@@ -39,14 +39,14 @@ export default class Declaration {
 		return `exports.${this.name}`;
 	}
 
-	run ( strongDependencies, safe ) {
+	run ( strongDependencies ) {
 		if ( this.tested ) return this.hasSideEffects;
 		this.tested = true;
 
 		if ( !this.functionNode ) {
 			this.hasSideEffects = true; // err on the side of caution. TODO handle unambiguous `var x; x = y => z` cases
 		} else {
-			this.hasSideEffects = run( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies, false, safe );
+			this.hasSideEffects = run( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies, false );
 		}
 
 		return this.hasSideEffects;
@@ -93,13 +93,13 @@ export class SyntheticDefaultDeclaration {
 			this.original.render();
 	}
 
-	run ( strongDependencies, safe ) {
+	run ( strongDependencies ) {
 		if ( this.original ) {
-			return this.original.run( strongDependencies, safe );
+			return this.original.run( strongDependencies );
 		}
 
 		if ( /FunctionExpression/.test( this.node.declaration.type ) ) {
-			return run( this.node.declaration.body, this.statement.scope, this.statement, strongDependencies, false, safe );
+			return run( this.node.declaration.body, this.statement.scope, this.statement, strongDependencies, false );
 		}
 	}
 
@@ -224,8 +224,8 @@ export class ExternalDeclaration {
 		return es6 ? this.name : `${this.module.name}.${this.name}`;
 	}
 
-	run ( strongDependencies, safe ) {
-		return safe;
+	run ( strongDependencies ) {
+		return true;
 	}
 
 	use () {

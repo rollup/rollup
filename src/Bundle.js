@@ -82,14 +82,12 @@ export default class Bundle {
 				});
 
 				// mark statements that should appear in the bundle
-				const safe = !this.aggressive;
-
 				let settled = false;
 				while ( !settled ) {
 					settled = true;
 
 					this.modules.forEach( module => {
-						if ( module.run( safe || module === entryModule ) ) settled = false;
+						if ( module.run() ) settled = false;
 					});
 				}
 

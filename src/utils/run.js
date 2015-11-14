@@ -46,7 +46,7 @@ simdTypes.forEach( t => {
 
 
 
-export default function run ( node, scope, statement, strongDependencies, force, safe ) {
+export default function run ( node, scope, statement, strongDependencies, force ) {
 	let hasSideEffect = false;
 
 	walk( node, {
@@ -83,10 +83,10 @@ export default function run ( node, scope, statement, strongDependencies, force,
 					                    statement.module.trace( node.callee.name );
 
 					if ( declaration ) {
-						if ( declaration.run( strongDependencies, safe ) ) {
+						if ( declaration.run( strongDependencies ) ) {
 							hasSideEffect = true;
 						}
-					} else if ( safe && !pureFunctions[ node.callee.name ] ) {
+					} else if ( !pureFunctions[ node.callee.name ] ) {
 						hasSideEffect = true;
 					}
 				}
@@ -99,7 +99,7 @@ export default function run ( node, scope, statement, strongDependencies, force,
 						// TODO make pureFunctions configurable
 						const declaration = scope.findDeclaration( flattened.name ) || statement.module.trace( flattened.name );
 
-						if ( safe && ( !!declaration || !pureFunctions[ flattened.keypath ] ) ) {
+						if ( !!declaration || !pureFunctions[ flattened.keypath ] ) {
 							hasSideEffect = true;
 						}
 					} else {
@@ -110,7 +110,7 @@ export default function run ( node, scope, statement, strongDependencies, force,
 				}
 
 				// otherwise we're probably dealing with a function expression
-				else if ( run( node.callee, scope, statement, strongDependencies, true, safe ) ) {
+				else if ( run( node.callee, scope, statement, strongDependencies, true ) ) {
 					hasSideEffect = true;
 				}
 			}
@@ -126,7 +126,7 @@ export default function run ( node, scope, statement, strongDependencies, force,
 				} else {
 					declaration = statement.module.trace( subject.name );
 
-					if ( ( safe && ( !declaration || declaration.isExternal ) ) || declaration && declaration.isUsed ) {
+					if ( !declaration || declaration.isExternal || declaration.isUsed ) {
 						hasSideEffect = true;
 					}
 				}
