@@ -2,7 +2,7 @@ import { blank, keys } from './utils/object.js';
 import run from './utils/run.js';
 
 export default class Declaration {
-	constructor ( node, isParam ) {
+	constructor ( node, isParam, statement ) {
 		if ( node ) {
 			if ( node.type === 'FunctionDeclaration' ) {
 				this.isFunctionDeclaration = true;
@@ -13,7 +13,7 @@ export default class Declaration {
 			}
 		}
 
-		this.statement = null;
+		this.statement = statement;
 		this.name = null;
 		this.isParam = isParam;
 
