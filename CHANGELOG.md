@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 0.21.0
+
+* Only include statements whose side-effects are relevant (i.e. contribute to exports or affect global state) ([#253](https://github.com/rollup/rollup/pull/253)) ([#253](https://github.com/rollup/rollup/pull/253))
+* Exclude dead branches from analysis and inclusion ([#249](https://github.com/rollup/rollup/pull/249))
+* Add `aggressive: true` option to eliminate all side-effects outside entry module
+* More informative error when re-exporting non-existent binding ([#274](https://github.com/rollup/rollup/issues/274))
+* Fix infinite recursion bug ([#291](https://github.com/rollup/rollup/issues/291))
+* Log errors when using `rollup --config` ([#288](https://github.com/rollup/rollup/pull/288))
+* Return rejected promises on startup instead of throwing error, if options are invalid ([#303](https://github.com/rollup/rollup/pull/303))
+
 ## 0.20.5
 
 * Ensure re-exports don't create a local binding ([#270](https://github.com/rollup/rollup/pull/270))
