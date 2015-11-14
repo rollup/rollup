@@ -5,7 +5,7 @@
 }(this, function () { 'use strict';
 
 	function foo () {
-		return bar();
+		console.log( bar() );
 	}
 
 	function bar () {

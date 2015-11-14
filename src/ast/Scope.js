@@ -1,4 +1,5 @@
 import { blank, keys } from '../utils/object.js';
+import Declaration from '../Declaration.js';
 
 const extractors = {
 	Identifier ( names, param ) {
@@ -33,58 +34,20 @@ function extractNames ( param ) {
 	return names;
 }
 
-class Declaration {
-	constructor () {
-		this.statement = null;
-		this.name = null;
-
-		this.isReassigned = false;
-		this.aliases = [];
-
-		this.isUsed = false;
-	}
-
-	addAlias ( declaration ) {
-		this.aliases.push( declaration );
-	}
-
-	addReference ( reference ) {
-		reference.declaration = this;
-		this.name = reference.name; // TODO handle differences of opinion
-
-		if ( reference.isReassignment ) this.isReassigned = true;
-	}
-
-	render ( es6 ) {
-		if ( es6 ) return this.name;
-		if ( !this.isReassigned || !this.isExported ) return this.name;
-
-		return `exports.${this.name}`;
-	}
-
-	use () {
-		if ( this.isUsed ) return;
-
-		this.isUsed = true;
-		if ( this.statement ) this.statement.mark();
-
-		this.aliases.forEach( alias => alias.use() );
-	}
-}
-
 export default class Scope {
 	constructor ( options ) {
 		options = options || {};
 
 		this.parent = options.parent;
 		this.isBlockScope = !!options.block;
+		this.isTopLevel = !this.parent || ( this.parent.isTopLevel && this.isBlockScope );
 
 		this.declarations = blank();
 
 		if ( options.params ) {
 			options.params.forEach( param => {
 				extractNames( param ).forEach( name => {
-					this.declarations[ name ] = new Declaration( name );
+					this.declarations[ name ] = new Declaration( param, true );
 				});
 			});
 		}
@@ -97,7 +60,7 @@ export default class Scope {
 			this.parent.addDeclaration( node, isBlockDeclaration, isVar );
 		} else {
 			extractNames( node.id ).forEach( name => {
-				this.declarations[ name ] = new Declaration( name );
+				this.declarations[ name ] = new Declaration( node );
 			});
 		}
 	}

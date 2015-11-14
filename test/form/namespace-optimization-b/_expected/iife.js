@@ -1,15 +1,19 @@
 (function () { 'use strict';
 
-  function foo() {
-  };
+	function foo () {
+		console.log( 'foo' );
+	}
 
-  function a() {
-    foo();
-    foo();
-    var a;
-    if (a.b) {
-    }
-  }
-  a();
+	function a () {
+		foo();
+		foo();
+
+		var a;
+		if ( a.b ) {
+			// empty
+		}
+	}
+
+	a();
 
 })();

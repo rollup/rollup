@@ -1,4 +1,4 @@
-(function (external) { 'use strict';
+(function (exports,external) { 'use strict';
 
 	class Foo extends external.Component {
 		constructor () {
@@ -25,4 +25,8 @@
 	const bar = new Bar();
 	const baz = new Baz();
 
-})(external);
+	exports.foo = foo;
+	exports.bar = bar;
+	exports.baz = baz;
+
+})((this.myBundle = {}),external);

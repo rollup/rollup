@@ -24,3 +24,5 @@ class Baz extends Component {
 const foo = new Foo();
 const bar = new Bar();
 const baz = new Baz();
+
+export { foo, bar, baz };

@@ -1,43 +1,17 @@
 import { walk } from 'estree-walker';
 import Scope from './ast/Scope.js';
 import attachScopes from './ast/attachScopes.js';
+import modifierNodes from './ast/modifierNodes.js';
+import isFunctionDeclaration from './ast/isFunctionDeclaration.js';
+import isReference from './ast/isReference.js';
 import getLocation from './utils/getLocation.js';
-
-const modifierNodes = {
-	AssignmentExpression: 'left',
-	UpdateExpression: 'argument'
-};
-
-function isIife ( node, parent ) {
-	return parent && parent.type === 'CallExpression' && node === parent.callee;
-}
-
-function isReference ( node, parent ) {
-	if ( node.type === 'MemberExpression' ) {
-		return !node.computed && isReference( node.object, node );
-	}
-
-	if ( node.type === 'Identifier' ) {
-		// TODO is this right?
-		if ( parent.type === 'MemberExpression' ) return parent.computed || node === parent.object;
-
-		// disregard the `bar` in { bar: foo }
-		if ( parent.type === 'Property' && node !== parent.value ) return false;
-
-		// disregard the `bar` in `class Foo { bar () {...} }`
-		if ( parent.type === 'MethodDefinition' ) return false;
-
-		// disregard the `bar` in `export { foo as bar }`
-		if ( parent.type === 'ExportSpecifier' && node !== parent.local ) return;
-
-		return true;
-	}
-}
+import run from './utils/run.js';
 
 class Reference {
-	constructor ( node, scope ) {
+	constructor ( node, scope, statement ) {
 		this.node = node;
 		this.scope = scope;
+		this.statement = statement;
 
 		this.declaration = null; // bound later
 
@@ -71,13 +45,17 @@ export default class Statement {
 		this.stringLiteralRanges = [];
 
 		this.isIncluded = false;
+		this.ran = false;
 
 		this.isImportDeclaration = node.type === 'ImportDeclaration';
 		this.isExportDeclaration = /^Export/.test( node.type );
 		this.isReexportDeclaration = this.isExportDeclaration && !!node.source;
+
+		this.isFunctionDeclaration = isFunctionDeclaration( node ) ||
+			this.isExportDeclaration && isFunctionDeclaration( node.declaration );
 	}
 
-	analyse () {
+	firstPass () {
 		if ( this.isImportDeclaration ) return; // nothing to analyse
 
 		// attach scopes
@@ -90,6 +68,7 @@ export default class Statement {
 		});
 
 		// find references
+		const statement = this;
 		let { module, references, scope, stringLiteralRanges } = this;
 		let readDepth = 0;
 
@@ -109,7 +88,7 @@ export default class Statement {
 				}
 
 				if ( node._scope ) scope = node._scope;
-				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth += 1;
+				if ( /Function/.test( node.type ) ) readDepth += 1;
 
 				// special case – shorthand properties. because node.key === node.value,
 				// we can't differentiate once we've descended into the node
@@ -156,18 +135,17 @@ export default class Statement {
 						scope.parent :
 						scope;
 
-					const reference = new Reference( node, referenceScope );
-					references.push( reference );
-
-					reference.isImmediatelyUsed = !readDepth;
+					const reference = new Reference( node, referenceScope, statement );
 					reference.isReassignment = isReassignment;
+
+					references.push( reference );
 
 					this.skip(); // don't descend from `foo.bar.baz` into `foo.bar`
 				}
 			},
-			leave ( node, parent ) {
+			leave ( node ) {
 				if ( node._scope ) scope = scope.parent;
-				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) readDepth -= 1;
+				if ( /Function/.test( node.type ) ) readDepth -= 1;
 			}
 		});
 	}
@@ -181,39 +159,14 @@ export default class Statement {
 		});
 	}
 
-	markSideEffect () {
-		if ( this.isIncluded ) return;
+	run ( strongDependencies ) {
+		if ( ( this.ran && this.isIncluded ) || this.isImportDeclaration || this.isFunctionDeclaration ) return;
+		this.ran = true;
 
-		const statement = this;
-		let hasSideEffect = false;
-
-		walk( this.node, {
-			enter ( node, parent ) {
-				if ( /Function/.test( node.type ) && !isIife( node, parent ) ) return this.skip();
-
-				// If this is a top-level call expression, or an assignment to a global,
-				// this statement will need to be marked
-				if ( node.type === 'CallExpression' || node.type === 'NewExpression' ) {
-					hasSideEffect = true;
-				}
-
-				else if ( node.type in modifierNodes ) {
-					let subject = node[ modifierNodes[ node.type ] ];
-					while ( subject.type === 'MemberExpression' ) subject = subject.object;
-
-					const declaration = statement.module.trace( subject.name );
-
-					if ( !declaration || declaration.isExternal || declaration.statement.isIncluded ) {
-						hasSideEffect = true;
-					}
-				}
-
-				if ( hasSideEffect ) this.skip();
-			}
-		});
-
-		if ( hasSideEffect ) statement.mark();
-		return hasSideEffect;
+		if ( run( this.node, this.scope, this, strongDependencies ) ) {
+			this.mark();
+			return true;
+		}
 	}
 
 	source () {

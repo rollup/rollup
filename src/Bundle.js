@@ -39,7 +39,6 @@ export default class Bundle {
 			.map( plugin => plugin.transform )
 			.filter( Boolean );
 
-		this.pending = blank();
 		this.moduleById = blank();
 		this.modules = [];
 
@@ -50,20 +49,29 @@ export default class Bundle {
 
 		this.external = options.external || [];
 		this.onwarn = options.onwarn || onwarn;
+		this.aggressive = options.aggressive;
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports' ].forEach( global => this.assumedGlobals[ global ] = true );
 	}
 
 	build () {
+		// Phase 1 – discovery. We load the entry module and find which
+		// modules it imports, and import those, until we have all
+		// of the entry module's dependencies
 		return Promise.resolve( this.resolveId( this.entry, undefined ) )
 			.then( id => this.fetchModule( id, undefined ) )
 			.then( entryModule => {
 				this.entryModule = entryModule;
 
+				// Phase 2 – binding. We link references to their declarations
+				// to generate a complete picture of the bundle
 				this.modules.forEach( module => module.bindImportSpecifiers() );
 				this.modules.forEach( module => module.bindAliases() );
 				this.modules.forEach( module => module.bindReferences() );
+
+				// Phase 3 – marking. We 'run' each statement to see which ones
+				// need to be included in the generated bundle
 
 				// mark all export statements
 				entryModule.getExports().forEach( name => {
@@ -73,15 +81,23 @@ export default class Bundle {
 					declaration.use();
 				});
 
+				// mark statements that should appear in the bundle
 				let settled = false;
 				while ( !settled ) {
 					settled = true;
 
-					this.modules.forEach( module => {
-						if ( module.markAllSideEffects() ) settled = false;
-					});
+					if ( this.aggressive ) {
+						settled = !entryModule.run();
+					} else {
+						this.modules.forEach( module => {
+							if ( module.run() ) settled = false;
+						});
+					}
 				}
 
+				// Phase 4 – final preparation. We order the modules with an
+				// enhanced topological sort that accounts for cycles, then
+				// ensure that names are deconflicted throughout the bundle
 				this.orderedModules = this.sort();
 				this.deconflict();
 			});
@@ -121,8 +137,8 @@ export default class Bundle {
 
 	fetchModule ( id, importer ) {
 		// short-circuit cycles
-		if ( this.pending[ id ] ) return null;
-		this.pending[ id ] = true;
+		if ( id in this.moduleById ) return null;
+		this.moduleById[ id ] = null;
 
 		return Promise.resolve( this.load( id ) )
 			.catch( err => {
@@ -258,12 +274,10 @@ export default class Bundle {
 			strongDeps[ module.id ] = [];
 			stronglyDependsOn[ module.id ] = {};
 
-			keys( strongDependencies ).forEach( id => {
-				const imported = strongDependencies[ id ];
-
+			strongDependencies.forEach( imported => {
 				strongDeps[ module.id ].push( imported );
 
-				if ( seen[ id ] ) {
+				if ( seen[ imported.id ] ) {
 					// we need to prevent an infinite loop, and note that
 					// we need to check for strong/weak dependency relationships
 					hasCycles = true;
@@ -273,10 +287,8 @@ export default class Bundle {
 				visit( imported );
 			});
 
-			keys( weakDependencies ).forEach( id => {
-				const imported = weakDependencies[ id ];
-
-				if ( seen[ id ] ) {
+			weakDependencies.forEach( imported => {
+				if ( seen[ imported.id ] ) {
 					// we need to prevent an infinite loop, and note that
 					// we need to check for strong/weak dependency relationships
 					hasCycles = true;

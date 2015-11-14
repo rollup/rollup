@@ -1,19 +1,23 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
-  typeof define === 'function' && define.amd ? define(factory) :
-  factory();
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	factory();
 }(this, function () { 'use strict';
 
-  function foo() {
-  };
+	function foo () {
+		console.log( 'foo' );
+	}
 
-  function a() {
-    foo();
-    foo();
-    var a;
-    if (a.b) {
-    }
-  }
-  a();
+	function a () {
+		foo();
+		foo();
+
+		var a;
+		if ( a.b ) {
+			// empty
+		}
+	}
+
+	a();
 
 }));

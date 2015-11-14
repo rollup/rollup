@@ -1,4 +1,4 @@
-define(['external'], function (external) { 'use strict';
+define(['exports', 'external'], function (exports, external) { 'use strict';
 
 	class Foo extends external.Component {
 		constructor () {
@@ -24,5 +24,9 @@ define(['external'], function (external) { 'use strict';
 	const foo = new Foo();
 	const bar = new Bar();
 	const baz = new Baz();
+
+	exports.foo = foo;
+	exports.bar = bar;
+	exports.baz = baz;
 
 });
