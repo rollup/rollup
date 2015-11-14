@@ -46,7 +46,7 @@ simdTypes.forEach( t => {
 
 
 
-export default function run ( node, scope, statement, strongDependencies, force ) {
+export default function run ( node, scope, statement, strongDependencies, force, safe ) {
 	let hasSideEffect = false;
 
 	walk( node, {
@@ -60,7 +60,9 @@ export default function run ( node, scope, statement, strongDependencies, force 
 
 				if ( flattened.name === 'arguments' ) {
 					hasSideEffect = true;
-				} if ( !scope.contains( flattened.name ) ) {
+				}
+
+				else if ( !scope.contains( flattened.name ) ) {
 					const declaration = statement.module.trace( flattened.name );
 					if ( declaration && !declaration.isExternal ) {
 						const module = declaration.module || declaration.statement.module; // TODO is this right?
@@ -81,10 +83,10 @@ export default function run ( node, scope, statement, strongDependencies, force 
 					                    statement.module.trace( node.callee.name );
 
 					if ( declaration ) {
-						if ( declaration.isExternal || declaration.run( strongDependencies ) ) {
+						if ( declaration.isExternal || declaration.run( strongDependencies, safe ) ) {
 							hasSideEffect = true;
 						}
-					} else if ( !pureFunctions[ node.callee.name ] ) {
+					} else if ( safe && !pureFunctions[ node.callee.name ] ) {
 						hasSideEffect = true;
 					}
 				}
@@ -97,7 +99,7 @@ export default function run ( node, scope, statement, strongDependencies, force 
 						// TODO make pureFunctions configurable
 						const declaration = scope.findDeclaration( flattened.name ) || statement.module.trace( flattened.name );
 
-						if ( !!declaration || !pureFunctions[ flattened.keypath ] ) {
+						if ( safe && ( !!declaration || !pureFunctions[ flattened.keypath ] ) ) {
 							hasSideEffect = true;
 						}
 					} else {
@@ -108,7 +110,7 @@ export default function run ( node, scope, statement, strongDependencies, force 
 				}
 
 				// otherwise we're probably dealing with a function expression
-				else if ( run( node.callee, scope, statement, strongDependencies, true ) ) {
+				else if ( run( node.callee, scope, statement, strongDependencies, true, safe ) ) {
 					hasSideEffect = true;
 				}
 			}
@@ -124,7 +126,7 @@ export default function run ( node, scope, statement, strongDependencies, force 
 				} else {
 					declaration = statement.module.trace( subject.name );
 
-					if ( !declaration || declaration.isExternal || declaration.isUsed ) {
+					if ( ( safe && ( !declaration || declaration.isExternal ) ) || declaration && declaration.isUsed ) {
 						hasSideEffect = true;
 					}
 				}

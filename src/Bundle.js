@@ -82,17 +82,15 @@ export default class Bundle {
 				});
 
 				// mark statements that should appear in the bundle
+				const safe = !this.aggressive;
+
 				let settled = false;
 				while ( !settled ) {
 					settled = true;
 
-					if ( this.aggressive ) {
-						settled = !entryModule.run();
-					} else {
-						this.modules.forEach( module => {
-							if ( module.run() ) settled = false;
-						});
-					}
+					this.modules.forEach( module => {
+						if ( module.run( safe || module === entryModule ) ) settled = false;
+					});
 				}
 
 				// Phase 4 – final preparation. We order the modules with an
