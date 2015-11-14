@@ -72,6 +72,7 @@ export default class Module {
 			else {
 				node.specifiers.forEach( specifier => {
 					this.reexports[ specifier.exported.name ] = {
+						start: specifier.start,
 						source,
 						localName: specifier.local.name,
 						module: null // filled in later
@@ -591,7 +592,16 @@ export default class Module {
 		// export { foo } from './other.js'
 		const reexportDeclaration = this.reexports[ name ];
 		if ( reexportDeclaration ) {
-			return reexportDeclaration.module.traceExport( reexportDeclaration.localName );
+			const declaration = reexportDeclaration.module.traceExport( reexportDeclaration.localName );
+
+			if ( !declaration ) {
+				const err = new Error( `'${reexportDeclaration.localName}' is not exported by '${reexportDeclaration.module.id}' (imported by '${this.id}')` );
+				err.file = this.id;
+				err.loc = getLocation( this.code, reexportDeclaration.start );
+				throw err;
+			}
+
+			return declaration;
 		}
 
 		const exportDeclaration = this.exports[ name ];
