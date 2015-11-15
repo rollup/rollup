@@ -221,6 +221,8 @@ describe( 'rollup', function () {
 
 			var config = require( FORM + '/' + dir + '/_config' );
 
+			if ( config.skipIfWindows && process.platform === 'win32' ) return;
+
 			var options = extend( {}, config.options, {
 				entry: FORM + '/' + dir + '/main.js'
 			});
