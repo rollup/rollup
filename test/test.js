@@ -68,13 +68,13 @@ describe( 'rollup', function () {
 					}
 				}]
 			}).then( function ( bundle ) {
-				assert.throws( function () {
-					bundle.write();
-				}, /must supply options\.dest/ );
+				bundle.write().catch( function ( err ) {
+					assert.equal( err.message, 'You must supply options.dest to bundle.write' );
+				});
 
-				assert.throws( function () {
-					bundle.write({});
-				}, /must supply options\.dest/ );
+				bundle.write( {} ).catch( function ( err ) {
+					assert.equal( err.message, 'You must supply options.dest to bundle.write' );
+				});
 			});
 		});
 
