@@ -76,10 +76,12 @@ export class SyntheticDefaultDeclaration {
 	}
 
 	addReference ( reference ) {
+		// Bind the reference to `this` declaration.
+		reference.declaration = this;
+
 		// Don't change the name to `default`; it's not a valid identifier name.
 		if ( reference.name === 'default' ) return;
 
-		reference.declaration = this;
 		this.name = reference.name;
 	}
 
