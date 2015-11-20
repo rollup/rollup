@@ -1,1 +1,1 @@
-export default () => 42;
+export default function () { return 42; }
