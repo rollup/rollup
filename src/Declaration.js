@@ -2,7 +2,7 @@ import { blank, keys } from './utils/object.js';
 import run from './utils/run.js';
 
 export default class Declaration {
-	constructor ( node, isParam ) {
+	constructor ( node, isParam, statement ) {
 		if ( node ) {
 			if ( node.type === 'FunctionDeclaration' ) {
 				this.isFunctionDeclaration = true;
@@ -13,7 +13,7 @@ export default class Declaration {
 			}
 		}
 
-		this.statement = null;
+		this.statement = statement;
 		this.name = null;
 		this.isParam = isParam;
 
@@ -43,10 +43,10 @@ export default class Declaration {
 		if ( this.tested ) return this.hasSideEffects;
 		this.tested = true;
 
-		if ( !this.statement || !this.functionNode ) {
+		if ( !this.functionNode ) {
 			this.hasSideEffects = true; // err on the side of caution. TODO handle unambiguous `var x; x = y => z` cases
 		} else {
-			this.hasSideEffects = run( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies );
+			this.hasSideEffects = run( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies, false );
 		}
 
 		return this.hasSideEffects;
@@ -101,7 +101,7 @@ export class SyntheticDefaultDeclaration {
 		}
 
 		if ( /FunctionExpression/.test( this.node.declaration.type ) ) {
-			return run( this.node.declaration.body, this.statement.scope, this.statement, strongDependencies );
+			return run( this.node.declaration.body, this.statement.scope, this.statement, strongDependencies, false );
 		}
 	}
 
@@ -224,6 +224,10 @@ export class ExternalDeclaration {
 		}
 
 		return es6 ? this.name : `${this.module.name}.${this.name}`;
+	}
+
+	run () {
+		return true;
 	}
 
 	use () {

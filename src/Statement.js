@@ -39,7 +39,7 @@ export default class Statement {
 		this.end = end;
 		this.next = null; // filled in later
 
-		this.scope = new Scope();
+		this.scope = new Scope({ statement: this });
 
 		this.references = [];
 		this.stringLiteralRanges = [];
@@ -60,12 +60,6 @@ export default class Statement {
 
 		// attach scopes
 		attachScopes( this );
-
-		// attach statement to each top-level declaration,
-		// so we can mark statements easily
-		this.scope.eachDeclaration( ( name, declaration ) => {
-			declaration.statement = this;
-		});
 
 		// find references
 		const statement = this;
@@ -159,11 +153,11 @@ export default class Statement {
 		});
 	}
 
-	run ( strongDependencies ) {
+	run ( strongDependencies, safe ) {
 		if ( ( this.ran && this.isIncluded ) || this.isImportDeclaration || this.isFunctionDeclaration ) return;
 		this.ran = true;
 
-		if ( run( this.node, this.scope, this, strongDependencies ) ) {
+		if ( run( this.node, this.scope, this, strongDependencies, false, safe ) ) {
 			this.mark();
 			return true;
 		}

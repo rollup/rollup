@@ -39,6 +39,7 @@ export default class Scope {
 		options = options || {};
 
 		this.parent = options.parent;
+		this.statement = options.statement || this.parent.statement;
 		this.isBlockScope = !!options.block;
 		this.isTopLevel = !this.parent || ( this.parent.isTopLevel && this.isBlockScope );
 
@@ -47,7 +48,7 @@ export default class Scope {
 		if ( options.params ) {
 			options.params.forEach( param => {
 				extractNames( param ).forEach( name => {
-					this.declarations[ name ] = new Declaration( param, true );
+					this.declarations[ name ] = new Declaration( param, true, this.statement );
 				});
 			});
 		}
@@ -60,7 +61,7 @@ export default class Scope {
 			this.parent.addDeclaration( node, isBlockDeclaration, isVar );
 		} else {
 			extractNames( node.id ).forEach( name => {
-				this.declarations[ name ] = new Declaration( node );
+				this.declarations[ name ] = new Declaration( node, false, this.statement );
 			});
 		}
 	}

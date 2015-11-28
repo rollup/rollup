@@ -49,7 +49,6 @@ export default class Bundle {
 
 		this.external = options.external || [];
 		this.onwarn = options.onwarn || onwarn;
-		this.aggressive = options.aggressive;
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports' ].forEach( global => this.assumedGlobals[ global ] = true );
@@ -86,13 +85,9 @@ export default class Bundle {
 				while ( !settled ) {
 					settled = true;
 
-					if ( this.aggressive ) {
-						settled = !entryModule.run();
-					} else {
-						this.modules.forEach( module => {
-							if ( module.run() ) settled = false;
-						});
-					}
+					this.modules.forEach( module => {
+						if ( module.run() ) settled = false;
+					});
 				}
 
 				// Phase 4 – final preparation. We order the modules with an

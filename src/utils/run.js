@@ -60,7 +60,9 @@ export default function run ( node, scope, statement, strongDependencies, force 
 
 				if ( flattened.name === 'arguments' ) {
 					hasSideEffect = true;
-				} if ( !scope.contains( flattened.name ) ) {
+				}
+
+				else if ( !scope.contains( flattened.name ) ) {
 					const declaration = statement.module.trace( flattened.name );
 					if ( declaration && !declaration.isExternal ) {
 						const module = declaration.module || declaration.statement.module; // TODO is this right?
@@ -81,7 +83,7 @@ export default function run ( node, scope, statement, strongDependencies, force 
 					                    statement.module.trace( node.callee.name );
 
 					if ( declaration ) {
-						if ( declaration.isExternal || declaration.run( strongDependencies ) ) {
+						if ( declaration.run( strongDependencies ) ) {
 							hasSideEffect = true;
 						}
 					} else if ( !pureFunctions[ node.callee.name ] ) {
@@ -102,7 +104,7 @@ export default function run ( node, scope, statement, strongDependencies, force 
 						}
 					} else {
 						// is not a keypath like `foo.bar.baz` – could be e.g.
-						// `(a || b).foo()`. Err on the side of caution
+						// `foo[bar].baz()`. Err on the side of caution
 						hasSideEffect = true;
 					}
 				}
