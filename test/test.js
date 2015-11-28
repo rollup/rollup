@@ -36,6 +36,14 @@ function normaliseOutput ( code ) {
 	return code.toString().trim().replace( /\r\n/g, '\n' );
 }
 
+function loadConfig ( path ) {
+	try {
+		return require( path );
+	} catch ( err ) {
+		throw new Error( 'Failed to load ' + path + '. An old test perhaps? You should probably delete the directory' );
+	}
+}
+
 describe( 'rollup', function () {
 	describe( 'sanity checks', function () {
 		it( 'exists', function () {
@@ -113,14 +121,7 @@ describe( 'rollup', function () {
 		sander.readdirSync( FUNCTION ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
-			var config;
-
-			try {
-				config = require( FUNCTION + '/' + dir + '/_config' );
-			} catch ( err ) {
-				config = { description: dir };
-			}
-
+			var config = loadConfig( FUNCTION + '/' + dir + '/_config.js' );
 			( config.skip ? it.skip : config.solo ? it.only : it )( dir, function () {
 				var options = extend( {}, config.options, {
 					entry: FUNCTION + '/' + dir + '/main.js'
@@ -225,7 +226,7 @@ describe( 'rollup', function () {
 		sander.readdirSync( FORM ).sort().forEach( function ( dir ) {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
-			var config = require( FORM + '/' + dir + '/_config' );
+			var config = loadConfig( FORM + '/' + dir + '/_config.js' );
 
 			if ( config.skipIfWindows && process.platform === 'win32' ) return;
 
@@ -283,7 +284,8 @@ describe( 'rollup', function () {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
 			describe( dir, function () {
-				var config = require( SOURCEMAPS + '/' + dir + '/_config' );
+				var config = loadConfig( SOURCEMAPS + '/' + dir + '/_config.js' );
+
 				var entry = path.resolve( SOURCEMAPS, dir, 'main.js' );
 				var dest = path.resolve( SOURCEMAPS, dir, '_actual/bundle.js' );
 
@@ -316,7 +318,7 @@ describe( 'rollup', function () {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
 			describe( dir, function () {
-				var config = require( CLI + '/' + dir + '/_config' );
+				var config = loadConfig( CLI + '/' + dir + '/_config.js' );
 
 				( config.skip ? it.skip : config.solo ? it.only : it )( dir, function ( done ) {
 					process.chdir( path.resolve( CLI, dir ) );
