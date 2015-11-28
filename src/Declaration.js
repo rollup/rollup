@@ -226,7 +226,7 @@ export class ExternalDeclaration {
 		return es6 ? this.name : `${this.module.name}.${this.name}`;
 	}
 
-	run ( strongDependencies ) {
+	run () {
 		return true;
 	}
 
