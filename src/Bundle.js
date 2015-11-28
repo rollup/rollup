@@ -161,6 +161,7 @@ export default class Bundle {
 			return Promise.resolve( this.resolveId( source, module.id ) )
 				.then( resolvedId => {
 					if ( !resolvedId ) {
+						if ( source[0] === '.' ) throw new Error( `Could not resolve ${source} from ${module.id}` );
 						if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
 						module.resolvedIds[ source ] = source;
 
