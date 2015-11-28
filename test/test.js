@@ -46,13 +46,19 @@ describe( 'rollup', function () {
 			assert.equal( typeof rollup.rollup, 'function' );
 		});
 
-		it( 'fails without options or options.entry', function () {
-			rollup.rollup().catch( function (err) {
-				assert( /must supply options\.entry/.test( err.toString() ) );
+		it( 'fails without options', function () {
+			return rollup.rollup().then( function () {
+				throw new Error( 'Missing expected error' );
+			}, function (err) {
+				assert.equal( 'You must supply options.entry to rollup', err.message );
 			});
+		});
 
-			rollup.rollup().catch( function (err) {
-				assert( /must supply options\.entry/.test( err.toString() ) );
+		it( 'fails without options.entry', function () {
+			return rollup.rollup({}).then( function () {
+				throw new Error( 'Missing expected error' );
+			}, function (err) {
+				assert.equal( 'You must supply options.entry to rollup', err.message );
 			});
 		});
 	});
