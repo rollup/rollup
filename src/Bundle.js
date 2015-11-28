@@ -13,6 +13,7 @@ import { unixizePath } from './utils/normalizePlatform.js';
 import transform from './utils/transform.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import callIfFunction from './utils/callIfFunction.js';
+import { isRelative } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -161,6 +162,7 @@ export default class Bundle {
 			return Promise.resolve( this.resolveId( source, module.id ) )
 				.then( resolvedId => {
 					if ( !resolvedId ) {
+						if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
 						if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
 						module.resolvedIds[ source ] = source;
 
