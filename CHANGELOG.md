@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.21.1
+
+* Remove `aggressive: true` (was too aggressive) ([#309](https://github.com/rollup/rollup/pull/309))
+* Handle top-level block statements ([#326](https://github.com/rollup/rollup/issues/326))
+* Optimise namespaces with default exports ([#314](https://github.com/rollup/rollup/issues/314))
+
 ## 0.21.0
 
 * Only include statements whose side-effects are relevant (i.e. contribute to exports or affect global state) ([#253](https://github.com/rollup/rollup/pull/253)) ([#253](https://github.com/rollup/rollup/pull/253))
