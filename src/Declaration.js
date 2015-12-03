@@ -19,6 +19,8 @@ export default class Declaration {
 
 		this.isReassigned = false;
 		this.aliases = [];
+
+		this.isUsed = false;
 	}
 
 	addAlias ( declaration ) {
@@ -53,6 +55,8 @@ export default class Declaration {
 	}
 
 	use () {
+		if ( this.isUsed ) return;
+
 		this.isUsed = true;
 		if ( this.statement ) this.statement.mark();
 
