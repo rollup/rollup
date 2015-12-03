@@ -47,7 +47,7 @@ export default function es6 ( bundle, magicString ) {
 
 	const defaultExport = module.exports.default || module.reexports.default;
 	if ( defaultExport ) {
-		exportBlock += `export default ${module.traceExport( 'default' ).name};`;
+		exportBlock += `export default ${module.traceExport( 'default' ).render( true )};`;
 	}
 
 	if ( exportBlock ) {
