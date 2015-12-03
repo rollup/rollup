@@ -5,3 +5,4 @@ dist
 _actual
 coverage
 .commithash
+.idea
