@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.21.2
+
+* Missing relative imports are an error, not a warning ([#321](https://github.com/rollup/rollup/issues/321))
+* Fixed incorrectly renamed default exports in ES6 bundles ([#339](https://github.com/rollup/rollup/issues/339))
+* Fixed infinite recursion bug ([#341](https://github.com/rollup/rollup/issues/341))
+
 ## 0.21.1
 
 * Remove `aggressive: true` (was too aggressive) ([#309](https://github.com/rollup/rollup/pull/309))
