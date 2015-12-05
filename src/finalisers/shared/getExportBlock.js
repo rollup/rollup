@@ -1,6 +1,6 @@
 export default function getExportBlock ( entryModule, exportMode, mechanism = 'return' ) {
 	if ( exportMode === 'default' ) {
-		return `${mechanism} ${entryModule.declarations.default.render( false )};`;
+		return `${mechanism} ${entryModule.traceExport( 'default' ).render( false )};`;
 	}
 
 	return entryModule.getExports()
