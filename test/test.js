@@ -69,6 +69,14 @@ describe( 'rollup', function () {
 				assert.equal( 'You must supply options.entry to rollup', err.message );
 			});
 		});
+
+		it( 'fails with invalid keys', function () {
+			return rollup.rollup({ entry: 'x', plUgins: [] }).then( function () {
+				throw new Error( 'Missing expected error' );
+			}, function ( err ) {
+				assert.equal( 'Unexpected key \'plUgins\' found, expected one of: entry, dest, plugins, external, onwarn, indent, format, moduleName, sourceMap, intro, outro, banner, footer, globals, transform, load, resolveId, resolveExternal', err.message );
+			});
+		});
 	});
 
 	describe( 'bundle.write()', function () {

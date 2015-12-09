@@ -38,7 +38,11 @@ export function rollup ( options ) {
 		return Promise.reject( new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' ) );
 	}
 
-	validateKeys( options, ALLOWED_KEYS );
+	const error = validateKeys( options, ALLOWED_KEYS );
+
+	if ( error ) {
+		return Promise.reject( error );
+	}
 
 	const bundle = new Bundle( options );
 
