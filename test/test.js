@@ -125,6 +125,22 @@ describe( 'rollup', function () {
 				}, /You must supply options\.moduleName for IIFE bundles/ );
 			});
 		});
+
+		it( 'triggers onwrite plugin hooks', function () {
+			var testValue = false;
+			return rollup.rollup({
+				entry: 'test/fixtures/main.js',
+				plugins: [{
+					onwrite: function () { testValue = true; }
+				}]
+			}).then( function ( bundle ) {
+				return bundle.write({
+					dest: 'test-out/bundle.js'
+				}).then( function () {
+					assert.equal( testValue, true);
+				});
+			});
+		});
 	});
 
 	describe( 'function', function () {

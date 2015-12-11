@@ -16,6 +16,7 @@ import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
 import { isRelative, resolve } from './utils/path.js';
+import { getMethod } from './utils/plugin.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -37,20 +38,12 @@ export default class Bundle {
 		);
 
 		this.load = first(
-			this.plugins
-				.map( plugin => plugin.load )
-				.filter( Boolean )
-				.concat( load )
+			getMethod( this.plugins, 'load' ).concat( load )
 		);
 
-		this.transformers = this.plugins
-			.map( plugin => plugin.transform )
-			.filter( Boolean );
+		this.transformers = getMethod( this.plugins, 'transform' );
 
-		this.bundleTransformers = this.plugins
-			.map( plugin => plugin.transformBundle )
-			.filter( Boolean );
-
+		this.bundleTransformers = getMethod( this.plugins, 'transformBundle' );
 		this.moduleById = blank();
 		this.modules = [];
 
