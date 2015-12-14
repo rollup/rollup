@@ -8,6 +8,7 @@ export default function es6 ( bundle, magicString ) {
 	const importBlock = bundle.externalModules
 		.map( module => {
 			const specifiers = [];
+			const specifiersList = [specifiers];
 			const importedNames = keys( module.declarations )
 				.filter( name => name !== '*' && name !== 'default' );
 
@@ -15,17 +16,26 @@ export default function es6 ( bundle, magicString ) {
 				specifiers.push( module.name );
 			}
 
-			if ( module.declarations['*'] ) {
-				specifiers.push( `* as ${module.name}` );
+			const namespaceSpecifier = module.declarations['*'] ? `* as ${module.name}` : null;
+			const namedSpecifier = importedNames.length ? `{ ${importedNames.join( ', ' )} }` : null;
+
+			if ( namespaceSpecifier && namedSpecifier ) {
+				// Namespace and named specifiers cannot be combined.
+				specifiersList.push( [namespaceSpecifier] );
+				specifiers.push( namedSpecifier );
+			} else if ( namedSpecifier ) {
+				specifiers.push( namedSpecifier );
+			} else if ( namespaceSpecifier ) {
+				specifiers.push( namespaceSpecifier );
 			}
 
-			if ( importedNames.length ) {
-				specifiers.push( `{ ${importedNames.join( ', ' )} }` );
-			}
-
-			return specifiers.length ?
-				`import ${specifiers.join( ', ' )} from '${module.id}';` :
-				`import '${module.id}';`;
+			return specifiersList
+				.map( specifiers =>
+					specifiers.length ?
+						`import ${specifiers.join( ', ' )} from '${module.id}';` :
+						`import '${module.id}';`
+				)
+				.join( '\n' );
 		})
 		.join( '\n' );
 
