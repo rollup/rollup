@@ -20,6 +20,10 @@
   <a href="http://codecov.io/github/rollup/rollup?branch=master">
     <img src="http://codecov.io/github/rollup/rollup/coverage.svg?branch=master" alt="Coverage via Codecov" />
   </a>
+  <a href='https://gitter.im/rollup/rollup?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge'>
+    <img src='https://badges.gitter.im/rollup/rollup.svg'
+         alt='Join the chat at https://gitter.im/rollup/rollup'>
+  </a>
 </p>
 
 > *I roll up, I roll up, I roll up, Shawty I roll up*
