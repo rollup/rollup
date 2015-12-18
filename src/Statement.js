@@ -86,7 +86,7 @@ export default class Statement {
 
 				// special case – shorthand properties. because node.key === node.value,
 				// we can't differentiate once we've descended into the node
-				if ( node.type === 'Property' && node.shorthand ) {
+				if ( node.type === 'Property' && node.shorthand && parent.type !== 'ObjectPattern' ) {
 					const reference = new Reference( node.key, scope );
 					reference.isShorthandProperty = true; // TODO feels a bit kludgy
 					references.push( reference );
