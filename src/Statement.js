@@ -1,7 +1,7 @@
 import { walk } from 'estree-walker';
 import Scope from './ast/Scope.js';
 import attachScopes from './ast/attachScopes.js';
-import modifierNodes from './ast/modifierNodes.js';
+import modifierNodes, { isModifierNode } from './ast/modifierNodes.js';
 import isFunctionDeclaration from './ast/isFunctionDeclaration.js';
 import isReference from './ast/isReference.js';
 import getLocation from './utils/getLocation.js';
@@ -95,7 +95,7 @@ export default class Statement {
 
 				let isReassignment;
 
-				if ( parent && parent.type in modifierNodes ) {
+				if ( parent && isModifierNode( parent ) ) {
 					let subject = parent[ modifierNodes[ parent.type ] ];
 					let depth = 0;
 
