@@ -1,5 +1,5 @@
 import { walk } from 'estree-walker';
-import modifierNodes from '../ast/modifierNodes.js';
+import modifierNodes, { isModifierNode } from '../ast/modifierNodes.js';
 import isReference from '../ast/isReference.js';
 import flatten from '../ast/flatten';
 
@@ -115,7 +115,7 @@ export default function run ( node, scope, statement, strongDependencies, force 
 				}
 			}
 
-			else if ( node.type in modifierNodes ) {
+			else if ( isModifierNode( node ) ) {
 				let subject = node[ modifierNodes[ node.type ] ];
 				while ( subject.type === 'MemberExpression' ) subject = subject.object;
 
