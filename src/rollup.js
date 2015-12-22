@@ -2,10 +2,32 @@ import Promise from 'es6-promise/lib/es6-promise/promise.js';
 import { basename } from './utils/path.js';
 import { writeFile } from './utils/fs.js';
 import { keys } from './utils/object.js';
+import validateKeys from './utils/validateKeys.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import Bundle from './Bundle.js';
 
 export const VERSION = '<@VERSION@>';
+
+const ALLOWED_KEYS = [
+	'entry',
+	'dest',
+	'plugins',
+	'external',
+	'onwarn',
+	'indent',
+	'format',
+	'moduleName',
+	'sourceMap',
+	'intro',
+	'outro',
+	'banner',
+	'footer',
+	'globals',
+	'transform',
+	'load',
+	'resolveId',
+	'resolveExternal'
+];
 
 export function rollup ( options ) {
 	if ( !options || !options.entry ) {
@@ -14,6 +36,12 @@ export function rollup ( options ) {
 
 	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
 		return Promise.reject( new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' ) );
+	}
+
+	const error = validateKeys( options, ALLOWED_KEYS );
+
+	if ( error ) {
+		return Promise.reject( error );
 	}
 
 	const bundle = new Bundle( options );
