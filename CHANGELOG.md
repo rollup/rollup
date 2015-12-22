@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.22.0
+
+* Duplicate warnings are squelched ([#362](https://github.com/rollup/rollup/issues/362))
+* Plugins can manipulate or override the `options` object ([#371](https://github.com/rollup/rollup/pull/371))
+
 ## 0.21.3
 
 * Validate option keys ([#348](https://github.com/rollup/rollup/pull/348))
