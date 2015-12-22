@@ -29,7 +29,7 @@ export function resolveId ( importee, importer ) {
 }
 
 
-export function makeOnwarn ( msg ) {
+export function makeOnwarn () {
 	let warned = blank();
 
 	return msg => {
