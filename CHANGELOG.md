@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.21.3
+
+* Validate option keys ([#348](https://github.com/rollup/rollup/pull/348))
+* Allow namespaces imports to sit alongside named imports ([#355](https://github.com/rollup/rollup/issues/355))
+* Count references inside destructured objects ([#364](https://github.com/rollup/rollup/issues/364))
+* Preserve top-level `delete` statements ([#352](https://github.com/rollup/rollup/issues/352))
+
 ## 0.21.2
 
 * Missing relative imports are an error, not a warning ([#321](https://github.com/rollup/rollup/issues/321))
