@@ -6,7 +6,7 @@ import Module from './Module.js';
 import ExternalModule from './ExternalModule.js';
 import finalisers from './finalisers/index.js';
 import ensureArray from './utils/ensureArray.js';
-import { load, onwarn, resolveId } from './utils/defaults.js';
+import { load, makeOnwarn, resolveId } from './utils/defaults.js';
 import getExportMode from './utils/getExportMode.js';
 import getIndentString from './utils/getIndentString.js';
 import { unixizePath } from './utils/normalizePlatform.js';
@@ -49,7 +49,7 @@ export default class Bundle {
 		this.assumedGlobals = blank();
 
 		this.external = options.external || [];
-		this.onwarn = options.onwarn || onwarn;
+		this.onwarn = options.onwarn || makeOnwarn();
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports' ].forEach( global => this.assumedGlobals[ global ] = true );

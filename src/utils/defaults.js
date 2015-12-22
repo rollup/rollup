@@ -1,5 +1,6 @@
 import { isFile, readFileSync } from './fs.js';
 import { dirname, isAbsolute, resolve } from './path.js';
+import { blank } from './object.js';
 
 export function load ( id ) {
 	return readFileSync( id, 'utf-8' );
@@ -27,6 +28,13 @@ export function resolveId ( importee, importer ) {
 	return addJsExtensionIfNecessary( resolve( dirname( importer ), importee ) );
 }
 
-export function onwarn ( msg ) {
-	console.error( msg ); //eslint-disable-line no-console
+
+export function makeOnwarn ( msg ) {
+	let warned = blank();
+
+	return msg => {
+		if ( msg in warned ) return;
+		console.error( msg ); //eslint-disable-line no-console
+		warned[ msg ] = true;
+	};
 }
