@@ -17,10 +17,16 @@ import { isRelative } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
+		this.plugins = ensureArray( options.plugins );
+
+		this.plugins.forEach( plugin => {
+			if ( plugin.options ) {
+				options = plugin.options( options ) || options;
+			}
+		});
+
 		this.entry = options.entry;
 		this.entryModule = null;
-
-		this.plugins = ensureArray( options.plugins );
 
 		this.resolveId = first(
 			this.plugins
