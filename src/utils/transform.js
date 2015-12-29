@@ -25,6 +25,10 @@ export default function transform ( source, id, transformers ) {
 						map: null
 					};
 				}
+				// `result.map` can only be a string if `result` isn't
+				else if ( typeof result.map === 'string' ) {
+					result.map = JSON.parse( result.map );
+				}
 
 				sourceMapChain.push( result.map );
 				ast = result.ast;
