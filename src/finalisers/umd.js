@@ -3,6 +3,17 @@ import { getName, quoteId, req } from '../utils/map-helpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 
+function setupNamespace ( name ) {
+	const parts = name.split( '.' );
+	parts.pop();
+
+	let acc = 'global';
+	return parts
+		.map( part => ( acc += `.${part}`, `${acc} = ${acc} || {}` ) )
+		.concat( `global.${name}` )
+		.join( ', ' );
+}
+
 export default function umd ( bundle, magicString, { exportMode, indentString }, options ) {
 	if ( exportMode !== 'none' && !options.moduleName ) {
 		throw new Error( 'You must supply options.moduleName for UMD bundles' );
@@ -21,7 +32,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 	if ( exportMode === 'named' ) {
 		amdDeps.unshift( `'exports'` );
 		cjsDeps.unshift( `exports` );
-		globalDeps.unshift( `(global.${options.moduleName} = {})` );
+		globalDeps.unshift( `(${setupNamespace(options.moduleName)} = {})` );
 
 		args.unshift( 'exports' );
 	}
@@ -31,7 +42,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 		( amdDeps.length ? `[${amdDeps.join( ', ' )}], ` : `` );
 
 	const cjsExport = exportMode === 'default' ? `module.exports = ` : ``;
-	const defaultExport = exportMode === 'default' ? `global.${options.moduleName} = ` : '';
+	const defaultExport = exportMode === 'default' ? `${setupNamespace(options.moduleName)} = ` : '';
 
 	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
 
