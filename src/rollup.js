@@ -9,24 +9,21 @@ import Bundle from './Bundle.js';
 export const VERSION = '<@VERSION@>';
 
 const ALLOWED_KEYS = [
-	'entry',
-	'dest',
-	'plugins',
-	'external',
-	'onwarn',
-	'indent',
-	'format',
-	'moduleName',
-	'sourceMap',
-	'intro',
-	'outro',
 	'banner',
+	'dest',
+	'entry',
+	'external',
 	'footer',
+	'format',
 	'globals',
-	'transform',
-	'load',
-	'resolveId',
-	'resolveExternal'
+	'indent',
+	'intro',
+	'moduleId',
+	'moduleName',
+	'onwarn',
+	'outro',
+	'plugins',
+	'sourceMap'
 ];
 
 export function rollup ( options ) {
