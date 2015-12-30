@@ -8,7 +8,7 @@ const extractors = {
 
 	ObjectPattern ( names, param ) {
 		param.properties.forEach( prop => {
-			extractors[ prop.key.type ]( names, prop.key );
+			extractors[ prop.value.type ]( names, prop.value );
 		});
 	},
 
@@ -23,13 +23,12 @@ const extractors = {
 	},
 
 	AssignmentPattern ( names, param ) {
-		return extractors[ param.left.type ]( names, param.left );
+		extractors[ param.left.type ]( names, param.left );
 	}
 };
 
-function extractNames ( param ) {
-	let names = [];
-
+export function extractNames ( param ) {
+	const names = [];
 	extractors[ param.type ]( names, param );
 	return names;
 }
