@@ -11,6 +11,7 @@ import getExportMode from './utils/getExportMode.js';
 import getIndentString from './utils/getIndentString.js';
 import { unixizePath } from './utils/normalizePlatform.js';
 import transform from './utils/transform.js';
+import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import callIfFunction from './utils/callIfFunction.js';
 import { isRelative } from './utils/path.js';
@@ -44,6 +45,10 @@ export default class Bundle {
 
 		this.transformers = this.plugins
 			.map( plugin => plugin.transform )
+			.filter( Boolean );
+
+		this.bundleTransformers = this.plugins
+			.map( plugin => plugin.transformBundle )
 			.filter( Boolean );
 
 		this.moduleById = blank();
@@ -257,7 +262,7 @@ export default class Bundle {
 			map.sources = map.sources.map( unixizePath );
 		}
 
-		return { code, map };
+		return transformBundle( { code, map }, this.bundleTransformers );
 	}
 
 	sort () {
