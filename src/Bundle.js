@@ -12,8 +12,8 @@ import getIndentString from './utils/getIndentString.js';
 import { unixizePath } from './utils/normalizePlatform.js';
 import transform from './utils/transform.js';
 import transformBundle from './utils/transformBundle.js';
-import collapseSourcemaps from './utils/sourcemap/collapseSourcemaps.js';
-import SOURCEMAPPING_URL from './utils/sourcemap/sourceMappingURL.js';
+import collapseSourcemaps from './utils/collapseSourcemaps.js';
+import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
 import { isRelative } from './utils/path.js';
 
