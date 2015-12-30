@@ -2,6 +2,7 @@ import { blank } from '../utils/object.js';
 import { getName, quoteId, req } from '../utils/map-helpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
+import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 
 function setupNamespace ( name ) {
 	const parts = name.split( '.' );
@@ -19,13 +20,11 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 		throw new Error( 'You must supply options.moduleName for UMD bundles' );
 	}
 
-	const globalNames = options.globals || blank();
+	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle.onwarn );
 
 	let amdDeps = bundle.externalModules.map( quoteId );
 	let cjsDeps = bundle.externalModules.map( req );
-	let globalDeps = bundle.externalModules.map( module => {
-		return 'global.' + (globalNames[ module.id ] || module.name);
-	});
+	let globalDeps = bundle.externalModules.map( module => `global.${globalNameMaker( module )}` );
 
 	let args = bundle.externalModules.map( getName );
 

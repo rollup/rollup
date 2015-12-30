@@ -2,6 +2,7 @@ import { blank } from '../utils/object.js';
 import { getName } from '../utils/map-helpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
+import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 
 function setupNamespace ( keypath ) {
 	let parts = keypath.split( '.' ); // TODO support e.g. `foo['something-hyphenated']`?
@@ -16,13 +17,12 @@ function setupNamespace ( keypath ) {
 }
 
 export default function iife ( bundle, magicString, { exportMode, indentString }, options ) {
-	const globalNames = options.globals || blank();
+	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle.onwarn );
+
 	const name = options.moduleName;
 	const isNamespaced = name && ~name.indexOf( '.' );
 
-	let dependencies = bundle.externalModules.map( module => {
-		return globalNames[ module.id ] || module.name;
-	});
+	let dependencies = bundle.externalModules.map( globalNameMaker );
 
 	let args = bundle.externalModules.map( getName );
 
