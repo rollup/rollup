@@ -57,8 +57,7 @@
     "rollup-plugin-replace": "^1.0.1",
     "sander": "^0.4.0",
     "source-map": "^0.5.3",
-    "sourcemap-codec": "^1.2.1",
-    "uglify-js": "^2.6.1"
+    "sourcemap-codec": "^1.2.1"
   },
   "dependencies": {
     "chalk": "^1.1.1",
