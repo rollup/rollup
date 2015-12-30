@@ -1,72 +1,108 @@
 import { encode, decode } from 'sourcemap-codec';
 
-function traceSegment ( loc, mappings ) {
-	const line = loc[0];
-	const column = loc[1];
+function Source ( map, sources ) {
+	if ( !map ) throw new Error( 'Cannot generate a sourcemap if non-sourcemap-generating transformers are used' );
 
-	const segments = mappings[ line ];
-
-	if ( !segments ) return null;
-
-	for ( let i = 0; i < segments.length; i += 1 ) {
-		const segment = segments[i];
-
-		if ( segment[0] > column ) return null;
-
-		if ( segment[0] === column ) {
-			if ( segment[1] !== 0 ) {
-				throw new Error( 'Bad sourcemap' );
-			}
-
-			return [ segment[2], segment[3] ];
-		}
-	}
-
-	return null;
+	this.sources = sources;
+	this.names = map.names;
+	this.mappings = decode( map.mappings );
 }
 
-export default function collapseSourcemaps ( map, modules ) {
-	const chains = modules.map( module => {
-		return module.sourceMapChain.map( map => {
-			if ( !map ) throw new Error( 'Cannot generate a sourcemap if non-sourcemap-generating transformers are used' );
-			return decode( map.mappings );
+Source.prototype = { // TODO bring into line with others post-https://github.com/rollup/rollup/pull/386
+	traceMappings () {
+		let names = [];
+
+		const mappings = this.mappings.map( line => {
+			let tracedLine = [];
+
+			line.forEach( segment => {
+				const source = this.sources[ segment[1] ];
+				const traced = source.traceSegment( segment[2], segment[3], this.names[ segment[4] ] );
+
+				if ( traced ) {
+					let nameIndex = null;
+					segment = [
+						segment[0],
+						traced.index,
+						traced.line,
+						traced.column
+					];
+
+					if ( traced.name ) {
+						nameIndex = names.indexOf( traced.name );
+						if ( nameIndex === -1 ) {
+							nameIndex = names.length;
+							names.push( traced.name );
+						}
+
+						segment[4] = nameIndex;
+					}
+
+					tracedLine.push( segment );
+				}
+			});
+
+			return tracedLine;
 		});
+
+		return { names, mappings };
+	},
+
+	traceSegment ( line, column, name ) {
+		const segments = this.mappings[ line ];
+
+		if ( !segments ) return null;
+
+		for ( let i = 0; i < segments.length; i += 1 ) {
+			const segment = segments[i];
+
+			if ( segment[0] > column ) return null;
+
+			if ( segment[0] === column ) {
+				const source = this.sources[ segment[1] ];
+
+				if ( !source ) throw new Error( 'Bad sourcemap' );
+
+				if ( source.isOriginal ) {
+					return {
+						index: source.index,
+						line: segment[2],
+						column: segment[3],
+						name: this.names[ segment[4] ] || name
+					};
+				}
+
+				return source.traceSegment( segment[2], segment[3], name );
+			}
+		}
+
+		return null;
+	}
+};
+
+export default function collapseSourcemaps ( map, modules, bundleSourcemapChain ) {
+	const sources = modules.map( ( module, i ) => {
+		let source = { isOriginal: true, index: i };
+
+		module.sourceMapChain.forEach( map => {
+			source = new Source( map, [ source ]);
+		});
+
+		return source;
 	});
 
-	const decodedMappings = decode( map.mappings );
+	let source = new Source( map, sources );
 
-	const tracedMappings = decodedMappings.map( line => {
-		let tracedLine = [];
-
-		line.forEach( segment => {
-			const sourceIndex = segment[1];
-			const sourceCodeLine = segment[2];
-			const sourceCodeColumn = segment[3];
-
-			const chain = chains[ sourceIndex ];
-
-			let i = chain.length;
-			let traced = [ sourceCodeLine, sourceCodeColumn ];
-
-			while ( i-- && traced ) {
-				traced = traceSegment( traced, chain[i] );
-			}
-
-			if ( traced ) {
-				tracedLine.push([
-					segment[0],
-					segment[1],
-					traced[0],
-					traced[1]
-					// TODO name?
-				]);
-			}
-		});
-
-		return tracedLine;
+	bundleSourcemapChain.forEach( map => {
+		source = new Source( map, [ source ] );
 	});
 
+	const { names, mappings } = source.traceMappings();
+
+	// we re-use the `map` object because it has convenient toString/toURL methods
 	map.sourcesContent = modules.map( module => module.originalCode );
-	map.mappings = encode( tracedMappings );
+	map.mappings = encode( mappings );
+	map.names = names;
+
 	return map;
 }
