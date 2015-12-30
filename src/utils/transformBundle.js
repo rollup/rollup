@@ -1,4 +1,4 @@
-import Promise from 'es6-promise/lib/es6-promise/promise.js';
+// import Promise from 'es6-promise/lib/es6-promise/promise.js';
 
 export default function transformBundle ( source, transformers ) {
 	if ( typeof source === 'string' ) {
@@ -9,7 +9,7 @@ export default function transformBundle ( source, transformers ) {
 	}
 
 	return transformers.reduce( ( previous, transformer ) => {
-		let result = transformer( previous )
+		let result = transformer( previous );
 
 		if ( result == null ) return previous;
 
