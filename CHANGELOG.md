@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 0.23.0
+
+* Add `bundleTransform` plugin hook and option ([#387](https://github.com/rollup/rollup/pull/387))
+* Correctly store names in sourcemaps, regardless of transformers
+* Add `--environment` option to CLI ([#388](https://github.com/rollup/rollup/pull/388))
+* Handle destructuring in exports ([#374](https://github.com/rollup/rollup/issues/374))
+* Fix UMD global exports bug introduced in 0.22.1 ([#392](https://github.com/rollup/rollup/pull/392))
+
 ## 0.22.2
 
 * Prevent lost `var` keywords ([#390](https://github.com/rollup/rollup/issues/390))
