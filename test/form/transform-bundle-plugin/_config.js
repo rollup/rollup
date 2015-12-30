@@ -4,16 +4,12 @@ module.exports = {
 		plugins: [
 			{
 				transformBundle: function (result) {
-					return {
-						code: '/* first plugin */'
-					};
+					return '/* first plugin */';
 				}
 			},
 			{
 				transformBundle: function (result) {
-					return {
-						code: result.code + '\n/* second plugin */'
-					};
+					return result.code + '\n/* second plugin */';
 				}
 			}
 		]

@@ -1,3 +1,5 @@
+import MagicString from 'magic-string';
+
 export default function transformBundle ( source, transformers ) {
 	if ( typeof source === 'string' ) {
 		source = {
@@ -22,7 +24,16 @@ export default function transformBundle ( source, transformers ) {
 			result.map = JSON.parse( result.map );
 		}
 
-		return result;
+		if (result.map != null) {
+			let map = new MagicString.Bundle().generateMap({});
+			map.file = result.map.file;
+			map.sources = result.map.sources;
+			map.sourcesContent = result.map.sourcesContent;
+			map.names = result.map.names;
+			map.mappings = result.map.mappings;
+			result.map = map;
+		}
 
+		return result;
 	}, source );
 }
