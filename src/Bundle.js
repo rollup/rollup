@@ -13,7 +13,7 @@ import { unixizePath } from './utils/normalizePlatform.js';
 import transform from './utils/transform.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import callIfFunction from './utils/callIfFunction.js';
-import { isRelative } from './utils/path.js';
+import { isRelative, resolve } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -246,7 +246,9 @@ export default class Bundle {
 		let map = null;
 
 		if ( options.sourceMap ) {
-			const file = options.sourceMapFile || options.dest;
+			let file = options.sourceMapFile || options.dest;
+			if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
+
 			map = magicString.generateMap({
 				includeContent: true,
 				file

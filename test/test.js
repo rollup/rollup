@@ -304,11 +304,11 @@ describe( 'rollup', function () {
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
 						return rollup.rollup( options ).then( function ( bundle ) {
-							var options = extend( {}, config.options, {
+							var options = extend( {}, {
 								format: profile.format,
 								sourceMap: true,
 								dest: dest
-							});
+							}, config.options );
 
 							bundle.write( options );
 
