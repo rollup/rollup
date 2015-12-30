@@ -20,6 +20,17 @@ module.exports = function ( command ) {
 		command.input = command._[0];
 	}
 
+	if ( command.environment ) {
+		command.environment.split( ',' ).forEach( function ( pair ) {
+			var index = pair.indexOf( ':' );
+			if ( ~index ) {
+				process.env[ pair.slice( 0, index ) ] = pair.slice( index + 1 );
+			} else {
+				process.env[ pair ] = true;
+			}
+		});
+	}
+
 	var config = command.config === true ? 'rollup.config.js' : command.config;
 
 	if ( config ) {
