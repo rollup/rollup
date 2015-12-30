@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "0.22.0",
+  "version": "0.22.2",
   "description": "Next-generation ES6 module bundler",
   "main": "dist/rollup.js",
   "jsnext:main": "src/rollup.js",
@@ -48,7 +48,7 @@
     "eslint": "^1.7.1",
     "estree-walker": "^0.2.0",
     "istanbul": "^0.4.0",
-    "magic-string": "^0.10.0",
+    "magic-string": "^0.10.1",
     "mocha": "^2.3.3",
     "remap-istanbul": "^0.4.0",
     "rollup": "^0.20.2",

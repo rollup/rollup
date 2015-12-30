@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 0.22.2
+
+* Prevent lost `var` keywords ([#390](https://github.com/rollup/rollup/issues/390))
+
+## 0.22.1
+
+* Update expected option keys ([#379](https://github.com/rollup/rollup/issues/379))
+* Handle transformers that return stringified sourcemaps ([#377](https://github.com/rollup/rollup/issues/377))
+* Automatically create missing namespaces if `moduleName` contains dots ([#378](https://github.com/rollup/rollup/issues/378))
+* Ignore external dependency warnings coming from config file ([#333](https://github.com/rollup/rollup/issues/333))
+* Update to latest magic-string for performance boost
+
 ## 0.22.0
 
 * Duplicate warnings are squelched ([#362](https://github.com/rollup/rollup/issues/362))

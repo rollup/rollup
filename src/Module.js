@@ -10,6 +10,7 @@ import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import { SyntheticDefaultDeclaration, SyntheticNamespaceDeclaration } from './Declaration.js';
 import { isFalsy, isTruthy } from './ast/conditions.js';
 import { emptyBlockStatement } from './ast/create.js';
+import extractNames from './ast/extractNames.js';
 
 export default class Module {
 	constructor ({ id, code, originalCode, ast, sourceMapChain, bundle }) {
@@ -97,6 +98,7 @@ export default class Module {
 		}
 
 		// export { foo, bar, baz }
+		// export var { foo, bar } = ...
 		// export var foo = 42;
 		// export var a = 1, b = 2, c = 3;
 		// export function foo () {}
@@ -114,17 +116,18 @@ export default class Module {
 			else {
 				let declaration = node.declaration;
 
-				let name;
-
 				if ( declaration.type === 'VariableDeclaration' ) {
-					// export var foo = 42
-					name = declaration.declarations[0].id.name;
-				} else {
-					// export function foo () {}
-					name = declaration.id.name;
+					declaration.declarations.forEach( decl => {
+						extractNames( decl.id ).forEach( localName => {
+							this.exports[ localName ] = { localName };
+						});
+					});
 				}
-
-				this.exports[ name ] = { localName: name };
+				else {
+					// export function foo () {}
+					const localName = declaration.id.name;
+					this.exports[ localName ] = { localName };
+				}
 			}
 		}
 	}
@@ -497,9 +500,13 @@ export default class Module {
 			// modify exports as necessary
 			if ( statement.isExportDeclaration ) {
 				// remove `export` from `export var foo = 42`
+				// TODO: can we do something simpler here?
+				// we just want to remove `export`, right?
 				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.declaration.type === 'VariableDeclaration' ) {
-					const name = statement.node.declaration.declarations[0].id.name;
+					const name = extractNames( statement.node.declaration.declarations[ 0 ].id )[ 0 ];
 					const declaration = this.declarations[ name ];
+
+					if ( !declaration ) throw new Error( `Missing declaration for ${name}!` );
 
 					const end = declaration.isExported && declaration.isReassigned ?
 						statement.node.declaration.declarations[0].start :
