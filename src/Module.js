@@ -10,7 +10,7 @@ import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import { SyntheticDefaultDeclaration, SyntheticNamespaceDeclaration } from './Declaration.js';
 import { isFalsy, isTruthy } from './ast/conditions.js';
 import { emptyBlockStatement } from './ast/create.js';
-import { extractNames } from './ast/Scope.js';
+import extractNames from './ast/extractNames.js';
 
 export default class Module {
 	constructor ({ id, code, originalCode, ast, sourceMapChain, bundle }) {
