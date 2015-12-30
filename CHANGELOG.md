@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.23.1
+
+* Reinstate missing fix from ([#392](https://github.com/rollup/rollup/pull/392))
+
 ## 0.23.0
 
 * Add `bundleTransform` plugin hook and option ([#387](https://github.com/rollup/rollup/pull/387))
