@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'allows plugins to set banner and footer options',
+	description: 'allows plugins to transform bundle',
 	options: {
 		plugins: [
 			{
