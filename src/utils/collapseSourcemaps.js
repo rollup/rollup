@@ -10,33 +10,45 @@ function Source ( map, sources ) {
 
 Source.prototype = { // TODO bring into line with others post-https://github.com/rollup/rollup/pull/386
 	traceMappings () {
-		return this.mappings.map( line => {
+		let names = [];
+
+		const mappings = this.mappings.map( line => {
 			let tracedLine = [];
 
 			line.forEach( segment => {
 				const source = this.sources[ segment[1] ];
-
-				const sourceCodeLine = segment[2];
-				const sourceCodeColumn = segment[3];
-
-				const traced = source.traceSegment( sourceCodeLine, sourceCodeColumn );
+				const traced = source.traceSegment( segment[2], segment[3], this.names[ segment[4] ] );
 
 				if ( traced ) {
-					tracedLine.push([
+					let nameIndex = null;
+					segment = [
 						segment[0],
 						traced.index,
 						traced.line,
 						traced.column
-						// TODO name?
-					]);
+					];
+
+					if ( traced.name ) {
+						nameIndex = names.indexOf( traced.name );
+						if ( nameIndex === -1 ) {
+							nameIndex = names.length;
+							names.push( traced.name );
+						}
+
+						segment[4] = nameIndex;
+					}
+
+					tracedLine.push( segment );
 				}
 			});
 
 			return tracedLine;
 		});
+
+		return { names, mappings };
 	},
 
-	traceSegment ( line, column ) {
+	traceSegment ( line, column, name ) {
 		const segments = this.mappings[ line ];
 
 		if ( !segments ) return null;
@@ -52,10 +64,15 @@ Source.prototype = { // TODO bring into line with others post-https://github.com
 				if ( !source ) throw new Error( 'Bad sourcemap' );
 
 				if ( source.isOriginal ) {
-					return { index: source.index, line: segment[2], column: segment[3] };
+					return {
+						index: source.index,
+						line: segment[2],
+						column: segment[3],
+						name: this.names[ segment[4] ] || name
+					};
 				}
 
-				return source.traceSegment( segment[2], segment[3] );
+				return source.traceSegment( segment[2], segment[3], name );
 			}
 		}
 
@@ -80,8 +97,12 @@ export default function collapseSourcemaps ( map, modules, bundleSourcemapChain 
 		source = new Source( map, [ source ] );
 	});
 
+	const { names, mappings } = source.traceMappings();
+
 	// we re-use the `map` object because it has convenient toString/toURL methods
 	map.sourcesContent = modules.map( module => module.originalCode );
-	map.mappings = encode( source.traceMappings() );
+	map.mappings = encode( mappings );
+	map.names = names;
+
 	return map;
 }

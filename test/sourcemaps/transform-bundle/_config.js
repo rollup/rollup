@@ -1,5 +1,4 @@
 var uglify = require( 'uglify-js' );
-var MagicString = require( 'magic-string' );
 var assert = require( 'assert' );
 var getLocation = require( '../../utils/getLocation' );
 var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
