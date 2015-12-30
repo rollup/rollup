@@ -41,7 +41,10 @@
   "homepage": "https://github.com/rollup/rollup",
   "devDependencies": {
     "acorn": "^2.6.4",
-    "babel-core": "^5.8.32",
+    "babel-core": "^6.3.26",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-es2015-rollup": "^1.0.0",
+    "babel-runtime": "^6.3.19",
     "codecov.io": "^0.1.6",
     "console-group": "^0.1.2",
     "es6-promise": "^3.0.2",
@@ -50,9 +53,9 @@
     "istanbul": "^0.4.0",
     "magic-string": "^0.10.0",
     "mocha": "^2.3.3",
-    "remap-istanbul": "^0.4.0",
-    "rollup": "^0.20.2",
-    "rollup-plugin-babel": "^1.0.0",
+    "remap-istanbul": "^0.5.1",
+    "rollup": "^0.22.0",
+    "rollup-plugin-babel": "^2.2.0",
     "rollup-plugin-npm": "^1.0.0",
     "rollup-plugin-replace": "^1.0.1",
     "sander": "^0.4.0",
@@ -62,7 +65,7 @@
   "dependencies": {
     "chalk": "^1.1.1",
     "minimist": "^1.2.0",
-    "source-map-support": "^0.3.2"
+    "source-map-support": "^0.4.0"
   },
   "files": [
     "src",

@@ -11,7 +11,7 @@ module.exports = {
 			{
 				transform: function ( source, id ) {
 					return babel.transform( source, {
-						blacklist: [ 'es6.modules' ],
+						presets: [ 'es2015-rollup' ],
 						sourceMap: true
 					});
 				}
