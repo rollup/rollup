@@ -9,17 +9,17 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				transformBundle: function ( source ) {
+				transformBundle: function ( code, map ) {
 					var options = { fromString: true };
 
-					if ( source.map != null ) {
-						options.inSourceMap = source.map;
+					if ( map != null ) {
+						options.inSourceMap = map;
 						options.outSourceMap = "out";
 					}
 
-					var result = uglify.minify( source.code, options );
+					var result = uglify.minify( code, options );
 
-					if (source.map != null) {
+					if ( map != null ) {
 						result.code = result.code.slice( 0, -25 );
 					}
 

@@ -9,7 +9,7 @@ export default function transformBundle ( source, transformers ) {
 	}
 
 	return transformers.reduce( ( previous, transformer ) => {
-		let result = transformer( previous );
+		let result = transformer( previous.code, previous.map );
 
 		if ( result == null ) return previous;
 
