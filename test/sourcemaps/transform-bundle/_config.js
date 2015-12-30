@@ -9,21 +9,13 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				transformBundle: function ( code, map ) {
-					var options = { fromString: true };
+				transformBundle: function ( code ) {
+					var options = {
+						fromString: true,
+						outSourceMap: 'x' // trigger sourcemap generation
+					};
 
-					if ( map != null ) {
-						options.inSourceMap = map;
-						options.outSourceMap = "out";
-					}
-
-					var result = uglify.minify( code, options );
-
-					if ( map != null ) {
-						result.code = result.code.slice( 0, -25 );
-					}
-
-					return result;
+					return uglify.minify( code, options );
 				}
 			}
 		]
