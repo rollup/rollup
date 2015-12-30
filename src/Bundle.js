@@ -1,7 +1,7 @@
 import Promise from 'es6-promise/lib/es6-promise/promise.js';
 import MagicString from 'magic-string';
 import first from './utils/first.js';
-import { blank, keys } from './utils/object.js';
+import { assign, blank, keys } from './utils/object.js';
 import Module from './Module.js';
 import ExternalModule from './ExternalModule.js';
 import finalisers from './finalisers/index.js';
@@ -15,52 +15,52 @@ import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import callIfFunction from './utils/callIfFunction.js';
 import { isRelative } from './utils/path.js';
 
-export default class Bundle {
-	constructor ( options ) {
-		this.plugins = ensureArray( options.plugins );
+export default function Bundle ( options ) {
+	this.plugins = ensureArray( options.plugins );
 
-		this.plugins.forEach( plugin => {
-			if ( plugin.options ) {
-				options = plugin.options( options ) || options;
-			}
-		});
+	this.plugins.forEach( plugin => {
+		if ( plugin.options ) {
+			options = plugin.options( options ) || options;
+		}
+	});
 
-		this.entry = options.entry;
-		this.entryModule = null;
+	this.entry = options.entry;
+	this.entryModule = null;
 
-		this.resolveId = first(
-			this.plugins
-				.map( plugin => plugin.resolveId )
-				.filter( Boolean )
-				.concat( resolveId )
-		);
+	this.resolveId = first(
+		this.plugins
+			.map( plugin => plugin.resolveId )
+			.filter( Boolean )
+			.concat( resolveId )
+	);
 
-		this.load = first(
-			this.plugins
-				.map( plugin => plugin.load )
-				.filter( Boolean )
-				.concat( load )
-		);
+	this.load = first(
+		this.plugins
+			.map( plugin => plugin.load )
+			.filter( Boolean )
+			.concat( load )
+	);
 
-		this.transformers = this.plugins
-			.map( plugin => plugin.transform )
-			.filter( Boolean );
+	this.transformers = this.plugins
+		.map( plugin => plugin.transform )
+		.filter( Boolean );
 
-		this.moduleById = blank();
-		this.modules = [];
+	this.moduleById = blank();
+	this.modules = [];
 
-		this.externalModules = [];
-		this.internalNamespaces = [];
+	this.externalModules = [];
+	this.internalNamespaces = [];
 
-		this.assumedGlobals = blank();
+	this.assumedGlobals = blank();
 
-		this.external = options.external || [];
-		this.onwarn = options.onwarn || makeOnwarn();
+	this.external = options.external || [];
+	this.onwarn = options.onwarn || makeOnwarn();
 
-		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
-		[ 'module', 'exports' ].forEach( global => this.assumedGlobals[ global ] = true );
-	}
+	// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
+	[ 'module', 'exports' ].forEach( global => this.assumedGlobals[ global ] = true );
+}
 
+assign( Bundle.prototype, {
 	build () {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
@@ -103,7 +103,7 @@ export default class Bundle {
 				this.orderedModules = this.sort();
 				this.deconflict();
 			});
-	}
+	},
 
 	deconflict () {
 		let used = blank();
@@ -135,7 +135,7 @@ export default class Bundle {
 				declaration.name = getSafeName( declaration.name );
 			});
 		});
-	}
+	},
 
 	fetchModule ( id, importer ) {
 		// short-circuit cycles
@@ -161,7 +161,7 @@ export default class Bundle {
 
 				return this.fetchAllDependencies( module ).then( () => module );
 			});
-	}
+	},
 
 	fetchAllDependencies ( module ) {
 		const promises = module.dependencies.map( source => {
@@ -191,7 +191,7 @@ export default class Bundle {
 		});
 
 		return Promise.all( promises );
-	}
+	},
 
 	render ( options = {} ) {
 		const format = options.format || 'es6';
@@ -258,7 +258,7 @@ export default class Bundle {
 		}
 
 		return { code, map };
-	}
+	},
 
 	sort () {
 		let seen = {};
@@ -340,4 +340,4 @@ export default class Bundle {
 
 		return ordered;
 	}
-}
+});

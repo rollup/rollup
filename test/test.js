@@ -169,8 +169,7 @@ describe( 'rollup', function () {
 
 						if ( config.babel ) {
 							code = babel.transform( result.code, {
-								blacklist: [ 'es6.modules' ],
-								loose: [ 'es6.classes' ]
+								presets: [ 'es2015' ]
 							}).code;
 						} else {
 							code = result.code;
@@ -350,8 +349,7 @@ describe( 'rollup', function () {
 							try {
 								if ( config.babel ) {
 									code = babel.transform( code, {
-										blacklist: [ 'es6.modules' ],
-										loose: [ 'es6.classes' ]
+										presets: [ 'es2015' ]
 									}).code;
 								}
 

@@ -1,45 +1,45 @@
-import { blank, keys } from './utils/object.js';
+import { assign, blank, keys } from './utils/object.js';
 import run from './utils/run.js';
 
-export default class Declaration {
-	constructor ( node, isParam, statement ) {
-		if ( node ) {
-			if ( node.type === 'FunctionDeclaration' ) {
-				this.isFunctionDeclaration = true;
-				this.functionNode = node;
-			} else if ( node.type === 'VariableDeclarator' && node.init && /FunctionExpression/.test( node.init.type ) ) {
-				this.isFunctionDeclaration = true;
-				this.functionNode = node.init;
-			}
+export default function Declaration ( node, isParam, statement ) {
+	if ( node ) {
+		if ( node.type === 'FunctionDeclaration' ) {
+			this.isFunctionDeclaration = true;
+			this.functionNode = node;
+		} else if ( node.type === 'VariableDeclarator' && node.init && /FunctionExpression/.test( node.init.type ) ) {
+			this.isFunctionDeclaration = true;
+			this.functionNode = node.init;
 		}
-
-		this.statement = statement;
-		this.name = null;
-		this.isParam = isParam;
-
-		this.isReassigned = false;
-		this.aliases = [];
-
-		this.isUsed = false;
 	}
 
+	this.statement = statement;
+	this.name = null;
+	this.isParam = isParam;
+
+	this.isReassigned = false;
+	this.aliases = [];
+
+	this.isUsed = false;
+}
+
+assign( Declaration.prototype, {
 	addAlias ( declaration ) {
 		this.aliases.push( declaration );
-	}
+	},
 
 	addReference ( reference ) {
 		reference.declaration = this;
 		this.name = reference.name; // TODO handle differences of opinion
 
 		if ( reference.isReassignment ) this.isReassigned = true;
-	}
+	},
 
 	render ( es6 ) {
 		if ( es6 ) return this.name;
 		if ( !this.isReassigned || !this.isExported ) return this.name;
 
 		return `exports.${this.name}`;
-	}
+	},
 
 	run ( strongDependencies ) {
 		if ( this.tested ) return this.hasSideEffects;
@@ -52,7 +52,7 @@ export default class Declaration {
 		}
 
 		return this.hasSideEffects;
-	}
+	},
 
 	use () {
 		if ( this.isUsed ) return;
@@ -62,22 +62,22 @@ export default class Declaration {
 
 		this.aliases.forEach( alias => alias.use() );
 	}
+});
+
+export function SyntheticDefaultDeclaration ( node, statement, name ) {
+	this.node = node;
+	this.statement = statement;
+	this.name = name;
+
+	this.original = null;
+	this.isExported = false;
+	this.aliases = [];
 }
 
-export class SyntheticDefaultDeclaration {
-	constructor ( node, statement, name ) {
-		this.node = node;
-		this.statement = statement;
-		this.name = name;
-
-		this.original = null;
-		this.isExported = false;
-		this.aliases = [];
-	}
-
+assign( SyntheticDefaultDeclaration.prototype, {
 	addAlias ( declaration ) {
 		this.aliases.push( declaration );
-	}
+	},
 
 	addReference ( reference ) {
 		// Bind the reference to `this` declaration.
@@ -87,17 +87,17 @@ export class SyntheticDefaultDeclaration {
 		if ( reference.name === 'default' ) return;
 
 		this.name = reference.name;
-	}
+	},
 
 	bind ( declaration ) {
 		this.original = declaration;
-	}
+	},
 
 	render () {
 		return !this.original || this.original.isReassigned ?
 			this.name :
 			this.original.render();
-	}
+	},
 
 	run ( strongDependencies ) {
 		if ( this.original ) {
@@ -107,7 +107,7 @@ export class SyntheticDefaultDeclaration {
 		if ( /FunctionExpression/.test( this.node.declaration.type ) ) {
 			return run( this.node.declaration.body, this.statement.scope, this.statement, strongDependencies, false );
 		}
-	}
+	},
 
 	use () {
 		this.isUsed = true;
@@ -117,25 +117,25 @@ export class SyntheticDefaultDeclaration {
 
 		this.aliases.forEach( alias => alias.use() );
 	}
+});
+
+export function SyntheticNamespaceDeclaration ( module ) {
+	this.module = module;
+	this.name = null;
+
+	this.needsNamespaceBlock = false;
+	this.aliases = [];
+
+	this.originals = blank();
+	module.getExports().forEach( name => {
+		this.originals[ name ] = module.traceExport( name );
+	});
 }
 
-export class SyntheticNamespaceDeclaration {
-	constructor ( module ) {
-		this.module = module;
-		this.name = null;
-
-		this.needsNamespaceBlock = false;
-		this.aliases = [];
-
-		this.originals = blank();
-		module.getExports().forEach( name => {
-			this.originals[ name ] = module.traceExport( name );
-		});
-	}
-
+assign( SyntheticNamespaceDeclaration.prototype, {
 	addAlias ( declaration ) {
 		this.aliases.push( declaration );
-	}
+	},
 
 	addReference ( reference ) {
 		// if we have e.g. `foo.bar`, we can optimise
@@ -168,7 +168,7 @@ export class SyntheticNamespaceDeclaration {
 
 		reference.declaration = this;
 		this.name = reference.name;
-	}
+	},
 
 	renderBlock ( indentString ) {
 		const members = keys( this.originals ).map( name => {
@@ -182,11 +182,11 @@ export class SyntheticNamespaceDeclaration {
 		});
 
 		return `var ${this.render()} = Object.freeze({\n${members.join( ',\n' )}\n});\n\n`;
-	}
+	},
 
 	render () {
 		return this.name;
-	}
+	},
 
 	use () {
 		keys( this.originals ).forEach( name => {
@@ -195,18 +195,18 @@ export class SyntheticNamespaceDeclaration {
 
 		this.aliases.forEach( alias => alias.use() );
 	}
+});
+
+export function ExternalDeclaration ( module, name ) {
+	this.module = module;
+	this.name = name;
+	this.isExternal = true;
 }
 
-export class ExternalDeclaration {
-	constructor ( module, name ) {
-		this.module = module;
-		this.name = name;
-		this.isExternal = true;
-	}
-
+assign( ExternalDeclaration.prototype, {
 	addAlias () {
 		// noop
-	}
+	},
 
 	addReference ( reference ) {
 		reference.declaration = this;
@@ -214,7 +214,7 @@ export class ExternalDeclaration {
 		if ( this.name === 'default' || this.name === '*' ) {
 			this.module.suggestName( reference.name );
 		}
-	}
+	},
 
 	render ( es6 ) {
 		if ( this.name === '*' ) {
@@ -228,13 +228,13 @@ export class ExternalDeclaration {
 		}
 
 		return es6 ? this.name : `${this.module.name}.${this.name}`;
-	}
+	},
 
 	run () {
 		return true;
-	}
+	},
 
 	use () {
 		// noop?
 	}
-}
+});

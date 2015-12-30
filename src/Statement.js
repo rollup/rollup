@@ -6,55 +6,54 @@ import isFunctionDeclaration from './ast/isFunctionDeclaration.js';
 import isReference from './ast/isReference.js';
 import getLocation from './utils/getLocation.js';
 import run from './utils/run.js';
+import { assign } from './utils/object.js';
 
-class Reference {
-	constructor ( node, scope, statement ) {
-		this.node = node;
-		this.scope = scope;
-		this.statement = statement;
+function Reference ( node, scope, statement ) {
+	this.node = node;
+	this.scope = scope;
+	this.statement = statement;
 
-		this.declaration = null; // bound later
+	this.declaration = null; // bound later
 
-		this.parts = [];
+	this.parts = [];
 
-		let root = node;
-		while ( root.type === 'MemberExpression' ) {
-			this.parts.unshift( root.property.name );
-			root = root.object;
-		}
-
-		this.name = root.name;
-
-		this.start = node.start;
-		this.end = node.start + this.name.length; // can be overridden in the case of namespace members
-		this.rewritten = false;
+	let root = node;
+	while ( root.type === 'MemberExpression' ) {
+		this.parts.unshift( root.property.name );
+		root = root.object;
 	}
+
+	this.name = root.name;
+
+	this.start = node.start;
+	this.end = node.start + this.name.length; // can be overridden in the case of namespace members
+	this.rewritten = false;
 }
 
-export default class Statement {
-	constructor ( node, module, start, end ) {
-		this.node = node;
-		this.module = module;
-		this.start = start;
-		this.end = end;
-		this.next = null; // filled in later
+export default function Statement ( node, module, start, end ) {
+	this.node = node;
+	this.module = module;
+	this.start = start;
+	this.end = end;
+	this.next = null; // filled in later
 
-		this.scope = new Scope({ statement: this });
+	this.scope = new Scope({ statement: this });
 
-		this.references = [];
-		this.stringLiteralRanges = [];
+	this.references = [];
+	this.stringLiteralRanges = [];
 
-		this.isIncluded = false;
-		this.ran = false;
+	this.isIncluded = false;
+	this.ran = false;
 
-		this.isImportDeclaration = node.type === 'ImportDeclaration';
-		this.isExportDeclaration = /^Export/.test( node.type );
-		this.isReexportDeclaration = this.isExportDeclaration && !!node.source;
+	this.isImportDeclaration = node.type === 'ImportDeclaration';
+	this.isExportDeclaration = /^Export/.test( node.type );
+	this.isReexportDeclaration = this.isExportDeclaration && !!node.source;
 
-		this.isFunctionDeclaration = isFunctionDeclaration( node ) ||
-			this.isExportDeclaration && isFunctionDeclaration( node.declaration );
-	}
+	this.isFunctionDeclaration = isFunctionDeclaration( node ) ||
+		this.isExportDeclaration && isFunctionDeclaration( node.declaration );
+}
 
+assign( Statement.prototype, {
 	firstPass () {
 		if ( this.isImportDeclaration ) return; // nothing to analyse
 
@@ -142,7 +141,7 @@ export default class Statement {
 				if ( /Function/.test( node.type ) ) readDepth -= 1;
 			}
 		});
-	}
+	},
 
 	mark () {
 		if ( this.isIncluded ) return; // prevent infinite loops
@@ -151,7 +150,7 @@ export default class Statement {
 		this.references.forEach( reference => {
 			if ( reference.declaration ) reference.declaration.use();
 		});
-	}
+	},
 
 	run ( strongDependencies, safe ) {
 		if ( ( this.ran && this.isIncluded ) || this.isImportDeclaration || this.isFunctionDeclaration ) return;
@@ -161,13 +160,13 @@ export default class Statement {
 			this.mark();
 			return true;
 		}
-	}
+	},
 
 	source () {
 		return this.module.source.slice( this.start, this.end );
-	}
+	},
 
 	toString () {
 		return this.module.magicString.slice( this.start, this.end );
 	}
-}
+});

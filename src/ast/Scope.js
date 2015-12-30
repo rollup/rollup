@@ -1,4 +1,4 @@
-import { blank, keys } from '../utils/object.js';
+import { assign, blank, keys } from '../utils/object.js';
 import Declaration from '../Declaration.js';
 
 const extractors = {
@@ -34,26 +34,26 @@ function extractNames ( param ) {
 	return names;
 }
 
-export default class Scope {
-	constructor ( options ) {
-		options = options || {};
+export default function Scope ( options ) {
+	options = options || {};
 
-		this.parent = options.parent;
-		this.statement = options.statement || this.parent.statement;
-		this.isBlockScope = !!options.block;
-		this.isTopLevel = !this.parent || ( this.parent.isTopLevel && this.isBlockScope );
+	this.parent = options.parent;
+	this.statement = options.statement || this.parent.statement;
+	this.isBlockScope = !!options.block;
+	this.isTopLevel = !this.parent || ( this.parent.isTopLevel && this.isBlockScope );
 
-		this.declarations = blank();
+	this.declarations = blank();
 
-		if ( options.params ) {
-			options.params.forEach( param => {
-				extractNames( param ).forEach( name => {
-					this.declarations[ name ] = new Declaration( param, true, this.statement );
-				});
+	if ( options.params ) {
+		options.params.forEach( param => {
+			extractNames( param ).forEach( name => {
+				this.declarations[ name ] = new Declaration( param, true, this.statement );
 			});
-		}
+		});
 	}
+}
 
+assign( Scope.prototype, {
 	addDeclaration ( node, isBlockDeclaration, isVar ) {
 		if ( !isBlockDeclaration && this.isBlockScope ) {
 			// it's a `var` or function node, and this
@@ -64,21 +64,21 @@ export default class Scope {
 				this.declarations[ name ] = new Declaration( node, false, this.statement );
 			});
 		}
-	}
+	},
 
 	contains ( name ) {
 		return this.declarations[ name ] ||
 		       ( this.parent ? this.parent.contains( name ) : false );
-	}
+	},
 
 	eachDeclaration ( fn ) {
 		keys( this.declarations ).forEach( key => {
 			fn( key, this.declarations[ key ] );
 		});
-	}
+	},
 
 	findDeclaration ( name ) {
 		return this.declarations[ name ] ||
 		       ( this.parent && this.parent.findDeclaration( name ) );
 	}
-}
+});
