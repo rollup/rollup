@@ -27,7 +27,10 @@ module.exports = function ( command ) {
 
 		rollup.rollup({
 			entry: config,
-			onwarn: log
+			onwarn: function ( message ) {
+				if ( /Treating .+ as external dependency/.test( message ) ) return;
+				log( message );
+			}
 		}).then( function ( bundle ) {
 			var code = bundle.generate({
 				format: 'cjs'
