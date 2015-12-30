@@ -74,12 +74,16 @@ module.exports = function ( command ) {
 };
 
 var equivalents = {
-	input: 'entry',
-	output: 'dest',
-	name: 'moduleName',
+	banner: 'banner',
+	footer: 'footer',
 	format: 'format',
 	globals: 'globals',
 	id: 'moduleId',
+	input: 'entry',
+	intro: 'intro',
+	name: 'moduleName',
+	output: 'dest',
+	outro: 'outro',
 	sourcemap: 'sourceMap'
 };
 
