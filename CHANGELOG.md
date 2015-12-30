@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.22.2
+
+* Prevent lost `var` keywords ([#390](https://github.com/rollup/rollup/issues/390))
+
 ## 0.22.1
 
 * Update expected option keys ([#379](https://github.com/rollup/rollup/issues/379))
