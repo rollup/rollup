@@ -2,7 +2,7 @@ import { parse } from 'acorn/src/index.js';
 import MagicString from 'magic-string';
 import { walk } from 'estree-walker';
 import Statement from './Statement.js';
-import { blank, keys } from './utils/object.js';
+import { assign, blank, keys } from './utils/object.js';
 import { basename, extname } from './utils/path.js';
 import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
@@ -11,50 +11,50 @@ import { SyntheticDefaultDeclaration, SyntheticNamespaceDeclaration } from './De
 import { isFalsy, isTruthy } from './ast/conditions.js';
 import { emptyBlockStatement } from './ast/create.js';
 
-export default class Module {
-	constructor ({ id, code, originalCode, ast, sourceMapChain, bundle }) {
-		this.code = code;
-		this.originalCode = originalCode;
-		this.sourceMapChain = sourceMapChain;
+export default function Module ({ id, code, originalCode, ast, sourceMapChain, bundle }) {
+	this.code = code;
+	this.originalCode = originalCode;
+	this.sourceMapChain = sourceMapChain;
 
-		this.bundle = bundle;
-		this.id = id;
+	this.bundle = bundle;
+	this.id = id;
 
-		// all dependencies
-		this.dependencies = [];
-		this.resolvedIds = blank();
+	// all dependencies
+	this.dependencies = [];
+	this.resolvedIds = blank();
 
-		// imports and exports, indexed by local name
-		this.imports = blank();
-		this.exports = blank();
-		this.reexports = blank();
+	// imports and exports, indexed by local name
+	this.imports = blank();
+	this.exports = blank();
+	this.reexports = blank();
 
-		this.exportAllSources = [];
-		this.exportAllModules = null;
+	this.exportAllSources = [];
+	this.exportAllModules = null;
 
-		// By default, `id` is the filename. Custom resolvers and loaders
-		// can change that, but it makes sense to use it for the source filename
-		this.magicString = new MagicString( code, {
-			filename: id,
-			indentExclusionRanges: []
-		});
+	// By default, `id` is the filename. Custom resolvers and loaders
+	// can change that, but it makes sense to use it for the source filename
+	this.magicString = new MagicString( code, {
+		filename: id,
+		indentExclusionRanges: []
+	});
 
-		// remove existing sourceMappingURL comments
-		const pattern = new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' );
-		let match;
-		while ( match = pattern.exec( code ) ) {
-			this.magicString.remove( match.index, match.index + match[0].length );
-		}
-
-		this.comments = [];
-		this.statements = this.parse( ast );
-
-		this.declarations = blank();
-		this.analyse();
-
-		this.strongDependencies = [];
+	// remove existing sourceMappingURL comments
+	const pattern = new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' );
+	let match;
+	while ( match = pattern.exec( code ) ) {
+		this.magicString.remove( match.index, match.index + match[0].length );
 	}
 
+	this.comments = [];
+	this.statements = this.parse( ast );
+
+	this.declarations = blank();
+	this.analyse();
+
+	this.strongDependencies = [];
+}
+
+assign( Module.prototype, {
 	addExport ( statement ) {
 		const node = statement.node;
 		const source = node.source && node.source.value;
@@ -127,7 +127,7 @@ export default class Module {
 				this.exports[ name ] = { localName: name };
 			}
 		}
-	}
+	},
 
 	addImport ( statement ) {
 		const node = statement.node;
@@ -151,7 +151,7 @@ export default class Module {
 			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
 			this.imports[ localName ] = { source, name, module: null };
 		});
-	}
+	},
 
 	analyse () {
 		// discover this module's imports and exports
@@ -165,14 +165,14 @@ export default class Module {
 				this.declarations[ name ] = declaration;
 			});
 		});
-	}
+	},
 
 	basename () {
 		const base = basename( this.id );
 		const ext = extname( this.id );
 
 		return makeLegalIdentifier( ext ? base.slice( 0, -ext.length ) : base );
-	}
+	},
 
 	bindAliases () {
 		keys( this.declarations ).forEach( name => {
@@ -193,7 +193,7 @@ export default class Module {
 				if ( otherDeclaration ) otherDeclaration.addAlias( declaration );
 			});
 		});
-	}
+	},
 
 	bindImportSpecifiers () {
 		[ this.imports, this.reexports ].forEach( specifiers => {
@@ -209,7 +209,7 @@ export default class Module {
 			const id = this.resolvedIds[ source ];
 			return this.bundle.moduleById[ id ];
 		});
-	}
+	},
 
 	bindReferences () {
 		if ( this.declarations.default ) {
@@ -238,7 +238,7 @@ export default class Module {
 				}
 			});
 		});
-	}
+	},
 
 	consolidateDependencies () {
 		let strongDependencies = [];
@@ -258,7 +258,7 @@ export default class Module {
 			.filter( module => module !== this );
 
 		return { strongDependencies, weakDependencies };
-	}
+	},
 
 	getExports () {
 		let exports = blank();
@@ -278,7 +278,7 @@ export default class Module {
 		});
 
 		return keys( exports );
-	}
+	},
 
 	namespace () {
 		if ( !this.declarations['*'] ) {
@@ -286,7 +286,7 @@ export default class Module {
 		}
 
 		return this.declarations['*'];
-	}
+	},
 
 	parse ( ast ) {
 		// The ast can be supplied programmatically (but usually won't be)
@@ -417,7 +417,7 @@ export default class Module {
 		}
 
 		return statements;
-	}
+	},
 
 	render ( es6 ) {
 		let magicString = this.magicString.clone();
@@ -557,7 +557,7 @@ export default class Module {
 		}
 
 		return magicString.trim();
-	}
+	},
 
 	run ( safe ) {
 		let marked = false;
@@ -567,7 +567,7 @@ export default class Module {
 		});
 
 		return marked;
-	}
+	},
 
 	trace ( name ) {
 		if ( name in this.declarations ) return this.declarations[ name ];
@@ -586,7 +586,7 @@ export default class Module {
 		}
 
 		return null;
-	}
+	},
 
 	traceExport ( name ) {
 		// export { foo } from './other.js'
@@ -616,4 +616,4 @@ export default class Module {
 			if ( declaration ) return declaration;
 		}
 	}
-}
+});
