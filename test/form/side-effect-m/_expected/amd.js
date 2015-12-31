@@ -7,7 +7,7 @@ define(function () { 'use strict';
 	var counter = 0;
 
 	// This should be in the output
-	export var foo = odd( 12 );
+	var foo = odd( 12 );
 
 	function even ( n ) {
 		alert( counter++ )

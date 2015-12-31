@@ -570,7 +570,7 @@ export default class Module {
 		let marked = false;
 
 		this.statements.forEach( statement => {
-			marked = marked || statement.run( this.strongDependencies, safe );
+			marked = statement.run( this.strongDependencies, safe ) || marked;
 		});
 
 		return marked;
