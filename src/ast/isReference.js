@@ -4,6 +4,8 @@ export default function isReference ( node, parent ) {
 	}
 
 	if ( node.type === 'Identifier' ) {
+		if ( !parent ) return true;
+
 		// TODO is this right?
 		if ( parent.type === 'MemberExpression' ) return parent.computed || node === parent.object;
 
