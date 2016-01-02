@@ -4,6 +4,11 @@ export default function isReference ( node, parent ) {
 	}
 
 	if ( node.type === 'Identifier' ) {
+		// the only time we could have an identifier node without a parent is
+		// if it's the entire body of a function without a block statement –
+		// i.e. an arrow function expression like `a => a`
+		if ( !parent ) return true;
+
 		// TODO is this right?
 		if ( parent.type === 'MemberExpression' ) return parent.computed || node === parent.object;
 
