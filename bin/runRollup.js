@@ -20,6 +20,17 @@ module.exports = function ( command ) {
 		command.input = command._[0];
 	}
 
+	if ( command.environment ) {
+		command.environment.split( ',' ).forEach( function ( pair ) {
+			var index = pair.indexOf( ':' );
+			if ( ~index ) {
+				process.env[ pair.slice( 0, index ) ] = pair.slice( index + 1 );
+			} else {
+				process.env[ pair ] = true;
+			}
+		});
+	}
+
 	var config = command.config === true ? 'rollup.config.js' : command.config;
 
 	if ( config ) {
@@ -27,7 +38,10 @@ module.exports = function ( command ) {
 
 		rollup.rollup({
 			entry: config,
-			onwarn: log
+			onwarn: function ( message ) {
+				if ( /Treating .+ as external dependency/.test( message ) ) return;
+				log( message );
+			}
 		}).then( function ( bundle ) {
 			var code = bundle.generate({
 				format: 'cjs'
@@ -60,12 +74,16 @@ module.exports = function ( command ) {
 };
 
 var equivalents = {
-	input: 'entry',
-	output: 'dest',
-	name: 'moduleName',
+	banner: 'banner',
+	footer: 'footer',
 	format: 'format',
 	globals: 'globals',
 	id: 'moduleId',
+	input: 'entry',
+	intro: 'intro',
+	name: 'moduleName',
+	output: 'dest',
+	outro: 'outro',
 	sourcemap: 'sourceMap'
 };
 

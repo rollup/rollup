@@ -11,7 +11,9 @@ import getExportMode from './utils/getExportMode.js';
 import getIndentString from './utils/getIndentString.js';
 import { unixizePath } from './utils/normalizePlatform.js';
 import transform from './utils/transform.js';
+import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
+import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
 import { isRelative, resolve } from './utils/path.js';
 
@@ -44,6 +46,10 @@ export default class Bundle {
 
 		this.transformers = this.plugins
 			.map( plugin => plugin.transform )
+			.filter( Boolean );
+
+		this.bundleTransformers = this.plugins
+			.map( plugin => plugin.transformBundle )
 			.filter( Boolean );
 
 		this.moduleById = blank();
@@ -242,20 +248,23 @@ export default class Bundle {
 		if ( banner ) magicString.prepend( banner + '\n' );
 		if ( footer ) magicString.append( '\n' + footer );
 
-		const code = magicString.toString();
+		let code = magicString.toString();
 		let map = null;
+		let bundleSourcemapChain = [];
+
+		code = transformBundle( code, this.bundleTransformers, bundleSourcemapChain )
+			.replace( new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' ), '' );
 
 		if ( options.sourceMap ) {
 			let file = options.sourceMapFile || options.dest;
 			if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
 
-			map = magicString.generateMap({
-				includeContent: true,
-				file
-				// TODO
-			});
+			map = magicString.generateMap({ file, includeContent: true });
 
-			if ( this.transformers.length ) map = collapseSourcemaps( map, usedModules );
+			if ( this.transformers.length || this.bundleTransformers.length ) {
+				map = collapseSourcemaps( map, usedModules, bundleSourcemapChain );
+			}
+			
 			map.sources = map.sources.map( unixizePath );
 		}
 

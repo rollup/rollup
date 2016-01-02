@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "0.22.0",
+  "version": "0.23.1",
   "description": "Next-generation ES6 module bundler",
   "main": "dist/rollup.js",
   "jsnext:main": "src/rollup.js",
@@ -48,7 +48,7 @@
     "eslint": "^1.7.1",
     "estree-walker": "^0.2.0",
     "istanbul": "^0.4.0",
-    "magic-string": "^0.10.0",
+    "magic-string": "^0.10.1",
     "mocha": "^2.3.3",
     "remap-istanbul": "^0.4.0",
     "rollup": "^0.20.2",
@@ -57,7 +57,8 @@
     "rollup-plugin-replace": "^1.0.1",
     "sander": "^0.4.0",
     "source-map": "^0.5.3",
-    "sourcemap-codec": "^1.2.1"
+    "sourcemap-codec": "^1.2.1",
+    "uglify-js": "^2.6.1"
   },
   "dependencies": {
     "chalk": "^1.1.1",

@@ -1,5 +1,29 @@
 # rollup changelog
 
+## 0.23.1
+
+* Reinstate missing fix from ([#392](https://github.com/rollup/rollup/pull/392))
+
+## 0.23.0
+
+* Add `bundleTransform` plugin hook and option ([#387](https://github.com/rollup/rollup/pull/387))
+* Correctly store names in sourcemaps, regardless of transformers
+* Add `--environment` option to CLI ([#388](https://github.com/rollup/rollup/pull/388))
+* Handle destructuring in exports ([#374](https://github.com/rollup/rollup/issues/374))
+* Fix UMD global exports bug introduced in 0.22.1 ([#392](https://github.com/rollup/rollup/pull/392))
+
+## 0.22.2
+
+* Prevent lost `var` keywords ([#390](https://github.com/rollup/rollup/issues/390))
+
+## 0.22.1
+
+* Update expected option keys ([#379](https://github.com/rollup/rollup/issues/379))
+* Handle transformers that return stringified sourcemaps ([#377](https://github.com/rollup/rollup/issues/377))
+* Automatically create missing namespaces if `moduleName` contains dots ([#378](https://github.com/rollup/rollup/issues/378))
+* Ignore external dependency warnings coming from config file ([#333](https://github.com/rollup/rollup/issues/333))
+* Update to latest magic-string for performance boost
+
 ## 0.22.0
 
 * Duplicate warnings are squelched ([#362](https://github.com/rollup/rollup/issues/362))
