@@ -15,7 +15,7 @@ import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
-import { isRelative } from './utils/path.js';
+import { isRelative, resolve } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -256,13 +256,15 @@ export default class Bundle {
 			.replace( new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' ), '' );
 
 		if ( options.sourceMap ) {
-			const file = options.sourceMapFile || options.dest;
+			let file = options.sourceMapFile || options.dest;
+			if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
+
 			map = magicString.generateMap({ file, includeContent: true });
 
 			if ( this.transformers.length || this.bundleTransformers.length ) {
 				map = collapseSourcemaps( map, usedModules, bundleSourcemapChain );
 			}
-
+			
 			map.sources = map.sources.map( unixizePath );
 		}
 
