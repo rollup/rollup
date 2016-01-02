@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 0.23.2
+
+* Ensure `dest` or `sourceMapFile` is resolved against CWD for purposes of sourcemap generation ([#344](https://github.com/rollup/rollup/issues/344))
+* Support `banner`, `footer`, `intro` and `outro` options via CLI ([#330](https://github.com/rollup/rollup/issues/330))
+* Allow `options.global` to be a function rather than an object, and warn on missing names ([#293](https://github.com/rollup/rollup/issues/293))
+* Ensure side-effects are captured in cyclical call expressions ([#397](https://github.com/rollup/rollup/issues/397))
+* Fix parse error with body-less arrow function expressions ([#403](https://github.com/rollup/rollup/issues/403))
+
 ## 0.23.1
 
 * Reinstate missing fix from ([#392](https://github.com/rollup/rollup/pull/392))
