@@ -43,14 +43,20 @@ export default class Declaration {
 
 	run ( strongDependencies ) {
 		if ( this.tested ) return this.hasSideEffects;
-		this.tested = true;
+
 
 		if ( !this.functionNode ) {
 			this.hasSideEffects = true; // err on the side of caution. TODO handle unambiguous `var x; x = y => z` cases
 		} else {
+			if ( this.running ) return true; // short-circuit infinite loop
+			this.running = true;
+
 			this.hasSideEffects = run( this.functionNode.body, this.functionNode._scope, this.statement, strongDependencies, false );
+
+			this.running = false;
 		}
 
+		this.tested = true;
 		return this.hasSideEffects;
 	}
 
