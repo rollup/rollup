@@ -1,5 +1,6 @@
 .DS_Store
 node_modules
+!test/node_modules
 .gobble*
 dist
 _actual

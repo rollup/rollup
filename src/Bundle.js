@@ -31,9 +31,8 @@ export default class Bundle {
 		this.entryModule = null;
 
 		this.resolveId = first(
-			this.plugins
-				.map( plugin => plugin.resolveId )
-				.filter( Boolean )
+			[ id => ~this.external.indexOf( id ) ? false : null ]
+				.concat( this.plugins.map( plugin => plugin.resolveId ).filter( Boolean ) )
 				.concat( resolveId )
 		);
 
@@ -264,7 +263,7 @@ export default class Bundle {
 			if ( this.transformers.length || this.bundleTransformers.length ) {
 				map = collapseSourcemaps( map, usedModules, bundleSourcemapChain );
 			}
-			
+
 			map.sources = map.sources.map( unixizePath );
 		}
 
