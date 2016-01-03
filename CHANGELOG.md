@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.24.0
+
+* No longer attempts to resolve IDs in `options.external` ([#407](https://github.com/rollup/rollup/issues/407))
+* Fix broken sourcemap resolution in cases where some modules are transformed and others aren't ([#404](https://github.com/rollup/rollup/issues/404))
+
 ## 0.23.2
 
 * Ensure `dest` or `sourceMapFile` is resolved against CWD for purposes of sourcemap generation ([#344](https://github.com/rollup/rollup/issues/344))
