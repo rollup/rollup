@@ -1,6 +1,17 @@
 import { encode, decode } from 'sourcemap-codec';
 
-function Source ( map, sources ) {
+function Source ( index ) {
+	this.isOriginal = true;
+	this.index = index;
+}
+
+Source.prototype = {
+	traceSegment ( line, column, name ) {
+		return { line, column, name, index: this.index };
+	}
+};
+
+function Link ( map, sources ) {
 	if ( !map ) throw new Error( 'Cannot generate a sourcemap if non-sourcemap-generating transformers are used' );
 
 	this.sources = sources;
@@ -8,7 +19,7 @@ function Source ( map, sources ) {
 	this.mappings = decode( map.mappings );
 }
 
-Source.prototype = { // TODO bring into line with others post-https://github.com/rollup/rollup/pull/386
+Link.prototype = { // TODO bring into line with others post-https://github.com/rollup/rollup/pull/386
 	traceMappings () {
 		let names = [];
 
@@ -63,16 +74,7 @@ Source.prototype = { // TODO bring into line with others post-https://github.com
 
 				if ( !source ) throw new Error( 'Bad sourcemap' );
 
-				if ( source.isOriginal ) {
-					return {
-						index: source.index,
-						line: segment[2],
-						column: segment[3],
-						name: this.names[ segment[4] ] || name
-					};
-				}
-
-				return source.traceSegment( segment[2], segment[3], name );
+				return source.traceSegment( segment[2], segment[3], this.names[ segment[4] ] || name );
 			}
 		}
 
@@ -82,19 +84,19 @@ Source.prototype = { // TODO bring into line with others post-https://github.com
 
 export default function collapseSourcemaps ( map, modules, bundleSourcemapChain ) {
 	const sources = modules.map( ( module, i ) => {
-		let source = { isOriginal: true, index: i };
+		let source = new Source( i );
 
 		module.sourceMapChain.forEach( map => {
-			source = new Source( map, [ source ]);
+			source = new Link( map, [ source ]);
 		});
 
 		return source;
 	});
 
-	let source = new Source( map, sources );
+	let source = new Link( map, sources );
 
 	bundleSourcemapChain.forEach( map => {
-		source = new Source( map, [ source ] );
+		source = new Link( map, [ source ] );
 	});
 
 	const { names, mappings } = source.traceMappings();
