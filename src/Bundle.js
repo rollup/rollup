@@ -59,7 +59,7 @@ export default class Bundle {
 
 		this.assumedGlobals = blank();
 
-		this.external = options.external || [];
+		this.external = ensureArray( options.external ).map( id => id.replace( /[\/\\]/g, '/' ) );
 		this.onwarn = options.onwarn || makeOnwarn();
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
@@ -172,9 +172,14 @@ export default class Bundle {
 		const promises = module.dependencies.map( source => {
 			return this.resolveId( source, module.id )
 				.then( resolvedId => {
-					if ( !resolvedId ) {
-						if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
-						if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
+					// If the `resolvedId` is supposed to be external, make it so.
+					const forcedExternal = resolvedId && ~this.external.indexOf( resolvedId.replace( /[\/\\]/g, '/' ) );
+
+					if ( !resolvedId || forcedExternal ) {
+						if ( !forcedExternal ) {
+							if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
+							if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
+						}
 						module.resolvedIds[ source ] = source;
 
 						if ( !this.moduleById[ source ] ) {
