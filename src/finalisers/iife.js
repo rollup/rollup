@@ -35,9 +35,10 @@ export default function iife ( bundle, magicString, { exportMode, indentString }
 		args.unshift( 'exports' );
 	}
 
-	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
-	let intro = `(function (${args}) {${useStrict}\n\n`;
-	let outro = `\n\n})(${dependencies});`;
+	const useStrict = options.useStrict !== false ? `'use strict';` : ``;
+	if ( useStrict ) magicString.prepend( useStrict + '\n\n' );
+	let intro = `(function (${args}) {\n`;
+	let outro = `\n\n}(${dependencies}));`;
 
 	if ( exportMode === 'default' ) {
 		intro = ( isNamespaced ? `this.` : `var ` ) + `${name} = ${intro}`;
