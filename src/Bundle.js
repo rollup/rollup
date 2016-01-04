@@ -70,7 +70,7 @@ export default class Bundle {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
-		return Promise.resolve( this.resolveId( this.entry, undefined ) )
+		return this.resolveId( this.entry, undefined )
 			.then( id => this.fetchModule( id, undefined ) )
 			.then( entryModule => {
 				this.entryModule = entryModule;
@@ -147,7 +147,7 @@ export default class Bundle {
 		if ( id in this.moduleById ) return null;
 		this.moduleById[ id ] = null;
 
-		return Promise.resolve( this.load( id ) )
+		return this.load( id )
 			.catch( err => {
 				let msg = `Could not load ${id}`;
 				if ( importer ) msg += ` (imported by ${importer})`;
@@ -170,7 +170,7 @@ export default class Bundle {
 
 	fetchAllDependencies ( module ) {
 		const promises = module.dependencies.map( source => {
-			return Promise.resolve( this.resolveId( source, module.id ) )
+			return this.resolveId( source, module.id )
 				.then( resolvedId => {
 					if ( !resolvedId ) {
 						if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
