@@ -35,9 +35,10 @@ export default function iife ( bundle, magicString, { exportMode, indentString }
 		args.unshift( 'exports' );
 	}
 
-	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
-	let intro = `(function (${args}) {${useStrict}\n\n`;
-	let outro = `\n\n})(${dependencies});`;
+	const useStrict = options.useStrict !== false ? `'use strict';` : ``;
+
+	let intro = `(function (${args}) {\n`;
+	let outro = `\n\n}(${dependencies}));`;
 
 	if ( exportMode === 'default' ) {
 		intro = ( isNamespaced ? `this.` : `var ` ) + `${name} = ${intro}`;
@@ -50,7 +51,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString }
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
 	const interopBlock = getInteropBlock( bundle );
 	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
-
+	if ( useStrict ) magicString.prepend( useStrict + '\n\n' );
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 

@@ -1,4 +1,5 @@
-(function () { 'use strict';
+(function () {
+	'use strict';
 
 	function foo () {
 		console.log( bar() );
@@ -15,4 +16,4 @@
 	foo();
 	console.log( 3 );
 
-})();
+}());

@@ -1,4 +1,5 @@
-var myBundle = (function () { 'use strict';
+var myBundle = (function () {
+	'use strict';
 
 	if ( !ok ) {
 		throw new Error( 'this will be included' );
@@ -8,4 +9,4 @@ var myBundle = (function () { 'use strict';
 
 	return main;
 
-})();
+}());

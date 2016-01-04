@@ -1,4 +1,5 @@
-var myBundle = (function () { 'use strict';
+var myBundle = (function () {
+	'use strict';
 
 	function augment ( x ) {
 		var prop, source;
@@ -25,4 +26,4 @@ var myBundle = (function () { 'use strict';
 
 	return x;
 
-})();
+}());

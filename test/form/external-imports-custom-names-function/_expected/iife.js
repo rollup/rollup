@@ -1,5 +1,6 @@
-(function (aBC) { 'use strict';
+(function (aBC) {
+	'use strict';
 
 	aBC.foo();
 
-})(a_b_c);
+}(a_b_c));

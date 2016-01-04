@@ -1,4 +1,5 @@
-(function () { 'use strict';
+(function () {
+	'use strict';
 
 	var Foo = function () {
 		this.isFoo = true;
@@ -12,4 +13,4 @@
 
 	var foo = new Foo();
 
-})();
+}());

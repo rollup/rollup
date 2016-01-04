@@ -1,4 +1,5 @@
-(function () { 'use strict';
+(function () {
+	'use strict';
 
 	function foo () {
 		console.log( 'hello from foo.js' );
@@ -13,5 +14,5 @@
 	foo();
 	bar();
 
-})();
+}());
 //# sourceMappingURL=iife.js.map
