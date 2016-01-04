@@ -88,7 +88,8 @@ var equivalents = {
 };
 
 function execute ( options, command ) {
-	var external = command.external ? command.external.split( ',' ) : [];
+	var external = ( options.external || [] )
+		.concat( command.external ? command.external.split( ',' ) : []  );
 
 	if ( command.globals ) {
 		var globals = Object.create( null );
