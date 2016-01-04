@@ -173,7 +173,7 @@ export default class Bundle {
 			return Promise.resolve( this.resolveId( source, module.id ) )
 				.then( resolvedId => {
 					// If the `resolvedId` is supposed to be external, make it so.
-					const forcedExternal = ~this.external.indexOf( resolvedId.replace( /[\/\\]/g, '/' ) );
+					const forcedExternal = resolvedId && ~this.external.indexOf( resolvedId.replace( /[\/\\]/g, '/' ) );
 
 					if ( !resolvedId || forcedExternal ) {
 						if ( !forcedExternal ) {
