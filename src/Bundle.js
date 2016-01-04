@@ -59,7 +59,7 @@ export default class Bundle {
 
 		this.assumedGlobals = blank();
 
-		this.external = options.external || [];
+		this.external = ensureArray( options.external ).map( id => id.replace( /[\/\\]/g, '/' ) );
 		this.onwarn = options.onwarn || makeOnwarn();
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
@@ -172,8 +172,8 @@ export default class Bundle {
 		const promises = module.dependencies.map( source => {
 			return Promise.resolve( this.resolveId( source, module.id ) )
 				.then( resolvedId => {
-					// If the `resolvedId` is supposed to be exteral, make it so.
-					const forcedExternal = ~this.external.indexOf( resolvedId );
+					// If the `resolvedId` is supposed to be external, make it so.
+					const forcedExternal = ~this.external.indexOf( resolvedId.replace( /[\/\\]/g, '/' ) );
 
 					if ( !resolvedId || forcedExternal ) {
 						if ( !forcedExternal ) {
