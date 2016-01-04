@@ -1,5 +1,5 @@
 var foo = (function () {
-	'use strict';
+  'use strict';
 
   function foo () {
     console.log( 'indented with spaces' );

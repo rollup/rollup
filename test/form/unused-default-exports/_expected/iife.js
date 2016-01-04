@@ -1,4 +1,5 @@
-(function () { 'use strict';
+(function () {
+	'use strict';
 
 	var foo = { value: 1 };
 
@@ -11,4 +12,4 @@
 
 	assert.equal( foo.value, 2 );
 
-})();
+}());

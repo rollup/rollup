@@ -1,4 +1,5 @@
-(function () { 'use strict';
+(function () {
+	'use strict';
 
 	var foo = function () {
 		return 42;
@@ -13,4 +14,4 @@
 
 	console.log( answer );
 
-})();
+}());
