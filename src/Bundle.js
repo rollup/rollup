@@ -172,9 +172,14 @@ export default class Bundle {
 		const promises = module.dependencies.map( source => {
 			return Promise.resolve( this.resolveId( source, module.id ) )
 				.then( resolvedId => {
-					if ( !resolvedId ) {
-						if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
-						if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
+					// If the `resolvedId` is supposed to be exteral, make it so.
+					const forcedExternal = ~this.external.indexOf( resolvedId );
+
+					if ( !resolvedId || forcedExternal ) {
+						if ( !forcedExternal ) {
+							if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
+							if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
+						}
 						module.resolvedIds[ source ] = source;
 
 						if ( !this.moduleById[ source ] ) {
