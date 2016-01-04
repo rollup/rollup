@@ -1,4 +1,5 @@
-var myBundle = (function () { 'use strict';
+var myBundle = (function () {
+	'use strict';
 
 	function foo () {
 		var Object = {
@@ -17,4 +18,4 @@ var myBundle = (function () { 'use strict';
 
 	return main;
 
-})();
+}());

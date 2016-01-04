@@ -1,4 +1,5 @@
-(function () { 'use strict';
+(function () {
+	'use strict';
 
 	var bar$1 = 42;
 
@@ -12,4 +13,4 @@
 
 	bar();
 
-})();
+}());

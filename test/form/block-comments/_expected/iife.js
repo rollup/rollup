@@ -1,4 +1,5 @@
-(function () { 'use strict';
+(function () {
+	'use strict';
 
 	function foo () {
 		return embiggen( 6, 7 );
@@ -16,4 +17,4 @@
 
 	alert( foo() );
 
-})();
+}());

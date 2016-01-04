@@ -1,4 +1,5 @@
-(function () { 'use strict';
+(function () {
+	'use strict';
 
 	function x () {
 		return 'foo';
@@ -22,4 +23,4 @@
 	assert.equal( bar.x(), 'bar' );
 	assert.equal( baz.x(), 'baz' );
 
-})();
+}());

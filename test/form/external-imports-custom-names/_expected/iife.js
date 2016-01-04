@@ -1,4 +1,5 @@
-(function ($) { 'use strict';
+(function ($) {
+	'use strict';
 
 	$ = 'default' in $ ? $['default'] : $;
 
@@ -6,4 +7,4 @@
 		$( 'body' ).html( '<h1>hello world!</h1>' );
 	});
 
-})(jQuery);
+}(jQuery));
