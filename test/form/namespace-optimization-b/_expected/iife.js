@@ -1,4 +1,5 @@
-(function () { 'use strict';
+(function () {
+	'use strict';
 
 	function foo () {
 		console.log( 'foo' );
@@ -16,4 +17,4 @@
 
 	a();
 
-})();
+}());

@@ -1,4 +1,5 @@
-(function () { 'use strict';
+(function () {
+	'use strict';
 
 	const a = 1;
 	const b = 2;
@@ -6,4 +7,4 @@
 	const [ d = b ] = [];
 	console.log(c, d);
 
-})();
+}());

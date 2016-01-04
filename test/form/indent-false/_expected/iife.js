@@ -1,4 +1,5 @@
-var foo = (function () { 'use strict';
+var foo = (function () {
+	'use strict';
 
 function foo () {
 	console.log( 'indented with tabs' );
@@ -6,4 +7,4 @@ function foo () {
 
 return foo;
 
-})();
+}());

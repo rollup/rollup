@@ -1,4 +1,5 @@
-var myBundle = (function () { 'use strict';
+var myBundle = (function () {
+	'use strict';
 
 	var augment;
 	augment = x => x.augmented = true;
@@ -8,4 +9,4 @@ var myBundle = (function () { 'use strict';
 
 	return x;
 
-})();
+}());
