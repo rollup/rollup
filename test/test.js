@@ -45,6 +45,8 @@ function loadConfig ( path ) {
 }
 
 describe( 'rollup', function () {
+	this.timeout( 10000 );
+
 	describe( 'sanity checks', function () {
 		it( 'exists', function () {
 			assert.ok( !!rollup );
