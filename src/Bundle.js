@@ -335,19 +335,25 @@ export default class Bundle {
 			let unordered = ordered;
 			ordered = [];
 
+			let placed = blank();
+
 			// unordered is actually semi-ordered, as [ fewer dependencies ... more dependencies ]
 			unordered.forEach( module => {
 				// ensure strong dependencies of `module` that don't strongly depend on `module` go first
 				strongDeps[ module.id ].forEach( place );
 
 				function place ( dep ) {
-					if ( !stronglyDependsOn[ dep.id ][ module.id ] && !~ordered.indexOf( dep ) ) {
+					if ( placed[ dep.id ] ) return;
+					placed[ dep.id ] = true;
+
+					if ( !stronglyDependsOn[ dep.id ][ module.id ] ) {
 						strongDeps[ dep.id ].forEach( place );
 						ordered.push( dep );
 					}
 				}
 
 				if ( !~ordered.indexOf( module ) ) {
+					placed[ module.id ] = true;
 					ordered.push( module );
 				}
 			});
