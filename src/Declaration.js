@@ -110,9 +110,15 @@ export class SyntheticDefaultDeclaration {
 			return this.original.run( strongDependencies );
 		}
 
-		if ( /FunctionExpression/.test( this.node.declaration.type ) ) {
-			return run( this.node.declaration.body, this.statement.scope, this.statement, strongDependencies, false );
+		let declaration = this.node.declaration;
+		while ( declaration.type === 'ParenthesizedExpression' ) declaration = declaration.expression;
+
+		if ( /FunctionExpression/.test( declaration.type ) ) {
+			return run( declaration.body, this.statement.scope, this.statement, strongDependencies, false );
 		}
+
+		// otherwise assume the worst
+		return true;
 	}
 
 	use () {
