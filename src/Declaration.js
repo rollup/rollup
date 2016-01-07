@@ -1,5 +1,6 @@
 import { blank, keys } from './utils/object.js';
 import run from './utils/run.js';
+import { SyntheticReference } from './Reference.js';
 
 export default class Declaration {
 	constructor ( node, isParam, statement ) {
@@ -170,6 +171,12 @@ export class SyntheticNamespaceDeclaration {
 		if ( !this.needsNamespaceBlock ) {
 			this.needsNamespaceBlock = true;
 			this.module.bundle.internalNamespaces.push( this );
+
+			// add synthetic references, in case of chained
+			// namespace imports
+			keys( this.originals ).forEach( name => {
+				this.originals[ name ].addReference( new SyntheticReference( name ) );
+			});
 		}
 
 		reference.declaration = this;
