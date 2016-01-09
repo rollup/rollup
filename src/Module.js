@@ -566,11 +566,11 @@ export default class Module {
 		return magicString.trim();
 	}
 
-	run ( safe ) {
+	run () {
 		let marked = false;
 
 		this.statements.forEach( statement => {
-			marked = statement.run( this.strongDependencies, safe ) || marked;
+			marked = statement.run( this.strongDependencies ) || marked;
 		});
 
 		return marked;

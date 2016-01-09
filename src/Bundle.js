@@ -276,82 +276,28 @@ export default class Bundle {
 	}
 
 	sort () {
+		const moduleById = this.moduleById;
+
 		let seen = {};
 		let ordered = [];
-		let hasCycles;
-
-		let strongDeps = {};
-		let stronglyDependsOn = {};
 
 		function visit ( module ) {
 			if ( seen[ module.id ] ) return;
 			seen[ module.id ] = true;
 
-			const { strongDependencies, weakDependencies } = module.consolidateDependencies();
+			module.dependencies.forEach( source => {
+				const resolved = module.resolvedIds[ source ];
+				const dependency = moduleById[ resolved ];
 
-			strongDeps[ module.id ] = [];
-			stronglyDependsOn[ module.id ] = {};
+				if ( dependency.isExternal ) return;
 
-			strongDependencies.forEach( imported => {
-				strongDeps[ module.id ].push( imported );
-
-				if ( seen[ imported.id ] ) {
-					// we need to prevent an infinite loop, and note that
-					// we need to check for strong/weak dependency relationships
-					hasCycles = true;
-					return;
-				}
-
-				visit( imported );
+				visit( dependency );
 			});
-
-			weakDependencies.forEach( imported => {
-				if ( seen[ imported.id ] ) {
-					// we need to prevent an infinite loop, and note that
-					// we need to check for strong/weak dependency relationships
-					hasCycles = true;
-					return;
-				}
-
-				visit( imported );
-			});
-
-			// add second (and third...) order dependencies
-			function addStrongDependencies ( dependency ) {
-				if ( stronglyDependsOn[ module.id ][ dependency.id ] ) return;
-
-				stronglyDependsOn[ module.id ][ dependency.id ] = true;
-				strongDeps[ dependency.id ].forEach( addStrongDependencies );
-			}
-
-			strongDeps[ module.id ].forEach( addStrongDependencies );
 
 			ordered.push( module );
 		}
 
-		this.modules.forEach( visit );
-
-		if ( hasCycles ) {
-			let unordered = ordered;
-			ordered = [];
-
-			// unordered is actually semi-ordered, as [ fewer dependencies ... more dependencies ]
-			unordered.forEach( module => {
-				// ensure strong dependencies of `module` that don't strongly depend on `module` go first
-				strongDeps[ module.id ].forEach( place );
-
-				function place ( dep ) {
-					if ( !stronglyDependsOn[ dep.id ][ module.id ] && !~ordered.indexOf( dep ) ) {
-						strongDeps[ dep.id ].forEach( place );
-						ordered.push( dep );
-					}
-				}
-
-				if ( !~ordered.indexOf( module ) ) {
-					ordered.push( module );
-				}
-			});
-		}
+		visit( this.entryModule );
 
 		return ordered;
 	}
