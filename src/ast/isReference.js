@@ -12,8 +12,8 @@ export default function isReference ( node, parent ) {
 		// TODO is this right?
 		if ( parent.type === 'MemberExpression' ) return parent.computed || node === parent.object;
 
-		// disregard the `bar` in { bar: foo }
-		if ( parent.type === 'Property' && node !== parent.value ) return false;
+		// disregard the `bar` in `{ bar: foo }`, but keep it in `{ [bar]: foo }`
+		if ( parent.type === 'Property' ) return parent.computed || node === parent.value;
 
 		// disregard the `bar` in `class Foo { bar () {...} }`
 		if ( parent.type === 'MethodDefinition' ) return false;
