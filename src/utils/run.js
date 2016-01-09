@@ -44,7 +44,56 @@ simdTypes.forEach( t => {
 ).forEach( name => pureFunctions[ name ] = true );
 	// TODO add others to this list from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
 
+function call ( callee, scope, statement, strongDependencies ) {
+	let hasSideEffect;
 
+	while ( callee.type === 'ParenthesizedExpression' ) callee = callee.expression;
+
+	if ( callee.type === 'Identifier' ) {
+		const declaration = scope.findDeclaration( callee.name ) ||
+							statement.module.trace( callee.name );
+
+		if ( declaration ) {
+			if ( declaration.run( strongDependencies ) ) {
+				hasSideEffect = true;
+			}
+		} else if ( !pureFunctions[ callee.name ] ) {
+			hasSideEffect = true;
+		}
+	}
+
+	else if ( callee.type === 'MemberExpression' ) {
+		const flattened = flatten( callee );
+
+		if ( flattened ) {
+			// if we're calling e.g. Object.keys(thing), there are no side-effects
+			// TODO make pureFunctions configurable
+			const declaration = scope.findDeclaration( flattened.name ) || statement.module.trace( flattened.name );
+
+			if ( !!declaration || !pureFunctions[ flattened.keypath ] ) {
+				hasSideEffect = true;
+			}
+		} else {
+			// is not a keypath like `foo.bar.baz` – could be e.g.
+			// `foo[bar].baz()`. Err on the side of caution
+			hasSideEffect = true;
+		}
+	}
+
+	else if ( /FunctionExpression/.test( callee.type ) ) {
+		if ( run( callee.body, scope, statement, strongDependencies ) ) {
+			hasSideEffect = true;
+		}
+	}
+
+	else {
+		// huh?
+		console.log( 'callee', callee )
+		throw new Error( 'Cannot call a non-function' );
+	}
+
+	return hasSideEffect;
+}
 
 export default function run ( node, scope, statement, strongDependencies, force ) {
 	let hasSideEffect = false;
@@ -78,39 +127,7 @@ export default function run ( node, scope, statement, strongDependencies, force 
 			}
 
 			else if ( node.type === 'CallExpression' || node.type === 'NewExpression' ) {
-				if ( node.callee.type === 'Identifier' ) {
-					const declaration = scope.findDeclaration( node.callee.name ) ||
-					                    statement.module.trace( node.callee.name );
-
-					if ( declaration ) {
-						if ( declaration.run( strongDependencies ) ) {
-							hasSideEffect = true;
-						}
-					} else if ( !pureFunctions[ node.callee.name ] ) {
-						hasSideEffect = true;
-					}
-				}
-
-				else if ( node.callee.type === 'MemberExpression' ) {
-					const flattened = flatten( node.callee );
-
-					if ( flattened ) {
-						// if we're calling e.g. Object.keys(thing), there are no side-effects
-						// TODO make pureFunctions configurable
-						const declaration = scope.findDeclaration( flattened.name ) || statement.module.trace( flattened.name );
-
-						if ( !!declaration || !pureFunctions[ flattened.keypath ] ) {
-							hasSideEffect = true;
-						}
-					} else {
-						// is not a keypath like `foo.bar.baz` – could be e.g.
-						// `foo[bar].baz()`. Err on the side of caution
-						hasSideEffect = true;
-					}
-				}
-
-				// otherwise we're probably dealing with a function expression
-				else if ( run( node.callee, scope, statement, strongDependencies, true ) ) {
+				if ( call( node.callee, scope, statement, strongDependencies ) ) {
 					hasSideEffect = true;
 				}
 			}
