@@ -22,6 +22,7 @@ export default class Module {
 		this.id = id;
 
 		// all dependencies
+		this.sources = [];
 		this.dependencies = [];
 		this.resolvedIds = blank();
 
@@ -62,7 +63,7 @@ export default class Module {
 
 		// export { name } from './other.js'
 		if ( source ) {
-			if ( !~this.dependencies.indexOf( source ) ) this.dependencies.push( source );
+			if ( !~this.sources.indexOf( source ) ) this.sources.push( source );
 
 			if ( node.type === 'ExportAllDeclaration' ) {
 				// Store `export * from '...'` statements in an array of delegates.
@@ -136,7 +137,7 @@ export default class Module {
 		const node = statement.node;
 		const source = node.source.value;
 
-		if ( !~this.dependencies.indexOf( source ) ) this.dependencies.push( source );
+		if ( !~this.sources.indexOf( source ) ) this.sources.push( source );
 
 		node.specifiers.forEach( specifier => {
 			const localName = specifier.local.name;
@@ -212,6 +213,13 @@ export default class Module {
 			const id = this.resolvedIds[ source ];
 			return this.bundle.moduleById[ id ];
 		});
+
+		this.sources.forEach( source => {
+			const id = this.resolvedIds[ source ];
+			const module = this.bundle.moduleById[ id ];
+
+			if ( !module.isExternal ) this.dependencies.push( module );
+		});
 	}
 
 	bindReferences () {
@@ -241,26 +249,6 @@ export default class Module {
 				}
 			});
 		});
-	}
-
-	consolidateDependencies () {
-		let strongDependencies = [];
-		let weakDependencies = [];
-
-		// treat all imports as weak dependencies
-		this.dependencies.forEach( source => {
-			const id = this.resolvedIds[ source ];
-			const dependency = this.bundle.moduleById[ id ];
-
-			if ( !dependency.isExternal && !~weakDependencies.indexOf( dependency ) ) {
-				weakDependencies.push( dependency );
-			}
-		});
-
-		strongDependencies = this.strongDependencies
-			.filter( module => module !== this );
-
-		return { strongDependencies, weakDependencies };
 	}
 
 	getExports () {

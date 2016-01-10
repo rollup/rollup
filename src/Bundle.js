@@ -169,7 +169,7 @@ export default class Bundle {
 	}
 
 	fetchAllDependencies ( module ) {
-		const promises = module.dependencies.map( source => {
+		const promises = module.sources.map( source => {
 			return this.resolveId( source, module.id )
 				.then( resolvedId => {
 					// If the `resolvedId` is supposed to be external, make it so.
@@ -276,60 +276,83 @@ export default class Bundle {
 	}
 
 	sort () {
-		const moduleById = this.moduleById;
-
 		let seen = {};
+		let hasCycles;
 		let ordered = [];
 
 		let stronglyDependsOn = blank();
+		let dependsOn = blank();
 
 		this.modules.forEach( module => {
 			stronglyDependsOn[ module.id ] = blank();
+			dependsOn[ module.id ] = blank();
 		});
 
 		this.modules.forEach( module => {
-			function processDependency ( dependency ) {
+			function processStrongDependency ( dependency ) {
 				if ( dependency === module || stronglyDependsOn[ module.id ][ dependency.id ] ) return;
 
 				stronglyDependsOn[ module.id ][ dependency.id ] = true;
-				dependency.strongDependencies.forEach( processDependency );
+				dependency.strongDependencies.forEach( processStrongDependency );
 			}
 
-			module.strongDependencies.forEach( processDependency );
+			function processDependency ( dependency ) {
+				if ( dependency === module || dependsOn[ module.id ][ dependency.id ] ) return;
+
+				dependsOn[ module.id ][ dependency.id ] = true;
+				dependency.dependencies.forEach( processDependency );
+			}
+
+			module.strongDependencies.forEach( processStrongDependency );
+			module.dependencies.forEach( processDependency );
 		});
 
 		const visit = module => {
-			if ( seen[ module.id ] ) return;
+			if ( seen[ module.id ] ) {
+				hasCycles = true;
+				return;
+			}
+
 			seen[ module.id ] = true;
 
-			const dependencies = module.dependencies
-				.map( source => {
-					const resolved = module.resolvedIds[ source ];
-					return moduleById[ resolved ];
-				})
-				.filter( dependency => !dependency.isExternal );
-
-			dependencies.forEach( visit );
+			module.dependencies.forEach( visit );
 			ordered.push( module );
 		};
 
 		visit( this.entryModule );
 
-		ordered.forEach( ( a, i ) => {
-			const b = ordered[ i + 1 ];
-			if ( !b ) return;
+		if ( hasCycles ) {
+			ordered.forEach( ( a, i ) => {
+				for ( i += 1; i < ordered.length; i += 1 ) {
+					const b = ordered[i];
 
-			if ( stronglyDependsOn[ a.id ][ b.id ] ) {
-				// somewhere, there is a module that imports b before a. Because
-				// b imports a, a is placed before b. We need to find the module
-				// in question, so we can provide a useful error message
-				const parent = { id: 'TODO' };
+					if ( stronglyDependsOn[ a.id ][ b.id ] ) {
+						// somewhere, there is a module that imports b before a. Because
+						// b imports a, a is placed before b. We need to find the module
+						// in question, so we can provide a useful error message
+						let parent = '[[unknown]]';
 
-				throw new Error(
-					`Module ${a.id} may be unable to evaluate without ${b.id}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent.id} to ensure correct ordering`
-				);
-			}
-		});
+						const findParent = module => {
+							if ( dependsOn[ module.id ][ a.id ] && dependsOn[ module.id ][ b.id ] ) {
+								parent = module.id;
+							} else {
+								for ( let i = 0; i < module.dependencies.length; i += 1 ) {
+									const dependency = module.dependencies[i];
+									if ( findParent( dependency ) ) return;
+								}
+							}
+						};
+
+						findParent( this.entryModule );
+
+						throw new Error(
+							`Module ${a.id} may be unable to evaluate without ${b.id}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
+						);
+					}
+				}
+			});
+		}
+
 
 		return ordered;
 	}
