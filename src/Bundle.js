@@ -281,23 +281,55 @@ export default class Bundle {
 		let seen = {};
 		let ordered = [];
 
-		function visit ( module ) {
+		let stronglyDependsOn = blank();
+
+		this.modules.forEach( module => {
+			stronglyDependsOn[ module.id ] = blank();
+		});
+
+		this.modules.forEach( module => {
+			function processDependency ( dependency ) {
+				if ( dependency === module || stronglyDependsOn[ module.id ][ dependency.id ] ) return;
+
+				stronglyDependsOn[ module.id ][ dependency.id ] = true;
+				dependency.strongDependencies.forEach( processDependency );
+			}
+
+			module.strongDependencies.forEach( processDependency );
+		});
+
+		const visit = module => {
 			if ( seen[ module.id ] ) return;
 			seen[ module.id ] = true;
 
-			module.dependencies.forEach( source => {
-				const resolved = module.resolvedIds[ source ];
-				const dependency = moduleById[ resolved ];
+			const dependencies = module.dependencies
+				.map( source => {
+					const resolved = module.resolvedIds[ source ];
+					return moduleById[ resolved ];
+				})
+				.filter( dependency => !dependency.isExternal );
 
-				if ( dependency.isExternal ) return;
-
-				visit( dependency );
-			});
-
+			dependencies.forEach( visit );
 			ordered.push( module );
-		}
+		};
 
 		visit( this.entryModule );
+
+		ordered.forEach( ( a, i ) => {
+			const b = ordered[ i + 1 ];
+			if ( !b ) return;
+
+			if ( stronglyDependsOn[ a.id ][ b.id ] ) {
+				// somewhere, there is a module that imports b before a. Because
+				// b imports a, a is placed before b. We need to find the module
+				// in question, so we can provide a useful error message
+				const parent = { id: 'TODO' };
+
+				throw new Error(
+					`Module ${a.id} may be unable to evaluate without ${b.id}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent.id} to ensure correct ordering`
+				);
+			}
+		});
 
 		return ordered;
 	}
