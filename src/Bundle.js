@@ -345,7 +345,7 @@ export default class Bundle {
 
 						findParent( this.entryModule );
 
-						throw new Error(
+						this.onwarn(
 							`Module ${a.id} may be unable to evaluate without ${b.id}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
 						);
 					}
