@@ -12,15 +12,6 @@ function mkdirpath ( path ) {
 	}
 }
 
-export function isFile ( file ) {
-	try {
-		const stats = fs.statSync( file );
-		return stats.isFile();
-	} catch ( err ) {
-		return false;
-	}
-}
-
 export function writeFile ( dest, data ) {
 	return new Promise( ( fulfil, reject ) => {
 		mkdirpath( dest );
@@ -35,5 +26,7 @@ export function writeFile ( dest, data ) {
 	});
 }
 
+export const lstatSync = fs.lstatSync;
 export const readdirSync = fs.readdirSync;
 export const readFileSync = fs.readFileSync;
+export const realpathSync = fs.realpathSync;

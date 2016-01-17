@@ -1,4 +1,4 @@
-import { isFile, readFileSync } from './fs.js';
+import { lstatSync, readFileSync, realpathSync } from './fs.js';
 import { dirname, isAbsolute, resolve } from './path.js';
 import { blank } from './object.js';
 
@@ -6,13 +6,20 @@ export function load ( id ) {
 	return readFileSync( id, 'utf-8' );
 }
 
-function addJsExtensionIfNecessary ( file ) {
-	if ( isFile( file ) ) return file;
-
-	file += '.js';
-	if ( isFile( file ) ) return file;
+function findFile ( file ) {
+	try {
+		const stats = lstatSync( file );
+		if ( stats.isSymbolicLink() ) return findFile( realpathSync( file ) );
+		if ( stats.isFile() ) return file;
+	} catch ( err ) {
+		// suppress
+	}
 
 	return null;
+}
+
+function addJsExtensionIfNecessary ( file ) {
+	return findFile( file ) || findFile( file + '.js' );
 }
 
 export function resolveId ( importee, importer ) {
