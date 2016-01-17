@@ -169,7 +169,7 @@ export default class Bundle {
 	}
 
 	fetchAllDependencies ( module ) {
-		const promises = module.dependencies.map( source => {
+		const promises = module.sources.map( source => {
 			return this.resolveId( source, module.id )
 				.then( resolvedId => {
 					// If the `resolvedId` is supposed to be external, make it so.
@@ -277,81 +277,82 @@ export default class Bundle {
 
 	sort () {
 		let seen = {};
-		let ordered = [];
 		let hasCycles;
+		let ordered = [];
 
-		let strongDeps = {};
-		let stronglyDependsOn = {};
+		let stronglyDependsOn = blank();
+		let dependsOn = blank();
 
-		function visit ( module ) {
-			if ( seen[ module.id ] ) return;
-			seen[ module.id ] = true;
+		this.modules.forEach( module => {
+			stronglyDependsOn[ module.id ] = blank();
+			dependsOn[ module.id ] = blank();
+		});
 
-			const { strongDependencies, weakDependencies } = module.consolidateDependencies();
-
-			strongDeps[ module.id ] = [];
-			stronglyDependsOn[ module.id ] = {};
-
-			strongDependencies.forEach( imported => {
-				strongDeps[ module.id ].push( imported );
-
-				if ( seen[ imported.id ] ) {
-					// we need to prevent an infinite loop, and note that
-					// we need to check for strong/weak dependency relationships
-					hasCycles = true;
-					return;
-				}
-
-				visit( imported );
-			});
-
-			weakDependencies.forEach( imported => {
-				if ( seen[ imported.id ] ) {
-					// we need to prevent an infinite loop, and note that
-					// we need to check for strong/weak dependency relationships
-					hasCycles = true;
-					return;
-				}
-
-				visit( imported );
-			});
-
-			// add second (and third...) order dependencies
-			function addStrongDependencies ( dependency ) {
-				if ( stronglyDependsOn[ module.id ][ dependency.id ] ) return;
+		this.modules.forEach( module => {
+			function processStrongDependency ( dependency ) {
+				if ( dependency === module || stronglyDependsOn[ module.id ][ dependency.id ] ) return;
 
 				stronglyDependsOn[ module.id ][ dependency.id ] = true;
-				strongDeps[ dependency.id ].forEach( addStrongDependencies );
+				dependency.strongDependencies.forEach( processStrongDependency );
 			}
 
-			strongDeps[ module.id ].forEach( addStrongDependencies );
+			function processDependency ( dependency ) {
+				if ( dependency === module || dependsOn[ module.id ][ dependency.id ] ) return;
 
+				dependsOn[ module.id ][ dependency.id ] = true;
+				dependency.dependencies.forEach( processDependency );
+			}
+
+			module.strongDependencies.forEach( processStrongDependency );
+			module.dependencies.forEach( processDependency );
+		});
+
+		const visit = module => {
+			if ( seen[ module.id ] ) {
+				hasCycles = true;
+				return;
+			}
+
+			seen[ module.id ] = true;
+
+			module.dependencies.forEach( visit );
 			ordered.push( module );
-		}
+		};
 
-		this.modules.forEach( visit );
+		visit( this.entryModule );
 
 		if ( hasCycles ) {
-			let unordered = ordered;
-			ordered = [];
+			ordered.forEach( ( a, i ) => {
+				for ( i += 1; i < ordered.length; i += 1 ) {
+					const b = ordered[i];
 
-			// unordered is actually semi-ordered, as [ fewer dependencies ... more dependencies ]
-			unordered.forEach( module => {
-				// ensure strong dependencies of `module` that don't strongly depend on `module` go first
-				strongDeps[ module.id ].forEach( place );
+					if ( stronglyDependsOn[ a.id ][ b.id ] ) {
+						// somewhere, there is a module that imports b before a. Because
+						// b imports a, a is placed before b. We need to find the module
+						// in question, so we can provide a useful error message
+						let parent = '[[unknown]]';
 
-				function place ( dep ) {
-					if ( !stronglyDependsOn[ dep.id ][ module.id ] && !~ordered.indexOf( dep ) ) {
-						strongDeps[ dep.id ].forEach( place );
-						ordered.push( dep );
+						const findParent = module => {
+							if ( dependsOn[ module.id ][ a.id ] && dependsOn[ module.id ][ b.id ] ) {
+								parent = module.id;
+							} else {
+								for ( let i = 0; i < module.dependencies.length; i += 1 ) {
+									const dependency = module.dependencies[i];
+									if ( findParent( dependency ) ) return;
+								}
+							}
+						};
+
+						findParent( this.entryModule );
+
+						this.onwarn(
+							`Module ${a.id} may be unable to evaluate without ${b.id}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
+						);
 					}
-				}
-
-				if ( !~ordered.indexOf( module ) ) {
-					ordered.push( module );
 				}
 			});
 		}
+
 
 		return ordered;
 	}

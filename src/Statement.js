@@ -130,11 +130,11 @@ export default class Statement {
 		});
 	}
 
-	run ( strongDependencies, safe ) {
+	run ( strongDependencies ) {
 		if ( ( this.ran && this.isIncluded ) || this.isImportDeclaration || this.isFunctionDeclaration ) return;
 		this.ran = true;
 
-		if ( run( this.node, this.scope, this, strongDependencies, false, safe ) ) {
+		if ( run( this.node, this.scope, this, strongDependencies, false ) ) {
 			this.mark();
 			return true;
 		}
