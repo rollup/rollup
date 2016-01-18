@@ -439,7 +439,7 @@ export default class Module {
 				if ( declarator.id.type === 'Identifier' ) {
 					const declaration = this.declarations[ declarator.id.name ];
 
-					if ( declaration.isExported && declaration.isReassigned ) { // `var foo = ...` becomes `exports.foo = ...`
+					if ( declaration.exportName && declaration.isReassigned ) { // `var foo = ...` becomes `exports.foo = ...`
 						magicString.remove( statement.start, declarator.init ? declarator.start : statement.next );
 						return;
 					}
@@ -453,7 +453,7 @@ export default class Module {
 					extractNames( declarator.id ).forEach( name => {
 						const declaration = this.declarations[ name ];
 
-						if ( declaration.isExported && declaration.isReassigned ) {
+						if ( declaration.exportName && declaration.isReassigned ) {
 							magicString.insert( statement.end, `;\nexports.${name} = ${declaration.render( es6 )}` );
 						}
 					});
@@ -519,7 +519,7 @@ export default class Module {
 
 					if ( !declaration ) throw new Error( `Missing declaration for ${name}!` );
 
-					const end = declaration.isExported && declaration.isReassigned ?
+					const end = declaration.exportName && declaration.isReassigned ?
 						statement.node.declaration.declarations[0].start :
 						statement.node.declaration.start;
 
@@ -549,7 +549,7 @@ export default class Module {
 					const defaultName = defaultDeclaration.render();
 
 					// prevent `var undefined = sideEffectyDefault(foo)`
-					if ( !defaultDeclaration.isExported && !defaultDeclaration.isUsed ) {
+					if ( !defaultDeclaration.exportName && !defaultDeclaration.isUsed ) {
 						magicString.remove( statement.start, statement.node.declaration.start );
 						return;
 					}

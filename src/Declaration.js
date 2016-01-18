@@ -16,6 +16,7 @@ export default class Declaration {
 
 		this.statement = statement;
 		this.name = null;
+		this.exportName = null;
 		this.isParam = isParam;
 
 		this.isReassigned = false;
@@ -37,9 +38,9 @@ export default class Declaration {
 
 	render ( es6 ) {
 		if ( es6 ) return this.name;
-		if ( !this.isReassigned || !this.isExported ) return this.name;
+		if ( !this.isReassigned || !this.exportName ) return this.name;
 
-		return `exports.${this.name}`;
+		return `exports.${this.exportName}`;
 	}
 
 	run ( strongDependencies ) {
@@ -78,7 +79,7 @@ export class SyntheticDefaultDeclaration {
 		this.name = name;
 
 		this.original = null;
-		this.isExported = false;
+		this.exportName = null;
 		this.aliases = [];
 	}
 
