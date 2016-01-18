@@ -127,6 +127,13 @@ export default class Bundle {
 
 		this.externalModules.forEach( module => {
 			module.name = getSafeName( module.name );
+
+			// ensure we don't shadow named external imports, if
+			// we're creating an ES6 bundle
+			keys( module.declarations ).forEach( name => {
+				const declaration = module.declarations[ name ];
+				declaration.setSafeName( getSafeName( name ) );
+			});
 		});
 
 		this.modules.forEach( module => {
