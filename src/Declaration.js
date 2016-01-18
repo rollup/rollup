@@ -221,6 +221,8 @@ export class ExternalDeclaration {
 		this.module = module;
 		this.name = name;
 		this.isExternal = true;
+
+		this.safeName = null;
 	}
 
 	addAlias () {
@@ -246,11 +248,15 @@ export class ExternalDeclaration {
 				this.module.name;
 		}
 
-		return es6 ? this.name : `${this.module.name}.${this.name}`;
+		return es6 ? this.safeName : `${this.module.name}.${this.name}`;
 	}
 
 	run () {
 		return true;
+	}
+
+	setSafeName ( name ) {
+		this.safeName = name;
 	}
 
 	use () {
