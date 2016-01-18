@@ -433,14 +433,37 @@ export default class Module {
 			}
 
 			// split up/remove var declarations as necessary
-			if ( statement.node.isSynthetic ) {
-				// insert `var/let/const` if necessary
-				const declaration = this.declarations[ statement.node.declarations[0].id.name ];
-				if ( !( declaration.isExported && declaration.isReassigned ) ) { // TODO encapsulate this
-					magicString.insert( statement.start, `${statement.node.kind} ` );
+			if ( statement.node.type === 'VariableDeclaration' ) {
+				const declarator = statement.node.declarations[0];
+
+				if ( declarator.id.type === 'Identifier' ) {
+					const declaration = this.declarations[ declarator.id.name ];
+
+					if ( declaration.isExported && declaration.isReassigned ) { // `var foo = ...` becomes `exports.foo = ...`
+						magicString.remove( statement.start, declarator.init ? declarator.start : statement.next );
+						return;
+					}
 				}
 
-				magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
+				else {
+					// we handle destructuring differently, because whereas we can rewrite
+					// `var foo = ...` as `exports.foo = ...`, in a case like `var { a, b } = c()`
+					// where `a` or `b` is exported and reassigned, we have to append
+					// `exports.a = a;` and `exports.b = b` instead
+					extractNames( declarator.id ).forEach( name => {
+						const declaration = this.declarations[ name ];
+
+						if ( declaration.isExported && declaration.isReassigned ) {
+							magicString.insert( statement.end, `;\nexports.${name} = ${declaration.render( es6 )}` );
+						}
+					});
+				}
+
+				if ( statement.node.isSynthetic ) {
+					// insert `var/let/const` if necessary
+					magicString.insert( statement.start, `${statement.node.kind} ` );
+					magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
+				}
 			}
 
 			let toDeshadow = blank();
