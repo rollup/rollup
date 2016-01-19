@@ -221,7 +221,9 @@ export class ExternalDeclaration {
 	constructor ( module, name ) {
 		this.module = module;
 		this.name = name;
+		this.safeName = null;
 		this.isExternal = true;
+
 		this.isNamespace = name === '*';
 	}
 
@@ -248,11 +250,15 @@ export class ExternalDeclaration {
 				this.module.name;
 		}
 
-		return es6 ? this.name : `${this.module.name}.${this.name}`;
+		return es6 ? this.safeName : `${this.module.name}.${this.name}`;
 	}
 
 	run () {
 		return true;
+	}
+
+	setSafeName ( name ) {
+		this.safeName = name;
 	}
 
 	use () {
