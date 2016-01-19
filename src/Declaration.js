@@ -134,6 +134,7 @@ export class SyntheticDefaultDeclaration {
 
 export class SyntheticNamespaceDeclaration {
 	constructor ( module ) {
+		this.isNamespace = true;
 		this.module = module;
 		this.name = null;
 
@@ -220,9 +221,10 @@ export class ExternalDeclaration {
 	constructor ( module, name ) {
 		this.module = module;
 		this.name = name;
+		this.safeName = null;
 		this.isExternal = true;
 
-		this.safeName = null;
+		this.isNamespace = name === '*';
 	}
 
 	addAlias () {

@@ -3,6 +3,8 @@ import modifierNodes, { isModifierNode } from '../ast/modifierNodes.js';
 import isReference from '../ast/isReference.js';
 import flatten from '../ast/flatten';
 import pureFunctions from './pureFunctions.js';
+import getLocation from './getLocation.js';
+import error from './error.js';
 
 function call ( callee, scope, statement, strongDependencies ) {
 	while ( callee.type === 'ParenthesizedExpression' ) callee = callee.expression;
@@ -11,7 +13,19 @@ function call ( callee, scope, statement, strongDependencies ) {
 		const declaration = scope.findDeclaration( callee.name ) ||
 							statement.module.trace( callee.name );
 
-		if ( declaration ) return declaration.run( strongDependencies );
+		if ( declaration ) {
+			if ( declaration.isNamespace ) {
+				error({
+					message: `Cannot call a namespace ('${callee.name}')`,
+					file: statement.module.id,
+					pos: callee.start,
+					loc: getLocation( statement.module.code, callee.start )
+				});
+			}
+
+			return declaration.run( strongDependencies );
+		}
+
 		return !pureFunctions[ callee.name ];
 	}
 
