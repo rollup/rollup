@@ -1,15 +1,16 @@
 var assert = require( 'assert' );
 
+var warned;
+
 module.exports = {
 	description: 'does not treat references inside IIFEs as weak dependencies', // edge case encountered in THREE.js codebase
-	exports: function ( exports ) {
-		assert.ok( exports.a1.isA );
-		assert.ok( exports.b1.isB );
-		assert.ok( exports.c1.isC );
-		assert.ok( exports.d1.isD );
-		assert.ok( exports.a2.isA );
-		assert.ok( exports.b2.isB );
-		assert.ok( exports.c2.isC );
-		assert.ok( exports.d2.isD );
+	options: {
+		onwarn: function ( message ) {
+			assert.ok( /Module .+D\.js may be unable to evaluate without .+C\.js, but is included first due to a cyclical dependency. Consider swapping the import statements in .+main\.js to ensure correct ordering/.test( message ) );
+			warned = true;
+		}
+	},
+	runtimeError: function () {
+		assert.ok( warned );
 	}
 };

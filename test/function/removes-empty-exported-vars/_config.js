@@ -1,8 +1,8 @@
 var assert = require( 'assert' );
 
 module.exports = {
-	description: 'does not wrongly append comments',
+	description: 'removes empty exported var declarations',
 	exports: function ( exports ) {
-		assert.equal( exports, 42 );
+		assert.equal( exports.foo, 42 );
 	}
 };

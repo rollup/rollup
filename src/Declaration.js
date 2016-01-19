@@ -1,5 +1,6 @@
 import { blank, keys } from './utils/object.js';
 import run from './utils/run.js';
+import { SyntheticReference } from './Reference.js';
 
 export default class Declaration {
 	constructor ( node, isParam, statement ) {
@@ -110,9 +111,15 @@ export class SyntheticDefaultDeclaration {
 			return this.original.run( strongDependencies );
 		}
 
-		if ( /FunctionExpression/.test( this.node.declaration.type ) ) {
-			return run( this.node.declaration.body, this.statement.scope, this.statement, strongDependencies, false );
+		let declaration = this.node.declaration;
+		while ( declaration.type === 'ParenthesizedExpression' ) declaration = declaration.expression;
+
+		if ( /FunctionExpression/.test( declaration.type ) ) {
+			return run( declaration.body, this.statement.scope, this.statement, strongDependencies, false );
 		}
+
+		// otherwise assume the worst
+		return true;
 	}
 
 	use () {
@@ -170,6 +177,12 @@ export class SyntheticNamespaceDeclaration {
 		if ( !this.needsNamespaceBlock ) {
 			this.needsNamespaceBlock = true;
 			this.module.bundle.internalNamespaces.push( this );
+
+			// add synthetic references, in case of chained
+			// namespace imports
+			keys( this.originals ).forEach( name => {
+				this.originals[ name ].addReference( new SyntheticReference( name ) );
+			});
 		}
 
 		reference.declaration = this;
@@ -208,6 +221,8 @@ export class ExternalDeclaration {
 		this.module = module;
 		this.name = name;
 		this.isExternal = true;
+
+		this.safeName = null;
 	}
 
 	addAlias () {
@@ -233,11 +248,15 @@ export class ExternalDeclaration {
 				this.module.name;
 		}
 
-		return es6 ? this.name : `${this.module.name}.${this.name}`;
+		return es6 ? this.safeName : `${this.module.name}.${this.name}`;
 	}
 
 	run () {
 		return true;
+	}
+
+	setSafeName ( name ) {
+		this.safeName = name;
 	}
 
 	use () {

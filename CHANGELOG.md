@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 0.25.0
+
+* **breaking** Module order is determined according to spec, rather than in a way designed to prevent runtime errors. Rollup will warn if it detects runtime errors are likely ([#435](https://github.com/rollup/rollup/issues/435))
+* Prevent overly aggressive tree-shaking with complex call expressions ([#440](https://github.com/rollup/rollup/issues/440))
+
+## 0.24.1
+
+* Handle calls to default exports other that are not function expressions or references to function declarations ([#421](https://github.com/rollup/rollup/issues/421))
+* Ensure namespace blocks are created for chained imports ([#430](https://github.com/rollup/rollup/issues/430))
+* Include references in computed property keys ([#434](https://github.com/rollup/rollup/issues/434))
+* Use CLI `--external` option correctly ([#417](https://github.com/rollup/rollup/pull/417))
+* Allow relative imports to be treated as external, if absolute paths are provided in `options.external` ([#410](https://github.com/rollup/rollup/issues/410))
+* Make IIFE output adhere to Crockford style ([#415](https://github.com/rollup/rollup/pull/415))
+
 ## 0.24.0
 
 * No longer attempts to resolve IDs in `options.external` ([#407](https://github.com/rollup/rollup/issues/407))
