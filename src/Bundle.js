@@ -360,7 +360,6 @@ export default class Bundle {
 			});
 		}
 
-
 		return ordered;
 	}
 }
