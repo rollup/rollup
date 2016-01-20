@@ -1,12 +1,12 @@
 'use strict';
 
-function _interopRequire (id) { var ex = require(id); return 'default' in ex ? ex['default'] : ex; }
+function _interopDefault (ex) { return 'default' in ex ? ex['default'] : ex; }
 
-var factory = _interopRequire('factory');
+var factory = _interopDefault(require('factory'));
 var baz = require('baz');
 var containers = require('shipping-port');
-var alphabet = _interopRequire('alphabet');
-var alphabet__default = alphabet;
+var alphabet = require('alphabet');
+var alphabet__default = _interopDefault(alphabet);
 
 factory( null );
 baz.foo( baz.bar, containers.port );
