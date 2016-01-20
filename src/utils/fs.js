@@ -2,12 +2,7 @@ import Promise from 'es6-promise/lib/es6-promise/promise.js';
 import * as fs from 'fs';
 import { dirname } from './path.js';
 
-export {
-	lstatSync,
-	readdirSync,
-	readFileSync,
-	realpathSync
-} from 'fs';
+export * from 'fs';
 
 function mkdirpath ( path ) {
 	const dir = dirname( path );
