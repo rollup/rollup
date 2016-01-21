@@ -3,17 +3,25 @@ import getExportBlock from './shared/getExportBlock.js';
 export default function cjs ( bundle, magicString, { exportMode }, options ) {
 	let intro = options.useStrict === false ? `` : `'use strict';\n\n`;
 
+	const hasDefaultImport = bundle.externalModules.some( mod => mod.declarations.default);
+
+	if (hasDefaultImport) {
+		intro += `function _interopDefault (ex) { return 'default' in ex ? ex['default'] : ex; }\n\n`;
+	}
+
 	// TODO handle empty imports, once they're supported
 	const importBlock = bundle.externalModules
 		.map( module => {
-			let requireStatement = `var ${module.name} = require('${module.id}');`;
-
 			if ( module.declarations.default ) {
-				requireStatement += '\n' + ( module.exportsNames ? `var ${module.name}__default = ` : `${module.name} = ` ) +
-					`'default' in ${module.name} ? ${module.name}['default'] : ${module.name};`;
+				if (module.exportsNames) {
+					return `var ${module.name} = require('${module.id}');` +
+						`\nvar ${module.name}__default = _interopDefault(${module.name});`;
+				} else {
+					return `var ${module.name} = _interopDefault(require('${module.id}'));`;
+				}
+			} else {
+				return `var ${module.name} = require('${module.id}');`;
 			}
-
-			return requireStatement;
 		})
 		.join( '\n' );
 

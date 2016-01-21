@@ -63,7 +63,7 @@ export default class Bundle {
 		this.onwarn = options.onwarn || makeOnwarn();
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
-		[ 'module', 'exports' ].forEach( global => this.assumedGlobals[ global ] = true );
+		[ 'module', 'exports', '_interopDefault' ].forEach( global => this.assumedGlobals[ global ] = true );
 	}
 
 	build () {
