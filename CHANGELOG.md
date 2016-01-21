@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 0.25.1
+
+* Throw error if namespace is called ([#446](https://github.com/rollup/rollup/issues/446))
+* Prevent shadowing bug in ES6 output ([#441](https://github.com/rollup/rollup/pull/441))
+* Prevent `var exports.foo` ([#426](https://github.com/rollup/rollup/issues/426))
+* Prevent double export of aliased symbols ([#438](https://github.com/rollup/rollup/issues/438))
+* Provide more informative error if Rollup is used in-browser without appropriate `resolveId`/`load` hooks ([#275](https://github.com/rollup/rollup/issues/275))
+* Use `_interopDefault` function to DRY out code with many external dependencies, in CommonJS output ([#458](https://github.com/rollup/rollup/pull/458))
+
 ## 0.25.0
 
 * **breaking** Module order is determined according to spec, rather than in a way designed to prevent runtime errors. Rollup will warn if it detects runtime errors are likely ([#435](https://github.com/rollup/rollup/issues/435))
