@@ -2,6 +2,8 @@ import Promise from 'es6-promise/lib/es6-promise/promise.js';
 import * as fs from 'fs';
 import { dirname } from './path.js';
 
+export * from 'fs';
+
 function mkdirpath ( path ) {
 	const dir = dirname( path );
 	try {
@@ -25,8 +27,3 @@ export function writeFile ( dest, data ) {
 		});
 	});
 }
-
-export const lstatSync = fs.lstatSync;
-export const readdirSync = fs.readdirSync;
-export const readFileSync = fs.readFileSync;
-export const realpathSync = fs.realpathSync;
