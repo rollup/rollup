@@ -53,12 +53,10 @@ export function rollup ( options ) {
 			}),
 
 			generate: options => {
-				let rendered = bundle.render( options );
-				let result = Promise.all(
+				let result = bundle.render( options );
+				result.ongenerate = Promise.all(
 					executeMethod( bundle.plugins, 'ongenerate', null, [options] )
 				);
-				result.code = rendered.code;
-				result.map = rendered.map;
 				return result;
 			},
 
