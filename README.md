@@ -138,7 +138,7 @@ See [rollup-starter-project](https://github.com/eventualbuddha/rollup-starter-pr
 
 ## How does this compare to JSPM/SystemJS?
 
-[JSPM](http://jspm.io/) is awesome! It's a little different to this project though – it combines a repository with a package manager and a client-side module loader, as opposed to simply bundling modules. JSPM allows you to use any module format and even develop without a build step, so it's a great choice for creating applications. Rollup generates smaller bundles that don't use the complex SystemJS format, and so is a better choice for creating libraries. A future version of JSPM [may use Rollup internally](https://github.com/systemjs/builder/pull/205), so you'll get the best of both worlds.
+[JSPM](http://jspm.io/) is awesome, and [it uses Rollup](https://github.com/systemjs/builder/pull/205) in its builder! In addition to bundling modules, it also combines a repository with a package manager and a client-side module loader. JSPM allows you to use any module format and even develop without a build step, so it's a great choice for creating applications. Stand-alone Rollup doesn't use the complex SystemJS format, making it a better choice for creating libraries.
 
 
 ## License
