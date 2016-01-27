@@ -7,7 +7,11 @@ import { basename, extname } from './utils/path.js';
 import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
-import { SyntheticDefaultDeclaration, SyntheticNamespaceDeclaration } from './Declaration.js';
+import {
+	SyntheticDefaultDeclaration,
+	SyntheticGlobalDeclaration,
+	SyntheticNamespaceDeclaration
+} from './Declaration.js';
 import { isFalsy, isTruthy } from './ast/conditions.js';
 import { emptyBlockStatement } from './ast/create.js';
 import extractNames from './ast/extractNames.js';
@@ -624,7 +628,13 @@ export default class Module {
 
 		const exportDeclaration = this.exports[ name ];
 		if ( exportDeclaration ) {
-			return this.trace( exportDeclaration.localName );
+			const name = exportDeclaration.localName;
+			const declaration = this.trace( name );
+
+			if ( declaration ) return declaration;
+
+			this.bundle.assumedGlobals[ name ] = true;
+			return ( this.declarations[ name ] = new SyntheticGlobalDeclaration( name ) );
 		}
 
 		for ( let i = 0; i < this.exportAllModules.length; i += 1 ) {
