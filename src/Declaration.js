@@ -221,8 +221,8 @@ export class SyntheticNamespaceDeclaration {
 
 			// add synthetic references, in case of chained
 			// namespace imports
-			keys( this.originals ).forEach( name => {
-				this.originals[ name ].addReference( new SyntheticReference( name ) );
+			forOwn( this.originals, ( original, name ) => {
+				original.addReference( new SyntheticReference( name ) );
 			});
 		}
 
@@ -249,12 +249,7 @@ export class SyntheticNamespaceDeclaration {
 	}
 
 	use () {
-		// forOwn( this.originals, use );
-
-		keys( this.originals ).forEach( name => {
-			this.originals[ name ].use();
-		});
-
+		forOwn( this.originals, use );
 		this.aliases.forEach( use );
 	}
 }
