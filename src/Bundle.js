@@ -1,7 +1,7 @@
 import Promise from 'es6-promise/lib/es6-promise/promise.js';
 import MagicString from 'magic-string';
 import first from './utils/first.js';
-import { blank, keys } from './utils/object.js';
+import { blank, forOwn, keys } from './utils/object.js';
 import Module from './Module.js';
 import ExternalModule from './ExternalModule.js';
 import finalisers from './finalisers/index.js';
@@ -130,15 +130,14 @@ export default class Bundle {
 
 			// ensure we don't shadow named external imports, if
 			// we're creating an ES6 bundle
-			keys( module.declarations ).forEach( name => {
-				const declaration = module.declarations[ name ];
+			forOwn( module.declarations, ( declaration, name ) => {
 				declaration.setSafeName( getSafeName( name ) );
 			});
 		});
 
 		this.modules.forEach( module => {
-			keys( module.declarations ).forEach( originalName => {
-				const declaration = module.declarations[ originalName ];
+			forOwn( module.declarations, ( declaration, originalName ) => {
+				if ( declaration.isGlobal ) return;
 
 				if ( originalName === 'default' ) {
 					if ( declaration.original && !declaration.original.isReassigned ) return;
