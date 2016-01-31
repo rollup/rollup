@@ -453,7 +453,12 @@ export default class Module {
 					const declaration = this.declarations[ declarator.id.name ];
 
 					if ( declaration.exportName && declaration.isReassigned ) { // `var foo = ...` becomes `exports.foo = ...`
-						magicString.remove( statement.start, declarator.init ? declarator.start : statement.next );
+						if ( declarator.init ) {
+							magicString.overwrite( statement.start, declarator.init.start, `exports.${declaration.exportName} = ` );
+						} else {
+							magicString.remove( statement.start, declarator.init ? declarator.start : statement.next );
+						}
+
 						return;
 					}
 				}
