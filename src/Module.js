@@ -300,7 +300,7 @@ export default class Module {
 		}
 
 		walk( ast, {
-			enter: node => {
+			enter: (node, parent, prop) => {
 				// eliminate dead branches early
 				if ( node.type === 'IfStatement' ) {
 					if ( isFalsy( node.test ) ) {
@@ -309,6 +309,15 @@ export default class Module {
 					} else if ( node.alternate && isTruthy( node.test ) ) {
 						this.magicString.overwrite( node.alternate.start, node.alternate.end, '{}' );
 						node.alternate = emptyBlockStatement( node.alternate.start, node.alternate.end );
+					}
+				} else if ( node.type === 'ConditionalExpression' ) {
+					if ( isFalsy( node.test ) ) {
+						this.magicString.remove( node.start, node.alternate.start );
+						parent[prop] = node.alternate;
+					} else if ( isTruthy( node.test ) ) {
+						this.magicString.remove( node.start, node.consequent.start );
+						this.magicString.remove( node.consequent.end, node.end );
+						parent[prop] = node.consequent;
 					}
 				}
 
