@@ -6,7 +6,7 @@ export default function cjs ( bundle, magicString, { exportMode }, options ) {
 	const hasDefaultImport = bundle.externalModules.some( mod => mod.declarations.default);
 
 	if (hasDefaultImport) {
-		intro += `function _interopDefault (ex) { return 'default' in ex ? ex['default'] : ex; }\n\n`;
+		intro += `function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }\n\n`;
 	}
 
 	// TODO handle empty imports, once they're supported
