@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.25.3
+
+* Handle non-objects and `null` in `_interopDefault` ([#474](https://github.com/rollup/rollup/issues/474))
+
 ## 0.25.2
 
 * Skip dead branches of a conditional expression (#[465](https://github.com/rollup/rollup/pull/465))
