@@ -7,4 +7,4 @@
 
 	exports.x = x;
 
-}((this.computedProperties = {})));
+}((this.computedProperties = this.computedProperties || {})));
