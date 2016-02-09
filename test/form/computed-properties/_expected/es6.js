@@ -1,5 +1,14 @@
 var foo = 'foo';
+var bar = 'bar';
+var baz = 'baz';
+var bam = 'bam';
 
 var x = {[foo]: 'bar'};
 
-export { x };
+class X {
+  [bar]() {}
+  get [baz]() {}
+  set [bam](value) {}
+}
+
+export { x, X };
