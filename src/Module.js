@@ -7,7 +7,11 @@ import { basename, extname } from './utils/path.js';
 import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
-import { SyntheticDefaultDeclaration, SyntheticNamespaceDeclaration } from './Declaration.js';
+import {
+	SyntheticDefaultDeclaration,
+	SyntheticGlobalDeclaration,
+	SyntheticNamespaceDeclaration
+} from './Declaration.js';
 import { isFalsy, isTruthy } from './ast/conditions.js';
 import { emptyBlockStatement } from './ast/create.js';
 import extractNames from './ast/extractNames.js';
@@ -300,7 +304,7 @@ export default class Module {
 		}
 
 		walk( ast, {
-			enter: node => {
+			enter: (node, parent, prop) => {
 				// eliminate dead branches early
 				if ( node.type === 'IfStatement' ) {
 					if ( isFalsy( node.test ) ) {
@@ -309,6 +313,15 @@ export default class Module {
 					} else if ( node.alternate && isTruthy( node.test ) ) {
 						this.magicString.overwrite( node.alternate.start, node.alternate.end, '{}' );
 						node.alternate = emptyBlockStatement( node.alternate.start, node.alternate.end );
+					}
+				} else if ( node.type === 'ConditionalExpression' ) {
+					if ( isFalsy( node.test ) ) {
+						this.magicString.remove( node.start, node.alternate.start );
+						parent[prop] = node.alternate;
+					} else if ( isTruthy( node.test ) ) {
+						this.magicString.remove( node.start, node.consequent.start );
+						this.magicString.remove( node.consequent.end, node.end );
+						parent[prop] = node.consequent;
 					}
 				}
 
@@ -440,7 +453,12 @@ export default class Module {
 					const declaration = this.declarations[ declarator.id.name ];
 
 					if ( declaration.exportName && declaration.isReassigned ) { // `var foo = ...` becomes `exports.foo = ...`
-						magicString.remove( statement.start, declarator.init ? declarator.start : statement.next );
+						if ( declarator.init ) {
+							magicString.overwrite( statement.start, declarator.init.start, `exports.${declaration.exportName} = ` );
+						} else {
+							magicString.remove( statement.start, declarator.init ? declarator.start : statement.next );
+						}
+
 						return;
 					}
 				}
@@ -624,7 +642,13 @@ export default class Module {
 
 		const exportDeclaration = this.exports[ name ];
 		if ( exportDeclaration ) {
-			return this.trace( exportDeclaration.localName );
+			const name = exportDeclaration.localName;
+			const declaration = this.trace( name );
+
+			if ( declaration ) return declaration;
+
+			this.bundle.assumedGlobals[ name ] = true;
+			return ( this.declarations[ name ] = new SyntheticGlobalDeclaration( name ) );
 		}
 
 		for ( let i = 0; i < this.exportAllModules.length; i += 1 ) {

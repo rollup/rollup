@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 0.25.3
+
+* Handle non-objects and `null` in `_interopDefault` ([#474](https://github.com/rollup/rollup/issues/474))
+
+## 0.25.2
+
+* Skip dead branches of a conditional expression (#[465](https://github.com/rollup/rollup/pull/465))
+* Allow globals to be exported ([#472](https://github.com/rollup/rollup/pull/472))
+* Ensure reassigned exports are exported ([#484](https://github.com/rollup/rollup/issues/484))
+
 ## 0.25.1
 
 * Throw error if namespace is called ([#446](https://github.com/rollup/rollup/issues/446))

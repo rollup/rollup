@@ -1,6 +1,8 @@
-import { blank, keys } from './utils/object.js';
+import { blank, forOwn, keys } from './utils/object.js';
 import run from './utils/run.js';
 import { SyntheticReference } from './Reference.js';
+
+const use = alias => alias.use();
 
 export default class Declaration {
 	constructor ( node, isParam, statement ) {
@@ -68,7 +70,7 @@ export default class Declaration {
 		this.isUsed = true;
 		if ( this.statement ) this.statement.mark();
 
-		this.aliases.forEach( alias => alias.use() );
+		this.aliases.forEach( use );
 	}
 }
 
@@ -129,7 +131,44 @@ export class SyntheticDefaultDeclaration {
 
 		if ( this.original ) this.original.use();
 
-		this.aliases.forEach( alias => alias.use() );
+		this.aliases.forEach( use );
+	}
+}
+
+export class SyntheticGlobalDeclaration {
+	constructor ( name ) {
+		this.name = name;
+		this.isExternal = true;
+		this.isGlobal = true;
+		this.isReassigned = false;
+
+		this.aliases = [];
+
+		this.isUsed = false;
+	}
+
+	addAlias ( declaration ) {
+		this.aliases.push( declaration );
+	}
+
+	addReference ( reference ) {
+		reference.declaration = this;
+		if ( reference.isReassignment ) this.isReassigned = true;
+	}
+
+	render () {
+		return this.name;
+	}
+
+	run () {
+		return true;
+	}
+
+	use () {
+		if ( this.isUsed ) return;
+		this.isUsed = true;
+
+		this.aliases.forEach( use );
 	}
 }
 
@@ -182,8 +221,8 @@ export class SyntheticNamespaceDeclaration {
 
 			// add synthetic references, in case of chained
 			// namespace imports
-			keys( this.originals ).forEach( name => {
-				this.originals[ name ].addReference( new SyntheticReference( name ) );
+			forOwn( this.originals, ( original, name ) => {
+				original.addReference( new SyntheticReference( name ) );
 			});
 		}
 
@@ -210,11 +249,8 @@ export class SyntheticNamespaceDeclaration {
 	}
 
 	use () {
-		keys( this.originals ).forEach( name => {
-			this.originals[ name ].use();
-		});
-
-		this.aliases.forEach( alias => alias.use() );
+		forOwn( this.originals, use );
+		this.aliases.forEach( use );
 	}
 }
 

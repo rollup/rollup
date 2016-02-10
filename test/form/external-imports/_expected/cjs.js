@@ -1,6 +1,6 @@
 'use strict';
 
-function _interopDefault (ex) { return 'default' in ex ? ex['default'] : ex; }
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var factory = _interopDefault(require('factory'));
 var baz = require('baz');
