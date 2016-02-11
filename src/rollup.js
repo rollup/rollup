@@ -84,7 +84,7 @@ export function rollup ( options ) {
 				}
 
 				promises.push( writeFile( dest, code ) );
-				promises.push( executeMethod( bundle.plugins, 'onwrite', null, [dest] ));
+				promises.push( executeMethod( bundle.plugins, 'onwrite', null, [options] ));
 				return Promise.all( promises );
 			}
 		};
