@@ -10,8 +10,7 @@ export default function isReference ( node, parent ) {
 		if ( !parent ) return true;
 
 		// TODO is this right?
-		if ( parent.type === 'MemberExpression' ||
-			parent.type === 'MethodDefinition' ) {
+		if ( parent.type === 'MemberExpression' || parent.type === 'MethodDefinition' ) {
 			return parent.computed || node === parent.object;
 		}
 
