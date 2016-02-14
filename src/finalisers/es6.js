@@ -47,10 +47,11 @@ export default function es6 ( bundle, magicString ) {
 
 	const specifiers = module.getExports().filter( notDefault ).map( name => {
 		const declaration = module.traceExport( name );
+		const rendered = declaration.render( true );
 
-		return declaration.name === name ?
+		return rendered === name ?
 			name :
-			`${declaration.name} as ${name}`;
+			`${rendered} as ${name}`;
 	});
 
 	let exportBlock = specifiers.length ? `export { ${specifiers.join(', ')} };` : '';
