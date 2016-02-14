@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 0.25.4
+
+* Fix misnamed exports of default imports in ES bundles ([#513](https://github.com/rollup/rollup/issues/513))
+* CLI: warn on missing config ([#515](https://github.com/rollup/rollup/pull/515))
+* Detect side-effects in non-top-level member expression assignment ([#476](https://github.com/rollup/rollup/issues/476))
+* Don't remove computed property class keys ([#504](https://github.com/rollup/rollup/issues/504))
+* Augment existing global object rather than replacing ([#493](https://github.com/rollup/rollup/issues/493))
+* Don't fail on `export {}`, warn instead ([#486](https://github.com/rollup/rollup/issues/486))
+
 ## 0.25.3
 
 * Handle non-objects and `null` in `_interopDefault` ([#474](https://github.com/rollup/rollup/issues/474))
