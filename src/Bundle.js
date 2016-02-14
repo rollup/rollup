@@ -1,4 +1,3 @@
-import Promise from 'es6-promise/lib/es6-promise/promise.js';
 import MagicString from 'magic-string';
 import first from './utils/first.js';
 import { blank, forOwn, keys } from './utils/object.js';
@@ -10,6 +9,7 @@ import { load, makeOnwarn, resolveId } from './utils/defaults.js';
 import getExportMode from './utils/getExportMode.js';
 import getIndentString from './utils/getIndentString.js';
 import { unixizePath } from './utils/normalizePlatform.js';
+import { mapSequence } from './utils/promise.js';
 import transform from './utils/transform.js';
 import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
@@ -175,7 +175,7 @@ export default class Bundle {
 	}
 
 	fetchAllDependencies ( module ) {
-		const promises = module.sources.map( source => {
+		return mapSequence( module.sources, source => {
 			return this.resolveId( source, module.id )
 				.then( resolvedId => {
 					// If the `resolvedId` is supposed to be external, make it so.
@@ -205,8 +205,6 @@ export default class Bundle {
 					}
 				});
 		});
-
-		return Promise.all( promises );
 	}
 
 	render ( options = {} ) {

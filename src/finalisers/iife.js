@@ -31,7 +31,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString }
 	}
 
 	if ( exportMode === 'named' ) {
-		dependencies.unshift( `(this.${name} = {})` );
+		dependencies.unshift( `(this.${name} = this.${name} || {})` );
 		args.unshift( 'exports' );
 	}
 

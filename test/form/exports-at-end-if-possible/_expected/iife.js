@@ -9,4 +9,4 @@
 
 	exports.FOO = FOO;
 
-}((this.myBundle = {})));
+}((this.myBundle = this.myBundle || {})));
