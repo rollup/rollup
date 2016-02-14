@@ -342,7 +342,10 @@ describe( 'rollup', function () {
 							PATH: path.resolve( __dirname, '../bin' ) + path.delimiter + process.env.PATH
 						}
 					}, function ( err, code, stderr ) {
-						if ( err ) return done( err );
+						if ( err || config.error ) {
+							config.error( err );
+							return done();
+						}
 
 						if ( stderr ) console.error( stderr );
 
