@@ -9,4 +9,4 @@
 
 	exports.obj = obj;
 
-}((this.myBundle = {})));
+}((this.myBundle = this.myBundle || {})));

@@ -30,4 +30,4 @@
 	exports.bar = bar;
 	exports.baz = baz;
 
-}((this.myBundle = {}),external));
+}((this.myBundle = this.myBundle || {}),external));

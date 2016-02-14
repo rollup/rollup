@@ -17,4 +17,4 @@
 	exports.x = x;
 	exports.X = X;
 
-}((this.computedProperties = {})));
+}((this.computedProperties = this.computedProperties || {})));
