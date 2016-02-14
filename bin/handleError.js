@@ -1,6 +1,10 @@
 var chalk = require( 'chalk' );
 
 var handlers = {
+	MISSING_CONFIG: function () {
+		console.error( chalk.red( 'Config file must export an options object. See https://github.com/rollup/rollup/wiki/Command-Line-Interface#using-a-config-file' ) );
+	},
+
 	MISSING_INPUT_OPTION: function () {
 		console.error( chalk.red( 'You must specify an --input (-i) option' ) );
 	},

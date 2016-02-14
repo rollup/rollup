@@ -59,6 +59,9 @@ module.exports = function ( command ) {
 
 			try {
 				var options = require( path.resolve( config ) );
+				if ( Object.keys( options ).length === 0 ) {
+					handleError({ code: 'MISSING_CONFIG' });
+				}
 			} catch ( err ) {
 				handleError( err );
 			}
