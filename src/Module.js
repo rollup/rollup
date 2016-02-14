@@ -102,37 +102,37 @@ export default class Module {
 			this.declarations.default = new SyntheticDefaultDeclaration( node, statement, identifier || this.basename() );
 		}
 
-		// export { foo, bar, baz }
 		// export var { foo, bar } = ...
 		// export var foo = 42;
 		// export var a = 1, b = 2, c = 3;
 		// export function foo () {}
-		else if ( node.type === 'ExportNamedDeclaration' ) {
+		else if ( node.declaration ) {
+			let declaration = node.declaration;
+
+			if ( declaration.type === 'VariableDeclaration' ) {
+				declaration.declarations.forEach( decl => {
+					extractNames( decl.id ).forEach( localName => {
+						this.exports[ localName ] = { localName };
+					});
+				});
+			} else {
+				// export function foo () {}
+				const localName = declaration.id.name;
+				this.exports[ localName ] = { localName };
+			}
+		}
+
+		// export { foo, bar, baz }
+		else {
 			if ( node.specifiers.length ) {
-				// export { foo, bar, baz }
 				node.specifiers.forEach( specifier => {
 					const localName = specifier.local.name;
 					const exportedName = specifier.exported.name;
 
 					this.exports[ exportedName ] = { localName };
 				});
-			}
-
-			else {
-				let declaration = node.declaration;
-
-				if ( declaration.type === 'VariableDeclaration' ) {
-					declaration.declarations.forEach( decl => {
-						extractNames( decl.id ).forEach( localName => {
-							this.exports[ localName ] = { localName };
-						});
-					});
-				}
-				else {
-					// export function foo () {}
-					const localName = declaration.id.name;
-					this.exports[ localName ] = { localName };
-				}
+			} else {
+				this.bundle.onwarn( `Module ${this.id} has an empty export declaration` );
 			}
 		}
 	}
