@@ -1,4 +1,3 @@
-import Promise from 'es6-promise/lib/es6-promise/promise.js';
 import MagicString from 'magic-string';
 import first from './utils/first.js';
 import { blank, forOwn, keys } from './utils/object.js';
