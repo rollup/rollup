@@ -44,7 +44,7 @@ export default class Statement {
 		let readDepth = 0;
 
 		walk( this.node, {
-			enter ( node, parent ) {
+			enter ( node, parent, prop ) {
 				// warn about eval
 				if ( node.type === 'CallExpression' && node.callee.name === 'eval' && !scope.contains( 'eval' ) ) {
 					module.bundle.onwarn( `Use of \`eval\` (in ${module.id}) is discouraged, as it may cause issues with minification. See https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval for more details` );
@@ -60,15 +60,6 @@ export default class Statement {
 
 				if ( node._scope ) scope = node._scope;
 				if ( /Function/.test( node.type ) ) readDepth += 1;
-
-				// special case – shorthand properties. because node.key === node.value,
-				// we can't differentiate once we've descended into the node
-				if ( node.type === 'Property' && node.shorthand && parent.type !== 'ObjectPattern' ) {
-					const reference = new Reference( node.key, scope );
-					reference.isShorthandProperty = true; // TODO feels a bit kludgy
-					references.push( reference );
-					return this.skip();
-				}
 
 				let isReassignment;
 
@@ -106,9 +97,19 @@ export default class Statement {
 						scope.parent :
 						scope;
 
+					const isShorthandProperty = parent.type === 'Property' && parent.shorthand;
+
+					// Since `node.key` can equal `node.value` for shorthand properties
+					// we must use the `prop` argument provided by `estree-walker` to determine
+					// if we're looking at the key or the value.
+					// If they are equal, we'll return to not create duplicate references.
+					if ( isShorthandProperty && parent.value === parent.key && prop === 'value' ) {
+						return;
+					}
+
 					const reference = new Reference( node, referenceScope, statement );
 					reference.isReassignment = isReassignment;
-
+					reference.isShorthandProperty = isShorthandProperty;
 					references.push( reference );
 
 					this.skip(); // don't descend from `foo.bar.baz` into `foo.bar`
