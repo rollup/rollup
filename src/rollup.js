@@ -13,6 +13,7 @@ const ALLOWED_KEYS = [
 	'dest',
 	'entry',
 	'external',
+	'exports',
 	'footer',
 	'format',
 	'globals',
