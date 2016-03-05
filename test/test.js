@@ -76,7 +76,7 @@ describe( 'rollup', function () {
 			return rollup.rollup({ entry: 'x', plUgins: [] }).then( function () {
 				throw new Error( 'Missing expected error' );
 			}, function ( err ) {
-				assert.equal( 'Unexpected key \'plUgins\' found, expected one of: banner, dest, entry, external, footer, format, globals, indent, intro, moduleId, moduleName, onwarn, outro, plugins, sourceMap', err.message );
+				assert.equal( 'Unexpected key \'plUgins\' found, expected one of: banner, dest, entry, exports, external, footer, format, globals, indent, intro, moduleId, moduleName, onwarn, outro, plugins, sourceMap', err.message );
 			});
 		});
 	});
@@ -149,6 +149,7 @@ describe( 'rollup', function () {
 
 						// try to generate output
 						try {
+							if(config.bundleOptions) { console.log(config.bundleOptions); }
 							var result = bundle.generate( extend( {}, config.bundleOptions, {
 								format: 'cjs'
 							}));

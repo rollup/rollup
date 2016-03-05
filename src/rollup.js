@@ -12,6 +12,7 @@ const ALLOWED_KEYS = [
 	'banner',
 	'dest',
 	'entry',
+	'exports',
 	'external',
 	'footer',
 	'format',
