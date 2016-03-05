@@ -314,7 +314,7 @@ export default class Module {
 						this.magicString.overwrite( node.alternate.start, node.alternate.end, '{}' );
 						node.alternate = emptyBlockStatement( node.alternate.start, node.alternate.end );
 					}
-				} else if ( node.type === 'ConditionalExpression' ) {
+				} else if ( node.type === 'ConditionalExpression' && node.consequent.type !== 'ConditionalExpression' ) {
 					if ( isFalsy( node.test ) ) {
 						this.magicString.remove( node.start, node.alternate.start );
 						parent[prop] = node.alternate;
