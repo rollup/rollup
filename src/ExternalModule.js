@@ -25,7 +25,9 @@ export default class ExternalModule {
 			this.name = name;
 		}
 	}
-
+	use () {
+			// noop
+	}
 	traceExport ( name ) {
 		if ( name !== 'default' && name !== '*' ) {
 			this.exportsNames = true;

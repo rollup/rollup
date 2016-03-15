@@ -59,6 +59,7 @@ export default class Module {
 		this.analyse();
 
 		this.strongDependencies = [];
+		this.used = false;
 	}
 
 	addExport ( statement ) {
@@ -598,6 +599,8 @@ export default class Module {
 	run () {
 		let marked = false;
 
+		if (!this.used) return marked;
+
 		this.statements.forEach( statement => {
 			marked = statement.run( this.strongDependencies ) || marked;
 		});
@@ -610,7 +613,7 @@ export default class Module {
 		if ( name in this.imports ) {
 			const importDeclaration = this.imports[ name ];
 			const otherModule = importDeclaration.module;
-
+			otherModule.use();
 			if ( importDeclaration.name === '*' && !otherModule.isExternal ) {
 				return otherModule.namespace();
 			}
@@ -657,5 +660,9 @@ export default class Module {
 
 			if ( declaration ) return declaration;
 		}
+	}
+
+	use () {
+		this.used = true;
 	}
 }
