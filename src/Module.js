@@ -189,6 +189,7 @@ export default class Module {
 			const declaration = this.declarations[ name ];
 			const statement = declaration.statement;
 
+			if ( !statement ) return;
 			if ( statement.node.type !== 'VariableDeclaration' ) return;
 
 			const init = statement.node.declarations[0].init;
