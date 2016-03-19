@@ -1,18 +1,25 @@
-import { isFile, readFileSync } from './fs.js';
+import { isFile, readFile } from './fs.js';
 import { dirname, isAbsolute, resolve } from './path.js';
 import { blank } from './object.js';
 
 export function load ( id ) {
-	return readFileSync( id, 'utf-8' );
+	return readFile( id, 'utf-8' );
 }
 
 function addJsExtensionIfNecessary ( file ) {
-	if ( isFile( file ) ) return file;
-
-	file += '.js';
-	if ( isFile( file ) ) return file;
-
-	return null;
+	return isFile( file )
+		.then( answer => {
+			if ( answer ) {
+				return file;
+			}
+			file += '.js';
+			return isFile(file).then( answer => {
+				if ( answer ) {
+					return file;
+				}
+				return null;
+			});
+		});
 }
 
 export function resolveId ( importee, importer ) {
