@@ -196,8 +196,7 @@ export class SyntheticNamespaceDeclaration {
 		// the reference by pointing directly to `bar`
 		if ( reference.parts.length ) {
 			reference.name = reference.parts.shift();
-
-			reference.end += reference.name.length + 1; // TODO this is brittle
+			reference.end = reference.node.end;
 
 			const original = this.originals[ reference.name ];
 
