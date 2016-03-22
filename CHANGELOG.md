@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.25.5
+
+* Make sure shorthand destructuring assignments don't break ([#528](https://github.com/rollup/rollup/issues/528))
+* Allow 'exports' key ([#542](https://github.com/rollup/rollup/issues/542))
+* Ensure `foo.  bar` where `foo` is a namespace import is rewritten correctly ([#566](https://github.com/rollup/rollup/issues/566))
+* Fix an edge case for exported globals (e.g. `export { document }`) ([#562](https://github.com/rollup/rollup/issues/562))
+
 ## 0.25.4
 
 * Fix misnamed exports of default imports in ES bundles ([#513](https://github.com/rollup/rollup/issues/513))
