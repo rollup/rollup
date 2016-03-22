@@ -10,7 +10,7 @@ export class Reference {
 
 		let root = node;
 		while ( root.type === 'MemberExpression' ) {
-			this.parts.unshift( root.property.name );
+			this.parts.unshift( root.property );
 			root = root.object;
 		}
 
