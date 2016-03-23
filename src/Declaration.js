@@ -195,8 +195,9 @@ export class SyntheticNamespaceDeclaration {
 		// if we have e.g. `foo.bar`, we can optimise
 		// the reference by pointing directly to `bar`
 		if ( reference.parts.length ) {
-			reference.name = reference.parts.shift();
-			reference.end = reference.node.end;
+			const ref = reference.parts.shift();
+			reference.name = ref.name;
+			reference.end = ref.end;
 
 			const original = this.originals[ reference.name ];
 
