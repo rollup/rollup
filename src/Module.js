@@ -304,7 +304,7 @@ export default class Module {
 		}
 
 		walk( ast, {
-			enter: (node, parent, prop) => {
+			enter: node => {
 				// eliminate dead branches early
 				if ( node.type === 'IfStatement' ) {
 					if ( isFalsy( node.test ) ) {
@@ -314,7 +314,15 @@ export default class Module {
 						this.magicString.overwrite( node.alternate.start, node.alternate.end, '{}' );
 						node.alternate = emptyBlockStatement( node.alternate.start, node.alternate.end );
 					}
-				} else if ( node.type === 'ConditionalExpression' ) {
+				}
+
+				this.magicString.addSourcemapLocation( node.start );
+				this.magicString.addSourcemapLocation( node.end );
+			},
+
+			leave: ( node, parent, prop ) => {
+				// eliminate dead branches early
+				if ( node.type === 'ConditionalExpression' ) {
 					if ( isFalsy( node.test ) ) {
 						this.magicString.remove( node.start, node.alternate.start );
 						parent[prop] = node.alternate;
@@ -324,9 +332,6 @@ export default class Module {
 						parent[prop] = node.consequent;
 					}
 				}
-
-				this.magicString.addSourcemapLocation( node.start );
-				this.magicString.addSourcemapLocation( node.end );
 			}
 		});
 
