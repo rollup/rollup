@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.25.6
+
+* Fix a regression introduced by #566 ([#569](https://github.com/rollup/rollup/issues/569))
+* Prune dead conditional expressions more carefully ([#567](https://github.com/rollup/rollup/issues/567))
+
 ## 0.25.5
 
 * Make sure shorthand destructuring assignments don't break ([#528](https://github.com/rollup/rollup/issues/528))
