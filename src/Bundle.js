@@ -178,8 +178,15 @@ export default class Bundle {
 		return mapSequence( module.sources, source => {
 			return this.resolveId( source, module.id )
 				.then( resolvedId => {
-					// If the `resolvedId` is supposed to be external, make it so.
-					const forcedExternal = resolvedId && ~this.external.indexOf( resolvedId.replace( /[\/\\]/g, '/' ) );
+					let externalName;
+					if ( resolvedId ) {
+						// If the `resolvedId` is supposed to be external, make it so.
+						externalName = resolvedId.replace( /[\/\\]/g, '/' );
+					} else if ( isRelative( source ) ) {
+						// This could be an external, relative dependency, based on the current module's parent dir.
+						externalName = resolve( module.id, '..', source );
+					}
+					const forcedExternal = externalName && ~this.external.indexOf( externalName );
 
 					if ( !resolvedId || forcedExternal ) {
 						if ( !forcedExternal ) {
