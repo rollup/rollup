@@ -526,7 +526,8 @@ export default class Module {
 			if ( keys( toDeshadow ).length ) {
 				statement.references.forEach( reference => {
 					if ( !reference.rewritten && reference.name in toDeshadow ) {
-						magicString.overwrite( reference.start, reference.end, toDeshadow[ reference.name ], true );
+						const replacement = toDeshadow[ reference.name ];
+						magicString.overwrite( reference.start, reference.end, reference.isShorthandProperty ? `${reference.name}: ${replacement}` : replacement, true );
 					}
 				});
 			}
