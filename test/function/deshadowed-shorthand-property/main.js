@@ -1,7 +1,7 @@
 import foo from './foo.js';
 
 function x () {
-	const answer = foo();
+	var answer = foo();
 	return { answer };
 }
 
