@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.25.7
+
+* Expand deshadowed shorthand properties ([#575](https://github.com/rollup/rollup/issues/575))
+* Allow external files to be non-existent ([#532](https://github.com/rollup/rollup/issues/532))
+
 ## 0.25.6
 
 * Fix a regression introduced by #566 ([#569](https://github.com/rollup/rollup/issues/569))
