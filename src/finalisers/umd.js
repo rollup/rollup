@@ -51,7 +51,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 				var exports = factory(${globalDeps});
 				global.${options.moduleName} = exports;
 				exports.noConflict = function() { global.${options.moduleName} = current; return exports; };
-			})()` : `(${defaultExport}factory(${globalDeps}))`
+			})()` : `(${defaultExport}factory(${globalDeps}))`;
 
 	const intro =
 		`(function (global, factory) {
