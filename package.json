@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "0.25.7",
+  "version": "0.25.8",
   "description": "Next-generation ES6 module bundler",
   "main": "dist/rollup.js",
   "jsnext:main": "src/rollup.js",

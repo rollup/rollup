@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.25.8
+
+* Unixize entry path ([#586](https://github.com/rollup/rollup/pull/586))
+
 ## 0.25.7
 
 * Expand deshadowed shorthand properties ([#575](https://github.com/rollup/rollup/issues/575))

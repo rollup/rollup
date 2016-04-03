@@ -25,7 +25,8 @@ const ALLOWED_KEYS = [
 	'onwarn',
 	'outro',
 	'plugins',
-	'sourceMap'
+	'sourceMap',
+	'useStrict'
 ];
 
 export function rollup ( options ) {
