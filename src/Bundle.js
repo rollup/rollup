@@ -27,7 +27,7 @@ export default class Bundle {
 			}
 		});
 
-		this.entry = options.entry;
+		this.entry = unixizePath( options.entry );
 		this.entryModule = null;
 
 		this.resolveId = first(
