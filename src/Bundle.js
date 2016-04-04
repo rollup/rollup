@@ -15,7 +15,7 @@ import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
-import { isRelative, resolve } from './utils/path.js';
+import { dirname, isRelative, relative, resolve } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -28,6 +28,7 @@ export default class Bundle {
 		});
 
 		this.entry = unixizePath( options.entry );
+		this.entryId = null;
 		this.entryModule = null;
 
 		this.resolveId = first(
@@ -71,7 +72,10 @@ export default class Bundle {
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
 		return this.resolveId( this.entry, undefined )
-			.then( id => this.fetchModule( id, undefined ) )
+			.then( id => {
+				this.entryId = id;
+				return this.fetchModule( id, undefined );
+			})
 			.then( entryModule => {
 				this.entryModule = entryModule;
 
@@ -189,16 +193,20 @@ export default class Bundle {
 					const forcedExternal = externalName && ~this.external.indexOf( externalName );
 
 					if ( !resolvedId || forcedExternal ) {
+						let normalizedExternal = source;
+
 						if ( !forcedExternal ) {
 							if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
 							if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
+						} else if ( resolvedId ) {
+							normalizedExternal = this.getPathRelativeToEntryDirname( resolvedId );
 						}
-						module.resolvedIds[ source ] = source;
+						module.resolvedIds[ source ] = normalizedExternal;
 
-						if ( !this.moduleById[ source ] ) {
-							const module = new ExternalModule( source );
+						if ( !this.moduleById[ normalizedExternal ] ) {
+							const module = new ExternalModule( normalizedExternal );
 							this.externalModules.push( module );
-							this.moduleById[ source ] = module;
+							this.moduleById[ normalizedExternal ] = module;
 						}
 					}
 
@@ -212,6 +220,19 @@ export default class Bundle {
 					}
 				});
 		});
+	}
+
+	getPathRelativeToEntryDirname ( resolvedId ) {
+		// Get a path relative to the resolved entry directory
+		const entryDirname = dirname( this.entryId );
+		const relativeToEntry = relative( entryDirname, resolvedId );
+
+		if ( isRelative( relativeToEntry )) {
+			return relativeToEntry;
+		}
+
+		// The path is missing the `./` prefix
+		return `./${relativeToEntry}`;
 	}
 
 	render ( options = {} ) {
