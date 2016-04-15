@@ -5,6 +5,7 @@ import { keys } from './utils/object.js';
 import validateKeys from './utils/validateKeys.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import Bundle from './Bundle.js';
+import { executeMethod } from './utils/plugin.js';
 
 export const VERSION = '<@VERSION@>';
 
@@ -53,7 +54,14 @@ export function rollup ( options ) {
 				return { id: module.id };
 			}),
 
-			generate: options => bundle.render( options ),
+			generate: options => {
+				let result = bundle.render( options );
+				result.ongenerate = Promise.all(
+					executeMethod( bundle.plugins, 'ongenerate', null, [options] )
+				);
+				return result;
+			},
+
 			write: options => {
 				if ( !options || !options.dest ) {
 					throw new Error( 'You must supply options.dest to bundle.write' );
@@ -78,6 +86,7 @@ export function rollup ( options ) {
 				}
 
 				promises.push( writeFile( dest, code ) );
+				promises.push( executeMethod( bundle.plugins, 'onwrite', null, [options] ));
 				return Promise.all( promises );
 			}
 		};
