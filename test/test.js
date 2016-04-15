@@ -40,6 +40,7 @@ function loadConfig ( path ) {
 	try {
 		return require( path );
 	} catch ( err ) {
+		console.log( err );
 		throw new Error( 'Failed to load ' + path + '. An old test perhaps? You should probably delete the directory' );
 	}
 }

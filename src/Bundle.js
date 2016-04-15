@@ -19,7 +19,8 @@ import { isRelative, resolve } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
-		this.plugins = ensureArray( options.plugins );
+		this.plugins = ensureArray( options.plugins )
+			.map( plugin => typeof plugin === 'function' ? plugin() : plugin );
 
 		this.plugins.forEach( plugin => {
 			if ( plugin.options ) {
