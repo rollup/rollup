@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 0.26.0
+
+* Add `noConflict`/`--no-conflict` option for UMD builds ([#580](https://github.com/rollup/rollup/pull/580))
+* Normalise relative external paths ([#591](https://github.com/rollup/rollup/pull/591))
+* Report files causing transform errors ([#609](https://github.com/rollup/rollup/pull/609))
+* Handle sourcemap segments with a single member ([#619](https://github.com/rollup/rollup/pull/619))
+* Update dependencies
+
 ## 0.25.8
 
 * Unixize entry path ([#586](https://github.com/rollup/rollup/pull/586))
