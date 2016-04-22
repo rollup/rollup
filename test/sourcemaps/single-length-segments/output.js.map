@@ -1,0 +1,8 @@
+{
+	"version":3,
+	"sources":["index.js"],
+	"names":[],
+	"mappings":"IAAM,G;;;;;;;wBACE;AACN,WAAQ,GAAR,CAAa,EAAb;AACA;;;;;AAGF,SAAS,GAAT",
+	"file":"index.js",
+	"sourcesContent":["class Foo {\n\tbar () {\n\t\tconsole.log( 42 );\n\t}\n}\n\nexport { Foo };\n"]
+}

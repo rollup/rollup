@@ -71,8 +71,7 @@ Link.prototype = { // TODO bring into line with others post-https://github.com/r
 
 			if ( segment[0] === column ) {
 				const source = this.sources[ segment[1] ];
-
-				if ( !source ) throw new Error( 'Bad sourcemap' );
+				if ( !source ) return null;
 
 				return source.traceSegment( segment[2], segment[3], this.names[ segment[4] ] || name );
 			}
