@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import babel from 'rollup-plugin-babel';
-import npm from 'rollup-plugin-npm';
+import npm from 'rollup-plugin-node-resolve';
 import replace from 'rollup-plugin-replace';
 
 var pkg = JSON.parse( readFileSync( 'package.json', 'utf-8' ) );
