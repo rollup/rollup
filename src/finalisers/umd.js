@@ -45,11 +45,19 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 
 	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
 
+	const globalExport = options.noConflict === true ?
+		`(function() {
+				var current = global.${options.moduleName};
+				var exports = factory(${globalDeps});
+				global.${options.moduleName} = exports;
+				exports.noConflict = function() { global.${options.moduleName} = current; return exports; };
+			})()` : `(${defaultExport}factory(${globalDeps}))`;
+
 	const intro =
 		`(function (global, factory) {
 			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join( ', ' )}) :
 			typeof define === 'function' && define.amd ? define(${amdParams}factory) :
-			(${defaultExport}factory(${globalDeps}));
+			${globalExport};
 		}(this, function (${args}) {${useStrict}
 
 		`.replace( /^\t\t/gm, '' ).replace( /^\t/gm, magicString.getIndentString() );

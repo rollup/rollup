@@ -115,6 +115,8 @@ function execute ( options, command ) {
 	options.external = external;
 	options.indent = command.indent !== false;
 
+	options.noConflict = command.conflict === false;
+
 	Object.keys( equivalents ).forEach( function ( cliOption ) {
 		if ( command[ cliOption ] ) {
 			options[ equivalents[ cliOption ] ] = command[ cliOption ];

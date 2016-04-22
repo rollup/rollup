@@ -21,6 +21,7 @@ const ALLOWED_KEYS = [
 	'intro',
 	'moduleId',
 	'moduleName',
+	'noConflict',
 	'onwarn',
 	'outro',
 	'plugins',
