@@ -133,9 +133,9 @@ describe( 'rollup', function () {
 
 			var config = loadConfig( FUNCTION + '/' + dir + '/_config.js' );
 			( config.skip ? it.skip : config.solo ? it.only : it )( dir, function () {
-				var options = extend( {}, config.options, {
+				var options = extend( {
 					entry: FUNCTION + '/' + dir + '/main.js'
-				});
+				}, config.options );
 
 				if ( config.solo ) console.group( dir );
 
