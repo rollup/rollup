@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import babel from 'rollup-plugin-babel';
+import buble from 'rollup-plugin-buble';
 import npm from 'rollup-plugin-node-resolve';
 import replace from 'rollup-plugin-replace';
 
@@ -22,7 +22,7 @@ export default {
 	entry: 'src/rollup.js',
 	format: 'cjs',
 	plugins: [
-		babel({
+		buble({
 			include: [ 'src/**', 'node_modules/acorn/**' ]
 		}),
 
