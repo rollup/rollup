@@ -601,7 +601,23 @@ export default class Module {
 		return magicString.trim();
 	}
 
-	run () {
+	/**
+	 * Statically runs the module marking the top-level statements that must be
+	 * included for the module to execute successfully.
+	 *
+	 * @param {boolean} treeshake - if we should tree-shake the module
+	 * @return {boolean} marked - if any new statements were marked for inclusion
+	 */
+	run ( treeshake ) {
+		if ( !treeshake ) {
+			this.statements.forEach( statement => {
+				if ( statement.isImportDeclaration ) return;
+
+				statement.mark();
+			});
+			return false;
+		}
+
 		let marked = false;
 
 		this.statements.forEach( statement => {

@@ -26,6 +26,7 @@ const ALLOWED_KEYS = [
 	'outro',
 	'plugins',
 	'sourceMap',
+	'treeshake',
 	'useStrict'
 ];
 
