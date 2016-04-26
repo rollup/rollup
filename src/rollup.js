@@ -1,5 +1,5 @@
 import Promise from 'es6-promise/lib/es6-promise/promise.js';
-import { basename } from './utils/path.js';
+import { basename, dirname, realpath, resolve, relative } from './utils/path.js';
 import { writeFile } from './utils/fs.js';
 import { keys } from './utils/object.js';
 import validateKeys from './utils/validateKeys.js';
@@ -62,11 +62,15 @@ export function rollup ( options ) {
 
 				const dest = options.dest;
 				let { code, map } = bundle.render( options );
-
 				let promises = [];
 
 				if ( options.sourceMap ) {
 					let url;
+					const entryDir = dirname( options.entry );
+
+					map.sources.forEach( ( sourceFile, i) => {
+						map.sources[i] = relative( entryDir, realpath( resolve( entryDir, sourceFile) ) );
+					} );
 
 					if ( options.sourceMap === 'inline' ) {
 						url = map.toUrl();
