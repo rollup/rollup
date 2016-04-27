@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.26.1
+
+* Add `treeshake: false`/`--no-treeshake` option for debugging ([#505](https://github.com/rollup/rollup/issues/505))
+* Update build process to use Bublé ([#620](https://github.com/rollup/rollup/pull/620))
+
 ## 0.26.0
 
 * Add `noConflict`/`--no-conflict` option for UMD builds ([#580](https://github.com/rollup/rollup/pull/580))
