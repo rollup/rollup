@@ -31,6 +31,8 @@ export default class Bundle {
 		this.entryId = null;
 		this.entryModule = null;
 
+		this.treeshake = options.treeshake !== false;
+
 		this.resolveId = first(
 			[ id => ~this.external.indexOf( id ) ? false : null ]
 				.concat( this.plugins.map( plugin => plugin.resolveId ).filter( Boolean ) )
@@ -102,7 +104,7 @@ export default class Bundle {
 					settled = true;
 
 					this.modules.forEach( module => {
-						if ( module.run() ) settled = false;
+						if ( module.run( this.treeshake ) ) settled = false;
 					});
 				}
 

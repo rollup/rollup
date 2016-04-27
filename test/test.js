@@ -76,7 +76,7 @@ describe( 'rollup', function () {
 			return rollup.rollup({ entry: 'x', plUgins: [] }).then( function () {
 				throw new Error( 'Missing expected error' );
 			}, function ( err ) {
-				assert.equal( 'Unexpected key \'plUgins\' found, expected one of: banner, dest, entry, exports, external, footer, format, globals, indent, intro, moduleId, moduleName, noConflict, onwarn, outro, plugins, sourceMap, useStrict', err.message );
+				assert.equal( err.message, 'Unexpected key \'plUgins\' found, expected one of: banner, dest, entry, exports, external, footer, format, globals, indent, intro, moduleId, moduleName, noConflict, onwarn, outro, plugins, sourceMap, treeshake, useStrict' );
 			});
 		});
 	});
