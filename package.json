@@ -9,7 +9,7 @@
   },
   "scripts": {
     "pretest": "npm run build",
-    "test": "mocha",
+    "test": "mocha --compilers js:buble/register",
     "pretest-coverage": "npm run build",
     "test-coverage": "rm -rf coverage/* && istanbul cover --report json node_modules/.bin/_mocha -- -u exports -R spec test/test.js",
     "posttest-coverage": "remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.json -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.lcov -t lcovonly -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped -t html -b dist",
@@ -42,6 +42,7 @@
   "devDependencies": {
     "acorn": "^2.6.4",
     "babel-core": "^5.8.32",
+    "buble": "^0.6.4",
     "codecov.io": "^0.1.6",
     "console-group": "^0.2.0",
     "es6-promise": "^3.0.2",
