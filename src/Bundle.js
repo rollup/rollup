@@ -241,7 +241,7 @@ export default class Bundle {
 		const format = options.format || 'es6';
 
 		// Determine export mode - 'default', 'named', 'none'
-		const exportMode = getExportMode( this, options.exports );
+		const exportMode = getExportMode( this, options.exports, options.moduleName );
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 		let usedModules = [];
