@@ -303,10 +303,9 @@ export default class Bundle {
 
 			map.sources = map.sources.map( unixizePath );
 
-			const entryDir = dirname( this.entry );
 			const destDir = dirname( file );
 			map.sources.forEach( ( sourceFile, i) => {
-				map.sources[i] = relative( entryDir, realpath( resolve( destDir, sourceFile) ) );
+				map.sources[i] = relative( destDir, realpath( resolve( destDir, sourceFile) ) );
 			});
 		}
 
