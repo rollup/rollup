@@ -133,8 +133,12 @@ describe( 'rollup', function () {
 
 			var config = loadConfig( FUNCTION + '/' + dir + '/_config.js' );
 			( config.skip ? it.skip : config.solo ? it.only : it )( dir, function () {
+				var warnings = [];
+				var captureWarning = msg => warnings.push( msg );
+
 				var options = extend( {
-					entry: FUNCTION + '/' + dir + '/main.js'
+					entry: FUNCTION + '/' + dir + '/main.js',
+					onwarn: captureWarning
 				}, config.options );
 
 				if ( config.solo ) console.group( dir );
@@ -213,6 +217,12 @@ describe( 'rollup', function () {
 							} else {
 								unintendedError = err;
 							}
+						}
+
+						if ( config.warnings ) {
+							config.warnings( warnings );
+						} else if ( warnings.length ) {
+							throw new Error( `Got unexpected warnings:\n${warnings.join('\n')}` );
 						}
 
 						if ( config.show || unintendedError ) {
