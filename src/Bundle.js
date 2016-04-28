@@ -167,6 +167,12 @@ export default class Bundle {
 				msg += `: ${err.message}`;
 				throw new Error( msg );
 			})
+			.then( source => {
+				if ( typeof source === 'string' ) return source;
+				if ( source && typeof source === 'object' && source.code ) return source;
+
+				throw new Error( `Error loading ${id}: load hook should return a string, a { code, map } object, or nothing/null` );
+			})
 			.then( source => transform( source, id, this.transformers ) )
 			.then( source => {
 				const { code, originalCode, ast, sourceMapChain } = source;
