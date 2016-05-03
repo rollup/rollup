@@ -14,7 +14,12 @@ define(['exports', 'external'], function (exports, external) { 'use strict';
 		return 13 + external.value;
 	}
 
+	var create = Object.create;
+	var getPrototypeOf = Object.getPrototypeOf;
+
 	exports.baz = baz;
+	exports.create = create;
+	exports.getPrototypeOf = getPrototypeOf;
 	exports.strange = quux;
 
 });

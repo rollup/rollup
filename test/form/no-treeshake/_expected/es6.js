@@ -14,4 +14,7 @@ function baz () {
 	return 13 + external.value;
 }
 
-export { baz, quux as strange };
+var create = Object.create;
+var getPrototypeOf = Object.getPrototypeOf;
+
+export { baz, create, getPrototypeOf, quux as strange };

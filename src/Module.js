@@ -611,7 +611,7 @@ export default class Module {
 	run ( treeshake ) {
 		if ( !treeshake ) {
 			this.statements.forEach( statement => {
-				if ( statement.isImportDeclaration ) return;
+				if ( statement.isImportDeclaration || ( statement.isExportDeclaration && statement.node.isSynthetic ) ) return;
 
 				statement.mark();
 			});
