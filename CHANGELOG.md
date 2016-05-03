@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 0.26.2
+
+* Sanity check output of `load` hook ([#607](https://github.com/rollup/rollup/issues/607))
+* Correct scoping for ID class expressions ([#626](https://github.com/rollup/rollup/issues/626))
+* Warn if named and default exports are used together in auto mode ([#587](https://github.com/rollup/rollup/issues/587))
+* Allow variable initialisers to be rewritten if necessary ([#632](https://github.com/rollup/rollup/issues/632))
+* Prevent double `var` with no-treeshake option ([#639](https://github.com/rollup/rollup/pull/639))
+
 ## 0.26.1
 
 * Add `treeshake: false`/`--no-treeshake` option for debugging ([#505](https://github.com/rollup/rollup/issues/505))
