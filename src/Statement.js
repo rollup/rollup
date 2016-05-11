@@ -65,29 +65,32 @@ export default class Statement {
 
 				if ( parent && isModifierNode( parent ) ) {
 					let subject = parent[ modifierNodes[ parent.type ] ];
-					let depth = 0;
 
-					while ( subject.type === 'MemberExpression' ) {
-						subject = subject.object;
-						depth += 1;
-					}
+					if ( node === subject ) {
+						let depth = 0;
 
-					const importDeclaration = module.imports[ subject.name ];
-
-					if ( !scope.contains( subject.name ) && importDeclaration ) {
-						const minDepth = importDeclaration.name === '*' ?
-							2 : // cannot do e.g. `namespace.foo = bar`
-							1;  // cannot do e.g. `foo = bar`, but `foo.bar = bar` is fine
-
-						if ( depth < minDepth ) {
-							const err = new Error( `Illegal reassignment to import '${subject.name}'` );
-							err.file = module.id;
-							err.loc = getLocation( module.magicString.toString(), subject.start );
-							throw err;
+						while ( subject.type === 'MemberExpression' ) {
+							subject = subject.object;
+							depth += 1;
 						}
-					}
 
-					isReassignment = !depth;
+						const importDeclaration = module.imports[ subject.name ];
+
+						if ( !scope.contains( subject.name ) && importDeclaration ) {
+							const minDepth = importDeclaration.name === '*' ?
+								2 : // cannot do e.g. `namespace.foo = bar`
+								1;  // cannot do e.g. `foo = bar`, but `foo.bar = bar` is fine
+
+							if ( depth < minDepth ) {
+								const err = new Error( `Illegal reassignment to import '${subject.name}'` );
+								err.file = module.id;
+								err.loc = getLocation( module.magicString.original, subject.start );
+								throw err;
+							}
+						}
+
+						isReassignment = !depth;
+					}
 				}
 
 				if ( isReference( node, parent ) ) {
