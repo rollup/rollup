@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.26.3
+
+* Ensure reference is not incorrectly marked as a reassignment ([#648](https://github.com/rollup/rollup/issues/648))
+
 ## 0.26.2
 
 * Sanity check output of `load` hook ([#607](https://github.com/rollup/rollup/issues/607))
