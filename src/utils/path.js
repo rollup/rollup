@@ -1,5 +1,7 @@
 // TODO does this all work on windows?
 
+import { realpathSync } from 'fs';
+
 export const absolutePath = /^(?:\/|(?:[A-Za-z]:)?[\\|\/])/;
 export const relativePath = /^\.?\.\//;
 
@@ -75,4 +77,14 @@ export function resolve ( ...paths ) {
 	});
 
 	return resolvedParts.join( '/' ); // TODO windows...
+}
+
+export function realpath ( path ) {
+	const dir = dirname( path );
+	const base = basename( path );
+	try {
+		return realpathSync( realpathSync( dir ) + '/' +  base ); // TODO windows...
+	} catch (e) {
+		return path;
+	}
 }

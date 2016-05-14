@@ -15,7 +15,7 @@ import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
-import { dirname, isRelative, relative, resolve } from './utils/path.js';
+import { dirname, isRelative, realpath, relative, resolve } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -310,6 +310,11 @@ export default class Bundle {
 			}
 
 			map.sources = map.sources.map( unixizePath );
+
+			const destDir = dirname( file );
+			map.sources.forEach( ( sourceFile, i) => {
+				map.sources[i] = relative( destDir, realpath( resolve( destDir, sourceFile) ) );
+			});
 		}
 
 		return { code, map };

@@ -63,7 +63,6 @@ export function rollup ( options ) {
 
 				const dest = options.dest;
 				let { code, map } = bundle.render( options );
-
 				let promises = [];
 
 				if ( options.sourceMap ) {
