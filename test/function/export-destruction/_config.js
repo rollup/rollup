@@ -5,7 +5,7 @@ module.exports = {
 	babel: true,
 
 	exports: function ( exports ) {
-		assert.deepEqual( Object.keys( exports ), [ 'baz', 'quux' ] );
+		assert.deepEqual( Object.keys( exports ), [ 'baz', 'quux', '__esModule' ] );
 		assert.equal( exports.baz, 5 );
 		assert.equal( exports.quux, 17 );
 	}

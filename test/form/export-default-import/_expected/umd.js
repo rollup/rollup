@@ -10,4 +10,6 @@
 
 	exports.x = x;
 
+	exports.__esModule = true;
+
 }));

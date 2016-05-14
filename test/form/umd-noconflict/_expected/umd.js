@@ -21,4 +21,6 @@
 	exports.number = number;
 	exports.setting = setting;
 
+	exports.__esModule = true;
+
 }));

@@ -7,3 +7,5 @@ var number = 5;
 var obj = { number };
 
 exports.obj = obj;
+
+exports.__esModule = true;

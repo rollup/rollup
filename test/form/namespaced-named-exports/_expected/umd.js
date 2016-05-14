@@ -8,4 +8,6 @@
 
 	exports.answer = answer;
 
+	exports.__esModule = true;
+
 }));

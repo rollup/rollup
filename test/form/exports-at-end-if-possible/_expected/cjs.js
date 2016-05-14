@@ -7,3 +7,5 @@ console.log( FOO );
 console.log( FOO );
 
 exports.FOO = FOO;
+
+exports.__esModule = true;

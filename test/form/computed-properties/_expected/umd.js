@@ -20,4 +20,6 @@
 	exports.x = x;
 	exports.X = X;
 
+	exports.__esModule = true;
+
 }));

@@ -10,4 +10,6 @@
 	exports.foo = foo;
 	exports.bar = bar;
 
+	exports.__esModule = true;
+
 }));

@@ -23,3 +23,5 @@ exports.baz = baz;
 exports.create = create;
 exports.getPrototypeOf = getPrototypeOf;
 exports.strange = quux;
+
+exports.__esModule = true;

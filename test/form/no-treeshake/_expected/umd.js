@@ -26,4 +26,6 @@
 	exports.getPrototypeOf = getPrototypeOf;
 	exports.strange = quux;
 
+	exports.__esModule = true;
+
 }));

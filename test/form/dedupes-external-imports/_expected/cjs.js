@@ -30,3 +30,5 @@ const baz = new Baz();
 exports.foo = foo;
 exports.bar = bar;
 exports.baz = baz;
+
+exports.__esModule = true;

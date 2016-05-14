@@ -12,4 +12,6 @@
 
 	exports.FOO = FOO;
 
+	exports.__esModule = true;
+
 }));

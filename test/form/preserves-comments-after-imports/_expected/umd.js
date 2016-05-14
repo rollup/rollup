@@ -12,4 +12,6 @@
 
 	exports.obj = obj;
 
+	exports.__esModule = true;
+
 }));

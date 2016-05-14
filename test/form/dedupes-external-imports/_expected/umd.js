@@ -33,4 +33,6 @@
 	exports.bar = bar;
 	exports.baz = baz;
 
+	exports.__esModule = true;
+
 }));

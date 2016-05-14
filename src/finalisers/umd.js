@@ -69,6 +69,10 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 
+	if (exportMode === 'named') {
+		magicString.append('\n\nexports.__esModule = true;\n\n');
+	}
+
 	return magicString
 		.trim()
 		.indent( indentString )

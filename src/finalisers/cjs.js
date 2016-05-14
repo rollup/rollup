@@ -34,5 +34,9 @@ export default function cjs ( bundle, magicString, { exportMode }, options ) {
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode, 'module.exports =' );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 
+	if (exportMode === 'named') {
+		magicString.append('\n\nexports.__esModule = true;\n\n');
+	}
+
 	return magicString;
 }
