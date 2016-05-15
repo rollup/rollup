@@ -8,4 +8,6 @@ console.log( FOO );
 
 exports.FOO = FOO;
 
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});

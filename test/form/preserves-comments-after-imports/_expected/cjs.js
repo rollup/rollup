@@ -8,4 +8,6 @@ var obj = { number };
 
 exports.obj = obj;
 
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});

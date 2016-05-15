@@ -12,4 +12,6 @@ exports.doThings = doThings;
 exports.number = number;
 exports.setting = setting;
 
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});

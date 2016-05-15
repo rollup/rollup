@@ -24,4 +24,6 @@ exports.create = create;
 exports.getPrototypeOf = getPrototypeOf;
 exports.strange = quux;
 
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});

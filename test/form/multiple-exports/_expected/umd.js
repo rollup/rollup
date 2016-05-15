@@ -10,6 +10,8 @@
 	exports.foo = foo;
 	exports.bar = bar;
 
-	exports.__esModule = true;
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
 
 }));

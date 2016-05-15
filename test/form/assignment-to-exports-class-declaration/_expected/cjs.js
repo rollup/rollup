@@ -3,4 +3,6 @@
 exports.Foo = class Foo {}
 exports.Foo = lol( exports.Foo );
 
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});

@@ -33,6 +33,8 @@
 	exports.bar = bar;
 	exports.baz = baz;
 
-	exports.__esModule = true;
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
 
 }));
