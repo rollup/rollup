@@ -13,6 +13,7 @@ var FUNCTION = path.resolve( __dirname, 'function' );
 var FORM = path.resolve( __dirname, 'form' );
 var SOURCEMAPS = path.resolve( __dirname, 'sourcemaps' );
 var CLI = path.resolve( __dirname, 'cli' );
+var INCREMENTAL = path.resolve( __dirname, 'incremental' );
 
 var PROFILES = [
 	{ format: 'amd' },
@@ -419,6 +420,37 @@ describe( 'rollup', function () {
 							}
 						}
 					});
+				});
+			});
+		});
+	});
+
+	describe.only('incremental', function () {
+		it('uses previous bundle object to prevent unnecessary transformations', function () {
+			var calls = 0;
+			var counter = {
+				transform: function ( code ) {
+					calls += 1;
+					return code;
+				}
+			};
+			return rollup.rollup({
+				entry: path.join( INCREMENTAL, 'main.js' ),
+				plugins: [counter]
+			}).then( function ( bundle ) {
+				assert.equal( calls, 2 );
+				return rollup.rollup({
+					entry: path.join( INCREMENTAL, 'main.js' ),
+					plugins: [counter],
+					bundle
+				});
+			}).then( function ( bundle ) {
+				assert.equal( calls, 2 );
+				var result = bundle.generate({
+					format: 'es6'
+				});
+				return sander.readFile( path.join( INCREMENTAL, 'expected.js' ) ).then( function (expected) {
+					assert.equal(expected.toString().replace( /(\r\n)/g, '\n'), result.code);
 				});
 			});
 		});

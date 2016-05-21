@@ -27,7 +27,8 @@ const ALLOWED_KEYS = [
 	'plugins',
 	'sourceMap',
 	'treeshake',
-	'useStrict'
+	'useStrict',
+	'bundle'
 ];
 
 export function rollup ( options ) {
@@ -51,9 +52,7 @@ export function rollup ( options ) {
 		return {
 			imports: bundle.externalModules.map( module => module.id ),
 			exports: keys( bundle.entryModule.exports ),
-			modules: bundle.orderedModules.map( module => {
-				return { id: module.id };
-			}),
+			modules: bundle.orderedModules.map( ( { id, code, originalCode } ) => ( { id, code, originalCode } ) ),
 
 			generate: options => bundle.render( options ),
 			write: options => {

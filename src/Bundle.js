@@ -19,6 +19,13 @@ import { dirname, isRelative, relative, resolve } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
+		if ( typeof options.bundle === 'object' ) {
+			this.cachedModules = options.bundle.modules.reduce((modules, module) => {
+				modules[module.id] = module;
+				return modules;
+			}, {});
+		}
+
 		this.plugins = ensureArray( options.plugins );
 
 		this.plugins.forEach( plugin => {
@@ -173,7 +180,16 @@ export default class Bundle {
 
 				throw new Error( `Error loading ${id}: load hook should return a string, a { code, map } object, or nothing/null` );
 			})
-			.then( source => transform( source, id, this.transformers ) )
+			.then( source => {
+				if (this.cachedModules && this.cachedModules[id]) {
+					const { code, originalCode } = this.cachedModules[id];
+					return {
+						code,
+						originalCode
+					};
+				}
+				return transform( source, id, this.transformers );
+			})
 			.then( source => {
 				const { code, originalCode, ast, sourceMapChain } = source;
 
