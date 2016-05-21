@@ -426,7 +426,7 @@ describe( 'rollup', function () {
 	});
 
 	describe.only('incremental', function () {
-		it('uses previous bundle object to prevent unnecessary transformations', function () {
+		it('does not transforms in the second time', function () {
 			var calls = 0;
 			var counter = {
 				transform: function ( code ) {
@@ -435,12 +435,12 @@ describe( 'rollup', function () {
 				}
 			};
 			return rollup.rollup({
-				entry: path.join( INCREMENTAL, 'main.js' ),
+				entry: path.join( INCREMENTAL, 'not-transform-twice', 'main.js' ),
 				plugins: [counter]
 			}).then( function ( bundle ) {
 				assert.equal( calls, 2 );
 				return rollup.rollup({
-					entry: path.join( INCREMENTAL, 'main.js' ),
+					entry: path.join( INCREMENTAL, 'not-transform-twice', 'main.js' ),
 					plugins: [counter],
 					bundle
 				});
@@ -449,9 +449,53 @@ describe( 'rollup', function () {
 				var result = bundle.generate({
 					format: 'es6'
 				});
-				return sander.readFile( path.join( INCREMENTAL, 'expected.js' ) ).then( function (expected) {
-					assert.equal(expected.toString().replace( /(\r\n)/g, '\n'), result.code);
+				return sander.readFile( path.join( INCREMENTAL, 'not-transform-twice', 'expected.js' ) ).then( function (expected) {
+					assert.equal( normaliseOutput( expected ), result.code );
 				});
+			});
+		});
+
+		it('transforms modified sources', function () {
+			var calls = 0;
+			var counter = {
+				transform: function ( code ) {
+					calls += 1;
+					return code;
+				}
+			};
+			var bundle;
+			var foo;
+			var changed;
+			var expected;
+			return Promise.all([
+				rollup.rollup({
+					entry: path.join( INCREMENTAL, 'transform-changed', 'main.js' ),
+					plugins: [counter]
+				}),
+				sander.readFile( path.join( INCREMENTAL, 'transform-changed', 'foo.js' ) ),
+				sander.readFile( path.join( INCREMENTAL, 'transform-changed', 'foo-changed.js' ) ),
+				sander.readFile( path.join( INCREMENTAL, 'transform-changed', 'expected.js' ) )
+			]).then( function ( [_bundle, _foo, _changed, _expected] ) {
+				bundle = _bundle;
+				foo = normaliseOutput( _foo );
+				changed = normaliseOutput( _changed );
+				expected = normaliseOutput( _expected );
+				assert.equal( calls, 2 );
+
+				return sander.writeFile( INCREMENTAL, 'transform-changed', 'foo.js', changed );
+			}).then(function () {
+				return rollup.rollup({
+					entry: path.join( INCREMENTAL, 'transform-changed', 'main.js' ),
+					plugins: [counter],
+					bundle
+				});
+			}).then( function ( bundle ) {
+				assert.equal( calls, 3 );
+				var result = bundle.generate({
+					format: 'es6'
+				});
+				assert.equal(expected, result.code);
+				return sander.writeFile( INCREMENTAL, 'transform-changed', 'foo.js', foo );
 			});
 		});
 	});

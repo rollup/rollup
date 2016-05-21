@@ -181,7 +181,13 @@ export default class Bundle {
 				throw new Error( `Error loading ${id}: load hook should return a string, a { code, map } object, or nothing/null` );
 			})
 			.then( source => {
-				if (this.cachedModules && this.cachedModules[id]) {
+				if ( typeof source === 'string' ) {
+					source = {
+						code: source,
+						ast: null
+					};
+				}
+				if (this.cachedModules && this.cachedModules[id] && this.cachedModules[id].originalCode === source.code) {
 					const { code, originalCode } = this.cachedModules[id];
 					return {
 						code,
