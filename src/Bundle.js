@@ -15,7 +15,7 @@ import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
-import { dirname, isRelative, relative, resolve } from './utils/path.js';
+import { dirname, isRelative, isAbsolute, relative, resolve } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -207,7 +207,12 @@ export default class Bundle {
 							if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
 							if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
 						} else if ( resolvedId ) {
-							normalizedExternal = this.getPathRelativeToEntryDirname( resolvedId );
+							if ( isRelative(resolvedId) || isAbsolute(resolvedId) ) {
+								// Try to deduce relative path from entry dir if resolvedId is defined as a relative path.
+								normalizedExternal = this.getPathRelativeToEntryDirname( resolvedId );
+							} else {
+								normalizedExternal = resolvedId;
+							}
 						}
 						module.resolvedIds[ source ] = normalizedExternal;
 
