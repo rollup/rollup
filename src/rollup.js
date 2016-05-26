@@ -58,29 +58,42 @@ export function rollup ( options ) {
 			generate: options => bundle.render( options ),
 			write: options => {
 				if ( !options || !options.dest ) {
-					throw new Error( 'You must supply options.dest to bundle.write' );
+					return Promise.reject( new Error( 'You must supply options.dest to bundle.write' ) );
 				}
 
 				const dest = options.dest;
-				let { code, map } = bundle.render( options );
+				let result = bundle.render( options );
 
-				let promises = [];
-
-				if ( options.sourceMap ) {
-					let url;
-
-					if ( options.sourceMap === 'inline' ) {
-						url = map.toUrl();
-					} else {
-						url = `${basename( dest )}.map`;
-						promises.push( writeFile( dest + '.map', map.toString() ) );
+				return Promise.resolve( result ).then( result => {
+					if ( typeof options.transform === 'function' ) {
+						return options.transform( result );
+					}
+					return result;
+				}).then( result => {
+					if ( typeof result !== 'object' || result === null ) {
+						throw new Error( 'options.transform should return { code, map }' );
 					}
 
-					code += `\n//# ${SOURCEMAPPING_URL}=${url}`;
-				}
+					let { code, map } = result;
 
-				promises.push( writeFile( dest, code ) );
-				return Promise.all( promises );
+					let promises = [];
+
+					if ( options.sourceMap ) {
+						let url;
+
+						if ( options.sourceMap === 'inline' ) {
+							url = map.toUrl();
+						} else {
+							url = `${basename( dest )}.map`;
+							promises.push( writeFile( dest + '.map', map.toString() ) );
+						}
+
+						code += `\n//# ${SOURCEMAPPING_URL}=${url}`;
+					}
+
+					promises.push( writeFile( dest, code ) );
+					return Promise.all( promises );
+				});
 			}
 		};
 	});
