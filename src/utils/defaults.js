@@ -7,10 +7,17 @@ export function load ( id ) {
 }
 
 function addJsExtensionIfNecessary ( file ) {
+	let originalFileName;
+
 	if ( isFile( file ) ) return file;
+
+	originalFileName = file;
 
 	file += '.js';
 	if ( isFile( file ) ) return file;
+
+	originalFileName += '/index.js';
+	if ( isFile( originalFileName ) ) return originalFileName;
 
 	return null;
 }
