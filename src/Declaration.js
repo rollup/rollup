@@ -18,6 +18,7 @@ export default class Declaration {
 				const constructorNode = node.body.body.find(node => node.kind === 'constructor');
 				if (constructorNode) {
 					this.hasConstructor = true;
+					this.functionNode = constructorNode.value;
 				}
 			}
 		}

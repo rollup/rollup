@@ -91,7 +91,8 @@ export default function run ( node, scope, statement, strongDependencies, force 
 				let subject = node[ modifierNodes[ node.type ] ];
 				while ( subject.type === 'MemberExpression' ) subject = subject.object;
 
-				let declaration = scope.findDeclaration( subject.name );
+				let declarationName = (subject.type === 'ThisExpression') ? 'this' : subject.name;
+				let declaration = scope.findDeclaration( declarationName );
 
 				if ( declaration ) {
 					if ( declaration.isParam ) hasSideEffect = true;

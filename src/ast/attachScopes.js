@@ -60,6 +60,18 @@ export default function attachScopes ( statement ) {
 				});
 			}
 
+			// new SomeClass()
+			// TODO should this use NewExpression instead? but then how to wire the constructor MethodDefinition's scope to be its child?
+			if (node.type === 'MethodDefinition' && node.kind === 'constructor' ) {
+				newScope = new Scope({
+					parent: scope,
+					params: [ {type: 'Identifier', name: 'this'} ],
+					block: true
+				});
+				// total hack :)
+				newScope.declarations.this.isParam = false;
+			}
+
 			if ( newScope ) {
 				Object.defineProperty( node, '_scope', {
 					value: newScope,
