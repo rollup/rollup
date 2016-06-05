@@ -19,7 +19,11 @@ export default function es6 ( bundle, magicString ) {
 				});
 
 			if ( module.declarations.default ) {
-				specifiers.push( module.name );
+				if ( module.exportsNamespace ) {
+					specifiersList.push([ `${module.name}__default` ]);
+				} else {
+					specifiers.push( module.name );
+				}
 			}
 
 			const namespaceSpecifier = module.declarations['*'] ? `* as ${module.name}` : null;
