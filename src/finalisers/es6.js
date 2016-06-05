@@ -10,7 +10,13 @@ export default function es6 ( bundle, magicString ) {
 			const specifiers = [];
 			const specifiersList = [specifiers];
 			const importedNames = keys( module.declarations )
-				.filter( name => name !== '*' && name !== 'default' );
+				.filter( name => name !== '*' && name !== 'default' )
+				.map( name => {
+					const declaration = module.declarations[ name ];
+
+					if ( declaration.name === declaration.safeName ) return declaration.name;
+					return `${declaration.name} as ${declaration.safeName}`;
+				});
 
 			if ( module.declarations.default ) {
 				specifiers.push( module.name );
