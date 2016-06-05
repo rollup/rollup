@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.26.5
+
+* Preserve `debugger` statements ([#664](https://github.com/rollup/rollup/issues/664))
+* Allow `options.external` to be a function ([#522](https://github.com/rollup/rollup/issues/522))
+
 ## 0.26.4
 
 * Prevent plugin-provided external IDs being normalised ([#630](https://github.com/rollup/rollup/issues/630), [#633](https://github.com/rollup/rollup/issues/633))
