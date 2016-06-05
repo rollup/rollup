@@ -143,6 +143,16 @@ function bundle ( options ) {
 			return bundle.write( options );
 		}
 
+		if ( options.targets ) {
+			var result = null;
+
+			options.targets.forEach( function ( target ) {
+				result = bundle.write(target);
+			});
+
+			return result;
+		}
+
 		if ( options.sourceMap && options.sourceMap !== 'inline' ) {
 			handleError({ code: 'MISSING_OUTPUT_OPTION' });
 		}
