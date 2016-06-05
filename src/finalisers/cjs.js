@@ -4,11 +4,6 @@ export default function cjs ( bundle, magicString, { exportMode }, options ) {
 	let intro = options.useStrict === false ? `` : `'use strict';\n\n`;
 
 	let needsInterop = false;
-	// const hasDefaultImport = bundle.externalModules.some( mod => mod.declarations.default);
-
-	// if (hasDefaultImport) {
-	// 	intro += `function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }\n\n`;
-	// }
 
 	const varOrConst = bundle.varOrConst;
 
