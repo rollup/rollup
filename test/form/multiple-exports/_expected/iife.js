@@ -7,4 +7,4 @@
 	exports.foo = foo;
 	exports.bar = bar;
 
-}((this.myBundle = {})));
+}((this.myBundle = this.myBundle || {})));

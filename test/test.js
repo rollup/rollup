@@ -76,7 +76,7 @@ describe( 'rollup', function () {
 			return rollup.rollup({ entry: 'x', plUgins: [] }).then( function () {
 				throw new Error( 'Missing expected error' );
 			}, function ( err ) {
-				assert.equal( 'Unexpected key \'plUgins\' found, expected one of: banner, dest, entry, external, footer, format, globals, indent, intro, moduleId, moduleName, onwarn, outro, plugins, sourceMap', err.message );
+				assert.equal( err.message, 'Unexpected key \'plUgins\' found, expected one of: banner, dest, entry, exports, external, footer, format, globals, indent, intro, moduleId, moduleName, noConflict, onwarn, outro, plugins, preferConst, sourceMap, treeshake, useStrict' );
 			});
 		});
 	});
@@ -133,9 +133,13 @@ describe( 'rollup', function () {
 
 			var config = loadConfig( FUNCTION + '/' + dir + '/_config.js' );
 			( config.skip ? it.skip : config.solo ? it.only : it )( dir, function () {
-				var options = extend( {}, config.options, {
-					entry: FUNCTION + '/' + dir + '/main.js'
-				});
+				var warnings = [];
+				var captureWarning = msg => warnings.push( msg );
+
+				var options = extend( {
+					entry: FUNCTION + '/' + dir + '/main.js',
+					onwarn: captureWarning
+				}, config.options );
 
 				if ( config.solo ) console.group( dir );
 
@@ -149,6 +153,7 @@ describe( 'rollup', function () {
 
 						// try to generate output
 						try {
+							if(config.bundleOptions) { console.log(config.bundleOptions); }
 							var result = bundle.generate( extend( {}, config.bundleOptions, {
 								format: 'cjs'
 							}));
@@ -212,6 +217,12 @@ describe( 'rollup', function () {
 							} else {
 								unintendedError = err;
 							}
+						}
+
+						if ( config.warnings ) {
+							config.warnings( warnings );
+						} else if ( warnings.length ) {
+							throw new Error( `Got unexpected warnings:\n${warnings.join('\n')}` );
 						}
 
 						if ( config.show || unintendedError ) {
@@ -342,7 +353,10 @@ describe( 'rollup', function () {
 							PATH: path.resolve( __dirname, '../bin' ) + path.delimiter + process.env.PATH
 						}
 					}, function ( err, code, stderr ) {
-						if ( err ) return done( err );
+						if ( err || config.error ) {
+							config.error( err );
+							return done();
+						}
 
 						if ( stderr ) console.error( stderr );
 

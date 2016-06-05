@@ -7,4 +7,4 @@
 	exports.a = a;
 	exports.b = b;
 
-}((this.exposedInternals = {})));
+}((this.exposedInternals = this.exposedInternals || {})));

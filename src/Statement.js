@@ -44,10 +44,11 @@ export default class Statement {
 		let readDepth = 0;
 
 		walk( this.node, {
-			enter ( node, parent ) {
+			enter ( node, parent, prop ) {
 				// warn about eval
 				if ( node.type === 'CallExpression' && node.callee.name === 'eval' && !scope.contains( 'eval' ) ) {
-					module.bundle.onwarn( `Use of \`eval\` (in ${module.id}) is discouraged, as it may cause issues with minification. See https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval for more details` );
+					// TODO show location
+					module.bundle.onwarn( `Use of \`eval\` (in ${module.id}) is strongly discouraged, as it poses security risks and may cause issues with minification. See https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval for more details` );
 				}
 
 				// skip re-export declarations
@@ -61,42 +62,36 @@ export default class Statement {
 				if ( node._scope ) scope = node._scope;
 				if ( /Function/.test( node.type ) ) readDepth += 1;
 
-				// special case – shorthand properties. because node.key === node.value,
-				// we can't differentiate once we've descended into the node
-				if ( node.type === 'Property' && node.shorthand && parent.type !== 'ObjectPattern' ) {
-					const reference = new Reference( node.key, scope );
-					reference.isShorthandProperty = true; // TODO feels a bit kludgy
-					references.push( reference );
-					return this.skip();
-				}
-
 				let isReassignment;
 
 				if ( parent && isModifierNode( parent ) ) {
 					let subject = parent[ modifierNodes[ parent.type ] ];
-					let depth = 0;
 
-					while ( subject.type === 'MemberExpression' ) {
-						subject = subject.object;
-						depth += 1;
-					}
+					if ( node === subject ) {
+						let depth = 0;
 
-					const importDeclaration = module.imports[ subject.name ];
-
-					if ( !scope.contains( subject.name ) && importDeclaration ) {
-						const minDepth = importDeclaration.name === '*' ?
-							2 : // cannot do e.g. `namespace.foo = bar`
-							1;  // cannot do e.g. `foo = bar`, but `foo.bar = bar` is fine
-
-						if ( depth < minDepth ) {
-							const err = new Error( `Illegal reassignment to import '${subject.name}'` );
-							err.file = module.id;
-							err.loc = getLocation( module.magicString.toString(), subject.start );
-							throw err;
+						while ( subject.type === 'MemberExpression' ) {
+							subject = subject.object;
+							depth += 1;
 						}
-					}
 
-					isReassignment = !depth;
+						const importDeclaration = module.imports[ subject.name ];
+
+						if ( !scope.contains( subject.name ) && importDeclaration ) {
+							const minDepth = importDeclaration.name === '*' ?
+								2 : // cannot do e.g. `namespace.foo = bar`
+								1;  // cannot do e.g. `foo = bar`, but `foo.bar = bar` is fine
+
+							if ( depth < minDepth ) {
+								const err = new Error( `Illegal reassignment to import '${subject.name}'` );
+								err.file = module.id;
+								err.loc = getLocation( module.magicString.original, subject.start );
+								throw err;
+							}
+						}
+
+						isReassignment = !depth;
+					}
 				}
 
 				if ( isReference( node, parent ) ) {
@@ -106,9 +101,19 @@ export default class Statement {
 						scope.parent :
 						scope;
 
+					const isShorthandProperty = parent.type === 'Property' && parent.shorthand;
+
+					// Since `node.key` can equal `node.value` for shorthand properties
+					// we must use the `prop` argument provided by `estree-walker` to determine
+					// if we're looking at the key or the value.
+					// If they are equal, we'll return to not create duplicate references.
+					if ( isShorthandProperty && parent.value === parent.key && prop === 'value' ) {
+						return;
+					}
+
 					const reference = new Reference( node, referenceScope, statement );
 					reference.isReassignment = isReassignment;
-
+					reference.isShorthandProperty = isShorthandProperty;
 					references.push( reference );
 
 					this.skip(); // don't descend from `foo.bar.baz` into `foo.bar`

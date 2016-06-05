@@ -75,6 +75,10 @@ export default function run ( node, scope, statement, strongDependencies, force 
 				}
 			}
 
+			else if ( node.type === 'DebuggerStatement' ) {
+				hasSideEffect = true;
+			}
+
 			else if ( node.type === 'ThrowStatement' ) {
 				// we only care about errors thrown at the top level, otherwise
 				// any function with error checking gets included if called
@@ -95,6 +99,8 @@ export default function run ( node, scope, statement, strongDependencies, force 
 
 				if ( declaration ) {
 					if ( declaration.isParam ) hasSideEffect = true;
+				} else if ( !scope.isTopLevel ) {
+					hasSideEffect = true;
 				} else {
 					declaration = statement.module.trace( subject.name );
 

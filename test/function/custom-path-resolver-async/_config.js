@@ -21,6 +21,11 @@ module.exports = {
 			}
 		}]
 	},
+	warnings: function ( warnings ) {
+		assert.deepEqual( warnings, [
+			"Treating 'path' as external dependency"
+		]);
+	},
 	exports: function ( exports ) {
 		assert.strictEqual( exports.path, require( 'path' ) );
 	}
