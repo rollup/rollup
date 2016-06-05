@@ -1,29 +1,40 @@
 import getExportBlock from './shared/getExportBlock.js';
+import esModuleExport from './shared/esModuleExport.js';
 
 export default function cjs ( bundle, magicString, { exportMode }, options ) {
-	let intro = options.useStrict === false ? `` : `'use strict';\n\n`;
+	let intro = ( options.useStrict === false ? `` : `'use strict';\n\n` ) +
+	            ( exportMode === 'named' ? `${esModuleExport}\n\n` : '' );
 
-	const hasDefaultImport = bundle.externalModules.some( mod => mod.declarations.default);
+	let needsInterop = false;
 
-	if (hasDefaultImport) {
-		intro += `function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }\n\n`;
-	}
+	const varOrConst = bundle.varOrConst;
 
 	// TODO handle empty imports, once they're supported
 	const importBlock = bundle.externalModules
 		.map( module => {
 			if ( module.declarations.default ) {
-				if (module.exportsNames) {
-					return `var ${module.name} = require('${module.id}');` +
-						`\nvar ${module.name}__default = _interopDefault(${module.name});`;
-				} else {
-					return `var ${module.name} = _interopDefault(require('${module.id}'));`;
+				if ( module.exportsNamespace ) {
+					return `${varOrConst} ${module.name} = require('${module.id}');` +
+						`\n${varOrConst} ${module.name}__default = ${module.name}['default'];`;
 				}
+
+				needsInterop = true;
+
+				if ( module.exportsNames ) {
+					return `${varOrConst} ${module.name} = require('${module.id}');` +
+						`\n${varOrConst} ${module.name}__default = _interopDefault(${module.name});`;
+				}
+
+				return `${varOrConst} ${module.name} = _interopDefault(require('${module.id}'));`;
 			} else {
-				return `var ${module.name} = require('${module.id}');`;
+				return `${varOrConst} ${module.name} = require('${module.id}');`;
 			}
 		})
 		.join( '\n' );
+
+	if ( needsInterop ) {
+		intro += `function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }\n\n`;
+	}
 
 	if ( importBlock ) {
 		intro += importBlock + '\n\n';

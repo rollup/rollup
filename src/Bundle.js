@@ -15,7 +15,7 @@ import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
-import { dirname, isRelative, relative, resolve } from './utils/path.js';
+import { dirname, isRelative, isAbsolute, relative, resolve } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -41,7 +41,7 @@ export default class Bundle {
 		this.treeshake = options.treeshake !== false;
 
 		this.resolveId = first(
-			[ id => ~this.external.indexOf( id ) ? false : null ]
+			[ id => this.isExternal( id ) ? false : null ]
 				.concat( this.plugins.map( plugin => plugin.resolveId ).filter( Boolean ) )
 				.concat( resolveId )
 		);
@@ -69,11 +69,19 @@ export default class Bundle {
 
 		this.assumedGlobals = blank();
 
-		this.external = ensureArray( options.external ).map( id => id.replace( /[\/\\]/g, '/' ) );
+		if ( typeof options.external === 'function' ) {
+			this.isExternal = options.external;
+		} else {
+			const ids = ensureArray( options.external ).map( id => id.replace( /[\/\\]/g, '/' ) );
+			this.isExternal = id => ids.indexOf( id ) !== -1;
+		}
+
 		this.onwarn = options.onwarn || makeOnwarn();
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports', '_interopDefault' ].forEach( global => this.assumedGlobals[ global ] = true );
+
+		this.varOrConst = options.preferConst ? 'const' : 'var';
 	}
 
 	build () {
@@ -220,16 +228,21 @@ export default class Bundle {
 						// This could be an external, relative dependency, based on the current module's parent dir.
 						externalName = resolve( module.id, '..', source );
 					}
-					const forcedExternal = externalName && ~this.external.indexOf( externalName );
+					const forcedExternal = externalName && this.isExternal( externalName );
 
 					if ( !resolvedId || forcedExternal ) {
 						let normalizedExternal = source;
 
 						if ( !forcedExternal ) {
 							if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
-							if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
+							if ( !this.isExternal( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
 						} else if ( resolvedId ) {
-							normalizedExternal = this.getPathRelativeToEntryDirname( resolvedId );
+							if ( isRelative(resolvedId) || isAbsolute(resolvedId) ) {
+								// Try to deduce relative path from entry dir if resolvedId is defined as a relative path.
+								normalizedExternal = this.getPathRelativeToEntryDirname( resolvedId );
+							} else {
+								normalizedExternal = resolvedId;
+							}
 						}
 						module.resolvedIds[ source ] = normalizedExternal;
 

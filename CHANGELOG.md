@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 0.27.7
+
+* Distinguish between default and namespace imports of external module ([#637](https://github.com/rollup/rollup/issues/637))
+* Add `__esModule` property to named exports in AMD, CJS and UMD modes ([#650](https://github.com/rollup/rollup/issues/650))
+
+## 0.26.6
+
+* Deconflict named imports from external modules in ES bundles ([#659](https://github.com/rollup/rollup/issues/659))
+* Support `options.preferConst` to generate `const` declarations for exports rather than `var` declarations ([#653](https://github.com/rollup/rollup/issues/653))
+
+## 0.26.5
+
+* Preserve `debugger` statements ([#664](https://github.com/rollup/rollup/issues/664))
+* Allow `options.external` to be a function ([#522](https://github.com/rollup/rollup/issues/522))
+
+## 0.26.4
+
+* Prevent plugin-provided external IDs being normalised ([#630](https://github.com/rollup/rollup/issues/630), [#633](https://github.com/rollup/rollup/issues/633))
+* Throw if module exports/re-exports the same name twice, or has multiple default exports ([#679](https://github.com/rollup/rollup/issues/679))
+* Warn about `eval` security issue ([#675]((https://github.com/rollup/rollup/issues/675)))
+
+
 ## 0.26.3
 
 * Ensure reference is not incorrectly marked as a reassignment ([#648](https://github.com/rollup/rollup/issues/648))

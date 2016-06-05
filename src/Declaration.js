@@ -241,7 +241,7 @@ export class SyntheticNamespaceDeclaration {
 			return `${indentString}${name}: ${original.render()}`;
 		});
 
-		return `var ${this.render()} = Object.freeze({\n${members.join( ',\n' )}\n});\n\n`;
+		return `${this.module.bundle.varOrConst} ${this.render()} = Object.freeze({\n${members.join( ',\n' )}\n});\n\n`;
 	}
 
 	render () {
@@ -282,7 +282,7 @@ export class ExternalDeclaration {
 		}
 
 		if ( this.name === 'default' ) {
-			return !es6 && this.module.exportsNames ?
+			return this.module.exportsNamespace || ( !es6 && this.module.exportsNames ) ?
 				`${this.module.name}__default` :
 				this.module.name;
 		}

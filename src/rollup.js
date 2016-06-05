@@ -25,6 +25,7 @@ const ALLOWED_KEYS = [
 	'onwarn',
 	'outro',
 	'plugins',
+	'preferConst',
 	'sourceMap',
 	'treeshake',
 	'useStrict',

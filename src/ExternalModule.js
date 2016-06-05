@@ -27,9 +27,8 @@ export default class ExternalModule {
 	}
 
 	traceExport ( name ) {
-		if ( name !== 'default' && name !== '*' ) {
-			this.exportsNames = true;
-		}
+		if ( name !== 'default' && name !== '*' ) this.exportsNames = true;
+		if ( name === '*' ) this.exportsNamespace = true;
 
 		return this.declarations[ name ] || (
 			this.declarations[ name ] = new ExternalDeclaration( this, name )

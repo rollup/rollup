@@ -77,7 +77,13 @@ export default class Module {
 
 			else {
 				node.specifiers.forEach( specifier => {
-					this.reexports[ specifier.exported.name ] = {
+					const name = specifier.exported.name;
+
+					if ( this.exports[ name ] || this.reexports[ name ] ) {
+						throw new Error( `A module cannot have multiple exports with the same name ('${name}')` );
+					}
+
+					this.reexports[ name ] = {
 						start: specifier.start,
 						source,
 						localName: specifier.local.name,
@@ -92,6 +98,11 @@ export default class Module {
 		// export default 42;
 		else if ( node.type === 'ExportDefaultDeclaration' ) {
 			const identifier = ( node.declaration.id && node.declaration.id.name ) || node.declaration.name;
+
+			if ( this.exports.default ) {
+				// TODO indicate location
+				throw new Error( 'A module can only have one default export' );
+			}
 
 			this.exports.default = {
 				localName: 'default',
@@ -128,6 +139,10 @@ export default class Module {
 				node.specifiers.forEach( specifier => {
 					const localName = specifier.local.name;
 					const exportedName = specifier.exported.name;
+
+					if ( this.exports[ exportedName ] || this.reexports[ exportedName ] ) {
+						throw new Error( `A module cannot have multiple exports with the same name ('${exportedName}')` );
+					}
 
 					this.exports[ exportedName ] = { localName };
 				});
@@ -577,7 +592,7 @@ export default class Module {
 					if ( statement.node.declaration.type === 'FunctionExpression' ) {
 						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${defaultName}` );
 					} else {
-						magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${defaultName} = ` );
+						magicString.overwrite( statement.node.start, statement.node.declaration.start, `${this.bundle.varOrConst} ${defaultName} = ` );
 					}
 				}
 
