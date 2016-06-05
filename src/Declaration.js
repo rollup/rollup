@@ -282,7 +282,7 @@ export class ExternalDeclaration {
 		}
 
 		if ( this.name === 'default' ) {
-			return !es6 && this.module.exportsNames ?
+			return this.module.exportsNamespace || ( !es6 && this.module.exportsNames ) ?
 				`${this.module.name}__default` :
 				this.module.name;
 		}
