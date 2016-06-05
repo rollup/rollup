@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.27.7
+
+* Distinguish between default and namespace imports of external module ([#637](https://github.com/rollup/rollup/issues/637))
+* Add `__esModule` property to named exports in AMD, CJS and UMD modes ([#650](https://github.com/rollup/rollup/issues/650))
+
 ## 0.26.6
 
 * Deconflict named imports from external modules in ES bundles ([#659](https://github.com/rollup/rollup/issues/659))
