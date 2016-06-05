@@ -241,7 +241,7 @@ export class SyntheticNamespaceDeclaration {
 			return `${indentString}${name}: ${original.render()}`;
 		});
 
-		return `var ${this.render()} = Object.freeze({\n${members.join( ',\n' )}\n});\n\n`;
+		return `${this.module.bundle.varOrConst} ${this.render()} = Object.freeze({\n${members.join( ',\n' )}\n});\n\n`;
 	}
 
 	render () {

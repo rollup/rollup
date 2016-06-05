@@ -41,7 +41,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString }
 	let outro = `\n\n}(${dependencies}));`;
 
 	if ( exportMode === 'default' ) {
-		intro = ( isNamespaced ? `this.` : `var ` ) + `${name} = ${intro}`;
+		intro = ( isNamespaced ? `this.` : `${bundle.varOrConst} ` ) + `${name} = ${intro}`;
 	}
 
 	if ( isNamespaced ) {

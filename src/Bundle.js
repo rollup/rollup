@@ -73,6 +73,8 @@ export default class Bundle {
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports', '_interopDefault' ].forEach( global => this.assumedGlobals[ global ] = true );
+
+		this.varOrConst = options.preferConst ? 'const' : 'var';
 	}
 
 	build () {
