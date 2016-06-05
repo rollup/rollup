@@ -7,3 +7,7 @@ var x = _interopDefault(require('x'));
 
 
 exports.x = x;
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});

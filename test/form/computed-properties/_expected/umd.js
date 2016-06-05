@@ -20,4 +20,8 @@
 	exports.x = x;
 	exports.X = X;
 
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
 }));

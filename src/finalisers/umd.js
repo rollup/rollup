@@ -3,6 +3,7 @@ import { getName, quoteId, req } from '../utils/map-helpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
+import esModuleExport from './shared/esModuleExport.js';
 
 function setupNamespace ( name ) {
 	const parts = name.split( '.' );
@@ -68,6 +69,10 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
+
+	if (exportMode === 'named') {
+		magicString.append(esModuleExport);
+	}
 
 	return magicString
 		.trim()

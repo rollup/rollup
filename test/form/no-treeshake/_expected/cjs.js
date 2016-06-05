@@ -23,3 +23,7 @@ exports.baz = baz;
 exports.create = create;
 exports.getPrototypeOf = getPrototypeOf;
 exports.strange = quux;
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});

@@ -7,3 +7,7 @@ console.log( FOO );
 console.log( FOO );
 
 exports.FOO = FOO;
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
