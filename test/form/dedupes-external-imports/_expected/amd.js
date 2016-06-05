@@ -29,4 +29,6 @@ define(['exports', 'external'], function (exports, external) { 'use strict';
 	exports.bar = bar;
 	exports.baz = baz;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });

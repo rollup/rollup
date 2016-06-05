@@ -71,7 +71,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 
 	if (exportMode === 'named') {
-		magicString.append(esModuleExport);
+		magicString.append( `\n\n${esModuleExport}` );
 	}
 
 	return magicString

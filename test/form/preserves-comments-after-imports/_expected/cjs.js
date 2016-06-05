@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 /** A comment for a number */
 var number = 5;
 
@@ -7,7 +9,3 @@ var number = 5;
 var obj = { number };
 
 exports.obj = obj;
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});

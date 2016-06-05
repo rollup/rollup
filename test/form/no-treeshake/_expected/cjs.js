@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var external = require('external');
 
 var foo = 'unused';
@@ -23,7 +25,3 @@ exports.baz = baz;
 exports.create = create;
 exports.getPrototypeOf = getPrototypeOf;
 exports.strange = quux;
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});

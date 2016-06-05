@@ -12,4 +12,6 @@ define(['exports'], function (exports) { 'use strict';
 	exports.number = number;
 	exports.setting = setting;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });

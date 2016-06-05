@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var external = require('external');
 
 class Foo extends external.Component {
@@ -30,7 +32,3 @@ const baz = new Baz();
 exports.foo = foo;
 exports.bar = bar;
 exports.baz = baz;
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
