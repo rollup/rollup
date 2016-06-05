@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.26.6
+
+* Deconflict named imports from external modules in ES bundles ([#659](https://github.com/rollup/rollup/issues/659))
+* Support `options.preferConst` to generate `const` declarations for exports rather than `var` declarations ([#653](https://github.com/rollup/rollup/issues/653))
+
 ## 0.26.5
 
 * Preserve `debugger` statements ([#664](https://github.com/rollup/rollup/issues/664))
