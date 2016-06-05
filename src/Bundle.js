@@ -1,7 +1,6 @@
-import Promise from 'es6-promise/lib/es6-promise/promise.js';
 import MagicString from 'magic-string';
 import first from './utils/first.js';
-import { blank, keys } from './utils/object.js';
+import { blank, forOwn, keys } from './utils/object.js';
 import Module from './Module.js';
 import ExternalModule from './ExternalModule.js';
 import finalisers from './finalisers/index.js';
@@ -10,12 +9,13 @@ import { load, makeOnwarn, resolveId } from './utils/defaults.js';
 import getExportMode from './utils/getExportMode.js';
 import getIndentString from './utils/getIndentString.js';
 import { unixizePath } from './utils/normalizePlatform.js';
+import { mapSequence } from './utils/promise.js';
 import transform from './utils/transform.js';
 import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
-import { isRelative, resolve } from './utils/path.js';
+import { dirname, isRelative, isAbsolute, relative, resolve } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -27,11 +27,14 @@ export default class Bundle {
 			}
 		});
 
-		this.entry = options.entry;
+		this.entry = unixizePath( options.entry );
+		this.entryId = null;
 		this.entryModule = null;
 
+		this.treeshake = options.treeshake !== false;
+
 		this.resolveId = first(
-			[ id => ~this.external.indexOf( id ) ? false : null ]
+			[ id => this.isExternal( id ) ? false : null ]
 				.concat( this.plugins.map( plugin => plugin.resolveId ).filter( Boolean ) )
 				.concat( resolveId )
 		);
@@ -59,11 +62,19 @@ export default class Bundle {
 
 		this.assumedGlobals = blank();
 
-		this.external = ensureArray( options.external ).map( id => id.replace( /[\/\\]/g, '/' ) );
+		if ( typeof options.external === 'function' ) {
+			this.isExternal = options.external;
+		} else {
+			const ids = ensureArray( options.external ).map( id => id.replace( /[\/\\]/g, '/' ) );
+			this.isExternal = id => ids.indexOf( id ) !== -1;
+		}
+
 		this.onwarn = options.onwarn || makeOnwarn();
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
-		[ 'module', 'exports' ].forEach( global => this.assumedGlobals[ global ] = true );
+		[ 'module', 'exports', '_interopDefault' ].forEach( global => this.assumedGlobals[ global ] = true );
+
+		this.varOrConst = options.preferConst ? 'const' : 'var';
 	}
 
 	build () {
@@ -71,7 +82,10 @@ export default class Bundle {
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
 		return this.resolveId( this.entry, undefined )
-			.then( id => this.fetchModule( id, undefined ) )
+			.then( id => {
+				this.entryId = id;
+				return this.fetchModule( id, undefined );
+			})
 			.then( entryModule => {
 				this.entryModule = entryModule;
 
@@ -87,7 +101,7 @@ export default class Bundle {
 				// mark all export statements
 				entryModule.getExports().forEach( name => {
 					const declaration = entryModule.traceExport( name );
-					declaration.isExported = true;
+					declaration.exportName = name;
 
 					declaration.use();
 				});
@@ -98,7 +112,7 @@ export default class Bundle {
 					settled = true;
 
 					this.modules.forEach( module => {
-						if ( module.run() ) settled = false;
+						if ( module.run( this.treeshake ) ) settled = false;
 					});
 				}
 
@@ -127,11 +141,17 @@ export default class Bundle {
 
 		this.externalModules.forEach( module => {
 			module.name = getSafeName( module.name );
+
+			// ensure we don't shadow named external imports, if
+			// we're creating an ES6 bundle
+			forOwn( module.declarations, ( declaration, name ) => {
+				declaration.setSafeName( getSafeName( name ) );
+			});
 		});
 
 		this.modules.forEach( module => {
-			keys( module.declarations ).forEach( originalName => {
-				const declaration = module.declarations[ originalName ];
+			forOwn( module.declarations, ( declaration, originalName ) => {
+				if ( declaration.isGlobal ) return;
 
 				if ( originalName === 'default' ) {
 					if ( declaration.original && !declaration.original.isReassigned ) return;
@@ -155,6 +175,12 @@ export default class Bundle {
 				msg += `: ${err.message}`;
 				throw new Error( msg );
 			})
+			.then( source => {
+				if ( typeof source === 'string' ) return source;
+				if ( source && typeof source === 'object' && source.code ) return source;
+
+				throw new Error( `Error loading ${id}: load hook should return a string, a { code, map } object, or nothing/null` );
+			})
 			.then( source => transform( source, id, this.transformers ) )
 			.then( source => {
 				const { code, originalCode, ast, sourceMapChain } = source;
@@ -169,23 +195,39 @@ export default class Bundle {
 	}
 
 	fetchAllDependencies ( module ) {
-		const promises = module.sources.map( source => {
+		return mapSequence( module.sources, source => {
 			return this.resolveId( source, module.id )
 				.then( resolvedId => {
-					// If the `resolvedId` is supposed to be external, make it so.
-					const forcedExternal = resolvedId && ~this.external.indexOf( resolvedId.replace( /[\/\\]/g, '/' ) );
+					let externalName;
+					if ( resolvedId ) {
+						// If the `resolvedId` is supposed to be external, make it so.
+						externalName = resolvedId.replace( /[\/\\]/g, '/' );
+					} else if ( isRelative( source ) ) {
+						// This could be an external, relative dependency, based on the current module's parent dir.
+						externalName = resolve( module.id, '..', source );
+					}
+					const forcedExternal = externalName && this.isExternal( externalName );
 
 					if ( !resolvedId || forcedExternal ) {
+						let normalizedExternal = source;
+
 						if ( !forcedExternal ) {
 							if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
-							if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
+							if ( !this.isExternal( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
+						} else if ( resolvedId ) {
+							if ( isRelative(resolvedId) || isAbsolute(resolvedId) ) {
+								// Try to deduce relative path from entry dir if resolvedId is defined as a relative path.
+								normalizedExternal = this.getPathRelativeToEntryDirname( resolvedId );
+							} else {
+								normalizedExternal = resolvedId;
+							}
 						}
-						module.resolvedIds[ source ] = source;
+						module.resolvedIds[ source ] = normalizedExternal;
 
-						if ( !this.moduleById[ source ] ) {
-							const module = new ExternalModule( source );
+						if ( !this.moduleById[ normalizedExternal ] ) {
+							const module = new ExternalModule( normalizedExternal );
 							this.externalModules.push( module );
-							this.moduleById[ source ] = module;
+							this.moduleById[ normalizedExternal ] = module;
 						}
 					}
 
@@ -199,15 +241,26 @@ export default class Bundle {
 					}
 				});
 		});
+	}
 
-		return Promise.all( promises );
+	getPathRelativeToEntryDirname ( resolvedId ) {
+		// Get a path relative to the resolved entry directory
+		const entryDirname = dirname( this.entryId );
+		const relativeToEntry = relative( entryDirname, resolvedId );
+
+		if ( isRelative( relativeToEntry )) {
+			return relativeToEntry;
+		}
+
+		// The path is missing the `./` prefix
+		return `./${relativeToEntry}`;
 	}
 
 	render ( options = {} ) {
 		const format = options.format || 'es6';
 
 		// Determine export mode - 'default', 'named', 'none'
-		const exportMode = getExportMode( this, options.exports );
+		const exportMode = getExportMode( this, options.exports, options.moduleName );
 
 		let magicString = new MagicString.Bundle({ separator: '\n\n' });
 		let usedModules = [];
@@ -352,7 +405,6 @@ export default class Bundle {
 				}
 			});
 		}
-
 
 		return ordered;
 	}

@@ -1,25 +1,25 @@
 import { encode, decode } from 'sourcemap-codec';
 
-function Source ( index ) {
-	this.isOriginal = true;
-	this.index = index;
-}
+class Source {
+	constructor ( index ) {
+		this.isOriginal = true;
+		this.index = index;
+	}
 
-Source.prototype = {
 	traceSegment ( line, column, name ) {
 		return { line, column, name, index: this.index };
 	}
-};
-
-function Link ( map, sources ) {
-	if ( !map ) throw new Error( 'Cannot generate a sourcemap if non-sourcemap-generating transformers are used' );
-
-	this.sources = sources;
-	this.names = map.names;
-	this.mappings = decode( map.mappings );
 }
 
-Link.prototype = { // TODO bring into line with others post-https://github.com/rollup/rollup/pull/386
+class Link {
+	constructor ( map, sources ) {
+		if ( !map ) throw new Error( 'Cannot generate a sourcemap if non-sourcemap-generating transformers are used' );
+
+		this.sources = sources;
+		this.names = map.names;
+		this.mappings = decode( map.mappings );
+	}
+
 	traceMappings () {
 		let names = [];
 
@@ -57,7 +57,7 @@ Link.prototype = { // TODO bring into line with others post-https://github.com/r
 		});
 
 		return { names, mappings };
-	},
+	}
 
 	traceSegment ( line, column, name ) {
 		const segments = this.mappings[ line ];
@@ -71,8 +71,7 @@ Link.prototype = { // TODO bring into line with others post-https://github.com/r
 
 			if ( segment[0] === column ) {
 				const source = this.sources[ segment[1] ];
-
-				if ( !source ) throw new Error( 'Bad sourcemap' );
+				if ( !source ) return null;
 
 				return source.traceSegment( segment[2], segment[3], this.names[ segment[4] ] || name );
 			}
@@ -80,7 +79,7 @@ Link.prototype = { // TODO bring into line with others post-https://github.com/r
 
 		return null;
 	}
-};
+}
 
 export default function collapseSourcemaps ( map, modules, bundleSourcemapChain ) {
 	const sources = modules.map( ( module, i ) => {

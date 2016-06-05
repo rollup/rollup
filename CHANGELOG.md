@@ -1,5 +1,96 @@
 # rollup changelog
 
+## 0.26.6
+
+* Deconflict named imports from external modules in ES bundles ([#659](https://github.com/rollup/rollup/issues/659))
+* Support `options.preferConst` to generate `const` declarations for exports rather than `var` declarations ([#653](https://github.com/rollup/rollup/issues/653))
+
+## 0.26.5
+
+* Preserve `debugger` statements ([#664](https://github.com/rollup/rollup/issues/664))
+* Allow `options.external` to be a function ([#522](https://github.com/rollup/rollup/issues/522))
+
+## 0.26.4
+
+* Prevent plugin-provided external IDs being normalised ([#630](https://github.com/rollup/rollup/issues/630), [#633](https://github.com/rollup/rollup/issues/633))
+* Throw if module exports/re-exports the same name twice, or has multiple default exports ([#679](https://github.com/rollup/rollup/issues/679))
+* Warn about `eval` security issue ([#675]((https://github.com/rollup/rollup/issues/675)))
+
+
+## 0.26.3
+
+* Ensure reference is not incorrectly marked as a reassignment ([#648](https://github.com/rollup/rollup/issues/648))
+
+## 0.26.2
+
+* Sanity check output of `load` hook ([#607](https://github.com/rollup/rollup/issues/607))
+* Correct scoping for ID class expressions ([#626](https://github.com/rollup/rollup/issues/626))
+* Warn if named and default exports are used together in auto mode ([#587](https://github.com/rollup/rollup/issues/587))
+* Allow variable initialisers to be rewritten if necessary ([#632](https://github.com/rollup/rollup/issues/632))
+* Prevent double `var` with no-treeshake option ([#639](https://github.com/rollup/rollup/pull/639))
+
+## 0.26.1
+
+* Add `treeshake: false`/`--no-treeshake` option for debugging ([#505](https://github.com/rollup/rollup/issues/505))
+* Update build process to use Bublé ([#620](https://github.com/rollup/rollup/pull/620))
+
+## 0.26.0
+
+* Add `noConflict`/`--no-conflict` option for UMD builds ([#580](https://github.com/rollup/rollup/pull/580))
+* Normalise relative external paths ([#591](https://github.com/rollup/rollup/pull/591))
+* Report files causing transform errors ([#609](https://github.com/rollup/rollup/pull/609))
+* Handle sourcemap segments with a single member ([#619](https://github.com/rollup/rollup/pull/619))
+* Update dependencies
+
+## 0.25.8
+
+* Unixize entry path ([#586](https://github.com/rollup/rollup/pull/586))
+
+## 0.25.7
+
+* Expand deshadowed shorthand properties ([#575](https://github.com/rollup/rollup/issues/575))
+* Allow external files to be non-existent ([#532](https://github.com/rollup/rollup/issues/532))
+
+## 0.25.6
+
+* Fix a regression introduced by #566 ([#569](https://github.com/rollup/rollup/issues/569))
+* Prune dead conditional expressions more carefully ([#567](https://github.com/rollup/rollup/issues/567))
+
+## 0.25.5
+
+* Make sure shorthand destructuring assignments don't break ([#528](https://github.com/rollup/rollup/issues/528))
+* Allow 'exports' key ([#542](https://github.com/rollup/rollup/issues/542))
+* Ensure `foo.  bar` where `foo` is a namespace import is rewritten correctly ([#566](https://github.com/rollup/rollup/issues/566))
+* Fix an edge case for exported globals (e.g. `export { document }`) ([#562](https://github.com/rollup/rollup/issues/562))
+
+## 0.25.4
+
+* Fix misnamed exports of default imports in ES bundles ([#513](https://github.com/rollup/rollup/issues/513))
+* CLI: warn on missing config ([#515](https://github.com/rollup/rollup/pull/515))
+* Detect side-effects in non-top-level member expression assignment ([#476](https://github.com/rollup/rollup/issues/476))
+* Don't remove computed property class keys ([#504](https://github.com/rollup/rollup/issues/504))
+* Augment existing global object rather than replacing ([#493](https://github.com/rollup/rollup/issues/493))
+* Don't fail on `export {}`, warn instead ([#486](https://github.com/rollup/rollup/issues/486))
+
+## 0.25.3
+
+* Handle non-objects and `null` in `_interopDefault` ([#474](https://github.com/rollup/rollup/issues/474))
+
+## 0.25.2
+
+* Skip dead branches of a conditional expression (#[465](https://github.com/rollup/rollup/pull/465))
+* Allow globals to be exported ([#472](https://github.com/rollup/rollup/pull/472))
+* Ensure reassigned exports are exported ([#484](https://github.com/rollup/rollup/issues/484))
+
+## 0.25.1
+
+* Throw error if namespace is called ([#446](https://github.com/rollup/rollup/issues/446))
+* Prevent shadowing bug in ES6 output ([#441](https://github.com/rollup/rollup/pull/441))
+* Prevent `var exports.foo` ([#426](https://github.com/rollup/rollup/issues/426))
+* Prevent double export of aliased symbols ([#438](https://github.com/rollup/rollup/issues/438))
+* Provide more informative error if Rollup is used in-browser without appropriate `resolveId`/`load` hooks ([#275](https://github.com/rollup/rollup/issues/275))
+* Use `_interopDefault` function to DRY out code with many external dependencies, in CommonJS output ([#458](https://github.com/rollup/rollup/pull/458))
+
 ## 0.25.0
 
 * **breaking** Module order is determined according to spec, rather than in a way designed to prevent runtime errors. Rollup will warn if it detects runtime errors are likely ([#435](https://github.com/rollup/rollup/issues/435))

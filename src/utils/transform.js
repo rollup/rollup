@@ -39,5 +39,10 @@ export default function transform ( source, id, transformers ) {
 
 	}, Promise.resolve( source.code ) )
 
-	.then( code => ({ code, originalCode, ast, sourceMapChain }) );
+	.then( code => ({ code, originalCode, ast, sourceMapChain }) )
+	.catch( err => {
+		err.id = id;
+		err.message = `Error loading ${id}: ${err.message}`;
+		throw err;
+	});
 }

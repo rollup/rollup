@@ -59,6 +59,9 @@ module.exports = function ( command ) {
 
 			try {
 				var options = require( path.resolve( config ) );
+				if ( Object.keys( options ).length === 0 ) {
+					handleError({ code: 'MISSING_CONFIG' });
+				}
 			} catch ( err ) {
 				handleError( err );
 			}
@@ -79,12 +82,14 @@ var equivalents = {
 	format: 'format',
 	globals: 'globals',
 	id: 'moduleId',
+	indent: 'indent',
 	input: 'entry',
 	intro: 'intro',
 	name: 'moduleName',
 	output: 'dest',
 	outro: 'outro',
-	sourcemap: 'sourceMap'
+	sourcemap: 'sourceMap',
+	treeshake: 'treeshake'
 };
 
 function execute ( options, command ) {
@@ -110,10 +115,13 @@ function execute ( options, command ) {
 	options.onwarn = options.onwarn || log;
 
 	options.external = external;
-	options.indent = command.indent !== false;
 
+	options.noConflict = command.conflict === false;
+	delete command.conflict;
+
+	// Use any options passed through the CLI as overrides.
 	Object.keys( equivalents ).forEach( function ( cliOption ) {
-		if ( command[ cliOption ] ) {
+		if ( command.hasOwnProperty( cliOption ) ) {
 			options[ equivalents[ cliOption ] ] = command[ cliOption ];
 		}
 	});

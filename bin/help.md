@@ -21,6 +21,7 @@ Basic options:
 --no-strict              Don't emit a `"use strict";` in the generated modules.
 --no-indent              Don't indent result
 --environment <values>   Settings passed to config file (see example)
+--no-conflict            Generate a noConflict method for UMD globals
 --intro                  Content to insert at top of bundle (inside wrapper)
 --outro                  Content to insert at end of bundle (inside wrapper)
 --banner                 Content to insert at top of bundle (outside wrapper)

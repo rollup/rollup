@@ -10,7 +10,9 @@ export default function isReference ( node, parent ) {
 		if ( !parent ) return true;
 
 		// TODO is this right?
-		if ( parent.type === 'MemberExpression' ) return parent.computed || node === parent.object;
+		if ( parent.type === 'MemberExpression' || parent.type === 'MethodDefinition' ) {
+			return parent.computed || node === parent.object;
+		}
 
 		// disregard the `bar` in `{ bar: foo }`, but keep it in `{ [bar]: foo }`
 		if ( parent.type === 'Property' ) return parent.computed || node === parent.value;

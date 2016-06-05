@@ -7,7 +7,11 @@ import { basename, extname } from './utils/path.js';
 import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
-import { SyntheticDefaultDeclaration, SyntheticNamespaceDeclaration } from './Declaration.js';
+import {
+	SyntheticDefaultDeclaration,
+	SyntheticGlobalDeclaration,
+	SyntheticNamespaceDeclaration
+} from './Declaration.js';
 import { isFalsy, isTruthy } from './ast/conditions.js';
 import { emptyBlockStatement } from './ast/create.js';
 import extractNames from './ast/extractNames.js';
@@ -73,7 +77,13 @@ export default class Module {
 
 			else {
 				node.specifiers.forEach( specifier => {
-					this.reexports[ specifier.exported.name ] = {
+					const name = specifier.exported.name;
+
+					if ( this.exports[ name ] || this.reexports[ name ] ) {
+						throw new Error( `A module cannot have multiple exports with the same name ('${name}')` );
+					}
+
+					this.reexports[ name ] = {
 						start: specifier.start,
 						source,
 						localName: specifier.local.name,
@@ -89,6 +99,11 @@ export default class Module {
 		else if ( node.type === 'ExportDefaultDeclaration' ) {
 			const identifier = ( node.declaration.id && node.declaration.id.name ) || node.declaration.name;
 
+			if ( this.exports.default ) {
+				// TODO indicate location
+				throw new Error( 'A module can only have one default export' );
+			}
+
 			this.exports.default = {
 				localName: 'default',
 				identifier
@@ -98,37 +113,41 @@ export default class Module {
 			this.declarations.default = new SyntheticDefaultDeclaration( node, statement, identifier || this.basename() );
 		}
 
-		// export { foo, bar, baz }
 		// export var { foo, bar } = ...
 		// export var foo = 42;
 		// export var a = 1, b = 2, c = 3;
 		// export function foo () {}
-		else if ( node.type === 'ExportNamedDeclaration' ) {
+		else if ( node.declaration ) {
+			let declaration = node.declaration;
+
+			if ( declaration.type === 'VariableDeclaration' ) {
+				declaration.declarations.forEach( decl => {
+					extractNames( decl.id ).forEach( localName => {
+						this.exports[ localName ] = { localName };
+					});
+				});
+			} else {
+				// export function foo () {}
+				const localName = declaration.id.name;
+				this.exports[ localName ] = { localName };
+			}
+		}
+
+		// export { foo, bar, baz }
+		else {
 			if ( node.specifiers.length ) {
-				// export { foo, bar, baz }
 				node.specifiers.forEach( specifier => {
 					const localName = specifier.local.name;
 					const exportedName = specifier.exported.name;
 
+					if ( this.exports[ exportedName ] || this.reexports[ exportedName ] ) {
+						throw new Error( `A module cannot have multiple exports with the same name ('${exportedName}')` );
+					}
+
 					this.exports[ exportedName ] = { localName };
 				});
-			}
-
-			else {
-				let declaration = node.declaration;
-
-				if ( declaration.type === 'VariableDeclaration' ) {
-					declaration.declarations.forEach( decl => {
-						extractNames( decl.id ).forEach( localName => {
-							this.exports[ localName ] = { localName };
-						});
-					});
-				}
-				else {
-					// export function foo () {}
-					const localName = declaration.id.name;
-					this.exports[ localName ] = { localName };
-				}
+			} else {
+				this.bundle.onwarn( `Module ${this.id} has an empty export declaration` );
 			}
 		}
 	}
@@ -185,7 +204,7 @@ export default class Module {
 			const declaration = this.declarations[ name ];
 			const statement = declaration.statement;
 
-			if ( statement.node.type !== 'VariableDeclaration' ) return;
+			if ( !statement || statement.node.type !== 'VariableDeclaration' ) return;
 
 			const init = statement.node.declarations[0].init;
 			if ( !init || init.type === 'FunctionExpression' ) return;
@@ -314,6 +333,20 @@ export default class Module {
 
 				this.magicString.addSourcemapLocation( node.start );
 				this.magicString.addSourcemapLocation( node.end );
+			},
+
+			leave: ( node, parent, prop ) => {
+				// eliminate dead branches early
+				if ( node.type === 'ConditionalExpression' ) {
+					if ( isFalsy( node.test ) ) {
+						this.magicString.remove( node.start, node.alternate.start );
+						parent[prop] = node.alternate;
+					} else if ( isTruthy( node.test ) ) {
+						this.magicString.remove( node.start, node.consequent.start );
+						this.magicString.remove( node.consequent.end, node.end );
+						parent[prop] = node.consequent;
+					}
+				}
 			}
 		});
 
@@ -433,14 +466,37 @@ export default class Module {
 			}
 
 			// split up/remove var declarations as necessary
-			if ( statement.node.isSynthetic ) {
-				// insert `var/let/const` if necessary
-				const declaration = this.declarations[ statement.node.declarations[0].id.name ];
-				if ( !( declaration.isExported && declaration.isReassigned ) ) { // TODO encapsulate this
-					magicString.insert( statement.start, `${statement.node.kind} ` );
+			if ( statement.node.type === 'VariableDeclaration' ) {
+				const declarator = statement.node.declarations[0];
+
+				if ( declarator.id.type === 'Identifier' ) {
+					const declaration = this.declarations[ declarator.id.name ];
+
+					if ( declaration.exportName && declaration.isReassigned ) { // `var foo = ...` becomes `exports.foo = ...`
+						magicString.remove( statement.start, declarator.init ? declarator.start : statement.next );
+						if ( !declarator.init ) return;
+					}
 				}
 
-				magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
+				else {
+					// we handle destructuring differently, because whereas we can rewrite
+					// `var foo = ...` as `exports.foo = ...`, in a case like `var { a, b } = c()`
+					// where `a` or `b` is exported and reassigned, we have to append
+					// `exports.a = a;` and `exports.b = b` instead
+					extractNames( declarator.id ).forEach( name => {
+						const declaration = this.declarations[ name ];
+
+						if ( declaration.exportName && declaration.isReassigned ) {
+							magicString.insert( statement.end, `;\nexports.${name} = ${declaration.render( es6 )}` );
+						}
+					});
+				}
+
+				if ( statement.node.isSynthetic ) {
+					// insert `var/let/const` if necessary
+					magicString.insert( statement.start, `${statement.node.kind} ` );
+					magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
+				}
 			}
 
 			let toDeshadow = blank();
@@ -480,7 +536,8 @@ export default class Module {
 			if ( keys( toDeshadow ).length ) {
 				statement.references.forEach( reference => {
 					if ( !reference.rewritten && reference.name in toDeshadow ) {
-						magicString.overwrite( reference.start, reference.end, toDeshadow[ reference.name ], true );
+						const replacement = toDeshadow[ reference.name ];
+						magicString.overwrite( reference.start, reference.end, reference.isShorthandProperty ? `${reference.name}: ${replacement}` : replacement, true );
 					}
 				});
 			}
@@ -496,7 +553,7 @@ export default class Module {
 
 					if ( !declaration ) throw new Error( `Missing declaration for ${name}!` );
 
-					const end = declaration.isExported && declaration.isReassigned ?
+					const end = declaration.exportName && declaration.isReassigned ?
 						statement.node.declaration.declarations[0].start :
 						statement.node.declaration.start;
 
@@ -526,7 +583,7 @@ export default class Module {
 					const defaultName = defaultDeclaration.render();
 
 					// prevent `var undefined = sideEffectyDefault(foo)`
-					if ( !defaultDeclaration.isExported && !defaultDeclaration.isUsed ) {
+					if ( !defaultDeclaration.exportName && !defaultDeclaration.isUsed ) {
 						magicString.remove( statement.start, statement.node.declaration.start );
 						return;
 					}
@@ -535,7 +592,7 @@ export default class Module {
 					if ( statement.node.declaration.type === 'FunctionExpression' ) {
 						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${defaultName}` );
 					} else {
-						magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${defaultName} = ` );
+						magicString.overwrite( statement.node.start, statement.node.declaration.start, `${this.bundle.varOrConst} ${defaultName} = ` );
 					}
 				}
 
@@ -554,7 +611,23 @@ export default class Module {
 		return magicString.trim();
 	}
 
-	run () {
+	/**
+	 * Statically runs the module marking the top-level statements that must be
+	 * included for the module to execute successfully.
+	 *
+	 * @param {boolean} treeshake - if we should tree-shake the module
+	 * @return {boolean} marked - if any new statements were marked for inclusion
+	 */
+	run ( treeshake ) {
+		if ( !treeshake ) {
+			this.statements.forEach( statement => {
+				if ( statement.isImportDeclaration || ( statement.isExportDeclaration && statement.node.isSynthetic ) ) return;
+
+				statement.mark();
+			});
+			return false;
+		}
+
 		let marked = false;
 
 		this.statements.forEach( statement => {
@@ -601,7 +674,13 @@ export default class Module {
 
 		const exportDeclaration = this.exports[ name ];
 		if ( exportDeclaration ) {
-			return this.trace( exportDeclaration.localName );
+			const name = exportDeclaration.localName;
+			const declaration = this.trace( name );
+
+			if ( declaration ) return declaration;
+
+			this.bundle.assumedGlobals[ name ] = true;
+			return ( this.declarations[ name ] = new SyntheticGlobalDeclaration( name ) );
 		}
 
 		for ( let i = 0; i < this.exportAllModules.length; i += 1 ) {

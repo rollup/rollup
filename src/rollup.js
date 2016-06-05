@@ -12,6 +12,7 @@ const ALLOWED_KEYS = [
 	'banner',
 	'dest',
 	'entry',
+	'exports',
 	'external',
 	'footer',
 	'format',
@@ -20,10 +21,14 @@ const ALLOWED_KEYS = [
 	'intro',
 	'moduleId',
 	'moduleName',
+	'noConflict',
 	'onwarn',
 	'outro',
 	'plugins',
-	'sourceMap'
+	'preferConst',
+	'sourceMap',
+	'treeshake',
+	'useStrict'
 ];
 
 export function rollup ( options ) {

@@ -3,6 +3,8 @@ import modifierNodes, { isModifierNode } from '../ast/modifierNodes.js';
 import isReference from '../ast/isReference.js';
 import flatten from '../ast/flatten';
 import pureFunctions from './pureFunctions.js';
+import getLocation from './getLocation.js';
+import error from './error.js';
 
 function call ( callee, scope, statement, strongDependencies ) {
 	while ( callee.type === 'ParenthesizedExpression' ) callee = callee.expression;
@@ -11,7 +13,19 @@ function call ( callee, scope, statement, strongDependencies ) {
 		const declaration = scope.findDeclaration( callee.name ) ||
 							statement.module.trace( callee.name );
 
-		if ( declaration ) return declaration.run( strongDependencies );
+		if ( declaration ) {
+			if ( declaration.isNamespace ) {
+				error({
+					message: `Cannot call a namespace ('${callee.name}')`,
+					file: statement.module.id,
+					pos: callee.start,
+					loc: getLocation( statement.module.code, callee.start )
+				});
+			}
+
+			return declaration.run( strongDependencies );
+		}
+
 		return !pureFunctions[ callee.name ];
 	}
 
@@ -61,6 +75,10 @@ export default function run ( node, scope, statement, strongDependencies, force 
 				}
 			}
 
+			else if ( node.type === 'DebuggerStatement' ) {
+				hasSideEffect = true;
+			}
+
 			else if ( node.type === 'ThrowStatement' ) {
 				// we only care about errors thrown at the top level, otherwise
 				// any function with error checking gets included if called
@@ -81,6 +99,8 @@ export default function run ( node, scope, statement, strongDependencies, force 
 
 				if ( declaration ) {
 					if ( declaration.isParam ) hasSideEffect = true;
+				} else if ( !scope.isTopLevel ) {
+					hasSideEffect = true;
 				} else {
 					declaration = statement.module.trace( subject.name );
 

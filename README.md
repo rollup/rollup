@@ -5,7 +5,7 @@
     <img src="https://api.travis-ci.org/rollup/rollup.svg?branch=master"
          alt="build status">
   </a>
-  <a href="https://npmjs.org/package/rollup">
+  <a href="https://www.npmjs.com/package/rollup">
     <img src="https://img.shields.io/npm/v/rollup.svg"
          alt="npm version">
   </a>
@@ -17,8 +17,8 @@
     <img src="https://david-dm.org/rollup/rollup.svg"
          alt="dependency status">
   </a>
-  <a href="http://codecov.io/github/rollup/rollup?branch=master">
-    <img src="http://codecov.io/github/rollup/rollup/coverage.svg?branch=master" alt="Coverage via Codecov" />
+  <a href="https://codecov.io/github/rollup/rollup?branch=master">
+    <img src="https://codecov.io/github/rollup/rollup/coverage.svg?branch=master" alt="Coverage via Codecov" />
   </a>
   <a href='https://gitter.im/rollup/rollup?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge'>
     <img src='https://badges.gitter.im/rollup/rollup.svg'
@@ -133,12 +133,12 @@ Unfortunately, **traditional modules – CommonJS and AMD – result in code mo
 
 If your `package.json` has a `jsnext:main` field, ES6-aware tools like Rollup can import the ES6 version of the package instead of the legacy CommonJS or UMD version. You'll be writing your code in a more future-proof way, and helping to bring an end to the [dark days of JavaScript package management](https://medium.com/@trek/last-week-i-had-a-small-meltdown-on-twitter-about-npms-future-plans-around-front-end-packaging-b424dd8d367a). [Learn more here.](https://github.com/rollup/rollup/wiki/jsnext:main)
 
-See [rollup-starter-project](https://github.com/eventualbuddha/rollup-starter-project) for inspiration on how to get started.
+See [rollup-starter-project](https://github.com/rollup/rollup-starter-project) for inspiration on how to get started.
 
 
 ## How does this compare to JSPM/SystemJS?
 
-[JSPM](http://jspm.io/) is awesome! It's a little different to this project though – it combines a repository with a package manager and a client-side module loader, as opposed to simply bundling modules. JSPM allows you to use any module format and even develop without a build step, so it's a great choice for creating applications. Rollup generates smaller bundles that don't use the complex SystemJS format, and so is a better choice for creating libraries. A future version of JSPM [may use Rollup internally](https://github.com/systemjs/builder/pull/205), so you'll get the best of both worlds.
+[JSPM](http://jspm.io/) is awesome, and [it uses Rollup](https://github.com/systemjs/builder/pull/205) in its builder! In addition to bundling modules, it also combines a repository with a package manager and a client-side module loader. JSPM allows you to use any module format and even develop without a build step, so it's a great choice for creating applications. Stand-alone Rollup doesn't use the complex SystemJS format, making it a better choice for creating libraries.
 
 
 ## License

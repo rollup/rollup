@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "0.25.0",
+  "version": "0.26.6",
   "description": "Next-generation ES6 module bundler",
   "main": "dist/rollup.js",
   "jsnext:main": "src/rollup.js",
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "pretest": "npm run build",
-    "test": "mocha",
+    "test": "mocha --compilers js:buble/register",
     "pretest-coverage": "npm run build",
     "test-coverage": "rm -rf coverage/* && istanbul cover --report json node_modules/.bin/_mocha -- -u exports -R spec test/test.js",
     "posttest-coverage": "remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.json -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.lcov -t lcovonly -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped -t html -b dist",
@@ -40,22 +40,23 @@
   },
   "homepage": "https://github.com/rollup/rollup",
   "devDependencies": {
-    "acorn": "^2.6.4",
+    "acorn": "^3.1.0",
     "babel-core": "^5.8.32",
+    "buble": "^0.6.4",
     "codecov.io": "^0.1.6",
-    "console-group": "^0.1.2",
+    "console-group": "^0.2.0",
     "es6-promise": "^3.0.2",
-    "eslint": "^1.7.1",
+    "eslint": "^2.9.0",
     "estree-walker": "^0.2.0",
     "istanbul": "^0.4.0",
     "magic-string": "^0.10.1",
     "mocha": "^2.3.3",
-    "remap-istanbul": "^0.4.0",
-    "rollup": "^0.20.2",
-    "rollup-plugin-babel": "^1.0.0",
-    "rollup-plugin-npm": "^1.0.0",
+    "remap-istanbul": "^0.5.1",
+    "rollup": "^0.26.2",
+    "rollup-plugin-buble": "^0.6.0",
+    "rollup-plugin-node-resolve": "^1.5.0",
     "rollup-plugin-replace": "^1.0.1",
-    "sander": "^0.4.0",
+    "sander": "^0.5.0",
     "source-map": "^0.5.3",
     "sourcemap-codec": "^1.2.1",
     "uglify-js": "^2.6.1"
@@ -63,7 +64,7 @@
   "dependencies": {
     "chalk": "^1.1.1",
     "minimist": "^1.2.0",
-    "source-map-support": "^0.3.2"
+    "source-map-support": "^0.4.0"
   },
   "files": [
     "src",

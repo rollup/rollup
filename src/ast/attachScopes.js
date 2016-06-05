@@ -29,7 +29,7 @@ export default function attachScopes ( statement ) {
 			let newScope;
 
 			// create new function scope
-			if ( /Function/.test( node.type ) ) {
+			if ( /(Function|Class)/.test( node.type ) ) {
 				newScope = new Scope({
 					parent: scope,
 					block: false,
@@ -38,7 +38,7 @@ export default function attachScopes ( statement ) {
 
 				// named function expressions - the name is considered
 				// part of the function's scope
-				if ( node.type === 'FunctionExpression' && node.id ) {
+				if ( /(Function|Class)Expression/.test( node.type ) && node.id ) {
 					newScope.addDeclaration( node, false, false );
 				}
 			}

@@ -10,10 +10,20 @@ export default function es6 ( bundle, magicString ) {
 			const specifiers = [];
 			const specifiersList = [specifiers];
 			const importedNames = keys( module.declarations )
-				.filter( name => name !== '*' && name !== 'default' );
+				.filter( name => name !== '*' && name !== 'default' )
+				.map( name => {
+					const declaration = module.declarations[ name ];
+
+					if ( declaration.name === declaration.safeName ) return declaration.name;
+					return `${declaration.name} as ${declaration.safeName}`;
+				});
 
 			if ( module.declarations.default ) {
-				specifiers.push( module.name );
+				if ( module.exportsNamespace ) {
+					specifiersList.push([ `${module.name}__default` ]);
+				} else {
+					specifiers.push( module.name );
+				}
 			}
 
 			const namespaceSpecifier = module.declarations['*'] ? `* as ${module.name}` : null;
@@ -47,10 +57,11 @@ export default function es6 ( bundle, magicString ) {
 
 	const specifiers = module.getExports().filter( notDefault ).map( name => {
 		const declaration = module.traceExport( name );
+		const rendered = declaration.render( true );
 
-		return declaration.name === name ?
+		return rendered === name ?
 			name :
-			`${declaration.name} as ${name}`;
+			`${rendered} as ${name}`;
 	});
 
 	let exportBlock = specifiers.length ? `export { ${specifiers.join(', ')} };` : '';
