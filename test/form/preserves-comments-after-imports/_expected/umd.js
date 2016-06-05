@@ -12,4 +12,6 @@
 
 	exports.obj = obj;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 }));

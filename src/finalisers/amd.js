@@ -1,6 +1,7 @@
 import { getName, quoteId } from '../utils/map-helpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
+import esModuleExport from './shared/esModuleExport.js';
 
 export default function amd ( bundle, magicString, { exportMode, indentString }, options ) {
 	let deps = bundle.externalModules.map( quoteId );
@@ -24,6 +25,10 @@ export default function amd ( bundle, magicString, { exportMode, indentString },
 
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
+
+	if ( exportMode === 'named' ) {
+		magicString.append( `\n\n${esModuleExport}` );
+	}
 
 	return magicString
 		.indent( indentString )
