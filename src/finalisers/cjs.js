@@ -9,18 +9,20 @@ export default function cjs ( bundle, magicString, { exportMode }, options ) {
 		intro += `function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }\n\n`;
 	}
 
+	const varOrConst = bundle.varOrConst;
+
 	// TODO handle empty imports, once they're supported
 	const importBlock = bundle.externalModules
 		.map( module => {
 			if ( module.declarations.default ) {
 				if (module.exportsNames) {
-					return `var ${module.name} = require('${module.id}');` +
-						`\nvar ${module.name}__default = _interopDefault(${module.name});`;
+					return `${varOrConst} ${module.name} = require('${module.id}');` +
+						`\n${varOrConst} ${module.name}__default = _interopDefault(${module.name});`;
 				} else {
-					return `var ${module.name} = _interopDefault(require('${module.id}'));`;
+					return `${varOrConst} ${module.name} = _interopDefault(require('${module.id}'));`;
 				}
 			} else {
-				return `var ${module.name} = require('${module.id}');`;
+				return `${varOrConst} ${module.name} = require('${module.id}');`;
 			}
 		})
 		.join( '\n' );

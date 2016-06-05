@@ -592,7 +592,7 @@ export default class Module {
 					if ( statement.node.declaration.type === 'FunctionExpression' ) {
 						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${defaultName}` );
 					} else {
-						magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${defaultName} = ` );
+						magicString.overwrite( statement.node.start, statement.node.declaration.start, `${this.bundle.varOrConst} ${defaultName} = ` );
 					}
 				}
 
