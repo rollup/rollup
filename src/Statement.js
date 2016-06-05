@@ -47,7 +47,8 @@ export default class Statement {
 			enter ( node, parent, prop ) {
 				// warn about eval
 				if ( node.type === 'CallExpression' && node.callee.name === 'eval' && !scope.contains( 'eval' ) ) {
-					module.bundle.onwarn( `Use of \`eval\` (in ${module.id}) is discouraged, as it may cause issues with minification. See https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval for more details` );
+					// TODO show location
+					module.bundle.onwarn( `Use of \`eval\` (in ${module.id}) is strongly discouraged, as it poses security risks and may cause issues with minification. See https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval for more details` );
 				}
 
 				// skip re-export declarations
