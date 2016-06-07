@@ -153,7 +153,6 @@ describe( 'rollup', function () {
 
 						// try to generate output
 						try {
-							if(config.bundleOptions) { console.log(config.bundleOptions); }
 							var result = bundle.generate( extend( {}, config.bundleOptions, {
 								format: 'cjs'
 							}));
@@ -252,7 +251,12 @@ describe( 'rollup', function () {
 			if ( config.skipIfWindows && process.platform === 'win32' ) return;
 
 			var options = extend( {}, config.options, {
-				entry: FORM + '/' + dir + '/main.js'
+				entry: FORM + '/' + dir + '/main.js',
+				onwarn: msg => {
+					if ( /No name was provided for/.test( msg ) ) return;
+					if ( /as external dependency/.test( msg ) ) return;
+					console.error( msg );
+				}
 			});
 
 			( config.skip ? describe.skip : config.solo ? describe.only : describe)( dir, function () {
@@ -308,7 +312,7 @@ describe( 'rollup', function () {
 				var config = loadConfig( SOURCEMAPS + '/' + dir + '/_config.js' );
 
 				var entry = path.resolve( SOURCEMAPS, dir, 'main.js' );
-				var dest = path.resolve( SOURCEMAPS, dir, '_actual/bundle.js' );
+				var dest = path.resolve( SOURCEMAPS, dir, '_actual/bundle' );
 
 				var options = extend( {}, config.options, {
 					entry: entry
@@ -320,7 +324,7 @@ describe( 'rollup', function () {
 							var options = extend( {}, {
 								format: profile.format,
 								sourceMap: true,
-								dest: dest
+								dest: `${dest}.${profile.format}.js`
 							}, config.options );
 
 							bundle.write( options );
