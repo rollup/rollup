@@ -76,7 +76,7 @@ describe( 'rollup', function () {
 			return rollup.rollup({ entry: 'x', plUgins: [] }).then( function () {
 				throw new Error( 'Missing expected error' );
 			}, function ( err ) {
-				assert.equal( err.message, 'Unexpected key \'plUgins\' found, expected one of: banner, dest, entry, exports, external, footer, format, globals, indent, intro, moduleId, moduleName, noConflict, onwarn, outro, plugins, preferConst, sourceMap, treeshake, useStrict' );
+				assert.equal( err.message, 'Unexpected key \'plUgins\' found, expected one of: banner, dest, entry, exports, external, footer, format, globals, indent, intro, moduleId, moduleName, noConflict, onwarn, outro, plugins, preferConst, sourceMap, targets, treeshake, useStrict' );
 			});
 		});
 	});
@@ -357,9 +357,13 @@ describe( 'rollup', function () {
 							PATH: path.resolve( __dirname, '../bin' ) + path.delimiter + process.env.PATH
 						}
 					}, function ( err, code, stderr ) {
-						if ( err || config.error ) {
-							config.error( err );
-							return done();
+						if ( err ) {
+							if ( config.error ) {
+								config.error( err );
+								return done();
+							} else {
+								throw err;
+							}
 						}
 
 						if ( stderr ) console.error( stderr );
@@ -413,6 +417,20 @@ describe( 'rollup', function () {
 							}
 						}
 
+						else if ( sander.existsSync( '_expected' ) && sander.statSync( '_expected' ).isDirectory() ) {
+							var error = null;
+							sander.readdirSync( '_expected' ).forEach( child => {
+								var expected = sander.readFileSync( path.join( '_expected', child ) ).toString();
+								var actual = sander.readFileSync( path.join( '_actual', child ) ).toString();
+								try {
+									assert.equal( normaliseOutput( actual ), normaliseOutput( expected ) );
+								} catch ( err ) {
+									error = err;
+								}
+							});
+							done( error );
+						}
+						
 						else {
 							var expected = sander.readFileSync( '_expected.js' ).toString();
 							try {

@@ -1,4 +1,3 @@
-import Promise from 'es6-promise/lib/es6-promise/promise.js';
 import { basename } from './utils/path.js';
 import { writeFile } from './utils/fs.js';
 import { keys } from './utils/object.js';
@@ -27,6 +26,7 @@ const ALLOWED_KEYS = [
 	'plugins',
 	'preferConst',
 	'sourceMap',
+	'targets',
 	'treeshake',
 	'useStrict'
 ];
