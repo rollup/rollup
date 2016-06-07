@@ -61,7 +61,7 @@ export default class Bundle {
 			.map( plugin => plugin.transformBundle )
 			.filter( Boolean );
 
-		this.moduleById = blank();
+		this.moduleById = new Map();
 		this.modules = [];
 
 		this.externalModules = [];
@@ -171,8 +171,8 @@ export default class Bundle {
 
 	fetchModule ( id, importer ) {
 		// short-circuit cycles
-		if ( id in this.moduleById ) return null;
-		this.moduleById[ id ] = null;
+		if ( this.moduleById.has( id ) ) return null;
+		this.moduleById.set( id, null );
 
 		return this.load( id )
 			.catch( err => {
@@ -210,7 +210,7 @@ export default class Bundle {
 				const module = new Module({ id, code, originalCode, ast, sourceMapChain, bundle: this });
 
 				this.modules.push( module );
-				this.moduleById[ id ] = module;
+				this.moduleById.set( id, module );
 
 				return this.fetchAllDependencies( module ).then( () => module );
 			});
@@ -246,10 +246,10 @@ export default class Bundle {
 						}
 						module.resolvedIds[ source ] = normalizedExternal;
 
-						if ( !this.moduleById[ normalizedExternal ] ) {
+						if ( !this.moduleById.has( normalizedExternal ) ) {
 							const module = new ExternalModule( normalizedExternal );
 							this.externalModules.push( module );
-							this.moduleById[ normalizedExternal ] = module;
+							this.moduleById.set( normalizedExternal, module );
 						}
 					}
 

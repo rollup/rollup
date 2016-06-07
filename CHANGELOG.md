@@ -1,6 +1,17 @@
 # rollup changelog
 
-## 0.27.7
+## 0.27.1
+
+* Ensure names exported from a module are not replaced with reserved words ([#696](https://github.com/rollup/rollup/pull/696))
+* Revert ([#692](https://github.com/rollup/rollup/pull/692)) – resolved IDs must be strings
+
+## 0.27.0
+
+* Use native promises instead of `es6-promise` ([#689](https://github.com/rollup/rollup/issues/689))
+* Support multiple targets in config files ([#655](https://github.com/rollup/rollup/issues/655))
+* Allow `resolveId` plugin functions to return non-strings ([#692](https://github.com/rollup/rollup/pull/692))
+
+## 0.26.7
 
 * Distinguish between default and namespace imports of external module ([#637](https://github.com/rollup/rollup/issues/637))
 * Add `__esModule` property to named exports in AMD, CJS and UMD modes ([#650](https://github.com/rollup/rollup/issues/650))

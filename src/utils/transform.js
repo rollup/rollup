@@ -1,5 +1,3 @@
-import Promise from 'es6-promise/lib/es6-promise/promise.js';
-
 export default function transform ( source, id, transformers ) {
 	let sourceMapChain = [];
 

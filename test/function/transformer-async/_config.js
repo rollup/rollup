@@ -1,5 +1,3 @@
-var Promise = require( 'es6-promise' ).Promise;
-
 module.exports = {
 	description: 'transformers can be asynchronous',
 	options: {

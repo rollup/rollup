@@ -224,18 +224,18 @@ export default class Module {
 				const specifier = specifiers[ name ];
 
 				const id = this.resolvedIds[ specifier.source ];
-				specifier.module = this.bundle.moduleById[ id ];
+				specifier.module = this.bundle.moduleById.get( id );
 			});
 		});
 
 		this.exportAllModules = this.exportAllSources.map( source => {
 			const id = this.resolvedIds[ source ];
-			return this.bundle.moduleById[ id ];
+			return this.bundle.moduleById.get( id );
 		});
 
 		this.sources.forEach( source => {
 			const id = this.resolvedIds[ source ];
-			const module = this.bundle.moduleById[ id ];
+			const module = this.bundle.moduleById.get( id );
 
 			if ( !module.isExternal ) this.dependencies.push( module );
 		});
