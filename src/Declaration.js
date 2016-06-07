@@ -1,4 +1,5 @@
 import { blank, forOwn, keys } from './utils/object.js';
+import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import run from './utils/run.js';
 import { SyntheticReference } from './Reference.js';
 
@@ -17,7 +18,7 @@ export default class Declaration {
 		}
 
 		this.statement = statement;
-		this.name = null;
+		this.name = node.id ? node.id.name : node.name;
 		this.exportName = null;
 		this.isParam = isParam;
 
@@ -33,7 +34,10 @@ export default class Declaration {
 
 	addReference ( reference ) {
 		reference.declaration = this;
-		this.name = reference.name; // TODO handle differences of opinion
+
+		if ( reference.name !== this.name ) {
+			this.name = makeLegalIdentifier( reference.name ); // TODO handle differences of opinion
+		}
 
 		if ( reference.isReassignment ) this.isReassigned = true;
 	}
