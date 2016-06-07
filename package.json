@@ -45,7 +45,6 @@
     "buble": "^0.6.4",
     "codecov.io": "^0.1.6",
     "console-group": "^0.2.0",
-    "es6-promise": "^3.0.2",
     "eslint": "^2.9.0",
     "estree-walker": "^0.2.0",
     "istanbul": "^0.4.0",
