@@ -448,76 +448,79 @@ describe( 'rollup', function () {
 	});
 
 	describe.only('incremental', function () {
-		it('does not transforms in the second time', function () {
-			var calls = 0;
-			var counter = {
-				transform: function ( code ) {
-					calls += 1;
-					return code;
-				}
+		function executeBundle ( bundle ) {
+			const cjs = bundle.generate({ format: 'cjs' });
+			const m = new Function( 'module', 'exports', cjs.code );
+
+			let module = { exports: {} };
+			m( module, module.exports );
+
+			return module.exports;
+		}
+
+		var calls;
+		var modules;
+
+		var plugin = {
+			resolveId: id => id,
+
+			load: id => {
+				return modules[ id ];
+			},
+
+			transform: function ( code ) {
+				calls += 1;
+				return code;
+			}
+		};
+
+		beforeEach( () => {
+			calls = 0;
+
+			modules = {
+				entry: `import foo from 'foo'; export default foo;`,
+				foo: `export default 42`
 			};
+		});
+
+		it('does not transforms in the second time', function () {
 			return rollup.rollup({
-				entry: path.join( INCREMENTAL, 'not-transform-twice', 'main.js' ),
-				plugins: [counter]
-			}).then( function ( bundle ) {
+				entry: 'entry',
+				plugins: [ plugin ]
+			}).then( bundle => {
 				assert.equal( calls, 2 );
 				return rollup.rollup({
-					entry: path.join( INCREMENTAL, 'not-transform-twice', 'main.js' ),
-					plugins: [counter],
+					entry: 'entry',
+					plugins: [ plugin ],
 					cache: bundle
 				});
-			}).then( function ( bundle ) {
+			}).then( bundle => {
 				assert.equal( calls, 2 );
-				var result = bundle.generate({
-					format: 'es6'
-				});
-				return sander.readFile( path.join( INCREMENTAL, 'not-transform-twice', 'expected.js' ) ).then( function (expected) {
-					assert.equal( normaliseOutput( expected ), result.code );
-				});
+				assert.equal( executeBundle( bundle ), 42 );
 			});
 		});
 
 		it('transforms modified sources', function () {
-			var calls = 0;
-			var counter = {
-				transform: function ( code ) {
-					calls += 1;
-					return code;
-				}
-			};
-			var bundle;
-			var foo;
-			var changed;
-			var expected;
-			return Promise.all([
-				rollup.rollup({
-					entry: path.join( INCREMENTAL, 'transform-changed', 'main.js' ),
-					plugins: [counter]
-				}),
-				sander.readFile( path.join( INCREMENTAL, 'transform-changed', 'foo.js' ) ),
-				sander.readFile( path.join( INCREMENTAL, 'transform-changed', 'foo-changed.js' ) ),
-				sander.readFile( path.join( INCREMENTAL, 'transform-changed', 'expected.js' ) )
-			]).then( function ( [_bundle, _foo, _changed, _expected] ) {
-				bundle = _bundle;
-				foo = normaliseOutput( _foo );
-				changed = normaliseOutput( _changed );
-				expected = normaliseOutput( _expected );
-				assert.equal( calls, 2 );
+			let cache;
 
-				return sander.writeFile( INCREMENTAL, 'transform-changed', 'foo.js', changed );
-			}).then(function () {
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [ plugin ]
+			}).then( bundle => {
+				assert.equal( calls, 2 );
+				assert.equal( executeBundle( bundle ), 42 );
+
+				modules.foo = `export default 43`;
+				cache = bundle;
+			}).then( () => {
 				return rollup.rollup({
-					entry: path.join( INCREMENTAL, 'transform-changed', 'main.js' ),
-					plugins: [counter],
-					cache: bundle
+					entry: 'entry',
+					plugins: [ plugin ],
+					cache
 				});
-			}).then( function ( bundle ) {
+			}).then( bundle => {
 				assert.equal( calls, 3 );
-				var result = bundle.generate({
-					format: 'es6'
-				});
-				assert.equal(expected, result.code);
-				return sander.writeFile( INCREMENTAL, 'transform-changed', 'foo.js', foo );
+				assert.equal( executeBundle( bundle ), 43 );
 			});
 		});
 	});
