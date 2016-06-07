@@ -19,8 +19,8 @@ import { dirname, isRelative, isAbsolute, relative, resolve } from './utils/path
 
 export default class Bundle {
 	constructor ( options ) {
-		if ( typeof options.bundle === 'object' ) {
-			this.cachedModules = options.bundle.modules.reduce((modules, module) => {
+		if ( typeof options.cache === 'object' ) {
+			this.cachedModules = options.cache.modules.reduce((modules, module) => {
 				modules[module.id] = module;
 				return modules;
 			}, {});

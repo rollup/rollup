@@ -431,7 +431,7 @@ describe( 'rollup', function () {
 							});
 							done( error );
 						}
-						
+
 						else {
 							var expected = sander.readFileSync( '_expected.js' ).toString();
 							try {
@@ -464,7 +464,7 @@ describe( 'rollup', function () {
 				return rollup.rollup({
 					entry: path.join( INCREMENTAL, 'not-transform-twice', 'main.js' ),
 					plugins: [counter],
-					bundle
+					cache: bundle
 				});
 			}).then( function ( bundle ) {
 				assert.equal( calls, 2 );
@@ -509,7 +509,7 @@ describe( 'rollup', function () {
 				return rollup.rollup({
 					entry: path.join( INCREMENTAL, 'transform-changed', 'main.js' ),
 					plugins: [counter],
-					bundle
+					cache: bundle
 				});
 			}).then( function ( bundle ) {
 				assert.equal( calls, 3 );
