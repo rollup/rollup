@@ -27,6 +27,7 @@ const ALLOWED_KEYS = [
 	'plugins',
 	'preferConst',
 	'sourceMap',
+	'targets',
 	'treeshake',
 	'useStrict'
 ];
