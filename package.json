@@ -63,6 +63,7 @@
   },
   "dependencies": {
     "chalk": "^1.1.1",
+    "magic-string": "^0.15.0",
     "minimist": "^1.2.0",
     "source-map-support": "^0.4.0"
   },
