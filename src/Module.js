@@ -643,7 +643,8 @@ export default class Module {
 			id: this.id,
 			code: this.code,
 			originalCode: this.originalCode,
-			ast: this.ast
+			ast: this.ast,
+			sourceMapChain: this.sourceMapChain
 		};
 	}
 
