@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.27.1
+
+* Ensure names exported from a module are not replaced with reserved words ([#696](https://github.com/rollup/rollup/pull/696))
+* Revert ([#692](https://github.com/rollup/rollup/pull/692)) – resolved IDs must be strings
+
 ## 0.27.0
 
 * Use native promises instead of `es6-promise` ([#689](https://github.com/rollup/rollup/issues/689))
