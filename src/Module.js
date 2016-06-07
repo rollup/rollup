@@ -191,14 +191,10 @@ export default class Module {
 	}
 
 	basename () {
-		if ( typeof this.id === 'string' ) {
-			const base = basename( this.id );
-			const ext = extname( this.id );
+		const base = basename( this.id );
+		const ext = extname( this.id );
 
-			return makeLegalIdentifier( ext ? base.slice( 0, -ext.length ) : base );
-		}
-
-		return 'module';
+		return makeLegalIdentifier( ext ? base.slice( 0, -ext.length ) : base );
 	}
 
 	bindAliases () {
