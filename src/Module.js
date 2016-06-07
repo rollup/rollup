@@ -191,10 +191,14 @@ export default class Module {
 	}
 
 	basename () {
-		const base = basename( this.id );
-		const ext = extname( this.id );
+		if ( typeof this.id === 'string' ) {
+			const base = basename( this.id );
+			const ext = extname( this.id );
 
-		return makeLegalIdentifier( ext ? base.slice( 0, -ext.length ) : base );
+			return makeLegalIdentifier( ext ? base.slice( 0, -ext.length ) : base );
+		}
+
+		return 'module';
 	}
 
 	bindAliases () {
@@ -224,18 +228,18 @@ export default class Module {
 				const specifier = specifiers[ name ];
 
 				const id = this.resolvedIds[ specifier.source ];
-				specifier.module = this.bundle.moduleById[ id ];
+				specifier.module = this.bundle.moduleById.get( id );
 			});
 		});
 
 		this.exportAllModules = this.exportAllSources.map( source => {
 			const id = this.resolvedIds[ source ];
-			return this.bundle.moduleById[ id ];
+			return this.bundle.moduleById.get( id );
 		});
 
 		this.sources.forEach( source => {
 			const id = this.resolvedIds[ source ];
-			const module = this.bundle.moduleById[ id ];
+			const module = this.bundle.moduleById.get( id );
 
 			if ( !module.isExternal ) this.dependencies.push( module );
 		});
