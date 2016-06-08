@@ -9,6 +9,7 @@ Basic options:
 -h, --help               Show this help message
 -c, --config             Use this config file (if argument is used but value
                            is unspecified, defaults to rollup.config.js)
+-w, --watch              Watch files in bundle and rebuild on changes
 -i, --input              Input (alternative to <entry file>)
 -o, --output <output>    Output (if absent, prints to stdout)
 -f, --format [es6]       Type of output (amd, cjs, es6, iife, umd)

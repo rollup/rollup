@@ -1,6 +1,7 @@
 require( 'source-map-support' ).install();
 
 var path = require( 'path' );
+var relative = require( 'require-relative' );
 var handleError = require( './handleError' );
 var rollup = require( '../' );
 
@@ -127,7 +128,20 @@ function execute ( options, command ) {
 	});
 
 	try {
-		bundle( options ).catch( handleError );
+		if ( command.watch ) {
+			let watch;
+
+			try {
+				watch = relative( 'rollup-watch', process.cwd() );
+			} catch ( err ) {
+				// TODO offer to install rollup-watch
+				throw err;
+			}
+
+			watch( options );
+		} else {
+			bundle( options ).catch( handleError );
+		}
 	} catch ( err ) {
 		handleError( err );
 	}
