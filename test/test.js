@@ -13,6 +13,7 @@ var FUNCTION = path.resolve( __dirname, 'function' );
 var FORM = path.resolve( __dirname, 'form' );
 var SOURCEMAPS = path.resolve( __dirname, 'sourcemaps' );
 var CLI = path.resolve( __dirname, 'cli' );
+var INCREMENTAL = path.resolve( __dirname, 'incremental' );
 
 var PROFILES = [
 	{ format: 'amd' },
@@ -430,7 +431,7 @@ describe( 'rollup', function () {
 							});
 							done( error );
 						}
-						
+
 						else {
 							var expected = sander.readFileSync( '_expected.js' ).toString();
 							try {
@@ -442,6 +443,84 @@ describe( 'rollup', function () {
 						}
 					});
 				});
+			});
+		});
+	});
+
+	describe.only('incremental', function () {
+		function executeBundle ( bundle ) {
+			const cjs = bundle.generate({ format: 'cjs' });
+			const m = new Function( 'module', 'exports', cjs.code );
+
+			let module = { exports: {} };
+			m( module, module.exports );
+
+			return module.exports;
+		}
+
+		var calls;
+		var modules;
+
+		var plugin = {
+			resolveId: id => id,
+
+			load: id => {
+				return modules[ id ];
+			},
+
+			transform: function ( code ) {
+				calls += 1;
+				return code;
+			}
+		};
+
+		beforeEach( () => {
+			calls = 0;
+
+			modules = {
+				entry: `import foo from 'foo'; export default foo;`,
+				foo: `export default 42`
+			};
+		});
+
+		it('does not transforms in the second time', function () {
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [ plugin ]
+			}).then( bundle => {
+				assert.equal( calls, 2 );
+				return rollup.rollup({
+					entry: 'entry',
+					plugins: [ plugin ],
+					cache: bundle
+				});
+			}).then( bundle => {
+				assert.equal( calls, 2 );
+				assert.equal( executeBundle( bundle ), 42 );
+			});
+		});
+
+		it('transforms modified sources', function () {
+			let cache;
+
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [ plugin ]
+			}).then( bundle => {
+				assert.equal( calls, 2 );
+				assert.equal( executeBundle( bundle ), 42 );
+
+				modules.foo = `export default 43`;
+				cache = bundle;
+			}).then( () => {
+				return rollup.rollup({
+					entry: 'entry',
+					plugins: [ plugin ],
+					cache
+				});
+			}).then( bundle => {
+				assert.equal( calls, 3 );
+				assert.equal( executeBundle( bundle ), 43 );
 			});
 		});
 	});

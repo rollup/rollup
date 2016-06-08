@@ -1,13 +1,6 @@
 export default function transform ( source, id, transformers ) {
 	let sourceMapChain = [];
 
-	if ( typeof source === 'string' ) {
-		source = {
-			code: source,
-			ast: null
-		};
-	}
-
 	let originalCode = source.code;
 	let ast = source.ast;
 

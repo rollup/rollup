@@ -19,6 +19,13 @@ import { dirname, isRelative, isAbsolute, relative, resolve } from './utils/path
 
 export default class Bundle {
 	constructor ( options ) {
+		this.cachedModules = new Map();
+		if ( options.cache ) {
+			options.cache.modules.forEach( module => {
+				this.cachedModules.set( module.id, module );
+			});
+		}
+
 		this.plugins = ensureArray( options.plugins );
 
 		this.plugins.forEach( plugin => {
@@ -181,7 +188,20 @@ export default class Bundle {
 
 				throw new Error( `Error loading ${id}: load hook should return a string, a { code, map } object, or nothing/null` );
 			})
-			.then( source => transform( source, id, this.transformers ) )
+			.then( source => {
+				if ( typeof source === 'string' ) {
+					source = {
+						code: source,
+						ast: null
+					};
+				}
+
+				if ( this.cachedModules.has( id ) && this.cachedModules.get( id ).originalCode === source.code ) {
+					return this.cachedModules.get( id );
+				}
+
+				return transform( source, id, this.transformers );
+			})
 			.then( source => {
 				const { code, originalCode, ast, sourceMapChain } = source;
 

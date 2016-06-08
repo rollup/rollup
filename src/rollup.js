@@ -9,6 +9,7 @@ export const VERSION = '<@VERSION@>';
 
 const ALLOWED_KEYS = [
 	'banner',
+	'cache',
 	'dest',
 	'entry',
 	'exports',
@@ -52,9 +53,7 @@ export function rollup ( options ) {
 		return {
 			imports: bundle.externalModules.map( module => module.id ),
 			exports: keys( bundle.entryModule.exports ),
-			modules: bundle.orderedModules.map( module => {
-				return { id: module.id };
-			}),
+			modules: bundle.orderedModules.map( module => module.toJSON() ),
 
 			generate: options => bundle.render( options ),
 			write: options => {
