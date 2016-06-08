@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.28.0
+
+* Experimental support for incremental rebuilds ([#658](https://github.com/rollup/rollup/pull/658))
+
 ## 0.27.1
 
 * Ensure names exported from a module are not replaced with reserved words ([#696](https://github.com/rollup/rollup/pull/696))
