@@ -129,7 +129,7 @@ function execute ( options, command ) {
 
 	try {
 		if ( command.watch ) {
-			let watch;
+			var watch;
 
 			try {
 				watch = relative( 'rollup-watch', process.cwd() );
