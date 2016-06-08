@@ -1,7 +1,9 @@
 require( 'source-map-support' ).install();
 
 var path = require( 'path' );
+var relative = require( 'require-relative' );
 var handleError = require( './handleError' );
+var chalk = require( 'chalk' );
 var rollup = require( '../' );
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
@@ -127,7 +129,43 @@ function execute ( options, command ) {
 	});
 
 	try {
-		bundle( options ).catch( handleError );
+		if ( command.watch ) {
+			if ( !options.entry || !options.dest ) {
+				handleError({ code: 'WATCHER_MISSING_INPUT_OR_OUTPUT' });
+			}
+
+			try {
+				var watch = relative( 'rollup-watch', process.cwd() );
+				var watcher = watch( rollup, options );
+
+				watcher.on( 'event', function ( event ) {
+					switch ( event.code ) {
+						case 'STARTING':
+							console.error( 'checking rollup-watch version...' );
+							break;
+
+						case 'BUILD_START':
+							console.error( 'bundling...' );
+							break;
+
+						case 'BUILD_END':
+							console.error( 'bundled in ' + event.duration + 'ms. Watching for changes...' );
+							break;
+
+						default:
+							console.error( 'unknown event', event );
+					}
+				});
+			} catch ( err ) {
+				if ( err.code === 'MODULE_NOT_FOUND' ) {
+					err.code = 'ROLLUP_WATCH_NOT_INSTALLED';
+				}
+
+				handleError( err );
+			}
+		} else {
+			bundle( options ).catch( handleError );
+		}
 	} catch ( err ) {
 		handleError( err );
 	}

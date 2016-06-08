@@ -63,6 +63,7 @@
   "dependencies": {
     "chalk": "^1.1.1",
     "minimist": "^1.2.0",
+    "require-relative": "^0.8.7",
     "source-map-support": "^0.4.0"
   },
   "files": [
