@@ -27,6 +27,14 @@ var handlers = {
 
 	DUPLICATE_IMPORT_OPTIONS: function ( err ) {
 		console.error( chalk.red( 'use --input, or pass input path as argument' ) );
+	},
+
+	ROLLUP_WATCH_NOT_INSTALLED: function ( err ) {
+		console.error( chalk.red( 'failed to find or install rollup-watch' ) );
+	},
+
+	WATCHER_MISSING_INPUT_OR_OUTPUT: function ( err ) {
+		console.error( chalk.red( 'must specify --input and --output when using rollup --watch' ) );
 	}
 };
 
