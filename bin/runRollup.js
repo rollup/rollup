@@ -138,7 +138,7 @@ function execute ( options, command ) {
 				var watch = relative( 'rollup-watch', process.cwd() );
 				var watcher = watch( rollup, options );
 
-				watcher.on( 'event', event => {
+				watcher.on( 'event', function ( event ) {
 					switch ( event.code ) {
 						case 'STARTING':
 							console.error( 'checking rollup-watch version...' );
