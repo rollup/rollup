@@ -9,6 +9,7 @@ export const VERSION = '<@VERSION@>';
 
 const ALLOWED_KEYS = [
 	'banner',
+	'cache',
 	'dest',
 	'entry',
 	'exports',
@@ -28,8 +29,7 @@ const ALLOWED_KEYS = [
 	'sourceMap',
 	'targets',
 	'treeshake',
-	'useStrict',
-	'bundle'
+	'useStrict'
 ];
 
 export function rollup ( options ) {
@@ -53,7 +53,7 @@ export function rollup ( options ) {
 		return {
 			imports: bundle.externalModules.map( module => module.id ),
 			exports: keys( bundle.entryModule.exports ),
-			modules: bundle.orderedModules.map( ( { id, code, originalCode } ) => ( { id, code, originalCode } ) ),
+			modules: bundle.orderedModules.map( module => module.toJSON() ),
 
 			generate: options => bundle.render( options ),
 			write: options => {

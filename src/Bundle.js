@@ -19,11 +19,11 @@ import { dirname, isRelative, isAbsolute, relative, resolve } from './utils/path
 
 export default class Bundle {
 	constructor ( options ) {
-		if ( typeof options.bundle === 'object' ) {
-			this.cachedModules = options.bundle.modules.reduce((modules, module) => {
-				modules[module.id] = module;
-				return modules;
-			}, {});
+		this.cachedModules = new Map();
+		if ( options.cache ) {
+			options.cache.modules.forEach( module => {
+				this.cachedModules.set( module.id, module );
+			});
 		}
 
 		this.plugins = ensureArray( options.plugins );
@@ -195,13 +195,11 @@ export default class Bundle {
 						ast: null
 					};
 				}
-				if (this.cachedModules && this.cachedModules[id] && this.cachedModules[id].originalCode === source.code) {
-					const { code, originalCode } = this.cachedModules[id];
-					return {
-						code,
-						originalCode
-					};
+
+				if ( this.cachedModules.has( id ) && this.cachedModules.get( id ).originalCode === source.code ) {
+					return this.cachedModules.get( id );
 				}
+
 				return transform( source, id, this.transformers );
 			})
 			.then( source => {
