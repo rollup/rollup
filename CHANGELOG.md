@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.29.0
+
+* `rollup --watch` ([#284](https://github.com/rollup/rollup/issues/284))
+
 ## 0.28.0
 
 * Experimental support for incremental rebuilds ([#658](https://github.com/rollup/rollup/pull/658))
