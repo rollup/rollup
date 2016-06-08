@@ -1,8 +1,8 @@
 require( 'source-map-support' ).install();
 
 var path = require( 'path' );
+var relative = require( 'require-relative' );
 var handleError = require( './handleError' );
-var getRollupWatch = require( './getRollupWatch' );
 var chalk = require( 'chalk' );
 var rollup = require( '../' );
 
@@ -134,30 +134,35 @@ function execute ( options, command ) {
 				handleError({ code: 'WATCHER_MISSING_INPUT_OR_OUTPUT' });
 			}
 
-			getRollupWatch()
-				.then( watch => {
-					const watcher = watch( rollup, options );
+			try {
+				var watch = relative( 'rollup-watch', process.cwd() );
+				var watcher = watch( rollup, options );
 
-					watcher.on( 'event', event => {
-						switch ( event.code ) {
-							case 'STARTING':
-								console.error( 'checking rollup-watch version...' );
-								break;
+				watcher.on( 'event', event => {
+					switch ( event.code ) {
+						case 'STARTING':
+							console.error( 'checking rollup-watch version...' );
+							break;
 
-							case 'BUILD_START':
-								console.error( 'bundling...' );
-								break;
+						case 'BUILD_START':
+							console.error( 'bundling...' );
+							break;
 
-							case 'BUILD_END':
-								console.error( 'bundled in ' + event.duration + 'ms. Watching for changes...' );
-								break;
+						case 'BUILD_END':
+							console.error( 'bundled in ' + event.duration + 'ms. Watching for changes...' );
+							break;
 
-							default:
-								console.error( 'unknown event', event );
-						}
-					});
-				})
-				.catch( handleError );
+						default:
+							console.error( 'unknown event', event );
+					}
+				});
+			} catch ( err ) {
+				if ( err.code === 'MODULE_NOT_FOUND' ) {
+					err.code = 'ROLLUP_WATCH_NOT_INSTALLED';
+				}
+
+				handleError( err );
+			}
 		} else {
 			bundle( options ).catch( handleError );
 		}

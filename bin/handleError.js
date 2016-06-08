@@ -30,7 +30,7 @@ var handlers = {
 	},
 
 	ROLLUP_WATCH_NOT_INSTALLED: function ( err ) {
-		console.error( chalk.red( 'failed to find or install rollup-watch' ) );
+		console.error( chalk.red( 'rollup --watch depends on the rollup-watch package, which could not be found. You can install it globally (recommended) with ' ) + chalk.cyan( 'npm install -g rollup-watch' ) );
 	},
 
 	WATCHER_MISSING_INPUT_OR_OUTPUT: function ( err ) {
