@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.29.1
+
+* Merge `target` options with main options ([#701](https://github.com/rollup/rollup/issues/701))
+* Update magic-string ([#690](https://github.com/rollup/rollup/issues/690))
+
 ## 0.29.0
 
 * `rollup --watch` ([#284](https://github.com/rollup/rollup/issues/284))
