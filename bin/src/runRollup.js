@@ -1,7 +1,7 @@
 import { resolve } from 'path';
 import relative from 'require-relative';
 import handleError from './handleError';
-import SOURCEMAPPING_URL from './sourceMappingURL.js';
+import SOURCEMAPPING_URL from './sourceMappingUrl.js';
 
 const rollup = require( '../dist/rollup.js' ); // TODO make this an import, somehow
 
