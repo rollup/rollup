@@ -171,6 +171,17 @@ function execute ( options, command ) {
 	}
 }
 
+function clone ( object ) {
+	return assign( {}, object );
+}
+
+function assign ( target, source ) {
+	Object.keys( source ).forEach( function ( key ) {
+		target[ key ] = source[ key ];
+	});
+	return target;
+}
+
 function bundle ( options ) {
 	if ( !options.entry ) {
 		handleError({ code: 'MISSING_INPUT_OPTION' });
@@ -185,7 +196,7 @@ function bundle ( options ) {
 			var result = null;
 
 			options.targets.forEach( function ( target ) {
-				result = bundle.write(target);
+				result = bundle.write( assign( clone( options ), target ) );
 			});
 
 			return result;
