@@ -1,7 +1,6 @@
 var path = require('path');
 
 module.exports = {
-	solo: true,
 	description: 'normalizes absolute ids',
 	options: {
 		plugins: [{
