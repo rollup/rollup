@@ -130,7 +130,7 @@ function execute ( options, command ) {
 
 	try {
 		if ( command.watch ) {
-			if ( !options.entry || !options.dest ) {
+			if ( !options.entry || ( !options.dest && !options.targets ) ) {
 				handleError({ code: 'WATCHER_MISSING_INPUT_OR_OUTPUT' });
 			}
 
