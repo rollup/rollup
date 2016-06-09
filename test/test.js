@@ -13,7 +13,6 @@ var FUNCTION = path.resolve( __dirname, 'function' );
 var FORM = path.resolve( __dirname, 'form' );
 var SOURCEMAPS = path.resolve( __dirname, 'sourcemaps' );
 var CLI = path.resolve( __dirname, 'cli' );
-var INCREMENTAL = path.resolve( __dirname, 'incremental' );
 
 var PROFILES = [
 	{ format: 'amd' },
