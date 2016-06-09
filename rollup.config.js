@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import buble from 'rollup-plugin-buble';
-import npm from 'rollup-plugin-node-resolve';
+import nodeResolve from 'rollup-plugin-node-resolve';
 import replace from 'rollup-plugin-replace';
 
 var pkg = JSON.parse( readFileSync( 'package.json', 'utf-8' ) );
@@ -26,7 +26,7 @@ export default {
 			include: [ 'src/**', 'node_modules/acorn/**' ]
 		}),
 
-		npm({
+		nodeResolve({
 			jsnext: true
 		}),
 

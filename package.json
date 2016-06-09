@@ -8,13 +8,14 @@
     "rollup": "./bin/rollup"
   },
   "scripts": {
-    "pretest": "npm run build",
-    "test": "mocha --compilers js:buble/register",
+    "pretest": "npm run build && npm run build:cli",
+    "test": "mocha",
     "pretest-coverage": "npm run build",
     "test-coverage": "rm -rf coverage/* && istanbul cover --report json node_modules/.bin/_mocha -- -u exports -R spec test/test.js",
     "posttest-coverage": "remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.json -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.lcov -t lcovonly -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped -t html -b dist",
     "ci": "npm run test-coverage && codecov < coverage/coverage-remapped.lcov",
     "build": "git rev-parse HEAD > .commithash && rollup -c -o dist/rollup.js",
+    "build:cli": "rollup -c rollup.config.cli.js",
     "build:browser": "git rev-parse HEAD > .commithash && rollup -c rollup.config.browser.js -o dist/rollup.browser.js",
     "prepublish": "npm run lint && npm test && npm run build:browser",
     "lint": "eslint src browser"
@@ -51,8 +52,9 @@
     "magic-string": "^0.15.1",
     "mocha": "^2.3.3",
     "remap-istanbul": "^0.5.1",
-    "rollup": "^0.26.2",
+    "rollup": "^0.29.1",
     "rollup-plugin-buble": "^0.6.0",
+    "rollup-plugin-commonjs": "^3.0.0",
     "rollup-plugin-node-resolve": "^1.5.0",
     "rollup-plugin-replace": "^1.0.1",
     "sander": "^0.5.0",
