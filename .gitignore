@@ -7,3 +7,4 @@ _actual
 coverage
 .commithash
 .idea
+bin/rollup
