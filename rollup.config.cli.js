@@ -23,7 +23,7 @@ export default {
 	],
 	external: [
 		'path',
-		'fs',
+		'module',
 		'source-map-support'
 	]
 };
