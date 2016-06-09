@@ -1,4 +1,4 @@
-rollup version <%= version %>
+rollup version __VERSION__
 =====================================
 
 Usage: rollup [options] <entry file>

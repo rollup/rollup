@@ -1,15 +1,17 @@
-require( 'source-map-support' ).install();
+import { resolve } from 'path';
+import relative from 'require-relative';
+import handleError from './handleError';
+import SOURCEMAPPING_URL from './sourceMappingUrl.js';
 
-var path = require( 'path' );
-var relative = require( 'require-relative' );
-var handleError = require( './handleError' );
-var chalk = require( 'chalk' );
-var rollup = require( '../' );
+const rollup = require( '../dist/rollup.js' ); // TODO make this an import, somehow
 
-// log to stderr to keep `rollup main.js > bundle.js` from breaking
-var log = console.error.bind(console);
+import { install as installSourcemapSupport } from 'source-map-support';
+installSourcemapSupport();
 
-module.exports = function ( command ) {
+// stderr to stderr to keep `rollup main.js > bundle.js` from breaking
+const stderr = console.error.bind( console ); // eslint-disable-line no-console
+
+export default function runRollup ( command ) {
 	if ( command._.length > 1 ) {
 		handleError({ code: 'ONE_AT_A_TIME' });
 	}
@@ -23,8 +25,8 @@ module.exports = function ( command ) {
 	}
 
 	if ( command.environment ) {
-		command.environment.split( ',' ).forEach( function ( pair ) {
-			var index = pair.indexOf( ':' );
+		command.environment.split( ',' ).forEach( pair => {
+			const index = pair.indexOf( ':' );
 			if ( ~index ) {
 				process.env[ pair.slice( 0, index ) ] = pair.slice( index + 1 );
 			} else {
@@ -33,25 +35,25 @@ module.exports = function ( command ) {
 		});
 	}
 
-	var config = command.config === true ? 'rollup.config.js' : command.config;
+	let config = command.config === true ? 'rollup.config.js' : command.config;
 
 	if ( config ) {
-		config = path.resolve( config );
+		config = resolve( config );
 
 		rollup.rollup({
 			entry: config,
-			onwarn: function ( message ) {
+			onwarn: message => {
 				if ( /Treating .+ as external dependency/.test( message ) ) return;
-				log( message );
+				stderr( message );
 			}
-		}).then( function ( bundle ) {
-			var code = bundle.generate({
+		}).then( bundle => {
+			const { code } = bundle.generate({
 				format: 'cjs'
-			}).code;
+			});
 
 			// temporarily override require
 			var defaultLoader = require.extensions[ '.js' ];
-			require.extensions[ '.js' ] = function ( m, filename ) {
+			require.extensions[ '.js' ] = ( m, filename ) => {
 				if ( filename === config ) {
 					m._compile( code, filename );
 				} else {
@@ -60,25 +62,23 @@ module.exports = function ( command ) {
 			};
 
 			try {
-				var options = require( path.resolve( config ) );
+				const options = require( resolve( config ) );
 				if ( Object.keys( options ).length === 0 ) {
 					handleError({ code: 'MISSING_CONFIG' });
 				}
+				execute( options, command );
+				require.extensions[ '.js' ] = defaultLoader;
 			} catch ( err ) {
 				handleError( err );
 			}
-
-			execute( options, command );
-
-			require.extensions[ '.js' ] = defaultLoader;
 		})
-		.catch(log);
+		.catch( stderr );
 	} else {
 		execute( {}, command );
 	}
-};
+}
 
-var equivalents = {
+const equivalents = {
 	banner: 'banner',
 	footer: 'footer',
 	format: 'format',
@@ -95,14 +95,14 @@ var equivalents = {
 };
 
 function execute ( options, command ) {
-	var external = ( options.external || [] )
+	let external = ( options.external || [] )
 		.concat( command.external ? command.external.split( ',' ) : []  );
 
 	if ( command.globals ) {
-		var globals = Object.create( null );
+		let globals = Object.create( null );
 
-		command.globals.split( ',' ).forEach(function ( str ) {
-			var names = str.split( ':' );
+		command.globals.split( ',' ).forEach( str => {
+			const names = str.split( ':' );
 			globals[ names[0] ] = names[1];
 
 			// Add missing Module IDs to external.
@@ -114,7 +114,7 @@ function execute ( options, command ) {
 		command.globals = globals;
 	}
 
-	options.onwarn = options.onwarn || log;
+	options.onwarn = options.onwarn || stderr;
 
 	options.external = external;
 
@@ -122,7 +122,7 @@ function execute ( options, command ) {
 	delete command.conflict;
 
 	// Use any options passed through the CLI as overrides.
-	Object.keys( equivalents ).forEach( function ( cliOption ) {
+	Object.keys( equivalents ).forEach( cliOption => {
 		if ( command.hasOwnProperty( cliOption ) ) {
 			options[ equivalents[ cliOption ] ] = command[ cliOption ];
 		}
@@ -135,25 +135,25 @@ function execute ( options, command ) {
 			}
 
 			try {
-				var watch = relative( 'rollup-watch', process.cwd() );
-				var watcher = watch( rollup, options );
+				const watch = relative( 'rollup-watch', process.cwd() );
+				const watcher = watch( rollup, options );
 
-				watcher.on( 'event', function ( event ) {
+				watcher.on( 'event', event => {
 					switch ( event.code ) {
 						case 'STARTING':
-							console.error( 'checking rollup-watch version...' );
+							stderr( 'checking rollup-watch version...' );
 							break;
 
 						case 'BUILD_START':
-							console.error( 'bundling...' );
+							stderr( 'bundling...' );
 							break;
 
 						case 'BUILD_END':
-							console.error( 'bundled in ' + event.duration + 'ms. Watching for changes...' );
+							stderr( 'bundled in ' + event.duration + 'ms. Watching for changes...' );
 							break;
 
 						default:
-							console.error( 'unknown event', event );
+							stderr( 'unknown event', event );
 					}
 				});
 			} catch ( err ) {
@@ -176,7 +176,7 @@ function clone ( object ) {
 }
 
 function assign ( target, source ) {
-	Object.keys( source ).forEach( function ( key ) {
+	Object.keys( source ).forEach( key => {
 		target[ key ] = source[ key ];
 	});
 	return target;
@@ -187,15 +187,15 @@ function bundle ( options ) {
 		handleError({ code: 'MISSING_INPUT_OPTION' });
 	}
 
-	return rollup.rollup( options ).then( function ( bundle ) {
+	return rollup.rollup( options ).then( bundle => {
 		if ( options.dest ) {
 			return bundle.write( options );
 		}
 
 		if ( options.targets ) {
-			var result = null;
+			let result = null;
 
-			options.targets.forEach( function ( target ) {
+			options.targets.forEach( target => {
 				result = bundle.write( assign( clone( options ), target ) );
 			});
 
@@ -206,13 +206,10 @@ function bundle ( options ) {
 			handleError({ code: 'MISSING_OUTPUT_OPTION' });
 		}
 
-		var result = bundle.generate( options );
-
-		var code = result.code,
-			map = result.map;
+		let { code, map } = bundle.generate( options );
 
 		if ( options.sourceMap === 'inline' ) {
-			code += '\n//# sourceMappingURL=' + map.toUrl();
+			code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}`;
 		}
 
 		process.stdout.write( code );
