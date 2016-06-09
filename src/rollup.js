@@ -1,4 +1,3 @@
-import Promise from 'es6-promise/lib/es6-promise/promise.js';
 import { basename } from './utils/path.js';
 import { writeFile } from './utils/fs.js';
 import { keys } from './utils/object.js';
@@ -10,6 +9,7 @@ export const VERSION = '<@VERSION@>';
 
 const ALLOWED_KEYS = [
 	'banner',
+	'cache',
 	'dest',
 	'entry',
 	'exports',
@@ -27,6 +27,7 @@ const ALLOWED_KEYS = [
 	'plugins',
 	'preferConst',
 	'sourceMap',
+	'targets',
 	'treeshake',
 	'useStrict'
 ];
@@ -52,9 +53,7 @@ export function rollup ( options ) {
 		return {
 			imports: bundle.externalModules.map( module => module.id ),
 			exports: keys( bundle.entryModule.exports ),
-			modules: bundle.orderedModules.map( module => {
-				return { id: module.id };
-			}),
+			modules: bundle.orderedModules.map( module => module.toJSON() ),
 
 			generate: options => bundle.render( options ),
 			write: options => {

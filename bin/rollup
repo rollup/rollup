@@ -20,7 +20,8 @@ command = minimist( process.argv.slice( 2 ), {
 		n: 'name',
 		o: 'output',
 		u: 'id',
-		v: 'version'
+		v: 'version',
+		w: 'watch'
 	}
 });
 

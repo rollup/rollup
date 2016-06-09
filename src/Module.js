@@ -53,7 +53,8 @@ export default class Module {
 		}
 
 		this.comments = [];
-		this.statements = this.parse( ast );
+		this.ast = ast;
+		this.statements = this.parse();
 
 		this.declarations = blank();
 		this.analyse();
@@ -191,14 +192,10 @@ export default class Module {
 	}
 
 	basename () {
-		if ( typeof this.id === 'string' ) {
-			const base = basename( this.id );
-			const ext = extname( this.id );
+		const base = basename( this.id );
+		const ext = extname( this.id );
 
-			return makeLegalIdentifier( ext ? base.slice( 0, -ext.length ) : base );
-		}
-
-		return 'module';
+		return makeLegalIdentifier( ext ? base.slice( 0, -ext.length ) : base );
 	}
 
 	bindAliases () {
@@ -302,13 +299,13 @@ export default class Module {
 		return this.declarations['*'];
 	}
 
-	parse ( ast ) {
+	parse () {
 		// The ast can be supplied programmatically (but usually won't be)
-		if ( !ast ) {
+		if ( !this.ast ) {
 			// Try to extract a list of top-level statements/declarations. If
 			// the parse fails, attach file info and abort
 			try {
-				ast = parse( this.code, {
+				this.ast = parse( this.code, {
 					ecmaVersion: 6,
 					sourceType: 'module',
 					onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end }),
@@ -322,7 +319,7 @@ export default class Module {
 			}
 		}
 
-		walk( ast, {
+		walk( this.ast, {
 			enter: node => {
 				// eliminate dead branches early
 				if ( node.type === 'IfStatement' ) {
@@ -358,7 +355,7 @@ export default class Module {
 		let lastChar = 0;
 		let commentIndex = 0;
 
-		ast.body.forEach( node => {
+		this.ast.body.forEach( node => {
 			if ( node.type === 'EmptyStatement' ) return;
 
 			if (
@@ -640,6 +637,16 @@ export default class Module {
 		});
 
 		return marked;
+	}
+
+	toJSON () {
+		return {
+			id: this.id,
+			code: this.code,
+			originalCode: this.originalCode,
+			ast: this.ast,
+			sourceMapChain: this.sourceMapChain
+		};
 	}
 
 	trace ( name ) {

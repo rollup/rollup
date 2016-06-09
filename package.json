@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "0.26.7",
+  "version": "0.29.0",
   "description": "Next-generation ES6 module bundler",
   "main": "dist/rollup.js",
   "jsnext:main": "src/rollup.js",
@@ -45,7 +45,6 @@
     "buble": "^0.6.4",
     "codecov.io": "^0.1.6",
     "console-group": "^0.2.0",
-    "es6-promise": "^3.0.2",
     "eslint": "^2.9.0",
     "estree-walker": "^0.2.0",
     "istanbul": "^0.4.0",
@@ -64,6 +63,7 @@
   "dependencies": {
     "chalk": "^1.1.1",
     "minimist": "^1.2.0",
+    "require-relative": "^0.8.7",
     "source-map-support": "^0.4.0"
   },
   "files": [

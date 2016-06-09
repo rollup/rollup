@@ -13,6 +13,7 @@ var FUNCTION = path.resolve( __dirname, 'function' );
 var FORM = path.resolve( __dirname, 'form' );
 var SOURCEMAPS = path.resolve( __dirname, 'sourcemaps' );
 var CLI = path.resolve( __dirname, 'cli' );
+var INCREMENTAL = path.resolve( __dirname, 'incremental' );
 
 var PROFILES = [
 	{ format: 'amd' },
@@ -76,7 +77,7 @@ describe( 'rollup', function () {
 			return rollup.rollup({ entry: 'x', plUgins: [] }).then( function () {
 				throw new Error( 'Missing expected error' );
 			}, function ( err ) {
-				assert.equal( err.message, 'Unexpected key \'plUgins\' found, expected one of: banner, dest, entry, exports, external, footer, format, globals, indent, intro, moduleId, moduleName, noConflict, onwarn, outro, plugins, preferConst, sourceMap, treeshake, useStrict' );
+				assert.equal( err.message, 'Unexpected key \'plUgins\' found, expected one of: banner, cache, dest, entry, exports, external, footer, format, globals, indent, intro, moduleId, moduleName, noConflict, onwarn, outro, plugins, preferConst, sourceMap, targets, treeshake, useStrict' );
 			});
 		});
 	});
@@ -153,7 +154,6 @@ describe( 'rollup', function () {
 
 						// try to generate output
 						try {
-							if(config.bundleOptions) { console.log(config.bundleOptions); }
 							var result = bundle.generate( extend( {}, config.bundleOptions, {
 								format: 'cjs'
 							}));
@@ -252,7 +252,12 @@ describe( 'rollup', function () {
 			if ( config.skipIfWindows && process.platform === 'win32' ) return;
 
 			var options = extend( {}, config.options, {
-				entry: FORM + '/' + dir + '/main.js'
+				entry: FORM + '/' + dir + '/main.js',
+				onwarn: msg => {
+					if ( /No name was provided for/.test( msg ) ) return;
+					if ( /as external dependency/.test( msg ) ) return;
+					console.error( msg );
+				}
 			});
 
 			( config.skip ? describe.skip : config.solo ? describe.only : describe)( dir, function () {
@@ -308,7 +313,7 @@ describe( 'rollup', function () {
 				var config = loadConfig( SOURCEMAPS + '/' + dir + '/_config.js' );
 
 				var entry = path.resolve( SOURCEMAPS, dir, 'main.js' );
-				var dest = path.resolve( SOURCEMAPS, dir, '_actual/bundle.js' );
+				var dest = path.resolve( SOURCEMAPS, dir, '_actual/bundle' );
 
 				var options = extend( {}, config.options, {
 					entry: entry
@@ -320,7 +325,7 @@ describe( 'rollup', function () {
 							var options = extend( {}, {
 								format: profile.format,
 								sourceMap: true,
-								dest: dest
+								dest: `${dest}.${profile.format}.js`
 							}, config.options );
 
 							bundle.write( options );
@@ -353,9 +358,13 @@ describe( 'rollup', function () {
 							PATH: path.resolve( __dirname, '../bin' ) + path.delimiter + process.env.PATH
 						}
 					}, function ( err, code, stderr ) {
-						if ( err || config.error ) {
-							config.error( err );
-							return done();
+						if ( err ) {
+							if ( config.error ) {
+								config.error( err );
+								return done();
+							} else {
+								throw err;
+							}
 						}
 
 						if ( stderr ) console.error( stderr );
@@ -409,6 +418,20 @@ describe( 'rollup', function () {
 							}
 						}
 
+						else if ( sander.existsSync( '_expected' ) && sander.statSync( '_expected' ).isDirectory() ) {
+							var error = null;
+							sander.readdirSync( '_expected' ).forEach( child => {
+								var expected = sander.readFileSync( path.join( '_expected', child ) ).toString();
+								var actual = sander.readFileSync( path.join( '_actual', child ) ).toString();
+								try {
+									assert.equal( normaliseOutput( actual ), normaliseOutput( expected ) );
+								} catch ( err ) {
+									error = err;
+								}
+							});
+							done( error );
+						}
+
 						else {
 							var expected = sander.readFileSync( '_expected.js' ).toString();
 							try {
@@ -420,6 +443,84 @@ describe( 'rollup', function () {
 						}
 					});
 				});
+			});
+		});
+	});
+
+	describe('incremental', function () {
+		function executeBundle ( bundle ) {
+			const cjs = bundle.generate({ format: 'cjs' });
+			const m = new Function( 'module', 'exports', cjs.code );
+
+			let module = { exports: {} };
+			m( module, module.exports );
+
+			return module.exports;
+		}
+
+		var calls;
+		var modules;
+
+		var plugin = {
+			resolveId: id => id,
+
+			load: id => {
+				return modules[ id ];
+			},
+
+			transform: function ( code ) {
+				calls += 1;
+				return code;
+			}
+		};
+
+		beforeEach( () => {
+			calls = 0;
+
+			modules = {
+				entry: `import foo from 'foo'; export default foo;`,
+				foo: `export default 42`
+			};
+		});
+
+		it('does not transforms in the second time', function () {
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [ plugin ]
+			}).then( bundle => {
+				assert.equal( calls, 2 );
+				return rollup.rollup({
+					entry: 'entry',
+					plugins: [ plugin ],
+					cache: bundle
+				});
+			}).then( bundle => {
+				assert.equal( calls, 2 );
+				assert.equal( executeBundle( bundle ), 42 );
+			});
+		});
+
+		it('transforms modified sources', function () {
+			let cache;
+
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [ plugin ]
+			}).then( bundle => {
+				assert.equal( calls, 2 );
+				assert.equal( executeBundle( bundle ), 42 );
+
+				modules.foo = `export default 43`;
+				cache = bundle;
+			}).then( () => {
+				return rollup.rollup({
+					entry: 'entry',
+					plugins: [ plugin ],
+					cache
+				});
+			}).then( bundle => {
+				assert.equal( calls, 3 );
+				assert.equal( executeBundle( bundle ), 43 );
 			});
 		});
 	});

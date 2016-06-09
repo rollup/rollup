@@ -19,6 +19,13 @@ import { dirname, isRelative, isAbsolute, relative, resolve } from './utils/path
 
 export default class Bundle {
 	constructor ( options ) {
+		this.cachedModules = new Map();
+		if ( options.cache ) {
+			options.cache.modules.forEach( module => {
+				this.cachedModules.set( module.id, module );
+			});
+		}
+
 		this.plugins = ensureArray( options.plugins );
 
 		this.plugins.forEach( plugin => {
@@ -181,7 +188,20 @@ export default class Bundle {
 
 				throw new Error( `Error loading ${id}: load hook should return a string, a { code, map } object, or nothing/null` );
 			})
-			.then( source => transform( source, id, this.transformers ) )
+			.then( source => {
+				if ( typeof source === 'string' ) {
+					source = {
+						code: source,
+						ast: null
+					};
+				}
+
+				if ( this.cachedModules.has( id ) && this.cachedModules.get( id ).originalCode === source.code ) {
+					return this.cachedModules.get( id );
+				}
+
+				return transform( source, id, this.transformers );
+			})
 			.then( source => {
 				const { code, originalCode, ast, sourceMapChain } = source;
 
@@ -198,53 +218,47 @@ export default class Bundle {
 		return mapSequence( module.sources, source => {
 			return this.resolveId( source, module.id )
 				.then( resolvedId => {
-					module.resolvedIds[ source ] = resolvedId;
+					let externalName;
+					if ( resolvedId ) {
+						// If the `resolvedId` is supposed to be external, make it so.
+						externalName = resolvedId.replace( /[\/\\]/g, '/' );
+					} else if ( isRelative( source ) ) {
+						// This could be an external, relative dependency, based on the current module's parent dir.
+						externalName = resolve( module.id, '..', source );
+					}
+					const forcedExternal = externalName && this.isExternal( externalName );
 
-					if ( !resolvedId || typeof resolvedId === 'string' ) {
-						let externalName;
-						if ( resolvedId ) {
-							// If the `resolvedId` is supposed to be external, make it so.
-							externalName = resolvedId.replace( /[\/\\]/g, '/' );
-						} else if ( isRelative( source ) ) {
-							// This could be an external, relative dependency, based on the current module's parent dir.
-							externalName = resolve( module.id, '..', source );
+					if ( !resolvedId || forcedExternal ) {
+						let normalizedExternal = source;
+
+						if ( !forcedExternal ) {
+							if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
+							if ( !this.isExternal( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
+						} else if ( resolvedId ) {
+							if ( isRelative(resolvedId) || isAbsolute(resolvedId) ) {
+								// Try to deduce relative path from entry dir if resolvedId is defined as a relative path.
+								normalizedExternal = this.getPathRelativeToEntryDirname( resolvedId );
+							} else {
+								normalizedExternal = resolvedId;
+							}
 						}
+						module.resolvedIds[ source ] = normalizedExternal;
 
-						const forcedExternal = externalName && this.isExternal( externalName );
-
-						if ( !resolvedId || forcedExternal ) {
-							let normalizedExternal = source;
-
-							if ( !forcedExternal ) {
-								if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
-								if ( !this.isExternal( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
-							} else if ( resolvedId ) {
-								if ( isRelative(resolvedId) || isAbsolute(resolvedId) ) {
-									// Try to deduce relative path from entry dir if resolvedId is defined as a relative path.
-									normalizedExternal = this.getPathRelativeToEntryDirname( resolvedId );
-								} else {
-									normalizedExternal = resolvedId;
-								}
-							}
-
-							// overwrite existing
-							module.resolvedIds[ source ] = normalizedExternal;
-
-							if ( !this.moduleById.has( normalizedExternal ) ) {
-								const module = new ExternalModule( normalizedExternal );
-								this.externalModules.push( module );
-								this.moduleById.set( normalizedExternal, module );
-							}
-
-							return null;
+						if ( !this.moduleById.has( normalizedExternal ) ) {
+							const module = new ExternalModule( normalizedExternal );
+							this.externalModules.push( module );
+							this.moduleById.set( normalizedExternal, module );
 						}
 					}
 
-					if ( resolvedId === module.id ) {
-						throw new Error( `A module cannot import itself (${resolvedId})` );
-					}
+					else {
+						if ( resolvedId === module.id ) {
+							throw new Error( `A module cannot import itself (${resolvedId})` );
+						}
 
-					return this.fetchModule( resolvedId, module.id );
+						module.resolvedIds[ source ] = resolvedId;
+						return this.fetchModule( resolvedId, module.id );
+					}
 				});
 		});
 	}
