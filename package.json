@@ -48,7 +48,7 @@
     "eslint": "^2.9.0",
     "estree-walker": "^0.2.0",
     "istanbul": "^0.4.0",
-    "magic-string": "^0.10.1",
+    "magic-string": "^0.15.1",
     "mocha": "^2.3.3",
     "remap-istanbul": "^0.5.1",
     "rollup": "^0.26.2",

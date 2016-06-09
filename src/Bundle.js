@@ -1,4 +1,4 @@
-import MagicString from 'magic-string';
+import { Bundle as MagicStringBundle } from 'magic-string';
 import first from './utils/first.js';
 import { blank, forOwn, keys } from './utils/object.js';
 import Module from './Module.js';
@@ -282,7 +282,7 @@ export default class Bundle {
 		// Determine export mode - 'default', 'named', 'none'
 		const exportMode = getExportMode( this, options.exports, options.moduleName );
 
-		let magicString = new MagicString.Bundle({ separator: '\n\n' });
+		let magicString = new MagicStringBundle({ separator: '\n\n' });
 		let usedModules = [];
 
 		this.orderedModules.forEach( module => {

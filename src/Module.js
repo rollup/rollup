@@ -488,15 +488,16 @@ export default class Module {
 						const declaration = this.declarations[ name ];
 
 						if ( declaration.exportName && declaration.isReassigned ) {
-							magicString.insert( statement.end, `;\nexports.${name} = ${declaration.render( es6 )}` );
+							magicString.insertLeft( statement.end, `;\nexports.${name} = ${declaration.render( es6 )}` );
 						}
 					});
 				}
 
 				if ( statement.node.isSynthetic ) {
 					// insert `var/let/const` if necessary
-					magicString.insert( statement.start, `${statement.node.kind} ` );
-					magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
+					magicString.insertRight( statement.start, `${statement.node.kind} ` );
+					magicString.insertLeft( statement.end, ';' );
+					magicString.overwrite( statement.end, statement.next, '\n' ); // TODO account for trailing newlines
 				}
 			}
 
@@ -527,7 +528,7 @@ export default class Module {
 					}
 
 					if ( reference.isShorthandProperty ) {
-						magicString.insert( end, `: ${name}` );
+						magicString.insertLeft( end, `: ${name}` );
 					} else {
 						magicString.overwrite( start, end, name, true );
 					}
