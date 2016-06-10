@@ -2,7 +2,7 @@ import { parse } from 'acorn/src/index.js';
 import MagicString from 'magic-string';
 import { walk } from 'estree-walker';
 import Statement from './Statement.js';
-import { blank, keys } from './utils/object.js';
+import { assign, blank, keys } from './utils/object.js';
 import { basename, extname } from './utils/path.js';
 import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
@@ -305,12 +305,12 @@ export default class Module {
 			// Try to extract a list of top-level statements/declarations. If
 			// the parse fails, attach file info and abort
 			try {
-				this.ast = parse( this.code, {
+				this.ast = parse( this.code, assign({
 					ecmaVersion: 6,
 					sourceType: 'module',
 					onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end }),
 					preserveParens: true
-				});
+				}, this.bundle.acornOptions ));
 			} catch ( err ) {
 				err.code = 'PARSE_ERROR';
 				err.file = this.id; // see above - not necessarily true, but true enough

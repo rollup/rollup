@@ -82,6 +82,7 @@ export default class Bundle {
 		[ 'module', 'exports', '_interopDefault' ].forEach( global => this.assumedGlobals[ global ] = true );
 
 		this.varOrConst = options.preferConst ? 'const' : 'var';
+		this.acornOptions = options.acorn || {};
 	}
 
 	build () {

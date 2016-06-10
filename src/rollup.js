@@ -8,6 +8,7 @@ import Bundle from './Bundle.js';
 export const VERSION = '<@VERSION@>';
 
 const ALLOWED_KEYS = [
+	'acorn',
 	'banner',
 	'cache',
 	'dest',
