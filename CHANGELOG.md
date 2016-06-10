@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.31.0
+
+* Rewrite top-level `this` as `undefined` ([#707](https://github.com/rollup/rollup/pull/707))
+* Pass `options.acorn` to Acorn ([#564](https://github.com/rollup/rollup/issues/564))
+
 ## 0.30.0
 
 * Bundle CLI ([#700](https://github.com/rollup/rollup/issues/700))
