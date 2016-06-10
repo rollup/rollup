@@ -11,6 +11,7 @@ Basic options:
                            is unspecified, defaults to rollup.config.js)
 -w, --watch              Watch files in bundle and rebuild on changes
 -i, --input              Input (alternative to <entry file>)
+-I <path>                Add a directory to the import search path
 -o, --output <output>    Output (if absent, prints to stdout)
 -f, --format [es6]       Type of output (amd, cjs, es6, iife, umd)
 -e, --external           Comma-separate list of module IDs to exclude

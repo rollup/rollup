@@ -84,6 +84,7 @@ const equivalents = {
 	format: 'format',
 	globals: 'globals',
 	id: 'moduleId',
+	importSearchPath: 'importSearchPath',
 	indent: 'indent',
 	input: 'entry',
 	intro: 'intro',
@@ -120,6 +121,10 @@ function execute ( options, command ) {
 
 	options.noConflict = command.conflict === false;
 	delete command.conflict;
+
+	if ( command.importSearchPath && !Array.isArray( command.importSearchPath ) ) {
+		command.importSearchPath = command.importSearchPath.split( ',' ).filter( x => x != '' );
+	}
 
 	// Use any options passed through the CLI as overrides.
 	Object.keys( equivalents ).forEach( cliOption => {

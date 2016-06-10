@@ -34,6 +34,8 @@ export default class Bundle {
 			}
 		});
 
+		let importSearchPath = options.importSearchPath;
+
 		this.entry = unixizePath( options.entry );
 		this.entryId = null;
 		this.entryModule = null;
@@ -43,7 +45,7 @@ export default class Bundle {
 		this.resolveId = first(
 			[ id => this.isExternal( id ) ? false : null ]
 				.concat( this.plugins.map( plugin => plugin.resolveId ).filter( Boolean ) )
-				.concat( resolveId )
+				.concat( ( a, b ) => resolveId( a, b, importSearchPath ) )
 		);
 
 		this.load = first(

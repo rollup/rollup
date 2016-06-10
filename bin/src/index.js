@@ -15,6 +15,7 @@ const command = minimist( process.argv.slice( 2 ), {
 		f: 'format',
 		g: 'globals',
 		h: 'help',
+		I: 'importSearchPath',
 		i: 'input',
 		m: 'sourcemap',
 		n: 'name',
