@@ -2,7 +2,7 @@
 
 ## 0.30.0
 
-* Bundle CLI ([#700](https://github.com/rollup/rollup/issues/701)
+* Bundle CLI ([#700](https://github.com/rollup/rollup/issues/700))
 * Ensure absolute paths are normalised ([#704](https://github.com/rollup/rollup/issues/704))
 * Allow `rollup --watch` to work with targets
 
