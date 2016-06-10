@@ -41,7 +41,7 @@ export default class Statement {
 		// find references
 		const statement = this;
 		let { module, references, scope, stringLiteralRanges } = this;
-		let readDepth = 0;
+		let contextDepth = 0;
 
 		walk( this.node, {
 			enter ( node, parent, prop ) {
@@ -59,8 +59,12 @@ export default class Statement {
 					stringLiteralRanges.push([ node.start + 1, node.end - 1 ]);
 				}
 
+				if ( node.type === 'ThisExpression' && contextDepth === 0 ) {
+					module.magicString.overwrite( node.start, node.end, 'undefined' );
+				}
+
 				if ( node._scope ) scope = node._scope;
-				if ( /Function/.test( node.type ) ) readDepth += 1;
+				if ( /^Function/.test( node.type ) ) contextDepth += 1;
 
 				let isReassignment;
 
@@ -121,7 +125,7 @@ export default class Statement {
 			},
 			leave ( node ) {
 				if ( node._scope ) scope = scope.parent;
-				if ( /Function/.test( node.type ) ) readDepth -= 1;
+				if ( /^Function/.test( node.type ) ) contextDepth -= 1;
 			}
 		});
 	}

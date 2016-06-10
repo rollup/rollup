@@ -1,4 +1,4 @@
-const fooContext = {}
+const fooContext = {};
 
 function foo () {
 	// inside a function, `this` should be untouched...
