@@ -17,6 +17,7 @@ const ALLOWED_KEYS = [
 	'footer',
 	'format',
 	'globals',
+	'importSearchPath',
 	'indent',
 	'intro',
 	'moduleId',
