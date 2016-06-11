@@ -42,7 +42,7 @@ const handlers = {
 	}
 };
 
-export default function handleError ( err ) {
+export default function handleError ( err, recover ) {
 	const handler = handlers[ err && err.code ];
 
 	if ( handler ) {
@@ -57,5 +57,5 @@ export default function handleError ( err ) {
 
 	stderr( `Type ${chalk.cyan( 'rollup --help' )} for help, or visit https://github.com/rollup/rollup/wiki` );
 
-	process.exit( 1 );
+	if ( !recover ) process.exit( 1 );
 }
