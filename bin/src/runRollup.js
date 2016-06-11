@@ -152,6 +152,10 @@ function execute ( options, command ) {
 							stderr( 'bundled in ' + event.duration + 'ms. Watching for changes...' );
 							break;
 
+						case 'ERROR':
+							handleError( event.error, true );
+							break;
+
 						default:
 							stderr( 'unknown event', event );
 					}
