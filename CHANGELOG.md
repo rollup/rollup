@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.31.1
+
+* Logging for errors emitted by `rollup-watch` ([#712](https://github.com/rollup/rollup/issues/712))
+
 ## 0.31.0
 
 * Rewrite top-level `this` as `undefined` ([#707](https://github.com/rollup/rollup/pull/707))
