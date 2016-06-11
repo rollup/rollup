@@ -10,7 +10,7 @@ export default {
 	format: 'cjs',
 	banner: '#!/usr/bin/env node',
 	plugins: [
-		string({ extensions: [ '.md' ] }),
+		string({ include: '**/*.md' }),
 		json(),
 		buble(),
 		commonjs({
