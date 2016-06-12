@@ -1,3 +1,1 @@
-import { foo } from './foo';
-
-console.log( `the answer is ${foo()}` );
+/*the*/export const bar = () => 22;
