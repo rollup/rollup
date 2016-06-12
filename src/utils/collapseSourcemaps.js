@@ -100,19 +100,18 @@ class Link {
 export default function collapseSourcemaps ( file, map, modules, bundleSourcemapChain ) {
 	const moduleSources = modules.map( module => {
 		let sourceMapChain = module.sourceMapChain;
-		
+
 		let source;
 		if ( module.originalSourceMap == null ) {
 			source = new Source( module.id, module.originalCode );
 		} else {
 			const sources = module.originalSourceMap.sources;
+			const sourcesContent = module.originalSourceMap.sourcesContent || [];
 
 			if ( sources == null || ( sources.length <= 1 && sources[0] == null ) ) {
-				source = new Source( module.id, module.originalCode );
+				source = new Source( module.id, sourcesContent[0] );
 				sourceMapChain = [ module.originalSourceMap ].concat( sourceMapChain );
 			} else {
-				const sourcesContent = module.originalSourceMap.sourcesContent || [];
-
 				// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
 				const directory = dirname( module.id ) || '.';
 				const sourceRoot = module.originalSourceMap.sourceRoot || '.';
