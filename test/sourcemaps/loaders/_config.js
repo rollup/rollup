@@ -24,7 +24,6 @@ module.exports = {
 
 					if ( id.endsWith( 'main.js' ) ) {
 						delete out.map.sources;
-						//throw new Error(JSON.stringify(out.code));
 					} else {
 						const slash = out.map.sources[0].lastIndexOf( '/' ) + 1;
 						out.map.sources = out.map.sources.map( source => '../' + source.slice( slash ) );
