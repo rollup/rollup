@@ -106,17 +106,21 @@ export default function collapseSourcemaps ( file, map, modules, bundleSourcemap
 			source = new Source( module.id, module.originalCode );
 		} else {
 			const sources = module.originalSourceMap.sources;
+
 			if ( sources == null || ( sources.length <= 1 && sources[0] == null ) ) {
 				source = new Source( module.id, module.originalCode );
 				sourceMapChain = [ module.originalSourceMap ].concat( sourceMapChain );
 			} else {
-				// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
 				const sourcesContent = module.originalSourceMap.sourcesContent || [];
+
+				// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
 				const directory = dirname( module.id ) || '.';
 				const sourceRoot = module.originalSourceMap.sourceRoot || '.';
+
 				const baseSources = sources.map( (source, i) => {
 					return new Source( resolve( directory, sourceRoot, source ), sourcesContent[i] );
 				});
+
 				source = new Link( module.originalSourceMap, baseSources );
 			}
 		}
