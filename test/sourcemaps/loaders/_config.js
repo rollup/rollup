@@ -10,9 +10,9 @@ module.exports = {
 		plugins: [
 			{
 				load: function ( id ) {
-					if ( id.endsWith( 'foo.js' ) ) {
+					if ( /foo.js$/.test( id ) ) {
 						id = id.replace( /foo.js$/, 'bar.js' );
-					} else if ( id.endsWith( 'bar.js' ) ) {
+					} else if ( /bar.js$/.test( id ) ) {
 						id = id.replace( /bar.js$/, 'foo.js' );
 					}
 
@@ -22,7 +22,7 @@ module.exports = {
 						comments: false // misalign the columns
 					});
 
-					if ( id.endsWith( 'main.js' ) ) {
+					if ( /main.js$/.test( id ) ) {
 						delete out.map.sources;
 					} else {
 						const slash = out.map.sources[0].lastIndexOf( '/' ) + 1;
