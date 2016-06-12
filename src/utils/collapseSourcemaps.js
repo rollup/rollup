@@ -1,13 +1,15 @@
 import { encode, decode } from 'sourcemap-codec';
+import { dirname, relative, resolve } from './path.js';
 
 class Source {
-	constructor ( index ) {
+	constructor ( filename, content ) {
 		this.isOriginal = true;
-		this.index = index;
+		this.filename = filename;
+		this.content = content;
 	}
 
 	traceSegment ( line, column, name ) {
-		return { line, column, name, index: this.index };
+		return { line, column, name, source: this };
 	}
 }
 
@@ -21,7 +23,7 @@ class Link {
 	}
 
 	traceMappings () {
-		let names = [];
+		let sources = [], sourcesContent = [], names = [];
 
 		const mappings = this.mappings.map( line => {
 			let tracedLine = [];
@@ -31,13 +33,27 @@ class Link {
 				const traced = source.traceSegment( segment[2], segment[3], this.names[ segment[4] ] );
 
 				if ( traced ) {
-					let nameIndex = null;
+					let sourceIndex = null, nameIndex = null;
 					segment = [
 						segment[0],
-						traced.index,
+						null,
 						traced.line,
 						traced.column
 					];
+
+					// newer sources are more likely to be used, so search backwards.
+					sourceIndex = sources.lastIndexOf( traced.source.filename );
+					if ( sourceIndex === -1 ) {
+						sourceIndex = sources.length;
+						sources.push( traced.source.filename );
+						sourcesContent[ sourceIndex ] = traced.source.content;
+					} else if ( sourcesContent[ sourceIndex ] == null ) {
+						sourcesContent[ sourceIndex ] = traced.source.content;
+					} else if ( traced.source.content != null && sourcesContent[ sourceIndex ] !== traced.source.content ) {
+						throw new Error( `Multiple conflicting contents for sourcemap source ${source.filename}` );
+					}
+
+					segment[1] = sourceIndex;
 
 					if ( traced.name ) {
 						nameIndex = names.indexOf( traced.name );
@@ -56,7 +72,7 @@ class Link {
 			return tracedLine;
 		});
 
-		return { names, mappings };
+		return { sources, sourcesContent, names, mappings };
 	}
 
 	traceSegment ( line, column, name ) {
@@ -81,29 +97,55 @@ class Link {
 	}
 }
 
-export default function collapseSourcemaps ( map, modules, bundleSourcemapChain ) {
-	const sources = modules.map( ( module, i ) => {
-		let source = new Source( i );
+export default function collapseSourcemaps ( file, map, modules, bundleSourcemapChain ) {
+	const moduleSources = modules.map( module => {
+		let sourceMapChain = module.sourceMapChain;
+		
+		let source;
+		if ( module.originalSourceMap == null ) {
+			source = new Source( module.id, module.originalCode );
+		} else {
+			const sources = module.originalSourceMap.sources;
+			if ( sources == null || ( sources.length <= 1 && sources[0] == null ) ) {
+				source = new Source( module.id, module.originalCode );
+				sourceMapChain = [ module.originalSourceMap ].concat( sourceMapChain );
+			} else {
+				// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
+				const sourcesContent = module.originalSourceMap.sourcesContent || [];
+				const directory = dirname( module.id ) || '.';
+				const sourceRoot = module.originalSourceMap.sourceRoot || '.';
+				const baseSources = sources.map( (source, i) => {
+					return new Source( resolve( directory, sourceRoot, source ), sourcesContent[i] );
+				});
+				source = new Link( module.originalSourceMap, baseSources );
+			}
+		}
 
-		module.sourceMapChain.forEach( map => {
+		sourceMapChain.forEach( map => {
 			source = new Link( map, [ source ]);
 		});
 
 		return source;
 	});
 
-	let source = new Link( map, sources );
+	let source = new Link( map, moduleSources );
 
 	bundleSourcemapChain.forEach( map => {
 		source = new Link( map, [ source ] );
 	});
 
-	const { names, mappings } = source.traceMappings();
+	let { sources, sourcesContent, names, mappings } = source.traceMappings();
+
+	if ( file ) {
+		const directory = dirname( file );
+		sources = sources.map( source => relative( directory, source ) );
+	}
 
 	// we re-use the `map` object because it has convenient toString/toURL methods
-	map.sourcesContent = modules.map( module => module.originalCode );
-	map.mappings = encode( mappings );
+	map.sources = sources;
+	map.sourcesContent = sourcesContent;
 	map.names = names;
+	map.mappings = encode( mappings );
 
 	return map;
 }
