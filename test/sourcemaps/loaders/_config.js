@@ -21,8 +21,8 @@ module.exports = {
 						sourceMap: true
 					});
 
-					const sourceRoot = out.map.sources[0].slice( 0, out.map.sources[0].lastIndexOf( '/' ) );
-					out.map.sources = out.map.sources.map( source => '../' + source.slice( sourceRoot.length + 1 ) );
+					const slash = out.map.sources[0].lastIndexOf( '/' ) + 1;
+					out.map.sources = out.map.sources.map( source => '../' + source.slice( slash ) );
 					out.map.sourceRoot = 'fake';
 
 					return { code: out.code, map: out.map };
