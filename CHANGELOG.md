@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.31.2
+
+* Allow `load` plugins to provide sourcemap ([#715](https://github.com/rollup/rollup/pull/715))
+* Allow `sourceMapFile` in config options ([#717](https://github.com/rollup/rollup/issues/717))
+
 ## 0.31.1
 
 * Logging for errors emitted by `rollup-watch` ([#712](https://github.com/rollup/rollup/issues/712))
