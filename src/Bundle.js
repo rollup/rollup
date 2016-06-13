@@ -46,12 +46,11 @@ export default class Bundle {
 				.concat( resolveId )
 		);
 
-		this.load = first(
-			this.plugins
-				.map( plugin => plugin.load )
-				.filter( Boolean )
-				.concat( load )
-		);
+		const loaders = this.plugins
+			.map( plugin => plugin.load )
+			.filter( Boolean );
+		this.hasLoaders = loaders.length !== 0;
+		this.load = first( loaders.concat( load ) );
 
 		this.transformers = this.plugins
 			.map( plugin => plugin.transform )
@@ -204,9 +203,9 @@ export default class Bundle {
 				return transform( source, id, this.transformers );
 			})
 			.then( source => {
-				const { code, originalCode, ast, sourceMapChain } = source;
+				const { code, originalCode, originalSourceMap, ast, sourceMapChain } = source;
 
-				const module = new Module({ id, code, originalCode, ast, sourceMapChain, bundle: this });
+				const module = new Module({ id, code, originalCode, originalSourceMap, ast, sourceMapChain, bundle: this });
 
 				this.modules.push( module );
 				this.moduleById.set( id, module );
@@ -337,10 +336,11 @@ export default class Bundle {
 			let file = options.sourceMapFile || options.dest;
 			if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
 
-			map = magicString.generateMap({ file, includeContent: true });
-
-			if ( this.transformers.length || this.bundleTransformers.length ) {
-				map = collapseSourcemaps( map, usedModules, bundleSourcemapChain );
+			if ( this.hasLoaders || this.transformers.length || this.bundleTransformers.length ) {
+				map = magicString.generateMap( {} );
+				map = collapseSourcemaps( file, map, usedModules, bundleSourcemapChain );
+			} else {
+				map = magicString.generateMap({ file, includeContent: true });
 			}
 
 			map.sources = map.sources.map( unixizePath );
