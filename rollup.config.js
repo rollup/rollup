@@ -20,7 +20,6 @@ var banner = readFileSync( 'src/banner.js', 'utf-8' )
 
 export default {
 	entry: 'src/rollup.js',
-	format: 'cjs',
 	plugins: [
 		buble({
 			include: [ 'src/**', 'node_modules/acorn/**' ]
@@ -40,5 +39,9 @@ export default {
 	external: [ 'fs' ],
 	banner: banner,
 	sourceMap: true,
-	moduleName: 'rollup'
+	moduleName: 'rollup',
+	targets: [
+		{ dest: 'dist/rollup.js', format: 'cjs' },
+		{ dest: 'dist/rollup.es.js', format: 'es6' }
+	]
 };
