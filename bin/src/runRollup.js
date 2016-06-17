@@ -95,8 +95,15 @@ const equivalents = {
 };
 
 function execute ( options, command ) {
-	let external = ( options.external || [] )
-		.concat( command.external ? command.external.split( ',' ) : []  );
+	let external = command.external ?
+		typeof options.external === 'function' ?
+		((fn, a) => {
+			return function (id) {
+				return fn() || a.indexOf(id) !== -1;
+			};
+		})(options.external, command.external.split(',')) :
+		(options.external || []).concat(command.external.split(',')) :
+		options.external;
 
 	if ( command.globals ) {
 		let globals = Object.create( null );
