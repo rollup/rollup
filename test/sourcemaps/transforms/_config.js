@@ -1,4 +1,4 @@
-var babel = require( 'babel-core' );
+var buble = require( 'buble' );
 var MagicString = require( 'magic-string' );
 var assert = require( 'assert' );
 var getLocation = require( '../../utils/getLocation' );
@@ -10,9 +10,8 @@ module.exports = {
 		plugins: [
 			{
 				transform: function ( source, id ) {
-					return babel.transform( source, {
-						blacklist: [ 'es6.modules' ],
-						sourceMap: true
+					return buble.transform( source, {
+						transforms: { modules: false }
 					});
 				}
 			},

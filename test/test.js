@@ -6,7 +6,7 @@ var os = require( 'os' );
 var sander = require( 'sander' );
 var assert = require( 'assert' );
 var exec = require( 'child_process' ).exec;
-var babel = require( 'babel-core' );
+var buble = require( 'buble' );
 var rollup = require( '../dist/rollup' );
 
 var FUNCTION = path.resolve( __dirname, 'function' );
@@ -171,15 +171,12 @@ describe( 'rollup', function () {
 						if ( unintendedError ) throw unintendedError;
 						if ( config.error || config.generateError ) return;
 
-						var code;
+						var code = result.code;
 
-						if ( config.babel ) {
-							code = babel.transform( result.code, {
-								blacklist: [ 'es6.modules' ],
-								loose: [ 'es6.classes' ]
+						if ( config.buble ) {
+							code = buble.transform( code, {
+								transforms: { modules: false }
 							}).code;
-						} else {
-							code = result.code;
 						}
 
 						if ( config.code ) config.code( code );
@@ -372,10 +369,9 @@ describe( 'rollup', function () {
 
 						if ( config.execute ) {
 							try {
-								if ( config.babel ) {
-									code = babel.transform( code, {
-										blacklist: [ 'es6.modules' ],
-										loose: [ 'es6.classes' ]
+								if ( config.buble ) {
+									code = buble.transform( code, {
+										transforms: { modules: false }
 									}).code;
 								}
 
