@@ -11,7 +11,7 @@ export default function transformBundle ( code, transformers, sourceMapChain ) {
 			};
 		}
 
-		const map = typeof result.map === 'string' ? JSON.parse( result.map ) : map;
+		const map = typeof result.map === 'string' ? JSON.parse( result.map ) : result.map;
 		sourceMapChain.push( map );
 
 		return result.code;

@@ -17,9 +17,10 @@ import { emptyBlockStatement } from './ast/create.js';
 import extractNames from './ast/extractNames.js';
 
 export default class Module {
-	constructor ({ id, code, originalCode, ast, sourceMapChain, bundle }) {
+	constructor ({ id, code, originalCode, originalSourceMap, ast, sourceMapChain, bundle }) {
 		this.code = code;
 		this.originalCode = originalCode;
+		this.originalSourceMap = originalSourceMap;
 		this.sourceMapChain = sourceMapChain;
 
 		this.bundle = bundle;
