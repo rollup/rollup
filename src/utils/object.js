@@ -1,3 +1,4 @@
+const { hasOwnProperty } = Object.prototype;
 export const { keys } = Object;
 
 export function blank () {
@@ -11,7 +12,7 @@ export function forOwn ( object, func ) {
 export function assign ( target, ...sources ) {
 	sources.forEach( source => {
 		for ( let key in source ) {
-			if ( source.hasOwnProperty( key ) ) target[ key ] = source[ key ];
+			if ( hasOwnProperty.call( source, key ) ) target[ key ] = source[ key ];
 		}
 	});
 

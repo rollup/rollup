@@ -210,7 +210,24 @@ export default class Bundle {
 				this.modules.push( module );
 				this.moduleById.set( id, module );
 
-				return this.fetchAllDependencies( module ).then( () => module );
+				return this.fetchAllDependencies( module ).then( () => {
+					module.exportsAll = blank();
+					keys( module.exports ).forEach( name => {
+						module.exportsAll[name] = module.id;
+					});
+					module.exportAllSources.forEach( source => {
+						const id = module.resolvedIds[ source ];
+						const exportAllModule = this.moduleById.get( id );
+						keys( exportAllModule.exportsAll ).forEach( name => {
+							if ( name in module.exportsAll ) {
+								throw new Error( `A module cannot have multiple exports with the same name ('${name}')` +
+									` from ${module.exportsAll[ name ] } and ${exportAllModule.exportsAll[ name ]}` );
+							}
+							module.exportsAll[ name ] = exportAllModule.exportsAll[ name ];
+						});
+					});
+					return module;
+				});
 			});
 	}
 
