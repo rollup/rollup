@@ -277,7 +277,12 @@ export default class Bundle {
 	}
 
 	render ( options = {} ) {
-		const format = options.format || 'es6';
+		if ( options.format === 'es6' ) {
+			this.onwarn( 'The es6 format is deprecated – use `es` instead' );
+			options.format = 'es';
+		}
+
+		const format = options.format || 'es';
 
 		// Determine export mode - 'default', 'named', 'none'
 		const exportMode = getExportMode( this, options.exports, options.moduleName );
@@ -286,7 +291,7 @@ export default class Bundle {
 		let usedModules = [];
 
 		this.orderedModules.forEach( module => {
-			const source = module.render( format === 'es6' );
+			const source = module.render( format === 'es' );
 			if ( source.toString().length ) {
 				magicString.addSource( source );
 				usedModules.push( module );

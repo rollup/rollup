@@ -42,8 +42,8 @@ export default class Declaration {
 		if ( reference.isReassignment ) this.isReassigned = true;
 	}
 
-	render ( es6 ) {
-		if ( es6 ) return this.name;
+	render ( es ) {
+		if ( es ) return this.name;
 		if ( !this.isReassigned || !this.exportName ) return this.name;
 
 		return `exports.${this.exportName}`;
@@ -280,18 +280,18 @@ export class ExternalDeclaration {
 		}
 	}
 
-	render ( es6 ) {
+	render ( es ) {
 		if ( this.name === '*' ) {
 			return this.module.name;
 		}
 
 		if ( this.name === 'default' ) {
-			return this.module.exportsNamespace || ( !es6 && this.module.exportsNames ) ?
+			return this.module.exportsNamespace || ( !es && this.module.exportsNames ) ?
 				`${this.module.name}__default` :
 				this.module.name;
 		}
 
-		return es6 ? this.safeName : `${this.module.name}.${this.name}`;
+		return es ? this.safeName : `${this.module.name}.${this.name}`;
 	}
 
 	run () {

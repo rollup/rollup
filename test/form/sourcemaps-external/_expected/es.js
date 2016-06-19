@@ -10,4 +10,4 @@ console.log( 'hello from main.js' );
 
 foo();
 bar();
-//# sourceMappingURL=es6.js.map
+//# sourceMappingURL=es.js.map

@@ -17,7 +17,7 @@ var CLI = path.resolve( __dirname, 'cli' );
 var PROFILES = [
 	{ format: 'amd' },
 	{ format: 'cjs' },
-	{ format: 'es6' },
+	{ format: 'es' },
 	{ format: 'iife' },
 	{ format: 'umd' }
 ];
@@ -123,6 +123,26 @@ describe( 'rollup', function () {
 						format: 'iife'
 					});
 				}, /You must supply options\.moduleName for IIFE bundles/ );
+			});
+		});
+
+		it( 'warns on es6 format', function () {
+			var warned;
+
+			return rollup.rollup({
+				entry: 'x',
+				plugins: [{
+					resolveId: function () { return 'test'; },
+					load: function () {
+						return '// empty';
+					}
+				}],
+				onwarn: function ( msg ) {
+					if ( /The es6 format is deprecated/.test( msg ) ) warned = true;
+				}
+			}).then( function ( bundle ) {
+				bundle.generate({ format: 'es6' });
+				assert.ok( warned );
 			});
 		});
 	});
@@ -345,15 +365,9 @@ describe( 'rollup', function () {
 				( config.skip ? it.skip : config.solo ? it.only : it )( dir, function ( done ) {
 					process.chdir( path.resolve( CLI, dir ) );
 
-					if (os.platform() === 'win32') {
-						config.command = "node " + path.resolve( __dirname, '../bin' ) + path.sep + config.command;
-					}
+					const command = 'node ' + path.resolve( __dirname, '../bin' ) + path.sep + config.command;
 
-					exec( config.command, {
-						env: {
-							PATH: path.resolve( __dirname, '../bin' ) + path.delimiter + process.env.PATH
-						}
-					}, function ( err, code, stderr ) {
+					exec( command, {}, function ( err, code, stderr ) {
 						if ( err ) {
 							if ( config.error ) {
 								config.error( err );

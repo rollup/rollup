@@ -4,7 +4,7 @@ function notDefault ( name ) {
 	return name !== 'default';
 }
 
-export default function es6 ( bundle, magicString ) {
+export default function es ( bundle, magicString ) {
 	const importBlock = bundle.externalModules
 		.map( module => {
 			const specifiers = [];
