@@ -1,6 +1,8 @@
 export default function transform ( source, id, transformers ) {
 	let sourceMapChain = [];
 
+	const originalSourceMap = typeof source.map === 'string' ? JSON.parse( source.map ) : source.map;
+
 	let originalCode = source.code;
 	let ast = source.ast;
 
@@ -30,7 +32,7 @@ export default function transform ( source, id, transformers ) {
 
 	}, Promise.resolve( source.code ) )
 
-	.then( code => ({ code, originalCode, ast, sourceMapChain }) )
+	.then( code => ({ code, originalCode, originalSourceMap, ast, sourceMapChain }) )
 	.catch( err => {
 		err.id = id;
 		err.message = `Error loading ${id}: ${err.message}`;
