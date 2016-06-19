@@ -444,7 +444,7 @@ export default class Module {
 		return statements;
 	}
 
-	render ( es6 ) {
+	render ( es ) {
 		let magicString = this.magicString.clone();
 
 		this.statements.forEach( statement => {
@@ -488,7 +488,7 @@ export default class Module {
 						const declaration = this.declarations[ name ];
 
 						if ( declaration.exportName && declaration.isReassigned ) {
-							magicString.insertLeft( statement.end, `;\nexports.${name} = ${declaration.render( es6 )}` );
+							magicString.insertLeft( statement.end, `;\nexports.${name} = ${declaration.render( es )}` );
 						}
 					});
 				}
@@ -513,7 +513,7 @@ export default class Module {
 				const declaration = reference.declaration;
 
 				if ( declaration ) {
-					const name = declaration.render( es6 );
+					const name = declaration.render( es );
 
 					// the second part of this check is necessary because of
 					// namespace optimisation – name of `foo.bar` could be `bar`
