@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.32.0
+
+* Deprecate `es6` format in favour of `es` ([#468](https://github.com/rollup/rollup/issues/468))
+* Add correct `jsnext:main` build ([#726](https://github.com/rollup/rollup/pull/726))
+
 ## 0.31.2
 
 * Allow `load` plugins to provide sourcemap ([#715](https://github.com/rollup/rollup/pull/715))
