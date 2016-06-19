@@ -15,9 +15,11 @@ var SOURCEMAPS = path.resolve( __dirname, 'sourcemaps' );
 var CLI = path.resolve( __dirname, 'cli' );
 
 var PROFILES = [
+	{ format: undefined },
+	{ format: 'es' },
+	{ format: 'es6' },
 	{ format: 'amd' },
 	{ format: 'cjs' },
-	{ format: 'es6' },
 	{ format: 'iife' },
 	{ format: 'umd' }
 ];
@@ -275,7 +277,8 @@ describe( 'rollup', function () {
 								var expectedMap;
 
 								try {
-									expectedCode = normaliseOutput( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ) );
+									const format = !profile.format || profile.format === 'es' ? 'es6' : profile.format;
+									expectedCode = normaliseOutput( sander.readFileSync( FORM, dir, '_expected', format + '.js' ) );
 								} catch ( err ) {
 									expectedCode = 'missing file';
 								}
@@ -286,7 +289,8 @@ describe( 'rollup', function () {
 								} catch ( err ) {}
 
 								try {
-									expectedMap = JSON.parse( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js.map' ).toString() );
+									const format = !profile.format || profile.format === 'es' ? 'es6' : profile.format;
+									expectedMap = JSON.parse( sander.readFileSync( FORM, dir, '_expected', format + '.js.map' ).toString() );
 									expectedMap.sourcesContent = expectedMap.sourcesContent.map( normaliseOutput );
 								} catch ( err ) {}
 
