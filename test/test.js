@@ -368,15 +368,9 @@ describe( 'rollup', function () {
 				( config.skip ? it.skip : config.solo ? it.only : it )( dir, function ( done ) {
 					process.chdir( path.resolve( CLI, dir ) );
 
-					if (os.platform() === 'win32') {
-						config.command = "node " + path.resolve( __dirname, '../bin' ) + path.sep + config.command;
-					}
+					const command = 'node ' + path.resolve( __dirname, '../bin' ) + path.sep + config.command;
 
-					exec( config.command, {
-						env: {
-							PATH: path.resolve( __dirname, '../bin' ) + path.delimiter + process.env.PATH
-						}
-					}, function ( err, code, stderr ) {
+					exec( command, {}, function ( err, code, stderr ) {
 						if ( err ) {
 							if ( config.error ) {
 								config.error( err );
