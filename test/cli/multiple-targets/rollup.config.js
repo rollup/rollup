@@ -6,8 +6,8 @@ export default {
 			dest: '_actual/cjs.js'
 		},
 		{
-			format: 'es6',
-			dest: '_actual/es6.js'
+			format: 'es',
+			dest: '_actual/es.js'
 		}
 	]
 };
