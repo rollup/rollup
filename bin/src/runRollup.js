@@ -99,7 +99,7 @@ function execute ( options, command ) {
 		typeof options.external === 'function' ?
 		((fn, a) => {
 			return function (id) {
-				return fn() || a.indexOf(id) !== -1;
+				return fn(id) || a.indexOf(id) !== -1;
 			};
 		})(options.external, command.external.split(',')) :
 		(options.external || []).concat(command.external.split(',')) :
