@@ -26,6 +26,8 @@ export default class Bundle {
 			});
 		}
 
+		this.failOnExportAllDup = Boolean( options.failOnExportAllDup );
+
 		this.plugins = ensureArray( options.plugins );
 
 		this.plugins.forEach( plugin => {
@@ -211,6 +213,9 @@ export default class Bundle {
 				this.moduleById.set( id, module );
 
 				return this.fetchAllDependencies( module ).then( () => {
+					if ( !this.failOnExportAllDup ) {
+						return module;
+					}
 					module.exportsAll = blank();
 					keys( module.exports ).forEach( name => {
 						module.exportsAll[name] = module.id;
