@@ -38,7 +38,24 @@ export default function runRollup ( command ) {
 	let config = command.config === true ? 'rollup.config.js' : command.config;
 
 	if ( config ) {
-		config = resolve( config );
+		if ( config.slice( 0, 5 ) === 'node:' ) {
+			const pkgName = config.slice( 5 );
+			try {
+				config = relative.resolve( pkgName, process.cwd() );
+			} catch ( err ) {
+				try {
+					config = relative.resolve( `rollup-config-${pkgName}`, process.cwd() );
+				} catch ( err ) {
+					if ( err.code === 'MODULE_NOT_FOUND' ) {
+						handleError({ code: 'MISSING_EXTERNAL_CONFIG', config });
+					}
+
+					throw err;
+				}
+			}
+		} else {
+			config = resolve( config );
+		}
 
 		rollup.rollup({
 			entry: config,
