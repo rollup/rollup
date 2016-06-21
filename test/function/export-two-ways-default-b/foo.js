@@ -5,4 +5,4 @@ X.prototype.foo = function () {
 	return this;
 };
 
-export default X;
+export default ( false || X );
