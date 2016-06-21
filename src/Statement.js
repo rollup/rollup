@@ -63,6 +63,14 @@ export default class Statement {
 					module.magicString.overwrite( node.start, node.end, 'undefined' );
 				}
 
+				// rewrite `foo[bar]()` as `(0,foo[bar])()` if `foo` is an imported namespace
+				if ( node.type === 'CallExpression' && node.callee.type === 'MemberExpression' && node.callee.object.type === 'Identifier' && node.callee.computed ) {
+					const declaration = module.imports[ node.callee.object.name ];
+					if ( declaration && declaration.name === '*' ) {
+						module.magicString.insertRight( node.callee.start, '(0,' ).insertLeft( node.callee.end, ')' );
+					}
+				}
+
 				if ( node._scope ) scope = node._scope;
 				if ( /^Function/.test( node.type ) ) contextDepth += 1;
 
