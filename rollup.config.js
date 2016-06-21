@@ -42,6 +42,6 @@ export default {
 	moduleName: 'rollup',
 	targets: [
 		{ dest: 'dist/rollup.js', format: 'cjs' },
-		{ dest: 'dist/rollup.es.js', format: 'es6' }
+		{ dest: 'dist/rollup.es.js', format: 'es' }
 	]
 };
