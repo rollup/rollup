@@ -1,7 +1,7 @@
 export function X () {}
 
 X.prototype.foo = function () {
-	console.log( 'foo' );
+	this.didFoo = true;
 	return this;
 };
 

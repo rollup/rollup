@@ -104,7 +104,7 @@ export default function run ( node, scope, statement, strongDependencies, force 
 				} else {
 					declaration = statement.module.trace( subject.name );
 
-					if ( !declaration || declaration.isExternal || declaration.isUsed ) {
+					if ( !declaration || declaration.isExternal || declaration.isUsed || ( declaration.original && declaration.original.isUsed ) ) {
 						hasSideEffect = true;
 					}
 				}
