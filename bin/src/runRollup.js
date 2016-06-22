@@ -41,10 +41,10 @@ export default function runRollup ( command ) {
 		if ( config.slice( 0, 5 ) === 'node:' ) {
 			const pkgName = config.slice( 5 );
 			try {
-				config = relative.resolve( pkgName, process.cwd() );
+				config = relative.resolve( `rollup-config-${pkgName}`, process.cwd() );
 			} catch ( err ) {
 				try {
-					config = relative.resolve( `rollup-config-${pkgName}`, process.cwd() );
+					config = relative.resolve( pkgName, process.cwd() );
 				} catch ( err ) {
 					if ( err.code === 'MODULE_NOT_FOUND' ) {
 						handleError({ code: 'MISSING_EXTERNAL_CONFIG', config });
