@@ -9,6 +9,10 @@ const handlers = {
 		stderr( chalk.red( 'Config file must export an options object. See https://github.com/rollup/rollup/wiki/Command-Line-Interface#using-a-config-file' ) );
 	},
 
+	MISSING_EXTERNAL_CONFIG: err => {
+		stderr( chalk.red( `Could not resolve config file ${err.config}` ) );
+	},
+
 	MISSING_INPUT_OPTION: () => {
 		stderr( chalk.red( 'You must specify an --input (-i) option' ) );
 	},
