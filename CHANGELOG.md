@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.32.1
+
+* Preserve side-effects to default exports that coincide with used named exports ([#733](https://github.com/rollup/rollup/issues/733))
+* Support `rollup -c node:pkgname` ([#736](https://github.com/rollup/rollup/issues/736))
+
 ## 0.32.0
 
 * Deprecate `es6` format in favour of `es` ([#468](https://github.com/rollup/rollup/issues/468))
