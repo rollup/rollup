@@ -1,6 +1,7 @@
 import { basename } from './utils/path.js';
 import { writeFile } from './utils/fs.js';
 import { assign, keys } from './utils/object.js';
+import { mapSequence } from './utils/promise.js';
 import validateKeys from './utils/validateKeys.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import Bundle from './Bundle.js';
@@ -96,7 +97,13 @@ export function rollup ( options ) {
 				}
 
 				promises.push( writeFile( dest, code ) );
-				return Promise.all( promises );
+				return Promise.all( promises ).then( () => {
+					return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
+						return Promise.resolve( plugin.onwrite( assign({
+							bundle: result
+						}, options )));
+					});
+				});
 			}
 		};
 

@@ -574,5 +574,44 @@ describe( 'rollup', function () {
 				]);
 			});
 		});
+
+		it( 'calls onwrite hooks in sequence', () => {
+			var result = [];
+			var dest = path.join( __dirname, 'tmp/bundle.js' );
+
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [
+					loader({ entry: `alert('hello')` }),
+					{
+						onwrite ( info ) {
+							return new Promise( ( fulfil ) => {
+								result.push({ a: info.dest, format: info.format });
+								fulfil();
+							});
+						}
+					},
+					{
+						onwrite ( info ) {
+							result.push({ b: info.dest, format: info.format });
+						}
+					}
+				]
+			}).then( bundle => {
+				return bundle.write({
+					dest,
+					format: 'cjs'
+				});
+
+
+			}).then( () => {
+				assert.deepEqual( result, [
+					{ a: dest, format: 'cjs' },
+					{ b: dest, format: 'cjs' }
+				]);
+
+				return sander.unlink( dest );
+			});
+		});
 	});
 });
