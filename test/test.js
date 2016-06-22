@@ -44,6 +44,18 @@ function loadConfig ( path ) {
 	}
 }
 
+function loader ( modules ) {
+	return {
+		resolveId ( id ) {
+			return id;
+		},
+
+		load ( id ) {
+			return modules[ id ];
+		}
+	};
+}
+
 describe( 'rollup', function () {
 	this.timeout( 10000 );
 
@@ -530,6 +542,36 @@ describe( 'rollup', function () {
 			}).then( bundle => {
 				assert.equal( calls, 3 );
 				assert.equal( executeBundle( bundle ), 43 );
+			});
+		});
+	});
+
+	describe( 'hooks', () => {
+		it( 'calls ongenerate hooks in sequence', () => {
+			var result = [];
+
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [
+					loader({ entry: `alert('hello')` }),
+					{
+						ongenerate ( info ) {
+							result.push({ a: info.format });
+						}
+					},
+					{
+						ongenerate ( info ) {
+							result.push({ b: info.format });
+						}
+					}
+				]
+			}).then( bundle => {
+				bundle.generate({ format: 'cjs' });
+
+				assert.deepEqual( result, [
+					{ a: 'cjs' },
+					{ b: 'cjs' }
+				]);
 			});
 		});
 	});
