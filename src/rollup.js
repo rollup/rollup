@@ -1,6 +1,7 @@
 import { basename } from './utils/path.js';
 import { writeFile } from './utils/fs.js';
-import { keys } from './utils/object.js';
+import { assign, keys } from './utils/object.js';
+import { mapSequence } from './utils/promise.js';
 import validateKeys from './utils/validateKeys.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import Bundle from './Bundle.js';
@@ -52,19 +53,33 @@ export function rollup ( options ) {
 	const bundle = new Bundle( options );
 
 	return bundle.build().then( () => {
-		return {
+		function generate ( options ) {
+			const rendered = bundle.render( options );
+
+			bundle.plugins.forEach( plugin => {
+				if ( plugin.ongenerate ) {
+					plugin.ongenerate( assign({
+						bundle: result
+					}, options ));
+				}
+			});
+
+			return rendered;
+		}
+
+		var result = {
 			imports: bundle.externalModules.map( module => module.id ),
 			exports: keys( bundle.entryModule.exports ),
 			modules: bundle.orderedModules.map( module => module.toJSON() ),
 
-			generate: options => bundle.render( options ),
+			generate,
 			write: options => {
 				if ( !options || !options.dest ) {
 					throw new Error( 'You must supply options.dest to bundle.write' );
 				}
 
 				const dest = options.dest;
-				let { code, map } = bundle.render( options );
+				let { code, map } = generate( options );
 
 				let promises = [];
 
@@ -82,8 +97,16 @@ export function rollup ( options ) {
 				}
 
 				promises.push( writeFile( dest, code ) );
-				return Promise.all( promises );
+				return Promise.all( promises ).then( () => {
+					return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
+						return Promise.resolve( plugin.onwrite( assign({
+							bundle: result
+						}, options )));
+					});
+				});
 			}
 		};
+
+		return result;
 	});
 }
