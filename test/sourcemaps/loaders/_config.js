@@ -1,4 +1,4 @@
-var babel = require( 'babel-core' );
+var buble = require( 'buble' );
 var fs = require( 'fs' );
 var assert = require( 'assert' );
 var getLocation = require( '../../utils/getLocation' );
@@ -16,10 +16,12 @@ module.exports = {
 						id = id.replace( /bar.js$/, 'foo.js' );
 					}
 
-					var out = babel.transformFileSync( id, {
-						blacklist: [ 'es6.modules' ],
+					var code = fs.readFileSync( id, 'utf-8' );
+
+					var out = buble.transform( code, {
+						transforms: { modules: false },
 						sourceMap: true,
-						comments: false // misalign the columns
+						source: id
 					});
 
 					if ( /main.js$/.test( id ) ) {
