@@ -25,6 +25,7 @@ export default class Module {
 
 		this.bundle = bundle;
 		this.id = id;
+		this.excludeFromSourcemap = /\0/.test( id );
 
 		// all dependencies
 		this.sources = [];
@@ -42,7 +43,7 @@ export default class Module {
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
 		this.magicString = new MagicString( code, {
-			filename: id,
+			filename: this.excludeFromSourcemap ? null : id, // don't include plugin helpers in sourcemap
 			indentExclusionRanges: []
 		});
 
