@@ -98,7 +98,7 @@ class Link {
 }
 
 export default function collapseSourcemaps ( file, map, modules, bundleSourcemapChain ) {
-	const moduleSources = modules.map( module => {
+	const moduleSources = modules.filter( module => !module.excludeFromSourcemap ).map( module => {
 		let sourceMapChain = module.sourceMapChain;
 
 		let source;
