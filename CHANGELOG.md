@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.32.3
+
+* Generated correct sourcemaps with reified namespaces ([#668](https://github.com/rollup/rollup/issues/668))
+* Exclude plugin helper modules from sourcemaps ([#747](https://github.com/rollup/rollup/pull/747))
+
 ## 0.32.2
 
 * Allow `--globals` to work with `--external` or `options.external` in whatever configuration ([#743](https://github.com/rollup/rollup/issues/743))
