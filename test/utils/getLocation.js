@@ -1,9 +1,11 @@
-module.exports = function getLocation ( source, charIndex ) {
+module.exports = function getLocation ( source, search ) {
 	var lines = source.split( '\n' );
 	var len = lines.length;
 
 	var lineStart = 0;
 	var i;
+
+	const charIndex = typeof search === 'number' ? search : source.indexOf( search );
 
 	for ( i = 0; i < len; i += 1 ) {
 		var line = lines[i];
