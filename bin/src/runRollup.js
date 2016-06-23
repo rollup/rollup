@@ -112,15 +112,10 @@ const equivalents = {
 };
 
 function execute ( options, command ) {
-	let external = command.external ?
-		typeof options.external === 'function' ?
-		((fn, a) => {
-			return function (id) {
-				return fn(id) || a.indexOf(id) !== -1;
-			};
-		})(options.external, command.external.split(',')) :
-		(options.external || []).concat(command.external.split(',')) :
-		options.external;
+	let external;
+
+	const commandExternal = ( command.external || '' ).split( ',' );
+	const optionsExternal = options.external;
 
 	if ( command.globals ) {
 		let globals = Object.create( null );
@@ -130,12 +125,20 @@ function execute ( options, command ) {
 			globals[ names[0] ] = names[1];
 
 			// Add missing Module IDs to external.
-			if ( external.indexOf( names[0] ) === -1 ) {
-				external.push( names[0] );
+			if ( commandExternal.indexOf( names[0] ) === -1 ) {
+				commandExternal.push( names[0] );
 			}
 		});
 
 		command.globals = globals;
+	}
+
+	if ( typeof optionsExternal === 'function' ) {
+		external = id => {
+			return optionsExternal( id ) || ~commandExternal.indexOf( id );
+		};
+	} else {
+		external = ( optionsExternal || [] ).concat( commandExternal );
 	}
 
 	options.onwarn = options.onwarn || stderr;
