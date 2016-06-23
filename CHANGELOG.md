@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.32.2
+
+* Allow `--globals` to work with `--external` or `options.external` in whatever configuration ([#743](https://github.com/rollup/rollup/issues/743))
+
 ## 0.32.1
 
 * Preserve side-effects to default exports that coincide with used named exports ([#733](https://github.com/rollup/rollup/issues/733))
