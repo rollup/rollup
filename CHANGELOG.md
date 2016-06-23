@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.32.4
+
+* Add `ongenerate` and `onwrite` plugin hooks ([#742](https://github.com/rollup/rollup/pull/742))
+
 ## 0.32.3
 
 * Generated correct sourcemaps with reified namespaces ([#668](https://github.com/rollup/rollup/issues/668))
