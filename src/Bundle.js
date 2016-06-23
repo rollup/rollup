@@ -220,8 +220,7 @@ export default class Bundle {
 						const exportAllModule = this.moduleById.get( id );
 						keys( exportAllModule.exportsAll ).forEach( name => {
 							if ( name in module.exportsAll ) {
-								this.onwarn( `A module cannot have multiple exports with the same name ('${name}')` +
-									` from ${module.exportsAll[ name ] } and ${exportAllModule.exportsAll[ name ]}` );
+								this.onwarn( `Conflicting namespaces: ${module.id} re-exports '${name}' from both ${module.exportsAll[ name ]} (will be ignored) and ${exportAllModule.exportsAll[ name ]}.` );
 							}
 							module.exportsAll[ name ] = exportAllModule.exportsAll[ name ];
 						});
