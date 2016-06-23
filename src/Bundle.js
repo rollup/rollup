@@ -26,8 +26,6 @@ export default class Bundle {
 			});
 		}
 
-		this.failOnExportAllDup = Boolean( options.failOnExportAllDup );
-
 		this.plugins = ensureArray( options.plugins );
 
 		this.plugins.forEach( plugin => {
@@ -213,9 +211,6 @@ export default class Bundle {
 				this.moduleById.set( id, module );
 
 				return this.fetchAllDependencies( module ).then( () => {
-					if ( !this.failOnExportAllDup ) {
-						return module;
-					}
 					module.exportsAll = blank();
 					keys( module.exports ).forEach( name => {
 						module.exportsAll[name] = module.id;
@@ -225,7 +220,7 @@ export default class Bundle {
 						const exportAllModule = this.moduleById.get( id );
 						keys( exportAllModule.exportsAll ).forEach( name => {
 							if ( name in module.exportsAll ) {
-								throw new Error( `A module cannot have multiple exports with the same name ('${name}')` +
+								this.onwarn( `A module cannot have multiple exports with the same name ('${name}')` +
 									` from ${module.exportsAll[ name ] } and ${exportAllModule.exportsAll[ name ]}` );
 							}
 							module.exportsAll[ name ] = exportAllModule.exportsAll[ name ];

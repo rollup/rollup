@@ -31,8 +31,7 @@ const ALLOWED_KEYS = [
 	'sourceMapFile',
 	'targets',
 	'treeshake',
-	'useStrict',
-	'failOnExportAllDup'
+	'useStrict'
 ];
 
 export function rollup ( options ) {

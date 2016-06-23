@@ -6,12 +6,11 @@ function normalize( file ) {
 }
 
 module.exports = {
+	solo: true,
 	description: 'throws on duplicate export * from',
-	options: {
-		failOnExportAllDup: true
-	},
-	error: err => {
-		assert.equal( err.message, `A module cannot have multiple exports with the same name ('foo')` +
+	warnings(warnings) {
+		assert.equal( warnings[0], `A module cannot have multiple exports with the same name ('foo')` +
 			` from ${normalize( 'foo.js' )} and ${normalize( 'deep.js' )}` );
+		assert.equal( warnings.length, 1 );
 	}
 };
