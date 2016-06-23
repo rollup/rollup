@@ -15,8 +15,6 @@ class Source {
 
 class Link {
 	constructor ( map, sources ) {
-		if ( !map ) throw new Error( 'Cannot generate a sourcemap if non-sourcemap-generating transformers are used' );
-
 		this.sources = sources;
 		this.names = map.names;
 		this.mappings = decode( map.mappings );
@@ -97,7 +95,7 @@ class Link {
 	}
 }
 
-export default function collapseSourcemaps ( file, map, modules, bundleSourcemapChain ) {
+export default function collapseSourcemaps ( file, map, modules, bundleSourcemapChain, onwarn ) {
 	const moduleSources = modules.filter( module => !module.excludeFromSourcemap ).map( module => {
 		let sourceMapChain = module.sourceMapChain;
 
@@ -125,6 +123,15 @@ export default function collapseSourcemaps ( file, map, modules, bundleSourcemap
 		}
 
 		sourceMapChain.forEach( map => {
+			if ( map.missing ) {
+				onwarn( `Sourcemap is likely to be incorrect: a plugin${map.plugin ? ` ('${map.plugin}')` : ``} was used to transform files, but didn't generate a sourcemap for the transformation. Consult https://github.com/rollup/rollup/wiki/Troubleshooting and the plugin documentation for more information` );
+
+				map = {
+					names: [],
+					mappings: ''
+				};
+			}
+
 			source = new Link( map, [ source ]);
 		});
 

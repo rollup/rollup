@@ -358,6 +358,7 @@ describe( 'rollup', function () {
 
 							bundle.write( options );
 
+							if ( config.before ) config.before();
 							var result = bundle.generate( options );
 							config.test( result.code, result.map );
 						});
