@@ -6,7 +6,6 @@ function normalize( file ) {
 }
 
 module.exports = {
-	solo: true,
 	description: 'throws on duplicate export * from',
 	warnings(warnings) {
 		assert.equal( warnings[0], `A module cannot have multiple exports with the same name ('foo')` +
