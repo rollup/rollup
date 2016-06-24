@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.33.0
+
+* Downgrade missing transformer sourcemap to a warning, not an error, and print the name of the offending plugin if possible ([#746](https://github.com/rollup/rollup/issues/746))
+* Warn if same name is re-exported from two modules ([#722](https://github.com/rollup/rollup/issues/722))
+
 ## 0.32.4
 
 * Add `ongenerate` and `onwrite` plugin hooks ([#742](https://github.com/rollup/rollup/pull/742))
