@@ -1,5 +1,6 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import first from './utils/first.js';
+import { find } from './utils/array.js';
 import { blank, forOwn, keys } from './utils/object.js';
 import Module from './Module.js';
 import ExternalModule from './ExternalModule.js';
@@ -51,14 +52,6 @@ export default class Bundle {
 			.filter( Boolean );
 		this.hasLoaders = loaders.length !== 0;
 		this.load = first( loaders.concat( load ) );
-
-		this.transformers = this.plugins
-			.map( plugin => plugin.transform )
-			.filter( Boolean );
-
-		this.bundleTransformers = this.plugins
-			.map( plugin => plugin.transformBundle )
-			.filter( Boolean );
 
 		this.moduleById = new Map();
 		this.modules = [];
@@ -200,7 +193,7 @@ export default class Bundle {
 					return this.cachedModules.get( id );
 				}
 
-				return transform( source, id, this.transformers );
+				return transform( source, id, this.plugins );
 			})
 			.then( source => {
 				const { code, originalCode, originalSourceMap, ast, sourceMapChain } = source;
@@ -350,16 +343,16 @@ export default class Bundle {
 		let map = null;
 		let bundleSourcemapChain = [];
 
-		code = transformBundle( code, this.bundleTransformers, bundleSourcemapChain )
+		code = transformBundle( code, this.plugins, bundleSourcemapChain )
 			.replace( new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' ), '' );
 
 		if ( options.sourceMap ) {
 			let file = options.sourceMapFile || options.dest;
 			if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
 
-			if ( this.hasLoaders || this.transformers.length || this.bundleTransformers.length ) {
+			if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
 				map = magicString.generateMap( {} );
-				map = collapseSourcemaps( file, map, usedModules, bundleSourcemapChain );
+				map = collapseSourcemaps( file, map, usedModules, bundleSourcemapChain, this.onwarn );
 			} else {
 				map = magicString.generateMap({ file, includeContent: true });
 			}

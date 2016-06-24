@@ -1,6 +1,16 @@
-export default function transformBundle ( code, transformers, sourceMapChain ) {
-	return transformers.reduce( ( code, transformer ) => {
-		let result = transformer( code );
+export default function transformBundle ( code, plugins, sourceMapChain ) {
+	return plugins.reduce( ( code, plugin ) => {
+		if ( !plugin.transformBundle ) return code;
+
+		let result;
+
+		try {
+			result = plugin.transformBundle( code );
+		} catch ( err ) {
+			err.plugin = plugin.name;
+			err.message = `Error transforming bundle${plugin.name ? ` with '${plugin.name}' plugin` : ''}: ${err.message}`;
+			throw err;
+		}
 
 		if ( result == null ) return code;
 
