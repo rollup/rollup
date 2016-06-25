@@ -96,6 +96,7 @@ export default function runRollup ( command ) {
 }
 
 const equivalents = {
+	useStrict: 'useStrict',
 	banner: 'banner',
 	footer: 'footer',
 	format: 'format',
