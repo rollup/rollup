@@ -376,7 +376,7 @@ describe( 'rollup', function () {
 				var config = loadConfig( CLI + '/' + dir + '/_config.js' );
 
 				( config.skip ? it.skip : config.solo ? it.only : it )( dir, function ( done ) {
-					process.chdir( path.resolve( CLI, dir ) );
+					process.chdir( config.cwd || path.resolve( CLI, dir ) );
 
 					const command = 'node ' + path.resolve( __dirname, '../bin' ) + path.sep + config.command;
 

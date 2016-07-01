@@ -22,6 +22,7 @@ export default {
 		})
 	],
 	external: [
+		'fs',
 		'path',
 		'module',
 		'source-map-support'
