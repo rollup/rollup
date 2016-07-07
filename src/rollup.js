@@ -60,7 +60,7 @@ export function rollup ( options ) {
 				if ( plugin.ongenerate ) {
 					plugin.ongenerate( assign({
 						bundle: result
-					}, options ));
+					}, options ), rendered);
 				}
 			});
 
@@ -79,7 +79,8 @@ export function rollup ( options ) {
 				}
 
 				const dest = options.dest;
-				let { code, map } = generate( options );
+				let output = generate( options );
+				let { code, map } = output;
 
 				let promises = [];
 
@@ -101,7 +102,7 @@ export function rollup ( options ) {
 					return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
 						return Promise.resolve( plugin.onwrite( assign({
 							bundle: result
-						}, options )));
+						}, options ), output));
 					});
 				});
 			}

@@ -550,6 +550,32 @@ describe( 'rollup', function () {
 	});
 
 	describe( 'hooks', () => {
+		it( 'passes bundle & output object to ongenerate & onwrite hooks', () => {
+			var dest = path.join( __dirname, 'tmp/bundle.js' );
+			
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [
+					loader({ entry: `alert('hello')` }),
+					{
+						ongenerate ( bundle, out ) {
+							out.ongenerate = true;
+						},
+
+						onwrite (bundle, out ) {
+							assert.equal(out.ongenerate, true);
+						}
+					}
+				]
+			}).then( bundle => {
+				return bundle.write({
+					dest
+				});
+			}).then( () => {
+				return sander.unlink( dest );
+			});
+		});
+
 		it( 'calls ongenerate hooks in sequence', () => {
 			var result = [];
 
