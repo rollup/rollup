@@ -59,7 +59,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join( ', ' )}) :
 			typeof define === 'function' && define.amd ? define(${amdParams}factory) :
 			${globalExport};
-		}(this, function (${args}) {${useStrict}
+		}(this, (function (${args}) {${useStrict}
 
 		`.replace( /^\t\t/gm, '' ).replace( /^\t/gm, magicString.getIndentString() );
 
@@ -77,6 +77,6 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 	return magicString
 		.trim()
 		.indent( indentString )
-		.append( '\n\n}));' )
+		.append( '\n\n})));' )
 		.prepend( intro );
 }
