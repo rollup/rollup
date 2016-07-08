@@ -338,6 +338,7 @@ describe( 'rollup', function () {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
 			describe( dir, function () {
+				process.chdir( SOURCEMAPS + '/' + dir );
 				var config = loadConfig( SOURCEMAPS + '/' + dir + '/_config.js' );
 
 				var entry = path.resolve( SOURCEMAPS, dir, 'main.js' );
@@ -349,6 +350,7 @@ describe( 'rollup', function () {
 
 				PROFILES.forEach( function ( profile ) {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
+						process.chdir( SOURCEMAPS + '/' + dir );
 						return rollup.rollup( options ).then( function ( bundle ) {
 							var options = extend( {}, {
 								format: profile.format,
@@ -376,7 +378,7 @@ describe( 'rollup', function () {
 				var config = loadConfig( CLI + '/' + dir + '/_config.js' );
 
 				( config.skip ? it.skip : config.solo ? it.only : it )( dir, function ( done ) {
-					process.chdir( path.resolve( CLI, dir ) );
+					process.chdir( config.cwd || path.resolve( CLI, dir ) );
 
 					const command = 'node ' + path.resolve( __dirname, '../bin' ) + path.sep + config.command;
 

@@ -1,4 +1,4 @@
-import { resolve } from 'path';
+import { realpathSync } from 'fs';
 import relative from 'require-relative';
 import handleError from './handleError';
 import SOURCEMAPPING_URL from './sourceMappingUrl.js';
@@ -54,7 +54,8 @@ export default function runRollup ( command ) {
 				}
 			}
 		} else {
-			config = resolve( config );
+			// find real path of config so it matches what Node provides to callbacks in require.extensions
+			config = realpathSync( config );
 		}
 
 		rollup.rollup({
@@ -79,7 +80,7 @@ export default function runRollup ( command ) {
 			};
 
 			try {
-				const options = require( resolve( config ) );
+				const options = require( config );
 				if ( Object.keys( options ).length === 0 ) {
 					handleError({ code: 'MISSING_CONFIG' });
 				}
