@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.33.1
+
+* Fix `--no-strict` option ([#751](https://github.com/rollup/rollup/pull/751))
+* Fix Windows edge case with case-sensitive paths ([#760](https://github.com/rollup/rollup/pull/760))
+
 ## 0.33.0
 
 * Downgrade missing transformer sourcemap to a warning, not an error, and print the name of the offending plugin if possible ([#746](https://github.com/rollup/rollup/issues/746))
