@@ -279,14 +279,14 @@ describe( 'rollup', function () {
 
 			if ( config.skipIfWindows && process.platform === 'win32' ) return;
 
-			var options = extend( {}, config.options, {
+			var options = extend( {}, {
 				entry: FORM + '/' + dir + '/main.js',
 				onwarn: msg => {
 					if ( /No name was provided for/.test( msg ) ) return;
 					if ( /as external dependency/.test( msg ) ) return;
 					console.error( msg );
 				}
-			});
+			}, config.options );
 
 			( config.skip ? describe.skip : config.solo ? describe.only : describe)( dir, function () {
 				PROFILES.forEach( function ( profile ) {
