@@ -1,19 +1,13 @@
 import assert from 'assert';
-import { resolve, sep } from 'path';
+import { resolve } from 'path';
 
-var config = resolve( './_config.js' ).split(sep).join('/');
+var config = resolve( './_config.js' );
 
 export default {
 	entry: 'main.js',
 	format: 'cjs',
 
-	external: function (id) {
-		if (id === config) {
-			return true;
-		}
-
-		return false;
-	},
+	external: id => id === config,
 
 	plugins: [
 		{
