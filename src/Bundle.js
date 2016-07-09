@@ -227,40 +227,27 @@ export default class Bundle {
 		return mapSequence( module.sources, source => {
 			return this.resolveId( source, module.id )
 				.then( resolvedId => {
-					let externalName;
-					if ( resolvedId ) {
-						// If the `resolvedId` is supposed to be external, make it so.
-						externalName = resolvedId.replace( /[\/\\]/g, '/' );
-					} else if ( isRelative( source ) ) {
-						// This could be an external, relative dependency, based on the current module's parent dir.
-						externalName = resolve( module.id, '..', source );
+					const externalId = resolvedId ? resolvedId.replace( /[\/\\]/g, '/' ) :
+						isRelative( source ) ? resolve( module.id, '..', source ) : source;
+
+					let isExternal = this.isExternal( externalId );
+
+					if ( !resolvedId && !isExternal ) {
+						if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
+
+						this.onwarn( `Treating '${source}' as external dependency` );
+						isExternal = true;
 					}
-					const forcedExternal = externalName && this.isExternal( externalName );
 
-					if ( !resolvedId || forcedExternal ) {
-						let normalizedExternal = source;
+					if ( isExternal ) {
+						module.resolvedIds[ source ] = externalId;
 
-						if ( !forcedExternal ) {
-							if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
-							if ( !this.isExternal( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
-						} else if ( resolvedId ) {
-							if ( isRelative(resolvedId) || isAbsolute(resolvedId) ) {
-								// Try to deduce relative path from entry dir if resolvedId is defined as a relative path.
-								normalizedExternal = this.getPathRelativeToEntryDirname( resolvedId );
-							} else {
-								normalizedExternal = resolvedId;
-							}
-						}
-						module.resolvedIds[ source ] = normalizedExternal;
-
-						if ( !this.moduleById.has( normalizedExternal ) ) {
-							const module = new ExternalModule( normalizedExternal );
+						if ( !this.moduleById.has( externalId ) ) {
+							const module = new ExternalModule( externalId, this.getPathRelativeToEntryDirname( externalId ) );
 							this.externalModules.push( module );
-							this.moduleById.set( normalizedExternal, module );
+							this.moduleById.set( externalId, module );
 						}
-					}
-
-					else {
+					} else {
 						if ( resolvedId === module.id ) {
 							throw new Error( `A module cannot import itself (${resolvedId})` );
 						}
@@ -273,16 +260,14 @@ export default class Bundle {
 	}
 
 	getPathRelativeToEntryDirname ( resolvedId ) {
-		// Get a path relative to the resolved entry directory
-		const entryDirname = dirname( this.entryId );
-		const relativeToEntry = relative( entryDirname, resolvedId );
+		if ( isRelative( resolvedId ) || isAbsolute( resolvedId ) ) {
+			const entryDirname = dirname( this.entryId );
+			const relativeToEntry = relative( entryDirname, resolvedId );
 
-		if ( isRelative( relativeToEntry )) {
-			return relativeToEntry;
+			return isRelative( relativeToEntry ) ? relativeToEntry : `./${relativeToEntry}`;
 		}
 
-		// The path is missing the `./` prefix
-		return `./${relativeToEntry}`;
+		return resolvedId;
 	}
 
 	render ( options = {} ) {
