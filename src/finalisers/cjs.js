@@ -14,20 +14,20 @@ export default function cjs ( bundle, magicString, { exportMode }, options ) {
 		.map( module => {
 			if ( module.declarations.default ) {
 				if ( module.exportsNamespace ) {
-					return `${varOrConst} ${module.name} = require('${module.id}');` +
+					return `${varOrConst} ${module.name} = require('${module.path}');` +
 						`\n${varOrConst} ${module.name}__default = ${module.name}['default'];`;
 				}
 
 				needsInterop = true;
 
 				if ( module.exportsNames ) {
-					return `${varOrConst} ${module.name} = require('${module.id}');` +
+					return `${varOrConst} ${module.name} = require('${module.path}');` +
 						`\n${varOrConst} ${module.name}__default = _interopDefault(${module.name});`;
 				}
 
-				return `${varOrConst} ${module.name} = _interopDefault(require('${module.id}'));`;
+				return `${varOrConst} ${module.name} = _interopDefault(require('${module.path}'));`;
 			} else {
-				return `${varOrConst} ${module.name} = require('${module.id}');`;
+				return `${varOrConst} ${module.name} = require('${module.path}');`;
 			}
 		})
 		.join( '\n' );

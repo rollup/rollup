@@ -1,15 +1,13 @@
-const path = require('path');
+const { resolve } = require('path');
 const assert = require( 'assert' );
 
-function normalize ( file ) {
-	return path.resolve( __dirname, file ).split( '\\' ).join( '/' );
-}
+const r = path => resolve( __dirname, path );
 
 module.exports = {
 	description: 'throws on duplicate export * from',
 	warnings ( warnings ) {
 		assert.deepEqual( warnings, [
-			`Conflicting namespaces: ${normalize('main.js')} re-exports 'foo' from both ${normalize('foo.js')} (will be ignored) and ${normalize('deep.js')}.`
+			`Conflicting namespaces: ${r('main.js')} re-exports 'foo' from both ${r('foo.js')} (will be ignored) and ${r('deep.js')}.`
 		]);
 	}
 };

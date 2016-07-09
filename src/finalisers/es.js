@@ -42,8 +42,8 @@ export default function es ( bundle, magicString ) {
 			return specifiersList
 				.map( specifiers =>
 					specifiers.length ?
-						`import ${specifiers.join( ', ' )} from '${module.id}';` :
-						`import '${module.id}';`
+						`import ${specifiers.join( ', ' )} from '${module.path}';` :
+						`import '${module.path}';`
 				)
 				.join( '\n' );
 		})

@@ -1,10 +1,10 @@
-import { getName, quoteId } from '../utils/map-helpers.js';
+import { getName, quotePath } from '../utils/map-helpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import esModuleExport from './shared/esModuleExport.js';
 
 export default function amd ( bundle, magicString, { exportMode, indentString }, options ) {
-	let deps = bundle.externalModules.map( quoteId );
+	let deps = bundle.externalModules.map( quotePath );
 	let args = bundle.externalModules.map( getName );
 
 	if ( exportMode === 'named' ) {

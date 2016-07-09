@@ -40,6 +40,8 @@ function loadConfig ( path ) {
 	try {
 		return require( path );
 	} catch ( err ) {
+		console.error( err.message );
+		console.error( err.stack );
 		throw new Error( 'Failed to load ' + path + '. An old test perhaps? You should probably delete the directory' );
 	}
 }
@@ -552,7 +554,7 @@ describe( 'rollup', function () {
 	describe( 'hooks', () => {
 		it( 'passes bundle & output object to ongenerate & onwrite hooks', () => {
 			var dest = path.join( __dirname, 'tmp/bundle.js' );
-			
+
 			return rollup.rollup({
 				entry: 'entry',
 				plugins: [

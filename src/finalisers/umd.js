@@ -1,5 +1,5 @@
 import { blank } from '../utils/object.js';
-import { getName, quoteId, req } from '../utils/map-helpers.js';
+import { getName, quotePath, req } from '../utils/map-helpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
@@ -23,7 +23,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 
 	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle.onwarn );
 
-	let amdDeps = bundle.externalModules.map( quoteId );
+	let amdDeps = bundle.externalModules.map( quotePath );
 	let cjsDeps = bundle.externalModules.map( req );
 	let globalDeps = bundle.externalModules.map( module => `global.${globalNameMaker( module )}` );
 
