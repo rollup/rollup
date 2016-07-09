@@ -61,6 +61,7 @@ export default class Statement {
 
 				if ( node.type === 'ThisExpression' && contextDepth === 0 ) {
 					module.magicString.overwrite( node.start, node.end, 'undefined' );
+					module.bundle.onwarn( 'The `this` keyword is equivalent to `undefined` at the top level of an ES module, and has been rewritten' );
 				}
 
 				if ( node._scope ) scope = node._scope;
