@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.33.2
+
+* Add `bundle` as second argument to `ongenerate` and `onwrite` hooks ([#773](https://github.com/rollup/rollup/pull/773))
+* Warn on top-level `this` ([#770](https://github.com/rollup/rollup/issues/770))
+
 ## 0.33.1
 
 * Fix `--no-strict` option ([#751](https://github.com/rollup/rollup/pull/751))
