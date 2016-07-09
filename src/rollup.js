@@ -94,7 +94,7 @@ export function rollup ( options ) {
 						promises.push( writeFile( dest + '.map', map.toString() ) );
 					}
 
-					code += `\n//# ${SOURCEMAPPING_URL}=${url}`;
+					code += `\n//# ${SOURCEMAPPING_URL}=${url}\n`;
 				}
 
 				promises.push( writeFile( dest, code ) );

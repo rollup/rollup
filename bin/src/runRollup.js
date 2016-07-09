@@ -242,7 +242,7 @@ function bundle ( options ) {
 		let { code, map } = bundle.generate( options );
 
 		if ( options.sourceMap === 'inline' ) {
-			code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}`;
+			code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
 		}
 
 		process.stdout.write( code );
