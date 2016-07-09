@@ -64,7 +64,7 @@ export default class Bundle {
 		if ( typeof options.external === 'function' ) {
 			this.isExternal = options.external;
 		} else {
-			const ids = ensureArray( options.external ).map( id => id.replace( /[\/\\]/g, '/' ) );
+			const ids = ensureArray( options.external );
 			this.isExternal = id => ids.indexOf( id ) !== -1;
 		}
 
