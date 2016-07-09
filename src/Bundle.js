@@ -227,8 +227,9 @@ export default class Bundle {
 		return mapSequence( module.sources, source => {
 			return this.resolveId( source, module.id )
 				.then( resolvedId => {
-					const externalId = resolvedId ? resolvedId.replace( /[\/\\]/g, '/' ) :
-						isRelative( source ) ? resolve( module.id, '..', source ) : source;
+					const externalId = resolvedId || (
+						isRelative( source ) ? resolve( module.id, '..', source ) : source
+					);
 
 					let isExternal = this.isExternal( externalId );
 
