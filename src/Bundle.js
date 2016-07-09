@@ -9,7 +9,6 @@ import ensureArray from './utils/ensureArray.js';
 import { load, makeOnwarn, resolveId } from './utils/defaults.js';
 import getExportMode from './utils/getExportMode.js';
 import getIndentString from './utils/getIndentString.js';
-import { unixizePath } from './utils/normalizePlatform.js';
 import { mapSequence } from './utils/promise.js';
 import transform from './utils/transform.js';
 import transformBundle from './utils/transformBundle.js';
@@ -35,7 +34,7 @@ export default class Bundle {
 			}
 		});
 
-		this.entry = unixizePath( options.entry );
+		this.entry = normalize( options.entry );
 		this.entryId = null;
 		this.entryModule = null;
 
@@ -343,7 +342,7 @@ export default class Bundle {
 				map = magicString.generateMap({ file, includeContent: true });
 			}
 
-			map.sources = map.sources.map( unixizePath );
+			map.sources = map.sources.map( normalize );
 		}
 
 		return { code, map };
