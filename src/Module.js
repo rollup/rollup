@@ -462,7 +462,7 @@ export default class Module {
 				if ( statement.node.isSynthetic ) return;
 
 				// skip `export { foo, bar, baz }`
-				if ( statement.node.specifiers.length ) {
+				if ( statement.node.declaration === null ) {
 					magicString.remove( statement.start, statement.next );
 					return;
 				}
@@ -555,11 +555,21 @@ export default class Module {
 					const name = extractNames( statement.node.declaration.declarations[ 0 ].id )[ 0 ];
 					const declaration = this.declarations[ name ];
 
+					// TODO is this even possible?
 					if ( !declaration ) throw new Error( `Missing declaration for ${name}!` );
 
-					const end = declaration.exportName && declaration.isReassigned ?
-						statement.node.declaration.declarations[0].start :
-						statement.node.declaration.start;
+					let end;
+
+					if ( es ) {
+						end = statement.node.declaration.start;
+					} else {
+						if ( declaration.exportName && declaration.isReassigned ) {
+							const declarator = statement.node.declaration.declarations[0];
+							end = declarator.init ? declarator.start : statement.next;
+						} else {
+							end = statement.node.declaration.start
+						}
+					}
 
 					magicString.remove( statement.node.start, end );
 				}
