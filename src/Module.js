@@ -567,7 +567,7 @@ export default class Module {
 							const declarator = statement.node.declaration.declarations[0];
 							end = declarator.init ? declarator.start : statement.next;
 						} else {
-							end = statement.node.declaration.start
+							end = statement.node.declaration.start;
 						}
 					}
 
