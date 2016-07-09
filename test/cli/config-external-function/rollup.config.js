@@ -7,7 +7,9 @@ export default {
 	entry: 'main.js',
 	format: 'cjs',
 
-	external: id => id === config,
+	external: function ( id ) {
+		return id === config;
+	},
 
 	plugins: [
 		{
