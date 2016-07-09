@@ -11,4 +11,8 @@ export function isRelative ( path ) {
 	return relativePath.test( path );
 }
 
+export function normalize ( path ) {
+	return path.replace( /\\/g, '/' );
+}
+
 export { basename, dirname, extname, relative, resolve } from 'path';

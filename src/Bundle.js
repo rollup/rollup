@@ -16,7 +16,7 @@ import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
-import { dirname, isRelative, isAbsolute, relative, resolve } from './utils/path.js';
+import { dirname, isRelative, isAbsolute, normalize, relative, resolve } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -263,7 +263,7 @@ export default class Bundle {
 	getPathRelativeToEntryDirname ( resolvedId ) {
 		if ( isRelative( resolvedId ) || isAbsolute( resolvedId ) ) {
 			const entryDirname = dirname( this.entryId );
-			const relativeToEntry = relative( entryDirname, resolvedId );
+			const relativeToEntry = normalize( relative( entryDirname, resolvedId ) );
 
 			return isRelative( relativeToEntry ) ? relativeToEntry : `./${relativeToEntry}`;
 		}
