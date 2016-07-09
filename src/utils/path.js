@@ -1,5 +1,3 @@
-// TODO does this all work on windows?
-
 export const absolutePath = /^(?:\/|(?:[A-Za-z]:)?[\\|\/])/;
 export const relativePath = /^\.?\.\//;
 
@@ -15,4 +13,4 @@ export function normalize ( path ) {
 	return path.replace( /\\/g, '/' );
 }
 
-export { basename, dirname, extname, relative, resolve } from 'path';
+export * from 'path';
