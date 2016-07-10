@@ -439,6 +439,7 @@ describe( 'rollup', function () {
 						else if ( config.result ) {
 							try {
 								config.result( code );
+								done();
 							} catch ( err ) {
 								done( err );
 							}
