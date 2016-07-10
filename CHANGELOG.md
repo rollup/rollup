@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.34.0
+
+* Use resolved IDs for relative imports that are also external modules, to allow `options.globals` to work with them ([#763](https://github.com/rollup/rollup/issues/763))
+* Ensure reassigned exports are declared in an ES bundle, and remove empty `exports.foo;` statements ([#755](https://github.com/rollup/rollup/issues/755))
+* Add newline after sourcemap comment ([#756](https://github.com/rollup/rollup/issues/756))
+
 ## 0.33.2
 
 * Add `bundle` as second argument to `ongenerate` and `onwrite` hooks ([#773](https://github.com/rollup/rollup/pull/773))
