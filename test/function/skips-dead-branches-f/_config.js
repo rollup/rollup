@@ -5,4 +5,4 @@ module.exports = {
 	code: function ( code ) {
 		assert.equal( code.indexOf( 'obj.foo = function' ), -1, code );
 	}
-}
+};

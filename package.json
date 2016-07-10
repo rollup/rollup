@@ -19,7 +19,7 @@
     "build:cli": "rollup -c rollup.config.cli.js",
     "build:browser": "git rev-parse HEAD > .commithash && rollup -c rollup.config.browser.js -o dist/rollup.browser.js",
     "prepublish": "npm run lint && npm test && npm run build:browser",
-    "lint": "eslint src browser"
+    "lint": "eslint src browser test/test.js test/utils test/**/_config.js"
   },
   "repository": {
     "type": "git",

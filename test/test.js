@@ -2,7 +2,6 @@ require( 'source-map-support' ).install();
 require( 'console-group' ).install();
 
 var path = require( 'path' );
-var os = require( 'os' );
 var sander = require( 'sander' );
 var assert = require( 'assert' );
 var exec = require( 'child_process' ).exec;
@@ -314,12 +313,16 @@ describe( 'rollup', function () {
 								try {
 									actualMap = JSON.parse( sander.readFileSync( FORM, dir, '_actual', profile.format + '.js.map' ).toString() );
 									actualMap.sourcesContent = actualMap.sourcesContent.map( normaliseOutput );
-								} catch ( err ) {}
+								} catch ( err ) {
+									assert.equal( err.code, 'ENOENT' );
+								}
 
 								try {
 									expectedMap = JSON.parse( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js.map' ).toString() );
 									expectedMap.sourcesContent = expectedMap.sourcesContent.map( normaliseOutput );
-								} catch ( err ) {}
+								} catch ( err ) {
+									assert.equal( err.code, 'ENOENT' );
+								}
 
 								if ( config.show ) {
 									console.log( actualCode + '\n\n\n' );
