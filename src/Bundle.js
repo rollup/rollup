@@ -52,6 +52,12 @@ export default class Bundle {
 		this.hasLoaders = loaders.length !== 0;
 		this.load = first( loaders.concat( load ) );
 
+		this.getPath = typeof options.paths === 'function' ?
+			( id => options.paths( id ) || this.getPathRelativeToEntryDirname( id ) ) :
+			options.paths ?
+				( id => options.paths.hasOwnProperty( id ) ? options.paths[ id ] : this.getPathRelativeToEntryDirname( id ) ) :
+				id => this.getPathRelativeToEntryDirname( id );
+
 		this.moduleById = new Map();
 		this.modules = [];
 
@@ -243,7 +249,7 @@ export default class Bundle {
 						module.resolvedIds[ source ] = externalId;
 
 						if ( !this.moduleById.has( externalId ) ) {
-							const module = new ExternalModule( externalId, this.getPathRelativeToEntryDirname( externalId ) );
+							const module = new ExternalModule( externalId, this.getPath( externalId ) );
 							this.externalModules.push( module );
 							this.moduleById.set( externalId, module );
 						}
