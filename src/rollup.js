@@ -26,6 +26,7 @@ const ALLOWED_KEYS = [
 	'noConflict',
 	'onwarn',
 	'outro',
+	'paths',
 	'plugins',
 	'preferConst',
 	'sourceMap',
