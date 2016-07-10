@@ -12,4 +12,4 @@ module.exports = {
 	exports: function ( exports ) {
 		assert.equal( exports.magicNumber, 3 );
 	}
-}
+};

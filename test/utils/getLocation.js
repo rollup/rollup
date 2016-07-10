@@ -19,4 +19,4 @@ module.exports = function getLocation ( source, search ) {
 	}
 
 	throw new Error( 'Could not determine location of character' );
-}
+};

@@ -39,16 +39,18 @@ module.exports = {
 	},
 	test: function ( code, map ) {
 		var smc = new SourceMapConsumer( map );
+		var generatedLoc;
+		var originalLoc;
 
-		var generatedLoc = getLocation( code, code.indexOf( '22' ) );
-		var originalLoc = smc.originalPositionFor( generatedLoc );
+		generatedLoc = getLocation( code, code.indexOf( '22' ) );
+		originalLoc = smc.originalPositionFor( generatedLoc );
 
 		assert.equal( originalLoc.source, '../foo.js' );
 		assert.equal( originalLoc.line, 1 );
 		assert.equal( originalLoc.column, 32 );
 
-		var generatedLoc = getLocation( code, code.indexOf( '20' ) );
-		var originalLoc = smc.originalPositionFor( generatedLoc );
+		generatedLoc = getLocation( code, code.indexOf( '20' ) );
+		originalLoc = smc.originalPositionFor( generatedLoc );
 
 		assert.equal( originalLoc.source, '../bar.js' );
 		assert.equal( originalLoc.line, 1 );

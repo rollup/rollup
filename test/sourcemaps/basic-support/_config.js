@@ -1,4 +1,3 @@
-var path = require( 'path' );
 var assert = require( 'assert' );
 var getLocation = require( '../../utils/getLocation' );
 var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;

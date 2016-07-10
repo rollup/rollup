@@ -21,7 +21,9 @@ class Link {
 	}
 
 	traceMappings () {
-		let sources = [], sourcesContent = [], names = [];
+		let sources = [];
+		let sourcesContent = [];
+		let names = [];
 
 		const mappings = this.mappings.map( line => {
 			let tracedLine = [];
@@ -31,7 +33,8 @@ class Link {
 				const traced = source.traceSegment( segment[2], segment[3], this.names[ segment[4] ] );
 
 				if ( traced ) {
-					let sourceIndex = null, nameIndex = null;
+					let sourceIndex = null;
+					let nameIndex = null;
 					segment = [
 						segment[0],
 						null,
