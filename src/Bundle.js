@@ -216,6 +216,8 @@ export default class Bundle {
 					module.exportAllSources.forEach( source => {
 						const id = module.resolvedIds[ source ];
 						const exportAllModule = this.moduleById.get( id );
+						if ( exportAllModule.isExternal ) return;
+
 						keys( exportAllModule.exportsAll ).forEach( name => {
 							if ( name in module.exportsAll ) {
 								this.onwarn( `Conflicting namespaces: ${module.id} re-exports '${name}' from both ${module.exportsAll[ name ]} (will be ignored) and ${exportAllModule.exportsAll[ name ]}.` );
