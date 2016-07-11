@@ -2,8 +2,8 @@ import { walk } from 'estree-walker';
 import Scope from './Scope.js';
 
 const blockDeclarations = {
-	'const': true,
-	'let': true
+	const: true,
+	let: true
 };
 
 export default function attachScopes ( statement ) {

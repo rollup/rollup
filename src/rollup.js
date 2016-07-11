@@ -68,7 +68,7 @@ export function rollup ( options ) {
 			return rendered;
 		}
 
-		var result = {
+		const result = {
 			imports: bundle.externalModules.map( module => module.id ),
 			exports: keys( bundle.entryModule.exports ),
 			modules: bundle.orderedModules.map( module => module.toJSON() ),

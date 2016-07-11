@@ -1,19 +1,19 @@
 require( 'source-map-support' ).install();
 require( 'console-group' ).install();
 
-var path = require( 'path' );
-var sander = require( 'sander' );
-var assert = require( 'assert' );
-var exec = require( 'child_process' ).exec;
-var buble = require( 'buble' );
-var rollup = require( '../dist/rollup' );
+const path = require( 'path' );
+const sander = require( 'sander' );
+const assert = require( 'assert' );
+const { exec } = require( 'child_process' );
+const buble = require( 'buble' );
+const rollup = require( '../dist/rollup' );
 
-var FUNCTION = path.resolve( __dirname, 'function' );
-var FORM = path.resolve( __dirname, 'form' );
-var SOURCEMAPS = path.resolve( __dirname, 'sourcemaps' );
-var CLI = path.resolve( __dirname, 'cli' );
+const FUNCTION = path.resolve( __dirname, 'function' );
+const FORM = path.resolve( __dirname, 'form' );
+const SOURCEMAPS = path.resolve( __dirname, 'sourcemaps' );
+const CLI = path.resolve( __dirname, 'cli' );
 
-var PROFILES = [
+const PROFILES = [
 	{ format: 'amd' },
 	{ format: 'cjs' },
 	{ format: 'es' },
@@ -22,8 +22,8 @@ var PROFILES = [
 ];
 
 function extend ( target ) {
-	[].slice.call( arguments, 1 ).forEach( function ( source ) {
-		source && Object.keys( source ).forEach( function ( key ) {
+	[].slice.call( arguments, 1 ).forEach( source => {
+		source && Object.keys( source ).forEach( key => {
 			target[ key ] = source[ key ];
 		});
 	});
@@ -41,7 +41,7 @@ function loadConfig ( path ) {
 	} catch ( err ) {
 		console.error( err.message );
 		console.error( err.stack );
-		throw new Error( 'Failed to load ' + path + '. An old test perhaps? You should probably delete the directory' );
+		throw new Error( `Failed to load ${path}. An old test perhaps? You should probably delete the directory` );
 	}
 }
 
@@ -57,81 +57,81 @@ function loader ( modules ) {
 	};
 }
 
-describe( 'rollup', function () {
+describe( 'rollup', () => {
 	this.timeout( 10000 );
 
-	describe( 'sanity checks', function () {
-		it( 'exists', function () {
+	describe( 'sanity checks', () => {
+		it( 'exists', () => {
 			assert.ok( !!rollup );
 		});
 
-		it( 'has a rollup method', function () {
+		it( 'has a rollup method', () => {
 			assert.equal( typeof rollup.rollup, 'function' );
 		});
 
-		it( 'fails without options', function () {
-			return rollup.rollup().then( function () {
+		it( 'fails without options', () => {
+			return rollup.rollup().then( () => {
 				throw new Error( 'Missing expected error' );
-			}, function (err) {
+			}, err => {
 				assert.equal( 'You must supply options.entry to rollup', err.message );
 			});
 		});
 
-		it( 'fails without options.entry', function () {
-			return rollup.rollup({}).then( function () {
+		it( 'fails without options.entry', () => {
+			return rollup.rollup({}).then( () => {
 				throw new Error( 'Missing expected error' );
-			}, function (err) {
+			}, err => {
 				assert.equal( 'You must supply options.entry to rollup', err.message );
 			});
 		});
 
-		it( 'fails with invalid keys', function () {
-			return rollup.rollup({ entry: 'x', plUgins: [] }).then( function () {
+		it( 'fails with invalid keys', () => {
+			return rollup.rollup({ entry: 'x', plUgins: [] }).then( () => {
 				throw new Error( 'Missing expected error' );
-			}, function ( err ) {
+			}, err => {
 				assert.equal( err.message, 'Unexpected key \'plUgins\' found, expected one of: acorn, banner, cache, dest, entry, exports, external, footer, format, globals, indent, intro, moduleId, moduleName, noConflict, onwarn, outro, paths, plugins, preferConst, sourceMap, sourceMapFile, targets, treeshake, useStrict' );
 			});
 		});
 	});
 
-	describe( 'bundle.write()', function () {
-		it( 'fails without options or options.dest', function () {
+	describe( 'bundle.write()', () => {
+		it( 'fails without options or options.dest', () => {
 			return rollup.rollup({
 				entry: 'x',
 				plugins: [{
-					resolveId: function () { return 'test'; },
-					load: function () {
+					resolveId: () => { return 'test'; },
+					load: () => {
 						return '// empty';
 					}
 				}]
-			}).then( function ( bundle ) {
-				assert.throws( function () {
+			}).then( bundle => {
+				assert.throws( () => {
 					bundle.write();
 				}, /must supply options\.dest/ );
 
-				assert.throws( function () {
+				assert.throws( () => {
 					bundle.write({});
 				}, /must supply options\.dest/ );
 			});
 		});
 
-		it( 'expects options.moduleName for IIFE and UMD bundles', function () {
+		it( 'expects options.moduleName for IIFE and UMD bundles', () => {
 			return rollup.rollup({
 				entry: 'x',
 				plugins: [{
-					resolveId: function () { return 'test'; },
-					load: function () {
+					resolveId: () => { return 'test'; },
+					load: () => {
 						return 'export var foo = 42;';
 					}
 				}]
-			}).then( function ( bundle ) {
-				assert.throws( function () {
+			}).then( bundle => {
+				assert.throws( () => {
 					bundle.generate({
 						format: 'umd'
 					});
 				}, /You must supply options\.moduleName for UMD bundles/ );
 
-				assert.throws( function () {
+				assert.throws( () => {
 					bundle.generate({
 						format: 'iife'
 					});
@@ -139,37 +139,37 @@ describe( 'rollup', function () {
 			});
 		});
 
-		it( 'warns on es6 format', function () {
-			var warned;
+		it( 'warns on es6 format', () => {
+			let warned;
 
 			return rollup.rollup({
 				entry: 'x',
 				plugins: [{
-					resolveId: function () { return 'test'; },
-					load: function () {
+					resolveId: () => { return 'test'; },
+					load: () => {
 						return '// empty';
 					}
 				}],
-				onwarn: function ( msg ) {
+				onwarn: msg => {
 					if ( /The es6 format is deprecated/.test( msg ) ) warned = true;
 				}
-			}).then( function ( bundle ) {
+			}).then( bundle => {
 				bundle.generate({ format: 'es6' });
 				assert.ok( warned );
 			});
 		});
 	});
 
-	describe( 'function', function () {
-		sander.readdirSync( FUNCTION ).sort().forEach( function ( dir ) {
+	describe( 'function', () => {
+		sander.readdirSync( FUNCTION ).sort().forEach( dir => {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
-			var config = loadConfig( FUNCTION + '/' + dir + '/_config.js' );
-			( config.skip ? it.skip : config.solo ? it.only : it )( dir, function () {
-				var warnings = [];
-				var captureWarning = msg => warnings.push( msg );
+			const config = loadConfig( FUNCTION + '/' + dir + '/_config.js' );
+			( config.skip ? it.skip : config.solo ? it.only : it )( dir, () => {
+				let warnings = [];
+				const captureWarning = msg => warnings.push( msg );
 
-				var options = extend( {
+				const options = extend( {
 					entry: FUNCTION + '/' + dir + '/main.js',
 					onwarn: captureWarning
 				}, config.options );
@@ -177,16 +177,18 @@ describe( 'rollup', function () {
 				if ( config.solo ) console.group( dir );
 
 				return rollup.rollup( options )
-					.then( function ( bundle ) {
-						var unintendedError;
+					.then( bundle => {
+						let unintendedError;
 
 						if ( config.error ) {
 							throw new Error( 'Expected an error while rolling up' );
 						}
 
+						let result;
+
 						// try to generate output
 						try {
-							var result = bundle.generate( extend( {}, config.bundleOptions, {
+							result = bundle.generate( extend( {}, config.bundleOptions, {
 								format: 'cjs'
 							}));
 
@@ -204,7 +206,7 @@ describe( 'rollup', function () {
 						if ( unintendedError ) throw unintendedError;
 						if ( config.error || config.generateError ) return;
 
-						var code = result.code;
+						let code = result.code;
 
 						if ( config.buble ) {
 							code = buble.transform( code, {
@@ -214,24 +216,17 @@ describe( 'rollup', function () {
 
 						if ( config.code ) config.code( code );
 
-						var module = {
+						let module = {
 							exports: {}
 						};
 
-						var context = extend({
-							require: require,
-							module: module,
-							exports: module.exports,
-							assert: assert
-						}, config.context || {} );
+						const context = extend({ require, module, assert, exports: module.exports }, config.context || {} );
 
-						var contextKeys = Object.keys( context );
-						var contextValues = contextKeys.map( function ( key ) {
-							return context[ key ];
-						});
+						const contextKeys = Object.keys( context );
+						const contextValues = contextKeys.map( key => context[ key ] );
 
 						try {
-							var fn = new Function( contextKeys, code );
+							const fn = new Function( contextKeys, code );
 							fn.apply( {}, contextValues );
 
 							if ( config.runtimeError ) {
@@ -261,7 +256,7 @@ describe( 'rollup', function () {
 						if ( config.solo ) console.groupEnd();
 
 						if ( unintendedError ) throw unintendedError;
-					}, function ( err ) {
+					}, err => {
 						if ( config.error ) {
 							config.error( err );
 						} else {
@@ -272,15 +267,15 @@ describe( 'rollup', function () {
 		});
 	});
 
-	describe( 'form', function () {
-		sander.readdirSync( FORM ).sort().forEach( function ( dir ) {
+	describe( 'form', () => {
+		sander.readdirSync( FORM ).sort().forEach( dir => {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
-			var config = loadConfig( FORM + '/' + dir + '/_config.js' );
+			const config = loadConfig( FORM + '/' + dir + '/_config.js' );
 
 			if ( config.skipIfWindows && process.platform === 'win32' ) return;
 
-			var options = extend( {}, {
+			const options = extend( {}, {
 				entry: FORM + '/' + dir + '/main.js',
 				onwarn: msg => {
 					if ( /No name was provided for/.test( msg ) ) return;
@@ -289,20 +284,20 @@ describe( 'rollup', function () {
 				}
 			}, config.options );
 
-			( config.skip ? describe.skip : config.solo ? describe.only : describe)( dir, function () {
-				PROFILES.forEach( function ( profile ) {
-					it( 'generates ' + profile.format, function () {
-						return rollup.rollup( options ).then( function ( bundle ) {
-							var options = extend( {}, config.options, {
+			( config.skip ? describe.skip : config.solo ? describe.only : describe)( dir, () => {
+				PROFILES.forEach( profile => {
+					it( 'generates ' + profile.format, () => {
+						return rollup.rollup( options ).then( bundle => {
+							const options = extend( {}, config.options, {
 								dest: FORM + '/' + dir + '/_actual/' + profile.format + '.js',
 								format: profile.format
 							});
 
-							return bundle.write( options ).then( function () {
-								var actualCode = normaliseOutput( sander.readFileSync( FORM, dir, '_actual', profile.format + '.js' ) );
-								var expectedCode;
-								var actualMap;
-								var expectedMap;
+							return bundle.write( options ).then( () => {
+								const actualCode = normaliseOutput( sander.readFileSync( FORM, dir, '_actual', profile.format + '.js' ) );
+								let expectedCode;
+								let actualMap;
+								let expectedMap;
 
 								try {
 									expectedCode = normaliseOutput( sander.readFileSync( FORM, dir, '_expected', profile.format + '.js' ) );
@@ -338,26 +333,24 @@ describe( 'rollup', function () {
 		});
 	});
 
-	describe( 'sourcemaps', function () {
-		sander.readdirSync( SOURCEMAPS ).sort().forEach( function ( dir ) {
+	describe( 'sourcemaps', () => {
+		sander.readdirSync( SOURCEMAPS ).sort().forEach( dir => {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
-			describe( dir, function () {
+			describe( dir, () => {
 				process.chdir( SOURCEMAPS + '/' + dir );
-				var config = loadConfig( SOURCEMAPS + '/' + dir + '/_config.js' );
+				const config = loadConfig( SOURCEMAPS + '/' + dir + '/_config.js' );
 
-				var entry = path.resolve( SOURCEMAPS, dir, 'main.js' );
-				var dest = path.resolve( SOURCEMAPS, dir, '_actual/bundle' );
+				const entry = path.resolve( SOURCEMAPS, dir, 'main.js' );
+				const dest = path.resolve( SOURCEMAPS, dir, '_actual/bundle' );
 
-				var options = extend( {}, config.options, {
-					entry: entry
-				});
+				const options = extend( {}, config.options, { entry });
 
-				PROFILES.forEach( function ( profile ) {
-					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, function () {
+				PROFILES.forEach( profile => {
+					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, () => {
 						process.chdir( SOURCEMAPS + '/' + dir );
-						return rollup.rollup( options ).then( function ( bundle ) {
-							var options = extend( {}, {
+						return rollup.rollup( options ).then( bundle => {
+							const options = extend( {}, {
 								format: profile.format,
 								sourceMap: true,
 								dest: `${dest}.${profile.format}.js`
@@ -366,7 +359,7 @@ describe( 'rollup', function () {
 							bundle.write( options );
 
 							if ( config.before ) config.before();
-							var result = bundle.generate( options );
+							const result = bundle.generate( options );
 							config.test( result.code, result.map );
 						});
 					});
@@ -375,19 +368,19 @@ describe( 'rollup', function () {
 		});
 	});
 
-	describe( 'cli', function () {
-		sander.readdirSync( CLI ).sort().forEach( function ( dir ) {
+	describe( 'cli', () => {
+		sander.readdirSync( CLI ).sort().forEach( dir => {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
-			describe( dir, function () {
-				var config = loadConfig( CLI + '/' + dir + '/_config.js' );
+			describe( dir, () => {
+				const config = loadConfig( CLI + '/' + dir + '/_config.js' );
 
-				( config.skip ? it.skip : config.solo ? it.only : it )( dir, function ( done ) {
+				( config.skip ? it.skip : config.solo ? it.only : it )( dir, done => {
 					process.chdir( config.cwd || path.resolve( CLI, dir ) );
 
 					const command = 'node ' + path.resolve( __dirname, '../bin' ) + path.sep + config.command;
 
-					exec( command, {}, function ( err, code, stderr ) {
+					exec( command, {}, ( err, code, stderr ) => {
 						if ( err ) {
 							if ( config.error ) {
 								config.error( err );
@@ -399,7 +392,7 @@ describe( 'rollup', function () {
 
 						if ( stderr ) console.error( stderr );
 
-						var unintendedError;
+						let unintendedError;
 
 						if ( config.execute ) {
 							try {
@@ -409,8 +402,8 @@ describe( 'rollup', function () {
 									}).code;
 								}
 
-								var fn = new Function( 'require', 'module', 'exports', 'assert', code );
-								var module = {
+								const fn = new Function( 'require', 'module', 'exports', 'assert', code );
+								const module = {
 									exports: {}
 								};
 								fn( require, module, module.exports, assert );
@@ -449,10 +442,10 @@ describe( 'rollup', function () {
 						}
 
 						else if ( sander.existsSync( '_expected' ) && sander.statSync( '_expected' ).isDirectory() ) {
-							var error = null;
+							let error = null;
 							sander.readdirSync( '_expected' ).forEach( child => {
-								var expected = sander.readFileSync( path.join( '_expected', child ) ).toString();
-								var actual = sander.readFileSync( path.join( '_actual', child ) ).toString();
+								const expected = sander.readFileSync( path.join( '_expected', child ) ).toString();
+								const actual = sander.readFileSync( path.join( '_actual', child ) ).toString();
 								try {
 									assert.equal( normaliseOutput( actual ), normaliseOutput( expected ) );
 								} catch ( err ) {
@@ -463,7 +456,7 @@ describe( 'rollup', function () {
 						}
 
 						else {
-							var expected = sander.readFileSync( '_expected.js' ).toString();
+							const expected = sander.readFileSync( '_expected.js' ).toString();
 							try {
 								assert.equal( normaliseOutput( code ), normaliseOutput( expected ) );
 								done();
@@ -477,7 +470,7 @@ describe( 'rollup', function () {
 		});
 	});
 
-	describe('incremental', function () {
+	describe('incremental', () => {
 		function executeBundle ( bundle ) {
 			const cjs = bundle.generate({ format: 'cjs' });
 			const m = new Function( 'module', 'exports', cjs.code );
@@ -488,17 +481,17 @@ describe( 'rollup', function () {
 			return module.exports;
 		}
 
-		var calls;
-		var modules;
+		let calls;
+		let modules;
 
-		var plugin = {
+		const plugin = {
 			resolveId: id => id,
 
 			load: id => {
 				return modules[ id ];
 			},
 
-			transform: function ( code ) {
+			transform: code => {
 				calls += 1;
 				return code;
 			}
@@ -513,7 +506,7 @@ describe( 'rollup', function () {
 			};
 		});
 
-		it('does not transforms in the second time', function () {
+		it('does not transforms in the second time', () => {
 			return rollup.rollup({
 				entry: 'entry',
 				plugins: [ plugin ]
@@ -530,7 +523,7 @@ describe( 'rollup', function () {
 			});
 		});
 
-		it('transforms modified sources', function () {
+		it('transforms modified sources', () => {
 			let cache;
 
 			return rollup.rollup({
@@ -557,7 +550,7 @@ describe( 'rollup', function () {
 
 	describe( 'hooks', () => {
 		it( 'passes bundle & output object to ongenerate & onwrite hooks', () => {
-			var dest = path.join( __dirname, 'tmp/bundle.js' );
+			const dest = path.join( __dirname, 'tmp/bundle.js' );
 
 			return rollup.rollup({
 				entry: 'entry',
@@ -583,7 +576,7 @@ describe( 'rollup', function () {
 		});
 
 		it( 'calls ongenerate hooks in sequence', () => {
-			var result = [];
+			let result = [];
 
 			return rollup.rollup({
 				entry: 'entry',
@@ -611,8 +604,8 @@ describe( 'rollup', function () {
 		});
 
 		it( 'calls onwrite hooks in sequence', () => {
-			var result = [];
-			var dest = path.join( __dirname, 'tmp/bundle.js' );
+			let result = [];
+			const dest = path.join( __dirname, 'tmp/bundle.js' );
 
 			return rollup.rollup({
 				entry: 'entry',
