@@ -57,7 +57,7 @@ function loader ( modules ) {
 	};
 }
 
-describe( 'rollup', () => {
+describe( 'rollup', function () {
 	this.timeout( 10000 );
 
 	describe( 'sanity checks', () => {
