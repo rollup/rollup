@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.34.1
+
+* Support `paths` config ([#754](https://github.com/rollup/rollup/issues/754))
+* Allow `export *` from external module, internally
+
 ## 0.34.0
 
 * Use resolved IDs for relative imports that are also external modules, to allow `options.globals` to work with them ([#763](https://github.com/rollup/rollup/issues/763))
