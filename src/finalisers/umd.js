@@ -23,11 +23,11 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 
 	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle.onwarn );
 
-	let amdDeps = bundle.externalModules.map( quotePath );
-	let cjsDeps = bundle.externalModules.map( req );
-	let globalDeps = bundle.externalModules.map( module => `global.${globalNameMaker( module )}` );
+	const amdDeps = bundle.externalModules.map( quotePath );
+	const cjsDeps = bundle.externalModules.map( req );
+	const globalDeps = bundle.externalModules.map( module => `global.${globalNameMaker( module )}` );
 
-	let args = bundle.externalModules.map( getName );
+	const args = bundle.externalModules.map( getName );
 
 	if ( exportMode === 'named' ) {
 		amdDeps.unshift( `'exports'` );

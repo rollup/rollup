@@ -1,5 +1,5 @@
 export default function flatten ( node ) {
-	let parts = [];
+	const parts = [];
 	while ( node.type === 'MemberExpression' ) {
 		if ( node.computed ) return null;
 		parts.unshift( node.property.name );
