@@ -80,10 +80,10 @@ export function rollup ( options ) {
 				}
 
 				const dest = options.dest;
-				let output = generate( options );
+				const output = generate( options );
 				let { code, map } = output;
 
-				let promises = [];
+				const promises = [];
 
 				if ( options.sourceMap ) {
 					let url;

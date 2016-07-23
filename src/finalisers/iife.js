@@ -5,7 +5,7 @@ import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 
 function setupNamespace ( keypath ) {
-	let parts = keypath.split( '.' ); // TODO support e.g. `foo['something-hyphenated']`?
+	const parts = keypath.split( '.' ); // TODO support e.g. `foo['something-hyphenated']`?
 
 	parts.pop();
 
@@ -22,9 +22,9 @@ export default function iife ( bundle, magicString, { exportMode, indentString }
 	const name = options.moduleName;
 	const isNamespaced = name && ~name.indexOf( '.' );
 
-	let dependencies = bundle.externalModules.map( globalNameMaker );
+	const dependencies = bundle.externalModules.map( globalNameMaker );
 
-	let args = bundle.externalModules.map( getName );
+	const args = bundle.externalModules.map( getName );
 
 	if ( exportMode !== 'none' && !name ) {
 		throw new Error( 'You must supply options.moduleName for IIFE bundles' );
@@ -38,7 +38,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString }
 	const useStrict = options.useStrict !== false ? `'use strict';` : ``;
 
 	let intro = `(function (${args}) {\n`;
-	let outro = `\n\n}(${dependencies}));`;
+	const outro = `\n\n}(${dependencies}));`;
 
 	if ( exportMode === 'default' ) {
 		intro = ( isNamespaced ? `this.` : `${bundle.varOrConst} ` ) + `${name} = ${intro}`;
