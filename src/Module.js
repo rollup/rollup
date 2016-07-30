@@ -17,7 +17,7 @@ import { emptyBlockStatement } from './ast/create.js';
 import extractNames from './ast/extractNames.js';
 
 export default class Module {
-	constructor ({ id, code, originalCode, originalSourceMap, ast, sourceMapChain, bundle }) {
+	constructor ({ id, code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds, bundle }) {
 		this.code = code;
 		this.originalCode = originalCode;
 		this.originalSourceMap = originalSourceMap;
@@ -30,7 +30,7 @@ export default class Module {
 		// all dependencies
 		this.sources = [];
 		this.dependencies = [];
-		this.resolvedIds = blank();
+		this.resolvedIds = resolvedIds || blank();
 
 		// imports and exports, indexed by local name
 		this.imports = blank();
@@ -657,7 +657,8 @@ export default class Module {
 			code: this.code,
 			originalCode: this.originalCode,
 			ast: this.ast,
-			sourceMapChain: this.sourceMapChain
+			sourceMapChain: this.sourceMapChain,
+			resolvedIds: this.resolvedIds
 		};
 	}
 
