@@ -1,5 +1,5 @@
 export default function getIndentString ( magicString, options ) {
-	if ( !( 'indent' in options ) || options.indent === true ) {
+	if ( options.indent === true ) {
 		return magicString.getIndentString();
 	}
 
