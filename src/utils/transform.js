@@ -31,9 +31,12 @@ export default function transform ( source, id, plugins ) {
 				return result.code;
 			});
 		}).catch( err => {
-			err.id = id;
-			err.plugin = plugin.name;
-			err.message = `Error transforming ${id}${plugin.name ? ` with '${plugin.name}' plugin` : ''}: ${err.message}`;
+			if ( !err.rollupTransform ) {
+				err.rollupTransform = true;
+				err.id = id;
+				err.plugin = plugin.name;
+				err.message = `Error transforming ${id}${plugin.name ? ` with '${plugin.name}' plugin` : ''}: ${err.message}`;
+			}
 			throw err;
 		});
 	}, Promise.resolve( source.code ) )
