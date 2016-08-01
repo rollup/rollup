@@ -241,7 +241,7 @@ export default class Bundle {
 					let isExternal = this.isExternal( externalId );
 
 					if ( !resolvedId && !isExternal ) {
-						if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
+						if ( isRelative( source ) ) throw new Error( `Could not resolve '${source}' from ${module.id}` );
 
 						this.onwarn( `Treating '${source}' as external dependency` );
 						isExternal = true;
