@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.34.2
+
+* resolveId calls are cached now to improve incremental build
+* Fixed error message recursion in plugins
+
 ## 0.34.1
 
 * Support `paths` config ([#754](https://github.com/rollup/rollup/issues/754))
