@@ -422,15 +422,17 @@ export default class Bundle {
 						// b imports a, a is placed before b. We need to find the module
 						// in question, so we can provide a useful error message
 						let parent = '[[unknown]]';
+						const visited = {};
 
 						const findParent = module => {
 							if ( dependsOn[ module.id ][ a.id ] && dependsOn[ module.id ][ b.id ] ) {
 								parent = module.id;
-							} else {
-								for ( let i = 0; i < module.dependencies.length; i += 1 ) {
-									const dependency = module.dependencies[i];
-									if ( findParent( dependency ) ) return;
-								}
+								return true;
+							}
+							visited[ module.id ] = true;
+							for ( let i = 0; i < module.dependencies.length; i += 1 ) {
+								const dependency = module.dependencies[i];
+								if ( !visited[ dependency.id ] && findParent( dependency ) ) return true;
 							}
 						};
 
