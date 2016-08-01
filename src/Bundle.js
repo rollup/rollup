@@ -201,9 +201,18 @@ export default class Bundle {
 				return transform( source, id, this.plugins );
 			})
 			.then( source => {
-				const { code, originalCode, originalSourceMap, ast, sourceMapChain } = source;
+				const { code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds } = source;
 
-				const module = new Module({ id, code, originalCode, originalSourceMap, ast, sourceMapChain, bundle: this });
+				const module = new Module({
+					id,
+					code,
+					originalCode,
+					originalSourceMap,
+					ast,
+					sourceMapChain,
+					resolvedIds,
+					bundle: this
+				});
 
 				this.modules.push( module );
 				this.moduleById.set( id, module );
@@ -232,7 +241,8 @@ export default class Bundle {
 
 	fetchAllDependencies ( module ) {
 		return mapSequence( module.sources, source => {
-			return this.resolveId( source, module.id )
+			const resolvedId = module.resolvedIds[ source ];
+			return ( resolvedId ? Promise.resolve( resolvedId ) : this.resolveId( source, module.id ) )
 				.then( resolvedId => {
 					const externalId = resolvedId || (
 						isRelative( source ) ? resolve( module.id, '..', source ) : source

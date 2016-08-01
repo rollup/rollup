@@ -470,7 +470,7 @@ describe( 'rollup', function () {
 		});
 	});
 
-	describe('incremental', () => {
+	describe( 'incremental', () => {
 		function executeBundle ( bundle ) {
 			const cjs = bundle.generate({ format: 'cjs' });
 			const m = new Function( 'module', 'exports', cjs.code );
@@ -481,44 +481,52 @@ describe( 'rollup', function () {
 			return module.exports;
 		}
 
-		let calls;
+		let resolveIdCalls;
+		let transformCalls;
 		let modules;
 
 		const plugin = {
-			resolveId: id => id,
+			resolveId: id => {
+				resolveIdCalls += 1;
+				return id;
+			},
 
 			load: id => {
 				return modules[ id ];
 			},
 
 			transform: code => {
-				calls += 1;
+				transformCalls += 1;
 				return code;
 			}
 		};
 
 		beforeEach( () => {
-			calls = 0;
+			resolveIdCalls = 0;
+			transformCalls = 0;
 
 			modules = {
 				entry: `import foo from 'foo'; export default foo;`,
-				foo: `export default 42`
+				foo: `export default 42`,
+				bar: `export default 21`
 			};
 		});
 
-		it('does not transforms in the second time', () => {
+		it('does not resolves id and transforms in the second time', () => {
 			return rollup.rollup({
 				entry: 'entry',
 				plugins: [ plugin ]
 			}).then( bundle => {
-				assert.equal( calls, 2 );
+				assert.equal( resolveIdCalls, 2 );
+				assert.equal( transformCalls, 2 );
 				return rollup.rollup({
 					entry: 'entry',
 					plugins: [ plugin ],
 					cache: bundle
 				});
 			}).then( bundle => {
-				assert.equal( calls, 2 );
+				assert.equal( resolveIdCalls, 3 ); // +1 for entry point which is resolved every time
+				assert.equal( transformCalls, 2 );
 				assert.equal( executeBundle( bundle ), 42 );
 			});
 		});
@@ -530,7 +538,7 @@ describe( 'rollup', function () {
 				entry: 'entry',
 				plugins: [ plugin ]
 			}).then( bundle => {
-				assert.equal( calls, 2 );
+				assert.equal( transformCalls, 2 );
 				assert.equal( executeBundle( bundle ), 42 );
 
 				modules.foo = `export default 43`;
@@ -542,8 +550,32 @@ describe( 'rollup', function () {
 					cache
 				});
 			}).then( bundle => {
-				assert.equal( calls, 3 );
+				assert.equal( transformCalls, 3 );
 				assert.equal( executeBundle( bundle ), 43 );
+			});
+		});
+
+		it('resolves id of new imports', () => {
+			let cache;
+
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [ plugin ]
+			}).then( bundle => {
+				assert.equal( resolveIdCalls, 2 );
+				assert.equal( executeBundle( bundle ), 42 );
+
+				modules.entry = `import bar from 'bar'; export default bar;`;
+				cache = bundle;
+			}).then( () => {
+				return rollup.rollup({
+					entry: 'entry',
+					plugins: [ plugin ],
+					cache
+				});
+			}).then( bundle => {
+				assert.equal( resolveIdCalls, 4 );
+				assert.equal( executeBundle( bundle ), 21 );
 			});
 		});
 	});

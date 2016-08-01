@@ -36,7 +36,10 @@ export default {
 			values: { 'VERSION': pkg.version }
 		})
 	],
-	external: [ 'fs' ],
+	external: [
+		'fs',
+		'path'
+	],
 	banner: banner,
 	sourceMap: true,
 	moduleName: 'rollup',
