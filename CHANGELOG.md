@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.34.3
+
+* Avoid infinite recursion in `Bundle.sort()` ([#800](https://github.com/rollup/rollup/pull/800))
+
 ## 0.34.2
 
 * resolveId calls are cached now to improve incremental build
