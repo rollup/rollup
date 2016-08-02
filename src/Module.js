@@ -447,7 +447,7 @@ export default class Module {
 	}
 
 	render ( es ) {
-		let magicString = this.magicString.clone();
+		let magicString = this.magicString;
 
 		this.statements.forEach( statement => {
 			if ( !statement.isIncluded ) {
