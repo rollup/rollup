@@ -35,6 +35,7 @@ export default class Module {
 		// imports and exports, indexed by local name
 		this.imports = blank();
 		this.exports = blank();
+		this.exportsAll = blank();
 		this.reexports = blank();
 
 		this.exportAllSources = [];

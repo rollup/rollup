@@ -218,7 +218,6 @@ export default class Bundle {
 				this.moduleById.set( id, module );
 
 				return this.fetchAllDependencies( module ).then( () => {
-					module.exportsAll = blank();
 					keys( module.exports ).forEach( name => {
 						module.exportsAll[name] = module.id;
 					});
