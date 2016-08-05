@@ -1,9 +1,9 @@
 export default function transform ( source, id, plugins ) {
-	let sourceMapChain = [];
+	const sourceMapChain = [];
 
 	const originalSourceMap = typeof source.map === 'string' ? JSON.parse( source.map ) : source.map;
 
-	let originalCode = source.code;
+	const originalCode = source.code;
 	let ast = source.ast;
 
 	return plugins.reduce( ( promise, plugin ) => {

@@ -32,7 +32,7 @@ export function resolveId ( importee, importer ) {
 
 
 export function makeOnwarn () {
-	let warned = blank();
+	const warned = blank();
 
 	return msg => {
 		if ( msg in warned ) return;

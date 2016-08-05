@@ -21,12 +21,12 @@ class Link {
 	}
 
 	traceMappings () {
-		let sources = [];
-		let sourcesContent = [];
-		let names = [];
+		const sources = [];
+		const sourcesContent = [];
+		const names = [];
 
 		const mappings = this.mappings.map( line => {
-			let tracedLine = [];
+			const tracedLine = [];
 
 			line.forEach( segment => {
 				const source = this.sources[ segment[1] ];
