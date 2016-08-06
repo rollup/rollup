@@ -1,4 +1,4 @@
-import { encode, decode } from 'sourcemap-codec';
+import { encode } from 'sourcemap-codec';
 import { dirname, relative, resolve } from './path.js';
 
 class Source {
@@ -17,7 +17,7 @@ class Link {
 	constructor ( map, sources ) {
 		this.sources = sources;
 		this.names = map.names;
-		this.mappings = decode( map.mappings );
+		this.mappings = map.mappings;
 	}
 
 	traceMappings () {

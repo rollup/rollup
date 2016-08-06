@@ -1,3 +1,4 @@
+import { decode } from 'sourcemap-codec';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import first from './utils/first.js';
 import { find } from './utils/array.js';
@@ -354,6 +355,9 @@ export default class Bundle {
 
 			if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
 				map = magicString.generateMap( {} );
+				if ( typeof map.mappings === 'string' ) {
+					map.mappings = decode( map.mappings );
+				}
 				map = collapseSourcemaps( file, map, usedModules, bundleSourcemapChain, this.onwarn );
 			} else {
 				map = magicString.generateMap({ file, includeContent: true });
