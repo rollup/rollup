@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.34.5
+
+* Fix circular export ([#813](https://github.com/rollup/rollup/issues/813))
+
 ## 0.34.4
 
 * Module render performance tweak ([#823](https://github.com/rollup/rollup/pull/823))
