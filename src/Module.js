@@ -122,7 +122,7 @@ export default class Module {
 		// export var a = 1, b = 2, c = 3;
 		// export function foo () {}
 		else if ( node.declaration ) {
-			let declaration = node.declaration;
+			const declaration = node.declaration;
 
 			if ( declaration.type === 'VariableDeclaration' ) {
 				declaration.declarations.forEach( decl => {
@@ -275,7 +275,7 @@ export default class Module {
 	}
 
 	getExports () {
-		let exports = blank();
+		const exports = blank();
 
 		keys( this.exports ).forEach( name => {
 			exports[ name ] = true;
@@ -354,7 +354,7 @@ export default class Module {
 			}
 		});
 
-		let statements = [];
+		const statements = [];
 		let lastChar = 0;
 		let commentIndex = 0;
 
@@ -448,7 +448,7 @@ export default class Module {
 	}
 
 	render ( es ) {
-		let magicString = this.magicString.clone();
+		const magicString = this.magicString;
 
 		this.statements.forEach( statement => {
 			if ( !statement.isIncluded ) {
@@ -504,7 +504,7 @@ export default class Module {
 				}
 			}
 
-			let toDeshadow = blank();
+			const toDeshadow = blank();
 
 			statement.references.forEach( reference => {
 				const { start, end } = reference;

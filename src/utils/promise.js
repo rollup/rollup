@@ -1,5 +1,5 @@
 export function mapSequence ( array, fn ) {
-	let results = [];
+	const results = [];
 	let promise = Promise.resolve();
 
 	function next ( member, i ) {

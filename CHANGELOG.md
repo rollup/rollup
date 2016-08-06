@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.34.4
+
+* Module render performance tweak ([#823](https://github.com/rollup/rollup/pull/823))
+
 ## 0.34.3
 
 * Avoid infinite recursion in `Bundle.sort()` ([#800](https://github.com/rollup/rollup/pull/800))

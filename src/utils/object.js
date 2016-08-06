@@ -10,7 +10,7 @@ export function forOwn ( object, func ) {
 
 export function assign ( target, ...sources ) {
 	sources.forEach( source => {
-		for ( let key in source ) {
+		for ( const key in source ) {
 			if ( source.hasOwnProperty( key ) ) target[ key ] = source[ key ];
 		}
 	});

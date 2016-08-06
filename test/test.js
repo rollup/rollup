@@ -166,7 +166,7 @@ describe( 'rollup', function () {
 
 			const config = loadConfig( FUNCTION + '/' + dir + '/_config.js' );
 			( config.skip ? it.skip : config.solo ? it.only : it )( dir, () => {
-				let warnings = [];
+				const warnings = [];
 				const captureWarning = msg => warnings.push( msg );
 
 				const options = extend( {
@@ -216,7 +216,7 @@ describe( 'rollup', function () {
 
 						if ( config.code ) config.code( code );
 
-						let module = {
+						const module = {
 							exports: {}
 						};
 
@@ -475,7 +475,7 @@ describe( 'rollup', function () {
 			const cjs = bundle.generate({ format: 'cjs' });
 			const m = new Function( 'module', 'exports', cjs.code );
 
-			let module = { exports: {} };
+			const module = { exports: {} };
 			m( module, module.exports );
 
 			return module.exports;
@@ -608,7 +608,7 @@ describe( 'rollup', function () {
 		});
 
 		it( 'calls ongenerate hooks in sequence', () => {
-			let result = [];
+			const result = [];
 
 			return rollup.rollup({
 				entry: 'entry',
@@ -636,7 +636,7 @@ describe( 'rollup', function () {
 		});
 
 		it( 'calls onwrite hooks in sequence', () => {
-			let result = [];
+			const result = [];
 			const dest = path.join( __dirname, 'tmp/bundle.js' );
 
 			return rollup.rollup({

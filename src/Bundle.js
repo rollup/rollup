@@ -130,7 +130,7 @@ export default class Bundle {
 	}
 
 	deconflict () {
-		let used = blank();
+		const used = blank();
 
 		// ensure no conflicts with globals
 		keys( this.assumedGlobals ).forEach( name => used[ name ] = 1 );
@@ -299,7 +299,7 @@ export default class Bundle {
 		const exportMode = getExportMode( this, options.exports, options.moduleName );
 
 		let magicString = new MagicStringBundle({ separator: '\n\n' });
-		let usedModules = [];
+		const usedModules = [];
 
 		this.orderedModules.forEach( module => {
 			const source = module.render( format === 'es' );
@@ -343,7 +343,7 @@ export default class Bundle {
 
 		let code = magicString.toString();
 		let map = null;
-		let bundleSourcemapChain = [];
+		const bundleSourcemapChain = [];
 
 		code = transformBundle( code, this.plugins, bundleSourcemapChain )
 			.replace( new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' ), '' );
@@ -366,12 +366,12 @@ export default class Bundle {
 	}
 
 	sort () {
-		let seen = {};
 		let hasCycles;
-		let ordered = [];
+		const seen = {};
+		const ordered = [];
 
-		let stronglyDependsOn = blank();
-		let dependsOn = blank();
+		const stronglyDependsOn = blank();
+		const dependsOn = blank();
 
 		this.modules.forEach( module => {
 			stronglyDependsOn[ module.id ] = blank();
