@@ -1,3 +1,5 @@
+import { decode } from 'sourcemap-codec';
+
 export default function transformBundle ( code, plugins, sourceMapChain ) {
 	return plugins.reduce( ( code, plugin ) => {
 		if ( !plugin.transformBundle ) return code;
@@ -22,6 +24,10 @@ export default function transformBundle ( code, plugins, sourceMapChain ) {
 		}
 
 		const map = typeof result.map === 'string' ? JSON.parse( result.map ) : result.map;
+		if ( map && typeof map.mappings === 'string' ) {
+			map.mappings = decode( map.mappings );
+		}
+
 		sourceMapChain.push( map );
 
 		return result.code;

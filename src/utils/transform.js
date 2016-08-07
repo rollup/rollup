@@ -1,7 +1,13 @@
+import { decode } from 'sourcemap-codec';
+
 export default function transform ( source, id, plugins ) {
 	const sourceMapChain = [];
 
 	const originalSourceMap = typeof source.map === 'string' ? JSON.parse( source.map ) : source.map;
+
+	if ( originalSourceMap && typeof originalSourceMap.mappings === 'string' ) {
+		originalSourceMap.mappings = decode( originalSourceMap.mappings );
+	}
 
 	const originalCode = source.code;
 	let ast = source.ast;
@@ -23,6 +29,10 @@ export default function transform ( source, id, plugins ) {
 				// `result.map` can only be a string if `result` isn't
 				else if ( typeof result.map === 'string' ) {
 					result.map = JSON.parse( result.map );
+				}
+
+				if ( result.map && typeof result.map.mappings === 'string' ) {
+					result.map.mappings = decode( result.map.mappings );
 				}
 
 				sourceMapChain.push( result.map || { missing: true, plugin: plugin.name }); // lil' bit hacky but it works
