@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.34.7
+
+* Leave it up to resolveId to normalize the entry path ([#835](https://github.com/rollup/rollup/pull/835))
+* Cache decoded mappings ([#834](https://github.com/rollup/rollup/pull/834))
+
 ## 0.34.5
 
 * Fix circular export ([#813](https://github.com/rollup/rollup/issues/813))
