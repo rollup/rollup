@@ -34,7 +34,7 @@ export default class Bundle {
 			}
 		});
 
-		this.entry = normalize( options.entry );
+		this.entry = options.entry;
 		this.entryId = null;
 		this.entryModule = null;
 
