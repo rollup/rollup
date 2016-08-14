@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.34.8
+
+* Wrap UMD factory function in parens to avoid lazy parsing ([#774](https://github.com/rollup/rollup/pull/774))
+
 ## 0.34.7
 
 * Leave it up to resolveId to normalize the entry path ([#835](https://github.com/rollup/rollup/pull/835))
