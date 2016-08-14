@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
 	(factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
 	const fooContext = {};
 
@@ -22,4 +22,4 @@
 	// outside a function, `this` is undefined
 	assert.strictEqual( undefined, undefined );
 
-}));
+})));

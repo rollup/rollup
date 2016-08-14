@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
 	(factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
 	var a = 1;
 
@@ -14,4 +14,4 @@
 	assert.equal( e, 5 );
 	assert.equal( i, 9 );
 
-}));
+})));
