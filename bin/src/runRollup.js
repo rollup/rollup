@@ -70,7 +70,7 @@ export default function runRollup ( command ) {
 			});
 
 			// temporarily override require
-			var defaultLoader = require.extensions[ '.js' ];
+			const defaultLoader = require.extensions[ '.js' ];
 			require.extensions[ '.js' ] = ( m, filename ) => {
 				if ( filename === config ) {
 					m._compile( code, filename );
@@ -146,9 +146,6 @@ function execute ( options, command ) {
 	options.onwarn = options.onwarn || stderr;
 
 	options.external = external;
-
-	options.noConflict = command.conflict === false;
-	delete command.conflict;
 
 	// Use any options passed through the CLI as overrides.
 	Object.keys( equivalents ).forEach( cliOption => {
