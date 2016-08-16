@@ -274,6 +274,12 @@ describe( 'rollup', function () {
 			const config = loadConfig( FORM + '/' + dir + '/_config.js' );
 
 			if ( config.skipIfWindows && process.platform === 'win32' ) return;
+			if ( !config.options ) {
+				config.options = {};
+			}
+			if ( !( 'indent' in config.options ) ) {
+				config.options.indent = true;
+			}
 
 			const options = extend( {}, {
 				entry: FORM + '/' + dir + '/main.js',
