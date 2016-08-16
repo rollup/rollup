@@ -89,6 +89,7 @@ export default class Bundle {
 		// of the entry module's dependencies
 		return this.resolveId( this.entry, undefined )
 			.then( id => {
+				if ( id == null ) throw new Error( `Could not resolve entry (${this.entry})` );
 				this.entryId = id;
 				return this.fetchModule( id, undefined );
 			})
