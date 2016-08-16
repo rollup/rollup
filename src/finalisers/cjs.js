@@ -44,6 +44,7 @@ export default function cjs ( bundle, magicString, { exportMode }, options ) {
 
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode, 'module.exports =' );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
+	if ( options.outro ) magicString.append( `\n${options.outro}` );
 
 	return magicString;
 }
