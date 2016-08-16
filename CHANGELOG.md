@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.34.9
+
+* Disable indentation by default, for faster bundle generation ([#812](https://github.com/rollup/rollup/pull/812))
+* More helpful error on missing entry file ([#802](https://github.com/rollup/rollup/issues/802))
+* Preserve comments before import declarations ([#815](https://github.com/rollup/rollup/pull/815))
+
 ## 0.34.8
 
 * Wrap UMD factory function in parens to avoid lazy parsing ([#774](https://github.com/rollup/rollup/pull/774))
