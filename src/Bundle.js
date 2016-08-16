@@ -65,6 +65,7 @@ export default class Bundle {
 		this.externalModules = [];
 		this.internalNamespaces = [];
 
+		this.context = String( options.context );
 		this.assumedGlobals = blank();
 
 		if ( typeof options.external === 'function' ) {
