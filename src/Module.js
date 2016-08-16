@@ -452,6 +452,11 @@ export default class Module {
 
 		this.statements.forEach( statement => {
 			if ( !statement.isIncluded ) {
+				if ( statement.node.type === 'ImportDeclaration' ) {
+					magicString.remove( statement.node.start, statement.next );
+					return;
+				}
+
 				magicString.remove( statement.start, statement.next );
 				return;
 			}
