@@ -12,6 +12,7 @@ const ALLOWED_KEYS = [
 	'acorn',
 	'banner',
 	'cache',
+	'context',
 	'dest',
 	'entry',
 	'exports',
