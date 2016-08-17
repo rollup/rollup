@@ -54,6 +54,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString }
 	if ( useStrict ) magicString.prepend( useStrict + '\n\n' );
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
+	if ( options.outro ) magicString.append( `\n${options.outro}` );
 
 	return magicString
 		.indent( indentString )

@@ -25,10 +25,8 @@ export default function amd ( bundle, magicString, { exportMode, indentString },
 
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
-
-	if ( exportMode === 'named' ) {
-		magicString.append( `\n\n${esModuleExport}` );
-	}
+	if ( exportMode === 'named' ) magicString.append( `\n\n${esModuleExport}` );
+	if ( options.outro ) magicString.append( `\n${options.outro}` );
 
 	return magicString
 		.indent( indentString )

@@ -320,7 +320,6 @@ export default class Bundle {
 			.join( '\n\n' );
 
 		if ( intro ) magicString.prepend( intro + '\n' );
-		if ( options.outro ) magicString.append( '\n' + options.outro );
 
 		const indentString = getIndentString( magicString, options );
 
