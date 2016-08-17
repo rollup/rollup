@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.34.10
+
+* Allow custom `options.context` to replace top-level `this` ([#851](https://github.com/rollup/rollup/issues/851))
+* Fix `noConflict` when used via `rollup --config` ([#846](https://github.com/rollup/rollup/issues/846))
+* Place `outro` block *after* export block ([#852](https://github.com/rollup/rollup/issues/852))
+
 ## 0.34.9
 
 * Disable indentation by default, for faster bundle generation ([#812](https://github.com/rollup/rollup/pull/812))
