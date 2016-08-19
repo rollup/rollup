@@ -2,6 +2,7 @@ import minimist from 'minimist';
 import help from './help.md';
 import { version } from '../../package.json';
 import runRollup from './runRollup';
+import initProject from './initProject';
 
 const command = minimist( process.argv.slice( 2 ), {
 	alias: {
@@ -31,6 +32,10 @@ if ( command.help || ( process.argv.length <= 2 && process.stdin.isTTY ) ) {
 
 else if ( command.version ) {
 	console.log( `rollup version ${version}` ); // eslint-disable-line no-console
+}
+
+else if ( command._[0] === 'init' ) {
+	initProject();
 }
 
 else {

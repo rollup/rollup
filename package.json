@@ -18,6 +18,7 @@
     "build": "git rev-parse HEAD > .commithash && rollup -c",
     "watch": "rollup -c -w",
     "build:cli": "rollup -c rollup.config.cli.js",
+    "watch:cli": "rollup -c rollup.config.cli.js -w",
     "build:browser": "git rev-parse HEAD > .commithash && rollup -c rollup.config.browser.js -o dist/rollup.browser.js",
     "prepublish": "npm run lint && npm test && npm run build:browser",
     "lint": "eslint src browser test/test.js test/utils test/**/_config.js"

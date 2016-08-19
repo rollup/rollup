@@ -41,6 +41,10 @@ const handlers = {
 		stderr( chalk.red( 'rollup --watch depends on the rollup-watch package, which could not be found. You can install it globally (recommended) with ' ) + chalk.cyan( 'npm install -g rollup-watch' ) );
 	},
 
+	ROLLUP_INIT_NOT_INSTALLED: () => {
+		stderr( chalk.red( 'rollup init depends on the rollup-init package, which could not be found. You can install it globally (recommended) with ' ) + chalk.cyan( 'npm install -g rollup-init' ) );
+	},
+
 	WATCHER_MISSING_INPUT_OR_OUTPUT: () => {
 		stderr( chalk.red( 'must specify --input and --output when using rollup --watch' ) );
 	}
