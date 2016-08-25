@@ -18,7 +18,7 @@
          alt="dependency status">
   </a>
   <a href="https://codecov.io/github/rollup/rollup?branch=master">
-    <img src="https://codecov.io/github/rollup/rollup/coverage.svg?branch=master" alt="Coverage via Codecov" />
+    <img src="https://codecov.io/gh/rollup/rollup/branch/master/graph/badge.svg" alt="Coverage via Codecov" />
   </a>
   <a href='https://gitter.im/rollup/rollup?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge'>
     <img src='https://badges.gitter.im/rollup/rollup.svg'
