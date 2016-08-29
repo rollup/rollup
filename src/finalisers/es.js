@@ -4,7 +4,7 @@ function notDefault ( name ) {
 	return name !== 'default';
 }
 
-export default function es ( bundle, magicString, config, options ) {
+export default function es ( bundle, magicString, { intro }, options ) {
 	const importBlock = bundle.externalModules
 		.map( module => {
 			const specifiers = [];
@@ -49,9 +49,8 @@ export default function es ( bundle, magicString, config, options ) {
 		})
 		.join( '\n' );
 
-	if ( importBlock ) {
-		magicString.prepend( importBlock + '\n\n' );
-	}
+	if ( importBlock ) intro += importBlock + '\n\n';
+	if ( intro ) magicString.prepend( intro );
 
 	const module = bundle.entryModule;
 

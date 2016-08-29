@@ -312,21 +312,21 @@ export default class Bundle {
 			}
 		});
 
-		const intro = [ options.intro ]
+		let intro = [ options.intro ]
 			.concat(
 				this.plugins.map( plugin => plugin.intro && plugin.intro() )
 			)
 			.filter( Boolean )
 			.join( '\n\n' );
 
-		if ( intro ) magicString.prepend( intro + '\n' );
+		if ( intro ) intro += '\n';
 
 		const indentString = getIndentString( magicString, options );
 
 		const finalise = finalisers[ format ];
 		if ( !finalise ) throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
 
-		magicString = finalise( this, magicString.trim(), { exportMode, indentString }, options );
+		magicString = finalise( this, magicString.trim(), { exportMode, indentString, intro }, options );
 
 		const banner = [ options.banner ]
 			.concat( this.plugins.map( plugin => plugin.banner ) )
