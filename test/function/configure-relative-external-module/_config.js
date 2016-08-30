@@ -11,7 +11,7 @@ module.exports = {
 		external: [ path.join( __dirname, './nonexistent-relative-dependency.js') ]
 	},
 	context: {
-		require: function() {
+		require: function () {
 			return mockedValue;
 		}
 	},

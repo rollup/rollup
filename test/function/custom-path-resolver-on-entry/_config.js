@@ -8,7 +8,6 @@ var cachedModules = {
 
 module.exports = {
 	description: 'applies custom resolver to entry point',
-	//solo: true,
 	options: {
 		plugins: [{
 			resolveId: function ( importee, importer ) {

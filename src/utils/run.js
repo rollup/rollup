@@ -75,6 +75,10 @@ export default function run ( node, scope, statement, strongDependencies, force 
 				}
 			}
 
+			else if ( node.type === 'DebuggerStatement' ) {
+				hasSideEffect = true;
+			}
+
 			else if ( node.type === 'ThrowStatement' ) {
 				// we only care about errors thrown at the top level, otherwise
 				// any function with error checking gets included if called
@@ -100,7 +104,7 @@ export default function run ( node, scope, statement, strongDependencies, force 
 				} else {
 					declaration = statement.module.trace( subject.name );
 
-					if ( !declaration || declaration.isExternal || declaration.isUsed ) {
+					if ( !declaration || declaration.isExternal || declaration.isUsed || ( declaration.original && declaration.original.isUsed ) ) {
 						hasSideEffect = true;
 					}
 				}

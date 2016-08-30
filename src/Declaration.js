@@ -1,4 +1,5 @@
 import { blank, forOwn, keys } from './utils/object.js';
+import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import run from './utils/run.js';
 import { SyntheticReference } from './Reference.js';
 
@@ -17,7 +18,7 @@ export default class Declaration {
 		}
 
 		this.statement = statement;
-		this.name = null;
+		this.name = node.id ? node.id.name : node.name;
 		this.exportName = null;
 		this.isParam = isParam;
 
@@ -33,13 +34,16 @@ export default class Declaration {
 
 	addReference ( reference ) {
 		reference.declaration = this;
-		this.name = reference.name; // TODO handle differences of opinion
+
+		if ( reference.name !== this.name ) {
+			this.name = makeLegalIdentifier( reference.name ); // TODO handle differences of opinion
+		}
 
 		if ( reference.isReassignment ) this.isReassigned = true;
 	}
 
-	render ( es6 ) {
-		if ( es6 ) return this.name;
+	render ( es ) {
+		if ( es ) return this.name;
 		if ( !this.isReassigned || !this.exportName ) return this.name;
 
 		return `exports.${this.exportName}`;
@@ -241,7 +245,7 @@ export class SyntheticNamespaceDeclaration {
 			return `${indentString}${name}: ${original.render()}`;
 		});
 
-		return `var ${this.render()} = Object.freeze({\n${members.join( ',\n' )}\n});\n\n`;
+		return `${this.module.bundle.varOrConst} ${this.render()} = Object.freeze({\n${members.join( ',\n' )}\n});\n\n`;
 	}
 
 	render () {
@@ -276,18 +280,18 @@ export class ExternalDeclaration {
 		}
 	}
 
-	render ( es6 ) {
+	render ( es ) {
 		if ( this.name === '*' ) {
 			return this.module.name;
 		}
 
 		if ( this.name === 'default' ) {
-			return !es6 && this.module.exportsNames ?
+			return this.module.exportsNamespace || ( !es && this.module.exportsNames ) ?
 				`${this.module.name}__default` :
 				this.module.name;
 		}
 
-		return es6 ? this.safeName : `${this.module.name}.${this.name}`;
+		return es ? this.safeName : `${this.module.name}.${this.name}`;
 	}
 
 	run () {

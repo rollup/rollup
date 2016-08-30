@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import buble from 'rollup-plugin-buble';
-import npm from 'rollup-plugin-node-resolve';
+import nodeResolve from 'rollup-plugin-node-resolve';
 import replace from 'rollup-plugin-replace';
 
 var pkg = JSON.parse( readFileSync( 'package.json', 'utf-8' ) );
@@ -20,13 +20,12 @@ var banner = readFileSync( 'src/banner.js', 'utf-8' )
 
 export default {
 	entry: 'src/rollup.js',
-	format: 'cjs',
 	plugins: [
 		buble({
 			include: [ 'src/**', 'node_modules/acorn/**' ]
 		}),
 
-		npm({
+		nodeResolve({
 			jsnext: true
 		}),
 
@@ -37,8 +36,15 @@ export default {
 			values: { 'VERSION': pkg.version }
 		})
 	],
-	external: [ 'fs' ],
+	external: [
+		'fs',
+		'path'
+	],
 	banner: banner,
 	sourceMap: true,
-	moduleName: 'rollup'
+	moduleName: 'rollup',
+	targets: [
+		{ dest: 'dist/rollup.js', format: 'cjs' },
+		{ dest: 'dist/rollup.es.js', format: 'es' }
+	]
 };

@@ -9,3 +9,5 @@ function bar () {
 export function baz () {
 	return 13 + external.value;
 }
+
+export var create = Object.create, getPrototypeOf = Object.getPrototypeOf;

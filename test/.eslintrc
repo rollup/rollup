@@ -1,0 +1,9 @@
+{
+    "rules": {
+        "no-console": [ 0 ],
+        "no-unused-vars": [ "error", { "vars": "all", "args": "none" } ]
+    },
+    "env": {
+        "mocha": true
+    }
+}

@@ -1,5 +1,175 @@
 # rollup changelog
 
+## 0.34.11
+
+* Prevent leaky state when `bundle` is reused ([#875](https://github.com/rollup/rollup/issues/875))
+* Ensure `intro` appears before interop block ([#880](https://github.com/rollup/rollup/issues/880))
+
+## 0.34.10
+
+* Allow custom `options.context` to replace top-level `this` ([#851](https://github.com/rollup/rollup/issues/851))
+* Fix `noConflict` when used via `rollup --config` ([#846](https://github.com/rollup/rollup/issues/846))
+* Place `outro` block *after* export block ([#852](https://github.com/rollup/rollup/issues/852))
+
+## 0.34.9
+
+* Disable indentation by default, for faster bundle generation ([#812](https://github.com/rollup/rollup/pull/812))
+* More helpful error on missing entry file ([#802](https://github.com/rollup/rollup/issues/802))
+* Preserve comments before import declarations ([#815](https://github.com/rollup/rollup/pull/815))
+
+## 0.34.8
+
+* Wrap UMD factory function in parens to avoid lazy parsing ([#774](https://github.com/rollup/rollup/pull/774))
+
+## 0.34.7
+
+* Leave it up to resolveId to normalize the entry path ([#835](https://github.com/rollup/rollup/pull/835))
+* Cache decoded mappings ([#834](https://github.com/rollup/rollup/pull/834))
+
+## 0.34.5
+
+* Fix circular export ([#813](https://github.com/rollup/rollup/issues/813))
+
+## 0.34.4
+
+* Module render performance tweak ([#823](https://github.com/rollup/rollup/pull/823))
+
+## 0.34.3
+
+* Avoid infinite recursion in `Bundle.sort()` ([#800](https://github.com/rollup/rollup/pull/800))
+
+## 0.34.2
+
+* resolveId calls are cached now to improve incremental build
+* Fixed error message recursion in plugins
+
+## 0.34.1
+
+* Support `paths` config ([#754](https://github.com/rollup/rollup/issues/754))
+* Allow `export *` from external module, internally
+
+## 0.34.0
+
+* Use resolved IDs for relative imports that are also external modules, to allow `options.globals` to work with them ([#763](https://github.com/rollup/rollup/issues/763))
+* Ensure reassigned exports are declared in an ES bundle, and remove empty `exports.foo;` statements ([#755](https://github.com/rollup/rollup/issues/755))
+* Add newline after sourcemap comment ([#756](https://github.com/rollup/rollup/issues/756))
+
+## 0.33.2
+
+* Add `bundle` as second argument to `ongenerate` and `onwrite` hooks ([#773](https://github.com/rollup/rollup/pull/773))
+* Warn on top-level `this` ([#770](https://github.com/rollup/rollup/issues/770))
+
+## 0.33.1
+
+* Fix `--no-strict` option ([#751](https://github.com/rollup/rollup/pull/751))
+* Fix Windows edge case with case-sensitive paths ([#760](https://github.com/rollup/rollup/pull/760))
+
+## 0.33.0
+
+* Downgrade missing transformer sourcemap to a warning, not an error, and print the name of the offending plugin if possible ([#746](https://github.com/rollup/rollup/issues/746))
+* Warn if same name is re-exported from two modules ([#722](https://github.com/rollup/rollup/issues/722))
+
+## 0.32.4
+
+* Add `ongenerate` and `onwrite` plugin hooks ([#742](https://github.com/rollup/rollup/pull/742))
+
+## 0.32.3
+
+* Generated correct sourcemaps with reified namespaces ([#668](https://github.com/rollup/rollup/issues/668))
+* Exclude plugin helper modules from sourcemaps ([#747](https://github.com/rollup/rollup/pull/747))
+
+## 0.32.2
+
+* Allow `--globals` to work with `--external` or `options.external` in whatever configuration ([#743](https://github.com/rollup/rollup/issues/743))
+
+## 0.32.1
+
+* Preserve side-effects to default exports that coincide with used named exports ([#733](https://github.com/rollup/rollup/issues/733))
+* Support `rollup -c node:pkgname` ([#736](https://github.com/rollup/rollup/issues/736))
+
+## 0.32.0
+
+* Deprecate `es6` format in favour of `es` ([#468](https://github.com/rollup/rollup/issues/468))
+* Add correct `jsnext:main` build ([#726](https://github.com/rollup/rollup/pull/726))
+
+## 0.31.2
+
+* Allow `load` plugins to provide sourcemap ([#715](https://github.com/rollup/rollup/pull/715))
+* Allow `sourceMapFile` in config options ([#717](https://github.com/rollup/rollup/issues/717))
+
+## 0.31.1
+
+* Logging for errors emitted by `rollup-watch` ([#712](https://github.com/rollup/rollup/issues/712))
+
+## 0.31.0
+
+* Rewrite top-level `this` as `undefined` ([#707](https://github.com/rollup/rollup/pull/707))
+* Pass `options.acorn` to Acorn ([#564](https://github.com/rollup/rollup/issues/564))
+
+## 0.30.0
+
+* Bundle CLI ([#700](https://github.com/rollup/rollup/issues/700))
+* Ensure absolute paths are normalised ([#704](https://github.com/rollup/rollup/issues/704))
+* Allow `rollup --watch` to work with targets
+
+## 0.29.1
+
+* Merge `target` options with main options ([#701](https://github.com/rollup/rollup/issues/701))
+* Update magic-string ([#690](https://github.com/rollup/rollup/issues/690))
+
+## 0.29.0
+
+* `rollup --watch` ([#284](https://github.com/rollup/rollup/issues/284))
+
+## 0.28.0
+
+* Experimental support for incremental rebuilds ([#658](https://github.com/rollup/rollup/pull/658))
+
+## 0.27.1
+
+* Ensure names exported from a module are not replaced with reserved words ([#696](https://github.com/rollup/rollup/pull/696))
+* Revert ([#692](https://github.com/rollup/rollup/pull/692)) – resolved IDs must be strings
+
+## 0.27.0
+
+* Use native promises instead of `es6-promise` ([#689](https://github.com/rollup/rollup/issues/689))
+* Support multiple targets in config files ([#655](https://github.com/rollup/rollup/issues/655))
+* Allow `resolveId` plugin functions to return non-strings ([#692](https://github.com/rollup/rollup/pull/692))
+
+## 0.26.7
+
+* Distinguish between default and namespace imports of external module ([#637](https://github.com/rollup/rollup/issues/637))
+* Add `__esModule` property to named exports in AMD, CJS and UMD modes ([#650](https://github.com/rollup/rollup/issues/650))
+
+## 0.26.6
+
+* Deconflict named imports from external modules in ES bundles ([#659](https://github.com/rollup/rollup/issues/659))
+* Support `options.preferConst` to generate `const` declarations for exports rather than `var` declarations ([#653](https://github.com/rollup/rollup/issues/653))
+
+## 0.26.5
+
+* Preserve `debugger` statements ([#664](https://github.com/rollup/rollup/issues/664))
+* Allow `options.external` to be a function ([#522](https://github.com/rollup/rollup/issues/522))
+
+## 0.26.4
+
+* Prevent plugin-provided external IDs being normalised ([#630](https://github.com/rollup/rollup/issues/630), [#633](https://github.com/rollup/rollup/issues/633))
+* Throw if module exports/re-exports the same name twice, or has multiple default exports ([#679](https://github.com/rollup/rollup/issues/679))
+* Warn about `eval` security issue ([#675]((https://github.com/rollup/rollup/issues/675)))
+
+
+## 0.26.3
+
+* Ensure reference is not incorrectly marked as a reassignment ([#648](https://github.com/rollup/rollup/issues/648))
+
+## 0.26.2
+
+* Sanity check output of `load` hook ([#607](https://github.com/rollup/rollup/issues/607))
+* Correct scoping for ID class expressions ([#626](https://github.com/rollup/rollup/issues/626))
+* Warn if named and default exports are used together in auto mode ([#587](https://github.com/rollup/rollup/issues/587))
+* Allow variable initialisers to be rewritten if necessary ([#632](https://github.com/rollup/rollup/issues/632))
+* Prevent double `var` with no-treeshake option ([#639](https://github.com/rollup/rollup/pull/639))
+
 ## 0.26.1
 
 * Add `treeshake: false`/`--no-treeshake` option for debugging ([#505](https://github.com/rollup/rollup/issues/505))

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var external = require('external');
 
 var foo = 'unused';
@@ -16,5 +18,10 @@ function baz () {
 	return 13 + external.value;
 }
 
+var create = Object.create;
+var getPrototypeOf = Object.getPrototypeOf;
+
 exports.baz = baz;
+exports.create = create;
+exports.getPrototypeOf = getPrototypeOf;
 exports.strange = quux;

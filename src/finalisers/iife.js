@@ -5,7 +5,7 @@ import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 
 function setupNamespace ( keypath ) {
-	let parts = keypath.split( '.' ); // TODO support e.g. `foo['something-hyphenated']`?
+	const parts = keypath.split( '.' ); // TODO support e.g. `foo['something-hyphenated']`?
 
 	parts.pop();
 
@@ -16,15 +16,15 @@ function setupNamespace ( keypath ) {
 		.join( '\n' ) + '\n';
 }
 
-export default function iife ( bundle, magicString, { exportMode, indentString }, options ) {
+export default function iife ( bundle, magicString, { exportMode, indentString, intro }, options ) {
 	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle.onwarn );
 
 	const name = options.moduleName;
 	const isNamespaced = name && ~name.indexOf( '.' );
 
-	let dependencies = bundle.externalModules.map( globalNameMaker );
+	const dependencies = bundle.externalModules.map( globalNameMaker );
 
-	let args = bundle.externalModules.map( getName );
+	const args = bundle.externalModules.map( getName );
 
 	if ( exportMode !== 'none' && !name ) {
 		throw new Error( 'You must supply options.moduleName for IIFE bundles' );
@@ -35,28 +35,31 @@ export default function iife ( bundle, magicString, { exportMode, indentString }
 		args.unshift( 'exports' );
 	}
 
-	const useStrict = options.useStrict !== false ? `'use strict';` : ``;
+	const useStrict = options.useStrict !== false ? `${indentString}'use strict';\n\n` : ``;
 
-	let intro = `(function (${args}) {\n`;
-	let outro = `\n\n}(${dependencies}));`;
+	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
+	const wrapperOutro = `\n\n}(${dependencies}));`;
 
 	if ( exportMode === 'default' ) {
-		intro = ( isNamespaced ? `this.` : `var ` ) + `${name} = ${intro}`;
+		wrapperIntro = ( isNamespaced ? `this.` : `${bundle.varOrConst} ` ) + `${name} = ${wrapperIntro}`;
 	}
 
 	if ( isNamespaced ) {
-		intro = setupNamespace( name ) + intro;
+		wrapperIntro = setupNamespace( name ) + wrapperIntro;
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
 	const interopBlock = getInteropBlock( bundle );
 	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
-	if ( useStrict ) magicString.prepend( useStrict + '\n\n' );
+
+	if ( intro ) magicString.prepend( intro );
+
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
+	if ( options.outro ) magicString.append( `\n${options.outro}` );
 
 	return magicString
 		.indent( indentString )
-		.prepend( intro )
-		.append( outro );
+		.prepend( wrapperIntro )
+		.append( wrapperOutro );
 }

@@ -2,7 +2,7 @@ import { parse } from 'acorn/src/index.js';
 import MagicString from 'magic-string';
 import { walk } from 'estree-walker';
 import Statement from './Statement.js';
-import { blank, keys } from './utils/object.js';
+import { assign, blank, keys } from './utils/object.js';
 import { basename, extname } from './utils/path.js';
 import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
@@ -17,22 +17,25 @@ import { emptyBlockStatement } from './ast/create.js';
 import extractNames from './ast/extractNames.js';
 
 export default class Module {
-	constructor ({ id, code, originalCode, ast, sourceMapChain, bundle }) {
+	constructor ({ id, code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds, bundle }) {
 		this.code = code;
 		this.originalCode = originalCode;
+		this.originalSourceMap = originalSourceMap;
 		this.sourceMapChain = sourceMapChain;
 
 		this.bundle = bundle;
 		this.id = id;
+		this.excludeFromSourcemap = /\0/.test( id );
 
 		// all dependencies
 		this.sources = [];
 		this.dependencies = [];
-		this.resolvedIds = blank();
+		this.resolvedIds = resolvedIds || blank();
 
 		// imports and exports, indexed by local name
 		this.imports = blank();
 		this.exports = blank();
+		this.exportsAll = blank();
 		this.reexports = blank();
 
 		this.exportAllSources = [];
@@ -41,7 +44,7 @@ export default class Module {
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
 		this.magicString = new MagicString( code, {
-			filename: id,
+			filename: this.excludeFromSourcemap ? null : id, // don't include plugin helpers in sourcemap
 			indentExclusionRanges: []
 		});
 
@@ -53,7 +56,8 @@ export default class Module {
 		}
 
 		this.comments = [];
-		this.statements = this.parse( ast );
+		this.ast = ast;
+		this.statements = this.parse();
 
 		this.declarations = blank();
 		this.analyse();
@@ -77,7 +81,13 @@ export default class Module {
 
 			else {
 				node.specifiers.forEach( specifier => {
-					this.reexports[ specifier.exported.name ] = {
+					const name = specifier.exported.name;
+
+					if ( this.exports[ name ] || this.reexports[ name ] ) {
+						throw new Error( `A module cannot have multiple exports with the same name ('${name}')` );
+					}
+
+					this.reexports[ name ] = {
 						start: specifier.start,
 						source,
 						localName: specifier.local.name,
@@ -93,6 +103,11 @@ export default class Module {
 		else if ( node.type === 'ExportDefaultDeclaration' ) {
 			const identifier = ( node.declaration.id && node.declaration.id.name ) || node.declaration.name;
 
+			if ( this.exports.default ) {
+				// TODO indicate location
+				throw new Error( 'A module can only have one default export' );
+			}
+
 			this.exports.default = {
 				localName: 'default',
 				identifier
@@ -107,7 +122,7 @@ export default class Module {
 		// export var a = 1, b = 2, c = 3;
 		// export function foo () {}
 		else if ( node.declaration ) {
-			let declaration = node.declaration;
+			const declaration = node.declaration;
 
 			if ( declaration.type === 'VariableDeclaration' ) {
 				declaration.declarations.forEach( decl => {
@@ -128,6 +143,10 @@ export default class Module {
 				node.specifiers.forEach( specifier => {
 					const localName = specifier.local.name;
 					const exportedName = specifier.exported.name;
+
+					if ( this.exports[ exportedName ] || this.reexports[ exportedName ] ) {
+						throw new Error( `A module cannot have multiple exports with the same name ('${exportedName}')` );
+					}
 
 					this.exports[ exportedName ] = { localName };
 				});
@@ -209,18 +228,18 @@ export default class Module {
 				const specifier = specifiers[ name ];
 
 				const id = this.resolvedIds[ specifier.source ];
-				specifier.module = this.bundle.moduleById[ id ];
+				specifier.module = this.bundle.moduleById.get( id );
 			});
 		});
 
 		this.exportAllModules = this.exportAllSources.map( source => {
 			const id = this.resolvedIds[ source ];
-			return this.bundle.moduleById[ id ];
+			return this.bundle.moduleById.get( id );
 		});
 
 		this.sources.forEach( source => {
 			const id = this.resolvedIds[ source ];
-			const module = this.bundle.moduleById[ id ];
+			const module = this.bundle.moduleById.get( id );
 
 			if ( !module.isExternal ) this.dependencies.push( module );
 		});
@@ -256,7 +275,7 @@ export default class Module {
 	}
 
 	getExports () {
-		let exports = blank();
+		const exports = blank();
 
 		keys( this.exports ).forEach( name => {
 			exports[ name ] = true;
@@ -283,18 +302,18 @@ export default class Module {
 		return this.declarations['*'];
 	}
 
-	parse ( ast ) {
+	parse () {
 		// The ast can be supplied programmatically (but usually won't be)
-		if ( !ast ) {
+		if ( !this.ast ) {
 			// Try to extract a list of top-level statements/declarations. If
 			// the parse fails, attach file info and abort
 			try {
-				ast = parse( this.code, {
+				this.ast = parse( this.code, assign({
 					ecmaVersion: 6,
 					sourceType: 'module',
 					onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end }),
 					preserveParens: true
-				});
+				}, this.bundle.acornOptions ));
 			} catch ( err ) {
 				err.code = 'PARSE_ERROR';
 				err.file = this.id; // see above - not necessarily true, but true enough
@@ -303,7 +322,7 @@ export default class Module {
 			}
 		}
 
-		walk( ast, {
+		walk( this.ast, {
 			enter: node => {
 				// eliminate dead branches early
 				if ( node.type === 'IfStatement' ) {
@@ -335,11 +354,11 @@ export default class Module {
 			}
 		});
 
-		let statements = [];
+		const statements = [];
 		let lastChar = 0;
 		let commentIndex = 0;
 
-		ast.body.forEach( node => {
+		this.ast.body.forEach( node => {
 			if ( node.type === 'EmptyStatement' ) return;
 
 			if (
@@ -428,11 +447,16 @@ export default class Module {
 		return statements;
 	}
 
-	render ( es6 ) {
-		let magicString = this.magicString.clone();
+	render ( es ) {
+		const magicString = this.magicString.clone();
 
 		this.statements.forEach( statement => {
 			if ( !statement.isIncluded ) {
+				if ( statement.node.type === 'ImportDeclaration' ) {
+					magicString.remove( statement.node.start, statement.next );
+					return;
+				}
+
 				magicString.remove( statement.start, statement.next );
 				return;
 			}
@@ -444,7 +468,7 @@ export default class Module {
 				if ( statement.node.isSynthetic ) return;
 
 				// skip `export { foo, bar, baz }`
-				if ( statement.node.specifiers.length ) {
+				if ( statement.node.declaration === null ) {
 					magicString.remove( statement.start, statement.next );
 					return;
 				}
@@ -458,13 +482,8 @@ export default class Module {
 					const declaration = this.declarations[ declarator.id.name ];
 
 					if ( declaration.exportName && declaration.isReassigned ) { // `var foo = ...` becomes `exports.foo = ...`
-						if ( declarator.init ) {
-							magicString.overwrite( statement.start, declarator.init.start, `exports.${declaration.exportName} = ` );
-						} else {
-							magicString.remove( statement.start, declarator.init ? declarator.start : statement.next );
-						}
-
-						return;
+						magicString.remove( statement.start, declarator.init ? declarator.start : statement.next );
+						if ( !declarator.init ) return;
 					}
 				}
 
@@ -477,19 +496,20 @@ export default class Module {
 						const declaration = this.declarations[ name ];
 
 						if ( declaration.exportName && declaration.isReassigned ) {
-							magicString.insert( statement.end, `;\nexports.${name} = ${declaration.render( es6 )}` );
+							magicString.insertLeft( statement.end, `;\nexports.${name} = ${declaration.render( es )}` );
 						}
 					});
 				}
 
 				if ( statement.node.isSynthetic ) {
 					// insert `var/let/const` if necessary
-					magicString.insert( statement.start, `${statement.node.kind} ` );
-					magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
+					magicString.insertRight( statement.start, `${statement.node.kind} ` );
+					magicString.insertLeft( statement.end, ';' );
+					magicString.overwrite( statement.end, statement.next, '\n' ); // TODO account for trailing newlines
 				}
 			}
 
-			let toDeshadow = blank();
+			const toDeshadow = blank();
 
 			statement.references.forEach( reference => {
 				const { start, end } = reference;
@@ -501,7 +521,7 @@ export default class Module {
 				const declaration = reference.declaration;
 
 				if ( declaration ) {
-					const name = declaration.render( es6 );
+					const name = declaration.render( es );
 
 					// the second part of this check is necessary because of
 					// namespace optimisation – name of `foo.bar` could be `bar`
@@ -516,7 +536,7 @@ export default class Module {
 					}
 
 					if ( reference.isShorthandProperty ) {
-						magicString.insert( end, `: ${name}` );
+						magicString.insertLeft( end, `: ${name}` );
 					} else {
 						magicString.overwrite( start, end, name, true );
 					}
@@ -541,11 +561,21 @@ export default class Module {
 					const name = extractNames( statement.node.declaration.declarations[ 0 ].id )[ 0 ];
 					const declaration = this.declarations[ name ];
 
+					// TODO is this even possible?
 					if ( !declaration ) throw new Error( `Missing declaration for ${name}!` );
 
-					const end = declaration.exportName && declaration.isReassigned ?
-						statement.node.declaration.declarations[0].start :
-						statement.node.declaration.start;
+					let end;
+
+					if ( es ) {
+						end = statement.node.declaration.start;
+					} else {
+						if ( declaration.exportName && declaration.isReassigned ) {
+							const declarator = statement.node.declaration.declarations[0];
+							end = declarator.init ? declarator.start : statement.next;
+						} else {
+							end = statement.node.declaration.start;
+						}
+					}
 
 					magicString.remove( statement.node.start, end );
 				}
@@ -582,7 +612,7 @@ export default class Module {
 					if ( statement.node.declaration.type === 'FunctionExpression' ) {
 						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${defaultName}` );
 					} else {
-						magicString.overwrite( statement.node.start, statement.node.declaration.start, `var ${defaultName} = ` );
+						magicString.overwrite( statement.node.start, statement.node.declaration.start, `${this.bundle.varOrConst} ${defaultName} = ` );
 					}
 				}
 
@@ -611,7 +641,7 @@ export default class Module {
 	run ( treeshake ) {
 		if ( !treeshake ) {
 			this.statements.forEach( statement => {
-				if ( statement.isImportDeclaration ) return;
+				if ( statement.isImportDeclaration || ( statement.isExportDeclaration && statement.node.isSynthetic ) ) return;
 
 				statement.mark();
 			});
@@ -625,6 +655,17 @@ export default class Module {
 		});
 
 		return marked;
+	}
+
+	toJSON () {
+		return {
+			id: this.id,
+			code: this.code,
+			originalCode: this.originalCode,
+			ast: this.ast,
+			sourceMapChain: this.sourceMapChain,
+			resolvedIds: this.resolvedIds
+		};
 	}
 
 	trace ( name ) {

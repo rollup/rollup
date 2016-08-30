@@ -1,43 +1,60 @@
-import { encode, decode } from 'sourcemap-codec';
+import { encode } from 'sourcemap-codec';
+import { dirname, relative, resolve } from './path.js';
 
-function Source ( index ) {
-	this.isOriginal = true;
-	this.index = index;
-}
-
-Source.prototype = {
-	traceSegment ( line, column, name ) {
-		return { line, column, name, index: this.index };
+class Source {
+	constructor ( filename, content ) {
+		this.isOriginal = true;
+		this.filename = filename;
+		this.content = content;
 	}
-};
 
-function Link ( map, sources ) {
-	if ( !map ) throw new Error( 'Cannot generate a sourcemap if non-sourcemap-generating transformers are used' );
-
-	this.sources = sources;
-	this.names = map.names;
-	this.mappings = decode( map.mappings );
+	traceSegment ( line, column, name ) {
+		return { line, column, name, source: this };
+	}
 }
 
-Link.prototype = { // TODO bring into line with others post-https://github.com/rollup/rollup/pull/386
+class Link {
+	constructor ( map, sources ) {
+		this.sources = sources;
+		this.names = map.names;
+		this.mappings = map.mappings;
+	}
+
 	traceMappings () {
-		let names = [];
+		const sources = [];
+		const sourcesContent = [];
+		const names = [];
 
 		const mappings = this.mappings.map( line => {
-			let tracedLine = [];
+			const tracedLine = [];
 
 			line.forEach( segment => {
 				const source = this.sources[ segment[1] ];
 				const traced = source.traceSegment( segment[2], segment[3], this.names[ segment[4] ] );
 
 				if ( traced ) {
+					let sourceIndex = null;
 					let nameIndex = null;
 					segment = [
 						segment[0],
-						traced.index,
+						null,
 						traced.line,
 						traced.column
 					];
+
+					// newer sources are more likely to be used, so search backwards.
+					sourceIndex = sources.lastIndexOf( traced.source.filename );
+					if ( sourceIndex === -1 ) {
+						sourceIndex = sources.length;
+						sources.push( traced.source.filename );
+						sourcesContent[ sourceIndex ] = traced.source.content;
+					} else if ( sourcesContent[ sourceIndex ] == null ) {
+						sourcesContent[ sourceIndex ] = traced.source.content;
+					} else if ( traced.source.content != null && sourcesContent[ sourceIndex ] !== traced.source.content ) {
+						throw new Error( `Multiple conflicting contents for sourcemap source ${source.filename}` );
+					}
+
+					segment[1] = sourceIndex;
 
 					if ( traced.name ) {
 						nameIndex = names.indexOf( traced.name );
@@ -56,8 +73,8 @@ Link.prototype = { // TODO bring into line with others post-https://github.com/r
 			return tracedLine;
 		});
 
-		return { names, mappings };
-	},
+		return { sources, sourcesContent, names, mappings };
+	}
 
 	traceSegment ( line, column, name ) {
 		const segments = this.mappings[ line ];
@@ -79,31 +96,69 @@ Link.prototype = { // TODO bring into line with others post-https://github.com/r
 
 		return null;
 	}
-};
+}
 
-export default function collapseSourcemaps ( map, modules, bundleSourcemapChain ) {
-	const sources = modules.map( ( module, i ) => {
-		let source = new Source( i );
+export default function collapseSourcemaps ( file, map, modules, bundleSourcemapChain, onwarn ) {
+	const moduleSources = modules.filter( module => !module.excludeFromSourcemap ).map( module => {
+		let sourceMapChain = module.sourceMapChain;
 
-		module.sourceMapChain.forEach( map => {
+		let source;
+		if ( module.originalSourceMap == null ) {
+			source = new Source( module.id, module.originalCode );
+		} else {
+			const sources = module.originalSourceMap.sources;
+			const sourcesContent = module.originalSourceMap.sourcesContent || [];
+
+			if ( sources == null || ( sources.length <= 1 && sources[0] == null ) ) {
+				source = new Source( module.id, sourcesContent[0] );
+				sourceMapChain = [ module.originalSourceMap ].concat( sourceMapChain );
+			} else {
+				// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
+				const directory = dirname( module.id ) || '.';
+				const sourceRoot = module.originalSourceMap.sourceRoot || '.';
+
+				const baseSources = sources.map( (source, i) => {
+					return new Source( resolve( directory, sourceRoot, source ), sourcesContent[i] );
+				});
+
+				source = new Link( module.originalSourceMap, baseSources );
+			}
+		}
+
+		sourceMapChain.forEach( map => {
+			if ( map.missing ) {
+				onwarn( `Sourcemap is likely to be incorrect: a plugin${map.plugin ? ` ('${map.plugin}')` : ``} was used to transform files, but didn't generate a sourcemap for the transformation. Consult https://github.com/rollup/rollup/wiki/Troubleshooting and the plugin documentation for more information` );
+
+				map = {
+					names: [],
+					mappings: ''
+				};
+			}
+
 			source = new Link( map, [ source ]);
 		});
 
 		return source;
 	});
 
-	let source = new Link( map, sources );
+	let source = new Link( map, moduleSources );
 
 	bundleSourcemapChain.forEach( map => {
 		source = new Link( map, [ source ] );
 	});
 
-	const { names, mappings } = source.traceMappings();
+	let { sources, sourcesContent, names, mappings } = source.traceMappings();
+
+	if ( file ) {
+		const directory = dirname( file );
+		sources = sources.map( source => relative( directory, source ) );
+	}
 
 	// we re-use the `map` object because it has convenient toString/toURL methods
-	map.sourcesContent = modules.map( module => module.originalCode );
-	map.mappings = encode( mappings );
+	map.sources = sources;
+	map.sourcesContent = sourcesContent;
 	map.names = names;
+	map.mappings = encode( mappings );
 
 	return map;
 }

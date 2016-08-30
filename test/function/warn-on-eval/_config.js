@@ -1,4 +1,3 @@
-var path = require( 'path' );
 var assert = require( 'assert' );
 
 var warned = false;
@@ -8,7 +7,7 @@ module.exports = {
 	options: {
 		onwarn: function ( message ) {
 			warned = true;
-			assert.ok( /Use of `eval` \(in .+?main\.js\) is discouraged, as it may cause issues with minification\. See https:\/\/github.com\/rollup\/rollup\/wiki\/Troubleshooting#avoiding-eval for more details/.test( message ) );
+			assert.ok( /Use of `eval` \(in .+?main\.js\) is strongly discouraged, as it poses security risks and may cause issues with minification\. See https:\/\/github.com\/rollup\/rollup\/wiki\/Troubleshooting#avoiding-eval for more details/.test( message ) );
 		}
 	},
 	exports: function () {

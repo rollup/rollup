@@ -1,21 +1,22 @@
-import Promise from 'es6-promise/lib/es6-promise/promise.js';
+import { decode } from 'sourcemap-codec';
 
-export default function transform ( source, id, transformers ) {
-	let sourceMapChain = [];
+export default function transform ( source, id, plugins ) {
+	const sourceMapChain = [];
 
-	if ( typeof source === 'string' ) {
-		source = {
-			code: source,
-			ast: null
-		};
+	const originalSourceMap = typeof source.map === 'string' ? JSON.parse( source.map ) : source.map;
+
+	if ( originalSourceMap && typeof originalSourceMap.mappings === 'string' ) {
+		originalSourceMap.mappings = decode( originalSourceMap.mappings );
 	}
 
-	let originalCode = source.code;
+	const originalCode = source.code;
 	let ast = source.ast;
 
-	return transformers.reduce( ( promise, transformer ) => {
+	return plugins.reduce( ( promise, plugin ) => {
 		return promise.then( previous => {
-			return Promise.resolve( transformer( previous, id ) ).then( result => {
+			if ( !plugin.transform ) return previous;
+
+			return Promise.resolve( plugin.transform( previous, id ) ).then( result => {
 				if ( result == null ) return previous;
 
 				if ( typeof result === 'string' ) {
@@ -30,19 +31,25 @@ export default function transform ( source, id, transformers ) {
 					result.map = JSON.parse( result.map );
 				}
 
-				sourceMapChain.push( result.map );
+				if ( result.map && typeof result.map.mappings === 'string' ) {
+					result.map.mappings = decode( result.map.mappings );
+				}
+
+				sourceMapChain.push( result.map || { missing: true, plugin: plugin.name }); // lil' bit hacky but it works
 				ast = result.ast;
 
 				return result.code;
 			});
+		}).catch( err => {
+			if ( !err.rollupTransform ) {
+				err.rollupTransform = true;
+				err.id = id;
+				err.plugin = plugin.name;
+				err.message = `Error transforming ${id}${plugin.name ? ` with '${plugin.name}' plugin` : ''}: ${err.message}`;
+			}
+			throw err;
 		});
-
 	}, Promise.resolve( source.code ) )
 
-	.then( code => ({ code, originalCode, ast, sourceMapChain }) )
-	.catch( err => {
-		err.id = id;
-		err.message = `Error loading ${id}: ${err.message}`;
-		throw err;
-	});
+	.then( code => ({ code, originalCode, originalSourceMap, ast, sourceMapChain }) );
 }

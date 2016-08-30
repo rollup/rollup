@@ -1,7 +1,5 @@
-import Promise from 'es6-promise/lib/es6-promise/promise.js';
-
 export function mapSequence ( array, fn ) {
-	let results = [];
+	const results = [];
 	let promise = Promise.resolve();
 
 	function next ( member, i ) {

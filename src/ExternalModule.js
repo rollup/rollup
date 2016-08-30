@@ -3,9 +3,11 @@ import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import { ExternalDeclaration } from './Declaration.js';
 
 export default class ExternalModule {
-	constructor ( id ) {
+	constructor ( id, relativePath ) {
 		this.id = id;
-		this.name = makeLegalIdentifier( id );
+		this.path = relativePath;
+
+		this.name = makeLegalIdentifier( relativePath );
 
 		this.nameSuggestions = blank();
 		this.mostCommonSuggestion = 0;
@@ -27,9 +29,8 @@ export default class ExternalModule {
 	}
 
 	traceExport ( name ) {
-		if ( name !== 'default' && name !== '*' ) {
-			this.exportsNames = true;
-		}
+		if ( name !== 'default' && name !== '*' ) this.exportsNames = true;
+		if ( name === '*' ) this.exportsNamespace = true;
 
 		return this.declarations[ name ] || (
 			this.declarations[ name ] = new ExternalDeclaration( this, name )

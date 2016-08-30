@@ -9,7 +9,7 @@ module.exports = {
 					throw new Error( 'nope' );
 				},
 				load: function ( id ) {
-					if ( id === 'main' ) return 'assert.ok( false );'
+					if ( id === 'main' ) return 'assert.ok( false );';
 				}
 			},
 			{

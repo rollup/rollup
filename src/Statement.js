@@ -41,13 +41,14 @@ export default class Statement {
 		// find references
 		const statement = this;
 		let { module, references, scope, stringLiteralRanges } = this;
-		let readDepth = 0;
+		let contextDepth = 0;
 
 		walk( this.node, {
 			enter ( node, parent, prop ) {
 				// warn about eval
 				if ( node.type === 'CallExpression' && node.callee.name === 'eval' && !scope.contains( 'eval' ) ) {
-					module.bundle.onwarn( `Use of \`eval\` (in ${module.id}) is discouraged, as it may cause issues with minification. See https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval for more details` );
+					// TODO show location
+					module.bundle.onwarn( `Use of \`eval\` (in ${module.id}) is strongly discouraged, as it poses security risks and may cause issues with minification. See https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval for more details` );
 				}
 
 				// skip re-export declarations
@@ -58,36 +59,44 @@ export default class Statement {
 					stringLiteralRanges.push([ node.start + 1, node.end - 1 ]);
 				}
 
+				if ( node.type === 'ThisExpression' && contextDepth === 0 ) {
+					module.magicString.overwrite( node.start, node.end, module.bundle.context );
+					if ( module.bundle.context === 'undefined' ) module.bundle.onwarn( 'The `this` keyword is equivalent to `undefined` at the top level of an ES module, and has been rewritten' );
+				}
+
 				if ( node._scope ) scope = node._scope;
-				if ( /Function/.test( node.type ) ) readDepth += 1;
+				if ( /^Function/.test( node.type ) ) contextDepth += 1;
 
 				let isReassignment;
 
 				if ( parent && isModifierNode( parent ) ) {
 					let subject = parent[ modifierNodes[ parent.type ] ];
-					let depth = 0;
 
-					while ( subject.type === 'MemberExpression' ) {
-						subject = subject.object;
-						depth += 1;
-					}
+					if ( node === subject ) {
+						let depth = 0;
 
-					const importDeclaration = module.imports[ subject.name ];
-
-					if ( !scope.contains( subject.name ) && importDeclaration ) {
-						const minDepth = importDeclaration.name === '*' ?
-							2 : // cannot do e.g. `namespace.foo = bar`
-							1;  // cannot do e.g. `foo = bar`, but `foo.bar = bar` is fine
-
-						if ( depth < minDepth ) {
-							const err = new Error( `Illegal reassignment to import '${subject.name}'` );
-							err.file = module.id;
-							err.loc = getLocation( module.magicString.toString(), subject.start );
-							throw err;
+						while ( subject.type === 'MemberExpression' ) {
+							subject = subject.object;
+							depth += 1;
 						}
-					}
 
-					isReassignment = !depth;
+						const importDeclaration = module.imports[ subject.name ];
+
+						if ( !scope.contains( subject.name ) && importDeclaration ) {
+							const minDepth = importDeclaration.name === '*' ?
+								2 : // cannot do e.g. `namespace.foo = bar`
+								1;  // cannot do e.g. `foo = bar`, but `foo.bar = bar` is fine
+
+							if ( depth < minDepth ) {
+								const err = new Error( `Illegal reassignment to import '${subject.name}'` );
+								err.file = module.id;
+								err.loc = getLocation( module.magicString.original, subject.start );
+								throw err;
+							}
+						}
+
+						isReassignment = !depth;
+					}
 				}
 
 				if ( isReference( node, parent ) ) {
@@ -117,7 +126,7 @@ export default class Statement {
 			},
 			leave ( node ) {
 				if ( node._scope ) scope = scope.parent;
-				if ( /Function/.test( node.type ) ) readDepth -= 1;
+				if ( /^Function/.test( node.type ) ) contextDepth -= 1;
 			}
 		});
 	}

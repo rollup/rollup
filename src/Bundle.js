@@ -1,5 +1,7 @@
-import MagicString from 'magic-string';
+import { decode } from 'sourcemap-codec';
+import { Bundle as MagicStringBundle } from 'magic-string';
 import first from './utils/first.js';
+import { find } from './utils/array.js';
 import { blank, forOwn, keys } from './utils/object.js';
 import Module from './Module.js';
 import ExternalModule from './ExternalModule.js';
@@ -8,17 +10,23 @@ import ensureArray from './utils/ensureArray.js';
 import { load, makeOnwarn, resolveId } from './utils/defaults.js';
 import getExportMode from './utils/getExportMode.js';
 import getIndentString from './utils/getIndentString.js';
-import { unixizePath } from './utils/normalizePlatform.js';
 import { mapSequence } from './utils/promise.js';
 import transform from './utils/transform.js';
 import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
-import { dirname, isRelative, relative, resolve } from './utils/path.js';
+import { dirname, isRelative, isAbsolute, normalize, relative, resolve } from './utils/path.js';
 
 export default class Bundle {
 	constructor ( options ) {
+		this.cachedModules = new Map();
+		if ( options.cache ) {
+			options.cache.modules.forEach( module => {
+				this.cachedModules.set( module.id, module );
+			});
+		}
+
 		this.plugins = ensureArray( options.plugins );
 
 		this.plugins.forEach( plugin => {
@@ -27,46 +35,53 @@ export default class Bundle {
 			}
 		});
 
-		this.entry = unixizePath( options.entry );
+		this.entry = options.entry;
 		this.entryId = null;
 		this.entryModule = null;
 
 		this.treeshake = options.treeshake !== false;
 
 		this.resolveId = first(
-			[ id => ~this.external.indexOf( id ) ? false : null ]
+			[ id => this.isExternal( id ) ? false : null ]
 				.concat( this.plugins.map( plugin => plugin.resolveId ).filter( Boolean ) )
 				.concat( resolveId )
 		);
 
-		this.load = first(
-			this.plugins
-				.map( plugin => plugin.load )
-				.filter( Boolean )
-				.concat( load )
-		);
-
-		this.transformers = this.plugins
-			.map( plugin => plugin.transform )
+		const loaders = this.plugins
+			.map( plugin => plugin.load )
 			.filter( Boolean );
+		this.hasLoaders = loaders.length !== 0;
+		this.load = first( loaders.concat( load ) );
 
-		this.bundleTransformers = this.plugins
-			.map( plugin => plugin.transformBundle )
-			.filter( Boolean );
+		this.getPath = typeof options.paths === 'function' ?
+			( id => options.paths( id ) || this.getPathRelativeToEntryDirname( id ) ) :
+			options.paths ?
+				( id => options.paths.hasOwnProperty( id ) ? options.paths[ id ] : this.getPathRelativeToEntryDirname( id ) ) :
+				id => this.getPathRelativeToEntryDirname( id );
 
-		this.moduleById = blank();
+		this.moduleById = new Map();
 		this.modules = [];
 
 		this.externalModules = [];
 		this.internalNamespaces = [];
 
+		this.context = String( options.context );
 		this.assumedGlobals = blank();
 
-		this.external = ensureArray( options.external ).map( id => id.replace( /[\/\\]/g, '/' ) );
+		if ( typeof options.external === 'function' ) {
+			this.isExternal = options.external;
+		} else {
+			const ids = ensureArray( options.external );
+			this.isExternal = id => ids.indexOf( id ) !== -1;
+		}
+
 		this.onwarn = options.onwarn || makeOnwarn();
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports', '_interopDefault' ].forEach( global => this.assumedGlobals[ global ] = true );
+
+		this.varOrConst = options.preferConst ? 'const' : 'var';
+		this.acornOptions = options.acorn || {};
 	}
 
 	build () {
@@ -75,6 +90,7 @@ export default class Bundle {
 		// of the entry module's dependencies
 		return this.resolveId( this.entry, undefined )
 			.then( id => {
+				if ( id == null ) throw new Error( `Could not resolve entry (${this.entry})` );
 				this.entryId = id;
 				return this.fetchModule( id, undefined );
 			})
@@ -117,7 +133,7 @@ export default class Bundle {
 	}
 
 	deconflict () {
-		let used = blank();
+		const used = blank();
 
 		// ensure no conflicts with globals
 		keys( this.assumedGlobals ).forEach( name => used[ name ] = 1 );
@@ -156,8 +172,8 @@ export default class Bundle {
 
 	fetchModule ( id, importer ) {
 		// short-circuit cycles
-		if ( id in this.moduleById ) return null;
-		this.moduleById[ id ] = null;
+		if ( this.moduleById.has( id ) ) return null;
+		this.moduleById.set( id, null );
 
 		return this.load( id )
 			.catch( err => {
@@ -167,52 +183,91 @@ export default class Bundle {
 				msg += `: ${err.message}`;
 				throw new Error( msg );
 			})
-			.then( source => transform( source, id, this.transformers ) )
 			.then( source => {
-				const { code, originalCode, ast, sourceMapChain } = source;
+				if ( typeof source === 'string' ) return source;
+				if ( source && typeof source === 'object' && source.code ) return source;
 
-				const module = new Module({ id, code, originalCode, ast, sourceMapChain, bundle: this });
+				throw new Error( `Error loading ${id}: load hook should return a string, a { code, map } object, or nothing/null` );
+			})
+			.then( source => {
+				if ( typeof source === 'string' ) {
+					source = {
+						code: source,
+						ast: null
+					};
+				}
+
+				if ( this.cachedModules.has( id ) && this.cachedModules.get( id ).originalCode === source.code ) {
+					return this.cachedModules.get( id );
+				}
+
+				return transform( source, id, this.plugins );
+			})
+			.then( source => {
+				const { code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds } = source;
+
+				const module = new Module({
+					id,
+					code,
+					originalCode,
+					originalSourceMap,
+					ast,
+					sourceMapChain,
+					resolvedIds,
+					bundle: this
+				});
 
 				this.modules.push( module );
-				this.moduleById[ id ] = module;
+				this.moduleById.set( id, module );
 
-				return this.fetchAllDependencies( module ).then( () => module );
+				return this.fetchAllDependencies( module ).then( () => {
+					keys( module.exports ).forEach( name => {
+						module.exportsAll[name] = module.id;
+					});
+					module.exportAllSources.forEach( source => {
+						const id = module.resolvedIds[ source ];
+						const exportAllModule = this.moduleById.get( id );
+						if ( exportAllModule.isExternal ) return;
+
+						keys( exportAllModule.exportsAll ).forEach( name => {
+							if ( name in module.exportsAll ) {
+								this.onwarn( `Conflicting namespaces: ${module.id} re-exports '${name}' from both ${module.exportsAll[ name ]} (will be ignored) and ${exportAllModule.exportsAll[ name ]}.` );
+							}
+							module.exportsAll[ name ] = exportAllModule.exportsAll[ name ];
+						});
+					});
+					return module;
+				});
 			});
 	}
 
 	fetchAllDependencies ( module ) {
 		return mapSequence( module.sources, source => {
-			return this.resolveId( source, module.id )
+			const resolvedId = module.resolvedIds[ source ];
+			return ( resolvedId ? Promise.resolve( resolvedId ) : this.resolveId( source, module.id ) )
 				.then( resolvedId => {
-					let externalName;
-					if ( resolvedId ) {
-						// If the `resolvedId` is supposed to be external, make it so.
-						externalName = resolvedId.replace( /[\/\\]/g, '/' );
-					} else if ( isRelative( source ) ) {
-						// This could be an external, relative dependency, based on the current module's parent dir.
-						externalName = resolve( module.id, '..', source );
+					const externalId = resolvedId || (
+						isRelative( source ) ? resolve( module.id, '..', source ) : source
+					);
+
+					let isExternal = this.isExternal( externalId );
+
+					if ( !resolvedId && !isExternal ) {
+						if ( isRelative( source ) ) throw new Error( `Could not resolve '${source}' from ${module.id}` );
+
+						this.onwarn( `Treating '${source}' as external dependency` );
+						isExternal = true;
 					}
-					const forcedExternal = externalName && ~this.external.indexOf( externalName );
 
-					if ( !resolvedId || forcedExternal ) {
-						let normalizedExternal = source;
+					if ( isExternal ) {
+						module.resolvedIds[ source ] = externalId;
 
-						if ( !forcedExternal ) {
-							if ( isRelative( source ) ) throw new Error( `Could not resolve ${source} from ${module.id}` );
-							if ( !~this.external.indexOf( source ) ) this.onwarn( `Treating '${source}' as external dependency` );
-						} else if ( resolvedId ) {
-							normalizedExternal = this.getPathRelativeToEntryDirname( resolvedId );
-						}
-						module.resolvedIds[ source ] = normalizedExternal;
-
-						if ( !this.moduleById[ normalizedExternal ] ) {
-							const module = new ExternalModule( normalizedExternal );
+						if ( !this.moduleById.has( externalId ) ) {
+							const module = new ExternalModule( externalId, this.getPath( externalId ) );
 							this.externalModules.push( module );
-							this.moduleById[ normalizedExternal ] = module;
+							this.moduleById.set( externalId, module );
 						}
-					}
-
-					else {
+					} else {
 						if ( resolvedId === module.id ) {
 							throw new Error( `A module cannot import itself (${resolvedId})` );
 						}
@@ -225,51 +280,53 @@ export default class Bundle {
 	}
 
 	getPathRelativeToEntryDirname ( resolvedId ) {
-		// Get a path relative to the resolved entry directory
-		const entryDirname = dirname( this.entryId );
-		const relativeToEntry = relative( entryDirname, resolvedId );
+		if ( isRelative( resolvedId ) || isAbsolute( resolvedId ) ) {
+			const entryDirname = dirname( this.entryId );
+			const relativeToEntry = normalize( relative( entryDirname, resolvedId ) );
 
-		if ( isRelative( relativeToEntry )) {
-			return relativeToEntry;
+			return isRelative( relativeToEntry ) ? relativeToEntry : `./${relativeToEntry}`;
 		}
 
-		// The path is missing the `./` prefix
-		return `./${relativeToEntry}`;
+		return resolvedId;
 	}
 
 	render ( options = {} ) {
-		const format = options.format || 'es6';
+		if ( options.format === 'es6' ) {
+			this.onwarn( 'The es6 format is deprecated – use `es` instead' );
+			options.format = 'es';
+		}
+
+		const format = options.format || 'es';
 
 		// Determine export mode - 'default', 'named', 'none'
-		const exportMode = getExportMode( this, options.exports );
+		const exportMode = getExportMode( this, options.exports, options.moduleName );
 
-		let magicString = new MagicString.Bundle({ separator: '\n\n' });
-		let usedModules = [];
+		let magicString = new MagicStringBundle({ separator: '\n\n' });
+		const usedModules = [];
 
 		this.orderedModules.forEach( module => {
-			const source = module.render( format === 'es6' );
+			const source = module.render( format === 'es' );
 			if ( source.toString().length ) {
 				magicString.addSource( source );
 				usedModules.push( module );
 			}
 		});
 
-		const intro = [ options.intro ]
+		let intro = [ options.intro ]
 			.concat(
 				this.plugins.map( plugin => plugin.intro && plugin.intro() )
 			)
 			.filter( Boolean )
 			.join( '\n\n' );
 
-		if ( intro ) magicString.prepend( intro + '\n' );
-		if ( options.outro ) magicString.append( '\n' + options.outro );
+		if ( intro ) intro += '\n';
 
 		const indentString = getIndentString( magicString, options );
 
 		const finalise = finalisers[ format ];
 		if ( !finalise ) throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
 
-		magicString = finalise( this, magicString.trim(), { exportMode, indentString }, options );
+		magicString = finalise( this, magicString.trim(), { exportMode, indentString, intro }, options );
 
 		const banner = [ options.banner ]
 			.concat( this.plugins.map( plugin => plugin.banner ) )
@@ -288,34 +345,38 @@ export default class Bundle {
 
 		let code = magicString.toString();
 		let map = null;
-		let bundleSourcemapChain = [];
+		const bundleSourcemapChain = [];
 
-		code = transformBundle( code, this.bundleTransformers, bundleSourcemapChain )
+		code = transformBundle( code, this.plugins, bundleSourcemapChain )
 			.replace( new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' ), '' );
 
 		if ( options.sourceMap ) {
 			let file = options.sourceMapFile || options.dest;
 			if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
 
-			map = magicString.generateMap({ file, includeContent: true });
-
-			if ( this.transformers.length || this.bundleTransformers.length ) {
-				map = collapseSourcemaps( map, usedModules, bundleSourcemapChain );
+			if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
+				map = magicString.generateMap( {} );
+				if ( typeof map.mappings === 'string' ) {
+					map.mappings = decode( map.mappings );
+				}
+				map = collapseSourcemaps( file, map, usedModules, bundleSourcemapChain, this.onwarn );
+			} else {
+				map = magicString.generateMap({ file, includeContent: true });
 			}
 
-			map.sources = map.sources.map( unixizePath );
+			map.sources = map.sources.map( normalize );
 		}
 
 		return { code, map };
 	}
 
 	sort () {
-		let seen = {};
 		let hasCycles;
-		let ordered = [];
+		const seen = {};
+		const ordered = [];
 
-		let stronglyDependsOn = blank();
-		let dependsOn = blank();
+		const stronglyDependsOn = blank();
+		const dependsOn = blank();
 
 		this.modules.forEach( module => {
 			stronglyDependsOn[ module.id ] = blank();
@@ -365,15 +426,17 @@ export default class Bundle {
 						// b imports a, a is placed before b. We need to find the module
 						// in question, so we can provide a useful error message
 						let parent = '[[unknown]]';
+						const visited = {};
 
 						const findParent = module => {
 							if ( dependsOn[ module.id ][ a.id ] && dependsOn[ module.id ][ b.id ] ) {
 								parent = module.id;
-							} else {
-								for ( let i = 0; i < module.dependencies.length; i += 1 ) {
-									const dependency = module.dependencies[i];
-									if ( findParent( dependency ) ) return;
-								}
+								return true;
+							}
+							visited[ module.id ] = true;
+							for ( let i = 0; i < module.dependencies.length; i += 1 ) {
+								const dependency = module.dependencies[i];
+								if ( !visited[ dependency.id ] && findParent( dependency ) ) return true;
 							}
 						};
 

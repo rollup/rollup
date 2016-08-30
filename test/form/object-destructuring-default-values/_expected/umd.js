@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
 	(factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
 	const a = 1;
 	const b = 2;
@@ -10,4 +10,4 @@
 	const [ d = b ] = [];
 	console.log(c, d);
 
-}));
+})));

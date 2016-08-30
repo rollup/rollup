@@ -8,4 +8,6 @@ define(['exports'], function (exports) { 'use strict';
 
 	exports.obj = obj;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });
