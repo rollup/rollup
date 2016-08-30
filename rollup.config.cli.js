@@ -15,7 +15,7 @@ export default {
 		buble(),
 		commonjs({
 			include: 'node_modules/**',
-			namedExports: { 'chalk': [ 'red', 'cyan', 'grey' ] }
+			namedExports: { chalk: [ 'red', 'cyan', 'grey' ] }
 		}),
 		nodeResolve({
 			main: true
@@ -25,6 +25,10 @@ export default {
 		'fs',
 		'path',
 		'module',
-		'source-map-support'
-	]
+		'source-map-support',
+		'rollup'
+	],
+	paths: {
+		rollup: '../dist/rollup.js'
+	}
 };
