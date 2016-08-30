@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.34.11
+
+* Prevent leaky state when `bundle` is reused ([#875](https://github.com/rollup/rollup/issues/875))
+* Ensure `intro` appears before interop block ([#880](https://github.com/rollup/rollup/issues/880))
+
 ## 0.34.10
 
 * Allow custom `options.context` to replace top-level `this` ([#851](https://github.com/rollup/rollup/issues/851))
