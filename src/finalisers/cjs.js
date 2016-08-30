@@ -1,9 +1,9 @@
 import getExportBlock from './shared/getExportBlock.js';
 import esModuleExport from './shared/esModuleExport.js';
 
-export default function cjs ( bundle, magicString, { exportMode }, options ) {
-	let intro = ( options.useStrict === false ? `` : `'use strict';\n\n` ) +
-	            ( exportMode === 'named' ? `${esModuleExport}\n\n` : '' );
+export default function cjs ( bundle, magicString, { exportMode, intro }, options ) {
+	intro = ( options.useStrict === false ? intro : `'use strict';\n\n${intro}` ) +
+	        ( exportMode === 'named' ? `${esModuleExport}\n\n` : '' );
 
 	let needsInterop = false;
 
