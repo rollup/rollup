@@ -290,10 +290,12 @@ describe( 'rollup', function () {
 				}
 			}, config.options );
 
-			( config.skip ? describe.skip : config.solo ? describe.only : describe)( dir, () => {
+			( config.skip ? describe.skip : config.solo ? describe.only : describe )( dir, () => {
+				const promise = rollup.rollup( options );
+
 				PROFILES.forEach( profile => {
 					it( 'generates ' + profile.format, () => {
-						return rollup.rollup( options ).then( bundle => {
+						return promise.then( bundle => {
 							const options = extend( {}, config.options, {
 								dest: FORM + '/' + dir + '/_actual/' + profile.format + '.js',
 								format: profile.format
