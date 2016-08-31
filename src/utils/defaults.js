@@ -7,11 +7,15 @@ export function load ( id ) {
 }
 
 function addJsExtensionIfNecessary ( file ) {
-	const name = basename( file );
-	const files = readdirSync( dirname( file ) );
+	try {
+		const name = basename( file );
+		const files = readdirSync( dirname( file ) );
 
-	if ( ~files.indexOf( name ) && isFile( file ) ) return file;
-	if ( ~files.indexOf( `${name}.js` ) && isFile( `${file}.js` ) ) return `${file}.js`;
+		if ( ~files.indexOf( name ) && isFile( file ) ) return file;
+		if ( ~files.indexOf( `${name}.js` ) && isFile( `${file}.js` ) ) return `${file}.js`;
+	} catch ( err ) {
+		// noop
+	}
 
 	return null;
 }
