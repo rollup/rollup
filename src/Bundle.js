@@ -347,7 +347,7 @@ export default class Bundle {
 		let map = null;
 		const bundleSourcemapChain = [];
 
-		code = transformBundle( code, this.plugins, bundleSourcemapChain )
+		code = transformBundle( code, this.plugins, bundleSourcemapChain, options )
 			.replace( new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' ), '' );
 
 		if ( options.sourceMap ) {
