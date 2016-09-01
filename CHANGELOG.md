@@ -3,6 +3,7 @@
 ## 0.34.12
 
 * Fix `rollup --watch` ([#887](https://github.com/rollup/rollup/issues/887))
+* Case-sensitive paths ([#862](https://github.com/rollup/rollup/issues/862))
 
 ## 0.34.11
 
