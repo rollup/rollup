@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.34.13
+
+* Pass `{ format }` through to `transformBundle` ([#867](https://github.com/rollup/rollup/issues/867))
+
 ## 0.34.12
 
 * Fix `rollup --watch` ([#887](https://github.com/rollup/rollup/issues/887))
