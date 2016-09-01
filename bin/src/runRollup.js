@@ -1,5 +1,5 @@
 import { realpathSync } from 'fs';
-import { rollup } from 'rollup';
+import * as rollup from 'rollup';
 import relative from 'require-relative';
 import handleError from './handleError';
 import SOURCEMAPPING_URL from './sourceMappingUrl.js';
@@ -57,7 +57,7 @@ export default function runRollup ( command ) {
 			config = realpathSync( config );
 		}
 
-		rollup({
+		rollup.rollup({
 			entry: config,
 			onwarn: message => {
 				if ( /Treating .+ as external dependency/.test( message ) ) return;
@@ -216,7 +216,7 @@ function bundle ( options ) {
 		handleError({ code: 'MISSING_INPUT_OPTION' });
 	}
 
-	return rollup( options ).then( bundle => {
+	return rollup.rollup( options ).then( bundle => {
 		if ( options.dest ) {
 			return bundle.write( options );
 		}
