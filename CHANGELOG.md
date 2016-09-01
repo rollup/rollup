@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.34.12
+
+* Fix `rollup --watch` ([#887](https://github.com/rollup/rollup/issues/887))
+
 ## 0.34.11
 
 * Prevent leaky state when `bundle` is reused ([#875](https://github.com/rollup/rollup/issues/875))
