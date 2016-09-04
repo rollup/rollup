@@ -134,7 +134,7 @@ export default class Statement {
 	mark () {
 		if ( this.isIncluded ) return; // prevent infinite loops
 		this.isIncluded = true;
-
+		this.module.use();
 		this.references.forEach( reference => {
 			if ( reference.declaration ) reference.declaration.use();
 		});

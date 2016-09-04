@@ -114,6 +114,9 @@ export default class Bundle {
 					declaration.use();
 				});
 
+				// mark modules that should appear in the bundle
+				entryModule.use();
+
 				// mark statements that should appear in the bundle
 				let settled = false;
 				while ( !settled ) {
