@@ -64,6 +64,14 @@ export default class Statement {
 					if ( module.bundle.context === 'undefined' ) module.bundle.onwarn( 'The `this` keyword is equivalent to `undefined` at the top level of an ES module, and has been rewritten' );
 				}
 
+				// rewrite `foo[bar]()` as `(0,foo[bar])()` if `foo` is an imported namespace
+				if ( node.type === 'CallExpression' && node.callee.type === 'MemberExpression' && node.callee.object.type === 'Identifier' && node.callee.computed ) {
+					const declaration = module.imports[ node.callee.object.name ];
+					if ( declaration && declaration.name === '*' ) {
+						module.magicString.insertRight( node.callee.start, '(0,' ).insertLeft( node.callee.end, ')' );
+					}
+				}
+
 				if ( node._scope ) scope = node._scope;
 				if ( /^Function/.test( node.type ) ) contextDepth += 1;
 
