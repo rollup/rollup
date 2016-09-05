@@ -14,6 +14,12 @@ export default class Declaration {
 			} else if ( node.type === 'VariableDeclarator' && node.init && /FunctionExpression/.test( node.init.type ) ) {
 				this.isFunctionDeclaration = true;
 				this.functionNode = node.init;
+			} else if ( node.type === 'ClassDeclaration') {
+				this.isClassDeclaration = true;
+				const constructorNode = node.body.body.find(node => node.kind === 'constructor');
+				if (constructorNode) {
+					this.hasConstructor = true;
+				}
 			}
 		}
 
@@ -52,8 +58,10 @@ export default class Declaration {
 	run ( strongDependencies ) {
 		if ( this.tested ) return this.hasSideEffects;
 
-
-		if ( !this.functionNode ) {
+		if ( this.isClassDeclaration && !this.hasConstructor ) {
+			// class declaration without a constructor has no side-effects
+			this.hasSideEffects = false;
+		} else if ( !this.functionNode ) {
 			this.hasSideEffects = true; // err on the side of caution. TODO handle unambiguous `var x; x = y => z` cases
 		} else {
 			if ( this.running ) return true; // short-circuit infinite loop
