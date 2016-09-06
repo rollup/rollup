@@ -1,6 +1,6 @@
 import { parse } from 'acorn/src/index.js';
 import MagicString from 'magic-string';
-import { assign, blank, keys } from './utils/object.js';
+import { assign, blank, deepClone, keys } from './utils/object.js';
 import { basename, extname } from './utils/path.js';
 import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
@@ -35,6 +35,7 @@ export default class Module {
 
 		this.comments = [];
 		this.ast = ast || tryParse( code, this.comments, bundle.acornOptions, id ); // TODO what happens to comments if AST is provided?
+		this.astClone = deepClone( this.ast );
 
 		this.bundle = bundle;
 		this.id = id;
@@ -316,8 +317,7 @@ export default class Module {
 			id: this.id,
 			code: this.code,
 			originalCode: this.originalCode,
-			// TODO reinstate AST caching (rewrite broke it, because AST is enhanced)
-			// ast: this.ast,
+			ast: this.astClone,
 			sourceMapChain: this.sourceMapChain,
 			resolvedIds: this.resolvedIds
 		};

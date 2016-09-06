@@ -6,6 +6,7 @@ const sander = require( 'sander' );
 const assert = require( 'assert' );
 const { exec } = require( 'child_process' );
 const buble = require( 'buble' );
+const acorn = require( 'acorn' );
 const rollup = require( '../dist/rollup' );
 
 const FUNCTION = path.resolve( __dirname, 'function' );
@@ -585,6 +586,21 @@ describe( 'rollup', function () {
 			}).then( bundle => {
 				assert.equal( resolveIdCalls, 4 );
 				assert.equal( executeBundle( bundle ), 21 );
+			});
+		});
+
+		it( 'keeps ASTs between runs', () => {
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [ plugin ]
+			}).then( bundle => {
+				const asts = {};
+				bundle.modules.forEach( module => {
+					asts[ module.id ] = module.ast;
+				});
+
+				assert.deepEqual( asts.entry, acorn.parse( modules.entry, { sourceType: 'module' }) );
+				assert.deepEqual( asts.foo, acorn.parse( modules.foo, { sourceType: 'module' }) );
 			});
 		});
 	});
