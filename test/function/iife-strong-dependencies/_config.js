@@ -1,6 +1,7 @@
 var assert = require( 'assert' );
 
 module.exports = {
+	skip: true,
 	description: 'does not treat references inside IIFEs as weak dependencies', // edge case encountered in THREE.js codebase
 	warnings: warnings => {
 		assert.equal( warnings.length, 1 );
