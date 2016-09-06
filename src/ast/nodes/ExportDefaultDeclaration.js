@@ -2,34 +2,6 @@ import Node from '../Node.js';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
-class SyntheticDefaultDeclaration {
-	constructor ( node, name ) {
-		this.node = node;
-		this.name = name;
-		this.isDefault = true;
-	}
-
-	activate () {
-		if ( this.activated ) return;
-		this.activated = true;
-
-		this.node.run();
-	}
-
-	addReference ( reference ) {
-		this.name = reference.name;
-		if ( this.original ) this.original.addReference( reference );
-	}
-
-	render ( es ) {
-		if ( this.original && !this.original.isReassigned ) {
-			return this.original.getName( es );
-		}
-
-		return this.name;
-	}
-}
-
 export default class ExportDefaultDeclaration extends Node {
 	initialise ( scope ) {
 		this.isExportDeclaration = true;

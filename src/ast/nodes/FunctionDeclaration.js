@@ -10,7 +10,7 @@ export default class FunctionDeclaration extends Node {
 		this.body.run();
 	}
 
-	addReference ( reference ) {
+	addReference () {
 		/* noop? */
 	}
 

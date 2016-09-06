@@ -1,11 +1,11 @@
 import Node from '../Node.js';
 
 export default class ExportAllDeclaration extends Node {
-	initialise ( scope ) {
+	initialise () {
 		this.isExportDeclaration = true;
 	}
 
-	render ( code, es ) {
+	render ( code ) {
 		code.remove( this.leadingCommentStart || this.start, this.next || this.end );
 	}
 }

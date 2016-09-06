@@ -1,17 +1,9 @@
-import {
-	ARRAY,
-	BOOLEAN,
-	FUNCTION,
-	NUMBER,
-	OBJECT,
-	STRING,
-	UNKNOWN
-} from '../../values.js';
+import { UNKNOWN } from '../../values.js';
 
 export default function isUsedByBundle ( scope, node ) {
 	while ( node.type === 'ParenthesizedExpression' ) node = node.expression;
 
-	const expression = node;
+	// const expression = node;
 	while ( node.type === 'MemberExpression' ) node = node.object;
 
 	const declaration = scope.findDeclaration( node.name );

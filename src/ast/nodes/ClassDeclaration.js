@@ -9,7 +9,7 @@ export default class ClassDeclaration extends Node {
 		this.body.run();
 	}
 
-	addReference ( reference ) {
+	addReference () {
 		/* noop? */
 	}
 

@@ -1,7 +1,7 @@
 import Node from '../Node.js';
 import disallowIllegalReassignment from './shared/disallowIllegalReassignment.js';
 import isUsedByBundle from './shared/isUsedByBundle.js';
-import { NUMBER, STRING, UNKNOWN } from '../values.js';
+import { NUMBER, STRING } from '../values.js';
 
 export default class AssignmentExpression extends Node {
 	bind ( scope ) {

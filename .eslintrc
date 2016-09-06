@@ -35,5 +35,10 @@
     "parserOptions": {
         "ecmaVersion": 6,
         "sourceType": "module"
+    },
+    "settings": {
+        "import/ignore": [ 0, [
+            "\\.path.js$"
+        ] ]
     }
 }
