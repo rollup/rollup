@@ -200,8 +200,8 @@ export class SyntheticNamespaceDeclaration {
 		// the reference by pointing directly to `bar`
 		if ( reference.parts.length ) {
 			const ref = reference.parts.shift();
-			reference.name = ref.name;
-			reference.end = ref.end;
+			reference.name = ref.type === 'Literal' ? ref.value : ref.name;
+			reference.end = reference.node.end;
 
 			const original = this.originals[ reference.name ];
 

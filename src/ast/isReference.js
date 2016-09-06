@@ -1,6 +1,11 @@
 export default function isReference ( node, parent ) {
 	if ( node.type === 'MemberExpression' ) {
-		return !node.computed && isReference( node.object, node );
+		if ( node.computed ) {
+			if ( node.property.type !== 'Literal' || typeof node.property.value !== 'string' ) {
+				return false
+			}
+		}
+		return isReference( node.object, node );
 	}
 
 	if ( node.type === 'Identifier' ) {
