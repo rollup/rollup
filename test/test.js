@@ -243,14 +243,14 @@ describe( 'rollup', function () {
 							}
 						}
 
+						if ( config.show || unintendedError ) {
+							console.log( result.code + '\n\n\n' );
+						}
+
 						if ( config.warnings ) {
 							config.warnings( warnings );
 						} else if ( warnings.length ) {
 							throw new Error( `Got unexpected warnings:\n${warnings.join('\n')}` );
-						}
-
-						if ( config.show || unintendedError ) {
-							console.log( code + '\n\n\n' );
 						}
 
 						if ( config.solo ) console.groupEnd();
@@ -291,11 +291,12 @@ describe( 'rollup', function () {
 			}, config.options );
 
 			( config.skip ? describe.skip : config.solo ? describe.only : describe )( dir, () => {
-				const promise = rollup.rollup( options );
+				let promise;
+				const createBundle = () => ( promise || ( promise = rollup.rollup( options ) ) );
 
 				PROFILES.forEach( profile => {
 					it( 'generates ' + profile.format, () => {
-						return promise.then( bundle => {
+						return createBundle().then( bundle => {
 							const options = extend( {}, config.options, {
 								dest: FORM + '/' + dir + '/_actual/' + profile.format + '.js',
 								format: profile.format

@@ -2,7 +2,8 @@ var myBundle = (function () {
 	'use strict';
 
 	function augment ( x ) {
-		var prop, source;
+		var prop;
+		var source;
 
 		var i = arguments.length;
 		var sources = Array( i - 1 );

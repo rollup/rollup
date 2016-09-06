@@ -17,6 +17,7 @@ import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
 import { dirname, isRelative, isAbsolute, normalize, relative, resolve } from './utils/path.js';
+import BundleScope from './ast/scopes/BundleScope.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -59,14 +60,17 @@ export default class Bundle {
 				( id => options.paths.hasOwnProperty( id ) ? options.paths[ id ] : this.getPathRelativeToEntryDirname( id ) ) :
 				id => this.getPathRelativeToEntryDirname( id );
 
+		this.scope = new BundleScope();
+		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
+		[ 'module', 'exports', '_interopDefault' ].forEach( name => {
+			this.scope.findDeclaration( name ); // creates global declaration as side-effect
+		});
+
 		this.moduleById = new Map();
 		this.modules = [];
-
 		this.externalModules = [];
-		this.internalNamespaces = [];
 
 		this.context = String( options.context );
-		this.assumedGlobals = blank();
 
 		if ( typeof options.external === 'function' ) {
 			this.isExternal = options.external;
@@ -77,11 +81,10 @@ export default class Bundle {
 
 		this.onwarn = options.onwarn || makeOnwarn();
 
-		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
-		[ 'module', 'exports', '_interopDefault' ].forEach( global => this.assumedGlobals[ global ] = true );
-
 		this.varOrConst = options.preferConst ? 'const' : 'var';
 		this.acornOptions = options.acorn || {};
+
+		this.dependentExpressions = [];
 	}
 
 	build () {
@@ -100,7 +103,6 @@ export default class Bundle {
 				// Phase 2 – binding. We link references to their declarations
 				// to generate a complete picture of the bundle
 				this.modules.forEach( module => module.bindImportSpecifiers() );
-				this.modules.forEach( module => module.bindAliases() );
 				this.modules.forEach( module => module.bindReferences() );
 
 				// Phase 3 – marking. We 'run' each statement to see which ones
@@ -109,20 +111,46 @@ export default class Bundle {
 				// mark all export statements
 				entryModule.getExports().forEach( name => {
 					const declaration = entryModule.traceExport( name );
-					declaration.exportName = name;
 
-					declaration.use();
+					declaration.exportName = name;
+					declaration.activate();
+
+					if ( declaration.isNamespace ) {
+						declaration.needsNamespaceBlock = true;
+					}
 				});
 
 				// mark statements that should appear in the bundle
-				let settled = false;
-				while ( !settled ) {
-					settled = true;
-
+				if ( this.treeshake ) {
 					this.modules.forEach( module => {
-						if ( module.run( this.treeshake ) ) settled = false;
+						module.run();
 					});
+
+					let settled = false;
+					while ( !settled ) {
+						settled = true;
+
+						for ( const expression of this.dependentExpressions ) {
+							if ( expression.isUsedByBundle() ) {
+								const statement = expression.findParent( /ExpressionStatement/ );
+
+								if ( statement && !statement.ran ) {
+									settled = false;
+									statement.run( statement.findScope() );
+								}
+							}
+						}
+					}
 				}
+
+				// let settled = false;
+				// while ( !settled ) {
+				// 	settled = true;
+				//
+				// 	this.modules.forEach( module => {
+				// 		if ( module.run( this.treeshake ) ) settled = false;
+				// 	});
+				// }
 
 				// Phase 4 – final preparation. We order the modules with an
 				// enhanced topological sort that accounts for cycles, then
@@ -136,7 +164,7 @@ export default class Bundle {
 		const used = blank();
 
 		// ensure no conflicts with globals
-		keys( this.assumedGlobals ).forEach( name => used[ name ] = 1 );
+		keys( this.scope.declarations ).forEach( name => used[ name ] = 1 );
 
 		function getSafeName ( name ) {
 			while ( used[ name ] ) {
@@ -147,27 +175,33 @@ export default class Bundle {
 			return name;
 		}
 
+		const toDeshadow = new Map();
+
 		this.externalModules.forEach( module => {
-			module.name = getSafeName( module.name );
+			const safeName = getSafeName( module.name );
+			toDeshadow.set( safeName, true );
+			module.name = safeName;
 
 			// ensure we don't shadow named external imports, if
 			// we're creating an ES6 bundle
 			forOwn( module.declarations, ( declaration, name ) => {
-				declaration.setSafeName( getSafeName( name ) );
+				const safeName = getSafeName( name );
+				toDeshadow.set( safeName, true );
+				declaration.setSafeName( safeName );
 			});
 		});
 
 		this.modules.forEach( module => {
-			forOwn( module.declarations, ( declaration, originalName ) => {
-				if ( declaration.isGlobal ) return;
-
-				if ( originalName === 'default' ) {
-					if ( declaration.original && !declaration.original.isReassigned ) return;
+			forOwn( module.scope.declarations, ( declaration ) => {
+				if ( declaration.isDefault && declaration.declaration.id ) {
+					return;
 				}
 
 				declaration.name = getSafeName( declaration.name );
 			});
 		});
+
+		this.scope.deshadow( toDeshadow );
 	}
 
 	fetchModule ( id, importer ) {
@@ -306,6 +340,7 @@ export default class Bundle {
 
 		this.orderedModules.forEach( module => {
 			const source = module.render( format === 'es' );
+
 			if ( source.toString().length ) {
 				magicString.addSource( source );
 				usedModules.push( module );
