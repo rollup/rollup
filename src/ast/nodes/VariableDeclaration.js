@@ -14,6 +14,8 @@ function getSeparator ( code, start ) {
 	return `;\n${lineStart}`;
 }
 
+const forStatement = /^For(?:Of|In)Statement/;
+
 export default class VariableDeclaration extends Node {
 	initialise ( scope ) {
 		this.scope = scope;
@@ -26,7 +28,7 @@ export default class VariableDeclaration extends Node {
 		let shouldSeparate = false;
 		let separator;
 
-		if ( this.scope.isModuleScope && !/forStatement/.test( this.parent.type ) ) {
+		if ( this.scope.isModuleScope && !forStatement.test( this.parent.type ) ) {
 			shouldSeparate = true;
 			separator = getSeparator( this.module.code, this.start );
 		}
