@@ -3,9 +3,11 @@ import isReference from '../../utils/isReference.js';
 import pureFunctions from './pureFunctions.js';
 import { UNKNOWN } from '../../values.js';
 
+const currentlyCalling = new Set();
+
 function fnHasEffects ( fn ) {
-	if ( fn._calling ) return true; // prevent infinite loops... TODO there must be a better way
-	fn._calling = true;
+	if ( currentlyCalling.has( fn ) ) return true; // prevent infinite loops... TODO there must be a better way
+	currentlyCalling.add( fn );
 
 	// handle body-less arrow functions
 	const scope = fn.body.scope || fn.scope;
@@ -13,12 +15,12 @@ function fnHasEffects ( fn ) {
 
 	for ( const node of body ) {
 		if ( node.hasEffects( scope ) ) {
-			fn._calling = false;
+			currentlyCalling.delete( fn );
 			return true;
 		}
 	}
 
-	fn._calling = false;
+	currentlyCalling.delete( fn );
 	return false;
 }
 
