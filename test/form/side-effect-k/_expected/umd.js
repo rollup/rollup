@@ -5,8 +5,7 @@
 }(this, (function () { 'use strict';
 
 	function augment ( x ) {
-		var prop;
-		var source;
+		var prop, source;
 
 		var i = arguments.length;
 		var sources = Array( i - 1 );

@@ -15,9 +15,21 @@ function getSeparator ( code, start ) {
 }
 
 export default class VariableDeclaration extends Node {
+	initialise ( scope ) {
+		this.scope = scope;
+		super.initialise( scope );
+	}
+
 	render ( code, es ) {
 		const treeshake = this.module.bundle.treeshake;
-		const separator = this.declarations.length ? getSeparator( this.module.code, this.start ) : '';
+
+		let shouldSeparate = false;
+		let separator;
+
+		if ( this.scope.isModuleScope && !/forStatement/.test( this.parent.type ) ) {
+			shouldSeparate = true;
+			separator = getSeparator( this.module.code, this.start );
+		}
 
 		let c = this.start;
 		let empty = true;
@@ -33,12 +45,12 @@ export default class VariableDeclaration extends Node {
 
 				if ( isExportedAndReassigned ) {
 					if ( declarator.init ) {
-						code.overwrite( c, declarator.start, prefix );
+						if ( shouldSeparate ) code.overwrite( c, declarator.start, prefix );
 						c = declarator.end;
 						empty = false;
 					}
 				} else if ( !treeshake || proxy.activated ) {
-					code.overwrite( c, declarator.start, `${prefix}${this.kind} ` ); // TODO indentation
+					if ( shouldSeparate ) code.overwrite( c, declarator.start, `${prefix}${this.kind} ` ); // TODO indentation
 					c = declarator.end;
 					empty = false;
 				}
@@ -63,7 +75,7 @@ export default class VariableDeclaration extends Node {
 				});
 
 				if ( !treeshake || activated ) {
-					code.overwrite( c, declarator.start, `${prefix}${this.kind} ` ); // TODO indentation
+					if ( shouldSeparate ) code.overwrite( c, declarator.start, `${prefix}${this.kind} ` ); // TODO indentation
 					c = declarator.end;
 					empty = false;
 				}
