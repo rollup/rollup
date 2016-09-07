@@ -130,27 +130,21 @@ export default class Bundle {
 					while ( !settled ) {
 						settled = true;
 
-						for ( const expression of this.dependentExpressions ) {
-							if ( expression.isUsedByBundle() ) {
-								const statement = expression.findParent( /ExpressionStatement/ );
+						let i = this.dependentExpressions.length;
+						while ( i-- ) {
+							const expression = this.dependentExpressions[i];
+							const statement = expression.findParent( /ExpressionStatement/ );
 
-								if ( statement && !statement.ran ) {
-									settled = false;
-									statement.run( statement.findScope() );
-								}
+							if ( !statement || statement.ran ) {
+								this.dependentExpressions.splice( i, 1 );
+							} else if ( expression.isUsedByBundle() ) {
+								settled = false;
+								statement.run( statement.findScope() );
+								this.dependentExpressions.splice( i, 1 );
 							}
 						}
 					}
 				}
-
-				// let settled = false;
-				// while ( !settled ) {
-				// 	settled = true;
-				//
-				// 	this.modules.forEach( module => {
-				// 		if ( module.run( this.treeshake ) ) settled = false;
-				// 	});
-				// }
 
 				// Phase 4 – final preparation. We order the modules with an
 				// enhanced topological sort that accounts for cycles, then
