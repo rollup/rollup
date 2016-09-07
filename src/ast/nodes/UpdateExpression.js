@@ -14,7 +14,10 @@ export default class UpdateExpression extends Node {
 		if ( subject.type === 'Identifier' ) {
 			const declaration = scope.findDeclaration( subject.name );
 			declaration.isReassigned = true;
-			declaration.possibleValues.add( NUMBER );
+
+			if ( declaration.possibleValues ) {
+				declaration.possibleValues.add( NUMBER );
+			}
 		}
 
 		super.bind( scope );
