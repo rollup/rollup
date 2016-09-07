@@ -9,6 +9,6 @@ config.plugins.push({
 });
 
 config.format = 'umd';
-config.entry = 'dist/rollup.browser.js';
+config.dest = 'dist/rollup.browser.js';
 
 export default config;
