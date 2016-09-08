@@ -11,12 +11,14 @@ class DeclaratorProxy {
 		this.isReassigned = false;
 		this.exportName = null;
 
+		this.duplicates = [];
 		this.possibleValues = new Set( init ? [ init ] : null );
 	}
 
 	activate () {
 		this.activated = true;
 		this.declarator.activate();
+		this.duplicates.forEach( dupe => dupe.activate() );
 	}
 
 	addReference () {

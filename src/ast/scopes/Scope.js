@@ -1,3 +1,5 @@
+import getLocation from '../../utils/getLocation.js';
+import error from '../../utils/error.js';
 import { blank, keys } from '../../utils/object.js';
 import { UNKNOWN } from '../values.js';
 
@@ -49,7 +51,14 @@ export default class Scope {
 		if ( isVar && this.isBlockScope ) {
 			this.parent.addDeclaration( name, declaration, isVar, isParam );
 		} else {
-			this.declarations[ name ] = isParam ? new Parameter( name ) : declaration;
+			const existingDeclaration = this.declarations[ name ];
+
+			if ( existingDeclaration && existingDeclaration.duplicates ) {
+				// TODO warn/throw on duplicates?
+				existingDeclaration.duplicates.push( declaration );
+			} else {
+				this.declarations[ name ] = isParam ? new Parameter( name ) : declaration;
+			}
 		}
 	}
 
