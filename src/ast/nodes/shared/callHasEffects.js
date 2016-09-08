@@ -6,7 +6,7 @@ import { UNKNOWN } from '../../values.js';
 const currentlyCalling = new Set();
 
 function fnHasEffects ( fn ) {
-	if ( currentlyCalling.has( fn ) ) return true; // prevent infinite loops... TODO there must be a better way
+	if ( currentlyCalling.has( fn ) ) return false; // prevent infinite loops... TODO there must be a better way
 	currentlyCalling.add( fn );
 
 	// handle body-less arrow functions
