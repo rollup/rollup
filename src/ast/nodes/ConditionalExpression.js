@@ -4,13 +4,13 @@ import { UNKNOWN } from '../values.js';
 export default class ConditionalExpression extends Node {
 	initialise ( scope ) {
 		if ( this.module.bundle.treeshake ) {
-			const testValue = this.test.getValue();
+			this.testValue = this.test.getValue();
 
-			if ( testValue === UNKNOWN	 ) {
+			if ( this.testValue === UNKNOWN	 ) {
 				super.initialise( scope );
 			}
 
-			else if ( testValue ) {
+			else if ( this.testValue ) {
 				this.consequent.initialise( scope );
 				this.alternate = null;
 			} else if ( this.alternate ) {
@@ -47,13 +47,11 @@ export default class ConditionalExpression extends Node {
 		}
 
 		else {
-			const testValue = this.test.getValue();
-
-			if ( testValue === UNKNOWN ) {
+			if ( this.testValue === UNKNOWN ) {
 				super.render( code, es );
 			}
 
-			else if ( testValue ) {
+			else if ( this.testValue ) {
 				code.remove( this.start, this.consequent.start );
 				code.remove( this.consequent.end, this.end );
 			} else {

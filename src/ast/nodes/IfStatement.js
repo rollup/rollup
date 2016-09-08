@@ -3,26 +3,6 @@ import { UNKNOWN } from '../values.js';
 
 // TODO DRY this out
 export default class IfStatement extends Node {
-	bind ( scope ) {
-		if ( this.module.bundle.treeshake ) {
-			if ( this.testValue === UNKNOWN ) {
-				super.bind( scope );
-			}
-
-			else if ( this.testValue ) {
-				this.consequent.bind( scope );
-				this.alternate = null;
-			} else if ( this.alternate ) {
-				this.alternate.bind( scope );
-				this.consequent = null;
-			}
-		}
-
-		else {
-			super.bind( scope );
-		}
-	}
-
 	initialise ( scope ) {
 		this.testValue = this.test.getValue();
 
@@ -33,8 +13,10 @@ export default class IfStatement extends Node {
 
 			else if ( this.testValue ) {
 				this.consequent.initialise( scope );
-			} else if ( this.alternate ) {
-				this.alternate.initialise( scope );
+				this.alternate = null;
+			} else {
+				if ( this.alternate ) this.alternate.initialise( scope );
+				this.consequent = null;
 			}
 		}
 
