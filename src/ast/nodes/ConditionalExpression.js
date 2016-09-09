@@ -54,9 +54,11 @@ export default class ConditionalExpression extends Node {
 			else if ( this.testValue ) {
 				code.remove( this.start, this.consequent.start );
 				code.remove( this.consequent.end, this.end );
+				this.consequent.render( code, es );
 			} else {
 				code.remove( this.start, this.alternate.start );
 				code.remove( this.alternate.end, this.end );
+				this.alternate.render( code, es );
 			}
 		}
 	}

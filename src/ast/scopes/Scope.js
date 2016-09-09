@@ -1,5 +1,3 @@
-import getLocation from '../../utils/getLocation.js';
-import error from '../../utils/error.js';
 import { blank, keys } from '../../utils/object.js';
 import { UNKNOWN } from '../values.js';
 
