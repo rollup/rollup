@@ -4,7 +4,7 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	function x () { return 'x' };
+	function x () { return 'x' }
 
 	assert.equal( x(), 'x' );
 

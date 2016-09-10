@@ -7,10 +7,12 @@ import CallExpression from './CallExpression.js';
 import ClassDeclaration from './ClassDeclaration.js';
 import ClassExpression from './ClassExpression.js';
 import ConditionalExpression from './ConditionalExpression.js';
+import EmptyStatement from './EmptyStatement.js';
 import ExportAllDeclaration from './ExportAllDeclaration.js';
 import ExportDefaultDeclaration from './ExportDefaultDeclaration.js';
 import ExportNamedDeclaration from './ExportNamedDeclaration.js';
 import ExpressionStatement from './ExpressionStatement.js';
+import ForStatement from './ForStatement.js';
 import ForInStatement from './ForInStatement.js';
 import ForOfStatement from './ForOfStatement.js';
 import FunctionDeclaration from './FunctionDeclaration.js';
@@ -24,6 +26,7 @@ import NewExpression from './NewExpression.js';
 import ObjectExpression from './ObjectExpression.js';
 import ParenthesizedExpression from './ParenthesizedExpression.js';
 import ReturnStatement from './ReturnStatement.js';
+import Statement from './shared/Statement.js';
 import TemplateLiteral from './TemplateLiteral.js';
 import ThisExpression from './ThisExpression.js';
 import ThrowStatement from './ThrowStatement.js';
@@ -42,10 +45,13 @@ export default {
 	ClassDeclaration,
 	ClassExpression,
 	ConditionalExpression,
+	DoWhileStatement: Statement,
+	EmptyStatement,
 	ExportAllDeclaration,
 	ExportDefaultDeclaration,
 	ExportNamedDeclaration,
 	ExpressionStatement,
+	ForStatement,
 	ForInStatement,
 	ForOfStatement,
 	FunctionDeclaration,
@@ -59,11 +65,14 @@ export default {
 	ObjectExpression,
 	ParenthesizedExpression,
 	ReturnStatement,
+	SwitchStatement: Statement,
 	TemplateLiteral,
 	ThisExpression,
 	ThrowStatement,
+	TryStatement: Statement,
 	UnaryExpression,
 	UpdateExpression,
 	VariableDeclarator,
-	VariableDeclaration
+	VariableDeclaration,
+	WhileStatement: Statement
 };

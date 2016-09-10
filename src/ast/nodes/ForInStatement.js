@@ -4,7 +4,8 @@ import { STRING } from '../values.js';
 
 export default class ForInStatement extends Statement {
 	initialise ( scope ) {
-		super.initialise( scope );
-		assignTo( this.left, scope, STRING );
+		this.body.createScope( scope );
+		super.initialise( this.body.scope );
+		assignTo( this.left, this.body.scope, STRING );
 	}
 }

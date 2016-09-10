@@ -6,6 +6,6 @@ function yar() {
 			console.log('har?');
 		}
 	};
-};
+}
 
 yar.har();

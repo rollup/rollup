@@ -11,8 +11,8 @@ export default class FunctionExpression extends Node {
 		return false;
 	}
 
-	initialise () {
-		this.body.createScope(); // TODO we'll also need to do this for For[Of|In]Statement
+	initialise ( scope ) {
+		this.body.createScope( scope );
 
 		if ( this.id ) this.id.initialise( this.body.scope );
 		this.params.forEach( param => param.initialise( this.body.scope ) );
