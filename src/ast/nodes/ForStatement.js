@@ -1,15 +1,6 @@
 import Statement from './shared/Statement.js';
 
 export default class ForStatement extends Statement {
-	bind () {
-		const scope = this.body.scope;
-
-		this.init.bind( scope );
-		this.test.bind( scope );
-		this.update.bind( scope );
-		this.body.bind( scope );
-	}
-
 	hasEffects () {
 		return super.hasEffects( this.body.scope );
 	}
@@ -19,9 +10,9 @@ export default class ForStatement extends Statement {
 		scope = this.body.scope;
 
 		// can't use super, because we need to control the order
-		this.init.initialise( scope );
-		this.test.initialise( scope );
-		this.update.initialise( scope );
+		if ( this.init ) this.init.initialise( scope );
+		if ( this.test ) this.test.initialise( scope );
+		if ( this.update ) this.update.initialise( scope );
 		this.body.initialise( scope );
 	}
 
