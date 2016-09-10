@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.35.1
+
+* Rewrite deconflicted class identifiers ([#915](https://github.com/rollup/rollup/pull/915))
+* Include `dependencies` in `bundle.modules` objects ([#903](https://github.com/rollup/rollup/issues/903))
+* Update to Acorn 4 ([#914](https://github.com/rollup/rollup/pull/914))
+
 ## 0.35.0
 
 * Rewrite analysis/tree-shaking code ([#902](https://github.com/rollup/rollup/pull/902))
