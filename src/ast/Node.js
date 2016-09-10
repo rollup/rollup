@@ -3,7 +3,7 @@ import getLocation from '../utils/getLocation.js';
 
 export default class Node {
 	bind ( scope ) {
-		this.eachChild( child => child.bind( scope ) );
+		this.eachChild( child => child.bind( this.scope || scope ) );
 	}
 
 	eachChild ( callback ) {
@@ -43,6 +43,8 @@ export default class Node {
 	}
 
 	hasEffects ( scope ) {
+		if ( this.scope ) scope = this.scope;
+
 		for ( const key of this.keys ) {
 			const value = this[ key ];
 
@@ -61,7 +63,7 @@ export default class Node {
 	}
 
 	initialise ( scope ) {
-		this.eachChild( child => child.initialise( scope ) );
+		this.eachChild( child => child.initialise( this.scope || scope ) );
 	}
 
 	locate () {
@@ -82,7 +84,7 @@ export default class Node {
 		this.ran = true;
 
 		this.eachChild( child => {
-			child.run( scope );
+			child.run( this.scope || scope );
 		});
 	}
 
