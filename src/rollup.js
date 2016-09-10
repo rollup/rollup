@@ -61,7 +61,7 @@ export function rollup ( options ) {
 		timeEnd( '--BUILD--' );
 
 		function generate ( options ) {
-			timeStart( '--GENERATE--' )
+			timeStart( '--GENERATE--' );
 
 			const rendered = bundle.render( options );
 
