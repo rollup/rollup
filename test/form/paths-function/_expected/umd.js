@@ -1,6 +1,6 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('https://npmcdn.com/foo')) :
-	typeof define === 'function' && define.amd ? define(['https://npmcdn.com/foo'], factory) :
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('https://unpkg.com/foo')) :
+	typeof define === 'function' && define.amd ? define(['https://unpkg.com/foo'], factory) :
 	(factory(global.foo));
 }(this, (function (foo) { 'use strict';
 
