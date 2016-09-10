@@ -315,6 +315,7 @@ export default class Module {
 	toJSON () {
 		return {
 			id: this.id,
+			dependencies: this.dependencies.map( module => module.id ),
 			code: this.code,
 			originalCode: this.originalCode,
 			ast: this.astClone,
