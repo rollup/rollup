@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 0.35.0
+
+* Rewrite analysis/tree-shaking code ([#902](https://github.com/rollup/rollup/pull/902))
+* Include conditional mutations of global objects ([#901](https://github.com/rollup/rollup/issues/901))
+* Only reify namespaces if necessary ([#898](https://github.com/rollup/rollup/issues/898))
+* Track mutations of aliased globals ([#893](https://github.com/rollup/rollup/issues/893))
+* Include duplicated var declarations ([#716](https://github.com/rollup/rollup/issues/716))
+
 ## 0.34.13
 
 * Pass `{ format }` through to `transformBundle` ([#867](https://github.com/rollup/rollup/issues/867))
