@@ -18,7 +18,7 @@ export default class ClassDeclaration extends Node {
 	}
 
 	getName () {
-		return this.id.name;
+		return this.name;
 	}
 
 	hasEffects () {
@@ -26,7 +26,9 @@ export default class ClassDeclaration extends Node {
 	}
 
 	initialise ( scope ) {
-		scope.addDeclaration( this.id.name, this, false, false );
+		this.name = this.id.name;
+
+		scope.addDeclaration( this.name, this, false, false );
 		super.initialise( scope );
 	}
 
