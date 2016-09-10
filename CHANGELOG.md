@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.35.4
+
+* Preserve effects in for-of and for-in loops ([#870](https://github.com/rollup/rollup/issues/870))
+* Remove empty statements ([#918](https://github.com/rollup/rollup/pull/918))
+
 ## 0.35.3
 
 * Render identifiers inside template literals
