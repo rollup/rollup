@@ -36,11 +36,11 @@ export default class FunctionDeclaration extends Node {
 		this.name = this.id.name; // may be overridden by bundle.deconflict
 		scope.addDeclaration( this.name, this, false, false );
 
-		this.body.createScope();
+		this.body.createScope( scope );
 
 		this.id.initialise( scope );
 		this.params.forEach( param => param.initialise( this.body.scope ) );
-		this.body.initialise( scope );
+		this.body.initialise();
 	}
 
 	render ( code, es ) {

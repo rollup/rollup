@@ -4,7 +4,8 @@ import { UNKNOWN } from '../values.js';
 
 export default class ForOfStatement extends Statement {
 	initialise ( scope ) {
-		super.initialise( scope );
-		assignTo( this.left, scope, UNKNOWN );
+		this.body.createScope( scope );
+		super.initialise( this.body.scope );
+		assignTo( this.left, this.body.scope, UNKNOWN );
 	}
 }

@@ -1,8 +1,8 @@
-import Node from '../Node.js';
+import Statement from './shared/Statement.js';
 import Scope from '../scopes/Scope.js';
 import extractNames from '../utils/extractNames.js';
 
-export default class BlockStatement extends Node {
+export default class BlockStatement extends Statement {
 	bind () {
 		for ( const node of this.body ) {
 			node.bind( this.scope );
@@ -14,9 +14,9 @@ export default class BlockStatement extends Node {
 		this.isFunctionBlock = this.parentIsFunction || this.parent.type === 'Module';
 
 		this.scope = new Scope({
+			parent,
 			isBlockScope: !this.isFunctionBlock,
 			isLexicalBoundary: this.isFunctionBlock && this.parent.type !== 'ArrowFunctionExpression',
-			parent: parent || this.parent.findScope( false ), // TODO always supply parent
 			owner: this // TODO is this used anywhere?
 		});
 
@@ -35,14 +35,8 @@ export default class BlockStatement extends Node {
 		return functionScope && !this.isFunctionBlock ? this.parent.findScope( functionScope ) : this.scope;
 	}
 
-	hasEffects () {
-		for ( const node of this.body ) {
-			if ( node.hasEffects( this.scope ) ) return true;
-		}
-	}
-
-	initialise () {
-		if ( !this.scope ) this.createScope(); // scope can be created early in some cases, e.g for (let i... )
+	initialise ( scope ) {
+		if ( !this.scope ) this.createScope( scope ); // scope can be created early in some cases, e.g for (let i... )
 
 		let lastNode;
 		for ( const node of this.body ) {
@@ -50,22 +44,6 @@ export default class BlockStatement extends Node {
 
 			if ( lastNode ) lastNode.next = node.start;
 			lastNode = node;
-		}
-	}
-
-	render ( code, es ) {
-		for ( const node of this.body ) {
-			node.render( code, es );
-		}
-	}
-
-	run () {
-		if ( this.ran ) return;
-		this.ran = true;
-
-		for ( const node of this.body ) {
-			// TODO only include non-top-level statements if necessary
-			node.run( this.scope );
 		}
 	}
 }

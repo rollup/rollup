@@ -35,11 +35,13 @@ export default class AssignmentExpression extends Node {
 	}
 
 	initialise ( scope ) {
+		this.scope = scope;
+
 		this.module.bundle.dependentExpressions.push( this );
 		super.initialise( scope );
 	}
 
 	isUsedByBundle () {
-		return isUsedByBundle( this.findScope(), this.subject );
+		return isUsedByBundle( this.scope, this.subject );
 	}
 }
