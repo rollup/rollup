@@ -1,3 +1,4 @@
+import { timeStart, timeEnd } from './utils/flushTime.js';
 import { parse } from 'acorn/src/index.js';
 import MagicString from 'magic-string';
 import { assign, blank, deepClone, keys } from './utils/object.js';
@@ -34,8 +35,13 @@ export default class Module {
 		this.sourceMapChain = sourceMapChain;
 
 		this.comments = [];
+
+		timeStart( 'ast' );
+
 		this.ast = ast || tryParse( code, this.comments, bundle.acornOptions, id ); // TODO what happens to comments if AST is provided?
 		this.astClone = deepClone( this.ast );
+
+		timeEnd( 'ast' );
 
 		this.bundle = bundle;
 		this.id = id;
@@ -72,7 +78,12 @@ export default class Module {
 		this.declarations = blank();
 		this.type = 'Module'; // TODO only necessary so that Scope knows this should be treated as a function scope... messy
 		this.scope = new ModuleScope( this );
+
+		timeStart( 'analyse' );
+
 		this.analyse();
+
+		timeEnd( 'analyse' );
 
 		this.strongDependencies = [];
 	}

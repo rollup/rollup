@@ -1,3 +1,4 @@
+import { timeStart, timeEnd, flushTime } from './utils/flushTime.js';
 import { basename } from './utils/path.js';
 import { writeFile } from './utils/fs.js';
 import { assign, keys } from './utils/object.js';
@@ -54,9 +55,17 @@ export function rollup ( options ) {
 
 	const bundle = new Bundle( options );
 
+	timeStart( '--BUILD--' );
+
 	return bundle.build().then( () => {
+		timeEnd( '--BUILD--' );
+
 		function generate ( options ) {
+			timeStart( '--GENERATE--' )
+
 			const rendered = bundle.render( options );
+
+			timeEnd( '--GENERATE--' );
 
 			bundle.plugins.forEach( plugin => {
 				if ( plugin.ongenerate ) {
@@ -65,6 +74,8 @@ export function rollup ( options ) {
 					}, options ), rendered);
 				}
 			});
+
+			flushTime();
 
 			return rendered;
 		}
