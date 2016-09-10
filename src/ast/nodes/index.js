@@ -11,6 +11,8 @@ import ExportAllDeclaration from './ExportAllDeclaration.js';
 import ExportDefaultDeclaration from './ExportDefaultDeclaration.js';
 import ExportNamedDeclaration from './ExportNamedDeclaration.js';
 import ExpressionStatement from './ExpressionStatement.js';
+import ForInStatement from './ForInStatement.js';
+import ForOfStatement from './ForOfStatement.js';
 import FunctionDeclaration from './FunctionDeclaration.js';
 import FunctionExpression from './FunctionExpression.js';
 import Identifier from './Identifier.js';
@@ -43,6 +45,8 @@ export default {
 	ExportDefaultDeclaration,
 	ExportNamedDeclaration,
 	ExpressionStatement,
+	ForInStatement,
+	ForOfStatement,
 	FunctionDeclaration,
 	FunctionExpression,
 	Identifier,
