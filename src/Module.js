@@ -70,7 +70,7 @@ export default class Module {
 		}
 
 		this.declarations = blank();
-		this.type === 'Module'; // TODO only necessary so that Scope knows this should be treated as a function scope... messy
+		this.type = 'Module'; // TODO only necessary so that Scope knows this should be treated as a function scope... messy
 		this.scope = new ModuleScope( this );
 		this.analyse();
 
