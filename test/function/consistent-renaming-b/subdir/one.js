@@ -1,5 +1,5 @@
 import { two } from '../altdir/two';
 
 export default function one () {
-  return two() - 1;
+	return two() - 1;
 }

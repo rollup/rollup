@@ -6,6 +6,7 @@ const sander = require( 'sander' );
 const assert = require( 'assert' );
 const { exec } = require( 'child_process' );
 const buble = require( 'buble' );
+const acorn = require( 'acorn' );
 const rollup = require( '../dist/rollup' );
 
 const FUNCTION = path.resolve( __dirname, 'function' );
@@ -90,6 +91,15 @@ describe( 'rollup', function () {
 				throw new Error( 'Missing expected error' );
 			}, err => {
 				assert.equal( err.message, 'Unexpected key \'plUgins\' found, expected one of: acorn, banner, cache, context, dest, entry, exports, external, footer, format, globals, indent, intro, moduleId, moduleName, noConflict, onwarn, outro, paths, plugins, preferConst, sourceMap, sourceMapFile, targets, treeshake, useStrict' );
+			});
+		});
+
+		it( 'treats Literals as leaf nodes, even if first literal encountered is null', () => {
+			// this test has to be up here, otherwise the bug doesn't have
+			// an opportunity to present itself
+			return rollup.rollup({
+				entry: 'x',
+				plugins: [ loader({ x: `var a = null; a = 'a string';` }) ]
 			});
 		});
 	});
@@ -243,14 +253,14 @@ describe( 'rollup', function () {
 							}
 						}
 
+						if ( config.show || unintendedError ) {
+							console.log( result.code + '\n\n\n' );
+						}
+
 						if ( config.warnings ) {
 							config.warnings( warnings );
 						} else if ( warnings.length ) {
 							throw new Error( `Got unexpected warnings:\n${warnings.join('\n')}` );
-						}
-
-						if ( config.show || unintendedError ) {
-							console.log( code + '\n\n\n' );
 						}
 
 						if ( config.solo ) console.groupEnd();
@@ -291,11 +301,12 @@ describe( 'rollup', function () {
 			}, config.options );
 
 			( config.skip ? describe.skip : config.solo ? describe.only : describe )( dir, () => {
-				const promise = rollup.rollup( options );
+				let promise;
+				const createBundle = () => ( promise || ( promise = rollup.rollup( options ) ) );
 
 				PROFILES.forEach( profile => {
 					it( 'generates ' + profile.format, () => {
-						return promise.then( bundle => {
+						return createBundle().then( bundle => {
 							const options = extend( {}, config.options, {
 								dest: FORM + '/' + dir + '/_actual/' + profile.format + '.js',
 								format: profile.format
@@ -584,6 +595,21 @@ describe( 'rollup', function () {
 			}).then( bundle => {
 				assert.equal( resolveIdCalls, 4 );
 				assert.equal( executeBundle( bundle ), 21 );
+			});
+		});
+
+		it( 'keeps ASTs between runs', () => {
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [ plugin ]
+			}).then( bundle => {
+				const asts = {};
+				bundle.modules.forEach( module => {
+					asts[ module.id ] = module.ast;
+				});
+
+				assert.deepEqual( asts.entry, acorn.parse( modules.entry, { sourceType: 'module' }) );
+				assert.deepEqual( asts.foo, acorn.parse( modules.foo, { sourceType: 'module' }) );
 			});
 		});
 	});

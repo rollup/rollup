@@ -22,7 +22,14 @@ export default {
 	entry: 'src/rollup.js',
 	plugins: [
 		buble({
-			include: [ 'src/**', 'node_modules/acorn/**' ]
+			include: [ 'node_modules/acorn/**' ]
+		}),
+
+		buble({
+			include: [ 'src/**' ],
+			target: {
+				node: 4
+			}
 		}),
 
 		nodeResolve({
