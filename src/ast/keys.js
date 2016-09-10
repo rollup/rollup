@@ -1,3 +1,4 @@
 export default {
-	Program: [ 'body' ]
+	Program: [ 'body' ],
+	Literal: []
 };

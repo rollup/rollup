@@ -93,6 +93,15 @@ describe( 'rollup', function () {
 				assert.equal( err.message, 'Unexpected key \'plUgins\' found, expected one of: acorn, banner, cache, context, dest, entry, exports, external, footer, format, globals, indent, intro, moduleId, moduleName, noConflict, onwarn, outro, paths, plugins, preferConst, sourceMap, sourceMapFile, targets, treeshake, useStrict' );
 			});
 		});
+
+		it( 'treats Literals as leaf nodes, even if first literal encountered is null', () => {
+			// this test has to be up here, otherwise the bug doesn't have
+			// an opportunity to present itself
+			return rollup.rollup({
+				entry: 'x',
+				plugins: [ loader({ x: `var a = null; a = 'a string';` }) ]
+			});
+		});
 	});
 
 	describe( 'bundle.write()', () => {
