@@ -11,6 +11,8 @@ import ExportAllDeclaration from './ExportAllDeclaration.js';
 import ExportDefaultDeclaration from './ExportDefaultDeclaration.js';
 import ExportNamedDeclaration from './ExportNamedDeclaration.js';
 import ExpressionStatement from './ExpressionStatement.js';
+import ForInStatement from './ForInStatement.js';
+import ForOfStatement from './ForOfStatement.js';
 import FunctionDeclaration from './FunctionDeclaration.js';
 import FunctionExpression from './FunctionExpression.js';
 import Identifier from './Identifier.js';
@@ -24,6 +26,7 @@ import ParenthesizedExpression from './ParenthesizedExpression.js';
 import ReturnStatement from './ReturnStatement.js';
 import TemplateLiteral from './TemplateLiteral.js';
 import ThisExpression from './ThisExpression.js';
+import ThrowStatement from './ThrowStatement.js';
 import UnaryExpression from './UnaryExpression.js';
 import UpdateExpression from './UpdateExpression.js';
 import VariableDeclarator from './VariableDeclarator.js';
@@ -43,6 +46,8 @@ export default {
 	ExportDefaultDeclaration,
 	ExportNamedDeclaration,
 	ExpressionStatement,
+	ForInStatement,
+	ForOfStatement,
 	FunctionDeclaration,
 	FunctionExpression,
 	Identifier,
@@ -56,6 +61,7 @@ export default {
 	ReturnStatement,
 	TemplateLiteral,
 	ThisExpression,
+	ThrowStatement,
 	UnaryExpression,
 	UpdateExpression,
 	VariableDeclarator,
