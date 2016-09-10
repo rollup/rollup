@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.35.3
+
+* Render identifiers inside template literals
+
 ## 0.35.2
 
 * Fix broken build caused by out of date locally installed dependencies
