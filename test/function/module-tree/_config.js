@@ -13,16 +13,16 @@ module.exports = {
 
 		assert.deepEqual( modules, [
 			{
-				id: path.normalize('nested/qux.js'),
+				id: path.normalize( 'nested/qux.js' ),
 				dependencies: []
 			},
 			{
-				id: path.normalize('nested/baz.js'),
-				dependencies: [ path.normalize('nested/qux.js') ]
+				id: path.normalize( 'nested/baz.js' ),
+				dependencies: [ path.normalize( 'nested/qux.js' ) ]
 			},
 			{
 				id: 'bar.js',
-				dependencies: [ path.normalize('nested/baz.js') ]
+				dependencies: [ path.normalize( 'nested/baz.js' ) ]
 			},
 			{
 				id: 'foo.js',
