@@ -18,6 +18,7 @@ export default class ArrowFunctionExpression extends Node {
 	initialise ( scope ) {
 		if ( this.body.type === 'BlockStatement' ) {
 			this.body.createScope( scope );
+			this.scope = this.body.scope;
 		} else {
 			this.scope = new Scope({
 				parent: scope,
@@ -32,7 +33,6 @@ export default class ArrowFunctionExpression extends Node {
 			}
 		}
 
-		scope = this.scope || this.body.scope;
-		super.initialise( scope );
+		super.initialise( this.scope );
 	}
 }
