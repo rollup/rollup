@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.35.5
+
+* Allow empty for loop heads ([#919](https://github.com/rollup/rollup/issues/919))
+
 ## 0.35.4
 
 * Preserve effects in for-of and for-in loops ([#870](https://github.com/rollup/rollup/issues/870))
