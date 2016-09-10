@@ -1,8 +1,8 @@
-import Node from '../Node.js';
+import Statement from './shared/Statement.js';
 import { UNKNOWN } from '../values.js';
 
 // TODO DRY this out
-export default class IfStatement extends Node {
+export default class IfStatement extends Statement {
 	initialise ( scope ) {
 		this.testValue = this.test.getValue();
 

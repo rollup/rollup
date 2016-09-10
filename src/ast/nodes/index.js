@@ -26,6 +26,7 @@ import ParenthesizedExpression from './ParenthesizedExpression.js';
 import ReturnStatement from './ReturnStatement.js';
 import TemplateLiteral from './TemplateLiteral.js';
 import ThisExpression from './ThisExpression.js';
+import ThrowStatement from './ThrowStatement.js';
 import UnaryExpression from './UnaryExpression.js';
 import UpdateExpression from './UpdateExpression.js';
 import VariableDeclarator from './VariableDeclarator.js';
@@ -60,6 +61,7 @@ export default {
 	ReturnStatement,
 	TemplateLiteral,
 	ThisExpression,
+	ThrowStatement,
 	UnaryExpression,
 	UpdateExpression,
 	VariableDeclarator,

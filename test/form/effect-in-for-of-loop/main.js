@@ -1,23 +1,25 @@
 const items = [{}, {}, {}];
 
-function x () {
-	for ( const item of items.children ) {
-		item.foo = 'bar';
-	}
+for ( const a of items.children ) {
+	a.foo = 'a';
 }
 
-x();
-
-function y () {
-	for ( const item of items.children ) {
-		// do nothing
-	}
+for ( const b of items.children ) {
+	// do nothing
 }
 
-y();
+let c;
+for ( c of items.children ) {
+	c.bar = 'c';
+}
+
+let d;
+for ( d of items.children ) {
+	// do nothing
+}
 
 assert.deepEqual( items, [
-	{ foo: 'bar' },
-	{ foo: 'bar' },
-	{ foo: 'bar' }
+	{ foo: 'a', bar: 'c' },
+	{ foo: 'a', bar: 'c' },
+	{ foo: 'a', bar: 'c' }
 ]);
