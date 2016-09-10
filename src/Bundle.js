@@ -1,3 +1,4 @@
+import { timeStart, timeEnd } from './utils/flushTime.js';
 import { decode } from 'sourcemap-codec';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import first from './utils/first.js';
@@ -102,11 +103,18 @@ export default class Bundle {
 
 				// Phase 2 – binding. We link references to their declarations
 				// to generate a complete picture of the bundle
+
+				timeStart( 'phase 2' );
+
 				this.modules.forEach( module => module.bindImportSpecifiers() );
 				this.modules.forEach( module => module.bindReferences() );
 
+				timeEnd( 'phase 2' );
+
 				// Phase 3 – marking. We 'run' each statement to see which ones
 				// need to be included in the generated bundle
+
+				timeStart( 'phase 3' );
 
 				// mark all export statements
 				entryModule.getExports().forEach( name => {
@@ -146,11 +154,18 @@ export default class Bundle {
 					}
 				}
 
+				timeEnd( 'phase 3' );
+
 				// Phase 4 – final preparation. We order the modules with an
 				// enhanced topological sort that accounts for cycles, then
 				// ensure that names are deconflicted throughout the bundle
+
+				timeStart( 'phase 4' );
+
 				this.orderedModules = this.sort();
 				this.deconflict();
+
+				timeEnd( 'phase 4' );
 			});
 	}
 
@@ -332,6 +347,8 @@ export default class Bundle {
 		let magicString = new MagicStringBundle({ separator: '\n\n' });
 		const usedModules = [];
 
+		timeStart( 'render modules' );
+
 		this.orderedModules.forEach( module => {
 			const source = module.render( format === 'es' );
 
@@ -340,6 +357,8 @@ export default class Bundle {
 				usedModules.push( module );
 			}
 		});
+
+		timeEnd( 'render modules' );
 
 		let intro = [ options.intro ]
 			.concat(
@@ -355,7 +374,11 @@ export default class Bundle {
 		const finalise = finalisers[ format ];
 		if ( !finalise ) throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
 
+		timeStart( 'render format' );
+
 		magicString = finalise( this, magicString.trim(), { exportMode, indentString, intro }, options );
+
+		timeEnd( 'render format' );
 
 		const banner = [ options.banner ]
 			.concat( this.plugins.map( plugin => plugin.banner ) )
@@ -380,6 +403,8 @@ export default class Bundle {
 			.replace( new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' ), '' );
 
 		if ( options.sourceMap ) {
+			timeStart( 'sourceMap' );
+
 			let file = options.sourceMapFile || options.dest;
 			if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
 
@@ -394,6 +419,8 @@ export default class Bundle {
 			}
 
 			map.sources = map.sources.map( normalize );
+
+			timeEnd( 'sourceMap' );
 		}
 
 		return { code, map };
