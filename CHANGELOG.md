@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.35.2
+
+* Fix broken build caused by out of date locally installed dependencies
+
 ## 0.35.1
 
 * Rewrite deconflicted class identifiers ([#915](https://github.com/rollup/rollup/pull/915))
