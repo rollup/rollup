@@ -1,19 +1,25 @@
 const DEBUG = false;
 const map = new Map;
 
-let time;
+let timeStartHelper;
+let timeEndHelper;
 
 if ( typeof process === 'undefined' ) {
-	time = function time ( previous ) {
-		const now = window.performance.now();
-		return previous ? previous - now : now;
+	timeStartHelper = function timeStartHelper () {
+		return window.performance.now();
+	};
+
+	timeEndHelper = function timeEndHelper ( previous ) {
+		return window.performance.now() - previous;
 	};
 } else {
-	time = function time ( previous ) {
+	timeStartHelper = function timeStartHelper () {
+		return process.hrtime();
+	};
+
+	timeEndHelper = function timeEndHelper ( previous ) {
 		const hrtime = process.hrtime( previous );
-		if ( previous ) {
-			return hrtime[0] * 1e3 + hrtime[1] / 1e6;
-		}
+		return hrtime[0] * 1e3 + hrtime[1] / 1e6;
 	};
 }
 
@@ -23,13 +29,13 @@ export function timeStart ( label ) {
 			time: 0
 		});
 	}
-	map.get( label ).start = time();
+	map.get( label ).start = timeStartHelper();
 }
 
 export function timeEnd ( label ) {
 	if ( map.has( label ) ) {
 		const item = map.get( label );
-		item.time += time( item.start );
+		item.time += timeEndHelper( item.start );
 	}
 }
 
