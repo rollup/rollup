@@ -19,14 +19,15 @@ export default class ModuleScope extends Scope {
 		forOwn( this.module.imports, specifier => {
 			if ( specifier.module.isExternal ) return;
 
-			if ( specifier.name === '*' ) {
-				specifier.module.getExports().forEach( name => {
-					names.set( name, true );
-				});
-			} else {
+			specifier.module.getExports().forEach( name => {
+				names.set(name);
+			});
+			if ( specifier.name !== '*' ) {
 				const declaration = specifier.module.traceExport( specifier.name );
 				const name = declaration.getName( true );
-				if ( name !== specifier.name ) names.set( declaration.getName( true ) );
+				if ( name !== specifier.name ) {
+					names.set(declaration.getName( true ));
+				}
 			}
 		});
 
