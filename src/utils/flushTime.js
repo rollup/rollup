@@ -19,7 +19,7 @@ if ( typeof process === 'undefined' ) {
 
 	timeEndHelper = function timeEndHelper ( previous ) {
 		const hrtime = process.hrtime( previous );
-		return hrtime[0] * 1e3 + hrtime[1] / 1e6;
+		return hrtime[0] * 1e3 + Math.floor( hrtime[1] / 1e6 );
 	};
 }
 
