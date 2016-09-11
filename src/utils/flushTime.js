@@ -1,7 +1,8 @@
 const DEBUG = false;
 const map = new Map;
 
-let time, toMilliseconds;
+let time;
+let toMilliseconds;
 
 if ( typeof process === 'undefined' ) {
 	time = function time ( previous ) {
@@ -11,7 +12,7 @@ if ( typeof process === 'undefined' ) {
 
 	toMilliseconds = function toMilliseconds ( time ) {
 		return time;
-	}
+	};
 } else {
 	time = function time ( previous ) {
 		return previous === undefined ? process.hrtime() : process.hrtime( previous );
@@ -19,7 +20,7 @@ if ( typeof process === 'undefined' ) {
 
 	toMilliseconds = function toMilliseconds ( time ) {
 		return time[0] * 1e3 + time[1] / 1e6;
-	}
+	};
 }
 
 export function timeStart ( label ) {
