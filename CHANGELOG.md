@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.35.8
+
+* Correctly deshadow re-assigned module functions ([#910](https://github.com/rollup/rollup/issues/910))
+
 ## 0.35.7
 
 * Refactor `flushTime.js` ([#922](https://github.com/rollup/rollup/pull/922))

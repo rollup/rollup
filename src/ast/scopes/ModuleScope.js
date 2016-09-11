@@ -26,7 +26,7 @@ export default class ModuleScope extends Scope {
 				const declaration = specifier.module.traceExport( specifier.name );
 				const name = declaration.getName( true );
 				if ( name !== specifier.name ) {
-					names.set(declaration.getName( true ));
+					names.set( declaration.getName( true ) );
 				}
 			}
 		});
