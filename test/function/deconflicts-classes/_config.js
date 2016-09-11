@@ -1,3 +1,4 @@
 module.exports = {
-	description: 'deconflicts top-level classes'
+	description: 'deconflicts top-level classes',
+	buble: true
 };

@@ -24,7 +24,7 @@ export default {
 		buble({
 			include: [ 'src/**', 'node_modules/acorn/**' ],
 			target: {
-				node: 4
+				node: '0.12'
 			}
 		}),
 
