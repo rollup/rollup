@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.35.6
+
+* Fix browser build
+
 ## 0.35.5
 
 * Allow empty for loop heads ([#919](https://github.com/rollup/rollup/issues/919))
