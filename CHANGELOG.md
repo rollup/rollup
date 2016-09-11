@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.35.7
+
+* Refactor `flushTime.js` ([#922](https://github.com/rollup/rollup/pull/922))
+
 ## 0.35.6
 
 * Fix browser build
