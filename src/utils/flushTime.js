@@ -10,7 +10,7 @@ if ( typeof process === 'undefined' ) {
 	};
 } else {
 	time = function time ( previous ) {
-		const hrtime = process.hrtime( previous );
+		const hrtime = previous === undefined ? process.hrtime() : process.hrtime( previous );
 		if ( previous ) {
 			return hrtime[0] * 1e3 + hrtime[1] / 1e6;
 		}
