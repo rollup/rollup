@@ -1,20 +1,25 @@
 const DEBUG = false;
 const map = new Map;
 
-let time;
+let time, toMilliseconds;
 
 if ( typeof process === 'undefined' ) {
 	time = function time ( previous ) {
 		const now = window.performance.now();
 		return previous ? previous - now : now;
 	};
+
+	toMilliseconds = function toMilliseconds ( time ) {
+		return time;
+	}
 } else {
 	time = function time ( previous ) {
-		if ( previous ) {
-			const hrtime = process.hrtime( previous );
-			return hrtime[0] * 1e3 + hrtime[1] / 1e6;
-		}
+		return previous === undefined ? process.hrtime() : process.hrtime( previous );
 	};
+
+	toMilliseconds = function toMilliseconds ( time ) {
+		return time[0] * 1e3 + time[1] / 1e6;
+	}
 }
 
 export function timeStart ( label ) {
@@ -29,7 +34,7 @@ export function timeStart ( label ) {
 export function timeEnd ( label ) {
 	if ( map.has( label ) ) {
 		const item = map.get( label );
-		item.time += time( item.start );
+		item.time += toMilliseconds( time( item.start ) );
 	}
 }
 
