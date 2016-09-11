@@ -10,8 +10,8 @@ if ( typeof process === 'undefined' ) {
 	};
 } else {
 	time = function time ( previous ) {
-		const hrtime = process.hrtime( previous );
 		if ( previous ) {
+			const hrtime = process.hrtime( previous );
 			return hrtime[0] * 1e3 + hrtime[1] / 1e6;
 		}
 	};
