@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.35.9
+
+* Support Node 0.12 ([#909](https://github.com/rollup/rollup/issues/909))
+
 ## 0.35.8
 
 * Correctly deshadow re-assigned module functions ([#910](https://github.com/rollup/rollup/issues/910))
