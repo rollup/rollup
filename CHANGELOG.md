@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.35.10
+
+* Only remove EmptyStatement nodes directly inside blocks ([#913](https://github.com/rollup/rollup/issues/931))
+
 ## 0.35.9
 
 * Support Node 0.12 ([#909](https://github.com/rollup/rollup/issues/909))
