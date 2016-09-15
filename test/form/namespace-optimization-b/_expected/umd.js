@@ -4,13 +4,13 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	function foo$1 () {
+	function foo () {
 		console.log( 'foo' );
 	}
 
 	function a () {
-		foo$1();
-		foo$1();
+		foo();
+		foo();
 
 		var a;
 		if ( a.b ) {
