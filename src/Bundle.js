@@ -208,6 +208,15 @@ export default class Bundle {
 
 				declaration.name = getSafeName( declaration.name );
 			});
+			// special case - for `import * as Foo`, we need to make sure that Foo
+			// gets its own variable because it will eventually be rendered as
+			// `var Foo = Object.freeze(...)`
+			forOwn( module.imports, ( importee, importeeName ) => {
+				if ( importee.name === '*' ) {
+					delete module.imports[ importeeName ];
+					module.imports[ getSafeName(importeeName) ] = importee;
+				}
+			});
 		});
 
 		this.scope.deshadow( toDeshadow );
