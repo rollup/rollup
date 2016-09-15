@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.35.11
+
+* Deconflict reified namespaces with other declarations ([#910](https://github.com/rollup/rollup/issues/910))
+
 ## 0.35.10
 
 * Only remove EmptyStatement nodes directly inside blocks ([#913](https://github.com/rollup/rollup/issues/931))
