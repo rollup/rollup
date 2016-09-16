@@ -49,7 +49,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock( bundle );
+	const interopBlock = getInteropBlock( bundle, options );
 	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
 
 	if ( intro ) magicString.prepend( intro );

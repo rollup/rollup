@@ -22,6 +22,7 @@ const ALLOWED_KEYS = [
 	'format',
 	'globals',
 	'indent',
+	'interop',
 	'intro',
 	'moduleId',
 	'moduleName',

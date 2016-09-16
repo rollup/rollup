@@ -66,7 +66,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 		`.replace( /^\t\t/gm, '' ).replace( /^\t/gm, magicString.getIndentString() );
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock( bundle );
+	const interopBlock = getInteropBlock( bundle, options );
 	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
 
 	if ( intro ) magicString.prepend( intro );

@@ -1,7 +1,7 @@
-export default function getInteropBlock ( bundle ) {
+export default function getInteropBlock ( bundle, options ) {
 	return bundle.externalModules
 		.map( module => {
-			if ( !module.declarations.default ) return null;
+			if ( !module.declarations.default || options.interop === false ) return null;
 
 			if ( module.exportsNamespace ) {
 				return `${bundle.varOrConst} ${module.name}__default = ${module.name}['default'];`;
