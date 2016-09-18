@@ -2,7 +2,6 @@ const path = require( 'path' );
 const assert = require( 'assert' );
 
 module.exports = {
-	solo: true,
 	description: 'warns on missing (but unused) imports',
 	warnings: warnings => {
 		assert.deepEqual( warnings, [
