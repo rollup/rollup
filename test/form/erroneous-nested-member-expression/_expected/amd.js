@@ -6,7 +6,7 @@ define(function () { 'use strict';
 				console.log('har?');
 			}
 		};
-	};
+	}
 
 	yar.har();
 

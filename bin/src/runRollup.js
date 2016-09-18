@@ -1,9 +1,8 @@
 import { realpathSync } from 'fs';
+import * as rollup from 'rollup';
 import relative from 'require-relative';
 import handleError from './handleError';
 import SOURCEMAPPING_URL from './sourceMappingUrl.js';
-
-const rollup = require( '../dist/rollup.js' ); // TODO make this an import, somehow
 
 import { install as installSourcemapSupport } from 'source-map-support';
 installSourcemapSupport();

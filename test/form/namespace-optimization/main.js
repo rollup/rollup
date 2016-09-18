@@ -1,3 +1,3 @@
 import * as foo from './foo';
 
-foo.bar.quux.a();
+console.log( foo.bar.quux.a() );

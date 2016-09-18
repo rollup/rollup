@@ -1,5 +1,91 @@
 # rollup changelog
 
+## 0.35.15
+
+* Warn on missing unused imports in deshadowing phase ([#928](https://github.com/rollup/rollup/issues/928))
+* Always add a newline to the end of bundles ([#958](https://github.com/rollup/rollup/issues/958))
+
+## 0.35.14
+
+* Include all parent statements of expression with effects, up to function boundary ([#930](https://github.com/rollup/rollup/issues/930))
+
+## 0.35.13
+
+* Include superclasses when including their subclasses ([#932](https://github.com/rollup/rollup/issues/932))
+
+## 0.35.12
+
+* Add `interop: false` option to disable unwrapping of external imports ([#939](https://github.com/rollup/rollup/issues/939))
+
+## 0.35.11
+
+* Deconflict reified namespaces with other declarations ([#910](https://github.com/rollup/rollup/issues/910))
+
+## 0.35.10
+
+* Only remove EmptyStatement nodes directly inside blocks ([#913](https://github.com/rollup/rollup/issues/931))
+
+## 0.35.9
+
+* Support Node 0.12 ([#909](https://github.com/rollup/rollup/issues/909))
+
+## 0.35.8
+
+* Correctly deshadow re-assigned module functions ([#910](https://github.com/rollup/rollup/issues/910))
+
+## 0.35.7
+
+* Refactor `flushTime.js` ([#922](https://github.com/rollup/rollup/pull/922))
+
+## 0.35.6
+
+* Fix browser build
+
+## 0.35.5
+
+* Allow empty for loop heads ([#919](https://github.com/rollup/rollup/issues/919))
+
+## 0.35.4
+
+* Preserve effects in for-of and for-in loops ([#870](https://github.com/rollup/rollup/issues/870))
+* Remove empty statements ([#918](https://github.com/rollup/rollup/pull/918))
+
+## 0.35.3
+
+* Render identifiers inside template literals
+
+## 0.35.2
+
+* Fix broken build caused by out of date locally installed dependencies
+
+## 0.35.1
+
+* Rewrite deconflicted class identifiers ([#915](https://github.com/rollup/rollup/pull/915))
+* Include `dependencies` in `bundle.modules` objects ([#903](https://github.com/rollup/rollup/issues/903))
+* Update to Acorn 4 ([#914](https://github.com/rollup/rollup/pull/914))
+
+## 0.35.0
+
+* Rewrite analysis/tree-shaking code ([#902](https://github.com/rollup/rollup/pull/902))
+* Include conditional mutations of global objects ([#901](https://github.com/rollup/rollup/issues/901))
+* Only reify namespaces if necessary ([#898](https://github.com/rollup/rollup/issues/898))
+* Track mutations of aliased globals ([#893](https://github.com/rollup/rollup/issues/893))
+* Include duplicated var declarations ([#716](https://github.com/rollup/rollup/issues/716))
+
+## 0.34.13
+
+* Pass `{ format }` through to `transformBundle` ([#867](https://github.com/rollup/rollup/issues/867))
+
+## 0.34.12
+
+* Fix `rollup --watch` ([#887](https://github.com/rollup/rollup/issues/887))
+* Case-sensitive paths ([#862](https://github.com/rollup/rollup/issues/862))
+
+## 0.34.11
+
+* Prevent leaky state when `bundle` is reused ([#875](https://github.com/rollup/rollup/issues/875))
+* Ensure `intro` appears before interop block ([#880](https://github.com/rollup/rollup/issues/880))
+
 ## 0.34.10
 
 * Allow custom `options.context` to replace top-level `this` ([#851](https://github.com/rollup/rollup/issues/851))

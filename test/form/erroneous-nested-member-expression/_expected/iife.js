@@ -7,7 +7,7 @@
 				console.log('har?');
 			}
 		};
-	};
+	}
 
 	yar.har();
 

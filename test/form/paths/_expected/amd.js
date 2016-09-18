@@ -1,4 +1,4 @@
-define(['https://npmcdn.com/foo'], function (foo) { 'use strict';
+define(['https://unpkg.com/foo'], function (foo) { 'use strict';
 
 	foo = 'default' in foo ? foo['default'] : foo;
 

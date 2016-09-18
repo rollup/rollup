@@ -2,6 +2,6 @@
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var foo = _interopDefault(require('https://npmcdn.com/foo'));
+var foo = _interopDefault(require('https://unpkg.com/foo'));
 
 assert.equal( foo, 42 );

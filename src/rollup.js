@@ -1,3 +1,4 @@
+import { timeStart, timeEnd, flushTime } from './utils/flushTime.js';
 import { basename } from './utils/path.js';
 import { writeFile } from './utils/fs.js';
 import { assign, keys } from './utils/object.js';
@@ -21,6 +22,7 @@ const ALLOWED_KEYS = [
 	'format',
 	'globals',
 	'indent',
+	'interop',
 	'intro',
 	'moduleId',
 	'moduleName',
@@ -54,9 +56,17 @@ export function rollup ( options ) {
 
 	const bundle = new Bundle( options );
 
+	timeStart( '--BUILD--' );
+
 	return bundle.build().then( () => {
+		timeEnd( '--BUILD--' );
+
 		function generate ( options ) {
+			timeStart( '--GENERATE--' );
+
 			const rendered = bundle.render( options );
+
+			timeEnd( '--GENERATE--' );
 
 			bundle.plugins.forEach( plugin => {
 				if ( plugin.ongenerate ) {
@@ -65,6 +75,8 @@ export function rollup ( options ) {
 					}, options ), rendered);
 				}
 			});
+
+			flushTime();
 
 			return rendered;
 		}
@@ -96,7 +108,7 @@ export function rollup ( options ) {
 						promises.push( writeFile( dest + '.map', map.toString() ) );
 					}
 
-					code += `\n//# ${SOURCEMAPPING_URL}=${url}\n`;
+					code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
 				}
 
 				promises.push( writeFile( dest, code ) );

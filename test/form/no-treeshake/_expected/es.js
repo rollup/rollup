@@ -1,3 +1,4 @@
+import { value } from 'external';
 import * as external from 'external';
 
 var foo = 'unused';
@@ -11,7 +12,7 @@ function bar () {
 }
 
 function baz () {
-	return 13 + external.value;
+	return 13 + value;
 }
 
 var create = Object.create;

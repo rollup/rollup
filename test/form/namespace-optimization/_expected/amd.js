@@ -2,6 +2,6 @@ define(function () { 'use strict';
 
 	function a () {}
 
-	a();
+	console.log( a() );
 
 });

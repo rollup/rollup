@@ -1,5 +1,5 @@
-import { isFile, readFileSync } from './fs.js';
-import { dirname, isAbsolute, resolve } from './path.js';
+import { isFile, readdirSync, readFileSync } from './fs.js';
+import { basename, dirname, isAbsolute, resolve } from './path.js';
 import { blank } from './object.js';
 
 export function load ( id ) {
@@ -7,10 +7,15 @@ export function load ( id ) {
 }
 
 function addJsExtensionIfNecessary ( file ) {
-	if ( isFile( file ) ) return file;
+	try {
+		const name = basename( file );
+		const files = readdirSync( dirname( file ) );
 
-	file += '.js';
-	if ( isFile( file ) ) return file;
+		if ( ~files.indexOf( name ) && isFile( file ) ) return file;
+		if ( ~files.indexOf( `${name}.js` ) && isFile( `${file}.js` ) ) return `${file}.js`;
+	} catch ( err ) {
+		// noop
+	}
 
 	return null;
 }

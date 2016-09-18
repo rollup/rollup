@@ -1,5 +1,8 @@
 /* this is an intro */
-console.log( 'hello world' );
+import a, { b } from 'external';
+
+console.log( a );
+console.log( b );
 
 var main = 42;
 

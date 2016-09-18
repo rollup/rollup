@@ -16,7 +16,9 @@ function setupNamespace ( name ) {
 		.join( ', ' );
 }
 
-export default function umd ( bundle, magicString, { exportMode, indentString }, options ) {
+const wrapperOutro = '\n\n})));';
+
+export default function umd ( bundle, magicString, { exportMode, indentString, intro }, options ) {
 	if ( exportMode !== 'none' && !options.moduleName ) {
 		throw new Error( 'You must supply options.moduleName for UMD bundles' );
 	}
@@ -54,7 +56,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 				exports.noConflict = function() { global.${options.moduleName} = current; return exports; };
 			})()` : `(${defaultExport}factory(${globalDeps}))`;
 
-	const intro =
+	const wrapperIntro =
 		`(function (global, factory) {
 			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join( ', ' )}) :
 			typeof define === 'function' && define.amd ? define(${amdParams}factory) :
@@ -64,8 +66,10 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 		`.replace( /^\t\t/gm, '' ).replace( /^\t/gm, magicString.getIndentString() );
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock( bundle );
+	const interopBlock = getInteropBlock( bundle, options );
 	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
+
+	if ( intro ) magicString.prepend( intro );
 
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
@@ -75,6 +79,6 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 	return magicString
 		.trim()
 		.indent( indentString )
-		.append( '\n\n})));' )
-		.prepend( intro );
+		.append( wrapperOutro )
+		.prepend( wrapperIntro );
 }

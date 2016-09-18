@@ -4,7 +4,7 @@ function notDefault ( name ) {
 	return name !== 'default';
 }
 
-export default function es ( bundle, magicString, config, options ) {
+export default function es ( bundle, magicString, { intro }, options ) {
 	const importBlock = bundle.externalModules
 		.map( module => {
 			const specifiers = [];
@@ -26,8 +26,8 @@ export default function es ( bundle, magicString, config, options ) {
 				}
 			}
 
-			const namespaceSpecifier = module.declarations['*'] ? `* as ${module.name}` : null;
-			const namedSpecifier = importedNames.length ? `{ ${importedNames.join( ', ' )} }` : null;
+			const namespaceSpecifier = module.declarations['*'] ? `* as ${module.name}` : null; // TODO prevent unnecessary namespace import, e.g form/external-imports
+			const namedSpecifier = importedNames.length ? `{ ${importedNames.sort().join( ', ' )} }` : null;
 
 			if ( namespaceSpecifier && namedSpecifier ) {
 				// Namespace and named specifiers cannot be combined.
@@ -49,15 +49,14 @@ export default function es ( bundle, magicString, config, options ) {
 		})
 		.join( '\n' );
 
-	if ( importBlock ) {
-		magicString.prepend( importBlock + '\n\n' );
-	}
+	if ( importBlock ) intro += importBlock + '\n\n';
+	if ( intro ) magicString.prepend( intro );
 
 	const module = bundle.entryModule;
 
 	const specifiers = module.getExports().filter( notDefault ).map( name => {
 		const declaration = module.traceExport( name );
-		const rendered = declaration.render( true );
+		const rendered = declaration.getName( true );
 
 		return rendered === name ?
 			name :
@@ -68,7 +67,7 @@ export default function es ( bundle, magicString, config, options ) {
 
 	const defaultExport = module.exports.default || module.reexports.default;
 	if ( defaultExport ) {
-		exportBlock += `export default ${module.traceExport( 'default' ).render( true )};`;
+		exportBlock += `export default ${module.traceExport( 'default' ).getName( true )};`;
 	}
 
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock.trim() );

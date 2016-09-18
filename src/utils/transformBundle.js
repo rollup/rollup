@@ -1,13 +1,13 @@
 import { decode } from 'sourcemap-codec';
 
-export default function transformBundle ( code, plugins, sourceMapChain ) {
+export default function transformBundle ( code, plugins, sourceMapChain, options ) {
 	return plugins.reduce( ( code, plugin ) => {
 		if ( !plugin.transformBundle ) return code;
 
 		let result;
 
 		try {
-			result = plugin.transformBundle( code );
+			result = plugin.transformBundle( code, { format : options.format } );
 		} catch ( err ) {
 			err.plugin = plugin.name;
 			err.message = `Error transforming bundle${plugin.name ? ` with '${plugin.name}' plugin` : ''}: ${err.message}`;

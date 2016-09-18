@@ -12,7 +12,7 @@ Basic options:
 -w, --watch              Watch files in bundle and rebuild on changes
 -i, --input              Input (alternative to <entry file>)
 -o, --output <output>    Output (if absent, prints to stdout)
--f, --format [es6]       Type of output (amd, cjs, es6, iife, umd)
+-f, --format [es]       Type of output (amd, cjs, es, iife, umd)
 -e, --external           Comma-separate list of module IDs to exclude
 -g, --globals            Comma-separate list of `module ID:Global` pairs
                             Any module IDs defined here are added to external
