@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.35.13
+
+* Include superclasses when including their subclasses ([#932](https://github.com/rollup/rollup/issues/932))
+
 ## 0.35.12
 
 * Add `interop: false` option to disable unwrapping of external imports ([#939](https://github.com/rollup/rollup/issues/939))
