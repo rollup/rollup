@@ -22,8 +22,13 @@ export default class ModuleScope extends Scope {
 			specifier.module.getExports().forEach( name => {
 				names.set(name);
 			});
+
 			if ( specifier.name !== '*' ) {
 				const declaration = specifier.module.traceExport( specifier.name );
+				if ( !declaration ) {
+					this.module.bundle.onwarn( `Non-existent export '${specifier.name}' is imported from ${specifier.module.id} by ${this.module.id}` );
+					return;
+				}
 				const name = declaration.getName( true );
 				if ( name !== specifier.name ) {
 					names.set( declaration.getName( true ) );
