@@ -6,6 +6,7 @@ export default class ClassDeclaration extends Node {
 		if ( this.activated ) return;
 		this.activated = true;
 
+		if ( this.superClass ) this.superClass.run( this.scope );
 		this.body.run();
 	}
 
@@ -26,6 +27,8 @@ export default class ClassDeclaration extends Node {
 	}
 
 	initialise ( scope ) {
+		this.scope = scope;
+
 		this.name = this.id.name;
 
 		scope.addDeclaration( this.name, this, false, false );
