@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.35.14
+
+* Include all parent statements of expression with effects, up to function boundary ([#930](https://github.com/rollup/rollup/issues/930))
+
 ## 0.35.13
 
 * Include superclasses when including their subclasses ([#932](https://github.com/rollup/rollup/issues/932))
