@@ -8,11 +8,12 @@ export default function cjs ( bundle, magicString, { exportMode, intro }, option
 	let needsInterop = false;
 
 	const varOrConst = bundle.varOrConst;
+	const interop = options.interop !== false;
 
 	// TODO handle empty imports, once they're supported
 	const importBlock = bundle.externalModules
 		.map( module => {
-			if ( module.declarations.default ) {
+			if ( interop && module.declarations.default ) {
 				if ( module.exportsNamespace ) {
 					return `${varOrConst} ${module.name} = require('${module.path}');` +
 						`\n${varOrConst} ${module.name}__default = ${module.name}['default'];`;
