@@ -141,7 +141,9 @@ export default class Bundle {
 						let i = this.dependentExpressions.length;
 						while ( i-- ) {
 							const expression = this.dependentExpressions[i];
-							const statement = expression.findParent( /ExpressionStatement/ );
+
+							let statement = expression;
+							while ( statement.parent && !/Function/.test( statement.parent.type ) ) statement = statement.parent;
 
 							if ( !statement || statement.ran ) {
 								this.dependentExpressions.splice( i, 1 );
