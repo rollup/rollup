@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.36.0
+
+* `export { foo as default }` no longer creates a live binding ([#860](https://github.com/rollup/rollup/issues/860))
+
 ## 0.35.15
 
 * Warn on missing unused imports in deshadowing phase ([#928](https://github.com/rollup/rollup/issues/928))
