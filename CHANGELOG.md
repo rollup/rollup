@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.35.15
+
+* Warn on missing unused imports in deshadowing phase ([#928](https://github.com/rollup/rollup/issues/928))
+* Always add a newline to the end of bundles ([#958](https://github.com/rollup/rollup/issues/958))
+
 ## 0.35.14
 
 * Include all parent statements of expression with effects, up to function boundary ([#930](https://github.com/rollup/rollup/issues/930))
