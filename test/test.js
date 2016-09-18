@@ -102,6 +102,16 @@ describe( 'rollup', function () {
 				plugins: [ loader({ x: `var a = null; a = 'a string';` }) ]
 			});
 		});
+
+		it( 'includes a newline at the end of the bundle', () => {
+			return rollup.rollup({
+				entry: 'x',
+				plugins: [ loader({ x: `console.log( 42 );` }) ]
+			}).then( bundle => {
+				const { code } = bundle.generate({ format: 'iife' });
+				assert.ok( code[ code.length - 1 ] === '\n' );
+			});
+		});
 	});
 
 	describe( 'bundle.write()', () => {
