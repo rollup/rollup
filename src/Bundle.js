@@ -431,6 +431,7 @@ export default class Bundle {
 			timeEnd( 'sourceMap' );
 		}
 
+		if ( code[ code.length - 1 ] !== '\n' ) code += '\n';
 		return { code, map };
 	}
 
