@@ -1,1 +1,1 @@
-export const a = 42;
+export var a = 42;
