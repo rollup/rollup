@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.35.12
+
+* Add `interop: false` option to disable unwrapping of external imports ([#939](https://github.com/rollup/rollup/issues/939))
+
 ## 0.35.11
 
 * Deconflict reified namespaces with other declarations ([#910](https://github.com/rollup/rollup/issues/910))
