@@ -1,7 +1,7 @@
 export default function a() {
-  return 5;
+	return 5;
 }
 
 export function b() {
-  return a() + 10;
+	return a() + 10;
 }
