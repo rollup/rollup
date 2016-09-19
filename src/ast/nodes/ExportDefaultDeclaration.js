@@ -49,7 +49,7 @@ export default class ExportDefaultDeclaration extends Node {
 		const treeshake = this.module.bundle.treeshake;
 		const name = this.getName( es );
 
-		if ( this.shouldInclude ) {
+		if ( this.shouldInclude || this.declaration.activated ) {
 			if ( this.activated ) {
 				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
 					if ( this.declaration.id ) {
