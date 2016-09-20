@@ -350,7 +350,7 @@ export default class Bundle {
 		const format = options.format || 'es';
 
 		// Determine export mode - 'default', 'named', 'none'
-		const exportMode = getExportMode( this, options.exports, options.moduleName );
+		const exportMode = getExportMode( this, options );
 
 		let magicString = new MagicStringBundle({ separator: '\n\n' });
 		const usedModules = [];
