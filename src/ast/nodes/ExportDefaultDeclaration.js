@@ -76,8 +76,12 @@ export default class ExportDefaultDeclaration extends Node {
 			super.render( code, es );
 		} else {
 			if ( treeshake ) {
-				if ( functionOrClassDeclaration.test( this.declaration.type ) && !this.declaration.activated ) {
-					code.remove( this.leadingCommentStart || this.start, this.next || this.end );
+				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
+					if ( this.declaration.activated ) {
+						code.remove( this.start, this.declaration.start );
+					} else {
+						code.remove( this.leadingCommentStart || this.start, this.next || this.end );
+					}
 				} else {
 					const hasEffects = this.declaration.hasEffects( this.module.scope );
 					code.remove( this.start, hasEffects ? this.declaration.start : this.next || this.end );
