@@ -46,4 +46,14 @@ export default class BlockStatement extends Statement {
 			lastNode = node;
 		}
 	}
+
+	render ( code, es ) {
+		if (this.body.length) {
+			for ( const node of this.body ) {
+				node.render( code, es );
+			}
+		} else {
+			Statement.prototype.render.call(this, code, es);
+		}
+	}
 }
