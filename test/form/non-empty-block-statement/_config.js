@@ -1,3 +1,3 @@
 module.exports = {
-	description: 'removes an empty block statement'
+	description: 'do not remove non an empty block statement'
 };
