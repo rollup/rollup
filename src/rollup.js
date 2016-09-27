@@ -39,20 +39,24 @@ const ALLOWED_KEYS = [
 	'useStrict'
 ];
 
-export function rollup ( options ) {
+function checkOptions ( options ) {
 	if ( !options || !options.entry ) {
-		return Promise.reject( new Error( 'You must supply options.entry to rollup' ) );
+		return new Error( 'You must supply options.entry to rollup' );
 	}
 
 	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
-		return Promise.reject( new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' ) );
+		return new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
 	}
 
-	const error = validateKeys( options, ALLOWED_KEYS );
+	const error = validateKeys( keys(options), ALLOWED_KEYS );
+	if ( error ) return error;
 
-	if ( error ) {
-		return Promise.reject( error );
-	}
+	return null;
+}
+
+export function rollup ( options ) {
+	const error = checkOptions ( options );
+	if ( error ) return Promise.reject( error );
 
 	const bundle = new Bundle( options );
 
