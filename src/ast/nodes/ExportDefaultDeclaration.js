@@ -49,7 +49,7 @@ export default class ExportDefaultDeclaration extends Node {
 		const treeshake = this.module.bundle.treeshake;
 		const name = this.getName( es );
 
-		if ( this.shouldInclude ) {
+		if ( this.shouldInclude || this.declaration.activated ) {
 			if ( this.activated ) {
 				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
 					if ( this.declaration.id ) {
@@ -76,7 +76,7 @@ export default class ExportDefaultDeclaration extends Node {
 			super.render( code, es );
 		} else {
 			if ( treeshake ) {
-				if ( functionOrClassDeclaration.test( this.declaration.type ) && !this.declaration.activated ) {
+				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
 					code.remove( this.leadingCommentStart || this.start, this.next || this.end );
 				} else {
 					const hasEffects = this.declaration.hasEffects( this.module.scope );
