@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.36.1
+
+* Include naked block statements ([#981](https://github.com/rollup/rollup/issues/981))
+* Correctly include falsy alternate statements in optimised if blocks ([#973](https://github.com/rollup/rollup/issues/973))
+* Prevent omission of default exports that are only used by the exporting module ([#967](https://github.com/rollup/rollup/pull/967))
+* Prevent warning on `auto` exports with ES output ([#966](https://github.com/rollup/rollup/pull/966))
+
 ## 0.36.0
 
 * `export { foo as default }` no longer creates a live binding ([#860](https://github.com/rollup/rollup/issues/860))
