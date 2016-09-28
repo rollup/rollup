@@ -1,6 +1,16 @@
 import Statement from './shared/Statement.js';
 import { UNKNOWN } from '../values.js';
 
+// Statement types which may contain if-statements as direct children.
+const statementsWithIfStatements = new Set([
+	'DoWhileStatement',
+	'ForInStatement',
+	'ForOfStatement',
+	'ForStatement',
+	'IfStatement',
+	'WhileStatement'
+]);
+
 // TODO DRY this out
 export default class IfStatement extends Statement {
 	initialise ( scope ) {
@@ -14,7 +24,9 @@ export default class IfStatement extends Statement {
 			else if ( this.testValue ) {
 				this.consequent.initialise( scope );
 				this.alternate = null;
-			} else {
+			}
+
+			else {
 				if ( this.alternate ) this.alternate.initialise( scope );
 				this.consequent = null;
 			}
@@ -41,9 +53,18 @@ export default class IfStatement extends Statement {
 					code.remove( this.start, this.consequent.start );
 					code.remove( this.consequent.end, this.end );
 					this.consequent.render( code, es );
-				} else {
+				}
+
+				else {
 					code.remove( this.start, this.alternate ? this.alternate.start : this.next || this.end );
-					if ( this.alternate ) this.alternate.render( code, es );
+
+					if ( this.alternate ) {
+						this.alternate.render( code, es );
+					}
+
+					else if ( statementsWithIfStatements.has( this.parent.type ) ) {
+						code.insertRight( this.start, '{}' );
+					}
 				}
 			}
 		}
