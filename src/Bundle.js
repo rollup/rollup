@@ -31,11 +31,10 @@ export default class Bundle {
 
 		this.plugins = ensureArray( options.plugins );
 
-		this.plugins.forEach( plugin => {
-			if ( plugin.options ) {
-				options = plugin.options( options ) || options;
-			}
-		});
+		options = this.plugins.reduce( ( acc, plugin ) => {
+			if ( plugin.options ) return plugin.options( acc ) || acc;
+			return acc;
+		}, options);
 
 		this.entry = options.entry;
 		this.entryId = null;
