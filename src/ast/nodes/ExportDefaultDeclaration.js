@@ -66,6 +66,7 @@ export default class ExportDefaultDeclaration extends Node {
 						return; // don't render children. TODO this seems like a bit of a hack
 					} else {
 						code.overwrite( this.start, this.declaration.start, `${this.module.bundle.varOrConst} ${name} = ` );
+						if ( code.original[ this.end - 1 ] !== ';' ) code.insertRight( this.end, ';' );
 					}
 				}
 			} else {
@@ -84,6 +85,7 @@ export default class ExportDefaultDeclaration extends Node {
 				}
 			} else {
 				code.overwrite( this.start, this.declaration.start, `${this.module.bundle.varOrConst} ${name} = ` );
+				if ( code.original[ this.end - 1 ] !== ';' ) code.insertRight( this.end, ';' );
 			}
 			// code.remove( this.start, this.next || this.end );
 		}
