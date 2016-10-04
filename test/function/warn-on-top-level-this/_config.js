@@ -7,6 +7,7 @@ module.exports = {
 		assert.equal(warnings.length, 1);
 		assert.equal(warnings[0].indexOf(message), 0);
 		assert(warnings[0].match(/\(in.*warn-on-top-level-this.*\)/));
+		assert(warnings[0].match(/line: 4, column: 0/));
 	},
 	runtimeError: err => {
 		assert.equal( err.message, `Cannot set property 'foo' of undefined` );
