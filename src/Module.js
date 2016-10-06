@@ -39,7 +39,8 @@ export default class Module {
 		timeStart( 'ast' );
 
 		this.ast = ast || tryParse( code, this.comments, bundle.acornOptions, id ); // TODO what happens to comments if AST is provided?
-		this.astClone = deepClone( this.ast );
+		// this.astClone = deepClone( this.ast );
+		this.astClone = this.ast
 
 		timeEnd( 'ast' );
 
