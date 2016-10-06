@@ -78,3 +78,9 @@ export function resolve ( ...paths ) {
 
 	return resolvedParts.join( '/' ); // TODO windows...
 }
+
+export function join ( ...parts ) {
+	const separator = '/';
+	const replaceExp = new RegExp(separator+'{1,}', 'g');
+	return parts.join(separator).replace(replaceExp, separator);
+}

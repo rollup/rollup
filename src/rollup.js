@@ -24,6 +24,7 @@ const ALLOWED_KEYS = [
 	'indent',
 	'interop',
 	'intro',
+	'moduleContext',
 	'moduleId',
 	'moduleName',
 	'noConflict',

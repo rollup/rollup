@@ -17,7 +17,7 @@ import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
-import { dirname, isRelative, isAbsolute, normalize, relative, resolve } from './utils/path.js';
+import { dirname, isRelative, isAbsolute, normalize, relative, resolve, join } from './utils/path.js';
 import BundleScope from './ast/scopes/BundleScope.js';
 
 export default class Bundle {
@@ -72,6 +72,33 @@ export default class Bundle {
 		this.externalModules = [];
 
 		this.context = String( options.context );
+		if (options.moduleContext) {
+			if (typeof options.moduleContext === 'object') {
+				const moduleContext = {};
+				for (const key in options.moduleContext) {
+					let resolvedKey;
+					if (isAbsolute(key)) {
+						resolvedKey = normalize(key);
+					} else {
+						const useWorkingDir = key.substring(0, 2) === `./` ? true : false;
+						let absoluteKey;
+						if (useWorkingDir) {
+							absoluteKey = join(process.cwd(), key.substring(2));
+						} else {
+							absoluteKey = join(dirname(options.entry), key);
+						}
+
+						resolvedKey = normalize(absoluteKey);
+					}
+						
+					moduleContext[resolvedKey] = options.moduleContext[key];
+				}
+
+				this.moduleContext = moduleContext;
+			} else {
+				throw new Error('options.moduleContext must be an object');
+			}
+		}
 
 		if ( typeof options.external === 'function' ) {
 			this.isExternal = options.external;
