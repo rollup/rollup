@@ -3,6 +3,6 @@ module.exports = {
 	options: {
 		moduleContext: {
 			'main.js': 'lolwut'
-		} 
+		}
 	}
 };
