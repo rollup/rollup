@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.36.3
+
+* Add `legacy` option for IE8 support ([#989](https://github.com/rollup/rollup/pull/989))
+
 ## 0.36.2
 
 * Insert semicolons where necessary to fix broken code ([#1004](https://github.com/rollup/rollup/issues/1004))
