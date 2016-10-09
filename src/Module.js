@@ -6,6 +6,7 @@ import { basename, extname } from './utils/path.js';
 import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
+import relativeId from './utils/relativeId.js';
 import { SyntheticNamespaceDeclaration } from './Declaration.js';
 import extractNames from './ast/utils/extractNames.js';
 import enhance from './ast/enhance.js';
@@ -357,7 +358,7 @@ export default class Module {
 
 			const declaration = otherModule.traceExport( importDeclaration.name );
 
-			if ( !declaration ) throw new Error( `Module ${otherModule.id} does not export ${importDeclaration.name} (imported by ${this.id})` );
+			if ( !declaration ) throw new Error( `'${importDeclaration.name}' is not exported by ${relativeId( otherModule.id )} (imported by ${relativeId( this.id )}). For help fixing this error see https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module` );
 			return declaration;
 		}
 

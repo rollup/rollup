@@ -186,6 +186,8 @@ describe( 'rollup', function () {
 
 			const config = loadConfig( FUNCTION + '/' + dir + '/_config.js' );
 			( config.skip ? it.skip : config.solo ? it.only : it )( dir, () => {
+				process.chdir( FUNCTION + '/' + dir );
+
 				const warnings = [];
 				const captureWarning = msg => warnings.push( msg );
 
