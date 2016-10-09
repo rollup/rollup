@@ -67,6 +67,8 @@ export default class ExportDefaultDeclaration extends Node {
 					} else {
 						code.overwrite( this.start, this.declaration.start, `${this.module.bundle.varOrConst} ${name} = ` );
 					}
+
+					this.insertSemicolon( code );
 				}
 			} else {
 				// remove `var foo` from `var foo = bar()`, if `foo` is unused
