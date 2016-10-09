@@ -14,7 +14,7 @@
          alt="license">
   </a>
   <a href="https://david-dm.org/rollup/rollup">
-    <img src="https://david-dm.org/rollup/rollup.svg"
+    <img src="https://david-dm.org/rollup/rollup/status.svg"
          alt="dependency status">
   </a>
   <a href="https://codecov.io/github/rollup/rollup?branch=master">
