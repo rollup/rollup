@@ -17,7 +17,7 @@ import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
-import { dirname, isRelative, isAbsolute, normalize, relative, resolve, join } from './utils/path.js';
+import { dirname, isRelative, isAbsolute, normalize, relative, resolve } from './utils/path.js';
 import BundleScope from './ast/scopes/BundleScope.js';
 
 export default class Bundle {
