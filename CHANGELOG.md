@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.36.2
+
+* Insert semicolons where necessary to fix broken code ([#1004](https://github.com/rollup/rollup/issues/1004))
+* Include module ID and location when warning about top-level `this`  ([#1012](https://github.com/rollup/rollup/pull/1012))
+* More informative error for missing exports ([#1033](https://github.com/rollup/rollup/issues/1033))
+* `options.moduleContext` for per-module context overrides ([#1023](https://github.com/rollup/rollup/pull/1023))
+
 ## 0.36.1
 
 * Include naked block statements ([#981](https://github.com/rollup/rollup/issues/981))
