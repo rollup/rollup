@@ -66,6 +66,12 @@ export default class Node {
 		this.eachChild( child => child.initialise( this.scope || scope ) );
 	}
 
+	insertSemicolon ( code ) {
+		if ( code.original[ this.end - 1 ] !== ';' ) {
+			code.insertLeft( this.end, ';' );
+		}
+	}
+
 	locate () {
 		// useful for debugging
 		const location = getLocation( this.module.code, this.start );

@@ -10,7 +10,7 @@ var counter = 0;
 var foo = odd( 12 );
 
 function even ( n ) {
-	alert( counter++ )
+	alert( counter++ );
 	return n === 0 || odd( n - 1 );
 }
 

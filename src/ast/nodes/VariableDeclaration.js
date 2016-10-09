@@ -14,7 +14,7 @@ function getSeparator ( code, start ) {
 	return `;\n${lineStart}`;
 }
 
-const forStatement = /^For(?:Of|In)Statement/;
+const forStatement = /^For(?:Of|In)?Statement/;
 
 export default class VariableDeclaration extends Node {
 	initialise ( scope ) {
@@ -92,9 +92,16 @@ export default class VariableDeclaration extends Node {
 
 		if ( treeshake && empty ) {
 			code.remove( this.leadingCommentStart || this.start, this.next || this.end );
-		} else if ( this.end > c ) {
-			const hasSemicolon = code.original[ this.end - 1 ] === ';';
-			code.overwrite( c, this.end, hasSemicolon ? ';' : '' );
+		} else {
+			// always include a semi-colon (https://github.com/rollup/rollup/pull/1013),
+			// unless it's a var declaration in a loop head
+			const needsSemicolon = !forStatement.test( this.parent.type );
+
+			if ( this.end > c ) {
+				code.overwrite( c, this.end, needsSemicolon ? ';' : '' );
+			} else if ( needsSemicolon  ) {
+				this.insertSemicolon( code );
+			}
 		}
 	}
 }

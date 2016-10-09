@@ -1,5 +1,4 @@
 import Node from '../Node.js';
-import {normalize} from '../../utils/path';
 
 export default class ThisExpression extends Node {
 	initialise ( scope ) {

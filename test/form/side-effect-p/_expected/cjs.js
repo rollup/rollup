@@ -5,5 +5,5 @@ var bool = true;
 const hs = document.documentElement.style;
 
 if ( bool ) {
-	hs.color = "#222"
+	hs.color = "#222";
 }
