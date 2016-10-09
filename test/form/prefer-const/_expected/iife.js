@@ -5,7 +5,7 @@ const myBundle = (function (external,other,another) {
 	const b = 2;
 
 
-	const namespace = (Object.freeze || Object)({
+	const namespace = Object.freeze({
 		a: a,
 		b: b
 	});

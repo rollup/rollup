@@ -95,6 +95,7 @@ export default class Bundle {
 		this.onwarn = options.onwarn || makeOnwarn();
 
 		this.varOrConst = options.preferConst ? 'const' : 'var';
+		this.legacy = options.legacy;
 		this.acornOptions = options.acorn || {};
 
 		this.dependentExpressions = [];
@@ -370,7 +371,7 @@ export default class Bundle {
 		timeStart( 'render modules' );
 
 		this.orderedModules.forEach( module => {
-			const source = module.render( format === 'es' );
+			const source = module.render( format === 'es', this.legacy );
 
 			if ( source.toString().length ) {
 				magicString.addSource( source );

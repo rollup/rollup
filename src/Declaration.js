@@ -75,7 +75,7 @@ export class SyntheticNamespaceDeclaration {
 		return this.name;
 	}
 
-	renderBlock ( es, indentString ) {
+	renderBlock ( es, legacy, indentString ) {
 		const members = keys( this.originals ).map( name => {
 			const original = this.originals[ name ];
 
@@ -86,7 +86,8 @@ export class SyntheticNamespaceDeclaration {
 			return `${indentString}${name}: ${original.getName( es )}`;
 		});
 
-		return `${this.module.bundle.varOrConst} ${this.getName( es )} = (Object.freeze || Object)({\n${members.join( ',\n' )}\n});\n\n`;
+		const callee = legacy ? `(Object.freeze || Object)` : `Object.freeze`;
+		return `${this.module.bundle.varOrConst} ${this.getName( es )} = ${callee}({\n${members.join( ',\n' )}\n});\n\n`;
 	}
 }
 

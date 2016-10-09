@@ -6,7 +6,7 @@ const a = 1;
 const b = 2;
 
 
-const namespace = (Object.freeze || Object)({
+const namespace = Object.freeze({
 	a: a,
 	b: b
 });
