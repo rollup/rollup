@@ -316,6 +316,8 @@ describe( 'rollup', function () {
 
 				PROFILES.forEach( profile => {
 					it( 'generates ' + profile.format, () => {
+						process.chdir( FORM + '/' + dir );
+
 						return createBundle().then( bundle => {
 							const options = extend( {}, config.options, {
 								dest: FORM + '/' + dir + '/_actual/' + profile.format + '.js',
