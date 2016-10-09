@@ -1,7 +1,6 @@
 const assert = require( 'assert' );
 
 module.exports = {
-	solo: true,
 	description: 'warns on top-level this (#770)',
 	warnings: warnings => {
 		assert.deepEqual( warnings, [
