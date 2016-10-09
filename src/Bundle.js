@@ -72,32 +72,17 @@ export default class Bundle {
 		this.externalModules = [];
 
 		this.context = String( options.context );
-		if (options.moduleContext) {
-			if (typeof options.moduleContext === 'object') {
-				const moduleContext = {};
-				for (const key in options.moduleContext) {
-					let resolvedKey;
-					if (isAbsolute(key)) {
-						resolvedKey = normalize(key);
-					} else {
-						const useWorkingDir = key.substring(0, 2) === `./` ? true : false;
-						let absoluteKey;
-						if (useWorkingDir) {
-							absoluteKey = join(process.cwd(), key.substring(2));
-						} else {
-							absoluteKey = join(dirname(options.entry), key);
-						}
 
-						resolvedKey = normalize(absoluteKey);
-					}
-						
-					moduleContext[resolvedKey] = options.moduleContext[key];
-				}
-
-				this.moduleContext = moduleContext;
-			} else {
-				throw new Error('options.moduleContext must be an object');
-			}
+		if ( typeof options.moduleContext === 'function' ) {
+			this.getModuleContext = id => options.moduleContext( id ) || this.context;
+		} else if ( typeof options.moduleContext === 'object' ) {
+			const moduleContext = new Map();
+			Object.keys( options.moduleContext ).forEach( key => {
+				moduleContext.set( resolve( key ), options.moduleContext[ key ] );
+			});
+			this.getModuleContext = id => moduleContext.get( id ) || this.context;
+		} else {
+			this.getModuleContext = () => this.context;
 		}
 
 		if ( typeof options.external === 'function' ) {

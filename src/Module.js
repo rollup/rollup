@@ -46,6 +46,7 @@ export default class Module {
 		this.bundle = bundle;
 		this.id = id;
 		this.excludeFromSourcemap = /\0/.test( id );
+		this.context = bundle.getModuleContext( id );
 
 		// all dependencies
 		this.sources = [];
