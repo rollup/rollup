@@ -86,7 +86,7 @@ export class SyntheticNamespaceDeclaration {
 			return `${indentString}${name}: ${original.getName( es )}`;
 		});
 
-		return `${this.module.bundle.varOrConst} ${this.getName( es )} = Object.freeze({\n${members.join( ',\n' )}\n});\n\n`;
+		return `${this.module.bundle.varOrConst} ${this.getName( es )} = (Object.freeze || Object)({\n${members.join( ',\n' )}\n});\n\n`;
 	}
 }
 
