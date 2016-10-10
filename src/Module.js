@@ -6,6 +6,7 @@ import { basename, extname } from './utils/path.js';
 import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
+import error from './utils/error.js';
 import relativeId from './utils/relativeId.js';
 import { SyntheticNamespaceDeclaration } from './Declaration.js';
 import extractNames from './ast/utils/extractNames.js';
@@ -205,7 +206,7 @@ export default class Module {
 			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
 
 			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
-			this.imports[ localName ] = { source, name, module: null };
+			this.imports[ localName ] = { source, specifier, name, module: null };
 		});
 	}
 
@@ -359,7 +360,14 @@ export default class Module {
 
 			const declaration = otherModule.traceExport( importDeclaration.name );
 
-			if ( !declaration ) throw new Error( `'${importDeclaration.name}' is not exported by ${relativeId( otherModule.id )} (imported by ${relativeId( this.id )}). For help fixing this error see https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module` );
+			if ( !declaration ) {
+				error({
+					message: `'${importDeclaration.name}' is not exported by ${relativeId( otherModule.id )} (imported by ${relativeId( this.id )}). For help fixing this error see https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`,
+					file: this.id,
+					loc: getLocation( this.code, importDeclaration.specifier.start )
+				});
+			}
+
 			return declaration;
 		}
 
@@ -373,10 +381,11 @@ export default class Module {
 			const declaration = reexportDeclaration.module.traceExport( reexportDeclaration.localName );
 
 			if ( !declaration ) {
-				const err = new Error( `'${reexportDeclaration.localName}' is not exported by '${reexportDeclaration.module.id}' (imported by '${this.id}')` );
-				err.file = this.id;
-				err.loc = getLocation( this.code, reexportDeclaration.start );
-				throw err;
+				error({
+					message: `'${reexportDeclaration.localName}' is not exported by '${reexportDeclaration.module.id}' (imported by '${this.id}')`,
+					file: this.id,
+					loc: getLocation( this.code, reexportDeclaration.start )
+				});
 			}
 
 			return declaration;
@@ -389,6 +398,8 @@ export default class Module {
 
 			return declaration || this.bundle.scope.findDeclaration( name );
 		}
+
+		if ( name === 'default' ) return;
 
 		for ( let i = 0; i < this.exportAllModules.length; i += 1 ) {
 			const module = this.exportAllModules[i];
