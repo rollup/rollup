@@ -27,7 +27,7 @@ export default class CallExpression extends Node {
 	}
 
 	hasEffects ( scope ) {
-		return callHasEffects( scope, this.callee );
+		return callHasEffects( scope, this.callee, false );
 	}
 
 	initialise ( scope ) {

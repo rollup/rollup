@@ -2,6 +2,7 @@
 	'use strict';
 
 	var Foo = function () {
+		console.log( 'side effect' );
 		this.isFoo = true;
 	};
 

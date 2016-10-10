@@ -5,7 +5,43 @@ import { UNKNOWN } from '../../values.js';
 
 const currentlyCalling = new Set();
 
-function fnHasEffects ( fn ) {
+function isES5Function ( node ) {
+	return node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration';
+}
+
+function hasEffectsNew ( node, scope ) {
+	let inner = node;
+
+	if ( inner.type === 'ExpressionStatement' ) {
+		inner = inner.expression;
+
+		if ( inner.type === 'AssignmentExpression' ) {
+			if ( inner.right.hasEffects( scope ) ) {
+				return true;
+
+			} else {
+				inner = inner.left;
+
+				if ( inner.type === 'MemberExpression' ) {
+					if ( inner.computed && inner.property.hasEffects( scope ) ) {
+						return true;
+
+					} else {
+						inner = inner.object;
+
+						if ( inner.type === 'ThisExpression' ) {
+							return false;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return node.hasEffects( scope );
+}
+
+function fnHasEffects ( fn, isNew ) {
 	if ( currentlyCalling.has( fn ) ) return false; // prevent infinite loops... TODO there must be a better way
 	currentlyCalling.add( fn );
 
@@ -14,7 +50,7 @@ function fnHasEffects ( fn ) {
 	const body = fn.body.type === 'BlockStatement' ? fn.body.body : [ fn.body ];
 
 	for ( const node of body ) {
-		if ( node.hasEffects( scope ) ) {
+		if ( isNew ? hasEffectsNew( node, scope ) : node.hasEffects( scope ) ) {
 			currentlyCalling.delete( fn );
 			return true;
 		}
@@ -24,14 +60,14 @@ function fnHasEffects ( fn ) {
 	return false;
 }
 
-export default function callHasEffects ( scope, callee ) {
+export default function callHasEffects ( scope, callee, isNew ) {
 	const values = new Set([ callee ]);
 
 	for ( const node of values ) {
 		if ( node === UNKNOWN ) return true; // err on side of caution
 
 		if ( /Function/.test( node.type ) ) {
-			if ( fnHasEffects( node ) ) return true;
+			if ( fnHasEffects( node, isNew && isES5Function( node ) ) ) return true;
 		}
 
 		else if ( isReference( node ) ) {
