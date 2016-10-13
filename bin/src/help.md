@@ -13,6 +13,7 @@ Basic options:
 -i, --input              Input (alternative to <entry file>)
 -o, --output <output>    Output (if absent, prints to stdout)
 -f, --format [es]       Type of output (amd, cjs, es, iife, umd)
+-ext, --extensions       Allowed file extensions
 -e, --external           Comma-separate list of module IDs to exclude
 -g, --globals            Comma-separate list of `module ID:Global` pairs
                             Any module IDs defined here are added to external
