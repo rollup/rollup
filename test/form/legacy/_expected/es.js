@@ -2,7 +2,7 @@ const foo = 42;
 
 
 var namespace = (Object.freeze || Object)({
-	foo: foo
+	'foo': foo
 });
 
 const x = 'foo';

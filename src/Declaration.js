@@ -82,6 +82,9 @@ export class SyntheticNamespaceDeclaration {
 			if ( original.isReassigned ) {
 				return `${indentString}get ${name} () { return ${original.getName( es )}; }`;
 			}
+			if (legacy) {
+				name = `'${name}'`;
+			}
 
 			return `${indentString}${name}: ${original.getName( es )}`;
 		});
