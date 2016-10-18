@@ -11,7 +11,7 @@ function fnHasEffects ( fn ) {
 
 	// handle body-less arrow functions
 	const scope = fn.body.scope || fn.scope;
-	const body = fn.body.body || [ fn.body ];
+	const body = Array.isArray(fn.body.body) && fn.body.body || [ fn.body ];
 
 	for ( const node of body ) {
 		if ( node.hasEffects( scope ) ) {
