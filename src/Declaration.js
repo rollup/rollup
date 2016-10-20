@@ -79,7 +79,7 @@ export class SyntheticNamespaceDeclaration {
 		const members = keys( this.originals ).map( name => {
 			const original = this.originals[ name ];
 
-			if ( original.isReassigned ) {
+			if ( original.isReassigned && !legacy ) {
 				return `${indentString}get ${name} () { return ${original.getName( es )}; }`;
 			}
 
