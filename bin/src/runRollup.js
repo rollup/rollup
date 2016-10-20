@@ -105,6 +105,7 @@ const equivalents = {
 	indent: 'indent',
 	input: 'entry',
 	intro: 'intro',
+	legacy: 'legacy',
 	name: 'moduleName',
 	output: 'dest',
 	outro: 'outro',
