@@ -27,9 +27,7 @@ class Parameter {
 }
 
 export default class Scope {
-	constructor ( options ) {
-		options = options || {};
-
+	constructor ( options = {} ) {
 		this.parent = options.parent;
 		this.isBlockScope = !!options.isBlockScope;
 		this.isLexicalBoundary = !!options.isLexicalBoundary;
