@@ -267,7 +267,7 @@ export default class Bundle {
 				return transform( source, id, this.plugins );
 			})
 			.then( source => {
-				const { code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds } = source;
+				const { code, originalCode, originalSourceMap, ast, sourceMapChain } = source;
 
 				const module = new Module({
 					id,
@@ -276,7 +276,6 @@ export default class Bundle {
 					originalSourceMap,
 					ast,
 					sourceMapChain,
-					resolvedIds,
 					bundle: this
 				});
 
