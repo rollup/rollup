@@ -30,11 +30,24 @@ export default class CallExpression extends Node {
 	}
 
 	initialise ( scope ) {
-		this.module.bundle.dependentExpressions.push( this );
+		if ( isProgramLevel( this ) ) {
+			this.module.bundle.dependentExpressions.push( this );
+		}
 		super.initialise( scope );
 	}
 
 	isUsedByBundle () {
 		return this.hasEffects( this.findScope() );
 	}
+}
+
+function isProgramLevel ( node ) {
+	do {
+		if ( node.type === 'Program' ) {
+			return true;
+		}
+		node = node.parent;
+	} while ( node && !/Function/.test( node.type ) );
+
+	return false;
 }
