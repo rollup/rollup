@@ -1,3 +1,3 @@
-var foo = function() { return 'foo'; }
+var foo = function() { return 'foo'; };
 
 assert.equal( foo(), 'foo' );
