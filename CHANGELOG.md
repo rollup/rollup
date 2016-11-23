@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.36.4
+
+* Only depend on program-level call expressions ([#977](https://github.com/rollup/rollup/issues/977))
+
 ## 0.36.3
 
 * Add `legacy` option for IE8 support ([#989](https://github.com/rollup/rollup/pull/989))
