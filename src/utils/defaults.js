@@ -1,4 +1,4 @@
-import { isFile, readdirSync, readFileSync } from './fs.js';
+import { isFile, isDir, readdirSync, readFileSync } from './fs.js';
 import { basename, dirname, isAbsolute, resolve } from './path.js';
 import { blank } from './object.js';
 
@@ -7,6 +7,7 @@ export function load ( id ) {
 }
 
 function addJsExtensionIfNecessary ( file ) {
+	if (isDir(file) && !isFile(`${file}.js`)) return `${file}/index.js`;
 	try {
 		const name = basename( file );
 		const files = readdirSync( dirname( file ) );
