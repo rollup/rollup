@@ -20,6 +20,4 @@ define(['exports'], function (exports) { 'use strict';
 
 	exports.B = browserStuff;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 });
