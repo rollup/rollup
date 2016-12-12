@@ -1,3 +1,5 @@
+import getLocation from '../../utils/getLocation.js';
+import relativeId from '../../utils/relativeId.js';
 import isReference from '../utils/isReference.js';
 import Node from '../Node.js';
 import { UNKNOWN } from '../values.js';
@@ -26,12 +28,16 @@ export default class MemberExpression extends Node {
 			let declaration = scope.findDeclaration( keypath.root.name );
 
 			while ( declaration.isNamespace && keypath.parts.length ) {
+				const exporterId = declaration.module.id;
+
 				const part = keypath.parts[0];
 				declaration = declaration.module.traceExport( part.name );
 
 				if ( !declaration ) {
-					this.module.bundle.onwarn( `Export '${part.name}' is not defined by '${this.module.id}'` );
-					break;
+					const { line, column } = getLocation( this.module.code, this.start );
+					this.module.bundle.onwarn( `${relativeId( this.module.id )} (${line}:${column}) '${part.name}' is not exported by '${relativeId( exporterId )}'. See https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module` );
+					this.replacement = 'undefined';
+					return;
 				}
 
 				keypath.parts.shift();
@@ -62,6 +68,10 @@ export default class MemberExpression extends Node {
 		if ( this.declaration ) {
 			const name = this.declaration.getName( es );
 			if ( name !== this.name ) code.overwrite( this.start, this.end, name, true );
+		}
+
+		else if ( this.replacement ) {
+			code.overwrite( this.start, this.end, this.replacement, true );
 		}
 
 		super.render( code, es );
