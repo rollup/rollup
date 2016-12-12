@@ -3,7 +3,7 @@ import esModuleExport from './shared/esModuleExport.js';
 
 export default function cjs ( bundle, magicString, { exportMode, intro }, options ) {
 	intro = ( options.useStrict === false ? intro : `'use strict';\n\n${intro}` ) +
-	        ( exportMode === 'named' ? `${esModuleExport}\n\n` : '' );
+	        ( exportMode === 'named' && options.legacy !== true ? `${esModuleExport}\n\n` : '' );
 
 	let needsInterop = false;
 
