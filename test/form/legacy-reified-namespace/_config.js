@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'supports environments without Object.freeze, Object.defined',
+	description: 'quotes reserved words in object literals',
 	options: {
 	moduleName: 'myBundle',
 		legacy: true

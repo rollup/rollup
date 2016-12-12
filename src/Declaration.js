@@ -1,5 +1,5 @@
 import { blank, forOwn, keys } from './utils/object.js';
-import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
+import makeLegalIdentifier, { reservedWords } from './utils/makeLegalIdentifier.js';
 import { UNKNOWN } from './ast/values.js';
 
 export default class Declaration {
@@ -83,6 +83,7 @@ export class SyntheticNamespaceDeclaration {
 				return `${indentString}get ${name} () { return ${original.getName( es )}; }`;
 			}
 
+			if ( legacy && ~reservedWords.indexOf( name ) ) name = `'${name}'`;
 			return `${indentString}${name}: ${original.getName( es )}`;
 		});
 
