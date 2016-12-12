@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 0.37.0
+
+* [BREAKING] Default exports are not included in reified namespaces ([#1028](https://github.com/rollup/rollup/issues/1028))
+* Parentheses do not defeat tree-shaking ([#1101](https://github.com/rollup/rollup/issues/1101), [#1128](https://github.com/rollup/rollup/issues/1128))
+* More `legacy` fixes: do not create getters ([#1069](https://github.com/rollup/rollup/pull/1069)), do not include `__esModule` ([#1068](https://github.com/rollup/rollup/pull/1068)), quote reserved property names ([#1057](https://github.com/rollup/rollup/pull/1057))
+* Fix missing namespace member warnings ([#1045](https://github.com/rollup/rollup/issues/1045))
+* Fix TypeError in arrow function without braces returning a function ([#1062](https://github.com/rollup/rollup/pull/1062))
+
 ## 0.36.4
 
 * Only depend on program-level call expressions ([#977](https://github.com/rollup/rollup/issues/977))
