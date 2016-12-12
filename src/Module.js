@@ -18,7 +18,7 @@ function tryParse ( code, comments, acornOptions, id ) {
 			ecmaVersion: 7,
 			sourceType: 'module',
 			onComment: ( block, text, start, end ) => comments.push({ block, text, start, end }),
-			preserveParens: true
+			preserveParens: false
 		}, acornOptions ));
 	} catch ( err ) {
 		err.code = 'PARSE_ERROR';

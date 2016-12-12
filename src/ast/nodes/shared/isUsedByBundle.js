@@ -1,8 +1,6 @@
 import { UNKNOWN } from '../../values.js';
 
 export default function isUsedByBundle ( scope, node ) {
-	while ( node.type === 'ParenthesizedExpression' ) node = node.expression;
-
 	// const expression = node;
 	while ( node.type === 'MemberExpression' ) node = node.object;
 

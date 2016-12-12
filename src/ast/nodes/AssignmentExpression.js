@@ -5,8 +5,7 @@ import { NUMBER, STRING } from '../values.js';
 
 export default class AssignmentExpression extends Node {
 	bind ( scope ) {
-		let subject = this.left;
-		while ( this.left.type === 'ParenthesizedExpression' ) subject = subject.expression;
+		const subject = this.left;
 
 		this.subject = subject;
 		disallowIllegalReassignment( scope, subject );

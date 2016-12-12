@@ -5,8 +5,7 @@ import { NUMBER } from '../values.js';
 
 export default class UpdateExpression extends Node {
 	bind ( scope ) {
-		let subject = this.argument;
-		while ( this.argument.type === 'ParenthesizedExpression' ) subject = subject.expression;
+		const subject = this.argument;
 
 		this.subject = subject;
 		disallowIllegalReassignment( scope, this.argument );
