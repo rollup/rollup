@@ -1,6 +1,7 @@
 import Node from '../Node.js';
 import disallowIllegalReassignment from './shared/disallowIllegalReassignment.js';
 import isUsedByBundle from './shared/isUsedByBundle.js';
+import isProgramLevel from '../utils/isProgramLevel.js';
 import { NUMBER, STRING } from '../values.js';
 
 export default class AssignmentExpression extends Node {
@@ -36,7 +37,10 @@ export default class AssignmentExpression extends Node {
 	initialise ( scope ) {
 		this.scope = scope;
 
-		this.module.bundle.dependentExpressions.push( this );
+		if ( isProgramLevel( this ) ) {
+			this.module.bundle.dependentExpressions.push( this );
+		}
+
 		super.initialise( scope );
 	}
 
