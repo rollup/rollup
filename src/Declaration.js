@@ -116,6 +116,10 @@ export class ExternalDeclaration {
 		}
 	}
 
+	gatherPossibleValues ( values ) {
+		values.add( UNKNOWN );
+	}
+
 	getName ( es ) {
 		if ( this.name === '*' ) {
 			return this.module.name;
