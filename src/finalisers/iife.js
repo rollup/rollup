@@ -5,10 +5,10 @@ import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 import propertyStringFor from './shared/propertyStringFor';
 
-// thisProp('foo.bar.baz') === "this['foo']['bar']['baz']"
+// thisProp('foo.bar-baz.qux') === "this.foo['bar-baz'].qux"
 const thisProp = propertyStringFor('this');
 
-// propString('foo.bar') === "['foo']['bar']"
+// propString('foo.bar-baz.qux') === ".foo['bar-baz'].qux"
 const propString = propertyStringFor('');
 
 function setupNamespace ( keypath ) {

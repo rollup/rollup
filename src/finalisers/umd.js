@@ -6,10 +6,10 @@ import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 import esModuleExport from './shared/esModuleExport.js';
 import propertyStringFor from './shared/propertyStringFor.js';
 
-// globalProp('foo.bar') === "global['foo']['bar']"
+// globalProp('foo.bar-baz') === "global.foo['bar-baz']"
 const globalProp = propertyStringFor('global');
 
-// propString('foo.bar') === "['foo']['bar']"
+// propString('foo.bar-baz') === ".foo['bar']"
 const propString = propertyStringFor('');
 
 function setupNamespace ( name ) {
