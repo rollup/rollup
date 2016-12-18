@@ -4,6 +4,13 @@ import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 import esModuleExport from './shared/esModuleExport.js';
+import propertyStringFor from './shared/propertyStringFor.js';
+
+// globalProp('foo.bar-baz') === "global.foo['bar-baz']"
+const globalProp = propertyStringFor('global');
+
+// propString('foo.bar-baz') === ".foo['bar']"
+const propString = propertyStringFor('');
 
 function setupNamespace ( name ) {
 	const parts = name.split( '.' );
@@ -11,8 +18,8 @@ function setupNamespace ( name ) {
 
 	let acc = 'global';
 	return parts
-		.map( part => ( acc += `.${part}`, `${acc} = ${acc} || {}` ) )
-		.concat( `global.${name}` )
+		.map( part => ( acc += propString(part), `${acc} = ${acc} || {}` ) )
+		.concat( globalProp(name) )
 		.join( ', ' );
 }
 
@@ -27,14 +34,14 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 
 	const amdDeps = bundle.externalModules.map( quotePath );
 	const cjsDeps = bundle.externalModules.map( req );
-	const globalDeps = bundle.externalModules.map( module => `global.${globalNameMaker( module )}` );
+	const globalDeps = bundle.externalModules.map( module => globalProp(globalNameMaker( module )) );
 
 	const args = bundle.externalModules.map( getName );
 
 	if ( exportMode === 'named' ) {
 		amdDeps.unshift( `'exports'` );
 		cjsDeps.unshift( `exports` );
-		globalDeps.unshift( `(${setupNamespace(options.moduleName)} = global.${options.moduleName} || {})` );
+		globalDeps.unshift( `(${setupNamespace(options.moduleName)} = ${globalProp(options.moduleName)} || {})` );
 
 		args.unshift( 'exports' );
 	}
@@ -50,10 +57,10 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 
 	const globalExport = options.noConflict === true ?
 		`(function() {
-				var current = global.${options.moduleName};
+				var current = ${globalProp(options.moduleName)};
 				var exports = factory(${globalDeps});
-				global.${options.moduleName} = exports;
-				exports.noConflict = function() { global.${options.moduleName} = current; return exports; };
+				${globalProp(options.moduleName)} = exports;
+				exports.noConflict = function() { ${globalProp(options.moduleName)} = current; return exports; };
 			})()` : `(${defaultExport}factory(${globalDeps}))`;
 
 	const wrapperIntro =
