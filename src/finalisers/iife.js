@@ -3,60 +3,70 @@ import { getName } from '../utils/map-helpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
+import propertyStringFor from './shared/propertyStringFor';
+
+// thisProp('foo.bar-baz.qux') === "this.foo['bar-baz'].qux"
+const thisProp = propertyStringFor('this');
+
+// propString('foo.bar-baz.qux') === ".foo['bar-baz'].qux"
+const propString = propertyStringFor('');
 
 function setupNamespace ( keypath ) {
-	let parts = keypath.split( '.' ); // TODO support e.g. `foo['something-hyphenated']`?
+	const parts = keypath.split( '.' );
 
 	parts.pop();
 
 	let acc = 'this';
 
 	return parts
-		.map( part => ( acc += `.${part}`, `${acc} = ${acc} || {};` ) )
+		.map( part => ( acc += propString(part), `${acc} = ${acc} || {};` ) )
 		.join( '\n' ) + '\n';
 }
 
-export default function iife ( bundle, magicString, { exportMode, indentString }, options ) {
+export default function iife ( bundle, magicString, { exportMode, indentString, intro }, options ) {
 	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle.onwarn );
 
 	const name = options.moduleName;
 	const isNamespaced = name && ~name.indexOf( '.' );
 
-	let dependencies = bundle.externalModules.map( globalNameMaker );
+	const dependencies = bundle.externalModules.map( globalNameMaker );
 
-	let args = bundle.externalModules.map( getName );
+	const args = bundle.externalModules.map( getName );
 
 	if ( exportMode !== 'none' && !name ) {
 		throw new Error( 'You must supply options.moduleName for IIFE bundles' );
 	}
 
 	if ( exportMode === 'named' ) {
-		dependencies.unshift( `(this.${name} = this.${name} || {})` );
+		dependencies.unshift( `(${thisProp(name)} = ${thisProp(name)} || {})` );
 		args.unshift( 'exports' );
 	}
 
-	const useStrict = options.useStrict !== false ? `'use strict';` : ``;
+	const useStrict = options.useStrict !== false ? `${indentString}'use strict';\n\n` : ``;
 
-	let intro = `(function (${args}) {\n`;
-	let outro = `\n\n}(${dependencies}));`;
+	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
+	const wrapperOutro = `\n\n}(${dependencies}));`;
 
 	if ( exportMode === 'default' ) {
-		intro = ( isNamespaced ? `this.` : `${bundle.varOrConst} ` ) + `${name} = ${intro}`;
+		wrapperIntro = ( isNamespaced ? thisProp(name) : `${bundle.varOrConst} ${name}` ) + ` = ${wrapperIntro}`;
 	}
 
 	if ( isNamespaced ) {
-		intro = setupNamespace( name ) + intro;
+		wrapperIntro = setupNamespace( name ) + wrapperIntro;
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock( bundle );
+	const interopBlock = getInteropBlock( bundle, options );
 	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
-	if ( useStrict ) magicString.prepend( useStrict + '\n\n' );
+
+	if ( intro ) magicString.prepend( intro );
+
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
+	if ( options.outro ) magicString.append( `\n${options.outro}` );
 
 	return magicString
 		.indent( indentString )
-		.prepend( intro )
-		.append( outro );
+		.prepend( wrapperIntro )
+		.append( wrapperOutro );
 }

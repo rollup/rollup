@@ -1,8 +1,4 @@
-import { keys } from './object.js';
-
-export default function validateKeys ( object, allowedKeys ) {
-	const actualKeys = keys( object );
-
+export default function validateKeys ( actualKeys, allowedKeys ) {
 	let i = actualKeys.length;
 
 	while ( i-- ) {

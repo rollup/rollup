@@ -3,5 +3,5 @@ module.exports = {
 	options: {
 		external: [ 'path' ]
 	},
-	babel: true
+	buble: true
 };

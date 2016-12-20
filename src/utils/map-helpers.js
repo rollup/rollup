@@ -2,10 +2,10 @@ export function getName ( x ) {
 	return x.name;
 }
 
-export function quoteId ( x ) {
-	return `'${x.id}'`;
+export function quotePath ( x ) {
+	return `'${x.path}'`;
 }
 
 export function req ( x ) {
-	return `require('${x.id}')`;
+	return `require('${x.path}')`;
 }

@@ -3,9 +3,11 @@ import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import { ExternalDeclaration } from './Declaration.js';
 
 export default class ExternalModule {
-	constructor ( id ) {
+	constructor ( id, relativePath ) {
 		this.id = id;
-		this.name = makeLegalIdentifier( id );
+		this.path = relativePath;
+
+		this.name = makeLegalIdentifier( relativePath );
 
 		this.nameSuggestions = blank();
 		this.mostCommonSuggestion = 0;

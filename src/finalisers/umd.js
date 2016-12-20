@@ -1,8 +1,16 @@
 import { blank } from '../utils/object.js';
-import { getName, quoteId, req } from '../utils/map-helpers.js';
+import { getName, quotePath, req } from '../utils/map-helpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
+import esModuleExport from './shared/esModuleExport.js';
+import propertyStringFor from './shared/propertyStringFor.js';
+
+// globalProp('foo.bar-baz') === "global.foo['bar-baz']"
+const globalProp = propertyStringFor('global');
+
+// propString('foo.bar-baz') === ".foo['bar']"
+const propString = propertyStringFor('');
 
 function setupNamespace ( name ) {
 	const parts = name.split( '.' );
@@ -10,28 +18,30 @@ function setupNamespace ( name ) {
 
 	let acc = 'global';
 	return parts
-		.map( part => ( acc += `.${part}`, `${acc} = ${acc} || {}` ) )
-		.concat( `global.${name}` )
+		.map( part => ( acc += propString(part), `${acc} = ${acc} || {}` ) )
+		.concat( globalProp(name) )
 		.join( ', ' );
 }
 
-export default function umd ( bundle, magicString, { exportMode, indentString }, options ) {
+const wrapperOutro = '\n\n})));';
+
+export default function umd ( bundle, magicString, { exportMode, indentString, intro }, options ) {
 	if ( exportMode !== 'none' && !options.moduleName ) {
 		throw new Error( 'You must supply options.moduleName for UMD bundles' );
 	}
 
 	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle.onwarn );
 
-	let amdDeps = bundle.externalModules.map( quoteId );
-	let cjsDeps = bundle.externalModules.map( req );
-	let globalDeps = bundle.externalModules.map( module => `global.${globalNameMaker( module )}` );
+	const amdDeps = bundle.externalModules.map( quotePath );
+	const cjsDeps = bundle.externalModules.map( req );
+	const globalDeps = bundle.externalModules.map( module => globalProp(globalNameMaker( module )) );
 
-	let args = bundle.externalModules.map( getName );
+	const args = bundle.externalModules.map( getName );
 
 	if ( exportMode === 'named' ) {
 		amdDeps.unshift( `'exports'` );
 		cjsDeps.unshift( `exports` );
-		globalDeps.unshift( `(${setupNamespace(options.moduleName)} = global.${options.moduleName} || {})` );
+		globalDeps.unshift( `(${setupNamespace(options.moduleName)} = ${globalProp(options.moduleName)} || {})` );
 
 		args.unshift( 'exports' );
 	}
@@ -47,31 +57,35 @@ export default function umd ( bundle, magicString, { exportMode, indentString },
 
 	const globalExport = options.noConflict === true ?
 		`(function() {
-				var current = global.${options.moduleName};
+				var current = ${globalProp(options.moduleName)};
 				var exports = factory(${globalDeps});
-				global.${options.moduleName} = exports;
-				exports.noConflict = function() { global.${options.moduleName} = current; return exports; };
+				${globalProp(options.moduleName)} = exports;
+				exports.noConflict = function() { ${globalProp(options.moduleName)} = current; return exports; };
 			})()` : `(${defaultExport}factory(${globalDeps}))`;
 
-	const intro =
+	const wrapperIntro =
 		`(function (global, factory) {
 			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join( ', ' )}) :
 			typeof define === 'function' && define.amd ? define(${amdParams}factory) :
 			${globalExport};
-		}(this, function (${args}) {${useStrict}
+		}(this, (function (${args}) {${useStrict}
 
 		`.replace( /^\t\t/gm, '' ).replace( /^\t/gm, magicString.getIndentString() );
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock( bundle );
+	const interopBlock = getInteropBlock( bundle, options );
 	if ( interopBlock ) magicString.prepend( interopBlock + '\n\n' );
+
+	if ( intro ) magicString.prepend( intro );
 
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
+	if ( exportMode === 'named' && options.legacy !== true ) magicString.append( `\n\n${esModuleExport}` );
+	if ( options.outro ) magicString.append( `\n${options.outro}` );
 
 	return magicString
 		.trim()
 		.indent( indentString )
-		.append( '\n\n}));' )
-		.prepend( intro );
+		.append( wrapperOutro )
+		.prepend( wrapperIntro );
 }

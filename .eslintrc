@@ -7,17 +7,38 @@
         "space-before-blocks": [ 2, "always" ],
         "space-before-function-paren": [ 2, "always" ],
         "no-mixed-spaces-and-tabs": [ 2, "smart-tabs" ],
-        "no-cond-assign": [ 0 ]
+        "no-cond-assign": 0,
+        "no-unused-vars": 2,
+        "object-shorthand":  [ 2, "always" ],
+        "no-const-assign": 2,
+        "no-class-assign": 2,
+        "no-this-before-super": 2,
+        "no-var": 2,
+        "no-unreachable": 2,
+        "valid-typeof": 2,
+        "quote-props": [ 2, "as-needed" ],
+        "one-var": [ 2, "never" ],
+        "prefer-arrow-callback": 2,
+        "prefer-const": [ 2, { "destructuring": "all" } ],
+        "arrow-spacing": 2
     },
     "env": {
         "es6": true,
         "browser": true,
-        "mocha": true,
         "node": true
     },
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "plugin:import/errors",
+        "plugin:import/warnings"
+    ],
     "parserOptions": {
         "ecmaVersion": 6,
         "sourceType": "module"
+    },
+    "settings": {
+        "import/ignore": [ 0, [
+            "\\.path.js$"
+        ] ]
     }
 }

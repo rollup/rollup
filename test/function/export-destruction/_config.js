@@ -2,7 +2,7 @@ var assert = require( 'assert' );
 
 module.exports = {
 	description: 'handle destruction patterns in export declarations',
-	babel: true,
+	buble: true,
 
 	exports: function ( exports ) {
 		assert.deepEqual( Object.keys( exports ), [ 'baz', 'quux' ] );

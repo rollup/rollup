@@ -14,11 +14,11 @@
          alt="license">
   </a>
   <a href="https://david-dm.org/rollup/rollup">
-    <img src="https://david-dm.org/rollup/rollup.svg"
+    <img src="https://david-dm.org/rollup/rollup/status.svg"
          alt="dependency status">
   </a>
   <a href="https://codecov.io/github/rollup/rollup?branch=master">
-    <img src="https://codecov.io/github/rollup/rollup/coverage.svg?branch=master" alt="Coverage via Codecov" />
+    <img src="https://codecov.io/gh/rollup/rollup/branch/master/graph/badge.svg" alt="Coverage via Codecov" />
   </a>
   <a href='https://gitter.im/rollup/rollup?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge'>
     <img src='https://badges.gitter.im/rollup/rollup.svg'
@@ -35,6 +35,8 @@
 ## Quickstart
 
 Rollup can be used via a [JavaScript API](https://github.com/rollup/rollup/wiki/JavaScript-API) or a [Command Line Interface](https://github.com/rollup/rollup/wiki/Command-Line-Interface). Install with `npm install -g rollup` and run `rollup --help` to get started.
+
+If the command line's not your jam, there's also a [step-by-step tutorial video series](https://code.lengstorf.com/learn-rollup-js/) (with accompanying written walkthrough).
 
 [Dive into the wiki](https://github.com/rollup/rollup/wiki) when you're ready to learn more about Rollup and ES6 modules.
 

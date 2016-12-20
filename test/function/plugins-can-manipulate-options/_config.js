@@ -15,4 +15,4 @@ module.exports = {
 	exports: function ( answer ) {
 		assert.equal( answer, 42 );
 	}
-}
+};

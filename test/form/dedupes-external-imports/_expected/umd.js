@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('external')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'external'], factory) :
 	(factory((global.myBundle = global.myBundle || {}),global.external));
-}(this, function (exports,external) { 'use strict';
+}(this, (function (exports,external) { 'use strict';
 
 	class Foo extends external.Component {
 		constructor () {
@@ -33,4 +33,6 @@
 	exports.bar = bar;
 	exports.baz = baz;
 
-}));
+	Object.defineProperty(exports, '__esModule', { value: true });
+
+})));

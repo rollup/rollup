@@ -4,6 +4,5 @@ module.exports = {
 	description: 'inserts newline after comment',
 	exports: function ( exports ) {
 		assert.equal( exports(), 42 );
-	},
-	// solo: true
+	}
 };

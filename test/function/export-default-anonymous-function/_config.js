@@ -9,7 +9,6 @@ module.exports = {
 				return path.basename( importee ).replace( /\..+/, '' );
 			},
 			load: function ( id ) {
-				console.log( 'id', id )
 				return fs.readFileSync( path.join( __dirname, id + '.js' ), 'utf-8' );
 			}
 		}]

@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
 	(factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
 	var foo = function () {
 		return 42;
@@ -17,4 +17,4 @@
 
 	console.log( answer );
 
-}));
+})));

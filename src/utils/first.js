@@ -1,5 +1,3 @@
-import Promise from 'es6-promise/lib/es6-promise/promise.js';
-
 // Return the first non-falsy result from an array of
 // maybe-sync, maybe-promise-returning functions
 export default function first ( candidates ) {

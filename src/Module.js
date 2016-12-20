@@ -1,38 +1,64 @@
+import { timeStart, timeEnd } from './utils/flushTime.js';
 import { parse } from 'acorn/src/index.js';
 import MagicString from 'magic-string';
-import { walk } from 'estree-walker';
-import Statement from './Statement.js';
-import { blank, keys } from './utils/object.js';
+import { assign, blank, deepClone, keys } from './utils/object.js';
 import { basename, extname } from './utils/path.js';
 import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
-import {
-	SyntheticDefaultDeclaration,
-	SyntheticGlobalDeclaration,
-	SyntheticNamespaceDeclaration
-} from './Declaration.js';
-import { isFalsy, isTruthy } from './ast/conditions.js';
-import { emptyBlockStatement } from './ast/create.js';
-import extractNames from './ast/extractNames.js';
+import error from './utils/error.js';
+import relativeId from './utils/relativeId.js';
+import { SyntheticNamespaceDeclaration } from './Declaration.js';
+import extractNames from './ast/utils/extractNames.js';
+import enhance from './ast/enhance.js';
+import ModuleScope from './ast/scopes/ModuleScope.js';
+
+function tryParse ( code, comments, acornOptions, id ) {
+	try {
+		return parse( code, assign({
+			ecmaVersion: 7,
+			sourceType: 'module',
+			onComment: ( block, text, start, end ) => comments.push({ block, text, start, end }),
+			preserveParens: false
+		}, acornOptions ));
+	} catch ( err ) {
+		err.code = 'PARSE_ERROR';
+		err.file = id; // see above - not necessarily true, but true enough
+		err.message += ` in ${id}`;
+		throw err;
+	}
+}
 
 export default class Module {
-	constructor ({ id, code, originalCode, ast, sourceMapChain, bundle }) {
+	constructor ({ id, code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds, bundle }) {
 		this.code = code;
 		this.originalCode = originalCode;
+		this.originalSourceMap = originalSourceMap;
 		this.sourceMapChain = sourceMapChain;
+
+		this.comments = [];
+
+		timeStart( 'ast' );
+
+		this.ast = ast || tryParse( code, this.comments, bundle.acornOptions, id ); // TODO what happens to comments if AST is provided?
+		this.astClone = deepClone( this.ast );
+
+		timeEnd( 'ast' );
 
 		this.bundle = bundle;
 		this.id = id;
+		this.excludeFromSourcemap = /\0/.test( id );
+		this.context = bundle.getModuleContext( id );
 
 		// all dependencies
 		this.sources = [];
 		this.dependencies = [];
-		this.resolvedIds = blank();
+		this.resolvedIds = resolvedIds || blank();
 
 		// imports and exports, indexed by local name
 		this.imports = blank();
 		this.exports = blank();
+		this.exportsAll = blank();
 		this.reexports = blank();
 
 		this.exportAllSources = [];
@@ -41,7 +67,7 @@ export default class Module {
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
 		this.magicString = new MagicString( code, {
-			filename: id,
+			filename: this.excludeFromSourcemap ? null : id, // don't include plugin helpers in sourcemap
 			indentExclusionRanges: []
 		});
 
@@ -52,17 +78,20 @@ export default class Module {
 			this.magicString.remove( match.index, match.index + match[0].length );
 		}
 
-		this.comments = [];
-		this.statements = this.parse( ast );
-
 		this.declarations = blank();
+		this.type = 'Module'; // TODO only necessary so that Scope knows this should be treated as a function scope... messy
+		this.scope = new ModuleScope( this );
+
+		timeStart( 'analyse' );
+
 		this.analyse();
+
+		timeEnd( 'analyse' );
 
 		this.strongDependencies = [];
 	}
 
-	addExport ( statement ) {
-		const node = statement.node;
+	addExport ( node ) {
 		const source = node.source && node.source.value;
 
 		// export { name } from './other.js'
@@ -110,7 +139,7 @@ export default class Module {
 			};
 
 			// create a synthetic declaration
-			this.declarations.default = new SyntheticDefaultDeclaration( node, statement, identifier || this.basename() );
+			//this.declarations.default = new SyntheticDefaultDeclaration( node, identifier || this.basename() );
 		}
 
 		// export var { foo, bar } = ...
@@ -118,7 +147,7 @@ export default class Module {
 		// export var a = 1, b = 2, c = 3;
 		// export function foo () {}
 		else if ( node.declaration ) {
-			let declaration = node.declaration;
+			const declaration = node.declaration;
 
 			if ( declaration.type === 'VariableDeclaration' ) {
 				declaration.declarations.forEach( decl => {
@@ -144,7 +173,13 @@ export default class Module {
 						throw new Error( `A module cannot have multiple exports with the same name ('${exportedName}')` );
 					}
 
-					this.exports[ exportedName ] = { localName };
+					// `export { default as foo }` – special case. We want importers
+					// to use the UnboundDefaultExport proxy, not the original declaration
+					if ( exportedName === 'default' ) {
+						this.exports[ exportedName ] = { localName: 'default' };
+					} else {
+						this.exports[ exportedName ] = { localName };
+					}
 				});
 			} else {
 				this.bundle.onwarn( `Module ${this.id} has an empty export declaration` );
@@ -152,8 +187,7 @@ export default class Module {
 		}
 	}
 
-	addImport ( statement ) {
-		const node = statement.node;
+	addImport ( node ) {
 		const source = node.source.value;
 
 		if ( !~this.sources.indexOf( source ) ) this.sources.push( source );
@@ -172,22 +206,26 @@ export default class Module {
 			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
 
 			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
-			this.imports[ localName ] = { source, name, module: null };
+			this.imports[ localName ] = { source, specifier, name, module: null };
 		});
 	}
 
 	analyse () {
+		enhance( this.ast, this, this.comments );
+
 		// discover this module's imports and exports
-		this.statements.forEach( statement => {
-			if ( statement.isImportDeclaration ) this.addImport( statement );
-			else if ( statement.isExportDeclaration ) this.addExport( statement );
+		let lastNode;
 
-			statement.firstPass();
+		for ( const node of this.ast.body ) {
+			if ( node.isImportDeclaration ) {
+				this.addImport( node );
+			} else if ( node.isExportDeclaration ) {
+				this.addExport( node );
+			}
 
-			statement.scope.eachDeclaration( ( name, declaration ) => {
-				this.declarations[ name ] = declaration;
-			});
-		});
+			if ( lastNode ) lastNode.next = node.leadingCommentStart || node.start;
+			lastNode = node;
+		}
 	}
 
 	basename () {
@@ -197,81 +235,53 @@ export default class Module {
 		return makeLegalIdentifier( ext ? base.slice( 0, -ext.length ) : base );
 	}
 
-	bindAliases () {
-		keys( this.declarations ).forEach( name => {
-			if ( name === '*' ) return;
-
-			const declaration = this.declarations[ name ];
-			const statement = declaration.statement;
-
-			if ( !statement || statement.node.type !== 'VariableDeclaration' ) return;
-
-			const init = statement.node.declarations[0].init;
-			if ( !init || init.type === 'FunctionExpression' ) return;
-
-			statement.references.forEach( reference => {
-				if ( reference.name === name ) return;
-
-				const otherDeclaration = this.trace( reference.name );
-				if ( otherDeclaration ) otherDeclaration.addAlias( declaration );
-			});
-		});
-	}
-
 	bindImportSpecifiers () {
 		[ this.imports, this.reexports ].forEach( specifiers => {
 			keys( specifiers ).forEach( name => {
 				const specifier = specifiers[ name ];
 
 				const id = this.resolvedIds[ specifier.source ];
-				specifier.module = this.bundle.moduleById[ id ];
+				specifier.module = this.bundle.moduleById.get( id );
 			});
 		});
 
 		this.exportAllModules = this.exportAllSources.map( source => {
 			const id = this.resolvedIds[ source ];
-			return this.bundle.moduleById[ id ];
+			return this.bundle.moduleById.get( id );
 		});
 
 		this.sources.forEach( source => {
 			const id = this.resolvedIds[ source ];
-			const module = this.bundle.moduleById[ id ];
+			const module = this.bundle.moduleById.get( id );
 
 			if ( !module.isExternal ) this.dependencies.push( module );
 		});
 	}
 
 	bindReferences () {
-		if ( this.declarations.default ) {
-			if ( this.exports.default.identifier ) {
-				const declaration = this.trace( this.exports.default.identifier );
-				if ( declaration ) this.declarations.default.bind( declaration );
-			}
+		for ( const node of this.ast.body ) {
+			node.bind( this.scope );
 		}
 
-		this.statements.forEach( statement => {
-			// skip `export { foo, bar, baz }`...
-			if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.specifiers.length ) {
-				// ...unless this is the entry module
-				if ( this !== this.bundle.entryModule ) return;
-			}
+		// if ( this.declarations.default ) {
+		// 	if ( this.exports.default.identifier ) {
+		// 		const declaration = this.trace( this.exports.default.identifier );
+		// 		if ( declaration ) this.declarations.default.bind( declaration );
+		// 	}
+		// }
+	}
 
-			statement.references.forEach( reference => {
-				const declaration = reference.scope.findDeclaration( reference.name ) ||
-				                    this.trace( reference.name );
+	findParent () {
+		// TODO what does it mean if we're here?
+		return null;
+	}
 
-				if ( declaration ) {
-					declaration.addReference( reference );
-				} else {
-					// TODO handle globals
-					this.bundle.assumedGlobals[ reference.name ] = true;
-				}
-			});
-		});
+	findScope () {
+		return this.scope;
 	}
 
 	getExports () {
-		let exports = blank();
+		const exports = blank();
 
 		keys( this.exports ).forEach( name => {
 			exports[ name ] = true;
@@ -282,6 +292,8 @@ export default class Module {
 		});
 
 		this.exportAllModules.forEach( module => {
+			if ( module.isExternal ) return; // TODO
+
 			module.getExports().forEach( name => {
 				if ( name !== 'default' ) exports[ name ] = true;
 			});
@@ -298,347 +310,46 @@ export default class Module {
 		return this.declarations['*'];
 	}
 
-	parse ( ast ) {
-		// The ast can be supplied programmatically (but usually won't be)
-		if ( !ast ) {
-			// Try to extract a list of top-level statements/declarations. If
-			// the parse fails, attach file info and abort
-			try {
-				ast = parse( this.code, {
-					ecmaVersion: 6,
-					sourceType: 'module',
-					onComment: ( block, text, start, end ) => this.comments.push({ block, text, start, end }),
-					preserveParens: true
-				});
-			} catch ( err ) {
-				err.code = 'PARSE_ERROR';
-				err.file = this.id; // see above - not necessarily true, but true enough
-				err.message += ` in ${this.id}`;
-				throw err;
-			}
+	render ( es, legacy ) {
+		const magicString = this.magicString.clone();
+
+		for ( const node of this.ast.body ) {
+			node.render( magicString, es );
 		}
 
-		walk( ast, {
-			enter: node => {
-				// eliminate dead branches early
-				if ( node.type === 'IfStatement' ) {
-					if ( isFalsy( node.test ) ) {
-						this.magicString.overwrite( node.consequent.start, node.consequent.end, '{}' );
-						node.consequent = emptyBlockStatement( node.consequent.start, node.consequent.end );
-					} else if ( node.alternate && isTruthy( node.test ) ) {
-						this.magicString.overwrite( node.alternate.start, node.alternate.end, '{}' );
-						node.alternate = emptyBlockStatement( node.alternate.start, node.alternate.end );
-					}
-				}
-
-				this.magicString.addSourcemapLocation( node.start );
-				this.magicString.addSourcemapLocation( node.end );
-			},
-
-			leave: ( node, parent, prop ) => {
-				// eliminate dead branches early
-				if ( node.type === 'ConditionalExpression' ) {
-					if ( isFalsy( node.test ) ) {
-						this.magicString.remove( node.start, node.alternate.start );
-						parent[prop] = node.alternate;
-					} else if ( isTruthy( node.test ) ) {
-						this.magicString.remove( node.start, node.consequent.start );
-						this.magicString.remove( node.consequent.end, node.end );
-						parent[prop] = node.consequent;
-					}
-				}
-			}
-		});
-
-		let statements = [];
-		let lastChar = 0;
-		let commentIndex = 0;
-
-		ast.body.forEach( node => {
-			if ( node.type === 'EmptyStatement' ) return;
-
-			if (
-				node.type === 'ExportNamedDeclaration' &&
-				node.declaration &&
-				node.declaration.type === 'VariableDeclaration' &&
-				node.declaration.declarations &&
-				node.declaration.declarations.length > 1
-			) {
-				// push a synthetic export declaration
-				const syntheticNode = {
-					type: 'ExportNamedDeclaration',
-					specifiers: node.declaration.declarations.map( declarator => {
-						const id = { name: declarator.id.name };
-						return {
-							local: id,
-							exported: id
-						};
-					}),
-					isSynthetic: true
-				};
-
-				const statement = new Statement( syntheticNode, this, node.start, node.start );
-				statements.push( statement );
-
-				this.magicString.remove( node.start, node.declaration.start );
-				node = node.declaration;
-			}
-
-			// special case - top-level var declarations with multiple declarators
-			// should be split up. Otherwise, we may end up including code we
-			// don't need, just because an unwanted declarator is included
-			if ( node.type === 'VariableDeclaration' && node.declarations.length > 1 ) {
-				// remove the leading var/let/const... UNLESS the previous node
-				// was also a synthetic node, in which case it'll get removed anyway
-				const lastStatement = statements[ statements.length - 1 ];
-				if ( !lastStatement || !lastStatement.node.isSynthetic ) {
-					this.magicString.remove( node.start, node.declarations[0].start );
-				}
-
-				node.declarations.forEach( declarator => {
-					const { start, end } = declarator;
-
-					const syntheticNode = {
-						type: 'VariableDeclaration',
-						kind: node.kind,
-						start,
-						end,
-						declarations: [ declarator ],
-						isSynthetic: true
-					};
-
-					const statement = new Statement( syntheticNode, this, start, end );
-					statements.push( statement );
-				});
-
-				lastChar = node.end; // TODO account for trailing line comment
-			}
-
-			else {
-				let comment;
-				do {
-					comment = this.comments[ commentIndex ];
-					if ( !comment ) break;
-					if ( comment.start > node.start ) break;
-					commentIndex += 1;
-				} while ( comment.end < lastChar );
-
-				const start = comment ? Math.min( comment.start, node.start ) : node.start;
-				const end = node.end; // TODO account for trailing line comment
-
-				const statement = new Statement( node, this, start, end );
-				statements.push( statement );
-
-				lastChar = end;
-			}
-		});
-
-		let i = statements.length;
-		let next = this.code.length;
-		while ( i-- ) {
-			statements[i].next = next;
-			if ( !statements[i].isSynthetic ) next = statements[i].start;
-		}
-
-		return statements;
-	}
-
-	render ( es6 ) {
-		let magicString = this.magicString.clone();
-
-		this.statements.forEach( statement => {
-			if ( !statement.isIncluded ) {
-				magicString.remove( statement.start, statement.next );
-				return;
-			}
-
-			statement.stringLiteralRanges.forEach( range => magicString.indentExclusionRanges.push( range ) );
-
-			// skip `export { foo, bar, baz }`
-			if ( statement.node.type === 'ExportNamedDeclaration' ) {
-				if ( statement.node.isSynthetic ) return;
-
-				// skip `export { foo, bar, baz }`
-				if ( statement.node.specifiers.length ) {
-					magicString.remove( statement.start, statement.next );
-					return;
-				}
-			}
-
-			// split up/remove var declarations as necessary
-			if ( statement.node.type === 'VariableDeclaration' ) {
-				const declarator = statement.node.declarations[0];
-
-				if ( declarator.id.type === 'Identifier' ) {
-					const declaration = this.declarations[ declarator.id.name ];
-
-					if ( declaration.exportName && declaration.isReassigned ) { // `var foo = ...` becomes `exports.foo = ...`
-						magicString.remove( statement.start, declarator.init ? declarator.start : statement.next );
-						if ( !declarator.init ) return;
-					}
-				}
-
-				else {
-					// we handle destructuring differently, because whereas we can rewrite
-					// `var foo = ...` as `exports.foo = ...`, in a case like `var { a, b } = c()`
-					// where `a` or `b` is exported and reassigned, we have to append
-					// `exports.a = a;` and `exports.b = b` instead
-					extractNames( declarator.id ).forEach( name => {
-						const declaration = this.declarations[ name ];
-
-						if ( declaration.exportName && declaration.isReassigned ) {
-							magicString.insert( statement.end, `;\nexports.${name} = ${declaration.render( es6 )}` );
-						}
-					});
-				}
-
-				if ( statement.node.isSynthetic ) {
-					// insert `var/let/const` if necessary
-					magicString.insert( statement.start, `${statement.node.kind} ` );
-					magicString.overwrite( statement.end, statement.next, ';\n' ); // TODO account for trailing newlines
-				}
-			}
-
-			let toDeshadow = blank();
-
-			statement.references.forEach( reference => {
-				const { start, end } = reference;
-
-				if ( reference.isUndefined ) {
-					magicString.overwrite( start, end, 'undefined', true );
-				}
-
-				const declaration = reference.declaration;
-
-				if ( declaration ) {
-					const name = declaration.render( es6 );
-
-					// the second part of this check is necessary because of
-					// namespace optimisation – name of `foo.bar` could be `bar`
-					if ( reference.name === name && name.length === end - start ) return;
-
-					reference.rewritten = true;
-
-					// prevent local variables from shadowing renamed references
-					const identifier = name.match( /[^\.]+/ )[0];
-					if ( reference.scope.contains( identifier ) ) {
-						toDeshadow[ identifier ] = `${identifier}$$`; // TODO more robust mechanism
-					}
-
-					if ( reference.isShorthandProperty ) {
-						magicString.insert( end, `: ${name}` );
-					} else {
-						magicString.overwrite( start, end, name, true );
-					}
-				}
-			});
-
-			if ( keys( toDeshadow ).length ) {
-				statement.references.forEach( reference => {
-					if ( !reference.rewritten && reference.name in toDeshadow ) {
-						const replacement = toDeshadow[ reference.name ];
-						magicString.overwrite( reference.start, reference.end, reference.isShorthandProperty ? `${reference.name}: ${replacement}` : replacement, true );
-					}
-				});
-			}
-
-			// modify exports as necessary
-			if ( statement.isExportDeclaration ) {
-				// remove `export` from `export var foo = 42`
-				// TODO: can we do something simpler here?
-				// we just want to remove `export`, right?
-				if ( statement.node.type === 'ExportNamedDeclaration' && statement.node.declaration.type === 'VariableDeclaration' ) {
-					const name = extractNames( statement.node.declaration.declarations[ 0 ].id )[ 0 ];
-					const declaration = this.declarations[ name ];
-
-					if ( !declaration ) throw new Error( `Missing declaration for ${name}!` );
-
-					const end = declaration.exportName && declaration.isReassigned ?
-						statement.node.declaration.declarations[0].start :
-						statement.node.declaration.start;
-
-					magicString.remove( statement.node.start, end );
-				}
-
-				else if ( statement.node.type === 'ExportAllDeclaration' ) {
-					// TODO: remove once `export * from 'external'` is supported.
-					magicString.remove( statement.start, statement.next );
-				}
-
-				// remove `export` from `export class Foo {...}` or `export default Foo`
-				// TODO default exports need different treatment
-				else if ( statement.node.declaration.id ) {
-					magicString.remove( statement.node.start, statement.node.declaration.start );
-				}
-
-				else if ( statement.node.type === 'ExportDefaultDeclaration' ) {
-					const defaultDeclaration = this.declarations.default;
-
-					// prevent `var foo = foo`
-					if ( defaultDeclaration.original && !defaultDeclaration.original.isReassigned ) {
-						magicString.remove( statement.start, statement.next );
-						return;
-					}
-
-					const defaultName = defaultDeclaration.render();
-
-					// prevent `var undefined = sideEffectyDefault(foo)`
-					if ( !defaultDeclaration.exportName && !defaultDeclaration.isUsed ) {
-						magicString.remove( statement.start, statement.node.declaration.start );
-						return;
-					}
-
-					// anonymous functions should be converted into declarations
-					if ( statement.node.declaration.type === 'FunctionExpression' ) {
-						magicString.overwrite( statement.node.start, statement.node.declaration.start + 8, `function ${defaultName}` );
-					} else {
-						magicString.overwrite( statement.node.start, statement.node.declaration.start, `${this.bundle.varOrConst} ${defaultName} = ` );
-					}
-				}
-
-				else {
-					throw new Error( 'Unhandled export' );
-				}
-			}
-		});
-
-		// add namespace block if necessary
-		const namespace = this.declarations['*'];
-		if ( namespace && namespace.needsNamespaceBlock ) {
-			magicString.append( '\n\n' + namespace.renderBlock( magicString.getIndentString() ) );
+		if ( this.namespace().needsNamespaceBlock ) {
+			magicString.append( '\n\n' + this.namespace().renderBlock( es, legacy, '\t' ) ); // TODO use correct indentation
 		}
 
 		return magicString.trim();
 	}
 
-	/**
-	 * Statically runs the module marking the top-level statements that must be
-	 * included for the module to execute successfully.
-	 *
-	 * @param {boolean} treeshake - if we should tree-shake the module
-	 * @return {boolean} marked - if any new statements were marked for inclusion
-	 */
-	run ( treeshake ) {
-		if ( !treeshake ) {
-			this.statements.forEach( statement => {
-				if ( statement.isImportDeclaration || ( statement.isExportDeclaration && statement.node.isSynthetic ) ) return;
-
-				statement.mark();
-			});
-			return false;
+	run () {
+		for ( const node of this.ast.body ) {
+			if ( node.hasEffects( this.scope ) ) {
+				node.run( this.scope );
+			}
 		}
+	}
 
-		let marked = false;
-
-		this.statements.forEach( statement => {
-			marked = statement.run( this.strongDependencies ) || marked;
-		});
-
-		return marked;
+	toJSON () {
+		return {
+			id: this.id,
+			dependencies: this.dependencies.map( module => module.id ),
+			code: this.code,
+			originalCode: this.originalCode,
+			ast: this.astClone,
+			sourceMapChain: this.sourceMapChain,
+			resolvedIds: this.resolvedIds
+		};
 	}
 
 	trace ( name ) {
-		if ( name in this.declarations ) return this.declarations[ name ];
+		// TODO this is slightly circular
+		if ( name in this.scope.declarations ) {
+			return this.scope.declarations[ name ];
+		}
+
 		if ( name in this.imports ) {
 			const importDeclaration = this.imports[ name ];
 			const otherModule = importDeclaration.module;
@@ -649,7 +360,14 @@ export default class Module {
 
 			const declaration = otherModule.traceExport( importDeclaration.name );
 
-			if ( !declaration ) throw new Error( `Module ${otherModule.id} does not export ${importDeclaration.name} (imported by ${this.id})` );
+			if ( !declaration ) {
+				error({
+					message: `'${importDeclaration.name}' is not exported by ${relativeId( otherModule.id )} (imported by ${relativeId( this.id )}). For help fixing this error see https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`,
+					file: this.id,
+					loc: getLocation( this.code, importDeclaration.specifier.start )
+				});
+			}
+
 			return declaration;
 		}
 
@@ -663,10 +381,11 @@ export default class Module {
 			const declaration = reexportDeclaration.module.traceExport( reexportDeclaration.localName );
 
 			if ( !declaration ) {
-				const err = new Error( `'${reexportDeclaration.localName}' is not exported by '${reexportDeclaration.module.id}' (imported by '${this.id}')` );
-				err.file = this.id;
-				err.loc = getLocation( this.code, reexportDeclaration.start );
-				throw err;
+				error({
+					message: `'${reexportDeclaration.localName}' is not exported by '${reexportDeclaration.module.id}' (imported by '${this.id}')`,
+					file: this.id,
+					loc: getLocation( this.code, reexportDeclaration.start )
+				});
 			}
 
 			return declaration;
@@ -677,11 +396,10 @@ export default class Module {
 			const name = exportDeclaration.localName;
 			const declaration = this.trace( name );
 
-			if ( declaration ) return declaration;
-
-			this.bundle.assumedGlobals[ name ] = true;
-			return ( this.declarations[ name ] = new SyntheticGlobalDeclaration( name ) );
+			return declaration || this.bundle.scope.findDeclaration( name );
 		}
+
+		if ( name === 'default' ) return;
 
 		for ( let i = 0; i < this.exportAllModules.length; i += 1 ) {
 			const module = this.exportAllModules[i];

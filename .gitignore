@@ -1,9 +1,9 @@
 .DS_Store
-node_modules
-!test/node_modules
+/node_modules
 .gobble*
 dist
 _actual
 coverage
 .commithash
 .idea
+bin/rollup

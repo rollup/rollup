@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(factory((global.myBundle = global.myBundle || {})));
-}(this, function (exports) { 'use strict';
+}(this, (function (exports) { 'use strict';
 
 	var FOO = 'foo';
 
@@ -12,4 +12,6 @@
 
 	exports.FOO = FOO;
 
-}));
+	Object.defineProperty(exports, '__esModule', { value: true });
+
+})));
