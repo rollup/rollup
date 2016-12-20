@@ -1,6 +1,7 @@
 import getLocation from '../../utils/getLocation.js';
 import error from '../../utils/error.js';
 import Node from '../Node.js';
+import isProgramLevel from '../utils/isProgramLevel.js';
 import callHasEffects from './shared/callHasEffects.js';
 
 export default class CallExpression extends Node {
@@ -39,15 +40,4 @@ export default class CallExpression extends Node {
 	isUsedByBundle () {
 		return this.hasEffects( this.findScope() );
 	}
-}
-
-function isProgramLevel ( node ) {
-	do {
-		if ( node.type === 'Program' ) {
-			return true;
-		}
-		node = node.parent;
-	} while ( node && !/Function/.test( node.type ) );
-
-	return false;
 }
