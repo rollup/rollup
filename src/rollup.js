@@ -17,6 +17,7 @@ const ALLOWED_KEYS = [
 	'dest',
 	'entry',
 	'exports',
+	'extensions',
 	'external',
 	'footer',
 	'format',

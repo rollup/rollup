@@ -97,6 +97,8 @@ export default class Bundle {
 		this.legacy = options.legacy;
 		this.acornOptions = options.acorn || {};
 
+		this.extensions = ensureArray(options.extensions || '.js');
+
 		this.dependentExpressions = [];
 	}
 
@@ -104,7 +106,7 @@ export default class Bundle {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
-		return this.resolveId( this.entry, undefined )
+		return this.resolveId( this.entry, undefined, this.extensions )
 			.then( id => {
 				if ( id == null ) throw new Error( `Could not resolve entry (${this.entry})` );
 				this.entryId = id;
@@ -307,7 +309,7 @@ export default class Bundle {
 	fetchAllDependencies ( module ) {
 		return mapSequence( module.sources, source => {
 			const resolvedId = module.resolvedIds[ source ];
-			return ( resolvedId ? Promise.resolve( resolvedId ) : this.resolveId( source, module.id ) )
+			return ( resolvedId ? Promise.resolve( resolvedId ) : this.resolveId( source, module.id, this.extensions ) )
 				.then( resolvedId => {
 					const externalId = resolvedId || (
 						isRelative( source ) ? resolve( module.id, '..', source ) : source
