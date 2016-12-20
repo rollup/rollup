@@ -4,7 +4,7 @@ function notDefault ( name ) {
 	return name !== 'default';
 }
 
-export default function es ( bundle, magicString, { intro }, options ) {
+export default function es ( bundle, magicString, { intro, outro }, options ) {
 	const importBlock = bundle.externalModules
 		.map( module => {
 			const specifiers = [];
@@ -71,7 +71,7 @@ export default function es ( bundle, magicString, { intro }, options ) {
 	}
 
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock.trim() );
-	if ( options.outro ) magicString.append( `\n${options.outro}` );
+	if ( outro ) magicString.append( outro );
 
 	return magicString.trim();
 }

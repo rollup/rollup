@@ -387,7 +387,16 @@ export default class Bundle {
 			.filter( Boolean )
 			.join( '\n\n' );
 
-		if ( intro ) intro += '\n';
+		if ( intro ) intro += '\n\n';
+
+		let outro = [ options.outro ]
+			.concat(
+				this.plugins.map( plugin => plugin.outro && plugin.outro() )
+			)
+			.filter( Boolean )
+			.join( '\n\n' );
+
+		if ( outro ) outro = `\n\n${outro}`;
 
 		const indentString = getIndentString( magicString, options );
 
@@ -396,7 +405,7 @@ export default class Bundle {
 
 		timeStart( 'render format' );
 
-		magicString = finalise( this, magicString.trim(), { exportMode, indentString, intro }, options );
+		magicString = finalise( this, magicString.trim(), { exportMode, indentString, intro, outro }, options );
 
 		timeEnd( 'render format' );
 

@@ -23,7 +23,7 @@ function setupNamespace ( keypath ) {
 		.join( '\n' ) + '\n';
 }
 
-export default function iife ( bundle, magicString, { exportMode, indentString, intro }, options ) {
+export default function iife ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
 	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle.onwarn );
 
 	const name = options.moduleName;
@@ -63,7 +63,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
-	if ( options.outro ) magicString.append( `\n${options.outro}` );
+	if ( outro ) magicString.append( outro );
 
 	return magicString
 		.indent( indentString )
