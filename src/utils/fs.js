@@ -20,6 +20,15 @@ export function isFile ( file ) {
 	}
 }
 
+export function isDir ( file ) {
+	try {
+		const stats = fs.statSync(file);
+		return stats.isDirectory();
+	} catch ( err ) {
+		return false;
+	}
+}
+
 export function writeFile ( dest, data ) {
 	return new Promise( ( fulfil, reject ) => {
 		mkdirpath( dest );
