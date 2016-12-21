@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.37.1
+
+* Follow symlinks ([#447](https://github.com/rollup/rollup/issues/447))
+* Fix tree-shaking of recursive functions and other cases ([#1120](https://github.com/rollup/rollup/issues/1120), [#1142](https://github.com/rollup/rollup/issues/1142))
+* Support module names that require quotes ([#582](https://github.com/rollup/rollup/issues/582), [#584](https://github.com/rollup/rollup/issues/584))
+* Fix [#957](https://github.com/rollup/rollup/issues/957)
+
 ## 0.37.0
 
 * [BREAKING] Default exports are not included in reified namespaces ([#1028](https://github.com/rollup/rollup/issues/1028))
