@@ -72,7 +72,7 @@ export default class Module {
 		});
 
 		// remove existing sourceMappingURL comments
-		const pattern = new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' );
+		const pattern = new RegExp( `^\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'gm' );
 		let match;
 		while ( match = pattern.exec( code ) ) {
 			this.magicString.remove( match.index, match.index + match[0].length );
