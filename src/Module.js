@@ -173,13 +173,7 @@ export default class Module {
 						throw new Error( `A module cannot have multiple exports with the same name ('${exportedName}')` );
 					}
 
-					// `export { default as foo }` – special case. We want importers
-					// to use the UnboundDefaultExport proxy, not the original declaration
-					if ( exportedName === 'default' ) {
-						this.exports[ exportedName ] = { localName: 'default' };
-					} else {
-						this.exports[ exportedName ] = { localName };
-					}
+					this.exports[ exportedName ] = { localName };
 				});
 			} else {
 				this.bundle.onwarn( `Module ${this.id} has an empty export declaration` );
