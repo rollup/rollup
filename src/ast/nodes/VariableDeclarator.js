@@ -48,6 +48,16 @@ export default class VariableDeclarator extends Node {
 		this.activated = true;
 
 		this.run( this.findScope() );
+
+		// if declaration is inside a block, ensure that the block
+		// is marked for inclusion
+		if ( this.parent.kind === 'var' ) {
+			let node = this.parent.parent;
+			while ( /Statement/.test( node.type ) ) {
+				node.shouldInclude = true;
+				node = node.parent;
+			}
+		}
 	}
 
 	hasEffects ( scope ) {
