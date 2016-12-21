@@ -4,6 +4,9 @@ define(function () { 'use strict';
 		return 42;
 	};
 
-	console.log( foo() );
+	// we should not trim this string
+	var str = '//# sourceMappingURL=main.js.map';
+
+	console.log( foo(str) );
 
 });
