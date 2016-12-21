@@ -25,7 +25,7 @@ function setupNamespace ( name ) {
 
 const wrapperOutro = '\n\n})));';
 
-export default function umd ( bundle, magicString, { exportMode, indentString, intro }, options ) {
+export default function umd ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
 	if ( exportMode !== 'none' && !options.moduleName ) {
 		throw new Error( 'You must supply options.moduleName for UMD bundles' );
 	}
@@ -81,7 +81,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 	if ( exportMode === 'named' && options.legacy !== true ) magicString.append( `\n\n${esModuleExport}` );
-	if ( options.outro ) magicString.append( `\n${options.outro}` );
+	if ( outro ) magicString.append( outro );
 
 	return magicString
 		.trim()

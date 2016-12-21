@@ -1,7 +1,7 @@
 import getExportBlock from './shared/getExportBlock.js';
 import esModuleExport from './shared/esModuleExport.js';
 
-export default function cjs ( bundle, magicString, { exportMode, intro }, options ) {
+export default function cjs ( bundle, magicString, { exportMode, intro, outro }, options ) {
 	intro = ( options.useStrict === false ? intro : `'use strict';\n\n${intro}` ) +
 	        ( exportMode === 'named' && options.legacy !== true ? `${esModuleExport}\n\n` : '' );
 
@@ -45,7 +45,7 @@ export default function cjs ( bundle, magicString, { exportMode, intro }, option
 
 	const exportBlock = getExportBlock( bundle.entryModule, exportMode, 'module.exports =' );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
-	if ( options.outro ) magicString.append( `\n${options.outro}` );
+	if ( outro ) magicString.append( outro );
 
 	return magicString;
 }
