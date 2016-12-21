@@ -1,5 +1,5 @@
+import isReference from 'is-reference';
 import flatten from '../../utils/flatten.js';
-import isReference from '../../utils/isReference.js';
 import pureFunctions from './pureFunctions.js';
 import { UNKNOWN } from '../../values.js';
 
