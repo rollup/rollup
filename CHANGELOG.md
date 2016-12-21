@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.37.2
+
+* Remove unused `new` expressions without side-effects ([#179](https://github.com/rollup/rollup/issues/179))
+* Only remove valid sourceMappingURL comments ([#1132](https://github.com/rollup/rollup/issues/1132))
+* Ensure blocks containing activated `var` declarations are included in output ([#1113](https://github.com/rollup/rollup/issues/1113))
+* Support plugin outros ([#1116](https://github.com/rollup/rollup/issues/1116))
+
 ## 0.37.1
 
 * Follow symlinks ([#447](https://github.com/rollup/rollup/issues/447))
