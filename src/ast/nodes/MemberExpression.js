@@ -1,6 +1,6 @@
+import isReference from 'is-reference';
 import getLocation from '../../utils/getLocation.js';
 import relativeId from '../../utils/relativeId.js';
-import isReference from '../utils/isReference.js';
 import Node from '../Node.js';
 import { UNKNOWN } from '../values.js';
 

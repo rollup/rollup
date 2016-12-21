@@ -55,6 +55,7 @@
     "eslint": "^2.13.0",
     "eslint-plugin-import": "^1.14.0",
     "estree-walker": "^0.2.1",
+    "is-reference": "^1.0.0",
     "istanbul": "^0.4.3",
     "magic-string": "^0.15.2",
     "minimist": "^1.2.0",
