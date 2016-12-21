@@ -4,3 +4,5 @@ let SOURCEMAPPING_URL = 'sourceMa';
 SOURCEMAPPING_URL += 'ppingURL';
 
 export default SOURCEMAPPING_URL;
+
+export const SOURCEMAPPING_URL_RE = new RegExp( `^#\\s+${SOURCEMAPPING_URL}=.+\\n?` );
