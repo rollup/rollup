@@ -6,8 +6,8 @@
 	};
 
 	var str = `
-	//# sourceMappingURL=main.js.map
-	`;
+//# sourceMappingURL=main.js.map
+`;
 
 	console.log( foo(str) );
 

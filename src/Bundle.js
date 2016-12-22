@@ -15,7 +15,6 @@ import { mapSequence } from './utils/promise.js';
 import transform from './utils/transform.js';
 import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
-import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
 import callIfFunction from './utils/callIfFunction.js';
 import { dirname, isRelative, isAbsolute, normalize, relative, resolve } from './utils/path.js';
 import BundleScope from './ast/scopes/BundleScope.js';
@@ -428,8 +427,7 @@ export default class Bundle {
 		let map = null;
 		const bundleSourcemapChain = [];
 
-		code = transformBundle( code, this.plugins, bundleSourcemapChain, options )
-			.replace( new RegExp( `^\\/\\/# +${SOURCEMAPPING_URL}=.+\\n?`, 'gm' ), '' );
+		code = transformBundle( code, this.plugins, bundleSourcemapChain, options );
 
 		if ( options.sourceMap ) {
 			timeStart( 'sourceMap' );

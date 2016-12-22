@@ -5,7 +5,7 @@ import { assign, blank, deepClone, keys } from './utils/object.js';
 import { basename, extname } from './utils/path.js';
 import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
-import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
+import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL.js';
 import error from './utils/error.js';
 import relativeId from './utils/relativeId.js';
 import { SyntheticNamespaceDeclaration } from './Declaration.js';
@@ -72,11 +72,14 @@ export default class Module {
 		});
 
 		// remove existing sourceMappingURL comments
-		const pattern = new RegExp( `^\\/\\/# +${SOURCEMAPPING_URL}=.+\\n?`, 'gm' );
-		let match;
-		while ( match = pattern.exec( code ) ) {
-			this.magicString.remove( match.index, match.index + match[0].length );
-		}
+		this.comments = this.comments.filter(comment => {
+			//only one line comment can contain source maps
+			const isSourceMapComment = !comment.block && SOURCEMAPPING_URL_RE.test(comment.text);
+			if (isSourceMapComment) {
+				this.magicString.remove(comment.start, comment.end );
+			}
+			return !isSourceMapComment;
+		});
 
 		this.declarations = blank();
 		this.type = 'Module'; // TODO only necessary so that Scope knows this should be treated as a function scope... messy

@@ -4,7 +4,7 @@ import { writeFile } from './utils/fs.js';
 import { assign, keys } from './utils/object.js';
 import { mapSequence } from './utils/promise.js';
 import validateKeys from './utils/validateKeys.js';
-import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
+import { SOURCEMAPPING_URL } from './utils/sourceMappingURL.js';
 import Bundle from './Bundle.js';
 
 export const VERSION = '<@VERSION@>';
