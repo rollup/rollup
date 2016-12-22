@@ -99,13 +99,13 @@ export class ExternalDeclaration {
 		this.safeName = null;
 		this.isExternal = true;
 
-		this.activated = true;
+		this.activated = false;
 
 		this.isNamespace = name === '*';
 	}
 
 	activate () {
-		// noop
+		this.activated = true;
 	}
 
 	addReference ( reference ) {

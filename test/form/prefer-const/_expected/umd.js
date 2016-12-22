@@ -1,8 +1,8 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('external'), require('other'), require('another')) :
-	typeof define === 'function' && define.amd ? define(['external', 'other', 'another'], factory) :
-	(global.myBundle = factory(global.external,global.other,global.another));
-}(this, (function (external,other,another) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('other')) :
+	typeof define === 'function' && define.amd ? define(['other'], factory) :
+	(global.myBundle = factory(global.other));
+}(this, (function (other) { 'use strict';
 
 	const a = 1;
 	const b = 2;
@@ -14,6 +14,7 @@
 	});
 
 	console.log( Object.keys( namespace ) );
+	console.log( other.name );
 
 	const main = 42;
 

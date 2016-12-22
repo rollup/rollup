@@ -1,6 +1,4 @@
-import 'external';
-import 'other';
-import 'another';
+import { name } from 'other';
 
 const a = 1;
 const b = 2;
@@ -12,6 +10,7 @@ const namespace = Object.freeze({
 });
 
 console.log( Object.keys( namespace ) );
+console.log( name );
 
 const main = 42;
 

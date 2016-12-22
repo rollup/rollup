@@ -7,5 +7,6 @@ module.exports = {
 	},
 	exports ( exports ) {
 		assert.equal( exports.x.name, 'basename' );
+		assert.equal( exports.y, 'somefile.txt' );
 	}
 };

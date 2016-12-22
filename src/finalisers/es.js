@@ -11,6 +11,7 @@ export default function es ( bundle, magicString, { intro, outro } ) {
 			const specifiersList = [specifiers];
 			const importedNames = keys( module.declarations )
 				.filter( name => name !== '*' && name !== 'default' )
+				.filter( name => module.declarations[ name ].activated )
 				.map( name => {
 					const declaration = module.declarations[ name ];
 
