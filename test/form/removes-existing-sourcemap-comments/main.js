@@ -1,5 +1,9 @@
 import foo from './foo';
 
-console.log( foo() );
+var str = `
+//# sourceMappingURL=main.js.map
+`;
+
+console.log( foo(str) );
 
 //# sourceMappingURL=main.js.map
