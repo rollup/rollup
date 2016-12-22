@@ -377,6 +377,10 @@ export default class Bundle {
 			}
 		});
 
+		if ( !magicString.toString().trim() && this.entryModule.getExports().length === 0 ) {
+			this.onwarn( 'Generated an empty bundle' );
+		}
+
 		timeEnd( 'render modules' );
 
 		let intro = [ options.intro ]

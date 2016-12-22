@@ -1,7 +1,7 @@
 const assert = require( 'assert' );
 
 module.exports = {
-	description: 'allows a namespace to be assigned to a variable',
+	description: 'warns if empty bundle is generated  (#444)',
 	warnings: warnings => {
 		assert.deepEqual( warnings, [
 			'Generated an empty bundle'
