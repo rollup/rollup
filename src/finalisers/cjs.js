@@ -28,7 +28,12 @@ export default function cjs ( bundle, magicString, { exportMode, intro, outro },
 
 				return `${varOrConst} ${module.name} = _interopDefault(require('${module.path}'));`;
 			} else {
-				return `${varOrConst} ${module.name} = require('${module.path}');`;
+				const activated = Object.keys( module.declarations )
+					.filter( name => module.declarations[ name ].activated );
+
+				return activated.length ?
+					`${varOrConst} ${module.name} = require('${module.path}');` :
+					`require('${module.path}');`;
 			}
 		})
 		.join( '\n' );

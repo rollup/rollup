@@ -175,6 +175,21 @@ export default class Bundle {
 
 				timeStart( 'phase 4' );
 
+				// while we're here, check for unused external imports
+				this.externalModules.forEach( module => {
+					const unused = Object.keys( module.declarations )
+						.filter( name => name !== '*' )
+						.filter( name => !module.declarations[ name ].activated );
+
+					if ( unused.length === 0 ) return;
+
+					const names = unused.length === 1 ?
+						`'${unused[0]}' is` :
+						`${unused.slice( 0, -1 ).map( name => `'${name}'` ).join( ', ' )} and '${unused.pop()}' are`;
+
+					this.onwarn( `${names} imported from external module '${module.id}' but never used` );
+				});
+
 				this.orderedModules = this.sort();
 				this.deconflict();
 
@@ -329,6 +344,16 @@ export default class Bundle {
 							this.externalModules.push( module );
 							this.moduleById.set( externalId, module );
 						}
+
+						const externalModule = this.moduleById.get( externalId );
+
+						// add external declarations so we can detect which are never used
+						Object.keys( module.imports ).forEach( name => {
+							const importDeclaration = module.imports[ name ];
+							if ( importDeclaration.source !== source ) return;
+
+							externalModule.traceExport( importDeclaration.name );
+						});
 					} else {
 						if ( resolvedId === module.id ) {
 							throw new Error( `A module cannot import itself (${resolvedId})` );
