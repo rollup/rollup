@@ -33,5 +33,10 @@ module.exports = {
 				dependencies: [ 'foo.js', 'bar.js' ]
 			}
 		]);
+	},
+	warnings: warnings => {
+		assert.deepEqual( warnings, [
+			'Generated an empty bundle'
+		]);
 	}
 };
