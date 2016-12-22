@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.38.0
+
+* [BREAKING] `export { foo as default }` creates live binding ([#1078](https://github.com/rollup/rollup/issues/1078))
+* Prevent sourceMappingURL removal edge case ([#988](https://github.com/rollup/rollup/issues/988))
+* Bind function expression IDs to the correct scope ([#1083](https://github.com/rollup/rollup/issues/1083))
+
 ## 0.37.2
 
 * Remove unused `new` expressions without side-effects ([#179](https://github.com/rollup/rollup/issues/179))
