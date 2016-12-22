@@ -16,7 +16,7 @@ import ModuleScope from './ast/scopes/ModuleScope.js';
 function tryParse ( code, comments, acornOptions, id ) {
 	try {
 		return parse( code, assign({
-			ecmaVersion: 7,
+			ecmaVersion: 8,
 			sourceType: 'module',
 			onComment: ( block, text, start, end ) => comments.push({ block, text, start, end }),
 			preserveParens: false
