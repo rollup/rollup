@@ -5,6 +5,7 @@
 * [BREAKING] `export { foo as default }` creates live binding ([#1078](https://github.com/rollup/rollup/issues/1078))
 * Prevent sourceMappingURL removal edge case ([#988](https://github.com/rollup/rollup/issues/988))
 * Bind function expression IDs to the correct scope ([#1083](https://github.com/rollup/rollup/issues/1083))
+* Correctly deshadow destructured parameters with assignments ([#1008](https://github.com/rollup/rollup/issues/1008))
 
 ## 0.37.2
 
