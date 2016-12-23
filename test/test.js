@@ -255,7 +255,7 @@ describe( 'rollup', function () {
 								unintendedError = new Error( 'Expected an error while executing output' );
 							} else {
 								if ( config.exports ) config.exports( module.exports );
-								if ( config.bundle ) config.bundle( bundle );
+								if ( config.bundle ) return config.bundle( bundle );
 							}
 						} catch ( err ) {
 							if ( config.runtimeError ) {
