@@ -1,35 +1,44 @@
 import { decode } from 'sourcemap-codec';
 
 export default function transformBundle ( code, plugins, sourceMapChain, options ) {
-	return plugins.reduce( ( code, plugin ) => {
-		if ( !plugin.transformBundle ) return code;
+	const format = options.format;
 
-		let result;
+	return plugins.reduce( ( prevCode, plugin ) => {
 
-		try {
-			result = plugin.transformBundle( code, { format : options.format } );
-		} catch ( err ) {
-			err.plugin = plugin.name;
-			err.message = `Error transforming bundle${plugin.name ? ` with '${plugin.name}' plugin` : ''}: ${err.message}`;
-			throw err;
-		}
 
-		if ( result == null ) return code;
+		return prevCode
+			.then(code => {
+				if ( !plugin.transformBundle ) return code;
 
-		if ( typeof result === 'string' ) {
-			result = {
-				code: result,
-				map: null
-			};
-		}
+				return Promise.resolve(plugin.transformBundle( code, { format } ))
 
-		const map = typeof result.map === 'string' ? JSON.parse( result.map ) : result.map;
-		if ( map && typeof map.mappings === 'string' ) {
-			map.mappings = decode( map.mappings );
-		}
+					.then(result => {
+						if ( result == null ) return prevCode;
 
-		sourceMapChain.push( map );
+						if ( typeof result === 'string' ) {
+							result = {
+								code: result,
+								map: null
+							};
+						}
 
-		return result.code;
-	}, code );
+						const map = typeof result.map === 'string' ? JSON.parse( result.map ) : result.map;
+						if ( map && typeof map.mappings === 'string' ) {
+							map.mappings = decode( map.mappings );
+						}
+
+						sourceMapChain.push( map );
+
+						return result.code;
+					});
+			})
+			.catch(err => {
+				if ( !err.rollupTransformBundle ) {
+					err.rollupTransformBundle = true;
+					err.plugin = plugin.name;
+					err.message = `Error transforming bundle${plugin.name ? ` with '${plugin.name}' plugin` : ''}: ${err.message}`;
+				}
+				throw err;
+			});
+	}, Promise.resolve(code) );
 }

@@ -453,35 +453,36 @@ export default class Bundle {
 					});
 			})
 			.then(() => {
-				let code = magicString.toString();
+				const code = magicString.toString();
 				let map = null;
 				const bundleSourcemapChain = [];
 
-				code = transformBundle( code, this.plugins, bundleSourcemapChain, options );
+				return transformBundle( code, this.plugins, bundleSourcemapChain, options )
+					.then(code => {
+						if ( options.sourceMap ) {
+							timeStart( 'sourceMap' );
 
-				if ( options.sourceMap ) {
-					timeStart( 'sourceMap' );
+							let file = options.sourceMapFile || options.dest;
+							if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
 
-					let file = options.sourceMapFile || options.dest;
-					if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
+							if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
+								map = magicString.generateMap( {} );
+								if ( typeof map.mappings === 'string' ) {
+									map.mappings = decode( map.mappings );
+								}
+								map = collapseSourcemaps( file, map, usedModules, bundleSourcemapChain, this.onwarn );
+							} else {
+								map = magicString.generateMap({ file, includeContent: true });
+							}
 
-					if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
-						map = magicString.generateMap( {} );
-						if ( typeof map.mappings === 'string' ) {
-							map.mappings = decode( map.mappings );
+							map.sources = map.sources.map( normalize );
+
+							timeEnd( 'sourceMap' );
 						}
-						map = collapseSourcemaps( file, map, usedModules, bundleSourcemapChain, this.onwarn );
-					} else {
-						map = magicString.generateMap({ file, includeContent: true });
-					}
 
-					map.sources = map.sources.map( normalize );
-
-					timeEnd( 'sourceMap' );
-				}
-
-				if ( code[ code.length - 1 ] !== '\n' ) code += '\n';
-				return { code, map };
+						if ( code[ code.length - 1 ] !== '\n' ) code += '\n';
+						return { code, map };
+					});
 			});
 	}
 
