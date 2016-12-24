@@ -1,9 +1,7 @@
 'use strict';
 
 /* this is an intro */
-
 // intro 1
-
 // intro 2
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
@@ -19,7 +17,5 @@ var main = 42;
 module.exports = main;
 
 /* this is an outro */
-
 // outro 1
-
 // outro 2

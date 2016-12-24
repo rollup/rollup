@@ -11,7 +11,7 @@ import ensureArray from './utils/ensureArray.js';
 import { load, makeOnwarn, resolveId } from './utils/defaults.js';
 import getExportMode from './utils/getExportMode.js';
 import getIndentString from './utils/getIndentString.js';
-import { mapSequence } from './utils/promise.js';
+import { mapSequence, runSequence } from './utils/promise.js';
 import transform from './utils/transform.js';
 import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
@@ -378,12 +378,12 @@ export default class Bundle {
 	}
 
 	_collectAddon ( options, name ) {
-		return mapSequence(
+		return runSequence(
 			 [ options[name] ]
 				 .concat(this.plugins.map( plugin => plugin[name] ))
 				 .map( callIfFunction )
 				 .filter( Boolean )
-				 .map(Promise.resolve)
+				 .map(a => Promise.resolve(a))
 		 )
 		 .then(addons => addons.filter(Boolean).join('\n'));
 	}
