@@ -397,7 +397,8 @@ export default class Bundle {
 		const format = options.format || 'es';
 
 		// Determine export mode - 'default', 'named', 'none'
-		const exportMode = getExportMode( this, options );
+		// getExportMode could throw, thus wrapping to promise
+		const exportMode = Promise.resolve().then(() => getExportMode( this, options ));
 
 		let magicString = new MagicStringBundle({ separator: '\n\n' });
 		const usedModules = [];
@@ -432,8 +433,8 @@ export default class Bundle {
 
 		timeStart( 'render format' );
 
-		return Promise.all([intro, outro])
-			.then(([intro, outro]) => {
+		return Promise.all([intro, outro, exportMode])
+			.then(([intro, outro, exportMode]) => {
 				magicString = finalise( this, magicString.trim(), { exportMode, indentString, intro, outro }, options );
 
 				timeEnd( 'render format' );
