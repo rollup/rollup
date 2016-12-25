@@ -273,7 +273,7 @@ describe( 'rollup', function () {
 								if ( config.solo ) console.groupEnd();
 
 								if ( unintendedError ) throw unintendedError;
-						})
+							});
 					}, err => {
 						if ( config.error ) {
 							config.error( err );
