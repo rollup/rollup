@@ -25,10 +25,7 @@
     "prepublish": "npm run lint && npm test && npm run build:browser",
     "lint": "eslint src browser test/test.js test/utils test/**/_config.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/rollup/rollup"
-  },
+  "repository": "rollup/rollup",
   "keywords": [
     "modules",
     "bundler",
