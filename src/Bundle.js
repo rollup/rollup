@@ -212,18 +212,18 @@ export default class Bundle {
 			return name;
 		}
 
-		const toDeshadow = new Map();
+		const toDeshadow = new Set();
 
 		this.externalModules.forEach( module => {
 			const safeName = getSafeName( module.name );
-			toDeshadow.set( safeName, true );
+			toDeshadow.add( safeName );
 			module.name = safeName;
 
 			// ensure we don't shadow named external imports, if
 			// we're creating an ES6 bundle
 			forOwn( module.declarations, ( declaration, name ) => {
 				const safeName = getSafeName( name );
-				toDeshadow.set( safeName, true );
+				toDeshadow.add( safeName );
 				declaration.setSafeName( safeName );
 			});
 		});

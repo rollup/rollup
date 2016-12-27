@@ -14,13 +14,13 @@ export default class ModuleScope extends Scope {
 	}
 
 	deshadow ( names ) {
-		names = new Map( names );
+		names = new Set( names );
 
 		forOwn( this.module.imports, specifier => {
 			if ( specifier.module.isExternal ) return;
 
 			specifier.module.getExports().forEach( name => {
-				names.set(name);
+				names.add( name );
 			});
 
 			if ( specifier.name !== '*' ) {
@@ -29,9 +29,10 @@ export default class ModuleScope extends Scope {
 					this.module.bundle.onwarn( `Non-existent export '${specifier.name}' is imported from ${specifier.module.id} by ${this.module.id}` );
 					return;
 				}
+
 				const name = declaration.getName( true );
 				if ( name !== specifier.name ) {
-					names.set( declaration.getName( true ) );
+					names.add( declaration.getName( true ) );
 				}
 			}
 		});
