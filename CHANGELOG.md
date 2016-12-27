@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 0.38.1
+
+* Fix sourcemap comment removal ([#1104](https://github.com/rollup/rollup/issues/1104))
+* Warn if empty bundle is generated ([#444](https://github.com/rollup/rollup/issues/444))
+* Support ES2017 syntax ([#492](https://github.com/rollup/rollup/issues/492))
+* Remove unused imports from external modules ([#595](https://github.com/rollup/rollup/issues/595))
+* Remove unused function and class declarations inside function bodies ([#1108](https://github.com/rollup/rollup/issues/1108), [#1178](https://github.com/rollup/rollup/issues/1178))
+* Deconflict function expression IDs ([#1176](https://github.com/rollup/rollup/issues/1176))
+
 ## 0.38.0
 
 * [BREAKING] `export { foo as default }` creates live binding ([#1078](https://github.com/rollup/rollup/issues/1078))
