@@ -21,7 +21,7 @@ export default class FunctionExpression extends Node {
 	}
 
 	getName () {
-		return this.id && this.id.name;
+		return this.name;
 	}
 
 	hasEffects () {
@@ -29,6 +29,7 @@ export default class FunctionExpression extends Node {
 	}
 
 	initialise ( scope ) {
+		this.name = this.id && this.id.name; // may be overridden by bundle.deconflict
 		this.body.createScope( scope );
 
 		if ( this.id ) {

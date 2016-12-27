@@ -6,7 +6,7 @@ module.exports = {
 		external: [ 'path' ]
 	},
 	exports ( exports ) {
-		assert.equal( exports.x.name, 'basename' );
+		assert.ok( !/path/.test( exports.x.name ) );
 		assert.equal( exports.y, 'somefile.txt' );
 	}
 };
