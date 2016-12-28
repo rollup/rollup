@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.38.2
+
+* Preserve `var` declarations in dead branches ([#997](https://github.com/rollup/rollup/issues/997))
+* Warn if exporting a call expression that looks like a function declaration ([#1011](https://github.com/rollup/rollup/issues/1011))
+* Wrap function expressions in parentheses if necessary ([#1011](https://github.com/rollup/rollup/issues/1011))
+
 ## 0.38.1
 
 * Fix sourcemap comment removal ([#1104](https://github.com/rollup/rollup/issues/1104))
