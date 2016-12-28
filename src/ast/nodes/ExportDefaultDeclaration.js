@@ -1,4 +1,6 @@
 import Node from '../Node.js';
+import getLocation from '../../utils/getLocation.js';
+import relativeId from '../../utils/relativeId.js';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
@@ -57,6 +59,27 @@ export default class ExportDefaultDeclaration extends Node {
 		}
 
 		if ( this.shouldInclude || this.declaration.activated ) {
+			if ( this.declaration.type === 'CallExpression' && this.declaration.callee.type === 'FunctionExpression' && this.declaration.arguments.length ) {
+				// we're exporting an IIFE. Check it doesn't look unintentional (#1011)
+				const isWrapped = /\(/.test( code.original.slice( this.start, this.declaration.start ) );
+
+				if ( !isWrapped ) {
+					code.insertRight( this.declaration.callee.start, '(' );
+					code.insertLeft( this.declaration.callee.end, ')' );
+
+					const start = this.declaration.callee.end;
+					let end = this.declaration.arguments[0].start - 1;
+					while ( code.original[ end ] !== '(' ) end -= 1;
+
+					const newlineSeparated = /\n/.test( code.original.slice( start, end ) );
+
+					if ( newlineSeparated ) {
+						const { line, column } = getLocation( this.module.code, this.declaration.start );
+						this.module.bundle.onwarn( `${relativeId( this.module.id )} (${line}:${column}) Ambiguous default export (is a call expression, but looks like a function declaration). See https://github.com/rollup/rollup/wiki/Troubleshooting#ambiguous-default-export` );
+					}
+				}
+			}
+
 			if ( this.activated ) {
 				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
 					if ( this.declaration.id ) {
