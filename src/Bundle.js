@@ -16,6 +16,7 @@ import transform from './utils/transform.js';
 import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import callIfFunction from './utils/callIfFunction.js';
+import relativeId from './utils/relativeId.js';
 import { dirname, isRelative, isAbsolute, normalize, relative, resolve } from './utils/path.js';
 import BundleScope from './ast/scopes/BundleScope.js';
 
@@ -332,7 +333,7 @@ export default class Bundle {
 					if ( !resolvedId && !isExternal ) {
 						if ( isRelative( source ) ) throw new Error( `Could not resolve '${source}' from ${module.id}` );
 
-						this.onwarn( `Treating '${source}' as external dependency` );
+						this.onwarn( `'${source}' is imported by ${relativeId( module.id )}, but could not be resolved – treating it as an external dependency. For help see https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency` );
 						isExternal = true;
 					}
 

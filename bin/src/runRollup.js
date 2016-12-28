@@ -60,7 +60,8 @@ export default function runRollup ( command ) {
 		rollup.rollup({
 			entry: config,
 			onwarn: message => {
-				if ( /Treating .+ as external dependency/.test( message ) ) return;
+				// TODO use warning codes instead of this hackery
+				if ( /treating it as an external dependency/.test( message ) ) return;
 				stderr( message );
 			}
 		}).then( bundle => {
