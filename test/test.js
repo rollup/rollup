@@ -49,7 +49,7 @@ function loadConfig ( path ) {
 function loader ( modules ) {
 	return {
 		resolveId ( id ) {
-			return id;
+			return id in modules ? id : null;
 		},
 
 		load ( id ) {
@@ -710,8 +710,6 @@ describe( 'rollup', function () {
 					dest,
 					format: 'cjs'
 				});
-
-
 			}).then( () => {
 				assert.deepEqual( result, [
 					{ a: dest, format: 'cjs' },
@@ -719,6 +717,31 @@ describe( 'rollup', function () {
 				]);
 
 				return sander.unlink( dest );
+			});
+		});
+	});
+
+	describe( 'misc', () => {
+		it( 'warns if node builtins are unresolved in a non-CJS, non-ES bundle (#1051)', () => {
+			const warnings = [];
+
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [
+					loader({ entry: `import { format } from 'util';\nexport default format( 'this is a %s', 'formatted string' );` })
+				],
+				onwarn: warning => warnings.push( warning )
+			}).then( bundle => {
+				bundle.generate({
+					format: 'iife',
+					moduleName: 'myBundle'
+				});
+
+				assert.deepEqual( warnings, [
+					`'util' is imported by entry, but could not be resolved – treating it as an external dependency. For help see https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency`,
+					`Creating a browser bundle that depends on Node.js built-in module ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`,
+					`No name was provided for external module 'util' in options.globals – guessing 'util'`
+				]);
 			});
 		});
 	});

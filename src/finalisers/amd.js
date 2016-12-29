@@ -2,8 +2,10 @@ import { getName, quotePath } from '../utils/map-helpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import esModuleExport from './shared/esModuleExport.js';
+import warnOnBuiltins from './shared/warnOnBuiltins.js';
 
 export default function amd ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
+	warnOnBuiltins( bundle );
 	const deps = bundle.externalModules.map( quotePath );
 	const args = bundle.externalModules.map( getName );
 
