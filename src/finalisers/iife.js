@@ -4,6 +4,7 @@ import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 import propertyStringFor from './shared/propertyStringFor';
+import warnOnBuiltins from './shared/warnOnBuiltins.js';
 
 // thisProp('foo.bar-baz.qux') === "this.foo['bar-baz'].qux"
 const thisProp = propertyStringFor('this');
@@ -29,8 +30,9 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 	const name = options.moduleName;
 	const isNamespaced = name && ~name.indexOf( '.' );
 
-	const dependencies = bundle.externalModules.map( globalNameMaker );
+	warnOnBuiltins( bundle );
 
+	const dependencies = bundle.externalModules.map( globalNameMaker );
 	const args = bundle.externalModules.map( getName );
 
 	if ( exportMode !== 'none' && !name ) {

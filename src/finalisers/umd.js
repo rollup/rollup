@@ -5,6 +5,7 @@ import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 import esModuleExport from './shared/esModuleExport.js';
 import propertyStringFor from './shared/propertyStringFor.js';
+import warnOnBuiltins from './shared/warnOnBuiltins.js';
 
 // globalProp('foo.bar-baz') === "global.foo['bar-baz']"
 const globalProp = propertyStringFor('global');
@@ -29,6 +30,8 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 	if ( exportMode !== 'none' && !options.moduleName ) {
 		throw new Error( 'You must supply options.moduleName for UMD bundles' );
 	}
+
+	warnOnBuiltins( bundle );
 
 	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle.onwarn );
 
