@@ -60,9 +60,8 @@ export default function runRollup ( command ) {
 		rollup.rollup({
 			entry: config,
 			onwarn: message => {
-				// TODO use warning codes instead of this hackery
-				if ( /treating it as an external dependency/.test( message ) ) return;
-				stderr( message );
+				if ( message.code === 'UNRESOLVED_IMPORT' ) return;
+				stderr( message.toString() );
 			}
 		}).then( bundle => {
 			const { code } = bundle.generate({
@@ -121,7 +120,7 @@ function execute ( options, command ) {
 	const optionsExternal = options.external;
 
 	if ( command.globals ) {
-		let globals = Object.create( null );
+		const globals = Object.create( null );
 
 		command.globals.split( ',' ).forEach( str => {
 			const names = str.split( ':' );
@@ -144,7 +143,7 @@ function execute ( options, command ) {
 		external = ( optionsExternal || [] ).concat( commandExternal );
 	}
 
-	options.onwarn = options.onwarn || stderr;
+	options.onwarn = options.onwarn || ( warning => stderr( warning.toString() ) );
 
 	options.external = external;
 
