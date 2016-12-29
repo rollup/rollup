@@ -1,6 +1,4 @@
 import Node from '../Node.js';
-import { locate } from 'locate-character';
-import relativeId from '../../utils/relativeId.js';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
