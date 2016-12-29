@@ -1,5 +1,5 @@
 import Node from '../Node.js';
-import getLocation from '../../utils/getLocation.js';
+import { locate } from 'locate-character';
 import relativeId from '../../utils/relativeId.js';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
@@ -74,7 +74,7 @@ export default class ExportDefaultDeclaration extends Node {
 					const newlineSeparated = /\n/.test( code.original.slice( start, end ) );
 
 					if ( newlineSeparated ) {
-						const { line, column } = getLocation( this.module.code, this.declaration.start );
+						const { line, column } = locate( this.module.code, this.declaration.start, { offsetLine: 1 });
 						this.module.bundle.onwarn( `${relativeId( this.module.id )} (${line}:${column}) Ambiguous default export (is a call expression, but looks like a function declaration). See https://github.com/rollup/rollup/wiki/Troubleshooting#ambiguous-default-export` );
 					}
 				}

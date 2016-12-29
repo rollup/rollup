@@ -270,7 +270,17 @@ describe( 'rollup', function () {
 						}
 
 						if ( config.warnings ) {
-							config.warnings( warnings );
+							if ( Array.isArray( config.warnings ) ) {
+								assert.deepEqual( warnings.map( warning => {
+									const clone = Object.assign( {}, warning );
+									delete clone.toString;
+									delete clone.frame;
+
+									return clone;
+								}), config.warnings );
+							} else {
+								config.warnings( warnings );
+							}
 						} else if ( warnings.length ) {
 							throw new Error( `Got unexpected warnings:\n${warnings.join('\n')}` );
 						}

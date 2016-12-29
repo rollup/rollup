@@ -566,4 +566,9 @@ export default class Bundle {
 
 		return ordered;
 	}
+
+	warn ( warning ) {
+		warning.toString = () => warning.message || warning;
+		this.onwarn( warning );
+	}
 }
