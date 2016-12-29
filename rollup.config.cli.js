@@ -15,7 +15,9 @@ export default {
 		buble(),
 		commonjs({
 			include: 'node_modules/**',
-			namedExports: { chalk: [ 'red', 'cyan', 'grey' ] }
+			namedExports: {
+				chalk: [ 'yellow', 'red', 'cyan', 'grey', 'dim', 'bold' ]
+			}
 		}),
 		nodeResolve({
 			main: true

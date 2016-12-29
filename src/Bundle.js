@@ -588,7 +588,7 @@ export default class Bundle {
 	warn ( warning ) {
 		warning.toString = () => {
 			if ( warning.loc ) {
-				return `${warning.loc.file} (${warning.loc.line}:${warning.loc.column}) ${warning.message}`;
+				return `${relativeId( warning.loc.file )} (${warning.loc.line}:${warning.loc.column}) ${warning.message}`;
 			}
 
 			return warning.message;

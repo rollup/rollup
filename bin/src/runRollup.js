@@ -1,7 +1,9 @@
 import { realpathSync } from 'fs';
 import * as rollup from 'rollup';
 import relative from 'require-relative';
+import * as chalk from 'chalk';
 import handleError from './handleError';
+import relativeId from '../../src/utils/relativeId.js';
 import SOURCEMAPPING_URL from './sourceMappingUrl.js';
 
 import { install as installSourcemapSupport } from 'source-map-support';
@@ -143,7 +145,32 @@ function execute ( options, command ) {
 		external = ( optionsExternal || [] ).concat( commandExternal );
 	}
 
-	options.onwarn = options.onwarn || ( warning => stderr( warning.toString() ) );
+	if ( !options.onwarn ) {
+		const seen = new Set();
+
+		options.onwarn = warning => {
+			const str = warning.toString();
+
+			if ( seen.has( str ) ) return;
+			seen.add( str );
+
+			stderr( `⚠️   ${chalk.bold( warning.message )}` );
+
+			if ( warning.url ) {
+				stderr( chalk.cyan( warning.url ) );
+			}
+
+			if ( warning.loc ) {
+				stderr( `${relativeId( warning.loc.file )} (${warning.loc.line}:${warning.loc.column})` );
+			}
+
+			if ( warning.frame ) {
+				stderr( chalk.dim( warning.frame ) );
+			}
+
+			stderr( '' );
+		};
+	}
 
 	options.external = external;
 
