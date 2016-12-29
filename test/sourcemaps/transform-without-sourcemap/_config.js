@@ -1,10 +1,5 @@
-const assert = require( 'assert' );
-
-let warnings = [];
-
 module.exports = {
 	description: 'preserves sourcemap chains when transforming',
-	before: () => warnings = [], // reset
 	options: {
 		plugins: [
 			{
@@ -13,14 +8,13 @@ module.exports = {
 					return code;
 				}
 			}
-		],
-		onwarn ( msg ) {
-			warnings.push( msg );
-		}
+		]
 	},
-	test: () => {
-		assert.deepEqual( warnings, [
-			`Sourcemap is likely to be incorrect: a plugin ('fake plugin') was used to transform files, but didn't generate a sourcemap for the transformation. Consult https://github.com/rollup/rollup/wiki/Troubleshooting and the plugin documentation for more information`
-		]);
-	}
+	warnings: [
+		{
+			code: `SOURCEMAP_BROKEN`,
+			message: `Sourcemap is likely to be incorrect: a plugin ('fake plugin') was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
+			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect`
+		}
+	]
 };

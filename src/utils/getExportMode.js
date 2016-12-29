@@ -24,7 +24,11 @@ export default function getExportMode ( bundle, {exports: exportMode, moduleName
 			exportMode = 'default';
 		} else {
 			if ( bundle.entryModule.exports.default && format !== 'es') {
-				bundle.onwarn( `Using named and default exports together. Consumers of your bundle will have to use ${moduleName || 'bundle'}['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning. See https://github.com/rollup/rollup/wiki/JavaScript-API#exports for more information` );
+				bundle.warn({
+					code: 'MIXED_EXPORTS',
+					message: `Using named and default exports together. Consumers of your bundle will have to use ${moduleName || 'bundle'}['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning`,
+					url: `https://github.com/rollup/rollup/wiki/JavaScript-API#exports`
+				});
 			}
 			exportMode = 'named';
 		}

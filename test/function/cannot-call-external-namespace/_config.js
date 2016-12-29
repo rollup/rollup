@@ -7,6 +7,6 @@ module.exports = {
 		assert.equal( err.message, 'Cannot call a namespace (\'foo\')' );
 		assert.equal( err.file.replace( /\//g, path.sep ), path.resolve( __dirname, 'main.js' ) );
 		assert.equal( err.pos, 28 );
-		assert.deepEqual( err.loc, { line: 2, column: 0 });
+		assert.deepEqual( err.loc, { character: 28, line: 2, column: 0 });
 	}
 };

@@ -58,6 +58,27 @@ function loader ( modules ) {
 	};
 }
 
+function compareWarnings ( actual, expected ) {
+	assert.deepEqual(
+		actual.map( warning => {
+			const clone = Object.assign( {}, warning );
+			delete clone.toString;
+
+			if ( clone.frame ) {
+				clone.frame = clone.frame.replace( /\s+$/gm, '' );
+			}
+
+			return clone;
+		}),
+		expected.map( warning => {
+			if ( warning.frame ) {
+				warning.frame = warning.frame.slice( 1 ).replace( /^\t+/gm, '' ).replace( /\s+$/gm, '' ).trim();
+			}
+			return warning;
+		})
+	);
+}
+
 describe( 'rollup', function () {
 	this.timeout( 10000 );
 
@@ -270,7 +291,11 @@ describe( 'rollup', function () {
 						}
 
 						if ( config.warnings ) {
-							config.warnings( warnings );
+							if ( Array.isArray( config.warnings ) ) {
+								compareWarnings( warnings, config.warnings );
+							} else {
+								config.warnings( warnings );
+							}
 						} else if ( warnings.length ) {
 							throw new Error( `Got unexpected warnings:\n${warnings.join('\n')}` );
 						}
@@ -377,11 +402,18 @@ describe( 'rollup', function () {
 				const entry = path.resolve( SOURCEMAPS, dir, 'main.js' );
 				const dest = path.resolve( SOURCEMAPS, dir, '_actual/bundle' );
 
-				const options = extend( {}, config.options, { entry });
+				let warnings;
+
+				const options = extend( {}, config.options, {
+					entry,
+					onwarn: warning => warnings.push( warning )
+				});
 
 				PROFILES.forEach( profile => {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, () => {
 						process.chdir( SOURCEMAPS + '/' + dir );
+						warnings = [];
+
 						return rollup.rollup( options ).then( bundle => {
 							const options = extend( {}, {
 								format: profile.format,
@@ -391,9 +423,16 @@ describe( 'rollup', function () {
 
 							bundle.write( options );
 
-							if ( config.before ) config.before();
-							const result = bundle.generate( options );
-							config.test( result.code, result.map );
+							if ( config.test ) {
+								const { code, map } = bundle.generate( options );
+								config.test( code, map );
+							}
+
+							if ( config.warnings ) {
+								compareWarnings( warnings, config.warnings );
+							} else if ( warnings.length ) {
+								throw new Error( `Unexpected warnings` );
+							}
 						});
 					});
 				});
@@ -737,11 +776,9 @@ describe( 'rollup', function () {
 					moduleName: 'myBundle'
 				});
 
-				assert.deepEqual( warnings, [
-					`'util' is imported by entry, but could not be resolved – treating it as an external dependency. For help see https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency`,
-					`Creating a browser bundle that depends on Node.js built-in module ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`,
-					`No name was provided for external module 'util' in options.globals – guessing 'util'`
-				]);
+				const relevantWarnings = warnings.filter( warning => warning.code === 'MISSING_NODE_BUILTINS' );
+				assert.equal( relevantWarnings.length, 1 );
+				assert.equal( relevantWarnings[0].message, `Creating a browser bundle that depends on Node.js built-in module ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins` );
 			});
 		});
 	});

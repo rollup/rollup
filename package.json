@@ -53,6 +53,7 @@
     "eslint-plugin-import": "^2.2.0",
     "is-reference": "^1.0.0",
     "istanbul": "^0.4.3",
+    "locate-character": "^2.0.0",
     "magic-string": "^0.15.2",
     "minimist": "^1.2.0",
     "mocha": "^3.0.0",

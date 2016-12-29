@@ -1,6 +1,4 @@
 import Node from '../Node.js';
-import getLocation from '../../utils/getLocation.js';
-import relativeId from '../../utils/relativeId.js';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
@@ -74,8 +72,11 @@ export default class ExportDefaultDeclaration extends Node {
 					const newlineSeparated = /\n/.test( code.original.slice( start, end ) );
 
 					if ( newlineSeparated ) {
-						const { line, column } = getLocation( this.module.code, this.declaration.start );
-						this.module.bundle.onwarn( `${relativeId( this.module.id )} (${line}:${column}) Ambiguous default export (is a call expression, but looks like a function declaration). See https://github.com/rollup/rollup/wiki/Troubleshooting#ambiguous-default-export` );
+						this.module.warn({
+							code: 'AMBIGUOUS_DEFAULT_EXPORT',
+							message: `Ambiguous default export (is a call expression, but looks like a function declaration)`,
+							url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#ambiguous-default-export'
+						}, this.declaration.start );
 					}
 				}
 			}

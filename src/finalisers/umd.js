@@ -33,7 +33,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 
 	warnOnBuiltins( bundle );
 
-	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle.onwarn );
+	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle );
 
 	const amdDeps = bundle.externalModules.map( quotePath );
 	const cjsDeps = bundle.externalModules.map( req );

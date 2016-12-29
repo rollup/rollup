@@ -1,7 +1,9 @@
 import { realpathSync } from 'fs';
 import * as rollup from 'rollup';
 import relative from 'require-relative';
+import * as chalk from 'chalk';
 import handleError from './handleError';
+import relativeId from '../../src/utils/relativeId.js';
 import SOURCEMAPPING_URL from './sourceMappingUrl.js';
 
 import { install as installSourcemapSupport } from 'source-map-support';
@@ -60,9 +62,8 @@ export default function runRollup ( command ) {
 		rollup.rollup({
 			entry: config,
 			onwarn: message => {
-				// TODO use warning codes instead of this hackery
-				if ( /treating it as an external dependency/.test( message ) ) return;
-				stderr( message );
+				if ( message.code === 'UNRESOLVED_IMPORT' ) return;
+				stderr( message.toString() );
 			}
 		}).then( bundle => {
 			const { code } = bundle.generate({
@@ -121,7 +122,7 @@ function execute ( options, command ) {
 	const optionsExternal = options.external;
 
 	if ( command.globals ) {
-		let globals = Object.create( null );
+		const globals = Object.create( null );
 
 		command.globals.split( ',' ).forEach( str => {
 			const names = str.split( ':' );
@@ -144,7 +145,32 @@ function execute ( options, command ) {
 		external = ( optionsExternal || [] ).concat( commandExternal );
 	}
 
-	options.onwarn = options.onwarn || stderr;
+	if ( !options.onwarn ) {
+		const seen = new Set();
+
+		options.onwarn = warning => {
+			const str = warning.toString();
+
+			if ( seen.has( str ) ) return;
+			seen.add( str );
+
+			stderr( `⚠️   ${chalk.bold( warning.message )}` );
+
+			if ( warning.url ) {
+				stderr( chalk.cyan( warning.url ) );
+			}
+
+			if ( warning.loc ) {
+				stderr( `${relativeId( warning.loc.file )} (${warning.loc.line}:${warning.loc.column})` );
+			}
+
+			if ( warning.frame ) {
+				stderr( chalk.dim( warning.frame ) );
+			}
+
+			stderr( '' );
+		};
+	}
 
 	options.external = external;
 

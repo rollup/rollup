@@ -1,10 +1,11 @@
-import { timeStart, timeEnd } from './utils/flushTime.js';
 import { parse } from 'acorn/src/index.js';
 import MagicString from 'magic-string';
+import { locate } from 'locate-character';
+import { timeStart, timeEnd } from './utils/flushTime.js';
 import { assign, blank, deepClone, keys } from './utils/object.js';
 import { basename, extname } from './utils/path.js';
-import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
+import getCodeFrame from './utils/getCodeFrame.js';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL.js';
 import error from './utils/error.js';
 import relativeId from './utils/relativeId.js';
@@ -179,7 +180,12 @@ export default class Module {
 					this.exports[ exportedName ] = { localName };
 				});
 			} else {
-				this.bundle.onwarn( `Module ${this.id} has an empty export declaration` );
+				// TODO is this really necessary? `export {}` is valid JS, and
+				// might be used as a hint that this is indeed a module
+				this.warn({
+					code: 'EMPTY_EXPORT',
+					message: `Empty export declaration`
+				}, node.start );
 			}
 		}
 	}
@@ -195,7 +201,7 @@ export default class Module {
 			if ( this.imports[ localName ] ) {
 				const err = new Error( `Duplicated import '${localName}'` );
 				err.file = this.id;
-				err.loc = getLocation( this.code, specifier.start );
+				err.loc = locate( this.code, specifier.start, { offsetLine: 1 });
 				throw err;
 			}
 
@@ -361,7 +367,7 @@ export default class Module {
 				error({
 					message: `'${importDeclaration.name}' is not exported by ${relativeId( otherModule.id )} (imported by ${relativeId( this.id )}). For help fixing this error see https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`,
 					file: this.id,
-					loc: getLocation( this.code, importDeclaration.specifier.start )
+					loc: locate( this.code, importDeclaration.specifier.start, { offsetLine: 1 })
 				});
 			}
 
@@ -381,7 +387,7 @@ export default class Module {
 				error({
 					message: `'${reexportDeclaration.localName}' is not exported by '${reexportDeclaration.module.id}' (imported by '${this.id}')`,
 					file: this.id,
-					loc: getLocation( this.code, reexportDeclaration.start )
+					loc: locate( this.code, reexportDeclaration.start, { offsetLine: 1 })
 				});
 			}
 
@@ -404,5 +410,18 @@ export default class Module {
 
 			if ( declaration ) return declaration;
 		}
+	}
+
+	warn ( warning, pos ) {
+		if ( pos !== undefined ) {
+			warning.pos = pos;
+
+			const { line, column } = locate( this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
+
+			warning.loc = { file: this.id, line, column };
+			warning.frame = getCodeFrame( this.code, line, column );
+		}
+
+		this.bundle.warn( warning );
 	}
 }

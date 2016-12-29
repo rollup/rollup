@@ -4,8 +4,8 @@ var assert = require( 'assert' );
 module.exports = {
 	description: 'disallows duplicate imports',
 	error: function ( err ) {
-		assert.equal( path.normalize(err.file), path.resolve( __dirname, 'main.js' ) );
-		assert.deepEqual( err.loc, { line: 2, column: 9 });
+		assert.equal( path.normalize( err.file ), path.resolve( __dirname, 'main.js' ) );
+		assert.deepEqual( err.loc, { character: 36, line: 2, column: 9 });
 		assert.ok( /Duplicated import/.test( err.message ) );
 	}
 };

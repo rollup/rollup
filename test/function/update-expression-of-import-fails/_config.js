@@ -4,8 +4,8 @@ var assert = require( 'assert' );
 module.exports = {
 	description: 'disallows updates to imported bindings',
 	error: function ( err ) {
-		assert.equal( path.normalize(err.file), path.resolve( __dirname, 'main.js' ) );
-		assert.deepEqual( err.loc, { line: 3, column: 0 });
+		assert.equal( path.normalize( err.file ), path.resolve( __dirname, 'main.js' ) );
+		assert.deepEqual( err.loc, { character: 28, line: 3, column: 0 });
 		assert.ok( /Illegal reassignment/.test( err.message ) );
 	}
 };

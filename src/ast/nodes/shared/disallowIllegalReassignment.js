@@ -1,4 +1,4 @@
-import getLocation from '../../../utils/getLocation.js';
+import { locate } from 'locate-character';
 import error from '../../../utils/error.js';
 
 // TODO tidy this up a bit (e.g. they can both use node.module.imports)
@@ -10,7 +10,7 @@ export default function disallowIllegalReassignment ( scope, node ) {
 				message: `Illegal reassignment to import '${node.object.name}'`,
 				file: node.module.id,
 				pos: node.start,
-				loc: getLocation( node.module.code, node.start )
+				loc: locate( node.module.code, node.start, { offsetLine: 1 })
 			});
 		}
 	}
@@ -21,7 +21,7 @@ export default function disallowIllegalReassignment ( scope, node ) {
 				message: `Illegal reassignment to import '${node.name}'`,
 				file: node.module.id,
 				pos: node.start,
-				loc: getLocation( node.module.code, node.start )
+				loc: locate( node.module.code, node.start, { offsetLine: 1 })
 			});
 		}
 	}

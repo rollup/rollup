@@ -25,7 +25,7 @@ function setupNamespace ( keypath ) {
 }
 
 export default function iife ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
-	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle.onwarn );
+	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle );
 
 	const name = options.moduleName;
 	const isNamespaced = name && ~name.indexOf( '.' );
