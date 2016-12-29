@@ -133,6 +133,25 @@ describe( 'rollup', function () {
 				assert.ok( code[ code.length - 1 ] === '\n' );
 			});
 		});
+
+		it( 'warns on missing format option', () => {
+			const warnings = [];
+
+			return rollup.rollup({
+				entry: 'x',
+				plugins: [ loader({ x: `console.log( 42 );` }) ],
+				onwarn: warning => warnings.push( warning )
+			}).then( bundle => {
+				bundle.generate();
+				compareWarnings( warnings, [
+					{
+						code: 'MISSING_FORMAT',
+						message: `No format option was supplied – defaulting to 'es'`,
+						url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
+					}
+				]);
+			});
+		});
 	});
 
 	describe( 'bundle.write()', () => {

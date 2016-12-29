@@ -398,8 +398,6 @@ export default class Bundle {
 			options.format = 'es';
 		}
 
-		const format = options.format || 'es';
-
 		// Determine export mode - 'default', 'named', 'none'
 		const exportMode = getExportMode( this, options );
 
@@ -409,7 +407,7 @@ export default class Bundle {
 		timeStart( 'render modules' );
 
 		this.orderedModules.forEach( module => {
-			const source = module.render( format === 'es', this.legacy );
+			const source = module.render( options.format === 'es', this.legacy );
 
 			if ( source.toString().length ) {
 				magicString.addSource( source );
@@ -446,7 +444,7 @@ export default class Bundle {
 
 		const indentString = getIndentString( magicString, options );
 
-		const finalise = finalisers[ format ];
+		const finalise = finalisers[ options.format ];
 		if ( !finalise ) throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
 
 		timeStart( 'render format' );

@@ -67,7 +67,17 @@ export function rollup ( options ) {
 	return bundle.build().then( () => {
 		timeEnd( '--BUILD--' );
 
-		function generate ( options ) {
+		function generate ( options = {} ) {
+			if ( !options.format ) {
+				bundle.warn({
+					code: 'MISSING_FORMAT',
+					message: `No format option was supplied – defaulting to 'es'`,
+					url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
+				});
+
+				options.format = 'es';
+			}
+
 			timeStart( '--GENERATE--' );
 
 			const rendered = bundle.render( options );
