@@ -1,3 +1,3 @@
 module.exports = {
-	description: 'skips a dead branch (h)'
+	description: 'skips a dead branch (i)'
 };
