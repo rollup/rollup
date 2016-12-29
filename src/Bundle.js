@@ -586,7 +586,14 @@ export default class Bundle {
 	}
 
 	warn ( warning ) {
-		warning.toString = () => warning.message || warning;
+		warning.toString = () => {
+			if ( warning.loc ) {
+				return `${warning.loc.file} (${warning.loc.line}:${warning.loc.column}) ${warning.message}`;
+			}
+
+			return warning.message;
+		};
+
 		this.onwarn( warning );
 	}
 }

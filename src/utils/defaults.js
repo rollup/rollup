@@ -45,9 +45,10 @@ export function resolveId ( importee, importer ) {
 export function makeOnwarn () {
 	const warned = blank();
 
-	return msg => {
-		if ( msg in warned ) return;
-		console.error( msg ); //eslint-disable-line no-console
-		warned[ msg ] = true;
+	return warning => {
+		const str = warning.toString();
+		if ( str in warned ) return;
+		console.error( str ); //eslint-disable-line no-console
+		warned[ str ] = true;
 	};
 }
