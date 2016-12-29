@@ -70,21 +70,22 @@ export function rollup ( options ) {
 		function generate ( options ) {
 			timeStart( '--GENERATE--' );
 
-			const rendered = bundle.render( options );
+			return bundle.render( options )
+				.then(rendered => {
+					timeEnd( '--GENERATE--' );
 
-			timeEnd( '--GENERATE--' );
+					bundle.plugins.forEach( plugin => {
+						if ( plugin.ongenerate ) {
+							plugin.ongenerate( assign({
+								bundle: result
+							}, options ), rendered);
+						}
+					});
 
-			bundle.plugins.forEach( plugin => {
-				if ( plugin.ongenerate ) {
-					plugin.ongenerate( assign({
-						bundle: result
-					}, options ), rendered);
-				}
-			});
+					flushTime();
 
-			flushTime();
-
-			return rendered;
+					return rendered;
+				});
 		}
 
 		const result = {
@@ -99,32 +100,34 @@ export function rollup ( options ) {
 				}
 
 				const dest = options.dest;
-				const output = generate( options );
-				let { code, map } = output;
 
-				const promises = [];
+				return generate( options )
+					.then((output) => {
+						let { code, map } = output;
+						const promises = [];
 
-				if ( options.sourceMap ) {
-					let url;
+						if ( options.sourceMap ) {
+							let url;
 
-					if ( options.sourceMap === 'inline' ) {
-						url = map.toUrl();
-					} else {
-						url = `${basename( dest )}.map`;
-						promises.push( writeFile( dest + '.map', map.toString() ) );
-					}
+							if ( options.sourceMap === 'inline' ) {
+								url = map.toUrl();
+							} else {
+								url = `${basename( dest )}.map`;
+								promises.push( writeFile( dest + '.map', map.toString() ) );
+							}
 
-					code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
-				}
+							code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
+						}
 
-				promises.push( writeFile( dest, code ) );
-				return Promise.all( promises ).then( () => {
-					return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
-						return Promise.resolve( plugin.onwrite( assign({
-							bundle: result
-						}, options ), output));
+						promises.push( writeFile( dest, code ) );
+						return Promise.all( promises ).then( () => {
+							return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
+								return Promise.resolve( plugin.onwrite( assign({
+									bundle: result
+								}, options ), output));
+							});
+						});
 					});
-				});
 			}
 		};
 

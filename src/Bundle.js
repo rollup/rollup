@@ -11,7 +11,7 @@ import ensureArray from './utils/ensureArray.js';
 import { load, makeOnwarn, resolveId } from './utils/defaults.js';
 import getExportMode from './utils/getExportMode.js';
 import getIndentString from './utils/getIndentString.js';
-import { mapSequence } from './utils/promise.js';
+import { mapSequence, runSequence } from './utils/promise.js';
 import transform from './utils/transform.js';
 import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
@@ -378,6 +378,17 @@ export default class Bundle {
 		return resolvedId;
 	}
 
+	_collectAddon ( options, name ) {
+		return runSequence(
+			 [ options[name] ]
+				 .concat(this.plugins.map( plugin => plugin[name] ))
+				 .map( callIfFunction )
+				 .filter( Boolean )
+				 .map(a => Promise.resolve(a))
+		 )
+		 .then(addons => addons.filter(Boolean).join('\n'));
+	}
+
 	render ( options = {} ) {
 		if ( options.format === 'es6' ) {
 			this.onwarn( 'The es6 format is deprecated – use `es` instead' );
@@ -387,7 +398,8 @@ export default class Bundle {
 		const format = options.format || 'es';
 
 		// Determine export mode - 'default', 'named', 'none'
-		const exportMode = getExportMode( this, options );
+		// getExportMode could throw, thus wrapping to promise
+		const exportMode = Promise.resolve().then(() => getExportMode( this, options ));
 
 		let magicString = new MagicStringBundle({ separator: '\n\n' });
 		const usedModules = [];
@@ -409,23 +421,11 @@ export default class Bundle {
 
 		timeEnd( 'render modules' );
 
-		let intro = [ options.intro ]
-			.concat(
-				this.plugins.map( plugin => plugin.intro && plugin.intro() )
-			)
-			.filter( Boolean )
-			.join( '\n\n' );
+		const intro = this._collectAddon(options, 'intro')
+			.then(intro => intro && (intro + '\n\n'));
 
-		if ( intro ) intro += '\n\n';
-
-		let outro = [ options.outro ]
-			.concat(
-				this.plugins.map( plugin => plugin.outro && plugin.outro() )
-			)
-			.filter( Boolean )
-			.join( '\n\n' );
-
-		if ( outro ) outro = `\n\n${outro}`;
+		const outro = this._collectAddon(options, 'outro')
+			.then(outro => outro && ('\n\n' + outro));
 
 		const indentString = getIndentString( magicString, options );
 
@@ -434,54 +434,58 @@ export default class Bundle {
 
 		timeStart( 'render format' );
 
-		magicString = finalise( this, magicString.trim(), { exportMode, indentString, intro, outro }, options );
+		return Promise.all([intro, outro, exportMode])
+			.then(([intro, outro, exportMode]) => {
+				magicString = finalise( this, magicString.trim(), { exportMode, indentString, intro, outro }, options );
 
-		timeEnd( 'render format' );
+				timeEnd( 'render format' );
+			})
+			.then(() => {
+				// appending banners
+				return this._collectAddon(options, 'banner')
+					.then(banner => {
+						if ( banner ) magicString.prepend( banner + '\n' );
+					});
+			})
+			.then(() => {
+				// appending footers
+				return this._collectAddon(options, 'footer')
+					.then(footer => {
+						if ( footer ) magicString.append( '\n' + footer );
+					});
+			})
+			.then(() => {
+				const code = magicString.toString();
+				let map = null;
+				const bundleSourcemapChain = [];
 
-		const banner = [ options.banner ]
-			.concat( this.plugins.map( plugin => plugin.banner ) )
-			.map( callIfFunction )
-			.filter( Boolean )
-			.join( '\n' );
+				return transformBundle( code, this.plugins, bundleSourcemapChain, options )
+					.then(code => {
+						if ( options.sourceMap ) {
+							timeStart( 'sourceMap' );
 
-		const footer = [ options.footer ]
-			.concat( this.plugins.map( plugin => plugin.footer ) )
-			.map( callIfFunction )
-			.filter( Boolean )
-			.join( '\n' );
+							let file = options.sourceMapFile || options.dest;
+							if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
 
-		if ( banner ) magicString.prepend( banner + '\n' );
-		if ( footer ) magicString.append( '\n' + footer );
+							if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
+								map = magicString.generateMap( {} );
+								if ( typeof map.mappings === 'string' ) {
+									map.mappings = decode( map.mappings );
+								}
+								map = collapseSourcemaps( file, map, usedModules, bundleSourcemapChain, this.onwarn );
+							} else {
+								map = magicString.generateMap({ file, includeContent: true });
+							}
 
-		let code = magicString.toString();
-		let map = null;
-		const bundleSourcemapChain = [];
+							map.sources = map.sources.map( normalize );
 
-		code = transformBundle( code, this.plugins, bundleSourcemapChain, options );
+							timeEnd( 'sourceMap' );
+						}
 
-		if ( options.sourceMap ) {
-			timeStart( 'sourceMap' );
-
-			let file = options.sourceMapFile || options.dest;
-			if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
-
-			if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
-				map = magicString.generateMap( {} );
-				if ( typeof map.mappings === 'string' ) {
-					map.mappings = decode( map.mappings );
-				}
-				map = collapseSourcemaps( file, map, usedModules, bundleSourcemapChain, this.onwarn );
-			} else {
-				map = magicString.generateMap({ file, includeContent: true });
-			}
-
-			map.sources = map.sources.map( normalize );
-
-			timeEnd( 'sourceMap' );
-		}
-
-		if ( code[ code.length - 1 ] !== '\n' ) code += '\n';
-		return { code, map };
+						if ( code[ code.length - 1 ] !== '\n' ) code += '\n';
+						return { code, map };
+					});
+			});
 	}
 
 	sort () {

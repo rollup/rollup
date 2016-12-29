@@ -64,11 +64,9 @@ export default function runRollup ( command ) {
 				if ( /treating it as an external dependency/.test( message ) ) return;
 				stderr( message );
 			}
-		}).then( bundle => {
-			const { code } = bundle.generate({
-				format: 'cjs'
-			});
-
+		}).then( bundle => bundle.generate({
+			format: 'cjs'
+		})).then( ({ code }) => {
 			// temporarily override require
 			const defaultLoader = require.extensions[ '.js' ];
 			require.extensions[ '.js' ] = ( m, filename ) => {
@@ -121,7 +119,7 @@ function execute ( options, command ) {
 	const optionsExternal = options.external;
 
 	if ( command.globals ) {
-		let globals = Object.create( null );
+		const globals = Object.create( null );
 
 		command.globals.split( ',' ).forEach( str => {
 			const names = str.split( ':' );
@@ -237,12 +235,13 @@ function bundle ( options ) {
 			handleError({ code: 'MISSING_OUTPUT_OPTION' });
 		}
 
-		let { code, map } = bundle.generate( options );
+		return bundle.generate( options )
+			.then(({ code, map }) => {
+				if ( options.sourceMap === 'inline' ) {
+					code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
+				}
 
-		if ( options.sourceMap === 'inline' ) {
-			code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
-		}
-
-		process.stdout.write( code );
+				process.stdout.write( code );
+			});
 	});
 }
