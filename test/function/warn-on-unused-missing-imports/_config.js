@@ -3,9 +3,22 @@ const assert = require( 'assert' );
 
 module.exports = {
 	description: 'warns on missing (but unused) imports',
-	warnings: warnings => {
-		assert.deepEqual( warnings, [
-			`Non-existent export 'b' is imported from ${path.resolve(__dirname, 'foo.js')} by ${path.resolve(__dirname, 'main.js')}`
-		]);
-	}
+	warnings: [
+		{
+			code: 'NON_EXISTENT_EXPORT',
+			message: `Non-existent export 'b' is imported from foo.js`,
+			pos: 12,
+			loc: {
+				file: path.resolve( __dirname, 'main.js' ),
+				line: 1,
+				column: 12
+			},
+			frame: `
+				1: import { a, b } from './foo.js';
+				               ^
+				2:
+				3: assert.equal( a, 42 );
+			`
+		}
+	]
 };

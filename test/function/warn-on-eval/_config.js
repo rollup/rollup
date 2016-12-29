@@ -8,8 +8,12 @@ module.exports = {
 			loc: {
 				column: 13,
 				file: require( 'path' ).resolve( __dirname, 'main.js' ),
-				line: 2
+				line: 1
 			},
+			frame: `
+				1: var result = eval( '1 + 1' );
+				                ^
+			`,
 			url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
 		}
 	]

@@ -188,7 +188,10 @@ export default class Bundle {
 						`'${unused[0]}' is` :
 						`${unused.slice( 0, -1 ).map( name => `'${name}'` ).join( ', ' )} and '${unused.pop()}' are`;
 
-					this.onwarn( `${names} imported from external module '${module.id}' but never used` );
+					this.warn({
+						code: 'UNUSED_EXTERNAL_IMPORT',
+						message: `${names} imported from external module '${module.id}' but never used`
+					});
 				});
 
 				this.orderedModules = this.sort();
@@ -309,7 +312,10 @@ export default class Bundle {
 
 						keys( exportAllModule.exportsAll ).forEach( name => {
 							if ( name in module.exportsAll ) {
-								this.onwarn( `Conflicting namespaces: ${module.id} re-exports '${name}' from both ${module.exportsAll[ name ]} (will be ignored) and ${exportAllModule.exportsAll[ name ]}.` );
+								this.warn({
+									code: 'NAMESPACE_CONFLICT',
+									message: `Conflicting namespaces: ${relativeId( module.id )} re-exports '${name}' from both ${relativeId( module.exportsAll[ name ] )} (will be ignored) and ${relativeId( exportAllModule.exportsAll[ name ] )}`
+								});
 							}
 							module.exportsAll[ name ] = exportAllModule.exportsAll[ name ];
 						});
@@ -333,7 +339,11 @@ export default class Bundle {
 					if ( !resolvedId && !isExternal ) {
 						if ( isRelative( source ) ) throw new Error( `Could not resolve '${source}' from ${module.id}` );
 
-						this.onwarn( `'${source}' is imported by ${relativeId( module.id )}, but could not be resolved – treating it as an external dependency. For help see https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency` );
+						this.warn({
+							code: 'UNRESOLVED_IMPORT',
+							message: `'${source}' is imported by ${relativeId( module.id )}, but could not be resolved – treating it as an external dependency`,
+							url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
+						});
 						isExternal = true;
 					}
 
@@ -380,7 +390,11 @@ export default class Bundle {
 
 	render ( options = {} ) {
 		if ( options.format === 'es6' ) {
-			this.onwarn( 'The es6 format is deprecated – use `es` instead' );
+			this.warn({
+				code: 'DEPRECATED_ES6',
+				message: 'The es6 format is deprecated – use `es` instead'
+			});
+
 			options.format = 'es';
 		}
 
@@ -404,7 +418,10 @@ export default class Bundle {
 		});
 
 		if ( !magicString.toString().trim() && this.entryModule.getExports().length === 0 ) {
-			this.onwarn( 'Generated an empty bundle' );
+			this.warn({
+				code: 'EMPTY_BUNDLE',
+				message: 'Generated an empty bundle'
+			});
 		}
 
 		timeEnd( 'render modules' );
@@ -470,7 +487,7 @@ export default class Bundle {
 				if ( typeof map.mappings === 'string' ) {
 					map.mappings = decode( map.mappings );
 				}
-				map = collapseSourcemaps( file, map, usedModules, bundleSourcemapChain, this.onwarn );
+				map = collapseSourcemaps( this, file, map, usedModules, bundleSourcemapChain );
 			} else {
 				map = magicString.generateMap({ file, includeContent: true });
 			}
@@ -535,6 +552,7 @@ export default class Bundle {
 				for ( i += 1; i < ordered.length; i += 1 ) {
 					const b = ordered[i];
 
+					// TODO reinstate this! it no longer works
 					if ( stronglyDependsOn[ a.id ][ b.id ] ) {
 						// somewhere, there is a module that imports b before a. Because
 						// b imports a, a is placed before b. We need to find the module

@@ -74,8 +74,11 @@ export default class ExportDefaultDeclaration extends Node {
 					const newlineSeparated = /\n/.test( code.original.slice( start, end ) );
 
 					if ( newlineSeparated ) {
-						const { line, column } = locate( this.module.code, this.declaration.start, { offsetLine: 1 });
-						this.module.bundle.onwarn( `${relativeId( this.module.id )} (${line}:${column}) Ambiguous default export (is a call expression, but looks like a function declaration). See https://github.com/rollup/rollup/wiki/Troubleshooting#ambiguous-default-export` );
+						this.module.warn({
+							code: 'AMBIGUOUS_DEFAULT_EXPORT',
+							message: `Ambiguous default export (is a call expression, but looks like a function declaration)`,
+							url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#ambiguous-default-export'
+						}, this.declaration.start );
 					}
 				}
 			}

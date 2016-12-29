@@ -180,7 +180,12 @@ export default class Module {
 					this.exports[ exportedName ] = { localName };
 				});
 			} else {
-				this.bundle.onwarn( `Module ${this.id} has an empty export declaration` );
+				// TODO is this really necessary? `export {}` is valid JS, and
+				// might be used as a hint that this is indeed a module
+				this.warn({
+					code: 'EMPTY_EXPORT',
+					message: `Empty export declaration`
+				}, node.start );
 			}
 		}
 	}
@@ -408,17 +413,12 @@ export default class Module {
 	}
 
 	warn ( warning, pos ) {
-		if ( pos ) {
+		if ( pos !== undefined ) {
 			warning.pos = pos;
 
 			const { line, column } = locate( this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
 
-			warning.loc = {
-				file: this.id,
-				line: line + 1,
-				column
-			};
-
+			warning.loc = { file: this.id, line, column };
 			warning.frame = getCodeFrame( this.code, line, column );
 		}
 
