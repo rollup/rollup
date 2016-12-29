@@ -6,7 +6,6 @@ module.exports = {
 	options: {
 		plugins: [{
 			resolveId: function ( importee, importer ) {
-				var Promise = require( 'sander' ).Promise;
 				var resolved;
 
 				if ( path.normalize(importee) === path.resolve( __dirname, 'main.js' ) ) return importee;
