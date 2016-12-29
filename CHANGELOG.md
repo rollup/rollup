@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.38.3
+
+* More informative warning for implicit external dependencies ([#1051](https://github.com/rollup/rollup/issues/1051))
+* Warn when creating browser bundle with external dependencies on Node built-ins ([#1051](https://github.com/rollup/rollup/issues/1051))
+* Statically analyse LogicalExpression nodes, for better dead code removal ([#1061](https://github.com/rollup/rollup/issues/1061))
+
 ## 0.38.2
 
 * Preserve `var` declarations in dead branches ([#997](https://github.com/rollup/rollup/issues/997))
