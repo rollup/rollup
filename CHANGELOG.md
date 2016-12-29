@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.39.0
+
+* [BREAKING] Warnings are objects, rather than strings ([#1194](https://github.com/rollup/rollup/issues/1194))
+
 ## 0.38.3
 
 * More informative warning for implicit external dependencies ([#1051](https://github.com/rollup/rollup/issues/1051))
