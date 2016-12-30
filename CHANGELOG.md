@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.39.2
+
+* Prevent mutation of cached ASTs (fixes stack overflow with rollup-watch) ([#1205](https://github.com/rollup/rollup/pull/1205))
+
 ## 0.39.1
 
 * Ignore `var` initialisers in dead branches ([#1198](https://github.com/rollup/rollup/issues/1198))
