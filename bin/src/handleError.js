@@ -1,4 +1,4 @@
-import * as chalk from 'chalk';
+import chalk from 'chalk';
 
 function stderr ( msg ) {
 	console.error( msg ); // eslint-disable-line no-console

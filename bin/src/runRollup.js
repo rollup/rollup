@@ -1,13 +1,16 @@
 import { realpathSync } from 'fs';
 import * as rollup from 'rollup';
 import relative from 'require-relative';
-import * as chalk from 'chalk';
+import chalk from 'chalk';
 import handleError from './handleError';
 import relativeId from '../../src/utils/relativeId.js';
 import SOURCEMAPPING_URL from './sourceMappingUrl.js';
 
 import { install as installSourcemapSupport } from 'source-map-support';
 installSourcemapSupport();
+
+if ( !process.stderr.isTTY ) chalk.enabled = false;
+const warnSymbol = process.stderr.isTTY ? `⚠️   ` : `Warning: `;
 
 // stderr to stderr to keep `rollup main.js > bundle.js` from breaking
 const stderr = console.error.bind( console ); // eslint-disable-line no-console
@@ -154,7 +157,7 @@ function execute ( options, command ) {
 			if ( seen.has( str ) ) return;
 			seen.add( str );
 
-			stderr( `⚠️   ${chalk.bold( warning.message )}` );
+			stderr( `${warnSymbol}${chalk.bold( warning.message )}` );
 
 			if ( warning.url ) {
 				stderr( chalk.cyan( warning.url ) );
