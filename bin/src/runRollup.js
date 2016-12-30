@@ -193,7 +193,7 @@ function execute ( options, command ) {
 
 				watcher.on( 'event', event => {
 					switch ( event.code ) {
-						case 'STARTING':
+						case 'STARTING': // TODO this isn't emitted by newer versions of rollup-watch
 							stderr( 'checking rollup-watch version...' );
 							break;
 
