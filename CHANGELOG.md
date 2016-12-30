@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.39.1
+
+* Ignore `var` initialisers in dead branches ([#1198](https://github.com/rollup/rollup/issues/1198))
+
 ## 0.39.0
 
 * [BREAKING] Warnings are objects, rather than strings ([#1194](https://github.com/rollup/rollup/issues/1194))
