@@ -684,6 +684,35 @@ describe( 'rollup', function () {
 				assert.deepEqual( asts.foo, acorn.parse( modules.foo, { sourceType: 'module' }) );
 			});
 		});
+
+		it( 'recovers from errors', () => {
+			modules.entry = `import foo from 'foo'; import bar from 'bar'; export default foo + bar;`;
+
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [ plugin ]
+			}).then( cache => {
+				modules.foo = `var 42 = nope;`;
+
+				return rollup.rollup({
+					entry: 'entry',
+					plugins: [ plugin ],
+					cache
+				}).catch( err => {
+					return cache;
+				});
+			}).then( cache => {
+				modules.foo = `export default 42;`;
+
+				return rollup.rollup({
+					entry: 'entry',
+					plugins: [ plugin ],
+					cache
+				}).then( bundle => {
+					assert.equal( executeBundle( bundle ), 63 );
+				});
+			});
+		});
 	});
 
 	describe( 'hooks', () => {

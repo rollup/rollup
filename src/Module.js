@@ -2,7 +2,7 @@ import { parse } from 'acorn/src/index.js';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
 import { timeStart, timeEnd } from './utils/flushTime.js';
-import { assign, blank, deepClone, keys } from './utils/object.js';
+import { assign, blank, keys } from './utils/object.js';
 import { basename, extname } from './utils/path.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
 import getCodeFrame from './utils/getCodeFrame.js';
@@ -12,6 +12,7 @@ import relativeId from './utils/relativeId.js';
 import { SyntheticNamespaceDeclaration } from './Declaration.js';
 import extractNames from './ast/utils/extractNames.js';
 import enhance from './ast/enhance.js';
+import clone from './ast/clone.js';
 import ModuleScope from './ast/scopes/ModuleScope.js';
 
 function tryParse ( code, comments, acornOptions, id ) {
@@ -41,8 +42,15 @@ export default class Module {
 
 		timeStart( 'ast' );
 
-		this.ast = ast || tryParse( code, this.comments, bundle.acornOptions, id ); // TODO what happens to comments if AST is provided?
-		this.astClone = deepClone( this.ast );
+		if ( ast ) {
+			// prevent mutating the provided AST, as it may be reused on
+			// subsequent incremental rebuilds
+			this.ast = clone( ast );
+			this.astClone = ast;
+		} else {
+			this.ast = tryParse( code, this.comments, bundle.acornOptions, id ); // TODO what happens to comments if AST is provided?
+			this.astClone = clone( this.ast );
+		}
 
 		timeEnd( 'ast' );
 
