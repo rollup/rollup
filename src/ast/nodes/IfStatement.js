@@ -17,9 +17,10 @@ function handleVarDeclarations ( node, scope ) {
 
 	function visit ( node ) {
 		if ( node.type === 'VariableDeclaration' && node.kind === 'var' ) {
-			node.initialise( scope );
-
 			node.declarations.forEach( declarator => {
+				declarator.init = null;
+				declarator.initialise( scope );
+
 				extractNames( declarator.id ).forEach( name => {
 					if ( !~hoistedVars.indexOf( name ) ) hoistedVars.push( name );
 				});
