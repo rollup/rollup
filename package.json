@@ -17,7 +17,7 @@
     "posttest-coverage": "remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.json -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.lcov -t lcovonly -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped -t html -b dist",
     "ci": "npm run test-coverage && codecov < coverage/coverage-remapped.lcov",
     "build": "git rev-parse HEAD > .commithash && rollup -c",
-    "build:cli": "rollup -c rollup.config.cli.js",
+    "build:cli": "rollup -c rollup.config.cli.js && chmod a+x bin/rollup",
     "build:browser": "git rev-parse HEAD > .commithash && rollup -c rollup.config.browser.js",
     "watch": "rollup -c -w",
     "watch:browser": "rollup -c rollup.config.browser.js -w",
