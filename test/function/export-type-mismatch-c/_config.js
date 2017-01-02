@@ -5,7 +5,8 @@ module.exports = {
 	bundleOptions: {
 		exports: 'none'
 	},
-	generateError: function ( err ) {
-		assert.ok( /'none' was specified for options\.exports/.test( err.message ) );
+	generateError: {
+		code: 'INVALID_EXPORT_OPTION',
+		message: `'none' was specified for options.exports, but entry module has following exports: default`
 	}
 };

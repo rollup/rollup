@@ -276,7 +276,7 @@ describe( 'rollup', function () {
 							}
 						} catch ( err ) {
 							if ( config.generateError ) {
-								config.generateError( err );
+								compareError( err, config.generateError );
 							} else {
 								unintendedError = err;
 							}
