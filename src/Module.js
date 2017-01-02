@@ -15,25 +15,27 @@ import enhance from './ast/enhance.js';
 import clone from './ast/clone.js';
 import ModuleScope from './ast/scopes/ModuleScope.js';
 
-function tryParse ( code, comments, acornOptions, id ) {
+function tryParse ( module, acornOptions ) {
 	try {
-		return parse( code, assign({
+		return parse( module.code, assign({
 			ecmaVersion: 8,
 			sourceType: 'module',
-			onComment: ( block, text, start, end ) => comments.push({ block, text, start, end }),
+			onComment: ( block, text, start, end ) => module.comments.push({ block, text, start, end }),
 			preserveParens: false
 		}, acornOptions ));
 	} catch ( err ) {
-		err.code = 'PARSE_ERROR';
-		err.file = id; // see above - not necessarily true, but true enough
-		err.message += ` in ${id}`;
-		throw err;
+		module.error({
+			code: 'PARSE_ERROR',
+			message: err.message.replace( / \(\d+:\d+\)$/, '' )
+		}, err.pos );
 	}
 }
 
 export default class Module {
 	constructor ({ id, code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds, bundle }) {
 		this.code = code;
+		this.id = id;
+		this.bundle = bundle;
 		this.originalCode = originalCode;
 		this.originalSourceMap = originalSourceMap;
 		this.sourceMapChain = sourceMapChain;
@@ -48,14 +50,12 @@ export default class Module {
 			this.ast = clone( ast );
 			this.astClone = ast;
 		} else {
-			this.ast = tryParse( code, this.comments, bundle.acornOptions, id ); // TODO what happens to comments if AST is provided?
+			this.ast = tryParse( this, bundle.acornOptions ); // TODO what happens to comments if AST is provided?
 			this.astClone = clone( this.ast );
 		}
 
 		timeEnd( 'ast' );
 
-		this.bundle = bundle;
-		this.id = id;
 		this.excludeFromSourcemap = /\0/.test( id );
 		this.context = bundle.getModuleContext( id );
 
@@ -282,6 +282,19 @@ export default class Module {
 		// }
 	}
 
+	error ( props, pos ) {
+		if ( pos !== undefined ) {
+			props.pos = pos;
+
+			const { line, column } = locate( this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
+
+			props.loc = { file: this.id, line, column };
+			props.frame = getCodeFrame( this.code, line, column );
+		}
+
+		error( props );
+	}
+
 	findParent () {
 		// TODO what does it mean if we're here?
 		return null;
@@ -372,11 +385,11 @@ export default class Module {
 			const declaration = otherModule.traceExport( importDeclaration.name );
 
 			if ( !declaration ) {
-				error({
-					message: `'${importDeclaration.name}' is not exported by ${relativeId( otherModule.id )} (imported by ${relativeId( this.id )}). For help fixing this error see https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`,
-					file: this.id,
-					loc: locate( this.code, importDeclaration.specifier.start, { offsetLine: 1 })
-				});
+				this.error({
+					code: 'MISSING_EXPORT',
+					message: `'${importDeclaration.name}' is not exported by ${relativeId( otherModule.id )}`,
+					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+				}, importDeclaration.specifier.start );
 			}
 
 			return declaration;

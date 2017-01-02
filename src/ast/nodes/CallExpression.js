@@ -10,12 +10,10 @@ export default class CallExpression extends Node {
 			const declaration = scope.findDeclaration( this.callee.name );
 
 			if ( declaration.isNamespace ) {
-				error({
-					message: `Cannot call a namespace ('${this.callee.name}')`,
-					file: this.module.id,
-					pos: this.start,
-					loc: locate( this.module.code, this.start, { offsetLine: 1 })
-				});
+				this.module.error({
+					code: 'CANNOT_CALL_NAMESPACE',
+					message: `Cannot call a namespace ('${this.callee.name}')`
+				}, this.start );
 			}
 
 			if ( this.callee.name === 'eval' && declaration.isGlobal ) {
