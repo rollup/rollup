@@ -207,10 +207,10 @@ export default class Module {
 			const localName = specifier.local.name;
 
 			if ( this.imports[ localName ] ) {
-				const err = new Error( `Duplicated import '${localName}'` );
-				err.file = this.id;
-				err.loc = locate( this.code, specifier.start, { offsetLine: 1 });
-				throw err;
+				this.error({
+					code: 'DUPLICATE_IMPORT',
+					message: `Duplicated import '${localName}'`
+				}, specifier.start );
 			}
 
 			const isDefault = specifier.type === 'ImportDefaultSpecifier';
@@ -405,11 +405,11 @@ export default class Module {
 			const declaration = reexportDeclaration.module.traceExport( reexportDeclaration.localName );
 
 			if ( !declaration ) {
-				error({
-					message: `'${reexportDeclaration.localName}' is not exported by '${reexportDeclaration.module.id}' (imported by '${this.id}')`,
-					file: this.id,
-					loc: locate( this.code, reexportDeclaration.start, { offsetLine: 1 })
-				});
+				this.error({
+					code: 'MISSING_EXPORT',
+					message: `'${reexportDeclaration.localName}' is not exported by ${relativeId( reexportDeclaration.module.id )}`,
+					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+				}, reexportDeclaration.start );
 			}
 
 			return declaration;

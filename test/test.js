@@ -341,11 +341,7 @@ describe( 'rollup', function () {
 						if ( unintendedError ) throw unintendedError;
 					}, err => {
 						if ( config.error ) {
-							if ( typeof config.error === 'object' ) {
-								compareError( err, config.error );
-							} else {
-								config.error( err );
-							}
+							compareError( err, config.error );
 						} else {
 							throw err;
 						}

@@ -3,10 +3,22 @@ var assert = require( 'assert' );
 
 module.exports = {
 	description: 'disallows duplicate imports',
-	error: function ( err ) {
-		assert.equal( path.normalize( err.file ), path.resolve( __dirname, 'main.js' ) );
-		assert.deepEqual( err.loc, { character: 36, line: 2, column: 9 });
-		assert.ok( /Duplicated import/.test( err.message ) );
+	error: {
+		code: 'DUPLICATE_IMPORT',
+		message: `Duplicated import 'a'`,
+		pos: 36,
+		loc: {
+			file: path.resolve( __dirname, 'main.js' ),
+			line: 2,
+			column: 9
+		},
+		frame: `
+			1: import { a } from './foo';
+			2: import { a } from './foo';
+			            ^
+			3:
+			4: assert.equal(a, 1);
+		`
 	}
 };
 

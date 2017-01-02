@@ -275,7 +275,11 @@ export default class Bundle {
 				if ( typeof source === 'string' ) return source;
 				if ( source && typeof source === 'object' && source.code ) return source;
 
-				throw new Error( `Error loading ${id}: load hook should return a string, a { code, map } object, or nothing/null` );
+				// TODO report which plugin failed
+				error({
+					code: 'BAD_LOADER',
+					message: `Error loading ${relativeId( id )}: plugin load hook should return a string, a { code, map } object, or nothing/null`
+				});
 			})
 			.then( source => {
 				if ( typeof source === 'string' ) {
@@ -344,7 +348,12 @@ export default class Bundle {
 					let isExternal = this.isExternal( externalId );
 
 					if ( !resolvedId && !isExternal ) {
-						if ( isRelative( source ) ) throw new Error( `Could not resolve '${source}' from ${module.id}` );
+						if ( isRelative( source ) ) {
+							error({
+								code: 'UNRESOLVED_IMPORT',
+								message: `Could not resolve '${source}' from ${relativeId( module.id )}`
+							});
+						}
 
 						this.warn({
 							code: 'UNRESOLVED_IMPORT',
