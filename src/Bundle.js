@@ -474,7 +474,12 @@ export default class Bundle {
 		const indentString = getIndentString( magicString, options );
 
 		const finalise = finalisers[ options.format ];
-		if ( !finalise ) throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
+		if ( !finalise ) {
+			error({
+				code: 'INVALID_OPTION',
+				message: `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}`
+			});
+		}
 
 		timeStart( 'render format' );
 

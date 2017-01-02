@@ -121,7 +121,10 @@ export default class Module {
 					const name = specifier.exported.name;
 
 					if ( this.exports[ name ] || this.reexports[ name ] ) {
-						throw new Error( `A module cannot have multiple exports with the same name ('${name}')` );
+						this.error({
+							code: 'DUPLICATE_EXPORT',
+							message: `A module cannot have multiple exports with the same name ('${name}')`
+						}, specifier.start );
 					}
 
 					this.reexports[ name ] = {
@@ -141,8 +144,10 @@ export default class Module {
 			const identifier = ( node.declaration.id && node.declaration.id.name ) || node.declaration.name;
 
 			if ( this.exports.default ) {
-				// TODO indicate location
-				throw new Error( 'A module can only have one default export' );
+				this.error({
+					code: 'DUPLICATE_EXPORT',
+					message: `A module can only have one default export`
+				}, node.start );
 			}
 
 			this.exports.default = {
@@ -182,7 +187,10 @@ export default class Module {
 					const exportedName = specifier.exported.name;
 
 					if ( this.exports[ exportedName ] || this.reexports[ exportedName ] ) {
-						throw new Error( `A module cannot have multiple exports with the same name ('${exportedName}')` );
+						this.error({
+							code: 'DUPLICATE_EXPORT',
+							message: `A module cannot have multiple exports with the same name ('${exportedName}')`
+						}, specifier.start );
 					}
 
 					this.exports[ exportedName ] = { localName };

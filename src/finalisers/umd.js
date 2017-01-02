@@ -1,5 +1,6 @@
 import { blank } from '../utils/object.js';
 import { getName, quotePath, req } from '../utils/map-helpers.js';
+import error from '../utils/error.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
@@ -28,7 +29,10 @@ const wrapperOutro = '\n\n})));';
 
 export default function umd ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
 	if ( exportMode !== 'none' && !options.moduleName ) {
-		throw new Error( 'You must supply options.moduleName for UMD bundles' );
+		error({
+			code: 'INVALID_OPTION',
+			message: 'You must supply options.moduleName for UMD bundles'
+		});
 	}
 
 	warnOnBuiltins( bundle );
