@@ -1,5 +1,3 @@
-import { locate } from 'locate-character';
-import error from '../../utils/error.js';
 import Node from '../Node.js';
 import isProgramLevel from '../utils/isProgramLevel.js';
 import callHasEffects from './shared/callHasEffects.js';
