@@ -1,7 +1,11 @@
 import { keys } from './object.js';
+import error from './error.js';
 
 function badExports ( option, keys ) {
-	throw new Error( `'${option}' was specified for options.exports, but entry module has following exports: ${keys.join(', ')}` );
+	error({
+		code: 'INVALID_EXPORT_OPTION',
+		message: `'${option}' was specified for options.exports, but entry module has following exports: ${keys.join(', ')}`
+	});
 }
 
 export default function getExportMode ( bundle, {exports: exportMode, moduleName, format} ) {
@@ -35,7 +39,10 @@ export default function getExportMode ( bundle, {exports: exportMode, moduleName
 	}
 
 	if ( !/(?:default|named|none)/.test( exportMode ) ) {
-		throw new Error( `options.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')` );
+		error({
+			code: 'INVALID_EXPORT_OPTION',
+			message: `options.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')`
+		});
 	}
 
 	return exportMode;

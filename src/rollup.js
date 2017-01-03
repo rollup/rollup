@@ -4,6 +4,7 @@ import { writeFile } from './utils/fs.js';
 import { assign, keys } from './utils/object.js';
 import { mapSequence } from './utils/promise.js';
 import validateKeys from './utils/validateKeys.js';
+import error from './utils/error.js';
 import { SOURCEMAPPING_URL } from './utils/sourceMappingURL.js';
 import Bundle from './Bundle.js';
 
@@ -50,15 +51,15 @@ function checkOptions ( options ) {
 		return new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
 	}
 
-	const error = validateKeys( keys(options), ALLOWED_KEYS );
-	if ( error ) return error;
+	const err = validateKeys( keys(options), ALLOWED_KEYS );
+	if ( err ) return err;
 
 	return null;
 }
 
 export function rollup ( options ) {
-	const error = checkOptions ( options );
-	if ( error ) return Promise.reject( error );
+	const err = checkOptions ( options );
+	if ( err ) return Promise.reject( err );
 
 	const bundle = new Bundle( options );
 
@@ -105,7 +106,10 @@ export function rollup ( options ) {
 			generate,
 			write: options => {
 				if ( !options || !options.dest ) {
-					throw new Error( 'You must supply options.dest to bundle.write' );
+					error({
+						code: 'MISSING_OPTION',
+						message: 'You must supply options.dest to bundle.write'
+					});
 				}
 
 				const dest = options.dest;

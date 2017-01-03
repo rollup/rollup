@@ -1,4 +1,6 @@
 import { decode } from 'sourcemap-codec';
+import error from './error.js';
+import relativeId from './relativeId.js';
 
 export default function transform ( source, id, plugins ) {
 	const sourceMapChain = [];
@@ -11,6 +13,7 @@ export default function transform ( source, id, plugins ) {
 
 	const originalCode = source.code;
 	let ast = source.ast;
+	let errored = false;
 
 	return plugins.reduce( ( promise, plugin ) => {
 		return promise.then( previous => {
@@ -41,15 +44,21 @@ export default function transform ( source, id, plugins ) {
 				return result.code;
 			});
 		}).catch( err => {
-			if ( !err.rollupTransform ) {
-				err.rollupTransform = true;
-				err.id = id;
-				err.plugin = plugin.name;
-				err.message = `Error transforming ${id}${plugin.name ? ` with '${plugin.name}' plugin` : ''}: ${err.message}`;
-			}
+			// TODO this all seems a bit hacky
+			if ( errored ) throw err;
+			errored = true;
+
+			err.plugin = plugin.name;
 			throw err;
 		});
 	}, Promise.resolve( source.code ) )
-
-	.then( code => ({ code, originalCode, originalSourceMap, ast, sourceMapChain }) );
+		.catch( err => {
+			error({
+				code: 'BAD_TRANSFORMER',
+				message: `Error transforming ${relativeId( id )}${err.plugin ? ` with '${err.plugin}' plugin` : ''}: ${err.message}`,
+				plugin: err.plugin,
+				id
+			});
+		})
+		.then( code => ({ code, originalCode, originalSourceMap, ast, sourceMapChain }) );
 }

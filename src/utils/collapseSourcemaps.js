@@ -1,4 +1,5 @@
 import { encode } from 'sourcemap-codec';
+import error from './error.js';
 import { dirname, relative, resolve } from './path.js';
 
 class Source {
@@ -51,7 +52,9 @@ class Link {
 					} else if ( sourcesContent[ sourceIndex ] == null ) {
 						sourcesContent[ sourceIndex ] = traced.source.content;
 					} else if ( traced.source.content != null && sourcesContent[ sourceIndex ] !== traced.source.content ) {
-						throw new Error( `Multiple conflicting contents for sourcemap source ${source.filename}` );
+						error({
+							message: `Multiple conflicting contents for sourcemap source ${source.filename}`
+						});
 					}
 
 					segment[1] = sourceIndex;

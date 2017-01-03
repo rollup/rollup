@@ -1,4 +1,5 @@
 import { decode } from 'sourcemap-codec';
+import error from './error.js';
 
 export default function transformBundle ( code, plugins, sourceMapChain, options ) {
 	return plugins.reduce( ( code, plugin ) => {
@@ -9,9 +10,11 @@ export default function transformBundle ( code, plugins, sourceMapChain, options
 		try {
 			result = plugin.transformBundle( code, { format : options.format } );
 		} catch ( err ) {
-			err.plugin = plugin.name;
-			err.message = `Error transforming bundle${plugin.name ? ` with '${plugin.name}' plugin` : ''}: ${err.message}`;
-			throw err;
+			error({
+				code: 'BAD_BUNDLE_TRANSFORMER',
+				message: `Error transforming bundle${plugin.name ? ` with '${plugin.name}' plugin` : ''}: ${err.message}`,
+				plugin: plugin.name
+			});
 		}
 
 		if ( result == null ) return code;

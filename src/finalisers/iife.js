@@ -1,5 +1,6 @@
 import { blank } from '../utils/object.js';
 import { getName } from '../utils/map-helpers.js';
+import error from '../utils/error.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
@@ -36,7 +37,10 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 	const args = bundle.externalModules.map( getName );
 
 	if ( exportMode !== 'none' && !name ) {
-		throw new Error( 'You must supply options.moduleName for IIFE bundles' );
+		error({
+			code: 'INVALID_OPTION',
+			message: `You must supply options.moduleName for IIFE bundles`
+		});
 	}
 
 	if ( exportMode === 'named' ) {

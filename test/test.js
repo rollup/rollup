@@ -79,6 +79,23 @@ function compareWarnings ( actual, expected ) {
 	);
 }
 
+function compareError ( actual, expected ) {
+	delete actual.stack;
+	actual = Object.assign( {}, actual, {
+		message: actual.message
+	});
+
+	if ( actual.frame ) {
+		actual.frame = actual.frame.replace( /\s+$/gm, '' );
+	}
+
+	if ( expected.frame ) {
+		expected.frame = expected.frame.slice( 1 ).replace( /^\t+/gm, '' ).replace( /\s+$/gm, '' ).trim();
+	}
+
+	assert.deepEqual( actual, expected );
+}
+
 describe( 'rollup', function () {
 	this.timeout( 10000 );
 
@@ -259,7 +276,7 @@ describe( 'rollup', function () {
 							}
 						} catch ( err ) {
 							if ( config.generateError ) {
-								config.generateError( err );
+								compareError( err, config.generateError );
 							} else {
 								unintendedError = err;
 							}
@@ -324,7 +341,7 @@ describe( 'rollup', function () {
 						if ( unintendedError ) throw unintendedError;
 					}, err => {
 						if ( config.error ) {
-							config.error( err );
+							compareError( err, config.error );
 						} else {
 							throw err;
 						}

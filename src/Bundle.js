@@ -17,6 +17,7 @@ import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import callIfFunction from './utils/callIfFunction.js';
 import relativeId from './utils/relativeId.js';
+import error from './utils/error.js';
 import { dirname, isRelative, isAbsolute, normalize, relative, resolve } from './utils/path.js';
 import BundleScope from './ast/scopes/BundleScope.js';
 
@@ -106,7 +107,13 @@ export default class Bundle {
 		// of the entry module's dependencies
 		return this.resolveId( this.entry, undefined )
 			.then( id => {
-				if ( id == null ) throw new Error( `Could not resolve entry (${this.entry})` );
+				if ( id == null ) {
+					error({
+						code: 'UNRESOLVED_ENTRY',
+						message: `Could not resolve entry (${this.entry})`
+					});
+				}
+
 				this.entryId = id;
 				return this.fetchModule( id, undefined );
 			})
@@ -268,7 +275,11 @@ export default class Bundle {
 				if ( typeof source === 'string' ) return source;
 				if ( source && typeof source === 'object' && source.code ) return source;
 
-				throw new Error( `Error loading ${id}: load hook should return a string, a { code, map } object, or nothing/null` );
+				// TODO report which plugin failed
+				error({
+					code: 'BAD_LOADER',
+					message: `Error loading ${relativeId( id )}: plugin load hook should return a string, a { code, map } object, or nothing/null`
+				});
 			})
 			.then( source => {
 				if ( typeof source === 'string' ) {
@@ -337,7 +348,12 @@ export default class Bundle {
 					let isExternal = this.isExternal( externalId );
 
 					if ( !resolvedId && !isExternal ) {
-						if ( isRelative( source ) ) throw new Error( `Could not resolve '${source}' from ${module.id}` );
+						if ( isRelative( source ) ) {
+							error({
+								code: 'UNRESOLVED_IMPORT',
+								message: `Could not resolve '${source}' from ${relativeId( module.id )}`
+							});
+						}
 
 						this.warn({
 							code: 'UNRESOLVED_IMPORT',
@@ -367,7 +383,20 @@ export default class Bundle {
 						});
 					} else {
 						if ( resolvedId === module.id ) {
-							throw new Error( `A module cannot import itself (${resolvedId})` );
+							// need to find the actual import declaration, so we can provide
+							// a useful error message. Bit hoop-jumpy but what can you do
+							const name = Object.keys( module.imports )
+								.find( name => {
+									const declaration = module.imports[ name ];
+									return declaration.source === source;
+								});
+
+							const declaration = module.imports[ name ].specifier.parent;
+
+							module.error({
+								code: 'CANNOT_IMPORT_SELF',
+								message: `A module cannot import itself`
+							}, declaration.start );
 						}
 
 						module.resolvedIds[ source ] = resolvedId;
@@ -445,7 +474,12 @@ export default class Bundle {
 		const indentString = getIndentString( magicString, options );
 
 		const finalise = finalisers[ options.format ];
-		if ( !finalise ) throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
+		if ( !finalise ) {
+			error({
+				code: 'INVALID_OPTION',
+				message: `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}`
+			});
+		}
 
 		timeStart( 'render format' );
 

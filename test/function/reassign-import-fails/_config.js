@@ -3,10 +3,21 @@ var assert = require( 'assert' );
 
 module.exports = {
 	description: 'disallows assignments to imported bindings',
-	error: function ( err ) {
-		assert.ok( /Illegal reassignment/.test( err.message ) );
-		assert.equal( path.normalize( err.file ), path.resolve( __dirname, 'main.js' ) );
-		assert.deepEqual( err.loc, { character: 113, line: 8, column: 0 });
+	error: {
+		code: 'ILLEGAL_REASSIGNMENT',
+		message: `Illegal reassignment to import 'x'`,
+		pos: 113,
+		loc: {
+			file: path.resolve( __dirname, 'main.js' ),
+			line: 8,
+			column: 0
+		},
+		frame: `
+			6: });
+			7:
+			8: x = 10;
+			   ^
+		`
 	}
 };
 
