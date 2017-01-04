@@ -53,7 +53,7 @@ export default class ExportDefaultDeclaration extends Node {
 		let declaration_start;
 		if ( this.declaration ) {
 			const statementStr = code.original.slice( this.start, this.end );
-			declaration_start = this.start + statementStr.match(/^\s*export\s+default\s+/)[0].length;
+			declaration_start = this.start + statementStr.match(/^\s*export\s+default\s*/)[0].length;
 		}
 
 		if ( this.shouldInclude || this.declaration.activated ) {
