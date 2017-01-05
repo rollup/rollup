@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.40.1
+
+* Allow missing space between `export default` and declaration ([#1218](https://github.com/rollup/rollup/pull/1218))
+
 ## 0.40.0
 
 * [BREAKING] Better, more consistent error logging ([#1212](https://github.com/rollup/rollup/pull/1212))
