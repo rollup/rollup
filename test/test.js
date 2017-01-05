@@ -461,7 +461,7 @@ describe( 'rollup', function () {
 
 							if ( config.test ) {
 								const { code, map } = bundle.generate( options );
-								config.test( code, map );
+								config.test( code, map, profile );
 							}
 
 							if ( config.warnings ) {
