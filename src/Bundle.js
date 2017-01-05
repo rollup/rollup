@@ -515,7 +515,7 @@ export default class Bundle {
 			if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
 
 			if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
-				map = magicString.generateMap( {} );
+				map = magicString.generateMap({});
 				if ( typeof map.mappings === 'string' ) {
 					map.mappings = decode( map.mappings );
 				}

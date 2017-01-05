@@ -1,6 +1,6 @@
 import { encode } from 'sourcemap-codec';
 import error from './error.js';
-import { dirname, relative, resolve } from './path.js';
+import { basename, dirname, relative, resolve } from './path.js';
 
 class Source {
 	constructor ( filename, content ) {
@@ -159,6 +159,8 @@ export default function collapseSourcemaps ( bundle, file, map, modules, bundleS
 	if ( file ) {
 		const directory = dirname( file );
 		sources = sources.map( source => relative( directory, source ) );
+
+		map.file = basename( file );
 	}
 
 	// we re-use the `map` object because it has convenient toString/toURL methods
