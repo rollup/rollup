@@ -4,14 +4,9 @@ import error from '../utils/error.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
-import propertyStringFor from './shared/propertyStringFor';
+import { property, keypath } from './shared/sanitize.js';
 import warnOnBuiltins from './shared/warnOnBuiltins.js';
-
-// thisProp('foo.bar-baz.qux') === "this.foo['bar-baz'].qux"
-const thisProp = propertyStringFor('this');
-
-// propString('foo.bar-baz.qux') === ".foo['bar-baz'].qux"
-const propString = propertyStringFor('');
+import trimEmptyImports from './shared/trimEmptyImports.js';
 
 function setupNamespace ( keypath ) {
 	const parts = keypath.split( '.' );
@@ -21,20 +16,23 @@ function setupNamespace ( keypath ) {
 	let acc = 'this';
 
 	return parts
-		.map( part => ( acc += propString(part), `${acc} = ${acc} || {};` ) )
+		.map( part => ( acc += property( part ), `${acc} = ${acc} || {};` ) )
 		.join( '\n' ) + '\n';
 }
 
+const thisProp = name => `this${keypath( name )}`;
+
 export default function iife ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
-	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle );
+	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle, 'null' );
 
 	const name = options.moduleName;
 	const isNamespaced = name && ~name.indexOf( '.' );
 
 	warnOnBuiltins( bundle );
 
-	const dependencies = bundle.externalModules.map( globalNameMaker );
-	const args = bundle.externalModules.map( getName );
+	const external = trimEmptyImports( bundle.externalModules );
+	const dependencies = external.map( globalNameMaker );
+	const args = external.map( getName );
 
 	if ( exportMode !== 'none' && !name ) {
 		error({
