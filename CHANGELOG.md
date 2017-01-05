@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.40.2
+
+* Add `file` property to sourcemaps for bundles with plugins (#986](https://github.com/rollup/rollup/issues/986))
+* Don't require globals for empty imports ([#1217](https://github.com/rollup/rollup/issues/1217))
+
 ## 0.40.1
 
 * Allow missing space between `export default` and declaration ([#1218](https://github.com/rollup/rollup/pull/1218))
