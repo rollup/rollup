@@ -17,6 +17,7 @@ import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
 import callIfFunction from './utils/callIfFunction.js';
 import relativeId from './utils/relativeId.js';
+import error from './utils/error.js';
 import { dirname, isRelative, isAbsolute, normalize, relative, resolve } from './utils/path.js';
 import BundleScope from './ast/scopes/BundleScope.js';
 
@@ -106,7 +107,13 @@ export default class Bundle {
 		// of the entry module's dependencies
 		return this.resolveId( this.entry, undefined )
 			.then( id => {
-				if ( id == null ) throw new Error( `Could not resolve entry (${this.entry})` );
+				if ( id == null ) {
+					error({
+						code: 'UNRESOLVED_ENTRY',
+						message: `Could not resolve entry (${this.entry})`
+					});
+				}
+
 				this.entryId = id;
 				return this.fetchModule( id, undefined );
 			})
@@ -188,7 +195,10 @@ export default class Bundle {
 						`'${unused[0]}' is` :
 						`${unused.slice( 0, -1 ).map( name => `'${name}'` ).join( ', ' )} and '${unused.pop()}' are`;
 
-					this.onwarn( `${names} imported from external module '${module.id}' but never used` );
+					this.warn({
+						code: 'UNUSED_EXTERNAL_IMPORT',
+						message: `${names} imported from external module '${module.id}' but never used`
+					});
 				});
 
 				this.orderedModules = this.sort();
@@ -265,7 +275,11 @@ export default class Bundle {
 				if ( typeof source === 'string' ) return source;
 				if ( source && typeof source === 'object' && source.code ) return source;
 
-				throw new Error( `Error loading ${id}: load hook should return a string, a { code, map } object, or nothing/null` );
+				// TODO report which plugin failed
+				error({
+					code: 'BAD_LOADER',
+					message: `Error loading ${relativeId( id )}: plugin load hook should return a string, a { code, map } object, or nothing/null`
+				});
 			})
 			.then( source => {
 				if ( typeof source === 'string' ) {
@@ -309,7 +323,10 @@ export default class Bundle {
 
 						keys( exportAllModule.exportsAll ).forEach( name => {
 							if ( name in module.exportsAll ) {
-								this.onwarn( `Conflicting namespaces: ${module.id} re-exports '${name}' from both ${module.exportsAll[ name ]} (will be ignored) and ${exportAllModule.exportsAll[ name ]}.` );
+								this.warn({
+									code: 'NAMESPACE_CONFLICT',
+									message: `Conflicting namespaces: ${relativeId( module.id )} re-exports '${name}' from both ${relativeId( module.exportsAll[ name ] )} (will be ignored) and ${relativeId( exportAllModule.exportsAll[ name ] )}`
+								});
 							}
 							module.exportsAll[ name ] = exportAllModule.exportsAll[ name ];
 						});
@@ -331,9 +348,18 @@ export default class Bundle {
 					let isExternal = this.isExternal( externalId );
 
 					if ( !resolvedId && !isExternal ) {
-						if ( isRelative( source ) ) throw new Error( `Could not resolve '${source}' from ${module.id}` );
+						if ( isRelative( source ) ) {
+							error({
+								code: 'UNRESOLVED_IMPORT',
+								message: `Could not resolve '${source}' from ${relativeId( module.id )}`
+							});
+						}
 
-						this.onwarn( `'${source}' is imported by ${relativeId( module.id )}, but could not be resolved – treating it as an external dependency. For help see https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency` );
+						this.warn({
+							code: 'UNRESOLVED_IMPORT',
+							message: `'${source}' is imported by ${relativeId( module.id )}, but could not be resolved – treating it as an external dependency`,
+							url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
+						});
 						isExternal = true;
 					}
 
@@ -357,7 +383,20 @@ export default class Bundle {
 						});
 					} else {
 						if ( resolvedId === module.id ) {
-							throw new Error( `A module cannot import itself (${resolvedId})` );
+							// need to find the actual import declaration, so we can provide
+							// a useful error message. Bit hoop-jumpy but what can you do
+							const name = Object.keys( module.imports )
+								.find( name => {
+									const declaration = module.imports[ name ];
+									return declaration.source === source;
+								});
+
+							const declaration = module.imports[ name ].specifier.parent;
+
+							module.error({
+								code: 'CANNOT_IMPORT_SELF',
+								message: `A module cannot import itself`
+							}, declaration.start );
 						}
 
 						module.resolvedIds[ source ] = resolvedId;
@@ -380,11 +419,13 @@ export default class Bundle {
 
 	render ( options = {} ) {
 		if ( options.format === 'es6' ) {
-			this.onwarn( 'The es6 format is deprecated – use `es` instead' );
+			this.warn({
+				code: 'DEPRECATED_ES6',
+				message: 'The es6 format is deprecated – use `es` instead'
+			});
+
 			options.format = 'es';
 		}
-
-		const format = options.format || 'es';
 
 		// Determine export mode - 'default', 'named', 'none'
 		const exportMode = getExportMode( this, options );
@@ -395,7 +436,7 @@ export default class Bundle {
 		timeStart( 'render modules' );
 
 		this.orderedModules.forEach( module => {
-			const source = module.render( format === 'es', this.legacy );
+			const source = module.render( options.format === 'es', this.legacy );
 
 			if ( source.toString().length ) {
 				magicString.addSource( source );
@@ -404,7 +445,10 @@ export default class Bundle {
 		});
 
 		if ( !magicString.toString().trim() && this.entryModule.getExports().length === 0 ) {
-			this.onwarn( 'Generated an empty bundle' );
+			this.warn({
+				code: 'EMPTY_BUNDLE',
+				message: 'Generated an empty bundle'
+			});
 		}
 
 		timeEnd( 'render modules' );
@@ -429,8 +473,13 @@ export default class Bundle {
 
 		const indentString = getIndentString( magicString, options );
 
-		const finalise = finalisers[ format ];
-		if ( !finalise ) throw new Error( `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}` );
+		const finalise = finalisers[ options.format ];
+		if ( !finalise ) {
+			error({
+				code: 'INVALID_OPTION',
+				message: `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}`
+			});
+		}
 
 		timeStart( 'render format' );
 
@@ -470,7 +519,7 @@ export default class Bundle {
 				if ( typeof map.mappings === 'string' ) {
 					map.mappings = decode( map.mappings );
 				}
-				map = collapseSourcemaps( file, map, usedModules, bundleSourcemapChain, this.onwarn );
+				map = collapseSourcemaps( this, file, map, usedModules, bundleSourcemapChain );
 			} else {
 				map = magicString.generateMap({ file, includeContent: true });
 			}
@@ -535,6 +584,7 @@ export default class Bundle {
 				for ( i += 1; i < ordered.length; i += 1 ) {
 					const b = ordered[i];
 
+					// TODO reinstate this! it no longer works
 					if ( stronglyDependsOn[ a.id ][ b.id ] ) {
 						// somewhere, there is a module that imports b before a. Because
 						// b imports a, a is placed before b. We need to find the module
@@ -565,5 +615,17 @@ export default class Bundle {
 		}
 
 		return ordered;
+	}
+
+	warn ( warning ) {
+		warning.toString = () => {
+			if ( warning.loc ) {
+				return `${relativeId( warning.loc.file )} (${warning.loc.line}:${warning.loc.column}) ${warning.message}`;
+			}
+
+			return warning.message;
+		};
+
+		this.onwarn( warning );
 	}
 }

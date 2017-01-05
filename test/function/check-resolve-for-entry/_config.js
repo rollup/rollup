@@ -5,7 +5,8 @@ module.exports = {
 	options: {
 		entry: '/not/a/path/that/actually/really/exists'
 	},
-	error: function ( err ) {
-		assert.ok( /Could not resolve entry/.test( err.message ) );
+	error: {
+		code: 'UNRESOLVED_ENTRY',
+		message: 'Could not resolve entry (/not/a/path/that/actually/really/exists)'
 	}
 };

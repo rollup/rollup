@@ -1,12 +1,23 @@
-const assert = require( 'assert' );
-const path = require( 'path' );
-
 module.exports = {
 	description: 'warns on export {}, but does not fail',
-	warnings: warnings => {
-		assert.deepEqual( warnings, [
-			`Module ${path.resolve( __dirname, 'main.js' )} has an empty export declaration`,
-			'Generated an empty bundle'
-		]);
-	}
+	warnings: [
+		{
+			code: 'EMPTY_EXPORT',
+			message: 'Empty export declaration',
+			pos: 0,
+			loc: {
+				file: require( 'path' ).resolve( __dirname, 'main.js' ),
+				line: 1,
+				column: 0
+			},
+			frame: `
+				1: export {};
+				   ^
+			`
+		},
+		{
+			code: 'EMPTY_BUNDLE',
+			message: 'Generated an empty bundle'
+		}
+	]
 };

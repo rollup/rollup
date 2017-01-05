@@ -1,6 +1,5 @@
 var path = require( 'path' );
 var assert = require( 'assert' );
-var Promise = require( 'sander' ).Promise;
 
 module.exports = {
 	description: 'uses a custom external path resolver (asynchronous)',

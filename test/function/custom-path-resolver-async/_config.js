@@ -6,7 +6,6 @@ module.exports = {
 	options: {
 		plugins: [{
 			resolveId: function ( importee, importer ) {
-				var Promise = require( 'sander' ).Promise;
 				var resolved;
 
 				if ( path.normalize(importee) === path.resolve( __dirname, 'main.js' ) ) return importee;
@@ -21,11 +20,13 @@ module.exports = {
 			}
 		}]
 	},
-	warnings: function ( warnings ) {
-		assert.deepEqual( warnings, [
-			`'path' is imported by main.js, but could not be resolved – treating it as an external dependency. For help see https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency`
-		]);
-	},
+	warnings: [
+		{
+			code: 'UNRESOLVED_IMPORT',
+			message: `'path' is imported by main.js, but could not be resolved – treating it as an external dependency`,
+			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency`
+		}
+	],
 	exports: function ( exports ) {
 		assert.strictEqual( exports.path, require( 'path' ) );
 	}

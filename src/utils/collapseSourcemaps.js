@@ -1,4 +1,5 @@
 import { encode } from 'sourcemap-codec';
+import error from './error.js';
 import { dirname, relative, resolve } from './path.js';
 
 class Source {
@@ -51,7 +52,9 @@ class Link {
 					} else if ( sourcesContent[ sourceIndex ] == null ) {
 						sourcesContent[ sourceIndex ] = traced.source.content;
 					} else if ( traced.source.content != null && sourcesContent[ sourceIndex ] !== traced.source.content ) {
-						throw new Error( `Multiple conflicting contents for sourcemap source ${source.filename}` );
+						error({
+							message: `Multiple conflicting contents for sourcemap source ${source.filename}`
+						});
 					}
 
 					segment[1] = sourceIndex;
@@ -98,7 +101,7 @@ class Link {
 	}
 }
 
-export default function collapseSourcemaps ( file, map, modules, bundleSourcemapChain, onwarn ) {
+export default function collapseSourcemaps ( bundle, file, map, modules, bundleSourcemapChain ) {
 	const moduleSources = modules.filter( module => !module.excludeFromSourcemap ).map( module => {
 		let sourceMapChain = module.sourceMapChain;
 
@@ -127,7 +130,11 @@ export default function collapseSourcemaps ( file, map, modules, bundleSourcemap
 
 		sourceMapChain.forEach( map => {
 			if ( map.missing ) {
-				onwarn( `Sourcemap is likely to be incorrect: a plugin${map.plugin ? ` ('${map.plugin}')` : ``} was used to transform files, but didn't generate a sourcemap for the transformation. Consult https://github.com/rollup/rollup/wiki/Troubleshooting and the plugin documentation for more information` );
+				bundle.warn({
+					code: 'SOURCEMAP_BROKEN',
+					message: `Sourcemap is likely to be incorrect: a plugin${map.plugin ? ` ('${map.plugin}')` : ``} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
+					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect`
+				});
 
 				map = {
 					names: [],

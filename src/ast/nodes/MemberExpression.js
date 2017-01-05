@@ -1,5 +1,4 @@
 import isReference from 'is-reference';
-import getLocation from '../../utils/getLocation.js';
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
 import { UNKNOWN } from '../values.js';
@@ -34,8 +33,11 @@ export default class MemberExpression extends Node {
 				declaration = declaration.module.traceExport( part.name );
 
 				if ( !declaration ) {
-					const { line, column } = getLocation( this.module.code, this.start );
-					this.module.bundle.onwarn( `${relativeId( this.module.id )} (${line}:${column}) '${part.name}' is not exported by '${relativeId( exporterId )}'. See https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module` );
+					this.module.warn({
+						code: 'MISSING_EXPORT',
+						message: `'${part.name}' is not exported by '${relativeId( exporterId )}'`,
+						url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+					}, part.start );
 					this.replacement = 'undefined';
 					return;
 				}

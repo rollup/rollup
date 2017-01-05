@@ -1,9 +1,11 @@
 import { blank } from '../utils/object.js';
 import { getName } from '../utils/map-helpers.js';
+import error from '../utils/error.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 import propertyStringFor from './shared/propertyStringFor';
+import warnOnBuiltins from './shared/warnOnBuiltins.js';
 
 // thisProp('foo.bar-baz.qux') === "this.foo['bar-baz'].qux"
 const thisProp = propertyStringFor('this');
@@ -24,17 +26,21 @@ function setupNamespace ( keypath ) {
 }
 
 export default function iife ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
-	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle.onwarn );
+	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle );
 
 	const name = options.moduleName;
 	const isNamespaced = name && ~name.indexOf( '.' );
 
-	const dependencies = bundle.externalModules.map( globalNameMaker );
+	warnOnBuiltins( bundle );
 
+	const dependencies = bundle.externalModules.map( globalNameMaker );
 	const args = bundle.externalModules.map( getName );
 
 	if ( exportMode !== 'none' && !name ) {
-		throw new Error( 'You must supply options.moduleName for IIFE bundles' );
+		error({
+			code: 'INVALID_OPTION',
+			message: `You must supply options.moduleName for IIFE bundles`
+		});
 	}
 
 	if ( exportMode === 'named' ) {

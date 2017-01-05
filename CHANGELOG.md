@@ -1,5 +1,32 @@
 # rollup changelog
 
+## 0.40.1
+
+* Allow missing space between `export default` and declaration ([#1218](https://github.com/rollup/rollup/pull/1218))
+
+## 0.40.0
+
+* [BREAKING] Better, more consistent error logging ([#1212](https://github.com/rollup/rollup/pull/1212))
+* Don't use colours and emojis for non-TTY stderr ([#1201](https://github.com/rollup/rollup/issues/1201))
+
+## 0.39.2
+
+* Prevent mutation of cached ASTs (fixes stack overflow with rollup-watch) ([#1205](https://github.com/rollup/rollup/pull/1205))
+
+## 0.39.1
+
+* Ignore `var` initialisers in dead branches ([#1198](https://github.com/rollup/rollup/issues/1198))
+
+## 0.39.0
+
+* [BREAKING] Warnings are objects, rather than strings ([#1194](https://github.com/rollup/rollup/issues/1194))
+
+## 0.38.3
+
+* More informative warning for implicit external dependencies ([#1051](https://github.com/rollup/rollup/issues/1051))
+* Warn when creating browser bundle with external dependencies on Node built-ins ([#1051](https://github.com/rollup/rollup/issues/1051))
+* Statically analyse LogicalExpression nodes, for better dead code removal ([#1061](https://github.com/rollup/rollup/issues/1061))
+
 ## 0.38.2
 
 * Preserve `var` declarations in dead branches ([#997](https://github.com/rollup/rollup/issues/997))

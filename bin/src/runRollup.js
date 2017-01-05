@@ -1,23 +1,27 @@
 import { realpathSync } from 'fs';
 import * as rollup from 'rollup';
 import relative from 'require-relative';
-import handleError from './handleError';
+import chalk from 'chalk';
+import { handleWarning, handleError, stderr } from './logging.js';
 import SOURCEMAPPING_URL from './sourceMappingUrl.js';
 
 import { install as installSourcemapSupport } from 'source-map-support';
 installSourcemapSupport();
 
-// stderr to stderr to keep `rollup main.js > bundle.js` from breaking
-const stderr = console.error.bind( console ); // eslint-disable-line no-console
-
 export default function runRollup ( command ) {
 	if ( command._.length > 1 ) {
-		handleError({ code: 'ONE_AT_A_TIME' });
+		handleError({
+			code: 'ONE_AT_A_TIME',
+			message: 'rollup can only bundle one file at a time'
+		});
 	}
 
 	if ( command._.length === 1 ) {
 		if ( command.input ) {
-			handleError({ code: 'DUPLICATE_IMPORT_OPTIONS' });
+			handleError({
+				code: 'DUPLICATE_IMPORT_OPTIONS',
+				message: 'use --input, or pass input path as argument'
+			});
 		}
 
 		command.input = command._[0];
@@ -46,7 +50,10 @@ export default function runRollup ( command ) {
 					config = relative.resolve( pkgName, process.cwd() );
 				} catch ( err ) {
 					if ( err.code === 'MODULE_NOT_FOUND' ) {
-						handleError({ code: 'MISSING_EXTERNAL_CONFIG', config });
+						handleError({
+							code: 'MISSING_EXTERNAL_CONFIG',
+							message: `Could not resolve config file ${config}`
+						});
 					}
 
 					throw err;
@@ -59,38 +66,38 @@ export default function runRollup ( command ) {
 
 		rollup.rollup({
 			entry: config,
-			onwarn: message => {
-				// TODO use warning codes instead of this hackery
-				if ( /treating it as an external dependency/.test( message ) ) return;
-				stderr( message );
+			onwarn: warning => {
+				if ( warning.code === 'UNRESOLVED_IMPORT' ) return;
+				handleWarning( warning );
 			}
-		}).then( bundle => {
-			const { code } = bundle.generate({
-				format: 'cjs'
-			});
+		})
+			.then( bundle => {
+				const { code } = bundle.generate({
+					format: 'cjs'
+				});
 
-			// temporarily override require
-			const defaultLoader = require.extensions[ '.js' ];
-			require.extensions[ '.js' ] = ( m, filename ) => {
-				if ( filename === config ) {
-					m._compile( code, filename );
-				} else {
-					defaultLoader( m, filename );
-				}
-			};
+				// temporarily override require
+				const defaultLoader = require.extensions[ '.js' ];
+				require.extensions[ '.js' ] = ( m, filename ) => {
+					if ( filename === config ) {
+						m._compile( code, filename );
+					} else {
+						defaultLoader( m, filename );
+					}
+				};
 
-			try {
 				const options = require( config );
 				if ( Object.keys( options ).length === 0 ) {
-					handleError({ code: 'MISSING_CONFIG' });
+					handleError({
+						code: 'MISSING_CONFIG',
+						message: 'Config file must export an options object',
+						url: 'https://github.com/rollup/rollup/wiki/Command-Line-Interface#using-a-config-file'
+					});
 				}
 				execute( options, command );
 				require.extensions[ '.js' ] = defaultLoader;
-			} catch ( err ) {
-				handleError( err );
-			}
-		})
-		.catch( stderr );
+			})
+			.catch( handleError );
 	} else {
 		execute( {}, command );
 	}
@@ -121,7 +128,7 @@ function execute ( options, command ) {
 	const optionsExternal = options.external;
 
 	if ( command.globals ) {
-		let globals = Object.create( null );
+		const globals = Object.create( null );
 
 		command.globals.split( ',' ).forEach( str => {
 			const names = str.split( ':' );
@@ -144,7 +151,18 @@ function execute ( options, command ) {
 		external = ( optionsExternal || [] ).concat( commandExternal );
 	}
 
-	options.onwarn = options.onwarn || stderr;
+	if ( !options.onwarn ) {
+		const seen = new Set();
+
+		options.onwarn = warning => {
+			const str = warning.toString();
+
+			if ( seen.has( str ) ) return;
+			seen.add( str );
+
+			handleWarning( warning );
+		};
+	}
 
 	options.external = external;
 
@@ -155,50 +173,52 @@ function execute ( options, command ) {
 		}
 	});
 
-	try {
-		if ( command.watch ) {
-			if ( !options.entry || ( !options.dest && !options.targets ) ) {
-				handleError({ code: 'WATCHER_MISSING_INPUT_OR_OUTPUT' });
-			}
-
-			try {
-				const watch = relative( 'rollup-watch', process.cwd() );
-				const watcher = watch( rollup, options );
-
-				watcher.on( 'event', event => {
-					switch ( event.code ) {
-						case 'STARTING':
-							stderr( 'checking rollup-watch version...' );
-							break;
-
-						case 'BUILD_START':
-							stderr( 'bundling...' );
-							break;
-
-						case 'BUILD_END':
-							stderr( 'bundled in ' + event.duration + 'ms. Watching for changes...' );
-							break;
-
-						case 'ERROR':
-							handleError( event.error, true );
-							break;
-
-						default:
-							stderr( 'unknown event', event );
-					}
-				});
-			} catch ( err ) {
-				if ( err.code === 'MODULE_NOT_FOUND' ) {
-					err.code = 'ROLLUP_WATCH_NOT_INSTALLED';
-				}
-
-				handleError( err );
-			}
-		} else {
-			bundle( options ).catch( handleError );
+	if ( command.watch ) {
+		if ( !options.entry || ( !options.dest && !options.targets ) ) {
+			handleError({
+				code: 'WATCHER_MISSING_INPUT_OR_OUTPUT',
+				message: 'must specify --input and --output when using rollup --watch'
+			});
 		}
-	} catch ( err ) {
-		handleError( err );
+
+		try {
+			const watch = relative( 'rollup-watch', process.cwd() );
+			const watcher = watch( rollup, options );
+
+			watcher.on( 'event', event => {
+				switch ( event.code ) {
+					case 'STARTING': // TODO this isn't emitted by newer versions of rollup-watch
+						stderr( 'checking rollup-watch version...' );
+						break;
+
+					case 'BUILD_START':
+						stderr( 'bundling...' );
+						break;
+
+					case 'BUILD_END':
+						stderr( 'bundled in ' + event.duration + 'ms. Watching for changes...' );
+						break;
+
+					case 'ERROR':
+						handleError( event.error, true );
+						break;
+
+					default:
+						stderr( 'unknown event', event );
+				}
+			});
+		} catch ( err ) {
+			if ( err.code === 'MODULE_NOT_FOUND' ) {
+				handleError({
+					code: 'ROLLUP_WATCH_NOT_INSTALLED',
+					message: 'rollup --watch depends on the rollup-watch package, which could not be found. Install it with npm install -D rollup-watch'
+				});
+			}
+
+			handleError( err );
+		}
+	} else {
+		bundle( options ).catch( handleError );
 	}
 }
 
@@ -215,34 +235,42 @@ function assign ( target, source ) {
 
 function bundle ( options ) {
 	if ( !options.entry ) {
-		handleError({ code: 'MISSING_INPUT_OPTION' });
+		handleError({
+			code: 'MISSING_INPUT_OPTION',
+			message: 'You must specify an --input (-i) option'
+		});
 	}
 
-	return rollup.rollup( options ).then( bundle => {
-		if ( options.dest ) {
-			return bundle.write( options );
-		}
+	return rollup.rollup( options )
+		.then( bundle => {
+			if ( options.dest ) {
+				return bundle.write( options );
+			}
 
-		if ( options.targets ) {
-			let result = null;
+			if ( options.targets ) {
+				let result = null;
 
-			options.targets.forEach( target => {
-				result = bundle.write( assign( clone( options ), target ) );
-			});
+				options.targets.forEach( target => {
+					result = bundle.write( assign( clone( options ), target ) );
+				});
 
-			return result;
-		}
+				return result;
+			}
 
-		if ( options.sourceMap && options.sourceMap !== 'inline' ) {
-			handleError({ code: 'MISSING_OUTPUT_OPTION' });
-		}
+			if ( options.sourceMap && options.sourceMap !== 'inline' ) {
+				handleError({
+					code: 'MISSING_OUTPUT_OPTION',
+					message: 'You must specify an --output (-o) option when creating a file with a sourcemap'
+				});
+			}
 
-		let { code, map } = bundle.generate( options );
+			let { code, map } = bundle.generate( options );
 
-		if ( options.sourceMap === 'inline' ) {
-			code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
-		}
+			if ( options.sourceMap === 'inline' ) {
+				code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
+			}
 
-		process.stdout.write( code );
-	});
+			process.stdout.write( code );
+		})
+		.catch( handleError );
 }
