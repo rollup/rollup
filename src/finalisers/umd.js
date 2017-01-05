@@ -5,23 +5,23 @@ import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 import esModuleExport from './shared/esModuleExport.js';
-import propertyStringFor from './shared/propertyStringFor.js';
+import { property, keypath } from './shared/sanitize.js';
 import warnOnBuiltins from './shared/warnOnBuiltins.js';
+import trimEmptyImports from './shared/trimEmptyImports.js';
 
-// globalProp('foo.bar-baz') === "global.foo['bar-baz']"
-const globalProp = propertyStringFor('global');
-
-// propString('foo.bar-baz') === ".foo['bar']"
-const propString = propertyStringFor('');
+function globalProp ( name ) {
+	if ( !name ) return 'null';
+	return `global${ keypath( name ) }`;
+}
 
 function setupNamespace ( name ) {
 	const parts = name.split( '.' );
-	parts.pop();
+	const last = property( parts.pop() );
 
 	let acc = 'global';
 	return parts
-		.map( part => ( acc += propString(part), `${acc} = ${acc} || {}` ) )
-		.concat( globalProp(name) )
+		.map( part => ( acc += property( part ), `${acc} = ${acc} || {}` ) )
+		.concat( `${acc}${last}` )
 		.join( ', ' );
 }
 
@@ -41,9 +41,10 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 
 	const amdDeps = bundle.externalModules.map( quotePath );
 	const cjsDeps = bundle.externalModules.map( req );
-	const globalDeps = bundle.externalModules.map( module => globalProp(globalNameMaker( module )) );
 
-	const args = bundle.externalModules.map( getName );
+	const trimmed = trimEmptyImports( bundle.externalModules );
+	const globalDeps = trimmed.map( module => globalProp( globalNameMaker( module ) ) );
+	const args = trimmed.map( getName );
 
 	if ( exportMode === 'named' ) {
 		amdDeps.unshift( `'exports'` );
