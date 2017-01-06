@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.41.0
+
+* Add `this.warn(...)` and `this.error(...)` methods to plugin `transform` hook contexts ([#1140](https://github.com/rollup/rollup/issues/1140))
+
 ## 0.40.2
 
 * Add `file` property to sourcemaps for bundles with plugins ([#986](https://github.com/rollup/rollup/issues/986))
