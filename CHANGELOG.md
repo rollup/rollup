@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.41.1
+
+* Include `new` expressions where callee is a class with side-effects ([#980](https://github.com/rollup/rollup/issues/980) [#1233](https://github.com/rollup/rollup/issues/1233))
+
 ## 0.41.0
 
 * Add `this.warn(...)` and `this.error(...)` methods to plugin `transform` hook contexts ([#1140](https://github.com/rollup/rollup/issues/1140))
