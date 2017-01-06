@@ -1,7 +1,7 @@
 import { realpathSync } from 'fs';
 import * as rollup from 'rollup';
 import relative from 'require-relative';
-import { handleWarning, handleError, stderr } from './logging.js';
+import { handleWarning, handleError, stderr, stdout } from './logging.js';
 import SOURCEMAPPING_URL from './sourceMappingUrl.js';
 
 import { install as installSourcemapSupport } from 'source-map-support';
@@ -187,15 +187,15 @@ function execute ( options, command ) {
 			watcher.on( 'event', event => {
 				switch ( event.code ) {
 					case 'STARTING': // TODO this isn't emitted by newer versions of rollup-watch
-						stderr( 'checking rollup-watch version...' );
+						stdout( 'checking rollup-watch version...' );
 						break;
 
 					case 'BUILD_START':
-						stderr( 'bundling...' );
+						stdout( 'bundling...' );
 						break;
 
 					case 'BUILD_END':
-						stderr( 'bundled in ' + event.duration + 'ms. Watching for changes...' );
+						stdout( 'bundled in ' + event.duration + 'ms. Watching for changes...' );
 						break;
 
 					case 'ERROR':

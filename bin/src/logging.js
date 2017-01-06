@@ -8,6 +8,8 @@ const errorSymbol = process.stderr.isTTY ? `🚨   ` : `Error: `;
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
 export const stderr = console.error.bind( console ); // eslint-disable-line no-console
 
+export const stdout = console.log.bind( console ); // eslint-disable-line no-console
+
 export function handleWarning ( warning ) {
 	stderr( `${warnSymbol}${chalk.bold( warning.message )}` );
 
