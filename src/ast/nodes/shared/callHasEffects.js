@@ -1,7 +1,7 @@
 import isReference from 'is-reference';
 import flatten from '../../utils/flatten.js';
 import pureFunctions from './pureFunctions.js';
-import { UNKNOWN } from '../../values.js';
+import * as values from '../../values.js';
 
 const currentlyCalling = new Set();
 
@@ -61,10 +61,12 @@ function fnHasEffects ( fn, isNew ) {
 }
 
 export default function callHasEffects ( scope, callee, isNew ) {
-	const values = new Set([ callee ]);
+	const nodes = new Set([ callee ]);
 
-	for ( const node of values ) {
-		if ( node === UNKNOWN ) return true; // err on side of caution
+	for ( const node of nodes ) {
+		// err on side of caution
+		// TODO refine this
+		if ( node === values.UNKNOWN || node === values.FUNCTION || node === values.OBJECT || node === values.ARRAY ) return true;
 
 		if ( /Function/.test( node.type ) ) {
 			if ( fnHasEffects( node, isNew && isES5Function( node ) ) ) return true;
@@ -84,18 +86,15 @@ export default function callHasEffects ( scope, callee, isNew ) {
 
 			else {
 				if ( node.declaration ) {
-					node.declaration.gatherPossibleValues( values );
+					node.declaration.gatherPossibleValues( nodes );
 				} else {
 					return true;
 				}
 			}
 		}
 
-		else {
-			if ( !node.gatherPossibleValues ) {
-				throw new Error( 'TODO' );
-			}
-			node.gatherPossibleValues( values );
+		else if ( node.gatherPossibleValues ) {
+			node.gatherPossibleValues( nodes );
 		}
 	}
 
