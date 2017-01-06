@@ -324,7 +324,10 @@ export default class Module {
 		});
 
 		this.exportAllModules.forEach( module => {
-			if ( module.isExternal ) return; // TODO
+			if ( module.isExternal ) {
+				exports[ `*${module.id}` ] = true;
+				return;
+			}
 
 			module.getExports().forEach( name => {
 				if ( name !== 'default' ) exports[ name ] = true;
