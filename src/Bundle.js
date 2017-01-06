@@ -293,7 +293,7 @@ export default class Bundle {
 					return this.cachedModules.get( id );
 				}
 
-				return transform( source, id, this.plugins );
+				return transform( this, source, id, this.plugins );
 			})
 			.then( source => {
 				const { code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds } = source;

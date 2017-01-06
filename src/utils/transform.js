@@ -1,8 +1,10 @@
 import { decode } from 'sourcemap-codec';
+import { locate } from 'locate-character';
 import error from './error.js';
 import relativeId from './relativeId.js';
+import getCodeFrame from './getCodeFrame.js';
 
-export default function transform ( source, id, plugins ) {
+export default function transform ( bundle, source, id, plugins ) {
 	const sourceMapChain = [];
 
 	const originalSourceMap = typeof source.map === 'string' ? JSON.parse( source.map ) : source.map;
@@ -19,7 +21,27 @@ export default function transform ( source, id, plugins ) {
 		return promise.then( previous => {
 			if ( !plugin.transform ) return previous;
 
-			return Promise.resolve( plugin.transform( previous, id ) ).then( result => {
+			const context = {
+				warn: ( warning, pos ) => {
+					if ( typeof warning === 'string' ) {
+						warning = { message: warning };
+					}
+
+					warning.plugin = plugin.name;
+					if ( !warning.code ) warning.code = 'PLUGIN_WARNING';
+
+					if ( pos !== undefined ) {
+						warning.pos = pos;
+						const { line, column } = locate( previous, pos, { offsetLine: 1 });
+						warning.loc = { file: id, line, column };
+						warning.frame = getCodeFrame( previous, line, column );
+					}
+
+					bundle.warn( warning );
+				}
+			};
+
+			return Promise.resolve( plugin.transform.call( context, previous, id ) ).then( result => {
 				if ( result == null ) return previous;
 
 				if ( typeof result === 'string' ) {
@@ -29,6 +51,7 @@ export default function transform ( source, id, plugins ) {
 						map: null
 					};
 				}
+
 				// `result.map` can only be a string if `result` isn't
 				else if ( typeof result.map === 'string' ) {
 					result.map = JSON.parse( result.map );
