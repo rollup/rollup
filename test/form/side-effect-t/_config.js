@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'includes throw statements',
+	description: 'throw statement is a side effect',
 	options: {
 		moduleName: 'myBundle'
 	}
