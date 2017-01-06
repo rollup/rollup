@@ -44,6 +44,7 @@ export default function transform ( bundle, source, id, plugins ) {
 				warn: ( warning, pos ) => {
 					warning = augment( warning, pos, 'PLUGIN_WARNING' );
 					warning.plugin = plugin.name;
+					warning.id = id;
 					bundle.warn( warning );
 				},
 

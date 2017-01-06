@@ -15,11 +15,13 @@ module.exports = {
 	warnings: [
 		{
 			code: 'PLUGIN_WARNING',
+			id: path.resolve( __dirname, 'main.js' ),
 			plugin: 'test',
 			message: 'foo'
 		},
 		{
 			code: 'PLUGIN_WARNING',
+			id: path.resolve( __dirname, 'main.js' ),
 			plugin: 'test',
 			message: 'bar',
 			pos: 22,
