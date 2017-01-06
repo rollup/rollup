@@ -1,7 +1,6 @@
 import { realpathSync } from 'fs';
 import * as rollup from 'rollup';
 import relative from 'require-relative';
-import chalk from 'chalk';
 import { handleWarning, handleError, stderr } from './logging.js';
 import SOURCEMAPPING_URL from './sourceMappingUrl.js';
 
