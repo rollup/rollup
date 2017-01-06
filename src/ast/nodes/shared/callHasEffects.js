@@ -70,6 +70,11 @@ export default function callHasEffects ( scope, callee, isNew ) {
 			if ( fnHasEffects( node, isNew && isES5Function( node ) ) ) return true;
 		}
 
+		else if ( /Class/.test( node.type ) ) {
+			// TODO find constructor (may belong to a superclass)
+			return true;
+		}
+
 		else if ( isReference( node ) ) {
 			const flattened = flatten( node );
 			const declaration = scope.findDeclaration( flattened.name );
