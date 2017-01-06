@@ -65,7 +65,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 
 	if ( intro ) magicString.prepend( intro );
 
-	const exportBlock = getExportBlock( bundle.entryModule, exportMode );
+	const exportBlock = getExportBlock( bundle, exportMode );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
 	if ( outro ) magicString.append( outro );
 
