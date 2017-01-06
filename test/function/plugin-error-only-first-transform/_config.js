@@ -20,8 +20,8 @@ module.exports = {
 		]
 	},
 	error: {
-		code: 'BAD_TRANSFORMER',
-		message: `Error transforming main.js with 'plugin1' plugin: Something happened 1`,
+		code: 'PLUGIN_ERROR',
+		message: `Something happened 1`,
 		plugin: 'plugin1',
 		id: path.resolve( __dirname, 'main.js' )
 	}

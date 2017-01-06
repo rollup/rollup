@@ -8,40 +8,33 @@ const errorSymbol = process.stderr.isTTY ? `🚨   ` : `Error: `;
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
 export const stderr = console.error.bind( console ); // eslint-disable-line no-console
 
-export function handleWarning ( warning ) {
-	stderr( `${warnSymbol}${chalk.bold( warning.message )}` );
+function log ( object, symbol ) {
+	const message = object.plugin ? `(${object.plugin} plugin) ${object.message}` : object.message;
 
-	if ( warning.url ) {
-		stderr( chalk.cyan( warning.url ) );
+	stderr( `${symbol}${chalk.bold( message )}` );
+
+	if ( object.url ) {
+		stderr( chalk.cyan( object.url ) );
 	}
 
-	if ( warning.loc ) {
-		stderr( `${relativeId( warning.loc.file )} (${warning.loc.line}:${warning.loc.column})` );
+	if ( object.loc ) {
+		stderr( `${relativeId( object.loc.file )} (${object.loc.line}:${object.loc.column})` );
+	} else if ( object.id ) {
+		stderr( relativeId( object.id ) );
 	}
 
-	if ( warning.frame ) {
-		stderr( chalk.dim( warning.frame ) );
+	if ( object.frame ) {
+		stderr( chalk.dim( object.frame ) );
 	}
 
 	stderr( '' );
 }
 
+export function handleWarning ( warning ) {
+	log( warning, warnSymbol );
+}
+
 export function handleError ( err, recover ) {
-	stderr( `${errorSymbol}${chalk.bold( err.message )}` );
-
-	if ( err.url ) {
-		stderr( chalk.cyan( err.url ) );
-	}
-
-	if ( err.loc ) {
-		stderr( `${relativeId( err.loc.file )} (${err.loc.line}:${err.loc.column})` );
-	}
-
-	if ( err.frame ) {
-		stderr( chalk.dim( err.frame ) );
-	}
-
-	stderr( '' );
-
+	log( err, errorSymbol );
 	if ( !recover ) process.exit( 1 );
 }
