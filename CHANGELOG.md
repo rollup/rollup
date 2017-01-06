@@ -2,7 +2,7 @@
 
 ## 0.40.2
 
-* Add `file` property to sourcemaps for bundles with plugins (#986](https://github.com/rollup/rollup/issues/986))
+* Add `file` property to sourcemaps for bundles with plugins ([#986](https://github.com/rollup/rollup/issues/986))
 * Don't require globals for empty imports ([#1217](https://github.com/rollup/rollup/issues/1217))
 
 ## 0.40.1
