@@ -23,6 +23,7 @@ Basic options:
 --no-indent              Don't indent result
 --environment <values>   Settings passed to config file (see example)
 --no-conflict            Generate a noConflict method for UMD globals
+--silent                 Don't print warnings
 --intro                  Content to insert at top of bundle (inside wrapper)
 --outro                  Content to insert at end of bundle (inside wrapper)
 --banner                 Content to insert at top of bundle (outside wrapper)
