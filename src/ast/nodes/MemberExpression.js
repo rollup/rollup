@@ -1,14 +1,24 @@
-import isReference from 'is-reference';
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
 import { UNKNOWN } from '../values.js';
+
+const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
 class Keypath {
 	constructor ( node ) {
 		this.parts = [];
 
 		while ( node.type === 'MemberExpression' ) {
-			this.parts.unshift( node.property );
+			const prop = node.property;
+
+			if ( node.computed  ) {
+				if ( prop.type !== 'Literal' || typeof prop.value !== 'string' || !validProp.test( prop.value ) ) {
+					this.computed = true;
+					return;
+				}
+			}
+
+			this.parts.unshift( prop );
 			node = node.object;
 		}
 
@@ -21,21 +31,21 @@ export default class MemberExpression extends Node {
 		// if this resolves to a namespaced declaration, prepare
 		// to replace it
 		// TODO this code is a bit inefficient
-		if ( isReference( this ) ) { // TODO optimise namespace access like `foo['bar']` as well
-			const keypath = new Keypath( this );
+		const keypath = new Keypath( this );
 
+		if ( !keypath.computed ) {
 			let declaration = scope.findDeclaration( keypath.root.name );
 
 			while ( declaration.isNamespace && keypath.parts.length ) {
 				const exporterId = declaration.module.id;
 
 				const part = keypath.parts[0];
-				declaration = declaration.module.traceExport( part.name );
+				declaration = declaration.module.traceExport( part.name || part.value );
 
 				if ( !declaration ) {
 					this.module.warn({
 						code: 'MISSING_EXPORT',
-						message: `'${part.name}' is not exported by '${relativeId( exporterId )}'`,
+						message: `'${part.name || part.value}' is not exported by '${relativeId( exporterId )}'`,
 						url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
 					}, part.start );
 					this.replacement = 'undefined';
