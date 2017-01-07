@@ -151,6 +151,10 @@ function execute ( options, command ) {
 		external = ( optionsExternal || [] ).concat( commandExternal );
 	}
 
+	if ( command.silent ) {
+		options.onwarn = () => {};
+	}
+
 	if ( !options.onwarn ) {
 		const seen = new Set();
 
