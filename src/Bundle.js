@@ -121,12 +121,14 @@ export default class Bundle {
 				this.entryModule = entryModule;
 
 				// Phase 2 – binding. We link references to their declarations
-				// to generate a complete picture of the bundle
+				// to generate a complete picture of the bundle, then sort
+				// modules according to the order of their import declarations
 
 				timeStart( 'phase 2' );
 
 				this.modules.forEach( module => module.bindImportSpecifiers() );
 				this.modules.forEach( module => module.bindReferences() );
+				this.orderedModules = this.sort();
 
 				timeEnd( 'phase 2' );
 
@@ -177,13 +179,10 @@ export default class Bundle {
 
 				timeEnd( 'phase 3' );
 
-				// Phase 4 – final preparation. We order the modules with an
-				// enhanced topological sort that accounts for cycles, then
-				// ensure that names are deconflicted throughout the bundle
-
+				// Phase 4 – check for unused external imports, then deconflict
+				// names throughout the bundle
 				timeStart( 'phase 4' );
 
-				// while we're here, check for unused external imports
 				this.externalModules.forEach( module => {
 					const unused = Object.keys( module.declarations )
 						.filter( name => name !== '*' )
@@ -201,7 +200,6 @@ export default class Bundle {
 					});
 				});
 
-				this.orderedModules = this.sort();
 				this.deconflict();
 
 				timeEnd( 'phase 4' );
@@ -534,43 +532,11 @@ export default class Bundle {
 	}
 
 	sort () {
-		let hasCycles;
 		const seen = {};
 		const ordered = [];
 
-		const stronglyDependsOn = blank();
-		const dependsOn = blank();
-
-		this.modules.forEach( module => {
-			stronglyDependsOn[ module.id ] = blank();
-			dependsOn[ module.id ] = blank();
-		});
-
-		this.modules.forEach( module => {
-			function processStrongDependency ( dependency ) {
-				if ( dependency === module || stronglyDependsOn[ module.id ][ dependency.id ] ) return;
-
-				stronglyDependsOn[ module.id ][ dependency.id ] = true;
-				dependency.strongDependencies.forEach( processStrongDependency );
-			}
-
-			function processDependency ( dependency ) {
-				if ( dependency === module || dependsOn[ module.id ][ dependency.id ] ) return;
-
-				dependsOn[ module.id ][ dependency.id ] = true;
-				dependency.dependencies.forEach( processDependency );
-			}
-
-			module.strongDependencies.forEach( processStrongDependency );
-			module.dependencies.forEach( processDependency );
-		});
-
 		const visit = module => {
-			if ( seen[ module.id ] ) {
-				hasCycles = true;
-				return;
-			}
-
+			if ( seen[ module.id ] ) return;
 			seen[ module.id ] = true;
 
 			module.dependencies.forEach( visit );
@@ -578,42 +544,6 @@ export default class Bundle {
 		};
 
 		visit( this.entryModule );
-
-		if ( hasCycles ) {
-			ordered.forEach( ( a, i ) => {
-				for ( i += 1; i < ordered.length; i += 1 ) {
-					const b = ordered[i];
-
-					// TODO reinstate this! it no longer works
-					if ( stronglyDependsOn[ a.id ][ b.id ] ) {
-						// somewhere, there is a module that imports b before a. Because
-						// b imports a, a is placed before b. We need to find the module
-						// in question, so we can provide a useful error message
-						let parent = '[[unknown]]';
-						const visited = {};
-
-						const findParent = module => {
-							if ( dependsOn[ module.id ][ a.id ] && dependsOn[ module.id ][ b.id ] ) {
-								parent = module.id;
-								return true;
-							}
-							visited[ module.id ] = true;
-							for ( let i = 0; i < module.dependencies.length; i += 1 ) {
-								const dependency = module.dependencies[i];
-								if ( !visited[ dependency.id ] && findParent( dependency ) ) return true;
-							}
-						};
-
-						findParent( this.entryModule );
-
-						this.onwarn(
-							`Module ${a.id} may be unable to evaluate without ${b.id}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
-						);
-					}
-				}
-			});
-		}
-
 		return ordered;
 	}
 
