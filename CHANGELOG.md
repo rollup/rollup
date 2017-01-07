@@ -7,6 +7,7 @@
 ## 0.41.0
 
 * Add `this.warn(...)` and `this.error(...)` methods to plugin `transform` hook contexts ([#1140](https://github.com/rollup/rollup/issues/1140))
+* `throw` always considered to be a side effect ([#1227](https://github.com/rollup/rollup/pull/1227))
 
 ## 0.40.2
 
