@@ -1,7 +1,7 @@
 define(function () { 'use strict';
 
 function foo () {
-	console.log( 'indented with tabs' );
+	console.log( 'not indented' );
 }
 
 return foo;
