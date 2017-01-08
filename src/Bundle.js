@@ -151,7 +151,7 @@ export default class Bundle {
 
 				// mark statements that should appear in the bundle
 				if ( this.treeshake ) {
-					this.modules.forEach( module => {
+					this.orderedModules.forEach( module => {
 						module.run();
 					});
 
