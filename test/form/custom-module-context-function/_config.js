@@ -3,6 +3,9 @@ module.exports = {
 	options: {
 		moduleContext ( id ) {
 			return /main\.js$/.test( id ) ? 'lolwut' : 'undefined';
+		},
+		onwarn ( warning ) {
+			if ( warning.code !== 'THIS_IS_UNDEFINED' ) throw new Error( 'unexpected warning' );
 		}
 	}
 };
