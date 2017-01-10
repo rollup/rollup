@@ -6,12 +6,24 @@ export default class ClassDeclaration extends Node {
 		if ( this.activated ) return;
 		this.activated = true;
 
-		if ( this.superClass ) this.superClass.run( this.scope );
-		this.body.run();
+		if ( this.superClass ) {
+			// TODO is this right?
+			this.superClass.activate();
+		}
+
+		this.body.mark();
+
+		// TODO don't mark all methods willy-nilly
+		this.body.markChildren();
 	}
 
 	addReference () {
 		/* noop? */
+	}
+
+	call ( context, args ) {
+		// TODO create a generic context object which represents all instances of this class
+		// TODO identify the constructor (may be on a superclass, which may not be a class!)
 	}
 
 	gatherPossibleValues ( values ) {
@@ -24,6 +36,10 @@ export default class ClassDeclaration extends Node {
 
 	hasEffects () {
 		return false;
+	}
+
+	markReturnStatements () {
+		// noop?
 	}
 
 	initialise ( scope ) {
@@ -43,9 +59,8 @@ export default class ClassDeclaration extends Node {
 		}
 	}
 
-	run ( scope ) {
-		if ( this.parent.type === 'ExportDefaultDeclaration' ) {
-			super.run( scope );
-		}
+	run () {
+		this.scope.setValue( this.id.name, this );
+		super.run();
 	}
 }

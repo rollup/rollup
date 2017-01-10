@@ -24,10 +24,36 @@ export default class Identifier extends Node {
 		}
 	}
 
+	call ( args ) {
+		const callee = this.scope.getValue( this.name );
+		if ( !callee.call ) {
+			throw new Error( `${callee} does not have call method (${this})` );
+		}
+		callee.call( undefined, args );
+	}
+
 	gatherPossibleValues ( values ) {
 		if ( isReference( this, this.parent ) ) {
 			values.add( this );
 		}
+	}
+
+	initialise ( scope ) {
+		this.scope = scope;
+	}
+
+	mark () {
+		if ( this.declaration ) {
+			this.declaration.activate();
+		}
+	}
+
+	markReturnStatements ( args ) {
+		const callee = this.scope.getValue( this.name );
+		if ( !callee.markReturnStatements ) {
+			throw new Error( `${callee} does not have markReturnStatements method` );
+		}
+		callee.markReturnStatements( undefined, args );
 	}
 
 	render ( code, es ) {

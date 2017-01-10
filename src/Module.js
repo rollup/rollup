@@ -337,6 +337,10 @@ export default class Module {
 		return keys( exports );
 	}
 
+	initialise () {
+		this.scope.initialise();
+	}
+
 	namespace () {
 		if ( !this.declarations['*'] ) {
 			this.declarations['*'] = new SyntheticNamespaceDeclaration( this );
@@ -361,9 +365,7 @@ export default class Module {
 
 	run () {
 		for ( const node of this.ast.body ) {
-			if ( node.hasEffects( this.scope ) ) {
-				node.run( this.scope );
-			}
+			node.run();
 		}
 	}
 

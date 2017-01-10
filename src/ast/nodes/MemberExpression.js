@@ -72,8 +72,21 @@ export default class MemberExpression extends Node {
 		}
 	}
 
+	call ( args ) {
+		// TODO
+	}
+
 	gatherPossibleValues ( values ) {
 		values.add( UNKNOWN ); // TODO
+	}
+
+	mark () {
+		this.object.mark();
+		super.mark();
+	}
+
+	markReturnStatements () {
+		// TODO
 	}
 
 	render ( code, es ) {
@@ -89,8 +102,8 @@ export default class MemberExpression extends Node {
 		super.render( code, es );
 	}
 
-	run ( scope ) {
+	run () {
 		if ( this.declaration ) this.declaration.activate();
-		super.run( scope );
+		super.run();
 	}
 }

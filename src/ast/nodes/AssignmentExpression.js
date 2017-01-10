@@ -38,7 +38,7 @@ export default class AssignmentExpression extends Node {
 		this.scope = scope;
 
 		if ( isProgramLevel( this ) ) {
-			this.module.bundle.dependentExpressions.push( this );
+			this.module.bundle.potentialEffects.push( this );
 		}
 
 		super.initialise( scope );

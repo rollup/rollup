@@ -6,3 +6,4 @@ export const NUMBER   = { NUMBER:   true, toString: () => '[[NUMBER]]' };
 export const OBJECT   = { OBJECT:   true, toString: () => '[[OBJECT]]' };
 export const STRING   = { STRING:   true, toString: () => '[[STRING]]' };
 export const UNKNOWN  = { UNKNOWN:  true, toString: () => '[[UNKNOWN]]' };
+export const TDZ_VIOLATION  = { TDZ_VIOLATION:  true, toString: () => '[[TDZ_VIOLATION]]' };

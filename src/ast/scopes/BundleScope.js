@@ -20,12 +20,24 @@ class SyntheticGlobalDeclaration {
 		if ( reference.isReassignment ) this.isReassigned = true;
 	}
 
+	call ( args ) {
+		// TODO assume args can be called?
+	}
+
 	gatherPossibleValues ( values ) {
 		values.add( UNKNOWN );
 	}
 
 	getName () {
 		return this.name;
+	}
+
+	markReturnStatements () {
+		// noop
+	}
+
+	toString () {
+		return `[[SyntheticGlobalDeclaration:${this.name}]]`;
 	}
 }
 
@@ -35,6 +47,10 @@ export default class BundleScope extends Scope {
 			this.declarations[ name ] = new SyntheticGlobalDeclaration( name );
 		}
 
+		return this.declarations[ name ];
+	}
+
+	getValue ( name ) {
 		return this.declarations[ name ];
 	}
 }

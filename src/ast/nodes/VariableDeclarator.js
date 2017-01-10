@@ -4,6 +4,7 @@ import { UNKNOWN } from '../values.js';
 
 class DeclaratorProxy {
 	constructor ( name, declarator, isTopLevel, init ) {
+		this.isDeclaratorProxy = true;
 		this.name = name;
 		this.declarator = declarator;
 
@@ -47,17 +48,8 @@ export default class VariableDeclarator extends Node {
 		if ( this.activated ) return;
 		this.activated = true;
 
-		this.run( this.findScope() );
-
-		// if declaration is inside a block, ensure that the block
-		// is marked for inclusion
-		if ( this.parent.kind === 'var' ) {
-			let node = this.parent.parent;
-			while ( /Statement/.test( node.type ) ) {
-				node.shouldInclude = true;
-				node = node.parent;
-			}
-		}
+		this.mark();
+		if ( this.init ) this.init.markChildren();
 	}
 
 	hasEffects ( scope ) {
@@ -65,6 +57,7 @@ export default class VariableDeclarator extends Node {
 	}
 
 	initialise ( scope ) {
+		this.scope = scope;
 		this.proxies = new Map();
 
 		const lexicalBoundary = scope.findLexicalBoundary();
@@ -97,5 +90,17 @@ export default class VariableDeclarator extends Node {
 		});
 
 		super.render( code, es );
+	}
+
+	run () {
+		if ( this.id.type !== 'Identifier' ) {
+			throw new Error( 'TODO desctructuring' );
+		}
+
+		if ( this.init ) {
+			this.scope.setValue( this.id.name, this.init.getValue() );
+		} else if ( this.parent.kind !== 'var' ) {
+			this.scope.setValue( this.id.name, undefined ); // no longer TDZ violation
+		}
 	}
 }

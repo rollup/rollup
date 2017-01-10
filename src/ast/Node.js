@@ -39,7 +39,7 @@ export default class Node {
 	}
 
 	getValue () {
-		return UNKNOWN;
+		return this;
 	}
 
 	hasEffects ( scope ) {
@@ -81,16 +81,31 @@ export default class Node {
 		return location;
 	}
 
+	mark () {
+		if ( this.isMarked ) return;
+		this.isMarked = true;
+
+		if ( this.parent.mark ) this.parent.mark();
+	}
+
+	markChildren () {
+		function visit ( node ) {
+			node.mark();
+
+			if ( node.type === 'BlockStatement' ) return;
+			node.eachChild( visit );
+		}
+
+		visit( this );
+	}
+
 	render ( code, es ) {
 		this.eachChild( child => child.render( code, es ) );
 	}
 
-	run ( scope ) {
-		if ( this.ran ) return;
-		this.ran = true;
-
+	run () {
 		this.eachChild( child => {
-			child.run( this.scope || scope );
+			child.run();
 		});
 	}
 

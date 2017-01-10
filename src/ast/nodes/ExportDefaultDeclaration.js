@@ -4,6 +4,8 @@ const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
 export default class ExportDefaultDeclaration extends Node {
 	initialise ( scope ) {
+		this.scope = scope;
+
 		this.isExportDeclaration = true;
 		this.isDefault = true;
 
@@ -17,7 +19,7 @@ export default class ExportDefaultDeclaration extends Node {
 		if ( this.activated ) return;
 		this.activated = true;
 
-		this.run();
+		this.mark();
 	}
 
 	addReference ( reference ) {
@@ -56,7 +58,7 @@ export default class ExportDefaultDeclaration extends Node {
 			declaration_start = this.start + statementStr.match(/^\s*export\s+default\s*/)[0].length;
 		}
 
-		if ( this.shouldInclude || this.declaration.activated ) {
+		if ( this.isMarked || this.declaration.activated ) {
 			if ( this.declaration.type === 'CallExpression' && this.declaration.callee.type === 'FunctionExpression' && this.declaration.arguments.length ) {
 				// we're exporting an IIFE. Check it doesn't look unintentional (#1011)
 				const isWrapped = /\(/.test( code.original.slice( this.start, this.declaration.start ) );
@@ -122,8 +124,8 @@ export default class ExportDefaultDeclaration extends Node {
 		}
 	}
 
-	run ( scope ) {
-		this.shouldInclude = true;
-		super.run( scope );
+	run () {
+		this.scope.setValue( 'default', this.declaration.getValue() );
+		super.run();
 	}
 }

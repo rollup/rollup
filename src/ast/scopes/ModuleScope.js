@@ -55,4 +55,18 @@ export default class ModuleScope extends Scope {
 	findLexicalBoundary () {
 		return this;
 	}
+
+	getValue ( name ) {
+		if ( name in this.values ) {
+			return this.values[ name ];
+		}
+
+		const imported = this.module.imports[ name ];
+		if ( imported ) {
+			const exported = imported.module.exports[ imported.name ];
+			return imported.module.scope.getValue( exported.localName );
+		}
+
+		return this.parent.getValue( name );
+	}
 }

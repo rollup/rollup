@@ -7,6 +7,30 @@ export default class ArrowFunctionExpression extends Node {
 		super.bind( this.scope || scope );
 	}
 
+	call ( context, args ) {
+		// TODO account for `this` and `arguments`
+		if ( this.isCalling ) return; // recursive functions
+		this.isCalling = true;
+
+		this.body.scope.initialise();
+
+		args.forEach( ( arg, i ) => {
+			const param = this.params[i];
+
+			if ( param.type !== 'Identifier' ) {
+				throw new Error( 'TODO desctructuring' );
+			}
+
+			throw new Error( 'TODO setValue' );
+		});
+
+		for ( const node of this.body.body ) {
+			node.run();
+		}
+
+		this.isCalling = false;
+	}
+
 	findScope ( functionScope ) {
 		return this.scope || this.parent.findScope( functionScope );
 	}
@@ -33,6 +57,13 @@ export default class ArrowFunctionExpression extends Node {
 			}
 		}
 
+		this.returnStatements = [];
+
 		super.initialise( this.scope );
+	}
+
+	markReturnStatements () {
+		// TODO implicit returns
+		this.returnStatements.forEach( statement => statement.mark() );
 	}
 }

@@ -98,7 +98,7 @@ export default class Bundle {
 		this.legacy = options.legacy;
 		this.acornOptions = options.acorn || {};
 
-		this.dependentExpressions = [];
+		this.potentialEffects = [];
 	}
 
 	build () {
@@ -128,6 +128,7 @@ export default class Bundle {
 
 				this.modules.forEach( module => module.bindImportSpecifiers() );
 				this.modules.forEach( module => module.bindReferences() );
+				this.modules.forEach( module => module.initialise() );
 				this.orderedModules = this.sort();
 
 				timeEnd( 'phase 2' );
@@ -136,6 +137,31 @@ export default class Bundle {
 				// need to be included in the generated bundle
 
 				timeStart( 'phase 3' );
+
+				// mark statements that should appear in the bundle
+				if ( this.treeshake ) {
+					this.orderedModules.forEach( module => {
+						module.run();
+					});
+
+					let settled = false;
+					while ( !settled ) {
+						settled = true;
+
+						let i = this.potentialEffects.length;
+						while ( i-- ) {
+							const expression = this.potentialEffects[i];
+
+							if ( expression.isMarked ) {
+								this.potentialEffects.splice( i, 1 );
+							} else if ( expression.isUsedByBundle() ) {
+								settled = false;
+								expression.mark();
+								this.potentialEffects.splice( i, 1 );
+							}
+						}
+					}
+				}
 
 				// mark all export statements
 				entryModule.getExports().forEach( name => {
@@ -148,34 +174,6 @@ export default class Bundle {
 						declaration.needsNamespaceBlock = true;
 					}
 				});
-
-				// mark statements that should appear in the bundle
-				if ( this.treeshake ) {
-					this.orderedModules.forEach( module => {
-						module.run();
-					});
-
-					let settled = false;
-					while ( !settled ) {
-						settled = true;
-
-						let i = this.dependentExpressions.length;
-						while ( i-- ) {
-							const expression = this.dependentExpressions[i];
-
-							let statement = expression;
-							while ( statement.parent && !/Function/.test( statement.parent.type ) ) statement = statement.parent;
-
-							if ( !statement || statement.ran ) {
-								this.dependentExpressions.splice( i, 1 );
-							} else if ( expression.isUsedByBundle() ) {
-								settled = false;
-								statement.run( statement.findScope() );
-								this.dependentExpressions.splice( i, 1 );
-							}
-						}
-					}
-				}
 
 				timeEnd( 'phase 3' );
 

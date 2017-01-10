@@ -29,7 +29,7 @@ export default class UpdateExpression extends Node {
 	initialise ( scope ) {
 		this.scope = scope;
 
-		this.module.bundle.dependentExpressions.push( this );
+		this.module.bundle.potentialEffects.push( this );
 		super.initialise( scope );
 	}
 

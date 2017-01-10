@@ -40,4 +40,9 @@ export default class FunctionExpression extends Node {
 		this.params.forEach( param => param.initialise( this.body.scope ) );
 		this.body.initialise();
 	}
+
+	mark () {
+		this.body.mark();
+		super.mark();
+	}
 }
