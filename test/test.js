@@ -15,11 +15,11 @@ const SOURCEMAPS = path.resolve( __dirname, 'sourcemaps' );
 const CLI = path.resolve( __dirname, 'cli' );
 
 const PROFILES = [
-	{ format: 'amd' },
-	{ format: 'cjs' },
+	// { format: 'amd' },
+	// { format: 'cjs' },
 	{ format: 'es' },
-	{ format: 'iife' },
-	{ format: 'umd' }
+	// { format: 'iife' },
+	// { format: 'umd' }
 ];
 
 function extend ( target ) {
@@ -354,7 +354,7 @@ describe( 'rollup', function () {
 		});
 	});
 
-	describe( 'form', () => {
+	describe.only( 'form', () => {
 		sander.readdirSync( FORM ).sort().forEach( dir => {
 			if ( dir[0] === '.' ) return; // .DS_Store...
 
