@@ -17,6 +17,12 @@ function isAssignmentPatternLhs ( node, parent ) {
 }
 
 export default class Identifier extends Node {
+	activate () {
+		if ( this.declaration ) {
+			this.declaration.activate();
+		}
+	}
+
 	bind ( scope ) {
 		if ( isReference( this, this.parent ) || isAssignmentPatternLhs( this, this.parent ) ) {
 			this.declaration = scope.findDeclaration( this.name );
