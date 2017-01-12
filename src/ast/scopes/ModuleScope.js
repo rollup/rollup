@@ -64,7 +64,8 @@ export default class ModuleScope extends Scope {
 		const imported = this.module.imports[ name ];
 		if ( imported ) {
 			const exported = imported.module.exports[ imported.name ];
-			return imported.module.scope.getValue( exported.localName );
+			const exportedName = exported.localName === 'default' && exported.identifier ? exported.identifier : exported.localName; // TODO this is a mess
+			return imported.module.scope.getValue( exportedName );
 		}
 
 		return this.parent.getValue( name );

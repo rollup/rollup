@@ -1,5 +1,11 @@
 import Node from '../Node.js';
 
+class Instance {
+	constructor ( _class ) {
+		this.class = _class;
+	}
+}
+
 // TODO is this basically identical to FunctionDeclaration?
 export default class ClassDeclaration extends Node {
 	activate () {
@@ -28,6 +34,10 @@ export default class ClassDeclaration extends Node {
 
 	gatherPossibleValues ( values ) {
 		values.add( this );
+	}
+
+	getInstance () {
+		return new Instance( this );
 	}
 
 	getName () {

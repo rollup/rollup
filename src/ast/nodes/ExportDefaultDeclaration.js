@@ -46,6 +46,13 @@ export default class ExportDefaultDeclaration extends Node {
 		return this.name;
 	}
 
+	mark () {
+		if ( this.isMarked ) return;
+		this.isMarked = true;
+
+		this.declaration.markChildren();
+	}
+
 	// TODO this is total chaos, tidy it up
 	render ( code, es ) {
 		const treeshake = this.module.bundle.treeshake;

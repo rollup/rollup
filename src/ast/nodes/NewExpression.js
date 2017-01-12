@@ -2,6 +2,10 @@ import Node from '../Node.js';
 import callHasEffects from './shared/callHasEffects.js';
 
 export default class NewExpression extends Node {
+	getValue () {
+		return this.callee.getInstance();
+	}
+
 	hasEffects ( scope ) {
 		return callHasEffects( scope, this.callee, true );
 	}

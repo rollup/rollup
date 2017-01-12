@@ -138,10 +138,24 @@ export default class Bundle {
 
 				timeStart( 'phase 3' );
 
+				const exports = entryModule.getExports();
+
 				// mark statements that should appear in the bundle
 				if ( this.treeshake ) {
 					this.orderedModules.forEach( module => {
 						module.run();
+					});
+
+					// activate all export declarations
+					exports.forEach( name => {
+						const declaration = entryModule.traceExport( name );
+
+						declaration.exportName = name;
+						declaration.activate();
+
+						if ( declaration.isNamespace ) {
+							declaration.needsNamespaceBlock = true;
+						}
 					});
 
 					let settled = false;
@@ -162,18 +176,6 @@ export default class Bundle {
 						}
 					}
 				}
-
-				// mark all export statements
-				entryModule.getExports().forEach( name => {
-					const declaration = entryModule.traceExport( name );
-
-					declaration.exportName = name;
-					declaration.activate();
-
-					if ( declaration.isNamespace ) {
-						declaration.needsNamespaceBlock = true;
-					}
-				});
 
 				timeEnd( 'phase 3' );
 

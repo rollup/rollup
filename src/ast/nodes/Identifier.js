@@ -44,6 +44,10 @@ export default class Identifier extends Node {
 		}
 	}
 
+	getInstance () {
+		return this.scope.getValue( this.name ).getInstance();
+	}
+
 	initialise ( scope ) {
 		this.scope = scope;
 	}
@@ -56,6 +60,11 @@ export default class Identifier extends Node {
 
 	markReturnStatements ( args ) {
 		const callee = this.scope.getValue( this.name );
+
+		if ( !callee ) {
+			throw new Error( `could not resolve callee ${this} ${this.locate()}` );
+		}
+
 		if ( !callee.markReturnStatements ) {
 			throw new Error( `${callee} does not have markReturnStatements method` );
 		}
@@ -74,9 +83,5 @@ export default class Identifier extends Node {
 				}
 			}
 		}
-	}
-
-	run () {
-		if ( this.declaration ) this.declaration.activate();
 	}
 }
