@@ -1,5 +1,5 @@
 import Scope from './Scope.js';
-import { UNKNOWN } from '../values';
+import { unknown } from '../values';
 
 class SyntheticGlobalDeclaration {
 	constructor ( name ) {
@@ -25,7 +25,15 @@ class SyntheticGlobalDeclaration {
 	}
 
 	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN );
+		values.add( unknown );
+	}
+
+	getInstance () {
+		return unknown;
+	}
+
+	getProperty () {
+		return unknown;
 	}
 
 	getName () {

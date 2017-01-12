@@ -7,6 +7,6 @@
 		console.log( '.' );
 	}, 500 );
 
-	window.addEventListener( 'mousemove', throttle );
+	window.addEventListener( 'mousemove', fn );
 
 }(Lib.throttle));

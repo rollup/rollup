@@ -6,6 +6,6 @@ define(['./lib/throttle.js'], function (throttle) { 'use strict';
 		console.log( '.' );
 	}, 500 );
 
-	window.addEventListener( 'mousemove', throttle );
+	window.addEventListener( 'mousemove', fn );
 
 });

@@ -8,4 +8,4 @@ const fn = throttle( () => {
 	console.log( '.' );
 }, 500 );
 
-window.addEventListener( 'mousemove', throttle );
+window.addEventListener( 'mousemove', fn );

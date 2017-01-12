@@ -5,9 +5,7 @@ export default class FunctionDeclaration extends Node {
 		if ( this.activated ) return;
 		this.activated = true;
 
-		const scope = this.body.scope;
-		this.params.forEach( param => param.run( scope ) ); // in case of assignment patterns
-		this.body.run();
+		this.body.mark();
 	}
 
 	addReference () {
@@ -29,6 +27,8 @@ export default class FunctionDeclaration extends Node {
 		args.forEach( ( arg, i ) => {
 			const param = this.params[i];
 
+			if ( !param ) return;
+
 			if ( param.type !== 'Identifier' ) {
 				throw new Error( 'TODO desctructuring' );
 			}
@@ -49,6 +49,19 @@ export default class FunctionDeclaration extends Node {
 
 	getName () {
 		return this.name;
+	}
+
+	getReturnValue ( context, args ) {
+		if ( this.returnStatements.length === 0 ) {
+			console.log( `null!!!` )
+			return null; // TODO need a sentinel value for things like null
+		}
+
+		if ( this.returnStatements[0].parent === this.body ) {
+			throw new Error( 'TODO' );
+		}
+
+		console.log( `conditional return statements` )
 	}
 
 	hasEffects () {

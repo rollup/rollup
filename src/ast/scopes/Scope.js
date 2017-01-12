@@ -1,5 +1,5 @@
 import { blank, keys } from '../../utils/object.js';
-import { UNKNOWN, TDZ_VIOLATION } from '../values.js';
+import { unknown, TDZ_VIOLATION } from '../values.js';
 
 class Parameter {
 	constructor ( name ) {
@@ -18,7 +18,7 @@ class Parameter {
 	}
 
 	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN ); // TODO populate this at call time
+		values.add( unknown ); // TODO populate this at call time
 	}
 
 	getName () {

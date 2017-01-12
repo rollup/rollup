@@ -1,5 +1,5 @@
 import Node from '../Node.js';
-import { UNKNOWN } from '../values.js';
+import { unknown } from '../values.js';
 
 const operators = {
 	"-": value => -value,
@@ -8,17 +8,17 @@ const operators = {
 	"~": value => ~value,
 	typeof: value => typeof value,
 	void: () => undefined,
-	delete: () => UNKNOWN
+	delete: () => unknown
 };
 
 export default class UnaryExpression extends Node {
 	bind ( scope ) {
-		if ( this.value === UNKNOWN ) super.bind( scope );
+		if ( this.value === unknown ) super.bind( scope );
 	}
 
 	getValue () {
 		const argumentValue = this.argument.getValue();
-		if ( argumentValue === UNKNOWN ) return UNKNOWN;
+		if ( argumentValue === unknown ) return unknown;
 
 		return operators[ this.operator ]( argumentValue );
 	}
@@ -29,6 +29,6 @@ export default class UnaryExpression extends Node {
 
 	initialise ( scope ) {
 		this.value = this.getValue();
-		if ( this.value === UNKNOWN ) super.initialise( scope );
+		if ( this.value === unknown ) super.initialise( scope );
 	}
 }

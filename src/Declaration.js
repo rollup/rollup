@@ -1,6 +1,6 @@
 import { blank, forOwn, keys } from './utils/object.js';
 import makeLegalIdentifier, { reservedWords } from './utils/makeLegalIdentifier.js';
-import { UNKNOWN } from './ast/values.js';
+import { unknown } from './ast/values.js';
 
 export default class Declaration {
 	constructor ( node, isParam ) {
@@ -29,6 +29,10 @@ export default class Declaration {
 		}
 
 		if ( reference.isReassignment ) this.isReassigned = true;
+	}
+
+	getInstance () {
+		return unknown;
 	}
 
 	render ( es ) {
@@ -68,7 +72,7 @@ export class SyntheticNamespaceDeclaration {
 	}
 
 	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN );
+		values.add( unknown );
 	}
 
 	getName () {
@@ -116,8 +120,12 @@ export class ExternalDeclaration {
 		}
 	}
 
+	call ( context, args ) {
+		console.log( `args`, args )
+	}
+
 	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN );
+		values.add( unknown );
 	}
 
 	getName ( es ) {
@@ -132,6 +140,10 @@ export class ExternalDeclaration {
 		}
 
 		return es ? this.safeName : `${this.module.name}.${this.name}`;
+	}
+
+	markReturnStatements () {
+		// noop
 	}
 
 	setSafeName ( name ) {

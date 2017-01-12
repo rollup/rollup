@@ -35,6 +35,7 @@ export default class Identifier extends Node {
 		if ( !callee.call ) {
 			throw new Error( `${callee} does not have call method (${this})` );
 		}
+
 		callee.call( undefined, args );
 	}
 
@@ -45,7 +46,15 @@ export default class Identifier extends Node {
 	}
 
 	getInstance () {
-		return this.scope.getValue( this.name ).getInstance();
+		return this.getValue().getInstance();
+	}
+
+	getReturnValue ( args ) {
+		return this.declaration.getReturnValue( undefined, args );
+	}
+
+	getValue () {
+		return this.scope.getValue( this.name );
 	}
 
 	initialise ( scope ) {

@@ -1,6 +1,6 @@
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
-import { UNKNOWN } from '../values.js';
+import { unknown } from '../values.js';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -73,11 +73,22 @@ export default class MemberExpression extends Node {
 	}
 
 	call ( args ) {
-		// TODO
+		this.getValue().call( this.object, args );
 	}
 
 	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN ); // TODO
+		values.add( unknown ); // TODO
+	}
+
+	getValue () {
+		if ( this.declaration ) {
+			return this.declaration;
+		}
+
+		const objectValue = this.object.getValue();
+		const propValue = this.computed ? this.property.getValue() : this.property.name;
+		const value = objectValue.getProperty( propValue ).getValue();
+		return value;
 	}
 
 	mark () {
@@ -87,6 +98,7 @@ export default class MemberExpression extends Node {
 
 	markReturnStatements () {
 		// TODO
+		this.getValue().markReturnStatements();
 	}
 
 	render ( code, es ) {

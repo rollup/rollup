@@ -1,4 +1,4 @@
-import { UNKNOWN } from '../../values.js';
+import { unknown } from '../../values.js';
 
 export default function isUsedByBundle ( scope, node ) {
 	// const expression = node;
@@ -18,7 +18,7 @@ export default function isUsedByBundle ( scope, node ) {
 	const values = new Set();
 	declaration.gatherPossibleValues( values );
 	for ( const value of values ) {
-		if ( value === UNKNOWN ) {
+		if ( value === unknown ) {
 			return true;
 		}
 

@@ -1,5 +1,5 @@
 import Node from '../Node.js';
-import { UNKNOWN } from '../values.js';
+import { unknown } from '../values.js';
 
 const operators = {
 	'==': ( left, right ) => left == right,
@@ -28,10 +28,10 @@ const operators = {
 export default class BinaryExpression extends Node {
 	getValue () {
 		const leftValue = this.left.getValue();
-		if ( leftValue === UNKNOWN ) return UNKNOWN;
+		if ( leftValue === unknown ) return unknown;
 
 		const rightValue = this.right.getValue();
-		if ( rightValue === UNKNOWN ) return UNKNOWN;
+		if ( rightValue === unknown ) return unknown;
 
 		return operators[ this.operator ]( leftValue, rightValue );
 	}

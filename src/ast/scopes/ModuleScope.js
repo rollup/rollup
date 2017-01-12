@@ -1,5 +1,6 @@
 import { forOwn } from '../../utils/object.js';
 import relativeId from '../../utils/relativeId.js';
+import { unknown } from '../values.js';
 import Scope from './Scope.js';
 
 export default class ModuleScope extends Scope {
@@ -63,6 +64,8 @@ export default class ModuleScope extends Scope {
 
 		const imported = this.module.imports[ name ];
 		if ( imported ) {
+			if ( imported.module.isExternal ) return unknown;
+
 			const exported = imported.module.exports[ imported.name ];
 			const exportedName = exported.localName === 'default' && exported.identifier ? exported.identifier : exported.localName; // TODO this is a mess
 			return imported.module.scope.getValue( exportedName );

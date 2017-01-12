@@ -1,5 +1,5 @@
 import { locate } from 'locate-character';
-import { UNKNOWN } from './values.js';
+import { unknown } from './values.js';
 
 export default class Node {
 	bind ( scope ) {
@@ -35,7 +35,7 @@ export default class Node {
 
 	gatherPossibleValues ( values ) {
 		//this.eachChild( child => child.gatherPossibleValues( values ) );
-		values.add( UNKNOWN );
+		values.add( unknown );
 	}
 
 	getValue () {

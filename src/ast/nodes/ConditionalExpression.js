@@ -1,12 +1,12 @@
 import Node from '../Node.js';
-import { UNKNOWN } from '../values.js';
+import { unknown } from '../values.js';
 
 export default class ConditionalExpression extends Node {
 	initialise ( scope ) {
 		if ( this.module.bundle.treeshake ) {
 			this.testValue = this.test.getValue();
 
-			if ( this.testValue === UNKNOWN	 ) {
+			if ( this.testValue === unknown	 ) {
 				super.initialise( scope );
 			}
 
@@ -27,7 +27,7 @@ export default class ConditionalExpression extends Node {
 	gatherPossibleValues ( values ) {
 		const testValue = this.test.getValue();
 
-		if ( testValue === UNKNOWN ) {
+		if ( testValue === unknown ) {
 			values.add( this.consequent ).add( this.alternate );
 		} else {
 			values.add( testValue ? this.consequent : this.alternate );
@@ -36,7 +36,7 @@ export default class ConditionalExpression extends Node {
 
 	getValue () {
 		const testValue = this.test.getValue();
-		if ( testValue === UNKNOWN ) return UNKNOWN;
+		if ( testValue === unknown ) return unknown;
 
 		return testValue ? this.consequent.getValue() : this.alternate.getValue();
 	}
@@ -47,7 +47,7 @@ export default class ConditionalExpression extends Node {
 		}
 
 		else {
-			if ( this.testValue === UNKNOWN ) {
+			if ( this.testValue === unknown ) {
 				super.render( code, es );
 			}
 

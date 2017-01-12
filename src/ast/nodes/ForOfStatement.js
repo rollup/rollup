@@ -1,7 +1,7 @@
 import Statement from './shared/Statement.js';
 import assignTo from './shared/assignTo.js';
 import Scope from '../scopes/Scope.js';
-import { UNKNOWN } from '../values.js';
+import { unknown } from '../values.js';
 
 export default class ForOfStatement extends Statement {
 	initialise ( scope ) {
@@ -17,6 +17,6 @@ export default class ForOfStatement extends Statement {
 		}
 
 		super.initialise( this.scope );
-		assignTo( this.left, this.scope, UNKNOWN );
+		assignTo( this.left, this.scope, unknown );
 	}
 }

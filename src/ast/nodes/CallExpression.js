@@ -25,6 +25,17 @@ export default class CallExpression extends Node {
 		super.bind( scope );
 	}
 
+	getProperty ( name ) {
+		// TODO unknown properties
+		return this.getValue().getProperty( name );
+	}
+
+	getValue () {
+		console.log( `TODO getValue ${this}` )
+
+		return this.callee.getReturnValue( this.arguments );
+	}
+
 	hasEffects ( scope ) {
 		return callHasEffects( scope, this.callee, false );
 	}

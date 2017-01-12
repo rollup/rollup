@@ -1,6 +1,6 @@
 import Node from '../Node.js';
 import extractNames from '../utils/extractNames.js';
-import { UNKNOWN } from '../values.js';
+import { unknown } from '../values.js';
 
 class DeclaratorProxy {
 	constructor ( name, declarator, isTopLevel, init ) {
@@ -63,7 +63,7 @@ export default class VariableDeclarator extends Node {
 		const lexicalBoundary = scope.findLexicalBoundary();
 
 		const init = this.init ?
-			( this.id.type === 'Identifier' ? this.init : UNKNOWN ) : // TODO maybe UNKNOWN is unnecessary
+			( this.id.type === 'Identifier' ? this.init : unknown ) : // TODO maybe unknown is unnecessary
 			null;
 
 		extractNames( this.id ).forEach( name => {
@@ -98,6 +98,7 @@ export default class VariableDeclarator extends Node {
 		}
 
 		if ( this.init ) {
+			this.init.run();
 			this.scope.setValue( this.id.name, this.init.getValue() );
 		} else if ( this.parent.kind !== 'var' ) {
 			this.scope.setValue( this.id.name, undefined ); // no longer TDZ violation
