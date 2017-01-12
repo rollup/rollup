@@ -31,6 +31,9 @@ class Link {
 
 			line.forEach( segment => {
 				const source = this.sources[ segment[1] ];
+
+				if ( !source ) return;
+
 				const traced = source.traceSegment( segment[2], segment[3], this.names[ segment[4] ] );
 
 				if ( traced ) {
