@@ -1,4 +1,4 @@
-var babel = require( 'babel-core' );
+var babiliResults = require( './babili-results' );
 var assert = require( 'assert' );
 var getLocation = require( '../../utils/getLocation' );
 var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
@@ -8,13 +8,10 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				transformBundle: function ( code ) {
-					var options = {
-						presets: [ 'babili' ],
-						sourceMaps: true
-					};
+				transformBundle: function ( code, options ) {
+					var format = options.format;
 
-					return babel.transform( code, options );
+					return babiliResults[ format ];
 				}
 			}
 		]
