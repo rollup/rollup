@@ -293,7 +293,7 @@ export default class Bundle {
 					return this.cachedModules.get( id );
 				}
 
-				return transform( source, id, this.plugins );
+				return transform( this, source, id, this.plugins );
 			})
 			.then( source => {
 				const { code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds } = source;
@@ -619,11 +619,13 @@ export default class Bundle {
 
 	warn ( warning ) {
 		warning.toString = () => {
-			if ( warning.loc ) {
-				return `${relativeId( warning.loc.file )} (${warning.loc.line}:${warning.loc.column}) ${warning.message}`;
-			}
+			let str = '';
 
-			return warning.message;
+			if ( warning.plugin ) str += `(${warning.plugin} plugin) `;
+			if ( warning.loc ) str += `${relativeId( warning.loc.file )} (${warning.loc.line}:${warning.loc.column}) `;
+			str += warning.message;
+
+			return str;
 		};
 
 		this.onwarn( warning );

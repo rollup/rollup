@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 0.41.1
+
+* Include `new` expressions where callee is a class with side-effects ([#980](https://github.com/rollup/rollup/issues/980) [#1233](https://github.com/rollup/rollup/issues/1233))
+
+## 0.41.0
+
+* Add `this.warn(...)` and `this.error(...)` methods to plugin `transform` hook contexts ([#1140](https://github.com/rollup/rollup/issues/1140))
+* `throw` always considered to be a side effect ([#1227](https://github.com/rollup/rollup/pull/1227))
+
 ## 0.40.2
 
 * Add `file` property to sourcemaps for bundles with plugins ([#986](https://github.com/rollup/rollup/issues/986))

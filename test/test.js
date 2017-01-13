@@ -58,6 +58,10 @@ function loader ( modules ) {
 	};
 }
 
+function deindent ( str ) {
+	return str.slice( 1 ).replace( /^\t+/gm, '' ).replace( /\s+$/gm, '' ).trim();
+}
+
 function compareWarnings ( actual, expected ) {
 	assert.deepEqual(
 		actual.map( warning => {
@@ -72,7 +76,7 @@ function compareWarnings ( actual, expected ) {
 		}),
 		expected.map( warning => {
 			if ( warning.frame ) {
-				warning.frame = warning.frame.slice( 1 ).replace( /^\t+/gm, '' ).replace( /\s+$/gm, '' ).trim();
+				warning.frame = deindent( warning.frame );
 			}
 			return warning;
 		})
@@ -90,7 +94,7 @@ function compareError ( actual, expected ) {
 	}
 
 	if ( expected.frame ) {
-		expected.frame = expected.frame.slice( 1 ).replace( /^\t+/gm, '' ).replace( /\s+$/gm, '' ).trim();
+		expected.frame = deindent( expected.frame );
 	}
 
 	assert.deepEqual( actual, expected );
@@ -498,7 +502,11 @@ describe( 'rollup', function () {
 							}
 						}
 
-						if ( stderr ) console.error( stderr );
+						if ( 'stderr' in config ) {
+							assert.equal( deindent( config.stderr ), stderr.trim() );
+						} else if ( stderr ) {
+							console.error( stderr );
+						}
 
 						let unintendedError;
 

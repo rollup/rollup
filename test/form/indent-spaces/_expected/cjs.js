@@ -1,7 +1,7 @@
 'use strict';
 
 function foo () {
-	console.log( 'not indented' );
+	console.log( 'indented with tabs' );
 }
 
 module.exports = foo;
