@@ -7,18 +7,12 @@ const errorSymbol = process.stderr.isTTY ? `🚨   ` : `Error: `;
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
 export const stderr = console.error.bind( console ); // eslint-disable-line no-console
-
-<<<<<<< HEAD
 export const stdout = console.log.bind( console ); // eslint-disable-line no-console
 
-export function handleWarning ( warning ) {
-	stderr( `${warnSymbol}${chalk.bold( warning.message )}` );
-=======
 function log ( object, symbol ) {
 	const message = object.plugin ? `(${object.plugin} plugin) ${object.message}` : object.message;
 
 	stderr( `${symbol}${chalk.bold( message )}` );
->>>>>>> rollup/master
 
 	if ( object.url ) {
 		stderr( chalk.cyan( object.url ) );
