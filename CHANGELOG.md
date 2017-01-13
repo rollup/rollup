@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.41.2
+
+* Optimize `namespace['foo']` references ([#1240](https://github.com/rollup/rollup/pull/1240))
+
 ## 0.41.1
 
 * Include `new` expressions where callee is a class with side-effects ([#980](https://github.com/rollup/rollup/issues/980) [#1233](https://github.com/rollup/rollup/issues/1233))
