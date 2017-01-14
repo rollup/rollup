@@ -33,7 +33,7 @@ export default class MemberExpression extends Node {
 		// TODO this code is a bit inefficient
 		const keypath = new Keypath( this );
 
-		if ( !keypath.computed ) {
+		if ( !keypath.computed && keypath.root.type === 'Identifier' ) {
 			let declaration = scope.findDeclaration( keypath.root.name );
 
 			while ( declaration.isNamespace && keypath.parts.length ) {
