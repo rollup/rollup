@@ -410,6 +410,12 @@ export default class Module {
 	}
 
 	traceExport ( name ) {
+		// export * from 'external'
+		if ( name[0] === '*' ) {
+			const module = this.bundle.moduleById.get( name.slice( 1 ) );
+			return module.traceExport( '*' );
+		}
+
 		// export { foo } from './other.js'
 		const reexportDeclaration = this.reexports[ name ];
 		if ( reexportDeclaration ) {
