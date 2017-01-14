@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.41.4
+
+* Fix cases of multiple `export * from 'external'` declarations ([#1252](https://github.com/rollup/rollup/issues/1252))
+* Fix 'TODO' error message ([#1257](https://github.com/rollup/rollup/issues/1257))
+
 ## 0.41.3
 
 * Don't treat `this.foo` as possible namespace ([#1258](https://github.com/rollup/rollup/issues/1258))
