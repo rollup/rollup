@@ -96,11 +96,13 @@ export default function callHasEffects ( scope, callee, isNew ) {
 			}
 		}
 
-		else {
-			if ( !node.gatherPossibleValues ) {
-				throw new Error( 'TODO' );
-			}
+		else if ( node.gatherPossibleValues ) {
 			node.gatherPossibleValues( values );
+		}
+
+		else {
+			// probably an error in the user's code — err on side of caution
+			return true;
 		}
 	}
 
