@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.41.3
+
+* Don't treat `this.foo` as possible namespace ([#1258](https://github.com/rollup/rollup/issues/1258))
+
 ## 0.41.2
 
 * Optimize `namespace['foo']` references ([#1240](https://github.com/rollup/rollup/pull/1240))
