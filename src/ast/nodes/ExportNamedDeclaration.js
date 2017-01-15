@@ -8,8 +8,8 @@ export default class ExportNamedDeclaration extends Node {
 		if ( this.declaration ) this.declaration.initialise( scope );
 	}
 
-	bind ( scope ) {
-		if ( this.declaration ) this.declaration.bind( scope );
+	bind () {
+		if ( this.declaration ) this.declaration.bind();
 	}
 
 	render ( code, es ) {

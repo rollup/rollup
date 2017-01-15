@@ -121,7 +121,7 @@ export class ExternalDeclaration {
 	}
 
 	call ( context, args ) {
-		console.log( `args`, args )
+		// TODO run args
 	}
 
 	gatherPossibleValues ( values ) {

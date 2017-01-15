@@ -3,15 +3,23 @@ import disallowIllegalReassignment from './shared/disallowIllegalReassignment.js
 import isUsedByBundle from './shared/isUsedByBundle.js';
 import { NUMBER, STRING } from '../values.js';
 
+/*
+enum AssignmentOperator {
+    "=" | "+=" | "-=" | "*=" | "/=" | "%="
+        | "<<=" | ">>=" | ">>>="
+        | "|=" | "^=" | "&="
+}
+*/
+
 export default class AssignmentExpression extends Node {
-	bind ( scope ) {
+	bind () {
 		const subject = this.left;
 
 		this.subject = subject;
-		disallowIllegalReassignment( scope, subject );
+		disallowIllegalReassignment( this.scope, subject );
 
 		if ( subject.type === 'Identifier' ) {
-			const declaration = scope.findDeclaration( subject.name );
+			const declaration = this.scope.findDeclaration( subject.name );
 			declaration.isReassigned = true;
 
 			if ( declaration.possibleValues ) { // TODO this feels hacky
@@ -25,7 +33,7 @@ export default class AssignmentExpression extends Node {
 			}
 		}
 
-		super.bind( scope );
+		super.bind( this.scope );
 	}
 
 	hasEffects ( scope ) {
@@ -43,5 +51,16 @@ export default class AssignmentExpression extends Node {
 
 	isUsedByBundle () {
 		return isUsedByBundle( this.scope, this.subject );
+	}
+
+	run () {
+		const rightValue = this.right.run();
+
+		if ( this.operator === '=' ) {
+			this.left.setValue( rightValue );
+			return rightValue;
+		}
+
+		// TODO handle other operators
 	}
 }

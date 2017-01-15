@@ -23,9 +23,9 @@ export default class Identifier extends Node {
 		}
 	}
 
-	bind ( scope ) {
+	bind () {
 		if ( isReference( this, this.parent ) || isAssignmentPatternLhs( this, this.parent ) ) {
-			this.declaration = scope.findDeclaration( this.name );
+			this.declaration = this.scope.findDeclaration( this.name );
 			this.declaration.addReference( this ); // TODO necessary?
 		}
 	}
@@ -36,7 +36,7 @@ export default class Identifier extends Node {
 			throw new Error( `${callee} does not have call method (${this})` );
 		}
 
-		callee.call( undefined, args );
+		return callee.call( undefined, args );
 	}
 
 	gatherPossibleValues ( values ) {
@@ -51,10 +51,6 @@ export default class Identifier extends Node {
 
 	getReturnValue ( args ) {
 		return this.declaration.getReturnValue( undefined, args );
-	}
-
-	getValue () {
-		return this.scope.getValue( this.name );
 	}
 
 	initialise ( scope ) {
@@ -92,5 +88,13 @@ export default class Identifier extends Node {
 				}
 			}
 		}
+	}
+
+	run () {
+		return this.scope.getValue( this.name );
+	}
+
+	setValue ( value ) {
+		this.scope.setValue( this.name, value );
 	}
 }

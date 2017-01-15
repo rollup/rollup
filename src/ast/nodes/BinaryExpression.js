@@ -26,11 +26,11 @@ const operators = {
 };
 
 export default class BinaryExpression extends Node {
-	getValue () {
-		const leftValue = this.left.getValue();
+	run () {
+		const leftValue = this.left.run();
 		if ( leftValue === unknown ) return unknown;
 
-		const rightValue = this.right.getValue();
+		const rightValue = this.right.run();
 		if ( rightValue === unknown ) return unknown;
 
 		return operators[ this.operator ]( leftValue, rightValue );

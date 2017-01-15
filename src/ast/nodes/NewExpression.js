@@ -2,10 +2,6 @@ import Node from '../Node.js';
 import callHasEffects from './shared/callHasEffects.js';
 
 export default class NewExpression extends Node {
-	getValue () {
-		return this.callee.getInstance();
-	}
-
 	hasEffects ( scope ) {
 		return callHasEffects( scope, this.callee, true );
 	}
@@ -45,8 +41,7 @@ export default class NewExpression extends Node {
 			throw new Error( `${this.callee} does not have call method` );
 		}
 
-		this.callee.call( this.arguments );
-
-		super.run();
+		// TODO context...
+		return this.callee.call( this.arguments );
 	}
 }

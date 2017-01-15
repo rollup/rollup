@@ -38,10 +38,6 @@ export default class Node {
 		values.add( unknown );
 	}
 
-	getValue () {
-		return this;
-	}
-
 	hasEffects ( scope ) {
 		if ( this.scope ) scope = this.scope;
 
@@ -107,6 +103,8 @@ export default class Node {
 		this.eachChild( child => {
 			child.run();
 		});
+
+		return this;
 	}
 
 	toString () {

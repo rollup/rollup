@@ -1,5 +1,5 @@
 import { blank, keys } from '../../utils/object.js';
-import { unknown, TDZ_VIOLATION } from '../values.js';
+import { unknown, Undefined, UnknownValue, TDZ_VIOLATION } from '../values.js';
 
 class Parameter {
 	constructor ( name ) {
@@ -39,6 +39,7 @@ export default class Scope {
 
 		this.declarations = blank();
 		this.values = blank();
+		this.context = new UnknownValue(); // TODO allow different contexts
 
 		if ( this.isLexicalBoundary && !this.isModuleScope ) {
 			this.declarations.arguments = new Parameter( 'arguments' );
@@ -101,6 +102,10 @@ export default class Scope {
 		return this.isLexicalBoundary ? this : this.parent.findLexicalBoundary();
 	}
 
+	getContext () {
+		return this.context;
+	}
+
 	getValue ( name ) {
 		if ( name in this.values ) {
 			return this.values[ name ];
@@ -116,9 +121,9 @@ export default class Scope {
 	initialise () {
 		this.eachDeclaration( ( name, declaration ) => {
 			if ( declaration.isDeclaratorProxy ) {
-				this.values[ name ] = declaration.declarator.kind === 'var' ? undefined : TDZ_VIOLATION;
+				this.values[ name ] = declaration.declarator.parent.kind === 'var' ? new Undefined() : TDZ_VIOLATION;
 			} else if ( declaration.isParam || declaration.type === 'ExportDefaultDeclaration' ) {
-				this.values[ name ] = undefined;
+				this.values[ name ] = new Undefined();
 			} else if ( declaration.type === 'ClassDeclaration' ) {
 				this.values[ name ] = TDZ_VIOLATION;
 			} else if ( declaration.type === 'FunctionDeclaration' ) {

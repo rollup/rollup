@@ -7,6 +7,14 @@ export const OBJECT   = { OBJECT:   true, toString: () => '[[OBJECT]]' };
 export const STRING   = { STRING:   true, toString: () => '[[STRING]]' };
 export const TDZ_VIOLATION  = { TDZ_VIOLATION:  true, toString: () => '[[TDZ_VIOLATION]]' };
 
+export class TdzViolation {
+
+}
+
+export class Undefined {
+
+}
+
 export class UnknownValue {
 	call ( context, args ) {
 		args.forEach( arg => {
@@ -19,6 +27,10 @@ export class UnknownValue {
 	}
 
 	markReturnStatements () {
+		// noop?
+	}
+
+	setProperty () {
 		// noop?
 	}
 }

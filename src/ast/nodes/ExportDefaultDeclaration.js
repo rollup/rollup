@@ -3,18 +3,6 @@ import Node from '../Node.js';
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
 export default class ExportDefaultDeclaration extends Node {
-	initialise ( scope ) {
-		this.scope = scope;
-
-		this.isExportDeclaration = true;
-		this.isDefault = true;
-
-		this.name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name || this.module.basename();
-		scope.declarations.default = this;
-
-		this.declaration.initialise( scope );
-	}
-
 	activate () {
 		if ( this.activated ) return;
 		this.activated = true;
@@ -27,11 +15,11 @@ export default class ExportDefaultDeclaration extends Node {
 		if ( this.original ) this.original.addReference( reference );
 	}
 
-	bind ( scope ) {
+	bind () {
 		const name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name;
-		if ( name ) this.original = scope.findDeclaration( name );
+		if ( name ) this.original = this.scope.findDeclaration( name );
 
-		this.declaration.bind( scope );
+		this.declaration.bind( this.scope );
 	}
 
 	gatherPossibleValues ( values ) {
@@ -44,6 +32,18 @@ export default class ExportDefaultDeclaration extends Node {
 		}
 
 		return this.name;
+	}
+
+	initialise ( scope ) {
+		this.scope = scope;
+
+		this.isExportDeclaration = true;
+		this.isDefault = true;
+
+		this.name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name || this.module.basename();
+		scope.declarations.default = this;
+
+		this.declaration.initialise( scope );
 	}
 
 	mark () {
@@ -132,7 +132,6 @@ export default class ExportDefaultDeclaration extends Node {
 	}
 
 	run () {
-		this.scope.setValue( 'default', this.declaration.getValue() );
-		super.run();
+		this.scope.setValue( 'default', this.declaration.run() );
 	}
 }

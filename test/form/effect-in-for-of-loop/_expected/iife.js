@@ -3,12 +3,12 @@
 
 	const items = [{}, {}, {}];
 
-	for ( const a of items.children ) {
+	for ( const a of items ) {
 		a.foo = 'a';
 	}
 
 	let c;
-	for ( c of items.children ) {
+	for ( c of items ) {
 		c.bar = 'c';
 	}
 

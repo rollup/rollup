@@ -1,4 +1,16 @@
 import Node from '../Node.js';
+import { unknown } from '../values.js';
+
+class AsyncFunctionReturnValue {
+	constructor ( value ) {
+		this.value = value;
+	}
+
+	getProperty () {
+		// TODO express promise semantics somehow?
+		return unknown;
+	}
+}
 
 export default class FunctionDeclaration extends Node {
 	activate () {
@@ -22,6 +34,7 @@ export default class FunctionDeclaration extends Node {
 		if ( this.isCalling ) return; // recursive functions
 		this.isCalling = true;
 
+		let returnValue;
 		this.body.scope.initialise();
 
 		args.forEach( ( arg, i ) => {
@@ -38,9 +51,15 @@ export default class FunctionDeclaration extends Node {
 
 		for ( const node of this.body.body ) {
 			node.run();
+			if ( node.type === 'ReturnStatement' ) {
+				returnValue = node.argument ? node.argument.run() : undefined; // TODO represent undefined
+				break;
+			}
 		}
 
 		this.isCalling = false;
+
+		return this.async ? new AsyncFunctionReturnValue( returnValue ) : returnValue;
 	}
 
 	gatherPossibleValues ( values ) {
@@ -49,19 +68,6 @@ export default class FunctionDeclaration extends Node {
 
 	getName () {
 		return this.name;
-	}
-
-	getReturnValue ( context, args ) {
-		if ( this.returnStatements.length === 0 ) {
-			console.log( `null!!!` )
-			return null; // TODO need a sentinel value for things like null
-		}
-
-		if ( this.returnStatements[0].parent === this.body ) {
-			throw new Error( 'TODO' );
-		}
-
-		console.log( `conditional return statements` )
 	}
 
 	hasEffects () {

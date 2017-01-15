@@ -73,22 +73,16 @@ export default class MemberExpression extends Node {
 	}
 
 	call ( args ) {
-		this.getValue().call( this.object, args );
+		const objectValue = this.object.run();
+		const propValue = this.computed ? this.property.run() : this.property.name;
+
+		const value = objectValue.getProperty( propValue );
+
+		return value.call( objectValue, args );
 	}
 
 	gatherPossibleValues ( values ) {
 		values.add( unknown ); // TODO
-	}
-
-	getValue () {
-		if ( this.declaration ) {
-			return this.declaration;
-		}
-
-		const objectValue = this.object.getValue();
-		const propValue = this.computed ? this.property.getValue() : this.property.name;
-		const value = objectValue.getProperty( propValue ).getValue();
-		return value;
 	}
 
 	mark () {
@@ -97,8 +91,7 @@ export default class MemberExpression extends Node {
 	}
 
 	markReturnStatements () {
-		// TODO
-		this.getValue().markReturnStatements();
+		// TODO???
 	}
 
 	render ( code, es ) {
@@ -117,5 +110,13 @@ export default class MemberExpression extends Node {
 	run () {
 		if ( this.declaration ) this.declaration.activate();
 		super.run();
+	}
+
+	setValue ( value ) {
+		const objectValue = this.object.run();
+
+		const propValue = this.computed ? this.property.run() : this.property.name;
+
+		objectValue.setProperty( propValue, value );
 	}
 }

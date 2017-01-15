@@ -2,6 +2,7 @@ import Node from '../Node.js';
 
 export default class ThisExpression extends Node {
 	initialise ( scope ) {
+		this.scope = scope;
 		const lexicalBoundary = scope.findLexicalBoundary();
 
 		if ( lexicalBoundary.isModuleScope ) {
@@ -20,5 +21,9 @@ export default class ThisExpression extends Node {
 		if ( this.alias ) {
 			code.overwrite( this.start, this.end, this.alias, true );
 		}
+	}
+
+	run () {
+		return this.scope.getContext();
 	}
 }

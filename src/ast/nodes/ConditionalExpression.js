@@ -4,7 +4,7 @@ import { unknown } from '../values.js';
 export default class ConditionalExpression extends Node {
 	initialise ( scope ) {
 		if ( this.module.bundle.treeshake ) {
-			this.testValue = this.test.getValue();
+			this.testValue = this.test.run();
 
 			if ( this.testValue === unknown	 ) {
 				super.initialise( scope );
@@ -25,20 +25,13 @@ export default class ConditionalExpression extends Node {
 	}
 
 	gatherPossibleValues ( values ) {
-		const testValue = this.test.getValue();
+		const testValue = this.test.run();
 
 		if ( testValue === unknown ) {
 			values.add( this.consequent ).add( this.alternate );
 		} else {
 			values.add( testValue ? this.consequent : this.alternate );
 		}
-	}
-
-	getValue () {
-		const testValue = this.test.getValue();
-		if ( testValue === unknown ) return unknown;
-
-		return testValue ? this.consequent.getValue() : this.alternate.getValue();
 	}
 
 	render ( code, es ) {
@@ -61,5 +54,12 @@ export default class ConditionalExpression extends Node {
 				this.alternate.render( code, es );
 			}
 		}
+	}
+
+	run () {
+		const testValue = this.test.run();
+		if ( testValue === unknown ) return unknown;
+
+		return testValue ? this.consequent.run() : this.alternate.run();
 	}
 }

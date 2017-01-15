@@ -2,9 +2,9 @@ import Node from '../Node.js';
 import callHasEffects from './shared/callHasEffects.js';
 
 export default class CallExpression extends Node {
-	bind ( scope ) {
+	bind () {
 		if ( this.callee.type === 'Identifier' ) {
-			const declaration = scope.findDeclaration( this.callee.name );
+			const declaration = this.scope.findDeclaration( this.callee.name );
 
 			if ( declaration.isNamespace ) {
 				this.module.error({
@@ -22,18 +22,12 @@ export default class CallExpression extends Node {
 			}
 		}
 
-		super.bind( scope );
+		super.bind( this.scope );
 	}
 
 	getProperty ( name ) {
 		// TODO unknown properties
-		return this.getValue().getProperty( name );
-	}
-
-	getValue () {
-		console.log( `TODO getValue ${this}` )
-
-		return this.callee.getReturnValue( this.arguments );
+		return this.run().getProperty( name );
 	}
 
 	hasEffects ( scope ) {
@@ -75,8 +69,6 @@ export default class CallExpression extends Node {
 			throw new Error( `${this.callee} does not have call method` );
 		}
 
-		this.callee.call( this.arguments );
-
-		super.run();
+		return this.callee.call( this.arguments );
 	}
 }

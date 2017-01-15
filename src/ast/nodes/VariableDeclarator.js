@@ -1,6 +1,6 @@
 import Node from '../Node.js';
 import extractNames from '../utils/extractNames.js';
-import { unknown } from '../values.js';
+import { unknown, Undefined } from '../values.js';
 
 class DeclaratorProxy {
 	constructor ( name, declarator, isTopLevel, init ) {
@@ -98,10 +98,9 @@ export default class VariableDeclarator extends Node {
 		}
 
 		if ( this.init ) {
-			this.init.run();
-			this.scope.setValue( this.id.name, this.init.getValue() );
-		} else if ( this.parent.kind !== 'var' ) {
-			this.scope.setValue( this.id.name, undefined ); // no longer TDZ violation
+			this.scope.setValue( this.id.name, this.init.run() );
+		} else if ( this.parent.kind !== 'var' && !/For(?:In|Of)Statement/.test( this.parent.parent.type ) ) {
+			this.scope.setValue( this.id.name, new Undefined() ); // no longer TDZ violation
 		}
 	}
 }
