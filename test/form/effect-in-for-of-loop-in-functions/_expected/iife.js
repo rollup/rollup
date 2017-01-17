@@ -4,7 +4,7 @@
 	const items = [{}, {}, {}];
 
 	function a () {
-		for ( const item of items.children ) {
+		for ( const item of items ) {
 			item.foo = 'a';
 		}
 	}
@@ -13,7 +13,7 @@
 
 	function c () {
 		let item;
-		for ( item of items.children ) {
+		for ( item of items ) {
 			item.bar = 'c';
 		}
 	}

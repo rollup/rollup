@@ -65,6 +65,7 @@ export default class ModuleScope extends Scope {
 		const imported = this.module.imports[ name ];
 		if ( imported ) {
 			if ( imported.module.isExternal ) return unknown;
+			if ( imported.name === '*' ) return imported.module.namespace();
 
 			const exported = imported.module.exports[ imported.name ];
 			const exportedName = exported.localName === 'default' && exported.identifier ? exported.identifier : exported.localName; // TODO this is a mess

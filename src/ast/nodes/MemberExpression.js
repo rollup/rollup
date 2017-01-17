@@ -30,7 +30,6 @@ export default class MemberExpression extends Node {
 	bind ( scope ) {
 		// if this resolves to a namespaced declaration, prepare
 		// to replace it
-		// TODO this code is a bit inefficient
 		const keypath = new Keypath( this );
 
 		if ( !keypath.computed && keypath.root.type === 'Identifier' ) {
@@ -72,9 +71,18 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	call ( args ) {
+	call ( context, args ) {
+		if ( this.declaration ) {
+			return this.declaration.call( undefined, args );
+		}
+
 		const objectValue = this.object.run();
 		const propValue = this.computed ? this.property.run() : this.property.name;
+
+		if ( !objectValue.getProperty ) {
+			console.log( objectValue );
+			throw new Error( `${objectValue} does not have getProperty method` );
+		}
 
 		const value = objectValue.getProperty( propValue );
 
@@ -86,12 +94,21 @@ export default class MemberExpression extends Node {
 	}
 
 	mark () {
+		if ( this.declaration ) {
+			this.declaration.activate();
+		}
+
 		this.object.mark();
 		super.mark();
 	}
 
 	markReturnStatements () {
-		// TODO???
+		if ( this.declaration ) {
+			this.declaration.markReturnStatements();
+		} else {
+			// TODO this seems wrong. nothing should ever 'run' twice
+			this.run().markReturnStatements();
+		}
 	}
 
 	render ( code, es ) {
@@ -108,14 +125,24 @@ export default class MemberExpression extends Node {
 	}
 
 	run () {
-		if ( this.declaration ) this.declaration.activate();
-		super.run();
+		if ( this.declaration ) {
+			return this.declaration;
+		}
+
+		const objectValue = this.object.run();
+		const propValue = this.computed ? this.property.run() : this.property.name;
+
+		return objectValue.getProperty( propValue );
 	}
 
 	setValue ( value ) {
 		const objectValue = this.object.run();
-
 		const propValue = this.computed ? this.property.run() : this.property.name;
+
+		if ( !objectValue.setProperty ) {
+			console.log( objectValue );
+			throw new Error( `${objectValue} does not have setProperty method` );
+		}
 
 		objectValue.setProperty( propValue, value );
 	}

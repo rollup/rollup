@@ -38,6 +38,10 @@ class DeclaratorProxy {
 		return `exports.${this.exportName}`;
 	}
 
+	markChildrenIndiscriminately () {
+		this.declarator.markChildrenIndiscriminately();
+	}
+
 	toString () {
 		return this.name;
 	}

@@ -30,7 +30,7 @@ export default class Identifier extends Node {
 		}
 	}
 
-	call ( args ) {
+	call ( context, args ) {
 		const callee = this.scope.getValue( this.name );
 		if ( !callee.call ) {
 			throw new Error( `${callee} does not have call method (${this})` );

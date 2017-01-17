@@ -79,6 +79,12 @@ export class SyntheticNamespaceDeclaration {
 		return this.name;
 	}
 
+	markChildrenIndiscriminately () {
+		forOwn( this.originals, original => {
+			original.markChildrenIndiscriminately();
+		});
+	}
+
 	renderBlock ( es, legacy, indentString ) {
 		const members = keys( this.originals ).map( name => {
 			const original = this.originals[ name ];
@@ -140,6 +146,10 @@ export class ExternalDeclaration {
 		}
 
 		return es ? this.safeName : `${this.module.name}.${this.name}`;
+	}
+
+	markChildrenIndiscriminately () {
+		// noop
 	}
 
 	markReturnStatements () {

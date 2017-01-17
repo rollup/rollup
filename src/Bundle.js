@@ -151,7 +151,14 @@ export default class Bundle {
 						const declaration = entryModule.traceExport( name );
 
 						declaration.exportName = name;
+
+						if ( !declaration.markChildrenIndiscriminately ) {
+							console.log( `declaration`, declaration )
+						}
+
+						// TODO do we need both of these?
 						declaration.activate();
+						declaration.markChildrenIndiscriminately();
 
 						if ( declaration.isNamespace ) {
 							declaration.needsNamespaceBlock = true;

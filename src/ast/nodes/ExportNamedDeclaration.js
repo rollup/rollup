@@ -6,10 +6,12 @@ export default class ExportNamedDeclaration extends Node {
 		this.isExportDeclaration = true;
 
 		if ( this.declaration ) this.declaration.initialise( scope );
+		if ( this.specifiers ) this.specifiers.forEach( specifier => specifier.initialise( scope ) );
 	}
 
 	bind () {
 		if ( this.declaration ) this.declaration.bind();
+		if ( this.specifiers ) this.specifiers.forEach( specifier => specifier.bind() );
 	}
 
 	render ( code, es ) {

@@ -86,9 +86,18 @@ export default class Node {
 
 	markChildren () {
 		function visit ( node ) {
-			node.mark();
+			node.mark(); // TODO should that be markChildren?
 
 			if ( node.type === 'BlockStatement' ) return;
+			node.eachChild( visit );
+		}
+
+		visit( this );
+	}
+
+	markChildrenIndiscriminately () {
+		function visit ( node ) {
+			node.mark();
 			node.eachChild( visit );
 		}
 

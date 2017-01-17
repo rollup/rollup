@@ -12,17 +12,26 @@ export class TdzViolation {
 }
 
 export class Undefined {
-
+	getProperty () {
+		return unknown; // TODO warn here?
+	}
 }
 
 export class UnknownValue {
 	call ( context, args ) {
 		args.forEach( arg => {
 			// TODO call functions (and children of objects...) with unknown arguments
+			arg.markChildrenIndiscriminately();
 		});
+
+		return unknown;
 	}
 
 	getValue () {
+		return unknown;
+	}
+
+	getProperty () {
 		return unknown;
 	}
 

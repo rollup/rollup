@@ -69,6 +69,6 @@ export default class CallExpression extends Node {
 			throw new Error( `${this.callee} does not have call method` );
 		}
 
-		return this.callee.call( this.arguments );
+		return this.callee.call( null, this.arguments );
 	}
 }
