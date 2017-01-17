@@ -49,6 +49,10 @@ export default class FunctionDeclaration extends Node {
 		this.body.initialise();
 	}
 
+	reify () {
+		return new FunctionValue( this );
+	}
+
 	render ( code, es ) {
 		if ( !this.module.bundle.treeshake || this.activated ) {
 			super.render( code, es );
@@ -58,6 +62,6 @@ export default class FunctionDeclaration extends Node {
 	}
 
 	run () {
-		return new FunctionValue( this );
+		// noop
 	}
 }

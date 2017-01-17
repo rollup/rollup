@@ -1,44 +1,20 @@
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
+import flatten from '../utils/flatten.js';
+import pureFunctions from './shared/pureFunctions.js';
 import { unknown } from '../values.js';
-
-const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
-
-class Keypath {
-	constructor ( node ) {
-		this.parts = [];
-
-		while ( node.type === 'MemberExpression' ) {
-			const prop = node.property;
-
-			if ( node.computed  ) {
-				if ( prop.type !== 'Literal' || typeof prop.value !== 'string' || !validProp.test( prop.value ) ) {
-					this.computed = true;
-					return;
-				}
-			}
-
-			this.parts.unshift( prop );
-			node = node.object;
-		}
-
-		this.root = node;
-	}
-}
 
 export default class MemberExpression extends Node {
 	bind ( scope ) {
 		// if this resolves to a namespaced declaration, prepare
 		// to replace it
-		const keypath = new Keypath( this );
+		if ( this.flattened && this.flattened.root.type === 'Identifier' ) {
+			let declaration = scope.findDeclaration( this.flattened.root.name );
 
-		if ( !keypath.computed && keypath.root.type === 'Identifier' ) {
-			let declaration = scope.findDeclaration( keypath.root.name );
-
-			while ( declaration.isNamespace && keypath.parts.length ) {
+			while ( declaration.isNamespace && this.flattened.parts.length ) {
 				const exporterId = declaration.module.id;
 
-				const part = keypath.parts[0];
+				const part = this.flattened.parts[0];
 				declaration = declaration.module.traceExport( part.name || part.value );
 
 				if ( !declaration ) {
@@ -51,18 +27,20 @@ export default class MemberExpression extends Node {
 					return;
 				}
 
-				keypath.parts.shift();
+				this.flattened.parts.shift();
 			}
 
-			if ( keypath.parts.length ) {
+			if ( this.flattened.parts.length ) {
 				super.bind( scope );
 				return; // not a namespaced declaration
 			}
 
+			// TODO this needs to be the result of calling declaration.run(),
+			// not the declaration itself. gah
 			this.declaration = declaration;
 
 			if ( declaration.isExternal ) {
-				declaration.module.suggestName( keypath.root.name );
+				declaration.module.suggestName( this.flattened.root.name );
 			}
 		}
 
@@ -74,6 +52,15 @@ export default class MemberExpression extends Node {
 	call ( context, args ) {
 		if ( this.declaration ) {
 			return this.declaration.call( undefined, args );
+		}
+
+		// TODO a better representation of these functions
+		if ( this.flattened && this.flattened.keypath in pureFunctions ) {
+			const declaration = this.scope.findDeclaration( this.flattened.name );
+			if ( declaration.isGlobal ) {
+				args.forEach( arg => arg.run() );
+				return;
+			}
 		}
 
 		const objectValue = this.object.run();
@@ -91,6 +78,12 @@ export default class MemberExpression extends Node {
 
 	gatherPossibleValues ( values ) {
 		values.add( unknown ); // TODO
+	}
+
+	initialise ( scope ) {
+		this.scope = scope;
+		this.flattened = flatten( this );
+		super.initialise( scope );
 	}
 
 	mark () {
@@ -140,6 +133,7 @@ export default class MemberExpression extends Node {
 		const propValue = this.computed ? this.property.run() : this.property.name;
 
 		if ( !objectValue.setProperty ) {
+			console.log( `${this}` )
 			console.log( objectValue );
 			throw new Error( `${objectValue} does not have setProperty method` );
 		}

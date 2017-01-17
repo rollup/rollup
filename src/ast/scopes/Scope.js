@@ -127,7 +127,7 @@ export default class Scope {
 			} else if ( declaration.type === 'ClassDeclaration' ) {
 				this.values[ name ] = TDZ_VIOLATION;
 			} else if ( declaration.type === 'FunctionDeclaration' ) {
-				this.values[ name ] = declaration.run();
+				this.values[ name ] = declaration.reify();
 			} else {
 				console.log( declaration )
 				throw new Error( 'well this is odd' );

@@ -52,6 +52,8 @@ export default class VariableDeclarator extends Node {
 		if ( this.activated ) return;
 		this.activated = true;
 
+		console.log( `activating ${this}` )
+
 		this.mark();
 		if ( this.init ) this.init.markChildren();
 	}

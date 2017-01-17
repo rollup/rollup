@@ -20,7 +20,7 @@ export default class ClassDeclaration extends Node {
 		this.body.mark();
 
 		// TODO don't mark all methods willy-nilly
-		this.body.markChildren();
+		this.body.markChildrenIndiscriminately();
 	}
 
 	addReference () {

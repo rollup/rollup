@@ -1,4 +1,5 @@
 import Node from '../Node.js';
+import FunctionValue from './shared/FunctionValue.js';
 
 export default class FunctionExpression extends Node {
 	activate () {
@@ -75,5 +76,9 @@ export default class FunctionExpression extends Node {
 
 	markReturnStatements () {
 		this.returnStatements.forEach( statement => statement.mark() );
+	}
+
+	run () {
+		return new FunctionValue( this );
 	}
 }

@@ -25,6 +25,8 @@ export default class VariableDeclaration extends Node {
 	render ( code, es ) {
 		const treeshake = this.module.bundle.treeshake;
 
+		console.group( `rendering ${this}` )
+
 		let shouldSeparate = false;
 		let separator;
 
@@ -44,6 +46,7 @@ export default class VariableDeclaration extends Node {
 			if ( declarator.id.type === 'Identifier' ) {
 				const proxy = declarator.proxies.get( declarator.id.name );
 				const isExportedAndReassigned = !es && proxy.exportName && proxy.isReassigned;
+				console.log( `declarator.init && declarator.init.isMarked`, declarator.init && declarator.init.isMarked )
 
 				if ( isExportedAndReassigned ) {
 					if ( declarator.init ) {
@@ -51,7 +54,7 @@ export default class VariableDeclaration extends Node {
 						c = declarator.end;
 						empty = false;
 					}
-				} else if ( !treeshake || proxy.activated ) {
+				} else if ( !treeshake || proxy.activated || ( declarator.init && declarator.init.isMarked ) ) {
 					if ( shouldSeparate ) code.overwrite( c, declarator.start, `${prefix}${this.kind} ` ); // TODO indentation
 					c = declarator.end;
 					empty = false;
@@ -90,6 +93,8 @@ export default class VariableDeclaration extends Node {
 			declarator.render( code, es );
 		}
 
+		console.log( `empty`, empty )
+
 		if ( treeshake && empty ) {
 			code.remove( this.leadingCommentStart || this.start, this.next || this.end );
 		} else {
@@ -103,5 +108,7 @@ export default class VariableDeclaration extends Node {
 				this.insertSemicolon( code );
 			}
 		}
+
+		console.groupEnd()
 	}
 }
