@@ -1,6 +1,7 @@
 import Scope from './Scope.js';
 import { unknown } from '../values';
 
+// TODO represent things like Array, encodeURIComponent, Math, whatever
 class SyntheticGlobalDeclaration {
 	constructor ( name ) {
 		this.name = name;
@@ -21,7 +22,7 @@ class SyntheticGlobalDeclaration {
 	}
 
 	call ( args ) {
-		// TODO assume args can be called?
+		return unknown;
 	}
 
 	gatherPossibleValues ( values ) {

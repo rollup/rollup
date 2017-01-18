@@ -107,6 +107,10 @@ export default class Scope {
 	}
 
 	getValue ( name ) {
+		if ( name === 'x' ) {
+			console.log( `this.values`, this.values )
+		}
+
 		if ( name in this.values ) {
 			return this.values[ name ];
 		}

@@ -23,7 +23,7 @@ export default class FunctionValue {
 		this.node.isCalling = true;
 
 		let returnValue;
-		this.node.body.scope.initialise();
+		this.node.body.scope.initialise(); // TODO arrow functions...
 
 		args.forEach( ( arg, i ) => {
 			const param = this.node.params[i];

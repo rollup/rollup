@@ -133,8 +133,7 @@ export default class MemberExpression extends Node {
 		const propValue = this.computed ? this.property.run() : this.property.name;
 
 		if ( !objectValue ) {
-			console.log( this.object )
-			console.log( `${this}` )
+			console.log( `${this.object} does not contain a value` );
 		}
 
 		if ( !objectValue.setProperty ) {

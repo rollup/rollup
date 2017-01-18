@@ -91,7 +91,13 @@ export default class Identifier extends Node {
 	}
 
 	run () {
-		return this.scope.getValue( this.name );
+		const value = this.scope.getValue( this.name );
+
+		if ( !value ) {
+			console.log( this.name, this.scope.values )
+		}
+
+		return value;
 	}
 
 	setValue ( value ) {

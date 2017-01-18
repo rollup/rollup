@@ -56,4 +56,9 @@ export default class BlockStatement extends Statement {
 			code.remove( this.start, this.next || this.end );
 		}
 	}
+
+	run () {
+		this.scope.initialise();
+		this.body.forEach( node => node.run() );
+	}
 }
