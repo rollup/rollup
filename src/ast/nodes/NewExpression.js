@@ -42,6 +42,6 @@ export default class NewExpression extends Node {
 		}
 
 		// TODO context...
-		return this.callee.call( this.arguments );
+		return this.callee.call( undefined, this.arguments );
 	}
 }

@@ -4,4 +4,8 @@ export default class ThrowStatement extends Node {
 	hasEffects () {
 		return true;
 	}
+
+	run () {
+		this.mark();
+	}
 }

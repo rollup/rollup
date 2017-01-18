@@ -6,7 +6,7 @@
 
 	function foo ( ok ) {
 		if ( !ok ) {
-			throw new Error( 'this will be ignored' );
+			throw new Error( 'this will be included' );
 		}
 	}
 

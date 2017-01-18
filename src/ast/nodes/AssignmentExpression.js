@@ -43,9 +43,6 @@ export default class AssignmentExpression extends Node {
 
 	initialise ( scope ) {
 		this.scope = scope;
-
-		this.module.bundle.potentialEffects.push( this );
-
 		super.initialise( scope );
 	}
 
@@ -54,6 +51,8 @@ export default class AssignmentExpression extends Node {
 	}
 
 	run () {
+		this.module.bundle.potentialEffects.push( this );
+
 		const rightValue = this.right.run();
 
 		if ( this.operator === '=' ) {

@@ -21,31 +21,6 @@ export default class FunctionExpression extends Node {
 		this.body.bind();
 	}
 
-	call ( context, args ) {
-		if ( this.isCalling ) return; // recursive functions
-		this.isCalling = true;
-
-		this.body.scope.initialise();
-
-		args.forEach( ( arg, i ) => {
-			const param = this.params[i];
-
-			if ( !param ) return;
-
-			if ( param.type !== 'Identifier' ) {
-				throw new Error( 'TODO desctructuring' );
-			}
-
-			this.body.scope.setValue( param.name, arg );
-		});
-
-		for ( const node of this.body.body ) {
-			node.run();
-		}
-
-		this.isCalling = false;
-	}
-
 	getName () {
 		return this.name;
 	}
@@ -72,10 +47,6 @@ export default class FunctionExpression extends Node {
 	mark () {
 		this.body.mark();
 		super.mark();
-	}
-
-	markReturnStatements () {
-		this.returnStatements.forEach( statement => statement.mark() );
 	}
 
 	run () {

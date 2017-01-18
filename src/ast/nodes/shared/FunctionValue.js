@@ -34,10 +34,12 @@ export default class FunctionValue {
 				throw new Error( 'TODO desctructuring' );
 			}
 
-			this.node.body.scope.setValue( param.name, arg );
+			this.node.body.scope.setValue( param.name, arg.run() );
 		});
 
-		for ( const node of this.node.body.body ) {
+		const body = this.node.type === 'ArrowFunctionExpression' && this.node.body.type !== 'BlockStatement' ? [ this.node.body ] : this.node.body.body;
+
+		for ( const node of body ) {
 			node.run();
 			if ( node.type === 'ReturnStatement' ) {
 				returnValue = node.argument ? node.argument.run() : undefined; // TODO represent undefined
