@@ -314,7 +314,9 @@ export default class Bundle {
 
 				return this.fetchAllDependencies( module ).then( () => {
 					keys( module.exports ).forEach( name => {
-						module.exportsAll[name] = module.id;
+						if ( name !== 'default' ) {
+							module.exportsAll[name] = module.id;
+						}
 					});
 					module.exportAllSources.forEach( source => {
 						const id = module.resolvedIds[ source ];
