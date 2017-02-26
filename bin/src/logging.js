@@ -9,7 +9,7 @@ const errorSymbol = process.stderr.isTTY ? `🚨   ` : `Error: `;
 export const stderr = console.error.bind( console ); // eslint-disable-line no-console
 
 function log ( object, symbol ) {
-	const message = object.plugin ? `(${object.plugin} plugin) ${object.message}` : object.message;
+	const message = (object.plugin ? `(${object.plugin} plugin) ${object.message}` : object.message) || object;
 
 	stderr( `${symbol}${chalk.bold( message )}` );
 
