@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 0.41.4
+
+* Fix cases of multiple `export * from 'external'` declarations ([#1252](https://github.com/rollup/rollup/issues/1252))
+* Fix 'TODO' error message ([#1257](https://github.com/rollup/rollup/issues/1257))
+
+## 0.41.3
+
+* Don't treat `this.foo` as possible namespace ([#1258](https://github.com/rollup/rollup/issues/1258))
+
+## 0.41.2
+
+* Optimize `namespace['foo']` references ([#1240](https://github.com/rollup/rollup/pull/1240))
+
 ## 0.41.1
 
 * Include `new` expressions where callee is a class with side-effects ([#980](https://github.com/rollup/rollup/issues/980) [#1233](https://github.com/rollup/rollup/issues/1233))
