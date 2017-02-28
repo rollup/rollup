@@ -133,7 +133,7 @@ Unfortunately, **traditional modules – CommonJS and AMD – result in code mo
 
 ## Can I distribute my package as an ES6 module?
 
-If your `package.json` has a `jsnext:main` field, ES6-aware tools like Rollup can import the ES6 version of the package instead of the legacy CommonJS or UMD version. You'll be writing your code in a more future-proof way, and helping to bring an end to the [dark days of JavaScript package management](https://medium.com/@trek/last-week-i-had-a-small-meltdown-on-twitter-about-npms-future-plans-around-front-end-packaging-b424dd8d367a). [Learn more here.](https://github.com/rollup/rollup/wiki/jsnext:main)
+If your `package.json` has a `module` field, ES6-aware tools like Rollup can import the ES6 version of the package instead of the legacy CommonJS or UMD version. You'll be writing your code in a more future-proof way, and helping to bring an end to the [dark days of JavaScript package management](https://medium.com/@trek/last-week-i-had-a-small-meltdown-on-twitter-about-npms-future-plans-around-front-end-packaging-b424dd8d367a). [Learn more here.](https://github.com/rollup/rollup/wiki/pkg.module)
 
 See [rollup-starter-project](https://github.com/rollup/rollup-starter-project) for inspiration on how to get started.
 
