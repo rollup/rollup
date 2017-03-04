@@ -26,7 +26,7 @@
   </a>
 </p>
 
-## What Is Rollup?
+## Overview
 
 Rollup is a module bundler for JavaScript which compiles small pieces of code into a something larger and more complex, such as a library or application. It uses the new standardized format for code modules included in the ES6 revision of JavaScript, instead of previous idiosyncratic solutions such as CommonJS and AMD.
 
@@ -39,7 +39,7 @@ Install with `npm install --global rollup`. Rollup can be used either through a 
 - step-by-step [tutorial video series](https://code.lengstorf.com/learn-rollup-js/), with accompanying written walkthrough
 - miscellaneous issues in the [wiki](https://github.com/rollup/rollup/wiki)
 
-## Why Use Rollup?
+## Why
 
 Developing software is usually easier if you break your project into smaller separate pieces, since that often removes unexpected interactions and dramatically reduces the complexity of the problems you'll need to solve, and simply writing smaller projects in the first place [isn't necessarily the answer](https://medium.com/@Rich_Harris/small-modules-it-s-not-quite-that-simple-3ca532d65de4). Unfortunately, JavaScript has not historically included this capability as a core feature in the language.
 
@@ -69,7 +69,7 @@ var query = 'Rollup';
 ajax( 'https://api.example.com?search=' + query ).then( handleResponse );
 ```
 
-Because Rollup includes the bare minimum, it results in lighter, faster, and less complicated libraries applications. Since this approach is based on explicit `import` and `export` statements, it is vastly more effective than simply running an automated minifier to detect unused variables in the compiled output code.
+Because Rollup includes the bare minimum, it results in lighter, faster, and less complicated libraries and applications. Since this approach is based on explicit `import` and `export` statements, it is vastly more effective than simply running an automated minifier to detect unused variables in the compiled output code.
 
 ES6 modules let you freely and seamlessly combine the most useful individual functions from your favorite libraries, without weighing down your project with all the other unused code. This will eventually be possible natively, but Rollup lets you do it today.
 
@@ -82,6 +82,8 @@ Rollup can import existing CommonJS modules [through a plugin](https://github.co
 ### Publishing ES6 Modules
 
 If your `package.json` has a `module` field, ES6-aware tools like Rollup and [webpack 2](https://webpack.js.org/) can [import the ES6 module version of the package](https://github.com/rollup/rollup/wiki/pkg.module) directly, instead of relying on the legacy CommonJS version.
+
+###
 
 ## License
 
