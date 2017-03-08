@@ -83,8 +83,6 @@ Rollup can import existing CommonJS modules [through a plugin](https://github.co
 
 To make sure your ES6 modules are immediately usable by tools that work with CommonJS such as Node.js and webpack, you can use Rollup to compile to UMD or CommonJS format, and then point to that compiled version with the `main` property in your `package.json` file. If your `package.json` file also has a `module` field, ES6-aware tools like Rollup and [webpack 2](https://webpack.js.org/) will [import the ES6 module version](https://github.com/rollup/rollup/wiki/pkg.module) directly.
 
-###
-
 ## License
 
 Released under the [MIT license](https://github.com/rollup/rollup/blob/master/LICENSE.md).
