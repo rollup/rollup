@@ -327,10 +327,11 @@ export default class Bundle {
 							if ( name in module.exportsAll ) {
 								this.warn({
 									code: 'NAMESPACE_CONFLICT',
-									message: `Conflicting namespaces: ${relativeId( module.id )} re-exports '${name}' from both ${relativeId( module.exportsAll[ name ] )} (will be ignored) and ${relativeId( exportAllModule.exportsAll[ name ] )}`
+									message: `Conflicting namespaces: ${relativeId( module.id )} re-exports '${name}' from both ${relativeId( module.exportsAll[ name ] )} and ${relativeId( exportAllModule.exportsAll[ name ] )} (will be ignored)`
 								});
+							} else {
+							  module.exportsAll[ name ] = exportAllModule.exportsAll[ name ];
 							}
-							module.exportsAll[ name ] = exportAllModule.exportsAll[ name ];
 						});
 					});
 					return module;
