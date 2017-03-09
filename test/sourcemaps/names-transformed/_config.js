@@ -5,7 +5,6 @@ var getLocation = require( '../../utils/getLocation' );
 var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
 
 module.exports = {
-	solo: true,
 	description: 'names are recovered if transforms are used',
 	options: {
 		plugins: [
