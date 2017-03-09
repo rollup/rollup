@@ -5,6 +5,7 @@ var getLocation = require( '../../utils/getLocation' );
 var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
 
 module.exports = {
+	solo: true,
 	description: 'names are recovered if transforms are used',
 	options: {
 		plugins: [
@@ -35,7 +36,7 @@ module.exports = {
 	test: function ( code, map ) {
 		var smc = new SourceMapConsumer( map );
 
-		var generatedLoc = getLocation( code, /\w+=1/.exec( code ).index );
+		var generatedLoc = getLocation( code, /\w+=["']this/.exec( code ).index );
 		var originalLoc = smc.originalPositionFor( generatedLoc );
 
 		assert.deepEqual( originalLoc, {
@@ -45,7 +46,7 @@ module.exports = {
 			name: 'mangleMe'
 		});
 
-		generatedLoc = getLocation( code, /\w+=2/.exec( code ).index );
+		generatedLoc = getLocation( code, /\w+=["']nor/.exec( code ).index );
 		originalLoc = smc.originalPositionFor( generatedLoc );
 
 		assert.deepEqual( originalLoc, {
