@@ -32,12 +32,32 @@ Rollup is a module bundler for JavaScript which compiles small pieces of code in
 
 ## Quick Start Guide
 
-Install with `npm install --global rollup`. Rollup can be used either through a [command line interface](https://github.com/rollup/rollup/wiki/Command-Line-Interface) with an optional configuration file, or else through its [JavaScript API](https://github.com/rollup/rollup/wiki/JavaScript-API). After installing, run `rollup --help` to see the available options and parameters.
+Install with `npm install --global rollup`. Rollup can be used either through a [command line interface](https://github.com/rollup/rollup/wiki/Command-Line-Interface) with an optional configuration file, or else through its [JavaScript API](https://github.com/rollup/rollup/wiki/JavaScript-API). Run `rollup --help` to see the available options and parameters. The [starter project template](https://github.com/rollup/rollup-starter-project) demonstrates common configuration options, and more detailed instructions are available in the [user guide](http://rollupjs.org/guide/).
 
-- [user guide](http://rollupjs.org/)
-- [starter project template](https://github.com/rollup/rollup-starter-project)
-- step-by-step [tutorial video series](https://code.lengstorf.com/learn-rollup-js/), with accompanying written walkthrough
-- miscellaneous issues in the [wiki](https://github.com/rollup/rollup/wiki)
+### Commands
+
+These commands assume the entry point to your application is named main.js, and that you'd like all imports compiled into a single file named bundle.js.
+
+For browsers:
+
+```bash
+# compile to a <script> containing a self-executing function
+$ rollup main.js --format iife --output bundle.js
+```
+
+For Node.js:
+
+```bash
+# compile to a CommonJS module
+$ rollup main.js --format cjs --output bundle.js
+```
+
+For both browsers and Node.js:
+
+```bash
+# UMD format requires a bundle name
+$ rollup main.js --format umd --name "myBundle" --output bundle.js
+```
 
 ## Why
 
@@ -82,6 +102,11 @@ Rollup can import existing CommonJS modules [through a plugin](https://github.co
 ### Publishing ES6 Modules
 
 To make sure your ES6 modules are immediately usable by tools that work with CommonJS such as Node.js and webpack, you can use Rollup to compile to UMD or CommonJS format, and then point to that compiled version with the `main` property in your `package.json` file. If your `package.json` file also has a `module` field, ES6-aware tools like Rollup and [webpack 2](https://webpack.js.org/) will [import the ES6 module version](https://github.com/rollup/rollup/wiki/pkg.module) directly.
+
+## Links
+
+- step-by-step [tutorial video series](https://code.lengstorf.com/learn-rollup-js/), with accompanying written walkthrough
+- miscellaneous issues in the [wiki](https://github.com/rollup/rollup/wiki)
 
 ## License
 
