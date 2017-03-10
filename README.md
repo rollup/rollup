@@ -110,4 +110,4 @@ To make sure your ES6 modules are immediately usable by tools that work with Com
 
 ## License
 
-Released under the [MIT license](https://github.com/rollup/rollup/blob/master/LICENSE.md).
+[MIT](https://github.com/rollup/rollup/blob/master/LICENSE.md)
