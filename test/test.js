@@ -454,7 +454,7 @@ describe( 'rollup', function () {
 						process.chdir( SOURCEMAPS + '/' + dir );
 						warnings = [];
 
-						return rollup.rollup( options ).then( bundle => {
+						const testBundle = (bundle) => {
 							const options = extend( {}, {
 								format: profile.format,
 								sourceMap: true,
@@ -473,6 +473,18 @@ describe( 'rollup', function () {
 							} else if ( warnings.length ) {
 								throw new Error( `Unexpected warnings` );
 							}
+						};
+
+						return rollup.rollup( options ).then(bundle => {
+							testBundle(bundle);
+							// cache rebuild does not reemit warnings.
+							if ( config.warnings ) {
+								return;
+							}
+							// test cache noop rebuild
+							return rollup.rollup( extend({ cache: bundle }, options) ).then(bundle => {
+								testBundle(bundle);
+							});
 						});
 					});
 				});
