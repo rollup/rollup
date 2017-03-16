@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.41.6
+
+* Preserve `originalSourceMap` on incremental rebuilds for loaders with sourcemaps ([#1336](https://github.com/rollup/rollup/issues/1336))
+
 ## 0.41.5
 
 * Wrap ternary consequent/alternate sequences in parens ([#1273](https://github.com/rollup/rollup/issues/1273))
