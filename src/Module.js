@@ -373,6 +373,7 @@ export default class Module {
 			dependencies: this.dependencies.map( module => module.id ),
 			code: this.code,
 			originalCode: this.originalCode,
+			originalSourceMap: this.originalSourceMap,
 			ast: this.astClone,
 			sourceMapChain: this.sourceMapChain,
 			resolvedIds: this.resolvedIds
