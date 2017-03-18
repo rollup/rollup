@@ -4,7 +4,7 @@
 	(factory((global.myBundle = global.myBundle || {}),global.x));
 }(this, (function (exports,x) { 'use strict';
 
-	x = 'default' in x ? x['default'] : x;
+	x = x && 'default' in x ? x['default'] : x;
 
 
 
