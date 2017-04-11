@@ -15,6 +15,7 @@ const ALLOWED_KEYS = [
 	'banner',
 	'cache',
 	'context',
+	'defineReplacement',
 	'dest',
 	'entry',
 	'exports',
