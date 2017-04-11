@@ -61,7 +61,7 @@ function checkOptions ( options ) {
 		if ( options.onwarn ) {
 			options.onwarn( msg );
 		} else {
-			console.warn( msg );
+			console.warn( msg ); // eslint-disable-line no-console
 		}
 	}
 
