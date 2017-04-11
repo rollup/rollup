@@ -14,12 +14,14 @@ export default function amd ( bundle, magicString, { exportMode, indentString, i
 		deps.unshift( `'exports'` );
 	}
 
+	const amdOptions = options.amd || {};
+
 	const params =
-		( options.moduleId ? `'${options.moduleId}', ` : `` ) +
+		( amdOptions.id ? `'${amdOptions.id}', ` : `` ) +
 		( deps.length ? `[${deps.join( ', ' )}], ` : `` );
 
 	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
-	const define = options.defineReplacement || 'define';
+	const define = amdOptions.define || 'define';
 	const wrapperStart = `${define}(${params}function (${args.join( ', ' )}) {${useStrict}\n\n`;
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;

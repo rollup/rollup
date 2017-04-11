@@ -1,9 +1,8 @@
 var path = require('path');
 
 module.exports = {
-	solo: true,
-	description: 'defineReplacement',
+	description: 'amd.define',
 	options: {
-		defineReplacement: 'enifed'
+		amd: { define: 'enifed' }
 	}
 };
