@@ -23,8 +23,8 @@ function findFile ( file ) {
 	}
 }
 
-function addJsExtensionIfNecessary ( file ) {
-	return findFile( file ) || findFile( file + '.js' );
+function addExtensionIfNecessary ( file ) {
+	return findFile( file ) || findFile( file + '.js' ) || findFile( file + '.mjs' );
 }
 
 export function resolveId ( importee, importer ) {
@@ -37,15 +37,15 @@ export function resolveId ( importee, importer ) {
 	}
 
 	// absolute paths are left untouched
-	if ( isAbsolute( importee ) ) return addJsExtensionIfNecessary( resolve( importee ) );
+	if ( isAbsolute( importee ) ) return addExtensionIfNecessary( resolve( importee ) );
 
 	// if this is the entry point, resolve against cwd
-	if ( importer === undefined ) return addJsExtensionIfNecessary( resolve( process.cwd(), importee ) );
+	if ( importer === undefined ) return addExtensionIfNecessary( resolve( process.cwd(), importee ) );
 
 	// external modules are skipped at this stage
 	if ( importee[0] !== '.' ) return null;
 
-	return addJsExtensionIfNecessary( resolve( dirname( importer ), importee ) );
+	return addExtensionIfNecessary( resolve( dirname( importer ), importee ) );
 }
 
 
