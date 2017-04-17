@@ -1,5 +1,7 @@
 # Rollup
 
+[![Join the chat at https://gitter.im/rollup/rollup](https://badges.gitter.im/rollup/rollup.svg)](https://gitter.im/rollup/rollup?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 <p align="center">
   <a href="https://travis-ci.org/rollup/rollup">
     <img src="https://api.travis-ci.org/rollup/rollup.svg?branch=master"
