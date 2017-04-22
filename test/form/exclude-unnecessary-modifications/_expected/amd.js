@@ -23,6 +23,8 @@ define(function () { 'use strict';
 		}
 	}).mutate2();
 
+
+
 	console.log( foo );
 
 });

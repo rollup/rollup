@@ -23,4 +23,6 @@ function mutate1 () {
 	}
 }).mutate2();
 
+
+
 console.log( foo );
