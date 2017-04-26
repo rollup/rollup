@@ -394,12 +394,12 @@ export default class Bundle {
 									return declaration.source === source;
 								});
 
-							const declaration = module.imports[ name ].specifier.parent;
+							const declaration = module.imports[ name ] && module.imports[ name ].specifier.parent;
 
 							module.error({
 								code: 'CANNOT_IMPORT_SELF',
 								message: `A module cannot import itself`
-							}, declaration.start );
+							}, (declaration && declaration.start) );
 						}
 
 						module.resolvedIds[ source ] = resolvedId;
