@@ -28,7 +28,7 @@
 
 ## Overview
 
-Rollup is a module bundler for JavaScript which compiles small pieces of code into something larger and more complex, such as a library or application. It uses the new standardized format for code modules included in the ES6 revision of JavaScript, instead of previous idiosyncratic solutions such as CommonJS and AMD.
+Rollup is a module bundler for JavaScript which compiles small pieces of code into something larger and more complex, such as a library or application. It uses the new standardized format for code modules included in the ES6 revision of JavaScript, instead of previous idiosyncratic solutions such as CommonJS and AMD. ES6 modules let you freely and seamlessly combine the most useful individual functions from your favorite libraries. This will eventually be possible natively, but Rollup lets you do it today.
 
 ## Quick Start Guide
 
@@ -90,8 +90,6 @@ ajax( 'https://api.example.com?search=' + query ).then( handleResponse );
 ```
 
 Because Rollup includes the bare minimum, it results in lighter, faster, and less complicated libraries and applications. Since this approach is based on explicit `import` and `export` statements, it is vastly more effective than simply running an automated minifier to detect unused variables in the compiled output code.
-
-ES6 modules let you freely and seamlessly combine the most useful individual functions from your favorite libraries, without weighing down your project with all the other unused code. This will eventually be possible natively, but Rollup lets you do it today.
 
 ## Compatibility
 
