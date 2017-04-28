@@ -105,6 +105,7 @@ export class ExternalDeclaration {
 	}
 
 	activate () {
+		this.module.used = true;
 		this.activated = true;
 	}
 
