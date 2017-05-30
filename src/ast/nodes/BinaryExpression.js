@@ -33,6 +33,8 @@ export default class BinaryExpression extends Node {
 		const rightValue = this.right.getValue();
 		if ( rightValue === UNKNOWN ) return UNKNOWN;
 
+		if (!operators[ this.operator ]) return UNKNOWN;
+
 		return operators[ this.operator ]( leftValue, rightValue );
 	}
 }
