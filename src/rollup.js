@@ -12,6 +12,7 @@ export const VERSION = '<@VERSION@>';
 
 const ALLOWED_KEYS = [
 	'acorn',
+	'amd',
 	'banner',
 	'cache',
 	'context',
@@ -27,7 +28,6 @@ const ALLOWED_KEYS = [
 	'intro',
 	'legacy',
 	'moduleContext',
-	'moduleId',
 	'moduleName',
 	'noConflict',
 	'onwarn',
@@ -49,6 +49,20 @@ function checkOptions ( options ) {
 
 	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
 		return new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
+	}
+
+	if ( options.moduleId ) {
+		if ( options.amd ) throw new Error( 'Cannot have both options.amd and options.moduleId' );
+
+		options.amd = { id: options.moduleId };
+		delete options.moduleId;
+
+		const msg = `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`;
+		if ( options.onwarn ) {
+			options.onwarn( msg );
+		} else {
+			console.warn( msg ); // eslint-disable-line no-console
+		}
 	}
 
 	const err = validateKeys( keys(options), ALLOWED_KEYS );
