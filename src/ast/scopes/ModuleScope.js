@@ -21,7 +21,7 @@ export default class ModuleScope extends Scope {
 			if ( specifier.module.isExternal ) return;
 
 			specifier.module.getExports().forEach( name => {
-				names.add( name );
+				names.add( specifier.module.traceExport(name).name );
 			});
 
 			if ( specifier.name !== '*' ) {
