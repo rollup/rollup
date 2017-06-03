@@ -45,14 +45,11 @@ export default class Bundle {
 
 		if (options.pureExternalModules === true) {
 			this.isPureExternalModule = () => true;
-		} else if (typeof options.pureExternalModules === 'object') {
-			if (options.pureExternalModules.pure) {
-				const pure = new Set([options.pureExternalModules.pure]);
-				this.isPureExternalModule = id => pure.has(id);
-			} else if (options.pureExternalModules.impure) {
-				const impure = new Set([options.pureExternalModules.impure]);
-				this.isPureExternalModule = id => !impure.has(id);
-			}
+		} else if (typeof options.pureExternalModules === 'function') {
+			this.isPureExternalModule = options.pureExternalModules;
+		} else if (Array.isArray(options.pureExternalModules)) {
+			const pureExternalModules = new Set(options.pureExternalModules);
+			this.isPureExternalModule = id => pureExternalModules.has(id);
 		} else {
 			this.isPureExternalModule = () => false;
 		}
