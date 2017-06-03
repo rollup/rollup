@@ -35,6 +35,7 @@ const ALLOWED_KEYS = [
 	'paths',
 	'plugins',
 	'preferConst',
+	'pureExternalModules',
 	'sourceMap',
 	'sourceMapFile',
 	'targets',
