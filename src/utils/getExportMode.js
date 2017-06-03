@@ -1,7 +1,11 @@
 import { keys } from './object.js';
+import error from './error.js';
 
 function badExports ( option, keys ) {
-	throw new Error( `'${option}' was specified for options.exports, but entry module has following exports: ${keys.join(', ')}` );
+	error({
+		code: 'INVALID_EXPORT_OPTION',
+		message: `'${option}' was specified for options.exports, but entry module has following exports: ${keys.join(', ')}`
+	});
 }
 
 export default function getExportMode ( bundle, {exports: exportMode, moduleName, format} ) {
@@ -24,14 +28,21 @@ export default function getExportMode ( bundle, {exports: exportMode, moduleName
 			exportMode = 'default';
 		} else {
 			if ( bundle.entryModule.exports.default && format !== 'es') {
-				bundle.onwarn( `Using named and default exports together. Consumers of your bundle will have to use ${moduleName || 'bundle'}['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning. See https://github.com/rollup/rollup/wiki/JavaScript-API#exports for more information` );
+				bundle.warn({
+					code: 'MIXED_EXPORTS',
+					message: `Using named and default exports together. Consumers of your bundle will have to use ${moduleName || 'bundle'}['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning`,
+					url: `https://github.com/rollup/rollup/wiki/JavaScript-API#exports`
+				});
 			}
 			exportMode = 'named';
 		}
 	}
 
 	if ( !/(?:default|named|none)/.test( exportMode ) ) {
-		throw new Error( `options.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')` );
+		error({
+			code: 'INVALID_EXPORT_OPTION',
+			message: `options.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')`
+		});
 	}
 
 	return exportMode;

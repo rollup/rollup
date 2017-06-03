@@ -3,7 +3,8 @@ var path = require( 'path' );
 
 module.exports = {
 	description: 'throws error if module is not found',
-	error: function ( err ) {
-		assert.equal( err.message, 'Could not resolve \'./mod\' from ' + path.resolve( __dirname, 'main.js' ) );
+	error: {
+		code: 'UNRESOLVED_IMPORT',
+		message: `Could not resolve './mod' from main.js`
 	}
 };

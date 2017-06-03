@@ -3,9 +3,20 @@ var assert = require( 'assert' );
 
 module.exports = {
 	description: 'disallows non-top-level imports',
-	error: function ( err ) {
-		assert.equal( path.normalize(err.file), path.resolve( __dirname, 'main.js' ) );
-		assert.deepEqual( err.loc, { line: 2, column: 2 });
-		assert.ok( /may only appear at the top level/.test( err.message ) );
+	error: {
+		code: 'PARSE_ERROR',
+		message: `'import' and 'export' may only appear at the top level`,
+		pos: 19,
+		loc: {
+			file: path.resolve( __dirname, 'main.js' ),
+			line: 2,
+			column: 2
+		},
+		frame: `
+			1: function foo() {
+			2:   import foo from './foo.js';
+			     ^
+			3: }
+		`
 	}
 };

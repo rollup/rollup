@@ -1,13 +1,24 @@
-import isReference from '../utils/isReference.js';
+import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
 import { UNKNOWN } from '../values.js';
+
+const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
 class Keypath {
 	constructor ( node ) {
 		this.parts = [];
 
 		while ( node.type === 'MemberExpression' ) {
-			this.parts.unshift( node.property );
+			const prop = node.property;
+
+			if ( node.computed  ) {
+				if ( prop.type !== 'Literal' || typeof prop.value !== 'string' || !validProp.test( prop.value ) ) {
+					this.computed = true;
+					return;
+				}
+			}
+
+			this.parts.unshift( prop );
 			node = node.object;
 		}
 
@@ -20,18 +31,25 @@ export default class MemberExpression extends Node {
 		// if this resolves to a namespaced declaration, prepare
 		// to replace it
 		// TODO this code is a bit inefficient
-		if ( isReference( this ) ) { // TODO optimise namespace access like `foo['bar']` as well
-			const keypath = new Keypath( this );
+		const keypath = new Keypath( this );
 
+		if ( !keypath.computed && keypath.root.type === 'Identifier' ) {
 			let declaration = scope.findDeclaration( keypath.root.name );
 
 			while ( declaration.isNamespace && keypath.parts.length ) {
+				const exporterId = declaration.module.id;
+
 				const part = keypath.parts[0];
-				declaration = declaration.module.traceExport( part.name );
+				declaration = declaration.module.traceExport( part.name || part.value );
 
 				if ( !declaration ) {
-					this.module.bundle.onwarn( `Export '${part.name}' is not defined by '${this.module.id}'` );
-					break;
+					this.module.warn({
+						code: 'MISSING_EXPORT',
+						message: `'${part.name || part.value}' is not exported by '${relativeId( exporterId )}'`,
+						url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+					}, part.start );
+					this.replacement = 'undefined';
+					return;
 				}
 
 				keypath.parts.shift();
@@ -62,6 +80,10 @@ export default class MemberExpression extends Node {
 		if ( this.declaration ) {
 			const name = this.declaration.getName( es );
 			if ( name !== this.name ) code.overwrite( this.start, this.end, name, true );
+		}
+
+		else if ( this.replacement ) {
+			code.overwrite( this.start, this.end, this.replacement, true );
 		}
 
 		super.render( code, es );

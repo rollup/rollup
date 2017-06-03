@@ -42,4 +42,10 @@ export default class ClassDeclaration extends Node {
 			code.remove( this.leadingCommentStart || this.start, this.next || this.end );
 		}
 	}
+
+	run ( scope ) {
+		if ( this.parent.type === 'ExportDefaultDeclaration' ) {
+			super.run( scope );
+		}
+	}
 }

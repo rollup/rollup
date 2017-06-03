@@ -1,9 +1,9 @@
 import getExportBlock from './shared/getExportBlock.js';
 import esModuleExport from './shared/esModuleExport.js';
 
-export default function cjs ( bundle, magicString, { exportMode, intro }, options ) {
+export default function cjs ( bundle, magicString, { exportMode, intro, outro }, options ) {
 	intro = ( options.useStrict === false ? intro : `'use strict';\n\n${intro}` ) +
-	        ( exportMode === 'named' ? `${esModuleExport}\n\n` : '' );
+	        ( exportMode === 'named' && options.legacy !== true ? `${esModuleExport}\n\n` : '' );
 
 	let needsInterop = false;
 
@@ -28,7 +28,12 @@ export default function cjs ( bundle, magicString, { exportMode, intro }, option
 
 				return `${varOrConst} ${module.name} = _interopDefault(require('${module.path}'));`;
 			} else {
-				return `${varOrConst} ${module.name} = require('${module.path}');`;
+				const activated = Object.keys( module.declarations )
+					.filter( name => module.declarations[ name ].activated );
+
+				return activated.length ?
+					`${varOrConst} ${module.name} = require('${module.path}');` :
+					`require('${module.path}');`;
 			}
 		})
 		.join( '\n' );
@@ -43,9 +48,9 @@ export default function cjs ( bundle, magicString, { exportMode, intro }, option
 
 	magicString.prepend( intro );
 
-	const exportBlock = getExportBlock( bundle.entryModule, exportMode, 'module.exports =' );
+	const exportBlock = getExportBlock( bundle, exportMode, 'module.exports =' );
 	if ( exportBlock ) magicString.append( '\n\n' + exportBlock );
-	if ( options.outro ) magicString.append( `\n${options.outro}` );
+	if ( outro ) magicString.append( outro );
 
 	return magicString;
 }

@@ -1,5 +1,5 @@
 import { blank, forOwn, keys } from './utils/object.js';
-import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
+import makeLegalIdentifier, { reservedWords } from './utils/makeLegalIdentifier.js';
 import { UNKNOWN } from './ast/values.js';
 
 export default class Declaration {
@@ -79,10 +79,11 @@ export class SyntheticNamespaceDeclaration {
 		const members = keys( this.originals ).map( name => {
 			const original = this.originals[ name ];
 
-			if ( original.isReassigned ) {
+			if ( original.isReassigned && !legacy ) {
 				return `${indentString}get ${name} () { return ${original.getName( es )}; }`;
 			}
 
+			if ( legacy && ~reservedWords.indexOf( name ) ) name = `'${name}'`;
 			return `${indentString}${name}: ${original.getName( es )}`;
 		});
 
@@ -98,13 +99,13 @@ export class ExternalDeclaration {
 		this.safeName = null;
 		this.isExternal = true;
 
-		this.activated = true;
+		this.activated = false;
 
 		this.isNamespace = name === '*';
 	}
 
 	activate () {
-		// noop
+		this.activated = true;
 	}
 
 	addReference ( reference ) {
@@ -113,6 +114,10 @@ export class ExternalDeclaration {
 		if ( this.name === 'default' || this.name === '*' ) {
 			this.module.suggestName( reference.name );
 		}
+	}
+
+	gatherPossibleValues ( values ) {
+		values.add( UNKNOWN );
 	}
 
 	getName ( es ) {

@@ -1,0 +1,3 @@
+const other = {
+	something: 'here'
+};

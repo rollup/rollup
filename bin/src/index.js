@@ -16,6 +16,7 @@ const command = minimist( process.argv.slice( 2 ), {
 		g: 'globals',
 		h: 'help',
 		i: 'input',
+		l: 'legacy',
 		m: 'sourcemap',
 		n: 'name',
 		o: 'output',

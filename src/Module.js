@@ -1,36 +1,41 @@
-import { timeStart, timeEnd } from './utils/flushTime.js';
 import { parse } from 'acorn/src/index.js';
 import MagicString from 'magic-string';
-import { assign, blank, deepClone, keys } from './utils/object.js';
+import { locate } from 'locate-character';
+import { timeStart, timeEnd } from './utils/flushTime.js';
+import { assign, blank, keys } from './utils/object.js';
 import { basename, extname } from './utils/path.js';
-import getLocation from './utils/getLocation.js';
 import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
-import SOURCEMAPPING_URL from './utils/sourceMappingURL.js';
+import getCodeFrame from './utils/getCodeFrame.js';
+import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL.js';
+import error from './utils/error.js';
 import relativeId from './utils/relativeId.js';
 import { SyntheticNamespaceDeclaration } from './Declaration.js';
 import extractNames from './ast/utils/extractNames.js';
 import enhance from './ast/enhance.js';
+import clone from './ast/clone.js';
 import ModuleScope from './ast/scopes/ModuleScope.js';
 
-function tryParse ( code, comments, acornOptions, id ) {
+function tryParse ( module, acornOptions ) {
 	try {
-		return parse( code, assign({
-			ecmaVersion: 7,
+		return parse( module.code, assign({
+			ecmaVersion: 8,
 			sourceType: 'module',
-			onComment: ( block, text, start, end ) => comments.push({ block, text, start, end }),
-			preserveParens: true
+			onComment: ( block, text, start, end ) => module.comments.push({ block, text, start, end }),
+			preserveParens: false
 		}, acornOptions ));
 	} catch ( err ) {
-		err.code = 'PARSE_ERROR';
-		err.file = id; // see above - not necessarily true, but true enough
-		err.message += ` in ${id}`;
-		throw err;
+		module.error({
+			code: 'PARSE_ERROR',
+			message: err.message.replace( / \(\d+:\d+\)$/, '' )
+		}, err.pos );
 	}
 }
 
 export default class Module {
 	constructor ({ id, code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds, bundle }) {
 		this.code = code;
+		this.id = id;
+		this.bundle = bundle;
 		this.originalCode = originalCode;
 		this.originalSourceMap = originalSourceMap;
 		this.sourceMapChain = sourceMapChain;
@@ -39,13 +44,18 @@ export default class Module {
 
 		timeStart( 'ast' );
 
-		this.ast = ast || tryParse( code, this.comments, bundle.acornOptions, id ); // TODO what happens to comments if AST is provided?
-		this.astClone = deepClone( this.ast );
+		if ( ast ) {
+			// prevent mutating the provided AST, as it may be reused on
+			// subsequent incremental rebuilds
+			this.ast = clone( ast );
+			this.astClone = ast;
+		} else {
+			this.ast = tryParse( this, bundle.acornOptions ); // TODO what happens to comments if AST is provided?
+			this.astClone = clone( this.ast );
+		}
 
 		timeEnd( 'ast' );
 
-		this.bundle = bundle;
-		this.id = id;
 		this.excludeFromSourcemap = /\0/.test( id );
 		this.context = bundle.getModuleContext( id );
 
@@ -71,11 +81,14 @@ export default class Module {
 		});
 
 		// remove existing sourceMappingURL comments
-		const pattern = new RegExp( `\\/\\/#\\s+${SOURCEMAPPING_URL}=.+\\n?`, 'g' );
-		let match;
-		while ( match = pattern.exec( code ) ) {
-			this.magicString.remove( match.index, match.index + match[0].length );
-		}
+		this.comments = this.comments.filter(comment => {
+			//only one line comment can contain source maps
+			const isSourceMapComment = !comment.block && SOURCEMAPPING_URL_RE.test(comment.text);
+			if (isSourceMapComment) {
+				this.magicString.remove(comment.start, comment.end );
+			}
+			return !isSourceMapComment;
+		});
 
 		this.declarations = blank();
 		this.type = 'Module'; // TODO only necessary so that Scope knows this should be treated as a function scope... messy
@@ -108,7 +121,10 @@ export default class Module {
 					const name = specifier.exported.name;
 
 					if ( this.exports[ name ] || this.reexports[ name ] ) {
-						throw new Error( `A module cannot have multiple exports with the same name ('${name}')` );
+						this.error({
+							code: 'DUPLICATE_EXPORT',
+							message: `A module cannot have multiple exports with the same name ('${name}')`
+						}, specifier.start );
 					}
 
 					this.reexports[ name ] = {
@@ -128,8 +144,10 @@ export default class Module {
 			const identifier = ( node.declaration.id && node.declaration.id.name ) || node.declaration.name;
 
 			if ( this.exports.default ) {
-				// TODO indicate location
-				throw new Error( 'A module can only have one default export' );
+				this.error({
+					code: 'DUPLICATE_EXPORT',
+					message: `A module can only have one default export`
+				}, node.start );
 			}
 
 			this.exports.default = {
@@ -169,19 +187,21 @@ export default class Module {
 					const exportedName = specifier.exported.name;
 
 					if ( this.exports[ exportedName ] || this.reexports[ exportedName ] ) {
-						throw new Error( `A module cannot have multiple exports with the same name ('${exportedName}')` );
+						this.error({
+							code: 'DUPLICATE_EXPORT',
+							message: `A module cannot have multiple exports with the same name ('${exportedName}')`
+						}, specifier.start );
 					}
 
-					// `export { default as foo }` – special case. We want importers
-					// to use the UnboundDefaultExport proxy, not the original declaration
-					if ( exportedName === 'default' ) {
-						this.exports[ exportedName ] = { localName: 'default' };
-					} else {
-						this.exports[ exportedName ] = { localName };
-					}
+					this.exports[ exportedName ] = { localName };
 				});
 			} else {
-				this.bundle.onwarn( `Module ${this.id} has an empty export declaration` );
+				// TODO is this really necessary? `export {}` is valid JS, and
+				// might be used as a hint that this is indeed a module
+				this.warn({
+					code: 'EMPTY_EXPORT',
+					message: `Empty export declaration`
+				}, node.start );
 			}
 		}
 	}
@@ -195,17 +215,17 @@ export default class Module {
 			const localName = specifier.local.name;
 
 			if ( this.imports[ localName ] ) {
-				const err = new Error( `Duplicated import '${localName}'` );
-				err.file = this.id;
-				err.loc = getLocation( this.code, specifier.start );
-				throw err;
+				this.error({
+					code: 'DUPLICATE_IMPORT',
+					message: `Duplicated import '${localName}'`
+				}, specifier.start );
 			}
 
 			const isDefault = specifier.type === 'ImportDefaultSpecifier';
 			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
 
 			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
-			this.imports[ localName ] = { source, name, module: null };
+			this.imports[ localName ] = { source, specifier, name, module: null };
 		});
 	}
 
@@ -270,6 +290,19 @@ export default class Module {
 		// }
 	}
 
+	error ( props, pos ) {
+		if ( pos !== undefined ) {
+			props.pos = pos;
+
+			const { line, column } = locate( this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
+
+			props.loc = { file: this.id, line, column };
+			props.frame = getCodeFrame( this.code, line, column );
+		}
+
+		error( props );
+	}
+
 	findParent () {
 		// TODO what does it mean if we're here?
 		return null;
@@ -291,7 +324,10 @@ export default class Module {
 		});
 
 		this.exportAllModules.forEach( module => {
-			if ( module.isExternal ) return; // TODO
+			if ( module.isExternal ) {
+				exports[ `*${module.id}` ] = true;
+				return;
+			}
 
 			module.getExports().forEach( name => {
 				if ( name !== 'default' ) exports[ name ] = true;
@@ -337,6 +373,7 @@ export default class Module {
 			dependencies: this.dependencies.map( module => module.id ),
 			code: this.code,
 			originalCode: this.originalCode,
+			originalSourceMap: this.originalSourceMap,
 			ast: this.astClone,
 			sourceMapChain: this.sourceMapChain,
 			resolvedIds: this.resolvedIds
@@ -359,7 +396,14 @@ export default class Module {
 
 			const declaration = otherModule.traceExport( importDeclaration.name );
 
-			if ( !declaration ) throw new Error( `'${importDeclaration.name}' is not exported by ${relativeId( otherModule.id )} (imported by ${relativeId( this.id )}). For help fixing this error see https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module` );
+			if ( !declaration ) {
+				this.error({
+					code: 'MISSING_EXPORT',
+					message: `'${importDeclaration.name}' is not exported by ${relativeId( otherModule.id )}`,
+					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+				}, importDeclaration.specifier.start );
+			}
+
 			return declaration;
 		}
 
@@ -367,16 +411,23 @@ export default class Module {
 	}
 
 	traceExport ( name ) {
+		// export * from 'external'
+		if ( name[0] === '*' ) {
+			const module = this.bundle.moduleById.get( name.slice( 1 ) );
+			return module.traceExport( '*' );
+		}
+
 		// export { foo } from './other.js'
 		const reexportDeclaration = this.reexports[ name ];
 		if ( reexportDeclaration ) {
 			const declaration = reexportDeclaration.module.traceExport( reexportDeclaration.localName );
 
 			if ( !declaration ) {
-				const err = new Error( `'${reexportDeclaration.localName}' is not exported by '${reexportDeclaration.module.id}' (imported by '${this.id}')` );
-				err.file = this.id;
-				err.loc = getLocation( this.code, reexportDeclaration.start );
-				throw err;
+				this.error({
+					code: 'MISSING_EXPORT',
+					message: `'${reexportDeclaration.localName}' is not exported by ${relativeId( reexportDeclaration.module.id )}`,
+					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+				}, reexportDeclaration.start );
 			}
 
 			return declaration;
@@ -390,11 +441,26 @@ export default class Module {
 			return declaration || this.bundle.scope.findDeclaration( name );
 		}
 
+		if ( name === 'default' ) return;
+
 		for ( let i = 0; i < this.exportAllModules.length; i += 1 ) {
 			const module = this.exportAllModules[i];
 			const declaration = module.traceExport( name );
 
 			if ( declaration ) return declaration;
 		}
+	}
+
+	warn ( warning, pos ) {
+		if ( pos !== undefined ) {
+			warning.pos = pos;
+
+			const { line, column } = locate( this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
+
+			warning.loc = { file: this.id, line, column };
+			warning.frame = getCodeFrame( this.code, line, column );
+		}
+
+		this.bundle.warn( warning );
 	}
 }

@@ -3,10 +3,21 @@ var assert = require( 'assert' );
 
 module.exports = {
 	description: 'disallows reassignments to namespace exports',
-	error: function ( err ) {
-		assert.equal( path.normalize(err.file), path.resolve( __dirname, 'main.js' ) );
-		assert.deepEqual( err.loc, { line: 3, column: 0 });
-		assert.ok( /Illegal reassignment/.test( err.message ) );
+	error: {
+		code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
+		message: `Illegal reassignment to import 'exp'`,
+		pos: 31,
+		loc: {
+			file: path.resolve( __dirname, 'main.js' ),
+			line: 3,
+			column: 0
+		},
+		frame: `
+			1: import * as exp from './foo';
+			2:
+			3: exp.foo = 2;
+			   ^
+		`
 	}
 };
 

@@ -21,10 +21,10 @@ import Identifier from './Identifier.js';
 import IfStatement from './IfStatement.js';
 import ImportDeclaration from './ImportDeclaration.js';
 import Literal from './Literal.js';
+import LogicalExpression from './LogicalExpression.js';
 import MemberExpression from './MemberExpression.js';
 import NewExpression from './NewExpression.js';
 import ObjectExpression from './ObjectExpression.js';
-import ParenthesizedExpression from './ParenthesizedExpression.js';
 import ReturnStatement from './ReturnStatement.js';
 import Statement from './shared/Statement.js';
 import TemplateLiteral from './TemplateLiteral.js';
@@ -60,10 +60,10 @@ export default {
 	IfStatement,
 	ImportDeclaration,
 	Literal,
+	LogicalExpression,
 	MemberExpression,
 	NewExpression,
 	ObjectExpression,
-	ParenthesizedExpression,
 	ReturnStatement,
 	SwitchStatement: Statement,
 	TemplateLiteral,

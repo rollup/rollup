@@ -1,5 +1,115 @@
 # rollup changelog
 
+## 0.41.6
+
+* Preserve `originalSourceMap` on incremental rebuilds for loaders with sourcemaps ([#1336](https://github.com/rollup/rollup/issues/1336))
+
+## 0.41.5
+
+* Wrap ternary consequent/alternate sequences in parens ([#1273](https://github.com/rollup/rollup/issues/1273))
+* Fix erroneous warning on multiple `export * from` declarations with defaults ([#1278](https://github.com/rollup/rollup/issues/1278))
+* Prevent variable conflicts with `treeshake: false` ([#1268](https://github.com/rollup/rollup/issues/1268))
+* Allow missing `source` when collapsing sourcemaps ([#1254](https://github.com/rollup/rollup/issues/1254))
+* Allow plugins to log with strings ([#1316](https://github.com/rollup/rollup/pull/1316))
+
+## 0.41.4
+
+* Fix cases of multiple `export * from 'external'` declarations ([#1252](https://github.com/rollup/rollup/issues/1252))
+* Fix 'TODO' error message ([#1257](https://github.com/rollup/rollup/issues/1257))
+
+## 0.41.3
+
+* Don't treat `this.foo` as possible namespace ([#1258](https://github.com/rollup/rollup/issues/1258))
+
+## 0.41.2
+
+* Optimize `namespace['foo']` references ([#1240](https://github.com/rollup/rollup/pull/1240))
+
+## 0.41.1
+
+* Include `new` expressions where callee is a class with side-effects ([#980](https://github.com/rollup/rollup/issues/980) [#1233](https://github.com/rollup/rollup/issues/1233))
+
+## 0.41.0
+
+* Add `this.warn(...)` and `this.error(...)` methods to plugin `transform` hook contexts ([#1140](https://github.com/rollup/rollup/issues/1140))
+* `throw` always considered to be a side effect ([#1227](https://github.com/rollup/rollup/pull/1227))
+
+## 0.40.2
+
+* Add `file` property to sourcemaps for bundles with plugins ([#986](https://github.com/rollup/rollup/issues/986))
+* Don't require globals for empty imports ([#1217](https://github.com/rollup/rollup/issues/1217))
+
+## 0.40.1
+
+* Allow missing space between `export default` and declaration ([#1218](https://github.com/rollup/rollup/pull/1218))
+
+## 0.40.0
+
+* [BREAKING] Better, more consistent error logging ([#1212](https://github.com/rollup/rollup/pull/1212))
+* Don't use colours and emojis for non-TTY stderr ([#1201](https://github.com/rollup/rollup/issues/1201))
+
+## 0.39.2
+
+* Prevent mutation of cached ASTs (fixes stack overflow with rollup-watch) ([#1205](https://github.com/rollup/rollup/pull/1205))
+
+## 0.39.1
+
+* Ignore `var` initialisers in dead branches ([#1198](https://github.com/rollup/rollup/issues/1198))
+
+## 0.39.0
+
+* [BREAKING] Warnings are objects, rather than strings ([#1194](https://github.com/rollup/rollup/issues/1194))
+
+## 0.38.3
+
+* More informative warning for implicit external dependencies ([#1051](https://github.com/rollup/rollup/issues/1051))
+* Warn when creating browser bundle with external dependencies on Node built-ins ([#1051](https://github.com/rollup/rollup/issues/1051))
+* Statically analyse LogicalExpression nodes, for better dead code removal ([#1061](https://github.com/rollup/rollup/issues/1061))
+
+## 0.38.2
+
+* Preserve `var` declarations in dead branches ([#997](https://github.com/rollup/rollup/issues/997))
+* Warn if exporting a call expression that looks like a function declaration ([#1011](https://github.com/rollup/rollup/issues/1011))
+* Wrap function expressions in parentheses if necessary ([#1011](https://github.com/rollup/rollup/issues/1011))
+
+## 0.38.1
+
+* Fix sourcemap comment removal ([#1104](https://github.com/rollup/rollup/issues/1104))
+* Warn if empty bundle is generated ([#444](https://github.com/rollup/rollup/issues/444))
+* Support ES2017 syntax ([#492](https://github.com/rollup/rollup/issues/492))
+* Remove unused imports from external modules ([#595](https://github.com/rollup/rollup/issues/595))
+* Remove unused function and class declarations inside function bodies ([#1108](https://github.com/rollup/rollup/issues/1108), [#1178](https://github.com/rollup/rollup/issues/1178))
+* Deconflict function expression IDs ([#1176](https://github.com/rollup/rollup/issues/1176))
+
+## 0.38.0
+
+* [BREAKING] `export { foo as default }` creates live binding ([#1078](https://github.com/rollup/rollup/issues/1078))
+* Prevent sourceMappingURL removal edge case ([#988](https://github.com/rollup/rollup/issues/988))
+* Bind function expression IDs to the correct scope ([#1083](https://github.com/rollup/rollup/issues/1083))
+* Correctly deshadow destructured parameters with assignments ([#1008](https://github.com/rollup/rollup/issues/1008))
+
+## 0.37.2
+
+* Remove unused `new` expressions without side-effects ([#179](https://github.com/rollup/rollup/issues/179))
+* Only remove valid sourceMappingURL comments ([#1132](https://github.com/rollup/rollup/issues/1132))
+* Ensure blocks containing activated `var` declarations are included in output ([#1113](https://github.com/rollup/rollup/issues/1113))
+* Support plugin outros ([#1116](https://github.com/rollup/rollup/issues/1116))
+
+## 0.37.1
+
+* Follow symlinks ([#447](https://github.com/rollup/rollup/issues/447))
+* Fix tree-shaking of recursive functions and other cases ([#1120](https://github.com/rollup/rollup/issues/1120), [#1142](https://github.com/rollup/rollup/issues/1142))
+* Support module names that require quotes ([#582](https://github.com/rollup/rollup/issues/582), [#584](https://github.com/rollup/rollup/issues/584))
+* Fix [#957](https://github.com/rollup/rollup/issues/957)
+
+## 0.37.0
+
+* [BREAKING] Default exports are not included in reified namespaces ([#1028](https://github.com/rollup/rollup/issues/1028))
+* Parentheses do not defeat tree-shaking ([#1101](https://github.com/rollup/rollup/issues/1101), [#1128](https://github.com/rollup/rollup/issues/1128))
+* More `legacy` fixes: do not create getters ([#1069](https://github.com/rollup/rollup/pull/1069)), do not include `__esModule` ([#1068](https://github.com/rollup/rollup/pull/1068)), quote reserved property names ([#1057](https://github.com/rollup/rollup/pull/1057))
+* Fix missing namespace member warnings ([#1045](https://github.com/rollup/rollup/issues/1045))
+* Fix TypeError in arrow function without braces returning a function ([#1062](https://github.com/rollup/rollup/pull/1062))
+
 ## 0.36.4
 
 * Only depend on program-level call expressions ([#977](https://github.com/rollup/rollup/issues/977))

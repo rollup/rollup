@@ -1,17 +1,23 @@
-var assert = require( 'assert' );
-
-var warned = false;
-
 module.exports = {
 	description: 'warns on export {}, but does not fail',
-	options: {
-		onwarn: function ( msg ) {
-			warned = true;
-			assert.ok( /main\.js has an empty export declaration/.test( msg ) );
+	warnings: [
+		{
+			code: 'EMPTY_EXPORT',
+			message: 'Empty export declaration',
+			pos: 0,
+			loc: {
+				file: require( 'path' ).resolve( __dirname, 'main.js' ),
+				line: 1,
+				column: 0
+			},
+			frame: `
+				1: export {};
+				   ^
+			`
+		},
+		{
+			code: 'EMPTY_BUNDLE',
+			message: 'Generated an empty bundle'
 		}
-	},
-	exports: function ( exports ) {
-		assert.equal( Object.keys( exports ).length, 0 );
-		assert.ok( warned, 'did not warn' );
-	}
+	]
 };

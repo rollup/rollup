@@ -5,21 +5,21 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				resolveId: function () {
+				resolveId () {
 					throw new Error( 'nope' );
 				},
-				load: function ( id ) {
+				load ( id ) {
 					if ( id === 'main' ) return 'assert.ok( false );';
 				}
 			},
 			{
-				resolveId: function ( importee, importer ) {
+				resolveId ( importee, importer ) {
 					return 'main';
 				}
 			}
 		]
 	},
-	error: function ( err ) {
-		assert.equal( err.message, 'nope' );
+	error: {
+		message: 'nope'
 	}
 };

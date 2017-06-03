@@ -1,4 +1,4 @@
-define(['external', 'other', 'another'], function (external, other, another) { 'use strict';
+define(['other'], function (other) { 'use strict';
 
 	const a = 1;
 	const b = 2;
@@ -10,6 +10,7 @@ define(['external', 'other', 'another'], function (external, other, another) { '
 	});
 
 	console.log( Object.keys( namespace ) );
+	console.log( other.name );
 
 	const main = 42;
 

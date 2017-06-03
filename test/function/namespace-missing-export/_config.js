@@ -1,9 +1,21 @@
-var assert = require( 'assert' );
-
 module.exports = {
-	options: {
-		onwarn: function ( msg ) {
-			assert.ok( /Export 'foo' is not defined by/.test( msg ) );
+	warnings: [
+		{
+			code: 'MISSING_EXPORT',
+			message: `'foo' is not exported by 'empty.js'`,
+			pos: 61,
+			loc: {
+				file: require( 'path' ).resolve( __dirname, 'main.js' ),
+				line: 3,
+				column: 25
+			},
+			frame: `
+				1: import * as mod from './empty.js';
+				2:
+				3: assert.equal( typeof mod.foo, 'undefined' );
+				                            ^
+			`,
+			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
 		}
-	}
+	]
 };

@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'excludes non-top-level throw statements',
+	description: 'includes throw statements',
 	options: {
 		moduleName: 'myBundle'
 	}

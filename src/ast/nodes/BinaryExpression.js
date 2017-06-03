@@ -21,6 +21,7 @@ const operators = {
 	'|': ( left, right ) => left | right,
 	'^': ( left, right ) => left ^ right,
 	'&': ( left, right ) => left & right,
+	'**': ( left, right ) => Math.pow( left, right ),
 	in: ( left, right ) => left in right,
 	instanceof: ( left, right ) => left instanceof right
 };
@@ -32,6 +33,8 @@ export default class BinaryExpression extends Node {
 
 		const rightValue = this.right.getValue();
 		if ( rightValue === UNKNOWN ) return UNKNOWN;
+
+		if (!operators[ this.operator ]) return UNKNOWN;
 
 		return operators[ this.operator ]( leftValue, rightValue );
 	}

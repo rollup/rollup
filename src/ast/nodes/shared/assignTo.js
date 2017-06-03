@@ -8,8 +8,6 @@ export default function assignToForLoopLeft ( node, scope, value ) {
 	}
 
 	else {
-		while ( node.type === 'ParenthesizedExpression' ) node = node.expression;
-
 		if ( node.type === 'MemberExpression' ) {
 			// apparently this is legal JavaScript? Though I don't know what
 			// kind of monster would write `for ( foo.bar of thing ) {...}`

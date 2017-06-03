@@ -1,5 +1,5 @@
 function foo () {
-	console.log( 'indented with tabs' );
+	console.log( 'not indented' );
 }
 
 export default foo;

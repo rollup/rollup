@@ -4,4 +4,8 @@ var foo = function () {
 	return 42;
 };
 
-console.log( foo() );
+var str = `
+//# sourceMappingURL=main.js.map
+`;
+
+console.log( foo(str) );

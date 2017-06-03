@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import { dirname } from './path.js';
 
+export * from 'fs';
+
 function mkdirpath ( path ) {
 	const dir = dirname( path );
 	try {
@@ -8,15 +10,6 @@ function mkdirpath ( path ) {
 	} catch ( err ) {
 		mkdirpath( dir );
 		fs.mkdirSync( dir );
-	}
-}
-
-export function isFile ( file ) {
-	try {
-		const stats = fs.statSync( file );
-		return stats.isFile();
-	} catch ( err ) {
-		return false;
 	}
 }
 
@@ -33,6 +26,3 @@ export function writeFile ( dest, data ) {
 		});
 	});
 }
-
-export const readdirSync = fs.readdirSync;
-export const readFileSync = fs.readFileSync;

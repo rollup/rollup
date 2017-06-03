@@ -1,5 +1,5 @@
+import { locate } from 'locate-character';
 import { UNKNOWN } from './values.js';
-import getLocation from '../utils/getLocation.js';
 
 export default class Node {
 	bind ( scope ) {
@@ -74,7 +74,7 @@ export default class Node {
 
 	locate () {
 		// useful for debugging
-		const location = getLocation( this.module.code, this.start );
+		const location = locate( this.module.code, this.start, { offsetLine: 1 });
 		location.file = this.module.id;
 		location.toString = () => JSON.stringify( location );
 

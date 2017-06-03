@@ -1,4 +1,5 @@
 import { forOwn } from '../../utils/object.js';
+import relativeId from '../../utils/relativeId.js';
 import Scope from './Scope.js';
 
 export default class ModuleScope extends Scope {
@@ -14,24 +15,28 @@ export default class ModuleScope extends Scope {
 	}
 
 	deshadow ( names ) {
-		names = new Map( names );
+		names = new Set( names );
 
 		forOwn( this.module.imports, specifier => {
 			if ( specifier.module.isExternal ) return;
 
 			specifier.module.getExports().forEach( name => {
-				names.set(name);
+				names.add( specifier.module.traceExport(name).name );
 			});
 
 			if ( specifier.name !== '*' ) {
 				const declaration = specifier.module.traceExport( specifier.name );
 				if ( !declaration ) {
-					this.module.bundle.onwarn( `Non-existent export '${specifier.name}' is imported from ${specifier.module.id} by ${this.module.id}` );
+					this.module.warn({
+						code: 'NON_EXISTENT_EXPORT',
+						message: `Non-existent export '${specifier.name}' is imported from ${relativeId( specifier.module.id )}`
+					}, specifier.specifier.start );
 					return;
 				}
+
 				const name = declaration.getName( true );
 				if ( name !== specifier.name ) {
-					names.set( declaration.getName( true ) );
+					names.add( declaration.getName( true ) );
 				}
 			}
 		});

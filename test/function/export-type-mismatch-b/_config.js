@@ -5,7 +5,8 @@ module.exports = {
 	bundleOptions: {
 		exports: 'blah'
 	},
-	generateError: function ( err ) {
-		assert.ok( /options\.exports must be 'default', 'named', 'none', 'auto', or left unspecified/.test( err.message ) );
+	generateError: {
+		code: 'INVALID_EXPORT_OPTION',
+		message: `options.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')`
 	}
 };

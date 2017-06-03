@@ -49,13 +49,55 @@ function loadConfig ( path ) {
 function loader ( modules ) {
 	return {
 		resolveId ( id ) {
-			return id;
+			return id in modules ? id : null;
 		},
 
 		load ( id ) {
 			return modules[ id ];
 		}
 	};
+}
+
+function deindent ( str ) {
+	return str.slice( 1 ).replace( /^\t+/gm, '' ).replace( /\s+$/gm, '' ).trim();
+}
+
+function compareWarnings ( actual, expected ) {
+	assert.deepEqual(
+		actual.map( warning => {
+			const clone = Object.assign( {}, warning );
+			delete clone.toString;
+
+			if ( clone.frame ) {
+				clone.frame = clone.frame.replace( /\s+$/gm, '' );
+			}
+
+			return clone;
+		}),
+		expected.map( warning => {
+			if ( warning.frame ) {
+				warning.frame = deindent( warning.frame );
+			}
+			return warning;
+		})
+	);
+}
+
+function compareError ( actual, expected ) {
+	delete actual.stack;
+	actual = Object.assign( {}, actual, {
+		message: actual.message
+	});
+
+	if ( actual.frame ) {
+		actual.frame = actual.frame.replace( /\s+$/gm, '' );
+	}
+
+	if ( expected.frame ) {
+		expected.frame = deindent( expected.frame );
+	}
+
+	assert.deepEqual( actual, expected );
 }
 
 describe( 'rollup', function () {
@@ -110,6 +152,25 @@ describe( 'rollup', function () {
 			}).then( bundle => {
 				const { code } = bundle.generate({ format: 'iife' });
 				assert.ok( code[ code.length - 1 ] === '\n' );
+			});
+		});
+
+		it( 'warns on missing format option', () => {
+			const warnings = [];
+
+			return rollup.rollup({
+				entry: 'x',
+				plugins: [ loader({ x: `console.log( 42 );` }) ],
+				onwarn: warning => warnings.push( warning )
+			}).then( bundle => {
+				bundle.generate();
+				compareWarnings( warnings, [
+					{
+						code: 'MISSING_FORMAT',
+						message: `No format option was supplied – defaulting to 'es'`,
+						url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
+					}
+				]);
 			});
 		});
 	});
@@ -219,7 +280,7 @@ describe( 'rollup', function () {
 							}
 						} catch ( err ) {
 							if ( config.generateError ) {
-								config.generateError( err );
+								compareError( err, config.generateError );
 							} else {
 								unintendedError = err;
 							}
@@ -270,7 +331,11 @@ describe( 'rollup', function () {
 						}
 
 						if ( config.warnings ) {
-							config.warnings( warnings );
+							if ( Array.isArray( config.warnings ) ) {
+								compareWarnings( warnings, config.warnings );
+							} else {
+								config.warnings( warnings );
+							}
 						} else if ( warnings.length ) {
 							throw new Error( `Got unexpected warnings:\n${warnings.join('\n')}` );
 						}
@@ -280,7 +345,7 @@ describe( 'rollup', function () {
 						if ( unintendedError ) throw unintendedError;
 					}, err => {
 						if ( config.error ) {
-							config.error( err );
+							compareError( err, config.error );
 						} else {
 							throw err;
 						}
@@ -377,12 +442,19 @@ describe( 'rollup', function () {
 				const entry = path.resolve( SOURCEMAPS, dir, 'main.js' );
 				const dest = path.resolve( SOURCEMAPS, dir, '_actual/bundle' );
 
-				const options = extend( {}, config.options, { entry });
+				let warnings;
+
+				const options = extend( {}, config.options, {
+					entry,
+					onwarn: warning => warnings.push( warning )
+				});
 
 				PROFILES.forEach( profile => {
 					( config.skip ? it.skip : config.solo ? it.only : it )( 'generates ' + profile.format, () => {
 						process.chdir( SOURCEMAPS + '/' + dir );
-						return rollup.rollup( options ).then( bundle => {
+						warnings = [];
+
+						const testBundle = (bundle) => {
 							const options = extend( {}, {
 								format: profile.format,
 								sourceMap: true,
@@ -391,9 +463,28 @@ describe( 'rollup', function () {
 
 							bundle.write( options );
 
-							if ( config.before ) config.before();
-							const result = bundle.generate( options );
-							config.test( result.code, result.map );
+							if ( config.test ) {
+								const { code, map } = bundle.generate( options );
+								config.test( code, map, profile );
+							}
+
+							if ( config.warnings ) {
+								compareWarnings( warnings, config.warnings );
+							} else if ( warnings.length ) {
+								throw new Error( `Unexpected warnings` );
+							}
+						};
+
+						return rollup.rollup( options ).then(bundle => {
+							testBundle(bundle);
+							// cache rebuild does not reemit warnings.
+							if ( config.warnings ) {
+								return;
+							}
+							// test cache noop rebuild
+							return rollup.rollup( extend({ cache: bundle }, options) ).then(bundle => {
+								testBundle(bundle);
+							});
 						});
 					});
 				});
@@ -423,7 +514,11 @@ describe( 'rollup', function () {
 							}
 						}
 
-						if ( stderr ) console.error( stderr );
+						if ( 'stderr' in config ) {
+							assert.equal( deindent( config.stderr ), stderr.trim() );
+						} else if ( stderr ) {
+							console.error( stderr );
+						}
 
 						let unintendedError;
 
@@ -626,6 +721,35 @@ describe( 'rollup', function () {
 				assert.deepEqual( asts.foo, acorn.parse( modules.foo, { sourceType: 'module' }) );
 			});
 		});
+
+		it( 'recovers from errors', () => {
+			modules.entry = `import foo from 'foo'; import bar from 'bar'; export default foo + bar;`;
+
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [ plugin ]
+			}).then( cache => {
+				modules.foo = `var 42 = nope;`;
+
+				return rollup.rollup({
+					entry: 'entry',
+					plugins: [ plugin ],
+					cache
+				}).catch( err => {
+					return cache;
+				});
+			}).then( cache => {
+				modules.foo = `export default 42;`;
+
+				return rollup.rollup({
+					entry: 'entry',
+					plugins: [ plugin ],
+					cache
+				}).then( bundle => {
+					assert.equal( executeBundle( bundle ), 63 );
+				});
+			});
+		});
 	});
 
 	describe( 'hooks', () => {
@@ -710,8 +834,6 @@ describe( 'rollup', function () {
 					dest,
 					format: 'cjs'
 				});
-
-
 			}).then( () => {
 				assert.deepEqual( result, [
 					{ a: dest, format: 'cjs' },
@@ -719,6 +841,29 @@ describe( 'rollup', function () {
 				]);
 
 				return sander.unlink( dest );
+			});
+		});
+	});
+
+	describe( 'misc', () => {
+		it( 'warns if node builtins are unresolved in a non-CJS, non-ES bundle (#1051)', () => {
+			const warnings = [];
+
+			return rollup.rollup({
+				entry: 'entry',
+				plugins: [
+					loader({ entry: `import { format } from 'util';\nexport default format( 'this is a %s', 'formatted string' );` })
+				],
+				onwarn: warning => warnings.push( warning )
+			}).then( bundle => {
+				bundle.generate({
+					format: 'iife',
+					moduleName: 'myBundle'
+				});
+
+				const relevantWarnings = warnings.filter( warning => warning.code === 'MISSING_NODE_BUILTINS' );
+				assert.equal( relevantWarnings.length, 1 );
+				assert.equal( relevantWarnings[0].message, `Creating a browser bundle that depends on Node.js built-in module ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins` );
 			});
 		});
 	});

@@ -33,5 +33,11 @@ module.exports = {
 				dependencies: [ 'foo.js', 'bar.js' ]
 			}
 		]);
-	}
+	},
+	warnings: [
+		{
+			code: 'EMPTY_BUNDLE',
+			message: 'Generated an empty bundle'
+		}
+	]
 };

@@ -26,123 +26,86 @@
   </a>
 </p>
 
-> *I roll up, I roll up, I roll up, Shawty I roll up*
->
-> *I roll up, I roll up, I roll up*
-> &ndash;[Wiz Khalifa](https://www.youtube.com/watch?v=UhQz-0QVmQ0)
+## Overview
 
+Rollup is a module bundler for JavaScript which compiles small pieces of code into something larger and more complex, such as a library or application. It uses the new standardized format for code modules included in the ES6 revision of JavaScript, instead of previous idiosyncratic solutions such as CommonJS and AMD. ES6 modules let you freely and seamlessly combine the most useful individual functions from your favorite libraries. This will eventually be possible natively, but Rollup lets you do it today.
 
-## Quickstart
+## Quick Start Guide
 
-Rollup can be used via a [JavaScript API](https://github.com/rollup/rollup/wiki/JavaScript-API) or a [Command Line Interface](https://github.com/rollup/rollup/wiki/Command-Line-Interface). Install with `npm install -g rollup` and run `rollup --help` to get started.
+Install with `npm install --global rollup`. Rollup can be used either through a [command line interface](https://github.com/rollup/rollup/wiki/Command-Line-Interface) with an optional configuration file, or else through its [JavaScript API](https://github.com/rollup/rollup/wiki/JavaScript-API). Run `rollup --help` to see the available options and parameters. The [starter project template](https://github.com/rollup/rollup-starter-project) demonstrates common configuration options, and more detailed instructions are available throughout the [user guide](http://rollupjs.org/).
 
-If the command line's not your jam, there's also a [step-by-step tutorial video series](https://code.lengstorf.com/learn-rollup-js/) (with accompanying written walkthrough).
+### Commands
 
-[Dive into the wiki](https://github.com/rollup/rollup/wiki) when you're ready to learn more about Rollup and ES6 modules.
+These commands assume the entry point to your application is named main.js, and that you'd like all imports compiled into a single file named bundle.js.
 
+For browsers:
 
-## A next-generation ES6 module bundler
+```bash
+# compile to a <script> containing a self-executing function
+$ rollup main.js --format iife --output bundle.js
+```
 
-When you're developing software, it's much easier to break your library or application apart into separate pieces that you can work on separately. It's also very likely that you'll have dependencies on third party libraries. The result is lots of small files – but that's bad news for browsers, which get slowed down by having to make many requests. (It's also [bad news for Node!](https://kev.inburke.com/kevin/node-require-is-dog-slow/))
+For Node.js:
 
-The solution is to write your code as **modules**, and use a **module bundler** to concatenate everything into a single file. [Browserify](http://browserify.org/) and [Webpack](http://webpack.github.io/) are examples of module bundlers.
+```bash
+# compile to a CommonJS module
+$ rollup main.js --format cjs --output bundle.js
+```
 
-So far, so good, **but there's a problem**. When you include a library in your bundle...
+For both browsers and Node.js:
+
+```bash
+# UMD format requires a bundle name
+$ rollup main.js --format umd --name "myBundle" --output bundle.js
+```
+
+## Why
+
+Developing software is usually easier if you break your project into smaller separate pieces, since that often removes unexpected interactions and dramatically reduces the complexity of the problems you'll need to solve, and simply writing smaller projects in the first place [isn't necessarily the answer](https://medium.com/@Rich_Harris/small-modules-it-s-not-quite-that-simple-3ca532d65de4). Unfortunately, JavaScript has not historically included this capability as a core feature in the language.
+
+This finally changed with the ES6 revision of JavaScript, which includes a syntax for importing and exporting functions and data so they can be shared between separate scripts. The specification is now fixed, but it is not yet implemented in browsers or Node.js. Rollup allows you to write your code using the new module system, and will then compile it back down to existing supported formats such as CommonJS modules, AMD modules, and IIFE-style scripts. This means that you get to *write future-proof code*, and you also get the tremendous benefits of...
+
+## Tree Shaking
+
+In addition to enabling the use of ES6 modules, Rollup also statically analyzes the code you are importing, and will exclude anything that isn't actually used. This allows you to build on top of existing tools and modules without adding extra dependencies or bloating the size of your project.
+
+For example, with CommonJS, the *entire tool or library must be imported*.
 
 ```js
+// import the entire utils object with CommonJS
 var utils = require( 'utils' );
-
 var query = 'Rollup';
+// use the ajax method of the utils object
 utils.ajax( 'https://api.example.com?search=' + query ).then( handleResponse );
 ```
 
-...you include the *whole* library, including lots of code you're not actually using.
-
-**ES6 modules solve this problem.** Instead of importing the whole of `utils`, we can just import the `ajax` function we need:
+But with ES6 modules, instead of importing the whole `utils` object, we can just import the one `ajax` function we need:
 
 ```js
+// import the ajax function with an ES6 import statement
 import { ajax } from 'utils';
-
 var query = 'Rollup';
+// call the ajax function
 ajax( 'https://api.example.com?search=' + query ).then( handleResponse );
 ```
 
-Rollup statically analyses your code, and your dependencies, and includes the bare minimum in your bundle.
+Because Rollup includes the bare minimum, it results in lighter, faster, and less complicated libraries and applications. Since this approach is based on explicit `import` and `export` statements, it is vastly more effective than simply running an automated minifier to detect unused variables in the compiled output code.
 
+## Compatibility
 
-## Shouldn't we be writing those utilities as small modules anyway?
+### Importing CommonJS
 
-[Not always, no.](https://medium.com/@Rich_Harris/small-modules-it-s-not-quite-that-simple-3ca532d65de4)
+Rollup can import existing CommonJS modules [through a plugin](https://github.com/rollup/rollup-plugin-commonjs).
 
+### Publishing ES6 Modules
 
-## Don't minifiers already do this?
+To make sure your ES6 modules are immediately usable by tools that work with CommonJS such as Node.js and webpack, you can use Rollup to compile to UMD or CommonJS format, and then point to that compiled version with the `main` property in your `package.json` file. If your `package.json` file also has a `module` field, ES6-aware tools like Rollup and [webpack 2](https://webpack.js.org/) will [import the ES6 module version](https://github.com/rollup/rollup/wiki/pkg.module) directly.
 
-If you minify code with something like [UglifyJS](https://github.com/mishoo/UglifyJS2) (and you should!) then some unused code will be removed:
+## Links
 
-```js
-(function () {
-  function foo () {
-    console.log( 'this function was included!' );
-  }
-
-  function bar () {
-    console.log( 'this function was not' );
-    baz();
-  }
-
-  function baz () {
-    console.log( 'neither was this' );
-  }
-
-  foo();
-})();
-```
-
-A minifier can detect that `foo` gets called, but that `bar` doesn't. When we remove `bar`, it turns out that we can also remove `baz`.
-
-But because of the limitations of static analysis, and the dynamic nature of JavaScript, it can't do the same thing with code like this:
-
-```js
-(function () {
-  var obj = {
-    foo: function () {
-      console.log( 'this method was included!' );
-    },
-
-    bar: function () {
-      console.log( 'so was this :-(' );
-      this.baz();
-    },
-
-    baz: function () {
-      console.log( 'and this :-(' );
-    }
-  };
-
-  obj.foo();
-})();
-```
-
-Unfortunately, **traditional modules – CommonJS and AMD – result in code more like the second example than the first, making them next-to-impossible to optimise**. Rather than *excluding dead code*, we should be *including live code* (aka 'tree-shaking'). That's only possible with ES6 modules.
-
-
-## Can I use it with my non-ES6 dependencies?
-
-[Yes!](https://github.com/rollup/rollup/wiki/Bundling-CommonJS-modules) Rollup can't work its tree-shaking magic on CommonJS modules, but it can convert them to ES6 via [plugins](https://github.com/rollup/rollup/wiki/Plugins).
-
-
-## Can I distribute my package as an ES6 module?
-
-If your `package.json` has a `jsnext:main` field, ES6-aware tools like Rollup can import the ES6 version of the package instead of the legacy CommonJS or UMD version. You'll be writing your code in a more future-proof way, and helping to bring an end to the [dark days of JavaScript package management](https://medium.com/@trek/last-week-i-had-a-small-meltdown-on-twitter-about-npms-future-plans-around-front-end-packaging-b424dd8d367a). [Learn more here.](https://github.com/rollup/rollup/wiki/jsnext:main)
-
-See [rollup-starter-project](https://github.com/rollup/rollup-starter-project) for inspiration on how to get started.
-
-
-## How does this compare to JSPM/SystemJS?
-
-[JSPM](http://jspm.io/) is awesome, and [it uses Rollup](https://github.com/systemjs/builder/pull/205) in its builder! In addition to bundling modules, it also combines a repository with a package manager and a client-side module loader. JSPM allows you to use any module format and even develop without a build step, so it's a great choice for creating applications. Stand-alone Rollup doesn't use the complex SystemJS format, making it a better choice for creating libraries.
-
+- step-by-step [tutorial video series](https://code.lengstorf.com/learn-rollup-js/), with accompanying written walkthrough
+- miscellaneous issues in the [wiki](https://github.com/rollup/rollup/wiki)
 
 ## License
 
-Released under the [MIT license](https://github.com/rollup/rollup/blob/master/LICENSE.md).
+[MIT](https://github.com/rollup/rollup/blob/master/LICENSE.md)

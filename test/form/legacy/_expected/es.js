@@ -1,9 +1,15 @@
-const foo = 42;
+const foo = 1;
+const bar = 2;
 
 
 var namespace = (Object.freeze || Object)({
-	foo: foo
+	foo: foo,
+	bar: bar
 });
 
-const x = 'foo';
-assert.equal( namespace[x], 42 );
+console.log( Object.keys( namespace ) );
+
+const a = 1;
+const b = 2;
+
+export { a, b };

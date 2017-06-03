@@ -1,4 +1,6 @@
 import * as namespace from './namespace.js';
 
-const x = 'foo';
-assert.equal( namespace[x], 42 );
+console.log( Object.keys( namespace ) );
+
+export const a = 1;
+export const b = 2;
