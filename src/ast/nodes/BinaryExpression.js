@@ -21,6 +21,7 @@ const operators = {
 	'|': ( left, right ) => left | right,
 	'^': ( left, right ) => left ^ right,
 	'&': ( left, right ) => left & right,
+	'**': ( left, right ) => Math.pow( left, right ),
 	in: ( left, right ) => left in right,
 	instanceof: ( left, right ) => left instanceof right
 };
