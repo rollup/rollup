@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 0.42.0
+
+* Deprecate `options.moduleId` in favour of `options.amd.id` ([#1365](https://github.com/rollup/rollup/pull/1365))
+* Add `options.amd.define` option to specify name of AMD `define` function ([#1365](https://github.com/rollup/rollup/pull/1365))
+* Fix incorrect class removal with `treeshake: false` ([#1375](https://github.com/rollup/rollup/pull/1375))
+* Deconflict module exports imported as namespaces ([#1384](https://github.com/rollup/rollup/issues/1384))
+* Handle bare self-imports ([#1274](https://github.com/rollup/rollup/issues/1274))
+* Allow config file to export an array of multiple configs ([#1389](https://github.com/rollup/rollup/pull/1389))
+* Handle exponentiation operator, and fail gracefully on unknown operators ([#1416](https://github.com/rollup/rollup/issues/1416))
+* Add `watch` option ([#1424](https://github.com/rollup/rollup/pull/1424))
+
 ## 0.41.6
 
 * Preserve `originalSourceMap` on incremental rebuilds for loaders with sourcemaps ([#1336](https://github.com/rollup/rollup/issues/1336))
