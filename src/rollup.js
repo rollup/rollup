@@ -40,7 +40,8 @@ const ALLOWED_KEYS = [
 	'sourceMapFile',
 	'targets',
 	'treeshake',
-	'useStrict'
+	'useStrict',
+	'watch'
 ];
 
 function checkOptions ( options ) {
