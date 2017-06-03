@@ -388,18 +388,14 @@ export default class Bundle {
 						if ( resolvedId === module.id ) {
 							// need to find the actual import declaration, so we can provide
 							// a useful error message. Bit hoop-jumpy but what can you do
-							const name = Object.keys( module.imports )
-								.find( name => {
-									const declaration = module.imports[ name ];
-									return declaration.source === source;
-								});
-
-							const declaration = module.imports[ name ] && module.imports[ name ].specifier.parent;
+							const declaration = module.ast.body.find( node => {
+								return node.isImportDeclaration && node.source.value === source;
+							});
 
 							module.error({
 								code: 'CANNOT_IMPORT_SELF',
 								message: `A module cannot import itself`
-							}, (declaration && declaration.start) );
+							}, declaration.start );
 						}
 
 						module.resolvedIds[ source ] = resolvedId;
