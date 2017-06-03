@@ -86,15 +86,21 @@ export default function runRollup ( command ) {
 					}
 				};
 
-				const options = require( config );
-				if ( Object.keys( options ).length === 0 ) {
-					handleError({
-						code: 'MISSING_CONFIG',
-						message: 'Config file must export an options object',
-						url: 'https://github.com/rollup/rollup/wiki/Command-Line-Interface#using-a-config-file'
-					});
-				}
-				execute( options, command );
+				const configs = require( config );
+				const normalized = Array.isArray( configs ) ? configs : [configs];
+
+				normalized.forEach(options => {
+					if ( Object.keys( options ).length === 0 ) {
+						handleError({
+							code: 'MISSING_CONFIG',
+							message: 'Config file must export an options object',
+							url: 'https://github.com/rollup/rollup/wiki/Command-Line-Interface#using-a-config-file'
+						});
+					}
+
+					execute( options, command );
+				});
+
 				require.extensions[ '.js' ] = defaultLoader;
 			})
 			.catch( handleError );
