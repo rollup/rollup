@@ -1,5 +1,5 @@
 import { isFile, readdirSync, readFileSync } from './fs.js';
-import { basename, dirname, isAbsolute, resolve } from './path.js';
+import { basename, dirname, resolve } from './path.js';
 import { blank } from './object.js';
 
 export function load ( id ) {
