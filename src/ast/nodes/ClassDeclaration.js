@@ -36,7 +36,7 @@ export default class ClassDeclaration extends Node {
 	}
 
 	render ( code, es ) {
-		if ( this.activated ) {
+		if ( !this.module.bundle.treeshake || this.activated ) {
 			super.render( code, es );
 		} else {
 			code.remove( this.leadingCommentStart || this.start, this.next || this.end );

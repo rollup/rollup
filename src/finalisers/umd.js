@@ -54,9 +54,13 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 		args.unshift( 'exports' );
 	}
 
+	const amdOptions = options.amd || {};
+
 	const amdParams =
-		( options.moduleId ? `'${options.moduleId}', ` : `` ) +
+		( amdOptions.id ? `'${amdOptions.id}', ` : `` ) +
 		( amdDeps.length ? `[${amdDeps.join( ', ' )}], ` : `` );
+
+	const define = amdOptions.define || 'define';
 
 	const cjsExport = exportMode === 'default' ? `module.exports = ` : ``;
 	const defaultExport = exportMode === 'default' ? `${setupNamespace(options.moduleName)} = ` : '';
@@ -74,7 +78,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 	const wrapperIntro =
 		`(function (global, factory) {
 			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join( ', ' )}) :
-			typeof define === 'function' && define.amd ? define(${amdParams}factory) :
+			typeof ${define} === 'function' && ${define}.amd ? ${define}(${amdParams}factory) :
 			${globalExport};
 		}(this, (function (${args}) {${useStrict}
 
