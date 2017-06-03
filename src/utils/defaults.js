@@ -1,5 +1,5 @@
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs.js'; // eslint-disable-line
-import { basename, dirname, resolve } from './path.js';
+import { basename, dirname, isAbsolute, resolve } from './path.js';
 import { blank } from './object.js';
 import error from './error.js';
 
@@ -38,7 +38,7 @@ export function resolveId ( importee, importer ) {
 
 	// external modules (non-entry modules that start with neither '.' or '/')
 	// are skipped at this stage.
-	if ( importer !== undefined && !/^[\/\.]/.test( importee[0] ) ) return null;
+	if ( importer !== undefined && ( isAbsolute( importee ) || importee[0] === '.' ) ) return null;
 
 	// `resolve` processes paths from right to left, prepending them until an
 	// absolute path is created. Absolute importees therefore shortcircuit the
