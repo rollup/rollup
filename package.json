@@ -54,7 +54,7 @@
     "is-reference": "^1.0.0",
     "istanbul": "^0.4.3",
     "locate-character": "^2.0.0",
-    "magic-string": "^0.15.2",
+    "magic-string": "^0.21.3",
     "minimist": "^1.2.0",
     "mocha": "^3.0.0",
     "remap-istanbul": "^0.9.5",
