@@ -1,7 +1,7 @@
 (function (exports,x) {
 	'use strict';
 
-	x = 'default' in x ? x['default'] : x;
+	x = x && 'default' in x ? x['default'] : x;
 
 
 

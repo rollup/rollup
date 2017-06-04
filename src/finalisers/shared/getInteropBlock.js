@@ -11,7 +11,7 @@ export default function getInteropBlock ( bundle, options ) {
 				return `${bundle.varOrConst} ${module.name}__default = 'default' in ${module.name} ? ${module.name}['default'] : ${module.name};`;
 			}
 
-			return `${module.name} = 'default' in ${module.name} ? ${module.name}['default'] : ${module.name};`;
+			return `${module.name} = ${module.name} && 'default' in ${module.name} ? ${module.name}['default'] : ${module.name};`;
 		})
 		.filter( Boolean )
 		.join( '\n' );
