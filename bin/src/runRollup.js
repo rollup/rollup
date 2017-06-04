@@ -247,13 +247,6 @@ function assign ( target, source ) {
 }
 
 function bundle ( options ) {
-	if ( !options.entry ) {
-		handleError({
-			code: 'MISSING_INPUT_OPTION',
-			message: 'You must specify an --input (-i) option'
-		});
-	}
-
 	return rollup.rollup( options )
 		.then( bundle => {
 			if ( options.dest ) {

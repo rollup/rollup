@@ -45,12 +45,12 @@ const ALLOWED_KEYS = [
 ];
 
 function checkOptions ( options ) {
-	if ( !options || !options.entry ) {
-		return new Error( 'You must supply options.entry to rollup' );
+	if ( !options ) {
+		throw new Error( 'You must supply an options object to rollup' );
 	}
 
 	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
-		return new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
+		throw new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
 	}
 
 	if ( options.moduleId ) {
@@ -68,96 +68,96 @@ function checkOptions ( options ) {
 	}
 
 	const err = validateKeys( keys(options), ALLOWED_KEYS );
-	if ( err ) return err;
-
-	return null;
+	if ( err ) throw err;
 }
 
 export function rollup ( options ) {
-	const err = checkOptions ( options );
-	if ( err ) return Promise.reject( err );
+	try {
+		checkOptions( options );
+		const bundle = new Bundle( options );
 
-	const bundle = new Bundle( options );
+		timeStart( '--BUILD--' );
 
-	timeStart( '--BUILD--' );
+		return bundle.build().then( () => {
+			timeEnd( '--BUILD--' );
 
-	return bundle.build().then( () => {
-		timeEnd( '--BUILD--' );
+			function generate ( options = {} ) {
+				if ( !options.format ) {
+					bundle.warn({
+						code: 'MISSING_FORMAT',
+						message: `No format option was supplied – defaulting to 'es'`,
+						url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
+					});
 
-		function generate ( options = {} ) {
-			if ( !options.format ) {
-				bundle.warn({
-					code: 'MISSING_FORMAT',
-					message: `No format option was supplied – defaulting to 'es'`,
-					url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
+					options.format = 'es';
+				}
+
+				timeStart( '--GENERATE--' );
+
+				const rendered = bundle.render( options );
+
+				timeEnd( '--GENERATE--' );
+
+				bundle.plugins.forEach( plugin => {
+					if ( plugin.ongenerate ) {
+						plugin.ongenerate( assign({
+							bundle: result
+						}, options ), rendered);
+					}
 				});
 
-				options.format = 'es';
+				flushTime();
+
+				return rendered;
 			}
 
-			timeStart( '--GENERATE--' );
+			const result = {
+				imports: bundle.externalModules.map( module => module.id ),
+				exports: keys( bundle.entryModule.exports ),
+				modules: bundle.orderedModules.map( module => module.toJSON() ),
 
-			const rendered = bundle.render( options );
-
-			timeEnd( '--GENERATE--' );
-
-			bundle.plugins.forEach( plugin => {
-				if ( plugin.ongenerate ) {
-					plugin.ongenerate( assign({
-						bundle: result
-					}, options ), rendered);
-				}
-			});
-
-			flushTime();
-
-			return rendered;
-		}
-
-		const result = {
-			imports: bundle.externalModules.map( module => module.id ),
-			exports: keys( bundle.entryModule.exports ),
-			modules: bundle.orderedModules.map( module => module.toJSON() ),
-
-			generate,
-			write: options => {
-				if ( !options || !options.dest ) {
-					error({
-						code: 'MISSING_OPTION',
-						message: 'You must supply options.dest to bundle.write'
-					});
-				}
-
-				const dest = options.dest;
-				const output = generate( options );
-				let { code, map } = output;
-
-				const promises = [];
-
-				if ( options.sourceMap ) {
-					let url;
-
-					if ( options.sourceMap === 'inline' ) {
-						url = map.toUrl();
-					} else {
-						url = `${basename( dest )}.map`;
-						promises.push( writeFile( dest + '.map', map.toString() ) );
+				generate,
+				write: options => {
+					if ( !options || !options.dest ) {
+						error({
+							code: 'MISSING_OPTION',
+							message: 'You must supply options.dest to bundle.write'
+						});
 					}
 
-					code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
-				}
+					const dest = options.dest;
+					const output = generate( options );
+					let { code, map } = output;
 
-				promises.push( writeFile( dest, code ) );
-				return Promise.all( promises ).then( () => {
-					return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
-						return Promise.resolve( plugin.onwrite( assign({
-							bundle: result
-						}, options ), output));
+					const promises = [];
+
+					if ( options.sourceMap ) {
+						let url;
+
+						if ( options.sourceMap === 'inline' ) {
+							url = map.toUrl();
+						} else {
+							url = `${basename( dest )}.map`;
+							promises.push( writeFile( dest + '.map', map.toString() ) );
+						}
+
+						code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
+					}
+
+					promises.push( writeFile( dest, code ) );
+					return Promise.all( promises ).then( () => {
+						return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
+							return Promise.resolve( plugin.onwrite( assign({
+								bundle: result
+							}, options ), output));
+						});
 					});
-				});
-			}
-		};
+				}
+			};
 
-		return result;
-	});
+			return result;
+		});
+	} catch ( err ) {
+		return Promise.reject( err );
+	}
 }

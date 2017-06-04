@@ -113,19 +113,23 @@ describe( 'rollup', function () {
 		});
 
 		it( 'fails without options', () => {
-			return rollup.rollup().then( () => {
-				throw new Error( 'Missing expected error' );
-			}, err => {
-				assert.equal( 'You must supply options.entry to rollup', err.message );
-			});
+			return rollup.rollup()
+				.then( () => {
+					throw new Error( 'Missing expected error' );
+				})
+				.catch( err => {
+					assert.equal( err.message, 'You must supply an options object to rollup' );
+				});
 		});
 
 		it( 'fails without options.entry', () => {
-			return rollup.rollup({}).then( () => {
-				throw new Error( 'Missing expected error' );
-			}, err => {
-				assert.equal( 'You must supply options.entry to rollup', err.message );
-			});
+			return rollup.rollup({})
+				.then( () => {
+					throw new Error( 'Missing expected error' );
+				})
+				.catch( err => {
+					assert.equal( err.message, 'You must supply options.entry to rollup' );
+				});
 		});
 
 		it( 'fails with invalid keys', () => {
