@@ -76,6 +76,8 @@ export default function runRollup ( command ) {
 					format: 'cjs'
 				});
 
+				if ( command.watch ) process.env.ROLLUP_WATCH = 'true';
+
 				// temporarily override require
 				const defaultLoader = require.extensions[ '.js' ];
 				require.extensions[ '.js' ] = ( m, filename ) => {
