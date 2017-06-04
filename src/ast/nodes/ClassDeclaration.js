@@ -29,9 +29,11 @@ export default class ClassDeclaration extends Node {
 	initialise ( scope ) {
 		this.scope = scope;
 
-		this.name = this.id.name;
+		if ( this.id ) {
+			this.name = this.id.name;
+			scope.addDeclaration( this.name, this, false, false );
+		}
 
-		scope.addDeclaration( this.name, this, false, false );
 		super.initialise( scope );
 	}
 

@@ -15,7 +15,7 @@ export default class FunctionDeclaration extends Node {
 	}
 
 	bind ( scope ) {
-		this.id.bind( scope );
+		if ( this.id ) this.id.bind( scope );
 		this.params.forEach( param => param.bind( this.body.scope ) );
 		this.body.bind( scope );
 	}
@@ -33,12 +33,14 @@ export default class FunctionDeclaration extends Node {
 	}
 
 	initialise ( scope ) {
-		this.name = this.id.name; // may be overridden by bundle.deconflict
-		scope.addDeclaration( this.name, this, false, false );
+		if ( this.id ) {
+			this.name = this.id.name; // may be overridden by bundle.deconflict
+			scope.addDeclaration( this.name, this, false, false );
+			this.id.initialise( scope );
+		}
 
 		this.body.createScope( scope );
 
-		this.id.initialise( scope );
 		this.params.forEach( param => param.initialise( this.body.scope ) );
 		this.body.initialise();
 	}
