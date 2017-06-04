@@ -13,6 +13,7 @@ export default class ExternalModule {
 		this.mostCommonSuggestion = 0;
 
 		this.isExternal = true;
+		this.used = false;
 		this.declarations = blank();
 
 		this.exportsNames = false;

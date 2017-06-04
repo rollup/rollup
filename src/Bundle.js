@@ -43,6 +43,17 @@ export default class Bundle {
 
 		this.treeshake = options.treeshake !== false;
 
+		if (options.pureExternalModules === true) {
+			this.isPureExternalModule = () => true;
+		} else if (typeof options.pureExternalModules === 'function') {
+			this.isPureExternalModule = options.pureExternalModules;
+		} else if (Array.isArray(options.pureExternalModules)) {
+			const pureExternalModules = new Set(options.pureExternalModules);
+			this.isPureExternalModule = id => pureExternalModules.has(id);
+		} else {
+			this.isPureExternalModule = () => false;
+		}
+
 		this.resolveId = first(
 			[ id => this.isExternal( id ) ? false : null ]
 				.concat( this.plugins.map( plugin => plugin.resolveId ).filter( Boolean ) )
@@ -199,6 +210,11 @@ export default class Bundle {
 						code: 'UNUSED_EXTERNAL_IMPORT',
 						message: `${names} imported from external module '${module.id}' but never used`
 					});
+				});
+
+				// prune unused external imports
+				this.externalModules = this.externalModules.filter(module => {
+					return module.used || !this.isPureExternalModule(module.id);
 				});
 
 				this.orderedModules = this.sort();
