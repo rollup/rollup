@@ -57,36 +57,13 @@ export default class ExportDefaultDeclaration extends Node {
 		}
 
 		if ( this.shouldInclude || this.declaration.activated ) {
-			if ( this.declaration.type === 'CallExpression' && this.declaration.callee.type === 'FunctionExpression' && this.declaration.arguments.length ) {
-				// we're exporting an IIFE. Check it doesn't look unintentional (#1011)
-				const isWrapped = /\(/.test( code.original.slice( this.start, this.declaration.start ) );
-
-				if ( !isWrapped ) {
-					code.insertRight( this.declaration.callee.start, '(' );
-					code.insertLeft( this.declaration.callee.end, ')' );
-
-					const start = this.declaration.callee.end;
-					let end = this.declaration.arguments[0].start - 1;
-					while ( code.original[ end ] !== '(' ) end -= 1;
-
-					const newlineSeparated = /\n/.test( code.original.slice( start, end ) );
-
-					if ( newlineSeparated ) {
-						this.module.warn({
-							code: 'AMBIGUOUS_DEFAULT_EXPORT',
-							message: `Ambiguous default export (is a call expression, but looks like a function declaration)`,
-							url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#ambiguous-default-export'
-						}, this.declaration.start );
-					}
-				}
-			}
-
 			if ( this.activated ) {
 				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
 					if ( this.declaration.id ) {
 						code.remove( this.start, declaration_start );
 					} else {
-						throw new Error( 'TODO anonymous class/function declaration' );
+						code.overwrite( this.start, declaration_start, `var ${this.name} = ` );
+						if ( code.original[this.end - 1] !== ';' ) code.appendLeft( this.end, ';' );
 					}
 				}
 
@@ -127,5 +104,10 @@ export default class ExportDefaultDeclaration extends Node {
 	run ( scope ) {
 		this.shouldInclude = true;
 		super.run( scope );
+
+		// special case (TODO is this correct?)
+		if ( functionOrClassDeclaration.test( this.declaration.type ) && !this.declaration.id ) {
+			this.declaration.activate();
+		}
 	}
 }

@@ -4,8 +4,8 @@ var assert = require( 'assert' );
 module.exports = {
 	description: 'disallows duplicate imports',
 	error: {
-		code: 'DUPLICATE_IMPORT',
-		message: `Duplicated import 'a'`,
+		code: 'PARSE_ERROR',
+		message: `Identifier 'a' has already been declared`,
 		pos: 36,
 		loc: {
 			file: path.resolve( __dirname, 'main.js' ),
