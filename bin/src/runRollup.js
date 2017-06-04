@@ -1,3 +1,4 @@
+import path from 'path';
 import { realpathSync } from 'fs';
 import * as rollup from 'rollup';
 import relative from 'require-relative';
@@ -66,10 +67,10 @@ export default function runRollup ( command ) {
 
 		rollup.rollup({
 			entry: config,
-			onwarn: warning => {
-				if ( warning.code === 'UNRESOLVED_IMPORT' ) return;
-				handleWarning( warning );
-			}
+			external: id => {
+				return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5,id.length) === '.json';
+			},
+			onwarn: handleWarning
 		})
 			.then( bundle => {
 				const { code } = bundle.generate({
