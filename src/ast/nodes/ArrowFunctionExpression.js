@@ -1,5 +1,6 @@
 import Node from '../Node.js';
 import Scope from '../scopes/Scope.js';
+import { FUNCTION } from '../values.js';
 import extractNames from '../utils/extractNames.js';
 
 export default class ArrowFunctionExpression extends Node {
@@ -9,6 +10,10 @@ export default class ArrowFunctionExpression extends Node {
 
 	findScope ( functionScope ) {
 		return this.scope || this.parent.findScope( functionScope );
+	}
+
+	gatherPossibleValues ( values ) {
+		values.add( FUNCTION );
 	}
 
 	hasEffects () {

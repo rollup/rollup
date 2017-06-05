@@ -1,4 +1,5 @@
 import Node from '../Node.js';
+import { FUNCTION } from '../values.js';
 
 export default class FunctionExpression extends Node {
 	activate () {
@@ -8,6 +9,10 @@ export default class FunctionExpression extends Node {
 		const scope = this.body.scope;
 		this.params.forEach( param => param.run( scope ) ); // in case of assignment patterns
 		this.body.run();
+	}
+
+	gatherPossibleValues ( values ) {
+		values.add( FUNCTION );
 	}
 
 	addReference () {
