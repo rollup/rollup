@@ -34,11 +34,11 @@ export default class Identifier extends Node {
 		if ( this.declaration ) {
 			const name = this.declaration.getName( es );
 			if ( name !== this.name ) {
-				code.overwrite( this.start, this.end, name, true );
+				code.overwrite( this.start, this.end, name, { storeName: true, contentOnly: false } );
 
 				// special case
 				if ( this.parent.type === 'Property' && this.parent.shorthand ) {
-					code.insertLeft( this.start, `${this.name}: ` );
+					code.appendLeft( this.start, `${this.name}: ` );
 				}
 			}
 		}

@@ -68,7 +68,7 @@ export default class Node {
 
 	insertSemicolon ( code ) {
 		if ( code.original[ this.end - 1 ] !== ';' ) {
-			code.insertLeft( this.end, ';' );
+			code.appendLeft( this.end, ';' );
 		}
 	}
 

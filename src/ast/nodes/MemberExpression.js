@@ -79,11 +79,11 @@ export default class MemberExpression extends Node {
 	render ( code, es ) {
 		if ( this.declaration ) {
 			const name = this.declaration.getName( es );
-			if ( name !== this.name ) code.overwrite( this.start, this.end, name, true );
+			if ( name !== this.name ) code.overwrite( this.start, this.end, name, { storeName: true, contentOnly: false } );
 		}
 
 		else if ( this.replacement ) {
-			code.overwrite( this.start, this.end, this.replacement, true );
+			code.overwrite( this.start, this.end, this.replacement, { storeName: true, contentOnly: false } );
 		}
 
 		super.render( code, es );

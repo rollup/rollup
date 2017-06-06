@@ -89,7 +89,7 @@ export default class IfStatement extends Statement {
 						.filter( Boolean );
 
 					if ( names.length > 0 ) {
-						code.insertLeft( this.start, `var ${names.join( ', ' )};\n\n` );
+						code.appendLeft( this.start, `var ${names.join( ', ' )};\n\n` );
 					}
 				}
 
