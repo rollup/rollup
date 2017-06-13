@@ -5,7 +5,7 @@
 * Allow config files to import JSON ([#1426](https://github.com/rollup/rollup/issues/1426))
 * Allow undefined imports in interop block ([#1341](https://github.com/rollup/rollup/issues/1341))
 * Add `process.env.ROLLUP_WATCH = 'true'` in watch mode ([#1429](https://github.com/rollup/rollup/issues/1429))
-* Add `pureExternalImports` option ([#1352](https://github.com/rollup/rollup/issues/1352))
+* Add `pureExternalModules` option ([#1352](https://github.com/rollup/rollup/issues/1352))
 * Allow plugins to specify `options.entry` ([#1270](https://github.com/rollup/rollup/issues/1270))
 * Update dependencies
 
