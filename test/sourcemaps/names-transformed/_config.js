@@ -15,7 +15,7 @@ module.exports = {
 					var match;
 
 					while ( match = pattern.exec( code ) ) {
-						s.overwrite( match.index, match.index + match[0].length, 'mangleMePlease', true );
+						s.overwrite( match.index, match.index + match[0].length, 'mangleMePlease', { storeName: true, contentOnly: false } );
 					}
 
 					return {

@@ -18,7 +18,7 @@ export default class ThisExpression extends Node {
 
 	render ( code ) {
 		if ( this.alias ) {
-			code.overwrite( this.start, this.end, this.alias, true );
+			code.overwrite( this.start, this.end, this.alias, { storeName: true, contentOnly: false } );
 		}
 	}
 }
