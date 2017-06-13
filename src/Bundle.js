@@ -37,6 +37,10 @@ export default class Bundle {
 			return acc;
 		}, options);
 
+		if ( !options.entry ) {
+			throw new Error( 'You must supply options.entry to rollup' );
+		}
+
 		this.entry = options.entry;
 		this.entryId = null;
 		this.entryModule = null;
