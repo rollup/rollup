@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 0.43.0
+
+* Allow config files to import JSON ([#1426](https://github.com/rollup/rollup/issues/1426))
+* Allow undefined imports in interop block ([#1341](https://github.com/rollup/rollup/issues/1341))
+* Add `process.env.ROLLUP_WATCH = 'true'` in watch mode ([#1429](https://github.com/rollup/rollup/issues/1429))
+* Add `pureExternalImports` option ([#1352](https://github.com/rollup/rollup/issues/1352))
+* Allow plugins to specify `options.entry` ([#1270](https://github.com/rollup/rollup/issues/1270))
+* Update dependencies
+
 ## 0.42.0
 
 * Deprecate `options.moduleId` in favour of `options.amd.id` ([#1365](https://github.com/rollup/rollup/pull/1365))
