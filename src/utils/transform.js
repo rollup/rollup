@@ -29,10 +29,17 @@ export default function transform ( bundle, source, id, plugins ) {
 				if ( !object.code ) object.code = code;
 
 				if ( pos !== undefined ) {
-					object.pos = pos;
-					const { line, column } = locate( previous, pos, { offsetLine: 1 });
-					object.loc = { file: id, line, column };
-					object.frame = getCodeFrame( previous, line, column );
+					if ( pos.line !== undefined && pos.column !== undefined ) {
+						const { line, column } = pos;
+						object.loc = { file: id, line, column };
+						object.frame = getCodeFrame( previous, line, column );
+					}
+					else {
+						object.pos = pos;
+						const { line, column } = locate( previous, pos, { offsetLine: 1 });
+						object.loc = { file: id, line, column };
+						object.frame = getCodeFrame( previous, line, column );
+					}
 				}
 
 				return object;
