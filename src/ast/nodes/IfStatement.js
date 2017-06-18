@@ -107,7 +107,7 @@ export default class IfStatement extends Statement {
 					}
 
 					else if ( statementsWithIfStatements.has( this.parent.type ) ) {
-						code.insertRight( this.start, '{}' );
+						code.prependRight( this.start, '{}' );
 					}
 				}
 			}
