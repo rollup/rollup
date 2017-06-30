@@ -7,6 +7,7 @@ import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 import { property, keypath } from './shared/sanitize.js';
 import warnOnBuiltins from './shared/warnOnBuiltins.js';
 import trimEmptyImports from './shared/trimEmptyImports.js';
+import { isLegal } from '../utils/identifier-helpers.js';
 
 function setupNamespace ( keypath ) {
 	const parts = keypath.split( '.' );
@@ -26,6 +27,14 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle, 'null' );
 
 	const name = options.moduleName;
+
+	if ( name && !isLegal(name) ) {
+		error({
+			code: 'ILLEGAL_IDENTIFIER_AS_NAME',
+			message: `Given moduleName - ${ name } - is not legal JS identifier.`
+		})
+	}
+
 	const isNamespaced = name && ~name.indexOf( '.' );
 
 	warnOnBuiltins( bundle );
@@ -41,8 +50,11 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 		});
 	}
 
-	if ( exportMode === 'named' ) {
+	if ( isNamespaced ) {
 		dependencies.unshift( `(${thisProp(name)} = ${thisProp(name)} || {})` );
+		args.unshift( 'exports' );
+	} else if ( exportMode === 'named' ) {
+		dependencies.unshift( '{}' );
 		args.unshift( 'exports' );
 	}
 
@@ -51,7 +63,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
 	const wrapperOutro = `\n\n}(${dependencies}));`;
 
-	if ( exportMode === 'default' ) {
+	if ( exportMode !== 'none' ) {
 		wrapperIntro = ( isNamespaced ? thisProp(name) : `${bundle.varOrConst} ${name}` ) + ` = ${wrapperIntro}`;
 	}
 

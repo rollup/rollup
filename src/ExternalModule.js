@@ -1,5 +1,5 @@
 import { blank } from './utils/object.js';
-import makeLegalIdentifier from './utils/makeLegalIdentifier.js';
+import { makeLegal } from './utils/identifier-helpers.js';
 import { ExternalDeclaration } from './Declaration.js';
 
 export default class ExternalModule {
@@ -7,7 +7,7 @@ export default class ExternalModule {
 		this.id = id;
 		this.path = relativePath;
 
-		this.name = makeLegalIdentifier( relativePath );
+		this.name = makeLegal( relativePath );
 
 		this.nameSuggestions = blank();
 		this.mostCommonSuggestion = 0;

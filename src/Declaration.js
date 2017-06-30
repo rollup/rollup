@@ -1,5 +1,5 @@
 import { blank, forOwn, keys } from './utils/object.js';
-import makeLegalIdentifier, { reservedWords } from './utils/makeLegalIdentifier.js';
+import { makeLegal, reservedWords } from './utils/identifier-helpers.js';
 import { UNKNOWN } from './ast/values.js';
 
 export default class Declaration {
@@ -25,7 +25,7 @@ export default class Declaration {
 		reference.declaration = this;
 
 		if ( reference.name !== this.name ) {
-			this.name = makeLegalIdentifier( reference.name ); // TODO handle differences of opinion
+			this.name = makeLegal( reference.name ); // TODO handle differences of opinion
 		}
 
 		if ( reference.isReassignment ) this.isReassigned = true;

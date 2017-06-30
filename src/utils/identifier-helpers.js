@@ -6,13 +6,26 @@ const builtins = 'Infinity NaN undefined null true false eval uneval isFinite is
 const blacklisted = blank();
 reservedWords.concat( builtins ).forEach( word => blacklisted[ word ] = true );
 
+const illegalCharacters = /[^$_a-zA-Z0-9]/g;
 
-export default function makeLegalIdentifier ( str ) {
+const startsWithDigit = str => /\d/.test( str[0] );
+
+export function isLegal ( str ) {
+	if ( startsWithDigit(str) || blacklisted[ str ] ) {
+		return false;
+	}
+	if ( illegalCharacters.test(str) ) {
+		return false;
+	}
+	return true;
+}
+
+export function makeLegal ( str ) {
 	str = str
 		.replace( /-(\w)/g, ( _, letter ) => letter.toUpperCase() )
-		.replace( /[^$_a-zA-Z0-9]/g, '_' );
+		.replace( illegalCharacters, '_' );
 
-	if ( /\d/.test( str[0] ) || blacklisted[ str ] ) str = `_${str}`;
+	if ( startsWithDigit(str) || blacklisted[ str ] ) str = `_${str}`;
 
 	return str;
 }
