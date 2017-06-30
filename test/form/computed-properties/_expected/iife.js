@@ -1,4 +1,4 @@
-(function (exports) {
+var computedProperties = (function (exports) {
 	'use strict';
 
 	var foo = 'foo';
@@ -17,4 +17,4 @@
 	exports.x = x;
 	exports.X = X;
 
-}((this.computedProperties = this.computedProperties || {})));
+}({}));

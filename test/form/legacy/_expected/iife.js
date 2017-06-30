@@ -1,4 +1,4 @@
-(function (exports) {
+var myBundle = (function (exports) {
 	'use strict';
 
 	const foo = 1;
@@ -18,4 +18,4 @@
 	exports.a = a;
 	exports.b = b;
 
-}((this.myBundle = this.myBundle || {})));
+}({}));

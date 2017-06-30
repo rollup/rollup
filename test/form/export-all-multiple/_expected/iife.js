@@ -1,4 +1,4 @@
-(function (exports,foo,bar,baz) {
+var myBundle = (function (exports,foo,bar,baz) {
 	'use strict';
 
 
@@ -7,4 +7,4 @@
 	Object.keys(bar).forEach(function (key) { exports[key] = bar[key]; });
 	Object.keys(baz).forEach(function (key) { exports[key] = baz[key]; });
 
-}((this.myBundle = this.myBundle || {}),foo,bar,baz));
+}({},foo,bar,baz));

@@ -1,4 +1,4 @@
-(function (exports) {
+var FooBar = (function (exports) {
 	'use strict';
 
 	function doThings() {
@@ -13,4 +13,4 @@
 	exports.number = number;
 	exports.setting = setting;
 
-}((this.FooBar = this.FooBar || {})));
+}({}));

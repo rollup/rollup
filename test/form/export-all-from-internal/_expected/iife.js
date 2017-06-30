@@ -1,4 +1,4 @@
-(function (exports) {
+var exposedInternals = (function (exports) {
 	'use strict';
 
 	const a = 1;
@@ -7,4 +7,4 @@
 	exports.a = a;
 	exports.b = b;
 
-}((this.exposedInternals = this.exposedInternals || {})));
+}({}));
