@@ -9,4 +9,6 @@ var myBundle = (function (exports) {
 
 	exports.FOO = FOO;
 
+	return exports;
+
 }({}));

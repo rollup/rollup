@@ -17,4 +17,6 @@ var computedProperties = (function (exports) {
 	exports.x = x;
 	exports.X = X;
 
+	return exports;
+
 }({}));

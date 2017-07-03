@@ -3,4 +3,6 @@ var bundle = (function (exports) {
 
 	exports.foo = 1;
 
+	return exports;
+
 }({}));

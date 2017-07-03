@@ -7,4 +7,6 @@ var myBundle = (function (exports,foo,bar,baz) {
 	Object.keys(bar).forEach(function (key) { exports[key] = bar[key]; });
 	Object.keys(baz).forEach(function (key) { exports[key] = baz[key]; });
 
+	return exports;
+
 }({},foo,bar,baz));

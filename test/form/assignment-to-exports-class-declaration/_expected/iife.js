@@ -4,4 +4,6 @@ var myModule = (function (exports) {
 	exports.Foo = class Foo {};
 	exports.Foo = lol( exports.Foo );
 
+	return exports;
+
 }({}));

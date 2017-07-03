@@ -61,7 +61,6 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 	const useStrict = options.useStrict !== false ? `${indentString}'use strict';\n\n` : ``;
 
 	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
-	const wrapperOutro = `\n\n}(${dependencies}));`;
 
 	if ( exportMode !== 'none' && !extend) {
 		wrapperIntro = ( isNamespaced ? thisProp(name) : `${bundle.varOrConst} ${name}` ) + ` = ${wrapperIntro}`;
@@ -69,6 +68,12 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 
 	if ( isNamespaced ) {
 		wrapperIntro = setupNamespace( name ) + wrapperIntro;
+	}
+
+	let wrapperOutro = `\n\n}(${dependencies}));`;
+
+	if (justVariable && exportMode === 'named') {
+		wrapperOutro = `\n\n${indentString}return exports;${wrapperOutro}`;
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;

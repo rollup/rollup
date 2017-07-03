@@ -13,4 +13,6 @@ var FooBar = (function (exports) {
 	exports.number = number;
 	exports.setting = setting;
 
+	return exports;
+
 }({}));

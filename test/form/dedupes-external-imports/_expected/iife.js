@@ -30,4 +30,6 @@ var myBundle = (function (exports,external) {
 	exports.bar = bar;
 	exports.baz = baz;
 
+	return exports;
+
 }({},external));

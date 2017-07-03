@@ -7,4 +7,6 @@ var myBundle = (function (exports) {
 	exports.foo = foo;
 	exports.bar = bar;
 
+	return exports;
+
 }({}));

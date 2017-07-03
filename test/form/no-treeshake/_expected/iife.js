@@ -23,4 +23,6 @@ var stirred = (function (exports,external) {
 	exports.getPrototypeOf = getPrototypeOf;
 	exports.strange = quux;
 
+	return exports;
+
 }({},external));

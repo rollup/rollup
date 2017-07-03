@@ -9,4 +9,6 @@ var myBundle = (function (exports) {
 
 	exports.obj = obj;
 
+	return exports;
+
 }({}));

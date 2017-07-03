@@ -21,4 +21,6 @@ var foo = (function (exports) {
 
 	exports.B = browserStuff;
 
+	return exports;
+
 }({}));

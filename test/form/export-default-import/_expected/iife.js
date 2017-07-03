@@ -7,4 +7,6 @@ var myBundle = (function (exports,x) {
 
 	exports.x = x;
 
+	return exports;
+
 }({},x));
