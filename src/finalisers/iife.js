@@ -26,16 +26,16 @@ const thisProp = name => `this${keypath( name )}`;
 export default function iife ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
 	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle, 'null' );
 
-	const name = options.moduleName;
+	const { extend, moduleName: name } = options;
+	const isNamespaced = name && ~name.indexOf( '.' );
+	const justVariable = !extend && !isNamespaced;
 
-	if ( name && !isLegal(name) ) {
+	if ( name && justVariable && !isLegal(name) ) {
 		error({
 			code: 'ILLEGAL_IDENTIFIER_AS_NAME',
-			message: `Given moduleName - ${ name } - is not legal JS identifier.`
-		})
+			message: `Given moduleName (${name}) is not legal JS identifier. If you need this you can try --extend option`
+		});
 	}
-
-	const isNamespaced = name && ~name.indexOf( '.' );
 
 	warnOnBuiltins( bundle );
 
@@ -50,7 +50,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 		});
 	}
 
-	if ( isNamespaced ) {
+	if ( extend ) {
 		dependencies.unshift( `(${thisProp(name)} = ${thisProp(name)} || {})` );
 		args.unshift( 'exports' );
 	} else if ( exportMode === 'named' ) {
@@ -63,7 +63,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
 	const wrapperOutro = `\n\n}(${dependencies}));`;
 
-	if ( exportMode !== 'none' ) {
+	if ( exportMode !== 'none' && !extend) {
 		wrapperIntro = ( isNamespaced ? thisProp(name) : `${bundle.varOrConst} ${name}` ) + ` = ${wrapperIntro}`;
 	}
 
