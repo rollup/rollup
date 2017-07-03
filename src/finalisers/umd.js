@@ -49,7 +49,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 	if ( exportMode === 'named' ) {
 		amdDeps.unshift( `'exports'` );
 		cjsDeps.unshift( `exports` );
-		globalDeps.unshift( `(${setupNamespace(options.moduleName)} = ${globalProp(options.moduleName)} || {})` );
+		globalDeps.unshift( `(${setupNamespace(options.moduleName)} = ${options.extend ? `${globalProp(options.moduleName)} || ` : '' }{})` );
 
 		args.unshift( 'exports' );
 	}
