@@ -1,5 +1,5 @@
 import { blank } from './utils/object.js';
-import { makeLegal } from './utils/identifier-helpers.js';
+import { makeLegal } from './utils/identifierHelpers.js';
 import { ExternalDeclaration } from './Declaration.js';
 
 export default class ExternalModule {

@@ -1,4 +1,4 @@
-import { getName, quotePath } from '../utils/map-helpers.js';
+import { getName, quotePath } from '../utils/mapHelpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import esModuleExport from './shared/esModuleExport.js';

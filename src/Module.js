@@ -4,7 +4,7 @@ import { locate } from 'locate-character';
 import { timeStart, timeEnd } from './utils/flushTime.js';
 import { assign, blank, keys } from './utils/object.js';
 import { basename, extname } from './utils/path.js';
-import { makeLegal } from './utils/identifier-helpers.js';
+import { makeLegal } from './utils/identifierHelpers.js';
 import getCodeFrame from './utils/getCodeFrame.js';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL.js';
 import error from './utils/error.js';

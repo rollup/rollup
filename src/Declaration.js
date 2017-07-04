@@ -1,5 +1,5 @@
 import { blank, forOwn, keys } from './utils/object.js';
-import { makeLegal, reservedWords } from './utils/identifier-helpers.js';
+import { makeLegal, reservedWords } from './utils/identifierHelpers.js';
 import { UNKNOWN } from './ast/values.js';
 
 export default class Declaration {
