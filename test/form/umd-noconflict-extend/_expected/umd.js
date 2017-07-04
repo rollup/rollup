@@ -3,7 +3,8 @@
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(function() {
 		var current = global.FooBar;
-		var exports = factory((global.FooBar = global.FooBar || {}));
+		var exports = (global.FooBar = global.FooBar || {});
+		factory(exports);
 		global.FooBar = exports;
 		exports.noConflict = function() { global.FooBar = current; return exports; };
 	})();

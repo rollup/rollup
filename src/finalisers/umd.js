@@ -25,6 +25,15 @@ function setupNamespace ( name ) {
 		.join( ', ' );
 }
 
+function safeAccess ( name ) {
+	const parts = name.split( '.' );
+
+	let acc = 'global';
+	return parts
+		.map( part => ( acc += property( part ), acc ) )
+		.join( ` && ` );
+}
+
 const wrapperOutro = '\n\n})));';
 
 export default function umd ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
@@ -67,13 +76,27 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 
 	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
 
-	const globalExport = options.noConflict === true ?
-		`(function() {
-				var current = ${globalProp(options.moduleName)};
-				var exports = factory(${globalDeps});
+	let globalExport;
+
+	if (options.noConflict === true) {
+		let factory;
+
+		if ( exportMode === 'default' ) {
+			factory = `var exports = factory(${globalDeps});`;
+		} else if ( exportMode === 'named' ) {
+			const module = globalDeps.shift();
+			factory = `var exports = ${module};
+				factory(${['exports'].concat(globalDeps)});`;
+		}
+		globalExport = `(function() {
+				var current = ${safeAccess(options.moduleName)};
+				${factory}
 				${globalProp(options.moduleName)} = exports;
 				exports.noConflict = function() { ${globalProp(options.moduleName)} = current; return exports; };
-			})()` : `(${defaultExport}factory(${globalDeps}))`;
+			})()`;
+	} else {
+		globalExport = `(${defaultExport}factory(${globalDeps}))`;
+	}
 
 	const wrapperIntro =
 		`(function (global, factory) {
