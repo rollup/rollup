@@ -154,7 +154,8 @@ describe( 'rollup', function () {
 				entry: 'x',
 				plugins: [ loader({ x: `console.log( 42 );` }) ]
 			}).then( bundle => {
-				const { code } = bundle.generate({ format: 'iife' });
+				return bundle.generate({ format: 'iife' });
+			}).then( ({ code }) => {
 				assert.ok( code[ code.length - 1 ] === '\n' );
 			});
 		});
@@ -201,6 +202,8 @@ describe( 'rollup', function () {
 		});
 
 		it( 'expects options.moduleName for IIFE and UMD bundles', () => {
+			let bundle;
+
 			return rollup.rollup({
 				entry: 'x',
 				plugins: [{
@@ -209,17 +212,22 @@ describe( 'rollup', function () {
 						return 'export var foo = 42;';
 					}
 				}]
-			}).then( bundle => {
+			}).then( rollupInstance => {
+				bundle = rollupInstance;
+				return bundle.generate({
+					format: 'umd'
+				});
+			}).catch( err => {
 				assert.throws( () => {
-					bundle.generate({
-						format: 'umd'
-					});
+					throw err;
 				}, /You must supply options\.moduleName for UMD bundles/ );
-
+			}).then( () => {
+				return bundle.generate({
+					format: 'iife'
+				});
+			}).catch( err => {
 				assert.throws( () => {
-					bundle.generate({
-						format: 'iife'
-					});
+					throw err;
 				}, /You must supply options\.moduleName for IIFE bundles/ );
 			});
 		});
@@ -239,7 +247,8 @@ describe( 'rollup', function () {
 					if ( /The es6 format is deprecated/.test( msg ) ) warned = true;
 				}
 			}).then( bundle => {
-				bundle.generate({ format: 'es6' });
+				return bundle.generate({ format: 'es6' });
+			}).then( () => {
 				assert.ok( warned );
 			});
 		});
@@ -274,80 +283,83 @@ describe( 'rollup', function () {
 						let result;
 
 						// try to generate output
-						try {
-							result = bundle.generate( extend( {}, config.bundleOptions, {
+						return Promise.resolve().then( () => {
+							return bundle.generate( extend( {}, config.bundleOptions, {
 								format: 'cjs'
 							}));
-
+						}).then( code => {
 							if ( config.generateError ) {
 								unintendedError = new Error( 'Expected an error while generating output' );
 							}
-						} catch ( err ) {
+
+							result = code;
+						}).catch( err => {
 							if ( config.generateError ) {
 								compareError( err, config.generateError );
 							} else {
 								unintendedError = err;
 							}
-						}
+						}).then( () => {
+							if ( unintendedError ) throw unintendedError;
+							if ( config.error || config.generateError ) return;
 
-						if ( unintendedError ) throw unintendedError;
-						if ( config.error || config.generateError ) return;
+							let code = result.code;
 
-						let code = result.code;
-
-						if ( config.buble ) {
-							code = buble.transform( code, {
-								transforms: { modules: false }
-							}).code;
-						}
-
-						if ( config.code ) config.code( code );
-
-						const module = {
-							exports: {}
-						};
-
-						const context = extend({ require, module, assert, exports: module.exports }, config.context || {} );
-
-						const contextKeys = Object.keys( context );
-						const contextValues = contextKeys.map( key => context[ key ] );
-
-						try {
-							const fn = new Function( contextKeys, code );
-							fn.apply( {}, contextValues );
-
-							if ( config.runtimeError ) {
-								unintendedError = new Error( 'Expected an error while executing output' );
-							} else {
-								if ( config.exports ) config.exports( module.exports );
-								if ( config.bundle ) config.bundle( bundle );
+							if ( config.buble ) {
+								code = buble.transform( code, {
+									transforms: { modules: false }
+								}).code;
 							}
-						} catch ( err ) {
-							if ( config.runtimeError ) {
-								config.runtimeError( err );
-							} else {
-								unintendedError = err;
+
+							if ( config.code ) config.code( code );
+
+							const module = {
+								exports: {}
+							};
+
+							const context = extend({ require, module, assert, exports: module.exports }, config.context || {} );
+
+							const contextKeys = Object.keys( context );
+							const contextValues = contextKeys.map( key => context[ key ] );
+
+							try {
+								const fn = new Function( contextKeys, code );
+								fn.apply( {}, contextValues );
+
+								if ( config.runtimeError ) {
+									unintendedError = new Error( 'Expected an error while executing output' );
+								} else {
+									if ( config.exports ) config.exports( module.exports );
+									if ( config.bundle ) config.bundle( bundle );
+								}
+							} catch ( err ) {
+								if ( config.runtimeError ) {
+									config.runtimeError( err );
+								} else {
+									unintendedError = err;
+								}
 							}
-						}
 
-						if ( config.show || unintendedError ) {
-							console.log( result.code + '\n\n\n' );
-						}
-
-						if ( config.warnings ) {
-							if ( Array.isArray( config.warnings ) ) {
-								compareWarnings( warnings, config.warnings );
-							} else {
-								config.warnings( warnings );
+							if ( config.show || unintendedError ) {
+								console.log( result.code + '\n\n\n' );
 							}
-						} else if ( warnings.length ) {
-							throw new Error( `Got unexpected warnings:\n${warnings.join('\n')}` );
-						}
 
-						if ( config.solo ) console.groupEnd();
+							if ( config.warnings ) {
+								if ( Array.isArray( config.warnings ) ) {
+									compareWarnings( warnings, config.warnings );
+								} else {
+									config.warnings( warnings );
+								}
+							} else if ( warnings.length ) {
+								throw new Error( `Got unexpected warnings:\n${warnings.join('\n')}` );
+							}
 
-						if ( unintendedError ) throw unintendedError;
-					}, err => {
+							if ( config.solo ) console.groupEnd();
+
+							if ( unintendedError ) throw unintendedError;
+						});
+					})
+					.catch( err => {
 						if ( config.error ) {
 							compareError( err, config.error );
 						} else {
@@ -467,16 +479,17 @@ describe( 'rollup', function () {
 
 							bundle.write( options );
 
-							if ( config.test ) {
-								const { code, map } = bundle.generate( options );
-								config.test( code, map, profile );
-							}
+							bundle.generate( options ).then( ({ code, map }) => {
+								if ( config.test ) {
+									config.test( code, map, profile );
+								}
 
-							if ( config.warnings ) {
-								compareWarnings( warnings, config.warnings );
-							} else if ( warnings.length ) {
-								throw new Error( `Unexpected warnings` );
-							}
+								if ( config.warnings ) {
+									compareWarnings( warnings, config.warnings );
+								} else if ( warnings.length ) {
+									throw new Error( `Unexpected warnings` );
+								}
+							});
 						};
 
 						return rollup.rollup( options ).then(bundle => {
@@ -604,13 +617,16 @@ describe( 'rollup', function () {
 
 	describe( 'incremental', () => {
 		function executeBundle ( bundle ) {
-			const cjs = bundle.generate({ format: 'cjs' });
-			const m = new Function( 'module', 'exports', cjs.code );
+			return bundle.generate({
+				format: 'cjs'
+			}).then( cjs => {
+				const m = new Function( 'module', 'exports', cjs.code );
 
-			const module = { exports: {} };
-			m( module, module.exports );
+				const module = { exports: {} };
+				m( module, module.exports );
 
-			return module.exports;
+				return module.exports;
+			});
 		}
 
 		let resolveIdCalls;
@@ -659,7 +675,10 @@ describe( 'rollup', function () {
 			}).then( bundle => {
 				assert.equal( resolveIdCalls, 3 ); // +1 for entry point which is resolved every time
 				assert.equal( transformCalls, 2 );
-				assert.equal( executeBundle( bundle ), 42 );
+
+				return executeBundle( bundle );
+			}).then( result => {
+				assert.equal( result, 42 );
 			});
 		});
 
@@ -670,11 +689,14 @@ describe( 'rollup', function () {
 				entry: 'entry',
 				plugins: [ plugin ]
 			}).then( bundle => {
-				assert.equal( transformCalls, 2 );
-				assert.equal( executeBundle( bundle ), 42 );
+				assert.equal(transformCalls, 2);
 
-				modules.foo = `export default 43`;
-				cache = bundle;
+				return executeBundle(bundle).then( result => {
+					assert.equal( result, 42 );
+
+					modules.foo = `export default 43`;
+					cache = bundle;
+				});
 			}).then( () => {
 				return rollup.rollup({
 					entry: 'entry',
@@ -683,7 +705,10 @@ describe( 'rollup', function () {
 				});
 			}).then( bundle => {
 				assert.equal( transformCalls, 3 );
-				assert.equal( executeBundle( bundle ), 43 );
+
+				return executeBundle( bundle );
+			}).then( result => {
+				assert.equal( result, 43 );
 			});
 		});
 
@@ -695,10 +720,13 @@ describe( 'rollup', function () {
 				plugins: [ plugin ]
 			}).then( bundle => {
 				assert.equal( resolveIdCalls, 2 );
-				assert.equal( executeBundle( bundle ), 42 );
 
-				modules.entry = `import bar from 'bar'; export default bar;`;
-				cache = bundle;
+				return executeBundle( bundle ).then( result => {
+					assert.equal( result, 42 );
+
+					modules.entry = `import bar from 'bar'; export default bar;`;
+					cache = bundle;
+				});
 			}).then( () => {
 				return rollup.rollup({
 					entry: 'entry',
@@ -707,7 +735,10 @@ describe( 'rollup', function () {
 				});
 			}).then( bundle => {
 				assert.equal( resolveIdCalls, 4 );
-				assert.equal( executeBundle( bundle ), 21 );
+
+				return executeBundle( bundle );
+			}).then( result => {
+				assert.equal( result, 21 );
 			});
 		});
 
@@ -750,7 +781,9 @@ describe( 'rollup', function () {
 					plugins: [ plugin ],
 					cache
 				}).then( bundle => {
-					assert.equal( executeBundle( bundle ), 63 );
+					return executeBundle( bundle );
+				}).then( result => {
+					assert.equal( result, 63 );
 				});
 			});
 		});
@@ -801,14 +834,14 @@ describe( 'rollup', function () {
 						}
 					}
 				]
-			}).then( bundle => {
-				bundle.generate({ format: 'cjs' });
-
-				assert.deepEqual( result, [
-					{ a: 'cjs' },
-					{ b: 'cjs' }
-				]);
-			});
+			})
+				.then( bundle => bundle.generate({ format: 'cjs' }))
+				.then( () => {
+					assert.deepEqual( result, [
+						{ a: 'cjs' },
+						{ b: 'cjs' }
+					]);
+				});
 		});
 
 		it( 'calls onwrite hooks in sequence', () => {
@@ -859,16 +892,16 @@ describe( 'rollup', function () {
 					loader({ entry: `import { format } from 'util';\nexport default format( 'this is a %s', 'formatted string' );` })
 				],
 				onwarn: warning => warnings.push( warning )
-			}).then( bundle => {
-				bundle.generate({
+			})
+				.then( bundle => bundle.generate({
 					format: 'iife',
 					moduleName: 'myBundle'
+				}))
+				.then(() => {
+					const relevantWarnings = warnings.filter( warning => warning.code === 'MISSING_NODE_BUILTINS' );
+					assert.equal( relevantWarnings.length, 1 );
+					assert.equal( relevantWarnings[0].message, `Creating a browser bundle that depends on Node.js built-in module ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins` );
 				});
-
-				const relevantWarnings = warnings.filter( warning => warning.code === 'MISSING_NODE_BUILTINS' );
-				assert.equal( relevantWarnings.length, 1 );
-				assert.equal( relevantWarnings[0].message, `Creating a browser bundle that depends on Node.js built-in module ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins` );
-			});
 		});
 	});
 });
