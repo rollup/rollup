@@ -94,7 +94,7 @@ export function rollup ( options ) {
 
 				timeStart( '--GENERATE--' );
 
-				return Promise.resolve().then(() => {
+				return Promise.resolve().then( () => {
 					return bundle.render( options );
 				}).then( rendered => {
 					timeEnd( '--GENERATE--' );
