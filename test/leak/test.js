@@ -1,32 +1,41 @@
-const path = require('path')
-const rollup = require('../..')
+var path = require('path')
+var rollup = require('../..')
 
 try {
-	const weak = require('weak')
+	var weak = require('weak')
 
-	let shouldCollect = false;
-	let isCollected = false;
+	var shouldCollect = false;
+	var isCollected = false;
 
-	const onCollect = () => isCollected = true;
+	function onCollect () {
+		isCollected = true;
+	}
 
-	let cache;
-	const run = () => rollup.rollup({
-		entry: path.resolve(__dirname, 'index.js'),
-		cache
-	}).then(bundle => {
-		weak(bundle, onCollect);
-		cache = bundle;
-		global.gc();
-		if (shouldCollect && !isCollected) {
-			throw new Error('Memory leak detected')
-		}
-		shouldCollect = true;
-	})
+	var cache;
+	function run () {
+		return rollup.rollup({
+			entry: path.resolve(__dirname, 'index.js'),
+			cache
+		}).then(function (bundle) {
+			weak(bundle, onCollect);
+			cache = bundle;
+			global.gc();
+			if (shouldCollect && !isCollected) {
+				throw new Error('Memory leak detected')
+			}
+			shouldCollect = true;
+		});
+	};
 
-	run().then(run).then(() => console.log('Success')).catch((err) => {
-		console.error(err.message);
-		process.exit(1);
-	});
+	run()
+		.then(run)
+		.then(function () {
+			console.log('Success');
+		}).
+		catch(function (err) {
+			console.error(err.message);
+			process.exit(1);
+		});
 } catch (err) {
 	if (err.code !== 'MODULE_NOT_FOUND') {
 		throw err;
