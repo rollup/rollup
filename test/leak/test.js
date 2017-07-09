@@ -1,27 +1,41 @@
-const path = require('path')
-const weak = require('weak')
-const rollup = require('../..')
+var path = require('path')
+var rollup = require('../..')
 
-let shouldCollect = false;
-let isCollected = false;
+try {
+	var weak = require('weak')
 
-const onCollect = () => isCollected = true;
+	var shouldCollect = false;
+	var isCollected = false;
 
-let cache;
-const run = () => rollup.rollup({
-	entry: path.resolve(__dirname, 'index.js'),
-	cache
-}).then(bundle => {
-	weak(bundle, onCollect);
-	cache = bundle;
-	global.gc();
-	if (shouldCollect && !isCollected) {
-		throw new Error('Memory leak detected')
+	function onCollect () {
+		isCollected = true;
 	}
-	shouldCollect = true;
-})
 
-run().then(run).then(() => console.log('Success')).catch((err) => {
-	console.error(err.message);
-	process.exit(1);
-});
+	var cache;
+	function run () {
+		return rollup.rollup({
+			entry: path.resolve(__dirname, 'index.js'),
+			cache
+		}).then(function (bundle) {
+			weak(bundle, onCollect);
+			cache = bundle;
+			global.gc();
+			if (shouldCollect && !isCollected) {
+				throw new Error('Memory leak detected')
+			}
+			shouldCollect = true;
+		});
+	};
+
+	run()
+		.then(run)
+		.then(function () {
+			console.log('Success');
+		}).
+		catch(function (err) {
+			console.error(err.message);
+			process.exit(1);
+		});
+} catch (err) {
+	console.log(`skipping memory leak test`);
+}

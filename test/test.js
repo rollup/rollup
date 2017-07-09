@@ -7,7 +7,6 @@ const assert = require( 'assert' );
 const { exec } = require( 'child_process' );
 const buble = require( 'buble' );
 const acorn = require( 'acorn' );
-const weak = require( 'weak' );
 const rollup = require( '../dist/rollup' );
 
 const FUNCTION = path.resolve( __dirname, 'function' );
