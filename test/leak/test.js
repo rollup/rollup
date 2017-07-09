@@ -37,9 +37,5 @@ try {
 			process.exit(1);
 		});
 } catch (err) {
-	if (err.code !== 'MODULE_NOT_FOUND') {
-		throw err;
-	}
-
 	console.log(`skipping memory leak test`);
 }
