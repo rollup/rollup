@@ -23,7 +23,7 @@
     "watch": "rollup -c -w",
     "watch:browser": "rollup -c rollup.config.browser.js -w",
     "watch:cli": "rollup -c rollup.config.cli.js -w",
-    "prepublish": "npm run lint && npm test && npm run build:browser",
+    "prepublish": "npm run lint && npm test && npm run test:leak && npm run build:browser",
     "lint": "eslint src browser test/test.js test/utils test/**/_config.js"
   },
   "repository": "rollup/rollup",
