@@ -1,4 +1,4 @@
-import { parse } from 'acorn/src/index.js';
+import { parse } from 'acorn';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
 import { timeStart, timeEnd } from './utils/flushTime.js';
