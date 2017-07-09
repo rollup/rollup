@@ -10,8 +10,9 @@ module.exports = {
 			{
 				transformBundle: function ( code ) {
 					var options = {
-						fromString: true,
-						outSourceMap: 'x' // trigger sourcemap generation
+						sourceMap: {
+						    filename: 'x' // trigger sourcemap generation
+						}
 					};
 
 					return uglify.minify( code, options );
