@@ -9,16 +9,19 @@ const errorSymbol = process.stderr.isTTY ? `🚨   ` : `Error: `;
 export const stderr = console.error.bind( console ); // eslint-disable-line no-console
 
 function log ( object, symbol ) {
-	const message = (object.plugin ? `(${object.plugin} plugin) ${object.message}` : object.message) || object;
+	let description = object.message || object;
+	if (object.name) description = object.name + ': ' + description;
+	const message = (object.plugin ? `(${object.plugin} plugin) ${description}` : description) || object;;
 
 	stderr( `${symbol}${chalk.bold( message )}` );
 
+  // TODO should this be "object.url || (object.file && object.loc.file) || object.id"?
 	if ( object.url ) {
 		stderr( chalk.cyan( object.url ) );
 	}
 
 	if ( object.loc ) {
-		stderr( `${relativeId( object.loc.file )} (${object.loc.line}:${object.loc.column})` );
+		stderr( `${relativeId( object.loc.file || object.id )} (${object.loc.line}:${object.loc.column})` );
 	} else if ( object.id ) {
 		stderr( relativeId( object.id ) );
 	}
