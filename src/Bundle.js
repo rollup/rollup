@@ -122,6 +122,13 @@ export default class Bundle {
 		// of the entry module's dependencies
 		return this.resolveId( this.entry, undefined )
 			.then( id => {
+				if ( id === false ) {
+					error({
+						code: 'UNRESOLVED_ENTRY',
+						message: `Entry module cannot be external`
+					});
+				}
+
 				if ( id == null ) {
 					error({
 						code: 'UNRESOLVED_ENTRY',
