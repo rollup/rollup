@@ -25,8 +25,9 @@ module.exports = {
 				},
 				transformBundle: function ( code ) {
 					return uglify.minify( code, {
-						fromString: true,
-						outSourceMap: 'x'
+						sourceMap: {
+						    filename: 'x'
+						}
 					});
 				}
 			}
