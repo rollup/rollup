@@ -70,10 +70,11 @@ export default class Bundle {
 		this.hasLoaders = loaders.length !== 0;
 		this.load = first( loaders.concat( load ) );
 
-		this.getPath = typeof options.paths === 'function' ?
-			( id => options.paths( id ) || this.getPathRelativeToEntryDirname( id ) ) :
-			options.paths ?
-				( id => options.paths.hasOwnProperty( id ) ? options.paths[ id ] : this.getPathRelativeToEntryDirname( id ) ) :
+		const optionsPaths = options.paths;
+		this.getPath = typeof optionsPaths === 'function' ?
+			( id => optionsPaths( id ) || this.getPathRelativeToEntryDirname( id ) ) :
+			optionsPaths ?
+				( id => optionsPaths.hasOwnProperty( id ) ? optionsPaths[ id ] : this.getPathRelativeToEntryDirname( id ) ) :
 				id => this.getPathRelativeToEntryDirname( id );
 
 		this.scope = new BundleScope();
@@ -88,12 +89,13 @@ export default class Bundle {
 
 		this.context = String( options.context );
 
-		if ( typeof options.moduleContext === 'function' ) {
-			this.getModuleContext = id => options.moduleContext( id ) || this.context;
-		} else if ( typeof options.moduleContext === 'object' ) {
+		const optionsModuleContext = options.moduleContext;
+		if ( typeof optionsModuleContext === 'function' ) {
+			this.getModuleContext = id => optionsModuleContext( id ) || this.context;
+		} else if ( typeof optionsModuleContext === 'object' ) {
 			const moduleContext = new Map();
-			Object.keys( options.moduleContext ).forEach( key => {
-				moduleContext.set( resolve( key ), options.moduleContext[ key ] );
+			Object.keys( optionsModuleContext ).forEach( key => {
+				moduleContext.set( resolve( key ), optionsModuleContext[ key ] );
 			});
 			this.getModuleContext = id => moduleContext.get( id ) || this.context;
 		} else {
