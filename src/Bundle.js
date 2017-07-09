@@ -59,7 +59,7 @@ export default class Bundle {
 		}
 
 		this.resolveId = first(
-			[ id => this.isExternal( id ) ? false : null ]
+			[ id => this.isExternal( id ) ? id : null ]
 				.concat( this.plugins.map( plugin => plugin.resolveId ).filter( Boolean ) )
 				.concat( resolveId )
 		);
