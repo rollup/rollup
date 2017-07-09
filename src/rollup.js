@@ -44,15 +44,7 @@ const ALLOWED_KEYS = [
 	'watch'
 ];
 
-function checkOptions ( options ) {
-	if ( !options ) {
-		throw new Error( 'You must supply an options object to rollup' );
-	}
-
-	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
-		throw new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
-	}
-
+function checkAmd ( options ) {
 	if ( options.moduleId ) {
 		if ( options.amd ) throw new Error( 'Cannot have both options.amd and options.moduleId' );
 
@@ -66,6 +58,18 @@ function checkOptions ( options ) {
 			console.warn( msg ); // eslint-disable-line no-console
 		}
 	}
+}
+
+function checkOptions ( options ) {
+	if ( !options ) {
+		throw new Error( 'You must supply an options object to rollup' );
+	}
+
+	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
+		throw new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
+	}
+
+	checkAmd (options);
 
 	const err = validateKeys( keys(options), ALLOWED_KEYS );
 	if ( err ) throw err;
@@ -91,6 +95,8 @@ export function rollup ( options ) {
 
 					options.format = 'es';
 				}
+
+				checkAmd( options );
 
 				timeStart( '--GENERATE--' );
 
