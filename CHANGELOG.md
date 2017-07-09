@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 0.43.1
+
+* Fix memory leak on incremental rebuilds ([#883](https://github.com/rollup/rollup/issues/883))
+* Allow `this.warn` and `this.error` to accept a `{line, column}` object as an alternative to a character index ([#1265](https://github.com/rollup/rollup/issues/1265))
+* Print more useful error if entry module is 'external' ([#1264](https://github.com/rollup/rollup/issues/1264))
+* Catch errors in `bundle.generate` options ([#1463](https://github.com/rollup/rollup/pull/1463))
+* Fix magic-string deprecation warning ([#1445](https://github.com/rollup/rollup/pull/1445))
+
 ## 0.43.0
 
 * Allow config files to import JSON ([#1426](https://github.com/rollup/rollup/issues/1426))
