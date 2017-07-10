@@ -4,7 +4,7 @@
 	(factory(global.factory,global.baz,global.containers,global.alphabet));
 }(this, (function (factory,baz,containers,alphabet) { 'use strict';
 
-	factory = factory && 'default' in factory ? factory['default'] : factory;
+	factory = factory && factory.hasOwnProperty('default') ? factory['default'] : factory;
 	var alphabet__default = 'default' in alphabet ? alphabet['default'] : alphabet;
 
 	factory( null );
