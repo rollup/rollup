@@ -79,8 +79,5 @@
     "dist",
     "bin/rollup",
     "README.md"
-  ],
-  "optionalDependencies": {
-    "weak": "^1.0.1"
-  }
+  ]
 }
