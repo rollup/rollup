@@ -4,6 +4,7 @@ import AssignmentExpression from './AssignmentExpression.js';
 import BinaryExpression from './BinaryExpression.js';
 import BlockStatement from './BlockStatement.js';
 import CallExpression from './CallExpression.js';
+import CatchClause from './CatchClause.js';
 import ClassDeclaration from './ClassDeclaration.js';
 import ClassExpression from './ClassExpression.js';
 import ConditionalExpression from './ConditionalExpression.js';
@@ -42,6 +43,7 @@ export default {
 	BinaryExpression,
 	BlockStatement,
 	CallExpression,
+	CatchClause,
 	ClassDeclaration,
 	ClassExpression,
 	ConditionalExpression,
