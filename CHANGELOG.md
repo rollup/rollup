@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.45.1
+
+* Remove `weak` from `optionalDependencies` ([#1483](https://github.com/rollup/rollup/issues/1483))
+
 ## 0.45.0
 
 * [BREAKING] `bundle.generate(...)` returns a Promise, so that `transformBundle` plugin hooks can be asynchronous ([#1474](https://github.com/rollup/rollup/issues/1474))
