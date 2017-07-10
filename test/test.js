@@ -180,6 +180,27 @@ describe( 'rollup', function () {
 		});
 	});
 
+	describe( 'deprecations', () => {
+		it( 'throws a useful error on accessing code/map properties of bundle.generate promise', () => {
+			return rollup.rollup({
+				entry: 'x',
+				plugins: [ loader({ x: `console.log( 42 );` }) ]
+			}).then( bundle => {
+				let errored = false;
+
+				try {
+					const { code, map } = bundle.generate({ format: 'es' });
+					console.log( code, map );
+				} catch ( err ) {
+					assert.equal( err.message, `bundle.generate(...) now returns a Promise instead of a { code, map } object` );
+					errored = true;
+				}
+
+				assert.ok( errored );
+			});
+		});
+	});
+
 	describe( 'bundle.write()', () => {
 		it( 'fails without options or options.dest', () => {
 			return rollup.rollup({

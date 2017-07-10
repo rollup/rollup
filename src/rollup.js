@@ -76,6 +76,12 @@ function checkOptions ( options ) {
 	if ( err ) throw err;
 }
 
+const throwAsyncGenerateError = {
+	get () {
+		throw new Error( `bundle.generate(...) now returns a Promise instead of a { code, map } object` );
+	}
+};
+
 export function rollup ( options ) {
 	try {
 		checkOptions( options );
@@ -101,23 +107,28 @@ export function rollup ( options ) {
 
 				timeStart( '--GENERATE--' );
 
-				return Promise.resolve().then( () => {
-					return bundle.render( options );
-				}).then( rendered => {
-					timeEnd( '--GENERATE--' );
+				const promise = Promise.resolve()
+					.then( () => bundle.render( options ) )
+					.then( rendered => {
+						timeEnd( '--GENERATE--' );
 
-					bundle.plugins.forEach( plugin => {
-						if ( plugin.ongenerate ) {
-							plugin.ongenerate( assign({
-								bundle: result
-							}, options ), rendered);
-						}
+						bundle.plugins.forEach( plugin => {
+							if ( plugin.ongenerate ) {
+								plugin.ongenerate( assign({
+									bundle: result
+								}, options ), rendered);
+							}
+						});
+
+						flushTime();
+
+						return rendered;
 					});
 
-					flushTime();
+				Object.defineProperty( promise, 'code', throwAsyncGenerateError );
+				Object.defineProperty( promise, 'map', throwAsyncGenerateError );
 
-					return rendered;
-				});
+				return promise;
 			}
 
 			const result = {
