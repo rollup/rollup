@@ -1,5 +1,5 @@
 {
-  "name": "rollup",
+  "name": "@twc/rollup",
   "version": "0.45.0",
   "description": "Next-generation ES6 module bundler",
   "main": "dist/rollup.js",
