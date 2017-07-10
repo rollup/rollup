@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.44.0
+
+* Don't extend existing globals, unless `options.extend` is true ([#827](https://github.com/rollup/rollup/issues/827))
+* Fix handling of catch clause parameters ([#1462](https://github.com/rollup/rollup/issues/1462))
+
 ## 0.43.1
 
 * Fix memory leak on incremental rebuilds ([#883](https://github.com/rollup/rollup/issues/883))
