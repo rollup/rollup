@@ -501,7 +501,7 @@ export default class Bundle {
 
 		const indentString = getIndentString( magicString, options );
 
-		const finalise = finalisers[ options.format ];
+		const finalise = typeof options.format === 'function' ? options.format : finalisers[ options.format ];
 		if ( !finalise ) {
 			error({
 				code: 'INVALID_OPTION',
