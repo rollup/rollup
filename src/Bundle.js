@@ -446,119 +446,121 @@ export default class Bundle {
 	}
 
 	render ( options = {} ) {
-		if ( options.format === 'es6' ) {
-			this.warn({
-				code: 'DEPRECATED_ES6',
-				message: 'The es6 format is deprecated – use `es` instead'
-			});
+		return Promise.resolve().then( () => {
+			if ( options.format === 'es6' ) {
+				this.warn({
+					code: 'DEPRECATED_ES6',
+					message: 'The es6 format is deprecated – use `es` instead'
+				});
 
-			options.format = 'es';
-		}
-
-		// Determine export mode - 'default', 'named', 'none'
-		const exportMode = getExportMode( this, options );
-
-		let magicString = new MagicStringBundle({ separator: '\n\n' });
-		const usedModules = [];
-
-		timeStart( 'render modules' );
-
-		this.orderedModules.forEach( module => {
-			const source = module.render( options.format === 'es', this.legacy );
-
-			if ( source.toString().length ) {
-				magicString.addSource( source );
-				usedModules.push( module );
+				options.format = 'es';
 			}
-		});
 
-		if ( !magicString.toString().trim() && this.entryModule.getExports().length === 0 ) {
-			this.warn({
-				code: 'EMPTY_BUNDLE',
-				message: 'Generated an empty bundle'
-			});
-		}
+			// Determine export mode - 'default', 'named', 'none'
+			const exportMode = getExportMode( this, options );
 
-		timeEnd( 'render modules' );
+			let magicString = new MagicStringBundle({ separator: '\n\n' });
+			const usedModules = [];
 
-		let intro = [ options.intro ]
-			.concat(
-				this.plugins.map( plugin => plugin.intro && plugin.intro() )
-			)
-			.filter( Boolean )
-			.join( '\n\n' );
+			timeStart( 'render modules' );
 
-		if ( intro ) intro += '\n\n';
+			this.orderedModules.forEach( module => {
+				const source = module.render( options.format === 'es', this.legacy );
 
-		let outro = [ options.outro ]
-			.concat(
-				this.plugins.map( plugin => plugin.outro && plugin.outro() )
-			)
-			.filter( Boolean )
-			.join( '\n\n' );
-
-		if ( outro ) outro = `\n\n${outro}`;
-
-		const indentString = getIndentString( magicString, options );
-
-		const finalise = finalisers[ options.format ];
-		if ( !finalise ) {
-			error({
-				code: 'INVALID_OPTION',
-				message: `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}`
-			});
-		}
-
-		timeStart( 'render format' );
-
-		magicString = finalise( this, magicString.trim(), { exportMode, indentString, intro, outro }, options );
-
-		timeEnd( 'render format' );
-
-		const banner = [ options.banner ]
-			.concat( this.plugins.map( plugin => plugin.banner ) )
-			.map( callIfFunction )
-			.filter( Boolean )
-			.join( '\n' );
-
-		const footer = [ options.footer ]
-			.concat( this.plugins.map( plugin => plugin.footer ) )
-			.map( callIfFunction )
-			.filter( Boolean )
-			.join( '\n' );
-
-		if ( banner ) magicString.prepend( banner + '\n' );
-		if ( footer ) magicString.append( '\n' + footer );
-
-		let code = magicString.toString();
-		let map = null;
-		const bundleSourcemapChain = [];
-
-		code = transformBundle( code, this.plugins, bundleSourcemapChain, options );
-
-		if ( options.sourceMap ) {
-			timeStart( 'sourceMap' );
-
-			let file = options.sourceMapFile || options.dest;
-			if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
-
-			if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
-				map = magicString.generateMap({});
-				if ( typeof map.mappings === 'string' ) {
-					map.mappings = decode( map.mappings );
+				if ( source.toString().length ) {
+					magicString.addSource( source );
+					usedModules.push( module );
 				}
-				map = collapseSourcemaps( this, file, map, usedModules, bundleSourcemapChain );
-			} else {
-				map = magicString.generateMap({ file, includeContent: true });
+			});
+
+			if ( !magicString.toString().trim() && this.entryModule.getExports().length === 0 ) {
+				this.warn({
+					code: 'EMPTY_BUNDLE',
+					message: 'Generated an empty bundle'
+				});
 			}
 
-			map.sources = map.sources.map( normalize );
+			timeEnd( 'render modules' );
 
-			timeEnd( 'sourceMap' );
-		}
+			let intro = [ options.intro ]
+				.concat(
+					this.plugins.map( plugin => plugin.intro && plugin.intro() )
+				)
+				.filter( Boolean )
+				.join( '\n\n' );
 
-		if ( code[ code.length - 1 ] !== '\n' ) code += '\n';
-		return { code, map };
+			if ( intro ) intro += '\n\n';
+
+			let outro = [ options.outro ]
+				.concat(
+					this.plugins.map( plugin => plugin.outro && plugin.outro() )
+				)
+				.filter( Boolean )
+				.join( '\n\n' );
+
+			if ( outro ) outro = `\n\n${outro}`;
+
+			const indentString = getIndentString( magicString, options );
+
+			const finalise = finalisers[ options.format ];
+			if ( !finalise ) {
+				error({
+					code: 'INVALID_OPTION',
+					message: `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}`
+				});
+			}
+
+			timeStart( 'render format' );
+
+			magicString = finalise( this, magicString.trim(), { exportMode, indentString, intro, outro }, options );
+
+			timeEnd( 'render format' );
+
+			const banner = [ options.banner ]
+				.concat( this.plugins.map( plugin => plugin.banner ) )
+				.map( callIfFunction )
+				.filter( Boolean )
+				.join( '\n' );
+
+			const footer = [ options.footer ]
+				.concat( this.plugins.map( plugin => plugin.footer ) )
+				.map( callIfFunction )
+				.filter( Boolean )
+				.join( '\n' );
+
+			if ( banner ) magicString.prepend( banner + '\n' );
+			if ( footer ) magicString.append( '\n' + footer );
+
+			const prevCode = magicString.toString();
+			let map = null;
+			const bundleSourcemapChain = [];
+
+			return transformBundle( prevCode, this.plugins, bundleSourcemapChain, options ).then( code => {
+				if ( options.sourceMap ) {
+					timeStart( 'sourceMap' );
+
+					let file = options.sourceMapFile || options.dest;
+					if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
+
+					if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
+						map = magicString.generateMap({});
+						if ( typeof map.mappings === 'string' ) {
+							map.mappings = decode( map.mappings );
+						}
+						map = collapseSourcemaps( this, file, map, usedModules, bundleSourcemapChain );
+					} else {
+						map = magicString.generateMap({ file, includeContent: true });
+					}
+
+					map.sources = map.sources.map( normalize );
+
+					timeEnd( 'sourceMap' );
+				}
+
+				if ( code[ code.length - 1 ] !== '\n' ) code += '\n';
+				return { code, map };
+			});
+		});
 	}
 
 	sort () {

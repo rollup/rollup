@@ -73,10 +73,11 @@ export default function runRollup ( command ) {
 			onwarn: handleWarning
 		})
 			.then( bundle => {
-				const { code } = bundle.generate({
+				return bundle.generate({
 					format: 'cjs'
 				});
-
+			})
+			.then( ({ code }) => {
 				if ( command.watch ) process.env.ROLLUP_WATCH = 'true';
 
 				// temporarily override require
@@ -270,13 +271,13 @@ function bundle ( options ) {
 				});
 			}
 
-			let { code, map } = bundle.generate( options );
+			return bundle.generate(options).then( ({ code, map }) => {
+				if ( options.sourceMap === 'inline' ) {
+					code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
+				}
 
-			if ( options.sourceMap === 'inline' ) {
-				code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
-			}
-
-			process.stdout.write( code );
+				process.stdout.write( code );
+			});
 		})
 		.catch( handleError );
 }
