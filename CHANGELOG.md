@@ -1,8 +1,12 @@
 # rollup changelog
 
+## 0.45.0
+
+* [BREAKING] `bundle.generate(...)` returns a Promise, so that `transformBundle` plugin hooks can be asynchronous ([#1474](https://github.com/rollup/rollup/issues/1474))
+
 ## 0.44.0
 
-* Don't extend existing globals, unless `options.extend` is true ([#827](https://github.com/rollup/rollup/issues/827))
+* [BREAKING] Don't extend existing globals, unless `options.extend` is true ([#827](https://github.com/rollup/rollup/issues/827))
 * Fix handling of catch clause parameters ([#1462](https://github.com/rollup/rollup/issues/1462))
 
 ## 0.43.1
