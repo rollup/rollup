@@ -1,4 +1,4 @@
-(function (exports) {
+var myBundle = (function (exports) {
 	'use strict';
 
 	/** A comment for a number */
@@ -9,4 +9,6 @@
 
 	exports.obj = obj;
 
-}((this.myBundle = this.myBundle || {})));
+	return exports;
+
+}({}));

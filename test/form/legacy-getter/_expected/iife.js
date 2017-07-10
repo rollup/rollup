@@ -1,4 +1,4 @@
-(function (exports) {
+var foo = (function (exports) {
 	'use strict';
 
 	var browserSpecificThing;
@@ -21,4 +21,6 @@
 
 	exports.B = browserStuff;
 
-}((this.foo = this.foo || {})));
+	return exports;
+
+}({}));

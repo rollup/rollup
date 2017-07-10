@@ -1,4 +1,4 @@
-(function (exports,external) {
+var stirred = (function (exports,external) {
 	'use strict';
 
 	var foo = 'unused';
@@ -23,4 +23,6 @@
 	exports.getPrototypeOf = getPrototypeOf;
 	exports.strange = quux;
 
-}((this.stirred = this.stirred || {}),external));
+	return exports;
+
+}({},external));

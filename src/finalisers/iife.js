@@ -1,5 +1,5 @@
 import { blank } from '../utils/object.js';
-import { getName } from '../utils/map-helpers.js';
+import { getName } from '../utils/mapHelpers.js';
 import error from '../utils/error.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
@@ -7,6 +7,7 @@ import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
 import { property, keypath } from './shared/sanitize.js';
 import warnOnBuiltins from './shared/warnOnBuiltins.js';
 import trimEmptyImports from './shared/trimEmptyImports.js';
+import { isLegal } from '../utils/identifierHelpers.js';
 
 function setupNamespace ( keypath ) {
 	const parts = keypath.split( '.' );
@@ -25,8 +26,16 @@ const thisProp = name => `this${keypath( name )}`;
 export default function iife ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
 	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle, 'null' );
 
-	const name = options.moduleName;
-	const isNamespaced = name && ~name.indexOf( '.' );
+	const { extend, moduleName: name } = options;
+	const isNamespaced = name && name.indexOf( '.' ) !== -1;
+	const possibleVariableAssignment = !extend && !isNamespaced;
+
+	if ( name && possibleVariableAssignment && !isLegal(name) ) {
+		error({
+			code: 'ILLEGAL_IDENTIFIER_AS_NAME',
+			message: `Given moduleName (${name}) is not legal JS identifier. If you need this you can try --extend option`
+		});
+	}
 
 	warnOnBuiltins( bundle );
 
@@ -41,22 +50,30 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 		});
 	}
 
-	if ( exportMode === 'named' ) {
+	if ( extend ) {
 		dependencies.unshift( `(${thisProp(name)} = ${thisProp(name)} || {})` );
+		args.unshift( 'exports' );
+	} else if ( exportMode === 'named' ) {
+		dependencies.unshift( '{}' );
 		args.unshift( 'exports' );
 	}
 
 	const useStrict = options.useStrict !== false ? `${indentString}'use strict';\n\n` : ``;
 
 	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
-	const wrapperOutro = `\n\n}(${dependencies}));`;
 
-	if ( exportMode === 'default' ) {
+	if ( exportMode !== 'none' && !extend) {
 		wrapperIntro = ( isNamespaced ? thisProp(name) : `${bundle.varOrConst} ${name}` ) + ` = ${wrapperIntro}`;
 	}
 
 	if ( isNamespaced ) {
 		wrapperIntro = setupNamespace( name ) + wrapperIntro;
+	}
+
+	let wrapperOutro = `\n\n}(${dependencies}));`;
+
+	if (possibleVariableAssignment && exportMode === 'named') {
+		wrapperOutro = `\n\n${indentString}return exports;${wrapperOutro}`;
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
