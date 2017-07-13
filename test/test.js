@@ -808,6 +808,32 @@ describe( 'rollup', function () {
 				});
 			});
 		});
+
+		it( 'separates resolvedIds from resolvedExternalIds', () => {
+			modules = {
+				entry: `import foo from 'foo'; import external from 'external'; console.log(foo(external));`,
+				foo: `export default 42`
+			};
+
+			return rollup.rollup({
+				entry: 'entry',
+				external: ['external'],
+				plugins: [ plugin ]
+			}).then( bundle => {
+				assert.deepEqual(bundle.imports, ['external']);
+
+				assert.equal(bundle.modules[0].id, 'foo');
+				assert.equal(bundle.modules[1].id, 'entry');
+
+				assert.deepEqual(bundle.modules[1].resolvedIds, {
+					foo: 'foo'
+				});
+
+				assert.deepEqual(bundle.modules[1].resolvedExternalIds, {
+					external: 'external'
+				});
+			});
+		});
 	});
 
 	describe( 'hooks', () => {

@@ -4,7 +4,7 @@
 	(factory((global.myBundle = {}),global.x));
 }(this, (function (exports,x) { 'use strict';
 
-	x = x && 'default' in x ? x['default'] : x;
+	x = x && x.hasOwnProperty('default') ? x['default'] : x;
 
 
 
