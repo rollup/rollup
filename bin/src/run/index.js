@@ -3,7 +3,9 @@ import { realpathSync } from 'fs';
 import * as rollup from 'rollup';
 import relative from 'require-relative';
 import { handleWarning, handleError } from '../logging.js';
+import mergeOptions from './mergeOptions.js';
 import batchWarnings from './batchWarnings.js';
+import sequence from '../utils/sequence.js';
 import build from './build.js';
 import watch from './watch.js';
 
@@ -66,25 +68,23 @@ export default function runRollup ( command ) {
 			config = realpathSync( config );
 		}
 
-		const batch = batchWarnings();
+		const warnings = batchWarnings();
 
 		rollup.rollup({
 			entry: config,
 			external: id => {
 				return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5,id.length) === '.json';
 			},
-			onwarn: batch.add
+			onwarn: warnings.add
 		})
 			.then( bundle => {
-				batch.flush();
+				warnings.flush();
 
 				return bundle.generate({
 					format: 'cjs'
 				});
 			})
 			.then( ({ code }) => {
-				if ( command.watch ) process.env.ROLLUP_WATCH = 'true';
-
 				// temporarily override require
 				const defaultLoader = require.extensions[ '.js' ];
 				require.extensions[ '.js' ] = ( m, filename ) => {
@@ -96,96 +96,33 @@ export default function runRollup ( command ) {
 				};
 
 				const configs = require( config );
-				const normalized = Array.isArray( configs ) ? configs : [configs];
-
-				normalized.forEach(options => {
-					if ( Object.keys( options ).length === 0 ) {
-						handleError({
-							code: 'MISSING_CONFIG',
-							message: 'Config file must export an options object',
-							url: 'https://github.com/rollup/rollup/wiki/Command-Line-Interface#using-a-config-file'
-						});
-					}
-
-					execute( options, command );
-				});
+				if ( Object.keys( configs ).length === 0 ) {
+					handleError({
+						code: 'MISSING_CONFIG',
+						message: 'Config file must export an options object, or an array of options objects',
+						url: 'https://github.com/rollup/rollup/wiki/Command-Line-Interface#using-a-config-file'
+					});
+				}
 
 				require.extensions[ '.js' ] = defaultLoader;
+
+				const normalized = Array.isArray( configs ) ? configs : [configs];
+				return execute( normalized, command );
 			})
 			.catch( handleError );
 	} else {
-		execute( {}, command );
+		return execute( [{}], command );
 	}
 }
 
-const equivalents = {
-	useStrict: 'useStrict',
-	banner: 'banner',
-	footer: 'footer',
-	format: 'format',
-	globals: 'globals',
-	id: 'moduleId',
-	indent: 'indent',
-	input: 'entry',
-	intro: 'intro',
-	legacy: 'legacy',
-	name: 'moduleName',
-	output: 'dest',
-	outro: 'outro',
-	sourcemap: 'sourceMap',
-	treeshake: 'treeshake'
-};
-
-function execute ( options, command ) {
-	let external;
-
-	const commandExternal = ( command.external || '' ).split( ',' );
-	const optionsExternal = options.external;
-
-	if ( command.globals ) {
-		const globals = Object.create( null );
-
-		command.globals.split( ',' ).forEach( str => {
-			const names = str.split( ':' );
-			globals[ names[0] ] = names[1];
-
-			// Add missing Module IDs to external.
-			if ( commandExternal.indexOf( names[0] ) === -1 ) {
-				commandExternal.push( names[0] );
-			}
-		});
-
-		command.globals = globals;
-	}
-
-	if ( typeof optionsExternal === 'function' ) {
-		external = id => {
-			return optionsExternal( id ) || ~commandExternal.indexOf( id );
-		};
-	} else {
-		external = ( optionsExternal || [] ).concat( commandExternal );
-	}
-
-	if (typeof command.extend !== 'undefined') {
-		options.extend = command.extend;
-	}
-
-	if ( command.silent ) {
-		options.onwarn = () => {};
-	}
-
-	options.external = external;
-
-	// Use any options passed through the CLI as overrides.
-	Object.keys( equivalents ).forEach( cliOption => {
-		if ( command.hasOwnProperty( cliOption ) ) {
-			options[ equivalents[ cliOption ] ] = command[ cliOption ];
-		}
-	});
-
+function execute ( configs, command ) {
 	if ( command.watch ) {
-		watch( options );
+		process.env.ROLLUP_WATCH = 'true';
+		watch( configs, command );
 	} else {
-		build( options ).catch( handleError );
+		return sequence( config => {
+			const { options, warnings } = mergeOptions( config, command );
+			return build( options, warnings );
+		});
 	}
 }

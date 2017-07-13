@@ -1,15 +1,11 @@
 import * as rollup from 'rollup';
-import { handleError } from '../logging.js';
+import chalk from 'chalk';
+import { handleError, stderr } from '../logging.js';
 import SOURCEMAPPING_URL from '../sourceMappingUrl.js';
-import batchWarnings from './batchWarnings.js';
 
-export default function build ( options ) {
-	let batch;
-
-	if ( !options.onwarn ) {
-		batch = batchWarnings();
-		options.onwarn = batch.add;
-	}
+export default function build ( options, warnings ) {
+	const start = Date.now();
+	stderr( chalk.green( `\n${chalk.bold( options.entry )} → ${chalk.bold( options.dest )}...` ) );
 
 	return rollup.rollup( options )
 		.then( bundle => {
@@ -42,7 +38,11 @@ export default function build ( options ) {
 				process.stdout.write( code );
 			});
 		})
-		.then( batch.flush )
+		.then( () => {
+			warnings.flush();
+			stderr( chalk.green( `${chalk.bold( options.dest )} created in ${Date.now() - start}ms\n` ) );
+			// stderr( `${chalk.blue( '----------' )}\n` );
+		})
 		.catch( handleError );
 }
 

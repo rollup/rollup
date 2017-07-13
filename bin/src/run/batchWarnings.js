@@ -1,9 +1,9 @@
 import chalk from 'chalk';
-import { handleWarning } from '../logging.js';
+import { handleWarning, stderr } from '../logging.js';
 import relativeId from '../../../src/utils/relativeId.js';
 
 export default function batchWarnings () {
-	const allWarnings = new Map();
+	let allWarnings = new Map();
 	let count = 0;
 
 	return {
@@ -44,6 +44,8 @@ export default function batchWarnings () {
 					});
 				}
 			});
+
+			allWarnings = new Map();
 		}
 	};
 }
@@ -55,7 +57,7 @@ const handlers = {
 		fn: warnings => {
 			group( 'Unused external imports' );
 			warnings.forEach( warning => {
-				log( `${warning.message}` );
+				stderr( `${warning.message}` );
 			});
 		}
 	},
@@ -74,7 +76,7 @@ const handlers = {
 
 			Array.from( dependencies.keys() ).forEach( dependency => {
 				const importers = dependencies.get( dependency );
-				log( `${chalk.bold( dependency )} (imported by ${importers.join( ', ' )})` );
+				stderr( `${chalk.bold( dependency )} (imported by ${importers.join( ', ' )})` );
 			});
 		}
 	},
@@ -86,9 +88,9 @@ const handlers = {
 			info( 'https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module' );
 
 			warnings.forEach( warning => {
-				log( chalk.bold( warning.importer ) );
-				log( `${warning.missing} is not exported by ${warning.exporter}` );
-				log( chalk.grey( warning.frame ) );
+				stderr( chalk.bold( warning.importer ) );
+				stderr( `${warning.missing} is not exported by ${warning.exporter}` );
+				stderr( chalk.grey( warning.frame ) );
 			});
 		}
 	},
@@ -109,19 +111,18 @@ const handlers = {
 			const ids = allIds.length > 5 ? allIds.slice( 0, 3 ) : allIds;
 
 			ids.forEach( id => {
-				const allOccurrences = modules.get( id );
-				const occurrences = allOccurrences.length > 5 ? allOccurrences.slice( 0, 3 ) : allOccurrences;
+				const occurrences = modules.get( id );
 
-				log( chalk.bold( relativeId( id ) ) );
-				log( chalk.grey( occurrences.map( warning => warning.frame ).join( '\n\n' ) ) );
+				stderr( chalk.bold( relativeId( id ) ) );
+				stderr( chalk.grey( occurrences[0].frame ) );
 
-				if ( allOccurrences.length > occurrences.length ) {
-					log( `\n...and ${allOccurrences.length - occurrences.length} occurrences` );
+				if ( occurrences.length > 1 ) {
+					stderr( `...and ${occurrences.length - 1} other ${occurrences.length > 2 ? 'occurrences' : 'occurrence'}` );
 				}
 			});
 
 			if ( allIds.length > ids.length ) {
-				log( `\n...and ${allIds.length - ids.length} files` );
+				stderr( `\n...and ${allIds.length - ids.length} other files` );
 			}
 		}
 	},
@@ -198,13 +199,9 @@ const handlers = {
 };
 
 function group ( title ) {
-	log( `\n${chalk.bold.yellow('(!)')} ${chalk.bold.yellow( title )}` );
+	stderr( `${chalk.bold.yellow('(!)')} ${chalk.bold.yellow( title )}` );
 }
 
 function info ( url ) {
-	log( chalk.grey( url ) );
-}
-
-function log ( message ) {
-	console.warn( message ); // eslint-disable-line no-console
+	stderr( chalk.grey( url ) );
 }

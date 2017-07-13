@@ -1,18 +1,21 @@
 import * as rollup from 'rollup';
-import relative from 'require-relative';
+import chalk from 'chalk';
+import createWatcher from './createWatcher.js';
+import mergeOptions from './mergeOptions.js';
 import { handleError, stderr } from '../logging.js';
 
-export default function watch ( options ) {
-	if ( !options.entry || ( !options.dest && !options.targets ) ) {
-		handleError({
-			code: 'WATCHER_MISSING_INPUT_OR_OUTPUT',
-			message: 'must specify --input and --output when using rollup --watch'
-		});
-	}
+export default function watch ( configs, command ) {
+	configs.forEach( config => {
+		const { options, warnings } = mergeOptions( config, command );
 
-	try {
-		const watch = relative( 'rollup-watch', process.cwd() );
-		const watcher = watch( rollup, options );
+		if ( !options.entry || ( !options.dest && !options.targets ) ) {
+			handleError({
+				code: 'WATCHER_MISSING_INPUT_OR_OUTPUT',
+				message: 'must specify --input and --output when using rollup --watch'
+			});
+		}
+
+		const watcher = createWatcher( rollup, options );
 
 		watcher.on( 'event', event => {
 			switch ( event.code ) {
@@ -21,11 +24,12 @@ export default function watch ( options ) {
 					break;
 
 				case 'BUILD_START':
-					stderr( 'bundling...' );
+					stderr( `${chalk.blue.bold( options.entry )} -> ${chalk.blue.bold( options.dest )}...` );
 					break;
 
 				case 'BUILD_END':
-					stderr( 'bundled in ' + event.duration + 'ms. Watching for changes...' );
+					warnings.flush();
+					stderr( `created ${chalk.blue.bold( options.dest )} in ${event.duration}ms. Watching for changes...` );
 					break;
 
 				case 'ERROR':
@@ -36,14 +40,5 @@ export default function watch ( options ) {
 					stderr( 'unknown event', event );
 			}
 		});
-	} catch ( err ) {
-		if ( err.code === 'MODULE_NOT_FOUND' ) {
-			handleError({
-				code: 'ROLLUP_WATCH_NOT_INSTALLED',
-				message: 'rollup --watch depends on the rollup-watch package, which could not be found. Install it with npm install -D rollup-watch'
-			});
-		}
-
-		handleError( err );
-	}
+	});
 }
