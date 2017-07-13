@@ -1,6 +1,6 @@
 define(['./lib/throttle.js'], function (throttle) { 'use strict';
 
-	throttle = throttle && 'default' in throttle ? throttle['default'] : throttle;
+	throttle = throttle && throttle.hasOwnProperty('default') ? throttle['default'] : throttle;
 
 	const fn = throttle( () => {
 		console.log( '.' );

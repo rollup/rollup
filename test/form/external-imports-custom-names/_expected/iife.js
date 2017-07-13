@@ -1,7 +1,7 @@
 (function ($) {
 	'use strict';
 
-	$ = $ && 'default' in $ ? $['default'] : $;
+	$ = $ && $.hasOwnProperty('default') ? $['default'] : $;
 
 	$( function () {
 		$( 'body' ).html( '<h1>hello world!</h1>' );
