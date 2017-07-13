@@ -3,6 +3,7 @@ import { realpathSync } from 'fs';
 import * as rollup from 'rollup';
 import relative from 'require-relative';
 import { handleWarning, handleError } from '../logging.js';
+import batchWarnings from './batchWarnings.js';
 import build from './build.js';
 import watch from './watch.js';
 
@@ -65,14 +66,18 @@ export default function runRollup ( command ) {
 			config = realpathSync( config );
 		}
 
+		const batch = batchWarnings();
+
 		rollup.rollup({
 			entry: config,
 			external: id => {
 				return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5,id.length) === '.json';
 			},
-			onwarn: handleWarning
+			onwarn: batch.add
 		})
 			.then( bundle => {
+				batch.flush();
+
 				return bundle.generate({
 					format: 'cjs'
 				});
@@ -167,19 +172,6 @@ function execute ( options, command ) {
 
 	if ( command.silent ) {
 		options.onwarn = () => {};
-	}
-
-	if ( !options.onwarn ) {
-		const seen = new Set();
-
-		options.onwarn = warning => {
-			const str = warning.toString();
-
-			if ( seen.has( str ) ) return;
-			seen.add( str );
-
-			handleWarning( warning );
-		};
 	}
 
 	options.external = external;

@@ -1,8 +1,16 @@
 import * as rollup from 'rollup';
 import { handleError } from '../logging.js';
 import SOURCEMAPPING_URL from '../sourceMappingUrl.js';
+import batchWarnings from './batchWarnings.js';
 
 export default function build ( options ) {
+	let batch;
+
+	if ( !options.onwarn ) {
+		batch = batchWarnings();
+		options.onwarn = batch.add;
+	}
+
 	return rollup.rollup( options )
 		.then( bundle => {
 			if ( options.dest ) {
@@ -34,6 +42,7 @@ export default function build ( options ) {
 				process.stdout.write( code );
 			});
 		})
+		.then( batch.flush )
 		.catch( handleError );
 }
 

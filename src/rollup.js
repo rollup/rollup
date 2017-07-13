@@ -94,7 +94,7 @@ export function rollup ( options ) {
 
 			function generate ( options = {} ) {
 				if ( !options.format ) {
-					bundle.warn({
+					bundle.warn({ // TODO make this an error
 						code: 'MISSING_FORMAT',
 						message: `No format option was supplied – defaulting to 'es'`,
 						url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
