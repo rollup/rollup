@@ -348,7 +348,7 @@ export default class Bundle {
 						}
 					});
 					module.exportAllSources.forEach( source => {
-						const id = module.resolvedIds[ source ];
+						const id = module.resolvedIds[ source ] || module.resolvedExternalIds[ source ];
 						const exportAllModule = this.moduleById.get( id );
 						if ( exportAllModule.isExternal ) return;
 
@@ -396,7 +396,7 @@ export default class Bundle {
 					}
 
 					if ( isExternal ) {
-						module.resolvedIds[ source ] = externalId;
+						module.resolvedExternalIds[ source ] = externalId;
 
 						if ( !this.moduleById.has( externalId ) ) {
 							const module = new ExternalModule( externalId, this.getPath( externalId ) );

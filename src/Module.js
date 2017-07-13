@@ -32,7 +32,7 @@ function tryParse ( module, acornOptions ) {
 }
 
 export default class Module {
-	constructor ({ id, code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds, bundle }) {
+	constructor ({ id, code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds, resolvedExternalIds, bundle }) {
 		this.code = code;
 		this.id = id;
 		this.bundle = bundle;
@@ -63,6 +63,7 @@ export default class Module {
 		this.sources = [];
 		this.dependencies = [];
 		this.resolvedIds = resolvedIds || blank();
+		this.resolvedExternalIds = resolvedExternalIds || blank();
 
 		// imports and exports, indexed by local name
 		this.imports = blank();
@@ -259,21 +260,23 @@ export default class Module {
 			keys( specifiers ).forEach( name => {
 				const specifier = specifiers[ name ];
 
-				const id = this.resolvedIds[ specifier.source ];
+				const id = this.resolvedIds[ specifier.source ] || this.resolvedExternalIds[ specifier.source ];
 				specifier.module = this.bundle.moduleById.get( id );
 			});
 		});
 
 		this.exportAllModules = this.exportAllSources.map( source => {
-			const id = this.resolvedIds[ source ];
+			const id = this.resolvedIds[ source ] || this.resolvedExternalIds[ source ];
 			return this.bundle.moduleById.get( id );
 		});
 
 		this.sources.forEach( source => {
 			const id = this.resolvedIds[ source ];
-			const module = this.bundle.moduleById.get( id );
 
-			if ( !module.isExternal ) this.dependencies.push( module );
+			if ( id ) {
+				const module = this.bundle.moduleById.get( id );
+				this.dependencies.push( module );
+			}
 		});
 	}
 
@@ -376,7 +379,8 @@ export default class Module {
 			originalSourceMap: this.originalSourceMap,
 			ast: this.astClone,
 			sourceMapChain: this.sourceMapChain,
-			resolvedIds: this.resolvedIds
+			resolvedIds: this.resolvedIds,
+			resolvedExternalIds: this.resolvedExternalIds
 		};
 	}
 
