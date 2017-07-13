@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.45.2
+
+* Fix interop when import is a string ([#1486](https://github.com/rollup/rollup/issues/1486))
+* Separate `resolvedIds` from `resolvedExternalIds` ([#1490](https://github.com/rollup/rollup/pull/1490))
+* Add `--extend` flag to CLI ([#1482](https://github.com/rollup/rollup/pull/1482))
+
 ## 0.45.1
 
 * Remove `weak` from `optionalDependencies` ([#1483](https://github.com/rollup/rollup/issues/1483))
