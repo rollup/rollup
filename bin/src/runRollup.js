@@ -161,6 +161,10 @@ function execute ( options, command ) {
 		external = ( optionsExternal || [] ).concat( commandExternal );
 	}
 
+	if (typeof command.extend !== 'undefined') {
+		options.extend = command.extend;
+	}
+
 	if ( command.silent ) {
 		options.onwarn = () => {};
 	}
