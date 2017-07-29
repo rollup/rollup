@@ -28,6 +28,7 @@ import NewExpression from './NewExpression.js';
 import ObjectExpression from './ObjectExpression.js';
 import ReturnStatement from './ReturnStatement.js';
 import Statement from './shared/Statement.js';
+import TaggedTemplateExpression from './TaggedTemplateExpression.js';
 import TemplateLiteral from './TemplateLiteral.js';
 import ThisExpression from './ThisExpression.js';
 import ThrowStatement from './ThrowStatement.js';
@@ -68,6 +69,7 @@ export default {
 	ObjectExpression,
 	ReturnStatement,
 	SwitchStatement: Statement,
+	TaggedTemplateExpression,
 	TemplateLiteral,
 	ThisExpression,
 	ThrowStatement,
