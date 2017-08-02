@@ -1,40 +1,21 @@
-import Node from '../Node.js';
+import Class from './shared/Class.js';
 
-// TODO is this basically identical to FunctionDeclaration?
-export default class ClassDeclaration extends Node {
-	activate () {
-		if ( this.activated ) return;
-		this.activated = true;
-
-		if ( this.superClass ) this.superClass.run( this.scope );
-		this.body.run();
-	}
-
-	addReference () {
-		/* noop? */
-	}
-
+export default class ClassDeclaration extends Class {
 	gatherPossibleValues ( values ) {
 		values.add( this );
-	}
-
-	getName () {
-		return this.name;
 	}
 
 	hasEffects () {
 		return false;
 	}
 
-	initialise ( scope ) {
-		this.scope = scope;
-
+	initialiseChildren ( parentScope ) {
 		if ( this.id ) {
 			this.name = this.id.name;
-			scope.addDeclaration( this.name, this, false, false );
+			parentScope.addDeclaration( this.name, this, false, false );
+			this.id.initialise( parentScope );
 		}
-
-		super.initialise( scope );
+		super.initialiseChildren(parentScope);
 	}
 
 	render ( code, es ) {
@@ -45,9 +26,9 @@ export default class ClassDeclaration extends Node {
 		}
 	}
 
-	run ( scope ) {
+	run () {
 		if ( this.parent.type === 'ExportDefaultDeclaration' ) {
-			super.run( scope );
+			super.run();
 		}
 	}
 }

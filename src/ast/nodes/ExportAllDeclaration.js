@@ -1,7 +1,7 @@
 import Node from '../Node.js';
 
 export default class ExportAllDeclaration extends Node {
-	initialise () {
+	initialiseNode () {
 		this.isExportDeclaration = true;
 	}
 

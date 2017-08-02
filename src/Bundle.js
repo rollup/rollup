@@ -27,7 +27,7 @@ export default class Bundle {
 		if ( options.cache ) {
 			options.cache.modules.forEach( module => {
 				this.cachedModules.set( module.id, module );
-			});
+			} );
 		}
 
 		this.plugins = ensureArray( options.plugins );
@@ -35,7 +35,7 @@ export default class Bundle {
 		options = this.plugins.reduce( ( acc, plugin ) => {
 			if ( plugin.options ) return plugin.options( acc ) || acc;
 			return acc;
-		}, options);
+		}, options );
 
 		if ( !options.entry ) {
 			throw new Error( 'You must supply options.entry to rollup' );
@@ -47,13 +47,13 @@ export default class Bundle {
 
 		this.treeshake = options.treeshake !== false;
 
-		if (options.pureExternalModules === true) {
+		if ( options.pureExternalModules === true ) {
 			this.isPureExternalModule = () => true;
-		} else if (typeof options.pureExternalModules === 'function') {
+		} else if ( typeof options.pureExternalModules === 'function' ) {
 			this.isPureExternalModule = options.pureExternalModules;
-		} else if (Array.isArray(options.pureExternalModules)) {
-			const pureExternalModules = new Set(options.pureExternalModules);
-			this.isPureExternalModule = id => pureExternalModules.has(id);
+		} else if ( Array.isArray( options.pureExternalModules ) ) {
+			const pureExternalModules = new Set( options.pureExternalModules );
+			this.isPureExternalModule = id => pureExternalModules.has( id );
 		} else {
 			this.isPureExternalModule = () => false;
 		}
@@ -81,7 +81,7 @@ export default class Bundle {
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports', '_interopDefault' ].forEach( name => {
 			this.scope.findDeclaration( name ); // creates global declaration as side-effect
-		});
+		} );
 
 		this.moduleById = new Map();
 		this.modules = [];
@@ -96,7 +96,7 @@ export default class Bundle {
 			const moduleContext = new Map();
 			Object.keys( optionsModuleContext ).forEach( key => {
 				moduleContext.set( resolve( key ), optionsModuleContext[ key ] );
-			});
+			} );
 			this.getModuleContext = id => moduleContext.get( id ) || this.context;
 		} else {
 			this.getModuleContext = () => this.context;
@@ -125,22 +125,22 @@ export default class Bundle {
 		return this.resolveId( this.entry, undefined )
 			.then( id => {
 				if ( id === false ) {
-					error({
+					error( {
 						code: 'UNRESOLVED_ENTRY',
 						message: `Entry module cannot be external`
-					});
+					} );
 				}
 
 				if ( id == null ) {
-					error({
+					error( {
 						code: 'UNRESOLVED_ENTRY',
 						message: `Could not resolve entry (${this.entry})`
-					});
+					} );
 				}
 
 				this.entryId = id;
 				return this.fetchModule( id, undefined );
-			})
+			} )
 			.then( entryModule => {
 				this.entryModule = entryModule;
 
@@ -169,13 +169,13 @@ export default class Bundle {
 					if ( declaration.isNamespace ) {
 						declaration.needsNamespaceBlock = true;
 					}
-				});
+				} );
 
 				// mark statements that should appear in the bundle
 				if ( this.treeshake ) {
 					this.modules.forEach( module => {
 						module.run();
-					});
+					} );
 
 					let settled = false;
 					while ( !settled ) {
@@ -183,7 +183,7 @@ export default class Bundle {
 
 						let i = this.dependentExpressions.length;
 						while ( i-- ) {
-							const expression = this.dependentExpressions[i];
+							const expression = this.dependentExpressions[ i ];
 
 							let statement = expression;
 							while ( statement.parent && !/Function/.test( statement.parent.type ) ) statement = statement.parent;
@@ -192,7 +192,7 @@ export default class Bundle {
 								this.dependentExpressions.splice( i, 1 );
 							} else if ( expression.isUsedByBundle() ) {
 								settled = false;
-								statement.run( statement.findScope() );
+								statement.run();
 								this.dependentExpressions.splice( i, 1 );
 							}
 						}
@@ -216,25 +216,25 @@ export default class Bundle {
 					if ( unused.length === 0 ) return;
 
 					const names = unused.length === 1 ?
-						`'${unused[0]}' is` :
+						`'${unused[ 0 ]}' is` :
 						`${unused.slice( 0, -1 ).map( name => `'${name}'` ).join( ', ' )} and '${unused.pop()}' are`;
 
-					this.warn({
+					this.warn( {
 						code: 'UNUSED_EXTERNAL_IMPORT',
 						message: `${names} imported from external module '${module.id}' but never used`
-					});
-				});
+					} );
+				} );
 
 				// prune unused external imports
-				this.externalModules = this.externalModules.filter(module => {
-					return module.used || !this.isPureExternalModule(module.id);
-				});
+				this.externalModules = this.externalModules.filter( module => {
+					return module.used || !this.isPureExternalModule( module.id );
+				} );
 
 				this.orderedModules = this.sort();
 				this.deconflict();
 
 				timeEnd( 'phase 4' );
-			});
+			} );
 	}
 
 	deconflict () {
@@ -245,7 +245,7 @@ export default class Bundle {
 
 		function getSafeName ( name ) {
 			while ( used[ name ] ) {
-				name += `$${used[name]++}`;
+				name += `$${used[ name ]++}`;
 			}
 
 			used[ name ] = 1;
@@ -265,8 +265,8 @@ export default class Bundle {
 				const safeName = getSafeName( name );
 				toDeshadow.add( safeName );
 				declaration.setSafeName( safeName );
-			});
-		});
+			} );
+		} );
 
 		this.modules.forEach( module => {
 			forOwn( module.scope.declarations, ( declaration ) => {
@@ -275,14 +275,14 @@ export default class Bundle {
 				}
 
 				declaration.name = getSafeName( declaration.name );
-			});
+			} );
 
 			// deconflict reified namespaces
 			const namespace = module.namespace();
 			if ( namespace.needsNamespaceBlock ) {
 				namespace.name = getSafeName( namespace.name );
 			}
-		});
+		} );
 
 		this.scope.deshadow( toDeshadow );
 	}
@@ -299,17 +299,17 @@ export default class Bundle {
 
 				msg += `: ${err.message}`;
 				throw new Error( msg );
-			})
+			} )
 			.then( source => {
 				if ( typeof source === 'string' ) return source;
 				if ( source && typeof source === 'object' && source.code ) return source;
 
 				// TODO report which plugin failed
-				error({
+				error( {
 					code: 'BAD_LOADER',
 					message: `Error loading ${relativeId( id )}: plugin load hook should return a string, a { code, map } object, or nothing/null`
-				});
-			})
+				} );
+			} )
 			.then( source => {
 				if ( typeof source === 'string' ) {
 					source = {
@@ -323,11 +323,11 @@ export default class Bundle {
 				}
 
 				return transform( this, source, id, this.plugins );
-			})
+			} )
 			.then( source => {
 				const { code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds } = source;
 
-				const module = new Module({
+				const module = new Module( {
 					id,
 					code,
 					originalCode,
@@ -336,7 +336,7 @@ export default class Bundle {
 					sourceMapChain,
 					resolvedIds,
 					bundle: this
-				});
+				} );
 
 				this.modules.push( module );
 				this.moduleById.set( id, module );
@@ -344,9 +344,9 @@ export default class Bundle {
 				return this.fetchAllDependencies( module ).then( () => {
 					keys( module.exports ).forEach( name => {
 						if ( name !== 'default' ) {
-							module.exportsAll[name] = module.id;
+							module.exportsAll[ name ] = module.id;
 						}
-					});
+					} );
 					module.exportAllSources.forEach( source => {
 						const id = module.resolvedIds[ source ] || module.resolvedExternalIds[ source ];
 						const exportAllModule = this.moduleById.get( id );
@@ -354,18 +354,18 @@ export default class Bundle {
 
 						keys( exportAllModule.exportsAll ).forEach( name => {
 							if ( name in module.exportsAll ) {
-								this.warn({
+								this.warn( {
 									code: 'NAMESPACE_CONFLICT',
 									message: `Conflicting namespaces: ${relativeId( module.id )} re-exports '${name}' from both ${relativeId( module.exportsAll[ name ] )} and ${relativeId( exportAllModule.exportsAll[ name ] )} (will be ignored)`
-								});
+								} );
 							} else {
-							  module.exportsAll[ name ] = exportAllModule.exportsAll[ name ];
+								module.exportsAll[ name ] = exportAllModule.exportsAll[ name ];
 							}
-						});
-					});
+						} );
+					} );
 					return module;
-				});
-			});
+				} );
+			} );
 	}
 
 	fetchAllDependencies ( module ) {
@@ -374,24 +374,24 @@ export default class Bundle {
 			return ( resolvedId ? Promise.resolve( resolvedId ) : this.resolveId( source, module.id ) )
 				.then( resolvedId => {
 					const externalId = resolvedId || (
-						isRelative( source ) ? resolve( module.id, '..', source ) : source
-					);
+							isRelative( source ) ? resolve( module.id, '..', source ) : source
+						);
 
 					let isExternal = this.isExternal( externalId );
 
 					if ( !resolvedId && !isExternal ) {
 						if ( isRelative( source ) ) {
-							error({
+							error( {
 								code: 'UNRESOLVED_IMPORT',
 								message: `Could not resolve '${source}' from ${relativeId( module.id )}`
-							});
+							} );
 						}
 
-						this.warn({
+						this.warn( {
 							code: 'UNRESOLVED_IMPORT',
 							message: `'${source}' is imported by ${relativeId( module.id )}, but could not be resolved – treating it as an external dependency`,
 							url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
-						});
+						} );
 						isExternal = true;
 					}
 
@@ -412,16 +412,16 @@ export default class Bundle {
 							if ( importDeclaration.source !== source ) return;
 
 							externalModule.traceExport( importDeclaration.name );
-						});
+						} );
 					} else {
 						if ( resolvedId === module.id ) {
 							// need to find the actual import declaration, so we can provide
 							// a useful error message. Bit hoop-jumpy but what can you do
 							const declaration = module.ast.body.find( node => {
 								return node.isImportDeclaration && node.source.value === source;
-							});
+							} );
 
-							module.error({
+							module.error( {
 								code: 'CANNOT_IMPORT_SELF',
 								message: `A module cannot import itself`
 							}, declaration.start );
@@ -430,8 +430,8 @@ export default class Bundle {
 						module.resolvedIds[ source ] = resolvedId;
 						return this.fetchModule( resolvedId, module.id );
 					}
-				});
-		});
+				} );
+		} );
 	}
 
 	getPathRelativeToEntryDirname ( resolvedId ) {
@@ -448,10 +448,10 @@ export default class Bundle {
 	render ( options = {} ) {
 		return Promise.resolve().then( () => {
 			if ( options.format === 'es6' ) {
-				this.warn({
+				this.warn( {
 					code: 'DEPRECATED_ES6',
 					message: 'The es6 format is deprecated – use `es` instead'
-				});
+				} );
 
 				options.format = 'es';
 			}
@@ -459,7 +459,7 @@ export default class Bundle {
 			// Determine export mode - 'default', 'named', 'none'
 			const exportMode = getExportMode( this, options );
 
-			let magicString = new MagicStringBundle({ separator: '\n\n' });
+			let magicString = new MagicStringBundle( { separator: '\n\n' } );
 			const usedModules = [];
 
 			timeStart( 'render modules' );
@@ -471,13 +471,13 @@ export default class Bundle {
 					magicString.addSource( source );
 					usedModules.push( module );
 				}
-			});
+			} );
 
 			if ( !magicString.toString().trim() && this.entryModule.getExports().length === 0 ) {
-				this.warn({
+				this.warn( {
 					code: 'EMPTY_BUNDLE',
 					message: 'Generated an empty bundle'
-				});
+				} );
 			}
 
 			timeEnd( 'render modules' );
@@ -504,10 +504,10 @@ export default class Bundle {
 
 			const finalise = finalisers[ options.format ];
 			if ( !finalise ) {
-				error({
+				error( {
 					code: 'INVALID_OPTION',
 					message: `You must specify an output type - valid options are ${keys( finalisers ).join( ', ' )}`
-				});
+				} );
 			}
 
 			timeStart( 'render format' );
@@ -543,13 +543,13 @@ export default class Bundle {
 					if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
 
 					if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
-						map = magicString.generateMap({});
+						map = magicString.generateMap( {} );
 						if ( typeof map.mappings === 'string' ) {
 							map.mappings = decode( map.mappings );
 						}
 						map = collapseSourcemaps( this, file, map, usedModules, bundleSourcemapChain );
 					} else {
-						map = magicString.generateMap({ file, includeContent: true });
+						map = magicString.generateMap( { file, includeContent: true } );
 					}
 
 					map.sources = map.sources.map( normalize );
@@ -559,8 +559,8 @@ export default class Bundle {
 
 				if ( code[ code.length - 1 ] !== '\n' ) code += '\n';
 				return { code, map };
-			});
-		});
+			} );
+		} );
 	}
 
 	sort () {
@@ -574,7 +574,7 @@ export default class Bundle {
 		this.modules.forEach( module => {
 			stronglyDependsOn[ module.id ] = blank();
 			dependsOn[ module.id ] = blank();
-		});
+		} );
 
 		this.modules.forEach( module => {
 			function processStrongDependency ( dependency ) {
@@ -593,7 +593,7 @@ export default class Bundle {
 
 			module.strongDependencies.forEach( processStrongDependency );
 			module.dependencies.forEach( processDependency );
-		});
+		} );
 
 		const visit = module => {
 			if ( seen[ module.id ] ) {
@@ -612,7 +612,7 @@ export default class Bundle {
 		if ( hasCycles ) {
 			ordered.forEach( ( a, i ) => {
 				for ( i += 1; i < ordered.length; i += 1 ) {
-					const b = ordered[i];
+					const b = ordered[ i ];
 
 					// TODO reinstate this! it no longer works
 					if ( stronglyDependsOn[ a.id ][ b.id ] ) {
@@ -629,7 +629,7 @@ export default class Bundle {
 							}
 							visited[ module.id ] = true;
 							for ( let i = 0; i < module.dependencies.length; i += 1 ) {
-								const dependency = module.dependencies[i];
+								const dependency = module.dependencies[ i ];
 								if ( !visited[ dependency.id ] && findParent( dependency ) ) return true;
 							}
 						};
@@ -641,7 +641,7 @@ export default class Bundle {
 						);
 					}
 				}
-			});
+			} );
 		}
 
 		return ordered;

@@ -4,19 +4,20 @@ import Scope from '../scopes/Scope.js';
 import { UNKNOWN } from '../values.js';
 
 export default class ForOfStatement extends Statement {
-	initialise ( scope ) {
-		if ( this.body.type === 'BlockStatement' ) {
-			this.body.createScope( scope );
-			this.scope = this.body.scope;
-		} else {
-			this.scope = new Scope({
-				parent: scope,
-				isBlockScope: true,
-				isLexicalBoundary: false
-			});
-		}
-
-		super.initialise( this.scope );
+	initialiseChildren () {
+		this.left.initialise( this.scope );
+		this.right.initialise( this.scope );
+		this.body.initialiseAndReplaceScope ?
+			this.body.initialiseAndReplaceScope( this.scope ) :
+			this.body.initialise( this.scope );
 		assignTo( this.left, this.scope, UNKNOWN );
+	}
+
+	initialiseScope ( parentScope ) {
+		this.scope = new Scope( {
+			parent: parentScope,
+			isBlockScope: true,
+			isLexicalBoundary: false
+		} );
 	}
 }

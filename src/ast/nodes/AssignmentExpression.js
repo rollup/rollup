@@ -5,14 +5,14 @@ import isProgramLevel from '../utils/isProgramLevel.js';
 import { NUMBER, STRING } from '../values.js';
 
 export default class AssignmentExpression extends Node {
-	bind ( scope ) {
+	bind () {
 		const subject = this.left;
 
 		this.subject = subject;
-		disallowIllegalReassignment( scope, subject );
+		disallowIllegalReassignment( this.scope, subject );
 
 		if ( subject.type === 'Identifier' ) {
-			const declaration = scope.findDeclaration( subject.name );
+			const declaration = this.scope.findDeclaration( subject.name );
 			declaration.isReassigned = true;
 
 			if ( declaration.possibleValues ) { // TODO this feels hacky
@@ -26,22 +26,18 @@ export default class AssignmentExpression extends Node {
 			}
 		}
 
-		super.bind( scope );
+		super.bind();
 	}
 
-	hasEffects ( scope ) {
-		const hasEffects = this.isUsedByBundle() || this.right.hasEffects( scope );
+	hasEffects () {
+		const hasEffects = this.isUsedByBundle() || this.right.hasEffects( this.scope );
 		return hasEffects;
 	}
 
-	initialise ( scope ) {
-		this.scope = scope;
-
+	initialiseNode () {
 		if ( isProgramLevel( this ) ) {
 			this.module.bundle.dependentExpressions.push( this );
 		}
-
-		super.initialise( scope );
 	}
 
 	isUsedByBundle () {

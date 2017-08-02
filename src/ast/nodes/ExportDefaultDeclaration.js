@@ -3,16 +3,6 @@ import Node from '../Node.js';
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
 export default class ExportDefaultDeclaration extends Node {
-	initialise ( scope ) {
-		this.isExportDeclaration = true;
-		this.isDefault = true;
-
-		this.name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name || this.module.basename();
-		scope.declarations.default = this;
-
-		this.declaration.initialise( scope );
-	}
-
 	activate () {
 		if ( this.activated ) return;
 		this.activated = true;
@@ -25,11 +15,11 @@ export default class ExportDefaultDeclaration extends Node {
 		if ( this.original ) this.original.addReference( reference );
 	}
 
-	bind ( scope ) {
+	bind () {
 		const name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name;
-		if ( name ) this.original = scope.findDeclaration( name );
+		if ( name ) this.original = this.scope.findDeclaration( name );
 
-		this.declaration.bind( scope );
+		this.declaration.bind();
 	}
 
 	gatherPossibleValues ( values ) {
@@ -44,6 +34,14 @@ export default class ExportDefaultDeclaration extends Node {
 		return this.name;
 	}
 
+	initialiseNode () {
+		this.isExportDeclaration = true;
+		this.isDefault = true;
+
+		this.name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name || this.module.basename();
+		this.scope.declarations.default = this;
+	}
+
 	// TODO this is total chaos, tidy it up
 	render ( code, es ) {
 		const treeshake = this.module.bundle.treeshake;
@@ -53,7 +51,7 @@ export default class ExportDefaultDeclaration extends Node {
 		let declaration_start;
 		if ( this.declaration ) {
 			const statementStr = code.original.slice( this.start, this.end );
-			declaration_start = this.start + statementStr.match(/^\s*export\s+default\s*/)[0].length;
+			declaration_start = this.start + statementStr.match( /^\s*export\s+default\s*/ )[ 0 ].length;
 		}
 
 		if ( this.shouldInclude || this.declaration.activated ) {
@@ -63,7 +61,7 @@ export default class ExportDefaultDeclaration extends Node {
 						code.remove( this.start, declaration_start );
 					} else {
 						code.overwrite( this.start, declaration_start, `var ${this.name} = ` );
-						if ( code.original[this.end - 1] !== ';' ) code.appendLeft( this.end, ';' );
+						if ( code.original[ this.end - 1 ] !== ';' ) code.appendLeft( this.end, ';' );
 					}
 				}
 
@@ -92,7 +90,7 @@ export default class ExportDefaultDeclaration extends Node {
 					const hasEffects = this.declaration.hasEffects( this.module.scope );
 					code.remove( this.start, hasEffects ? declaration_start : this.next || this.end );
 				}
-			} else if (name === this.declaration.name) {
+			} else if ( name === this.declaration.name ) {
 				code.remove( this.start, this.next || this.end );
 			} else {
 				code.overwrite( this.start, declaration_start, `${this.module.bundle.varOrConst} ${name} = ` );
@@ -101,9 +99,9 @@ export default class ExportDefaultDeclaration extends Node {
 		}
 	}
 
-	run ( scope ) {
+	run () {
 		this.shouldInclude = true;
-		super.run( scope );
+		super.run();
 
 		// special case (TODO is this correct?)
 		if ( functionOrClassDeclaration.test( this.declaration.type ) && !this.declaration.id ) {

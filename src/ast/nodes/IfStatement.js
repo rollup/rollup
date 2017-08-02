@@ -3,14 +3,14 @@ import extractNames from '../utils/extractNames.js';
 import { UNKNOWN } from '../values.js';
 
 // Statement types which may contain if-statements as direct children.
-const statementsWithIfStatements = new Set([
+const statementsWithIfStatements = new Set( [
 	'DoWhileStatement',
 	'ForInStatement',
 	'ForOfStatement',
 	'ForStatement',
 	'IfStatement',
 	'WhileStatement'
-]);
+] );
 
 function handleVarDeclarations ( node, scope ) {
 	const hoistedVars = [];
@@ -23,8 +23,8 @@ function handleVarDeclarations ( node, scope ) {
 
 				extractNames( declarator.id ).forEach( name => {
 					if ( !~hoistedVars.indexOf( name ) ) hoistedVars.push( name );
-				});
-			});
+				} );
+			} );
 		}
 
 		else if ( !/Function/.test( node.type ) ) {
@@ -39,32 +39,27 @@ function handleVarDeclarations ( node, scope ) {
 
 // TODO DRY this out
 export default class IfStatement extends Statement {
-	initialise ( scope ) {
-		this.scope = scope;
-		this.testValue = this.test.getValue();
-
+	initialiseChildren ( parentScope ) {
 		if ( this.module.bundle.treeshake ) {
+			this.testValue = this.test.getValue();
+
 			if ( this.testValue === UNKNOWN ) {
-				super.initialise( scope );
-			}
-
-			else if ( this.testValue ) {
-				this.consequent.initialise( scope );
-
-				if ( this.alternate ) this.hoistedVars = handleVarDeclarations( this.alternate, scope );
-				this.alternate = null;
-			}
-
-			else {
-				if ( this.alternate ) this.alternate.initialise( scope );
-
-				this.hoistedVars = handleVarDeclarations( this.consequent, scope );
+				super.initialiseChildren( parentScope );
+			} else if ( this.testValue ) {
+				this.consequent.initialise( this.scope );
+				if ( this.alternate ) {
+					this.hoistedVars = handleVarDeclarations( this.alternate, this.scope );
+					this.alternate = null;
+				}
+			} else {
+				if ( this.alternate ) {
+					this.alternate.initialise( this.scope );
+				}
+				this.hoistedVars = handleVarDeclarations( this.consequent, this.scope );
 				this.consequent = null;
 			}
-		}
-
-		else {
-			super.initialise( scope );
+		} else {
+			super.initialiseChildren( parentScope );
 		}
 	}
 
@@ -85,7 +80,7 @@ export default class IfStatement extends Statement {
 						.map( name => {
 							const declaration = this.scope.findDeclaration( name );
 							return declaration.activated ? declaration.getName() : null;
-						})
+						} )
 						.filter( Boolean );
 
 					if ( names.length > 0 ) {
