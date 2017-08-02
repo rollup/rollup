@@ -506,7 +506,7 @@ export default class Bundle {
 			if ( !finalise ) {
 				error({
 					code: 'INVALID_OPTION',
-					message: `Unknown or missing format: ${options.format} - valid options are ${keys( finalisers ).join( ', ' )}`
+					message: `Invalid or missing format: ${options.format} - valid options are ${keys( finalisers ).join( ', ' )}`
 				});
 			}
 
