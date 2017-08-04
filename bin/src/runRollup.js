@@ -92,6 +92,7 @@ export default function runRollup ( command ) {
 
 				const configs = require( config );
 				const normalized = Array.isArray( configs ) ? configs : [configs];
+				const promises = [];
 
 				normalized.forEach(options => {
 					if ( Object.keys( options ).length === 0 ) {
@@ -102,8 +103,12 @@ export default function runRollup ( command ) {
 						});
 					}
 
-					execute( options, command );
+					promises.push(new Promise((resolve) => {
+						execute(options, command);
+						resolve();
+					}));
 				});
+				Promise.all(promises).catch( handleError );
 
 				require.extensions[ '.js' ] = defaultLoader;
 			})
@@ -193,10 +198,10 @@ function execute ( options, command ) {
 
 	if ( command.watch ) {
 		if ( !options.entry || ( !options.dest && !options.targets ) ) {
-			handleError({
+			throw {
 				code: 'WATCHER_MISSING_INPUT_OR_OUTPUT',
 				message: 'must specify --input and --output when using rollup --watch'
-			});
+			};
 		}
 
 		try {
@@ -227,16 +232,16 @@ function execute ( options, command ) {
 			});
 		} catch ( err ) {
 			if ( err.code === 'MODULE_NOT_FOUND' ) {
-				handleError({
+				throw {
 					code: 'ROLLUP_WATCH_NOT_INSTALLED',
 					message: 'rollup --watch depends on the rollup-watch package, which could not be found. Install it with npm install -D rollup-watch'
-				});
+				};
 			}
 
-			handleError( err );
+			throw err;
 		}
 	} else {
-		bundle( options ).catch( handleError );
+		return bundle( options );
 	}
 }
 
@@ -269,10 +274,10 @@ function bundle ( options ) {
 			}
 
 			if ( options.sourceMap && options.sourceMap !== 'inline' ) {
-				handleError({
+				throw {
 					code: 'MISSING_OUTPUT_OPTION',
 					message: 'You must specify an --output (-o) option when creating a file with a sourcemap'
-				});
+				};
 			}
 
 			return bundle.generate(options).then( ({ code, map }) => {
@@ -282,6 +287,5 @@ function bundle ( options ) {
 
 				process.stdout.write( code );
 			});
-		})
-		.catch( handleError );
+		});
 }
