@@ -44,11 +44,11 @@ export default class Node {
 			if ( value ) {
 				if ( 'length' in value ) {
 					for ( const child of value ) {
-						if ( child && child.hasEffects( this.scope ) ) {
+						if ( child && child.hasEffects() ) {
 							return true;
 						}
 					}
-				} else if ( value.hasEffects( this.scope ) ) {
+				} else if ( value.hasEffects() ) {
 					return true;
 				}
 			}

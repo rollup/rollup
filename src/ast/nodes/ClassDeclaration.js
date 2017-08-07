@@ -15,7 +15,7 @@ export default class ClassDeclaration extends Class {
 			parentScope.addDeclaration( this.name, this, false, false );
 			this.id.initialise( parentScope );
 		}
-		super.initialiseChildren(parentScope);
+		super.initialiseChildren( parentScope );
 	}
 
 	render ( code, es ) {

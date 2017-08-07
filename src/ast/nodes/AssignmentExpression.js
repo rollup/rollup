@@ -30,7 +30,7 @@ export default class AssignmentExpression extends Node {
 	}
 
 	hasEffects () {
-		const hasEffects = this.isUsedByBundle() || this.right.hasEffects( this.scope );
+		const hasEffects = this.isUsedByBundle() || this.right.hasEffects();
 		return hasEffects;
 	}
 

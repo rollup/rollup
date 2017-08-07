@@ -9,21 +9,21 @@ function isES5Function ( node ) {
 	return node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration';
 }
 
-function hasEffectsNew ( node, scope ) {
+function hasEffectsNew ( node ) {
 	let inner = node;
 
 	if ( inner.type === 'ExpressionStatement' ) {
 		inner = inner.expression;
 
 		if ( inner.type === 'AssignmentExpression' ) {
-			if ( inner.right.hasEffects( scope ) ) {
+			if ( inner.right.hasEffects() ) {
 				return true;
 
 			} else {
 				inner = inner.left;
 
 				if ( inner.type === 'MemberExpression' ) {
-					if ( inner.computed && inner.property.hasEffects( scope ) ) {
+					if ( inner.computed && inner.property.hasEffects() ) {
 						return true;
 
 					} else {
@@ -38,7 +38,7 @@ function hasEffectsNew ( node, scope ) {
 		}
 	}
 
-	return node.hasEffects( scope );
+	return node.hasEffects();
 }
 
 function fnHasEffects ( fn, isNew ) {
@@ -46,11 +46,10 @@ function fnHasEffects ( fn, isNew ) {
 	currentlyCalling.add( fn );
 
 	// handle body-less arrow functions
-	const scope = fn.body.scope || fn.scope;
 	const body = fn.body.type === 'BlockStatement' ? fn.body.body : [ fn.body ];
 
 	for ( const node of body ) {
-		if ( isNew ? hasEffectsNew( node, scope ) : node.hasEffects( scope ) ) {
+		if ( isNew ? hasEffectsNew( node ) : node.hasEffects() ) {
 			currentlyCalling.delete( fn );
 			return true;
 		}
@@ -61,7 +60,7 @@ function fnHasEffects ( fn, isNew ) {
 }
 
 export default function callHasEffects ( scope, callee, isNew ) {
-	const values = new Set([ callee ]);
+	const values = new Set( [ callee ] );
 
 	for ( const node of values ) {
 		if ( node === UNKNOWN ) return true; // err on side of caution
