@@ -1,3 +1,2 @@
---bail
 --compilers js:buble/register
 test/test.js

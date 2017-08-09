@@ -2,6 +2,9 @@ module.exports = {
 	warnings: [
 		{
 			code: 'MISSING_EXPORT',
+			exporter: 'empty.js',
+			importer: 'main.js',
+			missing: 'foo',
 			message: `'foo' is not exported by 'empty.js'`,
 			pos: 61,
 			loc: {
