@@ -7,3 +7,4 @@ coverage
 .commithash
 .idea
 bin/rollup
+test/_tmp
