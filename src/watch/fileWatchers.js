@@ -6,29 +6,34 @@ const opts = { encoding: 'utf-8', persistent: true };
 
 const watchers = new Map();
 
-export function addTask(id, task) {
-	if (!watchers.has(id)) {
-		const watcher = new FileWatcher(id, () => {
-			watchers.delete(id);
+export function addTask(id, task, chokidarOptions, chokidarOptionsHash) {
+	if (!watchers.has(chokidarOptionsHash)) watchers.set(chokidarOptionsHash, new Map());
+	const group = watchers.get(chokidarOptionsHash);
+
+	if (!group.has(id)) {
+		const watcher = new FileWatcher(id, chokidarOptions, () => {
+			group.delete(id);
 		});
 
 		if (watcher.fileExists) {
-			watchers.set(id, watcher);
+			group.set(id, watcher);
 		} else {
 			return;
 		}
 	}
 
-	watchers.get(id).tasks.add(task);
+	group.get(id).tasks.add(task);
 }
 
-export function deleteTask(id, target) {
-	const watcher = watchers.get(id);
+export function deleteTask(id, target, chokidarOptionsHash) {
+	const group = watchers.get(chokidarOptionsHash);
+
+	const watcher = group.get(id);
 	watcher.tasks.delete(target);
 
 	if (watcher.tasks.size === 0) {
 		watcher.close();
-		watchers.delete(id);
+		group.delete(id);
 	}
 }
 

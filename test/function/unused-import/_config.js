@@ -12,6 +12,8 @@ module.exports = {
 		},
 		{
 			code: 'UNUSED_EXTERNAL_IMPORT',
+			source: 'external',
+			names: ['unused', 'notused', 'neverused'],
 			message: `'unused', 'notused' and 'neverused' are imported from external module 'external' but never used`
 		},
 		{

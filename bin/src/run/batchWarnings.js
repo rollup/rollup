@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { handleWarning, stderr } from '../logging.js';
+import { stderr } from '../logging.js';
 import relativeId from '../../../src/utils/relativeId.js';
 
 export default function batchWarnings () {
@@ -7,9 +7,18 @@ export default function batchWarnings () {
 	let count = 0;
 
 	return {
+		get count() {
+			return count;
+		},
+
 		add: warning => {
 			if ( typeof warning === 'string' ) {
 				warning = { code: 'UNKNOWN', message: warning };
+			}
+
+			if ( warning.code in immediateHandlers ) {
+				immediateHandlers[ warning.code ]( warning );
+				return;
 			}
 
 			if ( !allWarnings.has( warning.code ) ) allWarnings.set( warning.code, [] );
@@ -23,24 +32,37 @@ export default function batchWarnings () {
 
 			const codes = Array.from( allWarnings.keys() )
 				.sort( ( a, b ) => {
-					if ( handlers[a] && handlers[b] ) {
-						return handlers[a].priority - handlers[b].priority;
+					if ( deferredHandlers[a] && deferredHandlers[b] ) {
+						return deferredHandlers[a].priority - deferredHandlers[b].priority;
 					}
 
-					if ( handlers[a] ) return -1;
-					if ( handlers[b] ) return 1;
+					if ( deferredHandlers[a] ) return -1;
+					if ( deferredHandlers[b] ) return 1;
 					return allWarnings.get( b ).length - allWarnings.get( a ).length;
 				});
 
 			codes.forEach( code => {
-				const handler = handlers[ code ];
+				const handler = deferredHandlers[ code ];
 				const warnings = allWarnings.get( code );
 
 				if ( handler ) {
 					handler.fn( warnings );
 				} else {
 					warnings.forEach( warning => {
-						handleWarning( warning );
+						stderr( `${chalk.bold.yellow('(!)')} ${chalk.bold.yellow( warning.message )}` );
+
+						if ( warning.url ) info( warning.url );
+
+						const id = warning.loc && warning.loc.file || warning.id;
+						if ( id ) {
+							const loc = warning.loc ?
+								`${relativeId( id )}: (${warning.loc.line}:${warning.loc.column})` :
+								relativeId( id );
+
+							stderr( chalk.bold( relativeId( loc ) ) );
+						}
+
+						if ( warning.frame ) info( warning.frame );
 					});
 				}
 			});
@@ -50,14 +72,34 @@ export default function batchWarnings () {
 	};
 }
 
+const immediateHandlers = {
+	MISSING_NODE_BUILTINS: warning => {
+		title( `Missing shims for Node.js built-ins` );
+
+		const detail = warning.modules.length === 1 ?
+			`'${warning.modules[0]}'` :
+			`${warning.modules.slice( 0, -1 ).map( name => `'${name}'` ).join( ', ' )} and '${warning.modules.slice( -1 )}'`;
+		stderr( `Creating a browser bundle that depends on ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins` );
+	},
+
+	MIXED_EXPORTS: () => {
+		title( 'Mixing named and default exports' );
+		stderr( `Consumers of your bundle will have to use bundle['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning` );
+	},
+
+	EMPTY_BUNDLE: () => {
+		title( `Generated an empty bundle` );
+	}
+};
+
 // TODO select sensible priorities
-const handlers = {
+const deferredHandlers = {
 	UNUSED_EXTERNAL_IMPORT: {
 		priority: 1,
 		fn: warnings => {
-			group( 'Unused external imports' );
+			title( 'Unused external imports' );
 			warnings.forEach( warning => {
-				stderr( `${warning.message}` );
+				stderr( `${warning.names} imported from external module '${warning.source}' but never used` );
 			});
 		}
 	},
@@ -65,7 +107,7 @@ const handlers = {
 	UNRESOLVED_IMPORT: {
 		priority: 1,
 		fn: warnings => {
-			group( 'Unresolved dependencies' );
+			title( 'Unresolved dependencies' );
 			info( 'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency' );
 
 			const dependencies = new Map();
@@ -84,7 +126,7 @@ const handlers = {
 	MISSING_EXPORT: {
 		priority: 1,
 		fn: warnings => {
-			group( 'Missing exports' );
+			title( 'Missing exports' );
 			info( 'https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module' );
 
 			warnings.forEach( warning => {
@@ -98,110 +140,136 @@ const handlers = {
 	THIS_IS_UNDEFINED: {
 		priority: 1,
 		fn: warnings => {
-			group( '`this` has been rewritten to `undefined`' );
+			title( '`this` has been rewritten to `undefined`' );
 			info( 'https://github.com/rollup/rollup/wiki/Troubleshooting#this-is-undefined' );
-
-			const modules = new Map();
-			warnings.forEach( warning => {
-				if ( !modules.has( warning.loc.file ) ) modules.set( warning.loc.file, [] );
-				modules.get( warning.loc.file ).push( warning );
-			});
-
-			const allIds = Array.from( modules.keys() );
-			const ids = allIds.length > 5 ? allIds.slice( 0, 3 ) : allIds;
-
-			ids.forEach( id => {
-				const occurrences = modules.get( id );
-
-				stderr( chalk.bold( relativeId( id ) ) );
-				stderr( chalk.grey( occurrences[0].frame ) );
-
-				if ( occurrences.length > 1 ) {
-					stderr( `...and ${occurrences.length - 1} other ${occurrences.length > 2 ? 'occurrences' : 'occurrence'}` );
-				}
-			});
-
-			if ( allIds.length > ids.length ) {
-				stderr( `\n...and ${allIds.length - ids.length} other files` );
-			}
+			showTruncatedWarnings(warnings);
 		}
 	},
 
 	EVAL: {
 		priority: 1,
 		fn: warnings => {
-
+			title( 'Use of eval is strongly discouraged' );
+			info( 'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval' );
+			showTruncatedWarnings(warnings);
 		}
 	},
 
 	NON_EXISTENT_EXPORT: {
 		priority: 1,
 		fn: warnings => {
-
+			title( `Import of non-existent ${warnings.length > 1 ? 'exports' : 'export'}` );
+			showTruncatedWarnings(warnings);
 		}
 	},
 
 	NAMESPACE_CONFLICT: {
 		priority: 1,
 		fn: warnings => {
-			
-		}
-	},
-
-	DEPRECATED_ES6: {
-		priority: 1,
-		fn: warnings => {
-			
-		}
-	},
-
-	EMPTY_BUNDLE: {
-		priority: 1,
-		fn: warnings => {
-			
+			title( `Conflicting re-exports` );
+			warnings.forEach(warning => {
+				stderr( `${chalk.bold(relativeId(warning.reexporter))} re-exports '${warning.name}' from both ${relativeId(warning.sources[0])} and ${relativeId(warning.sources[1])} (will be ignored)` );
+			});
 		}
 	},
 
 	MISSING_GLOBAL_NAME: {
 		priority: 1,
 		fn: warnings => {
-			
+			title( `Missing global variable ${warnings.length > 1 ? 'names' : 'name'}` );
+			stderr( `Use options.globals to specify browser global variable names corresponding to external modules` );
+			warnings.forEach(warning => {
+				stderr(`${chalk.bold(warning.source)} (guessing '${warning.guess}')`);
+			});
 		}
 	},
-
-	MISSING_NODE_BUILTINS: {
-		priority: 1,
-		fn: warnings => {
-			
-		}
-	},
-
-	MISSING_FORMAT: {
-		priority: 1,
-		fn: warnings => {
-			
-		}
-	}, // TODO make this an error
 
 	SOURCEMAP_BROKEN: {
 		priority: 1,
 		fn: warnings => {
-			
+			title( `Broken sourcemap` );
+			info( 'https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect' );
+
+			const plugins = Array.from( new Set( warnings.map( w => w.plugin ).filter( Boolean ) ) );
+			const detail = plugins.length === 0 ? '' : plugins.length > 1 ?
+				` (such as ${plugins.slice(0, -1).map(p => `'${p}'`).join(', ')} and '${plugins.slice(-1)}')` :
+				` (such as '${plugins[0]}')`;
+
+			stderr( `Plugins that transform code${detail} should generate accompanying sourcemaps` );
 		}
 	},
 
-	MIXED_EXPORTS: {
+	PLUGIN_WARNING: {
 		priority: 1,
 		fn: warnings => {
-			
+			const nestedByPlugin = nest(warnings, 'plugin');
+
+			nestedByPlugin.forEach(({ key: plugin, items }) => {
+				const nestedByMessage = nest(items, 'message');
+
+				let lastUrl;
+
+				nestedByMessage.forEach(({ key: message, items }) => {
+					title( `${plugin} plugin: ${message}` );
+					items.forEach(warning => {
+						if ( warning.url !== lastUrl ) info( lastUrl = warning.url );
+
+						const loc = warning.loc ?
+							`${relativeId( warning.id )}: (${warning.loc.line}:${warning.loc.column})` :
+							relativeId( warning.id );
+
+						stderr( chalk.bold( relativeId( loc ) ) );
+						if ( warning.frame ) info( warning.frame );
+					});
+				});
+			});
 		}
 	}
 };
 
-function group ( title ) {
-	stderr( `${chalk.bold.yellow('(!)')} ${chalk.bold.yellow( title )}` );
+function title ( str ) {
+	stderr( `${chalk.bold.yellow('(!)')} ${chalk.bold.yellow( str )}` );
 }
 
 function info ( url ) {
 	stderr( chalk.grey( url ) );
+}
+
+function nest(array, prop) {
+	const nested = [];
+	const lookup = new Map();
+
+	array.forEach(item => {
+		const key = item[prop];
+		if (!lookup.has(key)) {
+			lookup.set(key, {
+				key,
+				items: []
+			});
+
+			nested.push(lookup.get(key));
+		}
+
+		lookup.get(key).items.push(item);
+	});
+
+	return nested;
+}
+
+function showTruncatedWarnings(warnings) {
+	const nestedByModule = nest(warnings, 'id');
+
+	const sliced = nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;
+	sliced.forEach(({ key: id, items }) => {
+		stderr( chalk.bold( relativeId( id ) ) );
+		stderr( chalk.grey( items[0].frame ) );
+
+		if ( items.length > 1 ) {
+			stderr( `...and ${items.length - 1} other ${items.length > 2 ? 'occurrences' : 'occurrence'}` );
+		}
+	});
+
+	if ( nestedByModule.length > sliced.length ) {
+		stderr( `\n...and ${nestedByModule.length - sliced.length} other files` );
+	}
 }

@@ -93,10 +93,14 @@ export default function rollup ( options ) {
 			timeEnd( '--BUILD--' );
 
 			function generate ( options = {} ) {
+				if ( options.format === 'es6' ) {
+					throw new Error( 'The `es6` output format is deprecated – use `es` instead' );
+				}
+
 				if ( !options.format ) {
-					bundle.warn({ // TODO make this an error
+					error({ // TODO make this an error
 						code: 'MISSING_FORMAT',
-						message: `No format option was supplied – defaulting to 'es'`,
+						message: `You must supply an output format`,
 						url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
 					});
 

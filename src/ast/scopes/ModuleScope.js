@@ -29,6 +29,8 @@ export default class ModuleScope extends Scope {
 				if ( !declaration ) {
 					this.module.warn({
 						code: 'NON_EXISTENT_EXPORT',
+						name: specifier.name,
+						source: specifier.module.id,
 						message: `Non-existent export '${specifier.name}' is imported from ${relativeId( specifier.module.id )}`
 					}, specifier.specifier.start );
 					return;

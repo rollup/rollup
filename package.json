@@ -58,6 +58,7 @@
     "magic-string": "^0.21.3",
     "minimist": "^1.2.0",
     "mocha": "^3.0.0",
+    "pretty-ms": "^3.0.0",
     "remap-istanbul": "^0.9.5",
     "require-relative": "^0.8.7",
     "rollup": "^0.42.0",

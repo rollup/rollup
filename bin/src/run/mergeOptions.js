@@ -54,21 +54,8 @@ export default function mergeOptions ( config, command ) {
 		options.extend = command.extend;
 	}
 
-	const warnings = batchWarnings();
-
-	if ( command.silent ) {
+	if (command.silent) {
 		options.onwarn = () => {};
-	} else {
-		options.onwarn = warnings.add;
-
-		const onwarn = options.onwarn;
-		if ( onwarn ) {
-			options.onwarn = warning => {
-				onwarn( warning, warnings.add );
-			};
-		} else {
-			options.onwarn = warnings.add;
-		}
 	}
 
 	options.external = external;
@@ -80,5 +67,9 @@ export default function mergeOptions ( config, command ) {
 		}
 	});
 
-	return { options, warnings };
+	const targets = options.dest ? [{ dest: options.dest, format: options.format }] : options.targets;
+	options.targets = targets;
+	delete options.dest;
+
+	return options;
 }

@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import buble from 'rollup-plugin-buble';
 import nodeResolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
 import replace from 'rollup-plugin-replace';
 
 var pkg = JSON.parse( readFileSync( 'package.json', 'utf-8' ) );
@@ -36,8 +37,10 @@ export default {
 			include: 'src/rollup.js',
 			delimiters: [ '<@', '@>' ],
 			sourceMap: true,
-			values: { 'VERSION': pkg.version }
-		})
+			values: { VERSION: pkg.version }
+		}),
+
+		commonjs()
 	],
 	external: [
 		'fs',

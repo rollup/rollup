@@ -1,9 +1,11 @@
 import path from 'path';
 import EventEmitter from 'events';
+import createFilter from 'rollup-pluginutils/src/createFilter.js';
 import rollup from '../rollup/index.js';
 import ensureArray from '../utils/ensureArray.js';
 import { mapSequence } from '../utils/promise.js';
 import { addTask, deleteTask } from './fileWatchers.js';
+import chokidar from './chokidar.js';
 
 const DELAY = 100;
 
@@ -14,9 +16,10 @@ class Watcher extends EventEmitter {
 		this.dirty = true;
 		this.running = false;
 		this.tasks = ensureArray(configs).map(config => new Task(this, config));
+		this.succeeded = false;
 
 		process.nextTick(() => {
-			this.run();
+			this._run();
 		});
 	}
 
@@ -26,125 +29,154 @@ class Watcher extends EventEmitter {
 		});
 	}
 
-	error(error) {
-		this.emit('event', {
-			code: 'ERROR',
-			error
-		});
-	}
-
-	makeDirty() {
+	_makeDirty() {
 		if (this.dirty) return;
 		this.dirty = true;
 
 		if (!this.running) {
 			setTimeout(() => {
-				this.run();
+				this._run();
 			}, DELAY);
 		}
 	}
 
-	run() {
+	_run() {
 		this.running = true;
 		this.dirty = false;
 
-		// TODO
 		this.emit('event', {
-			code: 'BUILD_START'
+			code: 'START'
 		});
 
 		mapSequence(this.tasks, task => {
 			return task.run().catch(error => {
 				this.emit('event', {
-					code: 'ERROR',
+					code: this.succeeded ? 'ERROR' : 'FATAL',
 					error
 				});
 			});
 		}).then(() => {
 			this.running = false;
+			if (this.dirty) {
+				this._run();
+			} else {
+				this.emit('event', {
+					code: 'END'
+				});
 
-			this.emit('event', {
-				code: 'BUILD_END'
-			});
-
-			if (this.dirty) this.run();
+				this.succeeded = true;
+			}
 		});
 	}
 }
 
 class Task {
-	constructor(watcher, config) {
+	constructor(watcher, options) {
 		this.cache = null;
 		this.watcher = watcher;
-		this.config = config;
+		this.options = options;
 
 		this.closed = false;
 		this.watched = new Set();
 
-		this.dests = new Set(
-			(config.dest ? [config.dest] : config.targets.map(t => t.dest)).map(dest => path.resolve(dest))
-		);
+		this.targets = options.targets ? options.targets : [{ dest: options.dest, format: options.format }];
+
+		this.dests = (this.targets.map(t => t.dest)).map(dest => path.resolve(dest));
+
+		const watchOptions = options.watch || {};
+		if ('useChokidar' in watchOptions) watchOptions.chokidar = watchOptions.useChokidar;
+		let chokidarOptions = 'chokidar' in watchOptions ? watchOptions.chokidar : !!chokidar;
+		if (chokidarOptions) {
+			chokidarOptions = Object.assign(
+				chokidarOptions === true ? {} : chokidarOptions,
+				{
+					ignoreInitial: true
+				}
+			);
+		}
+
+		if (chokidarOptions && !chokidar) {
+			throw new Error(`options.watch.chokidar was provided, but chokidar could not be found. Have you installed it?`);
+		}
+
+		this.chokidarOptions = chokidarOptions;
+		this.chokidarOptionsHash = JSON.stringify(chokidarOptions);
+
+		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
 	}
 
 	close() {
 		this.closed = true;
 		this.watched.forEach(id => {
-			deleteTask(id, this);
+			deleteTask(id, this, this.chokidarOptionsHash);
 		});
 	}
 
 	makeDirty() {
 		if (!this.dirty) {
 			this.dirty = true;
-			this.watcher.makeDirty();
+			this.watcher._makeDirty();
 		}
 	}
 
 	run() {
 		this.dirty = false;
 
-		const config = Object.assign(this.config, {
+		const options = Object.assign(this.options, {
 			cache: this.cache
 		});
 
-		return rollup(config).then(bundle => {
-			if (this.closed) return;
+		const start = Date.now();
 
-			this.cache = bundle;
-
-			const watched = new Set();
-
-			bundle.modules.forEach(module => {
-				if (this.dests.has(module.id)) {
-					throw new Error('Cannot import the generated bundle');
-				}
-
-				watched.add(module.id);
-				addTask(module.id, this);
-			});
-
-			this.watched.forEach(id => {
-				if (!watched.has(id)) deleteTask(id, this);
-			});
-
-			this.watched = watched;
-
-			if (this.config.dest) {
-				return bundle.write({
-					format: this.config.format,
-					dest: this.config.dest
-				});
-			}
-
-			return Promise.all(
-				this.config.targets.map(target => {
-					return bundle.write({
-						format: target.format,
-						dest: target.dest
-					});
-				})
-			);
+		this.watcher.emit('event', {
+			code: 'BUNDLE_START',
+			input: this.options.entry,
+			output: this.dests
 		});
+
+		return rollup(options)
+			.then(bundle => {
+				if (this.closed) return;
+
+				this.cache = bundle;
+
+				const watched = new Set();
+
+				bundle.modules.forEach(module => {
+					if (!this.filter(module.id)) return;
+
+					if (~this.dests.indexOf(module.id)) {
+						throw new Error('Cannot import the generated bundle');
+					}
+
+					watched.add(module.id);
+					addTask(module.id, this, this.chokidarOptions, this.chokidarOptionsHash);
+				});
+
+				this.watched.forEach(id => {
+					if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
+				});
+
+				this.watched = watched;
+
+				return Promise.all(
+					this.targets.map(target => {
+						return bundle.write({
+							format: target.format,
+							dest: target.dest,
+							moduleName: this.options.moduleName
+						});
+					})
+				);
+			})
+			.then(() => {
+				this.watcher.emit('event', {
+					code: 'BUNDLE_END',
+					input: this.options.entry,
+					output: this.dests,
+					duration: Date.now() - start
+				});
+			});
 	}
 }
 

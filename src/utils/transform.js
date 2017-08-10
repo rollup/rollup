@@ -26,7 +26,8 @@ export default function transform ( bundle, source, id, plugins ) {
 					object = { message: object };
 				}
 
-				if ( !object.code ) object.code = code;
+				if ( object.code ) object.pluginCode = object.code;
+				object.code = code;
 
 				if ( pos !== undefined ) {
 					if ( pos.line !== undefined && pos.column !== undefined ) {
@@ -42,21 +43,24 @@ export default function transform ( bundle, source, id, plugins ) {
 					}
 				}
 
+				object.plugin = plugin.name;
+				object.id = id;
+
 				return object;
 			}
 
-			let err;
+			let throwing;
 
 			const context = {
 				warn: ( warning, pos ) => {
 					warning = augment( warning, pos, 'PLUGIN_WARNING' );
-					warning.plugin = plugin.name;
-					warning.id = id;
 					bundle.warn( warning );
 				},
 
-				error ( e, pos ) {
-					err = augment( e, pos, 'PLUGIN_ERROR' );
+				error ( err, pos ) {
+					err = augment( err, pos, 'PLUGIN_ERROR' );
+					throwing = true;
+					error( err );
 				}
 			};
 
@@ -65,13 +69,12 @@ export default function transform ( bundle, source, id, plugins ) {
 			try {
 				transformed = plugin.transform.call( context, previous, id );
 			} catch ( err ) {
-				context.error( err );
+				if ( !throwing ) context.error( err );
+				error( err );
 			}
 
 			return Promise.resolve( transformed )
 				.then( result => {
-					if ( err ) throw err;
-
 					if ( result == null ) return previous;
 
 					if ( typeof result === 'string' ) {
@@ -97,8 +100,7 @@ export default function transform ( bundle, source, id, plugins ) {
 					return result.code;
 				})
 				.catch( err => {
-					err.plugin = plugin.name;
-					err.id = id;
+					err = augment( err, undefined, 'PLUGIN_ERROR' );
 					error( err );
 				});
 		});

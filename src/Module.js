@@ -456,6 +456,7 @@ export default class Module {
 			warning.frame = getCodeFrame( this.code, line, column );
 		}
 
+		warning.id = this.id;
 		this.bundle.warn( warning );
 	}
 }

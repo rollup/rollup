@@ -1,10 +1,12 @@
 import path from 'path';
+import chalk from 'chalk';
 import { realpathSync } from 'fs';
 import * as rollup from 'rollup';
 import relative from 'require-relative';
-import { handleWarning, handleError } from '../logging.js';
+import { handleError, stderr } from '../logging.js';
 import mergeOptions from './mergeOptions.js';
 import batchWarnings from './batchWarnings.js';
+import relativeId from '../../../src/utils/relativeId.js';
 import sequence from '../utils/sequence.js';
 import build from './build.js';
 import watch from './watch.js';
@@ -78,7 +80,10 @@ export default function runRollup ( command ) {
 			onwarn: warnings.add
 		})
 			.then( bundle => {
-				warnings.flush();
+				if ( !command.silent && warnings.count > 0 ) {
+					stderr( chalk.bold( `loaded ${relativeId( config )} with warnings` ) );
+					warnings.flush();
+				}
 
 				return bundle.generate({
 					format: 'cjs'
@@ -118,11 +123,23 @@ export default function runRollup ( command ) {
 function execute ( configs, command ) {
 	if ( command.watch ) {
 		process.env.ROLLUP_WATCH = 'true';
-		watch( configs, command );
+		watch( configs, command, command.silent );
 	} else {
-		return sequence( config => {
-			const { options, warnings } = mergeOptions( config, command );
-			return build( options, warnings );
+		return sequence( configs, config => {
+			const options = mergeOptions( config, command );
+
+			const warnings = batchWarnings();
+
+			const onwarn = options.onwarn;
+			if ( onwarn ) {
+				options.onwarn = warning => {
+					onwarn( warning, warnings.add );
+				};
+			} else {
+				options.onwarn = warnings.add;
+			}
+
+			return build( options, warnings, command.silent );
 		});
 	}
 }
