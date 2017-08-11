@@ -7,7 +7,13 @@ const { deindent, loadConfig, normaliseOutput } = require('../utils.js');
 
 const samples = path.resolve(__dirname, 'samples');
 
+const cwd = process.cwd();
+
 describe('cli', () => {
+	afterEach(() => {
+		process.chdir(cwd);
+	});
+
 	sander.readdirSync(samples).sort().forEach(dir => {
 		if (dir[0] === '.') return; // .DS_Store...
 
