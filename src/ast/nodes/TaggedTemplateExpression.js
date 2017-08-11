@@ -3,9 +3,9 @@ import isProgramLevel from '../utils/isProgramLevel.js';
 import callHasEffects from './shared/callHasEffects.js';
 
 export default class TaggedTemplateExpression extends Node {
-	bind ( scope ) {
+	bind () {
 		if ( this.tag.type === 'Identifier' ) {
-			const declaration = scope.findDeclaration( this.tag.name );
+			const declaration = this.scope.findDeclaration( this.tag.name );
 
 			if ( declaration.isNamespace ) {
 				this.module.error({
@@ -23,21 +23,20 @@ export default class TaggedTemplateExpression extends Node {
 			}
 		}
 
-		super.bind( scope );
+		super.bind();
 	}
 
-	hasEffects ( scope ) {
-		return this.quasi.hasEffects(scope) || callHasEffects( scope, this.tag, false );
+	hasEffects () {
+		return this.quasi.hasEffects() || callHasEffects( this.scope, this.tag, false );
 	}
 
-	initialise ( scope ) {
+	initialiseNode () {
 		if ( isProgramLevel( this ) ) {
 			this.module.bundle.dependentExpressions.push( this );
 		}
-		super.initialise( scope );
 	}
 
 	isUsedByBundle () {
-		return this.hasEffects( this.findScope() );
+		return this.hasEffects();
 	}
 }
