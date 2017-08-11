@@ -98,13 +98,11 @@ export default function rollup ( options ) {
 				}
 
 				if ( !options.format ) {
-					error({ // TODO make this an error
+					error({
 						code: 'MISSING_FORMAT',
 						message: `You must supply an output format`,
 						url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
 					});
-
-					options.format = 'es';
 				}
 
 				checkAmd( options );
