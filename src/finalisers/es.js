@@ -62,7 +62,7 @@ export default function es ( bundle, magicString, { intro, outro } ) {
 
 	const exportAllDeclarations = [];
 
-	const specifiers = module.getExports()
+	const specifiers = module.getExports().concat( module.getReexports() )
 		.filter( notDefault )
 		.map( name => {
 			const declaration = module.traceExport( name );
