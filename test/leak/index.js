@@ -4,14 +4,14 @@ const rollup = require('../..');
 function test() {
 	const weak = require('weak');
 
-	let shouldCollect = false;
-	let isCollected = false;
+	var shouldCollect = false;
+	var isCollected = false;
 
 	function onCollect () {
 		isCollected = true;
 	}
 
-	let cache;
+	var cache;
 	function run () {
 		return rollup.rollup({
 			entry: path.resolve(__dirname, 'main.js'),
