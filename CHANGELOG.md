@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 0.46.0
+
+* `options.format` is now required ([#1491](https://github.com/rollup/rollup/pull/1491))
+* if `options.format` is `es6`, it will now throw an error (should be `es`) ([#1491](https://github.com/rollup/rollup/pull/1491))
+* Add experimental `rollup.watch` method, replacing [rollup-watch](https://github.com/rollup/rollup-watch) ([#1491](https://github.com/rollup/rollup/pull/1491))
+* Batch warnings together in CLI output ([#1491](https://github.com/rollup/rollup/pull/1491))
+* Clear screen between rebuilds in `--watch` mode ([#1491](https://github.com/rollup/rollup/pull/1491))
+* `onwarn` function's second argument is the default handler, allowing easier filtering without reimplementing any logic ([#1491](https://github.com/rollup/rollup/pull/1491))
+* Prevent semi-colon removal after variable declaration that is for loop body ([#1275](https://github.com/rollup/rollup/issues/1275))
+* Return `exports` for namespaced but non-extended IIFE bundles ([#1492](https://github.com/rollup/rollup/issues/1492))
+* Fix scoping in switch statements ([#1498](https://github.com/rollup/rollup/pull/1498))
+* Handle side-effects in tagged template expressions ([#1508](https://github.com/rollup/rollup/pull/1508))
+* More descriptive error for missing options.format ([#1510](https://github.com/rollup/rollup/pull/1510))
+* Refactor scope handling ([#1517](https://github.com/rollup/rollup/pull/1517))
+* Handle failure of a config in multi-config build ([#1513](https://github.com/rollup/rollup/issues/1513))
+
+
 ## 0.45.2
 
 * Fix interop when import is a string ([#1486](https://github.com/rollup/rollup/issues/1486))
