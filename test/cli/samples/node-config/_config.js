@@ -1,9 +1,7 @@
-const glob = require('glob');
+const sander = require('glob');
 
-console.error(
-	`contents of ${__dirname}`,
-	glob.sync('**', {cwd: __dirname})
-);
+sander.rimrafSync(__dirname, 'node_modules');
+sander.copydirSync(__dirname, 'node_modules_rename_me').to(__dirname, 'node_modules');
 
 module.exports = {
 	description: 'uses config file installed from npm',
