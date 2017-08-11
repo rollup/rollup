@@ -46,11 +46,16 @@ export default function es ( bundle, magicString, { intro, outro } ) {
 			}
 
 			return specifiersList
-				.map( specifiers =>
-					specifiers.length ?
-						`import ${specifiers.join( ', ' )} from '${module.path}';` :
-						`import '${module.path}';`
-				)
+				.map( specifiers => {
+					if ( specifiers.length ) {
+						return `import ${specifiers.join( ', ' )} from '${module.path}';`
+					}
+
+					return module.reexported ?
+						null :
+						`import '${module.path}';`;
+				})
+				.filter( Boolean )
 				.join( '\n' );
 		})
 		.join( '\n' );
