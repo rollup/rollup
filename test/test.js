@@ -1,7 +1,3 @@
-const assert = require('assert');
-const rollup = require('../dist/rollup');
-const { loader } = require('./utils.js');
-
 describe('rollup', function() {
 	this.timeout(10000);
 

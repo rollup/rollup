@@ -38,71 +38,71 @@ describe('form', () => {
 		(config.skip
 			? describe.skip
 			: config.solo ? describe.only : describe)(dir, () => {
-			let promise;
-			const createBundle = () => promise || (promise = rollup.rollup(options));
+				let promise;
+				const createBundle = () => promise || (promise = rollup.rollup(options));
 
-			FORMATS.forEach(format => {
-				it('generates ' + format, () => {
-					process.chdir(samples + '/' + dir);
+				FORMATS.forEach(format => {
+					it('generates ' + format, () => {
+						process.chdir(samples + '/' + dir);
 
-					return createBundle().then(bundle => {
-						const options = extend({}, config.options, {
-							dest: samples + '/' + dir + '/_actual/' + format + '.js',
-							format
-						});
+						return createBundle().then(bundle => {
+							const options = extend({}, config.options, {
+								dest: samples + '/' + dir + '/_actual/' + format + '.js',
+								format
+							});
 
-						return bundle.write(options).then(() => {
-							const actualCode = normaliseOutput(
-								sander.readFileSync(samples, dir, '_actual', format + '.js')
-							);
-							let expectedCode;
-							let actualMap;
-							let expectedMap;
-
-							try {
-								expectedCode = normaliseOutput(
-									sander.readFileSync(samples, dir, '_expected', format + '.js')
+							return bundle.write(options).then(() => {
+								const actualCode = normaliseOutput(
+									sander.readFileSync(samples, dir, '_actual', format + '.js')
 								);
-							} catch (err) {
-								expectedCode = 'missing file';
-							}
+								let expectedCode;
+								let actualMap;
+								let expectedMap;
 
-							try {
-								actualMap = JSON.parse(
-									sander
-										.readFileSync(samples, dir, '_actual', format + '.js.map')
-										.toString()
-								);
-								actualMap.sourcesContent = actualMap.sourcesContent.map(
-									normaliseOutput
-								);
-							} catch (err) {
-								assert.equal(err.code, 'ENOENT');
-							}
+								try {
+									expectedCode = normaliseOutput(
+										sander.readFileSync(samples, dir, '_expected', format + '.js')
+									);
+								} catch (err) {
+									expectedCode = 'missing file';
+								}
 
-							try {
-								expectedMap = JSON.parse(
-									sander
-										.readFileSync(samples, dir, '_expected', format + '.js.map')
-										.toString()
-								);
-								expectedMap.sourcesContent = expectedMap.sourcesContent.map(
-									normaliseOutput
-								);
-							} catch (err) {
-								assert.equal(err.code, 'ENOENT');
-							}
+								try {
+									actualMap = JSON.parse(
+										sander
+											.readFileSync(samples, dir, '_actual', format + '.js.map')
+											.toString()
+									);
+									actualMap.sourcesContent = actualMap.sourcesContent.map(
+										normaliseOutput
+									);
+								} catch (err) {
+									assert.equal(err.code, 'ENOENT');
+								}
 
-							if (config.show) {
-								console.log(actualCode + '\n\n\n');
-							}
+								try {
+									expectedMap = JSON.parse(
+										sander
+											.readFileSync(samples, dir, '_expected', format + '.js.map')
+											.toString()
+									);
+									expectedMap.sourcesContent = expectedMap.sourcesContent.map(
+										normaliseOutput
+									);
+								} catch (err) {
+									assert.equal(err.code, 'ENOENT');
+								}
 
-							assert.equal(actualCode, expectedCode);
-							assert.deepEqual(actualMap, expectedMap);
+								if (config.show) {
+									console.log(actualCode + '\n\n\n');
+								}
+
+								assert.equal(actualCode, expectedCode);
+								assert.deepEqual(actualMap, expectedMap);
+							});
 						});
 					});
 				});
 			});
-		});
 	});
 });
