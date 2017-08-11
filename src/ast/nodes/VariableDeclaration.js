@@ -98,7 +98,7 @@ export default class VariableDeclaration extends Node {
 			const needsSemicolon = !forStatement.test( this.parent.type );
 
 			if ( this.end > c ) {
-				code.overwrite( c, this.end, needsSemicolon ? ';' : '' );
+				code.overwrite( c, this.end, needsSemicolon ? ';' : '\n' );
 			} else if ( needsSemicolon  ) {
 				this.insertSemicolon( code );
 			}
