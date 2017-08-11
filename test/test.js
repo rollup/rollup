@@ -975,7 +975,7 @@ describe( 'rollup', function () {
 					else if ( typeof next === 'string' ) {
 						watcher.once( 'event', event => {
 							if ( event.code !== next ) {
-								reject( new Error( `Expected ${next} error, got ${event.code}` ) );
+								reject( new Error( `Expected ${next} event, got ${event.code}` ) );
 							} else {
 								go( event );
 							}
@@ -1057,7 +1057,6 @@ describe( 'rollup', function () {
 						'START',
 						'BUNDLE_START',
 						'ERROR',
-						'END',
 						() => {
 							sander.writeFileSync( 'test/_tmp/input/main.js', 'export default 43;' );
 						},

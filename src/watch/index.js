@@ -48,25 +48,27 @@ class Watcher extends EventEmitter {
 			code: 'START'
 		});
 
-		mapSequence(this.tasks, task => {
-			return task.run().catch(error => {
+		mapSequence(this.tasks, task => task.run())
+			.then(() => {
+				this.succeeded = true;
+
+				this.emit('event', {
+					code: 'END'
+				});
+			})
+			.catch(error => {
 				this.emit('event', {
 					code: this.succeeded ? 'ERROR' : 'FATAL',
 					error
 				});
-			});
-		}).then(() => {
-			this.running = false;
-			if (this.dirty) {
-				this._run();
-			} else {
-				this.emit('event', {
-					code: 'END'
-				});
+			})
+			.then(() => {
+				this.running = false;
 
-				this.succeeded = true;
-			}
-		});
+				if (this.dirty) {
+					this._run();
+				}
+			});
 	}
 }
 
@@ -76,6 +78,7 @@ class Task {
 		this.watcher = watcher;
 		this.options = options;
 
+		this.dirty = true;
 		this.closed = false;
 		this.watched = new Set();
 
@@ -120,6 +123,7 @@ class Task {
 	}
 
 	run() {
+		if (!this.dirty) return;
 		this.dirty = false;
 
 		const options = Object.assign(this.options, {
@@ -176,6 +180,16 @@ class Task {
 					output: this.dests,
 					duration: Date.now() - start
 				});
+			})
+			.catch(error => {
+				if (this.cache) {
+					this.cache.modules.forEach(module => {
+						// this is necessary to ensure that any 'renamed' files
+						// continue to be watched following an error
+						addTask(module.id, this, this.chokidarOptions, this.chokidarOptionsHash);
+					});
+				}
+				throw error;
 			});
 	}
 }

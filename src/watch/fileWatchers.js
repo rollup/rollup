@@ -60,8 +60,8 @@ export default class FileWatcher {
 		const handleWatchEvent = event => {
 			if (event === 'rename' || event === 'unlink') {
 				this.fsWatcher.close();
-				dispose();
 				this.trigger();
+				dispose();
 			} else {
 				// this is necessary because we get duplicate events...
 				const contents = fs.readFileSync(id, 'utf-8');
