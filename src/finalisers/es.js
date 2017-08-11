@@ -6,10 +6,6 @@ function notDefault ( name ) {
 
 export default function es ( bundle, magicString, { intro, outro } ) {
 	const importBlock = bundle.externalModules
-		.filter( module => {
-			const imported = keys( module.declarations );
-			return imported.length !== 1 || imported[0][0] !== '*';
-		})
 		.map( module => {
 			const specifiers = [];
 			const specifiersList = [specifiers];
@@ -36,7 +32,7 @@ export default function es ( bundle, magicString, { intro, outro } ) {
 				}
 			}
 
-			const namespaceSpecifier = module.declarations['*'] ? `* as ${module.name}` : null; // TODO prevent unnecessary namespace import, e.g form/external-imports
+			const namespaceSpecifier = module.declarations['*'] && module.declarations['*'].activated ? `* as ${module.name}` : null; // TODO prevent unnecessary namespace import, e.g form/external-imports
 			const namedSpecifier = importedNames.length ? `{ ${importedNames.sort().join( ', ' )} }` : null;
 
 			if ( namespaceSpecifier && namedSpecifier ) {
@@ -50,11 +46,16 @@ export default function es ( bundle, magicString, { intro, outro } ) {
 			}
 
 			return specifiersList
-				.map( specifiers =>
-					specifiers.length ?
-						`import ${specifiers.join( ', ' )} from '${module.path}';` :
-						`import '${module.path}';`
-				)
+				.map( specifiers => {
+					if ( specifiers.length ) {
+						return `import ${specifiers.join( ', ' )} from '${module.path}';`;
+					}
+
+					return module.reexported ?
+						null :
+						`import '${module.path}';`;
+				})
+				.filter( Boolean )
 				.join( '\n' );
 		})
 		.join( '\n' );
@@ -66,7 +67,7 @@ export default function es ( bundle, magicString, { intro, outro } ) {
 
 	const exportAllDeclarations = [];
 
-	const specifiers = module.getExports()
+	const specifiers = module.getExports().concat( module.getReexports() )
 		.filter( notDefault )
 		.map( name => {
 			const declaration = module.traceExport( name );

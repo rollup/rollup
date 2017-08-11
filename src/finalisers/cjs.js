@@ -31,7 +31,9 @@ export default function cjs ( bundle, magicString, { exportMode, intro, outro },
 				const activated = Object.keys( module.declarations )
 					.filter( name => module.declarations[ name ].activated );
 
-				return activated.length ?
+				const needsVar = activated.length || module.reexported;
+
+				return needsVar ?
 					`${varOrConst} ${module.name} = require('${module.path}');` :
 					`require('${module.path}');`;
 			}

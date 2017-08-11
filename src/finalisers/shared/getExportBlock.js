@@ -5,7 +5,7 @@ export default function getExportBlock ( bundle, exportMode, mechanism = 'return
 		return `${mechanism} ${entryModule.traceExport( 'default' ).getName( false )};`;
 	}
 
-	return entryModule.getExports()
+	const exports = entryModule.getExports().concat( entryModule.getReexports() )
 		.map( name => {
 			if ( name[0] === '*' ) {
 				// export all from external
@@ -27,7 +27,9 @@ export default function getExportBlock ( bundle, exportMode, mechanism = 'return
 			if ( lhs === rhs ) return null;
 
 			return `${lhs} = ${rhs};`;
-		})
+		});
+
+	return exports
 		.filter( Boolean )
 		.join( '\n' );
 }

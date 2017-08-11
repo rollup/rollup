@@ -303,28 +303,28 @@ export default class Module {
 	}
 
 	getExports () {
-		const exports = blank();
+		return keys( this.exports );
+	}
 
-		keys( this.exports ).forEach( name => {
-			exports[ name ] = true;
-		} );
+	getReexports () {
+		const reexports = blank();
 
 		keys( this.reexports ).forEach( name => {
-			exports[ name ] = true;
+			reexports[ name ] = true;
 		} );
 
 		this.exportAllModules.forEach( module => {
 			if ( module.isExternal ) {
-				exports[ `*${module.id}` ] = true;
+				reexports[ `*${module.id}` ] = true;
 				return;
 			}
 
-			module.getExports().forEach( name => {
-				if ( name !== 'default' ) exports[ name ] = true;
+			module.getExports().concat( module.getReexports() ).forEach( name => {
+				if ( name !== 'default' ) reexports[ name ] = true;
 			} );
 		} );
 
-		return keys( exports );
+		return keys( reexports );
 	}
 
 	namespace () {
