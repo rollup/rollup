@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.46.2
+
+* Pass options to `bundle.write` correctly in `rollup.watch` ([#1533](https://github.com/rollup/rollup/issues/1533))
+* init for-loop section head with correct scopes ([#1480](https://github.com/rollup/rollup/issues/1480))
+* support `--no-interop` flag ([#1524](https://github.com/rollup/rollup/issues/1524))
+
 ## 0.46.1
 
 * Remove `rollup.watch` from browser build ([#1530](https://github.com/rollup/rollup/issues/1530))
