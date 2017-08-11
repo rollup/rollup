@@ -1,5 +1,4 @@
 import { value } from 'external';
-import * as external from 'external';
 
 var foo = 'unused';
 
