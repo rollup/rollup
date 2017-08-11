@@ -11,9 +11,6 @@ import sequence from '../utils/sequence.js';
 import build from './build.js';
 import watch from './watch.js';
 
-import { install as installSourcemapSupport } from 'source-map-support';
-installSourcemapSupport();
-
 export default function runRollup ( command ) {
 	if ( command._.length > 1 ) {
 		handleError({

@@ -25,7 +25,6 @@ export default {
 		'path',
 		'module',
 		'events',
-		'source-map-support',
 		'rollup'
 	],
 	paths: {
