@@ -29,11 +29,13 @@ export function deleteTask(id, target, chokidarOptionsHash) {
 	const group = watchers.get(chokidarOptionsHash);
 
 	const watcher = group.get(id);
-	watcher.tasks.delete(target);
+	if (watcher) {
+		watcher.tasks.delete(target);
 
-	if (watcher.tasks.size === 0) {
-		watcher.close();
-		group.delete(id);
+		if (watcher.tasks.size === 0) {
+			watcher.close();
+			group.delete(id);
+		}
 	}
 }
 

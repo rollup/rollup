@@ -147,14 +147,8 @@ class Task {
 				const watched = new Set();
 
 				bundle.modules.forEach(module => {
-					if (!this.filter(module.id)) return;
-
-					if (~this.dests.indexOf(module.id)) {
-						throw new Error('Cannot import the generated bundle');
-					}
-
 					watched.add(module.id);
-					addTask(module.id, this, this.chokidarOptions, this.chokidarOptionsHash);
+					this.watchFile(module.id);
 				});
 
 				this.watched.forEach(id => {
@@ -182,15 +176,29 @@ class Task {
 				});
 			})
 			.catch(error => {
+				if (this.closed) return;
+
 				if (this.cache) {
 					this.cache.modules.forEach(module => {
 						// this is necessary to ensure that any 'renamed' files
 						// continue to be watched following an error
-						addTask(module.id, this, this.chokidarOptions, this.chokidarOptionsHash);
+						this.watchFile(module.id);
 					});
 				}
 				throw error;
 			});
+	}
+
+	watchFile(id) {
+		if (!this.filter(id)) return;
+
+		if (~this.dests.indexOf(id)) {
+			throw new Error('Cannot import the generated bundle');
+		}
+
+		// this is necessary to ensure that any 'renamed' files
+		// continue to be watched following an error
+		addTask(id, this, this.chokidarOptions, this.chokidarOptionsHash);
 	}
 }
 
