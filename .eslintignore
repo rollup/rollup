@@ -1,2 +1,2 @@
-test/*
-!test/test.js
+test/*/samples/**
+test/leak/index.js
