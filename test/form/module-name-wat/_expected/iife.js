@@ -8,4 +8,6 @@ this.foo['@scoped/npm-package'].bar['why-would-you-do-this'] = (function (export
 
 	exports.foo = foo;
 
+	return exports;
+
 }({}));
