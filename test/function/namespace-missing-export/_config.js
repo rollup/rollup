@@ -1,7 +1,13 @@
+const path = require('path');
+
 module.exports = {
 	warnings: [
 		{
 			code: 'MISSING_EXPORT',
+			exporter: 'empty.js',
+			importer: 'main.js',
+			id: path.resolve( __dirname, 'main.js' ),
+			missing: 'foo',
 			message: `'foo' is not exported by 'empty.js'`,
 			pos: 61,
 			loc: {

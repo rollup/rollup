@@ -217,10 +217,12 @@ export default class Bundle {
 
 					const names = unused.length === 1 ?
 						`'${unused[0]}' is` :
-						`${unused.slice( 0, -1 ).map( name => `'${name}'` ).join( ', ' )} and '${unused.pop()}' are`;
+						`${unused.slice( 0, -1 ).map( name => `'${name}'` ).join( ', ' )} and '${unused.slice( -1 )}' are`;
 
 					this.warn({
 						code: 'UNUSED_EXTERNAL_IMPORT',
+						source: module.id,
+						names: unused,
 						message: `${names} imported from external module '${module.id}' but never used`
 					});
 				});
@@ -356,6 +358,9 @@ export default class Bundle {
 							if ( name in module.exportsAll ) {
 								this.warn({
 									code: 'NAMESPACE_CONFLICT',
+									reexporter: module.id,
+									name,
+									sources: [ module.exportsAll[ name ], exportAllModule.exportsAll[ name ] ],
 									message: `Conflicting namespaces: ${relativeId( module.id )} re-exports '${name}' from both ${relativeId( module.exportsAll[ name ] )} and ${relativeId( exportAllModule.exportsAll[ name ] )} (will be ignored)`
 								});
 							} else {
@@ -389,6 +394,8 @@ export default class Bundle {
 
 						this.warn({
 							code: 'UNRESOLVED_IMPORT',
+							source,
+							importer: relativeId( module.id ),
 							message: `'${source}' is imported by ${relativeId( module.id )}, but could not be resolved – treating it as an external dependency`,
 							url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
 						});
@@ -447,15 +454,6 @@ export default class Bundle {
 
 	render ( options = {} ) {
 		return Promise.resolve().then( () => {
-			if ( options.format === 'es6' ) {
-				this.warn({
-					code: 'DEPRECATED_ES6',
-					message: 'The es6 format is deprecated – use `es` instead'
-				});
-
-				options.format = 'es';
-			}
-
 			// Determine export mode - 'default', 'named', 'none'
 			const exportMode = getExportMode( this, options );
 

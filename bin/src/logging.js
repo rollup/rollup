@@ -2,42 +2,35 @@ import chalk from 'chalk';
 import relativeId from '../../src/utils/relativeId.js';
 
 if ( !process.stderr.isTTY ) chalk.enabled = false;
-const warnSymbol = process.stderr.isTTY ? `⚠️   ` : `Warning: `;
-const errorSymbol = process.stderr.isTTY ? `🚨   ` : `Error: `;
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
 export const stderr = console.error.bind( console ); // eslint-disable-line no-console
 
-function log ( object, symbol ) {
-	let description = object.message || object;
-	if (object.name) description = object.name + ': ' + description;
-	const message = (object.plugin ? `(${object.plugin} plugin) ${description}` : description) || object;;
+export function handleError ( err, recover ) {
+	let description = err.message || err;
+	if (err.name) description = `${err.name}: ${description}`;
+	const message = (err.plugin ? `(${err.plugin} plugin) ${description}` : description) || err;
 
-	stderr( `${symbol}${chalk.bold( message )}` );
+	stderr( chalk.bold.red( `[!] ${chalk.bold( message )}` ) );
 
-  // TODO should this be "object.url || (object.file && object.loc.file) || object.id"?
-	if ( object.url ) {
-		stderr( chalk.cyan( object.url ) );
+	// TODO should this be "err.url || (err.file && err.loc.file) || err.id"?
+	if ( err.url ) {
+		stderr( chalk.cyan( err.url ) );
 	}
 
-	if ( object.loc ) {
-		stderr( `${relativeId( object.loc.file || object.id )} (${object.loc.line}:${object.loc.column})` );
-	} else if ( object.id ) {
-		stderr( relativeId( object.id ) );
+	if ( err.loc ) {
+		stderr( `${relativeId( err.loc.file || err.id )} (${err.loc.line}:${err.loc.column})` );
+	} else if ( err.id ) {
+		stderr( relativeId( err.id ) );
 	}
 
-	if ( object.frame ) {
-		stderr( chalk.dim( object.frame ) );
+	if ( err.frame ) {
+		stderr( chalk.dim( err.frame ) );
+	} else if ( err.stack ) {
+		stderr( chalk.dim( err.stack ) );
 	}
 
 	stderr( '' );
-}
 
-export function handleWarning ( warning ) {
-	log( warning, warnSymbol );
-}
-
-export function handleError ( err, recover ) {
-	log( err, errorSymbol );
 	if ( !recover ) process.exit( 1 );
 }

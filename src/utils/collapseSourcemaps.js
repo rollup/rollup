@@ -135,6 +135,7 @@ export default function collapseSourcemaps ( bundle, file, map, modules, bundleS
 			if ( map.missing ) {
 				bundle.warn({
 					code: 'SOURCEMAP_BROKEN',
+					plugin: map.plugin,
 					message: `Sourcemap is likely to be incorrect: a plugin${map.plugin ? ` ('${map.plugin}')` : ``} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
 					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect`
 				});

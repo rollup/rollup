@@ -1,8 +1,11 @@
+const path = require('path');
+
 module.exports = {
 	description: 'warns about use of eval',
 	warnings: [
 		{
 			code: 'EVAL',
+			id: path.resolve(__dirname, 'main.js'),
 			message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
 			pos: 13,
 			loc: {

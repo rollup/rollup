@@ -181,29 +181,20 @@ export default class Module {
 		}
 
 		// export { foo, bar, baz }
-		else {
-			if ( node.specifiers.length ) {
-				node.specifiers.forEach( specifier => {
-					const localName = specifier.local.name;
-					const exportedName = specifier.exported.name;
+		else if ( node.specifiers.length ) {
+			node.specifiers.forEach( specifier => {
+				const localName = specifier.local.name;
+				const exportedName = specifier.exported.name;
 
-					if ( this.exports[ exportedName ] || this.reexports[ exportedName ] ) {
-						this.error({
-							code: 'DUPLICATE_EXPORT',
-							message: `A module cannot have multiple exports with the same name ('${exportedName}')`
-						}, specifier.start );
-					}
+				if ( this.exports[ exportedName ] || this.reexports[ exportedName ] ) {
+					this.error({
+						code: 'DUPLICATE_EXPORT',
+						message: `A module cannot have multiple exports with the same name ('${exportedName}')`
+					}, specifier.start );
+				}
 
-					this.exports[ exportedName ] = { localName };
-				});
-			} else {
-				// TODO is this really necessary? `export {}` is valid JS, and
-				// might be used as a hint that this is indeed a module
-				this.warn({
-					code: 'EMPTY_EXPORT',
-					message: `Empty export declaration`
-				}, node.start );
-			}
+				this.exports[ exportedName ] = { localName };
+			});
 		}
 	}
 
@@ -465,6 +456,7 @@ export default class Module {
 			warning.frame = getCodeFrame( this.code, line, column );
 		}
 
+		warning.id = this.id;
 		this.bundle.warn( warning );
 	}
 }
