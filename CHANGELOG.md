@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.46.1
+
+* Remove `rollup.watch` from browser build ([#1530](https://github.com/rollup/rollup/issues/1530))
+* Remove `source-map-support` dependency ([#1528](https://github.com/rollup/rollup/issues/1528))
+
 ## 0.46.0
 
 * `options.format` is now required ([#1491](https://github.com/rollup/rollup/pull/1491))
