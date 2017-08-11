@@ -159,11 +159,8 @@ class Task {
 
 				return Promise.all(
 					this.targets.map(target => {
-						return bundle.write({
-							format: target.format,
-							dest: target.dest,
-							moduleName: this.options.moduleName
-						});
+						const options = Object.assign({}, this.options, target);
+						return bundle.write(options);
 					})
 				);
 			})
