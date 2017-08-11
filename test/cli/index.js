@@ -9,6 +9,9 @@ const samples = path.resolve(__dirname, 'samples');
 
 const cwd = process.cwd();
 
+sander.rimrafSync(__dirname, 'node_modules');
+sander.copydirSync(__dirname, 'node_modules_rename_me').to(__dirname, 'node_modules');
+
 describe('cli', () => {
 	afterEach(() => {
 		process.chdir(cwd);
