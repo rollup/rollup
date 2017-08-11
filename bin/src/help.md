@@ -28,6 +28,7 @@ Basic options:
 --outro                  Content to insert at end of bundle (inside wrapper)
 --banner                 Content to insert at top of bundle (outside wrapper)
 --footer                 Content to insert at end of bundle (outside wrapper)
+--interop                Include interop block (true by default)
 
 Examples:
 

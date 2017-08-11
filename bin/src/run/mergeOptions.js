@@ -8,6 +8,7 @@ const equivalents = {
 	globals: 'globals',
 	id: 'moduleId',
 	indent: 'indent',
+	interop: 'interop',
 	input: 'entry',
 	intro: 'intro',
 	legacy: 'legacy',
