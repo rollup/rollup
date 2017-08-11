@@ -76,7 +76,9 @@
     "uglify-js": "^3.0.19"
   },
   "files": [
-    "dist",
+    "dist/rollup.browser.js",
+    "dist/rollup.es.js",
+    "dist/rollup.js",
     "bin/rollup",
     "README.md"
   ],
