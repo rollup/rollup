@@ -6,7 +6,7 @@ import { STRING } from '../values.js';
 export default class ForInStatement extends Statement {
 	initialiseChildren () {
 		this.left.initialise( this.scope );
-		this.right.initialise( this.scope );
+		this.right.initialise( this.scope.parent );
 		this.body.initialiseAndReplaceScope ?
 			this.body.initialiseAndReplaceScope( this.scope ) :
 			this.body.initialise( this.scope );
@@ -14,10 +14,10 @@ export default class ForInStatement extends Statement {
 	}
 
 	initialiseScope ( parentScope ) {
-		this.scope = new Scope( {
+		this.scope = new Scope({
 			parent: parentScope,
 			isBlockScope: true,
 			isLexicalBoundary: false
-		} );
+		});
 	}
 }
