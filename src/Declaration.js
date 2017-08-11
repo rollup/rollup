@@ -48,7 +48,7 @@ export class SyntheticNamespaceDeclaration {
 		this.needsNamespaceBlock = false;
 
 		this.originals = blank();
-		module.getExports().forEach( name => {
+		module.getExports().concat( module.getReexports() ).forEach( name => {
 			this.originals[ name ] = module.traceExport( name );
 		});
 	}

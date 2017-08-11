@@ -169,7 +169,18 @@ export default class Bundle {
 					if ( declaration.isNamespace ) {
 						declaration.needsNamespaceBlock = true;
 					}
-				} );
+				});
+
+				entryModule.getReexports().forEach( name => {
+					const declaration = entryModule.traceExport( name );
+
+					if ( declaration.isExternal ) {
+						declaration.reexported = declaration.module.reexported = true;
+					} else {
+						declaration.exportName = name;
+						declaration.activate();
+					}
+				});
 
 				// mark statements that should appear in the bundle
 				if ( this.treeshake ) {
@@ -211,7 +222,7 @@ export default class Bundle {
 				this.externalModules.forEach( module => {
 					const unused = Object.keys( module.declarations )
 						.filter( name => name !== '*' )
-						.filter( name => !module.declarations[ name ].activated );
+						.filter( name => !module.declarations[ name ].activated && !module.declarations[ name ].reexported );
 
 					if ( unused.length === 0 ) return;
 
@@ -471,7 +482,7 @@ export default class Bundle {
 				}
 			} );
 
-			if ( !magicString.toString().trim() && this.entryModule.getExports().length === 0 ) {
+			if ( !magicString.toString().trim() && this.entryModule.getExports().length === 0 && this.entryModule.getReexports().length === 0 ) {
 				this.warn( {
 					code: 'EMPTY_BUNDLE',
 					message: 'Generated an empty bundle'
