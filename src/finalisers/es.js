@@ -48,7 +48,7 @@ export default function es ( bundle, magicString, { intro, outro } ) {
 			return specifiersList
 				.map( specifiers => {
 					if ( specifiers.length ) {
-						return `import ${specifiers.join( ', ' )} from '${module.path}';`
+						return `import ${specifiers.join( ', ' )} from '${module.path}';`;
 					}
 
 					return module.reexported ?
