@@ -95,10 +95,10 @@ export default class VariableDeclaration extends Node {
 		} else {
 			// always include a semi-colon (https://github.com/rollup/rollup/pull/1013),
 			// unless it's a var declaration in a loop head
-			const needsSemicolon = !forStatement.test( this.parent.type );
+			const needsSemicolon = !forStatement.test( this.parent.type ) || this === this.parent.body;
 
 			if ( this.end > c ) {
-				code.overwrite( c, this.end, needsSemicolon ? ';' : '\n' );
+				code.overwrite( c, this.end, needsSemicolon ? ';' : '' );
 			} else if ( needsSemicolon  ) {
 				this.insertSemicolon( code );
 			}
