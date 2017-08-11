@@ -1,43 +1,18 @@
 import Statement from './shared/Statement.js';
 import Scope from '../scopes/Scope.js';
-import extractNames from '../utils/extractNames.js';
 
 export default class BlockStatement extends Statement {
 	bind () {
-		for ( const node of this.body ) {
-			node.bind( this.scope );
-		}
+		this.body.forEach( node => node.bind() );
 	}
 
-	createScope ( parent ) {
-		this.parentIsFunction = /Function/.test( this.parent.type );
-		this.isFunctionBlock = this.parentIsFunction || this.parent.type === 'Module';
-
-		this.scope = new Scope({
-			parent,
-			isBlockScope: !this.isFunctionBlock,
-			isLexicalBoundary: this.isFunctionBlock && this.parent.type !== 'ArrowFunctionExpression',
-			owner: this // TODO is this used anywhere?
-		});
-
-		const params = this.parent.params || ( this.parent.type === 'CatchClause' && [ this.parent.param ] );
-
-		if ( params && params.length ) {
-			params.forEach( node => {
-				extractNames( node ).forEach( name => {
-					this.scope.addDeclaration( name, node, false, true );
-				});
-			});
-		}
+	initialiseAndReplaceScope ( scope ) {
+		this.scope = scope;
+		this.initialiseNode();
+		this.initialiseChildren( scope );
 	}
 
-	findScope ( functionScope ) {
-		return functionScope && !this.isFunctionBlock ? this.parent.findScope( functionScope ) : this.scope;
-	}
-
-	initialise ( scope ) {
-		if ( !this.scope ) this.createScope( scope ); // scope can be created early in some cases, e.g for (let i... )
-
+	initialiseChildren () {
 		let lastNode;
 		for ( const node of this.body ) {
 			node.initialise( this.scope );
@@ -47,13 +22,21 @@ export default class BlockStatement extends Statement {
 		}
 	}
 
+	initialiseScope ( parentScope ) {
+		this.scope = new Scope( {
+			parent: parentScope,
+			isBlockScope: true,
+			isLexicalBoundary: false
+		} );
+	}
+
 	render ( code, es ) {
-		if (this.body.length) {
+		if ( this.body.length ) {
 			for ( const node of this.body ) {
 				node.render( code, es );
 			}
 		} else {
-			Statement.prototype.render.call(this, code, es);
+			Statement.prototype.render.call( this, code, es );
 		}
 	}
 }

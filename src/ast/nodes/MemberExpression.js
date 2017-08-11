@@ -11,7 +11,7 @@ class Keypath {
 		while ( node.type === 'MemberExpression' ) {
 			const prop = node.property;
 
-			if ( node.computed  ) {
+			if ( node.computed ) {
 				if ( prop.type !== 'Literal' || typeof prop.value !== 'string' || !validProp.test( prop.value ) ) {
 					this.computed = true;
 					return;
@@ -27,23 +27,23 @@ class Keypath {
 }
 
 export default class MemberExpression extends Node {
-	bind ( scope ) {
+	bind () {
 		// if this resolves to a namespaced declaration, prepare
 		// to replace it
 		// TODO this code is a bit inefficient
 		const keypath = new Keypath( this );
 
 		if ( !keypath.computed && keypath.root.type === 'Identifier' ) {
-			let declaration = scope.findDeclaration( keypath.root.name );
+			let declaration = this.scope.findDeclaration( keypath.root.name );
 
 			while ( declaration.isNamespace && keypath.parts.length ) {
 				const exporterId = declaration.module.id;
 
-				const part = keypath.parts[0];
+				const part = keypath.parts[ 0 ];
 				declaration = declaration.module.traceExport( part.name || part.value );
 
 				if ( !declaration ) {
-					this.module.warn({
+					this.module.warn( {
 						code: 'MISSING_EXPORT',
 						missing: part.name || part.value,
 						importer: relativeId( this.module.id ),
@@ -59,7 +59,7 @@ export default class MemberExpression extends Node {
 			}
 
 			if ( keypath.parts.length ) {
-				super.bind( scope );
+				super.bind();
 				return; // not a namespaced declaration
 			}
 
@@ -71,7 +71,7 @@ export default class MemberExpression extends Node {
 		}
 
 		else {
-			super.bind( scope );
+			super.bind();
 		}
 	}
 
@@ -92,8 +92,8 @@ export default class MemberExpression extends Node {
 		super.render( code, es );
 	}
 
-	run ( scope ) {
+	run () {
 		if ( this.declaration ) this.declaration.activate();
-		super.run( scope );
+		super.run();
 	}
 }

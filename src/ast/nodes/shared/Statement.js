@@ -9,8 +9,8 @@ export default class Statement extends Node {
 		}
 	}
 
-	run ( scope ) {
+	run () {
 		this.shouldInclude = true;
-		super.run( scope );
+		super.run();
 	}
 }

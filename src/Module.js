@@ -17,14 +17,14 @@ import ModuleScope from './ast/scopes/ModuleScope.js';
 
 function tryParse ( module, acornOptions ) {
 	try {
-		return parse( module.code, assign({
+		return parse( module.code, assign( {
 			ecmaVersion: 8,
 			sourceType: 'module',
-			onComment: ( block, text, start, end ) => module.comments.push({ block, text, start, end }),
+			onComment: ( block, text, start, end ) => module.comments.push( { block, text, start, end } ),
 			preserveParens: false
-		}, acornOptions ));
+		}, acornOptions ) );
 	} catch ( err ) {
-		module.error({
+		module.error( {
 			code: 'PARSE_ERROR',
 			message: err.message.replace( / \(\d+:\d+\)$/, '' )
 		}, err.pos );
@@ -32,7 +32,7 @@ function tryParse ( module, acornOptions ) {
 }
 
 export default class Module {
-	constructor ({ id, code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds, resolvedExternalIds, bundle }) {
+	constructor ( { id, code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds, resolvedExternalIds, bundle } ) {
 		this.code = code;
 		this.id = id;
 		this.bundle = bundle;
@@ -79,17 +79,17 @@ export default class Module {
 		this.magicString = new MagicString( code, {
 			filename: this.excludeFromSourcemap ? null : id, // don't include plugin helpers in sourcemap
 			indentExclusionRanges: []
-		});
+		} );
 
 		// remove existing sourceMappingURL comments
-		this.comments = this.comments.filter(comment => {
+		this.comments = this.comments.filter( comment => {
 			//only one line comment can contain source maps
-			const isSourceMapComment = !comment.block && SOURCEMAPPING_URL_RE.test(comment.text);
-			if (isSourceMapComment) {
-				this.magicString.remove(comment.start, comment.end );
+			const isSourceMapComment = !comment.block && SOURCEMAPPING_URL_RE.test( comment.text );
+			if ( isSourceMapComment ) {
+				this.magicString.remove( comment.start, comment.end );
 			}
 			return !isSourceMapComment;
-		});
+		} );
 
 		this.declarations = blank();
 		this.type = 'Module'; // TODO only necessary so that Scope knows this should be treated as a function scope... messy
@@ -122,7 +122,7 @@ export default class Module {
 					const name = specifier.exported.name;
 
 					if ( this.exports[ name ] || this.reexports[ name ] ) {
-						this.error({
+						this.error( {
 							code: 'DUPLICATE_EXPORT',
 							message: `A module cannot have multiple exports with the same name ('${name}')`
 						}, specifier.start );
@@ -134,7 +134,7 @@ export default class Module {
 						localName: specifier.local.name,
 						module: null // filled in later
 					};
-				});
+				} );
 			}
 		}
 
@@ -145,7 +145,7 @@ export default class Module {
 			const identifier = ( node.declaration.id && node.declaration.id.name ) || node.declaration.name;
 
 			if ( this.exports.default ) {
-				this.error({
+				this.error( {
 					code: 'DUPLICATE_EXPORT',
 					message: `A module can only have one default export`
 				}, node.start );
@@ -171,8 +171,8 @@ export default class Module {
 				declaration.declarations.forEach( decl => {
 					extractNames( decl.id ).forEach( localName => {
 						this.exports[ localName ] = { localName };
-					});
-				});
+					} );
+				} );
 			} else {
 				// export function foo () {}
 				const localName = declaration.id.name;
@@ -181,7 +181,7 @@ export default class Module {
 		}
 
 		// export { foo, bar, baz }
-		else if ( node.specifiers.length ) {
+		else {
 			node.specifiers.forEach( specifier => {
 				const localName = specifier.local.name;
 				const exportedName = specifier.exported.name;
@@ -207,7 +207,7 @@ export default class Module {
 			const localName = specifier.local.name;
 
 			if ( this.imports[ localName ] ) {
-				this.error({
+				this.error( {
 					code: 'DUPLICATE_IMPORT',
 					message: `Duplicated import '${localName}'`
 				}, specifier.start );
@@ -218,7 +218,7 @@ export default class Module {
 
 			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
 			this.imports[ localName ] = { source, specifier, name, module: null };
-		});
+		} );
 	}
 
 	analyse () {
@@ -253,13 +253,13 @@ export default class Module {
 
 				const id = this.resolvedIds[ specifier.source ] || this.resolvedExternalIds[ specifier.source ];
 				specifier.module = this.bundle.moduleById.get( id );
-			});
-		});
+			} );
+		} );
 
 		this.exportAllModules = this.exportAllSources.map( source => {
 			const id = this.resolvedIds[ source ] || this.resolvedExternalIds[ source ];
 			return this.bundle.moduleById.get( id );
-		});
+		} );
 
 		this.sources.forEach( source => {
 			const id = this.resolvedIds[ source ];
@@ -268,12 +268,12 @@ export default class Module {
 				const module = this.bundle.moduleById.get( id );
 				this.dependencies.push( module );
 			}
-		});
+		} );
 	}
 
 	bindReferences () {
 		for ( const node of this.ast.body ) {
-			node.bind( this.scope );
+			node.bind();
 		}
 
 		// if ( this.declarations.default ) {
@@ -288,7 +288,7 @@ export default class Module {
 		if ( pos !== undefined ) {
 			props.pos = pos;
 
-			const { line, column } = locate( this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
+			const { line, column } = locate( this.code, pos, { offsetLine: 1 } ); // TODO trace sourcemaps
 
 			props.loc = { file: this.id, line, column };
 			props.frame = getCodeFrame( this.code, line, column );
@@ -302,20 +302,16 @@ export default class Module {
 		return null;
 	}
 
-	findScope () {
-		return this.scope;
-	}
-
 	getExports () {
 		const exports = blank();
 
 		keys( this.exports ).forEach( name => {
 			exports[ name ] = true;
-		});
+		} );
 
 		keys( this.reexports ).forEach( name => {
 			exports[ name ] = true;
-		});
+		} );
 
 		this.exportAllModules.forEach( module => {
 			if ( module.isExternal ) {
@@ -325,18 +321,18 @@ export default class Module {
 
 			module.getExports().forEach( name => {
 				if ( name !== 'default' ) exports[ name ] = true;
-			});
-		});
+			} );
+		} );
 
 		return keys( exports );
 	}
 
 	namespace () {
-		if ( !this.declarations['*'] ) {
-			this.declarations['*'] = new SyntheticNamespaceDeclaration( this );
+		if ( !this.declarations[ '*' ] ) {
+			this.declarations[ '*' ] = new SyntheticNamespaceDeclaration( this );
 		}
 
-		return this.declarations['*'];
+		return this.declarations[ '*' ];
 	}
 
 	render ( es, legacy ) {
@@ -355,8 +351,8 @@ export default class Module {
 
 	run () {
 		for ( const node of this.ast.body ) {
-			if ( node.hasEffects( this.scope ) ) {
-				node.run( this.scope );
+			if ( node.hasEffects() ) {
+				node.run();
 			}
 		}
 	}
@@ -392,7 +388,7 @@ export default class Module {
 			const declaration = otherModule.traceExport( importDeclaration.name );
 
 			if ( !declaration ) {
-				this.error({
+				this.error( {
 					code: 'MISSING_EXPORT',
 					message: `'${importDeclaration.name}' is not exported by ${relativeId( otherModule.id )}`,
 					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
@@ -407,7 +403,7 @@ export default class Module {
 
 	traceExport ( name ) {
 		// export * from 'external'
-		if ( name[0] === '*' ) {
+		if ( name[ 0 ] === '*' ) {
 			const module = this.bundle.moduleById.get( name.slice( 1 ) );
 			return module.traceExport( '*' );
 		}
@@ -418,7 +414,7 @@ export default class Module {
 			const declaration = reexportDeclaration.module.traceExport( reexportDeclaration.localName );
 
 			if ( !declaration ) {
-				this.error({
+				this.error( {
 					code: 'MISSING_EXPORT',
 					message: `'${reexportDeclaration.localName}' is not exported by ${relativeId( reexportDeclaration.module.id )}`,
 					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
@@ -439,7 +435,7 @@ export default class Module {
 		if ( name === 'default' ) return;
 
 		for ( let i = 0; i < this.exportAllModules.length; i += 1 ) {
-			const module = this.exportAllModules[i];
+			const module = this.exportAllModules[ i ];
 			const declaration = module.traceExport( name );
 
 			if ( declaration ) return declaration;
@@ -450,7 +446,7 @@ export default class Module {
 		if ( pos !== undefined ) {
 			warning.pos = pos;
 
-			const { line, column } = locate( this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
+			const { line, column } = locate( this.code, pos, { offsetLine: 1 } ); // TODO trace sourcemaps
 
 			warning.loc = { file: this.id, line, column };
 			warning.frame = getCodeFrame( this.code, line, column );

@@ -1,24 +1,15 @@
-import Node from '../Node.js';
+import Function from './shared/Function.js';
 
-export default class FunctionDeclaration extends Node {
+export default class FunctionDeclaration extends Function {
 	activate () {
 		if ( this.activated ) return;
 		this.activated = true;
 
-		const scope = this.body.scope;
-		this.params.forEach( param => param.run( scope ) ); // in case of assignment patterns
+		this.params.forEach( param => param.run() ); // in case of assignment patterns
 		this.body.run();
 	}
 
-	addReference () {
-		/* noop? */
-	}
-
-	bind ( scope ) {
-		if ( this.id ) this.id.bind( scope );
-		this.params.forEach( param => param.bind( this.body.scope ) );
-		this.body.bind( scope );
-	}
+	addReference () {}
 
 	gatherPossibleValues ( values ) {
 		values.add( this );
@@ -28,21 +19,13 @@ export default class FunctionDeclaration extends Node {
 		return this.name;
 	}
 
-	hasEffects () {
-		return false;
-	}
-
-	initialise ( scope ) {
+	initialiseChildren ( parentScope ) {
 		if ( this.id ) {
 			this.name = this.id.name; // may be overridden by bundle.deconflict
-			scope.addDeclaration( this.name, this, false, false );
-			this.id.initialise( scope );
+			parentScope.addDeclaration( this.name, this, false, false );
+			this.id.initialise( parentScope );
 		}
-
-		this.body.createScope( scope );
-
-		this.params.forEach( param => param.initialise( this.body.scope ) );
-		this.body.initialise();
+		super.initialiseChildren( parentScope );
 	}
 
 	render ( code, es ) {
@@ -53,9 +36,9 @@ export default class FunctionDeclaration extends Node {
 		}
 	}
 
-	run ( scope ) {
+	run () {
 		if ( this.parent.type === 'ExportDefaultDeclaration' ) {
-			super.run( scope );
+			super.run();
 		}
 	}
 }

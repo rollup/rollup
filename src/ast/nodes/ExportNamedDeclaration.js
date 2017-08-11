@@ -1,15 +1,12 @@
 import Node from '../Node.js';
 
 export default class ExportNamedDeclaration extends Node {
-	initialise ( scope ) {
-		this.scope = scope;
-		this.isExportDeclaration = true;
-
-		if ( this.declaration ) this.declaration.initialise( scope );
+	bind () {
+		if ( this.declaration ) this.declaration.bind();
 	}
 
-	bind ( scope ) {
-		if ( this.declaration ) this.declaration.bind( scope );
+	initialiseNode () {
+		this.isExportDeclaration = true;
 	}
 
 	render ( code, es ) {

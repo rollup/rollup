@@ -1,43 +1,26 @@
-import Node from '../Node.js';
+import Function from './shared/Function.js';
 
-export default class FunctionExpression extends Node {
+export default class FunctionExpression extends Function {
 	activate () {
 		if ( this.activated ) return;
 		this.activated = true;
 
-		const scope = this.body.scope;
-		this.params.forEach( param => param.run( scope ) ); // in case of assignment patterns
+		this.params.forEach( param => param.run() ); // in case of assignment patterns
 		this.body.run();
 	}
 
-	addReference () {
-		/* noop? */
-	}
-
-	bind () {
-		if ( this.id ) this.id.bind( this.body.scope );
-		this.params.forEach( param => param.bind( this.body.scope ) );
-		this.body.bind();
-	}
+	addReference () {}
 
 	getName () {
 		return this.name;
 	}
 
-	hasEffects () {
-		return false;
-	}
-
-	initialise ( scope ) {
-		this.name = this.id && this.id.name; // may be overridden by bundle.deconflict
-		this.body.createScope( scope );
-
+	initialiseChildren ( parentScope ) {
 		if ( this.id ) {
-			this.id.initialise( this.body.scope );
-			this.body.scope.addDeclaration( this.id.name, this, false, false );
+			this.name = this.id.name; // may be overridden by bundle.deconflict
+			this.scope.addDeclaration( this.name, this, false, false );
+			this.id.initialise( this.scope );
 		}
-
-		this.params.forEach( param => param.initialise( this.body.scope ) );
-		this.body.initialise();
+		super.initialiseChildren( parentScope );
 	}
 }

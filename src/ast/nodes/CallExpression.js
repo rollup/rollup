@@ -3,19 +3,19 @@ import isProgramLevel from '../utils/isProgramLevel.js';
 import callHasEffects from './shared/callHasEffects.js';
 
 export default class CallExpression extends Node {
-	bind ( scope ) {
+	bind () {
 		if ( this.callee.type === 'Identifier' ) {
-			const declaration = scope.findDeclaration( this.callee.name );
+			const declaration = this.scope.findDeclaration( this.callee.name );
 
 			if ( declaration.isNamespace ) {
-				this.module.error({
+				this.module.error( {
 					code: 'CANNOT_CALL_NAMESPACE',
 					message: `Cannot call a namespace ('${this.callee.name}')`
 				}, this.start );
 			}
 
 			if ( this.callee.name === 'eval' && declaration.isGlobal ) {
-				this.module.warn({
+				this.module.warn( {
 					code: 'EVAL',
 					message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
 					url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
@@ -23,21 +23,20 @@ export default class CallExpression extends Node {
 			}
 		}
 
-		super.bind( scope );
+		super.bind();
 	}
 
-	hasEffects ( scope ) {
-		return callHasEffects( scope, this.callee, false );
+	hasEffects () {
+		return callHasEffects( this.scope, this.callee, false );
 	}
 
-	initialise ( scope ) {
+	initialiseNode () {
 		if ( isProgramLevel( this ) ) {
 			this.module.bundle.dependentExpressions.push( this );
 		}
-		super.initialise( scope );
 	}
 
 	isUsedByBundle () {
-		return this.hasEffects( this.findScope() );
+		return this.hasEffects();
 	}
 }

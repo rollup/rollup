@@ -2,13 +2,11 @@ import Scope from '../scopes/Scope.js';
 import Statement from './shared/Statement.js';
 
 export default class SwitchStatement extends Statement {
-	initialise ( scope ) {
+	initialiseScope ( parentScope ) {
 		this.scope = new Scope( {
-			parent: scope,
+			parent: parentScope,
 			isBlockScope: true,
 			isLexicalBoundary: false
 		} );
-
-		super.initialise( this.scope );
 	}
 }

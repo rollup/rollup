@@ -2,8 +2,8 @@ import { locate } from 'locate-character';
 import { UNKNOWN } from './values.js';
 
 export default class Node {
-	bind ( scope ) {
-		this.eachChild( child => child.bind( this.scope || scope ) );
+	bind () {
+		this.eachChild( child => child.bind() );
 	}
 
 	eachChild ( callback ) {
@@ -28,11 +28,6 @@ export default class Node {
 		return selector.test( this.type ) ? this : this.parent.findParent( selector );
 	}
 
-	// TODO abolish findScope. if a node needs to store scope, store it
-	findScope ( functionScope ) {
-		return this.parent.findScope( functionScope );
-	}
-
 	gatherPossibleValues ( values ) {
 		//this.eachChild( child => child.gatherPossibleValues( values ) );
 		values.add( UNKNOWN );
@@ -42,28 +37,41 @@ export default class Node {
 		return UNKNOWN;
 	}
 
-	hasEffects ( scope ) {
-		if ( this.scope ) scope = this.scope;
-
+	hasEffects () {
 		for ( const key of this.keys ) {
 			const value = this[ key ];
 
 			if ( value ) {
 				if ( 'length' in value ) {
 					for ( const child of value ) {
-						if ( child && child.hasEffects( scope ) ) {
+						if ( child && child.hasEffects() ) {
 							return true;
 						}
 					}
-				} else if ( value && value.hasEffects( scope ) ) {
+				} else if ( value.hasEffects() ) {
 					return true;
 				}
 			}
 		}
 	}
 
-	initialise ( scope ) {
-		this.eachChild( child => child.initialise( this.scope || scope ) );
+	initialise ( parentScope ) {
+		this.initialiseScope( parentScope );
+		this.initialiseNode( parentScope );
+		this.initialiseChildren( parentScope );
+	}
+
+	// Override if e.g. some children need to be initialised with the parent scope
+	initialiseChildren () {
+		this.eachChild( child => child.initialise( this.scope ) );
+	}
+
+	// Override to perform special initialisation steps after the scope is initialised
+	initialiseNode () {}
+
+	// Overwrite to create a new scope
+	initialiseScope ( parentScope ) {
+		this.scope = parentScope;
 	}
 
 	insertSemicolon ( code ) {
@@ -74,7 +82,7 @@ export default class Node {
 
 	locate () {
 		// useful for debugging
-		const location = locate( this.module.code, this.start, { offsetLine: 1 });
+		const location = locate( this.module.code, this.start, { offsetLine: 1 } );
 		location.file = this.module.id;
 		location.toString = () => JSON.stringify( location );
 
@@ -85,13 +93,11 @@ export default class Node {
 		this.eachChild( child => child.render( code, es ) );
 	}
 
-	run ( scope ) {
+	run () {
 		if ( this.ran ) return;
 		this.ran = true;
 
-		this.eachChild( child => {
-			child.run( this.scope || scope );
-		});
+		this.eachChild( child => child.run() );
 	}
 
 	toString () {

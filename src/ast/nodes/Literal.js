@@ -11,7 +11,7 @@ export default class Literal extends Node {
 
 	render ( code ) {
 		if ( typeof this.value === 'string' ) {
-			code.indentExclusionRanges.push([ this.start + 1, this.end - 1 ]);
+			code.indentExclusionRanges.push( [ this.start + 1, this.end - 1 ] );
 		}
 	}
 }

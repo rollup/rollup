@@ -4,14 +4,14 @@ import isUsedByBundle from './shared/isUsedByBundle.js';
 import { NUMBER } from '../values.js';
 
 export default class UpdateExpression extends Node {
-	bind ( scope ) {
+	bind () {
 		const subject = this.argument;
 
 		this.subject = subject;
-		disallowIllegalReassignment( scope, this.argument );
+		disallowIllegalReassignment( this.scope, this.argument );
 
 		if ( subject.type === 'Identifier' ) {
-			const declaration = scope.findDeclaration( subject.name );
+			const declaration = this.scope.findDeclaration( subject.name );
 			declaration.isReassigned = true;
 
 			if ( declaration.possibleValues ) {
@@ -19,18 +19,15 @@ export default class UpdateExpression extends Node {
 			}
 		}
 
-		super.bind( scope );
+		super.bind();
 	}
 
-	hasEffects ( scope ) {
-		return isUsedByBundle( scope, this.subject );
+	hasEffects () {
+		return isUsedByBundle( this.scope, this.subject );
 	}
 
-	initialise ( scope ) {
-		this.scope = scope;
-
+	initialiseNode () {
 		this.module.bundle.dependentExpressions.push( this );
-		super.initialise( scope );
 	}
 
 	isUsedByBundle () {
