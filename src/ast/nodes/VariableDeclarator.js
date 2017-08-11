@@ -47,7 +47,7 @@ export default class VariableDeclarator extends Node {
 		if ( this.activated ) return;
 		this.activated = true;
 
-		this.run( this.findScope() );
+		this.run();
 
 		// if declaration is inside a block, ensure that the block
 		// is marked for inclusion
@@ -60,27 +60,22 @@ export default class VariableDeclarator extends Node {
 		}
 	}
 
-	hasEffects ( scope ) {
-		return this.init && this.init.hasEffects( scope );
+	hasEffects () {
+		return this.init && this.init.hasEffects();
 	}
 
-	initialise ( scope ) {
+	initialiseNode () {
 		this.proxies = new Map();
-
-		const lexicalBoundary = scope.findLexicalBoundary();
-
-		const init = this.init ?
-			( this.id.type === 'Identifier' ? this.init : UNKNOWN ) : // TODO maybe UNKNOWN is unnecessary
+		const lexicalBoundary = this.scope.findLexicalBoundary();
+		const init = this.init ? ( this.id.type === 'Identifier' ? this.init : UNKNOWN ) : // TODO maybe UNKNOWN is unnecessary
 			null;
 
 		extractNames( this.id ).forEach( name => {
 			const proxy = new DeclaratorProxy( name, this, lexicalBoundary.isModuleScope, init );
 
 			this.proxies.set( name, proxy );
-			scope.addDeclaration( name, proxy, this.parent.kind === 'var' );
-		});
-
-		super.initialise( scope );
+			this.scope.addDeclaration( name, proxy, this.parent.kind === 'var' );
+		} );
 	}
 
 	render ( code, es ) {
@@ -94,7 +89,7 @@ export default class VariableDeclarator extends Node {
 					code.remove( this.start, this.end );
 				}
 			}
-		});
+		} );
 
 		super.render( code, es );
 	}

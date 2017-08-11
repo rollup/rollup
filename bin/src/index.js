@@ -1,7 +1,7 @@
 import minimist from 'minimist';
 import help from './help.md';
 import { version } from '../../package.json';
-import runRollup from './runRollup';
+import run from './run/index.js';
 
 const command = minimist( process.argv.slice( 2 ), {
 	alias: {
@@ -35,5 +35,5 @@ else if ( command.version ) {
 }
 
 else {
-	runRollup( command );
+	run( command );
 }

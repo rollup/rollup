@@ -16,4 +16,6 @@ this.my.name.spaced.module = (function (exports) {
 	exports.number = number;
 	exports.setting = setting;
 
+	return exports;
+
 }({}));

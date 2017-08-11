@@ -6,7 +6,7 @@ export default class ImportDeclaration extends Node {
 		// TODO do the inter-module binding setup here?
 	}
 
-	initialise () {
+	initialiseNode () {
 		this.isImportDeclaration = true;
 	}
 

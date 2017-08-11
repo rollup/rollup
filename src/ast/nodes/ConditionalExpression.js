@@ -2,25 +2,21 @@ import Node from '../Node.js';
 import { UNKNOWN } from '../values.js';
 
 export default class ConditionalExpression extends Node {
-	initialise ( scope ) {
+	initialiseChildren ( parentScope ) {
 		if ( this.module.bundle.treeshake ) {
 			this.testValue = this.test.getValue();
 
-			if ( this.testValue === UNKNOWN	 ) {
-				super.initialise( scope );
-			}
-
-			else if ( this.testValue ) {
-				this.consequent.initialise( scope );
+			if ( this.testValue === UNKNOWN ) {
+				super.initialiseChildren( parentScope );
+			} else if ( this.testValue ) {
+				this.consequent.initialise( this.scope );
 				this.alternate = null;
 			} else if ( this.alternate ) {
-				this.alternate.initialise( scope );
+				this.alternate.initialise( this.scope );
 				this.consequent = null;
 			}
-		}
-
-		else {
-			super.initialise( scope );
+		} else {
+			super.initialiseChildren( parentScope );
 		}
 	}
 

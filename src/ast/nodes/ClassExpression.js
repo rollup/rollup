@@ -1,26 +1,12 @@
-import Node from '../Node.js';
-import Scope from '../scopes/Scope.js';
+import Class from './shared/Class.js';
 
-export default class ClassExpression extends Node {
-	bind () {
-		super.bind( this.scope );
-	}
-
-	findScope () {
-		return this.scope;
-	}
-
-	initialise () {
-		this.scope = new Scope({
-			isBlockScope: true,
-			parent: this.parent.findScope( false )
-		});
-
+export default class ClassExpression extends Class {
+	initialiseChildren (parentScope) {
 		if ( this.id ) {
-			// function expression IDs belong to the child scope...
-			this.scope.addDeclaration( this.id.name, this, false, true );
+			this.name = this.id.name;
+			this.scope.addDeclaration( this.name, this, false, false );
+			this.id.initialise( this.scope );
 		}
-
-		super.initialise( this.scope );
+		super.initialiseChildren(parentScope);
 	}
 }

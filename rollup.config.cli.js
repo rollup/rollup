@@ -12,7 +12,7 @@ export default {
 	plugins: [
 		string({ include: '**/*.md' }),
 		json(),
-		buble(),
+		buble({ target: { node: 4 } }),
 		commonjs({
 			include: 'node_modules/**'
 		}),
@@ -24,6 +24,7 @@ export default {
 		'fs',
 		'path',
 		'module',
+		'events',
 		'source-map-support',
 		'rollup'
 	],

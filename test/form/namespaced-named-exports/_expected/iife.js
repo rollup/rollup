@@ -7,4 +7,6 @@ this.foo.bar.baz = (function (exports) {
 
 	exports.answer = answer;
 
+	return exports;
+
 }({}));

@@ -6,6 +6,9 @@ module.exports = {
 	warnings: [
 		{
 			code: 'NON_EXISTENT_EXPORT',
+			id: path.resolve(__dirname, 'main.js'),
+			source: path.resolve(__dirname, 'foo.js'),
+			name: 'b',
 			message: `Non-existent export 'b' is imported from foo.js`,
 			pos: 12,
 			loc: {

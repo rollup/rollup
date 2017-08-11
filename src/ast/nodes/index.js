@@ -26,8 +26,8 @@ import LogicalExpression from './LogicalExpression.js';
 import MemberExpression from './MemberExpression.js';
 import NewExpression from './NewExpression.js';
 import ObjectExpression from './ObjectExpression.js';
-import ReturnStatement from './ReturnStatement.js';
 import Statement from './shared/Statement.js';
+import SwitchStatement from './SwitchStatement.js';
 import TaggedTemplateExpression from './TaggedTemplateExpression.js';
 import TemplateLiteral from './TemplateLiteral.js';
 import ThisExpression from './ThisExpression.js';
@@ -67,8 +67,8 @@ export default {
 	MemberExpression,
 	NewExpression,
 	ObjectExpression,
-	ReturnStatement,
-	SwitchStatement: Statement,
+	ReturnStatement: Statement,
+	SwitchStatement,
 	TaggedTemplateExpression,
 	TemplateLiteral,
 	ThisExpression,

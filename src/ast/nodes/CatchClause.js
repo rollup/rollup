@@ -1,10 +1,21 @@
 import Node from '../Node.js';
+import Scope from '../scopes/Scope.js';
+import extractNames from '../utils/extractNames.js';
 
 export default class CatchClause extends Node {
-	initialise ( scope ) {
-		this.body.createScope( scope );
-		this.scope = this.body.scope;
+	initialiseChildren () {
+		if ( this.param ) {
+			this.param.initialise( this.scope );
+			extractNames( this.param ).forEach( name => this.scope.addDeclaration( name, null, false, true ) );
+		}
+		this.body.initialiseAndReplaceScope( this.scope );
+	}
 
-		this.body.initialise( this.scope );
+	initialiseScope ( parentScope ) {
+		this.scope = new Scope( {
+			parent: parentScope,
+			isBlockScope: true,
+			isLexicalBoundary: false
+		} );
 	}
 }

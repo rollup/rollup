@@ -72,7 +72,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 
 	let wrapperOutro = `\n\n}(${dependencies}));`;
 
-	if (possibleVariableAssignment && exportMode === 'named') {
+	if (!extend && exportMode === 'named') {
 		wrapperOutro = `\n\n${indentString}return exports;${wrapperOutro}`;
 	}
 
