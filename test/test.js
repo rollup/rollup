@@ -1,3 +1,5 @@
+require('source-map-support').install();
+
 describe('rollup', function() {
 	this.timeout(10000);
 
