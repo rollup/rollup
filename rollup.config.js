@@ -20,7 +20,7 @@ var banner = readFileSync( 'src/banner.js', 'utf-8' )
 	.replace( '${commitHash}', commitHash );
 
 export default {
-	entry: 'src/rollup.js',
+	entry: 'src/node-entry.js',
 	plugins: [
 		buble({
 			include: [ 'src/**', 'node_modules/acorn/**' ],
