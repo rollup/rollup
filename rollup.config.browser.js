@@ -8,6 +8,7 @@ config.plugins.push({
 	}
 });
 
+config.entry = 'src/browser-entry.js';
 config.format = 'umd';
 config.dest = 'dist/rollup.browser.js';
 
