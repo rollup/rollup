@@ -543,8 +543,8 @@ describe( 'rollup', function () {
 					exec( command, {}, ( err, code, stderr ) => {
 						if ( err ) {
 							if ( config.error ) {
-								config.error( err );
-								return done();
+								const shouldContinue = config.error( err );
+								if (!shouldContinue) return done();
 							} else {
 								throw err;
 							}
