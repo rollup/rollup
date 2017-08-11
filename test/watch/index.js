@@ -341,5 +341,35 @@ describe('rollup.watch', () => {
 					]);
 				});
 		});
+
+		it('respects options.globals', () => {
+			return sander
+				.copydir('test/watch/samples/globals')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						entry: 'test/_tmp/input/main.js',
+						dest: 'test/_tmp/output/bundle.js',
+						format: 'iife',
+						watch: { chokidar },
+						external: ['jquery'],
+						globals: {
+							jquery: 'jQuery'
+						}
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							const generated = sander.readFileSync('test/_tmp/output/bundle.js', { encoding: 'utf-8' });
+							assert.ok(/jQuery/.test(generated));
+							watcher.close();
+						}
+					]);
+				});
+		});
 	}
 });
