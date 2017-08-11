@@ -8,6 +8,8 @@ export default function getGlobalNameMaker ( globals, bundle, fallback = null ) 
 		if ( Object.keys( module.declarations ).length > 0 ) {
 			bundle.warn({
 				code: 'MISSING_GLOBAL_NAME',
+				source: module.id,
+				guess: module.name,
 				message: `No name was provided for external module '${module.id}' in options.globals – guessing '${module.name}'`
 			});
 

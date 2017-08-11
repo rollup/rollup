@@ -16,6 +16,8 @@ module.exports = {
 	warnings: [
 		{
 			code: 'UNRESOLVED_IMPORT',
+			importer: 'main.js',
+			source: 'path',
 			message: `'path' is imported by main.js, but could not be resolved – treating it as an external dependency`,
 			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency`
 		}

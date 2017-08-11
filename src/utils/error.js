@@ -4,8 +4,7 @@ export default function error ( props ) {
 	// (Object.keys below does not update these values because they
 	// are properties on the prototype chain)
 	// basically if props is a SyntaxError it will not be overriden as a generic Error
-	let constructor = Error;
-	if (props instanceof Error) constructor = props.constructor;
+	const constructor = (props instanceof Error) ? props.constructor : Error;
 	const err = new constructor( props.message );
 
 	Object.keys( props ).forEach( key => {

@@ -1,3 +1,4 @@
+const path = require( 'path' );
 const assert = require( 'assert' );
 
 module.exports = {
@@ -5,6 +6,7 @@ module.exports = {
 	warnings: [
 		{
 			code: 'THIS_IS_UNDEFINED',
+			id: path.resolve(__dirname, 'main.js'),
 			message: `The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten`,
 			pos: 81,
 			loc: {

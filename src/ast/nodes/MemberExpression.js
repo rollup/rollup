@@ -45,6 +45,9 @@ export default class MemberExpression extends Node {
 				if ( !declaration ) {
 					this.module.warn( {
 						code: 'MISSING_EXPORT',
+						missing: part.name || part.value,
+						importer: relativeId( this.module.id ),
+						exporter: relativeId( exporterId ),
 						message: `'${part.name || part.value}' is not exported by '${relativeId( exporterId )}'`,
 						url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
 					}, part.start );
