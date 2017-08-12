@@ -39,9 +39,11 @@ export default {
 	],
 	external: [
 		'fs',
-		'path'
+		'path',
+		'events',
+		'module'
 	],
-	banner: banner,
+	banner,
 	sourceMap: true,
 	moduleName: 'rollup',
 	targets: [
