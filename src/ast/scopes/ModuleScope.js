@@ -21,7 +21,7 @@ export default class ModuleScope extends Scope {
 			if ( specifier.module.isExternal ) return;
 
 			const addDeclaration = declaration => {
-				if ( declaration.isNamespace ) {
+				if ( declaration.isNamespace && !declaration.isExternal ) {
 					declaration.module.getExports().forEach( name => {
 						addDeclaration( declaration.module.traceExport(name) );
 					});
