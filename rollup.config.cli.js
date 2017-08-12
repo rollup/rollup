@@ -25,7 +25,8 @@ export default {
 		'path',
 		'module',
 		'events',
-		'rollup'
+		'rollup',
+		'os'
 	],
 	paths: {
 		rollup: '../dist/rollup.js'
