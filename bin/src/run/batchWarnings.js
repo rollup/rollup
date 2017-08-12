@@ -68,6 +68,7 @@ export default function batchWarnings () {
 			});
 
 			allWarnings = new Map();
+			count = 0;
 		}
 	};
 }

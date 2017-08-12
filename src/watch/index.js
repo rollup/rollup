@@ -27,6 +27,8 @@ class Watcher extends EventEmitter {
 		this.tasks.forEach(task => {
 			task.close();
 		});
+
+		this.removeAllListeners();
 	}
 
 	_makeDirty() {

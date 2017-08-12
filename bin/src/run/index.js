@@ -1,12 +1,9 @@
-import path from 'path';
-import chalk from 'chalk';
 import { realpathSync } from 'fs';
-import * as rollup from 'rollup';
 import relative from 'require-relative';
-import { handleError, stderr } from '../logging.js';
+import { handleError } from '../logging.js';
 import mergeOptions from './mergeOptions.js';
 import batchWarnings from './batchWarnings.js';
-import relativeId from '../../../src/utils/relativeId.js';
+import loadConfigFile from './loadConfigFile.js';
 import sequence from '../utils/sequence.js';
 import build from './build.js';
 import watch from './watch.js';
@@ -41,21 +38,21 @@ export default function runRollup ( command ) {
 		});
 	}
 
-	let config = command.config === true ? 'rollup.config.js' : command.config;
+	let configFile = command.config === true ? 'rollup.config.js' : command.config;
 
-	if ( config ) {
-		if ( config.slice( 0, 5 ) === 'node:' ) {
-			const pkgName = config.slice( 5 );
+	if ( configFile ) {
+		if ( configFile.slice( 0, 5 ) === 'node:' ) {
+			const pkgName = configFile.slice( 5 );
 			try {
-				config = relative.resolve( `rollup-config-${pkgName}`, process.cwd() );
+				configFile = relative.resolve( `rollup-config-${pkgName}`, process.cwd() );
 			} catch ( err ) {
 				try {
-					config = relative.resolve( pkgName, process.cwd() );
+					configFile = relative.resolve( pkgName, process.cwd() );
 				} catch ( err ) {
 					if ( err.code === 'MODULE_NOT_FOUND' ) {
 						handleError({
 							code: 'MISSING_EXTERNAL_CONFIG',
-							message: `Could not resolve config file ${config}`
+							message: `Could not resolve config file ${configFile}`
 						});
 					}
 
@@ -64,63 +61,21 @@ export default function runRollup ( command ) {
 			}
 		} else {
 			// find real path of config so it matches what Node provides to callbacks in require.extensions
-			config = realpathSync( config );
+			configFile = realpathSync( configFile );
 		}
 
-		const warnings = batchWarnings();
-
-		rollup.rollup({
-			entry: config,
-			external: id => {
-				return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5,id.length) === '.json';
-			},
-			onwarn: warnings.add
-		})
-			.then( bundle => {
-				if ( !command.silent && warnings.count > 0 ) {
-					stderr( chalk.bold( `loaded ${relativeId( config )} with warnings` ) );
-					warnings.flush();
-				}
-
-				return bundle.generate({
-					format: 'cjs'
-				});
-			})
-			.then( ({ code }) => {
-				// temporarily override require
-				const defaultLoader = require.extensions[ '.js' ];
-				require.extensions[ '.js' ] = ( m, filename ) => {
-					if ( filename === config ) {
-						m._compile( code, filename );
-					} else {
-						defaultLoader( m, filename );
-					}
-				};
-
-				const configs = require( config );
-				if ( Object.keys( configs ).length === 0 ) {
-					handleError({
-						code: 'MISSING_CONFIG',
-						message: 'Config file must export an options object, or an array of options objects',
-						url: 'https://github.com/rollup/rollup/wiki/Command-Line-Interface#using-a-config-file'
-					});
-				}
-
-				require.extensions[ '.js' ] = defaultLoader;
-
-				const normalized = Array.isArray( configs ) ? configs : [configs];
-				return execute( normalized, command );
-			})
-			.catch( handleError );
+		loadConfigFile(configFile, command.silent)
+			.then(normalized => execute( configFile, normalized, command ))
+			.catch(handleError);
 	} else {
-		return execute( [{}], command );
+		return execute( configFile, [{}], command );
 	}
 }
 
-function execute ( configs, command ) {
+function execute ( configFile, configs, command ) {
 	if ( command.watch ) {
 		process.env.ROLLUP_WATCH = 'true';
-		watch( configs, command, command.silent );
+		watch( configFile, configs, command, command.silent );
 	} else {
 		return sequence( configs, config => {
 			const options = mergeOptions( config, command );
