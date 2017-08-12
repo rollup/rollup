@@ -4,7 +4,7 @@ const map = new Map;
 let timeStartHelper;
 let timeEndHelper;
 
-if ( typeof process === 'undefined' ) {
+if ( typeof process === 'undefined' || typeof process.hrtime === 'undefined' ) {
 	timeStartHelper = function timeStartHelper () {
 		return window.performance.now();
 	};
