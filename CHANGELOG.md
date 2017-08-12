@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.47.2
+
+* Rebuild with dependency that npm randomly deleted
+
 ## 0.47.1
 
 * Ignore external namespace imports when deshadowing ([#1547](https://github.com/rollup/rollup/issues/1547))
