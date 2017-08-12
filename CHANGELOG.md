@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.47.0
+
+* Watch config file, restart `rollup.watch` on change ([#1535](https://github.com/rollup/rollup/issues/1535))
+* Correctly render `export { foo } from` declarations in `es` output ([#1543](https://github.com/rollup/rollup/pull/1543))
+* Reinstate missing `rollup.VERSION`
+
 ## 0.46.3
 
 * init for/for-of loop section head with correct scopes ([#1538](https://github.com/rollup/rollup/issues/1538), [#1539](https://github.com/rollup/rollup/issues/1539))
