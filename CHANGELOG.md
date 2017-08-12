@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.47.1
+
+* Ignore external namespace imports when deshadowing ([#1547](https://github.com/rollup/rollup/issues/1547))
+
 ## 0.47.0
 
 * Watch config file, restart `rollup.watch` on change ([#1535](https://github.com/rollup/rollup/issues/1535))
