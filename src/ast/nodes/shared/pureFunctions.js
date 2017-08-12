@@ -37,6 +37,6 @@ simdTypes.forEach( t => {
 	simdTypes.map( t => `SIMD.${t}` ),
 	allSimdMethods
 ).forEach( name => pureFunctions[ name ] = true );
-	// TODO add others to this list from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
+// TODO add others to this list from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
 
 export default pureFunctions;

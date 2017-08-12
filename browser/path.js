@@ -1,4 +1,4 @@
-export const absolutePath = /^(?:\/|(?:[A-Za-z]:)?[\\|\/])/;
+export const absolutePath = /^(?:\/|(?:[A-Za-z]:)?[\\|/])/;
 export const relativePath = /^\.?\.\//;
 
 export function isAbsolute ( path ) {
@@ -18,7 +18,7 @@ export function basename ( path ) {
 }
 
 export function dirname ( path ) {
-	const match = /(\/|\\)[^\/\\]*$/.exec( path );
+	const match = /(\/|\\)[^/\\]*$/.exec( path );
 	if ( !match ) return '.';
 
 	const dir = path.slice( 0, -match[0].length );
@@ -28,14 +28,14 @@ export function dirname ( path ) {
 }
 
 export function extname ( path ) {
-	const match = /\.[^\.]+$/.exec( basename( path ) );
+	const match = /\.[^.]+$/.exec( basename( path ) );
 	if ( !match ) return '';
 	return match[0];
 }
 
 export function relative ( from, to ) {
-	const fromParts = from.split( /[\/\\]/ ).filter( Boolean );
-	const toParts = to.split( /[\/\\]/ ).filter( Boolean );
+	const fromParts = from.split( /[/\\]/ ).filter( Boolean );
+	const toParts = to.split( /[/\\]/ ).filter( Boolean );
 
 	while ( fromParts[0] && toParts[0] && fromParts[0] === toParts[0] ) {
 		fromParts.shift();
@@ -57,13 +57,13 @@ export function relative ( from, to ) {
 }
 
 export function resolve ( ...paths ) {
-	let resolvedParts = paths.shift().split( /[\/\\]/ );
+	let resolvedParts = paths.shift().split( /[/\\]/ );
 
 	paths.forEach( path => {
 		if ( isAbsolute( path ) ) {
-			resolvedParts = path.split( /[\/\\]/ );
+			resolvedParts = path.split( /[/\\]/ );
 		} else {
-			const parts = path.split( /[\/\\]/ );
+			const parts = path.split( /[/\\]/ );
 
 			while ( parts[0] === '.' || parts[0] === '..' ) {
 				const part = parts.shift();
