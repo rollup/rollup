@@ -1,4 +1,5 @@
 require('source-map-support').install();
+require('console-group').install();
 
 describe('rollup', function() {
 	this.timeout(10000);
