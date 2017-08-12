@@ -6,7 +6,7 @@ import { UNKNOWN } from '../values.js';
 export default class ForOfStatement extends Statement {
 	initialiseChildren () {
 		this.left.initialise( this.scope );
-		this.right.initialise( this.scope );
+		this.right.initialise( this.scope.parent );
 		this.body.initialiseAndReplaceScope ?
 			this.body.initialiseAndReplaceScope( this.scope ) :
 			this.body.initialise( this.scope );

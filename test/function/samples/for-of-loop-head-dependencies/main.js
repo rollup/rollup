@@ -4,9 +4,9 @@ function foo() {
 
 const result = [];
 
-for (let a = foo(), i = 0; i < a.length; ++i) {
-	const foo = a[i];
-	result.push(foo);
+for (const i of foo()) {
+	const foo = i;
+	result.push(i);
 }
 
 assert.deepEqual(result, ['x', 'y']);
