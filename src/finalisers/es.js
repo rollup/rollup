@@ -65,35 +65,51 @@ export default function es ( bundle, magicString, { intro, outro } ) {
 
 	const module = bundle.entryModule;
 
+	const exportInternalSpecifiers = [];
+	const exportExternalSpecifiers = new Map();
 	const exportAllDeclarations = [];
 
-	const specifiers = module.getExports().concat( module.getReexports() )
+	module.getExports()
 		.filter( notDefault )
-		.map( name => {
+		.forEach( name => {
 			const declaration = module.traceExport( name );
 			const rendered = declaration.getName( true );
+			exportInternalSpecifiers.push( rendered === name ? name : `${rendered} as ${name}` );
+		});
 
-			if ( name[0] === '*' ) {
-				// export * from 'external'
-				exportAllDeclarations.push( `export * from '${name.slice( 1 )}';` );
+	module.getReexports()
+		.filter( notDefault )
+		.forEach( name => {
+			const declaration = module.traceExport( name );
+
+			if ( declaration.isExternal ) {
+				if ( name[0] === '*' ) {
+					// export * from 'external'
+					exportAllDeclarations.push( `export * from '${name.slice( 1 )}';` );
+				} else {
+					if ( !exportExternalSpecifiers.has( declaration.module.id ) ) exportExternalSpecifiers.set( declaration.module.id, [] );
+					exportExternalSpecifiers.get( declaration.module.id ).push( name );
+				}
+
 				return;
 			}
 
-			return rendered === name ?
-				name :
-				`${rendered} as ${name}`;
-		})
-		.filter( Boolean );
+			const rendered = declaration.getName( true );
+			exportInternalSpecifiers.push( rendered === name ? name : `${rendered} as ${name}` );
+		});
 
-	let exportBlock = specifiers.length ? `export { ${specifiers.join(', ')} };` : '';
-
-	const defaultExport = module.exports.default || module.reexports.default;
-	if ( defaultExport ) {
-		exportBlock += `export default ${module.traceExport( 'default' ).getName( true )};`;
+	const exportBlock = [];
+	if ( exportInternalSpecifiers.length ) exportBlock.push( `export { ${exportInternalSpecifiers.join(', ')} };` );
+	if ( module.exports.default || module.reexports.default ) exportBlock.push( `export default ${module.traceExport( 'default' ).getName( true )};` );
+	if ( exportAllDeclarations.length ) exportBlock.push( exportAllDeclarations.join( '\n' ) );
+	if ( exportExternalSpecifiers.size ) {
+		exportExternalSpecifiers.forEach( ( specifiers, id ) => {
+			exportBlock.push( `export { ${specifiers.join( ', ' )} } from '${id}';` );
+		});
 	}
 
-	if ( exportBlock ) magicString.append( '\n\n' + exportBlock.trim() );
-	if ( exportAllDeclarations.length ) magicString.append( '\n\n' + exportAllDeclarations.join( '\n' ).trim() );
+	if ( exportBlock.length ) magicString.append( '\n\n' + exportBlock.join( '\n' ).trim() );
+
 	if ( outro ) magicString.append( outro );
 
 	return magicString.trim();

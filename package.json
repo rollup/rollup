@@ -66,6 +66,7 @@
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-json": "^2.3.0",
     "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-replace": "^1.1.1",
     "rollup-plugin-string": "^2.0.0",
     "rollup-pluginutils": "^2.0.1",
     "rollup-watch": "^4.3.1",
