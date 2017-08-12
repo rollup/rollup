@@ -20,8 +20,18 @@ export default class ModuleScope extends Scope {
 		forOwn( this.module.imports, specifier => {
 			if ( specifier.module.isExternal ) return;
 
+			const addDeclaration = declaration => {
+				if ( declaration.isNamespace ) {
+					declaration.module.getExports().forEach( name => {
+						addDeclaration( declaration.module.traceExport(name) );
+					});
+				}
+
+				names.add( declaration.name );
+			};
+
 			specifier.module.getExports().forEach( name => {
-				names.add( specifier.module.traceExport(name).name );
+				addDeclaration( specifier.module.traceExport(name) );
 			});
 
 			if ( specifier.name !== '*' ) {
