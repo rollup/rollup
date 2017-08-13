@@ -36,6 +36,7 @@ export default function loadConfigFile (configFile, silent) {
 				}
 			};
 
+			delete require.cache[configFile];
 			const configs = require( configFile );
 			if ( Object.keys( configs ).length === 0 ) {
 				handleError({
