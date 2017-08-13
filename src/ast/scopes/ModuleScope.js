@@ -50,6 +50,10 @@ export default class ModuleScope extends Scope {
 				if ( name !== specifier.name ) {
 					names.add( declaration.getName( true ) );
 				}
+
+				if ( specifier.name !== 'default' && specifier.specifier.imported.name !== specifier.specifier.local.name ) {
+					names.add( specifier.specifier.imported.name );
+				}
 			}
 		});
 
