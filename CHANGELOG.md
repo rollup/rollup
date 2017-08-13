@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.47.3
+
+* Deshadow aliased imports ([#1550](https://github.com/rollup/rollup/issues/1550))
+
 ## 0.47.2
 
 * Rebuild with dependency that npm randomly deleted
