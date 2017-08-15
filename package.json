@@ -42,6 +42,7 @@
   "homepage": "https://github.com/rollup/rollup",
   "devDependencies": {
     "acorn": "^5.1.1",
+    "ansi-escapes": "^2.0.0",
     "buble": "^0.15.1",
     "chalk": "^2.1.0",
     "codecov.io": "^0.1.6",

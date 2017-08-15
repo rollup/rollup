@@ -4,12 +4,16 @@ import chalk from 'chalk';
 import ms from 'pretty-ms';
 import mergeOptions from './mergeOptions.js';
 import batchWarnings from './batchWarnings.js';
+import alternateScreen from './alternateScreen.js';
 import loadConfigFile from './loadConfigFile.js';
 import relativeId from '../../../src/utils/relativeId.js';
 import { handleError, stderr } from '../logging.js';
 
 export default function watch(configFile, configs, command, silent) {
-	process.stderr.write('\x1b[?1049h'); // alternate screen buffer
+	const isTTY = Boolean(process.stderr.isTTY);
+
+	const screen = alternateScreen(isTTY);
+	screen.open();
 
 	const warnings = batchWarnings();
 
@@ -18,7 +22,7 @@ export default function watch(configFile, configs, command, silent) {
 	let closed = false;
 
 	function start(configs) {
-		stderr(`\x1B[2J\x1B[0f${chalk.underline( `rollup v${rollup.VERSION}` )}`); // clear, move to top-left
+		screen.reset( chalk.underline( `rollup v${rollup.VERSION}` ) );
 
 		configs = configs.map(options => {
 			const merged = mergeOptions(options, command);
@@ -48,7 +52,7 @@ export default function watch(configFile, configs, command, silent) {
 		watcher.on('event', event => {
 			switch (event.code) {
 				case 'FATAL':
-					process.stderr.write('\x1b[?1049l'); // reset screen buffer
+					screen.close();
 					handleError(event.error, true);
 					process.exit(1);
 					break;
@@ -59,11 +63,11 @@ export default function watch(configFile, configs, command, silent) {
 					break;
 
 				case 'START':
-					stderr(`\x1B[2J\x1B[0f${chalk.underline( `rollup v${rollup.VERSION}` )}`); // clear, move to top-left
+					screen.reset( chalk.underline( `rollup v${rollup.VERSION}` ) );
 					break;
 
 				case 'BUNDLE_START':
-					if ( !silent ) stderr( chalk.cyan( `\n${chalk.bold( event.input )} → ${chalk.bold( event.output.map( relativeId ).join( ', ' ) )}...` ) );
+					if ( !silent ) stderr( chalk.cyan( `bundles ${chalk.bold( event.input )} → ${chalk.bold( event.output.map( relativeId ).join( ', ' ) )}...` ) );
 					break;
 
 				case 'BUNDLE_END':
@@ -72,14 +76,14 @@ export default function watch(configFile, configs, command, silent) {
 					break;
 
 				case 'END':
-					if ( !silent ) stderr( `\nwaiting for changes...` );
+					if ( !silent && isTTY ) stderr( `\nwaiting for changes...` );
 			}
 		});
 	}
 
 	const close = () => {
 		if (!closed) {
-			process.stderr.write('\x1b[?1049l'); // reset screen buffer
+			screen.close();
 			closed = true;
 			watcher.close();
 
