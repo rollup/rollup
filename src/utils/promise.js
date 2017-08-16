@@ -3,7 +3,7 @@ export function mapSequence ( array, fn ) {
 	let promise = Promise.resolve();
 
 	function next ( member, i ) {
-		return fn( member ).then( value => results[i] = value );
+		return Promise.resolve( fn( member ) ).then( value => results[i] = value );
 	}
 
 	for ( let i = 0; i < array.length; i += 1 ) {
