@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.47.5
+
+* Fix broken multi-bundle configs with `rollup.watch` ([#1532](https://github.com/rollup/rollup/issues/1532))
+
 ## 0.47.4
 
 * Delete cached config file before reloading in watch mode
