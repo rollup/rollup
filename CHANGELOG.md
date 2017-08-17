@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.47.6
+
+* Set `process.env.ROLLUP_WATCH` *before* loading config file
+
 ## 0.47.5
 
 * Fix broken multi-bundle configs with `rollup.watch` ([#1532](https://github.com/rollup/rollup/issues/1532))
