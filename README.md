@@ -128,7 +128,6 @@ if (typeof process === 'undefined') {
 
 ... that I consider that kind of implicit behaviour to be a huge footgun. Rollup's goal is to help you make the leanest, fastest-starting bundle possible, and we can't do that while second-guessing your intentions.
 
-
 ## License
 
 [MIT](https://github.com/rollup/rollup/blob/master/LICENSE.md)
