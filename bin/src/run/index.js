@@ -64,6 +64,8 @@ export default function runRollup ( command ) {
 			configFile = realpathSync( configFile );
 		}
 
+		if (command.watch) process.env.ROLLUP_WATCH = 'true';
+
 		loadConfigFile(configFile, command.silent)
 			.then(normalized => execute( configFile, normalized, command ))
 			.catch(handleError);
@@ -74,7 +76,6 @@ export default function runRollup ( command ) {
 
 function execute ( configFile, configs, command ) {
 	if ( command.watch ) {
-		process.env.ROLLUP_WATCH = 'true';
 		watch( configFile, configs, command, command.silent );
 	} else {
 		return sequence( configs, config => {
