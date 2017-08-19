@@ -6,9 +6,9 @@ var modules = {
 };
 
 module.exports = {
-	description: 'does not mangle entry point',
+	description: 'does not mangle input',
 	options: {
-		entry: 'x\\y',
+		input: 'x\\y',
 		plugins: [{
 			resolveId: function ( importee ) {
 				return importee;

@@ -1,7 +1,7 @@
 import { decode } from 'sourcemap-codec';
 import error from './error.js';
 
-export default function transformBundle ( code, plugins, sourceMapChain, options ) {
+export default function transformBundle ( code, plugins, sourcemapChain, options ) {
 	return plugins.reduce( ( promise, plugin ) => {
 		if ( !plugin.transformBundle ) return promise;
 
@@ -23,7 +23,7 @@ export default function transformBundle ( code, plugins, sourceMapChain, options
 					map.mappings = decode( map.mappings );
 				}
 
-				sourceMapChain.push( map );
+				sourcemapChain.push( map );
 
 				return result.code;
 			}).catch( err => {

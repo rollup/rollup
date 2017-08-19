@@ -5,7 +5,7 @@ var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
 module.exports = {
 	description: 'names are recovered (https://github.com/rollup/rollup/issues/101)',
 	options: {
-		moduleName: 'myModule'
+		name: 'myModule'
 	},
 	test: function ( code, map ) {
 		var smc = new SourceMapConsumer( map );

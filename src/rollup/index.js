@@ -4,6 +4,7 @@ import { writeFile } from '../utils/fs.js';
 import { assign, keys } from '../utils/object.js';
 import { mapSequence } from '../utils/promise.js';
 import validateKeys from '../utils/validateKeys.js';
+import checkDeprecatedOptions from '../utils/checkDeprecatedOptions.js';
 import error from '../utils/error.js';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL.js';
 import Bundle from '../Bundle.js';
@@ -16,8 +17,6 @@ const ALLOWED_KEYS = [
 	'banner',
 	'cache',
 	'context',
-	'dest',
-	'entry',
 	'exports',
 	'extend',
 	'external',
@@ -25,23 +24,25 @@ const ALLOWED_KEYS = [
 	'format',
 	'globals',
 	'indent',
+	'input',
 	'interop',
 	'intro',
 	'legacy',
 	'moduleContext',
-	'moduleName',
+	'name',
 	'noConflict',
 	'onwarn',
+	'output',
 	'outro',
 	'paths',
 	'plugins',
 	'preferConst',
 	'pureExternalModules',
-	'sourceMap',
-	'sourceMapFile',
+	'sourcemap',
+	'sourcemapFile',
+	'strict',
 	'targets',
 	'treeshake',
-	'useStrict',
 	'watch'
 ];
 
@@ -52,11 +53,11 @@ function checkAmd ( options ) {
 		options.amd = { id: options.moduleId };
 		delete options.moduleId;
 
-		const msg = `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`;
+		const message = `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`;
 		if ( options.onwarn ) {
-			options.onwarn( msg );
+			options.onwarn({ message });
 		} else {
-			console.warn( msg ); // eslint-disable-line no-console
+			console.warn( message ); // eslint-disable-line no-console
 		}
 	}
 }
@@ -70,6 +71,7 @@ function checkOptions ( options ) {
 		throw new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
 	}
 
+	checkDeprecatedOptions( options );
 	checkAmd (options);
 
 	const err = validateKeys( keys(options), ALLOWED_KEYS );
@@ -105,6 +107,7 @@ export default function rollup ( options ) {
 					});
 				}
 
+				checkDeprecatedOptions( options );
 				checkAmd( options );
 
 				timeStart( '--GENERATE--' );
@@ -140,38 +143,40 @@ export default function rollup ( options ) {
 
 				generate,
 				write: options => {
-					if ( !options || !options.dest ) {
+					checkDeprecatedOptions( options );
+
+					if ( !options || !options.output ) {
 						error({
 							code: 'MISSING_OPTION',
-							message: 'You must supply options.dest to bundle.write'
+							message: 'You must supply options.output to bundle.write'
 						});
 					}
 
-					const dest = options.dest;
-					return generate( options ).then( output => {
-						let { code, map } = output;
+					const output = options.output;
+					return generate( options ).then( result => {
+						let { code, map } = result;
 
 						const promises = [];
 
-						if ( options.sourceMap ) {
+						if ( options.sourcemap ) {
 							let url;
 
-							if ( options.sourceMap === 'inline' ) {
+							if ( options.sourcemap === 'inline' ) {
 								url = map.toUrl();
 							} else {
-								url = `${basename( dest )}.map`;
-								promises.push( writeFile( dest + '.map', map.toString() ) );
+								url = `${basename( output )}.map`;
+								promises.push( writeFile( output + '.map', map.toString() ) );
 							}
 
 							code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
 						}
 
-						promises.push( writeFile( dest, code ) );
+						promises.push( writeFile( output, code ) );
 						return Promise.all( promises ).then( () => {
 							return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
 								return Promise.resolve( plugin.onwrite( assign({
 									bundle: result
-								}, options ), output));
+								}, options ), result));
 							});
 						});
 					});

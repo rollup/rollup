@@ -1,7 +1,5 @@
-import batchWarnings from './batchWarnings.js';
-
 const equivalents = {
-	useStrict: 'useStrict',
+	strict: 'strict',
 	banner: 'banner',
 	footer: 'footer',
 	format: 'format',
@@ -9,13 +7,13 @@ const equivalents = {
 	id: 'moduleId',
 	indent: 'indent',
 	interop: 'interop',
-	input: 'entry',
+	input: 'input',
 	intro: 'intro',
 	legacy: 'legacy',
-	name: 'moduleName',
-	output: 'dest',
+	name: 'name',
+	output: 'output',
 	outro: 'outro',
-	sourcemap: 'sourceMap',
+	sourcemap: 'sourcemap',
 	treeshake: 'treeshake'
 };
 
@@ -68,9 +66,9 @@ export default function mergeOptions ( config, command ) {
 		}
 	});
 
-	const targets = options.dest ? [{ dest: options.dest, format: options.format }] : options.targets;
+	const targets = options.output ? [{ output: options.output, format: options.format }] : options.targets;
 	options.targets = targets;
-	delete options.dest;
+	delete options.output;
 
 	return options;
 }

@@ -14,7 +14,7 @@ function test() {
 	var cache;
 	function run () {
 		return rollup.rollup({
-			entry: path.resolve(__dirname, 'main.js'),
+			input: path.resolve(__dirname, 'main.js'),
 			cache
 		}).then(bundle => {
 			weak(bundle, onCollect);

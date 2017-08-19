@@ -1,7 +1,7 @@
 var replace = require( 'rollup-plugin-replace' );
 
 module.exports = {
-	entry: 'main.js',
+	input: 'main.js',
 	format: 'cjs',
 	plugins: [
 		replace({ 'ANSWER': 42 })

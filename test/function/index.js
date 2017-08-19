@@ -25,7 +25,7 @@ describe('function', () => {
 
 			const options = extend(
 				{
-					entry: samples + '/' + dir + '/main.js',
+					input: samples + '/' + dir + '/main.js',
 					onwarn: captureWarning
 				},
 				config.options

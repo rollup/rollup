@@ -8,7 +8,7 @@ function badExports ( option, keys ) {
 	});
 }
 
-export default function getExportMode ( bundle, {exports: exportMode, moduleName, format} ) {
+export default function getExportMode ( bundle, {exports: exportMode, name, format} ) {
 	const exportKeys = keys( bundle.entryModule.exports )
 		.concat( keys( bundle.entryModule.reexports ) )
 		.concat( bundle.entryModule.exportAllSources ); // not keys, but makes our job easier this way
@@ -30,7 +30,7 @@ export default function getExportMode ( bundle, {exports: exportMode, moduleName
 			if ( bundle.entryModule.exports.default && format !== 'es') {
 				bundle.warn({
 					code: 'MIXED_EXPORTS',
-					message: `Using named and default exports together. Consumers of your bundle will have to use ${moduleName || 'bundle'}['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning`,
+					message: `Using named and default exports together. Consumers of your bundle will have to use ${name || 'bundle'}['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning`,
 					url: `https://github.com/rollup/rollup/wiki/JavaScript-API#exports`
 				});
 			}

@@ -74,6 +74,13 @@ export default function batchWarnings () {
 }
 
 const immediateHandlers = {
+	DEPRECATED_OPTIONS: warning => {
+		title( `Some options have been renamed` );
+		warning.options.forEach(({ key, replacement }) => {
+			stderr( `${chalk.bold(key)} is now ${replacement}` );
+		});
+	},
+
 	MISSING_NODE_BUILTINS: warning => {
 		title( `Missing shims for Node.js built-ins` );
 

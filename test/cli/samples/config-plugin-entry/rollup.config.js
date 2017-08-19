@@ -3,7 +3,7 @@ export default {
 	plugins: [
 		{
 			options: opts => {
-				opts.entry = 'main.js';
+				opts.input = 'main.js';
 			}
 		}
 	]

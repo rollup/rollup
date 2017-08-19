@@ -3,6 +3,7 @@ import EventEmitter from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
 import rollup from '../rollup/index.js';
 import ensureArray from '../utils/ensureArray.js';
+import checkDeprecatedOptions from '../utils/checkDeprecatedOptions.js';
 import { mapSequence } from '../utils/promise.js';
 import { addTask, deleteTask } from './fileWatchers.js';
 import chokidar from './chokidar.js';
@@ -76,6 +77,8 @@ class Watcher extends EventEmitter {
 
 class Task {
 	constructor(watcher, options) {
+		checkDeprecatedOptions(options);
+
 		this.cache = null;
 		this.watcher = watcher;
 		this.options = options;
@@ -84,9 +87,9 @@ class Task {
 		this.closed = false;
 		this.watched = new Set();
 
-		this.targets = options.targets ? options.targets : [{ dest: options.dest, format: options.format }];
+		this.targets = options.targets ? options.targets : [{ output: options.output, format: options.format }];
 
-		this.dests = (this.targets.map(t => t.dest)).map(dest => path.resolve(dest));
+		this.outputs = (this.targets.map(t => t.output)).map(output => path.resolve(output));
 
 		const watchOptions = options.watch || {};
 		if ('useChokidar' in watchOptions) watchOptions.chokidar = watchOptions.useChokidar;
@@ -136,8 +139,8 @@ class Task {
 
 		this.watcher.emit('event', {
 			code: 'BUNDLE_START',
-			input: this.options.entry,
-			output: this.dests
+			input: this.options.input,
+			output: this.outputs
 		});
 
 		return rollup(options)
@@ -169,8 +172,8 @@ class Task {
 			.then(() => {
 				this.watcher.emit('event', {
 					code: 'BUNDLE_END',
-					input: this.options.entry,
-					output: this.dests,
+					input: this.options.input,
+					output: this.outputs,
 					duration: Date.now() - start
 				});
 			})
@@ -191,7 +194,7 @@ class Task {
 	watchFile(id) {
 		if (!this.filter(id)) return;
 
-		if (~this.dests.indexOf(id)) {
+		if (~this.outputs.indexOf(id)) {
 			throw new Error('Cannot import the generated bundle');
 		}
 

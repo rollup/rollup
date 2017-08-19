@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'getInterop with interop: false',
 	options: {
-		moduleName: 'foo',
+		name: 'foo',
 		interop: false
 	}
 };

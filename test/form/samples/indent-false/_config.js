@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'does not indent with indent: false',
 	options: {
-		moduleName: 'foo',
+		name: 'foo',
 		indent: false
 	}
 };

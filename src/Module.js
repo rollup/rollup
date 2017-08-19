@@ -32,13 +32,13 @@ function tryParse ( module, acornOptions ) {
 }
 
 export default class Module {
-	constructor ( { id, code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds, resolvedExternalIds, bundle } ) {
+	constructor ( { id, code, originalCode, originalSourcemap, ast, sourcemapChain, resolvedIds, resolvedExternalIds, bundle } ) {
 		this.code = code;
 		this.id = id;
 		this.bundle = bundle;
 		this.originalCode = originalCode;
-		this.originalSourceMap = originalSourceMap;
-		this.sourceMapChain = sourceMapChain;
+		this.originalSourcemap = originalSourcemap;
+		this.sourcemapChain = sourcemapChain;
 
 		this.comments = [];
 
@@ -363,9 +363,9 @@ export default class Module {
 			dependencies: this.dependencies.map( module => module.id ),
 			code: this.code,
 			originalCode: this.originalCode,
-			originalSourceMap: this.originalSourceMap,
+			originalSourcemap: this.originalSourcemap,
 			ast: this.astClone,
-			sourceMapChain: this.sourceMapChain,
+			sourcemapChain: this.sourcemapChain,
 			resolvedIds: this.resolvedIds,
 			resolvedExternalIds: this.resolvedExternalIds
 		};

@@ -20,7 +20,7 @@ export default function amd ( bundle, magicString, { exportMode, indentString, i
 		( amdOptions.id ? `'${amdOptions.id}', ` : `` ) +
 		( deps.length ? `[${deps.join( ', ' )}], ` : `` );
 
-	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
+	const useStrict = options.strict !== false ? ` 'use strict';` : ``;
 	const define = amdOptions.define || 'define';
 	const wrapperStart = `${define}(${params}function (${args.join( ', ' )}) {${useStrict}\n\n`;
 

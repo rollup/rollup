@@ -7,17 +7,17 @@ import { mapSequence } from '../../../src/utils/promise.js';
 import SOURCEMAPPING_URL from '../sourceMappingUrl.js';
 
 export default function build ( options, warnings, silent ) {
-	const useStdout = !options.targets && !options.dest;
-	const targets = options.targets ? options.targets : [{ dest: options.dest, format: options.format }];
+	const useStdout = !options.targets && !options.output;
+	const targets = options.targets ? options.targets : [{ output: options.output, format: options.format }];
 
 	const start = Date.now();
-	const dests = useStdout ? [ 'stdout' ] : targets.map( t => relativeId( t.dest ) );
-	if ( !silent ) stderr( chalk.cyan( `\n${chalk.bold( options.entry )} → ${chalk.bold( dests.join( ', ' ) )}...` ) );
+	const dests = useStdout ? [ 'stdout' ] : targets.map( t => relativeId( t.output ) );
+	if ( !silent ) stderr( chalk.cyan( `\n${chalk.bold( options.input )} → ${chalk.bold( dests.join( ', ' ) )}...` ) );
 
 	return rollup.rollup( options )
 		.then( bundle => {
 			if ( useStdout ) {
-				if ( options.sourceMap && options.sourceMap !== 'inline' ) {
+				if ( options.sourcemap && options.sourcemap !== 'inline' ) {
 					handleError({
 						code: 'MISSING_OUTPUT_OPTION',
 						message: 'You must specify an --output (-o) option when creating a file with a sourcemap'
@@ -25,7 +25,7 @@ export default function build ( options, warnings, silent ) {
 				}
 
 				return bundle.generate(options).then( ({ code, map }) => {
-					if ( options.sourceMap === 'inline' ) {
+					if ( options.sourcemap === 'inline' ) {
 						code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
 					}
 

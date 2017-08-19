@@ -67,8 +67,8 @@ describe('rollup.watch', () => {
 				.to('test/_tmp/input')
 				.then(() => {
 					const watcher = rollup.watch({
-						entry: 'test/_tmp/input/main.js',
-						dest: 'test/_tmp/output/bundle.js',
+						input: 'test/_tmp/input/main.js',
+						output: 'test/_tmp/output/bundle.js',
 						format: 'cjs',
 						watch: { chokidar }
 					});
@@ -103,8 +103,8 @@ describe('rollup.watch', () => {
 				.to('test/_tmp/input')
 				.then(() => {
 					const watcher = rollup.watch({
-						entry: 'test/_tmp/input/main.js',
-						dest: 'test/_tmp/output/bundle.js',
+						input: 'test/_tmp/input/main.js',
+						output: 'test/_tmp/output/bundle.js',
 						format: 'cjs',
 						watch: { chokidar }
 					});
@@ -145,8 +145,8 @@ describe('rollup.watch', () => {
 				.to('test/_tmp/input')
 				.then(() => {
 					const watcher = rollup.watch({
-						entry: 'test/_tmp/input/main.js',
-						dest: 'test/_tmp/output/bundle.js',
+						input: 'test/_tmp/input/main.js',
+						output: 'test/_tmp/output/bundle.js',
 						format: 'cjs',
 						watch: { chokidar }
 					});
@@ -189,8 +189,8 @@ describe('rollup.watch', () => {
 				.to('test/_tmp/input')
 				.then(() => {
 					const watcher = rollup.watch({
-						entry: 'test/_tmp/input/main.js',
-						dest: 'test/_tmp/output/bundle.js',
+						input: 'test/_tmp/input/main.js',
+						output: 'test/_tmp/output/bundle.js',
 						format: 'cjs',
 						watch: { chokidar }
 					});
@@ -238,8 +238,8 @@ describe('rollup.watch', () => {
 				.to('test/_tmp/input')
 				.then(() => {
 					const watcher = rollup.watch({
-						entry: 'test/_tmp/input/main.js',
-						dest: 'test/_tmp/output/bundle.js',
+						input: 'test/_tmp/input/main.js',
+						output: 'test/_tmp/output/bundle.js',
 						format: 'cjs',
 						watch: {
 							chokidar,
@@ -293,8 +293,8 @@ describe('rollup.watch', () => {
 				.to('test/_tmp/input')
 				.then(() => {
 					const watcher = rollup.watch({
-						entry: 'test/_tmp/input/main.js',
-						dest: 'test/_tmp/output/bundle.js',
+						input: 'test/_tmp/input/main.js',
+						output: 'test/_tmp/output/bundle.js',
 						format: 'cjs',
 						watch: {
 							chokidar,
@@ -348,8 +348,8 @@ describe('rollup.watch', () => {
 				.to('test/_tmp/input')
 				.then(() => {
 					const watcher = rollup.watch({
-						entry: 'test/_tmp/input/main.js',
-						dest: 'test/_tmp/output/bundle.js',
+						input: 'test/_tmp/input/main.js',
+						output: 'test/_tmp/output/bundle.js',
 						format: 'iife',
 						watch: { chokidar },
 						external: ['jquery'],

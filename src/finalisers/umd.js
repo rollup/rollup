@@ -37,10 +37,10 @@ function safeAccess ( name ) {
 const wrapperOutro = '\n\n})));';
 
 export default function umd ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
-	if ( exportMode !== 'none' && !options.moduleName ) {
+	if ( exportMode !== 'none' && !options.name ) {
 		error({
 			code: 'INVALID_OPTION',
-			message: 'You must supply options.moduleName for UMD bundles'
+			message: 'You must supply options.name for UMD bundles'
 		});
 	}
 
@@ -58,7 +58,7 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 	if ( exportMode === 'named' ) {
 		amdDeps.unshift( `'exports'` );
 		cjsDeps.unshift( `exports` );
-		globalDeps.unshift( `(${setupNamespace(options.moduleName)} = ${options.extend ? `${globalProp(options.moduleName)} || ` : '' }{})` );
+		globalDeps.unshift( `(${setupNamespace(options.name)} = ${options.extend ? `${globalProp(options.name)} || ` : '' }{})` );
 
 		args.unshift( 'exports' );
 	}
@@ -72,9 +72,9 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 	const define = amdOptions.define || 'define';
 
 	const cjsExport = exportMode === 'default' ? `module.exports = ` : ``;
-	const defaultExport = exportMode === 'default' ? `${setupNamespace(options.moduleName)} = ` : '';
+	const defaultExport = exportMode === 'default' ? `${setupNamespace(options.name)} = ` : '';
 
-	const useStrict = options.useStrict !== false ? ` 'use strict';` : ``;
+	const useStrict = options.strict !== false ? ` 'use strict';` : ``;
 
 	let globalExport;
 
@@ -89,10 +89,10 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 				factory(${['exports'].concat(globalDeps)});`;
 		}
 		globalExport = `(function() {
-				var current = ${safeAccess(options.moduleName)};
+				var current = ${safeAccess(options.name)};
 				${factory}
-				${globalProp(options.moduleName)} = exports;
-				exports.noConflict = function() { ${globalProp(options.moduleName)} = current; return exports; };
+				${globalProp(options.name)} = exports;
+				exports.noConflict = function() { ${globalProp(options.name)} = current; return exports; };
 			})()`;
 	} else {
 		globalExport = `(${defaultExport}factory(${globalDeps}))`;

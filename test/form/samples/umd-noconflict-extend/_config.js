@@ -3,7 +3,7 @@ module.exports = {
 	options: {
 		extend: true,
 		noConflict: true,
-		moduleName: 'FooBar'
+		name: 'FooBar'
 	}
 };
 

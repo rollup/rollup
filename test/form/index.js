@@ -25,7 +25,7 @@ describe('form', () => {
 		const options = extend(
 			{},
 			{
-				entry: samples + '/' + dir + '/main.js',
+				input: samples + '/' + dir + '/main.js',
 				onwarn: msg => {
 					if (/No name was provided for/.test(msg)) return;
 					if (/as external dependency/.test(msg)) return;
@@ -45,7 +45,7 @@ describe('form', () => {
 
 					return createBundle().then(bundle => {
 						const options = extend({}, config.options, {
-							dest: samples + '/' + dir + '/_actual/' + format + '.js',
+							output: samples + '/' + dir + '/_actual/' + format + '.js',
 							format
 						});
 

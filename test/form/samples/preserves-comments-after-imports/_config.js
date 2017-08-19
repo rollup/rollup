@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'preserves comments between imports and first statement',
 	options: {
-		moduleName: 'myBundle'
+		name: 'myBundle'
 	}
 };
 

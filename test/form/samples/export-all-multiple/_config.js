@@ -3,6 +3,6 @@ module.exports = {
 	options: {
 		external: [ 'foo', 'bar', 'baz' ],
 		globals: { foo: 'foo', bar: 'bar', baz: 'baz' },
-		moduleName: 'myBundle'
+		name: 'myBundle'
 	}
 };

@@ -7,7 +7,7 @@ module.exports = {
 		plugins: [
 			{
 				options: function ( options ) {
-					options.entry = path.resolve( __dirname, 'answer.js' );
+					options.input = path.resolve( __dirname, 'answer.js' );
 				}
 			}
 		]
