@@ -32,6 +32,9 @@ describe('rollup.watch', () => {
 				} else if (typeof next === 'string') {
 					watcher.once('event', event => {
 						if (event.code !== next) {
+							if (event.code === 'FATAL') {
+								console.error(event.error);
+							}
 							reject(new Error(`Expected ${next} event, got ${event.code}`));
 						} else {
 							go(event);
@@ -68,8 +71,10 @@ describe('rollup.watch', () => {
 				.then(() => {
 					const watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
-						output: 'test/_tmp/output/bundle.js',
-						format: 'cjs',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
 						watch: { chokidar }
 					});
 
@@ -104,8 +109,10 @@ describe('rollup.watch', () => {
 				.then(() => {
 					const watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
-						output: 'test/_tmp/output/bundle.js',
-						format: 'cjs',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
 						watch: { chokidar }
 					});
 
@@ -146,8 +153,10 @@ describe('rollup.watch', () => {
 				.then(() => {
 					const watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
-						output: 'test/_tmp/output/bundle.js',
-						format: 'cjs',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
 						watch: { chokidar }
 					});
 
@@ -190,8 +199,10 @@ describe('rollup.watch', () => {
 				.then(() => {
 					const watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
-						output: 'test/_tmp/output/bundle.js',
-						format: 'cjs',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
 						watch: { chokidar }
 					});
 
@@ -239,8 +250,10 @@ describe('rollup.watch', () => {
 				.then(() => {
 					const watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
-						output: 'test/_tmp/output/bundle.js',
-						format: 'cjs',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
 						watch: {
 							chokidar,
 							include: ['test/_tmp/input/+(main|foo).js']
@@ -294,8 +307,10 @@ describe('rollup.watch', () => {
 				.then(() => {
 					const watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
-						output: 'test/_tmp/output/bundle.js',
-						format: 'cjs',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
 						watch: {
 							chokidar,
 							exclude: ['test/_tmp/input/bar.js']
@@ -349,8 +364,10 @@ describe('rollup.watch', () => {
 				.then(() => {
 					const watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
-						output: 'test/_tmp/output/bundle.js',
-						format: 'iife',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'iife'
+						},
 						watch: { chokidar },
 						external: ['jquery'],
 						globals: {

@@ -4,7 +4,6 @@ import { writeFile } from '../utils/fs.js';
 import { assign, keys } from '../utils/object.js';
 import { mapSequence } from '../utils/promise.js';
 import validateKeys from '../utils/validateKeys.js';
-import checkDeprecatedOptions from '../utils/checkDeprecatedOptions.js';
 import error from '../utils/error.js';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL.js';
 import Bundle from '../Bundle.js';
@@ -20,6 +19,7 @@ const ALLOWED_KEYS = [
 	'exports',
 	'extend',
 	'external',
+	'file',
 	'footer',
 	'format',
 	'globals',
@@ -62,20 +62,73 @@ function checkAmd ( options ) {
 	}
 }
 
-function checkOptions ( options ) {
-	if ( !options ) {
-		throw new Error( 'You must supply an options object to rollup' );
-	}
-
+function checkInputOptions ( options, warn ) {
 	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
 		throw new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
 	}
 
-	checkDeprecatedOptions( options );
-	checkAmd (options);
+	if ( options.entry ) {
+		options.input = options.entry;
+		warn({
+			message: `options.entry is deprecated, use options.input`
+		});
+	}
 
 	const err = validateKeys( keys(options), ALLOWED_KEYS );
 	if ( err ) throw err;
+}
+
+const deprecated = {
+	dest: 'file',
+	moduleName: 'name',
+	sourceMap: 'sourcemap',
+	sourceMapFile: 'sourcemapFile',
+	useStrict: 'strict'
+};
+
+function checkOutputOptions ( options, onwarn ) {
+	if ( options.format === 'es6' ) {
+		error({
+			message: 'The `es6` output format is deprecated – use `es` instead',
+			url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
+		});
+	}
+
+	if ( !options.format ) {
+		error({
+			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'es', 'iife' or 'umd'`,
+			url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
+		});
+	}
+
+	if ( options.moduleId ) {
+		if ( options.amd ) throw new Error( 'Cannot have both options.amd and options.moduleId' );
+
+		options.amd = { id: options.moduleId };
+		delete options.moduleId;
+
+		onwarn({
+			message: `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`
+		});
+	}
+
+	const deprecations = [];
+	Object.keys( deprecated ).forEach( old => {
+		if ( old in options ) {
+			deprecations.push({ old, new: deprecated[ old ] });
+			options[ deprecated[ old ] ] = options[ old ];
+			delete options[ old ];
+		}
+	});
+
+	if ( deprecations.length ) {
+		const message = `The following options have been renamed — please update your config: ${deprecations.map(option => `${option.old} -> ${option.new}`).join(', ')}`;
+		onwarn({
+			code: 'DEPRECATED_OPTIONS',
+			message,
+			deprecations
+		});
+	}
 }
 
 const throwAsyncGenerateError = {
@@ -86,7 +139,13 @@ const throwAsyncGenerateError = {
 
 export default function rollup ( options ) {
 	try {
-		checkOptions( options );
+		if ( !options ) {
+			throw new Error( 'You must supply an options object to rollup' );
+		}
+
+		const warn = options.onwarn || (warning => console.warn( warning.message )); // eslint-disable-line no-console
+
+		checkInputOptions( options, warn );
 		const bundle = new Bundle( options );
 
 		timeStart( '--BUILD--' );
@@ -94,20 +153,11 @@ export default function rollup ( options ) {
 		return bundle.build().then( () => {
 			timeEnd( '--BUILD--' );
 
-			function generate ( options = {} ) {
-				if ( options.format === 'es6' ) {
-					throw new Error( 'The `es6` output format is deprecated – use `es` instead' );
+			function generate ( options ) {
+				if ( !options ) {
+					throw new Error( 'You must supply an options object' );
 				}
-
-				if ( !options.format ) {
-					error({
-						code: 'MISSING_FORMAT',
-						message: `You must supply an output format`,
-						url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
-					});
-				}
-
-				checkDeprecatedOptions( options );
+				checkOutputOptions( options );
 				checkAmd( options );
 
 				timeStart( '--GENERATE--' );
@@ -143,17 +193,15 @@ export default function rollup ( options ) {
 
 				generate,
 				write: options => {
-					checkDeprecatedOptions( options );
-
-					if ( !options || !options.output ) {
+					if ( !options || (!options.file && !options.dest) ) {
 						error({
 							code: 'MISSING_OPTION',
-							message: 'You must supply options.output to bundle.write'
+							message: 'You must specify options.file'
 						});
 					}
 
-					const output = options.output;
 					return generate( options ).then( result => {
+						const file = options.file;
 						let { code, map } = result;
 
 						const promises = [];
@@ -164,14 +212,14 @@ export default function rollup ( options ) {
 							if ( options.sourcemap === 'inline' ) {
 								url = map.toUrl();
 							} else {
-								url = `${basename( output )}.map`;
-								promises.push( writeFile( output + '.map', map.toString() ) );
+								url = `${basename( file )}.map`;
+								promises.push( writeFile( file + '.map', map.toString() ) );
 							}
 
 							code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
 						}
 
-						promises.push( writeFile( output, code ) );
+						promises.push( writeFile( file, code ) );
 						return Promise.all( promises ).then( () => {
 							return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
 								return Promise.resolve( plugin.onwrite( assign({

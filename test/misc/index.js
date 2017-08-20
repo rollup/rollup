@@ -44,7 +44,7 @@ describe('sanity checks', () => {
 			err => {
 				assert.equal(
 					err.message,
-					"Unexpected key 'plUgins' found, expected one of: acorn, amd, banner, cache, context, exports, extend, external, footer, format, globals, indent, input, interop, intro, legacy, moduleContext, name, noConflict, onwarn, output, outro, paths, plugins, preferConst, pureExternalModules, sourcemap, sourcemapFile, strict, targets, treeshake, watch"
+					"Unexpected key 'plUgins' found, expected one of: acorn, amd, banner, cache, context, exports, extend, external, file, footer, format, globals, indent, input, interop, intro, legacy, moduleContext, name, noConflict, onwarn, output, outro, paths, plugins, preferConst, pureExternalModules, sourcemap, sourcemapFile, strict, targets, treeshake, watch"
 				);
 			}
 		);
@@ -73,7 +73,7 @@ describe('sanity checks', () => {
 			});
 	});
 
-	it('throws on missing format option', () => {
+	it('throws on missing output options', () => {
 		const warnings = [];
 
 		return rollup
@@ -85,7 +85,23 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate();
-				}, /You must supply an output format/);
+				}, /You must supply an options object/);
+			});
+	});
+
+	it('throws on missing format option', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins: [loader({ x: `console.log( 42 );` })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => {
+				assert.throws(() => {
+					bundle.generate({ file: 'x' });
+				}, /You must specify options\.format, which can be one of 'amd', 'cjs', 'es', 'iife' or 'umd'/);
 			});
 	});
 });
@@ -117,7 +133,7 @@ describe('deprecations', () => {
 });
 
 describe('bundle.write()', () => {
-	it('fails without options or options.output', () => {
+	it('fails without options or options.file', () => {
 		return rollup
 			.rollup({
 				input: 'x',
@@ -135,11 +151,11 @@ describe('bundle.write()', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.write();
-				}, /must supply options\.output/);
+				}, /You must specify options\.file/);
 
 				assert.throws(() => {
 					bundle.write({});
-				}, /must supply options\.output/);
+				}, /You must specify options\.file/);
 			});
 	});
 

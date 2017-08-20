@@ -36,7 +36,7 @@ describe('sourcemaps', () => {
 								{
 									format,
 									sourcemap: true,
-									output: `${output}.${format}.js`
+									file: `${output}.${format}.js`
 								},
 								config.options
 							);

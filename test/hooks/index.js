@@ -6,7 +6,7 @@ const rollup = require('../../dist/rollup.js');
 
 describe('hooks', () => {
 	it('passes bundle & output object to ongenerate & onwrite hooks', () => {
-		const output = path.join(__dirname, 'tmp/bundle.js');
+		const file = path.join(__dirname, 'tmp/bundle.js');
 
 		return rollup
 			.rollup({
@@ -26,12 +26,12 @@ describe('hooks', () => {
 			})
 			.then(bundle => {
 				return bundle.write({
-					output,
+					file,
 					format: 'es'
 				});
 			})
 			.then(() => {
-				return sander.unlink(output);
+				return sander.unlink(file);
 			});
 	});
 
@@ -63,7 +63,7 @@ describe('hooks', () => {
 
 	it('calls onwrite hooks in sequence', () => {
 		const result = [];
-		const output = path.join(__dirname, 'tmp/bundle.js');
+		const file = path.join(__dirname, 'tmp/bundle.js');
 
 		return rollup
 			.rollup({
@@ -73,31 +73,31 @@ describe('hooks', () => {
 					{
 						onwrite(info) {
 							return new Promise(fulfil => {
-								result.push({ a: info.output, format: info.format });
+								result.push({ a: info.file, format: info.format });
 								fulfil();
 							});
 						}
 					},
 					{
 						onwrite(info) {
-							result.push({ b: info.output, format: info.format });
+							result.push({ b: info.file, format: info.format });
 						}
 					}
 				]
 			})
 			.then(bundle => {
 				return bundle.write({
-					output,
+					file,
 					format: 'cjs'
 				});
 			})
 			.then(() => {
 				assert.deepEqual(result, [
-					{ a: output, format: 'cjs' },
-					{ b: output, format: 'cjs' }
+					{ a: file, format: 'cjs' },
+					{ b: file, format: 'cjs' }
 				]);
 
-				return sander.unlink(output);
+				return sander.unlink(file);
 			});
 	});
 });

@@ -5,7 +5,7 @@ module.exports = {
 	description: 'source paths are relative with relative dest (#344)',
 	options: {
 		name: 'myModule',
-		output: path.resolve( __dirname, '_actual/bundle.js' )
+		file: path.resolve( __dirname, '_actual/bundle.js' )
 	},
 	test: function ( code, map ) {
 		assert.deepEqual( map.sources, [ '../main.js' ]);

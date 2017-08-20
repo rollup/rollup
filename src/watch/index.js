@@ -3,7 +3,6 @@ import EventEmitter from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
 import rollup from '../rollup/index.js';
 import ensureArray from '../utils/ensureArray.js';
-import checkDeprecatedOptions from '../utils/checkDeprecatedOptions.js';
 import { mapSequence } from '../utils/promise.js';
 import { addTask, deleteTask } from './fileWatchers.js';
 import chokidar from './chokidar.js';
@@ -76,22 +75,44 @@ class Watcher extends EventEmitter {
 }
 
 class Task {
-	constructor(watcher, options) {
-		checkDeprecatedOptions(options);
-
+	constructor(watcher, config) {
 		this.cache = null;
 		this.watcher = watcher;
-		this.options = options;
 
 		this.dirty = true;
 		this.closed = false;
 		this.watched = new Set();
 
-		this.targets = options.targets ? options.targets : [{ output: options.output, format: options.format }];
+		this.inputOptions = {
+			input: config.input,
+			legacy: config.legacy,
+			treeshake: config.treeshake,
+			plugins: config.plugins
+		};
 
-		this.outputs = (this.targets.map(t => t.output)).map(output => path.resolve(output));
+		const baseOutputOptions = {
+			extend: config.extend,
+			amd: config.amd,
+			banner: config.banner,
+			footer: config.footer,
+			intro: config.intro,
+			outro: config.outro,
+			sourcemap: config.sourcemap,
+			name: config.name,
+			globals: config.globals,
+			interop: config.interop,
+			legacy: config.legacy,
+			indent: config.indent,
+			strict: config.strict,
+			noConflict: config.noConflict
+		};
 
-		const watchOptions = options.watch || {};
+		this.outputs = ensureArray(config.output).map(output => {
+			return Object.assign({}, baseOutputOptions, output);
+		});
+		this.outputFiles = this.outputs.map(output => path.resolve(output.file));
+
+		const watchOptions = config.watch || {};
 		if ('useChokidar' in watchOptions) watchOptions.chokidar = watchOptions.useChokidar;
 		let chokidarOptions = 'chokidar' in watchOptions ? watchOptions.chokidar : !!chokidar;
 		if (chokidarOptions) {
@@ -131,7 +152,7 @@ class Task {
 		if (!this.dirty) return;
 		this.dirty = false;
 
-		const options = Object.assign(this.options, {
+		const options = Object.assign(this.inputOptions, {
 			cache: this.cache
 		});
 
@@ -139,8 +160,8 @@ class Task {
 
 		this.watcher.emit('event', {
 			code: 'BUNDLE_START',
-			input: this.options.input,
-			output: this.outputs
+			input: this.inputOptions.input,
+			output: this.outputFiles
 		});
 
 		return rollup(options)
@@ -163,17 +184,14 @@ class Task {
 				this.watched = watched;
 
 				return Promise.all(
-					this.targets.map(target => {
-						const options = Object.assign({}, this.options, target);
-						return bundle.write(options);
-					})
+					this.outputs.map(output => bundle.write(output))
 				);
 			})
 			.then(() => {
 				this.watcher.emit('event', {
 					code: 'BUNDLE_END',
-					input: this.options.input,
-					output: this.outputs,
+					input: this.inputOptions.input,
+					output: this.outputFiles,
 					duration: Date.now() - start
 				});
 			})
@@ -194,7 +212,7 @@ class Task {
 	watchFile(id) {
 		if (!this.filter(id)) return;
 
-		if (~this.outputs.indexOf(id)) {
+		if (this.outputFiles.some(file => file === id)) {
 			throw new Error('Cannot import the generated bundle');
 		}
 

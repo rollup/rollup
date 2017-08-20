@@ -45,7 +45,7 @@ describe('form', () => {
 
 					return createBundle().then(bundle => {
 						const options = extend({}, config.options, {
-							output: samples + '/' + dir + '/_actual/' + format + '.js',
+							file: samples + '/' + dir + '/_actual/' + format + '.js',
 							format
 						});
 

@@ -4,11 +4,11 @@ export default {
 	targets: [
 		{
 			format: 'cjs',
-			output: '_actual/cjs.js'
+			file: '_actual/cjs.js'
 		},
 		{
 			format: 'es',
-			output: '_actual/es.js'
+			file: '_actual/es.js'
 		}
 	]
 };

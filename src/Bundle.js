@@ -548,7 +548,7 @@ export default class Bundle {
 				if ( options.sourcemap ) {
 					timeStart( 'sourcemap' );
 
-					let file = options.sourcemapFile || options.output;
+					let file = options.sourcemapFile || options.file;
 					if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
 
 					if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
