@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.48.1
+
+* Print deprecation warnings in watch mode, and fix options when watcher restarts ([#1568](https://github.com/rollup/rollup/pull/1568))
+
 ## 0.48.0
 
 * Numerous changes to the `options` object and CLI arguments ([#1479](https://github.com/rollup/rollup/issues/1479)). See [this gist](https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32) for a rundown.
