@@ -70,13 +70,6 @@ export default class Bundle {
 		this.hasLoaders = loaders.length !== 0;
 		this.load = first( loaders.concat( load ) );
 
-		const optionsPaths = options.paths;
-		this.getPath = typeof optionsPaths === 'function' ?
-			( id => optionsPaths( id ) || this.getPathRelativeToEntryDirname( id ) ) :
-			optionsPaths ?
-				( id => optionsPaths.hasOwnProperty( id ) ? optionsPaths[ id ] : this.getPathRelativeToEntryDirname( id ) ) :
-				id => this.getPathRelativeToEntryDirname( id );
-
 		this.scope = new BundleScope();
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports', '_interopDefault' ].forEach( name => {
@@ -417,7 +410,7 @@ export default class Bundle {
 						module.resolvedExternalIds[ source ] = externalId;
 
 						if ( !this.moduleById.has( externalId ) ) {
-							const module = new ExternalModule( externalId, this.getPath( externalId ) );
+							const module = new ExternalModule( externalId );
 							this.externalModules.push( module );
 							this.moduleById.set( externalId, module );
 						}
@@ -521,7 +514,16 @@ export default class Bundle {
 
 			timeStart( 'render format' );
 
-			magicString = finalise( this, magicString.trim(), { exportMode, indentString, intro, outro }, options );
+			const optionsPaths = options.paths;
+			const getPath = (
+				typeof optionsPaths === 'function' ?
+					( id => optionsPaths( id ) || this.getPathRelativeToEntryDirname( id ) ) :
+					optionsPaths ?
+						( id => optionsPaths.hasOwnProperty( id ) ? optionsPaths[ id ] : this.getPathRelativeToEntryDirname( id ) ) :
+						id => this.getPathRelativeToEntryDirname( id )
+			);
+
+			magicString = finalise( this, magicString.trim(), { exportMode, getPath, indentString, intro, outro }, options );
 
 			timeEnd( 'render format' );
 

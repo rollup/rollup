@@ -1,5 +1,4 @@
 import { blank } from '../utils/object.js';
-import { getName } from '../utils/mapHelpers.js';
 import error from '../utils/error.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
@@ -41,7 +40,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 
 	const external = trimEmptyImports( bundle.externalModules );
 	const dependencies = external.map( globalNameMaker );
-	const args = external.map( getName );
+	const args = external.map( m => m.name );
 
 	if ( exportMode !== 'none' && !name ) {
 		error({

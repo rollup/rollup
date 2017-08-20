@@ -1,5 +1,4 @@
 import { blank } from '../utils/object.js';
-import { getName, quotePath, req } from '../utils/mapHelpers.js';
 import error from '../utils/error.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
@@ -36,7 +35,7 @@ function safeAccess ( name ) {
 
 const wrapperOutro = '\n\n})));';
 
-export default function umd ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
+export default function umd ( bundle, magicString, { exportMode, getPath, indentString, intro, outro }, options ) {
 	if ( exportMode !== 'none' && !options.name ) {
 		error({
 			code: 'INVALID_OPTION',
@@ -48,12 +47,12 @@ export default function umd ( bundle, magicString, { exportMode, indentString, i
 
 	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle );
 
-	const amdDeps = bundle.externalModules.map( quotePath );
-	const cjsDeps = bundle.externalModules.map( req );
+	const amdDeps = bundle.externalModules.map( m => `'${getPath(m.id)}'` );
+	const cjsDeps = bundle.externalModules.map( m => `require('${getPath(m.id)}')` );
 
 	const trimmed = trimEmptyImports( bundle.externalModules );
 	const globalDeps = trimmed.map( module => globalProp( globalNameMaker( module ) ) );
-	const args = trimmed.map( getName );
+	const args = trimmed.map( m => m.name );
 
 	if ( exportMode === 'named' ) {
 		amdDeps.unshift( `'exports'` );

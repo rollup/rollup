@@ -1,13 +1,12 @@
-import { getName, quotePath } from '../utils/mapHelpers.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import esModuleExport from './shared/esModuleExport.js';
 import warnOnBuiltins from './shared/warnOnBuiltins.js';
 
-export default function amd ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
+export default function amd ( bundle, magicString, { exportMode, getPath, indentString, intro, outro }, options ) {
 	warnOnBuiltins( bundle );
-	const deps = bundle.externalModules.map( quotePath );
-	const args = bundle.externalModules.map( getName );
+	const deps = bundle.externalModules.map( m => `'${getPath(m.id)}'` );
+	const args = bundle.externalModules.map( m => m.name );
 
 	if ( exportMode === 'named' ) {
 		args.unshift( `exports` );

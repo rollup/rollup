@@ -69,7 +69,8 @@ export default function mergeOptions ( config, command ) {
 		legacy: getOption('legacy'),
 		indent: getOption('indent'),
 		strict: getOption('strict'),
-		noConflict: getOption('noConflict')
+		noConflict: getOption('noConflict'),
+		paths: getOption('paths')
 	};
 
 	const outputOptions = (
