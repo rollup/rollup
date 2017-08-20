@@ -14,7 +14,7 @@ function test() {
 	var cache;
 	function run () {
 		return rollup.rollup({
-			entry: path.resolve(__dirname, 'main.js'),
+			input: path.resolve(__dirname, 'main.js'),
 			cache
 		}).then(bundle => {
 			weak(bundle, onCollect);
@@ -42,6 +42,7 @@ try {
 	require.resolve('weak');
 	test();
 } catch (err) {
+	console.error(err);
 	console.log('installing weak');
 	require('child_process').exec('npm i --no-save --silent weak@1.0.1', (err, stdout, stderr) => {
 		if (err) {

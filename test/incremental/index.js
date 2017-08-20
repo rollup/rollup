@@ -1,23 +1,9 @@
 const assert = require('assert');
 const acorn = require('acorn');
+const { executeBundle } = require('../utils.js');
 const rollup = require('../../dist/rollup');
 
 describe('incremental', () => {
-	function executeBundle(bundle) {
-		return bundle
-			.generate({
-				format: 'cjs'
-			})
-			.then(cjs => {
-				const m = new Function('module', 'exports', cjs.code);
-
-				const module = { exports: {} };
-				m(module, module.exports);
-
-				return module.exports;
-			});
-	}
-
 	let resolveIdCalls;
 	let transformCalls;
 	let modules;
@@ -52,14 +38,14 @@ describe('incremental', () => {
 	it('does not resolves id and transforms in the second time', () => {
 		return rollup
 			.rollup({
-				entry: 'entry',
+				input: 'entry',
 				plugins: [plugin]
 			})
 			.then(bundle => {
 				assert.equal(resolveIdCalls, 2);
 				assert.equal(transformCalls, 2);
 				return rollup.rollup({
-					entry: 'entry',
+					input: 'entry',
 					plugins: [plugin],
 					cache: bundle
 				});
@@ -80,7 +66,7 @@ describe('incremental', () => {
 
 		return rollup
 			.rollup({
-				entry: 'entry',
+				input: 'entry',
 				plugins: [plugin]
 			})
 			.then(bundle => {
@@ -95,7 +81,7 @@ describe('incremental', () => {
 			})
 			.then(() => {
 				return rollup.rollup({
-					entry: 'entry',
+					input: 'entry',
 					plugins: [plugin],
 					cache
 				});
@@ -115,7 +101,7 @@ describe('incremental', () => {
 
 		return rollup
 			.rollup({
-				entry: 'entry',
+				input: 'entry',
 				plugins: [plugin]
 			})
 			.then(bundle => {
@@ -130,7 +116,7 @@ describe('incremental', () => {
 			})
 			.then(() => {
 				return rollup.rollup({
-					entry: 'entry',
+					input: 'entry',
 					plugins: [plugin],
 					cache
 				});
@@ -148,7 +134,7 @@ describe('incremental', () => {
 	it('keeps ASTs between runs', () => {
 		return rollup
 			.rollup({
-				entry: 'entry',
+				input: 'entry',
 				plugins: [plugin]
 			})
 			.then(bundle => {
@@ -173,7 +159,7 @@ describe('incremental', () => {
 
 		return rollup
 			.rollup({
-				entry: 'entry',
+				input: 'entry',
 				plugins: [plugin]
 			})
 			.then(cache => {
@@ -181,7 +167,7 @@ describe('incremental', () => {
 
 				return rollup
 					.rollup({
-						entry: 'entry',
+						input: 'entry',
 						plugins: [plugin],
 						cache
 					})
@@ -194,7 +180,7 @@ describe('incremental', () => {
 
 				return rollup
 					.rollup({
-						entry: 'entry',
+						input: 'entry',
 						plugins: [plugin],
 						cache
 					})
@@ -215,7 +201,7 @@ describe('incremental', () => {
 
 		return rollup
 			.rollup({
-				entry: 'entry',
+				input: 'entry',
 				external: ['external'],
 				plugins: [plugin]
 			})

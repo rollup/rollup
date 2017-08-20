@@ -1,14 +1,18 @@
 export default [{
-	entry: 'main.js',
-	format: 'cjs',
-	dest: '_actual/bundle1.js'
+	input: 'main.js',
+	output: {
+		file: '_actual/bundle1.js',
+		format: 'cjs'
+	}
 }, {
-	entry: 'main.js',
-	format: 'cjs',
-	plugins: [{ 
+	input: 'main.js',
+	plugins: [{
 		resolveId(id) {
 			throw new Error("Unexpected Exception");
 		}
 	}],
-	dest: '_actual/bundle2.js'
+	output: {
+		file: '_actual/bundle2.js',
+		format: 'cjs'
+	}
 }];

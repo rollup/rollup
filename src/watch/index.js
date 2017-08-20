@@ -75,20 +75,54 @@ class Watcher extends EventEmitter {
 }
 
 class Task {
-	constructor(watcher, options) {
+	constructor(watcher, config) {
 		this.cache = null;
 		this.watcher = watcher;
-		this.options = options;
 
 		this.dirty = true;
 		this.closed = false;
 		this.watched = new Set();
 
-		this.targets = options.targets ? options.targets : [{ dest: options.dest, format: options.format }];
+		this.inputOptions = {
+			input: config.input,
+			entry: config.input, // legacy, for e.g. commonjs plugin
+			legacy: config.legacy,
+			treeshake: config.treeshake,
+			plugins: config.plugins,
+			external: config.external,
+			onwarn: config.onwarn,
+			acorn: config.acorn,
+			context: config.context,
+			moduleContext: config.moduleContext
+		};
 
-		this.dests = (this.targets.map(t => t.dest)).map(dest => path.resolve(dest));
+		const baseOutputOptions = {
+			extend: config.extend,
+			exports: config.exports,
+			amd: config.amd,
+			banner: config.banner,
+			footer: config.footer,
+			intro: config.intro,
+			outro: config.outro,
+			sourcemap: config.sourcemap,
+			sourcemapFile: config.sourcemapFile,
+			name: config.name,
+			globals: config.globals,
+			interop: config.interop,
+			legacy: config.legacy,
+			indent: config.indent,
+			strict: config.strict,
+			noConflict: config.noConflict,
+			paths: config.paths,
+			preferConst: config.preferConst
+		};
 
-		const watchOptions = options.watch || {};
+		this.outputs = ensureArray(config.output).map(output => {
+			return Object.assign({}, baseOutputOptions, output);
+		});
+		this.outputFiles = this.outputs.map(output => path.resolve(output.file));
+
+		const watchOptions = config.watch || {};
 		if ('useChokidar' in watchOptions) watchOptions.chokidar = watchOptions.useChokidar;
 		let chokidarOptions = 'chokidar' in watchOptions ? watchOptions.chokidar : !!chokidar;
 		if (chokidarOptions) {
@@ -128,7 +162,7 @@ class Task {
 		if (!this.dirty) return;
 		this.dirty = false;
 
-		const options = Object.assign(this.options, {
+		const options = Object.assign(this.inputOptions, {
 			cache: this.cache
 		});
 
@@ -136,8 +170,8 @@ class Task {
 
 		this.watcher.emit('event', {
 			code: 'BUNDLE_START',
-			input: this.options.entry,
-			output: this.dests
+			input: this.inputOptions.input,
+			output: this.outputFiles
 		});
 
 		return rollup(options)
@@ -160,17 +194,14 @@ class Task {
 				this.watched = watched;
 
 				return Promise.all(
-					this.targets.map(target => {
-						const options = Object.assign({}, this.options, target);
-						return bundle.write(options);
-					})
+					this.outputs.map(output => bundle.write(output))
 				);
 			})
 			.then(() => {
 				this.watcher.emit('event', {
 					code: 'BUNDLE_END',
-					input: this.options.entry,
-					output: this.dests,
+					input: this.inputOptions.input,
+					output: this.outputFiles,
 					duration: Date.now() - start
 				});
 			})
@@ -191,7 +222,7 @@ class Task {
 	watchFile(id) {
 		if (!this.filter(id)) return;
 
-		if (~this.dests.indexOf(id)) {
+		if (this.outputFiles.some(file => file === id)) {
 			throw new Error('Cannot import the generated bundle');
 		}
 

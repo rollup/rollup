@@ -3,7 +3,7 @@ module.exports = {
 	options: {
 		intro: '/* this is an intro */',
 		outro: '/* this is an outro */',
-		moduleName: 'foo',
+		name: 'foo',
 		external: [ 'external' ],
 		plugins: [
 			{

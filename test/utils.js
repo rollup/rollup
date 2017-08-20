@@ -3,6 +3,7 @@ const assert = require('assert');
 exports.compareError = compareError;
 exports.compareWarnings = compareWarnings;
 exports.deindent = deindent;
+exports.executeBundle = executeBundle;
 exports.extend = extend;
 exports.loadConfig = loadConfig;
 exports.loader = loader;
@@ -48,6 +49,21 @@ function compareWarnings ( actual, expected ) {
 
 function deindent(str) {
 	return str.slice(1).replace(/^\t+/gm, '').replace(/\s+$/gm, '').trim();
+}
+
+function executeBundle(bundle) {
+	return bundle
+		.generate({
+			format: 'cjs'
+		})
+		.then(cjs => {
+			const m = new Function('module', 'exports', cjs.code);
+
+			const module = { exports: {} };
+			m(module, module.exports);
+
+			return module.exports;
+		});
 }
 
 function extend(target) {

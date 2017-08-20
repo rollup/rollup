@@ -5,7 +5,7 @@ module.exports = {
 		globals: {
 			external: 'external'
 		},
-		moduleName: /* not shaken, but */ 'stirred',
+		name: /* not shaken, but */ 'stirred',
 		treeshake: false
 	}
 };

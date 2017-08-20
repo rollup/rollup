@@ -16,32 +16,34 @@ const ALLOWED_KEYS = [
 	'banner',
 	'cache',
 	'context',
-	'dest',
 	'entry',
 	'exports',
 	'extend',
 	'external',
+	'file',
 	'footer',
 	'format',
 	'globals',
 	'indent',
+	'input',
 	'interop',
 	'intro',
 	'legacy',
 	'moduleContext',
-	'moduleName',
+	'name',
 	'noConflict',
 	'onwarn',
+	'output',
 	'outro',
 	'paths',
 	'plugins',
 	'preferConst',
 	'pureExternalModules',
-	'sourceMap',
-	'sourceMapFile',
+	'sourcemap',
+	'sourcemapFile',
+	'strict',
 	'targets',
 	'treeshake',
-	'useStrict',
 	'watch'
 ];
 
@@ -52,28 +54,82 @@ function checkAmd ( options ) {
 		options.amd = { id: options.moduleId };
 		delete options.moduleId;
 
-		const msg = `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`;
+		const message = `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`;
 		if ( options.onwarn ) {
-			options.onwarn( msg );
+			options.onwarn({ message });
 		} else {
-			console.warn( msg ); // eslint-disable-line no-console
+			console.warn( message ); // eslint-disable-line no-console
 		}
 	}
 }
 
-function checkOptions ( options ) {
-	if ( !options ) {
-		throw new Error( 'You must supply an options object to rollup' );
-	}
-
+function checkInputOptions ( options, warn ) {
 	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
 		throw new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
 	}
 
-	checkAmd (options);
+	if ( options.entry && !options.input ) {
+		options.input = options.entry;
+		warn({
+			message: `options.entry is deprecated, use options.input`
+		});
+	}
 
 	const err = validateKeys( keys(options), ALLOWED_KEYS );
 	if ( err ) throw err;
+}
+
+const deprecated = {
+	dest: 'file',
+	moduleName: 'name',
+	sourceMap: 'sourcemap',
+	sourceMapFile: 'sourcemapFile',
+	useStrict: 'strict'
+};
+
+function checkOutputOptions ( options, warn ) {
+	if ( options.format === 'es6' ) {
+		error({
+			message: 'The `es6` output format is deprecated – use `es` instead',
+			url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
+		});
+	}
+
+	if ( !options.format ) {
+		error({
+			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'es', 'iife' or 'umd'`,
+			url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
+		});
+	}
+
+	if ( options.moduleId ) {
+		if ( options.amd ) throw new Error( 'Cannot have both options.amd and options.moduleId' );
+
+		options.amd = { id: options.moduleId };
+		delete options.moduleId;
+
+		warn({
+			message: `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`
+		});
+	}
+
+	const deprecations = [];
+	Object.keys( deprecated ).forEach( old => {
+		if ( old in options ) {
+			deprecations.push({ old, new: deprecated[ old ] });
+			options[ deprecated[ old ] ] = options[ old ];
+			delete options[ old ];
+		}
+	});
+
+	if ( deprecations.length ) {
+		const message = `The following options have been renamed — please update your config: ${deprecations.map(option => `${option.old} -> ${option.new}`).join(', ')}`;
+		warn({
+			code: 'DEPRECATED_OPTIONS',
+			message,
+			deprecations
+		});
+	}
 }
 
 const throwAsyncGenerateError = {
@@ -84,7 +140,13 @@ const throwAsyncGenerateError = {
 
 export default function rollup ( options ) {
 	try {
-		checkOptions( options );
+		if ( !options ) {
+			throw new Error( 'You must supply an options object to rollup' );
+		}
+
+		const warn = options.onwarn || (warning => console.warn( warning.message )); // eslint-disable-line no-console
+
+		checkInputOptions( options, warn );
 		const bundle = new Bundle( options );
 
 		timeStart( '--BUILD--' );
@@ -92,19 +154,11 @@ export default function rollup ( options ) {
 		return bundle.build().then( () => {
 			timeEnd( '--BUILD--' );
 
-			function generate ( options = {} ) {
-				if ( options.format === 'es6' ) {
-					throw new Error( 'The `es6` output format is deprecated – use `es` instead' );
+			function generate ( options ) {
+				if ( !options ) {
+					throw new Error( 'You must supply an options object' );
 				}
-
-				if ( !options.format ) {
-					error({
-						code: 'MISSING_FORMAT',
-						message: `You must supply an output format`,
-						url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
-					});
-				}
-
+				checkOutputOptions( options, warn );
 				checkAmd( options );
 
 				timeStart( '--GENERATE--' );
@@ -140,38 +194,38 @@ export default function rollup ( options ) {
 
 				generate,
 				write: options => {
-					if ( !options || !options.dest ) {
+					if ( !options || (!options.file && !options.dest) ) {
 						error({
 							code: 'MISSING_OPTION',
-							message: 'You must supply options.dest to bundle.write'
+							message: 'You must specify options.file'
 						});
 					}
 
-					const dest = options.dest;
-					return generate( options ).then( output => {
-						let { code, map } = output;
+					return generate( options ).then( result => {
+						const file = options.file;
+						let { code, map } = result;
 
 						const promises = [];
 
-						if ( options.sourceMap ) {
+						if ( options.sourcemap ) {
 							let url;
 
-							if ( options.sourceMap === 'inline' ) {
+							if ( options.sourcemap === 'inline' ) {
 								url = map.toUrl();
 							} else {
-								url = `${basename( dest )}.map`;
-								promises.push( writeFile( dest + '.map', map.toString() ) );
+								url = `${basename( file )}.map`;
+								promises.push( writeFile( file + '.map', map.toString() ) );
 							}
 
 							code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
 						}
 
-						promises.push( writeFile( dest, code ) );
+						promises.push( writeFile( file, code ) );
 						return Promise.all( promises ).then( () => {
 							return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
 								return Promise.resolve( plugin.onwrite( assign({
 									bundle: result
-								}, options ), output));
+								}, options ), result));
 							});
 						});
 					});

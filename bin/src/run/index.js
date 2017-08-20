@@ -79,20 +79,28 @@ function execute ( configFile, configs, command ) {
 		watch( configFile, configs, command, command.silent );
 	} else {
 		return sequence( configs, config => {
-			const options = mergeOptions( config, command );
+			const { inputOptions, outputOptions, deprecations } = mergeOptions( config, command );
 
 			const warnings = batchWarnings();
 
-			const onwarn = options.onwarn;
+			const onwarn = inputOptions.onwarn;
 			if ( onwarn ) {
-				options.onwarn = warning => {
+				inputOptions.onwarn = warning => {
 					onwarn( warning, warnings.add );
 				};
 			} else {
-				options.onwarn = warnings.add;
+				inputOptions.onwarn = warnings.add;
 			}
 
-			return build( options, warnings, command.silent );
+			if (deprecations.length) {
+				inputOptions.onwarn({
+					code: 'DEPRECATED_OPTIONS',
+					message: `The following options have been renamed — please update your config: ${deprecations.map(option => `${option.old} -> ${option.new}`).join(', ')}`,
+					deprecations
+				});
+			}
+
+			return build( inputOptions, outputOptions, warnings, command.silent );
 		});
 	}
 }

@@ -17,6 +17,6 @@ module.exports = {
 
 	// ensure source maps are generated
 	bundleOptions: {
-		sourceMap: true
+		sourcemap: true
 	}
 };

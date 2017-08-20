@@ -37,11 +37,11 @@ export default class Bundle {
 			return acc;
 		}, options );
 
-		if ( !options.entry ) {
-			throw new Error( 'You must supply options.entry to rollup' );
+		if ( !options.input ) {
+			throw new Error( 'You must supply options.input to rollup' );
 		}
 
-		this.entry = options.entry;
+		this.entry = options.input;
 		this.entryId = null;
 		this.entryModule = null;
 
@@ -338,15 +338,15 @@ export default class Bundle {
 				return transform( this, source, id, this.plugins );
 			} )
 			.then( source => {
-				const { code, originalCode, originalSourceMap, ast, sourceMapChain, resolvedIds } = source;
+				const { code, originalCode, originalSourcemap, ast, sourcemapChain, resolvedIds } = source;
 
 				const module = new Module( {
 					id,
 					code,
 					originalCode,
-					originalSourceMap,
+					originalSourcemap,
 					ast,
-					sourceMapChain,
+					sourcemapChain,
 					resolvedIds,
 					bundle: this
 				} );
@@ -545,10 +545,10 @@ export default class Bundle {
 			const bundleSourcemapChain = [];
 
 			return transformBundle( prevCode, this.plugins, bundleSourcemapChain, options ).then( code => {
-				if ( options.sourceMap ) {
-					timeStart( 'sourceMap' );
+				if ( options.sourcemap ) {
+					timeStart( 'sourcemap' );
 
-					let file = options.sourceMapFile || options.dest;
+					let file = options.sourcemapFile || options.file;
 					if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
 
 					if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
@@ -563,7 +563,7 @@ export default class Bundle {
 
 					map.sources = map.sources.map( normalize );
 
-					timeEnd( 'sourceMap' );
+					timeEnd( 'sourcemap' );
 				}
 
 				if ( code[ code.length - 1 ] !== '\n' ) code += '\n';

@@ -1,14 +1,14 @@
 export default {
-	entry: 'main.js',
-	sourceMap: true,
+	input: 'main.js',
+	sourcemap: true,
 	targets: [
 		{
 			format: 'cjs',
-			dest: '_actual/cjs.js'
+			file: '_actual/cjs.js'
 		},
 		{
 			format: 'es',
-			dest: '_actual/es.js'
+			file: '_actual/es.js'
 		}
 	]
 };

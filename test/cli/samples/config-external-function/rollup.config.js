@@ -4,7 +4,7 @@ import { resolve } from 'path';
 var config = resolve( './_config.js' );
 
 export default {
-	entry: 'main.js',
+	input: 'main.js',
 	format: 'cjs',
 
 	external: function ( id ) {

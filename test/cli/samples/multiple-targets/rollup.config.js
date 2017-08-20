@@ -1,13 +1,13 @@
 export default {
-	entry: 'main.js',
-	targets: [
+	input: 'main.js',
+	output: [
 		{
 			format: 'cjs',
-			dest: '_actual/cjs.js'
+			file: '_actual/cjs.js'
 		},
 		{
 			format: 'es',
-			dest: '_actual/es.js'
+			file: '_actual/es.js'
 		}
 	]
 };

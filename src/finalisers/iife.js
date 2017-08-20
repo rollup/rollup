@@ -26,14 +26,14 @@ const thisProp = name => `this${keypath( name )}`;
 export default function iife ( bundle, magicString, { exportMode, indentString, intro, outro }, options ) {
 	const globalNameMaker = getGlobalNameMaker( options.globals || blank(), bundle, 'null' );
 
-	const { extend, moduleName: name } = options;
+	const { extend, name } = options;
 	const isNamespaced = name && name.indexOf( '.' ) !== -1;
 	const possibleVariableAssignment = !extend && !isNamespaced;
 
 	if ( name && possibleVariableAssignment && !isLegal(name) ) {
 		error({
 			code: 'ILLEGAL_IDENTIFIER_AS_NAME',
-			message: `Given moduleName (${name}) is not legal JS identifier. If you need this you can try --extend option`
+			message: `Given name (${name}) is not legal JS identifier. If you need this you can try --extend option`
 		});
 	}
 
@@ -46,7 +46,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 	if ( exportMode !== 'none' && !name ) {
 		error({
 			code: 'INVALID_OPTION',
-			message: `You must supply options.moduleName for IIFE bundles`
+			message: `You must supply options.name for IIFE bundles`
 		});
 	}
 
@@ -58,7 +58,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 		args.unshift( 'exports' );
 	}
 
-	const useStrict = options.useStrict !== false ? `${indentString}'use strict';\n\n` : ``;
+	const useStrict = options.strict !== false ? `${indentString}'use strict';\n\n` : ``;
 
 	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
 

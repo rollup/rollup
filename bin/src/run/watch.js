@@ -15,17 +15,18 @@ export default function watch(configFile, configs, command, silent) {
 
 	configs = configs.map(options => {
 		const merged = mergeOptions(options, command);
-
-		const onwarn = merged.onwarn;
+		const onwarn = merged.inputOptions.onwarn;
 		if ( onwarn ) {
-			merged.onwarn = warning => {
+			merged.inputOptions.onwarn = warning => {
 				onwarn( warning, warnings.add );
 			};
 		} else {
-			merged.onwarn = warnings.add;
+			merged.inputOptions.onwarn = warnings.add;
 		}
 
-		return merged;
+		return Object.assign({}, merged.inputOptions, {
+			output: merged.outputOptions
+		});
 	});
 
 	let watcher;

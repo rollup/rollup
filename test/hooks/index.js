@@ -6,13 +6,13 @@ const rollup = require('../../dist/rollup.js');
 
 describe('hooks', () => {
 	it('passes bundle & output object to ongenerate & onwrite hooks', () => {
-		const dest = path.join(__dirname, 'tmp/bundle.js');
+		const file = path.join(__dirname, 'tmp/bundle.js');
 
 		return rollup
 			.rollup({
-				entry: 'entry',
+				input: 'input',
 				plugins: [
-					loader({ entry: `alert('hello')` }),
+					loader({ input: `alert('hello')` }),
 					{
 						ongenerate(bundle, out) {
 							out.ongenerate = true;
@@ -26,12 +26,12 @@ describe('hooks', () => {
 			})
 			.then(bundle => {
 				return bundle.write({
-					dest,
+					file,
 					format: 'es'
 				});
 			})
 			.then(() => {
-				return sander.unlink(dest);
+				return sander.unlink(file);
 			});
 	});
 
@@ -40,9 +40,9 @@ describe('hooks', () => {
 
 		return rollup
 			.rollup({
-				entry: 'entry',
+				input: 'input',
 				plugins: [
-					loader({ entry: `alert('hello')` }),
+					loader({ input: `alert('hello')` }),
 					{
 						ongenerate(info) {
 							result.push({ a: info.format });
@@ -63,41 +63,41 @@ describe('hooks', () => {
 
 	it('calls onwrite hooks in sequence', () => {
 		const result = [];
-		const dest = path.join(__dirname, 'tmp/bundle.js');
+		const file = path.join(__dirname, 'tmp/bundle.js');
 
 		return rollup
 			.rollup({
-				entry: 'entry',
+				input: 'input',
 				plugins: [
-					loader({ entry: `alert('hello')` }),
+					loader({ input: `alert('hello')` }),
 					{
 						onwrite(info) {
 							return new Promise(fulfil => {
-								result.push({ a: info.dest, format: info.format });
+								result.push({ a: info.file, format: info.format });
 								fulfil();
 							});
 						}
 					},
 					{
 						onwrite(info) {
-							result.push({ b: info.dest, format: info.format });
+							result.push({ b: info.file, format: info.format });
 						}
 					}
 				]
 			})
 			.then(bundle => {
 				return bundle.write({
-					dest,
+					file,
 					format: 'cjs'
 				});
 			})
 			.then(() => {
 				assert.deepEqual(result, [
-					{ a: dest, format: 'cjs' },
-					{ b: dest, format: 'cjs' }
+					{ a: file, format: 'cjs' },
+					{ b: file, format: 'cjs' }
 				]);
 
-				return sander.unlink(dest);
+				return sander.unlink(file);
 			});
 	});
 });

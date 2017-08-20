@@ -9,7 +9,7 @@ export default function loadConfigFile (configFile, silent) {
 	const warnings = batchWarnings();
 
 	return rollup.rollup({
-		entry: configFile,
+		input: configFile,
 		external: id => {
 			return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5,id.length) === '.json';
 		},

@@ -4,12 +4,12 @@ import error from './error.js';
 import getCodeFrame from './getCodeFrame.js';
 
 export default function transform ( bundle, source, id, plugins ) {
-	const sourceMapChain = [];
+	const sourcemapChain = [];
 
-	const originalSourceMap = typeof source.map === 'string' ? JSON.parse( source.map ) : source.map;
+	const originalSourcemap = typeof source.map === 'string' ? JSON.parse( source.map ) : source.map;
 
-	if ( originalSourceMap && typeof originalSourceMap.mappings === 'string' ) {
-		originalSourceMap.mappings = decode( originalSourceMap.mappings );
+	if ( originalSourcemap && typeof originalSourcemap.mappings === 'string' ) {
+		originalSourcemap.mappings = decode( originalSourcemap.mappings );
 	}
 
 	const originalCode = source.code;
@@ -94,7 +94,7 @@ export default function transform ( bundle, source, id, plugins ) {
 						result.map.mappings = decode( result.map.mappings );
 					}
 
-					sourceMapChain.push( result.map || { missing: true, plugin: plugin.name }); // lil' bit hacky but it works
+					sourcemapChain.push( result.map || { missing: true, plugin: plugin.name }); // lil' bit hacky but it works
 					ast = result.ast;
 
 					return result.code;
@@ -106,5 +106,5 @@ export default function transform ( bundle, source, id, plugins ) {
 		});
 	});
 
-	return promise.then( code => ({ code, originalCode, originalSourceMap, ast, sourceMapChain }) );
+	return promise.then( code => ({ code, originalCode, originalSourcemap, ast, sourcemapChain }) );
 }

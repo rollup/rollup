@@ -1,6 +1,6 @@
 module.exports = {
-	entry: 'main.js',
+	input: 'main.js',
 	format: 'umd',
-	moduleName: 'conflictyName',
+	name: 'conflictyName',
 	noConflict: true
 };
