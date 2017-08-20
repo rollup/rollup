@@ -76,6 +76,7 @@ export default function batchWarnings () {
 const immediateHandlers = {
 	DEPRECATED_OPTIONS: warning => {
 		title( `Some options have been renamed` );
+		info( `https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32` );
 		warning.deprecations.forEach(option => {
 			stderr( `${chalk.bold(option.old)} is now ${option.new}` );
 		});
