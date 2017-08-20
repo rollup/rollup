@@ -13,8 +13,15 @@ export default function mergeOptions ( config, command ) {
 		input: getOption('input'),
 		legacy: getOption('legacy'),
 		treeshake: getOption('treeshake'),
+		acorn: config.acorn,
+		context: config.context,
+		moduleContext: config.moduleContext,
 		plugins: config.plugins,
+		onwarn: config.onwarn
 	};
+
+	// legacy, to ensure e.g. commonjs plugin still works
+	inputOptions.entry = inputOptions.input;
 
 	const commandExternal = ( command.external || '' ).split( ',' );
 	const configExternal = config.external;

@@ -68,7 +68,7 @@ function checkInputOptions ( options, warn ) {
 		throw new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
 	}
 
-	if ( options.entry ) {
+	if ( options.entry && !options.input ) {
 		options.input = options.entry;
 		warn({
 			message: `options.entry is deprecated, use options.input`

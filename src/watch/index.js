@@ -85,26 +85,36 @@ class Task {
 
 		this.inputOptions = {
 			input: config.input,
+			entry: config.input, // legacy, for e.g. commonjs plugin
 			legacy: config.legacy,
 			treeshake: config.treeshake,
-			plugins: config.plugins
+			plugins: config.plugins,
+			external: config.external,
+			onwarn: config.onwarn,
+			acorn: config.acorn,
+			context: config.context,
+			moduleContext: config.moduleContext
 		};
 
 		const baseOutputOptions = {
 			extend: config.extend,
+			exports: config.exports,
 			amd: config.amd,
 			banner: config.banner,
 			footer: config.footer,
 			intro: config.intro,
 			outro: config.outro,
 			sourcemap: config.sourcemap,
+			sourcemapFile: config.sourcemapFile,
 			name: config.name,
 			globals: config.globals,
 			interop: config.interop,
 			legacy: config.legacy,
 			indent: config.indent,
 			strict: config.strict,
-			noConflict: config.noConflict
+			noConflict: config.noConflict,
+			paths: config.paths,
+			preferConst: config.preferConst
 		};
 
 		this.outputs = ensureArray(config.output).map(output => {
