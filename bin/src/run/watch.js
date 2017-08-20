@@ -13,28 +13,35 @@ export default function watch(configFile, configs, command, silent) {
 
 	const warnings = batchWarnings();
 
-	configs = configs.map(options => {
-		const merged = mergeOptions(options, command);
-		const onwarn = merged.inputOptions.onwarn;
-		if ( onwarn ) {
-			merged.inputOptions.onwarn = warning => {
-				onwarn( warning, warnings.add );
-			};
-		} else {
-			merged.inputOptions.onwarn = warnings.add;
-		}
-
-		return Object.assign({}, merged.inputOptions, {
-			output: merged.outputOptions
-		});
-	});
-
 	let watcher;
 	let configWatcher;
 	let closed = false;
 
 	function start(configs) {
 		stderr(`\x1B[2J\x1B[0f${chalk.underline( `rollup v${rollup.VERSION}` )}`); // clear, move to top-left
+
+		configs = configs.map(options => {
+			const merged = mergeOptions(options, command);
+			const onwarn = merged.inputOptions.onwarn;
+			if ( onwarn ) {
+				merged.inputOptions.onwarn = warning => {
+					onwarn( warning, warnings.add );
+				};
+			} else {
+				merged.inputOptions.onwarn = warnings.add;
+			}
+
+			const result = Object.assign({}, merged.inputOptions, {
+				output: merged.outputOptions
+			});
+
+			if (merged.deprecations.length) {
+				if (!result.watch) result.watch = {};
+				result.watch._deprecations = merged.deprecations;
+			}
+
+			return result;
+		});
 
 		watcher = rollup.watch(configs);
 

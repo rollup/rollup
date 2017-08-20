@@ -90,7 +90,7 @@ class Task {
 			treeshake: config.treeshake,
 			plugins: config.plugins,
 			external: config.external,
-			onwarn: config.onwarn,
+			onwarn: config.onwarn || (warning => console.warn(warning.message)), // eslint-disable-line no-console
 			acorn: config.acorn,
 			context: config.context,
 			moduleContext: config.moduleContext
@@ -142,6 +142,7 @@ class Task {
 		this.chokidarOptionsHash = JSON.stringify(chokidarOptions);
 
 		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
+		this.deprecations = watchOptions._deprecations;
 	}
 
 	close() {
@@ -173,6 +174,13 @@ class Task {
 			input: this.inputOptions.input,
 			output: this.outputFiles
 		});
+
+		if (this.deprecations) {
+			this.inputOptions.onwarn({
+				code: 'DEPRECATED_OPTIONS',
+				deprecations: this.deprecations
+			});
+		}
 
 		return rollup(options)
 			.then(bundle => {
