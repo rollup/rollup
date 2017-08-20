@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.48.2
+
+* Paths is an output option ([#1569](https://github.com/rollup/rollup/pull/1569))
+
 ## 0.48.1
 
 * Print deprecation warnings in watch mode, and fix options when watcher restarts ([#1568](https://github.com/rollup/rollup/pull/1568))
