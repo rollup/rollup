@@ -59,6 +59,12 @@ export default function mergeOptions ( config, command ) {
 
 	options.external = external;
 
+	if ( command.amd ) {
+		if ( !options.amd ) options.amd = {};
+		if ( command.amd.id ) options.amd.id = command.amd.id;
+		if ( command.amd.define ) options.amd.define = command.amd.define;
+	}
+
 	// Use any options passed through the CLI as overrides.
 	Object.keys( equivalents ).forEach( cliOption => {
 		if ( command.hasOwnProperty( cliOption ) ) {
