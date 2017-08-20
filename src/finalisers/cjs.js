@@ -1,7 +1,7 @@
 import getExportBlock from './shared/getExportBlock.js';
 import esModuleExport from './shared/esModuleExport.js';
 
-export default function cjs ( bundle, magicString, { exportMode, intro, outro }, options ) {
+export default function cjs ( bundle, magicString, { exportMode, getPath, intro, outro }, options ) {
 	intro = ( options.strict === false ? intro : `'use strict';\n\n${intro}` ) +
 	        ( exportMode === 'named' && options.legacy !== true ? `${esModuleExport}\n\n` : '' );
 
@@ -15,18 +15,18 @@ export default function cjs ( bundle, magicString, { exportMode, intro, outro },
 		.map( module => {
 			if ( interop && module.declarations.default ) {
 				if ( module.exportsNamespace ) {
-					return `${varOrConst} ${module.name} = require('${module.path}');` +
+					return `${varOrConst} ${module.name} = require('${getPath(module.id)}');` +
 						`\n${varOrConst} ${module.name}__default = ${module.name}['default'];`;
 				}
 
 				needsInterop = true;
 
 				if ( module.exportsNames ) {
-					return `${varOrConst} ${module.name} = require('${module.path}');` +
+					return `${varOrConst} ${module.name} = require('${getPath(module.id)}');` +
 						`\n${varOrConst} ${module.name}__default = _interopDefault(${module.name});`;
 				}
 
-				return `${varOrConst} ${module.name} = _interopDefault(require('${module.path}'));`;
+				return `${varOrConst} ${module.name} = _interopDefault(require('${getPath(module.id)}'));`;
 			} else {
 				const activated = Object.keys( module.declarations )
 					.filter( name => module.declarations[ name ].activated );
@@ -34,8 +34,8 @@ export default function cjs ( bundle, magicString, { exportMode, intro, outro },
 				const needsVar = activated.length || module.reexported;
 
 				return needsVar ?
-					`${varOrConst} ${module.name} = require('${module.path}');` :
-					`require('${module.path}');`;
+					`${varOrConst} ${module.name} = require('${getPath(module.id)}');` :
+					`require('${getPath(module.id)}');`;
 			}
 		})
 		.join( '\n' );

@@ -4,7 +4,7 @@ function notDefault ( name ) {
 	return name !== 'default';
 }
 
-export default function es ( bundle, magicString, { intro, outro } ) {
+export default function es ( bundle, magicString, { getPath, intro, outro } ) {
 	const importBlock = bundle.externalModules
 		.map( module => {
 			const specifiers = [];
@@ -48,12 +48,12 @@ export default function es ( bundle, magicString, { intro, outro } ) {
 			return specifiersList
 				.map( specifiers => {
 					if ( specifiers.length ) {
-						return `import ${specifiers.join( ', ' )} from '${module.path}';`;
+						return `import ${specifiers.join( ', ' )} from '${getPath(module.id)}';`;
 					}
 
 					return module.reexported ?
 						null :
-						`import '${module.path}';`;
+						`import '${getPath(module.id)}';`;
 				})
 				.filter( Boolean )
 				.join( '\n' );
