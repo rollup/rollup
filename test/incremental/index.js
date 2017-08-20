@@ -1,23 +1,9 @@
 const assert = require('assert');
 const acorn = require('acorn');
+const { executeBundle } = require('../utils.js');
 const rollup = require('../../dist/rollup');
 
 describe('incremental', () => {
-	function executeBundle(bundle) {
-		return bundle
-			.generate({
-				format: 'cjs'
-			})
-			.then(cjs => {
-				const m = new Function('module', 'exports', cjs.code);
-
-				const module = { exports: {} };
-				m(module, module.exports);
-
-				return module.exports;
-			});
-	}
-
 	let resolveIdCalls;
 	let transformCalls;
 	let modules;

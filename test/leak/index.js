@@ -42,6 +42,7 @@ try {
 	require.resolve('weak');
 	test();
 } catch (err) {
+	console.error(err);
 	console.log('installing weak');
 	require('child_process').exec('npm i --no-save --silent weak@1.0.1', (err, stdout, stderr) => {
 		if (err) {

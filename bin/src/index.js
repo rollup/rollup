@@ -35,5 +35,11 @@ else if ( command.version ) {
 }
 
 else {
+	try {
+		require('source-map-support').install();
+	} catch (err) {
+		// do nothing
+	}
+
 	run( command );
 }

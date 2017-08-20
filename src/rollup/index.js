@@ -16,6 +16,7 @@ const ALLOWED_KEYS = [
 	'banner',
 	'cache',
 	'context',
+	'entry',
 	'exports',
 	'extend',
 	'external',
@@ -86,7 +87,7 @@ const deprecated = {
 	useStrict: 'strict'
 };
 
-function checkOutputOptions ( options, onwarn ) {
+function checkOutputOptions ( options, warn ) {
 	if ( options.format === 'es6' ) {
 		error({
 			message: 'The `es6` output format is deprecated – use `es` instead',
@@ -107,7 +108,7 @@ function checkOutputOptions ( options, onwarn ) {
 		options.amd = { id: options.moduleId };
 		delete options.moduleId;
 
-		onwarn({
+		warn({
 			message: `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`
 		});
 	}
@@ -123,7 +124,7 @@ function checkOutputOptions ( options, onwarn ) {
 
 	if ( deprecations.length ) {
 		const message = `The following options have been renamed — please update your config: ${deprecations.map(option => `${option.old} -> ${option.new}`).join(', ')}`;
-		onwarn({
+		warn({
 			code: 'DEPRECATED_OPTIONS',
 			message,
 			deprecations
@@ -157,7 +158,7 @@ export default function rollup ( options ) {
 				if ( !options ) {
 					throw new Error( 'You must supply an options object' );
 				}
-				checkOutputOptions( options );
+				checkOutputOptions( options, warn );
 				checkAmd( options );
 
 				timeStart( '--GENERATE--' );

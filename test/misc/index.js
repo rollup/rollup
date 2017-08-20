@@ -1,6 +1,6 @@
 const assert = require('assert');
 const rollup = require('../../dist/rollup');
-const { loader } = require('../utils.js');
+const { executeBundle, loader } = require('../utils.js');
 
 describe('sanity checks', () => {
 	it('exists', () => {
@@ -44,7 +44,7 @@ describe('sanity checks', () => {
 			err => {
 				assert.equal(
 					err.message,
-					"Unexpected key 'plUgins' found, expected one of: acorn, amd, banner, cache, context, exports, extend, external, file, footer, format, globals, indent, input, interop, intro, legacy, moduleContext, name, noConflict, onwarn, output, outro, paths, plugins, preferConst, pureExternalModules, sourcemap, sourcemapFile, strict, targets, treeshake, watch"
+					"Unexpected key 'plUgins' found, expected one of: acorn, amd, banner, cache, context, entry, exports, extend, external, file, footer, format, globals, indent, input, interop, intro, legacy, moduleContext, name, noConflict, onwarn, output, outro, paths, plugins, preferConst, pureExternalModules, sourcemap, sourcemapFile, strict, targets, treeshake, watch"
 				);
 			}
 		);
@@ -107,6 +107,24 @@ describe('sanity checks', () => {
 });
 
 describe('deprecations', () => {
+	it('warns on options.entry, but handles', () => {
+		const warnings = [];
+		return rollup.rollup({
+			entry: 'x',
+			plugins: [loader({ x: `export default 42` })],
+			onwarn: warning => {
+				warnings.push(warning);
+			}
+		}).then(executeBundle).then(result => {
+			assert.equal(result, 42);
+			assert.deepEqual(warnings, [
+				{
+					message: `options.entry is deprecated, use options.input`
+				}
+			]);
+		});
+	});
+
 	it('throws a useful error on accessing code/map properties of bundle.generate promise', () => {
 		return rollup
 			.rollup({
