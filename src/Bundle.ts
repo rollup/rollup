@@ -27,7 +27,7 @@ import {
 	resolve
 } from './utils/path.js';
 import BundleScope from './ast/scopes/BundleScope.js';
-import { Plugin, WarningHandler } from './interfaces';
+import { InputOptions, OutputOptions, Plugin, Source, WarningHandler } from './interfaces';
 
 export default class Bundle {
 	entry: string;
@@ -41,19 +41,26 @@ export default class Bundle {
 	cachedModules: Map<string, Module>;
 	moduleById: Map<string, Module>;
 	modules: Module[];
+	orderedModules: Module[];
 	externalModules: ExternalModule[];
 	scope: BundleScope;
 	onwarn: WarningHandler;
+
+	hasLoaders: boolean;
 
 	plugins: Plugin[];
 
 	// instance (non-prototype) methods
 	isPureExternalModule: (id: string) => boolean;
+	isExternal: (id: string) => boolean;
+	resolveId: (importee: string, importer: string) => Promise<string>;
+	load: (id: string) => Promise<Source>;
+	getModuleContext: (id: string) => string;
 
 	// deprecated
 	treeshake: boolean;
 
-	constructor(options) {
+	constructor(options: InputOptions) {
 		this.cachedModules = new Map();
 		if (options.cache) {
 			options.cache.modules.forEach(module => {
@@ -90,7 +97,7 @@ export default class Bundle {
 		}
 
 		this.resolveId = first(
-			[id => (this.isExternal(id) ? false : null)]
+			[(id: string) => (this.isExternal(id) ? false : null)]
 				.concat(this.plugins.map(plugin => plugin.resolveId).filter(Boolean))
 				.concat(resolveId)
 		);
@@ -163,7 +170,7 @@ export default class Bundle {
 				this.entryId = id;
 				return this.fetchModule(id, undefined);
 			})
-			.then(entryModule => {
+			.then((entryModule: Module) => {
 				this.entryModule = entryModule;
 
 				// Phase 2 – binding. We link references to their declarations
@@ -290,7 +297,7 @@ export default class Bundle {
 		// ensure no conflicts with globals
 		keys(this.scope.declarations).forEach(name => (used[name] = 1));
 
-		function getSafeName(name) {
+		function getSafeName(name: string) {
 			while (used[name]) {
 				name += `$${used[name]++}`;
 			}
@@ -334,7 +341,7 @@ export default class Bundle {
 		this.scope.deshadow(toDeshadow);
 	}
 
-	fetchModule(id, importer) {
+	fetchModule(id: string, importer: string) {
 		// short-circuit cycles
 		if (this.moduleById.has(id)) return null;
 		this.moduleById.set(id, null);
@@ -530,13 +537,13 @@ export default class Bundle {
 		return resolvedId;
 	}
 
-	render(options = {}) {
+	render(options: OutputOptions) {
 		return Promise.resolve().then(() => {
 			// Determine export mode - 'default', 'named', 'none'
 			const exportMode = getExportMode(this, options);
 
 			let magicString = new MagicStringBundle({ separator: '\n\n' });
-			const usedModules = [];
+			const usedModules: Module[] = [];
 
 			timeStart('render modules');
 
@@ -593,13 +600,13 @@ export default class Bundle {
 			const optionsPaths = options.paths;
 			const getPath =
 				typeof optionsPaths === 'function'
-					? id => optionsPaths(id) || this.getPathRelativeToEntryDirname(id)
+					? (id: string) => optionsPaths(id) || this.getPathRelativeToEntryDirname(id)
 					: optionsPaths
-						? id =>
+						? (id: string) =>
 								optionsPaths.hasOwnProperty(id)
 									? optionsPaths[id]
 									: this.getPathRelativeToEntryDirname(id)
-						: id => this.getPathRelativeToEntryDirname(id);
+						: (id: string) => this.getPathRelativeToEntryDirname(id);
 
 			magicString = finalise(
 				this,

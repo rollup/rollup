@@ -5,7 +5,7 @@
         "noImplicitThis": true,
         "noEmitOnError": true,
         "allowJs": true,
-        "lib": ["es5", "es6", "dom"]
+        "lib": ["es5", "es6"]
     },
     "target": "ES5",
     "include": [
