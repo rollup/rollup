@@ -1,5 +1,6 @@
-import { readFileSync } from 'fs';
-import buble from 'rollup-plugin-buble';
+import fs from 'fs';
+import path from 'path';
+import typescript from 'rollup-plugin-typescript';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
@@ -8,16 +9,41 @@ import pkg from './package.json';
 
 const commitHash = (function() {
 	try {
-		return readFileSync('.commithash', 'utf-8');
+		return fs.readFileSync('.commithash', 'utf-8');
 	} catch (err) {
 		return 'unknown';
 	}
 })();
 
-const banner = readFileSync('src/banner.js', 'utf-8')
-	.replace('${version}', pkg.version)
-	.replace('${time}', new Date())
-	.replace('${commitHash}', commitHash);
+const banner = `/*
+	Rollup.js v${pkg.version}
+	${new Date()} - commit ${commitHash}
+
+	https://github.com/rollup/rollup
+
+	Released under the MIT License.
+*/`;
+
+const src = path.resolve('src');
+const bin = path.resolve('bin');
+function resolveTypescript() {
+	return {
+		name: 'resolve-typescript',
+		resolveId(importee, importer) {
+			// bit of a hack — TypeScript only really works if it can resolve imports,
+			// but they misguidedly chose to reject imports with file extensions. This
+			// means we need to resolve them here
+			if (
+				importer &&
+				(importer.startsWith(src) || importer.startsWith(bin)) &&
+				importee[0] === '.' &&
+				path.extname(importee) === ''
+			) {
+				return path.resolve(path.dirname(importer), `${importee}.ts`);
+			}
+		}
+	}
+}
 
 export default [
 	/* rollup.js and rollup.es.js */
@@ -25,11 +51,9 @@ export default [
 		input: 'src/node-entry.js',
 		plugins: [
 			json(),
-			buble({
-				include: ['src/**', 'node_modules/acorn/**'],
-				target: {
-					node: '4'
-				}
+			resolveTypescript(),
+			typescript({
+				typescript: require('typescript')
 			}),
 			resolve(),
 			commonjs()
@@ -48,20 +72,18 @@ export default [
 		input: 'src/browser-entry.js',
 		plugins: [
 			json(),
-			buble({
-				include: ['src/**', 'node_modules/acorn/**'],
-				target: {
-					node: '4'
-				}
-			}),
-			resolve(),
-			commonjs(),
 			{
 				load: id => {
-					if ( ~id.indexOf( 'fs.js' ) ) return readFileSync( 'browser/fs.js', 'utf-8' );
-					if ( ~id.indexOf( 'path.js' ) ) return readFileSync( 'browser/path.js', 'utf-8' );
+					if ( ~id.indexOf( 'fs.ts' ) ) return fs.readFileSync( 'browser/fs.ts', 'utf-8' );
+					if ( ~id.indexOf( 'path.ts' ) ) return fs.readFileSync( 'browser/path.ts', 'utf-8' );
 				}
-			}
+			},
+			resolveTypescript(),
+			typescript({
+				typescript: require('typescript')
+			}),
+			resolve(),
+			commonjs()
 		],
 		banner,
 		sourcemap: true,
@@ -80,7 +102,10 @@ export default [
 		plugins: [
 			string({ include: '**/*.md' }),
 			json(),
-			buble({ target: { node: 4 } }),
+			resolveTypescript(),
+			typescript({
+				typescript: require('typescript')
+			}),
 			commonjs({
 				include: 'node_modules/**'
 			}),

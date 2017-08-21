@@ -1,5 +1,5 @@
 import Scope from './Scope.js';
-import { UNKNOWN } from '../values';
+import { UNKNOWN } from '../values.js';
 
 class SyntheticGlobalDeclaration {
 	constructor ( name ) {
