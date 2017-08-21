@@ -1,4 +1,3 @@
-import Scope from './Scope.js';
 import GlobalVariable from '../variables/GlobalVariable';
 
 export default class BundleScope extends Scope {
