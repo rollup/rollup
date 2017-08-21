@@ -15,7 +15,7 @@ import enhance from './ast/enhance.js';
 import clone from './ast/clone.js';
 import ModuleScope from './ast/scopes/ModuleScope.js';
 
-function tryParse ( module, acornOptions ) {
+function tryParse (module: Module, acornOptions) {
 	try {
 		return parse( module.code, assign( {
 			ecmaVersion: 8,
@@ -32,6 +32,11 @@ function tryParse ( module, acornOptions ) {
 }
 
 export default class Module {
+	id: string;
+	code: string;
+	originalCode: string;
+	// TODO all the rest
+
 	constructor ( { id, code, originalCode, originalSourcemap, ast, sourcemapChain, resolvedIds, resolvedExternalIds, bundle } ) {
 		this.code = code;
 		this.id = id;
