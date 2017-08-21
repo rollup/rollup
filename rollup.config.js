@@ -48,7 +48,7 @@ function resolveTypescript() {
 export default [
 	/* rollup.js and rollup.es.js */
 	{
-		input: 'src/node-entry.js',
+		input: 'src/node-entry.ts',
 		plugins: [
 			json(),
 			resolveTypescript(),
@@ -69,7 +69,7 @@ export default [
 
 	/* rollup.browser.js */
 	{
-		input: 'src/browser-entry.js',
+		input: 'src/browser-entry.ts',
 		plugins: [
 			json(),
 			{
@@ -98,7 +98,7 @@ export default [
 
 	/* bin/rollup */
 	{
-		input: 'bin/src/index.js',
+		input: 'bin/src/index.ts',
 		plugins: [
 			string({ include: '**/*.md' }),
 			json(),
