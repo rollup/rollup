@@ -41,6 +41,7 @@
   },
   "homepage": "https://github.com/rollup/rollup",
   "devDependencies": {
+    "@types/node": "^8.0.24",
     "acorn": "^5.1.1",
     "buble": "^0.15.1",
     "chalk": "^2.1.0",

@@ -10,6 +10,11 @@ import chokidar from './chokidar.js';
 const DELAY = 100;
 
 class Watcher extends EventEmitter {
+	dirty: boolean;
+	running: boolean;
+	tasks: Task[];
+	succeeded: boolean;
+
 	constructor(configs) {
 		super();
 
@@ -50,7 +55,7 @@ class Watcher extends EventEmitter {
 			code: 'START'
 		});
 
-		mapSequence(this.tasks, task => task.run())
+		mapSequence(this.tasks, (task: Task) => task.run())
 			.then(() => {
 				this.succeeded = true;
 
@@ -75,6 +80,13 @@ class Watcher extends EventEmitter {
 }
 
 class Task {
+	watcher: Watcher;
+	dirty: boolean;
+	closed: boolean;
+	watched: Set<string>;
+
+	filter: (id: string) => boolean;
+
 	constructor(watcher, config) {
 		this.cache = null;
 		this.watcher = watcher;
@@ -227,7 +239,7 @@ class Task {
 			});
 	}
 
-	watchFile(id) {
+	watchFile(id: string) {
 		if (!this.filter(id)) return;
 
 		if (this.outputFiles.some(file => file === id)) {
