@@ -1,7 +1,7 @@
 import path from 'path';
 import EventEmitter from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
-import rollup from '../rollup/index.js';
+import rollup from '../rollup/index';
 import ensureArray from '../utils/ensureArray.js';
 import { mapSequence } from '../utils/promise.js';
 import { addTask, deleteTask } from './fileWatchers.js';
