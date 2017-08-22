@@ -2,6 +2,7 @@ import fs from 'fs';
 import * as rollup from 'rollup';
 import chalk from 'chalk';
 import ms from 'pretty-ms';
+import onExit from 'signal-exit';
 import mergeOptions from './mergeOptions.js';
 import batchWarnings from './batchWarnings.js';
 import alternateScreen from './alternateScreen.js';
@@ -19,7 +20,6 @@ export default function watch(configFile, configs, command, silent) {
 
 	let watcher;
 	let configWatcher;
-	let closed = false;
 
 	function start(configs) {
 		screen.reset( chalk.underline( `rollup v${rollup.VERSION}` ) );
@@ -81,19 +81,26 @@ export default function watch(configFile, configs, command, silent) {
 		});
 	}
 
-	const close = () => {
-		if (!closed) {
-			screen.close();
-			closed = true;
-			watcher.close();
+	// catch ctrl+c, kill, and uncaught errors
+	const removeOnExit = onExit(close);
+	process.on('uncaughtException', close);
 
-			if (configWatcher) configWatcher.close();
-		}
-	};
-	process.on('SIGINT', close); // ctrl-c
-	process.on('SIGTERM', close); // killall node
-	process.on('uncaughtException', close); // on error
-	process.stdin.on('end', close); // in case we ever support stdin!
+	// only listen to stdin if it is a pipe
+	if (!process.stdin.isTTY) {
+		process.stdin.on('end', close); // in case we ever support stdin!
+	}
+
+	function close() {
+		removeOnExit();
+		process.removeListener('uncaughtException', close);
+		// removing a non-existent listener is a no-op
+		process.stdin.removeListener('end', close);
+
+		screen.close();
+		watcher.close();
+
+		if (configWatcher) configWatcher.close();
+	}
 
 	start(configs);
 

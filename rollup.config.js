@@ -92,6 +92,7 @@ export default [
 			'module',
 			'events',
 			'rollup',
+			'assert',
 			'os'
 		],
 		output: {
