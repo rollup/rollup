@@ -9,7 +9,13 @@ function mkdirpath ( path ) {
 		fs.readdirSync( dir );
 	} catch ( err ) {
 		mkdirpath( dir );
-		fs.mkdirSync( dir );
+		try {
+			fs.mkdirSync( dir );
+		} catch (err2) {
+			if (err2.code !== 'EEXIST') {
+				throw err2;
+			}
+		}
 	}
 }
 
