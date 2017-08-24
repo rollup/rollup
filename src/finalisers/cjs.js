@@ -28,10 +28,10 @@ export default function cjs ( bundle, magicString, { exportMode, getPath, intro,
 
 				return `${varOrConst} ${module.name} = _interopDefault(require('${getPath(module.id)}'));`;
 			} else {
-				const activated = Object.keys( module.declarations )
-					.filter( name => module.declarations[ name ].activated );
+				const includedDeclarations = Object.keys( module.declarations )
+					.filter( name => module.declarations[ name ].included );
 
-				const needsVar = activated.length || module.reexported;
+				const needsVar = includedDeclarations.length || module.reexported;
 
 				return needsVar ?
 					`${varOrConst} ${module.name} = require('${getPath(module.id)}');` :

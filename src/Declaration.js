@@ -1,43 +1,6 @@
 import { blank, forOwn, keys } from './utils/object.js';
-import { makeLegal, reservedWords } from './utils/identifierHelpers.js';
-import { UNKNOWN } from './ast/values.js';
-
-export default class Declaration {
-	constructor ( node, isParam ) {
-		this.node = node;
-
-		this.name = node.id ? node.id.name : node.name;
-		this.exportName = null;
-		this.isParam = isParam;
-
-		this.isReassigned = false;
-	}
-
-	activate () {
-		if ( this.activated ) return;
-		this.activated = true;
-
-		if ( this.isParam ) return;
-		this.node.activate();
-	}
-
-	addReference ( reference ) {
-		reference.declaration = this;
-
-		if ( reference.name !== this.name ) {
-			this.name = makeLegal( reference.name ); // TODO handle differences of opinion
-		}
-
-		if ( reference.isReassignment ) this.isReassigned = true;
-	}
-
-	render ( es ) {
-		if ( es ) return this.name;
-		if ( !this.isReassigned || !this.exportName ) return this.name;
-
-		return `exports.${this.exportName}`;
-	}
-}
+import { reservedWords } from './utils/identifierHelpers.js';
+import { UNKNOWN_ASSIGNMENT } from './ast/values';
 
 export class SyntheticNamespaceDeclaration {
 	constructor ( module ) {
@@ -50,17 +13,7 @@ export class SyntheticNamespaceDeclaration {
 		this.originals = blank();
 		module.getExports().concat( module.getReexports() ).forEach( name => {
 			this.originals[ name ] = module.traceExport( name );
-		});
-	}
-
-	activate () {
-		this.needsNamespaceBlock = true;
-
-		// add synthetic references, in case of chained
-		// namespace imports
-		forOwn( this.originals, original => {
-			original.activate();
-		});
+		} );
 	}
 
 	addReference ( node ) {
@@ -68,11 +21,21 @@ export class SyntheticNamespaceDeclaration {
 	}
 
 	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN );
+		values.add( UNKNOWN_ASSIGNMENT );
 	}
 
 	getName () {
 		return this.name;
+	}
+
+	includeDeclaration () {
+		if ( this.included ) {
+			return false;
+		}
+		this.included = true;
+		this.needsNamespaceBlock = true;
+		forOwn( this.originals, original => original.includeDeclaration() );
+		return true;
 	}
 
 	renderBlock ( es, legacy, indentString ) {
@@ -85,7 +48,7 @@ export class SyntheticNamespaceDeclaration {
 
 			if ( legacy && ~reservedWords.indexOf( name ) ) name = `'${name}'`;
 			return `${indentString}${name}: ${original.getName( es )}`;
-		});
+		} );
 
 		const callee = legacy ? `(Object.freeze || Object)` : `Object.freeze`;
 		return `${this.module.bundle.varOrConst} ${this.getName( es )} = ${callee}({\n${members.join( ',\n' )}\n});\n\n`;
@@ -98,15 +61,7 @@ export class ExternalDeclaration {
 		this.name = name;
 		this.safeName = null;
 		this.isExternal = true;
-
-		this.activated = false;
-
 		this.isNamespace = name === '*';
-	}
-
-	activate () {
-		this.module.used = true;
-		this.activated = true;
 	}
 
 	addReference ( reference ) {
@@ -118,7 +73,7 @@ export class ExternalDeclaration {
 	}
 
 	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN );
+		values.add( UNKNOWN_ASSIGNMENT );
 	}
 
 	getName ( es ) {
@@ -133,6 +88,15 @@ export class ExternalDeclaration {
 		}
 
 		return es ? this.safeName : `${this.module.name}.${this.name}`;
+	}
+
+	includeDeclaration () {
+		if ( this.included ) {
+			return false;
+		}
+		this.included = true;
+		this.module.used = true;
+		return true;
 	}
 
 	setSafeName ( name ) {

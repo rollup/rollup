@@ -1,5 +1,5 @@
 import Scope from './Scope.js';
-import { UNKNOWN } from '../values';
+import { UNKNOWN_ASSIGNMENT } from '../values';
 
 class SyntheticGlobalDeclaration {
 	constructor ( name ) {
@@ -7,12 +7,7 @@ class SyntheticGlobalDeclaration {
 		this.isExternal = true;
 		this.isGlobal = true;
 		this.isReassigned = false;
-
-		this.activated = true;
-	}
-
-	activate () {
-		/* noop */
+		this.included = true;
 	}
 
 	addReference ( reference ) {
@@ -21,11 +16,16 @@ class SyntheticGlobalDeclaration {
 	}
 
 	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN );
+		values.add( UNKNOWN_ASSIGNMENT );
 	}
 
 	getName () {
 		return this.name;
+	}
+
+	includeDeclaration() {
+		this.included = true;
+		return false;
 	}
 }
 

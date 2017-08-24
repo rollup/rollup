@@ -1,4 +1,4 @@
-import ArrayExpression from './ArrayExpression.js';
+import ArrayPattern from './ArrayPattern.js';
 import ArrowFunctionExpression from './ArrowFunctionExpression.js';
 import AssignmentExpression from './AssignmentExpression.js';
 import BinaryExpression from './BinaryExpression.js';
@@ -25,7 +25,10 @@ import Literal from './Literal.js';
 import LogicalExpression from './LogicalExpression.js';
 import MemberExpression from './MemberExpression.js';
 import NewExpression from './NewExpression.js';
-import ObjectExpression from './ObjectExpression.js';
+import ObjectPattern from './ObjectPattern.js';
+import Property from './Property.js';
+import RestElement from './RestElement.js';
+import ReturnStatement from './ReturnStatement.js';
 import Statement from './shared/Statement.js';
 import SwitchStatement from './SwitchStatement.js';
 import TaggedTemplateExpression from './TaggedTemplateExpression.js';
@@ -38,7 +41,7 @@ import VariableDeclarator from './VariableDeclarator.js';
 import VariableDeclaration from './VariableDeclaration.js';
 
 export default {
-	ArrayExpression,
+	ArrayPattern,
 	ArrowFunctionExpression,
 	AssignmentExpression,
 	BinaryExpression,
@@ -66,8 +69,10 @@ export default {
 	LogicalExpression,
 	MemberExpression,
 	NewExpression,
-	ObjectExpression,
-	ReturnStatement: Statement,
+	ObjectPattern,
+	Property,
+	RestElement,
+	ReturnStatement,
 	SwitchStatement,
 	TaggedTemplateExpression,
 	TemplateLiteral,

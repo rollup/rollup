@@ -1,28 +1,36 @@
 import { blank, keys } from '../../utils/object.js';
-import { UNKNOWN } from '../values.js';
+import { UNKNOWN_ASSIGNMENT } from '../values';
 
 class Parameter {
 	constructor ( name ) {
 		this.name = name;
-
 		this.isParam = true;
-		this.activated = true;
-	}
-
-	activate () {
-		// noop
+		this.assignedExpressions = new Set( [ UNKNOWN_ASSIGNMENT ] );
 	}
 
 	addReference () {
 		// noop?
 	}
 
+	assignExpression ( expression ) {
+		this.assignedExpressions.add( expression );
+		this.isReassigned = true;
+	}
+
 	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN ); // TODO populate this at call time
+		values.add( UNKNOWN_ASSIGNMENT ); // TODO populate this at call time
 	}
 
 	getName () {
 		return this.name;
+	}
+
+	includeDeclaration () {
+		if ( this.included ) {
+			return false;
+		}
+		this.included = true;
+		return true;
 	}
 }
 
@@ -60,7 +68,7 @@ export default class Scope {
 
 	contains ( name ) {
 		return !!this.declarations[ name ] ||
-		       ( this.parent ? this.parent.contains( name ) : false );
+			( this.parent ? this.parent.contains( name ) : false );
 	}
 
 	deshadow ( names ) {
@@ -80,14 +88,14 @@ export default class Scope {
 			}
 
 			declaration.name = deshadowed;
-		});
+		} );
 
 		this.children.forEach( scope => scope.deshadow( names ) );
 	}
 
 	findDeclaration ( name ) {
 		return this.declarations[ name ] ||
-		       ( this.parent && this.parent.findDeclaration( name ) );
+			( this.parent && this.parent.findDeclaration( name ) );
 	}
 
 	findLexicalBoundary () {

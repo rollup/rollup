@@ -6,6 +6,23 @@ export default class BlockStatement extends Statement {
 		this.body.forEach( node => node.bind() );
 	}
 
+	includeInBundle () {
+		if ( this.isFullyIncluded() ) return false;
+		let addedNewNodes = false;
+		this.body.forEach( node => {
+			if ( node.shouldBeIncluded() ) {
+				if ( node.includeInBundle() ) {
+					addedNewNodes = true;
+				}
+			}
+		} );
+		if ( !this.included || addedNewNodes ) {
+			this.included = true;
+			return true;
+		}
+		return false;
+	}
+
 	initialiseAndReplaceScope ( scope ) {
 		this.scope = scope;
 		this.initialiseNode();

@@ -1,7 +1,6 @@
 import isReference from 'is-reference';
 import flatten from '../../utils/flatten.js';
 import pureFunctions from './pureFunctions.js';
-import { UNKNOWN } from '../../values.js';
 
 const currentlyCalling = new Set();
 
@@ -63,7 +62,7 @@ export default function callHasEffects ( scope, callee, isNew ) {
 	const values = new Set( [ callee ] );
 
 	for ( const node of values ) {
-		if ( node === UNKNOWN ) return true; // err on side of caution
+		if ( node.type === 'UNKNOWN' ) return true; // err on side of caution
 
 		if ( /Function/.test( node.type ) ) {
 			if ( fnHasEffects( node, isNew && isES5Function( node ) ) ) return true;

@@ -1,5 +1,4 @@
 import Node from '../Node.js';
-import isProgramLevel from '../utils/isProgramLevel.js';
 import callHasEffects from './shared/callHasEffects.js';
 
 export default class TaggedTemplateExpression extends Node {
@@ -28,15 +27,5 @@ export default class TaggedTemplateExpression extends Node {
 
 	hasEffects () {
 		return this.quasi.hasEffects() || callHasEffects( this.scope, this.tag, false );
-	}
-
-	initialiseNode () {
-		if ( isProgramLevel( this ) ) {
-			this.module.bundle.dependentExpressions.push( this );
-		}
-	}
-
-	isUsedByBundle () {
-		return this.hasEffects();
 	}
 }

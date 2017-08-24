@@ -11,7 +11,7 @@ export default function es ( bundle, magicString, { getPath, intro, outro } ) {
 			const specifiersList = [specifiers];
 			const importedNames = keys( module.declarations )
 				.filter( name => name !== '*' && name !== 'default' )
-				.filter( name => module.declarations[ name ].activated )
+				.filter( name => module.declarations[ name ].included )
 				.map( name => {
 					if ( name[0] === '*' ) {
 						return `* as ${module.name}`;
@@ -32,7 +32,7 @@ export default function es ( bundle, magicString, { getPath, intro, outro } ) {
 				}
 			}
 
-			const namespaceSpecifier = module.declarations['*'] && module.declarations['*'].activated ? `* as ${module.name}` : null; // TODO prevent unnecessary namespace import, e.g form/external-imports
+			const namespaceSpecifier = module.declarations['*'] && module.declarations['*'].included ? `* as ${module.name}` : null; // TODO prevent unnecessary namespace import, e.g form/external-imports
 			const namedSpecifier = importedNames.length ? `{ ${importedNames.sort().join( ', ' )} }` : null;
 
 			if ( namespaceSpecifier && namedSpecifier ) {

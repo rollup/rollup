@@ -1,5 +1,4 @@
 import Node from '../Node.js';
-import isProgramLevel from '../utils/isProgramLevel.js';
 import callHasEffects from './shared/callHasEffects.js';
 
 export default class CallExpression extends Node {
@@ -27,16 +26,12 @@ export default class CallExpression extends Node {
 	}
 
 	hasEffects () {
-		return callHasEffects( this.scope, this.callee, false );
+		return this.included
+			|| this.arguments.some( child => child.hasEffects() )
+			|| callHasEffects( this.scope, this.callee, false );
 	}
 
-	initialiseNode () {
-		if ( isProgramLevel( this ) ) {
-			this.module.bundle.dependentExpressions.push( this );
-		}
-	}
-
-	isUsedByBundle () {
-		return this.hasEffects();
+	hasEffectsWhenMutated () {
+		return true;
 	}
 }

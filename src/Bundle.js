@@ -107,8 +107,6 @@ export default class Bundle {
 		this.varOrConst = options.preferConst ? 'const' : 'var';
 		this.legacy = options.legacy;
 		this.acornOptions = options.acorn || {};
-
-		this.dependentExpressions = [];
 	}
 
 	build () {
@@ -157,12 +155,12 @@ export default class Bundle {
 					const declaration = entryModule.traceExport( name );
 
 					declaration.exportName = name;
-					declaration.activate();
+					declaration.includeDeclaration();
 
 					if ( declaration.isNamespace ) {
 						declaration.needsNamespaceBlock = true;
 					}
-				});
+				} );
 
 				entryModule.getReexports().forEach( name => {
 					const declaration = entryModule.traceExport( name );
@@ -171,36 +169,21 @@ export default class Bundle {
 						declaration.reexported = declaration.module.reexported = true;
 					} else {
 						declaration.exportName = name;
-						declaration.activate();
+						declaration.includeDeclaration();
 					}
-				});
+				} );
 
 				// mark statements that should appear in the bundle
 				if ( this.treeshake ) {
-					this.modules.forEach( module => {
-						module.run();
-					} );
-
-					let settled = false;
-					while ( !settled ) {
-						settled = true;
-
-						let i = this.dependentExpressions.length;
-						while ( i-- ) {
-							const expression = this.dependentExpressions[ i ];
-
-							let statement = expression;
-							while ( statement.parent && !/Function/.test( statement.parent.type ) ) statement = statement.parent;
-
-							if ( !statement || statement.ran ) {
-								this.dependentExpressions.splice( i, 1 );
-							} else if ( expression.isUsedByBundle() ) {
-								settled = false;
-								statement.run();
-								this.dependentExpressions.splice( i, 1 );
+					let addedNewNodes;
+					do {
+						addedNewNodes = false;
+						this.modules.forEach( module => {
+							if ( module.includeInBundle() ) {
+								addedNewNodes = true;
 							}
-						}
-					}
+						} );
+					} while ( addedNewNodes );
 				}
 
 				timeEnd( 'phase 3' );
@@ -215,12 +198,12 @@ export default class Bundle {
 				this.externalModules.forEach( module => {
 					const unused = Object.keys( module.declarations )
 						.filter( name => name !== '*' )
-						.filter( name => !module.declarations[ name ].activated && !module.declarations[ name ].reexported );
+						.filter( name => !module.declarations[ name ].included && !module.declarations[ name ].reexported );
 
 					if ( unused.length === 0 ) return;
 
 					const names = unused.length === 1 ?
-						`'${unused[0]}' is` :
+						`'${unused[ 0 ]}' is` :
 						`${unused.slice( 0, -1 ).map( name => `'${name}'` ).join( ', ' )} and '${unused.slice( -1 )}' are`;
 
 					this.warn( {
@@ -365,7 +348,8 @@ export default class Bundle {
 									reexporter: module.id,
 									name,
 									sources: [ module.exportsAll[ name ], exportAllModule.exportsAll[ name ] ],
-									message: `Conflicting namespaces: ${relativeId( module.id )} re-exports '${name}' from both ${relativeId( module.exportsAll[ name ] )} and ${relativeId( exportAllModule.exportsAll[ name ] )} (will be ignored)`
+									message: `Conflicting namespaces: ${relativeId( module.id )} re-exports '${name}' from both ${relativeId(
+										module.exportsAll[ name ] )} and ${relativeId( exportAllModule.exportsAll[ name ] )} (will be ignored)`
 								} );
 							} else {
 								module.exportsAll[ name ] = exportAllModule.exportsAll[ name ];
@@ -382,10 +366,7 @@ export default class Bundle {
 			const resolvedId = module.resolvedIds[ source ];
 			return ( resolvedId ? Promise.resolve( resolvedId ) : this.resolveId( source, module.id ) )
 				.then( resolvedId => {
-					const externalId = resolvedId || (
-						isRelative( source ) ? resolve( module.id, '..', source ) : source
-					);
-
+					const externalId = resolvedId || (isRelative( source ) ? resolve( module.id, '..', source ) : source);
 					let isExternal = this.isExternal( externalId );
 
 					if ( !resolvedId && !isExternal ) {
@@ -400,7 +381,8 @@ export default class Bundle {
 							code: 'UNRESOLVED_IMPORT',
 							source,
 							importer: relativeId( module.id ),
-							message: `'${source}' is imported by ${relativeId( module.id )}, but could not be resolved – treating it as an external dependency`,
+							message: `'${source}' is imported by ${relativeId(
+								module.id )}, but could not be resolved – treating it as an external dependency`,
 							url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
 						} );
 						isExternal = true;
@@ -468,7 +450,6 @@ export default class Bundle {
 
 			this.orderedModules.forEach( module => {
 				const source = module.render( options.format === 'es', this.legacy );
-
 				if ( source.toString().length ) {
 					magicString.addSource( source );
 					usedModules.push( module );
@@ -506,10 +487,10 @@ export default class Bundle {
 
 			const finalise = finalisers[ options.format ];
 			if ( !finalise ) {
-				error({
+				error( {
 					code: 'INVALID_OPTION',
 					message: `Invalid format: ${options.format} - valid options are ${keys( finalisers ).join( ', ' )}`
-				});
+				} );
 			}
 
 			timeStart( 'render format' );

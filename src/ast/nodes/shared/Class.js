@@ -1,15 +1,7 @@
 import Node from '../../Node.js';
 import Scope from '../../scopes/Scope.js';
 
-export default class ClassExpression extends Node {
-	activate () {
-		if ( this.activated ) return;
-		this.activated = true;
-
-		if ( this.superClass ) this.superClass.run();
-		this.body.run();
-	}
-
+export default class Class extends Node {
 	addReference () {}
 
 	getName () {

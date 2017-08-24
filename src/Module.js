@@ -187,14 +187,14 @@ export default class Module {
 				const exportedName = specifier.exported.name;
 
 				if ( this.exports[ exportedName ] || this.reexports[ exportedName ] ) {
-					this.error({
+					this.error( {
 						code: 'DUPLICATE_EXPORT',
 						message: `A module cannot have multiple exports with the same name ('${exportedName}')`
 					}, specifier.start );
 				}
 
 				this.exports[ exportedName ] = { localName };
-			});
+			} );
 		}
 	}
 
@@ -297,11 +297,6 @@ export default class Module {
 		error( props );
 	}
 
-	findParent () {
-		// TODO what does it mean if we're here?
-		return null;
-	}
-
 	getExports () {
 		return keys( this.exports );
 	}
@@ -327,6 +322,18 @@ export default class Module {
 		return keys( reexports );
 	}
 
+	includeInBundle () {
+		let addedNewNodes = false;
+		this.ast.body.forEach( node => {
+			if ( node.shouldBeIncluded() ) {
+				if ( node.includeInBundle() ) {
+					addedNewNodes = true;
+				}
+			}
+		} );
+		return addedNewNodes;
+	}
+
 	namespace () {
 		if ( !this.declarations[ '*' ] ) {
 			this.declarations[ '*' ] = new SyntheticNamespaceDeclaration( this );
@@ -347,14 +354,6 @@ export default class Module {
 		}
 
 		return magicString.trim();
-	}
-
-	run () {
-		for ( const node of this.ast.body ) {
-			if ( node.hasEffects() ) {
-				node.run();
-			}
-		}
 	}
 
 	toJSON () {
