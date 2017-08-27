@@ -160,7 +160,7 @@ class Task {
 	}
 
 	run() {
-		if (!this.dirty) return;
+		if (!this.dirty) return Promise.resolve();
 		this.dirty = false;
 
 		const options = Object.assign(this.inputOptions, {
