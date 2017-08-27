@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.49.0
+
+* Completely update the treeshaking algorithm ([#1582](https://github.com/rollup/rollup/pull/1582))
+* Only flip screen buffer if appropriate ([#1574](https://github.com/rollup/rollup/pull/1574))
+* Guard against two instances creating the same dir ([#1576](https://github.com/rollup/rollup/pull/1576))
+
 ## 0.48.2
 
 * Paths is an output option ([#1569](https://github.com/rollup/rollup/pull/1569))
