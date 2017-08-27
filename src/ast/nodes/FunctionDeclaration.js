@@ -1,15 +1,12 @@
 import Function from './shared/Function.js';
 
 export default class FunctionDeclaration extends Function {
-	activate () {
-		if ( this.activated ) return;
-		this.activated = true;
-
-		this.params.forEach( param => param.run() ); // in case of assignment patterns
-		this.body.run();
-	}
-
 	addReference () {}
+
+	assignExpression ( expression ) {
+		this.assignedExpressions.add( expression );
+		this.isReassigned = true;
+	}
 
 	gatherPossibleValues ( values ) {
 		values.add( this );
@@ -28,17 +25,19 @@ export default class FunctionDeclaration extends Function {
 		super.initialiseChildren( parentScope );
 	}
 
+	hasEffectsWhenMutated () {
+		return this.included;
+	}
+
+	initialiseNode () {
+		this.assignedExpressions = new Set( [ this ] );
+	}
+
 	render ( code, es ) {
-		if ( !this.module.bundle.treeshake || this.activated ) {
+		if ( !this.module.bundle.treeshake || this.included ) {
 			super.render( code, es );
 		} else {
 			code.remove( this.leadingCommentStart || this.start, this.next || this.end );
-		}
-	}
-
-	run () {
-		if ( this.parent.type === 'ExportDefaultDeclaration' ) {
-			super.run();
 		}
 	}
 }

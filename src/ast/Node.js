@@ -1,58 +1,63 @@
 import { locate } from 'locate-character';
-import { UNKNOWN } from './values.js';
+import { UNKNOWN_VALUE, UNKNOWN_ASSIGNMENT } from './values.js';
 
 export default class Node {
+	assignExpression () {}
+
 	bind () {
 		this.eachChild( child => child.bind() );
 	}
 
 	eachChild ( callback ) {
-		for ( const key of this.keys ) {
-			if ( this.shorthand && key === 'key' ) continue; // key and value are the same
-
+		this.keys.forEach( key => {
 			const value = this[ key ];
+			if ( !value ) return;
 
-			if ( value ) {
-				if ( 'length' in value ) {
-					for ( const child of value ) {
-						if ( child ) callback( child );
-					}
-				} else if ( value ) {
-					callback( value );
-				}
+			if ( Array.isArray( value ) ) {
+				value.forEach( child => child && callback( child ) );
+			} else {
+				callback( value );
 			}
-		}
-	}
-
-	findParent ( selector ) {
-		return selector.test( this.type ) ? this : this.parent.findParent( selector );
+		} );
 	}
 
 	gatherPossibleValues ( values ) {
-		//this.eachChild( child => child.gatherPossibleValues( values ) );
-		values.add( UNKNOWN );
+		values.add( UNKNOWN_ASSIGNMENT );
 	}
 
 	getValue () {
-		return UNKNOWN;
+		return UNKNOWN_VALUE;
 	}
 
 	hasEffects () {
-		for ( const key of this.keys ) {
-			const value = this[ key ];
+		return this.included || this.someChild( child => child.hasEffects() );
+	}
 
-			if ( value ) {
-				if ( 'length' in value ) {
-					for ( const child of value ) {
-						if ( child && child.hasEffects() ) {
-							return true;
-						}
-					}
-				} else if ( value.hasEffects() ) {
-					return true;
-				}
+	hasEffectsWhenAssigned () {
+		return false;
+	}
+
+	hasEffectsWhenMutated () {
+		return false;
+	}
+
+	includeDeclaration () {
+		return this.includeInBundle();
+	}
+
+	includeInBundle () {
+		if ( this.isFullyIncluded() ) return false;
+		let addedNewNodes = false;
+		this.eachChild( childNode => {
+			if ( childNode.includeInBundle() ) {
+				addedNewNodes = true;
 			}
+		} );
+		if ( this.included && !addedNewNodes ) {
+			return false;
 		}
+		this.included = true;
+		return true;
 	}
 
 	initialise ( parentScope ) {
@@ -80,6 +85,13 @@ export default class Node {
 		}
 	}
 
+	isFullyIncluded () {
+		if ( this._fullyIncluded ) {
+			return true;
+		}
+		this._fullyIncluded = this.included && !this.someChild( child => !child.isFullyIncluded() );
+	}
+
 	locate () {
 		// useful for debugging
 		const location = locate( this.module.code, this.start, { offsetLine: 1 } );
@@ -93,11 +105,20 @@ export default class Node {
 		this.eachChild( child => child.render( code, es ) );
 	}
 
-	run () {
-		if ( this.ran ) return;
-		this.ran = true;
+	shouldBeIncluded () {
+		return this.hasEffects();
+	}
 
-		this.eachChild( child => child.run() );
+	someChild ( callback ) {
+		return this.keys.some( key => {
+			const value = this[ key ];
+			if ( !value ) return false;
+
+			if ( Array.isArray( value ) ) {
+				return value.some( child => child && callback( child ) );
+			}
+			return callback( value );
+		} );
 	}
 
 	toString () {

@@ -1,6 +1,10 @@
 import Node from '../Node.js';
 
 export default class ThisExpression extends Node {
+	hasEffectsWhenMutated () {
+		return true;
+	}
+
 	initialiseNode () {
 		const lexicalBoundary = this.scope.findLexicalBoundary();
 

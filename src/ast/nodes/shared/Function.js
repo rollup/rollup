@@ -10,7 +10,7 @@ export default class Function extends Node {
 	}
 
 	hasEffects () {
-		return false;
+		return this.included;
 	}
 
 	initialiseChildren () {

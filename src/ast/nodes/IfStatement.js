@@ -1,6 +1,6 @@
 import Statement from './shared/Statement.js';
 import extractNames from '../utils/extractNames.js';
-import { UNKNOWN } from '../values.js';
+import { UNKNOWN_VALUE } from '../values.js';
 
 // Statement types which may contain if-statements as direct children.
 const statementsWithIfStatements = new Set( [
@@ -43,7 +43,7 @@ export default class IfStatement extends Statement {
 		if ( this.module.bundle.treeshake ) {
 			this.testValue = this.test.getValue();
 
-			if ( this.testValue === UNKNOWN ) {
+			if ( this.testValue === UNKNOWN_VALUE ) {
 				super.initialiseChildren( parentScope );
 			} else if ( this.testValue ) {
 				this.consequent.initialise( this.scope );
@@ -65,7 +65,7 @@ export default class IfStatement extends Statement {
 
 	render ( code, es ) {
 		if ( this.module.bundle.treeshake ) {
-			if ( this.testValue === UNKNOWN ) {
+			if ( this.testValue === UNKNOWN_VALUE ) {
 				super.render( code, es );
 			}
 
@@ -79,7 +79,7 @@ export default class IfStatement extends Statement {
 					const names = this.hoistedVars
 						.map( name => {
 							const declaration = this.scope.findDeclaration( name );
-							return declaration.activated ? declaration.getName() : null;
+							return declaration.included ? declaration.getName() : null;
 						} )
 						.filter( Boolean );
 

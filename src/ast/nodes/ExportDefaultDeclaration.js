@@ -3,13 +3,6 @@ import Node from '../Node.js';
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
 export default class ExportDefaultDeclaration extends Node {
-	activate () {
-		if ( this.activated ) return;
-		this.activated = true;
-
-		this.run();
-	}
-
 	addReference ( reference ) {
 		this.name = reference.name;
 		if ( this.original ) this.original.addReference( reference );
@@ -34,6 +27,22 @@ export default class ExportDefaultDeclaration extends Node {
 		return this.name;
 	}
 
+	includeDeclaration () {
+		if ( this.included ) {
+			return false;
+		}
+		this.included = true;
+		this.declaration.includeInBundle();
+		return true;
+	}
+
+	includeInBundle () {
+		if ( this.declaration.shouldBeIncluded() ) {
+			return this.declaration.includeInBundle();
+		}
+		return false;
+	}
+
 	initialiseNode () {
 		this.isExportDeclaration = true;
 		this.isDefault = true;
@@ -54,8 +63,8 @@ export default class ExportDefaultDeclaration extends Node {
 			declaration_start = this.start + statementStr.match( /^\s*export\s+default\s*/ )[ 0 ].length;
 		}
 
-		if ( this.shouldInclude || this.declaration.activated ) {
-			if ( this.activated ) {
+		if ( this.included || this.declaration.included ) {
+			if ( this.included ) {
 				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
 					if ( this.declaration.id ) {
 						code.remove( this.start, declaration_start );
@@ -96,16 +105,6 @@ export default class ExportDefaultDeclaration extends Node {
 				code.overwrite( this.start, declaration_start, `${this.module.bundle.varOrConst} ${name} = ` );
 			}
 			// code.remove( this.start, this.next || this.end );
-		}
-	}
-
-	run () {
-		this.shouldInclude = true;
-		super.run();
-
-		// special case (TODO is this correct?)
-		if ( functionOrClassDeclaration.test( this.declaration.type ) && !this.declaration.id ) {
-			this.declaration.activate();
 		}
 	}
 }

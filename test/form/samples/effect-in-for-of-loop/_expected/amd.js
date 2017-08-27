@@ -11,10 +11,15 @@ define(function () { 'use strict';
 		c.bar = 'c';
 	}
 
+	for ( e of items.children ) {
+		e.baz = 'e';
+	}
+	var e;
+
 	assert.deepEqual( items, [
-		{ foo: 'a', bar: 'c' },
-		{ foo: 'a', bar: 'c' },
-		{ foo: 'a', bar: 'c' }
+		{ foo: 'a', bar: 'c', baz: 'e' },
+		{ foo: 'a', bar: 'c', baz: 'e' },
+		{ foo: 'a', bar: 'c', baz: 'e' }
 	]);
 
 });

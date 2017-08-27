@@ -6,7 +6,7 @@ export default class ClassDeclaration extends Class {
 	}
 
 	hasEffects () {
-		return false;
+		return this.included;
 	}
 
 	initialiseChildren ( parentScope ) {
@@ -19,16 +19,10 @@ export default class ClassDeclaration extends Class {
 	}
 
 	render ( code, es ) {
-		if ( !this.module.bundle.treeshake || this.activated ) {
+		if ( !this.module.bundle.treeshake || this.included ) {
 			super.render( code, es );
 		} else {
 			code.remove( this.leadingCommentStart || this.start, this.next || this.end );
-		}
-	}
-
-	run () {
-		if ( this.parent.type === 'ExportDefaultDeclaration' ) {
-			super.run();
 		}
 	}
 }

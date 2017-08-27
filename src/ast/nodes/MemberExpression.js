@@ -1,6 +1,6 @@
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
-import { UNKNOWN } from '../values.js';
+import { UNKNOWN_ASSIGNMENT } from '../values';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -76,7 +76,24 @@ export default class MemberExpression extends Node {
 	}
 
 	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN ); // TODO
+		values.add( UNKNOWN_ASSIGNMENT ); // TODO
+	}
+
+	hasEffectsWhenAssigned () {
+		return this.object.hasEffectsWhenMutated();
+	}
+
+	hasEffectsWhenMutated () {
+		return true;
+	}
+
+	includeInBundle () {
+		let addedNewNodes = super.includeInBundle();
+		if ( this.declaration && !this.declaration.included ) {
+			this.declaration.includeDeclaration();
+			addedNewNodes = true;
+		}
+		return addedNewNodes;
 	}
 
 	render ( code, es ) {
@@ -90,10 +107,5 @@ export default class MemberExpression extends Node {
 		}
 
 		super.render( code, es );
-	}
-
-	run () {
-		if ( this.declaration ) this.declaration.activate();
-		super.run();
 	}
 }

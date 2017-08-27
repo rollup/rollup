@@ -8,10 +8,7 @@ define(function () { 'use strict';
 		foo();
 		foo();
 
-		var a;
-		if ( a.b ) {
-			// empty
-		}
+		
 	}
 
 	a();
