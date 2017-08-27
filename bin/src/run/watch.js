@@ -2,23 +2,27 @@ import fs from 'fs';
 import * as rollup from 'rollup';
 import chalk from 'chalk';
 import ms from 'pretty-ms';
+import onExit from 'signal-exit';
 import mergeOptions from './mergeOptions.js';
 import batchWarnings from './batchWarnings.js';
+import alternateScreen from './alternateScreen.js';
 import loadConfigFile from './loadConfigFile.js';
 import relativeId from '../../../src/utils/relativeId.js';
 import { handleError, stderr } from '../logging.js';
 
 export default function watch(configFile, configs, command, silent) {
-	process.stderr.write('\x1b[?1049h'); // alternate screen buffer
+	const isTTY = Boolean(process.stderr.isTTY);
+
+	const screen = alternateScreen(isTTY);
+	screen.open();
 
 	const warnings = batchWarnings();
 
 	let watcher;
 	let configWatcher;
-	let closed = false;
 
 	function start(configs) {
-		stderr(`\x1B[2J\x1B[0f${chalk.underline( `rollup v${rollup.VERSION}` )}`); // clear, move to top-left
+		screen.reset( chalk.underline( `rollup v${rollup.VERSION}` ) );
 
 		configs = configs.map(options => {
 			const merged = mergeOptions(options, command);
@@ -48,7 +52,7 @@ export default function watch(configFile, configs, command, silent) {
 		watcher.on('event', event => {
 			switch (event.code) {
 				case 'FATAL':
-					process.stderr.write('\x1b[?1049l'); // reset screen buffer
+					screen.close();
 					handleError(event.error, true);
 					process.exit(1);
 					break;
@@ -59,11 +63,11 @@ export default function watch(configFile, configs, command, silent) {
 					break;
 
 				case 'START':
-					stderr(`\x1B[2J\x1B[0f${chalk.underline( `rollup v${rollup.VERSION}` )}`); // clear, move to top-left
+					screen.reset( chalk.underline( `rollup v${rollup.VERSION}` ) );
 					break;
 
 				case 'BUNDLE_START':
-					if ( !silent ) stderr( chalk.cyan( `\n${chalk.bold( event.input )} → ${chalk.bold( event.output.map( relativeId ).join( ', ' ) )}...` ) );
+					if ( !silent ) stderr( chalk.cyan( `bundles ${chalk.bold( event.input )} → ${chalk.bold( event.output.map( relativeId ).join( ', ' ) )}...` ) );
 					break;
 
 				case 'BUNDLE_END':
@@ -72,24 +76,31 @@ export default function watch(configFile, configs, command, silent) {
 					break;
 
 				case 'END':
-					if ( !silent ) stderr( `\nwaiting for changes...` );
+					if ( !silent && isTTY ) stderr( `\nwaiting for changes...` );
 			}
 		});
 	}
 
-	const close = () => {
-		if (!closed) {
-			process.stderr.write('\x1b[?1049l'); // reset screen buffer
-			closed = true;
-			watcher.close();
+	// catch ctrl+c, kill, and uncaught errors
+	const removeOnExit = onExit(close);
+	process.on('uncaughtException', close);
 
-			if (configWatcher) configWatcher.close();
-		}
-	};
-	process.on('SIGINT', close); // ctrl-c
-	process.on('SIGTERM', close); // killall node
-	process.on('uncaughtException', close); // on error
-	process.stdin.on('end', close); // in case we ever support stdin!
+	// only listen to stdin if it is a pipe
+	if (!process.stdin.isTTY) {
+		process.stdin.on('end', close); // in case we ever support stdin!
+	}
+
+	function close() {
+		removeOnExit();
+		process.removeListener('uncaughtException', close);
+		// removing a non-existent listener is a no-op
+		process.stdin.removeListener('end', close);
+
+		screen.close();
+		watcher.close();
+
+		if (configWatcher) configWatcher.close();
+	}
 
 	start(configs);
 
