@@ -1,5 +1,5 @@
 import nodes from './nodes/index.js';
-import Node from './Node.js';
+import UnknownNode from './nodes/UnknownNode';
 import keys from './keys.js';
 
 const newline = /\n/;
@@ -58,6 +58,6 @@ function enhanceNode ( raw, parent, module, code ) {
 		enhanceNode( raw[ key ], raw, module, code );
 	}
 
-	const type = nodes[ raw.type ] || Node;
+	const type = nodes[ raw.type ] || UnknownNode;
 	raw.__proto__ = type.prototype;
 }

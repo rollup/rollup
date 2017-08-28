@@ -5,4 +5,8 @@ export default class ReturnStatement extends Statement {
 		return super.hasEffects( options )
 			|| !options.inNestedFunctionCall;
 	}
+
+	shouldBeIncluded () {
+		return true;
+	}
 }
