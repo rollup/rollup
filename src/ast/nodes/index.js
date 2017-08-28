@@ -1,6 +1,7 @@
 import ArrayPattern from './ArrayPattern.js';
 import ArrowFunctionExpression from './ArrowFunctionExpression.js';
 import AssignmentExpression from './AssignmentExpression.js';
+import AwaitExpression from './AwaitExpression.js';
 import BinaryExpression from './BinaryExpression.js';
 import BlockStatement from './BlockStatement.js';
 import CallExpression from './CallExpression.js';
@@ -44,6 +45,7 @@ export default {
 	ArrayPattern,
 	ArrowFunctionExpression,
 	AssignmentExpression,
+	AwaitExpression,
 	BinaryExpression,
 	BlockStatement,
 	CallExpression,
