@@ -1,7 +1,8 @@
 import Statement from './shared/Statement.js';
 
 export default class ReturnStatement extends Statement {
-	shouldBeIncluded () {
-		return true;
+	hasEffects ( options ) {
+		return super.hasEffects( options )
+			|| !options.inNestedFunctionCall;
 	}
 }
