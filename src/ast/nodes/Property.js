@@ -5,8 +5,8 @@ export default class Property extends Node {
 		this.value.assignExpression( expression );
 	}
 
-	hasEffectsWhenAssigned () {
-		return this.value.hasEffectsWhenAssigned();
+	hasEffectsWhenAssigned ( options ) {
+		return this.value.hasEffectsWhenAssigned( options );
 	}
 
 	render ( code, es ) {

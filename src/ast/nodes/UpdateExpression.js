@@ -11,7 +11,7 @@ export default class UpdateExpression extends Node {
 		super.bind();
 	}
 
-	hasEffects () {
-		return this.included || this.argument.hasEffectsWhenAssigned();
+	hasEffects ( options ) {
+		return this.included || this.argument.hasEffectsWhenAssigned( options );
 	}
 }

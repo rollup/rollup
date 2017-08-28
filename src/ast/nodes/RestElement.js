@@ -6,7 +6,7 @@ export default class RestElement extends Node {
 		this.argument.assignExpression( UNKNOWN_ASSIGNMENT );
 	}
 
-	hasEffectsWhenAssigned () {
-		return this.argument.hasEffectsWhenAssigned();
+	hasEffectsWhenAssigned ( options ) {
+		return this.argument.hasEffectsWhenAssigned( options );
 	}
 }

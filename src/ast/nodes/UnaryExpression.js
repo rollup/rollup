@@ -23,12 +23,12 @@ export default class UnaryExpression extends Node {
 		return operators[ this.operator ]( argumentValue );
 	}
 
-	hasEffects () {
+	hasEffects ( options ) {
 		return this.included
-			|| this.argument.hasEffects()
+			|| this.argument.hasEffects( options )
 			|| (this.operator === 'delete' && (
 				this.argument.type !== 'MemberExpression'
-				|| this.argument.object.hasEffectsWhenMutated()
+				|| this.argument.object.hasEffectsWhenMutated( options )
 			));
 	}
 

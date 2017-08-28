@@ -7,14 +7,14 @@ export default class TaggedTemplateExpression extends Node {
 			const declaration = this.scope.findDeclaration( this.tag.name );
 
 			if ( declaration.isNamespace ) {
-				this.module.error({
+				this.module.error( {
 					code: 'CANNOT_CALL_NAMESPACE',
 					message: `Cannot call a namespace ('${this.tag.name}')`
 				}, this.start );
 			}
 
 			if ( this.tag.name === 'eval' && declaration.isGlobal ) {
-				this.module.warn({
+				this.module.warn( {
 					code: 'EVAL',
 					message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
 					url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
@@ -25,7 +25,7 @@ export default class TaggedTemplateExpression extends Node {
 		super.bind();
 	}
 
-	hasEffects () {
-		return this.quasi.hasEffects() || callHasEffects( this.scope, this.tag, false );
+	hasEffects ( options ) {
+		return this.quasi.hasEffects( options ) || callHasEffects( this.scope, this.tag, false );
 	}
 }

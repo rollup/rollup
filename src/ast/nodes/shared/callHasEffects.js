@@ -15,14 +15,14 @@ function hasEffectsNew ( node ) {
 		inner = inner.expression;
 
 		if ( inner.type === 'AssignmentExpression' ) {
-			if ( inner.right.hasEffects() ) {
+			if ( inner.right.hasEffects( {} ) ) {
 				return true;
 
 			} else {
 				inner = inner.left;
 
 				if ( inner.type === 'MemberExpression' ) {
-					if ( inner.computed && inner.property.hasEffects() ) {
+					if ( inner.computed && inner.property.hasEffects( {} ) ) {
 						return true;
 
 					} else {
@@ -37,7 +37,7 @@ function hasEffectsNew ( node ) {
 		}
 	}
 
-	return node.hasEffects();
+	return node.hasEffects( {} );
 }
 
 function fnHasEffects ( fn, isNew ) {
@@ -48,7 +48,7 @@ function fnHasEffects ( fn, isNew ) {
 	const body = fn.body.type === 'BlockStatement' ? fn.body.body : [ fn.body ];
 
 	for ( const node of body ) {
-		if ( isNew ? hasEffectsNew( node ) : node.hasEffects() ) {
+		if ( isNew ? hasEffectsNew( node ) : node.hasEffects( {} ) ) {
 			currentlyCalling.delete( fn );
 			return true;
 		}

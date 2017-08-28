@@ -57,8 +57,8 @@ export default class VariableDeclarator extends Node {
 		}
 	}
 
-	hasEffects () {
-		return super.hasEffects()
+	hasEffects ( options ) {
+		return super.hasEffects( options )
 			|| extractNames( this.id ).some( name => this.proxies.get( name ).included );
 	}
 
