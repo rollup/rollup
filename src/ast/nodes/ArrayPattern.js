@@ -6,7 +6,7 @@ export default class ArrayPattern extends Node {
 		this.eachChild( child => child.assignExpression( UNKNOWN_ASSIGNMENT ) );
 	}
 
-	hasEffectsWhenAssigned () {
-		return this.someChild( child => child.hasEffectsWhenAssigned() );
+	hasEffectsWhenAssigned ( options ) {
+		return this.someChild( child => child.hasEffectsWhenAssigned( options ) );
 	}
 }

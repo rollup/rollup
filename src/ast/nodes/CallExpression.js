@@ -25,9 +25,9 @@ export default class CallExpression extends Node {
 		super.bind();
 	}
 
-	hasEffects () {
+	hasEffects ( options ) {
 		return this.included
-			|| this.arguments.some( child => child.hasEffects() )
+			|| this.arguments.some( child => child.hasEffects( options ) )
 			|| callHasEffects( this.scope, this.callee, false );
 	}
 

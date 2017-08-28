@@ -8,6 +8,23 @@ export default class ForOfStatement extends Statement {
 		this.left.assignExpression( UNKNOWN_ASSIGNMENT );
 	}
 
+	hasEffects ( options ) {
+		return (
+			this.included
+			|| this.left && this.left.hasEffects( options )
+			|| this.right && this.right.hasEffects( options )
+			|| this.body.hasEffects( Object.assign( {}, options, { inNestedBreakableStatement: true } ) )
+		);
+	}
+
+	includeInBundle () {
+		let addedNewNodes = super.includeInBundle();
+		if ( this.left.includeDeclaration() ) {
+			addedNewNodes = true;
+		}
+		return addedNewNodes;
+	}
+
 	initialiseChildren () {
 		this.left.initialise( this.scope );
 		this.right.initialise( this.scope.parent );

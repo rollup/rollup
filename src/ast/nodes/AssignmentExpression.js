@@ -8,8 +8,8 @@ export default class AssignmentExpression extends Node {
 		this.left.assignExpression( this.right );
 	}
 
-	hasEffects () {
-		return super.hasEffects() || this.left.hasEffectsWhenAssigned();
+	hasEffects ( options ) {
+		return super.hasEffects( options ) || this.left.hasEffectsWhenAssigned( options );
 	}
 
 	hasEffectsWhenMutated () {

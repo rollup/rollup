@@ -1,13 +1,16 @@
 import ArrayPattern from './ArrayPattern.js';
 import ArrowFunctionExpression from './ArrowFunctionExpression.js';
 import AssignmentExpression from './AssignmentExpression.js';
+import AwaitExpression from './AwaitExpression.js';
 import BinaryExpression from './BinaryExpression.js';
 import BlockStatement from './BlockStatement.js';
+import BreakStatement from './BreakStatement';
 import CallExpression from './CallExpression.js';
 import CatchClause from './CatchClause.js';
 import ClassDeclaration from './ClassDeclaration.js';
 import ClassExpression from './ClassExpression.js';
 import ConditionalExpression from './ConditionalExpression.js';
+import DoWhileStatement from './DoWhileStatement';
 import EmptyStatement from './EmptyStatement.js';
 import ExportAllDeclaration from './ExportAllDeclaration.js';
 import ExportDefaultDeclaration from './ExportDefaultDeclaration.js';
@@ -30,8 +33,10 @@ import Property from './Property.js';
 import RestElement from './RestElement.js';
 import ReturnStatement from './ReturnStatement.js';
 import Statement from './shared/Statement.js';
+import SwitchCase from './SwitchCase.js';
 import SwitchStatement from './SwitchStatement.js';
 import TaggedTemplateExpression from './TaggedTemplateExpression.js';
+import TemplateElement from './TemplateElement.js';
 import TemplateLiteral from './TemplateLiteral.js';
 import ThisExpression from './ThisExpression.js';
 import ThrowStatement from './ThrowStatement.js';
@@ -39,19 +44,25 @@ import UnaryExpression from './UnaryExpression.js';
 import UpdateExpression from './UpdateExpression.js';
 import VariableDeclarator from './VariableDeclarator.js';
 import VariableDeclaration from './VariableDeclaration.js';
+import WhileStatement from './WhileStatement.js';
+import Node from '../Node';
 
 export default {
+	ArrayExpression: Node,
 	ArrayPattern,
 	ArrowFunctionExpression,
 	AssignmentExpression,
+	AssignmentPattern: Node,
+	AwaitExpression,
 	BinaryExpression,
 	BlockStatement,
+	BreakStatement,
 	CallExpression,
 	CatchClause,
 	ClassDeclaration,
 	ClassExpression,
 	ConditionalExpression,
-	DoWhileStatement: Statement,
+	DoWhileStatement,
 	EmptyStatement,
 	ExportAllDeclaration,
 	ExportDefaultDeclaration,
@@ -69,12 +80,15 @@ export default {
 	LogicalExpression,
 	MemberExpression,
 	NewExpression,
+	ObjectExpression: Node,
 	ObjectPattern,
 	Property,
 	RestElement,
 	ReturnStatement,
+	SwitchCase,
 	SwitchStatement,
 	TaggedTemplateExpression,
+	TemplateElement,
 	TemplateLiteral,
 	ThisExpression,
 	ThrowStatement,
@@ -83,5 +97,5 @@ export default {
 	UpdateExpression,
 	VariableDeclarator,
 	VariableDeclaration,
-	WhileStatement: Statement
+	WhileStatement
 };

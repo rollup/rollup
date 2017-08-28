@@ -96,7 +96,7 @@ export default class ExportDefaultDeclaration extends Node {
 				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
 					code.remove( this.leadingCommentStart || this.start, this.next || this.end );
 				} else {
-					const hasEffects = this.declaration.hasEffects();
+					const hasEffects = this.declaration.hasEffects( {} );
 					code.remove( this.start, hasEffects ? declaration_start : this.next || this.end );
 				}
 			} else if ( name === this.declaration.name ) {

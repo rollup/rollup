@@ -1,0 +1,1 @@
+globalVar = 1;

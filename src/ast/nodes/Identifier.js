@@ -40,14 +40,14 @@ export default class Identifier extends Node {
 		return this.declaration && this.declaration.included;
 	}
 
-	hasEffectsWhenMutated () {
+	hasEffectsWhenMutated ( options ) {
 		return this.declaration &&
 			(this.declaration.included ||
 			this.declaration.isParam ||
 			this.declaration.isGlobal ||
 			this.declaration.isExternal ||
 			this.declaration.isNamespace ||
-			Array.from( this.declaration.assignedExpressions ).some( node => node.hasEffectsWhenMutated() ));
+			Array.from( this.declaration.assignedExpressions ).some( node => node.hasEffectsWhenMutated( options ) ));
 	}
 
 	includeInBundle () {

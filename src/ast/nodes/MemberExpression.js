@@ -79,8 +79,8 @@ export default class MemberExpression extends Node {
 		values.add( UNKNOWN_ASSIGNMENT ); // TODO
 	}
 
-	hasEffectsWhenAssigned () {
-		return this.object.hasEffectsWhenMutated();
+	hasEffectsWhenAssigned ( options ) {
+		return this.object.hasEffectsWhenMutated( options );
 	}
 
 	hasEffectsWhenMutated () {

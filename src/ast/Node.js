@@ -29,8 +29,8 @@ export default class Node {
 		return UNKNOWN_VALUE;
 	}
 
-	hasEffects () {
-		return this.included || this.someChild( child => child.hasEffects() );
+	hasEffects ( options ) {
+		return this.included || this.someChild( child => child.hasEffects( options ) );
 	}
 
 	hasEffectsWhenAssigned () {
@@ -106,7 +106,7 @@ export default class Node {
 	}
 
 	shouldBeIncluded () {
-		return this.hasEffects();
+		return this.hasEffects( {} );
 	}
 
 	someChild ( callback ) {

@@ -22,6 +22,21 @@ export default class VariableDeclaration extends Node {
 		this.eachChild( child => child.assignExpression( UNKNOWN_ASSIGNMENT ) );
 	}
 
+	includeDeclaration () {
+		if ( this.isFullyIncluded() ) return false;
+		let addedNewNodes = false;
+		this.declarations.forEach( declarator => {
+			if ( declarator.includeDeclaration() ) {
+				addedNewNodes = true;
+			}
+		} );
+		if ( !this.included || addedNewNodes ) {
+			this.included = true;
+			return true;
+		}
+		return false;
+	}
+
 	includeInBundle () {
 		if ( this.isFullyIncluded() ) return false;
 		let addedNewNodes = false;
