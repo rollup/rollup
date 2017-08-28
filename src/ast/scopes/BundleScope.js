@@ -15,6 +15,8 @@ class SyntheticGlobalDeclaration {
 		if ( reference.isReassignment ) this.isReassigned = true;
 	}
 
+	assignExpression () {}
+
 	gatherPossibleValues ( values ) {
 		values.add( UNKNOWN_ASSIGNMENT );
 	}
@@ -23,7 +25,7 @@ class SyntheticGlobalDeclaration {
 		return this.name;
 	}
 
-	includeDeclaration() {
+	includeDeclaration () {
 		this.included = true;
 		return false;
 	}

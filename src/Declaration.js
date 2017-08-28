@@ -20,6 +20,10 @@ export class SyntheticNamespaceDeclaration {
 		this.name = node.name;
 	}
 
+	assignExpression () {
+		// This should probably not happen, but not defining this might prevent a more meaningful error message
+	}
+
 	gatherPossibleValues ( values ) {
 		values.add( UNKNOWN_ASSIGNMENT );
 	}
