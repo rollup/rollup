@@ -33,6 +33,10 @@ export default class Node {
 		return this.included || this.someChild( child => child.hasEffects( options ) );
 	}
 
+	hasEffectsAsExpressionStatement () {
+		return true;
+	}
+
 	hasEffectsWhenAssigned () {
 		return false;
 	}

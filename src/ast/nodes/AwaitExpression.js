@@ -5,4 +5,8 @@ export default class AwaitExpression extends Node {
 		return super.hasEffects( options )
 			|| !options.inNestedFunctionCall;
 	}
+
+	hasEffectsAsExpressionStatement ( options ) {
+		return this.hasEffects( options );
+	}
 }

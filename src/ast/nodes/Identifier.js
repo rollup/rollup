@@ -47,6 +47,7 @@ export default class Identifier extends Node {
 			this.declaration.isGlobal ||
 			this.declaration.isExternal ||
 			this.declaration.isNamespace ||
+			!this.declaration.assignedExpressions ||
 			Array.from( this.declaration.assignedExpressions ).some( node => node.hasEffectsWhenMutated( options ) ));
 	}
 
