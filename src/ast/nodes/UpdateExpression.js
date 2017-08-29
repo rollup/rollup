@@ -14,4 +14,8 @@ export default class UpdateExpression extends Node {
 	hasEffects ( options ) {
 		return this.included || this.argument.hasEffectsWhenAssigned( options );
 	}
+
+	hasEffectsAsExpressionStatement ( options ) {
+		return this.hasEffects( options );
+	}
 }

@@ -31,6 +31,10 @@ export default class CallExpression extends Node {
 			|| callHasEffects( this.scope, this.callee, false );
 	}
 
+	hasEffectsAsExpressionStatement ( options ) {
+		return this.hasEffects( options );
+	}
+
 	hasEffectsWhenMutated () {
 		return true;
 	}

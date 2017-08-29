@@ -32,6 +32,10 @@ export default class UnaryExpression extends Node {
 			));
 	}
 
+	hasEffectsAsExpressionStatement ( options ) {
+		return this.hasEffects( options );
+	}
+
 	initialiseNode () {
 		this.value = this.getValue();
 	}
