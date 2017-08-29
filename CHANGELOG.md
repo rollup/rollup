@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.49.2
+
+* Fix treeshaking regressions ([#1591](https://github.com/rollup/rollup/pull/1591))
+
 ## 0.49.1
 
 * Fix treeshaking regressions ([#1586](https://github.com/rollup/rollup/pull/1586))
