@@ -17,7 +17,8 @@ export default function mergeOptions ( config, command ) {
 		context: config.context,
 		moduleContext: config.moduleContext,
 		plugins: config.plugins,
-		onwarn: config.onwarn
+		onwarn: config.onwarn,
+		watch: config.watch
 	};
 
 	// legacy, to ensure e.g. commonjs plugin still works
