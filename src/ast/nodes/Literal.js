@@ -9,6 +9,10 @@ export default class Literal extends Node {
 		values.add( this );
 	}
 
+	hasEffectsWhenMutated () {
+		return false;
+	}
+
 	render ( code ) {
 		if ( typeof this.value === 'string' ) {
 			code.indentExclusionRanges.push( [ this.start + 1, this.end - 1 ] );
