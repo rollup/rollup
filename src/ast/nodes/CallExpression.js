@@ -34,8 +34,4 @@ export default class CallExpression extends Node {
 	hasEffectsAsExpressionStatement ( options ) {
 		return this.hasEffects( options );
 	}
-
-	hasEffectsWhenMutated () {
-		return true;
-	}
 }

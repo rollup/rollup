@@ -83,10 +83,6 @@ export default class MemberExpression extends Node {
 		return this.object.hasEffectsWhenMutated( options );
 	}
 
-	hasEffectsWhenMutated () {
-		return true;
-	}
-
 	includeInBundle () {
 		let addedNewNodes = super.includeInBundle();
 		if ( this.declaration && !this.declaration.included ) {

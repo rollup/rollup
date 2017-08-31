@@ -15,8 +15,4 @@ export default class AssignmentExpression extends Node {
 	hasEffectsAsExpressionStatement ( options ) {
 		return this.hasEffects( options );
 	}
-
-	hasEffectsWhenMutated () {
-		return true;
-	}
 }
