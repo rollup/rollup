@@ -26,7 +26,7 @@ simdTypes.forEach( t => {
 	'ArrayBuffer', 'ArrayBuffer.isView',
 	'DataView',
 	'JSON.parse', 'JSON.stringify',
-	'Promise', 'Promise.all', 'Promise.race', 'Promise.reject', 'Promise.resolve',
+	'Promise.all', 'Promise.race', 'Promise.resolve',
 	'Intl.Collator', 'Intl.Collator.supportedLocalesOf', 'Intl.DateTimeFormat', 'Intl.DateTimeFormat.supportedLocalesOf', 'Intl.NumberFormat', 'Intl.NumberFormat.supportedLocalesOf'
 
 	// TODO properties of e.g. window...
