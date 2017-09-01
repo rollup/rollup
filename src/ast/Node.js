@@ -1,6 +1,6 @@
 import { locate } from 'locate-character';
 import { UNKNOWN_VALUE, UNKNOWN_ASSIGNMENT } from './values.js';
-import HasEffectsOptions from './options/HasEffectsOptions';
+import ExecutionPathOptions from './ExecutionPathOptions';
 
 export default class Node {
 	assignExpression () {}
@@ -111,7 +111,7 @@ export default class Node {
 	}
 
 	shouldBeIncluded () {
-		return this.hasEffects( HasEffectsOptions.create() );
+		return this.hasEffects( ExecutionPathOptions.create() );
 	}
 
 	someChild ( callback ) {
