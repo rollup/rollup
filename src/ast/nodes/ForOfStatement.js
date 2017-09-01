@@ -13,7 +13,7 @@ export default class ForOfStatement extends Statement {
 			this.included
 			|| this.left && this.left.hasEffects( options )
 			|| this.right && this.right.hasEffects( options )
-			|| this.body.hasEffects( Object.assign( {}, options, { inNestedBreakableStatement: true } ) )
+			|| this.body.hasEffects( options.setIgnoreBreakStatements() )
 		);
 	}
 

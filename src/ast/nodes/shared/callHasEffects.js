@@ -1,6 +1,7 @@
 import isReference from 'is-reference';
 import flatten from '../../utils/flatten.js';
 import pureFunctions from './pureFunctions.js';
+import HasEffectsOptions from '../../options/HasEffectsOptions';
 
 const currentlyCalling = new Set();
 
@@ -15,14 +16,14 @@ function hasEffectsNew ( node ) {
 		inner = inner.expression;
 
 		if ( inner.type === 'AssignmentExpression' ) {
-			if ( inner.right.hasEffects( { inNestedFunctionCall: true } ) ) {
+			if ( inner.right.hasEffects( HasEffectsOptions.create().setIgnoreReturnAwaitYield() ) ) {
 				return true;
 
 			} else {
 				inner = inner.left;
 
 				if ( inner.type === 'MemberExpression' ) {
-					if ( inner.computed && inner.property.hasEffects( { inNestedFunctionCall: true } ) ) {
+					if ( inner.computed && inner.property.hasEffects( HasEffectsOptions.create().setIgnoreReturnAwaitYield() ) ) {
 						return true;
 
 					} else {
@@ -37,7 +38,7 @@ function hasEffectsNew ( node ) {
 		}
 	}
 
-	return node.hasEffects( { inNestedFunctionCall: true } );
+	return node.hasEffects( HasEffectsOptions.create().setIgnoreReturnAwaitYield() );
 }
 
 function fnHasEffects ( fn, isNew ) {
@@ -48,7 +49,7 @@ function fnHasEffects ( fn, isNew ) {
 	const body = fn.body.type === 'BlockStatement' ? fn.body.body : [ fn.body ];
 
 	for ( const node of body ) {
-		if ( isNew ? hasEffectsNew( node ) : node.hasEffects( { inNestedFunctionCall: true } ) ) {
+		if ( isNew ? hasEffectsNew( node ) : node.hasEffects( HasEffectsOptions.create().setIgnoreReturnAwaitYield() ) ) {
 			currentlyCalling.delete( fn );
 			return true;
 		}

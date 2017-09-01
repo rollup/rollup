@@ -1,4 +1,5 @@
 import Node from '../Node.js';
+import HasEffectsOptions from '../options/HasEffectsOptions';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
@@ -96,7 +97,7 @@ export default class ExportDefaultDeclaration extends Node {
 				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
 					code.remove( this.leadingCommentStart || this.start, this.next || this.end );
 				} else {
-					const hasEffects = this.declaration.hasEffects( {} );
+					const hasEffects = this.declaration.hasEffects( HasEffectsOptions.create() );
 					code.remove( this.start, hasEffects ? declaration_start : this.next || this.end );
 				}
 			} else if ( name === this.declaration.name ) {

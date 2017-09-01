@@ -8,7 +8,7 @@ export default class ForStatement extends Statement {
 			|| this.init && this.init.hasEffects( options )
 			|| this.test && this.test.hasEffects( options )
 			|| this.update && this.update.hasEffects( options )
-			|| this.body.hasEffects( Object.assign( {}, options, { inNestedBreakableStatement: true } ) )
+			|| this.body.hasEffects( options.setIgnoreBreakStatements() )
 		);
 	}
 

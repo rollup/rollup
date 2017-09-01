@@ -47,6 +47,7 @@ import UpdateExpression from './UpdateExpression.js';
 import VariableDeclarator from './VariableDeclarator.js';
 import VariableDeclaration from './VariableDeclaration.js';
 import WhileStatement from './WhileStatement.js';
+import YieldExpression from './YieldExpression.js';
 import Node from '../Node';
 
 export default {
@@ -99,5 +100,6 @@ export default {
 	UpdateExpression,
 	VariableDeclarator,
 	VariableDeclaration,
-	WhileStatement
+	WhileStatement,
+	YieldExpression
 };
