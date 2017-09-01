@@ -9,4 +9,9 @@ export default class ArrayPattern extends Node {
 	hasEffectsWhenAssigned ( options ) {
 		return this.someChild( child => child.hasEffectsWhenAssigned( options ) );
 	}
+
+	initialiseAndDeclare ( parentScope, kind ) {
+		this.initialiseScope( parentScope );
+		this.eachChild( child => child.initialiseAndDeclare( parentScope, kind, UNKNOWN_ASSIGNMENT ) );
+	}
 }

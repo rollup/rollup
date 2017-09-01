@@ -54,6 +54,10 @@ export default class VariableDeclaration extends Node {
 		return false;
 	}
 
+	initialiseChildren () {
+		this.declarations.forEach( child => child.initialiseDeclarator( this.scope, this.kind ) );
+	}
+
 	render ( code, es ) {
 		const treeshake = this.module.bundle.treeshake;
 

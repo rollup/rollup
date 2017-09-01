@@ -12,7 +12,7 @@ const statementsWithIfStatements = new Set( [
 	'WhileStatement'
 ] );
 
-function handleVarDeclarations ( node, scope ) {
+function getHoistedVars ( node, scope ) {
 	const hoistedVars = [];
 
 	function visit ( node ) {
@@ -22,7 +22,7 @@ function handleVarDeclarations ( node, scope ) {
 				declarator.initialise( scope );
 
 				extractNames( declarator.id ).forEach( name => {
-					if ( !~hoistedVars.indexOf( name ) ) hoistedVars.push( name );
+					if ( hoistedVars.indexOf( name ) < 0 ) hoistedVars.push( name );
 				} );
 			} );
 		}
@@ -37,29 +37,24 @@ function handleVarDeclarations ( node, scope ) {
 	return hoistedVars;
 }
 
-// TODO DRY this out
 export default class IfStatement extends Statement {
 	initialiseChildren ( parentScope ) {
+		super.initialiseChildren( parentScope );
 		if ( this.module.bundle.treeshake ) {
 			this.testValue = this.test.getValue();
 
 			if ( this.testValue === UNKNOWN_VALUE ) {
-				super.initialiseChildren( parentScope );
-			} else if ( this.testValue ) {
-				this.consequent.initialise( this.scope );
+				return;
+			}
+			if ( this.testValue ) {
 				if ( this.alternate ) {
-					this.hoistedVars = handleVarDeclarations( this.alternate, this.scope );
+					this.hoistedVars = getHoistedVars( this.alternate, this.scope );
 					this.alternate = null;
 				}
 			} else {
-				if ( this.alternate ) {
-					this.alternate.initialise( this.scope );
-				}
-				this.hoistedVars = handleVarDeclarations( this.consequent, this.scope );
+				this.hoistedVars = getHoistedVars( this.consequent, this.scope );
 				this.consequent = null;
 			}
-		} else {
-			super.initialiseChildren( parentScope );
 		}
 	}
 

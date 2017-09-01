@@ -1,5 +1,6 @@
 import Node from '../Node.js';
 import isReference from 'is-reference';
+import { ProxyDeclaration } from '../../Declaration';
 
 function isAssignmentPatternLhs ( node, parent ) {
 	// special case: `({ foo = 42 }) => {...}`
@@ -60,6 +61,12 @@ export default class Identifier extends Node {
 		this.included = true;
 		this.declaration && this.declaration.includeDeclaration();
 		return true;
+	}
+
+	initialiseAndDeclare ( parentScope, kind, init ) {
+		this.initialiseScope( parentScope );
+		const proxyDeclaration = new ProxyDeclaration( this.name, this, init );
+		this.scope.addDeclaration( this.name, proxyDeclaration, kind === 'var' );
 	}
 
 	render ( code, es ) {

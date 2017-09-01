@@ -9,4 +9,9 @@ export default class RestElement extends Node {
 	hasEffectsWhenAssigned ( options ) {
 		return this.argument.hasEffectsWhenAssigned( options );
 	}
+
+	initialiseAndDeclare ( parentScope, kind ) {
+		this.initialiseScope( parentScope );
+		this.argument.initialiseAndDeclare( parentScope, kind, UNKNOWN_ASSIGNMENT );
+	}
 }

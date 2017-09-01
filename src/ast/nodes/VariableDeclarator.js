@@ -1,73 +1,15 @@
 import Node from '../Node.js';
 import extractNames from '../utils/extractNames.js';
-import { UNKNOWN_ASSIGNMENT } from '../values';
-
-class DeclaratorProxy {
-	constructor ( name, declarator, isTopLevel, init ) {
-		this.name = name;
-		this.declarator = declarator;
-
-		this.isReassigned = false;
-		this.exportName = null;
-
-		this.duplicates = [];
-		this.assignedExpressions = new Set( init ? [ init ] : null );
-	}
-
-	addReference () {
-		/* noop? */
-	}
-
-	assignExpression ( expression ) {
-		this.assignedExpressions.add( expression );
-		this.isReassigned = true;
-	}
-
-	gatherPossibleValues ( values ) {
-		this.assignedExpressions.forEach( value => values.add( value ) );
-	}
-
-	getName ( es ) {
-		// TODO destructuring...
-		if ( es ) return this.name;
-		if ( !this.isReassigned || !this.exportName ) return this.name;
-
-		return `exports.${this.exportName}`;
-	}
-
-	includeDeclaration () {
-		if ( this.included ) {
-			return false;
-		}
-		this.included = true;
-		this.declarator.includeDeclaration();
-		this.duplicates.forEach( duplicate => duplicate.includeDeclaration() );
-		return true;
-	}
-
-	toString () {
-		return this.name;
-	}
-}
 
 export default class VariableDeclarator extends Node {
 	assignExpression ( expression ) {
 		this.id.assignExpression( expression );
 	}
 
-	initialiseNode () {
-		this.proxies = new Map();
-		const lexicalBoundary = this.scope.findLexicalBoundary();
-		const init = this.init
-			? ( this.id.type === 'Identifier' ? this.init : UNKNOWN_ASSIGNMENT )
-			: null;
-
-		extractNames( this.id ).forEach( name => {
-			const proxy = new DeclaratorProxy( name, this, lexicalBoundary.isModuleScope, init );
-
-			this.proxies.set( name, proxy );
-			this.scope.addDeclaration( name, proxy, this.parent.kind === 'var' );
-		} );
+	initialiseDeclarator ( parentScope, kind ) {
+		this.initialiseScope( parentScope );
+		this.init && this.init.initialise( this.scope );
+		this.id.initialiseAndDeclare( this.scope, kind, this.init );
 	}
 
 	render ( code, es ) {
