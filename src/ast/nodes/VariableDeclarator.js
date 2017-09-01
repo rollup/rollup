@@ -51,15 +51,8 @@ class DeclaratorProxy {
 }
 
 export default class VariableDeclarator extends Node {
-	assignExpression () {
-		for ( const proxy of this.proxies.values() ) {
-			proxy.assignExpression( UNKNOWN_ASSIGNMENT );
-		}
-	}
-
-	hasEffects ( options ) {
-		return super.hasEffects( options )
-			|| extractNames( this.id ).some( name => this.proxies.get( name ).included );
+	assignExpression ( expression ) {
+		this.id.assignExpression( expression );
 	}
 
 	initialiseNode () {
@@ -79,7 +72,7 @@ export default class VariableDeclarator extends Node {
 
 	render ( code, es ) {
 		extractNames( this.id ).forEach( name => {
-			const declaration = this.proxies.get( name );
+			const declaration = this.scope.findDeclaration( name );
 
 			if ( !es && declaration.exportName && declaration.isReassigned ) {
 				if ( this.init ) {

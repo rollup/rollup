@@ -74,8 +74,8 @@ export default class VariableDeclaration extends Node {
 			const prefix = empty ? '' : separator; // TODO indentation
 
 			if ( declarator.id.type === 'Identifier' ) {
-				const proxy = declarator.proxies.get( declarator.id.name );
-				const isExportedAndReassigned = !es && proxy.exportName && proxy.isReassigned;
+				const declaration = this.scope.findDeclaration( declarator.id.name );
+				const isExportedAndReassigned = !es && declaration.exportName && declaration.isReassigned;
 
 				if ( isExportedAndReassigned ) {
 					if ( declarator.init ) {
@@ -83,7 +83,7 @@ export default class VariableDeclaration extends Node {
 						c = declarator.end;
 						empty = false;
 					}
-				} else if ( !treeshake || proxy.included ) {
+				} else if ( !treeshake || declaration.included ) {
 					if ( shouldSeparate ) code.overwrite( c, declarator.start, `${prefix}${this.kind} ` ); // TODO indentation
 					c = declarator.end;
 					empty = false;
@@ -93,8 +93,8 @@ export default class VariableDeclaration extends Node {
 				let isIncluded = false;
 
 				extractNames( declarator.id ).forEach( name => {
-					const proxy = declarator.proxies.get( name );
-					const isExportedAndReassigned = !es && proxy.exportName && proxy.isReassigned;
+					const declaration = this.scope.findDeclaration( name );
+					const isExportedAndReassigned = !es && declaration.exportName && declaration.isReassigned;
 
 					if ( isExportedAndReassigned ) {
 						// code.overwrite( c, declarator.start, prefix );
