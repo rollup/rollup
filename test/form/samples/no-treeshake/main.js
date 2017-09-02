@@ -10,4 +10,6 @@ export function baz () {
 	return 13 + external.value;
 }
 
+const moreExternal = external.more;
+
 export var create = Object.create, getPrototypeOf = Object.getPrototypeOf;

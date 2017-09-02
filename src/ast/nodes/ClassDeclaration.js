@@ -5,16 +5,9 @@ export default class ClassDeclaration extends Class {
 		values.add( this );
 	}
 
-	hasEffects () {
-		return this.included;
-	}
-
 	initialiseChildren ( parentScope ) {
-		if ( this.id ) {
-			this.name = this.id.name;
-			parentScope.addDeclaration( this.name, this, false, false );
-			this.id.initialise( parentScope );
-		}
+		// Class declarations are like let declarations: Not hoisted, can be reassigned, cannot be redeclared
+		this.id && this.id.initialiseAndDeclare( parentScope, 'let', this );
 		super.initialiseChildren( parentScope );
 	}
 

@@ -1,12 +1,8 @@
 import Class from './shared/Class.js';
 
 export default class ClassExpression extends Class {
-	initialiseChildren (parentScope) {
-		if ( this.id ) {
-			this.name = this.id.name;
-			this.scope.addDeclaration( this.name, this, false, false );
-			this.id.initialise( this.scope );
-		}
-		super.initialiseChildren(parentScope);
+	initialiseChildren ( parentScope ) {
+		this.id && this.id.initialiseAndDeclare( this.scope, 'let', this );
+		super.initialiseChildren( parentScope );
 	}
 }

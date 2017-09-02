@@ -11,7 +11,6 @@ class SyntheticGlobalDeclaration {
 	}
 
 	addReference ( reference ) {
-		reference.declaration = this;
 		if ( reference.isReassignment ) this.isReassigned = true;
 	}
 
@@ -33,10 +32,10 @@ class SyntheticGlobalDeclaration {
 
 export default class BundleScope extends Scope {
 	findDeclaration ( name ) {
-		if ( !this.declarations[ name ] ) {
-			this.declarations[ name ] = new SyntheticGlobalDeclaration( name );
+		if ( !this.variables[ name ] ) {
+			this.variables[ name ] = new SyntheticGlobalDeclaration( name );
 		}
 
-		return this.declarations[ name ];
+		return this.variables[ name ];
 	}
 }

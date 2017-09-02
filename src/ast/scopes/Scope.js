@@ -1,5 +1,6 @@
 import { blank, keys } from '../../utils/object.js';
 import { UNKNOWN_ASSIGNMENT } from '../values';
+import Variable from '../variables/Variable';
 
 class Parameter {
 	constructor ( name ) {
@@ -8,9 +9,7 @@ class Parameter {
 		this.assignedExpressions = new Set( [ UNKNOWN_ASSIGNMENT ] );
 	}
 
-	addReference () {
-		// noop?
-	}
+	addReference () {}
 
 	assignExpression ( expression ) {
 		this.assignedExpressions.add( expression );
@@ -44,36 +43,42 @@ export default class Scope {
 		this.children = [];
 		if ( this.parent ) this.parent.children.push( this );
 
-		this.declarations = blank();
+		this.variables = blank();
 
 		if ( this.isLexicalBoundary && !this.isModuleScope ) {
-			this.declarations.arguments = new Parameter( 'arguments' );
+			this.variables.arguments = new Parameter( 'arguments' );
 		}
 	}
 
-	addDeclaration ( name, declaration, isVar, isParam ) {
-		if ( isVar && this.isBlockScope ) {
-			this.parent.addDeclaration( name, declaration, isVar, isParam );
+	addDeclaration(identifier, isHoisted, init) {
+		const variable = new Variable( identifier.name, identifier, init );
+		this.addVariable( identifier.name, variable, isHoisted );
+		return variable;
+	}
+
+	addVariable ( name, variable, isHoisted, isParam ) {
+		if ( isHoisted && this.isBlockScope ) {
+			this.parent.addVariable( name, variable, isHoisted, isParam );
 		} else {
-			const existingDeclaration = this.declarations[ name ];
+			const existingDeclaration = this.variables[ name ];
 
 			if ( existingDeclaration && existingDeclaration.duplicates ) {
 				// TODO warn/throw on duplicates?
-				existingDeclaration.duplicates.push( declaration );
+				existingDeclaration.duplicates.push( variable );
 			} else {
-				this.declarations[ name ] = isParam ? new Parameter( name ) : declaration;
+				this.variables[ name ] = isParam ? new Parameter( name ) : variable;
 			}
 		}
 	}
 
 	contains ( name ) {
-		return !!this.declarations[ name ] ||
+		return !!this.variables[ name ] ||
 			( this.parent ? this.parent.contains( name ) : false );
 	}
 
 	deshadow ( names ) {
-		keys( this.declarations ).forEach( key => {
-			const declaration = this.declarations[ key ];
+		keys( this.variables ).forEach( key => {
+			const declaration = this.variables[ key ];
 
 			// we can disregard exports.foo etc
 			if ( declaration.exportName && declaration.isReassigned ) return;
@@ -94,7 +99,7 @@ export default class Scope {
 	}
 
 	findDeclaration ( name ) {
-		return this.declarations[ name ] ||
+		return this.variables[ name ] ||
 			( this.parent && this.parent.findDeclaration( name ) );
 	}
 

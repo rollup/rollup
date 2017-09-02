@@ -1,6 +1,5 @@
 import Node from '../Node.js';
 import isReference from 'is-reference';
-import { ProxyDeclaration } from '../../Declaration';
 
 function isAssignmentPatternLhs ( node, parent ) {
 	// special case: `({ foo = 42 }) => {...}`
@@ -27,7 +26,7 @@ export default class Identifier extends Node {
 	bind () {
 		if ( isReference( this, this.parent ) || isAssignmentPatternLhs( this, this.parent ) ) {
 			this.declaration = this.scope.findDeclaration( this.name );
-			this.declaration.addReference( this ); // TODO necessary?
+			this.declaration.addReference( this );
 		}
 	}
 
@@ -65,8 +64,7 @@ export default class Identifier extends Node {
 
 	initialiseAndDeclare ( parentScope, kind, init ) {
 		this.initialiseScope( parentScope );
-		const proxyDeclaration = new ProxyDeclaration( this.name, this, init );
-		this.scope.addDeclaration( this.name, proxyDeclaration, kind === 'var' );
+		this.scope.addDeclaration(this, kind === 'var', init);
 	}
 
 	render ( code, es ) {

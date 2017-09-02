@@ -49,7 +49,7 @@ export default class ExportDefaultDeclaration extends Node {
 		this.isDefault = true;
 
 		this.name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name || this.module.basename();
-		this.scope.declarations.default = this;
+		this.scope.variables.default = this;
 	}
 
 	// TODO this is total chaos, tidy it up

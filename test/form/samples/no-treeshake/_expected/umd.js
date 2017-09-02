@@ -18,6 +18,8 @@
 		return 13 + external.value;
 	}
 
+	const moreExternal = external.more;
+
 	var create = Object.create;
 	var getPrototypeOf = Object.getPrototypeOf;
 

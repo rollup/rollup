@@ -1,4 +1,4 @@
-import { value } from 'external';
+import { more, value } from 'external';
 
 var foo = 'unused';
 
@@ -13,6 +13,8 @@ function bar () {
 function baz () {
 	return 13 + value;
 }
+
+const moreExternal = more;
 
 var create = Object.create;
 var getPrototypeOf = Object.getPrototypeOf;

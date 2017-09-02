@@ -184,6 +184,9 @@ export default class Bundle {
 							}
 						} );
 					} while ( addedNewNodes );
+				} else {
+					// Necessary to properly replace namespace imports
+					this.modules.forEach( module => module.includeAllInBundle() );
 				}
 
 				timeEnd( 'phase 3' );
@@ -230,7 +233,7 @@ export default class Bundle {
 		const used = blank();
 
 		// ensure no conflicts with globals
-		keys( this.scope.declarations ).forEach( name => used[ name ] = 1 );
+		keys( this.scope.variables ).forEach( name => used[ name ] = 1 );
 
 		function getSafeName ( name ) {
 			while ( used[ name ] ) {
@@ -258,12 +261,12 @@ export default class Bundle {
 		} );
 
 		this.modules.forEach( module => {
-			forOwn( module.scope.declarations, ( declaration ) => {
-				if ( declaration.isDefault && declaration.declaration.id ) {
+			forOwn( module.scope.variables, variable => {
+				if ( variable.isDefault && variable.declaration.id ) {
 					return;
 				}
 
-				declaration.name = getSafeName( declaration.name );
+				variable.name = getSafeName( variable.name );
 			} );
 
 			// deconflict reified namespaces

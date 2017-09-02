@@ -10,13 +10,13 @@ export default class Function extends Node {
 	}
 
 	hasEffects () {
-		return this.included;
+		return this.included || (this.id && this.id.hasEffects());
 	}
 
 	initialiseChildren () {
 		this.params.forEach( param => {
 			param.initialise( this.scope );
-			extractNames( param ).forEach( name => this.scope.addDeclaration( name, null, false, true ) );
+			extractNames( param ).forEach( name => this.scope.addVariable( name, null, false, true ) );
 		} );
 		this.body.initialiseAndReplaceScope ?
 			this.body.initialiseAndReplaceScope( this.scope ) :

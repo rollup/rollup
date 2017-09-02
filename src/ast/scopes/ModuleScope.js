@@ -61,8 +61,8 @@ export default class ModuleScope extends Scope {
 	}
 
 	findDeclaration ( name ) {
-		if ( this.declarations[ name ] ) {
-			return this.declarations[ name ];
+		if ( this.variables[ name ] ) {
+			return this.variables[ name ];
 		}
 
 		return this.module.trace( name ) || this.parent.findDeclaration( name );

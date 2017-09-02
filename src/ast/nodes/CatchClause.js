@@ -6,7 +6,7 @@ export default class CatchClause extends Node {
 	initialiseChildren () {
 		if ( this.param ) {
 			this.param.initialise( this.scope );
-			extractNames( this.param ).forEach( name => this.scope.addDeclaration( name, null, false, true ) );
+			extractNames( this.param ).forEach( name => this.scope.addVariable( name, null, false, true ) );
 		}
 		this.body.initialiseAndReplaceScope( this.scope );
 	}

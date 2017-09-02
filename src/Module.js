@@ -31,6 +31,11 @@ function tryParse ( module, acornOptions ) {
 	}
 }
 
+function includeFully ( node ) {
+	node.includeInBundle();
+	node.eachChild( includeFully );
+}
+
 export default class Module {
 	constructor ( { id, code, originalCode, originalSourcemap, ast, sourcemapChain, resolvedIds, resolvedExternalIds, bundle } ) {
 		this.code = code;
@@ -322,6 +327,10 @@ export default class Module {
 		return keys( reexports );
 	}
 
+	includeAllInBundle () {
+		this.ast.body.forEach( includeFully );
+	}
+
 	includeInBundle () {
 		let addedNewNodes = false;
 		this.ast.body.forEach( node => {
@@ -372,8 +381,8 @@ export default class Module {
 
 	trace ( name ) {
 		// TODO this is slightly circular
-		if ( name in this.scope.declarations ) {
-			return this.scope.declarations[ name ];
+		if ( name in this.scope.variables ) {
+			return this.scope.variables[ name ];
 		}
 
 		if ( name in this.imports ) {
