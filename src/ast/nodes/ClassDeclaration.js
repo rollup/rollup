@@ -7,7 +7,7 @@ export default class ClassDeclaration extends Class {
 
 	initialiseChildren ( parentScope ) {
 		// Class declarations are like let declarations: Not hoisted, can be reassigned, cannot be redeclared
-		this.id && this.id.initialiseAndDeclare( parentScope, 'let', this );
+		this.id && this.id.initialiseAndDeclare( parentScope, 'class', this );
 		super.initialiseChildren( parentScope );
 	}
 

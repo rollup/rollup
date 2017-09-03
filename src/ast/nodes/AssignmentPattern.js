@@ -8,6 +8,6 @@ export default class AssignmentPattern extends Node {
 	initialiseAndDeclare ( parentScope, kind, init ) {
 		this.initialiseScope( parentScope );
 		this.right.initialise( parentScope );
-		this.left.initialiseAndDeclare( parentScope, kind, init );
+		this.left.initialiseAndDeclare( parentScope, kind, init || this.right );
 	}
 }

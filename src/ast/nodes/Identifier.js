@@ -45,14 +45,7 @@ export default class Identifier extends Node {
 	}
 
 	hasEffectsWhenMutated ( options ) {
-		return this.declaration &&
-			(this.declaration.included ||
-			this.declaration.isParam ||
-			this.declaration.isGlobal ||
-			this.declaration.isExternal ||
-			this.declaration.isNamespace ||
-			!this.declaration.assignedExpressions ||
-			Array.from( this.declaration.assignedExpressions ).some( node => node.hasEffectsWhenMutated( options ) ));
+		return this.declaration && this.declaration.hasEffectsWhenMutated( options );
 	}
 
 	includeInBundle () {
@@ -64,7 +57,22 @@ export default class Identifier extends Node {
 
 	initialiseAndDeclare ( parentScope, kind, init ) {
 		this.initialiseScope( parentScope );
-		this.scope.addDeclaration(this, kind === 'var', init);
+		switch ( kind ) {
+			case 'var':
+			case 'function':
+				this.scope.addDeclaration( this, true, init );
+				break;
+			case 'let':
+			case 'const':
+			case 'class':
+				this.scope.addDeclaration( this, false, init );
+				break;
+			case 'parameter':
+				this.scope.addParameterDeclaration( this );
+				break;
+			default:
+				throw new Error( 'Unexpected identifier kind', kind );
+		}
 	}
 
 	render ( code, es ) {

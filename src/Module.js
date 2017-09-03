@@ -9,7 +9,7 @@ import getCodeFrame from './utils/getCodeFrame.js';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL.js';
 import error from './utils/error.js';
 import relativeId from './utils/relativeId.js';
-import { SyntheticNamespaceDeclaration } from './Declaration.js';
+import NamespaceVariable from './ast/variables/NamespaceVariable';
 import extractNames from './ast/utils/extractNames.js';
 import enhance from './ast/enhance.js';
 import clone from './ast/clone.js';
@@ -160,9 +160,6 @@ export default class Module {
 				localName: 'default',
 				identifier
 			};
-
-			// create a synthetic declaration
-			//this.declarations.default = new SyntheticDefaultDeclaration( node, identifier || this.basename() );
 		}
 
 		// export var { foo, bar } = ...
@@ -345,7 +342,7 @@ export default class Module {
 
 	namespace () {
 		if ( !this.declarations[ '*' ] ) {
-			this.declarations[ '*' ] = new SyntheticNamespaceDeclaration( this );
+			this.declarations[ '*' ] = new NamespaceVariable( this );
 		}
 
 		return this.declarations[ '*' ];

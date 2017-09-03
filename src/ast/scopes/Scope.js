@@ -1,37 +1,6 @@
 import { blank, keys } from '../../utils/object.js';
-import { UNKNOWN_ASSIGNMENT } from '../values';
-import Variable from '../variables/Variable';
-
-class Parameter {
-	constructor ( name ) {
-		this.name = name;
-		this.isParam = true;
-		this.assignedExpressions = new Set( [ UNKNOWN_ASSIGNMENT ] );
-	}
-
-	addReference () {}
-
-	assignExpression ( expression ) {
-		this.assignedExpressions.add( expression );
-		this.isReassigned = true;
-	}
-
-	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN_ASSIGNMENT ); // TODO populate this at call time
-	}
-
-	getName () {
-		return this.name;
-	}
-
-	includeDeclaration () {
-		if ( this.included ) {
-			return false;
-		}
-		this.included = true;
-		return true;
-	}
-}
+import LocalVariable from '../variables/LocalVariable';
+import ParameterVariable from '../variables/ParameterVariable';
 
 export default class Scope {
 	constructor ( options = {} ) {
@@ -46,29 +15,26 @@ export default class Scope {
 		this.variables = blank();
 
 		if ( this.isLexicalBoundary && !this.isModuleScope ) {
-			this.variables.arguments = new Parameter( 'arguments' );
+			this.variables.arguments = new ParameterVariable( 'arguments' );
 		}
 	}
 
-	addDeclaration(identifier, isHoisted, init) {
-		const variable = new Variable( identifier.name, identifier, init );
-		this.addVariable( identifier.name, variable, isHoisted );
-		return variable;
-	}
-
-	addVariable ( name, variable, isHoisted, isParam ) {
+	addDeclaration ( identifier, isHoisted, init ) {
+		const name = identifier.name;
 		if ( isHoisted && this.isBlockScope ) {
-			this.parent.addVariable( name, variable, isHoisted, isParam );
+			this.parent.addDeclaration( identifier, isHoisted, init );
+		} else if ( this.variables[ name ] ) {
+			const variable = this.variables[ name ];
+			variable.addDeclaration( identifier );
+			init && variable.assignExpression( init );
 		} else {
-			const existingDeclaration = this.variables[ name ];
-
-			if ( existingDeclaration && existingDeclaration.duplicates ) {
-				// TODO warn/throw on duplicates?
-				existingDeclaration.duplicates.push( variable );
-			} else {
-				this.variables[ name ] = isParam ? new Parameter( name ) : variable;
-			}
+			this.variables[ name ] = new LocalVariable( identifier.name, identifier, init );
 		}
+	}
+
+	addParameterDeclaration ( identifier ) {
+		const name = identifier.name;
+		this.variables[ name ] = new ParameterVariable( name, identifier );
 	}
 
 	contains ( name ) {
