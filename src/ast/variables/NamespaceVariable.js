@@ -26,14 +26,13 @@ export default class NamespaceVariable extends Variable {
 		values.add( UNKNOWN_ASSIGNMENT );
 	}
 
-	includeDeclaration () {
-		if ( this.included ) {
-			return false;
+	includeVariable () {
+		const hasBeenIncluded = super.includeVariable();
+		if ( hasBeenIncluded ) {
+			this.needsNamespaceBlock = true;
+			forOwn( this.originals, original => original.includeVariable() );
 		}
-		this.included = true;
-		this.needsNamespaceBlock = true;
-		forOwn( this.originals, original => original.includeDeclaration() );
-		return true;
+		return hasBeenIncluded;
 	}
 
 	renderBlock ( es, legacy, indentString ) {

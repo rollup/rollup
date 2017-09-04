@@ -14,11 +14,11 @@ export default class VariableDeclarator extends Node {
 
 	render ( code, es ) {
 		extractNames( this.id ).forEach( name => {
-			const declaration = this.scope.findDeclaration( name );
+			const variable = this.scope.findVariable( name );
 
-			if ( !es && declaration.exportName && declaration.isReassigned ) {
+			if ( !es && variable.exportName && variable.isReassigned ) {
 				if ( this.init ) {
-					code.overwrite( this.start, this.id.end, declaration.getName( es ) );
+					code.overwrite( this.start, this.id.end, variable.getName( es ) );
 				} else if ( this.module.bundle.treeshake ) {
 					code.remove( this.start, this.end );
 				}

@@ -21,7 +21,7 @@ export default class ForInStatement extends Statement {
 
 	includeInBundle () {
 		let addedNewNodes = super.includeInBundle();
-		if ( this.left.includeDeclaration() ) {
+		if ( this.left.includeWithAllDeclarations() ) {
 			addedNewNodes = true;
 		}
 		return addedNewNodes;

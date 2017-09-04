@@ -46,7 +46,7 @@ export default class Node {
 		return true;
 	}
 
-	includeDeclaration () {
+	includeWithAllDeclarations () {
 		return this.includeInBundle();
 	}
 

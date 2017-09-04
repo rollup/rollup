@@ -36,13 +36,12 @@ export default class LocalVariable extends Variable {
 			|| Array.from( this.assignedExpressions ).some( node => node.hasEffectsWhenMutated( options ) );
 	}
 
-	includeDeclaration () {
-		if ( this.included ) {
-			return false;
+	includeVariable () {
+		const hasBeenIncluded = super.includeVariable();
+		if ( hasBeenIncluded ) {
+			this.declarations.forEach( identifier => identifier.includeInBundle() );
 		}
-		this.included = true;
-		this.declarations.forEach( identifier => identifier.includeInBundle() );
-		return true;
+		return hasBeenIncluded;
 	}
 
 	toString () {

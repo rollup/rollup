@@ -434,7 +434,7 @@ export default class Module {
 			const name = exportDeclaration.localName;
 			const declaration = this.trace( name );
 
-			return declaration || this.bundle.scope.findDeclaration( name );
+			return declaration || this.bundle.scope.findVariable( name );
 		}
 
 		if ( name === 'default' ) return;

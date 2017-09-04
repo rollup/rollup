@@ -10,4 +10,12 @@ export default class Variable {
 	hasEffectsWhenMutated () {
 		return true;
 	}
+
+	includeVariable () {
+		if ( this.included ) {
+			return false;
+		}
+		this.included = true;
+		return true;
+	}
 }

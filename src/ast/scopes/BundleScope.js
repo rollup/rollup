@@ -2,7 +2,7 @@ import Scope from './Scope.js';
 import GlobalVariable from '../variables/GlobalVariable';
 
 export default class BundleScope extends Scope {
-	findDeclaration ( name ) {
+	findVariable ( name ) {
 		if ( !this.variables[ name ] ) {
 			this.variables[ name ] = new GlobalVariable( name );
 		}

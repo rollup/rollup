@@ -73,7 +73,7 @@ export default class Bundle {
 		this.scope = new BundleScope();
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports', '_interopDefault' ].forEach( name => {
-			this.scope.findDeclaration( name ); // creates global declaration as side-effect
+			this.scope.findVariable( name ); // creates global variable as side-effect
 		} );
 
 		this.moduleById = new Map();
@@ -135,7 +135,7 @@ export default class Bundle {
 			.then( entryModule => {
 				this.entryModule = entryModule;
 
-				// Phase 2 – binding. We link references to their declarations
+				// Phase 2 – binding. We link references to their variables
 				// to generate a complete picture of the bundle
 
 				timeStart( 'phase 2' );
@@ -145,31 +145,30 @@ export default class Bundle {
 
 				timeEnd( 'phase 2' );
 
-				// Phase 3 – marking. We 'run' each statement to see which ones
-				// need to be included in the generated bundle
+				// Phase 3 – marking. We include all statements that should be included
 
 				timeStart( 'phase 3' );
 
 				// mark all export statements
 				entryModule.getExports().forEach( name => {
-					const declaration = entryModule.traceExport( name );
+					const variable = entryModule.traceExport( name );
 
-					declaration.exportName = name;
-					declaration.includeDeclaration();
+					variable.exportName = name;
+					variable.includeVariable();
 
-					if ( declaration.isNamespace ) {
-						declaration.needsNamespaceBlock = true;
+					if ( variable.isNamespace ) {
+						variable.needsNamespaceBlock = true;
 					}
 				} );
 
 				entryModule.getReexports().forEach( name => {
-					const declaration = entryModule.traceExport( name );
+					const variable = entryModule.traceExport( name );
 
-					if ( declaration.isExternal ) {
-						declaration.reexported = declaration.module.reexported = true;
+					if ( variable.isExternal ) {
+						variable.reexported = variable.module.reexported = true;
 					} else {
-						declaration.exportName = name;
-						declaration.includeDeclaration();
+						variable.exportName = name;
+						variable.includeVariable();
 					}
 				} );
 

@@ -34,15 +34,15 @@ export default class MemberExpression extends Node {
 		const keypath = new Keypath( this );
 
 		if ( !keypath.computed && keypath.root.type === 'Identifier' ) {
-			let declaration = this.scope.findDeclaration( keypath.root.name );
+			let variable = this.scope.findVariable( keypath.root.name );
 
-			while ( declaration.isNamespace && keypath.parts.length ) {
-				const exporterId = declaration.module.id;
+			while ( variable.isNamespace && keypath.parts.length ) {
+				const exporterId = variable.module.id;
 
 				const part = keypath.parts[ 0 ];
-				declaration = declaration.module.traceExport( part.name || part.value );
+				variable = variable.module.traceExport( part.name || part.value );
 
-				if ( !declaration ) {
+				if ( !variable ) {
 					this.module.warn( {
 						code: 'MISSING_EXPORT',
 						missing: part.name || part.value,
@@ -63,10 +63,10 @@ export default class MemberExpression extends Node {
 				return; // not a namespaced declaration
 			}
 
-			this.declaration = declaration;
+			this.variable = variable;
 
-			if ( declaration.isExternal ) {
-				declaration.module.suggestName( keypath.root.name );
+			if ( variable.isExternal ) {
+				variable.module.suggestName( keypath.root.name );
 			}
 		}
 
@@ -85,16 +85,16 @@ export default class MemberExpression extends Node {
 
 	includeInBundle () {
 		let addedNewNodes = super.includeInBundle();
-		if ( this.declaration && !this.declaration.included ) {
-			this.declaration.includeDeclaration();
+		if ( this.variable && !this.variable.included ) {
+			this.variable.includeVariable();
 			addedNewNodes = true;
 		}
 		return addedNewNodes;
 	}
 
 	render ( code, es ) {
-		if ( this.declaration ) {
-			const name = this.declaration.getName( es );
+		if ( this.variable ) {
+			const name = this.variable.getName( es );
 			if ( name !== this.name ) code.overwrite( this.start, this.end, name, { storeName: true, contentOnly: false } );
 		}
 

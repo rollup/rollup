@@ -73,8 +73,8 @@ export default class IfStatement extends Statement {
 				if ( this.hoistedVars ) {
 					const names = this.hoistedVars
 						.map( name => {
-							const declaration = this.scope.findDeclaration( name );
-							return declaration.included ? declaration.getName() : null;
+							const variable = this.scope.findVariable( name );
+							return variable.included ? variable.getName() : null;
 						} )
 						.filter( Boolean );
 

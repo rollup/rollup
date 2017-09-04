@@ -4,16 +4,16 @@ import callHasEffects from './shared/callHasEffects.js';
 export default class CallExpression extends Node {
 	bind () {
 		if ( this.callee.type === 'Identifier' ) {
-			const declaration = this.scope.findDeclaration( this.callee.name );
+			const variable = this.scope.findVariable( this.callee.name );
 
-			if ( declaration.isNamespace ) {
+			if ( variable.isNamespace ) {
 				this.module.error( {
 					code: 'CANNOT_CALL_NAMESPACE',
 					message: `Cannot call a namespace ('${this.callee.name}')`
 				}, this.start );
 			}
 
-			if ( this.callee.name === 'eval' && declaration.isGlobal ) {
+			if ( this.callee.name === 'eval' && variable.isGlobal ) {
 				this.module.warn( {
 					code: 'EVAL',
 					message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,

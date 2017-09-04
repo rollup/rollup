@@ -11,7 +11,7 @@ export default class ExportDefaultDeclaration extends Node {
 
 	bind () {
 		const name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name;
-		if ( name ) this.original = this.scope.findDeclaration( name );
+		if ( name ) this.original = this.scope.findVariable( name );
 
 		this.declaration.bind();
 	}
@@ -28,7 +28,7 @@ export default class ExportDefaultDeclaration extends Node {
 		return this.name;
 	}
 
-	includeDeclaration () {
+	includeVariable () {
 		if ( this.included ) {
 			return false;
 		}

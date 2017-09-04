@@ -2,6 +2,7 @@ import Node from '../Node.js';
 
 export default class ExportNamedDeclaration extends Node {
 	bind () {
+		// Do not bind specifiers
 		if ( this.declaration ) this.declaration.bind();
 	}
 

@@ -22,11 +22,11 @@ export default class VariableDeclaration extends Node {
 		this.eachChild( child => child.assignExpression( UNKNOWN_ASSIGNMENT ) );
 	}
 
-	includeDeclaration () {
+	includeWithAllDeclarations () {
 		if ( this.isFullyIncluded() ) return false;
 		let addedNewNodes = false;
 		this.declarations.forEach( declarator => {
-			if ( declarator.includeDeclaration() ) {
+			if ( declarator.includeInBundle() ) {
 				addedNewNodes = true;
 			}
 		} );
@@ -78,8 +78,8 @@ export default class VariableDeclaration extends Node {
 			const prefix = empty ? '' : separator; // TODO indentation
 
 			if ( declarator.id.type === 'Identifier' ) {
-				const declaration = this.scope.findDeclaration( declarator.id.name );
-				const isExportedAndReassigned = !es && declaration.exportName && declaration.isReassigned;
+				const variable = this.scope.findVariable( declarator.id.name );
+				const isExportedAndReassigned = !es && variable.exportName && variable.isReassigned;
 
 				if ( isExportedAndReassigned ) {
 					if ( declarator.init ) {
@@ -87,7 +87,7 @@ export default class VariableDeclaration extends Node {
 						c = declarator.end;
 						empty = false;
 					}
-				} else if ( !treeshake || declaration.included ) {
+				} else if ( !treeshake || variable.included ) {
 					if ( shouldSeparate ) code.overwrite( c, declarator.start, `${prefix}${this.kind} ` ); // TODO indentation
 					c = declarator.end;
 					empty = false;
@@ -97,8 +97,8 @@ export default class VariableDeclaration extends Node {
 				let isIncluded = false;
 
 				extractNames( declarator.id ).forEach( name => {
-					const declaration = this.scope.findDeclaration( name );
-					const isExportedAndReassigned = !es && declaration.exportName && declaration.isReassigned;
+					const variable = this.scope.findVariable( name );
+					const isExportedAndReassigned = !es && variable.exportName && variable.isReassigned;
 
 					if ( isExportedAndReassigned ) {
 						// code.overwrite( c, declarator.start, prefix );

@@ -19,7 +19,7 @@ export default class ForOfStatement extends Statement {
 
 	includeInBundle () {
 		let addedNewNodes = super.includeInBundle();
-		if ( this.left.includeDeclaration() ) {
+		if ( this.left.includeWithAllDeclarations() ) {
 			addedNewNodes = true;
 		}
 		return addedNewNodes;

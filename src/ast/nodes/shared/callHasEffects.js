@@ -76,19 +76,19 @@ export default function callHasEffects ( scope, callee, isNew ) {
 
 		else if ( isReference( node ) ) {
 			const flattened = flatten( node );
-			const declaration = scope.findDeclaration( flattened.name );
+			const variable = scope.findVariable( flattened.name );
 
-			if ( declaration.isGlobal ) {
+			if ( variable.isGlobal ) {
 				if ( !pureFunctions[ flattened.keypath ] ) return true;
 			}
 
-			else if ( declaration.isExternal ) {
+			else if ( variable.isExternal ) {
 				return true; // TODO make this configurable? e.g. `path.[whatever]`
 			}
 
 			else {
-				if ( node.declaration ) {
-					node.declaration.gatherPossibleValues( values );
+				if ( node.variable ) {
+					node.variable.gatherPossibleValues( values );
 				} else {
 					return true;
 				}

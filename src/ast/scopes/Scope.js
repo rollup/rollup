@@ -64,9 +64,9 @@ export default class Scope {
 		this.children.forEach( scope => scope.deshadow( names ) );
 	}
 
-	findDeclaration ( name ) {
+	findVariable ( name ) {
 		return this.variables[ name ] ||
-			( this.parent && this.parent.findDeclaration( name ) );
+			( this.parent && this.parent.findVariable( name ) );
 	}
 
 	findLexicalBoundary () {

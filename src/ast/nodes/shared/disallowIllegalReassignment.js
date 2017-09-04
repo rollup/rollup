@@ -1,8 +1,8 @@
 // TODO tidy this up a bit (e.g. they can both use node.module.imports)
 export default function disallowIllegalReassignment ( scope, node ) {
 	if ( node.type === 'MemberExpression' && node.object.type === 'Identifier' ) {
-		const declaration = scope.findDeclaration( node.object.name );
-		if ( declaration.isNamespace ) {
+		const variable = scope.findVariable( node.object.name );
+		if ( variable.isNamespace ) {
 			node.module.error({
 				code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
 				message: `Illegal reassignment to import '${node.object.name}'`

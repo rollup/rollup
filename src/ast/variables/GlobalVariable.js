@@ -19,9 +19,4 @@ export default class GlobalVariable extends Variable {
 	gatherPossibleValues ( values ) {
 		values.add( UNKNOWN_ASSIGNMENT );
 	}
-
-	includeDeclaration () {
-		this.included = true;
-		return false;
-	}
 }

@@ -60,12 +60,12 @@ export default class ModuleScope extends Scope {
 		super.deshadow( names );
 	}
 
-	findDeclaration ( name ) {
+	findVariable ( name ) {
 		if ( this.variables[ name ] ) {
 			return this.variables[ name ];
 		}
 
-		return this.module.trace( name ) || this.parent.findDeclaration( name );
+		return this.module.trace( name ) || this.parent.findVariable( name );
 	}
 
 	findLexicalBoundary () {
