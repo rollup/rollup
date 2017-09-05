@@ -1,6 +1,5 @@
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs.js'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path.js';
-import { blank } from './object.js';
 import error from './error.js';
 
 export function load ( id ) {
