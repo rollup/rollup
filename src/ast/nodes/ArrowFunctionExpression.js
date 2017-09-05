@@ -8,9 +8,15 @@ export default class ArrowFunctionExpression extends Node {
 
 	initialiseChildren () {
 		this.params.forEach( param => param.initialiseAndDeclare( this.scope, 'parameter' ) );
-		this.body.initialiseAndReplaceScope ?
-			this.body.initialiseAndReplaceScope( this.scope ) :
+		if ( this.body.initialiseAndReplaceScope ) {
+			this.body.initialiseAndReplaceScope( new Scope( {
+				parent: this.scope,
+				isBlockScope: false,
+				isLexicalBoundary: false
+			} ) );
+		} else {
 			this.body.initialise( this.scope );
+		}
 	}
 
 	initialiseScope ( parentScope ) {
