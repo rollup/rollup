@@ -1,5 +1,6 @@
 import { keys } from './object.js';
 import error from './error.js';
+import Warning from '../Warning.js';
 
 function badExports ( option, keys ) {
 	error({
@@ -28,7 +29,7 @@ export default function getExportMode ( bundle, {exports: exportMode, name, form
 			exportMode = 'default';
 		} else {
 			if ( bundle.entryModule.exports.default && format !== 'es') {
-				bundle.warn({
+				Warning.print({
 					code: 'MIXED_EXPORTS',
 					message: `Using named and default exports together. Consumers of your bundle will have to use ${name || 'bundle'}['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning`,
 					url: `https://github.com/rollup/rollup/wiki/JavaScript-API#exports`

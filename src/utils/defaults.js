@@ -47,15 +47,3 @@ export function resolveId ( importee, importer ) {
 	return addJsExtensionIfNecessary(
 		resolve( importer ? dirname( importer ) : resolve(), importee ) );
 }
-
-
-export function makeOnwarn () {
-	const warned = blank();
-
-	return warning => {
-		const str = warning.toString();
-		if ( str in warned ) return;
-		console.error( str ); //eslint-disable-line no-console
-		warned[ str ] = true;
-	};
-}

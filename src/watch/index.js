@@ -6,6 +6,7 @@ import ensureArray from '../utils/ensureArray.js';
 import { mapSequence } from '../utils/promise.js';
 import { addTask, deleteTask } from './fileWatchers.js';
 import chokidar from './chokidar.js';
+import Warning from '../Warning.js';
 
 const DELAY = 100;
 
@@ -90,7 +91,7 @@ class Task {
 			treeshake: config.treeshake,
 			plugins: config.plugins,
 			external: config.external,
-			onwarn: config.onwarn || (warning => console.warn(warning.message)), // eslint-disable-line no-console
+			onwarn: config.onwarn,
 			acorn: config.acorn,
 			context: config.context,
 			moduleContext: config.moduleContext
@@ -176,7 +177,7 @@ class Task {
 		});
 
 		if (this.deprecations) {
-			this.inputOptions.onwarn({
+			Warning.print({
 				code: 'DEPRECATED_OPTIONS',
 				deprecations: this.deprecations
 			});

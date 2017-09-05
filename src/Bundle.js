@@ -8,7 +8,7 @@ import Module from './Module.js';
 import ExternalModule from './ExternalModule.js';
 import finalisers from './finalisers/index.js';
 import ensureArray from './utils/ensureArray.js';
-import { load, makeOnwarn, resolveId } from './utils/defaults.js';
+import { load, resolveId } from './utils/defaults.js';
 import getExportMode from './utils/getExportMode.js';
 import getIndentString from './utils/getIndentString.js';
 import { mapSequence } from './utils/promise.js';
@@ -20,6 +20,7 @@ import relativeId from './utils/relativeId.js';
 import error from './utils/error.js';
 import { dirname, isRelative, isAbsolute, normalize, relative, resolve } from './utils/path.js';
 import BundleScope from './ast/scopes/BundleScope.js';
+import Warning from './Warning.js';
 
 export default class Bundle {
 	constructor ( options ) {
@@ -31,15 +32,17 @@ export default class Bundle {
 		}
 
 		this.plugins = ensureArray( options.plugins );
-
+		
 		options = this.plugins.reduce( ( acc, plugin ) => {
 			if ( plugin.options ) return plugin.options( acc ) || acc;
 			return acc;
 		}, options );
-
+		
 		if ( !options.input ) {
 			throw new Error( 'You must supply options.input to rollup' );
 		}
+
+		Warning.onwarn = options.onwarn;
 
 		this.entry = options.input;
 		this.entryId = null;
@@ -101,8 +104,6 @@ export default class Bundle {
 			const ids = ensureArray( options.external );
 			this.isExternal = id => ids.indexOf( id ) !== -1;
 		}
-
-		this.onwarn = options.onwarn || makeOnwarn();
 
 		this.varOrConst = options.preferConst ? 'const' : 'var';
 		this.legacy = options.legacy;
@@ -206,7 +207,7 @@ export default class Bundle {
 						`'${unused[ 0 ]}' is` :
 						`${unused.slice( 0, -1 ).map( name => `'${name}'` ).join( ', ' )} and '${unused.slice( -1 )}' are`;
 
-					this.warn( {
+					Warning.print( {
 						code: 'UNUSED_EXTERNAL_IMPORT',
 						source: module.id,
 						names: unused,
@@ -343,7 +344,7 @@ export default class Bundle {
 
 						keys( exportAllModule.exportsAll ).forEach( name => {
 							if ( name in module.exportsAll ) {
-								this.warn( {
+								Warning.print( {
 									code: 'NAMESPACE_CONFLICT',
 									reexporter: module.id,
 									name,
@@ -377,7 +378,7 @@ export default class Bundle {
 							} );
 						}
 
-						this.warn( {
+						Warning.print( {
 							code: 'UNRESOLVED_IMPORT',
 							source,
 							importer: relativeId( module.id ),
@@ -457,7 +458,7 @@ export default class Bundle {
 			} );
 
 			if ( !magicString.toString().trim() && this.entryModule.getExports().length === 0 && this.entryModule.getReexports().length === 0 ) {
-				this.warn( {
+				Warning.print( {
 					code: 'EMPTY_BUNDLE',
 					message: 'Generated an empty bundle'
 				} );
@@ -628,28 +629,14 @@ export default class Bundle {
 
 						findParent( this.entryModule );
 
-						this.onwarn(
-							`Module ${a.id} may be unable to evaluate without ${b.id}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
-						);
+						Warning.print({
+							message: `Module ${a.id} may be unable to evaluate without ${b.id}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
+						});
 					}
 				}
 			} );
 		}
 
 		return ordered;
-	}
-
-	warn ( warning ) {
-		warning.toString = () => {
-			let str = '';
-
-			if ( warning.plugin ) str += `(${warning.plugin} plugin) `;
-			if ( warning.loc ) str += `${relativeId( warning.loc.file )} (${warning.loc.line}:${warning.loc.column}) `;
-			str += warning.message;
-
-			return str;
-		};
-
-		this.onwarn( warning );
 	}
 }

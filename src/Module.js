@@ -14,6 +14,7 @@ import extractNames from './ast/utils/extractNames.js';
 import enhance from './ast/enhance.js';
 import clone from './ast/clone.js';
 import ModuleScope from './ast/scopes/ModuleScope.js';
+import Warning from './Warning.js';
 
 function tryParse ( module, acornOptions ) {
 	try {
@@ -452,6 +453,6 @@ export default class Module {
 		}
 
 		warning.id = this.id;
-		this.bundle.warn( warning );
+		Warning.print( warning );
 	}
 }

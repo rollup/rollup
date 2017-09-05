@@ -1,6 +1,7 @@
 import { encode } from 'sourcemap-codec';
 import error from './error.js';
 import { basename, dirname, relative, resolve } from './path.js';
+import Warning from '../Warning.js';
 
 class Source {
 	constructor ( filename, content ) {
@@ -133,7 +134,7 @@ export default function collapseSourcemaps ( bundle, file, map, modules, bundleS
 
 		sourcemapChain.forEach( map => {
 			if ( map.missing ) {
-				bundle.warn({
+				Warning.print({
 					code: 'SOURCEMAP_BROKEN',
 					plugin: map.plugin,
 					message: `Sourcemap is likely to be incorrect: a plugin${map.plugin ? ` ('${map.plugin}')` : ``} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
