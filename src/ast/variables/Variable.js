@@ -7,6 +7,10 @@ export default class Variable {
 		return this.name;
 	}
 
+	hasEffectsWhenCalled () {
+		return true;
+	}
+
 	hasEffectsWhenMutated () {
 		return true;
 	}

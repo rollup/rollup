@@ -1,7 +1,6 @@
 import Variable from './Variable';
 import { blank, forOwn, keys } from '../../utils/object';
 import { reservedWords } from '../../utils/identifierHelpers.js';
-import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class NamespaceVariable extends Variable {
 	constructor ( module ) {
@@ -21,10 +20,6 @@ export default class NamespaceVariable extends Variable {
 	}
 
 	assignExpression () {}
-
-	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN_ASSIGNMENT );
-	}
 
 	includeVariable () {
 		const hasBeenIncluded = super.includeVariable();

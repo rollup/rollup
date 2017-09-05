@@ -2,12 +2,13 @@ import Node from '../Node.js';
 import Scope from '../scopes/Scope.js';
 
 export default class FunctionDeclaration extends Node {
-	gatherPossibleValues ( values ) {
-		values.add( this );
+	hasEffects ( options ) {
+		return this.included || (this.id && this.id.hasEffects( options ));
 	}
 
-	hasEffects () {
-		return this.included || (this.id && this.id.hasEffects());
+	hasEffectsWhenCalled ( options ) {
+		return this.params.some( param => param.hasEffects( options ) )
+			|| this.body.hasEffects( options );
 	}
 
 	initialiseChildren ( parentScope ) {

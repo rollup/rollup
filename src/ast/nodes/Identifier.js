@@ -30,18 +30,19 @@ export default class Identifier extends Node {
 		}
 	}
 
-	gatherPossibleValues ( values ) {
-		if ( isReference( this, this.parent ) ) {
-			values.add( this );
-		}
-	}
-
 	hasEffectsAsExpressionStatement ( options ) {
 		return this.hasEffects( options ) || this.variable.isGlobal;
 	}
 
 	hasEffectsWhenAssigned () {
 		return this.variable && this.variable.included;
+	}
+
+	hasEffectsWhenCalled ( options ) {
+		if ( !this.variable ) {
+			return true;
+		}
+		return this.variable.hasEffectsWhenCalled( options );
 	}
 
 	hasEffectsWhenMutated ( options ) {

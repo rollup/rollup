@@ -1,5 +1,4 @@
 import Node from '../Node.js';
-import callHasEffects from './shared/callHasEffects.js';
 
 export default class TaggedTemplateExpression extends Node {
 	bind () {
@@ -26,6 +25,7 @@ export default class TaggedTemplateExpression extends Node {
 	}
 
 	hasEffects ( options ) {
-		return this.quasi.hasEffects( options ) || callHasEffects( this.scope, this.tag, false );
+		return super.hasEffects( options )
+			|| this.tag.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( this.tag ) );
 	}
 }

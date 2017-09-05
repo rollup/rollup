@@ -1,5 +1,5 @@
 import Variable from './Variable';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import pureFunctions from '../nodes/shared/pureFunctions';
 
 export default class GlobalVariable extends Variable {
 	constructor ( name ) {
@@ -16,7 +16,7 @@ export default class GlobalVariable extends Variable {
 
 	assignExpression () {}
 
-	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN_ASSIGNMENT );
+	hasEffectsWhenCalled () {
+		return !pureFunctions[ this.name ];
 	}
 }

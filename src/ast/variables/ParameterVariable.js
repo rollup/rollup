@@ -6,10 +6,6 @@ export default class ParameterVariable extends LocalVariable {
 		super( name, declarator, UNKNOWN_ASSIGNMENT );
 	}
 
-	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN_ASSIGNMENT );
-	}
-
 	getName () {
 		return this.name;
 	}

@@ -16,10 +16,6 @@ export default class ExportDefaultDeclaration extends Node {
 		this.declaration.bind();
 	}
 
-	gatherPossibleValues ( values ) {
-		this.declaration.gatherPossibleValues( values );
-	}
-
 	getName ( es ) {
 		if ( this.original && !this.original.isReassigned ) {
 			return this.original.getName( es );

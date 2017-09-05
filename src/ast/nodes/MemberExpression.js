@@ -1,6 +1,8 @@
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import flatten from '../utils/flatten';
+import isReference from 'is-reference';
+import pureFunctions from './shared/pureFunctions';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -75,10 +77,6 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN_ASSIGNMENT ); // TODO
-	}
-
 	hasEffectsWhenAssigned ( options ) {
 		return this.object.hasEffectsWhenMutated( options );
 	}
@@ -90,6 +88,17 @@ export default class MemberExpression extends Node {
 			addedNewNodes = true;
 		}
 		return addedNewNodes;
+	}
+
+	hasEffectsWhenCalled ( options ) {
+		if ( this.variable ) {
+			return this.variable.hasEffectsWhenCalled( options );
+		}
+		if ( !isReference( this ) ) {
+			return true;
+		}
+		const flattenedNode = flatten( this );
+		return !(this.scope.findVariable( flattenedNode.name ).isGlobal && pureFunctions[ flattenedNode.keypath ]);
 	}
 
 	render ( code, es ) {

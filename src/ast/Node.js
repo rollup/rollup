@@ -1,5 +1,5 @@
 import { locate } from 'locate-character';
-import { UNKNOWN_VALUE, UNKNOWN_ASSIGNMENT } from './values.js';
+import { UNKNOWN_VALUE } from './values.js';
 import ExecutionPathOptions from './ExecutionPathOptions';
 
 export default class Node {
@@ -22,10 +22,6 @@ export default class Node {
 		} );
 	}
 
-	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN_ASSIGNMENT );
-	}
-
 	getValue () {
 		return UNKNOWN_VALUE;
 	}
@@ -39,6 +35,10 @@ export default class Node {
 	}
 
 	hasEffectsWhenAssigned () {
+		return true;
+	}
+
+	hasEffectsWhenCalled () {
 		return true;
 	}
 

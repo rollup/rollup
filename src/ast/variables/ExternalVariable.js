@@ -1,5 +1,4 @@
 import Variable from './Variable';
-import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class ExternalVariable extends Variable {
 	constructor ( module, name ) {
@@ -14,10 +13,6 @@ export default class ExternalVariable extends Variable {
 		if ( this.name === 'default' || this.name === '*' ) {
 			this.module.suggestName( reference.name );
 		}
-	}
-
-	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN_ASSIGNMENT );
 	}
 
 	getName ( es ) {

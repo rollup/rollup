@@ -1,5 +1,6 @@
 const OPTION_IGNORE_BREAK_STATEMENTS = 'IGNORE_BREAK_STATEMENTS';
 const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
+const OPTION_CALLED_NODES = 'CALLED_NODES';
 
 /** Wrapper to ensure immutability */
 export default class ExecutionPathOptions {
@@ -61,5 +62,33 @@ export default class ExecutionPathOptions {
 	 */
 	setIgnoreReturnAwaitYield ( value = true ) {
 		return this.set( OPTION_IGNORE_RETURN_AWAIT_YIELD, value );
+	}
+
+	/**
+	 * @param {Node} node
+	 * @return {ExecutionPathOptions}
+	 */
+	addCalledNode ( node ) {
+		return this.set( OPTION_CALLED_NODES, new Set( this.get( OPTION_CALLED_NODES ) ).add( node ) );
+	}
+
+	/**
+	 * @param {Node} node
+	 * @return {boolean}
+	 */
+	hasNodeBeenCalled ( node ) {
+		const calledNodes = this.get( OPTION_CALLED_NODES );
+		return calledNodes && calledNodes.has( node );
+	}
+
+	/**
+	 * @param {Node} calledNode
+	 * @return {ExecutionPathOptions}
+	 */
+	getHasEffectsWhenCalledOptions ( calledNode ) {
+		return this
+			.addCalledNode( calledNode )
+			.setIgnoreReturnAwaitYield()
+			.setIgnoreBreakStatements( false );
 	}
 }

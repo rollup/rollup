@@ -20,15 +20,18 @@ export default class LocalVariable extends Variable {
 		this.isReassigned = true;
 	}
 
-	gatherPossibleValues ( values ) {
-		this.assignedExpressions.forEach( expression => values.add( expression ) );
-	}
-
 	getName ( es ) {
 		if ( es ) return this.name;
 		if ( !this.isReassigned || !this.exportName ) return this.name;
 
 		return `exports.${this.exportName}`;
+	}
+
+	hasEffectsWhenCalled ( options ) {
+		return Array.from( this.assignedExpressions ).some( node =>
+			!options.hasNodeBeenCalled( node )
+			&& node.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( node ) )
+		);
 	}
 
 	hasEffectsWhenMutated ( options ) {

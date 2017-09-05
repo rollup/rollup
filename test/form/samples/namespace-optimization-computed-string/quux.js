@@ -1,1 +1,3 @@
-export function a () {}
+export function a () {
+	console.log('effect');
+}

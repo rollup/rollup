@@ -1,7 +1,9 @@
 (function () {
 	'use strict';
 
-	function a () {}
+	function a () {
+		console.log('effect');
+	}
 
 	a();
 

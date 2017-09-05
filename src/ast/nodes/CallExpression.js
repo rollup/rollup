@@ -1,5 +1,4 @@
 import Node from '../Node.js';
-import callHasEffects from './shared/callHasEffects.js';
 
 export default class CallExpression extends Node {
 	bind () {
@@ -28,7 +27,7 @@ export default class CallExpression extends Node {
 	hasEffects ( options ) {
 		return this.included
 			|| this.arguments.some( child => child.hasEffects( options ) )
-			|| callHasEffects( this.scope, this.callee, false );
+			|| this.callee.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( this.callee ) );
 	}
 
 	hasEffectsAsExpressionStatement ( options ) {
