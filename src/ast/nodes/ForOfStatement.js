@@ -1,5 +1,5 @@
 import Statement from './shared/Statement.js';
-import Scope from '../scopes/Scope.js';
+import BlockScope from '../scopes/BlockScope';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class ForOfStatement extends Statement {
@@ -34,10 +34,6 @@ export default class ForOfStatement extends Statement {
 	}
 
 	initialiseScope ( parentScope ) {
-		this.scope = new Scope( {
-			parent: parentScope,
-			isBlockScope: true,
-			isLexicalBoundary: false
-		} );
+		this.scope = new BlockScope( { parent: parentScope } );
 	}
 }

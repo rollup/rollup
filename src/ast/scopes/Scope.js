@@ -5,7 +5,6 @@ import ParameterVariable from '../variables/ParameterVariable';
 export default class Scope {
 	constructor ( options = {} ) {
 		this.parent = options.parent;
-		this.isBlockScope = !!options.isBlockScope;
 		this.isLexicalBoundary = !!options.isLexicalBoundary;
 		this.isModuleScope = !!options.isModuleScope;
 
@@ -21,9 +20,7 @@ export default class Scope {
 
 	addDeclaration ( identifier, isHoisted, init ) {
 		const name = identifier.name;
-		if ( isHoisted && this.isBlockScope ) {
-			this.parent.addDeclaration( identifier, isHoisted, init );
-		} else if ( this.variables[ name ] ) {
+		if ( this.variables[ name ] ) {
 			const variable = this.variables[ name ];
 			variable.addDeclaration( identifier );
 			init && variable.assignExpression( init );

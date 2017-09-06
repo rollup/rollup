@@ -1,5 +1,5 @@
 import Statement from './shared/Statement.js';
-import Scope from '../scopes/Scope.js';
+import BlockScope from '../scopes/BlockScope';
 
 export default class BlockStatement extends Statement {
 	bind () {
@@ -40,11 +40,7 @@ export default class BlockStatement extends Statement {
 	}
 
 	initialiseScope ( parentScope ) {
-		this.scope = new Scope( {
-			parent: parentScope,
-			isBlockScope: true,
-			isLexicalBoundary: false
-		} );
+		this.scope = new BlockScope( { parent: parentScope } );
 	}
 
 	render ( code, es ) {

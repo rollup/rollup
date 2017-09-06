@@ -5,7 +5,6 @@ import Scope from './Scope.js';
 export default class ModuleScope extends Scope {
 	constructor ( module ) {
 		super({
-			isBlockScope: false,
 			isLexicalBoundary: true,
 			isModuleScope: true,
 			parent: module.bundle.scope

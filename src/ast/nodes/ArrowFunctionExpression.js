@@ -16,7 +16,6 @@ export default class ArrowFunctionExpression extends Node {
 		if ( this.body.initialiseAndReplaceScope ) {
 			this.body.initialiseAndReplaceScope( new Scope( {
 				parent: this.scope,
-				isBlockScope: false,
 				isLexicalBoundary: false
 			} ) );
 		} else {
@@ -27,7 +26,6 @@ export default class ArrowFunctionExpression extends Node {
 	initialiseScope ( parentScope ) {
 		this.scope = new Scope( {
 			parent: parentScope,
-			isBlockScope: false,
 			isLexicalBoundary: false
 		} );
 	}

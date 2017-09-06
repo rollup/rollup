@@ -16,7 +16,6 @@ export default class FunctionExpression extends Node {
 		this.params.forEach( param => param.initialiseAndDeclare( this.scope, 'parameter' ) );
 		this.body.initialiseAndReplaceScope( new Scope( {
 			parent: this.scope,
-			isBlockScope: false,
 			isLexicalBoundary: true
 		} ) );
 	}
@@ -24,7 +23,6 @@ export default class FunctionExpression extends Node {
 	initialiseScope ( parentScope ) {
 		this.scope = new Scope( {
 			parent: parentScope,
-			isBlockScope: false,
 			isLexicalBoundary: true
 		} );
 	}

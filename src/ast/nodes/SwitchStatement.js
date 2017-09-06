@@ -1,4 +1,4 @@
-import Scope from '../scopes/Scope.js';
+import BlockScope from '../scopes/BlockScope';
 import Statement from './shared/Statement.js';
 
 export default class SwitchStatement extends Statement {
@@ -7,10 +7,6 @@ export default class SwitchStatement extends Statement {
 	}
 
 	initialiseScope ( parentScope ) {
-		this.scope = new Scope( {
-			parent: parentScope,
-			isBlockScope: true,
-			isLexicalBoundary: false
-		} );
+		this.scope = new BlockScope( { parent: parentScope } );
 	}
 }
