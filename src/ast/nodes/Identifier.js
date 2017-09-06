@@ -17,16 +17,16 @@ function isAssignmentPatternLhs ( node, parent ) {
 }
 
 export default class Identifier extends Node {
-	assignExpression ( expression ) {
-		if ( this.variable ) {
-			this.variable.assignExpression( expression );
-		}
-	}
-
 	bind () {
 		if ( isReference( this, this.parent ) || isAssignmentPatternLhs( this, this.parent ) ) {
 			this.variable = this.scope.findVariable( this.name );
 			this.variable.addReference( this );
+		}
+	}
+
+	bindAssignment ( expression ) {
+		if ( this.variable ) {
+			this.variable.assignExpression( expression );
 		}
 	}
 

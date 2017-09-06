@@ -12,10 +12,6 @@ export default class Scope {
 		if ( this.parent ) this.parent.children.push( this );
 
 		this.variables = blank();
-
-		if ( this.isLexicalBoundary && !this.isModuleScope ) {
-			this.variables.arguments = new ParameterVariable( 'arguments' );
-		}
 	}
 
 	addDeclaration ( identifier, isHoisted, init ) {

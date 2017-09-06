@@ -5,7 +5,7 @@ import { UNKNOWN_ASSIGNMENT } from '../values';
 export default class ForOfStatement extends Statement {
 	bind () {
 		super.bind();
-		this.left.assignExpression( UNKNOWN_ASSIGNMENT );
+		this.left.bindAssignment( UNKNOWN_ASSIGNMENT );
 	}
 
 	hasEffects ( options ) {

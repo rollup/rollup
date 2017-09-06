@@ -2,8 +2,8 @@ import Node from '../Node.js';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class Property extends Node {
-	assignExpression () {
-		this.value.assignExpression( UNKNOWN_ASSIGNMENT );
+	bindAssignment () {
+		this.value.bindAssignment( UNKNOWN_ASSIGNMENT );
 	}
 
 	hasEffectsWhenAssigned ( options ) {

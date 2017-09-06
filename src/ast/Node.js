@@ -3,11 +3,11 @@ import { UNKNOWN_VALUE } from './values.js';
 import ExecutionPathOptions from './ExecutionPathOptions';
 
 export default class Node {
-	assignExpression () {}
-
 	bind () {
 		this.eachChild( child => child.bind() );
 	}
+
+	bindAssignment () {}
 
 	eachChild ( callback ) {
 		this.keys.forEach( key => {
@@ -46,10 +46,6 @@ export default class Node {
 		return true;
 	}
 
-	includeWithAllDeclarations () {
-		return this.includeInBundle();
-	}
-
 	includeInBundle () {
 		if ( this.isFullyIncluded() ) return false;
 		let addedNewNodes = false;
@@ -63,6 +59,10 @@ export default class Node {
 		}
 		this.included = true;
 		return true;
+	}
+
+	includeWithAllDeclarations () {
+		return this.includeInBundle();
 	}
 
 	initialise ( parentScope ) {

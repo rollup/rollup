@@ -1,5 +1,6 @@
 import Node from '../Node.js';
 import Scope from '../scopes/Scope.js';
+import FunctionBodyScope from '../scopes/FunctionBodyScope';
 
 export default class FunctionDeclaration extends Node {
 	hasEffects ( options ) {
@@ -14,10 +15,7 @@ export default class FunctionDeclaration extends Node {
 	initialiseChildren ( parentScope ) {
 		this.id && this.id.initialiseAndDeclare( parentScope, 'function', this );
 		this.params.forEach( param => param.initialiseAndDeclare( this.scope, 'parameter' ) );
-		this.body.initialiseAndReplaceScope( new Scope( {
-			parent: this.scope,
-			isLexicalBoundary: true
-		} ) );
+		this.body.initialiseAndReplaceScope( new FunctionBodyScope( { parent: this.scope } ) );
 	}
 
 	initialiseScope ( parentScope ) {

@@ -2,8 +2,8 @@ import Node from '../Node.js';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class ArrayPattern extends Node {
-	assignExpression () {
-		this.eachChild( child => child.assignExpression( UNKNOWN_ASSIGNMENT ) );
+	bindAssignment () {
+		this.eachChild( child => child.bindAssignment( UNKNOWN_ASSIGNMENT ) );
 	}
 
 	hasEffectsWhenAssigned ( options ) {

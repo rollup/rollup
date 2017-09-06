@@ -1,8 +1,8 @@
 import Node from '../Node.js';
 
 export default class ObjectPattern extends Node {
-	assignExpression ( expression ) {
-		this.properties.forEach( child => child.assignExpression( expression ) );
+	bindAssignment ( expression ) {
+		this.properties.forEach( child => child.bindAssignment( expression ) );
 	}
 
 	hasEffectsWhenAssigned ( options ) {

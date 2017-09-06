@@ -18,8 +18,8 @@ function getSeparator ( code, start ) {
 const forStatement = /^For(?:Of|In)?Statement/;
 
 export default class VariableDeclaration extends Node {
-	assignExpression () {
-		this.eachChild( child => child.assignExpression( UNKNOWN_ASSIGNMENT ) );
+	bindAssignment () {
+		this.eachChild( child => child.bindAssignment( UNKNOWN_ASSIGNMENT ) );
 	}
 
 	includeWithAllDeclarations () {

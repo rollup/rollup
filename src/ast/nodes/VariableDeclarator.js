@@ -2,8 +2,8 @@ import Node from '../Node.js';
 import extractNames from '../utils/extractNames.js';
 
 export default class VariableDeclarator extends Node {
-	assignExpression ( expression ) {
-		this.id.assignExpression( expression );
+	bindAssignment ( expression ) {
+		this.id.bindAssignment( expression );
 	}
 
 	hasEffectsWhenCalled ( options ) {
