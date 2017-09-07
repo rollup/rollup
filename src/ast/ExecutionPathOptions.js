@@ -2,6 +2,7 @@ const OPTION_IGNORE_BREAK_STATEMENTS = 'IGNORE_BREAK_STATEMENTS';
 const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
 const OPTION_IGNORE_SAFE_THIS = 'IGNORE_SAFE_THIS';
 const OPTION_CALLED_NODES = 'CALLED_NODES';
+const OPTION_MUTATED_NODES = 'MUTATED_NODES';
 
 /** Wrapper to ensure immutability */
 export default class ExecutionPathOptions {
@@ -78,6 +79,23 @@ export default class ExecutionPathOptions {
 	 */
 	setIgnoreSafeThis ( value = true ) {
 		return this.set( OPTION_IGNORE_SAFE_THIS, value );
+	}
+
+	/**
+	 * @param {Node} node
+	 * @return {ExecutionPathOptions}
+	 */
+	addMutatedNode ( node ) {
+		return this.set( OPTION_MUTATED_NODES, new Set( this.get( OPTION_MUTATED_NODES ) ).add( node ) );
+	}
+
+	/**
+	 * @param {Node} node
+	 * @return {boolean}
+	 */
+	hasNodeBeenMutated ( node ) {
+		const mutatedNodes = this.get( OPTION_MUTATED_NODES );
+		return mutatedNodes && mutatedNodes.has( node );
 	}
 
 	/**

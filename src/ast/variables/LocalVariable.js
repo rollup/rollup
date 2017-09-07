@@ -41,15 +41,18 @@ export default class LocalVariable extends Variable {
 	}
 
 	hasEffectsWhenCalled ( options ) {
-		return Array.from( this.assignedExpressions ).some( node => {
-			return !options.hasNodeBeenCalled( node )
-				&& node.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( node ) );
-		} );
+		return Array.from( this.assignedExpressions ).some( node =>
+			!options.hasNodeBeenCalled( node )
+			&& node.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( node ) )
+		);
 	}
 
 	hasEffectsWhenMutated ( options ) {
 		return this.included
-			|| Array.from( this.assignedExpressions ).some( node => node.hasEffectsWhenMutated( options ) );
+			|| Array.from( this.assignedExpressions ).some( node =>
+				!options.hasNodeBeenMutated( node ) &&
+				node.hasEffectsWhenMutated( options.addMutatedNode( node ) )
+			);
 	}
 
 	includeVariable () {
