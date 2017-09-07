@@ -11,6 +11,10 @@ export default class ArrowFunctionExpression extends Node {
 			|| this.body.hasEffects( options );
 	}
 
+	hasEffectsWhenMutated () {
+		return this.included;
+	}
+
 	initialiseChildren () {
 		this.params.forEach( param => param.initialiseAndDeclare( this.scope, 'parameter' ) );
 		if ( this.body.initialiseAndReplaceScope ) {

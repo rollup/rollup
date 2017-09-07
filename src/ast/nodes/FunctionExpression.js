@@ -24,6 +24,10 @@ export default class FunctionExpression extends Node {
 			|| this.body.hasEffects( innerOptions );
 	}
 
+	hasEffectsWhenMutated () {
+		return this.included;
+	}
+
 	initialiseChildren () {
 		this.id && this.id.initialiseAndDeclare( this.scope, 'function', this );
 		this.params.forEach( param => param.initialiseAndDeclare( this.scope, 'parameter' ) );
