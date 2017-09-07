@@ -2,6 +2,9 @@ import Node from '../Node';
 import Scope from '../scopes/Scope.js';
 
 export default class ArrowFunctionExpression extends Node {
+	// Should receive an implementation once we start tracking parameter values
+	bindCall () {}
+
 	hasEffects () {
 		return this.included;
 	}

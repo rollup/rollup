@@ -9,10 +9,14 @@ export default class Node {
 
 	bindAssignment () {}
 
-	bindCall () {
-		// TODO Lukas investigate all
-		// console.log( 'untreated bind call', this.type );
-	}
+	/**
+	 * Binds ways a node is called to a node. Current options are:
+	 * - withNew: boolean - Did this call use the "new" operator
+	 * The default noop implementation is ok as long as hasEffectsWhenCalled
+	 * always returns true for this Node. Otherwise it should be overridden.
+	 * @param [callOptions]
+	 */
+	bindCall () {}
 
 	eachChild ( callback ) {
 		this.keys.forEach( key => {

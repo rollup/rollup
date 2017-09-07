@@ -6,10 +6,6 @@ export default class VariableDeclarator extends Node {
 		this.id.bindAssignment( expression );
 	}
 
-	hasEffectsWhenCalled ( options ) {
-		return this.declarator.hasEffectsWhenCalled( options );
-	}
-
 	initialiseDeclarator ( parentScope, kind ) {
 		this.initialiseScope( parentScope );
 		this.init && this.init.initialise( this.scope );

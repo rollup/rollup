@@ -28,6 +28,10 @@ export default class ExportDefaultDeclaration extends Node {
 		return this.name;
 	}
 
+	hasEffectsWhenCalled ( options ) {
+		return this.declaration.hasEffectsWhenCalled( options );
+	}
+
 	includeVariable () {
 		if ( this.included ) {
 			return false;

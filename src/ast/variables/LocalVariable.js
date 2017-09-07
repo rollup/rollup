@@ -18,9 +18,7 @@ export default class LocalVariable extends Variable {
 		// To prevent infinite loops
 		if ( this.calls.has( callOptions ) ) return;
 		this.calls.add( callOptions );
-		Array.from( this.assignedExpressions ).forEach( expression => {
-			return expression.bindCall( callOptions );
-		} );
+		Array.from( this.assignedExpressions ).forEach( expression => expression.bindCall( callOptions ) );
 	}
 
 	addReference () {}
@@ -28,9 +26,7 @@ export default class LocalVariable extends Variable {
 	assignExpression ( expression ) {
 		this.assignedExpressions.add( expression );
 		this.isReassigned = true;
-		Array.from( this.calls ).forEach( callOptions => {
-			return expression.bindCall( callOptions );
-		} );
+		Array.from( this.calls ).forEach( callOptions => expression.bindCall( callOptions ) );
 	}
 
 	getName ( es ) {

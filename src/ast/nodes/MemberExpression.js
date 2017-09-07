@@ -77,6 +77,12 @@ export default class MemberExpression extends Node {
 		}
 	}
 
+	bindCall ( callOptions ) {
+		if ( this.variable ) {
+			this.variable.addCall( callOptions );
+		}
+	}
+
 	hasEffectsWhenAssigned ( options ) {
 		return this.object.hasEffectsWhenMutated( options );
 	}
@@ -90,7 +96,6 @@ export default class MemberExpression extends Node {
 		return addedNewNodes;
 	}
 
-	// TODO bind calls to this.variable if it exists
 	hasEffectsWhenCalled ( options ) {
 		if ( this.variable ) {
 			return this.variable.hasEffectsWhenCalled( options );
