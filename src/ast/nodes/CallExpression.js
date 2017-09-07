@@ -22,6 +22,7 @@ export default class CallExpression extends Node {
 		}
 
 		super.bind();
+		this.callee.bindCall( { withNew: false } );
 	}
 
 	hasEffects ( options ) {

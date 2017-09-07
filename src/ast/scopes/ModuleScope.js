@@ -1,16 +1,18 @@
 import { forOwn } from '../../utils/object.js';
 import relativeId from '../../utils/relativeId.js';
 import Scope from './Scope.js';
+import { UNDEFINED_ASSIGNMENT } from '../values';
+import LocalVariable from '../variables/LocalVariable';
 
 export default class ModuleScope extends Scope {
 	constructor ( module ) {
-		super({
-			isLexicalBoundary: true,
+		super( {
 			isModuleScope: true,
 			parent: module.bundle.scope
-		});
+		} );
 
 		this.module = module;
+		this.variables.this = new LocalVariable( 'this', null, UNDEFINED_ASSIGNMENT );
 	}
 
 	deshadow ( names ) {
@@ -22,21 +24,21 @@ export default class ModuleScope extends Scope {
 			const addDeclaration = declaration => {
 				if ( declaration.isNamespace && !declaration.isExternal ) {
 					declaration.module.getExports().forEach( name => {
-						addDeclaration( declaration.module.traceExport(name) );
-					});
+						addDeclaration( declaration.module.traceExport( name ) );
+					} );
 				}
 
 				names.add( declaration.name );
 			};
 
 			specifier.module.getExports().forEach( name => {
-				addDeclaration( specifier.module.traceExport(name) );
-			});
+				addDeclaration( specifier.module.traceExport( name ) );
+			} );
 
 			if ( specifier.name !== '*' ) {
 				const declaration = specifier.module.traceExport( specifier.name );
 				if ( !declaration ) {
-					this.module.warn({
+					this.module.warn( {
 						code: 'NON_EXISTENT_EXPORT',
 						name: specifier.name,
 						source: specifier.module.id,
@@ -54,9 +56,13 @@ export default class ModuleScope extends Scope {
 					names.add( specifier.specifier.imported.name );
 				}
 			}
-		});
+		} );
 
 		super.deshadow( names );
+	}
+
+	findLexicalBoundary () {
+		return this;
 	}
 
 	findVariable ( name ) {
@@ -65,9 +71,5 @@ export default class ModuleScope extends Scope {
 		}
 
 		return this.module.trace( name ) || this.parent.findVariable( name );
-	}
-
-	findLexicalBoundary () {
-		return this;
 	}
 }

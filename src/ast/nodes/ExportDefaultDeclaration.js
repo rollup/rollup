@@ -4,6 +4,10 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
 export default class ExportDefaultDeclaration extends Node {
+	addCall ( options ) {
+		this.declaration.bindCall( options );
+	}
+
 	addReference ( reference ) {
 		this.name = reference.name;
 		if ( this.original ) this.original.addReference( reference );

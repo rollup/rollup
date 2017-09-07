@@ -30,6 +30,12 @@ export default class Identifier extends Node {
 		}
 	}
 
+	bindCall ( callOptions ) {
+		if ( this.variable ) {
+			this.variable.addCall( callOptions );
+		}
+	}
+
 	hasEffectsAsExpressionStatement ( options ) {
 		return this.hasEffects( options ) || this.variable.isGlobal;
 	}

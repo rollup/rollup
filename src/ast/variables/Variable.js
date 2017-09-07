@@ -3,6 +3,8 @@ export default class Variable {
 		this.name = name;
 	}
 
+	addCall () {}
+
 	getName () {
 		return this.name;
 	}

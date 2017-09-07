@@ -7,10 +7,20 @@ export default class LocalVariable extends Variable {
 		this.exportName = null;
 		this.declarations = new Set( declarator ? [ declarator ] : null );
 		this.assignedExpressions = new Set( init ? [ init ] : null );
+		this.calls = new Set();
 	}
 
 	addDeclaration ( identifier ) {
 		this.declarations.add( identifier );
+	}
+
+	addCall ( callOptions ) {
+		// To prevent infinite loops
+		if ( this.calls.has( callOptions ) ) return;
+		this.calls.add( callOptions );
+		Array.from( this.assignedExpressions ).forEach( expression => {
+			return expression.bindCall( callOptions );
+		} );
 	}
 
 	addReference () {}
@@ -18,6 +28,9 @@ export default class LocalVariable extends Variable {
 	assignExpression ( expression ) {
 		this.assignedExpressions.add( expression );
 		this.isReassigned = true;
+		Array.from( this.calls ).forEach( callOptions => {
+			return expression.bindCall( callOptions );
+		} );
 	}
 
 	getName ( es ) {
@@ -28,10 +41,10 @@ export default class LocalVariable extends Variable {
 	}
 
 	hasEffectsWhenCalled ( options ) {
-		return Array.from( this.assignedExpressions ).some( node =>
-			!options.hasNodeBeenCalled( node )
-			&& node.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( node ) )
-		);
+		return Array.from( this.assignedExpressions ).some( node => {
+			return !options.hasNodeBeenCalled( node )
+				&& node.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( node ) );
+		} );
 	}
 
 	hasEffectsWhenMutated ( options ) {

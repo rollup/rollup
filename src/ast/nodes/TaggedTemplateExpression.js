@@ -22,6 +22,7 @@ export default class TaggedTemplateExpression extends Node {
 		}
 
 		super.bind();
+		this.tag.bindCall( { withNew: false } );
 	}
 
 	hasEffects ( options ) {

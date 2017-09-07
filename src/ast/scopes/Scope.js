@@ -5,7 +5,6 @@ import ParameterVariable from '../variables/ParameterVariable';
 export default class Scope {
 	constructor ( options = {} ) {
 		this.parent = options.parent;
-		this.isLexicalBoundary = !!options.isLexicalBoundary;
 		this.isModuleScope = !!options.isModuleScope;
 
 		this.children = [];
@@ -57,12 +56,12 @@ export default class Scope {
 		this.children.forEach( scope => scope.deshadow( names ) );
 	}
 
+	findLexicalBoundary () {
+		return this.parent.findLexicalBoundary();
+	}
+
 	findVariable ( name ) {
 		return this.variables[ name ] ||
 			( this.parent && this.parent.findVariable( name ) );
-	}
-
-	findLexicalBoundary () {
-		return this.isLexicalBoundary ? this : this.parent.findLexicalBoundary();
 	}
 }

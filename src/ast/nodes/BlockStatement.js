@@ -6,6 +6,11 @@ export default class BlockStatement extends Statement {
 		this.body.forEach( node => node.bind() );
 	}
 
+	hasEffects ( options ) {
+		// Empty block statements do not have effects even though they may be included as e.g. function body
+		return this.body.some( child => child.hasEffects( options ) );
+	}
+
 	includeInBundle () {
 		if ( this.isFullyIncluded() ) return false;
 		let addedNewNodes = false;

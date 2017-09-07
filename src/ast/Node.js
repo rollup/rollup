@@ -9,6 +9,11 @@ export default class Node {
 
 	bindAssignment () {}
 
+	bindCall () {
+		// TODO Lukas investigate all
+		// console.log( 'untreated bind call', this.type );
+	}
+
 	eachChild ( callback ) {
 		this.keys.forEach( key => {
 			const value = this[ key ];
