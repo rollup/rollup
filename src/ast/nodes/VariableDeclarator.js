@@ -12,6 +12,7 @@ export default class VariableDeclarator extends Node {
 		this.id.initialiseAndDeclare( this.scope, kind, this.init );
 	}
 
+	// TODO Deleting this does not break any tests. Find meaningful test or delete.
 	render ( code, es ) {
 		extractNames( this.id ).forEach( name => {
 			const variable = this.scope.findVariable( name );

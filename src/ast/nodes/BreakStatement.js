@@ -5,8 +5,4 @@ export default class BreakStatement extends Node {
 		return super.hasEffects( options )
 			|| !options.ignoreBreakStatements();
 	}
-
-	shouldBeIncluded () {
-		return true;
-	}
 }
