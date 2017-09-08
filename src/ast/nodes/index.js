@@ -1,6 +1,7 @@
 import ArrayPattern from './ArrayPattern.js';
 import ArrowFunctionExpression from './ArrowFunctionExpression.js';
 import AssignmentExpression from './AssignmentExpression.js';
+import AssignmentPattern from './AssignmentPattern.js';
 import AwaitExpression from './AwaitExpression.js';
 import BinaryExpression from './BinaryExpression.js';
 import BlockStatement from './BlockStatement.js';
@@ -28,6 +29,7 @@ import Literal from './Literal.js';
 import LogicalExpression from './LogicalExpression.js';
 import MemberExpression from './MemberExpression.js';
 import NewExpression from './NewExpression.js';
+import ObjectExpression from './ObjectExpression.js';
 import ObjectPattern from './ObjectPattern.js';
 import Property from './Property.js';
 import RestElement from './RestElement.js';
@@ -52,7 +54,7 @@ export default {
 	ArrayPattern,
 	ArrowFunctionExpression,
 	AssignmentExpression,
-	AssignmentPattern: Node,
+	AssignmentPattern,
 	AwaitExpression,
 	BinaryExpression,
 	BlockStatement,
@@ -80,7 +82,7 @@ export default {
 	LogicalExpression,
 	MemberExpression,
 	NewExpression,
-	ObjectExpression: Node,
+	ObjectExpression,
 	ObjectPattern,
 	Property,
 	RestElement,

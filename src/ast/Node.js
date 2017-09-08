@@ -38,11 +38,11 @@ export default class Node {
 	}
 
 	hasEffectsWhenAssigned () {
-		return false;
+		return true;
 	}
 
 	hasEffectsWhenMutated () {
-		return false;
+		return true;
 	}
 
 	includeDeclaration () {

@@ -37,10 +37,6 @@ export default class ConditionalExpression extends Node {
 		return testValue ? this.consequent.getValue() : this.alternate.getValue();
 	}
 
-	hasEffectsWhenMutated () {
-		return true;
-	}
-
 	render ( code, es ) {
 		if ( !this.module.bundle.treeshake ) {
 			super.render( code, es );

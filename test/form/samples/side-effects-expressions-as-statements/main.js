@@ -7,3 +7,6 @@ globalVar && globalVar.member && globalVar.member.getter;
 
 // Call pure constructors for side-effects for e.g. feature detection
 new Function('');
+
+var localVarsAreRemoved;
+localVarsAreRemoved;

@@ -36,6 +36,10 @@ export default class Identifier extends Node {
 		}
 	}
 
+	hasEffectsAsExpressionStatement ( options ) {
+		return this.hasEffects( options ) || this.declaration.isGlobal;
+	}
+
 	hasEffectsWhenAssigned () {
 		return this.declaration && this.declaration.included;
 	}
