@@ -100,6 +100,13 @@ describe('cli', () => {
 					} catch (err) {
 						done(err);
 					}
+				} else if (config.test) {
+					try {
+						config.test();
+						done();
+					} catch (err) {
+						done(err);
+					}
 				} else if (
 					sander.existsSync('_expected') &&
 					sander.statSync('_expected').isDirectory()
