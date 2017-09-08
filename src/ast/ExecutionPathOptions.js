@@ -1,6 +1,6 @@
 const OPTION_IGNORE_BREAK_STATEMENTS = 'IGNORE_BREAK_STATEMENTS';
 const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
-const OPTION_IGNORE_SAFE_THIS = 'IGNORE_SAFE_THIS';
+const OPTION_IGNORE_SAFE_THIS_MUTATIONS = 'IGNORE_SAFE_THIS_MUTATIONS';
 const OPTION_CALLED_NODES = 'CALLED_NODES';
 const OPTION_MUTATED_NODES = 'MUTATED_NODES';
 
@@ -69,16 +69,16 @@ export default class ExecutionPathOptions {
 	/**
 	 * @return {boolean}
 	 */
-	ignoreSafeThis () {
-		return this.get( OPTION_IGNORE_SAFE_THIS );
+	ignoreSafeThisMutations () {
+		return this.get( OPTION_IGNORE_SAFE_THIS_MUTATIONS );
 	}
 
 	/**
 	 * @param {boolean} [value=true]
 	 * @return {ExecutionPathOptions}
 	 */
-	setIgnoreSafeThis ( value = true ) {
-		return this.set( OPTION_IGNORE_SAFE_THIS, value );
+	setIgnoreSafeThisMutations ( value = true ) {
+		return this.set( OPTION_IGNORE_SAFE_THIS_MUTATIONS, value );
 	}
 
 	/**

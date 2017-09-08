@@ -1,9 +1,17 @@
 import Node from '../../Node.js';
-import BlockScope from '../../scopes/BlockScope';
+import Scope from '../../scopes/Scope';
 
 export default class Class extends Node {
-	hasEffects ( options ) {
-		return this.included || (this.id && this.id.hasEffects( options ));
+	bindCall ( callOptions ) {
+		if ( this.superClass ) {
+			this.superClass.bindCall( callOptions );
+		}
+		this.body.bindCall( callOptions );
+	}
+
+	hasEffectsWhenCalled ( options ) {
+		return this.body.hasEffectsWhenCalled( options )
+			|| ( this.superClass && this.superClass.hasEffectsWhenCalled( options ) );
 	}
 
 	initialiseChildren () {
@@ -14,6 +22,6 @@ export default class Class extends Node {
 	}
 
 	initialiseScope ( parentScope ) {
-		this.scope = new BlockScope( { parent: parentScope } );
+		this.scope = new Scope( { parent: parentScope } );
 	}
 }

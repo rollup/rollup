@@ -21,7 +21,7 @@ export default class ThisExpression extends Node {
 	}
 
 	hasEffectsWhenMutated ( options ) {
-		return !options.ignoreSafeThis() || this.variable.hasEffectsWhenMutated( options );
+		return !options.ignoreSafeThisMutations() || this.variable.hasEffectsWhenMutated( options );
 	}
 
 	render ( code ) {

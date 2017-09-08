@@ -19,7 +19,7 @@ export default class FunctionDeclaration extends Node {
 	}
 
 	hasEffectsWhenCalled ( options ) {
-		const innerOptions = options.setIgnoreSafeThis();
+		const innerOptions = options.setIgnoreSafeThisMutations();
 		return this.params.some( param => param.hasEffects( innerOptions ) )
 			|| this.body.hasEffects( innerOptions );
 	}

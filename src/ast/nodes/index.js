@@ -8,6 +8,7 @@ import BlockStatement from './BlockStatement.js';
 import BreakStatement from './BreakStatement';
 import CallExpression from './CallExpression.js';
 import CatchClause from './CatchClause.js';
+import ClassBody from './ClassBody.js';
 import ClassDeclaration from './ClassDeclaration.js';
 import ClassExpression from './ClassExpression.js';
 import ConditionalExpression from './ConditionalExpression.js';
@@ -28,6 +29,7 @@ import ImportDeclaration from './ImportDeclaration.js';
 import Literal from './Literal.js';
 import LogicalExpression from './LogicalExpression.js';
 import MemberExpression from './MemberExpression.js';
+import MethodDefinition from './MethodDefinition';
 import NewExpression from './NewExpression.js';
 import ObjectExpression from './ObjectExpression.js';
 import ObjectPattern from './ObjectPattern.js';
@@ -62,6 +64,7 @@ export default {
 	BreakStatement,
 	CallExpression,
 	CatchClause,
+	ClassBody,
 	ClassDeclaration,
 	ClassExpression,
 	ConditionalExpression,
@@ -82,6 +85,7 @@ export default {
 	Literal,
 	LogicalExpression,
 	MemberExpression,
+	MethodDefinition,
 	NewExpression,
 	ObjectExpression,
 	ObjectPattern,
