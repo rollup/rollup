@@ -73,14 +73,21 @@ export default function mergeOptions ( config, command ) {
 		paths: getOption('paths')
 	};
 
-	const outputOptions = (
-		(command.output || config.output) ?
+	let mergedOutputOptions;
+	if (Array.isArray(config.output)) {
+		mergedOutputOptions = config.output.map((output) => Object.assign({}, output, command.output));
+	} else if (config.output && command.output) {
+		mergedOutputOptions = [Object.assign({}, config.output, command.output)];
+	} else {
+		mergedOutputOptions = (command.output || config.output) ?
 			ensureArray(command.output || config.output) :
 			[{
 				file: command.output ? command.output.file : null,
 				format: command.output ? command.output.format : null
-			}]
-	).map(output => {
+			}];
+	}
+
+	const outputOptions = mergedOutputOptions.map(output => {
 		return Object.assign({}, baseOutputOptions, output);
 	});
 
