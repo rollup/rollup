@@ -42,21 +42,21 @@ For browsers:
 
 ```bash
 # compile to a <script> containing a self-executing function
-$ rollup main.js --format iife --output bundle.js
+$ rollup main.js --output.format iife --output.file bundle.js
 ```
 
 For Node.js:
 
 ```bash
 # compile to a CommonJS module
-$ rollup main.js --format cjs --output bundle.js
+$ rollup main.js --output.format cjs --output.file bundle.js
 ```
 
 For both browsers and Node.js:
 
 ```bash
 # UMD format requires a bundle name
-$ rollup main.js --format umd --name "myBundle" --output bundle.js
+$ rollup main.js --output.format umd --name "myBundle" --output.file bundle.js
 ```
 
 ## Why
