@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.49.3
+
+* Respect `watch` options ([#1596](https://github.com/rollup/rollup/issues/1596))
+* Fix treeshaking regressions ([#1604](https://github.com/rollup/rollup/pull/1604))
+* Allow `-o` to work with `output.format` ([#1606](https://github.com/rollup/rollup/pull/1606))
+
 ## 0.49.2
 
 * Fix treeshaking regressions ([#1591](https://github.com/rollup/rollup/pull/1591))
