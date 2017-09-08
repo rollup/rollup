@@ -1,7 +1,7 @@
 import Node from '../../Node.js';
 import Scope from '../../scopes/Scope';
 
-export default class Class extends Node {
+export default class ClassNode extends Node {
 	bindCall ( callOptions ) {
 		if ( this.superClass ) {
 			this.superClass.bindCall( callOptions );
