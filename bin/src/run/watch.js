@@ -76,7 +76,10 @@ export default function watch(configFile, configs, command, silent) {
 					break;
 
 				case 'END':
-					if ( !silent && isTTY ) stderr( `\nwaiting for changes...` );
+					if ( !silent && isTTY ) {
+						stderr( `\nfinished at ${new Date()}` );
+						stderr( `\nwaiting for changes...` );
+					}
 			}
 		});
 	}
