@@ -13,3 +13,5 @@ for ( const foo of [ effect3 ] ) {
 	let effect3 = () => {}; // This can be removed
 	foo(); // Must not be removed!
 }
+
+for ( globalVar of [ 1 ] ) {}

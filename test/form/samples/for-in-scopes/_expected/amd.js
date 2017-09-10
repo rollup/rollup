@@ -12,4 +12,6 @@ define(function () { 'use strict';
 		 // This can be removed
 	}
 
+	for ( globalVar in { x: 1 } ) {}
+
 });

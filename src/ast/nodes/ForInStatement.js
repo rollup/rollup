@@ -5,7 +5,7 @@ export default class ForInStatement extends Statement {
 	hasEffects ( options ) {
 		return (
 			this.included
-			|| this.left && this.left.hasEffects( options )
+			|| this.left && (this.left.hasEffects( options ) || this.left.hasEffectsWhenAssigned( options ))
 			|| this.right && this.right.hasEffects( options )
 			|| this.body.hasEffects( options.setIgnoreBreakStatements() )
 		);

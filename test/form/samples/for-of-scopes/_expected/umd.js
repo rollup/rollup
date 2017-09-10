@@ -14,4 +14,6 @@
 		foo(); // Must not be removed!
 	}
 
+	for ( globalVar of [ 1 ] ) {}
+
 })));

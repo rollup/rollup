@@ -22,6 +22,10 @@ export default class VariableDeclaration extends Node {
 		this.eachChild( child => child.bindAssignment( UNKNOWN_ASSIGNMENT ) );
 	}
 
+	hasEffectsWhenAssigned () {
+		return false;
+	}
+
 	includeWithAllDeclarations () {
 		if ( this.isFullyIncluded() ) return false;
 		let addedNewNodes = false;
