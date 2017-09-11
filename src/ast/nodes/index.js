@@ -26,6 +26,7 @@ import FunctionExpression from './FunctionExpression.js';
 import Identifier from './Identifier.js';
 import IfStatement from './IfStatement.js';
 import ImportDeclaration from './ImportDeclaration.js';
+import LabeledStatement from './LabeledStatement.js';
 import Literal from './Literal.js';
 import LogicalExpression from './LogicalExpression.js';
 import MemberExpression from './MemberExpression.js';
@@ -82,6 +83,7 @@ export default {
 	Identifier,
 	IfStatement,
 	ImportDeclaration,
+	LabeledStatement,
 	Literal,
 	LogicalExpression,
 	MemberExpression,

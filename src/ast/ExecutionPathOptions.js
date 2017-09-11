@@ -3,6 +3,7 @@ const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
 const OPTION_IGNORE_SAFE_THIS_MUTATIONS = 'IGNORE_SAFE_THIS_MUTATIONS';
 const OPTION_CALLED_NODES = 'CALLED_NODES';
 const OPTION_MUTATED_NODES = 'MUTATED_NODES';
+const IGNORED_LABELS = 'IGNORED_LABELS';
 
 /** Wrapper to ensure immutability */
 export default class ExecutionPathOptions {
@@ -49,6 +50,30 @@ export default class ExecutionPathOptions {
 	 */
 	setIgnoreBreakStatements ( value = true ) {
 		return this.set( OPTION_IGNORE_BREAK_STATEMENTS, value );
+	}
+
+	/**
+	 * @param {string} labelName
+	 * @return {boolean}
+	 */
+	ignoreLabel ( labelName ) {
+		const ignoredLabels = this.get( IGNORED_LABELS );
+		return ignoredLabels && ignoredLabels.has( labelName );
+	}
+
+	/**
+	 * @param {string} labelName
+	 * @return {ExecutionPathOptions}
+	 */
+	setIgnoreLabel ( labelName ) {
+		return this.set( IGNORED_LABELS, new Set( this.get( IGNORED_LABELS ) ).add( labelName ) );
+	}
+
+	/**
+	 * @return {ExecutionPathOptions}
+	 */
+	setIgnoreNoLabels () {
+		return this.set( IGNORED_LABELS, null );
 	}
 
 	/**
@@ -123,6 +148,7 @@ export default class ExecutionPathOptions {
 		return this
 			.addCalledNode( calledNode )
 			.setIgnoreReturnAwaitYield()
-			.setIgnoreBreakStatements( false );
+			.setIgnoreBreakStatements( false )
+			.setIgnoreNoLabels();
 	}
 }
