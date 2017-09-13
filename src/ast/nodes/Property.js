@@ -12,6 +12,7 @@ export default class Property extends Node {
 
 	initialiseAndDeclare ( parentScope, kind, init ) {
 		this.initialiseScope( parentScope );
+		this.key.initialise( parentScope );
 		this.value.initialiseAndDeclare( parentScope, kind, init && UNKNOWN_ASSIGNMENT );
 	}
 
