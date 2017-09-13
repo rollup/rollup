@@ -17,6 +17,10 @@ export default class FunctionNode extends Node {
 		return this.included || (this.id && this.id.hasEffects( options ));
 	}
 
+	hasEffectsAsExpressionStatement ( options ) {
+		return this.hasEffects( options );
+	}
+
 	hasEffectsWhenCalled ( options ) {
 		const innerOptions = options.setIgnoreSafeThisMutations();
 		return this.params.some( param => param.hasEffects( innerOptions ) )

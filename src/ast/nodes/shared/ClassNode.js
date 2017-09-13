@@ -9,6 +9,10 @@ export default class ClassNode extends Node {
 		this.body.bindCall( callOptions );
 	}
 
+	hasEffectsAsExpressionStatement ( options ) {
+		return this.hasEffects( options );
+	}
+
 	hasEffectsWhenCalled ( options ) {
 		return this.body.hasEffectsWhenCalled( options )
 			|| ( this.superClass && this.superClass.hasEffectsWhenCalled( options ) );
