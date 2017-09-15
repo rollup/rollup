@@ -1,3 +1,5 @@
+import Immutable from 'immutable';
+
 const OPTION_IGNORE_BREAK_STATEMENTS = 'IGNORE_BREAK_STATEMENTS';
 const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
 const OPTION_IGNORE_SAFE_THIS_MUTATIONS = 'IGNORE_SAFE_THIS_MUTATIONS';
@@ -11,7 +13,7 @@ export default class ExecutionPathOptions {
 	 * @returns {ExecutionPathOptions}
 	 */
 	static create () {
-		return new this( {} );
+		return new this( Immutable.Map() );
 	}
 
 	constructor ( optionValues ) {
@@ -26,7 +28,11 @@ export default class ExecutionPathOptions {
 	 * @returns {ExecutionPathOptions} A new options instance
 	 */
 	set ( option, value ) {
-		return new this.constructor( Object.assign( {}, this._optionValues, { [option]: value } ) );
+		return new this.constructor( this._optionValues.set( option, value ) );
+	}
+
+	setIn ( optionPath, value ) {
+		return new this.constructor( this._optionValues.setIn( optionPath, value ) );
 	}
 
 	/**
@@ -34,7 +40,7 @@ export default class ExecutionPathOptions {
 	 * @returns {*} Its value
 	 */
 	get ( option ) {
-		return this._optionValues[ option ];
+		return this._optionValues.get( option );
 	}
 
 	/**
@@ -57,8 +63,7 @@ export default class ExecutionPathOptions {
 	 * @return {boolean}
 	 */
 	ignoreLabel ( labelName ) {
-		const ignoredLabels = this.get( IGNORED_LABELS );
-		return ignoredLabels && ignoredLabels.has( labelName );
+		return this._optionValues.getIn( [ IGNORED_LABELS, labelName ] );
 	}
 
 	/**
@@ -66,7 +71,7 @@ export default class ExecutionPathOptions {
 	 * @return {ExecutionPathOptions}
 	 */
 	setIgnoreLabel ( labelName ) {
-		return this.set( IGNORED_LABELS, new Set( this.get( IGNORED_LABELS ) ).add( labelName ) );
+		return this.setIn( [ IGNORED_LABELS, labelName ], true );
 	}
 
 	/**
@@ -111,7 +116,7 @@ export default class ExecutionPathOptions {
 	 * @return {ExecutionPathOptions}
 	 */
 	addMutatedNode ( node ) {
-		return this.set( OPTION_MUTATED_NODES, new Set( this.get( OPTION_MUTATED_NODES ) ).add( node ) );
+		return this.setIn( [ OPTION_MUTATED_NODES, node ], true );
 	}
 
 	/**
@@ -119,8 +124,7 @@ export default class ExecutionPathOptions {
 	 * @return {boolean}
 	 */
 	hasNodeBeenMutated ( node ) {
-		const mutatedNodes = this.get( OPTION_MUTATED_NODES );
-		return mutatedNodes && mutatedNodes.has( node );
+		return this._optionValues.getIn( [ OPTION_MUTATED_NODES, node ] );
 	}
 
 	/**
@@ -128,7 +132,7 @@ export default class ExecutionPathOptions {
 	 * @return {ExecutionPathOptions}
 	 */
 	addCalledNode ( node ) {
-		return this.set( OPTION_CALLED_NODES, new Set( this.get( OPTION_CALLED_NODES ) ).add( node ) );
+		return this.setIn( [ OPTION_CALLED_NODES, node ], true );
 	}
 
 	/**
@@ -136,8 +140,7 @@ export default class ExecutionPathOptions {
 	 * @return {boolean}
 	 */
 	hasNodeBeenCalled ( node ) {
-		const calledNodes = this.get( OPTION_CALLED_NODES );
-		return calledNodes && calledNodes.has( node );
+		return this._optionValues.getIn( [ OPTION_CALLED_NODES, node ] );
 	}
 
 	/**
