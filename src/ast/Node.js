@@ -12,12 +12,15 @@ export default class Node {
 	}
 
 	/**
-	 * Bind an expression as an assignment to a node.
+	 * Bind an expression as an assignment to a node given an optional path.
+	 * E.g., node.bindAssignmentAtPath(['x', 'y'], otherNode) is called if otherNode
+	 * is assigned to node.x.y.
 	 * The default noop implementation is ok as long as hasEffectsWhenAssigned
 	 * always returns true for this node. Otherwise it should be overridden.
+	 * @param {String[]} path
 	 * @param {Node} expression
 	 */
-	bindAssignment () {}
+	bindAssignmentAtPath () {}
 
 	/**
 	 * Binds ways a node is called to a node. Current options are:

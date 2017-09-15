@@ -1,8 +1,8 @@
 import Node from '../Node.js';
 
 export default class ObjectPattern extends Node {
-	bindAssignment ( expression ) {
-		this.properties.forEach( child => child.bindAssignment( expression ) );
+	bindAssignmentAtPath ( path, expression ) {
+		this.properties.forEach( child => child.bindAssignmentAtPath( path, expression ) );
 	}
 
 	hasEffectsWhenAssigned ( options ) {

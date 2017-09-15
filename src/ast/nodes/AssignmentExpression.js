@@ -5,7 +5,7 @@ export default class AssignmentExpression extends Node {
 	bind () {
 		super.bind();
 		disallowIllegalReassignment( this.scope, this.left );
-		this.left.bindAssignment( this.right );
+		this.left.bindAssignmentAtPath( [], this.right );
 	}
 
 	hasEffects ( options ) {

@@ -2,8 +2,8 @@ import Node from '../Node.js';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class RestElement extends Node {
-	bindAssignment () {
-		this.argument.bindAssignment( UNKNOWN_ASSIGNMENT );
+	bindAssignmentAtPath () {
+		this.argument.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT );
 	}
 
 	hasEffectsWhenAssigned ( options ) {

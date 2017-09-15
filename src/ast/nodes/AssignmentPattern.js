@@ -3,11 +3,11 @@ import Node from '../Node.js';
 export default class AssignmentPattern extends Node {
 	bind () {
 		super.bind();
-		this.left.bindAssignment( this.right );
+		this.left.bindAssignmentAtPath( [], this.right );
 	}
 
-	bindAssignment ( expression ) {
-		this.left.bindAssignment( expression );
+	bindAssignmentAtPath ( path, expression ) {
+		this.left.bindAssignmentAtPath( path, expression );
 	}
 
 	hasEffectsWhenAssigned ( options ) {
