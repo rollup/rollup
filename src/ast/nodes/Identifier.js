@@ -67,12 +67,12 @@ export default class Identifier extends Node {
 		switch ( kind ) {
 			case 'var':
 			case 'function':
-				this.scope.addDeclaration( this, true, init );
+				this.scope.addDeclaration( this, { isHoisted: true, init } );
 				break;
 			case 'let':
 			case 'const':
 			case 'class':
-				this.scope.addDeclaration( this, false, init );
+				this.scope.addDeclaration( this, { init } );
 				break;
 			case 'parameter':
 				this.scope.addParameterDeclaration( this );

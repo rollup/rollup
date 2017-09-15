@@ -14,14 +14,20 @@ export default class Scope {
 		this.variables = blank();
 	}
 
-	addDeclaration ( identifier, isHoisted, init ) {
+	/**
+	 * @param identifier
+	 * @param {Object} [options] - valid options are
+	 *        {(Node|null)} init
+	 *        {boolean} isHoisted
+	 */
+	addDeclaration ( identifier, options = {} ) {
 		const name = identifier.name;
 		if ( this.variables[ name ] ) {
 			const variable = this.variables[ name ];
 			variable.addDeclaration( identifier );
-			init && variable.assignExpression( init );
+			options.init && variable.assignExpression( options.init );
 		} else {
-			this.variables[ name ] = new LocalVariable( identifier.name, identifier, init || UNDEFINED_ASSIGNMENT );
+			this.variables[ name ] = new LocalVariable( identifier.name, identifier, options.init || UNDEFINED_ASSIGNMENT );
 		}
 	}
 
