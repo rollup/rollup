@@ -6,8 +6,11 @@ export default class ArrayPattern extends Node {
 		this.eachChild( child => child.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT ) );
 	}
 
-	hasEffectsWhenAssigned ( options ) {
-		return this.someChild( child => child.hasEffectsWhenAssigned( options ) );
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		if ( path.length > 0 ) {
+			return true;
+		}
+		return this.someChild( child => child.hasEffectsWhenAssignedAtPath( [], options ) );
 	}
 
 	initialiseAndDeclare ( parentScope, kind ) {

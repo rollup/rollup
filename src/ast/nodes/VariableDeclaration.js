@@ -22,7 +22,7 @@ export default class VariableDeclaration extends Node {
 		this.eachChild( child => child.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT ) );
 	}
 
-	hasEffectsWhenAssigned () {
+	hasEffectsWhenAssignedAtPath () {
 		return false;
 	}
 

@@ -9,7 +9,7 @@ export default class AssignmentExpression extends Node {
 	}
 
 	hasEffects ( options ) {
-		return super.hasEffects( options ) || this.left.hasEffectsWhenAssigned( options );
+		return super.hasEffects( options ) || this.left.hasEffectsWhenAssignedAtPath( [], options );
 	}
 
 	hasEffectsAsExpressionStatement ( options ) {

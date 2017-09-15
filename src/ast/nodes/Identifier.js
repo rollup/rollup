@@ -40,8 +40,11 @@ export default class Identifier extends Node {
 		return this.hasEffects( options ) || this.variable.isGlobal;
 	}
 
-	hasEffectsWhenAssigned () {
-		return this.variable && this.variable.included;
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		if ( path.length === 0 ) {
+			return this.variable && this.variable.included;
+		}
+		return this.hasEffectsWhenMutated( options );
 	}
 
 	hasEffectsWhenCalled ( options ) {

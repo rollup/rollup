@@ -12,7 +12,7 @@ export default class UpdateExpression extends Node {
 	}
 
 	hasEffects ( options ) {
-		return this.included || this.argument.hasEffectsWhenAssigned( options );
+		return this.included || this.argument.hasEffectsWhenAssignedAtPath( [], options );
 	}
 
 	hasEffectsAsExpressionStatement ( options ) {

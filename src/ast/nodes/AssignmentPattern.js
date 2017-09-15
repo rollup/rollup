@@ -10,8 +10,11 @@ export default class AssignmentPattern extends Node {
 		this.left.bindAssignmentAtPath( path, expression );
 	}
 
-	hasEffectsWhenAssigned ( options ) {
-		return this.left.hasEffectsWhenAssigned( options );
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		if ( path.length > 0 ) {
+			return true;
+		}
+		return this.left.hasEffectsWhenAssignedAtPath( [], options );
 	}
 
 	initialiseAndDeclare ( parentScope, kind, init ) {

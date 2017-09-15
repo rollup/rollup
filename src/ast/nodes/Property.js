@@ -6,8 +6,11 @@ export default class Property extends Node {
 		this.value.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT );
 	}
 
-	hasEffectsWhenAssigned ( options ) {
-		return this.value.hasEffectsWhenAssigned( options );
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		if ( path.length > 0 ) {
+			return true;
+		}
+		return this.value.hasEffectsWhenAssignedAtPath( [], options );
 	}
 
 	initialiseAndDeclare ( parentScope, kind ) {

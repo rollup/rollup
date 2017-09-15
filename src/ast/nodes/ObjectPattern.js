@@ -5,8 +5,11 @@ export default class ObjectPattern extends Node {
 		this.properties.forEach( child => child.bindAssignmentAtPath( path, expression ) );
 	}
 
-	hasEffectsWhenAssigned ( options ) {
-		return this.someChild( child => child.hasEffectsWhenAssigned( options ) );
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		if ( path.length > 0 ) {
+			return true;
+		}
+		return this.someChild( child => child.hasEffectsWhenAssignedAtPath( [], options ) );
 	}
 
 	initialiseAndDeclare ( parentScope, kind, init ) {

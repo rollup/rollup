@@ -6,8 +6,8 @@ export default class RestElement extends Node {
 		this.argument.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT );
 	}
 
-	hasEffectsWhenAssigned ( options ) {
-		return this.argument.hasEffectsWhenAssigned( options );
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		return this.argument.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
 	initialiseAndDeclare ( parentScope, kind ) {
