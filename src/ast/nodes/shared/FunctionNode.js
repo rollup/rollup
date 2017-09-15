@@ -7,9 +7,9 @@ export default class FunctionNode extends Node {
 		const thisVariable = this.scope.findVariable( 'this' );
 
 		if ( withNew ) {
-			thisVariable.assignExpression( UNKNOWN_OBJECT_LITERAL );
+			thisVariable.assignExpressionAtPath( [], UNKNOWN_OBJECT_LITERAL );
 		} else {
-			thisVariable.assignExpression( UNKNOWN_ASSIGNMENT );
+			thisVariable.assignExpressionAtPath( [], UNKNOWN_ASSIGNMENT );
 		}
 	}
 

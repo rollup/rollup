@@ -25,7 +25,7 @@ export default class Scope {
 		if ( this.variables[ name ] ) {
 			const variable = this.variables[ name ];
 			variable.addDeclaration( identifier );
-			options.init && variable.assignExpression( options.init );
+			options.init && variable.assignExpressionAtPath( [], options.init );
 		} else {
 			this.variables[ name ] = new LocalVariable( identifier.name, identifier, options.init || UNDEFINED_ASSIGNMENT );
 		}

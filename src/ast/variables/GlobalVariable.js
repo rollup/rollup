@@ -14,8 +14,6 @@ export default class GlobalVariable extends Variable {
 		if ( reference.isReassignment ) this.isReassigned = true;
 	}
 
-	assignExpression () {}
-
 	hasEffectsWhenCalled () {
 		return !pureFunctions[ this.name ];
 	}

@@ -5,6 +5,10 @@ export default class Variable {
 
 	addCall () {}
 
+	addReference () {}
+
+	assignExpressionAtPath () {}
+
 	getName () {
 		return this.name;
 	}

@@ -21,12 +21,12 @@ export default class LocalVariable extends Variable {
 		Array.from( this.assignedExpressions ).forEach( expression => expression.bindCall( callOptions ) );
 	}
 
-	addReference () {}
-
-	assignExpression ( expression ) {
-		this.assignedExpressions.add( expression );
-		this.isReassigned = true;
-		Array.from( this.calls ).forEach( callOptions => expression.bindCall( callOptions ) );
+	assignExpressionAtPath ( path, expression ) {
+		if ( path.length === 0 ) {
+			this.assignedExpressions.add( expression );
+			this.isReassigned = true;
+			Array.from( this.calls ).forEach( callOptions => expression.bindCall( callOptions ) );
+		}
 	}
 
 	getName ( es ) {

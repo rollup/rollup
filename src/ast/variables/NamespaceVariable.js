@@ -19,8 +19,6 @@ export default class NamespaceVariable extends Variable {
 		this.name = node.name;
 	}
 
-	assignExpression () {}
-
 	includeVariable () {
 		const hasBeenIncluded = super.includeVariable();
 		if ( hasBeenIncluded ) {

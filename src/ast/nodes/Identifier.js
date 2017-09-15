@@ -25,8 +25,8 @@ export default class Identifier extends Node {
 	}
 
 	bindAssignmentAtPath ( path, expression ) {
-		if ( this.variable && path.length === 0 ) {
-			this.variable.assignExpression( expression );
+		if ( this.variable ) {
+			this.variable.assignExpressionAtPath( path, expression );
 		}
 	}
 
