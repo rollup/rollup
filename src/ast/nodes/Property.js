@@ -10,10 +10,10 @@ export default class Property extends Node {
 		return this.value.hasEffectsWhenAssigned( options );
 	}
 
-	initialiseAndDeclare ( parentScope, kind, init ) {
+	initialiseAndDeclare ( parentScope, kind ) {
 		this.initialiseScope( parentScope );
 		this.key.initialise( parentScope );
-		this.value.initialiseAndDeclare( parentScope, kind, init && UNKNOWN_ASSIGNMENT );
+		this.value.initialiseAndDeclare( parentScope, kind, UNKNOWN_ASSIGNMENT );
 	}
 
 	render ( code, es ) {

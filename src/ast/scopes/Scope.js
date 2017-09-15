@@ -1,6 +1,7 @@
 import { blank, keys } from '../../utils/object.js';
 import LocalVariable from '../variables/LocalVariable';
 import ParameterVariable from '../variables/ParameterVariable';
+import { UNDEFINED_ASSIGNMENT } from '../values';
 
 export default class Scope {
 	constructor ( options = {} ) {
@@ -20,7 +21,7 @@ export default class Scope {
 			variable.addDeclaration( identifier );
 			init && variable.assignExpression( init );
 		} else {
-			this.variables[ name ] = new LocalVariable( identifier.name, identifier, init );
+			this.variables[ name ] = new LocalVariable( identifier.name, identifier, init || UNDEFINED_ASSIGNMENT );
 		}
 	}
 
