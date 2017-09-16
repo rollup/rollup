@@ -3,6 +3,7 @@ import * as rollup from 'rollup';
 import chalk from 'chalk';
 import ms from 'pretty-ms';
 import onExit from 'signal-exit';
+import dateTime from 'date-time';
 import mergeOptions from './mergeOptions.js';
 import batchWarnings from './batchWarnings.js';
 import alternateScreen from './alternateScreen.js';
@@ -77,8 +78,7 @@ export default function watch(configFile, configs, command, silent) {
 
 				case 'END':
 					if ( !silent && isTTY ) {
-						stderr( `\nfinished at ${new Date()}` );
-						stderr( `\nwaiting for changes...` );
+						stderr( `\n[${dateTime()}] waiting for changes...` );
 					}
 			}
 		});
