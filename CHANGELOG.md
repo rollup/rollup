@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.50.0
+
+* Many treeshaking improvements ([#1624](https://github.com/rollup/rollup/pull/1624))
+* Show finish time in watch mode ([#1620](https://github.com/rollup/rollup/pull/1620))
+
 ## 0.49.3
 
 * Respect `watch` options ([#1596](https://github.com/rollup/rollup/issues/1596))
