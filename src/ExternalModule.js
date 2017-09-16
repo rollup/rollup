@@ -1,12 +1,12 @@
 import { blank } from './utils/object.js';
 import { makeLegal } from './utils/identifierHelpers.js';
-import { ExternalDeclaration } from './Declaration.js';
+import ExternalVariable from './ast/variables/ExternalVariable';
 
 export default class ExternalModule {
 	constructor ( id ) {
 		this.id = id;
 
-		const parts = id.split(/[\\/]/);
+		const parts = id.split( /[\\/]/ );
 		this.name = makeLegal( parts.pop() );
 
 		this.nameSuggestions = blank();
@@ -33,8 +33,7 @@ export default class ExternalModule {
 		if ( name !== 'default' && name !== '*' ) this.exportsNames = true;
 		if ( name === '*' ) this.exportsNamespace = true;
 
-		return this.declarations[ name ] || (
-			this.declarations[ name ] = new ExternalDeclaration( this, name )
-		);
+		return this.declarations[ name ]
+			|| (this.declarations[ name ] = new ExternalVariable( this, name ));
 	}
 }

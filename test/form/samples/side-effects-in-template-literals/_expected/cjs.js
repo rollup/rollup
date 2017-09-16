@@ -4,9 +4,9 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 exports.x = 0;
 
-function noEffects() {}
+function noEffects () {}
 
-function modifyX() {
+function modifyX () {
 	return exports.x++;
 }
 
@@ -20,6 +20,9 @@ const f = noEffects`${modifyX()}has effects`;
 
 const g = globalFunction`has effects`;
 
-const h = globalFunction()`has effects`;
+const h = (() => {
+	console.log( 'effect' );
+	return () => {};
+})()`has effects`;
 
 const i = modifyX`has effects`;

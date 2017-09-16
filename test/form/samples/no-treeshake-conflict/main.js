@@ -1,1 +1,5 @@
-import other from './other';
+import somethingElse from './other';
+
+const other = {
+	somethingElse: 'here'
+};

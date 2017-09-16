@@ -1,8 +1,13 @@
 import Node from '../Node.js';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
 export default class ExportDefaultDeclaration extends Node {
+	addCall ( options ) {
+		this.declaration.bindCall( options );
+	}
+
 	addReference ( reference ) {
 		this.name = reference.name;
 		if ( this.original ) this.original.addReference( reference );
@@ -10,13 +15,9 @@ export default class ExportDefaultDeclaration extends Node {
 
 	bind () {
 		const name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name;
-		if ( name ) this.original = this.scope.findDeclaration( name );
+		if ( name ) this.original = this.scope.findVariable( name );
 
 		this.declaration.bind();
-	}
-
-	gatherPossibleValues ( values ) {
-		this.declaration.gatherPossibleValues( values );
 	}
 
 	getName ( es ) {
@@ -27,7 +28,11 @@ export default class ExportDefaultDeclaration extends Node {
 		return this.name;
 	}
 
-	includeDeclaration () {
+	hasEffectsWhenCalled ( options ) {
+		return this.declaration.hasEffectsWhenCalled( options );
+	}
+
+	includeVariable () {
 		if ( this.included ) {
 			return false;
 		}
@@ -48,7 +53,7 @@ export default class ExportDefaultDeclaration extends Node {
 		this.isDefault = true;
 
 		this.name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name || this.module.basename();
-		this.scope.declarations.default = this;
+		this.scope.variables.default = this;
 	}
 
 	// TODO this is total chaos, tidy it up
@@ -96,7 +101,7 @@ export default class ExportDefaultDeclaration extends Node {
 				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
 					code.remove( this.leadingCommentStart || this.start, this.next || this.end );
 				} else {
-					const hasEffects = this.declaration.hasEffects( {} );
+					const hasEffects = this.declaration.hasEffects( ExecutionPathOptions.create() );
 					code.remove( this.start, hasEffects ? declaration_start : this.next || this.end );
 				}
 			} else if ( name === this.declaration.name ) {

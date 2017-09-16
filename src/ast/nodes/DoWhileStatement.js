@@ -5,7 +5,7 @@ export default class DoWhileStatement extends Statement {
 		return (
 			this.included
 			|| this.test.hasEffects( options )
-			|| this.body.hasEffects( Object.assign( {}, options, { inNestedBreakableStatement: true } ) )
+			|| this.body.hasEffects( options.setIgnoreBreakStatements() )
 		);
 	}
 }

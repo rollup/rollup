@@ -8,6 +8,7 @@ import BlockStatement from './BlockStatement.js';
 import BreakStatement from './BreakStatement';
 import CallExpression from './CallExpression.js';
 import CatchClause from './CatchClause.js';
+import ClassBody from './ClassBody.js';
 import ClassDeclaration from './ClassDeclaration.js';
 import ClassExpression from './ClassExpression.js';
 import ConditionalExpression from './ConditionalExpression.js';
@@ -25,9 +26,11 @@ import FunctionExpression from './FunctionExpression.js';
 import Identifier from './Identifier.js';
 import IfStatement from './IfStatement.js';
 import ImportDeclaration from './ImportDeclaration.js';
+import LabeledStatement from './LabeledStatement.js';
 import Literal from './Literal.js';
 import LogicalExpression from './LogicalExpression.js';
 import MemberExpression from './MemberExpression.js';
+import MethodDefinition from './MethodDefinition';
 import NewExpression from './NewExpression.js';
 import ObjectExpression from './ObjectExpression.js';
 import ObjectPattern from './ObjectPattern.js';
@@ -47,6 +50,7 @@ import UpdateExpression from './UpdateExpression.js';
 import VariableDeclarator from './VariableDeclarator.js';
 import VariableDeclaration from './VariableDeclaration.js';
 import WhileStatement from './WhileStatement.js';
+import YieldExpression from './YieldExpression.js';
 import Node from '../Node';
 
 export default {
@@ -61,6 +65,7 @@ export default {
 	BreakStatement,
 	CallExpression,
 	CatchClause,
+	ClassBody,
 	ClassDeclaration,
 	ClassExpression,
 	ConditionalExpression,
@@ -78,9 +83,11 @@ export default {
 	Identifier,
 	IfStatement,
 	ImportDeclaration,
+	LabeledStatement,
 	Literal,
 	LogicalExpression,
 	MemberExpression,
+	MethodDefinition,
 	NewExpression,
 	ObjectExpression,
 	ObjectPattern,
@@ -99,5 +106,6 @@ export default {
 	UpdateExpression,
 	VariableDeclarator,
 	VariableDeclaration,
-	WhileStatement
+	WhileStatement,
+	YieldExpression
 };

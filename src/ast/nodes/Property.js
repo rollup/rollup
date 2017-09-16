@@ -1,12 +1,19 @@
 import Node from '../Node.js';
+import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class Property extends Node {
-	assignExpression ( expression ) {
-		this.value.assignExpression( expression );
+	bindAssignment () {
+		this.value.bindAssignment( UNKNOWN_ASSIGNMENT );
 	}
 
 	hasEffectsWhenAssigned ( options ) {
 		return this.value.hasEffectsWhenAssigned( options );
+	}
+
+	initialiseAndDeclare ( parentScope, kind, init ) {
+		this.initialiseScope( parentScope );
+		this.key.initialise( parentScope );
+		this.value.initialiseAndDeclare( parentScope, kind, init && UNKNOWN_ASSIGNMENT );
 	}
 
 	render ( code, es ) {

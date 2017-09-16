@@ -6,9 +6,9 @@
 
 	exports.x = 0;
 
-	function noEffects() {}
+	function noEffects () {}
 
-	function modifyX() {
+	function modifyX () {
 		return exports.x++;
 	}
 
@@ -22,7 +22,10 @@
 
 	const g = globalFunction`has effects`;
 
-	const h = globalFunction()`has effects`;
+	const h = (() => {
+		console.log( 'effect' );
+		return () => {};
+	})()`has effects`;
 
 	const i = modifyX`has effects`;
 

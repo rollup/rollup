@@ -9,7 +9,7 @@ import getCodeFrame from './utils/getCodeFrame.js';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL.js';
 import error from './utils/error.js';
 import relativeId from './utils/relativeId.js';
-import { SyntheticNamespaceDeclaration } from './Declaration.js';
+import NamespaceVariable from './ast/variables/NamespaceVariable';
 import extractNames from './ast/utils/extractNames.js';
 import enhance from './ast/enhance.js';
 import clone from './ast/clone.js';
@@ -29,6 +29,11 @@ function tryParse ( module, acornOptions ) {
 			message: err.message.replace( / \(\d+:\d+\)$/, '' )
 		}, err.pos );
 	}
+}
+
+function includeFully ( node ) {
+	node.includeInBundle();
+	node.eachChild( includeFully );
 }
 
 export default class Module {
@@ -155,9 +160,6 @@ export default class Module {
 				localName: 'default',
 				identifier
 			};
-
-			// create a synthetic declaration
-			//this.declarations.default = new SyntheticDefaultDeclaration( node, identifier || this.basename() );
 		}
 
 		// export var { foo, bar } = ...
@@ -322,6 +324,10 @@ export default class Module {
 		return keys( reexports );
 	}
 
+	includeAllInBundle () {
+		this.ast.body.forEach( includeFully );
+	}
+
 	includeInBundle () {
 		let addedNewNodes = false;
 		this.ast.body.forEach( node => {
@@ -336,7 +342,7 @@ export default class Module {
 
 	namespace () {
 		if ( !this.declarations[ '*' ] ) {
-			this.declarations[ '*' ] = new SyntheticNamespaceDeclaration( this );
+			this.declarations[ '*' ] = new NamespaceVariable( this );
 		}
 
 		return this.declarations[ '*' ];
@@ -372,8 +378,8 @@ export default class Module {
 
 	trace ( name ) {
 		// TODO this is slightly circular
-		if ( name in this.scope.declarations ) {
-			return this.scope.declarations[ name ];
+		if ( name in this.scope.variables ) {
+			return this.scope.variables[ name ];
 		}
 
 		if ( name in this.imports ) {
@@ -428,7 +434,7 @@ export default class Module {
 			const name = exportDeclaration.localName;
 			const declaration = this.trace( name );
 
-			return declaration || this.bundle.scope.findDeclaration( name );
+			return declaration || this.bundle.scope.findVariable( name );
 		}
 
 		if ( name === 'default' ) return;

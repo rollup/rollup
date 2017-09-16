@@ -20,16 +20,6 @@ export default class ConditionalExpression extends Node {
 		}
 	}
 
-	gatherPossibleValues ( values ) {
-		const testValue = this.test.getValue();
-
-		if ( testValue === UNKNOWN_VALUE ) {
-			values.add( this.consequent ).add( this.alternate );
-		} else {
-			values.add( testValue ? this.consequent : this.alternate );
-		}
-	}
-
 	getValue () {
 		const testValue = this.test.getValue();
 		if ( testValue === UNKNOWN_VALUE ) return UNKNOWN_VALUE;

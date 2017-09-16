@@ -2,11 +2,12 @@ import Node from '../Node.js';
 
 export default class ExportNamedDeclaration extends Node {
 	bind () {
+		// Do not bind specifiers
 		if ( this.declaration ) this.declaration.bind();
 	}
 
-	hasEffects () {
-		return this.included || (this.declaration && this.declaration.hasEffects());
+	hasEffects ( options ) {
+		return this.included || (this.declaration && this.declaration.hasEffects( options ));
 	}
 
 	initialiseNode () {

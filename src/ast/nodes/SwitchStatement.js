@@ -1,16 +1,12 @@
-import Scope from '../scopes/Scope.js';
+import BlockScope from '../scopes/BlockScope';
 import Statement from './shared/Statement.js';
 
 export default class SwitchStatement extends Statement {
-	hasEffects(options) {
-		return super.hasEffects(Object.assign({}, options, {inNestedBreakableStatement: true}));
+	hasEffects ( options ) {
+		return super.hasEffects( options.setIgnoreBreakStatements() );
 	}
 
 	initialiseScope ( parentScope ) {
-		this.scope = new Scope( {
-			parent: parentScope,
-			isBlockScope: true,
-			isLexicalBoundary: false
-		} );
+		this.scope = new BlockScope( { parent: parentScope } );
 	}
 }

@@ -1,8 +1,8 @@
 let x = 0;
 
-function noEffects() {}
+function noEffects () {}
 
-function modifyX() {
+function modifyX () {
 	return x++;
 }
 
@@ -16,7 +16,10 @@ const f = noEffects`${modifyX()}has effects`;
 
 const g = globalFunction`has effects`;
 
-const h = globalFunction()`has effects`;
+const h = (() => {
+	console.log( 'effect' );
+	return () => {};
+})()`has effects`;
 
 const i = modifyX`has effects`;
 

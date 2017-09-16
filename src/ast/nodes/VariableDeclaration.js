@@ -18,15 +18,19 @@ function getSeparator ( code, start ) {
 const forStatement = /^For(?:Of|In)?Statement/;
 
 export default class VariableDeclaration extends Node {
-	assignExpression () {
-		this.eachChild( child => child.assignExpression( UNKNOWN_ASSIGNMENT ) );
+	bindAssignment () {
+		this.eachChild( child => child.bindAssignment( UNKNOWN_ASSIGNMENT ) );
 	}
 
-	includeDeclaration () {
+	hasEffectsWhenAssigned () {
+		return false;
+	}
+
+	includeWithAllDeclarations () {
 		if ( this.isFullyIncluded() ) return false;
 		let addedNewNodes = false;
 		this.declarations.forEach( declarator => {
-			if ( declarator.includeDeclaration() ) {
+			if ( declarator.includeInBundle() ) {
 				addedNewNodes = true;
 			}
 		} );
@@ -54,6 +58,10 @@ export default class VariableDeclaration extends Node {
 		return false;
 	}
 
+	initialiseChildren () {
+		this.declarations.forEach( child => child.initialiseDeclarator( this.scope, this.kind ) );
+	}
+
 	render ( code, es ) {
 		const treeshake = this.module.bundle.treeshake;
 
@@ -74,8 +82,8 @@ export default class VariableDeclaration extends Node {
 			const prefix = empty ? '' : separator; // TODO indentation
 
 			if ( declarator.id.type === 'Identifier' ) {
-				const proxy = declarator.proxies.get( declarator.id.name );
-				const isExportedAndReassigned = !es && proxy.exportName && proxy.isReassigned;
+				const variable = this.scope.findVariable( declarator.id.name );
+				const isExportedAndReassigned = !es && variable.exportName && variable.isReassigned;
 
 				if ( isExportedAndReassigned ) {
 					if ( declarator.init ) {
@@ -83,7 +91,7 @@ export default class VariableDeclaration extends Node {
 						c = declarator.end;
 						empty = false;
 					}
-				} else if ( !treeshake || proxy.included ) {
+				} else if ( !treeshake || variable.included ) {
 					if ( shouldSeparate ) code.overwrite( c, declarator.start, `${prefix}${this.kind} ` ); // TODO indentation
 					c = declarator.end;
 					empty = false;
@@ -93,8 +101,8 @@ export default class VariableDeclaration extends Node {
 				let isIncluded = false;
 
 				extractNames( declarator.id ).forEach( name => {
-					const proxy = declarator.proxies.get( name );
-					const isExportedAndReassigned = !es && proxy.exportName && proxy.isReassigned;
+					const variable = this.scope.findVariable( name );
+					const isExportedAndReassigned = !es && variable.exportName && variable.isReassigned;
 
 					if ( isExportedAndReassigned ) {
 						// code.overwrite( c, declarator.start, prefix );

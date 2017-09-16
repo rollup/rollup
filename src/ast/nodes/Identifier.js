@@ -17,54 +17,74 @@ function isAssignmentPatternLhs ( node, parent ) {
 }
 
 export default class Identifier extends Node {
-	assignExpression ( expression ) {
-		if ( this.declaration ) {
-			this.declaration.assignExpression( expression );
-		}
-	}
-
 	bind () {
 		if ( isReference( this, this.parent ) || isAssignmentPatternLhs( this, this.parent ) ) {
-			this.declaration = this.scope.findDeclaration( this.name );
-			this.declaration.addReference( this ); // TODO necessary?
+			this.variable = this.scope.findVariable( this.name );
+			this.variable.addReference( this );
 		}
 	}
 
-	gatherPossibleValues ( values ) {
-		if ( isReference( this, this.parent ) ) {
-			values.add( this );
+	bindAssignment ( expression ) {
+		if ( this.variable ) {
+			this.variable.assignExpression( expression );
+		}
+	}
+
+	bindCall ( callOptions ) {
+		if ( this.variable ) {
+			this.variable.addCall( callOptions );
 		}
 	}
 
 	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options ) || this.declaration.isGlobal;
+		return this.hasEffects( options ) || this.variable.isGlobal;
 	}
 
 	hasEffectsWhenAssigned () {
-		return this.declaration && this.declaration.included;
+		return this.variable && this.variable.included;
+	}
+
+	hasEffectsWhenCalled ( options ) {
+		if ( !this.variable ) {
+			return true;
+		}
+		return this.variable.hasEffectsWhenCalled( options );
 	}
 
 	hasEffectsWhenMutated ( options ) {
-		return this.declaration &&
-			(this.declaration.included ||
-			this.declaration.isParam ||
-			this.declaration.isGlobal ||
-			this.declaration.isExternal ||
-			this.declaration.isNamespace ||
-			!this.declaration.assignedExpressions ||
-			Array.from( this.declaration.assignedExpressions ).some( node => node.hasEffectsWhenMutated( options ) ));
+		return this.variable && this.variable.hasEffectsWhenMutated( options );
 	}
 
 	includeInBundle () {
 		if ( this.included ) return false;
 		this.included = true;
-		this.declaration && this.declaration.includeDeclaration();
+		this.variable && this.variable.includeVariable();
 		return true;
 	}
 
+	initialiseAndDeclare ( parentScope, kind, init ) {
+		this.initialiseScope( parentScope );
+		switch ( kind ) {
+			case 'var':
+			case 'function':
+				this.scope.addDeclaration( this, true, init );
+				break;
+			case 'let':
+			case 'const':
+			case 'class':
+				this.scope.addDeclaration( this, false, init );
+				break;
+			case 'parameter':
+				this.scope.addParameterDeclaration( this );
+				break;
+			default:
+				throw new Error( 'Unexpected identifier kind', kind );
+		}
+	}
+
 	render ( code, es ) {
-		if ( this.declaration ) {
-			const name = this.declaration.getName( es );
+		if ( this.variable ) {
+			const name = this.variable.getName( es );
 			if ( name !== this.name ) {
 				code.overwrite( this.start, this.end, name, { storeName: true, contentOnly: false } );
 

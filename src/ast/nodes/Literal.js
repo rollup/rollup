@@ -5,10 +5,6 @@ export default class Literal extends Node {
 		return this.value;
 	}
 
-	gatherPossibleValues ( values ) {
-		values.add( this );
-	}
-
 	hasEffectsWhenMutated () {
 		return false;
 	}

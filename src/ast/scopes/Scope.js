@@ -1,79 +1,42 @@
 import { blank, keys } from '../../utils/object.js';
-import { UNKNOWN_ASSIGNMENT } from '../values';
-
-class Parameter {
-	constructor ( name ) {
-		this.name = name;
-		this.isParam = true;
-		this.assignedExpressions = new Set( [ UNKNOWN_ASSIGNMENT ] );
-	}
-
-	addReference () {
-		// noop?
-	}
-
-	assignExpression ( expression ) {
-		this.assignedExpressions.add( expression );
-		this.isReassigned = true;
-	}
-
-	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN_ASSIGNMENT ); // TODO populate this at call time
-	}
-
-	getName () {
-		return this.name;
-	}
-
-	includeDeclaration () {
-		if ( this.included ) {
-			return false;
-		}
-		this.included = true;
-		return true;
-	}
-}
+import LocalVariable from '../variables/LocalVariable';
+import ParameterVariable from '../variables/ParameterVariable';
 
 export default class Scope {
 	constructor ( options = {} ) {
 		this.parent = options.parent;
-		this.isBlockScope = !!options.isBlockScope;
-		this.isLexicalBoundary = !!options.isLexicalBoundary;
 		this.isModuleScope = !!options.isModuleScope;
 
 		this.children = [];
 		if ( this.parent ) this.parent.children.push( this );
 
-		this.declarations = blank();
+		this.variables = blank();
+	}
 
-		if ( this.isLexicalBoundary && !this.isModuleScope ) {
-			this.declarations.arguments = new Parameter( 'arguments' );
+	addDeclaration ( identifier, isHoisted, init ) {
+		const name = identifier.name;
+		if ( this.variables[ name ] ) {
+			const variable = this.variables[ name ];
+			variable.addDeclaration( identifier );
+			init && variable.assignExpression( init );
+		} else {
+			this.variables[ name ] = new LocalVariable( identifier.name, identifier, init );
 		}
 	}
 
-	addDeclaration ( name, declaration, isVar, isParam ) {
-		if ( isVar && this.isBlockScope ) {
-			this.parent.addDeclaration( name, declaration, isVar, isParam );
-		} else {
-			const existingDeclaration = this.declarations[ name ];
-
-			if ( existingDeclaration && existingDeclaration.duplicates ) {
-				// TODO warn/throw on duplicates?
-				existingDeclaration.duplicates.push( declaration );
-			} else {
-				this.declarations[ name ] = isParam ? new Parameter( name ) : declaration;
-			}
-		}
+	addParameterDeclaration ( identifier ) {
+		const name = identifier.name;
+		this.variables[ name ] = new ParameterVariable( name, identifier );
 	}
 
 	contains ( name ) {
-		return !!this.declarations[ name ] ||
+		return !!this.variables[ name ] ||
 			( this.parent ? this.parent.contains( name ) : false );
 	}
 
 	deshadow ( names ) {
-		keys( this.declarations ).forEach( key => {
-			const declaration = this.declarations[ key ];
+		keys( this.variables ).forEach( key => {
+			const declaration = this.variables[ key ];
 
 			// we can disregard exports.foo etc
 			if ( declaration.exportName && declaration.isReassigned ) return;
@@ -93,12 +56,12 @@ export default class Scope {
 		this.children.forEach( scope => scope.deshadow( names ) );
 	}
 
-	findDeclaration ( name ) {
-		return this.declarations[ name ] ||
-			( this.parent && this.parent.findDeclaration( name ) );
+	findLexicalBoundary () {
+		return this.parent.findLexicalBoundary();
 	}
 
-	findLexicalBoundary () {
-		return this.isLexicalBoundary ? this : this.parent.findLexicalBoundary();
+	findVariable ( name ) {
+		return this.variables[ name ] ||
+			( this.parent && this.parent.findVariable( name ) );
 	}
 }

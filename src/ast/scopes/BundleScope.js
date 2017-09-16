@@ -1,42 +1,12 @@
 import Scope from './Scope.js';
-import { UNKNOWN_ASSIGNMENT } from '../values';
-
-class SyntheticGlobalDeclaration {
-	constructor ( name ) {
-		this.name = name;
-		this.isExternal = true;
-		this.isGlobal = true;
-		this.isReassigned = false;
-		this.included = true;
-	}
-
-	addReference ( reference ) {
-		reference.declaration = this;
-		if ( reference.isReassignment ) this.isReassigned = true;
-	}
-
-	assignExpression () {}
-
-	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN_ASSIGNMENT );
-	}
-
-	getName () {
-		return this.name;
-	}
-
-	includeDeclaration () {
-		this.included = true;
-		return false;
-	}
-}
+import GlobalVariable from '../variables/GlobalVariable';
 
 export default class BundleScope extends Scope {
-	findDeclaration ( name ) {
-		if ( !this.declarations[ name ] ) {
-			this.declarations[ name ] = new SyntheticGlobalDeclaration( name );
+	findVariable ( name ) {
+		if ( !this.variables[ name ] ) {
+			this.variables[ name ] = new GlobalVariable( name );
 		}
 
-		return this.declarations[ name ];
+		return this.variables[ name ];
 	}
 }

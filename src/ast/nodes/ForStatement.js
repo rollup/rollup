@@ -1,5 +1,5 @@
 import Statement from './shared/Statement.js';
-import Scope from '../scopes/Scope.js';
+import BlockScope from '../scopes/BlockScope';
 
 export default class ForStatement extends Statement {
 	hasEffects ( options ) {
@@ -8,7 +8,7 @@ export default class ForStatement extends Statement {
 			|| this.init && this.init.hasEffects( options )
 			|| this.test && this.test.hasEffects( options )
 			|| this.update && this.update.hasEffects( options )
-			|| this.body.hasEffects( Object.assign( {}, options, { inNestedBreakableStatement: true } ) )
+			|| this.body.hasEffects( options.setIgnoreBreakStatements() )
 		);
 	}
 
@@ -26,10 +26,6 @@ export default class ForStatement extends Statement {
 	}
 
 	initialiseScope ( parentScope ) {
-		this.scope = new Scope( {
-			parent: parentScope,
-			isBlockScope: true,
-			isLexicalBoundary: false
-		} );
+		this.scope = new BlockScope( { parent: parentScope } );
 	}
 }

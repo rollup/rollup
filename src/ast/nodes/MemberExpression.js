@@ -1,6 +1,8 @@
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import flatten from '../utils/flatten';
+import isReference from 'is-reference';
+import pureFunctions from './shared/pureFunctions';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -34,15 +36,15 @@ export default class MemberExpression extends Node {
 		const keypath = new Keypath( this );
 
 		if ( !keypath.computed && keypath.root.type === 'Identifier' ) {
-			let declaration = this.scope.findDeclaration( keypath.root.name );
+			let variable = this.scope.findVariable( keypath.root.name );
 
-			while ( declaration.isNamespace && keypath.parts.length ) {
-				const exporterId = declaration.module.id;
+			while ( variable.isNamespace && keypath.parts.length ) {
+				const exporterId = variable.module.id;
 
 				const part = keypath.parts[ 0 ];
-				declaration = declaration.module.traceExport( part.name || part.value );
+				variable = variable.module.traceExport( part.name || part.value );
 
-				if ( !declaration ) {
+				if ( !variable ) {
 					this.module.warn( {
 						code: 'MISSING_EXPORT',
 						missing: part.name || part.value,
@@ -63,10 +65,10 @@ export default class MemberExpression extends Node {
 				return; // not a namespaced declaration
 			}
 
-			this.declaration = declaration;
+			this.variable = variable;
 
-			if ( declaration.isExternal ) {
-				declaration.module.suggestName( keypath.root.name );
+			if ( variable.isExternal ) {
+				variable.module.suggestName( keypath.root.name );
 			}
 		}
 
@@ -75,8 +77,10 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	gatherPossibleValues ( values ) {
-		values.add( UNKNOWN_ASSIGNMENT ); // TODO
+	bindCall ( callOptions ) {
+		if ( this.variable ) {
+			this.variable.addCall( callOptions );
+		}
 	}
 
 	hasEffectsWhenAssigned ( options ) {
@@ -85,16 +89,27 @@ export default class MemberExpression extends Node {
 
 	includeInBundle () {
 		let addedNewNodes = super.includeInBundle();
-		if ( this.declaration && !this.declaration.included ) {
-			this.declaration.includeDeclaration();
+		if ( this.variable && !this.variable.included ) {
+			this.variable.includeVariable();
 			addedNewNodes = true;
 		}
 		return addedNewNodes;
 	}
 
+	hasEffectsWhenCalled ( options ) {
+		if ( this.variable ) {
+			return this.variable.hasEffectsWhenCalled( options );
+		}
+		if ( !isReference( this ) ) {
+			return true;
+		}
+		const flattenedNode = flatten( this );
+		return !(this.scope.findVariable( flattenedNode.name ).isGlobal && pureFunctions[ flattenedNode.keypath ]);
+	}
+
 	render ( code, es ) {
-		if ( this.declaration ) {
-			const name = this.declaration.getName( es );
+		if ( this.variable ) {
+			const name = this.variable.getName( es );
 			if ( name !== this.name ) code.overwrite( this.start, this.end, name, { storeName: true, contentOnly: false } );
 		}
 

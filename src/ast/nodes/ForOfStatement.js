@@ -1,25 +1,25 @@
 import Statement from './shared/Statement.js';
-import Scope from '../scopes/Scope.js';
+import BlockScope from '../scopes/BlockScope';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class ForOfStatement extends Statement {
 	bind () {
 		super.bind();
-		this.left.assignExpression( UNKNOWN_ASSIGNMENT );
+		this.left.bindAssignment( UNKNOWN_ASSIGNMENT );
 	}
 
 	hasEffects ( options ) {
 		return (
 			this.included
-			|| this.left && this.left.hasEffects( options )
+			|| this.left && (this.left.hasEffects( options ) || this.left.hasEffectsWhenAssigned( options ))
 			|| this.right && this.right.hasEffects( options )
-			|| this.body.hasEffects( Object.assign( {}, options, { inNestedBreakableStatement: true } ) )
+			|| this.body.hasEffects( options.setIgnoreBreakStatements() )
 		);
 	}
 
 	includeInBundle () {
 		let addedNewNodes = super.includeInBundle();
-		if ( this.left.includeDeclaration() ) {
+		if ( this.left.includeWithAllDeclarations() ) {
 			addedNewNodes = true;
 		}
 		return addedNewNodes;
@@ -34,10 +34,6 @@ export default class ForOfStatement extends Statement {
 	}
 
 	initialiseScope ( parentScope ) {
-		this.scope = new Scope( {
-			parent: parentScope,
-			isBlockScope: true,
-			isLexicalBoundary: false
-		} );
+		this.scope = new BlockScope( { parent: parentScope } );
 	}
 }

@@ -16,6 +16,14 @@ export default class ThisExpression extends Node {
 		}
 	}
 
+	bind () {
+		this.variable = this.scope.findVariable( 'this' );
+	}
+
+	hasEffectsWhenMutated ( options ) {
+		return !options.ignoreSafeThisMutations() || this.variable.hasEffectsWhenMutated( options );
+	}
+
 	render ( code ) {
 		if ( this.alias ) {
 			code.overwrite( this.start, this.end, this.alias, { storeName: true, contentOnly: false } );

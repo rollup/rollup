@@ -1,20 +1,9 @@
-import Class from './shared/Class.js';
+import ClassNode from './shared/ClassNode.js';
 
-export default class ClassDeclaration extends Class {
-	gatherPossibleValues ( values ) {
-		values.add( this );
-	}
-
-	hasEffects () {
-		return this.included;
-	}
-
+export default class ClassDeclaration extends ClassNode {
 	initialiseChildren ( parentScope ) {
-		if ( this.id ) {
-			this.name = this.id.name;
-			parentScope.addDeclaration( this.name, this, false, false );
-			this.id.initialise( parentScope );
-		}
+		// Class declarations are like let declarations: Not hoisted, can be reassigned, cannot be redeclared
+		this.id && this.id.initialiseAndDeclare( parentScope, 'class', this );
 		super.initialiseChildren( parentScope );
 	}
 

@@ -1,19 +1,37 @@
-var { x: a = 1 } = {};
+const effect = () => console.log( 'effect' );
 
-var { x: b = globalFunction() } = {};
+var { x: a1 = 1 } = {};
+var { x: a2 = effect() } = {};
+var { x: a3 = () => {} } = { x: effect };
+a3();
+var { x: a4 = effect } = {};
+a4();
 
-var c;
-({ x: c = 1 } = {});
+var b1;
+({ x: b1 = 1 } = {});
+var b2;
+({ x: b2 = effect() } = {});
+var b3;
+({ x: b3 = () => {} } = { x: effect });
+b3();
+var b4;
+({ x: b4 = effect } = {});
+b4();
 
-var d;
-({ x: d = globalFunction() } = {});
+var [ c1 = 1 ] = [];
+var [ c2 = effect() ] = [];
+var [ c3 = () => {} ] = [ effect ];
+c3();
+var [ c4 = effect ] = [];
+c4();
 
-var [ e = 1 ] = [];
-
-var [ f = globalFunction() ] = [];
-
-var g;
-[ g = 1 ] = [];
-
-var h;
-[ h = globalFunction() ] = [];
+var d1;
+[ d1 = 1 ] = [];
+var d2;
+[ d2 = effect() ] = [];
+var d3;
+[ d3 = () => {} ] = [ effect ];
+d3();
+var d4;
+[ d4 = effect ] = [];
+d4();

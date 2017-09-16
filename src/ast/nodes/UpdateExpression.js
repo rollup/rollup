@@ -5,8 +5,8 @@ export default class UpdateExpression extends Node {
 	bind () {
 		disallowIllegalReassignment( this.scope, this.argument );
 		if ( this.argument.type === 'Identifier' ) {
-			const declaration = this.scope.findDeclaration( this.argument.name );
-			declaration.isReassigned = true;
+			const variable = this.scope.findVariable( this.argument.name );
+			variable.isReassigned = true;
 		}
 		super.bind();
 	}
