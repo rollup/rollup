@@ -7,6 +7,8 @@ const OPTION_CALLED_NODES = 'CALLED_NODES';
 const OPTION_MUTATED_NODES = 'MUTATED_NODES';
 const IGNORED_LABELS = 'IGNORED_LABELS';
 
+const RESULT_KEY = {};
+
 /** Wrapper to ensure immutability */
 export default class ExecutionPathOptions {
 	/**
@@ -112,19 +114,21 @@ export default class ExecutionPathOptions {
 	}
 
 	/**
+	 * @param {String[]} path
 	 * @param {Node} node
 	 * @return {ExecutionPathOptions}
 	 */
-	addMutatedNode ( node ) {
-		return this.setIn( [ OPTION_MUTATED_NODES, node ], true );
+	addMutatedNodeAtPath ( path, node ) {
+		return this.setIn( [ OPTION_MUTATED_NODES, node, ...path, RESULT_KEY ], true );
 	}
 
 	/**
+	 * @param {String[]} path
 	 * @param {Node} node
 	 * @return {boolean}
 	 */
-	hasNodeBeenMutated ( node ) {
-		return this._optionValues.getIn( [ OPTION_MUTATED_NODES, node ] );
+	hasNodeBeenMutatedAtPath ( path, node ) {
+		return this._optionValues.getIn( [ OPTION_MUTATED_NODES, node, ...path, RESULT_KEY ] );
 	}
 
 	/**
