@@ -41,10 +41,13 @@ export default class Identifier extends Node {
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		if ( path.length === 0 ) {
-			return this.variable && this.variable.included;
+		if ( !this.variable ) {
+			return true;
 		}
-		return this.hasEffectsWhenMutated( options );
+		if ( path.length === 0 ) {
+			return this.variable.included;
+		}
+		return this.hasEffectsWhenMutatedAtPath( path.slice( 0, -1 ), options );
 	}
 
 	hasEffectsWhenCalled ( options ) {
@@ -54,8 +57,11 @@ export default class Identifier extends Node {
 		return this.variable.hasEffectsWhenCalled( options );
 	}
 
-	hasEffectsWhenMutated ( options ) {
-		return this.variable && this.variable.hasEffectsWhenMutated( options );
+	hasEffectsWhenMutatedAtPath ( path, options ) {
+		if ( !this.variable ) {
+			return true;
+		}
+		return this.variable.hasEffectsWhenMutatedAtPath( path, options );
 	}
 
 	includeInBundle () {

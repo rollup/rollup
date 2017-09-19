@@ -43,11 +43,11 @@ export default class LocalVariable extends Variable {
 		);
 	}
 
-	hasEffectsWhenMutated ( options ) {
+	hasEffectsWhenMutatedAtPath ( path, options ) {
 		return this.included
 			|| Array.from( this.assignedExpressions ).some( node =>
-				!options.hasNodeBeenMutatedAtPath( [], node ) &&
-				node.hasEffectsWhenMutated( options.addMutatedNodeAtPath( [], node ) )
+				!options.hasNodeBeenMutatedAtPath( path, node ) &&
+				node.hasEffectsWhenMutatedAtPath( path, options.addMutatedNodeAtPath( path, node ) )
 			);
 	}
 

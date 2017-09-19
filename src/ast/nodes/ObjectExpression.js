@@ -1,7 +1,7 @@
 import Node from '../Node.js';
 
 export default class ObjectExpression extends Node {
-	hasEffectsWhenMutated () {
-		return false;
+	hasEffectsWhenMutatedAtPath ( path ) {
+		return path.length > 1;
 	}
 }

@@ -28,7 +28,7 @@ export default class UnaryExpression extends Node {
 			|| this.argument.hasEffects( options )
 			|| (this.operator === 'delete' && (
 				this.argument.type !== 'MemberExpression'
-				|| this.argument.object.hasEffectsWhenMutated( options )
+				|| this.argument.object.hasEffectsWhenMutatedAtPath( [], options )
 			));
 	}
 

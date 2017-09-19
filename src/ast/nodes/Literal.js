@@ -5,8 +5,8 @@ export default class Literal extends Node {
 		return this.value;
 	}
 
-	hasEffectsWhenMutated () {
-		return false;
+	hasEffectsWhenMutatedAtPath ( path ) {
+		return path.length > 0;
 	}
 
 	render ( code ) {

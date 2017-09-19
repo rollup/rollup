@@ -17,14 +17,15 @@ export default class LogicalExpression extends Node {
 		return operators[ this.operator ]( leftValue, rightValue );
 	}
 
-	hasEffectsWhenMutated ( options ) {
+	hasEffectsWhenMutatedAtPath ( path, options ) {
 		const leftValue = this.left.getValue();
 		if ( leftValue === UNKNOWN_VALUE ) {
-			return this.left.hasEffectsWhenMutated( options ) || this.right.hasEffectsWhenMutated( options );
+			return this.left.hasEffectsWhenMutatedAtPath( path, options )
+				|| this.right.hasEffectsWhenMutatedAtPath( path, options );
 		}
-		if ((leftValue && this.operator === '||') || (!leftValue && this.operator === '&&')) {
-			return this.left.hasEffectsWhenMutated( options );
+		if ( (leftValue && this.operator === '||') || (!leftValue && this.operator === '&&') ) {
+			return this.left.hasEffectsWhenMutatedAtPath( path, options );
 		}
-		return this.right.hasEffectsWhenMutated( options );
+		return this.right.hasEffectsWhenMutatedAtPath( path, options );
 	}
 }

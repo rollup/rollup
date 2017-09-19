@@ -90,10 +90,11 @@ export default class Node {
 	}
 
 	/**
+	 * @param {String[]} path
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenMutated () {
+	hasEffectsWhenMutatedAtPath () {
 		return true;
 	}
 

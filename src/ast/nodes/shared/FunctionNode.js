@@ -27,8 +27,8 @@ export default class FunctionNode extends Node {
 			|| this.body.hasEffects( innerOptions );
 	}
 
-	hasEffectsWhenMutated () {
-		return this.included;
+	hasEffectsWhenMutatedAtPath ( path ) {
+		return this.included || path.length > 0;
 	}
 
 	initialiseScope ( parentScope ) {

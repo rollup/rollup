@@ -24,11 +24,14 @@ export default class ThisExpression extends Node {
 		if ( path.length === 0 ) {
 			return true;
 		}
-		return this.hasEffectsWhenMutated( options );
+		return this.hasEffectsWhenMutatedAtPath( path, options );
 	}
 
-	hasEffectsWhenMutated ( options ) {
-		return !options.ignoreSafeThisMutations() || this.variable.hasEffectsWhenMutated( options );
+	hasEffectsWhenMutatedAtPath ( path, options ) {
+		if ( path.length === 0 ) {
+			return !options.ignoreSafeThisMutations() || this.variable.hasEffectsWhenMutatedAtPath( [], options );
+		}
+		return this.variable.hasEffectsWhenMutatedAtPath( path, options );
 	}
 
 	render ( code ) {

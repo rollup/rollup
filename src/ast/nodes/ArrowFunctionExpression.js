@@ -14,8 +14,8 @@ export default class ArrowFunctionExpression extends Node {
 			|| this.body.hasEffects( options );
 	}
 
-	hasEffectsWhenMutated () {
-		return this.included;
+	hasEffectsWhenMutatedAtPath ( path ) {
+		return this.included || path.length > 0;
 	}
 
 	initialiseChildren () {

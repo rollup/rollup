@@ -17,7 +17,7 @@ export default class Variable {
 		return true;
 	}
 
-	hasEffectsWhenMutated () {
+	hasEffectsWhenMutatedAtPath () {
 		return true;
 	}
 
