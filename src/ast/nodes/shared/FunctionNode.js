@@ -21,6 +21,13 @@ export default class FunctionNode extends Node {
 		return this.hasEffects( options );
 	}
 
+	hasEffectsWhenAssignedAtPath ( path ) {
+		if ( path.length === 0 ) {
+			return true;
+		}
+		return this.hasEffectsWhenMutatedAtPath( path.slice( 1 ) );
+	}
+
 	hasEffectsWhenCalled ( options ) {
 		const innerOptions = options.setIgnoreSafeThisMutations();
 		return this.params.some( param => param.hasEffects( innerOptions ) )

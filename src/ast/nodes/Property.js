@@ -7,10 +7,7 @@ export default class Property extends Node {
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		if ( path.length > 0 ) {
-			return true;
-		}
-		return this.value.hasEffectsWhenAssignedAtPath( [], options );
+		return this.value.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
 	initialiseAndDeclare ( parentScope, kind ) {

@@ -9,6 +9,13 @@ export default class ArrowFunctionExpression extends Node {
 		return this.included;
 	}
 
+	hasEffectsWhenAssignedAtPath ( path ) {
+		if ( path.length === 0 ) {
+			return true;
+		}
+		return this.hasEffectsWhenMutatedAtPath( path.slice( 1 ) );
+	}
+
 	hasEffectsWhenCalled ( options ) {
 		return this.params.some( param => param.hasEffects( options ) )
 			|| this.body.hasEffects( options );

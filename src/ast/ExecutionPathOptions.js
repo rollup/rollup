@@ -5,6 +5,7 @@ const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
 const OPTION_IGNORE_SAFE_THIS_MUTATIONS = 'IGNORE_SAFE_THIS_MUTATIONS';
 const OPTION_CALLED_NODES = 'CALLED_NODES';
 const OPTION_MUTATED_NODES = 'MUTATED_NODES';
+const OPTION_ASSIGNED_NODES = 'ASSIGNED_NODES';
 const IGNORED_LABELS = 'IGNORED_LABELS';
 
 const RESULT_KEY = {};
@@ -111,6 +112,24 @@ export default class ExecutionPathOptions {
 	 */
 	setIgnoreSafeThisMutations ( value = true ) {
 		return this.set( OPTION_IGNORE_SAFE_THIS_MUTATIONS, value );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {Node} node
+	 * @return {ExecutionPathOptions}
+	 */
+	addAssignedNodeAtPath ( path, node ) {
+		return this.setIn( [ OPTION_ASSIGNED_NODES, node, ...path, RESULT_KEY ], true );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {Node} node
+	 * @return {boolean}
+	 */
+	hasNodeBeenAssignedAtPath ( path, node ) {
+		return this._optionValues.getIn( [ OPTION_ASSIGNED_NODES, node, ...path, RESULT_KEY ] );
 	}
 
 	/**

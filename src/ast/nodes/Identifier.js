@@ -41,27 +41,18 @@ export default class Identifier extends Node {
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		if ( !this.variable ) {
-			return true;
-		}
-		if ( path.length === 0 ) {
-			return this.variable.included;
-		}
-		return this.hasEffectsWhenMutatedAtPath( path.slice( 0, -1 ), options );
+		return !this.variable
+			|| this.variable.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
 	hasEffectsWhenCalled ( options ) {
-		if ( !this.variable ) {
-			return true;
-		}
-		return this.variable.hasEffectsWhenCalled( options );
+		return !this.variable
+			|| this.variable.hasEffectsWhenCalled( options );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {
-		if ( !this.variable ) {
-			return true;
-		}
-		return this.variable.hasEffectsWhenMutatedAtPath( path, options );
+		return !this.variable
+			|| this.variable.hasEffectsWhenMutatedAtPath( path, options );
 	}
 
 	includeInBundle () {

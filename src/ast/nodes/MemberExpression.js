@@ -84,7 +84,10 @@ export default class MemberExpression extends Node {
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		return this.object.hasEffectsWhenMutatedAtPath( path, options );
+		if ( this.computed ) {
+			return this.object.hasEffectsWhenMutatedAtPath( path, options );
+		}
+		return this.object.hasEffectsWhenAssignedAtPath( [ this.property.name, ...path ], options );
 	}
 
 	includeInBundle () {

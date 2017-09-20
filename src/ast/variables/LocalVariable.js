@@ -36,6 +36,14 @@ export default class LocalVariable extends Variable {
 		return `exports.${this.exportName}`;
 	}
 
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		return this.included
+			|| (path.length > 0 && Array.from( this.assignedExpressions ).some( node =>
+				!options.hasNodeBeenAssignedAtPath( path, node ) &&
+				node.hasEffectsWhenAssignedAtPath( path, options.addAssignedNodeAtPath( path, node ) )
+			));
+	}
+
 	hasEffectsWhenCalled ( options ) {
 		return Array.from( this.assignedExpressions ).some( node =>
 			!options.hasNodeBeenCalled( node )

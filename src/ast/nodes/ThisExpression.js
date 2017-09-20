@@ -24,7 +24,7 @@ export default class ThisExpression extends Node {
 		if ( path.length === 0 ) {
 			return true;
 		}
-		return this.hasEffectsWhenMutatedAtPath( path, options );
+		return this.hasEffectsWhenMutatedAtPath( path.slice(1), options );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {

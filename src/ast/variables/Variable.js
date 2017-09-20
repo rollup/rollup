@@ -13,6 +13,10 @@ export default class Variable {
 		return this.name;
 	}
 
+	hasEffectsWhenAssignedAtPath () {
+		return true;
+	}
+
 	hasEffectsWhenCalled () {
 		return true;
 	}
