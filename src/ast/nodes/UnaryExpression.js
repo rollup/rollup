@@ -1,5 +1,5 @@
 import Node from '../Node.js';
-import { UNKNOWN_VALUE } from '../values.js';
+import { UNDEFINED_ASSIGNMENT, UNKNOWN_VALUE } from '../values';
 
 const operators = {
 	'-': value => -value,
@@ -14,6 +14,9 @@ const operators = {
 export default class UnaryExpression extends Node {
 	bind () {
 		if ( this.value === UNKNOWN_VALUE ) super.bind();
+		if ( this.operator === 'delete' ) {
+			this.argument.bindAssignmentAtPath( [], UNDEFINED_ASSIGNMENT );
+		}
 	}
 
 	getValue () {

@@ -77,6 +77,12 @@ export default class MemberExpression extends Node {
 		}
 	}
 
+	bindAssignmentAtPath ( path, expression ) {
+		if ( !this.computed ) {
+			this.object.bindAssignmentAtPath( [ this.property.name, ...path ], expression );
+		}
+	}
+
 	bindCall ( callOptions ) {
 		if ( this.variable ) {
 			this.variable.addCall( callOptions );

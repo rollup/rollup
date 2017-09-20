@@ -1,4 +1,5 @@
 import Variable from './Variable';
+import DeepSet from './DeepSet';
 
 export default class LocalVariable extends Variable {
 	constructor ( name, declarator, init ) {
@@ -6,7 +7,8 @@ export default class LocalVariable extends Variable {
 		this.isReassigned = false;
 		this.exportName = null;
 		this.declarations = new Set( declarator ? [ declarator ] : null );
-		this.assignedExpressions = new Set( init ? [ init ] : null );
+		this.assignedExpressions = new DeepSet();
+		init && this.assignedExpressions.addAtPath( [], init );
 		this.calls = new Set();
 	}
 
@@ -18,14 +20,14 @@ export default class LocalVariable extends Variable {
 		// To prevent infinite loops
 		if ( this.calls.has( callOptions ) ) return;
 		this.calls.add( callOptions );
-		Array.from( this.assignedExpressions ).forEach( expression => expression.bindCall( callOptions ) );
+		this.assignedExpressions.forEachAtPath( [], ( relativePath, expression ) => expression.bindCall( callOptions ) );
 	}
 
 	assignExpressionAtPath ( path, expression ) {
+		this.assignedExpressions.addAtPath( path, expression );
 		if ( path.length === 0 ) {
-			this.assignedExpressions.add( expression );
 			this.isReassigned = true;
-			Array.from( this.calls ).forEach( callOptions => expression.bindCall( callOptions ) );
+			this.calls.forEach( callOptions => expression.bindCall( callOptions ) );
 		}
 	}
 
@@ -38,14 +40,15 @@ export default class LocalVariable extends Variable {
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		return this.included
-			|| (path.length > 0 && Array.from( this.assignedExpressions ).some( node =>
-				!options.hasNodeBeenAssignedAtPath( path, node ) &&
-				node.hasEffectsWhenAssignedAtPath( path, options.addAssignedNodeAtPath( path, node ) )
+			|| (path.length > 0 && this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
+				relativePath.length > 0
+				&& !options.hasNodeBeenAssignedAtPath( relativePath, node )
+				&& node.hasEffectsWhenAssignedAtPath( relativePath, options.addAssignedNodeAtPath( relativePath, node ) )
 			));
 	}
 
 	hasEffectsWhenCalled ( options ) {
-		return Array.from( this.assignedExpressions ).some( node =>
+		return this.assignedExpressions.someAtPath( [], ( relativePath, node ) =>
 			!options.hasNodeBeenCalled( node )
 			&& node.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( node ) )
 		);
@@ -53,9 +56,9 @@ export default class LocalVariable extends Variable {
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {
 		return this.included
-			|| Array.from( this.assignedExpressions ).some( node =>
-				!options.hasNodeBeenMutatedAtPath( path, node ) &&
-				node.hasEffectsWhenMutatedAtPath( path, options.addMutatedNodeAtPath( path, node ) )
+			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
+				!options.hasNodeBeenMutatedAtPath( relativePath, node ) &&
+				node.hasEffectsWhenMutatedAtPath( relativePath, options.addMutatedNodeAtPath( relativePath, node ) )
 			);
 	}
 

@@ -13,6 +13,10 @@ export default class ExportDefaultDeclaration extends Node {
 		if ( this.original ) this.original.addReference( reference );
 	}
 
+	assignExpressionAtPath ( path, expression ) {
+		if ( this.original ) this.original.assignExpressionAtPath( path, expression );
+	}
+
 	bind () {
 		const name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name;
 		if ( name ) this.original = this.scope.findVariable( name );

@@ -5,7 +5,17 @@ export default class Literal extends Node {
 		return this.value;
 	}
 
+	hasEffectsWhenAssignedAtPath ( path ) {
+		if (this.value === null) {
+			return path.length > 0;
+		}
+		return path.length > 1;
+	}
+
 	hasEffectsWhenMutatedAtPath ( path ) {
+		if (this.value === null) {
+			return true;
+		}
 		return path.length > 0;
 	}
 
