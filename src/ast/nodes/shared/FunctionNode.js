@@ -1,6 +1,7 @@
 import Node from '../../Node.js';
 import FunctionScope from '../../scopes/FunctionScope';
 import { UNKNOWN_ASSIGNMENT, UNKNOWN_OBJECT_LITERAL } from '../../values';
+import VirtualObjectExpression from './VirtualObjectExpression';
 
 export default class FunctionNode extends Node {
 	bindCall ( { withNew } ) {
@@ -21,11 +22,14 @@ export default class FunctionNode extends Node {
 		return this.hasEffects( options );
 	}
 
-	hasEffectsWhenAssignedAtPath ( path ) {
-		if ( path.length === 0 ) {
-			return true;
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		if ( path.length <= 1 ) {
+			return false;
 		}
-		return this.hasEffectsWhenMutatedAtPath( path.slice( 1 ) );
+		if ( path[ 0 ] === 'prototype' ) {
+			return this.prototypeObject.hasEffectsWhenAssignedAtPath( path.slice( 1 ), options );
+		}
+		return true;
 	}
 
 	hasEffectsWhenCalled ( options ) {
@@ -36,6 +40,10 @@ export default class FunctionNode extends Node {
 
 	hasEffectsWhenMutatedAtPath ( path ) {
 		return this.included || path.length > 0;
+	}
+
+	initialiseNode () {
+		this.prototypeObject = new VirtualObjectExpression();
 	}
 
 	initialiseScope ( parentScope ) {

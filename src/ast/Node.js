@@ -3,6 +3,10 @@ import { UNKNOWN_VALUE } from './values.js';
 import ExecutionPathOptions from './ExecutionPathOptions';
 
 export default class Node {
+	constructor () {
+		this.keys = [];
+	}
+
 	/**
 	 * Called once all nodes have been initialised and the scopes have been populated.
 	 * Use this to bind assignments and calls to variables.
