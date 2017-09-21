@@ -2,24 +2,24 @@ export const UNKNOWN_VALUE = { toString: () => '[[UNKNOWN]]' };
 
 export const UNKNOWN_ASSIGNMENT = {
 	type: 'UNKNOWN',
-	bindCall: () => {},
+	bindCallAtPath: () => {},
 	hasEffectsWhenAssignedAtPath: () => true,
-	hasEffectsWhenCalled: () => true,
+	hasEffectsWhenCalledAtPath: () => true,
 	hasEffectsWhenMutatedAtPath: () => true,
 };
 
 export const UNDEFINED_ASSIGNMENT = {
 	type: 'UNDEFINED',
-	bindCall: () => {},
+	bindCallAtPath: () => {},
 	hasEffectsWhenAssignedAtPath: () => true,
-	hasEffectsWhenCalled: () => true,
+	hasEffectsWhenCalledAtPath: () => true,
 	hasEffectsWhenMutatedAtPath: () => true,
 };
 
 export const UNKNOWN_OBJECT_LITERAL = {
 	type: 'UNKNOWN_OBJECT_LITERAL',
-	bindCall: () => {},
+	bindCallAtPath: () => {},
 	hasEffectsWhenAssignedAtPath: path => path.length > 1,
-	hasEffectsWhenCalled: () => true,
+	hasEffectsWhenCalledAtPath: () => true,
 	hasEffectsWhenMutatedAtPath: path => path.length > 0,
 };

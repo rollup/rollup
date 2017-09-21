@@ -11,6 +11,16 @@ export default class ObjectExpression extends Node {
 			|| accessedProperty.hasEffectsWhenAssignedAtPath( path.slice( 1 ), options );
 	}
 
+	hasEffectsWhenCalledAtPath ( path, options ) {
+		if ( path.length === 0 ) {
+			return true;
+		}
+		const accessedProperty = this.properties.find( property => !property.computed && property.key.name === path[ 0 ] );
+
+		return !accessedProperty
+			|| accessedProperty.hasEffectsWhenCalledAtPath( path.slice( 1 ), options );
+	}
+
 	hasEffectsWhenMutatedAtPath ( path ) {
 		return path.length > 1;
 	}

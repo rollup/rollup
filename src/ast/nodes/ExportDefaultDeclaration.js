@@ -4,8 +4,8 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
 export default class ExportDefaultDeclaration extends Node {
-	addCall ( options ) {
-		this.declaration.bindCall( options );
+	addCallAtPath ( path, options ) {
+		this.declaration.bindCallAtPath( path, options );
 	}
 
 	addReference ( reference ) {
@@ -32,8 +32,8 @@ export default class ExportDefaultDeclaration extends Node {
 		return this.name;
 	}
 
-	hasEffectsWhenCalled ( options ) {
-		return this.declaration.hasEffectsWhenCalled( options );
+	hasEffectsWhenCalledAtPath ( path, options ) {
+		return this.declaration.hasEffectsWhenCalledAtPath( path, options );
 	}
 
 	includeVariable () {

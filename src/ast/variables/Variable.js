@@ -3,7 +3,7 @@ export default class Variable {
 		this.name = name;
 	}
 
-	addCall () {}
+	addCallAtPath () {}
 
 	addReference () {}
 
@@ -17,7 +17,7 @@ export default class Variable {
 		return true;
 	}
 
-	hasEffectsWhenCalled () {
+	hasEffectsWhenCalledAtPath () {
 		return true;
 	}
 

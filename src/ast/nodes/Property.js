@@ -10,6 +10,10 @@ export default class Property extends Node {
 		return this.value.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
+	hasEffectsWhenCalledAtPath ( path, options ) {
+		return this.value.hasEffectsWhenCalledAtPath( path, options );
+	}
+
 	initialiseAndDeclare ( parentScope, kind ) {
 		this.initialiseScope( parentScope );
 		this.key.initialise( parentScope );

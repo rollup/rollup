@@ -22,13 +22,13 @@ export default class CallExpression extends Node {
 		}
 
 		super.bind();
-		this.callee.bindCall( { withNew: false } );
+		this.callee.bindCallAtPath( [], { withNew: false } );
 	}
 
 	hasEffects ( options ) {
 		return this.included
 			|| this.arguments.some( child => child.hasEffects( options ) )
-			|| this.callee.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( this.callee ) );
+			|| this.callee.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions( this.callee ) );
 	}
 
 	hasEffectsAsExpressionStatement ( options ) {

@@ -30,9 +30,9 @@ export default class Identifier extends Node {
 		}
 	}
 
-	bindCall ( callOptions ) {
+	bindCallAtPath ( path, callOptions ) {
 		if ( this.variable ) {
-			this.variable.addCall( callOptions );
+			this.variable.addCallAtPath( path, callOptions );
 		}
 	}
 
@@ -45,9 +45,9 @@ export default class Identifier extends Node {
 			|| this.variable.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
-	hasEffectsWhenCalled ( options ) {
+	hasEffectsWhenCalledAtPath ( path, options ) {
 		return !this.variable
-			|| this.variable.hasEffectsWhenCalled( options );
+			|| this.variable.hasEffectsWhenCalledAtPath( path, options );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {

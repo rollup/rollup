@@ -14,7 +14,7 @@ export default class GlobalVariable extends Variable {
 		if ( reference.isReassignment ) this.isReassigned = true;
 	}
 
-	hasEffectsWhenCalled () {
-		return !pureFunctions[ this.name ];
+	hasEffectsWhenCalledAtPath ( path ) {
+		return !pureFunctions[ [ this.name, ...path ].join( '.' ) ];
 	}
 }

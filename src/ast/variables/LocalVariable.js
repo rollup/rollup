@@ -9,25 +9,27 @@ export default class LocalVariable extends Variable {
 		this.declarations = new Set( declarator ? [ declarator ] : null );
 		this.assignedExpressions = new DeepSet();
 		init && this.assignedExpressions.addAtPath( [], init );
-		this.calls = new Set();
+		this.calls = new DeepSet();
 	}
 
 	addDeclaration ( identifier ) {
 		this.declarations.add( identifier );
 	}
 
-	addCall ( callOptions ) {
+	addCallAtPath ( path, callOptions ) {
 		// To prevent infinite loops
-		if ( this.calls.has( callOptions ) ) return;
-		this.calls.add( callOptions );
-		this.assignedExpressions.forEachAtPath( [], ( relativePath, expression ) => expression.bindCall( callOptions ) );
+		if ( this.calls.hasAtPath( path, callOptions ) ) return;
+		this.calls.addAtPath( path, callOptions );
+		this.assignedExpressions.forEachAtPath( path, ( relativePath, expression ) =>
+			expression.bindCallAtPath( relativePath, callOptions ) );
 	}
 
 	assignExpressionAtPath ( path, expression ) {
 		this.assignedExpressions.addAtPath( path, expression );
+		this.calls.forEachAtPath( path, ( relativePath, callOptions ) =>
+			expression.bindCallAtPath( relativePath, callOptions ) );
 		if ( path.length === 0 ) {
 			this.isReassigned = true;
-			this.calls.forEach( callOptions => expression.bindCall( callOptions ) );
 		}
 	}
 
@@ -47,10 +49,10 @@ export default class LocalVariable extends Variable {
 			));
 	}
 
-	hasEffectsWhenCalled ( options ) {
-		return this.assignedExpressions.someAtPath( [], ( relativePath, node ) =>
-			!options.hasNodeBeenCalled( node )
-			&& node.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( node ) )
+	hasEffectsWhenCalledAtPath ( path, options ) {
+		return this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
+			!(relativePath.length === 0 && options.hasNodeBeenCalled( node ))
+			&& node.hasEffectsWhenCalledAtPath( relativePath, options.getHasEffectsWhenCalledOptions( node ) )
 		);
 	}
 

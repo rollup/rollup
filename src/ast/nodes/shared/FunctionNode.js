@@ -4,13 +4,15 @@ import { UNKNOWN_ASSIGNMENT, UNKNOWN_OBJECT_LITERAL } from '../../values';
 import VirtualObjectExpression from './VirtualObjectExpression';
 
 export default class FunctionNode extends Node {
-	bindCall ( { withNew } ) {
-		const thisVariable = this.scope.findVariable( 'this' );
+	bindCallAtPath ( path, { withNew } ) {
+		if ( path.length === 0 ) {
+			const thisVariable = this.scope.findVariable( 'this' );
 
-		if ( withNew ) {
-			thisVariable.assignExpressionAtPath( [], UNKNOWN_OBJECT_LITERAL );
-		} else {
-			thisVariable.assignExpressionAtPath( [], UNKNOWN_ASSIGNMENT );
+			if ( withNew ) {
+				thisVariable.assignExpressionAtPath( [], UNKNOWN_OBJECT_LITERAL );
+			} else {
+				thisVariable.assignExpressionAtPath( [], UNKNOWN_ASSIGNMENT );
+			}
 		}
 	}
 
@@ -32,7 +34,10 @@ export default class FunctionNode extends Node {
 		return true;
 	}
 
-	hasEffectsWhenCalled ( options ) {
+	hasEffectsWhenCalledAtPath ( path, options ) {
+		if ( path.length > 0 ) {
+			return true;
+		}
 		const innerOptions = options.setIgnoreSafeThisMutations();
 		return this.params.some( param => param.hasEffects( innerOptions ) )
 			|| this.body.hasEffects( innerOptions );

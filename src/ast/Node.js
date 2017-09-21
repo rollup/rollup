@@ -16,7 +16,7 @@ export default class Node {
 	}
 
 	/**
-	 * Bind an expression as an assignment to a node given an optional path.
+	 * Bind an expression as an assignment to a node given a path.
 	 * E.g., node.bindAssignmentAtPath(['x', 'y'], otherNode) is called if otherNode
 	 * is assigned to node.x.y.
 	 * The default noop implementation is ok as long as hasEffectsWhenAssignedAtPath
@@ -27,13 +27,14 @@ export default class Node {
 	bindAssignmentAtPath () {}
 
 	/**
-	 * Binds ways a node is called to a node. Current options are:
+	 * Binds ways a node is called to a node given a path. Current options are:
 	 * - withNew: boolean - Did this call use the "new" operator
-	 * The default noop implementation is ok as long as hasEffectsWhenCalled
+	 * The default noop implementation is ok as long as hasEffectsWhenCalledAtPath
 	 * always returns true for this node. Otherwise it should be overridden.
+	 * @param {String[]} path
 	 * @param callOptions
 	 */
-	bindCall () {}
+	bindCallAtPath () {}
 
 	eachChild ( callback ) {
 		this.keys.forEach( key => {
@@ -86,10 +87,11 @@ export default class Node {
 	}
 
 	/**
+	 * @param {String[]} path
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenCalled () {
+	hasEffectsWhenCalledAtPath () {
 		return true;
 	}
 

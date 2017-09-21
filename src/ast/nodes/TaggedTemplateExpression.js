@@ -22,11 +22,11 @@ export default class TaggedTemplateExpression extends Node {
 		}
 
 		super.bind();
-		this.tag.bindCall( { withNew: false } );
+		this.tag.bindCallAtPath( [], { withNew: false } );
 	}
 
 	hasEffects ( options ) {
 		return super.hasEffects( options )
-			|| this.tag.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( this.tag ) );
+			|| this.tag.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions( this.tag ) );
 	}
 }

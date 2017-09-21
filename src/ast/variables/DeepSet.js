@@ -25,6 +25,18 @@ export default class DeepSet {
 		}
 	}
 
+	hasAtPath ( path, assignment ) {
+		if ( path.length === 0 ) {
+			return this._assignments.get( SET_KEY ).has( assignment );
+		} else {
+			const [ nextPath, ...remainingPath ] = path;
+			if ( !this._assignments.has( nextPath ) ) {
+				return false;
+			}
+			return this._assignments.get( nextPath ).hasAtPath( remainingPath, assignment );
+		}
+	}
+
 	someAtPath ( path, predicateFunction ) {
 		const [ nextPath, ...remainingPath ] = path;
 		return Array.from( this._assignments.get( SET_KEY ) ).some( assignment => predicateFunction( path, assignment ) )

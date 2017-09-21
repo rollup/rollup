@@ -1,8 +1,6 @@
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
-import flatten from '../utils/flatten';
 import isReference from 'is-reference';
-import pureFunctions from './shared/pureFunctions';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -83,9 +81,11 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	bindCall ( callOptions ) {
+	bindCallAtPath ( path, callOptions ) {
 		if ( this.variable ) {
-			this.variable.addCall( callOptions );
+			this.variable.addCallAtPath( path, callOptions );
+		} else if ( !this.computed ) {
+			this.object.bindCallAtPath( [ this.property.name, ...path ], callOptions );
 		}
 	}
 
@@ -94,6 +94,19 @@ export default class MemberExpression extends Node {
 			return this.object.hasEffectsWhenMutatedAtPath( [], options );
 		}
 		return this.object.hasEffectsWhenAssignedAtPath( [ this.property.name, ...path ], options );
+	}
+
+	hasEffectsWhenCalledAtPath ( path, options ) {
+		if ( this.variable ) {
+			return this.variable.hasEffectsWhenCalledAtPath( path, options );
+		}
+		if ( !isReference( this ) ) {
+			return true;
+		}
+		if ( this.computed ) {
+			return true;
+		}
+		return this.object.hasEffectsWhenCalledAtPath( [ this.property.name, ...path ], options );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {
@@ -110,17 +123,6 @@ export default class MemberExpression extends Node {
 			addedNewNodes = true;
 		}
 		return addedNewNodes;
-	}
-
-	hasEffectsWhenCalled ( options ) {
-		if ( this.variable ) {
-			return this.variable.hasEffectsWhenCalled( options );
-		}
-		if ( !isReference( this ) ) {
-			return true;
-		}
-		const flattenedNode = flatten( this );
-		return !(this.scope.findVariable( flattenedNode.name ).isGlobal && pureFunctions[ flattenedNode.keypath ]);
 	}
 
 	render ( code, es ) {

@@ -3,7 +3,7 @@ import Scope from '../scopes/Scope.js';
 
 export default class ArrowFunctionExpression extends Node {
 	// Should receive an implementation once we start tracking parameter values
-	bindCall () {}
+	bindCallAtPath () {}
 
 	hasEffects () {
 		return this.included;
@@ -16,7 +16,10 @@ export default class ArrowFunctionExpression extends Node {
 		return this.hasEffectsWhenMutatedAtPath( path.slice( 1 ) );
 	}
 
-	hasEffectsWhenCalled ( options ) {
+	hasEffectsWhenCalledAtPath ( path, options ) {
+		if ( path.length > 0 ) {
+			return true;
+		}
 		return this.params.some( param => param.hasEffects( options ) )
 			|| this.body.hasEffects( options );
 	}
