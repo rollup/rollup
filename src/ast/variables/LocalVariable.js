@@ -42,26 +42,32 @@ export default class LocalVariable extends Variable {
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		return this.included
-			|| (path.length > 0 && this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
+			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
 				relativePath.length > 0
 				&& !options.hasNodeBeenAssignedAtPath( relativePath, node )
 				&& node.hasEffectsWhenAssignedAtPath( relativePath, options.addAssignedNodeAtPath( relativePath, node ) )
-			));
+			);
 	}
 
 	hasEffectsWhenCalledAtPath ( path, options ) {
-		return this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
-			!(relativePath.length === 0 && options.hasNodeBeenCalled( node ))
-			&& node.hasEffectsWhenCalledAtPath( relativePath, options.getHasEffectsWhenCalledOptions( node ) )
-		);
+		return this.assignedExpressions.someAtPath( path, ( relativePath, node ) => {
+			if ( relativePath.length === 0 ) {
+				return !options.hasNodeBeenCalled( node )
+					&& node.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions( node ) );
+			}
+			return node.hasEffectsWhenCalledAtPath( relativePath, options );
+		} );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {
 		return this.included
-			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
-				!options.hasNodeBeenMutatedAtPath( relativePath, node ) &&
-				node.hasEffectsWhenMutatedAtPath( relativePath, options.addMutatedNodeAtPath( relativePath, node ) )
-			);
+			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) => {
+				if ( relativePath.length === 0 ) {
+					return !options.hasNodeBeenMutated( node )
+						&& node.hasEffectsWhenMutatedAtPath( [], options.addMutatedNode( node ) );
+				}
+				return node.hasEffectsWhenMutatedAtPath( relativePath, options );
+			} );
 	}
 
 	includeVariable () {

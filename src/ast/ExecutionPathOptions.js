@@ -133,21 +133,19 @@ export default class ExecutionPathOptions {
 	}
 
 	/**
-	 * @param {String[]} path
 	 * @param {Node} node
 	 * @return {ExecutionPathOptions}
 	 */
-	addMutatedNodeAtPath ( path, node ) {
-		return this.setIn( [ OPTION_MUTATED_NODES, node, ...path, RESULT_KEY ], true );
+	addMutatedNode ( node ) {
+		return this.setIn( [ OPTION_MUTATED_NODES, node ], true );
 	}
 
 	/**
-	 * @param {String[]} path
 	 * @param {Node} node
 	 * @return {boolean}
 	 */
-	hasNodeBeenMutatedAtPath ( path, node ) {
-		return this._optionValues.getIn( [ OPTION_MUTATED_NODES, node, ...path, RESULT_KEY ] );
+	hasNodeBeenMutated ( node ) {
+		return this._optionValues.getIn( [ OPTION_MUTATED_NODES, node ] );
 	}
 
 	/**
