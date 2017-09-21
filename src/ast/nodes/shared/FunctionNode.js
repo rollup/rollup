@@ -38,8 +38,14 @@ export default class FunctionNode extends Node {
 			|| this.body.hasEffects( innerOptions );
 	}
 
-	hasEffectsWhenMutatedAtPath ( path ) {
-		return this.included || path.length > 0;
+	hasEffectsWhenMutatedAtPath ( path, options ) {
+		if ( path.length === 0 ) {
+			return false;
+		}
+		if ( path[ 0 ] === 'prototype' ) {
+			return this.prototypeObject.hasEffectsWhenMutatedAtPath( path.slice( 1 ), options );
+		}
+		return true;
 	}
 
 	initialiseNode () {
