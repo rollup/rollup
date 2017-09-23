@@ -27,6 +27,15 @@ export default class ConditionalExpression extends Node {
 		return testValue ? this.consequent.getValue() : this.alternate.getValue();
 	}
 
+	hasEffects ( options ) {
+		return (
+			this.included
+			|| this.test.hasEffects( options )
+			|| (this.testValue === UNKNOWN_VALUE && (this.consequent.hasEffects( options ) || this.alternate.hasEffects( options )))
+			|| (this.testValue ? this.consequent.hasEffects( options ) : this.alternate.hasEffects( options ))
+		);
+	}
+
 	render ( code, es ) {
 		if ( !this.module.bundle.treeshake ) {
 			super.render( code, es );
@@ -37,22 +46,16 @@ export default class ConditionalExpression extends Node {
 				super.render( code, es );
 			}
 
-			else if ( this.testValue ) {
-				code.remove( this.start, this.consequent.start );
-				code.remove( this.consequent.end, this.end );
-				if ( this.consequent.type === 'SequenceExpression' ) {
-					code.prependRight( this.consequent.start, '(' );
-					code.appendLeft( this.consequent.end, ')' );
+			else {
+				const branchToRetain = this.testValue ? this.consequent : this.alternate;
+
+				code.remove( this.start, branchToRetain.start );
+				code.remove( branchToRetain.end, this.end );
+				if ( branchToRetain.type === 'SequenceExpression' ) {
+					code.prependRight( branchToRetain.start, '(' );
+					code.appendLeft( branchToRetain.end, ')' );
 				}
-				this.consequent.render( code, es );
-			} else {
-				code.remove( this.start, this.alternate.start );
-				code.remove( this.alternate.end, this.end );
-				if ( this.alternate.type === 'SequenceExpression' ) {
-					code.prependRight( this.alternate.start, '(' );
-					code.appendLeft( this.alternate.end, ')' );
-				}
-				this.alternate.render( code, es );
+				branchToRetain.render( code, es );
 			}
 		}
 	}
