@@ -18,21 +18,27 @@ function isAssignmentPatternLhs ( node, parent ) {
 
 export default class Identifier extends Node {
 	bind () {
-		if ( isReference( this, this.parent ) || isAssignmentPatternLhs( this, this.parent ) ) {
-			this.variable = this.scope.findVariable( this.name );
-			this.variable.addReference( this );
-		}
+		this._bindVariableIfMissing();
 	}
 
 	bindAssignmentAtPath ( path, expression ) {
+		this._bindVariableIfMissing();
 		if ( this.variable ) {
 			this.variable.assignExpressionAtPath( path, expression );
 		}
 	}
 
 	bindCallAtPath ( path, callOptions ) {
+		this._bindVariableIfMissing();
 		if ( this.variable ) {
 			this.variable.addCallAtPath( path, callOptions );
+		}
+	}
+
+	_bindVariableIfMissing () {
+		if ( !this.variable && (isReference( this, this.parent ) || isAssignmentPatternLhs( this, this.parent )) ) {
+			this.variable = this.scope.findVariable( this.name );
+			this.variable.addReference( this );
 		}
 	}
 

@@ -17,15 +17,20 @@ export default class LocalVariable extends Variable {
 	}
 
 	addCallAtPath ( path, callOptions ) {
-		// To prevent infinite loops
 		if ( this.calls.hasAtPath( path, callOptions ) ) return;
 		this.calls.addAtPath( path, callOptions );
-		this.assignedExpressions.forEachAtPath( path, ( relativePath, expression ) =>
-			expression.bindCallAtPath( relativePath, callOptions ) );
+		this.assignedExpressions.forEachAtPath( path, ( relativePath, node ) =>
+			node.bindCallAtPath( relativePath, callOptions ) );
 	}
 
 	assignExpressionAtPath ( path, expression ) {
+		if ( this.assignedExpressions.hasAtPath( path, expression ) ) return;
 		this.assignedExpressions.addAtPath( path, expression );
+		if ( path.length > 0 ) {
+			this.assignedExpressions.forEachAtPath( path.slice( 0, -1 ), ( relativePath, node ) => {
+				return node.bindAssignmentAtPath( [ ...relativePath, ...path.slice( -1 ) ], expression );
+			} );
+		}
 		this.calls.forEachAtPath( path, ( relativePath, callOptions ) =>
 			expression.bindCallAtPath( relativePath, callOptions ) );
 		if ( path.length === 0 ) {
@@ -45,8 +50,7 @@ export default class LocalVariable extends Variable {
 			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
 				relativePath.length > 0
 				&& !options.hasNodeBeenAssignedAtPath( relativePath, node )
-				&& node.hasEffectsWhenAssignedAtPath( relativePath, options.addAssignedNodeAtPath( relativePath, node ) )
-			);
+				&& node.hasEffectsWhenAssignedAtPath( relativePath, options.addAssignedNodeAtPath( relativePath, node ) ) );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, options ) {

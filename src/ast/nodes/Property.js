@@ -2,8 +2,12 @@ import Node from '../Node.js';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class Property extends Node {
-	bindAssignmentAtPath () {
-		this.value.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT );
+	bindAssignmentAtPath ( path, expression ) {
+		this.value.bindAssignmentAtPath( path, expression );
+	}
+
+	bindCallAtPath ( path, callOptions ) {
+		this.value.bindCallAtPath( path, callOptions );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {

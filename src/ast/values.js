@@ -2,6 +2,7 @@ export const UNKNOWN_VALUE = { toString: () => '[[UNKNOWN]]' };
 
 export const UNKNOWN_ASSIGNMENT = {
 	type: 'UNKNOWN',
+	bindAssignmentAtPath: () => {},
 	bindCallAtPath: () => {},
 	hasEffectsWhenAssignedAtPath: () => true,
 	hasEffectsWhenCalledAtPath: () => true,
@@ -10,6 +11,7 @@ export const UNKNOWN_ASSIGNMENT = {
 
 export const UNDEFINED_ASSIGNMENT = {
 	type: 'UNDEFINED',
+	bindAssignmentAtPath: () => {},
 	bindCallAtPath: () => {},
 	hasEffectsWhenAssignedAtPath: () => true,
 	hasEffectsWhenCalledAtPath: () => true,
@@ -18,6 +20,7 @@ export const UNDEFINED_ASSIGNMENT = {
 
 export const UNKNOWN_OBJECT_LITERAL = {
 	type: 'UNKNOWN_OBJECT_LITERAL',
+	bindAssignmentAtPath: () => {},
 	bindCallAtPath: () => {},
 	hasEffectsWhenAssignedAtPath: path => path.length > 1,
 	hasEffectsWhenCalledAtPath: () => true,

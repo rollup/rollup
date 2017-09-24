@@ -31,6 +31,7 @@ export default class MemberExpression extends Node {
 		// if this resolves to a namespaced declaration, prepare
 		// to replace it
 		// TODO this code is a bit inefficient
+		this._bound = true;
 		const keypath = new Keypath( this );
 
 		if ( !keypath.computed && keypath.root.type === 'Identifier' ) {
@@ -76,12 +77,20 @@ export default class MemberExpression extends Node {
 	}
 
 	bindAssignmentAtPath ( path, expression ) {
-		if ( !this.computed ) {
+		if ( !this._bound ) {
+			this.bind();
+		}
+		if ( this.variable ) {
+			this.variable.assignExpressionAtPath( path, expression );
+		} else if ( !this.computed ) {
 			this.object.bindAssignmentAtPath( [ this.property.name, ...path ], expression );
 		}
 	}
 
 	bindCallAtPath ( path, callOptions ) {
+		if ( !this._bound ) {
+			this.bind();
+		}
 		if ( this.variable ) {
 			this.variable.addCallAtPath( path, callOptions );
 		} else if ( !this.computed ) {
@@ -90,6 +99,9 @@ export default class MemberExpression extends Node {
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
+		if ( this.variable ) {
+			return this.variable.hasEffectsWhenAssignedAtPath( path, options );
+		}
 		if ( this.computed ) {
 			return this.object.hasEffectsWhenMutatedAtPath( [], options );
 		}
@@ -110,6 +122,9 @@ export default class MemberExpression extends Node {
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {
+		if ( this.variable ) {
+			return this.variable.hasEffectsWhenMutatedAtPath( path, options );
+		}
 		if ( this.computed ) {
 			return this.object.hasEffectsWhenMutatedAtPath( [], options );
 		}
