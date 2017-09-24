@@ -52,8 +52,8 @@ export default class ConditionalExpression extends Node {
 				code.remove( this.start, branchToRetain.start );
 				code.remove( branchToRetain.end, this.end );
 				if ( branchToRetain.type === 'SequenceExpression' ) {
-					code.prependRight( branchToRetain.start, '(' );
-					code.appendLeft( branchToRetain.end, ')' );
+					code.prependLeft( branchToRetain.start, '(' );
+					code.appendRight( branchToRetain.end, ')' );
 				}
 				branchToRetain.render( code, es );
 			}
