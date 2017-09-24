@@ -19,6 +19,7 @@ export default class Scope {
 	 * @param {Object} [options] - valid options are
 	 *        {(Node|null)} init
 	 *        {boolean} isHoisted
+	 * @return {Variable}
 	 */
 	addDeclaration ( identifier, options = {} ) {
 		const name = identifier.name;
@@ -29,11 +30,13 @@ export default class Scope {
 		} else {
 			this.variables[ name ] = new LocalVariable( identifier.name, identifier, options.init || UNDEFINED_ASSIGNMENT );
 		}
+		return this.variables[ name ];
 	}
 
 	addParameterDeclaration ( identifier ) {
 		const name = identifier.name;
 		this.variables[ name ] = new ParameterVariable( name, identifier );
+		return this.variables[ name ];
 	}
 
 	contains ( name ) {

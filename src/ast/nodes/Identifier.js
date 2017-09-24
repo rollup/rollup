@@ -1,21 +1,6 @@
 import Node from '../Node.js';
 import isReference from 'is-reference';
 
-function isAssignmentPatternLhs ( node, parent ) {
-	// special case: `({ foo = 42 }) => {...}`
-	// `foo` actually has two different parents, the Property of the
-	// ObjectPattern, and the AssignmentPattern. In one case it's a
-	// reference, in one case it's not, because it's shorthand for
-	// `({ foo: foo = 42 }) => {...}`. But unlike a regular shorthand
-	// property, the `foo` node appears at different levels of the tree
-	return (
-		parent.type === 'Property' &&
-		parent.shorthand &&
-		parent.value.type === 'AssignmentPattern' &&
-		parent.value.left === node
-	);
-}
-
 export default class Identifier extends Node {
 	bind () {
 		this._bindVariableIfMissing();
@@ -36,7 +21,7 @@ export default class Identifier extends Node {
 	}
 
 	_bindVariableIfMissing () {
-		if ( !this.variable && (isReference( this, this.parent ) || isAssignmentPatternLhs( this, this.parent )) ) {
+		if ( !this.variable && isReference( this, this.parent ) ) {
 			this.variable = this.scope.findVariable( this.name );
 			this.variable.addReference( this );
 		}
@@ -73,15 +58,15 @@ export default class Identifier extends Node {
 		switch ( kind ) {
 			case 'var':
 			case 'function':
-				this.scope.addDeclaration( this, { isHoisted: true, init } );
+				this.variable = this.scope.addDeclaration( this, { isHoisted: true, init } );
 				break;
 			case 'let':
 			case 'const':
 			case 'class':
-				this.scope.addDeclaration( this, { init } );
+				this.variable = this.scope.addDeclaration( this, { init } );
 				break;
 			case 'parameter':
-				this.scope.addParameterDeclaration( this );
+				this.variable = this.scope.addParameterDeclaration( this );
 				break;
 			default:
 				throw new Error( 'Unexpected identifier kind', kind );
