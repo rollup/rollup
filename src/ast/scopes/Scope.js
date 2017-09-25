@@ -1,6 +1,7 @@
 import { blank, keys } from '../../utils/object.js';
 import LocalVariable from '../variables/LocalVariable';
 import ParameterVariable from '../variables/ParameterVariable';
+import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import { UNDEFINED_ASSIGNMENT } from '../values';
 
 export default class Scope {
@@ -31,6 +32,11 @@ export default class Scope {
 			this.variables[ name ] = new LocalVariable( identifier.name, identifier, options.init || UNDEFINED_ASSIGNMENT );
 		}
 		return this.variables[ name ];
+	}
+
+	addExportDefaultDeclaration ( name, exportDefaultDeclaration ) {
+		this.variables.default = new ExportDefaultVariable( name, exportDefaultDeclaration );
+		return this.variables.default;
 	}
 
 	addParameterDeclaration ( identifier ) {

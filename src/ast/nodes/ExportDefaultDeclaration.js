@@ -4,45 +4,20 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
 export default class ExportDefaultDeclaration extends Node {
-	addCallAtPath ( path, options ) {
-		this.declaration.bindCallAtPath( path, options );
-	}
-
-	addReference ( reference ) {
-		this.name = reference.name;
-		if ( this.original ) this.original.addReference( reference );
-	}
-
-	assignExpressionAtPath ( path, expression ) {
-		if ( this.original ) this.original.assignExpressionAtPath( path, expression );
-	}
-
 	bind () {
-		const name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name;
-		if ( name ) this.original = this.scope.findVariable( name );
-
-		this.declaration.bind();
-	}
-
-	getName ( es ) {
-		if ( this.original && !this.original.isReassigned ) {
-			return this.original.getName( es );
+		if ( this._declarationName ) {
+			this.variable.setOriginalVariable( this.scope.findVariable( this._declarationName ) );
 		}
-
-		return this.name;
+		this.declaration.bind();
 	}
 
 	hasEffectsWhenCalledAtPath ( path, options ) {
 		return this.declaration.hasEffectsWhenCalledAtPath( path, options );
 	}
 
-	includeVariable () {
-		if ( this.included ) {
-			return false;
-		}
+	includeDefaultExport () {
 		this.included = true;
 		this.declaration.includeInBundle();
-		return true;
 	}
 
 	includeInBundle () {
@@ -54,16 +29,14 @@ export default class ExportDefaultDeclaration extends Node {
 
 	initialiseNode () {
 		this.isExportDeclaration = true;
-		this.isDefault = true;
-
-		this.name = ( this.declaration.id && this.declaration.id.name ) || this.declaration.name || this.module.basename();
-		this.scope.variables.default = this;
+		this._declarationName = (this.declaration.id && this.declaration.id.name ) || this.declaration.name;
+		this.variable = this.scope.addExportDefaultDeclaration( this._declarationName || this.module.basename(), this );
 	}
 
 	// TODO this is total chaos, tidy it up
 	render ( code, es ) {
 		const treeshake = this.module.bundle.treeshake;
-		const name = this.getName( es );
+		const name = this.variable.getName( es );
 
 		// paren workaround: find first non-whitespace character position after `export default`
 		let declaration_start;
@@ -78,13 +51,13 @@ export default class ExportDefaultDeclaration extends Node {
 					if ( this.declaration.id ) {
 						code.remove( this.start, declaration_start );
 					} else {
-						code.overwrite( this.start, declaration_start, `var ${this.name} = ` );
+						code.overwrite( this.start, declaration_start, `var ${this.variable.name} = ` );
 						if ( code.original[ this.end - 1 ] !== ';' ) code.appendLeft( this.end, ';' );
 					}
 				}
 
 				else {
-					if ( this.original && this.original.getName( es ) === name ) {
+					if ( this.variable.getOriginalVariableName( es ) === name ) {
 						// prevent `var foo = foo`
 						code.remove( this.leadingCommentStart || this.start, this.next || this.end );
 						return; // don't render children. TODO this seems like a bit of a hack
