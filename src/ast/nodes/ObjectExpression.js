@@ -19,30 +19,28 @@ export default class ObjectExpression extends Node {
 
 	_getPossiblePropertiesWithName ( name ) {
 		const properties = [];
-		let hasComputed = false;
+		let hasCertainHit = false;
 
 		for ( let index = this.properties.length - 1; index >= 0; index-- ) {
 			const property = this.properties[ index ];
 			if ( property.computed ) {
-				if ( !hasComputed ) {
-					properties.push( property );
-					hasComputed = true;
-				}
+				properties.push( property );
 			} else if ( property.key.name === name ) {
 				properties.push( property );
+				hasCertainHit = true;
 				break;
 			}
 		}
-		return { properties, onlyComputed: properties.length === 0 || (hasComputed && properties.length === 1) };
+		return { properties, hasCertainHit };
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		if ( path.length <= 1 ) {
 			return false;
 		}
-		const { properties, onlyComputed } = this._getPossiblePropertiesWithName( path[ 0 ] );
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ] );
 
-		return onlyComputed || properties.some( property =>
+		return !hasCertainHit || properties.some( property =>
 			property.hasEffectsWhenAssignedAtPath( path.slice( 1 ), options ) );
 	}
 
@@ -50,9 +48,9 @@ export default class ObjectExpression extends Node {
 		if ( path.length === 0 ) {
 			return true;
 		}
-		const { properties, onlyComputed } = this._getPossiblePropertiesWithName( path[ 0 ] );
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ] );
 
-		return onlyComputed || properties.some( property =>
+		return !hasCertainHit || properties.some( property =>
 			property.hasEffectsWhenCalledAtPath( path.slice( 1 ), options ) );
 	}
 
@@ -60,9 +58,9 @@ export default class ObjectExpression extends Node {
 		if ( path.length === 0 ) {
 			return false;
 		}
-		const { properties, onlyComputed } = this._getPossiblePropertiesWithName( path[ 0 ] );
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ] );
 
-		return onlyComputed || properties.some( property =>
+		return !hasCertainHit || properties.some( property =>
 			property.hasEffectsWhenMutatedAtPath( path.slice( 1 ), options ) );
 	}
 }
