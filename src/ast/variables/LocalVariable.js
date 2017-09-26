@@ -1,6 +1,9 @@
 import Variable from './Variable';
 import DeepSet from './DeepSet';
 
+// To avoid recursions
+const MAX_PATH_LENGTH = 8;
+
 export default class LocalVariable extends Variable {
 	constructor ( name, declarator, init ) {
 		super( name );
@@ -17,6 +20,9 @@ export default class LocalVariable extends Variable {
 	}
 
 	addCallAtPath ( path, callOptions ) {
+		if (path.length > MAX_PATH_LENGTH) {
+			return;
+		}
 		if ( this.calls.hasAtPath( path, callOptions ) ) return;
 		this.calls.addAtPath( path, callOptions );
 		this.assignedExpressions.forEachAtPath( path, ( relativePath, node ) =>
@@ -24,6 +30,9 @@ export default class LocalVariable extends Variable {
 	}
 
 	assignExpressionAtPath ( path, expression ) {
+		if (path.length > MAX_PATH_LENGTH) {
+			return;
+		}
 		if ( this.assignedExpressions.hasAtPath( path, expression ) ) return;
 		this.assignedExpressions.addAtPath( path, expression );
 		if ( path.length > 0 ) {
@@ -45,6 +54,9 @@ export default class LocalVariable extends Variable {
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
+		if (path.length > MAX_PATH_LENGTH) {
+			return true;
+		}
 		return this.included
 			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
 				relativePath.length > 0
@@ -53,6 +65,9 @@ export default class LocalVariable extends Variable {
 	}
 
 	hasEffectsWhenCalledAtPath ( path, options ) {
+		if (path.length > MAX_PATH_LENGTH) {
+			return true;
+		}
 		return this.assignedExpressions.someAtPath( path, ( relativePath, node ) => {
 			if ( relativePath.length === 0 ) {
 				return !options.hasNodeBeenCalled( node )
@@ -63,6 +78,9 @@ export default class LocalVariable extends Variable {
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {
+		if (path.length > MAX_PATH_LENGTH) {
+			return true;
+		}
 		return this.included
 			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) => {
 				if ( relativePath.length === 0 ) {
