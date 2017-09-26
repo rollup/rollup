@@ -1,4 +1,5 @@
 const SET_KEY = {};
+export const UNKNOWN_KEY = {};
 
 export default class DeepSet {
 	constructor () {
@@ -20,8 +21,21 @@ export default class DeepSet {
 	forEachAtPath ( path, callback ) {
 		const [ nextPath, ...remainingPath ] = path;
 		this._assignments.get( SET_KEY ).forEach( assignment => callback( path, assignment ) );
-		if ( path.length > 0 && this._assignments.has( nextPath ) ) {
-			this._assignments.get( nextPath ).forEachAtPath( remainingPath, callback );
+		if ( path.length > 0 ) {
+			if ( nextPath === UNKNOWN_KEY ) {
+				this._assignments.forEach( ( assignment, subPath ) => {
+					if ( subPath !== SET_KEY ) {
+						assignment.forEachAtPath( remainingPath, callback );
+					}
+				} );
+			} else {
+				if ( this._assignments.has( nextPath ) ) {
+					this._assignments.get( nextPath ).forEachAtPath( remainingPath, callback );
+				}
+				if ( this._assignments.has( UNKNOWN_KEY ) ) {
+					this._assignments.get( UNKNOWN_KEY ).forEachAtPath( remainingPath, callback );
+				}
+			}
 		}
 	}
 
@@ -42,8 +56,21 @@ export default class DeepSet {
 		return Array.from( this._assignments.get( SET_KEY ) ).some( assignment => predicateFunction( path, assignment ) )
 			|| (
 				path.length > 0
-				&& this._assignments.has( nextPath )
-				&& this._assignments.get( nextPath ).someAtPath( remainingPath, predicateFunction )
+				&& (
+					(nextPath === UNKNOWN_KEY
+						&& Array.from( this._assignments ).some( ( assignment, subPath ) => {
+							if ( subPath !== SET_KEY ) {
+								return assignment.someAtPath( remainingPath, predicateFunction );
+							}
+						} ))
+					|| (nextPath !== UNKNOWN_KEY
+						&& (
+							(this._assignments.has( nextPath )
+								&& this._assignments.get( nextPath ).someAtPath( remainingPath, predicateFunction ))
+							|| (this._assignments.has( UNKNOWN_KEY )
+								&& this._assignments.get( UNKNOWN_KEY ).someAtPath( remainingPath, predicateFunction ))
+						))
+				)
 			);
 	}
 }

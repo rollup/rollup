@@ -18,6 +18,10 @@ export default class Property extends Node {
 		return this.value.hasEffectsWhenCalledAtPath( path, options );
 	}
 
+	hasEffectsWhenMutatedAtPath ( path, options ) {
+		return this.value.hasEffectsWhenMutatedAtPath( path, options );
+	}
+
 	initialiseAndDeclare ( parentScope, kind ) {
 		this.initialiseScope( parentScope );
 		this.key.initialise( parentScope );

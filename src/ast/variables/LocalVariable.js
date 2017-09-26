@@ -27,9 +27,8 @@ export default class LocalVariable extends Variable {
 		if ( this.assignedExpressions.hasAtPath( path, expression ) ) return;
 		this.assignedExpressions.addAtPath( path, expression );
 		if ( path.length > 0 ) {
-			this.assignedExpressions.forEachAtPath( path.slice( 0, -1 ), ( relativePath, node ) => {
-				return node.bindAssignmentAtPath( [ ...relativePath, ...path.slice( -1 ) ], expression );
-			} );
+			this.assignedExpressions.forEachAtPath( path.slice( 0, -1 ), ( relativePath, node ) =>
+				node.bindAssignmentAtPath( [ ...relativePath, ...path.slice( -1 ) ], expression ) );
 		}
 		this.calls.forEachAtPath( path, ( relativePath, callOptions ) =>
 			expression.bindCallAtPath( relativePath, callOptions ) );

@@ -1,6 +1,7 @@
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
 import isReference from 'is-reference';
+import { UNKNOWN_KEY } from '../variables/DeepSet';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -82,7 +83,9 @@ export default class MemberExpression extends Node {
 		}
 		if ( this.variable ) {
 			this.variable.assignExpressionAtPath( path, expression );
-		} else if ( !this.computed ) {
+		} else if ( this.computed ) {
+			this.object.bindAssignmentAtPath( [ UNKNOWN_KEY, ...path ], expression );
+		} else {
 			this.object.bindAssignmentAtPath( [ this.property.name, ...path ], expression );
 		}
 	}
@@ -93,7 +96,9 @@ export default class MemberExpression extends Node {
 		}
 		if ( this.variable ) {
 			this.variable.addCallAtPath( path, callOptions );
-		} else if ( !this.computed ) {
+		} else if ( this.computed ) {
+			this.object.bindCallAtPath( [ UNKNOWN_KEY, ...path ], callOptions );
+		} else {
 			this.object.bindCallAtPath( [ this.property.name, ...path ], callOptions );
 		}
 	}
@@ -103,7 +108,7 @@ export default class MemberExpression extends Node {
 			return this.variable.hasEffectsWhenAssignedAtPath( path, options );
 		}
 		if ( this.computed ) {
-			return this.object.hasEffectsWhenMutatedAtPath( [], options );
+			return path.length > 0 || this.object.hasEffectsWhenMutatedAtPath( [], options );
 		}
 		return this.object.hasEffectsWhenAssignedAtPath( [ this.property.name, ...path ], options );
 	}
@@ -112,10 +117,7 @@ export default class MemberExpression extends Node {
 		if ( this.variable ) {
 			return this.variable.hasEffectsWhenCalledAtPath( path, options );
 		}
-		if ( !isReference( this ) ) {
-			return true;
-		}
-		if ( this.computed ) {
+		if ( !isReference( this ) || this.computed ) {
 			return true;
 		}
 		return this.object.hasEffectsWhenCalledAtPath( [ this.property.name, ...path ], options );
@@ -126,7 +128,7 @@ export default class MemberExpression extends Node {
 			return this.variable.hasEffectsWhenMutatedAtPath( path, options );
 		}
 		if ( this.computed ) {
-			return this.object.hasEffectsWhenMutatedAtPath( [], options );
+			return path.length > 0 || this.object.hasEffectsWhenMutatedAtPath( [], options );
 		}
 		return this.object.hasEffectsWhenMutatedAtPath( [ this.property.name, ...path ], options );
 	}

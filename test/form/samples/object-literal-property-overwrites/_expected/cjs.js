@@ -2,13 +2,13 @@
 
 const retained1 = {
 	foo: () => {},
-	foo: () => console.log( 'effect' )
+	foo: function () {this.x = 1;}
 };
 retained1.foo();
 
 const retained2 = {
 	foo: () => {},
-	['f' + 'oo']: () => console.log( 'effect' ),
+	['f' + 'oo']: function () {this.x = 1;},
 	['b' + 'ar']: () => {}
 };
 retained2.foo();

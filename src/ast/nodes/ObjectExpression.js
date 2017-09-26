@@ -1,4 +1,5 @@
 import Node from '../Node.js';
+import { UNKNOWN_KEY } from '../variables/DeepSet';
 
 export default class ObjectExpression extends Node {
 	bindAssignmentAtPath ( path, expression ) {
@@ -18,6 +19,9 @@ export default class ObjectExpression extends Node {
 	}
 
 	_getPossiblePropertiesWithName ( name ) {
+		if ( name === UNKNOWN_KEY ) {
+			return { properties: this.properties, hasCertainHit: false };
+		}
 		const properties = [];
 		let hasCertainHit = false;
 

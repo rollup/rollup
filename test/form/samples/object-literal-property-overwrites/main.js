@@ -12,7 +12,7 @@ const removed2 = {
 removed2.foo();
 
 const removed3 = {
-	['fo' + 'o']: () => console.log( 'effect' ),
+	['fo' + 'o']: function () {this.x = 1;},
 	['f' + 'oo']: () => console.log( 'effect' ),
 	foo: () => {}
 };
@@ -40,13 +40,13 @@ removed6.foo.bar = 1;
 
 const retained1 = {
 	foo: () => {},
-	foo: () => console.log( 'effect' )
+	foo: function () {this.x = 1;}
 };
 retained1.foo();
 
 const retained2 = {
 	foo: () => {},
-	['f' + 'oo']: () => console.log( 'effect' ),
+	['f' + 'oo']: function () {this.x = 1;},
 	['b' + 'ar']: () => {}
 };
 retained2.foo();
