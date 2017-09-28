@@ -2,7 +2,7 @@ import { blank, keys } from '../../utils/object.js';
 import LocalVariable from '../variables/LocalVariable';
 import ParameterVariable from '../variables/ParameterVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
-import { UNDEFINED_ASSIGNMENT } from '../values';
+import UndefinedIdentifier from '../nodes/shared/UndefinedIdentifier';
 
 export default class Scope {
 	constructor ( options = {} ) {
@@ -29,7 +29,7 @@ export default class Scope {
 			variable.addDeclaration( identifier );
 			options.init && variable.assignExpressionAtPath( [], options.init );
 		} else {
-			this.variables[ name ] = new LocalVariable( identifier.name, identifier, options.init || UNDEFINED_ASSIGNMENT );
+			this.variables[ name ] = new LocalVariable( identifier.name, identifier, options.init || new UndefinedIdentifier() );
 		}
 		return this.variables[ name ];
 	}

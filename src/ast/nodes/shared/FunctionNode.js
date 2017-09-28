@@ -1,6 +1,6 @@
 import Node from '../../Node.js';
 import FunctionScope from '../../scopes/FunctionScope';
-import { UNKNOWN_ASSIGNMENT, UNKNOWN_OBJECT_LITERAL } from '../../values';
+import { UNKNOWN_ASSIGNMENT } from '../../values';
 import VirtualObjectExpression from './VirtualObjectExpression';
 
 export default class FunctionNode extends Node {
@@ -9,7 +9,7 @@ export default class FunctionNode extends Node {
 			const thisVariable = this.scope.findVariable( 'this' );
 
 			if ( withNew ) {
-				thisVariable.assignExpressionAtPath( [], UNKNOWN_OBJECT_LITERAL );
+				thisVariable.assignExpressionAtPath( [], new VirtualObjectExpression() );
 			} else {
 				thisVariable.assignExpressionAtPath( [], UNKNOWN_ASSIGNMENT );
 			}

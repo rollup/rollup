@@ -8,21 +8,3 @@ export const UNKNOWN_ASSIGNMENT = {
 	hasEffectsWhenCalledAtPath: () => true,
 	hasEffectsWhenMutatedAtPath: () => true,
 };
-
-export const UNDEFINED_ASSIGNMENT = {
-	type: 'UNDEFINED',
-	bindAssignmentAtPath: () => {},
-	bindCallAtPath: () => {},
-	hasEffectsWhenAssignedAtPath: () => true,
-	hasEffectsWhenCalledAtPath: () => true,
-	hasEffectsWhenMutatedAtPath: () => true,
-};
-
-export const UNKNOWN_OBJECT_LITERAL = {
-	type: 'UNKNOWN_OBJECT_LITERAL',
-	bindAssignmentAtPath: () => {},
-	bindCallAtPath: () => {},
-	hasEffectsWhenAssignedAtPath: path => path.length > 1,
-	hasEffectsWhenCalledAtPath: () => true,
-	hasEffectsWhenMutatedAtPath: path => path.length > 0,
-};
