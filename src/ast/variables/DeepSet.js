@@ -1,5 +1,5 @@
-const SET_KEY = {};
-export const UNKNOWN_KEY = {};
+const SET_KEY = { type: 'SET_KEY' };
+export const UNKNOWN_KEY = { type: 'UNKNOWN_KEY' };
 
 export default class DeepSet {
 	constructor () {
@@ -58,7 +58,7 @@ export default class DeepSet {
 				path.length > 0
 				&& (
 					(nextPath === UNKNOWN_KEY
-						&& Array.from( this._assignments ).some( ( assignment, subPath ) => {
+						&& Array.from( this._assignments ).some( ( [ subPath, assignment ] ) => {
 							if ( subPath !== SET_KEY ) {
 								return assignment.someAtPath( remainingPath, predicateFunction );
 							}
