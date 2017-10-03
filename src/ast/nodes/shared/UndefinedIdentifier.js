@@ -1,8 +1,16 @@
 import Node from '../../Node';
 
 export default class UndefinedIdentifier extends Node {
+	hasEffects () {
+		return false;
+	}
+
 	hasEffectsAsExpressionStatement () {
 		return false;
+	}
+
+	hasEffectsWhenAccessedAtPath ( path ) {
+		return path.length > 0;
 	}
 
 	hasEffectsWhenAssignedAtPath ( path ) {
@@ -11,5 +19,9 @@ export default class UndefinedIdentifier extends Node {
 
 	hasEffectsWhenMutatedAtPath ( path ) {
 		return path.length > 0;
+	}
+
+	toString () {
+		return 'undefined';
 	}
 }

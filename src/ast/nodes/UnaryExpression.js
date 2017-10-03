@@ -40,6 +40,13 @@ export default class UnaryExpression extends Node {
 		return this.hasEffects( options );
 	}
 
+	hasEffectsWhenAccessedAtPath ( path ) {
+		if ( this.operator === 'void' ) {
+			return path.length > 0;
+		}
+		return path.length > 1;
+	}
+
 	initialiseNode () {
 		this.value = this.getValue();
 	}

@@ -11,4 +11,8 @@ export default class NewExpression extends Node {
 			|| this.arguments.some( child => child.hasEffects( options ) )
 			|| this.callee.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions( this.callee ) );
 	}
+
+	hasEffectsWhenAccessedAtPath ( path ) {
+		return path.length > 1;
+	}
 }

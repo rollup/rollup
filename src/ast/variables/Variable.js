@@ -13,6 +13,10 @@ export default class Variable {
 		return this.name;
 	}
 
+	hasEffectsWhenAccessedAtPath ( path ) {
+		return path.length > 0;
+	}
+
 	hasEffectsWhenAssignedAtPath () {
 		return true;
 	}

@@ -3,9 +3,10 @@ import Immutable from 'immutable';
 const OPTION_IGNORE_BREAK_STATEMENTS = 'IGNORE_BREAK_STATEMENTS';
 const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
 const OPTION_IGNORE_SAFE_THIS_MUTATIONS = 'IGNORE_SAFE_THIS_MUTATIONS';
+const OPTION_ACCESSED_NODES = 'ACCESSED_NODES';
+const OPTION_ASSIGNED_NODES = 'ASSIGNED_NODES';
 const OPTION_CALLED_NODES = 'CALLED_NODES';
 const OPTION_MUTATED_NODES = 'MUTATED_NODES';
-const OPTION_ASSIGNED_NODES = 'ASSIGNED_NODES';
 const IGNORED_LABELS = 'IGNORED_LABELS';
 
 const RESULT_KEY = {};
@@ -112,6 +113,24 @@ export default class ExecutionPathOptions {
 	 */
 	setIgnoreSafeThisMutations ( value = true ) {
 		return this.set( OPTION_IGNORE_SAFE_THIS_MUTATIONS, value );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {Node} node
+	 * @return {ExecutionPathOptions}
+	 */
+	addAccessedNodeAtPath ( path, node ) {
+		return this.setIn( [ OPTION_ACCESSED_NODES, node, ...path, RESULT_KEY ], true );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {Node} node
+	 * @return {boolean}
+	 */
+	hasNodeBeenAccessedAtPath ( path, node ) {
+		return this._optionValues.getIn( [ OPTION_ACCESSED_NODES, node, ...path, RESULT_KEY ] );
 	}
 
 	/**

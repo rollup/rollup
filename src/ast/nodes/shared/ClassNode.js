@@ -13,6 +13,14 @@ export default class ClassNode extends Node {
 		return this.hasEffects( options );
 	}
 
+	hasEffectsWhenAccessedAtPath ( path ) {
+		return path.length > 1;
+	}
+
+	hasEffectsWhenAssignedAtPath ( path ) {
+		return path.length > 1;
+	}
+
 	hasEffectsWhenCalledAtPath ( path, options ) {
 		return this.body.hasEffectsWhenCalledAtPath( path, options )
 			|| ( this.superClass && this.superClass.hasEffectsWhenCalledAtPath( path, options ) );

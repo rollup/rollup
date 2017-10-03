@@ -20,7 +20,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	addCallAtPath ( path, callOptions ) {
-		if (path.length > MAX_PATH_LENGTH) {
+		if ( path.length > MAX_PATH_LENGTH ) {
 			return;
 		}
 		if ( this.calls.hasAtPath( path, callOptions ) ) return;
@@ -30,7 +30,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	assignExpressionAtPath ( path, expression ) {
-		if (path.length > MAX_PATH_LENGTH) {
+		if ( path.length > MAX_PATH_LENGTH ) {
 			return;
 		}
 		if ( this.assignedExpressions.hasAtPath( path, expression ) ) return;
@@ -53,8 +53,18 @@ export default class LocalVariable extends Variable {
 		return `exports.${this.exportName}`;
 	}
 
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		if ( path.length > MAX_PATH_LENGTH ) {
+			return true;
+		}
+		return this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
+			relativePath.length > 0
+			&& !options.hasNodeBeenAccessedAtPath( relativePath, node )
+			&& node.hasEffectsWhenAccessedAtPath( relativePath, options.addAccessedNodeAtPath( relativePath, node ) ) );
+	}
+
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		if (path.length > MAX_PATH_LENGTH) {
+		if ( path.length > MAX_PATH_LENGTH ) {
 			return true;
 		}
 		return this.included
@@ -65,7 +75,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	hasEffectsWhenCalledAtPath ( path, options ) {
-		if (path.length > MAX_PATH_LENGTH) {
+		if ( path.length > MAX_PATH_LENGTH ) {
 			return true;
 		}
 		return this.assignedExpressions.someAtPath( path, ( relativePath, node ) => {
@@ -78,7 +88,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {
-		if (path.length > MAX_PATH_LENGTH) {
+		if ( path.length > MAX_PATH_LENGTH ) {
 			return true;
 		}
 		return this.included

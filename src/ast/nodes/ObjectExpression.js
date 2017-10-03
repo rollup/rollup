@@ -38,6 +38,16 @@ export default class ObjectExpression extends Node {
 		return { properties, hasCertainHit };
 	}
 
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		if ( path.length <= 1 ) {
+			return false;
+		}
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ] );
+
+		return !hasCertainHit || properties.some( property =>
+			property.hasEffectsWhenAccessedAtPath( path.slice( 1 ), options ) );
+	}
+
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		if ( path.length <= 1 ) {
 			return false;

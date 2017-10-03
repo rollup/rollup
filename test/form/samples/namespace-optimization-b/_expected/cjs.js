@@ -8,7 +8,10 @@ function a () {
 	foo();
 	foo();
 
-	
+	var a;
+	if ( a.b ) {
+		// empty
+	}
 }
 
 a();

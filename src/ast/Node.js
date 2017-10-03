@@ -62,7 +62,9 @@ export default class Node {
 	 * @return {boolean}
 	 */
 	hasEffects ( options ) {
-		return this.included || this.someChild( child => child.hasEffects( options ) );
+		return this.included
+			|| this.hasEffectsWhenAccessedAtPath( [], options )
+			|| this.someChild( child => child.hasEffects( options ) );
 	}
 
 	/**
@@ -75,6 +77,15 @@ export default class Node {
 	 */
 	hasEffectsAsExpressionStatement () {
 		return true;
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {ExecutionPathOptions} options
+	 * @return {boolean}
+	 */
+	hasEffectsWhenAccessedAtPath ( path ) {
+		return path.length > 0;
 	}
 
 	/**

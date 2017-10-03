@@ -24,6 +24,16 @@ export default class FunctionNode extends Node {
 		return this.hasEffects( options );
 	}
 
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		if ( path.length <= 1 ) {
+			return false;
+		}
+		if ( path[ 0 ] === 'prototype' ) {
+			return this.prototypeObject.hasEffectsWhenAccessedAtPath( path.slice( 1 ), options );
+		}
+		return true;
+	}
+
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		if ( path.length <= 1 ) {
 			return false;

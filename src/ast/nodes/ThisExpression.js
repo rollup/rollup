@@ -20,11 +20,15 @@ export default class ThisExpression extends Node {
 		this.variable = this.scope.findVariable( 'this' );
 	}
 
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		return this.variable.hasEffectsWhenAccessedAtPath( path, options );
+	}
+
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		if ( path.length === 0 ) {
 			return true;
 		}
-		return this.hasEffectsWhenMutatedAtPath( path.slice(1), options );
+		return this.hasEffectsWhenMutatedAtPath( path.slice( 1 ), options );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {

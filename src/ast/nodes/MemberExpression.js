@@ -103,6 +103,18 @@ export default class MemberExpression extends Node {
 		}
 	}
 
+	hasEffects ( options ) {
+		return super.hasEffects( options )
+			|| this.object.hasEffectsWhenAccessedAtPath( [ this.computed ? UNKNOWN_KEY : this.property.name ], options );
+	}
+
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		if ( this.variable ) {
+			return this.variable.hasEffectsWhenAccessedAtPath( path, options );
+		}
+		return this.object.hasEffectsWhenAccessedAtPath( [ this.computed ? UNKNOWN_KEY : this.property.name, ...path ], options );
+	}
+
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		if ( this.variable ) {
 			return this.variable.hasEffectsWhenAssignedAtPath( path, options );

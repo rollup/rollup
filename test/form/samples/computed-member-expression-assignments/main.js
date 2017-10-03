@@ -18,6 +18,6 @@ retained5[ 'f' + 'oo' ]();
 const removed1 = { foo: {} };
 removed1.foo[ 'b' + 'ar' ] = 1;
 
-const removed2 = { foo: () => {} };
+const removed2 = { foo: function () {} };
 removed2[ 'f' + 'oo' ] = function () {this.x = 1;};
 const result2 = new removed2.foo();

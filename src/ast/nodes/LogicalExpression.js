@@ -17,6 +17,21 @@ export default class LogicalExpression extends Node {
 		return operators[ this.operator ]( leftValue, rightValue );
 	}
 
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		if (path.length === 0) {
+			return false;
+		}
+		const leftValue = this.left.getValue();
+		if ( leftValue === UNKNOWN_VALUE ) {
+			return this.left.hasEffectsWhenAccessedAtPath( path, options )
+				|| this.right.hasEffectsWhenAccessedAtPath( path, options );
+		}
+		if ( (leftValue && this.operator === '||') || (!leftValue && this.operator === '&&') ) {
+			return this.left.hasEffectsWhenAccessedAtPath( path, options );
+		}
+		return this.right.hasEffectsWhenAccessedAtPath( path, options );
+	}
+
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		return path.length === 0
 			|| this.hasEffectsWhenMutatedAtPath( path.slice( 1 ), options );

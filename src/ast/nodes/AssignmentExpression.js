@@ -15,4 +15,8 @@ export default class AssignmentExpression extends Node {
 	hasEffectsAsExpressionStatement ( options ) {
 		return this.hasEffects( options );
 	}
+
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		return this.right.hasEffectsWhenAccessedAtPath( path, options );
+	}
 }
