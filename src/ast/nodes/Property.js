@@ -10,7 +10,17 @@ export default class Property extends Node {
 		this.value.bindCallAtPath( path, callOptions );
 	}
 
+	hasEffects ( options ) {
+		return this.included
+			|| this.key.hasEffects( options )
+			|| this.value.hasEffects( options );
+	}
+
 	hasEffectsWhenAccessedAtPath ( path, options ) {
+		if ( this.kind === 'get' ) {
+			return path.length > 0
+				|| this.value.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions( this.value ) );
+		}
 		return this.value.hasEffectsWhenAccessedAtPath( path, options );
 	}
 
