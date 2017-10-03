@@ -27,10 +27,6 @@ export default class Identifier extends Node {
 		}
 	}
 
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options ) || this.variable.isGlobal;
-	}
-
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		return this.variable
 			&& this.variable.hasEffectsWhenAccessedAtPath( path, options );

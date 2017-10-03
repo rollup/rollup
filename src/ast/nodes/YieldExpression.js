@@ -5,8 +5,4 @@ export default class YieldExpression extends Node {
 		return super.hasEffects( options )
 			|| !options.ignoreReturnAwaitYield();
 	}
-
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options );
-	}
 }

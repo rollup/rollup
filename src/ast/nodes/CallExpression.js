@@ -30,8 +30,4 @@ export default class CallExpression extends Node {
 			|| this.arguments.some( child => child.hasEffects( options ) )
 			|| this.callee.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions( this.callee ) );
 	}
-
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options );
-	}
 }

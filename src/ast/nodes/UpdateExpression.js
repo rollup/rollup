@@ -19,10 +19,6 @@ export default class UpdateExpression extends Node {
 			|| this.argument.hasEffectsWhenAssignedAtPath( [], options );
 	}
 
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options );
-	}
-
 	hasEffectsWhenAccessedAtPath ( path ) {
 		return path.length > 1;
 	}

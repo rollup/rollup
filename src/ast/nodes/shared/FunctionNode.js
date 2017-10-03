@@ -20,10 +20,6 @@ export default class FunctionNode extends Node {
 		return this.included || (this.id && this.id.hasEffects( options ));
 	}
 
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options );
-	}
-
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		if ( path.length <= 1 ) {
 			return false;

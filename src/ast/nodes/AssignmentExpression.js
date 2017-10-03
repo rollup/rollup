@@ -12,10 +12,6 @@ export default class AssignmentExpression extends Node {
 		return super.hasEffects( options ) || this.left.hasEffectsWhenAssignedAtPath( [], options );
 	}
 
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options );
-	}
-
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		return this.right.hasEffectsWhenAccessedAtPath( path, options );
 	}

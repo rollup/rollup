@@ -9,10 +9,6 @@ export default class ClassNode extends Node {
 		this.body.bindCallAtPath( path, callOptions );
 	}
 
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options );
-	}
-
 	hasEffectsWhenAccessedAtPath ( path ) {
 		return path.length > 1;
 	}

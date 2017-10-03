@@ -5,10 +5,6 @@ export default class UndefinedIdentifier extends Node {
 		return false;
 	}
 
-	hasEffectsAsExpressionStatement () {
-		return false;
-	}
-
 	hasEffectsWhenAccessedAtPath ( path ) {
 		return path.length > 0;
 	}

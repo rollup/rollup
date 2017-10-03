@@ -68,18 +68,6 @@ export default class Node {
 	}
 
 	/**
-	 * Special make-shift logic to treat cases where apparently side-effect free statements
-	 * are executed for side-effects. The most important case are getters with side-effects.
-	 * Once we can reliably handle this case in member expressions, this function should
-	 * probably be removed again.
-	 * @param {ExecutionPathOptions} options
-	 * @return {boolean}
-	 */
-	hasEffectsAsExpressionStatement () {
-		return true;
-	}
-
-	/**
 	 * @param {String[]} path
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}

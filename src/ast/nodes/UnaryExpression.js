@@ -36,10 +36,6 @@ export default class UnaryExpression extends Node {
 			));
 	}
 
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options );
-	}
-
 	hasEffectsWhenAccessedAtPath ( path ) {
 		if ( this.operator === 'void' ) {
 			return path.length > 0;
