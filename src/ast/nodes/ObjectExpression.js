@@ -53,13 +53,14 @@ export default class ObjectExpression extends Node {
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		if ( path.length <= 1 ) {
+		if ( path.length === 0 ) {
 			return false;
 		}
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_WRITE );
 
-		return !hasCertainHit || properties.some( property =>
-			property.hasEffectsWhenAssignedAtPath( path.slice( 1 ), options ) );
+		return (path.length > 1 && !hasCertainHit)
+			|| properties.some( property => (path.length > 1 || property.kind === 'set')
+				&& property.hasEffectsWhenAssignedAtPath( path.slice( 1 ), options ) );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, options ) {

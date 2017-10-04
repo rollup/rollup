@@ -112,18 +112,14 @@ export default class MemberExpression extends Node {
 		if ( this.variable ) {
 			return this.variable.hasEffectsWhenAccessedAtPath( path, options );
 		}
-		return this.property.hasEffectsWhenAccessedAtPath( path, options )
-			|| this.object.hasEffectsWhenAccessedAtPath( [ this.computed ? UNKNOWN_KEY : this.property.name, ...path ], options );
+		return this.object.hasEffectsWhenAccessedAtPath( [ this.computed ? UNKNOWN_KEY : this.property.name, ...path ], options );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		if ( this.variable ) {
 			return this.variable.hasEffectsWhenAssignedAtPath( path, options );
 		}
-		if ( this.computed ) {
-			return path.length > 0 || this.object.hasEffectsWhenMutatedAtPath( [], options );
-		}
-		return this.object.hasEffectsWhenAssignedAtPath( [ this.property.name, ...path ], options );
+		return this.object.hasEffectsWhenAssignedAtPath( [ this.computed ? UNKNOWN_KEY : this.property.name, ...path ], options );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, options ) {

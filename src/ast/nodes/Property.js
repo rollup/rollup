@@ -25,14 +25,24 @@ export default class Property extends Node {
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
+		if ( this.kind === 'set' ) {
+			return path.length > 0
+				|| this.value.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions( this.value ) );
+		}
 		return this.value.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, options ) {
+		if (this.kind === 'get') {
+			return true;
+		}
 		return this.value.hasEffectsWhenCalledAtPath( path, options );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {
+		if (this.kind === 'get') {
+			return true;
+		}
 		return this.value.hasEffectsWhenMutatedAtPath( path, options );
 	}
 
