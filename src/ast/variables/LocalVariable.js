@@ -1,7 +1,7 @@
 import Variable from './Variable';
-import DeepSet from './DeepSet';
+import StructuredAssignmentTracker from './StructuredAssignmentTracker';
 
-// To avoid recursions
+// To avoid infinite recursions
 const MAX_PATH_LENGTH = 8;
 
 export default class LocalVariable extends Variable {
@@ -10,9 +10,9 @@ export default class LocalVariable extends Variable {
 		this.isReassigned = false;
 		this.exportName = null;
 		this.declarations = new Set( declarator ? [ declarator ] : null );
-		this.assignedExpressions = new DeepSet();
+		this.assignedExpressions = new StructuredAssignmentTracker();
 		init && this.assignedExpressions.addAtPath( [], init );
-		this.calls = new DeepSet();
+		this.calls = new StructuredAssignmentTracker();
 	}
 
 	addDeclaration ( identifier ) {

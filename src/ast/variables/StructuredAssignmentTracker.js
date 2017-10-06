@@ -1,7 +1,7 @@
 const SET_KEY = { type: 'SET_KEY' };
 export const UNKNOWN_KEY = { type: 'UNKNOWN_KEY' };
 
-export default class DeepSet {
+export default class StructuredAssignmentTracker {
 	constructor () {
 		this._assignments = new Map( [ [ SET_KEY, new Set() ] ] );
 	}
@@ -12,7 +12,7 @@ export default class DeepSet {
 		} else {
 			const [ nextPath, ...remainingPath ] = path;
 			if ( !this._assignments.has( nextPath ) ) {
-				this._assignments.set( nextPath, new DeepSet() );
+				this._assignments.set( nextPath, new StructuredAssignmentTracker() );
 			}
 			this._assignments.get( nextPath ).addAtPath( remainingPath, assignment );
 		}

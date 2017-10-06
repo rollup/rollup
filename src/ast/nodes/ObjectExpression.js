@@ -1,5 +1,5 @@
 import Node from '../Node.js';
-import { UNKNOWN_KEY } from '../variables/DeepSet';
+import { UNKNOWN_KEY } from '../variables/StructuredAssignmentTracker';
 
 const PROPERTY_KINDS_READ = [ 'init', 'get' ];
 const PROPERTY_KINDS_WRITE = [ 'init', 'set' ];
