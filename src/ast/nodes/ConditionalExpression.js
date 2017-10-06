@@ -2,21 +2,25 @@ import Node from '../Node.js';
 import { UNKNOWN_VALUE } from '../values.js';
 
 export default class ConditionalExpression extends Node {
-	initialiseChildren ( parentScope ) {
-		if ( this.module.bundle.treeshake ) {
-			this.testValue = this.test.getValue();
-
-			if ( this.testValue === UNKNOWN_VALUE ) {
-				super.initialiseChildren( parentScope );
-			} else if ( this.testValue ) {
-				this.consequent.initialise( this.scope );
-				this.alternate = null;
-			} else if ( this.alternate ) {
-				this.alternate.initialise( this.scope );
-				this.consequent = null;
-			}
+	bindAssignmentAtPath ( path, expression ) {
+		if ( this.testValue === UNKNOWN_VALUE ) {
+			this.consequent.bindAssignmentAtPath( path, expression );
+			this.alternate.bindAssignmentAtPath( path, expression );
 		} else {
-			super.initialiseChildren( parentScope );
+			this.testValue
+				? this.consequent.bindAssignmentAtPath( path, expression )
+				: this.alternate.bindAssignmentAtPath( path, expression );
+		}
+	}
+
+	bindCallAtPath ( path, callOptions ) {
+		if ( this.testValue === UNKNOWN_VALUE ) {
+			this.consequent.bindCallAtPath( path, callOptions );
+			this.alternate.bindCallAtPath( path, callOptions );
+		} else {
+			this.testValue
+				? this.consequent.bindCallAtPath( path, callOptions )
+				: this.alternate.bindCallAtPath( path, callOptions );
 		}
 	}
 
@@ -34,6 +38,63 @@ export default class ConditionalExpression extends Node {
 			|| (this.testValue === UNKNOWN_VALUE && (this.consequent.hasEffects( options ) || this.alternate.hasEffects( options )))
 			|| (this.testValue ? this.consequent.hasEffects( options ) : this.alternate.hasEffects( options ))
 		);
+	}
+
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		return (
+			this.testValue === UNKNOWN_VALUE && (
+				this.consequent.hasEffectsWhenAccessedAtPath( path, options )
+				|| this.alternate.hasEffectsWhenAccessedAtPath( path, options )
+			)
+		) || (
+			this.testValue
+				? this.consequent.hasEffectsWhenAccessedAtPath( path, options )
+				: this.alternate.hasEffectsWhenAccessedAtPath( path, options )
+		);
+	}
+
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		return (
+			this.testValue === UNKNOWN_VALUE && (
+				this.consequent.hasEffectsWhenAssignedAtPath( path, options )
+				|| this.alternate.hasEffectsWhenAssignedAtPath( path, options )
+			)
+		) || (
+			this.testValue
+				? this.consequent.hasEffectsWhenAssignedAtPath( path, options )
+				: this.alternate.hasEffectsWhenAssignedAtPath( path, options )
+		);
+	}
+
+	hasEffectsWhenCalledAtPath ( path, options ) {
+		return (
+			this.testValue === UNKNOWN_VALUE && (
+				this.consequent.hasEffectsWhenCalledAtPath( path, options )
+				|| this.alternate.hasEffectsWhenCalledAtPath( path, options )
+			)
+		) || (
+			this.testValue
+				? this.consequent.hasEffectsWhenCalledAtPath( path, options )
+				: this.alternate.hasEffectsWhenCalledAtPath( path, options )
+		);
+	}
+
+	initialiseChildren ( parentScope ) {
+		if ( this.module.bundle.treeshake ) {
+			this.testValue = this.test.getValue();
+
+			if ( this.testValue === UNKNOWN_VALUE ) {
+				super.initialiseChildren( parentScope );
+			} else if ( this.testValue ) {
+				this.consequent.initialise( this.scope );
+				this.alternate = null;
+			} else if ( this.alternate ) {
+				this.alternate.initialise( this.scope );
+				this.consequent = null;
+			}
+		} else {
+			super.initialiseChildren( parentScope );
+		}
 	}
 
 	render ( code, es ) {

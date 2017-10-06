@@ -1,6 +1,5 @@
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
-import isReference from 'is-reference';
 import { UNKNOWN_KEY } from '../variables/StructuredAssignmentTracker';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
@@ -126,10 +125,8 @@ export default class MemberExpression extends Node {
 		if ( this.variable ) {
 			return this.variable.hasEffectsWhenCalledAtPath( path, options );
 		}
-		if ( !isReference( this ) || this.computed ) {
-			return true;
-		}
-		return this.object.hasEffectsWhenCalledAtPath( [ this.property.name, ...path ], options );
+		return this.computed
+			|| this.object.hasEffectsWhenCalledAtPath( [ this.property.name, ...path ], options );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {
