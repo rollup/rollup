@@ -38,6 +38,7 @@ import Property from './Property.js';
 import RestElement from './RestElement.js';
 import ReturnStatement from './ReturnStatement.js';
 import Statement from './shared/Statement.js';
+import SequenceExpression from './SequenceExpression.js';
 import SwitchCase from './SwitchCase.js';
 import SwitchStatement from './SwitchStatement.js';
 import TaggedTemplateExpression from './TaggedTemplateExpression.js';
@@ -94,6 +95,7 @@ export default {
 	Property,
 	RestElement,
 	ReturnStatement,
+	SequenceExpression,
 	SwitchCase,
 	SwitchStatement,
 	TaggedTemplateExpression,

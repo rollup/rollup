@@ -1,10 +1,10 @@
 define(function () { 'use strict';
 
-	var a = (1, 2, 3 );
-	var b = (4, 5, 6 );
+	var a = (foo(), 3);
+	var b = (bar(), 6);
 	foo( a, b );
 
 	// verify works with no whitespace
-	bar((1,2),(7,8));
+	bar((foo(), 2),(bar(), 8));
 
 });
