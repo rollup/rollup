@@ -3,8 +3,6 @@ export default class Variable {
 		this.name = name;
 	}
 
-	addCallAtPath () {}
-
 	addReference () {}
 
 	assignExpressionAtPath () {}

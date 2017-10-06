@@ -12,21 +12,10 @@ export default class LocalVariable extends Variable {
 		this.declarations = new Set( declarator ? [ declarator ] : null );
 		this.assignedExpressions = new StructuredAssignmentTracker();
 		init && this.assignedExpressions.addAtPath( [], init );
-		this.calls = new StructuredAssignmentTracker();
 	}
 
 	addDeclaration ( identifier ) {
 		this.declarations.add( identifier );
-	}
-
-	addCallAtPath ( path, callOptions ) {
-		if ( path.length > MAX_PATH_LENGTH ) {
-			return;
-		}
-		if ( this.calls.hasAtPath( path, callOptions ) ) return;
-		this.calls.addAtPath( path, callOptions );
-		this.assignedExpressions.forEachAtPath( path, ( relativePath, node ) =>
-			node.bindCallAtPath( relativePath, callOptions ) );
 	}
 
 	assignExpressionAtPath ( path, expression ) {
@@ -39,8 +28,6 @@ export default class LocalVariable extends Variable {
 			this.assignedExpressions.forEachAtPath( path.slice( 0, -1 ), ( relativePath, node ) =>
 				node.bindAssignmentAtPath( [ ...relativePath, ...path.slice( -1 ) ], expression ) );
 		}
-		this.calls.forEachAtPath( path, ( relativePath, callOptions ) =>
-			expression.bindCallAtPath( relativePath, callOptions ) );
 		if ( path.length === 0 ) {
 			this.isReassigned = true;
 		}
@@ -80,8 +67,11 @@ export default class LocalVariable extends Variable {
 		}
 		return this.assignedExpressions.someAtPath( path, ( relativePath, node ) => {
 			if ( relativePath.length === 0 ) {
-				return !options.hasNodeBeenCalled( node )
-					&& node.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions( node ) );
+				return options.calledWithNew()
+					? !options.hasNodeBeenCalledWithNew( node )
+					&& node.hasEffectsWhenCalledAtPath( [], options.addNodeCalledWithNew( node ) )
+					: !options.hasNodeBeenCalled( node )
+					&& node.hasEffectsWhenCalledAtPath( [], options.addCalledNode( node ) );
 			}
 			return node.hasEffectsWhenCalledAtPath( relativePath, options );
 		} );

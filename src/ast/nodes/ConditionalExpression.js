@@ -13,17 +13,6 @@ export default class ConditionalExpression extends Node {
 		}
 	}
 
-	bindCallAtPath ( path, callOptions ) {
-		if ( this.testValue === UNKNOWN_VALUE ) {
-			this.consequent.bindCallAtPath( path, callOptions );
-			this.alternate.bindCallAtPath( path, callOptions );
-		} else {
-			this.testValue
-				? this.consequent.bindCallAtPath( path, callOptions )
-				: this.alternate.bindCallAtPath( path, callOptions );
-		}
-	}
-
 	getValue () {
 		const testValue = this.test.getValue();
 		if ( testValue === UNKNOWN_VALUE ) return UNKNOWN_VALUE;

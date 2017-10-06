@@ -13,13 +13,6 @@ export default class Identifier extends Node {
 		}
 	}
 
-	bindCallAtPath ( path, callOptions ) {
-		this._bindVariableIfMissing();
-		if ( this.variable ) {
-			this.variable.addCallAtPath( path, callOptions );
-		}
-	}
-
 	_bindVariableIfMissing () {
 		if ( !this.variable && isReference( this, this.parent ) ) {
 			this.variable = this.scope.findVariable( this.name );

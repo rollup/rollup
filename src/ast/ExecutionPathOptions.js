@@ -2,10 +2,12 @@ import Immutable from 'immutable';
 
 const OPTION_IGNORE_BREAK_STATEMENTS = 'IGNORE_BREAK_STATEMENTS';
 const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
-const OPTION_IGNORE_SAFE_THIS_MUTATIONS = 'IGNORE_SAFE_THIS_MUTATIONS';
+const OPTION_HAS_SAFE_THIS = 'HAS_SAFE_THIS';
+const OPTION_CALLED_WITH_NEW = 'CALLED_WITH_NEW';
 const OPTION_ACCESSED_NODES = 'ACCESSED_NODES';
 const OPTION_ASSIGNED_NODES = 'ASSIGNED_NODES';
 const OPTION_CALLED_NODES = 'CALLED_NODES';
+const OPTION_NODES_CALLED_WITH_NEW = 'NODES_CALLED_WITH_NEW';
 const OPTION_MUTATED_NODES = 'MUTATED_NODES';
 const IGNORED_LABELS = 'IGNORED_LABELS';
 
@@ -103,16 +105,31 @@ export default class ExecutionPathOptions {
 	/**
 	 * @return {boolean}
 	 */
-	ignoreSafeThisMutations () {
-		return this.get( OPTION_IGNORE_SAFE_THIS_MUTATIONS );
+	hasSafeThis () {
+		return this.get( OPTION_HAS_SAFE_THIS );
 	}
 
 	/**
 	 * @param {boolean} [value=true]
 	 * @return {ExecutionPathOptions}
 	 */
-	setIgnoreSafeThisMutations ( value = true ) {
-		return this.set( OPTION_IGNORE_SAFE_THIS_MUTATIONS, value );
+	setHasSafeThis ( value = true ) {
+		return this.set( OPTION_HAS_SAFE_THIS, value );
+	}
+
+	/**
+	 * @return {boolean}
+	 */
+	calledWithNew () {
+		return this.get( OPTION_CALLED_WITH_NEW );
+	}
+
+	/**
+	 * @param {boolean} [value=true]
+	 * @return {ExecutionPathOptions}
+	 */
+	setCalledWithNew ( value = true ) {
+		return this.set( OPTION_CALLED_WITH_NEW, value );
 	}
 
 	/**
@@ -184,14 +201,32 @@ export default class ExecutionPathOptions {
 	}
 
 	/**
-	 * @param {Node} calledNode
+	 * @param {Node} node
 	 * @return {ExecutionPathOptions}
 	 */
-	getHasEffectsWhenCalledOptions ( calledNode ) {
+	addNodeCalledWithNew ( node ) {
+		return this.setIn( [ OPTION_NODES_CALLED_WITH_NEW, node ], true );
+	}
+
+	/**
+	 * @param {Node} node
+	 * @return {boolean}
+	 */
+	hasNodeBeenCalledWithNew ( node ) {
+		return this._optionValues.getIn( [ OPTION_NODES_CALLED_WITH_NEW, node ] );
+	}
+
+	/**
+	 * @param {Node} calledNode
+	 * @param {boolean} withNew
+	 * @return {ExecutionPathOptions}
+	 */
+	getHasEffectsWhenCalledOptions ( calledNode, { withNew = false } = {} ) {
 		return this
 			.addCalledNode( calledNode )
 			.setIgnoreReturnAwaitYield()
 			.setIgnoreBreakStatements( false )
-			.setIgnoreNoLabels();
+			.setIgnoreNoLabels()
+			.setCalledWithNew( withNew );
 	}
 }

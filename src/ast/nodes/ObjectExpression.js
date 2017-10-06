@@ -13,14 +13,6 @@ export default class ObjectExpression extends Node {
 			property.bindAssignmentAtPath( path.slice( 1 ), expression ) );
 	}
 
-	bindCallAtPath ( path, callOptions ) {
-		if ( path.length === 0 ) {
-			return;
-		}
-		this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ ).properties.forEach( property =>
-			property.bindCallAtPath( path.slice( 1 ), callOptions ) );
-	}
-
 	_getPossiblePropertiesWithName ( name, kinds ) {
 		if ( name === UNKNOWN_KEY ) {
 			return { properties: this.properties, hasCertainHit: false };

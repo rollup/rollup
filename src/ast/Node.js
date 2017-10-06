@@ -26,16 +26,6 @@ export default class Node {
 	 */
 	bindAssignmentAtPath () {}
 
-	/**
-	 * Binds ways a node is called to a node given a path. Current options are:
-	 * - withNew: boolean - Did this call use the "new" operator
-	 * The default noop implementation is ok as long as hasEffectsWhenCalledAtPath
-	 * always returns true for this node. Otherwise it should be overridden.
-	 * @param {String[]} path
-	 * @param callOptions
-	 */
-	bindCallAtPath () {}
-
 	eachChild ( callback ) {
 		this.keys.forEach( key => {
 			const value = this[ key ];

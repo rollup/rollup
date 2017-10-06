@@ -6,10 +6,6 @@ export default class Property extends Node {
 		this.value.bindAssignmentAtPath( path, expression );
 	}
 
-	bindCallAtPath ( path, callOptions ) {
-		this.value.bindCallAtPath( path, callOptions );
-	}
-
 	hasEffects ( options ) {
 		return this.included
 			|| this.key.hasEffects( options )

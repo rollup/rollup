@@ -89,19 +89,6 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	bindCallAtPath ( path, callOptions ) {
-		if ( !this._bound ) {
-			this.bind();
-		}
-		if ( this.variable ) {
-			this.variable.addCallAtPath( path, callOptions );
-		} else if ( this.computed ) {
-			this.object.bindCallAtPath( [ UNKNOWN_KEY, ...path ], callOptions );
-		} else {
-			this.object.bindCallAtPath( [ this.property.name, ...path ], callOptions );
-		}
-	}
-
 	hasEffects ( options ) {
 		return super.hasEffects( options )
 			|| this.object.hasEffectsWhenAccessedAtPath( [ this.computed ? UNKNOWN_KEY : this.property.name ], options );
