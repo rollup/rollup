@@ -15,8 +15,8 @@ export default class NamespaceVariable extends Variable {
 		} );
 	}
 
-	addReference ( node ) {
-		this.name = node.name;
+	addReference ( identifier ) {
+		this.name = identifier.name;
 	}
 
 	includeVariable () {

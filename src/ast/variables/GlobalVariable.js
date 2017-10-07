@@ -10,8 +10,8 @@ export default class GlobalVariable extends Variable {
 		this.included = true;
 	}
 
-	addReference ( reference ) {
-		if ( reference.isReassignment ) this.isReassigned = true;
+	addReference ( identifier ) {
+		if ( identifier.isReassignment ) this.isReassigned = true;
 	}
 
 	hasEffectsWhenAccessedAtPath ( path ) {

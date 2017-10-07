@@ -9,9 +9,9 @@ export default class ExternalVariable extends Variable {
 		this.isNamespace = name === '*';
 	}
 
-	addReference ( reference ) {
+	addReference ( identifier ) {
 		if ( this.name === 'default' || this.name === '*' ) {
-			this.module.suggestName( reference.name );
+			this.module.suggestName( identifier.name );
 		}
 	}
 

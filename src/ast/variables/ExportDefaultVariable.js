@@ -7,10 +7,10 @@ export default class ExportDefaultVariable extends LocalVariable {
 		this.hasId = !!exportDefaultDeclaration.declaration.id;
 	}
 
-	addReference ( reference ) {
-		this.name = reference.name;
+	addReference ( identifier ) {
+		this.name = identifier.name;
 		if ( this._original ) {
-			this._original.addReference( reference );
+			this._original.addReference( identifier );
 		}
 	}
 

@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+
 import { locate } from 'locate-character';
 import { UNKNOWN_VALUE } from './values.js';
 import ExecutionPathOptions from './ExecutionPathOptions';
@@ -9,7 +11,7 @@ export default class Node {
 
 	/**
 	 * Called once all nodes have been initialised and the scopes have been populated.
-	 * Use this to bind assignments and calls to variables.
+	 * Use this to bind assignments to variables.
 	 */
 	bind () {
 		this.eachChild( child => child.bind() );
@@ -17,14 +19,14 @@ export default class Node {
 
 	/**
 	 * Bind an expression as an assignment to a node given a path.
-	 * E.g., node.bindAssignmentAtPath(['x', 'y'], otherNode) is called if otherNode
+	 * E.g., node.bindAssignmentAtPath(['x', 'y'], otherNode) is called when otherNode
 	 * is assigned to node.x.y.
 	 * The default noop implementation is ok as long as hasEffectsWhenAssignedAtPath
 	 * always returns true for this node. Otherwise it should be overridden.
 	 * @param {String[]} path
 	 * @param {Node} expression
 	 */
-	bindAssignmentAtPath () {}
+	bindAssignmentAtPath ( path, expression ) {}
 
 	eachChild ( callback ) {
 		this.keys.forEach( key => {
@@ -62,7 +64,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAccessedAtPath ( path ) {
+	hasEffectsWhenAccessedAtPath ( path, options ) {
 		return path.length > 0;
 	}
 
@@ -71,7 +73,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAssignedAtPath () {
+	hasEffectsWhenAssignedAtPath ( path, options ) {
 		return true;
 	}
 
@@ -80,7 +82,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenCalledAtPath () {
+	hasEffectsWhenCalledAtPath ( path, options ) {
 		return true;
 	}
 
@@ -89,14 +91,14 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenMutatedAtPath () {
+	hasEffectsWhenMutatedAtPath ( path, options ) {
 		return true;
 	}
 
 	/**
 	 * Includes the node in the bundle. Children are usually included if they are
 	 * necessary for this node (e.g. a function body) or if they have effects.
-	 * Necessary variables should be included as well. Should return true if any
+	 * Necessary variables need to be included as well. Should return true if any
 	 * nodes or variables have been added that were missing before.
 	 * @return {boolean}
 	 */
@@ -144,7 +146,7 @@ export default class Node {
 	 * Override to change how and with what scopes children are initialised
 	 * @param {Scope} parentScope
 	 */
-	initialiseChildren () {
+	initialiseChildren ( parentScope ) {
 		this.eachChild( child => child.initialise( this.scope ) );
 	}
 
@@ -152,7 +154,7 @@ export default class Node {
 	 * Override to perform special initialisation steps after the scope is initialised
 	 * @param {Scope} parentScope
 	 */
-	initialiseNode () {}
+	initialiseNode ( parentScope ) {}
 
 	/**
 	 * Override if this scope should receive a different scope than the parent scope.
@@ -173,7 +175,7 @@ export default class Node {
 	 * been included.
 	 * @param {Scope} parentScope
 	 */
-	isFullyIncluded () {
+	isFullyIncluded ( parentScope ) {
 		if ( this._fullyIncluded ) {
 			return true;
 		}

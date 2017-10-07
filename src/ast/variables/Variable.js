@@ -1,32 +1,75 @@
+/* eslint-disable no-unused-vars */
+
 export default class Variable {
 	constructor ( name ) {
 		this.name = name;
 	}
 
-	addReference () {}
+	/**
+	 * Binds identifiers that reference this variable to this variable.
+	 * Necessary to be able to change variable names.
+	 * @param {Identifier} identifier
+	 */
+	addReference ( identifier ) {}
 
-	assignExpressionAtPath () {}
+	/**
+	 * This enables variables to know which nodes need to be checked for side-effects when
+	 * e.g. an object path is called or mutated.
+	 * @param {String[]} path
+	 * @param {Node} expression
+	 */
+	assignExpressionAtPath ( path, expression ) {}
 
+	/**
+	 * @returns {String}
+	 */
 	getName () {
 		return this.name;
 	}
 
-	hasEffectsWhenAccessedAtPath ( path ) {
+	/**
+	 * @param {String[]} path
+	 * @param {ExecutionPathOptions} options
+	 * @return {boolean}
+	 */
+	hasEffectsWhenAccessedAtPath ( path, options ) {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenAssignedAtPath () {
+	/**
+	 * @param {String[]} path
+	 * @param {ExecutionPathOptions} options
+	 * @return {boolean}
+	 */
+	hasEffectsWhenAssignedAtPath ( path, options ) {
 		return true;
 	}
 
-	hasEffectsWhenCalledAtPath () {
+	/**
+	 * @param {String[]} path
+	 * @param {ExecutionPathOptions} options
+	 * @return {boolean}
+	 */
+	hasEffectsWhenCalledAtPath ( path, options ) {
 		return true;
 	}
 
-	hasEffectsWhenMutatedAtPath () {
+	/**
+	 * @param {String[]} path
+	 * @param {ExecutionPathOptions} options
+	 * @return {boolean}
+	 */
+	hasEffectsWhenMutatedAtPath ( path, options ) {
 		return true;
 	}
 
+	/**
+	 * Marks this variable as being part of the bundle, which is usually the case when one of
+	 * its identifiers becomes part of the bundle. Returns true if it has not been included
+	 * previously.
+	 * Once a variable is included, it should take care all its declarations are included.
+	 * @returns {boolean}
+	 */
 	includeVariable () {
 		if ( this.included ) {
 			return false;
