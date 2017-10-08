@@ -10,7 +10,8 @@
   },
   "scripts": {
     "pretest": "npm run build",
-    "test": "mocha",
+    "test": "npm run test:only",
+    "test:only": "mocha",
     "test:leak": "node --expose-gc test/leak/index.js",
     "test:quick": "rollup -c && mocha",
     "pretest-coverage": "npm run build",
@@ -19,7 +20,8 @@
     "ci": "npm run test-coverage && codecov < coverage/coverage-remapped.lcov",
     "build": "git rev-parse HEAD > .commithash && rollup -c && chmod a+x bin/rollup",
     "watch": "rollup -cw",
-    "prepublish": "npm run lint && npm test && npm run test:leak",
+    "prepublishOnly": "npm run lint && npm run test:only && npm run test:leak",
+    "prepare": "npm run build",
     "lint": "eslint src browser test/test.js test/*/index.js test/utils test/**/_config.js"
   },
   "repository": "rollup/rollup",
