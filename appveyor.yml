@@ -16,6 +16,7 @@ environment:
 
 install:
   - ps: Install-Product node $env:nodejs_version
+  - IF %nodejs_version% LSS 7 npm -g install npm@4
   - npm install
 
 build: off
