@@ -29,4 +29,15 @@ export default class CallExpression extends Node {
 			|| this.arguments.some( child => child.hasEffects( options ) )
 			|| this.callee.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions(), { withNew: false } );
 	}
+
+	hasEffectsWhenCalledAtPath ( path, options ) {
+		return this.callee.someReturnExpressionAtPath( path, ( relativePath, node ) =>
+			node.hasEffectsWhenCalledAtPath( relativePath, options ) );
+	}
+
+	someReturnExpressionAtPath ( path, predicateFunction ) {
+		return this.callee.someReturnExpressionAtPath( path, ( relativePath, node ) =>
+			node.someReturnExpressionAtPath( relativePath, ( relativeSubPath, subNode ) =>
+				predicateFunction( relativeSubPath, subNode ) ) );
+	}
 }

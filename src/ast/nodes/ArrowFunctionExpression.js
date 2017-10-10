@@ -1,5 +1,6 @@
 import Node from '../Node';
 import Scope from '../scopes/Scope.js';
+import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class ArrowFunctionExpression extends Node {
 	hasEffects () {
@@ -40,5 +41,12 @@ export default class ArrowFunctionExpression extends Node {
 
 	initialiseScope ( parentScope ) {
 		this.scope = new Scope( { parent: parentScope } );
+	}
+
+	someReturnExpressionAtPath ( path, predicateFunction ) {
+		if ( this.body.type !== 'BlockStatement' ) {
+			return predicateFunction( path, this.body );
+		}
+		return predicateFunction( path, UNKNOWN_ASSIGNMENT );
 	}
 }

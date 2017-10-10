@@ -3,6 +3,7 @@
 import { locate } from 'locate-character';
 import { UNKNOWN_VALUE } from './values.js';
 import ExecutionPathOptions from './ExecutionPathOptions';
+import { UNKNOWN_ASSIGNMENT } from './values';
 
 export default class Node {
 	constructor () {
@@ -217,6 +218,19 @@ export default class Node {
 			}
 			return callback( value );
 		} );
+	}
+
+	/**
+	 * Returns true if some possible return expression when called at the given
+	 * path returns true. predicateFunction receives a `relativePath` and an `expression`
+	 * which is called at this relative path as parameters.
+	 * @param {String[]} path
+	 * @param {Function} predicateFunction
+	 * @returns {boolean}
+	 */
+	someReturnExpressionAtPath ( path, predicateFunction ) {
+		console.log( 'Node someReturnExpressionAtPath', path );
+		return predicateFunction( path, UNKNOWN_ASSIGNMENT );
 	}
 
 	toString () {
