@@ -4,4 +4,7 @@ define(function () { 'use strict';
 
 	(() => () => () => console.log( 'effect' ))()()();
 
+	const bar = () => () => console.log('effect');
+	bar()();
+
 });

@@ -1,5 +1,6 @@
 import Node from '../Node.js';
 import isReference from 'is-reference';
+import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class Identifier extends Node {
 	bind () {
@@ -79,5 +80,12 @@ export default class Identifier extends Node {
 				}
 			}
 		}
+	}
+
+	someReturnExpressionAtPath ( path, predicateFunction ) {
+		if ( this.variable ) {
+			return this.variable.someReturnExpressionAtPath( path, predicateFunction );
+		}
+		return predicateFunction( path, UNKNOWN_ASSIGNMENT );
 	}
 }

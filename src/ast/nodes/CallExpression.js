@@ -37,7 +37,6 @@ export default class CallExpression extends Node {
 
 	someReturnExpressionAtPath ( path, predicateFunction ) {
 		return this.callee.someReturnExpressionAtPath( path, ( relativePath, node ) =>
-			node.someReturnExpressionAtPath( relativePath, ( relativeSubPath, subNode ) =>
-				predicateFunction( relativeSubPath, subNode ) ) );
+			node.someReturnExpressionAtPath( relativePath, predicateFunction ) );
 	}
 }

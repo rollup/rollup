@@ -8,4 +8,7 @@
 
 	(() => () => () => console.log( 'effect' ))()()();
 
+	const bar = () => () => console.log('effect');
+	bar()();
+
 })));

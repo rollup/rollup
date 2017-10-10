@@ -96,6 +96,14 @@ export default class LocalVariable extends Variable {
 		return hasBeenIncluded;
 	}
 
+	someReturnExpressionAtPath ( path, predicateFunction ) {
+		if ( path.length > MAX_PATH_LENGTH ) {
+			return true;
+		}
+		return this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
+			node.someReturnExpressionAtPath( relativePath, predicateFunction ) );
+	}
+
 	toString () {
 		return this.name;
 	}

@@ -3,3 +3,8 @@
 
 (() => () => () => {})()()();
 (() => () => () => console.log( 'effect' ))()()();
+
+const foo = () => () => {};
+foo()();
+const bar = () => () => console.log('effect');
+bar()();

@@ -1,5 +1,7 @@
 /* eslint-disable no-unused-vars */
 
+import { UNKNOWN_ASSIGNMENT } from '../values';
+
 export default class Variable {
 	constructor ( name ) {
 		this.name = name;
@@ -77,5 +79,14 @@ export default class Variable {
 		}
 		this.included = true;
 		return true;
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {Function} predicateFunction
+	 * @returns {boolean}
+	 */
+	someReturnExpressionAtPath ( path, predicateFunction ) {
+		return predicateFunction( path, UNKNOWN_ASSIGNMENT );
 	}
 }

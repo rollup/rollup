@@ -229,7 +229,6 @@ export default class Node {
 	 * @returns {boolean}
 	 */
 	someReturnExpressionAtPath ( path, predicateFunction ) {
-		console.log( 'Node someReturnExpressionAtPath', path );
 		return predicateFunction( path, UNKNOWN_ASSIGNMENT );
 	}
 
