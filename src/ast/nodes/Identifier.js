@@ -30,9 +30,9 @@ export default class Identifier extends Node {
 			|| this.variable.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options ) {
+	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
 		return !this.variable
-			|| this.variable.hasEffectsWhenCalledAtPath( path, options );
+			|| this.variable.hasEffectsWhenCalledAtPath( path, options, callOptions );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {

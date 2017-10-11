@@ -26,6 +26,6 @@ export default class TaggedTemplateExpression extends Node {
 
 	hasEffects ( options ) {
 		return super.hasEffects( options )
-			|| this.tag.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions( this.tag ) );
+			|| this.tag.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions(), { withNew: false } );
 	}
 }

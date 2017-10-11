@@ -48,9 +48,10 @@ export default class Variable {
 	/**
 	 * @param {String[]} path
 	 * @param {ExecutionPathOptions} options
+	 * @param {Object} callOptions
 	 * @return {boolean}
 	 */
-	hasEffectsWhenCalledAtPath ( path, options ) {
+	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
 		return true;
 	}
 

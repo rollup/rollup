@@ -11,8 +11,8 @@ export default class ExportDefaultDeclaration extends Node {
 		this.declaration.bind();
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options ) {
-		return this.declaration.hasEffectsWhenCalledAtPath( path, options );
+	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
+		return this.declaration.hasEffectsWhenCalledAtPath( path, options, callOptions );
 	}
 
 	includeDefaultExport () {

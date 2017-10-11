@@ -3,15 +3,15 @@ import Immutable from 'immutable';
 const OPTION_IGNORE_BREAK_STATEMENTS = 'IGNORE_BREAK_STATEMENTS';
 const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
 const OPTION_HAS_SAFE_THIS = 'HAS_SAFE_THIS';
-const OPTION_CALLED_WITH_NEW = 'CALLED_WITH_NEW';
 const OPTION_ACCESSED_NODES = 'ACCESSED_NODES';
 const OPTION_ASSIGNED_NODES = 'ASSIGNED_NODES';
-const OPTION_CALLED_NODES = 'CALLED_NODES';
-const OPTION_NODES_CALLED_WITH_NEW = 'NODES_CALLED_WITH_NEW';
+const OPTION_NODES_CALLED_WITH_OPTIONS = 'OPTION_NODES_CALLED_WITH_OPTIONS';
 const OPTION_MUTATED_NODES = 'MUTATED_NODES';
 const IGNORED_LABELS = 'IGNORED_LABELS';
 
 const RESULT_KEY = {};
+
+const areCallOptionsEqual = ( options, otherOptions ) => options.withNew === otherOptions.withNew;
 
 /** Wrapper to ensure immutability */
 export default class ExecutionPathOptions {
@@ -118,21 +118,6 @@ export default class ExecutionPathOptions {
 	}
 
 	/**
-	 * @return {boolean}
-	 */
-	calledWithNew () {
-		return this.get( OPTION_CALLED_WITH_NEW );
-	}
-
-	/**
-	 * @param {boolean} [value=true]
-	 * @return {ExecutionPathOptions}
-	 */
-	setCalledWithNew ( value = true ) {
-		return this.set( OPTION_CALLED_WITH_NEW, value );
-	}
-
-	/**
 	 * @param {String[]} path
 	 * @param {Node} node
 	 * @return {ExecutionPathOptions}
@@ -186,47 +171,31 @@ export default class ExecutionPathOptions {
 
 	/**
 	 * @param {Node} node
+	 * @param {Object} callOptions
 	 * @return {ExecutionPathOptions}
 	 */
-	addCalledNode ( node ) {
-		return this.setIn( [ OPTION_CALLED_NODES, node ], true );
+	addNodeCalledWithOptions ( node, callOptions ) {
+		return this.setIn( [ OPTION_NODES_CALLED_WITH_OPTIONS, node, callOptions ], true );
 	}
 
 	/**
 	 * @param {Node} node
+	 * @param {Object} callOptions
 	 * @return {boolean}
 	 */
-	hasNodeBeenCalled ( node ) {
-		return this._optionValues.getIn( [ OPTION_CALLED_NODES, node ] );
+	hasNodeBeenCalledWithOptions ( node, callOptions ) {
+		return this._optionValues.hasIn( [ OPTION_NODES_CALLED_WITH_OPTIONS, node ] )
+			&& this._optionValues.getIn( [ OPTION_NODES_CALLED_WITH_OPTIONS, node ] )
+				.find( ( _, options ) => areCallOptionsEqual( options, callOptions ) );
 	}
 
 	/**
-	 * @param {Node} node
 	 * @return {ExecutionPathOptions}
 	 */
-	addNodeCalledWithNew ( node ) {
-		return this.setIn( [ OPTION_NODES_CALLED_WITH_NEW, node ], true );
-	}
-
-	/**
-	 * @param {Node} node
-	 * @return {boolean}
-	 */
-	hasNodeBeenCalledWithNew ( node ) {
-		return this._optionValues.getIn( [ OPTION_NODES_CALLED_WITH_NEW, node ] );
-	}
-
-	/**
-	 * @param {Node} calledNode
-	 * @param {boolean} withNew
-	 * @return {ExecutionPathOptions}
-	 */
-	getHasEffectsWhenCalledOptions ( calledNode, { withNew = false } = {} ) {
+	getHasEffectsWhenCalledOptions () {
 		return this
-			.addCalledNode( calledNode )
 			.setIgnoreReturnAwaitYield()
 			.setIgnoreBreakStatements( false )
-			.setIgnoreNoLabels()
-			.setCalledWithNew( withNew );
+			.setIgnoreNoLabels();
 	}
 }

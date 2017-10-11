@@ -27,13 +27,11 @@ export default class FunctionNode extends Node {
 		return true;
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options ) {
+	hasEffectsWhenCalledAtPath ( path, options, { withNew } ) {
 		if ( path.length > 0 ) {
 			return true;
 		}
-		const innerOptions = options.calledWithNew()
-			? options.setHasSafeThis( true )
-			: options.setHasSafeThis( false );
+		const innerOptions = options.setHasSafeThis( withNew );
 		return this.params.some( param => param.hasEffects( innerOptions ) )
 			|| this.body.hasEffects( innerOptions );
 	}

@@ -61,19 +61,16 @@ export default class LocalVariable extends Variable {
 				&& node.hasEffectsWhenAssignedAtPath( relativePath, options.addAssignedNodeAtPath( relativePath, node ) ) );
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options ) {
+	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
 		if ( path.length > MAX_PATH_LENGTH ) {
 			return true;
 		}
 		return this.assignedExpressions.someAtPath( path, ( relativePath, node ) => {
 			if ( relativePath.length === 0 ) {
-				return options.calledWithNew()
-					? !options.hasNodeBeenCalledWithNew( node )
-					&& node.hasEffectsWhenCalledAtPath( [], options.addNodeCalledWithNew( node ) )
-					: !options.hasNodeBeenCalled( node )
-					&& node.hasEffectsWhenCalledAtPath( [], options.addCalledNode( node ) );
+				return !options.hasNodeBeenCalledWithOptions( node, callOptions )
+					&& node.hasEffectsWhenCalledAtPath( [], options.addNodeCalledWithOptions( node, callOptions ), callOptions );
 			}
-			return node.hasEffectsWhenCalledAtPath( relativePath, options );
+			return node.hasEffectsWhenCalledAtPath( relativePath, options, callOptions );
 		} );
 	}
 

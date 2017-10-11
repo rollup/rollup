@@ -10,9 +10,9 @@ export default class ClassNode extends Node {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options ) {
-		return this.body.hasEffectsWhenCalledAtPath( path, options )
-			|| ( this.superClass && this.superClass.hasEffectsWhenCalledAtPath( path, options ) );
+	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
+		return this.body.hasEffectsWhenCalledAtPath( path, options, callOptions )
+			|| ( this.superClass && this.superClass.hasEffectsWhenCalledAtPath( path, options, callOptions ) );
 	}
 
 	initialiseChildren () {

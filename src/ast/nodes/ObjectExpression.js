@@ -55,14 +55,14 @@ export default class ObjectExpression extends Node {
 				&& property.hasEffectsWhenAssignedAtPath( path.slice( 1 ), options ) );
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options ) {
+	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
 		if ( path.length === 0 ) {
 			return true;
 		}
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ );
 
 		return !hasCertainHit || properties.some( property =>
-			property.hasEffectsWhenCalledAtPath( path.slice( 1 ), options ) );
+			property.hasEffectsWhenCalledAtPath( path.slice( 1 ), options, callOptions ) );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {
