@@ -4,7 +4,7 @@ export default class NewExpression extends Node {
 	hasEffects ( options ) {
 		return this.included
 			|| this.arguments.some( child => child.hasEffects( options ) )
-			|| this.callee.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions(), { withNew: true } );
+			|| this.callee.hasEffectsWhenCalledAtPath( [], { withNew: true }, options.getHasEffectsWhenCalledOptions() );
 	}
 
 	hasEffectsWhenAccessedAtPath ( path ) {

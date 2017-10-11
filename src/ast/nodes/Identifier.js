@@ -31,9 +31,9 @@ export default class Identifier extends Node {
 			|| this.variable.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		return !this.variable
-			|| this.variable.hasEffectsWhenCalledAtPath( path, options, callOptions );
+			|| this.variable.hasEffectsWhenCalledAtPath( path, callOptions, options );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {
@@ -82,9 +82,9 @@ export default class Identifier extends Node {
 		}
 	}
 
-	someReturnExpressionAtPath ( path, predicateFunction ) {
+	someReturnExpressionAtPath ( path, callOptions, predicateFunction ) {
 		if ( this.variable ) {
-			return this.variable.someReturnExpressionAtPath( path, predicateFunction );
+			return this.variable.someReturnExpressionAtPath( path, callOptions, predicateFunction );
 		}
 		return predicateFunction( path, UNKNOWN_ASSIGNMENT );
 	}

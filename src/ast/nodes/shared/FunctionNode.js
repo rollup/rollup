@@ -33,7 +33,7 @@ export default class FunctionNode extends Node {
 		return true;
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options, { withNew } ) {
+	hasEffectsWhenCalledAtPath ( path, { withNew }, options ) {
 		if ( path.length > 0 ) {
 			return true;
 		}

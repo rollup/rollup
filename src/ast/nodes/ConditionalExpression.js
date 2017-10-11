@@ -55,16 +55,16 @@ export default class ConditionalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		return (
 			this.testValue === UNKNOWN_VALUE && (
-				this.consequent.hasEffectsWhenCalledAtPath( path, options, callOptions )
-				|| this.alternate.hasEffectsWhenCalledAtPath( path, options, callOptions )
+				this.consequent.hasEffectsWhenCalledAtPath( path, callOptions, options )
+				|| this.alternate.hasEffectsWhenCalledAtPath( path, callOptions, options )
 			)
 		) || (
 			this.testValue
-				? this.consequent.hasEffectsWhenCalledAtPath( path, options, callOptions )
-				: this.alternate.hasEffectsWhenCalledAtPath( path, options, callOptions )
+				? this.consequent.hasEffectsWhenCalledAtPath( path, callOptions, options )
+				: this.alternate.hasEffectsWhenCalledAtPath( path, callOptions, options )
 		);
 	}
 

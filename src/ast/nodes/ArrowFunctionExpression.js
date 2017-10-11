@@ -18,7 +18,7 @@ export default class ArrowFunctionExpression extends Node {
 		return this.hasEffectsWhenMutatedAtPath( path.slice( 1 ) );
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options ) {
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		if ( path.length > 0 ) {
 			return true;
 		}
@@ -43,7 +43,7 @@ export default class ArrowFunctionExpression extends Node {
 		this.scope = new Scope( { parent: parentScope } );
 	}
 
-	someReturnExpressionAtPath ( path, predicateFunction ) {
+	someReturnExpressionAtPath ( path, callOptions, predicateFunction ) {
 		if ( this.body.type !== 'BlockStatement' ) {
 			return predicateFunction( path, this.body );
 		}

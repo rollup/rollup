@@ -1,12 +1,12 @@
 import Node from '../Node';
 
 export default class ClassBody extends Node {
-	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		if ( path.length > 0 ) {
 			return true;
 		}
 		if ( this.classConstructor ) {
-			return this.classConstructor.hasEffectsWhenCalledAtPath( [], options, callOptions );
+			return this.classConstructor.hasEffectsWhenCalledAtPath( [], callOptions, options );
 		}
 		return false;
 	}

@@ -61,16 +61,16 @@ export default class LocalVariable extends Variable {
 				&& node.hasEffectsWhenAssignedAtPath( relativePath, options.addAssignedNodeAtPath( relativePath, node ) ) );
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		if ( path.length > MAX_PATH_LENGTH ) {
 			return true;
 		}
 		return this.assignedExpressions.someAtPath( path, ( relativePath, node ) => {
 			if ( relativePath.length === 0 ) {
 				return !options.hasNodeBeenCalledWithOptions( node, callOptions )
-					&& node.hasEffectsWhenCalledAtPath( [], options.addNodeCalledWithOptions( node, callOptions ), callOptions );
+					&& node.hasEffectsWhenCalledAtPath( [], callOptions, options.addNodeCalledWithOptions( node, callOptions ) );
 			}
-			return node.hasEffectsWhenCalledAtPath( relativePath, options, callOptions );
+			return node.hasEffectsWhenCalledAtPath( relativePath, callOptions, options );
 		} );
 	}
 
@@ -96,12 +96,12 @@ export default class LocalVariable extends Variable {
 		return hasBeenIncluded;
 	}
 
-	someReturnExpressionAtPath ( path, predicateFunction ) {
+	someReturnExpressionAtPath ( path, callOptions, predicateFunction ) {
 		if ( path.length > MAX_PATH_LENGTH ) {
 			return true;
 		}
 		return this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
-			node.someReturnExpressionAtPath( relativePath, predicateFunction ) );
+			node.someReturnExpressionAtPath( relativePath, callOptions, predicateFunction ) );
 	}
 
 	toString () {

@@ -108,12 +108,12 @@ export default class MemberExpression extends Node {
 		return this.object.hasEffectsWhenAssignedAtPath( [ this.computed ? UNKNOWN_KEY : this.property.name, ...path ], options );
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		if ( this.variable ) {
-			return this.variable.hasEffectsWhenCalledAtPath( path, options, callOptions );
+			return this.variable.hasEffectsWhenCalledAtPath( path, callOptions, options );
 		}
 		return this.computed
-			|| this.object.hasEffectsWhenCalledAtPath( [ this.property.name, ...path ], options, callOptions );
+			|| this.object.hasEffectsWhenCalledAtPath( [ this.property.name, ...path ], callOptions, options );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {

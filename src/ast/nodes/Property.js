@@ -15,7 +15,7 @@ export default class Property extends Node {
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		if ( this.kind === 'get' ) {
 			return path.length > 0
-				|| this.value.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions(), { withNew: false } );
+				|| this.value.hasEffectsWhenCalledAtPath( [], { withNew: false }, options.getHasEffectsWhenCalledOptions() );
 		}
 		return this.value.hasEffectsWhenAccessedAtPath( path, options );
 	}
@@ -23,16 +23,16 @@ export default class Property extends Node {
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		if ( this.kind === 'set' ) {
 			return path.length > 0
-				|| this.value.hasEffectsWhenCalledAtPath( [], options.getHasEffectsWhenCalledOptions(), { withNew: false } );
+				|| this.value.hasEffectsWhenCalledAtPath( [], { withNew: false }, options.getHasEffectsWhenCalledOptions() );
 		}
 		return this.value.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		if ( this.kind === 'get' ) {
 			return true;
 		}
-		return this.value.hasEffectsWhenCalledAtPath( path, options, callOptions );
+		return this.value.hasEffectsWhenCalledAtPath( path, callOptions, options );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {

@@ -18,9 +18,9 @@ export default class ThisVariable extends LocalVariable {
 		return super.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		this._updateInit( options );
-		return super.hasEffectsWhenCalledAtPath( path, options, callOptions );
+		return super.hasEffectsWhenCalledAtPath( path, callOptions, options );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {

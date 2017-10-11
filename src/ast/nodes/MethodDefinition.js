@@ -5,10 +5,10 @@ export default class MethodDefinition extends Node {
 		return this.key.hasEffects( options );
 	}
 
-	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		if ( path.length > 0 ) {
 			return true;
 		}
-		return this.value.hasEffectsWhenCalledAtPath( [], options, callOptions );
+		return this.value.hasEffectsWhenCalledAtPath( [], callOptions, options );
 	}
 }

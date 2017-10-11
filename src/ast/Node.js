@@ -80,11 +80,11 @@ export default class Node {
 
 	/**
 	 * @param {String[]} path
-	 * @param {ExecutionPathOptions} options
 	 * @param {Object} callOptions
+	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenCalledAtPath ( path, options, callOptions ) {
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		return true;
 	}
 
@@ -225,10 +225,11 @@ export default class Node {
 	 * path returns true. predicateFunction receives a `relativePath` and an `expression`
 	 * which is called at this relative path as parameters.
 	 * @param {String[]} path
+	 * @param {Object} callOptions
 	 * @param {Function} predicateFunction
 	 * @returns {boolean}
 	 */
-	someReturnExpressionAtPath ( path, predicateFunction ) {
+	someReturnExpressionAtPath ( path, callOptions, predicateFunction ) {
 		return predicateFunction( path, UNKNOWN_ASSIGNMENT );
 	}
 
