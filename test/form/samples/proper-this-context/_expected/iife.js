@@ -1,15 +1,14 @@
-var bundle = (function (exports) {
+(function () {
 	'use strict';
 
-	var buffer = new ArrayBuffer( 8 );
+	const mutateThis = () => {
+		undefined.x = 1;
+	};
 
-	var view8 = new Int8Array( buffer );
-	var view16 = new Int16Array( buffer );
+	function Test () {
+		mutateThis();
+	}
 
-	view16[ 0 ] = 3;
+	const test = new Test();
 
-	exports.view8 = view8;
-
-	return exports;
-
-}({}));
+}());

@@ -16,17 +16,20 @@ export default class ThisExpression extends Node {
 		}
 	}
 
+	bind () {
+		this.variable = this.scope.findVariable( 'this' );
+	}
+
 	hasEffectsWhenAccessedAtPath ( path, options ) {
-		return !(path.length === 0
-			|| (path.length === 1 && options.hasSafeThis()));
+		return this.variable.hasEffectsWhenAccessedAtPath( path, options );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		return !(path.length === 1 && options.hasSafeThis());
+		return this.variable.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
 	hasEffectsWhenMutatedAtPath ( path, options ) {
-		return !(path.length === 0 && options.hasSafeThis());
+		return this.variable.hasEffectsWhenMutatedAtPath( path, options );
 	}
 
 	render ( code ) {

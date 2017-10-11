@@ -2,11 +2,11 @@ import Immutable from 'immutable';
 
 const OPTION_IGNORE_BREAK_STATEMENTS = 'IGNORE_BREAK_STATEMENTS';
 const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
-const OPTION_HAS_SAFE_THIS = 'HAS_SAFE_THIS';
 const OPTION_ACCESSED_NODES = 'ACCESSED_NODES';
 const OPTION_ASSIGNED_NODES = 'ASSIGNED_NODES';
 const OPTION_NODES_CALLED_WITH_OPTIONS = 'OPTION_NODES_CALLED_WITH_OPTIONS';
 const OPTION_MUTATED_NODES = 'MUTATED_NODES';
+const OPTION_VALID_THIS_VARIABLES = 'VALID_THIS_VARIABLES';
 const IGNORED_LABELS = 'IGNORED_LABELS';
 
 const RESULT_KEY = {};
@@ -103,21 +103,6 @@ export default class ExecutionPathOptions {
 	}
 
 	/**
-	 * @return {boolean}
-	 */
-	hasSafeThis () {
-		return this.get( OPTION_HAS_SAFE_THIS );
-	}
-
-	/**
-	 * @param {boolean} [value=true]
-	 * @return {ExecutionPathOptions}
-	 */
-	setHasSafeThis ( value = true ) {
-		return this.set( OPTION_HAS_SAFE_THIS, value );
-	}
-
-	/**
 	 * @param {String[]} path
 	 * @param {Node} node
 	 * @return {ExecutionPathOptions}
@@ -197,5 +182,22 @@ export default class ExecutionPathOptions {
 			.setIgnoreReturnAwaitYield()
 			.setIgnoreBreakStatements( false )
 			.setIgnoreNoLabels();
+	}
+
+	/**
+	 * @param {ThisVariable} thisVariable
+	 * @param {Node} init
+	 * @return {ExecutionPathOptions}
+	 */
+	replaceThisInit ( thisVariable, init ) {
+		return this.setIn( [ OPTION_VALID_THIS_VARIABLES, thisVariable ], init );
+	}
+
+	/**
+	 * @param {ThisVariable} thisVariable
+	 * @returns {Node}
+	 */
+	getReplacedThisInit ( thisVariable ) {
+		return this._optionValues.getIn( [ OPTION_VALID_THIS_VARIABLES, thisVariable ] );
 	}
 }

@@ -1,10 +1,12 @@
 import Scope from './Scope';
 import ParameterVariable from '../variables/ParameterVariable';
+import ThisVariable from '../variables/ThisVariable';
 
 export default class FunctionScope extends Scope {
 	constructor ( options = {} ) {
 		super( options );
 		this.variables.arguments = new ParameterVariable( 'arguments' );
+		this.variables.this = new ThisVariable();
 	}
 
 	findLexicalBoundary () {

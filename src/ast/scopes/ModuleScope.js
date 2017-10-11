@@ -1,6 +1,8 @@
 import { forOwn } from '../../utils/object.js';
 import relativeId from '../../utils/relativeId.js';
 import Scope from './Scope.js';
+import LocalVariable from '../variables/LocalVariable';
+import UndefinedIdentifier from '../nodes/shared/UndefinedIdentifier';
 
 export default class ModuleScope extends Scope {
 	constructor ( module ) {
@@ -10,6 +12,7 @@ export default class ModuleScope extends Scope {
 		} );
 
 		this.module = module;
+		this.variables.this = new LocalVariable( 'this', null, new UndefinedIdentifier() );
 	}
 
 	deshadow ( names ) {

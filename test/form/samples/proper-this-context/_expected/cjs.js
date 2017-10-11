@@ -1,12 +1,11 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
+const mutateThis = () => {
+	undefined.x = 1;
+};
 
-var buffer = new ArrayBuffer( 8 );
+function Test () {
+	mutateThis();
+}
 
-var view8 = new Int8Array( buffer );
-var view16 = new Int16Array( buffer );
-
-view16[ 0 ] = 3;
-
-exports.view8 = view8;
+const test = new Test();

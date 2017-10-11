@@ -1,8 +1,14 @@
 import Node from '../../Node.js';
 import FunctionScope from '../../scopes/FunctionScope';
 import VirtualObjectExpression from './VirtualObjectExpression';
+import { UNKNOWN_ASSIGNMENT } from '../../values';
 
 export default class FunctionNode extends Node {
+	bind () {
+		super.bind();
+		this.thisVariable = this.scope.findVariable( 'this' );
+	}
+
 	hasEffects ( options ) {
 		return this.included || (this.id && this.id.hasEffects( options ));
 	}
@@ -31,7 +37,8 @@ export default class FunctionNode extends Node {
 		if ( path.length > 0 ) {
 			return true;
 		}
-		const innerOptions = options.setHasSafeThis( withNew );
+		const innerOptions = options.replaceThisInit( this.thisVariable,
+			withNew ? new VirtualObjectExpression() : UNKNOWN_ASSIGNMENT );
 		return this.params.some( param => param.hasEffects( innerOptions ) )
 			|| this.body.hasEffects( innerOptions );
 	}
