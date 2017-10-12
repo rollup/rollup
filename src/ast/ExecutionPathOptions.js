@@ -175,13 +175,16 @@ export default class ExecutionPathOptions {
 	}
 
 	/**
+	 * @param {Node} node
+	 * @param {Object} callOptions
 	 * @return {ExecutionPathOptions}
 	 */
-	getHasEffectsWhenCalledOptions () {
+	getHasEffectsWhenCalledOptions ( node, callOptions ) {
 		return this
 			.setIgnoreReturnAwaitYield()
 			.setIgnoreBreakStatements( false )
-			.setIgnoreNoLabels();
+			.setIgnoreNoLabels()
+			.addNodeCalledWithOptions( node, callOptions );
 	}
 
 	/**

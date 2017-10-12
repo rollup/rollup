@@ -27,16 +27,24 @@ export default class CallExpression extends Node {
 	hasEffects ( options ) {
 		return this.included
 			|| this.arguments.some( child => child.hasEffects( options ) )
-			|| this.callee.hasEffectsWhenCalledAtPath( [], { withNew: false }, options.getHasEffectsWhenCalledOptions() );
+			|| (
+				!options.hasNodeBeenCalledWithOptions( this, this._callOptions )
+				&& this.callee.hasEffectsWhenCalledAtPath( [], this._callOptions,
+					options.getHasEffectsWhenCalledOptions( this, this._callOptions ) )
+			);
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
-		return this.callee.someReturnExpressionAtPath( path, { withNew: false }, ( relativePath, node ) =>
+		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
 			node.hasEffectsWhenCalledAtPath( relativePath, callOptions, options ) );
 	}
 
+	initialiseNode () {
+		this._callOptions = { withNew: false };
+	}
+
 	someReturnExpressionAtPath ( path, callOptions, predicateFunction ) {
-		return this.callee.someReturnExpressionAtPath( path, { withNew: false }, ( relativePath, node ) =>
+		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
 			node.someReturnExpressionAtPath( relativePath, callOptions, predicateFunction ) );
 	}
 }

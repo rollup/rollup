@@ -15,7 +15,8 @@ export default class Property extends Node {
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		if ( this.kind === 'get' ) {
 			return path.length > 0
-				|| this.value.hasEffectsWhenCalledAtPath( [], { withNew: false }, options.getHasEffectsWhenCalledOptions() );
+				|| this.value.hasEffectsWhenCalledAtPath( [], this._callOptions,
+					options.getHasEffectsWhenCalledOptions( this, this._callOptions ) );
 		}
 		return this.value.hasEffectsWhenAccessedAtPath( path, options );
 	}
@@ -23,7 +24,8 @@ export default class Property extends Node {
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		if ( this.kind === 'set' ) {
 			return path.length > 0
-				|| this.value.hasEffectsWhenCalledAtPath( [], { withNew: false }, options.getHasEffectsWhenCalledOptions() );
+				|| this.value.hasEffectsWhenCalledAtPath( [], this._callOptions,
+					options.getHasEffectsWhenCalledOptions( this, this._callOptions ) );
 		}
 		return this.value.hasEffectsWhenAssignedAtPath( path, options );
 	}
@@ -44,8 +46,13 @@ export default class Property extends Node {
 
 	initialiseAndDeclare ( parentScope, kind ) {
 		this.initialiseScope( parentScope );
+		this.initialiseNode( parentScope );
 		this.key.initialise( parentScope );
 		this.value.initialiseAndDeclare( parentScope, kind, UNKNOWN_ASSIGNMENT );
+	}
+
+	initialiseNode () {
+		this._callOptions = { withNew: false };
 	}
 
 	render ( code, es ) {
