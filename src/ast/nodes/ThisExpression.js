@@ -28,10 +28,6 @@ export default class ThisExpression extends Node {
 		return this.variable.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
-	hasEffectsWhenMutatedAtPath ( path, options ) {
-		return this.variable.hasEffectsWhenMutatedAtPath( path, options );
-	}
-
 	render ( code ) {
 		if ( this.alias ) {
 			code.overwrite( this.start, this.end, this.alias, { storeName: true, contentOnly: false } );

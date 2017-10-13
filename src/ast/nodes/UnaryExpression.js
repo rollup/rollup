@@ -30,10 +30,7 @@ export default class UnaryExpression extends Node {
 	hasEffects ( options ) {
 		return this.included
 			|| this.argument.hasEffects( options )
-			|| (this.operator === 'delete' && (
-				this.argument.type !== 'MemberExpression'
-				|| this.argument.object.hasEffectsWhenMutatedAtPath( [], options )
-			));
+			|| (this.operator === 'delete' && this.argument.hasEffectsWhenAssignedAtPath( [], options ));
 	}
 
 	hasEffectsWhenAccessedAtPath ( path ) {

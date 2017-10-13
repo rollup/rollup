@@ -37,13 +37,6 @@ export default class Property extends Node {
 		return this.value.hasEffectsWhenCalledAtPath( path, callOptions, options );
 	}
 
-	hasEffectsWhenMutatedAtPath ( path, options ) {
-		if ( this.kind === 'get' ) {
-			return true;
-		}
-		return this.value.hasEffectsWhenMutatedAtPath( path, options );
-	}
-
 	initialiseAndDeclare ( parentScope, kind ) {
 		this.initialiseScope( parentScope );
 		this.initialiseNode( parentScope );

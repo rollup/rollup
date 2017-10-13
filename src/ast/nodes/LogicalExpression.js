@@ -18,9 +18,6 @@ export default class LogicalExpression extends Node {
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
-		if (path.length === 0) {
-			return false;
-		}
 		const leftValue = this.left.getValue();
 		if ( leftValue === UNKNOWN_VALUE ) {
 			return this.left.hasEffectsWhenAccessedAtPath( path, options )
@@ -33,19 +30,14 @@ export default class LogicalExpression extends Node {
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		return path.length === 0
-			|| this.hasEffectsWhenMutatedAtPath( path.slice( 1 ), options );
-	}
-
-	hasEffectsWhenMutatedAtPath ( path, options ) {
 		const leftValue = this.left.getValue();
 		if ( leftValue === UNKNOWN_VALUE ) {
-			return this.left.hasEffectsWhenMutatedAtPath( path, options )
-				|| this.right.hasEffectsWhenMutatedAtPath( path, options );
+			return this.left.hasEffectsWhenAssignedAtPath( path, options )
+				|| this.right.hasEffectsWhenAssignedAtPath( path, options );
 		}
 		if ( (leftValue && this.operator === '||') || (!leftValue && this.operator === '&&') ) {
-			return this.left.hasEffectsWhenMutatedAtPath( path, options );
+			return this.left.hasEffectsWhenAssignedAtPath( path, options );
 		}
-		return this.right.hasEffectsWhenMutatedAtPath( path, options );
+		return this.right.hasEffectsWhenAssignedAtPath( path, options );
 	}
 }

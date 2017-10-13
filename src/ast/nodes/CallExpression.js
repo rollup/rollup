@@ -35,8 +35,12 @@ export default class CallExpression extends Node {
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
+		if ( options.hasNodeBeenAccessedAtPath( path, this ) ) {
+			return false;
+		}
+		const innerOptions = options.addAccessedNodeAtPath( path, this );
 		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
-			node.hasEffectsWhenAccessedAtPath( relativePath, options ) );
+			node.hasEffectsWhenAccessedAtPath( relativePath, innerOptions ) );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
@@ -47,11 +51,6 @@ export default class CallExpression extends Node {
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
 			node.hasEffectsWhenCalledAtPath( relativePath, callOptions, options ) );
-	}
-
-	hasEffectsWhenMutatedAtPath ( path, options ) {
-		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
-			node.hasEffectsWhenMutatedAtPath( relativePath, options ) );
 	}
 
 	initialiseNode () {

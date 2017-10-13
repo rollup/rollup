@@ -12,10 +12,7 @@ export default class ArrowFunctionExpression extends Node {
 	}
 
 	hasEffectsWhenAssignedAtPath ( path ) {
-		if ( path.length === 0 ) {
-			return true;
-		}
-		return this.hasEffectsWhenMutatedAtPath( path.slice( 1 ) );
+		return path.length > 1;
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
@@ -24,10 +21,6 @@ export default class ArrowFunctionExpression extends Node {
 		}
 		return this.params.some( param => param.hasEffects( options ) )
 			|| this.body.hasEffects( options );
-	}
-
-	hasEffectsWhenMutatedAtPath ( path ) {
-		return this.included || path.length > 0;
 	}
 
 	initialiseChildren () {

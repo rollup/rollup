@@ -6,6 +6,5 @@ export const UNKNOWN_ASSIGNMENT = {
 	hasEffectsWhenAccessedAtPath: path => path.length > 0,
 	hasEffectsWhenAssignedAtPath: () => true,
 	hasEffectsWhenCalledAtPath: () => true,
-	hasEffectsWhenMutatedAtPath: () => true,
 	toString: () => '[[UNKNOWN]]'
 };

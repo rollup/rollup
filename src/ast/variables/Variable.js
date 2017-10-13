@@ -58,15 +58,6 @@ export default class Variable {
 	}
 
 	/**
-	 * @param {String[]} path
-	 * @param {ExecutionPathOptions} options
-	 * @return {boolean}
-	 */
-	hasEffectsWhenMutatedAtPath ( path, options ) {
-		return true;
-	}
-
-	/**
 	 * Marks this variable as being part of the bundle, which is usually the case when one of
 	 * its identifiers becomes part of the bundle. Returns true if it has not been included
 	 * previously.

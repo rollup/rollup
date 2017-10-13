@@ -23,11 +23,6 @@ export default class ThisVariable extends LocalVariable {
 		return super.hasEffectsWhenCalledAtPath( path, callOptions, options );
 	}
 
-	hasEffectsWhenMutatedAtPath ( path, options ) {
-		this._updateInit( options );
-		return super.hasEffectsWhenMutatedAtPath( path, options );
-	}
-
 	_updateInit ( options ) {
 		this.assignedExpressions.setInit( options.getReplacedThisInit( this ) || UNKNOWN_ASSIGNMENT );
 	}

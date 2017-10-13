@@ -45,8 +45,7 @@ export default class LocalVariable extends Variable {
 			return true;
 		}
 		return this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
-			relativePath.length > 0
-			&& !options.hasNodeBeenAccessedAtPath( relativePath, node )
+			!options.hasNodeBeenAccessedAtPath( relativePath, node )
 			&& node.hasEffectsWhenAccessedAtPath( relativePath, options.addAccessedNodeAtPath( relativePath, node ) ) );
 	}
 
@@ -72,20 +71,6 @@ export default class LocalVariable extends Variable {
 			}
 			return node.hasEffectsWhenCalledAtPath( relativePath, callOptions, options );
 		} );
-	}
-
-	hasEffectsWhenMutatedAtPath ( path, options ) {
-		if ( path.length > MAX_PATH_LENGTH ) {
-			return true;
-		}
-		return this.included
-			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) => {
-				if ( relativePath.length === 0 ) {
-					return !options.hasNodeBeenMutated( node )
-						&& node.hasEffectsWhenMutatedAtPath( [], options.addMutatedNode( node ) );
-				}
-				return node.hasEffectsWhenMutatedAtPath( relativePath, options );
-			} );
 	}
 
 	includeVariable () {

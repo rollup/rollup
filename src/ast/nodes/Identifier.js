@@ -36,11 +36,6 @@ export default class Identifier extends Node {
 			|| this.variable.hasEffectsWhenCalledAtPath( path, callOptions, options );
 	}
 
-	hasEffectsWhenMutatedAtPath ( path, options ) {
-		return !this.variable
-			|| this.variable.hasEffectsWhenMutatedAtPath( path, options );
-	}
-
 	includeInBundle () {
 		if ( this.included ) return false;
 		this.included = true;

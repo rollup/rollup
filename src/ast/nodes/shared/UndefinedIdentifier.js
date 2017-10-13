@@ -13,10 +13,6 @@ export default class UndefinedIdentifier extends Node {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenMutatedAtPath ( path ) {
-		return path.length > 0;
-	}
-
 	toString () {
 		return 'undefined';
 	}

@@ -89,15 +89,6 @@ export default class Node {
 	}
 
 	/**
-	 * @param {String[]} path
-	 * @param {ExecutionPathOptions} options
-	 * @return {boolean}
-	 */
-	hasEffectsWhenMutatedAtPath ( path, options ) {
-		return true;
-	}
-
-	/**
 	 * Includes the node in the bundle. Children are usually included if they are
 	 * necessary for this node (e.g. a function body) or if they have effects.
 	 * Necessary variables need to be included as well. Should return true if any

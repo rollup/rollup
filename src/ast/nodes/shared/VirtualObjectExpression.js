@@ -9,10 +9,6 @@ export default class VirtualObjectExpression extends Node {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenMutatedAtPath ( path ) {
-		return path.length > 0;
-	}
-
 	toString () {
 		return '[[VIRTUAL OBJECT]]';
 	}
