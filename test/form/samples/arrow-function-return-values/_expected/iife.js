@@ -5,7 +5,12 @@
 
 	(() => () => () => console.log( 'effect' ))()()();
 
-	const bar = () => () => console.log('effect');
-	bar()();
+	const retained1 = () => () => console.log( 'effect' );
+	retained1()();
+
+	const retained2 = () => {
+		return () => console.log( 'effect' );
+	};
+	retained2()();
 
 }());

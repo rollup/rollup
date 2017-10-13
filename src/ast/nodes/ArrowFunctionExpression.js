@@ -1,8 +1,14 @@
 import Node from '../Node';
-import Scope from '../scopes/Scope.js';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import Scope from '../scopes/Scope';
+import ReturnValueScope from '../scopes/ReturnValueScope';
 
 export default class ArrowFunctionExpression extends Node {
+	bindNode () {
+		this.body.bindImplicitReturnExpressionToScope
+			? this.body.bindImplicitReturnExpressionToScope()
+			: this.scope.addReturnExpression( this.body );
+	}
+
 	hasEffects () {
 		return this.included;
 	}
@@ -33,13 +39,10 @@ export default class ArrowFunctionExpression extends Node {
 	}
 
 	initialiseScope ( parentScope ) {
-		this.scope = new Scope( { parent: parentScope } );
+		this.scope = new ReturnValueScope( { parent: parentScope } );
 	}
 
 	someReturnExpressionAtPath ( path, callOptions, predicateFunction ) {
-		if ( this.body.type !== 'BlockStatement' ) {
-			return predicateFunction( path, this.body );
-		}
-		return predicateFunction( path, UNKNOWN_ASSIGNMENT );
+		return this.scope.someReturnExpressionAtPath( path, callOptions, predicateFunction );
 	}
 }

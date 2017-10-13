@@ -1,12 +1,12 @@
 import Node from '../../Node.js';
 import FunctionScope from '../../scopes/FunctionScope';
 import VirtualObjectExpression from './VirtualObjectExpression';
-import UndefinedIdentifier from './UndefinedIdentifier';
 import { UNKNOWN_ASSIGNMENT } from '../../values';
 
 export default class FunctionNode extends Node {
 	bindNode () {
 		this.thisVariable = this.scope.findVariable( 'this' );
+		this.body.bindImplicitReturnExpressionToScope();
 	}
 
 	hasEffects ( options ) {
@@ -45,10 +45,6 @@ export default class FunctionNode extends Node {
 
 	initialiseNode () {
 		this.prototypeObject = new VirtualObjectExpression();
-		const lastBodyStatement = this.body.body[ this.body.body.length - 1 ];
-		if ( !lastBodyStatement || lastBodyStatement.type !== 'ReturnStatement' ) {
-			this.scope.addReturnExpression( new UndefinedIdentifier() );
-		}
 	}
 
 	initialiseScope ( parentScope ) {

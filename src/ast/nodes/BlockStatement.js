@@ -1,7 +1,15 @@
 import Statement from './shared/Statement.js';
 import BlockScope from '../scopes/BlockScope';
+import UndefinedIdentifier from './shared/UndefinedIdentifier';
 
 export default class BlockStatement extends Statement {
+	bindImplicitReturnExpressionToScope () {
+		const lastStatement = this.body[ this.body.length - 1 ];
+		if ( !lastStatement || lastStatement.type !== 'ReturnStatement' ) {
+			this.scope.addReturnExpression( new UndefinedIdentifier() );
+		}
+	}
+
 	hasEffects ( options ) {
 		// Empty block statements do not have effects even though they may be included as e.g. function body
 		return this.body.some( child => child.hasEffects( options ) );
