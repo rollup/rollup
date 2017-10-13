@@ -64,4 +64,14 @@ export default class ObjectExpression extends Node {
 		return !hasCertainHit || properties.some( property =>
 			property.hasEffectsWhenCalledAtPath( path.slice( 1 ), callOptions, options ) );
 	}
+
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
+		if ( path.length === 0 ) {
+			return true;
+		}
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ );
+
+		return !hasCertainHit || properties.some( property =>
+			property.someReturnExpressionWhenCalledAtPath( path.slice( 1 ), callOptions, predicateFunction ) );
+	}
 }

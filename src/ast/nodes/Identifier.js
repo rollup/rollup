@@ -77,10 +77,10 @@ export default class Identifier extends Node {
 		}
 	}
 
-	someReturnExpressionAtPath ( path, callOptions, predicateFunction ) {
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
 		if ( this.variable ) {
-			return this.variable.someReturnExpressionAtPath( path, callOptions, predicateFunction );
+			return this.variable.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction );
 		}
-		return predicateFunction( path, UNKNOWN_ASSIGNMENT );
+		return predicateFunction( UNKNOWN_ASSIGNMENT );
 	}
 }

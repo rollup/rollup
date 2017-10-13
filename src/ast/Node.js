@@ -228,15 +228,14 @@ export default class Node {
 
 	/**
 	 * Returns true if some possible return expression when called at the given
-	 * path returns true. predicateFunction receives a `relativePath` and an `expression`
-	 * which is called at this relative path as parameters.
+	 * path returns true. predicateFunction receives a `node` as parameter.
 	 * @param {String[]} path
 	 * @param {Object} callOptions
 	 * @param {Function} predicateFunction
 	 * @returns {boolean}
 	 */
-	someReturnExpressionAtPath ( path, callOptions, predicateFunction ) {
-		return predicateFunction( path, UNKNOWN_ASSIGNMENT );
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
+		return predicateFunction( UNKNOWN_ASSIGNMENT );
 	}
 
 	toString () {

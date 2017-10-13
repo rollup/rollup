@@ -137,4 +137,12 @@ export default class MemberExpression extends Node {
 
 		super.render( code, es );
 	}
+
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
+		if ( this.variable ) {
+			return this.variable.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction );
+		}
+		return this.computed
+			|| this.object.someReturnExpressionWhenCalledAtPath( [ this.property.name, ...path ], callOptions, predicateFunction );
+	}
 }

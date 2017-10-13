@@ -37,26 +37,26 @@ export default class CallExpression extends Node {
 			return false;
 		}
 		const innerOptions = options.addAccessedNodeAtPath( path, this );
-		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
-			node.hasEffectsWhenAccessedAtPath( relativePath, innerOptions ) );
+		return this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, node =>
+			node.hasEffectsWhenAccessedAtPath( path, innerOptions ) );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
-			node.hasEffectsWhenAssignedAtPath( relativePath, options ) );
+		return this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, node =>
+			node.hasEffectsWhenAssignedAtPath( path, options ) );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
-		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
-			node.hasEffectsWhenCalledAtPath( relativePath, callOptions, options ) );
+		return this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, node =>
+			node.hasEffectsWhenCalledAtPath( path, callOptions, options ) );
 	}
 
 	initialiseNode () {
 		this._callOptions = { withNew: false };
 	}
 
-	someReturnExpressionAtPath ( path, callOptions, predicateFunction ) {
-		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
-			node.someReturnExpressionAtPath( relativePath, callOptions, predicateFunction ) );
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
+		return this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, node =>
+			node.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction ) );
 	}
 }

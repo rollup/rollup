@@ -9,11 +9,16 @@ removed1()();
 const retained1 = () => () => console.log( 'effect' );
 retained1()();
 
-const removed2 = () => {
+(() => {
 	return () => {};
-};
-removed2()();
-const retained2 = () => {
+})()();
+
+(() => {
 	return () => console.log( 'effect' );
-};
-retained2()();
+})()();
+
+(() => ({ foo: () => {} }))().foo();
+(() => ({ foo: () => console.log( 'effect' ) }))().foo();
+
+(() => ({ foo: () => ({ bar: () => ({ baz: () => {} }) }) }))().foo().bar().baz();
+(() => ({ foo: () => ({ bar: () => console.log( 'effect' ) }) }))().foo().bar();

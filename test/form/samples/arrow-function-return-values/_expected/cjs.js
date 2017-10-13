@@ -7,7 +7,10 @@
 const retained1 = () => () => console.log( 'effect' );
 retained1()();
 
-const retained2 = () => {
+(() => {
 	return () => console.log( 'effect' );
-};
-retained2()();
+})()();
+
+(() => ({ foo: () => console.log( 'effect' ) }))().foo();
+
+(() => ({ foo: () => ({ bar: () => console.log( 'effect' ) }) }))().foo().bar();

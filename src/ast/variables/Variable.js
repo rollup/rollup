@@ -78,7 +78,7 @@ export default class Variable {
 	 * @param {Function} predicateFunction
 	 * @returns {boolean}
 	 */
-	someReturnExpressionAtPath ( path, callOptions, predicateFunction ) {
-		return predicateFunction( path, UNKNOWN_ASSIGNMENT );
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
+		return predicateFunction( UNKNOWN_ASSIGNMENT );
 	}
 }

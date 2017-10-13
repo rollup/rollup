@@ -54,4 +54,11 @@ export default class Property extends Node {
 		}
 		this.value.render( code, es );
 	}
+
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
+		if ( this.kind === 'get' ) {
+			return true;
+		}
+		return this.value.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction );
+	}
 }

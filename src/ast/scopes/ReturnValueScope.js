@@ -10,8 +10,7 @@ export default class ReturnValueScope extends Scope {
 		this._returnExpressions.add( expression );
 	}
 
-	someReturnExpressionAtPath ( path, callOptions, predicateFunction ) {
-		return Array.from( this._returnExpressions ).some( returnExpression =>
-			predicateFunction( path, returnExpression ) );
+	someReturnExpressionWhenCalled ( callOptions, predicateFunction ) {
+		return Array.from( this._returnExpressions ).some( predicateFunction );
 	}
 }
