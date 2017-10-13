@@ -12,9 +12,24 @@ export default class Node {
 
 	/**
 	 * Called once all nodes have been initialised and the scopes have been populated.
-	 * Use this to bind assignments to variables.
+	 * Usually one should not override this function but override bindNode and/or
+	 * bindChildren instead.
 	 */
 	bind () {
+		this.bindChildren();
+		this.bindNode();
+	}
+
+	/**
+	 * Override this to bind assignments to variables and do any initialisations that
+	 * require the scopes to be populated with variables.
+	 */
+	bindNode () {}
+
+	/**
+	 * Override to control on which children "bind" is called.
+	 */
+	bindChildren () {
 		this.eachChild( child => child.bind() );
 	}
 

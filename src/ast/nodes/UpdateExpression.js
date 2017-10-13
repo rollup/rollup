@@ -3,8 +3,7 @@ import disallowIllegalReassignment from './shared/disallowIllegalReassignment.js
 import VirtualNumberLiteral from './shared/VirtualNumberLiteral';
 
 export default class UpdateExpression extends Node {
-	bind () {
-		super.bind();
+	bindNode () {
 		disallowIllegalReassignment( this.scope, this.argument );
 		this.argument.bindAssignmentAtPath( [], new VirtualNumberLiteral() );
 		if ( this.argument.type === 'Identifier' ) {

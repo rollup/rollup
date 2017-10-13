@@ -2,8 +2,7 @@ import Node from '../Node.js';
 import disallowIllegalReassignment from './shared/disallowIllegalReassignment.js';
 
 export default class AssignmentExpression extends Node {
-	bind () {
-		super.bind();
+	bindNode () {
 		disallowIllegalReassignment( this.scope, this.left );
 		this.left.bindAssignmentAtPath( [], this.right );
 	}

@@ -1,7 +1,7 @@
 import Node from '../Node.js';
 
 export default class CallExpression extends Node {
-	bind () {
+	bindNode () {
 		if ( this.callee.type === 'Identifier' ) {
 			const variable = this.scope.findVariable( this.callee.name );
 
@@ -20,8 +20,6 @@ export default class CallExpression extends Node {
 				}, this.start );
 			}
 		}
-
-		super.bind();
 	}
 
 	hasEffects ( options ) {

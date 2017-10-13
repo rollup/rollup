@@ -13,8 +13,7 @@ const operators = {
 };
 
 export default class UnaryExpression extends Node {
-	bind () {
-		if ( this.value === UNKNOWN_VALUE ) super.bind();
+	bindNode () {
 		if ( this.operator === 'delete' ) {
 			this.argument.bindAssignmentAtPath( [], new UndefinedIdentifier() );
 		}

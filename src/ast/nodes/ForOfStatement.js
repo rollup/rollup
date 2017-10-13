@@ -3,8 +3,7 @@ import BlockScope from '../scopes/BlockScope';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class ForOfStatement extends Statement {
-	bind () {
-		super.bind();
+	bindNode () {
 		this.left.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT );
 	}
 

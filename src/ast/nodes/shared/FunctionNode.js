@@ -5,8 +5,7 @@ import UndefinedIdentifier from './UndefinedIdentifier';
 import { UNKNOWN_ASSIGNMENT } from '../../values';
 
 export default class FunctionNode extends Node {
-	bind () {
-		super.bind();
+	bindNode () {
 		this.thisVariable = this.scope.findVariable( 'this' );
 	}
 

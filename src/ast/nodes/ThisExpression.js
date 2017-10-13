@@ -16,7 +16,7 @@ export default class ThisExpression extends Node {
 		}
 	}
 
-	bind () {
+	bindNode () {
 		this.variable = this.scope.findVariable( 'this' );
 	}
 

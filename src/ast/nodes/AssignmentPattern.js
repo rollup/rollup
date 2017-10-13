@@ -1,8 +1,7 @@
 import Node from '../Node.js';
 
 export default class AssignmentPattern extends Node {
-	bind () {
-		super.bind();
+	bindNode () {
 		this.left.bindAssignmentAtPath( [], this.right );
 	}
 

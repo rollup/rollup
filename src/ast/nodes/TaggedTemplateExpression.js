@@ -1,7 +1,7 @@
 import Node from '../Node.js';
 
 export default class TaggedTemplateExpression extends Node {
-	bind () {
+	bindNode () {
 		if ( this.tag.type === 'Identifier' ) {
 			const variable = this.scope.findVariable( this.tag.name );
 
@@ -20,8 +20,6 @@ export default class TaggedTemplateExpression extends Node {
 				}, this.start );
 			}
 		}
-
-		super.bind();
 	}
 
 	hasEffects ( options ) {

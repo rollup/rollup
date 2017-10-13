@@ -4,11 +4,10 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
 export default class ExportDefaultDeclaration extends Node {
-	bind () {
+	bindNode () {
 		if ( this._declarationName ) {
 			this.variable.setOriginalVariable( this.scope.findVariable( this._declarationName ) );
 		}
-		this.declaration.bind();
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {

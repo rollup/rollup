@@ -3,7 +3,7 @@ import isReference from 'is-reference';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class Identifier extends Node {
-	bind () {
+	bindNode () {
 		this._bindVariableIfMissing();
 	}
 
