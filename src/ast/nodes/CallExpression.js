@@ -34,9 +34,24 @@ export default class CallExpression extends Node {
 			);
 	}
 
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
+			node.hasEffectsWhenAccessedAtPath( relativePath, options ) );
+	}
+
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
+			node.hasEffectsWhenAssignedAtPath( relativePath, options ) );
+	}
+
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
 			node.hasEffectsWhenCalledAtPath( relativePath, callOptions, options ) );
+	}
+
+	hasEffectsWhenMutatedAtPath ( path, options ) {
+		return this.callee.someReturnExpressionAtPath( path, this._callOptions, ( relativePath, node ) =>
+			node.hasEffectsWhenMutatedAtPath( relativePath, options ) );
 	}
 
 	initialiseNode () {

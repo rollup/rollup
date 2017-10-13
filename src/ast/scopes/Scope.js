@@ -45,6 +45,10 @@ export default class Scope {
 		return this.variables[ name ];
 	}
 
+	addReturnExpression ( expression ) {
+		this.parent && this.parent.addReturnExpression( expression );
+	}
+
 	contains ( name ) {
 		return !!this.variables[ name ] ||
 			( this.parent ? this.parent.contains( name ) : false );

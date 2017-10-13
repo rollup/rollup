@@ -1,6 +1,7 @@
 import Node from '../../Node.js';
 import FunctionScope from '../../scopes/FunctionScope';
 import VirtualObjectExpression from './VirtualObjectExpression';
+import UndefinedIdentifier from './UndefinedIdentifier';
 import { UNKNOWN_ASSIGNMENT } from '../../values';
 
 export default class FunctionNode extends Node {
@@ -55,9 +56,17 @@ export default class FunctionNode extends Node {
 
 	initialiseNode () {
 		this.prototypeObject = new VirtualObjectExpression();
+		const lastBodyStatement = this.body.body[ this.body.body.length - 1 ];
+		if ( !lastBodyStatement || lastBodyStatement.type !== 'ReturnStatement' ) {
+			this.scope.addReturnExpression( new UndefinedIdentifier() );
+		}
 	}
 
 	initialiseScope ( parentScope ) {
 		this.scope = new FunctionScope( { parent: parentScope } );
+	}
+
+	someReturnExpressionAtPath ( path, callOptions, predicateFunction ) {
+		return this.scope.someReturnExpressionAtPath( path, callOptions, predicateFunction );
 	}
 }
