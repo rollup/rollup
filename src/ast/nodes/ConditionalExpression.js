@@ -24,48 +24,23 @@ export default class ConditionalExpression extends Node {
 		return (
 			this.included
 			|| this.test.hasEffects( options )
-			|| (this.testValue === UNKNOWN_VALUE && (this.consequent.hasEffects( options ) || this.alternate.hasEffects( options )))
-			|| (this.testValue ? this.consequent.hasEffects( options ) : this.alternate.hasEffects( options ))
+			|| this._someRelevantBranch( node => node.hasEffects( options ) )
 		);
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
-		return (
-			this.testValue === UNKNOWN_VALUE && (
-				this.consequent.hasEffectsWhenAccessedAtPath( path, options )
-				|| this.alternate.hasEffectsWhenAccessedAtPath( path, options )
-			)
-		) || (
-			this.testValue
-				? this.consequent.hasEffectsWhenAccessedAtPath( path, options )
-				: this.alternate.hasEffectsWhenAccessedAtPath( path, options )
-		);
+		return this._someRelevantBranch( node =>
+			node.hasEffectsWhenAccessedAtPath( path, options ) );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		return (
-			this.testValue === UNKNOWN_VALUE && (
-				this.consequent.hasEffectsWhenAssignedAtPath( path, options )
-				|| this.alternate.hasEffectsWhenAssignedAtPath( path, options )
-			)
-		) || (
-			this.testValue
-				? this.consequent.hasEffectsWhenAssignedAtPath( path, options )
-				: this.alternate.hasEffectsWhenAssignedAtPath( path, options )
-		);
+		return this._someRelevantBranch( node =>
+			node.hasEffectsWhenAssignedAtPath( path, options ) );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
-		return (
-			this.testValue === UNKNOWN_VALUE && (
-				this.consequent.hasEffectsWhenCalledAtPath( path, callOptions, options )
-				|| this.alternate.hasEffectsWhenCalledAtPath( path, callOptions, options )
-			)
-		) || (
-			this.testValue
-				? this.consequent.hasEffectsWhenCalledAtPath( path, callOptions, options )
-				: this.alternate.hasEffectsWhenCalledAtPath( path, callOptions, options )
-		);
+		return this._someRelevantBranch( node =>
+			node.hasEffectsWhenCalledAtPath( path, callOptions, options ) );
 	}
 
 	initialiseChildren ( parentScope ) {
@@ -108,5 +83,18 @@ export default class ConditionalExpression extends Node {
 				branchToRetain.render( code, es );
 			}
 		}
+	}
+
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
+		return this._someRelevantBranch( node =>
+			node.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options ) );
+	}
+
+	_someRelevantBranch ( predicateFunction ) {
+		return this.testValue === UNKNOWN_VALUE
+			? predicateFunction( this.consequent ) || predicateFunction( this.alternate )
+			: this.testValue
+				? predicateFunction( this.consequent )
+				: predicateFunction( this.alternate );
 	}
 }
