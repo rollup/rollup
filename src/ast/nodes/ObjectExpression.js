@@ -48,7 +48,8 @@ export default class ObjectExpression extends Node {
 		if ( path.length === 0 ) {
 			return false;
 		}
-		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_WRITE );
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ],
+			path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ );
 
 		return (path.length > 1 && !hasCertainHit)
 			|| properties.some( property => (path.length > 1 || property.kind === 'set')
@@ -65,13 +66,13 @@ export default class ObjectExpression extends Node {
 			property.hasEffectsWhenCalledAtPath( path.slice( 1 ), callOptions, options ) );
 	}
 
-	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
 		if ( path.length === 0 ) {
 			return true;
 		}
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ );
 
 		return !hasCertainHit || properties.some( property =>
-			property.someReturnExpressionWhenCalledAtPath( path.slice( 1 ), callOptions, predicateFunction ) );
+			property.someReturnExpressionWhenCalledAtPath( path.slice( 1 ), callOptions, predicateFunction, options ) );
 	}
 }

@@ -232,9 +232,10 @@ export default class Node {
 	 * @param {String[]} path
 	 * @param {CallOptions} callOptions
 	 * @param {Function} predicateFunction
+	 * @param {ExecutionPathOptions} options
 	 * @returns {boolean}
 	 */
-	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
 		return predicateFunction( UNKNOWN_ASSIGNMENT );
 	}
 

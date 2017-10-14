@@ -60,7 +60,7 @@ export default class ExecutionPathOptions {
 
 	/**
 	 * @param {String[]} path
-	 * @param {CallExpression} callExpression
+	 * @param {CallExpression|Property} callExpression
 	 * @return {ExecutionPathOptions}
 	 */
 	addAccessedReturnExpressionAtPath ( path, callExpression ) {
@@ -78,7 +78,7 @@ export default class ExecutionPathOptions {
 
 	/**
 	 * @param {String[]} path
-	 * @param {CallExpression} callExpression
+	 * @param {CallExpression|Property} callExpression
 	 * @return {ExecutionPathOptions}
 	 */
 	addAssignedReturnExpressionAtPath ( path, callExpression ) {
@@ -97,7 +97,7 @@ export default class ExecutionPathOptions {
 
 	/**
 	 * @param {String[]} path
-	 * @param {CallExpression} callExpression
+	 * @param {CallExpression|Property} callExpression
 	 * @return {ExecutionPathOptions}
 	 */
 	addCalledReturnExpressionAtPath ( path, callExpression ) {
@@ -153,7 +153,7 @@ export default class ExecutionPathOptions {
 
 	/**
 	 * @param {String[]} path
-	 * @param {CallExpression} callExpression
+	 * @param {CallExpression|Property} callExpression
 	 * @return {boolean}
 	 */
 	hasReturnExpressionBeenAccessedAtPath ( path, callExpression ) {
@@ -162,7 +162,7 @@ export default class ExecutionPathOptions {
 
 	/**
 	 * @param {String[]} path
-	 * @param {CallExpression} callExpression
+	 * @param {CallExpression|Property} callExpression
 	 * @return {boolean}
 	 */
 	hasReturnExpressionBeenAssignedAtPath ( path, callExpression ) {
@@ -171,7 +171,7 @@ export default class ExecutionPathOptions {
 
 	/**
 	 * @param {String[]} path
-	 * @param {CallExpression} callExpression
+	 * @param {CallExpression|Property} callExpression
 	 * @return {boolean}
 	 */
 	hasReturnExpressionBeenCalledAtPath ( path, callExpression ) {

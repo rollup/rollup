@@ -71,12 +71,12 @@ export default class LocalVariable extends Variable {
 		return hasBeenIncluded;
 	}
 
-	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
 		return path.length > MAX_PATH_LENGTH
 			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
 				!callOptions.hasNodeBeenCalledAtPath( relativePath, node )
 				&& node.someReturnExpressionWhenCalledAtPath( relativePath, callOptions
-					.addCalledNodeAtPath( relativePath, node ), predicateFunction ) );
+					.addCalledNodeAtPath( relativePath, node ), predicateFunction, options ) );
 	}
 
 	toString () {

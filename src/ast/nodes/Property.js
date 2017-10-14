@@ -15,8 +15,10 @@ export default class Property extends Node {
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		if ( this.kind === 'get' ) {
-			return path.length > 0
-				|| this.value.hasEffectsWhenCalledAtPath( [], this._callOptions, options.getHasEffectsWhenCalledOptions() );
+			return this.value.hasEffectsWhenCalledAtPath( [], this._getterCallOptions, options.getHasEffectsWhenCalledOptions() )
+				|| (!options.hasReturnExpressionBeenAccessedAtPath( path, this )
+					&& this.value.someReturnExpressionWhenCalledAtPath( [], this._getterCallOptions, node =>
+						node.hasEffectsWhenAccessedAtPath( path, options.addAccessedReturnExpressionAtPath( path, this ) ), options ));
 		}
 		return this.value.hasEffectsWhenAccessedAtPath( path, options );
 	}
@@ -24,14 +26,17 @@ export default class Property extends Node {
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		if ( this.kind === 'set' ) {
 			return path.length > 0
-				|| this.value.hasEffectsWhenCalledAtPath( [], this._callOptions, options.getHasEffectsWhenCalledOptions() );
+				|| this.value.hasEffectsWhenCalledAtPath( [], this._getterCallOptions, options.getHasEffectsWhenCalledOptions() );
 		}
 		return this.value.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		if ( this.kind === 'get' ) {
-			return true;
+			return this.value.hasEffectsWhenCalledAtPath( [], this._getterCallOptions, options.getHasEffectsWhenCalledOptions() )
+				|| (!options.hasReturnExpressionBeenCalledAtPath( path, this )
+					&& this.value.someReturnExpressionWhenCalledAtPath( [], this._getterCallOptions, node =>
+						node.hasEffectsWhenCalledAtPath( path, callOptions, options.addCalledReturnExpressionAtPath( path, this ) ), options ));
 		}
 		return this.value.hasEffectsWhenCalledAtPath( path, callOptions, options );
 	}
@@ -44,7 +49,7 @@ export default class Property extends Node {
 	}
 
 	initialiseNode () {
-		this._callOptions = CallOptions.create( { withNew: false } );
+		this._getterCallOptions = CallOptions.create( { withNew: false } );
 	}
 
 	render ( code, es ) {
@@ -54,10 +59,12 @@ export default class Property extends Node {
 		this.value.render( code, es );
 	}
 
-	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
 		if ( this.kind === 'get' ) {
-			return true;
+			return this.value.hasEffectsWhenCalledAtPath( [], this._getterCallOptions, options.getHasEffectsWhenCalledOptions() )
+				|| this.value.someReturnExpressionWhenCalledAtPath( [], this._getterCallOptions, node =>
+					node.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options ), options );
 		}
-		return this.value.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction );
+		return this.value.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options );
 	}
 }

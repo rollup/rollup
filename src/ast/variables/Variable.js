@@ -49,8 +49,8 @@ export default class Variable {
 
 	/**
 	 * @param {String[]} path
-	 * @param {ExecutionPathOptions} options
 	 * @param {CallOptions} callOptions
+	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
@@ -76,9 +76,10 @@ export default class Variable {
 	 * @param {String[]} path
 	 * @param {CallOptions} callOptions
 	 * @param {Function} predicateFunction
+	 * @param {ExecutionPathOptions} options
 	 * @returns {boolean}
 	 */
-	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
 		return predicateFunction( UNKNOWN_ASSIGNMENT );
 	}
 }

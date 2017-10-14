@@ -42,7 +42,7 @@ export default class ArrowFunctionExpression extends Node {
 		this.scope = new ReturnValueScope( { parent: parentScope } );
 	}
 
-	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
-		return this.scope.someReturnExpressionWhenCalled( callOptions, predicateFunction );
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
+		return this.scope.someReturnExpressionWhenCalled( callOptions, predicateFunction, options );
 	}
 }
