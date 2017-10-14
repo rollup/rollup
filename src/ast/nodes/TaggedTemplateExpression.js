@@ -1,4 +1,5 @@
 import Node from '../Node.js';
+import CallOptions from '../CallOptions';
 
 export default class TaggedTemplateExpression extends Node {
 	bindNode () {
@@ -24,11 +25,10 @@ export default class TaggedTemplateExpression extends Node {
 
 	hasEffects ( options ) {
 		return super.hasEffects( options )
-			|| this.tag.hasEffectsWhenCalledAtPath( [], this._callOptions,
-				options.getHasEffectsWhenCalledOptions( this, this._callOptions ) );
+			|| this.tag.hasEffectsWhenCalledAtPath( [], this._callOptions, options.getHasEffectsWhenCalledOptions() );
 	}
 
 	initialiseNode () {
-		this._callOptions = { withNew: false };
+		this._callOptions = CallOptions.create( { withNew: false } );
 	}
 }

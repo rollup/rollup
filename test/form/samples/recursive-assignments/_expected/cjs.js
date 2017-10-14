@@ -1,6 +1,6 @@
 'use strict';
 
-let foo = () => {};
+let foo = () => function () {};
 foo.value = foo;
 
 while ( foo.value ) {
@@ -8,5 +8,6 @@ while ( foo.value ) {
 }
 
 foo();
+foo()();
+new (foo())();
 foo.bar = 1;
-foo['baz'] = 1;

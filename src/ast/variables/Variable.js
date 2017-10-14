@@ -50,7 +50,7 @@ export default class Variable {
 	/**
 	 * @param {String[]} path
 	 * @param {ExecutionPathOptions} options
-	 * @param {Object} callOptions
+	 * @param {CallOptions} callOptions
 	 * @return {boolean}
 	 */
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
@@ -74,7 +74,7 @@ export default class Variable {
 
 	/**
 	 * @param {String[]} path
-	 * @param {Object} callOptions
+	 * @param {CallOptions} callOptions
 	 * @param {Function} predicateFunction
 	 * @returns {boolean}
 	 */

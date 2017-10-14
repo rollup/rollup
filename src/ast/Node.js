@@ -95,7 +95,7 @@ export default class Node {
 
 	/**
 	 * @param {String[]} path
-	 * @param {Object} callOptions
+	 * @param {CallOptions} callOptions
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
@@ -230,7 +230,7 @@ export default class Node {
 	 * Returns true if some possible return expression when called at the given
 	 * path returns true. predicateFunction receives a `node` as parameter.
 	 * @param {String[]} path
-	 * @param {Object} callOptions
+	 * @param {CallOptions} callOptions
 	 * @param {Function} predicateFunction
 	 * @returns {boolean}
 	 */

@@ -1,4 +1,5 @@
 import Node from '../Node.js';
+import CallOptions from '../CallOptions';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class Property extends Node {
@@ -15,8 +16,7 @@ export default class Property extends Node {
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		if ( this.kind === 'get' ) {
 			return path.length > 0
-				|| this.value.hasEffectsWhenCalledAtPath( [], this._callOptions,
-					options.getHasEffectsWhenCalledOptions( this, this._callOptions ) );
+				|| this.value.hasEffectsWhenCalledAtPath( [], this._callOptions, options.getHasEffectsWhenCalledOptions() );
 		}
 		return this.value.hasEffectsWhenAccessedAtPath( path, options );
 	}
@@ -24,8 +24,7 @@ export default class Property extends Node {
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		if ( this.kind === 'set' ) {
 			return path.length > 0
-				|| this.value.hasEffectsWhenCalledAtPath( [], this._callOptions,
-					options.getHasEffectsWhenCalledOptions( this, this._callOptions ) );
+				|| this.value.hasEffectsWhenCalledAtPath( [], this._callOptions, options.getHasEffectsWhenCalledOptions() );
 		}
 		return this.value.hasEffectsWhenAssignedAtPath( path, options );
 	}
@@ -45,7 +44,7 @@ export default class Property extends Node {
 	}
 
 	initialiseNode () {
-		this._callOptions = { withNew: false };
+		this._callOptions = CallOptions.create( { withNew: false } );
 	}
 
 	render ( code, es ) {

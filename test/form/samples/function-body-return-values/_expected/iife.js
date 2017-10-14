@@ -35,7 +35,7 @@
 	retained5().x.y = 1;
 
 	function retained6 () {
-		return { x: () => console.log('effect') };
+		return { x: () => console.log( 'effect' ) };
 	}
 
 	retained6().x();

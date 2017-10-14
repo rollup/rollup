@@ -1,11 +1,11 @@
 import Node from '../Node.js';
+import CallOptions from '../CallOptions';
 
 export default class NewExpression extends Node {
 	hasEffects ( options ) {
 		return this.included
 			|| this.arguments.some( child => child.hasEffects( options ) )
-			|| this.callee.hasEffectsWhenCalledAtPath( [], this._callOptions,
-				options.getHasEffectsWhenCalledOptions( this, this._callOptions ) );
+			|| this.callee.hasEffectsWhenCalledAtPath( [], this._callOptions, options.getHasEffectsWhenCalledOptions() );
 	}
 
 	hasEffectsWhenAccessedAtPath ( path ) {
@@ -13,6 +13,6 @@ export default class NewExpression extends Node {
 	}
 
 	initialiseNode () {
-		this._callOptions = { withNew: true };
+		this._callOptions = CallOptions.create( { withNew: true } );
 	}
 }

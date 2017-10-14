@@ -33,12 +33,12 @@ export default class FunctionNode extends Node {
 		return true;
 	}
 
-	hasEffectsWhenCalledAtPath ( path, { withNew }, options ) {
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		if ( path.length > 0 ) {
 			return true;
 		}
 		const innerOptions = options.replaceThisInit( this.thisVariable,
-			withNew ? new VirtualObjectExpression() : UNKNOWN_ASSIGNMENT );
+			callOptions.withNew ? new VirtualObjectExpression() : UNKNOWN_ASSIGNMENT );
 		return this.params.some( param => param.hasEffects( innerOptions ) )
 			|| this.body.hasEffects( innerOptions );
 	}
