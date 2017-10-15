@@ -27,6 +27,11 @@ export default class ParameterVariable extends LocalVariable {
 		return super.hasEffectsWhenCalledAtPath( path, callOptions, options );
 	}
 
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
+		this._updateInit( options );
+		return super.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options );
+	}
+
 	_updateInit ( options ) {
 		this.assignedExpressions.setInit( options.getReplacedVariableInit( this ) || UNKNOWN_ASSIGNMENT );
 	}
