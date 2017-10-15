@@ -80,6 +80,6 @@ export default class Variable {
 	 * @returns {boolean}
 	 */
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
-		return predicateFunction( UNKNOWN_ASSIGNMENT );
+		return predicateFunction( options )( UNKNOWN_ASSIGNMENT );
 	}
 }

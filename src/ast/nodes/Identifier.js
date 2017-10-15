@@ -81,6 +81,6 @@ export default class Identifier extends Node {
 		if ( this.variable ) {
 			return this.variable.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options );
 		}
-		return predicateFunction( UNKNOWN_ASSIGNMENT );
+		return predicateFunction( options )( UNKNOWN_ASSIGNMENT );
 	}
 }

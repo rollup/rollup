@@ -31,20 +31,20 @@ export default class CallExpression extends Node {
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		return !options.hasReturnExpressionBeenAccessedAtPath( path, this )
-			&& this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, node =>
-				node.hasEffectsWhenAccessedAtPath( path, options.addAccessedReturnExpressionAtPath( path, this ) ), options );
+			&& this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+				node.hasEffectsWhenAccessedAtPath( path, innerOptions.addAccessedReturnExpressionAtPath( path, this ) ), options );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		return !options.hasReturnExpressionBeenAssignedAtPath( path, this )
-			&& this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, node =>
-				node.hasEffectsWhenAssignedAtPath( path, options.addAssignedReturnExpressionAtPath( path, this ) ), options );
+			&& this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+				node.hasEffectsWhenAssignedAtPath( path, innerOptions.addAssignedReturnExpressionAtPath( path, this ) ), options );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		return !options.hasReturnExpressionBeenCalledAtPath( path, this )
-			&& this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, node =>
-				node.hasEffectsWhenCalledAtPath( path, callOptions, options.addCalledReturnExpressionAtPath( path, this ) ), options );
+			&& this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+				node.hasEffectsWhenCalledAtPath( path, callOptions, innerOptions.addCalledReturnExpressionAtPath( path, this ) ), options );
 	}
 
 	initialiseNode () {
@@ -52,7 +52,7 @@ export default class CallExpression extends Node {
 	}
 
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
-		return this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, node =>
-			node.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options ), options );
+		return this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+			node.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, innerOptions ), options );
 	}
 }

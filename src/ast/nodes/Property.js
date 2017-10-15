@@ -17,8 +17,8 @@ export default class Property extends Node {
 		if ( this.kind === 'get' ) {
 			return this.value.hasEffectsWhenCalledAtPath( [], this._getterCallOptions, options.getHasEffectsWhenCalledOptions() )
 				|| (!options.hasReturnExpressionBeenAccessedAtPath( path, this )
-					&& this.value.someReturnExpressionWhenCalledAtPath( [], this._getterCallOptions, node =>
-						node.hasEffectsWhenAccessedAtPath( path, options.addAccessedReturnExpressionAtPath( path, this ) ), options ));
+					&& this.value.someReturnExpressionWhenCalledAtPath( [], this._getterCallOptions, innerOptions => node =>
+						node.hasEffectsWhenAccessedAtPath( path, innerOptions.addAccessedReturnExpressionAtPath( path, this ) ), options ));
 		}
 		return this.value.hasEffectsWhenAccessedAtPath( path, options );
 	}
@@ -35,8 +35,8 @@ export default class Property extends Node {
 		if ( this.kind === 'get' ) {
 			return this.value.hasEffectsWhenCalledAtPath( [], this._getterCallOptions, options.getHasEffectsWhenCalledOptions() )
 				|| (!options.hasReturnExpressionBeenCalledAtPath( path, this )
-					&& this.value.someReturnExpressionWhenCalledAtPath( [], this._getterCallOptions, node =>
-						node.hasEffectsWhenCalledAtPath( path, callOptions, options.addCalledReturnExpressionAtPath( path, this ) ), options ));
+					&& this.value.someReturnExpressionWhenCalledAtPath( [], this._getterCallOptions, innerOptions => node =>
+						node.hasEffectsWhenCalledAtPath( path, callOptions, innerOptions.addCalledReturnExpressionAtPath( path, this ) ), options ));
 		}
 		return this.value.hasEffectsWhenCalledAtPath( path, callOptions, options );
 	}
@@ -62,8 +62,8 @@ export default class Property extends Node {
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
 		if ( this.kind === 'get' ) {
 			return this.value.hasEffectsWhenCalledAtPath( [], this._getterCallOptions, options.getHasEffectsWhenCalledOptions() )
-				|| this.value.someReturnExpressionWhenCalledAtPath( [], this._getterCallOptions, node =>
-					node.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options ), options );
+				|| this.value.someReturnExpressionWhenCalledAtPath( [], this._getterCallOptions, innerOptions => node =>
+					node.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, innerOptions ), options );
 		}
 		return this.value.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options );
 	}
