@@ -25,8 +25,9 @@ export default class ArrowFunctionExpression extends Node {
 		if ( path.length > 0 ) {
 			return true;
 		}
-		return this.params.some( param => param.hasEffects( options ) )
-			|| this.body.hasEffects( options );
+		const innerOptions = this.scope.getOptionsWithReplacedParameters( callOptions.parameters, options );
+		return this.params.some( param => param.hasEffects( innerOptions ) )
+			|| this.body.hasEffects( innerOptions );
 	}
 
 	initialiseChildren () {
@@ -42,7 +43,7 @@ export default class ArrowFunctionExpression extends Node {
 		this.scope = new ReturnValueScope( { parent: parentScope } );
 	}
 
-	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
-		return this.scope.someReturnExpressionWhenCalled( callOptions, predicateFunction, options );
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction ) {
+		return this.scope.someReturnExpressionWhenCalled( callOptions, predicateFunction );
 	}
 }

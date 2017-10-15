@@ -37,7 +37,7 @@ export default class FunctionNode extends Node {
 		if ( path.length > 0 ) {
 			return true;
 		}
-		const innerOptions = options.replaceThisInit( this.thisVariable,
+		const innerOptions = options.replaceVariableInit( this.thisVariable,
 			callOptions.withNew ? new VirtualObjectExpression() : UNKNOWN_ASSIGNMENT );
 		return this.params.some( param => param.hasEffects( innerOptions ) )
 			|| this.body.hasEffects( innerOptions );

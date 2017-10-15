@@ -41,7 +41,7 @@ export default class Scope {
 
 	addParameterDeclaration ( identifier ) {
 		const name = identifier.name;
-		this.variables[ name ] = new ParameterVariable( name, identifier );
+		this.variables[ name ] = new ParameterVariable( identifier );
 		return this.variables[ name ];
 	}
 

@@ -8,7 +8,7 @@ const OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS = 'NODES_CALLED_AT_PATH_WITH_OPTI
 const OPTION_RETURN_EXPRESSIONS_ACCESSED_AT_PATH = 'RETURN_EXPRESSIONS_ACCESSED_AT_PATH';
 const OPTION_RETURN_EXPRESSIONS_ASSIGNED_AT_PATH = 'RETURN_EXPRESSIONS_ASSIGNED_AT_PATH';
 const OPTION_RETURN_EXPRESSIONS_CALLED_AT_PATH = 'RETURN_EXPRESSIONS_CALLED_AT_PATH';
-const OPTION_VALID_THIS_VARIABLES = 'VALID_THIS_VARIABLES';
+const OPTION_REPLACED_VARIABLE_INITS = 'REPLACED_VARIABLE_INITS';
 const IGNORED_LABELS = 'IGNORED_LABELS';
 
 const RESULT_KEY = {};
@@ -115,11 +115,11 @@ export default class ExecutionPathOptions {
 	}
 
 	/**
-	 * @param {ThisVariable} thisVariable
+	 * @param {ThisVariable|ParameterVariable} variable
 	 * @returns {Node}
 	 */
-	getReplacedThisInit ( thisVariable ) {
-		return this._optionValues.getIn( [ OPTION_VALID_THIS_VARIABLES, thisVariable ] );
+	getReplacedVariableInit ( variable ) {
+		return this._optionValues.getIn( [ OPTION_REPLACED_VARIABLE_INITS, variable ] );
 	}
 
 	/**
@@ -201,12 +201,12 @@ export default class ExecutionPathOptions {
 	}
 
 	/**
-	 * @param {ThisVariable} thisVariable
+	 * @param {ThisVariable|ParameterVariable} variable
 	 * @param {Node} init
 	 * @return {ExecutionPathOptions}
 	 */
-	replaceThisInit ( thisVariable, init ) {
-		return this.setIn( [ OPTION_VALID_THIS_VARIABLES, thisVariable ], init );
+	replaceVariableInit ( variable, init ) {
+		return this.setIn( [ OPTION_REPLACED_VARIABLE_INITS, variable ], init );
 	}
 
 	/**

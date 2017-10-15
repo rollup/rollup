@@ -24,6 +24,6 @@ export default class ThisVariable extends LocalVariable {
 	}
 
 	_updateInit ( options ) {
-		this.assignedExpressions.setInit( options.getReplacedThisInit( this ) || UNKNOWN_ASSIGNMENT );
+		this.assignedExpressions.setInit( options.getReplacedVariableInit( this ) || UNKNOWN_ASSIGNMENT );
 	}
 }

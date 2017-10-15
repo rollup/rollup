@@ -1,6 +1,6 @@
-import Scope from './Scope';
+import ParameterScope from './ParameterScope';
 
-export default class ReturnValueScope extends Scope {
+export default class ReturnValueScope extends ParameterScope {
 	constructor ( options = {} ) {
 		super( options );
 		this._returnExpressions = new Set();
