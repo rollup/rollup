@@ -39,12 +39,6 @@ export default class Scope {
 		return this.variables.default;
 	}
 
-	addParameterDeclaration ( identifier ) {
-		const name = identifier.name;
-		this.variables[ name ] = new ParameterVariable( identifier );
-		return this.variables[ name ];
-	}
-
 	addReturnExpression ( expression ) {
 		this.parent && this.parent.addReturnExpression( expression );
 	}

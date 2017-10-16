@@ -1,5 +1,5 @@
 import Node from '../Node.js';
-import BlockScope from '../scopes/BlockScope';
+import CatchScope from '../scopes/CatchScope';
 
 export default class CatchClause extends Node {
 	initialiseChildren () {
@@ -8,6 +8,6 @@ export default class CatchClause extends Node {
 	}
 
 	initialiseScope ( parentScope ) {
-		this.scope = new BlockScope( { parent: parentScope } );
+		this.scope = new CatchScope( { parent: parentScope } );
 	}
 }
