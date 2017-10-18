@@ -21,11 +21,15 @@ export default class ParameterScope extends Scope {
 		return variable;
 	}
 
-	getOptionsWithReplacedParameters ( parameterReplacements, options ) {
+	getOptionsWithReplacedParameters ( args, options ) {
 		let newOptions = options;
 		this._parameters.forEach( ( parameter, index ) =>
-			newOptions = newOptions.replaceVariableInit( parameter, parameterReplacements[ index ] || UNKNOWN_ASSIGNMENT )
+			newOptions = newOptions.replaceVariableInit( parameter, args[ index ] || UNKNOWN_ASSIGNMENT )
 		);
 		return newOptions;
+	}
+
+	getParameterVariables () {
+		return this._parameters;
 	}
 }

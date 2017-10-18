@@ -48,7 +48,7 @@ export default class CallExpression extends Node {
 	}
 
 	initialiseNode () {
-		this._callOptions = CallOptions.create( { withNew: false, parameters: this.arguments } );
+		this._callOptions = CallOptions.create( { withNew: false, args: this.arguments } );
 	}
 
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {

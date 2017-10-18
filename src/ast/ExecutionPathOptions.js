@@ -1,15 +1,16 @@
 import Immutable from 'immutable';
 
+const OPTION_IGNORED_LABELS = 'IGNORED_LABELS';
+const OPTION_ACCESSED_NODES = 'ACCESSED_NODES';
+const OPTION_ARGUMENTS_VARIABLES = 'ARGUMENTS_VARIABLES';
+const OPTION_ASSIGNED_NODES = 'ASSIGNED_NODES';
 const OPTION_IGNORE_BREAK_STATEMENTS = 'IGNORE_BREAK_STATEMENTS';
 const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
-const OPTION_ACCESSED_NODES = 'ACCESSED_NODES';
-const OPTION_ASSIGNED_NODES = 'ASSIGNED_NODES';
 const OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS = 'NODES_CALLED_AT_PATH_WITH_OPTIONS';
+const OPTION_REPLACED_VARIABLE_INITS = 'REPLACED_VARIABLE_INITS';
 const OPTION_RETURN_EXPRESSIONS_ACCESSED_AT_PATH = 'RETURN_EXPRESSIONS_ACCESSED_AT_PATH';
 const OPTION_RETURN_EXPRESSIONS_ASSIGNED_AT_PATH = 'RETURN_EXPRESSIONS_ASSIGNED_AT_PATH';
 const OPTION_RETURN_EXPRESSIONS_CALLED_AT_PATH = 'RETURN_EXPRESSIONS_CALLED_AT_PATH';
-const OPTION_REPLACED_VARIABLE_INITS = 'REPLACED_VARIABLE_INITS';
-const IGNORED_LABELS = 'IGNORED_LABELS';
 
 const RESULT_KEY = {};
 
@@ -105,6 +106,13 @@ export default class ExecutionPathOptions {
 	}
 
 	/**
+	 * @return {ParameterVariable[]}
+	 */
+	getArgumentsVariables () {
+		return this.get( OPTION_ARGUMENTS_VARIABLES ) || [];
+	}
+
+	/**
 	 * @return {ExecutionPathOptions}
 	 */
 	getHasEffectsWhenCalledOptions () {
@@ -190,7 +198,7 @@ export default class ExecutionPathOptions {
 	 * @return {boolean}
 	 */
 	ignoreLabel ( labelName ) {
-		return this._optionValues.getIn( [ IGNORED_LABELS, labelName ] );
+		return this._optionValues.getIn( [ OPTION_IGNORED_LABELS, labelName ] );
 	}
 
 	/**
@@ -210,6 +218,14 @@ export default class ExecutionPathOptions {
 	}
 
 	/**
+	 * @param {ParameterVariable[]} variables
+	 * @return {ExecutionPathOptions}
+	 */
+	setArgumentsVariables ( variables ) {
+		return this.set( OPTION_ARGUMENTS_VARIABLES, variables );
+	}
+
+	/**
 	 * @param {boolean} [value=true]
 	 * @return {ExecutionPathOptions}
 	 */
@@ -222,14 +238,14 @@ export default class ExecutionPathOptions {
 	 * @return {ExecutionPathOptions}
 	 */
 	setIgnoreLabel ( labelName ) {
-		return this.setIn( [ IGNORED_LABELS, labelName ], true );
+		return this.setIn( [ OPTION_IGNORED_LABELS, labelName ], true );
 	}
 
 	/**
 	 * @return {ExecutionPathOptions}
 	 */
 	setIgnoreNoLabels () {
-		return this.set( IGNORED_LABELS, null );
+		return this.set( OPTION_IGNORED_LABELS, null );
 	}
 
 	/**

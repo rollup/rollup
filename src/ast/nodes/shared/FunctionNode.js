@@ -1,11 +1,9 @@
 import Node from '../../Node.js';
 import FunctionScope from '../../scopes/FunctionScope';
 import VirtualObjectExpression from './VirtualObjectExpression';
-import { UNKNOWN_ASSIGNMENT } from '../../values';
 
 export default class FunctionNode extends Node {
 	bindNode () {
-		this.thisVariable = this.scope.findVariable( 'this' );
 		this.body.bindImplicitReturnExpressionToScope();
 	}
 
@@ -37,9 +35,7 @@ export default class FunctionNode extends Node {
 		if ( path.length > 0 ) {
 			return true;
 		}
-		const innerOptions = this.scope
-			.getOptionsWithReplacedParameters( callOptions.parameters, options )
-			.replaceVariableInit( this.thisVariable, callOptions.withNew ? new VirtualObjectExpression() : UNKNOWN_ASSIGNMENT );
+		const innerOptions = this.scope.getOptionsWhenCalledWith( callOptions, options );
 		return this.params.some( param => param.hasEffects( innerOptions ) )
 			|| this.body.hasEffects( innerOptions );
 	}

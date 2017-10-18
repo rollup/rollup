@@ -25,7 +25,7 @@ export default class ArrowFunctionExpression extends Node {
 		if ( path.length > 0 ) {
 			return true;
 		}
-		const innerOptions = this.scope.getOptionsWithReplacedParameters( callOptions.parameters, options );
+		const innerOptions = this.scope.getOptionsWithReplacedParameters( callOptions.args, options );
 		return this.params.some( param => param.hasEffects( innerOptions ) )
 			|| this.body.hasEffects( innerOptions );
 	}

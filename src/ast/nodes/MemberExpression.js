@@ -82,38 +82,36 @@ export default class MemberExpression extends Node {
 		}
 		if ( this.variable ) {
 			this.variable.assignExpressionAtPath( path, expression );
-		} else if ( this.computed ) {
-			this.object.bindAssignmentAtPath( [ UNKNOWN_KEY, ...path ], expression );
 		} else {
-			this.object.bindAssignmentAtPath( [ this.property.name, ...path ], expression );
+			this.object.bindAssignmentAtPath( [ this._getPathSegment(), ...path ], expression );
 		}
 	}
 
 	hasEffects ( options ) {
 		return super.hasEffects( options )
-			|| this.object.hasEffectsWhenAccessedAtPath( [ this.computed ? UNKNOWN_KEY : this.property.name ], options );
+			|| this.object.hasEffectsWhenAccessedAtPath( [ this._getPathSegment() ], options );
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		if ( this.variable ) {
 			return this.variable.hasEffectsWhenAccessedAtPath( path, options );
 		}
-		return this.object.hasEffectsWhenAccessedAtPath( [ this.computed ? UNKNOWN_KEY : this.property.name, ...path ], options );
+		return this.object.hasEffectsWhenAccessedAtPath( [ this._getPathSegment(), ...path ], options );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		if ( this.variable ) {
 			return this.variable.hasEffectsWhenAssignedAtPath( path, options );
 		}
-		return this.object.hasEffectsWhenAssignedAtPath( [ this.computed ? UNKNOWN_KEY : this.property.name, ...path ], options );
+		return this.object.hasEffectsWhenAssignedAtPath( [ this._getPathSegment(), ...path ], options );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		if ( this.variable ) {
 			return this.variable.hasEffectsWhenCalledAtPath( path, callOptions, options );
 		}
-		return this.computed
-			|| this.object.hasEffectsWhenCalledAtPath( [ this.property.name, ...path ], callOptions, options );
+		return this._getPathSegment() === UNKNOWN_KEY
+			|| this.object.hasEffectsWhenCalledAtPath( [ this._getPathSegment(), ...path ], callOptions, options );
 	}
 
 	includeInBundle () {
@@ -142,7 +140,15 @@ export default class MemberExpression extends Node {
 		if ( this.variable ) {
 			return this.variable.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options );
 		}
-		return this.computed
-			|| this.object.someReturnExpressionWhenCalledAtPath( [ this.property.name, ...path ], callOptions, predicateFunction, options );
+		return this._getPathSegment() === UNKNOWN_KEY
+			|| this.object.someReturnExpressionWhenCalledAtPath( [ this._getPathSegment(), ...path ],
+				callOptions, predicateFunction, options );
+	}
+
+	_getPathSegment () {
+		if ( this.computed ) {
+			return this.property.type === 'Literal' ? String( this.property.value ) : UNKNOWN_KEY;
+		}
+		return this.property.name;
 	}
 }

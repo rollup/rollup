@@ -11,7 +11,7 @@ export default class ReturnValueScope extends ParameterScope {
 	}
 
 	someReturnExpressionWhenCalled ( callOptions, predicateFunction, options ) {
-		const innerOptions = this.getOptionsWithReplacedParameters( callOptions.parameters, options );
+		const innerOptions = this.getOptionsWithReplacedParameters( callOptions.args, options );
 		return Array.from( this._returnExpressions ).some( predicateFunction( innerOptions ) );
 	}
 }

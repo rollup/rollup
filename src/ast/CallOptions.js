@@ -7,9 +7,9 @@ export default class CallOptions {
 		return new this( callOptions, Immutable.Map() );
 	}
 
-	constructor ( { withNew = false, parameters = [] } = {}, nodesCalledAtPath ) {
+	constructor ( { withNew = false, args = [] } = {}, nodesCalledAtPath ) {
 		this.withNew = withNew;
-		this.parameters = parameters;
+		this.args = args;
 		this._nodesCalledAtPath = nodesCalledAtPath;
 	}
 
@@ -19,8 +19,8 @@ export default class CallOptions {
 
 	equals ( callOptions ) {
 		return this.withNew === callOptions.withNew
-			&& this.parameters.length === callOptions.parameters.length
-			&& this.parameters.every( ( parameter, index ) => parameter === callOptions.parameters[ index ] );
+			&& this.args.length === callOptions.args.length
+			&& this.args.every( ( parameter, index ) => parameter === callOptions.args[ index ] );
 	}
 
 	hasNodeBeenCalledAtPath ( path, node ) {
