@@ -16,7 +16,6 @@ export default class BlockStatement extends Statement {
 	}
 
 	includeInBundle () {
-		if ( this.isFullyIncluded() ) return false;
 		let addedNewNodes = false;
 		this.body.forEach( node => {
 			if ( node.shouldBeIncluded() ) {

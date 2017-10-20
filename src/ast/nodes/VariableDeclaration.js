@@ -27,7 +27,6 @@ export default class VariableDeclaration extends Node {
 	}
 
 	includeWithAllDeclarations () {
-		if ( this.isFullyIncluded() ) return false;
 		let addedNewNodes = false;
 		this.declarations.forEach( declarator => {
 			if ( declarator.includeInBundle() ) {
@@ -42,7 +41,6 @@ export default class VariableDeclaration extends Node {
 	}
 
 	includeInBundle () {
-		if ( this.isFullyIncluded() ) return false;
 		let addedNewNodes = false;
 		this.declarations.forEach( declarator => {
 			if ( declarator.shouldBeIncluded() ) {

@@ -111,7 +111,6 @@ export default class Node {
 	 * @return {boolean}
 	 */
 	includeInBundle () {
-		if ( this.isFullyIncluded() ) return false;
 		let addedNewNodes = false;
 		this.eachChild( childNode => {
 			if ( childNode.includeInBundle() ) {
@@ -178,18 +177,6 @@ export default class Node {
 		}
 	}
 
-	/**
-	 * Shortcut to skip checking this node for effects when all children have already
-	 * been included.
-	 * @param {Scope} parentScope
-	 */
-	isFullyIncluded ( parentScope ) {
-		if ( this._fullyIncluded ) {
-			return true;
-		}
-		this._fullyIncluded = this.included && !this.someChild( child => !child.isFullyIncluded() );
-	}
-
 	locate () {
 		// useful for debugging
 		const location = locate( this.module.code, this.start, { offsetLine: 1 } );
@@ -205,9 +192,9 @@ export default class Node {
 
 	/**
 	 * Start a new execution path to determine if this node has an effect on the bundle and
-	 * should therefore be included. Unless they are fully included, included nodes should
-	 * always be included again in subsequent visits as the inclusion of additional variables
-	 * may require the inclusion of more child nodes in e.g. block statements.
+	 * should therefore be included. Included nodes should always be included again in subsequent
+	 * visits as the inclusion of additional variables may require the inclusion of more child
+	 * nodes in e.g. block statements.
 	 * @return {boolean}
 	 */
 	shouldBeIncluded () {

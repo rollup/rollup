@@ -10,7 +10,6 @@ export default class SequenceExpression extends Node {
 	}
 
 	includeInBundle () {
-		if ( this.isFullyIncluded() ) return false;
 		let addedNewNodes = false;
 		if ( this.expressions[ this.expressions.length - 1 ].includeInBundle() ) {
 			addedNewNodes = true;
