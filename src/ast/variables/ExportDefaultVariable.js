@@ -26,11 +26,18 @@ export default class ExportDefaultVariable extends LocalVariable {
 	}
 
 	includeVariable () {
-		if ( this.included ) {
+		if (!super.includeVariable()) {
 			return false;
 		}
-		this.included = true;
 		this.declarations.forEach( declaration => declaration.includeDefaultExport() );
+		return true;
+	}
+
+	includeWithEffects () {
+		if (!super.includeWithEffects()) {
+			return false;
+		}
+		this.declarations.forEach( declaration => declaration.includeWithEffects() );
 		return true;
 	}
 

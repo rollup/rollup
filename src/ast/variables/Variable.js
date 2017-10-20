@@ -73,6 +73,26 @@ export default class Variable {
 	}
 
 	/**
+	 * Marks this variable's value as being essential to a bundle. This is usually the case when
+	 * a variable is exported or assigned to an exported variable. This also includes a variable.
+	 * This is in contrast to variables which are necessary for the code to be valid but the value
+	 * of which is not important.
+	 * Once a variable is included with effects, it should take care all its declarations are
+	 * included with effects.
+	 * @returns {boolean}
+	 */
+	includeWithEffects () {
+		if ( this.includedWithEffects ) {
+			return false;
+		}
+		this.includedWithEffects = true;
+		if ( !this.included ) {
+			this.includeVariable();
+		}
+		return true;
+	}
+
+	/**
 	 * @param {String[]} path
 	 * @param {CallOptions} callOptions
 	 * @param {Function} predicateFunction

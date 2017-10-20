@@ -20,12 +20,20 @@ export default class NamespaceVariable extends Variable {
 	}
 
 	includeVariable () {
-		const hasBeenIncluded = super.includeVariable();
-		if ( hasBeenIncluded ) {
-			this.needsNamespaceBlock = true;
-			forOwn( this.originals, original => original.includeVariable() );
+		if ( !super.includeVariable() ) {
+			return false;
 		}
-		return hasBeenIncluded;
+		this.needsNamespaceBlock = true;
+		forOwn( this.originals, original => original.includeVariable() );
+		return true;
+	}
+
+	includeWithEffects () {
+		if ( !super.includeWithEffects() ) {
+			return false;
+		}
+		forOwn( this.originals, original => original.includeWithEffects() );
+		return true;
 	}
 
 	renderBlock ( es, legacy, indentString ) {

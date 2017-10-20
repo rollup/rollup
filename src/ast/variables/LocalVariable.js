@@ -64,11 +64,19 @@ export default class LocalVariable extends Variable {
 	}
 
 	includeVariable () {
-		const hasBeenIncluded = super.includeVariable();
-		if ( hasBeenIncluded ) {
-			this.declarations.forEach( identifier => identifier.includeInBundle() );
+		if ( !super.includeVariable() ) {
+			return false;
 		}
-		return hasBeenIncluded;
+		this.declarations.forEach( identifier => identifier.includeInBundle() );
+		return true;
+	}
+
+	includeWithEffects () {
+		if ( !super.includeWithEffects() ) {
+			return false;
+		}
+		this.declarations.forEach( identifier => identifier.includeWithEffects() );
+		return true;
 	}
 
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
