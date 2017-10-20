@@ -10,7 +10,8 @@ export default class SequenceExpression extends Node {
 	}
 
 	includeInBundle () {
-		let addedNewNodes = false;
+		let addedNewNodes = !this.included;
+		this.included = true;
 		if ( this.expressions[ this.expressions.length - 1 ].includeInBundle() ) {
 			addedNewNodes = true;
 		}
@@ -21,11 +22,7 @@ export default class SequenceExpression extends Node {
 				}
 			}
 		} );
-		if ( !this.included || addedNewNodes ) {
-			this.included = true;
-			return true;
-		}
-		return false;
+		return addedNewNodes;
 	}
 
 	render ( code, es ) {

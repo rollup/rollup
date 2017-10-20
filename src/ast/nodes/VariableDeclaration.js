@@ -27,21 +27,19 @@ export default class VariableDeclaration extends Node {
 	}
 
 	includeWithAllDeclarations () {
-		let addedNewNodes = false;
+		let addedNewNodes = !this.included;
+		this.included = true;
 		this.declarations.forEach( declarator => {
 			if ( declarator.includeInBundle() ) {
 				addedNewNodes = true;
 			}
 		} );
-		if ( !this.included || addedNewNodes ) {
-			this.included = true;
-			return true;
-		}
-		return false;
+		return addedNewNodes;
 	}
 
 	includeInBundle () {
-		let addedNewNodes = false;
+		let addedNewNodes = !this.included;
+		this.included = true;
 		this.declarations.forEach( declarator => {
 			if ( declarator.shouldBeIncluded() ) {
 				if ( declarator.includeInBundle() ) {
@@ -49,11 +47,7 @@ export default class VariableDeclaration extends Node {
 				}
 			}
 		} );
-		if ( !this.included || addedNewNodes ) {
-			this.included = true;
-			return true;
-		}
-		return false;
+		return addedNewNodes;
 	}
 
 	initialiseChildren () {

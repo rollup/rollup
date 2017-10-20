@@ -111,17 +111,14 @@ export default class Node {
 	 * @return {boolean}
 	 */
 	includeInBundle () {
-		let addedNewNodes = false;
+		let addedNewNodes = !this.included;
+		this.included = true;
 		this.eachChild( childNode => {
 			if ( childNode.includeInBundle() ) {
 				addedNewNodes = true;
 			}
 		} );
-		if ( this.included && !addedNewNodes ) {
-			return false;
-		}
-		this.included = true;
-		return true;
+		return addedNewNodes;
 	}
 
 	/**

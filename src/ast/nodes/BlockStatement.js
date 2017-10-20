@@ -16,7 +16,8 @@ export default class BlockStatement extends Statement {
 	}
 
 	includeInBundle () {
-		let addedNewNodes = false;
+		let addedNewNodes = !this.included;
+		this.included = true;
 		this.body.forEach( node => {
 			if ( node.shouldBeIncluded() ) {
 				if ( node.includeInBundle() ) {
@@ -24,11 +25,7 @@ export default class BlockStatement extends Statement {
 				}
 			}
 		} );
-		if ( !this.included || addedNewNodes ) {
-			this.included = true;
-			return true;
-		}
-		return false;
+		return addedNewNodes;
 	}
 
 	initialiseAndReplaceScope ( scope ) {
