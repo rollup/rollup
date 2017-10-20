@@ -10,7 +10,7 @@ export default class ArrowFunctionExpression extends Node {
 	}
 
 	hasEffects () {
-		return this.included;
+		return false;
 	}
 
 	hasEffectsWhenAccessedAtPath ( path ) {

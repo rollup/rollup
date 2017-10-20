@@ -28,14 +28,6 @@ export default class NamespaceVariable extends Variable {
 		return true;
 	}
 
-	includeWithEffects () {
-		if ( !super.includeWithEffects() ) {
-			return false;
-		}
-		forOwn( this.originals, original => original.includeWithEffects() );
-		return true;
-	}
-
 	renderBlock ( es, legacy, indentString ) {
 		const members = keys( this.originals ).map( name => {
 			const original = this.originals[ name ];

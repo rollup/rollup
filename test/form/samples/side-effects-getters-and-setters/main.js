@@ -4,6 +4,7 @@ const retained1a = {
 	},
 	get noEffect () {
 		const x = 1;
+		return x;
 	}
 };
 
@@ -14,10 +15,11 @@ const retained1c = retained1a[ 'eff' + 'ect' ];
 const removed2a = {
 	get shadowedEffect () {
 		console.log( 'effect' );
+		return 1;
 	},
 	shadowedEffect: true,
 	set shadowedEffect ( value ) {
-		console.log( 'effect' );
+		console.log( value );
 	}
 };
 
@@ -50,7 +52,7 @@ removed5.noEffect = 'removed';
 
 const removed6 = {
 	set shadowedEffect ( value ) {
-		console.log( 'effect' );
+		console.log( value );
 	},
 	shadowedEffect: true
 };
@@ -60,7 +62,9 @@ removed6.missingProp = true;
 
 const retained7 = {
 	foo: () => {},
-	get foo () {}
+	get foo () {
+		return 1;
+	}
 };
 
 retained7.foo();

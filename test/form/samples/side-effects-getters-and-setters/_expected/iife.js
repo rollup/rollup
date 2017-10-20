@@ -6,7 +6,8 @@
 			console.log( 'effect' );
 		},
 		get noEffect () {
-			
+			const x = 1;
+			return x;
 		}
 	};
 
@@ -31,7 +32,9 @@
 
 	const retained7 = {
 		foo: () => {},
-		get foo () {}
+		get foo () {
+			return 1;
+		}
 	};
 
 	retained7.foo();

@@ -7,7 +7,7 @@ export default class ExportNamedDeclaration extends Node {
 	}
 
 	hasEffects ( options ) {
-		return this.included || (this.declaration && this.declaration.hasEffects( options ));
+		return this.declaration && this.declaration.hasEffects( options );
 	}
 
 	initialiseNode () {

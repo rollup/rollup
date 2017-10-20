@@ -4,8 +4,7 @@ import BlockScope from '../scopes/BlockScope';
 export default class ForInStatement extends Statement {
 	hasEffects ( options ) {
 		return (
-			this.included
-			|| this.left && (this.left.hasEffects( options ) || this.left.hasEffectsWhenAssignedAtPath( [], options ))
+			this.left && (this.left.hasEffects( options ) || this.left.hasEffectsWhenAssignedAtPath( [], options ))
 			|| this.right && this.right.hasEffects( options )
 			|| this.body.hasEffects( options.setIgnoreBreakStatements() )
 		);

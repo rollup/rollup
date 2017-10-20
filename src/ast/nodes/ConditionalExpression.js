@@ -22,8 +22,7 @@ export default class ConditionalExpression extends Node {
 
 	hasEffects ( options ) {
 		return (
-			this.included
-			|| this.test.hasEffects( options )
+			this.test.hasEffects( options )
 			|| this._someRelevantBranch( node => node.hasEffects( options ) )
 		);
 	}

@@ -8,7 +8,7 @@ export default class FunctionNode extends Node {
 	}
 
 	hasEffects ( options ) {
-		return this.included || (this.id && this.id.hasEffects( options ));
+		return this.id && this.id.hasEffects( options );
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {

@@ -8,12 +8,9 @@ export default class ForOfStatement extends Statement {
 	}
 
 	hasEffects ( options ) {
-		return (
-			this.included
-			|| this.left && (this.left.hasEffects( options ) || this.left.hasEffectsWhenAssignedAtPath( [], options ))
+		return this.left && (this.left.hasEffects( options ) || this.left.hasEffectsWhenAssignedAtPath( [], options ))
 			|| this.right && this.right.hasEffects( options )
-			|| this.body.hasEffects( options.setIgnoreBreakStatements() )
-		);
+			|| this.body.hasEffects( options.setIgnoreBreakStatements() );
 	}
 
 	includeInBundle () {

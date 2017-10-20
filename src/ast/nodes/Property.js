@@ -8,8 +8,7 @@ export default class Property extends Node {
 	}
 
 	hasEffects ( options ) {
-		return this.included
-			|| this.key.hasEffects( options )
+		return this.key.hasEffects( options )
 			|| this.value.hasEffects( options );
 	}
 

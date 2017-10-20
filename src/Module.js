@@ -277,13 +277,6 @@ export default class Module {
 		for ( const node of this.ast.body ) {
 			node.bind();
 		}
-
-		// if ( this.declarations.default ) {
-		// 	if ( this.exports.default.identifier ) {
-		// 		const declaration = this.trace( this.exports.default.identifier );
-		// 		if ( declaration ) this.declarations.default.bind( declaration );
-		// 	}
-		// }
 	}
 
 	error ( props, pos ) {

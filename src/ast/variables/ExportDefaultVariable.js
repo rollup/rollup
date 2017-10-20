@@ -33,14 +33,6 @@ export default class ExportDefaultVariable extends LocalVariable {
 		return true;
 	}
 
-	includeWithEffects () {
-		if (!super.includeWithEffects()) {
-			return false;
-		}
-		this.declarations.forEach( declaration => declaration.includeWithEffects() );
-		return true;
-	}
-
 	setOriginalVariable ( original ) {
 		this._original = original;
 	}

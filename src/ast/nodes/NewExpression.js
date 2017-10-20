@@ -3,8 +3,7 @@ import CallOptions from '../CallOptions';
 
 export default class NewExpression extends Node {
 	hasEffects ( options ) {
-		return this.included
-			|| this.arguments.some( child => child.hasEffects( options ) )
+		return this.arguments.some( child => child.hasEffects( options ) )
 			|| this.callee.hasEffectsWhenCalledAtPath( [], this._callOptions, options.getHasEffectsWhenCalledOptions() );
 	}
 

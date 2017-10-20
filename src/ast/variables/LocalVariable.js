@@ -71,14 +71,6 @@ export default class LocalVariable extends Variable {
 		return true;
 	}
 
-	includeWithEffects () {
-		if ( !super.includeWithEffects() ) {
-			return false;
-		}
-		this.declarations.forEach( identifier => identifier.includeWithEffects() );
-		return true;
-	}
-
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
 		return path.length > MAX_PATH_LENGTH
 			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>

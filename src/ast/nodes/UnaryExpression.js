@@ -27,8 +27,7 @@ export default class UnaryExpression extends Node {
 	}
 
 	hasEffects ( options ) {
-		return this.included
-			|| this.argument.hasEffects( options )
+		return this.argument.hasEffects( options )
 			|| (this.operator === 'delete' && this.argument.hasEffectsWhenAssignedAtPath( [], options ));
 	}
 

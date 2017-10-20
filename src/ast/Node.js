@@ -70,8 +70,7 @@ export default class Node {
 	 * @return {boolean}
 	 */
 	hasEffects ( options ) {
-		return this.included
-			|| this.hasEffectsWhenAccessedAtPath( [], options )
+		return this.hasEffectsWhenAccessedAtPath( [], options )
 			|| this.someChild( child => child.hasEffects( options ) );
 	}
 
@@ -101,6 +100,15 @@ export default class Node {
 	 */
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		return true;
+	}
+
+	/**
+	 * Returns true if this node or any of its children is included.
+	 * @return {boolean}
+	 */
+	hasIncludedChild () {
+		return this.included
+			|| this.someChild( child => child.hasIncludedChild() );
 	}
 
 	/**
@@ -195,7 +203,9 @@ export default class Node {
 	 * @return {boolean}
 	 */
 	shouldBeIncluded () {
-		return this.hasEffects( ExecutionPathOptions.create() );
+		return this.included
+			|| this.hasEffects( ExecutionPathOptions.create() )
+			|| this.hasIncludedChild();
 	}
 
 	someChild ( callback ) {

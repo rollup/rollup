@@ -13,8 +13,7 @@ export default class UpdateExpression extends Node {
 	}
 
 	hasEffects ( options ) {
-		return this.included
-			|| this.argument.hasEffects( options )
+		return this.argument.hasEffects( options )
 			|| this.argument.hasEffectsWhenAssignedAtPath( [], options );
 	}
 

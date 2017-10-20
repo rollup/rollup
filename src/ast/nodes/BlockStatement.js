@@ -11,7 +11,6 @@ export default class BlockStatement extends Statement {
 	}
 
 	hasEffects ( options ) {
-		// Empty block statements do not have effects even though they may be included as e.g. function body
 		return this.body.some( child => child.hasEffects( options ) );
 	}
 
