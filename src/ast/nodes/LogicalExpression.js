@@ -23,8 +23,9 @@ export default class LogicalExpression extends Node {
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
-		return this._someRelevantBranch( node =>
-			node.hasEffectsWhenAccessedAtPath( path, options ) );
+		return path.length > 0
+			&& this._someRelevantBranch( node =>
+				node.hasEffectsWhenAccessedAtPath( path, options ) );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {

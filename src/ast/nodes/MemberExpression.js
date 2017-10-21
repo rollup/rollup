@@ -93,6 +93,9 @@ export default class MemberExpression extends Node {
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
+		if (path.length === 0) {
+			return false;
+		}
 		if ( this.variable ) {
 			return this.variable.hasEffectsWhenAccessedAtPath( path, options );
 		}

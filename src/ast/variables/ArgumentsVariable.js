@@ -2,7 +2,7 @@ import LocalVariable from './LocalVariable';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 const getParameterVariable = ( path, options ) =>
-	(typeof path[ 0 ] === 'number' && options.getArgumentsVariables()[ path[ 0 ] ] )
+	(path[ 0 ] < options.getArgumentsVariables().length && options.getArgumentsVariables()[ path[ 0 ] ] )
 	|| UNKNOWN_ASSIGNMENT;
 
 export default class ArgumentsVariable extends LocalVariable {
@@ -12,19 +12,17 @@ export default class ArgumentsVariable extends LocalVariable {
 	}
 
 	assignExpressionAtPath ( path, expression ) {
-		if ( path.length >= 1 ) {
-			if ( typeof path[ 0 ] === 'number' && this._parameters[ path[ 0 ] ] ) {
+		if ( path.length > 0 ) {
+			if ( path[ 0 ] >= 0 && this._parameters[ path[ 0 ] ] ) {
 				this._parameters[ path[ 0 ] ].assignExpressionAtPath( path.slice( 1 ), expression );
 			}
 		}
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
-		if ( path.length < 2 ) {
-			return false;
-		}
-		return getParameterVariable( path, options )
-			.hasEffectsWhenAccessedAtPath( path.slice( 1 ), options );
+		return path.length > 1
+			&& getParameterVariable( path, options )
+				.hasEffectsWhenAccessedAtPath( path.slice( 1 ), options );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {

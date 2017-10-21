@@ -29,7 +29,8 @@ export default class CallExpression extends Node {
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
-		return !options.hasReturnExpressionBeenAccessedAtPath( path, this )
+		return path.length > 0
+			&& !options.hasReturnExpressionBeenAccessedAtPath( path, this )
 			&& this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
 				node.hasEffectsWhenAccessedAtPath( path, innerOptions.addAccessedReturnExpressionAtPath( path, this ) ), options );
 	}

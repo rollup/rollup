@@ -12,6 +12,7 @@ export default class AssignmentExpression extends Node {
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
-		return this.right.hasEffectsWhenAccessedAtPath( path, options );
+		return path.length > 0
+			&& this.right.hasEffectsWhenAccessedAtPath( path, options );
 	}
 }

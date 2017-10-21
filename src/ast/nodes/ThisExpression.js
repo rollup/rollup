@@ -21,7 +21,8 @@ export default class ThisExpression extends Node {
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
-		return this.variable.hasEffectsWhenAccessedAtPath( path, options );
+		return path.length > 0
+			&& this.variable.hasEffectsWhenAccessedAtPath( path, options );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
