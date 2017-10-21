@@ -32,7 +32,10 @@ function tryParse ( module, acornOptions ) {
 }
 
 function includeFully ( node ) {
-	node.includeInBundle();
+	node.included = true;
+	if ( node.variable && !node.variable.included ) {
+		node.variable.includeVariable();
+	}
 	node.eachChild( includeFully );
 }
 
