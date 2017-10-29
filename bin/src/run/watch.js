@@ -25,6 +25,7 @@ export default function watch(configFile, configs, command, silent) {
 	function start(configs) {
 		screen.reset( chalk.underline( `rollup v${rollup.VERSION}` ) );
 
+		let screenWriter = screen.reset;
 		configs = configs.map(options => {
 			const merged = mergeOptions(options, command);
 			const onwarn = merged.inputOptions.onwarn;
@@ -43,6 +44,10 @@ export default function watch(configFile, configs, command, silent) {
 			if (merged.deprecations.length) {
 				if (!result.watch) result.watch = {};
 				result.watch._deprecations = merged.deprecations;
+			}			
+			
+			if (merged.inputOptions.watch && merged.inputOptions.watch.clearScreen === false) {
+				screenWriter = stderr;
 			}
 
 			return result;
@@ -64,7 +69,7 @@ export default function watch(configFile, configs, command, silent) {
 					break;
 
 				case 'START':
-					screen.reset( chalk.underline( `rollup v${rollup.VERSION}` ) );
+					screenWriter( chalk.underline( `rollup v${rollup.VERSION}` ) );
 					break;
 
 				case 'BUNDLE_START':
