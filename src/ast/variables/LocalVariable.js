@@ -10,23 +10,38 @@ export default class LocalVariable extends Variable {
 		this.isReassigned = false;
 		this.exportName = null;
 		this.declarations = new Set( declarator ? [ declarator ] : null );
-		this.assignedExpressions = new StructuredAssignmentTracker();
-		init && this.assignedExpressions.addAtPath( [], init );
+		this.boundExpressions = new StructuredAssignmentTracker();
+		init && this.boundExpressions.addAtPath( [], init );
+		this.boundCalls = new StructuredAssignmentTracker();
 	}
 
 	addDeclaration ( identifier ) {
 		this.declarations.add( identifier );
 	}
 
-	assignExpressionAtPath ( path, expression ) {
-		if ( path.length > MAX_PATH_LENGTH || this.assignedExpressions.hasAtPath( path, expression ) ) return;
-		this.assignedExpressions.addAtPath( path, expression );
+	bindAssignmentAtPath ( path, expression ) {
+		if ( path.length > MAX_PATH_LENGTH || this.boundExpressions.hasAtPath( path, expression ) ) return;
+		this.boundExpressions.addAtPath( path, expression );
+		this.boundExpressions.forEachAssignedToPath( path, ( subPath, node ) => {
+			if ( subPath.length > 0 ) {
+				expression.bindAssignmentAtPath( subPath, node );
+			}
+		} );
 		if ( path.length > 0 ) {
-			this.assignedExpressions.forEachAtPath( path.slice( 0, -1 ), ( relativePath, node ) =>
+			this.boundExpressions.forEachAtPath( path.slice( 0, -1 ), ( relativePath, node ) =>
 				node.bindAssignmentAtPath( [ ...relativePath, ...path.slice( -1 ) ], expression ) );
 		} else {
 			this.isReassigned = true;
 		}
+		this.boundCalls.forEachAtPath( path, ( relativePath, callOptions ) =>
+			expression.bindCallAtPath( relativePath, callOptions ) );
+	}
+
+	bindCallAtPath ( path, callOptions ) {
+		if ( path.length > MAX_PATH_LENGTH || this.boundCalls.hasAtPath( path, callOptions ) ) return;
+		this.boundCalls.addAtPath( path, callOptions );
+		this.boundExpressions.forEachAtPath( path, ( relativePath, node ) =>
+			node.bindCallAtPath( relativePath, callOptions ) );
 	}
 
 	getName ( es ) {
@@ -38,7 +53,7 @@ export default class LocalVariable extends Variable {
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		return path.length > MAX_PATH_LENGTH
-			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
+			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
 				!options.hasNodeBeenAccessedAtPath( relativePath, node )
 				&& node.hasEffectsWhenAccessedAtPath( relativePath, options
 					.addAccessedNodeAtPath( relativePath, node ) ) );
@@ -47,7 +62,7 @@ export default class LocalVariable extends Variable {
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		return this.included
 			|| path.length > MAX_PATH_LENGTH
-			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
+			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
 				relativePath.length > 0
 				&& !options.hasNodeBeenAssignedAtPath( relativePath, node )
 				&& node.hasEffectsWhenAssignedAtPath( relativePath, options
@@ -56,7 +71,8 @@ export default class LocalVariable extends Variable {
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		return path.length > MAX_PATH_LENGTH
-			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
+			|| (this.included && path.length > 0)
+			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
 				!options.hasNodeBeenCalledAtPathWithOptions( relativePath, node, callOptions )
 				&& node.hasEffectsWhenCalledAtPath( relativePath, callOptions, options
 					.addCalledNodeAtPathWithOptions( relativePath, node, callOptions ) )
@@ -73,7 +89,7 @@ export default class LocalVariable extends Variable {
 
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
 		return path.length > MAX_PATH_LENGTH
-			|| this.assignedExpressions.someAtPath( path, ( relativePath, node ) =>
+			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
 				!callOptions.hasNodeBeenCalledAtPath( relativePath, node )
 				&& node.someReturnExpressionWhenCalledAtPath( relativePath, callOptions
 					.addCalledNodeAtPath( relativePath, node ), predicateFunction, options ) );

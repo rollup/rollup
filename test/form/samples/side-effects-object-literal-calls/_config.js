@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'detects side-effects when mutating object literals',
-	options: { name: 'bundle' }
+	description: 'detects side-effects when mutating object literals'
 };

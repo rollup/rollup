@@ -39,6 +39,24 @@ export default class StructuredAssignmentTracker {
 		}
 	}
 
+	forEachAssignedToPath ( path, callback ) {
+		if ( path.length > 0 ) {
+			const [ nextPath, ...remainingPath ] = path;
+			if ( this._assignments.has( nextPath ) ) {
+				this._assignments.get( nextPath ).forEachAssignedToPath( remainingPath, callback );
+			}
+		} else {
+			this._assignments.forEach( ( assignment, subPath ) => {
+				if ( subPath === SET_KEY ) {
+					assignment.forEach( subAssignment => callback( [], subAssignment ) );
+				} else {
+					assignment.forEachAssignedToPath( [],
+						( relativePath, assignment ) => callback( [ subPath, ...relativePath ], assignment ) );
+				}
+			} );
+		}
+	}
+
 	hasAtPath ( path, assignment ) {
 		if ( path.length === 0 ) {
 			return this._assignments.get( SET_KEY ).has( assignment );

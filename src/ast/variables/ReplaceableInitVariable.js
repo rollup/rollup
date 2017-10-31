@@ -5,7 +5,11 @@ import { UNKNOWN_ASSIGNMENT } from '../values';
 export default class ReplaceableInitVariable extends LocalVariable {
 	constructor ( name, declarator ) {
 		super( name, declarator, null );
-		this.assignedExpressions = new ReplaceableInitStructuredAssignmentTracker( UNKNOWN_ASSIGNMENT );
+		this.boundExpressions = new ReplaceableInitStructuredAssignmentTracker();
+	}
+
+	bindInitialization ( expression ) {
+		this.boundExpressions.addInit( expression );
 	}
 
 	getName () {
@@ -33,6 +37,6 @@ export default class ReplaceableInitVariable extends LocalVariable {
 	}
 
 	_updateInit ( options ) {
-		this.assignedExpressions.setInit( options.getReplacedVariableInit( this ) || UNKNOWN_ASSIGNMENT );
+		this.boundExpressions.setInit( options.getReplacedVariableInit( this ) || UNKNOWN_ASSIGNMENT );
 	}
 }

@@ -11,10 +11,10 @@ export default class ArgumentsVariable extends LocalVariable {
 		this._parameters = parameters;
 	}
 
-	assignExpressionAtPath ( path, expression ) {
+	bindAssignmentAtPath ( path, expression ) {
 		if ( path.length > 0 ) {
 			if ( path[ 0 ] >= 0 && this._parameters[ path[ 0 ] ] ) {
-				this._parameters[ path[ 0 ] ].assignExpressionAtPath( path.slice( 1 ), expression );
+				this._parameters[ path[ 0 ] ].bindAssignmentAtPath( path.slice( 1 ), expression );
 			}
 		}
 	}

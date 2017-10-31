@@ -1,9 +1,21 @@
 import StructuredAssignmentTracker from './StructuredAssignmentTracker';
+import LocalVariable from './LocalVariable';
 
 export default class ReplaceableInitStructuredAssignmentTracker extends StructuredAssignmentTracker {
-	constructor ( init ) {
+	constructor () {
 		super();
-		this._init = init;
+		this._init = new LocalVariable( {}, null, null );
+	}
+
+	addAtPath ( path, assignment ) {
+		if ( path.length > 0 ) {
+			this._init.bindAssignmentAtPath( path, assignment );
+		}
+		super.addAtPath( path, assignment );
+	}
+
+	addInit ( assignment ) {
+		this._init.bindAssignmentAtPath( [], assignment );
 	}
 
 	forEachAtPath ( path, callback ) {

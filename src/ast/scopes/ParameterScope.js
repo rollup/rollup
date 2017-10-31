@@ -21,6 +21,11 @@ export default class ParameterScope extends Scope {
 		return variable;
 	}
 
+	bindCallArguments ( args ) {
+		this._parameters.forEach( ( parameter, index ) =>
+			parameter.bindInitialization( args[ index ] || UNKNOWN_ASSIGNMENT ) );
+	}
+
 	getOptionsWithReplacedParameters ( args, options ) {
 		let newOptions = options;
 		this._parameters.forEach( ( parameter, index ) =>

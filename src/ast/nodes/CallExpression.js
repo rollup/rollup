@@ -21,6 +21,7 @@ export default class CallExpression extends Node {
 				}, this.start );
 			}
 		}
+		this.callee.bindCallAtPath( [], this._callOptions );
 	}
 
 	hasEffects ( options ) {

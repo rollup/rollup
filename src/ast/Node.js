@@ -44,6 +44,14 @@ export default class Node {
 	 */
 	bindAssignmentAtPath ( path, expression ) {}
 
+	/**
+	 * Binds the arguments a node is called with to this node and possibly its parameters.
+	 * Should usually be overridden together with hasEffectsWhenCalled.
+	 * @param {String[]} path
+	 * @param callOptions
+	 */
+	bindCallAtPath ( path, callOptions ) {}
+
 	eachChild ( callback ) {
 		this.keys.forEach( key => {
 			const value = this[ key ];

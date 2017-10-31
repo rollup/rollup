@@ -3,15 +3,22 @@ import isReference from 'is-reference';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class Identifier extends Node {
-	bindNode () {
-		this._bindVariableIfMissing();
-	}
-
 	bindAssignmentAtPath ( path, expression ) {
 		this._bindVariableIfMissing();
 		if ( this.variable ) {
-			this.variable.assignExpressionAtPath( path, expression );
+			this.variable.bindAssignmentAtPath( path, expression );
 		}
+	}
+
+	bindCallAtPath ( path, callOptions ) {
+		this._bindVariableIfMissing();
+		if ( this.variable ) {
+			this.variable.bindCallAtPath( path, callOptions );
+		}
+	}
+
+	bindNode () {
+		this._bindVariableIfMissing();
 	}
 
 	_bindVariableIfMissing () {
