@@ -3,14 +3,13 @@ import { UNKNOWN_VALUE } from '../values.js';
 
 export default class ConditionalExpression extends Node {
 	bindAssignmentAtPath ( path, expression ) {
-		if ( this.testValue === UNKNOWN_VALUE ) {
-			this.consequent.bindAssignmentAtPath( path, expression );
-			this.alternate.bindAssignmentAtPath( path, expression );
-		} else {
-			this.testValue
-				? this.consequent.bindAssignmentAtPath( path, expression )
-				: this.alternate.bindAssignmentAtPath( path, expression );
+		if ( path.length > 0 ) {
+			this._forEachRelevantBranch( node => node.bindAssignmentAtPath( path, expression ) );
 		}
+	}
+
+	bindCallAtPath ( path, callOptions ) {
+		this._forEachRelevantBranch( node => node.bindCallAtPath( path, callOptions ) );
 	}
 
 	getValue () {
@@ -88,6 +87,17 @@ export default class ConditionalExpression extends Node {
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
 		return this._someRelevantBranch( node =>
 			node.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options ) );
+	}
+
+	_forEachRelevantBranch ( callback ) {
+		if ( this.testValue === UNKNOWN_VALUE ) {
+			callback( this.consequent );
+			callback( this.alternate );
+		} else {
+			this.testValue
+				? callback( this.consequent )
+				: callback( this.alternate );
+		}
 	}
 
 	_someRelevantBranch ( predicateFunction ) {

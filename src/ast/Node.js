@@ -1,9 +1,8 @@
 /* eslint-disable no-unused-vars */
 
 import { locate } from 'locate-character';
-import { UNKNOWN_VALUE } from './values.js';
+import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE } from './values.js';
 import ExecutionPathOptions from './ExecutionPathOptions';
-import { UNKNOWN_ASSIGNMENT } from './values';
 
 export default class Node {
 	constructor () {

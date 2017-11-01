@@ -2,6 +2,16 @@ import Node from '../Node.js';
 import { UNKNOWN_VALUE } from '../values.js';
 
 export default class LogicalExpression extends Node {
+	bindAssignmentAtPath ( path, expression ) {
+		if ( path.length > 0 ) {
+			this._forEachRelevantBranch( node => node.bindAssignmentAtPath( path, expression ) );
+		}
+	}
+
+	bindCallAtPath ( path, callOptions ) {
+		this._forEachRelevantBranch( node => node.bindCallAtPath( path, callOptions ) );
+	}
+
 	getValue () {
 		const leftValue = this.left.getValue();
 		if ( leftValue === UNKNOWN_VALUE ) return UNKNOWN_VALUE;
@@ -41,6 +51,18 @@ export default class LogicalExpression extends Node {
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
 		return this._someRelevantBranch( node =>
 			node.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options ) );
+	}
+
+	_forEachRelevantBranch ( callback ) {
+		const leftValue = this.left.getValue();
+		if ( leftValue === UNKNOWN_VALUE ) {
+			callback( this.left );
+			callback( this.right );
+		} else if ( (leftValue && this.operator === '||') || (!leftValue && this.operator === '&&') ) {
+			callback( this.left );
+		} else {
+			callback( this.right );
+		}
 	}
 
 	_someRelevantBranch ( predicateFunction ) {
