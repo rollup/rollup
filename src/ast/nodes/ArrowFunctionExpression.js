@@ -3,6 +3,12 @@ import Scope from '../scopes/Scope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 
 export default class ArrowFunctionExpression extends Node {
+	bindCallAtPath ( path, { args } ) {
+		if ( path.length === 0 ) {
+			this.scope.bindCallArguments( args );
+		}
+	}
+
 	bindNode () {
 		this.body.bindImplicitReturnExpressionToScope
 			? this.body.bindImplicitReturnExpressionToScope()
