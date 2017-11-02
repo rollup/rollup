@@ -15,6 +15,12 @@ export default class ArrowFunctionExpression extends Node {
 			: this.scope.addReturnExpression( this.body );
 	}
 
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+		if ( path.length === 0 ) {
+			this.scope.forEachReturnExpressionWhenCalled( callback );
+		}
+	}
+
 	hasEffects () {
 		return false;
 	}

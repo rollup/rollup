@@ -47,7 +47,7 @@ export default class Node {
 	 * Binds the arguments a node is called with to this node and possibly its parameters.
 	 * Should usually be overridden together with hasEffectsWhenCalled.
 	 * @param {String[]} path
-	 * @param callOptions
+	 * @param {CallOptions} callOptions
 	 */
 	bindCallAtPath ( path, callOptions ) {}
 
@@ -63,6 +63,14 @@ export default class Node {
 			}
 		} );
 	}
+
+	/**
+	 * Executes the callback on each possible return expression when calling this node.
+	 * @param {String[]} path
+	 * @param {CallOptions} callOptions
+	 * @param {Function} callback
+	 */
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {}
 
 	getValue () {
 		return UNKNOWN_VALUE;

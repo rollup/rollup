@@ -77,9 +77,7 @@ export default class MemberExpression extends Node {
 	}
 
 	bindAssignmentAtPath ( path, expression ) {
-		if ( !this._bound ) {
-			this.bind();
-		}
+		if ( !this._bound ) this.bind();
 		if ( this.variable ) {
 			this.variable.bindAssignmentAtPath( path, expression );
 		} else {
@@ -88,13 +86,20 @@ export default class MemberExpression extends Node {
 	}
 
 	bindCallAtPath ( path, callOptions ) {
-		if ( !this._bound ) {
-			this.bind();
-		}
+		if ( !this._bound ) this.bind();
 		if ( this.variable ) {
 			this.variable.bindCallAtPath( path, callOptions );
 		} else {
 			this.object.bindCallAtPath( [ this._getPathSegment(), ...path ], callOptions );
+		}
+	}
+
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+		if ( !this._bound ) this.bind();
+		if ( this.variable ) {
+			this.variable.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback );
+		} else {
+			this.object.forEachReturnExpressionWhenCalledAtPath( [ this._getPathSegment(), ...path ], callOptions, callback );
 		}
 	}
 

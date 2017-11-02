@@ -13,6 +13,12 @@ export default class FunctionNode extends Node {
 		this.body.bindImplicitReturnExpressionToScope();
 	}
 
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+		if ( path.length === 0 ) {
+			this.scope.forEachReturnExpressionWhenCalled( callback );
+		}
+	}
+
 	hasEffects ( options ) {
 		return this.id && this.id.hasEffects( options );
 	}

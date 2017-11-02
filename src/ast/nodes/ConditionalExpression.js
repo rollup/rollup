@@ -12,6 +12,10 @@ export default class ConditionalExpression extends Node {
 		this._forEachRelevantBranch( node => node.bindCallAtPath( path, callOptions ) );
 	}
 
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+		this._forEachRelevantBranch( node => node.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback ) );
+	}
+
 	getValue () {
 		const testValue = this.test.getValue();
 		if ( testValue === UNKNOWN_VALUE ) return UNKNOWN_VALUE;

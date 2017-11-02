@@ -10,10 +10,6 @@ export default class ExportDefaultDeclaration extends Node {
 		}
 	}
 
-	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
-		return this.declaration.hasEffectsWhenCalledAtPath( path, callOptions, options );
-	}
-
 	includeDefaultExport () {
 		this.included = true;
 		this.declaration.includeInBundle();

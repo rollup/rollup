@@ -1,7 +1,22 @@
 import Node from '../Node.js';
 import CallOptions from '../CallOptions';
+import StructuredAssignmentTracker from '../variables/StructuredAssignmentTracker';
 
 export default class CallExpression extends Node {
+	bindAssignmentAtPath ( path, expression ) {
+		if ( this._boundExpressions.hasAtPath( path, expression ) ) return;
+		this._boundExpressions.addAtPath( path, expression );
+		this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions,
+			node => node.bindAssignmentAtPath( path, expression ) );
+	}
+
+	bindCallAtPath ( path, callOptions ) {
+		if ( this._boundCalls.hasAtPath( path, callOptions ) ) return;
+		this._boundCalls.addAtPath( path, callOptions );
+		this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions,
+			node => node.bindCallAtPath( path, callOptions ) );
+	}
+
 	bindNode () {
 		if ( this.callee.type === 'Identifier' ) {
 			const variable = this.scope.findVariable( this.callee.name );
@@ -50,6 +65,8 @@ export default class CallExpression extends Node {
 
 	initialiseNode () {
 		this._callOptions = CallOptions.create( { withNew: false, args: this.arguments } );
+		this._boundExpressions = new StructuredAssignmentTracker();
+		this._boundCalls = new StructuredAssignmentTracker();
 	}
 
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {

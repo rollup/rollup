@@ -12,6 +12,10 @@ export default class LogicalExpression extends Node {
 		this._forEachRelevantBranch( node => node.bindCallAtPath( path, callOptions ) );
 	}
 
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+		this._forEachRelevantBranch( node => node.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback ) );
+	}
+
 	getValue () {
 		const leftValue = this.left.getValue();
 		if ( leftValue === UNKNOWN_VALUE ) return UNKNOWN_VALUE;

@@ -11,6 +11,10 @@ export default class Property extends Node {
 		this.value.bindCallAtPath( path, callOptions );
 	}
 
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+		this.value.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback );
+	}
+
 	hasEffects ( options ) {
 		return this.key.hasEffects( options )
 			|| this.value.hasEffects( options );

@@ -44,6 +44,14 @@ export default class LocalVariable extends Variable {
 			node.bindCallAtPath( relativePath, callOptions ) );
 	}
 
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+		if ( path.length > MAX_PATH_LENGTH ) return;
+		this.boundExpressions.forEachAtPath( path, ( relativePath, node ) =>
+			!callOptions.hasNodeBeenCalledAtPath( relativePath, node )
+			&& node.forEachReturnExpressionWhenCalledAtPath( relativePath, callOptions
+				.addCalledNodeAtPath( relativePath, node ), callback ) );
+	}
+
 	getName ( es ) {
 		if ( es ) return this.name;
 		if ( !this.isReassigned || !this.exportName ) return this.name;

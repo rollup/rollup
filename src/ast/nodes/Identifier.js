@@ -28,6 +28,13 @@ export default class Identifier extends Node {
 		}
 	}
 
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+		this._bindVariableIfMissing();
+		if ( this.variable ) {
+			this.variable.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback );
+		}
+	}
+
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		return this.variable
 			&& this.variable.hasEffectsWhenAccessedAtPath( path, options );

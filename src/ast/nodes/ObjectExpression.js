@@ -6,19 +6,21 @@ const PROPERTY_KINDS_WRITE = [ 'init', 'set' ];
 
 export default class ObjectExpression extends Node {
 	bindAssignmentAtPath ( path, expression ) {
-		if ( path.length === 0 ) {
-			return;
-		}
+		if ( path.length === 0 ) return;
 		this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_WRITE ).properties.forEach( property =>
 			property.bindAssignmentAtPath( path.slice( 1 ), expression ) );
 	}
 
 	bindCallAtPath ( path, callOptions ) {
-		if ( path.length === 0 ) {
-			return;
-		}
+		if ( path.length === 0 ) return;
 		this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ ).properties.forEach( property =>
 			property.bindCallAtPath( path.slice( 1 ), callOptions ) );
+	}
+
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+		if ( path.length === 0 ) return;
+		this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ ).properties.forEach( property =>
+			property.forEachReturnExpressionWhenCalledAtPath( path.slice( 1 ), callOptions, callback ) );
 	}
 
 	_getPossiblePropertiesWithName ( name, kinds ) {

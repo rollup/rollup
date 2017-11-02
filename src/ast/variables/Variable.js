@@ -31,6 +31,14 @@ export default class Variable {
 	bindCallAtPath ( path, callOptions ) {}
 
 	/**
+	 * @param {String[]} path
+	 * @param {CallOptions} callOptions
+	 * @param {Function} callback
+	 * @returns {*}
+	 */
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {}
+
+	/**
 	 * @returns {String}
 	 */
 	getName () {
