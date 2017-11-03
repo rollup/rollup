@@ -17,6 +17,11 @@ export default class CallExpression extends Node {
 			node => node.bindCallAtPath( path, callOptions ) );
 	}
 
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+		this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions,
+			node => node.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback ) );
+	}
+
 	bindNode () {
 		if ( this.callee.type === 'Identifier' ) {
 			const variable = this.scope.findVariable( this.callee.name );
@@ -65,6 +70,7 @@ export default class CallExpression extends Node {
 
 	initialiseNode () {
 		this._callOptions = CallOptions.create( { withNew: false, args: this.arguments } );
+		// To avoid infinite recursions when dealing with recursive functions
 		this._boundExpressions = new StructuredAssignmentTracker();
 		this._boundCalls = new StructuredAssignmentTracker();
 	}

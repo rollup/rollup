@@ -7,18 +7,22 @@ const PROPERTY_KINDS_WRITE = [ 'init', 'set' ];
 export default class ObjectExpression extends Node {
 	bindAssignmentAtPath ( path, expression ) {
 		if ( path.length === 0 ) return;
-		this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_WRITE ).properties.forEach( property =>
-			property.bindAssignmentAtPath( path.slice( 1 ), expression ) );
+
+		this._getPossiblePropertiesWithName(
+			path[ 0 ], path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ )
+			.properties.forEach( property => property.bindAssignmentAtPath( path.slice( 1 ), expression ) );
 	}
 
 	bindCallAtPath ( path, callOptions ) {
 		if ( path.length === 0 ) return;
+
 		this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ ).properties.forEach( property =>
 			property.bindCallAtPath( path.slice( 1 ), callOptions ) );
 	}
 
 	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
 		if ( path.length === 0 ) return;
+
 		this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ ).properties.forEach( property =>
 			property.forEachReturnExpressionWhenCalledAtPath( path.slice( 1 ), callOptions, callback ) );
 	}
@@ -45,43 +49,35 @@ export default class ObjectExpression extends Node {
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
-		if ( path.length === 0 ) {
-			return false;
-		}
-		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ );
+		if ( path.length === 0 ) return false;
 
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ );
 		return (path.length > 1 && !hasCertainHit)
 			|| properties.some( property => property.hasEffectsWhenAccessedAtPath( path.slice( 1 ), options ) );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		if ( path.length === 0 ) {
-			return false;
-		}
-		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ],
-			path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ );
+		if ( path.length === 0 ) return false;
 
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
+			path[ 0 ], path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ );
 		return (path.length > 1 && !hasCertainHit)
 			|| properties.some( property => (path.length > 1 || property.kind === 'set')
 				&& property.hasEffectsWhenAssignedAtPath( path.slice( 1 ), options ) );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
-		if ( path.length === 0 ) {
-			return true;
-		}
-		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ );
+		if ( path.length === 0 ) return true;
 
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ );
 		return !hasCertainHit || properties.some( property =>
 			property.hasEffectsWhenCalledAtPath( path.slice( 1 ), callOptions, options ) );
 	}
 
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
-		if ( path.length === 0 ) {
-			return true;
-		}
-		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ );
+		if ( path.length === 0 ) return true;
 
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ );
 		return !hasCertainHit || properties.some( property =>
 			property.someReturnExpressionWhenCalledAtPath( path.slice( 1 ), callOptions, predicateFunction, options ) );
 	}
