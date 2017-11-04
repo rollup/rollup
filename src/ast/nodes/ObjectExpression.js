@@ -15,14 +15,6 @@ export default class ObjectExpression extends Node {
 			&& property.bindAssignmentAtPath( path.slice( 1 ), expression, options ) );
 	}
 
-	bindCallAtPath ( path, callOptions, options ) {
-		if ( path.length === 0 ) return;
-
-		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ );
-		hasCertainHit && properties.forEach( property =>
-			property.bindCallAtPath( path.slice( 1 ), callOptions, options ) );
-	}
-
 	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
 		if ( path.length === 0 ) return;
 

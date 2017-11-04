@@ -1,5 +1,4 @@
 // parameters are associated correctly
-// parameters are associated correctly
 const retained1 = function ( func, obj ) { return func( obj ); };
 retained1( obj => obj(), () => () => console.log( 'effect' ) )();
 

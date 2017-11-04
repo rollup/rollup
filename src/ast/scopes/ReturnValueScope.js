@@ -11,12 +11,10 @@ export default class ReturnValueScope extends ParameterScope {
 	}
 
 	forEachReturnExpressionWhenCalled ( callOptions, callback, options ) {
-		const innerOptions = this.getOptionsWithReplacedParameters( callOptions.args, options );
-		this._returnExpressions.forEach( callback( innerOptions ) );
+		this._returnExpressions.forEach( callback( options ) );
 	}
 
 	someReturnExpressionWhenCalled ( callOptions, predicateFunction, options ) {
-		const innerOptions = this.getOptionsWithReplacedParameters( callOptions.args, options );
-		return Array.from( this._returnExpressions ).some( predicateFunction( innerOptions ) );
+		return Array.from( this._returnExpressions ).some( predicateFunction( options ) );
 	}
 }

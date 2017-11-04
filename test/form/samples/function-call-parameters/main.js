@@ -1,26 +1,4 @@
 // parameters are associated correctly
-const removed1 = function ( func, obj ) { return func( obj ); };
-removed1( obj => obj(), () => () => {} )();
-
-const removed2 = function ( func, obj ) { return func( obj ); };
-removed2( obj => ({ foo: obj }), { bar: {} } ).foo.bar.baz = 1;
-
-// parameters and arguments have the same values
-function removed3 ( x ) {
-	x.foo.bar = 1;
-	arguments[ 0 ].foo.bar = 1;
-}
-
-removed3( { foo: {} } );
-
-// the number of arguments does not depend on the number of parameters
-function removed4 ( x ) {
-	arguments[ 1 ].foo.bar = 1;
-}
-
-removed4( {}, { foo: {} } );
-
-// parameters are associated correctly
 const retained1 = function ( func, obj ) { return func( obj ); };
 retained1( obj => obj(), () => () => console.log( 'effect' ) )();
 

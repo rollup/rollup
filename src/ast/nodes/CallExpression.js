@@ -9,12 +9,6 @@ export default class CallExpression extends Node {
 			node.bindAssignmentAtPath( path, expression, innerOptions.addAssignedReturnExpressionAtPath( path, this ) ), options );
 	}
 
-	bindCallAtPath ( path, callOptions, options ) {
-		!options.hasReturnExpressionBeenCalledAtPath( path, this )
-		&& this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
-			node.bindCallAtPath( path, callOptions, innerOptions.addCalledReturnExpressionAtPath( path, this ) ), options );
-	}
-
 	bindNode () {
 		if ( this.callee.type === 'Identifier' ) {
 			const variable = this.scope.findVariable( this.callee.name );
@@ -34,7 +28,6 @@ export default class CallExpression extends Node {
 				}, this.start );
 			}
 		}
-		this.callee.bindCallAtPath( [], this._callOptions, ExecutionPathOptions.create() );
 	}
 
 	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {

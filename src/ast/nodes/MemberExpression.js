@@ -85,15 +85,6 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	bindCallAtPath ( path, callOptions, options ) {
-		if ( !this._bound ) this.bind();
-		if ( this.variable ) {
-			this.variable.bindCallAtPath( path, callOptions, options );
-		} else {
-			this.object.bindCallAtPath( [ this._getPathSegment(), ...path ], callOptions, options );
-		}
-	}
-
 	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
 		if ( !this._bound ) this.bind();
 		if ( this.variable ) {

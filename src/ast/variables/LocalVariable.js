@@ -2,7 +2,7 @@ import Variable from './Variable';
 import StructuredAssignmentTracker from './StructuredAssignmentTracker';
 
 // To avoid infinite recursions
-const MAX_PATH_LENGTH = 8;
+const MAX_PATH_LENGTH = 6;
 
 export default class LocalVariable extends Variable {
 	constructor ( name, declarator, init ) {
@@ -12,7 +12,6 @@ export default class LocalVariable extends Variable {
 		this.declarations = new Set( declarator ? [ declarator ] : null );
 		this.boundExpressions = new StructuredAssignmentTracker();
 		init && this.boundExpressions.addAtPath( [], init );
-		this.boundCalls = new StructuredAssignmentTracker();
 	}
 
 	addDeclaration ( identifier ) {
@@ -32,15 +31,6 @@ export default class LocalVariable extends Variable {
 		} else {
 			this.isReassigned = true;
 		}
-		this.boundCalls.forEachAtPath( path, ( relativePath, callOptions ) =>
-			expression.bindCallAtPath( relativePath, callOptions, options ) );
-	}
-
-	bindCallAtPath ( path, callOptions, options ) {
-		if ( path.length > MAX_PATH_LENGTH || this.boundCalls.hasAtPath( path, callOptions ) ) return;
-		this.boundCalls.addAtPath( path, callOptions );
-		this.boundExpressions.forEachAtPath( path, ( relativePath, node ) =>
-			node.bindCallAtPath( relativePath, callOptions, options ) );
 	}
 
 	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {

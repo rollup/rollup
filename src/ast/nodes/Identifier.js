@@ -9,12 +9,6 @@ export default class Identifier extends Node {
 		&& this.variable.bindAssignmentAtPath( path, expression, options );
 	}
 
-	bindCallAtPath ( path, callOptions, options ) {
-		this._bindVariableIfMissing();
-		this.variable
-		&& this.variable.bindCallAtPath( path, callOptions, options );
-	}
-
 	bindNode () {
 		this._bindVariableIfMissing();
 	}

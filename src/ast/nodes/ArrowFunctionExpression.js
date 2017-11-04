@@ -3,11 +3,6 @@ import Scope from '../scopes/Scope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 
 export default class ArrowFunctionExpression extends Node {
-	bindCallAtPath ( path, { args } ) {
-		path.length === 0
-		&& this.scope.bindCallArguments( args );
-	}
-
 	bindNode () {
 		this.body.bindImplicitReturnExpressionToScope
 			? this.body.bindImplicitReturnExpressionToScope()
@@ -35,9 +30,8 @@ export default class ArrowFunctionExpression extends Node {
 		if ( path.length > 0 ) {
 			return true;
 		}
-		const innerOptions = this.scope.getOptionsWithReplacedParameters( callOptions.args, options );
-		return this.params.some( param => param.hasEffects( innerOptions ) )
-			|| this.body.hasEffects( innerOptions );
+		return this.params.some( param => param.hasEffects( options ) )
+			|| this.body.hasEffects( options );
 	}
 
 	initialiseChildren () {

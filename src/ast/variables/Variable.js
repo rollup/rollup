@@ -24,15 +24,6 @@ export default class Variable {
 	bindAssignmentAtPath ( path, expression, options ) {}
 
 	/**
-	 * Binds a call to this node. Necessary to be able to bind arguments
-	 * to parameters.
-	 * @param {String[]} path
-	 * @param {CallOptions} callOptions
-	 * @param {ExecutionPathOptions} options
-	 */
-	bindCallAtPath ( path, callOptions, options ) {}
-
-	/**
 	 * @param {String[]} path
 	 * @param {CallOptions} callOptions
 	 * @param {Function} callback

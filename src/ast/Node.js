@@ -32,15 +32,6 @@ export default class Node {
 	bindAssignmentAtPath ( path, expression, options ) {}
 
 	/**
-	 * Binds the arguments a node is called with to this node and possibly its parameters.
-	 * Should usually be overridden together with hasEffectsWhenCalled.
-	 * @param {String[]} path
-	 * @param {CallOptions} callOptions
-	 * @param {ExecutionPathOptions} options
-	 */
-	bindCallAtPath ( path, callOptions, options ) {}
-
-	/**
 	 * Override to control on which children "bind" is called.
 	 */
 	bindChildren () {

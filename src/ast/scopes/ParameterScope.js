@@ -1,6 +1,5 @@
 import Scope from './Scope';
 import ParameterVariable from '../variables/ParameterVariable';
-import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class ParameterScope extends Scope {
 	constructor ( options = {} ) {
@@ -19,19 +18,6 @@ export default class ParameterScope extends Scope {
 		this.variables[ identifier.name ] = variable;
 		this._parameters.push( variable );
 		return variable;
-	}
-
-	bindCallArguments ( args ) {
-		this._parameters.forEach( ( parameter, index ) =>
-			parameter.bindInitialization( args[ index ] || UNKNOWN_ASSIGNMENT ) );
-	}
-
-	getOptionsWithReplacedParameters ( args, options ) {
-		let newOptions = options;
-		this._parameters.forEach( ( parameter, index ) =>
-			newOptions = newOptions.replaceVariableInit( parameter, args[ index ] || UNKNOWN_ASSIGNMENT )
-		);
-		return newOptions;
 	}
 
 	getParameterVariables () {

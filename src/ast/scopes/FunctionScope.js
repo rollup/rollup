@@ -16,8 +16,8 @@ export default class FunctionScope extends ReturnValueScope {
 	}
 
 	getOptionsWhenCalledWith ( { args, withNew }, options ) {
-		return super.getOptionsWithReplacedParameters( args, options )
+		return options
 			.replaceVariableInit( this.variables.this, withNew ? new VirtualObjectExpression() : UNKNOWN_ASSIGNMENT )
-			.setArgumentsVariables( args.map( ( parameter, index ) => super.getParameterVariables()[index] || parameter) );
+			.setArgumentsVariables( args.map( ( parameter, index ) => super.getParameterVariables()[ index ] || parameter ) );
 	}
 }

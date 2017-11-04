@@ -3,12 +3,6 @@ import FunctionScope from '../../scopes/FunctionScope';
 import VirtualObjectExpression from './VirtualObjectExpression';
 
 export default class FunctionNode extends Node {
-	bindCallAtPath ( path, { args } ) {
-		if ( path.length === 0 ) {
-			this.scope.bindCallArguments( args );
-		}
-	}
-
 	bindNode () {
 		this.body.bindImplicitReturnExpressionToScope();
 	}

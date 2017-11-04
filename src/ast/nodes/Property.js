@@ -8,28 +8,13 @@ export default class Property extends Node {
 			path.length > 0
 			&& this.value.forEachReturnExpressionWhenCalledAtPath( [], this._accessorCallOptions, innerOptions => node =>
 				node.bindAssignmentAtPath( path, expression, innerOptions.addAssignedReturnExpressionAtPath( path, this ) ), options );
-		} else if ( this.kind === 'set' ) {
-			path.length === 0
-			&& this.value.bindCallAtPath( [], CallOptions.create( { withNew: false, args: [ expression ], caller: this } ), options );
-		} else {
+		} else if ( this.kind !== 'set' ) {
 			this.value.bindAssignmentAtPath( path, expression, options );
-		}
-	}
-
-	bindCallAtPath ( path, callOptions, options ) {
-		if ( this.kind === 'get' ) {
-			this.value.bindCallAtPath( [], this._accessorCallOptions, options );
-			!options.hasReturnExpressionBeenCalledAtPath( path, this )
-			&& this.value.forEachReturnExpressionWhenCalledAtPath( [], this._accessorCallOptions, innerOptions => node =>
-				node.bindCallAtPath( path, callOptions, innerOptions.addCalledReturnExpressionAtPath( path, this ) ), options );
-		} else {
-			this.value.bindCallAtPath( path, callOptions, options );
 		}
 	}
 
 	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
 		if ( this.kind === 'get' ) {
-			this.value.bindCallAtPath( [], this._accessorCallOptions, options );
 			this.value.forEachReturnExpressionWhenCalledAtPath( [], this._accessorCallOptions, innerOptions => node =>
 				node.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback, innerOptions ), options );
 		} else {

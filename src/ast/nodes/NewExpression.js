@@ -3,10 +3,6 @@ import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class NewExpression extends Node {
-	bindNode () {
-		this.callee.bindCallAtPath( [], this._callOptions, ExecutionPathOptions.create() );
-	}
-
 	hasEffects ( options ) {
 		return this.arguments.some( child => child.hasEffects( options ) )
 			|| this.callee.hasEffectsWhenCalledAtPath( [], this._callOptions, options.getHasEffectsWhenCalledOptions() );

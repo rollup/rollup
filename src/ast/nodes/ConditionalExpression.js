@@ -7,10 +7,6 @@ export default class ConditionalExpression extends Node {
 		&& this._forEachRelevantBranch( node => node.bindAssignmentAtPath( path, expression, options ) );
 	}
 
-	bindCallAtPath ( path, callOptions, options ) {
-		this._forEachRelevantBranch( node => node.bindCallAtPath( path, callOptions, options ) );
-	}
-
 	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
 		this._forEachRelevantBranch( node => node.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback, options ) );
 	}
