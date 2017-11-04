@@ -29,6 +29,6 @@ export default class TaggedTemplateExpression extends Node {
 	}
 
 	initialiseNode () {
-		this._callOptions = CallOptions.create( { withNew: false } );
+		this._callOptions = CallOptions.create( { withNew: false, caller: this } );
 	}
 }

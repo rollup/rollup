@@ -2,9 +2,9 @@ import Node from '../../Node.js';
 import Scope from '../../scopes/Scope';
 
 export default class ClassNode extends Node {
-	bindCallAtPath ( path, callOptions ) {
-		this.body.bindCallAtPath( path, callOptions );
-		this.superClass && this.superClass.bindCallAtPath( path, callOptions );
+	bindCallAtPath ( path, callOptions, options ) {
+		this.body.bindCallAtPath( path, callOptions, options );
+		this.superClass && this.superClass.bindCallAtPath( path, callOptions, options );
 	}
 
 	hasEffectsWhenAccessedAtPath ( path ) {

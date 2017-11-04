@@ -2,8 +2,8 @@ import Node from '../Node.js';
 import extractNames from '../utils/extractNames.js';
 
 export default class VariableDeclarator extends Node {
-	bindAssignmentAtPath ( path, expression ) {
-		this.id.bindAssignmentAtPath( path, expression );
+	bindAssignmentAtPath ( path, expression, options ) {
+		this.id.bindAssignmentAtPath( path, expression, options );
 	}
 
 	initialiseDeclarator ( parentScope, kind ) {

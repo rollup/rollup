@@ -1,9 +1,10 @@
 import Node from '../Node.js';
 import CallOptions from '../CallOptions';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class NewExpression extends Node {
 	bindNode () {
-		this.callee.bindCallAtPath( [], this._callOptions );
+		this.callee.bindCallAtPath( [], this._callOptions, ExecutionPathOptions.create() );
 	}
 
 	hasEffects ( options ) {
@@ -16,6 +17,6 @@ export default class NewExpression extends Node {
 	}
 
 	initialiseNode () {
-		this._callOptions = CallOptions.create( { withNew: true, args: this.arguments } );
+		this._callOptions = CallOptions.create( { withNew: true, args: this.arguments, caller: this } );
 	}
 }

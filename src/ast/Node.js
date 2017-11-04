@@ -20,10 +20,25 @@ export default class Node {
 	}
 
 	/**
-	 * Override this to bind assignments to variables and do any initialisations that
-	 * require the scopes to be populated with variables.
+	 * Bind an expression as an assignment to a node given a path.
+	 * E.g., node.bindAssignmentAtPath(['x', 'y'], otherNode) is called when otherNode
+	 * is assigned to node.x.y.
+	 * The default noop implementation is ok as long as hasEffectsWhenAssignedAtPath
+	 * always returns true for this node. Otherwise it should be overridden.
+	 * @param {String[]} path
+	 * @param {Node} expression
+	 * @param {ExecutionPathOptions} options
 	 */
-	bindNode () {}
+	bindAssignmentAtPath ( path, expression, options ) {}
+
+	/**
+	 * Binds the arguments a node is called with to this node and possibly its parameters.
+	 * Should usually be overridden together with hasEffectsWhenCalled.
+	 * @param {String[]} path
+	 * @param {CallOptions} callOptions
+	 * @param {ExecutionPathOptions} options
+	 */
+	bindCallAtPath ( path, callOptions, options ) {}
 
 	/**
 	 * Override to control on which children "bind" is called.
@@ -33,23 +48,10 @@ export default class Node {
 	}
 
 	/**
-	 * Bind an expression as an assignment to a node given a path.
-	 * E.g., node.bindAssignmentAtPath(['x', 'y'], otherNode) is called when otherNode
-	 * is assigned to node.x.y.
-	 * The default noop implementation is ok as long as hasEffectsWhenAssignedAtPath
-	 * always returns true for this node. Otherwise it should be overridden.
-	 * @param {String[]} path
-	 * @param {Node} expression
+	 * Override this to bind assignments to variables and do any initialisations that
+	 * require the scopes to be populated with variables.
 	 */
-	bindAssignmentAtPath ( path, expression ) {}
-
-	/**
-	 * Binds the arguments a node is called with to this node and possibly its parameters.
-	 * Should usually be overridden together with hasEffectsWhenCalled.
-	 * @param {String[]} path
-	 * @param {CallOptions} callOptions
-	 */
-	bindCallAtPath ( path, callOptions ) {}
+	bindNode () {}
 
 	eachChild ( callback ) {
 		this.keys.forEach( key => {
@@ -69,8 +71,9 @@ export default class Node {
 	 * @param {String[]} path
 	 * @param {CallOptions} callOptions
 	 * @param {Function} callback
+	 * @param {ExecutionPathOptions} options
 	 */
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {}
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {}
 
 	getValue () {
 		return UNKNOWN_VALUE;

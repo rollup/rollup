@@ -1,20 +1,18 @@
 import Node from '../Node';
 
 export default class ClassBody extends Node {
-	bindCallAtPath ( path, callOptions ) {
-		if ( path.length === 0 && this.classConstructor ) {
-			this.classConstructor.bindCallAtPath( path, callOptions );
-		}
+	bindCallAtPath ( path, callOptions, options ) {
+		path.length === 0
+		&& this.classConstructor
+		&& this.classConstructor.bindCallAtPath( path, callOptions, options );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		if ( path.length > 0 ) {
 			return true;
 		}
-		if ( this.classConstructor ) {
-			return this.classConstructor.hasEffectsWhenCalledAtPath( [], callOptions, options );
-		}
-		return false;
+		return this.classConstructor
+			&& this.classConstructor.hasEffectsWhenCalledAtPath( [], callOptions, options );
 	}
 
 	initialiseNode () {

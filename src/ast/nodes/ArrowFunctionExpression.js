@@ -4,9 +4,8 @@ import ReturnValueScope from '../scopes/ReturnValueScope';
 
 export default class ArrowFunctionExpression extends Node {
 	bindCallAtPath ( path, { args } ) {
-		if ( path.length === 0 ) {
-			this.scope.bindCallArguments( args );
-		}
+		path.length === 0
+		&& this.scope.bindCallArguments( args );
 	}
 
 	bindNode () {
@@ -15,10 +14,9 @@ export default class ArrowFunctionExpression extends Node {
 			: this.scope.addReturnExpression( this.body );
 	}
 
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
-		if ( path.length === 0 ) {
-			this.scope.forEachReturnExpressionWhenCalled( callback );
-		}
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
+		path.length === 0
+		&& this.scope.forEachReturnExpressionWhenCalled( callOptions, callback, options );
 	}
 
 	hasEffects () {

@@ -19,24 +19,26 @@ export default class Variable {
 	 * e.g. an object path is called or mutated.
 	 * @param {String[]} path
 	 * @param {Node} expression
+	 * @param {ExecutionPathOptions} options
 	 */
-	bindAssignmentAtPath ( path, expression ) {}
+	bindAssignmentAtPath ( path, expression, options ) {}
 
 	/**
 	 * Binds a call to this node. Necessary to be able to bind arguments
 	 * to parameters.
 	 * @param {String[]} path
 	 * @param {CallOptions} callOptions
+	 * @param {ExecutionPathOptions} options
 	 */
-	bindCallAtPath ( path, callOptions ) {}
+	bindCallAtPath ( path, callOptions, options ) {}
 
 	/**
 	 * @param {String[]} path
 	 * @param {CallOptions} callOptions
 	 * @param {Function} callback
-	 * @returns {*}
+	 * @param {ExecutionPathOptions} options
 	 */
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {}
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {}
 
 	/**
 	 * @returns {String}

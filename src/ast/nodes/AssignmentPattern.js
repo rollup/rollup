@@ -1,19 +1,19 @@
 import Node from '../Node.js';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class AssignmentPattern extends Node {
 	bindNode () {
-		this.left.bindAssignmentAtPath( [], this.right );
+		this.left.bindAssignmentAtPath( [], this.right, ExecutionPathOptions.create() );
 	}
 
-	bindAssignmentAtPath ( path, expression ) {
-		this.left.bindAssignmentAtPath( path, expression );
+	bindAssignmentAtPath ( path, expression, options ) {
+		path.length === 0
+		&& this.left.bindAssignmentAtPath( path, expression, options );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		if ( path.length > 0 ) {
-			return true;
-		}
-		return this.left.hasEffectsWhenAssignedAtPath( [], options );
+		return path.length > 0
+			|| this.left.hasEffectsWhenAssignedAtPath( [], options );
 	}
 
 	initialiseAndDeclare ( parentScope, kind, init ) {

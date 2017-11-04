@@ -1,10 +1,11 @@
 import Node from '../Node.js';
 import disallowIllegalReassignment from './shared/disallowIllegalReassignment.js';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class AssignmentExpression extends Node {
 	bindNode () {
 		disallowIllegalReassignment( this.scope, this.left );
-		this.left.bindAssignmentAtPath( [], this.right );
+		this.left.bindAssignmentAtPath( [], this.right, ExecutionPathOptions.create() );
 	}
 
 	hasEffects ( options ) {

@@ -1,6 +1,7 @@
 import Node from '../Node.js';
 import { UNKNOWN_VALUE } from '../values';
 import UndefinedIdentifier from './shared/UndefinedIdentifier';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 const operators = {
 	'-': value => -value,
@@ -15,7 +16,7 @@ const operators = {
 export default class UnaryExpression extends Node {
 	bindNode () {
 		if ( this.operator === 'delete' ) {
-			this.argument.bindAssignmentAtPath( [], new UndefinedIdentifier() );
+			this.argument.bindAssignmentAtPath( [], new UndefinedIdentifier(), ExecutionPathOptions.create() );
 		}
 	}
 

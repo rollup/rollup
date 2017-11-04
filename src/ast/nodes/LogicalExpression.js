@@ -2,18 +2,17 @@ import Node from '../Node.js';
 import { UNKNOWN_VALUE } from '../values.js';
 
 export default class LogicalExpression extends Node {
-	bindAssignmentAtPath ( path, expression ) {
-		if ( path.length > 0 ) {
-			this._forEachRelevantBranch( node => node.bindAssignmentAtPath( path, expression ) );
-		}
+	bindAssignmentAtPath ( path, expression, options ) {
+		path.length > 0
+		&& this._forEachRelevantBranch( node => node.bindAssignmentAtPath( path, expression, options ) );
 	}
 
-	bindCallAtPath ( path, callOptions ) {
-		this._forEachRelevantBranch( node => node.bindCallAtPath( path, callOptions ) );
+	bindCallAtPath ( path, callOptions, options ) {
+		this._forEachRelevantBranch( node => node.bindCallAtPath( path, callOptions, options ) );
 	}
 
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
-		this._forEachRelevantBranch( node => node.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback ) );
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
+		this._forEachRelevantBranch( node => node.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback, options ) );
 	}
 
 	getValue () {
@@ -43,8 +42,8 @@ export default class LogicalExpression extends Node {
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		return this._someRelevantBranch( node =>
-			node.hasEffectsWhenAssignedAtPath( path, options ) );
+		return path.length === 0
+			|| this._someRelevantBranch( node => node.hasEffectsWhenAssignedAtPath( path, options ) );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {

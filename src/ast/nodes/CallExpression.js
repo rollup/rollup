@@ -1,25 +1,18 @@
 import Node from '../Node.js';
 import CallOptions from '../CallOptions';
-import StructuredAssignmentTracker from '../variables/StructuredAssignmentTracker';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class CallExpression extends Node {
-	bindAssignmentAtPath ( path, expression ) {
-		if ( this._boundExpressions.hasAtPath( path, expression ) ) return;
-		this._boundExpressions.addAtPath( path, expression );
-		this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions,
-			node => node.bindAssignmentAtPath( path, expression ) );
+	bindAssignmentAtPath ( path, expression, options ) {
+		!options.hasReturnExpressionBeenAssignedAtPath( path, this )
+		&& this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+			node.bindAssignmentAtPath( path, expression, innerOptions.addAssignedReturnExpressionAtPath( path, this ) ), options );
 	}
 
-	bindCallAtPath ( path, callOptions ) {
-		if ( this._boundCalls.hasAtPath( path, callOptions ) ) return;
-		this._boundCalls.addAtPath( path, callOptions );
-		this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions,
-			node => node.bindCallAtPath( path, callOptions ) );
-	}
-
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
-		this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions,
-			node => node.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback ) );
+	bindCallAtPath ( path, callOptions, options ) {
+		!options.hasReturnExpressionBeenCalledAtPath( path, this )
+		&& this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+			node.bindCallAtPath( path, callOptions, innerOptions.addCalledReturnExpressionAtPath( path, this ) ), options );
 	}
 
 	bindNode () {
@@ -41,7 +34,12 @@ export default class CallExpression extends Node {
 				}, this.start );
 			}
 		}
-		this.callee.bindCallAtPath( [], this._callOptions );
+		this.callee.bindCallAtPath( [], this._callOptions, ExecutionPathOptions.create() );
+	}
+
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
+		this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+			node.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback, innerOptions ), options );
 	}
 
 	hasEffects ( options ) {
@@ -69,10 +67,7 @@ export default class CallExpression extends Node {
 	}
 
 	initialiseNode () {
-		this._callOptions = CallOptions.create( { withNew: false, args: this.arguments } );
-		// To avoid infinite recursions when dealing with recursive functions
-		this._boundExpressions = new StructuredAssignmentTracker();
-		this._boundCalls = new StructuredAssignmentTracker();
+		this._callOptions = CallOptions.create( { withNew: false, args: this.arguments, caller: this } );
 	}
 
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {

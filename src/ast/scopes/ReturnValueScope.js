@@ -10,8 +10,9 @@ export default class ReturnValueScope extends ParameterScope {
 		this._returnExpressions.add( expression );
 	}
 
-	forEachReturnExpressionWhenCalled ( callback ) {
-		this._returnExpressions.forEach( exp => callback( exp ) );
+	forEachReturnExpressionWhenCalled ( callOptions, callback, options ) {
+		const innerOptions = this.getOptionsWithReplacedParameters( callOptions.args, options );
+		this._returnExpressions.forEach( callback( innerOptions ) );
 	}
 
 	someReturnExpressionWhenCalled ( callOptions, predicateFunction, options ) {

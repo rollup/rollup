@@ -1,10 +1,9 @@
 import Node from '../Node';
 
 export default class MethodDefinition extends Node {
-	bindCallAtPath ( path, callOptions ) {
-		if ( path.length === 0 ) {
-			this.value.bindCallAtPath( path, callOptions );
-		}
+	bindCallAtPath ( path, callOptions, options ) {
+		path.length === 0
+		&& this.value.bindCallAtPath( path, callOptions, options );
 	}
 
 	hasEffects ( options ) {

@@ -1,6 +1,7 @@
 import Node from '../Node.js';
 import extractNames from '../utils/extractNames.js';
 import { UNKNOWN_ASSIGNMENT } from '../values';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 function getSeparator ( code, start ) {
 	let c = start;
@@ -19,7 +20,7 @@ const forStatement = /^For(?:Of|In)?Statement/;
 
 export default class VariableDeclaration extends Node {
 	bindAssignmentAtPath () {
-		this.eachChild( child => child.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT ) );
+		this.eachChild( child => child.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT, ExecutionPathOptions.create() ) );
 	}
 
 	hasEffectsWhenAssignedAtPath () {

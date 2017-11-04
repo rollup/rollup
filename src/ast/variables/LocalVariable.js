@@ -19,37 +19,36 @@ export default class LocalVariable extends Variable {
 		this.declarations.add( identifier );
 	}
 
-	bindAssignmentAtPath ( path, expression ) {
+	bindAssignmentAtPath ( path, expression, options ) {
 		if ( path.length > MAX_PATH_LENGTH || this.boundExpressions.hasAtPath( path, expression ) ) return;
 		this.boundExpressions.addAtPath( path, expression );
 		this.boundExpressions.forEachAssignedToPath( path, ( subPath, node ) => {
-			if ( subPath.length > 0 ) {
-				expression.bindAssignmentAtPath( subPath, node );
-			}
+			subPath.length > 0
+			&& expression.bindAssignmentAtPath( subPath, node, options );
 		} );
 		if ( path.length > 0 ) {
 			this.boundExpressions.forEachAtPath( path.slice( 0, -1 ), ( relativePath, node ) =>
-				node.bindAssignmentAtPath( [ ...relativePath, ...path.slice( -1 ) ], expression ) );
+				node.bindAssignmentAtPath( [ ...relativePath, ...path.slice( -1 ) ], expression, options ) );
 		} else {
 			this.isReassigned = true;
 		}
 		this.boundCalls.forEachAtPath( path, ( relativePath, callOptions ) =>
-			expression.bindCallAtPath( relativePath, callOptions ) );
+			expression.bindCallAtPath( relativePath, callOptions, options ) );
 	}
 
-	bindCallAtPath ( path, callOptions ) {
+	bindCallAtPath ( path, callOptions, options ) {
 		if ( path.length > MAX_PATH_LENGTH || this.boundCalls.hasAtPath( path, callOptions ) ) return;
 		this.boundCalls.addAtPath( path, callOptions );
 		this.boundExpressions.forEachAtPath( path, ( relativePath, node ) =>
-			node.bindCallAtPath( relativePath, callOptions ) );
+			node.bindCallAtPath( relativePath, callOptions, options ) );
 	}
 
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
 		if ( path.length > MAX_PATH_LENGTH ) return;
 		this.boundExpressions.forEachAtPath( path, ( relativePath, node ) =>
-			!callOptions.hasNodeBeenCalledAtPath( relativePath, node )
-			&& node.forEachReturnExpressionWhenCalledAtPath( relativePath, callOptions
-				.addCalledNodeAtPath( relativePath, node ), callback ) );
+			!options.hasNodeBeenCalledAtPathWithOptions( relativePath, node, callOptions ) && node
+				.forEachReturnExpressionWhenCalledAtPath( relativePath, callOptions, callback,
+					options.addCalledNodeAtPathWithOptions( relativePath, node, callOptions ) ) );
 	}
 
 	getName ( es ) {
@@ -62,9 +61,9 @@ export default class LocalVariable extends Variable {
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		return path.length > MAX_PATH_LENGTH
 			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
-				!options.hasNodeBeenAccessedAtPath( relativePath, node )
-				&& node.hasEffectsWhenAccessedAtPath( relativePath, options
-					.addAccessedNodeAtPath( relativePath, node ) ) );
+				!options.hasNodeBeenAccessedAtPath( relativePath, node ) && node
+					.hasEffectsWhenAccessedAtPath( relativePath,
+						options.addAccessedNodeAtPath( relativePath, node ) ) );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
@@ -72,35 +71,34 @@ export default class LocalVariable extends Variable {
 			|| path.length > MAX_PATH_LENGTH
 			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
 				relativePath.length > 0
-				&& !options.hasNodeBeenAssignedAtPath( relativePath, node )
-				&& node.hasEffectsWhenAssignedAtPath( relativePath, options
-					.addAssignedNodeAtPath( relativePath, node ) ) );
+				&& !options.hasNodeBeenAssignedAtPath( relativePath, node ) && node
+					.hasEffectsWhenAssignedAtPath( relativePath,
+						options.addAssignedNodeAtPath( relativePath, node ) ) );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		return path.length > MAX_PATH_LENGTH
 			|| (this.included && path.length > 0)
 			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
-				!options.hasNodeBeenCalledAtPathWithOptions( relativePath, node, callOptions )
-				&& node.hasEffectsWhenCalledAtPath( relativePath, callOptions, options
-					.addCalledNodeAtPathWithOptions( relativePath, node, callOptions ) )
+				!options.hasNodeBeenCalledAtPathWithOptions( relativePath, node, callOptions ) && node
+					.hasEffectsWhenCalledAtPath( relativePath, callOptions,
+						options.addCalledNodeAtPathWithOptions( relativePath, node, callOptions ) )
 			);
 	}
 
 	includeVariable () {
-		if ( !super.includeVariable() ) {
-			return false;
-		}
+		if ( !super.includeVariable() ) return false;
 		this.declarations.forEach( identifier => identifier.includeInBundle() );
 		return true;
 	}
 
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
 		return path.length > MAX_PATH_LENGTH
+			|| (this.included && path.length > 0)
 			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
-				!callOptions.hasNodeBeenCalledAtPath( relativePath, node )
-				&& node.someReturnExpressionWhenCalledAtPath( relativePath, callOptions
-					.addCalledNodeAtPath( relativePath, node ), predicateFunction, options ) );
+				!options.hasNodeBeenCalledAtPathWithOptions( relativePath, node, callOptions ) && node
+					.someReturnExpressionWhenCalledAtPath( relativePath, callOptions, predicateFunction,
+						options.addCalledNodeAtPathWithOptions( relativePath, node, callOptions ) ) );
 	}
 
 	toString () {

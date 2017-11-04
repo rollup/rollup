@@ -1,6 +1,5 @@
 import { blank, keys } from '../../utils/object.js';
 import LocalVariable from '../variables/LocalVariable';
-import ParameterVariable from '../variables/ParameterVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import UndefinedIdentifier from '../nodes/shared/UndefinedIdentifier';
 

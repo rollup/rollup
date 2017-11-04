@@ -2,15 +2,14 @@ import Node from '../Node.js';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class ArrayPattern extends Node {
-	bindAssignmentAtPath () {
-		this.eachChild( child => child.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT ) );
+	bindAssignmentAtPath ( path, expression, options ) {
+		path.length === 0
+		&& this.eachChild( child => child.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT, options ) );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		if ( path.length > 0 ) {
-			return true;
-		}
-		return this.someChild( child => child.hasEffectsWhenAssignedAtPath( [], options ) );
+		return path.length > 0
+			|| this.someChild( child => child.hasEffectsWhenAssignedAtPath( [], options ) );
 	}
 
 	initialiseAndDeclare ( parentScope, kind ) {

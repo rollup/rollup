@@ -76,30 +76,30 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	bindAssignmentAtPath ( path, expression ) {
+	bindAssignmentAtPath ( path, expression, options ) {
 		if ( !this._bound ) this.bind();
 		if ( this.variable ) {
-			this.variable.bindAssignmentAtPath( path, expression );
+			this.variable.bindAssignmentAtPath( path, expression, options );
 		} else {
-			this.object.bindAssignmentAtPath( [ this._getPathSegment(), ...path ], expression );
+			this.object.bindAssignmentAtPath( [ this._getPathSegment(), ...path ], expression, options );
 		}
 	}
 
-	bindCallAtPath ( path, callOptions ) {
+	bindCallAtPath ( path, callOptions, options ) {
 		if ( !this._bound ) this.bind();
 		if ( this.variable ) {
-			this.variable.bindCallAtPath( path, callOptions );
+			this.variable.bindCallAtPath( path, callOptions, options );
 		} else {
-			this.object.bindCallAtPath( [ this._getPathSegment(), ...path ], callOptions );
+			this.object.bindCallAtPath( [ this._getPathSegment(), ...path ], callOptions, options );
 		}
 	}
 
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
 		if ( !this._bound ) this.bind();
 		if ( this.variable ) {
-			this.variable.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback );
+			this.variable.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback, options );
 		} else {
-			this.object.forEachReturnExpressionWhenCalledAtPath( [ this._getPathSegment(), ...path ], callOptions, callback );
+			this.object.forEachReturnExpressionWhenCalledAtPath( [ this._getPathSegment(), ...path ], callOptions, callback, options );
 		}
 	}
 

@@ -5,26 +5,30 @@ const PROPERTY_KINDS_READ = [ 'init', 'get' ];
 const PROPERTY_KINDS_WRITE = [ 'init', 'set' ];
 
 export default class ObjectExpression extends Node {
-	bindAssignmentAtPath ( path, expression ) {
+	bindAssignmentAtPath ( path, expression, options ) {
 		if ( path.length === 0 ) return;
 
-		this._getPossiblePropertiesWithName(
-			path[ 0 ], path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ )
-			.properties.forEach( property => property.bindAssignmentAtPath( path.slice( 1 ), expression ) );
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
+			path[ 0 ], path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ );
+		(path.length === 1 || hasCertainHit)
+		&& properties.forEach( property => (path.length > 1 || property.kind === 'set')
+			&& property.bindAssignmentAtPath( path.slice( 1 ), expression, options ) );
 	}
 
-	bindCallAtPath ( path, callOptions ) {
+	bindCallAtPath ( path, callOptions, options ) {
 		if ( path.length === 0 ) return;
 
-		this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ ).properties.forEach( property =>
-			property.bindCallAtPath( path.slice( 1 ), callOptions ) );
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ );
+		hasCertainHit && properties.forEach( property =>
+			property.bindCallAtPath( path.slice( 1 ), callOptions, options ) );
 	}
 
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
 		if ( path.length === 0 ) return;
 
-		this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ ).properties.forEach( property =>
-			property.forEachReturnExpressionWhenCalledAtPath( path.slice( 1 ), callOptions, callback ) );
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName( path[ 0 ], PROPERTY_KINDS_READ );
+		hasCertainHit && properties.forEach( property =>
+			property.forEachReturnExpressionWhenCalledAtPath( path.slice( 1 ), callOptions, callback, options ) );
 	}
 
 	_getPossiblePropertiesWithName ( name, kinds ) {

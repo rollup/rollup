@@ -3,18 +3,16 @@ import isReference from 'is-reference';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class Identifier extends Node {
-	bindAssignmentAtPath ( path, expression ) {
+	bindAssignmentAtPath ( path, expression, options ) {
 		this._bindVariableIfMissing();
-		if ( this.variable ) {
-			this.variable.bindAssignmentAtPath( path, expression );
-		}
+		this.variable
+		&& this.variable.bindAssignmentAtPath( path, expression, options );
 	}
 
-	bindCallAtPath ( path, callOptions ) {
+	bindCallAtPath ( path, callOptions, options ) {
 		this._bindVariableIfMissing();
-		if ( this.variable ) {
-			this.variable.bindCallAtPath( path, callOptions );
-		}
+		this.variable
+		&& this.variable.bindCallAtPath( path, callOptions, options );
 	}
 
 	bindNode () {
@@ -28,11 +26,10 @@ export default class Identifier extends Node {
 		}
 	}
 
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
 		this._bindVariableIfMissing();
-		if ( this.variable ) {
-			this.variable.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback );
-		}
+		this.variable
+		&& this.variable.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback, options );
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {

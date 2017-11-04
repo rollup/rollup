@@ -13,10 +13,9 @@ export default class FunctionNode extends Node {
 		this.body.bindImplicitReturnExpressionToScope();
 	}
 
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback ) {
-		if ( path.length === 0 ) {
-			this.scope.forEachReturnExpressionWhenCalled( callback );
-		}
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
+		path.length === 0
+		&& this.scope.forEachReturnExpressionWhenCalled( callOptions, callback, options );
 	}
 
 	hasEffects ( options ) {

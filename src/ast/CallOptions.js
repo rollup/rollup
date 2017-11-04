@@ -1,29 +1,15 @@
-import Immutable from 'immutable';
-
-const RESULT_KEY = {};
-
 export default class CallOptions {
 	static create ( callOptions ) {
-		return new this( callOptions, Immutable.Map() );
+		return new this( callOptions );
 	}
 
-	constructor ( { withNew = false, args = [] } = {}, nodesCalledAtPath ) {
+	constructor ( { withNew = false, args = [], caller } = {} ) {
 		this.withNew = withNew;
 		this.args = args;
-		this._nodesCalledAtPath = nodesCalledAtPath;
-	}
-
-	addCalledNodeAtPath ( path, node ) {
-		return new this.constructor( this, this._nodesCalledAtPath.setIn( [ node, ...path, RESULT_KEY ], true ) );
+		this.caller = caller;
 	}
 
 	equals ( callOptions ) {
-		return this.withNew === callOptions.withNew
-			&& this.args.length === callOptions.args.length
-			&& this.args.every( ( parameter, index ) => parameter === callOptions.args[ index ] );
-	}
-
-	hasNodeBeenCalledAtPath ( path, node ) {
-		return this._nodesCalledAtPath.getIn( [ node, ...path, RESULT_KEY ] );
+		return callOptions && this.caller === callOptions.caller;
 	}
 }
