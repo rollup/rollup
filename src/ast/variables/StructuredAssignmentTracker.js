@@ -69,18 +69,6 @@ export default class StructuredAssignmentTracker {
 		}
 	}
 
-	hasEqualAtPath ( path, equalAssignment ) {
-		if ( path.length === 0 ) {
-			return Array.from( this._assignments.get( SET_KEY ) ).find( assignment => equalAssignment.equals( assignment ) );
-		} else {
-			const [ nextPath, ...remainingPath ] = path;
-			if ( !this._assignments.has( nextPath ) ) {
-				return false;
-			}
-			return this._assignments.get( nextPath ).hasAtPath( remainingPath, equalAssignment );
-		}
-	}
-
 	someAtPath ( path, predicateFunction ) {
 		const [ nextPath, ...remainingPath ] = path;
 		return Array.from( this._assignments.get( SET_KEY ) ).some( assignment => predicateFunction( path, assignment ) )

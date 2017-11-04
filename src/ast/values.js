@@ -4,8 +4,9 @@ export const UNKNOWN_ASSIGNMENT = {
 	type: 'UNKNOWN',
 	bindAssignmentAtPath: () => {},
 	bindCallAtPath: () => {},
+	forEachReturnExpressionWhenCalledAtPath: () => {},
 	hasEffectsWhenAccessedAtPath: path => path.length > 0,
-	hasEffectsWhenAssignedAtPath: () => true,
+	hasEffectsWhenAssignedAtPath: path => path.length > 0,
 	hasEffectsWhenCalledAtPath: () => true,
 	someReturnExpressionWhenCalledAtPath: () => true,
 	toString: () => '[[UNKNOWN]]'

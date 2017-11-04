@@ -51,6 +51,11 @@ export default class FunctionNode extends Node {
 			|| this.body.hasEffects( innerOptions );
 	}
 
+	includeInBundle () {
+		this.scope.variables.arguments.includeVariable();
+		return super.includeInBundle();
+	}
+
 	initialiseNode () {
 		this.prototypeObject = new VirtualObjectExpression();
 	}

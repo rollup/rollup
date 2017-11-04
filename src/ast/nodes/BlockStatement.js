@@ -1,12 +1,12 @@
 import Statement from './shared/Statement.js';
 import BlockScope from '../scopes/BlockScope';
-import UndefinedIdentifier from './shared/UndefinedIdentifier';
+import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class BlockStatement extends Statement {
 	bindImplicitReturnExpressionToScope () {
 		const lastStatement = this.body[ this.body.length - 1 ];
 		if ( !lastStatement || lastStatement.type !== 'ReturnStatement' ) {
-			this.scope.addReturnExpression( new UndefinedIdentifier() );
+			this.scope.addReturnExpression( UNKNOWN_ASSIGNMENT );
 		}
 	}
 

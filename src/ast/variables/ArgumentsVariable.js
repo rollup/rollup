@@ -26,11 +26,10 @@ export default class ArgumentsVariable extends LocalVariable {
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
-		if ( path.length === 0 ) {
-			return true;
-		}
-		return getParameterVariable( path, options )
-			.hasEffectsWhenAssignedAtPath( path.slice( 1 ), options );
+		return path.length === 0
+			|| this.included
+			|| getParameterVariable( path, options )
+				.hasEffectsWhenAssignedAtPath( path.slice( 1 ), options );
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
