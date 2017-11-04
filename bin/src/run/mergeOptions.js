@@ -12,6 +12,7 @@ export default function mergeOptions ( config, command ) {
 	const inputOptions = {
 		input: getOption('input'),
 		legacy: getOption('legacy'),
+		frozen: getOption('frozen'),
 		treeshake: getOption('treeshake'),
 		acorn: config.acorn,
 		context: config.context,
@@ -68,6 +69,7 @@ export default function mergeOptions ( config, command ) {
 		globals: getOption('globals'),
 		interop: getOption('interop'),
 		legacy: getOption('legacy'),
+		frozen: getOption('frozen'),
 		indent: getOption('indent'),
 		strict: getOption('strict'),
 		noConflict: getOption('noConflict'),

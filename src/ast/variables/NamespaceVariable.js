@@ -30,7 +30,7 @@ export default class NamespaceVariable extends Variable {
 		return hasBeenIncluded;
 	}
 
-	renderBlock ( es, legacy, indentString ) {
+	renderBlock ( es, legacy, frozen, indentString ) {
 		const members = keys( this.originals ).map( name => {
 			const original = this.originals[ name ];
 
@@ -42,7 +42,7 @@ export default class NamespaceVariable extends Variable {
 			return `${indentString}${name}: ${original.getName( es )}`;
 		} );
 
-		const callee = legacy ? `(Object.freeze || Object)` : `Object.freeze`;
+		const callee = frozen ? ( legacy ? `(Object.freeze || Object)` : `Object.freeze` ) : '';
 		return `${this.module.bundle.varOrConst} ${this.getName( es )} = ${callee}({\n${members.join( ',\n' )}\n});\n\n`;
 	}
 }

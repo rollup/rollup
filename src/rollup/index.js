@@ -29,6 +29,7 @@ const ALLOWED_KEYS = [
 	'interop',
 	'intro',
 	'legacy',
+	'frozen',
 	'moduleContext',
 	'name',
 	'noConflict',
