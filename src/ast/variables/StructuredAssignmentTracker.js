@@ -1,5 +1,9 @@
+import { UNKNOWN_ASSIGNMENT } from '../values';
+
 const SET_KEY = { type: 'SET_KEY' };
 export const UNKNOWN_KEY = { type: 'UNKNOWN_KEY' };
+
+const UNKNOWN_ASSIGNMENTS = new Map( [ [ SET_KEY, new Set( [ UNKNOWN_ASSIGNMENT ] ) ] ] );
 
 export default class StructuredAssignmentTracker {
 	constructor () {
@@ -7,8 +11,13 @@ export default class StructuredAssignmentTracker {
 	}
 
 	addAtPath ( path, assignment ) {
+		if ( this._assignments === UNKNOWN_ASSIGNMENTS ) return;
 		if ( path.length === 0 ) {
-			this._assignments.get( SET_KEY ).add( assignment );
+			if ( assignment === UNKNOWN_ASSIGNMENT ) {
+				this._assignments = UNKNOWN_ASSIGNMENTS;
+			} else {
+				this._assignments.get( SET_KEY ).add( assignment );
+			}
 		} else {
 			const [ nextPath, ...remainingPath ] = path;
 			if ( !this._assignments.has( nextPath ) ) {
