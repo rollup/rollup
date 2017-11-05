@@ -291,8 +291,9 @@ export default class Module {
 			props.pos = pos;
 
 			const { line, column } = locate( this.code, pos, { offsetLine: 1 } ); // TODO trace sourcemaps
-
-			props.loc = { file: this.id, line, column };
+			const lineInRawFile = line - 1;
+			
+			props.loc = { file: this.id, line: lineInRawFile, column };
 			props.frame = getCodeFrame( this.code, line, column );
 		}
 
