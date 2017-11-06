@@ -1,5 +1,5 @@
 import Node from '../Node.js';
-import { UNKNOWN_KEY } from '../variables/StructuredAssignmentTracker';
+import { UNKNOWN_KEY } from '../variables/VariableShapeTracker';
 
 const PROPERTY_KINDS_READ = [ 'init', 'get' ];
 const PROPERTY_KINDS_WRITE = [ 'init', 'set' ];

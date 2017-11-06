@@ -1,6 +1,6 @@
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
-import { UNKNOWN_KEY } from '../variables/StructuredAssignmentTracker';
+import { UNKNOWN_KEY } from '../variables/VariableShapeTracker';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 

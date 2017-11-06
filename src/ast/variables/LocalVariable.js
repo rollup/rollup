@@ -1,5 +1,5 @@
 import Variable from './Variable';
-import StructuredAssignmentTracker from './StructuredAssignmentTracker';
+import VariableShapeTracker from './VariableShapeTracker';
 
 // To avoid infinite recursions
 const MAX_PATH_LENGTH = 6;
@@ -10,7 +10,7 @@ export default class LocalVariable extends Variable {
 		this.isReassigned = false;
 		this.exportName = null;
 		this.declarations = new Set( declarator ? [ declarator ] : null );
-		this.boundExpressions = new StructuredAssignmentTracker();
+		this.boundExpressions = new VariableShapeTracker();
 		init && this.boundExpressions.addAtPath( [], init );
 	}
 

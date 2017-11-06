@@ -1,8 +1,8 @@
-import ReplaceableInitVariable from './ReplaceableInitVariable';
+import ReplaceableInitializationVariable from './ReplaceableInitializationVariable';
 
-export default class ParameterVariable extends ReplaceableInitVariable {
+export default class ParameterVariable extends ReplaceableInitializationVariable {
 	constructor ( identifier ) {
-		super( identifier.name, identifier );
+		super( identifier.name, identifier, null );
 	}
 
 	getName () {

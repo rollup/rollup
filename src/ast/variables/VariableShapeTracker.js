@@ -5,7 +5,7 @@ export const UNKNOWN_KEY = { type: 'UNKNOWN_KEY' };
 
 const UNKNOWN_ASSIGNMENTS = new Map( [ [ SET_KEY, new Set( [ UNKNOWN_ASSIGNMENT ] ) ] ] );
 
-export default class StructuredAssignmentTracker {
+export default class VariableShapeTracker {
 	constructor () {
 		this._assignments = new Map( [ [ SET_KEY, new Set() ] ] );
 	}
@@ -21,7 +21,7 @@ export default class StructuredAssignmentTracker {
 		} else {
 			const [ nextPath, ...remainingPath ] = path;
 			if ( !this._assignments.has( nextPath ) ) {
-				this._assignments.set( nextPath, new StructuredAssignmentTracker() );
+				this._assignments.set( nextPath, new VariableShapeTracker() );
 			}
 			this._assignments.get( nextPath ).addAtPath( remainingPath, assignment );
 		}
