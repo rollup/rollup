@@ -1,6 +1,5 @@
 import Node from '../Node.js';
 import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class CallExpression extends Node {
 	bindAssignmentAtPath ( path, expression, options ) {
