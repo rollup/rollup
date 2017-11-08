@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 0.51.0
+* Massive improvements to the treeshaking algorithm ([#1667](https://github.com/rollup/rollup/pull/1667))
+
+## 0.50.1
+* Fix treeshaking regression ([#1695](https://github.com/rollup/rollup/pull/1695))
+* Treeshaking improvements ([#1650](https://github.com/rollup/rollup/pull/1650))
+* Enable installation from Github ([#1670](https://github.com/rollup/rollup/pull/1670))
+* Update documentation ([#1660](https://github.com/rollup/rollup/pull/1660))
+
 ## 0.50.0
 
 * Many treeshaking improvements ([#1624](https://github.com/rollup/rollup/pull/1624))
