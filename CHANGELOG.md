@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.51.1
+* Fix an issue with empty return statements ([#1704](https://github.com/rollup/rollup/pull/1704))
+
 ## 0.51.0
 * Massive improvements to the treeshaking algorithm ([#1667](https://github.com/rollup/rollup/pull/1667))
 
