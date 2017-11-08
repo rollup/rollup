@@ -29,7 +29,7 @@ export default class ExternalVariable extends Variable {
 		return es ? this.safeName : `${this.module.name}.${this.name}`;
 	}
 
-	includeDeclaration () {
+	includeVariable () {
 		if ( this.included ) {
 			return false;
 		}
