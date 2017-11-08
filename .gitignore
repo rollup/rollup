@@ -8,3 +8,5 @@ coverage
 .idea
 bin/rollup
 test/_tmp
+test/hooks/tmp
+test/tmp

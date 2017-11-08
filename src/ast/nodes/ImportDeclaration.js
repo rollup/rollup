@@ -1,10 +1,7 @@
 import Node from '../Node.js';
 
 export default class ImportDeclaration extends Node {
-	bind () {
-		// noop
-		// TODO do the inter-module binding setup here?
-	}
+	bindChildren () {}
 
 	initialiseNode () {
 		this.isImportDeclaration = true;

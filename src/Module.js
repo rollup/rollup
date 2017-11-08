@@ -32,7 +32,10 @@ function tryParse ( module, acornOptions ) {
 }
 
 function includeFully ( node ) {
-	node.includeInBundle();
+	node.included = true;
+	if ( node.variable && !node.variable.included ) {
+		node.variable.includeVariable();
+	}
 	node.eachChild( includeFully );
 }
 
@@ -277,13 +280,6 @@ export default class Module {
 		for ( const node of this.ast.body ) {
 			node.bind();
 		}
-
-		// if ( this.declarations.default ) {
-		// 	if ( this.exports.default.identifier ) {
-		// 		const declaration = this.trace( this.exports.default.identifier );
-		// 		if ( declaration ) this.declarations.default.bind( declaration );
-		// 	}
-		// }
 	}
 
 	error ( props, pos ) {

@@ -2,20 +2,17 @@ import Node from '../../Node.js';
 import Scope from '../../scopes/Scope';
 
 export default class ClassNode extends Node {
-	bindCall ( callOptions ) {
-		if ( this.superClass ) {
-			this.superClass.bindCall( callOptions );
-		}
-		this.body.bindCall( callOptions );
+	hasEffectsWhenAccessedAtPath ( path ) {
+		return path.length > 1;
 	}
 
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options );
+	hasEffectsWhenAssignedAtPath ( path ) {
+		return path.length > 1;
 	}
 
-	hasEffectsWhenCalled ( options ) {
-		return this.body.hasEffectsWhenCalled( options )
-			|| ( this.superClass && this.superClass.hasEffectsWhenCalled( options ) );
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
+		return this.body.hasEffectsWhenCalledAtPath( path, callOptions, options )
+			|| ( this.superClass && this.superClass.hasEffectsWhenCalledAtPath( path, callOptions, options ) );
 	}
 
 	initialiseChildren () {

@@ -2,8 +2,8 @@ import Node from '../Node';
 
 export default class SwitchCase extends Node {
 	includeInBundle () {
-		if ( this.isFullyIncluded() ) return false;
-		let addedNewNodes = false;
+		let addedNewNodes = !this.included;
+		this.included = true;
 		if (this.test && this.test.includeInBundle()) {
 			addedNewNodes = true;
 		}
@@ -14,10 +14,6 @@ export default class SwitchCase extends Node {
 				}
 			}
 		} );
-		if ( !this.included || addedNewNodes ) {
-			this.included = true;
-			return true;
-		}
-		return false;
+		return addedNewNodes;
 	}
 }

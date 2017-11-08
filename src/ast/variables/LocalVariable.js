@@ -1,4 +1,8 @@
 import Variable from './Variable';
+import VariableShapeTracker from './VariableShapeTracker';
+
+// To avoid infinite recursions
+const MAX_PATH_LENGTH = 6;
 
 export default class LocalVariable extends Variable {
 	constructor ( name, declarator, init ) {
@@ -6,27 +10,35 @@ export default class LocalVariable extends Variable {
 		this.isReassigned = false;
 		this.exportName = null;
 		this.declarations = new Set( declarator ? [ declarator ] : null );
-		this.assignedExpressions = new Set( init ? [ init ] : null );
-		this.calls = new Set();
+		this.boundExpressions = new VariableShapeTracker();
+		init && this.boundExpressions.addAtPath( [], init );
 	}
 
 	addDeclaration ( identifier ) {
 		this.declarations.add( identifier );
 	}
 
-	addCall ( callOptions ) {
-		// To prevent infinite loops
-		if ( this.calls.has( callOptions ) ) return;
-		this.calls.add( callOptions );
-		Array.from( this.assignedExpressions ).forEach( expression => expression.bindCall( callOptions ) );
+	bindAssignmentAtPath ( path, expression, options ) {
+		if ( path.length > MAX_PATH_LENGTH || this.boundExpressions.hasAtPath( path, expression ) ) return;
+		this.boundExpressions.addAtPath( path, expression );
+		this.boundExpressions.forEachAssignedToPath( path, ( subPath, node ) => {
+			subPath.length > 0
+			&& expression.bindAssignmentAtPath( subPath, node, options );
+		} );
+		if ( path.length > 0 ) {
+			this.boundExpressions.forEachAtPath( path.slice( 0, -1 ), ( relativePath, node ) =>
+				node.bindAssignmentAtPath( [ ...relativePath, ...path.slice( -1 ) ], expression, options ) );
+		} else {
+			this.isReassigned = true;
+		}
 	}
 
-	addReference () {}
-
-	assignExpression ( expression ) {
-		this.assignedExpressions.add( expression );
-		this.isReassigned = true;
-		Array.from( this.calls ).forEach( callOptions => expression.bindCall( callOptions ) );
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
+		if ( path.length > MAX_PATH_LENGTH ) return;
+		this.boundExpressions.forEachAtPath( path, ( relativePath, node ) =>
+			!options.hasNodeBeenCalledAtPathWithOptions( relativePath, node, callOptions ) && node
+				.forEachReturnExpressionWhenCalledAtPath( relativePath, callOptions, callback,
+					options.addCalledNodeAtPathWithOptions( relativePath, node, callOptions ) ) );
 	}
 
 	getName ( es ) {
@@ -36,27 +48,47 @@ export default class LocalVariable extends Variable {
 		return `exports.${this.exportName}`;
 	}
 
-	hasEffectsWhenCalled ( options ) {
-		return Array.from( this.assignedExpressions ).some( node =>
-			!options.hasNodeBeenCalled( node )
-			&& node.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( node ) )
-		);
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		return path.length > MAX_PATH_LENGTH
+			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
+				!options.hasNodeBeenAccessedAtPath( relativePath, node ) && node
+					.hasEffectsWhenAccessedAtPath( relativePath,
+						options.addAccessedNodeAtPath( relativePath, node ) ) );
 	}
 
-	hasEffectsWhenMutated ( options ) {
+	hasEffectsWhenAssignedAtPath ( path, options ) {
 		return this.included
-			|| Array.from( this.assignedExpressions ).some( node =>
-				!options.hasNodeBeenMutated( node ) &&
-				node.hasEffectsWhenMutated( options.addMutatedNode( node ) )
+			|| path.length > MAX_PATH_LENGTH
+			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
+				relativePath.length > 0
+				&& !options.hasNodeBeenAssignedAtPath( relativePath, node ) && node
+					.hasEffectsWhenAssignedAtPath( relativePath,
+						options.addAssignedNodeAtPath( relativePath, node ) ) );
+	}
+
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
+		return path.length > MAX_PATH_LENGTH
+			|| (this.included && path.length > 0)
+			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
+				!options.hasNodeBeenCalledAtPathWithOptions( relativePath, node, callOptions ) && node
+					.hasEffectsWhenCalledAtPath( relativePath, callOptions,
+						options.addCalledNodeAtPathWithOptions( relativePath, node, callOptions ) )
 			);
 	}
 
 	includeVariable () {
-		const hasBeenIncluded = super.includeVariable();
-		if ( hasBeenIncluded ) {
-			this.declarations.forEach( identifier => identifier.includeInBundle() );
-		}
-		return hasBeenIncluded;
+		if ( !super.includeVariable() ) return false;
+		this.declarations.forEach( identifier => identifier.includeInBundle() );
+		return true;
+	}
+
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
+		return path.length > MAX_PATH_LENGTH
+			|| (this.included && path.length > 0)
+			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
+				!options.hasNodeBeenCalledAtPathWithOptions( relativePath, node, callOptions ) && node
+					.someReturnExpressionWhenCalledAtPath( relativePath, callOptions, predicateFunction,
+						options.addCalledNodeAtPathWithOptions( relativePath, node, callOptions ) ) );
 	}
 
 	toString () {

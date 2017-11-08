@@ -1,12 +1,14 @@
 import Node from '../Node.js';
 
 export default class ObjectPattern extends Node {
-	bindAssignment ( expression ) {
-		this.properties.forEach( child => child.bindAssignment( expression ) );
+	bindAssignmentAtPath ( path, expression, options ) {
+		path.length === 0
+		&& this.properties.forEach( child => child.bindAssignmentAtPath( path, expression, options ) );
 	}
 
-	hasEffectsWhenAssigned ( options ) {
-		return this.someChild( child => child.hasEffectsWhenAssigned( options ) );
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		return path.length > 0
+			|| this.someChild( child => child.hasEffectsWhenAssignedAtPath( [], options ) );
 	}
 
 	initialiseAndDeclare ( parentScope, kind, init ) {

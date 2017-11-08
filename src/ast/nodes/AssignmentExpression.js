@@ -1,18 +1,19 @@
 import Node from '../Node.js';
 import disallowIllegalReassignment from './shared/disallowIllegalReassignment.js';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class AssignmentExpression extends Node {
-	bind () {
-		super.bind();
+	bindNode () {
 		disallowIllegalReassignment( this.scope, this.left );
-		this.left.bindAssignment( this.right );
+		this.left.bindAssignmentAtPath( [], this.right, ExecutionPathOptions.create() );
 	}
 
 	hasEffects ( options ) {
-		return super.hasEffects( options ) || this.left.hasEffectsWhenAssigned( options );
+		return super.hasEffects( options ) || this.left.hasEffectsWhenAssignedAtPath( [], options );
 	}
 
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options );
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		return path.length > 0
+			&& this.right.hasEffectsWhenAccessedAtPath( path, options );
 	}
 }

@@ -1,13 +1,10 @@
-let a = {};
+let a = { foo: () => {}, bar: () => () => {} };
 let b = a;
 a = b;
-a.foo = 1;
-b = b;
-b.foo = 1;
+a.foo = () => {};
+a.foo();
 
-let c = () => {};
-let d = c;
-c = d;
-c();
-d = d;
-d();
+b = b;
+b.bar = () => () => {};
+
+b.bar()();

@@ -1,32 +1,48 @@
+/* eslint-disable no-unused-vars */
+
 import { locate } from 'locate-character';
-import { UNKNOWN_VALUE } from './values.js';
+import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE } from './values.js';
 import ExecutionPathOptions from './ExecutionPathOptions';
 
 export default class Node {
+	constructor () {
+		this.keys = [];
+	}
+
 	/**
 	 * Called once all nodes have been initialised and the scopes have been populated.
-	 * Use this to bind assignments and calls to variables.
+	 * Usually one should not override this function but override bindNode and/or
+	 * bindChildren instead.
 	 */
 	bind () {
+		this.bindChildren();
+		this.bindNode();
+	}
+
+	/**
+	 * Bind an expression as an assignment to a node given a path.
+	 * E.g., node.bindAssignmentAtPath(['x', 'y'], otherNode) is called when otherNode
+	 * is assigned to node.x.y.
+	 * The default noop implementation is ok as long as hasEffectsWhenAssignedAtPath
+	 * always returns true for this node. Otherwise it should be overridden.
+	 * @param {String[]} path
+	 * @param {Node} expression
+	 * @param {ExecutionPathOptions} options
+	 */
+	bindAssignmentAtPath ( path, expression, options ) {}
+
+	/**
+	 * Override to control on which children "bind" is called.
+	 */
+	bindChildren () {
 		this.eachChild( child => child.bind() );
 	}
 
 	/**
-	 * Bind an expression as an assignment to a node.
-	 * The default noop implementation is ok as long as hasEffectsWhenAssigned
-	 * always returns true for this node. Otherwise it should be overridden.
-	 * @param {Node} expression
+	 * Override this to bind assignments to variables and do any initialisations that
+	 * require the scopes to be populated with variables.
 	 */
-	bindAssignment () {}
-
-	/**
-	 * Binds ways a node is called to a node. Current options are:
-	 * - withNew: boolean - Did this call use the "new" operator
-	 * The default noop implementation is ok as long as hasEffectsWhenCalled
-	 * always returns true for this node. Otherwise it should be overridden.
-	 * @param callOptions
-	 */
-	bindCall () {}
+	bindNode () {}
 
 	eachChild ( callback ) {
 		this.keys.forEach( key => {
@@ -41,6 +57,15 @@ export default class Node {
 		} );
 	}
 
+	/**
+	 * Executes the callback on each possible return expression when calling this node.
+	 * @param {String[]} path
+	 * @param {CallOptions} callOptions
+	 * @param {Function} callback
+	 * @param {ExecutionPathOptions} options
+	 */
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {}
+
 	getValue () {
 		return UNKNOWN_VALUE;
 	}
@@ -54,65 +79,63 @@ export default class Node {
 	 * @return {boolean}
 	 */
 	hasEffects ( options ) {
-		return this.included || this.someChild( child => child.hasEffects( options ) );
+		return this.hasEffectsWhenAccessedAtPath( [], options )
+			|| this.someChild( child => child.hasEffects( options ) );
 	}
 
 	/**
-	 * Special make-shift logic to treat cases where apparently side-effect free statements
-	 * are executed for side-effects. The most important case are getters with side-effects.
-	 * Once we can reliably handle this case in member expressions, this function should
-	 * probably be removed again.
+	 * @param {String[]} path
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsAsExpressionStatement () {
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		return path.length > 0;
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {ExecutionPathOptions} options
+	 * @return {boolean}
+	 */
+	hasEffectsWhenAssignedAtPath ( path, options ) {
 		return true;
 	}
 
 	/**
+	 * @param {String[]} path
+	 * @param {CallOptions} callOptions
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAssigned () {
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
 		return true;
 	}
 
 	/**
-	 * @param {ExecutionPathOptions} options
+	 * Returns true if this node or any of its children is included.
 	 * @return {boolean}
 	 */
-	hasEffectsWhenCalled () {
-		return true;
-	}
-
-	/**
-	 * @param {ExecutionPathOptions} options
-	 * @return {boolean}
-	 */
-	hasEffectsWhenMutated () {
-		return true;
+	hasIncludedChild () {
+		return this.included
+			|| this.someChild( child => child.hasIncludedChild() );
 	}
 
 	/**
 	 * Includes the node in the bundle. Children are usually included if they are
 	 * necessary for this node (e.g. a function body) or if they have effects.
-	 * Necessary variables should be included as well. Should return true if any
+	 * Necessary variables need to be included as well. Should return true if any
 	 * nodes or variables have been added that were missing before.
 	 * @return {boolean}
 	 */
 	includeInBundle () {
-		if ( this.isFullyIncluded() ) return false;
-		let addedNewNodes = false;
+		let addedNewNodes = !this.included;
+		this.included = true;
 		this.eachChild( childNode => {
 			if ( childNode.includeInBundle() ) {
 				addedNewNodes = true;
 			}
 		} );
-		if ( this.included && !addedNewNodes ) {
-			return false;
-		}
-		this.included = true;
-		return true;
+		return addedNewNodes;
 	}
 
 	/**
@@ -144,7 +167,7 @@ export default class Node {
 	 * Override to change how and with what scopes children are initialised
 	 * @param {Scope} parentScope
 	 */
-	initialiseChildren () {
+	initialiseChildren ( parentScope ) {
 		this.eachChild( child => child.initialise( this.scope ) );
 	}
 
@@ -152,7 +175,7 @@ export default class Node {
 	 * Override to perform special initialisation steps after the scope is initialised
 	 * @param {Scope} parentScope
 	 */
-	initialiseNode () {}
+	initialiseNode ( parentScope ) {}
 
 	/**
 	 * Override if this scope should receive a different scope than the parent scope.
@@ -166,18 +189,6 @@ export default class Node {
 		if ( code.original[ this.end - 1 ] !== ';' ) {
 			code.appendLeft( this.end, ';' );
 		}
-	}
-
-	/**
-	 * Shortcut to skip checking this node for effects when all children have already
-	 * been included.
-	 * @param {Scope} parentScope
-	 */
-	isFullyIncluded () {
-		if ( this._fullyIncluded ) {
-			return true;
-		}
-		this._fullyIncluded = this.included && !this.someChild( child => !child.isFullyIncluded() );
 	}
 
 	locate () {
@@ -195,13 +206,15 @@ export default class Node {
 
 	/**
 	 * Start a new execution path to determine if this node has an effect on the bundle and
-	 * should therefore be included. Unless they are fully included, included nodes should
-	 * always be included again in subsequent visits as the inclusion of additional variables
-	 * may require the inclusion of more child nodes in e.g. block statements.
+	 * should therefore be included. Included nodes should always be included again in subsequent
+	 * visits as the inclusion of additional variables may require the inclusion of more child
+	 * nodes in e.g. block statements.
 	 * @return {boolean}
 	 */
 	shouldBeIncluded () {
-		return this.hasEffects( ExecutionPathOptions.create() );
+		return this.included
+			|| this.hasEffects( ExecutionPathOptions.create() )
+			|| this.hasIncludedChild();
 	}
 
 	someChild ( callback ) {
@@ -214,6 +227,19 @@ export default class Node {
 			}
 			return callback( value );
 		} );
+	}
+
+	/**
+	 * Returns true if some possible return expression when called at the given
+	 * path returns true. predicateFunction receives a `node` as parameter.
+	 * @param {String[]} path
+	 * @param {CallOptions} callOptions
+	 * @param {Function} predicateFunction
+	 * @param {ExecutionPathOptions} options
+	 * @returns {boolean}
+	 */
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
+		return predicateFunction( options )( UNKNOWN_ASSIGNMENT );
 	}
 
 	toString () {

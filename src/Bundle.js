@@ -261,11 +261,9 @@ export default class Bundle {
 
 		this.modules.forEach( module => {
 			forOwn( module.scope.variables, variable => {
-				if ( variable.isDefault && variable.declaration.id ) {
-					return;
+				if ( !variable.isDefault || !variable.hasId ) {
+					variable.name = getSafeName( variable.name );
 				}
-
-				variable.name = getSafeName( variable.name );
 			} );
 
 			// deconflict reified namespaces

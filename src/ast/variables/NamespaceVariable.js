@@ -15,19 +15,17 @@ export default class NamespaceVariable extends Variable {
 		} );
 	}
 
-	addReference ( node ) {
-		this.name = node.name;
+	addReference ( identifier ) {
+		this.name = identifier.name;
 	}
 
-	assignExpression () {}
-
 	includeVariable () {
-		const hasBeenIncluded = super.includeVariable();
-		if ( hasBeenIncluded ) {
-			this.needsNamespaceBlock = true;
-			forOwn( this.originals, original => original.includeVariable() );
+		if ( !super.includeVariable() ) {
+			return false;
 		}
-		return hasBeenIncluded;
+		this.needsNamespaceBlock = true;
+		forOwn( this.originals, original => original.includeVariable() );
+		return true;
 	}
 
 	renderBlock ( es, legacy, indentString ) {

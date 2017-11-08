@@ -4,7 +4,7 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	const items = [{}, {}, {}];
+	const items = { children: [ {}, {}, {} ] };
 
 	function a () {
 		for ( const item of items.children ) {
@@ -27,6 +27,6 @@
 		{ foo: 'a', bar: 'c' },
 		{ foo: 'a', bar: 'c' },
 		{ foo: 'a', bar: 'c' }
-	]);
+	] );
 
 })));

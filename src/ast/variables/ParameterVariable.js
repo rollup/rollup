@@ -1,9 +1,8 @@
-import LocalVariable from './LocalVariable';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import ReplaceableInitializationVariable from './ReplaceableInitializationVariable';
 
-export default class ParameterVariable extends LocalVariable {
-	constructor ( name, declarator ) {
-		super( name, declarator, UNKNOWN_ASSIGNMENT );
+export default class ParameterVariable extends ReplaceableInitializationVariable {
+	constructor ( identifier ) {
+		super( identifier.name, identifier, null );
 	}
 
 	getName () {

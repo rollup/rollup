@@ -1,8 +1,6 @@
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
-import flatten from '../utils/flatten';
-import isReference from 'is-reference';
-import pureFunctions from './shared/pureFunctions';
+import { UNKNOWN_KEY } from '../variables/VariableShapeTracker';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -33,6 +31,7 @@ export default class MemberExpression extends Node {
 		// if this resolves to a namespaced declaration, prepare
 		// to replace it
 		// TODO this code is a bit inefficient
+		this._bound = true;
 		const keypath = new Keypath( this );
 
 		if ( !keypath.computed && keypath.root.type === 'Identifier' ) {
@@ -77,14 +76,52 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	bindCall ( callOptions ) {
+	bindAssignmentAtPath ( path, expression, options ) {
+		if ( !this._bound ) this.bind();
 		if ( this.variable ) {
-			this.variable.addCall( callOptions );
+			this.variable.bindAssignmentAtPath( path, expression, options );
+		} else {
+			this.object.bindAssignmentAtPath( [ this._getPathSegment(), ...path ], expression, options );
 		}
 	}
 
-	hasEffectsWhenAssigned ( options ) {
-		return this.object.hasEffectsWhenMutated( options );
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
+		if ( !this._bound ) this.bind();
+		if ( this.variable ) {
+			this.variable.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback, options );
+		} else {
+			this.object.forEachReturnExpressionWhenCalledAtPath( [ this._getPathSegment(), ...path ], callOptions, callback, options );
+		}
+	}
+
+	hasEffects ( options ) {
+		return super.hasEffects( options )
+			|| this.object.hasEffectsWhenAccessedAtPath( [ this._getPathSegment() ], options );
+	}
+
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		if ( path.length === 0 ) {
+			return false;
+		}
+		if ( this.variable ) {
+			return this.variable.hasEffectsWhenAccessedAtPath( path, options );
+		}
+		return this.object.hasEffectsWhenAccessedAtPath( [ this._getPathSegment(), ...path ], options );
+	}
+
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		if ( this.variable ) {
+			return this.variable.hasEffectsWhenAssignedAtPath( path, options );
+		}
+		return this.object.hasEffectsWhenAssignedAtPath( [ this._getPathSegment(), ...path ], options );
+	}
+
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
+		if ( this.variable ) {
+			return this.variable.hasEffectsWhenCalledAtPath( path, callOptions, options );
+		}
+		return this._getPathSegment() === UNKNOWN_KEY
+			|| this.object.hasEffectsWhenCalledAtPath( [ this._getPathSegment(), ...path ], callOptions, options );
 	}
 
 	includeInBundle () {
@@ -94,17 +131,6 @@ export default class MemberExpression extends Node {
 			addedNewNodes = true;
 		}
 		return addedNewNodes;
-	}
-
-	hasEffectsWhenCalled ( options ) {
-		if ( this.variable ) {
-			return this.variable.hasEffectsWhenCalled( options );
-		}
-		if ( !isReference( this ) ) {
-			return true;
-		}
-		const flattenedNode = flatten( this );
-		return !(this.scope.findVariable( flattenedNode.name ).isGlobal && pureFunctions[ flattenedNode.keypath ]);
 	}
 
 	render ( code, es ) {
@@ -118,5 +144,21 @@ export default class MemberExpression extends Node {
 		}
 
 		super.render( code, es );
+	}
+
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
+		if ( this.variable ) {
+			return this.variable.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options );
+		}
+		return this._getPathSegment() === UNKNOWN_KEY
+			|| this.object.someReturnExpressionWhenCalledAtPath( [ this._getPathSegment(), ...path ],
+				callOptions, predicateFunction, options );
+	}
+
+	_getPathSegment () {
+		if ( this.computed ) {
+			return this.property.type === 'Literal' ? String( this.property.value ) : UNKNOWN_KEY;
+		}
+		return this.property.name;
 	}
 }

@@ -1,5 +1,6 @@
 import Node from '../Node.js';
-import { UNKNOWN_VALUE } from '../values.js';
+import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE } from '../values';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 const operators = {
 	'-': value => -value,
@@ -12,8 +13,10 @@ const operators = {
 };
 
 export default class UnaryExpression extends Node {
-	bind () {
-		if ( this.value === UNKNOWN_VALUE ) super.bind();
+	bindNode () {
+		if ( this.operator === 'delete' ) {
+			this.argument.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT, ExecutionPathOptions.create() );
+		}
 	}
 
 	getValue () {
@@ -24,16 +27,15 @@ export default class UnaryExpression extends Node {
 	}
 
 	hasEffects ( options ) {
-		return this.included
-			|| this.argument.hasEffects( options )
-			|| (this.operator === 'delete' && (
-				this.argument.type !== 'MemberExpression'
-				|| this.argument.object.hasEffectsWhenMutated( options )
-			));
+		return this.argument.hasEffects( options )
+			|| (this.operator === 'delete' && this.argument.hasEffectsWhenAssignedAtPath( [], options ));
 	}
 
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options );
+	hasEffectsWhenAccessedAtPath ( path ) {
+		if ( this.operator === 'void' ) {
+			return path.length > 0;
+		}
+		return path.length > 1;
 	}
 
 	initialiseNode () {
