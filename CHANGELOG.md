@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.51.2
+* Fix treeshaking regression when labels are used inside functions ([#1712](https://github.com/rollup/rollup/pull/1712))
+
 ## 0.51.1
 * Fix an issue with empty return statements ([#1704](https://github.com/rollup/rollup/pull/1704))
 
