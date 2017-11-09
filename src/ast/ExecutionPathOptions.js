@@ -36,6 +36,16 @@ export default class ExecutionPathOptions {
 	}
 
 	/**
+	 * Returns a new ExecutionPathOptions instance with the given option removed.
+	 * Does not mutate the current instance. Also works in sub-classes.
+	 * @param {string} option - The name of an option
+	 * @returns {*} Its value
+	 */
+	remove ( option ) {
+		return new this.constructor( this._optionValues.remove( option ) );
+	}
+
+	/**
 	 * Returns a new ExecutionPathOptions instance with the given option set to a new value.
 	 * Does not mutate the current instance. Also works in sub-classes.
 	 * @param {string} option - The name of an option
@@ -245,7 +255,7 @@ export default class ExecutionPathOptions {
 	 * @return {ExecutionPathOptions}
 	 */
 	setIgnoreNoLabels () {
-		return this.set( OPTION_IGNORED_LABELS, null );
+		return this.remove( OPTION_IGNORED_LABELS );
 	}
 
 	/**
