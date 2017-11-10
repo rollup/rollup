@@ -2,7 +2,7 @@ import { forOwn } from '../../utils/object.js';
 import relativeId from '../../utils/relativeId.js';
 import Scope from './Scope.js';
 import LocalVariable from '../variables/LocalVariable';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import { UNDEFINED_ASSIGNMENT } from '../values';
 
 export default class ModuleScope extends Scope {
 	constructor ( module ) {
@@ -12,7 +12,7 @@ export default class ModuleScope extends Scope {
 		} );
 
 		this.module = module;
-		this.variables.this = new LocalVariable( 'this', null, UNKNOWN_ASSIGNMENT );
+		this.variables.this = new LocalVariable( 'this', null, UNDEFINED_ASSIGNMENT );
 	}
 
 	deshadow ( names ) {

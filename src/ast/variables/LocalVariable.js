@@ -19,7 +19,10 @@ export default class LocalVariable extends Variable {
 	}
 
 	bindAssignmentAtPath ( path, expression, options ) {
-		if ( path.length > MAX_PATH_LENGTH || this.boundExpressions.hasAtPath( path, expression ) ) return;
+		if ( expression.variable ) {
+			expression = expression.variable;
+		}
+		if ( path.length > MAX_PATH_LENGTH || expression === this || this.boundExpressions.hasAtPath( path, expression ) ) return;
 		this.boundExpressions.addAtPath( path, expression );
 		this.boundExpressions.forEachAssignedToPath( path, ( subPath, node ) => {
 			subPath.length > 0

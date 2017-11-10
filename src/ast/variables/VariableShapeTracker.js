@@ -67,6 +67,7 @@ export default class VariableShapeTracker {
 	}
 
 	hasAtPath ( path, assignment ) {
+		if ( this._assignments === UNKNOWN_ASSIGNMENTS ) return true;
 		if ( path.length === 0 ) {
 			return this._assignments.get( SET_KEY ).has( assignment );
 		} else {
@@ -99,5 +100,12 @@ export default class VariableShapeTracker {
 						))
 				)
 			);
+	}
+
+	// For debugging purposes
+	toString ( pathString = '' ) {
+		return Array.from( this._assignments ).map( ( [ subPath, subAssignment ] ) => subPath === SET_KEY
+			? Array.from( subAssignment ).map( assignment => pathString + assignment.toString() ).join( '\n' )
+			: subAssignment.toString( pathString + subPath + ': ' ) ).join( '\n' );
 	}
 }

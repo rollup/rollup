@@ -1,9 +1,9 @@
 import LocalVariable from './LocalVariable';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import { UNDEFINED_ASSIGNMENT, UNKNOWN_ASSIGNMENT } from '../values';
 
 const getParameterVariable = ( path, options ) =>
 	(path[ 0 ] < options.getArgumentsVariables().length && options.getArgumentsVariables()[ path[ 0 ] ] )
-	|| UNKNOWN_ASSIGNMENT;
+	|| UNDEFINED_ASSIGNMENT;
 
 export default class ArgumentsVariable extends LocalVariable {
 	constructor ( parameters ) {
