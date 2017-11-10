@@ -32,16 +32,16 @@ export default class SequenceExpression extends Node {
 
 		else {
 			const last = this.expressions[ this.expressions.length - 1 ];
-			const included = this.expressions.slice( 0, this.expressions.length - 1 ).filter( expression => expression.included );
+			last.render( code, es );
 
+			const included = this.expressions.slice( 0, this.expressions.length - 1 ).filter( expression => expression.included );
 			if ( included.length === 0 ) {
 				code.remove( this.start, last.start );
 				code.remove( last.end, this.end );
-			}
-
-			else {
+			} else {
 				let previousEnd = this.start;
 				for ( const expression of included ) {
+					expression.render( code, es );
 					code.remove( previousEnd, expression.start );
 					code.appendLeft( expression.end, ', ' );
 					previousEnd = expression.end;
