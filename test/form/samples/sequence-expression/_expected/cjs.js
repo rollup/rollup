@@ -16,3 +16,6 @@ console.log(d);
 // should infer value
 // should keep f import
 var e = (foo$1());
+
+// should properly render complex sub-expressions
+var g = ((() => {console.log(foo$1());})(), 1);

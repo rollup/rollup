@@ -18,3 +18,6 @@ if ((1, 2) !== 2) {
 
 // should keep f import
 var e = (0, f.foo());
+
+// should properly render complex sub-expressions
+var g = ((() => {})(), (() => {console.log(f.foo())})(), 1);

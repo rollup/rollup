@@ -41,7 +41,7 @@ export default class SequenceExpression extends Node {
 			} else {
 				let previousEnd = this.start;
 				for ( const expression of included ) {
-					expression.render();
+					expression.render( code, es );
 					code.remove( previousEnd, expression.start );
 					code.appendLeft( expression.end, ', ' );
 					previousEnd = expression.end;
