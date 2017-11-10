@@ -1,3 +1,4 @@
+import * as f from './foo';
 // should remove expressions without side-effect, multiple effects
 var a = (0, foo(), 1, foo(), 2);
 // without white-space, effect at the end
@@ -15,3 +16,5 @@ if ((1, 2) !== 2) {
 	console.log( 'effect' );
 }
 
+// should keep f import
+var e = (0, f.foo());
