@@ -1,15 +1,23 @@
 # rollup changelog
 
+## 0.51.3
+
+* Fix regression when treeshaking sequence expressions ([#1717](https://github.com/rollup/rollup/pull/1717))
+
 ## 0.51.2
+
 * Fix treeshaking regression when labels are used inside functions ([#1712](https://github.com/rollup/rollup/pull/1712))
 
 ## 0.51.1
+
 * Fix an issue with empty return statements ([#1704](https://github.com/rollup/rollup/pull/1704))
 
 ## 0.51.0
+
 * Massive improvements to the treeshaking algorithm ([#1667](https://github.com/rollup/rollup/pull/1667))
 
 ## 0.50.1
+
 * Fix treeshaking regression ([#1695](https://github.com/rollup/rollup/pull/1695))
 * Treeshaking improvements ([#1650](https://github.com/rollup/rollup/pull/1650))
 * Enable installation from Github ([#1670](https://github.com/rollup/rollup/pull/1670))
