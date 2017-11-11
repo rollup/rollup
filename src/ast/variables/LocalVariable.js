@@ -1,8 +1,8 @@
 import Variable from './Variable';
 import VariableShapeTracker from './VariableShapeTracker';
 
-// To avoid infinite recursions
-const MAX_PATH_LENGTH = 6;
+// To avoid exponential performance degradation for complex object manipulations
+const MAX_PATH_LENGTH = 2;
 
 export default class LocalVariable extends Variable {
 	constructor ( name, declarator, init ) {
@@ -54,9 +54,9 @@ export default class LocalVariable extends Variable {
 	hasEffectsWhenAccessedAtPath ( path, options ) {
 		return path.length > MAX_PATH_LENGTH
 			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
-				!options.hasNodeBeenAccessedAtPath( relativePath, node ) && node
-					.hasEffectsWhenAccessedAtPath( relativePath,
-						options.addAccessedNodeAtPath( relativePath, node ) ) );
+				relativePath.length > 0
+				&& !options.hasNodeBeenAccessedAtPath( relativePath, node )
+				&& node.hasEffectsWhenAccessedAtPath( relativePath, options.addAccessedNodeAtPath( relativePath, node ) ) );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
