@@ -1,5 +1,5 @@
 import Statement from './shared/Statement.js';
-import {UNKNOWN_ASSIGNMENT} from '../values';
+import { UNDEFINED_ASSIGNMENT } from '../values';
 
 export default class ReturnStatement extends Statement {
 	hasEffects ( options ) {
@@ -8,6 +8,6 @@ export default class ReturnStatement extends Statement {
 	}
 
 	initialiseNode () {
-		this.scope.addReturnExpression( this.argument || UNKNOWN_ASSIGNMENT );
+		this.scope.addReturnExpression( this.argument || UNDEFINED_ASSIGNMENT );
 	}
 }
