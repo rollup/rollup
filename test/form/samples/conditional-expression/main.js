@@ -20,7 +20,8 @@ var e3 = (true ? () => () => {} : () => () => console.log( 'effect' ))()();
 var f1 = false ? foo() : 2;
 var f2 = (false ? function () {this.x = 1;} : function () {})();
 var f3 = (false ? () => () => console.log( 'effect' ) : () => () => {})()();
-var g = true ? 1 : 2;
+var g1 = true ? 1 : 2;
+var g2 = true || foo() ? 1 : 2;
 
 // known side-effect
 var h1 = true ? foo() : 2;

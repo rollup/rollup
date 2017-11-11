@@ -40,20 +40,17 @@ export default class ConditionalExpression extends Node {
 	}
 
 	initialiseChildren ( parentScope ) {
+		super.initialiseChildren( parentScope );
 		if ( this.module.bundle.treeshake ) {
 			this.testValue = this.test.getValue();
 
 			if ( this.testValue === UNKNOWN_VALUE ) {
-				super.initialiseChildren( parentScope );
+				return;
 			} else if ( this.testValue ) {
-				this.consequent.initialise( this.scope );
 				this.alternate = null;
 			} else if ( this.alternate ) {
-				this.alternate.initialise( this.scope );
 				this.consequent = null;
 			}
-		} else {
-			super.initialiseChildren( parentScope );
 		}
 	}
 
