@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.51.4
+
+* Fix regressions preventing builds ([#1725](https://github.com/rollup/rollup/pull/1725))
+
 ## 0.51.3
 
 * Fix regression when treeshaking sequence expressions ([#1717](https://github.com/rollup/rollup/pull/1717))
