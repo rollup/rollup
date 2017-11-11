@@ -10,7 +10,6 @@ const retained1a = {
 
 const removed1 = retained1a.noEffect;
 const retained1b = retained1a.effect;
-const retained1c = retained1a[ 'eff' + 'ect' ];
 
 const removed2a = {
 	get shadowedEffect () {
@@ -33,14 +32,6 @@ const retained3 = {
 };
 
 retained3.effect = 'retained';
-
-const retained4 = {
-	set effect ( value ) {
-		console.log( value );
-	}
-};
-
-retained4[ 'eff' + 'ect' ] = 'retained';
 
 const removed5 = {
 	set noEffect ( value ) {
