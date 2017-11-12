@@ -1,3 +1,5 @@
+import Warning from '../../Warning.js';
+
 const builtins = {
 	process: true,
 	events: true,
@@ -35,7 +37,7 @@ export default function warnOnBuiltins ( bundle ) {
 		`module ('${externalBuiltins[0]}')` :
 		`modules (${externalBuiltins.slice( 0, -1 ).map( name => `'${name}'` ).join( ', ' )} and '${externalBuiltins.slice( -1 )}')`;
 
-	bundle.warn({
+	Warning.print({
 		code: 'MISSING_NODE_BUILTINS',
 		modules: externalBuiltins,
 		message: `Creating a browser bundle that depends on Node.js built-in ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`

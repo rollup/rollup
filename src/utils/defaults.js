@@ -1,6 +1,5 @@
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs.js'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path.js';
-import { blank } from './object.js';
 import error from './error.js';
 
 export function load ( id ) {
@@ -46,16 +45,4 @@ export function resolveId ( importee, importer ) {
 	// See https://nodejs.org/api/path.html#path_path_resolve_paths
 	return addJsExtensionIfNecessary(
 		resolve( importer ? dirname( importer ) : resolve(), importee ) );
-}
-
-
-export function makeOnwarn () {
-	const warned = blank();
-
-	return warning => {
-		const str = warning.toString();
-		if ( str in warned ) return;
-		console.error( str ); //eslint-disable-line no-console
-		warned[ str ] = true;
-	};
 }

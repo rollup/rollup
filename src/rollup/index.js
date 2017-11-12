@@ -7,6 +7,7 @@ import validateKeys from '../utils/validateKeys.js';
 import error from '../utils/error.js';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL.js';
 import Bundle from '../Bundle.js';
+import Warning from '../Warning.js';
 
 export const VERSION = '<@VERSION@>';
 
@@ -54,23 +55,20 @@ function checkAmd ( options ) {
 		options.amd = { id: options.moduleId };
 		delete options.moduleId;
 
-		const message = `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`;
-		if ( options.onwarn ) {
-			options.onwarn({ message });
-		} else {
-			console.warn( message ); // eslint-disable-line no-console
-		}
+		Warning.print({ 
+			message: `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`
+		 });
 	}
 }
 
-function checkInputOptions ( options, warn ) {
+function checkInputOptions ( options ) {
 	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
 		throw new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
 	}
 
 	if ( options.entry && !options.input ) {
 		options.input = options.entry;
-		warn({
+		Warning.print({
 			message: `options.entry is deprecated, use options.input`
 		});
 	}
@@ -87,7 +85,7 @@ const deprecated = {
 	useStrict: 'strict'
 };
 
-function checkOutputOptions ( options, warn ) {
+function checkOutputOptions ( options ) {
 	if ( options.format === 'es6' ) {
 		error({
 			message: 'The `es6` output format is deprecated – use `es` instead',
@@ -108,7 +106,7 @@ function checkOutputOptions ( options, warn ) {
 		options.amd = { id: options.moduleId };
 		delete options.moduleId;
 
-		warn({
+		Warning.print({
 			message: `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`
 		});
 	}
@@ -124,7 +122,7 @@ function checkOutputOptions ( options, warn ) {
 
 	if ( deprecations.length ) {
 		const message = `The following options have been renamed — please update your config: ${deprecations.map(option => `${option.old} -> ${option.new}`).join(', ')}`;
-		warn({
+		Warning.print({
 			code: 'DEPRECATED_OPTIONS',
 			message,
 			deprecations
@@ -144,9 +142,9 @@ export default function rollup ( options ) {
 			throw new Error( 'You must supply an options object to rollup' );
 		}
 
-		const warn = options.onwarn || (warning => console.warn( warning.message )); // eslint-disable-line no-console
+		Warning.onwarn = options.onwarn;
 
-		checkInputOptions( options, warn );
+		checkInputOptions( options );
 		const bundle = new Bundle( options );
 
 		timeStart( '--BUILD--' );
@@ -158,7 +156,7 @@ export default function rollup ( options ) {
 				if ( !options ) {
 					throw new Error( 'You must supply an options object' );
 				}
-				checkOutputOptions( options, warn );
+				checkOutputOptions( options );
 				checkAmd( options );
 
 				timeStart( '--GENERATE--' );

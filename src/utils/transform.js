@@ -2,6 +2,7 @@ import { decode } from 'sourcemap-codec';
 import { locate } from 'locate-character';
 import error from './error.js';
 import getCodeFrame from './getCodeFrame.js';
+import Warning from '../Warning.js';
 
 export default function transform ( bundle, source, id, plugins ) {
 	const sourcemapChain = [];
@@ -54,7 +55,7 @@ export default function transform ( bundle, source, id, plugins ) {
 			const context = {
 				warn: ( warning, pos ) => {
 					warning = augment( warning, pos, 'PLUGIN_WARNING' );
-					bundle.warn( warning );
+					Warning.print( warning );
 				},
 
 				error ( err, pos ) {

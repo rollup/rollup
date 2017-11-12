@@ -1,3 +1,5 @@
+import Warning from '../../Warning.js';
+
 export default function getGlobalNameMaker ( globals, bundle, fallback = null ) {
 	const fn = typeof globals === 'function' ? globals : id => globals[ id ];
 
@@ -6,7 +8,7 @@ export default function getGlobalNameMaker ( globals, bundle, fallback = null ) 
 		if ( name ) return name;
 
 		if ( Object.keys( module.declarations ).length > 0 ) {
-			bundle.warn({
+			Warning.print({
 				code: 'MISSING_GLOBAL_NAME',
 				source: module.id,
 				guess: module.name,

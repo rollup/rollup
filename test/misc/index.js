@@ -1,5 +1,6 @@
 const assert = require('assert');
 const rollup = require('../../dist/rollup');
+const { Warning } = require('../../dist/rollup');
 const { executeBundle, loader } = require('../utils.js');
 
 describe('sanity checks', () => {
@@ -269,6 +270,42 @@ describe('misc', () => {
 					relevantWarnings[0].message,
 					`Creating a browser bundle that depends on Node.js built-in module ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`
 				);
+			});
+	});
+
+	it('plugins can throw warning', () => {
+		const expectedWarning = {
+			code: 'EXPECTED_WARNING',
+			message: 'This plugin is able to throw a warning',
+		};
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					{
+						resolveId(id, importer) {
+							Warning.print(expectedWarning);
+							return null;
+						}
+					},
+					loader({
+						input: `export const test = 0;`
+					})
+				],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'cjs',
+					name: 'myBundle'
+				})
+			)
+			.then(() => {
+				assert.equal(warnings.length, 1);
+				assert.equal(warnings[0].code, expectedWarning.code);
+				assert.equal(warnings[0].message, expectedWarning.message);
 			});
 	});
 });
