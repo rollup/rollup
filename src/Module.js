@@ -14,6 +14,8 @@ import extractNames from './ast/utils/extractNames.js';
 import enhance from './ast/enhance.js';
 import clone from './ast/clone.js';
 import ModuleScope from './ast/scopes/ModuleScope.js';
+import { encode } from 'sourcemap-codec';
+import { SourceMapConsumer } from 'source-map';
 
 function tryParse ( module, acornOptions ) {
 	try {
@@ -282,14 +284,40 @@ export default class Module {
 		}
 	}
 
+	getOriginalLocation (sourcemapChain, line, column) {
+		let location = {
+			line,
+			column
+		};
+		const filteredSourcemapChain =
+			sourcemapChain.filter(sourcemap => sourcemap.mappings).map(sourcemap => {
+				const encodedSourcemap = sourcemap;
+				if (sourcemap.mappings) {
+					encodedSourcemap.mappings = encode(encodedSourcemap.mappings);
+				}
+				return encodedSourcemap;
+			});
+		while (filteredSourcemapChain.length > 0) {
+			const sourcemap = filteredSourcemapChain.pop();
+			const smc = new SourceMapConsumer(sourcemap);
+			location = smc.originalPositionFor({
+				line: location.line,
+				column: location.column
+			});
+		}
+		return location;
+	}
+
 	error ( props, pos ) {
 		if ( pos !== undefined ) {
 			props.pos = pos;
 
 			const { line, column } = locate( this.code, pos, { offsetLine: 1 } ); // TODO trace sourcemaps
 
-			props.loc = { file: this.id, line, column };
-			props.frame = getCodeFrame( this.code, line, column );
+			const location = this.getOriginalLocation(this.sourcemapChain, line, column);
+
+			props.loc = { file: this.id, line: location.line, column: location.column };
+			props.frame = getCodeFrame( this.originalCode, location.line, location.column );
 		}
 
 		error( props );
