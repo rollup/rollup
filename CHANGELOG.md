@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.51.6
+
+* Use sourcemaps to determine error locations ([#1728](https://github.com/rollup/rollup/pull/1728))
+
 ## 0.51.5
 
 * Fix regressions with uninitialised conditional expressions ([#1720](https://github.com/rollup/rollup/pull/1720))
