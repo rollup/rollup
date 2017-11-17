@@ -35,7 +35,7 @@ export default class SequenceExpression extends Node {
 			last.render( code, es );
 
 			if ( this.parent.type === 'CallExpression' && last.type === 'MemberExpression' && this.expressions.length > 1 ) {
-				this.expressions[0].included = true
+				this.expressions[0].included = true;
 			}
 
 			const included = this.expressions.slice( 0, this.expressions.length - 1 ).filter( expression => expression.included );
