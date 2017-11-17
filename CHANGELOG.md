@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.51.7
+
+* Keep "this"-context when calling sequence expressions ([#1724](https://github.com/rollup/rollup/pull/1724))
+
 ## 0.51.6
 
 * Use sourcemaps to determine error locations ([#1728](https://github.com/rollup/rollup/pull/1728))
