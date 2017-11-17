@@ -21,3 +21,8 @@ var e = (0, f.foo());
 
 // should properly render complex sub-expressions
 var g = ((() => {})(), (() => {console.log(f.foo())})(), 1);
+
+// should maintain this context
+var module = {};
+module.bar = function () { console.log( 'bar' )};
+var h = (0, module.bar)();

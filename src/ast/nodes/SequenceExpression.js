@@ -34,6 +34,10 @@ export default class SequenceExpression extends Node {
 			const last = this.expressions[ this.expressions.length - 1 ];
 			last.render( code, es );
 
+			if ( this.parent.type === 'CallExpression' && last.type === 'MemberExpression' && this.expressions.length > 1 ) {
+				this.expressions[0].included = true
+			}
+
 			const included = this.expressions.slice( 0, this.expressions.length - 1 ).filter( expression => expression.included );
 			if ( included.length === 0 ) {
 				code.remove( this.start, last.start );
