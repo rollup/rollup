@@ -2,7 +2,7 @@ import Variable from './Variable';
 import VariableReassignmentTracker from './VariableReassignmentTracker';
 
 // To avoid infinite recursions
-const MAX_PATH_LENGTH = 6;
+const MAX_PATH_DEPTH = 7;
 
 export default class LocalVariable extends Variable {
 	constructor ( name, declarator, init ) {
@@ -18,7 +18,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	reassignPath ( path, options ) {
-		if ( path.length > MAX_PATH_LENGTH ) return;
+		if ( path.length > MAX_PATH_DEPTH ) return;
 		if ( path.length === 0 ) {
 			this.isReassigned = true;
 		}
@@ -28,7 +28,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
-		if ( path.length > MAX_PATH_LENGTH ) return;
+		if ( path.length > MAX_PATH_DEPTH ) return;
 		this.boundExpressions.forEachAtPath( path, ( relativePath, node ) =>
 			!options.hasNodeBeenCalledAtPathWithOptions( relativePath, node, callOptions ) && node
 				.forEachReturnExpressionWhenCalledAtPath( relativePath, callOptions, callback,
@@ -43,7 +43,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
-		return path.length > MAX_PATH_LENGTH
+		return path.length > MAX_PATH_DEPTH
 			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
 				relativePath.length > 0
 				&& !options.hasNodeBeenAccessedAtPath( relativePath, node )
@@ -52,7 +52,7 @@ export default class LocalVariable extends Variable {
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {
 		return this.included
-			|| path.length > MAX_PATH_LENGTH
+			|| path.length > MAX_PATH_DEPTH
 			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
 				relativePath.length > 0
 				&& !options.hasNodeBeenAssignedAtPath( relativePath, node ) && node
@@ -61,7 +61,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
-		return path.length > MAX_PATH_LENGTH
+		return path.length > MAX_PATH_DEPTH
 			|| (this.included && path.length > 0)
 			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
 				!options.hasNodeBeenCalledAtPathWithOptions( relativePath, node, callOptions ) && node
@@ -77,7 +77,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
-		return path.length > MAX_PATH_LENGTH
+		return path.length > MAX_PATH_DEPTH
 			|| (this.included && path.length > 0)
 			|| this.boundExpressions.someAtPath( path, ( relativePath, node ) =>
 				!options.hasNodeBeenCalledAtPathWithOptions( relativePath, node, callOptions ) && node

@@ -11,6 +11,7 @@ define(function () { 'use strict';
 	};
 
 	const retained1b = retained1a.effect;
+	const retained1c = retained1a[ 'eff' + 'ect' ];
 
 	const retained3 = {
 		set effect ( value ) {
@@ -19,6 +20,14 @@ define(function () { 'use strict';
 	};
 
 	retained3.effect = 'retained';
+
+	const retained4 = {
+		set effect ( value ) {
+			console.log( value );
+		}
+	};
+
+	retained4[ 'eff' + 'ect' ] = 'retained';
 
 	const retained7 = {
 		foo: () => {},
