@@ -2,9 +2,9 @@ import Node from '../Node.js';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class ArrayPattern extends Node {
-	bindAssignmentAtPath ( path, expression, options ) {
+	reassignPath ( path, options ) {
 		path.length === 0
-		&& this.eachChild( child => child.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT, options ) );
+		&& this.eachChild( child => child.reassignPath( [], options ) );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {

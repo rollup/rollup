@@ -2,9 +2,9 @@ import Node from '../Node.js';
 import { UNKNOWN_VALUE } from '../values.js';
 
 export default class LogicalExpression extends Node {
-	bindAssignmentAtPath ( path, expression, options ) {
+	reassignPath ( path, options ) {
 		path.length > 0
-		&& this._forEachRelevantBranch( node => node.bindAssignmentAtPath( path, expression, options ) );
+		&& this._forEachRelevantBranch( node => node.reassignPath( path, options ) );
 	}
 
 	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {

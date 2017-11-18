@@ -1,13 +1,11 @@
 (function () {
 	'use strict';
 
-	var effect = () => {};
-	effect = function() {
+	var effect = function() {
 		console.log('effect');
 	};
 
-	var alsoEffect = () => {};
-	alsoEffect = effect;
+	var alsoEffect = effect;
 	alsoEffect();
 
 }());

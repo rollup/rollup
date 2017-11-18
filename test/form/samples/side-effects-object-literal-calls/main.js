@@ -2,7 +2,6 @@ const removed1 = { x: () => {} };
 removed1.x();
 
 const removed2 = { x: { y: () => {} } };
-removed2.x.y = function () {};
 removed2.x.y();
 
 const retained1 = { x: () => {} };
