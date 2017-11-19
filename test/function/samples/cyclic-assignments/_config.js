@@ -1,3 +1,3 @@
 module.exports = {
-	description: 'does not fail fo cyclic assignments'
+	description: 'does not fail for cyclic assignments'
 };
