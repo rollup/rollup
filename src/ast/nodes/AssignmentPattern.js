@@ -3,12 +3,12 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class AssignmentPattern extends Node {
 	bindNode () {
-		this.left.bindAssignmentAtPath( [], this.right, ExecutionPathOptions.create() );
+		this.left.reassignPath( [], ExecutionPathOptions.create() );
 	}
 
-	bindAssignmentAtPath ( path, expression, options ) {
+	reassignPath ( path, options ) {
 		path.length === 0
-		&& this.left.bindAssignmentAtPath( path, expression, options );
+		&& this.left.reassignPath( path, options );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {

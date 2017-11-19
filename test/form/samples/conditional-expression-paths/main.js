@@ -5,7 +5,6 @@ var foo1 = { x: () => {} };
 var bar1 = { x: () => {} };
 var a1 = (unknownValue ? foo1 : bar1).x.y;
 var b1 = (unknownValue ? foo1 : bar1).x();
-var c1 = (unknownValue ? foo1 : bar1).x = () => {};
 foo1.x();
 bar1.x();
 
@@ -14,7 +13,6 @@ var foo2 = { x: () => {} };
 var bar2 = { x: () => console.log( 'effect' ) };
 var a2 = (unknownValue ? foo2 : bar2).x.y.z;
 var b2 = (unknownValue ? foo2 : bar2).x();
-var c2 = (unknownValue ? foo2 : bar2).x = () => console.log( 'effect' );
 foo2.x();
 bar2.x();
 

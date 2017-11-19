@@ -20,8 +20,8 @@ export default class Node {
 	}
 
 	/**
-	 * Bind an expression as an assignment to a node given a path.
-	 * E.g., node.bindAssignmentAtPath(['x', 'y'], otherNode) is called when otherNode
+	 * Reassign a given path of an object.
+	 * E.g., node.reassignPath(['x', 'y']) is called when something
 	 * is assigned to node.x.y.
 	 * The default noop implementation is ok as long as hasEffectsWhenAssignedAtPath
 	 * always returns true for this node. Otherwise it should be overridden.
@@ -29,7 +29,7 @@ export default class Node {
 	 * @param {Node} expression
 	 * @param {ExecutionPathOptions} options
 	 */
-	bindAssignmentAtPath ( path, expression, options ) {}
+	reassignPath ( path, options ) {}
 
 	/**
 	 * Override to control on which children "bind" is called.

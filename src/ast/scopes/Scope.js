@@ -2,6 +2,7 @@ import { blank, keys } from '../../utils/object.js';
 import LocalVariable from '../variables/LocalVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import { UNDEFINED_ASSIGNMENT } from '../values';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class Scope {
 	constructor ( options = {} ) {
@@ -26,7 +27,7 @@ export default class Scope {
 		if ( this.variables[ name ] ) {
 			const variable = this.variables[ name ];
 			variable.addDeclaration( identifier );
-			options.init && variable.bindAssignmentAtPath( [], options.init );
+			variable.reassignPath( [], ExecutionPathOptions.create() );
 		} else {
 			this.variables[ name ] = new LocalVariable( identifier.name, identifier, options.init || UNDEFINED_ASSIGNMENT );
 		}

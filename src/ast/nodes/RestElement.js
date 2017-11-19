@@ -2,9 +2,9 @@ import Node from '../Node.js';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class RestElement extends Node {
-	bindAssignmentAtPath ( path, expression, options ) {
+	reassignPath ( path, options ) {
 		path.length === 0
-		&& this.argument.bindAssignmentAtPath( [], UNKNOWN_ASSIGNMENT, options );
+		&& this.argument.reassignPath( [], options );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {

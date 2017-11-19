@@ -7,20 +7,16 @@ foo = function () {
 foo = ['foo'];
 foo = undefined;
 
-var noEffect = () => {};
-noEffect = function(a) {
+var noEffect = function(a) {
 	a = 'reassigned parameter';
 };
 
-var stillNoEffect = () => {};
-stillNoEffect = noEffect;
+var stillNoEffect = noEffect;
 stillNoEffect();
 
-var effect = () => {};
-effect = function() {
+var effect = function() {
 	console.log('effect');
 };
 
-var alsoEffect = () => {};
-alsoEffect = effect;
+var alsoEffect = effect;
 alsoEffect();

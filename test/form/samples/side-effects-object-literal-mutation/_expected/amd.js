@@ -11,12 +11,10 @@ define(['exports'], function (exports) { 'use strict';
 	delete retained3.x;
 	retained3.x.y = 2;
 
-	const retained4 = { x: {} };
-	retained4.x = undefined;
+	const retained4 = { x: undefined };
 	retained4.x.y = 2;
 
-	const retained5 = { x: {} };
-	retained5.x = null;
+	const retained5 = { x: null };
 	retained5.x.y = 2;
 
 	const retained6 = { x: { y: {} } };
@@ -24,8 +22,7 @@ define(['exports'], function (exports) { 'use strict';
 	retained6.x.y.z = 3;
 
 	const retained7 = { x: { y: globalVar } };
-	const retained8 = { x: { y: {} } };
-	retained8.x = retained7.x;
+	const retained8 = { x: retained7.x };
 	retained8.x.y.z = 3;
 
 	exports.retained1 = retained1;

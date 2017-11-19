@@ -3,10 +3,10 @@ import isReference from 'is-reference';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class Identifier extends Node {
-	bindAssignmentAtPath ( path, expression, options ) {
+	reassignPath ( path, options ) {
 		this._bindVariableIfMissing();
 		this.variable
-		&& this.variable.bindAssignmentAtPath( path, expression, options );
+		&& this.variable.reassignPath( path, options );
 	}
 
 	bindNode () {

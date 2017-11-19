@@ -1,18 +1,18 @@
 import Node from '../Node.js';
-import { UNKNOWN_KEY } from '../variables/VariableShapeTracker';
+import { UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
 
 const PROPERTY_KINDS_READ = [ 'init', 'get' ];
 const PROPERTY_KINDS_WRITE = [ 'init', 'set' ];
 
 export default class ObjectExpression extends Node {
-	bindAssignmentAtPath ( path, expression, options ) {
+	reassignPath ( path, options ) {
 		if ( path.length === 0 ) return;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
 			path[ 0 ], path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ );
 		(path.length === 1 || hasCertainHit)
 		&& properties.forEach( property => (path.length > 1 || property.kind === 'set')
-			&& property.bindAssignmentAtPath( path.slice( 1 ), expression, options ) );
+			&& property.reassignPath( path.slice( 1 ), options ) );
 	}
 
 	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {

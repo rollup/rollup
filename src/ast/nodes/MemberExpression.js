@@ -1,6 +1,6 @@
 import relativeId from '../../utils/relativeId.js';
 import Node from '../Node.js';
-import { UNKNOWN_KEY } from '../variables/VariableShapeTracker';
+import { UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -76,12 +76,12 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	bindAssignmentAtPath ( path, expression, options ) {
+	reassignPath ( path, options ) {
 		if ( !this._bound ) this.bind();
 		if ( this.variable ) {
-			this.variable.bindAssignmentAtPath( path, expression, options );
+			this.variable.reassignPath( path, options );
 		} else {
-			this.object.bindAssignmentAtPath( [ this._getPathSegment(), ...path ], expression, options );
+			this.object.reassignPath( [ this._getPathSegment(), ...path ], options );
 		}
 	}
 
