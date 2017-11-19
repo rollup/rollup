@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.51.8
+
+* Fix speed problems by simplifying treeshaking reassignment handling ([#1740](https://github.com/rollup/rollup/pull/1740))
+* Update dependencies ([#1742](https://github.com/rollup/rollup/pull/1742))
+
 ## 0.51.7
 
 * Keep "this"-context when calling sequence expressions ([#1724](https://github.com/rollup/rollup/pull/1724))
