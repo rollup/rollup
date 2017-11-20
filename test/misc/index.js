@@ -44,7 +44,7 @@ describe('sanity checks', () => {
 			err => {
 				assert.equal(
 					err.message,
-					"Unexpected key 'plUgins' found, expected one of: acorn, amd, banner, cache, context, entry, exports, extend, external, file, footer, format, frozen, globals, indent, input, interop, intro, legacy, moduleContext, name, noConflict, onwarn, output, outro, paths, plugins, preferConst, pureExternalModules, sourcemap, sourcemapFile, strict, targets, treeshake, watch"
+					"Unexpected key 'plUgins' found, expected one of: acorn, amd, banner, cache, context, entry, exports, extend, external, file, footer, format, freeze, globals, indent, input, interop, intro, legacy, moduleContext, name, noConflict, onwarn, output, outro, paths, plugins, preferConst, pureExternalModules, sourcemap, sourcemapFile, strict, targets, treeshake, watch"
 				);
 			}
 		);
