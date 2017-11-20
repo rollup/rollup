@@ -52,6 +52,7 @@ export default class FileWatcher {
 			if (err.code === 'ENOENT') {
 				// can't watch files that don't exist (e.g. injected
 				// by plugins somehow)
+				data = null;
 				this.fileExists = false;
 				return;
 			} else {
