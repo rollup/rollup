@@ -12,7 +12,6 @@ export default function mergeOptions ( config, command ) {
 	const inputOptions = {
 		input: getOption('input'),
 		legacy: getOption('legacy'),
-		frozen: getOption('frozen'),
 		treeshake: getOption('treeshake'),
 		acorn: config.acorn,
 		context: config.context,
