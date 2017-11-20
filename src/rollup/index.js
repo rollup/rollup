@@ -23,7 +23,7 @@ const ALLOWED_KEYS = [
 	'file',
 	'footer',
 	'format',
-	'frozen',
+	'freeze',
 	'globals',
 	'indent',
 	'input',

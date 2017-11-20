@@ -106,7 +106,7 @@ export default class Bundle {
 
 		this.varOrConst = options.preferConst ? 'const' : 'var';
 		this.legacy = options.legacy;
-		this.frozen = options.frozen !== false;
+		this.freeze = options.freeze !== false;
 		this.acornOptions = options.acorn || {};
 	}
 
@@ -450,7 +450,7 @@ export default class Bundle {
 			timeStart( 'render modules' );
 
 			this.orderedModules.forEach( module => {
-				const source = module.render( options.format === 'es', this.legacy, this.frozen );
+				const source = module.render( options.format === 'es', this.legacy, this.freeze );
 				if ( source.toString().length ) {
 					magicString.addSource( source );
 					usedModules.push( module );

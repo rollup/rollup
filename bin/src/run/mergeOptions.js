@@ -68,7 +68,7 @@ export default function mergeOptions ( config, command ) {
 		globals: getOption('globals'),
 		interop: getOption('interop'),
 		legacy: getOption('legacy'),
-		frozen: getOption('frozen'),
+		freeze: getOption('freeze'),
 		indent: getOption('indent'),
 		strict: getOption('strict'),
 		noConflict: getOption('noConflict'),
