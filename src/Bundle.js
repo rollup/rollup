@@ -109,13 +109,34 @@ export default class Bundle {
 		this.acornOptions = options.acorn || {};
 	}
 
-	collectAddon ( initialAddon, name, sep = '\n' ) {
+	collectAddon ( initialAddon, addonName, sep = '\n' ) {
 		return runSequence(
-			 [ initialAddon ]
-				 .concat(this.plugins.map( plugin => plugin[name] ))
-				 .map( callIfFunction )
-				 .filter( Boolean )
-				 .map(a => Promise.resolve(a))
+			 [ { pluginName: 'rollup', source: initialAddon } ]
+				.concat(this.plugins.map( (plugin, idx) => {
+					return {
+						pluginName: plugin.name || `Plugin at pos ${idx}`,
+						source: plugin[addonName]
+					};
+				} ))
+				.map( addon => {
+					addon.source = callIfFunction(addon.source);
+					return addon;
+				} )
+				.filter( addon => {
+					return addon.source;
+				} )
+				.map(({pluginName, source}) => {
+					return Promise.resolve(source)
+						.catch(err => {
+							error( {
+								code: 'ADDON_ERROR',
+								message:
+								`Could not resolve one of ${addonName}. Check configuration of ${pluginName}.
+	Error Message: ${err.message}
+	Error Stack: ${err.stack}`
+							} );
+						});
+				})
 		 )
 		 .then(addons => addons.filter(Boolean).join(sep));
 	}
