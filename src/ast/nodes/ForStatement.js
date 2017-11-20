@@ -3,13 +3,10 @@ import BlockScope from '../scopes/BlockScope';
 
 export default class ForStatement extends Statement {
 	hasEffects ( options ) {
-		return (
-			this.included
-			|| this.init && this.init.hasEffects( options )
+		return this.init && this.init.hasEffects( options )
 			|| this.test && this.test.hasEffects( options )
 			|| this.update && this.update.hasEffects( options )
-			|| this.body.hasEffects( options.setIgnoreBreakStatements() )
-		);
+			|| this.body.hasEffects( options.setIgnoreBreakStatements() );
 	}
 
 	initialiseChildren () {

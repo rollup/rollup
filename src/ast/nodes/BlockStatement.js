@@ -1,19 +1,22 @@
 import Statement from './shared/Statement.js';
 import BlockScope from '../scopes/BlockScope';
+import { UNDEFINED_ASSIGNMENT } from '../values';
 
 export default class BlockStatement extends Statement {
-	bind () {
-		this.body.forEach( node => node.bind() );
+	bindImplicitReturnExpressionToScope () {
+		const lastStatement = this.body[ this.body.length - 1 ];
+		if ( !lastStatement || lastStatement.type !== 'ReturnStatement' ) {
+			this.scope.addReturnExpression( UNDEFINED_ASSIGNMENT );
+		}
 	}
 
 	hasEffects ( options ) {
-		// Empty block statements do not have effects even though they may be included as e.g. function body
 		return this.body.some( child => child.hasEffects( options ) );
 	}
 
 	includeInBundle () {
-		if ( this.isFullyIncluded() ) return false;
-		let addedNewNodes = false;
+		let addedNewNodes = !this.included;
+		this.included = true;
 		this.body.forEach( node => {
 			if ( node.shouldBeIncluded() ) {
 				if ( node.includeInBundle() ) {
@@ -21,11 +24,7 @@ export default class BlockStatement extends Statement {
 				}
 			}
 		} );
-		if ( !this.included || addedNewNodes ) {
-			this.included = true;
-			return true;
-		}
-		return false;
+		return addedNewNodes;
 	}
 
 	initialiseAndReplaceScope ( scope ) {

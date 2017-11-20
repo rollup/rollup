@@ -1,7 +1,14 @@
 import Node from '../Node.js';
+import CallOptions from '../CallOptions';
 
 export default class CallExpression extends Node {
-	bind () {
+	reassignPath ( path, options ) {
+		!options.hasReturnExpressionBeenAssignedAtPath( path, this )
+		&& this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+			node.reassignPath( path, innerOptions.addAssignedReturnExpressionAtPath( path, this ) ), options );
+	}
+
+	bindNode () {
 		if ( this.callee.type === 'Identifier' ) {
 			const variable = this.scope.findVariable( this.callee.name );
 
@@ -20,18 +27,43 @@ export default class CallExpression extends Node {
 				}, this.start );
 			}
 		}
+	}
 
-		super.bind();
-		this.callee.bindCall( { withNew: false } );
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
+		this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+			node.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback, innerOptions ), options );
 	}
 
 	hasEffects ( options ) {
-		return this.included
-			|| this.arguments.some( child => child.hasEffects( options ) )
-			|| this.callee.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( this.callee ) );
+		return this.arguments.some( child => child.hasEffects( options ) )
+			|| this.callee.hasEffectsWhenCalledAtPath( [], this._callOptions, options.getHasEffectsWhenCalledOptions() );
 	}
 
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options );
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		return path.length > 0
+			&& !options.hasReturnExpressionBeenAccessedAtPath( path, this )
+			&& this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+				node.hasEffectsWhenAccessedAtPath( path, innerOptions.addAccessedReturnExpressionAtPath( path, this ) ), options );
+	}
+
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		return !options.hasReturnExpressionBeenAssignedAtPath( path, this )
+			&& this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+				node.hasEffectsWhenAssignedAtPath( path, innerOptions.addAssignedReturnExpressionAtPath( path, this ) ), options );
+	}
+
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
+		return !options.hasReturnExpressionBeenCalledAtPath( path, this )
+			&& this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+				node.hasEffectsWhenCalledAtPath( path, callOptions, innerOptions.addCalledReturnExpressionAtPath( path, this ) ), options );
+	}
+
+	initialiseNode () {
+		this._callOptions = CallOptions.create( { withNew: false, args: this.arguments, caller: this } );
+	}
+
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
+		return this.callee.someReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
+			node.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, innerOptions ), options );
 	}
 }

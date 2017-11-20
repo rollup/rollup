@@ -1,8 +1,8 @@
 import { forOwn } from '../../utils/object.js';
 import relativeId from '../../utils/relativeId.js';
 import Scope from './Scope.js';
-import { UNDEFINED_ASSIGNMENT } from '../values';
 import LocalVariable from '../variables/LocalVariable';
+import { UNDEFINED_ASSIGNMENT } from '../values';
 
 export default class ModuleScope extends Scope {
 	constructor ( module ) {

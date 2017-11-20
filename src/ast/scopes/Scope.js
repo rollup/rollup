@@ -1,6 +1,8 @@
 import { blank, keys } from '../../utils/object.js';
 import LocalVariable from '../variables/LocalVariable';
-import ParameterVariable from '../variables/ParameterVariable';
+import ExportDefaultVariable from '../variables/ExportDefaultVariable';
+import { UNDEFINED_ASSIGNMENT } from '../values';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class Scope {
 	constructor ( options = {} ) {
@@ -13,20 +15,32 @@ export default class Scope {
 		this.variables = blank();
 	}
 
-	addDeclaration ( identifier, isHoisted, init ) {
+	/**
+	 * @param identifier
+	 * @param {Object} [options] - valid options are
+	 *        {(Node|null)} init
+	 *        {boolean} isHoisted
+	 * @return {Variable}
+	 */
+	addDeclaration ( identifier, options = {} ) {
 		const name = identifier.name;
 		if ( this.variables[ name ] ) {
 			const variable = this.variables[ name ];
 			variable.addDeclaration( identifier );
-			init && variable.assignExpression( init );
+			variable.reassignPath( [], ExecutionPathOptions.create() );
 		} else {
-			this.variables[ name ] = new LocalVariable( identifier.name, identifier, init );
+			this.variables[ name ] = new LocalVariable( identifier.name, identifier, options.init || UNDEFINED_ASSIGNMENT );
 		}
+		return this.variables[ name ];
 	}
 
-	addParameterDeclaration ( identifier ) {
-		const name = identifier.name;
-		this.variables[ name ] = new ParameterVariable( name, identifier );
+	addExportDefaultDeclaration ( name, exportDefaultDeclaration ) {
+		this.variables.default = new ExportDefaultVariable( name, exportDefaultDeclaration );
+		return this.variables.default;
+	}
+
+	addReturnExpression ( expression ) {
+		this.parent && this.parent.addReturnExpression( expression );
 	}
 
 	contains ( name ) {

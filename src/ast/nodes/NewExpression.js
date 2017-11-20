@@ -1,14 +1,17 @@
 import Node from '../Node.js';
+import CallOptions from '../CallOptions';
 
 export default class NewExpression extends Node {
-	bind () {
-		super.bind();
-		this.callee.bindCall( { withNew: true } );
+	hasEffects ( options ) {
+		return this.arguments.some( child => child.hasEffects( options ) )
+			|| this.callee.hasEffectsWhenCalledAtPath( [], this._callOptions, options.getHasEffectsWhenCalledOptions() );
 	}
 
-	hasEffects ( options ) {
-		return this.included
-			|| this.arguments.some( child => child.hasEffects( options ) )
-			|| this.callee.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( this.callee ) );
+	hasEffectsWhenAccessedAtPath ( path ) {
+		return path.length > 1;
+	}
+
+	initialiseNode () {
+		this._callOptions = CallOptions.create( { withNew: true, args: this.arguments, caller: this } );
 	}
 }

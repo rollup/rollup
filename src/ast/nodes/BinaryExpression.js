@@ -38,4 +38,8 @@ export default class BinaryExpression extends Node {
 
 		return operators[ this.operator ]( leftValue, rightValue );
 	}
+
+	hasEffectsWhenAccessedAtPath ( path ) {
+		return path.length > 1;
+	}
 }

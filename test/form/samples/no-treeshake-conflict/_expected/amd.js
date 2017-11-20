@@ -4,8 +4,6 @@ define(function () { 'use strict';
 		something: 'here'
 	};
 
-	other$1;
-
 	const other = {
 		somethingElse: 'here'
 	};

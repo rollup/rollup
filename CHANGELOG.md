@@ -1,5 +1,49 @@
 # rollup changelog
 
+## 0.51.8
+
+* Fix speed problems by simplifying treeshaking reassignment handling ([#1740](https://github.com/rollup/rollup/pull/1740))
+* Update dependencies ([#1742](https://github.com/rollup/rollup/pull/1742))
+
+## 0.51.7
+
+* Keep "this"-context when calling sequence expressions ([#1724](https://github.com/rollup/rollup/pull/1724))
+
+## 0.51.6
+
+* Use sourcemaps to determine error locations ([#1728](https://github.com/rollup/rollup/pull/1728))
+
+## 0.51.5
+
+* Fix regressions with uninitialised conditional expressions ([#1720](https://github.com/rollup/rollup/pull/1720))
+
+## 0.51.4
+
+* Fix regressions preventing builds ([#1725](https://github.com/rollup/rollup/pull/1725))
+
+## 0.51.3
+
+* Fix regression when treeshaking sequence expressions ([#1717](https://github.com/rollup/rollup/pull/1717))
+
+## 0.51.2
+
+* Fix treeshaking regression when labels are used inside functions ([#1712](https://github.com/rollup/rollup/pull/1712))
+
+## 0.51.1
+
+* Fix an issue with empty return statements ([#1704](https://github.com/rollup/rollup/pull/1704))
+
+## 0.51.0
+
+* Massive improvements to the treeshaking algorithm ([#1667](https://github.com/rollup/rollup/pull/1667))
+
+## 0.50.1
+
+* Fix treeshaking regression ([#1695](https://github.com/rollup/rollup/pull/1695))
+* Treeshaking improvements ([#1650](https://github.com/rollup/rollup/pull/1650))
+* Enable installation from Github ([#1670](https://github.com/rollup/rollup/pull/1670))
+* Update documentation ([#1660](https://github.com/rollup/rollup/pull/1660))
+
 ## 0.50.0
 
 * Many treeshaking improvements ([#1624](https://github.com/rollup/rollup/pull/1624))

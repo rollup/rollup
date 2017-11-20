@@ -1,9 +1,18 @@
+import Immutable from 'immutable';
+
+const OPTION_IGNORED_LABELS = 'IGNORED_LABELS';
+const OPTION_ACCESSED_NODES = 'ACCESSED_NODES';
+const OPTION_ARGUMENTS_VARIABLES = 'ARGUMENTS_VARIABLES';
+const OPTION_ASSIGNED_NODES = 'ASSIGNED_NODES';
 const OPTION_IGNORE_BREAK_STATEMENTS = 'IGNORE_BREAK_STATEMENTS';
 const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
-const OPTION_IGNORE_SAFE_THIS_MUTATIONS = 'IGNORE_SAFE_THIS_MUTATIONS';
-const OPTION_CALLED_NODES = 'CALLED_NODES';
-const OPTION_MUTATED_NODES = 'MUTATED_NODES';
-const IGNORED_LABELS = 'IGNORED_LABELS';
+const OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS = 'NODES_CALLED_AT_PATH_WITH_OPTIONS';
+const OPTION_REPLACED_VARIABLE_INITS = 'REPLACED_VARIABLE_INITS';
+const OPTION_RETURN_EXPRESSIONS_ACCESSED_AT_PATH = 'RETURN_EXPRESSIONS_ACCESSED_AT_PATH';
+const OPTION_RETURN_EXPRESSIONS_ASSIGNED_AT_PATH = 'RETURN_EXPRESSIONS_ASSIGNED_AT_PATH';
+const OPTION_RETURN_EXPRESSIONS_CALLED_AT_PATH = 'RETURN_EXPRESSIONS_CALLED_AT_PATH';
+
+const RESULT_KEY = {};
 
 /** Wrapper to ensure immutability */
 export default class ExecutionPathOptions {
@@ -11,11 +20,29 @@ export default class ExecutionPathOptions {
 	 * @returns {ExecutionPathOptions}
 	 */
 	static create () {
-		return new this( {} );
+		return new this( Immutable.Map() );
 	}
 
 	constructor ( optionValues ) {
 		this._optionValues = optionValues;
+	}
+
+	/**
+	 * @param {string} option - The name of an option
+	 * @returns {*} Its value
+	 */
+	get ( option ) {
+		return this._optionValues.get( option );
+	}
+
+	/**
+	 * Returns a new ExecutionPathOptions instance with the given option removed.
+	 * Does not mutate the current instance. Also works in sub-classes.
+	 * @param {string} option - The name of an option
+	 * @returns {*} Its value
+	 */
+	remove ( option ) {
+		return new this.constructor( this._optionValues.remove( option ) );
 	}
 
 	/**
@@ -26,15 +53,147 @@ export default class ExecutionPathOptions {
 	 * @returns {ExecutionPathOptions} A new options instance
 	 */
 	set ( option, value ) {
-		return new this.constructor( Object.assign( {}, this._optionValues, { [option]: value } ) );
+		return new this.constructor( this._optionValues.set( option, value ) );
+	}
+
+	setIn ( optionPath, value ) {
+		return new this.constructor( this._optionValues.setIn( optionPath, value ) );
 	}
 
 	/**
-	 * @param {string} option - The name of an option
-	 * @returns {*} Its value
+	 * @param {String[]} path
+	 * @param {Node} node
+	 * @return {ExecutionPathOptions}
 	 */
-	get ( option ) {
-		return this._optionValues[ option ];
+	addAccessedNodeAtPath ( path, node ) {
+		return this.setIn( [ OPTION_ACCESSED_NODES, node, ...path, RESULT_KEY ], true );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {CallExpression|Property} callExpression
+	 * @return {ExecutionPathOptions}
+	 */
+	addAccessedReturnExpressionAtPath ( path, callExpression ) {
+		return this.setIn( [ OPTION_RETURN_EXPRESSIONS_ACCESSED_AT_PATH, callExpression, ...path, RESULT_KEY ], true );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {Node} node
+	 * @return {ExecutionPathOptions}
+	 */
+	addAssignedNodeAtPath ( path, node ) {
+		return this.setIn( [ OPTION_ASSIGNED_NODES, node, ...path, RESULT_KEY ], true );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {CallExpression|Property} callExpression
+	 * @return {ExecutionPathOptions}
+	 */
+	addAssignedReturnExpressionAtPath ( path, callExpression ) {
+		return this.setIn( [ OPTION_RETURN_EXPRESSIONS_ASSIGNED_AT_PATH, callExpression, ...path, RESULT_KEY ], true );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {Node} node
+	 * @param {CallOptions} callOptions
+	 * @return {ExecutionPathOptions}
+	 */
+	addCalledNodeAtPathWithOptions ( path, node, callOptions ) {
+		return this.setIn( [ OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS, node, ...path, RESULT_KEY, callOptions ], true );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {CallExpression|Property} callExpression
+	 * @return {ExecutionPathOptions}
+	 */
+	addCalledReturnExpressionAtPath ( path, callExpression ) {
+		return this.setIn( [ OPTION_RETURN_EXPRESSIONS_CALLED_AT_PATH, callExpression, ...path, RESULT_KEY ], true );
+	}
+
+	/**
+	 * @return {ParameterVariable[]}
+	 */
+	getArgumentsVariables () {
+		return this.get( OPTION_ARGUMENTS_VARIABLES ) || [];
+	}
+
+	/**
+	 * @return {ExecutionPathOptions}
+	 */
+	getHasEffectsWhenCalledOptions () {
+		return this
+			.setIgnoreReturnAwaitYield()
+			.setIgnoreBreakStatements( false )
+			.setIgnoreNoLabels();
+	}
+
+	/**
+	 * @param {ThisVariable|ParameterVariable} variable
+	 * @returns {Node}
+	 */
+	getReplacedVariableInit ( variable ) {
+		return this._optionValues.getIn( [ OPTION_REPLACED_VARIABLE_INITS, variable ] );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {Node} node
+	 * @return {boolean}
+	 */
+	hasNodeBeenAccessedAtPath ( path, node ) {
+		return this._optionValues.getIn( [ OPTION_ACCESSED_NODES, node, ...path, RESULT_KEY ] );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {Node} node
+	 * @return {boolean}
+	 */
+	hasNodeBeenAssignedAtPath ( path, node ) {
+		return this._optionValues.getIn( [ OPTION_ASSIGNED_NODES, node, ...path, RESULT_KEY ] );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {Node} node
+	 * @param {CallOptions} callOptions
+	 * @return {boolean}
+	 */
+	hasNodeBeenCalledAtPathWithOptions ( path, node, callOptions ) {
+		const previousCallOptions = this._optionValues.getIn( [ OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS, node, ...path, RESULT_KEY ] );
+		return previousCallOptions && previousCallOptions.find( ( _, otherCallOptions ) => otherCallOptions.equals( callOptions ) );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {CallExpression|Property} callExpression
+	 * @return {boolean}
+	 */
+	hasReturnExpressionBeenAccessedAtPath ( path, callExpression ) {
+		return this._optionValues.getIn( [ OPTION_RETURN_EXPRESSIONS_ACCESSED_AT_PATH, callExpression, ...path, RESULT_KEY ] );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {CallExpression|Property} callExpression
+	 * @return {boolean}
+	 */
+	hasReturnExpressionBeenAssignedAtPath ( path, callExpression ) {
+		return this._optionValues.getIn( [ OPTION_RETURN_EXPRESSIONS_ASSIGNED_AT_PATH, callExpression, ...path, RESULT_KEY ] );
+	}
+
+	/**
+	 * @param {String[]} path
+	 * @param {CallExpression|Property} callExpression
+	 * @return {boolean}
+	 */
+	hasReturnExpressionBeenCalledAtPath ( path, callExpression ) {
+		return this._optionValues.getIn( [ OPTION_RETURN_EXPRESSIONS_CALLED_AT_PATH, callExpression, ...path, RESULT_KEY ] );
 	}
 
 	/**
@@ -42,6 +201,38 @@ export default class ExecutionPathOptions {
 	 */
 	ignoreBreakStatements () {
 		return this.get( OPTION_IGNORE_BREAK_STATEMENTS );
+	}
+
+	/**
+	 * @param {string} labelName
+	 * @return {boolean}
+	 */
+	ignoreLabel ( labelName ) {
+		return this._optionValues.getIn( [ OPTION_IGNORED_LABELS, labelName ] );
+	}
+
+	/**
+	 * @return {boolean}
+	 */
+	ignoreReturnAwaitYield () {
+		return this.get( OPTION_IGNORE_RETURN_AWAIT_YIELD );
+	}
+
+	/**
+	 * @param {ThisVariable|ParameterVariable} variable
+	 * @param {Node} init
+	 * @return {ExecutionPathOptions}
+	 */
+	replaceVariableInit ( variable, init ) {
+		return this.setIn( [ OPTION_REPLACED_VARIABLE_INITS, variable ], init );
+	}
+
+	/**
+	 * @param {ParameterVariable[]} variables
+	 * @return {ExecutionPathOptions}
+	 */
+	setArgumentsVariables ( variables ) {
+		return this.set( OPTION_ARGUMENTS_VARIABLES, variables );
 	}
 
 	/**
@@ -54,33 +245,17 @@ export default class ExecutionPathOptions {
 
 	/**
 	 * @param {string} labelName
-	 * @return {boolean}
-	 */
-	ignoreLabel ( labelName ) {
-		const ignoredLabels = this.get( IGNORED_LABELS );
-		return ignoredLabels && ignoredLabels.has( labelName );
-	}
-
-	/**
-	 * @param {string} labelName
 	 * @return {ExecutionPathOptions}
 	 */
 	setIgnoreLabel ( labelName ) {
-		return this.set( IGNORED_LABELS, new Set( this.get( IGNORED_LABELS ) ).add( labelName ) );
+		return this.setIn( [ OPTION_IGNORED_LABELS, labelName ], true );
 	}
 
 	/**
 	 * @return {ExecutionPathOptions}
 	 */
 	setIgnoreNoLabels () {
-		return this.set( IGNORED_LABELS, null );
-	}
-
-	/**
-	 * @return {boolean}
-	 */
-	ignoreReturnAwaitYield () {
-		return this.get( OPTION_IGNORE_RETURN_AWAIT_YIELD );
+		return this.remove( OPTION_IGNORED_LABELS );
 	}
 
 	/**
@@ -89,66 +264,5 @@ export default class ExecutionPathOptions {
 	 */
 	setIgnoreReturnAwaitYield ( value = true ) {
 		return this.set( OPTION_IGNORE_RETURN_AWAIT_YIELD, value );
-	}
-
-	/**
-	 * @return {boolean}
-	 */
-	ignoreSafeThisMutations () {
-		return this.get( OPTION_IGNORE_SAFE_THIS_MUTATIONS );
-	}
-
-	/**
-	 * @param {boolean} [value=true]
-	 * @return {ExecutionPathOptions}
-	 */
-	setIgnoreSafeThisMutations ( value = true ) {
-		return this.set( OPTION_IGNORE_SAFE_THIS_MUTATIONS, value );
-	}
-
-	/**
-	 * @param {Node} node
-	 * @return {ExecutionPathOptions}
-	 */
-	addMutatedNode ( node ) {
-		return this.set( OPTION_MUTATED_NODES, new Set( this.get( OPTION_MUTATED_NODES ) ).add( node ) );
-	}
-
-	/**
-	 * @param {Node} node
-	 * @return {boolean}
-	 */
-	hasNodeBeenMutated ( node ) {
-		const mutatedNodes = this.get( OPTION_MUTATED_NODES );
-		return mutatedNodes && mutatedNodes.has( node );
-	}
-
-	/**
-	 * @param {Node} node
-	 * @return {ExecutionPathOptions}
-	 */
-	addCalledNode ( node ) {
-		return this.set( OPTION_CALLED_NODES, new Set( this.get( OPTION_CALLED_NODES ) ).add( node ) );
-	}
-
-	/**
-	 * @param {Node} node
-	 * @return {boolean}
-	 */
-	hasNodeBeenCalled ( node ) {
-		const calledNodes = this.get( OPTION_CALLED_NODES );
-		return calledNodes && calledNodes.has( node );
-	}
-
-	/**
-	 * @param {Node} calledNode
-	 * @return {ExecutionPathOptions}
-	 */
-	getHasEffectsWhenCalledOptions ( calledNode ) {
-		return this
-			.addCalledNode( calledNode )
-			.setIgnoreReturnAwaitYield()
-			.setIgnoreBreakStatements( false )
-			.setIgnoreNoLabels();
 	}
 }

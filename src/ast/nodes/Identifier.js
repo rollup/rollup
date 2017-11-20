@@ -1,58 +1,44 @@
 import Node from '../Node.js';
 import isReference from 'is-reference';
-
-function isAssignmentPatternLhs ( node, parent ) {
-	// special case: `({ foo = 42 }) => {...}`
-	// `foo` actually has two different parents, the Property of the
-	// ObjectPattern, and the AssignmentPattern. In one case it's a
-	// reference, in one case it's not, because it's shorthand for
-	// `({ foo: foo = 42 }) => {...}`. But unlike a regular shorthand
-	// property, the `foo` node appears at different levels of the tree
-	return (
-		parent.type === 'Property' &&
-		parent.shorthand &&
-		parent.value.type === 'AssignmentPattern' &&
-		parent.value.left === node
-	);
-}
+import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class Identifier extends Node {
-	bind () {
-		if ( isReference( this, this.parent ) || isAssignmentPatternLhs( this, this.parent ) ) {
+	reassignPath ( path, options ) {
+		this._bindVariableIfMissing();
+		this.variable
+		&& this.variable.reassignPath( path, options );
+	}
+
+	bindNode () {
+		this._bindVariableIfMissing();
+	}
+
+	_bindVariableIfMissing () {
+		if ( !this.variable && isReference( this, this.parent ) ) {
 			this.variable = this.scope.findVariable( this.name );
 			this.variable.addReference( this );
 		}
 	}
 
-	bindAssignment ( expression ) {
-		if ( this.variable ) {
-			this.variable.assignExpression( expression );
-		}
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
+		this._bindVariableIfMissing();
+		this.variable
+		&& this.variable.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback, options );
 	}
 
-	bindCall ( callOptions ) {
-		if ( this.variable ) {
-			this.variable.addCall( callOptions );
-		}
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		return this.variable
+			&& this.variable.hasEffectsWhenAccessedAtPath( path, options );
 	}
 
-	hasEffectsAsExpressionStatement ( options ) {
-		return this.hasEffects( options ) || this.variable.isGlobal;
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		return !this.variable
+			|| this.variable.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
-	hasEffectsWhenAssigned () {
-		return this.variable && this.variable.included;
-	}
-
-	hasEffectsWhenCalled ( options ) {
-		if ( !this.variable ) {
-			return true;
-		}
-		return this.variable.hasEffectsWhenCalled( options );
-	}
-
-	hasEffectsWhenMutated ( options ) {
-		return this.variable && this.variable.hasEffectsWhenMutated( options );
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
+		return !this.variable
+			|| this.variable.hasEffectsWhenCalledAtPath( path, callOptions, options );
 	}
 
 	includeInBundle () {
@@ -67,15 +53,15 @@ export default class Identifier extends Node {
 		switch ( kind ) {
 			case 'var':
 			case 'function':
-				this.scope.addDeclaration( this, true, init );
+				this.variable = this.scope.addDeclaration( this, { isHoisted: true, init } );
 				break;
 			case 'let':
 			case 'const':
 			case 'class':
-				this.scope.addDeclaration( this, false, init );
+				this.variable = this.scope.addDeclaration( this, { init } );
 				break;
 			case 'parameter':
-				this.scope.addParameterDeclaration( this );
+				this.variable = this.scope.addParameterDeclaration( this );
 				break;
 			default:
 				throw new Error( 'Unexpected identifier kind', kind );
@@ -94,5 +80,12 @@ export default class Identifier extends Node {
 				}
 			}
 		}
+	}
+
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
+		if ( this.variable ) {
+			return this.variable.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options );
+		}
+		return predicateFunction( options )( UNKNOWN_ASSIGNMENT );
 	}
 }

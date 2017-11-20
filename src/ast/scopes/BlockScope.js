@@ -1,11 +1,11 @@
 import Scope from './Scope';
 
 export default class BlockScope extends Scope {
-	addDeclaration ( identifier, isHoisted, init ) {
-		if ( isHoisted ) {
-			this.parent.addDeclaration( identifier, isHoisted, init );
+	addDeclaration ( identifier, options = {} ) {
+		if ( options.isHoisted ) {
+			return this.parent.addDeclaration( identifier, options );
 		} else {
-			super.addDeclaration( identifier, false, init );
+			return super.addDeclaration( identifier, options );
 		}
 	}
 }

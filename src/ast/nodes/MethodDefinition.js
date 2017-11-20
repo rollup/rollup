@@ -1,15 +1,12 @@
 import Node from '../Node';
 
 export default class MethodDefinition extends Node {
-	bindCall ( callOptions ) {
-		this.value.bindCall( callOptions );
-	}
-
 	hasEffects ( options ) {
 		return this.key.hasEffects( options );
 	}
 
-	hasEffectsWhenCalled ( options ) {
-		return this.value.hasEffectsWhenCalled( options );
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
+		return path.length > 0
+			|| this.value.hasEffectsWhenCalledAtPath( [], callOptions, options );
 	}
 }

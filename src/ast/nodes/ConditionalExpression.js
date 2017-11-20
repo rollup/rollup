@@ -2,22 +2,13 @@ import Node from '../Node.js';
 import { UNKNOWN_VALUE } from '../values.js';
 
 export default class ConditionalExpression extends Node {
-	initialiseChildren ( parentScope ) {
-		if ( this.module.bundle.treeshake ) {
-			this.testValue = this.test.getValue();
+	reassignPath ( path, options ) {
+		path.length > 0
+		&& this._forEachRelevantBranch( node => node.reassignPath( path, options ) );
+	}
 
-			if ( this.testValue === UNKNOWN_VALUE ) {
-				super.initialiseChildren( parentScope );
-			} else if ( this.testValue ) {
-				this.consequent.initialise( this.scope );
-				this.alternate = null;
-			} else if ( this.alternate ) {
-				this.alternate.initialise( this.scope );
-				this.consequent = null;
-			}
-		} else {
-			super.initialiseChildren( parentScope );
-		}
+	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
+		this._forEachRelevantBranch( node => node.forEachReturnExpressionWhenCalledAtPath( path, callOptions, callback, options ) );
 	}
 
 	getValue () {
@@ -29,11 +20,38 @@ export default class ConditionalExpression extends Node {
 
 	hasEffects ( options ) {
 		return (
-			this.included
-			|| this.test.hasEffects( options )
-			|| (this.testValue === UNKNOWN_VALUE && (this.consequent.hasEffects( options ) || this.alternate.hasEffects( options )))
-			|| (this.testValue ? this.consequent.hasEffects( options ) : this.alternate.hasEffects( options ))
+			this.test.hasEffects( options )
+			|| this._someRelevantBranch( node => node.hasEffects( options ) )
 		);
+	}
+
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		return path.length > 0
+			&& this._someRelevantBranch( node => node.hasEffectsWhenAccessedAtPath( path, options ) );
+	}
+
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		return path.length === 0
+			|| this._someRelevantBranch( node => node.hasEffectsWhenAssignedAtPath( path, options ) );
+	}
+
+	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
+		return this._someRelevantBranch( node => node.hasEffectsWhenCalledAtPath( path, callOptions, options ) );
+	}
+
+	initialiseChildren ( parentScope ) {
+		super.initialiseChildren( parentScope );
+		if ( this.module.bundle.treeshake ) {
+			this.testValue = this.test.getValue();
+
+			if ( this.testValue === UNKNOWN_VALUE ) {
+				return;
+			} else if ( this.testValue ) {
+				this.alternate = null;
+			} else if ( this.alternate ) {
+				this.consequent = null;
+			}
+		}
 	}
 
 	render ( code, es ) {
@@ -58,5 +76,29 @@ export default class ConditionalExpression extends Node {
 				branchToRetain.render( code, es );
 			}
 		}
+	}
+
+	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
+		return this._someRelevantBranch( node =>
+			node.someReturnExpressionWhenCalledAtPath( path, callOptions, predicateFunction, options ) );
+	}
+
+	_forEachRelevantBranch ( callback ) {
+		if ( this.testValue === UNKNOWN_VALUE ) {
+			callback( this.consequent );
+			callback( this.alternate );
+		} else {
+			this.testValue
+				? callback( this.consequent )
+				: callback( this.alternate );
+		}
+	}
+
+	_someRelevantBranch ( predicateFunction ) {
+		return this.testValue === UNKNOWN_VALUE
+			? predicateFunction( this.consequent ) || predicateFunction( this.alternate )
+			: this.testValue
+				? predicateFunction( this.consequent )
+				: predicateFunction( this.alternate );
 	}
 }

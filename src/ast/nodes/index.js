@@ -1,3 +1,4 @@
+import ArrayExpression from './ArrayExpression.js';
 import ArrayPattern from './ArrayPattern.js';
 import ArrowFunctionExpression from './ArrowFunctionExpression.js';
 import AssignmentExpression from './AssignmentExpression.js';
@@ -52,10 +53,9 @@ import VariableDeclarator from './VariableDeclarator.js';
 import VariableDeclaration from './VariableDeclaration.js';
 import WhileStatement from './WhileStatement.js';
 import YieldExpression from './YieldExpression.js';
-import Node from '../Node';
 
 export default {
-	ArrayExpression: Node,
+	ArrayExpression,
 	ArrayPattern,
 	ArrowFunctionExpression,
 	AssignmentExpression,

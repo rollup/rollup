@@ -16,12 +16,17 @@ export default class ThisExpression extends Node {
 		}
 	}
 
-	bind () {
+	bindNode () {
 		this.variable = this.scope.findVariable( 'this' );
 	}
 
-	hasEffectsWhenMutated ( options ) {
-		return !options.ignoreSafeThisMutations() || this.variable.hasEffectsWhenMutated( options );
+	hasEffectsWhenAccessedAtPath ( path, options ) {
+		return path.length > 0
+			&& this.variable.hasEffectsWhenAccessedAtPath( path, options );
+	}
+
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		return this.variable.hasEffectsWhenAssignedAtPath( path, options );
 	}
 
 	render ( code ) {

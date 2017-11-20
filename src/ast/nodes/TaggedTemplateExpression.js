@@ -1,7 +1,8 @@
 import Node from '../Node.js';
+import CallOptions from '../CallOptions';
 
 export default class TaggedTemplateExpression extends Node {
-	bind () {
+	bindNode () {
 		if ( this.tag.type === 'Identifier' ) {
 			const variable = this.scope.findVariable( this.tag.name );
 
@@ -20,13 +21,14 @@ export default class TaggedTemplateExpression extends Node {
 				}, this.start );
 			}
 		}
-
-		super.bind();
-		this.tag.bindCall( { withNew: false } );
 	}
 
 	hasEffects ( options ) {
 		return super.hasEffects( options )
-			|| this.tag.hasEffectsWhenCalled( options.getHasEffectsWhenCalledOptions( this.tag ) );
+			|| this.tag.hasEffectsWhenCalledAtPath( [], this._callOptions, options.getHasEffectsWhenCalledOptions() );
+	}
+
+	initialiseNode () {
+		this._callOptions = CallOptions.create( { withNew: false, caller: this } );
 	}
 }

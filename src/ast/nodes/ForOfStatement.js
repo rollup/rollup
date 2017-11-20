@@ -1,20 +1,16 @@
 import Statement from './shared/Statement.js';
 import BlockScope from '../scopes/BlockScope';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class ForOfStatement extends Statement {
-	bind () {
-		super.bind();
-		this.left.bindAssignment( UNKNOWN_ASSIGNMENT );
+	bindNode () {
+		this.left.reassignPath( [], ExecutionPathOptions.create() );
 	}
 
 	hasEffects ( options ) {
-		return (
-			this.included
-			|| this.left && (this.left.hasEffects( options ) || this.left.hasEffectsWhenAssigned( options ))
+		return this.left && (this.left.hasEffects( options ) || this.left.hasEffectsWhenAssignedAtPath( [], options ))
 			|| this.right && this.right.hasEffects( options )
-			|| this.body.hasEffects( options.setIgnoreBreakStatements() )
-		);
+			|| this.body.hasEffects( options.setIgnoreBreakStatements() );
 	}
 
 	includeInBundle () {

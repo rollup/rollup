@@ -1,6 +1,6 @@
 import Node from '../Node.js';
 import extractNames from '../utils/extractNames.js';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 function getSeparator ( code, start ) {
 	let c = start;
@@ -18,32 +18,28 @@ function getSeparator ( code, start ) {
 const forStatement = /^For(?:Of|In)?Statement/;
 
 export default class VariableDeclaration extends Node {
-	bindAssignment () {
-		this.eachChild( child => child.bindAssignment( UNKNOWN_ASSIGNMENT ) );
+	reassignPath () {
+		this.eachChild( child => child.reassignPath( [], ExecutionPathOptions.create() ) );
 	}
 
-	hasEffectsWhenAssigned () {
+	hasEffectsWhenAssignedAtPath () {
 		return false;
 	}
 
 	includeWithAllDeclarations () {
-		if ( this.isFullyIncluded() ) return false;
-		let addedNewNodes = false;
+		let addedNewNodes = !this.included;
+		this.included = true;
 		this.declarations.forEach( declarator => {
 			if ( declarator.includeInBundle() ) {
 				addedNewNodes = true;
 			}
 		} );
-		if ( !this.included || addedNewNodes ) {
-			this.included = true;
-			return true;
-		}
-		return false;
+		return addedNewNodes;
 	}
 
 	includeInBundle () {
-		if ( this.isFullyIncluded() ) return false;
-		let addedNewNodes = false;
+		let addedNewNodes = !this.included;
+		this.included = true;
 		this.declarations.forEach( declarator => {
 			if ( declarator.shouldBeIncluded() ) {
 				if ( declarator.includeInBundle() ) {
@@ -51,11 +47,7 @@ export default class VariableDeclaration extends Node {
 				}
 			}
 		} );
-		if ( !this.included || addedNewNodes ) {
-			this.included = true;
-			return true;
-		}
-		return false;
+		return addedNewNodes;
 	}
 
 	initialiseChildren () {

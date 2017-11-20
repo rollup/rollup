@@ -2,12 +2,14 @@ import Node from '../Node.js';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class RestElement extends Node {
-	bindAssignment () {
-		this.argument.bindAssignment( UNKNOWN_ASSIGNMENT );
+	reassignPath ( path, options ) {
+		path.length === 0
+		&& this.argument.reassignPath( [], options );
 	}
 
-	hasEffectsWhenAssigned ( options ) {
-		return this.argument.hasEffectsWhenAssigned( options );
+	hasEffectsWhenAssignedAtPath ( path, options ) {
+		return path.length > 0
+			|| this.argument.hasEffectsWhenAssignedAtPath( [], options );
 	}
 
 	initialiseAndDeclare ( parentScope, kind ) {

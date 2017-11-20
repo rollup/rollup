@@ -10,8 +10,8 @@ export default class SequenceExpression extends Node {
 	}
 
 	includeInBundle () {
-		if ( this.isFullyIncluded() ) return false;
-		let addedNewNodes = false;
+		let addedNewNodes = !this.included;
+		this.included = true;
 		if ( this.expressions[ this.expressions.length - 1 ].includeInBundle() ) {
 			addedNewNodes = true;
 		}
@@ -22,11 +22,7 @@ export default class SequenceExpression extends Node {
 				}
 			}
 		} );
-		if ( !this.included || addedNewNodes ) {
-			this.included = true;
-			return true;
-		}
-		return false;
+		return addedNewNodes;
 	}
 
 	render ( code, es ) {
@@ -36,16 +32,20 @@ export default class SequenceExpression extends Node {
 
 		else {
 			const last = this.expressions[ this.expressions.length - 1 ];
-			const included = this.expressions.slice( 0, this.expressions.length - 1 ).filter( expression => expression.included );
+			last.render( code, es );
 
+			if ( this.parent.type === 'CallExpression' && last.type === 'MemberExpression' && this.expressions.length > 1 ) {
+				this.expressions[0].included = true;
+			}
+
+			const included = this.expressions.slice( 0, this.expressions.length - 1 ).filter( expression => expression.included );
 			if ( included.length === 0 ) {
 				code.remove( this.start, last.start );
 				code.remove( last.end, this.end );
-			}
-
-			else {
+			} else {
 				let previousEnd = this.start;
 				for ( const expression of included ) {
+					expression.render( code, es );
 					code.remove( previousEnd, expression.start );
 					code.appendLeft( expression.end, ', ' );
 					previousEnd = expression.end;

@@ -1,6 +1,6 @@
 define(function () { 'use strict';
 
-	const items = [{}, {}, {}];
+	const items = { children: [ {}, {}, {} ] };
 
 	function a () {
 		for ( const item of items.children ) {
@@ -23,6 +23,6 @@ define(function () { 'use strict';
 		{ foo: 'a', bar: 'c' },
 		{ foo: 'a', bar: 'c' },
 		{ foo: 'a', bar: 'c' }
-	]);
+	] );
 
 });
