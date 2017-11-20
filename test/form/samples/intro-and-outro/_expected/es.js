@@ -4,6 +4,10 @@
 
 // intro 2
 
+// intro 3
+
+// intro 4
+
 import a, { b } from 'external';
 
 console.log( a );
@@ -18,3 +22,7 @@ export default main;
 // outro 1
 
 // outro 2
+
+// outro 3
+
+// outro 4

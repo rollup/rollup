@@ -12,3 +12,7 @@ export function mapSequence ( array, fn ) {
 
 	return promise.then( () => results );
 }
+
+export function runSequence ( array ) {
+	return mapSequence( array, i => i );
+}
