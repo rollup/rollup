@@ -192,6 +192,59 @@ describe('rollup.watch', () => {
 				});
 		});
 
+		it.only('recovers from an error even when erroring file was "renamed" (#1619)', () => {
+			return sander
+				.copydir('test/watch/samples/ignored')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.deepEqual(run('../_tmp/output/bundle.js'), {
+								foo: 'foo-1',
+								bar: 'bar-1'
+							});
+							sander.unlinkSync('test/_tmp/input/foo.js');
+						},
+						'START',
+						'BUNDLE_START',
+						'ERROR',
+						() => {
+							sander.writeFileSync(
+								'test/_tmp/input/foo.js',
+								'export default "foo-2";'
+							);
+							// Touch file didn't seem to trigger chokidar
+							const f = sander.readFileSync('test/_tmp/input/main.js');
+							sander.writeFileSync('test/_tmp/input/main.js', f);
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.deepEqual(run('../_tmp/output/bundle.js'), {
+								foo: 'foo-2',
+								bar: 'bar-1'
+							});
+							watcher.close();
+						}
+					]);
+				});
+		});
+
 		it('refuses to watch the output file (#15)', () => {
 			return sander
 				.copydir('test/watch/samples/basic')
