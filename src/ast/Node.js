@@ -26,7 +26,6 @@ export default class Node {
 	 * The default noop implementation is ok as long as hasEffectsWhenAssignedAtPath
 	 * always returns true for this node. Otherwise it should be overridden.
 	 * @param {String[]} path
-	 * @param {Node} expression
 	 * @param {ExecutionPathOptions} options
 	 */
 	reassignPath ( path, options ) {}
