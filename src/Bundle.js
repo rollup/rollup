@@ -45,7 +45,17 @@ export default class Bundle {
 		this.entryId = null;
 		this.entryModule = null;
 
+		// TODO Lukas make sure no-treeshake is mutually exclusive with nested treeshaking options
+		// TODO Lukas move pureExternalModules into treeshaking options and deprecate in other place
+		// TODO Lukas create CLI tests
 		this.treeshake = options.treeshake !== false;
+		if ( this.treeshake ) {
+			this.treeshakingOptions = {
+				propertyReadSideEffects: options.treeshake
+					? options.treeshake.propertyReadSideEffects !== false
+					: true
+			};
+		}
 
 		if ( options.pureExternalModules === true ) {
 			this.isPureExternalModule = () => true;

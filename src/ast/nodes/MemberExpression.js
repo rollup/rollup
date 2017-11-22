@@ -96,7 +96,7 @@ export default class MemberExpression extends Node {
 
 	hasEffects ( options ) {
 		return super.hasEffects( options )
-			|| this.object.hasEffectsWhenAccessedAtPath( [ this._getPathSegment() ], options );
+			|| (this._checkPropertyReadSideEffects && this.object.hasEffectsWhenAccessedAtPath( [ this._getPathSegment() ], options ));
 	}
 
 	hasEffectsWhenAccessedAtPath ( path, options ) {
@@ -131,6 +131,10 @@ export default class MemberExpression extends Node {
 			addedNewNodes = true;
 		}
 		return addedNewNodes;
+	}
+
+	initialiseNode () {
+		this._checkPropertyReadSideEffects = this.module.bundle.treeshake && this.module.bundle.treeshakingOptions.propertyReadSideEffects;
 	}
 
 	render ( code, es ) {

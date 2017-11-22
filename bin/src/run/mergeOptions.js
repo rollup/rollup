@@ -56,9 +56,8 @@ export default function mergeOptions ( config, command ) {
 	}
 
 	const baseOutputOptions = {
-		extend: command.extend !== undefined ? command.extend : config.extend,
+		extend: getOption('extend'),
 		amd: Object.assign({}, config.amd, command.amd),
-
 		banner: getOption('banner'),
 		footer: getOption('footer'),
 		intro: getOption('intro'),
