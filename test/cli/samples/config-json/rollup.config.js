@@ -3,8 +3,10 @@ import pkg from './package.json';
 
 module.exports = {
 	input: 'main.js',
-	format: 'cjs',
+	output: {
+		format: 'cjs'
+	},
 	plugins: [
-		replace({ '__VERSION__': pkg.version })
+		replace( { '__VERSION__': pkg.version } )
 	]
 };

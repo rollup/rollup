@@ -2,8 +2,10 @@ import replace from 'rollup-plugin-replace';
 
 export default {
 	input: 'nope.js',
-	format: 'amd',
+	output: {
+		format: 'amd'
+	},
 	plugins: [
-		replace({ 'ANSWER': 42 })
+		replace( { 'ANSWER': 42 } )
 	]
 };
