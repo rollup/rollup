@@ -1,3 +1,4 @@
+import buble from 'rollup-plugin-buble'
 import path from 'path';
 import chalk from 'chalk';
 import * as rollup from 'rollup';
@@ -13,7 +14,10 @@ export default function loadConfigFile (configFile, silent) {
 		external: id => {
 			return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5,id.length) === '.json';
 		},
-		onwarn: warnings.add
+		onwarn: warnings.add,
+		plugins: [
+			buble({objectAssign: 'Object.assign'}),
+		],
 	})
 		.then( bundle => {
 			if ( !silent && warnings.count > 0 ) {
