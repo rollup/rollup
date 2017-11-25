@@ -131,9 +131,8 @@ export default class Bundle {
 							error( {
 								code: 'ADDON_ERROR',
 								message:
-								`Could not resolve one of ${addonName}. Check configuration of ${pluginName}.
-	Error Message: ${err.message}
-	Error Stack: ${err.stack}`
+								`Could not retrieve ${addonName}. Check configuration of ${pluginName}.
+	Error Message: ${err.message}`
 							} );
 						});
 				})
