@@ -127,7 +127,7 @@ describe('function', () => {
 								}
 							} else if (warnings.length) {
 								throw new Error(
-									`Got unexpected warnings:\n${warnings.join('\n')}`
+									`Got unexpected warnings:\n${warnings.map(warning => warning.message).join('\n')}`
 								);
 							}
 

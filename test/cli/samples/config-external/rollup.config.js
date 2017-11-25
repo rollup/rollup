@@ -5,10 +5,10 @@ var config = resolve( './_config.js' );
 
 export default {
 	input: 'main.js',
-	format: 'cjs',
-
+	output: {
+		format: 'cjs'
+	},
 	external: [ 'assert', config ],
-
 	plugins: [
 		{
 			load: function ( id ) {

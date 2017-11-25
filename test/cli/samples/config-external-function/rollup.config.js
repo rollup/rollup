@@ -5,12 +5,12 @@ var config = resolve( './_config.js' );
 
 export default {
 	input: 'main.js',
-	format: 'cjs',
-
+	output: {
+		format: 'cjs'
+	},
 	external: function ( id ) {
 		return id === config;
 	},
-
 	plugins: [
 		{
 			load: function ( id ) {

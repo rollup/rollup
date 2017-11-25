@@ -2,8 +2,10 @@ import replace from 'rollup-plugin-replace';
 
 export default {
 	input: 'main.js',
-	format: 'cjs',
+	output: {
+		format: 'cjs'
+	},
 	plugins: [
-		replace({ 'ANSWER': 42 })
+		replace( { 'ANSWER': 42 } )
 	]
 };

@@ -1,5 +1,7 @@
 export default {
-	format: 'es',
+	output: {
+		format: 'es'
+	},
 	plugins: [
 		{
 			options: opts => {

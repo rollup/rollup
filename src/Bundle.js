@@ -46,14 +46,25 @@ export default class Bundle {
 		this.entryModule = null;
 
 		this.treeshake = options.treeshake !== false;
-
-		if ( options.pureExternalModules === true ) {
-			this.isPureExternalModule = () => true;
-		} else if ( typeof options.pureExternalModules === 'function' ) {
-			this.isPureExternalModule = options.pureExternalModules;
-		} else if ( Array.isArray( options.pureExternalModules ) ) {
-			const pureExternalModules = new Set( options.pureExternalModules );
-			this.isPureExternalModule = id => pureExternalModules.has( id );
+		if ( this.treeshake ) {
+			this.treeshakingOptions = {
+				propertyReadSideEffects: options.treeshake
+					? options.treeshake.propertyReadSideEffects !== false
+					: true,
+				pureExternalModules: options.treeshake
+					? options.treeshake.pureExternalModules
+					: false
+			};
+			if ( this.treeshakingOptions.pureExternalModules === true ) {
+				this.isPureExternalModule = () => true;
+			} else if ( typeof this.treeshakingOptions.pureExternalModules === 'function' ) {
+				this.isPureExternalModule = this.treeshakingOptions.pureExternalModules;
+			} else if ( Array.isArray( this.treeshakingOptions.pureExternalModules ) ) {
+				const pureExternalModules = new Set( this.treeshakingOptions.pureExternalModules );
+				this.isPureExternalModule = id => pureExternalModules.has( id );
+			} else {
+				this.isPureExternalModule = () => false;
+			}
 		} else {
 			this.isPureExternalModule = () => false;
 		}
