@@ -6,6 +6,10 @@
 
 // intro 2
 
+// intro 3
+
+// intro 4
+
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var a = require('external');
@@ -23,3 +27,7 @@ module.exports = main;
 // outro 1
 
 // outro 2
+
+// outro 3
+
+// outro 4

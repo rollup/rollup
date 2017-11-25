@@ -11,7 +11,7 @@ import ensureArray from './utils/ensureArray.js';
 import { load, makeOnwarn, resolveId } from './utils/defaults.js';
 import getExportMode from './utils/getExportMode.js';
 import getIndentString from './utils/getIndentString.js';
-import { mapSequence } from './utils/promise.js';
+import { mapSequence, runSequence } from './utils/promise.js';
 import transform from './utils/transform.js';
 import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
@@ -107,6 +107,38 @@ export default class Bundle {
 		this.varOrConst = options.preferConst ? 'const' : 'var';
 		this.legacy = options.legacy;
 		this.acornOptions = options.acorn || {};
+	}
+
+	collectAddon ( initialAddon, addonName, sep = '\n' ) {
+		return runSequence(
+			 [ { pluginName: 'rollup', source: initialAddon } ]
+				.concat(this.plugins.map( (plugin, idx) => {
+					return {
+						pluginName: plugin.name || `Plugin at pos ${idx}`,
+						source: plugin[addonName]
+					};
+				} ))
+				.map( addon => {
+					addon.source = callIfFunction(addon.source);
+					return addon;
+				} )
+				.filter( addon => {
+					return addon.source;
+				} )
+				.map(({pluginName, source}) => {
+					return Promise.resolve(source)
+						.catch(err => {
+							error( {
+								code: 'ADDON_ERROR',
+								message:
+								`Could not resolve one of ${addonName}. Check configuration of ${pluginName}.
+	Error Message: ${err.message}
+	Error Stack: ${err.stack}`
+							} );
+						});
+				})
+		 )
+		 .then(addons => addons.filter(Boolean).join(sep));
 	}
 
 	build () {
@@ -225,6 +257,7 @@ export default class Bundle {
 				this.deconflict();
 
 				timeEnd( 'phase 4' );
+
 			} );
 	}
 
@@ -439,7 +472,14 @@ export default class Bundle {
 	}
 
 	render ( options = {} ) {
-		return Promise.resolve().then( () => {
+		return Promise.resolve().then(() => {
+			return Promise.all([
+				this.collectAddon( options.banner, 'banner' ),
+				this.collectAddon( options.footer, 'footer' ),
+				this.collectAddon( options.intro, 'intro', '\n\n' ),
+				this.collectAddon( options.outro, 'outro', '\n\n' )
+			]);
+		}).then( ([banner, footer, intro, outro]) => {
 			// Determine export mode - 'default', 'named', 'none'
 			const exportMode = getExportMode( this, options );
 
@@ -465,23 +505,6 @@ export default class Bundle {
 
 			timeEnd( 'render modules' );
 
-			let intro = [ options.intro ]
-				.concat(
-					this.plugins.map( plugin => plugin.intro && plugin.intro() )
-				)
-				.filter( Boolean )
-				.join( '\n\n' );
-
-			if ( intro ) intro += '\n\n';
-
-			let outro = [ options.outro ]
-				.concat(
-					this.plugins.map( plugin => plugin.outro && plugin.outro() )
-				)
-				.filter( Boolean )
-				.join( '\n\n' );
-
-			if ( outro ) outro = `\n\n${outro}`;
 
 			const indentString = getIndentString( magicString, options );
 
@@ -504,21 +527,12 @@ export default class Bundle {
 						id => this.getPathRelativeToEntryDirname( id )
 			);
 
+			if ( intro ) intro += '\n\n';
+			if ( outro ) outro = `\n\n${outro}`;
+
 			magicString = finalise( this, magicString.trim(), { exportMode, getPath, indentString, intro, outro }, options );
 
 			timeEnd( 'render format' );
-
-			const banner = [ options.banner ]
-				.concat( this.plugins.map( plugin => plugin.banner ) )
-				.map( callIfFunction )
-				.filter( Boolean )
-				.join( '\n' );
-
-			const footer = [ options.footer ]
-				.concat( this.plugins.map( plugin => plugin.footer ) )
-				.map( callIfFunction )
-				.filter( Boolean )
-				.join( '\n' );
 
 			if ( banner ) magicString.prepend( banner + '\n' );
 			if ( footer ) magicString.append( '\n' + footer );
