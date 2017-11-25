@@ -37,17 +37,18 @@ export default function loadConfigFile (configFile, silent) {
 			};
 
 			delete require.cache[configFile];
-			const configs = require( configFile );
-			if ( Object.keys( configs ).length === 0 ) {
-				handleError({
-					code: 'MISSING_CONFIG',
-					message: 'Config file must export an options object, or an array of options objects',
-					url: 'https://github.com/rollup/rollup/wiki/Command-Line-Interface#using-a-config-file'
-				});
-			}
+			return Promise.resolve(require( configFile )).then(configs => {
+				if ( Object.keys( configs ).length === 0 ) {
+					handleError({
+						code: 'MISSING_CONFIG',
+						message: 'Config file must export an options object, or an array of options objects',
+						url: 'https://github.com/rollup/rollup/wiki/Command-Line-Interface#using-a-config-file'
+					});
+				}
 
-			require.extensions[ '.js' ] = defaultLoader;
+				require.extensions[ '.js' ] = defaultLoader;
 
-			return Array.isArray( configs ) ? configs : [configs];
+				return Array.isArray( configs ) ? configs : [configs];
+			});
 		});
 }

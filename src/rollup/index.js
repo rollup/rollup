@@ -23,6 +23,7 @@ const ALLOWED_KEYS = [
 	'file',
 	'footer',
 	'format',
+	'freeze',
 	'globals',
 	'indent',
 	'input',
@@ -56,7 +57,7 @@ function checkAmd ( options ) {
 
 		const message = `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`;
 		if ( options.onwarn ) {
-			options.onwarn({ message });
+			options.onwarn( { message } );
 		} else {
 			console.warn( message ); // eslint-disable-line no-console
 		}
@@ -65,17 +66,31 @@ function checkAmd ( options ) {
 
 function checkInputOptions ( options, warn ) {
 	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
-		throw new Error( 'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
+		throw new Error(
+			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
+	}
+
+	if ( options.pureExternalModules ) {
+		if ( options.treeshake === undefined ) {
+			options.treeshake = {};
+		}
+		if ( options.treeshake ) {
+			options.treeshake.pureExternalModules = options.pureExternalModules;
+		}
+		delete options.pureExternalModules;
+		warn( {
+			message: `options.pureExternalModules is deprecated, use options.treeshake.pureExternalModules`
+		} );
 	}
 
 	if ( options.entry && !options.input ) {
 		options.input = options.entry;
-		warn({
+		warn( {
 			message: `options.entry is deprecated, use options.input`
-		});
+		} );
 	}
 
-	const err = validateKeys( keys(options), ALLOWED_KEYS );
+	const err = validateKeys( keys( options ), ALLOWED_KEYS );
 	if ( err ) throw err;
 }
 
@@ -89,17 +104,17 @@ const deprecated = {
 
 function checkOutputOptions ( options, warn ) {
 	if ( options.format === 'es6' ) {
-		error({
+		error( {
 			message: 'The `es6` output format is deprecated – use `es` instead',
 			url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
-		});
+		} );
 	}
 
 	if ( !options.format ) {
-		error({
+		error( {
 			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'es', 'iife' or 'umd'`,
 			url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
-		});
+		} );
 	}
 
 	if ( options.moduleId ) {
@@ -108,27 +123,28 @@ function checkOutputOptions ( options, warn ) {
 		options.amd = { id: options.moduleId };
 		delete options.moduleId;
 
-		warn({
+		warn( {
 			message: `options.moduleId is deprecated in favour of options.amd = { id: moduleId }`
-		});
+		} );
 	}
 
 	const deprecations = [];
 	Object.keys( deprecated ).forEach( old => {
 		if ( old in options ) {
-			deprecations.push({ old, new: deprecated[ old ] });
+			deprecations.push( { old, new: deprecated[ old ] } );
 			options[ deprecated[ old ] ] = options[ old ];
 			delete options[ old ];
 		}
-	});
+	} );
 
 	if ( deprecations.length ) {
-		const message = `The following options have been renamed — please update your config: ${deprecations.map(option => `${option.old} -> ${option.new}`).join(', ')}`;
-		warn({
+		const message = `The following options have been renamed — please update your config: ${deprecations.map(
+			option => `${option.old} -> ${option.new}` ).join( ', ' )}`;
+		warn( {
 			code: 'DEPRECATED_OPTIONS',
 			message,
 			deprecations
-		});
+		} );
 	}
 }
 
@@ -170,16 +186,16 @@ export default function rollup ( options ) {
 
 						bundle.plugins.forEach( plugin => {
 							if ( plugin.ongenerate ) {
-								plugin.ongenerate( assign({
+								plugin.ongenerate( assign( {
 									bundle: result
-								}, options ), rendered);
+								}, options ), rendered );
 							}
-						});
+						} );
 
 						flushTime();
 
 						return rendered;
-					});
+					} );
 
 				Object.defineProperty( promise, 'code', throwAsyncGenerateError );
 				Object.defineProperty( promise, 'map', throwAsyncGenerateError );
@@ -195,10 +211,10 @@ export default function rollup ( options ) {
 				generate,
 				write: options => {
 					if ( !options || (!options.file && !options.dest) ) {
-						error({
+						error( {
 							code: 'MISSING_OPTION',
 							message: 'You must specify options.file'
-						});
+						} );
 					}
 
 					return generate( options ).then( result => {
@@ -223,17 +239,17 @@ export default function rollup ( options ) {
 						promises.push( writeFile( file, code ) );
 						return Promise.all( promises ).then( () => {
 							return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
-								return Promise.resolve( plugin.onwrite( assign({
+								return Promise.resolve( plugin.onwrite( assign( {
 									bundle: result
-								}, options ), result));
-							});
-						});
-					});
+								}, options ), result ) );
+							} );
+						} );
+					} );
 				}
 			};
 
 			return result;
-		});
+		} );
 	} catch ( err ) {
 		return Promise.reject( err );
 	}

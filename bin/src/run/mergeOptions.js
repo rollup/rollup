@@ -1,18 +1,38 @@
 import ensureArray from '../../../src/utils/ensureArray.js';
-import deprecateOptions from '../../../src/utils/deprecateOptions.js';
+import deprecateOptions from './deprecateOptions.js';
+
+function normalizeObjectOptionValue ( optionValue ) {
+	if ( !optionValue ) {
+		return optionValue;
+	}
+	if ( typeof optionValue !== 'object' ) {
+		return {};
+	}
+	return optionValue;
+}
 
 export default function mergeOptions ( config, command ) {
-	// deprecations... TODO
 	const deprecations = deprecate( config, command );
 
-	function getOption(name) {
-		return command[name] !== undefined ? command[name] : config[name];
+	function getOption ( name ) {
+		return command[ name ] !== undefined ? command[ name ] : config[ name ];
+	}
+
+	function getObjectOption ( name ) {
+		const commandOption = normalizeObjectOptionValue( command[ name ] );
+		const configOption = normalizeObjectOptionValue( config[ name ] );
+		if ( commandOption !== undefined ) {
+			return commandOption && configOption
+				? Object.assign( {}, configOption, commandOption )
+				: commandOption;
+		}
+		return configOption;
 	}
 
 	const inputOptions = {
-		input: getOption('input'),
-		legacy: getOption('legacy'),
-		treeshake: getOption('treeshake'),
+		input: getOption( 'input' ),
+		legacy: getOption( 'legacy' ),
+		treeshake: getObjectOption( 'treeshake' ),
 		acorn: config.acorn,
 		context: config.context,
 		moduleContext: config.moduleContext,
@@ -32,13 +52,13 @@ export default function mergeOptions ( config, command ) {
 
 		command.globals.split( ',' ).forEach( str => {
 			const names = str.split( ':' );
-			globals[ names[0] ] = names[1];
+			globals[ names[ 0 ] ] = names[ 1 ];
 
 			// Add missing Module IDs to external.
-			if ( commandExternal.indexOf( names[0] ) === -1 ) {
-				commandExternal.push( names[0] );
+			if ( commandExternal.indexOf( names[ 0 ] ) === -1 ) {
+				commandExternal.push( names[ 0 ] );
 			}
-		});
+		} );
 
 		command.globals = globals;
 	}
@@ -51,79 +71,79 @@ export default function mergeOptions ( config, command ) {
 		inputOptions.external = ( configExternal || [] ).concat( commandExternal );
 	}
 
-	if (command.silent) {
+	if ( command.silent ) {
 		inputOptions.onwarn = () => {};
 	}
 
 	const baseOutputOptions = {
-		extend: command.extend !== undefined ? command.extend : config.extend,
-		amd: Object.assign({}, config.amd, command.amd),
-
-		banner: getOption('banner'),
-		footer: getOption('footer'),
-		intro: getOption('intro'),
-		outro: getOption('outro'),
-		sourcemap: getOption('sourcemap'),
-		name: getOption('name'),
-		globals: getOption('globals'),
-		interop: getOption('interop'),
-		legacy: getOption('legacy'),
-		indent: getOption('indent'),
-		strict: getOption('strict'),
-		noConflict: getOption('noConflict'),
-		paths: getOption('paths')
+		extend: getOption( 'extend' ),
+		amd: Object.assign( {}, config.amd, command.amd ),
+		banner: getOption( 'banner' ),
+		footer: getOption( 'footer' ),
+		intro: getOption( 'intro' ),
+		outro: getOption( 'outro' ),
+		sourcemap: getOption( 'sourcemap' ),
+		name: getOption( 'name' ),
+		globals: getOption( 'globals' ),
+		interop: getOption( 'interop' ),
+		legacy: getOption( 'legacy' ),
+		freeze: getOption( 'freeze' ),
+		indent: getOption( 'indent' ),
+		strict: getOption( 'strict' ),
+		noConflict: getOption( 'noConflict' ),
+		paths: getOption( 'paths' )
 	};
 
 	let mergedOutputOptions;
-	if (Array.isArray(config.output)) {
-		mergedOutputOptions = config.output.map((output) => Object.assign({}, output, command.output));
-	} else if (config.output && command.output) {
-		mergedOutputOptions = [Object.assign({}, config.output, command.output)];
+	if ( Array.isArray( config.output ) ) {
+		mergedOutputOptions = config.output.map( ( output ) => Object.assign( {}, output, command.output ) );
+	} else if ( config.output && command.output ) {
+		mergedOutputOptions = [ Object.assign( {}, config.output, command.output ) ];
 	} else {
 		mergedOutputOptions = (command.output || config.output) ?
-			ensureArray(command.output || config.output) :
-			[{
+			ensureArray( command.output || config.output ) :
+			[ {
 				file: command.output ? command.output.file : null,
 				format: command.output ? command.output.format : null
-			}];
+			} ];
 	}
 
-	const outputOptions = mergedOutputOptions.map(output => {
-		return Object.assign({}, baseOutputOptions, output);
-	});
+	const outputOptions = mergedOutputOptions.map( output => {
+		return Object.assign( {}, baseOutputOptions, output );
+	} );
 
 	return { inputOptions, outputOptions, deprecations };
 }
 
-function deprecate( config, command ) {
+function deprecate ( config, command ) {
 	const deprecations = [];
 
 	// CLI
 	if ( command.id ) {
-		deprecations.push({
+		deprecations.push( {
 			old: '-u/--id',
 			new: '--amd.id'
-		});
+		} );
 		(command.amd || (command.amd = {})).id = command.id;
 	}
 
 	if ( typeof command.output === 'string' ) {
-		deprecations.push({
+		deprecations.push( {
 			old: '--output',
 			new: '--output.file'
-		});
+		} );
 		command.output = { file: command.output };
 	}
 
 	if ( command.format ) {
-		deprecations.push({
+		deprecations.push( {
 			old: '--format',
 			new: '--output.format'
-		});
+		} );
 		(command.output || (command.output = {})).format = command.format;
 	}
 
 	// config file
-	deprecations.push(...deprecateOptions(config));
+	deprecations.push( ...deprecateOptions( config ) );
 	return deprecations;
 }

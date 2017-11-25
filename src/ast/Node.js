@@ -78,8 +78,7 @@ export default class Node {
 	 * @return {boolean}
 	 */
 	hasEffects ( options ) {
-		return this.hasEffectsWhenAccessedAtPath( [], options )
-			|| this.someChild( child => child.hasEffects( options ) );
+		return this.someChild( child => child.hasEffects( options ) );
 	}
 
 	/**

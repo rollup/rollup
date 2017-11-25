@@ -2,7 +2,9 @@ module.exports = {
 	description: 'imports from pure external modules that are used should not be omitted',
 	options: {
 		external: [ 'warning' ],
-		pureExternalModules: [ 'warning' ]
+		treeshake: {
+			pureExternalModules: [ 'warning' ]
+		}
 	},
 	context: {
 		require: id => {

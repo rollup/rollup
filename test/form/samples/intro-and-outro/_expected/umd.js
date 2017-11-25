@@ -10,6 +10,10 @@
 
 	// intro 2
 
+	// intro 3
+
+	// intro 4
+
 	var a__default = 'default' in a ? a['default'] : a;
 
 	console.log( a__default );
@@ -24,5 +28,9 @@
 	// outro 1
 
 	// outro 2
+
+	// outro 3
+
+	// outro 4
 
 })));
