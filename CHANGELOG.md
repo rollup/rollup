@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 0.52.0
+
+* Accept config as promise ([#1731](https://github.com/rollup/rollup/pull/1731))
+* Accept promises for intro/outro/banner/footer ([#1253](https://github.com/rollup/rollup/pull/1253))
+* Option to prevent freezing of namespace imports ([#1696](https://github.com/rollup/rollup/pull/1696))
+* Option to retain all output in watch mode ([#1688](https://github.com/rollup/rollup/pull/1688))
+* Options to fine-tune treeshaking ([#1760](https://github.com/rollup/rollup/pull/1760))
+
 ## 0.51.8
 
 * Fix speed problems by simplifying treeshaking reassignment handling ([#1740](https://github.com/rollup/rollup/pull/1740))
