@@ -20,7 +20,6 @@ const command = minimist( process.argv.slice( 2 ), {
 		m: 'sourcemap',
 		n: 'name',
 		o: 'output.file',
-		u: 'id',
 		v: 'version',
 		w: 'watch'
 	}

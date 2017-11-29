@@ -94,7 +94,7 @@ function checkInputOptions ( options, warn ) {
 	if ( err ) throw err;
 }
 
-const deprecated = {
+const deprecatedOutputOptions = {
 	dest: 'file',
 	moduleName: 'name',
 	sourceMap: 'sourcemap',
@@ -129,10 +129,10 @@ function checkOutputOptions ( options, warn ) {
 	}
 
 	const deprecations = [];
-	Object.keys( deprecated ).forEach( old => {
+	Object.keys( deprecatedOutputOptions ).forEach( old => {
 		if ( old in options ) {
-			deprecations.push( { old, new: deprecated[ old ] } );
-			options[ deprecated[ old ] ] = options[ old ];
+			deprecations.push( { old, new: deprecatedOutputOptions[ old ] } );
+			options[ deprecatedOutputOptions[ old ] ] = options[ old ];
 			delete options[ old ];
 		}
 	} );
@@ -154,33 +154,33 @@ const throwAsyncGenerateError = {
 	}
 };
 
-export default function rollup ( options ) {
+export default function rollup ( inputOptions ) {
 	try {
-		if ( !options ) {
+		if ( !inputOptions ) {
 			throw new Error( 'You must supply an options object to rollup' );
 		}
 
-		const warn = options.onwarn || (warning => console.warn( warning.message )); // eslint-disable-line no-console
+		const warn = inputOptions.onwarn || (warning => console.warn( warning.message )); // eslint-disable-line no-console
 
-		checkInputOptions( options, warn );
-		const bundle = new Bundle( options );
+		checkInputOptions( inputOptions, warn );
+		const bundle = new Bundle( inputOptions );
 
 		timeStart( '--BUILD--' );
 
 		return bundle.build().then( () => {
 			timeEnd( '--BUILD--' );
 
-			function generate ( options ) {
-				if ( !options ) {
+			function generate ( outputOptions ) {
+				if ( !outputOptions ) {
 					throw new Error( 'You must supply an options object' );
 				}
-				checkOutputOptions( options, warn );
-				checkAmd( options );
+				checkOutputOptions( outputOptions, warn );
+				checkAmd( outputOptions );
 
 				timeStart( '--GENERATE--' );
 
 				const promise = Promise.resolve()
-					.then( () => bundle.render( options ) )
+					.then( () => bundle.render( outputOptions ) )
 					.then( rendered => {
 						timeEnd( '--GENERATE--' );
 
@@ -188,7 +188,7 @@ export default function rollup ( options ) {
 							if ( plugin.ongenerate ) {
 								plugin.ongenerate( assign( {
 									bundle: result
-								}, options ), rendered );
+								}, outputOptions ), rendered );
 							}
 						} );
 
@@ -209,24 +209,24 @@ export default function rollup ( options ) {
 				modules: bundle.orderedModules.map( module => module.toJSON() ),
 
 				generate,
-				write: options => {
-					if ( !options || (!options.file && !options.dest) ) {
+				write: outputOptions => {
+					if ( !outputOptions || (!outputOptions.file && !outputOptions.dest) ) {
 						error( {
 							code: 'MISSING_OPTION',
-							message: 'You must specify options.file'
+							message: 'You must specify output.file'
 						} );
 					}
 
-					return generate( options ).then( result => {
-						const file = options.file;
+					return generate( outputOptions ).then( result => {
+						const file = outputOptions.file;
 						let { code, map } = result;
 
 						const promises = [];
 
-						if ( options.sourcemap ) {
+						if ( outputOptions.sourcemap ) {
 							let url;
 
-							if ( options.sourcemap === 'inline' ) {
+							if ( outputOptions.sourcemap === 'inline' ) {
 								url = map.toUrl();
 							} else {
 								url = `${basename( file )}.map`;
@@ -241,7 +241,7 @@ export default function rollup ( options ) {
 							return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
 								return Promise.resolve( plugin.onwrite( assign( {
 									bundle: result
-								}, options ), result ) );
+								}, outputOptions ), result ) );
 							} );
 						} );
 					} );

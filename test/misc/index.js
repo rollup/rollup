@@ -169,11 +169,11 @@ describe('bundle.write()', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.write();
-				}, /You must specify options\.file/);
+				}, /You must specify output\.file/);
 
 				assert.throws(() => {
 					bundle.write({});
-				}, /You must specify options\.file/);
+				}, /You must specify output\.file/);
 			});
 	});
 
