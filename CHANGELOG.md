@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.52.1 (Not yet released)
+* Improve deprecation warnings ([#1765](https://github.com/rollup/rollup/pull/1765))
+
 ## 0.52.0
 
 * Accept config as promise ([#1731](https://github.com/rollup/rollup/pull/1731))
