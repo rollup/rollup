@@ -2,36 +2,36 @@ export default function deprecateOptions ( options ) {
 	const deprecations = [];
 
 	if ( options.entry ) {
-		deprecations.push( { old: 'options.entry', new: 'options.input' } );
+		deprecations.push( { old: 'entry', new: 'input' } );
 		options.input = options.entry; // don't delete, as plugins sometimes depend on this...
 	}
 
 	if ( options.moduleName ) {
-		deprecations.push( { old: 'options.moduleName', new: 'options.name' } );
+		deprecations.push( { old: 'moduleName', new: 'output.name' } );
 		options.name = options.moduleName;
 		delete options.moduleName;
 	}
 
 	if ( options.sourceMap ) {
-		deprecations.push( { old: 'options.sourceMap', new: 'options.sourcemap' } );
+		deprecations.push( { old: 'sourceMap', new: 'output.sourcemap' } );
 		options.sourcemap = options.sourceMap;
 		delete options.sourceMap;
 	}
 
 	if ( options.sourceMapFile ) {
-		deprecations.push( { old: 'options.sourceMapFile', new: 'options.sourcemapFile' } );
+		deprecations.push( { old: 'sourceMapFile', new: 'output.sourcemapFile' } );
 		options.sourcemapFile = options.sourceMapFile;
 		delete options.sourceMapFile;
 	}
 
 	if ( options.useStrict ) {
-		deprecations.push( { old: 'options.useStrict', new: 'options.strict' } );
+		deprecations.push( { old: 'useStrict', new: 'output.strict' } );
 		options.strict = options.useStrict;
 		delete options.useStrict;
 	}
 
 	if ( options.targets ) {
-		deprecations.push( { old: 'options.targets', new: 'options.output' } );
+		deprecations.push( { old: 'targets', new: 'output' } );
 		options.output = options.targets;
 		delete options.targets;
 
@@ -39,7 +39,7 @@ export default function deprecateOptions ( options ) {
 		options.output.forEach( output => {
 			if ( output.dest ) {
 				if ( !deprecatedDest ) {
-					deprecations.push( { old: 'output.dest', new: 'output.file' } );
+					deprecations.push( { old: 'targets.dest', new: 'output.file' } );
 					deprecatedDest = true;
 				}
 				output.file = output.dest;
@@ -47,7 +47,7 @@ export default function deprecateOptions ( options ) {
 			}
 		} );
 	} else if ( options.dest ) {
-		deprecations.push( { old: 'options.dest', new: 'options.output.file' } );
+		deprecations.push( { old: 'dest', new: 'output.file' } );
 		options.output = {
 			file: options.dest,
 			format: options.format
@@ -57,12 +57,12 @@ export default function deprecateOptions ( options ) {
 
 	if ( options.format ) {
 		if ( !options.output ) options.output = { format: options.format };
-		deprecations.push( { old: 'options.format', new: 'options.output.format' } );
+		deprecations.push( { old: 'format', new: 'output.format' } );
 		delete options.format;
 	}
 
 	if ( options.pureExternalModules ) {
-		deprecations.push( { old: 'options.pureExternalModules', new: 'options.treeshake.pureExternalModules' } );
+		deprecations.push( { old: 'pureExternalModules', new: 'treeshake.pureExternalModules' } );
 		if ( options.treeshake === undefined ) {
 			options.treeshake = {};
 		}
