@@ -11,8 +11,8 @@ function normalizeObjectOptionValue ( optionValue ) {
 	return optionValue;
 }
 
-export default function mergeOptions ( config, command ) {
-	const deprecations = deprecate( config, command );
+export default function mergeOptions ( config, command, deprecateConfig) {
+	const deprecations = deprecate( config, command, deprecateConfig );
 
 	function getOption ( name ) {
 		return command[ name ] !== undefined ? command[ name ] : config[ name ];
@@ -115,7 +115,7 @@ export default function mergeOptions ( config, command ) {
 	return { inputOptions, outputOptions, deprecations };
 }
 
-function deprecate ( config, command ) {
+function deprecate ( config, command = {}, deprecateConfig = { input: true, output: true } ) {
 	const deprecations = [];
 
 	// CLI
@@ -144,6 +144,6 @@ function deprecate ( config, command ) {
 	}
 
 	// config file
-	deprecations.push( ...deprecateOptions( config ) );
+	deprecations.push( ...deprecateOptions( config, deprecateConfig ) );
 	return deprecations;
 }
