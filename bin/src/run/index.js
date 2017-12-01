@@ -28,14 +28,18 @@ export default function runRollup ( command ) {
 	}
 
 	if ( command.environment ) {
-		command.environment.split( ',' ).forEach( pair => {
-			const index = pair.indexOf( ':' );
-			if ( ~index ) {
-				process.env[ pair.slice( 0, index ) ] = pair.slice( index + 1 );
-			} else {
-				process.env[ pair ] = true;
-			}
-		});
+		const environment = Array.isArray(command.environment) ? command.environment : [ command.environment ];
+
+		environment.forEach( arg => {
+			arg.split( ',' ).forEach( pair => {
+				const [ key, value ] = pair.split( ':' );
+				if ( value ) {
+					process.env[ key ] = value;
+				} else {
+					process.env[ key ] = true;
+				}
+			});
+		})
 	}
 
 	let configFile = command.config === true ? 'rollup.config.js' : command.config;
