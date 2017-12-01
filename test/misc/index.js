@@ -25,6 +25,29 @@ describe('sanity checks', () => {
 			});
 	});
 
+	it('node API passes warning and default handler to custom onwarn function', () => {
+		let args = [];
+		return rollup
+			.rollup({
+				entry: 'x',
+				plugins: [loader({ x: `console.log( 42 );` })],
+				onwarn (warning, onwarn) {
+					args = [warning, onwarn];
+				}
+			})
+			.then(() => {
+				assert.deepEqual(args[0], {
+					code: 'DEPRECATED_OPTIONS',
+					deprecations: [{
+						new: 'input',
+						old: 'entry',
+					}],
+					message: `The following options have been renamed — please update your config: entry -> input`
+				});
+				assert.equal(typeof args[1], 'function');
+			});
+	});
+
 	it('fails without options.input', () => {
 		return rollup
 			.rollup({})
@@ -119,7 +142,12 @@ describe('deprecations', () => {
 			assert.equal(result, 42);
 			assert.deepEqual(warnings, [
 				{
-					message: `options.entry is deprecated, use options.input`
+					code: 'DEPRECATED_OPTIONS',
+					deprecations: [{
+						new: 'input',
+						old: 'entry',
+					}],
+					message: `The following options have been renamed — please update your config: entry -> input`
 				}
 			]);
 		});
