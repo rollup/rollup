@@ -6,6 +6,7 @@ import FunctionDeclaration from './FunctionDeclaration';
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './index';
+import { RenderOptions } from '../../rollup';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
@@ -67,7 +68,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString, es: boolean, options: RenderOptions) {
 		const remove = () => {
 			code.remove(
 				this.leadingCommentStart || this.start,
@@ -94,14 +95,16 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				return remove();
 			}
 
-			// Add the id to anonymous declarations
-			if (!(<FunctionDeclaration | ClassDeclaration>this.declaration).id) {
-				const id_insertPos =
-					this.start + statementStr.match(sourceRE.declarationHeader)[0].length;
-				code.appendLeft(id_insertPos, ` ${name}`);
-			}
+			if (!options.preserveModules || !this.included) {
+				// Add the id to anonymous declarations
+				if (!(<FunctionDeclaration | ClassDeclaration>this.declaration).id) {
+					const id_insertPos =
+						this.start + statementStr.match(sourceRE.declarationHeader)[0].length;
+					code.appendLeft(id_insertPos, ` ${name}`);
+				}
 
-			removeExportDefault();
+				removeExportDefault();
+			}
 		} else {
 			if (treeshakeable) {
 				const hasEffects = this.declaration.hasEffects(
@@ -112,21 +115,25 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 			// Prevent `var foo = foo`
 			if (this.variable.getOriginalVariableName(es) === name) {
-				return remove();
+				if (!options.preserveModules || !this.included) {
+					return remove();
+				}
 			}
 
 			// Only output `var foo =` if `foo` is used
 			if (this.included) {
-				code.overwrite(
-					this.start,
-					declaration_start,
-					`${this.module.graph.varOrConst} ${name} = `
-				);
+				if (!options.preserveModules) {
+					code.overwrite(
+						this.start,
+						declaration_start,
+						`${this.module.graph.varOrConst} ${name} = `
+					);
+				}
 			} else {
 				removeExportDefault();
 			}
 		}
-		super.render(code, es);
+		super.render(code, es, options);
 
 	}
 }

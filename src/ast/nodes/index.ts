@@ -18,6 +18,7 @@ import EmptyStatement from './EmptyStatement';
 import ExportAllDeclaration from './ExportAllDeclaration';
 import ExportDefaultDeclaration from './ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ExportNamedDeclaration';
+import ExportSpecifier from './ExportSpecifier';
 import ExpressionStatement from './ExpressionStatement';
 import ForStatement from './ForStatement';
 import ForInStatement from './ForInStatement';
@@ -28,6 +29,10 @@ import Identifier from './Identifier';
 import IfStatement from './IfStatement';
 import Import from './Import';
 import ImportDeclaration from './ImportDeclaration';
+import ImportDefaultSpecifier from './ImportDefaultSpecifier';
+import ImportNamedDeclaration from './ImportNamedDeclaration';
+import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
+import ImportSpecifier from './ImportSpecifier';
 import LabeledStatement from './LabeledStatement';
 import Literal from './Literal';
 import LogicalExpression from './LogicalExpression';
@@ -89,6 +94,7 @@ export const enum NodeType {
 	Import = 'Import',
 	ImportDeclaration = 'ImportDeclaration',
 	ImportDefaultSpecifier = 'ImportDefaultSpecifier',
+	ImportNamedDeclaration = 'ImportNamedDeclaration',
 	ImportNamespaceSpecifier = 'ImportNamespaceSpecifier',
 	ImportSpecifier = 'ImportSpecifier',
 	LabeledStatement = 'LabeledStatement',
@@ -144,6 +150,7 @@ const nodes: {
 	ExportAllDeclaration,
 	ExportDefaultDeclaration,
 	ExportNamedDeclaration,
+	ExportSpecifier,
 	ExpressionStatement,
 	ForStatement,
 	ForInStatement,
@@ -154,6 +161,10 @@ const nodes: {
 	IfStatement,
 	Import,
 	ImportDeclaration,
+	ImportDefaultSpecifier,
+	ImportNamedDeclaration,
+	ImportNamespaceSpecifier,
+	ImportSpecifier,
 	LabeledStatement,
 	Literal,
 	LogicalExpression,
