@@ -1,0 +1,10 @@
+import * as lib1 from './lib1';
+import { x, y } from './lib2';
+import x3 from './lib3a';
+import y3 from './lib3b';
+lib1.y.a.b = () => console.log( 'effect' );
+lib1.x.a.b();
+y.a.b = () => console.log( 'effect' );
+x.a.b();
+y3.a.b = () => console.log( 'effect' );
+x3.a.b();

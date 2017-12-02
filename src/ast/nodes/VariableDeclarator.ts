@@ -6,6 +6,7 @@ import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { PatternNode } from './shared/Pattern';
 import { NodeType } from './index';
+import { RenderOptions } from '../../rollup';
 
 export default class VariableDeclarator extends NodeBase {
 	type: NodeType.VariableDeclarator;
@@ -23,7 +24,7 @@ export default class VariableDeclarator extends NodeBase {
 	}
 
 	// TODO Deleting this does not break any tests. Find meaningful test or delete.
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString, es: boolean, options: RenderOptions) {
 		extractNames(this.id).forEach(name => {
 			const variable = this.scope.findVariable(name);
 
@@ -36,6 +37,6 @@ export default class VariableDeclarator extends NodeBase {
 			}
 		});
 
-		super.render(code, es);
+		super.render(code, es, options);
 	}
 }

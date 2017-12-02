@@ -7,6 +7,7 @@ import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './index';
 import { ExpressionNode, NodeBase } from './shared/Node';
+import { RenderOptions } from '../../rollup';
 
 export default class ConditionalExpression extends NodeBase {
 	type: NodeType.ConditionalExpression;
@@ -90,12 +91,12 @@ export default class ConditionalExpression extends NodeBase {
 		}
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString, es: boolean, options: RenderOptions) {
 		if (!this.module.graph.treeshake) {
-			super.render(code, es);
+			super.render(code, es, options);
 		} else {
 			if (this.testValue === UNKNOWN_VALUE) {
-				super.render(code, es);
+				super.render(code, es, options);
 			} else {
 				const branchToRetain = this.testValue
 					? this.consequent
@@ -107,7 +108,7 @@ export default class ConditionalExpression extends NodeBase {
 					code.prependLeft(branchToRetain.start, '(');
 					code.appendRight(branchToRetain.end, ')');
 				}
-				branchToRetain.render(code, es);
+				branchToRetain.render(code, es, options);
 			}
 		}
 	}

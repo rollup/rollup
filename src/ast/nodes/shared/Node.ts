@@ -9,6 +9,7 @@ import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import CallOptions from '../../CallOptions';
 import { UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import { Entity } from '../../Entity';
+import { RenderOptions } from '../../../rollup';
 
 export interface Node extends Entity {
 	end: number;
@@ -64,7 +65,7 @@ export interface Node extends Entity {
 	 */
 	initialise (parentScope: Scope): void;
 	initialiseAndDeclare (parentScope: Scope, kind: string, init: ExpressionEntity | null): void;
-	render(code: MagicString, es: boolean): void;
+	render(code: MagicString, es: boolean, options: RenderOptions): void;
 
 	/**
 	 * Start a new execution path to determine if this node has an effect on the bundle and
@@ -219,8 +220,8 @@ export class NodeBase implements ExpressionNode {
 
 	reassignPath (_path: ObjectPath, _options: ExecutionPathOptions) { }
 
-	render (code: MagicString, es: boolean) {
-		this.eachChild(child => child.render(code, es));
+	render (code: MagicString, es: boolean, options: RenderOptions) {
+		this.eachChild(child => child.render(code, es, options));
 	}
 
 	shouldBeIncluded () {

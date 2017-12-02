@@ -5,16 +5,17 @@ import error from './error';
 import Module from '../Module';
 import ExternalModule from '../ExternalModule';
 import relativeId from './relativeId';
+import Graph from '../Graph';
 
 export function load (id: string) {
 	return readFileSync(id, 'utf-8');
 }
 
-function findFile (file: string): string | void {
+function findFile (file: string, preserveSymlinks: boolean): string | void {
 	try {
 		const stats = lstatSync(file);
-		if (stats.isSymbolicLink()) return findFile(realpathSync(file));
-		if (stats.isFile()) {
+		if (!preserveSymlinks && stats.isSymbolicLink()) return findFile(realpathSync(file), preserveSymlinks);
+		if ((preserveSymlinks && stats.isSymbolicLink()) || stats.isFile()) {
 			// check case
 			const name = basename(file);
 			const files = readdirSync(dirname(file));
@@ -26,11 +27,11 @@ function findFile (file: string): string | void {
 	}
 }
 
-function addJsExtensionIfNecessary (file: string) {
-	return findFile(file) || findFile(file + '.js');
+function addJsExtensionIfNecessary (file: string, preserveSymlinks: boolean) {
+	return findFile(file, preserveSymlinks) || findFile(file + '.js', preserveSymlinks);
 }
 
-export function resolveId (importee: string, importer: string) {
+export function resolveId (this: Graph, importee: string, importer: string) {
 	if (typeof process === 'undefined') {
 		error({
 			code: 'MISSING_PROCESS',
@@ -49,7 +50,8 @@ export function resolveId (importee: string, importer: string) {
 	// resolve call and require no special handing on our part.
 	// See https://nodejs.org/api/path.html#path_path_resolve_paths
 	return addJsExtensionIfNecessary(
-		resolve(importer ? dirname(importer) : resolve(), importee)
+		resolve(importer ? dirname(importer) : resolve(), importee),
+		this.preserveSymlinks
 	);
 }
 

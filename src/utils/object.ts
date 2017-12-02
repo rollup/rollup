@@ -1,5 +1,9 @@
 export const { keys } = Object;
 
+export function values<T> (object: { [key: string]: T }) {
+	return keys(object).map(key => object[key]);
+}
+
 export function blank () {
 	return Object.create(null);
 }

@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'supports opt-ing out of usage of Object.freeze',
 	options: {
-	name: 'myBundle',
+		name: 'myBundle',
 		freeze: false
 	}
 };

@@ -4,7 +4,6 @@ import typescript from 'rollup-plugin-typescript';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
-import string from 'rollup-plugin-string';
 import pkg from './package.json';
 
 const commitHash = (function() {
@@ -62,75 +61,10 @@ export default [
 			resolve(),
 			commonjs()
 		],
-		external: ['fs', 'path', 'events', 'module'],
+		external: ['fs', 'path', 'events', 'module', 'fs-extra'],
 		banner,
-		sourcemap: true,
 		output: [
 			{ file: 'dist/rollup.js', format: 'cjs' },
-			{ file: 'dist/rollup.es.js', format: 'es' }
 		]
 	},
-
-	/* rollup.browser.js */
-	{
-		input: 'src/browser-entry.ts',
-		plugins: [
-			json(),
-			{
-				load: id => {
-					if ( ~id.indexOf( 'fs.ts' ) ) return fs.readFileSync( 'browser/fs.ts', 'utf-8' );
-					if ( ~id.indexOf( 'path.ts' ) ) return fs.readFileSync( 'browser/path.ts', 'utf-8' );
-				}
-			},
-			resolveTypescript(),
-			typescript({
-				typescript: require('typescript')
-			}),
-			resolve(),
-			commonjs()
-		],
-		banner,
-		sourcemap: true,
-		output: [
-			{
-				file: 'dist/rollup.browser.js',
-				format: 'umd',
-				name: 'rollup'
-			}
-		]
-	},
-
-	/* bin/rollup */
-	{
-		input: 'bin/src/index.ts',
-		plugins: [
-			string({ include: '**/*.md' }),
-			json(),
-			resolveTypescript(),
-			typescript({
-				typescript: require('typescript')
-			}),
-			commonjs({
-				include: 'node_modules/**'
-			}),
-			resolve(),
-		],
-		external: [
-			'fs',
-			'path',
-			'module',
-			'events',
-			'rollup',
-			'assert',
-			'os'
-		],
-		output: {
-			file: 'bin/rollup',
-			format: 'cjs',
-			banner: '#!/usr/bin/env node',
-			paths: {
-				rollup: '../dist/rollup.js'
-			}
-		}
-	}
 ];

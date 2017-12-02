@@ -4,7 +4,7 @@ import { blank, keys } from './utils/object';
 import Module, { IdMap, ModuleJSON } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
-import { load, makeOnwarn, resolveId } from './utils/defaults';
+import { load, makeOnwarn, resolveId, missingExport } from './utils/defaults';
 import { mapSequence } from './utils/promise';
 import transform from './utils/transform';
 import relativeId from './utils/relativeId';
@@ -14,6 +14,8 @@ import GlobalScope from './ast/scopes/GlobalScope';
 import {
 	InputOptions,
 	IsExternalHook,
+	MissingExportHook,
+	ModuleDestHook,
 	Plugin,
 	ResolveIdHook,
 	RollupWarning,
@@ -25,6 +27,7 @@ import { RawSourceMap } from 'source-map';
 import Program from './ast/nodes/Program';
 import { Node } from './ast/nodes/shared/Node';
 import Bundle from './Bundle';
+import firstSync from './utils/first-sync';
 
 export type ResolveDynamicImportHandler = (specifier: string | Node, parentId: string) => Promise<string | void>;
 
@@ -36,14 +39,19 @@ export default class Graph {
 	externalModules: ExternalModule[];
 	getModuleContext: (id: string) => string;
 	hasLoaders: boolean;
+	includeAllNamespacedInternal: boolean;
+	includeNamespaceConflicts: boolean;
 	isExternal: IsExternalHook;
 	isPureExternalModule: (id: string) => boolean;
 	legacy: boolean;
 	load: (id: string) => Promise<SourceDescription | string | void>;
+	missingExport: MissingExportHook;
 	moduleById: Map<string, Module | ExternalModule>;
+	moduleDest: ModuleDestHook;
 	modules: Module[];
 	onwarn: WarningHandler;
 	plugins: Plugin[];
+	preserveSymlinks: boolean;
 	resolveDynamicImport: ResolveDynamicImportHandler;
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
 	scope: GlobalScope;
@@ -114,6 +122,15 @@ export default class Graph {
 		this.hasLoaders = loaders.length !== 0;
 		this.load = first(loaders.concat(load));
 
+		this.missingExport = firstSync(
+			this.plugins.map(plugin => plugin.missingExport).filter(Boolean)
+				.concat(missingExport)
+		);
+
+		this.moduleDest = first(
+			this.plugins.map(plugin => plugin.moduleDest).filter(Boolean)
+		);
+
 		this.scope = new GlobalScope();
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
@@ -160,6 +177,10 @@ export default class Graph {
 			this.acornOptions.plugins = this.acornOptions.plugins || {};
 			this.acornOptions.plugins.dynamicImport = true;
 		}
+
+		this.preserveSymlinks = options.preserveSymlinks;
+		this.includeAllNamespacedInternal = options.includeAllNamespacedInternal;
+		this.includeNamespaceConflicts = options.includeNamespaceConflicts;
 	}
 
 	private loadModule (entryName: string) {
@@ -447,7 +468,7 @@ export default class Graph {
 						if (exportAllModule.isExternal) return;
 
 						keys((<Module>exportAllModule).exportsAll).forEach(name => {
-							if (name in module.exportsAll) {
+							if (!this.includeNamespaceConflicts && name in module.exportsAll) {
 								this.warn({
 									code: 'NAMESPACE_CONFLICT',
 									reexporter: module.id,

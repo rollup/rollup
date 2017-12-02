@@ -1,12 +1,13 @@
 import { timeStart, timeEnd, flushTime } from '../utils/flushTime';
-import { basename } from '../utils/path';
-import { writeFile } from '../utils/fs';
+import { basename, join, dirname } from '../utils/path';
+import { writeFile, mkdirp } from '../utils/fs';
 import { assign, keys } from '../utils/object';
 import { mapSequence } from '../utils/promise';
 import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
-import { ModuleJSON } from '../Module';
+import Module, { ModuleJSON } from '../Module';
+import ExternalModule from '../ExternalModule';
 import { RawSourceMap } from 'source-map';
 import Program from '../ast/nodes/Program';
 import { Node } from '../ast/nodes/shared/Node';
@@ -14,16 +15,19 @@ import { SourceMap } from 'magic-string';
 import { WatcherOptions } from '../watch/index';
 import { Deprecation } from '../utils/deprecateOptions';
 import Graph from '../Graph';
+import Bundle from '../Bundle';
 
 export const VERSION = '<@VERSION@>';
 
 export type SourceDescription = { code: string, map?: RawSourceMap, ast?: Program };
 
 export type ResolveIdHook = (id: string, parent: string) => Promise<string | boolean | void> | string | boolean | void;
+export type MissingExportHook = (module: Module, name: string, otherModule: Module | ExternalModule, start?: number) => void;
 export type IsExternalHook = (id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void;
 export type LoadHook = (id: string) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
 export type TransformHook = (code: string, id: String) => Promise<SourceDescription | string | void>;
 export type TransformBundleHook = (code: string, options: OutputOptions) => Promise<SourceDescription | string>;
+export type ModuleDestHook = (file: string) => Promise<string | void>;
 export type ResolveDynamicImportHook = (specifier: string | Node, parentId: string) => Promise<string | void> | string | void
 
 export interface Plugin {
@@ -31,10 +35,12 @@ export interface Plugin {
 	options?: (options: InputOptions) => void;
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
+	missingExport?: MissingExportHook;
 	transform?: TransformHook;
 	transformBundle?: TransformBundleHook;
 	ongenerate?: (options: OutputOptions, source: SourceDescription) => void;
 	onwrite?: (options: OutputOptions, source: SourceDescription) => void;
+	moduleDest?: ModuleDestHook;
 	resolveDynamicImport?: ResolveDynamicImportHook;
 
 	banner?: () => string;
@@ -68,6 +74,9 @@ export interface InputOptions {
 	legacy?: boolean;
 	watch?: WatcherOptions;
 	experimentalDynamicImport?: boolean;
+	preserveSymlinks?: boolean;
+	includeAllNamespacedInternal?: boolean;
+	includeNamespaceConflicts?: boolean;
 
 	// undocumented?
 	pureExternalModules?: boolean;
@@ -92,6 +101,9 @@ export interface OutputOptions {
 	name?: string;
 	globals?: GlobalsOption;
 
+	srcDir?: string;
+	destDir?: string;
+
 	paths?: Record<string, string> | ((id: string) => string);
 	banner?: string;
 	footer?: string;
@@ -110,6 +122,8 @@ export interface OutputOptions {
 	indent?: boolean;
 	strict?: boolean;
 	freeze?: boolean;
+	preserveModules?: boolean;
+	excludedModules?: string[];
 
 	// shared?
 	legacy?: boolean;
@@ -120,6 +134,12 @@ export interface OutputOptions {
 	// deprecated
 	dest?: string;
 	moduleId?: string;
+}
+
+export interface RenderOptions {
+	preserveModules?: boolean;
+	getPath?: (name: string) => string;
+	bundle?: Bundle;
 }
 
 export interface RollupWarning {
@@ -177,7 +197,7 @@ function checkOutputOptions (options: OutputOptions) {
 		});
 	}
 
-	if (!options.format) {
+	if (!options.format && !options.preserveModules) {
 		error({
 			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'es', 'iife' or 'umd'`,
 			url: `https://rollupjs.org/#format-f-output-format-`
@@ -203,6 +223,7 @@ export interface OutputBundle {
 	modules: ModuleJSON[];
 
 	generate: (outputOptions: OutputOptions) => Promise<{ code: string, map: SourceMap }>;
+	generateModules: (outputOptions: OutputOptions) => Promise<{ file: string; code: string; }[]>;
 	write: (options: OutputOptions) => Promise<void>;
 }
 
@@ -228,7 +249,7 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 			.then((bundle) => {
 				timeEnd('--BUILD--');
 
-				function generate (rawOutputOptions: GenericConfigObject) {
+				function normalizeOptions (rawOutputOptions: GenericConfigObject) {
 					if (!rawOutputOptions) {
 						throw new Error('You must supply an options object');
 					}
@@ -252,6 +273,12 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 
 					if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
 					checkOutputOptions(outputOptions);
+
+					return outputOptions;
+				}
+
+				function generate (rawOutputOptions: GenericConfigObject) {
+					const outputOptions = normalizeOptions(rawOutputOptions);
 
 					timeStart('--GENERATE--');
 
@@ -285,17 +312,44 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 					return promise;
 				}
 
+				function generateModules (rawOutputOptions: GenericConfigObject) {
+					const outputOptions = normalizeOptions(rawOutputOptions);
+
+					return bundle.renderModules(outputOptions);
+				}
+
 				const result: OutputBundle = {
 					imports: bundle.externalModules.map(module => module.id),
 					exports: keys(bundle.entryModule.exports),
 					modules: bundle.orderedModules.map(module => module.toJSON()),
 
 					generate,
+					generateModules,
 					write: (outputOptions: OutputOptions) => {
-						if (!outputOptions || (!outputOptions.file && !outputOptions.dest)) {
+						if (!outputOptions || (!outputOptions.file && !outputOptions.dest && !outputOptions.destDir)) {
 							error({
 								code: 'MISSING_OPTION',
 								message: 'You must specify output.file'
+							});
+						}
+
+						if (outputOptions.preserveModules) {
+							return generateModules(outputOptions).then(files => {
+								const promises = files.map(({ file, code }) => {
+									return bundle.graph.moduleDest(file).then(newFile => {
+										if (!newFile) {
+											const oldFile = file.substr(outputOptions.srcDir.length + 1);
+											newFile = join(outputOptions.destDir, oldFile);
+										}
+										return mkdirp(dirname(newFile)).then(() => {
+											return writeFile(newFile as string, `${code}\n`);
+										});
+									});
+								});
+
+								return Promise.all(promises)
+									// ensures return isn't void[]
+									.then(() => { });
 							});
 						}
 

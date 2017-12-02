@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import { dirname } from './path';
+import _mkdirp from 'mkdirp';
 
 export * from 'fs';
 
@@ -24,6 +25,18 @@ export function writeFile (dest: string, data: string | Buffer) {
 		mkdirpath(dest);
 
 		fs.writeFile(dest, data, err => {
+			if (err) {
+				reject(err);
+			} else {
+				fulfil();
+			}
+		});
+	});
+}
+
+export function mkdirp (dir: string) {
+	return new Promise((fulfil, reject) => {
+		_mkdirp(dir, { fs }, (err: any) => {
 			if (err) {
 				reject(err);
 			} else {
