@@ -212,13 +212,16 @@ const deferredHandlers = {
 		priority: 1,
 		fn: warnings => {
 			const nestedByPlugin = nest(warnings, 'plugin');
-
-			nestedByPlugin.forEach(({ key: plugin, items }) => {
+			nestedByPlugin.forEach(nested => {
+				const items = nested.items;
+				const plugin = nested.key;
 				const nestedByMessage = nest(items, 'message');
 
 				let lastUrl;
 
-				nestedByMessage.forEach(({ key: message, items }) => {
+				nestedByMessage.forEach(nestedMessage => {
+					const message = nestedMessage.key;
+					const items = nestedMessage.items;
 					title( `${plugin} plugin: ${message}` );
 					items.forEach(warning => {
 						if ( warning.url !== lastUrl ) info( lastUrl = warning.url );
@@ -269,7 +272,11 @@ function showTruncatedWarnings(warnings) {
 	const nestedByModule = nest(warnings, 'id');
 
 	const sliced = nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;
-	sliced.forEach(({ key: id, items }) => {
+
+	sliced.forEach(slice => {
+		const id = slice.key;
+		const items = slice.items;
+
 		stderr( chalk.bold( relativeId( id ) ) );
 		stderr( chalk.grey( items[0].frame ) );
 
