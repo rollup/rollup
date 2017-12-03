@@ -96,6 +96,7 @@ export default function watch(configFile, configs, command, silent) {
 	// only listen to stdin if it is a pipe
 	if (!process.stdin.isTTY) {
 		process.stdin.on('end', close); // in case we ever support stdin!
+		process.stdin.resume()
 	}
 
 	function close() {
