@@ -3,22 +3,11 @@ import error from '../utils/error.js';
 import getInteropBlock from './shared/getInteropBlock.js';
 import getExportBlock from './shared/getExportBlock.js';
 import getGlobalNameMaker from './shared/getGlobalNameMaker.js';
-import { property, keypath } from './shared/sanitize.js';
+import { keypath } from './shared/sanitize.js';
 import warnOnBuiltins from './shared/warnOnBuiltins.js';
 import trimEmptyImports from './shared/trimEmptyImports.js';
+import setupNamespace from './shared/setupNamespace.js';
 import { isLegal } from '../utils/identifierHelpers.js';
-
-function setupNamespace ( keypath ) {
-	const parts = keypath.split( '.' );
-
-	parts.pop();
-
-	let acc = 'this';
-
-	return parts
-		.map( part => ( acc += property( part ), `${acc} = ${acc} || {};` ) )
-		.join( '\n' ) + '\n';
-}
 
 const thisProp = name => `this${keypath( name )}`;
 
@@ -66,7 +55,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 	}
 
 	if ( isNamespaced ) {
-		wrapperIntro = setupNamespace( name ) + wrapperIntro;
+		wrapperIntro = setupNamespace( name, 'this', false, options.globals ) + wrapperIntro;
 	}
 
 	let wrapperOutro = `\n\n}(${dependencies}));`;

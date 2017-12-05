@@ -7,21 +7,11 @@ import esModuleExport from './shared/esModuleExport.js';
 import { property, keypath } from './shared/sanitize.js';
 import warnOnBuiltins from './shared/warnOnBuiltins.js';
 import trimEmptyImports from './shared/trimEmptyImports.js';
+import setupNamespace from './shared/setupNamespace.js';
 
 function globalProp ( name ) {
 	if ( !name ) return 'null';
 	return `global${ keypath( name ) }`;
-}
-
-function setupNamespace ( name ) {
-	const parts = name.split( '.' );
-	const last = property( parts.pop() );
-
-	let acc = 'global';
-	return parts
-		.map( part => ( acc += property( part ), `${acc} = ${acc} || {}` ) )
-		.concat( `${acc}${last}` )
-		.join( ', ' );
 }
 
 function safeAccess ( name ) {
@@ -57,7 +47,7 @@ export default function umd ( bundle, magicString, { exportMode, getPath, indent
 	if ( exportMode === 'named' ) {
 		amdDeps.unshift( `'exports'` );
 		cjsDeps.unshift( `exports` );
-		globalDeps.unshift( `(${setupNamespace(options.name)} = ${options.extend ? `${globalProp(options.name)} || ` : '' }{})` );
+		globalDeps.unshift( `(${setupNamespace(options.name, 'global', true, options.globals)} = ${options.extend ? `${globalProp(options.name)} || ` : '' }{})` );
 
 		args.unshift( 'exports' );
 	}
@@ -71,7 +61,7 @@ export default function umd ( bundle, magicString, { exportMode, getPath, indent
 	const define = amdOptions.define || 'define';
 
 	const cjsExport = exportMode === 'default' ? `module.exports = ` : ``;
-	const defaultExport = exportMode === 'default' ? `${setupNamespace(options.name)} = ` : '';
+	const defaultExport = exportMode === 'default' ? `${setupNamespace(options.name, 'global', true, options.globals)} = ` : '';
 
 	const useStrict = options.strict !== false ? ` 'use strict';` : ``;
 
