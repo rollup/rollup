@@ -22,7 +22,7 @@
     "watch": "rollup -cw",
     "prepublishOnly": "npm run lint && npm run test:only && npm run test:leak",
     "prepare": "npm run build",
-    "lint": "eslint src browser test/test.js test/*/index.js test/utils test/**/_config.js"
+    "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js"
   },
   "repository": "rollup/rollup",
   "keywords": [

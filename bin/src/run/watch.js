@@ -44,8 +44,8 @@ export default function watch(configFile, configs, command, silent) {
 			if (merged.deprecations.length) {
 				if (!result.watch) result.watch = {};
 				result.watch._deprecations = merged.deprecations;
-			}			
-			
+			}
+
 			if (merged.inputOptions.watch && merged.inputOptions.watch.clearScreen === false) {
 				screenWriter = stderr;
 			}
@@ -96,7 +96,7 @@ export default function watch(configFile, configs, command, silent) {
 	// only listen to stdin if it is a pipe
 	if (!process.stdin.isTTY) {
 		process.stdin.on('end', close); // in case we ever support stdin!
-		process.stdin.resume()
+		process.stdin.resume();
 	}
 
 	function close() {

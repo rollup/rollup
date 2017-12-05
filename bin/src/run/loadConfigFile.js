@@ -1,4 +1,4 @@
-import buble from 'rollup-plugin-buble'
+import buble from 'rollup-plugin-buble';
 import path from 'path';
 import chalk from 'chalk';
 import * as rollup from 'rollup';

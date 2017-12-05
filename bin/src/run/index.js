@@ -39,7 +39,7 @@ export default function runRollup ( command ) {
 					process.env[ key ] = true;
 				}
 			});
-		})
+		});
 	}
 
 	let configFile = command.config === true ? 'rollup.config.js' : command.config;
