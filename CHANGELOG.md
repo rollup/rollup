@@ -1,7 +1,11 @@
 # rollup changelog
 
-## 0.52.1 (Not yet released)
+## 0.52.1
 * Improve deprecation warnings ([#1765](https://github.com/rollup/rollup/pull/1765))
+* Properly use stdin ([#1774](https://github.com/rollup/rollup/pull/1774))
+* Let --environment be used multiple times ([#1768](https://github.com/rollup/rollup/pull/1768))
+* Always transpile config files ([#1759](https://github.com/rollup/rollup/pull/1759))
+* Respect globals option in headers of UMD and IIFE files ([#1747](https://github.com/rollup/rollup/pull/1747))
 
 ## 0.52.0
 
