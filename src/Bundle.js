@@ -464,19 +464,6 @@ export default class Bundle {
 							externalModule.traceExport( importDeclaration.name );
 						} );
 					} else {
-						if ( resolvedId === module.id ) {
-							// need to find the actual import declaration, so we can provide
-							// a useful error message. Bit hoop-jumpy but what can you do
-							const declaration = module.ast.body.find( node => {
-								return ( node.isImportDeclaration || node.isExportDeclaration ) && node.source.value === source;
-							} );
-							const declarationType = /Export/.test( declaration.type ) ? 'export' : 'import';
-							module.error( {
-								code: 'CANNOT_IMPORT_SELF',
-								message: `A module cannot ${declarationType} itself`
-							}, declaration.start );
-						}
-
 						module.resolvedIds[ source ] = resolvedId;
 						return this.fetchModule( resolvedId, module.id );
 					}
