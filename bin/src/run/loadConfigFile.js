@@ -46,7 +46,7 @@ export default function loadConfigFile (configFile, silent) {
 					handleError({
 						code: 'MISSING_CONFIG',
 						message: 'Config file must export an options object, or an array of options objects',
-						url: 'https://github.com/rollup/rollup/wiki/Command-Line-Interface#using-a-config-file'
+						url: 'https://rollupjs.org/#using-config-files'
 					});
 				}
 
