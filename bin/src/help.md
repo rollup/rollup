@@ -54,4 +54,4 @@ Notes:
 
 * When piping to stdout, only inline sourcemaps are permitted
 
-For more information visit https://github.com/rollup/rollup/wiki
+For more information visit https://rollupjs.org

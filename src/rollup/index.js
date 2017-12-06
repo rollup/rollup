@@ -106,14 +106,14 @@ function checkOutputOptions ( options, warn ) {
 	if ( options.format === 'es6' ) {
 		error( {
 			message: 'The `es6` output format is deprecated – use `es` instead',
-			url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
+			url: `https://rollupjs.org/#format-f-output-format-`
 		} );
 	}
 
 	if ( !options.format ) {
 		error( {
 			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'es', 'iife' or 'umd'`,
-			url: `https://github.com/rollup/rollup/wiki/JavaScript-API#format`
+			url: `https://rollupjs.org/#format-f-output-format-`
 		} );
 	}
 
