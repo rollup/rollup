@@ -2,7 +2,7 @@ import buble from 'rollup-plugin-buble';
 import path from 'path';
 import chalk from 'chalk';
 import * as rollup from 'rollup';
-import batchWarnings from './batchWarnings.js';
+import batchWarnings from '../../../src/utils/batchWarnings';
 import relativeId from '../../../src/utils/relativeId.js';
 import { handleError, stderr } from '../logging.js';
 

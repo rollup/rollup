@@ -59,16 +59,10 @@ describe('sanity checks', () => {
 			});
 	});
 
-	it('fails with invalid keys', () => {
-		return rollup.rollup({ input: 'x', plUgins: [] }).then(
-			() => {
-				throw new Error('Missing expected error');
-			},
-			err => {
-				assert.equal(
-					err.message,
-					"Unexpected key 'plUgins' found, expected one of: acorn, amd, banner, cache, context, entry, exports, extend, external, file, footer, format, freeze, globals, indent, input, interop, intro, legacy, moduleContext, name, noConflict, onwarn, output, outro, paths, plugins, preferConst, pureExternalModules, sourcemap, sourcemapFile, strict, targets, treeshake, watch"
-				);
+	it('does not fail with invalid keys', () => {
+		return rollup.rollup({ input: 'x', plUgins: [], plugins: [loader({ x: `console.log( 42 );` })] }).then(
+			res => {
+				assert.ok(res, 'not throwing up');
 			}
 		);
 	});

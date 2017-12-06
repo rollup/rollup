@@ -1,8 +1,8 @@
 import { realpathSync } from 'fs';
 import relative from 'require-relative';
 import { handleError } from '../logging.js';
-import mergeOptions from './mergeOptions.js';
-import batchWarnings from './batchWarnings.js';
+import mergeOptions from '../../../src/utils/mergeOptions';
+import batchWarnings from '../../../src/utils/batchWarnings';
 import loadConfigFile from './loadConfigFile.js';
 import sequence from '../utils/sequence.js';
 import build from './build.js';

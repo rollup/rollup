@@ -1,4 +1,4 @@
-import ensureArray from '../../../src/utils/ensureArray.js';
+import ensureArray from './ensureArray.js';
 import deprecateOptions from './deprecateOptions.js';
 
 function normalizeObjectOptionValue ( optionValue ) {
