@@ -6,6 +6,7 @@ import ensureArray from '../utils/ensureArray.js';
 import { mapSequence } from '../utils/promise.js';
 import { addTask, deleteTask } from './fileWatchers.js';
 import chokidar from './chokidar.js';
+import mergeOptions from '../utils/mergeOptions.js';
 
 const DELAY = 100;
 
@@ -83,46 +84,13 @@ class Task {
 		this.closed = false;
 		this.watched = new Set();
 
-		this.inputOptions = {
-			input: config.input,
-			entry: config.input, // legacy, for e.g. commonjs plugin
-			legacy: config.legacy,
-			treeshake: config.treeshake,
-			plugins: config.plugins,
-			external: config.external,
-			onwarn: config.onwarn || (warning => console.warn(warning.message)), // eslint-disable-line no-console
-			acorn: config.acorn,
-			context: config.context,
-			moduleContext: config.moduleContext
-		};
+		const { inputOptions, outputOptions, deprecations } = mergeOptions(config);
+		this.inputOptions = inputOptions;
 
-		const baseOutputOptions = {
-			extend: config.extend,
-			exports: config.exports,
-			amd: config.amd,
-			banner: config.banner,
-			footer: config.footer,
-			intro: config.intro,
-			outro: config.outro,
-			sourcemap: config.sourcemap,
-			sourcemapFile: config.sourcemapFile,
-			name: config.name,
-			globals: config.globals,
-			interop: config.interop,
-			legacy: config.legacy,
-			indent: config.indent,
-			strict: config.strict,
-			noConflict: config.noConflict,
-			paths: config.paths,
-			preferConst: config.preferConst
-		};
-
-		this.outputs = ensureArray(config.output).map(output => {
-			return Object.assign({}, baseOutputOptions, output);
-		});
+		this.outputs = outputOptions;
 		this.outputFiles = this.outputs.map(output => path.resolve(output.file));
 
-		const watchOptions = config.watch || {};
+		const watchOptions = inputOptions.watch || {};
 		if ('useChokidar' in watchOptions) watchOptions.chokidar = watchOptions.useChokidar;
 		let chokidarOptions = 'chokidar' in watchOptions ? watchOptions.chokidar : !!chokidar;
 		if (chokidarOptions) {
@@ -142,7 +110,7 @@ class Task {
 		this.chokidarOptionsHash = JSON.stringify(chokidarOptions);
 
 		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
-		this.deprecations = watchOptions._deprecations;
+		this.deprecations = [...deprecations, watchOptions._deprecations];
 	}
 
 	close() {

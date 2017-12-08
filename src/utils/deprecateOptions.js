@@ -10,53 +10,27 @@ export default function deprecateOptions ( options, deprecateConfig ) {
 	return deprecations;
 
 	function deprecateInputOptions () {
-		if ( options.entry ) {
-			deprecations.push( { old: 'entry', new: 'input' } );
-			options.input = options.entry; // don't delete, as plugins sometimes depend on this...
-		}
-	
-		if ( options.pureExternalModules ) {
-			deprecations.push( { old: 'pureExternalModules', new: 'treeshake.pureExternalModules' } );
-			if ( options.treeshake === undefined ) {
-				options.treeshake = {};
-			}
-			if ( options.treeshake ) {
-				options.treeshake.pureExternalModules = options.pureExternalModules;
-			}
-			delete options.pureExternalModules;
-		}
-	}
-
-	function deprecateOutputOptions () {
-		if ( options.moduleName ) {
-			deprecations.push( { old: 'moduleName', new: 'output.name' } );
-			options.name = options.moduleName;
-			delete options.moduleName;
-		}
-	
-		if ( options.sourceMap ) {
-			deprecations.push( { old: 'sourceMap', new: 'output.sourcemap' } );
-			options.sourcemap = options.sourceMap;
-			delete options.sourceMap;
-		}
-	
-		if ( options.sourceMapFile ) {
-			deprecations.push( { old: 'sourceMapFile', new: 'output.sourcemapFile' } );
-			options.sourcemapFile = options.sourceMapFile;
-			delete options.sourceMapFile;
-		}
-	
-		if ( options.useStrict ) {
-			deprecations.push( { old: 'useStrict', new: 'output.strict' } );
-			options.strict = options.useStrict;
-			delete options.useStrict;
-		}
+		if (options.entry)	deprecate('entry', 'input');
+		if (options.moduleName)	deprecate('moduleName', 'output.name', true);
+		if (options.extend)	deprecate('extend', 'output.extend', true);
+		if (options.globals)	deprecate('globals', 'output.globals', true);
+		if (options.indent)	deprecate('indent', 'output.indent', true);
+		if (options.noConflict)	deprecate('noConflict', 'output.noConflict', true);
+		if (options.paths)	deprecate('paths', 'output.paths', true);
+		if (options.sourcemap)	deprecate('sourcemap', 'output.sourcemap', true);
+		if (options.sourceMap) deprecate('sourceMap', 'output.sourcemap', true);
+		if (options.sourceMapFile) deprecate('sourceMapFile', 'output.sourcemapFile', true);
+		if (options.useStrict) deprecate('useStrict', 'output.strict', true);
+		if (options.format)	deprecate('format', 'output.format', true);
 	
 		if ( options.targets ) {
 			deprecations.push( { old: 'targets', new: 'output' } );
-			options.output = options.targets;
+
+			// as targets is an array and we need to merge other output options
+			// like sourcemap etc.
+			options.output = options.targets.map(t => Object.assign({}, t, options.output));
 			delete options.targets;
-	
+			
 			let deprecatedDest = false;
 			options.output.forEach( output => {
 				if ( output.dest ) {
@@ -77,16 +51,37 @@ export default function deprecateOptions ( options, deprecateConfig ) {
 			delete options.dest;
 		}
 	
-		if ( options.format ) {
-			if ( !options.output ) options.output = { format: options.format };
-			deprecations.push( { old: 'format', new: 'output.format' } );
-			delete options.format;
+		if ( options.pureExternalModules ) {
+			deprecations.push( { old: 'pureExternalModules', new: 'treeshake.pureExternalModules' } );
+			if ( options.treeshake === undefined ) {
+				options.treeshake = {};
+			}
+			if ( options.treeshake ) {
+				options.treeshake.pureExternalModules = options.pureExternalModules;
+			}
+			delete options.pureExternalModules;
 		}
-	
+	}
+
+	function deprecateOutputOptions () {
 		if (options.output && options.output.moduleId) {
 			options.output.amd = { id: options.moduleId };
 			deprecations.push( { old: 'moduleId', new: 'amd' } );
 			delete options.output.moduleId;
 		}
+	}
+
+	// a utility function to add deprecations for straightforward options
+	function deprecate (oldOption, newOption, shouldDelete) {
+		deprecations.push({ new: newOption, old: oldOption });
+
+		if (newOption.indexOf('output') > -1) {
+			options.output = options.output || {};
+			options.output[newOption.replace(/output\./, '')] = options[oldOption];
+		} else {
+			options[newOption] = options[oldOption];
+		}
+
+		if (shouldDelete) delete options[oldOption];
 	}
 }

@@ -5,8 +5,7 @@ import { assign, keys } from '../utils/object.js';
 import { mapSequence } from '../utils/promise.js';
 import error from '../utils/error.js';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL.js';
-import mergeOptions from '../utils/mergeOptions';
-import batchWarnings from '../utils/batchWarnings';
+import mergeOptions from '../utils/mergeOptions.js';
 import Bundle from '../Bundle.js';
 
 export const VERSION = '<@VERSION@>';
@@ -60,18 +59,7 @@ export default function rollup ( _inputOptions ) {
 			throw new Error( 'You must supply an options object to rollup' );
 		}
 		const { inputOptions, deprecations } = mergeOptions(_inputOptions, {}, { input: true });
-		const warnings = batchWarnings();
-		const onwarn = inputOptions.onwarn;
-		let warn;
-
-		if (onwarn) {
-			warn = warning => {
-				onwarn(warning, warnings.add);
-			};
-		} else {
-			warn = warning => console.warn(warning.message); // eslint-disable-line no-console
-		}
-		if ( deprecations.length ) addDeprecations(deprecations, warn);
+		if ( deprecations.length ) addDeprecations(deprecations, inputOptions.onwarn);
 		checkInputOptions( inputOptions );
 		const bundle = new Bundle( inputOptions );
 
@@ -84,13 +72,18 @@ export default function rollup ( _inputOptions ) {
 				if ( !_outputOptions ) {
 					throw new Error( 'You must supply an options object' );
 				}
-				const mergedOptions = mergeOptions({ output: _outputOptions }, {}, { output: true });
+				const mergedOptions = mergeOptions(
+					// just for backward compatiblity to fallback on root
+					// if the option isn't present in `output`
+					Object.assign({}, { output: Object.assign({}, _outputOptions, inputOptions.output) }),
+					{},
+					{ output: true });
 
 				// now outputOptions is an array, but rollup.rollup API doesn't support arrays
 				const outputOptions = mergedOptions.outputOptions[0];
 				const deprecations = mergedOptions.deprecations;
 				
-				if ( deprecations.length ) addDeprecations(deprecations, warn);
+				if ( deprecations.length ) addDeprecations(deprecations, inputOptions.onwarn);
 				checkOutputOptions( outputOptions );
 
 				timeStart( '--GENERATE--' );

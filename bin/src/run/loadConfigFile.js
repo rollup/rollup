@@ -1,7 +1,7 @@
 import path from 'path';
 import chalk from 'chalk';
 import * as rollup from 'rollup';
-import batchWarnings from '../../../src/utils/batchWarnings';
+import batchWarnings from '../../../src/utils/batchWarnings.js';
 import relativeId from '../../../src/utils/relativeId.js';
 import { handleError, stderr } from '../logging.js';
 
