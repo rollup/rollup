@@ -1,6 +1,6 @@
 import chalk from 'chalk';
-import { stderr } from '../../bin/src/logging';
-import relativeId from './relativeId';
+import { stderr } from '../../bin/src/logging.js';
+import relativeId from './relativeId.js';
 
 export default function batchWarnings () {
 	let allWarnings = new Map();

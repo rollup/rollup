@@ -1,5 +1,6 @@
 import ensureArray from './ensureArray.js';
 import deprecateOptions from './deprecateOptions.js';
+import batchWarnings from './batchWarnings.js';
 
 function normalizeObjectOptionValue ( optionValue ) {
 	if ( !optionValue ) {
@@ -11,12 +12,15 @@ function normalizeObjectOptionValue ( optionValue ) {
 	return optionValue;
 }
 
-export default function mergeOptions ( config, command, deprecateConfig) {
+export default function mergeOptions ( config, command = {}, deprecateConfig) {
 	const deprecations = deprecate( config, command, deprecateConfig );
 
-	function getOption ( name ) {
+	const getOption = config => name => {
 		return command[ name ] !== undefined ? command[ name ] : config[ name ];
-	}
+	};
+
+	const getInputOption = getOption(config);
+	const getOutputOption = getOption(config.output || {});
 
 	function getObjectOption ( name ) {
 		const commandOption = normalizeObjectOptionValue( command[ name ] );
@@ -29,16 +33,30 @@ export default function mergeOptions ( config, command, deprecateConfig) {
 		return configOption;
 	}
 
+	const warnings = batchWarnings();
+	const onwarn = config.onwarn;
+	let warn;
+
+	if (onwarn) {
+		warn = warning => {
+			onwarn(warning, warnings.add);
+		};
+	} else {
+		warn = warning => console.warn(warning.message); // eslint-disable-line no-console
+	}
+
 	const inputOptions = {
-		input: getOption( 'input' ),
-		legacy: getOption( 'legacy' ),
+		input: getInputOption( 'input' ),
+		legacy: getInputOption( 'legacy' ),
 		treeshake: getObjectOption( 'treeshake' ),
 		acorn: config.acorn,
 		context: config.context,
 		moduleContext: config.moduleContext,
 		plugins: config.plugins,
-		onwarn: config.onwarn,
-		watch: config.watch
+		onwarn: warn,
+		watch: config.watch,
+		cache: getInputOption( 'cache' ),
+		preferConst: getInputOption( 'preferConst' ),
 	};
 
 	// legacy, to ensure e.g. commonjs plugin still works
@@ -76,22 +94,25 @@ export default function mergeOptions ( config, command, deprecateConfig) {
 	}
 
 	const baseOutputOptions = {
-		extend: getOption( 'extend' ),
+		extend: getOutputOption( 'extend' ),
 		amd: Object.assign( {}, config.amd, command.amd ),
-		banner: getOption( 'banner' ),
-		footer: getOption( 'footer' ),
-		intro: getOption( 'intro' ),
-		outro: getOption( 'outro' ),
-		sourcemap: getOption( 'sourcemap' ),
-		name: getOption( 'name' ),
-		globals: getOption( 'globals' ),
-		interop: getOption( 'interop' ),
-		legacy: getOption( 'legacy' ),
-		freeze: getOption( 'freeze' ),
-		indent: getOption( 'indent' ),
-		strict: getOption( 'strict' ),
-		noConflict: getOption( 'noConflict' ),
-		paths: getOption( 'paths' )
+		banner: getOutputOption( 'banner' ),
+		footer: getOutputOption( 'footer' ),
+		intro: getOutputOption( 'intro' ),
+		format: getOutputOption( 'format' ),
+		outro: getOutputOption( 'outro' ),
+		sourcemap: getOutputOption( 'sourcemap' ),
+		sourcemapFile: getOutputOption( 'sourcemapFile' ),
+		name: getOutputOption( 'name' ),
+		globals: getOutputOption( 'globals' ),
+		interop: getOutputOption( 'interop' ),
+		legacy: getOutputOption( 'legacy' ),
+		freeze: getOutputOption( 'freeze' ),
+		indent: getOutputOption( 'indent' ),
+		strict: getOutputOption( 'strict' ),
+		noConflict: getOutputOption( 'noConflict' ),
+		paths: getOutputOption( 'paths' ),
+		exports: getOutputOption( 'exports' ),
 	};
 
 	let mergedOutputOptions;

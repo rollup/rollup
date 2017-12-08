@@ -1,8 +1,8 @@
 import { realpathSync } from 'fs';
 import relative from 'require-relative';
 import { handleError } from '../logging.js';
-import mergeOptions from '../../../src/utils/mergeOptions';
-import batchWarnings from '../../../src/utils/batchWarnings';
+import mergeOptions from '../../../src/utils/mergeOptions.js';
+import batchWarnings from '../../../src/utils/batchWarnings.js';
 import loadConfigFile from './loadConfigFile.js';
 import sequence from '../utils/sequence.js';
 import build from './build.js';
@@ -84,17 +84,7 @@ function execute ( configFile, configs, command ) {
 	} else {
 		return sequence( configs, config => {
 			const { inputOptions, outputOptions, deprecations } = mergeOptions( config, command );
-
 			const warnings = batchWarnings();
-
-			const onwarn = inputOptions.onwarn;
-			if ( onwarn ) {
-				inputOptions.onwarn = warning => {
-					onwarn( warning, warnings.add );
-				};
-			} else {
-				inputOptions.onwarn = warnings.add;
-			}
 
 			if (deprecations.length) {
 				inputOptions.onwarn({

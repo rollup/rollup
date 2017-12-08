@@ -18,9 +18,6 @@ describe('form', () => {
 		if (!config.options) {
 			config.options = {};
 		}
-		if (!('indent' in config.options)) {
-			config.options.indent = true;
-		}
 
 		const options = extend(
 			{},
@@ -46,7 +43,8 @@ describe('form', () => {
 					return createBundle().then(bundle => {
 						const options = extend({}, config.options, {
 							file: samples + '/' + dir + '/_actual/' + format + '.js',
-							format
+							format,
+							indent: !('indent' in config.options) ? true : config.options.indent,
 						});
 
 						return bundle.write(options).then(() => {
