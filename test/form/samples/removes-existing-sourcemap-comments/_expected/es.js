@@ -1,6 +1,6 @@
-var foo = function () {
+function foo () {
 	return 42;
-};
+}
 
 var str = `
 //# sourceMappingURL=main.js.map
