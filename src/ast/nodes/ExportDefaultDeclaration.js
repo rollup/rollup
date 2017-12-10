@@ -35,20 +35,22 @@ export default class ExportDefaultDeclaration extends Node {
 
 		// paren workaround: find first non-whitespace character position after `export default`
 		let declaration_start;
+		let id_index;
 		if ( this.declaration ) {
 			const statementStr = code.original.slice( this.start, this.end );
 			declaration_start = this.start + statementStr.match( /^\s*export\s+default\s*/ )[ 0 ].length;
+			if ( !this.declaration.id && functionOrClassDeclaration.test( this.declaration.type ) ) {
+				id_index = this.start + statementStr.match( /^\s*export\s+default\s*(?:function|class)/ )[ 0 ].length;
+			}
 		}
 
 		if ( this.included || this.declaration.included ) {
 			if ( this.included ) {
 				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
-					if ( this.declaration.id ) {
-						code.remove( this.start, declaration_start );
-					} else {
-						code.overwrite( this.start, declaration_start, `var ${this.variable.name} = ` );
-						if ( code.original[ this.end - 1 ] !== ';' ) code.appendLeft( this.end, ';' );
+					if ( !this.declaration.id ) {
+						code.appendLeft(id_index, ` ${this.variable.name}`);
 					}
+					code.remove( this.start, declaration_start );
 				}
 
 				else {
