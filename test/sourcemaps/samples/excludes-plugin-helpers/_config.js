@@ -7,7 +7,9 @@ const HELPER = '\0helper';
 module.exports = {
 	description: 'excludes plugin helpers from sources',
 	options: {
-		format: 'cjs',
+		output: {
+			format: 'cjs',
+		},
 		plugins: [{
 			resolveId ( id ) {
 				if ( id === HELPER ) return id;
