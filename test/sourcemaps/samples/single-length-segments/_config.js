@@ -19,7 +19,9 @@ module.exports = {
 				}
 			}
 		],
-		name: 'x'
+		output: {
+			name: 'x',
+		}
 	},
 	test: function ( code, map ) {
 		var smc = new SourceMapConsumer( map );

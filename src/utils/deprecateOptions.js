@@ -12,6 +12,7 @@ export default function deprecateOptions ( options, deprecateConfig ) {
 	function deprecateInputOptions () {
 		if (options.entry)	deprecate('entry', 'input');
 		if (options.moduleName)	deprecate('moduleName', 'output.name', true);
+		if (options.name)	deprecate('name', 'output.name', true);
 		if (options.extend)	deprecate('extend', 'output.extend', true);
 		if (options.globals)	deprecate('globals', 'output.globals', true);
 		if (options.indent)	deprecate('indent', 'output.indent', true);
