@@ -1,4 +1,4 @@
-import { parse } from 'acorn';
+import { parse, plugins as acornPlugins, tokTypes as tt } from 'acorn';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
 import { timeStart, timeEnd } from './utils/flushTime.js';
@@ -16,6 +16,37 @@ import clone from './ast/clone.js';
 import ModuleScope from './ast/scopes/ModuleScope.js';
 import { encode } from 'sourcemap-codec';
 import { SourceMapConsumer } from 'source-map';
+
+// Dynamic Import support for acorn
+tt._import.startsExpr = true;
+acornPlugins.dynamicImport = (instance) => {
+	instance.extend( 'parseStatement', nextMethod => (
+		function parseStatement ( ...args ) {
+			const node = this.startNode();
+			if (this.type === tt._import) {
+				const nextToken = this.input[this.pos];
+				if (nextToken === tt.parenL.label) {
+					const expr = this.parseExpression();
+					return this.parseExpressionStatement( node, expr );
+				}
+			}
+			return nextMethod.apply(this, args);
+		}
+	));
+
+	instance.extend( 'parseExprAtom', nextMethod => (
+		function parseExprAtom ( refDestructuringErrors ) {
+			if (this.type === tt._import) {
+				const node = this.startNode();
+				this.next();
+				if (this.type !== tt.parenL)
+					this.unexpected();
+				return this.finishNode(node, 'Import');
+			}
+			return nextMethod.call( this, refDestructuringErrors );
+		}
+	));
+};
 
 function tryParse ( module, acornOptions ) {
 	try {
