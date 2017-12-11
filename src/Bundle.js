@@ -75,6 +75,8 @@ export default class Bundle {
 				.concat( resolveId )
 		);
 
+		this.resolveDynamicImport = first( this.plugins.map( plugin => plugin.resolveDynamicImport ).filter( Boolean ) );
+
 		const loaders = this.plugins
 			.map( plugin => plugin.load )
 			.filter( Boolean );
@@ -175,6 +177,7 @@ export default class Bundle {
 				return this.fetchModule( id, undefined );
 			} )
 			.then( entryModule => {
+
 				this.entryModule = entryModule;
 
 				// Phase 2 – binding. We link references to their variables
@@ -185,6 +188,11 @@ export default class Bundle {
 				this.modules.forEach( module => module.bindImportSpecifiers() );
 				this.modules.forEach( module => module.bindReferences() );
 
+				// hook dynamic imports
+				return Promise.all( this.modules.map( module => module.processDynamicImports( this.resolveDynamicImport ) ) );
+			})
+			.then( () => {
+
 				timeEnd( 'phase 2' );
 
 				// Phase 3 – marking. We include all statements that should be included
@@ -192,8 +200,8 @@ export default class Bundle {
 				timeStart( 'phase 3' );
 
 				// mark all export statements
-				entryModule.getExports().forEach( name => {
-					const variable = entryModule.traceExport( name );
+				this.entryModule.getExports().forEach( name => {
+					const variable = this.entryModule.traceExport( name );
 
 					variable.exportName = name;
 					variable.includeVariable();
@@ -203,8 +211,8 @@ export default class Bundle {
 					}
 				} );
 
-				entryModule.getReexports().forEach( name => {
-					const variable = entryModule.traceExport( name );
+				this.entryModule.getReexports().forEach( name => {
+					const variable = this.entryModule.traceExport( name );
 
 					if ( variable.isExternal ) {
 						variable.reexported = variable.module.reexported = true;

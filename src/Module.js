@@ -18,10 +18,11 @@ import { encode } from 'sourcemap-codec';
 import { SourceMapConsumer } from 'source-map';
 
 // Dynamic Import support for acorn
+let moduleDynamicImportsReturnBinding;
 tt._import.startsExpr = true;
 acornPlugins.dynamicImport = (instance) => {
-	instance.extend( 'parseStatement', nextMethod => (
-		function parseStatement ( ...args ) {
+	instance.extend( 'parseStatement', nextMethod => {
+		return function parseStatement ( ...args ) {
 			const node = this.startNode();
 			if (this.type === tt._import) {
 				const nextToken = this.input[this.pos];
@@ -32,20 +33,22 @@ acornPlugins.dynamicImport = (instance) => {
 			}
 			return nextMethod.apply(this, args);
 		}
-	));
+	});
 
-	instance.extend( 'parseExprAtom', nextMethod => (
-		function parseExprAtom ( refDestructuringErrors ) {
+	instance.extend( 'parseExprAtom', nextMethod => {
+		return function parseExprAtom ( refDestructuringErrors ) {
 			if (this.type === tt._import) {
 				const node = this.startNode();
 				this.next();
 				if (this.type !== tt.parenL)
 					this.unexpected();
+				if (moduleDynamicImportsReturnBinding)
+					moduleDynamicImportsReturnBinding.push(node);
 				return this.finishNode(node, 'Import');
 			}
 			return nextMethod.call( this, refDestructuringErrors );
-		}
-	));
+		};
+	});
 };
 
 function tryParse ( module, acornOptions ) {
@@ -82,6 +85,7 @@ export default class Module {
 		this.sourcemapChain = sourcemapChain;
 
 		this.comments = [];
+		this.dynamicImports = [];
 
 		timeStart( 'ast' );
 
@@ -91,7 +95,11 @@ export default class Module {
 			this.ast = clone( ast );
 			this.astClone = ast;
 		} else {
+			// We bind the dynamic imports array to the plugin binding above, to get the nodes added
+			// to this array during parsing itself. This is faster than having to do a separate walk.
+			moduleDynamicImportsReturnBinding = this.dynamicImports;
 			this.ast = tryParse( this, bundle.acornOptions ); // TODO what happens to comments if AST is provided?
+			moduleDynamicImportsReturnBinding = undefined;
 			this.astClone = clone( this.ast );
 		}
 
@@ -393,6 +401,44 @@ export default class Module {
 			}
 		} );
 		return addedNewNodes;
+	}
+
+	async processDynamicImports ( resolveDynamicImport ) {
+		for ( let node of this.dynamicImports ) {
+			let dynamicImportSpecifier = node.parent.arguments[0];
+			if ( dynamicImportSpecifier.type === 'TemplateLiteral' ) {
+				if ( dynamicImportSpecifier.expressions.length === 0 && dynamicImportSpecifier.quasis.length === 1 )
+					dynamicImportSpecifier = dynamicImportSpecifier.quasis[0].value.cooked;
+			}
+			else if ( dynamicImportSpecifier.type === 'Literal' ) {
+				if ( typeof dynamicImportSpecifier.value === 'string' )
+					dynamicImportSpecifier = dynamicImportSpecifier.value;
+			}
+
+			const replacement = await resolveDynamicImport( dynamicImportSpecifier, this.id );
+			if ( replacement ) {
+				// string specifier -> direct resolution
+				if ( typeof dynamicImportSpecifier === 'string' ) {
+					// if we have the module, inline as Promise.resolve(namespace)
+					// ensuring that we create a namespace import of it as well
+					const replacementModule = this.bundle.moduleById.get(replacement);
+					if (replacementModule) {
+						const namespace = replacementModule.namespace();
+						namespace.includeVariable();
+						const identifierName = namespace.getName(true);
+						this.magicString.overwrite( node.parent.start, node.parent.end, `Promise.resolve(${identifierName})` );
+					}
+					// otherwise treat as an external dynamic import resolution
+					else {
+						this.magicString.overwrite( node.parent.arguments[0].start, node.parent.arguments[0].end, `"${replacement}"` );
+					}
+				}
+				// AST Node -> source replacement
+				else {
+					this.magicString.overwrite( node.start, node.end, replacement );
+				}
+			}
+		}
 	}
 
 	namespace () {
