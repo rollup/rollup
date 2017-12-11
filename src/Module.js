@@ -403,8 +403,8 @@ export default class Module {
 		return addedNewNodes;
 	}
 
-	async processDynamicImports ( resolveDynamicImport ) {
-		for ( let node of this.dynamicImports ) {
+	processDynamicImports ( resolveDynamicImport ) {
+		return Promise.all( this.dynamicImports.map( node => {
 			const importArgument = node.parent.arguments[0];
 			let dynamicImportSpecifier;
 			if ( importArgument.type === 'TemplateLiteral' ) {
@@ -419,18 +419,21 @@ export default class Module {
 				dynamicImportSpecifier = importArgument;
 			}
 
-			const replacement = await resolveDynamicImport( dynamicImportSpecifier, this.id );
-			if ( replacement ) {
+			return Promise.resolve( resolveDynamicImport( dynamicImportSpecifier, this.id ) )
+			.then( replacement => {
+				if ( !replacement )
+					return;
+
 				// string specifier -> direct resolution
 				if ( typeof dynamicImportSpecifier === 'string' ) {
 					// if we have the module, inline as Promise.resolve(namespace)
 					// ensuring that we create a namespace import of it as well
-					const replacementModule = this.bundle.moduleById.get(replacement);
+					const replacementModule = this.bundle.moduleById.get( replacement );
 					if ( replacementModule ) {
 						const namespace = replacementModule.namespace();
 						namespace.includeVariable();
 						const identifierName = namespace.getName( true );
-						this.magicString.overwrite( node.parent.start, node.parent.end, `Promise.resolve(${ identifierName })` );
+						this.magicString.overwrite( node.parent.start, node.parent.end, `Promise.resolve( ${ identifierName } )` );
 					// otherwise treat as an external dynamic import resolution
 					} else {
 						this.magicString.overwrite( importArgument.start, importArgument.end, `"${replacement}"` );
@@ -439,8 +442,8 @@ export default class Module {
 				} else {
 					this.magicString.overwrite( importArgument.start, importArgument.end, replacement );
 				}
-			}
-		}
+			} );
+		} ) );
 	}
 
 	namespace () {

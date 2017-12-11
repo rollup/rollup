@@ -190,7 +190,7 @@ export default class Bundle {
 
 				// hook dynamic imports
 				return Promise.all( this.modules.map( module => module.processDynamicImports( this.resolveDynamicImport ) ) );
-			})
+			} )
 			.then( () => {
 
 				timeEnd( 'phase 2' );
