@@ -405,14 +405,18 @@ export default class Module {
 
 	async processDynamicImports ( resolveDynamicImport ) {
 		for ( let node of this.dynamicImports ) {
-			let dynamicImportSpecifier = node.parent.arguments[0];
-			if ( dynamicImportSpecifier.type === 'TemplateLiteral' ) {
-				if ( dynamicImportSpecifier.expressions.length === 0 && dynamicImportSpecifier.quasis.length === 1 )
-					dynamicImportSpecifier = dynamicImportSpecifier.quasis[0].value.cooked;
-			}
-			else if ( dynamicImportSpecifier.type === 'Literal' ) {
-				if ( typeof dynamicImportSpecifier.value === 'string' )
-					dynamicImportSpecifier = dynamicImportSpecifier.value;
+			const importArgument = node.parent.arguments[0];
+			let dynamicImportSpecifier;
+			if ( importArgument.type === 'TemplateLiteral' ) {
+				if ( importArgument.expressions.length === 0 && importArgument.quasis.length === 1 ) {
+					dynamicImportSpecifier = importArgument.quasis[0].value.cooked;
+				}
+			} else if ( importArgument.type === 'Literal' ) {
+				if ( typeof importArgument.value === 'string' ) {
+					dynamicImportSpecifier = importArgument.value;
+				}
+			} else {
+				dynamicImportSpecifier = importArgument;
 			}
 
 			const replacement = await resolveDynamicImport( dynamicImportSpecifier, this.id );
@@ -422,20 +426,18 @@ export default class Module {
 					// if we have the module, inline as Promise.resolve(namespace)
 					// ensuring that we create a namespace import of it as well
 					const replacementModule = this.bundle.moduleById.get(replacement);
-					if (replacementModule) {
+					if ( replacementModule ) {
 						const namespace = replacementModule.namespace();
 						namespace.includeVariable();
-						const identifierName = namespace.getName(true);
-						this.magicString.overwrite( node.parent.start, node.parent.end, `Promise.resolve(${identifierName})` );
-					}
+						const identifierName = namespace.getName( true );
+						this.magicString.overwrite( node.parent.start, node.parent.end, `Promise.resolve(${ identifierName })` );
 					// otherwise treat as an external dynamic import resolution
-					else {
-						this.magicString.overwrite( node.parent.arguments[0].start, node.parent.arguments[0].end, `"${replacement}"` );
+					} else {
+						this.magicString.overwrite( importArgument.start, importArgument.end, `"${replacement}"` );
 					}
-				}
 				// AST Node -> source replacement
-				else {
-					this.magicString.overwrite( node.start, node.end, replacement );
+				} else {
+					this.magicString.overwrite( importArgument.start, importArgument.end, replacement );
 				}
 			}
 		}
