@@ -8,6 +8,11 @@ module.exports = {
 		}
 	},
 	runtimeError: function ( error ) {
-		assert.equal( "Unexpected token import", error.message );
+		try {
+			assert.equal( "Unexpected token import", error.message );
+		}
+		catch (err) {
+			assert.equal( "Unexpected reserved word", error.message );
+		}
 	}
 };
