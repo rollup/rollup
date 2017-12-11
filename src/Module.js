@@ -20,31 +20,33 @@ import { SourceMapConsumer } from 'source-map';
 // Dynamic Import support for acorn
 let moduleDynamicImportsReturnBinding;
 tt._import.startsExpr = true;
-acornPlugins.dynamicImport = (instance) => {
+acornPlugins.dynamicImport = ( instance ) => {
 	instance.extend( 'parseStatement', nextMethod => {
 		return function parseStatement ( ...args ) {
 			const node = this.startNode();
-			if (this.type === tt._import) {
+			if ( this.type === tt._import ) {
 				const nextToken = this.input[this.pos];
-				if (nextToken === tt.parenL.label) {
+				if ( nextToken === tt.parenL.label ) {
 					const expr = this.parseExpression();
 					return this.parseExpressionStatement( node, expr );
 				}
 			}
-			return nextMethod.apply(this, args);
+			return nextMethod.apply( this, args );
 		}
 	});
 
 	instance.extend( 'parseExprAtom', nextMethod => {
 		return function parseExprAtom ( refDestructuringErrors ) {
-			if (this.type === tt._import) {
+			if ( this.type === tt._import ) {
 				const node = this.startNode();
 				this.next();
-				if (this.type !== tt.parenL)
+				if ( this.type !== tt.parenL ) {
 					this.unexpected();
-				if (moduleDynamicImportsReturnBinding)
-					moduleDynamicImportsReturnBinding.push(node);
-				return this.finishNode(node, 'Import');
+				}
+				if ( moduleDynamicImportsReturnBinding ) {
+					moduleDynamicImportsReturnBinding.push( node );
+				}
+				return this.finishNode( node, 'Import' );
 			}
 			return nextMethod.call( this, refDestructuringErrors );
 		};
