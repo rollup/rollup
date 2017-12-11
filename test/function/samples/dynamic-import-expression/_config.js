@@ -23,6 +23,11 @@ module.exports = {
 		assert.notEqual( code.indexOf('import( "x/y" )'), -1 );
 	},
 	runtimeError: function ( error ) {
-		assert.equal( "Unexpected token import", error.message );
+		try {
+			assert.equal( "Unexpected token import", error.message );
+		}
+		catch ( e ) {
+			assert.equal( "Unexpected reserved word", error.message );
+		}
 	}
 };

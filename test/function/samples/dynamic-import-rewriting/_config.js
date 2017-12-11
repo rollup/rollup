@@ -16,6 +16,11 @@ module.exports = {
 		assert( code.indexOf( 'import( "asdf" )' ) > 0 );
 	},
 	runtimeError: function ( error ) {
-		assert.equal( "Unexpected token import", error.message );
+		try {
+			assert.equal( "Unexpected token import", error.message );
+		}
+		catch ( e ) {
+			assert.equal( "Unexpected reserved word", error.message );
+		}
 	}
 };
