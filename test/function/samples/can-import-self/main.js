@@ -1,2 +1,2 @@
-import {run} from './lib.js';
+import { run } from './lib.js';
 export const result = run();
