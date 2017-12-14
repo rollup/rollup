@@ -87,7 +87,8 @@ export default function es ( bundle, magicString, { getPath, intro, outro } ) {
 					exportAllDeclarations.push( `export * from '${name.slice( 1 )}';` );
 				} else {
 					if ( !exportExternalSpecifiers.has( declaration.module.id ) ) exportExternalSpecifiers.set( declaration.module.id, [] );
-					exportExternalSpecifiers.get( declaration.module.id ).push( name );
+					const rendered = declaration.getName( true );
+					exportExternalSpecifiers.get( declaration.module.id ).push( rendered === name ? name : `${rendered} as ${name}` );
 				}
 
 				return;
