@@ -431,7 +431,7 @@ export default class Module {
 					// if we have the module, inline as Promise.resolve(namespace)
 					// ensuring that we create a namespace import of it as well
 					const replacementModule = this.bundle.moduleById.get( replacement );
-					if ( replacementModule ) {
+					if ( replacementModule && !replacementModule.isExternal ) {
 						const namespace = replacementModule.namespace();
 						namespace.includeVariable();
 						const identifierName = namespace.getName( true );
