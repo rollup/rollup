@@ -1,1 +1,1 @@
-export { default } from 'external';
+export { objAlias as default } from 'external';
