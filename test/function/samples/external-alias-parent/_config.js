@@ -7,7 +7,7 @@ module.exports = {
 		input: path.join( __dirname, 'first', 'main.js' ),
 		external: function ( id, parentId, isResolved ) {
 			if ( isResolved === false || !parentId )
-				return;
+				return false;
 			if ( parentId.endsWith( 'main.js' ) ) {
 				return id === 'lodash';
 			} else {
