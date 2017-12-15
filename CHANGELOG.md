@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.52.2
+* No longer ignore side-effects in JSON.parse and JSON.stringify ([#1785](https://github.com/rollup/rollup/pull/1785))
+* Updated links in warnings ([#1776](https://github.com/rollup/rollup/pull/1776))
+* No longer prevent self-imports ([#1777](https://github.com/rollup/rollup/pull/1777))
+* Properly hoist default exported functions ([#1787](https://github.com/rollup/rollup/pull/1787))
+* Prevent corruption when re-exporting default exports ([#1765](https://github.com/rollup/rollup/pull/1765))
+
 ## 0.52.1
 * Improve deprecation warnings ([#1765](https://github.com/rollup/rollup/pull/1765))
 * Properly use stdin ([#1774](https://github.com/rollup/rollup/pull/1774))
