@@ -28,60 +28,48 @@ export default class ExportDefaultDeclaration extends Node {
 		this.variable = this.scope.addExportDefaultDeclaration( this._declarationName || this.module.basename(), this );
 	}
 
-	// TODO this is total chaos, tidy it up
 	render ( code, es ) {
-		const treeshake = this.module.bundle.treeshake;
+		const remove = () => { code.remove( this.leadingCommentStart || this.start, this.next || this.end ); };
+		const removeExportDefault = () => { code.remove( this.start, declaration_start ); };
+		
+		const treeshakeable = this.module.bundle.treeshake && !this.included && !this.declaration.included;
 		const name = this.variable.getName( es );
+		const statementStr = code.original.slice( this.start, this.end );
 
 		// paren workaround: find first non-whitespace character position after `export default`
-		let declaration_start;
-		if ( this.declaration ) {
-			const statementStr = code.original.slice( this.start, this.end );
-			declaration_start = this.start + statementStr.match( /^\s*export\s+default\s*/ )[ 0 ].length;
-		}
+		const declaration_start = this.start + statementStr.match( /^\s*export\s+default\s*/ )[ 0 ].length;
 
-		if ( this.included || this.declaration.included ) {
-			if ( this.included ) {
-				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
-					if ( this.declaration.id ) {
-						code.remove( this.start, declaration_start );
-					} else {
-						code.overwrite( this.start, declaration_start, `var ${this.variable.name} = ` );
-						if ( code.original[ this.end - 1 ] !== ';' ) code.appendLeft( this.end, ';' );
-					}
-				}
-
-				else {
-					if ( this.variable.getOriginalVariableName( es ) === name ) {
-						// prevent `var foo = foo`
-						code.remove( this.leadingCommentStart || this.start, this.next || this.end );
-						return; // don't render children. TODO this seems like a bit of a hack
-					} else {
-						code.overwrite( this.start, declaration_start, `${this.module.bundle.varOrConst} ${name} = ` );
-					}
-
-					this.insertSemicolon( code );
-				}
-			} else {
-				// remove `var foo` from `var foo = bar()`, if `foo` is unused
-				code.remove( this.start, declaration_start );
+		if ( functionOrClassDeclaration.test(this.declaration.type) ) {
+			if ( treeshakeable ) {
+				return remove();
 			}
 
-			super.render( code, es );
+			// Add the id to anonymous declarations
+			if ( !this.declaration.id ) {
+				const id_insertPos = this.start + statementStr.match( /^\s*export\s+default\s*(?:function|class)/ )[ 0 ].length;
+				code.appendLeft( id_insertPos, ` ${name}` );
+			}
+
+			removeExportDefault();
 		} else {
-			if ( treeshake ) {
-				if ( functionOrClassDeclaration.test( this.declaration.type ) ) {
-					code.remove( this.leadingCommentStart || this.start, this.next || this.end );
-				} else {
-					const hasEffects = this.declaration.hasEffects( ExecutionPathOptions.create() );
-					code.remove( this.start, hasEffects ? declaration_start : this.next || this.end );
-				}
-			} else if ( name === this.declaration.name ) {
-				code.remove( this.start, this.next || this.end );
-			} else {
-				code.overwrite( this.start, declaration_start, `${this.module.bundle.varOrConst} ${name} = ` );
+			if ( treeshakeable ) {
+				const hasEffects = this.declaration.hasEffects( ExecutionPathOptions.create() );
+				return hasEffects ? removeExportDefault() : remove();
 			}
-			// code.remove( this.start, this.next || this.end );
+
+			// Prevent `var foo = foo`
+			if ( this.variable.getOriginalVariableName( es ) === name ) {
+				return remove();
+			}
+
+			// Only output `var foo =` if `foo` is used
+			if ( this.included ) {
+				code.overwrite( this.start, declaration_start, `${this.module.bundle.varOrConst} ${name} = ` );
+			} else {
+				removeExportDefault();
+			}
 		}
+		
+		super.render( code, es );
 	}
 }

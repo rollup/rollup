@@ -6,9 +6,9 @@ function B$1 () {
 	this.x = 1;
 }
 
-var B3 = function () {
+function B3 () {
 	this.x = 1;
-};
+}
 
 const b1 = B();
 
