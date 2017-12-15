@@ -75,8 +75,6 @@ export default class Bundle {
 				.concat( resolveId )
 		);
 
-		this.resolveDynamicImport = first( this.plugins.map( plugin => plugin.resolveDynamicImport ).filter( Boolean ) );
-
 		const loaders = this.plugins
 			.map( plugin => plugin.load )
 			.filter( Boolean );
@@ -120,6 +118,13 @@ export default class Bundle {
 		this.varOrConst = options.preferConst ? 'const' : 'var';
 		this.legacy = options.legacy;
 		this.acornOptions = options.acorn || {};
+		this.dynamicImport = typeof options.experimentalDynamicImport === 'boolean' ? options.experimentalDynamicImport : false;
+
+		if ( this.dynamicImport ) {
+			this.resolveDynamicImport = first( this.plugins.map( plugin => plugin.resolveDynamicImport ).filter( Boolean ) );
+			this.acornOptions.plugins = this.acornOptions.plugins || {};
+			this.acornOptions.plugins.dynamicImport = true;
+		}
 	}
 
 	collectAddon ( initialAddon, addonName, sep = '\n' ) {
@@ -189,7 +194,8 @@ export default class Bundle {
 				this.modules.forEach( module => module.bindReferences() );
 
 				// hook dynamic imports
-				return Promise.all( this.modules.map( module => module.processDynamicImports( this.resolveDynamicImport ) ) );
+				if ( this.dynamicImport )
+					return Promise.all( this.modules.map( module => module.processDynamicImports( this.resolveDynamicImport ) ) );
 			} )
 			.then( () => {
 

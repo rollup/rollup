@@ -17,6 +17,7 @@ const ALLOWED_KEYS = [
 	'cache',
 	'context',
 	'entry',
+	'experimentalDynamicImport',
 	'exports',
 	'extend',
 	'external',

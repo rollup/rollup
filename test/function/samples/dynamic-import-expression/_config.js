@@ -3,9 +3,7 @@ var assert = require( 'assert' );
 module.exports = {
 	description: 'Dynamic import expression replacement',
 	options: {
-		acorn: {
-			plugins: { dynamicImport: true }
-		},
+		experimentalDynamicImport: true,
 		plugins: [{
 			resolveDynamicImport (specifier, parent) {
 				if ( typeof specifier !== 'string' ) {

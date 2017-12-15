@@ -1,4 +1,5 @@
-import { parse, plugins as acornPlugins, tokTypes as tt } from 'acorn';
+import * as acorn from 'acorn';
+import wrapDynamicImportPlugin from './utils/dynamic-import-plugin';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
 import { timeStart, timeEnd } from './utils/flushTime.js';
@@ -17,45 +18,11 @@ import ModuleScope from './ast/scopes/ModuleScope.js';
 import { encode } from 'sourcemap-codec';
 import { SourceMapConsumer } from 'source-map';
 
-// Dynamic Import support for acorn
-let moduleDynamicImportsReturnBinding;
-tt._import.startsExpr = true;
-acornPlugins.dynamicImport = ( instance ) => {
-	instance.extend( 'parseStatement', nextMethod => {
-		return function parseStatement ( ...args ) {
-			const node = this.startNode();
-			if ( this.type === tt._import ) {
-				const nextToken = this.input[this.pos];
-				if ( nextToken === tt.parenL.label ) {
-					const expr = this.parseExpression();
-					return this.parseExpressionStatement( node, expr );
-				}
-			}
-			return nextMethod.apply( this, args );
-		}
-	});
-
-	instance.extend( 'parseExprAtom', nextMethod => {
-		return function parseExprAtom ( refDestructuringErrors ) {
-			if ( this.type === tt._import ) {
-				const node = this.startNode();
-				this.next();
-				if ( this.type !== tt.parenL ) {
-					this.unexpected();
-				}
-				if ( moduleDynamicImportsReturnBinding ) {
-					moduleDynamicImportsReturnBinding.push( node );
-				}
-				return this.finishNode( node, 'Import' );
-			}
-			return nextMethod.call( this, refDestructuringErrors );
-		};
-	});
-};
+const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin( acorn );
 
 function tryParse ( module, acornOptions ) {
 	try {
-		return parse( module.code, assign( {
+		return acorn.parse( module.code, assign( {
 			ecmaVersion: 8,
 			sourceType: 'module',
 			onComment: ( block, text, start, end ) => module.comments.push( { block, text, start, end } ),
@@ -99,9 +66,11 @@ export default class Module {
 		} else {
 			// We bind the dynamic imports array to the plugin binding above, to get the nodes added
 			// to this array during parsing itself. This is faster than having to do a separate walk.
-			moduleDynamicImportsReturnBinding = this.dynamicImports;
+			if ( bundle.dynamicImport )
+				setModuleDynamicImportsReturnBinding( this.dynamicImports );
 			this.ast = tryParse( this, bundle.acornOptions ); // TODO what happens to comments if AST is provided?
-			moduleDynamicImportsReturnBinding = undefined;
+			if ( bundle.dynamicImport )
+				setModuleDynamicImportsReturnBinding( undefined );
 			this.astClone = clone( this.ast );
 		}
 

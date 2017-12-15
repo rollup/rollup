@@ -4,9 +4,7 @@ var path = require( 'path' );
 module.exports = {
 	description: 'Dynamic import inlining when resolution id is a module in the bundle',
 	options: {
-		acorn: {
-			plugins: { dynamicImport: true }
-		},
+		experimentalDynamicImport: true,
 		plugins: [{
 			resolveDynamicImport ( specifier, parent ) {
 				if ( specifier === './main' )
