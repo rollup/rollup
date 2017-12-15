@@ -1,2 +1,2 @@
---compilers js:buble/register
+--require buble/register
 test/test.js

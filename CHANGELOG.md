@@ -1,5 +1,32 @@
 # rollup changelog
 
+## 0.52.2
+* No longer ignore side-effects in JSON.parse and JSON.stringify ([#1785](https://github.com/rollup/rollup/pull/1785))
+* Updated links in warnings ([#1776](https://github.com/rollup/rollup/pull/1776))
+* No longer prevent self-imports ([#1777](https://github.com/rollup/rollup/pull/1777))
+* Properly hoist default exported functions ([#1787](https://github.com/rollup/rollup/pull/1787))
+* Prevent corruption when re-exporting default exports ([#1765](https://github.com/rollup/rollup/pull/1765))
+
+## 0.52.1
+* Improve deprecation warnings ([#1765](https://github.com/rollup/rollup/pull/1765))
+* Properly use stdin ([#1774](https://github.com/rollup/rollup/pull/1774))
+* Let --environment be used multiple times ([#1768](https://github.com/rollup/rollup/pull/1768))
+* Always transpile config files ([#1759](https://github.com/rollup/rollup/pull/1759))
+* Respect globals option in headers of UMD and IIFE files ([#1747](https://github.com/rollup/rollup/pull/1747))
+
+## 0.52.0
+
+* Accept config as promise ([#1731](https://github.com/rollup/rollup/pull/1731))
+* Accept promises for intro/outro/banner/footer ([#1253](https://github.com/rollup/rollup/pull/1253))
+* Option to prevent freezing of namespace imports ([#1696](https://github.com/rollup/rollup/pull/1696))
+* Option to retain all output in watch mode ([#1688](https://github.com/rollup/rollup/pull/1688))
+* Options to fine-tune treeshaking ([#1760](https://github.com/rollup/rollup/pull/1760))
+
+## 0.51.8
+
+* Fix speed problems by simplifying treeshaking reassignment handling ([#1740](https://github.com/rollup/rollup/pull/1740))
+* Update dependencies ([#1742](https://github.com/rollup/rollup/pull/1742))
+
 ## 0.51.7
 
 * Keep "this"-context when calling sequence expressions ([#1724](https://github.com/rollup/rollup/pull/1724))

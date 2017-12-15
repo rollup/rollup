@@ -11,7 +11,7 @@ import ensureArray from './utils/ensureArray.js';
 import { load, makeOnwarn, resolveId } from './utils/defaults.js';
 import getExportMode from './utils/getExportMode.js';
 import getIndentString from './utils/getIndentString.js';
-import { mapSequence } from './utils/promise.js';
+import { mapSequence, runSequence } from './utils/promise.js';
 import transform from './utils/transform.js';
 import transformBundle from './utils/transformBundle.js';
 import collapseSourcemaps from './utils/collapseSourcemaps.js';
@@ -46,14 +46,25 @@ export default class Bundle {
 		this.entryModule = null;
 
 		this.treeshake = options.treeshake !== false;
-
-		if ( options.pureExternalModules === true ) {
-			this.isPureExternalModule = () => true;
-		} else if ( typeof options.pureExternalModules === 'function' ) {
-			this.isPureExternalModule = options.pureExternalModules;
-		} else if ( Array.isArray( options.pureExternalModules ) ) {
-			const pureExternalModules = new Set( options.pureExternalModules );
-			this.isPureExternalModule = id => pureExternalModules.has( id );
+		if ( this.treeshake ) {
+			this.treeshakingOptions = {
+				propertyReadSideEffects: options.treeshake
+					? options.treeshake.propertyReadSideEffects !== false
+					: true,
+				pureExternalModules: options.treeshake
+					? options.treeshake.pureExternalModules
+					: false
+			};
+			if ( this.treeshakingOptions.pureExternalModules === true ) {
+				this.isPureExternalModule = () => true;
+			} else if ( typeof this.treeshakingOptions.pureExternalModules === 'function' ) {
+				this.isPureExternalModule = this.treeshakingOptions.pureExternalModules;
+			} else if ( Array.isArray( this.treeshakingOptions.pureExternalModules ) ) {
+				const pureExternalModules = new Set( this.treeshakingOptions.pureExternalModules );
+				this.isPureExternalModule = id => pureExternalModules.has( id );
+			} else {
+				this.isPureExternalModule = () => false;
+			}
 		} else {
 			this.isPureExternalModule = () => false;
 		}
@@ -107,6 +118,37 @@ export default class Bundle {
 		this.varOrConst = options.preferConst ? 'const' : 'var';
 		this.legacy = options.legacy;
 		this.acornOptions = options.acorn || {};
+	}
+
+	collectAddon ( initialAddon, addonName, sep = '\n' ) {
+		return runSequence(
+			 [ { pluginName: 'rollup', source: initialAddon } ]
+				.concat(this.plugins.map( (plugin, idx) => {
+					return {
+						pluginName: plugin.name || `Plugin at pos ${idx}`,
+						source: plugin[addonName]
+					};
+				} ))
+				.map( addon => {
+					addon.source = callIfFunction(addon.source);
+					return addon;
+				} )
+				.filter( addon => {
+					return addon.source;
+				} )
+				.map(({pluginName, source}) => {
+					return Promise.resolve(source)
+						.catch(err => {
+							error( {
+								code: 'ADDON_ERROR',
+								message:
+								`Could not retrieve ${addonName}. Check configuration of ${pluginName}.
+	Error Message: ${err.message}`
+							} );
+						});
+				})
+		 )
+		 .then(addons => addons.filter(Boolean).join(sep));
 	}
 
 	build () {
@@ -225,6 +267,7 @@ export default class Bundle {
 				this.deconflict();
 
 				timeEnd( 'phase 4' );
+
 			} );
 	}
 
@@ -407,19 +450,6 @@ export default class Bundle {
 							externalModule.traceExport( importDeclaration.name );
 						} );
 					} else {
-						if ( resolvedId === module.id ) {
-							// need to find the actual import declaration, so we can provide
-							// a useful error message. Bit hoop-jumpy but what can you do
-							const declaration = module.ast.body.find( node => {
-								return ( node.isImportDeclaration || node.isExportDeclaration ) && node.source.value === source;
-							} );
-							const declarationType = /Export/.test( declaration.type ) ? 'export' : 'import';
-							module.error( {
-								code: 'CANNOT_IMPORT_SELF',
-								message: `A module cannot ${declarationType} itself`
-							}, declaration.start );
-						}
-
 						module.resolvedIds[ source ] = resolvedId;
 						return this.fetchModule( resolvedId, module.id );
 					}
@@ -439,7 +469,14 @@ export default class Bundle {
 	}
 
 	render ( options = {} ) {
-		return Promise.resolve().then( () => {
+		return Promise.resolve().then(() => {
+			return Promise.all([
+				this.collectAddon( options.banner, 'banner' ),
+				this.collectAddon( options.footer, 'footer' ),
+				this.collectAddon( options.intro, 'intro', '\n\n' ),
+				this.collectAddon( options.outro, 'outro', '\n\n' )
+			]);
+		}).then( ([banner, footer, intro, outro]) => {
 			// Determine export mode - 'default', 'named', 'none'
 			const exportMode = getExportMode( this, options );
 
@@ -449,7 +486,7 @@ export default class Bundle {
 			timeStart( 'render modules' );
 
 			this.orderedModules.forEach( module => {
-				const source = module.render( options.format === 'es', this.legacy );
+				const source = module.render( options.format === 'es', this.legacy, options.freeze !== false );
 				if ( source.toString().length ) {
 					magicString.addSource( source );
 					usedModules.push( module );
@@ -465,23 +502,6 @@ export default class Bundle {
 
 			timeEnd( 'render modules' );
 
-			let intro = [ options.intro ]
-				.concat(
-					this.plugins.map( plugin => plugin.intro && plugin.intro() )
-				)
-				.filter( Boolean )
-				.join( '\n\n' );
-
-			if ( intro ) intro += '\n\n';
-
-			let outro = [ options.outro ]
-				.concat(
-					this.plugins.map( plugin => plugin.outro && plugin.outro() )
-				)
-				.filter( Boolean )
-				.join( '\n\n' );
-
-			if ( outro ) outro = `\n\n${outro}`;
 
 			const indentString = getIndentString( magicString, options );
 
@@ -504,21 +524,12 @@ export default class Bundle {
 						id => this.getPathRelativeToEntryDirname( id )
 			);
 
+			if ( intro ) intro += '\n\n';
+			if ( outro ) outro = `\n\n${outro}`;
+
 			magicString = finalise( this, magicString.trim(), { exportMode, getPath, indentString, intro, outro }, options );
 
 			timeEnd( 'render format' );
-
-			const banner = [ options.banner ]
-				.concat( this.plugins.map( plugin => plugin.banner ) )
-				.map( callIfFunction )
-				.filter( Boolean )
-				.join( '\n' );
-
-			const footer = [ options.footer ]
-				.concat( this.plugins.map( plugin => plugin.footer ) )
-				.map( callIfFunction )
-				.filter( Boolean )
-				.join( '\n' );
 
 			if ( banner ) magicString.prepend( banner + '\n' );
 			if ( footer ) magicString.append( '\n' + footer );

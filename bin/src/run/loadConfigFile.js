@@ -1,3 +1,4 @@
+import buble from 'rollup-plugin-buble';
 import path from 'path';
 import chalk from 'chalk';
 import * as rollup from 'rollup';
@@ -13,7 +14,10 @@ export default function loadConfigFile (configFile, silent) {
 		external: id => {
 			return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5,id.length) === '.json';
 		},
-		onwarn: warnings.add
+		onwarn: warnings.add,
+		plugins: [
+			buble({objectAssign: 'Object.assign'}),
+		],
 	})
 		.then( bundle => {
 			if ( !silent && warnings.count > 0 ) {
@@ -37,17 +41,18 @@ export default function loadConfigFile (configFile, silent) {
 			};
 
 			delete require.cache[configFile];
-			const configs = require( configFile );
-			if ( Object.keys( configs ).length === 0 ) {
-				handleError({
-					code: 'MISSING_CONFIG',
-					message: 'Config file must export an options object, or an array of options objects',
-					url: 'https://github.com/rollup/rollup/wiki/Command-Line-Interface#using-a-config-file'
-				});
-			}
+			return Promise.resolve(require( configFile )).then(configs => {
+				if ( Object.keys( configs ).length === 0 ) {
+					handleError({
+						code: 'MISSING_CONFIG',
+						message: 'Config file must export an options object, or an array of options objects',
+						url: 'https://rollupjs.org/#using-config-files'
+					});
+				}
 
-			require.extensions[ '.js' ] = defaultLoader;
+				require.extensions[ '.js' ] = defaultLoader;
 
-			return Array.isArray( configs ) ? configs : [configs];
+				return Array.isArray( configs ) ? configs : [configs];
+			});
 		});
 }

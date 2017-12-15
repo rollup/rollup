@@ -5,7 +5,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 export default class AssignmentExpression extends Node {
 	bindNode () {
 		disallowIllegalReassignment( this.scope, this.left );
-		this.left.bindAssignmentAtPath( [], this.right, ExecutionPathOptions.create() );
+		this.left.reassignPath( [], ExecutionPathOptions.create() );
 	}
 
 	hasEffects ( options ) {

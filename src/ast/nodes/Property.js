@@ -3,13 +3,13 @@ import CallOptions from '../CallOptions';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class Property extends Node {
-	bindAssignmentAtPath ( path, expression, options ) {
+	reassignPath ( path, options ) {
 		if ( this.kind === 'get' ) {
 			path.length > 0
 			&& this.value.forEachReturnExpressionWhenCalledAtPath( [], this._accessorCallOptions, innerOptions => node =>
-				node.bindAssignmentAtPath( path, expression, innerOptions.addAssignedReturnExpressionAtPath( path, this ) ), options );
+				node.reassignPath( path, innerOptions.addAssignedReturnExpressionAtPath( path, this ) ), options );
 		} else if ( this.kind !== 'set' ) {
-			this.value.bindAssignmentAtPath( path, expression, options );
+			this.value.reassignPath( path, options );
 		}
 	}
 

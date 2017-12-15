@@ -15,13 +15,10 @@ export default class Variable {
 	addReference ( identifier ) {}
 
 	/**
-	 * This enables variables to know which nodes need to be checked for side-effects when
-	 * e.g. an object path is called or mutated.
 	 * @param {String[]} path
-	 * @param {Node} expression
 	 * @param {ExecutionPathOptions} options
 	 */
-	bindAssignmentAtPath ( path, expression, options ) {}
+	reassignPath ( path, options ) {}
 
 	/**
 	 * @param {String[]} path

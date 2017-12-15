@@ -1,9 +1,9 @@
 import Node from '../Node.js';
 
 export default class ObjectPattern extends Node {
-	bindAssignmentAtPath ( path, expression, options ) {
+	reassignPath ( path, options ) {
 		path.length === 0
-		&& this.properties.forEach( child => child.bindAssignmentAtPath( path, expression, options ) );
+		&& this.properties.forEach( child => child.reassignPath( path, options ) );
 	}
 
 	hasEffectsWhenAssignedAtPath ( path, options ) {

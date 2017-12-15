@@ -20,8 +20,22 @@ module.exports = {
 					return '// intro 2'
 				},
 				outro () {
-					return '// outro 2'
+					return Promise.resolve('// outro 2')
 				}
+			},
+
+			{
+				intro () {
+					return Promise.resolve('// intro 3')
+				},
+				outro () {
+					return '// outro 3'
+				}
+			},
+
+			{
+				intro: '// intro 4',
+				outro: '// outro 4',
 			}
 		]
 	}

@@ -25,7 +25,6 @@ simdTypes.forEach( t => {
 	'Map', 'Set', 'WeakMap', 'WeakSet',
 	'ArrayBuffer', 'ArrayBuffer.isView',
 	'DataView',
-	'JSON.parse', 'JSON.stringify',
 	'Promise.all', 'Promise.race', 'Promise.resolve',
 	'Intl.Collator', 'Intl.Collator.supportedLocalesOf', 'Intl.DateTimeFormat', 'Intl.DateTimeFormat.supportedLocalesOf', 'Intl.NumberFormat', 'Intl.NumberFormat.supportedLocalesOf'
 

@@ -1,4 +1,7 @@
 /* this is a banner */
+/* first banner */
+/* second banner */
+/* 3rd banner */
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
@@ -9,3 +12,6 @@
 
 })));
 /* this is a footer */
+/* first footer */
+/* second footer */
+/* 3rd footer */

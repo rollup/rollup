@@ -372,7 +372,7 @@ export default class Module {
 		return this.declarations[ '*' ];
 	}
 
-	render ( es, legacy ) {
+	render ( es, legacy, freeze ) {
 		const magicString = this.magicString.clone();
 
 		for ( const node of this.ast.body ) {
@@ -380,7 +380,7 @@ export default class Module {
 		}
 
 		if ( this.namespace().needsNamespaceBlock ) {
-			magicString.append( '\n\n' + this.namespace().renderBlock( es, legacy, '\t' ) ); // TODO use correct indentation
+			magicString.append( '\n\n' + this.namespace().renderBlock( es, legacy, freeze, '\t' ) ); // TODO use correct indentation
 		}
 
 		return magicString.trim();

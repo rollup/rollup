@@ -2,10 +2,10 @@ import Node from '../Node.js';
 import CallOptions from '../CallOptions';
 
 export default class CallExpression extends Node {
-	bindAssignmentAtPath ( path, expression, options ) {
+	reassignPath ( path, options ) {
 		!options.hasReturnExpressionBeenAssignedAtPath( path, this )
 		&& this.callee.forEachReturnExpressionWhenCalledAtPath( [], this._callOptions, innerOptions => node =>
-			node.bindAssignmentAtPath( path, expression, innerOptions.addAssignedReturnExpressionAtPath( path, this ) ), options );
+			node.reassignPath( path, innerOptions.addAssignedReturnExpressionAtPath( path, this ) ), options );
 	}
 
 	bindNode () {

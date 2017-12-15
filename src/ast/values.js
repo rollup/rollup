@@ -2,7 +2,7 @@ export const UNKNOWN_VALUE = { toString: () => '[[UNKNOWN]]' };
 
 export const UNKNOWN_ASSIGNMENT = {
 	type: 'UNKNOWN',
-	bindAssignmentAtPath: () => {},
+	reassignPath: () => {},
 	forEachReturnExpressionWhenCalledAtPath: () => {},
 	hasEffectsWhenAccessedAtPath: path => path.length > 0,
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
@@ -13,7 +13,7 @@ export const UNKNOWN_ASSIGNMENT = {
 
 export const UNDEFINED_ASSIGNMENT = {
 	type: 'UNDEFINED',
-	bindAssignmentAtPath: () => {},
+	reassignPath: () => {},
 	forEachReturnExpressionWhenCalledAtPath: () => {},
 	hasEffectsWhenAccessedAtPath: path => path.length > 0,
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
