@@ -78,7 +78,6 @@ export default function es ( bundle, magicString, { getPath, intro, outro } ) {
 		});
 
 	module.getReexports()
-		.filter( notDefault )
 		.forEach( name => {
 			const declaration = module.traceExport( name );
 
@@ -88,7 +87,8 @@ export default function es ( bundle, magicString, { getPath, intro, outro } ) {
 					exportAllDeclarations.push( `export * from '${name.slice( 1 )}';` );
 				} else {
 					if ( !exportExternalSpecifiers.has( declaration.module.id ) ) exportExternalSpecifiers.set( declaration.module.id, [] );
-					exportExternalSpecifiers.get( declaration.module.id ).push( name );
+					const rendered = declaration.getName( true );
+					exportExternalSpecifiers.get( declaration.module.id ).push( rendered === name ? name : `${rendered} as ${name}` );
 				}
 
 				return;
@@ -100,7 +100,7 @@ export default function es ( bundle, magicString, { getPath, intro, outro } ) {
 
 	const exportBlock = [];
 	if ( exportInternalSpecifiers.length ) exportBlock.push( `export { ${exportInternalSpecifiers.join(', ')} };` );
-	if ( module.exports.default || module.reexports.default ) exportBlock.push( `export default ${module.traceExport( 'default' ).getName( true )};` );
+	if ( module.exports.default ) exportBlock.push( `export default ${module.traceExport( 'default' ).getName( true )};` );
 	if ( exportAllDeclarations.length ) exportBlock.push( exportAllDeclarations.join( '\n' ) );
 	if ( exportExternalSpecifiers.size ) {
 		exportExternalSpecifiers.forEach( ( specifiers, id ) => {
