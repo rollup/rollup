@@ -143,10 +143,12 @@ class Task {
 			output: this.outputFiles
 		});
 
-		if (this.deprecations) {
+		const deprecations = this.deprecations.filter(d => d); // getting only truthy values
+		if (deprecations.length) {
 			this.inputOptions.onwarn({
 				code: 'DEPRECATED_OPTIONS',
-				deprecations: this.deprecations
+				deprecations,
+				message: `The following options have been renamed — please update your config: ${deprecations.map(option => `${option.old} -> ${option.new}`).join(', ')}`,
 			});
 		}
 
