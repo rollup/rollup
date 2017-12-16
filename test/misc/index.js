@@ -147,6 +147,33 @@ describe('deprecations', () => {
 		});
 	});
 
+	it('adds deprecations correctly for rollup', () => {
+		const warnings = [];
+		return rollup.rollup({
+			entry: 'x',
+			format: 'cjs',
+			indent: true,
+			sourceMap: true,
+			plugins: [loader({ x: `export default 42` })],
+			onwarn: warning => {
+				warnings.push(warning);
+			}
+		}).then(executeBundle).then(result => {
+			assert.equal(result, 42);
+			const deprecations = warnings[0].deprecations;
+			assert.equal(deprecations.length, 4);
+			assert.deepEqual(
+				deprecations,
+				[
+					{ new: "input", old: "entry" },
+					{ new: "output.indent", old: "indent" },
+					{ new: "output.sourcemap", old: "sourceMap" },
+					{ new: "output.format", old: "format" }
+				]
+			);
+		});
+	});
+
 	it('throws a useful error on accessing code/map properties of bundle.generate promise', () => {
 		return rollup
 			.rollup({
