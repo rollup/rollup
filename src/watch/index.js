@@ -110,7 +110,7 @@ class Task {
 		this.chokidarOptionsHash = JSON.stringify(chokidarOptions);
 
 		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
-		this.deprecations = [...deprecations, watchOptions._deprecations];
+		this.deprecations = [...deprecations, ...(watchOptions._deprecations || [])];
 	}
 
 	close() {
@@ -143,12 +143,11 @@ class Task {
 			output: this.outputFiles
 		});
 
-		const deprecations = this.deprecations.filter(d => d); // getting only truthy values
-		if (deprecations.length) {
+		if (this.deprecations.length) {
 			this.inputOptions.onwarn({
 				code: 'DEPRECATED_OPTIONS',
-				deprecations,
-				message: `The following options have been renamed — please update your config: ${deprecations.map(option => `${option.old} -> ${option.new}`).join(', ')}`,
+				deprecations: this.deprecations,
+				message: `The following options have been renamed — please update your config: ${this.deprecations.map(option => `${option.old} -> ${option.new}`).join(', ')}`,
 			});
 		}
 
