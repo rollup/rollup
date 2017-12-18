@@ -3,6 +3,20 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
+function buildRegexWithSpaces (re) {
+	const spaceOrComment = "(?:" + [
+		/\s/.source, // Space
+		/\/\/.*[\n\r]/.source, // Single line comment
+		/\/\*[^]*?\*\//.source, // Multiline comment. There is [^] instead of . because it also matches \n
+	].join( "|" ) + ")";
+	return new RegExp( re.source.replace( /\s|\\s/g, spaceOrComment ), re.flags );
+}
+
+const sourceRE = {
+	exportDefault: buildRegexWithSpaces( /^ *export +default */ ),
+	declarationHeader: buildRegexWithSpaces( /^ *export +default +(?:(?:async +)?function(?: *\*)?|class)/ ),
+};
+
 export default class ExportDefaultDeclaration extends Node {
 	bindNode () {
 		if ( this._declarationName ) {
@@ -37,7 +51,7 @@ export default class ExportDefaultDeclaration extends Node {
 		const statementStr = code.original.slice( this.start, this.end );
 
 		// paren workaround: find first non-whitespace character position after `export default`
-		const declaration_start = this.start + statementStr.match( /^\s*export\s+default\s*/ )[ 0 ].length;
+		const declaration_start = this.start + statementStr.match( sourceRE.exportDefault )[ 0 ].length;
 
 		if ( functionOrClassDeclaration.test(this.declaration.type) ) {
 			if ( treeshakeable ) {
@@ -46,7 +60,7 @@ export default class ExportDefaultDeclaration extends Node {
 
 			// Add the id to anonymous declarations
 			if ( !this.declaration.id ) {
-				const id_insertPos = this.start + statementStr.match( /^\s*export\s+default\s*(?:function|class)/ )[ 0 ].length;
+				const id_insertPos = this.start + statementStr.match( sourceRE.declarationHeader )[ 0 ].length;
 				code.appendLeft( id_insertPos, ` ${name}` );
 			}
 
