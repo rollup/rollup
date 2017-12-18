@@ -1,4 +1,4 @@
-// Return the first non-falsy result from an array of
+// Return the first non-null or non-undefined result from an array of
 // maybe-sync, maybe-promise-returning functions
 export default function first ( candidates ) {
 	return function ( ...args ) {
