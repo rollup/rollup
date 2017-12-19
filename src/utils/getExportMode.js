@@ -28,7 +28,7 @@ export default function getExportMode ( bundle, {exports: exportMode, name, form
 			exportMode = 'default';
 		} else {
 			if ( bundle.entryModule.exports.default && format !== 'es') {
-				bundle.warn({
+				bundle.graph.warn({
 					code: 'MIXED_EXPORTS',
 					message: `Using named and default exports together. Consumers of your bundle will have to use ${name || 'bundle'}['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning`,
 					url: `https://rollupjs.org/#exports`

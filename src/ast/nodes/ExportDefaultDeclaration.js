@@ -46,7 +46,7 @@ export default class ExportDefaultDeclaration extends Node {
 		const remove = () => { code.remove( this.leadingCommentStart || this.start, this.next || this.end ); };
 		const removeExportDefault = () => { code.remove( this.start, declaration_start ); };
 
-		const treeshakeable = this.module.bundle.treeshake && !this.included && !this.declaration.included;
+		const treeshakeable = this.module.graph.treeshake && !this.included && !this.declaration.included;
 		const name = this.variable.getName( es );
 		const statementStr = code.original.slice( this.start, this.end );
 
@@ -78,7 +78,7 @@ export default class ExportDefaultDeclaration extends Node {
 
 			// Only output `var foo =` if `foo` is used
 			if ( this.included ) {
-				code.overwrite( this.start, declaration_start, `${this.module.bundle.varOrConst} ${name} = ` );
+				code.overwrite( this.start, declaration_start, `${this.module.graph.varOrConst} ${name} = ` );
 			} else {
 				removeExportDefault();
 			}

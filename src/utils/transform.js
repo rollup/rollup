@@ -3,7 +3,7 @@ import { locate } from 'locate-character';
 import error from './error.js';
 import getCodeFrame from './getCodeFrame.js';
 
-export default function transform ( bundle, source, id, plugins ) {
+export default function transform ( graph, source, id, plugins ) {
 	const sourcemapChain = [];
 
 	const originalSourcemap = typeof source.map === 'string' ? JSON.parse( source.map ) : source.map;
@@ -54,7 +54,7 @@ export default function transform ( bundle, source, id, plugins ) {
 			const context = {
 				warn: ( warning, pos ) => {
 					warning = augment( warning, pos, 'PLUGIN_WARNING' );
-					bundle.warn( warning );
+					graph.warn( warning );
 				},
 
 				error ( err, pos ) {

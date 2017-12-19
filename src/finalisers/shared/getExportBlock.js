@@ -10,7 +10,7 @@ export default function getExportBlock ( bundle, exportMode, mechanism = 'return
 			if ( name[0] === '*' ) {
 				// export all from external
 				const id = name.slice( 1 );
-				const module = bundle.moduleById.get( id );
+				const module = bundle.graph.moduleById.get( id );
 
 				return `Object.keys(${module.name}).forEach(function (key) { exports[key] = ${module.name}[key]; });`;
 			}

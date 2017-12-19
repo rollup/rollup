@@ -9,7 +9,7 @@ export default class FunctionDeclaration extends FunctionNode {
 	}
 
 	render ( code, es ) {
-		if ( !this.module.bundle.treeshake || this.included ) {
+		if ( !this.module.graph.treeshake || this.included ) {
 			super.render( code, es );
 		} else {
 			code.remove( this.leadingCommentStart || this.start, this.next || this.end );

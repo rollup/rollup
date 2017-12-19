@@ -51,7 +51,7 @@ export default function iife ( bundle, magicString, { exportMode, indentString, 
 	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
 
 	if ( exportMode !== 'none' && !extend) {
-		wrapperIntro = ( isNamespaced ? thisProp(name) : `${bundle.varOrConst} ${name}` ) + ` = ${wrapperIntro}`;
+		wrapperIntro = ( isNamespaced ? thisProp(name) : `${bundle.graph.varOrConst} ${name}` ) + ` = ${wrapperIntro}`;
 	}
 
 	if ( isNamespaced ) {

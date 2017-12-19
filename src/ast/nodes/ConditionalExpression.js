@@ -41,7 +41,7 @@ export default class ConditionalExpression extends Node {
 
 	initialiseChildren ( parentScope ) {
 		super.initialiseChildren( parentScope );
-		if ( this.module.bundle.treeshake ) {
+		if ( this.module.graph.treeshake ) {
 			this.testValue = this.test.getValue();
 
 			if ( this.testValue === UNKNOWN_VALUE ) {
@@ -55,7 +55,7 @@ export default class ConditionalExpression extends Node {
 	}
 
 	render ( code, es ) {
-		if ( !this.module.bundle.treeshake ) {
+		if ( !this.module.graph.treeshake ) {
 			super.render( code, es );
 		}
 

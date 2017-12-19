@@ -6,7 +6,7 @@ import { mapSequence } from '../utils/promise.js';
 import validateKeys from '../utils/validateKeys.js';
 import error from '../utils/error.js';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL.js';
-import Bundle from '../Bundle.js';
+import Graph from '../Graph.js';
 
 export const VERSION = '<@VERSION@>';
 
@@ -163,11 +163,13 @@ export default function rollup ( inputOptions ) {
 		const warn = inputOptions.onwarn || (warning => console.warn( warning.message )); // eslint-disable-line no-console
 
 		checkInputOptions( inputOptions, warn );
-		const bundle = new Bundle( inputOptions );
+		const graph = new Graph( inputOptions );
 
 		timeStart( '--BUILD--' );
 
-		return bundle.build().then( () => {
+		return graph.link( inputOptions.input ).then( ( inputModuleId ) => {
+			const bundle = graph.buildSingle( inputModuleId );
+			
 			timeEnd( '--BUILD--' );
 
 			function generate ( outputOptions ) {
@@ -184,7 +186,7 @@ export default function rollup ( inputOptions ) {
 					.then( rendered => {
 						timeEnd( '--GENERATE--' );
 
-						bundle.plugins.forEach( plugin => {
+						graph.plugins.forEach( plugin => {
 							if ( plugin.ongenerate ) {
 								plugin.ongenerate( assign( {
 									bundle: result
@@ -238,7 +240,7 @@ export default function rollup ( inputOptions ) {
 
 						promises.push( writeFile( file, code ) );
 						return Promise.all( promises ).then( () => {
-							return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
+							return mapSequence( graph.plugins.filter( plugin => plugin.onwrite ), plugin => {
 								return Promise.resolve( plugin.onwrite( assign( {
 									bundle: result
 								}, outputOptions ), result ) );
