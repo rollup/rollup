@@ -14,7 +14,7 @@ export default function transformBundle ( code, plugins, sourcemapChain, options
 				if ( typeof result === 'string' ) {
 					result = {
 						code: result,
-						map: null
+						map: undefined
 					};
 				}
 
@@ -23,7 +23,10 @@ export default function transformBundle ( code, plugins, sourcemapChain, options
 					map.mappings = decode( map.mappings );
 				}
 
-				sourcemapChain.push( map );
+				// strict null check allows 'null' maps to not be pushed to the chain, while 'undefined' gets the missing map warning
+				if ( map !== null ) {
+					sourcemapChain.push( map || { missing: true, plugin: plugin.name });
+				}
 
 				return result.code;
 			}).catch( err => {
