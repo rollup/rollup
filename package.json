@@ -43,6 +43,7 @@
   },
   "homepage": "https://github.com/rollup/rollup",
   "devDependencies": {
+    "@types/node": "^8.5.1",
     "acorn": "^5.2.1",
     "ansi-escapes": "^3.0.0",
     "buble": "^0.18.0",
@@ -69,6 +70,7 @@
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-replace": "^2.0.0",
     "rollup-plugin-string": "^2.0.0",
+    "rollup-plugin-typescript": "^0.8.1",
     "rollup-pluginutils": "^2.0.1",
     "rollup-watch": "^4.3.1",
     "sander": "^0.6.0",
