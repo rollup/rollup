@@ -21,141 +21,152 @@ import error from './utils/error.js';
 import { dirname, isRelative, isAbsolute, normalize, relative, resolve } from './utils/path.js';
 import BundleScope from './ast/scopes/BundleScope.js';
 
+function getCachedModules ( cache ) {
+	const cachedModules = new Map();
+	if ( cache ) {
+		cache.modules.forEach( module => cachedModules.set( module.id, module ) );
+	}
+	return cachedModules;
+}
+
+function getTreeshakingOptions ( options ) {
+	return options.treeshake
+		? {
+			propertyReadSideEffects: options.treeshake.propertyReadSideEffects !== false,
+			pureExternalModules: options.treeshake.pureExternalModules
+		}
+		: { propertyReadSideEffects: true, pureExternalModules: false };
+}
+
 export default class Bundle {
-	constructor ( options ) {
-		this.cachedModules = new Map();
-		if ( options.cache ) {
-			options.cache.modules.forEach( module => {
-				this.cachedModules.set( module.id, module );
-			} );
-		}
+	constructor ( userOptions ) {
+		this.plugins = ensureArray( userOptions.plugins );
+		const options = this._applyPluginsToOptions( userOptions );
+		this._cachedModules = getCachedModules( options.cache );
+		this._initializeEntryFile( options );
+		this._initializeTreeshaking( options );
 
-		this.plugins = ensureArray( options.plugins );
-
-		options = this.plugins.reduce( ( acc, plugin ) => {
-			if ( plugin.options ) return plugin.options( acc ) || acc;
-			return acc;
-		}, options );
-
-		if ( !options.input ) {
-			throw new Error( 'You must supply options.input to rollup' );
-		}
-
-		this.entry = options.input;
-		this.entryId = null;
-		this.entryModule = null;
-
-		this.treeshake = options.treeshake !== false;
-		if ( this.treeshake ) {
-			this.treeshakingOptions = {
-				propertyReadSideEffects: options.treeshake
-					? options.treeshake.propertyReadSideEffects !== false
-					: true,
-				pureExternalModules: options.treeshake
-					? options.treeshake.pureExternalModules
-					: false
-			};
-			if ( this.treeshakingOptions.pureExternalModules === true ) {
-				this.isPureExternalModule = () => true;
-			} else if ( typeof this.treeshakingOptions.pureExternalModules === 'function' ) {
-				this.isPureExternalModule = this.treeshakingOptions.pureExternalModules;
-			} else if ( Array.isArray( this.treeshakingOptions.pureExternalModules ) ) {
-				const pureExternalModules = new Set( this.treeshakingOptions.pureExternalModules );
-				this.isPureExternalModule = id => pureExternalModules.has( id );
-			} else {
-				this.isPureExternalModule = () => false;
-			}
-		} else {
-			this.isPureExternalModule = () => false;
-		}
-
-		this.resolveId = first(
-			[ ( id, parentId ) => this.isExternal( id, parentId, false ) ? false : null ]
+		// module resolution
+		this._resolveModuleId = first(
+			[ ( id, parentId ) => this._isExternal( id, parentId, false ) ? false : null ]
 				.concat( this.plugins.map( plugin => plugin.resolveId ).filter( Boolean ) )
 				.concat( resolveId )
 		);
+		this.moduleById = new Map();
+		this._modules = [];
+		this.externalModules = [];
 
+		// loaders from plugins
 		const loaders = this.plugins
 			.map( plugin => plugin.load )
 			.filter( Boolean );
-		this.hasLoaders = loaders.length !== 0;
-		this.load = first( loaders.concat( load ) );
+		this._loadModule = first( loaders.concat( load ) );
 
+		// scope
 		this.scope = new BundleScope();
-		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		[ 'module', 'exports', '_interopDefault' ].forEach( name => {
 			this.scope.findVariable( name ); // creates global variable as side-effect
 		} );
 
-		this.moduleById = new Map();
-		this.modules = [];
-		this.externalModules = [];
-
-		this.context = String( options.context );
-
+		// context
+		const context = String( options.context );
 		const optionsModuleContext = options.moduleContext;
 		if ( typeof optionsModuleContext === 'function' ) {
-			this.getModuleContext = id => optionsModuleContext( id ) || this.context;
+			this._getModuleContext = id => optionsModuleContext( id ) || context;
 		} else if ( typeof optionsModuleContext === 'object' ) {
 			const moduleContext = new Map();
 			Object.keys( optionsModuleContext ).forEach( key => {
 				moduleContext.set( resolve( key ), optionsModuleContext[ key ] );
 			} );
-			this.getModuleContext = id => moduleContext.get( id ) || this.context;
+			this._getModuleContext = id => moduleContext.get( id ) || context;
 		} else {
-			this.getModuleContext = () => this.context;
+			this._getModuleContext = () => context;
 		}
 
+		// external
 		if ( typeof options.external === 'function' ) {
-			this.isExternal = options.external;
+			this._isExternal = options.external;
 		} else {
 			const ids = ensureArray( options.external );
-			this.isExternal = id => ids.indexOf( id ) !== -1;
+			this._isExternal = id => ids.indexOf( id ) !== -1;
 		}
 
-		this.onwarn = options.onwarn || makeOnwarn();
+		this._onwarn = options.onwarn || makeOnwarn();
 
 		this.varOrConst = options.preferConst ? 'const' : 'var';
-		this.legacy = options.legacy;
+		this._legacy = options.legacy;
 		this.acornOptions = options.acorn || {};
 	}
 
-	collectAddon ( initialAddon, addonName, sep = '\n' ) {
+	_applyPluginsToOptions ( options ) {
+		return this.plugins.reduce( ( acc, plugin ) =>
+			(plugin.options && plugin.options( acc )) || acc, options );
+	}
+
+	_initializeEntryFile ( options ) {
+		if ( !options.input ) {
+			throw new Error( 'You must supply options.input to rollup' );
+		}
+		this._entryFile = options.input;
+		this._entryId = null;
+		this.entryModule = null;
+	}
+
+	_initializeTreeshaking ( options ) {
+		this.treeshake = options.treeshake !== false;
+		if ( this.treeshake ) {
+			this.treeshakingOptions = getTreeshakingOptions( options );
+			if ( this.treeshakingOptions.pureExternalModules === true ) {
+				this._isPureExternalModule = () => true;
+			} else if ( typeof this.treeshakingOptions.pureExternalModules === 'function' ) {
+				this._isPureExternalModule = this.treeshakingOptions.pureExternalModules;
+			} else if ( Array.isArray( this.treeshakingOptions.pureExternalModules ) ) {
+				const pureExternalModules = new Set( this.treeshakingOptions.pureExternalModules );
+				this._isPureExternalModule = id => pureExternalModules.has( id );
+			} else {
+				this._isPureExternalModule = () => false;
+			}
+		} else {
+			this._isPureExternalModule = () => false;
+		}
+	}
+
+	_collectAddon ( initialAddon, addonName, sep = '\n' ) {
 		return runSequence(
-			 [ { pluginName: 'rollup', source: initialAddon } ]
-				.concat(this.plugins.map( (plugin, idx) => {
+			[ { pluginName: 'rollup', source: initialAddon } ]
+				.concat( this.plugins.map( ( plugin, idx ) => {
 					return {
 						pluginName: plugin.name || `Plugin at pos ${idx}`,
-						source: plugin[addonName]
+						source: plugin[ addonName ]
 					};
-				} ))
+				} ) )
 				.map( addon => {
-					addon.source = callIfFunction(addon.source);
+					addon.source = callIfFunction( addon.source );
 					return addon;
 				} )
 				.filter( addon => {
 					return addon.source;
 				} )
-				.map(({pluginName, source}) => {
-					return Promise.resolve(source)
-						.catch(err => {
+				.map( ( { pluginName, source } ) => {
+					return Promise.resolve( source )
+						.catch( err => {
 							error( {
 								code: 'ADDON_ERROR',
 								message:
-								`Could not retrieve ${addonName}. Check configuration of ${pluginName}.
+									`Could not retrieve ${addonName}. Check configuration of ${pluginName}.
 	Error Message: ${err.message}`
 							} );
-						});
-				})
-		 )
-		 .then(addons => addons.filter(Boolean).join(sep));
+						} );
+				} )
+		)
+			.then( addons => addons.filter( Boolean ).join( sep ) );
 	}
 
 	build () {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
-		return this.resolveId( this.entry, undefined )
+		return this._resolveModuleId( this._entryFile, undefined )
 			.then( id => {
 				if ( id === false ) {
 					error( {
@@ -167,12 +178,12 @@ export default class Bundle {
 				if ( id == null ) {
 					error( {
 						code: 'UNRESOLVED_ENTRY',
-						message: `Could not resolve entry (${this.entry})`
+						message: `Could not resolve input file (${this._entryFile})`
 					} );
 				}
 
-				this.entryId = id;
-				return this.fetchModule( id, undefined );
+				this._entryId = id;
+				return this._fetchModule( id, undefined );
 			} )
 			.then( entryModule => {
 				this.entryModule = entryModule;
@@ -182,8 +193,8 @@ export default class Bundle {
 
 				timeStart( 'phase 2' );
 
-				this.modules.forEach( module => module.bindImportSpecifiers() );
-				this.modules.forEach( module => module.bindReferences() );
+				this._modules.forEach( module => module.bindImportSpecifiers() );
+				this._modules.forEach( module => module.bindReferences() );
 
 				timeEnd( 'phase 2' );
 
@@ -219,7 +230,7 @@ export default class Bundle {
 					let addedNewNodes;
 					do {
 						addedNewNodes = false;
-						this.modules.forEach( module => {
+						this._modules.forEach( module => {
 							if ( module.includeInBundle() ) {
 								addedNewNodes = true;
 							}
@@ -227,7 +238,7 @@ export default class Bundle {
 					} while ( addedNewNodes );
 				} else {
 					// Necessary to properly replace namespace imports
-					this.modules.forEach( module => module.includeAllInBundle() );
+					this._modules.forEach( module => module.includeAllInBundle() );
 				}
 
 				timeEnd( 'phase 3' );
@@ -260,18 +271,18 @@ export default class Bundle {
 
 				// prune unused external imports
 				this.externalModules = this.externalModules.filter( module => {
-					return module.used || !this.isPureExternalModule( module.id );
+					return module.used || !this._isPureExternalModule( module.id );
 				} );
 
-				this.orderedModules = this.sort();
-				this.deconflict();
+				this.orderedModules = this._sort();
+				this._deconflict();
 
 				timeEnd( 'phase 4' );
 
 			} );
 	}
 
-	deconflict () {
+	_deconflict () {
 		const used = blank();
 
 		// ensure no conflicts with globals
@@ -302,7 +313,7 @@ export default class Bundle {
 			} );
 		} );
 
-		this.modules.forEach( module => {
+		this._modules.forEach( module => {
 			forOwn( module.scope.variables, variable => {
 				if ( !variable.isDefault || !variable.hasId ) {
 					variable.name = getSafeName( variable.name );
@@ -319,12 +330,12 @@ export default class Bundle {
 		this.scope.deshadow( toDeshadow );
 	}
 
-	fetchModule ( id, importer ) {
+	_fetchModule ( id, importer ) {
 		// short-circuit cycles
 		if ( this.moduleById.has( id ) ) return null;
 		this.moduleById.set( id, null );
 
-		return this.load( id )
+		return this._loadModule( id )
 			.catch( err => {
 				let msg = `Could not load ${id}`;
 				if ( importer ) msg += ` (imported by ${importer})`;
@@ -336,7 +347,6 @@ export default class Bundle {
 				if ( typeof source === 'string' ) return source;
 				if ( source && typeof source === 'object' && source.code ) return source;
 
-				// TODO report which plugin failed
 				error( {
 					code: 'BAD_LOADER',
 					message: `Error loading ${relativeId( id )}: plugin load hook should return a string, a { code, map } object, or nothing/null`
@@ -350,8 +360,8 @@ export default class Bundle {
 					};
 				}
 
-				if ( this.cachedModules.has( id ) && this.cachedModules.get( id ).originalCode === source.code ) {
-					return this.cachedModules.get( id );
+				if ( this._cachedModules.has( id ) && this._cachedModules.get( id ).originalCode === source.code ) {
+					return this._cachedModules.get( id );
 				}
 
 				return transform( this, source, id, this.plugins );
@@ -367,21 +377,30 @@ export default class Bundle {
 					ast,
 					sourcemapChain,
 					resolvedIds,
-					bundle: this
+					bundle: this,
+					context: this._getModuleContext( id )
 				} );
 
-				this.modules.push( module );
+				this._modules.push( module );
 				this.moduleById.set( id, module );
 
-				return this.fetchAllDependencies( module ).then( () => {
+				/*
+				  module.reexports (object): maps export names to objects {start, source, localName, module} for single reexports
+				  module.sources (array): all source fields of import and export-from statements
+				  module.exportAllSources (array): only source fields of `export * from ...` reexport statements
+				  module.exports (object): maps export names (incl. default) to objects {localName, identifier} (identifier only for default exports)
+				Only used here (but added in module):
+				  module.exportsAll (object): maps all export names to the module they exports from (usually the module itself)
+				 */
+				return this._fetchAllDependencies( module ).then( () => {
 					keys( module.exports ).forEach( name => {
 						if ( name !== 'default' ) {
 							module.exportsAll[ name ] = module.id;
 						}
 					} );
 					module.exportAllSources.forEach( source => {
-						const id = module.resolvedIds[ source ] || module.resolvedExternalIds[ source ];
-						const exportAllModule = this.moduleById.get( id );
+						const sourceId = module.resolvedIds[ source ] || module.resolvedExternalIds[ source ];
+						const exportAllModule = this.moduleById.get( sourceId );
 						if ( exportAllModule.isExternal ) return;
 
 						keys( exportAllModule.exportsAll ).forEach( name => {
@@ -404,13 +423,13 @@ export default class Bundle {
 			} );
 	}
 
-	fetchAllDependencies ( module ) {
+	_fetchAllDependencies ( module ) {
 		return mapSequence( module.sources, source => {
 			const resolvedId = module.resolvedIds[ source ];
-			return ( resolvedId ? Promise.resolve( resolvedId ) : this.resolveId( source, module.id ) )
+			return ( resolvedId ? Promise.resolve( resolvedId ) : this._resolveModuleId( source, module.id ) )
 				.then( resolvedId => {
 					const externalId = resolvedId || (isRelative( source ) ? resolve( module.id, '..', source ) : source);
-					let isExternal = this.isExternal( externalId, module.id, true );
+					let isExternal = this._isExternal( externalId, module.id, true );
 
 					if ( !resolvedId && !isExternal ) {
 						if ( isRelative( source ) ) {
@@ -451,15 +470,15 @@ export default class Bundle {
 						} );
 					} else {
 						module.resolvedIds[ source ] = resolvedId;
-						return this.fetchModule( resolvedId, module.id );
+						return this._fetchModule( resolvedId, module.id );
 					}
 				} );
 		} );
 	}
 
-	getPathRelativeToEntryDirname ( resolvedId ) {
+	_getPathRelativeToEntryDirname ( resolvedId ) {
 		if ( isRelative( resolvedId ) || isAbsolute( resolvedId ) ) {
-			const entryDirname = dirname( this.entryId );
+			const entryDirname = dirname( this._entryId );
 			const relativeToEntry = normalize( relative( entryDirname, resolvedId ) );
 
 			return isRelative( relativeToEntry ) ? relativeToEntry : `./${relativeToEntry}`;
@@ -468,17 +487,17 @@ export default class Bundle {
 		return resolvedId;
 	}
 
-	render ( options = {} ) {
-		return Promise.resolve().then(() => {
-			return Promise.all([
-				this.collectAddon( options.banner, 'banner' ),
-				this.collectAddon( options.footer, 'footer' ),
-				this.collectAddon( options.intro, 'intro', '\n\n' ),
-				this.collectAddon( options.outro, 'outro', '\n\n' )
-			]);
-		}).then( ([banner, footer, intro, outro]) => {
+	render ( outputOptions = {} ) {
+		return Promise.resolve().then( () => {
+			return Promise.all( [
+				this._collectAddon( outputOptions.banner, 'banner' ),
+				this._collectAddon( outputOptions.footer, 'footer' ),
+				this._collectAddon( outputOptions.intro, 'intro', '\n\n' ),
+				this._collectAddon( outputOptions.outro, 'outro', '\n\n' )
+			] );
+		} ).then( ( [ banner, footer, intro, outro ] ) => {
 			// Determine export mode - 'default', 'named', 'none'
-			const exportMode = getExportMode( this, options );
+			const exportMode = getExportMode( this, outputOptions );
 
 			let magicString = new MagicStringBundle( { separator: '\n\n' } );
 			const usedModules = [];
@@ -486,7 +505,7 @@ export default class Bundle {
 			timeStart( 'render modules' );
 
 			this.orderedModules.forEach( module => {
-				const source = module.render( options.format === 'es', this.legacy, options.freeze !== false );
+				const source = module.render( outputOptions.format === 'es', this._legacy, outputOptions.freeze !== false );
 				if ( source.toString().length ) {
 					magicString.addSource( source );
 					usedModules.push( module );
@@ -502,32 +521,31 @@ export default class Bundle {
 
 			timeEnd( 'render modules' );
 
+			const indentString = getIndentString( magicString, outputOptions );
 
-			const indentString = getIndentString( magicString, options );
-
-			const finalise = finalisers[ options.format ];
+			const finalise = finalisers[ outputOptions.format ];
 			if ( !finalise ) {
 				error( {
 					code: 'INVALID_OPTION',
-					message: `Invalid format: ${options.format} - valid options are ${keys( finalisers ).join( ', ' )}`
+					message: `Invalid format: ${outputOptions.format} - valid options are ${keys( finalisers ).join( ', ' )}`
 				} );
 			}
 
 			timeStart( 'render format' );
 
-			const optionsPaths = options.paths;
+			const optionsPaths = outputOptions.paths;
 			const getPath = (
 				typeof optionsPaths === 'function' ?
-					( id => optionsPaths( id ) || this.getPathRelativeToEntryDirname( id ) ) :
+					( id => optionsPaths( id ) || this._getPathRelativeToEntryDirname( id ) ) :
 					optionsPaths ?
-						( id => optionsPaths.hasOwnProperty( id ) ? optionsPaths[ id ] : this.getPathRelativeToEntryDirname( id ) ) :
-						id => this.getPathRelativeToEntryDirname( id )
+						( id => optionsPaths.hasOwnProperty( id ) ? optionsPaths[ id ] : this._getPathRelativeToEntryDirname( id ) ) :
+						id => this._getPathRelativeToEntryDirname( id )
 			);
 
 			if ( intro ) intro += '\n\n';
 			if ( outro ) outro = `\n\n${outro}`;
 
-			magicString = finalise( this, magicString.trim(), { exportMode, getPath, indentString, intro, outro }, options );
+			magicString = finalise( this, magicString.trim(), { exportMode, getPath, indentString, intro, outro }, outputOptions );
 
 			timeEnd( 'render format' );
 
@@ -538,14 +556,14 @@ export default class Bundle {
 			let map = null;
 			const bundleSourcemapChain = [];
 
-			return transformBundle( prevCode, this.plugins, bundleSourcemapChain, options ).then( code => {
-				if ( options.sourcemap ) {
+			return transformBundle( prevCode, this.plugins, bundleSourcemapChain, outputOptions ).then( code => {
+				if ( outputOptions.sourcemap ) {
 					timeStart( 'sourcemap' );
 
-					let file = options.sourcemapFile || options.file;
+					let file = outputOptions.sourcemapFile || outputOptions.file;
 					if ( file ) file = resolve( typeof process !== 'undefined' ? process.cwd() : '', file );
 
-					if ( this.hasLoaders || find( this.plugins, plugin => plugin.transform || plugin.transformBundle ) ) {
+					if ( find( this.plugins, plugin => plugin.transform || plugin.transformBundle || plugin.load ) ) {
 						map = magicString.generateMap( {} );
 						if ( typeof map.mappings === 'string' ) {
 							map.mappings = decode( map.mappings );
@@ -566,7 +584,7 @@ export default class Bundle {
 		} );
 	}
 
-	sort () {
+	_sort () {
 		let hasCycles;
 		const seen = {};
 		const ordered = [];
@@ -574,12 +592,12 @@ export default class Bundle {
 		const stronglyDependsOn = blank();
 		const dependsOn = blank();
 
-		this.modules.forEach( module => {
+		this._modules.forEach( module => {
 			stronglyDependsOn[ module.id ] = blank();
 			dependsOn[ module.id ] = blank();
 		} );
 
-		this.modules.forEach( module => {
+		this._modules.forEach( module => {
 			function processStrongDependency ( dependency ) {
 				if ( dependency === module || stronglyDependsOn[ module.id ][ dependency.id ] ) return;
 
@@ -639,7 +657,7 @@ export default class Bundle {
 
 						findParent( this.entryModule );
 
-						this.onwarn(
+						this._onwarn(
 							`Module ${a.id} may be unable to evaluate without ${b.id}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
 						);
 					}
@@ -661,6 +679,6 @@ export default class Bundle {
 			return str;
 		};
 
-		this.onwarn( warning );
+		this._onwarn( warning );
 	}
 }

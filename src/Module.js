@@ -42,7 +42,7 @@ function includeFully ( node ) {
 }
 
 export default class Module {
-	constructor ( { id, code, originalCode, originalSourcemap, ast, sourcemapChain, resolvedIds, resolvedExternalIds, bundle } ) {
+	constructor ( { id, code, originalCode, originalSourcemap, ast, sourcemapChain, resolvedIds, resolvedExternalIds, bundle, context } ) {
 		this.code = code;
 		this.id = id;
 		this.bundle = bundle;
@@ -57,17 +57,17 @@ export default class Module {
 		if ( ast ) {
 			// prevent mutating the provided AST, as it may be reused on
 			// subsequent incremental rebuilds
-			this.ast = clone( ast );
-			this.astClone = ast;
+			this._ast = clone( ast );
+			this._astClone = ast;
 		} else {
-			this.ast = tryParse( this, bundle.acornOptions ); // TODO what happens to comments if AST is provided?
-			this.astClone = clone( this.ast );
+			this._ast = tryParse( this, bundle.acornOptions ); // TODO what happens to comments if AST is provided?
+			this._astClone = clone( this._ast );
 		}
 
 		timeEnd( 'ast' );
 
 		this.excludeFromSourcemap = /\0/.test( id );
-		this.context = bundle.getModuleContext( id );
+		this.context = context;
 
 		// all dependencies
 		this.sources = [];
@@ -82,7 +82,7 @@ export default class Module {
 		this.reexports = blank();
 
 		this.exportAllSources = [];
-		this.exportAllModules = null;
+		this._exportAllModules = null;
 
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
@@ -101,20 +101,20 @@ export default class Module {
 			return !isSourceMapComment;
 		} );
 
-		this.declarations = blank();
+		this._declarations = blank();
 		this.type = 'Module'; // TODO only necessary so that Scope knows this should be treated as a function scope... messy
 		this.scope = new ModuleScope( this );
 
 		timeStart( 'analyse' );
 
-		this.analyse();
+		this._analyseAST();
 
 		timeEnd( 'analyse' );
 
 		this.strongDependencies = [];
 	}
 
-	addExport ( node ) {
+	_addExport ( node ) {
 		const source = node.source && node.source.value;
 
 		// export { name } from './other.js'
@@ -205,7 +205,7 @@ export default class Module {
 		}
 	}
 
-	addImport ( node ) {
+	_addImport ( node ) {
 		const source = node.source.value;
 
 		if ( !~this.sources.indexOf( source ) ) this.sources.push( source );
@@ -228,17 +228,17 @@ export default class Module {
 		} );
 	}
 
-	analyse () {
-		enhance( this.ast, this, this.comments );
+	_analyseAST () {
+		enhance( this._ast, this, this.comments );
 
 		// discover this module's imports and exports
 		let lastNode;
 
-		for ( const node of this.ast.body ) {
+		for ( const node of this._ast.body ) {
 			if ( node.isImportDeclaration ) {
-				this.addImport( node );
+				this._addImport( node );
 			} else if ( node.isExportDeclaration ) {
-				this.addExport( node );
+				this._addExport( node );
 			}
 
 			if ( lastNode ) lastNode.next = node.leadingCommentStart || node.start;
@@ -263,7 +263,7 @@ export default class Module {
 			} );
 		} );
 
-		this.exportAllModules = this.exportAllSources.map( source => {
+		this._exportAllModules = this.exportAllSources.map( source => {
 			const id = this.resolvedIds[ source ] || this.resolvedExternalIds[ source ];
 			return this.bundle.moduleById.get( id );
 		} );
@@ -279,12 +279,12 @@ export default class Module {
 	}
 
 	bindReferences () {
-		for ( const node of this.ast.body ) {
+		for ( const node of this._ast.body ) {
 			node.bind();
 		}
 	}
 
-	getOriginalLocation (sourcemapChain, line, column) {
+	_getOriginalLocation (sourcemapChain, line, column) {
 		let location = {
 			line,
 			column
@@ -312,9 +312,8 @@ export default class Module {
 		if ( pos !== undefined ) {
 			props.pos = pos;
 
-			const { line, column } = locate( this.code, pos, { offsetLine: 1 } ); // TODO trace sourcemaps
-
-			const location = this.getOriginalLocation(this.sourcemapChain, line, column);
+			const { line, column } = locate( this.code, pos, { offsetLine: 1 } );
+			const location = this._getOriginalLocation(this.sourcemapChain, line, column);
 
 			props.loc = { file: this.id, line: location.line, column: location.column };
 			props.frame = getCodeFrame( this.originalCode, location.line, location.column );
@@ -334,7 +333,7 @@ export default class Module {
 			reexports[ name ] = true;
 		} );
 
-		this.exportAllModules.forEach( module => {
+		this._exportAllModules.forEach( module => {
 			if ( module.isExternal ) {
 				reexports[ `*${module.id}` ] = true;
 				return;
@@ -349,12 +348,12 @@ export default class Module {
 	}
 
 	includeAllInBundle () {
-		this.ast.body.forEach( includeFully );
+		this._ast.body.forEach( includeFully );
 	}
 
 	includeInBundle () {
 		let addedNewNodes = false;
-		this.ast.body.forEach( node => {
+		this._ast.body.forEach( node => {
 			if ( node.shouldBeIncluded() ) {
 				if ( node.includeInBundle() ) {
 					addedNewNodes = true;
@@ -365,17 +364,17 @@ export default class Module {
 	}
 
 	namespace () {
-		if ( !this.declarations[ '*' ] ) {
-			this.declarations[ '*' ] = new NamespaceVariable( this );
+		if ( !this._declarations[ '*' ] ) {
+			this._declarations[ '*' ] = new NamespaceVariable( this );
 		}
 
-		return this.declarations[ '*' ];
+		return this._declarations[ '*' ];
 	}
 
 	render ( es, legacy, freeze ) {
 		const magicString = this.magicString.clone();
 
-		for ( const node of this.ast.body ) {
+		for ( const node of this._ast.body ) {
 			node.render( magicString, es );
 		}
 
@@ -393,7 +392,7 @@ export default class Module {
 			code: this.code,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,
-			ast: this.astClone,
+			ast: this._astClone,
 			sourcemapChain: this.sourcemapChain,
 			resolvedIds: this.resolvedIds,
 			resolvedExternalIds: this.resolvedExternalIds
@@ -463,8 +462,8 @@ export default class Module {
 
 		if ( name === 'default' ) return;
 
-		for ( let i = 0; i < this.exportAllModules.length; i += 1 ) {
-			const module = this.exportAllModules[ i ];
+		for ( let i = 0; i < this._exportAllModules.length; i += 1 ) {
+			const module = this._exportAllModules[ i ];
 			const declaration = module.traceExport( name );
 
 			if ( declaration ) return declaration;

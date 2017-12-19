@@ -7,6 +7,6 @@ module.exports = {
 	},
 	error: {
 		code: 'UNRESOLVED_ENTRY',
-		message: 'Could not resolve entry (/not/a/path/that/actually/really/exists)'
+		message: 'Could not resolve input file (/not/a/path/that/actually/really/exists)'
 	}
 };
