@@ -167,7 +167,10 @@ export default function rollup ( inputOptions ) {
 
 		timeStart( '--BUILD--' );
 
-		return bundle.build().then( () => {
+		return bundle.link().then( () => {
+			return bundle.build();
+		} ).then( () => {
+			
 			timeEnd( '--BUILD--' );
 
 			function generate ( outputOptions ) {
