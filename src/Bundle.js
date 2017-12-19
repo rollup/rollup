@@ -48,7 +48,7 @@ export default class Bundle {
 
 		// module resolution
 		this._resolveModuleId = first(
-			[ id => this._isExternal( id ) ? false : null ]
+			[ ( id, parentId ) => this._isExternal( id, parentId, false ) ? false : null ]
 				.concat( this.plugins.map( plugin => plugin.resolveId ).filter( Boolean ) )
 				.concat( resolveId )
 		);
@@ -429,7 +429,7 @@ export default class Bundle {
 			return ( resolvedId ? Promise.resolve( resolvedId ) : this._resolveModuleId( source, module.id ) )
 				.then( resolvedId => {
 					const externalId = resolvedId || (isRelative( source ) ? resolve( module.id, '..', source ) : source);
-					let isExternal = this._isExternal( externalId );
+					let isExternal = this._isExternal( externalId, module.id, true );
 
 					if ( !resolvedId && !isExternal ) {
 						if ( isRelative( source ) ) {

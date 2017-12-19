@@ -7,6 +7,15 @@ module.exports = {
 				transform: function ( code ) {
 					return code;
 				}
+			},
+			{
+				name: 'fake plugin',
+				transform: function ( code ) {
+					return { code, map: null }
+				},
+				transformBundle: function ( code ) {
+					return { code, map: null }
+				}
 			}
 		]
 	},

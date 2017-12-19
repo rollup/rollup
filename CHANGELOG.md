@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.52.3
+* Properly hoist default exported functions in more situations ([#1799](https://github.com/rollup/rollup/pull/1799))
+* Allow plugin transformations to not overwrite source maps by returning null ([#1797](https://github.com/rollup/rollup/pull/1797))
+* Provide more parameters to "external" handler ([#1792](https://github.com/rollup/rollup/pull/1792))
+
 ## 0.52.2
 * No longer ignore side-effects in JSON.parse and JSON.stringify ([#1785](https://github.com/rollup/rollup/pull/1785))
 * Updated links in warnings ([#1776](https://github.com/rollup/rollup/pull/1776))

@@ -80,8 +80,8 @@ export default function transform ( bundle, source, id, plugins ) {
 					if ( typeof result === 'string' ) {
 						result = {
 							code: result,
-							ast: null,
-							map: null
+							ast: undefined,
+							map: undefined
 						};
 					}
 
@@ -94,7 +94,11 @@ export default function transform ( bundle, source, id, plugins ) {
 						result.map.mappings = decode( result.map.mappings );
 					}
 
-					sourcemapChain.push( result.map || { missing: true, plugin: plugin.name }); // lil' bit hacky but it works
+					// strict null check allows 'null' maps to not be pushed to the chain, while 'undefined' gets the missing map warning
+					if ( result.map !== null ) {
+						sourcemapChain.push( result.map || { missing: true, plugin: plugin.name });
+					}
+
 					ast = result.ast;
 
 					return result.code;
