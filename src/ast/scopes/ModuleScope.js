@@ -5,10 +5,10 @@ import LocalVariable from '../variables/LocalVariable';
 import { UNDEFINED_ASSIGNMENT } from '../values';
 
 export default class ModuleScope extends Scope {
-	constructor ( module ) {
+	constructor ( module, globalScope ) {
 		super( {
 			isModuleScope: true,
-			parent: module.bundle.scope
+			parent: globalScope
 		} );
 
 		this.module = module;

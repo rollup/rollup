@@ -4,11 +4,11 @@ export default function getInteropBlock ( bundle, options ) {
 			if ( !module.declarations.default || options.interop === false ) return null;
 
 			if ( module.exportsNamespace ) {
-				return `${bundle.varOrConst} ${module.name}__default = ${module.name}['default'];`;
+				return `${bundle.graph.varOrConst} ${module.name}__default = ${module.name}['default'];`;
 			}
 
 			if ( module.exportsNames ) {
-				return `${bundle.varOrConst} ${module.name}__default = 'default' in ${module.name} ? ${module.name}['default'] : ${module.name};`;
+				return `${bundle.graph.varOrConst} ${module.name}__default = 'default' in ${module.name} ? ${module.name}['default'] : ${module.name};`;
 			}
 
 			return `${module.name} = ${module.name} && ${module.name}.hasOwnProperty('default') ? ${module.name}['default'] : ${module.name};`;

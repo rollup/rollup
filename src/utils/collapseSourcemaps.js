@@ -133,7 +133,7 @@ export default function collapseSourcemaps ( bundle, file, map, modules, bundleS
 
 		sourcemapChain.forEach( map => {
 			if ( map.missing ) {
-				bundle.warn({
+				bundle.graph.warn({
 					code: 'SOURCEMAP_BROKEN',
 					plugin: map.plugin,
 					message: `Sourcemap is likely to be incorrect: a plugin${map.plugin ? ` ('${map.plugin}')` : ``} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,

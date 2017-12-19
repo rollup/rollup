@@ -42,10 +42,10 @@ function includeFully ( node ) {
 }
 
 export default class Module {
-	constructor ( { id, code, originalCode, originalSourcemap, ast, sourcemapChain, resolvedIds, resolvedExternalIds, bundle } ) {
+	constructor ( { id, code, originalCode, originalSourcemap, ast, sourcemapChain, resolvedIds, resolvedExternalIds, graph } ) {
 		this.code = code;
 		this.id = id;
-		this.bundle = bundle;
+		this.graph = graph;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain;
@@ -60,14 +60,14 @@ export default class Module {
 			this.ast = clone( ast );
 			this.astClone = ast;
 		} else {
-			this.ast = tryParse( this, bundle.acornOptions ); // TODO what happens to comments if AST is provided?
+			this.ast = tryParse( this, graph.acornOptions ); // TODO what happens to comments if AST is provided?
 			this.astClone = clone( this.ast );
 		}
 
 		timeEnd( 'ast' );
 
 		this.excludeFromSourcemap = /\0/.test( id );
-		this.context = bundle.getModuleContext( id );
+		this.context = graph.getModuleContext( id );
 
 		// all dependencies
 		this.sources = [];
@@ -103,7 +103,7 @@ export default class Module {
 
 		this.declarations = blank();
 		this.type = 'Module'; // TODO only necessary so that Scope knows this should be treated as a function scope... messy
-		this.scope = new ModuleScope( this );
+		this.scope = new ModuleScope( this, graph.scope );
 
 		timeStart( 'analyse' );
 
@@ -259,20 +259,20 @@ export default class Module {
 				const specifier = specifiers[ name ];
 
 				const id = this.resolvedIds[ specifier.source ] || this.resolvedExternalIds[ specifier.source ];
-				specifier.module = this.bundle.moduleById.get( id );
+				specifier.module = this.graph.moduleById.get( id );
 			} );
 		} );
 
 		this.exportAllModules = this.exportAllSources.map( source => {
 			const id = this.resolvedIds[ source ] || this.resolvedExternalIds[ source ];
-			return this.bundle.moduleById.get( id );
+			return this.graph.moduleById.get( id );
 		} );
 
 		this.sources.forEach( source => {
 			const id = this.resolvedIds[ source ];
 
 			if ( id ) {
-				const module = this.bundle.moduleById.get( id );
+				const module = this.graph.moduleById.get( id );
 				this.dependencies.push( module );
 			}
 		} );
@@ -433,7 +433,7 @@ export default class Module {
 	traceExport ( name ) {
 		// export * from 'external'
 		if ( name[ 0 ] === '*' ) {
-			const module = this.bundle.moduleById.get( name.slice( 1 ) );
+			const module = this.graph.moduleById.get( name.slice( 1 ) );
 			return module.traceExport( '*' );
 		}
 
@@ -458,7 +458,7 @@ export default class Module {
 			const name = exportDeclaration.localName;
 			const declaration = this.trace( name );
 
-			return declaration || this.bundle.scope.findVariable( name );
+			return declaration || this.graph.scope.findVariable( name );
 		}
 
 		if ( name === 'default' ) return;
@@ -482,6 +482,6 @@ export default class Module {
 		}
 
 		warning.id = this.id;
-		this.bundle.warn( warning );
+		this.graph.warn( warning );
 	}
 }

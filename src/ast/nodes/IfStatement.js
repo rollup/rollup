@@ -40,7 +40,7 @@ function getHoistedVars ( node, scope ) {
 export default class IfStatement extends Statement {
 	initialiseChildren ( parentScope ) {
 		super.initialiseChildren( parentScope );
-		if ( this.module.bundle.treeshake ) {
+		if ( this.module.graph.treeshake ) {
 			this.testValue = this.test.getValue();
 
 			if ( this.testValue === UNKNOWN_VALUE ) {
@@ -59,7 +59,7 @@ export default class IfStatement extends Statement {
 	}
 
 	render ( code, es ) {
-		if ( this.module.bundle.treeshake ) {
+		if ( this.module.graph.treeshake ) {
 			if ( this.testValue === UNKNOWN_VALUE ) {
 				super.render( code, es );
 			}

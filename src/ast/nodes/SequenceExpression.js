@@ -26,7 +26,7 @@ export default class SequenceExpression extends Node {
 	}
 
 	render ( code, es ) {
-		if ( !this.module.bundle.treeshake ) {
+		if ( !this.module.graph.treeshake ) {
 			super.render( code, es );
 		}
 
