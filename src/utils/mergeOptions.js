@@ -1,11 +1,11 @@
 import ensureArray from './ensureArray.js';
 import deprecateOptions from './deprecateOptions.js';
 
-function normalizeObjectOptionValue ( optionValue ) {
-	if ( !optionValue ) {
+function normalizeObjectOptionValue (optionValue) {
+	if (!optionValue) {
 		return optionValue;
 	}
-	if ( typeof optionValue !== 'object' ) {
+	if (typeof optionValue !== 'object') {
 		return {};
 	}
 	return optionValue;
@@ -27,12 +27,12 @@ export default function mergeOptions ({
 	const getInputOption = getOption(config);
 	const getOutputOption = getOption(config.output || {});
 
-	function getObjectOption ( name ) {
-		const commandOption = normalizeObjectOptionValue( command[ name ] );
-		const configOption = normalizeObjectOptionValue( config[ name ] );
-		if ( commandOption !== undefined ) {
+	function getObjectOption (name) {
+		const commandOption = normalizeObjectOptionValue(command[name]);
+		const configOption = normalizeObjectOptionValue(config[name]);
+		if (commandOption !== undefined) {
 			return commandOption && configOption
-				? Object.assign( {}, configOption, commandOption )
+				? Object.assign({}, configOption, commandOption)
 				: commandOption;
 		}
 		return configOption;
@@ -67,21 +67,21 @@ export default function mergeOptions ({
 	// legacy, to ensure e.g. commonjs plugin still works
 	inputOptions.entry = inputOptions.input;
 
-	const commandExternal = ( command.external || '' ).split( ',' );
+	const commandExternal = (command.external || '').split(',');
 	const configExternal = config.external;
 
-	if ( command.globals ) {
-		const globals = Object.create( null );
+	if (command.globals) {
+		const globals = Object.create(null);
 
-		command.globals.split( ',' ).forEach( str => {
-			const names = str.split( ':' );
-			globals[ names[ 0 ] ] = names[ 1 ];
+		command.globals.split(',').forEach(str => {
+			const names = str.split(':');
+			globals[names[0]] = names[1];
 
 			// Add missing Module IDs to external.
-			if ( commandExternal.indexOf( names[ 0 ] ) === -1 ) {
-				commandExternal.push( names[ 0 ] );
+			if (commandExternal.indexOf(names[0]) === -1) {
+				commandExternal.push(names[0]);
 			}
-		} );
+		});
 
 		command.globals = globals;
 	}
@@ -91,11 +91,11 @@ export default function mergeOptions ({
 			return configExternal( id, ...rest ) || ~commandExternal.indexOf( id );
 		};
 	} else {
-		inputOptions.external = ( configExternal || [] ).concat( commandExternal );
+		inputOptions.external = (configExternal || []).concat(commandExternal);
 	}
 
-	if ( command.silent ) {
-		inputOptions.onwarn = () => {};
+	if (command.silent) {
+		inputOptions.onwarn = () => { };
 	}
 
 	const baseOutputOptions = {
@@ -122,22 +122,27 @@ export default function mergeOptions ({
 	};
 
 	let mergedOutputOptions;
-	if ( Array.isArray( config.output ) ) {
-		mergedOutputOptions = config.output.map( ( output ) => Object.assign( {}, output, command.output ) );
-	} else if ( config.output && command.output ) {
-		mergedOutputOptions = [ Object.assign( {}, config.output, command.output ) ];
+	if (Array.isArray(config.output)) {
+		mergedOutputOptions = config.output.map(output =>
+			Object.assign({}, output, command.output)
+		);
+	} else if (config.output && command.output) {
+		mergedOutputOptions = [Object.assign({}, config.output, command.output)];
 	} else {
-		mergedOutputOptions = (command.output || config.output) ?
-			ensureArray( command.output || config.output ) :
-			[ {
-				file: command.output ? command.output.file : null,
-				format: command.output ? command.output.format : null
-			} ];
+		mergedOutputOptions =
+			command.output || config.output
+				? ensureArray(command.output || config.output)
+				: [
+					{
+						file: command.output ? command.output.file : null,
+						format: command.output ? command.output.format : null
+					}
+				];
 	}
 
-	const outputOptions = mergedOutputOptions.map( output => {
-		return Object.assign( {}, baseOutputOptions, output );
-	} );
+	const outputOptions = mergedOutputOptions.map(output => {
+		return Object.assign({}, baseOutputOptions, output);
+	});
 
 	// check for errors
 	const validKeys = [
@@ -162,27 +167,27 @@ function deprecate ( config, command = {}, deprecateConfig = { input: true, outp
 	const deprecations = [];
 
 	// CLI
-	if ( command.id ) {
-		deprecations.push( {
+	if (command.id) {
+		deprecations.push({
 			old: '-u/--id',
 			new: '--amd.id'
-		} );
+		});
 		(command.amd || (command.amd = {})).id = command.id;
 	}
 
-	if ( typeof command.output === 'string' ) {
-		deprecations.push( {
+	if (typeof command.output === 'string') {
+		deprecations.push({
 			old: '--output',
 			new: '--output.file'
-		} );
+		});
 		command.output = { file: command.output };
 	}
 
-	if ( command.format ) {
-		deprecations.push( {
+	if (command.format) {
+		deprecations.push({
 			old: '--format',
 			new: '--output.format'
-		} );
+		});
 		(command.output || (command.output = {})).format = command.format;
 	}
 

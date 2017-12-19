@@ -1,18 +1,18 @@
-export function mapSequence ( array, fn ) {
+export function mapSequence (array, fn) {
 	const results = [];
 	let promise = Promise.resolve();
 
-	function next ( member, i ) {
-		return Promise.resolve( fn( member ) ).then( value => results[i] = value );
+	function next (member, i) {
+		return Promise.resolve(fn(member)).then(value => (results[i] = value));
 	}
 
-	for ( let i = 0; i < array.length; i += 1 ) {
-		promise = promise.then( () => next( array[i], i ) );
+	for (let i = 0; i < array.length; i += 1) {
+		promise = promise.then(() => next(array[i], i));
 	}
 
-	return promise.then( () => results );
+	return promise.then(() => results);
 }
 
-export function runSequence ( array ) {
-	return mapSequence( array, i => i );
+export function runSequence (array) {
+	return mapSequence(array, i => i);
 }

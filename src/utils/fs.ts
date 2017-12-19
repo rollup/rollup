@@ -3,14 +3,14 @@ import { dirname } from './path';
 
 export * from 'fs';
 
-function mkdirpath ( path ) {
-	const dir = dirname( path );
+function mkdirpath (path) {
+	const dir = dirname(path);
 	try {
-		fs.readdirSync( dir );
-	} catch ( err ) {
-		mkdirpath( dir );
+		fs.readdirSync(dir);
+	} catch (err) {
+		mkdirpath(dir);
 		try {
-			fs.mkdirSync( dir );
+			fs.mkdirSync(dir);
 		} catch (err2) {
 			if (err2.code !== 'EEXIST') {
 				throw err2;
@@ -19,13 +19,13 @@ function mkdirpath ( path ) {
 	}
 }
 
-export function writeFile ( dest, data ) {
-	return new Promise( ( fulfil, reject ) => {
-		mkdirpath( dest );
+export function writeFile (dest, data) {
+	return new Promise((fulfil, reject) => {
+		mkdirpath(dest);
 
-		fs.writeFile( dest, data, err => {
-			if ( err ) {
-				reject( err );
+		fs.writeFile(dest, data, err => {
+			if (err) {
+				reject(err);
 			} else {
 				fulfil();
 			}

@@ -11,7 +11,7 @@ import mergeOptions from '../utils/mergeOptions.js';
 const DELAY = 100;
 
 class Watcher extends EventEmitter {
-	constructor(configs) {
+	constructor (configs) {
 		super();
 
 		this.dirty = true;
@@ -24,7 +24,7 @@ class Watcher extends EventEmitter {
 		});
 	}
 
-	close() {
+	close () {
 		this.tasks.forEach(task => {
 			task.close();
 		});
@@ -32,7 +32,7 @@ class Watcher extends EventEmitter {
 		this.removeAllListeners();
 	}
 
-	_makeDirty() {
+	_makeDirty () {
 		if (this.dirty) return;
 		this.dirty = true;
 
@@ -43,7 +43,7 @@ class Watcher extends EventEmitter {
 		}
 	}
 
-	_run() {
+	_run () {
 		this.running = true;
 		this.dirty = false;
 
@@ -76,7 +76,7 @@ class Watcher extends EventEmitter {
 }
 
 class Task {
-	constructor(watcher, config) {
+	constructor (watcher, config) {
 		this.cache = null;
 		this.watcher = watcher;
 
@@ -103,7 +103,9 @@ class Task {
 		}
 
 		if (chokidarOptions && !chokidar) {
-			throw new Error(`options.watch.chokidar was provided, but chokidar could not be found. Have you installed it?`);
+			throw new Error(
+				`options.watch.chokidar was provided, but chokidar could not be found. Have you installed it?`
+			);
 		}
 
 		this.chokidarOptions = chokidarOptions;
@@ -113,21 +115,21 @@ class Task {
 		this.deprecations = [...deprecations, ...(watchOptions._deprecations || [])];
 	}
 
-	close() {
+	close () {
 		this.closed = true;
 		this.watched.forEach(id => {
 			deleteTask(id, this, this.chokidarOptionsHash);
 		});
 	}
 
-	makeDirty() {
+	makeDirty () {
 		if (!this.dirty) {
 			this.dirty = true;
 			this.watcher._makeDirty();
 		}
 	}
 
-	run() {
+	run () {
 		if (!this.dirty) return;
 		this.dirty = false;
 
@@ -170,9 +172,7 @@ class Task {
 
 				this.watched = watched;
 
-				return Promise.all(
-					this.outputs.map(output => bundle.write(output))
-				);
+				return Promise.all(this.outputs.map(output => bundle.write(output)));
 			})
 			.then(() => {
 				this.watcher.emit('event', {
@@ -196,7 +196,7 @@ class Task {
 			});
 	}
 
-	watchFile(id) {
+	watchFile (id) {
 		if (!this.filter(id)) return;
 
 		if (this.outputFiles.some(file => file === id)) {
@@ -209,6 +209,6 @@ class Task {
 	}
 }
 
-export default function watch(configs) {
+export default function watch (configs) {
 	return new Watcher(configs);
 }

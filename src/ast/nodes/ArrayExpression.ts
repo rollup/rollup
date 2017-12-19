@@ -1,7 +1,8 @@
 import Node from '../Node';
 
 export default class ArrayExpression extends Node {
-	hasEffectsWhenAccessedAtPath ( path ) {
+	type: 'ArrayExpression';
+	hasEffectsWhenAccessedAtPath (path: string[]) {
 		return path.length > 1;
 	}
 }

@@ -2,6 +2,6 @@ import ReplaceableInitializationVariable from './ReplaceableInitializationVariab
 
 export default class ThisVariable extends ReplaceableInitializationVariable {
 	constructor () {
-		super( 'this', null );
+		super('this', null);
 	}
 }

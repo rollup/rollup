@@ -7,62 +7,67 @@ export default function batchWarnings () {
 	let count = 0;
 
 	return {
-		get count() {
+		get count () {
 			return count;
 		},
 
 		add: warning => {
-			if ( typeof warning === 'string' ) {
+			if (typeof warning === 'string') {
 				warning = { code: 'UNKNOWN', message: warning };
 			}
 
-			if ( warning.code in immediateHandlers ) {
-				immediateHandlers[ warning.code ]( warning );
+			if (warning.code in immediateHandlers) {
+				immediateHandlers[warning.code](warning);
 				return;
 			}
 
-			if ( !allWarnings.has( warning.code ) ) allWarnings.set( warning.code, [] );
-			allWarnings.get( warning.code ).push( warning );
+			if (!allWarnings.has(warning.code)) allWarnings.set(warning.code, []);
+			allWarnings.get(warning.code).push(warning);
 
 			count += 1;
 		},
 
 		flush: () => {
-			if ( count === 0 ) return;
+			if (count === 0) return;
 
-			const codes = Array.from( allWarnings.keys() )
-				.sort( ( a, b ) => {
-					if ( deferredHandlers[a] && deferredHandlers[b] ) {
-						return deferredHandlers[a].priority - deferredHandlers[b].priority;
-					}
+			const codes = Array.from(allWarnings.keys()).sort((a, b) => {
+				if (deferredHandlers[a] && deferredHandlers[b]) {
+					return deferredHandlers[a].priority - deferredHandlers[b].priority;
+				}
 
-					if ( deferredHandlers[a] ) return -1;
-					if ( deferredHandlers[b] ) return 1;
-					return allWarnings.get( b ).length - allWarnings.get( a ).length;
-				});
+				if (deferredHandlers[a]) return -1;
+				if (deferredHandlers[b]) return 1;
+				return allWarnings.get(b).length - allWarnings.get(a).length;
+			});
 
-			codes.forEach( code => {
-				const handler = deferredHandlers[ code ];
-				const warnings = allWarnings.get( code );
+			codes.forEach(code => {
+				const handler = deferredHandlers[code];
+				const warnings = allWarnings.get(code);
 
-				if ( handler ) {
-					handler.fn( warnings );
+				if (handler) {
+					handler.fn(warnings);
 				} else {
-					warnings.forEach( warning => {
-						stderr( `${chalk.bold.yellow('(!)')} ${chalk.bold.yellow( warning.message )}` );
+					warnings.forEach(warning => {
+						stderr(
+							`${chalk.bold.yellow('(!)')} ${chalk.bold.yellow(
+								warning.message
+							)}`
+						);
 
-						if ( warning.url ) info( warning.url );
+						if (warning.url) info(warning.url);
 
-						const id = warning.loc && warning.loc.file || warning.id;
-						if ( id ) {
-							const loc = warning.loc ?
-								`${relativeId( id )}: (${warning.loc.line}:${warning.loc.column})` :
-								relativeId( id );
+						const id = (warning.loc && warning.loc.file) || warning.id;
+						if (id) {
+							const loc = warning.loc
+								? `${relativeId(id)}: (${warning.loc.line}:${
+								warning.loc.column
+								})`
+								: relativeId(id);
 
-							stderr( chalk.bold( relativeId( loc ) ) );
+							stderr(chalk.bold(relativeId(loc)));
 						}
 
-						if ( warning.frame ) info( warning.frame );
+						if (warning.frame) info(warning.frame);
 					});
 				}
 			});
@@ -75,29 +80,39 @@ export default function batchWarnings () {
 
 const immediateHandlers = {
 	DEPRECATED_OPTIONS: warning => {
-		title( `Some options have been renamed` );
-		info( `https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32` );
+		title(`Some options have been renamed`);
+		info(
+			`https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32`
+		);
 		warning.deprecations.forEach(option => {
-			stderr( `${chalk.bold(option.old)} is now ${option.new}` );
+			stderr(`${chalk.bold(option.old)} is now ${option.new}`);
 		});
 	},
 
 	MISSING_NODE_BUILTINS: warning => {
-		title( `Missing shims for Node.js built-ins` );
+		title(`Missing shims for Node.js built-ins`);
 
-		const detail = warning.modules.length === 1 ?
-			`'${warning.modules[0]}'` :
-			`${warning.modules.slice( 0, -1 ).map( name => `'${name}'` ).join( ', ' )} and '${warning.modules.slice( -1 )}'`;
-		stderr( `Creating a browser bundle that depends on ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins` );
+		const detail =
+			warning.modules.length === 1
+				? `'${warning.modules[0]}'`
+				: `${warning.modules
+					.slice(0, -1)
+					.map(name => `'${name}'`)
+					.join(', ')} and '${warning.modules.slice(-1)}'`;
+		stderr(
+			`Creating a browser bundle that depends on ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`
+		);
 	},
 
 	MIXED_EXPORTS: () => {
-		title( 'Mixing named and default exports' );
-		stderr( `Consumers of your bundle will have to use bundle['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning` );
+		title('Mixing named and default exports');
+		stderr(
+			`Consumers of your bundle will have to use bundle['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning`
+		);
 	},
 
 	EMPTY_BUNDLE: () => {
-		title( `Generated an empty bundle` );
+		title(`Generated an empty bundle`);
 	}
 };
 
@@ -106,9 +121,13 @@ const deferredHandlers = {
 	UNUSED_EXTERNAL_IMPORT: {
 		priority: 1,
 		fn: warnings => {
-			title( 'Unused external imports' );
-			warnings.forEach( warning => {
-				stderr( `${warning.names} imported from external module '${warning.source}' but never used` );
+			title('Unused external imports');
+			warnings.forEach(warning => {
+				stderr(
+					`${warning.names} imported from external module '${
+					warning.source
+					}' but never used`
+				);
 			});
 		}
 	},
@@ -116,18 +135,23 @@ const deferredHandlers = {
 	UNRESOLVED_IMPORT: {
 		priority: 1,
 		fn: warnings => {
-			title( 'Unresolved dependencies' );
-			info( 'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency' );
+			title('Unresolved dependencies');
+			info(
+				'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
+			);
 
 			const dependencies = new Map();
-			warnings.forEach( warning => {
-				if ( !dependencies.has( warning.source ) ) dependencies.set( warning.source, [] );
-				dependencies.get( warning.source ).push( warning.importer );
+			warnings.forEach(warning => {
+				if (!dependencies.has(warning.source))
+					dependencies.set(warning.source, []);
+				dependencies.get(warning.source).push(warning.importer);
 			});
 
-			Array.from( dependencies.keys() ).forEach( dependency => {
-				const importers = dependencies.get( dependency );
-				stderr( `${chalk.bold( dependency )} (imported by ${importers.join( ', ' )})` );
+			Array.from(dependencies.keys()).forEach(dependency => {
+				const importers = dependencies.get(dependency);
+				stderr(
+					`${chalk.bold(dependency)} (imported by ${importers.join(', ')})`
+				);
 			});
 		}
 	},
@@ -135,13 +159,15 @@ const deferredHandlers = {
 	MISSING_EXPORT: {
 		priority: 1,
 		fn: warnings => {
-			title( 'Missing exports' );
-			info( 'https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module' );
+			title('Missing exports');
+			info(
+				'https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module'
+			);
 
-			warnings.forEach( warning => {
-				stderr( chalk.bold( warning.importer ) );
-				stderr( `${warning.missing} is not exported by ${warning.exporter}` );
-				stderr( chalk.grey( warning.frame ) );
+			warnings.forEach(warning => {
+				stderr(chalk.bold(warning.importer));
+				stderr(`${warning.missing} is not exported by ${warning.exporter}`);
+				stderr(chalk.grey(warning.frame));
 			});
 		}
 	},
@@ -149,8 +175,10 @@ const deferredHandlers = {
 	THIS_IS_UNDEFINED: {
 		priority: 1,
 		fn: warnings => {
-			title( '`this` has been rewritten to `undefined`' );
-			info( 'https://github.com/rollup/rollup/wiki/Troubleshooting#this-is-undefined' );
+			title('`this` has been rewritten to `undefined`');
+			info(
+				'https://github.com/rollup/rollup/wiki/Troubleshooting#this-is-undefined'
+			);
 			showTruncatedWarnings(warnings);
 		}
 	},
@@ -158,8 +186,10 @@ const deferredHandlers = {
 	EVAL: {
 		priority: 1,
 		fn: warnings => {
-			title( 'Use of eval is strongly discouraged' );
-			info( 'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval' );
+			title('Use of eval is strongly discouraged');
+			info(
+				'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
+			);
 			showTruncatedWarnings(warnings);
 		}
 	},
@@ -167,7 +197,9 @@ const deferredHandlers = {
 	NON_EXISTENT_EXPORT: {
 		priority: 1,
 		fn: warnings => {
-			title( `Import of non-existent ${warnings.length > 1 ? 'exports' : 'export'}` );
+			title(
+				`Import of non-existent ${warnings.length > 1 ? 'exports' : 'export'}`
+			);
 			showTruncatedWarnings(warnings);
 		}
 	},
@@ -175,9 +207,15 @@ const deferredHandlers = {
 	NAMESPACE_CONFLICT: {
 		priority: 1,
 		fn: warnings => {
-			title( `Conflicting re-exports` );
+			title(`Conflicting re-exports`);
 			warnings.forEach(warning => {
-				stderr( `${chalk.bold(relativeId(warning.reexporter))} re-exports '${warning.name}' from both ${relativeId(warning.sources[0])} and ${relativeId(warning.sources[1])} (will be ignored)` );
+				stderr(
+					`${chalk.bold(relativeId(warning.reexporter))} re-exports '${
+					warning.name
+					}' from both ${relativeId(warning.sources[0])} and ${relativeId(
+						warning.sources[1]
+					)} (will be ignored)`
+				);
 			});
 		}
 	},
@@ -185,8 +223,12 @@ const deferredHandlers = {
 	MISSING_GLOBAL_NAME: {
 		priority: 1,
 		fn: warnings => {
-			title( `Missing global variable ${warnings.length > 1 ? 'names' : 'name'}` );
-			stderr( `Use options.globals to specify browser global variable names corresponding to external modules` );
+			title(
+				`Missing global variable ${warnings.length > 1 ? 'names' : 'name'}`
+			);
+			stderr(
+				`Use options.globals to specify browser global variable names corresponding to external modules`
+			);
 			warnings.forEach(warning => {
 				stderr(`${chalk.bold(warning.source)} (guessing '${warning.guess}')`);
 			});
@@ -196,15 +238,27 @@ const deferredHandlers = {
 	SOURCEMAP_BROKEN: {
 		priority: 1,
 		fn: warnings => {
-			title( `Broken sourcemap` );
-			info( 'https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect' );
+			title(`Broken sourcemap`);
+			info(
+				'https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect'
+			);
 
-			const plugins = Array.from( new Set( warnings.map( w => w.plugin ).filter( Boolean ) ) );
-			const detail = plugins.length === 0 ? '' : plugins.length > 1 ?
-				` (such as ${plugins.slice(0, -1).map(p => `'${p}'`).join(', ')} and '${plugins.slice(-1)}')` :
-				` (such as '${plugins[0]}')`;
+			const plugins = Array.from(
+				new Set(warnings.map(w => w.plugin).filter(Boolean))
+			);
+			const detail =
+				plugins.length === 0
+					? ''
+					: plugins.length > 1
+						? ` (such as ${plugins
+							.slice(0, -1)
+							.map(p => `'${p}'`)
+							.join(', ')} and '${plugins.slice(-1)}')`
+						: ` (such as '${plugins[0]}')`;
 
-			stderr( `Plugins that transform code${detail} should generate accompanying sourcemaps` );
+			stderr(
+				`Plugins that transform code${detail} should generate accompanying sourcemaps`
+			);
 		}
 	},
 
@@ -219,16 +273,18 @@ const deferredHandlers = {
 				let lastUrl;
 
 				nestedByMessage.forEach(({ key: message, items }) => {
-					title( `${plugin} plugin: ${message}` );
+					title(`${plugin} plugin: ${message}`);
 					items.forEach(warning => {
-						if ( warning.url !== lastUrl ) info( lastUrl = warning.url );
+						if (warning.url !== lastUrl) info((lastUrl = warning.url));
 
-						const loc = warning.loc ?
-							`${relativeId( warning.id )}: (${warning.loc.line}:${warning.loc.column})` :
-							relativeId( warning.id );
+						const loc = warning.loc
+							? `${relativeId(warning.id)}: (${warning.loc.line}:${
+							warning.loc.column
+							})`
+							: relativeId(warning.id);
 
-						stderr( chalk.bold( relativeId( loc ) ) );
-						if ( warning.frame ) info( warning.frame );
+						stderr(chalk.bold(relativeId(loc)));
+						if (warning.frame) info(warning.frame);
 					});
 				});
 			});
@@ -236,15 +292,15 @@ const deferredHandlers = {
 	}
 };
 
-function title ( str ) {
-	stderr( `${chalk.bold.yellow('(!)')} ${chalk.bold.yellow( str )}` );
+function title (str) {
+	stderr(`${chalk.bold.yellow('(!)')} ${chalk.bold.yellow(str)}`);
 }
 
-function info ( url ) {
-	stderr( chalk.grey( url ) );
+function info (url) {
+	stderr(chalk.grey(url));
 }
 
-function nest(array, prop) {
+function nest (array, prop) {
 	const nested = [];
 	const lookup = new Map();
 
@@ -265,20 +321,25 @@ function nest(array, prop) {
 	return nested;
 }
 
-function showTruncatedWarnings(warnings) {
+function showTruncatedWarnings (warnings) {
 	const nestedByModule = nest(warnings, 'id');
 
-	const sliced = nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;
+	const sliced =
+		nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;
 	sliced.forEach(({ key: id, items }) => {
-		stderr( chalk.bold( relativeId( id ) ) );
-		stderr( chalk.grey( items[0].frame ) );
+		stderr(chalk.bold(relativeId(id)));
+		stderr(chalk.grey(items[0].frame));
 
-		if ( items.length > 1 ) {
-			stderr( `...and ${items.length - 1} other ${items.length > 2 ? 'occurrences' : 'occurrence'}` );
+		if (items.length > 1) {
+			stderr(
+				`...and ${items.length - 1} other ${
+				items.length > 2 ? 'occurrences' : 'occurrence'
+				}`
+			);
 		}
 	});
 
-	if ( nestedByModule.length > sliced.length ) {
-		stderr( `\n...and ${nestedByModule.length - sliced.length} other files` );
+	if (nestedByModule.length > sliced.length) {
+		stderr(`\n...and ${nestedByModule.length - sliced.length} other files`);
 	}
 }

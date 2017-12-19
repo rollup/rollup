@@ -1,65 +1,99 @@
 import Node from '../../Node';
 import FunctionScope from '../../scopes/FunctionScope';
 import VirtualObjectExpression from './VirtualObjectExpression';
+import BlockStatement from '../BlockStatement';
+import BlockScope from '../../scopes/FunctionScope';
+import Identifier from '../Identifier';
+import Pattern from '../Pattern';
+import CallOptions from '../../CallOptions';
+import ExecutionPathOptions from '../../ExecutionPathOptions';
 
 export default class FunctionNode extends Node {
-	bindNode () {
-		this.body.bindImplicitReturnExpressionToScope();
-	}
+  id: Identifier;
+  body: BlockStatement;
+  scope: BlockScope;
+  params: Pattern[];
 
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {
-		path.length === 0
-		&& this.scope.forEachReturnExpressionWhenCalled( callOptions, callback, options );
-	}
+  prototypeObject: VirtualObjectExpression;
 
-	hasEffects ( options ) {
-		return this.id && this.id.hasEffects( options );
-	}
+  bindNode () {
+    this.body.bindImplicitReturnExpressionToScope();
+  }
 
-	hasEffectsWhenAccessedAtPath ( path, options ) {
-		if ( path.length <= 1 ) {
-			return false;
-		}
-		if ( path[ 0 ] === 'prototype' ) {
-			return this.prototypeObject.hasEffectsWhenAccessedAtPath( path.slice( 1 ), options );
-		}
-		return true;
-	}
+  forEachReturnExpressionWhenCalledAtPath (path: string[], callOptions: CallOptions, callback, options: ExecutionPathOptions) {
+    path.length === 0 &&
+      this.scope.forEachReturnExpressionWhenCalled(
+        callOptions,
+        callback,
+        options
+      );
+  }
 
-	hasEffectsWhenAssignedAtPath ( path, options ) {
-		if ( path.length <= 1 ) {
-			return false;
-		}
-		if ( path[ 0 ] === 'prototype' ) {
-			return this.prototypeObject.hasEffectsWhenAssignedAtPath( path.slice( 1 ), options );
-		}
-		return true;
-	}
+  hasEffects (options: ExecutionPathOptions) {
+    return this.id && this.id.hasEffects(options);
+  }
 
-	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
-		if ( path.length > 0 ) {
-			return true;
-		}
-		const innerOptions = this.scope.getOptionsWhenCalledWith( callOptions, options );
-		return this.params.some( param => param.hasEffects( innerOptions ) )
-			|| this.body.hasEffects( innerOptions );
-	}
+  hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+    if (path.length <= 1) {
+      return false;
+    }
+    if (path[0] === 'prototype') {
+      return this.prototypeObject.hasEffectsWhenAccessedAtPath(
+        path.slice(1),
+        options
+      );
+    }
+    return true;
+  }
 
-	includeInBundle () {
-		this.scope.variables.arguments.includeVariable();
-		return super.includeInBundle();
-	}
+  hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+    if (path.length <= 1) {
+      return false;
+    }
+    if (path[0] === 'prototype') {
+      return this.prototypeObject.hasEffectsWhenAssignedAtPath(
+        path.slice(1),
+        options
+      );
+    }
+    return true;
+  }
 
-	initialiseNode () {
-		this.prototypeObject = new VirtualObjectExpression();
-	}
+  hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
+    if (path.length > 0) {
+      return true;
+    }
+    const innerOptions = this.scope.getOptionsWhenCalledWith(
+      callOptions,
+      options
+    );
+    return (
+      this.params.some(param => param.hasEffects(innerOptions)) ||
+      this.body.hasEffects(innerOptions)
+    );
+  }
 
-	initialiseScope ( parentScope ) {
-		this.scope = new FunctionScope( { parent: parentScope } );
-	}
+  includeInBundle () {
+    this.scope.variables.arguments.includeVariable();
+    return super.includeInBundle();
+  }
 
-	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
-		return path.length > 0
-			|| this.scope.someReturnExpressionWhenCalled( callOptions, predicateFunction, options );
-	}
+  initialiseNode () {
+    this.prototypeObject = new VirtualObjectExpression();
+  }
+
+  initialiseScope (parentScope: FunctionScope) {
+    this.scope = new FunctionScope({ parent: parentScope });
+  }
+
+  someReturnExpressionWhenCalledAtPath (path: string[], callOptions: CallOptions, predicateFunction, options: ExecutionPathOptions) {
+    return (
+      path.length > 0 ||
+      this.scope.someReturnExpressionWhenCalled(
+        callOptions,
+        predicateFunction,
+        options
+      )
+    );
+  }
 }

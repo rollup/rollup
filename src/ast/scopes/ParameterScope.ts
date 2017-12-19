@@ -2,8 +2,8 @@ import Scope from './Scope';
 import ParameterVariable from '../variables/ParameterVariable';
 
 export default class ParameterScope extends Scope {
-	constructor ( options = {} ) {
-		super( options );
+	constructor (options = {}) {
+		super(options);
 		this._parameters = [];
 	}
 
@@ -13,10 +13,10 @@ export default class ParameterScope extends Scope {
 	 * @param {Identifier} identifier
 	 * @returns {Variable}
 	 */
-	addParameterDeclaration ( identifier ) {
-		const variable = new ParameterVariable( identifier );
-		this.variables[ identifier.name ] = variable;
-		this._parameters.push( variable );
+	addParameterDeclaration (identifier) {
+		const variable = new ParameterVariable(identifier);
+		this.variables[identifier.name] = variable;
+		this._parameters.push(variable);
 		return variable;
 	}
 

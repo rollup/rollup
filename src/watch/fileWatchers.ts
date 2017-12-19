@@ -1,4 +1,3 @@
-
 import * as fs from 'fs';
 import chokidar from './chokidar';
 
@@ -6,8 +5,9 @@ const opts = { encoding: 'utf-8', persistent: true };
 
 const watchers = new Map();
 
-export function addTask(id, task, chokidarOptions, chokidarOptionsHash) {
-	if (!watchers.has(chokidarOptionsHash)) watchers.set(chokidarOptionsHash, new Map());
+export function addTask (id, task, chokidarOptions, chokidarOptionsHash) {
+	if (!watchers.has(chokidarOptionsHash))
+		watchers.set(chokidarOptionsHash, new Map());
 	const group = watchers.get(chokidarOptionsHash);
 
 	if (!group.has(id)) {
@@ -25,7 +25,7 @@ export function addTask(id, task, chokidarOptions, chokidarOptionsHash) {
 	group.get(id).tasks.add(task);
 }
 
-export function deleteTask(id, target, chokidarOptionsHash) {
+export function deleteTask (id, target, chokidarOptionsHash) {
 	const group = watchers.get(chokidarOptionsHash);
 
 	const watcher = group.get(id);
@@ -40,7 +40,7 @@ export function deleteTask(id, target, chokidarOptionsHash) {
 }
 
 export default class FileWatcher {
-	constructor(id, chokidarOptions, dispose) {
+	constructor (id, chokidarOptions, dispose) {
 		this.tasks = new Set();
 
 		let data;
@@ -83,11 +83,11 @@ export default class FileWatcher {
 		}
 	}
 
-	close() {
+	close () {
 		this.fsWatcher.close();
 	}
 
-	trigger() {
+	trigger () {
 		this.tasks.forEach(task => {
 			task.makeDirty();
 		});

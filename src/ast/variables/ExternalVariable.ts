@@ -1,36 +1,36 @@
 import Variable from './Variable';
 
 export default class ExternalVariable extends Variable {
-	constructor ( module, name ) {
-		super( name );
+	constructor (module, name) {
+		super(name);
 		this.module = module;
 		this.safeName = null;
 		this.isExternal = true;
 		this.isNamespace = name === '*';
 	}
 
-	addReference ( identifier ) {
-		if ( this.name === 'default' || this.name === '*' ) {
-			this.module.suggestName( identifier.name );
+	addReference (identifier) {
+		if (this.name === 'default' || this.name === '*') {
+			this.module.suggestName(identifier.name);
 		}
 	}
 
-	getName ( es ) {
-		if ( this.name === '*' ) {
+	getName (es) {
+		if (this.name === '*') {
 			return this.module.name;
 		}
 
-		if ( this.name === 'default' ) {
-			return this.module.exportsNamespace || ( !es && this.module.exportsNames ) ?
-				`${this.module.name}__default` :
-				this.module.name;
+		if (this.name === 'default') {
+			return this.module.exportsNamespace || (!es && this.module.exportsNames)
+				? `${this.module.name}__default`
+				: this.module.name;
 		}
 
 		return es ? this.safeName : `${this.module.name}.${this.name}`;
 	}
 
 	includeVariable () {
-		if ( this.included ) {
+		if (this.included) {
 			return false;
 		}
 		this.included = true;
@@ -38,7 +38,7 @@ export default class ExternalVariable extends Variable {
 		return true;
 	}
 
-	setSafeName ( name ) {
+	setSafeName (name) {
 		this.safeName = name;
 	}
 }

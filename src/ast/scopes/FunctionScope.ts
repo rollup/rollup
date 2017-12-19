@@ -5,9 +5,11 @@ import { UNKNOWN_ASSIGNMENT } from '../values';
 import VirtualObjectExpression from '../nodes/shared/VirtualObjectExpression';
 
 export default class FunctionScope extends ReturnValueScope {
-	constructor ( options = {} ) {
-		super( options );
-		this.variables.arguments = new ArgumentsVariable( super.getParameterVariables() );
+	constructor (options = {}) {
+		super(options);
+		this.variables.arguments = new ArgumentsVariable(
+			super.getParameterVariables()
+		);
 		this.variables.this = new ThisVariable();
 	}
 
@@ -15,9 +17,17 @@ export default class FunctionScope extends ReturnValueScope {
 		return this;
 	}
 
-	getOptionsWhenCalledWith ( { args, withNew }, options ) {
+	getOptionsWhenCalledWith ({ args, withNew }, options) {
 		return options
-			.replaceVariableInit( this.variables.this, withNew ? new VirtualObjectExpression() : UNKNOWN_ASSIGNMENT )
-			.setArgumentsVariables( args.map( ( parameter, index ) => super.getParameterVariables()[ index ] || parameter ) );
+			.replaceVariableInit(
+			this.variables.this,
+			withNew ? new VirtualObjectExpression() : UNKNOWN_ASSIGNMENT
+			)
+			.setArgumentsVariables(
+			args.map(
+				(parameter, index) =>
+					super.getParameterVariables()[index] || parameter
+			)
+			);
 	}
 }

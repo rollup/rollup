@@ -11,7 +11,7 @@ import loadConfigFile from './loadConfigFile.js';
 import relativeId from '../../../src/utils/relativeId.js';
 import { handleError, stderr } from '../logging.js';
 
-export default function watch(configFile, configs, command, silent) {
+export default function watch (configFile, configs, command, silent) {
 	const isTTY = Boolean(process.stderr.isTTY);
 
 	const screen = alternateScreen(isTTY);
@@ -22,8 +22,8 @@ export default function watch(configFile, configs, command, silent) {
 	let watcher;
 	let configWatcher;
 
-	function start(configs) {
-		screen.reset( chalk.underline( `rollup v${rollup.VERSION}` ) );
+	function start (configs) {
+		screen.reset(chalk.underline(`rollup v${rollup.VERSION}`));
 
 		let screenWriter = screen.reset;
 		configs = configs.map(options => {
@@ -38,7 +38,10 @@ export default function watch(configFile, configs, command, silent) {
 				result.watch._deprecations = merged.deprecations;
 			}
 
-			if (merged.inputOptions.watch && merged.inputOptions.watch.clearScreen === false) {
+			if (
+				merged.inputOptions.watch &&
+				merged.inputOptions.watch.clearScreen === false
+			) {
 				screenWriter = stderr;
 			}
 
@@ -61,21 +64,35 @@ export default function watch(configFile, configs, command, silent) {
 					break;
 
 				case 'START':
-					screenWriter( chalk.underline( `rollup v${rollup.VERSION}` ) );
+					screenWriter(chalk.underline(`rollup v${rollup.VERSION}`));
 					break;
 
 				case 'BUNDLE_START':
-					if ( !silent ) stderr( chalk.cyan( `bundles ${chalk.bold( event.input )} → ${chalk.bold( event.output.map( relativeId ).join( ', ' ) )}...` ) );
+					if (!silent)
+						stderr(
+							chalk.cyan(
+								`bundles ${chalk.bold(event.input)} → ${chalk.bold(
+									event.output.map(relativeId).join(', ')
+								)}...`
+							)
+						);
 					break;
 
 				case 'BUNDLE_END':
 					warnings.flush();
-					if ( !silent ) stderr( chalk.green( `created ${chalk.bold( event.output.map( relativeId ).join( ', ' ) )} in ${chalk.bold(ms(event.duration))}` ) );
+					if (!silent)
+						stderr(
+							chalk.green(
+								`created ${chalk.bold(
+									event.output.map(relativeId).join(', ')
+								)} in ${chalk.bold(ms(event.duration))}`
+							)
+						);
 					break;
 
 				case 'END':
-					if ( !silent && isTTY ) {
-						stderr( `\n[${dateTime()}] waiting for changes...` );
+					if (!silent && isTTY) {
+						stderr(`\n[${dateTime()}] waiting for changes...`);
 					}
 			}
 		});
@@ -91,7 +108,7 @@ export default function watch(configFile, configs, command, silent) {
 		process.stdin.resume();
 	}
 
-	function close() {
+	function close () {
 		removeOnExit();
 		process.removeListener('uncaughtException', close);
 		// removing a non-existent listener is a no-op

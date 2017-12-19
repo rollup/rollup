@@ -24,7 +24,8 @@ function addDeprecations (deprecations, warn) {
 function checkInputOptions ( options ) {
 	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
 		throw new Error(
-			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details' );
+			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details'
+		);
 	}
 }
 
@@ -33,14 +34,14 @@ function checkOutputOptions ( options ) {
 		error( {
 			message: 'The `es6` output format is deprecated – use `es` instead',
 			url: `https://rollupjs.org/#format-f-output-format-`
-		} );
+		});
 	}
 
-	if ( !options.format ) {
-		error( {
+	if (!options.format) {
+		error({
 			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'es', 'iife' or 'umd'`,
 			url: `https://rollupjs.org/#format-f-output-format-`
-		} );
+		});
 	}
 
 	if ( options.moduleId ) {
@@ -50,7 +51,9 @@ function checkOutputOptions ( options ) {
 
 const throwAsyncGenerateError = {
 	get () {
-		throw new Error( `bundle.generate(...) now returns a Promise instead of a { code, map } object` );
+		throw new Error(
+			`bundle.generate(...) now returns a Promise instead of a { code, map } object`
+		);
 	}
 };
 
@@ -70,10 +73,10 @@ export default function rollup ( _inputOptions ) {
 		checkInputOptions( inputOptions );
 		const bundle = new Bundle( inputOptions );
 
-		timeStart( '--BUILD--' );
+		timeStart('--BUILD--');
 
-		return bundle.build().then( () => {
-			timeEnd( '--BUILD--' );
+		return bundle.build().then(() => {
+			timeEnd('--BUILD--');
 
 			function generate ( _outputOptions ) {
 				if ( !_outputOptions ) {
@@ -101,80 +104,97 @@ export default function rollup ( _inputOptions ) {
 				if ( deprecations.length ) addDeprecations(deprecations, inputOptions.onwarn);
 				checkOutputOptions( outputOptions );
 
-				timeStart( '--GENERATE--' );
+				timeStart('--GENERATE--');
 
 				const promise = Promise.resolve()
-					.then( () => bundle.render( outputOptions ) )
-					.then( rendered => {
-						timeEnd( '--GENERATE--' );
+					.then(() => bundle.render(outputOptions))
+					.then(rendered => {
+						timeEnd('--GENERATE--');
 
-						bundle.plugins.forEach( plugin => {
-							if ( plugin.ongenerate ) {
-								plugin.ongenerate( assign( {
-									bundle: result
-								}, outputOptions ), rendered );
+						bundle.plugins.forEach(plugin => {
+							if (plugin.ongenerate) {
+								plugin.ongenerate(
+									assign(
+										{
+											bundle: result
+										},
+										outputOptions
+									),
+									rendered
+								);
 							}
-						} );
+						});
 
 						flushTime();
 
 						return rendered;
-					} );
+					});
 
-				Object.defineProperty( promise, 'code', throwAsyncGenerateError );
-				Object.defineProperty( promise, 'map', throwAsyncGenerateError );
+				Object.defineProperty(promise, 'code', throwAsyncGenerateError);
+				Object.defineProperty(promise, 'map', throwAsyncGenerateError);
 
 				return promise;
 			}
 
 			const result = {
-				imports: bundle.externalModules.map( module => module.id ),
-				exports: keys( bundle.entryModule.exports ),
-				modules: bundle.orderedModules.map( module => module.toJSON() ),
+				imports: bundle.externalModules.map(module => module.id),
+				exports: keys(bundle.entryModule.exports),
+				modules: bundle.orderedModules.map(module => module.toJSON()),
 
 				generate,
 				write: outputOptions => {
-					if ( !outputOptions || (!outputOptions.file && !outputOptions.dest) ) {
-						error( {
+					if (!outputOptions || (!outputOptions.file && !outputOptions.dest)) {
+						error({
 							code: 'MISSING_OPTION',
 							message: 'You must specify output.file'
-						} );
+						});
 					}
 
-					return generate( outputOptions ).then( result => {
+					return generate(outputOptions).then(result => {
 						const file = outputOptions.file;
 						let { code, map } = result;
 
 						const promises = [];
 
-						if ( outputOptions.sourcemap ) {
+						if (outputOptions.sourcemap) {
 							let url;
 
-							if ( outputOptions.sourcemap === 'inline' ) {
+							if (outputOptions.sourcemap === 'inline') {
 								url = map.toUrl();
 							} else {
-								url = `${basename( file )}.map`;
-								promises.push( writeFile( file + '.map', map.toString() ) );
+								url = `${basename(file)}.map`;
+								promises.push(writeFile(file + '.map', map.toString()));
 							}
 
 							code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
 						}
 
-						promises.push( writeFile( file, code ) );
-						return Promise.all( promises ).then( () => {
-							return mapSequence( bundle.plugins.filter( plugin => plugin.onwrite ), plugin => {
-								return Promise.resolve( plugin.onwrite( assign( {
-									bundle: result
-								}, outputOptions ), result ) );
-							} );
-						} );
-					} );
+						promises.push(writeFile(file, code));
+						return Promise.all(promises).then(() => {
+							return mapSequence(
+								bundle.plugins.filter(plugin => plugin.onwrite),
+								plugin => {
+									return Promise.resolve(
+										plugin.onwrite(
+											assign(
+												{
+													bundle: result
+												},
+												outputOptions
+											),
+											result
+										)
+									);
+								}
+							);
+						});
+					});
 				}
 			};
 
 			return result;
-		} );
-	} catch ( err ) {
-		return Promise.reject( err );
+		});
+	} catch (err) {
+		return Promise.reject(err);
 	}
 }

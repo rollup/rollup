@@ -14,25 +14,28 @@ const operators = {
 
 export default class UnaryExpression extends Node {
 	bindNode () {
-		if ( this.operator === 'delete' ) {
-			this.argument.reassignPath( [], ExecutionPathOptions.create() );
+		if (this.operator === 'delete') {
+			this.argument.reassignPath([], ExecutionPathOptions.create());
 		}
 	}
 
 	getValue () {
 		const argumentValue = this.argument.getValue();
-		if ( argumentValue === UNKNOWN_VALUE ) return UNKNOWN_VALUE;
+		if (argumentValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
-		return operators[ this.operator ]( argumentValue );
+		return operators[this.operator](argumentValue);
 	}
 
-	hasEffects ( options ) {
-		return this.argument.hasEffects( options )
-			|| (this.operator === 'delete' && this.argument.hasEffectsWhenAssignedAtPath( [], options ));
+	hasEffects (options) {
+		return (
+			this.argument.hasEffects(options) ||
+			(this.operator === 'delete' &&
+				this.argument.hasEffectsWhenAssignedAtPath([], options))
+		);
 	}
 
-	hasEffectsWhenAccessedAtPath ( path ) {
-		if ( this.operator === 'void' ) {
+	hasEffectsWhenAccessedAtPath (path) {
+		if (this.operator === 'void') {
 			return path.length > 0;
 		}
 		return path.length > 1;

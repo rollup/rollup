@@ -13,7 +13,7 @@
     "test": "npm run test:only",
     "test:only": "mocha",
     "test:leak": "node --expose-gc test/leak/index.js",
-    "test:quick": "rollup -c && mocha",
+    "test:quick": "rollup -c && mocha -b",
     "pretest-coverage": "npm run build",
     "test-coverage": "rm -rf coverage/* && istanbul cover --report json node_modules/.bin/_mocha -- -u exports -R spec test/test.js",
     "posttest-coverage": "remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.json -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.lcov -t lcovonly -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped -t html -b dist",
@@ -43,6 +43,7 @@
   },
   "homepage": "https://github.com/rollup/rollup",
   "devDependencies": {
+    "@types/immutable": "^3.8.7",
     "@types/node": "^8.5.1",
     "acorn": "^5.2.1",
     "ansi-escapes": "^3.0.0",

@@ -1,13 +1,13 @@
 import Node from '../Node';
 
 export default class ImportDeclaration extends Node {
-	bindChildren () {}
+	bindChildren () { }
 
 	initialiseNode () {
 		this.isImportDeclaration = true;
 	}
 
-	render ( code ) {
-		code.remove( this.start, this.next || this.end );
+	render (code) {
+		code.remove(this.start, this.next || this.end);
 	}
 }

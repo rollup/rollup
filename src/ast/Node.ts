@@ -1,10 +1,27 @@
 /* eslint-disable no-unused-vars */
 
+/// <reference path="./Node.d.ts" />
+
 import { locate } from 'locate-character';
 import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE } from './values';
 import ExecutionPathOptions from './ExecutionPathOptions';
+import Scope from './scopes/Scope';
+import Module from '../Module';
+import MagicString from 'magic-string';
+import CallOptions from './CallOptions';
 
 export default class Node {
+
+	name: string;
+	type: string;
+	keys: string[];
+	included: boolean;
+	scope: Scope;
+	start: number;
+	end: number;
+	next: number;
+	module: Module;
+
 	constructor () {
 		this.keys = [];
 	}
@@ -28,32 +45,32 @@ export default class Node {
 	 * @param {String[]} path
 	 * @param {ExecutionPathOptions} options
 	 */
-	reassignPath ( path, options ) {}
+	reassignPath (path: string[], options: ExecutionPathOptions) { }
 
 	/**
 	 * Override to control on which children "bind" is called.
 	 */
 	bindChildren () {
-		this.eachChild( child => child.bind() );
+		this.eachChild((child: Node) => child.bind());
 	}
 
 	/**
 	 * Override this to bind assignments to variables and do any initialisations that
 	 * require the scopes to be populated with variables.
 	 */
-	bindNode () {}
+	bindNode () { }
 
-	eachChild ( callback ) {
-		this.keys.forEach( key => {
-			const value = this[ key ];
-			if ( !value ) return;
+	eachChild (callback: (node: Node) => void) {
+		this.keys.forEach(key => {
+			const value = (<any>this)[key];
+			if (!value) return;
 
-			if ( Array.isArray( value ) ) {
-				value.forEach( child => child && callback( child ) );
+			if (Array.isArray(value)) {
+				value.forEach(child => child && callback(child));
 			} else {
-				callback( value );
+				callback(value);
 			}
-		} );
+		});
 	}
 
 	/**
@@ -63,7 +80,7 @@ export default class Node {
 	 * @param {Function} callback
 	 * @param {ExecutionPathOptions} options
 	 */
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {}
+	forEachReturnExpressionWhenCalledAtPath (path: string[], callOptions: CallOptions, callback, options: ExecutionPathOptions) { }
 
 	getValue () {
 		return UNKNOWN_VALUE;
@@ -77,8 +94,8 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffects ( options ) {
-		return this.someChild( child => child.hasEffects( options ) );
+	hasEffects (options: ExecutionPathOptions): boolean {
+		return this.someChild((child: Node) => child.hasEffects(options));
 	}
 
 	/**
@@ -86,7 +103,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAccessedAtPath ( path, options ) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
 		return path.length > 0;
 	}
 
@@ -95,7 +112,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAssignedAtPath ( path, options ) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
 		return true;
 	}
 
@@ -105,7 +122,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
 		return true;
 	}
 
@@ -113,9 +130,10 @@ export default class Node {
 	 * Returns true if this node or any of its children is included.
 	 * @return {boolean}
 	 */
-	hasIncludedChild () {
-		return this.included
-			|| this.someChild( child => child.hasIncludedChild() );
+	hasIncludedChild (): boolean {
+		return (
+			this.included || this.someChild((child: Node) => child.hasIncludedChild())
+		);
 	}
 
 	/**
@@ -128,11 +146,11 @@ export default class Node {
 	includeInBundle () {
 		let addedNewNodes = !this.included;
 		this.included = true;
-		this.eachChild( childNode => {
-			if ( childNode.includeInBundle() ) {
+		this.eachChild(childNode => {
+			if (childNode.includeInBundle()) {
 				addedNewNodes = true;
 			}
-		} );
+		});
 		return addedNewNodes;
 	}
 
@@ -155,51 +173,51 @@ export default class Node {
 	 * alternative initialisation initialiseAndReplaceScope.
 	 * @param {Scope} parentScope
 	 */
-	initialise ( parentScope ) {
-		this.initialiseScope( parentScope );
-		this.initialiseNode( parentScope );
-		this.initialiseChildren( parentScope );
+	initialise (parentScope: Scope) {
+		this.initialiseScope(parentScope);
+		this.initialiseNode(parentScope);
+		this.initialiseChildren(parentScope);
 	}
 
 	/**
 	 * Override to change how and with what scopes children are initialised
 	 * @param {Scope} parentScope
 	 */
-	initialiseChildren ( parentScope ) {
-		this.eachChild( child => child.initialise( this.scope ) );
+	initialiseChildren (parentScope: Scope) {
+		this.eachChild(child => child.initialise(this.scope));
 	}
 
 	/**
 	 * Override to perform special initialisation steps after the scope is initialised
 	 * @param {Scope} parentScope
 	 */
-	initialiseNode ( parentScope ) {}
+	initialiseNode (parentScope?: Scope) { }
 
 	/**
 	 * Override if this scope should receive a different scope than the parent scope.
 	 * @param {Scope} parentScope
 	 */
-	initialiseScope ( parentScope ) {
+	initialiseScope (parentScope: Scope) {
 		this.scope = parentScope;
 	}
 
-	insertSemicolon ( code ) {
-		if ( code.original[ this.end - 1 ] !== ';' ) {
-			code.appendLeft( this.end, ';' );
+	insertSemicolon (code: MagicString) {
+		if (code.original[this.end - 1] !== ';') {
+			code.appendLeft(this.end, ';');
 		}
 	}
 
 	locate () {
 		// useful for debugging
-		const location = locate( this.module.code, this.start, { offsetLine: 1 } );
+		const location = locate(this.module.code, this.start, { offsetLine: 1 });
 		location.file = this.module.id;
-		location.toString = () => JSON.stringify( location );
+		location.toString = () => JSON.stringify(location);
 
 		return location;
 	}
 
-	render ( code, es ) {
-		this.eachChild( child => child.render( code, es ) );
+	render (code, es: boolean) {
+		this.eachChild(child => child.render(code, es));
 	}
 
 	/**
@@ -210,21 +228,23 @@ export default class Node {
 	 * @return {boolean}
 	 */
 	shouldBeIncluded () {
-		return this.included
-			|| this.hasEffects( ExecutionPathOptions.create() )
-			|| this.hasIncludedChild();
+		return (
+			this.included ||
+			this.hasEffects(ExecutionPathOptions.create()) ||
+			this.hasIncludedChild()
+		);
 	}
 
-	someChild ( callback ) {
-		return this.keys.some( key => {
-			const value = this[ key ];
-			if ( !value ) return false;
+	someChild (callback: (node: Node) => boolean) {
+		return this.keys.some(key => {
+			const value = (<any>this)[key];
+			if (!value) return false;
 
-			if ( Array.isArray( value ) ) {
-				return value.some( child => child && callback( child ) );
+			if (Array.isArray(value)) {
+				return value.some(child => child && callback(child));
 			}
-			return callback( value );
-		} );
+			return callback(value);
+		});
 	}
 
 	/**
@@ -236,11 +256,11 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @returns {boolean}
 	 */
-	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
-		return predicateFunction( options )( UNKNOWN_ASSIGNMENT );
+	someReturnExpressionWhenCalledAtPath (path: string[], callOptions: CallOptions, predicateFunction, options: ExecutionPathOptions) {
+		return predicateFunction(options)(UNKNOWN_ASSIGNMENT);
 	}
 
 	toString () {
-		return this.module.code.slice( this.start, this.end );
+		return this.module.code.slice(this.start, this.end);
 	}
 }

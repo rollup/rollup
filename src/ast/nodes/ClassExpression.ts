@@ -1,8 +1,11 @@
 import ClassNode from './shared/ClassNode';
+import Scope from '../scopes/Scope';
 
 export default class ClassExpression extends ClassNode {
-	initialiseChildren ( parentScope ) {
-		this.id && this.id.initialiseAndDeclare( this.scope, 'class', this );
-		super.initialiseChildren( parentScope );
+	type: 'ClassExpression';
+
+	initialiseChildren (parentScope: Scope) {
+		this.id && this.id.initialiseAndDeclare(this.scope, 'class', this);
+		super.initialiseChildren(parentScope);
 	}
 }

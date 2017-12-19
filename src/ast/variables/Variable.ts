@@ -3,7 +3,9 @@
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
 export default class Variable {
-	constructor ( name ) {
+	name: string;
+
+	constructor (name: string) {
 		this.name = name;
 	}
 
@@ -12,13 +14,13 @@ export default class Variable {
 	 * Necessary to be able to change variable names.
 	 * @param {Identifier} identifier
 	 */
-	addReference ( identifier ) {}
+	addReference (identifier: Identifier) { }
 
 	/**
 	 * @param {String[]} path
 	 * @param {ExecutionPathOptions} options
 	 */
-	reassignPath ( path, options ) {}
+	reassignPath (path, options) { }
 
 	/**
 	 * @param {String[]} path
@@ -26,7 +28,12 @@ export default class Variable {
 	 * @param {Function} callback
 	 * @param {ExecutionPathOptions} options
 	 */
-	forEachReturnExpressionWhenCalledAtPath ( path, callOptions, callback, options ) {}
+	forEachReturnExpressionWhenCalledAtPath (
+		path,
+		callOptions,
+		callback,
+		options
+	) { }
 
 	/**
 	 * @returns {String}
@@ -40,7 +47,7 @@ export default class Variable {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAccessedAtPath ( path, options ) {
+	hasEffectsWhenAccessedAtPath (path, options) {
 		return path.length > 0;
 	}
 
@@ -49,7 +56,7 @@ export default class Variable {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAssignedAtPath ( path, options ) {
+	hasEffectsWhenAssignedAtPath (path, options) {
 		return true;
 	}
 
@@ -59,7 +66,7 @@ export default class Variable {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
+	hasEffectsWhenCalledAtPath (path, callOptions, options) {
 		return true;
 	}
 
@@ -71,7 +78,7 @@ export default class Variable {
 	 * @returns {boolean}
 	 */
 	includeVariable () {
-		if ( this.included ) {
+		if (this.included) {
 			return false;
 		}
 		this.included = true;
@@ -85,7 +92,12 @@ export default class Variable {
 	 * @param {ExecutionPathOptions} options
 	 * @returns {boolean}
 	 */
-	someReturnExpressionWhenCalledAtPath ( path, callOptions, predicateFunction, options ) {
-		return predicateFunction( options )( UNKNOWN_ASSIGNMENT );
+	someReturnExpressionWhenCalledAtPath (
+		path,
+		callOptions,
+		predicateFunction,
+		options
+	) {
+		return predicateFunction(options)(UNKNOWN_ASSIGNMENT);
 	}
 }

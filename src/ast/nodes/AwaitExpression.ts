@@ -1,8 +1,12 @@
 import Node from '../Node';
+import Expression from './Expression';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class AwaitExpression extends Node {
-	hasEffects ( options ) {
-		return super.hasEffects( options )
-			|| !options.ignoreReturnAwaitYield();
+	type: 'AwaitExpression';
+	argument: Expression;
+
+	hasEffects (options: ExecutionPathOptions) {
+		return super.hasEffects(options) || !options.ignoreReturnAwaitYield();
 	}
 }

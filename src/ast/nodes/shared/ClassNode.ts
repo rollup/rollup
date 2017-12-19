@@ -1,28 +1,36 @@
 import Node from '../../Node';
 import Scope from '../../scopes/Scope';
+import CallOptions from '../../CallOptions';
+import ExecutionPathOptions from '../../ExecutionPathOptions';
 
 export default class ClassNode extends Node {
-	hasEffectsWhenAccessedAtPath ( path ) {
+	body: Node;
+	superClass: Node;
+
+	hasEffectsWhenAccessedAtPath (path: string[]) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath ( path ) {
+	hasEffectsWhenAssignedAtPath (path: string[]) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenCalledAtPath ( path, callOptions, options ) {
-		return this.body.hasEffectsWhenCalledAtPath( path, callOptions, options )
-			|| ( this.superClass && this.superClass.hasEffectsWhenCalledAtPath( path, callOptions, options ) );
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
+		return (
+			this.body.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
+			(this.superClass &&
+				this.superClass.hasEffectsWhenCalledAtPath(path, callOptions, options))
+		);
 	}
 
-	initialiseChildren () {
-		if ( this.superClass ) {
-			this.superClass.initialise( this.scope );
+	initialiseChildren (scope: Scope) {
+		if (this.superClass) {
+			this.superClass.initialise(this.scope);
 		}
-		this.body.initialise( this.scope );
+		this.body.initialise(this.scope);
 	}
 
-	initialiseScope ( parentScope ) {
-		this.scope = new Scope( { parent: parentScope } );
+	initialiseScope (parentScope: Scope) {
+		this.scope = new Scope({ parent: parentScope });
 	}
 }

@@ -5,23 +5,23 @@ export default class Literal extends Node {
 		return this.value;
 	}
 
-	hasEffectsWhenAccessedAtPath ( path ) {
+	hasEffectsWhenAccessedAtPath (path) {
 		if (this.value === null) {
 			return path.length > 0;
 		}
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath ( path ) {
+	hasEffectsWhenAssignedAtPath (path) {
 		if (this.value === null) {
 			return path.length > 0;
 		}
 		return path.length > 1;
 	}
 
-	render ( code ) {
-		if ( typeof this.value === 'string' ) {
-			code.indentExclusionRanges.push( [ this.start + 1, this.end - 1 ] );
+	render (code) {
+		if (typeof this.value === 'string') {
+			code.indentExclusionRanges.push([this.start + 1, this.end - 1]);
 		}
 	}
 }
