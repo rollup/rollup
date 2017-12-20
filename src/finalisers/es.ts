@@ -1,13 +1,15 @@
 import { keys } from '../utils/object';
+import MagicString from 'magic-string';
+import Bundle from '../Bundle';
 
-function notDefault (name) {
+function notDefault (name: string) {
 	return name !== 'default';
 }
 
-export default function es (bundle, magicString, { getPath, intro, outro }) {
+export default function es (bundle: Bundle, magicString: MagicString, { getPath, intro, outro }) {
 	const importBlock = bundle.externalModules
 		.map(module => {
-			const specifiers = [];
+			const specifiers: string[] = [];
 			const specifiersList = [specifiers];
 			const importedNames = keys(module.declarations)
 				.filter(name => name !== '*' && name !== 'default')
@@ -71,9 +73,9 @@ export default function es (bundle, magicString, { getPath, intro, outro }) {
 
 	const module = bundle.entryModule;
 
-	const exportInternalSpecifiers = [];
+	const exportInternalSpecifiers: string[] = [];
 	const exportExternalSpecifiers = new Map();
-	const exportAllDeclarations = [];
+	const exportAllDeclarations: string[] = [];
 
 	module
 		.getExports()
@@ -111,7 +113,7 @@ export default function es (bundle, magicString, { getPath, intro, outro }) {
 		);
 	});
 
-	const exportBlock = [];
+	const exportBlock: string[] = [];
 	if (exportInternalSpecifiers.length)
 		exportBlock.push(`export { ${exportInternalSpecifiers.join(', ')} };`);
 	if (module.exports.default)

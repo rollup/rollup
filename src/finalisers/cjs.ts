@@ -1,11 +1,14 @@
 import getExportBlock from './shared/getExportBlock';
 import esModuleExport from './shared/esModuleExport';
+import { OutputOptions } from '../rollup/index';
+import MagicString from 'magic-string';
+import Bundle from '../Bundle';
 
 export default function cjs (
-	bundle,
-	magicString,
+	bundle: Bundle,
+	magicString: MagicString,
 	{ exportMode, getPath, intro, outro },
-	options
+	options: OutputOptions
 ) {
 	intro =
 		(options.strict === false ? intro : `'use strict';\n\n${intro}`) +

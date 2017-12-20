@@ -1,3 +1,5 @@
+import Bundle from "../../Bundle";
+
 const builtins = {
 	process: true,
 	events: true,
@@ -24,7 +26,7 @@ const builtins = {
 
 // Creating a browser bundle that depends on Node.js built-in modules ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins
 
-export default function warnOnBuiltins (bundle) {
+export default function warnOnBuiltins (bundle: Bundle) {
 	const externalBuiltins = bundle.externalModules
 		.filter(mod => mod.id in builtins)
 		.map(mod => mod.id);

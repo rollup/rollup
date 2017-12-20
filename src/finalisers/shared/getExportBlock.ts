@@ -1,6 +1,8 @@
+import Bundle from "../../Bundle";
+
 export default function getExportBlock (
-	bundle,
-	exportMode,
+	bundle: Bundle,
+	exportMode: string,
 	mechanism = 'return'
 ) {
 	const entryModule = bundle.entryModule;

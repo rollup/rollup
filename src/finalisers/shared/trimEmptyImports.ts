@@ -1,4 +1,6 @@
-export default function trimEmptyImports (modules) {
+import Module from "../../Module";
+
+export default function trimEmptyImports (modules: Module[]) {
 	let i = modules.length;
 
 	while (i--) {

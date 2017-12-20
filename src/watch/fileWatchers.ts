@@ -27,7 +27,7 @@ export function addTask (id: string, task: Task, chokidarOptions: WatchOptions, 
 	group.get(id).tasks.add(task);
 }
 
-export function deleteTask (id: string, target, chokidarOptionsHash: string) {
+export function deleteTask (id: string, target: Task, chokidarOptionsHash: string) {
 	const group = watchers.get(chokidarOptionsHash);
 
 	const watcher = group.get(id);
@@ -46,7 +46,7 @@ export default class FileWatcher {
 	fsWatcher: FSWatcher | fs.FSWatcher;
 	tasks: Set<Task>;
 
-	constructor (id: string, chokidarOptions: WatchOptions, dispose) {
+	constructor (id: string, chokidarOptions: WatchOptions, dispose: () => void) {
 		this.tasks = new Set();
 
 		let data: string;

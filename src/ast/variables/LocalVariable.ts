@@ -1,5 +1,8 @@
 import Variable from './Variable';
 import VariableReassignmentTracker from './VariableReassignmentTracker';
+import ExecutionPathOptions from '../ExecutionPathOptions';
+import { PredicateFunction } from '../values';
+import CallOptions from '../CallOptions';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
@@ -17,7 +20,7 @@ export default class LocalVariable extends Variable {
 		this.declarations.add(identifier);
 	}
 
-	reassignPath (path, options) {
+	reassignPath (path: string[], options: ExecutionPathOptions) {
 		if (path.length > MAX_PATH_DEPTH) return;
 		if (path.length === 0) {
 			this.isReassigned = true;
@@ -31,10 +34,10 @@ export default class LocalVariable extends Variable {
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
-		callback,
-		options
+		path: string[],
+		callOptions: CallOptions,
+		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		options: ExecutionPathOptions
 	) {
 		if (path.length > MAX_PATH_DEPTH) return;
 		this.boundExpressions.forEachAtPath(
@@ -130,17 +133,17 @@ export default class LocalVariable extends Variable {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
-		predicateFunction,
-		options
+		path: string[],
+		callOptions: CallOptions,
+		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		options: ExecutionPathOptions
 	) {
 		return (
 			path.length > MAX_PATH_DEPTH ||
 			(this.included && path.length > 0) ||
 			this.boundExpressions.someAtPath(
 				path,
-				(relativePath, node) =>
+				(relativePath: string[], node) =>
 					!options.hasNodeBeenCalledAtPathWithOptions(
 						relativePath,
 						node,

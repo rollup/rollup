@@ -1,4 +1,7 @@
-export default function getInteropBlock (bundle, options) {
+import Bundle from "../../Bundle";
+import { OutputOptions } from "../../rollup/index";
+
+export default function getInteropBlock (bundle: Bundle, options: OutputOptions) {
 	return bundle.externalModules
 		.map(module => {
 			if (!module.declarations.default || options.interop === false)

@@ -1,8 +1,11 @@
 import LocalVariable from './LocalVariable';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import { UNKNOWN_ASSIGNMENT, PredicateFunction } from '../values';
+import Expression from '../nodes/Expression';
+import ExecutionPathOptions from '../ExecutionPathOptions';
+import CallOptions from '../CallOptions';
 
 export default class ReplaceableInitializationVariable extends LocalVariable {
-	constructor (name, declarator) {
+	constructor (name: string, declarator: Expression) {
 		super(name, declarator, null);
 	}
 
@@ -10,21 +13,21 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 		return this.name;
 	}
 
-	hasEffectsWhenAccessedAtPath (path, options) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
 		return (
 			this._getInit(options).hasEffectsWhenAccessedAtPath(path, options) ||
 			super.hasEffectsWhenAccessedAtPath(path, options)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path, options) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
 		return (
 			this._getInit(options).hasEffectsWhenAssignedAtPath(path, options) ||
 			super.hasEffectsWhenAssignedAtPath(path, options)
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path, callOptions, options) {
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
 		return (
 			this._getInit(options).hasEffectsWhenCalledAtPath(
 				path,
@@ -35,10 +38,10 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
-		predicateFunction,
-		options
+		path: string[],
+		callOptions: CallOptions,
+		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		options: ExecutionPathOptions
 	) {
 		return (
 			this._getInit(options).someReturnExpressionWhenCalledAtPath(

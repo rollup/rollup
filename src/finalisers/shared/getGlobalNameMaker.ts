@@ -1,7 +1,10 @@
-export default function getGlobalNameMaker (globals, bundle, fallback = null) {
+import Bundle from "../../Bundle";
+import Module from "../../Module";
+
+export default function getGlobalNameMaker (globals, bundle: Bundle, fallback = null) {
 	const fn = typeof globals === 'function' ? globals : id => globals[id];
 
-	return function (module) {
+	return function (module: Module) {
 		const name = fn(module.id);
 		if (name) return name;
 

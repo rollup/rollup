@@ -8,13 +8,16 @@ import { property, keypath } from './shared/sanitize';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import trimEmptyImports from './shared/trimEmptyImports';
 import setupNamespace from './shared/setupNamespace';
+import Bundle from '../Bundle';
+import MagicString from 'magic-string';
+import { OutputOptions } from '../rollup/index';
 
-function globalProp (name) {
+function globalProp (name: string) {
 	if (!name) return 'null';
 	return `global${keypath(name)}`;
 }
 
-function safeAccess (name) {
+function safeAccess (name: string) {
 	const parts = name.split('.');
 
 	let acc = 'global';
@@ -24,10 +27,10 @@ function safeAccess (name) {
 const wrapperOutro = '\n\n})));';
 
 export default function umd (
-	bundle,
-	magicString,
+	bundle: Bundle,
+	magicString: MagicString,
 	{ exportMode, getPath, indentString, intro, outro },
-	options
+	options: OutputOptions
 ) {
 	if (exportMode !== 'none' && !options.name) {
 		error({

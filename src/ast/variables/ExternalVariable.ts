@@ -1,7 +1,14 @@
 import Variable from './Variable';
+import Module from '../../Module';
+import Identifier from '../nodes/Identifier';
 
 export default class ExternalVariable extends Variable {
-	constructor (module, name) {
+	module: Module;
+	safeName: string;
+	isExternal: boolean;
+	isNamespace: boolean;
+
+	constructor (module: Module, name: string) {
 		super(name);
 		this.module = module;
 		this.safeName = null;
@@ -9,7 +16,7 @@ export default class ExternalVariable extends Variable {
 		this.isNamespace = name === '*';
 	}
 
-	addReference (identifier) {
+	addReference (identifier: Identifier) {
 		if (this.name === 'default' || this.name === '*') {
 			this.module.suggestName(identifier.name);
 		}
@@ -38,7 +45,7 @@ export default class ExternalVariable extends Variable {
 		return true;
 	}
 
-	setSafeName (name) {
+	setSafeName (name: string) {
 		this.safeName = name;
 	}
 }

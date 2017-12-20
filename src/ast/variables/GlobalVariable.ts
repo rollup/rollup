@@ -1,8 +1,14 @@
 import Variable from './Variable';
 import pureFunctions from '../nodes/shared/pureFunctions';
+import Identifier from '../nodes/Identifier';
 
 export default class GlobalVariable extends Variable {
-	constructor (name) {
+	isExternal: true;
+	isGlobal: true;
+	isReassigned: false;
+	included: true;
+
+	constructor (name: string) {
 		super(name);
 		this.isExternal = true;
 		this.isGlobal = true;
@@ -10,11 +16,11 @@ export default class GlobalVariable extends Variable {
 		this.included = true;
 	}
 
-	addReference (identifier) {
+	addReference (identifier: Identifier) {
 		if (identifier.isReassignment) this.isReassigned = true;
 	}
 
-	hasEffectsWhenAccessedAtPath (path) {
+	hasEffectsWhenAccessedAtPath (path: string[]) {
 		// path.length == 0 can also have an effect but we postpone this for now
 		return (
 			path.length > 0 &&
@@ -28,7 +34,7 @@ export default class GlobalVariable extends Variable {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path) {
+	hasEffectsWhenCalledAtPath (path: string[]) {
 		return !pureFunctions[[this.name, ...path].join('.')];
 	}
 }

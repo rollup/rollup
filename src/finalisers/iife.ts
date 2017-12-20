@@ -8,14 +8,17 @@ import warnOnBuiltins from './shared/warnOnBuiltins';
 import trimEmptyImports from './shared/trimEmptyImports';
 import setupNamespace from './shared/setupNamespace';
 import { isLegal } from '../utils/identifierHelpers';
+import Bundle from '../Bundle';
+import MagicString from 'magic-string';
+import { OutputOptions } from '../rollup/index';
 
-const thisProp = name => `this${keypath(name)}`;
+const thisProp = (name: string) => `this${keypath(name)}`;
 
 export default function iife (
-	bundle,
-	magicString,
+	bundle: Bundle,
+	magicString: MagicString,
 	{ exportMode, indentString, intro, outro },
-	options
+	options: OutputOptions
 ) {
 	const globalNameMaker = getGlobalNameMaker(
 		options.globals || blank(),

@@ -1,26 +1,35 @@
 import LocalVariable from './LocalVariable';
-import { UNDEFINED_ASSIGNMENT, UNKNOWN_ASSIGNMENT } from '../values';
+import { UNDEFINED_ASSIGNMENT, UNKNOWN_ASSIGNMENT, PredicateFunction } from '../values';
+import ExecutionPathOptions from '../ExecutionPathOptions';
+import Pattern from '../nodes/Pattern';
+import CallOptions from '../CallOptions';
 
-const getParameterVariable = (path, options) =>
-	(path[0] < options.getArgumentsVariables().length &&
-		options.getArgumentsVariables()[path[0]]) ||
-	UNDEFINED_ASSIGNMENT;
+const getParameterVariable = (path: string[], options: ExecutionPathOptions) => {
+	const firstArgNum = parseInt(path[0], 10);
+
+	return (firstArgNum < options.getArgumentsVariables().length &&
+		options.getArgumentsVariables()[firstArgNum]) ||
+		UNDEFINED_ASSIGNMENT;
+}
 
 export default class ArgumentsVariable extends LocalVariable {
-	constructor (parameters) {
+	private _parameters: Pattern[];
+
+	constructor (parameters: Pattern[]) {
 		super('arguments', null, UNKNOWN_ASSIGNMENT);
 		this._parameters = parameters;
 	}
 
-	reassignPath (path, options) {
+	reassignPath (path: string[], options: ExecutionPathOptions) {
+		const firstArgNum = parseInt(path[0], 10);
 		if (path.length > 0) {
-			if (path[0] >= 0 && this._parameters[path[0]]) {
-				this._parameters[path[0]].reassignPath(path.slice(1), options);
+			if (firstArgNum >= 0 && this._parameters[firstArgNum]) {
+				this._parameters[firstArgNum].reassignPath(path.slice(1), options);
 			}
 		}
 	}
 
-	hasEffectsWhenAccessedAtPath (path, options) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
 		return (
 			path.length > 1 &&
 			getParameterVariable(path, options).hasEffectsWhenAccessedAtPath(
@@ -30,7 +39,7 @@ export default class ArgumentsVariable extends LocalVariable {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path, options) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
 		return (
 			path.length === 0 ||
 			this.included ||
@@ -41,7 +50,7 @@ export default class ArgumentsVariable extends LocalVariable {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path, callOptions, options) {
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) {
 			return true;
 		}
@@ -53,10 +62,10 @@ export default class ArgumentsVariable extends LocalVariable {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
-		predicateFunction,
-		options
+		path: string[],
+		callOptions: CallOptions,
+		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		options: ExecutionPathOptions
 	) {
 		if (path.length === 0) {
 			return true;

@@ -2,12 +2,15 @@ import getInteropBlock from './shared/getInteropBlock';
 import getExportBlock from './shared/getExportBlock';
 import esModuleExport from './shared/esModuleExport';
 import warnOnBuiltins from './shared/warnOnBuiltins';
+import Bundle from '../Bundle';
+import MagicString from 'magic-string';
+import { OutputOptions } from '../rollup/index';
 
 export default function amd (
-	bundle,
-	magicString,
+	bundle: Bundle,
+	magicString: MagicString,
 	{ exportMode, getPath, indentString, intro, outro },
-	options
+	options: OutputOptions
 ) {
 	warnOnBuiltins(bundle);
 	const deps = bundle.externalModules.map(m => `'${getPath(m.id)}'`);

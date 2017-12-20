@@ -1,6 +1,6 @@
 import { property } from './sanitize';
 
-export default function setupNamespace (name, root, forAssignment, globals) {
+export default function setupNamespace (name: string, root: string, forAssignment: boolean, globals) {
 	const parts = name.split('.');
 	if (globals) {
 		parts[0] =

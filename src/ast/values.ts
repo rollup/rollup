@@ -6,12 +6,26 @@ export const UNKNOWN_VALUE = { toString: () => '[[UNKNOWN]]' };
 
 export type PredicateFunction = (node: Node | UnknownAssignment) => boolean;
 
-export interface UnknownAssignment extends Node {
+export interface UnknownAssignment {
 	type: 'UNKNOWN';
+	reassignPath: () => void;
+	forEachReturnExpressionWhenCalledAtPath: () => void;
+	hasEffectsWhenAccessedAtPath: (path: string[], _options: ExecutionPathOptions) => boolean;
+	hasEffectsWhenAssignedAtPath: (path: string[], _options: ExecutionPathOptions) => boolean;
+	hasEffectsWhenCalledAtPath: () => true;
+	someReturnExpressionWhenCalledAtPath: () => true;
+	toString: () => '[[UNKNOWN]]';
 };
 
-export interface UndefinedAssignment extends Node {
+export interface UndefinedAssignment {
 	type: 'UNDEFINED';
+	reassignPath: () => void;
+	forEachReturnExpressionWhenCalledAtPath: () => void;
+	hasEffectsWhenAccessedAtPath: (path: string[], _options: ExecutionPathOptions) => boolean;
+	hasEffectsWhenAssignedAtPath: (path: string[], _options: ExecutionPathOptions) => boolean;
+	hasEffectsWhenCalledAtPath: (_path: string[], _callOptions: CallOptions, _options: ExecutionPathOptions) => true;
+	someReturnExpressionWhenCalledAtPath: () => true;
+	toString: () => '[[UNDEFINED]]';
 };
 
 export const UNKNOWN_ASSIGNMENT: UnknownAssignment = {

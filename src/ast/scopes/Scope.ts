@@ -5,18 +5,16 @@ import { UNDEFINED_ASSIGNMENT, UndefinedAssignment } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import Expression from '../nodes/Expression';
-import Variable from '../variables/Variable';
-import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 
 export default class Scope {
 	parent: Scope | void;
 	variables: {
-		[name: string]: Variable
+		[name: string]: LocalVariable
 	};
 	isModuleScope: boolean;
 	children: Scope[];
 
-	constructor (options = {}) {
+	constructor (options: { parent?: Scope, isModuleScope?: boolean } = {}) {
 		this.parent = options.parent;
 		this.isModuleScope = !!options.isModuleScope;
 
