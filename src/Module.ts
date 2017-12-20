@@ -19,10 +19,13 @@ import { encode } from 'sourcemap-codec';
 import { SourceMapConsumer } from 'source-map';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
 import Bundle from './Bundle';
+import { Program } from 'estree';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
-function tryParse (module, acornOptions) {
+interface IdMap { [key: string]: string; }
+
+function tryParse (module: Module, acornOptions: Object) {
 	try {
 		return acorn.parse(module.code, assign({
 			ecmaVersion: 8,
@@ -38,7 +41,7 @@ function tryParse (module, acornOptions) {
 	}
 }
 
-function includeFully (node) {
+function includeFully (node: Node) {
 	node.included = true;
 	if (node.variable && !node.variable.included) {
 		node.variable.includeVariable();
@@ -47,13 +50,19 @@ function includeFully (node) {
 }
 
 export default class Module {
-
-	code: string;
-	id: string;
+	type: 'Module';
 	bundle: Bundle;
-	originalCode: string;
-	// originalSourcemap: string;
-	// sourcemapChain:
+	code: string;
+	comments: any[];
+	context: string;
+	declarations: any;
+	dependencies: Module[];
+	excludeFromSourcemap: boolean;
+	exports: any;
+	exportsAll: any;
+	exportAllModules: any;
+	exportAllSources: any;
+	id: string;
 
 	imports: {
 		[name: string]: {
@@ -63,8 +72,20 @@ export default class Module {
 			module: Module | null;
 		}
 	};
+	isExternal: boolean;
 	magicString: MagicString;
+	originalCode: string;
+	originalSourcemap: Object;
+	reexports: any;
+	resolvedExternalIds: IdMap;
+	resolvedIds: IdMap;
 	scope: ModuleScope;
+	sourcemapChain: Object[];
+	sources: string[];
+	strongDependencies: any;
+
+	private ast: Program;
+	private astClone: Program;
 
 	constructor ({
 		id,
@@ -76,6 +97,16 @@ export default class Module {
 		resolvedIds,
 		resolvedExternalIds,
 		bundle
+	}: {
+		id: string,
+		code: string,
+		originalCode: string,
+		originalSourcemap: Object,
+		ast: Program,
+		sourcemapChain: Object[],
+		resolvedIds: IdMap,
+		resolvedExternalIds: IdMap,
+		bundle: Bundle
 	}) {
 		this.code = code;
 		this.id = id;
@@ -83,7 +114,6 @@ export default class Module {
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain;
-
 		this.comments = [];
 		this.dynamicImports = [];
 
@@ -144,7 +174,6 @@ export default class Module {
 		});
 
 		this.declarations = blank();
-		this.type = 'Module'; // TODO only necessary so that Scope knows this should be treated as a function scope... messy
 		this.scope = new ModuleScope(this);
 
 		timeStart('analyse');
@@ -221,13 +250,13 @@ export default class Module {
 			if (declaration.type === 'VariableDeclaration') {
 				declaration.declarations.forEach(decl => {
 					extractNames(decl.id).forEach(localName => {
-						this.exports[localName] = { localName };
+						this.exports[localName] = {localName};
 					});
 				});
 			} else {
 				// export function foo () {}
 				const localName = declaration.id.name;
-				this.exports[localName] = { localName };
+				this.exports[localName] = {localName};
 			}
 		} else {
 			// export { foo, bar, baz }
@@ -245,12 +274,12 @@ export default class Module {
 					);
 				}
 
-				this.exports[exportedName] = { localName };
+				this.exports[exportedName] = {localName};
 			});
 		}
 	}
 
-	addImport (node) {
+	addImport (node: Node) {
 		const source = node.source.value;
 
 		if (!~this.sources.indexOf(source)) this.sources.push(source);
@@ -274,7 +303,7 @@ export default class Module {
 			const name = isDefault
 				? 'default'
 				: isNamespace ? '*' : specifier.imported.name;
-			this.imports[localName] = { source, specifier, name, module: null };
+			this.imports[localName] = {source, specifier, name, module: null};
 		});
 	}
 
@@ -365,7 +394,7 @@ export default class Module {
 		if (pos !== undefined) {
 			props.pos = pos;
 
-			const { line, column } = locate(this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
+			const {line, column} = locate(this.code, pos, {offsetLine: 1}); // TODO trace sourcemaps
 
 			const location = this.getOriginalLocation(
 				this.sourcemapChain,
@@ -513,7 +542,7 @@ export default class Module {
 		};
 	}
 
-	trace (name) {
+	trace (name: string) {
 		// TODO this is slightly circular
 		if (name in this.scope.variables) {
 			return this.scope.variables[name];
@@ -596,13 +625,13 @@ export default class Module {
 		}
 	}
 
-	warn (warning, pos) {
+	warn (warning: any, pos: number) {
 		if (pos !== undefined) {
 			warning.pos = pos;
 
-			const { line, column } = locate(this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
+			const {line, column} = locate(this.code, pos, {offsetLine: 1}); // TODO trace sourcemaps
 
-			warning.loc = { file: this.id, line, column };
+			warning.loc = {file: this.id, line, column};
 			warning.frame = getCodeFrame(this.code, line, column);
 		}
 

@@ -54,6 +54,7 @@ export default class Bundle {
 
 
 	isPureExternalModule: (id: string) => boolean;
+	getModuleContext: (id: string) => string;
 
 	// deprecated
 	treeshake: boolean;

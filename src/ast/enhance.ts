@@ -2,9 +2,9 @@ import nodes from './nodes/index';
 import UnknownNode from './nodes/UnknownNode';
 import keys from './keys';
 import Node from './Node';
-import Program from './nodes/Program';
 import Module from '../Module';
 import Comment from './comment';
+import { Program } from 'estree';
 
 const newline = /\n/;
 

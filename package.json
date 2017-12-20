@@ -89,5 +89,7 @@
     "bin/rollup",
     "README.md"
   ],
-  "dependencies": {}
+  "dependencies": {
+    "@types/acorn": "^4.0.3"
+  }
 }
