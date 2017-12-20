@@ -4,11 +4,10 @@ import keys from './keys';
 import Node from './Node';
 import Module from '../Module';
 import Comment from './comment';
-import { Program } from 'estree';
 
 const newline = /\n/;
 
-export default function enhance (ast: Program, module: Module, comments: Comment[]) {
+export default function enhance (ast: any, module: Module, comments: Comment[]) {
 	enhanceNode(ast, module, module, module.magicString);
 
 	let comment = comments.shift();

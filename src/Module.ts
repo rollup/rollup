@@ -19,7 +19,10 @@ import { encode } from 'sourcemap-codec';
 import { SourceMapConsumer } from 'source-map';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
 import Bundle from './Bundle';
-import { Program } from 'estree';
+import Variable from './ast/variables/Variable';
+import Program from './ast/nodes/Program';
+import VariableDeclarator from './ast/nodes/VariableDeclarator';
+import VariableDeclaration from './ast/nodes/VariableDeclaration';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
@@ -30,7 +33,8 @@ function tryParse (module: Module, acornOptions: Object) {
 		return acorn.parse(module.code, assign({
 			ecmaVersion: 8,
 			sourceType: 'module',
-			onComment: (block, text, start, end) => module.comments.push({ block, text, start, end }),
+			onComment: (block: boolean, text: string, start: number, end: number) =>
+				module.comments.push({ block, text, start, end }),
 			preserveParens: false
 		}, acornOptions));
 	} catch (err) {
@@ -129,7 +133,7 @@ export default class Module {
 			// to this array during parsing itself. This is faster than having to do a separate walk.
 			if (bundle.dynamicImport)
 				setModuleDynamicImportsReturnBinding(this.dynamicImports);
-			this.ast = tryParse(this, bundle.acornOptions); // TODO what happens to comments if AST is provided?
+			this.ast = <any>tryParse(this, bundle.acornOptions); // TODO what happens to comments if AST is provided?
 			if (bundle.dynamicImport)
 				setModuleDynamicImportsReturnBinding(undefined);
 			this.astClone = clone(this.ast);
@@ -185,7 +189,7 @@ export default class Module {
 		this.strongDependencies = [];
 	}
 
-	addExport (node) {
+	addExport (node: Node) {
 		const source = node.source && node.source.value;
 
 		// export { name } from './other'
@@ -248,7 +252,7 @@ export default class Module {
 			const declaration = node.declaration;
 
 			if (declaration.type === 'VariableDeclaration') {
-				declaration.declarations.forEach(decl => {
+				declaration.declarations.forEach((decl: VariableDeclarator) => {
 					extractNames(decl.id).forEach(localName => {
 						this.exports[localName] = {localName};
 					});
@@ -451,7 +455,7 @@ export default class Module {
 
 	includeInBundle () {
 		let addedNewNodes = false;
-		this.ast.body.forEach(node => {
+		this.ast.body.forEach((node: Node) => {
 			if (node.shouldBeIncluded()) {
 				if (node.includeInBundle()) {
 					addedNewNodes = true;
@@ -542,7 +546,7 @@ export default class Module {
 		};
 	}
 
-	trace (name: string) {
+	trace (name: string): Variable {
 		// TODO this is slightly circular
 		if (name in this.scope.variables) {
 			return this.scope.variables[name];
