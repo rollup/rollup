@@ -11,16 +11,18 @@ import MagicString from 'magic-string';
 import CallOptions from './CallOptions';
 
 export default class Node {
-
-	name: string;
 	type: string;
 	keys: string[];
 	included: boolean;
 	scope: Scope;
 	start: number;
 	end: number;
+	leadingCommentStart: number;
+	trailingCommentEnd: number;
 	next: number;
 	module: Module;
+	parent: Node;
+	__enhanced: boolean;
 
 	constructor () {
 		this.keys = [];

@@ -1,6 +1,11 @@
 import Node from '../Node';
+import ThisVariable from '../variables/ThisVariable';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class ThisExpression extends Node {
+	type: 'ThisExpression';
+	variable: ThisVariable;
+
 	initialiseNode () {
 		const lexicalBoundary = this.scope.findLexicalBoundary();
 
@@ -23,14 +28,14 @@ export default class ThisExpression extends Node {
 		this.variable = this.scope.findVariable('this');
 	}
 
-	hasEffectsWhenAccessedAtPath (path, options) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
 		return (
 			path.length > 0 &&
 			this.variable.hasEffectsWhenAccessedAtPath(path, options)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path, options) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
 		return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 	}
 

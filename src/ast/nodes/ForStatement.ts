@@ -1,8 +1,18 @@
 import Statement from './shared/Statement';
 import BlockScope from '../scopes/BlockScope';
+import VariableDeclaration from './VariableDeclaration';
+import Expression from './Expression';
+import ExecutionPathOptions from '../ExecutionPathOptions';
+import Scope from '../scopes/Scope';
 
 export default class ForStatement extends Statement {
-	hasEffects (options) {
+	type: 'ForStatement';
+	init: VariableDeclaration | Expression | null;
+	test: Expression | null;
+	update: Expression | null;
+	body: Statement;
+
+	hasEffects (options: ExecutionPathOptions) {
 		return (
 			(this.init && this.init.hasEffects(options)) ||
 			(this.test && this.test.hasEffects(options)) ||
@@ -24,7 +34,7 @@ export default class ForStatement extends Statement {
 		}
 	}
 
-	initialiseScope (parentScope) {
+	initialiseScope (parentScope: Scope) {
 		this.scope = new BlockScope({ parent: parentScope });
 	}
 }

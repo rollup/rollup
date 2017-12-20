@@ -1,8 +1,17 @@
 import Node from '../Node';
 import CallOptions from '../CallOptions';
+import Expression from './Expression';
+import ExecutionPathOptions from '../ExecutionPathOptions';
+import SpreadElement from './SpreadElement';
 
 export default class CallExpression extends Node {
-	reassignPath (path, options) {
+	type: 'CallExpression';
+	callee: Expression;
+	arguments: (Expression | SpreadElement)[];
+
+	private _callOptions: CallOptions;
+
+	reassignPath (path: string[], options: ExecutionPathOptions) {
 		!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
 			this.callee.forEachReturnExpressionWhenCalledAtPath(
 				[],
@@ -45,10 +54,10 @@ export default class CallExpression extends Node {
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
+		path: string[],
+		callOptions: CallOptions,
 		callback,
-		options
+		options: ExecutionPathOptions
 	) {
 		this.callee.forEachReturnExpressionWhenCalledAtPath(
 			[],
@@ -64,7 +73,7 @@ export default class CallExpression extends Node {
 		);
 	}
 
-	hasEffects (options) {
+	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
 			this.arguments.some(child => child.hasEffects(options)) ||
 			this.callee.hasEffectsWhenCalledAtPath(
@@ -75,7 +84,7 @@ export default class CallExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path, options) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
 		return (
 			path.length > 0 &&
 			!options.hasReturnExpressionBeenAccessedAtPath(path, this) &&
@@ -92,7 +101,7 @@ export default class CallExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path, options) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
 		return (
 			!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
 			this.callee.someReturnExpressionWhenCalledAtPath(
@@ -108,7 +117,7 @@ export default class CallExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path, callOptions, options) {
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
 		return (
 			!options.hasReturnExpressionBeenCalledAtPath(path, this) &&
 			this.callee.someReturnExpressionWhenCalledAtPath(
@@ -134,10 +143,10 @@ export default class CallExpression extends Node {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
+		path: string[],
+		callOptions: CallOptions,
 		predicateFunction,
-		options
+		options: ExecutionPathOptions
 	) {
 		return this.callee.someReturnExpressionWhenCalledAtPath(
 			[],

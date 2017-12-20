@@ -1,6 +1,12 @@
 import Node from '../Node';
+import Statement from './Statement';
+import Expression from './Expression';
 
 export default class SwitchCase extends Node {
+	type: 'SwitchCase';
+	test: Expression | null;
+	consequent: Statement[];
+
 	includeInBundle () {
 		let addedNewNodes = !this.included;
 		this.included = true;

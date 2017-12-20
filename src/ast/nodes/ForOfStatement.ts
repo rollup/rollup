@@ -1,8 +1,17 @@
 import Statement from './shared/Statement';
 import BlockScope from '../scopes/BlockScope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import VariableDeclaration from './VariableDeclaration';
+import Pattern from './Pattern';
+import Expression from './Expression';
+import Scope from '../scopes/Scope';
 
 export default class ForOfStatement extends Statement {
+	type: 'ForOfStatement';
+	left: VariableDeclaration | Pattern;
+	right: Expression;
+	body: Statement;
+
 	bindNode () {
 		this.left.reassignPath([], ExecutionPathOptions.create());
 	}
@@ -33,7 +42,7 @@ export default class ForOfStatement extends Statement {
 			: this.body.initialise(this.scope);
 	}
 
-	initialiseScope (parentScope) {
+	initialiseScope (parentScope: Scope) {
 		this.scope = new BlockScope({ parent: parentScope });
 	}
 }

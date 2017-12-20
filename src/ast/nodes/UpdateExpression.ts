@@ -1,8 +1,14 @@
 import Node from '../Node';
 import disallowIllegalReassignment from './shared/disallowIllegalReassignment';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import Expression from './Expression';
 
 export default class UpdateExpression extends Node {
+	type: 'UpdateExpression';
+	operator: '++' | '--' | '**';
+	argument: Expression;
+	prefix: boolean;
+
 	bindNode () {
 		disallowIllegalReassignment(this.scope, this.argument);
 		this.argument.reassignPath([], ExecutionPathOptions.create());
@@ -12,14 +18,14 @@ export default class UpdateExpression extends Node {
 		}
 	}
 
-	hasEffects (options) {
+	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
 			this.argument.hasEffects(options) ||
 			this.argument.hasEffectsWhenAssignedAtPath([], options)
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path) {
+	hasEffectsWhenAccessedAtPath (path: string[]) {
 		return path.length > 1;
 	}
 }

@@ -229,7 +229,7 @@ export default class ExecutionPathOptions {
 		]);
 		return (
 			previousCallOptions &&
-			previousCallOptions.find((_, otherCallOptions) =>
+			previousCallOptions.find((_: any, otherCallOptions: CallOptions) =>
 				otherCallOptions.equals(callOptions)
 			)
 		);

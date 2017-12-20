@@ -4,7 +4,10 @@ import { UNKNOWN_ASSIGNMENT } from '../values';
 import Scope from '../scopes/Scope';
 
 export default class Identifier extends Node {
-	reassignPath (path, options) {
+	type: 'Identifier';
+	name: string;
+
+	reassignPath (path: string[], options) {
 		this._bindVariableIfMissing();
 		this.variable && this.variable.reassignPath(path, options);
 	}

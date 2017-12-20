@@ -1,11 +1,16 @@
 import Node from '../Node';
+import Expression from './Expression';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class SequenceExpression extends Node {
+	type: 'SequenceExpression';
+	expressions: Expression[];
+
 	getValue () {
 		return this.expressions[this.expressions.length - 1].getValue();
 	}
 
-	hasEffects (options) {
+	hasEffects (options: ExecutionPathOptions) {
 		return this.expressions.some(expression => expression.hasEffects(options));
 	}
 

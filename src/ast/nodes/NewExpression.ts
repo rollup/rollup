@@ -1,8 +1,16 @@
 import Node from '../Node';
 import CallOptions from '../CallOptions';
+import Expression from './Expression';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class NewExpression extends Node {
-	hasEffects (options) {
+	type: 'NewExpression';
+	callee: Expression;
+	arguments: Expression[];
+
+	_callOptions: CallOptions;
+
+	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
 			this.arguments.some(child => child.hasEffects(options)) ||
 			this.callee.hasEffectsWhenCalledAtPath(
@@ -13,7 +21,7 @@ export default class NewExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path) {
+	hasEffectsWhenAccessedAtPath (path: string[]) {
 		return path.length > 1;
 	}
 

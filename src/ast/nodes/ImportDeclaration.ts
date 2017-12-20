@@ -1,6 +1,9 @@
 import Node from '../Node';
 
 export default class ImportDeclaration extends Node {
+	type: 'ImportDeclaration';
+	isImportDeclaration: true;
+
 	bindChildren () { }
 
 	initialiseNode () {

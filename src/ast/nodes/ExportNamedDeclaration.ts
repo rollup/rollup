@@ -1,12 +1,22 @@
 import Node from '../Node';
+import ExecutionPathOptions from '../ExecutionPathOptions';
+import Declaration from '../Declaration';
+import Literal from './Literal';
 
 export default class ExportNamedDeclaration extends Node {
+	type: 'ExportNamedDeclaration';
+	declaration: Declaration | null;
+	specifiers: Node[];
+	source: Literal | null;
+
+	isExportDeclaration: true;
+
 	bindChildren () {
 		// Do not bind specifiers
 		if (this.declaration) this.declaration.bind();
 	}
 
-	hasEffects (options) {
+	hasEffects (options: ExecutionPathOptions) {
 		return this.declaration && this.declaration.hasEffects(options);
 	}
 

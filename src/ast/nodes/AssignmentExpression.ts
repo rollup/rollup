@@ -14,7 +14,7 @@ export default class AssignmentExpression extends Node {
 		this.left.reassignPath([], ExecutionPathOptions.create());
 	}
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
 			super.hasEffects(options) ||
 			this.left.hasEffectsWhenAssignedAtPath([], options)

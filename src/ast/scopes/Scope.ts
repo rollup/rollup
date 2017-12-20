@@ -5,11 +5,12 @@ import { UNDEFINED_ASSIGNMENT } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import Expression from '../nodes/Expression';
+import Variable from '../variables/Variable';
 
 export default class Scope {
 	parent: Scope | void;
 	variables: {
-		[name: string]: LocalVariable
+		[name: string]: Variable
 	};
 	isModuleScope: boolean;
 	children: Scope[];

@@ -2,7 +2,6 @@ import Node from '../Node';
 import Scope from '../scopes/Scope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import BlockStatement from './BlockStatement';
-import FunctionScope from '../scopes/FunctionScope';
 import Pattern from './Pattern';
 import Expression from './Expression';
 import CallOptions from '../CallOptions';

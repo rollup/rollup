@@ -1,22 +1,32 @@
 import Node from '../Node';
 import CallOptions from '../CallOptions';
+import Expression from './Expression';
+import TemplateLiteral from './TemplateLiteral';
+import Identifier from './Identifier';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class TaggedTemplateExpression extends Node {
+	type: 'TaggedTemplateExpression';
+	tag: Expression;
+	quasi: TemplateLiteral;
+
+	private _callOptions: CallOptions;
+
 	bindNode () {
 		if (this.tag.type === 'Identifier') {
-			const variable = this.scope.findVariable(this.tag.name);
+			const variable = this.scope.findVariable((<Identifier>this.tag).name);
 
 			if (variable.isNamespace) {
 				this.module.error(
 					{
 						code: 'CANNOT_CALL_NAMESPACE',
-						message: `Cannot call a namespace ('${this.tag.name}')`
+						message: `Cannot call a namespace ('${(<Identifier>this.tag).name}')`
 					},
 					this.start
 				);
 			}
 
-			if (this.tag.name === 'eval' && variable.isGlobal) {
+			if ((<Identifier>this.tag).name === 'eval' && variable.isGlobal) {
 				this.module.warn(
 					{
 						code: 'EVAL',
@@ -30,7 +40,7 @@ export default class TaggedTemplateExpression extends Node {
 		}
 	}
 
-	hasEffects (options) {
+	hasEffects (options: ExecutionPathOptions) {
 		return (
 			super.hasEffects(options) ||
 			this.tag.hasEffectsWhenCalledAtPath(

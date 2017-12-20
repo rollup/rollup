@@ -2,7 +2,9 @@ import FunctionNode from './shared/FunctionNode';
 import Scope from '../scopes/Scope';
 
 export default class FunctionDeclaration extends FunctionNode {
-	initialiseChildren (parentScope) {
+	type: 'FunctionDeclaration';
+
+	initialiseChildren (parentScope: Scope) {
 		this.id && this.id.initialiseAndDeclare(parentScope, 'function', this);
 		this.params.forEach(param =>
 			param.initialiseAndDeclare(this.scope, 'parameter')

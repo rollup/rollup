@@ -1,6 +1,10 @@
 import relativeId from '../../utils/relativeId';
 import Node from '../Node';
 import { UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
+import Expression from './Expression';
+import Variable from '../variables/Variable';
+import ExecutionPathOptions from '../ExecutionPathOptions';
+import Literal from './Literal';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -31,7 +35,13 @@ class Keypath {
 }
 
 export default class MemberExpression extends Node {
-	object: Node;
+	type: 'MemberExpression';
+	object: Expression;
+	property: Expression;
+	computed: boolean;
+
+	private _bound: boolean;
+	variable: Variable;
 
 	bind () {
 		// if this resolves to a namespaced declaration, prepare
@@ -84,7 +94,7 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	reassignPath (path, options) {
+	reassignPath (path: string[], options) {
 		if (!this._bound) this.bind();
 		if (this.variable) {
 			this.variable.reassignPath(path, options);
@@ -94,10 +104,10 @@ export default class MemberExpression extends Node {
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
+		path: string[],
+		callOptions: CallOptions,
 		callback,
-		options
+		options: ExecutionPathOptions
 	) {
 		if (!this._bound) this.bind();
 		if (this.variable) {
@@ -117,7 +127,7 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	hasEffects (options) {
+	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
 			super.hasEffects(options) ||
 			(this._checkPropertyReadSideEffects &&
@@ -128,7 +138,7 @@ export default class MemberExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path, options) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		if (path.length === 0) {
 			return false;
 		}
@@ -141,7 +151,7 @@ export default class MemberExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path, options) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		if (this.variable) {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 		}
@@ -151,7 +161,7 @@ export default class MemberExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path, callOptions, options) {
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (this.variable) {
 			return this.variable.hasEffectsWhenCalledAtPath(
 				path,
@@ -230,7 +240,7 @@ export default class MemberExpression extends Node {
 	_getPathSegment () {
 		if (this.computed) {
 			return this.property.type === 'Literal'
-				? String(this.property.value)
+				? String((<Literal>this.property).value)
 				: UNKNOWN_KEY;
 		}
 		return this.property.name;

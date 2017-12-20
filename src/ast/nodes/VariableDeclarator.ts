@@ -1,12 +1,19 @@
 import Node from '../Node';
 import extractNames from '../utils/extractNames';
+import Pattern from './Pattern';
+import Expression from './Expression';
+import Scope from '../scopes/Scope';
 
 export default class VariableDeclarator extends Node {
-	reassignPath (path, options) {
+	type: 'VariableDeclarator';
+	id: Pattern;
+	init: Expression | null;
+
+	reassignPath (path: string[], options) {
 		this.id.reassignPath(path, options);
 	}
 
-	initialiseDeclarator (parentScope, kind) {
+	initialiseDeclarator (parentScope: Scope, kind) {
 		this.initialiseScope(parentScope);
 		this.init && this.init.initialise(this.scope);
 		this.id.initialiseAndDeclare(this.scope, kind, this.init);

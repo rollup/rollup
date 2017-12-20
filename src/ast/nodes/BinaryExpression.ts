@@ -2,6 +2,8 @@ import Node from '../Node';
 import { UNKNOWN_VALUE } from '../values';
 import Expression from './Expression';
 
+type BinaryOperator = '==' | '!=' | '===' | '!==' | '<' | '<=' | '>' | '>=' | '<<' | '>>' | '>>>' | '+' | '-' | '*' | '/' | '%' | ' |' | '^' | '&' | '**' | 'in' | 'instanceof';
+
 const operators: {
 	[operator: string]: (left: any, right: any) => any
 } = {
@@ -33,7 +35,7 @@ export default class BinaryExpression extends Node {
 	type: 'BinaryExpression';
 	left: Expression;
 	right: Expression;
-	operator: string;
+	operator: BinaryOperator;
 
 	getValue (): any {
 		const leftValue = this.left.getValue();

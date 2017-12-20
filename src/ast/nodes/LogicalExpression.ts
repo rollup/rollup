@@ -1,17 +1,27 @@
 import Node from '../Node';
 import { UNKNOWN_VALUE } from '../values';
+import Expression from './Expression';
+import CallOptions from '../CallOptions';
+import ExecutionPathOptions from '../ExecutionPathOptions';
+
+type LogicalOperator = '||' | '&&';
 
 export default class LogicalExpression extends Node {
-	reassignPath (path, options) {
+	type: 'LogicalExpression';
+	operator: LogicalOperator;
+	left: Expression;
+	right: Expression;
+
+	reassignPath (path: string[], options) {
 		path.length > 0 &&
 			this._forEachRelevantBranch(node => node.reassignPath(path, options));
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
+		path: string[],
+		callOptions: CallOptions,
 		callback,
-		options
+		options: ExecutionPathOptions
 	) {
 		this._forEachRelevantBranch(node =>
 			node.forEachReturnExpressionWhenCalledAtPath(
@@ -23,7 +33,7 @@ export default class LogicalExpression extends Node {
 		);
 	}
 
-	getValue () {
+	getValue (): any {
 		const leftValue = this.left.getValue();
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 		if (
@@ -35,7 +45,7 @@ export default class LogicalExpression extends Node {
 		return this.right.getValue();
 	}
 
-	hasEffects (options) {
+	hasEffects (options: ExecutionPathOptions): boolean {
 		const leftValue = this.left.getValue();
 		return (
 			this.left.hasEffects(options) ||
@@ -46,7 +56,7 @@ export default class LogicalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path, options) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
 		return (
 			path.length > 0 &&
 			this._someRelevantBranch(node =>
@@ -55,7 +65,7 @@ export default class LogicalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path, options) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
 		return (
 			path.length === 0 ||
 			this._someRelevantBranch(node =>
@@ -64,17 +74,17 @@ export default class LogicalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path, callOptions, options) {
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
 		return this._someRelevantBranch(node =>
 			node.hasEffectsWhenCalledAtPath(path, callOptions, options)
 		);
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
+		path: string[],
+		callOptions: CallOptions,
 		predicateFunction,
-		options
+		options: ExecutionPathOptions
 	) {
 		return this._someRelevantBranch(node =>
 			node.someReturnExpressionWhenCalledAtPath(

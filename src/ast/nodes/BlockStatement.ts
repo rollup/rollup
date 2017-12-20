@@ -1,4 +1,5 @@
 import Statement from './shared/Statement';
+import StatementType from './statement';
 import BlockScope from '../scopes/BlockScope';
 import { UNDEFINED_ASSIGNMENT } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
@@ -7,7 +8,7 @@ import Scope from '../scopes/Scope';
 export default class BlockStatement extends Statement {
 	type: 'BlockStatement';
 	scope: BlockScope;
-	body: Statement[];
+	body: StatementType[];
 
 	bindImplicitReturnExpressionToScope () {
 		const lastStatement = this.body[this.body.length - 1];

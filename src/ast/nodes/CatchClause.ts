@@ -8,6 +8,7 @@ export default class CatchClause extends Node {
 	type: 'CatchClause';
 	param: Pattern;
 	body: BlockStatement;
+	scope: CatchScope;
 
 	initialiseChildren () {
 		this.param && this.param.initialiseAndDeclare(this.scope, 'parameter');

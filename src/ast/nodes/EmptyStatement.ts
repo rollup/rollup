@@ -1,6 +1,8 @@
 import Statement from './shared/Statement';
 
 export default class EmptyStatement extends Statement {
+	type: 'EmptyStatement';
+
 	render (code) {
 		if (
 			this.parent.type === 'BlockStatement' ||

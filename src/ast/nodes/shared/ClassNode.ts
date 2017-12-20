@@ -2,10 +2,12 @@ import Node from '../../Node';
 import Scope from '../../scopes/Scope';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
+import Identifier from '../Identifier';
 
 export default class ClassNode extends Node {
 	body: Node;
 	superClass: Node;
+	id: Identifier;
 
 	hasEffectsWhenAccessedAtPath (path: string[]) {
 		return path.length > 1;

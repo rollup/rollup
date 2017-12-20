@@ -3,9 +3,11 @@ import { UNKNOWN_ASSIGNMENT } from '../values';
 import Scope from '../Scopes/Scope';
 import Identifier from './Identifier';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import Pattern from './Pattern';
 
 export default class ArrayPattern extends Node {
 	type: 'ArrayPattern';
+	elements: (Pattern | null)[];
 
 	reassignPath (path: string[], options: ExecutionPathOptions) {
 		path.length === 0 &&

@@ -1,5 +1,8 @@
 import Node from '../Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import Declaration from '../Declaration';
+import Expression from './Expression';
+import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
@@ -23,6 +26,13 @@ const sourceRE = {
 };
 
 export default class ExportDefaultDeclaration extends Node {
+	type: 'ExportDefaultDeclaration';
+	declaration: Declaration | Expression;
+
+	private _declarationName: string;
+	isExportDeclaration: true;
+	variable: ExportDefaultVariable;
+
 	bindNode () {
 		if (this._declarationName) {
 			this.variable.setOriginalVariable(
@@ -46,7 +56,7 @@ export default class ExportDefaultDeclaration extends Node {
 	initialiseNode () {
 		this.isExportDeclaration = true;
 		this._declarationName =
-			(this.declaration.id && this.declaration.id.name) ||
+			((<Declaration>this.declaration).id && (<Declaration>this.declaration).id.name) ||
 			this.declaration.name;
 		this.variable = this.scope.addExportDefaultDeclaration(
 			this._declarationName || this.module.basename(),

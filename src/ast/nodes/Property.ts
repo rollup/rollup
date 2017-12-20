@@ -1,9 +1,18 @@
 import Node from '../Node';
 import CallOptions from '../CallOptions';
 import { UNKNOWN_ASSIGNMENT } from '../values';
+import Literal from './Literal';
+import Identifier from './Identifier';
+import Expression from './Expression';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class Property extends Node {
-	reassignPath (path, options) {
+	type: 'Property';
+	key: Literal | Identifier;
+	value: Expression;
+	kind: 'init' | 'get' | 'set';
+
+	reassignPath (path: string[], options) {
 		if (this.kind === 'get') {
 			path.length > 0 &&
 				this.value.forEachReturnExpressionWhenCalledAtPath(
@@ -22,10 +31,10 @@ export default class Property extends Node {
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
+		path: string[],
+		callOptions: CallOptions,
 		callback,
-		options
+		options: ExecutionPathOptions
 	) {
 		if (this.kind === 'get') {
 			this.value.forEachReturnExpressionWhenCalledAtPath(
@@ -50,11 +59,11 @@ export default class Property extends Node {
 		}
 	}
 
-	hasEffects (options) {
+	hasEffects (options: ExecutionPathOptions) {
 		return this.key.hasEffects(options) || this.value.hasEffects(options);
 	}
 
-	hasEffectsWhenAccessedAtPath (path, options) {
+	hasEffectsWhenAccessedAtPath (path, options): boolean {
 		if (this.kind === 'get') {
 			return (
 				this.value.hasEffectsWhenCalledAtPath(

@@ -1,11 +1,17 @@
 import Node from '../Node';
 import { UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
+import Property from './Property';
+import CallOptions from '../CallOptions';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
 const PROPERTY_KINDS_WRITE = ['init', 'set'];
 
 export default class ObjectExpression extends Node {
-	reassignPath (path, options) {
+	type: 'ObjectExpression';
+	properties: Property[];
+
+	reassignPath (path: string[], options) {
 		if (path.length === 0) return;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
@@ -21,10 +27,10 @@ export default class ObjectExpression extends Node {
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
+		path: string[],
+		callOptions: CallOptions,
 		callback,
-		options
+		options: ExecutionPathOptions
 	) {
 		if (path.length === 0) return;
 
@@ -64,7 +70,7 @@ export default class ObjectExpression extends Node {
 		return { properties, hasCertainHit };
 	}
 
-	hasEffectsWhenAccessedAtPath (path, options) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
 		if (path.length === 0) return false;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
@@ -79,7 +85,7 @@ export default class ObjectExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path, options) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
 		if (path.length === 0) return false;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
@@ -96,7 +102,7 @@ export default class ObjectExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path, callOptions, options) {
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
 		if (path.length === 0) return true;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
@@ -112,10 +118,10 @@ export default class ObjectExpression extends Node {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
+		path: string[],
+		callOptions: CallOptions,
 		predicateFunction,
-		options
+		options: ExecutionPathOptions
 	) {
 		if (path.length === 0) return true;
 

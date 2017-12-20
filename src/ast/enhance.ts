@@ -1,10 +1,12 @@
 import nodes from './nodes/index';
 import UnknownNode from './nodes/UnknownNode';
 import keys from './keys';
+import Node from './Node';
+import Program from './nodes/Program';
 
 const newline = /\n/;
 
-export default function enhance (ast: any, module, comments) {
+export default function enhance (ast: Program, module, comments) {
 	enhanceNode(ast, module, module, module.magicString);
 
 	let comment = comments.shift();
@@ -27,39 +29,41 @@ export default function enhance (ast: any, module, comments) {
 	}
 }
 
-function enhanceNode (raw, parent, module, code) {
+function enhanceNode (raw: Node | Node[], parent: Node, module, code) {
 	if (!raw) return;
 
 	if ('length' in raw) {
-		for (let i = 0; i < raw.length; i += 1) {
-			enhanceNode(raw[i], parent, module, code);
+		for (let i = 0; i < (<Node[]>raw).length; i += 1) {
+			enhanceNode((<Node[]>raw)[i], parent, module, code);
 		}
 
 		return;
 	}
 
+	const rawNode = <Node>raw;
+
 	// with e.g. shorthand properties, key and value are
 	// the same node. We don't want to enhance an object twice
-	if (raw.__enhanced) return;
-	raw.__enhanced = true;
+	if (rawNode.__enhanced) return;
+	rawNode.__enhanced = true;
 
-	if (!keys[raw.type]) {
-		keys[raw.type] = Object.keys(raw).filter(
-			key => typeof raw[key] === 'object'
+	if (!keys[rawNode.type]) {
+		keys[rawNode.type] = Object.keys(rawNode).filter(
+			key => typeof (<any>rawNode)[key] === 'object'
 		);
 	}
 
-	raw.parent = parent;
-	raw.module = module;
-	raw.keys = keys[raw.type];
+	rawNode.parent = parent;
+	rawNode.module = module;
+	rawNode.keys = keys[rawNode.type];
 
-	code.addSourcemapLocation(raw.start);
-	code.addSourcemapLocation(raw.end);
+	code.addSourcemapLocation(rawNode.start);
+	code.addSourcemapLocation(rawNode.end);
 
-	for (const key of keys[raw.type]) {
-		enhanceNode(raw[key], raw, module, code);
+	for (const key of keys[rawNode.type]) {
+		enhanceNode((<any>rawNode)[key], rawNode, module, code);
 	}
 
-	const type = nodes[raw.type] || UnknownNode;
-	raw.__proto__ = type.prototype;
+	const type = nodes[rawNode.type] || UnknownNode;
+	rawNode.__proto__ = type.prototype;
 }

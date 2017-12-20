@@ -15,6 +15,10 @@ import SequenceExpression from "./SequenceExpression";
 import ArrowFunctionExpression from "./ArrowFunctionExpression";
 import YieldExpression from "./YieldExpression";
 
+interface Super extends Node {
+  type: 'Super';
+};
+
 type Expression = ThisExpression |
   ArrayExpression |
   ObjectExpression |
@@ -30,6 +34,6 @@ type Expression = ThisExpression |
   NewExpression |
   SequenceExpression |
   ArrowFunctionExpression |
-  YieldExpression;
+  YieldExpression | Super;
 
 export default Expression;

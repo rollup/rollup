@@ -1,7 +1,16 @@
 import Statement from './shared/Statement';
 import BlockScope from '../scopes/BlockScope';
+import VariableDeclaration from './VariableDeclaration';
+import Pattern from './Pattern';
+import Expression from './Expression';
+import Scope from '../scopes/Scope';
 
 export default class ForInStatement extends Statement {
+	type: 'ForInStatement';
+	left: VariableDeclaration | Pattern;
+	right: Expression;
+	body: Statement;
+
 	hasEffects (options) {
 		return (
 			(this.left &&
@@ -28,7 +37,7 @@ export default class ForInStatement extends Statement {
 		return addedNewNodes;
 	}
 
-	initialiseScope (parentScope) {
+	initialiseScope (parentScope: Scope) {
 		this.scope = new BlockScope({ parent: parentScope });
 	}
 }

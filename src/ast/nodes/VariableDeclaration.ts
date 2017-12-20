@@ -1,8 +1,13 @@
 import Node from '../Node';
 import extractNames from '../utils/extractNames';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import Statement from './shared/Statement';
+import VariableDeclarator from './VariableDeclarator';
+import ForInStatement from './ForInStatement';
+import ForOfStatement from './ForOfStatement';
+import ForStatement from './ForStatement';
 
-function getSeparator (code, start) {
+function getSeparator (code: string, start: number) {
 	let c = start;
 
 	while (c > 0 && code[c - 1] !== '\n') {
@@ -18,6 +23,10 @@ function getSeparator (code, start) {
 const forStatement = /^For(?:Of|In)?Statement/;
 
 export default class VariableDeclaration extends Node {
+	type: 'VariableDeclaration';
+	declarations: VariableDeclarator[];
+	kind: 'var' | 'let' | 'const';
+
 	reassignPath () {
 		this.eachChild(child =>
 			child.reassignPath([], ExecutionPathOptions.create())
@@ -95,7 +104,7 @@ export default class VariableDeclaration extends Node {
 					empty = false;
 				}
 			} else {
-				const exportAssignments = [];
+				const exportAssignments: any[] = [];
 				let isIncluded = false;
 
 				extractNames(declarator.id).forEach(name => {
@@ -137,7 +146,7 @@ export default class VariableDeclaration extends Node {
 			// always include a semi-colon (https://github.com/rollup/rollup/pull/1013),
 			// unless it's a var declaration in a loop head
 			const needsSemicolon =
-				!forStatement.test(this.parent.type) || this === this.parent.body;
+				!forStatement.test(this.parent.type) || this === (<ForStatement | ForOfStatement | ForInStatement>this.parent).body;
 
 			if (this.end > c) {
 				code.overwrite(c, this.end, needsSemicolon ? ';' : '');

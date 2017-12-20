@@ -54,7 +54,11 @@ import VariableDeclaration from './VariableDeclaration';
 import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
 
-export default {
+import Node from '../Node';
+
+const nodes: {
+	[name: string]: typeof Node
+} = {
 	ArrayExpression,
 	ArrayPattern,
 	ArrowFunctionExpression,
@@ -111,3 +115,5 @@ export default {
 	WhileStatement,
 	YieldExpression
 };
+
+export default nodes;

@@ -1,10 +1,12 @@
 {
     "compilerOptions": {
-        "noImplicitAny": true,
         "diagnostics": true,
-        "noImplicitThis": true,
+        "lib": ["es5", "es6", "dom"],
         "noEmitOnError": true,
-        "lib": ["es5", "es6", "dom"]
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": true
     },
     "target": "ES5",
     "include": [
