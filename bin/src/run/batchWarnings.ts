@@ -11,7 +11,7 @@ export default function batchWarnings () {
 			return count;
 		},
 
-		add: warning => {
+		add: (warning: string | Warning)  => {
 			if (typeof warning === 'string') {
 				warning = { code: 'UNKNOWN', message: warning };
 			}

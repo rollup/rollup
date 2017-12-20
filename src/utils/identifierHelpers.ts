@@ -12,9 +12,9 @@ reservedWords.concat(builtins).forEach(word => (blacklisted[word] = true));
 
 const illegalCharacters = /[^$_a-zA-Z0-9]/g;
 
-const startsWithDigit = str => /\d/.test(str[0]);
+const startsWithDigit = (str: string) => /\d/.test(str[0]);
 
-export function isLegal (str) {
+export function isLegal (str: string) {
 	if (startsWithDigit(str) || blacklisted[str]) {
 		return false;
 	}
@@ -24,7 +24,7 @@ export function isLegal (str) {
 	return true;
 }
 
-export function makeLegal (str) {
+export function makeLegal (str: string) {
 	str = str
 		.replace(/-(\w)/g, (_, letter) => letter.toUpperCase())
 		.replace(illegalCharacters, '_');

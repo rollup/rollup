@@ -3,11 +3,11 @@ import { basename, dirname, isAbsolute, resolve } from './path';
 import { blank } from './object';
 import error from './error';
 
-export function load (id) {
+export function load (id: string) {
 	return readFileSync(id, 'utf-8');
 }
 
-function findFile (file) {
+function findFile (file: string): string {
 	try {
 		const stats = lstatSync(file);
 		if (stats.isSymbolicLink()) return findFile(realpathSync(file));
@@ -23,11 +23,11 @@ function findFile (file) {
 	}
 }
 
-function addJsExtensionIfNecessary (file) {
+function addJsExtensionIfNecessary (file: string) {
 	return findFile(file) || findFile(file + '.js');
 }
 
-export function resolveId (importee, importer) {
+export function resolveId (importee: string, importer: string) {
 	if (typeof process === 'undefined') {
 		error({
 			code: 'MISSING_PROCESS',
@@ -53,7 +53,7 @@ export function resolveId (importee, importer) {
 export function makeOnwarn () {
 	const warned = blank();
 
-	return warning => {
+	return (warning: any) => {
 		const str = warning.toString();
 		if (str in warned) return;
 		console.error(str); //eslint-disable-line no-console

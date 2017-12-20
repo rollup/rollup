@@ -1,14 +1,14 @@
-function spaces (i) {
+function spaces (i: number) {
 	let result = '';
 	while (i--) result += ' ';
 	return result;
 }
 
-function tabsToSpaces (str) {
+function tabsToSpaces (str: string) {
 	return str.replace(/^\t+/, match => match.split('\t').join('  '));
 }
 
-export default function getCodeFrame (source, line, column) {
+export default function getCodeFrame (source: string, line: number, column: number) {
 	let lines = source.split('\n');
 
 	const frameStart = Math.max(0, line - 3);

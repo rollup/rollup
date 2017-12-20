@@ -1,11 +1,13 @@
 import * as fs from 'fs';
 import chokidar from './chokidar';
+import { WatchOptions, FSWatcher } from 'chokidar';
+import { Task } from './index';
 
 const opts = { encoding: 'utf-8', persistent: true };
 
-const watchers = new Map();
+const watchers = new Map<string, Map<string, FileWatcher>>();
 
-export function addTask (id, task, chokidarOptions, chokidarOptionsHash) {
+export function addTask (id: string, task: Task, chokidarOptions: WatchOptions, chokidarOptionsHash: string) {
 	if (!watchers.has(chokidarOptionsHash))
 		watchers.set(chokidarOptionsHash, new Map());
 	const group = watchers.get(chokidarOptionsHash);
@@ -25,7 +27,7 @@ export function addTask (id, task, chokidarOptions, chokidarOptionsHash) {
 	group.get(id).tasks.add(task);
 }
 
-export function deleteTask (id, target, chokidarOptionsHash) {
+export function deleteTask (id: string, target, chokidarOptionsHash: string) {
 	const group = watchers.get(chokidarOptionsHash);
 
 	const watcher = group.get(id);
@@ -40,10 +42,14 @@ export function deleteTask (id, target, chokidarOptionsHash) {
 }
 
 export default class FileWatcher {
-	constructor (id, chokidarOptions, dispose) {
+	fileExists: boolean;
+	fsWatcher: FSWatcher | fs.FSWatcher;
+	tasks: Set<Task>;
+
+	constructor (id: string, chokidarOptions: WatchOptions, dispose) {
 		this.tasks = new Set();
 
-		let data;
+		let data: string;
 
 		try {
 			fs.statSync(id);
@@ -59,7 +65,7 @@ export default class FileWatcher {
 			}
 		}
 
-		const handleWatchEvent = event => {
+		const handleWatchEvent = (event: string) => {
 			if (event === 'rename' || event === 'unlink') {
 				this.fsWatcher.close();
 				this.trigger();

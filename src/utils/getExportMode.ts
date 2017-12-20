@@ -1,7 +1,8 @@
 import { keys } from './object';
 import error from './error';
+import Bundle from '../Bundle';
 
-function badExports (option, keys) {
+function badExports (option: string, keys: string[]) {
 	error({
 		code: 'INVALID_EXPORT_OPTION',
 		message: `'${option}' was specified for options.exports, but entry module has following exports: ${keys.join(
@@ -11,8 +12,8 @@ function badExports (option, keys) {
 }
 
 export default function getExportMode (
-	bundle,
-	{ exports: exportMode, name, format }
+	bundle: Bundle,
+	{ exports: exportMode, name, format }: { exports: string, name: string, format: string }
 ) {
 	const exportKeys = keys(bundle.entryModule.exports)
 		.concat(keys(bundle.entryModule.reexports))

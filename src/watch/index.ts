@@ -1,22 +1,27 @@
+/// <reference path="./index.d.ts" />
+
 import path from 'path';
 import EventEmitter from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
-import rollup from '../rollup/index';
+import rollup, { InputOptions, OutputOptions } from '../rollup/index';
 import ensureArray from '../utils/ensureArray';
 import { mapSequence } from '../utils/promise';
 import { addTask, deleteTask } from './fileWatchers';
 import chokidar from './chokidar';
 import mergeOptions from '../utils/mergeOptions.js';
+import { WatchOptions } from 'chokidar';
+import Module from '../Module';
+import Bundle from '../Bundle';
 
 const DELAY = 100;
 
-class Watcher extends EventEmitter {
+class Watcher extends (<{ new(): any }>EventEmitter) {
 	dirty: boolean;
 	running: boolean;
 	tasks: Task[];
 	succeeded: boolean;
 
-	constructor (configs) {
+	constructor (configs: WatchOptions[]) {
 		super();
 
 		this.dirty = true;
@@ -56,7 +61,7 @@ class Watcher extends EventEmitter {
 			code: 'START'
 		});
 
-		mapSequence(this.tasks, task => task.run())
+		mapSequence(this.tasks, (task: Task) => task.run())
 			.then(() => {
 				this.succeeded = true;
 
@@ -80,15 +85,26 @@ class Watcher extends EventEmitter {
 	}
 }
 
-class Task {
+export class Task {
 	watcher: Watcher;
 	dirty: boolean;
 	closed: boolean;
 	watched: Set<string>;
+	inputOptions: InputOptions;
+	cache: {
+		modules: Module[]
+	};
+
+	chokidarOptions: WatchOptions;
+	chokidarOptionsHash: string;
+	outputFiles: string[];
+	outputs: OutputOptions[];
+
+	deprecations: string[];
 
 	filter: (id: string) => boolean;
 
-	constructor (watcher, config) {
+	constructor (watcher: Watcher, config: InputOptions & OutputOptions) {
 		this.cache = null;
 		this.watcher = watcher;
 
@@ -166,14 +182,14 @@ class Task {
 		}
 
 		return rollup(options)
-			.then(bundle => {
+			.then((bundle: Bundle) => {
 				if (this.closed) return;
 
 				this.cache = bundle;
 
 				const watched = new Set();
 
-				bundle.modules.forEach(module => {
+				bundle.modules.forEach((module: Module) => {
 					watched.add(module.id);
 					this.watchFile(module.id);
 				});
@@ -194,7 +210,7 @@ class Task {
 					duration: Date.now() - start
 				});
 			})
-			.catch(error => {
+			.catch((error: Error) => {
 				if (this.closed) return;
 
 				if (this.cache) {
@@ -208,7 +224,7 @@ class Task {
 			});
 	}
 
-	watchFile (id) {
+	watchFile (id: string) {
 		if (!this.filter(id)) return;
 
 		if (this.outputFiles.some(file => file === id)) {
@@ -221,6 +237,6 @@ class Task {
 	}
 }
 
-export default function watch (configs) {
+export default function watch (configs: WatchOptions[]) {
 	return new Watcher(configs);
 }

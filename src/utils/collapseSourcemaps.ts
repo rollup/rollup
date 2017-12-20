@@ -1,33 +1,53 @@
+/// <reference path="./collapseSourcemaps.d.ts" />
+
 import { encode } from 'sourcemap-codec';
 import error from './error';
 import { basename, dirname, relative, resolve } from './path';
+import Module from '../Module';
 
 class Source {
-	constructor (filename, content) {
+	isOriginal: boolean;
+	filename: string;
+	content: string;
+
+	constructor (filename: string, content: string) {
 		this.isOriginal = true;
 		this.filename = filename;
 		this.content = content;
 	}
 
-	traceSegment (line, column, name) {
+	traceSegment (line: number, column: number, name: string): SourceMapSegmentObject {
 		return { line, column, name, source: this };
 	}
 }
 
+type SourceMapSegmentVector = [number, number, number, number, number] | [number, number, number, number];
+
+interface SourceMapSegmentObject {
+	line: number;
+	column: number;
+	name: string;
+	source: Source
+};
+
 class Link {
-	constructor (map, sources) {
+	sources: Source[];
+	names: string[];
+	mappings: SourceMapSegmentVector[][];
+
+	constructor (map: { names: string[], mappings: SourceMapSegmentVector[][] }, sources: Source[]) {
 		this.sources = sources;
 		this.names = map.names;
 		this.mappings = map.mappings;
 	}
 
 	traceMappings () {
-		const sources = [];
-		const sourcesContent = [];
-		const names = [];
+		const sources: string[] = [];
+		const sourcesContent: string[] = [];
+		const names: string[] = [];
 
 		const mappings = this.mappings.map(line => {
-			const tracedLine = [];
+			const tracedLine: SourceMapSegmentVector[] = [];
 
 			line.forEach(segment => {
 				const source = this.sources[segment[1]];
@@ -86,7 +106,7 @@ class Link {
 		return { sources, sourcesContent, names, mappings };
 	}
 
-	traceSegment (line, column, name) {
+	traceSegment (line: number, column: number, name: string) {
 		const segments = this.mappings[line];
 
 		if (!segments) return null;
@@ -116,7 +136,7 @@ export default function collapseSourcemaps (
 	bundle,
 	file,
 	map,
-	modules,
+	modules: Module[],
 	bundleSourcemapChain
 ) {
 	const moduleSources = modules
@@ -124,7 +144,7 @@ export default function collapseSourcemaps (
 		.map(module => {
 			let sourcemapChain = module.sourcemapChain;
 
-			let source;
+			let source: Source;
 			if (module.originalSourcemap == null) {
 				source = new Source(module.id, module.originalCode);
 			} else {

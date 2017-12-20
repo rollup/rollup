@@ -1,8 +1,8 @@
-export function mapSequence (array, fn) {
-	const results = [];
-	let promise = Promise.resolve();
+export function mapSequence<T,U> (array: T[], fn: (member: T) => Promise<U> | U): Promise<U[]> {
+	const results: U[] = [];
+	let promise: Promise<U|void> = Promise.resolve();
 
-	function next (member, i) {
+	function next (member: T, i: number) {
 		return Promise.resolve(fn(member)).then(value => (results[i] = value));
 	}
 
@@ -13,6 +13,6 @@ export function mapSequence (array, fn) {
 	return promise.then(() => results);
 }
 
-export function runSequence (array) {
-	return mapSequence(array, i => i);
+export function runSequence<T> (array: T[]) {
+	return mapSequence<T,T>(array, i => i);
 }

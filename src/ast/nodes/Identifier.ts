@@ -1,3 +1,5 @@
+/// <reference path="./Identifier.d.ts" />
+
 import Node from '../Node';
 import isReference from 'is-reference';
 import { UNKNOWN_ASSIGNMENT, UnknownAssignment, UndefinedAssignment, PredicateFunction } from '../values';

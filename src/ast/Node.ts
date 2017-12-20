@@ -3,7 +3,7 @@
 /// <reference path="./Node.d.ts" />
 
 import { locate } from 'locate-character';
-import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE, UnknownAssignment, PredicateFunction } from './values';
+import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE, PredicateFunction } from './values';
 import ExecutionPathOptions from './ExecutionPathOptions';
 import Scope from './scopes/Scope';
 import Module from '../Module';

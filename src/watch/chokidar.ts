@@ -1,6 +1,9 @@
-import relative from 'require-relative';
+/// <reference path="./chokidar.d.ts" />
 
-let chokidar;
+import relative from 'require-relative';
+import * as chokidarType from 'chokidar';
+
+let chokidar: typeof chokidarType;
 
 try {
 	chokidar = relative('chokidar', process.cwd());

@@ -1,8 +1,8 @@
-export default function sequence (array, fn) {
-	const results = [];
-	let promise = Promise.resolve();
+export default function sequence<T,U> (array: T[], fn: (member: T) => Promise<U>): Promise<U[]> {
+	const results: U[] = [];
+	let promise: Promise<U|void> = Promise.resolve();
 
-	function next (member, i) {
+	function next (member: T, i: number) {
 		return fn(member).then(value => (results[i] = value));
 	}
 
