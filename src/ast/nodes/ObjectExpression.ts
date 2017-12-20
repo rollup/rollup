@@ -1,15 +1,17 @@
 import Node from '../Node';
-import { UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
-import { PropertyType } from './Property';
+import { UNKNOWN_KEY, UnknownKey } from '../variables/VariableReassignmentTracker';
+import Property from './Property';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import { PredicateFunction } from '../values';
+import Identifier from './Identifier';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
 const PROPERTY_KINDS_WRITE = ['init', 'set'];
 
 export default class ObjectExpression extends Node {
 	type: 'ObjectExpression';
-	properties: PropertyType[];
+	properties: Property[];
 
 	reassignPath (path: string[], options: ExecutionPathOptions) {
 		if (path.length === 0) return;
@@ -29,7 +31,7 @@ export default class ObjectExpression extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback,
+		callback: (options: ExecutionPathOptions) => (node: Node) => void,
 		options: ExecutionPathOptions
 	) {
 		if (path.length === 0) return;
@@ -49,7 +51,7 @@ export default class ObjectExpression extends Node {
 			);
 	}
 
-	_getPossiblePropertiesWithName (name, kinds) {
+	_getPossiblePropertiesWithName (name: string | UnknownKey, kinds: string[]) {
 		if (name === UNKNOWN_KEY) {
 			return { properties: this.properties, hasCertainHit: false };
 		}
@@ -61,7 +63,7 @@ export default class ObjectExpression extends Node {
 			if (kinds.indexOf(property.kind) < 0) continue;
 			if (property.computed) {
 				properties.push(property);
-			} else if (property.key.name === name) {
+			} else if ((<Identifier>property.key).name === name) {
 				properties.push(property);
 				hasCertainHit = true;
 				break;
@@ -102,7 +104,7 @@ export default class ObjectExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return true;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
@@ -120,9 +122,9 @@ export default class ObjectExpression extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		predicateFunction,
+		predicateFunction: (optioons: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions
-	) {
+	): boolean {
 		if (path.length === 0) return true;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(

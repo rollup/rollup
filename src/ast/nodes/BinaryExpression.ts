@@ -51,7 +51,7 @@ export default class BinaryExpression extends Node {
 		return operatorFn(leftValue, rightValue);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 }

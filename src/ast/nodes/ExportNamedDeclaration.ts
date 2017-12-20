@@ -1,7 +1,8 @@
 import Node from '../Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Declaration from '../Declaration';
+import Declaration from './Declaration';
 import Literal from './Literal';
+import MagicString from 'magic-string';
 
 export default class ExportNamedDeclaration extends Node {
 	type: 'ExportNamedDeclaration';
@@ -24,7 +25,7 @@ export default class ExportNamedDeclaration extends Node {
 		this.isExportDeclaration = true;
 	}
 
-	render (code, es) {
+	render (code: MagicString, es: boolean) {
 		if (this.declaration) {
 			code.remove(this.start, this.declaration.start);
 			this.declaration.render(code, es);

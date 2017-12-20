@@ -7,7 +7,7 @@ export default class ArrayExpression extends Node {
 	type: 'ArrayExpression';
 	elements: (Expression | SpreadElement | null)[]
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 }

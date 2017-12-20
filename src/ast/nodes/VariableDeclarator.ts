@@ -4,6 +4,7 @@ import Pattern from './Pattern';
 import Expression from './Expression';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import MagicString from 'magic-string';
 
 export default class VariableDeclarator extends Node {
 	type: 'VariableDeclarator';
@@ -14,14 +15,14 @@ export default class VariableDeclarator extends Node {
 		this.id.reassignPath(path, options);
 	}
 
-	initialiseDeclarator (parentScope: Scope, kind) {
+	initialiseDeclarator (parentScope: Scope, kind: string) {
 		this.initialiseScope(parentScope);
 		this.init && this.init.initialise(this.scope);
 		this.id.initialiseAndDeclare(this.scope, kind, this.init);
 	}
 
 	// TODO Deleting this does not break any tests. Find meaningful test or delete.
-	render (code, es) {
+	render (code: MagicString, es: boolean) {
 		extractNames(this.id).forEach(name => {
 			const variable = this.scope.findVariable(name);
 

@@ -16,7 +16,7 @@ export default class ForOfStatement extends Statement {
 		this.left.reassignPath([], ExecutionPathOptions.create());
 	}
 
-	hasEffects (options) {
+	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
 			(this.left &&
 				(this.left.hasEffects(options) ||

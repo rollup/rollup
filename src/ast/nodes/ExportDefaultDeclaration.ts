@@ -5,6 +5,7 @@ import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration from './ClassDeclaration';
 import FunctionDeclaration from './FunctionDeclaration';
 import Identifier from './Identifier';
+import MagicString from 'magic-string';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
@@ -66,11 +67,21 @@ export default class ExportDefaultDeclaration extends Node {
 		);
 	}
 
-	render (code, es) {
-		const remove = () => { code.remove(this.leadingCommentStart || this.start, this.next || this.end); };
-		const removeExportDefault = () => { code.remove(this.start, declaration_start); };
+	render (code: MagicString, es: boolean) {
+		const remove = () => {
+			code.remove(
+				this.leadingCommentStart || this.start,
+				this.next || this.end
+			);
+		};
+		const removeExportDefault = () => {
+			code.remove(this.start, declaration_start);
+		};
 
-		const treeshakeable = this.module.bundle.treeshake && !this.included && !this.declaration.included;
+		const treeshakeable =
+			this.module.bundle.treeshake &&
+			!this.included &&
+			!this.declaration.included;
 		const name = this.variable.getName(es);
 		const statementStr = code.original.slice(this.start, this.end);
 
@@ -84,7 +95,7 @@ export default class ExportDefaultDeclaration extends Node {
 			}
 
 			// Add the id to anonymous declarations
-			if (!this.declaration.id) {
+			if (!(<FunctionDeclaration | ClassDeclaration>this.declaration).id) {
 				const id_insertPos =
 					this.start + statementStr.match(sourceRE.declarationHeader)[0].length;
 				code.appendLeft(id_insertPos, ` ${name}`);

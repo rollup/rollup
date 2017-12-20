@@ -1,16 +1,17 @@
 import Node from '../Node';
 import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import MagicString from 'magic-string';
 
 export default class SequenceExpression extends Node {
 	type: 'SequenceExpression';
 	expressions: Expression[];
 
-	getValue () {
+	getValue (): any {
 		return this.expressions[this.expressions.length - 1].getValue();
 	}
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects (options: ExecutionPathOptions): boolean {
 		return this.expressions.some(expression => expression.hasEffects(options));
 	}
 
@@ -30,7 +31,7 @@ export default class SequenceExpression extends Node {
 		return addedNewNodes;
 	}
 
-	render (code, es) {
+	render (code: MagicString, es: boolean) {
 		if (!this.module.bundle.treeshake) {
 			super.render(code, es);
 		} else {

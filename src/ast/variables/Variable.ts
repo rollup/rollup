@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment } from '../values';
+import { UNKNOWN_ASSIGNMENT, UnknownAssignment, PredicateFunction } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
@@ -43,7 +43,7 @@ export default class Variable {
 	/**
 	 * @returns {String}
 	 */
-	getName () {
+	getName (_es: boolean) {
 		return this.name;
 	}
 
@@ -100,7 +100,7 @@ export default class Variable {
 	someReturnExpressionWhenCalledAtPath (
 		_path: string[],
 		_callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => (node: Node | UnknownAssignment) => boolean,
+		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions
 	) {
 		return predicateFunction(options)(UNKNOWN_ASSIGNMENT);

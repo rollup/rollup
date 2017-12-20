@@ -3,6 +3,7 @@ import Literal from './Literal';
 import ImportSpecifier from './ImportSpecifier';
 import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
+import MagicString from 'magic-string';
 
 export default class ImportDeclaration extends Node {
 	type: 'ImportDeclaration';
@@ -16,7 +17,7 @@ export default class ImportDeclaration extends Node {
 		this.isImportDeclaration = true;
 	}
 
-	render (code) {
+	render (code: MagicString) {
 		code.remove(this.start, this.next || this.end);
 	}
 }

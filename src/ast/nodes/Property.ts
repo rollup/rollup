@@ -1,27 +1,35 @@
 import Node from '../Node';
 import CallOptions from '../CallOptions';
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment, UndefinedAssignment } from '../values';
+import { UNKNOWN_ASSIGNMENT, UnknownAssignment, UndefinedAssignment, PredicateFunction } from '../values';
 import Literal from './Literal';
 import Identifier from './Identifier';
 import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import Pattern from './Pattern';
+import Declaration from './Declaration';
+import MagicString from 'magic-string';
 
-export interface PropertyType {
+// this excludes the AssignmentProperty case
+export interface StandardProperty extends Property {
 	value: Expression;
 };
 
 export default class Property extends Node {
 	type: 'Property';
-	key: Literal | Identifier;
+	key: Literal | Identifier | Expression;
 	value: Expression | Pattern;
 	kind: 'init' | 'get' | 'set';
+	method: boolean;
+	shorthand: boolean;
+	computed: boolean;
+
+	private _accessorCallOptions: CallOptions;
 
 	reassignPath (path: string[], options: ExecutionPathOptions) {
 		if (this.kind === 'get') {
 			path.length > 0 &&
-				this.value.forEachReturnExpressionWhenCalledAtPath(
+				(<Expression>this.value).forEachReturnExpressionWhenCalledAtPath(
 					[],
 					this._accessorCallOptions,
 					innerOptions => node =>
@@ -39,7 +47,7 @@ export default class Property extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback,
+		callback: (options: ExecutionPathOptions) => (node: Node) => void,
 		options: ExecutionPathOptions
 	) {
 		if (this.kind === 'get') {
@@ -65,7 +73,7 @@ export default class Property extends Node {
 		}
 	}
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects (options: ExecutionPathOptions): boolean {
 		return this.key.hasEffects(options) || this.value.hasEffects(options);
 	}
 
@@ -122,7 +130,7 @@ export default class Property extends Node {
 		return this.value.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
-	hasEffectsWhenCalledAtPath (path, callOptions, options) {
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
 		if (this.kind === 'get') {
 			return (
 				this.value.hasEffectsWhenCalledAtPath(
@@ -161,7 +169,7 @@ export default class Property extends Node {
 		});
 	}
 
-	render (code, es) {
+	render (code: MagicString, es: boolean) {
 		if (!this.shorthand) {
 			this.key.render(code, es);
 		}
@@ -169,11 +177,11 @@ export default class Property extends Node {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
-		predicateFunction,
-		options
-	) {
+		path: string[],
+		callOptions: CallOptions,
+		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		options: ExecutionPathOptions
+	): boolean {
 		if (this.kind === 'get') {
 			return (
 				this.value.hasEffectsWhenCalledAtPath(

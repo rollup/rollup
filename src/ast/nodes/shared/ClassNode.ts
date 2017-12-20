@@ -9,11 +9,11 @@ export default class ClassNode extends Node {
 	superClass: Node;
 	id: Identifier;
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: string[], _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 

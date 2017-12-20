@@ -1,6 +1,10 @@
 import { UNKNOWN_ASSIGNMENT } from '../values';
 
-export const UNKNOWN_KEY = { type: 'UNKNOWN_KEY' };
+export interface UnknownKey {
+	type: 'UNKNOWN_KEY';
+};
+
+export const UNKNOWN_KEY: UnknownKey = { type: 'UNKNOWN_KEY' };
 
 class ReassignedPathTracker {
 	constructor () {

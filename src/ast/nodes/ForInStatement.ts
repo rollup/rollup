@@ -1,17 +1,19 @@
 import Statement from './shared/Statement';
+import StatementType from './Statement';
 import BlockScope from '../scopes/BlockScope';
 import VariableDeclaration from './VariableDeclaration';
 import Pattern from './Pattern';
 import Expression from './Expression';
 import Scope from '../scopes/Scope';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class ForInStatement extends Statement {
 	type: 'ForInStatement';
 	left: VariableDeclaration | Pattern;
 	right: Expression;
-	body: Statement;
+	body: StatementType;
 
-	hasEffects (options) {
+	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
 			(this.left &&
 				(this.left.hasEffects(options) ||

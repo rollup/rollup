@@ -4,7 +4,7 @@ import Scope from '../Scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Pattern from './Pattern';
 import Expression from './Expression';
-import Declaration from '../Declaration';
+import Declaration from './Declaration';
 
 export default class ArrayPattern extends Node {
 	type: 'ArrayPattern';

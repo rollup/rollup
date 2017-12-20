@@ -58,7 +58,7 @@ export default class LocalVariable extends Variable {
 		);
 	}
 
-	getName (es) {
+	getName (es: boolean) {
 		if (es) return this.name;
 		if (!this.isReassigned || !this.exportName) return this.name;
 

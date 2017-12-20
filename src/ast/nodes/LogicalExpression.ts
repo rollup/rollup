@@ -1,5 +1,5 @@
 import Node from '../Node';
-import { UNKNOWN_VALUE } from '../values';
+import { UNKNOWN_VALUE, PredicateFunction } from '../values';
 import Expression from './Expression';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
@@ -20,10 +20,10 @@ export default class LogicalExpression extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback,
+		callback: (options: ExecutionPathOptions) => (node: Node) => void,
 		options: ExecutionPathOptions
 	) {
-		this._forEachRelevantBranch(node =>
+		this._forEachRelevantBranch((node: Expression) =>
 			node.forEachReturnExpressionWhenCalledAtPath(
 				path,
 				callOptions,
@@ -83,9 +83,9 @@ export default class LogicalExpression extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		predicateFunction,
+		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions
-	) {
+	): boolean {
 		return this._someRelevantBranch(node =>
 			node.someReturnExpressionWhenCalledAtPath(
 				path,
@@ -96,7 +96,7 @@ export default class LogicalExpression extends Node {
 		);
 	}
 
-	_forEachRelevantBranch (callback) {
+	_forEachRelevantBranch (callback: (node: Expression) => void) {
 		const leftValue = this.left.getValue();
 		if (leftValue === UNKNOWN_VALUE) {
 			callback(this.left);
@@ -111,7 +111,7 @@ export default class LogicalExpression extends Node {
 		}
 	}
 
-	_someRelevantBranch (predicateFunction) {
+	_someRelevantBranch (predicateFunction: (node: Expression) => boolean) {
 		const leftValue = this.left.getValue();
 		if (leftValue === UNKNOWN_VALUE) {
 			return predicateFunction(this.left) || predicateFunction(this.right);

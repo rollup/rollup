@@ -1,33 +1,25 @@
+import Node from './Node';
+import ExecutionPathOptions from './ExecutionPathOptions';
+import CallOptions from './CallOptions';
+
 export const UNKNOWN_VALUE = { toString: () => '[[UNKNOWN]]' };
 
-export interface UnknownAssignment {
+export type PredicateFunction = (node: Node | UnknownAssignment) => boolean;
+
+export interface UnknownAssignment extends Node {
 	type: 'UNKNOWN';
-	reassignPath: () => void;
-	forEachReturnExpressionWhenCalledAtPath: () => void;
-	hasEffectsWhenAccessedAtPath: (path: string[]) => boolean;
-	hasEffectsWhenAssignedAtPath: (path: string[]) => boolean;
-	hasEffectsWhenCalledAtPath: () => true,
-	someReturnExpressionWhenCalledAtPath: () => true,
-	toString: () => '[[UNKNOWN]]'
 };
 
-export interface UndefinedAssignment {
+export interface UndefinedAssignment extends Node {
 	type: 'UNDEFINED';
-	reassignPath: () => void,
-	forEachReturnExpressionWhenCalledAtPath: () => void,
-	hasEffectsWhenAccessedAtPath: (path: string[]) => boolean;
-	hasEffectsWhenAssignedAtPath: (path: string[]) => boolean;
-	hasEffectsWhenCalledAtPath: () => true,
-	someReturnExpressionWhenCalledAtPath: () => true,
-	toString: () => '[[UNDEFINED]]'
 };
 
 export const UNKNOWN_ASSIGNMENT: UnknownAssignment = {
 	type: 'UNKNOWN',
 	reassignPath: () => { },
 	forEachReturnExpressionWhenCalledAtPath: () => { },
-	hasEffectsWhenAccessedAtPath: (path: string[]) => path.length > 0,
-	hasEffectsWhenAssignedAtPath: (path: string[]) => path.length > 0,
+	hasEffectsWhenAccessedAtPath: (path: string[], _options: ExecutionPathOptions) => path.length > 0,
+	hasEffectsWhenAssignedAtPath: (path: string[], _options: ExecutionPathOptions) => path.length > 0,
 	hasEffectsWhenCalledAtPath: () => true,
 	someReturnExpressionWhenCalledAtPath: () => true,
 	toString: () => '[[UNKNOWN]]'
@@ -37,9 +29,9 @@ export const UNDEFINED_ASSIGNMENT: UndefinedAssignment = {
 	type: 'UNDEFINED',
 	reassignPath: () => { },
 	forEachReturnExpressionWhenCalledAtPath: () => { },
-	hasEffectsWhenAccessedAtPath: (path: string[]) => path.length > 0,
-	hasEffectsWhenAssignedAtPath: (path: string[]) => path.length > 0,
-	hasEffectsWhenCalledAtPath: () => true,
+	hasEffectsWhenAccessedAtPath: (path: string[], _options: ExecutionPathOptions) => path.length > 0,
+	hasEffectsWhenAssignedAtPath: (path: string[], _options: ExecutionPathOptions) => path.length > 0,
+	hasEffectsWhenCalledAtPath: (_path: string[], _callOptions: CallOptions, _options: ExecutionPathOptions) => true,
 	someReturnExpressionWhenCalledAtPath: () => true,
 	toString: () => '[[UNDEFINED]]'
 };

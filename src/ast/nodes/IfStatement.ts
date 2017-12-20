@@ -6,6 +6,7 @@ import Expression from './Expression';
 import Scope from '../scopes/Scope';
 import Node from '../Node';
 import VariableDeclaration from './VariableDeclaration';
+import MagicString from 'magic-string';
 
 // Statement types which may contain if-statements as direct children.
 const statementsWithIfStatements = new Set([
@@ -69,7 +70,7 @@ export default class IfStatement extends Statement {
 		}
 	}
 
-	render (code, es) {
+	render (code: MagicString, es: boolean) {
 		if (this.module.bundle.treeshake) {
 			if (this.testValue === UNKNOWN_VALUE) {
 				super.render(code, es);

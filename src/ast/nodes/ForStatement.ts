@@ -12,7 +12,7 @@ export default class ForStatement extends Statement {
 	update: Expression | null;
 	body: Statement;
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
 			(this.init && this.init.hasEffects(options)) ||
 			(this.test && this.test.hasEffects(options)) ||

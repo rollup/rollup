@@ -7,6 +7,7 @@ import Identifier from '../Identifier';
 import Pattern from '../Pattern';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
+import { PredicateFunction } from '../../values';
 
 export default class FunctionNode extends Node {
   id: Identifier;
@@ -38,28 +39,22 @@ export default class FunctionNode extends Node {
     return this.id && this.id.hasEffects(options);
   }
 
-  hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+  hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
     if (path.length <= 1) {
       return false;
     }
     if (path[0] === 'prototype') {
-      return this.prototypeObject.hasEffectsWhenAccessedAtPath(
-        path.slice(1),
-        options
-      );
+      return this.prototypeObject.hasEffectsWhenAccessedAtPath(path.slice(1));
     }
     return true;
   }
 
-  hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+  hasEffectsWhenAssignedAtPath (path: string[], _options: ExecutionPathOptions) {
     if (path.length <= 1) {
       return false;
     }
     if (path[0] === 'prototype') {
-      return this.prototypeObject.hasEffectsWhenAssignedAtPath(
-        path.slice(1),
-        options
-      );
+      return this.prototypeObject.hasEffectsWhenAssignedAtPath(path.slice(1));
     }
     return true;
   }
@@ -94,7 +89,7 @@ export default class FunctionNode extends Node {
   someReturnExpressionWhenCalledAtPath (
     path: string[],
     callOptions: CallOptions,
-    predicateFunction: (node: Node) => boolean,
+    predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
     options: ExecutionPathOptions
   ) {
     return (

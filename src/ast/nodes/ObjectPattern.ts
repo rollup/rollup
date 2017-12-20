@@ -4,7 +4,7 @@ import Scope from '../scopes/Scope';
 import Expression from './Expression';
 import { UnknownAssignment, UndefinedAssignment } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Declaration from '../Declaration';
+import Declaration from './Declaration';
 
 export default class ObjectPattern extends Node {
 	type: 'ObjectPattern';

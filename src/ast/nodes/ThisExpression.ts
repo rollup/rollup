@@ -1,10 +1,13 @@
 import Node from '../Node';
 import ThisVariable from '../variables/ThisVariable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import MagicString from 'magic-string';
 
 export default class ThisExpression extends Node {
 	type: 'ThisExpression';
 	variable: ThisVariable;
+
+	alias: string;
 
 	initialiseNode () {
 		const lexicalBoundary = this.scope.findLexicalBoundary();
@@ -39,7 +42,7 @@ export default class ThisExpression extends Node {
 		return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
-	render (code) {
+	render (code: MagicString, _es: boolean) {
 		if (this.alias) {
 			code.overwrite(this.start, this.end, this.alias, {
 				storeName: true,

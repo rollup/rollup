@@ -1,4 +1,5 @@
 import Node from '../Node';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class TemplateElement extends Node {
 	type: 'TemplateElement';
@@ -8,7 +9,7 @@ export default class TemplateElement extends Node {
 		raw: string;
 	};
 
-	hasEffects () {
+	hasEffects (_options: ExecutionPathOptions) {
 		return false;
 	}
 }

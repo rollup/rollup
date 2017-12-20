@@ -4,7 +4,7 @@ import Pattern from './Pattern';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Expression from './Expression';
 import Scope from '../scopes/Scope';
-import Declaration from '../Declaration';
+import Declaration from './Declaration';
 
 export default class RestElement extends Node {
 	type: 'RestElement';

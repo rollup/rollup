@@ -3,7 +3,7 @@
 /// <reference path="./Node.d.ts" />
 
 import { locate } from 'locate-character';
-import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE } from './values';
+import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE, UnknownAssignment, PredicateFunction } from './values';
 import ExecutionPathOptions from './ExecutionPathOptions';
 import Scope from './scopes/Scope';
 import Module from '../Module';
@@ -47,7 +47,7 @@ export default class Node {
 	 * @param {String[]} path
 	 * @param {ExecutionPathOptions} options
 	 */
-	reassignPath (path: string[], options: ExecutionPathOptions) { }
+	reassignPath (_path: string[], _options: ExecutionPathOptions) { }
 
 	/**
 	 * Override to control on which children "bind" is called.
@@ -82,7 +82,12 @@ export default class Node {
 	 * @param {Function} callback
 	 * @param {ExecutionPathOptions} options
 	 */
-	forEachReturnExpressionWhenCalledAtPath (path: string[], callOptions: CallOptions, callback, options: ExecutionPathOptions) { }
+	forEachReturnExpressionWhenCalledAtPath (
+		_path: string[],
+		_callOptions: CallOptions,
+		_callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		_options: ExecutionPathOptions
+	) { }
 
 	getValue () {
 		return UNKNOWN_VALUE;
@@ -105,7 +110,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
 		return path.length > 0;
 	}
 
@@ -114,7 +119,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (_path: string[], _options: ExecutionPathOptions) {
 		return true;
 	}
 
@@ -124,7 +129,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath (_path: string[], _callOptions: CallOptions, _options: ExecutionPathOptions) {
 		return true;
 	}
 
@@ -185,7 +190,7 @@ export default class Node {
 	 * Override to change how and with what scopes children are initialised
 	 * @param {Scope} parentScope
 	 */
-	initialiseChildren (parentScope: Scope) {
+	initialiseChildren (_parentScope: Scope) {
 		this.eachChild(child => child.initialise(this.scope));
 	}
 
@@ -193,7 +198,7 @@ export default class Node {
 	 * Override to perform special initialisation steps after the scope is initialised
 	 * @param {Scope} parentScope
 	 */
-	initialiseNode (parentScope?: Scope) { }
+	initialiseNode (_parentScope: Scope) { }
 
 	/**
 	 * Override if this scope should receive a different scope than the parent scope.
@@ -218,7 +223,7 @@ export default class Node {
 		return location;
 	}
 
-	render (code, es: boolean) {
+	render (code: MagicString, es: boolean) {
 		this.eachChild(child => child.render(code, es));
 	}
 
@@ -258,7 +263,12 @@ export default class Node {
 	 * @param {ExecutionPathOptions} options
 	 * @returns {boolean}
 	 */
-	someReturnExpressionWhenCalledAtPath (path: string[], callOptions: CallOptions, predicateFunction, options: ExecutionPathOptions) {
+	someReturnExpressionWhenCalledAtPath (
+		_path: string[],
+		_callOptions: CallOptions,
+		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		options: ExecutionPathOptions
+	): boolean {
 		return predicateFunction(options)(UNKNOWN_ASSIGNMENT);
 	}
 

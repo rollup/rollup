@@ -1,14 +1,21 @@
 import Node from '../Node';
 import isReference from 'is-reference';
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment, UndefinedAssignment } from '../values';
+import { UNKNOWN_ASSIGNMENT, UnknownAssignment, UndefinedAssignment, PredicateFunction } from '../values';
 import Scope from '../scopes/Scope';
 import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Declaration from '../Declaration';
+import Declaration from './Declaration';
+import Variable from '../variables/Variable';
+import CallOptions from '../CallOptions';
+import FunctionScope from '../scopes/FunctionScope';
+import MagicString from 'magic-string';
+import Property from './Property';
 
 export default class Identifier extends Node {
 	type: 'Identifier';
 	name: string;
+
+	variable: Variable;
 
 	reassignPath (path: string[], options: ExecutionPathOptions) {
 		this._bindVariableIfMissing();
@@ -27,10 +34,10 @@ export default class Identifier extends Node {
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
-		callback,
-		options
+		path: string[],
+		callOptions: CallOptions,
+		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		options: ExecutionPathOptions
 	) {
 		this._bindVariableIfMissing();
 		this.variable &&
@@ -55,7 +62,7 @@ export default class Identifier extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path, callOptions, options) {
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
 		return (
 			!this.variable ||
 			this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options)
@@ -85,14 +92,14 @@ export default class Identifier extends Node {
 				this.variable = this.scope.addDeclaration(this, { init });
 				break;
 			case 'parameter':
-				this.variable = this.scope.addParameterDeclaration(this);
+				this.variable = (<FunctionScope>this.scope).addParameterDeclaration(this);
 				break;
 			default:
-				throw new Error('Unexpected identifier kind', kind);
+				throw new Error(`Unexpected identifier kind ${kind}.`);
 		}
 	}
 
-	render (code, es) {
+	render (code: MagicString, es: boolean) {
 		if (this.variable) {
 			const name = this.variable.getName(es);
 			if (name !== this.name) {
@@ -102,7 +109,7 @@ export default class Identifier extends Node {
 				});
 
 				// special case
-				if (this.parent.type === 'Property' && this.parent.shorthand) {
+				if (this.parent.type === 'Property' && (<Property>this.parent).shorthand) {
 					code.appendLeft(this.start, `${this.name}: `);
 				}
 			}
@@ -110,10 +117,10 @@ export default class Identifier extends Node {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
-		predicateFunction,
-		options
+		path: string[],
+		callOptions: CallOptions,
+		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		options: ExecutionPathOptions
 	) {
 		if (this.variable) {
 			return this.variable.someReturnExpressionWhenCalledAtPath(

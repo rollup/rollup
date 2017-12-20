@@ -1,5 +1,5 @@
 import Node from '../Node';
-import { UNKNOWN_VALUE } from '../values';
+import { UNKNOWN_VALUE, PredicateFunction } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Expression from './Expression';
 import CallOptions from '../CallOptions';
@@ -110,7 +110,12 @@ export default class ConditionalExpression extends Node {
 		}
 	}
 
-	someReturnExpressionWhenCalledAtPath (path: string[], callOptions: CallOptions, predicateFunction: (node: Node) => boolean, options: ExecutionPathOptions) {
+	someReturnExpressionWhenCalledAtPath (
+		path: string[],
+		callOptions: CallOptions,
+		predicateFunction: (options: ExecutionPathOptions) =>  PredicateFunction,
+		options: ExecutionPathOptions
+	): boolean {
 		return this._someRelevantBranch(node =>
 			node.someReturnExpressionWhenCalledAtPath(
 				path,

@@ -3,6 +3,7 @@ import CallOptions from '../CallOptions';
 import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import SpreadElement from './SpreadElement';
+import { PredicateFunction } from '../values';
 
 export default class CallExpression extends Node {
 	type: 'CallExpression';
@@ -56,7 +57,7 @@ export default class CallExpression extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback,
+		callback: (options: ExecutionPathOptions) => (node: Node) => void,
 		options: ExecutionPathOptions
 	) {
 		this.callee.forEachReturnExpressionWhenCalledAtPath(
@@ -117,7 +118,7 @@ export default class CallExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		return (
 			!options.hasReturnExpressionBeenCalledAtPath(path, this) &&
 			this.callee.someReturnExpressionWhenCalledAtPath(
@@ -145,9 +146,9 @@ export default class CallExpression extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		predicateFunction,
+		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions
-	) {
+	): boolean {
 		return this.callee.someReturnExpressionWhenCalledAtPath(
 			[],
 			this._callOptions,

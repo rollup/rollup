@@ -7,7 +7,7 @@ export default class WhileStatement extends Statement {
 	test: Expression;
 	body: Statement;
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
 			this.test.hasEffects(options) ||
 			this.body.hasEffects(options.setIgnoreBreakStatements())

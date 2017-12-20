@@ -4,7 +4,7 @@ import Pattern from './Pattern';
 import Expression from './Expression';
 import Scope from '../Scopes/Scope';
 import { UnknownAssignment, UndefinedAssignment } from '../values';
-import Declaration from '../Declaration';
+import Declaration from './Declaration';
 
 export default class AssignmentPattern extends Node {
 	type: 'AssignmentPattern';

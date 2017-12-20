@@ -6,6 +6,7 @@ import Pattern from './Pattern';
 import Expression from './Expression';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import { PredicateFunction } from '../values';
 
 export default class ArrowFunctionExpression extends Node {
 	type: 'ArrowFunctionExpression';
@@ -16,7 +17,7 @@ export default class ArrowFunctionExpression extends Node {
 	bindNode () {
 		(<BlockStatement>this.body).bindImplicitReturnExpressionToScope
 			? (<BlockStatement>this.body).bindImplicitReturnExpressionToScope()
-			: this.scope.addReturnExpression(this.body);
+			: this.scope.addReturnExpression(<Expression>this.body);
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
@@ -29,19 +30,19 @@ export default class ArrowFunctionExpression extends Node {
 			this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
 	}
 
-	hasEffects () {
+	hasEffects (_options: ExecutionPathOptions) {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: string[], _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath (path: string[], _callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length > 0) {
 			return true;
 		}
@@ -69,7 +70,7 @@ export default class ArrowFunctionExpression extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		predicateFunction: (node: Node) => boolean,
+		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions
 	) {
 		return (

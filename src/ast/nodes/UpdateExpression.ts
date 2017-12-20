@@ -25,7 +25,7 @@ export default class UpdateExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 }
