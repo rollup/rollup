@@ -1,6 +1,6 @@
 import Node from '../Node';
 import { UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
-import Property from './Property';
+import { PropertyType } from './Property';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 
@@ -9,9 +9,9 @@ const PROPERTY_KINDS_WRITE = ['init', 'set'];
 
 export default class ObjectExpression extends Node {
 	type: 'ObjectExpression';
-	properties: Property[];
+	properties: PropertyType[];
 
-	reassignPath (path: string[], options) {
+	reassignPath (path: string[], options: ExecutionPathOptions) {
 		if (path.length === 0) return;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(

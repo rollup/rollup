@@ -1,13 +1,16 @@
 import Node from '../Node';
 import isReference from 'is-reference';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import { UNKNOWN_ASSIGNMENT, UnknownAssignment, UndefinedAssignment } from '../values';
 import Scope from '../scopes/Scope';
+import Expression from './Expression';
+import ExecutionPathOptions from '../ExecutionPathOptions';
+import Declaration from '../Declaration';
 
 export default class Identifier extends Node {
 	type: 'Identifier';
 	name: string;
 
-	reassignPath (path: string[], options) {
+	reassignPath (path: string[], options: ExecutionPathOptions) {
 		this._bindVariableIfMissing();
 		this.variable && this.variable.reassignPath(path, options);
 	}
@@ -39,13 +42,13 @@ export default class Identifier extends Node {
 			);
 	}
 
-	hasEffectsWhenAccessedAtPath (path, options) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		return (
 			this.variable && this.variable.hasEffectsWhenAccessedAtPath(path, options)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path, options) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		return (
 			!this.variable ||
 			this.variable.hasEffectsWhenAssignedAtPath(path, options)
@@ -66,7 +69,7 @@ export default class Identifier extends Node {
 		return true;
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Node) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
 		this.initialiseScope(parentScope);
 		switch (kind) {
 			case 'var':

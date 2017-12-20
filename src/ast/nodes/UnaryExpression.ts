@@ -44,7 +44,7 @@ export default class UnaryExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[]) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
 		if (this.operator === 'void') {
 			return path.length > 0;
 		}

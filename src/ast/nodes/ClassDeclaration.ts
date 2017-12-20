@@ -1,6 +1,7 @@
 import ClassNode from './shared/ClassNode';
 import Scope from '../scopes/Scope';
 import Identifier from './Identifier';
+import MagicString from 'magic-string';
 
 export default class ClassDeclaration extends ClassNode {
 	type: 'ClassDeclaration';
@@ -12,7 +13,7 @@ export default class ClassDeclaration extends ClassNode {
 		super.initialiseChildren(parentScope);
 	}
 
-	render (code, es) {
+	render (code: MagicString, es: boolean) {
 		if (!this.module.bundle.treeshake || this.included) {
 			super.render(code, es);
 		} else {

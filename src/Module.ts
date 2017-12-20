@@ -17,6 +17,8 @@ import clone from './ast/clone';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { encode } from 'sourcemap-codec';
 import { SourceMapConsumer } from 'source-map';
+import ImportSpecifier from './ast/nodes/ImportSpecifier';
+import Bundle from './Bundle';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
@@ -45,6 +47,25 @@ function includeFully (node) {
 }
 
 export default class Module {
+
+	code: string;
+	id: string;
+	bundle: Bundle;
+	originalCode: string;
+	// originalSourcemap: string;
+	// sourcemapChain:
+
+	imports: {
+		[name: string]: {
+			source: string;
+			specifier: ImportSpecifier[];
+			name: string;
+			module: Module | null;
+		}
+	};
+	magicString: MagicString;
+	scope: ModuleScope;
+
 	constructor ({
 		id,
 		code,

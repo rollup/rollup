@@ -20,7 +20,12 @@ export default class FunctionNode extends Node {
     this.body.bindImplicitReturnExpressionToScope();
   }
 
-  forEachReturnExpressionWhenCalledAtPath (path: string[], callOptions: CallOptions, callback, options: ExecutionPathOptions) {
+  forEachReturnExpressionWhenCalledAtPath (
+    path: string[],
+    callOptions: CallOptions,
+    callback: (options: ExecutionPathOptions) => (node: Node) => void,
+    options: ExecutionPathOptions
+  ) {
     path.length === 0 &&
       this.scope.forEachReturnExpressionWhenCalled(
         callOptions,
@@ -86,7 +91,12 @@ export default class FunctionNode extends Node {
     this.scope = new FunctionScope({ parent: parentScope });
   }
 
-  someReturnExpressionWhenCalledAtPath (path: string[], callOptions: CallOptions, predicateFunction, options: ExecutionPathOptions) {
+  someReturnExpressionWhenCalledAtPath (
+    path: string[],
+    callOptions: CallOptions,
+    predicateFunction: (node: Node) => boolean,
+    options: ExecutionPathOptions
+  ) {
     return (
       path.length > 0 ||
       this.scope.someReturnExpressionWhenCalled(

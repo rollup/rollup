@@ -21,7 +21,7 @@ export default class NewExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[]) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 

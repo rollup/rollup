@@ -1,4 +1,6 @@
 import ParameterScope from './ParameterScope';
+import { UndefinedAssignment } from '../values';
+import Expression from '../nodes/Expression';
 
 export default class ReturnValueScope extends ParameterScope {
 	constructor (options = {}) {
@@ -6,7 +8,7 @@ export default class ReturnValueScope extends ParameterScope {
 		this._returnExpressions = new Set();
 	}
 
-	addReturnExpression (expression) {
+	addReturnExpression (expression: Expression | UndefinedAssignment) {
 		this._returnExpressions.add(expression);
 	}
 

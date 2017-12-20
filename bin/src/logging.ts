@@ -6,11 +6,11 @@ if (!process.stderr.isTTY) chalk.enabled = false;
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
 export const stderr = console.error.bind(console); // eslint-disable-line no-console
 
-export function handleError (err, recover) {
+export function handleError (err: Error, recover: boolean) {
 	let description = err.message || err;
 	if (err.name) description = `${err.name}: ${description}`;
 	const message =
-		(err.plugin ? `(${err.plugin} plugin) ${description}` : description) || err;
+		((<{ plugin?: string }>err).plugin ? `(${(<{ plugin?: string }>err).plugin} plugin) ${description}` : description) || err;
 
 	stderr(chalk.bold.red(`[!] ${chalk.bold(message)}`));
 

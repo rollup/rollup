@@ -12,7 +12,7 @@ export default class LogicalExpression extends Node {
 	left: Expression;
 	right: Expression;
 
-	reassignPath (path: string[], options) {
+	reassignPath (path: string[], options: ExecutionPathOptions) {
 		path.length > 0 &&
 			this._forEachRelevantBranch(node => node.reassignPath(path, options));
 	}
@@ -56,7 +56,7 @@ export default class LogicalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 &&
 			this._someRelevantBranch(node =>
@@ -65,7 +65,7 @@ export default class LogicalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		return (
 			path.length === 0 ||
 			this._someRelevantBranch(node =>
@@ -74,7 +74,7 @@ export default class LogicalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		return this._someRelevantBranch(node =>
 			node.hasEffectsWhenCalledAtPath(path, callOptions, options)
 		);

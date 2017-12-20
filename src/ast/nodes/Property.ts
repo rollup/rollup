@@ -1,18 +1,24 @@
 import Node from '../Node';
 import CallOptions from '../CallOptions';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import { UNKNOWN_ASSIGNMENT, UnknownAssignment, UndefinedAssignment } from '../values';
 import Literal from './Literal';
 import Identifier from './Identifier';
 import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import Scope from '../scopes/Scope';
+import Pattern from './Pattern';
+
+export interface PropertyType {
+	value: Expression;
+};
 
 export default class Property extends Node {
 	type: 'Property';
 	key: Literal | Identifier;
-	value: Expression;
+	value: Expression | Pattern;
 	kind: 'init' | 'get' | 'set';
 
-	reassignPath (path: string[], options) {
+	reassignPath (path: string[], options: ExecutionPathOptions) {
 		if (this.kind === 'get') {
 			path.length > 0 &&
 				this.value.forEachReturnExpressionWhenCalledAtPath(
@@ -63,7 +69,7 @@ export default class Property extends Node {
 		return this.key.hasEffects(options) || this.value.hasEffects(options);
 	}
 
-	hasEffectsWhenAccessedAtPath (path, options): boolean {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		if (this.kind === 'get') {
 			return (
 				this.value.hasEffectsWhenCalledAtPath(
@@ -87,7 +93,7 @@ export default class Property extends Node {
 		return this.value.hasEffectsWhenAccessedAtPath(path, options);
 	}
 
-	hasEffectsWhenAssignedAtPath (path, options) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		if (this.kind === 'get') {
 			return (
 				path.length === 0 ||
@@ -141,7 +147,7 @@ export default class Property extends Node {
 		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	initialiseAndDeclare (parentScope, kind) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
 		this.initialiseScope(parentScope);
 		this.initialiseNode(parentScope);
 		this.key.initialise(parentScope);

@@ -1,9 +1,10 @@
 import Node from '../Node';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import { UNKNOWN_ASSIGNMENT, UndefinedAssignment, UnknownAssignment } from '../values';
 import Scope from '../Scopes/Scope';
-import Identifier from './Identifier';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Pattern from './Pattern';
+import Expression from './Expression';
+import Declaration from '../Declaration';
 
 export default class ArrayPattern extends Node {
 	type: 'ArrayPattern';
@@ -21,9 +22,9 @@ export default class ArrayPattern extends Node {
 		);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UndefinedAssignment | UnknownAssignment | null) {
 		this.initialiseScope(parentScope);
-		this.eachChild((child: Identifier | ArrayPattern) =>
+		this.eachChild((child: Pattern | null) =>
 			child.initialiseAndDeclare(parentScope, kind, UNKNOWN_ASSIGNMENT)
 		);
 	}

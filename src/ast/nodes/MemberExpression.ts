@@ -94,7 +94,7 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	reassignPath (path: string[], options) {
+	reassignPath (path: string[], options: ExecutionPathOptions) {
 		if (!this._bound) this.bind();
 		if (this.variable) {
 			this.variable.reassignPath(path, options);

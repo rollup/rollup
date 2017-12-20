@@ -4,6 +4,7 @@ import BlockScope from '../scopes/BlockScope';
 import { UNDEFINED_ASSIGNMENT } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
+import MagicString from 'magic-string';
 
 export default class BlockStatement extends Statement {
 	type: 'BlockStatement';
@@ -54,7 +55,7 @@ export default class BlockStatement extends Statement {
 		this.scope = new BlockScope({ parent: parentScope });
 	}
 
-	render (code, es) {
+	render (code: MagicString, es: boolean) {
 		if (this.body.length) {
 			for (const node of this.body) {
 				node.render(code, es);

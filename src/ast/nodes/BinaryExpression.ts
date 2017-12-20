@@ -1,6 +1,7 @@
 import Node from '../Node';
 import { UNKNOWN_VALUE } from '../values';
 import Expression from './Expression';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 type BinaryOperator = '==' | '!=' | '===' | '!==' | '<' | '<=' | '>' | '>=' | '<<' | '>>' | '>>>' | '+' | '-' | '*' | '/' | '%' | ' |' | '^' | '&' | '**' | 'in' | 'instanceof';
 
@@ -50,7 +51,7 @@ export default class BinaryExpression extends Node {
 		return operatorFn(leftValue, rightValue);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[]) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 }

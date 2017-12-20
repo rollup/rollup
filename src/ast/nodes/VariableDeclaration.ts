@@ -6,6 +6,7 @@ import VariableDeclarator from './VariableDeclarator';
 import ForInStatement from './ForInStatement';
 import ForOfStatement from './ForOfStatement';
 import ForStatement from './ForStatement';
+import MagicString from 'magic-string';
 
 function getSeparator (code: string, start: number) {
 	let c = start;
@@ -67,7 +68,7 @@ export default class VariableDeclaration extends Node {
 		);
 	}
 
-	render (code, es) {
+	render (code: MagicString, es: boolean) {
 		const treeshake = this.module.bundle.treeshake;
 
 		let shouldSeparate = false;

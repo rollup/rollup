@@ -16,7 +16,7 @@ export default class CallExpression extends Node {
 			this.callee.forEachReturnExpressionWhenCalledAtPath(
 				[],
 				this._callOptions,
-				innerOptions => node =>
+				(innerOptions: ExecutionPathOptions) => (node: Node) =>
 					node.reassignPath(
 						path,
 						innerOptions.addAssignedReturnExpressionAtPath(path, this)
@@ -84,7 +84,7 @@ export default class CallExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 &&
 			!options.hasReturnExpressionBeenAccessedAtPath(path, this) &&
@@ -101,7 +101,7 @@ export default class CallExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		return (
 			!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
 			this.callee.someReturnExpressionWhenCalledAtPath(

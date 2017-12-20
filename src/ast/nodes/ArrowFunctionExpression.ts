@@ -19,7 +19,12 @@ export default class ArrowFunctionExpression extends Node {
 			: this.scope.addReturnExpression(this.body);
 	}
 
-	forEachReturnExpressionWhenCalledAtPath (path: string[], callOptions: CallOptions, callback, options: ExecutionPathOptions) {
+	forEachReturnExpressionWhenCalledAtPath (
+		path: string[],
+		callOptions: CallOptions,
+		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		options: ExecutionPathOptions
+	) {
 		path.length === 0 &&
 			this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
 	}
@@ -28,11 +33,11 @@ export default class ArrowFunctionExpression extends Node {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[]) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[]) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 
@@ -48,10 +53,10 @@ export default class ArrowFunctionExpression extends Node {
 
 	initialiseChildren () {
 		this.params.forEach(param =>
-			param.initialiseAndDeclare(this.scope, 'parameter')
+			param.initialiseAndDeclare(this.scope, 'parameter', null)
 		);
-		if (this.body.initialiseAndReplaceScope) {
-			this.body.initialiseAndReplaceScope(new Scope({ parent: this.scope }));
+		if ((<BlockStatement>this.body).initialiseAndReplaceScope) {
+			(<BlockStatement>this.body).initialiseAndReplaceScope(new Scope({ parent: this.scope }));
 		} else {
 			this.body.initialise(this.scope);
 		}
@@ -61,7 +66,12 @@ export default class ArrowFunctionExpression extends Node {
 		this.scope = new ReturnValueScope({ parent: parentScope });
 	}
 
-	someReturnExpressionWhenCalledAtPath (path: string[], callOptions: CallOptions, predicateFunction, options: ExecutionPathOptions) {
+	someReturnExpressionWhenCalledAtPath (
+		path: string[],
+		callOptions: CallOptions,
+		predicateFunction: (node: Node) => boolean,
+		options: ExecutionPathOptions
+	) {
 		return (
 			path.length > 0 ||
 			this.scope.someReturnExpressionWhenCalled(

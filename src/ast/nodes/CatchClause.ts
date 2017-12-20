@@ -11,7 +11,7 @@ export default class CatchClause extends Node {
 	scope: CatchScope;
 
 	initialiseChildren () {
-		this.param && this.param.initialiseAndDeclare(this.scope, 'parameter');
+		this.param && this.param.initialiseAndDeclare(this.scope, 'parameter', null);
 		this.body.initialiseAndReplaceScope(this.scope);
 	}
 

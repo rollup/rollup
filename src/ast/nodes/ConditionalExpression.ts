@@ -4,6 +4,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import Expression from './Expression';
 import CallOptions from '../CallOptions';
 import Scope from '../scopes/Scope';
+import MagicString from 'magic-string';
 
 export default class ConditionalExpression extends Node {
 	type: 'ConditionalExpression';
@@ -13,12 +14,17 @@ export default class ConditionalExpression extends Node {
 
 	testValue: any;
 
-	reassignPath (path: string[], options) {
+	reassignPath (path: string[], options: ExecutionPathOptions) {
 		path.length > 0 &&
 			this._forEachRelevantBranch(node => node.reassignPath(path, options));
 	}
 
-	forEachReturnExpressionWhenCalledAtPath (path: string[], callOptions: CallOptions, callback, options: ExecutionPathOptions) {
+	forEachReturnExpressionWhenCalledAtPath (
+		path: string[],
+		callOptions: CallOptions,
+		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		options: ExecutionPathOptions
+	) {
 		this._forEachRelevantBranch(node =>
 			node.forEachReturnExpressionWhenCalledAtPath(
 				path,
@@ -82,7 +88,7 @@ export default class ConditionalExpression extends Node {
 		}
 	}
 
-	render (code, es) {
+	render (code: MagicString, es: boolean) {
 		if (!this.module.bundle.treeshake) {
 			super.render(code, es);
 		} else {

@@ -1,4 +1,5 @@
 import Node from '../Node';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class Literal extends Node {
 	type: 'Literal';
@@ -8,14 +9,14 @@ export default class Literal extends Node {
 		return this.value;
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[]) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
 		if (this.value === null) {
 			return path.length > 0;
 		}
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[]) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
 		if (this.value === null) {
 			return path.length > 0;
 		}

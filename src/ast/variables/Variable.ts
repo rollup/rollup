@@ -1,9 +1,14 @@
 /* eslint-disable no-unused-vars */
 
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import { UNKNOWN_ASSIGNMENT, UnknownAssignment } from '../values';
+import CallOptions from '../CallOptions';
+import ExecutionPathOptions from '../ExecutionPathOptions';
+import Identifier from '../nodes/Identifier';
+import Node from '../Node';
 
 export default class Variable {
 	name: string;
+	included: boolean;
 
 	constructor (name: string) {
 		this.name = name;
@@ -14,13 +19,13 @@ export default class Variable {
 	 * Necessary to be able to change variable names.
 	 * @param {Identifier} identifier
 	 */
-	addReference (identifier: Identifier) { }
+	addReference (_identifier: Identifier) { }
 
 	/**
 	 * @param {String[]} path
 	 * @param {ExecutionPathOptions} options
 	 */
-	reassignPath (path, options) { }
+	reassignPath (_path: string[], _options: ExecutionPathOptions) { }
 
 	/**
 	 * @param {String[]} path
@@ -29,10 +34,10 @@ export default class Variable {
 	 * @param {ExecutionPathOptions} options
 	 */
 	forEachReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
-		callback,
-		options
+		_path: string[],
+		_callOptions: CallOptions,
+		_callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		_options: ExecutionPathOptions
 	) { }
 
 	/**
@@ -47,7 +52,7 @@ export default class Variable {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAccessedAtPath (path, options) {
+	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
 		return path.length > 0;
 	}
 
@@ -56,7 +61,7 @@ export default class Variable {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAssignedAtPath (path, options) {
+	hasEffectsWhenAssignedAtPath (_path: string[], _options: ExecutionPathOptions) {
 		return true;
 	}
 
@@ -66,7 +71,7 @@ export default class Variable {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenCalledAtPath (path, callOptions, options) {
+	hasEffectsWhenCalledAtPath (_path: string[], _callOptions: CallOptions, _options: ExecutionPathOptions) {
 		return true;
 	}
 
@@ -93,10 +98,10 @@ export default class Variable {
 	 * @returns {boolean}
 	 */
 	someReturnExpressionWhenCalledAtPath (
-		path,
-		callOptions,
-		predicateFunction,
-		options
+		_path: string[],
+		_callOptions: CallOptions,
+		predicateFunction: (options: ExecutionPathOptions) => (node: Node | UnknownAssignment) => boolean,
+		options: ExecutionPathOptions
 	) {
 		return predicateFunction(options)(UNKNOWN_ASSIGNMENT);
 	}

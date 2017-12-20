@@ -28,14 +28,14 @@ export default class ThisExpression extends Node {
 		this.variable = this.scope.findVariable('this');
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 &&
 			this.variable.hasEffectsWhenAccessedAtPath(path, options)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 	}
 

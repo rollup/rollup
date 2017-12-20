@@ -7,7 +7,7 @@ export default class DoWhileStatement extends Statement {
 	body: Statement;
 	test: Expression;
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
 			this.test.hasEffects(options) ||
 			this.body.hasEffects(options.setIgnoreBreakStatements())

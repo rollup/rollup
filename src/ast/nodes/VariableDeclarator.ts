@@ -3,13 +3,14 @@ import extractNames from '../utils/extractNames';
 import Pattern from './Pattern';
 import Expression from './Expression';
 import Scope from '../scopes/Scope';
+import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class VariableDeclarator extends Node {
 	type: 'VariableDeclarator';
 	id: Pattern;
 	init: Expression | null;
 
-	reassignPath (path: string[], options) {
+	reassignPath (path: string[], options: ExecutionPathOptions) {
 		this.id.reassignPath(path, options);
 	}
 

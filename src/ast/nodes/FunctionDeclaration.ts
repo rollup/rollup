@@ -1,5 +1,6 @@
 import FunctionNode from './shared/FunctionNode';
 import Scope from '../scopes/Scope';
+import MagicString from 'magic-string';
 
 export default class FunctionDeclaration extends FunctionNode {
 	type: 'FunctionDeclaration';
@@ -12,7 +13,7 @@ export default class FunctionDeclaration extends FunctionNode {
 		this.body.initialiseAndReplaceScope(new Scope({ parent: this.scope }));
 	}
 
-	render (code, es) {
+	render (code: MagicString, es: boolean) {
 		if (!this.module.bundle.treeshake || this.included) {
 			super.render(code, es);
 		} else {

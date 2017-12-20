@@ -14,10 +14,12 @@ import NewExpression from "./NewExpression";
 import SequenceExpression from "./SequenceExpression";
 import ArrowFunctionExpression from "./ArrowFunctionExpression";
 import YieldExpression from "./YieldExpression";
-
-interface Super extends Node {
-  type: 'Super';
-};
+import Identifier from "./Identifier";
+import Literal from "./Literal";
+import AwaitExpression from "./AwaitExpression";
+import TemplateLiteral from "./TemplateLiteral";
+import TaggedTemplateExpression from "./TaggedTemplateExpression";
+import ClassExpression from "./ClassExpression";
 
 type Expression = ThisExpression |
   ArrayExpression |
@@ -34,6 +36,14 @@ type Expression = ThisExpression |
   NewExpression |
   SequenceExpression |
   ArrowFunctionExpression |
-  YieldExpression | Super;
+  YieldExpression |
+  TemplateLiteral |
+  TaggedTemplateExpression |
+  ClassExpression |
+  // MetaProperty |
+  // Super |
+  Identifier |
+  Literal |
+  AwaitExpression;
 
 export default Expression;

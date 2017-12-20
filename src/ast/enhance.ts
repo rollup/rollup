@@ -3,10 +3,12 @@ import UnknownNode from './nodes/UnknownNode';
 import keys from './keys';
 import Node from './Node';
 import Program from './nodes/Program';
+import Module from '../Module';
+import Comment from './comment';
 
 const newline = /\n/;
 
-export default function enhance (ast: Program, module, comments) {
+export default function enhance (ast: Program, module: Module, comments: Comment[]) {
 	enhanceNode(ast, module, module, module.magicString);
 
 	let comment = comments.shift();
@@ -29,7 +31,7 @@ export default function enhance (ast: Program, module, comments) {
 	}
 }
 
-function enhanceNode (raw: Node | Node[], parent: Node, module, code) {
+function enhanceNode (raw: Node | Node[], parent: Node, module: Module, code: string) {
 	if (!raw) return;
 
 	if ('length' in raw) {
@@ -65,5 +67,5 @@ function enhanceNode (raw: Node | Node[], parent: Node, module, code) {
 	}
 
 	const type = nodes[rawNode.type] || UnknownNode;
-	rawNode.__proto__ = type.prototype;
+	(<any>rawNode).__proto__ = type.prototype;
 }

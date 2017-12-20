@@ -3,6 +3,8 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import Pattern from './Pattern';
 import Expression from './Expression';
 import Scope from '../Scopes/Scope';
+import { UnknownAssignment, UndefinedAssignment } from '../values';
+import Declaration from '../Declaration';
 
 export default class AssignmentPattern extends Node {
 	type: 'AssignmentPattern';
@@ -17,13 +19,13 @@ export default class AssignmentPattern extends Node {
 		path.length === 0 && this.left.reassignPath(path, options);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 || this.left.hasEffectsWhenAssignedAtPath([], options)
 		);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
 		this.initialiseScope(parentScope);
 		this.right.initialise(parentScope);
 		this.left.initialiseAndDeclare(parentScope, kind, init);

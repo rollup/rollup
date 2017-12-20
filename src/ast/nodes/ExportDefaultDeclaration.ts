@@ -1,12 +1,14 @@
 import Node from '../Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Declaration from '../Declaration';
 import Expression from './Expression';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
+import ClassDeclaration from './ClassDeclaration';
+import FunctionDeclaration from './FunctionDeclaration';
+import Identifier from './Identifier';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
-function buildRegexWithSpaces (re) {
+function buildRegexWithSpaces (re: RegExp) {
 	const spaceOrComment =
 		'(?:' +
 		[
@@ -27,7 +29,7 @@ const sourceRE = {
 
 export default class ExportDefaultDeclaration extends Node {
 	type: 'ExportDefaultDeclaration';
-	declaration: Declaration | Expression;
+	declaration: FunctionDeclaration | ClassDeclaration | Expression;
 
 	private _declarationName: string;
 	isExportDeclaration: true;
@@ -56,8 +58,8 @@ export default class ExportDefaultDeclaration extends Node {
 	initialiseNode () {
 		this.isExportDeclaration = true;
 		this._declarationName =
-			((<Declaration>this.declaration).id && (<Declaration>this.declaration).id.name) ||
-			this.declaration.name;
+			((<FunctionDeclaration | ClassDeclaration>this.declaration).id && (<FunctionDeclaration | ClassDeclaration>this.declaration).id.name) ||
+			(<Identifier>this.declaration).name;
 		this.variable = this.scope.addExportDefaultDeclaration(
 			this._declarationName || this.module.basename(),
 			this
