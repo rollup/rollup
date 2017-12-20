@@ -2,6 +2,7 @@ import Node from '../Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import FunctionExpression from './FunctionExpression';
 import Expression from './Expression';
+import CallOptions from '../CallOptions';
 
 export default class MethodDefinition extends Node {
 	type: 'MethodDefinition';

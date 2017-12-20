@@ -8,30 +8,129 @@ import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import mergeOptions from '../utils/mergeOptions.js';
 import Bundle from '../Bundle';
+import Module from '../Module';
 
 export const VERSION = '<@VERSION@>';
 
+interface SourceMap {
+	version: 3;
+	// TODO the rest
+}
+
+export type Source = string | { code: string, map: SourceMap };
+
+export type ResolveIdHook = (id: string, parent: string) => Promise<string | boolean | void> | string | boolean | void;
+export type IsExternalHook = (id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void;
+export type LoadHook = (id: string) => Promise<Source> | Source | null;
+export type TransformHook = (code: string) => Promise<Source> | Source | null;
+
+export interface Plugin {
+	name: string;
+	options?: (options: InputOptions) => void;
+	load?: LoadHook;
+	resolveId?: ResolveIdHook;
+	transform?: TransformHook;
+	ongenerate?: (options: OutputOptions, source: Source) => void;
+	onwrite?: (options: OutputOptions, source: Source) => void;
+
+	banner?: () => string;
+	footer?: () => string;
+	intro?: () => string;
+	outro?: () => string;
+};
+
+export interface TreeshakingOptions {
+	propertyReadSideEffects: boolean;
+	pureExternalModules: boolean;
+};
+
+export interface InputOptions {
+	input: string;
+	external?: string[] | ((id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void);
+	plugins?: Plugin[];
+
+	onwarn?: WarningHandler;
+	cache?: {
+		modules: Module[];
+	};
+
+	acorn: {};
+	treeshake?: boolean | TreeshakingOptions;
+	context?: string;
+	moduleContext?: string;
+	legacy?: boolean;
+
+	pureExternalModules?: boolean;
+	preferConst?: boolean;
+
+	// deprecated
+	entry?: string;
+	transform?: TransformHook;
+	load?: LoadHook;
+	resolveId?: ResolveIdHook;
+	resolveExternal?: any;
+}
+
+export type ModuleFormat = 'amd' | 'cjs' | 'es' | 'es6' | 'iife' | 'umd';
+
+export interface OutputOptions {
+	// required
+	file: string;
+	format: ModuleFormat;
+
+	// optional
+	amd?: {
+		id?: string;
+		define?: string;
+	}
+	name?: string;
+	sourcemap?: boolean | 'inline';
+	sourcemapFile?: string;
+	banner?: string;
+	footer?: string;
+	intro?: string;
+	outro?: string;
+	paths?: Record<string, string> | ((id: string) => string);
+
+	// deprecated
+	dest?: string;
+	moduleId?: string;
+}
+
+export interface Warning {
+	message: string;
+	code?: string;
+	loc?: {
+		file: string;
+		line: number;
+		column: number;
+	};
+	[custom: string]: any;
+}
+
+export type WarningHandler = (warning: Warning) => void;
+
 function addDeprecations (deprecations, warn) {
 	const message = `The following options have been renamed — please update your config: ${deprecations.map(
-		option => `${option.old} -> ${option.new}` ).join( ', ' )}`;
-	warn( {
+		option => `${option.old} -> ${option.new}`).join(', ')}`;
+	warn({
 		code: 'DEPRECATED_OPTIONS',
 		message,
 		deprecations
-	} );
+	});
 }
 
-function checkInputOptions ( options ) {
-	if ( options.transform || options.load || options.resolveId || options.resolveExternal ) {
+function checkInputOptions (options) {
+	if (options.transform || options.load || options.resolveId || options.resolveExternal) {
 		throw new Error(
 			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details'
 		);
 	}
 }
 
-function checkOutputOptions ( options ) {
-	if ( options.format === 'es6' ) {
-		error( {
+function checkOutputOptions (options) {
+	if (options.format === 'es6') {
+		error({
 			message: 'The `es6` output format is deprecated – use `es` instead',
 			url: `https://rollupjs.org/#format-f-output-format-`
 		});
@@ -44,8 +143,8 @@ function checkOutputOptions ( options ) {
 		});
 	}
 
-	if ( options.moduleId ) {
-		if ( options.amd ) throw new Error( 'Cannot have both options.amd and options.moduleId' );
+	if (options.moduleId) {
+		if (options.amd) throw new Error('Cannot have both options.amd and options.moduleId');
 	}
 }
 
@@ -57,10 +156,10 @@ const throwAsyncGenerateError = {
 	}
 };
 
-export default function rollup ( _inputOptions ) {
+export default function rollup (_inputOptions: InputOptions) {
 	try {
-		if ( !_inputOptions ) {
-			throw new Error( 'You must supply an options object to rollup' );
+		if (!_inputOptions) {
+			throw new Error('You must supply an options object to rollup');
 		}
 		const { inputOptions, deprecations, optionError } = mergeOptions({
 			config: _inputOptions,
@@ -69,18 +168,18 @@ export default function rollup ( _inputOptions ) {
 
 		if (optionError) throw new Error(optionError);
 
-		if ( deprecations.length ) addDeprecations(deprecations, inputOptions.onwarn);
-		checkInputOptions( inputOptions );
-		const bundle = new Bundle( inputOptions );
+		if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
+		checkInputOptions(inputOptions);
+		const bundle = new Bundle(inputOptions);
 
 		timeStart('--BUILD--');
 
 		return bundle.build().then(() => {
 			timeEnd('--BUILD--');
 
-			function generate ( _outputOptions ) {
-				if ( !_outputOptions ) {
-					throw new Error( 'You must supply an options object' );
+			function generate (_outputOptions: OutputOptions) {
+				if (!_outputOptions) {
+					throw new Error('You must supply an options object');
 				}
 				// since deprecateOptions, adds the output properties
 				// to `inputOptions` so adding that lastly
@@ -101,8 +200,8 @@ export default function rollup ( _inputOptions ) {
 				const outputOptions = mergedOptions.outputOptions[0];
 				const deprecations = mergedOptions.deprecations;
 
-				if ( deprecations.length ) addDeprecations(deprecations, inputOptions.onwarn);
-				checkOutputOptions( outputOptions );
+				if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
+				checkOutputOptions(outputOptions);
 
 				timeStart('--GENERATE--');
 
@@ -142,7 +241,7 @@ export default function rollup ( _inputOptions ) {
 				modules: bundle.orderedModules.map(module => module.toJSON()),
 
 				generate,
-				write: outputOptions => {
+				write: (outputOptions: OutputOptions) => {
 					if (!outputOptions || (!outputOptions.file && !outputOptions.dest)) {
 						error({
 							code: 'MISSING_OPTION',
@@ -173,7 +272,7 @@ export default function rollup ( _inputOptions ) {
 						return Promise.all(promises).then(() => {
 							return mapSequence(
 								bundle.plugins.filter(plugin => plugin.onwrite),
-								plugin => {
+								(plugin: Plugin) => {
 									return Promise.resolve(
 										plugin.onwrite(
 											assign(

@@ -27,9 +27,38 @@ import {
 	resolve
 } from './utils/path';
 import BundleScope from './ast/scopes/BundleScope';
+import { OutputOptions, WarningHandler, TreeshakingOptions, Plugin, ResolveIdHook, IsExternalHook, InputOptions } from './rollup/index';
 
 export default class Bundle {
-	constructor (options) {
+	entry: string;
+	entryId: string;
+	legacy: boolean;
+	treeshakingOptions: TreeshakingOptions;
+	acornOptions: any;
+	varOrConst: 'var' | 'const';
+	context: string;
+
+	entryModule: Module;
+	cachedModules: Map<string, Module>;
+	moduleById: Map<string, Module>;
+	modules: Module[];
+	externalModules: ExternalModule[];
+	scope: BundleScope;
+	onwarn: WarningHandler;
+
+	plugins: Plugin[];
+
+	resolveId: ResolveIdHook;
+	isExternal: IsExternalHook;
+	hasLoaders: boolean;
+
+
+	isPureExternalModule: (id: string) => boolean;
+
+	// deprecated
+	treeshake: boolean;
+
+	constructor (options: InputOptions) {
 		this.cachedModules = new Map();
 		if (options.cache) {
 			options.cache.modules.forEach(module => {
@@ -57,10 +86,10 @@ export default class Bundle {
 		if (this.treeshake) {
 			this.treeshakingOptions = {
 				propertyReadSideEffects: options.treeshake
-					? options.treeshake.propertyReadSideEffects !== false
+					? (<TreeshakingOptions>options.treeshake).propertyReadSideEffects !== false
 					: true,
 				pureExternalModules: options.treeshake
-					? options.treeshake.pureExternalModules
+					? (<TreeshakingOptions>options.treeshake).pureExternalModules
 					: false
 			};
 			if (this.treeshakingOptions.pureExternalModules === true) {
@@ -82,7 +111,7 @@ export default class Bundle {
 		}
 
 		this.resolveId = first(
-			[(id, parentId) => (this.isExternal(id, parentId, false) ? false : null)]
+			[((id: string, parentId: string) => (this.isExternal(id, parentId, false) ? false : null)) as ResolveIdHook]
 				.concat(this.plugins.map(plugin => plugin.resolveId).filter(Boolean))
 				.concat(resolveId)
 		);
@@ -529,7 +558,7 @@ export default class Bundle {
 		return resolvedId;
 	}
 
-	render (options = {}) {
+	render (options: OutputOptions) {
 		return Promise.resolve()
 			.then(() => {
 				return Promise.all([

@@ -11,6 +11,11 @@ import mergeOptions from '../utils/mergeOptions.js';
 const DELAY = 100;
 
 class Watcher extends EventEmitter {
+	dirty: boolean;
+	running: boolean;
+	tasks: Task[];
+	succeeded: boolean;
+
 	constructor (configs) {
 		super();
 
@@ -76,6 +81,13 @@ class Watcher extends EventEmitter {
 }
 
 class Task {
+	watcher: Watcher;
+	dirty: boolean;
+	closed: boolean;
+	watched: Set<string>;
+
+	filter: (id: string) => boolean;
+
 	constructor (watcher, config) {
 		this.cache = null;
 		this.watcher = watcher;
