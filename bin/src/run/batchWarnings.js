@@ -1,7 +1,6 @@
 import chalk from 'chalk';
-import relativeId from './relativeId.js';
-
-export const stderr = console.error.bind( console ); // eslint-disable-line no-console
+import relativeId from '../../../src/utils/relativeId.js';
+import { stderr } from '../logging.js';
 
 export default function batchWarnings () {
 	let allWarnings = new Map();

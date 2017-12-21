@@ -1,6 +1,5 @@
 import ensureArray from './ensureArray.js';
 import deprecateOptions from './deprecateOptions.js';
-import batchWarnings from './batchWarnings.js';
 
 function normalizeObjectOptionValue ( optionValue ) {
 	if ( !optionValue ) {
@@ -12,7 +11,11 @@ function normalizeObjectOptionValue ( optionValue ) {
 	return optionValue;
 }
 
-export default function mergeOptions ( config, command = {}, deprecateConfig) {
+export default function mergeOptions ({
+	config, command = {},
+	deprecateConfig,
+	defaultOnWarn = (warning => console.warn(warning.message)) // eslint-disable-line no-console
+}) {
 	const deprecations = deprecate( config, command, deprecateConfig );
 
 	const getOption = config => name => {
@@ -33,16 +36,15 @@ export default function mergeOptions ( config, command = {}, deprecateConfig) {
 		return configOption;
 	}
 
-	const warnings = batchWarnings();
 	const onwarn = config.onwarn;
 	let warn;
 
 	if (onwarn) {
 		warn = warning => {
-			onwarn(warning, warnings.add);
+			onwarn(warning, defaultOnWarn);
 		};
 	} else {
-		warn = warning => console.warn(warning.message); // eslint-disable-line no-console
+		warn = defaultOnWarn;
 	}
 
 	const inputOptions = {
@@ -82,8 +84,8 @@ export default function mergeOptions ( config, command = {}, deprecateConfig) {
 	}
 
 	if ( typeof configExternal === 'function' ) {
-		inputOptions.external = id => {
-			return configExternal( id ) || ~commandExternal.indexOf( id );
+		inputOptions.external = (id, ...rest) => {
+			return configExternal( id, ...rest ) || ~commandExternal.indexOf( id );
 		};
 	} else {
 		inputOptions.external = ( configExternal || [] ).concat( commandExternal );

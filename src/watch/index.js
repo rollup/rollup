@@ -84,7 +84,7 @@ class Task {
 		this.closed = false;
 		this.watched = new Set();
 
-		const { inputOptions, outputOptions, deprecations } = mergeOptions(config);
+		const { inputOptions, outputOptions, deprecations } = mergeOptions({ config });
 		this.inputOptions = inputOptions;
 
 		this.outputs = outputOptions;

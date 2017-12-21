@@ -58,7 +58,11 @@ export default function rollup ( _inputOptions ) {
 		if ( !_inputOptions ) {
 			throw new Error( 'You must supply an options object to rollup' );
 		}
-		const { inputOptions, deprecations } = mergeOptions(_inputOptions, {}, { input: true });
+		const { inputOptions, deprecations } = mergeOptions({
+			config: _inputOptions,
+			deprecateConfig: { input: true },
+		});
+
 		if ( deprecations.length ) addDeprecations(deprecations, inputOptions.onwarn);
 		checkInputOptions( inputOptions );
 		const bundle = new Bundle( inputOptions );
@@ -77,13 +81,12 @@ export default function rollup ( _inputOptions ) {
 				const consolidatedOutputOptions = Object.assign({}, {
 					output: Object.assign({}, _outputOptions, _outputOptions.output, inputOptions.output)
 				});
-				const mergedOptions = mergeOptions(
+				const mergedOptions = mergeOptions({
 					// just for backward compatiblity to fallback on root
 					// if the option isn't present in `output`
-					consolidatedOutputOptions,
-					{},
-					{ output: true }
-				);
+					config: consolidatedOutputOptions,
+					deprecateConfig: { output: true },
+				});
 
 				// now outputOptions is an array, but rollup.rollup API doesn't support arrays
 				const outputOptions = mergedOptions.outputOptions[0];

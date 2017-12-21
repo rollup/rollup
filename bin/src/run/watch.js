@@ -5,7 +5,7 @@ import ms from 'pretty-ms';
 import onExit from 'signal-exit';
 import dateTime from 'date-time';
 import mergeOptions from '../../../src/utils/mergeOptions.js';
-import batchWarnings from '../../../src/utils/batchWarnings.js';
+import batchWarnings from './batchWarnings.js';
 import alternateScreen from './alternateScreen.js';
 import loadConfigFile from './loadConfigFile.js';
 import relativeId from '../../../src/utils/relativeId.js';
@@ -27,15 +27,7 @@ export default function watch(configFile, configs, command, silent) {
 
 		let screenWriter = screen.reset;
 		configs = configs.map(options => {
-			const merged = mergeOptions(options, command);
-			const onwarn = merged.inputOptions.onwarn;
-			if ( onwarn ) {
-				merged.inputOptions.onwarn = warning => {
-					onwarn( warning, warnings.add );
-				};
-			} else {
-				merged.inputOptions.onwarn = warnings.add;
-			}
+			const merged = mergeOptions({ config: options, command, defaultOnWarn: warnings.add });
 
 			const result = Object.assign({}, merged.inputOptions, {
 				output: merged.outputOptions
