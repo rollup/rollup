@@ -5,8 +5,6 @@ import Identifier from '../nodes/Identifier';
 export default class GlobalVariable extends Variable {
 	isExternal: true;
 	isGlobal: true;
-	isReassigned: false;
-	included: true;
 
 	constructor (name: string) {
 		super(name);

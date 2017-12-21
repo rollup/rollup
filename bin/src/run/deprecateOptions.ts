@@ -1,5 +1,5 @@
-export default function deprecateOptions (options) {
-	const deprecations = [];
+export default function deprecateOptions (options: any) {
+	const deprecations: { old: string, new: string }[] = [];
 
 	if (options.entry) {
 		deprecations.push({ old: 'entry', new: 'input' });
@@ -36,7 +36,7 @@ export default function deprecateOptions (options) {
 		delete options.targets;
 
 		let deprecatedDest = false;
-		options.output.forEach(output => {
+		options.output.forEach((output: { dest?: string, file: string }) => {
 			if (output.dest) {
 				if (!deprecatedDest) {
 					deprecations.push({ old: 'targets.dest', new: 'output.file' });

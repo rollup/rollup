@@ -1,7 +1,8 @@
 import ensureArray from './ensureArray.js';
 import deprecateOptions from './deprecateOptions.js';
+import { InputOptions } from '../../../src/rollup/index';
 
-function normalizeObjectOptionValue (optionValue) {
+function normalizeObjectOptionValue (optionValue: any) {
 	if (!optionValue) {
 		return optionValue;
 	}
@@ -27,7 +28,7 @@ export default function mergeOptions ({
 	const getInputOption = getOption(config);
 	const getOutputOption = getOption(config.output || {});
 
-	function getObjectOption (name) {
+	function getObjectOption (name: string) {
 		const commandOption = normalizeObjectOptionValue(command[name]);
 		const configOption = normalizeObjectOptionValue(config[name]);
 		if (commandOption !== undefined) {
@@ -73,7 +74,7 @@ export default function mergeOptions ({
 	if (command.globals) {
 		const globals = Object.create(null);
 
-		command.globals.split(',').forEach(str => {
+		command.globals.split(',').forEach((str: string) => {
 			const names = str.split(':');
 			globals[names[0]] = names[1];
 
@@ -123,7 +124,7 @@ export default function mergeOptions ({
 
 	let mergedOutputOptions;
 	if (Array.isArray(config.output)) {
-		mergedOutputOptions = config.output.map(output =>
+		mergedOutputOptions = config.output.map((output: any) =>
 			Object.assign({}, output, command.output)
 		);
 	} else if (config.output && command.output) {
@@ -140,7 +141,7 @@ export default function mergeOptions ({
 				];
 	}
 
-	const outputOptions = mergedOutputOptions.map(output => {
+	const outputOptions = mergedOutputOptions.map((output: any) => {
 		return Object.assign({}, baseOutputOptions, output);
 	});
 
@@ -163,7 +164,11 @@ export default function mergeOptions ({
 	};
 }
 
+<<<<<<< HEAD:src/utils/mergeOptions.js
 function deprecate ( config, command = {}, deprecateConfig = { input: true, output: true } ) {
+=======
+function deprecate (config: any, command: any) {
+>>>>>>> finish up bin types, attempt further scopes and variables:bin/src/run/mergeOptions.ts
 	const deprecations = [];
 
 	// CLI

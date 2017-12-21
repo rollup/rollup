@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment, PredicateFunction } from '../values';
+import { UNKNOWN_ASSIGNMENT, PredicateFunction } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
@@ -9,6 +9,8 @@ import Node from '../Node';
 export default class Variable {
 	name: string;
 	included: boolean;
+
+	isReassigned: boolean;
 
 	constructor (name: string) {
 		this.name = name;

@@ -78,7 +78,7 @@ export default class Identifier extends Node {
 		return true;
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Identifier | UnknownAssignment | UndefinedAssignment | null) {
 		this.initialiseScope(parentScope);
 		switch (kind) {
 			case 'var':

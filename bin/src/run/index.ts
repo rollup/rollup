@@ -7,8 +7,9 @@ import loadConfigFile from './loadConfigFile.js';
 import sequence from '../utils/sequence.js';
 import build from './build.js';
 import watch from './watch.js';
+import { InputOptions } from '../../../src/rollup/index';
 
-export default function runRollup (command) {
+export default function runRollup (command: any) {
 	if (command._.length > 1) {
 		handleError({
 			code: 'ONE_AT_A_TIME',
@@ -32,13 +33,13 @@ export default function runRollup (command) {
 			? command.environment
 			: [command.environment];
 
-		environment.forEach(arg => {
-			arg.split(',').forEach(pair => {
+		environment.forEach((arg: string) => {
+			arg.split(',').forEach((pair: string) => {
 				const [key, value] = pair.split(':');
 				if (value) {
 					process.env[key] = value;
 				} else {
-					process.env[key] = true;
+					process.env[key] = String(true);
 				}
 			});
 		});
@@ -84,7 +85,7 @@ export default function runRollup (command) {
 	}
 }
 
-function execute (configFile, configs, command) {
+function execute (configFile: string, configs: InputOptions[], command: any) {
 	if (command.watch) {
 		watch(configFile, configs, command, command.silent);
 	} else {

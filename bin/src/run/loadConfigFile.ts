@@ -5,14 +5,16 @@ import * as rollup from 'rollup';
 import batchWarnings from './batchWarnings.js';
 import relativeId from '../../../src/utils/relativeId.js';
 import { handleError, stderr } from '../logging.js';
+import Bundle from '../../../src/Bundle';
+import { InputOptions } from '../../../src/rollup/index';
 
-export default function loadConfigFile (configFile, silent) {
+export default function loadConfigFile (configFile: string, silent = false): Promise<InputOptions[]> {
 	const warnings = batchWarnings();
 
 	return rollup
 		.rollup({
 			input: configFile,
-			external: id => {
+			external: (id: string) => {
 				return (
 					(id[0] !== '.' && !path.isAbsolute(id)) ||
 					id.slice(-5, id.length) === '.json'
@@ -21,7 +23,7 @@ export default function loadConfigFile (configFile, silent) {
 			onwarn: warnings.add,
 			plugins: [buble({ objectAssign: 'Object.assign' })]
 		})
-		.then(bundle => {
+		.then((bundle: Bundle) => {
 			if (!silent && warnings.count > 0) {
 				stderr(chalk.bold(`loaded ${relativeId(configFile)} with warnings`));
 				warnings.flush();
@@ -31,12 +33,12 @@ export default function loadConfigFile (configFile, silent) {
 				format: 'cjs'
 			});
 		})
-		.then(({ code }) => {
+		.then(({ code }: { code: string }) => {
 			// temporarily override require
 			const defaultLoader = require.extensions['.js'];
 			require.extensions['.js'] = (m, filename) => {
 				if (filename === configFile) {
-					m._compile(code, filename);
+					(<{ _compile?: any }>m)._compile(code, filename);
 				} else {
 					defaultLoader(m, filename);
 				}

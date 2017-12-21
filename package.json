@@ -45,6 +45,7 @@
   "devDependencies": {
     "@types/chokidar": "^1.7.4",
     "@types/immutable": "^3.8.7",
+    "@types/minimist": "^1.2.0",
     "@types/node": "^8.5.1",
     "acorn": "^5.2.1",
     "ansi-escapes": "^3.0.0",

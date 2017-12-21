@@ -1,9 +1,16 @@
 import chalk from 'chalk';
 import { stderr } from '../logging.js';
 import relativeId from '../../../src/utils/relativeId.js';
+import { Warning } from '../../../src/rollup/index';
+
+export interface BatchWarnings {
+	readonly count: number;
+	add: (warning: string | Warning) => void;
+	flush: () => void;
+}
 
 export default function batchWarnings () {
-	let allWarnings = new Map();
+	let allWarnings = new Map<string, Warning[]>();
 	let count = 0;
 
 	return {
@@ -78,7 +85,9 @@ export default function batchWarnings () {
 	};
 }
 
-const immediateHandlers = {
+const immediateHandlers: {
+	[code: string]: (warning: Warning) => void
+} = {
 	DEPRECATED_OPTIONS: warning => {
 		title(`Some options have been renamed`);
 		info(
@@ -117,7 +126,12 @@ const immediateHandlers = {
 };
 
 // TODO select sensible priorities
-const deferredHandlers = {
+const deferredHandlers: {
+	[code: string]: {
+		priority: number;
+		fn: (warnings: Warning[]) => void;
+	}
+} = {
 	UNUSED_EXTERNAL_IMPORT: {
 		priority: 1,
 		fn: warnings => {
@@ -270,7 +284,7 @@ const deferredHandlers = {
 			nestedByPlugin.forEach(({ key: plugin, items }) => {
 				const nestedByMessage = nest(items, 'message');
 
-				let lastUrl;
+				let lastUrl: string;
 
 				nestedByMessage.forEach(({ key: message, items }) => {
 					title(`${plugin} plugin: ${message}`);
@@ -292,20 +306,20 @@ const deferredHandlers = {
 	}
 };
 
-function title (str) {
+function title (str: string) {
 	stderr(`${chalk.bold.yellow('(!)')} ${chalk.bold.yellow(str)}`);
 }
 
-function info (url) {
+function info (url: string) {
 	stderr(chalk.grey(url));
 }
 
-function nest (array, prop) {
-	const nested = [];
-	const lookup = new Map();
+function nest<T> (array: T[], prop: string) {
+	const nested: { key: string, items: T[] }[] = [];
+	const lookup = new Map<string, { key: string, items: T[] }>();
 
 	array.forEach(item => {
-		const key = item[prop];
+		const key = (<any>item)[prop];
 		if (!lookup.has(key)) {
 			lookup.set(key, {
 				key,
@@ -321,7 +335,7 @@ function nest (array, prop) {
 	return nested;
 }
 
-function showTruncatedWarnings (warnings) {
+function showTruncatedWarnings (warnings: Warning[]) {
 	const nestedByModule = nest(warnings, 'id');
 
 	const sliced =

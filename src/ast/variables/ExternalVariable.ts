@@ -22,7 +22,7 @@ export default class ExternalVariable extends Variable {
 		}
 	}
 
-	getName (es) {
+	getName (es: boolean) {
 		if (this.name === '*') {
 			return this.module.name;
 		}

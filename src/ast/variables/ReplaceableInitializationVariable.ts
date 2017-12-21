@@ -1,11 +1,12 @@
 import LocalVariable from './LocalVariable';
-import { UNKNOWN_ASSIGNMENT, PredicateFunction } from '../values';
-import Expression from '../nodes/Expression';
+import { UNKNOWN_ASSIGNMENT, PredicateFunction, UndefinedAssignment, UnknownAssignment } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
+import Pattern from '../nodes/Pattern';
+import Expression from '../nodes/Expression';
 
 export default class ReplaceableInitializationVariable extends LocalVariable {
-	constructor (name: string, declarator: Expression) {
+	constructor (name: string, declarator: Pattern) {
 		super(name, declarator, null);
 	}
 
@@ -59,7 +60,7 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 		);
 	}
 
-	_getInit (options) {
-		return options.getReplacedVariableInit(this) || UNKNOWN_ASSIGNMENT;
+	_getInit (options: ExecutionPathOptions): Expression | UnknownAssignment | UndefinedAssignment {
+		return (<Expression>options.getReplacedVariableInit(this)) || UNKNOWN_ASSIGNMENT;
 	}
 }

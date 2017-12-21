@@ -1,3 +1,4 @@
+/// <reference path="./watch.d.ts" />
 import fs from 'fs';
 import * as rollup from 'rollup';
 import chalk from 'chalk';
@@ -10,8 +11,23 @@ import alternateScreen from './alternateScreen.js';
 import loadConfigFile from './loadConfigFile.js';
 import relativeId from '../../../src/utils/relativeId.js';
 import { handleError, stderr } from '../logging.js';
+import { RollupError } from '../../../src/utils/error';
+import { InputOptions } from '../../../src/rollup/index';
 
-export default function watch (configFile, configs, command, silent) {
+interface WatchEvent {
+	code: string;
+	error: RollupError | Error;
+	input: string;
+	output: string[];
+	duration: number;
+}
+
+interface Watcher {
+	on: (event: string, fn: (event: WatchEvent) => void) => void;
+	close: () => void;
+};
+
+export default function watch (configFile: string, configs: InputOptions[], command: any, silent = false) {
 	const isTTY = Boolean(process.stderr.isTTY);
 
 	const screen = alternateScreen(isTTY);
@@ -19,10 +35,10 @@ export default function watch (configFile, configs, command, silent) {
 
 	const warnings = batchWarnings();
 
-	let watcher;
-	let configWatcher;
+	let watcher: Watcher;
+	let configWatcher: Watcher;
 
-	function start (configs) {
+	function start (configs: InputOptions[]) {
 		screen.reset(chalk.underline(`rollup v${rollup.VERSION}`));
 
 		let screenWriter = screen.reset;
@@ -35,7 +51,7 @@ export default function watch (configFile, configs, command, silent) {
 
 			if (merged.deprecations.length) {
 				if (!result.watch) result.watch = {};
-				result.watch._deprecations = merged.deprecations;
+				(<{ _deprecations: any }>result.watch)._deprecations = merged.deprecations;
 			}
 
 			if (
@@ -50,7 +66,7 @@ export default function watch (configFile, configs, command, silent) {
 
 		watcher = rollup.watch(configs);
 
-		watcher.on('event', event => {
+		watcher.on('event', (event: WatchEvent) => {
 			switch (event.code) {
 				case 'FATAL':
 					screen.close();
@@ -140,7 +156,7 @@ export default function watch (configFile, configs, command, silent) {
 			restarting = true;
 
 			loadConfigFile(configFile, silent)
-				.then(configs => {
+				.then((configs: InputOptions[]) => {
 					restarting = false;
 
 					if (aborted) {
@@ -151,12 +167,12 @@ export default function watch (configFile, configs, command, silent) {
 						start(configs);
 					}
 				})
-				.catch(err => {
+				.catch((err: Error) => {
 					handleError(err, true);
 				});
 		};
 
-		configWatcher = fs.watch(configFile, event => {
+		configWatcher = fs.watch(configFile, (event: string) => {
 			if (event === 'change') restart();
 		});
 	}

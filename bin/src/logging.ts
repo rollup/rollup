@@ -1,18 +1,19 @@
 import chalk from 'chalk';
 import relativeId from '../../src/utils/relativeId.js';
+import { RollupError } from '../../src/utils/error';
 
 if (!process.stderr.isTTY) chalk.enabled = false;
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
 export const stderr = console.error.bind(console); // eslint-disable-line no-console
 
-export function handleError (err: Error, recover: boolean) {
+export function handleError (err: RollupError, recover = false) {
 	let description = err.message || err;
 	if (err.name) description = `${err.name}: ${description}`;
 	const message =
 		((<{ plugin?: string }>err).plugin ? `(${(<{ plugin?: string }>err).plugin} plugin) ${description}` : description) || err;
 
-	stderr(chalk.bold.red(`[!] ${chalk.bold(message)}`));
+	stderr(chalk.bold.red(`[!] ${chalk.bold(message.toString())}`));
 
 	// TODO should this be "err.url || (err.file && err.loc.file) || err.id"?
 	if (err.url) {

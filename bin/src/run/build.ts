@@ -1,3 +1,5 @@
+/// <reference path="./build.d.ts" />
+
 import * as rollup from 'rollup';
 import chalk from 'chalk';
 import ms from 'pretty-ms';
@@ -5,8 +7,11 @@ import { handleError, stderr } from '../logging.js';
 import relativeId from '../../../src/utils/relativeId.js';
 import { mapSequence } from '../../../src/utils/promise.js';
 import SOURCEMAPPING_URL from '../sourceMappingUrl.js';
+import { InputOptions, OutputOptions } from '../../../src/rollup/index';
+import { BatchWarnings } from './batchWarnings';
+import Bundle from '../../../src/Bundle';
 
-export default function build (inputOptions, outputOptions, warnings, silent) {
+export default function build (inputOptions: InputOptions, outputOptions: OutputOptions[], warnings: BatchWarnings, silent = false) {
 	const useStdout = outputOptions.length === 1 && !outputOptions[0].file;
 
 	const start = Date.now();
@@ -24,7 +29,7 @@ export default function build (inputOptions, outputOptions, warnings, silent) {
 
 	return rollup
 		.rollup(inputOptions)
-		.then(bundle => {
+		.then((bundle: Bundle) => {
 			if (useStdout) {
 				const output = outputOptions[0];
 				if (output.sourcemap && output.sourcemap !== 'inline') {
@@ -35,7 +40,7 @@ export default function build (inputOptions, outputOptions, warnings, silent) {
 					});
 				}
 
-				return bundle.generate(output).then(({ code, map }) => {
+				return bundle.generate(output).then(({ code, map }: { code: string, map: SourceMap }) => {
 					if (output.sourcemap === 'inline') {
 						code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
 					}

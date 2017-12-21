@@ -5,11 +5,14 @@ import { UNDEFINED_ASSIGNMENT, UndefinedAssignment } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import Expression from '../nodes/Expression';
+import Variable from '../variables/Variable';
+import Pattern from '../nodes/Pattern';
+import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 
 export default class Scope {
 	parent: Scope | void;
 	variables: {
-		[name: string]: LocalVariable
+		[name: string]: Variable
 	};
 	isModuleScope: boolean;
 	children: Scope[];
@@ -31,7 +34,13 @@ export default class Scope {
 	 *        {boolean} isHoisted
 	 * @return {Variable}
 	 */
-	addDeclaration (identifier: Identifier, options = {}) {
+	addDeclaration (identifier: Identifier, options: {
+		init: Pattern | null;
+		isHoisted: boolean;
+	} = {
+		init: null,
+		isHoisted: false
+	}) {
 		const name = identifier.name;
 		if (this.variables[name]) {
 			const variable = this.variables[name];
@@ -47,7 +56,7 @@ export default class Scope {
 		return this.variables[name];
 	}
 
-	addExportDefaultDeclaration (name: string, exportDefaultDeclaration): ExportDefaultVariable {
+	addExportDefaultDeclaration (name: string, exportDefaultDeclaration: ExportDefaultDeclaration): ExportDefaultVariable {
 		this.variables.default = new ExportDefaultVariable(
 			name,
 			exportDefaultDeclaration
@@ -92,7 +101,7 @@ export default class Scope {
 		return this.parent.findLexicalBoundary();
 	}
 
-	findVariable (name) {
+	findVariable (name: string): Variable {
 		return (
 			this.variables[name] || (this.parent && this.parent.findVariable(name))
 		);

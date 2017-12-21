@@ -3,10 +3,12 @@ import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
 import ClassDeclaration from '../nodes/ClassDeclaration';
 import Identifier from '../nodes/Identifier';
+import Variable from './Variable';
 
 export default class ExportDefaultVariable extends LocalVariable {
 	isDefault: true;
 	hasId: boolean;
+	private _original: Variable;
 
 	constructor (name: string, exportDefaultDeclaration: ExportDefaultDeclaration) {
 		super(name, exportDefaultDeclaration, exportDefaultDeclaration.declaration);
@@ -21,7 +23,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
-	getName (es) {
+	getName (es: boolean) {
 		if (this._original && !this._original.isReassigned) {
 			return this._original.getName(es);
 		}

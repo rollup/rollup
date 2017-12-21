@@ -73,7 +73,7 @@ export default class ModuleScope extends Scope {
 		return this;
 	}
 
-	findVariable (name) {
+	findVariable (name: string) {
 		if (this.variables[name]) {
 			return this.variables[name];
 		}

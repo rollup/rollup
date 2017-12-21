@@ -62,6 +62,12 @@ export interface InputOptions {
 
 	pureExternalModules?: boolean;
 	preferConst?: boolean;
+	watch?: {
+		chokidar?: boolean;
+    include?: string[];
+    exclude?: string[];
+    clearScreen?: boolean;
+	};
 
 	// deprecated
 	entry?: string;
@@ -105,7 +111,21 @@ export interface Warning {
 		line: number;
 		column: number;
 	};
-	[custom: string]: any;
+	deprecations?: { old: string, new: string }[];
+	modules?: string[];
+	names?: string[];
+	source?: string;
+	importer?: string;
+	frame?: any;
+	missing?: string;
+	exporter?: string;
+	name?: string;
+	sources?: string[];
+	reexporter?: string;
+	guess?: string;
+	url?: string;
+	id?: string;
+	plugin?: string;
 }
 
 export type WarningHandler = (warning: Warning) => void;
