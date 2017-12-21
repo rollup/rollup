@@ -1,14 +1,14 @@
 import Variable from './Variable';
-import Module from '../../Module';
 import Identifier from '../nodes/Identifier';
+import ExternalModule from '../../ExternalModule';
 
 export default class ExternalVariable extends Variable {
-	module: Module;
+	module: ExternalModule;
 	safeName: string;
 	isExternal: boolean;
 	isNamespace: boolean;
 
-	constructor (module: Module, name: string) {
+	constructor (module: ExternalModule, name: string) {
 		super(name);
 		this.module = module;
 		this.safeName = null;
