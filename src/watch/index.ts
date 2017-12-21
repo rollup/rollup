@@ -21,7 +21,7 @@ class Watcher extends (<{ new(): any }>EventEmitter) {
 	tasks: Task[];
 	succeeded: boolean;
 
-	constructor (configs: WatchOptions[]) {
+	constructor (configs: (InputOptions & OutputOptions)[]) {
 		super();
 
 		this.dirty = true;
@@ -100,7 +100,7 @@ export class Task {
 	outputFiles: string[];
 	outputs: OutputOptions[];
 
-	deprecations: string[];
+	deprecations: { old: string, new: string }[];
 
 	filter: (id: string) => boolean;
 

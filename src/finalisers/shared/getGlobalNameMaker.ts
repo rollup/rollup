@@ -1,8 +1,9 @@
 import Bundle from "../../Bundle";
 import Module from "../../Module";
+import { GlobalsOption } from "../../rollup/index";
 
-export default function getGlobalNameMaker (globals, bundle: Bundle, fallback = null) {
-	const fn = typeof globals === 'function' ? globals : id => globals[id];
+export default function getGlobalNameMaker (globals: GlobalsOption, bundle: Bundle, fallback: string = null) {
+	const fn = typeof globals === 'function' ? globals : (id: string) => globals[id];
 
 	return function (module: Module) {
 		const name = fn(module.id);

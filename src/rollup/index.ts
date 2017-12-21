@@ -10,6 +10,7 @@ import mergeOptions from '../utils/mergeOptions.js';
 import Bundle from '../Bundle';
 import Module from '../Module';
 import { RawSourceMap } from 'source-map';
+import { WatchOptions } from 'chokidar';
 
 export const VERSION = '<@VERSION@>';
 
@@ -40,9 +41,12 @@ export interface TreeshakingOptions {
 	pureExternalModules: boolean;
 }
 
+export type ExternalOption = string[] | ((id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void);
+export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
+
 export interface InputOptions {
 	input: string;
-	external?: string[] | ((id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void);
+	external?: ExternalOption;
 	plugins?: Plugin[];
 
 	onwarn?: WarningHandler;
@@ -59,11 +63,14 @@ export interface InputOptions {
 	pureExternalModules?: boolean;
 	preferConst?: boolean;
 	watch?: {
-		chokidar?: boolean;
-		include?: string[];
-		exclude?: string[];
-		clearScreen?: boolean;
+		chokidar?: boolean | WatchOptions;
+    include?: string[];
+    exclude?: string[];
+    clearScreen?: boolean;
 	};
+
+	noConflict?: boolean;
+	exports?: 'default' | 'named' | 'none';
 
 	// deprecated
 	entry?: string;
@@ -71,6 +78,8 @@ export interface InputOptions {
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
 	resolveExternal?: any;
+
+	output?: OutputOptions;
 }
 
 export type ModuleFormat = 'amd' | 'cjs' | 'es' | 'es6' | 'iife' | 'umd';
@@ -88,13 +97,21 @@ export interface OutputOptions {
 	name?: string;
 	sourcemap?: boolean | 'inline';
 	sourcemapFile?: string;
+
 	banner?: string;
 	footer?: string;
 	intro?: string;
 	outro?: string;
 	paths?: Record<string, string> | ((id: string) => string);
+
 	freeze?: boolean;
 	exports?: string;
+
+	strict?: boolean;
+	interop?: boolean;
+	extend?: boolean;
+	globals?: GlobalsOption;
+	indent?: string;
 
 	// deprecated
 	dest?: string;
@@ -102,7 +119,7 @@ export interface OutputOptions {
 }
 
 export interface Warning {
-	message: string;
+	message?: string;
 	code?: string;
 	loc?: {
 		file: string;

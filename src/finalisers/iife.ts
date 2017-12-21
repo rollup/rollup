@@ -17,7 +17,13 @@ const thisProp = (name: string) => `this${keypath(name)}`;
 export default function iife (
 	bundle: Bundle,
 	magicString: MagicString,
-	{ exportMode, indentString, intro, outro },
+	{ exportMode, indentString, intro, outro }: {
+		exportMode: string;
+		indentString: string;
+		getPath: (name: string) => string;
+		intro: string;
+		outro: string
+	},
 	options: OutputOptions
 ) {
 	const globalNameMaker = getGlobalNameMaker(

@@ -6,7 +6,13 @@ function notDefault (name: string) {
 	return name !== 'default';
 }
 
-export default function es (bundle: Bundle, magicString: MagicString, { getPath, intro, outro }) {
+export default function es (bundle: Bundle, magicString: MagicString, { getPath, intro, outro }: {
+	exportMode: string;
+	indentString: string;
+	getPath: (name: string) => string;
+	intro: string;
+	outro: string
+}) {
 	const importBlock = bundle.externalModules
 		.map(module => {
 			const specifiers: string[] = [];

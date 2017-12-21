@@ -7,7 +7,13 @@ import Bundle from '../Bundle';
 export default function cjs (
 	bundle: Bundle,
 	magicString: MagicString,
-	{ exportMode, getPath, intro, outro },
+	{ exportMode, getPath, intro, outro }: {
+		exportMode: string;
+		indentString: string;
+		getPath: (name: string) => string;
+		intro: string;
+		outro: string
+	},
 	options: OutputOptions
 ) {
 	intro =

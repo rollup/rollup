@@ -29,7 +29,13 @@ const wrapperOutro = '\n\n})));';
 export default function umd (
 	bundle: Bundle,
 	magicString: MagicString,
-	{ exportMode, getPath, indentString, intro, outro },
+	{ exportMode, indentString, getPath, intro, outro }: {
+		exportMode: string;
+		indentString: string;
+		getPath: (name: string) => string;
+		intro: string;
+		outro: string
+	},
 	options: OutputOptions
 ) {
 	if (exportMode !== 'none' && !options.name) {
