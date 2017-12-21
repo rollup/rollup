@@ -1,10 +1,10 @@
 import { timeStart, timeEnd } from './utils/flushTime';
 import { decode } from 'sourcemap-codec';
-import { Bundle as MagicStringBundle } from 'magic-string';
+import { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
 import first from './utils/first';
 import { find } from './utils/array';
 import { blank, forOwn, keys } from './utils/object';
-import Module from './Module';
+import Module, { IdMap } from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import ensureArray from './utils/ensureArray';
@@ -33,6 +33,7 @@ import {
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import { RawSourceMap } from 'source-map';
+import Program from './ast/nodes/Program';
 
 export default class Bundle {
 	acornOptions: any;
@@ -419,7 +420,14 @@ export default class Bundle {
 
 				return transform(this, sourceDescription, id, this.plugins);
 			})
-			.then((source: Module /*|  TransformResult*/) => {
+			.then((source: {
+				code: string,
+				originalCode: string,
+				originalSourcemap: RawSourceMap,
+				ast: Program,
+				sourcemapChain: RawSourceMap[],
+				resolvedIds?: IdMap
+			}) => {
 				const {
 					code,
 					originalCode,
@@ -642,7 +650,7 @@ export default class Bundle {
 				if (footer) magicString.append('\n' + footer);
 
 				const prevCode = magicString.toString();
-				let map = null;
+				let map: SourceMap = null;
 				const bundleSourcemapChain: RawSourceMap[] = [];
 
 				return transformBundle(

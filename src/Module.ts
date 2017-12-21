@@ -36,7 +36,8 @@ import ExternalModule from './ExternalModule';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
-interface IdMap { [key: string]: string; }
+export interface IdMap { [key: string]: string; }
+
 interface CommentDescription {block: boolean, text: string, start: number, end: number}
 interface ExportDescription {localName: string, identifier?: string}
 interface ReexportDescription {localName: string, start: number, source: string, module: Module}
@@ -411,8 +412,7 @@ export default class Module {
 		if (pos !== undefined) {
 			props.pos = pos;
 
-			const { line, column } = locate(this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
-
+			const { line, column } = locate(this.code, pos, { offsetLine: 1 });
 			const location = this.getOriginalLocation(
 				this.sourcemapChain,
 				line,
@@ -542,7 +542,8 @@ export default class Module {
 			); // TODO use correct indentation
 		}
 
-		return magicString.trim();
+		// TODO TypeScript: It seems magicString is missing type information here
+		return (<any> magicString).trim();
 	}
 
 	toJSON () {
@@ -646,7 +647,7 @@ export default class Module {
 		if (pos !== undefined) {
 			warning.pos = pos;
 
-			const { line, column } = locate(this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
+			const { line, column } = locate(this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps, cf. error()
 
 			warning.loc = { file: this.id, line, column };
 			warning.frame = getCodeFrame(this.code, line, column);
