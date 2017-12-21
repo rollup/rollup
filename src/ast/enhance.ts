@@ -4,6 +4,7 @@ import keys from './keys';
 import Node from './Node';
 import Module from '../Module';
 import Comment from './comment';
+import MagicString from 'magic-string';
 
 const newline = /\n/;
 
@@ -30,7 +31,7 @@ export default function enhance (ast: any, module: Module, comments: Comment[]) 
 	}
 }
 
-function enhanceNode (raw: Node | Node[], parent: Node, module: Module, code: string) {
+function enhanceNode (raw: Node | Node[], parent: Node, module: Module, code: MagicString) {
 	if (!raw) return;
 
 	if ('length' in raw) {

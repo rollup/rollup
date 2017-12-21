@@ -100,7 +100,7 @@ export default class Module {
 
 	ast: Program;
 	private astClone: Program;
-	private declarations: {[name: string]: Variable};
+	declarations: {[name: string]: Variable};
 	private exportAllModules: Module[];
 
 	constructor ({
