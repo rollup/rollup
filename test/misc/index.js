@@ -59,10 +59,15 @@ describe('sanity checks', () => {
 			});
 	});
 
-	it('does not fail with invalid keys', () => {
+	it('fails with invalid keys', () => {
 		return rollup.rollup({ input: 'x', plUgins: [], plugins: [loader({ x: `console.log( 42 );` })] }).then(
-			res => {
-				assert.ok(res, 'not throwing up');
+			() => {
+				throw new Error('Missing expected error');
+			}, err => {
+				assert.equal(
+					err.message,
+					'Unknown option found: plUgins. Allowed keys: input, legacy, treeshake, acorn, context, moduleContext, plugins, onwarn, watch, cache, preferConst, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, indent, strict, noConflict, paths, exports, file, pureExternalModules'
+				);
 			}
 		);
 	});

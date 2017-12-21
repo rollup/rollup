@@ -3,7 +3,6 @@
 // unlike the config file which passes whole options in one go
 export default function deprecateOptions ( options, deprecateConfig ) {
 	const deprecations = [];
-
 	if (deprecateConfig.input) deprecateInputOptions();
 	if (deprecateConfig.output) deprecateOutputOptions();
 

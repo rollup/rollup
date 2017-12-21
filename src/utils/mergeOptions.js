@@ -115,6 +115,7 @@ export default function mergeOptions ({
 		noConflict: getOutputOption( 'noConflict' ),
 		paths: getOutputOption( 'paths' ),
 		exports: getOutputOption( 'exports' ),
+		file: getOutputOption( 'file' ),
 	};
 
 	let mergedOutputOptions;
@@ -135,7 +136,23 @@ export default function mergeOptions ({
 		return Object.assign( {}, baseOutputOptions, output );
 	} );
 
-	return { inputOptions, outputOptions, deprecations };
+	// check for errors
+	const validKeys = [
+		...Object.keys(inputOptions),
+		...Object.keys(baseOutputOptions),
+		'pureExternalModules' // (backward compatibility) till everyone moves to treeshake.pureExternalModules
+	];
+	const errors = [...Object.keys(config || {}), ...Object.keys(config.output || {})]
+		.filter(k => k !== 'output' && validKeys.indexOf(k) === -1);
+
+	return {
+		inputOptions,
+		outputOptions,
+		deprecations,
+		optionError: errors.length
+			? `Unknown option found: ${errors.join(', ')}. Allowed keys: ${validKeys.join(', ')}`
+			: null
+	};
 }
 
 function deprecate ( config, command = {}, deprecateConfig = { input: true, output: true } ) {
