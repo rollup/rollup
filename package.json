@@ -43,6 +43,7 @@
   },
   "homepage": "https://github.com/rollup/rollup",
   "devDependencies": {
+    "@types/acorn": "^4.0.3",
     "@types/chokidar": "^1.7.4",
     "@types/immutable": "^3.8.7",
     "@types/minimist": "^1.2.0",
@@ -91,7 +92,5 @@
     "bin/rollup",
     "README.md"
   ],
-  "dependencies": {
-    "@types/acorn": "^4.0.3"
-  }
+  "dependencies": {}
 }

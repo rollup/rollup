@@ -22,7 +22,13 @@ import Bundle from './Bundle';
 import Variable from './ast/variables/Variable';
 import Program from './ast/nodes/Program';
 import VariableDeclarator from './ast/nodes/VariableDeclarator';
-import VariableDeclaration from './ast/nodes/VariableDeclaration';
+import Node from './ast/Node';
+import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
+import ImportDeclaration from './ast/nodes/ImportDeclaration';
+import Identifier from './ast/nodes/Identifier';
+import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
+import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
+import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
@@ -47,8 +53,8 @@ function tryParse (module: Module, acornOptions: Object) {
 
 function includeFully (node: Node) {
 	node.included = true;
-	if (node.variable && !node.variable.included) {
-		node.variable.includeVariable();
+	if ((<Identifier> node).variable && !(<Identifier> node).variable.included) {
+		(<Identifier> node).variable.includeVariable();
 	}
 	node.eachChild(includeFully);
 }
@@ -189,8 +195,8 @@ export default class Module {
 		this.strongDependencies = [];
 	}
 
-	addExport (node: Node) {
-		const source = node.source && node.source.value;
+	addExport (node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration) {
+		const source = (<ExportAllDeclaration> node).source && <string> (<ExportAllDeclaration> node).source.value;
 
 		// export { name } from './other'
 		if (source) {
@@ -201,7 +207,7 @@ export default class Module {
 				// When an unknown import is encountered, we see if one of them can satisfy it.
 				this.exportAllSources.push(source);
 			} else {
-				node.specifiers.forEach(specifier => {
+				(<ExportNamedDeclaration> node).specifiers.forEach(specifier => {
 					const name = specifier.exported.name;
 
 					if (this.exports[name] || this.reexports[name]) {
@@ -227,9 +233,9 @@ export default class Module {
 			// export default foo;
 			// export default 42;
 			const identifier =
-				(node.declaration.id && node.declaration.id.name) ||
-				node.declaration.name;
-
+				((<FunctionDeclaration> (<ExportDefaultDeclaration> node).declaration).id
+					&& (<FunctionDeclaration> (<ExportDefaultDeclaration> node).declaration).id.name)
+				|| (<Identifier> (<ExportDefaultDeclaration> node).declaration).name;
 			if (this.exports.default) {
 				this.error(
 					{
@@ -244,27 +250,27 @@ export default class Module {
 				localName: 'default',
 				identifier
 			};
-		} else if (node.declaration) {
+		} else if ((<ExportNamedDeclaration> node).declaration) {
 			// export var { foo, bar } = ...
 			// export var foo = 42;
 			// export var a = 1, b = 2, c = 3;
 			// export function foo () {}
-			const declaration = node.declaration;
+			const declaration = (<ExportNamedDeclaration> node).declaration;
 
 			if (declaration.type === 'VariableDeclaration') {
 				declaration.declarations.forEach((decl: VariableDeclarator) => {
 					extractNames(decl.id).forEach(localName => {
-						this.exports[localName] = {localName};
+						this.exports[localName] = { localName };
 					});
 				});
 			} else {
 				// export function foo () {}
 				const localName = declaration.id.name;
-				this.exports[localName] = {localName};
+				this.exports[localName] = { localName };
 			}
 		} else {
 			// export { foo, bar, baz }
-			node.specifiers.forEach(specifier => {
+			(<ExportNamedDeclaration> node).specifiers.forEach(specifier => {
 				const localName = specifier.local.name;
 				const exportedName = specifier.exported.name;
 
@@ -278,13 +284,13 @@ export default class Module {
 					);
 				}
 
-				this.exports[exportedName] = {localName};
+				this.exports[exportedName] = { localName };
 			});
 		}
 	}
 
-	addImport (node: Node) {
-		const source = node.source.value;
+	addImport (node: ImportDeclaration) {
+		const source = <string> node.source.value;
 
 		if (!~this.sources.indexOf(source)) this.sources.push(source);
 
@@ -307,7 +313,7 @@ export default class Module {
 			const name = isDefault
 				? 'default'
 				: isNamespace ? '*' : specifier.imported.name;
-			this.imports[localName] = {source, specifier, name, module: null};
+			this.imports[localName] = { source, specifier, name, module: null };
 		});
 	}
 
@@ -398,7 +404,7 @@ export default class Module {
 		if (pos !== undefined) {
 			props.pos = pos;
 
-			const {line, column} = locate(this.code, pos, {offsetLine: 1}); // TODO trace sourcemaps
+			const { line, column } = locate(this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
 
 			const location = this.getOriginalLocation(
 				this.sourcemapChain,
@@ -516,7 +522,7 @@ export default class Module {
 		return this.declarations['*'];
 	}
 
-	render (es, legacy, freeze) {
+	render (es: boolean, legacy: boolean, freeze: boolean) {
 		const magicString = this.magicString.clone();
 
 		for (const node of this.ast.body) {
@@ -633,9 +639,9 @@ export default class Module {
 		if (pos !== undefined) {
 			warning.pos = pos;
 
-			const {line, column} = locate(this.code, pos, {offsetLine: 1}); // TODO trace sourcemaps
+			const { line, column } = locate(this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps
 
-			warning.loc = {file: this.id, line, column};
+			warning.loc = { file: this.id, line, column };
 			warning.frame = getCodeFrame(this.code, line, column);
 		}
 

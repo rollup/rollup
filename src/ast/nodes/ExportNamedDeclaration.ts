@@ -3,11 +3,12 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import Declaration from './Declaration';
 import Literal from './Literal';
 import MagicString from 'magic-string';
+import ExportSpecifier from './ExportSpecifier';
 
 export default class ExportNamedDeclaration extends Node {
 	type: 'ExportNamedDeclaration';
 	declaration: Declaration | null;
-	specifiers: Node[];
+	specifiers: ExportSpecifier[];
 	source: Literal | null;
 
 	isExportDeclaration: true;
