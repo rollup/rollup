@@ -1,6 +1,7 @@
 import Module from "../../Module";
+import ExternalModule from "../../ExternalModule";
 
-export default function trimEmptyImports (modules: Module[]) {
+export default function trimEmptyImports (modules: (Module | ExternalModule)[]) {
 	let i = modules.length;
 
 	while (i--) {

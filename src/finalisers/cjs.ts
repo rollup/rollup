@@ -1,12 +1,12 @@
 import getExportBlock from './shared/getExportBlock';
 import esModuleExport from './shared/esModuleExport';
 import { OutputOptions } from '../rollup/index';
-import MagicString from 'magic-string';
+import { Bundle as MagicStringBundle } from 'magic-string';
 import Bundle from '../Bundle';
 
 export default function cjs (
 	bundle: Bundle,
-	magicString: MagicString,
+	magicString: MagicStringBundle,
 	{ exportMode, getPath, intro, outro }: {
 		exportMode: string;
 		indentString: string;

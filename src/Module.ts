@@ -32,6 +32,7 @@ import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ImportDefaultSpecifier from './ast/nodes/ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
 import { RollupWarning } from './rollup/index';
+import ExternalModule from './ExternalModule';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
@@ -71,7 +72,7 @@ export default class Module {
 	code: string;
 	comments: CommentDescription[];
 	context: string;
-	dependencies: Module[];
+	dependencies: (Module | ExternalModule)[];
 	excludeFromSourcemap: boolean;
 	exports: {[name: string]: ExportDescription};
 	exportsAll: {[name: string]: string};
@@ -83,7 +84,7 @@ export default class Module {
 			source: string;
 			specifier: ImportSpecifier | ImportNamespaceSpecifier | ImportDefaultSpecifier;
 			name: string;
-			module: Module | null;
+			module: Module | ExternalModule | null;
 		}
 	};
 	isExternal: boolean;
@@ -96,12 +97,12 @@ export default class Module {
 	scope: ModuleScope;
 	sourcemapChain: RawSourceMap[];
 	sources: string[];
-	strongDependencies: Module[];
+	strongDependencies: (Module | ExternalModule)[];
 
 	ast: Program;
 	private astClone: Program;
 	declarations: {[name: string]: Variable};
-	private exportAllModules: Module[];
+	private exportAllModules: (Module | ExternalModule)[];
 
 	constructor ({
 		id,
@@ -121,7 +122,7 @@ export default class Module {
 		ast: Program,
 		sourcemapChain: RawSourceMap[],
 		resolvedIds: IdMap,
-		resolvedExternalIds: IdMap,
+		resolvedExternalIds?: IdMap,
 		bundle: Bundle
 	}) {
 		this.code = code;
@@ -450,9 +451,9 @@ export default class Module {
 				return;
 			}
 
-			module
+			(<Module>module)
 				.getExports()
-				.concat(module.getReexports())
+				.concat((<Module>module).getReexports())
 				.forEach(name => {
 					if (name !== 'default') reexports[name] = true;
 				});
@@ -569,7 +570,7 @@ export default class Module {
 			const otherModule = importDeclaration.module;
 
 			if (importDeclaration.name === '*' && !otherModule.isExternal) {
-				return otherModule.namespace();
+				return (<Module>otherModule).namespace();
 			}
 
 			const declaration = otherModule.traceExport(importDeclaration.name);

@@ -9,14 +9,15 @@ import trimEmptyImports from './shared/trimEmptyImports';
 import setupNamespace from './shared/setupNamespace';
 import { isLegal } from '../utils/identifierHelpers';
 import Bundle from '../Bundle';
-import MagicString from 'magic-string';
+import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
+import ExternalModule from '../ExternalModule';
 
 const thisProp = (name: string) => `this${keypath(name)}`;
 
 export default function iife (
 	bundle: Bundle,
-	magicString: MagicString,
+	magicString: MagicStringBundle,
 	{ exportMode, indentString, intro, outro }: {
 		exportMode: string;
 		indentString: string;
@@ -47,7 +48,7 @@ export default function iife (
 
 	const external = trimEmptyImports(bundle.externalModules);
 	const dependencies = external.map(globalNameMaker);
-	const args = external.map(m => m.name);
+	const args = (<ExternalModule[]>external).map(m => m.name);
 
 	if (exportMode !== 'none' && !name) {
 		error({

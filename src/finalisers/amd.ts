@@ -3,12 +3,12 @@ import getExportBlock from './shared/getExportBlock';
 import esModuleExport from './shared/esModuleExport';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import Bundle from '../Bundle';
-import MagicString from 'magic-string';
+import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
 
 export default function amd (
 	bundle: Bundle,
-	magicString: MagicString,
+	magicString: MagicStringBundle,
 	{ exportMode, getPath, indentString, intro, outro }: {
 		exportMode: string;
 		indentString: string;

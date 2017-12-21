@@ -489,7 +489,7 @@ export default class Bundle {
 			return (resolvedId
 					? Promise.resolve(resolvedId)
 					: this.resolveId(source, module.id)
-			).then(resolvedId => {
+			).then((resolvedId: string) => {
 				const externalId =
 					resolvedId ||
 					(isRelative(source) ? resolve(module.id, '..', source) : source);
@@ -618,13 +618,13 @@ export default class Bundle {
 				const optionsPaths = options.paths;
 				const getPath =
 					typeof optionsPaths === 'function'
-						? id => optionsPaths(id) || this.getPathRelativeToEntryDirname(id)
+						? (id: string) => optionsPaths(id) || this.getPathRelativeToEntryDirname(id)
 						: optionsPaths
-						? id =>
+						? (id: string) =>
 							optionsPaths.hasOwnProperty(id)
 								? optionsPaths[id]
 								: this.getPathRelativeToEntryDirname(id)
-						: id => this.getPathRelativeToEntryDirname(id);
+						: (id: string) => this.getPathRelativeToEntryDirname(id);
 
 				if (intro) intro += '\n\n';
 				if (outro) outro = `\n\n${outro}`;

@@ -9,8 +9,9 @@ import warnOnBuiltins from './shared/warnOnBuiltins';
 import trimEmptyImports from './shared/trimEmptyImports';
 import setupNamespace from './shared/setupNamespace';
 import Bundle from '../Bundle';
-import MagicString from 'magic-string';
+import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
+import ExternalModule from '../ExternalModule';
 
 function globalProp (name: string) {
 	if (!name) return 'null';
@@ -28,7 +29,7 @@ const wrapperOutro = '\n\n})));';
 
 export default function umd (
 	bundle: Bundle,
-	magicString: MagicString,
+	magicString: MagicStringBundle,
 	{ exportMode, indentString, getPath, intro, outro }: {
 		exportMode: string;
 		indentString: string;
@@ -59,7 +60,7 @@ export default function umd (
 
 	const trimmed = trimEmptyImports(bundle.externalModules);
 	const globalDeps = trimmed.map(module => globalProp(globalNameMaker(module)));
-	const args = trimmed.map(m => m.name);
+	const args = trimmed.map(m => (<ExternalModule>m).name);
 
 	if (exportMode === 'named') {
 		amdDeps.unshift(`'exports'`);

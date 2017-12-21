@@ -1,12 +1,12 @@
 import { keys } from '../utils/object';
-import MagicString from 'magic-string';
+import { Bundle as MagicStringBundle } from 'magic-string';
 import Bundle from '../Bundle';
 
 function notDefault (name: string) {
 	return name !== 'default';
 }
 
-export default function es (bundle: Bundle, magicString: MagicString, { getPath, intro, outro }: {
+export default function es (bundle: Bundle, magicString: MagicStringBundle, { getPath, intro, outro }: {
 	exportMode: string;
 	indentString: string;
 	getPath: (name: string) => string;
