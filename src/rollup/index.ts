@@ -21,6 +21,7 @@ export type ResolveIdHook = (id: string, parent: string) => Promise<string | boo
 export type IsExternalHook = (id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void;
 export type LoadHook = (id: string) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
 export type TransformHook = (code: string) => Promise<SourceDescription | string | void>;
+export type TransformBundleHook = (code: string, { format }: { format: string }) => Promise<SourceDescription | string >;
 
 export interface Plugin {
 	name: string;
@@ -28,6 +29,7 @@ export interface Plugin {
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
 	transform?: TransformHook;
+	transformBundle?: TransformBundleHook;
 	ongenerate?: (options: OutputOptions, source: SourceDescription) => void;
 	onwrite?: (options: OutputOptions, source: SourceDescription) => void;
 
@@ -58,16 +60,16 @@ export interface InputOptions {
 	acorn: {};
 	treeshake?: boolean | TreeshakingOptions;
 	context?: string;
-	moduleContext?: string | ((id: string) => string) | {[id: string]: string};
+	moduleContext?: string | ((id: string) => string) | { [id: string]: string };
 	legacy?: boolean;
 
 	pureExternalModules?: boolean;
 	preferConst?: boolean;
 	watch?: {
 		chokidar?: boolean | WatchOptions;
-    include?: string[];
-    exclude?: string[];
-    clearScreen?: boolean;
+		include?: string[];
+		exclude?: string[];
+		clearScreen?: boolean;
 	};
 
 	noConflict?: boolean;

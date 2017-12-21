@@ -1,11 +1,13 @@
 import { decode } from 'sourcemap-codec';
 import error from './error';
+import { RawSourceMap } from 'source-map';
+import { OutputOptions, Plugin } from '../rollup/index';
 
 export default function transformBundle (
-	code,
-	plugins,
-	sourcemapChain,
-	options
+	code: string,
+	plugins: Plugin[],
+	sourcemapChain: RawSourceMap[],
+	options: OutputOptions
 ) {
 	return plugins.reduce((promise, plugin) => {
 		if (!plugin.transformBundle) return promise;
