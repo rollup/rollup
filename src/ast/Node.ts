@@ -44,8 +44,8 @@ export default class Node {
 	 * is assigned to node.x.y.
 	 * The default noop implementation is ok as long as hasEffectsWhenAssignedAtPath
 	 * always returns true for this node. Otherwise it should be overridden.
-	 * @param {String[]} path
-	 * @param {ExecutionPathOptions} options
+	 * @param {String[]} _path
+	 * @param {ExecutionPathOptions} _options
 	 */
 	reassignPath (_path: string[], _options: ExecutionPathOptions) { }
 
@@ -77,10 +77,10 @@ export default class Node {
 
 	/**
 	 * Executes the callback on each possible return expression when calling this node.
-	 * @param {String[]} path
-	 * @param {CallOptions} callOptions
-	 * @param {Function} callback
-	 * @param {ExecutionPathOptions} options
+	 * @param {String[]} _path
+	 * @param {CallOptions} _callOptions
+	 * @param {Function} _callback
+	 * @param {ExecutionPathOptions} _options
 	 */
 	forEachReturnExpressionWhenCalledAtPath (
 		_path: string[],
@@ -107,7 +107,7 @@ export default class Node {
 
 	/**
 	 * @param {String[]} path
-	 * @param {ExecutionPathOptions} options
+	 * @param {ExecutionPathOptions} _options
 	 * @return {boolean}
 	 */
 	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
@@ -115,8 +115,8 @@ export default class Node {
 	}
 
 	/**
-	 * @param {String[]} path
-	 * @param {ExecutionPathOptions} options
+	 * @param {String[]} _path
+	 * @param {ExecutionPathOptions} _options
 	 * @return {boolean}
 	 */
 	hasEffectsWhenAssignedAtPath (_path: string[], _options: ExecutionPathOptions) {
@@ -124,9 +124,9 @@ export default class Node {
 	}
 
 	/**
-	 * @param {String[]} path
-	 * @param {CallOptions} callOptions
-	 * @param {ExecutionPathOptions} options
+	 * @param {String[]} _path
+	 * @param {CallOptions} _callOptions
+	 * @param {ExecutionPathOptions} _options
 	 * @return {boolean}
 	 */
 	hasEffectsWhenCalledAtPath (_path: string[], _callOptions: CallOptions, _options: ExecutionPathOptions) {
@@ -188,7 +188,7 @@ export default class Node {
 
 	/**
 	 * Override to change how and with what scopes children are initialised
-	 * @param {Scope} parentScope
+	 * @param {Scope} _parentScope
 	 */
 	initialiseChildren (_parentScope: Scope) {
 		this.eachChild(child => child.initialise(this.scope));
@@ -196,7 +196,7 @@ export default class Node {
 
 	/**
 	 * Override to perform special initialisation steps after the scope is initialised
-	 * @param {Scope} parentScope
+	 * @param {Scope} _parentScope
 	 */
 	initialiseNode (_parentScope: Scope) { }
 
@@ -257,8 +257,8 @@ export default class Node {
 	/**
 	 * Returns true if some possible return expression when called at the given
 	 * path returns true. predicateFunction receives a `node` as parameter.
-	 * @param {String[]} path
-	 * @param {CallOptions} callOptions
+	 * @param {String[]} _path
+	 * @param {CallOptions} _callOptions
 	 * @param {Function} predicateFunction
 	 * @param {ExecutionPathOptions} options
 	 * @returns {boolean}
