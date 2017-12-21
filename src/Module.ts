@@ -70,12 +70,10 @@ export default class Module {
 	code: string;
 	comments: CommentDescription[];
 	context: string;
-	declarations: {[name: string]: Variable};
 	dependencies: Module[];
 	excludeFromSourcemap: boolean;
 	exports: {[name: string]: ExportDescription};
 	exportsAll: {[name: string]: Module};
-	exportAllModules: Module[];
 	exportAllSources: string[];
 	id: string;
 
@@ -90,7 +88,7 @@ export default class Module {
 	isExternal: boolean;
 	magicString: MagicString;
 	originalCode: string;
-	originalSourcemap: Object;
+	originalSourcemap: RawSourceMap;
 	reexports: {[name: string]: ReexportDescription};
 	resolvedExternalIds: IdMap;
 	resolvedIds: IdMap;
@@ -101,6 +99,8 @@ export default class Module {
 
 	private ast: Program;
 	private astClone: Program;
+	private declarations: {[name: string]: Variable};
+	private exportAllModules: Module[];
 
 	constructor ({
 		id,
@@ -116,7 +116,7 @@ export default class Module {
 		id: string,
 		code: string,
 		originalCode: string,
-		originalSourcemap: Object,
+		originalSourcemap: RawSourceMap,
 		ast: Program,
 		sourcemapChain: RawSourceMap[],
 		resolvedIds: IdMap,
@@ -200,7 +200,7 @@ export default class Module {
 		this.strongDependencies = [];
 	}
 
-	addExport (node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration) {
+	private addExport (node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration) {
 		const source = (<ExportAllDeclaration> node).source && <string> (<ExportAllDeclaration> node).source.value;
 
 		// export { name } from './other'
@@ -294,7 +294,7 @@ export default class Module {
 		}
 	}
 
-	addImport (node: ImportDeclaration) {
+	private addImport (node: ImportDeclaration) {
 		const source = <string> node.source.value;
 
 		if (!~this.sources.indexOf(source)) this.sources.push(source);
@@ -322,7 +322,7 @@ export default class Module {
 		});
 	}
 
-	analyse () {
+	private analyse () {
 		enhance(this.ast, this, this.comments);
 
 		// discover this module's imports and exports
@@ -380,7 +380,7 @@ export default class Module {
 		}
 	}
 
-	getOriginalLocation (sourcemapChain: RawSourceMap[], line: number, column: number) {
+	private getOriginalLocation (sourcemapChain: RawSourceMap[], line: number, column: number) {
 		let location = {
 			line,
 			column
