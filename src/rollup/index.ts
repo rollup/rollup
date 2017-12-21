@@ -11,15 +11,16 @@ import Bundle from '../Bundle';
 import Module from '../Module';
 import { RawSourceMap } from 'source-map';
 import { WatchOptions } from 'chokidar';
+import Program from '../ast/nodes/Program';
 
 export const VERSION = '<@VERSION@>';
 
-export type Source = string | { code: string, map: RawSourceMap };
+export type SourceDescription = { code: string, map?: RawSourceMap, ast?: Program };
 
 export type ResolveIdHook = (id: string, parent: string) => Promise<string | boolean | void> | string | boolean | void;
 export type IsExternalHook = (id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void;
-export type LoadHook = (id: string) => Promise<Source> | Source | null;
-export type TransformHook = (code: string) => Promise<Source> | Source | null;
+export type LoadHook = (id: string) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
+export type TransformHook = (code: string) => Promise<SourceDescription | string | void>;
 
 export interface Plugin {
 	name: string;
@@ -27,8 +28,8 @@ export interface Plugin {
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
 	transform?: TransformHook;
-	ongenerate?: (options: OutputOptions, source: Source) => void;
-	onwrite?: (options: OutputOptions, source: Source) => void;
+	ongenerate?: (options: OutputOptions, source: SourceDescription) => void;
+	onwrite?: (options: OutputOptions, source: SourceDescription) => void;
 
 	banner?: () => string;
 	footer?: () => string;
@@ -41,7 +42,7 @@ export interface TreeshakingOptions {
 	pureExternalModules: boolean;
 }
 
-export type ExternalOption = string[] | ((id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void);
+export type ExternalOption = string[] | IsExternalHook;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 
 export interface InputOptions {
@@ -118,7 +119,7 @@ export interface OutputOptions {
 	moduleId?: string;
 }
 
-export interface Warning {
+export interface RollupWarning {
 	message?: string;
 	code?: string;
 	loc?: {
@@ -142,9 +143,10 @@ export interface Warning {
 	id?: string;
 	plugin?: string;
 	pos?: number;
+	pluginCode?: string;
 }
 
-export type WarningHandler = (warning: Warning) => void;
+export type WarningHandler = (warning: RollupWarning) => void;
 
 function addDeprecations (deprecations, warn) {
 	const message = `The following options have been renamed — please update your config: ${deprecations.map(

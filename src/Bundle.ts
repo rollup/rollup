@@ -28,13 +28,11 @@ import {
 } from './utils/path';
 import BundleScope from './ast/scopes/BundleScope';
 import {
-	OutputOptions, WarningHandler, TreeshakingOptions, Plugin, ResolveIdHook, IsExternalHook, InputOptions, Warning
+	OutputOptions, WarningHandler, TreeshakingOptions, Plugin, ResolveIdHook, IsExternalHook, InputOptions, RollupWarning, SourceDescription
 } from './rollup/index';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import { RawSourceMap } from 'source-map';
-
-export type SourceDescription = { code: string, map?: RawSourceMap, ast?: Node };
 
 export default class Bundle {
 	acornOptions: any;
@@ -49,7 +47,7 @@ export default class Bundle {
 	isExternal: IsExternalHook;
 	isPureExternalModule: (id: string) => boolean;
 	legacy: boolean;
-	load: (id: string) => Promise<SourceDescription>;
+	load: (id: string) => Promise<SourceDescription | string | void>;
 	moduleById: Map<string, Module | ExternalModule>;
 	modules: Module[];
 	onwarn: WarningHandler;
@@ -169,9 +167,9 @@ export default class Bundle {
 		}
 	}
 
-	collectAddon (initialAddon: string, addonName: string, sep: string = '\n') {
+	collectAddon (initialAddon: string, addonName: 'banner' | 'footer' | 'intro' | 'outro', sep: string = '\n') {
 		return runSequence(
-			[{ pluginName: 'rollup', source: initialAddon }]
+			[{ pluginName: 'rollup', source: initialAddon } as { pluginName: string, source: string | (() => string) }]
 				.concat(
 					this.plugins.map((plugin, idx) => {
 						return {
@@ -407,23 +405,21 @@ export default class Bundle {
 				});
 			})
 			.then(source => {
-				if (typeof source === 'string') {
-					source = {
-						code: source,
-						ast: null
-					};
-				}
+				const sourceDescription: SourceDescription = typeof source === 'string' ? {
+					code: source,
+					ast: null
+				} : source;
 
 				if (
 					this.cachedModules.has(id) &&
-					this.cachedModules.get(id).originalCode === source.code
+					this.cachedModules.get(id).originalCode === sourceDescription.code
 				) {
 					return this.cachedModules.get(id);
 				}
 
-				return transform(this, source, id, this.plugins);
+				return transform(this, sourceDescription, id, this.plugins);
 			})
-			.then(source => {
+			.then((source: Module /*|  TransformResult*/) => {
 				const {
 					code,
 					originalCode,
@@ -790,7 +786,7 @@ export default class Bundle {
 		return ordered;
 	}
 
-	warn (warning: Warning) {
+	warn (warning: RollupWarning) {
 		warning.toString = () => {
 			let str = '';
 

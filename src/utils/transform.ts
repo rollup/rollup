@@ -1,15 +1,14 @@
 import { decode } from 'sourcemap-codec';
 import { locate } from 'locate-character';
-import error from './error';
+import error, { RollupError } from './error';
 import getCodeFrame from './getCodeFrame';
-import Program from '../ast/nodes/Program';
 import Bundle from '../Bundle';
 import { RawSourceMap } from 'source-map';
-import {Plugin} from '../rollup/index';
+import {Plugin, RollupWarning, SourceDescription} from '../rollup/index';
 
 export default function transform (
 	bundle: Bundle,
-	source: { code: string, map?: RawSourceMap, ast?: Program },
+	source: SourceDescription,
 	id: string,
 	plugins: Plugin[]
 ) {
@@ -31,42 +30,40 @@ export default function transform (
 		if (!plugin.transform) return;
 
 		promise = promise.then(previous => {
-			function augment (object, pos, code) {
-				if (typeof object === 'string') {
-					object = { message: object };
-				}
+			function augment<T extends RollupError | RollupWarning> (object: T | string, pos: { line: number, column: number }, code: string): T {
+				const outObject = typeof object === 'string' ? <T>{ message: object } : object;
 
-				if (object.code) object.pluginCode = object.code;
-				object.code = code;
+				if (outObject.code) outObject.pluginCode = outObject.code;
+				outObject.code = code;
 
 				if (pos !== undefined) {
 					if (pos.line !== undefined && pos.column !== undefined) {
 						const { line, column } = pos;
-						object.loc = { file: id, line, column };
-						object.frame = getCodeFrame(previous, line, column);
+						outObject.loc = { file: id, line, column };
+						outObject.frame = getCodeFrame(previous, line, column);
 					} else {
-						object.pos = pos;
+						outObject.pos = <any>pos;
 						const { line, column } = locate(previous, pos, { offsetLine: 1 });
-						object.loc = { file: id, line, column };
-						object.frame = getCodeFrame(previous, line, column);
+						outObject.loc = { file: id, line, column };
+						outObject.frame = getCodeFrame(previous, line, column);
 					}
 				}
 
-				object.plugin = plugin.name;
-				object.id = id;
+				outObject.plugin = plugin.name;
+				outObject.id = id;
 
-				return object;
+				return outObject;
 			}
 
 			let throwing;
 
 			const context = {
-				warn: (warning, pos) => {
+				warn: (warning: RollupWarning, pos: { line: number, column: number }) => {
 					warning = augment(warning, pos, 'PLUGIN_WARNING');
 					bundle.warn(warning);
 				},
 
-				error (err, pos) {
+				error (err: RollupError, pos?: { line: number, column: number }) {
 					err = augment(err, pos, 'PLUGIN_ERROR');
 					throwing = true;
 					error(err);

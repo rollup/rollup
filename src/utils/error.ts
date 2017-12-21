@@ -13,6 +13,8 @@ export interface RollupError {
 	stack?: string;
 	frame?: string;
 	pos?: number;
+	plugin?: string;
+	pluginCode?: string;
 }
 
 export default function error (props: Error | RollupError) {
