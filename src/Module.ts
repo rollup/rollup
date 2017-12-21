@@ -8,7 +8,7 @@ import { basename, extname } from './utils/path';
 import { makeLegal } from './utils/identifierHelpers';
 import getCodeFrame from './utils/getCodeFrame';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
-import error from './utils/error';
+import error, { RollupError } from './utils/error';
 import relativeId from './utils/relativeId';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import extractNames from './ast/utils/extractNames';
@@ -16,7 +16,7 @@ import enhance from './ast/enhance';
 import clone from './ast/clone';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { encode } from 'sourcemap-codec';
-import { SourceMapConsumer } from 'source-map';
+import { RawSourceMap, SourceMapConsumer } from 'source-map';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
 import Bundle from './Bundle';
 import Variable from './ast/variables/Variable';
@@ -29,10 +29,15 @@ import Identifier from './ast/nodes/Identifier';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
+import ImportDefaultSpecifier from './ast/nodes/ImportDefaultSpecifier';
+import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
 interface IdMap { [key: string]: string; }
+interface CommentDescription {block: boolean, text: string, start: number, end: number}
+interface ExportDescription {localName: string, identifier?: string}
+interface ReexportDescription {localName: string, start: number, source: string, module: Module}
 
 function tryParse (module: Module, acornOptions: Object) {
 	try {
@@ -63,21 +68,21 @@ export default class Module {
 	type: 'Module';
 	bundle: Bundle;
 	code: string;
-	comments: any[];
+	comments: CommentDescription[];
 	context: string;
-	declarations: any;
+	declarations: {[name: string]: Variable};
 	dependencies: Module[];
 	excludeFromSourcemap: boolean;
-	exports: any;
-	exportsAll: any;
-	exportAllModules: any;
-	exportAllSources: any;
+	exports: {[name: string]: ExportDescription};
+	exportsAll: {[name: string]: Module};
+	exportAllModules: Module[];
+	exportAllSources: string[];
 	id: string;
 
 	imports: {
 		[name: string]: {
 			source: string;
-			specifier: ImportSpecifier[];
+			specifier: ImportSpecifier | ImportNamespaceSpecifier | ImportDefaultSpecifier;
 			name: string;
 			module: Module | null;
 		}
@@ -86,13 +91,13 @@ export default class Module {
 	magicString: MagicString;
 	originalCode: string;
 	originalSourcemap: Object;
-	reexports: any;
+	reexports: {[name: string]: ReexportDescription};
 	resolvedExternalIds: IdMap;
 	resolvedIds: IdMap;
 	scope: ModuleScope;
-	sourcemapChain: Object[];
+	sourcemapChain: RawSourceMap[];
 	sources: string[];
-	strongDependencies: any;
+	strongDependencies: Module[];
 
 	private ast: Program;
 	private astClone: Program;
@@ -113,7 +118,7 @@ export default class Module {
 		originalCode: string,
 		originalSourcemap: Object,
 		ast: Program,
-		sourcemapChain: Object[],
+		sourcemapChain: RawSourceMap[],
 		resolvedIds: IdMap,
 		resolvedExternalIds: IdMap,
 		bundle: Bundle
@@ -312,7 +317,7 @@ export default class Module {
 
 			const name = isDefault
 				? 'default'
-				: isNamespace ? '*' : specifier.imported.name;
+				: isNamespace ? '*' : (<ImportSpecifier> specifier).imported.name;
 			this.imports[localName] = { source, specifier, name, module: null };
 		});
 	}
@@ -324,10 +329,10 @@ export default class Module {
 		let lastNode;
 
 		for (const node of this.ast.body) {
-			if (node.isImportDeclaration) {
-				this.addImport(node);
-			} else if (node.isExportDeclaration) {
-				this.addExport(node);
+			if ((<ImportDeclaration> node).isImportDeclaration) {
+				this.addImport(<ImportDeclaration> node);
+			} else if ((<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration> node).isExportDeclaration) {
+				this.addExport((<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration> node));
 			}
 
 			if (lastNode) lastNode.next = node.leadingCommentStart || node.start;
@@ -375,7 +380,7 @@ export default class Module {
 		}
 	}
 
-	getOriginalLocation (sourcemapChain, line, column) {
+	getOriginalLocation (sourcemapChain: RawSourceMap[], line: number, column: number) {
 		let location = {
 			line,
 			column
@@ -400,7 +405,7 @@ export default class Module {
 		return location;
 	}
 
-	error (props, pos) {
+	error (props: RollupError, pos: number) {
 		if (pos !== undefined) {
 			props.pos = pos;
 
@@ -514,12 +519,12 @@ export default class Module {
 		} ) );
 	}
 
-	namespace () {
+	namespace (): NamespaceVariable {
 		if (!this.declarations['*']) {
 			this.declarations['*'] = new NamespaceVariable(this);
 		}
 
-		return this.declarations['*'];
+		return <NamespaceVariable> this.declarations['*'];
 	}
 
 	render (es: boolean, legacy: boolean, freeze: boolean) {
@@ -587,7 +592,7 @@ export default class Module {
 		return null;
 	}
 
-	traceExport (name) {
+	traceExport (name: string): Variable {
 		// export * from 'external'
 		if (name[0] === '*') {
 			const module = this.bundle.moduleById.get(name.slice(1));
@@ -635,7 +640,7 @@ export default class Module {
 		}
 	}
 
-	warn (warning: any, pos: number) {
+	warn (warning: RollupError, pos: number) {
 		if (pos !== undefined) {
 			warning.pos = pos;
 

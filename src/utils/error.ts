@@ -12,6 +12,7 @@ export interface RollupError {
 	};
 	stack?: string;
 	frame?: string;
+	pos?: number;
 }
 
 export default function error (props: Error | RollupError) {

@@ -37,7 +37,7 @@ export default class NamespaceVariable extends Variable {
 		return true;
 	}
 
-	renderBlock (es: boolean, legacy: boolean, freeze: boolean, indentString: boolean) {
+	renderBlock (es: boolean, legacy: boolean, freeze: boolean, indentString: string) {
 		const members = keys(this.originals).map(name => {
 			const original = this.originals[name];
 

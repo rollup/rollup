@@ -18,7 +18,6 @@ import EmptyStatement from './EmptyStatement';
 import ExportAllDeclaration from './ExportAllDeclaration';
 import ExportDefaultDeclaration from './ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ExportNamedDeclaration';
-import ExportSpecifier from './ExportSpecifier';
 import ExpressionStatement from './ExpressionStatement';
 import ForStatement from './ForStatement';
 import ForInStatement from './ForInStatement';
@@ -80,7 +79,6 @@ const nodes: {
 	ExportAllDeclaration,
 	ExportDefaultDeclaration,
 	ExportNamedDeclaration,
-	ExportSpecifier,
 	ExpressionStatement,
 	ForStatement,
 	ForInStatement,
