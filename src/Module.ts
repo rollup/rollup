@@ -31,6 +31,7 @@ import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ImportDefaultSpecifier from './ast/nodes/ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
+import { Warning } from './rollup/index';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
@@ -73,7 +74,7 @@ export default class Module {
 	dependencies: Module[];
 	excludeFromSourcemap: boolean;
 	exports: {[name: string]: ExportDescription};
-	exportsAll: {[name: string]: Module};
+	exportsAll: {[name: string]: string};
 	exportAllSources: string[];
 	id: string;
 
@@ -640,7 +641,7 @@ export default class Module {
 		}
 	}
 
-	warn (warning: RollupError, pos: number) {
+	warn (warning: Warning, pos: number) {
 		if (pos !== undefined) {
 			warning.pos = pos;
 

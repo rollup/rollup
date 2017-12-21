@@ -7,13 +7,14 @@ import Pattern from '../nodes/Pattern';
 import Identifier from '../nodes/Identifier';
 import Node from '../Node';
 import Expression from '../nodes/Expression';
+import VariableDeclarator from '../nodes/VariableDeclarator';
+import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
 
 export default class LocalVariable extends Variable {
 	declarations: Set<Pattern>;
-	exportName: string;
 	boundExpressions: VariableReassignmentTracker;
 
 	constructor (name: string, declarator: VariableDeclarator | ExportDefaultDeclaration, init: Expression | UnknownAssignment) {

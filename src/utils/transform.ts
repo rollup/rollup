@@ -2,9 +2,18 @@ import { decode } from 'sourcemap-codec';
 import { locate } from 'locate-character';
 import error from './error';
 import getCodeFrame from './getCodeFrame';
+import Program from '../ast/nodes/Program';
+import Bundle from '../Bundle';
+import { RawSourceMap } from 'source-map';
+import {Plugin} from '../rollup/index';
 
-export default function transform (bundle, source, id, plugins) {
-	const sourcemapChain = [];
+export default function transform (
+	bundle: Bundle,
+	source: { code: string, map?: RawSourceMap, ast?: Program },
+	id: string,
+	plugins: Plugin[]
+) {
+	const sourcemapChain: RawSourceMap[] = [];
 
 	const originalSourcemap =
 		typeof source.map === 'string' ? JSON.parse(source.map) : source.map;

@@ -27,34 +27,38 @@ import {
 	resolve
 } from './utils/path';
 import BundleScope from './ast/scopes/BundleScope';
-import { OutputOptions, WarningHandler, TreeshakingOptions, Plugin, ResolveIdHook, IsExternalHook, InputOptions } from './rollup/index';
+import {
+	OutputOptions, WarningHandler, TreeshakingOptions, Plugin, ResolveIdHook, IsExternalHook, InputOptions, Warning
+} from './rollup/index';
+import NamespaceVariable from './ast/variables/NamespaceVariable';
+import ExternalVariable from './ast/variables/ExternalVariable';
+import { RawSourceMap } from 'source-map';
+
+export type SourceDescription = { code: string, map?: RawSourceMap, ast?: Node };
 
 export default class Bundle {
+	acornOptions: any;
+	cachedModules: Map<string, Module>;
+	context: string;
 	entry: string;
 	entryId: string;
-	legacy: boolean;
-	treeshakingOptions: TreeshakingOptions;
-	acornOptions: any;
-	varOrConst: 'var' | 'const';
-	context: string;
-
-	entryModule: Module;
-	cachedModules: Map<string, Module>;
-	moduleById: Map<string, Module>;
-	modules: Module[];
 	externalModules: ExternalModule[];
-	scope: BundleScope;
-	onwarn: WarningHandler;
-
-	plugins: Plugin[];
-
-	resolveId: ResolveIdHook;
-	isExternal: IsExternalHook;
-	hasLoaders: boolean;
-
-
-	isPureExternalModule: (id: string) => boolean;
+	entryModule: Module;
 	getModuleContext: (id: string) => string;
+	hasLoaders: boolean;
+	isExternal: IsExternalHook;
+	isPureExternalModule: (id: string) => boolean;
+	legacy: boolean;
+	load: (id: string) => Promise<SourceDescription>;
+	moduleById: Map<string, Module | ExternalModule>;
+	modules: Module[];
+	onwarn: WarningHandler;
+	orderedModules: Module[];
+	plugins: Plugin[];
+	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
+	scope: BundleScope;
+	treeshakingOptions: TreeshakingOptions;
+	varOrConst: 'var' | 'const';
 
 	// deprecated
 	treeshake: boolean;
@@ -138,9 +142,7 @@ export default class Bundle {
 			this.getModuleContext = id => optionsModuleContext(id) || this.context;
 		} else if (typeof optionsModuleContext === 'object') {
 			const moduleContext = new Map();
-			Object.keys(optionsModuleContext).forEach(key => {
-				moduleContext.set(resolve(key), optionsModuleContext[key]);
-			});
+			Object.keys(optionsModuleContext).forEach(key => moduleContext.set(resolve(key), optionsModuleContext[key]));
 			this.getModuleContext = id => moduleContext.get(id) || this.context;
 		} else {
 			this.getModuleContext = () => this.context;
@@ -167,16 +169,16 @@ export default class Bundle {
 		}
 	}
 
-	collectAddon (initialAddon, addonName, sep = '\n') {
+	collectAddon (initialAddon: string, addonName: string, sep: string = '\n') {
 		return runSequence(
 			[{ pluginName: 'rollup', source: initialAddon }]
 				.concat(
-				this.plugins.map((plugin, idx) => {
-					return {
-						pluginName: plugin.name || `Plugin at pos ${idx}`,
-						source: plugin[addonName]
-					};
-				})
+					this.plugins.map((plugin, idx) => {
+						return {
+							pluginName: plugin.name || `Plugin at pos ${idx}`,
+							source: plugin[addonName]
+						};
+					})
 				)
 				.map(addon => {
 					addon.source = callIfFunction(addon.source);
@@ -217,8 +219,8 @@ export default class Bundle {
 					});
 				}
 
-				this.entryId = id;
-				return this.fetchModule(id, undefined);
+				this.entryId = <string> id;
+				return this.fetchModule(this.entryId, undefined);
 			})
 			.then(entryModule => {
 				this.entryModule = entryModule;
@@ -250,7 +252,7 @@ export default class Bundle {
 					variable.includeVariable();
 
 					if (variable.isNamespace) {
-						variable.needsNamespaceBlock = true;
+						(<NamespaceVariable> variable).needsNamespaceBlock = true;
 					}
 				});
 
@@ -258,7 +260,7 @@ export default class Bundle {
 					const variable = this.entryModule.traceExport(name);
 
 					if (variable.isExternal) {
-						variable.reexported = variable.module.reexported = true;
+						variable.reexported = (<ExternalVariable> variable).module.reexported = true;
 					} else {
 						variable.exportName = name;
 						variable.includeVariable();
@@ -294,9 +296,9 @@ export default class Bundle {
 					const unused = Object.keys(module.declarations)
 						.filter(name => name !== '*')
 						.filter(
-						name =>
-							!module.declarations[name].included &&
-							!module.declarations[name].reexported
+							name =>
+								!module.declarations[name].included &&
+								!module.declarations[name].reexported
 						);
 
 					if (unused.length === 0) return;
@@ -305,9 +307,9 @@ export default class Bundle {
 						unused.length === 1
 							? `'${unused[0]}' is`
 							: `${unused
-								.slice(0, -1)
-								.map(name => `'${name}'`)
-								.join(', ')} and '${unused.slice(-1)}' are`;
+							.slice(0, -1)
+							.map(name => `'${name}'`)
+							.join(', ')} and '${unused.slice(-1)}' are`;
 
 					this.warn({
 						code: 'UNUSED_EXTERNAL_IMPORT',
@@ -337,7 +339,7 @@ export default class Bundle {
 		// ensure no conflicts with globals
 		keys(this.scope.variables).forEach(name => (used[name] = 1));
 
-		function getSafeName (name) {
+		function getSafeName (name: string): string {
 			while (used[name]) {
 				name += `$${used[name]++}`;
 			}
@@ -346,7 +348,7 @@ export default class Bundle {
 			return name;
 		}
 
-		const toDeshadow = new Set();
+		const toDeshadow: Set<string> = new Set();
 
 		this.externalModules.forEach(module => {
 			const safeName = getSafeName(module.name);
@@ -379,13 +381,13 @@ export default class Bundle {
 		this.scope.deshadow(toDeshadow);
 	}
 
-	fetchModule (id, importer) {
+	fetchModule (id: string, importer: string): Promise<Module> {
 		// short-circuit cycles
 		if (this.moduleById.has(id)) return null;
 		this.moduleById.set(id, null);
 
 		return this.load(id)
-			.catch(err => {
+			.catch((err: Error) => {
 				let msg = `Could not load ${id}`;
 				if (importer) msg += ` (imported by ${importer})`;
 
@@ -431,7 +433,7 @@ export default class Bundle {
 					resolvedIds
 				} = source;
 
-				const module = new Module({
+				const module: Module = new Module({
 					id,
 					code,
 					originalCode,
@@ -457,7 +459,7 @@ export default class Bundle {
 						const exportAllModule = this.moduleById.get(id);
 						if (exportAllModule.isExternal) return;
 
-						keys(exportAllModule.exportsAll).forEach(name => {
+						keys((<Module> exportAllModule).exportsAll).forEach(name => {
 							if (name in module.exportsAll) {
 								this.warn({
 									code: 'NAMESPACE_CONFLICT',
@@ -465,18 +467,18 @@ export default class Bundle {
 									name,
 									sources: [
 										module.exportsAll[name],
-										exportAllModule.exportsAll[name]
+										(<Module> exportAllModule).exportsAll[name]
 									],
 									message: `Conflicting namespaces: ${relativeId(
 										module.id
 									)} re-exports '${name}' from both ${relativeId(
 										module.exportsAll[name]
 									)} and ${relativeId(
-										exportAllModule.exportsAll[name]
+										(<Module> exportAllModule).exportsAll[name]
 									)} (will be ignored)`
 								});
 							} else {
-								module.exportsAll[name] = exportAllModule.exportsAll[name];
+								module.exportsAll[name] = (<Module> exportAllModule).exportsAll[name];
 							}
 						});
 					});
@@ -485,12 +487,12 @@ export default class Bundle {
 			});
 	}
 
-	fetchAllDependencies (module) {
+	fetchAllDependencies (module: Module) {
 		return mapSequence(module.sources, source => {
 			const resolvedId = module.resolvedIds[source];
 			return (resolvedId
-				? Promise.resolve(resolvedId)
-				: this.resolveId(source, module.id)
+					? Promise.resolve(resolvedId)
+					: this.resolveId(source, module.id)
 			).then(resolvedId => {
 				const externalId =
 					resolvedId ||
@@ -539,14 +541,14 @@ export default class Bundle {
 						externalModule.traceExport(importDeclaration.name);
 					});
 				} else {
-					module.resolvedIds[source] = resolvedId;
-					return this.fetchModule(resolvedId, module.id);
+					module.resolvedIds[source] = <string> resolvedId;
+					return this.fetchModule(<string> resolvedId, module.id);
 				}
 			});
 		});
 	}
 
-	getPathRelativeToEntryDirname (resolvedId) {
+	getPathRelativeToEntryDirname (resolvedId: string): string {
 		if (isRelative(resolvedId) || isAbsolute(resolvedId)) {
 			const entryDirname = dirname(this.entryId);
 			const relativeToEntry = normalize(relative(entryDirname, resolvedId));
@@ -574,7 +576,7 @@ export default class Bundle {
 				const exportMode = getExportMode(this, options);
 
 				let magicString = new MagicStringBundle({ separator: '\n\n' });
-				const usedModules = [];
+				const usedModules: Module[] = [];
 
 				timeStart('render modules');
 
@@ -622,11 +624,11 @@ export default class Bundle {
 					typeof optionsPaths === 'function'
 						? id => optionsPaths(id) || this.getPathRelativeToEntryDirname(id)
 						: optionsPaths
-							? id =>
-								optionsPaths.hasOwnProperty(id)
-									? optionsPaths[id]
-									: this.getPathRelativeToEntryDirname(id)
-							: id => this.getPathRelativeToEntryDirname(id);
+						? id =>
+							optionsPaths.hasOwnProperty(id)
+								? optionsPaths[id]
+								: this.getPathRelativeToEntryDirname(id)
+						: id => this.getPathRelativeToEntryDirname(id);
 
 				if (intro) intro += '\n\n';
 				if (outro) outro = `\n\n${outro}`;
@@ -645,7 +647,7 @@ export default class Bundle {
 
 				const prevCode = magicString.toString();
 				let map = null;
-				const bundleSourcemapChain = [];
+				const bundleSourcemapChain: RawSourceMap[] = [];
 
 				return transformBundle(
 					prevCode,
@@ -698,8 +700,8 @@ export default class Bundle {
 
 	sort () {
 		let hasCycles;
-		const seen = {};
-		const ordered = [];
+		const seen: {[id: string]: boolean} = {};
+		const ordered: Module[] = [];
 
 		const stronglyDependsOn = blank();
 		const dependsOn = blank();
@@ -710,7 +712,7 @@ export default class Bundle {
 		});
 
 		this.modules.forEach(module => {
-			function processStrongDependency (dependency) {
+			function processStrongDependency (dependency: Module) {
 				if (
 					dependency === module ||
 					stronglyDependsOn[module.id][dependency.id]
@@ -721,7 +723,7 @@ export default class Bundle {
 				dependency.strongDependencies.forEach(processStrongDependency);
 			}
 
-			function processDependency (dependency) {
+			function processDependency (dependency: Module) {
 				if (dependency === module || dependsOn[module.id][dependency.id])
 					return;
 
@@ -733,7 +735,7 @@ export default class Bundle {
 			module.dependencies.forEach(processDependency);
 		});
 
-		const visit = module => {
+		const visit = (module: Module) => {
 			if (seen[module.id]) {
 				hasCycles = true;
 				return;
@@ -758,9 +760,9 @@ export default class Bundle {
 						// b imports a, a is placed before b. We need to find the module
 						// in question, so we can provide a useful error message
 						let parent = '[[unknown]]';
-						const visited = {};
+						const visited: {[id: string]: boolean} = {};
 
-						const findParent = module => {
+						const findParent = (module: Module) => {
 							if (dependsOn[module.id][a.id] && dependsOn[module.id][b.id]) {
 								parent = module.id;
 								return true;
@@ -776,9 +778,9 @@ export default class Bundle {
 						findParent(this.entryModule);
 
 						this.onwarn(
-							`Module ${a.id} may be unable to evaluate without ${
-							b.id
-							}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
+							<any> `Module ${a.id} may be unable to evaluate without ${
+								b.id
+								}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
 						);
 					}
 				}
@@ -788,7 +790,7 @@ export default class Bundle {
 		return ordered;
 	}
 
-	warn (warning) {
+	warn (warning: Warning) {
 		warning.toString = () => {
 			let str = '';
 

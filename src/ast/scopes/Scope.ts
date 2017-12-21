@@ -75,7 +75,7 @@ export default class Scope {
 		);
 	}
 
-	deshadow (names: string[]) {
+	deshadow (names: Set<string>) {
 		keys(this.variables).forEach(key => {
 			const declaration = this.variables[key];
 

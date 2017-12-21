@@ -10,6 +10,7 @@ import SOURCEMAPPING_URL from '../sourceMappingUrl.js';
 import { InputOptions, OutputOptions } from '../../../src/rollup/index';
 import { BatchWarnings } from './batchWarnings';
 import Bundle from '../../../src/Bundle';
+import { RawSourceMap } from 'source-map';
 
 export default function build (inputOptions: InputOptions, outputOptions: OutputOptions[], warnings: BatchWarnings, silent = false) {
 	const useStdout = outputOptions.length === 1 && !outputOptions[0].file;
@@ -40,7 +41,7 @@ export default function build (inputOptions: InputOptions, outputOptions: Output
 					});
 				}
 
-				return bundle.generate(output).then(({ code, map }: { code: string, map: SourceMap }) => {
+				return bundle.generate(output).then(({ code, map }: { code: string, map: RawSourceMap}) => {
 					if (output.sourcemap === 'inline') {
 						code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
 					}

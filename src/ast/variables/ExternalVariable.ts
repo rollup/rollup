@@ -5,7 +5,7 @@ import ExternalModule from '../../ExternalModule';
 export default class ExternalVariable extends Variable {
 	module: ExternalModule;
 	safeName: string;
-	isExternal: boolean;
+	isExternal: true;
 	isNamespace: boolean;
 
 	constructor (module: ExternalModule, name: string) {

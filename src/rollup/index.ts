@@ -9,15 +9,11 @@ import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import mergeOptions from '../utils/mergeOptions.js';
 import Bundle from '../Bundle';
 import Module from '../Module';
+import { RawSourceMap } from 'source-map';
 
 export const VERSION = '<@VERSION@>';
 
-interface SourceMap {
-	version: 3;
-	// TODO the rest
-}
-
-export type Source = string | { code: string, map: SourceMap };
+export type Source = string | { code: string, map: RawSourceMap };
 
 export type ResolveIdHook = (id: string, parent: string) => Promise<string | boolean | void> | string | boolean | void;
 export type IsExternalHook = (id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void;
@@ -37,12 +33,12 @@ export interface Plugin {
 	footer?: () => string;
 	intro?: () => string;
 	outro?: () => string;
-};
+}
 
 export interface TreeshakingOptions {
 	propertyReadSideEffects: boolean;
 	pureExternalModules: boolean;
-};
+}
 
 export interface InputOptions {
 	input: string;
@@ -57,16 +53,16 @@ export interface InputOptions {
 	acorn: {};
 	treeshake?: boolean | TreeshakingOptions;
 	context?: string;
-	moduleContext?: string;
+	moduleContext?: string | ((id: string) => string) | {[id: string]: string};
 	legacy?: boolean;
 
 	pureExternalModules?: boolean;
 	preferConst?: boolean;
 	watch?: {
 		chokidar?: boolean;
-    include?: string[];
-    exclude?: string[];
-    clearScreen?: boolean;
+		include?: string[];
+		exclude?: string[];
+		clearScreen?: boolean;
 	};
 
 	// deprecated
@@ -97,6 +93,8 @@ export interface OutputOptions {
 	intro?: string;
 	outro?: string;
 	paths?: Record<string, string> | ((id: string) => string);
+	freeze?: boolean;
+	exports?: string;
 
 	// deprecated
 	dest?: string;
@@ -126,6 +124,7 @@ export interface Warning {
 	url?: string;
 	id?: string;
 	plugin?: string;
+	pos?: number;
 }
 
 export type WarningHandler = (warning: Warning) => void;

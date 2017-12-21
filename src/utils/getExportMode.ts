@@ -1,6 +1,7 @@
 import { keys } from './object';
 import error from './error';
 import Bundle from '../Bundle';
+import { OutputOptions } from '../rollup/index';
 
 function badExports (option: string, keys: string[]) {
 	error({
@@ -13,7 +14,7 @@ function badExports (option: string, keys: string[]) {
 
 export default function getExportMode (
 	bundle: Bundle,
-	{ exports: exportMode, name, format }: { exports: string, name: string, format: string }
+	{ exports: exportMode, name, format }: OutputOptions
 ) {
 	const exportKeys = keys(bundle.entryModule.exports)
 		.concat(keys(bundle.entryModule.reexports))

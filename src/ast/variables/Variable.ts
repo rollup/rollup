@@ -7,10 +7,13 @@ import Identifier from '../nodes/Identifier';
 import Node from '../Node';
 
 export default class Variable {
-	name: string;
+	exportName?: string;
 	included: boolean;
-
+	isExternal?: boolean;
+	isNamespace?: boolean;
 	isReassigned: boolean;
+	name: string;
+	reexported?: boolean;
 
 	constructor (name: string) {
 		this.name = name;

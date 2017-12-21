@@ -12,6 +12,7 @@ export default class ExternalModule {
 	name: string;
 	mostCommonSuggestion: number;
 	nameSuggestions: {[name: string]: number};
+	reexported: boolean;
 	used: boolean;
 
 	constructor (id: string) {

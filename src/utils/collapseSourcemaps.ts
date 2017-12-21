@@ -4,6 +4,8 @@ import { encode } from 'sourcemap-codec';
 import error from './error';
 import { basename, dirname, relative, resolve } from './path';
 import Module from '../Module';
+import { RawSourceMap } from 'source-map';
+import Bundle from '../Bundle';
 
 class Source {
 	isOriginal: boolean;
@@ -133,11 +135,11 @@ class Link {
 }
 
 export default function collapseSourcemaps (
-	bundle,
+	bundle: Bundle,
 	file,
 	map,
 	modules: Module[],
-	bundleSourcemapChain
+	bundleSourcemapChain: RawSourceMap[]
 ) {
 	const moduleSources = modules
 		.filter(module => !module.excludeFromSourcemap)
