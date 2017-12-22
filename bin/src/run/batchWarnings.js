@@ -1,6 +1,6 @@
 import chalk from 'chalk';
-import relativeId from '../../../src/utils/relativeId.js';
 import { stderr } from '../logging.js';
+import relativeId from '../../../src/utils/relativeId.js';
 
 export default function batchWarnings () {
 	let allWarnings = new Map();
@@ -212,6 +212,7 @@ const deferredHandlers = {
 		priority: 1,
 		fn: warnings => {
 			const nestedByPlugin = nest(warnings, 'plugin');
+
 			nestedByPlugin.forEach(({ key: plugin, items }) => {
 				const nestedByMessage = nest(items, 'message');
 
@@ -268,7 +269,6 @@ function showTruncatedWarnings(warnings) {
 	const nestedByModule = nest(warnings, 'id');
 
 	const sliced = nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;
-
 	sliced.forEach(({ key: id, items }) => {
 		stderr( chalk.bold( relativeId( id ) ) );
 		stderr( chalk.grey( items[0].frame ) );

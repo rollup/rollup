@@ -9,7 +9,7 @@ export default function deprecateOptions ( options, deprecateConfig ) {
 	return deprecations;
 
 	function deprecateInputOptions () {
-		if (options.entry)	deprecate('entry', 'input');
+		if (!options.input && options.entry)	deprecate('entry', 'input');
 		if (options.moduleName)	deprecate('moduleName', 'output.name', true);
 		if (options.name)	deprecate('name', 'output.name', true);
 		if (options.extend)	deprecate('extend', 'output.extend', true);
@@ -22,7 +22,7 @@ export default function deprecateOptions ( options, deprecateConfig ) {
 		if (options.sourceMapFile) deprecate('sourceMapFile', 'output.sourcemapFile', true);
 		if (options.useStrict) deprecate('useStrict', 'output.strict', true);
 		if (options.format)	deprecate('format', 'output.format', true);
-	
+
 		if ( options.targets ) {
 			deprecations.push( { old: 'targets', new: 'output' } );
 
@@ -30,7 +30,7 @@ export default function deprecateOptions ( options, deprecateConfig ) {
 			// like sourcemap etc.
 			options.output = options.targets.map(t => Object.assign({}, t, options.output));
 			delete options.targets;
-			
+
 			let deprecatedDest = false;
 			options.output.forEach( output => {
 				if ( output.dest ) {
@@ -50,7 +50,7 @@ export default function deprecateOptions ( options, deprecateConfig ) {
 			};
 			delete options.dest;
 		}
-	
+
 		if ( options.pureExternalModules ) {
 			deprecations.push( { old: 'pureExternalModules', new: 'treeshake.pureExternalModules' } );
 			if ( options.treeshake === undefined ) {
