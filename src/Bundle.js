@@ -29,6 +29,7 @@ export default class Bundle {
 				this.cachedModules.set( module.id, module );
 			} );
 		}
+		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
 
 		this.plugins = ensureArray( options.plugins );
 
