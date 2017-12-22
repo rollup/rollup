@@ -3,19 +3,17 @@ import { basename } from '../utils/path';
 import { writeFile } from '../utils/fs';
 import { assign, keys } from '../utils/object';
 import { mapSequence } from '../utils/promise';
-import validateKeys from '../utils/validateKeys';
 import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import mergeOptions from '../utils/mergeOptions.js';
 import Bundle from '../Bundle';
 import { ModuleJSON } from '../Module';
-import { RawSourceMap } from 'source-map';
 import Program from '../ast/nodes/Program';
 import { SourceMap } from 'magic-string';
 
 export const VERSION = '<@VERSION@>';
 
-export type SourceDescription = { code: string, map?: RawSourceMap, ast?: Program };
+export type SourceDescription = { code: string, map?: SourceMap, ast?: Program };
 
 export type ResolveIdHook = (id: string, parent: string) => Promise<string | boolean | void> | string | boolean | void;
 export type IsExternalHook = (id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void;
@@ -46,6 +44,10 @@ export interface TreeshakingOptions {
 
 export type ExternalOption = string[] | IsExternalHook;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
+
+export interface RollupOptions extends InputOptions {
+	output: OutputOptions;
+};
 
 export interface InputOptions {
 	input: string;
@@ -144,8 +146,9 @@ export interface RollupWarning {
 }
 
 export type WarningHandler = (warning: RollupWarning) => void;
+export type Deprecation = { new: string, old: string };
 
-function addDeprecations (deprecations, warn) {
+function addDeprecations (deprecations: Deprecation[], warn: WarningHandler) {
 	const message = `The following options have been renamed — please update your config: ${deprecations.map(
 		option => `${option.old} -> ${option.new}`).join(', ')}`;
 	warn({
@@ -155,7 +158,7 @@ function addDeprecations (deprecations, warn) {
 	});
 }
 
-function checkInputOptions (options) {
+function checkInputOptions (options: InputOptions) {
 	if (options.transform || options.load || options.resolveId || options.resolveExternal) {
 		throw new Error(
 			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details'
@@ -163,7 +166,7 @@ function checkInputOptions (options) {
 	}
 }
 
-function checkOutputOptions (options) {
+function checkOutputOptions (options: OutputOptions) {
 	if (options.format === 'es6') {
 		error({
 			message: 'The `es6` output format is deprecated – use `es` instead',
@@ -200,7 +203,7 @@ export interface OutputBundle {
 	write: (options: OutputOptions) => Promise<void>;
 }
 
-export default function rollup (_inputOptions: InputOptions) {
+export default function rollup (_inputOptions: RollupOptions) {
 	try {
 		if (!_inputOptions) {
 			throw new Error('You must supply an options object to rollup');

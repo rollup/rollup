@@ -1,8 +1,8 @@
 // second argument is required because rollup's Node API
 // passes inputOptions first and then output options
 // unlike the config file which passes whole options in one go
-export default function deprecateOptions ( options, deprecateConfig ) {
-	const deprecations = [];
+export default function deprecateOptions ( options, deprecateConfig: { input: boolean, output: boolean } ) {
+	const deprecations: { new: string, old: string }[] = [];
 	if (deprecateConfig.input) deprecateInputOptions();
 	if (deprecateConfig.output) deprecateOutputOptions();
 
@@ -72,7 +72,7 @@ export default function deprecateOptions ( options, deprecateConfig ) {
 	}
 
 	// a utility function to add deprecations for straightforward options
-	function deprecate (oldOption, newOption, shouldDelete) {
+	function deprecate (oldOption: string, newOption: string, shouldDelete = false) {
 		deprecations.push({ new: newOption, old: oldOption });
 
 		if (newOption.indexOf('output') > -1) {

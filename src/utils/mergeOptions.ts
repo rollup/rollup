@@ -1,6 +1,6 @@
 import ensureArray from './ensureArray.js';
 import deprecateOptions from './deprecateOptions.js';
-import { InputOptions } from '../../src/rollup/index';
+import { RollupWarning } from '../../src/rollup/index';
 
 function normalizeObjectOptionValue (optionValue: any) {
 	if (!optionValue) {
@@ -12,12 +12,12 @@ function normalizeObjectOptionValue (optionValue: any) {
 	return optionValue;
 }
 
-const defaultOnWarnHandler = warning => console.warn(warning.message); // eslint-disable-line no-console
+const defaultOnWarn = (warning: RollupWarning) => console.warn(warning.message); // eslint-disable-line no-console
 
 export default function mergeOptions ({
-	config, command = {},
-	deprecateConfig,
-	defaultOnWarn = defaultOnWarnHandler
+	config,
+	command = {},
+	deprecateConfig = { input: true, output: true }
 }) {
 	const deprecations = deprecate( config, command, deprecateConfig );
 
@@ -164,7 +164,7 @@ export default function mergeOptions ({
 	};
 }
 
-function deprecate ( config, command = {}, deprecateConfig = { input: true, output: true } ) {
+function deprecate ( config: any, command = {}, deprecateConfig = { input: true, output: true } ) {
 	const deprecations = [];
 
 	// CLI
