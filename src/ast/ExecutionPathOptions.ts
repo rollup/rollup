@@ -9,8 +9,7 @@ import CallOptions from './CallOptions';
 import ThisVariable from './variables/ThisVariable';
 import ParameterVariable from './variables/ParameterVariable';
 import Variable from './variables/Variable';
-import VirtualObjectExpression from './nodes/shared/VirtualObjectExpression';
-import { UnknownAssignment } from './values';
+import { UnknownAssignment, UndefinedAssignment } from './values';
 
 const OPTION_IGNORED_LABELS = 'IGNORED_LABELS';
 const OPTION_ACCESSED_NODES = 'ACCESSED_NODES';
@@ -33,7 +32,7 @@ const RESULT_KEY: RESULT_KEY = {};
 
 /** Wrapper to ensure immutability */
 export default class ExecutionPathOptions {
-	_optionValues: Map<string,any>;
+	_optionValues: Map<string,Node|Variable>;
 
 	/**
 	 * @returns {ExecutionPathOptions}
@@ -171,7 +170,7 @@ export default class ExecutionPathOptions {
 	 * @return {ParameterVariable[]}
 	 */
 	getArgumentsVariables (): ParameterVariable[] {
-		return this.get(OPTION_ARGUMENTS_VARIABLES) || [];
+		return <ParameterVariable[]>(this.get(OPTION_ARGUMENTS_VARIABLES) || []);
 	}
 
 	/**
@@ -225,7 +224,7 @@ export default class ExecutionPathOptions {
 	 * @param {CallOptions} callOptions
 	 * @return {boolean}
 	 */
-	hasNodeBeenCalledAtPathWithOptions (path: string[], node: Node, callOptions: CallOptions): boolean {
+	hasNodeBeenCalledAtPathWithOptions (path: string[], node: Node | UnknownAssignment | UndefinedAssignment, callOptions: CallOptions): boolean {
 		const previousCallOptions = this._optionValues.getIn([
 			OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS,
 			node,
@@ -317,7 +316,7 @@ export default class ExecutionPathOptions {
 	 * @param {ParameterVariable[]} variables
 	 * @return {ExecutionPathOptions}
 	 */
-	setArgumentsVariables (variables: ParameterVariable[]) {
+	setArgumentsVariables (variables: (ParameterVariable | Node)[]) {
 		return this.set(OPTION_ARGUMENTS_VARIABLES, variables);
 	}
 

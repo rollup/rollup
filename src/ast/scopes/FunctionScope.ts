@@ -14,7 +14,8 @@ export default class FunctionScope extends ReturnValueScope {
 	variables: {
 		this: ThisVariable;
 		default: ExportDefaultVariable;
-		[name: string]: LocalVariable | GlobalVariable | ExternalVariable
+		arguments: ArgumentsVariable;
+		[name: string]: LocalVariable | GlobalVariable | ExternalVariable | ArgumentsVariable;
 	};
 
 	constructor (options = {}) {
@@ -37,8 +38,9 @@ export default class FunctionScope extends ReturnValueScope {
 			)
 			.setArgumentsVariables(
 			args.map(
-				(parameter, index) =>
-					super.getParameterVariables()[index] || parameter
+				(parameter, index) => {
+					return super.getParameterVariables()[index] || parameter
+				}
 			)
 			);
 	}

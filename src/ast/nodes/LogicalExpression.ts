@@ -23,6 +23,8 @@ export default class LogicalExpression extends Node {
 		callback: (options: ExecutionPathOptions) => (node: Node) => void,
 		options: ExecutionPathOptions
 	) {
+		// typing error resolved by ensuring forEachReturnExpressionWhenCalledAtPath
+		// is on FunctionExpression, ArrowFunctionExpression
 		this._forEachRelevantBranch((node: Expression) =>
 			node.forEachReturnExpressionWhenCalledAtPath(
 				path,

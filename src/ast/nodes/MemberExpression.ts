@@ -9,6 +9,8 @@ import CallOptions from '../CallOptions';
 import { PredicateFunction } from '../values';
 import MagicString from 'magic-string';
 import Identifier from './Identifier';
+import NamespaceVariable from '../variables/NamespaceVariable';
+import ExternalVariable from '../variables/ExternalVariable';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -42,6 +44,13 @@ class Keypath {
 	}
 }
 
+function isNamespaceVariable (variable: Variable): variable is NamespaceVariable {
+	return variable.isNamespace;
+}
+function isExternalVariable (variable: Variable): variable is ExternalVariable {
+	return variable.isExternal;
+}
+
 export default class MemberExpression extends Node {
 	type: 'MemberExpression';
 	object: Expression;
@@ -62,19 +71,19 @@ export default class MemberExpression extends Node {
 		const keypath = new Keypath(this);
 
 		if (!keypath.computed && keypath.root.type === 'Identifier') {
-			let variable = this.scope.findVariable(keypath.root.name);
+			let variable: Variable = this.scope.findVariable(keypath.root.name);
 
-			while (variable.isNamespace && keypath.parts.length) {
+			while (isNamespaceVariable(variable) && keypath.parts.length) {
 				const exporterId = variable.module.id;
 
 				const part = keypath.parts[0];
-				variable = variable.module.traceExport((<Identifier>part).name || (<Literal>part).value);
+				variable = variable.module.traceExport((<Identifier>part).name || <string>(<Literal>part).value);
 
 				if (!variable) {
 					this.module.warn(
 						{
 							code: 'MISSING_EXPORT',
-							missing: (<Identifier>part).name || (<Literal>part).value,
+							missing: (<Identifier>part).name || <string>(<Literal>part).value,
 							importer: relativeId(this.module.id),
 							exporter: relativeId(exporterId),
 							message: `'${(<Identifier>part).name || (<Literal>part).value}' is not exported by '${relativeId(exporterId)}'`,
@@ -96,7 +105,7 @@ export default class MemberExpression extends Node {
 
 			this.variable = variable;
 
-			if (variable.isExternal) {
+			if (isExternalVariable(variable)) {
 				variable.module.suggestName(keypath.root.name);
 			}
 		} else {
@@ -128,6 +137,7 @@ export default class MemberExpression extends Node {
 				options
 			);
 		} else {
+			// TODO: Type failure for ArrowFunctionExpression, FunctionExpression member object
 			this.object.forEachReturnExpressionWhenCalledAtPath(
 				[<string>this._getPathSegment(), ...path],
 				callOptions,

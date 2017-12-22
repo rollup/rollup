@@ -2,14 +2,13 @@ import Scope from '../../scopes/Scope';
 import Node from '../../Node';
 import MemberExpression from '../MemberExpression';
 import Identifier from '../Identifier';
-import NamespaceVariable from '../../variables/NamespaceVariable';
 
 // TODO tidy this up a bit (e.g. they can both use node.module.imports)
 export default function disallowIllegalReassignment (scope: Scope, node: Node) {
 	if (node.type === 'MemberExpression' && (<MemberExpression>node).object.type === 'Identifier') {
 		const identifier = <Identifier>(<MemberExpression>node).object;
 		const variable = scope.findVariable(identifier.name);
-		if ((<NamespaceVariable>variable).isNamespace) {
+		if (variable.isNamespace) {
 			node.module.error(
 				{
 					code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',

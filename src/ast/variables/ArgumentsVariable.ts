@@ -66,7 +66,7 @@ export default class ArgumentsVariable extends LocalVariable {
 		callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions
-	) {
+	): boolean {
 		if (path.length === 0) {
 			return true;
 		}

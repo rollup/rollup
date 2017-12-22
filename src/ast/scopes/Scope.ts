@@ -5,19 +5,20 @@ import { UNDEFINED_ASSIGNMENT, UndefinedAssignment, UnknownAssignment } from '..
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import Expression from '../nodes/Expression';
-import Variable from '../variables/Variable';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Declaration from '../nodes/Declaration';
 import GlobalVariable from '../variables/GlobalVariable';
 import ExternalVariable from '../variables/ExternalVariable';
 import ThisVariable from '../variables/ThisVariable';
+import ArgumentsVariable from '../variables/ArgumentsVariable';
 
 export default class Scope {
 	parent: Scope | void;
 	variables: {
 		this: ThisVariable | LocalVariable;
 		default: ExportDefaultVariable;
-		[name: string]: LocalVariable | GlobalVariable | ExternalVariable
+		arguments: ArgumentsVariable;
+		[name: string]: LocalVariable | GlobalVariable | ExternalVariable | ArgumentsVariable;
 	};
 	isModuleScope: boolean;
 	children: Scope[];
@@ -106,7 +107,7 @@ export default class Scope {
 		return (<Scope>this.parent).findLexicalBoundary();
 	}
 
-	findVariable (name: string): ThisVariable | LocalVariable | ExportDefaultVariable | GlobalVariable | ExternalVariable {
+	findVariable (name: string): ThisVariable | LocalVariable | ExportDefaultVariable | GlobalVariable | ExternalVariable | ArgumentsVariable {
 		return (
 			this.variables[name] || (this.parent && this.parent.findVariable(name))
 		);

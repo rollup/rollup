@@ -27,12 +27,14 @@ export default class Property extends Node {
 	private _accessorCallOptions: CallOptions;
 
 	reassignPath (path: string[], options: ExecutionPathOptions) {
+		// Typing error caused by forEachReturnExpressionWhenCalledAtPath
+		// not being available on FunctionExpression, ArrowFunctionExpression
 		if (this.kind === 'get') {
 			path.length > 0 &&
-				(<Expression>this.value).forEachReturnExpressionWhenCalledAtPath(
+				this.value.forEachReturnExpressionWhenCalledAtPath(
 					[],
 					this._accessorCallOptions,
-					innerOptions => node =>
+					(innerOptions: ExecutionPathOptions) => (node: Node) =>
 						node.reassignPath(
 							path,
 							innerOptions.addAssignedReturnExpressionAtPath(path, this)

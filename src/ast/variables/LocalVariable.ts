@@ -5,7 +5,7 @@ import { PredicateFunction, UnknownAssignment, UndefinedAssignment } from '../va
 import CallOptions from '../CallOptions';
 import Identifier from '../nodes/Identifier';
 import Node from '../Node';
-import Expression from '../nodes/Expression';
+import Expression, { CallableExpression } from '../nodes/Expression';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Declaration from '../nodes/Declaration';
 
@@ -50,7 +50,7 @@ export default class LocalVariable extends Variable {
 		if (path.length > MAX_PATH_DEPTH) return;
 		this.boundExpressions.forEachAtPath(
 			path,
-			(relativePath: string[], node: Node) =>
+			(relativePath: string[], node: CallableExpression | UnknownAssignment | UndefinedAssignment) =>
 				!options.hasNodeBeenCalledAtPathWithOptions(
 					relativePath,
 					node,
@@ -145,7 +145,7 @@ export default class LocalVariable extends Variable {
 		callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions
-	) {
+	): boolean {
 		return (
 			path.length > MAX_PATH_DEPTH ||
 			(this.included && path.length > 0) ||

@@ -43,7 +43,7 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 		callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions
-	) {
+	): boolean {
 		return (
 			this._getInit(options).someReturnExpressionWhenCalledAtPath(
 				path,

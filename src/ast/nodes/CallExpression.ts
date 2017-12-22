@@ -6,6 +6,8 @@ import SpreadElement from './SpreadElement';
 import { PredicateFunction } from '../values';
 import GlobalVariable from '../variables/GlobalVariable';
 
+// TODO: 3 typing failures because AwaitExpression has no forEachReturnExpressionWhenCalledAtPath
+
 export default class CallExpression extends Node {
 	type: 'CallExpression';
 	callee:	CallableExpression
@@ -15,7 +17,6 @@ export default class CallExpression extends Node {
 
 	reassignPath (path: string[], options: ExecutionPathOptions) {
 		!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
-			// Type TODO: Failure because AwaitExpression has no forEachReturnExpressionWhenCalledAtPath
 			this.callee.forEachReturnExpressionWhenCalledAtPath(
 				[],
 				this._callOptions,
