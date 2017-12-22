@@ -11,10 +11,12 @@ function normalizeObjectOptionValue ( optionValue ) {
 	return optionValue;
 }
 
+const defaultOnWarnHandler = warning => console.warn(warning.message); // eslint-disable-line no-console
+
 export default function mergeOptions ({
 	config, command = {},
 	deprecateConfig,
-	defaultOnWarn = (warning => console.warn(warning.message)) // eslint-disable-line no-console
+	defaultOnWarn = defaultOnWarnHandler
 }) {
 	const deprecations = deprecate( config, command, deprecateConfig );
 
