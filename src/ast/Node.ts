@@ -21,7 +21,7 @@ export default class Node {
 	trailingCommentEnd: number;
 	next: number;
 	module: Module;
-	parent: Node;
+	parent: Node | Module;
 	__enhanced: boolean;
 
 	constructor () {

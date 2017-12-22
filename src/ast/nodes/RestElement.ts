@@ -20,7 +20,7 @@ export default class RestElement extends Node {
 		);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, _init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
 		this.initialiseScope(parentScope);
 		this.argument.initialiseAndDeclare(parentScope, kind, UNKNOWN_ASSIGNMENT);
 	}

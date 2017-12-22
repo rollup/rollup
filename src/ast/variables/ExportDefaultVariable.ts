@@ -9,6 +9,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 	isDefault: true;
 	hasId: boolean;
 	private _original: Variable;
+	declarations: Set<ExportDefaultDeclaration>;
 
 	constructor (name: string, exportDefaultDeclaration: ExportDefaultDeclaration) {
 		super(name, exportDefaultDeclaration, exportDefaultDeclaration.declaration);
@@ -30,7 +31,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 		return this.name;
 	}
 
-	getOriginalVariableName (es) {
+	getOriginalVariableName (es: boolean) {
 		return this._original && this._original.getName(es);
 	}
 
@@ -44,7 +45,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 		return true;
 	}
 
-	setOriginalVariable (original) {
+	setOriginalVariable (original: Variable) {
 		this._original = original;
 	}
 }

@@ -4,7 +4,7 @@ export function blank () {
 	return Object.create(null);
 }
 
-export function forOwn (object: any, func: (value: any, key: string) => void) {
+export function forOwn<T> (object: { [key: string]: T }, func: (value: T, key: string) => void) {
 	Object.keys(object).forEach(key => func(object[key], key));
 }
 

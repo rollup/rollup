@@ -4,7 +4,7 @@ import CallOptions from './CallOptions';
 
 export const UNKNOWN_VALUE = { toString: () => '[[UNKNOWN]]' };
 
-export type PredicateFunction = (node: Node | UnknownAssignment) => boolean;
+export type PredicateFunction = (node: Node | UnknownAssignment | UndefinedAssignment) => boolean;
 
 export interface UnknownAssignment {
 	type: 'UNKNOWN';

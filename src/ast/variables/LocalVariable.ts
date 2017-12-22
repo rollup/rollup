@@ -1,23 +1,22 @@
 import Variable from './Variable';
 import VariableReassignmentTracker from './VariableReassignmentTracker';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { PredicateFunction, UnknownAssignment } from '../values';
+import { PredicateFunction, UnknownAssignment, UndefinedAssignment } from '../values';
 import CallOptions from '../CallOptions';
-import Pattern from '../nodes/Pattern';
 import Identifier from '../nodes/Identifier';
 import Node from '../Node';
 import Expression from '../nodes/Expression';
-import VariableDeclarator from '../nodes/VariableDeclarator';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
+import Declaration from '../nodes/Declaration';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
 
 export default class LocalVariable extends Variable {
-	declarations: Set<Pattern>;
+	declarations: Set<Identifier | ExportDefaultDeclaration>;
 	boundExpressions: VariableReassignmentTracker;
 
-	constructor (name: string, declarator: VariableDeclarator | ExportDefaultDeclaration, init: Expression | UnknownAssignment) {
+	constructor (name: string, declarator: Identifier | ExportDefaultDeclaration | null, init: Expression | Declaration | UnknownAssignment | UndefinedAssignment) {
 		super(name);
 		this.isReassigned = false;
 		this.exportName = null;

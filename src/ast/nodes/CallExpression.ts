@@ -1,19 +1,21 @@
 import Node from '../Node';
 import CallOptions from '../CallOptions';
-import Expression from './Expression';
+import Expression, { CallableExpression } from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import SpreadElement from './SpreadElement';
 import { PredicateFunction } from '../values';
+import GlobalVariable from '../variables/GlobalVariable';
 
 export default class CallExpression extends Node {
 	type: 'CallExpression';
-	callee: Expression;
+	callee:	CallableExpression
 	arguments: (Expression | SpreadElement)[];
 
 	private _callOptions: CallOptions;
 
 	reassignPath (path: string[], options: ExecutionPathOptions) {
 		!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
+			// Type TODO: Failure because AwaitExpression has no forEachReturnExpressionWhenCalledAtPath
 			this.callee.forEachReturnExpressionWhenCalledAtPath(
 				[],
 				this._callOptions,
@@ -40,7 +42,7 @@ export default class CallExpression extends Node {
 				);
 			}
 
-			if (this.callee.name === 'eval' && variable.isGlobal) {
+			if (this.callee.name === 'eval' && (<GlobalVariable>variable).isGlobal) {
 				this.module.warn(
 					{
 						code: 'EVAL',
@@ -63,7 +65,7 @@ export default class CallExpression extends Node {
 		this.callee.forEachReturnExpressionWhenCalledAtPath(
 			[],
 			this._callOptions,
-			innerOptions => node =>
+			(innerOptions: ExecutionPathOptions) => (node: Node) =>
 				node.forEachReturnExpressionWhenCalledAtPath(
 					path,
 					callOptions,
@@ -92,7 +94,7 @@ export default class CallExpression extends Node {
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
 				this._callOptions,
-				innerOptions => node =>
+				(innerOptions: ExecutionPathOptions) => (node: Node) =>
 					node.hasEffectsWhenAccessedAtPath(
 						path,
 						innerOptions.addAccessedReturnExpressionAtPath(path, this)
@@ -108,7 +110,7 @@ export default class CallExpression extends Node {
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
 				this._callOptions,
-				innerOptions => node =>
+				(innerOptions: ExecutionPathOptions) => (node: Node) =>
 					node.hasEffectsWhenAssignedAtPath(
 						path,
 						innerOptions.addAssignedReturnExpressionAtPath(path, this)
@@ -124,7 +126,7 @@ export default class CallExpression extends Node {
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
 				this._callOptions,
-				innerOptions => node =>
+				(innerOptions: ExecutionPathOptions) => (node: Node) =>
 					node.hasEffectsWhenCalledAtPath(
 						path,
 						callOptions,
@@ -152,7 +154,7 @@ export default class CallExpression extends Node {
 		return this.callee.someReturnExpressionWhenCalledAtPath(
 			[],
 			this._callOptions,
-			innerOptions => node =>
+			(innerOptions: ExecutionPathOptions) => (node: Node) =>
 				node.someReturnExpressionWhenCalledAtPath(
 					path,
 					callOptions,

@@ -28,7 +28,7 @@ export default class ThisExpression extends Node {
 	}
 
 	bindNode () {
-		this.variable = this.scope.findVariable('this');
+		this.variable = <ThisVariable>this.scope.findVariable('this');
 	}
 
 	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {

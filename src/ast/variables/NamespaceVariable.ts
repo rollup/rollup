@@ -8,6 +8,9 @@ export default class NamespaceVariable extends Variable {
 	isNamespace: true;
 	module: Module;
 	needsNamespaceBlock: boolean;
+	originals: {
+		[name: string]: Variable;
+	};
 
 	constructor (module: Module) {
 		super(module.basename());

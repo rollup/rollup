@@ -2,11 +2,11 @@ import LocalVariable from './LocalVariable';
 import { UNKNOWN_ASSIGNMENT, PredicateFunction, UndefinedAssignment, UnknownAssignment } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
-import Pattern from '../nodes/Pattern';
 import Expression from '../nodes/Expression';
+import Identifier from '../nodes/Identifier';
 
 export default class ReplaceableInitializationVariable extends LocalVariable {
-	constructor (name: string, declarator: Pattern) {
+	constructor (name: string, declarator: Identifier | null) {
 		super(name, declarator, null);
 	}
 

@@ -8,7 +8,7 @@ import MagicString from 'magic-string';
 
 export default class BlockStatement extends Statement {
 	type: 'BlockStatement';
-	scope: BlockScope;
+	scope: Scope;
 	body: StatementType[];
 
 	bindImplicitReturnExpressionToScope () {
@@ -35,7 +35,7 @@ export default class BlockStatement extends Statement {
 		return addedNewNodes;
 	}
 
-	initialiseAndReplaceScope (scope: BlockScope) {
+	initialiseAndReplaceScope (scope: Scope) {
 		this.scope = scope;
 		this.initialiseNode();
 		this.initialiseChildren();

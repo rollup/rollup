@@ -6,7 +6,7 @@ import Pattern from './Pattern';
 import Expression from './Expression';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { PredicateFunction } from '../values';
+import { PredicateFunction, UndefinedAssignment } from '../values';
 
 export default class ArrowFunctionExpression extends Node {
 	type: 'ArrowFunctionExpression';
@@ -23,7 +23,7 @@ export default class ArrowFunctionExpression extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		callback: (options: ExecutionPathOptions) => (node: Node | UndefinedAssignment) => void,
 		options: ExecutionPathOptions
 	) {
 		path.length === 0 &&
@@ -72,7 +72,7 @@ export default class ArrowFunctionExpression extends Node {
 		callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions
-	) {
+	): boolean {
 		return (
 			path.length > 0 ||
 			this.scope.someReturnExpressionWhenCalled(

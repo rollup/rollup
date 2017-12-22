@@ -5,6 +5,7 @@ import VariableDeclaration from './VariableDeclaration';
 import Pattern from './Pattern';
 import Expression from './Expression';
 import Scope from '../scopes/Scope';
+import BlockStatement from './BlockStatement';
 
 export default class ForOfStatement extends Statement {
 	type: 'ForOfStatement';
@@ -36,9 +37,9 @@ export default class ForOfStatement extends Statement {
 
 	initialiseChildren () {
 		this.left.initialise(this.scope);
-		this.right.initialise(this.scope.parent);
-		this.body.initialiseAndReplaceScope
-			? this.body.initialiseAndReplaceScope(this.scope)
+		this.right.initialise(<Scope>this.scope.parent);
+		(<BlockStatement>this.body).initialiseAndReplaceScope
+			? (<BlockStatement>this.body).initialiseAndReplaceScope(this.scope)
 			: this.body.initialise(this.scope);
 	}
 

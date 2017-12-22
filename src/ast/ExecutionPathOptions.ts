@@ -1,4 +1,6 @@
-import Immutable from 'immutable';
+/// <reference path="./ExecutionPathOptions.d.ts" />
+
+import Immutable from 'immutable/dist/immutable.js';
 import { Map } from 'immutable';
 import Node from './Node';
 import CallExpression from './nodes/CallExpression';
@@ -6,6 +8,9 @@ import Property from './nodes/Property';
 import CallOptions from './CallOptions';
 import ThisVariable from './variables/ThisVariable';
 import ParameterVariable from './variables/ParameterVariable';
+import Variable from './variables/Variable';
+import VirtualObjectExpression from './nodes/shared/VirtualObjectExpression';
+import { UnknownAssignment } from './values';
 
 const OPTION_IGNORED_LABELS = 'IGNORED_LABELS';
 const OPTION_ACCESSED_NODES = 'ACCESSED_NODES';
@@ -70,7 +75,7 @@ export default class ExecutionPathOptions {
 		return new ExecutionPathOptions(this._optionValues.set(option, value));
 	}
 
-	setIn (optionPath: (string | Node | RESULT_KEY)[], value: any) {
+	setIn (optionPath: (string | Node | Variable | RESULT_KEY)[], value: any) {
 		return new ExecutionPathOptions(this._optionValues.setIn(optionPath, value));
 	}
 
@@ -105,7 +110,7 @@ export default class ExecutionPathOptions {
 	 * @param {Node} node
 	 * @return {ExecutionPathOptions}
 	 */
-	addAssignedNodeAtPath (path: string[], node: Node) {
+	addAssignedNodeAtPath (path: string[], node: Node | Variable) {
 		return this.setIn([OPTION_ASSIGNED_NODES, node, ...path, RESULT_KEY], true);
 	}
 
@@ -191,7 +196,7 @@ export default class ExecutionPathOptions {
 	 * @param {Node} node
 	 * @return {boolean}
 	 */
-	hasNodeBeenAccessedAtPath (path: string[], node: Node): boolean {
+	hasNodeBeenAccessedAtPath (path: string[], node: Node | Variable): boolean {
 		return this._optionValues.getIn([
 			OPTION_ACCESSED_NODES,
 			node,
@@ -205,7 +210,7 @@ export default class ExecutionPathOptions {
 	 * @param {Node} node
 	 * @return {boolean}
 	 */
-	hasNodeBeenAssignedAtPath (path: string[], node: Node): boolean {
+	hasNodeBeenAssignedAtPath (path: string[], node: Node | Variable): boolean {
 		return this._optionValues.getIn([
 			OPTION_ASSIGNED_NODES,
 			node,
@@ -304,7 +309,7 @@ export default class ExecutionPathOptions {
 	 * @param {Node} init
 	 * @return {ExecutionPathOptions}
 	 */
-	replaceVariableInit (variable: ThisVariable | ParameterVariable, init: Node) {
+	replaceVariableInit (variable: ThisVariable | ParameterVariable, init: Node | UnknownAssignment) {
 		return this.setIn([OPTION_REPLACED_VARIABLE_INITS, variable], init);
 	}
 

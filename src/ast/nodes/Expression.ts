@@ -46,4 +46,22 @@ type Expression = ThisExpression |
   Literal |
   AwaitExpression;
 
+export type CallableExpression =
+  FunctionExpression |
+  AssignmentExpression |
+  LogicalExpression |
+  MemberExpression |
+  ConditionalExpression |
+  CallExpression |
+  NewExpression |
+  SequenceExpression |
+  ArrowFunctionExpression |
+  YieldExpression |
+  TaggedTemplateExpression |
+  ClassExpression |
+  // MetaProperty |
+  // Super |
+  Identifier |
+  AwaitExpression;
+
 export default Expression;

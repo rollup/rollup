@@ -3,9 +3,16 @@ import relativeId from '../../utils/relativeId';
 import Scope from './Scope';
 import LocalVariable from '../variables/LocalVariable';
 import { UNDEFINED_ASSIGNMENT } from '../values';
+import Module from '../../Module';
+import ImportSpecifier from '../nodes/ImportSpecifier';
+import Variable from '../variables/Variable';
+import NamespaceVariable from '../variables/NamespaceVariable';
 
 export default class ModuleScope extends Scope {
-	constructor (module) {
+	parent: Scope;
+	module: Module;
+
+	constructor (module: Module) {
 		super({
 			isModuleScope: true,
 			parent: module.bundle.scope
@@ -15,23 +22,23 @@ export default class ModuleScope extends Scope {
 		this.variables.this = new LocalVariable('this', null, UNDEFINED_ASSIGNMENT);
 	}
 
-	deshadow (names) {
-		names = new Set(names);
+	deshadow (names: string[]) {
+		let nameSet = new Set(names);
 
 		forOwn(this.module.imports, specifier => {
 			if (specifier.module.isExternal) return;
 
-			const addDeclaration = declaration => {
+			const addDeclaration = (declaration: Variable) => {
 				if (declaration.isNamespace && !declaration.isExternal) {
-					declaration.module.getExports().forEach(name => {
-						addDeclaration(declaration.module.traceExport(name));
+					(<NamespaceVariable>declaration).module.getExports().forEach(name => {
+						addDeclaration((<NamespaceVariable>declaration).module.traceExport(name));
 					});
 				}
 
-				names.add(declaration.name);
+				nameSet.add(declaration.name);
 			};
 
-			specifier.module.getExports().forEach(name => {
+			(<Module>specifier.module).getExports().forEach(name => {
 				addDeclaration(specifier.module.traceExport(name));
 			});
 
@@ -54,19 +61,19 @@ export default class ModuleScope extends Scope {
 
 				const name = declaration.getName(true);
 				if (name !== specifier.name) {
-					names.add(declaration.getName(true));
+					nameSet.add(declaration.getName(true));
 				}
 
 				if (
 					specifier.name !== 'default' &&
-					specifier.specifier.imported.name !== specifier.specifier.local.name
+					(<ImportSpecifier>specifier.specifier).imported.name !== specifier.specifier.local.name
 				) {
-					names.add(specifier.specifier.imported.name);
+					nameSet.add((<ImportSpecifier>specifier.specifier).imported.name);
 				}
 			}
 		});
 
-		super.deshadow(names);
+		super.deshadow(nameSet);
 	}
 
 	findLexicalBoundary () {

@@ -6,6 +6,7 @@ import Pattern from './Pattern';
 import Expression from './Expression';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import BlockStatement from './BlockStatement';
 
 export default class ForInStatement extends Statement {
 	type: 'ForInStatement';
@@ -25,9 +26,9 @@ export default class ForInStatement extends Statement {
 
 	initialiseChildren () {
 		this.left.initialise(this.scope);
-		this.right.initialise(this.scope.parent);
-		this.body.initialiseAndReplaceScope
-			? this.body.initialiseAndReplaceScope(this.scope)
+		this.right.initialise(<Scope>this.scope.parent);
+		(<BlockStatement>this.body).initialiseAndReplaceScope
+			? (<BlockStatement>this.body).initialiseAndReplaceScope(this.scope)
 			: this.body.initialise(this.scope);
 	}
 

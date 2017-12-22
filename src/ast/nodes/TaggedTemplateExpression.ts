@@ -4,6 +4,7 @@ import Expression from './Expression';
 import TemplateLiteral from './TemplateLiteral';
 import Identifier from './Identifier';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import GlobalVariable from '../variables/GlobalVariable';
 
 export default class TaggedTemplateExpression extends Node {
 	type: 'TaggedTemplateExpression';
@@ -26,7 +27,7 @@ export default class TaggedTemplateExpression extends Node {
 				);
 			}
 
-			if ((<Identifier>this.tag).name === 'eval' && variable.isGlobal) {
+			if ((<Identifier>this.tag).name === 'eval' && (<GlobalVariable>variable).isGlobal) {
 				this.module.warn(
 					{
 						code: 'EVAL',

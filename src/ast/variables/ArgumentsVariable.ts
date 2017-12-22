@@ -1,8 +1,8 @@
 import LocalVariable from './LocalVariable';
 import { UNDEFINED_ASSIGNMENT, UNKNOWN_ASSIGNMENT, PredicateFunction } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Pattern from '../nodes/Pattern';
 import CallOptions from '../CallOptions';
+import ParameterVariable from './ParameterVariable';
 
 const getParameterVariable = (path: string[], options: ExecutionPathOptions) => {
 	const firstArgNum = parseInt(path[0], 10);
@@ -13,9 +13,9 @@ const getParameterVariable = (path: string[], options: ExecutionPathOptions) => 
 }
 
 export default class ArgumentsVariable extends LocalVariable {
-	private _parameters: Pattern[];
+	private _parameters: ParameterVariable[];
 
-	constructor (parameters: Pattern[]) {
+	constructor (parameters: ParameterVariable[]) {
 		super('arguments', null, UNKNOWN_ASSIGNMENT);
 		this._parameters = parameters;
 	}

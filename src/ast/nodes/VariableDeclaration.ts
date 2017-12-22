@@ -1,7 +1,6 @@
 import Node from '../Node';
 import extractNames from '../utils/extractNames';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Statement from './shared/Statement';
 import VariableDeclarator from './VariableDeclarator';
 import ForInStatement from './ForInStatement';
 import ForOfStatement from './ForOfStatement';
@@ -28,13 +27,13 @@ export default class VariableDeclaration extends Node {
 	declarations: VariableDeclarator[];
 	kind: 'var' | 'let' | 'const';
 
-	reassignPath () {
+	reassignPath (_path: string[], _options: ExecutionPathOptions) {
 		this.eachChild(child =>
 			child.reassignPath([], ExecutionPathOptions.create())
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath () {
+	hasEffectsWhenAssignedAtPath (_path: string[], _options: ExecutionPathOptions) {
 		return false;
 	}
 

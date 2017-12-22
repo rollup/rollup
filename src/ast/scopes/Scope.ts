@@ -1,18 +1,23 @@
 import { blank, keys } from '../../utils/object';
 import LocalVariable from '../variables/LocalVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
-import { UNDEFINED_ASSIGNMENT, UndefinedAssignment } from '../values';
+import { UNDEFINED_ASSIGNMENT, UndefinedAssignment, UnknownAssignment } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import Expression from '../nodes/Expression';
 import Variable from '../variables/Variable';
-import Pattern from '../nodes/Pattern';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
+import Declaration from '../nodes/Declaration';
+import GlobalVariable from '../variables/GlobalVariable';
+import ExternalVariable from '../variables/ExternalVariable';
+import ThisVariable from '../variables/ThisVariable';
 
 export default class Scope {
 	parent: Scope | void;
 	variables: {
-		[name: string]: Variable
+		this: ThisVariable | LocalVariable;
+		default: ExportDefaultVariable;
+		[name: string]: LocalVariable | GlobalVariable | ExternalVariable
 	};
 	isModuleScope: boolean;
 	children: Scope[];
@@ -35,15 +40,15 @@ export default class Scope {
 	 * @return {Variable}
 	 */
 	addDeclaration (identifier: Identifier, options: {
-		init: Pattern | null;
-		isHoisted: boolean;
+		init?: Expression | Declaration | UnknownAssignment | UndefinedAssignment | null;
+		isHoisted?: boolean;
 	} = {
 		init: null,
 		isHoisted: false
 	}) {
 		const name = identifier.name;
 		if (this.variables[name]) {
-			const variable = this.variables[name];
+			const variable = <LocalVariable>this.variables[name];
 			variable.addDeclaration(identifier);
 			variable.reassignPath([], ExecutionPathOptions.create());
 		} else {
@@ -97,11 +102,11 @@ export default class Scope {
 		this.children.forEach(scope => scope.deshadow(names));
 	}
 
-	findLexicalBoundary () {
-		return this.parent.findLexicalBoundary();
+	findLexicalBoundary (): Scope {
+		return (<Scope>this.parent).findLexicalBoundary();
 	}
 
-	findVariable (name: string): Variable {
+	findVariable (name: string): ThisVariable | LocalVariable | ExportDefaultVariable | GlobalVariable | ExternalVariable {
 		return (
 			this.variables[name] || (this.parent && this.parent.findVariable(name))
 		);
