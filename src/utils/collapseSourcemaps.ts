@@ -30,7 +30,7 @@ interface SourceMapSegmentObject {
 	column: number;
 	name: string;
 	source: Source
-};
+}
 
 class Link {
 	sources: Source[];
@@ -134,6 +134,7 @@ class Link {
 	}
 }
 
+// TODO TypeScript: Fix <any> typecasts
 export default function collapseSourcemaps (
 	bundle: Bundle,
 	file: string,
@@ -168,11 +169,11 @@ export default function collapseSourcemaps (
 						);
 					});
 
-					source = new Link(module.originalSourcemap, baseSources);
+					source = <any> new Link(<any> module.originalSourcemap, baseSources);
 				}
 			}
 
-			sourcemapChain.forEach(map => {
+			sourcemapChain.forEach((map: any) => {
 				if (map.missing) {
 					bundle.warn({
 						code: 'SOURCEMAP_BROKEN',
@@ -189,16 +190,16 @@ export default function collapseSourcemaps (
 					};
 				}
 
-				source = new Link(map, [source]);
+				source = <any> new Link(map, [source]);
 			});
 
 			return source;
 		});
 
-	let source = new Link(map, moduleSources);
+	let source = new Link(<any> map, moduleSources);
 
 	bundleSourcemapChain.forEach(map => {
-		source = new Link(map, [source]);
+		source = new Link(<any> map, [<any> source]);
 	});
 
 	let { sources, sourcesContent, names, mappings } = source.traceMappings();

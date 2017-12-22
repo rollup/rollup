@@ -12,6 +12,7 @@ import CallOptions from '../CallOptions';
 import FunctionScope from '../scopes/FunctionScope';
 import MagicString from 'magic-string';
 import Property from './Property';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 export default class Identifier extends Node {
 	type: 'Identifier';
@@ -19,7 +20,7 @@ export default class Identifier extends Node {
 
 	variable: Variable;
 
-	reassignPath (path: string[], options: ExecutionPathOptions) {
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		this._bindVariableIfMissing();
 		this.variable && this.variable.reassignPath(path, options);
 	}
@@ -36,7 +37,7 @@ export default class Identifier extends Node {
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
@@ -51,20 +52,20 @@ export default class Identifier extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			this.variable && this.variable.hasEffectsWhenAccessedAtPath(path, options)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			!this.variable ||
 			this.variable.hasEffectsWhenAssignedAtPath(path, options)
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
 		return (
 			!this.variable ||
 			this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options)
@@ -119,7 +120,7 @@ export default class Identifier extends Node {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions

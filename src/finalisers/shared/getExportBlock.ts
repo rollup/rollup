@@ -1,4 +1,5 @@
 import Bundle from "../../Bundle";
+import ExternalModule from '../../ExternalModule';
 
 export default function getExportBlock (
 	bundle: Bundle,
@@ -18,7 +19,7 @@ export default function getExportBlock (
 			if (name[0] === '*') {
 				// export all from external
 				const id = name.slice(1);
-				const module = bundle.moduleById.get(id);
+				const module = <ExternalModule> bundle.moduleById.get(id);
 
 				return `Object.keys(${
 					module.name

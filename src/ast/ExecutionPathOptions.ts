@@ -84,7 +84,7 @@ export default class ExecutionPathOptions {
 	 * @param {Node} node
 	 * @return {ExecutionPathOptions}
 	 */
-	addAccessedNodeAtPath (path: string[], node: Node | UnknownAssignment) {
+	addAccessedNodeAtPath (path: ObjectPath, node: Node | UnknownAssignment) {
 		return this.setIn([OPTION_ACCESSED_NODES, node, ...path, RESULT_KEY], true);
 	}
 
@@ -93,7 +93,7 @@ export default class ExecutionPathOptions {
 	 * @param {CallExpression|Property} callExpression
 	 * @return {ExecutionPathOptions}
 	 */
-	addAccessedReturnExpressionAtPath (path: string[], callExpression: CallExpression | Property) {
+	addAccessedReturnExpressionAtPath (path: ObjectPath, callExpression: CallExpression | Property) {
 		return this.setIn(
 			[
 				OPTION_RETURN_EXPRESSIONS_ACCESSED_AT_PATH,
@@ -110,7 +110,7 @@ export default class ExecutionPathOptions {
 	 * @param {Node} node
 	 * @return {ExecutionPathOptions}
 	 */
-	addAssignedNodeAtPath (path: string[], node: Node | Variable) {
+	addAssignedNodeAtPath (path: ObjectPath, node: Node | Variable | UnknownAssignment) {
 		return this.setIn([OPTION_ASSIGNED_NODES, node, ...path, RESULT_KEY], true);
 	}
 
@@ -119,7 +119,7 @@ export default class ExecutionPathOptions {
 	 * @param {CallExpression|Property} callExpression
 	 * @return {ExecutionPathOptions}
 	 */
-	addAssignedReturnExpressionAtPath (path: string[], callExpression: CallExpression | Property) {
+	addAssignedReturnExpressionAtPath (path: ObjectPath, callExpression: CallExpression | Property) {
 		return this.setIn(
 			[
 				OPTION_RETURN_EXPRESSIONS_ASSIGNED_AT_PATH,
@@ -137,7 +137,7 @@ export default class ExecutionPathOptions {
 	 * @param {CallOptions} callOptions
 	 * @return {ExecutionPathOptions}
 	 */
-	addCalledNodeAtPathWithOptions (path: string[], node: Node | UnknownAssignment, callOptions: CallOptions) {
+	addCalledNodeAtPathWithOptions (path: ObjectPath, node: Node | UnknownAssignment, callOptions: CallOptions) {
 		return this.setIn(
 			[
 				OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS,
@@ -155,7 +155,7 @@ export default class ExecutionPathOptions {
 	 * @param {CallExpression|Property} callExpression
 	 * @return {ExecutionPathOptions}
 	 */
-	addCalledReturnExpressionAtPath (path: string[], callExpression: CallExpression | Property) {
+	addCalledReturnExpressionAtPath (path: ObjectPath, callExpression: CallExpression | Property) {
 		return this.setIn(
 			[
 				OPTION_RETURN_EXPRESSIONS_CALLED_AT_PATH,
@@ -196,7 +196,7 @@ export default class ExecutionPathOptions {
 	 * @param {Node} node
 	 * @return {boolean}
 	 */
-	hasNodeBeenAccessedAtPath (path: string[], node: Node | Variable | UnknownAssignment): boolean {
+	hasNodeBeenAccessedAtPath (path: ObjectPath, node: Node | Variable | UnknownAssignment): boolean {
 		return this._optionValues.getIn([
 			OPTION_ACCESSED_NODES,
 			node,

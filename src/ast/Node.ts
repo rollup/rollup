@@ -11,8 +11,9 @@ import MagicString from 'magic-string';
 import CallOptions from './CallOptions';
 import Expression from './nodes/Expression';
 import Declaration from './nodes/Declaration';
+import { ObjectPath } from './variables/VariableReassignmentTracker';
 
-export type ForEachReturnExpressionCallback = (options: ExecutionPathOptions) => (node: Node) => void
+export type ForEachReturnExpressionCallback = (options: ExecutionPathOptions) => (node: Node | UnknownAssignment) => void
 
 export default class Node {
 	type: string;
@@ -51,7 +52,7 @@ export default class Node {
 	 * @param {String[]} _path
 	 * @param {ExecutionPathOptions} _options
 	 */
-	reassignPath (_path: string[], _options: ExecutionPathOptions) { }
+	reassignPath (_path: ObjectPath, _options: ExecutionPathOptions) { }
 
 	/**
 	 * Override to control on which children "bind" is called.
@@ -87,7 +88,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} _options
 	 */
 	forEachReturnExpressionWhenCalledAtPath (
-		_path: string[],
+		_path: ObjectPath,
 		_callOptions: CallOptions,
 		_callback: ForEachReturnExpressionCallback,
 		_options: ExecutionPathOptions
@@ -114,7 +115,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} _options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 0;
 	}
 
@@ -123,7 +124,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} _options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAssignedAtPath (_path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (_path: ObjectPath, _options: ExecutionPathOptions) {
 		return true;
 	}
 
@@ -133,7 +134,7 @@ export default class Node {
 	 * @param {ExecutionPathOptions} _options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenCalledAtPath (_path: string[], _callOptions: CallOptions, _options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath (_path: ObjectPath, _callOptions: CallOptions, _options: ExecutionPathOptions) {
 		return true;
 	}
 
@@ -270,7 +271,7 @@ export default class Node {
 	 * @returns {boolean}
 	 */
 	someReturnExpressionWhenCalledAtPath (
-		_path: string[],
+		_path: ObjectPath,
 		_callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions

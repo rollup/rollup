@@ -2,8 +2,31 @@ import Node from '../Node';
 import { UNKNOWN_VALUE } from '../values';
 import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
-type BinaryOperator = '==' | '!=' | '===' | '!==' | '<' | '<=' | '>' | '>=' | '<<' | '>>' | '>>>' | '+' | '-' | '*' | '/' | '%' | ' |' | '^' | '&' | '**' | 'in' | 'instanceof';
+type BinaryOperator =
+	'=='
+	| '!='
+	| '==='
+	| '!=='
+	| '<'
+	| '<='
+	| '>'
+	| '>='
+	| '<<'
+	| '>>'
+	| '>>>'
+	| '+'
+	| '-'
+	| '*'
+	| '/'
+	| '%'
+	| ' |'
+	| '^'
+	| '&'
+	| '**'
+	| 'in'
+	| 'instanceof';
 
 const operators: {
 	[operator: string]: (left: any, right: any) => any
@@ -51,7 +74,7 @@ export default class BinaryExpression extends Node {
 		return operatorFn(leftValue, rightValue);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 }

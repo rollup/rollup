@@ -3,6 +3,7 @@ import { UNKNOWN_VALUE, PredicateFunction } from '../values';
 import Expression from './Expression';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 type LogicalOperator = '||' | '&&';
 
@@ -12,13 +13,13 @@ export default class LogicalExpression extends Node {
 	left: Expression;
 	right: Expression;
 
-	reassignPath (path: string[], options: ExecutionPathOptions) {
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		path.length > 0 &&
 			this._forEachRelevantBranch(node => node.reassignPath(path, options));
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
@@ -58,7 +59,7 @@ export default class LogicalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 &&
 			this._someRelevantBranch(node =>
@@ -67,7 +68,7 @@ export default class LogicalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length === 0 ||
 			this._someRelevantBranch(node =>
@@ -76,14 +77,14 @@ export default class LogicalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		return this._someRelevantBranch(node =>
 			node.hasEffectsWhenCalledAtPath(path, callOptions, options)
 		);
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions

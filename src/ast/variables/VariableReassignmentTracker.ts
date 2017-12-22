@@ -7,7 +7,8 @@ export interface UnknownKey {
 	type: 'UNKNOWN_KEY';
 }
 
-export type ObjectPath = (string | UnknownKey)[];
+type ObjectPathElement = string | UnknownKey
+export type ObjectPath = ObjectPathElement[];
 
 export const UNKNOWN_KEY: UnknownKey = { type: 'UNKNOWN_KEY' };
 
@@ -17,7 +18,7 @@ type PathPredicate = (path: ObjectPath, expression: Expression | Declaration | U
 class ReassignedPathTracker {
 	_reassigned: boolean;
 	_unknownReassignedSubPath: boolean;
-	_subPaths: Map<string, ReassignedPathTracker>;
+	_subPaths: Map<ObjectPathElement, ReassignedPathTracker>;
 
 	constructor () {
 		this._reassigned = false;
@@ -25,7 +26,7 @@ class ReassignedPathTracker {
 		this._subPaths = new Map();
 	}
 
-	isReassigned (path: string[]): boolean {
+	isReassigned (path: ObjectPath): boolean {
 		if (path.length === 0) {
 			return this._reassigned;
 		}
@@ -85,7 +86,7 @@ export default class VariableReassignmentTracker {
 		this._reassignedPathTracker = new ReassignedPathTracker();
 	}
 
-	reassignPath (path: string[], options: ExecutionPathOptions) {
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length > 0) {
 			this._initialExpression &&
 			this._initialExpression.reassignPath(path, options);
@@ -93,11 +94,11 @@ export default class VariableReassignmentTracker {
 		this._reassignedPathTracker.reassignPath(path);
 	}
 
-	forEachAtPath (path: string[], callback: PathCallback) {
+	forEachAtPath (path: ObjectPath, callback: PathCallback) {
 		this._initialExpression && callback(path, this._initialExpression);
 	}
 
-	someAtPath (path: string[], predicateFunction: PathPredicate) {
+	someAtPath (path: ObjectPath, predicateFunction: PathPredicate) {
 		return (
 			this._reassignedPathTracker.someReassignedPath(path, predicateFunction) ||
 			(this._initialExpression &&

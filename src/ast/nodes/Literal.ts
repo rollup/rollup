@@ -1,6 +1,7 @@
 import Node from '../Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 export default class Literal extends Node {
 	type: 'Literal';
@@ -10,14 +11,14 @@ export default class Literal extends Node {
 		return this.value;
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		if (this.value === null) {
 			return path.length > 0;
 		}
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		if (this.value === null) {
 			return path.length > 0;
 		}

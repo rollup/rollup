@@ -101,7 +101,7 @@ export interface OutputOptions {
 	interop?: boolean;
 	extend?: boolean;
 
-	exports?: 'default' | 'named' | 'none';
+	exports?: 'default' | 'named' | 'none' | 'auto';
 	amd?: {
 		id?: string;
 		define?: string;

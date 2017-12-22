@@ -71,7 +71,7 @@ export default class Scope {
 		return this.variables.default;
 	}
 
-	addReturnExpression (expression: Expression) {
+	addReturnExpression (expression: Expression | UnknownAssignment) {
 		this.parent && this.parent.addReturnExpression(expression);
 	}
 

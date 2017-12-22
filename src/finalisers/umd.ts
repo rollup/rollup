@@ -133,13 +133,13 @@ export default function umd (
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(bundle, exportMode);
-	if (exportBlock) magicString.append('\n\n' + exportBlock);
+	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
 	if (exportMode === 'named' && options.legacy !== true)
-		magicString.append(`\n\n${esModuleExport}`);
-	if (outro) magicString.append(outro);
+		(<any> magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR
+	if (outro) (<any> magicString).append(outro); // TODO TypeScript: Awaiting PR
 
-	return magicString
-		.trim()
+	return (<any> magicString)
+		.trim() // TODO TypeScript: Awaiting PR
 		.indent(indentString)
 		.append(wrapperOutro)
 		.prepend(wrapperIntro);

@@ -3,9 +3,10 @@ import { UNKNOWN_ASSIGNMENT, PredicateFunction } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import ParameterVariable from './ParameterVariable';
+import { ObjectPath } from './VariableReassignmentTracker';
 
-const getParameterVariable = (path: string[], options: ExecutionPathOptions) => {
-	const firstArgNum = parseInt(path[0], 10);
+const getParameterVariable = (path: ObjectPath, options: ExecutionPathOptions) => {
+	const firstArgNum = parseInt(<string> path[0], 10);
 
 	return (firstArgNum < options.getArgumentsVariables().length &&
 		options.getArgumentsVariables()[firstArgNum]) ||
@@ -20,8 +21,8 @@ export default class ArgumentsVariable extends LocalVariable {
 		this._parameters = parameters;
 	}
 
-	reassignPath (path: string[], options: ExecutionPathOptions) {
-		const firstArgNum = parseInt(path[0], 10);
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
+		const firstArgNum = parseInt(<string> path[0], 10);
 		if (path.length > 0) {
 			if (firstArgNum >= 0 && this._parameters[firstArgNum]) {
 				this._parameters[firstArgNum].reassignPath(path.slice(1), options);
@@ -29,7 +30,7 @@ export default class ArgumentsVariable extends LocalVariable {
 		}
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			path.length > 1 &&
 			getParameterVariable(path, options).hasEffectsWhenAccessedAtPath(
@@ -39,7 +40,7 @@ export default class ArgumentsVariable extends LocalVariable {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			path.length === 0 ||
 			this.included ||
@@ -50,7 +51,7 @@ export default class ArgumentsVariable extends LocalVariable {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) {
 			return true;
 		}
@@ -62,7 +63,7 @@ export default class ArgumentsVariable extends LocalVariable {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions

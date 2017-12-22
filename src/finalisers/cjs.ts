@@ -79,8 +79,8 @@ export default function cjs (
 	magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(bundle, exportMode, 'module.exports =');
-	if (exportBlock) magicString.append('\n\n' + exportBlock);
-	if (outro) magicString.append(outro);
+	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
+	if (outro) (<any> magicString).append(outro); // TODO TypeScript: Awaiting PR
 
 	return magicString;
 }

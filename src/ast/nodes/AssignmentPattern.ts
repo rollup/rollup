@@ -5,6 +5,7 @@ import Expression from './Expression';
 import Scope from '../Scopes/Scope';
 import { UnknownAssignment } from '../values';
 import Declaration from './Declaration';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 export default class AssignmentPattern extends Node {
 	type: 'AssignmentPattern';
@@ -15,11 +16,11 @@ export default class AssignmentPattern extends Node {
 		this.left.reassignPath([], ExecutionPathOptions.create());
 	}
 
-	reassignPath (path: string[], options: ExecutionPathOptions) {
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		path.length === 0 && this.left.reassignPath(path, options);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 || this.left.hasEffectsWhenAssignedAtPath([], options)
 		);

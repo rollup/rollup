@@ -3,6 +3,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import FunctionExpression from './FunctionExpression';
 import Expression from './Expression';
 import CallOptions from '../CallOptions';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 export default class MethodDefinition extends Node {
 	type: 'MethodDefinition';
@@ -16,7 +17,7 @@ export default class MethodDefinition extends Node {
 		return this.key.hasEffects(options);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
 		return (
 			path.length > 0 ||
 			this.value.hasEffectsWhenCalledAtPath([], callOptions, options)

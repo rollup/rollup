@@ -5,6 +5,7 @@ import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import { ForEachReturnExpressionCallback } from '../Node';
+import { ObjectPath } from './VariableReassignmentTracker';
 
 export default class Variable {
 	exportName?: string;
@@ -30,7 +31,7 @@ export default class Variable {
 	 * @param {String[]} path
 	 * @param {ExecutionPathOptions} options
 	 */
-	reassignPath (_path: string[], _options: ExecutionPathOptions) { }
+	reassignPath (_path: ObjectPath, _options: ExecutionPathOptions) { }
 
 	/**
 	 * @param {String[]} path
@@ -39,7 +40,7 @@ export default class Variable {
 	 * @param {ExecutionPathOptions} options
 	 */
 	forEachReturnExpressionWhenCalledAtPath (
-		_path: string[],
+		_path: ObjectPath,
 		_callOptions: CallOptions,
 		_callback: ForEachReturnExpressionCallback,
 		_options: ExecutionPathOptions
@@ -57,7 +58,7 @@ export default class Variable {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 0;
 	}
 
@@ -66,7 +67,7 @@ export default class Variable {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenAssignedAtPath (_path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (_path: ObjectPath, _options: ExecutionPathOptions) {
 		return true;
 	}
 
@@ -76,7 +77,7 @@ export default class Variable {
 	 * @param {ExecutionPathOptions} options
 	 * @return {boolean}
 	 */
-	hasEffectsWhenCalledAtPath (_path: string[], _callOptions: CallOptions, _options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath (_path: ObjectPath, _callOptions: CallOptions, _options: ExecutionPathOptions) {
 		return true;
 	}
 
@@ -103,7 +104,7 @@ export default class Variable {
 	 * @returns {boolean}
 	 */
 	someReturnExpressionWhenCalledAtPath (
-		_path: string[],
+		_path: ObjectPath,
 		_callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions

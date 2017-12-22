@@ -2,6 +2,7 @@ import Node from '../Node';
 import { UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Expression from './Expression';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 const operators: {
 	[operator: string]: (value: any) => any;
@@ -44,7 +45,7 @@ export default class UnaryExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		if (this.operator === 'void') {
 			return path.length > 0;
 		}

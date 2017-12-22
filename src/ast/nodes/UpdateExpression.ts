@@ -2,6 +2,7 @@ import Node from '../Node';
 import disallowIllegalReassignment from './shared/disallowIllegalReassignment';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Expression from './Expression';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 export default class UpdateExpression extends Node {
 	type: 'UpdateExpression';
@@ -25,7 +26,7 @@ export default class UpdateExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 }

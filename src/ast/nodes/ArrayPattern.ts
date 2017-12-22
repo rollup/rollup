@@ -5,17 +5,18 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import Pattern from './Pattern';
 import Expression from './Expression';
 import Declaration from './Declaration';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 export default class ArrayPattern extends Node {
 	type: 'ArrayPattern';
 	elements: (Pattern | null)[];
 
-	reassignPath (path: string[], options: ExecutionPathOptions) {
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		path.length === 0 &&
 		this.eachChild(child => child.reassignPath([], options));
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			path.length > 0 ||
 			this.someChild(child => child.hasEffectsWhenAssignedAtPath([], options))

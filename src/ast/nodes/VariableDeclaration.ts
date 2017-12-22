@@ -6,6 +6,7 @@ import ForInStatement from './ForInStatement';
 import ForOfStatement from './ForOfStatement';
 import ForStatement from './ForStatement';
 import MagicString from 'magic-string';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 function getSeparator (code: string, start: number) {
 	let c = start;
@@ -27,13 +28,13 @@ export default class VariableDeclaration extends Node {
 	declarations: VariableDeclarator[];
 	kind: 'var' | 'let' | 'const';
 
-	reassignPath (_path: string[], _options: ExecutionPathOptions) {
+	reassignPath (_path: ObjectPath, _options: ExecutionPathOptions) {
 		this.eachChild(child =>
 			child.reassignPath([], ExecutionPathOptions.create())
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (_path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (_path: ObjectPath, _options: ExecutionPathOptions) {
 		return false;
 	}
 

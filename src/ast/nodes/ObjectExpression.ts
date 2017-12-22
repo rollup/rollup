@@ -1,5 +1,5 @@
 import Node, { ForEachReturnExpressionCallback } from '../Node';
-import { UNKNOWN_KEY, UnknownKey } from '../variables/VariableReassignmentTracker';
+import { UNKNOWN_KEY, UnknownKey, ObjectPath } from '../variables/VariableReassignmentTracker';
 import Property from './Property';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
@@ -13,7 +13,7 @@ export default class ObjectExpression extends Node {
 	type: 'ObjectExpression';
 	properties: Property[];
 
-	reassignPath (path: string[], options: ExecutionPathOptions) {
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
@@ -21,15 +21,15 @@ export default class ObjectExpression extends Node {
 			path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ
 		);
 		(path.length === 1 || hasCertainHit) &&
-			properties.forEach(
-				property =>
-					(path.length > 1 || property.kind === 'set') &&
-					property.reassignPath(path.slice(1), options)
-			);
+		properties.forEach(
+			property =>
+				(path.length > 1 || property.kind === 'set') &&
+				property.reassignPath(path.slice(1), options)
+		);
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
@@ -41,17 +41,17 @@ export default class ObjectExpression extends Node {
 			PROPERTY_KINDS_READ
 		);
 		hasCertainHit &&
-			properties.forEach(property =>
-				property.forEachReturnExpressionWhenCalledAtPath(
-					path.slice(1),
-					callOptions,
-					callback,
-					options
-				)
-			);
+		properties.forEach(property =>
+			property.forEachReturnExpressionWhenCalledAtPath(
+				path.slice(1),
+				callOptions,
+				callback,
+				options
+			)
+		);
 	}
 
-	_getPossiblePropertiesWithName (name: string | UnknownKey, kinds: string[]) {
+	_getPossiblePropertiesWithName (name: string | UnknownKey, kinds: ObjectPath) {
 		if (name === UNKNOWN_KEY) {
 			return { properties: this.properties, hasCertainHit: false };
 		}
@@ -72,7 +72,7 @@ export default class ObjectExpression extends Node {
 		return { properties, hasCertainHit };
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return false;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
@@ -87,7 +87,7 @@ export default class ObjectExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return false;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
@@ -104,7 +104,7 @@ export default class ObjectExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return true;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
@@ -120,7 +120,7 @@ export default class ObjectExpression extends Node {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: (optioons: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions

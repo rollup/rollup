@@ -1,6 +1,6 @@
 import relativeId from '../../utils/relativeId';
 import Node, { ForEachReturnExpressionCallback } from '../Node';
-import { UNKNOWN_KEY, UnknownKey } from '../variables/VariableReassignmentTracker';
+import { ObjectPath, UNKNOWN_KEY, UnknownKey } from '../variables/VariableReassignmentTracker';
 import Expression from './Expression';
 import Variable from '../variables/Variable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
@@ -114,7 +114,7 @@ export default class MemberExpression extends Node {
 		}
 	}
 
-	reassignPath (path: string[], options: ExecutionPathOptions) {
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		if (!this._bound) this.bind();
 		if (this.variable) {
 			this.variable.reassignPath(path, options);
@@ -124,7 +124,7 @@ export default class MemberExpression extends Node {
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
@@ -159,7 +159,7 @@ export default class MemberExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) {
 			return false;
 		}
@@ -172,7 +172,7 @@ export default class MemberExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (this.variable) {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 		}
@@ -182,7 +182,7 @@ export default class MemberExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (this.variable) {
 			return this.variable.hasEffectsWhenCalledAtPath(
 				path,
@@ -232,7 +232,7 @@ export default class MemberExpression extends Node {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions

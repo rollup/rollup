@@ -5,6 +5,7 @@ import Expression from './Expression';
 import CallOptions from '../CallOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 export default class ConditionalExpression extends Node {
 	type: 'ConditionalExpression';
@@ -14,13 +15,13 @@ export default class ConditionalExpression extends Node {
 
 	testValue: any;
 
-	reassignPath (path: string[], options: ExecutionPathOptions) {
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		path.length > 0 &&
-			this._forEachRelevantBranch(node => node.reassignPath(path, options));
+		this._forEachRelevantBranch(node => node.reassignPath(path, options));
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
@@ -49,7 +50,7 @@ export default class ConditionalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 &&
 			this._someRelevantBranch(node =>
@@ -58,7 +59,7 @@ export default class ConditionalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length === 0 ||
 			this._someRelevantBranch(node =>
@@ -67,7 +68,7 @@ export default class ConditionalExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		return this._someRelevantBranch(node =>
 			node.hasEffectsWhenCalledAtPath(path, callOptions, options)
 		);
@@ -111,9 +112,9 @@ export default class ConditionalExpression extends Node {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) =>  PredicateFunction,
+		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions
 	): boolean {
 		return this._someRelevantBranch(node =>

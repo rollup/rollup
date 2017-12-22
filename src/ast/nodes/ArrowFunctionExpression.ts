@@ -7,6 +7,7 @@ import Expression from './Expression';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { PredicateFunction } from '../values';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 export default class ArrowFunctionExpression extends Node {
 	type: 'ArrowFunctionExpression';
@@ -21,7 +22,7 @@ export default class ArrowFunctionExpression extends Node {
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
@@ -34,15 +35,15 @@ export default class ArrowFunctionExpression extends Node {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], _callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, _callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length > 0) {
 			return true;
 		}
@@ -68,7 +69,7 @@ export default class ArrowFunctionExpression extends Node {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions

@@ -94,11 +94,11 @@ export default function iife (
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(bundle, exportMode);
-	if (exportBlock) magicString.append('\n\n' + exportBlock);
-	if (outro) magicString.append(outro);
+	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
+	if (outro) (<any> magicString).append(outro); // TODO TypeScript: Awaiting PR
 
-	return magicString
-		.indent(indentString)
+	return (<any> magicString)
+		.indent(indentString) // TODO TypeScript: Awaiting PR
 		.prepend(wrapperIntro)
 		.append(wrapperOutro);
 }

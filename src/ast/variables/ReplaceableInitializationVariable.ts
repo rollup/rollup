@@ -4,6 +4,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import Expression from '../nodes/Expression';
 import Identifier from '../nodes/Identifier';
+import { ObjectPath } from './VariableReassignmentTracker';
 
 export default class ReplaceableInitializationVariable extends LocalVariable {
 	constructor (name: string, declarator: Identifier | null) {
@@ -14,21 +15,21 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 		return this.name;
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			this._getInit(options).hasEffectsWhenAccessedAtPath(path, options) ||
 			super.hasEffectsWhenAccessedAtPath(path, options)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			this._getInit(options).hasEffectsWhenAssignedAtPath(path, options) ||
 			super.hasEffectsWhenAssignedAtPath(path, options)
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
 		return (
 			this._getInit(options).hasEffectsWhenCalledAtPath(
 				path,
@@ -39,7 +40,7 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions

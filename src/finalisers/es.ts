@@ -1,6 +1,7 @@
 import { keys } from '../utils/object';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import Bundle from '../Bundle';
+import ExternalVariable from '../ast/variables/ExternalVariable';
 
 function notDefault (name: string) {
 	return name !== 'default';
@@ -25,7 +26,7 @@ export default function es (bundle: Bundle, magicString: MagicStringBundle, { ge
 						return `* as ${module.name}`;
 					}
 
-					const declaration = module.declarations[name];
+					const declaration = <ExternalVariable> module.declarations[name];
 
 					if (declaration.name === declaration.safeName)
 						return declaration.name;
@@ -102,11 +103,11 @@ export default function es (bundle: Bundle, magicString: MagicStringBundle, { ge
 				// export * from 'external'
 				exportAllDeclarations.push(`export * from '${name.slice(1)}';`);
 			} else {
-				if (!exportExternalSpecifiers.has(declaration.module.id))
-					exportExternalSpecifiers.set(declaration.module.id, []);
+				if (!exportExternalSpecifiers.has((<ExternalVariable> declaration).module.id))
+					exportExternalSpecifiers.set((<ExternalVariable> declaration).module.id, []);
 				const rendered = declaration.getName(true);
 				exportExternalSpecifiers
-					.get(declaration.module.id)
+					.get((<ExternalVariable> declaration).module.id)
 					.push(rendered === name ? name : `${rendered} as ${name}`);
 			}
 
@@ -135,9 +136,9 @@ export default function es (bundle: Bundle, magicString: MagicStringBundle, { ge
 	}
 
 	if (exportBlock.length)
-		magicString.append('\n\n' + exportBlock.join('\n').trim());
+		(<any> magicString).append('\n\n' + exportBlock.join('\n').trim()); // TODO TypeScript: Awaiting PR
 
-	if (outro) magicString.append(outro);
+	if (outro) (<any> magicString).append(outro); // TODO TypeScript: Awaiting PR
 
-	return magicString.trim();
+	return (<any> magicString).trim(); // TODO TypeScript: Awaiting PR
 }

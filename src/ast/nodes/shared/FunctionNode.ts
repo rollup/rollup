@@ -8,6 +8,7 @@ import Pattern from '../Pattern';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import { PredicateFunction } from '../../values';
+import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 
 export default class FunctionNode extends Node {
   id: Identifier;
@@ -22,7 +23,7 @@ export default class FunctionNode extends Node {
   }
 
   forEachReturnExpressionWhenCalledAtPath (
-    path: string[],
+    path: ObjectPath,
     callOptions: CallOptions,
     callback: ForEachReturnExpressionCallback,
     options: ExecutionPathOptions
@@ -39,7 +40,7 @@ export default class FunctionNode extends Node {
     return this.id && this.id.hasEffects(options);
   }
 
-  hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
+  hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
     if (path.length <= 1) {
       return false;
     }
@@ -49,7 +50,7 @@ export default class FunctionNode extends Node {
     return true;
   }
 
-  hasEffectsWhenAssignedAtPath (path: string[], _options: ExecutionPathOptions) {
+  hasEffectsWhenAssignedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
     if (path.length <= 1) {
       return false;
     }
@@ -59,7 +60,7 @@ export default class FunctionNode extends Node {
     return true;
   }
 
-  hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
+  hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
     if (path.length > 0) {
       return true;
     }
@@ -87,7 +88,7 @@ export default class FunctionNode extends Node {
   }
 
   someReturnExpressionWhenCalledAtPath (
-    path: string[],
+    path: ObjectPath,
     callOptions: CallOptions,
     predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
     options: ExecutionPathOptions

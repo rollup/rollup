@@ -46,12 +46,12 @@ export default function amd (
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(bundle, exportMode);
-	if (exportBlock) magicString.append('\n\n' + exportBlock);
+	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
 	if (exportMode === 'named' && options.legacy !== true)
-		magicString.append(`\n\n${esModuleExport}`);
-	if (outro) magicString.append(outro);
+		(<any> magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR
+	if (outro) (<any> magicString).append(outro);
 
-	return magicString
+	return (<any> magicString) // TODO TypeScript: Awaiting PR
 		.indent(indentString)
 		.append('\n\n});')
 		.prepend(wrapperStart);

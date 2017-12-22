@@ -34,6 +34,8 @@ import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
 import { RollupWarning } from './rollup/index';
 import ExternalModule from './ExternalModule';
 import Import from './ast/nodes/Import';
+import TemplateLiteral from './ast/nodes/TemplateLiteral';
+import Literal from './ast/nodes/Literal';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
@@ -494,15 +496,15 @@ export default class Module {
 
 	processDynamicImports (resolveDynamicImport: ResolveDynamicImportHandler) {
 		return Promise.all(this.dynamicImports.map(node => {
-			const importArgument = node.parent.arguments[0];
+			const importArgument = <Node> node.parent.arguments[0];
 			let dynamicImportSpecifier: string | Node;
 			if (importArgument.type === 'TemplateLiteral') {
-				if (importArgument.expressions.length === 0 && importArgument.quasis.length === 1) {
-					dynamicImportSpecifier = importArgument.quasis[0].value.cooked;
+				if ((<TemplateLiteral> importArgument).expressions.length === 0 && (<TemplateLiteral> importArgument).quasis.length === 1) {
+					dynamicImportSpecifier = (<TemplateLiteral> importArgument).quasis[0].value.cooked;
 				}
 			} else if (importArgument.type === 'Literal') {
-				if (typeof importArgument.value === 'string') {
-					dynamicImportSpecifier = importArgument.value;
+				if (typeof (<Literal> importArgument).value === 'string') {
+					dynamicImportSpecifier = <string | Node>(<Literal> importArgument).value;
 				}
 			} else {
 				dynamicImportSpecifier = importArgument;

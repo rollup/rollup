@@ -2,6 +2,7 @@ import Node from '../Node';
 import CallOptions from '../CallOptions';
 import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 export default class NewExpression extends Node {
 	type: 'NewExpression';
@@ -21,7 +22,7 @@ export default class NewExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 

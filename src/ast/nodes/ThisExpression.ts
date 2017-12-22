@@ -2,6 +2,7 @@ import Node from '../Node';
 import ThisVariable from '../variables/ThisVariable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 export default class ThisExpression extends Node {
 	type: 'ThisExpression';
@@ -31,14 +32,14 @@ export default class ThisExpression extends Node {
 		this.variable = <ThisVariable>this.scope.findVariable('this');
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 &&
 			this.variable.hasEffectsWhenAccessedAtPath(path, options)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 	}
 

@@ -1,42 +1,47 @@
 // Dynamic Import support for acorn
-export default function wrapDynamicImportPlugin ( acorn ) {
-	let moduleDynamicImportsReturnBinding;
+import { PluginsObject, TokenType } from 'acorn';
+
+export default function wrapDynamicImportPlugin (acorn: {
+	tokTypes: { [type: string]: TokenType },
+	plugins: PluginsObject
+}) {
+	let moduleDynamicImportsReturnBinding: any[];
 	acorn.tokTypes._import.startsExpr = true;
-	acorn.plugins.dynamicImport = ( instance ) => {
-		instance.extend( 'parseStatement', nextMethod => {
-			return function parseStatement ( ...args ) {
+	acorn.plugins.dynamicImport = (instance: any) => {
+		instance.extend('parseStatement', (nextMethod: Function) => {
+			return function parseStatement (this: any, ...args: any[]) {
 				const node = this.startNode();
-				if ( this.type === acorn.tokTypes._import ) {
+				if (this.type === acorn.tokTypes._import) {
 					const nextToken = this.input[this.pos];
-					if ( nextToken === acorn.tokTypes.parenL.label ) {
+					if (nextToken === acorn.tokTypes.parenL.label) {
 						const expr = this.parseExpression();
-						return this.parseExpressionStatement( node, expr );
+						return this.parseExpressionStatement(node, expr);
 					}
 				}
-				return nextMethod.apply( this, args );
+				return nextMethod.apply(this, args);
 			};
 		});
 
-		instance.extend( 'parseExprAtom', nextMethod => {
-			return function parseExprAtom ( refDestructuringErrors ) {
-				if ( this.type === acorn.tokTypes._import ) {
+		instance.extend('parseExprAtom', (nextMethod: Function) => {
+			return function parseExprAtom (this: any, refDestructuringErrors: any) {
+				if (this.type === acorn.tokTypes._import) {
 					const node = this.startNode();
 					this.next();
-					if ( this.type !== acorn.tokTypes.parenL ) {
+					if (this.type !== acorn.tokTypes.parenL) {
 						this.unexpected();
 					}
-					if ( moduleDynamicImportsReturnBinding ) {
-						moduleDynamicImportsReturnBinding.push( node );
+					if (moduleDynamicImportsReturnBinding) {
+						moduleDynamicImportsReturnBinding.push(node);
 					}
-					return this.finishNode( node, 'Import' );
+					return this.finishNode(node, 'Import');
 				}
-				return nextMethod.call( this, refDestructuringErrors );
+				return nextMethod.call(this, refDestructuringErrors);
 			};
 		});
 	};
 
 	// returns a function to set the dynamicImport array for getting these nodes during parsing
-	return function setModuleDynamicImportsReturnBinding ( _moduleDynamicImportsReturnBinding ) {
+	return function setModuleDynamicImportsReturnBinding (_moduleDynamicImportsReturnBinding: any[]) {
 		moduleDynamicImportsReturnBinding = _moduleDynamicImportsReturnBinding;
 	};
 }

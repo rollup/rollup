@@ -1,10 +1,10 @@
 import Variable from './Variable';
-import VariableReassignmentTracker from './VariableReassignmentTracker';
+import VariableReassignmentTracker, { ObjectPath } from './VariableReassignmentTracker';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { PredicateFunction, UnknownAssignment } from '../values';
 import CallOptions from '../CallOptions';
 import Identifier from '../nodes/Identifier';
-import Node, { ForEachReturnExpressionCallback } from '../Node';
+import { ForEachReturnExpressionCallback } from '../Node';
 import Expression, { CallableExpression } from '../nodes/Expression';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Declaration from '../nodes/Declaration';
@@ -31,7 +31,7 @@ export default class LocalVariable extends Variable {
 		this.declarations.add(identifier);
 	}
 
-	reassignPath (path: string[], options: ExecutionPathOptions) {
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length > MAX_PATH_DEPTH) return;
 		if (path.length === 0) {
 			this.isReassigned = true;
@@ -45,7 +45,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
@@ -53,7 +53,7 @@ export default class LocalVariable extends Variable {
 		if (path.length > MAX_PATH_DEPTH) return;
 		this.boundExpressions.forEachAtPath(
 			path,
-			(relativePath: string[], node: CallableExpression) =>
+			(relativePath: ObjectPath, node: CallableExpression) =>
 				!options.hasNodeBeenCalledAtPathWithOptions(
 					relativePath,
 					node,
@@ -79,12 +79,12 @@ export default class LocalVariable extends Variable {
 		return `exports.${this.exportName}`;
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			path.length > MAX_PATH_DEPTH ||
 			this.boundExpressions.someAtPath(
 				path,
-				(relativePath: string[], node: CallableExpression) =>
+				(relativePath: ObjectPath, node: CallableExpression) =>
 					relativePath.length > 0 &&
 					!options.hasNodeBeenAccessedAtPath(relativePath, node) &&
 					node.hasEffectsWhenAccessedAtPath(
@@ -95,7 +95,7 @@ export default class LocalVariable extends Variable {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			this.included ||
 			path.length > MAX_PATH_DEPTH ||
@@ -112,13 +112,13 @@ export default class LocalVariable extends Variable {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
 		return (
 			path.length > MAX_PATH_DEPTH ||
 			(this.included && path.length > 0) ||
 			this.boundExpressions.someAtPath(
 				path,
-				(relativePath: string[], node: Node) =>
+				(relativePath, node) =>
 					!options.hasNodeBeenCalledAtPathWithOptions(
 						relativePath,
 						node,
@@ -144,7 +144,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions
@@ -154,7 +154,7 @@ export default class LocalVariable extends Variable {
 			(this.included && path.length > 0) ||
 			this.boundExpressions.someAtPath(
 				path,
-				(relativePath: string[], node: Node) =>
+				(relativePath, node) =>
 					!options.hasNodeBeenCalledAtPathWithOptions(
 						relativePath,
 						node,

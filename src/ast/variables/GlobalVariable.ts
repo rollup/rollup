@@ -1,5 +1,6 @@
 import Variable from './Variable';
 import pureFunctions from '../nodes/shared/pureFunctions';
+import { ObjectPath } from './VariableReassignmentTracker';
 
 export default class GlobalVariable extends Variable {
 	isExternal: true;
@@ -13,7 +14,7 @@ export default class GlobalVariable extends Variable {
 		this.included = true;
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[]) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath) {
 		// path.length == 0 can also have an effect but we postpone this for now
 		return (
 			path.length > 0 &&
@@ -27,7 +28,7 @@ export default class GlobalVariable extends Variable {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[]) {
+	hasEffectsWhenCalledAtPath (path: ObjectPath) {
 		return !pureFunctions[[this.name, ...path].join('.')];
 	}
 }

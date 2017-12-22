@@ -5,13 +5,14 @@ import Expression from './Expression';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 export default class VariableDeclarator extends Node {
 	type: 'VariableDeclarator';
 	id: Pattern;
 	init: Expression | null;
 
-	reassignPath (path: string[], options: ExecutionPathOptions) {
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		this.id.reassignPath(path, options);
 	}
 

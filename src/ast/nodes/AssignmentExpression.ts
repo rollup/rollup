@@ -3,6 +3,7 @@ import disallowIllegalReassignment from './shared/disallowIllegalReassignment';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Pattern from './Pattern';
 import Expression from './Expression';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 export default class AssignmentExpression extends Node {
 	type: 'AssignmentExpression';
@@ -21,7 +22,7 @@ export default class AssignmentExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 && this.right.hasEffectsWhenAccessedAtPath(path, options)
 		);

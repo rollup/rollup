@@ -5,6 +5,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import SpreadElement from './SpreadElement';
 import { PredicateFunction } from '../values';
 import GlobalVariable from '../variables/GlobalVariable';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
 // TODO: 3 typing failures because AwaitExpression has no forEachReturnExpressionWhenCalledAtPath
 
@@ -15,7 +16,7 @@ export default class CallExpression extends Node {
 
 	private _callOptions: CallOptions;
 
-	reassignPath (path: string[], options: ExecutionPathOptions) {
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
 		this.callee.forEachReturnExpressionWhenCalledAtPath(
 			[],
@@ -58,7 +59,7 @@ export default class CallExpression extends Node {
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
@@ -88,7 +89,7 @@ export default class CallExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 &&
 			!options.hasReturnExpressionBeenAccessedAtPath(path, this) &&
@@ -105,7 +106,7 @@ export default class CallExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
 			this.callee.someReturnExpressionWhenCalledAtPath(
@@ -121,7 +122,7 @@ export default class CallExpression extends Node {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		return (
 			!options.hasReturnExpressionBeenCalledAtPath(path, this) &&
 			this.callee.someReturnExpressionWhenCalledAtPath(
@@ -147,7 +148,7 @@ export default class CallExpression extends Node {
 	}
 
 	someReturnExpressionWhenCalledAtPath (
-		path: string[],
+		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
 		options: ExecutionPathOptions

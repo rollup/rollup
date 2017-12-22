@@ -3,21 +3,22 @@ import Scope from '../../scopes/Scope';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import Identifier from '../Identifier';
+import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 
 export default class ClassNode extends Node {
 	body: Node;
 	superClass: Node;
 	id: Identifier;
 
-	hasEffectsWhenAccessedAtPath (path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath (path: string[], _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenCalledAtPath (path: string[], callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
 		return (
 			this.body.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
 			(this.superClass &&
