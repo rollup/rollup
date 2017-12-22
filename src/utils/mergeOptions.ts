@@ -1,6 +1,6 @@
 import ensureArray from './ensureArray.js';
 import deprecateOptions from './deprecateOptions.js';
-import { InputOptions } from '../../../src/rollup/index';
+import { InputOptions } from '../../src/rollup/index';
 
 function normalizeObjectOptionValue (optionValue: any) {
 	if (!optionValue) {
@@ -164,11 +164,7 @@ export default function mergeOptions ({
 	};
 }
 
-<<<<<<< HEAD:src/utils/mergeOptions.js
 function deprecate ( config, command = {}, deprecateConfig = { input: true, output: true } ) {
-=======
-function deprecate (config: any, command: any) {
->>>>>>> finish up bin types, attempt further scopes and variables:bin/src/run/mergeOptions.ts
 	const deprecations = [];
 
 	// CLI
