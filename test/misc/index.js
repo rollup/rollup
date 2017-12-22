@@ -66,7 +66,7 @@ describe('sanity checks', () => {
 			}, err => {
 				assert.equal(
 					err.message,
-					'Unknown option found: plUgins. Allowed keys: input, legacy, treeshake, acorn, context, moduleContext, plugins, onwarn, watch, cache, preferConst, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, indent, strict, noConflict, paths, exports, file, pureExternalModules'
+					'Unknown option found: plUgins. Allowed keys: input, legacy, treeshake, acorn, context, moduleContext, plugins, onwarn, watch, cache, preferConst, experimentalDynamicImport, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, indent, strict, noConflict, paths, exports, file, pureExternalModules'
 				);
 			}
 		);

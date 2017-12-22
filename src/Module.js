@@ -1,4 +1,5 @@
-import { parse } from 'acorn';
+import * as acorn from 'acorn';
+import wrapDynamicImportPlugin from './utils/dynamic-import-plugin';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
 import { timeStart, timeEnd } from './utils/flushTime.js';
@@ -17,9 +18,11 @@ import ModuleScope from './ast/scopes/ModuleScope.js';
 import { encode } from 'sourcemap-codec';
 import { SourceMapConsumer } from 'source-map';
 
+const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin( acorn );
+
 function tryParse ( module, acornOptions ) {
 	try {
-		return parse( module.code, assign( {
+		return acorn.parse( module.code, assign( {
 			ecmaVersion: 8,
 			sourceType: 'module',
 			onComment: ( block, text, start, end ) => module.comments.push( { block, text, start, end } ),
@@ -51,6 +54,7 @@ export default class Module {
 		this.sourcemapChain = sourcemapChain;
 
 		this.comments = [];
+		this.dynamicImports = [];
 
 		timeStart( 'ast' );
 
@@ -60,7 +64,13 @@ export default class Module {
 			this.ast = clone( ast );
 			this.astClone = ast;
 		} else {
+			// We bind the dynamic imports array to the plugin binding above, to get the nodes added
+			// to this array during parsing itself. This is faster than having to do a separate walk.
+			if ( bundle.dynamicImport )
+				setModuleDynamicImportsReturnBinding( this.dynamicImports );
 			this.ast = tryParse( this, bundle.acornOptions ); // TODO what happens to comments if AST is provided?
+			if ( bundle.dynamicImport )
+				setModuleDynamicImportsReturnBinding( undefined );
 			this.astClone = clone( this.ast );
 		}
 
@@ -362,6 +372,49 @@ export default class Module {
 			}
 		} );
 		return addedNewNodes;
+	}
+
+	processDynamicImports ( resolveDynamicImport ) {
+		return Promise.all( this.dynamicImports.map( node => {
+			const importArgument = node.parent.arguments[0];
+			let dynamicImportSpecifier;
+			if ( importArgument.type === 'TemplateLiteral' ) {
+				if ( importArgument.expressions.length === 0 && importArgument.quasis.length === 1 ) {
+					dynamicImportSpecifier = importArgument.quasis[0].value.cooked;
+				}
+			} else if ( importArgument.type === 'Literal' ) {
+				if ( typeof importArgument.value === 'string' ) {
+					dynamicImportSpecifier = importArgument.value;
+				}
+			} else {
+				dynamicImportSpecifier = importArgument;
+			}
+
+			return Promise.resolve( resolveDynamicImport( dynamicImportSpecifier, this.id ) )
+			.then( replacement => {
+				if ( !replacement )
+					return;
+
+				// string specifier -> direct resolution
+				if ( typeof dynamicImportSpecifier === 'string' ) {
+					// if we have the module, inline as Promise.resolve(namespace)
+					// ensuring that we create a namespace import of it as well
+					const replacementModule = this.bundle.moduleById.get( replacement );
+					if ( replacementModule && !replacementModule.isExternal ) {
+						const namespace = replacementModule.namespace();
+						namespace.includeVariable();
+						const identifierName = namespace.getName( true );
+						this.magicString.overwrite( node.parent.start, node.parent.end, `Promise.resolve( ${ identifierName } )` );
+					// otherwise treat as an external dynamic import resolution
+					} else {
+						this.magicString.overwrite( importArgument.start, importArgument.end, `"${replacement}"` );
+					}
+				// AST Node -> source replacement
+				} else {
+					this.magicString.overwrite( importArgument.start, importArgument.end, replacement );
+				}
+			} );
+		} ) );
 	}
 
 	namespace () {

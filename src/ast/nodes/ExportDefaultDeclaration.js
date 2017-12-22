@@ -46,7 +46,7 @@ export default class ExportDefaultDeclaration extends Node {
 		const remove = () => { code.remove( this.leadingCommentStart || this.start, this.next || this.end ); };
 		const removeExportDefault = () => { code.remove( this.start, declaration_start ); };
 
-		const treeshakeable = this.module.bundle.treeshake && !this.included && !this.declaration.included;
+		const treeshakeable = this.module.bundle.treeshake&& !this.included && !this.declaration.included;
 		const name = this.variable.getName( es );
 		const statementStr = code.original.slice( this.start, this.end );
 
@@ -82,8 +82,8 @@ export default class ExportDefaultDeclaration extends Node {
 			} else {
 				removeExportDefault();
 			}
-		}
+}
+			super.render( code, es );
 
-		super.render( code, es );
 	}
 }

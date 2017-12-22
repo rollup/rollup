@@ -96,7 +96,7 @@ export default function rollup ( _inputOptions ) {
 				// now outputOptions is an array, but rollup.rollup API doesn't support arrays
 				const outputOptions = mergedOptions.outputOptions[0];
 				const deprecations = mergedOptions.deprecations;
-				
+
 				if ( deprecations.length ) addDeprecations(deprecations, inputOptions.onwarn);
 				checkOutputOptions( outputOptions );
 

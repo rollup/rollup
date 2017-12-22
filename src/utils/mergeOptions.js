@@ -59,6 +59,7 @@ export default function mergeOptions ({
 		watch: config.watch,
 		cache: getInputOption( 'cache' ),
 		preferConst: getInputOption( 'preferConst' ),
+		experimentalDynamicImport: getInputOption( 'experimentalDynamicImport' ),
 	};
 
 	// legacy, to ensure e.g. commonjs plugin still works
