@@ -3,7 +3,7 @@
 /// <reference path="./Node.d.ts" />
 
 import { locate } from 'locate-character';
-import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE, PredicateFunction, UndefinedAssignment, UnknownAssignment } from './values';
+import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE, PredicateFunction, UnknownAssignment } from './values';
 import ExecutionPathOptions from './ExecutionPathOptions';
 import Scope from './scopes/Scope';
 import Module from '../Module';
@@ -12,7 +12,7 @@ import CallOptions from './CallOptions';
 import Expression from './nodes/Expression';
 import Declaration from './nodes/Declaration';
 
-export type ForEachReturnExpressionCallback = (options: ExecutionPathOptions) => (node: Node | UndefinedAssignment) => void
+export type ForEachReturnExpressionCallback = (options: ExecutionPathOptions) => (node: Node) => void
 
 export default class Node {
 	type: string;
@@ -190,7 +190,7 @@ export default class Node {
 		this.initialiseChildren(parentScope);
 	}
 
-	initialiseAndDeclare(_parentScope: Scope, _kind: string, _init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {}
+	initialiseAndDeclare (_parentScope: Scope, _kind: string, _init: Declaration | Expression | UnknownAssignment | null) {}
 
 	/**
 	 * Override to change how and with what scopes children are initialised

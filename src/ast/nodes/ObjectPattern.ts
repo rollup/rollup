@@ -2,7 +2,7 @@ import Node from '../Node';
 import AssignmentProperty from './AssignmentProperty';
 import Scope from '../scopes/Scope';
 import Expression from './Expression';
-import { UnknownAssignment, UndefinedAssignment } from '../values';
+import { UnknownAssignment } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Declaration from './Declaration';
 
@@ -12,7 +12,7 @@ export default class ObjectPattern extends Node {
 
 	reassignPath (path: string[], options: ExecutionPathOptions) {
 		path.length === 0 &&
-			this.properties.forEach(child => child.reassignPath(path, options));
+		this.properties.forEach(child => child.reassignPath(path, options));
 	}
 
 	hasEffectsWhenAssignedAtPath (path: string[], options: ExecutionPathOptions) {
@@ -22,7 +22,7 @@ export default class ObjectPattern extends Node {
 		);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | null) {
 		this.initialiseScope(parentScope);
 		this.properties.forEach(child =>
 			child.initialiseAndDeclare(parentScope, kind, init)

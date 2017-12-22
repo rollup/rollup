@@ -1,6 +1,5 @@
 import Variable from './Variable';
 import pureFunctions from '../nodes/shared/pureFunctions';
-import Identifier from '../nodes/Identifier';
 
 export default class GlobalVariable extends Variable {
 	isExternal: true;
@@ -12,10 +11,6 @@ export default class GlobalVariable extends Variable {
 		this.isGlobal = true;
 		this.isReassigned = false;
 		this.included = true;
-	}
-
-	addReference (identifier: Identifier) {
-		if (identifier.isReassignment) this.isReassigned = true;
 	}
 
 	hasEffectsWhenAccessedAtPath (path: string[]) {

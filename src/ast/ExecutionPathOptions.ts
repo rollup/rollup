@@ -9,7 +9,8 @@ import CallOptions from './CallOptions';
 import ThisVariable from './variables/ThisVariable';
 import ParameterVariable from './variables/ParameterVariable';
 import Variable from './variables/Variable';
-import { UnknownAssignment, UndefinedAssignment } from './values';
+import { UnknownAssignment } from './values';
+import { ObjectPath } from './variables/VariableReassignmentTracker';
 
 const OPTION_IGNORED_LABELS = 'IGNORED_LABELS';
 const OPTION_ACCESSED_NODES = 'ACCESSED_NODES';
@@ -32,16 +33,16 @@ const RESULT_KEY: RESULT_KEY = {};
 
 /** Wrapper to ensure immutability */
 export default class ExecutionPathOptions {
-	_optionValues: Map<string,Node|Variable>;
+	_optionValues: Map<string, Node | Variable>;
 
 	/**
 	 * @returns {ExecutionPathOptions}
 	 */
 	static create () {
-		return new this(<Map<string,any>>Immutable.Map());
+		return new this(<Map<string, any>>Immutable.Map());
 	}
 
-	constructor (optionValues: Map<string,any>) {
+	constructor (optionValues: Map<string, any>) {
 		this._optionValues = optionValues;
 	}
 
@@ -83,7 +84,7 @@ export default class ExecutionPathOptions {
 	 * @param {Node} node
 	 * @return {ExecutionPathOptions}
 	 */
-	addAccessedNodeAtPath (path: string[], node: Node) {
+	addAccessedNodeAtPath (path: string[], node: Node | UnknownAssignment) {
 		return this.setIn([OPTION_ACCESSED_NODES, node, ...path, RESULT_KEY], true);
 	}
 
@@ -136,7 +137,7 @@ export default class ExecutionPathOptions {
 	 * @param {CallOptions} callOptions
 	 * @return {ExecutionPathOptions}
 	 */
-	addCalledNodeAtPathWithOptions (path: string[], node: Node, callOptions: CallOptions) {
+	addCalledNodeAtPathWithOptions (path: string[], node: Node | UnknownAssignment, callOptions: CallOptions) {
 		return this.setIn(
 			[
 				OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS,
@@ -195,7 +196,7 @@ export default class ExecutionPathOptions {
 	 * @param {Node} node
 	 * @return {boolean}
 	 */
-	hasNodeBeenAccessedAtPath (path: string[], node: Node | Variable): boolean {
+	hasNodeBeenAccessedAtPath (path: string[], node: Node | Variable | UnknownAssignment): boolean {
 		return this._optionValues.getIn([
 			OPTION_ACCESSED_NODES,
 			node,
@@ -209,7 +210,7 @@ export default class ExecutionPathOptions {
 	 * @param {Node} node
 	 * @return {boolean}
 	 */
-	hasNodeBeenAssignedAtPath (path: string[], node: Node | Variable): boolean {
+	hasNodeBeenAssignedAtPath (path: ObjectPath, node: Node | Variable | UnknownAssignment): boolean {
 		return this._optionValues.getIn([
 			OPTION_ASSIGNED_NODES,
 			node,
@@ -224,7 +225,8 @@ export default class ExecutionPathOptions {
 	 * @param {CallOptions} callOptions
 	 * @return {boolean}
 	 */
-	hasNodeBeenCalledAtPathWithOptions (path: string[], node: Node | UnknownAssignment | UndefinedAssignment, callOptions: CallOptions): boolean {
+	hasNodeBeenCalledAtPathWithOptions (
+		path: ObjectPath, node: Node | UnknownAssignment, callOptions: CallOptions): boolean {
 		const previousCallOptions = this._optionValues.getIn([
 			OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS,
 			node,
@@ -244,7 +246,7 @@ export default class ExecutionPathOptions {
 	 * @param {CallExpression|Property} callExpression
 	 * @return {boolean}
 	 */
-	hasReturnExpressionBeenAccessedAtPath (path: string[], callExpression: CallExpression | Property): boolean {
+	hasReturnExpressionBeenAccessedAtPath (path: ObjectPath, callExpression: CallExpression | Property): boolean {
 		return this._optionValues.getIn([
 			OPTION_RETURN_EXPRESSIONS_ACCESSED_AT_PATH,
 			callExpression,
@@ -258,7 +260,7 @@ export default class ExecutionPathOptions {
 	 * @param {CallExpression|Property} callExpression
 	 * @return {boolean}
 	 */
-	hasReturnExpressionBeenAssignedAtPath (path: string[], callExpression: CallExpression | Property): boolean {
+	hasReturnExpressionBeenAssignedAtPath (path: ObjectPath, callExpression: CallExpression | Property): boolean {
 		return this._optionValues.getIn([
 			OPTION_RETURN_EXPRESSIONS_ASSIGNED_AT_PATH,
 			callExpression,
@@ -272,7 +274,7 @@ export default class ExecutionPathOptions {
 	 * @param {CallExpression|Property} callExpression
 	 * @return {boolean}
 	 */
-	hasReturnExpressionBeenCalledAtPath (path: string[], callExpression: CallExpression | Property): boolean {
+	hasReturnExpressionBeenCalledAtPath (path: ObjectPath, callExpression: CallExpression | Property): boolean {
 		return this._optionValues.getIn([
 			OPTION_RETURN_EXPRESSIONS_CALLED_AT_PATH,
 			callExpression,

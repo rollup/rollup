@@ -1,5 +1,5 @@
 import Statement from './shared/Statement';
-import { UNDEFINED_ASSIGNMENT } from '../values';
+import { UNKNOWN_ASSIGNMENT } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Expression from './Expression';
 
@@ -12,6 +12,6 @@ export default class ReturnStatement extends Statement {
 	}
 
 	initialiseNode () {
-		this.scope.addReturnExpression(this.argument || UNDEFINED_ASSIGNMENT);
+		this.scope.addReturnExpression(this.argument || UNKNOWN_ASSIGNMENT);
 	}
 }

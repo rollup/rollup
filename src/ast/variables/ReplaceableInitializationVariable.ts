@@ -1,5 +1,5 @@
 import LocalVariable from './LocalVariable';
-import { UNKNOWN_ASSIGNMENT, PredicateFunction, UndefinedAssignment, UnknownAssignment } from '../values';
+import { UNKNOWN_ASSIGNMENT, PredicateFunction, UnknownAssignment } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import Expression from '../nodes/Expression';
@@ -60,7 +60,7 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 		);
 	}
 
-	_getInit (options: ExecutionPathOptions): Expression | UnknownAssignment | UndefinedAssignment {
+	_getInit (options: ExecutionPathOptions): Expression | UnknownAssignment {
 		return (<Expression>options.getReplacedVariableInit(this)) || UNKNOWN_ASSIGNMENT;
 	}
 }

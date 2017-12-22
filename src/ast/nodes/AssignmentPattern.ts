@@ -3,7 +3,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import Pattern from './Pattern';
 import Expression from './Expression';
 import Scope from '../Scopes/Scope';
-import { UnknownAssignment, UndefinedAssignment } from '../values';
+import { UnknownAssignment } from '../values';
 import Declaration from './Declaration';
 
 export default class AssignmentPattern extends Node {
@@ -25,7 +25,7 @@ export default class AssignmentPattern extends Node {
 		);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | null) {
 		this.initialiseScope(parentScope);
 		this.right.initialise(parentScope);
 		this.left.initialiseAndDeclare(parentScope, kind, init);

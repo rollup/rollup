@@ -1,7 +1,7 @@
 import Statement from './shared/Statement';
 import StatementType from './statement';
 import BlockScope from '../scopes/BlockScope';
-import { UNDEFINED_ASSIGNMENT } from '../values';
+import { UNKNOWN_ASSIGNMENT } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
@@ -14,7 +14,7 @@ export default class BlockStatement extends Statement {
 	bindImplicitReturnExpressionToScope () {
 		const lastStatement = this.body[this.body.length - 1];
 		if (!lastStatement || lastStatement.type !== 'ReturnStatement') {
-			this.scope.addReturnExpression(UNDEFINED_ASSIGNMENT);
+			this.scope.addReturnExpression(UNKNOWN_ASSIGNMENT);
 		}
 	}
 

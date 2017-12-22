@@ -43,7 +43,7 @@ export default function watch (configFile: string, configs: RollupWatchOptions[]
 
 		let screenWriter = screen.reset;
 		configs = configs.map(options => {
-			const merged = mergeOptions({ config: options, command, defaultOnWarn: warnings.add });
+			const merged = mergeOptions({ config: options, command, defaultOnWarnHandler: warnings.add });
 
 			const result: RollupWatchOptions = Object.assign({}, merged.inputOptions, {
 				output: merged.outputOptions

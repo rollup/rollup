@@ -1,5 +1,5 @@
 import Node from '../Node';
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment, UndefinedAssignment } from '../values';
+import { UNKNOWN_ASSIGNMENT, UnknownAssignment } from '../values';
 import Pattern from './Pattern';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Expression from './Expression';
@@ -20,7 +20,8 @@ export default class RestElement extends Node {
 		);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, _init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
+	initialiseAndDeclare (
+		parentScope: Scope, kind: string, _init: Declaration | Expression | UnknownAssignment | null) {
 		this.initialiseScope(parentScope);
 		this.argument.initialiseAndDeclare(parentScope, kind, UNKNOWN_ASSIGNMENT);
 	}

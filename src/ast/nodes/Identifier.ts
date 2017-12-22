@@ -2,7 +2,7 @@
 
 import Node, { ForEachReturnExpressionCallback } from '../Node';
 import isReference from 'is-reference';
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment, UndefinedAssignment, PredicateFunction } from '../values';
+import { UNKNOWN_ASSIGNMENT, UnknownAssignment, PredicateFunction } from '../values';
 import Scope from '../scopes/Scope';
 import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
@@ -43,12 +43,12 @@ export default class Identifier extends Node {
 	) {
 		this._bindVariableIfMissing();
 		this.variable &&
-			this.variable.forEachReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				callback,
-				options
-			);
+		this.variable.forEachReturnExpressionWhenCalledAtPath(
+			path,
+			callOptions,
+			callback,
+			options
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath (path: string[], options: ExecutionPathOptions): boolean {
@@ -78,7 +78,7 @@ export default class Identifier extends Node {
 		return true;
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | null) {
 		this.initialiseScope(parentScope);
 		switch (kind) {
 			case 'var':

@@ -1,7 +1,7 @@
 import Variable from './Variable';
 import VariableReassignmentTracker from './VariableReassignmentTracker';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { PredicateFunction, UnknownAssignment, UndefinedAssignment } from '../values';
+import { PredicateFunction, UnknownAssignment } from '../values';
 import CallOptions from '../CallOptions';
 import Identifier from '../nodes/Identifier';
 import Node, { ForEachReturnExpressionCallback } from '../Node';
@@ -18,7 +18,7 @@ export default class LocalVariable extends Variable {
 
 	constructor (
 		name: string, declarator: Identifier | ExportDefaultDeclaration | null,
-		init: Expression | Declaration | UnknownAssignment | UndefinedAssignment
+		init: Expression | Declaration | UnknownAssignment
 	) {
 		super(name);
 		this.isReassigned = false;
@@ -84,7 +84,7 @@ export default class LocalVariable extends Variable {
 			path.length > MAX_PATH_DEPTH ||
 			this.boundExpressions.someAtPath(
 				path,
-				(relativePath: string[], node: Node) =>
+				(relativePath: string[], node: CallableExpression) =>
 					relativePath.length > 0 &&
 					!options.hasNodeBeenAccessedAtPath(relativePath, node) &&
 					node.hasEffectsWhenAccessedAtPath(
@@ -101,7 +101,7 @@ export default class LocalVariable extends Variable {
 			path.length > MAX_PATH_DEPTH ||
 			this.boundExpressions.someAtPath(
 				path,
-				(relativePath: string[], node: Node) =>
+				(relativePath, node) =>
 					relativePath.length > 0 &&
 					!options.hasNodeBeenAssignedAtPath(relativePath, node) &&
 					node.hasEffectsWhenAssignedAtPath(

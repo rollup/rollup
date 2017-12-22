@@ -1,6 +1,6 @@
 import Node, { ForEachReturnExpressionCallback } from '../Node';
 import CallOptions from '../CallOptions';
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment, UndefinedAssignment, PredicateFunction } from '../values';
+import { UNKNOWN_ASSIGNMENT, UnknownAssignment, PredicateFunction } from '../values';
 import Literal from './Literal';
 import Identifier from './Identifier';
 import Expression from './Expression';
@@ -157,7 +157,8 @@ export default class Property extends Node {
 		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, _init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
+	initialiseAndDeclare (
+		parentScope: Scope, kind: string, _init: Declaration | Expression | UnknownAssignment | null) {
 		this.initialiseScope(parentScope);
 		this.initialiseNode(parentScope);
 		this.key.initialise(parentScope);

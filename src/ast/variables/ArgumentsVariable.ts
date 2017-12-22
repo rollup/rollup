@@ -1,5 +1,5 @@
 import LocalVariable from './LocalVariable';
-import { UNDEFINED_ASSIGNMENT, UNKNOWN_ASSIGNMENT, PredicateFunction } from '../values';
+import { UNKNOWN_ASSIGNMENT, PredicateFunction } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import ParameterVariable from './ParameterVariable';
@@ -9,8 +9,8 @@ const getParameterVariable = (path: string[], options: ExecutionPathOptions) => 
 
 	return (firstArgNum < options.getArgumentsVariables().length &&
 		options.getArgumentsVariables()[firstArgNum]) ||
-		UNDEFINED_ASSIGNMENT;
-}
+		UNKNOWN_ASSIGNMENT;
+};
 
 export default class ArgumentsVariable extends LocalVariable {
 	private _parameters: ParameterVariable[];
@@ -78,6 +78,6 @@ export default class ArgumentsVariable extends LocalVariable {
 			callOptions,
 			predicateFunction,
 			options
-			);
+		);
 	}
 }

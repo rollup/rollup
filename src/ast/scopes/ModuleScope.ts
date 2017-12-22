@@ -2,7 +2,7 @@ import { forOwn } from '../../utils/object';
 import relativeId from '../../utils/relativeId';
 import Scope from './Scope';
 import LocalVariable from '../variables/LocalVariable';
-import { UNDEFINED_ASSIGNMENT } from '../values';
+import { UNKNOWN_ASSIGNMENT } from '../values';
 import Module from '../../Module';
 import ImportSpecifier from '../nodes/ImportSpecifier';
 import Variable from '../variables/Variable';
@@ -19,7 +19,7 @@ export default class ModuleScope extends Scope {
 		});
 
 		this.module = module;
-		this.variables.this = new LocalVariable('this', null, UNDEFINED_ASSIGNMENT);
+		this.variables.this = new LocalVariable('this', null, UNKNOWN_ASSIGNMENT);
 	}
 
 	deshadow (names: Set<string>) {
