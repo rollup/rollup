@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.53.0
+* Experimental dynamic import support ([#1790](https://github.com/rollup/rollup/pull/1790))
+* Unify config validation ([#1805](https://github.com/rollup/rollup/pull/1805))
+
 ## 0.52.3
 * Properly hoist default exported functions in more situations ([#1799](https://github.com/rollup/rollup/pull/1799))
 * Allow plugin transformations to not overwrite source maps by returning null ([#1797](https://github.com/rollup/rollup/pull/1797))
