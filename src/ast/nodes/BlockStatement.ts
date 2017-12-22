@@ -37,11 +37,11 @@ export default class BlockStatement extends Statement {
 
 	initialiseAndReplaceScope (scope: Scope) {
 		this.scope = scope;
-		this.initialiseNode();
-		this.initialiseChildren();
+		this.initialiseNode(scope);
+		this.initialiseChildren(scope);
 	}
 
-	initialiseChildren () {
+	initialiseChildren (_parentScope: Scope) {
 		let lastNode;
 		for (const node of this.body) {
 			node.initialise(this.scope);

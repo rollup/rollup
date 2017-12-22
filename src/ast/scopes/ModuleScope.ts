@@ -22,8 +22,8 @@ export default class ModuleScope extends Scope {
 		this.variables.this = new LocalVariable('this', null, UNDEFINED_ASSIGNMENT);
 	}
 
-	deshadow (names: string[]) {
-		let nameSet = new Set(names);
+	deshadow (names: Set<string>) {
+		let localNames = new Set(names); // Why do we need a copy here?
 
 		forOwn(this.module.imports, specifier => {
 			if (specifier.module.isExternal) return;
@@ -35,7 +35,7 @@ export default class ModuleScope extends Scope {
 					});
 				}
 
-				nameSet.add(declaration.name);
+				localNames.add(declaration.name);
 			};
 
 			(<Module>specifier.module).getExports().forEach(name => {
@@ -61,19 +61,19 @@ export default class ModuleScope extends Scope {
 
 				const name = declaration.getName(true);
 				if (name !== specifier.name) {
-					nameSet.add(declaration.getName(true));
+					localNames.add(declaration.getName(true));
 				}
 
 				if (
 					specifier.name !== 'default' &&
 					(<ImportSpecifier>specifier.specifier).imported.name !== specifier.specifier.local.name
 				) {
-					nameSet.add((<ImportSpecifier>specifier.specifier).imported.name);
+					localNames.add((<ImportSpecifier>specifier.specifier).imported.name);
 				}
 			}
 		});
 
-		super.deshadow(nameSet);
+		super.deshadow(localNames);
 	}
 
 	findLexicalBoundary () {

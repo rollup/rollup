@@ -1,5 +1,5 @@
 import relativeId from '../../utils/relativeId';
-import Node from '../Node';
+import Node, { ForEachReturnExpressionCallback } from '../Node';
 import { UNKNOWN_KEY, UnknownKey } from '../variables/VariableReassignmentTracker';
 import Expression from './Expression';
 import Variable from '../variables/Variable';
@@ -47,6 +47,7 @@ class Keypath {
 function isNamespaceVariable (variable: Variable): variable is NamespaceVariable {
 	return variable.isNamespace;
 }
+
 function isExternalVariable (variable: Variable): variable is ExternalVariable {
 	return variable.isExternal;
 }
@@ -125,7 +126,7 @@ export default class MemberExpression extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		if (!this._bound) this.bind();
@@ -216,12 +217,10 @@ export default class MemberExpression extends Node {
 
 	render (code: MagicString, es: boolean) {
 		if (this.variable) {
-			const name = this.variable.getName(es);
-			if (name !== this.name)
-				code.overwrite(this.start, this.end, name, {
-					storeName: true,
-					contentOnly: false
-				});
+			code.overwrite(this.start, this.end, this.variable.getName(es), {
+				storeName: true,
+				contentOnly: false
+			});
 		} else if (this.replacement) {
 			code.overwrite(this.start, this.end, this.replacement, {
 				storeName: true,

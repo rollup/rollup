@@ -20,6 +20,7 @@ import AwaitExpression from "./AwaitExpression";
 import TemplateLiteral from "./TemplateLiteral";
 import TaggedTemplateExpression from "./TaggedTemplateExpression";
 import ClassExpression from "./ClassExpression";
+import { UnknownAssignment } from '../values';
 
 type Expression = ThisExpression |
   ArrayExpression |
@@ -47,7 +48,7 @@ type Expression = ThisExpression |
   AwaitExpression;
 
 export type CallableExpression =
-  FunctionExpression |
+  // FunctionExpression |
   AssignmentExpression |
   LogicalExpression |
   MemberExpression |
@@ -59,9 +60,10 @@ export type CallableExpression =
   YieldExpression |
   TaggedTemplateExpression |
   ClassExpression |
-  // MetaProperty |
-  // Super |
+  // // MetaProperty |
+  // // Super |
   Identifier |
-  AwaitExpression;
+  AwaitExpression |
+	UnknownAssignment;
 
 export default Expression;

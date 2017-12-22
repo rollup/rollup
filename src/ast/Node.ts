@@ -3,12 +3,16 @@
 /// <reference path="./Node.d.ts" />
 
 import { locate } from 'locate-character';
-import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE, PredicateFunction } from './values';
+import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE, PredicateFunction, UndefinedAssignment, UnknownAssignment } from './values';
 import ExecutionPathOptions from './ExecutionPathOptions';
 import Scope from './scopes/Scope';
 import Module from '../Module';
 import MagicString from 'magic-string';
 import CallOptions from './CallOptions';
+import Expression from './nodes/Expression';
+import Declaration from './nodes/Declaration';
+
+export type ForEachReturnExpressionCallback = (options: ExecutionPathOptions) => (node: Node | UndefinedAssignment) => void
 
 export default class Node {
 	type: string;
@@ -85,7 +89,7 @@ export default class Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		_path: string[],
 		_callOptions: CallOptions,
-		_callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		_callback: ForEachReturnExpressionCallback,
 		_options: ExecutionPathOptions
 	) { }
 
@@ -185,6 +189,8 @@ export default class Node {
 		this.initialiseNode(parentScope);
 		this.initialiseChildren(parentScope);
 	}
+
+	initialiseAndDeclare(_parentScope: Scope, _kind: string, _init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {}
 
 	/**
 	 * Override to change how and with what scopes children are initialised

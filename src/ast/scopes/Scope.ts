@@ -11,6 +11,7 @@ import GlobalVariable from '../variables/GlobalVariable';
 import ExternalVariable from '../variables/ExternalVariable';
 import ThisVariable from '../variables/ThisVariable';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
+import Variable from '../variables/Variable';
 
 export default class Scope {
 	parent: Scope | void;
@@ -107,7 +108,7 @@ export default class Scope {
 		return (<Scope>this.parent).findLexicalBoundary();
 	}
 
-	findVariable (name: string): ThisVariable | LocalVariable | ExportDefaultVariable | GlobalVariable | ExternalVariable | ArgumentsVariable {
+	findVariable (name: string): Variable {
 		return (
 			this.variables[name] || (this.parent && this.parent.findVariable(name))
 		);

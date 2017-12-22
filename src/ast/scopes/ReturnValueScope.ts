@@ -3,6 +3,7 @@ import { UndefinedAssignment } from '../values';
 import Expression from '../nodes/Expression';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ForEachReturnExpressionCallback } from '../Node';
 
 export default class ReturnValueScope extends ParameterScope {
 	_returnExpressions: Set<Expression | UndefinedAssignment>;
@@ -16,7 +17,7 @@ export default class ReturnValueScope extends ParameterScope {
 		this._returnExpressions.add(expression);
 	}
 
-	forEachReturnExpressionWhenCalled (_callOptions: CallOptions, callback: (options: ExecutionPathOptions) => (node: Expression | UndefinedAssignment) => void, options: ExecutionPathOptions) {
+	forEachReturnExpressionWhenCalled (_callOptions: CallOptions, callback: ForEachReturnExpressionCallback, options: ExecutionPathOptions) {
 		this._returnExpressions.forEach(callback(options));
 	}
 

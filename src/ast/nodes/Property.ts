@@ -1,4 +1,4 @@
-import Node from '../Node';
+import Node, { ForEachReturnExpressionCallback } from '../Node';
 import CallOptions from '../CallOptions';
 import { UNKNOWN_ASSIGNMENT, UnknownAssignment, UndefinedAssignment, PredicateFunction } from '../values';
 import Literal from './Literal';
@@ -13,7 +13,7 @@ import MagicString from 'magic-string';
 // this excludes the AssignmentProperty case
 export interface StandardProperty extends Property {
 	value: Expression;
-};
+}
 
 export default class Property extends Node {
 	type: 'Property';
@@ -31,16 +31,16 @@ export default class Property extends Node {
 		// not being available on FunctionExpression, ArrowFunctionExpression
 		if (this.kind === 'get') {
 			path.length > 0 &&
-				this.value.forEachReturnExpressionWhenCalledAtPath(
-					[],
-					this._accessorCallOptions,
-					(innerOptions: ExecutionPathOptions) => (node: Node) =>
-						node.reassignPath(
-							path,
-							innerOptions.addAssignedReturnExpressionAtPath(path, this)
-						),
-					options
-				);
+			this.value.forEachReturnExpressionWhenCalledAtPath(
+				[],
+				this._accessorCallOptions,
+				(innerOptions: ExecutionPathOptions) => (node: Node) =>
+					node.reassignPath(
+						path,
+						innerOptions.addAssignedReturnExpressionAtPath(path, this)
+					),
+				options
+			);
 		} else if (this.kind !== 'set') {
 			this.value.reassignPath(path, options);
 		}
@@ -49,7 +49,7 @@ export default class Property extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		if (this.kind === 'get') {
@@ -157,14 +157,14 @@ export default class Property extends Node {
 		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, _init: Declaration | Expression | UnknownAssignment | UndefinedAssignment | null) {
 		this.initialiseScope(parentScope);
 		this.initialiseNode(parentScope);
 		this.key.initialise(parentScope);
 		this.value.initialiseAndDeclare(parentScope, kind, UNKNOWN_ASSIGNMENT);
 	}
 
-	initialiseNode () {
+	initialiseNode (_parentScope: Scope) {
 		this._accessorCallOptions = CallOptions.create({
 			withNew: false,
 			caller: this

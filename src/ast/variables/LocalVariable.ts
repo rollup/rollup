@@ -4,7 +4,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import { PredicateFunction, UnknownAssignment, UndefinedAssignment } from '../values';
 import CallOptions from '../CallOptions';
 import Identifier from '../nodes/Identifier';
-import Node from '../Node';
+import Node, { ForEachReturnExpressionCallback } from '../Node';
 import Expression, { CallableExpression } from '../nodes/Expression';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Declaration from '../nodes/Declaration';
@@ -16,7 +16,10 @@ export default class LocalVariable extends Variable {
 	declarations: Set<Identifier | ExportDefaultDeclaration>;
 	boundExpressions: VariableReassignmentTracker;
 
-	constructor (name: string, declarator: Identifier | ExportDefaultDeclaration | null, init: Expression | Declaration | UnknownAssignment | UndefinedAssignment) {
+	constructor (
+		name: string, declarator: Identifier | ExportDefaultDeclaration | null,
+		init: Expression | Declaration | UnknownAssignment | UndefinedAssignment
+	) {
 		super(name);
 		this.isReassigned = false;
 		this.exportName = null;
@@ -44,13 +47,13 @@ export default class LocalVariable extends Variable {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		if (path.length > MAX_PATH_DEPTH) return;
 		this.boundExpressions.forEachAtPath(
 			path,
-			(relativePath: string[], node: CallableExpression | UnknownAssignment | UndefinedAssignment) =>
+			(relativePath: string[], node: CallableExpression) =>
 				!options.hasNodeBeenCalledAtPathWithOptions(
 					relativePath,
 					node,

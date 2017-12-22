@@ -1,4 +1,4 @@
-import Node from '../Node';
+import Node, { ForEachReturnExpressionCallback } from '../Node';
 import CallOptions from '../CallOptions';
 import Expression, { CallableExpression } from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
@@ -10,23 +10,23 @@ import GlobalVariable from '../variables/GlobalVariable';
 
 export default class CallExpression extends Node {
 	type: 'CallExpression';
-	callee:	CallableExpression
+	callee: CallableExpression;
 	arguments: (Expression | SpreadElement)[];
 
 	private _callOptions: CallOptions;
 
 	reassignPath (path: string[], options: ExecutionPathOptions) {
 		!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
-			this.callee.forEachReturnExpressionWhenCalledAtPath(
-				[],
-				this._callOptions,
-				(innerOptions: ExecutionPathOptions) => (node: Node) =>
-					node.reassignPath(
-						path,
-						innerOptions.addAssignedReturnExpressionAtPath(path, this)
-					),
-				options
-			);
+		this.callee.forEachReturnExpressionWhenCalledAtPath(
+			[],
+			this._callOptions,
+			(innerOptions: ExecutionPathOptions) => (node: Node) =>
+				node.reassignPath(
+					path,
+					innerOptions.addAssignedReturnExpressionAtPath(path, this)
+				),
+			options
+		);
 	}
 
 	bindNode () {
@@ -60,7 +60,7 @@ export default class CallExpression extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		this.callee.forEachReturnExpressionWhenCalledAtPath(
@@ -141,7 +141,7 @@ export default class CallExpression extends Node {
 	initialiseNode () {
 		this._callOptions = CallOptions.create({
 			withNew: false,
-			args: this.arguments,
+			args: <Expression[]> this.arguments, // TODO TypeScript: Resolve type cast
 			caller: this
 		});
 	}

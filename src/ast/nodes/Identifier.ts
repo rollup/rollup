@@ -1,6 +1,6 @@
 /// <reference path="./Identifier.d.ts" />
 
-import Node from '../Node';
+import Node, { ForEachReturnExpressionCallback } from '../Node';
 import isReference from 'is-reference';
 import { UNKNOWN_ASSIGNMENT, UnknownAssignment, UndefinedAssignment, PredicateFunction } from '../values';
 import Scope from '../scopes/Scope';
@@ -38,7 +38,7 @@ export default class Identifier extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		this._bindVariableIfMissing();

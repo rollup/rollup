@@ -1,4 +1,4 @@
-import Node from '../Node';
+import Node, { ForEachReturnExpressionCallback } from '../Node';
 import Scope from '../scopes/Scope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import BlockStatement from './BlockStatement';
@@ -6,7 +6,7 @@ import Pattern from './Pattern';
 import Expression from './Expression';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { PredicateFunction, UndefinedAssignment } from '../values';
+import { PredicateFunction } from '../values';
 
 export default class ArrowFunctionExpression extends Node {
 	type: 'ArrowFunctionExpression';
@@ -23,7 +23,7 @@ export default class ArrowFunctionExpression extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback: (options: ExecutionPathOptions) => (node: Node | UndefinedAssignment) => void,
+		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		path.length === 0 &&

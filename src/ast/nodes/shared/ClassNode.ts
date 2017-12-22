@@ -25,7 +25,7 @@ export default class ClassNode extends Node {
 		);
 	}
 
-	initialiseChildren (scope: Scope) {
+	initialiseChildren (_parentScope: Scope) {
 		if (this.superClass) {
 			this.superClass.initialise(this.scope);
 		}

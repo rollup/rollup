@@ -1,4 +1,4 @@
-import Node from '../Node';
+import Node, { ForEachReturnExpressionCallback } from '../Node';
 import { UNKNOWN_VALUE, PredicateFunction } from '../values';
 import Expression from './Expression';
 import CallOptions from '../CallOptions';
@@ -20,7 +20,7 @@ export default class LogicalExpression extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		// typing error resolved by ensuring forEachReturnExpressionWhenCalledAtPath

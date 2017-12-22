@@ -28,7 +28,7 @@ export default class ForStatement extends Statement {
 
 		if (this.body.type === 'BlockStatement') {
 			this.body.initialiseScope(this.scope);
-			this.body.initialiseChildren();
+			this.body.initialiseChildren(this.scope);
 		} else {
 			this.body.initialise(this.scope);
 		}

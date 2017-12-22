@@ -18,7 +18,7 @@ import ModuleScope from './ast/scopes/ModuleScope';
 import { encode } from 'sourcemap-codec';
 import { RawSourceMap, SourceMapConsumer } from 'source-map';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
-import Bundle from './Bundle';
+import Bundle, { ResolveDynamicImportHandler } from './Bundle';
 import Variable from './ast/variables/Variable';
 import Program from './ast/nodes/Program';
 import VariableDeclarator from './ast/nodes/VariableDeclarator';
@@ -33,6 +33,7 @@ import ImportDefaultSpecifier from './ast/nodes/ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
 import { RollupWarning } from './rollup/index';
 import ExternalModule from './ExternalModule';
+import Import from './ast/nodes/Import';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
@@ -116,6 +117,7 @@ export default class Module {
 	private astClone: Program;
 	declarations: {[name: string]: Variable};
 	private exportAllModules: (Module | ExternalModule)[];
+	private dynamicImports: Import[];
 
 	constructor ({
 		id,
@@ -490,10 +492,10 @@ export default class Module {
 		return addedNewNodes;
 	}
 
-	processDynamicImports (resolveDynamicImport) {
+	processDynamicImports (resolveDynamicImport: ResolveDynamicImportHandler) {
 		return Promise.all(this.dynamicImports.map(node => {
 			const importArgument = node.parent.arguments[0];
-			let dynamicImportSpecifier;
+			let dynamicImportSpecifier: string | Node;
 			if (importArgument.type === 'TemplateLiteral') {
 				if (importArgument.expressions.length === 0 && importArgument.quasis.length === 1) {
 					dynamicImportSpecifier = importArgument.quasis[0].value.cooked;
@@ -517,7 +519,7 @@ export default class Module {
 					// ensuring that we create a namespace import of it as well
 						const replacementModule = this.bundle.moduleById.get( replacement );
 						if ( replacementModule && !replacementModule.isExternal ) {
-							const namespace = replacementModule.namespace();
+							const namespace = (<Module> replacementModule).namespace();
 							namespace.includeVariable();
 							const identifierName = namespace.getName( true );
 							this.magicString.overwrite( node.parent.start, node.parent.end, `Promise.resolve( ${ identifierName } )` );

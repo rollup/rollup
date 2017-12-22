@@ -1,6 +1,6 @@
 import { timeStart, timeEnd } from './utils/flushTime';
 import { decode } from 'sourcemap-codec';
-import { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
+import { Bundle as MagicStringBundle } from 'magic-string';
 import first from './utils/first';
 import { find } from './utils/array';
 import { blank, forOwn, keys } from './utils/object';
@@ -34,11 +34,16 @@ import NamespaceVariable from './ast/variables/NamespaceVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import { RawSourceMap } from 'source-map';
 import Program from './ast/nodes/Program';
+import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
+import Node from './ast/Node';
+
+export type ResolveDynamicImportHandler = (specifier: string | Node, parentId: string) => Promise<string | void>;
 
 export default class Bundle {
 	acornOptions: any;
 	cachedModules: Map<string, ModuleJSON>;
 	context: string;
+	dynamicImport: boolean;
 	entry: string;
 	entryId: string;
 	externalModules: ExternalModule[];
@@ -54,6 +59,7 @@ export default class Bundle {
 	onwarn: WarningHandler;
 	orderedModules: Module[];
 	plugins: Plugin[];
+	resolveDynamicImport: ResolveDynamicImportHandler;
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
 	scope: BundleScope;
 	treeshakingOptions: TreeshakingOptions;
@@ -359,13 +365,13 @@ export default class Bundle {
 			forOwn(module.declarations, (declaration, name) => {
 				const safeName = getSafeName(name);
 				toDeshadow.add(safeName);
-				declaration.setSafeName(safeName);
+				(<ExternalVariable> declaration).setSafeName(safeName);
 			});
 		});
 
 		this.modules.forEach(module => {
 			forOwn(module.scope.variables, variable => {
-				if (!variable.isDefault || !variable.hasId) {
+				if (!(<ExportDefaultVariable> variable).isDefault || !(<ExportDefaultVariable> variable).hasId) {
 					variable.name = getSafeName(variable.name);
 				}
 			});
@@ -639,7 +645,7 @@ export default class Bundle {
 
 				magicString = finalise(
 					this,
-					magicString.trim(),
+					(<any> magicString).trim(), // TODO TypeScript: Awaiting MagicString PR
 					{ exportMode, getPath, indentString, intro, outro },
 					options
 				);
@@ -647,10 +653,10 @@ export default class Bundle {
 				timeEnd('render format');
 
 				if (banner) magicString.prepend(banner + '\n');
-				if (footer) magicString.append('\n' + footer);
+				if (footer) (<any> magicString).append('\n' + footer); // TODO TypeScript: Awaiting MagicString PR
 
 				const prevCode = magicString.toString();
-				let map: SourceMap = null;
+				let map: RawSourceMap = null;
 				const bundleSourcemapChain: RawSourceMap[] = [];
 
 				return transformBundle(
@@ -673,10 +679,10 @@ export default class Bundle {
 							this.hasLoaders ||
 							find(
 								this.plugins,
-								plugin => plugin.transform || plugin.transformBundle
+								plugin => Boolean(plugin.transform || plugin.transformBundle)
 							)
 						) {
-							map = magicString.generateMap({});
+							map = <any> magicString.generateMap({}); // TODO TypeScript: Awaiting missing version in SourceMap type
 							if (typeof map.mappings === 'string') {
 								map.mappings = decode(map.mappings);
 							}
@@ -688,7 +694,7 @@ export default class Bundle {
 								bundleSourcemapChain
 							);
 						} else {
-							map = magicString.generateMap({ file, includeContent: true });
+							map = <any> magicString.generateMap({ file, includeContent: true }); // TODO TypeScript: Awaiting missing version in SourceMap type
 						}
 
 						map.sources = map.sources.map(normalize);
@@ -697,14 +703,14 @@ export default class Bundle {
 					}
 
 					if (code[code.length - 1] !== '\n') code += '\n';
-					return { code, map };
+					return { code, map } as { code: string, map: any }; // TODO TypeScript: Awaiting missing version in SourceMap type
 				});
 			});
 	}
 
 	sort () {
 		let hasCycles;
-		const seen: {[id: string]: boolean} = {};
+		const seen: { [id: string]: boolean } = {};
 		const ordered: Module[] = [];
 
 		const stronglyDependsOn = blank();
@@ -764,7 +770,7 @@ export default class Bundle {
 						// b imports a, a is placed before b. We need to find the module
 						// in question, so we can provide a useful error message
 						let parent = '[[unknown]]';
-						const visited: {[id: string]: boolean} = {};
+						const visited: { [id: string]: boolean } = {};
 
 						const findParent = (module: Module) => {
 							if (dependsOn[module.id][a.id] && dependsOn[module.id][b.id]) {
@@ -774,7 +780,7 @@ export default class Bundle {
 							visited[module.id] = true;
 							for (let i = 0; i < module.dependencies.length; i += 1) {
 								const dependency = module.dependencies[i];
-								if (!visited[dependency.id] && findParent(dependency))
+								if (!visited[dependency.id] && findParent(<Module> dependency))
 									return true;
 							}
 						};

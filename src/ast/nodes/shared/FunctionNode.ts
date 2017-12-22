@@ -1,13 +1,13 @@
-import Node from '../../Node';
+import Node, { ForEachReturnExpressionCallback } from '../../Node';
 import FunctionScope from '../../scopes/FunctionScope';
+import BlockScope from '../../scopes/FunctionScope';
 import VirtualObjectExpression from './VirtualObjectExpression';
 import BlockStatement from '../BlockStatement';
-import BlockScope from '../../scopes/FunctionScope';
 import Identifier from '../Identifier';
 import Pattern from '../Pattern';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
-import { PredicateFunction, UndefinedAssignment } from '../../values';
+import { PredicateFunction } from '../../values';
 
 export default class FunctionNode extends Node {
   id: Identifier;
@@ -24,7 +24,7 @@ export default class FunctionNode extends Node {
   forEachReturnExpressionWhenCalledAtPath (
     path: string[],
     callOptions: CallOptions,
-    callback: (options: ExecutionPathOptions) => (node: Node | UndefinedAssignment) => void,
+    callback: ForEachReturnExpressionCallback,
     options: ExecutionPathOptions
   ) {
     path.length === 0 &&

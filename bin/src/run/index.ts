@@ -81,7 +81,7 @@ export default function runRollup (command: any) {
 			.then(normalized => execute(configFile, normalized, command))
 			.catch(handleError);
 	} else {
-		return execute(configFile, [{}], command);
+		return execute(configFile, [{input: null}], command);
 	}
 }
 

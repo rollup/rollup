@@ -19,12 +19,13 @@ export interface WatcherOptions {
 	include?: string[],
 	exclude?: string[],
 	clearScreen?: boolean;
-};
+}
 
 type InputAndOutputOptions = InputOptions & OutputOptions;
+
 export interface RollupWatchOptions extends InputAndOutputOptions {
-  output?: OutputOptions;
-  watch?: WatcherOptions;
+	output?: OutputOptions;
+	watch?: WatcherOptions;
 }
 
 class Watcher extends (<{ new(): any }>EventEmitter) {
@@ -187,7 +188,8 @@ export class Task {
 			this.inputOptions.onwarn({
 				code: 'DEPRECATED_OPTIONS',
 				deprecations: this.deprecations,
-				message: `The following options have been renamed — please update your config: ${this.deprecations.map(option => `${option.old} -> ${option.new}`).join(', ')}`,
+				message: `The following options have been renamed — please update your config: ${this.deprecations.map(
+					option => `${option.old} -> ${option.new}`).join(', ')}`,
 			});
 		}
 

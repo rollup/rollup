@@ -1,4 +1,4 @@
-import Node from '../Node';
+import Node, { ForEachReturnExpressionCallback } from '../Node';
 import { UNKNOWN_KEY, UnknownKey } from '../variables/VariableReassignmentTracker';
 import Property from './Property';
 import CallOptions from '../CallOptions';
@@ -31,7 +31,7 @@ export default class ObjectExpression extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		if (path.length === 0) return;

@@ -33,17 +33,6 @@ export default class ExportNamedDeclaration extends Node {
 		} else {
 			const start = this.leadingCommentStart || this.start;
 			const end = this.next || this.end;
-
-			if (this.defaultExport) {
-				const name = this.defaultExport.getName(es);
-				const originalName = this.defaultExport.original.getName(es);
-
-				if (name !== originalName) {
-					code.overwrite(start, end, `var ${name} = ${originalName};`);
-					return;
-				}
-			}
-
 			code.remove(start, end);
 		}
 	}

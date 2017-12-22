@@ -1,4 +1,4 @@
-import Node from '../Node';
+import Node, { ForEachReturnExpressionCallback } from '../Node';
 import { UNKNOWN_VALUE, PredicateFunction } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Expression from './Expression';
@@ -22,7 +22,7 @@ export default class ConditionalExpression extends Node {
 	forEachReturnExpressionWhenCalledAtPath (
 		path: string[],
 		callOptions: CallOptions,
-		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		this._forEachRelevantBranch(node =>

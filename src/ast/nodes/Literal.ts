@@ -26,7 +26,7 @@ export default class Literal extends Node {
 
 	render (code: MagicString, _es: boolean) {
 		if (typeof this.value === 'string') {
-			code.indentExclusionRanges.push([this.start + 1, this.end - 1]);
+			(<any> code).indentExclusionRanges.push([this.start + 1, this.end - 1]); // TODO TypeScript: Awaiting MagicString PR
 		}
 	}
 }

@@ -1,6 +1,7 @@
 import ensureArray from './ensureArray.js';
 import deprecateOptions from './deprecateOptions.js';
-import { RollupWarning } from '../../src/rollup/index';
+import { InputOptions, WarningHandler } from '../../src/rollup/index';
+import { Deprecation } from './deprecateOptions';
 
 function normalizeObjectOptionValue (optionValue: any) {
 	if (!optionValue) {
@@ -12,18 +13,30 @@ function normalizeObjectOptionValue (optionValue: any) {
 	return optionValue;
 }
 
-const defaultOnWarn = (warning: RollupWarning) => console.warn(warning.message); // eslint-disable-line no-console
+const defaultOnWarn: WarningHandler = warning => console.warn(warning.message); // eslint-disable-line no-console
+
+export type GenericConfigObject = { [key: string]: any };
 
 export default function mergeOptions ({
 	config,
 	command = {},
-	deprecateConfig = { input: true, output: true }
-}) {
-	const deprecations = deprecate( config, command, deprecateConfig );
+	deprecateConfig,
+	defaultOnWarnHandler = defaultOnWarn
+}: {
+	config: GenericConfigObject,
+	command?: GenericConfigObject,
+	deprecateConfig?: GenericConfigObject,
+	defaultOnWarnHandler?: WarningHandler
+}): {
+	inputOptions: any,
+	outputOptions: any,
+	deprecations: Deprecation[],
+	optionError: string | null
+} {
+	const deprecations = deprecate(config, command, deprecateConfig);
 
-	const getOption = config => name => {
-		return command[ name ] !== undefined ? command[ name ] : config[ name ];
-	};
+	const getOption = (config: GenericConfigObject) => (name: string) =>
+		command[name] !== undefined ? command[name] : config[name];
 
 	const getInputOption = getOption(config);
 	const getOutputOption = getOption(config.output || {});
@@ -40,29 +53,27 @@ export default function mergeOptions ({
 	}
 
 	const onwarn = config.onwarn;
-	let warn;
+	let warn: WarningHandler;
 
 	if (onwarn) {
-		warn = warning => {
-			onwarn(warning, defaultOnWarn);
-		};
+		warn = warning => onwarn(warning, defaultOnWarnHandler);
 	} else {
-		warn = defaultOnWarn;
+		warn = defaultOnWarnHandler;
 	}
 
-	const inputOptions = {
-		input: getInputOption( 'input' ),
-		legacy: getInputOption( 'legacy' ),
-		treeshake: getObjectOption( 'treeshake' ),
+	const inputOptions: InputOptions = {
+		input: getInputOption('input'),
+		legacy: getInputOption('legacy'),
+		treeshake: getObjectOption('treeshake'),
 		acorn: config.acorn,
 		context: config.context,
 		moduleContext: config.moduleContext,
 		plugins: config.plugins,
 		onwarn: warn,
 		watch: config.watch,
-		cache: getInputOption( 'cache' ),
-		preferConst: getInputOption( 'preferConst' ),
-		experimentalDynamicImport: getInputOption( 'experimentalDynamicImport' ),
+		cache: getInputOption('cache'),
+		preferConst: getInputOption('preferConst'),
+		experimentalDynamicImport: getInputOption('experimentalDynamicImport'),
 	};
 
 	// legacy, to ensure e.g. commonjs plugin still works
@@ -87,10 +98,8 @@ export default function mergeOptions ({
 		command.globals = globals;
 	}
 
-	if ( typeof configExternal === 'function' ) {
-		inputOptions.external = (id, ...rest) => {
-			return configExternal( id, ...rest ) || ~commandExternal.indexOf( id );
-		};
+	if (typeof configExternal === 'function') {
+		inputOptions.external = (id, ...rest: any[]) => configExternal(id, ...rest) || ~commandExternal.indexOf(id);
 	} else {
 		inputOptions.external = (configExternal || []).concat(commandExternal);
 	}
@@ -100,26 +109,26 @@ export default function mergeOptions ({
 	}
 
 	const baseOutputOptions = {
-		extend: getOutputOption( 'extend' ),
-		amd: Object.assign( {}, config.amd, command.amd ),
-		banner: getOutputOption( 'banner' ),
-		footer: getOutputOption( 'footer' ),
-		intro: getOutputOption( 'intro' ),
-		format: getOutputOption( 'format' ),
-		outro: getOutputOption( 'outro' ),
-		sourcemap: getOutputOption( 'sourcemap' ),
-		sourcemapFile: getOutputOption( 'sourcemapFile' ),
-		name: getOutputOption( 'name' ),
-		globals: getOutputOption( 'globals' ),
-		interop: getOutputOption( 'interop' ),
-		legacy: getOutputOption( 'legacy' ),
-		freeze: getOutputOption( 'freeze' ),
-		indent: getOutputOption( 'indent' ),
-		strict: getOutputOption( 'strict' ),
-		noConflict: getOutputOption( 'noConflict' ),
-		paths: getOutputOption( 'paths' ),
-		exports: getOutputOption( 'exports' ),
-		file: getOutputOption( 'file' ),
+		extend: getOutputOption('extend'),
+		amd: Object.assign({}, config.amd, command.amd),
+		banner: getOutputOption('banner'),
+		footer: getOutputOption('footer'),
+		intro: getOutputOption('intro'),
+		format: getOutputOption('format'),
+		outro: getOutputOption('outro'),
+		sourcemap: getOutputOption('sourcemap'),
+		sourcemapFile: getOutputOption('sourcemapFile'),
+		name: getOutputOption('name'),
+		globals: getOutputOption('globals'),
+		interop: getOutputOption('interop'),
+		legacy: getOutputOption('legacy'),
+		freeze: getOutputOption('freeze'),
+		indent: getOutputOption('indent'),
+		strict: getOutputOption('strict'),
+		noConflict: getOutputOption('noConflict'),
+		paths: getOutputOption('paths'),
+		exports: getOutputOption('exports'),
+		file: getOutputOption('file'),
 	};
 
 	let mergedOutputOptions;
@@ -164,7 +173,11 @@ export default function mergeOptions ({
 	};
 }
 
-function deprecate ( config: any, command = {}, deprecateConfig = { input: true, output: true } ) {
+function deprecate (
+	config: GenericConfigObject,
+	command: GenericConfigObject = {},
+	deprecateConfig: GenericConfigObject = { input: true, output: true }
+): Deprecation[] {
 	const deprecations = [];
 
 	// CLI
@@ -193,6 +206,6 @@ function deprecate ( config: any, command = {}, deprecateConfig = { input: true,
 	}
 
 	// config file
-	deprecations.push( ...deprecateOptions( config, deprecateConfig ) );
+	deprecations.push(...deprecateOptions(config, deprecateConfig));
 	return deprecations;
 }

@@ -1,4 +1,4 @@
-import Node from './Node';
+import Node, { ForEachReturnExpressionCallback } from './Node';
 import ExecutionPathOptions from './ExecutionPathOptions';
 import CallOptions from './CallOptions';
 import Variable from './variables/Variable';
@@ -13,7 +13,7 @@ export interface UnknownAssignment {
 	forEachReturnExpressionWhenCalledAtPath: (
 		path: string[],
 		callOptions: CallOptions,
-		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) => void;
 	hasEffectsWhenAccessedAtPath: (path: string[], options: ExecutionPathOptions) => boolean;
@@ -34,7 +34,7 @@ export interface UndefinedAssignment {
 	forEachReturnExpressionWhenCalledAtPath: (
 		path: string[],
 		callOptions: CallOptions,
-		callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) => void;
 	hasEffectsWhenAccessedAtPath: (path: string[], _options: ExecutionPathOptions) => boolean;

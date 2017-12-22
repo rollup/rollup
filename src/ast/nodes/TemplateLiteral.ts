@@ -9,7 +9,7 @@ export default class TemplateLiteral extends Node {
 	expressions: Expression[];
 
 	render (code: MagicString, es: boolean) {
-		code.indentExclusionRanges.push([this.start, this.end]);
+		(<any> code).indentExclusionRanges.push([this.start, this.end]); // TODO TypeScript: Awaiting PR
 		super.render(code, es);
 	}
 }

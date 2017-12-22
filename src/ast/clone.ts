@@ -1,5 +1,3 @@
-import Node from './Node';
-
 export default function clone<T> (node: T): T {
 	if (!node) return node;
 	if (typeof node !== 'object') return node;

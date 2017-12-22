@@ -22,7 +22,7 @@ export default class ArrayPattern extends Node {
 		);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UndefinedAssignment | UnknownAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, _init: Declaration | Expression | UndefinedAssignment | UnknownAssignment | null) {
 		this.initialiseScope(parentScope);
 		this.eachChild((child: Pattern | null) =>
 			child.initialiseAndDeclare(parentScope, kind, UNKNOWN_ASSIGNMENT)

@@ -4,7 +4,7 @@ import { UNKNOWN_ASSIGNMENT, PredicateFunction } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
-import Node from '../Node';
+import { ForEachReturnExpressionCallback } from '../Node';
 
 export default class Variable {
 	exportName?: string;
@@ -41,14 +41,14 @@ export default class Variable {
 	forEachReturnExpressionWhenCalledAtPath (
 		_path: string[],
 		_callOptions: CallOptions,
-		_callback: (options: ExecutionPathOptions) => (node: Node) => void,
+		_callback: ForEachReturnExpressionCallback,
 		_options: ExecutionPathOptions
 	) { }
 
 	/**
 	 * @returns {String}
 	 */
-	getName (_es: boolean) {
+	getName (_es?: boolean): string {
 		return this.name;
 	}
 
