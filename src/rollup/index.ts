@@ -8,10 +8,10 @@ import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import mergeOptions from '../utils/mergeOptions.js';
 import Bundle from '../Bundle';
-import Module from '../Module';
+import { ModuleJSON } from '../Module';
 import { RawSourceMap } from 'source-map';
-import { WatchOptions } from 'chokidar';
 import Program from '../ast/nodes/Program';
+import { SourceMap } from 'magic-string';
 
 export const VERSION = '<@VERSION@>';
 
@@ -54,7 +54,7 @@ export interface InputOptions {
 
 	onwarn?: WarningHandler;
 	cache?: {
-		modules: Module[];
+		modules: ModuleJSON[];
 	};
 
 	acorn: {};
@@ -63,17 +63,9 @@ export interface InputOptions {
 	moduleContext?: string | ((id: string) => string) | { [id: string]: string };
 	legacy?: boolean;
 
+	// undocumented?
 	pureExternalModules?: boolean;
 	preferConst?: boolean;
-	watch?: {
-		chokidar?: boolean | WatchOptions;
-		include?: string[];
-		exclude?: string[];
-		clearScreen?: boolean;
-	};
-
-	noConflict?: boolean;
-	exports?: 'default' | 'named' | 'none';
 
 	// deprecated
 	entry?: string;
@@ -81,40 +73,43 @@ export interface InputOptions {
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
 	resolveExternal?: any;
-
-	output?: OutputOptions;
 }
 
 export type ModuleFormat = 'amd' | 'cjs' | 'es' | 'es6' | 'iife' | 'umd';
 
 export interface OutputOptions {
-	// required
-	file: string;
-	format: ModuleFormat;
-
-	// optional
-	amd?: {
-		id?: string;
-		define?: string;
-	}
+	// only required for bundle.write
+	file?: string;
+	// this is optional at the base-level of RollupWatchOptions,
+	// which extends from this interface through config merge
+	format?: ModuleFormat;
 	name?: string;
-	sourcemap?: boolean | 'inline';
-	sourcemapFile?: string;
+	globals?: GlobalsOption;
 
+	paths?: Record<string, string> | ((id: string) => string);
 	banner?: string;
 	footer?: string;
 	intro?: string;
 	outro?: string;
-	paths?: Record<string, string> | ((id: string) => string);
-
-	freeze?: boolean;
-	exports?: string;
-
-	strict?: boolean;
+	sourcemap?: boolean | 'inline';
+	sourcemapFile?: string;
 	interop?: boolean;
 	extend?: boolean;
-	globals?: GlobalsOption;
+
+	exports?: 'default' | 'named' | 'none';
+	amd?: {
+		id?: string;
+		define?: string;
+	}
 	indent?: string;
+	strict?: boolean;
+	freeze?: boolean;
+
+	// shared?
+	legacy?: boolean;
+
+	// undocumented?
+	noConflict?: boolean;
 
 	// deprecated
 	dest?: string;
@@ -196,6 +191,15 @@ const throwAsyncGenerateError = {
 	}
 };
 
+export interface OutputBundle {
+	imports: string[];
+	exports: string[];
+	modules: ModuleJSON[];
+
+	generate: (outputOptions: OutputOptions) => Promise<{ code: string, map: SourceMap }>;
+	write: (options: OutputOptions) => Promise<void>;
+}
+
 export default function rollup (_inputOptions: InputOptions) {
 	try {
 		if (!_inputOptions) {
@@ -275,7 +279,7 @@ export default function rollup (_inputOptions: InputOptions) {
 				return promise;
 			}
 
-			const result = {
+			const result: OutputBundle = {
 				imports: bundle.externalModules.map(module => module.id),
 				exports: keys(bundle.entryModule.exports),
 				modules: bundle.orderedModules.map(module => module.toJSON()),
@@ -326,7 +330,9 @@ export default function rollup (_inputOptions: InputOptions) {
 									);
 								}
 							);
-						});
+						})
+						// ensures return isn't void[]
+						.then(() => {});
 					});
 				}
 			};

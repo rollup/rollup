@@ -6,8 +6,7 @@ import * as rollup from 'rollup';
 import batchWarnings from './batchWarnings.js';
 import relativeId from '../../../src/utils/relativeId.js';
 import { handleError, stderr } from '../logging.js';
-import Bundle from '../../../src/Bundle';
-import { InputOptions } from '../../../src/rollup/index';
+import { InputOptions, OutputBundle } from '../../../src/rollup/index';
 
 export default function loadConfigFile (configFile: string, silent = false): Promise<InputOptions[]> {
 	const warnings = batchWarnings();
@@ -24,7 +23,7 @@ export default function loadConfigFile (configFile: string, silent = false): Pro
 			onwarn: warnings.add,
 			plugins: [buble({ objectAssign: 'Object.assign' })]
 		})
-		.then((bundle: Bundle) => {
+		.then((bundle: OutputBundle) => {
 			if (!silent && warnings.count > 0) {
 				stderr(chalk.bold(`loaded ${relativeId(configFile)} with warnings`));
 				warnings.flush();

@@ -7,10 +7,9 @@ import { handleError, stderr } from '../logging.js';
 import relativeId from '../../../src/utils/relativeId.js';
 import { mapSequence } from '../../../src/utils/promise.js';
 import SOURCEMAPPING_URL from '../sourceMappingUrl.js';
-import { InputOptions, OutputOptions } from '../../../src/rollup/index';
+import { InputOptions, OutputOptions, OutputBundle } from '../../../src/rollup/index';
 import { BatchWarnings } from './batchWarnings';
-import Bundle from '../../../src/Bundle';
-import { RawSourceMap } from 'source-map';
+import { SourceMap } from 'magic-string';
 
 export default function build (inputOptions: InputOptions, outputOptions: OutputOptions[], warnings: BatchWarnings, silent = false) {
 	const useStdout = outputOptions.length === 1 && !outputOptions[0].file;
@@ -30,7 +29,7 @@ export default function build (inputOptions: InputOptions, outputOptions: Output
 
 	return rollup
 		.rollup(inputOptions)
-		.then((bundle: Bundle) => {
+		.then((bundle: OutputBundle) => {
 			if (useStdout) {
 				const output = outputOptions[0];
 				if (output.sourcemap && output.sourcemap !== 'inline') {
@@ -41,7 +40,7 @@ export default function build (inputOptions: InputOptions, outputOptions: Output
 					});
 				}
 
-				return bundle.generate(output).then(({ code, map }: { code: string, map: RawSourceMap}) => {
+				return bundle.generate(output).then(({ code, map }: { code: string, map: SourceMap }) => {
 					if (output.sourcemap === 'inline') {
 						code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
 					}

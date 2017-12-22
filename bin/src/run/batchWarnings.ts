@@ -1,16 +1,16 @@
 import chalk from 'chalk';
 import { stderr } from '../logging.js';
 import relativeId from '../../../src/utils/relativeId.js';
-import { Warning } from '../../../src/rollup/index';
+import { RollupWarning } from '../../../src/rollup/index';
 
 export interface BatchWarnings {
 	readonly count: number;
-	add: (warning: string | Warning) => void;
+	add: (warning: string | RollupWarning) => void;
 	flush: () => void;
 }
 
 export default function batchWarnings () {
-	let allWarnings = new Map<string, Warning[]>();
+	let allWarnings = new Map<string, RollupWarning[]>();
 	let count = 0;
 
 	return {
@@ -18,7 +18,7 @@ export default function batchWarnings () {
 			return count;
 		},
 
-		add: (warning: string | Warning)  => {
+		add: (warning: string | RollupWarning)  => {
 			if (typeof warning === 'string') {
 				warning = { code: 'UNKNOWN', message: warning };
 			}
@@ -86,7 +86,7 @@ export default function batchWarnings () {
 }
 
 const immediateHandlers: {
-	[code: string]: (warning: Warning) => void
+	[code: string]: (warning: RollupWarning) => void
 } = {
 	DEPRECATED_OPTIONS: warning => {
 		title(`Some options have been renamed`);
@@ -129,7 +129,7 @@ const immediateHandlers: {
 const deferredHandlers: {
 	[code: string]: {
 		priority: number;
-		fn: (warnings: Warning[]) => void;
+		fn: (warnings: RollupWarning[]) => void;
 	}
 } = {
 	UNUSED_EXTERNAL_IMPORT: {
@@ -335,7 +335,7 @@ function nest<T> (array: T[], prop: string) {
 	return nested;
 }
 
-function showTruncatedWarnings (warnings: Warning[]) {
+function showTruncatedWarnings (warnings: RollupWarning[]) {
 	const nestedByModule = nest(warnings, 'id');
 
 	const sliced =

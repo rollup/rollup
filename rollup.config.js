@@ -30,6 +30,10 @@ function resolveTypescript() {
 	return {
 		name: 'resolve-typescript',
 		resolveId(importee, importer) {
+			// work around typescript's inability to resolve other extensions
+			if ( ~importee.indexOf( 'help.md' ) ) return path.resolve('bin/src/help.md');
+			if ( ~importee.indexOf( 'package.json' ) ) return path.resolve('package.json');
+
 			// bit of a hack — TypeScript only really works if it can resolve imports,
 			// but they misguidedly chose to reject imports with file extensions. This
 			// means we need to resolve them here
@@ -109,7 +113,7 @@ export default [
 			commonjs({
 				include: 'node_modules/**'
 			}),
-			resolve()
+			resolve(),
 		],
 		external: [
 			'fs',

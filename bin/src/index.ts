@@ -1,8 +1,8 @@
 /// <reference path="./index.d.ts" />
 
 import minimist from 'minimist';
-import help from './help.md';
-import { version } from '../../package.json';
+import help from 'help.md';
+import { version } from 'package.json';
 import run from './run/index.js';
 
 const command = minimist(process.argv.slice(2), {

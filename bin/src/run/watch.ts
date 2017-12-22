@@ -12,7 +12,7 @@ import loadConfigFile from './loadConfigFile.js';
 import relativeId from '../../../src/utils/relativeId.js';
 import { handleError, stderr } from '../logging.js';
 import { RollupError } from '../../../src/utils/error';
-import { InputOptions } from '../../../src/rollup/index';
+import { RollupWatchOptions } from '../../../src/watch/index';
 
 interface WatchEvent {
 	code: string;
@@ -27,7 +27,7 @@ interface Watcher {
 	close: () => void;
 };
 
-export default function watch (configFile: string, configs: InputOptions[], command: any, silent = false) {
+export default function watch (configFile: string, configs: RollupWatchOptions[], command: any, silent = false) {
 	const isTTY = Boolean(process.stderr.isTTY);
 
 	const screen = alternateScreen(isTTY);
@@ -38,14 +38,14 @@ export default function watch (configFile: string, configs: InputOptions[], comm
 	let watcher: Watcher;
 	let configWatcher: Watcher;
 
-	function start (configs: InputOptions[]) {
+	function start (configs: RollupWatchOptions[]) {
 		screen.reset(chalk.underline(`rollup v${rollup.VERSION}`));
 
 		let screenWriter = screen.reset;
 		configs = configs.map(options => {
 			const merged = mergeOptions({ config: options, command, defaultOnWarn: warnings.add });
 
-			const result = Object.assign({}, merged.inputOptions, {
+			const result: RollupWatchOptions = Object.assign({}, merged.inputOptions, {
 				output: merged.outputOptions
 			});
 
@@ -55,8 +55,8 @@ export default function watch (configFile: string, configs: InputOptions[], comm
 			}
 
 			if (
-				merged.inputOptions.watch &&
-				merged.inputOptions.watch.clearScreen === false
+				(<RollupWatchOptions>merged.inputOptions).watch &&
+				(<RollupWatchOptions>merged.inputOptions).watch.clearScreen === false
 			) {
 				screenWriter = stderr;
 			}
@@ -156,7 +156,7 @@ export default function watch (configFile: string, configs: InputOptions[], comm
 			restarting = true;
 
 			loadConfigFile(configFile, silent)
-				.then((configs: InputOptions[]) => {
+				.then((configs: RollupWatchOptions[]) => {
 					restarting = false;
 
 					if (aborted) {

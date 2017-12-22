@@ -136,8 +136,8 @@ class Link {
 
 export default function collapseSourcemaps (
 	bundle: Bundle,
-	file,
-	map,
+	file: string,
+	map: RawSourceMap,
 	modules: Module[],
 	bundleSourcemapChain: RawSourceMap[]
 ) {
@@ -205,7 +205,7 @@ export default function collapseSourcemaps (
 
 	if (file) {
 		const directory = dirname(file);
-		sources = sources.map(source => relative(directory, source));
+		sources = sources.map((source: string) => relative(directory, source));
 
 		map.file = basename(file);
 	}

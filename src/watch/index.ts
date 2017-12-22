@@ -3,17 +3,29 @@
 import path from 'path';
 import EventEmitter from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
-import rollup, { InputOptions, OutputOptions } from '../rollup/index';
+import rollup, { InputOptions, OutputOptions, OutputBundle } from '../rollup/index';
 import ensureArray from '../utils/ensureArray';
 import { mapSequence } from '../utils/promise';
 import { addTask, deleteTask } from './fileWatchers';
 import chokidar from './chokidar';
 import mergeOptions from '../utils/mergeOptions.js';
 import { WatchOptions } from 'chokidar';
-import Module from '../Module';
-import Bundle from '../Bundle';
+import { ModuleJSON } from '../Module';
 
 const DELAY = 100;
+
+export interface WatcherOptions {
+	chokidar?: boolean | WatchOptions;
+	include?: string[],
+	exclude?: string[],
+	clearScreen?: boolean;
+};
+
+type InputAndOutputOptions = InputOptions & OutputOptions;
+export interface RollupWatchOptions extends InputAndOutputOptions {
+  output?: OutputOptions;
+  watch?: WatcherOptions;
+}
 
 class Watcher extends (<{ new(): any }>EventEmitter) {
 	dirty: boolean;
@@ -21,7 +33,7 @@ class Watcher extends (<{ new(): any }>EventEmitter) {
 	tasks: Task[];
 	succeeded: boolean;
 
-	constructor (configs: (InputOptions & OutputOptions)[]) {
+	constructor (configs: (RollupWatchOptions)[]) {
 		super();
 
 		this.dirty = true;
@@ -91,9 +103,7 @@ export class Task {
 	closed: boolean;
 	watched: Set<string>;
 	inputOptions: InputOptions;
-	cache: {
-		modules: Module[]
-	};
+	cache: OutputBundle;
 
 	chokidarOptions: WatchOptions;
 	chokidarOptionsHash: string;
@@ -104,7 +114,7 @@ export class Task {
 
 	filter: (id: string) => boolean;
 
-	constructor (watcher: Watcher, config: InputOptions & OutputOptions) {
+	constructor (watcher: Watcher, config: RollupWatchOptions) {
 		this.cache = null;
 		this.watcher = watcher;
 
@@ -182,14 +192,14 @@ export class Task {
 		}
 
 		return rollup(options)
-			.then((bundle: Bundle) => {
+			.then((bundle: OutputBundle) => {
 				if (this.closed) return;
 
 				this.cache = bundle;
 
 				const watched = new Set();
 
-				bundle.modules.forEach((module: Module) => {
+				bundle.modules.forEach((module: ModuleJSON) => {
 					watched.add(module.id);
 					this.watchFile(module.id);
 				});
@@ -237,6 +247,6 @@ export class Task {
 	}
 }
 
-export default function watch (configs: WatchOptions[]) {
+export default function watch (configs: RollupWatchOptions[]) {
 	return new Watcher(configs);
 }

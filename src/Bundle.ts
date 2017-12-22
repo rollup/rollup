@@ -4,7 +4,7 @@ import { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
 import first from './utils/first';
 import { find } from './utils/array';
 import { blank, forOwn, keys } from './utils/object';
-import Module, { IdMap } from './Module';
+import Module, { IdMap, ModuleJSON } from './Module';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import ensureArray from './utils/ensureArray';
@@ -37,7 +37,7 @@ import Program from './ast/nodes/Program';
 
 export default class Bundle {
 	acornOptions: any;
-	cachedModules: Map<string, Module>;
+	cachedModules: Map<string, ModuleJSON>;
 	context: string;
 	entry: string;
 	entryId: string;
@@ -658,7 +658,7 @@ export default class Bundle {
 					this.plugins,
 					bundleSourcemapChain,
 					options
-				).then(code => {
+				).then((code: string) => {
 					if (options.sourcemap) {
 						timeStart('sourcemap');
 

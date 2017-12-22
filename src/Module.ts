@@ -67,6 +67,18 @@ function includeFully (node: Node) {
 	node.eachChild(includeFully);
 }
 
+export interface ModuleJSON {
+	id: string;
+	dependencies: string[];
+	code: string;
+	originalCode: string;
+	originalSourcemap: RawSourceMap;
+	ast: Program;
+	sourcemapChain: RawSourceMap[];
+	resolvedIds: IdMap;
+	resolvedExternalIds: IdMap;
+}
+
 export default class Module {
 	type: 'Module';
 	bundle: Bundle;
@@ -546,7 +558,7 @@ export default class Module {
 		return (<any> magicString).trim();
 	}
 
-	toJSON () {
+	toJSON (): ModuleJSON {
 		return {
 			id: this.id,
 			dependencies: this.dependencies.map(module => module.id),
