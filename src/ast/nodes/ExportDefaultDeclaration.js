@@ -82,8 +82,8 @@ export default class ExportDefaultDeclaration extends Node {
 			} else {
 				removeExportDefault();
 			}
-}
-			super.render( code, es );
+		}
+		super.render( code, es );
 
 	}
 }
