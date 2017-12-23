@@ -2,8 +2,6 @@
     "compilerOptions": {
         "target": "es5",
         "diagnostics": true,
-        // ES5 iterator support pending https://github.com/rollup/rollup-plugin-typescript/pull/102
-        // "downlevelIteration": true,
         "lib": ["es5", "es6", "dom"],
         "noEmitOnError": true,
         "noImplicitAny": true,
