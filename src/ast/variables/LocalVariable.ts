@@ -5,7 +5,7 @@ import { PredicateFunction, UnknownAssignment } from '../values';
 import CallOptions from '../CallOptions';
 import Identifier from '../nodes/Identifier';
 import { ForEachReturnExpressionCallback } from '../Node';
-import Expression, { CallableExpression } from '../nodes/Expression';
+import Expression from '../nodes/Expression';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Declaration from '../nodes/Declaration';
 
@@ -53,7 +53,7 @@ export default class LocalVariable extends Variable {
 		if (path.length > MAX_PATH_DEPTH) return;
 		this.boundExpressions.forEachAtPath(
 			path,
-			(relativePath: ObjectPath, node: CallableExpression) =>
+			(relativePath: ObjectPath, node: Expression) =>
 				!options.hasNodeBeenCalledAtPathWithOptions(
 					relativePath,
 					node,
@@ -84,7 +84,7 @@ export default class LocalVariable extends Variable {
 			path.length > MAX_PATH_DEPTH ||
 			this.boundExpressions.someAtPath(
 				path,
-				(relativePath: ObjectPath, node: CallableExpression) =>
+				(relativePath: ObjectPath, node: Expression) =>
 					relativePath.length > 0 &&
 					!options.hasNodeBeenAccessedAtPath(relativePath, node) &&
 					node.hasEffectsWhenAccessedAtPath(
