@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "diagnostics": true,
+        "lib": ["es5", "es6", "dom"],
+        "noEmitOnError": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": true
+    },
+    "include": [
+        "src",
+        "bin",
+        "browser"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
