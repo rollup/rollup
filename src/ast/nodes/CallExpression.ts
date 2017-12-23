@@ -1,17 +1,15 @@
 import Node, { ForEachReturnExpressionCallback } from '../Node';
 import CallOptions from '../CallOptions';
-import Expression, { CallableExpression } from './Expression';
+import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import SpreadElement from './SpreadElement';
 import { PredicateFunction } from '../values';
 import GlobalVariable from '../variables/GlobalVariable';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
-// TODO: 3 typing failures because AwaitExpression has no forEachReturnExpressionWhenCalledAtPath
-
 export default class CallExpression extends Node {
 	type: 'CallExpression';
-	callee: CallableExpression;
+	callee: Expression;
 	arguments: (Expression | SpreadElement)[];
 
 	private _callOptions: CallOptions;
