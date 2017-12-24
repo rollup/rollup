@@ -223,10 +223,7 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 
 		timeStart('--BUILD--');
 
-		return graph.link(inputOptions.input)
-			.then((inputModuleId) => {
-				return graph.buildSingle(inputModuleId);
-			})
+		return graph.buildSingle(inputOptions.input)
 			.then((bundle) => {
 				timeEnd('--BUILD--');
 

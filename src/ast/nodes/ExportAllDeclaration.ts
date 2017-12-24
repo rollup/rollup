@@ -4,7 +4,7 @@ import MagicString from 'magic-string';
 
 export default class ExportAllDeclaration extends Node {
 	type: 'ExportAllDeclaration';
-	source: Literal;
+	source: Literal<string>;
 	isExportDeclaration: true;
 
 	initialiseNode () {

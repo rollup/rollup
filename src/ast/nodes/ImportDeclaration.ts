@@ -9,7 +9,7 @@ export default class ImportDeclaration extends Node {
 	type: 'ImportDeclaration';
 	isImportDeclaration: true;
 	specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
-	source: Literal;
+	source: Literal<string>;
 
 	bindChildren () { }
 
