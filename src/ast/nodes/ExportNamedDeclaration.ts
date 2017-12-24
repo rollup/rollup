@@ -9,7 +9,7 @@ export default class ExportNamedDeclaration extends Node {
 	type: 'ExportNamedDeclaration';
 	declaration: Declaration | null;
 	specifiers: ExportSpecifier[];
-	source: Literal | null;
+	source: Literal<string> | null;
 
 	isExportDeclaration: true;
 

@@ -1,5 +1,5 @@
-import Bundle from "../../Bundle";
 import { OutputOptions } from "../../rollup/index";
+import Bundle from "../../Bundle";
 
 export default function getInteropBlock (bundle: Bundle, options: OutputOptions) {
 	return bundle.externalModules

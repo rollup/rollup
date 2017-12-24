@@ -18,7 +18,7 @@ export interface StandardProperty extends Property {
 
 export default class Property extends Node {
 	type: 'Property';
-	key: Literal | Identifier | Expression;
+	key: Literal<string> | Identifier | Expression;
 	value: Expression | Pattern;
 	kind: 'init' | 'get' | 'set';
 	method: boolean;
