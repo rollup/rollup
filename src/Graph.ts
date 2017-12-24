@@ -232,7 +232,7 @@ export default class Graph {
 				timeStart('phase 2');
 
 				this.link();
-				orderedModules = this.analyseExecutionOrder([entryModule]);
+				orderedModules = this.analyseExecution(entryModule);
 
 				timeEnd('phase 2');
 
@@ -337,7 +337,7 @@ export default class Graph {
 		}
 	}
 
-	private analyseExecutionOrder (entryModules: Module[]): Module[] {
+	private analyseExecution (entryModule: Module): Module[] {
 		let hasCycles;
 		const seen: { [id: string]: boolean } = {};
 		const ordered: Module[] = [];
@@ -355,49 +355,52 @@ export default class Graph {
 			ordered.push(module);
 		}
 
-		for (let entryModule of entryModules)
-			visit(entryModule);
+		visit(entryModule);
 
 		if (hasCycles) {
-			ordered.forEach((a, i) => {
-				for (i += 1; i < ordered.length; i += 1) {
-					const b = ordered[i];
-
-					// TODO reinstate this! it no longer works
-					if (this.stronglyDependsOn[a.id][b.id]) {
-						// somewhere, there is a module that imports b before a. Because
-						// b imports a, a is placed before b. We need to find the module
-						// in question, so we can provide a useful error message
-						let parent = '[[unknown]]';
-						const visited: { [id: string]: boolean } = {};
-
-						const findParent = (module: Module) => {
-							if (this.dependsOn[module.id][a.id] && this.dependsOn[module.id][b.id]) {
-								parent = module.id;
-								return true;
-							}
-							visited[module.id] = true;
-							for (let i = 0; i < module.dependencies.length; i += 1) {
-								const dependency = module.dependencies[i];
-								if (!visited[dependency.id] && findParent(<Module>dependency))
-									return true;
-							}
-						};
-
-						for (let entryModule of entryModules)
-							findParent(entryModule);
-
-						this.onwarn(
-							<any>`Module ${a.id} may be unable to evaluate without ${
-							b.id
-							}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
-						);
-					}
-				}
-			});
+			this.warnCycle(ordered, [entryModule]);
 		}
-		
+
 		return ordered;
+	}
+
+	private warnCycle (ordered: Module[], entryModules: Module[]) {
+		ordered.forEach((a, i) => {
+			for (i += 1; i < ordered.length; i += 1) {
+				const b = ordered[i];
+
+				// TODO reinstate this! it no longer works
+				if (this.stronglyDependsOn[a.id][b.id]) {
+					// somewhere, there is a module that imports b before a. Because
+					// b imports a, a is placed before b. We need to find the module
+					// in question, so we can provide a useful error message
+					let parent = '[[unknown]]';
+					const visited: { [id: string]: boolean } = {};
+
+					const findParent = (module: Module) => {
+						if (this.dependsOn[module.id][a.id] && this.dependsOn[module.id][b.id]) {
+							parent = module.id;
+							return true;
+						}
+						visited[module.id] = true;
+						for (let i = 0; i < module.dependencies.length; i += 1) {
+							const dependency = module.dependencies[i];
+							if (!visited[dependency.id] && findParent(<Module>dependency))
+								return true;
+						}
+					};
+
+					for (let entryModule of entryModules)
+						findParent(entryModule);
+
+					this.onwarn(
+						<any>`Module ${a.id} may be unable to evaluate without ${
+						b.id
+						}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
+					);
+				}
+			}
+		});
 	}
 
 	private deconflict (externalModules: ExternalModule[]) {
