@@ -2,12 +2,12 @@ import { decode } from 'sourcemap-codec';
 import { locate } from 'locate-character';
 import error, { RollupError } from './error';
 import getCodeFrame from './getCodeFrame';
-import Bundle from '../Bundle';
+import Graph from '../Graph';
 import { RawSourceMap } from 'source-map';
 import {Plugin, RollupWarning, SourceDescription} from '../rollup/index';
 
 export default function transform (
-	bundle: Bundle,
+	graph: Graph,
 	source: SourceDescription,
 	id: string,
 	plugins: Plugin[]
@@ -60,7 +60,7 @@ export default function transform (
 			const context = {
 				warn: (warning: RollupWarning, pos: { line: number, column: number }) => {
 					warning = augment(warning, pos, 'PLUGIN_WARNING');
-					bundle.warn(warning);
+					graph.warn(warning);
 				},
 
 				error (err: RollupError, pos?: { line: number, column: number }) {

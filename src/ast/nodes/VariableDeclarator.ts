@@ -30,7 +30,7 @@ export default class VariableDeclarator extends Node {
 			if (!es && variable.exportName && variable.isReassigned) {
 				if (this.init) {
 					code.overwrite(this.start, this.id.end, variable.getName(es));
-				} else if (this.module.bundle.treeshake) {
+				} else if (this.module.graph.treeshake) {
 					code.remove(this.start, this.end);
 				}
 			}

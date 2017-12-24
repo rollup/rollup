@@ -15,7 +15,7 @@ export default class ModuleScope extends Scope {
 	constructor (module: Module) {
 		super({
 			isModuleScope: true,
-			parent: module.bundle.scope
+			parent: module.graph.scope
 		});
 
 		this.module = module;

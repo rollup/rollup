@@ -57,7 +57,7 @@ export default class NamespaceVariable extends Variable {
 		const callee = freeze
 			? legacy ? `(Object.freeze || Object)` : `Object.freeze`
 			: '';
-		return `${this.module.bundle.varOrConst} ${this.getName(
+		return `${this.module.graph.varOrConst} ${this.getName(
 			es
 		)} = ${callee}({\n${members.join(',\n')}\n});\n\n`;
 	}

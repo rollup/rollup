@@ -41,7 +41,7 @@ export default function warnOnBuiltins (bundle: Bundle) {
 				.map(name => `'${name}'`)
 				.join(', ')} and '${externalBuiltins.slice(-1)}')`;
 
-	bundle.warn({
+	bundle.graph.warn({
 		code: 'MISSING_NODE_BUILTINS',
 		modules: externalBuiltins,
 		message: `Creating a browser bundle that depends on Node.js built-in ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`

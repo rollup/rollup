@@ -6,13 +6,13 @@ import { mapSequence } from '../utils/promise';
 import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
-import Bundle from '../Bundle';
 import { ModuleJSON } from '../Module';
 import { RawSourceMap } from 'source-map';
 import Program from '../ast/nodes/Program';
 import { SourceMap } from 'magic-string';
 import { WatcherOptions } from '../watch/index';
 import { Deprecation } from '../utils/deprecateOptions';
+import Graph from '../Graph';
 
 export const VERSION = '<@VERSION@>';
 
@@ -219,107 +219,111 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 
 		if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
 		checkInputOptions(inputOptions);
-		const bundle = new Bundle(inputOptions);
+		const graph = new Graph(inputOptions);
 
 		timeStart('--BUILD--');
 
-		return bundle.build().then(() => {
-			timeEnd('--BUILD--');
+		return graph.link(inputOptions.input)
+			.then((inputModuleId) => {
+				return graph.buildSingle(inputModuleId);
+			})
+			.then((bundle) => {
+				timeEnd('--BUILD--');
 
-			function generate (rawOutputOptions: GenericConfigObject) {
-				if (!rawOutputOptions) {
-					throw new Error('You must supply an options object');
-				}
-				// since deprecateOptions, adds the output properties
-				// to `inputOptions` so adding that lastly
-				const consolidatedOutputOptions = Object.assign({}, {
-					output: Object.assign({}, rawOutputOptions, rawOutputOptions.output, inputOptions.output)
-				});
-				const mergedOptions = mergeOptions({
-					// just for backward compatiblity to fallback on root
-					// if the option isn't present in `output`
-					config: consolidatedOutputOptions,
-					deprecateConfig: { output: true },
-				});
-
-				if (mergedOptions.optionError) throw new Error(mergedOptions.optionError);
-
-				// now outputOptions is an array, but rollup.rollup API doesn't support arrays
-				const outputOptions = mergedOptions.outputOptions[0];
-				const deprecations = mergedOptions.deprecations;
-
-				if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
-				checkOutputOptions(outputOptions);
-
-				timeStart('--GENERATE--');
-
-				const promise = Promise.resolve()
-					.then(() => bundle.render(outputOptions))
-					.then(rendered => {
-						timeEnd('--GENERATE--');
-
-						bundle.plugins.forEach(plugin => {
-							if (plugin.ongenerate) {
-								plugin.ongenerate(
-									assign(
-										{
-											bundle: result
-										},
-										outputOptions
-									),
-									rendered
-								);
-							}
-						});
-
-						flushTime();
-
-						return rendered;
+				function generate (rawOutputOptions: GenericConfigObject) {
+					if (!rawOutputOptions) {
+						throw new Error('You must supply an options object');
+					}
+					// since deprecateOptions, adds the output properties
+					// to `inputOptions` so adding that lastly
+					const consolidatedOutputOptions = Object.assign({}, {
+						output: Object.assign({}, rawOutputOptions, rawOutputOptions.output, inputOptions.output)
+					});
+					const mergedOptions = mergeOptions({
+						// just for backward compatiblity to fallback on root
+						// if the option isn't present in `output`
+						config: consolidatedOutputOptions,
+						deprecateConfig: { output: true },
 					});
 
-				Object.defineProperty(promise, 'code', throwAsyncGenerateError);
-				Object.defineProperty(promise, 'map', throwAsyncGenerateError);
+					if (mergedOptions.optionError) throw new Error(mergedOptions.optionError);
 
-				return promise;
-			}
+					// now outputOptions is an array, but rollup.rollup API doesn't support arrays
+					const outputOptions = mergedOptions.outputOptions[0];
+					const deprecations = mergedOptions.deprecations;
 
-			const result: OutputBundle = {
-				imports: bundle.externalModules.map(module => module.id),
-				exports: keys(bundle.entryModule.exports),
-				modules: bundle.orderedModules.map(module => module.toJSON()),
+					if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
+					checkOutputOptions(outputOptions);
 
-				generate,
-				write: (outputOptions: OutputOptions) => {
-					if (!outputOptions || (!outputOptions.file && !outputOptions.dest)) {
-						error({
-							code: 'MISSING_OPTION',
-							message: 'You must specify output.file'
+					timeStart('--GENERATE--');
+
+					const promise = Promise.resolve()
+						.then(() => bundle.render(outputOptions))
+						.then(rendered => {
+							timeEnd('--GENERATE--');
+
+							graph.plugins.forEach(plugin => {
+								if (plugin.ongenerate) {
+									plugin.ongenerate(
+										assign(
+											{
+												bundle: result
+											},
+											outputOptions
+										),
+										rendered
+									);
+								}
+							});
+
+							flushTime();
+
+							return rendered;
 						});
-					}
 
-					return generate(outputOptions).then(result => {
-						const file = outputOptions.file;
-						let { code, map } = result;
+					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
+					Object.defineProperty(promise, 'map', throwAsyncGenerateError);
 
-						const promises = [];
+					return promise;
+				}
 
-						if (outputOptions.sourcemap) {
-							let url;
+				const result: OutputBundle = {
+					imports: bundle.externalModules.map(module => module.id),
+					exports: keys(bundle.entryModule.exports),
+					modules: bundle.orderedModules.map(module => module.toJSON()),
 
-							if (outputOptions.sourcemap === 'inline') {
-								url = map.toUrl();
-							} else {
-								url = `${basename(file)}.map`;
-								promises.push(writeFile(file + '.map', map.toString()));
-							}
-
-							code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
+					generate,
+					write: (outputOptions: OutputOptions) => {
+						if (!outputOptions || (!outputOptions.file && !outputOptions.dest)) {
+							error({
+								code: 'MISSING_OPTION',
+								message: 'You must specify output.file'
+							});
 						}
 
-						promises.push(writeFile(file, code));
-						return Promise.all(promises).then(() => {
+						return generate(outputOptions).then(result => {
+							const file = outputOptions.file;
+							let { code, map } = result;
+
+							const promises = [];
+
+							if (outputOptions.sourcemap) {
+								let url;
+
+								if (outputOptions.sourcemap === 'inline') {
+									url = map.toUrl();
+								} else {
+									url = `${basename(file)}.map`;
+									promises.push(writeFile(file + '.map', map.toString()));
+								}
+
+								code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
+							}
+
+							promises.push(writeFile(file, code));
+							return Promise.all(promises).then(() => {
 								return mapSequence(
-									bundle.plugins.filter(plugin => plugin.onwrite),
+									bundle.graph.plugins.filter(plugin => plugin.onwrite),
 									(plugin: Plugin) => {
 										return Promise.resolve(
 											plugin.onwrite(
@@ -335,14 +339,14 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 									}
 								);
 							})
-							// ensures return isn't void[]
-							.then(() => {});
-					});
-				}
-			};
+								// ensures return isn't void[]
+								.then(() => { });
+						});
+					}
+				};
 
-			return result;
-		});
+				return result;
+			});
 	} catch (err) {
 		return Promise.reject(err);
 	}

@@ -32,7 +32,7 @@ export default class SequenceExpression extends Node {
 	}
 
 	render (code: MagicString, es: boolean) {
-		if (!this.module.bundle.treeshake) {
+		if (!this.module.graph.treeshake) {
 			super.render(code, es);
 		} else {
 			const last = this.expressions[this.expressions.length - 1];
