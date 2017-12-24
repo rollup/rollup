@@ -69,7 +69,7 @@ export default class VariableDeclaration extends Node {
 	}
 
 	render (code: MagicString, es: boolean) {
-		const treeshake = this.module.bundle.treeshake;
+		const treeshake = this.module.graph.treeshake;
 
 		let shouldSeparate = false;
 		let separator;

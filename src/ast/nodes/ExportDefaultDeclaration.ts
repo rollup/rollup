@@ -79,7 +79,7 @@ export default class ExportDefaultDeclaration extends Node {
 		};
 
 		const treeshakeable =
-			this.module.bundle.treeshake &&
+			this.module.graph.treeshake &&
 			!this.included &&
 			!this.declaration.included;
 		const name = this.variable.getName(es);
@@ -120,7 +120,7 @@ export default class ExportDefaultDeclaration extends Node {
 				code.overwrite(
 					this.start,
 					declaration_start,
-					`${this.module.bundle.varOrConst} ${name} = `
+					`${this.module.graph.varOrConst} ${name} = `
 				);
 			} else {
 				removeExportDefault();

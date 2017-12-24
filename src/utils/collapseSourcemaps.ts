@@ -175,7 +175,7 @@ export default function collapseSourcemaps (
 
 			sourcemapChain.forEach((map: any) => {
 				if (map.missing) {
-					bundle.warn({
+					bundle.graph.warn({
 						code: 'SOURCEMAP_BROKEN',
 						plugin: map.plugin,
 						message: `Sourcemap is likely to be incorrect: a plugin${

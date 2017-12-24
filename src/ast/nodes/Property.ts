@@ -28,8 +28,6 @@ export default class Property extends Node {
 	private _accessorCallOptions: CallOptions;
 
 	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
-		// Typing error caused by forEachReturnExpressionWhenCalledAtPath
-		// not being available on FunctionExpression, ArrowFunctionExpression
 		if (this.kind === 'get') {
 			path.length > 0 &&
 			this.value.forEachReturnExpressionWhenCalledAtPath(

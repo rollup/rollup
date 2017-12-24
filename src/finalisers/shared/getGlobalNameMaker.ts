@@ -11,7 +11,7 @@ export default function getGlobalNameMaker (globals: GlobalsOption, bundle: Bund
 		if (name) return name;
 
 		if (Object.keys(module.declarations).length > 0) {
-			bundle.warn({
+			bundle.graph.warn({
 				code: 'MISSING_GLOBAL_NAME',
 				source: module.id,
 				guess: (<ExternalModule>module).name,
