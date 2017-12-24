@@ -2,7 +2,7 @@ import { timeStart, timeEnd } from './utils/flushTime';
 import { decode } from 'sourcemap-codec';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { find } from './utils/array';
-import { blank, forOwn, keys } from './utils/object';
+import { keys } from './utils/object';
 import Module from './Module';
 import finalisers from './finalisers/index';
 import getExportMode from './utils/getExportMode';
@@ -21,28 +21,22 @@ import {
 	resolve
 } from './utils/path';
 import { OutputOptions } from './rollup/index';
-import ExternalVariable from './ast/variables/ExternalVariable';
 import { RawSourceMap } from 'source-map';
-import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import Graph from './Graph';
-import GlobalScope from './ast/scopes/GlobalScope';
 import ExternalModule from './ExternalModule';
 
 export default class Bundle {
 	graph: Graph;
 	modules: Module[];
-	externalModules: ExternalModule[];
 	orderedModules: Module[];
+	externalModules: ExternalModule[];
 	entryModule: Module;
-	scope: GlobalScope;
 
-	constructor (graph: Graph, modules: Module[], entryModule: Module) {
+	constructor (graph: Graph, orderedModules: Module[], externalModules: ExternalModule[], entryModule: Module) {
 		this.graph = graph;
-		this.modules = modules;
-		this.externalModules = undefined;
-		this.orderedModules = undefined;
+		this.orderedModules = orderedModules;
+		this.externalModules = externalModules;
 		this.entryModule = entryModule;
-		this.scope = graph.scope;
 	}
 
 	collectAddon (initialAddon: string, addonName: 'banner' | 'footer' | 'intro' | 'outro', sep: string = '\n') {
@@ -75,53 +69,6 @@ export default class Bundle {
 		).then(addons => addons.filter(Boolean).join(sep));
 	}
 
-	deconflict () {
-		const used = blank();
-
-		// ensure no conflicts with globals
-		keys(this.scope.variables).forEach(name => (used[name] = 1));
-
-		function getSafeName (name: string): string {
-			while (used[name]) {
-				name += `$${used[name]++}`;
-			}
-
-			used[name] = 1;
-			return name;
-		}
-
-		const toDeshadow: Set<string> = new Set();
-
-		this.graph.externalModules.forEach(module => {
-			const safeName = getSafeName(module.name);
-			toDeshadow.add(safeName);
-			module.name = safeName;
-
-			// ensure we don't shadow named external imports, if
-			// we're creating an ES6 bundle
-			forOwn(module.declarations, (declaration, name) => {
-				const safeName = getSafeName(name);
-				toDeshadow.add(safeName);
-				(<ExternalVariable>declaration).setSafeName(safeName);
-			});
-		});
-
-		this.modules.forEach(module => {
-			forOwn(module.scope.variables, variable => {
-				if (!(<ExportDefaultVariable>variable).isDefault || !(<ExportDefaultVariable>variable).hasId) {
-					variable.name = getSafeName(variable.name);
-				}
-			});
-
-			// deconflict reified namespaces
-			const namespace = module.namespace();
-			if (namespace.needsNamespaceBlock) {
-				namespace.name = getSafeName(namespace.name);
-			}
-		});
-
-		this.scope.deshadow(toDeshadow);
-	}
 	getPathRelativeToEntryDirname (resolvedId: string): string {
 		if (isRelative(resolvedId) || isAbsolute(resolvedId)) {
 			const entryDirname = dirname(this.entryModule.id);
@@ -270,99 +217,5 @@ export default class Bundle {
 					return { code, map } as { code: string, map: any }; // TODO TypeScript: Awaiting missing version in SourceMap type
 				});
 			});
-	}
-
-	sortOrderedModules (externalModules: ExternalModule[]) {
-		this.externalModules = externalModules;
-
-		let hasCycles;
-		const seen: { [id: string]: boolean } = {};
-		const ordered: Module[] = [];
-
-		const stronglyDependsOn = blank();
-		const dependsOn = blank();
-
-		this.modules.forEach(module => {
-			stronglyDependsOn[module.id] = blank();
-			dependsOn[module.id] = blank();
-		});
-
-		this.modules.forEach(module => {
-			function processStrongDependency (dependency: Module) {
-				if (
-					dependency === module ||
-					stronglyDependsOn[module.id][dependency.id]
-				)
-					return;
-
-				stronglyDependsOn[module.id][dependency.id] = true;
-				dependency.strongDependencies.forEach(processStrongDependency);
-			}
-
-			function processDependency (dependency: Module) {
-				if (dependency === module || dependsOn[module.id][dependency.id])
-					return;
-
-				dependsOn[module.id][dependency.id] = true;
-				dependency.dependencies.forEach(processDependency);
-			}
-
-			module.strongDependencies.forEach(processStrongDependency);
-			module.dependencies.forEach(processDependency);
-		});
-
-		const visit = (module: Module) => {
-			if (seen[module.id]) {
-				hasCycles = true;
-				return;
-			}
-
-			seen[module.id] = true;
-
-			module.dependencies.forEach(visit);
-			ordered.push(module);
-		};
-
-		visit(this.entryModule);
-
-		if (hasCycles) {
-			ordered.forEach((a, i) => {
-				for (i += 1; i < ordered.length; i += 1) {
-					const b = ordered[i];
-
-					// TODO reinstate this! it no longer works
-					if (stronglyDependsOn[a.id][b.id]) {
-						// somewhere, there is a module that imports b before a. Because
-						// b imports a, a is placed before b. We need to find the module
-						// in question, so we can provide a useful error message
-						let parent = '[[unknown]]';
-						const visited: { [id: string]: boolean } = {};
-
-						const findParent = (module: Module) => {
-							if (dependsOn[module.id][a.id] && dependsOn[module.id][b.id]) {
-								parent = module.id;
-								return true;
-							}
-							visited[module.id] = true;
-							for (let i = 0; i < module.dependencies.length; i += 1) {
-								const dependency = module.dependencies[i];
-								if (!visited[dependency.id] && findParent(<Module>dependency))
-									return true;
-							}
-						};
-
-						findParent(this.entryModule);
-
-						this.graph.onwarn(
-							<any>`Module ${a.id} may be unable to evaluate without ${
-							b.id
-							}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
-						);
-					}
-				}
-			});
-		}
-
-		this.orderedModules = ordered;
 	}
 }

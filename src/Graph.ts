@@ -1,6 +1,6 @@
 import { timeStart, timeEnd } from './utils/flushTime';
 import first from './utils/first';
-import { keys } from './utils/object';
+import { keys, blank, forOwn } from './utils/object';
 import Module, { IdMap, ModuleJSON } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
@@ -20,6 +20,7 @@ import { RawSourceMap } from 'source-map';
 import Program from './ast/nodes/Program';
 import Node from './ast/Node';
 import Bundle from './Bundle';
+import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 
 export type ResolveDynamicImportHandler = (specifier: string | Node, parentId: string) => Promise<string | void>;
 
@@ -44,6 +45,9 @@ export default class Graph {
 	scope: GlobalScope;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
+
+	dependsOn: { [id: string]: { [id: string]: boolean }};
+	stronglyDependsOn: { [id: string]: { [id: string]: boolean } };
 
 	// deprecated
 	treeshake: boolean;
@@ -151,10 +155,7 @@ export default class Graph {
 		}
 	}
 
-	link (entryName: string) {
-		// Phase 1 – discovery. We load the entry module and find which
-		// modules it imports, and import those, until we have all
-		// of the entry module's dependencies
+	private loadModule (entryName: string) {
 		return this.resolveId(entryName, undefined)
 			.then(id => {
 				if (id === false) {
@@ -172,89 +173,81 @@ export default class Graph {
 				}
 
 				return this.fetchModule(<string>id, undefined);
-			})
-			.then(entryModule => {
-				// Phase 2 – binding. We link references to their variables
-				// to generate a complete picture of the bundle
-
-				timeStart('phase 2');
-
-				this.modules.forEach(module => module.bindImportSpecifiers());
-				this.modules.forEach(module => module.bindReferences());
-
-				timeEnd('phase 2');
-
-				return entryModule.id;
 			});
 	}
 
+	private link () {
+		this.modules.forEach(module => module.bindImportSpecifiers());
+		this.modules.forEach(module => module.bindReferences());
+
+		this.stronglyDependsOn = blank();
+		this.dependsOn = blank();
+
+		this.modules.forEach(module => {
+			this.stronglyDependsOn[module.id] = blank();
+			this.dependsOn[module.id] = blank();
+		});
+
+		this.modules.forEach(module => {
+			const processStrongDependency = (dependency: Module) => {
+				if (
+					dependency === module ||
+					this.stronglyDependsOn[module.id][dependency.id]
+				)
+					return;
+
+				this.stronglyDependsOn[module.id][dependency.id] = true;
+				dependency.strongDependencies.forEach(processStrongDependency);
+			}
+
+			const processDependency = (dependency: Module) => {
+				if (dependency === module || this.dependsOn[module.id][dependency.id])
+					return;
+
+				this.dependsOn[module.id][dependency.id] = true;
+				dependency.dependencies.forEach(processDependency);
+			}
+
+			module.strongDependencies.forEach(processStrongDependency);
+			module.dependencies.forEach(processDependency);
+		});
+	}
+
 	buildSingle (entryModuleId: string): Promise<Bundle> {
-		// Phase 3 – marking. We include all statements that should be included
-		timeStart('phase 3');
+		let entryModule: Module;
+		let orderedModules: Module[];
 
-		const entryModule = <Module>this.moduleById.get(entryModuleId);
-		if (!entryModule)
-			throw new Error(`Entry module ${entryModuleId} not found.`);
-		if (entryModule.isExternal)
-			throw new Error(`Cannot build external module ${entryModuleId}.`);
+		// Phase 1 – discovery. We load the entry module and find which
+		// modules it imports, and import those, until we have all
+		// of the entry module's dependencies
+		timeStart('phase 1');
+		return this.loadModule(entryModuleId)
+			.then((_entryModule) => {
+				entryModule = _entryModule;
+				timeEnd('phase 1');
 
-		const bundle = new Bundle(this, this.modules, entryModule);
+				// Phase 2 - linking. We populate the module dependency links
+				// including linking binding references between modules. We also
+				// determine the topological execution order for the bundle
+				timeStart('phase 2');
 
-		return Promise.resolve()
-			.then(() => {
+				this.link();
+				orderedModules = this.analyseExecutionOrder([entryModule]);
+
+				timeEnd('phase 2');
+
+				// Phase 3 – marking. We include all statements that should be included
+				timeStart('phase 3');
+
 				// hook dynamic imports
 				if (this.dynamicImport)
 					return Promise.all(this.modules.map(module => module.processDynamicImports(this.resolveDynamicImport)));
 			})
 			.then(() => {
 				// mark all export statements
-				entryModule.getExports().forEach(name => {
-					const variable = entryModule.traceExport(name);
+				this.mark(entryModule);
 
-					variable.exportName = name;
-					variable.includeVariable();
-
-					if (variable.isNamespace) {
-						(<NamespaceVariable>variable).needsNamespaceBlock = true;
-					}
-				});
-
-				entryModule.getReexports().forEach(name => {
-					const variable = entryModule.traceExport(name);
-
-					if (variable.isExternal) {
-						variable.reexported = (<ExternalVariable>variable).module.reexported = true;
-					} else {
-						variable.exportName = name;
-						variable.includeVariable();
-					}
-				});
-
-				// mark statements that should appear in the bundle
-				if (this.treeshake) {
-					let addedNewNodes;
-					do {
-						addedNewNodes = false;
-						this.modules.forEach(module => {
-							if (module.includeInBundle()) {
-								addedNewNodes = true;
-							}
-						});
-					} while (addedNewNodes);
-				} else {
-					// Necessary to properly replace namespace imports
-					this.modules.forEach(module => module.includeAllInBundle());
-				}
-
-				timeEnd('phase 3');
-
-				// Phase 4 – final preparation. We order the modules with an
-				// enhanced topological sort that accounts for cycles, then
-				// ensure that names are deconflicted throughout the bundle
-
-				timeStart('phase 4');
-
-				// while we're here, check for unused external imports
+				// check for unused external imports
 				this.externalModules.forEach(module => {
 					const unused = Object.keys(module.declarations)
 						.filter(name => name !== '*')
@@ -285,12 +278,18 @@ export default class Graph {
 				});
 
 				// prune unused external imports
-				this.externalModules = this.externalModules.filter(module => {
+				const externalModules = this.externalModules.filter(module => {
 					return module.used || !this.isPureExternalModule(module.id);
 				});
 
-				bundle.sortOrderedModules(this.externalModules);
-				bundle.deconflict();
+				timeEnd('phase 3');
+
+				// Phase 4 – we ensure that names are deconflicted throughout the bundle
+
+				timeStart('phase 4');
+
+				this.deconflict(externalModules);
+				const bundle = new Bundle(this, orderedModules, externalModules, entryModule);
 
 				timeEnd('phase 4');
 
@@ -298,7 +297,158 @@ export default class Graph {
 			});
 	}
 
-	fetchModule (id: string, importer: string): Promise<Module> {
+	private mark (entryModule: Module) {
+		entryModule.getExports().forEach(name => {
+			const variable = entryModule.traceExport(name);
+
+			variable.exportName = name;
+			variable.includeVariable();
+
+			if (variable.isNamespace) {
+				(<NamespaceVariable>variable).needsNamespaceBlock = true;
+			}
+		});
+
+		entryModule.getReexports().forEach(name => {
+			const variable = entryModule.traceExport(name);
+
+			if (variable.isExternal) {
+				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
+			} else {
+				variable.exportName = name;
+				variable.includeVariable();
+			}
+		});
+
+		// mark statements that should appear in the bundle
+		if (this.treeshake) {
+			let addedNewNodes;
+			do {
+				addedNewNodes = false;
+				this.modules.forEach(module => {
+					if (module.includeInBundle()) {
+						addedNewNodes = true;
+					}
+				});
+			} while (addedNewNodes);
+		} else {
+			// Necessary to properly replace namespace imports
+			this.modules.forEach(module => module.includeAllInBundle());
+		}
+	}
+
+	private analyseExecutionOrder (entryModules: Module[]): Module[] {
+		let hasCycles;
+		const seen: { [id: string]: boolean } = {};
+		const ordered: Module[] = [];
+
+		function visit (module: Module) {
+			if (seen[module.id]) {
+				hasCycles = true;
+				return;
+			}
+
+			seen[module.id] = true;
+
+			module.dependencies.forEach(visit);
+
+			ordered.push(module);
+		}
+
+		for (let entryModule of entryModules)
+			visit(entryModule);
+
+		if (hasCycles) {
+			ordered.forEach((a, i) => {
+				for (i += 1; i < ordered.length; i += 1) {
+					const b = ordered[i];
+
+					// TODO reinstate this! it no longer works
+					if (this.stronglyDependsOn[a.id][b.id]) {
+						// somewhere, there is a module that imports b before a. Because
+						// b imports a, a is placed before b. We need to find the module
+						// in question, so we can provide a useful error message
+						let parent = '[[unknown]]';
+						const visited: { [id: string]: boolean } = {};
+
+						const findParent = (module: Module) => {
+							if (this.dependsOn[module.id][a.id] && this.dependsOn[module.id][b.id]) {
+								parent = module.id;
+								return true;
+							}
+							visited[module.id] = true;
+							for (let i = 0; i < module.dependencies.length; i += 1) {
+								const dependency = module.dependencies[i];
+								if (!visited[dependency.id] && findParent(<Module>dependency))
+									return true;
+							}
+						};
+
+						for (let entryModule of entryModules)
+							findParent(entryModule);
+
+						this.onwarn(
+							<any>`Module ${a.id} may be unable to evaluate without ${
+							b.id
+							}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
+						);
+					}
+				}
+			});
+		}
+		
+		return ordered;
+	}
+
+	private deconflict (externalModules: ExternalModule[]) {
+		const used = blank();
+
+		// ensure no conflicts with globals
+		keys(this.scope.variables).forEach(name => (used[name] = 1));
+
+		function getSafeName (name: string): string {
+			while (used[name]) {
+				name += `$${used[name]++}`;
+			}
+
+			used[name] = 1;
+			return name;
+		}
+
+		const toDeshadow: Set<string> = new Set();
+
+		externalModules.forEach(module => {
+			const safeName = getSafeName(module.name);
+			toDeshadow.add(safeName);
+			module.name = safeName;
+
+			// ensure we don't shadow named external imports, if
+			// we're creating an ES6 bundle
+			forOwn(module.declarations, (declaration, name) => {
+				const safeName = getSafeName(name);
+				toDeshadow.add(safeName);
+				(<ExternalVariable>declaration).setSafeName(safeName);
+			});
+		});
+
+		this.modules.forEach(module => {
+			forOwn(module.scope.variables, variable => {
+				if (!(<ExportDefaultVariable>variable).isDefault || !(<ExportDefaultVariable>variable).hasId) {
+					variable.name = getSafeName(variable.name);
+				}
+			});
+
+			// deconflict reified namespaces
+			const namespace = module.namespace();
+			if (namespace.needsNamespaceBlock) {
+				namespace.name = getSafeName(namespace.name);
+			}
+		});
+
+		this.scope.deshadow(toDeshadow);
+	}
+
+	private fetchModule (id: string, importer: string): Promise<Module> {
 		// short-circuit cycles
 		if (this.moduleById.has(id)) return null;
 		this.moduleById.set(id, null);
@@ -409,7 +559,7 @@ export default class Graph {
 			});
 	}
 
-	fetchAllDependencies (module: Module) {
+	private fetchAllDependencies (module: Module) {
 		return mapSequence(module.sources, source => {
 			const resolvedId = module.resolvedIds[source];
 			return (resolvedId
