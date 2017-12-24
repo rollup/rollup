@@ -14,7 +14,7 @@ export default class FunctionDeclaration extends FunctionNode {
 	}
 
 	render (code: MagicString, es: boolean) {
-		if (!this.module.bundle.treeshake || this.included) {
+		if (!this.module.graph.treeshake || this.included) {
 			super.render(code, es);
 		} else {
 			code.remove(

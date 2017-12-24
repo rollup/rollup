@@ -211,8 +211,8 @@ export default class MemberExpression extends Node {
 
 	initialiseNode () {
 		this._checkPropertyReadSideEffects =
-			this.module.bundle.treeshake &&
-			this.module.bundle.treeshakingOptions.propertyReadSideEffects;
+			this.module.graph.treeshake &&
+			this.module.graph.treeshakingOptions.propertyReadSideEffects;
 	}
 
 	render (code: MagicString, es: boolean) {

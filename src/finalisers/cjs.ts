@@ -24,7 +24,7 @@ export default function cjs (
 
 	let needsInterop = false;
 
-	const varOrConst = bundle.varOrConst;
+	const varOrConst = bundle.graph.varOrConst;
 	const interop = options.interop !== false;
 
 	// TODO handle empty imports, once they're supported

@@ -18,7 +18,7 @@ import ModuleScope from './ast/scopes/ModuleScope';
 import { encode } from 'sourcemap-codec';
 import { RawSourceMap, SourceMapConsumer } from 'source-map';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
-import Bundle, { ResolveDynamicImportHandler } from './Bundle';
+import Graph, { ResolveDynamicImportHandler } from './Graph';
 import Variable from './ast/variables/Variable';
 import Program from './ast/nodes/Program';
 import VariableDeclarator from './ast/nodes/VariableDeclarator';
@@ -84,7 +84,7 @@ export interface ModuleJSON {
 
 export default class Module {
 	type: 'Module';
-	bundle: Bundle;
+	graph: Graph;
 	code: string;
 	comments: CommentDescription[];
 	context: string;
@@ -130,7 +130,7 @@ export default class Module {
 		sourcemapChain,
 		resolvedIds,
 		resolvedExternalIds,
-		bundle
+		graph
 	}: {
 		id: string,
 		code: string,
@@ -140,11 +140,11 @@ export default class Module {
 		sourcemapChain: RawSourceMap[],
 		resolvedIds: IdMap,
 		resolvedExternalIds?: IdMap,
-		bundle: Bundle
+		graph: Graph
 	}) {
 		this.code = code;
 		this.id = id;
-		this.bundle = bundle;
+		this.graph = graph;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain;
@@ -161,10 +161,10 @@ export default class Module {
 		} else {
 			// We bind the dynamic imports array to the plugin binding above, to get the nodes added
 			// to this array during parsing itself. This is faster than having to do a separate walk.
-			if (bundle.dynamicImport)
+			if (graph.dynamicImport)
 				setModuleDynamicImportsReturnBinding(this.dynamicImports);
-			this.ast = <any>tryParse(this, bundle.acornOptions); // TODO what happens to comments if AST is provided?
-			if (bundle.dynamicImport)
+			this.ast = <any>tryParse(this, graph.acornOptions); // TODO what happens to comments if AST is provided?
+			if (graph.dynamicImport)
 				setModuleDynamicImportsReturnBinding(undefined);
 			this.astClone = clone(this.ast);
 		}
@@ -172,7 +172,7 @@ export default class Module {
 		timeEnd('ast');
 
 		this.excludeFromSourcemap = /\0/.test(id);
-		this.context = bundle.getModuleContext(id);
+		this.context = graph.getModuleContext(id);
 
 		// all dependencies
 		this.sources = [];
@@ -374,20 +374,20 @@ export default class Module {
 				const id =
 					this.resolvedIds[specifier.source] ||
 					this.resolvedExternalIds[specifier.source];
-				specifier.module = this.bundle.moduleById.get(id);
+				specifier.module = this.graph.moduleById.get(id);
 			});
 		});
 
 		this.exportAllModules = this.exportAllSources.map(source => {
 			const id = this.resolvedIds[source] || this.resolvedExternalIds[source];
-			return this.bundle.moduleById.get(id);
+			return this.graph.moduleById.get(id);
 		});
 
 		this.sources.forEach(source => {
 			const id = this.resolvedIds[source];
 
 			if (id) {
-				const module = this.bundle.moduleById.get(id);
+				const module = this.graph.moduleById.get(id);
 				this.dependencies.push(module);
 			}
 		});
@@ -519,7 +519,7 @@ export default class Module {
 					if ( typeof dynamicImportSpecifier === 'string' ) {
 					// if we have the module, inline as Promise.resolve(namespace)
 					// ensuring that we create a namespace import of it as well
-						const replacementModule = this.bundle.moduleById.get( replacement );
+						const replacementModule = this.graph.moduleById.get( replacement );
 						if ( replacementModule && !replacementModule.isExternal ) {
 							const namespace = (<Module> replacementModule).namespace();
 							namespace.includeVariable();
@@ -614,7 +614,7 @@ export default class Module {
 	traceExport (name: string): Variable {
 		// export * from 'external'
 		if (name[0] === '*') {
-			const module = this.bundle.moduleById.get(name.slice(1));
+			const module = this.graph.moduleById.get(name.slice(1));
 			return module.traceExport('*');
 		}
 
@@ -646,7 +646,7 @@ export default class Module {
 			const name = exportDeclaration.localName;
 			const declaration = this.trace(name);
 
-			return declaration || this.bundle.scope.findVariable(name);
+			return declaration || this.graph.scope.findVariable(name);
 		}
 
 		if (name === 'default') return;
@@ -670,6 +670,6 @@ export default class Module {
 		}
 
 		warning.id = this.id;
-		this.bundle.warn(warning);
+		this.graph.warn(warning);
 	}
 }

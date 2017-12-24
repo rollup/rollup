@@ -72,7 +72,7 @@ export default function iife (
 
 	if (exportMode !== 'none' && !extend) {
 		wrapperIntro =
-			(isNamespaced ? thisProp(name) : `${bundle.varOrConst} ${name}`) +
+			(isNamespaced ? thisProp(name) : `${bundle.graph.varOrConst} ${name}`) +
 			` = ${wrapperIntro}`;
 	}
 
