@@ -3,7 +3,7 @@ var assert = require( 'assert' );
 module.exports = {
 	description: 'exports flag is passed through to bundle options',
 	options: {
-		exports: 'named'
+		output: { exports: 'named' }
 	},
 	exports: function ( exports ) {
 		assert.equal( exports.y, 42 );
