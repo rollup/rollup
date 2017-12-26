@@ -11,10 +11,6 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 		super(name, declarator, null);
 	}
 
-	getName () {
-		return this.name;
-	}
-
 	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			this._getInit(options).hasEffectsWhenAccessedAtPath(path, options) ||

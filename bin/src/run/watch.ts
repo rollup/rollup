@@ -16,7 +16,7 @@ import { RollupWatchOptions } from '../../../src/watch/index';
 interface WatchEvent {
 	code: string;
 	error: RollupError | Error;
-	input: string;
+	input: string | string[];
 	output: string[];
 	duration: number;
 }
@@ -88,7 +88,7 @@ export default function watch (configFile: string, configs: RollupWatchOptions[]
 					if (!silent)
 						stderr(
 							chalk.cyan(
-								`bundles ${chalk.bold(event.input)} → ${chalk.bold(
+								`bundles ${chalk.bold(typeof event.input === 'string' ? event.input : event.input.join(', '))} → ${chalk.bold(
 									event.output.map(relativeId).join(', ')
 								)}...`
 							)
@@ -125,16 +125,22 @@ export default function watch (configFile: string, configs: RollupWatchOptions[]
 		process.stdin.resume();
 	}
 
-	function close () {
+	function close (err: Error) {
+		if (err) {
+			console.error(err);
+		}
+
 		removeOnExit();
 		process.removeListener('uncaughtException', close);
 		// removing a non-existent listener is a no-op
 		process.stdin.removeListener('end', close);
 
 		screen.close();
-		watcher.close();
+		if (watcher) watcher.close();
 
 		if (configWatcher) configWatcher.close();
+
+		process.exit(1);
 	}
 
 	start(configs);

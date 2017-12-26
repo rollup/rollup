@@ -125,7 +125,14 @@ export class Task {
 		this.inputOptions = inputOptions;
 
 		this.outputs = outputOptions;
-		this.outputFiles = this.outputs.map(output => path.resolve(output.file));
+		this.outputFiles = this.outputs.map(output => {
+			if (!output.file) {
+				throw new Error(
+					`watch is currently only supported for a single output.file`
+				);
+			}
+			return path.resolve(output.file);
+		});
 
 		const watchOptions = inputOptions.watch || {};
 		if ('useChokidar' in watchOptions) watchOptions.chokidar = watchOptions.useChokidar;

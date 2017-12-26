@@ -23,11 +23,13 @@ export default class ModuleScope extends Scope {
 		this.variables.this = new LocalVariable('this', null, UNKNOWN_EXPRESSION);
 	}
 
-	deshadow (names: Set<string>) {
-		let localNames = new Set(names); // Why do we need a copy here?
+	deshadow (names: Set<string>, children = this.children) {
+		let localNames = new Set(names);
 
 		forOwn(this.module.imports, specifier => {
-			if (specifier.module.isExternal) return;
+			if (specifier.module.isExternal || specifier.module.bundle !== this.module.bundle) {
+				return;
+			}
 
 			const addDeclaration = (declaration: Variable) => {
 				if (isNamespaceVariable(declaration) && !isExternalVariable(declaration)) {
@@ -35,7 +37,7 @@ export default class ModuleScope extends Scope {
 						.forEach(name => addDeclaration(declaration.module.traceExport(name)));
 				}
 
-				localNames.add(declaration.name);
+				localNames.add(declaration.getName());
 			};
 
 			(<Module>specifier.module).getExports().forEach(name => {
@@ -59,9 +61,9 @@ export default class ModuleScope extends Scope {
 					return;
 				}
 
-				const name = declaration.getName(true);
+				const name = declaration.getName();
 				if (name !== specifier.name) {
-					localNames.add(declaration.getName(true));
+					localNames.add(name);
 				}
 
 				if (
@@ -73,7 +75,7 @@ export default class ModuleScope extends Scope {
 			}
 		});
 
-		super.deshadow(localNames);
+		super.deshadow(localNames, children);
 	}
 
 	findLexicalBoundary () {

@@ -1,8 +1,8 @@
-import getExportBlock from './shared/getExportBlock';
 import esModuleExport from './shared/esModuleExport';
 import { OutputOptions } from '../rollup/index';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import Bundle from '../Bundle';
+import getExportBlock from './shared/getExportBlock';
 
 export default function cjs (
 	bundle: Bundle,
@@ -18,7 +18,7 @@ export default function cjs (
 ) {
 	intro =
 		(options.strict === false ? intro : `'use strict';\n\n${intro}`) +
-		(exportMode === 'named' && options.legacy !== true
+		(exportMode === 'named' && options.legacy !== true && bundle.entryModuleFacade
 			? `${esModuleExport}\n\n`
 			: '');
 
@@ -27,46 +27,40 @@ export default function cjs (
 	const varOrConst = bundle.graph.varOrConst;
 	const interop = options.interop !== false;
 
-	// TODO handle empty imports, once they're supported
-	const importBlock = bundle.externalModules
-		.map(module => {
-			if (interop && module.declarations.default) {
-				if (module.exportsNamespace) {
-					return (
-						`${varOrConst} ${module.name} = require('${getPath(module.id)}');` +
-						`\n${varOrConst} ${module.name}__default = ${
-						module.name
-						}['default'];`
-					);
-				}
+	const { dependencies, exports } = bundle.getModuleDeclarations();
 
-				needsInterop = true;
+	const importBlock = dependencies.map(({ id, isBundle, name, reexports, imports }) => {
+		if (!reexports && !imports) {
+			return `require('${getPath(id)}');`;
+		}
 
-				if (module.exportsNames) {
-					return (
-						`${varOrConst} ${module.name} = require('${getPath(module.id)}');` +
-						`\n${varOrConst} ${module.name}__default = _interopDefault(${
-						module.name
-						});`
-					);
-				}
+		if (!interop || isBundle) {
+			return `${varOrConst} ${name} = require('${getPath(id)}');`
+		}
 
-				return `${varOrConst} ${
-					module.name
-					} = _interopDefault(require('${getPath(module.id)}'));`;
-			} else {
-				const includedDeclarations = Object.keys(module.declarations).filter(
-					name => module.declarations[name].included
-				);
+		const usesDefault = imports && imports.some(specifier => specifier.imported === 'default') ||
+				reexports && reexports.some(specifier => specifier.imported === 'default');
+		if (!usesDefault) {
+			return `${varOrConst} ${name} = require('${getPath(id)}');`
+		}
 
-				const needsVar = includedDeclarations.length || module.reexported;
+		const exportsNamespace = imports && imports.some(specifier => specifier.imported === '*');
+		if (exportsNamespace) {
+			return `${varOrConst} ${name} = require('${getPath(id)}');` +
+					`\n${varOrConst} ${name}__default = ${name}['default'];`;
+		}
 
-				return needsVar
-					? `${varOrConst} ${module.name} = require('${getPath(module.id)}');`
-					: `require('${getPath(module.id)}');`;
-			}
-		})
-		.join('\n');
+		needsInterop = true;
+
+		const exportsNames = imports && imports.some(specifier => specifier.imported !== 'default' && specifier.imported !== '*') ||
+				reexports && reexports.some(specifier => specifier.imported === 'default');
+		if (exportsNames) {
+			return `${varOrConst} ${name} = require('${getPath(id)}');` +
+					`\n${varOrConst} ${name}__default = _interopDefault(${name});`;
+		}
+
+		return `${varOrConst} ${name} = _interopDefault(require('${getPath(id)}'));`;
+	}).join('\n');
 
 	if (needsInterop) {
 		intro += `function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }\n\n`;
@@ -76,9 +70,10 @@ export default function cjs (
 		intro += importBlock + '\n\n';
 	}
 
+	const exportBlock = getExportBlock(exports, dependencies, exportMode, 'module.exports =');
+
 	magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(bundle, exportMode, 'module.exports =');
 	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
 	if (outro) (<any> magicString).append(outro); // TODO TypeScript: Awaiting PR
 

@@ -31,12 +31,12 @@ export default class SequenceExpression extends NodeBase {
 		return addedNewNodes;
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (!this.module.graph.treeshake) {
-			super.render(code, es);
+			super.render(code);
 		} else {
 			const last = this.expressions[this.expressions.length - 1];
-			last.render(code, es);
+			last.render(code);
 
 			if (
 				this.parent.type === NodeType.CallExpression &&
@@ -55,7 +55,7 @@ export default class SequenceExpression extends NodeBase {
 			} else {
 				let previousEnd = this.start;
 				for (const expression of included) {
-					expression.render(code, es);
+					expression.render(code);
 					code.remove(previousEnd, expression.start);
 					code.appendLeft(expression.end, ', ');
 					previousEnd = expression.end;

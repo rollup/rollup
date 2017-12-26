@@ -1,7 +1,7 @@
 import { timeStart, timeEnd, flushTime } from '../utils/flushTime';
 import { basename } from '../utils/path';
 import { writeFile } from '../utils/fs';
-import { assign, keys } from '../utils/object';
+import { assign } from '../utils/object';
 import { mapSequence } from '../utils/promise';
 import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
@@ -52,7 +52,7 @@ export type ExternalOption = string[] | IsExternalHook;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 
 export interface InputOptions {
-	input: string;
+	input: string | string[];
 	external?: ExternalOption;
 	plugins?: Plugin[];
 
@@ -68,6 +68,7 @@ export interface InputOptions {
 	legacy?: boolean;
 	watch?: WatcherOptions;
 	experimentalDynamicImport?: boolean;
+	experimentalCodeSplitting?: boolean;
 
 	// undocumented?
 	pureExternalModules?: boolean;
@@ -86,13 +87,15 @@ export type ModuleFormat = 'amd' | 'cjs' | 'es' | 'es6' | 'iife' | 'umd';
 export interface OutputOptions {
 	// only required for bundle.write
 	file?: string;
+	// only required for bundles.write
+	dir?: string;
 	// this is optional at the base-level of RollupWatchOptions,
 	// which extends from this interface through config merge
 	format?: ModuleFormat;
 	name?: string;
 	globals?: GlobalsOption;
 
-	paths?: Record<string, string> | ((id: string) => string);
+	paths?: Record<string, string> | ((id: string, parent: string) => string);
 	banner?: string;
 	footer?: string;
 	intro?: string;
@@ -206,6 +209,7 @@ export interface OutputBundle {
 	write: (options: OutputOptions) => Promise<void>;
 }
 
+export default function rollup (rawInputOptions: InputOptions): Promise<OutputBundle>;
 export default function rollup (rawInputOptions: GenericConfigObject) {
 	try {
 		if (!rawInputOptions) {
@@ -224,8 +228,21 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 
 		timeStart('--BUILD--');
 
-		return graph.buildSingle(inputOptions.input)
-			.then((bundle) => {
+		const codeSplitting = inputOptions.experimentalCodeSplitting;
+
+		if (codeSplitting) {
+			if (typeof inputOptions.input === 'string')
+				inputOptions.input = [inputOptions.input];
+		}
+		else if (inputOptions.input instanceof Array && !codeSplitting) {
+			error({
+				code: 'INVALID_OPTION',
+				message: 'Multiple inputs only supported when setting the experimentalCodeSplitting flag option.'
+			});
+		}
+
+		if (!codeSplitting) return graph.buildSingle(inputOptions.input)
+			.then(bundle => {
 				timeEnd('--BUILD--');
 
 				function generate (rawOutputOptions: GenericConfigObject) {
@@ -286,9 +303,9 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 				}
 
 				const result: OutputBundle = {
-					imports: bundle.externalModules.map(module => module.id),
-					exports: keys(bundle.entryModule.exports),
-					modules: bundle.orderedModules.map(module => module.toJSON()),
+					imports: bundle.getImportIds(),
+					exports: bundle.getExportNames(),
+					modules: bundle.getJsonModules(),
 
 					generate,
 					write: (outputOptions: OutputOptions) => {
@@ -321,7 +338,7 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 							promises.push(writeFile(file, code));
 							return Promise.all(promises).then(() => {
 								return mapSequence(
-									bundle.graph.plugins.filter(plugin => plugin.onwrite),
+									graph.plugins.filter(plugin => plugin.onwrite),
 									(plugin: Plugin) => {
 										return Promise.resolve(
 											plugin.onwrite(
@@ -345,7 +362,149 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 
 				return result;
 			});
+
+		return graph.buildChunks(inputOptions.input)
+			.then(bundles => {
+				const chunkOutputBundles: {
+					[name: string]: {
+						name: string,
+						imports: string[],
+						exports: string[],
+						modules: ModuleJSON[]
+					}
+				} = {};
+				Object.keys(bundles).forEach(bundleName => {
+					const bundle = bundles[bundleName];
+
+					chunkOutputBundles[bundleName] = {
+						name: bundleName,
+						imports: bundle.getImportIds(),
+						exports: bundle.getExportNames(),
+						modules: bundle.getJsonModules()
+					};
+				});
+
+				function generate (rawOutputOptions: GenericConfigObject) {
+					const outputOptions = getAndCheckOutputOptions(inputOptions, rawOutputOptions);
+
+					if (outputOptions.format === 'umd' || outputOptions.format === 'iife') {
+						error({
+							code: 'INVALID_OPTION',
+							message: 'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
+						});
+					}
+
+					timeStart('--GENERATE--');
+
+					const generated: { [chunkName: string]: SourceDescription } = {};
+
+					const promise = Promise.all(Object.keys(bundles).map(bundleName => {
+						const bundle = bundles[bundleName];
+						return bundle.render(outputOptions)
+							.then(rendered => {
+								timeEnd('--GENERATE--');
+
+								graph.plugins.forEach(plugin => {
+									if (plugin.ongenerate) {
+										const bundle = chunkOutputBundles[bundleName];
+										plugin.ongenerate(assign({ bundle }, outputOptions), rendered);
+									}
+								});
+
+								flushTime();
+
+								generated[bundleName] = rendered;
+							});
+					}))
+						.then(() => {
+							return generated;
+						});
+
+					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
+					Object.defineProperty(promise, 'map', throwAsyncGenerateError);
+
+					return promise;
+				}
+
+				return {
+					chunks: chunkOutputBundles,
+					generate,
+					write (outputOptions: OutputOptions) {
+						if (!outputOptions || !outputOptions.dir) {
+							error({
+								code: 'MISSING_OPTION',
+								message: 'You must specify output.dir for multiple inputs'
+							});
+						}
+
+						return generate(outputOptions).then(result => {
+							const dir = outputOptions.dir;
+
+							return Promise.all(Object.keys(result).map(chunkName => {
+								let chunk = result[chunkName];
+								let { code, map } = chunk;
+
+								const promises = [];
+
+								if (outputOptions.sourcemap) {
+									let url;
+
+									if (outputOptions.sourcemap === 'inline') {
+										url = (<any>map).toUrl();
+									} else {
+										url = `${chunkName}.map`;
+										promises.push(writeFile(dir + '/' + chunkName + '.map', map.toString()));
+									}
+
+									code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
+								}
+
+								promises.push(writeFile(dir + '/' + chunkName, code));
+								return Promise.all(promises).then(() => {
+									return mapSequence(
+										graph.plugins.filter(plugin => plugin.onwrite), (plugin: Plugin) =>
+											Promise.resolve(plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk))
+									);
+								})
+									// ensures return isn't void[]
+									.then(() => { });
+							}));
+						});
+					}
+				}
+
+			});
+
+
 	} catch (err) {
 		return Promise.reject(err);
 	}
+}
+
+function getAndCheckOutputOptions (inputOptions: GenericConfigObject, rawOutputOptions: GenericConfigObject): OutputOptions {
+	if (!rawOutputOptions) {
+		throw new Error('You must supply an options object');
+	}
+	// since deprecateOptions, adds the output properties
+	// to `inputOptions` so adding that lastly
+	const consolidatedOutputOptions = Object.assign({}, {
+		output: Object.assign({}, rawOutputOptions, rawOutputOptions.output, inputOptions.output)
+	});
+	const mergedOptions = mergeOptions({
+		// just for backward compatiblity to fallback on root
+		// if the option isn't present in `output`
+		config: consolidatedOutputOptions,
+		deprecateConfig: { output: true },
+	});
+
+	if (mergedOptions.optionError) throw new Error(mergedOptions.optionError);
+
+	// now outputOptions is an array, but rollup.rollup API doesn't support arrays
+	const outputOptions = mergedOptions.outputOptions[0];
+	const deprecations = mergedOptions.deprecations;
+
+	if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
+	checkOutputOptions(outputOptions);
+
+	return outputOptions;
 }

@@ -48,6 +48,8 @@ export default function umd (
 
 	warnOnBuiltins(bundle);
 
+	const moduleDeclarations = bundle.getModuleDeclarations();
+
 	const globalNameMaker = getGlobalNameMaker(
 		options.globals || blank(),
 		bundle
@@ -132,7 +134,7 @@ export default function umd (
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(bundle, exportMode);
+	const exportBlock = getExportBlock(moduleDeclarations.exports, moduleDeclarations.dependencies, exportMode);
 	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
 	if (exportMode === 'named' && options.legacy !== true)
 		(<any> magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR

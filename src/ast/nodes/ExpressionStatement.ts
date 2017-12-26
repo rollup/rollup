@@ -26,8 +26,8 @@ export default class ExpressionStatement extends StatementBase {
 		return super.shouldBeIncluded();
 	}
 
-	render (code: MagicString, es: boolean) {
-		super.render(code, es);
+	render (code: MagicString) {
+		super.render(code);
 		if (this.included) this.insertSemicolon(code);
 	}
 }

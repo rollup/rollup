@@ -4,9 +4,9 @@ import MagicString from 'magic-string';
 export interface StatementNode extends Node {}
 
 export class StatementBase extends NodeBase implements StatementNode {
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (!this.module.graph.treeshake || this.included) {
-			super.render(code, es);
+			super.render(code);
 		} else {
 			code.remove(
 				this.leadingCommentStart || this.start,

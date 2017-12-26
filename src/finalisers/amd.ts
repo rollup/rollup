@@ -19,8 +19,11 @@ export default function amd (
 	options: OutputOptions
 ) {
 	warnOnBuiltins(bundle);
-	const deps = bundle.externalModules.map(m => `'${getPath(m.id)}'`);
-	const args = bundle.externalModules.map(m => m.name);
+
+	const { dependencies, exports } = bundle.getModuleDeclarations();
+
+	const deps = dependencies.map(m => `'${getPath(m.id)}'`);
+	const args = dependencies.map(m => m.name);
 
 	if (exportMode === 'named') {
 		args.unshift(`exports`);
@@ -45,9 +48,9 @@ export default function amd (
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(bundle, exportMode);
+	const exportBlock = getExportBlock(exports, dependencies, exportMode);
 	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
-	if (exportMode === 'named' && options.legacy !== true)
+	if (exportMode === 'named' && options.legacy !== true && bundle.entryModuleFacade)
 		(<any> magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR
 	if (outro) (<any> magicString).append(outro);
 

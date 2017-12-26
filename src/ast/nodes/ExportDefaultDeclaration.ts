@@ -67,7 +67,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		const remove = () => {
 			code.remove(
 				this.leadingCommentStart || this.start,
@@ -82,7 +82,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			this.module.graph.treeshake &&
 			!this.included &&
 			!this.declaration.included;
-		const name = this.variable.getName(es);
+		const name = this.variable.getName();
 		const statementStr = code.original.slice(this.start, this.end);
 
 		// paren workaround: find first non-whitespace character position after `export default`
@@ -111,7 +111,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			}
 
 			// Prevent `var foo = foo`
-			if (this.variable.getOriginalVariableName(es) === name) {
+			if (this.variable.getOriginalVariableName() === name) {
 				return remove();
 			}
 
@@ -126,7 +126,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				removeExportDefault();
 			}
 		}
-		super.render(code, es);
+		super.render(code);
 
 	}
 }

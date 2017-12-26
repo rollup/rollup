@@ -146,7 +146,7 @@ export default function collapseSourcemaps (
 			let sourcemapChain = module.sourcemapChain;
 
 			let source: Source;
-			if (module.originalSourcemap == null) {
+			if (!module.originalSourcemap) {
 				source = new Source(module.id, module.originalCode);
 			} else {
 				const sources = module.originalSourcemap.sources;

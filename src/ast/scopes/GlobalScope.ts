@@ -11,4 +11,8 @@ export default class GlobalScope extends Scope {
 
 		return this.variables[name] as GlobalVariable;
 	}
+
+	deshadow (names: Set<string>, children = this.children) {
+		super.deshadow(names, children);
+	}
 }

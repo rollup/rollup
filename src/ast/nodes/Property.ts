@@ -165,11 +165,11 @@ export default class Property extends NodeBase {
 		});
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (!this.shorthand) {
-			this.key.render(code, es);
+			this.key.render(code);
 		}
-		this.value.render(code, es);
+		this.value.render(code);
 	}
 
 	someReturnExpressionWhenCalledAtPath (

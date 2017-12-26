@@ -1,5 +1,4 @@
-import { bar } from 'foo';
-import foo__default from 'foo';
+import foo__default, { bar } from 'foo';
 
 console.log( bar );
 

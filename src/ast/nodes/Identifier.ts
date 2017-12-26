@@ -116,9 +116,9 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (this.variable) {
-			const name = this.variable.getName(es);
+			const name = this.variable.getName();
 			if (name !== this.name) {
 				code.overwrite(this.start, this.end, name, {
 					storeName: true,

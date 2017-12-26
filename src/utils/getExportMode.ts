@@ -1,4 +1,3 @@
-import { keys } from './object';
 import error from './error';
 import Bundle from '../Bundle';
 import { OutputOptions } from '../rollup/index';
@@ -16,9 +15,7 @@ export default function getExportMode (
 	bundle: Bundle,
 	{ exports: exportMode, name, format }: OutputOptions
 ) {
-	const exportKeys = keys(bundle.entryModule.exports)
-		.concat(keys(bundle.entryModule.reexports))
-		.concat(bundle.entryModule.exportAllSources); // not keys, but makes our job easier this way
+	const exportKeys = bundle.getExportNames();
 
 	if (exportMode === 'default') {
 		if (exportKeys.length !== 1 || exportKeys[0] !== 'default') {
@@ -34,7 +31,7 @@ export default function getExportMode (
 		} else if (exportKeys.length === 1 && exportKeys[0] === 'default') {
 			exportMode = 'default';
 		} else {
-			if (bundle.entryModule.exports.default && format !== 'es') {
+			if (bundle.entryModuleFacade && format !== 'es' && exportKeys.indexOf('default') !== -1) {
 				bundle.graph.warn({
 					code: 'MIXED_EXPORTS',
 					message: `Using named and default exports together. Consumers of your bundle will have to use ${name ||
