@@ -44,25 +44,21 @@ export default class NamespaceVariable extends Variable {
 		return true;
 	}
 
-	renderBlock (es: boolean, legacy: boolean, freeze: boolean, indentString: string) {
+	renderBlock (legacy: boolean, freeze: boolean, indentString: string) {
 		const members = keys(this.originals).map(name => {
 			const original = this.originals[name];
 
 			if (original.isReassigned && !legacy) {
-				return `${indentString}get ${name} () { return ${original.getName(
-					es
-				)}; }`;
+				return `${indentString}get ${name} () { return ${original.getName()}; }`;
 			}
 
 			if (legacy && ~reservedWords.indexOf(name)) name = `'${name}'`;
-			return `${indentString}${name}: ${original.getName(es)}`;
+			return `${indentString}${name}: ${original.getName()}`;
 		});
 
 		const callee = freeze
 			? legacy ? `(Object.freeze || Object)` : `Object.freeze`
 			: '';
-		return `${this.module.graph.varOrConst} ${this.getName(
-			es
-		)} = ${callee}({\n${members.join(',\n')}\n});\n\n`;
+		return `${this.module.graph.varOrConst} ${this.getName()} = ${callee}({\n${members.join(',\n')}\n});\n\n`;
 	}
 }

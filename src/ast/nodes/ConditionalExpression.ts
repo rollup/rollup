@@ -90,12 +90,12 @@ export default class ConditionalExpression extends NodeBase {
 		}
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (!this.module.graph.treeshake) {
-			super.render(code, es);
+			super.render(code);
 		} else {
 			if (this.testValue === UNKNOWN_VALUE) {
-				super.render(code, es);
+				super.render(code);
 			} else {
 				const branchToRetain = this.testValue
 					? this.consequent
@@ -107,7 +107,7 @@ export default class ConditionalExpression extends NodeBase {
 					code.prependLeft(branchToRetain.start, '(');
 					code.appendRight(branchToRetain.end, ')');
 				}
-				branchToRetain.render(code, es);
+				branchToRetain.render(code);
 			}
 		}
 	}

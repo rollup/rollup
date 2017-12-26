@@ -6,11 +6,11 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import GlobalVariable from '../variables/GlobalVariable';
-import ExternalVariable from '../variables/ExternalVariable';
 import ThisVariable from '../variables/ThisVariable';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import Variable from '../variables/Variable';
 import { ExpressionEntity } from '../nodes/shared/Expression';
+import ExternalVariable from '../variables/ExternalVariable';
 
 export default class Scope {
 	parent: Scope | void;
@@ -81,26 +81,30 @@ export default class Scope {
 		);
 	}
 
-	deshadow (names: Set<string>) {
+	deshadow (names: Set<string>, children = this.children) {
 		keys(this.variables).forEach(key => {
 			const declaration = this.variables[key];
 
 			// we can disregard exports.foo etc
 			if (declaration.exportName && declaration.isReassigned) return;
 
-			const name = declaration.getName(true);
-			let deshadowed = name;
+			let name = declaration.getName();
 
-			let i = 1;
-
-			while (names.has(deshadowed)) {
-				deshadowed = `${name}$$${i++}`;
+			if (!names.has(name)) {
+				return;
 			}
 
-			declaration.name = deshadowed;
+			name = declaration.name;
+			let deshadowed, i = 1;
+			do {
+				deshadowed = `${name}$$${i++}`;
+			}
+			while (names.has(deshadowed))
+
+			declaration.setSafeName(deshadowed);
 		});
 
-		this.children.forEach(scope => scope.deshadow(names));
+		children.forEach(scope => scope.deshadow(names));
 	}
 
 	findLexicalBoundary (): Scope {
@@ -108,8 +112,6 @@ export default class Scope {
 	}
 
 	findVariable (name: string): Variable {
-		return (
-			this.variables[name] || (this.parent && this.parent.findVariable(name))
-		);
+		return this.variables[name] || (this.parent && this.parent.findVariable(name));
 	}
 }

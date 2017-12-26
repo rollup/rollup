@@ -1,6 +1,6 @@
 import factory from 'factory';
-import { bar, foo } from 'baz';
-import { forEach, port } from 'shipping-port';
+import { foo, bar } from 'baz';
+import { port, forEach } from 'shipping-port';
 import alphabet, { a } from 'alphabet';
 
 factory( null );

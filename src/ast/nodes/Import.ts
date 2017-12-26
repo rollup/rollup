@@ -1,8 +1,8 @@
 import CallExpression from './CallExpression';
 import { NodeType } from './NodeType';
+import { NodeBase } from './shared/Node';
 import MagicString from 'magic-string';
 import NamespaceVariable from '../variables/NamespaceVariable';
-import { NodeBase } from './shared/Node';
 
 export interface DynamicImportMechanism {
 	left: string,
@@ -23,7 +23,7 @@ export default class Import extends NodeBase {
 		}
 	}
 
-	render (code: MagicString, _es: boolean) {
+	render (code: MagicString) {
 		// if we have the module in the bundle, inline as Promise.resolve(namespace)
 		let resolution: string;
 		if (this.resolution instanceof NamespaceVariable) {

@@ -1,42 +1,66 @@
-import Bundle from "../../Bundle";
-import ExternalModule from '../../ExternalModule';
+import { BundleExports, BundleDependencies } from "../../Bundle";
 
 export default function getExportBlock (
-	bundle: Bundle,
+	exports: BundleExports,
+	dependencies: BundleDependencies,
 	exportMode: string,
 	mechanism = 'return'
 ) {
-	const entryModule = bundle.entryModule;
-
 	if (exportMode === 'default') {
-		return `${mechanism} ${entryModule.traceExport('default').getName(false)};`;
+		let local;
+		exports.some(expt => {
+			if (expt.exported === 'default') {
+				local = expt.local;
+				return true;
+			}
+			return false;
+		});
+		// search for reexported default otherwise
+		if (!local) {
+			dependencies.some(dep => {
+				if (!dep.reexports)
+					return false;
+				return dep.reexports.some(expt => {
+					if (expt.reexported === 'default') {
+						local = `${dep.name}.${expt.imported}`;
+						return true;
+					}
+					return false;
+				});
+			})
+		}
+		return `${mechanism} ${local};`;
 	}
 
-	const exports = entryModule
-		.getExports()
-		.concat(entryModule.getReexports())
-		.map(name => {
-			if (name[0] === '*') {
-				// export all from external
-				const id = name.slice(1);
-				const module = <ExternalModule> bundle.graph.moduleById.get(id);
+	let exportBlock = '';
 
-				return `Object.keys(${
-					module.name
-					}).forEach(function (key) { exports[key] = ${module.name}[key]; });`;
+	dependencies.forEach(({ name, reexports }) => {
+		if (reexports && exportMode !== 'default') {
+			if (exportBlock) {
+				exportBlock += '\n';
 			}
+			reexports.forEach(specifier => {
+				if (specifier.imported === '*') {
+					exportBlock += `Object.keys(${name}).forEach(function (key) { exports[key] = ${name}[key]; });`;
+				}
+				else {
+					exportBlock += `exports.${specifier.reexported} = ${name}.${specifier.imported};`;
+				}
+			});
+		}
+	});
 
-			const prop = name === 'default' ? `['default']` : `.${name}`;
-			const declaration = entryModule.traceExport(name);
+	exports.forEach(expt => {
+		const lhs = `exports.${expt.exported}`;
+		const rhs = expt.local;
+		if (lhs === rhs) {
+			return;
+		}
+		if (exportBlock) {
+			exportBlock += '\n';
+		}
+		exportBlock += `${lhs} = ${rhs};`;
+	});
 
-			const lhs = `exports${prop}`;
-			const rhs = declaration ? declaration.getName(false) : name; // exporting a global
-
-			// prevent `exports.count = exports.count`
-			if (lhs === rhs) return null;
-
-			return `${lhs} = ${rhs};`;
-		});
-
-	return exports.filter(Boolean).join('\n');
+	return exportBlock;
 }

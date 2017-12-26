@@ -37,6 +37,8 @@ export default function iife (
 	const isNamespaced = name && name.indexOf('.') !== -1;
 	const possibleVariableAssignment = !extend && !isNamespaced;
 
+	const moduleDeclarations = bundle.getModuleDeclarations();
+
 	if (name && possibleVariableAssignment && !isLegal(name)) {
 		error({
 			code: 'ILLEGAL_IDENTIFIER_AS_NAME',
@@ -93,7 +95,7 @@ export default function iife (
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(bundle, exportMode);
+	const exportBlock = getExportBlock(moduleDeclarations.exports, moduleDeclarations.dependencies, exportMode);
 	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
 	if (outro) (<any> magicString).append(outro); // TODO TypeScript: Awaiting PR
 

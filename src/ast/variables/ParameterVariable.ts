@@ -5,8 +5,4 @@ export default class ParameterVariable extends ReplaceableInitializationVariable
 	constructor (identifier: Identifier) {
 		super(identifier.name, identifier);
 	}
-
-	getName () {
-		return this.name;
-	}
 }

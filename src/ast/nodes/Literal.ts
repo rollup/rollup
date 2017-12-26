@@ -30,7 +30,7 @@ export default class Literal<T = string | boolean | null | number | RegExp> exte
 		return path.length > 1;
 	}
 
-	render (code: MagicString, _es: boolean) {
+	render (code: MagicString) {
 		if (typeof this.value === 'string') {
 			(<any> code).indentExclusionRanges.push([this.start + 1, this.end - 1]); // TODO TypeScript: Awaiting MagicString PR
 		}
