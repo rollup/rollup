@@ -193,7 +193,7 @@ describe('incremental', () => {
 			});
 	});
 
-	it('separates resolvedIds from resolvedExternalIds', () => {
+	it('combines resolvedIds from resolvedExternalIds', () => {
 		modules = {
 			entry: `import foo from 'foo'; import external from 'external'; console.log(foo(external));`,
 			foo: `export default 42`
@@ -212,10 +212,7 @@ describe('incremental', () => {
 				assert.equal(bundle.modules[1].id, 'entry');
 
 				assert.deepEqual(bundle.modules[1].resolvedIds, {
-					foo: 'foo'
-				});
-
-				assert.deepEqual(bundle.modules[1].resolvedExternalIds, {
+					foo: 'foo',
 					external: 'external'
 				});
 			});

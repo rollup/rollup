@@ -69,10 +69,10 @@ export default class IfStatement extends StatementBase {
 		}
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (this.module.graph.treeshake) {
 			if (this.testValue === UNKNOWN_VALUE) {
-				super.render(code, es);
+				super.render(code);
 			} else {
 				code.overwrite(
 					this.test.start,
@@ -99,7 +99,7 @@ export default class IfStatement extends StatementBase {
 				if (this.testValue) {
 					code.remove(this.start, this.consequent.start);
 					code.remove(this.consequent.end, this.end);
-					this.consequent.render(code, es);
+					this.consequent.render(code);
 				} else {
 					code.remove(
 						this.start,
@@ -107,14 +107,14 @@ export default class IfStatement extends StatementBase {
 					);
 
 					if (this.alternate) {
-						this.alternate.render(code, es);
+						this.alternate.render(code);
 					} else if (statementsWithIfStatements.has(this.parent.type)) {
 						code.prependRight(this.start, '{}');
 					}
 				}
 			}
 		} else {
-			super.render(code, es);
+			super.render(code);
 		}
 	}
 }

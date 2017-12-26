@@ -73,10 +73,11 @@ export default function mergeOptions ({
 		cache: getInputOption('cache'),
 		preferConst: getInputOption('preferConst'),
 		experimentalDynamicImport: getInputOption('experimentalDynamicImport'),
+		experimentalCodeSplitting: getInputOption('experimentalCodeSplitting')
 	};
 
 	// legacy, to ensure e.g. commonjs plugin still works
-	inputOptions.entry = inputOptions.input;
+	(<any>inputOptions).entry = inputOptions.input;
 
 	const commandExternal = (command.external || '').split(',');
 	const configExternal = config.external;
@@ -128,6 +129,7 @@ export default function mergeOptions ({
 		paths: getOutputOption('paths'),
 		exports: getOutputOption('exports'),
 		file: getOutputOption('file'),
+		dir: getOutputOption('dir')
 	};
 
 	let mergedOutputOptions;

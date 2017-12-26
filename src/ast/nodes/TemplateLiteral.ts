@@ -12,8 +12,8 @@ export default class TemplateLiteral extends NodeBase {
 	quasis: TemplateElement[];
 	expressions: ExpressionNode[];
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		(<any> code).indentExclusionRanges.push([this.start, this.end]); // TODO TypeScript: Awaiting PR
-		super.render(code, es);
+		super.render(code);
 	}
 }

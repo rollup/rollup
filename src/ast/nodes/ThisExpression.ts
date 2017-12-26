@@ -44,7 +44,7 @@ export default class ThisExpression extends NodeBase {
 		return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
-	render (code: MagicString, _es: boolean) {
+	render (code: MagicString) {
 		if (this.alias) {
 			code.overwrite(this.start, this.end, this.alias, {
 				storeName: true,

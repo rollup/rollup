@@ -14,9 +14,9 @@ export default class ClassDeclaration extends ClassNode {
 		super.initialiseChildren(parentScope);
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (!this.module.graph.treeshake || this.included) {
-			super.render(code, es);
+			super.render(code);
 		} else {
 			code.remove(
 				this.leadingCommentStart || this.start,

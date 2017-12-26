@@ -7,6 +7,7 @@ const command = minimist(process.argv.slice(2), {
 	alias: {
 		// Aliases
 		strict: 'useStrict',
+		dir: 'output.dir',
 
 		// Short options
 		c: 'config',

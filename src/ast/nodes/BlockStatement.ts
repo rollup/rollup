@@ -60,13 +60,13 @@ export default class BlockStatement extends StatementBase {
 		this.scope = new BlockScope({ parent: parentScope });
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (this.body.length) {
 			for (const node of this.body) {
-				node.render(code, es);
+				node.render(code);
 			}
 		} else {
-			super.render(code, es);
+			super.render(code);
 		}
 	}
 }

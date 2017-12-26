@@ -29,10 +29,10 @@ export default class ExportNamedDeclaration extends NodeBase {
 		this.isExportDeclaration = true;
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (this.declaration) {
 			code.remove(this.start, this.declaration.start);
-			this.declaration.render(code, es);
+			this.declaration.render(code);
 		} else {
 			const start = this.leadingCommentStart || this.start;
 			const end = this.next || this.end;

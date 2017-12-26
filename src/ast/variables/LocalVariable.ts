@@ -52,13 +52,6 @@ export default class LocalVariable extends Variable {
 		);
 	}
 
-	getName (es: boolean) {
-		if (es) return this.name;
-		if (!this.isReassigned || !this.exportName) return this.name;
-
-		return `exports.${this.exportName}`;
-	}
-
 	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			path.length > MAX_PATH_DEPTH ||
