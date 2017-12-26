@@ -1,16 +1,16 @@
 (function () {
 	'use strict';
 
-	var bar$1 = 42;
+	var bar = 42;
 
 	function foo () {
-		return bar$1;
+		return bar;
 	}
 
-	function bar () {
+	function bar$2 () {
 		alert( foo() );
 	}
 
-	bar();
+	bar$2();
 
 }());

@@ -7,7 +7,7 @@ export function load (id: string) {
 	return readFileSync(id, 'utf-8');
 }
 
-function findFile (file: string): string {
+function findFile (file: string): string | void {
 	try {
 		const stats = lstatSync(file);
 		if (stats.isSymbolicLink()) return findFile(realpathSync(file));

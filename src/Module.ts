@@ -18,7 +18,7 @@ import ModuleScope from './ast/scopes/ModuleScope';
 import { encode } from 'sourcemap-codec';
 import { RawSourceMap, SourceMapConsumer } from 'source-map';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
-import Graph, { ResolveDynamicImportHandler } from './Graph';
+import Graph from './Graph';
 import Variable from './ast/variables/Variable';
 import Program from './ast/nodes/Program';
 import VariableDeclarator from './ast/nodes/VariableDeclarator';
@@ -34,9 +34,10 @@ import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
 import { RollupWarning } from './rollup/index';
 import ExternalModule from './ExternalModule';
 import Import from './ast/nodes/Import';
+import { NodeType } from './ast/nodes/index';
+import ExternalVariable from './ast/variables/ExternalVariable';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import Literal from './ast/nodes/Literal';
-import { NodeType } from './ast/nodes/index';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
@@ -104,7 +105,7 @@ export default class Module {
 	code: string;
 	comments: CommentDescription[];
 	context: string;
-	dependencies: (Module | ExternalModule)[];
+	dependencies: Module[];
 	excludeFromSourcemap: boolean;
 	exports: { [name: string]: ExportDescription };
 	exportsAll: { [name: string]: string };
@@ -119,7 +120,7 @@ export default class Module {
 			module: Module | ExternalModule | null;
 		}
 	};
-	isExternal: boolean;
+	isExternal: false;
 	magicString: MagicString;
 	originalCode: string;
 	originalSourcemap: RawSourceMap;
@@ -130,6 +131,8 @@ export default class Module {
 	sourcemapChain: RawSourceMap[];
 	sources: string[];
 	strongDependencies: (Module | ExternalModule)[];
+	dynamicImports: Import[];
+	dynamicImportResolutions: (Module | ExternalModule | string | void)[];
 
 	ast: Program;
 	private astClone: Program;
@@ -138,7 +141,6 @@ export default class Module {
 		[name: string]: Variable;
 	};
 	private exportAllModules: (Module | ExternalModule)[];
-	private dynamicImports: Import[];
 
 	constructor ({
 		id,
@@ -169,6 +171,7 @@ export default class Module {
 		this.sourcemapChain = sourcemapChain;
 		this.comments = [];
 		this.dynamicImports = [];
+		this.dynamicImportResolutions = [];
 
 		timeStart('ast');
 
@@ -385,6 +388,41 @@ export default class Module {
 		return makeLegal(ext ? base.slice(0, -ext.length) : base);
 	}
 
+	mark () {
+		this.getExports().forEach(name => {
+			const variable = this.traceExport(name);
+
+			variable.exportName = name;
+			variable.includeVariable();
+
+			if (variable.isNamespace) {
+				(<NamespaceVariable>variable).needsNamespaceBlock = true;
+			}
+		});
+
+		this.getReexports().forEach(name => {
+			const variable = this.traceExport(name);
+
+			if (variable.isExternal) {
+				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
+			} else {
+				variable.exportName = name;
+				variable.includeVariable();
+			}
+		});
+	}
+
+	link () {
+		this.sources.forEach(source => {
+			const id = this.resolvedIds[source];
+
+			if (id) {
+				const module = this.graph.moduleById.get(id);
+				this.dependencies.push(<Module>module);
+			}
+		});
+	}
+
 	bindImportSpecifiers () {
 		[this.imports, this.reexports].forEach(specifiers => {
 			keys(specifiers).forEach(name => {
@@ -401,21 +439,31 @@ export default class Module {
 			const id = this.resolvedIds[source] || this.resolvedExternalIds[source];
 			return this.graph.moduleById.get(id);
 		});
-
-		this.sources.forEach(source => {
-			const id = this.resolvedIds[source];
-
-			if (id) {
-				const module = this.graph.moduleById.get(id);
-				this.dependencies.push(module);
-			}
-		});
 	}
 
 	bindReferences () {
 		for (const node of this.ast.body) {
 			node.bind();
 		}
+	}
+
+	getDynamicImportExpressions (): (string | Node)[] {
+		return this.dynamicImports.map(node => {
+			let dynamicImportExpression: string | Node;
+			const importArgument = node.parent.arguments[0];
+			if (importArgument.type === NodeType.TemplateLiteral) {
+				if ((<TemplateLiteral>importArgument).expressions.length === 0 && (<TemplateLiteral>importArgument).quasis.length === 1) {
+					dynamicImportExpression = (<TemplateLiteral>importArgument).quasis[0].value.cooked;
+				}
+			} else if (importArgument.type === NodeType.Literal) {
+				if (typeof (<Literal>importArgument).value === 'string') {
+					dynamicImportExpression = (<Literal<string>>importArgument).value;
+				}
+			} else {
+				dynamicImportExpression = importArgument;
+			}
+			return dynamicImportExpression;
+		});
 	}
 
 	private getOriginalLocation (sourcemapChain: RawSourceMap[], line: number, column: number) {
@@ -513,49 +561,6 @@ export default class Module {
 		return addedNewNodes;
 	}
 
-	processDynamicImports (resolveDynamicImport: ResolveDynamicImportHandler) {
-		return Promise.all(this.dynamicImports.map(node => {
-			const importArgument = node.parent.arguments[0];
-			let dynamicImportSpecifier: string | Node;
-			if (importArgument.type === NodeType.TemplateLiteral) {
-				if ((<TemplateLiteral>importArgument).expressions.length === 0 && (<TemplateLiteral>importArgument).quasis.length === 1) {
-					dynamicImportSpecifier = (<TemplateLiteral>importArgument).quasis[0].value.cooked;
-				}
-			} else if (importArgument.type === NodeType.Literal) {
-				if (typeof (<Literal>importArgument).value === 'string') {
-					dynamicImportSpecifier = <string>(<Literal>importArgument).value;
-				}
-			} else {
-				dynamicImportSpecifier = importArgument;
-			}
-
-			return Promise.resolve(resolveDynamicImport(dynamicImportSpecifier, this.id))
-				.then(replacement => {
-					if (!replacement)
-						return;
-
-					// string specifier -> direct resolution
-					if (typeof dynamicImportSpecifier === 'string') {
-						// if we have the module, inline as Promise.resolve(namespace)
-						// ensuring that we create a namespace import of it as well
-						const replacementModule = this.graph.moduleById.get(replacement);
-						if (replacementModule && !replacementModule.isExternal) {
-							const namespace = (<Module>replacementModule).namespace();
-							namespace.includeVariable();
-							const identifierName = namespace.getName(true);
-							this.magicString.overwrite(node.parent.start, node.parent.end, `Promise.resolve( ${identifierName} )`);
-							// otherwise treat as an external dynamic import resolution
-						} else {
-							this.magicString.overwrite(importArgument.start, importArgument.end, `"${replacement}"`);
-						}
-						// AST Node -> source replacement
-					} else {
-						this.magicString.overwrite(importArgument.start, importArgument.end, replacement);
-					}
-				});
-		}));
-	}
-
 	namespace (): NamespaceVariable {
 		if (!this.declarations['*']) {
 			this.declarations['*'] = new NamespaceVariable(this);
@@ -564,7 +569,7 @@ export default class Module {
 		return this.declarations['*'];
 	}
 
-	render (es: boolean, legacy: boolean, freeze: boolean) {
+	render (es: boolean, legacy: boolean, freeze: boolean): MagicString {
 		const magicString = this.magicString.clone();
 
 		for (const node of this.ast.body) {

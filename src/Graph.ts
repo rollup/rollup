@@ -1,6 +1,6 @@
 import { timeEnd, timeStart } from './utils/flushTime';
 import first from './utils/first';
-import { blank, forOwn, keys } from './utils/object';
+import { blank, keys } from './utils/object';
 import Module, { IdMap, ModuleJSON } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
@@ -21,13 +21,10 @@ import {
 	TreeshakingOptions,
 	WarningHandler
 } from './rollup/index';
-import { isNamespaceVariable } from './ast/variables/NamespaceVariable';
-import ExternalVariable, { isExternalVariable } from './ast/variables/ExternalVariable';
 import { RawSourceMap } from 'source-map';
 import Program from './ast/nodes/Program';
 import { Node } from './ast/nodes/shared/Node';
 import Bundle from './Bundle';
-import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 
 export type ResolveDynamicImportHandler = (specifier: string | Node, parentId: string) => Promise<string | void>;
 
@@ -156,7 +153,10 @@ export default class Graph {
 		this.dynamicImport = typeof options.experimentalDynamicImport === 'boolean' ? options.experimentalDynamicImport : false;
 
 		if (this.dynamicImport) {
-			this.resolveDynamicImport = first(this.plugins.map(plugin => plugin.resolveDynamicImport).filter(Boolean));
+			this.resolveDynamicImport = first([
+				...this.plugins.map(plugin => plugin.resolveDynamicImport).filter(Boolean),
+				<ResolveDynamicImportHandler> ((specifier, parentId) => typeof specifier === 'string' && this.resolveId(specifier, parentId))
+			]);
 			this.acornOptions.plugins = this.acornOptions.plugins || {};
 			this.acornOptions.plugins.dynamicImport = true;
 		}
@@ -184,13 +184,11 @@ export default class Graph {
 	}
 
 	private link () {
-		this.modules.forEach(module => module.bindImportSpecifiers());
-		this.modules.forEach(module => module.bindReferences());
-
 		this.stronglyDependsOn = blank();
 		this.dependsOn = blank();
 
 		this.modules.forEach(module => {
+			module.link();
 			this.stronglyDependsOn[module.id] = blank();
 			this.dependsOn[module.id] = blank();
 		});
@@ -221,16 +219,12 @@ export default class Graph {
 	}
 
 	buildSingle (entryModuleId: string): Promise<Bundle> {
-		let entryModule: Module;
-		let orderedModules: Module[];
-
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
 		timeStart('phase 1');
 		return this.loadModule(entryModuleId)
-			.then((_entryModule) => {
-				entryModule = _entryModule;
+			.then(entryModule => {
 				timeEnd('phase 1');
 
 				// Phase 2 - linking. We populate the module dependency links
@@ -239,55 +233,32 @@ export default class Graph {
 				timeStart('phase 2');
 
 				this.link();
-				orderedModules = this.analyseExecution(entryModule);
+				const { orderedModules, dynamicImports } = this.analyseExecution(entryModule);
+				dynamicImports.forEach(dynamicImportModule => {
+					if (orderedModules.indexOf(dynamicImportModule) === -1)
+						orderedModules.push(dynamicImportModule);
+				});
+				const bundle = new Bundle(this, orderedModules);
 
 				timeEnd('phase 2');
 
 				// Phase 3 – marking. We include all statements that should be included
 				timeStart('phase 3');
 
-				// hook dynamic imports
-				if (this.dynamicImport)
-					return Promise.all(this.modules.map(module => module.processDynamicImports(this.resolveDynamicImport)));
-			})
-			.then(() => {
-				// mark all export statements
-				this.mark(entryModule);
+				// mark all export statements for the entry module and dynamic import modules
+				bundle.bind();
+
+				entryModule.mark();
+				dynamicImports.forEach(dynamicImportModule => {
+					dynamicImportModule.mark();
+					dynamicImportModule.namespace().includeVariable();
+				});
+
+				// only include statements that should appear in the bundle
+				bundle.includeMarked(this.treeshake);
 
 				// check for unused external imports
-				this.externalModules.forEach(module => {
-					const unused = Object.keys(module.declarations)
-						.filter(name => name !== '*')
-						.filter(
-							name =>
-								!module.declarations[name].included &&
-								!module.declarations[name].reexported
-						);
-
-					if (unused.length === 0) return;
-
-					const names =
-						unused.length === 1
-							? `'${unused[0]}' is`
-							: `${unused
-							.slice(0, -1)
-							.map(name => `'${name}'`)
-							.join(', ')} and '${unused.slice(-1)}' are`;
-
-					this.warn({
-						code: 'UNUSED_EXTERNAL_IMPORT',
-						source: module.id,
-						names: unused,
-						message: `${names} imported from external module '${
-							module.id
-							}' but never used`
-					});
-				});
-
-				// prune unused external imports
-				const externalModules = this.externalModules.filter(module => {
-					return module.used || !this.isPureExternalModule(module.id);
-				});
+				this.externalModules.forEach(module => module.warnUnusedImports());
 
 				timeEnd('phase 3');
 
@@ -295,8 +266,9 @@ export default class Graph {
 
 				timeStart('phase 4');
 
-				this.deconflict(externalModules);
-				const bundle = new Bundle(this, orderedModules, externalModules, entryModule);
+				bundle.setFascade(entryModule);
+				bundle.processExternals();
+				bundle.deconflict();
 
 				timeEnd('phase 4');
 
@@ -304,71 +276,45 @@ export default class Graph {
 			});
 	}
 
-	private mark (entryModule: Module) {
-		entryModule.getExports().forEach(name => {
-			const variable = entryModule.traceExport(name);
-
-			variable.exportName = name;
-			variable.includeVariable();
-
-			if (isNamespaceVariable(variable)) {
-				variable.needsNamespaceBlock = true;
-			}
-		});
-
-		entryModule.getReexports().forEach(name => {
-			const variable = entryModule.traceExport(name);
-
-			if (isExternalVariable(variable)) {
-				variable.reexported = variable.module.reexported = true;
-			} else {
-				variable.exportName = name;
-				variable.includeVariable();
-			}
-		});
-
-		// mark statements that should appear in the bundle
-		if (this.treeshake) {
-			let addedNewNodes;
-			do {
-				addedNewNodes = false;
-				this.modules.forEach(module => {
-					if (module.includeInBundle()) {
-						addedNewNodes = true;
-					}
-				});
-			} while (addedNewNodes);
-		} else {
-			// Necessary to properly replace namespace imports
-			this.modules.forEach(module => module.includeAllInBundle());
-		}
-	}
-
-	private analyseExecution (entryModule: Module): Module[] {
-		let hasCycles;
-		const seen: { [id: string]: boolean } = {};
+	private analyseExecution (entryModule: Module) {
+		let hasCycles = false, curEntry: Module;
+		const seen: { [id: string]: Module } = {};
 		const ordered: Module[] = [];
 
+		const dynamicImports: Module[] = [];
+
 		function visit (module: Module) {
-			if (seen[module.id]) {
-				hasCycles = true;
+			const seenEntry = seen[module.id];
+			if (seenEntry) {
+				if (seenEntry === curEntry)
+					hasCycles = true;
 				return;
 			}
 
-			seen[module.id] = true;
+			seen[module.id] = curEntry;
 
 			module.dependencies.forEach(visit);
+			module.dynamicImportResolutions.forEach(module => {
+				if (module instanceof Module)
+					dynamicImports.push(module);
+			});
 
 			ordered.push(module);
 		}
 
+		curEntry = entryModule;
 		visit(entryModule);
+
+		for (let i = 0; i < dynamicImports.length; i++) {
+			curEntry = dynamicImports[i];
+			visit(curEntry);
+		}
 
 		if (hasCycles) {
 			this.warnCycle(ordered, [entryModule]);
 		}
 
-		return ordered;
+		return { orderedModules: ordered, dynamicImports };
 	}
 
 	private warnCycle (ordered: Module[], entryModules: Module[]) {
@@ -410,57 +356,14 @@ export default class Graph {
 		});
 	}
 
-	private deconflict (externalModules: ExternalModule[]) {
-		const used = blank();
-
-		// ensure no conflicts with globals
-		keys(this.scope.variables).forEach(name => (used[name] = 1));
-
-		function getSafeName (name: string): string {
-			while (used[name]) {
-				name += `$${used[name]++}`;
-			}
-
-			used[name] = 1;
-			return name;
-		}
-
-		const toDeshadow: Set<string> = new Set();
-
-		externalModules.forEach(module => {
-			const safeName = getSafeName(module.name);
-			toDeshadow.add(safeName);
-			module.name = safeName;
-
-			// ensure we don't shadow named external imports, if
-			// we're creating an ES6 bundle
-			forOwn(module.declarations, (declaration, name) => {
-				const safeName = getSafeName(name);
-				toDeshadow.add(safeName);
-				(<ExternalVariable>declaration).setSafeName(safeName);
-			});
-		});
-
-		this.modules.forEach(module => {
-			forOwn(module.scope.variables, variable => {
-				if (!(<ExportDefaultVariable>variable).isDefault || !(<ExportDefaultVariable>variable).hasId) {
-					variable.name = getSafeName(variable.name);
-				}
-			});
-
-			// deconflict reified namespaces
-			const namespace = module.namespace();
-			if (namespace.needsNamespaceBlock) {
-				namespace.name = getSafeName(namespace.name);
-			}
-		});
-
-		this.scope.deshadow(toDeshadow);
-	}
-
 	private fetchModule (id: string, importer: string): Promise<Module> {
 		// short-circuit cycles
-		if (this.moduleById.has(id)) return null;
+		const existingModule = this.moduleById.get(id);
+		if (existingModule) {
+			if (existingModule.isExternal)
+				throw new Error(`Cannot fetch external module ${id}`);
+			return Promise.resolve(<Module>existingModule);
+		}
 		this.moduleById.set(id, null);
 
 		return this.load(id)
@@ -570,6 +473,37 @@ export default class Graph {
 	}
 
 	private fetchAllDependencies (module: Module) {
+		// resolve and fetch dynamic imports where possible
+		const fetchDynamicImportsPromise = Promise.all(
+			module.getDynamicImportExpressions()
+			.map((dynamicImportExpression, index) => {
+				return Promise.resolve(this.resolveDynamicImport(dynamicImportExpression, module.id))
+				.then(replacement => {
+					if (!replacement) {
+						module.dynamicImportResolutions[index] = null;
+					} else if (typeof dynamicImportExpression !== 'string') {
+						module.dynamicImportResolutions[index] = replacement;
+					} else if (this.isExternal(replacement, module.id, true)) {
+						if (!this.moduleById.has(replacement)) {
+							const module = new ExternalModule(this, replacement);
+							this.externalModules.push(module);
+							this.moduleById.set(replacement, module);
+						}
+
+						const externalModule = <ExternalModule>this.moduleById.get(replacement);
+						module.dynamicImportResolutions[index] = externalModule;
+						externalModule.exportsNamespace = true;
+					} else {
+						return this.fetchModule(replacement, module.id)
+						.then(depModule => {
+							module.dynamicImportResolutions[index] = depModule;
+						});
+					}
+				});
+			})
+		);
+		fetchDynamicImportsPromise.catch(() => {});
+
 		return mapSequence(module.sources, source => {
 			const resolvedId = module.resolvedIds[source];
 			return (resolvedId
@@ -610,7 +544,7 @@ export default class Graph {
 					module.resolvedExternalIds[source] = externalId;
 
 					if (!this.moduleById.has(externalId)) {
-						const module = new ExternalModule(externalId);
+						const module = new ExternalModule(this, externalId);
 						this.externalModules.push(module);
 						this.moduleById.set(externalId, module);
 					}
@@ -629,6 +563,9 @@ export default class Graph {
 					return this.fetchModule(<string>resolvedId, module.id);
 				}
 			});
+		})
+		.then(() => {
+			return fetchDynamicImportsPromise;
 		});
 	}
 

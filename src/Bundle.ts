@@ -2,7 +2,7 @@ import { timeStart, timeEnd } from './utils/flushTime';
 import { decode } from 'sourcemap-codec';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { find } from './utils/array';
-import { keys } from './utils/object';
+import { keys, blank, forOwn } from './utils/object';
 import Module from './Module';
 import finalisers from './finalisers/index';
 import getExportMode from './utils/getExportMode';
@@ -24,19 +24,54 @@ import { OutputOptions } from './rollup/index';
 import { RawSourceMap } from 'source-map';
 import Graph from './Graph';
 import ExternalModule from './ExternalModule';
+import ExternalVariable from './ast/variables/ExternalVariable';
+import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
+import { DynamicImportMechanism } from './ast/nodes/Import';
 
 export default class Bundle {
 	graph: Graph;
-	modules: Module[];
 	orderedModules: Module[];
 	externalModules: ExternalModule[];
 	entryModule: Module;
 
-	constructor (graph: Graph, orderedModules: Module[], externalModules: ExternalModule[], entryModule: Module) {
+	constructor (graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
 		this.orderedModules = orderedModules;
-		this.externalModules = externalModules;
+		this.externalModules = undefined;
+		this.entryModule = undefined;
+	}
+
+	bind () {
+		this.orderedModules.forEach(module => module.bindImportSpecifiers());
+		this.orderedModules.forEach(module => module.bindReferences());
+	}
+
+	includeMarked (treeshake: boolean) {
+		if (treeshake) {
+			let addedNewNodes;
+			do {
+				addedNewNodes = false;
+				this.orderedModules.forEach(module => {
+					if (module.includeInBundle()) {
+						addedNewNodes = true;
+					}
+				});
+			} while (addedNewNodes);
+		} else {
+			// Necessary to properly replace namespace imports
+			this.orderedModules.forEach(module => module.includeAllInBundle());
+		}
+	}
+
+	setFascade (entryModule: Module) {
 		this.entryModule = entryModule;
+	}
+
+	processExternals () {
+		// prune unused external imports
+		this.externalModules = this.graph.externalModules.filter(module => {
+			return module.used || !this.graph.isPureExternalModule(module.id);
+		});
 	}
 
 	collectAddon (initialAddon: string, addonName: 'banner' | 'footer' | 'intro' | 'outro', sep: string = '\n') {
@@ -82,6 +117,91 @@ export default class Bundle {
 		return resolvedId;
 	}
 
+	deconflict () {
+		const used = blank();
+
+		// ensure no conflicts with globals
+		keys(this.graph.scope.variables).forEach(name => (used[name] = 1));
+
+		function getSafeName (name: string): string {
+			while (used[name]) {
+				name += `$${used[name]++}`;
+			}
+
+			used[name] = 1;
+			return name;
+		}
+
+		const toDeshadow: Set<string> = new Set();
+
+		this.externalModules.forEach(module => {
+			const safeName = getSafeName(module.name);
+			toDeshadow.add(safeName);
+			module.name = safeName;
+
+			// ensure we don't shadow named external imports, if
+			// we're creating an ES6 bundle
+			forOwn(module.declarations, (declaration, name) => {
+				const safeName = getSafeName(name);
+				toDeshadow.add(safeName);
+				(<ExternalVariable>declaration).setSafeName(safeName);
+			});
+		});
+
+		this.orderedModules.forEach(module => {
+			forOwn(module.scope.variables, variable => {
+				if (!(<ExportDefaultVariable>variable).isDefault || !(<ExportDefaultVariable>variable).hasId) {
+					variable.name = getSafeName(variable.name);
+				}
+			});
+
+			// deconflict reified namespaces
+			const namespace = module.namespace();
+			if (namespace.needsNamespaceBlock) {
+				namespace.name = getSafeName(namespace.name);
+			}
+		});
+
+		this.graph.scope.deshadow(toDeshadow);
+	}
+
+	private setRenderResolutions (options: OutputOptions) {
+		let dynamicImportMechanism: DynamicImportMechanism;
+
+		if (options.format !== 'es') {
+			if (options.format === 'cjs') {
+				dynamicImportMechanism = {
+					left: 'Promise.resolve(require(',
+					right: '))'
+				};
+			} else if (options.format === 'amd') {
+				dynamicImportMechanism = {
+					left: 'new Promise(function (resolve, reject) { require([',
+					right: '], resolve, reject) })'
+				}
+			}
+		}
+
+		this.orderedModules.forEach(module => {
+			module.dynamicImportResolutions.forEach((replacement, index) => {
+				const node = module.dynamicImports[index];
+
+				if (!replacement)
+					return;
+
+				if (replacement instanceof Module) {
+					node.setResolution(replacement.namespace(), { left: 'Promise.resolve().then(() => ', right: ')' });
+				// external dynamic import resolution
+				} else if (replacement instanceof ExternalModule) {
+					node.setResolution(`"${replacement.id}"`, dynamicImportMechanism);
+				// AST Node -> source replacement
+				} else {
+					node.setResolution(replacement, dynamicImportMechanism);
+				}
+			});
+		});
+	}
+
 	render (options: OutputOptions) {
 		return Promise.resolve()
 			.then(() => {
@@ -101,12 +221,15 @@ export default class Bundle {
 
 				timeStart('render modules');
 
+				this.setRenderResolutions(options);
+
 				this.orderedModules.forEach(module => {
 					const source = module.render(
 						options.format === 'es',
 						this.graph.legacy,
 						options.freeze !== false
 					);
+
 					if (source.toString().length) {
 						magicString.addSource(source);
 						usedModules.push(module);

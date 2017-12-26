@@ -2,7 +2,7 @@ var assert = require('assert');
 var path = require('path');
 
 module.exports = {
-	description: 'Dynamic import inlining',
+	description: 'Dynamic import inlining when resolution id is a module in the bundle',
 	options: {
 		experimentalDynamicImport: true,
 		plugins: [{
@@ -13,9 +13,10 @@ module.exports = {
 		}]
 	},
 	exports: function (exports) {
-		assert.equal(exports.x, 41);
-		return exports.promise.then(y => {
-			assert.equal(y, 42);
+		assert.equal(exports.y, 42);
+		return Promise.resolve(exports.promise)
+		.then(val => {
+			assert.equal(val, 84);
 		});
 	}
 };
