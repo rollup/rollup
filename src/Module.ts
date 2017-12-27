@@ -18,7 +18,7 @@ import ModuleScope from './ast/scopes/ModuleScope';
 import { encode } from 'sourcemap-codec';
 import { RawSourceMap, SourceMapConsumer } from 'source-map';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
-import Bundle, { ResolveDynamicImportHandler } from './Bundle';
+import Graph, { ResolveDynamicImportHandler } from './Graph';
 import Variable from './ast/variables/Variable';
 import Program from './ast/nodes/Program';
 import VariableDeclarator from './ast/nodes/VariableDeclarator';
@@ -41,9 +41,9 @@ const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
 export interface IdMap { [key: string]: string; }
 
-interface CommentDescription {block: boolean, text: string, start: number, end: number}
-interface ExportDescription {localName: string, identifier?: string}
-interface ReexportDescription {localName: string, start: number, source: string, module: Module}
+interface CommentDescription { block: boolean, text: string, start: number, end: number }
+interface ExportDescription { localName: string, identifier?: string }
+interface ReexportDescription { localName: string, start: number, source: string, module: Module }
 
 function tryParse (module: Module, acornOptions: Object) {
 	try {
@@ -64,8 +64,8 @@ function tryParse (module: Module, acornOptions: Object) {
 
 function includeFully (node: Node) {
 	node.included = true;
-	if ((<Identifier> node).variable && !(<Identifier> node).variable.included) {
-		(<Identifier> node).variable.includeVariable();
+	if ((<Identifier>node).variable && !(<Identifier>node).variable.included) {
+		(<Identifier>node).variable.includeVariable();
 	}
 	node.eachChild(includeFully);
 }
@@ -84,14 +84,14 @@ export interface ModuleJSON {
 
 export default class Module {
 	type: 'Module';
-	bundle: Bundle;
+	graph: Graph;
 	code: string;
 	comments: CommentDescription[];
 	context: string;
 	dependencies: (Module | ExternalModule)[];
 	excludeFromSourcemap: boolean;
-	exports: {[name: string]: ExportDescription};
-	exportsAll: {[name: string]: string};
+	exports: { [name: string]: ExportDescription };
+	exportsAll: { [name: string]: string };
 	exportAllSources: string[];
 	id: string;
 
@@ -107,7 +107,7 @@ export default class Module {
 	magicString: MagicString;
 	originalCode: string;
 	originalSourcemap: RawSourceMap;
-	reexports: {[name: string]: ReexportDescription};
+	reexports: { [name: string]: ReexportDescription };
 	resolvedExternalIds: IdMap;
 	resolvedIds: IdMap;
 	scope: ModuleScope;
@@ -117,7 +117,10 @@ export default class Module {
 
 	ast: Program;
 	private astClone: Program;
-	declarations: {[name: string]: Variable};
+	declarations: {
+		'*'?: NamespaceVariable;
+		[name: string]: Variable;
+	};
 	private exportAllModules: (Module | ExternalModule)[];
 	private dynamicImports: Import[];
 
@@ -130,21 +133,21 @@ export default class Module {
 		sourcemapChain,
 		resolvedIds,
 		resolvedExternalIds,
-		bundle
+		graph
 	}: {
-		id: string,
-		code: string,
-		originalCode: string,
-		originalSourcemap: RawSourceMap,
-		ast: Program,
-		sourcemapChain: RawSourceMap[],
-		resolvedIds: IdMap,
-		resolvedExternalIds?: IdMap,
-		bundle: Bundle
-	}) {
+			id: string,
+			code: string,
+			originalCode: string,
+			originalSourcemap: RawSourceMap,
+			ast: Program,
+			sourcemapChain: RawSourceMap[],
+			resolvedIds: IdMap,
+			resolvedExternalIds?: IdMap,
+			graph: Graph
+		}) {
 		this.code = code;
 		this.id = id;
-		this.bundle = bundle;
+		this.graph = graph;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain;
@@ -161,10 +164,10 @@ export default class Module {
 		} else {
 			// We bind the dynamic imports array to the plugin binding above, to get the nodes added
 			// to this array during parsing itself. This is faster than having to do a separate walk.
-			if (bundle.dynamicImport)
+			if (graph.dynamicImport)
 				setModuleDynamicImportsReturnBinding(this.dynamicImports);
-			this.ast = <any>tryParse(this, bundle.acornOptions); // TODO what happens to comments if AST is provided?
-			if (bundle.dynamicImport)
+			this.ast = <any>tryParse(this, graph.acornOptions); // TODO what happens to comments if AST is provided?
+			if (graph.dynamicImport)
 				setModuleDynamicImportsReturnBinding(undefined);
 			this.astClone = clone(this.ast);
 		}
@@ -172,7 +175,7 @@ export default class Module {
 		timeEnd('ast');
 
 		this.excludeFromSourcemap = /\0/.test(id);
-		this.context = bundle.getModuleContext(id);
+		this.context = graph.getModuleContext(id);
 
 		// all dependencies
 		this.sources = [];
@@ -220,7 +223,7 @@ export default class Module {
 	}
 
 	private addExport (node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration) {
-		const source = (<ExportAllDeclaration> node).source && <string> (<ExportAllDeclaration> node).source.value;
+		const source = (<ExportAllDeclaration>node).source && (<ExportAllDeclaration>node).source.value;
 
 		// export { name } from './other'
 		if (source) {
@@ -231,7 +234,7 @@ export default class Module {
 				// When an unknown import is encountered, we see if one of them can satisfy it.
 				this.exportAllSources.push(source);
 			} else {
-				(<ExportNamedDeclaration> node).specifiers.forEach(specifier => {
+				(<ExportNamedDeclaration>node).specifiers.forEach(specifier => {
 					const name = specifier.exported.name;
 
 					if (this.exports[name] || this.reexports[name]) {
@@ -257,9 +260,9 @@ export default class Module {
 			// export default foo;
 			// export default 42;
 			const identifier =
-				((<FunctionDeclaration> (<ExportDefaultDeclaration> node).declaration).id
-					&& (<FunctionDeclaration> (<ExportDefaultDeclaration> node).declaration).id.name)
-				|| (<Identifier> (<ExportDefaultDeclaration> node).declaration).name;
+				((<FunctionDeclaration>(<ExportDefaultDeclaration>node).declaration).id
+					&& (<FunctionDeclaration>(<ExportDefaultDeclaration>node).declaration).id.name)
+				|| (<Identifier>(<ExportDefaultDeclaration>node).declaration).name;
 			if (this.exports.default) {
 				this.error(
 					{
@@ -274,12 +277,12 @@ export default class Module {
 				localName: 'default',
 				identifier
 			};
-		} else if ((<ExportNamedDeclaration> node).declaration) {
+		} else if ((<ExportNamedDeclaration>node).declaration) {
 			// export var { foo, bar } = ...
 			// export var foo = 42;
 			// export var a = 1, b = 2, c = 3;
 			// export function foo () {}
-			const declaration = (<ExportNamedDeclaration> node).declaration;
+			const declaration = (<ExportNamedDeclaration>node).declaration;
 
 			if (declaration.type === 'VariableDeclaration') {
 				declaration.declarations.forEach((decl: VariableDeclarator) => {
@@ -294,7 +297,7 @@ export default class Module {
 			}
 		} else {
 			// export { foo, bar, baz }
-			(<ExportNamedDeclaration> node).specifiers.forEach(specifier => {
+			(<ExportNamedDeclaration>node).specifiers.forEach(specifier => {
 				const localName = specifier.local.name;
 				const exportedName = specifier.exported.name;
 
@@ -314,7 +317,7 @@ export default class Module {
 	}
 
 	private addImport (node: ImportDeclaration) {
-		const source = <string> node.source.value;
+		const source = node.source.value;
 
 		if (!~this.sources.indexOf(source)) this.sources.push(source);
 
@@ -336,7 +339,7 @@ export default class Module {
 
 			const name = isDefault
 				? 'default'
-				: isNamespace ? '*' : (<ImportSpecifier> specifier).imported.name;
+				: isNamespace ? '*' : (<ImportSpecifier>specifier).imported.name;
 			this.imports[localName] = { source, specifier, name, module: null };
 		});
 	}
@@ -348,10 +351,10 @@ export default class Module {
 		let lastNode;
 
 		for (const node of this.ast.body) {
-			if ((<ImportDeclaration> node).isImportDeclaration) {
-				this.addImport(<ImportDeclaration> node);
-			} else if ((<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration> node).isExportDeclaration) {
-				this.addExport((<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration> node));
+			if ((<ImportDeclaration>node).isImportDeclaration) {
+				this.addImport(<ImportDeclaration>node);
+			} else if ((<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration>node).isExportDeclaration) {
+				this.addExport((<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration>node));
 			}
 
 			if (lastNode) lastNode.next = node.leadingCommentStart || node.start;
@@ -374,20 +377,20 @@ export default class Module {
 				const id =
 					this.resolvedIds[specifier.source] ||
 					this.resolvedExternalIds[specifier.source];
-				specifier.module = this.bundle.moduleById.get(id);
+				specifier.module = this.graph.moduleById.get(id);
 			});
 		});
 
 		this.exportAllModules = this.exportAllSources.map(source => {
 			const id = this.resolvedIds[source] || this.resolvedExternalIds[source];
-			return this.bundle.moduleById.get(id);
+			return this.graph.moduleById.get(id);
 		});
 
 		this.sources.forEach(source => {
 			const id = this.resolvedIds[source];
 
 			if (id) {
-				const module = this.bundle.moduleById.get(id);
+				const module = this.graph.moduleById.get(id);
 				this.dependencies.push(module);
 			}
 		});
@@ -496,45 +499,45 @@ export default class Module {
 
 	processDynamicImports (resolveDynamicImport: ResolveDynamicImportHandler) {
 		return Promise.all(this.dynamicImports.map(node => {
-			const importArgument = <Node> node.parent.arguments[0];
+			const importArgument = <Node>node.parent.arguments[0];
 			let dynamicImportSpecifier: string | Node;
 			if (importArgument.type === 'TemplateLiteral') {
-				if ((<TemplateLiteral> importArgument).expressions.length === 0 && (<TemplateLiteral> importArgument).quasis.length === 1) {
-					dynamicImportSpecifier = (<TemplateLiteral> importArgument).quasis[0].value.cooked;
+				if ((<TemplateLiteral>importArgument).expressions.length === 0 && (<TemplateLiteral>importArgument).quasis.length === 1) {
+					dynamicImportSpecifier = (<TemplateLiteral>importArgument).quasis[0].value.cooked;
 				}
 			} else if (importArgument.type === 'Literal') {
-				if (typeof (<Literal> importArgument).value === 'string') {
-					dynamicImportSpecifier = <string | Node>(<Literal> importArgument).value;
+				if (typeof (<Literal>importArgument).value === 'string') {
+					dynamicImportSpecifier = <string>(<Literal>importArgument).value;
 				}
 			} else {
 				dynamicImportSpecifier = importArgument;
 			}
 
-			return Promise.resolve( resolveDynamicImport( dynamicImportSpecifier, this.id ) )
-				.then( replacement => {
-					if ( !replacement )
+			return Promise.resolve(resolveDynamicImport(dynamicImportSpecifier, this.id))
+				.then(replacement => {
+					if (!replacement)
 						return;
 
 					// string specifier -> direct resolution
-					if ( typeof dynamicImportSpecifier === 'string' ) {
-					// if we have the module, inline as Promise.resolve(namespace)
-					// ensuring that we create a namespace import of it as well
-						const replacementModule = this.bundle.moduleById.get( replacement );
-						if ( replacementModule && !replacementModule.isExternal ) {
-							const namespace = (<Module> replacementModule).namespace();
+					if (typeof dynamicImportSpecifier === 'string') {
+						// if we have the module, inline as Promise.resolve(namespace)
+						// ensuring that we create a namespace import of it as well
+						const replacementModule = this.graph.moduleById.get(replacement);
+						if (replacementModule && !replacementModule.isExternal) {
+							const namespace = (<Module>replacementModule).namespace();
 							namespace.includeVariable();
-							const identifierName = namespace.getName( true );
-							this.magicString.overwrite( node.parent.start, node.parent.end, `Promise.resolve( ${ identifierName } )` );
+							const identifierName = namespace.getName(true);
+							this.magicString.overwrite(node.parent.start, node.parent.end, `Promise.resolve( ${identifierName} )`);
 							// otherwise treat as an external dynamic import resolution
 						} else {
-							this.magicString.overwrite( importArgument.start, importArgument.end, `"${replacement}"` );
+							this.magicString.overwrite(importArgument.start, importArgument.end, `"${replacement}"`);
 						}
 						// AST Node -> source replacement
 					} else {
-						this.magicString.overwrite( importArgument.start, importArgument.end, replacement );
+						this.magicString.overwrite(importArgument.start, importArgument.end, replacement);
 					}
-				} );
-		} ) );
+				});
+		}));
 	}
 
 	namespace (): NamespaceVariable {
@@ -542,7 +545,7 @@ export default class Module {
 			this.declarations['*'] = new NamespaceVariable(this);
 		}
 
-		return <NamespaceVariable> this.declarations['*'];
+		return this.declarations['*'];
 	}
 
 	render (es: boolean, legacy: boolean, freeze: boolean) {
@@ -559,7 +562,7 @@ export default class Module {
 		}
 
 		// TODO TypeScript: It seems magicString is missing type information here
-		return (<any> magicString).trim();
+		return (<any>magicString).trim();
 	}
 
 	toJSON (): ModuleJSON {
@@ -614,7 +617,7 @@ export default class Module {
 	traceExport (name: string): Variable {
 		// export * from 'external'
 		if (name[0] === '*') {
-			const module = this.bundle.moduleById.get(name.slice(1));
+			const module = this.graph.moduleById.get(name.slice(1));
 			return module.traceExport('*');
 		}
 
@@ -646,7 +649,7 @@ export default class Module {
 			const name = exportDeclaration.localName;
 			const declaration = this.trace(name);
 
-			return declaration || this.bundle.scope.findVariable(name);
+			return declaration || this.graph.scope.findVariable(name);
 		}
 
 		if (name === 'default') return;
@@ -670,6 +673,6 @@ export default class Module {
 		}
 
 		warning.id = this.id;
-		this.bundle.warn(warning);
+		this.graph.warn(warning);
 	}
 }

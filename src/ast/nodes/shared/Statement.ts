@@ -3,7 +3,7 @@ import MagicString from 'magic-string';
 
 export default class Statement extends Node {
 	render (code: MagicString, es: boolean) {
-		if (!this.module.bundle.treeshake || this.included) {
+		if (!this.module.graph.treeshake || this.included) {
 			super.render(code, es);
 		} else {
 			code.remove(

@@ -3,9 +3,9 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
-export default class Literal extends Node {
+export default class Literal<T = string | boolean | null | number | RegExp> extends Node {
 	type: 'Literal';
-	value: string | boolean | null | number | RegExp;
+	value: T;
 
 	getValue () {
 		return this.value;
