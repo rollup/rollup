@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.53.1
+* Properly deprecate more config options ([#1812](https://github.com/rollup/rollup/pull/1812))
+* Pass output options to `transformBundle` plugin hook ([#1813](https://github.com/rollup/rollup/pull/1813))
+
 ## 0.53.0
 * Experimental dynamic import support ([#1790](https://github.com/rollup/rollup/pull/1790))
 * Unify config validation ([#1805](https://github.com/rollup/rollup/pull/1805))
