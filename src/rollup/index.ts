@@ -21,8 +21,8 @@ export type SourceDescription = { code: string, map?: RawSourceMap, ast?: Progra
 export type ResolveIdHook = (id: string, parent: string) => Promise<string | boolean | void> | string | boolean | void;
 export type IsExternalHook = (id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void;
 export type LoadHook = (id: string) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
-export type TransformHook = (code: string) => Promise<SourceDescription | string | void>;
-export type TransformBundleHook = (code: string, { format }: { format: string }) => Promise<SourceDescription | string>;
+export type TransformHook = (code: string, id: String) => Promise<SourceDescription | string | void>;
+export type TransformBundleHook = (code: string, options: OutputOptions) => Promise<SourceDescription | string>;
 export type ResolveDynamicImportHook = (specifier: string | Node, parentId: string) => Promise<string | void> | string | void
 
 export interface Plugin {
