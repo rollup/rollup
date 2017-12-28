@@ -568,7 +568,7 @@ export default class Graph {
 			return (resolvedId
 				? Promise.resolve(resolvedId)
 				: this.resolveId(source, module.id)
-			).then((resolvedId: string) => {
+			).then(resolvedId => {
 				const externalId =
 					resolvedId ||
 					(isRelative(source) ? resolve(module.id, '..', source) : source);
@@ -584,16 +584,18 @@ export default class Graph {
 						});
 					}
 
-					this.warn({
-						code: 'UNRESOLVED_IMPORT',
-						source,
-						importer: relativeId(module.id),
-						message: `'${source}' is imported by ${relativeId(
-							module.id
-						)}, but could not be resolved – treating it as an external dependency`,
-						url:
-							'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
-					});
+					if (resolvedId !== false) {
+						this.warn({
+							code: 'UNRESOLVED_IMPORT',
+							source,
+							importer: relativeId(module.id),
+							message: `'${source}' is imported by ${relativeId(
+								module.id
+							)}, but could not be resolved – treating it as an external dependency`,
+							url:
+								'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
+						});
+					}
 					isExternal = true;
 				}
 
