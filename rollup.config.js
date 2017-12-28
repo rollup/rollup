@@ -46,7 +46,7 @@ function resolveTypescript() {
 				return path.resolve(path.dirname(importer), `${importee}.ts`);
 			}
 		}
-	}
+	};
 }
 
 export default [

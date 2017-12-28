@@ -25,7 +25,15 @@ export default function deprecateOptions (options: GenericConfigObject, deprecat
 		if (options.sourceMap) deprecate('sourceMap', 'output.sourcemap', true);
 		if (options.sourceMapFile) deprecate('sourceMapFile', 'output.sourcemapFile', true);
 		if (options.useStrict) deprecate('useStrict', 'output.strict', true);
+		if (options.strict) deprecate('strict', 'output.strict', true);
 		if (options.format) deprecate('format', 'output.format', true);
+		if (options.banner) deprecate('banner', 'output.banner', false);
+		if (options.footer) deprecate('footer', 'output.footer', false);
+		if (options.intro) deprecate('intro', 'output.intro', false);
+		if (options.outro) deprecate('outro', 'output.outro', false);
+		if (options.interop) deprecate('interop', 'output.interop', true);
+		if (options.freeze) deprecate('freeze', 'output.freeze', true);
+		if (options.exports) deprecate('exports', 'output.exports', true);
 
 		if (options.targets) {
 			deprecations.push({ old: 'targets', new: 'output' });
