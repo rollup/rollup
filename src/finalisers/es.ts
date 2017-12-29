@@ -105,7 +105,7 @@ export default function es (bundle: Bundle, magicString: MagicStringBundle, { ge
 			} else {
 				if (!exportExternalSpecifiers.has((<ExternalVariable> declaration).module.id))
 					exportExternalSpecifiers.set((<ExternalVariable> declaration).module.id, []);
-				const rendered = declaration.getName(true);
+				const rendered = declaration.isExternal ? declaration.name : declaration.getName(true);
 				exportExternalSpecifiers
 					.get((<ExternalVariable> declaration).module.id)
 					.push(rendered === name ? name : `${rendered} as ${name}`);
