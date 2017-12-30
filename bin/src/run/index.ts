@@ -91,7 +91,7 @@ function execute (configFile: string, configs: InputOptions[], command: any) {
 	} else {
 		return sequence( configs, config => {
 			const warnings = batchWarnings();
-			const { inputOptions, outputOptions, deprecations } = mergeOptions({ config, command, defaultOnWarnHandler: warnings.add });
+			const { inputOptions, outputOptions, deprecations, optionError } = mergeOptions({ config, command, defaultOnWarnHandler: warnings.add });
 
 			if (deprecations.length) {
 				inputOptions.onwarn({
@@ -102,6 +102,8 @@ function execute (configFile: string, configs: InputOptions[], command: any) {
 					deprecations
 				});
 			}
+
+			if (optionError)	inputOptions.onwarn({code: 'UNKNOWN_OPTION', message: optionError});
 
 			return build(inputOptions, outputOptions, warnings, command.silent);
 		});

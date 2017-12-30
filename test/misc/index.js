@@ -60,13 +60,16 @@ describe('sanity checks', () => {
 	});
 
 	it('fails with invalid keys', () => {
-		return rollup.rollup({ input: 'x', plUgins: [], plugins: [loader({ x: `console.log( 42 );` })] }).then(
+		const warnings = [];
+		const onwarn = warning => warnings.push(warning);
+		return rollup.rollup({ input: 'x', onwarn, plUgins: [], plugins: [loader({ x: `console.log( 42 );` })] }).then(
 			() => {
-				throw new Error('Missing expected error');
-			}, err => {
-				assert.equal(
-					err.message,
-					'Unknown option found: plUgins. Allowed keys: input, legacy, treeshake, acorn, context, moduleContext, plugins, onwarn, watch, cache, preferConst, experimentalDynamicImport, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, indent, strict, noConflict, paths, exports, file, pureExternalModules'
+				assert.deepEqual(
+					warnings,
+					[{
+						code: 'UNKNOWN_OPTION',
+						message: 'Unknown option found: plUgins. Allowed keys: input, legacy, treeshake, acorn, context, moduleContext, plugins, onwarn, watch, cache, preferConst, experimentalDynamicImport, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, indent, strict, noConflict, paths, exports, file, pureExternalModules'
+					}]
 				);
 			}
 		);
@@ -290,6 +293,28 @@ describe('bundle.write()', () => {
 				assert.throws(() => {
 					return bundle.generate({ format: 'es6' });
 				}, /The `es6` output format is deprecated – use `es` instead/);
+			});
+	});
+
+	it('works when output options is an array', () => {
+		const warnings = [];
+		const options = {
+			input: 'x',
+			plugins: [loader({ x: `console.log( 42 );` })],
+			onwarn: warning => warnings.push(warning),
+			output: [{
+				format: 'cjs'
+			}, {
+				format: 'es'
+			}]
+		};
+		return rollup
+			.rollup(options)
+			.then(bundle => {
+				assert.equal(warnings.length, 0, 'No warnings for UNKNOWN');
+				assert.throws(() => {
+					return Promise.all(options.output.map(o => bundle.write(o)));
+				}, /You must specify output\.file/);
 			});
 	});
 });

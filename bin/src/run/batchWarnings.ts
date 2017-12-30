@@ -88,6 +88,11 @@ export default function batchWarnings () {
 const immediateHandlers: {
 	[code: string]: (warning: RollupWarning) => void
 } = {
+	UNKNOWN_OPTION: warning => {
+		title(`You have passed an unrecognized option`);
+		stderr(warning.message);
+	},
+
 	DEPRECATED_OPTIONS: warning => {
 		title(`Some options have been renamed`);
 		info(

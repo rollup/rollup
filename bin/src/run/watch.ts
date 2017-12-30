@@ -54,6 +54,8 @@ export default function watch (configFile: string, configs: RollupWatchOptions[]
 				(<{ _deprecations: any }>result.watch)._deprecations = merged.deprecations;
 			}
 
+			if (merged.optionError) merged.inputOptions.onwarn({message: merged.optionError, code: 'UNKNOWN_OPTION'});
+
 			if (
 				(<RollupWatchOptions>merged.inputOptions).watch &&
 				(<RollupWatchOptions>merged.inputOptions).watch.clearScreen === false

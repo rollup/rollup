@@ -215,7 +215,7 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 			deprecateConfig: { input: true },
 		});
 
-		if (optionError) throw new Error(optionError);
+		if (optionError) inputOptions.onwarn({message: optionError, code: 'UNKNOWN_OPTION'});
 
 		if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
 		checkInputOptions(inputOptions);
@@ -243,7 +243,7 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 						deprecateConfig: { output: true },
 					});
 
-					if (mergedOptions.optionError) throw new Error(mergedOptions.optionError);
+					if (mergedOptions.optionError) mergedOptions.inputOptions.onwarn({message: mergedOptions.optionError, code: 'UNKNOWN_OPTION'});
 
 					// now outputOptions is an array, but rollup.rollup API doesn't support arrays
 					const outputOptions = mergedOptions.outputOptions[0];
