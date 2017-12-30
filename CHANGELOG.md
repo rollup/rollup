@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.53.2
+* Properly handle output arrays in the JavaScript API ([#1827](https://github.com/rollup/rollup/pull/1827))
+
 ## 0.53.1
 * Properly deprecate more config options ([#1812](https://github.com/rollup/rollup/pull/1812))
 * Pass output options to `transformBundle` plugin hook ([#1813](https://github.com/rollup/rollup/pull/1813))
