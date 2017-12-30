@@ -1,6 +1,6 @@
 import ensureArray from './ensureArray.js';
 import deprecateOptions from './deprecateOptions.js';
-import { InputOptions, WarningHandler } from '../../src/rollup/index';
+import { InputOptions, WarningHandler, OutputOptions } from '../../src/rollup/index';
 import { Deprecation } from './deprecateOptions';
 
 function normalizeObjectOptionValue (optionValue: any) {
@@ -160,8 +160,13 @@ export default function mergeOptions ({
 		...Object.keys(baseOutputOptions),
 		'pureExternalModules' // (backward compatibility) till everyone moves to treeshake.pureExternalModules
 	];
-	const errors = [...Object.keys(config || {}), ...Object.keys(config.output || {})]
-		.filter(k => k !== 'output' && validKeys.indexOf(k) === -1);
+	const outputOptionKeys: string[] = Array.isArray(config.output)
+		? config.output.reduce((keys: string[], o: OutputOptions) => [...keys, ...Object.keys(o)], [])
+		: Object.keys(config.output || {});
+	const errors = [
+		...Object.keys(config || {}),
+		...outputOptionKeys
+	].filter(k => k !== 'output' && validKeys.indexOf(k) === -1);
 
 	return {
 		inputOptions,
