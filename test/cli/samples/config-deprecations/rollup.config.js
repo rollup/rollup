@@ -6,6 +6,7 @@ let warnings = [];
 module.exports = {
 	entry: 'main.js',
 	format: 'cjs',
+	abc: 1,
 	plugins: [
 		replace( { 'ANSWER': 42 } )
 	],
@@ -14,23 +15,25 @@ module.exports = {
 		// then again from rollup's main method.
 		// the tests are different because some deprecations are
 		// fixed the first time only
-		warnings.push(warning.deprecations);
+		warnings.push(warning);
 
-		const entryDeprecationTest = () => assert.deepEqual(
-			warnings[0].filter(d => d.old === 'entry')[0],
-			{new: 'input', old: 'entry'}
-		);
-		
-		const formatDeprecationTest = () => assert.deepEqual(
-			warnings[0].filter(d => d.old === 'format')[0],
-			{new: 'output.format', old: 'format'}
+		const deprecationTest = () => assert.deepEqual(
+			warnings[0].deprecations,
+			[{new: 'input', old: 'entry'}, {new: 'output.format', old: 'format'}]
 		);
 
 		if (warnings.length === 1) {
-			entryDeprecationTest();
-			formatDeprecationTest();
+			deprecationTest();
 		} else if (warnings.length === 2) {
-			entryDeprecationTest();
+			deprecationTest();
+			assert.deepEqual(
+				warnings[1],
+				{
+					code: 'UNKNOWN_OPTION',
+					message: 'Unknown option found: abc. Allowed keys: input, legacy, treeshake, acorn, context, moduleContext, plugins, onwarn, watch, cache, preferConst, experimentalDynamicImport, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, indent, strict, noConflict, paths, exports, file, pureExternalModules'
+				}
+				
+			);
 		} else {
 			throw new Error('Unwanted warnings');
 		}
