@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.53.3
+* Use correct name when re-exporting from external modules ([#1794](https://github.com/rollup/rollup/pull/1794))
+* Disable warnings when `resolveId` returns false ([#1825](https://github.com/rollup/rollup/pull/1825))
+
 ## 0.53.2
 * Properly handle output arrays in the JavaScript API ([#1827](https://github.com/rollup/rollup/pull/1827))
 
