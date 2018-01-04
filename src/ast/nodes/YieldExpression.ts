@@ -1,10 +1,9 @@
-import Node from '../Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Expression from './Expression';
+import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
 
-export default class YieldExpression extends Node {
+export default class YieldExpression extends BasicExpressionNode {
 	type: 'YieldExpression';
-	argument: Expression | null;
+	argument: ExpressionNode | null;
 	delegate: boolean;
 
 	hasEffects (options: ExecutionPathOptions) {

@@ -1,14 +1,13 @@
-import Node from '../Node';
 import CallOptions from '../CallOptions';
-import Expression from './Expression';
 import TemplateLiteral from './TemplateLiteral';
 import Identifier from './Identifier';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import GlobalVariable from '../variables/GlobalVariable';
+import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
 
-export default class TaggedTemplateExpression extends Node {
+export default class TaggedTemplateExpression extends BasicExpressionNode {
 	type: 'TaggedTemplateExpression';
-	tag: Expression;
+	tag: ExpressionNode;
 	quasi: TemplateLiteral;
 
 	private _callOptions: CallOptions;

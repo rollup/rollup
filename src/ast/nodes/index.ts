@@ -38,7 +38,6 @@ import ObjectPattern from './ObjectPattern';
 import Property from './Property';
 import RestElement from './RestElement';
 import ReturnStatement from './ReturnStatement';
-import Statement from './shared/Statement';
 import SequenceExpression from './SequenceExpression';
 import SwitchCase from './SwitchCase';
 import SwitchStatement from './SwitchStatement';
@@ -54,10 +53,11 @@ import VariableDeclaration from './VariableDeclaration';
 import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
 
-import Node from '../Node';
+import { BasicNode } from './shared/Node';
+import { BasicStatementNode } from './shared/Statement';
 
 const nodes: {
-	[name: string]: typeof Node
+	[name: string]: typeof BasicNode
 } = {
 	ArrayExpression,
 	ArrayPattern,
@@ -107,7 +107,7 @@ const nodes: {
 	TemplateLiteral,
 	ThisExpression,
 	ThrowStatement,
-	TryStatement: Statement,
+	TryStatement: BasicStatementNode,
 	UnaryExpression,
 	UpdateExpression,
 	VariableDeclarator,

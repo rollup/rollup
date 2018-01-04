@@ -1,19 +1,18 @@
-import Node from '../Node';
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment } from '../values';
+import { BasicNode } from './shared/Node';
+import { UNKNOWN_EXPRESSION } from '../values';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Pattern from './Pattern';
-import Expression from './Expression';
-import Declaration from './Declaration';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { Pattern, PatternNode } from './shared/Pattern';
+import { Expression } from './shared/Expression';
 
-export default class ArrayPattern extends Node {
+export default class ArrayPattern extends BasicNode implements Pattern {
 	type: 'ArrayPattern';
-	elements: (Pattern | null)[];
+	elements: (PatternNode | null)[];
 
 	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		path.length === 0 &&
-		this.eachChild(child => child.reassignPath([], options));
+		this.elements.forEach(child => child && child.reassignPath([], options));
 	}
 
 	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
@@ -23,10 +22,8 @@ export default class ArrayPattern extends Node {
 		);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, _init: Declaration | Expression | UnknownAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, _init: Expression | null) {
 		this.initialiseScope(parentScope);
-		this.eachChild((child: Pattern | null) =>
-			child.initialiseAndDeclare(parentScope, kind, UNKNOWN_ASSIGNMENT)
-		);
+		this.elements.forEach(child => child && child.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION));
 	}
 }

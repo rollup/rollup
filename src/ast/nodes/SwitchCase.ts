@@ -1,11 +1,11 @@
-import Node from '../Node';
-import Statement from './Statement';
-import Expression from './Expression';
+import { BasicNode } from './shared/Node';
+import { ExpressionNode } from './shared/Expression';
+import { StatementNode } from './shared/Statement';
 
-export default class SwitchCase extends Node {
+export default class SwitchCase extends BasicNode {
 	type: 'SwitchCase';
-	test: Expression | null;
-	consequent: Statement[];
+	test: ExpressionNode | null;
+	consequent: StatementNode[];
 
 	includeInBundle () {
 		let addedNewNodes = !this.included;

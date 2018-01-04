@@ -1,11 +1,11 @@
-import Node from '../Node';
+import { BasicNode } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Expression from './Expression';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration from './ClassDeclaration';
 import FunctionDeclaration from './FunctionDeclaration';
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
+import { ExpressionNode } from './shared/Expression';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
@@ -28,9 +28,9 @@ const sourceRE = {
 	)
 };
 
-export default class ExportDefaultDeclaration extends Node {
+export default class ExportDefaultDeclaration extends BasicNode {
 	type: 'ExportDefaultDeclaration';
-	declaration: FunctionDeclaration | ClassDeclaration | Expression;
+	declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
 
 	private _declarationName: string;
 	isExportDeclaration: true;

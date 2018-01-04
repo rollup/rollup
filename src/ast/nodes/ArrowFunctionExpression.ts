@@ -1,24 +1,22 @@
-import Node, { ForEachReturnExpressionCallback } from '../Node';
 import Scope from '../scopes/Scope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
-import BlockStatement from './BlockStatement';
-import Pattern from './Pattern';
-import Expression from './Expression';
+import BlockStatement, { isBlockStatement } from './BlockStatement';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { PredicateFunction } from '../values';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { BasicExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { PatternNode } from './shared/Pattern';
 
-export default class ArrowFunctionExpression extends Node {
+export default class ArrowFunctionExpression extends BasicExpressionNode {
 	type: 'ArrowFunctionExpression';
-	body: BlockStatement | Expression;
-	params: Pattern[];
+	body: BlockStatement | ExpressionNode;
+	params: PatternNode[];
 	scope: ReturnValueScope;
 
 	bindNode () {
-		(<BlockStatement>this.body).bindImplicitReturnExpressionToScope
-			? (<BlockStatement>this.body).bindImplicitReturnExpressionToScope()
-			: this.scope.addReturnExpression(<Expression>this.body);
+		isBlockStatement(this.body)
+			? this.body.bindImplicitReturnExpressionToScope()
+			: this.scope.addReturnExpression(this.body);
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
@@ -28,7 +26,7 @@ export default class ArrowFunctionExpression extends Node {
 		options: ExecutionPathOptions
 	) {
 		path.length === 0 &&
-			this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
+		this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
 	}
 
 	hasEffects (_options: ExecutionPathOptions) {
@@ -71,7 +69,7 @@ export default class ArrowFunctionExpression extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
 		callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		return (

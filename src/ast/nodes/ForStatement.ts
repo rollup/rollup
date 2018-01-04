@@ -1,16 +1,16 @@
-import Statement from './shared/Statement';
 import BlockScope from '../scopes/BlockScope';
 import VariableDeclaration from './VariableDeclaration';
-import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
+import { BasicStatementNode, StatementNode } from './shared/Statement';
+import { ExpressionNode } from './shared/Expression';
 
-export default class ForStatement extends Statement {
+export default class ForStatement extends BasicStatementNode {
 	type: 'ForStatement';
-	init: VariableDeclaration | Expression | null;
-	test: Expression | null;
-	update: Expression | null;
-	body: Statement;
+	init: VariableDeclaration | ExpressionNode | null;
+	test: ExpressionNode | null;
+	update: ExpressionNode | null;
+	body: StatementNode;
 
 	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
@@ -25,13 +25,7 @@ export default class ForStatement extends Statement {
 		if (this.init) this.init.initialise(this.scope);
 		if (this.test) this.test.initialise(this.scope);
 		if (this.update) this.update.initialise(this.scope);
-
-		if (this.body.type === 'BlockStatement') {
-			this.body.initialiseScope(this.scope);
-			this.body.initialiseChildren(this.scope);
-		} else {
-			this.body.initialise(this.scope);
-		}
+		this.body.initialise(this.scope);
 	}
 
 	initialiseScope (parentScope: Scope) {

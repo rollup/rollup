@@ -1,14 +1,13 @@
-import Node from '../Node';
 import disallowIllegalReassignment from './shared/disallowIllegalReassignment';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Pattern from './Pattern';
-import Expression from './Expression';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
+import { PatternNode } from './shared/Pattern';
 
-export default class AssignmentExpression extends Node {
+export default class AssignmentExpression extends BasicExpressionNode {
 	type: 'AssignmentExpression';
-	left: Pattern | Expression;
-	right: Expression;
+	left: PatternNode | ExpressionNode;
+	right: ExpressionNode;
 
 	bindNode () {
 		disallowIllegalReassignment(this.scope, this.left);

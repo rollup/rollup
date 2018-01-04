@@ -1,13 +1,15 @@
-import Node from '../Node';
+import { BasicNode } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Declaration from './Declaration';
 import Literal from './Literal';
 import MagicString from 'magic-string';
 import ExportSpecifier from './ExportSpecifier';
+import FunctionDeclaration from './FunctionDeclaration';
+import ClassDeclaration from './ClassDeclaration';
+import VariableDeclaration from './VariableDeclaration';
 
-export default class ExportNamedDeclaration extends Node {
+export default class ExportNamedDeclaration extends BasicNode {
 	type: 'ExportNamedDeclaration';
-	declaration: Declaration | null;
+	declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
 	specifiers: ExportSpecifier[];
 	source: Literal<string> | null;
 

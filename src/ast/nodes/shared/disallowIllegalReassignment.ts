@@ -1,12 +1,14 @@
 import Scope from '../../scopes/Scope';
-import Node from '../../Node';
-import MemberExpression from '../MemberExpression';
-import Identifier from '../Identifier';
+import { Node } from './Node';
+import { isMemberExpression } from '../MemberExpression';
+import { isIdentifier } from '../Identifier';
+import { WritableEntity } from '../../Entity';
 
 // TODO tidy this up a bit (e.g. they can both use node.module.imports)
-export default function disallowIllegalReassignment (scope: Scope, node: Node) {
-	if (node.type === 'MemberExpression' && (<MemberExpression>node).object.type === 'Identifier') {
-		const identifier = <Identifier>(<MemberExpression>node).object;
+// TODO Lukas inline this
+export default function disallowIllegalImportReassignment (scope: Scope, node: WritableEntity & Node) {
+	if (isMemberExpression(node) && isIdentifier(node.object)) {
+		const identifier = node.object;
 		const variable = scope.findVariable(identifier.name);
 		if (variable.isNamespace) {
 			node.module.error(
@@ -17,12 +19,12 @@ export default function disallowIllegalReassignment (scope: Scope, node: Node) {
 				node.start
 			);
 		}
-	} else if (node.type === 'Identifier') {
-		if (node.module.imports[(<Identifier>node).name] && !scope.contains((<Identifier>node).name)) {
+	} else if (isIdentifier(node)) {
+		if (node.module.imports[node.name] && !scope.contains(node.name)) {
 			node.module.error(
 				{
 					code: 'ILLEGAL_REASSIGNMENT',
-					message: `Illegal reassignment to import '${(<Identifier>node).name}'`
+					message: `Illegal reassignment to import '${node.name}'`
 				},
 				node.start
 			);

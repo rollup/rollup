@@ -1,4 +1,4 @@
-import Node from '../Node';
+import { Node, BasicNode } from './shared/Node';
 import extractNames from '../utils/extractNames';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import VariableDeclarator from './VariableDeclarator';
@@ -7,6 +7,7 @@ import ForOfStatement from './ForOfStatement';
 import ForStatement from './ForStatement';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { isIdentifier } from './Identifier';
 
 function getSeparator (code: string, start: number) {
 	let c = start;
@@ -23,15 +24,17 @@ function getSeparator (code: string, start: number) {
 
 const forStatement = /^For(?:Of|In)?Statement/;
 
-export default class VariableDeclaration extends Node {
+export function isVariableDeclaration (node: Node): node is VariableDeclaration {
+	return node.type === 'VariableDeclaration';
+}
+
+export default class VariableDeclaration extends BasicNode {
 	type: 'VariableDeclaration';
 	declarations: VariableDeclarator[];
 	kind: 'var' | 'let' | 'const';
 
 	reassignPath (_path: ObjectPath, _options: ExecutionPathOptions) {
-		this.eachChild(child =>
-			child.reassignPath([], ExecutionPathOptions.create())
-		);
+		this.declarations.forEach(declarator => declarator.reassignPath([], ExecutionPathOptions.create()));
 	}
 
 	hasEffectsWhenAssignedAtPath (_path: ObjectPath, _options: ExecutionPathOptions) {
@@ -87,7 +90,7 @@ export default class VariableDeclaration extends Node {
 
 			const prefix = empty ? '' : separator; // TODO indentation
 
-			if (declarator.id.type === 'Identifier') {
+			if (isIdentifier(declarator.id)) {
 				const variable = this.scope.findVariable(declarator.id.name);
 				const isExportedAndReassigned =
 					!es && variable.exportName && variable.isReassigned;

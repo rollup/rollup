@@ -1,7 +1,7 @@
-import Expression from "./Expression";
-import Node from '../Node';
+import { Expression, ExpressionNode } from './shared/Expression';
+import { Node } from './shared/Node';
 
-export default interface SpreadElement extends Node {
+export default interface SpreadElement extends Expression, Node {
   type: 'SpreadElement';
-  argument: Expression;
+  argument: ExpressionNode;
 }
