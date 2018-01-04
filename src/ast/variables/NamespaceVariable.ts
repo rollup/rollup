@@ -4,6 +4,10 @@ import { reservedWords } from '../../utils/identifierHelpers';
 import Identifier from '../nodes/Identifier';
 import Module from '../../Module';
 
+export function isNamespaceVariable (variable: Variable): variable is NamespaceVariable {
+	return variable.isNamespace;
+}
+
 export default class NamespaceVariable extends Variable {
 	isNamespace: true;
 	module: Module;

@@ -1,10 +1,11 @@
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import SpreadElement from './SpreadElement';
-import GlobalVariable from '../variables/GlobalVariable';
+import { isGlobalVariable } from '../variables/GlobalVariable';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { isIdentifier } from './Identifier';
 import { BasicExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { isNamespaceVariable } from '../variables/NamespaceVariable';
 
 export default class CallExpression extends BasicExpressionNode {
 	type: 'CallExpression';
@@ -30,7 +31,7 @@ export default class CallExpression extends BasicExpressionNode {
 		if (isIdentifier(this.callee)) {
 			const variable = this.scope.findVariable(this.callee.name);
 
-			if (variable.isNamespace) {
+			if (isNamespaceVariable(variable)) {
 				this.module.error(
 					{
 						code: 'CANNOT_CALL_NAMESPACE',
@@ -40,7 +41,7 @@ export default class CallExpression extends BasicExpressionNode {
 				);
 			}
 
-			if (this.callee.name === 'eval' && (<GlobalVariable>variable).isGlobal) {
+			if (this.callee.name === 'eval' && isGlobalVariable(variable)) {
 				this.module.warn(
 					{
 						code: 'EVAL',

@@ -7,8 +7,8 @@ import Literal, { isLiteral } from './Literal';
 import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
 import Identifier, { isIdentifier } from './Identifier';
-import NamespaceVariable from '../variables/NamespaceVariable';
-import ExternalVariable from '../variables/ExternalVariable';
+import { isNamespaceVariable } from '../variables/NamespaceVariable';
+import { isExternalVariable } from '../variables/ExternalVariable';
 import { BasicExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
@@ -41,16 +41,6 @@ class Keypath {
 
 		this.root = node;
 	}
-}
-
-// TODO Lukas move to namespace variable
-function isNamespaceVariable (variable: Variable): variable is NamespaceVariable {
-	return variable.isNamespace;
-}
-
-// TODO Lukas move to external variable
-function isExternalVariable (variable: Variable): variable is ExternalVariable {
-	return variable.isExternal;
 }
 
 export function isMemberExpression (node: Node): node is MemberExpression {

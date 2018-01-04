@@ -1,7 +1,7 @@
 import { keys } from '../utils/object';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import Bundle from '../Bundle';
-import ExternalVariable from '../ast/variables/ExternalVariable';
+import ExternalVariable, { isExternalVariable } from '../ast/variables/ExternalVariable';
 
 function notDefault (name: string) {
 	return name !== 'default';
@@ -98,17 +98,17 @@ export default function es (bundle: Bundle, magicString: MagicStringBundle, { ge
 	module.getReexports().forEach(name => {
 		const declaration = module.traceExport(name);
 
-		if (declaration.isExternal) {
+		if (isExternalVariable(declaration)) {
 			if (name[0] === '*') {
 				// export * from 'external'
 				exportAllDeclarations.push(`export * from '${name.slice(1)}';`);
 			} else {
-				if (!exportExternalSpecifiers.has((<ExternalVariable> declaration).module.id))
-					exportExternalSpecifiers.set((<ExternalVariable> declaration).module.id, []);
-				const rendered = declaration.isExternal ? declaration.name : declaration.getName(true);
+				if (!exportExternalSpecifiers.has(declaration.module.id)) {
+					exportExternalSpecifiers.set(declaration.module.id, []);
+				}
 				exportExternalSpecifiers
-					.get((<ExternalVariable> declaration).module.id)
-					.push(rendered === name ? name : `${rendered} as ${name}`);
+					.get(declaration.module.id)
+					.push(declaration.name === name ? name : `${declaration.name} as ${name}`);
 			}
 
 			return;
