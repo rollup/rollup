@@ -1,13 +1,13 @@
-import Node from '../Node';
+import { BasicNode } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import FunctionExpression from './FunctionExpression';
-import Expression from './Expression';
 import CallOptions from '../CallOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { ExpressionNode } from './shared/Expression';
 
-export default class MethodDefinition extends Node {
+export default class MethodDefinition extends BasicNode {
 	type: 'MethodDefinition';
-	key: Expression;
+	key: ExpressionNode;
 	value: FunctionExpression;
 	kind: 'constructor' | 'method' | 'get' | 'set';
 	computed: boolean;

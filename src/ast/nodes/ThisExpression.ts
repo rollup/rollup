@@ -1,10 +1,10 @@
-import Node from '../Node';
 import ThisVariable from '../variables/ThisVariable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { BasicExpressionNode } from './shared/Expression';
 
-export default class ThisExpression extends Node {
+export default class ThisExpression extends BasicExpressionNode {
 	type: 'ThisExpression';
 	variable: ThisVariable;
 

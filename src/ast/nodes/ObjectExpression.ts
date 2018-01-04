@@ -1,15 +1,14 @@
-import Node, { ForEachReturnExpressionCallback } from '../Node';
-import { UNKNOWN_KEY, UnknownKey, ObjectPath } from '../variables/VariableReassignmentTracker';
+import { ObjectPath, UNKNOWN_KEY, UnknownKey } from '../variables/VariableReassignmentTracker';
 import Property from './Property';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { PredicateFunction } from '../values';
 import Identifier from './Identifier';
+import { BasicExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
 const PROPERTY_KINDS_WRITE = ['init', 'set'];
 
-export default class ObjectExpression extends Node {
+export default class ObjectExpression extends BasicExpressionNode {
 	type: 'ObjectExpression';
 	properties: Property[];
 
@@ -122,7 +121,7 @@ export default class ObjectExpression extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
 		callOptions: CallOptions,
-		predicateFunction: (optioons: ExecutionPathOptions) => PredicateFunction,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		if (path.length === 0) return true;

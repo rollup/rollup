@@ -1,17 +1,16 @@
 import { blank, keys } from '../../utils/object';
 import LocalVariable from '../variables/LocalVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment } from '../values';
+import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
-import Expression from '../nodes/Expression';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
-import Declaration from '../nodes/Declaration';
 import GlobalVariable from '../variables/GlobalVariable';
 import ExternalVariable from '../variables/ExternalVariable';
 import ThisVariable from '../variables/ThisVariable';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import Variable from '../variables/Variable';
+import { Expression } from '../nodes/shared/Expression';
 
 export default class Scope {
 	parent: Scope | void;
@@ -42,7 +41,7 @@ export default class Scope {
 	 * @return {Variable}
 	 */
 	addDeclaration (identifier: Identifier, options: {
-		init?: Expression | Declaration | UnknownAssignment | null;
+		init?: Expression | null;
 		isHoisted?: boolean;
 	} = {
 		init: null,
@@ -57,7 +56,7 @@ export default class Scope {
 			this.variables[name] = new LocalVariable(
 				identifier.name,
 				identifier,
-				options.init || UNKNOWN_ASSIGNMENT
+				options.init || UNKNOWN_EXPRESSION
 			);
 		}
 		return this.variables[name];
@@ -71,7 +70,7 @@ export default class Scope {
 		return this.variables.default;
 	}
 
-	addReturnExpression (expression: Expression | UnknownAssignment) {
+	addReturnExpression (expression: Expression) {
 		this.parent && this.parent.addReturnExpression(expression);
 	}
 

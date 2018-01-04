@@ -1,6 +1,6 @@
-import { timeStart, timeEnd } from './utils/flushTime';
+import { timeEnd, timeStart } from './utils/flushTime';
 import first from './utils/first';
-import { keys, blank, forOwn } from './utils/object';
+import { blank, forOwn, keys } from './utils/object';
 import Module, { IdMap, ModuleJSON } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
@@ -9,16 +9,23 @@ import { mapSequence } from './utils/promise';
 import transform from './utils/transform';
 import relativeId from './utils/relativeId';
 import error from './utils/error';
-import { resolve, isRelative } from './utils/path';
+import { isRelative, resolve } from './utils/path';
 import GlobalScope from './ast/scopes/GlobalScope';
 import {
-	WarningHandler, TreeshakingOptions, Plugin, ResolveIdHook, IsExternalHook, InputOptions, RollupWarning, SourceDescription
+	InputOptions,
+	IsExternalHook,
+	Plugin,
+	ResolveIdHook,
+	RollupWarning,
+	SourceDescription,
+	TreeshakingOptions,
+	WarningHandler
 } from './rollup/index';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import { RawSourceMap } from 'source-map';
 import Program from './ast/nodes/Program';
-import Node from './ast/Node';
+import { Node } from './ast/nodes/shared/Node';
 import Bundle from './Bundle';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 
@@ -46,7 +53,7 @@ export default class Graph {
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
 
-	dependsOn: { [id: string]: { [id: string]: boolean }};
+	dependsOn: { [id: string]: { [id: string]: boolean } };
 	stronglyDependsOn: { [id: string]: { [id: string]: boolean } };
 
 	// deprecated
@@ -198,7 +205,7 @@ export default class Graph {
 
 				this.stronglyDependsOn[module.id][dependency.id] = true;
 				dependency.strongDependencies.forEach(processStrongDependency);
-			}
+			};
 
 			const processDependency = (dependency: Module) => {
 				if (dependency === module || this.dependsOn[module.id][dependency.id])
@@ -206,7 +213,7 @@ export default class Graph {
 
 				this.dependsOn[module.id][dependency.id] = true;
 				dependency.dependencies.forEach(processDependency);
-			}
+			};
 
 			module.strongDependencies.forEach(processStrongDependency);
 			module.dependencies.forEach(processDependency);
@@ -252,9 +259,9 @@ export default class Graph {
 					const unused = Object.keys(module.declarations)
 						.filter(name => name !== '*')
 						.filter(
-						name =>
-							!module.declarations[name].included &&
-							!module.declarations[name].reexported
+							name =>
+								!module.declarations[name].included &&
+								!module.declarations[name].reexported
 						);
 
 					if (unused.length === 0) return;
@@ -263,9 +270,9 @@ export default class Graph {
 						unused.length === 1
 							? `'${unused[0]}' is`
 							: `${unused
-								.slice(0, -1)
-								.map(name => `'${name}'`)
-								.join(', ')} and '${unused.slice(-1)}' are`;
+							.slice(0, -1)
+							.map(name => `'${name}'`)
+							.join(', ')} and '${unused.slice(-1)}' are`;
 
 					this.warn({
 						code: 'UNUSED_EXTERNAL_IMPORT',
@@ -395,8 +402,8 @@ export default class Graph {
 
 					this.onwarn(
 						<any>`Module ${a.id} may be unable to evaluate without ${
-						b.id
-						}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
+							b.id
+							}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
 					);
 				}
 			}
@@ -566,8 +573,8 @@ export default class Graph {
 		return mapSequence(module.sources, source => {
 			const resolvedId = module.resolvedIds[source];
 			return (resolvedId
-				? Promise.resolve(resolvedId)
-				: this.resolveId(source, module.id)
+					? Promise.resolve(resolvedId)
+					: this.resolveId(source, module.id)
 			).then(resolvedId => {
 				const externalId =
 					resolvedId ||

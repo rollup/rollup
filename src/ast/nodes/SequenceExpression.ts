@@ -1,11 +1,10 @@
-import Node from '../Node';
-import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
+import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
 
-export default class SequenceExpression extends Node {
+export default class SequenceExpression extends BasicExpressionNode {
 	type: 'SequenceExpression';
-	expressions: Expression[];
+	expressions: ExpressionNode[];
 
 	getValue (): any {
 		return this.expressions[this.expressions.length - 1].getValue();

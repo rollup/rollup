@@ -1,33 +1,32 @@
 import relativeId from '../../utils/relativeId';
-import Node, { ForEachReturnExpressionCallback } from '../Node';
+import { Node } from './shared/Node';
 import { ObjectPath, UNKNOWN_KEY, UnknownKey } from '../variables/VariableReassignmentTracker';
-import Expression from './Expression';
 import Variable from '../variables/Variable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Literal from './Literal';
+import Literal, { isLiteral } from './Literal';
 import CallOptions from '../CallOptions';
-import { PredicateFunction } from '../values';
 import MagicString from 'magic-string';
-import Identifier from './Identifier';
+import Identifier, { isIdentifier } from './Identifier';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import ExternalVariable from '../variables/ExternalVariable';
+import { BasicExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
 class Keypath {
 	computed: boolean;
 	parts: (Literal | Identifier)[];
-	root: Expression;
+	root: ExpressionNode;
 
-	constructor (node: MemberExpression) {
+	constructor (node: ExpressionNode) {
 		this.parts = [];
 
-		while (node.type === 'MemberExpression') {
-			const prop = (<MemberExpression>node).property;
+		while (isMemberExpression(node)) {
+			const prop = node.property;
 
 			if (node.computed) {
 				if (
-					prop.type !== 'Literal' ||
+					!isLiteral(prop) ||
 					typeof prop.value !== 'string' ||
 					!validProp.test(prop.value)
 				) {
@@ -37,25 +36,31 @@ class Keypath {
 			}
 
 			this.parts.unshift(<Literal | Identifier>prop);
-			node = <MemberExpression>(node.object);
+			node = node.object;
 		}
 
 		this.root = node;
 	}
 }
 
+// TODO Lukas move to namespace variable
 function isNamespaceVariable (variable: Variable): variable is NamespaceVariable {
 	return variable.isNamespace;
 }
 
+// TODO Lukas move to external variable
 function isExternalVariable (variable: Variable): variable is ExternalVariable {
 	return variable.isExternal;
 }
 
-export default class MemberExpression extends Node {
+export function isMemberExpression (node: Node): node is MemberExpression {
+	return node.type === 'MemberExpression';
+}
+
+export default class MemberExpression extends BasicExpressionNode {
 	type: 'MemberExpression';
-	object: Expression;
-	property: Expression;
+	object: ExpressionNode;
+	property: ExpressionNode;
 	computed: boolean;
 
 	private _bound: boolean;
@@ -71,7 +76,7 @@ export default class MemberExpression extends Node {
 		this._bound = true;
 		const keypath = new Keypath(this);
 
-		if (!keypath.computed && keypath.root.type === 'Identifier') {
+		if (!keypath.computed && isIdentifier(keypath.root)) {
 			let variable: Variable = this.scope.findVariable(keypath.root.name);
 
 			while (isNamespaceVariable(variable) && keypath.parts.length) {
@@ -234,7 +239,7 @@ export default class MemberExpression extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
 		callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		if (this.variable) {

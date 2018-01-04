@@ -1,4 +1,4 @@
-import Node from '../Node';
+import { Node } from './shared/Node';
 import Identifier from './Identifier';
 
 export default interface ExportSpecifier extends Node {

@@ -1,11 +1,11 @@
-import Statement from './shared/Statement';
-import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import { BasicStatementNode, StatementNode } from './shared/Statement';
+import { ExpressionNode } from './shared/Expression';
 
-export default class DoWhileStatement extends Statement {
+export default class DoWhileStatement extends BasicStatementNode {
 	type: 'DoWhileStatement';
-	body: Statement;
-	test: Expression;
+	body: StatementNode;
+	test: ExpressionNode;
 
 	hasEffects (options: ExecutionPathOptions): boolean {
 		return (

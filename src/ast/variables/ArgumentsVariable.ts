@@ -1,23 +1,24 @@
 import LocalVariable from './LocalVariable';
-import { UNKNOWN_ASSIGNMENT, PredicateFunction } from '../values';
+import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import ParameterVariable from './ParameterVariable';
 import { ObjectPath } from './VariableReassignmentTracker';
+import { SomeReturnExpressionCallback } from '../nodes/shared/Expression';
 
 const getParameterVariable = (path: ObjectPath, options: ExecutionPathOptions) => {
 	const firstArgNum = parseInt(<string> path[0], 10);
 
 	return (firstArgNum < options.getArgumentsVariables().length &&
 		options.getArgumentsVariables()[firstArgNum]) ||
-		UNKNOWN_ASSIGNMENT;
+		UNKNOWN_EXPRESSION;
 };
 
 export default class ArgumentsVariable extends LocalVariable {
 	private _parameters: ParameterVariable[];
 
 	constructor (parameters: ParameterVariable[]) {
-		super('arguments', null, UNKNOWN_ASSIGNMENT);
+		super('arguments', null, UNKNOWN_EXPRESSION);
 		this._parameters = parameters;
 	}
 
@@ -65,7 +66,7 @@ export default class ArgumentsVariable extends LocalVariable {
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
 		callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		if (path.length === 0) {

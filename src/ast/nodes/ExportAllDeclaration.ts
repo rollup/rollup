@@ -1,8 +1,8 @@
-import Node from '../Node';
+import { BasicNode } from './shared/Node';
 import Literal from './Literal';
 import MagicString from 'magic-string';
 
-export default class ExportAllDeclaration extends Node {
+export default class ExportAllDeclaration extends BasicNode {
 	type: 'ExportAllDeclaration';
 	source: Literal<string>;
 	isExportDeclaration: true;

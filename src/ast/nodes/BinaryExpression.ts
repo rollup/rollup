@@ -1,8 +1,7 @@
-import Node from '../Node';
 import { UNKNOWN_VALUE } from '../values';
-import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
 
 export type BinaryOperator =
 	'=='
@@ -55,10 +54,10 @@ const operators: {
 	instanceof: (left: any, right: any) => left instanceof right
 };
 
-export default class BinaryExpression extends Node {
+export default class BinaryExpression extends BasicExpressionNode {
 	type: 'BinaryExpression';
-	left: Expression;
-	right: Expression;
+	left: ExpressionNode;
+	right: ExpressionNode;
 	operator: BinaryOperator;
 
 	getValue (): any {

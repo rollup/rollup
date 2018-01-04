@@ -1,14 +1,12 @@
-import Node from '../Node';
-import Expression from './Expression';
 import SpreadElement from './SpreadElement';
-import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
 
-export default class ArrayExpression extends Node {
+export default class ArrayExpression extends BasicExpressionNode {
 	type: 'ArrayExpression';
-	elements: (Expression | SpreadElement | null)[];
+	elements: (ExpressionNode | SpreadElement | null)[];
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath) {
 		return path.length > 1;
 	}
 }
