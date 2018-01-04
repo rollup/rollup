@@ -1,12 +1,12 @@
-import Node from '../Node';
+import { BasicNode } from './shared/Node';
 import CatchScope from '../scopes/CatchScope';
-import Pattern from './Pattern';
 import BlockStatement from './BlockStatement';
 import Scope from '../scopes/Scope';
+import { PatternNode } from './shared/Pattern';
 
-export default class CatchClause extends Node {
+export default class CatchClause extends BasicNode {
 	type: 'CatchClause';
-	param: Pattern;
+	param: PatternNode;
 	body: BlockStatement;
 	scope: CatchScope;
 

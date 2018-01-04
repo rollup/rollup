@@ -1,11 +1,9 @@
-/* eslint-disable no-unused-vars */
-
-import { UNKNOWN_ASSIGNMENT, PredicateFunction } from '../values';
+import { UNKNOWN_EXPRESSION } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
-import { ForEachReturnExpressionCallback } from '../Node';
 import { ObjectPath } from './VariableReassignmentTracker';
+import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
 
 export default class Variable {
 	exportName?: string;
@@ -106,9 +104,9 @@ export default class Variable {
 	someReturnExpressionWhenCalledAtPath (
 		_path: ObjectPath,
 		_callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		return predicateFunction(options)(UNKNOWN_ASSIGNMENT);
+		return predicateFunction(options)(UNKNOWN_EXPRESSION);
 	}
 }

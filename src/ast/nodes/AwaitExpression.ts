@@ -1,10 +1,9 @@
-import Node from '../Node';
-import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
 
-export default class AwaitExpression extends Node {
+export default class AwaitExpression extends BasicExpressionNode {
 	type: 'AwaitExpression';
-	argument: Expression;
+	argument: ExpressionNode;
 
 	hasEffects (options: ExecutionPathOptions) {
 		return super.hasEffects(options) || !options.ignoreReturnAwaitYield();

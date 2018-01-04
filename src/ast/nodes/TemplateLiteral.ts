@@ -1,12 +1,11 @@
-import Node from '../Node';
 import TemplateElement from './TemplateElement';
-import Expression from './Expression';
 import MagicString from 'magic-string';
+import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
 
-export default class TemplateLiteral extends Node {
+export default class TemplateLiteral extends BasicExpressionNode {
 	type: 'TemplateLiteral';
 	quasis: TemplateElement[];
-	expressions: Expression[];
+	expressions: ExpressionNode[];
 
 	render (code: MagicString, es: boolean) {
 		(<any> code).indentExclusionRanges.push([this.start, this.end]); // TODO TypeScript: Awaiting PR

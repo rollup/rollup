@@ -1,10 +1,10 @@
 import LocalVariable from './LocalVariable';
-import { UNKNOWN_ASSIGNMENT, PredicateFunction, UnknownAssignment } from '../values';
+import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
-import Expression from '../nodes/Expression';
 import Identifier from '../nodes/Identifier';
 import { ObjectPath } from './VariableReassignmentTracker';
+import { Expression, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
 
 export default class ReplaceableInitializationVariable extends LocalVariable {
 	constructor (name: string, declarator: Identifier | null) {
@@ -42,7 +42,7 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
 		callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		return (
@@ -61,7 +61,7 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 		);
 	}
 
-	_getInit (options: ExecutionPathOptions): Expression | UnknownAssignment {
-		return (<Expression>options.getReplacedVariableInit(this)) || UNKNOWN_ASSIGNMENT;
+	_getInit (options: ExecutionPathOptions): Expression {
+		return options.getReplacedVariableInit(this) || UNKNOWN_EXPRESSION;
 	}
 }

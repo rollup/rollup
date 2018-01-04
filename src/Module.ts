@@ -22,7 +22,7 @@ import Graph, { ResolveDynamicImportHandler } from './Graph';
 import Variable from './ast/variables/Variable';
 import Program from './ast/nodes/Program';
 import VariableDeclarator from './ast/nodes/VariableDeclarator';
-import Node from './ast/Node';
+import { Node } from './ast/nodes/shared/Node';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import Identifier from './ast/nodes/Identifier';
@@ -39,11 +39,26 @@ import Literal from './ast/nodes/Literal';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
-export interface IdMap { [key: string]: string; }
+export interface IdMap {[key: string]: string;}
 
-export interface CommentDescription { block: boolean, text: string, start: number, end: number }
-export interface ExportDescription { localName: string, identifier?: string }
-export interface ReexportDescription { localName: string, start: number, source: string, module: Module }
+export interface CommentDescription {
+	block: boolean;
+	text: string;
+	start: number;
+	end: number;
+}
+
+export interface ExportDescription {
+	localName: string;
+	identifier?: string;
+}
+
+export interface ReexportDescription {
+	localName: string;
+	start: number;
+	source: string;
+	module: Module;
+}
 
 function tryParse (module: Module, acornOptions: Object) {
 	try {
@@ -64,8 +79,8 @@ function tryParse (module: Module, acornOptions: Object) {
 
 function includeFully (node: Node) {
 	node.included = true;
-	if ((<Identifier>node).variable && !(<Identifier>node).variable.included) {
-		(<Identifier>node).variable.includeVariable();
+	if (node.variable && !node.variable.included) {
+		node.variable.includeVariable();
 	}
 	node.eachChild(includeFully);
 }
@@ -135,16 +150,16 @@ export default class Module {
 		resolvedExternalIds,
 		graph
 	}: {
-			id: string,
-			code: string,
-			originalCode: string,
-			originalSourcemap: RawSourceMap,
-			ast: Program,
-			sourcemapChain: RawSourceMap[],
-			resolvedIds: IdMap,
-			resolvedExternalIds?: IdMap,
-			graph: Graph
-		}) {
+		id: string,
+		code: string,
+		originalCode: string,
+		originalSourcemap: RawSourceMap,
+		ast: Program,
+		sourcemapChain: RawSourceMap[],
+		resolvedIds: IdMap,
+		resolvedExternalIds?: IdMap,
+		graph: Graph
+	}) {
 		this.code = code;
 		this.id = id;
 		this.graph = graph;
@@ -499,7 +514,7 @@ export default class Module {
 
 	processDynamicImports (resolveDynamicImport: ResolveDynamicImportHandler) {
 		return Promise.all(this.dynamicImports.map(node => {
-			const importArgument = <Node>node.parent.arguments[0];
+			const importArgument = node.parent.arguments[0];
 			let dynamicImportSpecifier: string | Node;
 			if (importArgument.type === 'TemplateLiteral') {
 				if ((<TemplateLiteral>importArgument).expressions.length === 0 && (<TemplateLiteral>importArgument).quasis.length === 1) {

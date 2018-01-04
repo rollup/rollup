@@ -1,11 +1,11 @@
-import Statement from './shared/Statement';
-import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import { BasicStatementNode, StatementNode } from './shared/Statement';
+import { ExpressionNode } from './shared/Expression';
 
-export default class WhileStatement extends Statement {
+export default class WhileStatement extends BasicStatementNode {
 	type: 'WhileStatement';
-	test: Expression;
-	body: Statement;
+	test: ExpressionNode;
+	body: StatementNode;
 
 	hasEffects (options: ExecutionPathOptions): boolean {
 		return (

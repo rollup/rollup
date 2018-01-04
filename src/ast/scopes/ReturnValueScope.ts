@@ -1,12 +1,10 @@
 import ParameterScope from './ParameterScope';
-import { UnknownAssignment } from '../values';
-import Expression from '../nodes/Expression';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { ForEachReturnExpressionCallback } from '../Node';
+import { Expression, ForEachReturnExpressionCallback } from '../nodes/shared/Expression';
 
 export default class ReturnValueScope extends ParameterScope {
-	_returnExpressions: Set<Expression | UnknownAssignment>;
+	_returnExpressions: Set<Expression>;
 
 	constructor (options = {}) {
 		super(options);

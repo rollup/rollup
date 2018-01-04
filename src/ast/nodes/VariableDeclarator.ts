@@ -1,16 +1,16 @@
-import Node from '../Node';
+import { BasicNode } from './shared/Node';
 import extractNames from '../utils/extractNames';
-import Pattern from './Pattern';
-import Expression from './Expression';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { PatternNode } from './shared/Pattern';
+import { ExpressionNode } from './shared/Expression';
 
-export default class VariableDeclarator extends Node {
+export default class VariableDeclarator extends BasicNode {
 	type: 'VariableDeclarator';
-	id: Pattern;
-	init: Expression | null;
+	id: PatternNode;
+	init: ExpressionNode | null;
 
 	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		this.id.reassignPath(path, options);

@@ -1,20 +1,24 @@
 /// <reference path="./Identifier.d.ts" />
 
-import Node, { ForEachReturnExpressionCallback } from '../Node';
+import { Node } from './shared/Node';
 import isReference from 'is-reference';
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment, PredicateFunction } from '../values';
+import { UNKNOWN_EXPRESSION } from '../values';
 import Scope from '../scopes/Scope';
-import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Declaration from './Declaration';
 import Variable from '../variables/Variable';
 import CallOptions from '../CallOptions';
 import FunctionScope from '../scopes/FunctionScope';
 import MagicString from 'magic-string';
 import Property from './Property';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { BasicExpressionNode, Expression, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { Pattern } from './shared/Pattern';
 
-export default class Identifier extends Node {
+export function isIdentifier (node: Node): node is Identifier {
+	return node.type === 'Identifier';
+}
+
+export default class Identifier extends BasicExpressionNode implements Pattern {
 	type: 'Identifier';
 	name: string;
 
@@ -79,7 +83,7 @@ export default class Identifier extends Node {
 		return true;
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: Expression | null) {
 		this.initialiseScope(parentScope);
 		switch (kind) {
 			case 'var':
@@ -122,7 +126,7 @@ export default class Identifier extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
 		callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		if (this.variable) {
@@ -133,6 +137,6 @@ export default class Identifier extends Node {
 				options
 			);
 		}
-		return predicateFunction(options)(UNKNOWN_ASSIGNMENT);
+		return predicateFunction(options)(UNKNOWN_EXPRESSION);
 	}
 }

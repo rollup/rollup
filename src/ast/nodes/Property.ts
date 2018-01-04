@@ -1,25 +1,20 @@
-import Node, { ForEachReturnExpressionCallback } from '../Node';
+import { BasicNode,  Node } from './shared/Node';
 import CallOptions from '../CallOptions';
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment, PredicateFunction } from '../values';
-import Literal from './Literal';
-import Identifier from './Identifier';
-import Expression from './Expression';
+import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
-import Pattern from './Pattern';
-import Declaration from './Declaration';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { Expression, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 
-// this excludes the AssignmentProperty case
-export interface StandardProperty extends Property {
-	value: Expression;
+export function isProperty (node: Node): node is Property {
+	return node.type === 'Property';
 }
 
-export default class Property extends Node {
+export default class Property extends BasicNode {
 	type: 'Property';
-	key: Literal<string> | Identifier | Expression;
-	value: Expression | Pattern;
+	key: ExpressionNode;
+	value: ExpressionNode;
 	kind: 'init' | 'get' | 'set';
 	method: boolean;
 	shorthand: boolean;
@@ -33,10 +28,9 @@ export default class Property extends Node {
 			this.value.forEachReturnExpressionWhenCalledAtPath(
 				[],
 				this._accessorCallOptions,
-				(innerOptions: ExecutionPathOptions) => (node: Node) =>
+				innerOptions => node =>
 					node.reassignPath(
-						path,
-						innerOptions.addAssignedReturnExpressionAtPath(path, this)
+						path, innerOptions.addAssignedReturnExpressionAtPath(path, this)
 					),
 				options
 			);
@@ -156,12 +150,11 @@ export default class Property extends Node {
 		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	initialiseAndDeclare (
-		parentScope: Scope, kind: string, _init: Declaration | Expression | UnknownAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, _init: Expression | null) {
 		this.initialiseScope(parentScope);
 		this.initialiseNode(parentScope);
 		this.key.initialise(parentScope);
-		this.value.initialiseAndDeclare(parentScope, kind, UNKNOWN_ASSIGNMENT);
+		this.value.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION);
 	}
 
 	initialiseNode (_parentScope: Scope) {
@@ -181,7 +174,7 @@ export default class Property extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
 		callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		if (this.kind === 'get') {

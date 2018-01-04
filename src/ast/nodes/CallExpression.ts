@@ -1,16 +1,15 @@
-import Node, { ForEachReturnExpressionCallback } from '../Node';
 import CallOptions from '../CallOptions';
-import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import SpreadElement from './SpreadElement';
-import { PredicateFunction } from '../values';
 import GlobalVariable from '../variables/GlobalVariable';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { isIdentifier } from './Identifier';
+import { BasicExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 
-export default class CallExpression extends Node {
+export default class CallExpression extends BasicExpressionNode {
 	type: 'CallExpression';
-	callee: Expression;
-	arguments: (Expression | SpreadElement)[];
+	callee: ExpressionNode;
+	arguments: (ExpressionNode | SpreadElement)[];
 
 	private _callOptions: CallOptions;
 
@@ -19,17 +18,16 @@ export default class CallExpression extends Node {
 		this.callee.forEachReturnExpressionWhenCalledAtPath(
 			[],
 			this._callOptions,
-			(innerOptions: ExecutionPathOptions) => (node: Node) =>
+			innerOptions => node =>
 				node.reassignPath(
-					path,
-					innerOptions.addAssignedReturnExpressionAtPath(path, this)
+					path, innerOptions.addAssignedReturnExpressionAtPath(path, this)
 				),
 			options
 		);
 	}
 
 	bindNode () {
-		if (this.callee.type === 'Identifier') {
+		if (isIdentifier(this.callee)) {
 			const variable = this.scope.findVariable(this.callee.name);
 
 			if (variable.isNamespace) {
@@ -65,7 +63,7 @@ export default class CallExpression extends Node {
 		this.callee.forEachReturnExpressionWhenCalledAtPath(
 			[],
 			this._callOptions,
-			(innerOptions: ExecutionPathOptions) => (node: Node) =>
+			innerOptions => node =>
 				node.forEachReturnExpressionWhenCalledAtPath(
 					path,
 					callOptions,
@@ -94,10 +92,9 @@ export default class CallExpression extends Node {
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
 				this._callOptions,
-				(innerOptions: ExecutionPathOptions) => (node: Node) =>
+				innerOptions => node =>
 					node.hasEffectsWhenAccessedAtPath(
-						path,
-						innerOptions.addAccessedReturnExpressionAtPath(path, this)
+						path, innerOptions.addAccessedReturnExpressionAtPath(path, this)
 					),
 				options
 			)
@@ -110,10 +107,9 @@ export default class CallExpression extends Node {
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
 				this._callOptions,
-				(innerOptions: ExecutionPathOptions) => (node: Node) =>
+				innerOptions => node =>
 					node.hasEffectsWhenAssignedAtPath(
-						path,
-						innerOptions.addAssignedReturnExpressionAtPath(path, this)
+						path, innerOptions.addAssignedReturnExpressionAtPath(path, this)
 					),
 				options
 			)
@@ -126,7 +122,7 @@ export default class CallExpression extends Node {
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
 				this._callOptions,
-				(innerOptions: ExecutionPathOptions) => (node: Node) =>
+				innerOptions => node =>
 					node.hasEffectsWhenCalledAtPath(
 						path,
 						callOptions,
@@ -140,7 +136,7 @@ export default class CallExpression extends Node {
 	initialiseNode () {
 		this._callOptions = CallOptions.create({
 			withNew: false,
-			args: <Expression[]> this.arguments, // TODO TypeScript: Resolve type cast
+			args: this.arguments,
 			caller: this
 		});
 	}
@@ -148,13 +144,13 @@ export default class CallExpression extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
 		callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		return this.callee.someReturnExpressionWhenCalledAtPath(
 			[],
 			this._callOptions,
-			(innerOptions: ExecutionPathOptions) => (node: Node) =>
+			innerOptions => node =>
 				node.someReturnExpressionWhenCalledAtPath(
 					path,
 					callOptions,

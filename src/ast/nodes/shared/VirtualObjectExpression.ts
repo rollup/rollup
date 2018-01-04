@@ -1,7 +1,8 @@
-import Node from '../../Node';
 import { ObjectPath } from '../../variables/VariableReassignmentTracker';
+import { BasicExpressionNode } from './Expression';
 
-export default class VirtualObjectExpression extends Node {
+// TODO Lukas change to static value instead
+export default class VirtualObjectExpression extends BasicExpressionNode {
 	hasEffectsWhenAccessedAtPath (path: ObjectPath) {
 		return path.length > 1;
 	}

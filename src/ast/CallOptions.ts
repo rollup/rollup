@@ -1,19 +1,22 @@
-import TaggedTemplateExpression from "./nodes/TaggedTemplateExpression";
-import CallExpression from "./nodes/CallExpression";
-import Expression from './nodes/Expression';
-import NewExpression from "./nodes/NewExpression";
-import Property from "./nodes/Property";
+import { Expression } from './nodes/shared/Expression';
+import SpreadElement from './nodes/SpreadElement';
+import TaggedTemplateExpression from './nodes/TaggedTemplateExpression';
+import NewExpression from './nodes/NewExpression';
+import Property from './nodes/Property';
+import CallExpression from './nodes/CallExpression';
+
+export type CallExpressionType = TaggedTemplateExpression | CallExpression | NewExpression | Property
 
 export interface CallCreateOptions {
 	withNew: boolean;
-	args?: Expression[];
-	caller: TaggedTemplateExpression | CallExpression | NewExpression | Property | void;
+	args?: (Expression | SpreadElement)[];
+	caller: CallExpressionType;
 }
 
-export default class CallOptions {
+export default class CallOptions implements CallCreateOptions {
 	withNew: boolean;
-	args: Expression[];
-	caller: TaggedTemplateExpression | CallExpression | NewExpression | Property | void;
+	args: (Expression | SpreadElement)[];
+	caller: CallExpressionType;
 
 	static create (callOptions: CallCreateOptions) {
 		return new this(callOptions);

@@ -1,7 +1,6 @@
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment } from '../values';
-import Expression from '../nodes/Expression';
+import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Declaration from '../nodes/Declaration';
+import { Expression } from '../nodes/shared/Expression';
 
 export interface UnknownKey {
 	type: 'UNKNOWN_KEY';
@@ -12,8 +11,8 @@ export type ObjectPath = ObjectPathElement[];
 
 export const UNKNOWN_KEY: UnknownKey = { type: 'UNKNOWN_KEY' };
 
-export type PathCallback = (path: ObjectPath, expression: Expression | Declaration | UnknownAssignment) => void;
-export type PathPredicate = (path: ObjectPath, expression: Expression | Declaration | UnknownAssignment) => boolean;
+export type PathCallback = (path: ObjectPath, expression: Expression) => void;
+export type PathPredicate = (path: ObjectPath, expression: Expression) => boolean;
 
 class ReassignedPathTracker {
 	_reassigned: boolean;
@@ -62,14 +61,14 @@ class ReassignedPathTracker {
 
 	someReassignedPath (path: ObjectPath, callback: PathPredicate): boolean {
 		return this._reassigned
-			? callback(path, UNKNOWN_ASSIGNMENT)
+			? callback(path, UNKNOWN_EXPRESSION)
 			: path.length >= 1 && this._onSubPathIfReassigned(path, callback);
 	}
 
 	_onSubPathIfReassigned (path: ObjectPath, callback: PathPredicate): boolean {
 		const [subPath, ...remainingPath] = path;
 		return this._unknownReassignedSubPath || subPath === UNKNOWN_KEY
-			? callback(remainingPath, UNKNOWN_ASSIGNMENT)
+			? callback(remainingPath, UNKNOWN_EXPRESSION)
 			: this._subPaths.has(<string>subPath) &&
 			this._subPaths
 				.get(<string>subPath)
@@ -78,10 +77,10 @@ class ReassignedPathTracker {
 }
 
 export default class VariableReassignmentTracker {
-	private _initialExpression: Expression | Declaration | UnknownAssignment;
+	private _initialExpression: Expression;
 	private _reassignedPathTracker: ReassignedPathTracker;
 
-	constructor (initialExpression: Expression | Declaration | UnknownAssignment) {
+	constructor (initialExpression: Expression) {
 		this._initialExpression = initialExpression;
 		this._reassignedPathTracker = new ReassignedPathTracker();
 	}

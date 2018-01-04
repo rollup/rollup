@@ -1,7 +1,7 @@
 import nodes from './nodes/index';
 import UnknownNode from './nodes/UnknownNode';
 import keys from './keys';
-import Node from './Node';
+import { Node } from './nodes/shared/Node';
 import Module from '../Module';
 import Comment from './comment';
 import MagicString from 'magic-string';
@@ -9,7 +9,7 @@ import MagicString from 'magic-string';
 const newline = /\n/;
 
 export default function enhance (ast: any, module: Module, comments: Comment[]) {
-	enhanceNode(ast, module, module, module.magicString);
+	enhanceNode(ast, {}, module, module.magicString);
 
 	let comment = comments.shift();
 
@@ -31,18 +31,21 @@ export default function enhance (ast: any, module: Module, comments: Comment[]) 
 	}
 }
 
-function enhanceNode (raw: Node | Node[], parent: Node | Module, module: Module, code: MagicString) {
+function isArrayOfNodes (raw: Node | Node[]): raw is Node[] {
+	return 'length' in raw;
+}
+
+function enhanceNode (raw: Node | Node[], parent: Node | {}, module: Module, code: MagicString) {
 	if (!raw) return;
 
-	if ('length' in raw) {
-		for (let i = 0; i < (<Node[]>raw).length; i += 1) {
-			enhanceNode((<Node[]>raw)[i], parent, module, code);
+	if (isArrayOfNodes(raw)) {
+		for (let i = 0; i < raw.length; i += 1) {
+			enhanceNode(raw[i], parent, module, code);
 		}
-
 		return;
 	}
 
-	const rawNode = <Node>raw;
+	const rawNode = raw;
 
 	// with e.g. shorthand properties, key and value are
 	// the same node. We don't want to enhance an object twice

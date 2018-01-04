@@ -1,5 +1,5 @@
 import Identifier from "./Identifier";
-import Node from '../Node';
+import { Node } from './shared/Node';
 
 export default interface ImportDefaultSpecifier extends Node {
   type: 'ImportDefaultSpecifier';

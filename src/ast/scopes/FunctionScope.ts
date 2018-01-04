@@ -1,7 +1,7 @@
 import ReturnValueScope from './ReturnValueScope';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import { UNKNOWN_EXPRESSION } from '../values';
 import VirtualObjectExpression from '../nodes/shared/VirtualObjectExpression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
@@ -34,13 +34,11 @@ export default class FunctionScope extends ReturnValueScope {
 		return options
 			.replaceVariableInit(
 			this.variables.this,
-			withNew ? new VirtualObjectExpression() : UNKNOWN_ASSIGNMENT
+			withNew ? new VirtualObjectExpression() : UNKNOWN_EXPRESSION
 			)
 			.setArgumentsVariables(
 			args.map(
-				(parameter, index) => {
-					return super.getParameterVariables()[index] || parameter
-				}
+				(parameter, index) => super.getParameterVariables()[index] || parameter
 			)
 			);
 	}
