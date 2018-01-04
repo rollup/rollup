@@ -21,8 +21,8 @@ import {
 	TreeshakingOptions,
 	WarningHandler
 } from './rollup/index';
-import NamespaceVariable from './ast/variables/NamespaceVariable';
-import ExternalVariable from './ast/variables/ExternalVariable';
+import { isNamespaceVariable } from './ast/variables/NamespaceVariable';
+import ExternalVariable, { isExternalVariable } from './ast/variables/ExternalVariable';
 import { RawSourceMap } from 'source-map';
 import Program from './ast/nodes/Program';
 import { Node } from './ast/nodes/shared/Node';
@@ -311,16 +311,16 @@ export default class Graph {
 			variable.exportName = name;
 			variable.includeVariable();
 
-			if (variable.isNamespace) {
-				(<NamespaceVariable>variable).needsNamespaceBlock = true;
+			if (isNamespaceVariable(variable)) {
+				variable.needsNamespaceBlock = true;
 			}
 		});
 
 		entryModule.getReexports().forEach(name => {
 			const variable = entryModule.traceExport(name);
 
-			if (variable.isExternal) {
-				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
+			if (isExternalVariable(variable)) {
+				variable.reexported = variable.module.reexported = true;
 			} else {
 				variable.exportName = name;
 				variable.includeVariable();

@@ -6,7 +6,8 @@ import { UNKNOWN_EXPRESSION } from '../values';
 import Module from '../../Module';
 import ImportSpecifier from '../nodes/ImportSpecifier';
 import Variable from '../variables/Variable';
-import NamespaceVariable from '../variables/NamespaceVariable';
+import { isNamespaceVariable } from '../variables/NamespaceVariable';
+import { isExternalVariable } from '../variables/ExternalVariable';
 
 export default class ModuleScope extends Scope {
 	parent: Scope;
@@ -29,10 +30,9 @@ export default class ModuleScope extends Scope {
 			if (specifier.module.isExternal) return;
 
 			const addDeclaration = (declaration: Variable) => {
-				if (declaration.isNamespace && !declaration.isExternal) {
-					(<NamespaceVariable>declaration).module.getExports().forEach(name => {
-						addDeclaration((<NamespaceVariable>declaration).module.traceExport(name));
-					});
+				if (isNamespaceVariable(declaration) && !isExternalVariable(declaration)) {
+					declaration.module.getExports()
+						.forEach(name => addDeclaration(declaration.module.traceExport(name)));
 				}
 
 				localNames.add(declaration.name);

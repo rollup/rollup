@@ -9,7 +9,7 @@ import { Expression, ForEachReturnExpressionCallback, SomeReturnExpressionCallba
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
 
-export default class LocalVariable extends Variable implements Expression {
+export default class LocalVariable extends Variable {
 	declarations: Set<Identifier | ExportDefaultDeclaration>;
 	boundExpressions: VariableReassignmentTracker;
 
@@ -26,10 +26,6 @@ export default class LocalVariable extends Variable implements Expression {
 
 	addDeclaration (identifier: Identifier) {
 		this.declarations.add(identifier);
-	}
-
-	getValue (): any {
-		return undefined;
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
@@ -161,9 +157,5 @@ export default class LocalVariable extends Variable implements Expression {
 					)
 			)
 		);
-	}
-
-	toString () {
-		return this.name;
 	}
 }
