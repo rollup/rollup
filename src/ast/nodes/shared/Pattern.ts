@@ -1,6 +1,10 @@
 import { WritableEntity } from '../../Entity';
-import { Node } from './Node';
+import { BasicNode, Node } from './Node';
+import { ObjectPath } from '../../variables/VariableReassignmentTracker';
+import ExecutionPathOptions from '../../ExecutionPathOptions';
 
-export interface Pattern extends WritableEntity {}
+export interface PatternNode extends WritableEntity, Node {}
 
-export interface PatternNode extends Pattern, Node {}
+export class BasicPatternNode extends BasicNode implements PatternNode {
+	reassignPath (_path: ObjectPath, _options: ExecutionPathOptions) {}
+}
