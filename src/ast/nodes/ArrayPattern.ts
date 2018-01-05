@@ -1,6 +1,6 @@
 import Node from '../Node';
 import { UNKNOWN_ASSIGNMENT, UnknownAssignment } from '../values';
-import Scope from '../Scopes/Scope';
+import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Pattern from './Pattern';
 import Expression from './Expression';

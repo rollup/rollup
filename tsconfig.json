@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "pretty": true,
         "target": "es5",
         "diagnostics": true,
         "lib": ["es5", "es6", "dom"],
@@ -7,7 +8,10 @@
         "noImplicitAny": true,
         "noImplicitThis": true,
         "noUnusedParameters": true,
-        "noUnusedLocals": true
+        "noUnusedLocals": true,
+        "outDir": "./dist/typings",
+        "skipLibCheck": true,
+        "declaration": true
     },
     "include": [
         "src",

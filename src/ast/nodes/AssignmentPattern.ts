@@ -2,7 +2,7 @@ import Node from '../Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Pattern from './Pattern';
 import Expression from './Expression';
-import Scope from '../Scopes/Scope';
+import Scope from '../scopes/Scope';
 import { UnknownAssignment } from '../values';
 import Declaration from './Declaration';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';

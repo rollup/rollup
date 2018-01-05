@@ -7,13 +7,13 @@ export interface UnknownKey {
 	type: 'UNKNOWN_KEY';
 }
 
-type ObjectPathElement = string | UnknownKey
+export type ObjectPathElement = string | UnknownKey
 export type ObjectPath = ObjectPathElement[];
 
 export const UNKNOWN_KEY: UnknownKey = { type: 'UNKNOWN_KEY' };
 
-type PathCallback = (path: ObjectPath, expression: Expression | Declaration | UnknownAssignment) => void;
-type PathPredicate = (path: ObjectPath, expression: Expression | Declaration | UnknownAssignment) => boolean;
+export type PathCallback = (path: ObjectPath, expression: Expression | Declaration | UnknownAssignment) => void;
+export type PathPredicate = (path: ObjectPath, expression: Expression | Declaration | UnknownAssignment) => boolean;
 
 class ReassignedPathTracker {
 	_reassigned: boolean;

@@ -1,5 +1,5 @@
 import Statement from './shared/Statement';
-import StatementType from './statement';
+import StatementType from './Statement';
 import BlockScope from '../scopes/BlockScope';
 import { UNKNOWN_ASSIGNMENT } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
