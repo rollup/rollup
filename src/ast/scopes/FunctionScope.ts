@@ -1,13 +1,14 @@
 import ReturnValueScope from './ReturnValueScope';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
-import { OBJECT_EXPRESSION, UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import LocalVariable from '../variables/LocalVariable';
 import GlobalVariable from '../variables/GlobalVariable';
 import ExternalVariable from '../variables/ExternalVariable';
+import { UNKNOWN_OBJECT_EXPRESSION } from '../nodes/ObjectExpression';
+import { UNKNOWN_EXPRESSION } from '../values';
 
 export default class FunctionScope extends ReturnValueScope {
 	variables: {
@@ -31,7 +32,7 @@ export default class FunctionScope extends ReturnValueScope {
 
 	getOptionsWhenCalledWith ({ args, withNew }: CallOptions, options: ExecutionPathOptions): ExecutionPathOptions {
 		return options
-			.replaceVariableInit(this.variables.this, withNew ? OBJECT_EXPRESSION : UNKNOWN_EXPRESSION)
+			.replaceVariableInit(this.variables.this, withNew ? UNKNOWN_OBJECT_EXPRESSION : UNKNOWN_EXPRESSION)
 			.setArgumentsVariables(args.map((parameter, index) => super.getParameterVariables()[index] || parameter));
 	}
 }

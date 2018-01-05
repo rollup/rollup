@@ -4,13 +4,13 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { Node } from './shared/Node';
-import { BasicStatementNode, StatementNode } from './shared/Statement';
+import { GenericStatementNode, StatementNode } from './shared/Statement';
 
 export function isBlockStatement (node: Node): node is BlockStatement {
 	return node.type === 'BlockStatement';
 }
 
-export default class BlockStatement extends BasicStatementNode {
+export default class BlockStatement extends GenericStatementNode {
 	type: 'BlockStatement';
 	scope: Scope;
 	body: StatementNode[];

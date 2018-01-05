@@ -1,4 +1,4 @@
-import { BasicNode } from './shared/Node';
+import { GenericNode } from './shared/Node';
 import extractNames from '../utils/extractNames';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
@@ -7,7 +7,7 @@ import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { PatternNode } from './shared/Pattern';
 import { ExpressionNode } from './shared/Expression';
 
-export default class VariableDeclarator extends BasicNode {
+export default class VariableDeclarator extends GenericNode {
 	type: 'VariableDeclarator';
 	id: PatternNode;
 	init: ExpressionNode | null;

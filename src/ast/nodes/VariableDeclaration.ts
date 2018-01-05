@@ -1,4 +1,4 @@
-import { Node, BasicNode } from './shared/Node';
+import { Node, GenericNode } from './shared/Node';
 import extractNames from '../utils/extractNames';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import VariableDeclarator from './VariableDeclarator';
@@ -28,7 +28,7 @@ export function isVariableDeclaration (node: Node): node is VariableDeclaration 
 	return node.type === 'VariableDeclaration';
 }
 
-export default class VariableDeclaration extends BasicNode {
+export default class VariableDeclaration extends GenericNode {
 	type: 'VariableDeclaration';
 	declarations: VariableDeclarator[];
 	kind: 'var' | 'let' | 'const';

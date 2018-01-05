@@ -12,14 +12,3 @@ export const UNKNOWN_EXPRESSION: Expression = {
 	someReturnExpressionWhenCalledAtPath: () => true,
 	toString: () => '[[UNKNOWN]]'
 };
-
-export const OBJECT_EXPRESSION: Expression = {
-	reassignPath: () => {},
-	forEachReturnExpressionWhenCalledAtPath: () => {},
-	getValue: () => UNKNOWN_VALUE,
-	hasEffectsWhenAccessedAtPath: path => path.length > 1,
-	hasEffectsWhenAssignedAtPath: path => path.length > 1,
-	hasEffectsWhenCalledAtPath: () => true,
-	someReturnExpressionWhenCalledAtPath: () => true,
-	toString: () => '[[VIRTUAL OBJECT]]'
-};

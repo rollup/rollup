@@ -1,7 +1,7 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { BasicExpressionNode } from './shared/Expression';
+import { GenericExpressionNode } from './shared/Expression';
 
-export default class UnknownNode extends BasicExpressionNode {
+export default class UnknownNode extends GenericExpressionNode {
 	hasEffects (_options: ExecutionPathOptions) {
 		return true;
 	}

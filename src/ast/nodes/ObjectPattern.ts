@@ -3,9 +3,9 @@ import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { Expression } from './shared/Expression';
-import { BasicPatternNode } from './shared/Pattern';
+import { GenericPatternNode } from './shared/Pattern';
 
-export default class ObjectPattern extends BasicPatternNode {
+export default class ObjectPattern extends GenericPatternNode {
 	type: 'ObjectPattern';
 	properties: AssignmentProperty[];
 

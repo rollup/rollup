@@ -2,10 +2,10 @@ import BlockScope from '../scopes/BlockScope';
 import VariableDeclaration from './VariableDeclaration';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
-import { BasicStatementNode, StatementNode } from './shared/Statement';
+import { GenericStatementNode, StatementNode } from './shared/Statement';
 import { ExpressionNode } from './shared/Expression';
 
-export default class ForStatement extends BasicStatementNode {
+export default class ForStatement extends GenericStatementNode {
 	type: 'ForStatement';
 	init: VariableDeclaration | ExpressionNode | null;
 	test: ExpressionNode | null;

@@ -3,11 +3,11 @@ import VariableDeclaration from './VariableDeclaration';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import BlockStatement from './BlockStatement';
-import { BasicStatementNode, StatementNode } from './shared/Statement';
+import { GenericStatementNode, StatementNode } from './shared/Statement';
 import { PatternNode } from './shared/Pattern';
 import { ExpressionNode } from './shared/Expression';
 
-export default class ForInStatement extends BasicStatementNode {
+export default class ForInStatement extends GenericStatementNode {
 	type: 'ForInStatement';
 	left: VariableDeclaration | PatternNode;
 	right: ExpressionNode;

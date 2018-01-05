@@ -76,7 +76,7 @@ export interface Node extends Entity {
 	someChild(callback: (node: Node) => boolean): boolean;
 }
 
-export class BasicNode implements Node {
+export class GenericNode implements Node {
 	type: string;
 	keys: string[];
 	included: boolean;
@@ -126,7 +126,7 @@ export class BasicNode implements Node {
 	}
 
 	hasEffects (options: ExecutionPathOptions): boolean {
-		return this.someChild((child: BasicNode) => child.hasEffects(options));
+		return this.someChild((child: GenericNode) => child.hasEffects(options));
 	}
 
 	hasEffectsWhenAssignedAtPath (_path: ObjectPath, _options: ExecutionPathOptions) {
@@ -135,7 +135,7 @@ export class BasicNode implements Node {
 
 	private hasIncludedChild (): boolean {
 		return (
-			this.included || this.someChild((child: BasicNode) => child.hasIncludedChild())
+			this.included || this.someChild((child: GenericNode) => child.hasIncludedChild())
 		);
 	}
 
@@ -208,7 +208,7 @@ export class BasicNode implements Node {
 		);
 	}
 
-	someChild (callback: (node: BasicNode) => boolean) {
+	someChild (callback: (node: GenericNode) => boolean) {
 		return this.keys.some(key => {
 			const value = (<any>this)[key];
 			if (!value) return false;

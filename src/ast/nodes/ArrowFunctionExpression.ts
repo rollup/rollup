@@ -4,10 +4,10 @@ import BlockStatement, { isBlockStatement } from './BlockStatement';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { BasicExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { GenericExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
 
-export default class ArrowFunctionExpression extends BasicExpressionNode {
+export default class ArrowFunctionExpression extends GenericExpressionNode {
 	type: 'ArrowFunctionExpression';
 	body: BlockStatement | ExpressionNode;
 	params: PatternNode[];

@@ -4,9 +4,9 @@ import CallOptions from '../CallOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { BasicExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { GenericExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 
-export default class ConditionalExpression extends BasicExpressionNode {
+export default class ConditionalExpression extends GenericExpressionNode {
 	type: 'ConditionalExpression';
 	test: ExpressionNode;
 	alternate: ExpressionNode;
