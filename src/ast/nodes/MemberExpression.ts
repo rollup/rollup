@@ -1,9 +1,9 @@
 import relativeId from '../../utils/relativeId';
 import { Node } from './shared/Node';
-import { ObjectPath, ObjectPathElement, UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
+import { isUnknownKey, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
 import Variable from '../variables/Variable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Literal, { isLiteral } from './Literal';
+import { isLiteral } from './Literal';
 import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
 import Identifier, { isIdentifier } from './Identifier';
@@ -13,34 +13,32 @@ import { BasicExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, S
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
-class Keypath {
-	computed: boolean;
-	parts: (Literal | Identifier)[];
-	root: ExpressionNode;
+function getPropertyKey (memberExpression: MemberExpression): ObjectPathKey {
+	return memberExpression.computed
+		? getComputedPropertyKey(memberExpression.property)
+		: (<Identifier>memberExpression.property).name;
+}
 
-	constructor (node: ExpressionNode) {
-		this.parts = [];
-
-		while (isMemberExpression(node)) {
-			const prop = node.property;
-
-			if (node.computed) {
-				if (
-					!isLiteral(prop) ||
-					typeof prop.value !== 'string' ||
-					!validProp.test(prop.value)
-				) {
-					this.computed = true;
-					return;
-				}
-			}
-
-			this.parts.unshift(<Literal | Identifier>prop);
-			node = node.object;
-		}
-
-		this.root = node;
+function getComputedPropertyKey (propertyKey: ExpressionNode): ObjectPathKey {
+	if (isLiteral(propertyKey)) {
+		const key = String(propertyKey.value);
+		return validProp.test(key) ? key : UNKNOWN_KEY;
 	}
+	return UNKNOWN_KEY;
+}
+
+type PathWithPositions = { key: string, pos: number }[];
+
+function getPathIfNotComputed (memberExpression: MemberExpression): PathWithPositions | null {
+	const nextPathKey = memberExpression.propertyKey;
+	const object = memberExpression.object;
+	if (isUnknownKey(nextPathKey)) return null;
+	if (isIdentifier(object)) return [{key: object.name, pos: object.start}, {key: nextPathKey, pos: memberExpression.property.start}];
+	if (isMemberExpression(object)) {
+		const parentPath = getPathIfNotComputed(object);
+		return parentPath && [...parentPath, {key: nextPathKey, pos: memberExpression.property.start}];
+	}
+	return null;
 }
 
 export function isMemberExpression (node: Node): node is MemberExpression {
@@ -53,60 +51,53 @@ export default class MemberExpression extends BasicExpressionNode {
 	property: ExpressionNode;
 	computed: boolean;
 
+	propertyKey: ObjectPathKey;
 	variable: Variable;
 	private isBound: boolean;
 	private replacement: string;
-
 	private arePropertyReadSideEffectsChecked: boolean;
 
 	bind () {
-		// if this resolves to a namespaced declaration, prepare
-		// to replace it
-		// TODO this code is a bit inefficient
-		this.isBound = true;
-		const keypath = new Keypath(this);
-
-		if (!keypath.computed && isIdentifier(keypath.root)) {
-			let variable: Variable = this.scope.findVariable(keypath.root.name);
-
-			while (isNamespaceVariable(variable) && keypath.parts.length) {
-				const exporterId = variable.module.id;
-
-				const part = keypath.parts[0];
-				variable = variable.module.traceExport((<Identifier>part).name || <string>(<Literal>part).value);
-
-				if (!variable) {
-					this.module.warn(
-						{
-							code: 'MISSING_EXPORT',
-							missing: (<Identifier>part).name || <string>(<Literal>part).value,
-							importer: relativeId(this.module.id),
-							exporter: relativeId(exporterId),
-							message: `'${(<Identifier>part).name || (<Literal>part).value}' is not exported by '${relativeId(exporterId)}'`,
-							url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
-						},
-						part.start
-					);
-					this.replacement = 'undefined';
-					return;
+		const path = getPathIfNotComputed(this);
+		const baseVariable = path && this.scope.findVariable(path[0].key);
+		if (baseVariable && isNamespaceVariable(baseVariable)) {
+			const resolvedVariable = this.resolveNamespaceVariables(baseVariable, path.slice(1));
+			if (!resolvedVariable) {
+				this.bindChildren();
+			} else if (typeof resolvedVariable === 'string') {
+				this.replacement = resolvedVariable;
+			} else {
+				if (isExternalVariable(resolvedVariable)) {
+					resolvedVariable.module.suggestName(path[0].key);
 				}
-
-				keypath.parts.shift();
-			}
-
-			if (keypath.parts.length) {
-				super.bind();
-				return; // not a namespaced declaration
-			}
-
-			this.variable = variable;
-
-			if (isExternalVariable(variable)) {
-				variable.module.suggestName(keypath.root.name);
+				this.variable = resolvedVariable;
 			}
 		} else {
-			super.bind();
+			this.bindChildren();
 		}
+		this.isBound = true;
+	}
+
+	private resolveNamespaceVariables (baseVariable: Variable, path: PathWithPositions): Variable | string | null {
+		if (path.length === 0) return baseVariable;
+		if (!isNamespaceVariable(baseVariable)) return null;
+		const exportName = path[0].key;
+		const variable = baseVariable.module.traceExport(exportName);
+		if (!variable) {
+			this.module.warn(
+				{
+					code: 'MISSING_EXPORT',
+					missing: exportName,
+					importer: relativeId(this.module.id),
+					exporter: relativeId(baseVariable.module.id),
+					message: `'${exportName}' is not exported by '${relativeId(baseVariable.module.id)}'`,
+					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+				},
+				path[0].pos
+			);
+			return 'undefined';
+		}
+		return this.resolveNamespaceVariables(variable, path.slice(1));
 	}
 
 	forEachReturnExpressionWhenCalledAtPath (
@@ -124,9 +115,8 @@ export default class MemberExpression extends BasicExpressionNode {
 				options
 			);
 		} else {
-			// TODO: Type failure for ArrowFunctionExpression, FunctionExpression member object
 			this.object.forEachReturnExpressionWhenCalledAtPath(
-				[this.getPathSegment(), ...path],
+				[this.propertyKey, ...path],
 				callOptions,
 				callback,
 				options
@@ -139,7 +129,7 @@ export default class MemberExpression extends BasicExpressionNode {
 			super.hasEffects(options) ||
 			(this.arePropertyReadSideEffectsChecked &&
 				this.object.hasEffectsWhenAccessedAtPath(
-					[this.getPathSegment()],
+					[this.propertyKey],
 					options
 				))
 		);
@@ -153,7 +143,7 @@ export default class MemberExpression extends BasicExpressionNode {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, options);
 		}
 		return this.object.hasEffectsWhenAccessedAtPath(
-			[this.getPathSegment(), ...path],
+			[this.propertyKey, ...path],
 			options
 		);
 	}
@@ -163,7 +153,7 @@ export default class MemberExpression extends BasicExpressionNode {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 		}
 		return this.object.hasEffectsWhenAssignedAtPath(
-			[this.getPathSegment(), ...path],
+			[this.propertyKey, ...path],
 			options
 		);
 	}
@@ -177,9 +167,9 @@ export default class MemberExpression extends BasicExpressionNode {
 			);
 		}
 		return (
-			this.getPathSegment() === UNKNOWN_KEY ||
+			this.propertyKey === UNKNOWN_KEY ||
 			this.object.hasEffectsWhenCalledAtPath(
-				[this.getPathSegment(), ...path],
+				[this.propertyKey, ...path],
 				callOptions,
 				options
 			)
@@ -196,6 +186,7 @@ export default class MemberExpression extends BasicExpressionNode {
 	}
 
 	initialiseNode () {
+		this.propertyKey = getPropertyKey(this);
 		this.arePropertyReadSideEffectsChecked =
 			this.module.graph.treeshake &&
 			this.module.graph.treeshakingOptions.propertyReadSideEffects;
@@ -207,11 +198,11 @@ export default class MemberExpression extends BasicExpressionNode {
 		if (this.variable) {
 			this.variable.reassignPath(path, options);
 		} else {
-			this.object.reassignPath([this.getPathSegment(), ...path], options);
+			this.object.reassignPath([this.propertyKey, ...path], options);
 		}
 	}
 
-	private disallowNamespaceReassignment() {
+	private disallowNamespaceReassignment () {
 		if (isIdentifier(this.object) && isNamespaceVariable(this.scope.findVariable(this.object.name))) {
 			this.module.error(
 				{
@@ -254,22 +245,13 @@ export default class MemberExpression extends BasicExpressionNode {
 			);
 		}
 		return (
-			this.getPathSegment() === UNKNOWN_KEY ||
+			getPropertyKey(this) === UNKNOWN_KEY ||
 			this.object.someReturnExpressionWhenCalledAtPath(
-				[this.getPathSegment(), ...path],
+				[this.propertyKey, ...path],
 				callOptions,
 				predicateFunction,
 				options
 			)
 		);
-	}
-
-	private getPathSegment (): ObjectPathElement {
-		if (this.computed) {
-			return isLiteral(this.property)
-				? String(this.property.value)
-				: UNKNOWN_KEY;
-		}
-		return (<Identifier>this.property).name;
 	}
 }

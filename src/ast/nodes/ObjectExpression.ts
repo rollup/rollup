@@ -1,4 +1,4 @@
-import { ObjectPath, ObjectPathElement, UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
+import { ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
 import Property from './Property';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
@@ -50,7 +50,7 @@ export default class ObjectExpression extends BasicExpressionNode {
 		);
 	}
 
-	_getPossiblePropertiesWithName (name: ObjectPathElement, kinds: ObjectPath) {
+	_getPossiblePropertiesWithName (name: ObjectPathKey, kinds: ObjectPath) {
 		if (name === UNKNOWN_KEY) {
 			return { properties: this.properties, hasCertainHit: false };
 		}
