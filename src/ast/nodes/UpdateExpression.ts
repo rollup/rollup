@@ -1,4 +1,3 @@
-import disallowIllegalReassignment from './shared/disallowIllegalReassignment';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
@@ -11,7 +10,6 @@ export default class UpdateExpression extends BasicExpressionNode {
 	prefix: boolean;
 
 	bindNode () {
-		disallowIllegalReassignment(this.scope, this.argument);
 		this.argument.reassignPath([], ExecutionPathOptions.create());
 		if (isIdentifier(this.argument)) {
 			const variable = this.scope.findVariable(this.argument.name);

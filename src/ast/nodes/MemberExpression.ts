@@ -1,6 +1,6 @@
 import relativeId from '../../utils/relativeId';
 import { Node } from './shared/Node';
-import { ObjectPath, UNKNOWN_KEY, UnknownKey } from '../variables/VariableReassignmentTracker';
+import { ObjectPath, ObjectPathElement, UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
 import Variable from '../variables/Variable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Literal, { isLiteral } from './Literal';
@@ -53,17 +53,17 @@ export default class MemberExpression extends BasicExpressionNode {
 	property: ExpressionNode;
 	computed: boolean;
 
-	private _bound: boolean;
 	variable: Variable;
-	replacement: string;
+	private isBound: boolean;
+	private replacement: string;
 
-	private _checkPropertyReadSideEffects: boolean;
+	private arePropertyReadSideEffectsChecked: boolean;
 
 	bind () {
 		// if this resolves to a namespaced declaration, prepare
 		// to replace it
 		// TODO this code is a bit inefficient
-		this._bound = true;
+		this.isBound = true;
 		const keypath = new Keypath(this);
 
 		if (!keypath.computed && isIdentifier(keypath.root)) {
@@ -109,22 +109,13 @@ export default class MemberExpression extends BasicExpressionNode {
 		}
 	}
 
-	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
-		if (!this._bound) this.bind();
-		if (this.variable) {
-			this.variable.reassignPath(path, options);
-		} else {
-			this.object.reassignPath([<string>this._getPathSegment(), ...path], options);
-		}
-	}
-
 	forEachReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		if (!this._bound) this.bind();
+		if (!this.isBound) this.bind();
 		if (this.variable) {
 			this.variable.forEachReturnExpressionWhenCalledAtPath(
 				path,
@@ -135,7 +126,7 @@ export default class MemberExpression extends BasicExpressionNode {
 		} else {
 			// TODO: Type failure for ArrowFunctionExpression, FunctionExpression member object
 			this.object.forEachReturnExpressionWhenCalledAtPath(
-				[<string>this._getPathSegment(), ...path],
+				[this.getPathSegment(), ...path],
 				callOptions,
 				callback,
 				options
@@ -146,9 +137,9 @@ export default class MemberExpression extends BasicExpressionNode {
 	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
 			super.hasEffects(options) ||
-			(this._checkPropertyReadSideEffects &&
+			(this.arePropertyReadSideEffectsChecked &&
 				this.object.hasEffectsWhenAccessedAtPath(
-					[<string>this._getPathSegment()],
+					[this.getPathSegment()],
 					options
 				))
 		);
@@ -162,7 +153,7 @@ export default class MemberExpression extends BasicExpressionNode {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, options);
 		}
 		return this.object.hasEffectsWhenAccessedAtPath(
-			[<string>this._getPathSegment(), ...path],
+			[this.getPathSegment(), ...path],
 			options
 		);
 	}
@@ -172,7 +163,7 @@ export default class MemberExpression extends BasicExpressionNode {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 		}
 		return this.object.hasEffectsWhenAssignedAtPath(
-			[<string>this._getPathSegment(), ...path],
+			[this.getPathSegment(), ...path],
 			options
 		);
 	}
@@ -186,9 +177,9 @@ export default class MemberExpression extends BasicExpressionNode {
 			);
 		}
 		return (
-			this._getPathSegment() === UNKNOWN_KEY ||
+			this.getPathSegment() === UNKNOWN_KEY ||
 			this.object.hasEffectsWhenCalledAtPath(
-				[<string>this._getPathSegment(), ...path],
+				[this.getPathSegment(), ...path],
 				callOptions,
 				options
 			)
@@ -205,9 +196,31 @@ export default class MemberExpression extends BasicExpressionNode {
 	}
 
 	initialiseNode () {
-		this._checkPropertyReadSideEffects =
+		this.arePropertyReadSideEffectsChecked =
 			this.module.graph.treeshake &&
 			this.module.graph.treeshakingOptions.propertyReadSideEffects;
+	}
+
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
+		if (!this.isBound) this.bind();
+		if (path.length === 0) this.disallowNamespaceReassignment();
+		if (this.variable) {
+			this.variable.reassignPath(path, options);
+		} else {
+			this.object.reassignPath([this.getPathSegment(), ...path], options);
+		}
+	}
+
+	private disallowNamespaceReassignment() {
+		if (isIdentifier(this.object) && isNamespaceVariable(this.scope.findVariable(this.object.name))) {
+			this.module.error(
+				{
+					code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
+					message: `Illegal reassignment to import '${this.object.name}'`
+				},
+				this.start
+			);
+		}
 	}
 
 	render (code: MagicString, es: boolean) {
@@ -241,9 +254,9 @@ export default class MemberExpression extends BasicExpressionNode {
 			);
 		}
 		return (
-			this._getPathSegment() === UNKNOWN_KEY ||
+			this.getPathSegment() === UNKNOWN_KEY ||
 			this.object.someReturnExpressionWhenCalledAtPath(
-				[<string>this._getPathSegment(), ...path],
+				[this.getPathSegment(), ...path],
 				callOptions,
 				predicateFunction,
 				options
@@ -251,10 +264,10 @@ export default class MemberExpression extends BasicExpressionNode {
 		);
 	}
 
-	_getPathSegment (): string | UnknownKey {
+	private getPathSegment (): ObjectPathElement {
 		if (this.computed) {
-			return this.property.type === 'Literal'
-				? String((<Literal>this.property).value)
+			return isLiteral(this.property)
+				? String(this.property.value)
 				: UNKNOWN_KEY;
 		}
 		return (<Identifier>this.property).name;
