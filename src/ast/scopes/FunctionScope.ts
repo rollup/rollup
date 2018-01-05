@@ -1,8 +1,7 @@
 import ReturnValueScope from './ReturnValueScope';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
-import { UNKNOWN_EXPRESSION } from '../values';
-import VirtualObjectExpression from '../nodes/shared/VirtualObjectExpression';
+import { OBJECT_EXPRESSION, UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
@@ -32,14 +31,7 @@ export default class FunctionScope extends ReturnValueScope {
 
 	getOptionsWhenCalledWith ({ args, withNew }: CallOptions, options: ExecutionPathOptions): ExecutionPathOptions {
 		return options
-			.replaceVariableInit(
-			this.variables.this,
-			withNew ? new VirtualObjectExpression() : UNKNOWN_EXPRESSION
-			)
-			.setArgumentsVariables(
-			args.map(
-				(parameter, index) => super.getParameterVariables()[index] || parameter
-			)
-			);
+			.replaceVariableInit(this.variables.this, withNew ? OBJECT_EXPRESSION : UNKNOWN_EXPRESSION)
+			.setArgumentsVariables(args.map((parameter, index) => super.getParameterVariables()[index] || parameter));
 	}
 }
