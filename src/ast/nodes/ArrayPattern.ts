@@ -1,12 +1,11 @@
-import { BasicNode } from './shared/Node';
 import { UNKNOWN_EXPRESSION } from '../values';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { Pattern, PatternNode } from './shared/Pattern';
+import { BasicPatternNode, PatternNode } from './shared/Pattern';
 import { Expression } from './shared/Expression';
 
-export default class ArrayPattern extends BasicNode implements Pattern {
+export default class ArrayPattern extends BasicPatternNode {
 	type: 'ArrayPattern';
 	elements: (PatternNode | null)[];
 

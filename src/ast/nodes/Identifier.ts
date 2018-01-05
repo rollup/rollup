@@ -12,13 +12,13 @@ import MagicString from 'magic-string';
 import Property from './Property';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { BasicExpressionNode, Expression, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { Pattern } from './shared/Pattern';
+import { PatternNode } from './shared/Pattern';
 
 export function isIdentifier (node: Node): node is Identifier {
 	return node.type === 'Identifier';
 }
 
-export default class Identifier extends BasicExpressionNode implements Pattern {
+export default class Identifier extends BasicExpressionNode implements PatternNode {
 	type: 'Identifier';
 	name: string;
 
