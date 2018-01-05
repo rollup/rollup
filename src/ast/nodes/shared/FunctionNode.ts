@@ -1,6 +1,5 @@
 import FunctionScope from '../../scopes/FunctionScope';
 import BlockScope from '../../scopes/FunctionScope';
-import VirtualObjectExpression from './VirtualObjectExpression';
 import BlockStatement from '../BlockStatement';
 import Identifier from '../Identifier';
 import CallOptions from '../../CallOptions';
@@ -8,14 +7,13 @@ import ExecutionPathOptions from '../../ExecutionPathOptions';
 import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import { PatternNode } from './Pattern';
 import { BasicExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
+import { OBJECT_EXPRESSION } from '../../values';
 
 export default class FunctionNode extends BasicExpressionNode {
 	id: Identifier;
 	body: BlockStatement;
 	scope: BlockScope;
 	params: PatternNode[];
-
-	prototypeObject: VirtualObjectExpression;
 
 	bindNode () {
 		this.body.bindImplicitReturnExpressionToScope();
@@ -39,22 +37,22 @@ export default class FunctionNode extends BasicExpressionNode {
 		return this.id && this.id.hasEffects(options);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length <= 1) {
 			return false;
 		}
 		if (path[0] === 'prototype') {
-			return this.prototypeObject.hasEffectsWhenAccessedAtPath(path.slice(1));
+			return OBJECT_EXPRESSION.hasEffectsWhenAccessedAtPath(path.slice(1), options);
 		}
 		return true;
 	}
 
-	hasEffectsWhenAssignedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length <= 1) {
 			return false;
 		}
 		if (path[0] === 'prototype') {
-			return this.prototypeObject.hasEffectsWhenAssignedAtPath(path.slice(1));
+			return OBJECT_EXPRESSION.hasEffectsWhenAssignedAtPath(path.slice(1), options);
 		}
 		return true;
 	}
@@ -78,14 +76,9 @@ export default class FunctionNode extends BasicExpressionNode {
 		return super.includeInBundle();
 	}
 
-	initialiseNode () {
-		this.prototypeObject = new VirtualObjectExpression();
-	}
-
 	initialiseScope (parentScope: FunctionScope) {
 		this.scope = new FunctionScope({ parent: parentScope });
 	}
-
 
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
