@@ -23,18 +23,10 @@ export default class Identifier extends BasicExpressionNode implements PatternNo
 	name: string;
 
 	variable: Variable;
-
-	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
-		this._bindVariableIfMissing();
-		this.variable && this.variable.reassignPath(path, options);
-	}
+	private isBound: boolean;
 
 	bindNode () {
-		this._bindVariableIfMissing();
-	}
-
-	_bindVariableIfMissing () {
-		if (!this.variable && isReference(this, this.parent)) {
+		if (isReference(this, this.parent)) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 		}
@@ -46,7 +38,7 @@ export default class Identifier extends BasicExpressionNode implements PatternNo
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		this._bindVariableIfMissing();
+		if (!this.isBound) this.bind();
 		this.variable &&
 		this.variable.forEachReturnExpressionWhenCalledAtPath(
 			path,
@@ -103,6 +95,26 @@ export default class Identifier extends BasicExpressionNode implements PatternNo
 				break;
 			default:
 				throw new Error(`Unexpected identifier kind ${kind}.`);
+		}
+	}
+
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
+		if (!this.isBound) this.bind();
+		if (this.variable) {
+			if (path.length === 0) this.disallowImportReassignment();
+			this.variable.reassignPath(path, options);
+		}
+	}
+
+	private disallowImportReassignment () {
+		if (this.module.imports[this.name] && !this.scope.contains(this.name)) {
+			this.module.error(
+				{
+					code: 'ILLEGAL_REASSIGNMENT',
+					message: `Illegal reassignment to import '${this.name}'`
+				},
+				this.start
+			);
 		}
 	}
 

@@ -1,4 +1,3 @@
-import disallowIllegalReassignment from './shared/disallowIllegalReassignment';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
@@ -10,7 +9,6 @@ export default class AssignmentExpression extends BasicExpressionNode {
 	right: ExpressionNode;
 
 	bindNode () {
-		disallowIllegalReassignment(this.scope, this.left);
 		this.left.reassignPath([], ExecutionPathOptions.create());
 	}
 
