@@ -4,7 +4,7 @@ import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
-type BinaryOperator =
+export type BinaryOperator =
 	'=='
 	| '!='
 	| '==='

@@ -4,7 +4,8 @@ import error, { RollupError } from './error';
 import getCodeFrame from './getCodeFrame';
 import Graph from '../Graph';
 import { RawSourceMap } from 'source-map';
-import {Plugin, RollupWarning, SourceDescription} from '../rollup/index';
+import { Plugin, RollupWarning, SourceDescription } from '../rollup/index';
+import Program from '../ast/nodes/Program';
 
 export default function transform (
 	graph: Graph,
@@ -22,7 +23,7 @@ export default function transform (
 	}
 
 	const originalCode = source.code;
-	let ast = source.ast;
+	let ast = <Program>source.ast;
 
 	let promise = Promise.resolve(source.code);
 

@@ -16,19 +16,19 @@ const DELAY = 100;
 
 export interface WatcherOptions {
 	chokidar?: boolean | WatchOptions;
-	include?: string[],
-	exclude?: string[],
+	include?: string[];
+	exclude?: string[];
 	clearScreen?: boolean;
 }
 
-type InputAndOutputOptions = InputOptions & OutputOptions;
+export type InputAndOutputOptions = InputOptions & OutputOptions;
 
 export interface RollupWatchOptions extends InputAndOutputOptions {
 	output?: OutputOptions;
 	watch?: WatcherOptions;
 }
 
-class Watcher extends (<{ new(): any }>EventEmitter) {
+export class Watcher extends (<{ new(): any }>EventEmitter) {
 	dirty: boolean;
 	running: boolean;
 	tasks: Task[];
