@@ -1,8 +1,8 @@
 import SpreadElement from './SpreadElement';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
+import { GenericExpressionNode, ExpressionNode } from './shared/Expression';
 
-export default class ArrayExpression extends BasicExpressionNode {
+export default class ArrayExpression extends GenericExpressionNode {
 	type: 'ArrayExpression';
 	elements: (ExpressionNode | SpreadElement | null)[];
 

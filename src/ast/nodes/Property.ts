@@ -1,4 +1,4 @@
-import { BasicNode,  Node } from './shared/Node';
+import { GenericNode,  Node } from './shared/Node';
 import CallOptions from '../CallOptions';
 import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
@@ -11,7 +11,7 @@ export function isProperty (node: Node): node is Property {
 	return node.type === 'Property';
 }
 
-export default class Property extends BasicNode {
+export default class Property extends GenericNode {
 	type: 'Property';
 	key: ExpressionNode;
 	value: ExpressionNode;

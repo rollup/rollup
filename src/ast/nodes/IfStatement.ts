@@ -4,7 +4,7 @@ import Scope from '../scopes/Scope';
 import { Node } from './shared/Node';
 import { isVariableDeclaration } from './VariableDeclaration';
 import MagicString from 'magic-string';
-import { BasicStatementNode, StatementNode } from './shared/Statement';
+import { GenericStatementNode, StatementNode } from './shared/Statement';
 import { ExpressionNode } from './shared/Expression';
 
 // Statement types which may contain if-statements as direct children.
@@ -40,7 +40,7 @@ function getHoistedVars (node: StatementNode, scope: Scope) {
 	return hoistedVars;
 }
 
-export default class IfStatement extends BasicStatementNode {
+export default class IfStatement extends GenericStatementNode {
 	type: 'IfStatement';
 	test: ExpressionNode;
 	consequent: StatementNode;

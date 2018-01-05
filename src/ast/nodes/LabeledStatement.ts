@@ -1,8 +1,8 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
-import { BasicStatementNode, StatementNode } from './shared/Statement';
+import { GenericStatementNode, StatementNode } from './shared/Statement';
 
-export default class LabeledStatement extends BasicStatementNode {
+export default class LabeledStatement extends GenericStatementNode {
 	type: 'LabeledStatement';
 	label: Identifier;
 	body: StatementNode;

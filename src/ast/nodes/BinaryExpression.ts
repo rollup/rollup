@@ -1,7 +1,7 @@
 import { UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
+import { GenericExpressionNode, ExpressionNode } from './shared/Expression';
 
 export type BinaryOperator =
 	'=='
@@ -54,7 +54,7 @@ const operators: {
 	instanceof: (left: any, right: any) => left instanceof right
 };
 
-export default class BinaryExpression extends BasicExpressionNode {
+export default class BinaryExpression extends GenericExpressionNode {
 	type: 'BinaryExpression';
 	left: ExpressionNode;
 	right: ExpressionNode;

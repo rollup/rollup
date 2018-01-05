@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
-import { BasicStatementNode } from './shared/Statement';
+import { GenericStatementNode } from './shared/Statement';
 
-export default class EmptyStatement extends BasicStatementNode {
+export default class EmptyStatement extends GenericStatementNode {
 	type: 'EmptyStatement';
 
 	render (code: MagicString, _es: boolean) {
