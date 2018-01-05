@@ -9,7 +9,7 @@ import MagicString from 'magic-string';
 import Identifier, { isIdentifier } from './Identifier';
 import { isNamespaceVariable } from '../variables/NamespaceVariable';
 import { isExternalVariable } from '../variables/ExternalVariable';
-import { BasicExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { GenericExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -45,7 +45,7 @@ export function isMemberExpression (node: Node): node is MemberExpression {
 	return node.type === 'MemberExpression';
 }
 
-export default class MemberExpression extends BasicExpressionNode {
+export default class MemberExpression extends GenericExpressionNode {
 	type: 'MemberExpression';
 	object: ExpressionNode;
 	property: ExpressionNode;

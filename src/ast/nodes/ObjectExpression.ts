@@ -3,12 +3,24 @@ import Property from './Property';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
-import { BasicExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { GenericExpressionNode, Expression, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { UNKNOWN_VALUE } from '../values';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
 const PROPERTY_KINDS_WRITE = ['init', 'set'];
 
-export default class ObjectExpression extends BasicExpressionNode {
+export const UNKNOWN_OBJECT_EXPRESSION: Expression = {
+	reassignPath: () => {},
+	forEachReturnExpressionWhenCalledAtPath: () => {},
+	getValue: () => UNKNOWN_VALUE,
+	hasEffectsWhenAccessedAtPath: path => path.length > 1,
+	hasEffectsWhenAssignedAtPath: path => path.length > 1,
+	hasEffectsWhenCalledAtPath: () => true,
+	someReturnExpressionWhenCalledAtPath: () => true,
+	toString: () => '[[UNKNOWN OBJECT]]'
+};
+
+export default class ObjectExpression extends GenericExpressionNode {
 	type: 'ObjectExpression';
 	properties: Property[];
 

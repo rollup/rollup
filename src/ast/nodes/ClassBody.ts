@@ -1,10 +1,10 @@
-import { BasicNode } from './shared/Node';
+import { GenericNode } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import MethodDefinition from './MethodDefinition';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
-export default class ClassBody extends BasicNode {
+export default class ClassBody extends GenericNode {
 	type: 'ClassBody';
 	body: MethodDefinition[];
 	classConstructor: MethodDefinition | null;

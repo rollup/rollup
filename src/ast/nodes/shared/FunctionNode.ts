@@ -6,10 +6,10 @@ import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import { PatternNode } from './Pattern';
-import { BasicExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
-import { OBJECT_EXPRESSION } from '../../values';
+import { GenericExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
+import { UNKNOWN_OBJECT_EXPRESSION } from '../ObjectExpression';
 
-export default class FunctionNode extends BasicExpressionNode {
+export default class FunctionNode extends GenericExpressionNode {
 	id: Identifier;
 	body: BlockStatement;
 	scope: BlockScope;
@@ -42,7 +42,7 @@ export default class FunctionNode extends BasicExpressionNode {
 			return false;
 		}
 		if (path[0] === 'prototype') {
-			return OBJECT_EXPRESSION.hasEffectsWhenAccessedAtPath(path.slice(1), options);
+			return UNKNOWN_OBJECT_EXPRESSION.hasEffectsWhenAccessedAtPath(path.slice(1), options);
 		}
 		return true;
 	}
@@ -52,7 +52,7 @@ export default class FunctionNode extends BasicExpressionNode {
 			return false;
 		}
 		if (path[0] === 'prototype') {
-			return OBJECT_EXPRESSION.hasEffectsWhenAssignedAtPath(path.slice(1), options);
+			return UNKNOWN_OBJECT_EXPRESSION.hasEffectsWhenAssignedAtPath(path.slice(1), options);
 		}
 		return true;
 	}

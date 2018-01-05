@@ -2,10 +2,10 @@ import { UNKNOWN_EXPRESSION } from '../values';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { BasicPatternNode, PatternNode } from './shared/Pattern';
+import { GenericPatternNode, PatternNode } from './shared/Pattern';
 import { Expression } from './shared/Expression';
 
-export default class ArrayPattern extends BasicPatternNode {
+export default class ArrayPattern extends GenericPatternNode {
 	type: 'ArrayPattern';
 	elements: (PatternNode | null)[];
 

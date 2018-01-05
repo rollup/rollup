@@ -53,11 +53,11 @@ import VariableDeclaration from './VariableDeclaration';
 import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
 
-import { BasicNode } from './shared/Node';
-import { BasicStatementNode } from './shared/Statement';
+import { GenericNode } from './shared/Node';
+import { GenericStatementNode } from './shared/Statement';
 
 const nodes: {
-	[name: string]: typeof BasicNode
+	[name: string]: typeof GenericNode
 } = {
 	ArrayExpression,
 	ArrayPattern,
@@ -107,7 +107,7 @@ const nodes: {
 	TemplateLiteral,
 	ThisExpression,
 	ThrowStatement,
-	TryStatement: BasicStatementNode,
+	TryStatement: GenericStatementNode,
 	UnaryExpression,
 	UpdateExpression,
 	VariableDeclarator,

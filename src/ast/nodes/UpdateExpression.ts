@@ -1,9 +1,9 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
+import { GenericExpressionNode, ExpressionNode } from './shared/Expression';
 import { isIdentifier } from './Identifier';
 
-export default class UpdateExpression extends BasicExpressionNode {
+export default class UpdateExpression extends GenericExpressionNode {
 	type: 'UpdateExpression';
 	operator: '++' | '--' | '**';
 	argument: ExpressionNode;

@@ -3,10 +3,10 @@ import TemplateLiteral from './TemplateLiteral';
 import Identifier from './Identifier';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { isGlobalVariable } from '../variables/GlobalVariable';
-import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
+import { GenericExpressionNode, ExpressionNode } from './shared/Expression';
 import { isNamespaceVariable } from '../variables/NamespaceVariable';
 
-export default class TaggedTemplateExpression extends BasicExpressionNode {
+export default class TaggedTemplateExpression extends GenericExpressionNode {
 	type: 'TaggedTemplateExpression';
 	tag: ExpressionNode;
 	quasi: TemplateLiteral;

@@ -1,8 +1,8 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
-import { BasicExpressionNode, ExpressionNode } from './shared/Expression';
+import { GenericExpressionNode, ExpressionNode } from './shared/Expression';
 
-export default class SequenceExpression extends BasicExpressionNode {
+export default class SequenceExpression extends GenericExpressionNode {
 	type: 'SequenceExpression';
 	expressions: ExpressionNode[];
 

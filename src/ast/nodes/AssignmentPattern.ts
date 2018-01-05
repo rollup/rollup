@@ -1,10 +1,10 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { BasicPatternNode, PatternNode } from './shared/Pattern';
+import { GenericPatternNode, PatternNode } from './shared/Pattern';
 import { Expression, ExpressionNode } from './shared/Expression';
 
-export default class AssignmentPattern extends BasicPatternNode {
+export default class AssignmentPattern extends GenericPatternNode {
 	type: 'AssignmentPattern';
 	left: PatternNode;
 	right: ExpressionNode;

@@ -1,5 +1,5 @@
 import { WritableEntity } from '../../Entity';
-import { BasicNode, Node } from './Node';
+import { GenericNode, Node } from './Node';
 import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
@@ -37,7 +37,7 @@ export interface Expression extends WritableEntity {
 
 export interface ExpressionNode extends Expression, Node {}
 
-export class BasicExpressionNode extends BasicNode implements Expression {
+export class GenericExpressionNode extends GenericNode implements Expression {
 	forEachReturnExpressionWhenCalledAtPath (
 		_path: ObjectPath,
 		_callOptions: CallOptions,
