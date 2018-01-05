@@ -80,7 +80,8 @@ export default function mergeOptions ({
 		cache: getInputOption('cache'),
 		preferConst: getInputOption('preferConst'),
 		experimentalDynamicImport: getInputOption('experimentalDynamicImport'),
-		experimentalCodeSplitting: getInputOption('experimentalCodeSplitting')
+		experimentalCodeSplitting: getInputOption('experimentalCodeSplitting'),
+		preserveSymlinks: getInputOption('preserveSymlinks')
 	};
 
 	// legacy, to ensure e.g. commonjs plugin still works
