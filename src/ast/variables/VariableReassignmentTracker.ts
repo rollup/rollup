@@ -6,8 +6,12 @@ interface UnknownKey {
 	type: 'UNKNOWN_KEY';
 }
 
-export type ObjectPathElement = string | UnknownKey
-export type ObjectPath = ObjectPathElement[];
+export type ObjectPathKey = string | UnknownKey
+export type ObjectPath = ObjectPathKey[];
+
+export function isUnknownKey (key: ObjectPathKey): key is UnknownKey {
+	return key === UNKNOWN_KEY;
+}
 
 export const UNKNOWN_KEY: UnknownKey = { type: 'UNKNOWN_KEY' };
 
@@ -17,7 +21,7 @@ export type PathPredicate = (path: ObjectPath, expression: Expression) => boolea
 class ReassignedPathTracker {
 	_reassigned: boolean;
 	_unknownReassignedSubPath: boolean;
-	_subPaths: Map<ObjectPathElement, ReassignedPathTracker>;
+	_subPaths: Map<ObjectPathKey, ReassignedPathTracker>;
 
 	constructor () {
 		this._reassigned = false;
