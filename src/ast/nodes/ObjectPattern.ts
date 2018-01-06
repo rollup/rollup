@@ -17,7 +17,7 @@ export default class ObjectPattern extends GenericPatternNode {
 	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			path.length > 0 ||
-			this.someChild(child => child.hasEffectsWhenAssignedAtPath([], options))
+			this.properties.some(child => child.hasEffectsWhenAssignedAtPath([], options))
 		);
 	}
 
