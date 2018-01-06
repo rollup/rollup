@@ -1,6 +1,3 @@
-/// <reference path="./ExecutionPathOptions.d.ts" />
-
-import Immutable from 'immutable/dist/immutable.js';
 import { Map } from 'immutable';
 import Node from './Node';
 import CallExpression from './nodes/CallExpression';
@@ -39,7 +36,7 @@ export default class ExecutionPathOptions {
 	 * @returns {ExecutionPathOptions}
 	 */
 	static create () {
-		return new this(<Map<string, any>>Immutable.Map());
+		return new this(<Map<string, any>>Map());
 	}
 
 	constructor (optionValues: Map<string, any>) {
