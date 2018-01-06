@@ -4,7 +4,7 @@ import { blank, keys } from './utils/object';
 import Module, { IdMap, ModuleJSON } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
-import { load, makeOnwarn, resolveId } from './utils/defaults';
+import { load, makeOnwarn, resolveId, missingExport } from './utils/defaults';
 import { mapSequence } from './utils/promise';
 import transform from './utils/transform';
 import relativeId from './utils/relativeId';
@@ -14,6 +14,7 @@ import GlobalScope from './ast/scopes/GlobalScope';
 import {
 	InputOptions,
 	IsExternalHook,
+	MissingExportHook,
 	Plugin,
 	ResolveIdHook,
 	RollupWarning,
@@ -25,6 +26,7 @@ import { RawSourceMap } from 'source-map';
 import Program from './ast/nodes/Program';
 import { Node } from './ast/nodes/shared/Node';
 import Bundle from './Bundle';
+import firstSync from './utils/first-sync';
 
 export type ResolveDynamicImportHandler = (specifier: string | Node, parentId: string) => Promise<string | void>;
 
@@ -40,6 +42,7 @@ export default class Graph {
 	isPureExternalModule: (id: string) => boolean;
 	legacy: boolean;
 	load: (id: string) => Promise<SourceDescription | string | void>;
+	missingExport: MissingExportHook;
 	moduleById: Map<string, Module | ExternalModule>;
 	modules: Module[];
 	onwarn: WarningHandler;
@@ -113,6 +116,11 @@ export default class Graph {
 		const loaders = this.plugins.map(plugin => plugin.load).filter(Boolean);
 		this.hasLoaders = loaders.length !== 0;
 		this.load = first(loaders.concat(load));
+
+		this.missingExport = firstSync(
+			this.plugins.map(plugin => plugin.missingExport).filter(Boolean)
+				.concat(missingExport)
+		);
 
 		this.scope = new GlobalScope();
 
