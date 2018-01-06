@@ -2,6 +2,9 @@ import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // es
 import { basename, dirname, isAbsolute, resolve } from './path';
 import { blank } from './object';
 import error from './error';
+import Module from '../Module';
+import ExternalModule from '../ExternalModule';
+import relativeId from './relativeId';
 
 export function load (id: string) {
 	return readFileSync(id, 'utf-8');
@@ -59,4 +62,17 @@ export function makeOnwarn () {
 		console.error(str); //eslint-disable-line no-console
 		warned[str] = true;
 	};
+}
+
+export function missingExport (module: Module, name: string, otherModule: Module | ExternalModule, start?: number) {
+	module.error(
+		{
+			code: 'MISSING_EXPORT',
+			message: `'${
+				name
+				}' is not exported by ${relativeId(otherModule.id)}`,
+			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+		},
+		start
+	);
 }

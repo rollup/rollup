@@ -9,7 +9,6 @@ import { makeLegal } from './utils/identifierHelpers';
 import getCodeFrame from './utils/getCodeFrame';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import error, { RollupError } from './utils/error';
-import relativeId from './utils/relativeId';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import extractNames from './ast/utils/extractNames';
 import enhance from './ast/enhance';
@@ -36,6 +35,7 @@ import ExternalModule from './ExternalModule';
 import Import from './ast/nodes/Import';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import Literal from './ast/nodes/Literal';
+import { missingExport } from './utils/defaults';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
@@ -596,16 +596,7 @@ export default class Module {
 			const declaration = otherModule.traceExport(importDeclaration.name);
 
 			if (!declaration) {
-				this.error(
-					{
-						code: 'MISSING_EXPORT',
-						message: `'${
-							importDeclaration.name
-							}' is not exported by ${relativeId(otherModule.id)}`,
-						url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
-					},
-					importDeclaration.specifier.start
-				);
+				missingExport(this, importDeclaration.name, otherModule, importDeclaration.specifier.start);
 			}
 
 			return declaration;
@@ -629,16 +620,7 @@ export default class Module {
 			);
 
 			if (!declaration) {
-				this.error(
-					{
-						code: 'MISSING_EXPORT',
-						message: `'${
-							reexportDeclaration.localName
-							}' is not exported by ${relativeId(reexportDeclaration.module.id)}`,
-						url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
-					},
-					reexportDeclaration.start
-				);
+				missingExport(this, reexportDeclaration.localName, reexportDeclaration.module, reexportDeclaration.start);
 			}
 
 			return declaration;
