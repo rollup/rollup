@@ -1,1 +1,0 @@
-declare module 'immutable/dist/immutable.js';
