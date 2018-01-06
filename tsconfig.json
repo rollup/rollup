@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "pretty": true,
+        "allowSyntheticDefaultImports": true,
         "target": "es5",
         "diagnostics": true,
         "lib": ["es5", "es6", "dom"],
