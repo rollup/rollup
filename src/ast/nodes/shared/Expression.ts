@@ -53,6 +53,10 @@ export class GenericExpressionNode extends GenericNode implements Expression {
 		return path.length > 0;
 	}
 
+	hasEffectsWhenAssignedAtPath (_path: ObjectPath, _options: ExecutionPathOptions) {
+		return true;
+	}
+
 	hasEffectsWhenCalledAtPath (_path: ObjectPath, _callOptions: CallOptions, _options: ExecutionPathOptions) {
 		return true;
 	}

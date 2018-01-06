@@ -5,7 +5,6 @@ import ExecutionPathOptions from '../../ExecutionPathOptions';
 import Scope from '../../scopes/Scope';
 import Module from '../../../Module';
 import MagicString from 'magic-string';
-import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import Variable from '../../variables/Variable';
 import { Entity } from '../../Entity';
 import { Expression } from './Expression';
@@ -127,10 +126,6 @@ export class GenericNode implements Node {
 
 	hasEffects (options: ExecutionPathOptions): boolean {
 		return this.someChild((child: GenericNode) => child.hasEffects(options));
-	}
-
-	hasEffectsWhenAssignedAtPath (_path: ObjectPath, _options: ExecutionPathOptions) {
-		return true;
 	}
 
 	private hasIncludedChild (): boolean {

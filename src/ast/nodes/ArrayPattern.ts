@@ -17,7 +17,7 @@ export default class ArrayPattern extends GenericPatternNode {
 	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			path.length > 0 ||
-			this.someChild(child => child.hasEffectsWhenAssignedAtPath([], options))
+			this.elements.some(child => child && child.hasEffectsWhenAssignedAtPath([], options))
 		);
 	}
 
