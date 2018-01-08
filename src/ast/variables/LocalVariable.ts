@@ -4,7 +4,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import Identifier from '../nodes/Identifier';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
-import { Expression, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
+import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
@@ -15,7 +15,7 @@ export default class LocalVariable extends Variable {
 
 	constructor (
 		name: string, declarator: Identifier | ExportDefaultDeclaration | null,
-		init: Expression
+		init: ExpressionEntity
 	) {
 		super(name);
 		this.isReassigned = false;

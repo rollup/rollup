@@ -4,7 +4,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import Identifier from '../nodes/Identifier';
 import { ObjectPath } from './VariableReassignmentTracker';
-import { Expression, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
+import { ExpressionEntity, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
 
 export default class ReplaceableInitializationVariable extends LocalVariable {
 	constructor (name: string, declarator: Identifier | null) {
@@ -61,7 +61,7 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 		);
 	}
 
-	_getInit (options: ExecutionPathOptions): Expression {
+	_getInit (options: ExecutionPathOptions): ExpressionEntity {
 		return options.getReplacedVariableInit(this) || UNKNOWN_EXPRESSION;
 	}
 }

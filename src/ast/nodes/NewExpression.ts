@@ -1,9 +1,9 @@
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { GenericExpressionNode, ExpressionNode } from './shared/Expression';
+import { ExpressionBase, ExpressionNode } from './shared/Expression';
 
-export default class NewExpression extends GenericExpressionNode {
+export default class NewExpression extends ExpressionBase {
 	type: 'NewExpression';
 	callee: ExpressionNode;
 	arguments: ExpressionNode[];

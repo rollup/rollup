@@ -3,13 +3,13 @@ import Property from './Property';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
-import { GenericExpressionNode, Expression, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionBase, ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { UNKNOWN_VALUE } from '../values';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
 const PROPERTY_KINDS_WRITE = ['init', 'set'];
 
-export const UNKNOWN_OBJECT_EXPRESSION: Expression = {
+export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 	reassignPath: () => {},
 	forEachReturnExpressionWhenCalledAtPath: () => {},
 	getValue: () => UNKNOWN_VALUE,
@@ -20,7 +20,7 @@ export const UNKNOWN_OBJECT_EXPRESSION: Expression = {
 	toString: () => '[[UNKNOWN OBJECT]]'
 };
 
-export default class ObjectExpression extends GenericExpressionNode {
+export default class ObjectExpression extends ExpressionBase {
 	type: 'ObjectExpression';
 	properties: Property[];
 

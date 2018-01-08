@@ -3,13 +3,13 @@ import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import {
-	GenericExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, PredicateFunction,
+	ExpressionBase, ExpressionNode, ForEachReturnExpressionCallback, PredicateFunction,
 	SomeReturnExpressionCallback
 } from './shared/Expression';
 
 export type LogicalOperator = '||' | '&&';
 
-export default class LogicalExpression extends GenericExpressionNode {
+export default class LogicalExpression extends ExpressionBase {
 	type: 'LogicalExpression';
 	operator: LogicalOperator;
 	left: ExpressionNode;

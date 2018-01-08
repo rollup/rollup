@@ -1,4 +1,4 @@
-import { GenericNode } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration from './ClassDeclaration';
@@ -28,7 +28,7 @@ const sourceRE = {
 	)
 };
 
-export default class ExportDefaultDeclaration extends GenericNode {
+export default class ExportDefaultDeclaration extends NodeBase {
 	type: 'ExportDefaultDeclaration';
 	declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
 

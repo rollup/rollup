@@ -1,17 +1,17 @@
 import ParameterScope from './ParameterScope';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { Expression, ForEachReturnExpressionCallback } from '../nodes/shared/Expression';
+import { ExpressionEntity, ForEachReturnExpressionCallback } from '../nodes/shared/Expression';
 
 export default class ReturnValueScope extends ParameterScope {
-	_returnExpressions: Set<Expression>;
+	_returnExpressions: Set<ExpressionEntity>;
 
 	constructor (options = {}) {
 		super(options);
 		this._returnExpressions = new Set();
 	}
 
-	addReturnExpression (expression: Expression) {
+	addReturnExpression (expression: ExpressionEntity) {
 		this._returnExpressions.add(expression);
 	}
 
@@ -20,7 +20,7 @@ export default class ReturnValueScope extends ParameterScope {
 	}
 
 	someReturnExpressionWhenCalled (
-		_callOptions: CallOptions, predicateFunction: (options: ExecutionPathOptions) => (node: Expression) => boolean,
+		_callOptions: CallOptions, predicateFunction: (options: ExecutionPathOptions) => (node: ExpressionEntity) => boolean,
 		options: ExecutionPathOptions
 	): boolean {
 		return Array.from(this._returnExpressions).some(predicateFunction(options));

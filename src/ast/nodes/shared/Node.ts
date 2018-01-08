@@ -7,7 +7,7 @@ import Module from '../../../Module';
 import MagicString from 'magic-string';
 import Variable from '../../variables/Variable';
 import { Entity } from '../../Entity';
-import { Expression } from './Expression';
+import { ExpressionEntity } from './Expression';
 
 export interface Node extends Entity {
 	end: number;
@@ -62,7 +62,7 @@ export interface Node extends Entity {
 	 * alternative initialisation initialiseAndReplaceScope.
 	 */
 	initialise (parentScope: Scope): void;
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Expression | null): void;
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: ExpressionEntity | null): void;
 	render(code: MagicString, es: boolean): void;
 
 	/**
@@ -75,7 +75,7 @@ export interface Node extends Entity {
 	someChild(callback: (node: Node) => boolean): boolean;
 }
 
-export class GenericNode implements Node {
+export class NodeBase implements Node {
 	type: string;
 	keys: string[];
 	included: boolean;
@@ -125,12 +125,12 @@ export class GenericNode implements Node {
 	}
 
 	hasEffects (options: ExecutionPathOptions): boolean {
-		return this.someChild((child: GenericNode) => child.hasEffects(options));
+		return this.someChild((child: NodeBase) => child.hasEffects(options));
 	}
 
 	private hasIncludedChild (): boolean {
 		return (
-			this.included || this.someChild((child: GenericNode) => child.hasIncludedChild())
+			this.included || this.someChild((child: NodeBase) => child.hasIncludedChild())
 		);
 	}
 
@@ -155,7 +155,7 @@ export class GenericNode implements Node {
 		this.initialiseChildren(parentScope);
 	}
 
-	initialiseAndDeclare (_parentScope: Scope, _kind: string, _init: Expression | null) {}
+	initialiseAndDeclare (_parentScope: Scope, _kind: string, _init: ExpressionEntity | null) {}
 
 	/**
 	 * Override to change how and with what scopes children are initialised
@@ -203,7 +203,7 @@ export class GenericNode implements Node {
 		);
 	}
 
-	someChild (callback: (node: GenericNode) => boolean) {
+	someChild (callback: (node: NodeBase) => boolean) {
 		return this.keys.some(key => {
 			const value = (<any>this)[key];
 			if (!value) return false;

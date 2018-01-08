@@ -3,7 +3,7 @@ import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { GenericPatternNode, PatternNode } from './shared/Pattern';
-import { Expression } from './shared/Expression';
+import { ExpressionEntity } from './shared/Expression';
 
 export default class ArrayPattern extends GenericPatternNode {
 	type: 'ArrayPattern';
@@ -21,7 +21,7 @@ export default class ArrayPattern extends GenericPatternNode {
 		);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, _init: Expression | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, _init: ExpressionEntity | null) {
 		this.initialiseScope(parentScope);
 		this.elements.forEach(child => child && child.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION));
 	}

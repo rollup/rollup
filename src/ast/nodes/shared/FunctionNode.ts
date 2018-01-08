@@ -6,10 +6,9 @@ import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import { PatternNode } from './Pattern';
-import { GenericExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
-import { UNKNOWN_OBJECT_EXPRESSION } from '../ObjectExpression';
+import { ForEachReturnExpressionCallback, ExpressionBase, SomeReturnExpressionCallback } from './Expression';
 
-export default class FunctionNode extends GenericExpressionNode {
+export default class FunctionNode extends ExpressionBase {
 	id: Identifier;
 	body: BlockStatement;
 	scope: BlockScope;
@@ -37,22 +36,22 @@ export default class FunctionNode extends GenericExpressionNode {
 		return this.id && this.id.hasEffects(options);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath (path: ObjectPath) {
 		if (path.length <= 1) {
 			return false;
 		}
 		if (path[0] === 'prototype') {
-			return UNKNOWN_OBJECT_EXPRESSION.hasEffectsWhenAccessedAtPath(path.slice(1), options);
+			return path.length > 2;
 		}
 		return true;
 	}
 
-	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath (path: ObjectPath) {
 		if (path.length <= 1) {
 			return false;
 		}
 		if (path[0] === 'prototype') {
-			return UNKNOWN_OBJECT_EXPRESSION.hasEffectsWhenAssignedAtPath(path.slice(1), options);
+			return path.length > 2;
 		}
 		return true;
 	}

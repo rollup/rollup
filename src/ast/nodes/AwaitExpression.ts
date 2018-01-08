@@ -1,7 +1,7 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { GenericExpressionNode, ExpressionNode } from './shared/Expression';
+import { ExpressionBase, ExpressionNode } from './shared/Expression';
 
-export default class AwaitExpression extends GenericExpressionNode {
+export default class AwaitExpression extends ExpressionBase {
 	type: 'AwaitExpression';
 	argument: ExpressionNode;
 

@@ -1,15 +1,15 @@
 import { WritableEntity } from '../../Entity';
-import { GenericNode, Node } from './Node';
+import { NodeBase, Node } from './Node';
 import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import { UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 
-export type PredicateFunction = (node: Expression) => boolean;
+export type PredicateFunction = (node: ExpressionEntity) => boolean;
 export type SomeReturnExpressionCallback = (options: ExecutionPathOptions) => PredicateFunction;
-export type ForEachReturnExpressionCallback = (options: ExecutionPathOptions) => (node: Expression) => void
+export type ForEachReturnExpressionCallback = (options: ExecutionPathOptions) => (node: ExpressionEntity) => void
 
-export interface Expression extends WritableEntity {
+export interface ExpressionEntity extends WritableEntity {
 	/**
 	 * Executes the callback on each possible return expression when calling this node.
 	 */
@@ -35,9 +35,9 @@ export interface Expression extends WritableEntity {
 	): boolean
 }
 
-export interface ExpressionNode extends Expression, Node {}
+export interface ExpressionNode extends ExpressionEntity, Node {}
 
-export class GenericExpressionNode extends GenericNode implements Expression {
+export class ExpressionBase extends NodeBase implements ExpressionNode {
 	forEachReturnExpressionWhenCalledAtPath (
 		_path: ObjectPath,
 		_callOptions: CallOptions,
