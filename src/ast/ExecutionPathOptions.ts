@@ -36,10 +36,10 @@ export default class ExecutionPathOptions {
 	 * @returns {ExecutionPathOptions}
 	 */
 	static create () {
-		return new this(<Immutable.Map<string, any>>Immutable.Map());
+		return new this(Immutable.Map());
 	}
 
-	constructor (optionValues: Map<string, any>) {
+	constructor (optionValues: Immutable.Map<string, any>) {
 		this._optionValues = optionValues;
 	}
 
