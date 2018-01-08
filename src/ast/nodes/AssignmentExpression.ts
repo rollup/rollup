@@ -1,9 +1,9 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { GenericExpressionNode, ExpressionNode } from './shared/Expression';
+import { ExpressionBase, ExpressionNode } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
 
-export default class AssignmentExpression extends GenericExpressionNode {
+export default class AssignmentExpression extends ExpressionBase {
 	type: 'AssignmentExpression';
 	left: PatternNode | ExpressionNode;
 	right: ExpressionNode;

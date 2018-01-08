@@ -1,17 +1,17 @@
-import { GenericNode,  Node } from './shared/Node';
+import { NodeBase,  Node } from './shared/Node';
 import CallOptions from '../CallOptions';
 import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { Expression, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionEntity, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 
 export function isProperty (node: Node): node is Property {
 	return node.type === 'Property';
 }
 
-export default class Property extends GenericNode {
+export default class Property extends NodeBase {
 	type: 'Property';
 	key: ExpressionNode;
 	value: ExpressionNode;
@@ -150,7 +150,7 @@ export default class Property extends GenericNode {
 		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, _init: Expression | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, _init: ExpressionEntity | null) {
 		this.initialiseScope(parentScope);
 		this.initialiseNode(parentScope);
 		this.key.initialise(parentScope);

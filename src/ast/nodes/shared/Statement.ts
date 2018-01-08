@@ -1,9 +1,9 @@
-import { GenericNode, Node } from './Node';
+import { NodeBase, Node } from './Node';
 import MagicString from 'magic-string';
 
 export interface StatementNode extends Node {}
 
-export class GenericStatementNode extends GenericNode implements StatementNode {
+export class GenericStatementNode extends NodeBase implements StatementNode {
 	render (code: MagicString, es: boolean) {
 		if (!this.module.graph.treeshake || this.included) {
 			super.render(code, es);

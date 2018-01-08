@@ -10,7 +10,7 @@ import ExternalVariable from '../variables/ExternalVariable';
 import ThisVariable from '../variables/ThisVariable';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import Variable from '../variables/Variable';
-import { Expression } from '../nodes/shared/Expression';
+import { ExpressionEntity } from '../nodes/shared/Expression';
 
 export default class Scope {
 	parent: Scope | void;
@@ -41,7 +41,7 @@ export default class Scope {
 	 * @return {Variable}
 	 */
 	addDeclaration (identifier: Identifier, options: {
-		init?: Expression | null;
+		init?: ExpressionEntity | null;
 		isHoisted?: boolean;
 	} = {
 		init: null,
@@ -70,7 +70,7 @@ export default class Scope {
 		return this.variables.default;
 	}
 
-	addReturnExpression (expression: Expression) {
+	addReturnExpression (expression: ExpressionEntity) {
 		this.parent && this.parent.addReturnExpression(expression);
 	}
 

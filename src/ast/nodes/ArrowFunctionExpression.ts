@@ -4,10 +4,10 @@ import BlockStatement, { isBlockStatement } from './BlockStatement';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { GenericExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionBase, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
 
-export default class ArrowFunctionExpression extends GenericExpressionNode {
+export default class ArrowFunctionExpression extends ExpressionBase {
 	type: 'ArrowFunctionExpression';
 	body: BlockStatement | ExpressionNode;
 	params: PatternNode[];
@@ -25,8 +25,8 @@ export default class ArrowFunctionExpression extends GenericExpressionNode {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		path.length === 0 &&
-		this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
+		path.length === 0
+		&& this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
 	}
 
 	hasEffects (_options: ExecutionPathOptions) {

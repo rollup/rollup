@@ -4,9 +4,9 @@ import ExecutionPathOptions from '../../ExecutionPathOptions';
 import Identifier from '../Identifier';
 import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import ClassBody from '../ClassBody';
-import { GenericExpressionNode, ExpressionNode } from './Expression';
+import { ExpressionBase, ExpressionNode } from './Expression';
 
-export default class ClassNode extends GenericExpressionNode {
+export default class ClassNode extends ExpressionBase {
 	body: ClassBody;
 	superClass: ExpressionNode | null;
 	id: Identifier | null;

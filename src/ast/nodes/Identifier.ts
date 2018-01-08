@@ -11,14 +11,14 @@ import FunctionScope from '../scopes/FunctionScope';
 import MagicString from 'magic-string';
 import Property from './Property';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { GenericExpressionNode, Expression, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionBase, ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
 
 export function isIdentifier (node: Node): node is Identifier {
 	return node.type === 'Identifier';
 }
 
-export default class Identifier extends GenericExpressionNode implements PatternNode {
+export default class Identifier extends ExpressionBase implements PatternNode {
 	type: 'Identifier';
 	name: string;
 
@@ -75,7 +75,7 @@ export default class Identifier extends GenericExpressionNode implements Pattern
 		return true;
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Expression | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: ExpressionEntity | null) {
 		this.initialiseScope(parentScope);
 		switch (kind) {
 			case 'var':

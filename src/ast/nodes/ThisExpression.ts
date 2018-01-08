@@ -2,9 +2,9 @@ import ThisVariable from '../variables/ThisVariable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { GenericExpressionNode } from './shared/Expression';
+import { ExpressionBase } from './shared/Expression';
 
-export default class ThisExpression extends GenericExpressionNode {
+export default class ThisExpression extends ExpressionBase {
 	type: 'ThisExpression';
 	variable: ThisVariable;
 

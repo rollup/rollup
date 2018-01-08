@@ -2,7 +2,7 @@ import AssignmentProperty from './AssignmentProperty';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { Expression } from './shared/Expression';
+import { ExpressionEntity } from './shared/Expression';
 import { GenericPatternNode } from './shared/Pattern';
 
 export default class ObjectPattern extends GenericPatternNode {
@@ -21,7 +21,7 @@ export default class ObjectPattern extends GenericPatternNode {
 		);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Expression | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: ExpressionEntity | null) {
 		this.initialiseScope(parentScope);
 		this.properties.forEach(child =>
 			child.initialiseAndDeclare(parentScope, kind, init)

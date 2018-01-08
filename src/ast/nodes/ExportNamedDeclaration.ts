@@ -1,4 +1,4 @@
-import { GenericNode } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Literal from './Literal';
 import MagicString from 'magic-string';
@@ -7,7 +7,7 @@ import FunctionDeclaration from './FunctionDeclaration';
 import ClassDeclaration from './ClassDeclaration';
 import VariableDeclaration from './VariableDeclaration';
 
-export default class ExportNamedDeclaration extends GenericNode {
+export default class ExportNamedDeclaration extends NodeBase {
 	type: 'ExportNamedDeclaration';
 	declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
 	specifiers: ExportSpecifier[];

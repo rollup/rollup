@@ -1,7 +1,7 @@
 import { UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { GenericExpressionNode, ExpressionNode } from './shared/Expression';
+import { ExpressionBase, ExpressionNode } from './shared/Expression';
 
 const operators: {
 	[operator: string]: (value: any) => any;
@@ -15,7 +15,7 @@ const operators: {
 	delete: () => UNKNOWN_VALUE
 };
 
-export default class UnaryExpression extends GenericExpressionNode {
+export default class UnaryExpression extends ExpressionBase {
 	type: 'UnaryExpression';
 	operator: '-' | '+' | '!' | '~' | 'typeof' | 'void' | 'delete';
 	prefix: boolean;

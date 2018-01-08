@@ -1,8 +1,8 @@
-import { Expression } from './nodes/shared/Expression';
+import { ExpressionEntity } from './nodes/shared/Expression';
 
 export const UNKNOWN_VALUE = { toString: () => '[[UNKNOWN]]' };
 
-export const UNKNOWN_EXPRESSION: Expression = {
+export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	reassignPath: () => {},
 	forEachReturnExpressionWhenCalledAtPath: () => {},
 	getValue: () => UNKNOWN_VALUE,

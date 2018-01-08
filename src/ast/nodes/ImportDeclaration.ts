@@ -1,11 +1,11 @@
-import { GenericNode } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import Literal from './Literal';
 import ImportSpecifier from './ImportSpecifier';
 import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import MagicString from 'magic-string';
 
-export default class ImportDeclaration extends GenericNode {
+export default class ImportDeclaration extends NodeBase {
 	type: 'ImportDeclaration';
 	isImportDeclaration: true;
 	specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
