@@ -1,7 +1,7 @@
-import { GenericNode } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 
-export default class TemplateElement extends GenericNode {
+export default class TemplateElement extends NodeBase {
 	type: 'TemplateElement';
 	tail: boolean;
 	value: {

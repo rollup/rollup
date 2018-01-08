@@ -6,7 +6,7 @@ import ParameterVariable from './variables/ParameterVariable';
 import { ObjectPath } from './variables/VariableReassignmentTracker';
 import { Entity, WritableEntity } from './Entity';
 import Property from './nodes/Property';
-import { Expression } from './nodes/shared/Expression';
+import { ExpressionEntity } from './nodes/shared/Expression';
 
 const OPTION_IGNORED_LABELS = 'IGNORED_LABELS';
 const OPTION_ACCESSED_NODES = 'ACCESSED_NODES';
@@ -54,7 +54,7 @@ export default class ExecutionPathOptions {
 		return new ExecutionPathOptions(this._optionValues.setIn(optionPath, value));
 	}
 
-	addAccessedNodeAtPath (path: ObjectPath, node: Expression) {
+	addAccessedNodeAtPath (path: ObjectPath, node: ExpressionEntity) {
 		return this.setIn([OPTION_ACCESSED_NODES, node, ...path, RESULT_KEY], true);
 	}
 
@@ -86,7 +86,7 @@ export default class ExecutionPathOptions {
 		);
 	}
 
-	addCalledNodeAtPathWithOptions (path: ObjectPath, node: Expression, callOptions: CallOptions) {
+	addCalledNodeAtPathWithOptions (path: ObjectPath, node: ExpressionEntity, callOptions: CallOptions) {
 		return this.setIn(
 			[
 				OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS,
@@ -111,8 +111,8 @@ export default class ExecutionPathOptions {
 		);
 	}
 
-	getArgumentsVariables (): Expression[] {
-		return <Expression[]>(this.get(OPTION_ARGUMENTS_VARIABLES) || []);
+	getArgumentsVariables (): ExpressionEntity[] {
+		return <ExpressionEntity[]>(this.get(OPTION_ARGUMENTS_VARIABLES) || []);
 	}
 
 	getHasEffectsWhenCalledOptions () {
@@ -121,11 +121,11 @@ export default class ExecutionPathOptions {
 			.setIgnoreNoLabels();
 	}
 
-	getReplacedVariableInit (variable: ThisVariable | ParameterVariable): Expression {
+	getReplacedVariableInit (variable: ThisVariable | ParameterVariable): ExpressionEntity {
 		return this._optionValues.getIn([OPTION_REPLACED_VARIABLE_INITS, variable]);
 	}
 
-	hasNodeBeenAccessedAtPath (path: ObjectPath, node: Expression): boolean {
+	hasNodeBeenAccessedAtPath (path: ObjectPath, node: ExpressionEntity): boolean {
 		return this._optionValues.getIn([
 			OPTION_ACCESSED_NODES,
 			node,
@@ -143,7 +143,7 @@ export default class ExecutionPathOptions {
 		]);
 	}
 
-	hasNodeBeenCalledAtPathWithOptions (path: ObjectPath, node: Expression, callOptions: CallOptions): boolean {
+	hasNodeBeenCalledAtPathWithOptions (path: ObjectPath, node: ExpressionEntity, callOptions: CallOptions): boolean {
 		const previousCallOptions = this._optionValues.getIn([
 			OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS,
 			node,
@@ -197,11 +197,11 @@ export default class ExecutionPathOptions {
 		return this.get(OPTION_IGNORE_RETURN_AWAIT_YIELD);
 	}
 
-	replaceVariableInit (variable: ThisVariable | ParameterVariable, init: Expression) {
+	replaceVariableInit (variable: ThisVariable | ParameterVariable, init: ExpressionEntity) {
 		return this.setIn([OPTION_REPLACED_VARIABLE_INITS, variable], init);
 	}
 
-	setArgumentsVariables (variables: Expression[]) {
+	setArgumentsVariables (variables: ExpressionEntity[]) {
 		return this.set(OPTION_ARGUMENTS_VARIABLES, variables);
 	}
 

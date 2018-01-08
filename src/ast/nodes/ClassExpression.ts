@@ -2,9 +2,8 @@ import ClassNode from './shared/ClassNode';
 import Scope from '../scopes/Scope';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { Expression } from './shared/Expression';
 
-export default class ClassExpression extends ClassNode implements Expression {
+export default class ClassExpression extends ClassNode {
 	type: 'ClassExpression';
 
 	initialiseChildren (parentScope: Scope) {

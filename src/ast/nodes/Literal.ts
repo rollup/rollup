@@ -1,14 +1,14 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { GenericExpressionNode } from './shared/Expression';
+import { ExpressionBase } from './shared/Expression';
 import { Node } from './shared/Node';
 
 export function isLiteral (node: Node): node is Literal {
 	return node.type === 'Literal';
 }
 
-export default class Literal<T = string | boolean | null | number | RegExp> extends GenericExpressionNode {
+export default class Literal<T = string | boolean | null | number | RegExp> extends ExpressionBase {
 	type: 'Literal';
 	value: T;
 

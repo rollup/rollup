@@ -1,4 +1,4 @@
-import { Expression } from './nodes/shared/Expression';
+import { ExpressionEntity } from './nodes/shared/Expression';
 import SpreadElement from './nodes/SpreadElement';
 import TaggedTemplateExpression from './nodes/TaggedTemplateExpression';
 import NewExpression from './nodes/NewExpression';
@@ -9,13 +9,13 @@ export type CallExpressionType = TaggedTemplateExpression | CallExpression | New
 
 export interface CallCreateOptions {
 	withNew: boolean;
-	args?: (Expression | SpreadElement)[];
+	args?: (ExpressionEntity | SpreadElement)[];
 	caller: CallExpressionType;
 }
 
 export default class CallOptions implements CallCreateOptions {
 	withNew: boolean;
-	args: (Expression | SpreadElement)[];
+	args: (ExpressionEntity | SpreadElement)[];
 	caller: CallExpressionType;
 
 	static create (callOptions: CallCreateOptions) {

@@ -1,11 +1,11 @@
-import { GenericNode } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import FunctionExpression from './FunctionExpression';
 import CallOptions from '../CallOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionNode } from './shared/Expression';
 
-export default class MethodDefinition extends GenericNode {
+export default class MethodDefinition extends NodeBase {
 	type: 'MethodDefinition';
 	key: ExpressionNode;
 	value: FunctionExpression;

@@ -4,10 +4,10 @@ import SpreadElement from './SpreadElement';
 import { isGlobalVariable } from '../variables/GlobalVariable';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { isIdentifier } from './Identifier';
-import { GenericExpressionNode, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionBase, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { isNamespaceVariable } from '../variables/NamespaceVariable';
 
-export default class CallExpression extends GenericExpressionNode {
+export default class CallExpression extends ExpressionBase {
 	type: 'CallExpression';
 	callee: ExpressionNode;
 	arguments: (ExpressionNode | SpreadElement)[];

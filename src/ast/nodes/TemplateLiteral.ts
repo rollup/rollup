@@ -1,8 +1,8 @@
 import TemplateElement from './TemplateElement';
 import MagicString from 'magic-string';
-import { GenericExpressionNode, ExpressionNode } from './shared/Expression';
+import { ExpressionBase, ExpressionNode } from './shared/Expression';
 
-export default class TemplateLiteral extends GenericExpressionNode {
+export default class TemplateLiteral extends ExpressionBase {
 	type: 'TemplateLiteral';
 	quasis: TemplateElement[];
 	expressions: ExpressionNode[];

@@ -1,8 +1,8 @@
-import { GenericNode } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import { ExpressionNode } from './shared/Expression';
 import { StatementNode } from './shared/Statement';
 
-export default class SwitchCase extends GenericNode {
+export default class SwitchCase extends NodeBase {
 	type: 'SwitchCase';
 	test: ExpressionNode | null;
 	consequent: StatementNode[];

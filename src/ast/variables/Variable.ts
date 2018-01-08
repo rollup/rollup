@@ -3,9 +3,9 @@ import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import { ObjectPath } from './VariableReassignmentTracker';
-import { Expression, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
+import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
 
-export default class Variable implements Expression {
+export default class Variable implements ExpressionEntity {
 	exportName?: string;
 	included: boolean;
 	isExternal?: boolean;

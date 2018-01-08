@@ -53,11 +53,11 @@ import VariableDeclaration from './VariableDeclaration';
 import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
 
-import { GenericNode } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import { GenericStatementNode } from './shared/Statement';
 
 const nodes: {
-	[name: string]: typeof GenericNode
+	[name: string]: typeof NodeBase
 } = {
 	ArrayExpression,
 	ArrayPattern,

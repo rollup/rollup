@@ -1,10 +1,10 @@
-import { GenericNode } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import CatchScope from '../scopes/CatchScope';
 import BlockStatement from './BlockStatement';
 import Scope from '../scopes/Scope';
 import { PatternNode } from './shared/Pattern';
 
-export default class CatchClause extends GenericNode {
+export default class CatchClause extends NodeBase {
 	type: 'CatchClause';
 	param: PatternNode;
 	body: BlockStatement;
