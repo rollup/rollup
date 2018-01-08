@@ -2,7 +2,7 @@ import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { Expression } from '../nodes/shared/Expression';
 
-interface UnknownKey {
+export interface UnknownKey {
 	type: 'UNKNOWN_KEY';
 }
 
