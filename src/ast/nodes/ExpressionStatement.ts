@@ -5,8 +5,18 @@ export default class ExpressionStatement extends Statement {
 	directive?: string;
 
 	shouldBeIncluded() {
-		if (this.directive && this.directive !== 'use strict')
-			return true;
+		if (this.directive && this.directive !== 'use strict') {
+			if (this.parent.type === "Program") 
+				this.module.error( // This is necessary, because either way (deleting or not) can lead to errors.
+					{
+						code: 'MODULE_LEVEL_DIRECTIVE',
+						message: `Cannot have directives on the module level ('${this.directive}')`
+					},
+					this.start
+				)
+			return true
+		}
+		
 		return super.shouldBeIncluded()
 	}
 
