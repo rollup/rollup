@@ -47,7 +47,8 @@ export function flushTime (log = defaultLog) {
 	map.clear();
 }
 
-function defaultLog (label: string, time: number) {
+/** @interal */
+export function defaultLog (label: string, time: number) {
 	if (DEBUG) {
 		/* eslint-disable no-console */
 		console.info('%dms: %s', time, label);

@@ -25,8 +25,8 @@ const OPTION_RETURN_EXPRESSIONS_ASSIGNED_AT_PATH =
 const OPTION_RETURN_EXPRESSIONS_CALLED_AT_PATH =
 	'RETURN_EXPRESSIONS_CALLED_AT_PATH';
 
-type RESULT_KEY = {};
-const RESULT_KEY: RESULT_KEY = {};
+export type RESULT_KEY = {};
+export const RESULT_KEY: RESULT_KEY = {};
 
 /** Wrapper to ensure immutability */
 export default class ExecutionPathOptions {

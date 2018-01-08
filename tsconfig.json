@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "pretty": true,
         "allowSyntheticDefaultImports": true,
         "target": "es5",
         "diagnostics": true,
@@ -8,7 +9,10 @@
         "noImplicitAny": true,
         "noImplicitThis": true,
         "noUnusedParameters": true,
-        "noUnusedLocals": true
+        "noUnusedLocals": true,
+        "outDir": "./dist/typings",
+        "skipLibCheck": true,
+        "declaration": true
     },
     "include": [
         "src",

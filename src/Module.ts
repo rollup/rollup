@@ -41,9 +41,9 @@ const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
 export interface IdMap { [key: string]: string; }
 
-interface CommentDescription { block: boolean, text: string, start: number, end: number }
-interface ExportDescription { localName: string, identifier?: string }
-interface ReexportDescription { localName: string, start: number, source: string, module: Module }
+export interface CommentDescription { block: boolean, text: string, start: number, end: number }
+export interface ExportDescription { localName: string, identifier?: string }
+export interface ReexportDescription { localName: string, start: number, source: string, module: Module }
 
 function tryParse (module: Module, acornOptions: Object) {
 	try {

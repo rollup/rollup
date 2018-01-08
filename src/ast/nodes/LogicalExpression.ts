@@ -5,7 +5,7 @@ import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 
-type LogicalOperator = '||' | '&&';
+export type LogicalOperator = '||' | '&&';
 
 export default class LogicalExpression extends Node {
 	type: 'LogicalExpression';
