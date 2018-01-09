@@ -1,14 +1,14 @@
-import { NodeBase } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 import extractNames from '../utils/extractNames';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { PatternNode } from './shared/Pattern';
-import { ExpressionNode } from './shared/Expression';
+import { NodeType } from './index';
 
 export default class VariableDeclarator extends NodeBase {
-	type: 'VariableDeclarator';
+	type: NodeType.VariableDeclarator;
 	id: PatternNode;
 	init: ExpressionNode | null;
 

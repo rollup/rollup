@@ -3,10 +3,11 @@ import VariableDeclaration from './VariableDeclaration';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import { StatementBase, StatementNode } from './shared/Statement';
-import { ExpressionNode } from './shared/Expression';
+import { NodeType } from './index';
+import { ExpressionNode } from './shared/Node';
 
 export default class ForStatement extends StatementBase {
-	type: 'ForStatement';
+	type: NodeType.ForStatement;
 	init: VariableDeclaration | ExpressionNode | null;
 	test: ExpressionNode | null;
 	update: ExpressionNode | null;

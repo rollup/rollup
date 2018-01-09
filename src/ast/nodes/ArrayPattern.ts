@@ -2,11 +2,13 @@ import { UNKNOWN_EXPRESSION } from '../values';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { PatternBase, PatternNode } from './shared/Pattern';
+import { PatternNode } from './shared/Pattern';
 import { ExpressionEntity } from './shared/Expression';
+import { NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
-export default class ArrayPattern extends PatternBase {
-	type: 'ArrayPattern';
+export default class ArrayPattern extends NodeBase implements PatternNode {
+	type: NodeType.ArrayPattern;
 	elements: (PatternNode | null)[];
 
 	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {

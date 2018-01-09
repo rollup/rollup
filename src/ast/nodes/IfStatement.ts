@@ -1,11 +1,11 @@
 import extractNames from '../utils/extractNames';
 import { UNKNOWN_VALUE } from '../values';
 import Scope from '../scopes/Scope';
-import { Node } from './shared/Node';
+import { ExpressionNode, Node } from './shared/Node';
 import { isVariableDeclaration } from './VariableDeclaration';
 import MagicString from 'magic-string';
 import { StatementBase, StatementNode } from './shared/Statement';
-import { ExpressionNode } from './shared/Expression';
+import { NodeType } from './index';
 
 // Statement types which may contain if-statements as direct children.
 const statementsWithIfStatements = new Set([
@@ -41,7 +41,7 @@ function getHoistedVars (node: StatementNode, scope: Scope) {
 }
 
 export default class IfStatement extends StatementBase {
-	type: 'IfStatement';
+	type: NodeType.IfStatement;
 	test: ExpressionNode;
 	consequent: StatementNode;
 	alternate: StatementNode | null;

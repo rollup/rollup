@@ -1,7 +1,7 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { ExpressionBase } from './shared/Expression';
+import { NodeBase } from './shared/Node';
 
-export default class UnknownNode extends ExpressionBase {
+export default class UnknownNode extends NodeBase {
 	hasEffects (_options: ExecutionPathOptions) {
 		return true;
 	}

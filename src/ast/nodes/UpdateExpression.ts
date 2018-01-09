@@ -1,10 +1,11 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { ExpressionBase, ExpressionNode } from './shared/Expression';
 import { isIdentifier } from './Identifier';
+import { NodeType } from './index';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
-export default class UpdateExpression extends ExpressionBase {
-	type: 'UpdateExpression';
+export default class UpdateExpression extends NodeBase {
+	type: NodeType.UpdateExpression;
 	operator: '++' | '--' | '**';
 	argument: ExpressionNode;
 	prefix: boolean;

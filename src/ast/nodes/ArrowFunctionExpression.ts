@@ -4,11 +4,13 @@ import BlockStatement, { isBlockStatement } from './BlockStatement';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { ExpressionBase, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
+import { NodeType } from './index';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
-export default class ArrowFunctionExpression extends ExpressionBase {
-	type: 'ArrowFunctionExpression';
+export default class ArrowFunctionExpression extends NodeBase {
+	type: NodeType.ArrowFunctionExpression;
 	body: BlockStatement | ExpressionNode;
 	params: PatternNode[];
 	scope: ReturnValueScope;

@@ -6,8 +6,11 @@ import Scope from '../../scopes/Scope';
 import Module from '../../../Module';
 import MagicString from 'magic-string';
 import Variable from '../../variables/Variable';
+import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
+import { ObjectPath } from '../../variables/VariableReassignmentTracker';
+import CallOptions from '../../CallOptions';
+import { UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import { Entity } from '../../Entity';
-import { ExpressionEntity } from './Expression';
 
 export interface Node extends Entity {
 	end: number;
@@ -75,7 +78,9 @@ export interface Node extends Entity {
 	someChild(callback: (node: Node) => boolean): boolean;
 }
 
-export class NodeBase implements Node {
+export interface ExpressionNode extends ExpressionEntity, Node {}
+
+export class NodeBase implements ExpressionNode {
 	type: string;
 	keys: string[];
 	included: boolean;
@@ -124,8 +129,31 @@ export class NodeBase implements Node {
 		});
 	}
 
+	forEachReturnExpressionWhenCalledAtPath (
+		_path: ObjectPath,
+		_callOptions: CallOptions,
+		_callback: ForEachReturnExpressionCallback,
+		_options: ExecutionPathOptions
+	) { }
+
+	getValue () {
+		return UNKNOWN_VALUE;
+	}
+
 	hasEffects (options: ExecutionPathOptions): boolean {
 		return this.someChild((child: NodeBase) => child.hasEffects(options));
+	}
+
+	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+		return path.length > 0;
+	}
+
+	hasEffectsWhenAssignedAtPath (_path: ObjectPath, _options: ExecutionPathOptions) {
+		return true;
+	}
+
+	hasEffectsWhenCalledAtPath (_path: ObjectPath, _callOptions: CallOptions, _options: ExecutionPathOptions) {
+		return true;
 	}
 
 	private hasIncludedChild (): boolean {
@@ -191,6 +219,8 @@ export class NodeBase implements Node {
 		return location;
 	}
 
+	reassignPath (_path: ObjectPath, _options: ExecutionPathOptions) { }
+
 	render (code: MagicString, es: boolean) {
 		this.eachChild(child => child.render(code, es));
 	}
@@ -213,6 +243,15 @@ export class NodeBase implements Node {
 			}
 			return callback(value);
 		});
+	}
+
+	someReturnExpressionWhenCalledAtPath (
+		_path: ObjectPath,
+		_callOptions: CallOptions,
+		predicateFunction: SomeReturnExpressionCallback,
+		options: ExecutionPathOptions
+	): boolean {
+		return predicateFunction(options)(UNKNOWN_EXPRESSION);
 	}
 
 	toString () {

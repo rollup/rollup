@@ -1,11 +1,13 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { PatternBase, PatternNode } from './shared/Pattern';
-import { ExpressionEntity, ExpressionNode } from './shared/Expression';
+import { PatternNode } from './shared/Pattern';
+import { ExpressionEntity } from './shared/Expression';
+import { ExpressionNode, NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
-export default class AssignmentPattern extends PatternBase {
-	type: 'AssignmentPattern';
+export default class AssignmentPattern extends NodeBase implements PatternNode {
+	type: NodeType.AssignmentPattern;
 	left: PatternNode;
 	right: ExpressionNode;
 

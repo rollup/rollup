@@ -35,6 +35,7 @@ import ExternalModule from './ExternalModule';
 import Import from './ast/nodes/Import';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import Literal from './ast/nodes/Literal';
+import { NodeType } from './ast/nodes/index';
 import { missingExport } from './utils/defaults';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
@@ -244,7 +245,7 @@ export default class Module {
 		if (source) {
 			if (!~this.sources.indexOf(source)) this.sources.push(source);
 
-			if (node.type === 'ExportAllDeclaration') {
+			if (node.type === NodeType.ExportAllDeclaration) {
 				// Store `export * from '...'` statements in an array of delegates.
 				// When an unknown import is encountered, we see if one of them can satisfy it.
 				this.exportAllSources.push(source);
@@ -270,7 +271,7 @@ export default class Module {
 					};
 				});
 			}
-		} else if (node.type === 'ExportDefaultDeclaration') {
+		} else if (node.type === NodeType.ExportDefaultDeclaration) {
 			// export default function foo () {}
 			// export default foo;
 			// export default 42;
@@ -299,7 +300,7 @@ export default class Module {
 			// export function foo () {}
 			const declaration = (<ExportNamedDeclaration>node).declaration;
 
-			if (declaration.type === 'VariableDeclaration') {
+			if (declaration.type === NodeType.VariableDeclaration) {
 				declaration.declarations.forEach((decl: VariableDeclarator) => {
 					extractNames(decl.id).forEach(localName => {
 						this.exports[localName] = { localName };
@@ -349,8 +350,8 @@ export default class Module {
 				);
 			}
 
-			const isDefault = specifier.type === 'ImportDefaultSpecifier';
-			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
+			const isDefault = specifier.type === NodeType.ImportDefaultSpecifier;
+			const isNamespace = specifier.type === NodeType.ImportNamespaceSpecifier;
 
 			const name = isDefault
 				? 'default'
@@ -516,11 +517,11 @@ export default class Module {
 		return Promise.all(this.dynamicImports.map(node => {
 			const importArgument = node.parent.arguments[0];
 			let dynamicImportSpecifier: string | Node;
-			if (importArgument.type === 'TemplateLiteral') {
+			if (importArgument.type === NodeType.TemplateLiteral) {
 				if ((<TemplateLiteral>importArgument).expressions.length === 0 && (<TemplateLiteral>importArgument).quasis.length === 1) {
 					dynamicImportSpecifier = (<TemplateLiteral>importArgument).quasis[0].value.cooked;
 				}
-			} else if (importArgument.type === 'Literal') {
+			} else if (importArgument.type === NodeType.Literal) {
 				if (typeof (<Literal>importArgument).value === 'string') {
 					dynamicImportSpecifier = <string>(<Literal>importArgument).value;
 				}
