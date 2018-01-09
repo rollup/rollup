@@ -1,7 +1,13 @@
 // internal
 declare module "rollup";
-declare module 'help.md';
-declare module 'package.json';
+declare module 'help.md' {
+	const str: string;
+	export default str;
+}
+
+declare module 'package.json' {
+	const version: string;
+}
 
 // external libs
 declare module "ansi-escapes";
