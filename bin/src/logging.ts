@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import relativeId from '../../src/utils/relativeId.js';
 import { RollupError } from '../../src/utils/error';
 
-if (!process.stderr.isTTY) chalk.enabled = false;
+if (!chalk.supportsColor) chalk.enabled = false;
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
 export const stderr = console.error.bind(console); // eslint-disable-line no-console
