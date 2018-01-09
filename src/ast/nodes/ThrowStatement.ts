@@ -1,8 +1,8 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ExpressionNode } from './shared/Expression';
-import { GenericStatementNode } from './shared/Statement';
+import { StatementBase } from './shared/Statement';
 
-export default class ThrowStatement extends GenericStatementNode {
+export default class ThrowStatement extends StatementBase {
 	type: 'ThrowStatement';
 	argument: ExpressionNode;
 

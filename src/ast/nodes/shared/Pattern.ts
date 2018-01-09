@@ -5,7 +5,7 @@ import ExecutionPathOptions from '../../ExecutionPathOptions';
 
 export interface PatternNode extends WritableEntity, Node {}
 
-export class GenericPatternNode extends NodeBase implements PatternNode {
+export class PatternBase extends NodeBase implements PatternNode {
 	hasEffectsWhenAssignedAtPath (_path: ObjectPath, _options: ExecutionPathOptions) {
 		return true;
 	}
