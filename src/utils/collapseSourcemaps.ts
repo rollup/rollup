@@ -1,5 +1,3 @@
-/// <reference path="./collapseSourcemaps.d.ts" />
-
 import { encode } from 'sourcemap-codec';
 import error from './error';
 import { basename, dirname, relative, resolve } from './path';

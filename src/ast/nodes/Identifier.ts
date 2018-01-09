@@ -1,5 +1,3 @@
-/// <reference path="./Identifier.d.ts" />
-
 import Node, { ForEachReturnExpressionCallback } from '../Node';
 import isReference from 'is-reference';
 import { UNKNOWN_ASSIGNMENT, UnknownAssignment, PredicateFunction } from '../values';

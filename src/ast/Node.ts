@@ -1,7 +1,4 @@
 /* eslint-disable no-unused-vars */
-
-/// <reference path="./Node.d.ts" />
-
 import { locate } from 'locate-character';
 import { UNKNOWN_ASSIGNMENT, UNKNOWN_VALUE, PredicateFunction, UnknownAssignment } from './values';
 import ExecutionPathOptions from './ExecutionPathOptions';
