@@ -1,9 +1,10 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
-import { ExpressionBase, ExpressionNode } from './shared/Expression';
+import { ExpressionNode, NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
-export default class SequenceExpression extends ExpressionBase {
-	type: 'SequenceExpression';
+export default class SequenceExpression extends NodeBase {
+	type: NodeType.SequenceExpression;
 	expressions: ExpressionNode[];
 
 	getValue (): any {
@@ -38,8 +39,8 @@ export default class SequenceExpression extends ExpressionBase {
 			last.render(code, es);
 
 			if (
-				this.parent.type === 'CallExpression' &&
-				last.type === 'MemberExpression' &&
+				this.parent.type === NodeType.CallExpression &&
+				last.type === NodeType.MemberExpression &&
 				this.expressions.length > 1
 			) {
 				this.expressions[0].included = true;

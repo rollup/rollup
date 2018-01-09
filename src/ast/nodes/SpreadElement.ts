@@ -1,7 +1,7 @@
-import { ExpressionEntity, ExpressionNode } from './shared/Expression';
-import { Node } from './shared/Node';
+import { ExpressionNode } from './shared/Node';
+import { NodeType } from './index';
 
-export default interface SpreadElement extends ExpressionEntity, Node {
-  type: 'SpreadElement';
+export default interface SpreadElement extends ExpressionNode {
+  type: NodeType.SpreadElement;
   argument: ExpressionNode;
 }

@@ -8,6 +8,7 @@ import ForStatement from './ForStatement';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { isIdentifier } from './Identifier';
+import { NodeType } from './index';
 
 function getSeparator (code: string, start: number) {
 	let c = start;
@@ -25,11 +26,11 @@ function getSeparator (code: string, start: number) {
 const forStatement = /^For(?:Of|In)?Statement/;
 
 export function isVariableDeclaration (node: Node): node is VariableDeclaration {
-	return node.type === 'VariableDeclaration';
+	return node.type === NodeType.VariableDeclaration;
 }
 
 export default class VariableDeclaration extends NodeBase {
-	type: 'VariableDeclaration';
+	type: NodeType.VariableDeclaration;
 	declarations: VariableDeclarator[];
 	kind: 'var' | 'let' | 'const';
 

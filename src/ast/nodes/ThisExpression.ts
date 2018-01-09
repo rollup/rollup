@@ -2,10 +2,11 @@ import ThisVariable from '../variables/ThisVariable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { ExpressionBase } from './shared/Expression';
+import { NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
-export default class ThisExpression extends ExpressionBase {
-	type: 'ThisExpression';
+export default class ThisExpression extends NodeBase {
+	type: NodeType.ThisExpression;
 	variable: ThisVariable;
 
 	alias: string;

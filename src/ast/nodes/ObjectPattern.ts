@@ -3,10 +3,12 @@ import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionEntity } from './shared/Expression';
-import { PatternBase } from './shared/Pattern';
+import { PatternNode } from './shared/Pattern';
+import { NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
-export default class ObjectPattern extends PatternBase {
-	type: 'ObjectPattern';
+export default class ObjectPattern extends NodeBase implements PatternNode {
+	type: NodeType.ObjectPattern;
 	properties: AssignmentProperty[];
 
 	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {

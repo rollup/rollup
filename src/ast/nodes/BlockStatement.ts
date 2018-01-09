@@ -5,19 +5,20 @@ import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { Node } from './shared/Node';
 import { StatementBase, StatementNode } from './shared/Statement';
+import { NodeType } from './index';
 
 export function isBlockStatement (node: Node): node is BlockStatement {
-	return node.type === 'BlockStatement';
+	return node.type === NodeType.BlockStatement;
 }
 
 export default class BlockStatement extends StatementBase {
-	type: 'BlockStatement';
+	type: NodeType.BlockStatement;
 	scope: Scope;
 	body: StatementNode[];
 
 	bindImplicitReturnExpressionToScope () {
 		const lastStatement = this.body[this.body.length - 1];
-		if (!lastStatement || lastStatement.type !== 'ReturnStatement') {
+		if (!lastStatement || lastStatement.type !== NodeType.ReturnStatement) {
 			this.scope.addReturnExpression(UNKNOWN_EXPRESSION);
 		}
 	}

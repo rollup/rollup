@@ -3,8 +3,10 @@ import Property from './Property';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
-import { ExpressionBase, ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { UNKNOWN_VALUE } from '../values';
+import { NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
 const PROPERTY_KINDS_WRITE = ['init', 'set'];
@@ -20,8 +22,8 @@ export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 	toString: () => '[[UNKNOWN OBJECT]]'
 };
 
-export default class ObjectExpression extends ExpressionBase {
-	type: 'ObjectExpression';
+export default class ObjectExpression extends NodeBase {
+	type: NodeType.ObjectExpression;
 	properties: Property[];
 
 	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {

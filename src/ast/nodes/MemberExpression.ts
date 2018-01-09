@@ -1,5 +1,5 @@
 import relativeId from '../../utils/relativeId';
-import { Node } from './shared/Node';
+import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import { isUnknownKey, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
 import Variable from '../variables/Variable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
@@ -9,7 +9,8 @@ import MagicString from 'magic-string';
 import Identifier, { isIdentifier } from './Identifier';
 import { isNamespaceVariable } from '../variables/NamespaceVariable';
 import { isExternalVariable } from '../variables/ExternalVariable';
-import { ExpressionBase, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { NodeType } from './index';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -50,11 +51,11 @@ function getPathIfNotComputed (memberExpression: MemberExpression): PathWithPosi
 }
 
 export function isMemberExpression (node: Node): node is MemberExpression {
-	return node.type === 'MemberExpression';
+	return node.type === NodeType.MemberExpression;
 }
 
-export default class MemberExpression extends ExpressionBase {
-	type: 'MemberExpression';
+export default class MemberExpression extends NodeBase {
+	type: NodeType.MemberExpression;
 	object: ExpressionNode;
 	property: ExpressionNode;
 	computed: boolean;
