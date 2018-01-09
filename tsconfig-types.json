@@ -1,0 +1,12 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./dist/typings",
+        "declaration": true,
+        "stripInternal": true
+    },
+    "include": [
+        "typings/**/*.d.ts",
+        "src/node-entry.ts"
+    ]
+}
