@@ -1,8 +1,8 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
-import { GenericStatementNode } from './shared/Statement';
+import { StatementBase } from './shared/Statement';
 
-export default class BreakStatement extends GenericStatementNode {
+export default class BreakStatement extends StatementBase {
 	type: 'BreakStatement';
 	label: Identifier | null;
 

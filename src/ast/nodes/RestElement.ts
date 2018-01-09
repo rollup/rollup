@@ -2,10 +2,10 @@ import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { GenericPatternNode, PatternNode } from './shared/Pattern';
+import { PatternBase, PatternNode } from './shared/Pattern';
 import { ExpressionEntity } from './shared/Expression';
 
-export default class RestElement extends GenericPatternNode {
+export default class RestElement extends PatternBase {
 	type: 'RestElement';
 	argument: PatternNode;
 
