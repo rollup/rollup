@@ -6,9 +6,10 @@ import ExportSpecifier from './ExportSpecifier';
 import FunctionDeclaration from './FunctionDeclaration';
 import ClassDeclaration from './ClassDeclaration';
 import VariableDeclaration from './VariableDeclaration';
+import { NodeType } from './index';
 
 export default class ExportNamedDeclaration extends NodeBase {
-	type: 'ExportNamedDeclaration';
+	type: NodeType.ExportNamedDeclaration;
 	declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
 	specifiers: ExportSpecifier[];
 	source: Literal<string> | null;

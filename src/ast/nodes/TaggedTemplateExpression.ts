@@ -3,18 +3,19 @@ import TemplateLiteral from './TemplateLiteral';
 import Identifier from './Identifier';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { isGlobalVariable } from '../variables/GlobalVariable';
-import { ExpressionBase, ExpressionNode } from './shared/Expression';
 import { isNamespaceVariable } from '../variables/NamespaceVariable';
+import { NodeType } from './index';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
-export default class TaggedTemplateExpression extends ExpressionBase {
-	type: 'TaggedTemplateExpression';
+export default class TaggedTemplateExpression extends NodeBase {
+	type: NodeType.TaggedTemplateExpression;
 	tag: ExpressionNode;
 	quasi: TemplateLiteral;
 
 	private _callOptions: CallOptions;
 
 	bindNode () {
-		if (this.tag.type === 'Identifier') {
+		if (this.tag.type === NodeType.Identifier) {
 			const variable = this.scope.findVariable((<Identifier>this.tag).name);
 
 			if (isNamespaceVariable(variable)) {

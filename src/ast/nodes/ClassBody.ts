@@ -3,9 +3,10 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import MethodDefinition from './MethodDefinition';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { NodeType } from './index';
 
 export default class ClassBody extends NodeBase {
-	type: 'ClassBody';
+	type: NodeType.ClassBody;
 	body: MethodDefinition[];
 	classConstructor: MethodDefinition | null;
 

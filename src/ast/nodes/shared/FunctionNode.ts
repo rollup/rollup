@@ -6,9 +6,10 @@ import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import { PatternNode } from './Pattern';
-import { ForEachReturnExpressionCallback, ExpressionBase, SomeReturnExpressionCallback } from './Expression';
+import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
+import { NodeBase } from './Node';
 
-export default class FunctionNode extends ExpressionBase {
+export default class FunctionNode extends NodeBase {
 	id: Identifier;
 	body: BlockStatement;
 	scope: BlockScope;

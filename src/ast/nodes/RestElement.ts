@@ -2,11 +2,13 @@ import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { PatternBase, PatternNode } from './shared/Pattern';
+import { PatternNode } from './shared/Pattern';
 import { ExpressionEntity } from './shared/Expression';
+import { NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
-export default class RestElement extends PatternBase {
-	type: 'RestElement';
+export default class RestElement extends NodeBase implements PatternNode {
+	type: NodeType.RestElement;
 	argument: PatternNode;
 
 	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {

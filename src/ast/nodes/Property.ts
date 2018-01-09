@@ -1,18 +1,19 @@
-import { NodeBase,  Node } from './shared/Node';
+import { NodeBase, Node, ExpressionNode } from './shared/Node';
 import CallOptions from '../CallOptions';
 import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { ExpressionEntity, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { NodeType } from './index';
 
 export function isProperty (node: Node): node is Property {
-	return node.type === 'Property';
+	return node.type === NodeType.Property;
 }
 
 export default class Property extends NodeBase {
-	type: 'Property';
+	type: NodeType.Property;
 	key: ExpressionNode;
 	value: ExpressionNode;
 	kind: 'init' | 'get' | 'set';
@@ -81,16 +82,16 @@ export default class Property extends NodeBase {
 					options.getHasEffectsWhenCalledOptions()
 				) ||
 				(!options.hasReturnExpressionBeenAccessedAtPath(path, this) &&
-					this.value.someReturnExpressionWhenCalledAtPath(
-						[],
-						this._accessorCallOptions,
-						innerOptions => node =>
-							node.hasEffectsWhenAccessedAtPath(
-								path,
-								innerOptions.addAccessedReturnExpressionAtPath(path, this)
-							),
-						options
-					))
+				 this.value.someReturnExpressionWhenCalledAtPath(
+					 [],
+					 this._accessorCallOptions,
+					 innerOptions => node =>
+						 node.hasEffectsWhenAccessedAtPath(
+							 path,
+							 innerOptions.addAccessedReturnExpressionAtPath(path, this)
+						 ),
+					 options
+				 ))
 			);
 		}
 		return this.value.hasEffectsWhenAccessedAtPath(path, options);
@@ -134,17 +135,17 @@ export default class Property extends NodeBase {
 					options.getHasEffectsWhenCalledOptions()
 				) ||
 				(!options.hasReturnExpressionBeenCalledAtPath(path, this) &&
-					this.value.someReturnExpressionWhenCalledAtPath(
-						[],
-						this._accessorCallOptions,
-						innerOptions => node =>
-							node.hasEffectsWhenCalledAtPath(
-								path,
-								callOptions,
-								innerOptions.addCalledReturnExpressionAtPath(path, this)
-							),
-						options
-					))
+				 this.value.someReturnExpressionWhenCalledAtPath(
+					 [],
+					 this._accessorCallOptions,
+					 innerOptions => node =>
+						 node.hasEffectsWhenCalledAtPath(
+							 path,
+							 callOptions,
+							 innerOptions.addCalledReturnExpressionAtPath(path, this)
+						 ),
+					 options
+				 ))
 			);
 		}
 		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, options);

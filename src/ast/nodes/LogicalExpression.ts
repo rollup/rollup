@@ -2,15 +2,14 @@ import { UNKNOWN_VALUE } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import {
-	ExpressionBase, ExpressionNode, ForEachReturnExpressionCallback, PredicateFunction,
-	SomeReturnExpressionCallback
-} from './shared/Expression';
+import { ForEachReturnExpressionCallback, PredicateFunction, SomeReturnExpressionCallback } from './shared/Expression';
+import { NodeType } from './index';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
 export type LogicalOperator = '||' | '&&';
 
-export default class LogicalExpression extends ExpressionBase {
-	type: 'LogicalExpression';
+export default class LogicalExpression extends NodeBase {
+	type: NodeType.LogicalExpression;
 	operator: LogicalOperator;
 	left: ExpressionNode;
 	right: ExpressionNode;

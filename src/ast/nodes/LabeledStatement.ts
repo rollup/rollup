@@ -1,9 +1,10 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
 import { StatementBase, StatementNode } from './shared/Statement';
+import { NodeType } from './index';
 
 export default class LabeledStatement extends StatementBase {
-	type: 'LabeledStatement';
+	type: NodeType.LabeledStatement;
 	label: Identifier;
 	body: StatementNode;
 

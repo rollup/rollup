@@ -5,10 +5,11 @@ import Scope from '../scopes/Scope';
 import BlockStatement from './BlockStatement';
 import { StatementBase, StatementNode } from './shared/Statement';
 import { PatternNode } from './shared/Pattern';
-import { ExpressionNode } from './shared/Expression';
+import { NodeType } from './index';
+import { ExpressionNode } from './shared/Node';
 
 export default class ForOfStatement extends StatementBase {
-	type: 'ForOfStatement';
+	type: NodeType.ForOfStatement;
 	left: VariableDeclaration | PatternNode;
 	right: ExpressionNode;
 	body: StatementNode;

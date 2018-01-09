@@ -4,10 +4,12 @@ import CallOptions from '../CallOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { ExpressionBase, ExpressionNode, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { NodeType } from './index';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
-export default class ConditionalExpression extends ExpressionBase {
-	type: 'ConditionalExpression';
+export default class ConditionalExpression extends NodeBase {
+	type: NodeType.ConditionalExpression;
 	test: ExpressionNode;
 	alternate: ExpressionNode;
 	consequent: ExpressionNode;
@@ -101,7 +103,7 @@ export default class ConditionalExpression extends ExpressionBase {
 
 				code.remove(this.start, branchToRetain.start);
 				code.remove(branchToRetain.end, this.end);
-				if (branchToRetain.type === 'SequenceExpression') {
+				if (branchToRetain.type === NodeType.SequenceExpression) {
 					code.prependLeft(branchToRetain.start, '(');
 					code.appendRight(branchToRetain.end, ')');
 				}

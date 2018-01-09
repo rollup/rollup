@@ -1,6 +1,6 @@
 /// <reference path="./Identifier.d.ts" />
 
-import { Node } from './shared/Node';
+import { Node, NodeBase } from './shared/Node';
 import isReference from 'is-reference';
 import { UNKNOWN_EXPRESSION } from '../values';
 import Scope from '../scopes/Scope';
@@ -11,15 +11,15 @@ import FunctionScope from '../scopes/FunctionScope';
 import MagicString from 'magic-string';
 import Property from './Property';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { ExpressionBase, ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { PatternNode } from './shared/Pattern';
+import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { NodeType } from './index';
 
 export function isIdentifier (node: Node): node is Identifier {
-	return node.type === 'Identifier';
+	return node.type === NodeType.Identifier;
 }
 
-export default class Identifier extends ExpressionBase implements PatternNode {
-	type: 'Identifier';
+export default class Identifier extends NodeBase {
+	type: NodeType.Identifier;
 	name: string;
 
 	variable: Variable;
@@ -128,7 +128,7 @@ export default class Identifier extends ExpressionBase implements PatternNode {
 				});
 
 				// special case
-				if (this.parent.type === 'Property' && (<Property>this.parent).shorthand) {
+				if (this.parent.type === NodeType.Property && (<Property>this.parent).shorthand) {
 					code.appendLeft(this.start, `${this.name}: `);
 				}
 			}

@@ -1,9 +1,9 @@
-import { NodeBase } from './shared/Node';
-import { ExpressionNode } from './shared/Expression';
+import { ExpressionNode, NodeBase } from './shared/Node';
 import { StatementNode } from './shared/Statement';
+import { NodeType } from './index';
 
 export default class SwitchCase extends NodeBase {
-	type: 'SwitchCase';
+	type: NodeType.SwitchCase;
 	test: ExpressionNode | null;
 	consequent: StatementNode[];
 
