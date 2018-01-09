@@ -46,7 +46,7 @@ export default class Graph {
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
 
-	dependsOn: { [id: string]: { [id: string]: boolean }};
+	dependsOn: { [id: string]: { [id: string]: boolean } };
 	stronglyDependsOn: { [id: string]: { [id: string]: boolean } };
 
 	// deprecated
@@ -569,7 +569,9 @@ export default class Graph {
 				? Promise.resolve(resolvedId)
 				: this.resolveId(source, module.id)
 			).then(resolvedId => {
-				const externalId = resolvedId || isRelative(source) ? resolve(module.id, '..', source) : source;
+				// TODO types of `resolvedId` are not compatable with 'externalId'.
+				// `this.resolveId` returns `string`, `void`, and `boolean`
+				const externalId = <string>resolvedId || (isRelative(source) ? resolve(module.id, '..', source) : source);
 				let isExternal = this.isExternal(externalId, module.id, true);
 
 				if (!resolvedId && !isExternal) {

@@ -10,9 +10,7 @@
         "noImplicitThis": true,
         "noUnusedParameters": true,
         "noUnusedLocals": true,
-        "outDir": "./dist/typings",
-        "skipLibCheck": true,
-        "declaration": true
+        "skipLibCheck": true
     },
     "include": [
         "typings/**/*.d.ts",
