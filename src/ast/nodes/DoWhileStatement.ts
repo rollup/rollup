@@ -1,8 +1,8 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { GenericStatementNode, StatementNode } from './shared/Statement';
+import { StatementBase, StatementNode } from './shared/Statement';
 import { ExpressionNode } from './shared/Expression';
 
-export default class DoWhileStatement extends GenericStatementNode {
+export default class DoWhileStatement extends StatementBase {
 	type: 'DoWhileStatement';
 	body: StatementNode;
 	test: ExpressionNode;

@@ -1,8 +1,8 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { GenericStatementNode, StatementNode } from './shared/Statement';
+import { StatementBase, StatementNode } from './shared/Statement';
 import { ExpressionNode } from './shared/Expression';
 
-export default class WhileStatement extends GenericStatementNode {
+export default class WhileStatement extends StatementBase {
 	type: 'WhileStatement';
 	test: ExpressionNode;
 	body: StatementNode;

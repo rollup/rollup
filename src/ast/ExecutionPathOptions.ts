@@ -8,60 +8,59 @@ import { Entity, WritableEntity } from './Entity';
 import Property from './nodes/Property';
 import { ExpressionEntity } from './nodes/shared/Expression';
 
-const OPTION_IGNORED_LABELS = 'IGNORED_LABELS';
-const OPTION_ACCESSED_NODES = 'ACCESSED_NODES';
-const OPTION_ARGUMENTS_VARIABLES = 'ARGUMENTS_VARIABLES';
-const OPTION_ASSIGNED_NODES = 'ASSIGNED_NODES';
-const OPTION_IGNORE_BREAK_STATEMENTS = 'IGNORE_BREAK_STATEMENTS';
-const OPTION_IGNORE_RETURN_AWAIT_YIELD = 'IGNORE_RETURN_AWAIT_YIELD';
-const OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS =
-	'NODES_CALLED_AT_PATH_WITH_OPTIONS';
-const OPTION_REPLACED_VARIABLE_INITS = 'REPLACED_VARIABLE_INITS';
-const OPTION_RETURN_EXPRESSIONS_ACCESSED_AT_PATH =
-	'RETURN_EXPRESSIONS_ACCESSED_AT_PATH';
-const OPTION_RETURN_EXPRESSIONS_ASSIGNED_AT_PATH =
-	'RETURN_EXPRESSIONS_ASSIGNED_AT_PATH';
-const OPTION_RETURN_EXPRESSIONS_CALLED_AT_PATH =
-	'RETURN_EXPRESSIONS_CALLED_AT_PATH';
+export enum OptionTypes {
+	IGNORED_LABELS,
+	ACCESSED_NODES,
+	ARGUMENTS_VARIABLES,
+	ASSIGNED_NODES,
+	IGNORE_BREAK_STATEMENTS,
+	IGNORE_RETURN_AWAIT_YIELD,
+	NODES_CALLED_AT_PATH_WITH_OPTIONS,
+	REPLACED_VARIABLE_INITS,
+	RETURN_EXPRESSIONS_ACCESSED_AT_PATH,
+	RETURN_EXPRESSIONS_ASSIGNED_AT_PATH,
+	RETURN_EXPRESSIONS_CALLED_AT_PATH,
+}
 
 export type RESULT_KEY = {};
 export const RESULT_KEY: RESULT_KEY = {};
+export type KeyTypes = OptionTypes | Entity | RESULT_KEY;
 
 export default class ExecutionPathOptions {
-	_optionValues: Immutable.Map<string, any>;
+	private optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>;
 
 	static create () {
 		return new this(Immutable.Map());
 	}
 
-	constructor (optionValues: Immutable.Map<string, any>) {
-		this._optionValues = optionValues;
+	private constructor (optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>) {
+		this.optionValues = optionValues;
 	}
 
-	get (option: string) {
-		return this._optionValues.get(option);
+	private get (option: OptionTypes) {
+		return this.optionValues.get(option);
 	}
 
-	remove (option: string) {
-		return new ExecutionPathOptions(this._optionValues.remove(option));
+	private remove (option: OptionTypes) {
+		return new ExecutionPathOptions(this.optionValues.remove(option));
 	}
 
-	set (option: string, value: any) {
-		return new ExecutionPathOptions(this._optionValues.set(option, value));
+	private set (option: OptionTypes, value: boolean | ExpressionEntity[]) {
+		return new ExecutionPathOptions(this.optionValues.set(option, value));
 	}
 
-	setIn (optionPath: (string | Entity | RESULT_KEY)[], value: any) {
-		return new ExecutionPathOptions(this._optionValues.setIn(optionPath, value));
+	private setIn (optionPath: (string | Entity | RESULT_KEY)[], value: boolean | Entity) {
+		return new ExecutionPathOptions(this.optionValues.setIn(optionPath, value));
 	}
 
 	addAccessedNodeAtPath (path: ObjectPath, node: ExpressionEntity) {
-		return this.setIn([OPTION_ACCESSED_NODES, node, ...path, RESULT_KEY], true);
+		return this.setIn([OptionTypes.ACCESSED_NODES, node, ...path, RESULT_KEY], true);
 	}
 
 	addAccessedReturnExpressionAtPath (path: ObjectPath, callExpression: CallExpression | Property) {
 		return this.setIn(
 			[
-				OPTION_RETURN_EXPRESSIONS_ACCESSED_AT_PATH,
+				OptionTypes.RETURN_EXPRESSIONS_ACCESSED_AT_PATH,
 				callExpression,
 				...path,
 				RESULT_KEY
@@ -71,13 +70,13 @@ export default class ExecutionPathOptions {
 	}
 
 	addAssignedNodeAtPath (path: ObjectPath, node: WritableEntity) {
-		return this.setIn([OPTION_ASSIGNED_NODES, node, ...path, RESULT_KEY], true);
+		return this.setIn([OptionTypes.ASSIGNED_NODES, node, ...path, RESULT_KEY], true);
 	}
 
 	addAssignedReturnExpressionAtPath (path: ObjectPath, callExpression: CallExpression | Property) {
 		return this.setIn(
 			[
-				OPTION_RETURN_EXPRESSIONS_ASSIGNED_AT_PATH,
+				OptionTypes.RETURN_EXPRESSIONS_ASSIGNED_AT_PATH,
 				callExpression,
 				...path,
 				RESULT_KEY
@@ -89,7 +88,7 @@ export default class ExecutionPathOptions {
 	addCalledNodeAtPathWithOptions (path: ObjectPath, node: ExpressionEntity, callOptions: CallOptions) {
 		return this.setIn(
 			[
-				OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS,
+				OptionTypes.NODES_CALLED_AT_PATH_WITH_OPTIONS,
 				node,
 				...path,
 				RESULT_KEY,
@@ -102,7 +101,7 @@ export default class ExecutionPathOptions {
 	addCalledReturnExpressionAtPath (path: ObjectPath, callExpression: CallExpression | Property) {
 		return this.setIn(
 			[
-				OPTION_RETURN_EXPRESSIONS_CALLED_AT_PATH,
+				OptionTypes.RETURN_EXPRESSIONS_CALLED_AT_PATH,
 				callExpression,
 				...path,
 				RESULT_KEY
@@ -112,7 +111,7 @@ export default class ExecutionPathOptions {
 	}
 
 	getArgumentsVariables (): ExpressionEntity[] {
-		return <ExpressionEntity[]>(this.get(OPTION_ARGUMENTS_VARIABLES) || []);
+		return <ExpressionEntity[]>(this.get(OptionTypes.ARGUMENTS_VARIABLES) || []);
 	}
 
 	getHasEffectsWhenCalledOptions () {
@@ -122,12 +121,12 @@ export default class ExecutionPathOptions {
 	}
 
 	getReplacedVariableInit (variable: ThisVariable | ParameterVariable): ExpressionEntity {
-		return this._optionValues.getIn([OPTION_REPLACED_VARIABLE_INITS, variable]);
+		return this.optionValues.getIn([OptionTypes.REPLACED_VARIABLE_INITS, variable]);
 	}
 
 	hasNodeBeenAccessedAtPath (path: ObjectPath, node: ExpressionEntity): boolean {
-		return this._optionValues.getIn([
-			OPTION_ACCESSED_NODES,
+		return this.optionValues.getIn([
+			OptionTypes.ACCESSED_NODES,
 			node,
 			...path,
 			RESULT_KEY
@@ -135,8 +134,8 @@ export default class ExecutionPathOptions {
 	}
 
 	hasNodeBeenAssignedAtPath (path: ObjectPath, node: WritableEntity): boolean {
-		return this._optionValues.getIn([
-			OPTION_ASSIGNED_NODES,
+		return this.optionValues.getIn([
+			OptionTypes.ASSIGNED_NODES,
 			node,
 			...path,
 			RESULT_KEY
@@ -144,8 +143,8 @@ export default class ExecutionPathOptions {
 	}
 
 	hasNodeBeenCalledAtPathWithOptions (path: ObjectPath, node: ExpressionEntity, callOptions: CallOptions): boolean {
-		const previousCallOptions = this._optionValues.getIn([
-			OPTION_NODES_CALLED_AT_PATH_WITH_OPTIONS,
+		const previousCallOptions = this.optionValues.getIn([
+			OptionTypes.NODES_CALLED_AT_PATH_WITH_OPTIONS,
 			node,
 			...path,
 			RESULT_KEY
@@ -159,8 +158,8 @@ export default class ExecutionPathOptions {
 	}
 
 	hasReturnExpressionBeenAccessedAtPath (path: ObjectPath, callExpression: CallExpression | Property): boolean {
-		return this._optionValues.getIn([
-			OPTION_RETURN_EXPRESSIONS_ACCESSED_AT_PATH,
+		return this.optionValues.getIn([
+			OptionTypes.RETURN_EXPRESSIONS_ACCESSED_AT_PATH,
 			callExpression,
 			...path,
 			RESULT_KEY
@@ -168,8 +167,8 @@ export default class ExecutionPathOptions {
 	}
 
 	hasReturnExpressionBeenAssignedAtPath (path: ObjectPath, callExpression: CallExpression | Property): boolean {
-		return this._optionValues.getIn([
-			OPTION_RETURN_EXPRESSIONS_ASSIGNED_AT_PATH,
+		return this.optionValues.getIn([
+			OptionTypes.RETURN_EXPRESSIONS_ASSIGNED_AT_PATH,
 			callExpression,
 			...path,
 			RESULT_KEY
@@ -177,8 +176,8 @@ export default class ExecutionPathOptions {
 	}
 
 	hasReturnExpressionBeenCalledAtPath (path: ObjectPath, callExpression: CallExpression | Property): boolean {
-		return this._optionValues.getIn([
-			OPTION_RETURN_EXPRESSIONS_CALLED_AT_PATH,
+		return this.optionValues.getIn([
+			OptionTypes.RETURN_EXPRESSIONS_CALLED_AT_PATH,
 			callExpression,
 			...path,
 			RESULT_KEY
@@ -186,38 +185,38 @@ export default class ExecutionPathOptions {
 	}
 
 	ignoreBreakStatements () {
-		return this.get(OPTION_IGNORE_BREAK_STATEMENTS);
+		return this.get(OptionTypes.IGNORE_BREAK_STATEMENTS);
 	}
 
 	ignoreLabel (labelName: string) {
-		return this._optionValues.getIn([OPTION_IGNORED_LABELS, labelName]);
+		return this.optionValues.getIn([OptionTypes.IGNORED_LABELS, labelName]);
 	}
 
 	ignoreReturnAwaitYield () {
-		return this.get(OPTION_IGNORE_RETURN_AWAIT_YIELD);
+		return this.get(OptionTypes.IGNORE_RETURN_AWAIT_YIELD);
 	}
 
 	replaceVariableInit (variable: ThisVariable | ParameterVariable, init: ExpressionEntity) {
-		return this.setIn([OPTION_REPLACED_VARIABLE_INITS, variable], init);
+		return this.setIn([OptionTypes.REPLACED_VARIABLE_INITS, variable], init);
 	}
 
 	setArgumentsVariables (variables: ExpressionEntity[]) {
-		return this.set(OPTION_ARGUMENTS_VARIABLES, variables);
+		return this.set(OptionTypes.ARGUMENTS_VARIABLES, variables);
 	}
 
 	setIgnoreBreakStatements (value = true) {
-		return this.set(OPTION_IGNORE_BREAK_STATEMENTS, value);
+		return this.set(OptionTypes.IGNORE_BREAK_STATEMENTS, value);
 	}
 
 	setIgnoreLabel (labelName: string) {
-		return this.setIn([OPTION_IGNORED_LABELS, labelName], true);
+		return this.setIn([OptionTypes.IGNORED_LABELS, labelName], true);
 	}
 
 	setIgnoreNoLabels () {
-		return this.remove(OPTION_IGNORED_LABELS);
+		return this.remove(OptionTypes.IGNORED_LABELS);
 	}
 
 	setIgnoreReturnAwaitYield (value = true) {
-		return this.set(OPTION_IGNORE_RETURN_AWAIT_YIELD, value);
+		return this.set(OptionTypes.IGNORE_RETURN_AWAIT_YIELD, value);
 	}
 }

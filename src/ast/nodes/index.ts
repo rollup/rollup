@@ -54,7 +54,7 @@ import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
 
 import { NodeBase } from './shared/Node';
-import { GenericStatementNode } from './shared/Statement';
+import { StatementBase } from './shared/Statement';
 
 const nodes: {
 	[name: string]: typeof NodeBase
@@ -107,7 +107,7 @@ const nodes: {
 	TemplateLiteral,
 	ThisExpression,
 	ThrowStatement,
-	TryStatement: GenericStatementNode,
+	TryStatement: StatementBase,
 	UnaryExpression,
 	UpdateExpression,
 	VariableDeclarator,

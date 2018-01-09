@@ -1,9 +1,9 @@
 import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { GenericStatementNode } from './shared/Statement';
+import { StatementBase } from './shared/Statement';
 import { ExpressionNode } from './shared/Expression';
 
-export default class ReturnStatement extends GenericStatementNode {
+export default class ReturnStatement extends StatementBase {
 	type: 'ReturnStatement';
 	argument: ExpressionNode | null;
 
