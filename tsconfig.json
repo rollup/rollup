@@ -15,11 +15,13 @@
         "declaration": true
     },
     "include": [
+        "typings/**/*.d.ts",
         "src",
         "bin",
         "browser"
     ],
     "exclude": [
+        "dist",
         "node_modules"
     ]
 }

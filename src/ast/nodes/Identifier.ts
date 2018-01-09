@@ -1,5 +1,3 @@
-/// <reference path="./Identifier.d.ts" />
-
 import { Node, NodeBase } from './shared/Node';
 import isReference from 'is-reference';
 import { UNKNOWN_EXPRESSION } from '../values';

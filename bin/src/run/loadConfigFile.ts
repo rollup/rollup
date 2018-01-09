@@ -1,4 +1,3 @@
-/// <reference path="./loadConfigFile.d.ts" />
 import buble from 'rollup-plugin-buble';
 import path from 'path';
 import chalk from 'chalk';

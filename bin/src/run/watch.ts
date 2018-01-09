@@ -1,4 +1,3 @@
-/// <reference path="./watch.d.ts" />
 import fs from 'fs';
 import * as rollup from 'rollup';
 import chalk from 'chalk';
