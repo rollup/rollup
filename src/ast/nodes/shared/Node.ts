@@ -1,5 +1,3 @@
-/// <reference path="./Node.d.ts" />
-
 import { locate } from 'locate-character';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import Scope from '../../scopes/Scope';

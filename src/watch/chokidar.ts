@@ -1,5 +1,3 @@
-/// <reference path="./chokidar.d.ts" />
-
 import relative from 'require-relative';
 import * as chokidarType from 'chokidar';
 
