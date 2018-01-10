@@ -5,6 +5,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
 };
 
+var _sPO = Object.setPrototypeOf || function _sPO(o, p) {
+	o.__proto__ = p;
+	return o;
+};
+
+var _construct = typeof Reflect === "object" && Reflect.construct || function _construct(Parent, args, Class) {
+	var Constructor,
+		a = [null];
+	a.push.apply(a, args);
+	Constructor = Parent.bind.apply(Parent, a);
+	return _sPO(new Constructor(), Class.prototype);
+};
+
 var jsx = function () {
 	var REACT_ELEMENT_TYPE = typeof Symbol === "function" && Symbol.for && Symbol.for("react.element") || 0xeac7;
 	return function createRawReactElement(type, props, key, children) {
