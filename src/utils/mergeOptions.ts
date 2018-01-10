@@ -65,6 +65,7 @@ export default function mergeOptions ({
 		legacy: getInputOption('legacy'),
 		treeshake: getObjectOption('treeshake'),
 		acorn: config.acorn,
+		acornInjectPlugins: config.acornInjectPlugins,
 		context: config.context,
 		moduleContext: config.moduleContext,
 		plugins: config.plugins,

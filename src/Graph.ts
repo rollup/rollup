@@ -1,3 +1,5 @@
+import * as acorn from 'acorn';
+import wrapDynamicImportPlugin from './utils/dynamic-import-plugin';
 import { timeEnd, timeStart } from './utils/flushTime';
 import first from './utils/first';
 import { blank, keys } from './utils/object';
@@ -26,10 +28,13 @@ import Program from './ast/nodes/Program';
 import { Node } from './ast/nodes/shared/Node';
 import Bundle from './Bundle';
 
+wrapDynamicImportPlugin(acorn);
+
 export type ResolveDynamicImportHandler = (specifier: string | Node, parentId: string) => Promise<string | void>;
 
 export default class Graph {
 	acornOptions: any;
+	acornParse: acorn.IParse;
 	cachedModules: Map<string, ModuleJSON>;
 	context: string;
 	dynamicImport: boolean;
@@ -149,7 +154,13 @@ export default class Graph {
 
 		this.varOrConst = options.preferConst ? 'const' : 'var';
 		this.legacy = options.legacy;
+
 		this.acornOptions = options.acorn || {};
+		this.acornParse = ensureArray(options.acornInjectPlugins).reduce(
+			(acc, plugin) => plugin(acc),
+			acorn
+		).parse;
+
 		this.dynamicImport = typeof options.experimentalDynamicImport === 'boolean' ? options.experimentalDynamicImport : false;
 
 		if (this.dynamicImport) {

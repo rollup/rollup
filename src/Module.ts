@@ -1,5 +1,4 @@
-import * as acorn from 'acorn';
-import wrapDynamicImportPlugin from './utils/dynamic-import-plugin';
+import { IParse } from 'acorn';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
 import { timeStart, timeEnd } from './utils/flushTime';
@@ -39,8 +38,6 @@ import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
 import { missingExport } from './utils/defaults';
 
-wrapDynamicImportPlugin(acorn);
-
 export interface IdMap {[key: string]: string;}
 
 export interface CommentDescription {
@@ -62,9 +59,9 @@ export interface ReexportDescription {
 	module: Module;
 }
 
-function tryParse (module: Module, acornOptions: Object) {
+function tryParse (module: Module, parse: IParse, acornOptions: Object) {
 	try {
-		return acorn.parse(module.code, assign({
+		return parse(module.code, assign({
 			ecmaVersion: 8,
 			sourceType: 'module',
 			onComment: (block: boolean, text: string, start: number, end: number) =>
@@ -184,7 +181,8 @@ export default class Module {
 			this.ast = clone(ast);
 			this.astClone = ast;
 		} else {
-			this.ast = <any>tryParse(this, graph.acornOptions); // TODO what happens to comments if AST is provided?
+			// TODO what happens to comments if AST is provided?
+			this.ast = <any>tryParse(this, graph.acornParse, graph.acornOptions);
 			this.astClone = clone(this.ast);
 		}
 

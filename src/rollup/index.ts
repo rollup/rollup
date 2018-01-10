@@ -61,6 +61,7 @@ export interface InputOptions {
 	};
 
 	acorn?: {};
+	acornInjectPlugins?: Function[];
 	treeshake?: boolean | TreeshakingOptions;
 	context?: string;
 	moduleContext?: string | ((id: string) => string) | { [id: string]: string };
