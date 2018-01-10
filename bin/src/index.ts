@@ -1,5 +1,3 @@
-/// <reference path="./index.d.ts" />
-
 import minimist from 'minimist';
 import help from 'help.md';
 import { version } from 'package.json';

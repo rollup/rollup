@@ -1,5 +1,3 @@
-/// <reference path="./build.d.ts" />
-
 import * as rollup from 'rollup';
 import chalk from 'chalk';
 import ms from 'pretty-ms';

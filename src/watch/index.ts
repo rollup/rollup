@@ -1,5 +1,3 @@
-/// <reference path="./index.d.ts" />
-
 import path from 'path';
 import EventEmitter from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';

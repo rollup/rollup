@@ -576,9 +576,9 @@ export default class Graph {
 					? Promise.resolve(resolvedId)
 					: this.resolveId(source, module.id)
 			).then(resolvedId => {
-				const externalId =
-					resolvedId ||
-					(isRelative(source) ? resolve(module.id, '..', source) : source);
+				// TODO types of `resolvedId` are not compatable with 'externalId'.
+				// `this.resolveId` returns `string`, `void`, and `boolean`
+				const externalId = <string>resolvedId || (isRelative(source) ? resolve(module.id, '..', source) : source);
 				let isExternal = this.isExternal(externalId, module.id, true);
 
 				if (!resolvedId && !isExternal) {
