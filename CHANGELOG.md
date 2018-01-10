@@ -1,6 +1,7 @@
 # rollup changelog
 
-## (Upcoming) 0.53.4
+## 0.53.4
+* More type cleanup ([#1858](https://github.com/rollup/rollup/pull/1858))
 * Use chalks internal helper to detect if colors should be used ([#1853](https://github.com/rollup/rollup/pull/1853))
 * Refactor entity handling to use interfaces ([#1840](https://github.com/rollup/rollup/pull/1840))
 * Use immutable.js internal types ([#1844](https://github.com/rollup/rollup/pull/1844))
