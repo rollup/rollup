@@ -19,20 +19,18 @@ export interface WatcherOptions {
 	clearScreen?: boolean;
 }
 
-export type InputAndOutputOptions = InputOptions & OutputOptions;
-
-export interface RollupWatchOptions extends InputAndOutputOptions {
+export interface RollupWatchOptions extends InputOptions {
 	output?: OutputOptions;
 	watch?: WatcherOptions;
 }
 
-export class Watcher extends (<{ new(): any }>EventEmitter) {
+export class Watcher extends EventEmitter {
 	dirty: boolean;
 	running: boolean;
 	tasks: Task[];
 	succeeded: boolean;
 
-	constructor (configs: (RollupWatchOptions)[]) {
+	constructor (configs: RollupWatchOptions[]) {
 		super();
 
 		this.dirty = true;
