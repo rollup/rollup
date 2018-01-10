@@ -2,7 +2,7 @@ var assert = require( 'assert' );
 var path = require( 'path' );
 
 module.exports = {
-	description: 'module level directives should not be included',
+	description: 'module level directives should produce warnings',
 	warnings: [
 		{
 			code: 'MODULE_LEVEL_DIRECTIVE',
