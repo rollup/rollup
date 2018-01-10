@@ -1,12 +1,13 @@
-import Node from '../Node';
+import { NodeBase } from './shared/Node';
 import Literal from './Literal';
 import ImportSpecifier from './ImportSpecifier';
 import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import MagicString from 'magic-string';
+import { NodeType } from './index';
 
-export default class ImportDeclaration extends Node {
-	type: 'ImportDeclaration';
+export default class ImportDeclaration extends NodeBase {
+	type: NodeType.ImportDeclaration;
 	isImportDeclaration: true;
 	specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
 	source: Literal<string>;

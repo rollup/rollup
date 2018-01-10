@@ -1,8 +1,8 @@
-import Statement from './shared/Statement';
-import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
+import { StatementBase } from './shared/Statement';
+import Scope from '../scopes/Scope';
 
-export default class ExpressionStatement extends Statement {
+export default class ExpressionStatement extends StatementBase {
 	directive?: string;
 	
 	initialiseNode(_parentScope: Scope){
@@ -25,7 +25,7 @@ export default class ExpressionStatement extends Statement {
 		
 		return super.shouldBeIncluded();
 	}
-
+  
 	render (code: MagicString, es: boolean) {
 		super.render(code, es);
 		if (this.included) this.insertSemicolon(code);

@@ -1,17 +1,18 @@
-import Statement from './shared/Statement';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Expression from './Expression';
+import { StatementBase } from './shared/Statement';
+import { NodeType } from './index';
+import { ExpressionNode } from './shared/Node';
 
-export default class ReturnStatement extends Statement {
-	type: 'ReturnStatement';
-	argument: Expression | null;
+export default class ReturnStatement extends StatementBase {
+	type: NodeType.ReturnStatement;
+	argument: ExpressionNode | null;
 
 	hasEffects (options: ExecutionPathOptions) {
 		return super.hasEffects(options) || !options.ignoreReturnAwaitYield();
 	}
 
 	initialiseNode () {
-		this.scope.addReturnExpression(this.argument || UNKNOWN_ASSIGNMENT);
+		this.scope.addReturnExpression(this.argument || UNKNOWN_EXPRESSION);
 	}
 }

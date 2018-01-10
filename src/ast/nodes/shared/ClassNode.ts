@@ -1,14 +1,15 @@
-import Node from '../../Node';
 import Scope from '../../scopes/Scope';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import Identifier from '../Identifier';
 import { ObjectPath } from '../../variables/VariableReassignmentTracker';
+import ClassBody from '../ClassBody';
+import { ExpressionNode, NodeBase } from './Node';
 
-export default class ClassNode extends Node {
-	body: Node;
-	superClass: Node;
-	id: Identifier;
+export default class ClassNode extends NodeBase {
+	body: ClassBody;
+	superClass: ExpressionNode | null;
+	id: Identifier | null;
 
 	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;

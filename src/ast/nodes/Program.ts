@@ -1,7 +1,8 @@
-import Node from '../Node';
-import Statement from './shared/Statement';
+import { Node } from './shared/Node';
+import { StatementNode } from './shared/Statement';
+import { NodeType } from './index';
 
 export default interface Program extends Node {
-  type: 'Program';
-  body: Statement[];
+  type: NodeType.Program;
+  body: StatementNode[];
 }

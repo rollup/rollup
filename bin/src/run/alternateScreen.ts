@@ -1,5 +1,3 @@
-/// <reference path="./alternateScreen.d.ts" />
-
 import ansiEscape from 'ansi-escapes';
 import { stderr } from '../logging.js';
 

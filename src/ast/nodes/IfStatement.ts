@@ -1,12 +1,11 @@
-import Statement from './shared/Statement';
-import StatementType from './Statement';
 import extractNames from '../utils/extractNames';
 import { UNKNOWN_VALUE } from '../values';
-import Expression from './Expression';
 import Scope from '../scopes/Scope';
-import Node from '../Node';
-import VariableDeclaration from './VariableDeclaration';
+import { ExpressionNode, Node } from './shared/Node';
+import { isVariableDeclaration } from './VariableDeclaration';
 import MagicString from 'magic-string';
+import { StatementBase, StatementNode } from './shared/Statement';
+import { NodeType } from './index';
 
 // Statement types which may contain if-statements as direct children.
 const statementsWithIfStatements = new Set([
@@ -18,12 +17,12 @@ const statementsWithIfStatements = new Set([
 	'WhileStatement'
 ]);
 
-function getHoistedVars (node: StatementType, scope: Scope) {
+function getHoistedVars (node: StatementNode, scope: Scope) {
 	const hoistedVars: string[] = [];
 
 	function visit (node: Node) {
-		if (node.type === 'VariableDeclaration' && (<VariableDeclaration>node).kind === 'var') {
-			(<VariableDeclaration>node).declarations.forEach(declarator => {
+		if (isVariableDeclaration(node) && node.kind === 'var') {
+			node.declarations.forEach(declarator => {
 				declarator.init = null;
 				declarator.initialise(scope);
 
@@ -41,11 +40,11 @@ function getHoistedVars (node: StatementType, scope: Scope) {
 	return hoistedVars;
 }
 
-export default class IfStatement extends Statement {
-	type: 'IfStatement';
-	test: Expression;
-	consequent: StatementType;
-	alternate: StatementType | null;
+export default class IfStatement extends StatementBase {
+	type: NodeType.IfStatement;
+	test: ExpressionNode;
+	consequent: StatementNode;
+	alternate: StatementNode | null;
 
 	testValue: any;
 	hoistedVars: string[];

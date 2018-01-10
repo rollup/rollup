@@ -1,10 +1,15 @@
-import Node from '../Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { Node, NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
-export default class Literal<T = string | boolean | null | number | RegExp> extends Node {
-	type: 'Literal';
+export function isLiteral (node: Node): node is Literal {
+	return node.type === NodeType.Literal;
+}
+
+export default class Literal<T = string | boolean | null | number | RegExp> extends NodeBase {
+	type: NodeType.Literal;
 	value: T;
 
 	getValue () {

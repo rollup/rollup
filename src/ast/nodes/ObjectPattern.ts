@@ -1,14 +1,14 @@
-import Node from '../Node';
 import AssignmentProperty from './AssignmentProperty';
 import Scope from '../scopes/Scope';
-import Expression from './Expression';
-import { UnknownAssignment } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Declaration from './Declaration';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { ExpressionEntity } from './shared/Expression';
+import { PatternNode } from './shared/Pattern';
+import { NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
-export default class ObjectPattern extends Node {
-	type: 'ObjectPattern';
+export default class ObjectPattern extends NodeBase implements PatternNode {
+	type: NodeType.ObjectPattern;
 	properties: AssignmentProperty[];
 
 	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
@@ -19,11 +19,11 @@ export default class ObjectPattern extends Node {
 	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			path.length > 0 ||
-			this.someChild(child => child.hasEffectsWhenAssignedAtPath([], options))
+			this.properties.some(child => child.hasEffectsWhenAssignedAtPath([], options))
 		);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: ExpressionEntity | null) {
 		this.initialiseScope(parentScope);
 		this.properties.forEach(child =>
 			child.initialiseAndDeclare(parentScope, kind, init)

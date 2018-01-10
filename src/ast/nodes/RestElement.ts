@@ -1,15 +1,15 @@
-import Node from '../Node';
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment } from '../values';
-import Pattern from './Pattern';
+import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Expression from './Expression';
 import Scope from '../scopes/Scope';
-import Declaration from './Declaration';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { PatternNode } from './shared/Pattern';
+import { ExpressionEntity } from './shared/Expression';
+import { NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
-export default class RestElement extends Node {
-	type: 'RestElement';
-	argument: Pattern;
+export default class RestElement extends NodeBase implements PatternNode {
+	type: NodeType.RestElement;
+	argument: PatternNode;
 
 	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		path.length === 0 && this.argument.reassignPath([], options);
@@ -22,8 +22,8 @@ export default class RestElement extends Node {
 	}
 
 	initialiseAndDeclare (
-		parentScope: Scope, kind: string, _init: Declaration | Expression | UnknownAssignment | null) {
+		parentScope: Scope, kind: string, _init: ExpressionEntity | null) {
 		this.initialiseScope(parentScope);
-		this.argument.initialiseAndDeclare(parentScope, kind, UNKNOWN_ASSIGNMENT);
+		this.argument.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION);
 	}
 }

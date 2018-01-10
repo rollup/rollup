@@ -1,8 +1,8 @@
-import Node from '../Node';
 import { UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Expression from './Expression';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { NodeType } from './index';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
 const operators: {
 	[operator: string]: (value: any) => any;
@@ -16,11 +16,11 @@ const operators: {
 	delete: () => UNKNOWN_VALUE
 };
 
-export default class UnaryExpression extends Node {
-	type: 'UnaryExpression';
+export default class UnaryExpression extends NodeBase {
+	type: NodeType.UnaryExpression;
 	operator: '-' | '+' | '!' | '~' | 'typeof' | 'void' | 'delete';
 	prefix: boolean;
-	argument: Expression;
+	argument: ExpressionNode;
 
 	value: any;
 
@@ -41,7 +41,7 @@ export default class UnaryExpression extends Node {
 		return (
 			this.argument.hasEffects(options) ||
 			(this.operator === 'delete' &&
-				this.argument.hasEffectsWhenAssignedAtPath([], options))
+			 this.argument.hasEffectsWhenAssignedAtPath([], options))
 		);
 	}
 

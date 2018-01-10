@@ -1,10 +1,10 @@
-import Node from '../Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Expression from './Expression';
+import { NodeType } from './index';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
-export default class YieldExpression extends Node {
-	type: 'YieldExpression';
-	argument: Expression | null;
+export default class YieldExpression extends NodeBase {
+	type: NodeType.YieldExpression;
+	argument: ExpressionNode | null;
 	delegate: boolean;
 
 	hasEffects (options: ExecutionPathOptions) {

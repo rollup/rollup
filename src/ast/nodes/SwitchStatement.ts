@@ -1,13 +1,14 @@
 import BlockScope from '../scopes/BlockScope';
-import Statement from './shared/Statement';
 import SwitchCase from './SwitchCase';
-import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
+import { StatementBase } from './shared/Statement';
+import { NodeType } from './index';
+import { ExpressionNode } from './shared/Node';
 
-export default class SwitchStatement extends Statement {
-	type: 'SwitchStatement';
-	discriminant: Expression;
+export default class SwitchStatement extends StatementBase {
+	type: NodeType.SwitchStatement;
+	discriminant: ExpressionNode;
 	cases: SwitchCase[];
 
 	hasEffects (options: ExecutionPathOptions) {

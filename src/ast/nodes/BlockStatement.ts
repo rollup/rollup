@@ -1,20 +1,25 @@
-import Statement from './shared/Statement';
-import StatementType from './Statement';
 import BlockScope from '../scopes/BlockScope';
-import { UNKNOWN_ASSIGNMENT } from '../values';
+import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
+import { Node } from './shared/Node';
+import { StatementBase, StatementNode } from './shared/Statement';
+import { NodeType } from './index';
 
-export default class BlockStatement extends Statement {
-	type: 'BlockStatement';
+export function isBlockStatement (node: Node): node is BlockStatement {
+	return node.type === NodeType.BlockStatement;
+}
+
+export default class BlockStatement extends StatementBase {
+	type: NodeType.BlockStatement;
 	scope: Scope;
-	body: StatementType[];
+	body: StatementNode[];
 
 	bindImplicitReturnExpressionToScope () {
 		const lastStatement = this.body[this.body.length - 1];
-		if (!lastStatement || lastStatement.type !== 'ReturnStatement') {
-			this.scope.addReturnExpression(UNKNOWN_ASSIGNMENT);
+		if (!lastStatement || lastStatement.type !== NodeType.ReturnStatement) {
+			this.scope.addReturnExpression(UNKNOWN_EXPRESSION);
 		}
 	}
 
@@ -61,7 +66,7 @@ export default class BlockStatement extends Statement {
 				node.render(code, es);
 			}
 		} else {
-			Statement.prototype.render.call(this, code, es);
+			super.render(code, es);
 		}
 	}
 }

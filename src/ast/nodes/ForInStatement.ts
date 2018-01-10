@@ -1,18 +1,18 @@
-import Statement from './shared/Statement';
-import StatementType from './Statement';
 import BlockScope from '../scopes/BlockScope';
 import VariableDeclaration from './VariableDeclaration';
-import Pattern from './Pattern';
-import Expression from './Expression';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import BlockStatement from './BlockStatement';
+import { StatementBase, StatementNode } from './shared/Statement';
+import { PatternNode } from './shared/Pattern';
+import { NodeType } from './index';
+import { ExpressionNode } from './shared/Node';
 
-export default class ForInStatement extends Statement {
-	type: 'ForInStatement';
-	left: VariableDeclaration | Pattern;
-	right: Expression;
-	body: StatementType;
+export default class ForInStatement extends StatementBase {
+	type: NodeType.ForInStatement;
+	left: VariableDeclaration | PatternNode;
+	right: ExpressionNode;
+	body: StatementNode;
 
 	hasEffects (options: ExecutionPathOptions): boolean {
 		return (

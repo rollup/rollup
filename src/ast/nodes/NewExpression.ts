@@ -1,13 +1,13 @@
-import Node from '../Node';
 import CallOptions from '../CallOptions';
-import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { ExpressionNode, NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
-export default class NewExpression extends Node {
-	type: 'NewExpression';
-	callee: Expression;
-	arguments: Expression[];
+export default class NewExpression extends NodeBase {
+	type: NodeType.NewExpression;
+	callee: ExpressionNode;
+	arguments: ExpressionNode[];
 
 	_callOptions: CallOptions;
 

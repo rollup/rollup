@@ -1,8 +1,8 @@
-import Node from '../Node';
 import { UNKNOWN_VALUE } from '../values';
-import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { NodeType } from './index';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
 export type BinaryOperator =
 	'=='
@@ -55,10 +55,10 @@ const operators: {
 	instanceof: (left: any, right: any) => left instanceof right
 };
 
-export default class BinaryExpression extends Node {
-	type: 'BinaryExpression';
-	left: Expression;
-	right: Expression;
+export default class BinaryExpression extends NodeBase {
+	type: NodeType.BinaryExpression;
+	left: ExpressionNode;
+	right: ExpressionNode;
 	operator: BinaryOperator;
 
 	getValue (): any {

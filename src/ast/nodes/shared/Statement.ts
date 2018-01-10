@@ -1,7 +1,9 @@
-import Node from '../../Node';
+import { NodeBase, Node } from './Node';
 import MagicString from 'magic-string';
 
-export default class Statement extends Node {
+export interface StatementNode extends Node {}
+
+export class StatementBase extends NodeBase implements StatementNode {
 	render (code: MagicString, es: boolean) {
 		if (!this.module.graph.treeshake || this.included) {
 			super.render(code, es);

@@ -1,36 +1,30 @@
-/// <reference path="./Identifier.d.ts" />
-
-import Node, { ForEachReturnExpressionCallback } from '../Node';
+import { Node, NodeBase } from './shared/Node';
 import isReference from 'is-reference';
-import { UNKNOWN_ASSIGNMENT, UnknownAssignment, PredicateFunction } from '../values';
+import { UNKNOWN_EXPRESSION } from '../values';
 import Scope from '../scopes/Scope';
-import Expression from './Expression';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Declaration from './Declaration';
 import Variable from '../variables/Variable';
 import CallOptions from '../CallOptions';
 import FunctionScope from '../scopes/FunctionScope';
 import MagicString from 'magic-string';
 import Property from './Property';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { NodeType } from './index';
 
-export default class Identifier extends Node {
-	type: 'Identifier';
+export function isIdentifier (node: Node): node is Identifier {
+	return node.type === NodeType.Identifier;
+}
+
+export default class Identifier extends NodeBase {
+	type: NodeType.Identifier;
 	name: string;
 
 	variable: Variable;
-
-	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
-		this._bindVariableIfMissing();
-		this.variable && this.variable.reassignPath(path, options);
-	}
+	private isBound: boolean;
 
 	bindNode () {
-		this._bindVariableIfMissing();
-	}
-
-	_bindVariableIfMissing () {
-		if (!this.variable && isReference(this, this.parent)) {
+		if (isReference(this, this.parent)) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 		}
@@ -42,7 +36,7 @@ export default class Identifier extends Node {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		this._bindVariableIfMissing();
+		if (!this.isBound) this.bind();
 		this.variable &&
 		this.variable.forEachReturnExpressionWhenCalledAtPath(
 			path,
@@ -79,7 +73,7 @@ export default class Identifier extends Node {
 		return true;
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: ExpressionEntity | null) {
 		this.initialiseScope(parentScope);
 		switch (kind) {
 			case 'var':
@@ -102,6 +96,26 @@ export default class Identifier extends Node {
 		}
 	}
 
+	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
+		if (!this.isBound) this.bind();
+		if (this.variable) {
+			if (path.length === 0) this.disallowImportReassignment();
+			this.variable.reassignPath(path, options);
+		}
+	}
+
+	private disallowImportReassignment () {
+		if (this.module.imports[this.name] && !this.scope.contains(this.name)) {
+			this.module.error(
+				{
+					code: 'ILLEGAL_REASSIGNMENT',
+					message: `Illegal reassignment to import '${this.name}'`
+				},
+				this.start
+			);
+		}
+	}
+
 	render (code: MagicString, es: boolean) {
 		if (this.variable) {
 			const name = this.variable.getName(es);
@@ -112,7 +126,7 @@ export default class Identifier extends Node {
 				});
 
 				// special case
-				if (this.parent.type === 'Property' && (<Property>this.parent).shorthand) {
+				if (this.parent.type === NodeType.Property && (<Property>this.parent).shorthand) {
 					code.appendLeft(this.start, `${this.name}: `);
 				}
 			}
@@ -122,7 +136,7 @@ export default class Identifier extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
 		callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		if (this.variable) {
@@ -133,6 +147,6 @@ export default class Identifier extends Node {
 				options
 			);
 		}
-		return predicateFunction(options)(UNKNOWN_ASSIGNMENT);
+		return predicateFunction(options)(UNKNOWN_EXPRESSION);
 	}
 }

@@ -1,17 +1,18 @@
-import Statement from './shared/Statement';
 import BlockScope from '../scopes/BlockScope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import VariableDeclaration from './VariableDeclaration';
-import Pattern from './Pattern';
-import Expression from './Expression';
 import Scope from '../scopes/Scope';
 import BlockStatement from './BlockStatement';
+import { StatementBase, StatementNode } from './shared/Statement';
+import { PatternNode } from './shared/Pattern';
+import { NodeType } from './index';
+import { ExpressionNode } from './shared/Node';
 
-export default class ForOfStatement extends Statement {
-	type: 'ForOfStatement';
-	left: VariableDeclaration | Pattern;
-	right: Expression;
-	body: Statement;
+export default class ForOfStatement extends StatementBase {
+	type: NodeType.ForOfStatement;
+	left: VariableDeclaration | PatternNode;
+	right: ExpressionNode;
+	body: StatementNode;
 
 	bindNode () {
 		this.left.reassignPath([], ExecutionPathOptions.create());

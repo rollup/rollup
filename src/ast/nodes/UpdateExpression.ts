@@ -1,19 +1,18 @@
-import Node from '../Node';
-import disallowIllegalReassignment from './shared/disallowIllegalReassignment';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Expression from './Expression';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { isIdentifier } from './Identifier';
+import { NodeType } from './index';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
-export default class UpdateExpression extends Node {
-	type: 'UpdateExpression';
+export default class UpdateExpression extends NodeBase {
+	type: NodeType.UpdateExpression;
 	operator: '++' | '--' | '**';
-	argument: Expression;
+	argument: ExpressionNode;
 	prefix: boolean;
 
 	bindNode () {
-		disallowIllegalReassignment(this.scope, this.argument);
 		this.argument.reassignPath([], ExecutionPathOptions.create());
-		if (this.argument.type === 'Identifier') {
+		if (isIdentifier(this.argument)) {
 			const variable = this.scope.findVariable(this.argument.name);
 			variable.isReassigned = true;
 		}

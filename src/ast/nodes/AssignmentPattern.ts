@@ -1,16 +1,15 @@
-import Node from '../Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Pattern from './Pattern';
-import Expression from './Expression';
 import Scope from '../scopes/Scope';
-import { UnknownAssignment } from '../values';
-import Declaration from './Declaration';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { PatternNode } from './shared/Pattern';
+import { ExpressionEntity } from './shared/Expression';
+import { ExpressionNode, NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
-export default class AssignmentPattern extends Node {
-	type: 'AssignmentPattern';
-	left: Pattern;
-	right: Expression;
+export default class AssignmentPattern extends NodeBase implements PatternNode {
+	type: NodeType.AssignmentPattern;
+	left: PatternNode;
+	right: ExpressionNode;
 
 	bindNode () {
 		this.left.reassignPath([], ExecutionPathOptions.create());
@@ -26,7 +25,7 @@ export default class AssignmentPattern extends Node {
 		);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: Declaration | Expression | UnknownAssignment | null) {
+	initialiseAndDeclare (parentScope: Scope, kind: string, init: ExpressionEntity | null) {
 		this.initialiseScope(parentScope);
 		this.right.initialise(parentScope);
 		this.left.initialiseAndDeclare(parentScope, kind, init);

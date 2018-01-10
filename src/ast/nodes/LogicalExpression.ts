@@ -1,17 +1,18 @@
-import Node, { ForEachReturnExpressionCallback } from '../Node';
-import { UNKNOWN_VALUE, PredicateFunction } from '../values';
-import Expression from './Expression';
+import { UNKNOWN_VALUE } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { ForEachReturnExpressionCallback, PredicateFunction, SomeReturnExpressionCallback } from './shared/Expression';
+import { NodeType } from './index';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
 export type LogicalOperator = '||' | '&&';
 
-export default class LogicalExpression extends Node {
-	type: 'LogicalExpression';
+export default class LogicalExpression extends NodeBase {
+	type: NodeType.LogicalExpression;
 	operator: LogicalOperator;
-	left: Expression;
-	right: Expression;
+	left: ExpressionNode;
+	right: ExpressionNode;
 
 	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
 		path.length > 0 &&
@@ -24,9 +25,7 @@ export default class LogicalExpression extends Node {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		// typing error resolved by ensuring forEachReturnExpressionWhenCalledAtPath
-		// is on FunctionExpression, ArrowFunctionExpression
-		this._forEachRelevantBranch((node: Expression) =>
+		this._forEachRelevantBranch(node =>
 			node.forEachReturnExpressionWhenCalledAtPath(
 				path,
 				callOptions,
@@ -86,7 +85,7 @@ export default class LogicalExpression extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
 		callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => PredicateFunction,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		return this._someRelevantBranch(node =>
@@ -99,7 +98,7 @@ export default class LogicalExpression extends Node {
 		);
 	}
 
-	_forEachRelevantBranch (callback: (node: Expression) => void) {
+	_forEachRelevantBranch (callback: (node: ExpressionNode) => void) {
 		const leftValue = this.left.getValue();
 		if (leftValue === UNKNOWN_VALUE) {
 			callback(this.left);
@@ -114,7 +113,7 @@ export default class LogicalExpression extends Node {
 		}
 	}
 
-	_someRelevantBranch (predicateFunction: (node: Expression) => boolean) {
+	_someRelevantBranch (predicateFunction: PredicateFunction) {
 		const leftValue = this.left.getValue();
 		if (leftValue === UNKNOWN_VALUE) {
 			return predicateFunction(this.left) || predicateFunction(this.right);

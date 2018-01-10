@@ -1,23 +1,24 @@
-import Node from '../Node';
 import CallOptions from '../CallOptions';
-import Expression from './Expression';
 import TemplateLiteral from './TemplateLiteral';
 import Identifier from './Identifier';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import GlobalVariable from '../variables/GlobalVariable';
+import { isGlobalVariable } from '../variables/GlobalVariable';
+import { isNamespaceVariable } from '../variables/NamespaceVariable';
+import { NodeType } from './index';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
-export default class TaggedTemplateExpression extends Node {
-	type: 'TaggedTemplateExpression';
-	tag: Expression;
+export default class TaggedTemplateExpression extends NodeBase {
+	type: NodeType.TaggedTemplateExpression;
+	tag: ExpressionNode;
 	quasi: TemplateLiteral;
 
 	private _callOptions: CallOptions;
 
 	bindNode () {
-		if (this.tag.type === 'Identifier') {
+		if (this.tag.type === NodeType.Identifier) {
 			const variable = this.scope.findVariable((<Identifier>this.tag).name);
 
-			if (variable.isNamespace) {
+			if (isNamespaceVariable(variable)) {
 				this.module.error(
 					{
 						code: 'CANNOT_CALL_NAMESPACE',
@@ -27,7 +28,7 @@ export default class TaggedTemplateExpression extends Node {
 				);
 			}
 
-			if ((<Identifier>this.tag).name === 'eval' && (<GlobalVariable>variable).isGlobal) {
+			if ((<Identifier>this.tag).name === 'eval' && isGlobalVariable(variable)) {
 				this.module.warn(
 					{
 						code: 'EVAL',

@@ -1,13 +1,16 @@
-import Node from '../Node';
+import { NodeBase } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Declaration from './Declaration';
 import Literal from './Literal';
 import MagicString from 'magic-string';
 import ExportSpecifier from './ExportSpecifier';
+import FunctionDeclaration from './FunctionDeclaration';
+import ClassDeclaration from './ClassDeclaration';
+import VariableDeclaration from './VariableDeclaration';
+import { NodeType } from './index';
 
-export default class ExportNamedDeclaration extends Node {
-	type: 'ExportNamedDeclaration';
-	declaration: Declaration | null;
+export default class ExportNamedDeclaration extends NodeBase {
+	type: NodeType.ExportNamedDeclaration;
+	declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
 	specifiers: ExportSpecifier[];
 	source: Literal<string> | null;
 

@@ -1,16 +1,29 @@
-import Node, { ForEachReturnExpressionCallback } from '../Node';
-import { UNKNOWN_KEY, UnknownKey, ObjectPath } from '../variables/VariableReassignmentTracker';
+import { ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
 import Property from './Property';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { PredicateFunction } from '../values';
 import Identifier from './Identifier';
+import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { UNKNOWN_VALUE } from '../values';
+import { NodeBase } from './shared/Node';
+import { NodeType } from './index';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
 const PROPERTY_KINDS_WRITE = ['init', 'set'];
 
-export default class ObjectExpression extends Node {
-	type: 'ObjectExpression';
+export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
+	reassignPath: () => {},
+	forEachReturnExpressionWhenCalledAtPath: () => {},
+	getValue: () => UNKNOWN_VALUE,
+	hasEffectsWhenAccessedAtPath: path => path.length > 1,
+	hasEffectsWhenAssignedAtPath: path => path.length > 1,
+	hasEffectsWhenCalledAtPath: () => true,
+	someReturnExpressionWhenCalledAtPath: () => true,
+	toString: () => '[[UNKNOWN OBJECT]]'
+};
+
+export default class ObjectExpression extends NodeBase {
+	type: NodeType.ObjectExpression;
 	properties: Property[];
 
 	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
@@ -51,7 +64,7 @@ export default class ObjectExpression extends Node {
 		);
 	}
 
-	_getPossiblePropertiesWithName (name: string | UnknownKey, kinds: ObjectPath) {
+	_getPossiblePropertiesWithName (name: ObjectPathKey, kinds: ObjectPath) {
 		if (name === UNKNOWN_KEY) {
 			return { properties: this.properties, hasCertainHit: false };
 		}
@@ -122,7 +135,7 @@ export default class ObjectExpression extends Node {
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
 		callOptions: CallOptions,
-		predicateFunction: (optioons: ExecutionPathOptions) => PredicateFunction,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		if (path.length === 0) return true;

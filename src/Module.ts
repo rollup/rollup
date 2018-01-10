@@ -22,7 +22,7 @@ import Graph, { ResolveDynamicImportHandler } from './Graph';
 import Variable from './ast/variables/Variable';
 import Program from './ast/nodes/Program';
 import VariableDeclarator from './ast/nodes/VariableDeclarator';
-import Node from './ast/Node';
+import { Node } from './ast/nodes/shared/Node';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import Identifier from './ast/nodes/Identifier';
@@ -36,14 +36,30 @@ import ExternalModule from './ExternalModule';
 import Import from './ast/nodes/Import';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import Literal from './ast/nodes/Literal';
+import { NodeType } from './ast/nodes/index';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
-export interface IdMap { [key: string]: string; }
+export interface IdMap {[key: string]: string;}
 
-export interface CommentDescription { block: boolean, text: string, start: number, end: number }
-export interface ExportDescription { localName: string, identifier?: string }
-export interface ReexportDescription { localName: string, start: number, source: string, module: Module }
+export interface CommentDescription {
+	block: boolean;
+	text: string;
+	start: number;
+	end: number;
+}
+
+export interface ExportDescription {
+	localName: string;
+	identifier?: string;
+}
+
+export interface ReexportDescription {
+	localName: string;
+	start: number;
+	source: string;
+	module: Module;
+}
 
 function tryParse (module: Module, acornOptions: Object) {
 	try {
@@ -64,8 +80,8 @@ function tryParse (module: Module, acornOptions: Object) {
 
 function includeFully (node: Node) {
 	node.included = true;
-	if ((<Identifier>node).variable && !(<Identifier>node).variable.included) {
-		(<Identifier>node).variable.includeVariable();
+	if (node.variable && !node.variable.included) {
+		node.variable.includeVariable();
 	}
 	node.eachChild(includeFully);
 }
@@ -135,16 +151,16 @@ export default class Module {
 		resolvedExternalIds,
 		graph
 	}: {
-			id: string,
-			code: string,
-			originalCode: string,
-			originalSourcemap: RawSourceMap,
-			ast: Program,
-			sourcemapChain: RawSourceMap[],
-			resolvedIds: IdMap,
-			resolvedExternalIds?: IdMap,
-			graph: Graph
-		}) {
+		id: string,
+		code: string,
+		originalCode: string,
+		originalSourcemap: RawSourceMap,
+		ast: Program,
+		sourcemapChain: RawSourceMap[],
+		resolvedIds: IdMap,
+		resolvedExternalIds?: IdMap,
+		graph: Graph
+	}) {
 		this.code = code;
 		this.id = id;
 		this.graph = graph;
@@ -229,7 +245,7 @@ export default class Module {
 		if (source) {
 			if (!~this.sources.indexOf(source)) this.sources.push(source);
 
-			if (node.type === 'ExportAllDeclaration') {
+			if (node.type === NodeType.ExportAllDeclaration) {
 				// Store `export * from '...'` statements in an array of delegates.
 				// When an unknown import is encountered, we see if one of them can satisfy it.
 				this.exportAllSources.push(source);
@@ -255,7 +271,7 @@ export default class Module {
 					};
 				});
 			}
-		} else if (node.type === 'ExportDefaultDeclaration') {
+		} else if (node.type === NodeType.ExportDefaultDeclaration) {
 			// export default function foo () {}
 			// export default foo;
 			// export default 42;
@@ -284,7 +300,7 @@ export default class Module {
 			// export function foo () {}
 			const declaration = (<ExportNamedDeclaration>node).declaration;
 
-			if (declaration.type === 'VariableDeclaration') {
+			if (declaration.type === NodeType.VariableDeclaration) {
 				declaration.declarations.forEach((decl: VariableDeclarator) => {
 					extractNames(decl.id).forEach(localName => {
 						this.exports[localName] = { localName };
@@ -334,8 +350,8 @@ export default class Module {
 				);
 			}
 
-			const isDefault = specifier.type === 'ImportDefaultSpecifier';
-			const isNamespace = specifier.type === 'ImportNamespaceSpecifier';
+			const isDefault = specifier.type === NodeType.ImportDefaultSpecifier;
+			const isNamespace = specifier.type === NodeType.ImportNamespaceSpecifier;
 
 			const name = isDefault
 				? 'default'
@@ -499,13 +515,13 @@ export default class Module {
 
 	processDynamicImports (resolveDynamicImport: ResolveDynamicImportHandler) {
 		return Promise.all(this.dynamicImports.map(node => {
-			const importArgument = <Node>node.parent.arguments[0];
+			const importArgument = node.parent.arguments[0];
 			let dynamicImportSpecifier: string | Node;
-			if (importArgument.type === 'TemplateLiteral') {
+			if (importArgument.type === NodeType.TemplateLiteral) {
 				if ((<TemplateLiteral>importArgument).expressions.length === 0 && (<TemplateLiteral>importArgument).quasis.length === 1) {
 					dynamicImportSpecifier = (<TemplateLiteral>importArgument).quasis[0].value.cooked;
 				}
-			} else if (importArgument.type === 'Literal') {
+			} else if (importArgument.type === NodeType.Literal) {
 				if (typeof (<Literal>importArgument).value === 'string') {
 					dynamicImportSpecifier = <string>(<Literal>importArgument).value;
 				}
