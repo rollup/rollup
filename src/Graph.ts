@@ -188,7 +188,7 @@ export default class Graph {
 		this.dependsOn = blank();
 
 		this.modules.forEach(module => {
-			module.link();
+			module.linkDependencies();
 			this.stronglyDependsOn[module.id] = blank();
 			this.dependsOn[module.id] = blank();
 		});
@@ -248,9 +248,9 @@ export default class Graph {
 				// mark all export statements for the entry module and dynamic import modules
 				bundle.bind();
 
-				entryModule.mark();
+				entryModule.markExports();
 				dynamicImports.forEach(dynamicImportModule => {
-					dynamicImportModule.mark();
+					dynamicImportModule.markExports();
 					dynamicImportModule.namespace().includeVariable();
 				});
 
@@ -266,7 +266,7 @@ export default class Graph {
 
 				timeStart('phase 4');
 
-				bundle.setFascade(entryModule);
+				bundle.setOutputFacade(entryModule);
 				bundle.processExternals();
 				bundle.deconflict();
 
@@ -485,7 +485,7 @@ export default class Graph {
 						module.dynamicImportResolutions[index] = replacement;
 					} else if (this.isExternal(replacement, module.id, true)) {
 						if (!this.moduleById.has(replacement)) {
-							const module = new ExternalModule(this, replacement);
+							const module = new ExternalModule({ graph: this, id: replacement });
 							this.externalModules.push(module);
 							this.moduleById.set(replacement, module);
 						}
@@ -544,7 +544,7 @@ export default class Graph {
 					module.resolvedExternalIds[source] = externalId;
 
 					if (!this.moduleById.has(externalId)) {
-						const module = new ExternalModule(this, externalId);
+						const module = new ExternalModule({ graph: this, id: externalId });
 						this.externalModules.push(module);
 						this.moduleById.set(externalId, module);
 					}

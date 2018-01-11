@@ -36,8 +36,8 @@ import ExternalModule from './ExternalModule';
 import Import from './ast/nodes/Import';
 import { NodeType } from './ast/nodes/index';
 import ExternalVariable from './ast/variables/ExternalVariable';
-import TemplateLiteral from './ast/nodes/TemplateLiteral';
-import Literal from './ast/nodes/Literal';
+import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
+import { isLiteral } from './ast/nodes/Literal';
 
 const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
 
@@ -388,7 +388,7 @@ export default class Module {
 		return makeLegal(ext ? base.slice(0, -ext.length) : base);
 	}
 
-	mark () {
+	markExports () {
 		this.getExports().forEach(name => {
 			const variable = this.traceExport(name);
 
@@ -412,7 +412,7 @@ export default class Module {
 		});
 	}
 
-	link () {
+	linkDependencies () {
 		this.sources.forEach(source => {
 			const id = this.resolvedIds[source];
 
@@ -449,20 +449,18 @@ export default class Module {
 
 	getDynamicImportExpressions (): (string | Node)[] {
 		return this.dynamicImports.map(node => {
-			let dynamicImportExpression: string | Node;
 			const importArgument = node.parent.arguments[0];
-			if (importArgument.type === NodeType.TemplateLiteral) {
-				if ((<TemplateLiteral>importArgument).expressions.length === 0 && (<TemplateLiteral>importArgument).quasis.length === 1) {
-					dynamicImportExpression = (<TemplateLiteral>importArgument).quasis[0].value.cooked;
+			if (isTemplateLiteral(importArgument)) {
+				if (importArgument.expressions.length === 0 && importArgument.quasis.length === 1) {
+					return importArgument.quasis[0].value.cooked;
 				}
-			} else if (importArgument.type === NodeType.Literal) {
-				if (typeof (<Literal>importArgument).value === 'string') {
-					dynamicImportExpression = (<Literal<string>>importArgument).value;
+			} else if (isLiteral(importArgument)) {
+				if (typeof (importArgument).value === 'string') {
+					return <string>importArgument.value;
 				}
 			} else {
-				dynamicImportExpression = importArgument;
+				return importArgument;
 			}
-			return dynamicImportExpression;
 		});
 	}
 

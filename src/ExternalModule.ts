@@ -17,7 +17,7 @@ export default class ExternalModule {
 	reexported: boolean;
 	used: boolean;
 
-	constructor (graph: Graph, id: string) {
+	constructor ({ graph, id }: { graph: Graph, id: string }) {
 		this.graph = graph;
 		this.id = id;
 

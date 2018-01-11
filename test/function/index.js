@@ -113,44 +113,44 @@ describe('function', () => {
 							}
 
 							return Promise.resolve()
-							.then(() => {
-								if (config.exports && !unintendedError) {
-									return config.exports(module.exports);
-								}
-							})
-							.then(() => {
-								if (config.bundle && !unintendedError) {
-									return config.bundle(bundle);
-								}
-							})
-							.catch(err => {
-								if (config.runtimeError) {
-									config.runtimeError(err);
-								} else {
-									unintendedError = err;
-								}
-							})
-							.then(() => {
-								if (config.show || unintendedError) {
-									console.log(result.code + '\n\n\n');
-								}
-
-								if (config.warnings) {
-									if (Array.isArray(config.warnings)) {
-										compareWarnings(warnings, config.warnings);
-									} else {
-										config.warnings(warnings);
+								.then(() => {
+									if (config.exports && !unintendedError) {
+										return config.exports(module.exports);
 									}
-								} else if (warnings.length) {
-									throw new Error(
-										`Got unexpected warnings:\n${warnings.map(warning => warning.message).join('\n')}`
-									);
-								}
+								})
+								.then(() => {
+									if (config.bundle && !unintendedError) {
+										return config.bundle(bundle);
+									}
+								})
+								.catch(err => {
+									if (config.runtimeError) {
+										config.runtimeError(err);
+									} else {
+										unintendedError = err;
+									}
+								})
+								.then(() => {
+									if (config.show || unintendedError) {
+										console.log(result.code + '\n\n\n');
+									}
 
-								if (config.solo) console.groupEnd();
+									if (config.warnings) {
+										if (Array.isArray(config.warnings)) {
+											compareWarnings(warnings, config.warnings);
+										} else {
+											config.warnings(warnings);
+										}
+									} else if (warnings.length) {
+										throw new Error(
+											`Got unexpected warnings:\n${warnings.map(warning => warning.message).join('\n')}`
+										);
+									}
 
-								if (unintendedError) throw unintendedError;
-							});
+									if (config.solo) console.groupEnd();
+
+									if (unintendedError) throw unintendedError;
+								});
 						});
 				})
 				.catch(err => {

@@ -13,8 +13,8 @@ export default class Import extends NodeBase {
 	type: NodeType.Import;
 	parent: CallExpression;
 
-	resolution: NamespaceVariable | string | void;
-	mechanism: DynamicImportMechanism;
+	private resolution: NamespaceVariable | string | void;
+	private mechanism: DynamicImportMechanism;
 
 	setResolution (resolution: NamespaceVariable | string | void, mechanism?: DynamicImportMechanism | void): void {
 		this.resolution = resolution;

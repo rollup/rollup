@@ -63,7 +63,7 @@ export default class Bundle {
 		}
 	}
 
-	setFascade (entryModule: Module) {
+	setOutputFacade (entryModule: Module) {
 		this.entryModule = entryModule;
 	}
 
@@ -165,7 +165,7 @@ export default class Bundle {
 		this.graph.scope.deshadow(toDeshadow);
 	}
 
-	private setRenderResolutions (options: OutputOptions) {
+	private setIdentifierRenderResolutions (options: OutputOptions) {
 		let dynamicImportMechanism: DynamicImportMechanism;
 
 		if (options.format !== 'es') {
@@ -221,7 +221,7 @@ export default class Bundle {
 
 				timeStart('render modules');
 
-				this.setRenderResolutions(options);
+				this.setIdentifierRenderResolutions(options);
 
 				this.orderedModules.forEach(module => {
 					const source = module.render(

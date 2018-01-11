@@ -1,7 +1,11 @@
 import TemplateElement from './TemplateElement';
 import MagicString from 'magic-string';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { Node, ExpressionNode, NodeBase } from './shared/Node';
 import { NodeType } from './index';
+
+export function isTemplateLiteral (node: Node): node is TemplateLiteral {
+	return node.type === NodeType.TemplateLiteral;
+}
 
 export default class TemplateLiteral extends NodeBase {
 	type: NodeType.TemplateLiteral;
