@@ -5,7 +5,6 @@ export default function wrapDynamicImportPlugin (acorn: {
 	tokTypes: { [type: string]: TokenType },
 	plugins: PluginsObject
 }) {
-	let moduleDynamicImportsReturnBinding: any[];
 	acorn.tokTypes._import.startsExpr = true;
 	acorn.plugins.dynamicImport = (instance: any) => {
 		instance.extend('parseStatement', (nextMethod: Function) => {
@@ -30,18 +29,10 @@ export default function wrapDynamicImportPlugin (acorn: {
 					if (this.type !== acorn.tokTypes.parenL) {
 						this.unexpected();
 					}
-					if (moduleDynamicImportsReturnBinding) {
-						moduleDynamicImportsReturnBinding.push(node);
-					}
 					return this.finishNode(node, 'Import');
 				}
 				return nextMethod.call(this, refDestructuringErrors);
 			};
 		});
-	};
-
-	// returns a function to set the dynamicImport array for getting these nodes during parsing
-	return function setModuleDynamicImportsReturnBinding (_moduleDynamicImportsReturnBinding: any[]) {
-		moduleDynamicImportsReturnBinding = _moduleDynamicImportsReturnBinding;
 	};
 }

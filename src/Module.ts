@@ -39,7 +39,7 @@ import ExternalVariable from './ast/variables/ExternalVariable';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
 
-const setModuleDynamicImportsReturnBinding = wrapDynamicImportPlugin(acorn);
+wrapDynamicImportPlugin(acorn);
 
 export interface IdMap {[key: string]: string;}
 
@@ -170,8 +170,11 @@ export default class Module {
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain;
 		this.comments = [];
-		this.dynamicImports = [];
-		this.dynamicImportResolutions = [];
+
+		if (graph.dynamicImport) {
+			this.dynamicImports = [];
+			this.dynamicImportResolutions = [];
+		}
 
 		timeStart('ast');
 
@@ -181,13 +184,7 @@ export default class Module {
 			this.ast = clone(ast);
 			this.astClone = ast;
 		} else {
-			// We bind the dynamic imports array to the plugin binding above, to get the nodes added
-			// to this array during parsing itself. This is faster than having to do a separate walk.
-			if (graph.dynamicImport)
-				setModuleDynamicImportsReturnBinding(this.dynamicImports);
 			this.ast = <any>tryParse(this, graph.acornOptions); // TODO what happens to comments if AST is provided?
-			if (graph.dynamicImport)
-				setModuleDynamicImportsReturnBinding(undefined);
 			this.astClone = clone(this.ast);
 		}
 
@@ -364,7 +361,7 @@ export default class Module {
 	}
 
 	private analyse () {
-		enhance(this.ast, this, this.comments);
+		enhance(this.ast, this, this.comments, this.dynamicImports);
 
 		// discover this module's imports and exports
 		let lastNode;

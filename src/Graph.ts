@@ -283,7 +283,7 @@ export default class Graph {
 
 		const dynamicImports: Module[] = [];
 
-		function visit (module: Module) {
+		const visit = (module: Module) => {
 			const seenEntry = seen[module.id];
 			if (seenEntry) {
 				if (seenEntry === curEntry)
@@ -294,13 +294,15 @@ export default class Graph {
 			seen[module.id] = curEntry;
 
 			module.dependencies.forEach(visit);
-			module.dynamicImportResolutions.forEach(module => {
-				if (module instanceof Module)
-					dynamicImports.push(module);
-			});
+			if (this.dynamicImport) {
+				module.dynamicImportResolutions.forEach(module => {
+					if (module instanceof Module)
+						dynamicImports.push(module);
+				});
+			}
 
 			ordered.push(module);
-		}
+		};
 
 		curEntry = entryModule;
 		visit(entryModule);
@@ -474,7 +476,7 @@ export default class Graph {
 
 	private fetchAllDependencies (module: Module) {
 		// resolve and fetch dynamic imports where possible
-		const fetchDynamicImportsPromise = Promise.all(
+		const fetchDynamicImportsPromise = !this.dynamicImport ? Promise.resolve() : Promise.all(
 			module.getDynamicImportExpressions()
 			.map((dynamicImportExpression, index) => {
 				return Promise.resolve(this.resolveDynamicImport(dynamicImportExpression, module.id))
@@ -499,9 +501,10 @@ export default class Graph {
 							module.dynamicImportResolutions[index] = depModule;
 						});
 					}
-				});
+				})
 			})
-		);
+		)
+		.then(() => {});
 		fetchDynamicImportsPromise.catch(() => {});
 
 		return mapSequence(module.sources, source => {
@@ -564,9 +567,7 @@ export default class Graph {
 				}
 			});
 		})
-		.then(() => {
-			return fetchDynamicImportsPromise;
-		});
+		.then(() => fetchDynamicImportsPromise);
 	}
 
 	warn (warning: RollupWarning) {

@@ -183,22 +183,24 @@ export default class Bundle {
 		}
 
 		this.orderedModules.forEach(module => {
-			module.dynamicImportResolutions.forEach((replacement, index) => {
-				const node = module.dynamicImports[index];
+			if (this.graph.dynamicImport) {
+				module.dynamicImportResolutions.forEach((replacement, index) => {
+					const node = module.dynamicImports[index];
 
-				if (!replacement)
-					return;
+					if (!replacement)
+						return;
 
-				if (replacement instanceof Module) {
-					node.setResolution(replacement.namespace(), { left: 'Promise.resolve().then(() => ', right: ')' });
-				// external dynamic import resolution
-				} else if (replacement instanceof ExternalModule) {
-					node.setResolution(`"${replacement.id}"`, dynamicImportMechanism);
-				// AST Node -> source replacement
-				} else {
-					node.setResolution(replacement, dynamicImportMechanism);
-				}
-			});
+					if (replacement instanceof Module) {
+						node.setResolution(replacement.namespace(), { left: 'Promise.resolve().then(() => ', right: ')' });
+					// external dynamic import resolution
+					} else if (replacement instanceof ExternalModule) {
+						node.setResolution(`"${replacement.id}"`, dynamicImportMechanism);
+					// AST Node -> source replacement
+					} else {
+						node.setResolution(replacement, dynamicImportMechanism);
+					}
+				});
+			}
 		});
 	}
 
