@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 0.54.0
+* Automatically inline locally resolvable dynamic imports ([#1816](https://github.com/rollup/rollup/pull/1816))
+* Preserve directives in function bodies ([#1856](https://github.com/rollup/rollup/pull/1856))
+* Refactor an error notification ([#1846](https://github.com/rollup/rollup/pull/1846))
+* Refactor a wrong import ([#1863](https://github.com/rollup/rollup/pull/1863))
+* Improve emitted TypeScript definitions ([#1864](https://github.com/rollup/rollup/pull/1864))
+* Refactor unused import ([#1866](https://github.com/rollup/rollup/pull/1866))
+
 ## 0.53.4
 * More type cleanup ([#1858](https://github.com/rollup/rollup/pull/1858))
 * Use chalks internal helper to detect if colors should be used ([#1853](https://github.com/rollup/rollup/pull/1853))
