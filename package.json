@@ -91,7 +91,7 @@
     "dist/rollup.es.js",
     "dist/rollup.js",
     "dist/**/*.d.ts",
-    "./typings/package.json.d.ts",
+    "typings/package.json.d.ts",
     "bin/rollup",
     "README.md"
   ],
