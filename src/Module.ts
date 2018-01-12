@@ -138,7 +138,7 @@ export default class Module {
 	private astClone: Program;
 	declarations: {
 		'*'?: NamespaceVariable;
-		[name: string]: Variable;
+		[name: string]: Variable | undefined;
 	};
 	private exportAllModules: (Module | ExternalModule)[];
 

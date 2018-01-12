@@ -1,6 +1,6 @@
 import ensureArray from './ensureArray.js';
 import deprecateOptions, { Deprecation } from './deprecateOptions';
-import { InputOptions, WarningHandler, OutputOptions } from '../../src/rollup/index';
+import { InputOptions, WarningHandler, OutputOptions } from '../rollup/index';
 
 function normalizeObjectOptionValue (optionValue: any) {
 	if (!optionValue) {

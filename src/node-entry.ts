@@ -1,3 +1,5 @@
+/// <reference path="../typings/package.json.d.ts" />
+
 export * from './rollup/index';
 export * from './watch/index';
 

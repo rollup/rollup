@@ -5,10 +5,6 @@ declare module 'help.md' {
 	export default str;
 }
 
-declare module 'package.json' {
-	const version: string;
-}
-
 // external libs
 declare module "ansi-escapes";
 declare module 'pretty-ms';
