@@ -5,7 +5,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import BlockStatement from './BlockStatement';
 import { StatementBase, StatementNode } from './shared/Statement';
 import { PatternNode } from './shared/Pattern';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 import { ExpressionNode } from './shared/Node';
 
 export default class ForInStatement extends StatementBase {

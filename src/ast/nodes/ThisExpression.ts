@@ -3,7 +3,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { NodeBase } from './shared/Node';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class ThisExpression extends NodeBase {
 	type: NodeType.ThisExpression;

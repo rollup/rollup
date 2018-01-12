@@ -3,7 +3,7 @@ import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ForEachReturnExpressionCallback, PredicateFunction, SomeReturnExpressionCallback } from './shared/Expression';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export type LogicalOperator = '||' | '&&';

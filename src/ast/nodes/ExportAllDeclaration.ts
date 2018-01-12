@@ -1,7 +1,7 @@
 import { NodeBase } from './shared/Node';
 import Literal from './Literal';
 import MagicString from 'magic-string';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class ExportAllDeclaration extends NodeBase {
 	type: NodeType.ExportAllDeclaration;

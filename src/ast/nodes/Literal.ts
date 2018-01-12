@@ -2,7 +2,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { Node, NodeBase } from './shared/Node';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export function isLiteral (node: Node): node is Literal {
 	return node.type === NodeType.Literal;

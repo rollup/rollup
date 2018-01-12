@@ -1,7 +1,7 @@
 import SpreadElement from './SpreadElement';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class ArrayExpression extends NodeBase {
 	type: NodeType.ArrayExpression;

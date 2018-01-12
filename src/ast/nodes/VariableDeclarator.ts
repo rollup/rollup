@@ -5,7 +5,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { PatternNode } from './shared/Pattern';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class VariableDeclarator extends NodeBase {
 	type: NodeType.VariableDeclarator;

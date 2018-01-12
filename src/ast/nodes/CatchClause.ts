@@ -3,7 +3,7 @@ import CatchScope from '../scopes/CatchScope';
 import BlockStatement from './BlockStatement';
 import Scope from '../scopes/Scope';
 import { PatternNode } from './shared/Pattern';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class CatchClause extends NodeBase {
 	type: NodeType.CatchClause;

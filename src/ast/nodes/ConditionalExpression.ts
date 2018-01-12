@@ -5,7 +5,7 @@ import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class ConditionalExpression extends NodeBase {
