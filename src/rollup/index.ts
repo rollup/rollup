@@ -9,6 +9,7 @@ import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
 import { ModuleJSON } from '../Module';
 import { RawSourceMap } from 'source-map';
 import Program from '../ast/nodes/Program';
+import { Node } from '../ast/nodes/shared/Node';
 import { SourceMap } from 'magic-string';
 import { WatcherOptions } from '../watch/index';
 import { Deprecation } from '../utils/deprecateOptions';
