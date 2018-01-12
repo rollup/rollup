@@ -101,6 +101,16 @@ Rollup can import existing CommonJS modules [through a plugin](https://github.co
 
 To make sure your ES6 modules are immediately usable by tools that work with CommonJS such as Node.js and webpack, you can use Rollup to compile to UMD or CommonJS format, and then point to that compiled version with the `main` property in your `package.json` file. If your `package.json` file also has a `module` field, ES6-aware tools like Rollup and [webpack 2](https://webpack.js.org/) will [import the ES6 module version](https://github.com/rollup/rollup/wiki/pkg.module) directly.
 
+### TypeScript
+
+If you'd like to use the API in a TypeScript environment you can do so, as now we ship TypeScript declarations. 
+
+You need to install some dependencies in case you have [skipLibCheck](https://www.typescriptlang.org/docs/handbook/compiler-options.html) turned off.
+
+```bash
+npm install @types/chokidar source-map magic-string --only=dev
+```
+
 ## Links
 
 - step-by-step [tutorial video series](https://code.lengstorf.com/learn-rollup-js/), with accompanying written walkthrough
