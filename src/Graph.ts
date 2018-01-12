@@ -1,5 +1,5 @@
 import * as acorn from 'acorn';
-import wrapDynamicImportPlugin from './utils/dynamic-import-plugin';
+import injectDynamicImportPlugin from './utils/dynamic-import-plugin';
 import { timeEnd, timeStart } from './utils/flushTime';
 import first from './utils/first';
 import { blank, keys } from './utils/object';
@@ -27,8 +27,6 @@ import { RawSourceMap } from 'source-map';
 import Program from './ast/nodes/Program';
 import { Node } from './ast/nodes/shared/Node';
 import Bundle from './Bundle';
-
-wrapDynamicImportPlugin(acorn);
 
 export type ResolveDynamicImportHandler = (specifier: string | Node, parentId: string) => Promise<string | void>;
 
@@ -156,10 +154,7 @@ export default class Graph {
 		this.legacy = options.legacy;
 
 		this.acornOptions = options.acorn || {};
-		this.acornParse = ensureArray(options.acornInjectPlugins).reduce(
-			(acc, plugin) => plugin(acc),
-			acorn
-		).parse;
+		const acornPluginsToInject = [];
 
 		this.dynamicImport = typeof options.experimentalDynamicImport === 'boolean' ? options.experimentalDynamicImport : false;
 
@@ -168,9 +163,13 @@ export default class Graph {
 				...this.plugins.map(plugin => plugin.resolveDynamicImport).filter(Boolean),
 				<ResolveDynamicImportHandler> ((specifier, parentId) => typeof specifier === 'string' && this.resolveId(specifier, parentId))
 			]);
+			acornPluginsToInject.push(injectDynamicImportPlugin);
 			this.acornOptions.plugins = this.acornOptions.plugins || {};
 			this.acornOptions.plugins.dynamicImport = true;
 		}
+
+		acornPluginsToInject.push(...ensureArray(options.acornInjectPlugins));
+		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
 	}
 
 	private loadModule (entryName: string) {
