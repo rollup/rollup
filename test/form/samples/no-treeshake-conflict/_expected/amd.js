@@ -1,10 +1,10 @@
 define(function () { 'use strict';
 
-	const other$1 = {
+	const other = {
 		something: 'here'
 	};
 
-	const other = {
+	const other$2 = {
 		somethingElse: 'here'
 	};
 

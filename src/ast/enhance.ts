@@ -5,11 +5,12 @@ import { Node } from './nodes/shared/Node';
 import Module from '../Module';
 import Comment from './comment';
 import MagicString from 'magic-string';
+import Import from './nodes/Import';
 
 const newline = /\n/;
 
-export default function enhance (ast: any, module: Module, comments: Comment[]) {
-	enhanceNode(ast, {}, module, module.magicString);
+export default function enhance (ast: any, module: Module, comments: Comment[], dynamicImportReturnList: Import[]) {
+	enhanceNode(ast, {}, module, module.magicString, dynamicImportReturnList);
 
 	let comment = comments.shift();
 
@@ -35,12 +36,12 @@ function isArrayOfNodes (raw: Node | Node[]): raw is Node[] {
 	return 'length' in raw;
 }
 
-function enhanceNode (raw: Node | Node[], parent: Node | {}, module: Module, code: MagicString) {
+function enhanceNode (raw: Node | Node[], parent: Node | {}, module: Module, code: MagicString, dynamicImportReturnList: Import[]) {
 	if (!raw) return;
 
 	if (isArrayOfNodes(raw)) {
 		for (let i = 0; i < raw.length; i += 1) {
-			enhanceNode(raw[i], parent, module, code);
+			enhanceNode(raw[i], parent, module, code, dynamicImportReturnList);
 		}
 		return;
 	}
@@ -66,9 +67,13 @@ function enhanceNode (raw: Node | Node[], parent: Node | {}, module: Module, cod
 	code.addSourcemapLocation(rawNode.end);
 
 	for (const key of keys[rawNode.type]) {
-		enhanceNode((<any>rawNode)[key], rawNode, module, code);
+		enhanceNode((<any>rawNode)[key], rawNode, module, code, dynamicImportReturnList);
 	}
 
 	const type = nodes[rawNode.type] || UnknownNode;
 	(<any>rawNode).__proto__ = type.prototype;
+	
+	if (type === Import) {
+		dynamicImportReturnList.push(<Import>rawNode);
+	}
 }

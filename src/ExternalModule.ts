@@ -2,8 +2,10 @@ import { blank } from './utils/object';
 import { makeLegal } from './utils/identifierHelpers';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Variable from './ast/variables/Variable';
+import Graph from './Graph';
 
 export default class ExternalModule {
+	graph: Graph;
 	declarations: {[name: string]: Variable};
 	exportsNames: boolean;
 	exportsNamespace: boolean;
@@ -15,7 +17,8 @@ export default class ExternalModule {
 	reexported: boolean;
 	used: boolean;
 
-	constructor (id: string) {
+	constructor ({ graph, id }: { graph: Graph, id: string }) {
+		this.graph = graph;
 		this.id = id;
 
 		const parts = id.split(/[\\/]/);
@@ -39,6 +42,35 @@ export default class ExternalModule {
 			this.mostCommonSuggestion = this.nameSuggestions[name];
 			this.name = name;
 		}
+	}
+
+	warnUnusedImports () {
+		const unused = Object.keys(this.declarations)
+			.filter(name => name !== '*')
+			.filter(
+			name =>
+				!this.declarations[name].included &&
+				!this.declarations[name].reexported
+			);
+
+		if (unused.length === 0) return;
+
+		const names =
+			unused.length === 1
+				? `'${unused[0]}' is`
+				: `${unused
+					.slice(0, -1)
+					.map(name => `'${name}'`)
+					.join(', ')} and '${unused.slice(-1)}' are`;
+
+		this.graph.warn({
+			code: 'UNUSED_EXTERNAL_IMPORT',
+			source: this.id,
+			names: unused,
+			message: `${names} imported from external module '${
+				this.id
+				}' but never used`
+		});
 	}
 
 	traceExport (name: string): Variable {

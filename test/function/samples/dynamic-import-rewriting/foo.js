@@ -1,2 +1,2 @@
 export var x = 42;
-import( './asdf' );
+export var promise = import('./asdf');
