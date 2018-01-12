@@ -72,7 +72,7 @@ function enhanceNode (raw: Node | Node[], parent: Node | {}, module: Module, cod
 
 	const type = nodes[rawNode.type] || UnknownNode;
 	(<any>rawNode).__proto__ = type.prototype;
-	
+
 	if (type === Import) {
 		dynamicImportReturnList.push(<Import>rawNode);
 	}
