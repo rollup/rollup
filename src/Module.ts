@@ -651,10 +651,16 @@ export default class Module {
 	}
 
 	traceExport (name: string): Variable {
-		// export * from 'external'
+
 		if (name[0] === '*') {
-			const module = <ExternalModule>this.graph.moduleById.get(name.slice(1));
-			return module.traceExport('*');
+			// namespace
+			if (name.length === 1) {
+				return this.namespace();
+			// export * from 'external'
+			} else {
+				const module = <ExternalModule>this.graph.moduleById.get(name.slice(1));
+				return module.traceExport('*');
+			}
 		}
 
 		// export { foo } from './other'
