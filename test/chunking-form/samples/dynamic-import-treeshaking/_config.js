@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'simple chunking',
+	description: 'Treeshaking with dynamic import',
 	options: {
 		input: ['main.js']
 	}
