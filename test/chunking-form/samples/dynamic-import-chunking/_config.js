@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'simple chunking',
+	description: 'Code splitting with dynamic import',
 	options: {
 		input: ['main.js']
 	}
