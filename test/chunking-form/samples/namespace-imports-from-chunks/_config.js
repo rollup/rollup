@@ -1,7 +1,6 @@
 module.exports = {
-	description: 'simple chunking',
+	description: 'handle namespace imports from chunks',
 	options: {
-		input: ['main1.js', 'main2.js']
-	},
-	solo: true
+		input: [ 'main1.js', 'main2.js' ]
+	}
 };
