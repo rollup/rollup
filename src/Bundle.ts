@@ -265,16 +265,7 @@ export default class Bundle {
 
 				timeStart('render format');
 
-				const optionsPaths = options.paths;
-				const getPath =
-					typeof optionsPaths === 'function'
-						? (id: string) => optionsPaths(id) || this.getPathRelativeToEntryDirname(id)
-						: optionsPaths
-							? (id: string) =>
-								optionsPaths.hasOwnProperty(id)
-									? optionsPaths[id]
-									: this.getPathRelativeToEntryDirname(id)
-							: (id: string) => this.getPathRelativeToEntryDirname(id);
+				const getPath = this.createGetPath(options);
 
 				if (intro) intro += '\n\n';
 				if (outro) outro = `\n\n${outro}`;
@@ -342,5 +333,19 @@ export default class Bundle {
 					return { code, map } as { code: string, map: any }; // TODO TypeScript: Awaiting missing version in SourceMap type
 				});
 			});
+	}
+
+	private createGetPath (options: OutputOptions) {
+		const optionsPaths = options.paths;
+		const getPath =
+			typeof optionsPaths === 'function'
+				? (id: string) => optionsPaths(id) || this.getPathRelativeToEntryDirname(id)
+				: optionsPaths
+					? (id: string) =>
+						optionsPaths.hasOwnProperty(id)
+							? optionsPaths[id]
+							: this.getPathRelativeToEntryDirname(id)
+					: (id: string) => this.getPathRelativeToEntryDirname(id);
+		return getPath;
 	}
 }
