@@ -387,25 +387,29 @@ export default class Module {
 
 	markExports () {
 		this.getExports().forEach(name => {
-			const variable = this.traceExport(name);
+			const variables = this.traceExport(name);
 
-			variable.exportName = name;
-			variable.includeVariable();
+			variables.forEach(variable => {
+				variable.exportName = name;
+				variable.includeVariable();
 
-			if (variable.isNamespace) {
-				(<NamespaceVariable>variable).needsNamespaceBlock = true;
-			}
+				if (variable.isNamespace) {
+					(<NamespaceVariable>variable).needsNamespaceBlock = true;
+				}
+			});
 		});
 
 		this.getReexports().forEach(name => {
-			const variable = this.traceExport(name);
+			const variables = this.traceExport(name);
 
-			if (variable.isExternal) {
-				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
-			} else {
-				variable.exportName = name;
-				variable.includeVariable();
-			}
+			variables.forEach(variable => {
+				if (variable.isExternal) {
+					variable.reexported = (<ExternalVariable>variable).module.reexported = true;
+				} else {
+					variable.exportName = name;
+					variable.includeVariable();
+				}
+			});
 		});
 	}
 
@@ -609,19 +613,24 @@ export default class Module {
 				return (<Module>otherModule).namespace();
 			}
 
-			const declaration = otherModule.traceExport(importDeclaration.name);
+			const declarations = otherModule.traceExport(importDeclaration.name);
 
-			if (!declaration) {
+			if (!declarations.length) {
 				missingExport(this, importDeclaration.name, otherModule, importDeclaration.specifier.start);
 			}
 
-			return declaration;
+			return declarations[0];
 		}
 
 		return null;
 	}
 
-	traceExport (name: string): Variable {
+	// returns an array because of:
+	// export * from 'foo';
+	// export * from 'bar';
+	// it could find the same named export from more than one source.
+	// we are only using the first found currently.
+	traceExport (name: string): Variable[] {
 		// export * from 'external'
 		if (name[0] === '*') {
 			const module = this.graph.moduleById.get(name.slice(1));
@@ -631,33 +640,47 @@ export default class Module {
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexports[name];
 		if (reexportDeclaration) {
-			const declaration = reexportDeclaration.module.traceExport(
+			const declarations = reexportDeclaration.module.traceExport(
 				reexportDeclaration.localName
 			);
 
-			if (!declaration) {
+			if (!declarations.length) {
 				missingExport(this, reexportDeclaration.localName, reexportDeclaration.module, reexportDeclaration.start);
 			}
 
-			return declaration;
+			return declarations;
 		}
+
+		let declarations: Variable[] = [];
 
 		const exportDeclaration = this.exports[name];
 		if (exportDeclaration) {
 			const name = exportDeclaration.localName;
-			const declaration = this.trace(name);
+			let declaration = this.trace(name);
 
-			return declaration || this.graph.scope.findVariable(name);
+			if (!declaration) {
+				declaration = this.graph.scope.findVariable(name);
+			}
+
+			if (declaration) {
+				declarations.push(declaration);
+			}
+
+			return declarations;
 		}
 
-		if (name === 'default') return;
+		if (name === 'default') return [];
 
 		for (let i = 0; i < this.exportAllModules.length; i += 1) {
 			const module = this.exportAllModules[i];
-			const declaration = module.traceExport(name);
-
-			if (declaration) return declaration;
+			declarations = declarations.concat(module.traceExport(name));
+			if (declarations.length) {
+				// future code will utilize more than one
+				break;
+			}
 		}
+
+		return declarations;
 	}
 
 	warn (warning: RollupWarning, pos: number) {

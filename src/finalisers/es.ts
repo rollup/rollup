@@ -88,7 +88,7 @@ export default function es (bundle: Bundle, magicString: MagicStringBundle, { ge
 		.getExports()
 		.filter(notDefault)
 		.forEach(name => {
-			const declaration = module.traceExport(name);
+			const [declaration] = module.traceExport(name);
 			const rendered = declaration.getName(true);
 			exportInternalSpecifiers.push(
 				rendered === name ? name : `${rendered} as ${name}`
@@ -96,7 +96,7 @@ export default function es (bundle: Bundle, magicString: MagicStringBundle, { ge
 		});
 
 	module.getReexports().forEach(name => {
-		const declaration = module.traceExport(name);
+		const [declaration] = module.traceExport(name);
 
 		if (isExternalVariable(declaration)) {
 			if (name[0] === '*') {
@@ -125,7 +125,7 @@ export default function es (bundle: Bundle, magicString: MagicStringBundle, { ge
 		exportBlock.push(`export { ${exportInternalSpecifiers.join(', ')} };`);
 	if (module.exports.default)
 		exportBlock.push(
-			`export default ${module.traceExport('default').getName(true)};`
+			`export default ${module.traceExport('default')[0].getName(true)};`
 		);
 	if (exportAllDeclarations.length)
 		exportBlock.push(exportAllDeclarations.join('\n'));

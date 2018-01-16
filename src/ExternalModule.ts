@@ -73,13 +73,13 @@ export default class ExternalModule {
 		});
 	}
 
-	traceExport (name: string): Variable {
+	traceExport (name: string): Variable[] {
 		if (name !== 'default' && name !== '*') this.exportsNames = true;
 		if (name === '*') this.exportsNamespace = true;
 
-		return (
+		return [(
 			this.declarations[name] ||
 			(this.declarations[name] = new ExternalVariable(this, name))
-		);
+		)];
 	}
 }
