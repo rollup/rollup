@@ -1,14 +1,14 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import Bundle from '../Bundle';
+import Chunk from '../Chunk';
 
-export default function es (bundle: Bundle, magicString: MagicStringBundle, { getPath, intro, outro }: {
+export default function es (chunk: Chunk, magicString: MagicStringBundle, { getPath, intro, outro }: {
 	exportMode: string;
 	indentString: string;
 	getPath: (name: string) => string;
 	intro: string;
 	outro: string
 }) {
-	const { dependencies, exports } = bundle.getModuleDeclarations();
+	const { dependencies, exports } = chunk.getModuleDeclarations();
 	const importBlock = dependencies.map(({ id, reexports, imports }) => {
 		if (!reexports && !imports) {
 			return `import '${getPath(id)}';`;

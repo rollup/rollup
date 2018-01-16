@@ -24,7 +24,7 @@ export default class Import extends NodeBase {
 	}
 
 	render (code: MagicString) {
-		// if we have the module in the bundle, inline as Promise.resolve(namespace)
+		// if we have the module in the chunk, inline as Promise.resolve(namespace)
 		let resolution: string;
 		if (this.resolution instanceof NamespaceVariable) {
 			// ideally this should be handled like normal tree shaking

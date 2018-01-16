@@ -27,7 +27,7 @@ export default class ModuleScope extends Scope {
 		let localNames = new Set(names);
 
 		forOwn(this.module.imports, specifier => {
-			if (specifier.module.isExternal || specifier.module.bundle !== this.module.bundle) {
+			if (specifier.module.isExternal || specifier.module.chunk !== this.module.chunk) {
 				return;
 			}
 

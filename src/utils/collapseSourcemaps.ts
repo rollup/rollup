@@ -3,7 +3,7 @@ import error from './error';
 import { basename, dirname, relative, resolve } from './path';
 import Module from '../Module';
 import { RawSourceMap } from 'source-map';
-import Bundle from '../Bundle';
+import Chunk from '../Chunk';
 
 class Source {
 	isOriginal: boolean;
@@ -134,7 +134,7 @@ class Link {
 
 // TODO TypeScript: Fix <any> typecasts
 export default function collapseSourcemaps (
-	bundle: Bundle,
+	bundle: Chunk,
 	file: string,
 	map: RawSourceMap,
 	modules: Module[],

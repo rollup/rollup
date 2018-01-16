@@ -38,7 +38,7 @@ import { NodeType } from './ast/nodes/index';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
 import { missingExport } from './utils/defaults';
-import Bundle from './Bundle';
+import Chunk from './Chunk';
 
 wrapDynamicImportPlugin(acorn);
 
@@ -141,7 +141,7 @@ export default class Module {
 	execIndex: number;
 	isEntryPoint: boolean;
 	entryPointsHash: Buffer;
-	bundle: Bundle;
+	chunk: Chunk;
 
 	ast: Program;
 	private astClone: Program;
