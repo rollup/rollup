@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import { StatementBase } from './shared/Statement';
 import Scope from '../scopes/Scope';
+import { RenderOptions } from '../../rollup';
 
 export default class ExpressionStatement extends StatementBase {
 	directive?: string;
@@ -26,8 +27,8 @@ export default class ExpressionStatement extends StatementBase {
 		return super.shouldBeIncluded();
 	}
 
-	render (code: MagicString, es: boolean) {
-		super.render(code, es);
+	render (code: MagicString, es: boolean, options: RenderOptions) {
+		super.render(code, es, options);
 		if (this.included) this.insertSemicolon(code);
 	}
 }

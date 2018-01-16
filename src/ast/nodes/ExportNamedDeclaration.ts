@@ -7,6 +7,7 @@ import FunctionDeclaration from './FunctionDeclaration';
 import ClassDeclaration from './ClassDeclaration';
 import VariableDeclaration from './VariableDeclaration';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../rollup';
 
 export default class ExportNamedDeclaration extends NodeBase {
 	type: NodeType.ExportNamedDeclaration;
@@ -29,10 +30,10 @@ export default class ExportNamedDeclaration extends NodeBase {
 		this.isExportDeclaration = true;
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString, es: boolean, options: RenderOptions) {
 		if (this.declaration) {
 			code.remove(this.start, this.declaration.start);
-			this.declaration.render(code, es);
+			this.declaration.render(code, es, options);
 		} else {
 			const start = this.leadingCommentStart || this.start;
 			const end = this.next || this.end;

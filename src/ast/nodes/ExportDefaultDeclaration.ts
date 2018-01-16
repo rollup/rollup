@@ -6,6 +6,7 @@ import FunctionDeclaration from './FunctionDeclaration';
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../rollup';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
@@ -67,7 +68,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString, es: boolean, options: RenderOptions) {
 		const remove = () => {
 			code.remove(
 				this.leadingCommentStart || this.start,
@@ -117,16 +118,16 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 			// Only output `var foo =` if `foo` is used
 			if (this.included) {
-				code.overwrite(
-					this.start,
-					declaration_start,
-					`${this.module.graph.varOrConst} ${name} = `
-				);
+					code.overwrite(
+						this.start,
+						declaration_start,
+						`${this.module.graph.varOrConst} ${name} = `
+					);
 			} else {
 				removeExportDefault();
 			}
 		}
-		super.render(code, es);
+		super.render(code, es, options);
 
 	}
 }
