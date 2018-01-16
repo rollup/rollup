@@ -140,7 +140,9 @@ export default function watch (configFile: string, configs: RollupWatchOptions[]
 
 		if (configWatcher) configWatcher.close();
 
-		process.exit(1);
+		if (err) {
+			process.exit(1);
+		}
 	}
 
 	start(configs);

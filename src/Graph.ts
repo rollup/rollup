@@ -24,7 +24,7 @@ import {
 import { RawSourceMap } from 'source-map';
 import Program from './ast/nodes/Program';
 import { Node } from './ast/nodes/shared/Node';
-import Bundle from './Bundle';
+import Chunk from './Chunk';
 import path from 'path';
 import GlobalScope from './ast/scopes/GlobalScope';
 import xor from 'buffer-xor';
@@ -258,7 +258,7 @@ export default class Graph {
 		}
 	}
 
-	buildSingle (entryModuleId: string): Promise<Bundle> {
+	buildSingle (entryModuleId: string): Promise<Chunk> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
@@ -300,22 +300,22 @@ export default class Graph {
 
 				timeEnd('phase 3');
 
-				// Phase 4 – we construct the bundle itself, generating its import and export facades
+				// Phase 4 – we construct the chunk itself, generating its import and export facades
 				timeStart('phase 4');
 
-				// generate the imports and exports for the output bundle file
-				const bundle = new Bundle(this, entryModule.id, orderedModules);
-				bundle.generateDependencies();
-				bundle.generateImports();
-				bundle.generateEntryExports(entryModule);
+				// generate the imports and exports for the output chunk file
+				const chunk = new Chunk(this, entryModule.id, orderedModules);
+				chunk.collectDependencies();
+				chunk.generateImports();
+				chunk.generateEntryExports(entryModule);
 
 				timeEnd('phase 4');
 
-				return bundle;
+				return chunk;
 			});
 	}
 
-	buildChunks (entryModuleIds: string[]): Promise<{ [name: string]: Bundle }> {
+	buildChunks (entryModuleIds: string[]): Promise<{ [name: string]: Chunk }> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
@@ -350,7 +350,7 @@ export default class Graph {
 
 				timeEnd('phase 3');
 
-				// Phase 4 – we construct the bundles, working out the optimal chunking using
+				// Phase 4 – we construct the chunks, working out the optimal chunking using
 				// entry point graph colouring, before generating the import and export facades
 				timeStart('phase 4');
 
@@ -358,28 +358,28 @@ export default class Graph {
 				//       exposed as an unresolvable export * (to a graph external export *,
 			  //       either as a namespace import reexported or top-level export *)
 				//       should be made to be its own entry point module before chunking
-				const chunks: { [entryHashSum: string]: Module[] } = {};
+				const chunkModules: { [entryHashSum: string]: Module[] } = {};
 				orderedModules.forEach(module => {
 					const entryPointsHashStr = module.entryPointsHash.toString('hex');
-					let curChunk = chunks[entryPointsHashStr];
+					let curChunk = chunkModules[entryPointsHashStr];
 					if (curChunk) {
 						curChunk.push(module);
 					} else {
-						chunks[entryPointsHashStr] = [module];
+						chunkModules[entryPointsHashStr] = [module];
 					}
 				});
 
-				// create a new Bundle for each chunk
-				const bundleList: Bundle[] = [];
-				Object.keys(chunks).forEach(entryHashSum => {
-					const chunk = chunks[entryHashSum];
+				// create each chunk
+				const chunkList: Chunk[] = [];
+				Object.keys(chunkModules).forEach(entryHashSum => {
+					const chunk = chunkModules[entryHashSum];
 					const chunkModulesOrdered = chunk.sort((moduleA, moduleB) => moduleA.execIndex > moduleB.execIndex ? 1 : -1);
-					bundleList.push(new Bundle(this, `./chunk-${entryHashSum.substr(0, 8)}.js`, chunkModulesOrdered));
+					chunkList.push(new Chunk(this, `./chunk-${entryHashSum.substr(0, 8)}.js`, chunkModulesOrdered));
 				});
 
-				// finally prepare output bundles
-				const bundles: {
-					[name: string]: Bundle
+				// finally prepare output chunks
+				const chunks: {
+					[name: string]: Chunk
 				} = {};
 
 				const entryChunkNames: string[] = [];
@@ -400,47 +400,47 @@ export default class Graph {
 				}
 
 				// for each entry point module, ensure its exports
-				// are exported by the bundle itself, with safe name deduping
+				// are exported by the chunk itself, with safe name deduping
 				entryModules.forEach(entryModule => {
-					entryModule.bundle.generateEntryExports(entryModule);
+					entryModule.chunk.generateEntryExports(entryModule);
 				});
-				// for each bundle module, set up its imports to other
-				// bundles, if those variables are included after treeshaking
-				bundleList.forEach(bundle => {
-					bundle.generateDependencies();
-					bundle.generateImports();
+				// for each chunk module, set up its imports to other
+				// chunks, if those variables are included after treeshaking
+				chunkList.forEach(chunk => {
+					chunk.collectDependencies();
+					chunk.generateImports();
 				});
 
-				bundleList.forEach(bundle => {
-					// generate the imports and exports for the output bundle file
-					if (bundle.entryModule) {
-						const entryName = generateUniqueEntryPointChunkName(bundle.entryModule.id);
+				chunkList.forEach(chunk => {
+					// generate the imports and exports for the output chunk file
+					if (chunk.entryModule) {
+						const entryName = generateUniqueEntryPointChunkName(chunk.entryModule.id);
 
-						// if the bundle exactly exports the entry point exports then
+						// if the chunk exactly exports the entry point exports then
 						// it can replace the entry point
-						if (bundle.entryModuleFacade) {
-							bundles['./' + entryName] = bundle;
-							bundle.setId('./' + entryName);
+						if (chunk.isEntryModuleFacade) {
+							chunks['./' + entryName] = chunk;
+							chunk.setId('./' + entryName);
 						// otherwise we create a special re-exporting entry point
-						// facade bundle with no modules
+						// facade chunk with no modules
 						} else {
-							const entryPointFacade = new Bundle(this, './' + entryName, []);
-							entryPointFacade.generateEntryExports(bundle.entryModule);
-							entryPointFacade.generateDependencies(bundle.entryModule);
+							const entryPointFacade = new Chunk(this, './' + entryName, []);
+							entryPointFacade.generateEntryExports(chunk.entryModule);
+							entryPointFacade.collectDependencies(chunk.entryModule);
 							entryPointFacade.generateImports();
-							bundles['./' + entryName] = entryPointFacade;
-							bundles[bundle.id] = bundle;
+							chunks['./' + entryName] = entryPointFacade;
+							chunks[chunk.id] = chunk;
 						}
 					}
-					// internal bundle interface
+					// internal chunk interface
 					else {
-						bundles[bundle.id] = bundle;
+						chunks[chunk.id] = chunk;
 					}
 				});
 
 				timeEnd('phase 4');
 
-				return bundles;
+				return chunks;
 			});
 	}
 
@@ -455,7 +455,7 @@ export default class Graph {
 		const visit = (module: Module, seen: { [id: string]: boolean } = {}) => {
 			if (seen[module.id]) {
 				// one more xor for circular entry points to ensure distinction
-				// to ensure one entry point per bundle property
+				// to ensure one entry point per chunk property
 				if (module.isEntryPoint)
 					module.entryPointsHash = xor(module.entryPointsHash, curEntryHash);
 				hasCycles = true;

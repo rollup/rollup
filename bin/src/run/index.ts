@@ -10,23 +10,16 @@ import watch from './watch.js';
 import { InputOptions } from '../../../src/rollup/index';
 
 export default function runRollup (command: any) {
-	if (command._.length > 1) {
+	if (command._.length >= 1) {
 		if (command.input) {
 			handleError({
 				code: 'DUPLICATE_IMPORT_OPTIONS',
 				message: 'use --input, or pass input path as argument'
 			});
 		}
+	}
 
-		command.input = command._;
-	} else if (command._.length === 1) {
-		if (command.input) {
-			handleError({
-				code: 'DUPLICATE_IMPORT_OPTIONS',
-				message: 'use --input, or pass input path as argument'
-			});
-		}
-
+	if (command._.length === 1) {
 		command.input = command._[0];
 	}
 
