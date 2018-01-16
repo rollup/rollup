@@ -203,7 +203,7 @@ const throwAsyncGenerateError = {
 	}
 };
 
-export interface OutputBundle {
+export interface OutputChunk {
 	imports: string[];
 	exports: string[];
 	modules: ModuleJSON[];
@@ -212,7 +212,7 @@ export interface OutputBundle {
 	write: (options: OutputOptions) => Promise<void>;
 }
 
-export default function rollup (rawInputOptions: InputOptions): Promise<OutputBundle>;
+export default function rollup (rawInputOptions: InputOptions): Promise<OutputChunk>;
 export default function rollup (rawInputOptions: GenericConfigObject) {
 	try {
 		if (!rawInputOptions) {
@@ -245,7 +245,7 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 		}
 
 		if (!codeSplitting) return graph.buildSingle(inputOptions.input)
-			.then(bundle => {
+			.then(chunk => {
 				timeEnd('--BUILD--');
 
 				function generate (rawOutputOptions: GenericConfigObject) {
@@ -276,7 +276,7 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 					timeStart('--GENERATE--');
 
 					const promise = Promise.resolve()
-						.then(() => bundle.render(outputOptions))
+						.then(() => chunk.render(outputOptions))
 						.then(rendered => {
 							timeEnd('--GENERATE--');
 
@@ -305,10 +305,10 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 					return promise;
 				}
 
-				const result: OutputBundle = {
-					imports: bundle.getImportIds(),
-					exports: bundle.getExportNames(),
-					modules: bundle.getJsonModules(),
+				const result: OutputChunk = {
+					imports: chunk.getImportIds(),
+					exports: chunk.getExportNames(),
+					modules: chunk.getJsonModules(),
 
 					generate,
 					write: (outputOptions: OutputOptions) => {
@@ -367,8 +367,8 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 			});
 
 		return graph.buildChunks(inputOptions.input)
-			.then(bundles => {
-				const chunkOutputBundles: {
+			.then(bundle => {
+				const chunks: {
 					[name: string]: {
 						name: string,
 						imports: string[],
@@ -376,14 +376,14 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 						modules: ModuleJSON[]
 					}
 				} = {};
-				Object.keys(bundles).forEach(bundleName => {
-					const bundle = bundles[bundleName];
+				Object.keys(bundle).forEach(chunkName => {
+					const chunk = bundle[chunkName];
 
-					chunkOutputBundles[bundleName] = {
-						name: bundleName,
-						imports: bundle.getImportIds(),
-						exports: bundle.getExportNames(),
-						modules: bundle.getJsonModules()
+					chunks[chunkName] = {
+						name: chunkName,
+						imports: chunk.getImportIds(),
+						exports: chunk.getExportNames(),
+						modules: chunk.getJsonModules()
 					};
 				});
 
@@ -401,22 +401,22 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 
 					const generated: { [chunkName: string]: SourceDescription } = {};
 
-					const promise = Promise.all(Object.keys(bundles).map(bundleName => {
-						const bundle = bundles[bundleName];
-						return bundle.render(outputOptions)
+					const promise = Promise.all(Object.keys(bundle).map(chunkName => {
+						const chunk = bundle[chunkName];
+						return chunk.render(outputOptions)
 							.then(rendered => {
 								timeEnd('--GENERATE--');
 
 								graph.plugins.forEach(plugin => {
 									if (plugin.ongenerate) {
-										const bundle = chunkOutputBundles[bundleName];
+										const bundle = chunks[chunkName];
 										plugin.ongenerate(assign({ bundle }, outputOptions), rendered);
 									}
 								});
 
 								flushTime();
 
-								generated[bundleName] = rendered;
+								generated[chunkName] = rendered;
 							});
 					}))
 						.then(() => {
@@ -430,7 +430,7 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 				}
 
 				return {
-					chunks: chunkOutputBundles,
+					chunks: chunks,
 					generate,
 					write (outputOptions: OutputOptions) {
 						if (!outputOptions || !outputOptions.dir) {

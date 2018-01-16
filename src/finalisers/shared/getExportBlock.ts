@@ -1,8 +1,8 @@
-import { BundleExports, BundleDependencies } from "../../Bundle";
+import { ChunkExports, ChunkDependencies } from "../../Chunk";
 
 export default function getExportBlock (
-	exports: BundleExports,
-	dependencies: BundleDependencies,
+	exports: ChunkExports,
+	dependencies: ChunkDependencies,
 	exportMode: string,
 	mechanism = 'return'
 ) {

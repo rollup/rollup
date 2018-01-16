@@ -1,4 +1,4 @@
-import Bundle from "../../Bundle";
+import Chunk from "../../Chunk";
 
 const builtins = {
 	process: true,
@@ -24,10 +24,10 @@ const builtins = {
 	domain: true
 };
 
-// Creating a browser bundle that depends on Node.js built-in modules ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins
+// Creating a browser chunk that depends on Node.js built-in modules ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins
 
-export default function warnOnBuiltins (bundle: Bundle) {
-	const externalBuiltins = bundle.dependencies
+export default function warnOnBuiltins (chunk: Chunk) {
+	const externalBuiltins = chunk.dependencies
 		.map(module => module.id)
 		.filter(id => id in builtins)
 
@@ -41,7 +41,7 @@ export default function warnOnBuiltins (bundle: Bundle) {
 				.map(name => `'${name}'`)
 				.join(', ')} and '${externalBuiltins.slice(-1)}')`;
 
-	bundle.graph.warn({
+	chunk.graph.warn({
 		code: 'MISSING_NODE_BUILTINS',
 		modules: externalBuiltins,
 		message: `Creating a browser bundle that depends on Node.js built-in ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`

@@ -1,11 +1,11 @@
 import esModuleExport from './shared/esModuleExport';
 import { OutputOptions } from '../rollup/index';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import Bundle from '../Bundle';
+import Chunk from '../Chunk';
 import getExportBlock from './shared/getExportBlock';
 
 export default function cjs (
-	bundle: Bundle,
+	chunk: Chunk,
 	magicString: MagicStringBundle,
 	{ exportMode, getPath, intro, outro }: {
 		exportMode: string;
@@ -18,23 +18,23 @@ export default function cjs (
 ) {
 	intro =
 		(options.strict === false ? intro : `'use strict';\n\n${intro}`) +
-		(exportMode === 'named' && options.legacy !== true && bundle.entryModuleFacade
+		(exportMode === 'named' && options.legacy !== true && chunk.isEntryModuleFacade
 			? `${esModuleExport}\n\n`
 			: '');
 
 	let needsInterop = false;
 
-	const varOrConst = bundle.graph.varOrConst;
+	const varOrConst = chunk.graph.varOrConst;
 	const interop = options.interop !== false;
 
-	const { dependencies, exports } = bundle.getModuleDeclarations();
+	const { dependencies, exports } = chunk.getModuleDeclarations();
 
-	const importBlock = dependencies.map(({ id, isBundle, name, reexports, imports }) => {
+	const importBlock = dependencies.map(({ id, isChunk, name, reexports, imports }) => {
 		if (!reexports && !imports) {
 			return `require('${getPath(id)}');`;
 		}
 
-		if (!interop || isBundle) {
+		if (!interop || isChunk) {
 			return `${varOrConst} ${name} = require('${getPath(id)}');`
 		}
 

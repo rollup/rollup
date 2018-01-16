@@ -1,20 +1,20 @@
 import { OutputOptions } from "../../rollup/index";
-import Bundle from "../../Bundle";
+import Chunk from "../../Chunk";
 
-export default function getInteropBlock (bundle: Bundle, options: OutputOptions) {
-	return bundle.externalModules
+export default function getInteropBlock (chunk: Chunk, options: OutputOptions) {
+	return chunk.externalModules
 		.map(module => {
 			if (!module.declarations.default || options.interop === false)
 				return null;
 
 			if (module.exportsNamespace) {
-				return `${bundle.graph.varOrConst} ${module.name}__default = ${
+				return `${chunk.graph.varOrConst} ${module.name}__default = ${
 					module.name
 					}['default'];`;
 			}
 
 			if (module.exportsNames) {
-				return `${bundle.graph.varOrConst} ${module.name}__default = 'default' in ${
+				return `${chunk.graph.varOrConst} ${module.name}__default = 'default' in ${
 					module.name
 					} ? ${module.name}['default'] : ${module.name};`;
 			}

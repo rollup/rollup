@@ -2,12 +2,12 @@ import getInteropBlock from './shared/getInteropBlock';
 import getExportBlock from './shared/getExportBlock';
 import esModuleExport from './shared/esModuleExport';
 import warnOnBuiltins from './shared/warnOnBuiltins';
-import Bundle from '../Bundle';
+import Chunk from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
 
 export default function amd (
-	bundle: Bundle,
+	chunk: Chunk,
 	magicString: MagicStringBundle,
 	{ exportMode, getPath, indentString, intro, outro }: {
 		exportMode: string;
@@ -18,9 +18,9 @@ export default function amd (
 	},
 	options: OutputOptions
 ) {
-	warnOnBuiltins(bundle);
+	warnOnBuiltins(chunk);
 
-	const { dependencies, exports } = bundle.getModuleDeclarations();
+	const { dependencies, exports } = chunk.getModuleDeclarations();
 
 	const deps = dependencies.map(m => `'${getPath(m.id)}'`);
 	const args = dependencies.map(m => m.name);
@@ -43,14 +43,14 @@ export default function amd (
 	)}) {${useStrict}\n\n`;
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(bundle, options);
+	const interopBlock = getInteropBlock(chunk, options);
 	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
 
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(exports, dependencies, exportMode);
 	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
-	if (exportMode === 'named' && options.legacy !== true && bundle.entryModuleFacade)
+	if (exportMode === 'named' && options.legacy !== true && chunk.isEntryModuleFacade)
 		(<any> magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR
 	if (outro) (<any> magicString).append(outro);
 

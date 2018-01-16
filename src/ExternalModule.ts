@@ -6,7 +6,7 @@ import Variable from './ast/variables/Variable';
 
 export default class ExternalModule {
 	private graph: Graph;
-	bundle: void;
+	chunk: void;
 	declarations: {[name: string]: ExternalVariable};
 	exportsNames: boolean;
 	exportsNamespace: boolean;
