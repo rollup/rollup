@@ -228,7 +228,7 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 			.then((bundle) => {
 				timeEnd('--BUILD--');
 
-				function generate (rawOutputOptions: GenericConfigObject) {
+				function normalizeOptions (rawOutputOptions: GenericConfigObject) {
 					if (!rawOutputOptions) {
 						throw new Error('You must supply an options object');
 					}
@@ -252,6 +252,12 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 
 					if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
 					checkOutputOptions(outputOptions);
+
+					return outputOptions;
+				}
+
+				function generate (rawOutputOptions: GenericConfigObject) {
+					const outputOptions = normalizeOptions(rawOutputOptions);
 
 					timeStart('--GENERATE--');
 
