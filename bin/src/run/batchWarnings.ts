@@ -246,7 +246,7 @@ const deferredHandlers: {
 				`Missing global variable ${warnings.length > 1 ? 'names' : 'name'}`
 			);
 			stderr(
-				`Use options.globals to specify browser global variable names corresponding to external modules`
+				`Use options.output.globals to specify browser global variable names corresponding to external modules`
 			);
 			warnings.forEach(warning => {
 				stderr(`${chalk.bold(warning.source)} (guessing '${warning.guess}')`);
