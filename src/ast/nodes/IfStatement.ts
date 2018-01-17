@@ -5,7 +5,7 @@ import { ExpressionNode, Node } from './shared/Node';
 import { isVariableDeclaration } from './VariableDeclaration';
 import MagicString from 'magic-string';
 import { StatementBase, StatementNode } from './shared/Statement';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 // Statement types which may contain if-statements as direct children.
 const statementsWithIfStatements = new Set([

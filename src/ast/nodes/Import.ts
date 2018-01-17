@@ -1,5 +1,5 @@
 import CallExpression from './CallExpression';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 import MagicString from 'magic-string';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import { NodeBase } from './shared/Node';

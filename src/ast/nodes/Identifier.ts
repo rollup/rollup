@@ -10,7 +10,7 @@ import MagicString from 'magic-string';
 import Property from './Property';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export function isIdentifier (node: Node): node is Identifier {
 	return node.type === NodeType.Identifier;

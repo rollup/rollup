@@ -8,7 +8,7 @@ import ForStatement from './ForStatement';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { isIdentifier } from './Identifier';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 function getSeparator (code: string, start: number) {
 	let c = start;

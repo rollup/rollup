@@ -1,5 +1,5 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class AwaitExpression extends NodeBase {

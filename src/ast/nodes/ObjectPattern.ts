@@ -5,7 +5,7 @@ import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionEntity } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
 import { NodeBase } from './shared/Node';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class ObjectPattern extends NodeBase implements PatternNode {
 	type: NodeType.ObjectPattern;

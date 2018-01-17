@@ -5,7 +5,7 @@ import ClassDeclaration from './ClassDeclaration';
 import FunctionDeclaration from './FunctionDeclaration';
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 

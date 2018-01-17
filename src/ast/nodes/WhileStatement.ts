@@ -1,6 +1,6 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { StatementBase, StatementNode } from './shared/Statement';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 import { ExpressionNode } from './shared/Node';
 
 export default class WhileStatement extends StatementBase {
