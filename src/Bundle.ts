@@ -265,16 +265,7 @@ export default class Bundle {
 
 				timeStart('render format');
 
-				const optionsPaths = options.paths;
-				const getPath =
-					typeof optionsPaths === 'function'
-						? (id: string) => optionsPaths(id) || this.getPathRelativeToEntryDirname(id)
-						: optionsPaths
-							? (id: string) =>
-								optionsPaths.hasOwnProperty(id)
-									? optionsPaths[id]
-									: this.getPathRelativeToEntryDirname(id)
-							: (id: string) => this.getPathRelativeToEntryDirname(id);
+				const getPath = this.createGetPath(options);
 
 				if (intro) intro += '\n\n';
 				if (outro) outro = `\n\n${outro}`;
@@ -342,5 +333,41 @@ export default class Bundle {
 					return { code, map } as { code: string, map: any }; // TODO TypeScript: Awaiting missing version in SourceMap type
 				});
 			});
+	}
+
+	renderModules (options: OutputOptions) {
+		const getPath = this.createGetPath(options);
+
+		const promises = this.orderedModules.map(module => {
+			if (options.excludedModules && options.excludedModules.indexOf(module.id) > -1) {
+			  return;
+			}
+			const source = module.render(true, false, false, {
+				preserveModules: true,
+				bundle: this,
+				getPath
+			});
+			const code: string = source.toString();
+			if (code.length) {
+				const oldFile = module.id.substr(options.srcDir.length + 1);
+				return { file: oldFile, code };
+			}
+		}).filter(Boolean);
+
+		return Promise.all(promises);
+	}
+
+	private createGetPath (options: OutputOptions) {
+		const optionsPaths = options.paths;
+		const getPath =
+			typeof optionsPaths === 'function'
+				? (id: string) => optionsPaths(id) || this.getPathRelativeToEntryDirname(id)
+				: optionsPaths
+					? (id: string) =>
+						optionsPaths.hasOwnProperty(id)
+							? optionsPaths[id]
+							: this.getPathRelativeToEntryDirname(id)
+					: (id: string) => this.getPathRelativeToEntryDirname(id);
+		return getPath;
 	}
 }

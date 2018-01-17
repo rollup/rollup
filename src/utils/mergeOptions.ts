@@ -73,6 +73,9 @@ export default function mergeOptions ({
 		cache: getInputOption('cache'),
 		preferConst: getInputOption('preferConst'),
 		experimentalDynamicImport: getInputOption('experimentalDynamicImport'),
+		preserveSymlinks: config.preserveSymlinks,
+		includeAllNamespacedInternal: config.includeAllNamespacedInternal,
+		includeNamespaceConflicts: config.includeNamespaceConflicts,
 	};
 
 	// legacy, to ensure e.g. commonjs plugin still works
@@ -128,6 +131,10 @@ export default function mergeOptions ({
 		paths: getOutputOption('paths'),
 		exports: getOutputOption('exports'),
 		file: getOutputOption('file'),
+		srcDir: getOutputOption('srcDir'),
+		destDir: getOutputOption('destDir'),
+		preserveModules: getOutputOption('preserveModules'),
+		excludedModules: getOutputOption('excludedModules'),
 	};
 
 	let mergedOutputOptions;

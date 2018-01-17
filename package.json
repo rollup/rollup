@@ -58,12 +58,15 @@
     "date-time": "^2.1.0",
     "eslint": "^4.11.0",
     "eslint-plugin-import": "^2.8.0",
+    "fixturify": "^0.3.4",
+    "fs-extra": "^5.0.0",
     "immutable": "^3.8.2",
     "is-reference": "^1.0.0",
     "istanbul": "^0.4.3",
     "locate-character": "^2.0.0",
     "magic-string": "^0.22.4",
     "minimist": "^1.2.0",
+    "mkdirp": "^0.5.1",
     "mocha": "^4.0.1",
     "pretty-ms": "^3.0.1",
     "remap-istanbul": "^0.9.5",
@@ -94,6 +97,5 @@
     "typings/package.json.d.ts",
     "bin/rollup",
     "README.md"
-  ],
-  "dependencies": {}
+  ]
 }

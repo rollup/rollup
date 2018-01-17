@@ -11,6 +11,9 @@ import Property from './Property';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './index';
+import ExportNamedDeclaration from './ExportNamedDeclaration';
+import ExternalModule from '../../ExternalModule';
+import { RenderOptions } from '../../rollup';
 
 export function isIdentifier (node: Node): node is Identifier {
 	return node.type === NodeType.Identifier;
@@ -69,6 +72,28 @@ export default class Identifier extends NodeBase {
 	includeInBundle () {
 		if (this.included) return false;
 		this.included = true;
+		const x = this.module.imports[this.name];
+		if (x) {
+			if (x.name === '*' && x.module instanceof ExternalModule && !this.variable && x.specifier.parent instanceof NodeBase) {
+				x.specifier.parent.includeInBundle();
+			} else {
+				x.specifier.includeInBundle();
+			}
+		}
+		const y = this.module.reexports[this.name];
+		if (y && !y.module.isExternal) {
+			y.module.ast.body.forEach(node => {
+				if (node instanceof ExportNamedDeclaration) {
+					node.specifiers.forEach(specifier => {
+						if (specifier.exported.name === y.localName) {
+							specifier.includeInBundle();
+						}
+					});
+				} else if (y.localName === 'default' && node.type === 'ExportDefaultDeclaration') {
+					node.includeInBundle();
+				}
+			});
+		}
 		this.variable && this.variable.includeVariable();
 		return true;
 	}
@@ -116,7 +141,11 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString, es: boolean, options: RenderOptions) {
+		if (options.preserveModules) {
+			return;
+		}
+
 		if (this.variable) {
 			const name = this.variable.getName(es);
 			if (name !== this.name) {

@@ -1,8 +1,13 @@
 import Identifier from "./Identifier";
-import { Node } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import { NodeType } from './index';
+import { includeInBundle } from "./ImportSpecifier";
 
-export default interface ImportNamespaceSpecifier extends Node {
+export default class ImportNamespaceSpecifier extends NodeBase {
   type: NodeType.ImportNamespaceSpecifier;
   local: Identifier;
+
+	includeInBundle () {
+		return includeInBundle(this);
+	}
 }

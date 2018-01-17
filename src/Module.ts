@@ -37,7 +37,10 @@ import { NodeType } from './ast/nodes/index';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
-import { missingExport } from './utils/defaults';
+import ExportSpecifier from './ast/nodes/ExportSpecifier';
+import ClassDeclaration from './ast/nodes/ClassDeclaration';
+import ExecutionPathOptions from './ast/ExecutionPathOptions';
+import { RenderOptions } from './rollup';
 
 wrapDynamicImportPlugin(acorn);
 
@@ -50,15 +53,25 @@ export interface CommentDescription {
 	end: number;
 }
 
+export interface ImportDescription {
+	source: string;
+	specifier: ImportSpecifier | ImportNamespaceSpecifier | ImportDefaultSpecifier;
+	name: string;
+	module: Module | ExternalModule | null;
+}
+
 export interface ExportDescription {
 	localName: string;
 	identifier?: string;
+	specifier?: ExportSpecifier;
+	declaration?: FunctionDeclaration | ClassDeclaration;
 }
 
 export interface ReexportDescription {
 	localName: string;
 	start: number;
 	source: string;
+	specifier: ExportSpecifier;
 	module: Module;
 }
 
@@ -112,14 +125,7 @@ export default class Module {
 	exportAllSources: string[];
 	id: string;
 
-	imports: {
-		[name: string]: {
-			source: string;
-			specifier: ImportSpecifier | ImportNamespaceSpecifier | ImportDefaultSpecifier;
-			name: string;
-			module: Module | ExternalModule | null;
-		}
-	};
+	imports: { [name: string]: ImportDescription };
 	isExternal: false;
 	magicString: MagicString;
 	originalCode: string;
@@ -133,6 +139,8 @@ export default class Module {
 	strongDependencies: (Module | ExternalModule)[];
 	dynamicImports: Import[];
 	dynamicImportResolutions: (Module | ExternalModule | string | void)[];
+	renderedModules: {[name: string]: Module}
+	renderedExternalModules: {[name: string]: ExternalModule};
 
 	ast: Program;
 	private astClone: Program;
@@ -236,6 +244,9 @@ export default class Module {
 		timeEnd('analyse');
 
 		this.strongDependencies = [];
+
+		this.renderedModules = blank();
+		this.renderedExternalModules = blank();
 	}
 
 	private addExport (node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration) {
@@ -267,6 +278,7 @@ export default class Module {
 						start: specifier.start,
 						source,
 						localName: specifier.local.name,
+						specifier,
 						module: null // filled in later
 					};
 				});
@@ -309,7 +321,7 @@ export default class Module {
 			} else {
 				// export function foo () {}
 				const localName = declaration.id.name;
-				this.exports[localName] = { localName };
+				this.exports[localName] = { localName, declaration };
 			}
 		} else {
 			// export { foo, bar, baz }
@@ -327,7 +339,7 @@ export default class Module {
 					);
 				}
 
-				this.exports[exportedName] = { localName };
+				this.exports[exportedName] = { localName, specifier };
 			});
 		}
 	}
@@ -387,7 +399,12 @@ export default class Module {
 
 	markExports () {
 		this.getExports().forEach(name => {
-			const variable = this.traceExport(name);
+			const [variable] = this.traceExport(name);
+
+			const y = this.exports[name];
+			if (y && y.specifier) {
+				y.specifier.includeInBundle();
+			}
 
 			variable.exportName = name;
 			variable.includeVariable();
@@ -398,13 +415,42 @@ export default class Module {
 		});
 
 		this.getReexports().forEach(name => {
-			const variable = this.traceExport(name);
+			let variables = this.traceExport(name);
 
-			if (variable.isExternal) {
-				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
-			} else {
-				variable.exportName = name;
-				variable.includeVariable();
+			const y = this.reexports[name];
+			if (y && !y.module.isExternal) {
+				y.module.ast.body.forEach(node => {
+					if (node instanceof ExportNamedDeclaration) {
+						node.specifiers.forEach(specifier => {
+							if (specifier.exported.name === y.localName) {
+								specifier.includeInBundle();
+							}
+						});
+					} else if (y.localName === 'default' && node.type === 'ExportDefaultDeclaration') {
+						node.includeInBundle();
+					}
+				});
+			}
+			if (y && y.specifier) {
+				y.specifier.includeInBundle();
+			}
+
+			variables.forEach(variable => {
+				if (variable.isExternal) {
+					variable.reexported = (<ExternalVariable>variable).module.reexported = true;
+				} else {
+					variable.exportName = name;
+					variable.includeVariable();
+				}
+			});
+		});
+
+		this.ast.body.forEach(node => {
+			if (node.type === 'ExportAllDeclaration') {
+				// let x = this.entryModule.resolvedIds[node.source.value];
+				// if (this.entryModule.resolvedExternalIds[node.source.value]) {
+				node.includeInBundle();
+				// }
 			}
 		});
 	}
@@ -544,6 +590,27 @@ export default class Module {
 		this.ast.body.forEach(includeFully);
 	}
 
+	includeAllInBundleRecursive(visited?: Set<Module>) {
+		if (!visited) {
+			visited = new Set();
+		} else if (visited.has(this)) {
+			return;
+		}
+
+		visited.add(this);
+
+		this.includeAllInBundle();
+
+		const modules = [this.imports, this.reexports].reduce((modules, type) => {
+			return modules.concat(Object.keys(type).map(key => type[key].module));
+		}, []).concat(this.exportAllModules);
+		new Set(modules).forEach(module => {
+			if (!module.isExternal) {
+				module.includeAllInBundleRecursive(visited);
+			}
+		});
+	}
+
 	includeInBundle () {
 		let addedNewNodes = false;
 		this.ast.body.forEach((node: Node) => {
@@ -564,14 +631,22 @@ export default class Module {
 		return this.declarations['*'];
 	}
 
-	render (es: boolean, legacy: boolean, freeze: boolean): MagicString {
+	hasEffects () {
+		return this.ast.body.some((node: Node) => {
+			return node.hasEffects(ExecutionPathOptions.create());
+		});
+	}
+
+	render (es: boolean, legacy: boolean, freeze: boolean, options: RenderOptions = {}): MagicString {
 		const magicString = this.magicString.clone();
 
-		for (const node of this.ast.body) {
-			node.render(magicString, es);
+		if (!options.preserveModules || this.graph.treeshake) {
+			for (const node of this.ast.body) {
+				node.render(magicString, es, options);
+			}
 		}
 
-		if (this.namespace().needsNamespaceBlock) {
+		if (!options.preserveModules && this.namespace().needsNamespaceBlock) {
 			magicString.append(
 				'\n\n' + this.namespace().renderBlock(es, legacy, freeze, '\t')
 			); // TODO use correct indentation
@@ -609,10 +684,10 @@ export default class Module {
 				return (<Module>otherModule).namespace();
 			}
 
-			const declaration = otherModule.traceExport(importDeclaration.name);
+			const [declaration] = otherModule.traceExport(importDeclaration.name);
 
 			if (!declaration) {
-				missingExport(this, importDeclaration.name, otherModule, importDeclaration.specifier.start);
+				this.graph.missingExport(this, importDeclaration.name, otherModule, importDeclaration.specifier.start);
 			}
 
 			return declaration;
@@ -621,7 +696,7 @@ export default class Module {
 		return null;
 	}
 
-	traceExport (name: string): Variable {
+	traceExport (name: string): Variable[] {
 		// export * from 'external'
 		if (name[0] === '*') {
 			const module = this.graph.moduleById.get(name.slice(1));
@@ -631,33 +706,46 @@ export default class Module {
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexports[name];
 		if (reexportDeclaration) {
-			const declaration = reexportDeclaration.module.traceExport(
+			const declarations = reexportDeclaration.module.traceExport(
 				reexportDeclaration.localName
 			);
 
-			if (!declaration) {
-				missingExport(this, reexportDeclaration.localName, reexportDeclaration.module, reexportDeclaration.start);
+			if (!declarations.length) {
+				this.graph.missingExport(this, reexportDeclaration.localName, reexportDeclaration.module, reexportDeclaration.start);
 			}
 
-			return declaration;
+			return declarations;
 		}
+
+		let declarations: Variable[] = [];
 
 		const exportDeclaration = this.exports[name];
 		if (exportDeclaration) {
 			const name = exportDeclaration.localName;
-			const declaration = this.trace(name);
+			let declaration = this.trace(name);
 
-			return declaration || this.graph.scope.findVariable(name);
+			if (!declaration) {
+				declaration = this.graph.scope.findVariable(name);
+			}
+
+			if (declaration) {
+				declarations.push(declaration);
+			}
+
+			return declarations;
 		}
 
-		if (name === 'default') return;
+		if (name === 'default') return [];
 
 		for (let i = 0; i < this.exportAllModules.length; i += 1) {
 			const module = this.exportAllModules[i];
-			const declaration = module.traceExport(name);
-
-			if (declaration) return declaration;
+			declarations = declarations.concat(module.traceExport(name));
+			if (!this.graph.includeNamespaceConflicts && declarations.length) {
+				break;
+			}
 		}
+
+		return declarations;
 	}
 
 	warn (warning: RollupWarning, pos: number) {

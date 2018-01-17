@@ -7,6 +7,7 @@ import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './index';
+import { RenderOptions } from '../../rollup';
 
 export function isProperty (node: Node): node is Property {
 	return node.type === NodeType.Property;
@@ -165,11 +166,11 @@ export default class Property extends NodeBase {
 		});
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString, es: boolean, options: RenderOptions) {
 		if (!this.shorthand) {
-			this.key.render(code, es);
+			this.key.render(code, es, options);
 		}
-		this.value.render(code, es);
+		this.value.render(code, es, options);
 	}
 
 	someReturnExpressionWhenCalledAtPath (

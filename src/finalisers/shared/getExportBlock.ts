@@ -9,7 +9,7 @@ export default function getExportBlock (
 	const entryModule = bundle.entryModule;
 
 	if (exportMode === 'default') {
-		return `${mechanism} ${entryModule.traceExport('default').getName(false)};`;
+		return `${mechanism} ${entryModule.traceExport('default')[0].getName(false)};`;
 	}
 
 	const exports = entryModule
@@ -27,7 +27,7 @@ export default function getExportBlock (
 			}
 
 			const prop = name === 'default' ? `['default']` : `.${name}`;
-			const declaration = entryModule.traceExport(name);
+			const [declaration] = entryModule.traceExport(name);
 
 			const lhs = `exports${prop}`;
 			const rhs = declaration ? declaration.getName(false) : name; // exporting a global

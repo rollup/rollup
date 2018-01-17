@@ -11,6 +11,8 @@ import { isNamespaceVariable } from '../variables/NamespaceVariable';
 import { isExternalVariable } from '../variables/ExternalVariable';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './index';
+import ModuleScope from '../scopes/ModuleScope';
+import { RenderOptions } from '../../rollup';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -80,6 +82,9 @@ export default class MemberExpression extends NodeBase {
 					resolvedVariable.module.suggestName(path[0].key);
 				}
 				this.variable = resolvedVariable;
+				if (this.scope instanceof ModuleScope) {
+					this.scope.namespacedVariables[resolvedVariable.name] = resolvedVariable;
+				}
 			}
 		} else {
 			this.bindChildren();
@@ -91,7 +96,7 @@ export default class MemberExpression extends NodeBase {
 		if (path.length === 0) return baseVariable;
 		if (!isNamespaceVariable(baseVariable)) return null;
 		const exportName = path[0].key;
-		const variable = baseVariable.module.traceExport(exportName);
+		const [variable] = baseVariable.module.traceExport(exportName);
 		if (!variable) {
 			this.module.warn(
 				{
@@ -223,12 +228,14 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString, es: boolean, options: RenderOptions) {
 		if (this.variable) {
-			code.overwrite(this.start, this.end, this.variable.getName(es), {
-				storeName: true,
-				contentOnly: false
-			});
+			if (!options.preserveModules || this.variable.isExternal) {
+				code.overwrite(this.start, this.end, this.variable.getName(es), {
+					storeName: true,
+					contentOnly: false
+				});
+			}
 		} else if (this.replacement) {
 			code.overwrite(this.start, this.end, this.replacement, {
 				storeName: true,
@@ -236,7 +243,7 @@ export default class MemberExpression extends NodeBase {
 			});
 		}
 
-		super.render(code, es);
+		super.render(code, es, options);
 	}
 
 	someReturnExpressionWhenCalledAtPath (
