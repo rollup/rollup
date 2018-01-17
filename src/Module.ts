@@ -543,6 +543,27 @@ export default class Module {
 		this.ast.body.forEach(includeFully);
 	}
 
+	includeAllInBundleRecursive(visited?: Set<Module>) {
+		if (!visited) {
+			visited = new Set();
+		} else if (visited.has(this)) {
+			return;
+		}
+
+		visited.add(this);
+
+		this.includeAllInBundle();
+
+		const modules = [this.imports, this.reexports].reduce((modules, type) => {
+			return modules.concat(Object.keys(type).map(key => type[key].module));
+		}, []).concat(this.exportAllModules);
+		new Set(modules).forEach(module => {
+			if (!module.isExternal) {
+				module.includeAllInBundleRecursive(visited);
+			}
+		});
+	}
+
 	includeInBundle () {
 		let addedNewNodes = false;
 		this.ast.body.forEach((node: Node) => {
