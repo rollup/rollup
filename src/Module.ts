@@ -37,7 +37,6 @@ import { NodeType } from './ast/nodes/index';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
-import { missingExport } from './utils/defaults';
 
 wrapDynamicImportPlugin(acorn);
 
@@ -544,6 +543,27 @@ export default class Module {
 		this.ast.body.forEach(includeFully);
 	}
 
+	includeAllInBundleRecursive(visited?: Set<Module>) {
+		if (!visited) {
+			visited = new Set();
+		} else if (visited.has(this)) {
+			return;
+		}
+
+		visited.add(this);
+
+		this.includeAllInBundle();
+
+		const modules = [this.imports, this.reexports].reduce((modules, type) => {
+			return modules.concat(Object.keys(type).map(key => type[key].module));
+		}, []).concat(this.exportAllModules);
+		new Set(modules).forEach(module => {
+			if (!module.isExternal) {
+				module.includeAllInBundleRecursive(visited);
+			}
+		});
+	}
+
 	includeInBundle () {
 		let addedNewNodes = false;
 		this.ast.body.forEach((node: Node) => {
@@ -612,7 +632,7 @@ export default class Module {
 			const declaration = otherModule.traceExport(importDeclaration.name);
 
 			if (!declaration) {
-				missingExport(this, importDeclaration.name, otherModule, importDeclaration.specifier.start);
+				this.graph.missingExport(this, importDeclaration.name, otherModule, importDeclaration.specifier.start);
 			}
 
 			return declaration;
@@ -636,7 +656,7 @@ export default class Module {
 			);
 
 			if (!declaration) {
-				missingExport(this, reexportDeclaration.localName, reexportDeclaration.module, reexportDeclaration.start);
+				this.graph.missingExport(this, reexportDeclaration.localName, reexportDeclaration.module, reexportDeclaration.start);
 			}
 
 			return declaration;
