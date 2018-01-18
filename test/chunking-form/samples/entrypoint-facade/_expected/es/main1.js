@@ -1,3 +1,3 @@
-import log, { dep } from './chunk-bd892da6.js';
+import log, { dep } from './chunk.js';
 
 log(dep);

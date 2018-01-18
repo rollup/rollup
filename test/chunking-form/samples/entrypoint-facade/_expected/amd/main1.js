@@ -1,5 +1,5 @@
-define(['./chunk-bd892da6.js'], function (__chunkBd892da6_js) { 'use strict';
+define(['./chunk.js'], function (__chunk_js) { 'use strict';
 
-	log(__chunkBd892da6_js.dep);
+	log(__chunk_js.dep);
 
 });

@@ -1,4 +1,4 @@
-import { multiplier } from './chunk-36864708.js';
+import { multiplier } from './chunk.js';
 
 function calc (num) {
   return num * multiplier;

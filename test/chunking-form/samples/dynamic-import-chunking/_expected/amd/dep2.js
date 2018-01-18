@@ -1,7 +1,7 @@
-define(['exports', './chunk-36864708.js'], function (exports, __chunk36864708_js) { 'use strict';
+define(['exports', './chunk.js'], function (exports, __chunk_js) { 'use strict';
 
   function mult (num) {
-    return num + __chunk36864708_js.multiplier;
+    return num + __chunk_js.multiplier;
   }
 
   exports.mult = mult;

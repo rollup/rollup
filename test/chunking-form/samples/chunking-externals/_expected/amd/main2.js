@@ -1,4 +1,4 @@
-define(['external', './chunk-bd892da6.js'], function (external, __chunkBd892da6_js) { 'use strict';
+define(['external', './chunk.js'], function (external, __chunk_js) { 'use strict';
 
   function fn () {
     console.log('lib1 fn');
@@ -13,7 +13,7 @@ define(['external', './chunk-bd892da6.js'], function (external, __chunkBd892da6_
   class Main2 {
     constructor () {
       fn$1();
-      __chunkBd892da6_js.fn();
+      __chunk_js.fn();
     }
   }
 

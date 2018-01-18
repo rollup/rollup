@@ -135,7 +135,7 @@ export default class Module {
 
 	execIndex: number;
 	isEntryPoint: boolean;
-	entryPointsHash: Buffer;
+	entryPointsHash: Uint8Array;
 	chunk: Chunk;
 
 	ast: Program;
@@ -183,6 +183,7 @@ export default class Module {
 		}
 		this.isEntryPoint = false;
 		this.execIndex = undefined;
+		this.entryPointsHash = new Uint8Array(10);
 
 		timeStart('ast');
 

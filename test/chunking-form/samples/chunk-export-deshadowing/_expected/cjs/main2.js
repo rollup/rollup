@@ -1,10 +1,10 @@
 'use strict';
 
-var __chunkBd892da6_js = require('./chunk-bd892da6.js');
+var __chunk_js = require('./chunk.js');
 
 class Main2 {
   constructor () {
-    __chunkBd892da6_js.fn$1();
+    __chunk_js.fn$1();
   }
 }
 
