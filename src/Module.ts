@@ -3,7 +3,7 @@ import wrapDynamicImportPlugin from './utils/dynamic-import-plugin';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
 import { timeStart, timeEnd } from './utils/flushTime';
-import { assign, blank, keys } from './utils/object';
+import { blank } from './utils/object';
 import { basename, extname } from './utils/path';
 import { makeLegal } from './utils/identifierHelpers';
 import getCodeFrame from './utils/getCodeFrame';
@@ -42,11 +42,6 @@ import Chunk from './Chunk';
 
 wrapDynamicImportPlugin(acorn);
 
-export interface VariableTrace {
-	variable: Variable;
-	module: Module | ExternalModule;
-};
-
 export interface IdMap { [key: string]: string; }
 
 export interface CommentDescription {
@@ -70,7 +65,7 @@ export interface ReexportDescription {
 
 function tryParse (module: Module, acornOptions: Object) {
 	try {
-		return acorn.parse(module.code, assign({
+		return acorn.parse(module.code, Object.assign({
 			ecmaVersion: 8,
 			sourceType: 'module',
 			onComment: (block: boolean, text: string, start: number, end: number) =>
@@ -433,7 +428,7 @@ export default class Module {
 		});
 
 		[this.imports, this.reexports].forEach(specifiers => {
-			keys(specifiers).forEach(name => {
+			Object.keys(specifiers).forEach(name => {
 				const specifier = specifiers[name];
 
 				const id = this.resolvedIds[specifier.source];
@@ -520,11 +515,7 @@ export default class Module {
 	}
 
 	getAllExports () {
-		const allExports = assign(blank(), this.exports);
-
-		keys(this.reexports).forEach(name => {
-			allExports[name] = true;
-		});
+		const allExports = Object.assign(blank(), this.exports, this.reexports);
 
 		this.exportAllModules.forEach(module => {
 			if (module.isExternal) {
@@ -539,17 +530,17 @@ export default class Module {
 				});
 		});
 
-		return keys(allExports);
+		return Object.keys(allExports);
 	}
 
 	getExports () {
-		return keys(this.exports);
+		return Object.keys(this.exports);
 	}
 
 	getReexports () {
 		const reexports = blank();
 
-		keys(this.reexports).forEach(name => {
+		Object.keys(this.reexports).forEach(name => {
 			reexports[name] = true;
 		});
 
@@ -567,7 +558,7 @@ export default class Module {
 				});
 		});
 
-		return keys(reexports);
+		return Object.keys(reexports);
 	}
 
 	includeAllInBundle () {

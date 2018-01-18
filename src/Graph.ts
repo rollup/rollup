@@ -32,6 +32,22 @@ import * as crypto from 'crypto';
 
 export type ResolveDynamicImportHandler = (specifier: string | Node, parentId: string) => Promise<string | void>;
 
+function generateUniqueEntryPointChunkName (id: string, curEntryChunkNames: string[]): string {
+	// entry point chunks are named by the entry point itself, with deduping
+	let entryName = path.basename(id);
+	let ext = path.extname(entryName);
+	entryName = entryName.substr(0, entryName.length - ext.length);
+	if (ext !== '.js' && ext !== '.mjs') {
+		entryName += ext;
+		ext = '.js';
+	}
+	let uniqueEntryName = entryName;
+	let uniqueIndex = 1;
+	while (curEntryChunkNames.indexOf(uniqueEntryName) !== -1)
+		uniqueEntryName = entryName + ++uniqueIndex + ext;
+	return uniqueEntryName + ext;
+}
+
 export default class Graph {
 	acornOptions: any;
 	cachedModules: Map<string, ModuleJSON>;
@@ -383,21 +399,6 @@ export default class Graph {
 				} = {};
 
 				const entryChunkNames: string[] = [];
-				function generateUniqueEntryPointChunkName (id: string): string {
-					// entry point chunks are named by the entry point itself, with deduping
-					let entryName = path.basename(id);
-					let ext = path.extname(entryName);
-					entryName = entryName.substr(0, entryName.length - ext.length);
-					if (ext !== '.js' && ext !== '.mjs') {
-						entryName += ext;
-						ext = '.js';
-					}
-					let uniqueEntryName = entryName;
-					let uniqueIndex = 1;
-					while (entryChunkNames.indexOf(uniqueEntryName) !== -1)
-						uniqueEntryName = entryName + ++uniqueIndex + ext;
-					return uniqueEntryName + ext;
-				}
 
 				// for each entry point module, ensure its exports
 				// are exported by the chunk itself, with safe name deduping
@@ -414,7 +415,7 @@ export default class Graph {
 				chunkList.forEach(chunk => {
 					// generate the imports and exports for the output chunk file
 					if (chunk.entryModule) {
-						const entryName = generateUniqueEntryPointChunkName(chunk.entryModule.id);
+						const entryName = generateUniqueEntryPointChunkName(chunk.entryModule.id, entryChunkNames);
 
 						// if the chunk exactly exports the entry point exports then
 						// it can replace the entry point
@@ -454,14 +455,13 @@ export default class Graph {
 
 		const visit = (module: Module, seen: { [id: string]: boolean } = {}) => {
 			if (seen[module.id]) {
-				// one more xor for circular entry points to ensure distinction
-				// to ensure one entry point per chunk property
-				if (module.isEntryPoint)
-					module.entryPointsHash = xor(module.entryPointsHash, curEntryHash);
 				hasCycles = true;
 				return;
 			}
 			seen[module.id] = true;
+
+			if (module.isEntryPoint && module !== curEntry)
+				return;
 
 			// Track entry point graph colouring by tracing all modules loaded by a given
 			// entry point and colouring those modules by the hash of its id. Colours are mixed as

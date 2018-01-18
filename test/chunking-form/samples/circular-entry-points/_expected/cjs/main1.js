@@ -2,10 +2,16 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var __chunkBd892da6_js = require('./chunk-bd892da6.js');
+var __main2_js = require('./main2.js');
+
+class C {
+  fn (num) {
+    console.log(num - __main2_js.p);
+  }
+}
 
 var p = 42;
 
-new __chunkBd892da6_js.C$1().fn(p);
+new C().fn(p);
 
 exports.p = p;

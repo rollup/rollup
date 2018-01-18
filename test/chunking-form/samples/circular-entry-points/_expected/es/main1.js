@@ -1,7 +1,13 @@
-import { C$1 as C } from './chunk-bd892da6.js';
+import { p } from './main2.js';
 
-var p = 42;
+class C {
+  fn (num) {
+    console.log(num - p);
+  }
+}
 
-new C().fn(p);
+var p$1 = 42;
 
-export { p };
+new C().fn(p$1);
+
+export { p$1 as p };

@@ -1,8 +1,7 @@
 import { timeStart, timeEnd } from './utils/flushTime';
 import { decode } from 'sourcemap-codec';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { find } from './utils/array';
-import { keys, blank, forOwn } from './utils/object';
+import { blank, forOwn } from './utils/object';
 import Module, { ModuleJSON } from './Module';
 import finalisers from './finalisers/index';
 import getExportMode from './utils/getExportMode';
@@ -209,7 +208,7 @@ export default class Chunk {
 
 	generateImports () {
 		this.orderedModules.forEach(module => {
-			keys(module.imports).forEach(importName => {
+			Object.keys(module.imports).forEach(importName => {
 				const declaration = module.imports[importName];
 
 				const tracedExport = this.traceExport(declaration.module, declaration.name);
@@ -223,7 +222,7 @@ export default class Chunk {
 
 				// namespace variable can indicate multiple imports
 				if (tracedExport.name === '*') {
-					keys((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations).forEach(importName => {
+					Object.keys((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations).forEach(importName => {
 						const original = ((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations)[importName];
 						this.populateImport(original, tracedExport);
 					});
@@ -274,7 +273,7 @@ export default class Chunk {
 	}
 
 	getExportNames (): string[] {
-		return keys(this.exports);
+		return Object.keys(this.exports);
 	}
 
 	getJsonModules (): ModuleJSON[] {
@@ -408,7 +407,7 @@ export default class Chunk {
 		}
 
 		// ensure no conflicts with globals
-		keys(this.graph.scope.variables).forEach(name => (used[name] = 1));
+		Object.keys(this.graph.scope.variables).forEach(name => (used[name] = 1));
 
 		function getSafeName (name: string): string {
 			let safeName = name;
@@ -593,7 +592,7 @@ export default class Chunk {
 						code: 'INVALID_OPTION',
 						message: `Invalid format: ${
 							options.format
-							} - valid options are ${keys(finalisers).join(', ')}`
+							} - valid options are ${Object.keys(finalisers).join(', ')}`
 					});
 				}
 
@@ -647,8 +646,7 @@ export default class Chunk {
 
 						if (
 							this.graph.hasLoaders ||
-							find(
-								this.graph.plugins,
+							this.graph.plugins.find(
 								plugin => Boolean(plugin.transform || plugin.transformBundle)
 							)
 						) {
