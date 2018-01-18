@@ -1,5 +1,5 @@
 import * as acorn from 'acorn';
-import wrapDynamicImportPlugin from './utils/dynamic-import-plugin';
+import wrapDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
 import { timeStart, timeEnd } from './utils/flushTime';
