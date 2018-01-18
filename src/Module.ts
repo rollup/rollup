@@ -38,6 +38,7 @@ import ExternalVariable from './ast/variables/ExternalVariable';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
 import { missingExport } from './utils/defaults';
+import { RenderOptions } from './rollup';
 
 wrapDynamicImportPlugin(acorn);
 
@@ -564,11 +565,11 @@ export default class Module {
 		return this.declarations['*'];
 	}
 
-	render (es: boolean, legacy: boolean, freeze: boolean): MagicString {
+	render (es: boolean, legacy: boolean, freeze: boolean, options: RenderOptions = {}): MagicString {
 		const magicString = this.magicString.clone();
 
 		for (const node of this.ast.body) {
-			node.render(magicString, es);
+			node.render(magicString, es, options);
 		}
 
 		if (this.namespace().needsNamespaceBlock) {

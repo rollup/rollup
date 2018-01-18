@@ -122,6 +122,9 @@ export interface OutputOptions {
 	moduleId?: string;
 }
 
+export interface RenderOptions {
+}
+
 export interface RollupWarning {
 	message?: string;
 	code?: string;
