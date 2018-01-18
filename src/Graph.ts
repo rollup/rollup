@@ -1,7 +1,7 @@
 /// <reference path="./Graph.d.ts" />
 import { timeEnd, timeStart } from './utils/flushTime';
 import first from './utils/first';
-import { blank, keys } from './utils/object';
+import { blank } from './utils/object';
 import Module, { IdMap, ModuleJSON } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
@@ -25,15 +25,13 @@ import { RawSourceMap } from 'source-map';
 import Program from './ast/nodes/Program';
 import { Node } from './ast/nodes/shared/Node';
 import Chunk from './Chunk';
-import path from 'path';
+import * as path from './utils/path';
 import GlobalScope from './ast/scopes/GlobalScope';
-import xor from 'buffer-xor';
-import * as crypto from 'crypto';
+import { randomUint8Array, Uint8ArrayXor, Uint8ArrayToHexString } from './utils/entryHashing';
 
 export type ResolveDynamicImportHandler = (specifier: string | Node, parentId: string) => Promise<string | void>;
 
-function generateUniqueEntryPointChunkName (id: string, curEntryChunkNames: string[]): string {
-	// entry point chunks are named by the entry point itself, with deduping
+function generateChunkName (id: string, curEntryChunkNames: string[], startAtTwo = false): string {
 	let entryName = path.basename(id);
 	let ext = path.extname(entryName);
 	entryName = entryName.substr(0, entryName.length - ext.length);
@@ -42,9 +40,9 @@ function generateUniqueEntryPointChunkName (id: string, curEntryChunkNames: stri
 		ext = '.js';
 	}
 	let uniqueEntryName = entryName;
-	let uniqueIndex = 1;
+	let uniqueIndex = startAtTwo ? 2 : 1;
 	while (curEntryChunkNames.indexOf(uniqueEntryName) !== -1)
-		uniqueEntryName = entryName + ++uniqueIndex + ext;
+		uniqueEntryName = entryName + uniqueIndex++;
 	return uniqueEntryName + ext;
 }
 
@@ -376,7 +374,7 @@ export default class Graph {
 				//       should be made to be its own entry point module before chunking
 				const chunkModules: { [entryHashSum: string]: Module[] } = {};
 				orderedModules.forEach(module => {
-					const entryPointsHashStr = module.entryPointsHash.toString('hex');
+					const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
 					let curChunk = chunkModules[entryPointsHashStr];
 					if (curChunk) {
 						curChunk.push(module);
@@ -386,19 +384,22 @@ export default class Graph {
 				});
 
 				// create each chunk
+				const chunkNames: string[] = [];
+				const multipleChunks = Object.keys(chunkNames).length > 1;
+				// number when multiple chunks
+				if (multipleChunks)
+					chunkNames.push('chunk-');
 				const chunkList: Chunk[] = [];
 				Object.keys(chunkModules).forEach(entryHashSum => {
 					const chunk = chunkModules[entryHashSum];
 					const chunkModulesOrdered = chunk.sort((moduleA, moduleB) => moduleA.execIndex > moduleB.execIndex ? 1 : -1);
-					chunkList.push(new Chunk(this, `./chunk-${entryHashSum.substr(0, 8)}.js`, chunkModulesOrdered));
+					chunkList.push(new Chunk(this, `./${generateChunkName(multipleChunks ? 'chunk-' : 'chunk', chunkNames)}`, chunkModulesOrdered));
 				});
 
 				// finally prepare output chunks
 				const chunks: {
 					[name: string]: Chunk
 				} = {};
-
-				const entryChunkNames: string[] = [];
 
 				// for each entry point module, ensure its exports
 				// are exported by the chunk itself, with safe name deduping
@@ -415,7 +416,7 @@ export default class Graph {
 				chunkList.forEach(chunk => {
 					// generate the imports and exports for the output chunk file
 					if (chunk.entryModule) {
-						const entryName = generateUniqueEntryPointChunkName(chunk.entryModule.id, entryChunkNames);
+						const entryName = generateChunkName(chunk.entryModule.id, chunkNames, true);
 
 						// if the chunk exactly exports the entry point exports then
 						// it can replace the entry point
@@ -446,7 +447,7 @@ export default class Graph {
 	}
 
 	private analyseExecution (entryModules: Module[]) {
-		let hasCycles = false, curEntry: Module, curEntryHash: Buffer;
+		let hasCycles = false, curEntry: Module, curEntryHash: Uint8Array;
 		const allSeen: { [id: string]: boolean } = {};
 
 		const ordered: Module[] = [];
@@ -467,10 +468,7 @@ export default class Graph {
 			// entry point and colouring those modules by the hash of its id. Colours are mixed as
 			// hash xors, providing the unique colouring of the graph into unique hash chunks.
 			// This is really all there is to automated chunking, the rest is chunk wiring.
-			if (module.entryPointsHash)
-				module.entryPointsHash = xor(module.entryPointsHash, curEntryHash);
-			else
-				module.entryPointsHash = curEntryHash;
+			Uint8ArrayXor(module.entryPointsHash, curEntryHash);
 
 			module.dependencies.forEach(depModule => {
 				if (!depModule.isExternal) {
@@ -499,7 +497,7 @@ export default class Graph {
 		for (let i = 0; i < entryModules.length; i++) {
 			curEntry = entryModules[i];
 			curEntry.isEntryPoint = true;
-			curEntryHash = crypto.createHash('md5').update(relativeId(curEntry.id)).digest();
+			curEntryHash = randomUint8Array(10);
 			visit(curEntry);
 		}
 
@@ -507,7 +505,7 @@ export default class Graph {
 		for (let i = 0; i < dynamicImports.length; i++) {
 			curEntry = dynamicImports[i];
 			curEntry.isEntryPoint = true;
-			curEntryHash = crypto.createHash('md5').update(relativeId(curEntry.id)).digest();
+			curEntryHash = randomUint8Array(10);
 			visit(curEntry);
 		}
 
@@ -631,7 +629,7 @@ export default class Graph {
 				this.moduleById.set(id, module);
 
 				return this.fetchAllDependencies(module).then(() => {
-					keys(module.exports).forEach(name => {
+					Object.keys(module.exports).forEach(name => {
 						if (name !== 'default') {
 							module.exportsAll[name] = module.id;
 						}
@@ -641,7 +639,7 @@ export default class Graph {
 						const exportAllModule = this.moduleById.get(id);
 						if (exportAllModule.isExternal) return;
 
-						keys((<Module>exportAllModule).exportsAll).forEach(name => {
+						Object.keys((<Module>exportAllModule).exportsAll).forEach(name => {
 							if (name in module.exportsAll) {
 								this.warn({
 									code: 'NAMESPACE_CONFLICT',
