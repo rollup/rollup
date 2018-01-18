@@ -1,11 +1,17 @@
-define(['exports', './chunk-bd892da6.js'], function (exports, __chunkBd892da6_js) { 'use strict';
+define(['exports', './main2.js'], function (exports, __main2_js) { 'use strict';
 
-	var p = 42;
+  class C {
+    fn (num) {
+      console.log(num - __main2_js.p);
+    }
+  }
 
-	new __chunkBd892da6_js.C$1().fn(p);
+  var p = 42;
 
-	exports.p = p;
+  new C().fn(p);
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+  exports.p = p;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
 
 });
