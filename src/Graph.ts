@@ -28,24 +28,25 @@ import Chunk from './Chunk';
 import * as path from './utils/path';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { randomUint8Array, Uint8ArrayXor, Uint8ArrayToHexString } from './utils/entryHashing';
+import { blank } from './utils/object';
 import firstSync from './utils/first-sync';
 
 export type ResolveDynamicImportHandler = (specifier: string | Node, parentId: string) => Promise<string | void>;
 
-function generateChunkName (id: string, curEntryChunkNames: string[], startAtTwo = false): string {
-	let entryName = path.basename(id);
-	let ext = path.extname(entryName);
-	entryName = entryName.substr(0, entryName.length - ext.length);
+function generateChunkName (id: string, chunkNames: { [name: string ]: boolean }, startAtTwo = false): string {
+	let name = path.basename(id);
+	let ext = path.extname(name);
+	name = name.substr(0, name.length - ext.length);
 	if (ext !== '.js' && ext !== '.mjs') {
-		entryName += ext;
+		name += ext;
 		ext = '.js';
 	}
-	let uniqueEntryName = entryName;
+	let uniqueName = name;
 	let uniqueIndex = startAtTwo ? 2 : 1;
-	while (curEntryChunkNames.indexOf(uniqueEntryName) !== -1)
-		uniqueEntryName = entryName + uniqueIndex++;
-	curEntryChunkNames.push(uniqueEntryName);
-	return uniqueEntryName + ext;
+	while (chunkNames[uniqueName])
+		uniqueName = name + uniqueIndex++;
+	chunkNames[uniqueName] = true;
+	return uniqueName + ext;
 }
 
 export default class Graph {
@@ -378,7 +379,8 @@ export default class Graph {
 				} = {};
 
 				// name the chunks
-				const chunkNames: string[] = ['chunk'];
+				const chunkNames: { [name: string]: boolean } = blank();
+				chunkNames['chunk'] = true;
 				chunkList.forEach(chunk => {
 					// generate the imports and exports for the output chunk file
 					if (chunk.entryModule) {

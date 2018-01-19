@@ -79,7 +79,7 @@ describe('form', () => {
 									expectedCode = 'missing file';
 								}
 
-								/*try {
+								try {
 									actualMap = JSON.parse(
 										sander
 											.readFileSync(samples, dir, '_actual', format, file + '.js.map')
@@ -108,10 +108,9 @@ describe('form', () => {
 								if (config.show) {
 									console.log(actualCode + '\n\n\n');
 								}
-								}*/
 
-								assert.equal(actualCode, expectedCode, `Unexpected file source for ${format}/${file}`);
-								// assert.deepEqual(actualMap, expectedMap `Unexpected source map for ${format}/${file}`);
+								assert.deepEqual(actualCode, expectedCode, `Unexpected file source for ${format}/${file}`);
+								assert.deepEqual(actualMap, expectedMap, `Unexpected source map for ${format}/${file}`);
 							});
 						});
 					});

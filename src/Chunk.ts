@@ -636,7 +636,7 @@ export default class Chunk {
 					if (options.sourcemap) {
 						timeStart('sourcemap');
 
-						let file = options.sourcemapFile || options.file;
+						let file = options.file ? options.sourcemapFile || options.file : this.id;
 						if (file)
 							file = resolve(
 								typeof process !== 'undefined' ? process.cwd() : '',
