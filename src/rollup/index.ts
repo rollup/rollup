@@ -231,18 +231,7 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 
 		timeStart('--BUILD--');
 
-		const codeSplitting = inputOptions.experimentalCodeSplitting;
-
-		if (codeSplitting) {
-			if (typeof inputOptions.input === 'string')
-				inputOptions.input = [inputOptions.input];
-		}
-		else if (inputOptions.input instanceof Array && !codeSplitting) {
-			error({
-				code: 'INVALID_OPTION',
-				message: 'Multiple inputs only supported when setting the experimentalCodeSplitting flag option.'
-			});
-		}
+		const codeSplitting = inputOptions.experimentalCodeSplitting && inputOptions.input instanceof Array;
 
 		if (!codeSplitting) return graph.buildSingle(inputOptions.input)
 			.then(chunk => {
@@ -389,6 +378,12 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 
 				function generate (rawOutputOptions: GenericConfigObject) {
 					const outputOptions = getAndCheckOutputOptions(inputOptions, rawOutputOptions);
+
+					if (typeof outputOptions.file === 'string')
+						error({
+							code: 'INVALID_OPTION',
+							message: 'When code splitting, the "dir" output option must be used, not "file".'
+						});
 
 					if (outputOptions.format === 'umd' || outputOptions.format === 'iife') {
 						error({
