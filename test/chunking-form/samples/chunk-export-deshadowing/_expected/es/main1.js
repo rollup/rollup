@@ -1,4 +1,4 @@
-import { fn } from './chunk.js';
+import { fn } from './chunk1.js';
 
 class Main1 {
   constructor () {

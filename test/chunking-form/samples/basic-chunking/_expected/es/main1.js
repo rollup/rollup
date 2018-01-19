@@ -1,4 +1,4 @@
-import { fn } from './chunk.js';
+import { fn } from './chunk1.js';
 
 function fn$1 () {
   console.log('dep1 fn');

@@ -43,6 +43,7 @@ function generateChunkName (id: string, curEntryChunkNames: string[], startAtTwo
 	let uniqueIndex = startAtTwo ? 2 : 1;
 	while (curEntryChunkNames.indexOf(uniqueEntryName) !== -1)
 		uniqueEntryName = entryName + uniqueIndex++;
+	curEntryChunkNames.push(uniqueEntryName);
 	return uniqueEntryName + ext;
 }
 
@@ -318,7 +319,8 @@ export default class Graph {
 				timeStart('phase 4');
 
 				// generate the imports and exports for the output chunk file
-				const chunk = new Chunk(this, entryModule.id, orderedModules);
+				const chunk = new Chunk(this, orderedModules);
+				chunk.setId(entryModule.id);
 				chunk.collectDependencies();
 				chunk.generateImports();
 				chunk.generateEntryExports(entryModule);
@@ -384,22 +386,12 @@ export default class Graph {
 				});
 
 				// create each chunk
-				const chunkNames: string[] = [];
-				const multipleChunks = Object.keys(chunkNames).length > 1;
-				// number when multiple chunks
-				if (multipleChunks)
-					chunkNames.push('chunk-');
 				const chunkList: Chunk[] = [];
 				Object.keys(chunkModules).forEach(entryHashSum => {
 					const chunk = chunkModules[entryHashSum];
 					const chunkModulesOrdered = chunk.sort((moduleA, moduleB) => moduleA.execIndex > moduleB.execIndex ? 1 : -1);
-					chunkList.push(new Chunk(this, `./${generateChunkName(multipleChunks ? 'chunk-' : 'chunk', chunkNames)}`, chunkModulesOrdered));
+					chunkList.push(new Chunk(this, chunkModulesOrdered));
 				});
-
-				// finally prepare output chunks
-				const chunks: {
-					[name: string]: Chunk
-				} = {};
 
 				// for each entry point module, ensure its exports
 				// are exported by the chunk itself, with safe name deduping
@@ -413,6 +405,13 @@ export default class Graph {
 					chunk.generateImports();
 				});
 
+				// finally prepare output chunks
+				const chunks: {
+					[name: string]: Chunk
+				} = {};
+
+				// name the chunks
+				const chunkNames: string[] = ['chunk'];
 				chunkList.forEach(chunk => {
 					// generate the imports and exports for the output chunk file
 					if (chunk.entryModule) {
@@ -423,21 +422,22 @@ export default class Graph {
 						if (chunk.isEntryModuleFacade) {
 							chunks['./' + entryName] = chunk;
 							chunk.setId('./' + entryName);
+							return;
 						// otherwise we create a special re-exporting entry point
 						// facade chunk with no modules
 						} else {
-							const entryPointFacade = new Chunk(this, './' + entryName, []);
+							const entryPointFacade = new Chunk(this, []);
+							entryPointFacade.setId('./' + entryName);
 							entryPointFacade.generateEntryExports(chunk.entryModule);
 							entryPointFacade.collectDependencies(chunk.entryModule);
 							entryPointFacade.generateImports();
 							chunks['./' + entryName] = entryPointFacade;
-							chunks[chunk.id] = chunk;
 						}
 					}
-					// internal chunk interface
-					else {
-						chunks[chunk.id] = chunk;
-					}
+					// name the chunk itself
+					const chunkName = generateChunkName('chunk', chunkNames);
+					chunk.setId('./' + chunkName);
+					chunks['./' + chunkName] = chunk;
 				});
 
 				timeEnd('phase 4');
