@@ -103,6 +103,10 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			}
 
 			removeExportDefault();
+
+			if (options.systemBindings && this.declaration.type === NodeType.ClassDeclaration) {
+				code.appendRight(this.end, ` exports('default', ${name});`);
+			}
 		} else {
 			if (treeshakeable) {
 				const hasEffects = this.declaration.hasEffects(
@@ -118,16 +122,20 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 			// Only output `var foo =` if `foo` is used
 			if (this.included) {
+				const systemBinding = options.systemBindings ? `exports('${this.variable.exportName}', ` : '';
 				code.overwrite(
 					this.start,
 					declaration_start,
-					`${this.module.graph.varOrConst} ${name} = `
+					`${this.module.graph.varOrConst} ${name} = ${systemBinding}`
 				);
+				if (systemBinding) {
+					code.prependRight(this.end - 1, ')');
+				}
 			} else {
 				removeExportDefault();
 			}
 		}
-		super.render(code, options);
 
+		super.render(code, options);
 	}
 }

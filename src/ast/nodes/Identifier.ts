@@ -12,6 +12,8 @@ import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../Module';
+import AssignmentExpression from './AssignmentExpression';
+import UpdateExpression from './UpdateExpression';
 
 export function isIdentifier (node: Node): node is Identifier {
 	return node.type === NodeType.Identifier;
@@ -117,9 +119,47 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	render (code: MagicString, _options: RenderOptions) {
+	renderSystemBindingUpdate (code: MagicString, name: string) {
+		switch (this.parent.type) {
+			case NodeType.AssignmentExpression: {
+				let expression: AssignmentExpression = <AssignmentExpression>this.parent;
+				if (expression.left === this) {
+					code.prependLeft(expression.right.start, `exports('${this.variable.exportName}', `);
+					code.prependRight(expression.right.end, `)`);
+				}
+			}
+			break;
+
+			case NodeType.UpdateExpression: {
+				let expression: UpdateExpression = <UpdateExpression>this.parent;
+				if (expression.prefix) {
+					code.overwrite(expression.start, expression.end,
+							`exports('${this.variable.exportName}', ${expression.operator}${name})`);
+				} else {
+					let op;
+					switch (expression.operator) {
+						case '++':
+							op = `${name} + 1`;
+						break;
+						case '--':
+							op = `${name} - 1`;
+						break;
+						case '**':
+							op = `${name} * ${name}`;
+						break;
+					}
+					code.overwrite(expression.start, expression.end,
+						`(exports(${this.variable.exportName}, ${op}), ${name}${expression.operator})`);
+				}
+			}
+			break;
+		}
+	}
+
+	render (code: MagicString, options: RenderOptions) {
 		if (this.variable) {
 			const name = this.variable.getName();
+
 			if (name !== this.name) {
 				code.overwrite(this.start, this.end, name, {
 					storeName: true,
@@ -130,6 +170,10 @@ export default class Identifier extends NodeBase {
 				if (this.parent.type === NodeType.Property && (<Property>this.parent).shorthand) {
 					code.appendLeft(this.start, `${this.name}: `);
 				}
+			}
+
+			if (options.systemBindings && this.variable.exportName) {
+				this.renderSystemBindingUpdate(code, name);
 			}
 		}
 	}
