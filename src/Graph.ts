@@ -1,7 +1,6 @@
 /// <reference path="./Graph.d.ts" />
 import { timeEnd, timeStart } from './utils/flushTime';
 import first from './utils/first';
-import { blank } from './utils/object';
 import Module, { IdMap, ModuleJSON } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
@@ -68,8 +67,6 @@ export default class Graph {
 	scope: GlobalScope;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
-	dependsOn: { [id: string]: { [id: string]: boolean } };
-	stronglyDependsOn: { [id: string]: { [id: string]: boolean } };
 
 	// deprecated
 	treeshake: boolean;
@@ -214,46 +211,8 @@ export default class Graph {
 	}
 
 	private link () {
-		this.stronglyDependsOn = blank();
-		this.dependsOn = blank();
-
-		this.modules.forEach(module => {
-			module.linkDependencies();
-			this.stronglyDependsOn[module.id] = blank();
-			this.dependsOn[module.id] = blank();
-		});
-
-		this.modules.forEach(module => {
-			const processStrongDependency = (dependency: Module) => {
-				if (dependency.isExternal)
-					return;
-				if (
-					dependency === module ||
-					this.stronglyDependsOn[module.id][dependency.id]
-				)
-					return;
-
-				this.stronglyDependsOn[module.id][dependency.id] = true;
-				dependency.strongDependencies.forEach(processStrongDependency);
-			};
-
-			const processDependency = (dependency: Module) => {
-				if (dependency.isExternal)
-					return;
-				if (dependency === module || this.dependsOn[module.id][dependency.id])
-					return;
-
-				this.dependsOn[module.id][dependency.id] = true;
-				dependency.dependencies.forEach(processDependency);
-			};
-
-			module.strongDependencies.forEach(processStrongDependency);
-			module.dependencies.forEach(processDependency);
-		});
-
-		this.modules.forEach(module => {
-			module.bindReferences()
-		});
+		this.modules.forEach(module => module.linkDependencies());
+		this.modules.forEach(module => module.bindReferences());
 	}
 
 	includeMarked (modules: Module[]) {
@@ -512,44 +471,8 @@ export default class Graph {
 		return { orderedModules: ordered, dynamicImports, hasCycles };
 	}
 
-	private warnCycle (entryModule: Module, ordered: Module[]) {
-		ordered.forEach((a, i) => {
-			for (i += 1; i < ordered.length; i += 1) {
-				const b = ordered[i];
-
-				// TODO reinstate this! it no longer works
-				if (this.stronglyDependsOn[a.id][b.id]) {
-					// somewhere, there is a module that imports b before a. Because
-					// b imports a, a is placed before b. We need to find the module
-					// in question, so we can provide a useful error message
-					let parent = '[[unknown]]';
-					const visited: { [id: string]: boolean } = {};
-
-					const findParent = (module: Module) => {
-						if (this.dependsOn[module.id][a.id] && this.dependsOn[module.id][b.id]) {
-							parent = module.id;
-							return true;
-						}
-						visited[module.id] = true;
-						for (let i = 0; i < module.dependencies.length; i += 1) {
-							const dependency = module.dependencies[i];
-							if (dependency.isExternal)
-								continue;
-							if (!visited[dependency.id] && findParent(<Module>dependency))
-								return true;
-						}
-					};
-
-					findParent(entryModule);
-
-					this.onwarn(
-						<any>`Module ${a.id} may be unable to evaluate without ${
-							b.id
-							}, but is included first due to a cyclical dependency. Consider swapping the import statements in ${parent} to ensure correct ordering`
-					);
-				}
-			}
-		});
+	private warnCycle (_entryModule: Module, _ordered: Module[]) {
+		// TODO: reinstate
 	}
 
 	private fetchModule (id: string, importer: string): Promise<Module> {

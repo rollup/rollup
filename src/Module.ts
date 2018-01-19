@@ -128,7 +128,6 @@ export default class Module {
 	resolvedIds: IdMap;
 	scope: ModuleScope;
 	sourcemapChain: RawSourceMap[];
-	strongDependencies: Module[];
 	sources: string[];
 	dynamicImports: Import[];
 	dynamicImportResolutions: (Module | ExternalModule | string | void)[];
@@ -182,7 +181,7 @@ export default class Module {
 			this.dynamicImportResolutions = [];
 		}
 		this.isEntryPoint = false;
-		this.execIndex = undefined;
+		this.execIndex = null;
 		this.entryPointsHash = new Uint8Array(10);
 
 		timeStart('ast');
@@ -242,8 +241,6 @@ export default class Module {
 		this.analyse();
 
 		timeEnd('analyse');
-
-		this.strongDependencies = [];
 	}
 
 	private addExport (node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration) {
