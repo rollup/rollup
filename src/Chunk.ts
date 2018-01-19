@@ -2,7 +2,7 @@ import { timeStart, timeEnd } from './utils/flushTime';
 import { decode } from 'sourcemap-codec';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { blank, forOwn } from './utils/object';
-import Module, { ModuleJSON } from './Module';
+import Module, { ModuleJSON, RenderOptions } from './Module';
 import finalisers from './finalisers/index';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
@@ -21,7 +21,8 @@ import Variable from './ast/variables/Variable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import { makeLegal } from './utils/identifierHelpers';
-import { DynamicImportMechanism } from './ast/nodes/Import';
+import LocalVariable from './ast/variables/LocalVariable';
+import { NodeType } from './ast/nodes/index';
 
 export type ChunkDependencies = {
 	id: string;
@@ -34,6 +35,7 @@ export type ChunkDependencies = {
 export type ChunkExports = {
 	local: string;
 	exported: string;
+	hoisted: boolean;
 }[];
 
 export interface ReexportSpecifier {
@@ -131,6 +133,7 @@ export default class Chunk {
 		while (this.exports[safeExportName]) {
 			safeExportName = (variable.exportName || variable.name) + '$' + ++i;
 		}
+		variable.exportName = safeExportName;
 
 		let curExport = this.exports[safeExportName] = { module, name: <string>undefined, variable };
 		this.exportedVariables.set(variable, safeExportName);
@@ -354,20 +357,25 @@ export default class Chunk {
 		).then(addons => addons.filter(Boolean).join(sep));
 	}
 
-	private setDynamicImportResolutions (format: string) {
-		const es = format === 'es';
-		let dynamicImportMechanism: DynamicImportMechanism;
+	private setDynamicImportResolutions (options: OutputOptions) {
+		const es = options.format === 'es';
+		let dynamicImportMechanism: { left: string, right: string };
 		if (!es) {
-			if (format === 'cjs') {
+			if (options.format === 'cjs') {
 				dynamicImportMechanism = {
 					left: 'Promise.resolve(require(',
 					right: '))'
 				};
-			} else if (format === 'amd') {
+			} else if (options.format === 'amd') {
 				dynamicImportMechanism = {
 					left: 'new Promise(function (resolve, reject) { require([',
 					right: '], resolve, reject) })'
-				}
+				};
+			} else if (options.format === 'system') {
+				dynamicImportMechanism = {
+					left: 'module.import(',
+					right: ')'
+				};
 			}
 		}
 		this.orderedModules.forEach(module => {
@@ -381,29 +389,27 @@ export default class Chunk {
 					// if we have the module in the chunk, inline as Promise.resolve(namespace)
 					// ensuring that we create a namespace import of it as well
 					if (replacement.chunk === this) {
-						node.setResolution(replacement.namespace(), { left: 'Promise.resolve().then(() => ', right: ')' });
+						node.setResolution(replacement.namespace());
 					// for the module in another chunk, import that other chunk directly
 					} else {
-						node.setResolution(`"${replacement.chunk.id}"`, dynamicImportMechanism);
+						node.setResolution(`"${replacement.chunk.id}"`);
 					}
 				// external dynamic import resolution
 				} else if (replacement instanceof ExternalModule) {
-					node.setResolution(`"${replacement.id}"`, dynamicImportMechanism);
+					node.setResolution(`"${replacement.id}"`);
 				// AST Node -> source replacement
 				} else {
-					node.setResolution(replacement, dynamicImportMechanism);
+					node.setResolution(replacement);
 				}
 			});
 		});
+		return dynamicImportMechanism;
 	}
 
 	private setIdentifierRenderResolutions (options: OutputOptions) {
 		const used = blank();
-		const es = options.format === 'es'
-
-		if (this.graph.dynamicImport) {
-			this.setDynamicImportResolutions(options.format);
-		}
+		const es = options.format === 'es';
+		const system = options.format === 'system';
 
 		// ensure no conflicts with globals
 		Object.keys(this.graph.scope.variables).forEach(name => (used[name] = 1));
@@ -416,6 +422,11 @@ export default class Chunk {
 			used[safeName] = 1;
 			return safeName;
 		}
+
+		// reserved internal binding names for system format wiring
+		if (system) {
+			used['_setter'] = used['_starExcludes'] = used['_$p'] = 1;
+    }
 
 		const toDeshadow: Set<string> = new Set();
 
@@ -440,9 +451,9 @@ export default class Chunk {
 							safeName = module.name;
 						}
 					} else {
-						safeName = es ? getSafeName(variable.name) : `${module.name}.${name}`;
+						safeName = (es || system) ? getSafeName(variable.name) : `${module.name}.${name}`;
 					}
-				} else if (es) {
+				} else if (es || system) {
 					safeName = getSafeName(variable.name);
 				} else {
 					safeName = `${(<Module>module).chunk.name}.${name}`;
@@ -455,7 +466,7 @@ export default class Chunk {
 			forOwn(module.scope.variables, variable => {
 				if (!(<ExportDefaultVariable>variable).isDefault || !(<ExportDefaultVariable>variable).hasId) {
 					let safeName;
-					if (es || !variable.isReassigned) {
+					if (es || system || !variable.isReassigned) {
 						safeName = getSafeName(variable.name);
 					} else {
 						const safeExportName = this.exportedVariables.get(variable);
@@ -535,9 +546,25 @@ export default class Chunk {
 			// skip external exports
 			if (expt.module.chunk !== this)
 				continue;
+
+			// determine if a hoisted export (function)
+			let hoisted = false;
+			if (expt.variable instanceof LocalVariable) {
+				expt.variable.declarations.forEach(decl => {
+					if (decl.type === NodeType.ExportDefaultDeclaration) {
+						if (decl.declaration.type === NodeType.FunctionDeclaration)
+							hoisted = true;
+					}
+					else if (decl.parent.type === NodeType.FunctionDeclaration) {
+						hoisted = true;
+					}
+				});
+			}
+
 			exports.push({
 				local: expt.variable.getName(),
-				exported: name
+				exported: name,
+				hoisted
 			});
 		}
 
@@ -563,12 +590,18 @@ export default class Chunk {
 
 				timeStart('render modules');
 
-				const renderOptions = {
+				const renderOptions: RenderOptions = {
 					legacy: this.graph.legacy,
-					freeze: options.freeze !== false
+					freeze: options.freeze !== false,
+					systemBindings: options.format === 'system',
+					importMechanism: undefined
 				};
 
 				this.setIdentifierRenderResolutions(options);
+
+				if (this.graph.dynamicImport) {
+					renderOptions.importMechanism = this.setDynamicImportResolutions(options);
+				}
 
 				this.orderedModules.forEach(module => {
 					const source = module.render(renderOptions);

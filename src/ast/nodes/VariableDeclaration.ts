@@ -86,6 +86,8 @@ export default class VariableDeclaration extends NodeBase {
 
 		let c = this.start;
 		let empty = true;
+		let lastSystemWrap = false;
+		let curSystemWrap = false;
 
 		for (let i = 0; i < this.declarations.length; i += 1) {
 			const declarator = this.declarations[i];
@@ -94,17 +96,23 @@ export default class VariableDeclaration extends NodeBase {
 
 			if (isIdentifier(declarator.id)) {
 				const variable = this.scope.findVariable(declarator.id.name);
+
 				const isExportedAndReassigned = variable.safeName && variable.safeName.indexOf('.') !== -1 && variable.exportName && variable.isReassigned;
+
+				if (options.systemBindings && variable.exportName && declarator.init) {
+					code.prependLeft(declarator.init.start, `exports('${variable.exportName}', `);
+					curSystemWrap = true;
+				}
 
 				if (isExportedAndReassigned) {
 					if (declarator.init) {
-						if (shouldSeparate) code.overwrite(c, declarator.start, prefix);
+						if (shouldSeparate) code.overwrite(c, declarator.start, (lastSystemWrap ? ')' : '') + prefix);
 						c = declarator.end;
 						empty = false;
 					}
 				} else if (!treeshake || variable.included) {
 					if (shouldSeparate)
-						code.overwrite(c, declarator.start, `${prefix}${this.kind} `); // TODO indentation
+						code.overwrite(c, declarator.start, `${lastSystemWrap ? ')' : ''}${prefix}${this.kind} `); // TODO indentation
 					c = declarator.end;
 					empty = false;
 				}
@@ -128,7 +136,7 @@ export default class VariableDeclaration extends NodeBase {
 
 				if (!treeshake || isIncluded) {
 					if (shouldSeparate)
-						code.overwrite(c, declarator.start, `${prefix}${this.kind} `); // TODO indentation
+						code.overwrite(c, declarator.start, `${lastSystemWrap ? ')' : ''}${prefix}${this.kind} `); // TODO indentation
 					c = declarator.end;
 					empty = false;
 				}
@@ -139,6 +147,9 @@ export default class VariableDeclaration extends NodeBase {
 			}
 
 			declarator.render(code, options);
+
+			lastSystemWrap = curSystemWrap;
+			curSystemWrap = false;
 		}
 
 		if (treeshake && empty) {
@@ -153,7 +164,7 @@ export default class VariableDeclaration extends NodeBase {
 				!forStatement.test(this.parent.type) || this === (<ForStatement | ForOfStatement | ForInStatement>this.parent).body;
 
 			if (this.end > c) {
-				code.overwrite(c, this.end, needsSemicolon ? ';' : '');
+				code.overwrite(c, this.end, (lastSystemWrap ? ')' : '') + (needsSemicolon ? ';' : ''));
 			} else if (needsSemicolon) {
 				this.insertSemicolon(code);
 			}
