@@ -1,4 +1,12 @@
 const CHAR_CODE_A = 97;
+const CHAR_CODE_0 = 48;
+
+function intToHex (num: number) {
+  if (num < 10)
+    return String.fromCharCode(CHAR_CODE_0 + num);
+  else
+    return String.fromCharCode(CHAR_CODE_A + (num - 10));
+}
 
 export function Uint8ArrayToHexString (buffer: Uint8Array) {
   let str = '';
@@ -6,8 +14,8 @@ export function Uint8ArrayToHexString (buffer: Uint8Array) {
   for (let i = 0; i < buffer.length; i++) {
     const num = buffer[i];
     // big endian conversion, but whatever
-    str += String.fromCharCode(CHAR_CODE_A + num >> 4);
-    str += String.fromCharCode(CHAR_CODE_A + num & 0xF);
+    str += intToHex(num >> 4);
+    str += intToHex(num & 0xF);
   }
   return str;
 }

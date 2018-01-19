@@ -82,8 +82,7 @@ export default class Chunk {
 	entryModule: Module;
 	isEntryModuleFacade: boolean;
 
-	constructor (graph: Graph, id: string, orderedModules: Module[]) {
-		this.setId(id);
+	constructor (graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
 		this.orderedModules = orderedModules;
 
