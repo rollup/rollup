@@ -6,11 +6,11 @@ import Module from '../Module';
 import ExternalModule from '../ExternalModule';
 import relativeId from './relativeId';
 
-export function load (id: string) {
+export function load(id: string) {
 	return readFileSync(id, 'utf-8');
 }
 
-function findFile (file: string): string | void {
+function findFile(file: string): string | void {
 	try {
 		const stats = lstatSync(file);
 		if (stats.isSymbolicLink()) return findFile(realpathSync(file));
@@ -26,11 +26,11 @@ function findFile (file: string): string | void {
 	}
 }
 
-function addJsExtensionIfNecessary (file: string) {
+function addJsExtensionIfNecessary(file: string) {
 	return findFile(file) || findFile(file + '.js');
 }
 
-export function resolveId (importee: string, importer: string) {
+export function resolveId(importee: string, importer: string) {
 	if (typeof process === 'undefined') {
 		error({
 			code: 'MISSING_PROCESS',
@@ -53,7 +53,7 @@ export function resolveId (importee: string, importer: string) {
 	);
 }
 
-export function makeOnwarn () {
+export function makeOnwarn() {
 	const warned = blank();
 
 	return (warning: any) => {
@@ -64,13 +64,16 @@ export function makeOnwarn () {
 	};
 }
 
-export function missingExport (module: Module, name: string, otherModule: Module | ExternalModule, start?: number) {
+export function missingExport(
+	module: Module,
+	name: string,
+	otherModule: Module | ExternalModule,
+	start?: number
+) {
 	module.error(
 		{
 			code: 'MISSING_EXPORT',
-			message: `'${
-				name
-				}' is not exported by ${relativeId(otherModule.id)}`,
+			message: `'${name}' is not exported by ${relativeId(otherModule.id)}`,
 			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
 		},
 		start

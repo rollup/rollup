@@ -1,5 +1,5 @@
-var path = require( 'path' );
-var assert = require( 'assert' );
+var path = require('path');
+var assert = require('assert');
 
 module.exports = {
 	description: 'disallows duplicate imports',
@@ -8,7 +8,7 @@ module.exports = {
 		message: `Identifier 'a' has already been declared`,
 		pos: 36,
 		loc: {
-			file: path.resolve( __dirname, 'main.js' ),
+			file: path.resolve(__dirname, 'main.js'),
 			line: 2,
 			column: 9
 		},

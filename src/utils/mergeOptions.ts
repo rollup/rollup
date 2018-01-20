@@ -2,7 +2,7 @@ import ensureArray from './ensureArray.js';
 import deprecateOptions, { Deprecation } from './deprecateOptions';
 import { InputOptions, WarningHandler, OutputOptions } from '../rollup/index';
 
-function normalizeObjectOptionValue (optionValue: any) {
+function normalizeObjectOptionValue(optionValue: any) {
 	if (!optionValue) {
 		return optionValue;
 	}
@@ -16,21 +16,21 @@ const defaultOnWarn: WarningHandler = warning => console.warn(warning.message); 
 
 export type GenericConfigObject = { [key: string]: any };
 
-export default function mergeOptions ({
+export default function mergeOptions({
 	config,
 	command = {},
 	deprecateConfig,
 	defaultOnWarnHandler = defaultOnWarn
 }: {
-	config: GenericConfigObject,
-	command?: GenericConfigObject,
-	deprecateConfig?: GenericConfigObject,
-	defaultOnWarnHandler?: WarningHandler
+	config: GenericConfigObject;
+	command?: GenericConfigObject;
+	deprecateConfig?: GenericConfigObject;
+	defaultOnWarnHandler?: WarningHandler;
 }): {
-	inputOptions: any,
-	outputOptions: any,
-	deprecations: Deprecation[],
-	optionError: string | null
+	inputOptions: any;
+	outputOptions: any;
+	deprecations: Deprecation[];
+	optionError: string | null;
 } {
 	const deprecations = deprecate(config, command, deprecateConfig);
 
@@ -40,7 +40,7 @@ export default function mergeOptions ({
 	const getInputOption = getOption(config);
 	const getOutputOption = getOption(config.output || {});
 
-	function getObjectOption (name: string) {
+	function getObjectOption(name: string) {
 		const commandOption = normalizeObjectOptionValue(command[name]);
 		const configOption = normalizeObjectOptionValue(config[name]);
 		if (commandOption !== undefined) {
@@ -72,7 +72,7 @@ export default function mergeOptions ({
 		watch: config.watch,
 		cache: getInputOption('cache'),
 		preferConst: getInputOption('preferConst'),
-		experimentalDynamicImport: getInputOption('experimentalDynamicImport'),
+		experimentalDynamicImport: getInputOption('experimentalDynamicImport')
 	};
 
 	// legacy, to ensure e.g. commonjs plugin still works
@@ -98,13 +98,14 @@ export default function mergeOptions ({
 	}
 
 	if (typeof configExternal === 'function') {
-		inputOptions.external = (id, ...rest: any[]) => configExternal(id, ...rest) || ~commandExternal.indexOf(id);
+		inputOptions.external = (id, ...rest: any[]) =>
+			configExternal(id, ...rest) || ~commandExternal.indexOf(id);
 	} else {
 		inputOptions.external = (configExternal || []).concat(commandExternal);
 	}
 
 	if (command.silent) {
-		inputOptions.onwarn = () => { };
+		inputOptions.onwarn = () => {};
 	}
 
 	const baseOutputOptions = {
@@ -127,7 +128,7 @@ export default function mergeOptions ({
 		noConflict: getOutputOption('noConflict'),
 		paths: getOutputOption('paths'),
 		exports: getOutputOption('exports'),
-		file: getOutputOption('file'),
+		file: getOutputOption('file')
 	};
 
 	let mergedOutputOptions;
@@ -142,11 +143,11 @@ export default function mergeOptions ({
 			command.output || config.output
 				? ensureArray(command.output || config.output)
 				: [
-					{
-						file: command.output ? command.output.file : null,
-						format: command.output ? command.output.format : null
-					}
-				];
+						{
+							file: command.output ? command.output.file : null,
+							format: command.output ? command.output.format : null
+						}
+					];
 	}
 
 	const outputOptions = mergedOutputOptions.map((output: any) => {
@@ -160,24 +161,28 @@ export default function mergeOptions ({
 		'pureExternalModules' // (backward compatibility) till everyone moves to treeshake.pureExternalModules
 	];
 	const outputOptionKeys: string[] = Array.isArray(config.output)
-		? config.output.reduce((keys: string[], o: OutputOptions) => [...keys, ...Object.keys(o)], [])
+		? config.output.reduce(
+				(keys: string[], o: OutputOptions) => [...keys, ...Object.keys(o)],
+				[]
+			)
 		: Object.keys(config.output || {});
-	const errors = [
-		...Object.keys(config || {}),
-		...outputOptionKeys
-	].filter(k => k !== 'output' && validKeys.indexOf(k) === -1);
+	const errors = [...Object.keys(config || {}), ...outputOptionKeys].filter(
+		k => k !== 'output' && validKeys.indexOf(k) === -1
+	);
 
 	return {
 		inputOptions,
 		outputOptions,
 		deprecations,
 		optionError: errors.length
-			? `Unknown option found: ${errors.join(', ')}. Allowed keys: ${validKeys.join(', ')}`
+			? `Unknown option found: ${errors.join(
+					', '
+				)}. Allowed keys: ${validKeys.join(', ')}`
 			: null
 	};
 }
 
-function deprecate (
+function deprecate(
 	config: GenericConfigObject,
 	command: GenericConfigObject = {},
 	deprecateConfig: GenericConfigObject = { input: true, output: true }

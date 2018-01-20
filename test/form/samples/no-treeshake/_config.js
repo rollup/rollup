@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'all code should be included if tree-shaking is disabled',
 	options: {
-		external: [ 'external' ],
+		external: ['external'],
 		globals: {
 			external: 'external'
 		},

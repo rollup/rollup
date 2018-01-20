@@ -1,3 +1,4 @@
 module.exports = {
-	description: 'correctly drop side-effect free statements in presence of update expression (#1564)'
+	description:
+		'correctly drop side-effect free statements in presence of update expression (#1564)'
 };

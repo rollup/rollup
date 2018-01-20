@@ -23,7 +23,8 @@
     "watch": "rollup -cw",
     "prepublishOnly": "npm run lint && npm run test:only && npm run test:leak",
     "prepare": "npm run build",
-    "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js"
+    "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js",
+    "format": "prettier --write src browser bin test/test.js test/*/index.js test/utils test/**/_config.js"
   },
   "repository": "rollup/rollup",
   "keywords": [
@@ -57,7 +58,9 @@
     "console-group": "^0.3.1",
     "date-time": "^2.1.0",
     "eslint": "^4.11.0",
+    "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-prettier": "^2.5.0",
     "immutable": "^3.8.2",
     "is-reference": "^1.0.0",
     "istanbul": "^0.4.3",
@@ -65,6 +68,7 @@
     "magic-string": "^0.22.4",
     "minimist": "^1.2.0",
     "mocha": "^4.0.1",
+    "prettier": "^1.10.2",
     "pretty-ms": "^3.0.1",
     "remap-istanbul": "^0.9.5",
     "require-relative": "^0.8.7",

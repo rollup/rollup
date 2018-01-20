@@ -3,6 +3,6 @@ module.exports = {
 	options: {
 		name: 'reexportsAliasingExternal',
 		format: 'es',
-		external: ['external'],
-	},
+		external: ['external']
+	}
 };

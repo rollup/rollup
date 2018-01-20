@@ -10,7 +10,7 @@ module.exports = {
 			pos: 13,
 			loc: {
 				column: 13,
-				file: require( 'path' ).resolve( __dirname, 'main.js' ),
+				file: require('path').resolve(__dirname, 'main.js'),
 				line: 1
 			},
 			frame: `

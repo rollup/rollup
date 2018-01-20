@@ -1,5 +1,5 @@
-const assert = require( 'assert' );
+const assert = require('assert');
 
 module.exports = {
-	description: 'Removes unused babel helpers from the build (#1595)',
+	description: 'Removes unused babel helpers from the build (#1595)'
 };

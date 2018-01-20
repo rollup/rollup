@@ -3,6 +3,6 @@ module.exports = {
 	options: {
 		name: 'reexportsDefaultExternal',
 		format: 'es',
-		external: ['external'],
-	},
+		external: ['external']
+	}
 };

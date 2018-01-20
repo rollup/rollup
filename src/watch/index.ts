@@ -1,7 +1,11 @@
 import path from 'path';
 import EventEmitter from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
-import rollup, { InputOptions, OutputOptions, OutputBundle } from '../rollup/index';
+import rollup, {
+	InputOptions,
+	OutputOptions,
+	OutputBundle
+} from '../rollup/index';
 import ensureArray from '../utils/ensureArray';
 import { mapSequence } from '../utils/promise';
 import { addTask, deleteTask } from './fileWatchers';
@@ -26,13 +30,13 @@ export interface RollupWatchOptions extends InputAndOutputOptions {
 	watch?: WatcherOptions;
 }
 
-export class Watcher extends (<{ new(): any }>EventEmitter) {
+export class Watcher extends (<{ new (): any }>EventEmitter) {
 	dirty: boolean;
 	running: boolean;
 	tasks: Task[];
 	succeeded: boolean;
 
-	constructor (configs: (RollupWatchOptions)[]) {
+	constructor(configs: (RollupWatchOptions)[]) {
 		super();
 
 		this.dirty = true;
@@ -45,7 +49,7 @@ export class Watcher extends (<{ new(): any }>EventEmitter) {
 		});
 	}
 
-	close () {
+	close() {
 		this.tasks.forEach(task => {
 			task.close();
 		});
@@ -53,7 +57,7 @@ export class Watcher extends (<{ new(): any }>EventEmitter) {
 		this.removeAllListeners();
 	}
 
-	_makeDirty () {
+	_makeDirty() {
 		if (this.dirty) return;
 		this.dirty = true;
 
@@ -64,7 +68,7 @@ export class Watcher extends (<{ new(): any }>EventEmitter) {
 		}
 	}
 
-	_run () {
+	_run() {
 		this.running = true;
 		this.dirty = false;
 
@@ -109,11 +113,11 @@ export class Task {
 	outputFiles: string[];
 	outputs: OutputOptions[];
 
-	deprecations: { old: string, new: string }[];
+	deprecations: { old: string; new: string }[];
 
 	filter: (id: string) => boolean;
 
-	constructor (watcher: Watcher, config: RollupWatchOptions) {
+	constructor(watcher: Watcher, config: RollupWatchOptions) {
 		this.cache = null;
 		this.watcher = watcher;
 
@@ -121,15 +125,19 @@ export class Task {
 		this.closed = false;
 		this.watched = new Set();
 
-		const { inputOptions, outputOptions, deprecations } = mergeOptions({ config });
+		const { inputOptions, outputOptions, deprecations } = mergeOptions({
+			config
+		});
 		this.inputOptions = inputOptions;
 
 		this.outputs = outputOptions;
 		this.outputFiles = this.outputs.map(output => path.resolve(output.file));
 
 		const watchOptions = inputOptions.watch || {};
-		if ('useChokidar' in watchOptions) watchOptions.chokidar = watchOptions.useChokidar;
-		let chokidarOptions = 'chokidar' in watchOptions ? watchOptions.chokidar : !!chokidar;
+		if ('useChokidar' in watchOptions)
+			watchOptions.chokidar = watchOptions.useChokidar;
+		let chokidarOptions =
+			'chokidar' in watchOptions ? watchOptions.chokidar : !!chokidar;
 		if (chokidarOptions) {
 			chokidarOptions = Object.assign(
 				chokidarOptions === true ? {} : chokidarOptions,
@@ -149,24 +157,27 @@ export class Task {
 		this.chokidarOptionsHash = JSON.stringify(chokidarOptions);
 
 		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
-		this.deprecations = [...deprecations, ...(watchOptions._deprecations || [])];
+		this.deprecations = [
+			...deprecations,
+			...(watchOptions._deprecations || [])
+		];
 	}
 
-	close () {
+	close() {
 		this.closed = true;
 		this.watched.forEach(id => {
 			deleteTask(id, this, this.chokidarOptionsHash);
 		});
 	}
 
-	makeDirty () {
+	makeDirty() {
 		if (!this.dirty) {
 			this.dirty = true;
 			this.watcher._makeDirty();
 		}
 	}
 
-	run () {
+	run() {
 		if (!this.dirty) return;
 		this.dirty = false;
 
@@ -186,8 +197,9 @@ export class Task {
 			this.inputOptions.onwarn({
 				code: 'DEPRECATED_OPTIONS',
 				deprecations: this.deprecations,
-				message: `The following options have been renamed — please update your config: ${this.deprecations.map(
-					option => `${option.old} -> ${option.new}`).join(', ')}`,
+				message: `The following options have been renamed — please update your config: ${this.deprecations
+					.map(option => `${option.old} -> ${option.new}`)
+					.join(', ')}`
 			});
 		}
 
@@ -234,7 +246,7 @@ export class Task {
 			});
 	}
 
-	watchFile (id: string) {
+	watchFile(id: string) {
 		if (!this.filter(id)) return;
 
 		if (this.outputFiles.some(file => file === id)) {
@@ -247,6 +259,6 @@ export class Task {
 	}
 }
 
-export default function watch (configs: RollupWatchOptions[]) {
+export default function watch(configs: RollupWatchOptions[]) {
 	return new Watcher(configs);
 }

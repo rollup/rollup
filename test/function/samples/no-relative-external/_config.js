@@ -1,4 +1,4 @@
-var assert = require( 'assert' );
+var assert = require('assert');
 
 module.exports = {
 	description: 'missing relative imports are an error, not a warning',

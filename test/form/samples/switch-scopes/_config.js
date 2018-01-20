@@ -1,6 +1,6 @@
 module.exports = {
 	description: 'correctly handles switch scopes',
-  options: {
-    name: 'myBundle'
-  }
+	options: {
+		name: 'myBundle'
+	}
 };

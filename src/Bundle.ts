@@ -34,19 +34,19 @@ export default class Bundle {
 	externalModules: ExternalModule[];
 	entryModule: Module;
 
-	constructor (graph: Graph, orderedModules: Module[]) {
+	constructor(graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
 		this.orderedModules = orderedModules;
 		this.externalModules = undefined;
 		this.entryModule = undefined;
 	}
 
-	bind () {
+	bind() {
 		this.orderedModules.forEach(module => module.bindImportSpecifiers());
 		this.orderedModules.forEach(module => module.bindReferences());
 	}
 
-	includeMarked (treeshake: boolean) {
+	includeMarked(treeshake: boolean) {
 		if (treeshake) {
 			let addedNewNodes;
 			do {
@@ -63,27 +63,36 @@ export default class Bundle {
 		}
 	}
 
-	setOutputFacade (entryModule: Module) {
+	setOutputFacade(entryModule: Module) {
 		this.entryModule = entryModule;
 	}
 
-	processExternals () {
+	processExternals() {
 		// prune unused external imports
 		this.externalModules = this.graph.externalModules.filter(module => {
 			return module.used || !this.graph.isPureExternalModule(module.id);
 		});
 	}
 
-	collectAddon (initialAddon: string, addonName: 'banner' | 'footer' | 'intro' | 'outro', sep: string = '\n') {
+	collectAddon(
+		initialAddon: string,
+		addonName: 'banner' | 'footer' | 'intro' | 'outro',
+		sep: string = '\n'
+	) {
 		return runSequence(
-			[{ pluginName: 'rollup', source: initialAddon } as { pluginName: string, source: string | (() => string) }]
+			[
+				{ pluginName: 'rollup', source: initialAddon } as {
+					pluginName: string;
+					source: string | (() => string);
+				}
+			]
 				.concat(
-				this.graph.plugins.map((plugin, idx) => {
-					return {
-						pluginName: plugin.name || `Plugin at pos ${idx}`,
-						source: plugin[addonName]
-					};
-				})
+					this.graph.plugins.map((plugin, idx) => {
+						return {
+							pluginName: plugin.name || `Plugin at pos ${idx}`,
+							source: plugin[addonName]
+						};
+					})
 				)
 				.map(addon => {
 					addon.source = callIfFunction(addon.source);
@@ -104,7 +113,7 @@ export default class Bundle {
 		).then(addons => addons.filter(Boolean).join(sep));
 	}
 
-	getPathRelativeToEntryDirname (resolvedId: string): string {
+	getPathRelativeToEntryDirname(resolvedId: string): string {
 		if (isRelative(resolvedId) || isAbsolute(resolvedId)) {
 			const entryDirname = dirname(this.entryModule.id);
 			const relativeToEntry = normalize(relative(entryDirname, resolvedId));
@@ -117,13 +126,13 @@ export default class Bundle {
 		return resolvedId;
 	}
 
-	deconflict () {
+	deconflict() {
 		const used = blank();
 
 		// ensure no conflicts with globals
 		keys(this.graph.scope.variables).forEach(name => (used[name] = 1));
 
-		function getSafeName (name: string): string {
+		function getSafeName(name: string): string {
 			while (used[name]) {
 				name += `$${used[name]++}`;
 			}
@@ -150,7 +159,10 @@ export default class Bundle {
 
 		this.orderedModules.forEach(module => {
 			forOwn(module.scope.variables, variable => {
-				if (!(<ExportDefaultVariable>variable).isDefault || !(<ExportDefaultVariable>variable).hasId) {
+				if (
+					!(<ExportDefaultVariable>variable).isDefault ||
+					!(<ExportDefaultVariable>variable).hasId
+				) {
 					variable.name = getSafeName(variable.name);
 				}
 			});
@@ -165,7 +177,7 @@ export default class Bundle {
 		this.graph.scope.deshadow(toDeshadow);
 	}
 
-	private setIdentifierRenderResolutions (options: OutputOptions) {
+	private setIdentifierRenderResolutions(options: OutputOptions) {
 		let dynamicImportMechanism: DynamicImportMechanism;
 
 		if (options.format !== 'es') {
@@ -178,7 +190,7 @@ export default class Bundle {
 				dynamicImportMechanism = {
 					left: 'new Promise(function (resolve, reject) { require([',
 					right: '], resolve, reject) })'
-				}
+				};
 			}
 		}
 
@@ -187,15 +199,17 @@ export default class Bundle {
 				module.dynamicImportResolutions.forEach((replacement, index) => {
 					const node = module.dynamicImports[index];
 
-					if (!replacement)
-						return;
+					if (!replacement) return;
 
 					if (replacement instanceof Module) {
-						node.setResolution(replacement.namespace(), { left: 'Promise.resolve().then(() => ', right: ')' });
-					// external dynamic import resolution
+						node.setResolution(replacement.namespace(), {
+							left: 'Promise.resolve().then(() => ',
+							right: ')'
+						});
+						// external dynamic import resolution
 					} else if (replacement instanceof ExternalModule) {
 						node.setResolution(`"${replacement.id}"`, dynamicImportMechanism);
-					// AST Node -> source replacement
+						// AST Node -> source replacement
 					} else {
 						node.setResolution(replacement, dynamicImportMechanism);
 					}
@@ -204,7 +218,7 @@ export default class Bundle {
 		});
 	}
 
-	render (options: OutputOptions) {
+	render(options: OutputOptions) {
 		return Promise.resolve()
 			.then(() => {
 				return Promise.all([
@@ -259,7 +273,7 @@ export default class Bundle {
 						code: 'INVALID_OPTION',
 						message: `Invalid format: ${
 							options.format
-							} - valid options are ${keys(finalisers).join(', ')}`
+						} - valid options are ${keys(finalisers).join(', ')}`
 					});
 				}
 
@@ -268,12 +282,13 @@ export default class Bundle {
 				const optionsPaths = options.paths;
 				const getPath =
 					typeof optionsPaths === 'function'
-						? (id: string) => optionsPaths(id) || this.getPathRelativeToEntryDirname(id)
+						? (id: string) =>
+								optionsPaths(id) || this.getPathRelativeToEntryDirname(id)
 						: optionsPaths
 							? (id: string) =>
-								optionsPaths.hasOwnProperty(id)
-									? optionsPaths[id]
-									: this.getPathRelativeToEntryDirname(id)
+									optionsPaths.hasOwnProperty(id)
+										? optionsPaths[id]
+										: this.getPathRelativeToEntryDirname(id)
 							: (id: string) => this.getPathRelativeToEntryDirname(id);
 
 				if (intro) intro += '\n\n';
@@ -313,9 +328,8 @@ export default class Bundle {
 
 						if (
 							this.graph.hasLoaders ||
-							find(
-								this.graph.plugins,
-								plugin => Boolean(plugin.transform || plugin.transformBundle)
+							find(this.graph.plugins, plugin =>
+								Boolean(plugin.transform || plugin.transformBundle)
 							)
 						) {
 							map = <any>magicString.generateMap({}); // TODO TypeScript: Awaiting missing version in SourceMap type
@@ -330,7 +344,10 @@ export default class Bundle {
 								bundleSourcemapChain
 							);
 						} else {
-							map = <any>magicString.generateMap({ file, includeContent: true }); // TODO TypeScript: Awaiting missing version in SourceMap type
+							map = <any>magicString.generateMap({
+								file,
+								includeContent: true
+							}); // TODO TypeScript: Awaiting missing version in SourceMap type
 						}
 
 						map.sources = map.sources.map(normalize);
@@ -339,7 +356,7 @@ export default class Bundle {
 					}
 
 					if (code[code.length - 1] !== '\n') code += '\n';
-					return { code, map } as { code: string, map: any }; // TODO TypeScript: Awaiting missing version in SourceMap type
+					return { code, map } as { code: string; map: any }; // TODO TypeScript: Awaiting missing version in SourceMap type
 				});
 			});
 	}

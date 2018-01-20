@@ -6,14 +6,20 @@ module.exports = {
 		plugins: [
 			{
 				banner: '/* first banner */',
-				footer: function () { return '/* first footer */'; }
+				footer: function() {
+					return '/* first footer */';
+				}
 			},
 			{
-				banner: function () { return '/* second banner */'; },
+				banner: function() {
+					return '/* second banner */';
+				},
 				footer: '/* second footer */'
 			},
 			{
-				banner: function () { return Promise.resolve('/* 3rd banner */'); },
+				banner: function() {
+					return Promise.resolve('/* 3rd banner */');
+				},
 				footer: '/* 3rd footer */'
 			}
 		]

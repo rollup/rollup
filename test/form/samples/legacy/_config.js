@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'supports environments without Object.freeze, Object.defined',
 	options: {
-	name: 'myBundle',
+		name: 'myBundle',
 		legacy: true
 	}
 };

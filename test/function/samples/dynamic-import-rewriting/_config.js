@@ -5,16 +5,18 @@ module.exports = {
 	options: {
 		experimentalDynamicImport: true,
 		external: ['asdf'],
-		plugins: [{
-			resolveDynamicImport (specifier, parent) {
-				return 'asdf';
+		plugins: [
+			{
+				resolveDynamicImport(specifier, parent) {
+					return 'asdf';
+				}
 			}
-		}]
+		]
 	},
-	exports (exports) {
+	exports(exports) {
 		return exports.promise;
 	},
-	runtimeError: function (error) {
+	runtimeError: function(error) {
 		assert.equal("Cannot find module 'asdf'", error.message);
 	}
 };

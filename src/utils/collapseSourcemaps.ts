@@ -10,24 +10,30 @@ class Source {
 	filename: string;
 	content: string;
 
-	constructor (filename: string, content: string) {
+	constructor(filename: string, content: string) {
 		this.isOriginal = true;
 		this.filename = filename;
 		this.content = content;
 	}
 
-	traceSegment (line: number, column: number, name: string): SourceMapSegmentObject {
+	traceSegment(
+		line: number,
+		column: number,
+		name: string
+	): SourceMapSegmentObject {
 		return { line, column, name, source: this };
 	}
 }
 
-type SourceMapSegmentVector = [number, number, number, number, number] | [number, number, number, number];
+type SourceMapSegmentVector =
+	| [number, number, number, number, number]
+	| [number, number, number, number];
 
 interface SourceMapSegmentObject {
 	line: number;
 	column: number;
 	name: string;
-	source: Source
+	source: Source;
 }
 
 class Link {
@@ -35,13 +41,16 @@ class Link {
 	names: string[];
 	mappings: SourceMapSegmentVector[][];
 
-	constructor (map: { names: string[], mappings: SourceMapSegmentVector[][] }, sources: Source[]) {
+	constructor(
+		map: { names: string[]; mappings: SourceMapSegmentVector[][] },
+		sources: Source[]
+	) {
 		this.sources = sources;
 		this.names = map.names;
 		this.mappings = map.mappings;
 	}
 
-	traceMappings () {
+	traceMappings() {
 		const sources: string[] = [];
 		const sourcesContent: string[] = [];
 		const names: string[] = [];
@@ -80,7 +89,7 @@ class Link {
 						error({
 							message: `Multiple conflicting contents for sourcemap source ${
 								source.filename
-								}`
+							}`
 						});
 					}
 
@@ -106,7 +115,7 @@ class Link {
 		return { sources, sourcesContent, names, mappings };
 	}
 
-	traceSegment (line: number, column: number, name: string) {
+	traceSegment(line: number, column: number, name: string) {
 		const segments = this.mappings[line];
 
 		if (!segments) return null;
@@ -133,7 +142,7 @@ class Link {
 }
 
 // TODO TypeScript: Fix <any> typecasts
-export default function collapseSourcemaps (
+export default function collapseSourcemaps(
 	bundle: Bundle,
 	file: string,
 	map: RawSourceMap,
@@ -167,7 +176,7 @@ export default function collapseSourcemaps (
 						);
 					});
 
-					source = <any> new Link(<any> module.originalSourcemap, baseSources);
+					source = <any>new Link(<any>module.originalSourcemap, baseSources);
 				}
 			}
 
@@ -178,7 +187,7 @@ export default function collapseSourcemaps (
 						plugin: map.plugin,
 						message: `Sourcemap is likely to be incorrect: a plugin${
 							map.plugin ? ` ('${map.plugin}')` : ``
-							} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
+						} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
 						url: `https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect`
 					});
 
@@ -188,16 +197,16 @@ export default function collapseSourcemaps (
 					};
 				}
 
-				source = <any> new Link(map, [source]);
+				source = <any>new Link(map, [source]);
 			});
 
 			return source;
 		});
 
-	let source = new Link(<any> map, moduleSources);
+	let source = new Link(<any>map, moduleSources);
 
 	bundleSourcemapChain.forEach(map => {
-		source = new Link(<any> map, [<any> source]);
+		source = new Link(<any>map, [<any>source]);
 	});
 
 	let { sources, sourcesContent, names, mappings } = source.traceMappings();
