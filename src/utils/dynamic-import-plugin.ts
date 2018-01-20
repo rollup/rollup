@@ -1,14 +1,14 @@
 // Dynamic Import support for acorn
 import { PluginsObject, TokenType } from 'acorn';
 
-export default function wrapDynamicImportPlugin (acorn: {
-	tokTypes: { [type: string]: TokenType },
-	plugins: PluginsObject
+export default function wrapDynamicImportPlugin(acorn: {
+	tokTypes: { [type: string]: TokenType };
+	plugins: PluginsObject;
 }) {
 	acorn.tokTypes._import.startsExpr = true;
 	acorn.plugins.dynamicImport = (instance: any) => {
 		instance.extend('parseStatement', (nextMethod: Function) => {
-			return function parseStatement (this: any, ...args: any[]) {
+			return function parseStatement(this: any, ...args: any[]) {
 				const node = this.startNode();
 				if (this.type === acorn.tokTypes._import) {
 					const nextToken = this.input[this.pos];
@@ -22,7 +22,7 @@ export default function wrapDynamicImportPlugin (acorn: {
 		});
 
 		instance.extend('parseExprAtom', (nextMethod: Function) => {
-			return function parseExprAtom (this: any, refDestructuringErrors: any) {
+			return function parseExprAtom(this: any, refDestructuringErrors: any) {
 				if (this.type === acorn.tokTypes._import) {
 					const node = this.startNode();
 					this.next();

@@ -1,4 +1,4 @@
-var assert = require( 'assert' );
+var assert = require('assert');
 
 module.exports = {
 	description: 'insists on correct casing for imports',

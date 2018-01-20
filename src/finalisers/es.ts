@@ -1,19 +1,29 @@
 import { keys } from '../utils/object';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import Bundle from '../Bundle';
-import ExternalVariable, { isExternalVariable } from '../ast/variables/ExternalVariable';
+import ExternalVariable, {
+	isExternalVariable
+} from '../ast/variables/ExternalVariable';
 
-function notDefault (name: string) {
+function notDefault(name: string) {
 	return name !== 'default';
 }
 
-export default function es (bundle: Bundle, magicString: MagicStringBundle, { getPath, intro, outro }: {
-	exportMode: string;
-	indentString: string;
-	getPath: (name: string) => string;
-	intro: string;
-	outro: string
-}) {
+export default function es(
+	bundle: Bundle,
+	magicString: MagicStringBundle,
+	{
+		getPath,
+		intro,
+		outro
+	}: {
+		exportMode: string;
+		indentString: string;
+		getPath: (name: string) => string;
+		intro: string;
+		outro: string;
+	}
+) {
 	const importBlock = bundle.externalModules
 		.map(module => {
 			const specifiers: string[] = [];
@@ -26,7 +36,7 @@ export default function es (bundle: Bundle, magicString: MagicStringBundle, { ge
 						return `* as ${module.name}`;
 					}
 
-					const declaration = <ExternalVariable> module.declarations[name];
+					const declaration = <ExternalVariable>module.declarations[name];
 
 					if (declaration.name === declaration.safeName)
 						return declaration.name;
@@ -108,7 +118,9 @@ export default function es (bundle: Bundle, magicString: MagicStringBundle, { ge
 				}
 				exportExternalSpecifiers
 					.get(declaration.module.id)
-					.push(declaration.name === name ? name : `${declaration.name} as ${name}`);
+					.push(
+						declaration.name === name ? name : `${declaration.name} as ${name}`
+					);
 			}
 
 			return;
@@ -136,9 +148,9 @@ export default function es (bundle: Bundle, magicString: MagicStringBundle, { ge
 	}
 
 	if (exportBlock.length)
-		(<any> magicString).append('\n\n' + exportBlock.join('\n').trim()); // TODO TypeScript: Awaiting PR
+		(<any>magicString).append('\n\n' + exportBlock.join('\n').trim()); // TODO TypeScript: Awaiting PR
 
-	if (outro) (<any> magicString).append(outro); // TODO TypeScript: Awaiting PR
+	if (outro) (<any>magicString).append(outro); // TODO TypeScript: Awaiting PR
 
-	return (<any> magicString).trim(); // TODO TypeScript: Awaiting PR
+	return (<any>magicString).trim(); // TODO TypeScript: Awaiting PR
 }

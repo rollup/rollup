@@ -4,15 +4,20 @@ import { OutputOptions } from '../rollup/index';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import Bundle from '../Bundle';
 
-export default function cjs (
+export default function cjs(
 	bundle: Bundle,
 	magicString: MagicStringBundle,
-	{ exportMode, getPath, intro, outro }: {
+	{
+		exportMode,
+		getPath,
+		intro,
+		outro
+	}: {
 		exportMode: string;
 		indentString: string;
 		getPath: (name: string) => string;
 		intro: string;
-		outro: string
+		outro: string;
 	},
 	options: OutputOptions
 ) {
@@ -35,7 +40,7 @@ export default function cjs (
 					return (
 						`${varOrConst} ${module.name} = require('${getPath(module.id)}');` +
 						`\n${varOrConst} ${module.name}__default = ${
-						module.name
+							module.name
 						}['default'];`
 					);
 				}
@@ -46,14 +51,14 @@ export default function cjs (
 					return (
 						`${varOrConst} ${module.name} = require('${getPath(module.id)}');` +
 						`\n${varOrConst} ${module.name}__default = _interopDefault(${
-						module.name
+							module.name
 						});`
 					);
 				}
 
 				return `${varOrConst} ${
 					module.name
-					} = _interopDefault(require('${getPath(module.id)}'));`;
+				} = _interopDefault(require('${getPath(module.id)}'));`;
 			} else {
 				const includedDeclarations = Object.keys(module.declarations).filter(
 					name => module.declarations[name].included
@@ -79,8 +84,8 @@ export default function cjs (
 	magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(bundle, exportMode, 'module.exports =');
-	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
-	if (outro) (<any> magicString).append(outro); // TODO TypeScript: Awaiting PR
+	if (exportBlock) (<any>magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
+	if (outro) (<any>magicString).append(outro); // TODO TypeScript: Awaiting PR
 
 	return magicString;
 }

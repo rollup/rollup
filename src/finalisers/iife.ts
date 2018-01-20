@@ -15,15 +15,20 @@ import ExternalModule from '../ExternalModule';
 
 const thisProp = (name: string) => `this${keypath(name)}`;
 
-export default function iife (
+export default function iife(
 	bundle: Bundle,
 	magicString: MagicStringBundle,
-	{ exportMode, indentString, intro, outro }: {
+	{
+		exportMode,
+		indentString,
+		intro,
+		outro
+	}: {
 		exportMode: string;
 		indentString: string;
 		getPath: (name: string) => string;
 		intro: string;
-		outro: string
+		outro: string;
 	},
 	options: OutputOptions
 ) {
@@ -94,10 +99,10 @@ export default function iife (
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(bundle, exportMode);
-	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
-	if (outro) (<any> magicString).append(outro); // TODO TypeScript: Awaiting PR
+	if (exportBlock) (<any>magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
+	if (outro) (<any>magicString).append(outro); // TODO TypeScript: Awaiting PR
 
-	return (<any> magicString)
+	return (<any>magicString)
 		.indent(indentString) // TODO TypeScript: Awaiting PR
 		.prepend(wrapperIntro)
 		.append(wrapperOutro);

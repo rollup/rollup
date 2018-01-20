@@ -19,7 +19,7 @@ export enum OptionTypes {
 	REPLACED_VARIABLE_INITS,
 	RETURN_EXPRESSIONS_ACCESSED_AT_PATH,
 	RETURN_EXPRESSIONS_ASSIGNED_AT_PATH,
-	RETURN_EXPRESSIONS_CALLED_AT_PATH,
+	RETURN_EXPRESSIONS_CALLED_AT_PATH
 }
 
 export type RESULT_KEY = {};
@@ -27,37 +27,51 @@ export const RESULT_KEY: RESULT_KEY = {};
 export type KeyTypes = OptionTypes | Entity | RESULT_KEY;
 
 export default class ExecutionPathOptions {
-	private optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>;
+	private optionValues: Immutable.Map<
+		KeyTypes,
+		boolean | Entity | ExpressionEntity[]
+	>;
 
-	static create () {
+	static create() {
 		return new this(Immutable.Map());
 	}
 
-	private constructor (optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>) {
+	private constructor(
+		optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>
+	) {
 		this.optionValues = optionValues;
 	}
 
-	private get (option: OptionTypes) {
+	private get(option: OptionTypes) {
 		return this.optionValues.get(option);
 	}
 
-	private remove (option: OptionTypes) {
+	private remove(option: OptionTypes) {
 		return new ExecutionPathOptions(this.optionValues.remove(option));
 	}
 
-	private set (option: OptionTypes, value: boolean | ExpressionEntity[]) {
+	private set(option: OptionTypes, value: boolean | ExpressionEntity[]) {
 		return new ExecutionPathOptions(this.optionValues.set(option, value));
 	}
 
-	private setIn (optionPath: (string | Entity | RESULT_KEY)[], value: boolean | Entity) {
+	private setIn(
+		optionPath: (string | Entity | RESULT_KEY)[],
+		value: boolean | Entity
+	) {
 		return new ExecutionPathOptions(this.optionValues.setIn(optionPath, value));
 	}
 
-	addAccessedNodeAtPath (path: ObjectPath, node: ExpressionEntity) {
-		return this.setIn([OptionTypes.ACCESSED_NODES, node, ...path, RESULT_KEY], true);
+	addAccessedNodeAtPath(path: ObjectPath, node: ExpressionEntity) {
+		return this.setIn(
+			[OptionTypes.ACCESSED_NODES, node, ...path, RESULT_KEY],
+			true
+		);
 	}
 
-	addAccessedReturnExpressionAtPath (path: ObjectPath, callExpression: CallExpression | Property) {
+	addAccessedReturnExpressionAtPath(
+		path: ObjectPath,
+		callExpression: CallExpression | Property
+	) {
 		return this.setIn(
 			[
 				OptionTypes.RETURN_EXPRESSIONS_ACCESSED_AT_PATH,
@@ -69,11 +83,17 @@ export default class ExecutionPathOptions {
 		);
 	}
 
-	addAssignedNodeAtPath (path: ObjectPath, node: WritableEntity) {
-		return this.setIn([OptionTypes.ASSIGNED_NODES, node, ...path, RESULT_KEY], true);
+	addAssignedNodeAtPath(path: ObjectPath, node: WritableEntity) {
+		return this.setIn(
+			[OptionTypes.ASSIGNED_NODES, node, ...path, RESULT_KEY],
+			true
+		);
 	}
 
-	addAssignedReturnExpressionAtPath (path: ObjectPath, callExpression: CallExpression | Property) {
+	addAssignedReturnExpressionAtPath(
+		path: ObjectPath,
+		callExpression: CallExpression | Property
+	) {
 		return this.setIn(
 			[
 				OptionTypes.RETURN_EXPRESSIONS_ASSIGNED_AT_PATH,
@@ -85,7 +105,11 @@ export default class ExecutionPathOptions {
 		);
 	}
 
-	addCalledNodeAtPathWithOptions (path: ObjectPath, node: ExpressionEntity, callOptions: CallOptions) {
+	addCalledNodeAtPathWithOptions(
+		path: ObjectPath,
+		node: ExpressionEntity,
+		callOptions: CallOptions
+	) {
 		return this.setIn(
 			[
 				OptionTypes.NODES_CALLED_AT_PATH_WITH_OPTIONS,
@@ -98,7 +122,10 @@ export default class ExecutionPathOptions {
 		);
 	}
 
-	addCalledReturnExpressionAtPath (path: ObjectPath, callExpression: CallExpression | Property) {
+	addCalledReturnExpressionAtPath(
+		path: ObjectPath,
+		callExpression: CallExpression | Property
+	) {
 		return this.setIn(
 			[
 				OptionTypes.RETURN_EXPRESSIONS_CALLED_AT_PATH,
@@ -110,21 +137,27 @@ export default class ExecutionPathOptions {
 		);
 	}
 
-	getArgumentsVariables (): ExpressionEntity[] {
-		return <ExpressionEntity[]>(this.get(OptionTypes.ARGUMENTS_VARIABLES) || []);
+	getArgumentsVariables(): ExpressionEntity[] {
+		return <ExpressionEntity[]>(this.get(OptionTypes.ARGUMENTS_VARIABLES) ||
+			[]);
 	}
 
-	getHasEffectsWhenCalledOptions () {
+	getHasEffectsWhenCalledOptions() {
 		return this.setIgnoreReturnAwaitYield()
 			.setIgnoreBreakStatements(false)
 			.setIgnoreNoLabels();
 	}
 
-	getReplacedVariableInit (variable: ThisVariable | ParameterVariable): ExpressionEntity {
-		return this.optionValues.getIn([OptionTypes.REPLACED_VARIABLE_INITS, variable]);
+	getReplacedVariableInit(
+		variable: ThisVariable | ParameterVariable
+	): ExpressionEntity {
+		return this.optionValues.getIn([
+			OptionTypes.REPLACED_VARIABLE_INITS,
+			variable
+		]);
 	}
 
-	hasNodeBeenAccessedAtPath (path: ObjectPath, node: ExpressionEntity): boolean {
+	hasNodeBeenAccessedAtPath(path: ObjectPath, node: ExpressionEntity): boolean {
 		return this.optionValues.getIn([
 			OptionTypes.ACCESSED_NODES,
 			node,
@@ -133,7 +166,7 @@ export default class ExecutionPathOptions {
 		]);
 	}
 
-	hasNodeBeenAssignedAtPath (path: ObjectPath, node: WritableEntity): boolean {
+	hasNodeBeenAssignedAtPath(path: ObjectPath, node: WritableEntity): boolean {
 		return this.optionValues.getIn([
 			OptionTypes.ASSIGNED_NODES,
 			node,
@@ -142,7 +175,11 @@ export default class ExecutionPathOptions {
 		]);
 	}
 
-	hasNodeBeenCalledAtPathWithOptions (path: ObjectPath, node: ExpressionEntity, callOptions: CallOptions): boolean {
+	hasNodeBeenCalledAtPathWithOptions(
+		path: ObjectPath,
+		node: ExpressionEntity,
+		callOptions: CallOptions
+	): boolean {
 		const previousCallOptions = this.optionValues.getIn([
 			OptionTypes.NODES_CALLED_AT_PATH_WITH_OPTIONS,
 			node,
@@ -157,7 +194,10 @@ export default class ExecutionPathOptions {
 		);
 	}
 
-	hasReturnExpressionBeenAccessedAtPath (path: ObjectPath, callExpression: CallExpression | Property): boolean {
+	hasReturnExpressionBeenAccessedAtPath(
+		path: ObjectPath,
+		callExpression: CallExpression | Property
+	): boolean {
 		return this.optionValues.getIn([
 			OptionTypes.RETURN_EXPRESSIONS_ACCESSED_AT_PATH,
 			callExpression,
@@ -166,7 +206,10 @@ export default class ExecutionPathOptions {
 		]);
 	}
 
-	hasReturnExpressionBeenAssignedAtPath (path: ObjectPath, callExpression: CallExpression | Property): boolean {
+	hasReturnExpressionBeenAssignedAtPath(
+		path: ObjectPath,
+		callExpression: CallExpression | Property
+	): boolean {
 		return this.optionValues.getIn([
 			OptionTypes.RETURN_EXPRESSIONS_ASSIGNED_AT_PATH,
 			callExpression,
@@ -175,7 +218,10 @@ export default class ExecutionPathOptions {
 		]);
 	}
 
-	hasReturnExpressionBeenCalledAtPath (path: ObjectPath, callExpression: CallExpression | Property): boolean {
+	hasReturnExpressionBeenCalledAtPath(
+		path: ObjectPath,
+		callExpression: CallExpression | Property
+	): boolean {
 		return this.optionValues.getIn([
 			OptionTypes.RETURN_EXPRESSIONS_CALLED_AT_PATH,
 			callExpression,
@@ -184,39 +230,42 @@ export default class ExecutionPathOptions {
 		]);
 	}
 
-	ignoreBreakStatements () {
+	ignoreBreakStatements() {
 		return this.get(OptionTypes.IGNORE_BREAK_STATEMENTS);
 	}
 
-	ignoreLabel (labelName: string) {
+	ignoreLabel(labelName: string) {
 		return this.optionValues.getIn([OptionTypes.IGNORED_LABELS, labelName]);
 	}
 
-	ignoreReturnAwaitYield () {
+	ignoreReturnAwaitYield() {
 		return this.get(OptionTypes.IGNORE_RETURN_AWAIT_YIELD);
 	}
 
-	replaceVariableInit (variable: ThisVariable | ParameterVariable, init: ExpressionEntity) {
+	replaceVariableInit(
+		variable: ThisVariable | ParameterVariable,
+		init: ExpressionEntity
+	) {
 		return this.setIn([OptionTypes.REPLACED_VARIABLE_INITS, variable], init);
 	}
 
-	setArgumentsVariables (variables: ExpressionEntity[]) {
+	setArgumentsVariables(variables: ExpressionEntity[]) {
 		return this.set(OptionTypes.ARGUMENTS_VARIABLES, variables);
 	}
 
-	setIgnoreBreakStatements (value = true) {
+	setIgnoreBreakStatements(value = true) {
 		return this.set(OptionTypes.IGNORE_BREAK_STATEMENTS, value);
 	}
 
-	setIgnoreLabel (labelName: string) {
+	setIgnoreLabel(labelName: string) {
 		return this.setIn([OptionTypes.IGNORED_LABELS, labelName], true);
 	}
 
-	setIgnoreNoLabels () {
+	setIgnoreNoLabels() {
 		return this.remove(OptionTypes.IGNORED_LABELS);
 	}
 
-	setIgnoreReturnAwaitYield (value = true) {
+	setIgnoreReturnAwaitYield(value = true) {
 		return this.set(OptionTypes.IGNORE_RETURN_AWAIT_YIELD, value);
 	}
 }

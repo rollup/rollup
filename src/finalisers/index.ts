@@ -10,12 +10,18 @@ import { OutputOptions } from '../rollup/index';
 export type Finaliser = (
 	bundle: Bundle,
 	magicString: MagicStringBundle,
-	{ exportMode, getPath, indentString, intro, outro }: {
+	{
+		exportMode,
+		getPath,
+		indentString,
+		intro,
+		outro
+	}: {
 		exportMode: string;
 		indentString: string;
 		getPath: (name: string) => string;
 		intro: string;
-		outro: string
+		outro: string;
 	},
 	options: OutputOptions
 ) => MagicStringBundle;

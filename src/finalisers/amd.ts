@@ -6,15 +6,21 @@ import Bundle from '../Bundle';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
 
-export default function amd (
+export default function amd(
 	bundle: Bundle,
 	magicString: MagicStringBundle,
-	{ exportMode, getPath, indentString, intro, outro }: {
+	{
+		exportMode,
+		getPath,
+		indentString,
+		intro,
+		outro
+	}: {
 		exportMode: string;
 		indentString: string;
 		getPath: (name: string) => string;
 		intro: string;
-		outro: string
+		outro: string;
 	},
 	options: OutputOptions
 ) {
@@ -46,12 +52,12 @@ export default function amd (
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(bundle, exportMode);
-	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
+	if (exportBlock) (<any>magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
 	if (exportMode === 'named' && options.legacy !== true)
-		(<any> magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR
-	if (outro) (<any> magicString).append(outro);
+		(<any>magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR
+	if (outro) (<any>magicString).append(outro);
 
-	return (<any> magicString) // TODO TypeScript: Awaiting PR
+	return (<any>magicString) // TODO TypeScript: Awaiting PR
 		.indent(indentString)
 		.append('\n\n});')
 		.prepend(wrapperStart);

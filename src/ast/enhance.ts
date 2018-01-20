@@ -9,7 +9,12 @@ import Import from './nodes/Import';
 
 const newline = /\n/;
 
-export default function enhance (ast: any, module: Module, comments: Comment[], dynamicImportReturnList: Import[]) {
+export default function enhance(
+	ast: any,
+	module: Module,
+	comments: Comment[],
+	dynamicImportReturnList: Import[]
+) {
 	enhanceNode(ast, {}, module, module.magicString, dynamicImportReturnList);
 
 	let comment = comments.shift();
@@ -32,11 +37,17 @@ export default function enhance (ast: any, module: Module, comments: Comment[], 
 	}
 }
 
-function isArrayOfNodes (raw: Node | Node[]): raw is Node[] {
+function isArrayOfNodes(raw: Node | Node[]): raw is Node[] {
 	return 'length' in raw;
 }
 
-function enhanceNode (raw: Node | Node[], parent: Node | {}, module: Module, code: MagicString, dynamicImportReturnList: Import[]) {
+function enhanceNode(
+	raw: Node | Node[],
+	parent: Node | {},
+	module: Module,
+	code: MagicString,
+	dynamicImportReturnList: Import[]
+) {
 	if (!raw) return;
 
 	if (isArrayOfNodes(raw)) {
@@ -67,7 +78,13 @@ function enhanceNode (raw: Node | Node[], parent: Node | {}, module: Module, cod
 	code.addSourcemapLocation(rawNode.end);
 
 	for (const key of keys[rawNode.type]) {
-		enhanceNode((<any>rawNode)[key], rawNode, module, code, dynamicImportReturnList);
+		enhanceNode(
+			(<any>rawNode)[key],
+			rawNode,
+			module,
+			code,
+			dynamicImportReturnList
+		);
 	}
 
 	const type = nodes[rawNode.type] || UnknownNode;

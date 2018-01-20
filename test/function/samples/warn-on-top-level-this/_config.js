@@ -1,5 +1,5 @@
-const path = require( 'path' );
-const assert = require( 'assert' );
+const path = require('path');
+const assert = require('assert');
 
 module.exports = {
 	description: 'warns on top-level this (#770)',
@@ -10,7 +10,7 @@ module.exports = {
 			message: `The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten`,
 			pos: 81,
 			loc: {
-				file: require( 'path' ).resolve( __dirname, 'main.js' ),
+				file: require('path').resolve(__dirname, 'main.js'),
 				line: 3,
 				column: 0
 			},
@@ -24,6 +24,6 @@ module.exports = {
 		}
 	],
 	runtimeError: err => {
-		assert.equal( err.message, `Cannot set property 'foo' of undefined` );
+		assert.equal(err.message, `Cannot set property 'foo' of undefined`);
 	}
 };

@@ -5,4 +5,3 @@ module.exports = {
 		name: 'my.name.spaced.module'
 	}
 };
-

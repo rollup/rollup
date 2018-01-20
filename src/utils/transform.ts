@@ -7,7 +7,7 @@ import { RawSourceMap } from 'source-map';
 import { Plugin, RollupWarning, SourceDescription } from '../rollup/index';
 import Program from '../ast/nodes/Program';
 
-export default function transform (
+export default function transform(
 	graph: Graph,
 	source: SourceDescription,
 	id: string,
@@ -31,8 +31,13 @@ export default function transform (
 		if (!plugin.transform) return;
 
 		promise = promise.then(previous => {
-			function augment<T extends RollupError | RollupWarning> (object: T | string, pos: { line: number, column: number }, code: string): T {
-				const outObject = typeof object === 'string' ? <T>{ message: object } : object;
+			function augment<T extends RollupError | RollupWarning>(
+				object: T | string,
+				pos: { line: number; column: number },
+				code: string
+			): T {
+				const outObject =
+					typeof object === 'string' ? <T>{ message: object } : object;
 
 				if (outObject.code) outObject.pluginCode = outObject.code;
 				outObject.code = code;
@@ -59,12 +64,15 @@ export default function transform (
 			let throwing;
 
 			const context = {
-				warn: (warning: RollupWarning, pos: { line: number, column: number }) => {
+				warn: (
+					warning: RollupWarning,
+					pos: { line: number; column: number }
+				) => {
 					warning = augment(warning, pos, 'PLUGIN_WARNING');
 					graph.warn(warning);
 				},
 
-				error (err: RollupError, pos?: { line: number, column: number }) {
+				error(err: RollupError, pos?: { line: number; column: number }) {
 					err = augment(err, pos, 'PLUGIN_ERROR');
 					throwing = true;
 					error(err);

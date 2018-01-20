@@ -1,4 +1,4 @@
-export default function clone<T> (node: T): T {
+export default function clone<T>(node: T): T {
 	if (!node) return node;
 	if (typeof node !== 'object') return node;
 

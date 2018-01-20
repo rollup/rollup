@@ -13,12 +13,12 @@ import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
 import ExternalModule from '../ExternalModule';
 
-function globalProp (name: string) {
+function globalProp(name: string) {
 	if (!name) return 'null';
 	return `global${keypath(name)}`;
 }
 
-function safeAccess (name: string) {
+function safeAccess(name: string) {
 	const parts = name.split('.');
 
 	let acc = 'global';
@@ -27,15 +27,21 @@ function safeAccess (name: string) {
 
 const wrapperOutro = '\n\n})));';
 
-export default function umd (
+export default function umd(
 	bundle: Bundle,
 	magicString: MagicStringBundle,
-	{ exportMode, indentString, getPath, intro, outro }: {
+	{
+		exportMode,
+		indentString,
+		getPath,
+		intro,
+		outro
+	}: {
 		exportMode: string;
 		indentString: string;
 		getPath: (name: string) => string;
 		intro: string;
-		outro: string
+		outro: string;
 	},
 	options: OutputOptions
 ) {
@@ -67,7 +73,7 @@ export default function umd (
 		cjsDeps.unshift(`exports`);
 		globalDeps.unshift(
 			`(${setupNamespace(options.name, 'global', true, options.globals)} = ${
-			options.extend ? `${globalProp(options.name)} || ` : ''
+				options.extend ? `${globalProp(options.name)} || ` : ''
 			}{})`
 		);
 
@@ -107,8 +113,8 @@ export default function umd (
 				${factory}
 				${globalProp(options.name)} = exports;
 				exports.noConflict = function() { ${globalProp(
-				options.name
-			)} = current; return exports; };
+					options.name
+				)} = current; return exports; };
 			})()`;
 	} else {
 		globalExport = `(${defaultExport}factory(${globalDeps}))`;
@@ -116,8 +122,8 @@ export default function umd (
 
 	const wrapperIntro = `(function (global, factory) {
 			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join(
-			', '
-		)}) :
+		', '
+	)}) :
 			typeof ${define} === 'function' && ${define}.amd ? ${define}(${amdParams}factory) :
 			${globalExport};
 		}(this, (function (${args}) {${useStrict}
@@ -133,12 +139,12 @@ export default function umd (
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(bundle, exportMode);
-	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
+	if (exportBlock) (<any>magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
 	if (exportMode === 'named' && options.legacy !== true)
-		(<any> magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR
-	if (outro) (<any> magicString).append(outro); // TODO TypeScript: Awaiting PR
+		(<any>magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR
+	if (outro) (<any>magicString).append(outro); // TODO TypeScript: Awaiting PR
 
-	return (<any> magicString)
+	return (<any>magicString)
 		.trim() // TODO TypeScript: Awaiting PR
 		.indent(indentString)
 		.append(wrapperOutro)

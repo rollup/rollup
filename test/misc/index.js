@@ -31,17 +31,19 @@ describe('sanity checks', () => {
 			.rollup({
 				entry: 'x',
 				plugins: [loader({ x: `console.log( 42 );` })],
-				onwarn (warning, onwarn) {
+				onwarn(warning, onwarn) {
 					args = [warning, onwarn];
 				}
 			})
 			.then(() => {
 				assert.deepEqual(args[0], {
 					code: 'DEPRECATED_OPTIONS',
-					deprecations: [{
-						new: 'input',
-						old: 'entry',
-					}],
+					deprecations: [
+						{
+							new: 'input',
+							old: 'entry'
+						}
+					],
 					message: `The following options have been renamed — please update your config: entry -> input`
 				});
 				assert.equal(typeof args[1], 'function');
@@ -62,17 +64,22 @@ describe('sanity checks', () => {
 	it('fails with invalid keys', () => {
 		const warnings = [];
 		const onwarn = warning => warnings.push(warning);
-		return rollup.rollup({ input: 'x', onwarn, plUgins: [], plugins: [loader({ x: `console.log( 42 );` })] }).then(
-			() => {
-				assert.deepEqual(
-					warnings,
-					[{
+		return rollup
+			.rollup({
+				input: 'x',
+				onwarn,
+				plUgins: [],
+				plugins: [loader({ x: `console.log( 42 );` })]
+			})
+			.then(() => {
+				assert.deepEqual(warnings, [
+					{
 						code: 'UNKNOWN_OPTION',
-						message: 'Unknown option found: plUgins. Allowed keys: input, legacy, treeshake, acorn, context, moduleContext, plugins, onwarn, watch, cache, preferConst, experimentalDynamicImport, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, indent, strict, noConflict, paths, exports, file, pureExternalModules'
-					}]
-				);
-			}
-		);
+						message:
+							'Unknown option found: plUgins. Allowed keys: input, legacy, treeshake, acorn, context, moduleContext, plugins, onwarn, watch, cache, preferConst, experimentalDynamicImport, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, indent, strict, noConflict, paths, exports, file, pureExternalModules'
+					}
+				]);
+			});
 	});
 
 	it('treats Literals as leaf nodes, even if first literal encountered is null', () => {
@@ -134,52 +141,57 @@ describe('sanity checks', () => {
 describe('deprecations', () => {
 	it('warns on options.entry, but handles', () => {
 		const warnings = [];
-		return rollup.rollup({
-			entry: 'x',
-			plugins: [loader({ x: `export default 42` })],
-			onwarn: warning => {
-				warnings.push(warning);
-			}
-		}).then(executeBundle).then(result => {
-			assert.equal(result, 42);
-			assert.deepEqual(warnings, [
-				{
-					code: 'DEPRECATED_OPTIONS',
-					deprecations: [{
-						new: 'input',
-						old: 'entry',
-					}],
-					message: `The following options have been renamed — please update your config: entry -> input`
+		return rollup
+			.rollup({
+				entry: 'x',
+				plugins: [loader({ x: `export default 42` })],
+				onwarn: warning => {
+					warnings.push(warning);
 				}
-			]);
-		});
+			})
+			.then(executeBundle)
+			.then(result => {
+				assert.equal(result, 42);
+				assert.deepEqual(warnings, [
+					{
+						code: 'DEPRECATED_OPTIONS',
+						deprecations: [
+							{
+								new: 'input',
+								old: 'entry'
+							}
+						],
+						message: `The following options have been renamed — please update your config: entry -> input`
+					}
+				]);
+			});
 	});
 
 	it('adds deprecations correctly for rollup', () => {
 		const warnings = [];
-		return rollup.rollup({
-			entry: 'x',
-			format: 'cjs',
-			indent: true,
-			sourceMap: true,
-			plugins: [loader({ x: `export default 42` })],
-			onwarn: warning => {
-				warnings.push(warning);
-			}
-		}).then(executeBundle).then(result => {
-			assert.equal(result, 42);
-			const deprecations = warnings[0].deprecations;
-			assert.equal(deprecations.length, 4);
-			assert.deepEqual(
-				deprecations,
-				[
-					{ new: "input", old: "entry" },
-					{ new: "output.indent", old: "indent" },
-					{ new: "output.sourcemap", old: "sourceMap" },
-					{ new: "output.format", old: "format" }
-				]
-			);
-		});
+		return rollup
+			.rollup({
+				entry: 'x',
+				format: 'cjs',
+				indent: true,
+				sourceMap: true,
+				plugins: [loader({ x: `export default 42` })],
+				onwarn: warning => {
+					warnings.push(warning);
+				}
+			})
+			.then(executeBundle)
+			.then(result => {
+				assert.equal(result, 42);
+				const deprecations = warnings[0].deprecations;
+				assert.equal(deprecations.length, 4);
+				assert.deepEqual(deprecations, [
+					{ new: 'input', old: 'entry' },
+					{ new: 'output.indent', old: 'indent' },
+					{ new: 'output.sourcemap', old: 'sourceMap' },
+					{ new: 'output.format', old: 'format' }
+				]);
+			});
 	});
 
 	it('throws a useful error on accessing code/map properties of bundle.generate promise', () => {
@@ -302,20 +314,21 @@ describe('bundle.write()', () => {
 			input: 'x',
 			plugins: [loader({ x: `console.log( 42 );` })],
 			onwarn: warning => warnings.push(warning),
-			output: [{
-				format: 'cjs'
-			}, {
-				format: 'es'
-			}]
+			output: [
+				{
+					format: 'cjs'
+				},
+				{
+					format: 'es'
+				}
+			]
 		};
-		return rollup
-			.rollup(options)
-			.then(bundle => {
-				assert.equal(warnings.length, 0, 'No warnings for UNKNOWN');
-				assert.throws(() => {
-					return Promise.all(options.output.map(o => bundle.write(o)));
-				}, /You must specify output\.file/);
-			});
+		return rollup.rollup(options).then(bundle => {
+			assert.equal(warnings.length, 0, 'No warnings for UNKNOWN');
+			assert.throws(() => {
+				return Promise.all(options.output.map(o => bundle.write(o)));
+			}, /You must specify output\.file/);
+		});
 	});
 });
 

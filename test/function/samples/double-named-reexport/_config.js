@@ -1,5 +1,5 @@
-const path = require( 'path' );
-const assert = require( 'assert' );
+const path = require('path');
+const assert = require('assert');
 
 module.exports = {
 	description: 'throws on duplicate named exports',
@@ -8,7 +8,7 @@ module.exports = {
 		message: `Duplicate export 'foo'`,
 		pos: 38,
 		loc: {
-			file: path.resolve( __dirname, 'foo.js' ),
+			file: path.resolve(__dirname, 'foo.js'),
 			line: 3,
 			column: 9
 		},
