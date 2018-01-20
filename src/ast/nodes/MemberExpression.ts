@@ -91,7 +91,7 @@ export default class MemberExpression extends NodeBase {
 		if (path.length === 0) return baseVariable;
 		if (!isNamespaceVariable(baseVariable)) return null;
 		const exportName = path[0].key;
-		const variable = baseVariable.module.traceExport(exportName);
+		const [variable] = baseVariable.module.traceExport(exportName);
 		if (!variable) {
 			this.module.warn(
 				{

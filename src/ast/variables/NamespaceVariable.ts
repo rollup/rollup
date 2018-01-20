@@ -27,7 +27,7 @@ export default class NamespaceVariable extends Variable {
 			.getExports()
 			.concat(module.getReexports())
 			.forEach(name => {
-				this.originals[name] = module.traceExport(name);
+				this.originals[name] = module.traceExport(name)[0];
 			});
 	}
 
