@@ -36,6 +36,7 @@ export default class Graph {
 	externalModules: ExternalModule[];
 	getModuleContext: (id: string) => string;
 	hasLoaders: boolean;
+	includeNamespaceConflicts: boolean;
 	isExternal: IsExternalHook;
 	isPureExternalModule: (id: string) => boolean;
 	legacy: boolean;
@@ -160,6 +161,8 @@ export default class Graph {
 			this.acornOptions.plugins = this.acornOptions.plugins || {};
 			this.acornOptions.plugins.dynamicImport = true;
 		}
+
+		this.includeNamespaceConflicts = options.includeNamespaceConflicts;
 	}
 
 	private loadModule (entryName: string) {
@@ -447,7 +450,7 @@ export default class Graph {
 						if (exportAllModule.isExternal) return;
 
 						keys((<Module>exportAllModule).exportsAll).forEach(name => {
-							if (name in module.exportsAll) {
+							if (!this.includeNamespaceConflicts && name in module.exportsAll) {
 								this.warn({
 									code: 'NAMESPACE_CONFLICT',
 									reexporter: module.id,

@@ -68,6 +68,7 @@ export interface InputOptions {
 	legacy?: boolean;
 	watch?: WatcherOptions;
 	experimentalDynamicImport?: boolean;
+	includeNamespaceConflicts?: boolean;
 
 	// undocumented?
 	pureExternalModules?: boolean;

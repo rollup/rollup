@@ -32,18 +32,18 @@ export default class ModuleScope extends Scope {
 			const addDeclaration = (declaration: Variable) => {
 				if (isNamespaceVariable(declaration) && !isExternalVariable(declaration)) {
 					declaration.module.getExports()
-						.forEach(name => addDeclaration(declaration.module.traceExport(name)));
+						.forEach(name => addDeclaration(declaration.module.traceExport(name)[0]));
 				}
 
 				localNames.add(declaration.name);
 			};
 
 			(<Module>specifier.module).getExports().forEach(name => {
-				addDeclaration(specifier.module.traceExport(name));
+				addDeclaration(specifier.module.traceExport(name)[0]);
 			});
 
 			if (specifier.name !== '*') {
-				const declaration = specifier.module.traceExport(specifier.name);
+				const [declaration] = specifier.module.traceExport(specifier.name);
 				if (!declaration) {
 					this.module.warn(
 						{
