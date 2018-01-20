@@ -674,7 +674,7 @@ export default class Module {
 		for (let i = 0; i < this.exportAllModules.length; i += 1) {
 			const module = this.exportAllModules[i];
 			declarations = declarations.concat(module.traceExport(name));
-			if (declarations.length) {
+			if (!this.graph.includeNamespaceConflicts && declarations.length) {
 				// future code will utilize more than one
 				break;
 			}
