@@ -250,7 +250,7 @@ export default class Chunk {
 			exportName = variable.name;
 		}
 
-		let impt = this.imports.find(impt => impt.module.id === importModule.id);
+		let impt = this.imports.find(impt => impt.module === importModule);
 		if (!impt) {
 			this.imports.push(impt = { module: importModule, variables: [] });
 		}
@@ -504,10 +504,10 @@ export default class Chunk {
 
 		const dependencies: ChunkDependencies = [];
 
-		let imports: ImportSpecifier[];
 		this.dependencies.forEach(dep => {
 			const importSpecifiers = this.imports.find(impt => impt.module === dep);
 
+			let imports: ImportSpecifier[];
 			if (importSpecifiers && importSpecifiers.variables.length) {
 				imports = [];
 				for (let i = 0; i < importSpecifiers.variables.length; i++) {
