@@ -1,7 +1,7 @@
 import minimist from 'minimist';
 import help from 'help.md';
 import { version } from 'package.json';
-import run from './run/index.js';
+import run from './run/index';
 
 const command = minimist(process.argv.slice(2), {
 	alias: {

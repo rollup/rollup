@@ -1,4 +1,4 @@
-import ensureArray from './ensureArray.js';
+import ensureArray from './ensureArray';
 import deprecateOptions, { Deprecation } from './deprecateOptions';
 import { InputOptions, WarningHandler, OutputOptions } from '../rollup/index';
 

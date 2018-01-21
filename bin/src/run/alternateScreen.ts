@@ -1,5 +1,5 @@
 import ansiEscape from 'ansi-escapes';
-import { stderr } from '../logging.js';
+import { stderr } from '../logging';
 
 const SHOW_ALTERNATE_SCREEN = '\u001B[?1049h';
 const HIDE_ALTERNATE_SCREEN = '\u001B[?1049l';
