@@ -2,10 +2,10 @@ import buble from 'rollup-plugin-buble';
 import path from 'path';
 import chalk from 'chalk';
 import * as rollup from 'rollup';
-import batchWarnings from './batchWarnings.js';
-import relativeId from '../../../src/utils/relativeId.js';
-import { handleError, stderr } from '../logging.js';
-import { InputOptions, OutputBundle } from '../../../src/rollup/index';
+import batchWarnings from './batchWarnings';
+import relativeId from '../../../src/utils/relativeId';
+import { handleError, stderr } from '../logging';
+import { InputOptions, OutputChunk } from '../../../src/rollup/index';
 
 export default function loadConfigFile (configFile: string, silent = false): Promise<InputOptions[]> {
 	const warnings = batchWarnings();
@@ -22,7 +22,7 @@ export default function loadConfigFile (configFile: string, silent = false): Pro
 			onwarn: warnings.add,
 			plugins: [buble({ objectAssign: 'Object.assign' })]
 		})
-		.then((bundle: OutputBundle) => {
+		.then((bundle: OutputChunk) => {
 			if (!silent && warnings.count > 0) {
 				stderr(chalk.bold(`loaded ${relativeId(configFile)} with warnings`));
 				warnings.flush();

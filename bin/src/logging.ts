@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import relativeId from '../../src/utils/relativeId.js';
+import relativeId from '../../src/utils/relativeId';
 import { RollupError } from '../../src/utils/error';
 
 if (!chalk.supportsColor) chalk.enabled = false;

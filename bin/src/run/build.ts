@@ -1,11 +1,11 @@
 import * as rollup from 'rollup';
 import chalk from 'chalk';
 import ms from 'pretty-ms';
-import { handleError, stderr } from '../logging.js';
-import relativeId from '../../../src/utils/relativeId.js';
-import { mapSequence } from '../../../src/utils/promise.js';
-import SOURCEMAPPING_URL from '../sourceMappingUrl.js';
-import { InputOptions, OutputOptions, OutputBundle } from '../../../src/rollup/index';
+import { handleError, stderr } from '../logging';
+import relativeId from '../../../src/utils/relativeId';
+import { mapSequence } from '../../../src/utils/promise';
+import SOURCEMAPPING_URL from '../sourceMappingUrl';
+import { InputOptions, OutputOptions, OutputChunk } from '../../../src/rollup/index';
 import { BatchWarnings } from './batchWarnings';
 import { SourceMap } from 'magic-string';
 
@@ -27,7 +27,7 @@ export default function build (inputOptions: InputOptions, outputOptions: Output
 
 	return rollup
 		.rollup(inputOptions)
-		.then((bundle: OutputBundle) => {
+		.then((bundle: OutputChunk) => {
 			if (useStdout) {
 				const output = outputOptions[0];
 				if (output.sourcemap && output.sourcemap !== 'inline') {

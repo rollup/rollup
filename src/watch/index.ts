@@ -6,7 +6,7 @@ import ensureArray from '../utils/ensureArray';
 import { mapSequence } from '../utils/promise';
 import { addTask, deleteTask } from './fileWatchers';
 import chokidar from './chokidar';
-import mergeOptions from '../utils/mergeOptions.js';
+import mergeOptions from '../utils/mergeOptions';
 import { WatchOptions } from 'chokidar';
 import { ModuleJSON } from '../Module';
 

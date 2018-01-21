@@ -4,12 +4,12 @@ import chalk from 'chalk';
 import ms from 'pretty-ms';
 import onExit from 'signal-exit';
 import dateTime from 'date-time';
-import mergeOptions from '../../../src/utils/mergeOptions.js';
-import batchWarnings from './batchWarnings.js';
-import alternateScreen from './alternateScreen.js';
-import loadConfigFile from './loadConfigFile.js';
-import relativeId from '../../../src/utils/relativeId.js';
-import { handleError, stderr } from '../logging.js';
+import mergeOptions from '../../../src/utils/mergeOptions';
+import batchWarnings from './batchWarnings';
+import alternateScreen from './alternateScreen';
+import loadConfigFile from './loadConfigFile';
+import relativeId from '../../../src/utils/relativeId';
+import { handleError, stderr } from '../logging';
 import { RollupError } from '../../../src/utils/error';
 import { RollupWatchOptions } from '../../../src/watch/index';
 

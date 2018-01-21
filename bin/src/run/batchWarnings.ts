@@ -1,6 +1,6 @@
 import chalk from 'chalk';
-import { stderr } from '../logging.js';
-import relativeId from '../../../src/utils/relativeId.js';
+import { stderr } from '../logging';
+import relativeId from '../../../src/utils/relativeId';
 import { RollupWarning } from '../../../src/rollup/index';
 
 export interface BatchWarnings {
