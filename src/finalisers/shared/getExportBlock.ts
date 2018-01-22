@@ -36,15 +36,19 @@ export default function getExportBlock (
 
 	dependencies.forEach(({ name, reexports }) => {
 		if (reexports && exportMode !== 'default') {
-			if (exportBlock) {
-				exportBlock += '\n';
-			}
 			reexports.forEach(specifier => {
 				if (specifier.imported === '*') {
-					exportBlock += `Object.keys(${name}).forEach(function (key) { exports[key] = ${name}[key]; });`;
+					exportBlock += `${exportBlock ? '\n' : ''}Object.keys(${name}).forEach(function (key) { exports[key] = ${name}[key]; });`;
 				}
-				else {
-					exportBlock += `exports.${specifier.reexported} = ${name}.${specifier.imported};`;
+			});
+		}
+	});
+
+	dependencies.forEach(({ name, reexports }) => {
+		if (reexports && exportMode !== 'default') {
+			reexports.forEach(specifier => {
+				if (specifier.imported !== '*') {
+					exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name}.${specifier.imported};`;
 				}
 			});
 		}

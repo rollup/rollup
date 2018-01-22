@@ -397,9 +397,9 @@ export default class Graph {
 						} else {
 							const entryPointFacade = new Chunk(this, []);
 							entryPointFacade.setId('./' + entryName);
-							entryPointFacade.generateEntryExports(chunk.entryModule);
 							entryPointFacade.collectDependencies(chunk.entryModule);
 							entryPointFacade.generateImports();
+							entryPointFacade.generateEntryExports(chunk.entryModule);
 							chunks['./' + entryName] = entryPointFacade;
 						}
 					}

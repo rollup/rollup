@@ -24,6 +24,17 @@ import { makeLegal } from './utils/identifierHelpers';
 import LocalVariable from './ast/variables/LocalVariable';
 import { NodeType } from './ast/nodes/index';
 
+export interface ModuleDeclarations {
+	exports: ChunkExports;
+	dependencies: {
+		id: string,
+		name: string,
+		isChunk: boolean,
+		reexports?: ReexportSpecifier[],
+		imports?: ImportSpecifier[]
+	}[];
+}
+
 export type ChunkDependencies = {
 	id: string;
 	name: string;
@@ -206,6 +217,20 @@ export default class Chunk {
 				}
 			});
 		});
+
+		Object.keys(this.exports).forEach(exportName => {
+			const expt = this.exports[exportName];
+			if (expt.module instanceof ExternalModule) {
+				if (!this.dependencies.some(dep => dep === expt.module)) {
+					this.dependencies.push(expt.module);
+					this.externalModules.push(expt.module);
+				}
+			} else if (expt.module.chunk !== this) {
+				if (!this.dependencies.some(dep => dep === expt.module.chunk)) {
+					this.dependencies.push(expt.module.chunk);
+				}
+			}
+		});
 	}
 
 	generateImports () {
@@ -313,15 +338,16 @@ export default class Chunk {
 			return;
 		}
 
-		for (let i = 0; i < module.exportAllModules.length; i += 1) {
+		// external star exports
+		if (name[0] === '*') {
+			return { name: '*', module: this.graph.moduleById.get(name.substr(1)) };
+		}
+
+		// resolve known star exports
+		for (let i = 0; i < module.exportAllModules.length; i++) {
 			const exportAllModule = module.exportAllModules[i];
 			// we have to ensure the right export all module
-			if (name[0] === '*') {
-				if (exportAllModule.id === name.substr(1)) {
-					return this.traceExport(exportAllModule, '*');
-				}
-			}
-			else if (exportAllModule.traceExport(name)) {
+			if (exportAllModule.traceExport(name)) {
 				return this.traceExport(exportAllModule, name);
 			}
 		}
@@ -357,21 +383,21 @@ export default class Chunk {
 		).then(addons => addons.filter(Boolean).join(sep));
 	}
 
-	private setDynamicImportResolutions (options: OutputOptions) {
-		const es = options.format === 'es';
+	private setDynamicImportResolutions ({ format }: OutputOptions) {
+		const es = format === 'es';
 		let dynamicImportMechanism: { left: string, right: string };
 		if (!es) {
-			if (options.format === 'cjs') {
+			if (format === 'cjs') {
 				dynamicImportMechanism = {
 					left: 'Promise.resolve(require(',
 					right: '))'
 				};
-			} else if (options.format === 'amd') {
+			} else if (format === 'amd') {
 				dynamicImportMechanism = {
 					left: 'new Promise(function (resolve, reject) { require([',
 					right: '], resolve, reject) })'
 				};
-			} else if (options.format === 'system') {
+			} else if (format === 'system') {
 				dynamicImportMechanism = {
 					left: 'module.import(',
 					right: ')'
@@ -490,7 +516,7 @@ export default class Chunk {
 		this.graph.scope.deshadow(toDeshadow, this.orderedModules.map(module => module.scope));
 	}
 
-	getModuleDeclarations () {
+	getModuleDeclarations (): ModuleDeclarations {
 		const reexportDeclarations: {
 			[id: string]: ReexportSpecifier[]
 		} = {};
@@ -509,7 +535,7 @@ export default class Chunk {
 			const exportDeclaration = reexportDeclarations[depId] = reexportDeclarations[depId] || [];
 			exportDeclaration.push({
 				imported: expt.name,
-				reexported: name
+				reexported: name[0] === '*' ? '*' : name
 			});
 		}
 
@@ -594,14 +620,10 @@ export default class Chunk {
 					legacy: this.graph.legacy,
 					freeze: options.freeze !== false,
 					systemBindings: options.format === 'system',
-					importMechanism: undefined
+					importMechanism: this.graph.dynamicImport && this.setDynamicImportResolutions(options)
 				};
 
 				this.setIdentifierRenderResolutions(options);
-
-				if (this.graph.dynamicImport) {
-					renderOptions.importMechanism = this.setDynamicImportResolutions(options);
-				}
 
 				this.orderedModules.forEach(module => {
 					const source = module.render(renderOptions);

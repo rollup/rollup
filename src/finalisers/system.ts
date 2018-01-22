@@ -1,6 +1,20 @@
-import Chunk from '../Chunk';
+import Chunk, { ModuleDeclarations } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/index';
+
+function getStarExcludes ({ dependencies, exports } : ModuleDeclarations) {
+	const starExcludes = new Set(exports.map(expt => expt.exported));
+	if (!starExcludes.has('default'))
+		starExcludes.add('default');
+	// also include reexport names
+	dependencies.forEach(({ reexports }) => {
+		if (reexports)
+			reexports.forEach(reexport => {
+				if (reexport.imported !== '*' && !starExcludes.has(reexport.reexported))
+					starExcludes.add(reexport.reexported);
+			});
+	});
+	return starExcludes;
+}
 
 export default function system (
 	chunk: Chunk,
@@ -10,22 +24,21 @@ export default function system (
 		getPath: (name: string) => string;
 		intro: string;
 		outro: string
-	},
-	_options: OutputOptions
+	}
 ) {
 	const { dependencies, exports } = chunk.getModuleDeclarations();
 
-	const deps = dependencies.map(m => `'${getPath(m.id)}'`);
+	const dependencyIds = dependencies.map(m => `'${getPath(m.id)}'`);
 
 	const importBindings: string[] = [];
-	let starExcludes: string[];
+	let starExcludes: Set<string>;
 	const setters: string[] = [];
 	const varOrConst = chunk.graph.varOrConst;
 
-	dependencies.forEach(dep => {
+	dependencies.forEach(({ imports, reexports }) => {
 		let setter: string[] = [];
-		if (dep.imports) {
-			dep.imports.forEach(specifier => {
+		if (imports) {
+			imports.forEach(specifier => {
 				importBindings.push(specifier.local);
 				if (specifier.imported === '*') {
 					setter.push(`${specifier.local} = module;`);
@@ -34,33 +47,24 @@ export default function system (
 				}
 			});
 		}
-		if (dep.reexports) {
+		if (reexports) {
 			// bulk-reexport form
-			if (dep.reexports.length > 1 || dep.reexports.length === 1 && dep.reexports[0].imported === '*') {
+			if (reexports.length > 1 || reexports.length === 1 && reexports[0].imported === '*') {
 				setter.push(`${varOrConst} _setter = {};`);
 				// star reexports
-				dep.reexports.forEach(specifier => {
+				reexports.forEach(specifier => {
 					if (specifier.imported !== '*')
 						return;
 					// need own exports list for deduping in star export case
 					if (!starExcludes) {
-						starExcludes = exports.map(expt => expt.exported);
-						if (starExcludes.indexOf('default') === -1)
-							starExcludes.push('default');
-						// also include reexport names
-						dependencies.forEach(dep => {
-							dep.reexports.forEach(reexport => {
-								if (reexport.imported !== '*' && starExcludes.indexOf(reexport.reexported) === -1)
-									starExcludes.push(reexport.reexported);
-							});
-						});
+						starExcludes = getStarExcludes({ dependencies, exports });
 					}
 					setter.push(`for (var _$p in module) {`);
-					setter.push(`${t}if (!starExcludes[_$p]) _setter[_$p] = module[_$p];`);
+					setter.push(`${t}if (!_starExcludes[_$p]) _setter[_$p] = module[_$p];`);
 					setter.push('}');
 				});
 				// reexports
-				dep.reexports.forEach(specifier => {
+				reexports.forEach(specifier => {
 					if (specifier.imported === '*')
 						return;
 					setter.push(`_setter.${specifier.reexported} = module.${specifier.imported};`);
@@ -69,7 +73,7 @@ export default function system (
 			}
 			// single reexport
 			else {
-				dep.reexports.forEach(specifier => {
+				reexports.forEach(specifier => {
 					setter.push(`exports('${specifier.reexported}', module.${specifier.imported});`);
 				});
 			}
@@ -85,11 +89,11 @@ export default function system (
 	});
 
 	const starExcludesSection = !starExcludes ? '' :
-			`\n${t}${varOrConst} _starExcludes = { ${starExcludes.join(': 1, ')}${starExcludes.length ? ': 1' : ''} };`;
+			`\n${t}${varOrConst} _starExcludes = { ${Array.from(starExcludes).join(': 1, ')}${starExcludes.size ? ': 1' : ''} };`;
 
 	const importBindingsSection = importBindings.length ? `\n${t}var ${importBindings.join(', ')};` : '';
 
-	const wrapperStart = `System.register([${deps.join(', ')}], function (exports, module) {
+	const wrapperStart = `System.register([${dependencyIds.join(', ')}], function (exports, module) {
 ${t}'use strict';${starExcludesSection}${importBindingsSection}
 ${t}return {${setters.length ? `\n${t}${t}setters: [${setters.map(s => `function (module) {
 ${t}${t}${t}${s}
