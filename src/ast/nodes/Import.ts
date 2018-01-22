@@ -3,6 +3,7 @@ import { NodeType } from './NodeType';
 import { NodeBase } from './shared/Node';
 import MagicString from 'magic-string';
 import NamespaceVariable from '../variables/NamespaceVariable';
+import { RenderOptions } from '../../Module';
 
 export interface DynamicImportMechanism {
 	left: string,
@@ -23,7 +24,7 @@ export default class Import extends NodeBase {
 		}
 	}
 
-	render (code: MagicString) {
+	render (code: MagicString, _options: RenderOptions) {
 		// if we have the module in the chunk, inline as Promise.resolve(namespace)
 		let resolution: string;
 		if (this.resolution instanceof NamespaceVariable) {

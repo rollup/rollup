@@ -6,6 +6,7 @@ import FunctionDeclaration from './FunctionDeclaration';
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../Module';
 
 const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
 
@@ -67,7 +68,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString) {
+	render (code: MagicString, options: RenderOptions) {
 		const remove = () => {
 			code.remove(
 				this.leadingCommentStart || this.start,
@@ -126,7 +127,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				removeExportDefault();
 			}
 		}
-		super.render(code);
+		super.render(code, options);
 
 	}
 }

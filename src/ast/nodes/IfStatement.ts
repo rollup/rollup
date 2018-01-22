@@ -6,6 +6,7 @@ import { isVariableDeclaration } from './VariableDeclaration';
 import MagicString from 'magic-string';
 import { StatementBase, StatementNode } from './shared/Statement';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../Module';
 
 // Statement types which may contain if-statements as direct children.
 const statementsWithIfStatements = new Set([
@@ -69,10 +70,10 @@ export default class IfStatement extends StatementBase {
 		}
 	}
 
-	render (code: MagicString) {
+	render (code: MagicString, options: RenderOptions) {
 		if (this.module.graph.treeshake) {
 			if (this.testValue === UNKNOWN_VALUE) {
-				super.render(code);
+				super.render(code, options);
 			} else {
 				code.overwrite(
 					this.test.start,
@@ -99,7 +100,7 @@ export default class IfStatement extends StatementBase {
 				if (this.testValue) {
 					code.remove(this.start, this.consequent.start);
 					code.remove(this.consequent.end, this.end);
-					this.consequent.render(code);
+					this.consequent.render(code, options);
 				} else {
 					code.remove(
 						this.start,
@@ -107,14 +108,14 @@ export default class IfStatement extends StatementBase {
 					);
 
 					if (this.alternate) {
-						this.alternate.render(code);
+						this.alternate.render(code, options);
 					} else if (statementsWithIfStatements.has(this.parent.type)) {
 						code.prependRight(this.start, '{}');
 					}
 				}
 			}
 		} else {
-			super.render(code);
+			super.render(code, options);
 		}
 	}
 }

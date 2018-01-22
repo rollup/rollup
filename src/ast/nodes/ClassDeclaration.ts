@@ -3,6 +3,7 @@ import Scope from '../scopes/Scope';
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../Module';
 
 export default class ClassDeclaration extends ClassNode {
 	type: NodeType.ClassDeclaration;
@@ -14,9 +15,9 @@ export default class ClassDeclaration extends ClassNode {
 		super.initialiseChildren(parentScope);
 	}
 
-	render (code: MagicString) {
+	render (code: MagicString, options: RenderOptions) {
 		if (!this.module.graph.treeshake || this.included) {
-			super.render(code);
+			super.render(code, options);
 		} else {
 			code.remove(
 				this.leadingCommentStart || this.start,
