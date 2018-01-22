@@ -11,6 +11,7 @@ import { isNamespaceVariable } from '../variables/NamespaceVariable';
 import { isExternalVariable } from '../variables/ExternalVariable';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../Module';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -223,7 +224,7 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	render (code: MagicString) {
+	render (code: MagicString, options: RenderOptions) {
 		if (this.variable) {
 			code.overwrite(this.start, this.end, this.variable.getName(), {
 				storeName: true,
@@ -236,7 +237,7 @@ export default class MemberExpression extends NodeBase {
 			});
 		}
 
-		super.render(code);
+		super.render(code, options);
 	}
 
 	someReturnExpressionWhenCalledAtPath (

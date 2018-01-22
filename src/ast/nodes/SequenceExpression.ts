@@ -2,6 +2,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../Module';
 
 export default class SequenceExpression extends NodeBase {
 	type: NodeType.SequenceExpression;
@@ -31,12 +32,12 @@ export default class SequenceExpression extends NodeBase {
 		return addedNewNodes;
 	}
 
-	render (code: MagicString) {
+	render (code: MagicString, options: RenderOptions) {
 		if (!this.module.graph.treeshake) {
-			super.render(code);
+			super.render(code, options);
 		} else {
 			const last = this.expressions[this.expressions.length - 1];
-			last.render(code);
+			last.render(code, options);
 
 			if (
 				this.parent.type === NodeType.CallExpression &&
@@ -55,7 +56,7 @@ export default class SequenceExpression extends NodeBase {
 			} else {
 				let previousEnd = this.start;
 				for (const expression of included) {
-					expression.render(code);
+					expression.render(code, options);
 					code.remove(previousEnd, expression.start);
 					code.appendLeft(expression.end, ', ');
 					previousEnd = expression.end;

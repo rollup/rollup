@@ -2,6 +2,7 @@ import FunctionNode from './shared/FunctionNode';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../Module';
 
 export default class FunctionDeclaration extends FunctionNode {
 	type: NodeType.FunctionDeclaration;
@@ -14,9 +15,9 @@ export default class FunctionDeclaration extends FunctionNode {
 		this.body.initialiseAndReplaceScope(new Scope({ parent: this.scope }));
 	}
 
-	render (code: MagicString) {
+	render (code: MagicString, options: RenderOptions) {
 		if (!this.module.graph.treeshake || this.included) {
-			super.render(code);
+			super.render(code, options);
 		} else {
 			code.remove(
 				this.leadingCommentStart || this.start,

@@ -99,6 +99,11 @@ export interface ModuleJSON {
 	resolvedIds: IdMap;
 }
 
+export interface RenderOptions {
+	legacy: boolean;
+	freeze: boolean;
+}
+
 export default class Module {
 	type: 'Module';
 	graph: Graph;
@@ -583,16 +588,16 @@ export default class Module {
 		return this.declarations['*'];
 	}
 
-	render (legacy: boolean, freeze: boolean): MagicString {
+	render (options: RenderOptions): MagicString {
 		const magicString = this.magicString.clone();
 
 		this.ast.body.forEach(node => {
-			node.render(magicString);
+			node.render(magicString, options);
 		});
 
 		if (this.namespace().needsNamespaceBlock) {
 			magicString.append(
-				'\n\n' + this.namespace().renderBlock(legacy, freeze, '\t')
+				'\n\n' + this.namespace().renderBlock(options.legacy, options.freeze, '\t')
 			); // TODO use correct indentation
 		}
 

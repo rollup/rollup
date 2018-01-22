@@ -563,10 +563,15 @@ export default class Chunk {
 
 				timeStart('render modules');
 
+				const renderOptions = {
+					legacy: this.graph.legacy,
+					freeze: options.freeze !== false
+				};
+
 				this.setIdentifierRenderResolutions(options);
 
 				this.orderedModules.forEach(module => {
-					const source = module.render(this.graph.legacy, options.freeze !== false);
+					const source = module.render(renderOptions);
 
 					if (source.toString().length) {
 						magicString.addSource(source);
