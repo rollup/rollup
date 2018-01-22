@@ -1,4 +1,4 @@
-import { more, value } from 'external';
+import { value, more } from 'external';
 
 var foo = 'unused';
 

@@ -1,12 +1,12 @@
 import path from 'path';
 import EventEmitter from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
-import rollup, { InputOptions, OutputOptions, OutputBundle } from '../rollup/index';
+import rollup, { InputOptions, OutputOptions, OutputChunk } from '../rollup/index';
 import ensureArray from '../utils/ensureArray';
 import { mapSequence } from '../utils/promise';
 import { addTask, deleteTask } from './fileWatchers';
 import chokidar from './chokidar';
-import mergeOptions from '../utils/mergeOptions.js';
+import mergeOptions from '../utils/mergeOptions';
 import { WatchOptions } from 'chokidar';
 import { ModuleJSON } from '../Module';
 
@@ -102,7 +102,7 @@ export class Task {
 	closed: boolean;
 	watched: Set<string>;
 	inputOptions: InputOptions;
-	cache: OutputBundle;
+	cache: OutputChunk;
 
 	chokidarOptions: WatchOptions;
 	chokidarOptionsHash: string;
@@ -125,7 +125,14 @@ export class Task {
 		this.inputOptions = inputOptions;
 
 		this.outputs = outputOptions;
-		this.outputFiles = this.outputs.map(output => path.resolve(output.file));
+		this.outputFiles = this.outputs.map(output => {
+			if (!output.file) {
+				throw new Error(
+					`watch is currently only supported for a single output.file`
+				);
+			}
+			return path.resolve(output.file);
+		});
 
 		const watchOptions = inputOptions.watch || {};
 		if ('useChokidar' in watchOptions) watchOptions.chokidar = watchOptions.useChokidar;
@@ -192,14 +199,14 @@ export class Task {
 		}
 
 		return rollup(options)
-			.then((bundle: OutputBundle) => {
+			.then((chunk: OutputChunk) => {
 				if (this.closed) return;
 
-				this.cache = bundle;
+				this.cache = chunk;
 
 				const watched = new Set();
 
-				bundle.modules.forEach((module: ModuleJSON) => {
+				chunk.modules.forEach((module: ModuleJSON) => {
 					watched.add(module.id);
 					this.watchFile(module.id);
 				});
@@ -210,7 +217,7 @@ export class Task {
 
 				this.watched = watched;
 
-				return Promise.all(this.outputs.map(output => bundle.write(output)));
+				return Promise.all(this.outputs.map(output => chunk.write(output)));
 			})
 			.then(() => {
 				this.watcher.emit('event', {

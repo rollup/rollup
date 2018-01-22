@@ -6,7 +6,7 @@ import ExportSpecifier from './ExportSpecifier';
 import FunctionDeclaration from './FunctionDeclaration';
 import ClassDeclaration from './ClassDeclaration';
 import VariableDeclaration from './VariableDeclaration';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class ExportNamedDeclaration extends NodeBase {
 	type: NodeType.ExportNamedDeclaration;
@@ -29,10 +29,10 @@ export default class ExportNamedDeclaration extends NodeBase {
 		this.isExportDeclaration = true;
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (this.declaration) {
 			code.remove(this.start, this.declaration.start);
-			this.declaration.render(code, es);
+			this.declaration.render(code);
 		} else {
 			const start = this.leadingCommentStart || this.start;
 			const end = this.next || this.end;

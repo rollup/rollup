@@ -1,7 +1,7 @@
 import { UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 const operators: {

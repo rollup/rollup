@@ -2,7 +2,7 @@ import { IParse } from 'acorn';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
 import { timeStart, timeEnd } from './utils/flushTime';
-import { assign, blank, keys } from './utils/object';
+import { blank } from './utils/object';
 import { basename, extname } from './utils/path';
 import { makeLegal } from './utils/identifierHelpers';
 import getCodeFrame from './utils/getCodeFrame';
@@ -31,14 +31,15 @@ import ImportDefaultSpecifier from './ast/nodes/ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
 import { RollupWarning } from './rollup/index';
 import ExternalModule from './ExternalModule';
+import ExternalVariable from './ast/variables/ExternalVariable';
 import Import from './ast/nodes/Import';
 import { NodeType } from './ast/nodes/index';
-import ExternalVariable from './ast/variables/ExternalVariable';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
 import { missingExport } from './utils/defaults';
+import Chunk from './Chunk';
 
-export interface IdMap {[key: string]: string;}
+export interface IdMap { [key: string]: string; }
 
 export interface CommentDescription {
 	block: boolean;
@@ -61,7 +62,7 @@ export interface ReexportDescription {
 
 function tryParse (module: Module, parse: IParse, acornOptions: Object) {
 	try {
-		return parse(module.code, assign({
+		return parse(module.code, Object.assign({
 			ecmaVersion: 8,
 			sourceType: 'module',
 			onComment: (block: boolean, text: string, start: number, end: number) =>
@@ -89,11 +90,10 @@ export interface ModuleJSON {
 	dependencies: string[];
 	code: string;
 	originalCode: string;
-	originalSourcemap: RawSourceMap;
+	originalSourcemap: RawSourceMap | void;
 	ast: Program;
 	sourcemapChain: RawSourceMap[];
 	resolvedIds: IdMap;
-	resolvedExternalIds: IdMap;
 }
 
 export default class Module {
@@ -102,7 +102,7 @@ export default class Module {
 	code: string;
 	comments: CommentDescription[];
 	context: string;
-	dependencies: Module[];
+	dependencies: (Module | ExternalModule)[];
 	excludeFromSourcemap: boolean;
 	exports: { [name: string]: ExportDescription };
 	exportsAll: { [name: string]: string };
@@ -120,24 +120,30 @@ export default class Module {
 	isExternal: false;
 	magicString: MagicString;
 	originalCode: string;
-	originalSourcemap: RawSourceMap;
+	originalSourcemap: RawSourceMap | void;
 	reexports: { [name: string]: ReexportDescription };
-	resolvedExternalIds: IdMap;
 	resolvedIds: IdMap;
 	scope: ModuleScope;
 	sourcemapChain: RawSourceMap[];
 	sources: string[];
-	strongDependencies: (Module | ExternalModule)[];
 	dynamicImports: Import[];
 	dynamicImportResolutions: (Module | ExternalModule | string | void)[];
 
+	execIndex: number;
+	isEntryPoint: boolean;
+	entryPointsHash: Uint8Array;
+	chunk: Chunk;
+
 	ast: Program;
 	private astClone: Program;
+
+	// this is unused on Module,
+	// only used for namespace and then ExternalExport.declarations
 	declarations: {
 		'*'?: NamespaceVariable;
 		[name: string]: Variable | undefined;
 	};
-	private exportAllModules: (Module | ExternalModule)[];
+	exportAllModules: (Module | ExternalModule)[];
 
 	constructor ({
 		id,
@@ -147,7 +153,6 @@ export default class Module {
 		ast,
 		sourcemapChain,
 		resolvedIds,
-		resolvedExternalIds,
 		graph
 	}: {
 		id: string,
@@ -172,6 +177,9 @@ export default class Module {
 			this.dynamicImports = [];
 			this.dynamicImportResolutions = [];
 		}
+		this.isEntryPoint = false;
+		this.execIndex = null;
+		this.entryPointsHash = new Uint8Array(10);
 
 		timeStart('ast');
 
@@ -195,7 +203,6 @@ export default class Module {
 		this.sources = [];
 		this.dependencies = [];
 		this.resolvedIds = resolvedIds || blank();
-		this.resolvedExternalIds = resolvedExternalIds || blank();
 
 		// imports and exports, indexed by local name
 		this.imports = blank();
@@ -232,8 +239,6 @@ export default class Module {
 		this.analyse();
 
 		timeEnd('analyse');
-
-		this.strongDependencies = [];
 	}
 
 	private addExport (node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration) {
@@ -362,9 +367,9 @@ export default class Module {
 		enhance(this.ast, this, this.comments, this.dynamicImports);
 
 		// discover this module's imports and exports
-		let lastNode;
+		let lastNode: Node;
 
-		for (const node of this.ast.body) {
+		this.ast.body.forEach(node => {
 			if ((<ImportDeclaration>node).isImportDeclaration) {
 				this.addImport(<ImportDeclaration>node);
 			} else if ((<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration>node).isExportDeclaration) {
@@ -373,7 +378,7 @@ export default class Module {
 
 			if (lastNode) lastNode.next = node.leadingCommentStart || node.start;
 			lastNode = node;
-		}
+		});
 	}
 
 	basename () {
@@ -398,10 +403,11 @@ export default class Module {
 		this.getReexports().forEach(name => {
 			const variable = this.traceExport(name);
 
+			variable.exportName = name;
+
 			if (variable.isExternal) {
 				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
 			} else {
-				variable.exportName = name;
 				variable.includeVariable();
 			}
 		});
@@ -416,30 +422,24 @@ export default class Module {
 				this.dependencies.push(<Module>module);
 			}
 		});
-	}
 
-	bindImportSpecifiers () {
 		[this.imports, this.reexports].forEach(specifiers => {
-			keys(specifiers).forEach(name => {
+			Object.keys(specifiers).forEach(name => {
 				const specifier = specifiers[name];
 
-				const id =
-					this.resolvedIds[specifier.source] ||
-					this.resolvedExternalIds[specifier.source];
+				const id = this.resolvedIds[specifier.source];
 				specifier.module = this.graph.moduleById.get(id);
 			});
 		});
 
 		this.exportAllModules = this.exportAllSources.map(source => {
-			const id = this.resolvedIds[source] || this.resolvedExternalIds[source];
+			const id = this.resolvedIds[source];
 			return this.graph.moduleById.get(id);
 		});
 	}
 
 	bindReferences () {
-		for (const node of this.ast.body) {
-			node.bind();
-		}
+		this.ast.body.forEach(node => node.bind());
 	}
 
 	getDynamicImportExpressions (): (string | Node)[] {
@@ -510,14 +510,33 @@ export default class Module {
 		error(props);
 	}
 
+	getAllExports () {
+		const allExports = Object.assign(blank(), this.exports, this.reexports);
+
+		this.exportAllModules.forEach(module => {
+			if (module.isExternal) {
+				allExports[`*${module.id}`] = true;
+				return;
+			}
+
+			(<Module>module)
+				.getAllExports()
+				.forEach(name => {
+					if (name !== 'default') allExports[name] = true;
+				});
+		});
+
+		return Object.keys(allExports);
+	}
+
 	getExports () {
-		return keys(this.exports);
+		return Object.keys(this.exports);
 	}
 
 	getReexports () {
 		const reexports = blank();
 
-		keys(this.reexports).forEach(name => {
+		Object.keys(this.reexports).forEach(name => {
 			reexports[name] = true;
 		});
 
@@ -535,7 +554,7 @@ export default class Module {
 				});
 		});
 
-		return keys(reexports);
+		return Object.keys(reexports);
 	}
 
 	includeAllInBundle () {
@@ -562,16 +581,16 @@ export default class Module {
 		return this.declarations['*'];
 	}
 
-	render (es: boolean, legacy: boolean, freeze: boolean): MagicString {
+	render (legacy: boolean, freeze: boolean): MagicString {
 		const magicString = this.magicString.clone();
 
-		for (const node of this.ast.body) {
-			node.render(magicString, es);
-		}
+		this.ast.body.forEach(node => {
+			node.render(magicString);
+		});
 
 		if (this.namespace().needsNamespaceBlock) {
 			magicString.append(
-				'\n\n' + this.namespace().renderBlock(es, legacy, freeze, '\t')
+				'\n\n' + this.namespace().renderBlock(legacy, freeze, '\t')
 			); // TODO use correct indentation
 		}
 
@@ -588,8 +607,7 @@ export default class Module {
 			originalSourcemap: this.originalSourcemap,
 			ast: this.astClone,
 			sourcemapChain: this.sourcemapChain,
-			resolvedIds: this.resolvedIds,
-			resolvedExternalIds: this.resolvedExternalIds
+			resolvedIds: this.resolvedIds
 		};
 	}
 
@@ -603,7 +621,7 @@ export default class Module {
 			const importDeclaration = this.imports[name];
 			const otherModule = importDeclaration.module;
 
-			if (importDeclaration.name === '*' && !otherModule.isExternal) {
+			if (!otherModule.isExternal && importDeclaration.name === '*') {
 				return (<Module>otherModule).namespace();
 			}
 
@@ -620,18 +638,22 @@ export default class Module {
 	}
 
 	traceExport (name: string): Variable {
-		// export * from 'external'
+
 		if (name[0] === '*') {
-			const module = this.graph.moduleById.get(name.slice(1));
-			return module.traceExport('*');
+			// namespace
+			if (name.length === 1) {
+				return this.namespace();
+			// export * from 'external'
+			} else {
+				const module = <ExternalModule>this.graph.moduleById.get(name.slice(1));
+				return module.traceExport('*');
+			}
 		}
 
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexports[name];
 		if (reexportDeclaration) {
-			const declaration = reexportDeclaration.module.traceExport(
-				reexportDeclaration.localName
-			);
+			const declaration = reexportDeclaration.module.traceExport(reexportDeclaration.localName);
 
 			if (!declaration) {
 				missingExport(this, reexportDeclaration.localName, reexportDeclaration.module, reexportDeclaration.start);

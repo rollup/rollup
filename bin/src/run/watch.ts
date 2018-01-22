@@ -4,19 +4,19 @@ import chalk from 'chalk';
 import ms from 'pretty-ms';
 import onExit from 'signal-exit';
 import dateTime from 'date-time';
-import mergeOptions from '../../../src/utils/mergeOptions.js';
-import batchWarnings from './batchWarnings.js';
-import alternateScreen from './alternateScreen.js';
-import loadConfigFile from './loadConfigFile.js';
-import relativeId from '../../../src/utils/relativeId.js';
-import { handleError, stderr } from '../logging.js';
+import mergeOptions from '../../../src/utils/mergeOptions';
+import batchWarnings from './batchWarnings';
+import alternateScreen from './alternateScreen';
+import loadConfigFile from './loadConfigFile';
+import relativeId from '../../../src/utils/relativeId';
+import { handleError, stderr } from '../logging';
 import { RollupError } from '../../../src/utils/error';
 import { RollupWatchOptions } from '../../../src/watch/index';
 
 interface WatchEvent {
 	code: string;
 	error: RollupError | Error;
-	input: string;
+	input: string | string[];
 	output: string[];
 	duration: number;
 }
@@ -88,7 +88,7 @@ export default function watch (configFile: string, configs: RollupWatchOptions[]
 					if (!silent)
 						stderr(
 							chalk.cyan(
-								`bundles ${chalk.bold(event.input)} → ${chalk.bold(
+								`bundles ${chalk.bold(typeof event.input === 'string' ? event.input : event.input.join(', '))} → ${chalk.bold(
 									event.output.map(relativeId).join(', ')
 								)}...`
 							)
@@ -125,16 +125,24 @@ export default function watch (configFile: string, configs: RollupWatchOptions[]
 		process.stdin.resume();
 	}
 
-	function close () {
+	function close (err: Error) {
+		if (err) {
+			console.error(err);
+		}
+
 		removeOnExit();
 		process.removeListener('uncaughtException', close);
 		// removing a non-existent listener is a no-op
 		process.stdin.removeListener('end', close);
 
 		screen.close();
-		watcher.close();
+		if (watcher) watcher.close();
 
 		if (configWatcher) configWatcher.close();
+
+		if (err) {
+			process.exit(1);
+		}
 	}
 
 	start(configs);

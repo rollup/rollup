@@ -6,7 +6,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class ArrowFunctionExpression extends NodeBase {

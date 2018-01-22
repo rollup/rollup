@@ -14,9 +14,11 @@ export default class Variable implements ExpressionEntity {
 	isReassigned: boolean;
 	name: string;
 	reexported?: boolean;
+	safeName: string;
 
 	constructor (name: string) {
 		this.name = name;
+		this.safeName = null;
 	}
 
 	/**
@@ -34,8 +36,8 @@ export default class Variable implements ExpressionEntity {
 		_options: ExecutionPathOptions
 	) { }
 
-	getName (_es?: boolean): string {
-		return this.name;
+	getName (): string {
+		return this.safeName || this.name;
 	}
 
 	getValue () {
@@ -79,5 +81,9 @@ export default class Variable implements ExpressionEntity {
 
 	toString () {
 		return this.name;
+	}
+
+	setSafeName (name: string) {
+		this.safeName = name;
 	}
 }

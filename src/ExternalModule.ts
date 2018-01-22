@@ -1,21 +1,24 @@
 import { blank } from './utils/object';
 import { makeLegal } from './utils/identifierHelpers';
 import ExternalVariable from './ast/variables/ExternalVariable';
-import Variable from './ast/variables/Variable';
 import Graph from './Graph';
+import Variable from './ast/variables/Variable';
 
 export default class ExternalModule {
-	graph: Graph;
-	declarations: {[name: string]: Variable};
+	private graph: Graph;
+	chunk: void;
+	declarations: {[name: string]: ExternalVariable};
 	exportsNames: boolean;
 	exportsNamespace: boolean;
 	id: string;
-	isExternal: boolean;
+	isExternal: true;
+	isEntryPoint: false;
 	name: string;
 	mostCommonSuggestion: number;
 	nameSuggestions: {[name: string]: number};
 	reexported: boolean;
 	used: boolean;
+	execIndex: number;
 
 	constructor ({ graph, id }: { graph: Graph, id: string }) {
 		this.graph = graph;
@@ -77,9 +80,7 @@ export default class ExternalModule {
 		if (name !== 'default' && name !== '*') this.exportsNames = true;
 		if (name === '*') this.exportsNamespace = true;
 
-		return (
-			this.declarations[name] ||
-			(this.declarations[name] = new ExternalVariable(this, name))
-		);
+		return this.declarations[name] ||
+			(this.declarations[name] = new ExternalVariable(this, name));
 	}
 }

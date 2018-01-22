@@ -1,6 +1,5 @@
-import { keys } from './object';
 import error from './error';
-import Bundle from '../Bundle';
+import Chunk from '../Chunk';
 import { OutputOptions } from '../rollup/index';
 
 function badExports (option: string, keys: string[]) {
@@ -13,12 +12,10 @@ function badExports (option: string, keys: string[]) {
 }
 
 export default function getExportMode (
-	bundle: Bundle,
+	chunk: Chunk,
 	{ exports: exportMode, name, format }: OutputOptions
 ) {
-	const exportKeys = keys(bundle.entryModule.exports)
-		.concat(keys(bundle.entryModule.reexports))
-		.concat(bundle.entryModule.exportAllSources); // not keys, but makes our job easier this way
+	const exportKeys = chunk.getExportNames();
 
 	if (exportMode === 'default') {
 		if (exportKeys.length !== 1 || exportKeys[0] !== 'default') {
@@ -34,8 +31,8 @@ export default function getExportMode (
 		} else if (exportKeys.length === 1 && exportKeys[0] === 'default') {
 			exportMode = 'default';
 		} else {
-			if (bundle.entryModule.exports.default && format !== 'es') {
-				bundle.graph.warn({
+			if (chunk.isEntryModuleFacade && format !== 'es' && exportKeys.indexOf('default') !== -1) {
+				chunk.graph.warn({
 					code: 'MIXED_EXPORTS',
 					message: `Using named and default exports together. Consumers of your bundle will have to use ${name ||
 						'bundle'}['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning`,

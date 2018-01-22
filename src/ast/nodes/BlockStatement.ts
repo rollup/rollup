@@ -5,7 +5,7 @@ import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { Node } from './shared/Node';
 import { StatementBase, StatementNode } from './shared/Statement';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export function isBlockStatement (node: Node): node is BlockStatement {
 	return node.type === NodeType.BlockStatement;
@@ -60,13 +60,13 @@ export default class BlockStatement extends StatementBase {
 		this.scope = new BlockScope({ parent: parentScope });
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (this.body.length) {
 			for (const node of this.body) {
-				node.render(code, es);
+				node.render(code);
 			}
 		} else {
-			super.render(code, es);
+			super.render(code);
 		}
 	}
 }

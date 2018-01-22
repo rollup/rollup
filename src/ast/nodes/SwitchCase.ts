@@ -1,6 +1,6 @@
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { StatementNode } from './shared/Statement';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class SwitchCase extends NodeBase {
 	type: NodeType.SwitchCase;

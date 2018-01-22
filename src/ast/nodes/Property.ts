@@ -6,7 +6,7 @@ import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export function isProperty (node: Node): node is Property {
 	return node.type === NodeType.Property;
@@ -165,11 +165,11 @@ export default class Property extends NodeBase {
 		});
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (!this.shorthand) {
-			this.key.render(code, es);
+			this.key.render(code);
 		}
-		this.value.render(code, es);
+		this.value.render(code);
 	}
 
 	someReturnExpressionWhenCalledAtPath (

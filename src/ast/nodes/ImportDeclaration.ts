@@ -4,7 +4,7 @@ import ImportSpecifier from './ImportSpecifier';
 import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import MagicString from 'magic-string';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class ImportDeclaration extends NodeBase {
 	type: NodeType.ImportDeclaration;

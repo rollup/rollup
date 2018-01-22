@@ -1,7 +1,7 @@
 'use strict';
 
-var foo = require('foo');
 var bar = require('bar');
+var foo = require('foo');
 
 console.log( bar.a );
 

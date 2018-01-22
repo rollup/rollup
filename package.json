@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "0.54.0",
+  "version": "0.54.1",
   "description": "Next-generation ES6 module bundler",
   "main": "dist/rollup.js",
   "module": "dist/rollup.es.js",
@@ -52,6 +52,7 @@
     "acorn": "^5.2.1",
     "ansi-escapes": "^3.0.0",
     "buble": "^0.18.0",
+    "buffer-xor": "^2.0.2",
     "chalk": "^2.3.0",
     "codecov.io": "^0.1.6",
     "console-group": "^0.3.1",
@@ -91,9 +92,8 @@
     "dist/rollup.es.js",
     "dist/rollup.js",
     "dist/**/*.d.ts",
-    "./typings/package.json.d.ts",
+    "typings/package.json.d.ts",
     "bin/rollup",
     "README.md"
-  ],
-  "dependencies": {}
+  ]
 }

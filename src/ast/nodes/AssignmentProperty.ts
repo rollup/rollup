@@ -1,6 +1,6 @@
 import { PatternNode } from './shared/Pattern';
 import { ExpressionNode } from './shared/Node';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default interface AssignmentProperty extends PatternNode {
 	type: NodeType.Property;

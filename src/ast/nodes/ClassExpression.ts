@@ -2,7 +2,7 @@ import ClassNode from './shared/ClassNode';
 import Scope from '../scopes/Scope';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class ClassExpression extends ClassNode {
 	type: NodeType.ClassExpression;

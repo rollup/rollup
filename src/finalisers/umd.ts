@@ -8,7 +8,7 @@ import { property, keypath } from './shared/sanitize';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import trimEmptyImports from './shared/trimEmptyImports';
 import setupNamespace from './shared/setupNamespace';
-import Bundle from '../Bundle';
+import Chunk from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
 import ExternalModule from '../ExternalModule';
@@ -28,7 +28,7 @@ function safeAccess (name: string) {
 const wrapperOutro = '\n\n})));';
 
 export default function umd (
-	bundle: Bundle,
+	chunk: Chunk,
 	magicString: MagicStringBundle,
 	{ exportMode, indentString, getPath, intro, outro }: {
 		exportMode: string;
@@ -46,19 +46,21 @@ export default function umd (
 		});
 	}
 
-	warnOnBuiltins(bundle);
+	warnOnBuiltins(chunk);
+
+	const moduleDeclarations = chunk.getModuleDeclarations();
 
 	const globalNameMaker = getGlobalNameMaker(
 		options.globals || blank(),
-		bundle
+		chunk
 	);
 
-	const amdDeps = bundle.externalModules.map(m => `'${getPath(m.id)}'`);
-	const cjsDeps = bundle.externalModules.map(
+	const amdDeps = chunk.externalModules.map(m => `'${getPath(m.id)}'`);
+	const cjsDeps = chunk.externalModules.map(
 		m => `require('${getPath(m.id)}')`
 	);
 
-	const trimmed = trimEmptyImports(bundle.externalModules);
+	const trimmed = trimEmptyImports(chunk.externalModules);
 	const globalDeps = trimmed.map(module => globalProp(globalNameMaker(module)));
 	const args = trimmed.map(m => (<ExternalModule>m).name);
 
@@ -127,12 +129,12 @@ export default function umd (
 		.replace(/^\t/gm, indentString || '\t');
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(bundle, options);
+	const interopBlock = getInteropBlock(chunk, options);
 	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(bundle, exportMode);
+	const exportBlock = getExportBlock(moduleDeclarations.exports, moduleDeclarations.dependencies, exportMode);
 	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
 	if (exportMode === 'named' && options.legacy !== true)
 		(<any> magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR

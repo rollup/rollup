@@ -8,7 +8,7 @@ import ForStatement from './ForStatement';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { isIdentifier } from './Identifier';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 function getSeparator (code: string, start: number) {
 	let c = start;
@@ -72,7 +72,7 @@ export default class VariableDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		const treeshake = this.module.graph.treeshake;
 
 		let shouldSeparate = false;
@@ -93,8 +93,7 @@ export default class VariableDeclaration extends NodeBase {
 
 			if (isIdentifier(declarator.id)) {
 				const variable = this.scope.findVariable(declarator.id.name);
-				const isExportedAndReassigned =
-					!es && variable.exportName && variable.isReassigned;
+				const isExportedAndReassigned = variable.safeName && variable.safeName.indexOf('.') !== -1 && variable.exportName && variable.isReassigned;
 
 				if (isExportedAndReassigned) {
 					if (declarator.init) {
@@ -114,8 +113,7 @@ export default class VariableDeclaration extends NodeBase {
 
 				extractNames(declarator.id).forEach(name => {
 					const variable = this.scope.findVariable(name);
-					const isExportedAndReassigned =
-						!es && variable.exportName && variable.isReassigned;
+					const isExportedAndReassigned = variable.safeName && variable.safeName.indexOf('.') !== -1 && variable.exportName && variable.isReassigned;
 
 					if (isExportedAndReassigned) {
 						// code.overwrite( c, declarator.start, prefix );
@@ -139,7 +137,7 @@ export default class VariableDeclaration extends NodeBase {
 				}
 			}
 
-			declarator.render(code, es);
+			declarator.render(code);
 		}
 
 		if (treeshake && empty) {

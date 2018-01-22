@@ -3,7 +3,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import FunctionExpression from './FunctionExpression';
 import CallOptions from '../CallOptions';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class MethodDefinition extends NodeBase {
 	type: NodeType.MethodDefinition;

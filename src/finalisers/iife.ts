@@ -8,7 +8,7 @@ import warnOnBuiltins from './shared/warnOnBuiltins';
 import trimEmptyImports from './shared/trimEmptyImports';
 import setupNamespace from './shared/setupNamespace';
 import { isLegal } from '../utils/identifierHelpers';
-import Bundle from '../Bundle';
+import Chunk from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
 import ExternalModule from '../ExternalModule';
@@ -16,7 +16,7 @@ import ExternalModule from '../ExternalModule';
 const thisProp = (name: string) => `this${keypath(name)}`;
 
 export default function iife (
-	bundle: Bundle,
+	chunk: Chunk,
 	magicString: MagicStringBundle,
 	{ exportMode, indentString, intro, outro }: {
 		exportMode: string;
@@ -29,13 +29,15 @@ export default function iife (
 ) {
 	const globalNameMaker = getGlobalNameMaker(
 		options.globals || blank(),
-		bundle,
+		chunk,
 		'null'
 	);
 
 	const { extend, name } = options;
 	const isNamespaced = name && name.indexOf('.') !== -1;
 	const possibleVariableAssignment = !extend && !isNamespaced;
+
+	const moduleDeclarations = chunk.getModuleDeclarations();
 
 	if (name && possibleVariableAssignment && !isLegal(name)) {
 		error({
@@ -44,9 +46,9 @@ export default function iife (
 		});
 	}
 
-	warnOnBuiltins(bundle);
+	warnOnBuiltins(chunk);
 
-	const external = trimEmptyImports(bundle.externalModules);
+	const external = trimEmptyImports(chunk.externalModules);
 	const dependencies = external.map(globalNameMaker);
 	const args = (<ExternalModule[]>external).map(m => m.name);
 
@@ -72,7 +74,7 @@ export default function iife (
 
 	if (exportMode !== 'none' && !extend) {
 		wrapperIntro =
-			(isNamespaced ? thisProp(name) : `${bundle.graph.varOrConst} ${name}`) +
+			(isNamespaced ? thisProp(name) : `${chunk.graph.varOrConst} ${name}`) +
 			` = ${wrapperIntro}`;
 	}
 
@@ -88,12 +90,12 @@ export default function iife (
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(bundle, options);
+	const interopBlock = getInteropBlock(chunk, options);
 	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(bundle, exportMode);
+	const exportBlock = getExportBlock(moduleDeclarations.exports, moduleDeclarations.dependencies, exportMode);
 	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
 	if (outro) (<any> magicString).append(outro); // TODO TypeScript: Awaiting PR
 

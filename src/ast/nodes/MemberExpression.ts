@@ -10,7 +10,7 @@ import Identifier, { isIdentifier } from './Identifier';
 import { isNamespaceVariable } from '../variables/NamespaceVariable';
 import { isExternalVariable } from '../variables/ExternalVariable';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -223,9 +223,9 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	render (code: MagicString, es: boolean) {
+	render (code: MagicString) {
 		if (this.variable) {
-			code.overwrite(this.start, this.end, this.variable.getName(es), {
+			code.overwrite(this.start, this.end, this.variable.getName(), {
 				storeName: true,
 				contentOnly: false
 			});
@@ -236,7 +236,7 @@ export default class MemberExpression extends NodeBase {
 			});
 		}
 
-		super.render(code, es);
+		super.render(code);
 	}
 
 	someReturnExpressionWhenCalledAtPath (

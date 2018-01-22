@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.54.1
+* Fix TypeScript errors in emitted type definitions ([#1871](https://github.com/rollup/rollup/pull/1871))
+
 ## 0.54.0
 * Automatically inline locally resolvable dynamic imports ([#1816](https://github.com/rollup/rollup/pull/1816))
 * Preserve directives in function bodies ([#1856](https://github.com/rollup/rollup/pull/1856))

@@ -4,7 +4,7 @@ import Identifier from './Identifier';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { isGlobalVariable } from '../variables/GlobalVariable';
 import { isNamespaceVariable } from '../variables/NamespaceVariable';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class TaggedTemplateExpression extends NodeBase {

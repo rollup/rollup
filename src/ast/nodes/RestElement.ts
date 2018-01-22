@@ -5,7 +5,7 @@ import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { PatternNode } from './shared/Pattern';
 import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class RestElement extends NodeBase implements PatternNode {
 	type: NodeType.RestElement;

@@ -3,7 +3,7 @@ import SwitchCase from './SwitchCase';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import { StatementBase } from './shared/Statement';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 import { ExpressionNode } from './shared/Node';
 
 export default class SwitchStatement extends StatementBase {

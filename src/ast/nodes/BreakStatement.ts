@@ -1,7 +1,7 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
 import { StatementBase } from './shared/Statement';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class BreakStatement extends StatementBase {
 	type: NodeType.BreakStatement;

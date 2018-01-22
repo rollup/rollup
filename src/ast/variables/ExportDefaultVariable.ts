@@ -24,15 +24,15 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
-	getName (es: boolean) {
+	getName () {
 		if (this._original && !this._original.isReassigned) {
-			return this._original.getName(es);
+			return this._original.getName();
 		}
-		return this.name;
+		return this.safeName || this.name;
 	}
 
-	getOriginalVariableName (es: boolean) {
-		return this._original && this._original.getName(es);
+	getOriginalVariableName () {
+		return this._original && this._original.getName();
 	}
 
 	includeVariable () {

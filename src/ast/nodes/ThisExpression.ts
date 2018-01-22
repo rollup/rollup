@@ -3,7 +3,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { NodeBase } from './shared/Node';
-import { NodeType } from './index';
+import { NodeType } from './NodeType';
 
 export default class ThisExpression extends NodeBase {
 	type: NodeType.ThisExpression;
@@ -44,7 +44,7 @@ export default class ThisExpression extends NodeBase {
 		return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
-	render (code: MagicString, _es: boolean) {
+	render (code: MagicString) {
 		if (this.alias) {
 			code.overwrite(this.start, this.end, this.alias, {
 				storeName: true,

@@ -1,30 +1,25 @@
 import { realpathSync } from 'fs';
 import relative from 'require-relative';
-import { handleError } from '../logging.js';
+import { handleError } from '../logging';
 import mergeOptions from '../../../src/utils/mergeOptions';
-import batchWarnings from './batchWarnings.js';
-import loadConfigFile from './loadConfigFile.js';
-import sequence from '../utils/sequence.js';
-import build from './build.js';
-import watch from './watch.js';
+import batchWarnings from './batchWarnings';
+import loadConfigFile from './loadConfigFile';
+import sequence from '../utils/sequence';
+import build from './build';
+import watch from './watch';
 import { InputOptions } from '../../../src/rollup/index';
 
 export default function runRollup (command: any) {
-	if (command._.length > 1) {
-		handleError({
-			code: 'ONE_AT_A_TIME',
-			message: 'rollup can only bundle one file at a time'
-		});
-	}
-
-	if (command._.length === 1) {
+	if (command._.length >= 1) {
 		if (command.input) {
 			handleError({
 				code: 'DUPLICATE_IMPORT_OPTIONS',
 				message: 'use --input, or pass input path as argument'
 			});
 		}
+	}
 
+	if (command._.length === 1) {
 		command.input = command._[0];
 	}
 
