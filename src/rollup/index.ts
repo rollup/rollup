@@ -28,6 +28,7 @@ export type LoadHook = (id: string) => Promise<SourceDescription | string | void
 export type TransformHook = (code: string, id: String) => Promise<SourceDescription | string | void>;
 export type TransformBundleHook = (code: string, options: OutputOptions) => Promise<SourceDescription | string>;
 export type ModuleDestHook = (file: string) => Promise<string | void>;
+export type PostprocessModuleHook = (file: string, code: string) => Promise<string | void>;
 export type ResolveDynamicImportHook = (specifier: string | Node, parentId: string) => Promise<string | void> | string | void
 
 export interface Plugin {
@@ -41,6 +42,7 @@ export interface Plugin {
 	ongenerate?: (options: OutputOptions, source: SourceDescription) => void;
 	onwrite?: (options: OutputOptions, source: SourceDescription) => void;
 	moduleDest?: ModuleDestHook;
+	postprocessModule?: PostprocessModuleHook;
 	resolveDynamicImport?: ResolveDynamicImportHook;
 
 	banner?: () => string;
@@ -336,14 +338,18 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 						if (outputOptions.preserveModules) {
 							return generateModules(outputOptions).then(files => {
 								const promises = files.map(({ file, code }) => {
-									return bundle.graph.moduleDest(file).then(newFile => {
-										if (!newFile) {
-											const oldFile = file.substr(outputOptions.srcDir.length + 1);
-											newFile = join(outputOptions.destDir, oldFile);
+									return bundle.graph.postprocessModule(file, code).then(code => {
+										if (code) {
+											return bundle.graph.moduleDest(file).then(newFile => {
+												if (!newFile) {
+													const oldFile = file.substr(outputOptions.srcDir.length + 1);
+													newFile = join(outputOptions.destDir, oldFile);
+												}
+												return mkdirp(dirname(newFile)).then(() => {
+													return writeFile(newFile as string, `${code}\n`);
+												});
+											});
 										}
-										return mkdirp(dirname(newFile)).then(() => {
-											return writeFile(newFile as string, `${code}\n`);
-										});
 									});
 								});
 

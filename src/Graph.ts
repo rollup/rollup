@@ -17,6 +17,7 @@ import {
 	MissingExportHook,
 	ModuleDestHook,
 	Plugin,
+	PostprocessModuleHook,
 	ResolveIdHook,
 	RollupWarning,
 	SourceDescription,
@@ -51,6 +52,7 @@ export default class Graph {
 	modules: Module[];
 	onwarn: WarningHandler;
 	plugins: Plugin[];
+	postprocessModule: PostprocessModuleHook;
 	preserveSymlinks: boolean;
 	resolveDynamicImport: ResolveDynamicImportHandler;
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
@@ -129,6 +131,11 @@ export default class Graph {
 
 		this.moduleDest = first(
 			this.plugins.map(plugin => plugin.moduleDest).filter(Boolean)
+		);
+
+		this.postprocessModule = first(
+			this.plugins.map(plugin => plugin.postprocessModule).filter(Boolean)
+				.concat((_file, code) => Promise.resolve(code))
 		);
 
 		this.scope = new GlobalScope();

@@ -1,6 +1,6 @@
 /*
 	Rollup.js v0.54.0
-	Sat Jan 27 2018 16:20:15 GMT-0800 (Pacific Standard Time) - commit f5ca865b83172efbefd5fc244373ff1235daa6a1
+	Sat Jan 27 2018 16:21:47 GMT-0800 (Pacific Standard Time) - commit b9239876da5fa73d22d1b315e39ef79c5f7a453f
 
 
 	https://github.com/rollup/rollup
@@ -19113,6 +19113,8 @@ var Graph = /** @class */ (function () {
         this.missingExport = firstSync(this.plugins.map(function (plugin) { return plugin.missingExport; }).filter(Boolean)
             .concat(missingExport));
         this.moduleDest = first(this.plugins.map(function (plugin) { return plugin.moduleDest; }).filter(Boolean));
+        this.postprocessModule = first(this.plugins.map(function (plugin) { return plugin.postprocessModule; }).filter(Boolean)
+            .concat(function (_file, code) { return Promise.resolve(code); }));
         this.scope = new GlobalScope();
         // TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
         ['module', 'exports', '_interopDefault'].forEach(function (name) {
@@ -19625,14 +19627,18 @@ function rollup(rawInputOptions) {
                         return generateModules(outputOptions).then(function (files) {
                             var promises = files.map(function (_a) {
                                 var file = _a.file, code = _a.code;
-                                return bundle.graph.moduleDest(file).then(function (newFile) {
-                                    if (!newFile) {
-                                        var oldFile = file.substr(outputOptions.srcDir.length + 1);
-                                        newFile = path.join(outputOptions.destDir, oldFile);
+                                return bundle.graph.postprocessModule(file, code).then(function (code) {
+                                    if (code) {
+                                        return bundle.graph.moduleDest(file).then(function (newFile) {
+                                            if (!newFile) {
+                                                var oldFile = file.substr(outputOptions.srcDir.length + 1);
+                                                newFile = path.join(outputOptions.destDir, oldFile);
+                                            }
+                                            return mkdirp(path.dirname(newFile)).then(function () {
+                                                return writeFile$1(newFile, code + "\n");
+                                            });
+                                        });
                                     }
-                                    return mkdirp(path.dirname(newFile)).then(function () {
-                                        return writeFile$1(newFile, code + "\n");
-                                    });
                                 });
                             });
                             return Promise.all(promises)
