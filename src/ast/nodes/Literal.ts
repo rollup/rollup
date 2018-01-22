@@ -3,6 +3,7 @@ import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../Module';
 
 export function isLiteral (node: Node): node is Literal {
 	return node.type === NodeType.Literal;
@@ -30,7 +31,7 @@ export default class Literal<T = string | boolean | null | number | RegExp> exte
 		return path.length > 1;
 	}
 
-	render (code: MagicString) {
+	render (code: MagicString, _options: RenderOptions) {
 		if (typeof this.value === 'string') {
 			(<any> code).indentExclusionRanges.push([this.start + 1, this.end - 1]); // TODO TypeScript: Awaiting MagicString PR
 		}

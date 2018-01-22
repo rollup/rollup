@@ -11,6 +11,7 @@ import Property from './Property';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../Module';
 
 export function isIdentifier (node: Node): node is Identifier {
 	return node.type === NodeType.Identifier;
@@ -116,7 +117,7 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	render (code: MagicString) {
+	render (code: MagicString, _options: RenderOptions) {
 		if (this.variable) {
 			const name = this.variable.getName();
 			if (name !== this.name) {

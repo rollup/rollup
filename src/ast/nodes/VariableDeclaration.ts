@@ -9,6 +9,7 @@ import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { isIdentifier } from './Identifier';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../Module';
 
 function getSeparator (code: string, start: number) {
 	let c = start;
@@ -72,7 +73,7 @@ export default class VariableDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString) {
+	render (code: MagicString, options: RenderOptions) {
 		const treeshake = this.module.graph.treeshake;
 
 		let shouldSeparate = false;
@@ -137,7 +138,7 @@ export default class VariableDeclaration extends NodeBase {
 				}
 			}
 
-			declarator.render(code);
+			declarator.render(code, options);
 		}
 
 		if (treeshake && empty) {

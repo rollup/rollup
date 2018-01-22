@@ -6,6 +6,7 @@ import MagicString from 'magic-string';
 import { Node } from './shared/Node';
 import { StatementBase, StatementNode } from './shared/Statement';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../Module';
 
 export function isBlockStatement (node: Node): node is BlockStatement {
 	return node.type === NodeType.BlockStatement;
@@ -60,13 +61,13 @@ export default class BlockStatement extends StatementBase {
 		this.scope = new BlockScope({ parent: parentScope });
 	}
 
-	render (code: MagicString) {
+	render (code: MagicString, options: RenderOptions) {
 		if (this.body.length) {
 			for (const node of this.body) {
-				node.render(code);
+				node.render(code, options);
 			}
 		} else {
-			super.render(code);
+			super.render(code, options);
 		}
 	}
 }
