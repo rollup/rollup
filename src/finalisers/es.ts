@@ -35,9 +35,9 @@ export default function es (chunk: Chunk, magicString: MagicStringBundle, { getP
 			}
 		}
 		if (reexports) {
-			const starExport = reexports.find(specifier => specifier.reexported[0] === '*');
+			const starExport = reexports.find(specifier => specifier.reexported === '*');
 			if (starExport) {
-				output += `export * from '${starExport.reexported.substr(1)}';`;
+				output += `export * from '${id}';`;
 				if (reexports.length === 1) {
 					return output;
 				}
