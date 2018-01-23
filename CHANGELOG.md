@@ -1,5 +1,10 @@
 # rollup changelog
 
+## Upcoming 0.55.0
+* Support code splitting ([#1841](https://github.com/rollup/rollup/pull/1841))
+* Support SystemJS as output format ([#1897](https://github.com/rollup/rollup/pull/1897))
+* Refactor internal rendering options ([#1900](https://github.com/rollup/rollup/pull/1900))
+
 ## 0.54.1
 * Fix TypeScript errors in emitted type definitions ([#1871](https://github.com/rollup/rollup/pull/1871))
 
