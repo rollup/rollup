@@ -1,6 +1,6 @@
 /// <reference path="./Graph.d.ts" />
 import * as acorn from 'acorn';
-import injectDynamicImportPlugin from './utils/dynamic-import-plugin';
+import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import { timeEnd, timeStart } from './utils/flushTime';
 import first from './utils/first';
 import Module, { IdMap, ModuleJSON } from './Module';
