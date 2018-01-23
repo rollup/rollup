@@ -102,7 +102,12 @@ export interface ModuleJSON {
 export interface RenderOptions {
 	legacy: boolean;
 	freeze: boolean;
-}
+	importMechanism?: {
+		left: string;
+		right: string;
+	};
+	systemBindings: boolean;
+};
 
 export default class Module {
 	type: 'Module';

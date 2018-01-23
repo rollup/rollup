@@ -82,7 +82,7 @@ export interface InputOptions {
 	resolveExternal?: any;
 }
 
-export type ModuleFormat = 'amd' | 'cjs' | 'es' | 'es6' | 'iife' | 'umd';
+export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'es6' | 'iife' | 'umd';
 
 export interface OutputOptions {
 	// only required for bundle.write
@@ -182,7 +182,7 @@ function checkOutputOptions (options: OutputOptions) {
 
 	if (!options.format) {
 		error({
-			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'es', 'iife' or 'umd'`,
+			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'system', 'es', 'iife' or 'umd'`,
 			url: `https://rollupjs.org/#format-f-output-format-`
 		});
 	}
