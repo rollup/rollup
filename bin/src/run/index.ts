@@ -19,9 +19,18 @@ export default function runRollup (command: any) {
 		}
 	}
 
-	if (command._.length === 1) {
+	if (command.output && command.output.dir) {
+		command.input = command._;
+		command._ = [];
+	}
+	else if (command._.length === 1) {
 		command.input = command._[0];
 	}
+
+	if ('experimentalCodeSplitting' in command && command.experimentalCodeSplitting === undefined)
+		command.experimentalCodeSplitting = true;
+	if ('experimentalDynamicImport' in command && command.experimentalDynamicImport === undefined)
+		command.experimentalDynamicImport = true;
 
 	if (command.environment) {
 		const environment = Array.isArray(command.environment)
