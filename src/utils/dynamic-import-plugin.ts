@@ -1,7 +1,7 @@
 // Dynamic Import support for acorn
 import { PluginsObject, TokenType } from 'acorn';
 
-export default function wrapDynamicImportPlugin (acorn: {
+export default function injectDynamicImportPlugin (acorn: {
 	tokTypes: { [type: string]: TokenType },
 	plugins: PluginsObject
 }) {
@@ -35,4 +35,6 @@ export default function wrapDynamicImportPlugin (acorn: {
 			};
 		});
 	};
+
+	return acorn;
 }
