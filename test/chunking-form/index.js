@@ -8,7 +8,7 @@ const samples = path.resolve(__dirname, 'samples');
 
 const FORMATS = ['es', 'cjs', 'amd', 'system'];
 
-describe('form', () => {
+describe('chunking form', () => {
 	sander.readdirSync(samples).sort().forEach(dir => {
 		if (dir[0] === '.') return; // .DS_Store...
 
