@@ -50,6 +50,7 @@
     "@types/node": "^8.5.8",
     "@types/pretty-ms": "^3.0.0",
     "acorn": "^5.2.1",
+    "acorn-dynamic-import": "^3.0.0",
     "ansi-escapes": "^3.0.0",
     "buble": "^0.18.0",
     "buffer-xor": "^2.0.2",

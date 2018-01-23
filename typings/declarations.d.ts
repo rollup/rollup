@@ -16,3 +16,4 @@ declare module 'is-reference';
 declare module 'sourcemap-codec';
 declare module 'require-relative';
 declare module 'rollup-pluginutils/src/createFilter.js';
+declare module 'acorn-dynamic-import/lib/inject';
