@@ -6,6 +6,7 @@
 * Allow injecting acorn plugins ([#1857](https://github.com/rollup/rollup/pull/1857))
 * Add `missingExport` plugin hook ([#1845](https://github.com/rollup/rollup/pull/1845))
 * Refactor internal rendering options ([#1900](https://github.com/rollup/rollup/pull/1900))
+* Refactor internal path resolution ([#1879](https://github.com/rollup/rollup/pull/1879))
 * Clean up watch options types ([#1860](https://github.com/rollup/rollup/pull/1860))
 
 ## 0.54.1

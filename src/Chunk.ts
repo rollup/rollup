@@ -53,6 +53,7 @@ export interface ReexportSpecifier {
 	reexported: string;
 	imported: string;
 };
+
 export interface ImportSpecifier {
 	local: string;
 	imported: string;
@@ -87,7 +88,7 @@ export default class Chunk {
 			name: string;
 			variable: Variable;
 		}
-	}
+	};
 	dependencies: (ExternalModule | Chunk)[];
 	externalModules: ExternalModule[];
 	// an entry module chunk is a chunk that exactly exports the exports of
@@ -357,12 +358,12 @@ export default class Chunk {
 		return runSequence(
 			[{ pluginName: 'rollup', source: initialAddon } as { pluginName: string, source: string | (() => string) }]
 				.concat(
-				this.graph.plugins.map((plugin, idx) => {
-					return {
-						pluginName: plugin.name || `Plugin at pos ${idx}`,
-						source: plugin[addonName]
-					};
-				})
+					this.graph.plugins.map((plugin, idx) => {
+						return {
+							pluginName: plugin.name || `Plugin at pos ${idx}`,
+							source: plugin[addonName]
+						};
+					})
 				)
 				.map(addon => {
 					addon.source = callIfFunction(addon.source);
@@ -416,14 +417,14 @@ export default class Chunk {
 					// ensuring that we create a namespace import of it as well
 					if (replacement.chunk === this) {
 						node.setResolution(replacement.namespace());
-					// for the module in another chunk, import that other chunk directly
+						// for the module in another chunk, import that other chunk directly
 					} else {
 						node.setResolution(`"${replacement.chunk.id}"`);
 					}
-				// external dynamic import resolution
+					// external dynamic import resolution
 				} else if (replacement instanceof ExternalModule) {
 					node.setResolution(`"${replacement.id}"`);
-				// AST Node -> source replacement
+					// AST Node -> source replacement
 				} else {
 					node.setResolution(replacement);
 				}
@@ -452,7 +453,7 @@ export default class Chunk {
 		// reserved internal binding names for system format wiring
 		if (system) {
 			used['_setter'] = used['_starExcludes'] = used['_$p'] = 1;
-    }
+		}
 
 		const toDeshadow: Set<string> = new Set();
 
@@ -657,16 +658,7 @@ export default class Chunk {
 
 				timeStart('render format');
 
-				const optionsPaths = options.paths;
-				const getPath =
-					typeof optionsPaths === 'function'
-						? (id: string) => optionsPaths(id, this.id) || this.graph.getPathRelativeToBaseDirname(id, this.id)
-						: optionsPaths
-							? (id: string) =>
-								optionsPaths.hasOwnProperty(id)
-									? optionsPaths[id]
-									: this.graph.getPathRelativeToBaseDirname(id, this.id)
-							: (id: string) => this.graph.getPathRelativeToBaseDirname(id, this.id);
+				const getPath = this.createGetPath(options);
 
 				if (intro) intro += '\n\n';
 				if (outro) outro = `\n\n${outro}`;
@@ -733,5 +725,19 @@ export default class Chunk {
 					return { code, map } as { code: string, map: any }; // TODO TypeScript: Awaiting missing version in SourceMap type
 				});
 			});
+	}
+
+	private createGetPath (options: OutputOptions) {
+		const optionsPaths = options.paths;
+		const getPath =
+			typeof optionsPaths === 'function'
+				? (id: string) => optionsPaths(id, this.id) || this.graph.getPathRelativeToBaseDirname(id, this.id)
+				: optionsPaths
+				? (id: string) =>
+					optionsPaths.hasOwnProperty(id)
+						? optionsPaths[id]
+						: this.graph.getPathRelativeToBaseDirname(id, this.id)
+				: (id: string) => this.graph.getPathRelativeToBaseDirname(id, this.id);
+		return getPath;
 	}
 }
