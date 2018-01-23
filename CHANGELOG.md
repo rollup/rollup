@@ -3,6 +3,7 @@
 ## Upcoming 0.55.0
 * Support code splitting ([#1841](https://github.com/rollup/rollup/pull/1841))
 * Support SystemJS as output format ([#1897](https://github.com/rollup/rollup/pull/1897))
+* Allow injecting acorn plugins ([#1857](https://github.com/rollup/rollup/pull/1857))
 * Add `missingExport` plugin hook ([#1845](https://github.com/rollup/rollup/pull/1845))
 * Refactor internal rendering options ([#1900](https://github.com/rollup/rollup/pull/1900))
 

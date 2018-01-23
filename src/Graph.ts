@@ -1,4 +1,6 @@
 /// <reference path="./Graph.d.ts" />
+import * as acorn from 'acorn';
+import injectDynamicImportPlugin from './utils/dynamic-import-plugin';
 import { timeEnd, timeStart } from './utils/flushTime';
 import first from './utils/first';
 import Module, { IdMap, ModuleJSON } from './Module';
@@ -51,6 +53,7 @@ function generateChunkName (id: string, chunkNames: { [name: string ]: boolean }
 
 export default class Graph {
 	acornOptions: any;
+	acornParse: acorn.IParse;
 	cachedModules: Map<string, ModuleJSON>;
 	context: string;
 	dynamicImport: boolean;
@@ -173,7 +176,10 @@ export default class Graph {
 
 		this.varOrConst = options.preferConst ? 'const' : 'var';
 		this.legacy = options.legacy;
+
 		this.acornOptions = options.acorn || {};
+		const acornPluginsToInject = [];
+
 		this.dynamicImport = typeof options.experimentalDynamicImport === 'boolean' ? options.experimentalDynamicImport : false;
 
 		if (this.dynamicImport) {
@@ -181,9 +187,13 @@ export default class Graph {
 				...this.plugins.map(plugin => plugin.resolveDynamicImport).filter(Boolean),
 				<ResolveDynamicImportHandler> ((specifier, parentId) => typeof specifier === 'string' && this.resolveId(specifier, parentId))
 			]);
+			acornPluginsToInject.push(injectDynamicImportPlugin);
 			this.acornOptions.plugins = this.acornOptions.plugins || {};
 			this.acornOptions.plugins.dynamicImport = true;
 		}
+
+		acornPluginsToInject.push(...ensureArray(options.acornInjectPlugins));
+		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
 	}
 
 	getPathRelativeToBaseDirname (resolvedId: string, parentId: string): string {
