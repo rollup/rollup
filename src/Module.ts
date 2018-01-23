@@ -47,6 +47,13 @@ export interface CommentDescription {
 	end: number;
 }
 
+export interface ImportDescription {
+	source: string;
+	specifier: ImportSpecifier | ImportNamespaceSpecifier | ImportDefaultSpecifier;
+	name: string;
+	module: Module | ExternalModule | null;
+}
+
 export interface ExportDescription {
 	localName: string;
 	identifier?: string;
@@ -118,14 +125,7 @@ export default class Module {
 	exportAllSources: string[];
 	id: string;
 
-	imports: {
-		[name: string]: {
-			source: string;
-			specifier: ImportSpecifier | ImportNamespaceSpecifier | ImportDefaultSpecifier;
-			name: string;
-			module: Module | ExternalModule | null;
-		}
-	};
+	imports: { [name: string]: ImportDescription };
 	isExternal: false;
 	magicString: MagicString;
 	originalCode: string;
