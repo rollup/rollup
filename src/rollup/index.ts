@@ -6,7 +6,8 @@ import { mapSequence } from '../utils/promise';
 import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
-import { ModuleJSON } from '../Module';
+import Module, { ModuleJSON } from '../Module';
+import ExternalModule from '../ExternalModule';
 import { RawSourceMap } from 'source-map';
 import Program from '../ast/nodes/Program';
 import { Node } from '../ast/nodes/shared/Node';
@@ -20,6 +21,7 @@ export const VERSION = '<@VERSION@>';
 export type SourceDescription = { code: string, map?: RawSourceMap, ast?: Program };
 
 export type ResolveIdHook = (id: string, parent: string) => Promise<string | boolean | void> | string | boolean | void;
+export type MissingExportHook = (module: Module, name: string, otherModule: Module | ExternalModule, start?: number) => void;
 export type IsExternalHook = (id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void;
 export type LoadHook = (id: string) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
 export type TransformHook = (code: string, id: String) => Promise<SourceDescription | string | void>;
@@ -31,6 +33,7 @@ export interface Plugin {
 	options?: (options: InputOptions) => void;
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
+	missingExport?: MissingExportHook;
 	transform?: TransformHook;
 	transformBundle?: TransformBundleHook;
 	ongenerate?: (options: OutputOptions, source: SourceDescription) => void;

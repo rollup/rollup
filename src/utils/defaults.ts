@@ -64,7 +64,7 @@ export function makeOnwarn () {
 	};
 }
 
-export function missingExport (module: Module, name: string, otherModule: Module | ExternalModule, start?: number) {
+export function handleMissingExport (module: Module, name: string, otherModule: Module | ExternalModule, start?: number) {
 	module.error(
 		{
 			code: 'MISSING_EXPORT',
