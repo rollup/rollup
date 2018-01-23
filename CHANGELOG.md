@@ -11,6 +11,7 @@
 * Extract internal bundle option handling ([#1880](https://github.com/rollup/rollup/pull/1880))
 * Add import description type ([#1884](https://github.com/rollup/rollup/pull/1884))
 * Clean up watch options types ([#1860](https://github.com/rollup/rollup/pull/1860))
+* Clean up some tests ([#1888](https://github.com/rollup/rollup/pull/1888))
 
 ## 0.54.1
 * Fix TypeScript errors in emitted type definitions ([#1871](https://github.com/rollup/rollup/pull/1871))
