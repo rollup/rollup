@@ -5,6 +5,7 @@
 * Support SystemJS as output format ([#1897](https://github.com/rollup/rollup/pull/1897))
 * Allow injecting acorn plugins ([#1857](https://github.com/rollup/rollup/pull/1857))
 * Add `missingExport` plugin hook ([#1845](https://github.com/rollup/rollup/pull/1845))
+* No longer parse config files via bublé ([#1899](https://github.com/rollup/rollup/pull/1899))
 * Use externally maintained dynamic import acorn plugin ([#1891](https://github.com/rollup/rollup/pull/1891))
 * Fix an error message ([#1886](https://github.com/rollup/rollup/pull/1886))
 * Refactor internal rendering options ([#1900](https://github.com/rollup/rollup/pull/1900))
