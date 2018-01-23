@@ -27,11 +27,6 @@ export default function runRollup (command: any) {
 		command.input = command._[0];
 	}
 
-	if ('experimentalCodeSplitting' in command && command.experimentalCodeSplitting === undefined)
-		command.experimentalCodeSplitting = true;
-	if ('experimentalDynamicImport' in command && command.experimentalDynamicImport === undefined)
-		command.experimentalDynamicImport = true;
-
 	if (command.environment) {
 		const environment = Array.isArray(command.environment)
 			? command.environment
