@@ -8,6 +8,7 @@
 * Refactor internal rendering options ([#1900](https://github.com/rollup/rollup/pull/1900))
 * Extract internal path resolution ([#1879](https://github.com/rollup/rollup/pull/1879))
 * Extract internal bundle option handling ([#1880](https://github.com/rollup/rollup/pull/1880))
+* Add import description type ([#1884](https://github.com/rollup/rollup/pull/1884))
 * Clean up watch options types ([#1860](https://github.com/rollup/rollup/pull/1860))
 
 ## 0.54.1
