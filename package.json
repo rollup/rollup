@@ -54,7 +54,6 @@
     "acorn-dynamic-import": "^3.0.0",
     "ansi-escapes": "^3.0.0",
     "buble": "^0.18.0",
-    "buffer-xor": "^2.0.2",
     "chalk": "^2.3.0",
     "codecov.io": "^0.1.6",
     "console-group": "^0.3.1",
