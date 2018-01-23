@@ -390,8 +390,8 @@ export default class Chunk {
 		if (!es) {
 			if (format === 'cjs') {
 				dynamicImportMechanism = {
-					left: 'Promise.resolve(require(',
-					right: '))'
+					left: 'Promise.resolve({ default: require(',
+					right: ') })'
 				};
 			} else if (format === 'amd') {
 				dynamicImportMechanism = {

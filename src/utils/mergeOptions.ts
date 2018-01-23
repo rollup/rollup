@@ -35,7 +35,7 @@ export default function mergeOptions ({
 	const deprecations = deprecate(config, command, deprecateConfig);
 
 	const getOption = (config: GenericConfigObject) => (name: string) =>
-		command[name] !== undefined ? command[name] : config[name];
+			command[name] !== undefined ? command[name] : config[name];
 
 	const getInputOption = getOption(config);
 	const getOutputOption = getOption(config.output || {});
