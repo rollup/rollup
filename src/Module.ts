@@ -37,7 +37,6 @@ import Import from './ast/nodes/Import';
 import { NodeType } from './ast/nodes/index';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
-import { missingExport } from './utils/defaults';
 import Chunk from './Chunk';
 
 wrapDynamicImportPlugin(acorn);
@@ -640,7 +639,7 @@ export default class Module {
 			const declaration = otherModule.traceExport(importDeclaration.name);
 
 			if (!declaration) {
-				this.graph.missingExport(this, importDeclaration.name, otherModule, importDeclaration.specifier.start);
+				this.graph.handleMissingExport(this, importDeclaration.name, otherModule, importDeclaration.specifier.start);
 			}
 
 			return declaration;
@@ -668,7 +667,7 @@ export default class Module {
 			const declaration = reexportDeclaration.module.traceExport(reexportDeclaration.localName);
 
 			if (!declaration) {
-				this.graph.missingExport(this, reexportDeclaration.localName, reexportDeclaration.module, reexportDeclaration.start);
+				this.graph.handleMissingExport(this, reexportDeclaration.localName, reexportDeclaration.module, reexportDeclaration.start);
 			}
 
 			return declaration;

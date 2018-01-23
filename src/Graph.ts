@@ -4,7 +4,7 @@ import first from './utils/first';
 import Module, { IdMap, ModuleJSON } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
-import { load, makeOnwarn, resolveId, missingExport } from './utils/defaults';
+import { load, makeOnwarn, resolveId, handleMissingExport } from './utils/defaults';
 import { mapSequence } from './utils/promise';
 import transform from './utils/transform';
 import relativeId from './utils/relativeId';
@@ -61,7 +61,7 @@ export default class Graph {
 	isPureExternalModule: (id: string) => boolean;
 	legacy: boolean;
 	load: (id: string) => Promise<SourceDescription | string | void>;
-	missingExport: MissingExportHook;
+	handleMissingExport: MissingExportHook;
 	moduleById: Map<string, Module | ExternalModule>;
 	modules: Module[];
 	onwarn: WarningHandler;
@@ -133,9 +133,9 @@ export default class Graph {
 		this.hasLoaders = loaders.length !== 0;
 		this.load = first(loaders.concat(load));
 
-		this.missingExport = firstSync(
+		this.handleMissingExport = firstSync(
 			this.plugins.map(plugin => plugin.missingExport).filter(Boolean)
-				.concat(missingExport)
+				.concat(handleMissingExport)
 		);
 
 		this.scope = new GlobalScope();
