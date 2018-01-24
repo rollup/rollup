@@ -503,7 +503,9 @@ export default class Graph {
 				throw new Error(`Cannot fetch external module ${id}`);
 			return Promise.resolve(<Module>existingModule);
 		}
-		this.moduleById.set(id, null);
+
+		const module: Module = new Module(this, id);
+		this.moduleById.set(id, module);
 
 		return this.load(id)
 			.catch((err: Error) => {
@@ -548,25 +550,7 @@ export default class Graph {
 				sourcemapChain: RawSourceMap[],
 				resolvedIds?: IdMap
 			}) => {
-				const {
-					code,
-					originalCode,
-					originalSourcemap,
-					ast,
-					sourcemapChain,
-					resolvedIds
-				} = source;
-
-				const module: Module = new Module({
-					id,
-					code,
-					originalCode,
-					originalSourcemap,
-					ast,
-					sourcemapChain,
-					resolvedIds,
-					graph: this
-				});
+				module.setSource(source);
 
 				this.modules.push(module);
 				this.moduleById.set(id, module);
