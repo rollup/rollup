@@ -88,7 +88,7 @@ export default class Scope {
 			// we can disregard exports.foo etc
 			if (declaration.exportName && declaration.isReassigned) return;
 
-			let name = declaration.getName();
+			let name = declaration.getName(true);
 
 			if (!names.has(name)) {
 				return;
