@@ -480,6 +480,9 @@ export default class Chunk {
 					} else {
 						safeName = (es || system) ? getSafeName(variable.name) : `${module.name}.${name}`;
 					}
+					if (es || system) {
+						toDeshadow.add(safeName);
+					}
 				} else if (es || system) {
 					safeName = getSafeName(variable.name);
 				} else {

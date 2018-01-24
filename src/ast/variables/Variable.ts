@@ -36,7 +36,13 @@ export default class Variable implements ExpressionEntity {
 		_options: ExecutionPathOptions
 	) { }
 
-	getName (): string {
+	getName (reset?: boolean): string {
+		if (reset && this.safeName && this.safeName !== this.name && 
+				this.safeName[this.name.length] === '$' &&
+				this.safeName[this.name.length + 1] === '$') {
+			this.safeName = undefined;
+			return this.name;
+		}
 		return this.safeName || this.name;
 	}
 
