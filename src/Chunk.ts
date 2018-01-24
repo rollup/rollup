@@ -59,6 +59,13 @@ export interface ImportSpecifier {
 	imported: string;
 };
 
+export interface DynamicImportMechanism {
+	left: string;
+	right: string;
+	interopLeft?: string;
+	interopRight?: string;
+};
+
 export default class Chunk {
 	id: string;
 	name: string;
@@ -386,17 +393,21 @@ export default class Chunk {
 
 	private setDynamicImportResolutions ({ format }: OutputOptions) {
 		const es = format === 'es';
-		let dynamicImportMechanism: { left: string, right: string };
+		let dynamicImportMechanism: DynamicImportMechanism;
 		if (!es) {
 			if (format === 'cjs') {
 				dynamicImportMechanism = {
-					left: 'Promise.resolve({ default: require(',
-					right: ') })'
+					left: 'Promise.resolve(require(',
+					right: '))',
+					interopLeft: 'Promise.resolve({ default: require(',
+					interopRight: ') })'
 				};
 			} else if (format === 'amd') {
 				dynamicImportMechanism = {
 					left: 'new Promise(function (resolve, reject) { require([',
-					right: '], resolve, reject) })'
+					right: '], resolve, reject) })',
+					interopLeft: 'new Promise(function (resolve, reject) { require([',
+					interopRight: '], function (m) { resolve({ default: m }) }, reject) })',
 				};
 			} else if (format === 'system') {
 				dynamicImportMechanism = {
@@ -416,17 +427,17 @@ export default class Chunk {
 					// if we have the module in the chunk, inline as Promise.resolve(namespace)
 					// ensuring that we create a namespace import of it as well
 					if (replacement.chunk === this) {
-						node.setResolution(replacement.namespace());
+						node.setResolution(replacement.namespace(), false);
 						// for the module in another chunk, import that other chunk directly
 					} else {
-						node.setResolution(`"${replacement.chunk.id}"`);
+						node.setResolution(`"${replacement.chunk.id}"`, false);
 					}
 					// external dynamic import resolution
 				} else if (replacement instanceof ExternalModule) {
-					node.setResolution(`"${replacement.id}"`);
+					node.setResolution(`"${replacement.id}"`, true);
 					// AST Node -> source replacement
 				} else {
-					node.setResolution(replacement);
+					node.setResolution(replacement, false);
 				}
 			});
 		});

@@ -36,7 +36,7 @@ import Import from './ast/nodes/Import';
 import { NodeType } from './ast/nodes/index';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
-import Chunk from './Chunk';
+import Chunk, { DynamicImportMechanism } from './Chunk';
 
 export interface IdMap { [key: string]: string; }
 
@@ -105,10 +105,7 @@ export interface ModuleJSON {
 export interface RenderOptions {
 	legacy: boolean;
 	freeze: boolean;
-	importMechanism?: {
-		left: string;
-		right: string;
-	};
+	importMechanism?: DynamicImportMechanism;
 	systemBindings: boolean;
 };
 
