@@ -6,7 +6,7 @@
          alt="build status">
   </a>
   <a href="https://www.npmjs.com/package/rollup">
-    <img src="https://img.shields.io/npm/v/rollup.svg"
+    <a href="#backers" alt="sponsors on Open Collective"><img src="https://opencollective.com/rollup/backers/badge.svg" /></a> <a href="#sponsors" alt="Sponsors on Open Collective"><img src="https://opencollective.com/rollup/sponsors/badge.svg" /></a> <img src="https://img.shields.io/npm/v/rollup.svg"
          alt="npm version">
   </a>
   <a href="https://github.com/rollup/rollup/blob/master/LICENSE.md">
@@ -24,7 +24,16 @@
     <img src='https://badges.gitter.im/rollup/rollup.svg'
          alt='Join the chat at https://gitter.im/rollup/rollup'>
   </a>
+  <a href='https://opencollective.com/rollup/backers'>
+    <img src='https://opencollective.com/rollup/backers/badge.svg'
+         alt='Backers on Open Collective'>
+  </a>
+  <a href='https://opencollective.com/rollup/sponsors'>
+    <img src='https://opencollective.com/rollup/sponsors/badge.svg'
+         alt='Sponsors on Open Collective'>
+  </a>
 </p>
+
 
 ## Overview
 
@@ -105,6 +114,36 @@ To make sure your ES6 modules are immediately usable by tools that work with Com
 
 - step-by-step [tutorial video series](https://code.lengstorf.com/learn-rollup-js/), with accompanying written walkthrough
 - miscellaneous issues in the [wiki](https://github.com/rollup/rollup/wiki)
+
+## Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="graphs/contributors"><img src="https://opencollective.com/rollup/contributors.svg?width=890" /></a>
+
+
+## Backers
+
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/rollup#backer)]
+
+<a href="https://opencollective.com/rollup#backers" target="_blank"><img src="https://opencollective.com/rollup/backers.svg?width=890"></a>
+
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/rollup#sponsor)]
+
+<a href="https://opencollective.com/rollup/sponsor/0/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/rollup/sponsor/1/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/rollup/sponsor/2/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/rollup/sponsor/3/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/rollup/sponsor/4/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/rollup/sponsor/5/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/rollup/sponsor/6/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/rollup/sponsor/7/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/rollup/sponsor/8/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/rollup/sponsor/9/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/9/avatar.svg"></a>
+
+
 
 ## License
 
