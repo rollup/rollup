@@ -19,7 +19,11 @@ export default function runRollup (command: any) {
 		}
 	}
 
-	if (command._.length === 1) {
+	if (command.output && command.output.dir) {
+		command.input = command._;
+		command._ = [];
+	}
+	else if (command._.length === 1) {
 		command.input = command._[0];
 	}
 

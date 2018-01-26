@@ -10,9 +10,11 @@ export default class Import extends NodeBase {
 	parent: CallExpression;
 
 	private resolution: NamespaceVariable | string | void;
+	private resolutionInterop: boolean;
 
-	setResolution (resolution: NamespaceVariable | string | void): void {
+	setResolution (resolution: NamespaceVariable | string | void, interop: boolean): void {
 		this.resolution = resolution;
+		this.resolutionInterop = interop;
 	}
 
 	render (code: MagicString, options: RenderOptions) {
@@ -29,7 +31,8 @@ export default class Import extends NodeBase {
 			resolution = this.resolution;
 
 			if (options.importMechanism) {
-				code.overwrite(this.parent.start, this.parent.arguments[0].start, options.importMechanism.left);
+				const leftMechanism = this.resolutionInterop && options.importMechanism.interopLeft || options.importMechanism.left;
+				code.overwrite(this.parent.start, this.parent.arguments[0].start, leftMechanism);
 			}
 
 			if (resolution) {
@@ -37,7 +40,8 @@ export default class Import extends NodeBase {
 			}
 
 			if (options.importMechanism) {
-				code.overwrite(this.parent.arguments[0].end, this.parent.end, options.importMechanism.right);
+				const rightMechanism = this.resolutionInterop && options.importMechanism.interopRight || options.importMechanism.right;
+				code.overwrite(this.parent.arguments[0].end, this.parent.end, rightMechanism);
 			}
 		}
 	}

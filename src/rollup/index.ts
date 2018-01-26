@@ -156,7 +156,7 @@ export interface RollupWarning {
 	pluginCode?: string;
 }
 
-export type WarningHandler = (warning: RollupWarning) => void;
+export type WarningHandler = (warning: string | RollupWarning) => void;
 
 function addDeprecations (deprecations: Deprecation[], warn: WarningHandler) {
 	const message = `The following options have been renamed — please update your config: ${deprecations.map(

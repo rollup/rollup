@@ -12,7 +12,13 @@ function normalizeObjectOptionValue (optionValue: any) {
 	return optionValue;
 }
 
-const defaultOnWarn: WarningHandler = warning => console.warn(warning.message); // eslint-disable-line no-console
+const defaultOnWarn: WarningHandler = warning => {
+	if (typeof warning === 'string') {
+		console.warn(warning); // eslint-disable-line no-console
+	} else {
+		console.warn(warning.message); // eslint-disable-line no-console
+	}
+}
 
 export type GenericConfigObject = { [key: string]: any };
 
@@ -35,7 +41,7 @@ export default function mergeOptions ({
 	const deprecations = deprecate(config, command, deprecateConfig);
 
 	const getOption = (config: GenericConfigObject) => (name: string) =>
-		command[name] !== undefined ? command[name] : config[name];
+			command[name] !== undefined ? command[name] : config[name];
 
 	const getInputOption = getOption(config);
 	const getOutputOption = getOption(config.output || {});

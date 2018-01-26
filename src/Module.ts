@@ -36,7 +36,7 @@ import Import from './ast/nodes/Import';
 import { NodeType } from './ast/nodes/index';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
-import Chunk from './Chunk';
+import Chunk, { DynamicImportMechanism } from './Chunk';
 
 export interface IdMap { [key: string]: string; }
 
@@ -105,10 +105,7 @@ export interface ModuleJSON {
 export interface RenderOptions {
 	legacy: boolean;
 	freeze: boolean;
-	importMechanism?: {
-		left: string;
-		right: string;
-	};
+	importMechanism?: DynamicImportMechanism;
 	systemBindings: boolean;
 };
 
@@ -154,32 +151,9 @@ export default class Module {
 	};
 	exportAllModules: (Module | ExternalModule)[];
 
-	constructor ({
-		id,
-		code,
-		originalCode,
-		originalSourcemap,
-		ast,
-		sourcemapChain,
-		resolvedIds,
-		graph
-	}: {
-		id: string,
-		code: string,
-		originalCode: string,
-		originalSourcemap: RawSourceMap,
-		ast: Program,
-		sourcemapChain: RawSourceMap[],
-		resolvedIds: IdMap,
-		resolvedExternalIds?: IdMap,
-		graph: Graph
-	}) {
-		this.code = code;
+	constructor (graph: Graph, id: string) {
 		this.id = id;
 		this.graph = graph;
-		this.originalCode = originalCode;
-		this.originalSourcemap = originalSourcemap;
-		this.sourcemapChain = sourcemapChain;
 		this.comments = [];
 
 		if (graph.dynamicImport) {
@@ -190,28 +164,12 @@ export default class Module {
 		this.execIndex = null;
 		this.entryPointsHash = new Uint8Array(10);
 
-		timeStart('ast');
-
-		if (ast) {
-			// prevent mutating the provided AST, as it may be reused on
-			// subsequent incremental rebuilds
-			this.ast = clone(ast);
-			this.astClone = ast;
-		} else {
-			// TODO what happens to comments if AST is provided?
-			this.ast = <any>tryParse(this, graph.acornParse, graph.acornOptions);
-			this.astClone = clone(this.ast);
-		}
-
-		timeEnd('ast');
-
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = graph.getModuleContext(id);
 
 		// all dependencies
 		this.sources = [];
 		this.dependencies = [];
-		this.resolvedIds = resolvedIds || blank();
 
 		// imports and exports, indexed by local name
 		this.imports = blank();
@@ -222,10 +180,51 @@ export default class Module {
 		this.exportAllSources = [];
 		this.exportAllModules = null;
 
+		this.declarations = blank();
+		this.scope = new ModuleScope(this);
+	}
+
+	setSource ({
+		code,
+		originalCode,
+		originalSourcemap,
+		ast,
+		sourcemapChain,
+		resolvedIds
+	}: {
+		code: string,
+		originalCode: string,
+		originalSourcemap: RawSourceMap,
+		ast: Program,
+		sourcemapChain: RawSourceMap[],
+		resolvedIds?: IdMap
+	}) {
+		this.code = code;
+		this.originalCode = originalCode;
+		this.originalSourcemap = originalSourcemap;
+		this.sourcemapChain = sourcemapChain;
+
+		timeStart('ast');
+
+		if (ast) {
+			// prevent mutating the provided AST, as it may be reused on
+			// subsequent incremental rebuilds
+			this.ast = clone(ast);
+			this.astClone = ast;
+		} else {
+			// TODO what happens to comments if AST is provided?
+			this.ast = <any>tryParse(this, this.graph.acornParse, this.graph.acornOptions);
+			this.astClone = clone(this.ast);
+		}
+
+		timeEnd('ast');
+
+		this.resolvedIds = resolvedIds || blank();
+
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
 		this.magicString = new MagicString(code, {
-			filename: this.excludeFromSourcemap ? null : id, // don't include plugin helpers in sourcemap
+			filename: this.excludeFromSourcemap ? null : this.id, // don't include plugin helpers in sourcemap
 			indentExclusionRanges: []
 		});
 
@@ -239,9 +238,6 @@ export default class Module {
 			}
 			return !isSourceMapComment;
 		});
-
-		this.declarations = blank();
-		this.scope = new ModuleScope(this);
 
 		timeStart('analyse');
 
