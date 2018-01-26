@@ -12,7 +12,13 @@ function normalizeObjectOptionValue (optionValue: any) {
 	return optionValue;
 }
 
-const defaultOnWarn: WarningHandler = warning => console.warn(warning.message); // eslint-disable-line no-console
+const defaultOnWarn: WarningHandler = warning => {
+	if (typeof warning === 'string') {
+		console.warn(warning); // eslint-disable-line no-console
+	} else {
+		console.warn(warning.message); // eslint-disable-line no-console
+	}
+}
 
 export type GenericConfigObject = { [key: string]: any };
 
