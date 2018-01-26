@@ -1,6 +1,13 @@
 # rollup changelog
 
-## Upcoming 0.55.0
+## 0.55.1
+* Improve dynamic import workflow ([#1907](https://github.com/rollup/rollup/pull/1907))
+* Properly handle multiple dynamic imports of the same module ([#1911](https://github.com/rollup/rollup/pull/1911))
+* Fix import specifier deshadowing ([#1912](https://github.com/rollup/rollup/pull/1912))
+* Allow plugin load hook to return an empty string ([#1908](https://github.com/rollup/rollup/pull/1908))
+* Let onwarn handler accept strings ([#1905](https://github.com/rollup/rollup/pull/1905))
+
+## 0.55.0
 * Support code splitting ([#1841](https://github.com/rollup/rollup/pull/1841))
 * Support SystemJS as output format ([#1897](https://github.com/rollup/rollup/pull/1897))
 * Allow injecting acorn plugins ([#1857](https://github.com/rollup/rollup/pull/1857))
