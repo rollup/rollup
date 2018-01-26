@@ -517,7 +517,7 @@ export default class Graph {
 			})
 			.then(source => {
 				if (typeof source === 'string') return source;
-				if (source && typeof source === 'object' && source.code) return source;
+				if (source && typeof source === 'object' && typeof source.code === 'string') return source;
 
 				// TODO report which plugin failed
 				error({
