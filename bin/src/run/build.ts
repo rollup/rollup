@@ -10,7 +10,7 @@ import { BatchWarnings } from './batchWarnings';
 import { SourceMap } from 'magic-string';
 
 export default function build (inputOptions: InputOptions, outputOptions: OutputOptions[], warnings: BatchWarnings, silent = false) {
-	const useStdout = outputOptions.length === 1 && !outputOptions[0].file && !outputOptions[0].dir;
+	const useStdout = outputOptions.length === 1 && !outputOptions[0].file && inputOptions.input instanceof Array === false;
 
 	const start = Date.now();
 	const files = useStdout
