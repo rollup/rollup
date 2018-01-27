@@ -1,12 +1,12 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { isUnknownKey, ObjectPath } from '../variables/VariableReassignmentTracker';
-import { ExpressionEntity, SomeReturnExpressionCallback } from './shared/Expression';
+import { SomeReturnExpressionCallback } from './shared/Expression';
 import { Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 import CallOptions from '../CallOptions';
 import { RenderOptions } from '../../Module';
-import { getPureLiteralMembersForValue } from '../values';
+import { getLiteralMembersForValue, MemberDescription } from '../values';
 
 export type LiteralValueTypes = string | boolean | null | number | RegExp;
 
@@ -18,7 +18,7 @@ export default class Literal<T = LiteralValueTypes> extends NodeBase {
 	type: NodeType.Literal;
 	value: T;
 
-	private members: { [key: string]: { returnExpression: ExpressionEntity } };
+	private members: { [key: string]: MemberDescription };
 
 	getValue () {
 		return this.value;
@@ -44,7 +44,7 @@ export default class Literal<T = LiteralValueTypes> extends NodeBase {
 	}
 
 	initialiseNode () {
-		this.members = getPureLiteralMembersForValue(this.value);
+		this.members = getLiteralMembersForValue(this.value);
 	}
 
 	render (code: MagicString, _options: RenderOptions) {
@@ -63,7 +63,7 @@ export default class Literal<T = LiteralValueTypes> extends NodeBase {
 			const subPath = path[0];
 			return isUnknownKey(subPath)
 				|| !this.members[subPath]
-				|| predicateFunction(options)(this.members[subPath].returnExpression);
+				|| predicateFunction(options)(this.members[subPath].returns);
 		}
 		return true;
 	}

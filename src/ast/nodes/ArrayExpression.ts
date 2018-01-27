@@ -1,11 +1,11 @@
 import SpreadElement from './SpreadElement';
-import { isUnknownKey, ObjectPath } from '../variables/VariableReassignmentTracker';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { SomeReturnExpressionCallback } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { pureArrayMembers } from '../values';
+import { hasMemberEffectWhenCalled, arrayMembers, someMemberReturnExpressionWhenCalled } from '../values';
 
 export default class ArrayExpression extends NodeBase {
 	type: NodeType.ArrayExpression;
@@ -15,25 +15,21 @@ export default class ArrayExpression extends NodeBase {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath): boolean {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length === 1) {
-			const subPath = path[0];
-			return isUnknownKey(subPath) || !pureArrayMembers[subPath];
+			return hasMemberEffectWhenCalled(arrayMembers, path[0], callOptions, options);
 		}
 		return true;
 	}
 
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
-		_callOptions: CallOptions,
+		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		if (path.length === 1) {
-			const subPath = path[0];
-			return isUnknownKey(subPath)
-				|| !pureArrayMembers[subPath]
-				|| predicateFunction(options)(pureArrayMembers[subPath].returnExpression);
+			return someMemberReturnExpressionWhenCalled(arrayMembers, path[0], callOptions, predicateFunction, options);
 		}
 		return true;
 	}

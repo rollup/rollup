@@ -10,13 +10,13 @@ export type CallExpressionType = TaggedTemplateExpression | CallExpression | New
 export interface CallCreateOptions {
 	withNew: boolean;
 	args?: (ExpressionEntity | SpreadElement)[];
-	caller: CallExpressionType;
+	caller: Object;
 }
 
 export default class CallOptions implements CallCreateOptions {
 	withNew: boolean;
 	args: (ExpressionEntity | SpreadElement)[];
-	caller: CallExpressionType;
+	caller: Object;
 
 	static create (callOptions: CallCreateOptions) {
 		return new this(callOptions);

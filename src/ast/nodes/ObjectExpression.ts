@@ -4,7 +4,7 @@ import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { pureObjectMembers } from '../values';
+import { objectMembers } from '../values';
 import { NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 
@@ -109,7 +109,7 @@ export default class ObjectExpression extends NodeBase {
 	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return true;
 		const subPath = path[0];
-		if (path.length === 1 && !isUnknownKey(subPath) && pureObjectMembers[subPath]) {
+		if (path.length === 1 && !isUnknownKey(subPath) && objectMembers[subPath]) {
 			return false;
 		}
 
@@ -133,8 +133,8 @@ export default class ObjectExpression extends NodeBase {
 	): boolean {
 		if (path.length === 0) return true;
 		const subPath = path[0];
-		if (path.length === 1 && !isUnknownKey(subPath) && pureObjectMembers[subPath]) {
-			return predicateFunction(options)(pureObjectMembers[subPath].returnExpression);
+		if (path.length === 1 && !isUnknownKey(subPath) && objectMembers[subPath]) {
+			return predicateFunction(options)(objectMembers[subPath].returns);
 		}
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
