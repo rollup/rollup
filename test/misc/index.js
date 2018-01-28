@@ -72,11 +72,11 @@ describe('sanity checks', () => {
 				assert.deepEqual(warnings, [
 					{
 						code: 'UNKNOWN_OPTION',
-						message:
-							'Unknown option found: plUgins. Allowed keys: input, legacy, treeshake, acorn, acornInjectPlugins, context, moduleContext, plugins, onwarn, watch, cache, preferConst, experimentalDynamicImport, experimentalCodeSplitting, preserveSymlinks, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, indent, strict, noConflict, paths, exports, file, dir, pureExternalModules'
-					}
-				]);
-			});
+						message: 'Unknown option found: plUgins. Allowed keys: input, legacy, treeshake, acorn, acornInjectPlugins, context, moduleContext, plugins, onwarn, watch, cache, preferConst, experimentalDynamicImport, experimentalCodeSplitting, preserveSymlinks, experimentalPreserveModules, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, indent, strict, noConflict, paths, exports, file, dir, pureExternalModules'
+					}]
+				);
+			}
+		);
 	});
 
 	it('treats Literals as leaf nodes, even if first literal encountered is null', () => {

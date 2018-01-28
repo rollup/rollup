@@ -28,9 +28,15 @@ import { Node } from './ast/nodes/shared/Node';
 import Chunk from './Chunk';
 import * as path from './utils/path';
 import GlobalScope from './ast/scopes/GlobalScope';
-import { randomUint8Array, Uint8ArrayXor, Uint8ArrayToHexString } from './utils/entryHashing';
+import {
+	randomUint8Array,
+	Uint8ArrayXor,
+	Uint8ArrayToHexString,
+	isZero
+} from './utils/entryHashing';
 import { blank } from './utils/object';
 import firstSync from './utils/first-sync';
+import commondir from './utils/commondir';
 
 export type ResolveDynamicImportHandler = (
 	specifier: string | Node,
@@ -40,9 +46,15 @@ export type ResolveDynamicImportHandler = (
 function generateChunkName(
 	id: string,
 	chunkNames: { [name: string]: boolean },
-	startAtTwo = false
+	startAtTwo = false,
+	inputRelativeDir = ''
 ): string {
-	let name = path.basename(id);
+	let name;
+	if (inputRelativeDir) {
+		name = path.relative(inputRelativeDir, id).replace(/\\/g, '/');
+	} else {
+		name = path.basename(id);
+	}
 	let ext = path.extname(name);
 	name = name.substr(0, name.length - ext.length);
 	if (ext !== '.js' && ext !== '.mjs') {
@@ -313,7 +325,10 @@ export default class Graph {
 		});
 	}
 
-	buildChunks(entryModuleIds: string[]): Promise<{ [name: string]: Chunk }> {
+	buildChunks(
+		entryModuleIds: string[],
+		preserveModules: boolean
+	): Promise<{ [name: string]: Chunk }> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
@@ -327,7 +342,12 @@ export default class Graph {
 				timeStart('phase 2');
 
 				this.link();
-				const { orderedModules, dynamicImports } = this.analyseExecution(entryModules);
+
+				const { orderedModules, dynamicImports } = this.analyseExecution(
+					entryModules,
+					preserveModules
+				);
+
 				dynamicImports.forEach(dynamicImportModule => {
 					if (entryModules.indexOf(dynamicImportModule) === -1)
 						entryModules.push(dynamicImportModule);
@@ -382,6 +402,15 @@ export default class Graph {
 				entryModules.forEach(entryModule => {
 					entryModule.chunk.generateEntryExports(entryModule);
 				});
+				if (preserveModules) {
+					// preserve the links between modules
+					// (normally lost when combining modules into chunks)
+					orderedModules.forEach(module => {
+						if (entryModules.indexOf(module) === -1) {
+							module.chunk.generateEntryExports(module, preserveModules);
+						}
+					});
+				}
 				// for each chunk module, set up its imports to other
 				// chunks, if those variables are included after treeshaking
 				chunkList.forEach(chunk => {
@@ -394,13 +423,27 @@ export default class Graph {
 					[name: string]: Chunk;
 				} = {};
 
+				let inputRelativeDir: string;
+				if (preserveModules) {
+					if (orderedModules.length === 1) {
+						inputRelativeDir = path.dirname(orderedModules[0].id);
+					} else {
+						inputRelativeDir = commondir(orderedModules.map(module => module.id));
+					}
+				}
+
 				// name the chunks
 				const chunkNames: { [name: string]: boolean } = blank();
 				chunkNames['chunk'] = true;
 				chunkList.forEach(chunk => {
 					// generate the imports and exports for the output chunk file
 					if (chunk.entryModule) {
-						const entryName = generateChunkName(chunk.entryModule.id, chunkNames, true);
+						const entryName = generateChunkName(
+							chunk.entryModule.id,
+							chunkNames,
+							true,
+							inputRelativeDir
+						);
 
 						// if the chunk exactly exports the entry point exports then
 						// it can replace the entry point
@@ -432,7 +475,7 @@ export default class Graph {
 		);
 	}
 
-	private analyseExecution(entryModules: Module[]) {
+	private analyseExecution(entryModules: Module[], preserveModules: boolean = false) {
 		let curEntry: Module, curEntryHash: Uint8Array;
 		const allSeen: { [id: string]: boolean } = {};
 
@@ -450,7 +493,12 @@ export default class Graph {
 			// entry point and colouring those modules by the hash of its id. Colours are mixed as
 			// hash xors, providing the unique colouring of the graph into unique hash chunks.
 			// This is really all there is to automated chunking, the rest is chunk wiring.
-			Uint8ArrayXor(module.entryPointsHash, curEntryHash);
+			if (!preserveModules) {
+				Uint8ArrayXor(module.entryPointsHash, curEntryHash);
+			} else if (isZero(module.entryPointsHash)) {
+				module.isEntryPoint = true;
+				module.entryPointsHash = randomUint8Array(10);
+			}
 
 			module.dependencies.forEach(depModule => {
 				if (!depModule.isExternal) {

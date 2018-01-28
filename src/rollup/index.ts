@@ -103,6 +103,7 @@ export interface InputOptions {
 	experimentalDynamicImport?: boolean;
 	experimentalCodeSplitting?: boolean;
 	preserveSymlinks?: boolean;
+	experimentalPreserveModules?: boolean;
 
 	// undocumented?
 	pureExternalModules?: boolean;
@@ -262,7 +263,8 @@ export default function rollup(rawInputOptions: GenericConfigObject) {
 		timeStart('--BUILD--');
 
 		const codeSplitting =
-			inputOptions.experimentalCodeSplitting && inputOptions.input instanceof Array;
+			(inputOptions.experimentalCodeSplitting && inputOptions.input instanceof Array) ||
+			inputOptions.experimentalPreserveModules;
 
 		if (!codeSplitting)
 			return graph.buildSingle(inputOptions.input).then(chunk => {
@@ -407,7 +409,12 @@ export default function rollup(rawInputOptions: GenericConfigObject) {
 				return result;
 			});
 
-		return graph.buildChunks(inputOptions.input).then(bundle => {
+		const input =
+			inputOptions.experimentalPreserveModules && !(inputOptions.input instanceof Array)
+				? [inputOptions.input]
+				: inputOptions.input;
+
+		return graph.buildChunks(input, inputOptions.experimentalPreserveModules).then(bundle => {
 			const chunks: {
 				[name: string]: {
 					name: string;
