@@ -106,6 +106,28 @@ To make sure your ES6 modules are immediately usable by tools that work with Com
 - step-by-step [tutorial video series](https://code.lengstorf.com/learn-rollup-js/), with accompanying written walkthrough
 - miscellaneous issues in the [wiki](https://github.com/rollup/rollup/wiki)
 
+## FAQ
+
+### Why isn't rollup-plugin-node-resolve a builtin feature?
+
+Two reasons — one philosophical, one practical, neither set in stone:
+
+Philosophically, it's because Rollup is essentially a polyfill of sorts for native module loaders in both Node and browsers. In a browser, `import foo from 'foo'` won't work, because browsers don't use Node's resolution algorithm. So if Rollup were to automatically bundle stuff it found lying around in `node_modules`, in a sense it would be slightly misleading. The point at which you add Rollup plugins is the point at which you're diverging from universally agreed-upon behaviour, and it seems appropriate that that's an explicit choice.
+
+(This isn't just about 'bare imports' like the `foo` example, but also the way Node will resolve `./bar` to `./bar/index.js` and `./bar/index.json` — frankly, a terrible decision that I don't want tainting Rollup's codebase! — and things like that.)
+
+On a practical level, it's just much easier to develop software if these concerns are neatly separated out with a good API. Rollup's core is quite large, and everything that stops it getting larger is a good thing. Meanwhile, it's easier to fix bugs and add features (such as `.mjs` resolution) in node-resolve, which in theory widens the pool of potential contributors.
+
+There's also a 'where does it lead?' argument — if Rollup supports node resolution by default, should it also convert CommonJS by default (even though some CommonJS modules can't be translated to ESM), or shim the `process` object, or supply built-in modules like `url` etc etc? There is an argument for saying 'yes' to those questions, but in my experience it's much, much better if the developer is in control over those decisions. Not to pick on Browserify, but I've seen so many bundles that include a couple of hundred lines of `process` shim just because the source code innocently included a line like this ...
+
+```js
+if (typeof process === 'undefined') {
+  // some code happens
+}
+```
+
+... that I consider that kind of implicit behaviour to be a huge footgun. Rollup's goal is to help you make the leanest, fastest-starting bundle possible, and we can't do that while second-guessing your intentions.
+
 ## License
 
 [MIT](https://github.com/rollup/rollup/blob/master/LICENSE.md)
