@@ -63,8 +63,24 @@ export default class BlockStatement extends StatementBase {
 
 	render (code: MagicString, options: RenderOptions) {
 		if (this.body.length) {
-			for (const node of this.body) {
-				node.render(code, options);
+			let nextLineBreakPos = code.slice(this.start + 1, this.body[0].start).indexOf('\n');
+			let nodeStart = Math.max(0, nextLineBreakPos + 1) + this.start + 1;
+			let nodeEnd;
+			for (let nodeIdx = 0; nodeIdx < this.body.length; nodeIdx++) {
+				const node = this.body[nodeIdx];
+				if (nodeIdx === this.body.length - 1) {
+					nodeEnd = this.end - 1;
+				} else {
+					const nextNode = this.body[nodeIdx + 1];
+					nextLineBreakPos = code.slice(node.end, nextNode.start).indexOf('\n');
+					nodeEnd = Math.max(0, nextLineBreakPos + 1) + node.end;
+				}
+				if (!node.included) {
+					code.remove(nodeStart, nodeEnd);
+				} else {
+					node.render(code, options);
+				}
+				nodeStart = nodeEnd;
 			}
 		} else {
 			super.render(code, options);

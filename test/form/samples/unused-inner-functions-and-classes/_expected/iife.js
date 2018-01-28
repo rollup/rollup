@@ -8,6 +8,7 @@
     function Baz() {
         function bar () { console.log("inner bar"); }
         function bog () { console.log("inner bog"); }
+
         return bar(), bog;
     }
 
@@ -18,7 +19,6 @@
     function getClass () {
         class MyClass {}
         return MyClass;
-        
     }
 
     console.log( getClass().name );
