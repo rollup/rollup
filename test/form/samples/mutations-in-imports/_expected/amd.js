@@ -11,8 +11,10 @@ define(function () { 'use strict';
 
 	y.a.b = () => console.log( 'effect' );
 	x.a.b();
+
 	y$1.a.b = () => console.log( 'effect' );
 	x$1.a.b();
+
 	y$2.a.b = () => console.log( 'effect' );
 	x$2.a.b();
 

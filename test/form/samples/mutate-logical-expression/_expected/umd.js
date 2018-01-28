@@ -9,6 +9,7 @@
 	logicalAExp.bar = 1;
 
 	var bExp = {};
+
 	var cExp = {};
 	var logicalCExp = false || cExp;
 	logicalCExp.bar = 1;

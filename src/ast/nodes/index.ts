@@ -36,6 +36,7 @@ import MethodDefinition from './MethodDefinition';
 import NewExpression from './NewExpression';
 import ObjectExpression from './ObjectExpression';
 import ObjectPattern from './ObjectPattern';
+import Program from './Program';
 import Property from './Property';
 import RestElement from './RestElement';
 import ReturnStatement from './ReturnStatement';
@@ -97,6 +98,7 @@ const nodes: {
 	NewExpression,
 	ObjectExpression,
 	ObjectPattern,
+	Program,
 	Property,
 	RestElement,
 	ReturnStatement,

@@ -9,7 +9,6 @@ const retained1a = {
 		return x;
 	}
 };
-
 const retained1b = retained1a.effect;
 const retained1c = retained1a[ 'eff' + 'ect' ];
 

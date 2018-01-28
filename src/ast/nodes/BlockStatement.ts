@@ -7,6 +7,7 @@ import { Node } from './shared/Node';
 import { StatementBase, StatementNode } from './shared/Statement';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../Module';
+import { renderStatementBlock } from '../../utils/renderHelpers';
 
 export function isBlockStatement (node: Node): node is BlockStatement {
 	return node.type === NodeType.BlockStatement;
@@ -63,25 +64,7 @@ export default class BlockStatement extends StatementBase {
 
 	render (code: MagicString, options: RenderOptions) {
 		if (this.body.length) {
-			let nextLineBreakPos = code.slice(this.start + 1, this.body[0].start).indexOf('\n');
-			let nodeStart = Math.max(0, nextLineBreakPos + 1) + this.start + 1;
-			let nodeEnd;
-			for (let nodeIdx = 0; nodeIdx < this.body.length; nodeIdx++) {
-				const node = this.body[nodeIdx];
-				if (nodeIdx === this.body.length - 1) {
-					nodeEnd = this.end - 1;
-				} else {
-					const nextNode = this.body[nodeIdx + 1];
-					nextLineBreakPos = code.slice(node.end, nextNode.start).indexOf('\n');
-					nodeEnd = Math.max(0, nextLineBreakPos + 1) + node.end;
-				}
-				if (!node.included) {
-					code.remove(nodeStart, nodeEnd);
-				} else {
-					node.render(code, options);
-				}
-				nodeStart = nodeEnd;
-			}
+			renderStatementBlock(this.body, code, this.start + 1, this.end - 1, options);
 		} else {
 			super.render(code, options);
 		}

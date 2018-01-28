@@ -107,7 +107,7 @@ export interface RenderOptions {
 	freeze: boolean;
 	importMechanism?: DynamicImportMechanism;
 	systemBindings: boolean;
-};
+}
 
 export default class Module {
 	type: 'Module';
@@ -588,10 +588,7 @@ export default class Module {
 
 	render (options: RenderOptions): MagicString {
 		const magicString = this.magicString.clone();
-
-		this.ast.body.forEach(node => {
-			node.render(magicString, options);
-		});
+		this.ast.render(magicString, options);
 
 		if (this.namespace().needsNamespaceBlock) {
 			magicString.append(
@@ -648,7 +645,7 @@ export default class Module {
 			// namespace
 			if (name.length === 1) {
 				return this.namespace();
-			// export * from 'external'
+				// export * from 'external'
 			} else {
 				const module = <ExternalModule>this.graph.moduleById.get(name.slice(1));
 				return module.traceExport('*');

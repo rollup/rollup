@@ -5,6 +5,7 @@ define(['exports'], function (exports) { 'use strict';
 	logicalAExp.bar = 1;
 
 	var bExp = {};
+
 	var cExp = {};
 	var logicalCExp = false || cExp;
 	logicalCExp.bar = 1;

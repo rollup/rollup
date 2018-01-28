@@ -9,7 +9,9 @@ const y$2 = { a: x$2.a };
 
 y.a.b = () => console.log( 'effect' );
 x.a.b();
+
 y$1.a.b = () => console.log( 'effect' );
 x$1.a.b();
+
 y$2.a.b = () => console.log( 'effect' );
 x$2.a.b();
