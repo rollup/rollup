@@ -7,7 +7,7 @@ node_js:
 env:
   global:
     - BUILD_TIMEOUT=10000
-install: npm install
+install: npm install --ignore-scripts
 before_install:
   - if [[ $TRAVIS_NODE_VERSION -lt 7 ]]; then npm install --global npm@4; fi
 # script: npm run ci
