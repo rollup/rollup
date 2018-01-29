@@ -1,4 +1,3 @@
-/// <reference path="./Graph.d.ts" />
 import * as acorn from 'acorn';
 import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import { timeEnd, timeStart } from './utils/flushTime';

@@ -1,5 +1,5 @@
 import path from 'path';
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
 import rollup, { InputOptions, OutputOptions, OutputChunk } from '../rollup/index';
 import ensureArray from '../utils/ensureArray';
