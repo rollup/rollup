@@ -60,6 +60,7 @@
     "date-time": "^2.1.0",
     "eslint": "^4.11.0",
     "eslint-plugin-import": "^2.8.0",
+    "fixturify": "^0.3.4",
     "immutable": "^3.8.2",
     "is-reference": "^1.0.0",
     "istanbul": "^0.4.3",
