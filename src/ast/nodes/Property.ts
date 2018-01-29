@@ -162,7 +162,7 @@ export default class Property extends NodeBase {
 	initialiseNode (_parentScope: Scope) {
 		this._accessorCallOptions = CallOptions.create({
 			withNew: false,
-			caller: this
+			callIdentifier: this
 		});
 	}
 

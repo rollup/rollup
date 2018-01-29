@@ -240,7 +240,7 @@ export function hasMemberEffectWhenCalled (
 					CallOptions.create({
 						withNew: false,
 						args: [],
-						caller: {} // make sure the caller is unique to avoid this check being ignored
+						callIdentifier: {} // make sure the caller is unique to avoid this check being ignored
 					}),
 					options.getHasEffectsWhenCalledOptions()
 				))
