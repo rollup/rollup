@@ -1,8 +1,9 @@
 const path = require('path');
 const assert = require('assert');
 const sander = require('sander');
+const fixturify = require('fixturify');
 const rollup = require('../../dist/rollup');
-const { extend, loadConfig, normaliseOutput } = require('../utils.js');
+const { extend, loadConfig } = require('../utils.js');
 
 const samples = path.resolve(__dirname, 'samples');
 
@@ -52,66 +53,16 @@ describe('chunking form', () => {
 						sander.rimrafSync(options.dir);
 
 						return bundle.write(options).then(() => {
-							const actualFiles = sander.readdirSync(samples, dir, '_actual', format);
+							const actualFiles = fixturify.readSync(path.join(samples, dir, '_actual', format));
 
 							let expectedFiles;
 							try {
-								expectedFiles = sander.readdirSync(samples, dir, '_expected', format);
+								expectedFiles = fixturify.readSync(path.join(samples, dir, '_expected', format));
 							} catch (err) {
 								expectedFiles = [];
 							}
 
-							assert.deepEqual(actualFiles.sort(), expectedFiles.sort(), 'Invalid output files');
-
-							actualFiles.forEach(file => {
-								const actualCode = normaliseOutput(
-									sander.readFileSync(samples, dir, '_actual', format, file)
-								);
-								let expectedCode;
-								let actualMap;
-								let expectedMap;
-
-								try {
-									expectedCode = normaliseOutput(
-										sander.readFileSync(samples, dir, '_expected', format, file)
-									);
-								} catch (err) {
-									expectedCode = 'missing file';
-								}
-
-								try {
-									actualMap = JSON.parse(
-										sander
-											.readFileSync(samples, dir, '_actual', format, file + '.js.map')
-											.toString()
-									);
-									actualMap.sourcesContent = actualMap.sourcesContent.map(
-										normaliseOutput
-									);
-								} catch (err) {
-									assert.equal(err.code, 'ENOENT');
-								}
-
-								try {
-									expectedMap = JSON.parse(
-										sander
-											.readFileSync(samples, dir, '_expected', format, file + '.js.map')
-											.toString()
-									);
-									expectedMap.sourcesContent = expectedMap.sourcesContent.map(
-										normaliseOutput
-									);
-								} catch (err) {
-									assert.equal(err.code, 'ENOENT');
-								}
-
-								if (config.show) {
-									console.log(actualCode + '\n\n\n');
-								}
-
-								assert.deepEqual(actualCode, expectedCode, `Unexpected file source for ${format}/${file}`);
-								assert.deepEqual(actualMap, expectedMap, `Unexpected source map for ${format}/${file}`);
-							});
+							assert.deepEqual(actualFiles, expectedFiles);
 						});
 					});
 				});
