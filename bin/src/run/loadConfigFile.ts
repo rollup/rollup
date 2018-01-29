@@ -6,7 +6,12 @@ import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import { InputOptions, OutputChunk } from '../../../src/rollup/index';
 
-export default function loadConfigFile (configFile: string, silent = false): Promise<InputOptions[]> {
+interface NodeModuleWithCompile extends NodeModule {
+	_compile(code: string, filename: string): any,
+}
+
+export default function loadConfigFile (configFile: string, commandOptions: any = {}): Promise<InputOptions[]> {
+	const silent = commandOptions.silent || false;
 	const warnings = batchWarnings();
 
 	return rollup
@@ -35,14 +40,22 @@ export default function loadConfigFile (configFile: string, silent = false): Pro
 			const defaultLoader = require.extensions['.js'];
 			require.extensions['.js'] = (m, filename) => {
 				if (filename === configFile) {
-					(<{ _compile?: any }>m)._compile(code, filename);
+					(m as NodeModuleWithCompile)._compile(code, filename);
 				} else {
 					defaultLoader(m, filename);
 				}
 			};
 
 			delete require.cache[configFile];
-			return Promise.resolve(require(configFile)).then(configs => {
+
+			return Promise.resolve(require(configFile))
+			.then(configFileContent => {
+				if (typeof configFileContent === 'function') {
+					return configFileContent(commandOptions);
+				}
+				return configFileContent;
+			})
+			.then(configs => {
 				if (Object.keys(configs).length === 0) {
 					handleError({
 						code: 'MISSING_CONFIG',

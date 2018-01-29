@@ -76,8 +76,8 @@ export default function runRollup (command: any) {
 
 		if (command.watch) process.env.ROLLUP_WATCH = 'true';
 
-		loadConfigFile(configFile, command.silent)
-			.then(normalized => execute(configFile, normalized, command))
+		loadConfigFile(configFile, command)
+			.then(configs => execute(configFile, configs, command))
 			.catch(handleError);
 	} else {
 		return execute(configFile, [{input: null}], command);
