@@ -1,9 +1,11 @@
 module.exports = {
 	description: 'exports noConflict method for default umd when requested',
 	options: {
-		extend: true,
-		noConflict: true,
-		name: 'FooBar'
+		output: {
+			extend: true,
+			noConflict: true,
+			name: 'FooBar'
+		}
 	}
 };
 

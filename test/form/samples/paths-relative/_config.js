@@ -6,8 +6,6 @@ module.exports = {
 	description: 'external paths (#754)',
 	options: {
 		external: [ resolved ],
-		paths: {
-			[ resolved ]: '../foo'
-		}
+		output: { paths: { [ resolved ]: '../foo' } }
 	}
 };

@@ -1,6 +1,4 @@
 module.exports = {
 	description: 'includes top-level throw statements',
-	options: {
-		name: 'myBundle'
-	}
+	options: { output: { name: 'myBundle' } }
 };
