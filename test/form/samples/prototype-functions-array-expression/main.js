@@ -2,6 +2,7 @@ const array = [];
 const join1 = array.join( ',' );
 const join2 = [].join( ',' );
 const join3 = [].join( ',' ).trim();
+const length = [].length;
 const map1 = [ 1 ].map( x => x );
 const map2 = [ 1 ].map( x => console.log( 1 ) );
 const map3 = [ 1 ].map( x => x ).map( x => x );
@@ -17,8 +18,6 @@ const _indexOf = [].indexOf( 1 ).toPrecision( 1 );
 const _join = [].join( ',' ).trim();
 const _lastIndexOf = [].lastIndexOf( 1 ).toPrecision( 1 );
 const _slice = [].slice( 1 ).concat( [] );
-const _toLocaleString = [].toLocaleString().trim();
-const _toString = [].toString().trim();
 
 // iteration methods
 const _every = [ 1 ].every( () => true ).valueOf();
@@ -39,3 +38,34 @@ const _reduceRight = [ 1 ].reduceRight( () => 1, 1 );
 const _reduceRightEffect = [ 1 ].reduceRight( () => console.log( 1 ) || 1, 1 );
 const _some = [ 1 ].some( () => true ).valueOf();
 const _someEffect = [ 1 ].some( () => console.log( 1 ) || true );
+
+// mutator methods
+export const exported = [ 1 ];
+
+const _copyWithin = [ 1 ].copyWithin( 0 ).join( ',' );
+exported.copyWithin( 0 );
+const _fill = [ 1 ].fill( 0 ).join( ',' );
+exported.fill( 0 );
+const _pop = [ 1 ].pop();
+exported.pop();
+const _push = [ 1 ].push( 0 ).toPrecision( 1 );
+exported.push( 0 );
+const _reverse = [ 1 ].reverse().join( ',' );
+exported.reverse();
+const _shift = [ 1 ].shift();
+exported.shift();
+const _sort = [ 1 ].sort( () => 0 ).join( ',' );
+const _sortEffect = [ 1 ].sort( () => console.log( 1 ) || 0 );
+exported.sort();
+const _splice = [ 1 ].splice( 0 ).join( ',' );
+exported.splice( 0 );
+const _unshift = [ 1 ].unshift( 0 ).toPrecision( 1 );
+exported.unshift( 0 );
+
+// inherited
+const _hasOwnProperty = [ 1 ].hasOwnProperty( 'toString' ).valueOf();
+const _isPrototypeOf = [ 1 ].isPrototypeOf( [] ).valueOf();
+const _propertyIsEnumerable = [ 1 ].propertyIsEnumerable( 'toString' ).valueOf();
+const _toLocaleString = [ 1 ].toLocaleString().trim();
+const _toString = [ 1 ].toString().trim();
+const _valueOf = [ 1 ].valueOf();

@@ -1,3 +1,4 @@
+const _replaceEffect = 'ab'.replace( 'a', () => console.log( 1 ) || 'b' );
 // deep property access is forbidden
 const deepBoolean = true.x.y;
 const deepNumber = (1).x.y;

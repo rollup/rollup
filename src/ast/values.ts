@@ -16,8 +16,11 @@ export interface MemberDescriptions {
 
 type RawMemberDescription = { value: MemberDescription };
 
-function assembleMemberDescriptions (memberDescriptions: { [key: string]: RawMemberDescription }): MemberDescriptions {
-	return Object.create(null, memberDescriptions);
+function assembleMemberDescriptions (
+	memberDescriptions: { [key: string]: RawMemberDescription },
+	inheritedDescriptions: MemberDescriptions = null
+): MemberDescriptions {
+	return Object.create(inheritedDescriptions, memberDescriptions);
 }
 
 export const UNKNOWN_VALUE = { toString: () => '[[UNKNOWN]]' };
@@ -158,6 +161,7 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 	toString: () => '[[UNKNOWN STRING]]'
 };
 const returnsString: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_STRING, callsArgs: null } };
+const callsSecondArgReturnsString: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_STRING, callsArgs: [1] } };
 
 export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 	reassignPath: () => {},
@@ -189,10 +193,22 @@ export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 	toString: () => '[[UNKNOWN OBJECT]]'
 };
 
+export const objectMembers: MemberDescriptions =
+	assembleMemberDescriptions({
+		hasOwnProperty: returnsBoolean,
+		isPrototypeOf: returnsBoolean,
+		propertyIsEnumerable: returnsBoolean,
+		toLocaleString: returnsString,
+		toString: returnsString,
+		valueOf: returnsUnknown
+	});
+
 export const arrayMembers: MemberDescriptions =
 	assembleMemberDescriptions({
 		concat: returnsArray,
+		copyWithin: returnsArray,
 		every: callsArgReturnsBoolean,
+		fill: returnsArray,
 		filter: callsArgReturnsArray,
 		find: callsArgReturnsUnknown,
 		findIndex: callsArgReturnsNumber,
@@ -202,27 +218,30 @@ export const arrayMembers: MemberDescriptions =
 		join: returnsString,
 		lastIndexOf: returnsNumber,
 		map: callsArgReturnsArray,
+		pop: returnsUnknown,
+		push: returnsNumber,
 		reduce: callsArgReturnsUnknown,
 		reduceRight: callsArgReturnsUnknown,
+		reverse: returnsArray,
+		shift: returnsUnknown,
 		slice: returnsArray,
 		some: callsArgReturnsBoolean,
-		toLocaleString: returnsString,
-		toString: returnsString
-	});
+		sort: callsArgReturnsArray,
+		splice: returnsArray,
+		unshift: returnsNumber
+	}, objectMembers);
 
 const literalBooleanMembers: MemberDescriptions = assembleMemberDescriptions({
-	toString: returnsString,
 	valueOf: returnsBoolean
-});
+}, objectMembers);
 
 const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions({
 	toExponential: returnsString,
 	toFixed: returnsString,
 	toLocaleString: returnsString,
 	toPrecision: returnsString,
-	toString: returnsString,
 	valueOf: returnsNumber
-});
+}, objectMembers);
 
 const literalStringMembers: MemberDescriptions = assembleMemberDescriptions({
 	charAt: returnsString,
@@ -239,6 +258,7 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions({
 	padEnd: returnsString,
 	padStart: returnsString,
 	repeat: returnsString,
+	replace: callsSecondArgReturnsString,
 	search: returnsNumber,
 	slice: returnsString,
 	split: returnsArray,
@@ -248,21 +268,10 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions({
 	toLocaleLowerCase: returnsString,
 	toLocaleUpperCase: returnsString,
 	toLowerCase: returnsString,
-	toString: returnsString,
 	toUpperCase: returnsString,
 	trim: returnsString,
 	valueOf: returnsString
-});
-
-export const objectMembers: MemberDescriptions =
-	assembleMemberDescriptions({
-		hasOwnProperty: returnsBoolean,
-		isPrototypeOf: returnsBoolean,
-		propertyIsEnumerable: returnsBoolean,
-		toLocaleString: returnsString,
-		toString: returnsString,
-		valueOf: returnsUnknown
-	});
+}, objectMembers);
 
 export function getLiteralMembersForValue<T = LiteralValueTypes> (value: T) {
 	switch (typeof value) {

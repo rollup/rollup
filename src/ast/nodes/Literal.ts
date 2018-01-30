@@ -1,12 +1,12 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
-import { isUnknownKey, ObjectPath } from '../variables/VariableReassignmentTracker';
+import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { SomeReturnExpressionCallback } from './shared/Expression';
 import { Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 import CallOptions from '../CallOptions';
 import { RenderOptions } from '../../Module';
-import { getLiteralMembersForValue, MemberDescription } from '../values';
+import { getLiteralMembersForValue, hasMemberEffectWhenCalled, MemberDescription, someMemberReturnExpressionWhenCalled } from '../values';
 
 export type LiteralValueTypes = string | boolean | null | number | RegExp;
 
@@ -35,10 +35,9 @@ export default class Literal<T = LiteralValueTypes> extends NodeBase {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath) {
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length === 1) {
-			const subPath = path[0];
-			return isUnknownKey(subPath) || !this.members[subPath];
+			return hasMemberEffectWhenCalled(this.members, path[0], callOptions, options);
 		}
 		return true;
 	}
@@ -55,15 +54,12 @@ export default class Literal<T = LiteralValueTypes> extends NodeBase {
 
 	someReturnExpressionWhenCalledAtPath (
 		path: ObjectPath,
-		_callOptions: CallOptions,
+		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
-	) {
+	): boolean {
 		if (path.length === 1) {
-			const subPath = path[0];
-			return isUnknownKey(subPath)
-				|| !this.members[subPath]
-				|| predicateFunction(options)(this.members[subPath].returns);
+			return someMemberReturnExpressionWhenCalled(this.members, path[0], callOptions, predicateFunction, options);
 		}
 		return true;
 	}
