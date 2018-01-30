@@ -63,48 +63,101 @@ export const UNKNOWN_ARRAY_EXPRESSION: ExpressionEntity = {
 const returnsArray: RawMemberDescription = { value: { returns: UNKNOWN_ARRAY_EXPRESSION, callsArgs: null } };
 const callsArgReturnsArray: RawMemberDescription = { value: { returns: UNKNOWN_ARRAY_EXPRESSION, callsArgs: [0] } };
 
-function createUnknownLiteral (type: 'boolean' | 'number' | 'string'): ExpressionEntity {
-	return {
-		reassignPath: () => {},
-		forEachReturnExpressionWhenCalledAtPath: () => {},
-		getValue: () => UNKNOWN_VALUE,
-		hasEffectsWhenAccessedAtPath: path => path.length > 1,
-		hasEffectsWhenAssignedAtPath: path => path.length > 0,
-		hasEffectsWhenCalledAtPath: path => {
-			if (path.length === 1) {
-				const subPath = path[0];
-				return isUnknownKey(subPath) || !literalMembers[type][subPath];
-			}
-			return true;
-		},
-		someReturnExpressionWhenCalledAtPath: (
-			path: ObjectPath,
-			_callOptions: CallOptions,
-			predicateFunction: SomeReturnExpressionCallback,
-			options: ExecutionPathOptions
-		) => {
-			if (path.length === 1) {
-				const subPath = path[0];
-				return isUnknownKey(subPath)
-					|| !literalMembers[type][subPath]
-					|| predicateFunction(options)(literalMembers[type][subPath].returns);
-			}
-			return true;
-		},
-		toString: () => '[[UNKNOWN STRING]]'
-	};
-}
-
-export const UNKNOWN_LITERALS = {
-	boolean: createUnknownLiteral('boolean'),
-	number: createUnknownLiteral('number'),
-	string: createUnknownLiteral('string')
+const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
+	reassignPath: () => {},
+	forEachReturnExpressionWhenCalledAtPath: () => {},
+	getValue: () => UNKNOWN_VALUE,
+	hasEffectsWhenAccessedAtPath: path => path.length > 1,
+	hasEffectsWhenAssignedAtPath: path => path.length > 0,
+	hasEffectsWhenCalledAtPath: path => {
+		if (path.length === 1) {
+			const subPath = path[0];
+			return isUnknownKey(subPath) || !literalBooleanMembers[subPath];
+		}
+		return true;
+	},
+	someReturnExpressionWhenCalledAtPath: (
+		path: ObjectPath,
+		_callOptions: CallOptions,
+		predicateFunction: SomeReturnExpressionCallback,
+		options: ExecutionPathOptions
+	) => {
+		if (path.length === 1) {
+			const subPath = path[0];
+			return isUnknownKey(subPath)
+				|| !literalBooleanMembers[subPath]
+				|| predicateFunction(options)(literalBooleanMembers[subPath].returns);
+		}
+		return true;
+	},
+	toString: () => '[[UNKNOWN BOOLEAN]]'
 };
-const returnsBoolean: RawMemberDescription = { value: { returns: UNKNOWN_LITERALS.boolean, callsArgs: null } };
-const callsArgReturnsBoolean: RawMemberDescription = { value: { returns: UNKNOWN_LITERALS.boolean, callsArgs: [0] } };
-const returnsNumber: RawMemberDescription = { value: { returns: UNKNOWN_LITERALS.number, callsArgs: null } };
-const callsArgReturnsNumber: RawMemberDescription = { value: { returns: UNKNOWN_LITERALS.number, callsArgs: [0] } };
-const returnsString: RawMemberDescription = { value: { returns: UNKNOWN_LITERALS.string, callsArgs: null } };
+const returnsBoolean: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_BOOLEAN, callsArgs: null } };
+const callsArgReturnsBoolean: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_BOOLEAN, callsArgs: [0] } };
+
+const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
+	reassignPath: () => {},
+	forEachReturnExpressionWhenCalledAtPath: () => {},
+	getValue: () => UNKNOWN_VALUE,
+	hasEffectsWhenAccessedAtPath: path => path.length > 1,
+	hasEffectsWhenAssignedAtPath: path => path.length > 0,
+	hasEffectsWhenCalledAtPath: path => {
+		if (path.length === 1) {
+			const subPath = path[0];
+			return isUnknownKey(subPath) || !literalNumberMembers[subPath];
+		}
+		return true;
+	},
+	someReturnExpressionWhenCalledAtPath: (
+		path: ObjectPath,
+		_callOptions: CallOptions,
+		predicateFunction: SomeReturnExpressionCallback,
+		options: ExecutionPathOptions
+	) => {
+		if (path.length === 1) {
+			const subPath = path[0];
+			return isUnknownKey(subPath)
+				|| !literalNumberMembers[subPath]
+				|| predicateFunction(options)(literalNumberMembers[subPath].returns);
+		}
+		return true;
+	},
+	toString: () => '[[UNKNOWN NUMBER]]'
+};
+const returnsNumber: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_NUMBER, callsArgs: null } };
+const callsArgReturnsNumber: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_NUMBER, callsArgs: [0] } };
+
+
+const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
+	reassignPath: () => {},
+	forEachReturnExpressionWhenCalledAtPath: () => {},
+	getValue: () => UNKNOWN_VALUE,
+	hasEffectsWhenAccessedAtPath: path => path.length > 1,
+	hasEffectsWhenAssignedAtPath: path => path.length > 0,
+	hasEffectsWhenCalledAtPath: path => {
+		if (path.length === 1) {
+			const subPath = path[0];
+			return isUnknownKey(subPath) || !literalStringMembers[subPath];
+		}
+		return true;
+	},
+	someReturnExpressionWhenCalledAtPath: (
+		path: ObjectPath,
+		_callOptions: CallOptions,
+		predicateFunction: SomeReturnExpressionCallback,
+		options: ExecutionPathOptions
+	) => {
+		if (path.length === 1) {
+			const subPath = path[0];
+			return isUnknownKey(subPath)
+				|| !literalStringMembers[subPath]
+				|| predicateFunction(options)(literalStringMembers[subPath].returns);
+		}
+		return true;
+	},
+	toString: () => '[[UNKNOWN STRING]]'
+};
+const returnsString: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_STRING, callsArgs: null } };
 
 export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 	reassignPath: () => {},
@@ -157,49 +210,49 @@ export const arrayMembers: MemberDescriptions =
 		toString: returnsString
 	});
 
-const literalMembers: { [key: string]: MemberDescriptions } = {
-	boolean: assembleMemberDescriptions({
-		toString: returnsString,
-		valueOf: returnsBoolean
-	}),
-	number: assembleMemberDescriptions({
-		toExponential: returnsString,
-		toFixed: returnsString,
-		toLocaleString: returnsString,
-		toPrecision: returnsString,
-		toString: returnsString,
-		valueOf: returnsNumber
-	}),
-	string: assembleMemberDescriptions({
-		charAt: returnsString,
-		charCodeAt: returnsNumber,
-		codePointAt: returnsNumber,
-		concat: returnsString,
-		includes: returnsBoolean,
-		endsWith: returnsBoolean,
-		indexOf: returnsNumber,
-		lastIndexOf: returnsNumber,
-		localeCompare: returnsNumber,
-		match: returnsBoolean,
-		normalize: returnsString,
-		padEnd: returnsString,
-		padStart: returnsString,
-		repeat: returnsString,
-		search: returnsNumber,
-		slice: returnsString,
-		split: returnsArray,
-		startsWith: returnsBoolean,
-		substr: returnsString,
-		substring: returnsString,
-		toLocaleLowerCase: returnsString,
-		toLocaleUpperCase: returnsString,
-		toLowerCase: returnsString,
-		toString: returnsString,
-		toUpperCase: returnsString,
-		trim: returnsString,
-		valueOf: returnsString
-	})
-};
+const literalBooleanMembers: MemberDescriptions = assembleMemberDescriptions({
+	toString: returnsString,
+	valueOf: returnsBoolean
+});
+
+const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions({
+	toExponential: returnsString,
+	toFixed: returnsString,
+	toLocaleString: returnsString,
+	toPrecision: returnsString,
+	toString: returnsString,
+	valueOf: returnsNumber
+});
+
+const literalStringMembers: MemberDescriptions = assembleMemberDescriptions({
+	charAt: returnsString,
+	charCodeAt: returnsNumber,
+	codePointAt: returnsNumber,
+	concat: returnsString,
+	includes: returnsBoolean,
+	endsWith: returnsBoolean,
+	indexOf: returnsNumber,
+	lastIndexOf: returnsNumber,
+	localeCompare: returnsNumber,
+	match: returnsBoolean,
+	normalize: returnsString,
+	padEnd: returnsString,
+	padStart: returnsString,
+	repeat: returnsString,
+	search: returnsNumber,
+	slice: returnsString,
+	split: returnsArray,
+	startsWith: returnsBoolean,
+	substr: returnsString,
+	substring: returnsString,
+	toLocaleLowerCase: returnsString,
+	toLocaleUpperCase: returnsString,
+	toLowerCase: returnsString,
+	toString: returnsString,
+	toUpperCase: returnsString,
+	trim: returnsString,
+	valueOf: returnsString
+});
 
 export const objectMembers: MemberDescriptions =
 	assembleMemberDescriptions({
@@ -214,11 +267,11 @@ export const objectMembers: MemberDescriptions =
 export function getLiteralMembersForValue<T = LiteralValueTypes> (value: T) {
 	switch (typeof value) {
 		case 'boolean':
-			return literalMembers.boolean;
+			return literalBooleanMembers;
 		case 'number':
-			return literalMembers.number;
+			return literalNumberMembers;
 		case 'string':
-			return literalMembers.string;
+			return literalStringMembers;
 		default:
 			return blank();
 	}
@@ -255,6 +308,6 @@ export function someMemberReturnExpressionWhenCalled (
 	options: ExecutionPathOptions
 ) {
 	return hasMemberEffectWhenCalled(members, memberName, callOptions, options)
-		// if calling has no effect, members[memberName] exists
+		// if calling has no effect, memberName is a string and members[memberName] exists
 		|| predicateFunction(options)(members[<string>memberName].returns);
 }
