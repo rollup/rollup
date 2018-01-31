@@ -58,6 +58,7 @@ export type TransformBundleHook = (
 	code: string,
 	options: OutputOptions
 ) => Promise<SourceDescription | string>;
+export type ModuleDestHook = (file: string) => Promise<string | void>;
 export type ResolveDynamicImportHook = (
 	specifier: string | Node,
 	parentId: string
@@ -73,6 +74,7 @@ export interface Plugin {
 	transformBundle?: TransformBundleHook;
 	ongenerate?: (options: OutputOptions, source: SourceDescription) => void;
 	onwrite?: (options: OutputOptions, source: SourceDescription) => void;
+	moduleDest?: ModuleDestHook;
 	resolveDynamicImport?: ResolveDynamicImportHook;
 
 	banner?: () => string;
@@ -109,6 +111,7 @@ export interface InputOptions {
 	experimentalCodeSplitting?: boolean;
 	preserveSymlinks?: boolean;
 	experimentalPreserveModules?: boolean;
+	inputRelativeDir?: boolean;
 
 	// undocumented?
 	pureExternalModules?: boolean;
@@ -447,7 +450,7 @@ export default function rollup(
 			inputOptions.input = [inputOptions.input];
 		}
 		return graph
-			.buildChunks(inputOptions.input, inputOptions.experimentalPreserveModules)
+			.buildChunks(inputOptions.input, inputOptions.experimentalPreserveModules, inputOptions.inputRelativeDir)
 			.then(bundle => {
 				timeEnd('BUILD', 1);
 				const chunks: {
@@ -533,30 +536,32 @@ export default function rollup(
 									let chunk = result[chunkName];
 									let { code, map } = chunk;
 
-									const promises = [];
+									return graph.moduleDest(chunkName).then(chunkName => {
+										const promises = [];
 
-									if (outputOptions.sourcemap) {
-										let url;
+										if (outputOptions.sourcemap) {
+											let url;
 
-										if (outputOptions.sourcemap === 'inline') {
-											url = (<any>map).toUrl();
-										} else {
-											url = `${chunkName}.map`;
-											promises.push(writeFile(dir + '/' + chunkName + '.map', map.toString()));
+											if (outputOptions.sourcemap === 'inline') {
+												url = (<any>map).toUrl();
+											} else {
+												url = `${chunkName}.map`;
+												promises.push(writeFile(dir + '/' + chunkName + '.map', map.toString()));
+											}
+
+											code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
 										}
 
-										code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
-									}
-
-									promises.push(writeFile(dir + '/' + chunkName, code));
-									return Promise.all(promises).then(() => {
-										return mapSequence(
-											graph.plugins.filter(plugin => plugin.onwrite),
-											(plugin: Plugin) =>
-												Promise.resolve(
-													plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk)
-												)
-										);
+										promises.push(writeFile(dir + '/' + chunkName, code));
+										return Promise.all(promises).then(() => {
+											return mapSequence(
+												graph.plugins.filter(plugin => plugin.onwrite),
+												(plugin: Plugin) =>
+													Promise.resolve(
+														plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk)
+													)
+											);
+										});
 									});
 								})
 							).then(() => {}); // ensures return void and not void[][]
