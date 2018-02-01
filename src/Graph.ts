@@ -1,4 +1,3 @@
-/// <reference path="./Graph.d.ts" />
 import * as acorn from 'acorn';
 import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import { timeEnd, timeStart } from './utils/flushTime';
@@ -69,6 +68,7 @@ export default class Graph {
 	modules: Module[];
 	onwarn: WarningHandler;
 	plugins: Plugin[];
+	preserveSymlinks: boolean;
 	resolveDynamicImport: ResolveDynamicImportHandler;
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
 	scope: GlobalScope;
@@ -129,7 +129,7 @@ export default class Graph {
 		this.resolveId = first(
 			[((id: string, parentId: string) => (this.isExternal(id, parentId, false) ? false : null)) as ResolveIdHook]
 				.concat(this.plugins.map(plugin => plugin.resolveId).filter(Boolean))
-				.concat(resolveId)
+				.concat(resolveId(options))
 		);
 
 		const loaders = this.plugins.map(plugin => plugin.load).filter(Boolean);
@@ -194,6 +194,8 @@ export default class Graph {
 
 		acornPluginsToInject.push(...ensureArray(options.acornInjectPlugins));
 		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
+
+		this.preserveSymlinks = options.preserveSymlinks;
 	}
 
 	getPathRelativeToBaseDirname (resolvedId: string, parentId: string): string {

@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.55.2
+* Add option to not follow symlinks ([#1819](https://github.com/rollup/rollup/pull/1819))
+* Fix crash in windows shell ([#1928](https://github.com/rollup/rollup/pull/1928))
+* Fix and test for external TypeScript errors ([#1903](https://github.com/rollup/rollup/pull/1903))
+* Activate OpenCollective ([#1915](https://github.com/rollup/rollup/pull/1915))
+* Optimize CI scripts ([#1921](https://github.com/rollup/rollup/pull/1921))
+
 ## 0.55.1
 * Improve dynamic import workflow ([#1907](https://github.com/rollup/rollup/pull/1907))
 * Properly handle multiple dynamic imports of the same module ([#1911](https://github.com/rollup/rollup/pull/1911))
