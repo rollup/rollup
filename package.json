@@ -25,8 +25,7 @@
     "watch": "rollup -cw",
     "prepublishOnly": "npm run lint && npm run test && npm run test:leak",
     "prepare": "npm run build",
-    "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js",
-    "postinstall": "opencollective postinstall"
+    "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js"
   },
   "repository": "rollup/rollup",
   "keywords": [
@@ -100,13 +99,5 @@
     "typings/package.json.d.ts",
     "bin/rollup",
     "README.md"
-  ],
-  "dependencies": {
-    "opencollective": "^1.0.3"
-  },
-  "collective": {
-    "type": "opencollective",
-    "url": "https://opencollective.com/rollup",
-    "logo": "https://opencollective.com/rollup/logo.txt"
-  }
+  ]
 }
