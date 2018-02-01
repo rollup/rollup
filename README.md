@@ -118,7 +118,7 @@ To make sure your ES6 modules are immediately usable by tools that work with Com
 ## Contributors
 
 This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
-<a href="graphs/contributors"><img src="https://opencollective.com/rollup/contributors.svg?width=890" /></a>
+<a href="https://github.com/rollup/rollup/graphs/contributors"><img src="https://opencollective.com/rollup/contributors.svg?width=890" /></a>
 
 
 ## Backers

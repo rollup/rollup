@@ -5,10 +5,10 @@
 First, thank you for considering contributing to rollup! It's people like you that make the open source community such a great community! 😊
 
 We welcome any type of contribution, not only code. You can help with 
-- **QA**: file bug reports, the more details you can give the better (i.e. REPL-links or repos that demonstrate the specific issue)
+- **QA**: file bug reports, the more details you can give the better (i.e. [REPL](https://rollupjs.org/repl)-links or repos that demonstrate the specific issue)
 - **Marketing**: writing blog posts, howto's, printing stickers, ...
 - **Community**: presenting the project at meetups, organizing a dedicated meetup for the local community, ...
-- **Code**: take a look at the [open issues](issues). Even if you can't write code, commenting on them, showing that you care about a given issue matters. It helps us triage them.
+- **Code**: take a look at the [open issues](https://github.com/rollup/rollup/issues). Even if you can't write code, commenting on them, showing that you care about a given issue matters. It helps us triage them.
 - **Money**: we welcome financial contributions in full transparency on our [open collective](https://opencollective.com/rollup).
 
 ## Your First Contribution
@@ -22,6 +22,7 @@ Any code change should be submitted as a pull request. The description should ex
 ## Code review process
 
 The bigger the pull request, the longer it will take to review and merge. Try to break down large pull requests in smaller chunks that are easier to review and merge.
+
 It is also always helpful to have some context for your pull request. What was the purpose? Why does it matter to you? Does it resolve any known Github issues? Adding a line "resolves #<issue number>" (e.g. "resolves #23") to the description of your pull request or of a specific commit will automatically close this issue once the pull request is merged.
 
 ## Financial contributions
