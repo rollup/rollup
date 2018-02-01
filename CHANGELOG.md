@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.55.3
+* Remove OpenCollective dependency ([#1915](https://github.com/rollup/rollup/pull/1915))
+
 ## 0.55.2
 * Add option to not follow symlinks ([#1819](https://github.com/rollup/rollup/pull/1819))
 * Fix crash in windows shell ([#1928](https://github.com/rollup/rollup/pull/1928))
