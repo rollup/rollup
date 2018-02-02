@@ -13,7 +13,6 @@ var b = (foo());
 var d = (2);
 console.log(d);
 
-// should infer value
 // should keep f import
 var e = (foo$1());
 

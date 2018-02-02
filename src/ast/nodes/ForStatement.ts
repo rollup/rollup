@@ -2,16 +2,15 @@ import BlockScope from '../scopes/BlockScope';
 import VariableDeclaration from './VariableDeclaration';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
-import { StatementBase, StatementNode } from './shared/Statement';
 import { NodeType } from './NodeType';
-import { ExpressionNode } from './shared/Node';
+import { ExpressionNode, NodeBase, Node } from './shared/Node';
 
-export default class ForStatement extends StatementBase {
+export default class ForStatement extends NodeBase {
 	type: NodeType.ForStatement;
 	init: VariableDeclaration | ExpressionNode | null;
 	test: ExpressionNode | null;
 	update: ExpressionNode | null;
-	body: StatementNode;
+	body: Node;
 
 	hasEffects (options: ExecutionPathOptions): boolean {
 		return (

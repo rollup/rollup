@@ -1,7 +1,6 @@
 import { Node } from '../ast/nodes/shared/Node';
 import MagicString from 'magic-string';
 import { RenderOptions } from '../Module';
-import { NodeType } from '../ast/nodes/NodeType';
 
 // Note that if the string is not found, "0" is returned instead of e.g. "-1"
 // as this seems to work best for the main use case
@@ -35,10 +34,10 @@ export function renderStatementBlock (statements: Node[], code: MagicString, sta
 		nextNodeStart = currentNode.end + (findFirstOccurrenceOutsideComment(code.original.slice(
 			currentNode.end, nextNode !== undefined ? nextNode.start : end
 		), '\n'));
-		if (!currentNode.included && currentNode.type !== NodeType.IfStatement) {
+		if (!currentNode.included) {
 			code.remove(currentNodeStart, nextNodeStart);
 		} else {
-			currentNode.render(code, options, {start: currentNodeStart, end:nextNodeStart});
+			currentNode.render(code, options, { start: currentNodeStart, end: nextNodeStart });
 		}
 	}
 }

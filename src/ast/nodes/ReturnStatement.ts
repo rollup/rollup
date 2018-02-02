@@ -1,10 +1,9 @@
 import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { StatementBase } from './shared/Statement';
 import { NodeType } from './NodeType';
-import { ExpressionNode } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
-export default class ReturnStatement extends StatementBase {
+export default class ReturnStatement extends NodeBase {
 	type: NodeType.ReturnStatement;
 	argument: ExpressionNode | null;
 

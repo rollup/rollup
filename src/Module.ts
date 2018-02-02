@@ -38,7 +38,7 @@ import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
 import Chunk, { DynamicImportMechanism } from './Chunk';
 
-export interface IdMap { [key: string]: string; }
+export interface IdMap {[key: string]: string;}
 
 export interface CommentDescription {
 	block: boolean;
@@ -374,20 +374,13 @@ export default class Module {
 	}
 
 	private analyse () {
-		enhance(this.ast, this, this.comments, this.dynamicImports);
-
-		// discover this module's imports and exports
-		let lastNode: Node;
-
+		enhance(this.ast, this, this.dynamicImports);
 		this.ast.body.forEach(node => {
 			if ((<ImportDeclaration>node).isImportDeclaration) {
 				this.addImport(<ImportDeclaration>node);
 			} else if ((<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration>node).isExportDeclaration) {
 				this.addExport((<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration>node));
 			}
-
-			if (lastNode) lastNode.next = node.leadingCommentStart || node.start;
-			lastNode = node;
 		});
 	}
 

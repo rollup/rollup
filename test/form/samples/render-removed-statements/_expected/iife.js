@@ -42,7 +42,10 @@
 		case 3:
 			// lead retained
 			console.log(2); // trail retained
-		case 4:  /* lead retained */ console.log('3'); // trail retained
+		case 4: /* lead retained */ console.log('3'); // trail retained
+		default:
+			/* lead retained */
+			console.log(2); // trail retained
 	}
 
 	// lead retained

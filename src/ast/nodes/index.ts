@@ -54,7 +54,6 @@ import VariableDeclarator from './VariableDeclarator';
 import VariableDeclaration from './VariableDeclaration';
 import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
-import { StatementBase } from './shared/Statement';
 import { NodeBase } from './shared/Node';
 
 const nodes: {
@@ -110,7 +109,7 @@ const nodes: {
 	TemplateLiteral,
 	ThisExpression,
 	ThrowStatement,
-	TryStatement: StatementBase,
+	TryStatement: NodeBase,
 	UnaryExpression,
 	UpdateExpression,
 	VariableDeclarator,

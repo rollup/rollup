@@ -3,16 +3,15 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import VariableDeclaration from './VariableDeclaration';
 import Scope from '../scopes/Scope';
 import BlockStatement from './BlockStatement';
-import { StatementBase, StatementNode } from './shared/Statement';
 import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
-import { ExpressionNode } from './shared/Node';
+import { ExpressionNode, NodeBase, Node } from './shared/Node';
 
-export default class ForOfStatement extends StatementBase {
+export default class ForOfStatement extends NodeBase {
 	type: NodeType.ForOfStatement;
 	left: VariableDeclaration | PatternNode;
 	right: ExpressionNode;
-	body: StatementNode;
+	body: Node;
 
 	bindNode () {
 		this.left.reassignPath([], ExecutionPathOptions.create());

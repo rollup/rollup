@@ -14,9 +14,7 @@ export interface Node extends Entity {
 	end: number;
 	included: boolean;
 	keys: string[];
-	leadingCommentStart: number;
 	module: Module;
-	next: number;
 	parent: Node | { type?: string };
 	start: number;
 	type: string;
@@ -85,9 +83,6 @@ export class NodeBase implements ExpressionNode {
 	scope: Scope;
 	start: number;
 	end: number;
-	leadingCommentStart: number;
-	trailingCommentEnd: number;
-	next: number;
 	module: Module;
 	parent: Node | { type?: string };
 	__enhanced: boolean;

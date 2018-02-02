@@ -2,11 +2,10 @@ import BlockScope from '../scopes/BlockScope';
 import SwitchCase from './SwitchCase';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
-import { StatementBase } from './shared/Statement';
 import { NodeType } from './NodeType';
-import { ExpressionNode } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
-export default class SwitchStatement extends StatementBase {
+export default class SwitchStatement extends NodeBase {
 	type: NodeType.SwitchStatement;
 	discriminant: ExpressionNode;
 	cases: SwitchCase[];

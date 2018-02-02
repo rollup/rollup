@@ -3,16 +3,15 @@ import VariableDeclaration from './VariableDeclaration';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import BlockStatement from './BlockStatement';
-import { StatementBase, StatementNode } from './shared/Statement';
 import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
-import { ExpressionNode } from './shared/Node';
+import { ExpressionNode, NodeBase, Node } from './shared/Node';
 
-export default class ForInStatement extends StatementBase {
+export default class ForInStatement extends NodeBase {
 	type: NodeType.ForInStatement;
 	left: VariableDeclaration | PatternNode;
 	right: ExpressionNode;
-	body: StatementNode;
+	body: Node;
 
 	hasEffects (options: ExecutionPathOptions): boolean {
 		return (

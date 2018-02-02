@@ -7,7 +7,7 @@ import FunctionDeclaration from './FunctionDeclaration';
 import ClassDeclaration from './ClassDeclaration';
 import VariableDeclaration from './VariableDeclaration';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
+import { NodeRenderOptions, RenderOptions } from '../../Module';
 
 export default class ExportNamedDeclaration extends NodeBase {
 	type: NodeType.ExportNamedDeclaration;
@@ -30,14 +30,12 @@ export default class ExportNamedDeclaration extends NodeBase {
 		this.isExportDeclaration = true;
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
 		if (this.declaration) {
 			code.remove(this.start, this.declaration.start);
 			this.declaration.render(code, options);
 		} else {
-			const start = this.leadingCommentStart || this.start;
-			const end = this.next || this.end;
-			code.remove(start, end);
+			code.remove(start || this.start, end || this.end);
 		}
 	}
 }

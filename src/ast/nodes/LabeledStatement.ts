@@ -1,12 +1,12 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
-import { StatementBase, StatementNode } from './shared/Statement';
 import { NodeType } from './NodeType';
+import { NodeBase, Node } from './shared/Node';
 
-export default class LabeledStatement extends StatementBase {
+export default class LabeledStatement extends NodeBase {
 	type: NodeType.LabeledStatement;
 	label: Identifier;
-	body: StatementNode;
+	body: Node;
 
 	hasEffects (options: ExecutionPathOptions) {
 		return this.body.hasEffects(

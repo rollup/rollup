@@ -5,7 +5,7 @@ import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
+import { NodeRenderOptions, RenderOptions } from '../../Module';
 
 export default class ImportDeclaration extends NodeBase {
 	type: NodeType.ImportDeclaration;
@@ -19,7 +19,7 @@ export default class ImportDeclaration extends NodeBase {
 		this.isImportDeclaration = true;
 	}
 
-	render (code: MagicString, _options: RenderOptions) {
-		code.remove(this.start, this.next || this.end);
+	render (code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
+		code.remove(start || this.start, end || this.end);
 	}
 }

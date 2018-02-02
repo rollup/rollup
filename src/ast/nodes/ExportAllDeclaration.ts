@@ -2,7 +2,7 @@ import { NodeBase } from './shared/Node';
 import Literal from './Literal';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
+import { NodeRenderOptions, RenderOptions } from '../../Module';
 
 export default class ExportAllDeclaration extends NodeBase {
 	type: NodeType.ExportAllDeclaration;
@@ -13,7 +13,7 @@ export default class ExportAllDeclaration extends NodeBase {
 		this.isExportDeclaration = true;
 	}
 
-	render (code: MagicString, _options: RenderOptions) {
-		code.remove(this.leadingCommentStart || this.start, this.next || this.end);
+	render (code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
+		code.remove(start || this.start, end || this.end);
 	}
 }

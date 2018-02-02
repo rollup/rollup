@@ -9,7 +9,7 @@ import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { isIdentifier } from './Identifier';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
+import { NodeRenderOptions, RenderOptions } from '../../Module';
 
 function getSeparator (code: string, start: number) {
 	let c = start;
@@ -73,7 +73,7 @@ export default class VariableDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
 		const treeshake = this.module.graph.treeshake;
 
 		let shouldSeparate = false;
@@ -97,7 +97,8 @@ export default class VariableDeclaration extends NodeBase {
 			if (isIdentifier(declarator.id)) {
 				const variable = this.scope.findVariable(declarator.id.name);
 
-				const isExportedAndReassigned = variable.safeName && variable.safeName.indexOf('.') !== -1 && variable.exportName && variable.isReassigned;
+				const isExportedAndReassigned = variable.safeName && variable.safeName.indexOf(
+					'.') !== -1 && variable.exportName && variable.isReassigned;
 
 				if (options.systemBindings && variable.exportName && declarator.init) {
 					code.prependLeft(declarator.init.start, `exports('${variable.exportName}', `);
@@ -122,7 +123,8 @@ export default class VariableDeclaration extends NodeBase {
 
 				extractNames(declarator.id).forEach(name => {
 					const variable = this.scope.findVariable(name);
-					const isExportedAndReassigned = variable.safeName && variable.safeName.indexOf('.') !== -1 && variable.exportName && variable.isReassigned;
+					const isExportedAndReassigned = variable.safeName && variable.safeName.indexOf(
+						'.') !== -1 && variable.exportName && variable.isReassigned;
 
 					if (isExportedAndReassigned) {
 						// code.overwrite( c, declarator.start, prefix );
@@ -154,8 +156,8 @@ export default class VariableDeclaration extends NodeBase {
 
 		if (treeshake && empty) {
 			code.remove(
-				this.leadingCommentStart || this.start,
-				this.next || this.end
+				start || this.start,
+				end || this.end
 			);
 		} else {
 			// always include a semi-colon (https://github.com/rollup/rollup/pull/1013),

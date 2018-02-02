@@ -21,16 +21,9 @@ export default class ClassDeclaration extends ClassNode {
 	}
 
 	render (code: MagicString, options: RenderOptions) {
-		if (!this.module.graph.treeshake || this.included) {
-			if (options.systemBindings && this.id.variable.exportName) {
-				code.appendRight(this.end, ` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`);
-			}
-			super.render(code, options);
-		} else {
-			code.remove(
-				this.leadingCommentStart || this.start,
-				this.next || this.end
-			);
+		if (options.systemBindings && this.id.variable.exportName) {
+			code.appendRight(this.end, ` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`);
 		}
+		super.render(code, options);
 	}
 }

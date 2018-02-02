@@ -1,11 +1,10 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { StatementBase, StatementNode } from './shared/Statement';
-import { ExpressionNode } from './shared/Node';
+import { ExpressionNode, NodeBase, Node } from './shared/Node';
 import { NodeType } from './NodeType';
 
-export default class DoWhileStatement extends StatementBase {
+export default class DoWhileStatement extends NodeBase {
 	type: NodeType.DoWhileStatement;
-	body: StatementNode;
+	body: Node;
 	test: ExpressionNode;
 
 	hasEffects (options: ExecutionPathOptions): boolean {

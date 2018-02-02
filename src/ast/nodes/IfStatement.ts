@@ -1,12 +1,11 @@
 import extractNames from '../utils/extractNames';
 import { UNKNOWN_VALUE } from '../values';
 import Scope from '../scopes/Scope';
-import { ExpressionNode, Node } from './shared/Node';
+import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import { isVariableDeclaration } from './VariableDeclaration';
 import MagicString from 'magic-string';
-import { StatementBase, StatementNode } from './shared/Statement';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
+import { NodeRenderOptions, RenderOptions } from '../../Module';
 
 // Statement types which may contain if-statements as direct children.
 const statementsWithIfStatements = new Set([
@@ -18,7 +17,7 @@ const statementsWithIfStatements = new Set([
 	'WhileStatement'
 ]);
 
-function getHoistedVars (node: StatementNode, scope: Scope) {
+function getHoistedVars (node: Node, scope: Scope) {
 	const hoistedVars: string[] = [];
 
 	function visit (node: Node) {
@@ -41,14 +40,14 @@ function getHoistedVars (node: StatementNode, scope: Scope) {
 	return hoistedVars;
 }
 
-export default class IfStatement extends StatementBase {
+export default class IfStatement extends NodeBase {
 	type: NodeType.IfStatement;
 	test: ExpressionNode;
-	consequent: StatementNode;
-	alternate: StatementNode | null;
+	consequent: Node;
+	alternate: Node | null;
 
-	testValue: any;
-	hoistedVars: string[];
+	private testValue: any;
+	private hoistedVars?: string[];
 
 	initialiseChildren (parentScope: Scope) {
 		super.initialiseChildren(parentScope);
@@ -70,7 +69,11 @@ export default class IfStatement extends StatementBase {
 		}
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	initialiseNode () {
+		this.hoistedVars = [];
+	}
+
+	render (code: MagicString, options: RenderOptions, { end }: NodeRenderOptions = {}) {
 		if (this.module.graph.treeshake) {
 			if (this.testValue === UNKNOWN_VALUE) {
 				super.render(code, options);
@@ -104,7 +107,7 @@ export default class IfStatement extends StatementBase {
 				} else {
 					code.remove(
 						this.start,
-						this.alternate ? this.alternate.start : this.next || this.end
+						this.alternate ? this.alternate.start : end || this.end
 					);
 
 					if (this.alternate) {
@@ -117,5 +120,9 @@ export default class IfStatement extends StatementBase {
 		} else {
 			super.render(code, options);
 		}
+	}
+
+	shouldBeIncluded () {
+		return this.hoistedVars.length > 0 || super.shouldBeIncluded();
 	}
 }

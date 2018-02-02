@@ -55,7 +55,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = {}) {
+	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
 		const declarationStart = this.start + getDeclarationStart(code.original.slice(this.start, this.end));
 
 		if (isFunctionDeclaration(this.declaration)) {
@@ -64,7 +64,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			this.renderNamedDeclaration(code, declarationStart, 'class', this.declaration.id === null, options);
 		} else if (this.variable.getOriginalVariableName() === this.variable.getName()) {
 			// Remove altogether to prevent re-declaring the same variable
-			code.remove(nodeRenderOptions.start || this.start, nodeRenderOptions.end || this.end);
+			code.remove(start || this.start, end || this.end);
 			return;
 		} else if (this.variable.included) {
 			this.renderVariableDeclaration(code, declarationStart, options);
