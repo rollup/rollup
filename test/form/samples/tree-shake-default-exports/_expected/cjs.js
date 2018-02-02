@@ -8,10 +8,10 @@
 
 /* footer 2 */
 
-/* header 3*/
+/* header 3 */
 
 /* leading retained */
-/*#__KEEP__*/ globalFunction( 'side-effect' ) || 43; // trailing retained
+/*#__KEEP__*/ console.log( 'side-effect' ) || 43; // trailing retained
 
 /* footer 3 */
 
@@ -39,6 +39,24 @@ function usedNamedFunction () {
 } // trailing retained
 
 /* footer 6 */
+
+/* header 7 */
+
+/* leading retained */
+({
+	effect: console.log( 'side-effect' ) || 43
+}); // trailing retained
+
+/* footer 7 */
+
+/* header 8 */
+
+/* leading retained */
+({
+	effect: console.log( 'side-effect' ) || 43
+}); // trailing retained
+
+/* footer 8 */
 
 console.log(importedValue);
 importedUsedFunction();

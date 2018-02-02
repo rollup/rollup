@@ -7,6 +7,7 @@ import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../Module';
 import { findFirstOccurrenceOutsideComment } from '../../utils/renderHelpers';
+import { isObjectExpression } from './ObjectExpression';
 
 // The header ends at the first white-space or comment after "default"
 function getDeclarationStart (code: string) {
@@ -24,6 +25,8 @@ function getIdInsertPosition (code: string, declarationKeyword: string) {
 	}
 	return declarationEnd + generatorStarPos + 1;
 }
+
+const needsToBeWrapped = isObjectExpression;
 
 export default class ExportDefaultDeclaration extends NodeBase {
 	type: NodeType.ExportDefaultDeclaration;
@@ -56,9 +59,9 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		const declarationStart = this.start + getDeclarationStart(code.original.slice(this.start, this.end));
 
 		if (isFunctionDeclaration(this.declaration)) {
-			this.renderDeclaration(code, declarationStart, 'function', this.declaration.id === null, options);
+			this.renderNamedDeclaration(code, declarationStart, 'function', this.declaration.id === null, options);
 		} else if (isClassDeclaration(this.declaration)) {
-			this.renderDeclaration(code, declarationStart, 'class', this.declaration.id === null, options);
+			this.renderNamedDeclaration(code, declarationStart, 'class', this.declaration.id === null, options);
 		} else if (this.variable.getOriginalVariableName() === this.variable.getName()) {
 			// Remove altogether to prevent re-declaring the same variable
 			code.remove(nodeRenderOptions.start || this.start, nodeRenderOptions.end || this.end);
@@ -66,13 +69,12 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		} else if (this.variable.included) {
 			this.renderVariableDeclaration(code, declarationStart, options);
 		} else {
-			// Remove `export default`, the rest is rendered for side-effects
-			code.remove(this.start, declarationStart);
+			this.renderForSideEffects(code, declarationStart);
 		}
 		super.render(code, options);
 	}
 
-	private renderDeclaration (
+	private renderNamedDeclaration (
 		code: MagicString, declarationStart: number, declarationKeyword: string, needsId: boolean, options: RenderOptions
 	) {
 		const name = this.variable.getName();
@@ -97,6 +99,18 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		);
 		if (systemBinding) {
 			code.prependRight(this.end - 1, ')');
+		}
+	}
+
+	private renderForSideEffects (code: MagicString, declarationStart: number) {
+		code.remove(this.start, declarationStart);
+		if (needsToBeWrapped(this.declaration)) {
+			code.appendLeft(declarationStart, '(');
+			if (code.original[this.end - 1] === ';') {
+				code.prependRight(this.end - 1, ')');
+			} else {
+				code.prependRight(this.end, ');');
+			}
 		}
 	}
 }

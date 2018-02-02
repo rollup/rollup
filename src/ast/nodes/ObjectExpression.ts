@@ -5,7 +5,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { UNKNOWN_VALUE } from '../values';
-import { NodeBase } from './shared/Node';
+import { Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
@@ -21,6 +21,10 @@ export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 	someReturnExpressionWhenCalledAtPath: () => true,
 	toString: () => '[[UNKNOWN OBJECT]]'
 };
+
+export function isObjectExpression (node: Node): node is ObjectExpression {
+	return node.type === NodeType.ObjectExpression;
+}
 
 export default class ObjectExpression extends NodeBase {
 	type: NodeType.ObjectExpression;
