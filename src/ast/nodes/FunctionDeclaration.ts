@@ -3,6 +3,11 @@ import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../Module';
+import { Node } from './shared/Node';
+
+export function isFunctionDeclaration (node: Node): node is FunctionDeclaration {
+	return node.type === NodeType.FunctionDeclaration;
+}
 
 export default class FunctionDeclaration extends FunctionNode {
 	type: NodeType.FunctionDeclaration;

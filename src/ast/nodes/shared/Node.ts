@@ -1,7 +1,7 @@
 import { locate } from 'locate-character';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import Scope from '../../scopes/Scope';
-import Module, { RenderOptions } from '../../../Module';
+import Module, { NodeRenderOptions, RenderOptions } from '../../../Module';
 import MagicString from 'magic-string';
 import Variable from '../../variables/Variable';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
@@ -64,7 +64,7 @@ export interface Node extends Entity {
 	 */
 	initialise (parentScope: Scope): void;
 	initialiseAndDeclare (parentScope: Scope, kind: string, init: ExpressionEntity | null): void;
-	render(code: MagicString, options: RenderOptions): void;
+	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
 	 * Start a new execution path to determine if this node has an effect on the bundle and
@@ -225,9 +225,8 @@ export class NodeBase implements ExpressionNode {
 
 	shouldBeIncluded () {
 		return (
-			this.included ||
-			this.hasEffects(ExecutionPathOptions.create()) ||
 			this.hasIncludedChild()
+			|| this.hasEffects(ExecutionPathOptions.create())
 		);
 	}
 

@@ -31,22 +31,14 @@ export function renderStatementBlock (statements: Node[], code: MagicString, sta
 		currentNode = nextNode;
 		currentNodeStart = nextNodeStart;
 		nextNode = statements[nextIndex];
-		if (!currentNode.included || (nextNode !== undefined && !nextNode.included)) {
-			nextNodeStart = currentNode.end + (findFirstLineBreakOutsideComment(code.slice(
-				currentNode.end,
-				nextNode !== undefined ? nextNode.start : end
-			)));
-			if (
-				!currentNode.included
-				&& currentNode.type !== NodeType.ExportDefaultDeclaration
-				&& currentNode.type !== NodeType.IfStatement
-			) {
-				code.remove(currentNodeStart, nextNodeStart);
-			} else {
-				currentNode.render(code, options);
-			}
+		nextNodeStart = currentNode.end + (findFirstLineBreakOutsideComment(code.slice(
+			currentNode.end,
+			nextNode !== undefined ? nextNode.start : end
+		)));
+		if (!currentNode.included && currentNode.type !== NodeType.IfStatement) {
+			code.remove(currentNodeStart, nextNodeStart);
 		} else {
-			currentNode.render(code, options);
+			currentNode.render(code, options, {start: currentNodeStart, end:nextNodeStart});
 		}
 	}
 }

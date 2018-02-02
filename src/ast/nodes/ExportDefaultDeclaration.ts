@@ -1,14 +1,11 @@
 import { ExpressionNode, NodeBase } from './shared/Node';
-import ExecutionPathOptions from '../ExecutionPathOptions';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
-import ClassDeclaration from './ClassDeclaration';
-import FunctionDeclaration from './FunctionDeclaration';
+import ClassDeclaration, { isClassDeclaration } from './ClassDeclaration';
+import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaration';
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
-
-const functionOrClassDeclaration = /^(?:Function|Class)Declaration/;
+import { NodeRenderOptions, RenderOptions } from '../../Module';
 
 function buildRegexWithSpaces (re: RegExp) {
 	const spaceOrComment =
@@ -45,18 +42,6 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		}
 	}
 
-	includeDefaultExport () {
-		this.included = true;
-		this.declaration.includeInBundle();
-	}
-
-	includeInBundle () {
-		if (this.declaration.shouldBeIncluded()) {
-			return this.declaration.includeInBundle();
-		}
-		return false;
-	}
-
 	initialiseNode () {
 		this.isExportDeclaration = true;
 		this._declarationName =
@@ -68,74 +53,48 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, options: RenderOptions) {
-		const remove = () => {
-			code.remove(
-				this.leadingCommentStart || this.start,
-				this.next || this.end
-			);
-		};
-		const removeExportDefault = () => {
-			code.remove(this.start, declaration_start);
-		};
-
-		const treeshakeable =
-			this.module.graph.treeshake &&
-			!this.included &&
-			!this.declaration.included;
-		const name = this.variable.getName();
-		const statementStr = code.original.slice(this.start, this.end);
-
+	render (code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = {}) {
 		// paren workaround: find first non-whitespace character position after `export default`
-		const declaration_start =
-			this.start + statementStr.match(sourceRE.exportDefault)[0].length;
+		const declarationStart = this.start + code.original.slice(this.start, this.end).match(sourceRE.exportDefault)[0].length;
 
-		if (functionOrClassDeclaration.test(this.declaration.type)) {
-			if (treeshakeable) {
-				return remove();
-			}
-
-			// Add the id to anonymous declarations
-			if (!(<FunctionDeclaration | ClassDeclaration>this.declaration).id) {
-				const id_insertPos =
-					this.start + statementStr.match(sourceRE.declarationHeader)[0].length;
-				code.appendLeft(id_insertPos, ` ${name}`);
-			}
-
-			removeExportDefault();
-
-			if (options.systemBindings && this.declaration.type === NodeType.ClassDeclaration) {
-				code.appendRight(this.end, ` exports('default', ${name});`);
-			}
+		if (isFunctionDeclaration(this.declaration) || isClassDeclaration(this.declaration)) {
+			this.renderFunctionOrClassDeclaration(code, declarationStart, this.declaration.id === null, options);
+		} else if (this.variable.getOriginalVariableName() === this.variable.getName()) {
+			// Remove altogether to prevent re-declaring the same variable
+			code.remove(nodeRenderOptions.start || this.start, nodeRenderOptions.end || this.end);
+			return;
+		} else if (this.variable.included) {
+			this.renderVariableDeclaration(code, declarationStart, options);
 		} else {
-			if (treeshakeable) {
-				const hasEffects = this.declaration.hasEffects(
-					ExecutionPathOptions.create()
-				);
-				return hasEffects ? removeExportDefault() : remove();
-			}
-
-			// Prevent `var foo = foo`
-			if (this.variable.getOriginalVariableName() === name) {
-				return remove();
-			}
-
-			// Only output `var foo =` if `foo` is used
-			if (this.included) {
-				const systemBinding = options.systemBindings ? `exports('${this.variable.exportName}', ` : '';
-				code.overwrite(
-					this.start,
-					declaration_start,
-					`${this.module.graph.varOrConst} ${name} = ${systemBinding}`
-				);
-				if (systemBinding) {
-					code.prependRight(this.end - 1, ')');
-				}
-			} else {
-				removeExportDefault();
-			}
+			// Remove `export default`, the rest is rendered for side-effects
+			code.remove(this.start, declarationStart);
 		}
-
 		super.render(code, options);
+	}
+
+	private renderFunctionOrClassDeclaration (code: MagicString, declarationStart: number, needsId: boolean, options: RenderOptions) {
+		const name = this.variable.getName();
+		// Remove `export default`
+		code.remove(this.start, declarationStart);
+
+		if (needsId) {
+			const idInsertPos = this.start + code.original.slice(this.start, this.end).match(sourceRE.declarationHeader)[0].length;
+			code.appendLeft(idInsertPos, ` ${name}`);
+		}
+		if (options.systemBindings && isClassDeclaration(this.declaration)) {
+			code.appendRight(this.end, ` exports('default', ${name});`);
+		}
+	}
+
+	private renderVariableDeclaration (code: MagicString, declarationStart: number, options: RenderOptions) {
+		const systemBinding = options.systemBindings ? `exports('${this.variable.exportName}', ` : '';
+		code.overwrite(
+			this.start,
+			declarationStart,
+			`${this.module.graph.varOrConst} ${this.variable.getName()} = ${systemBinding}`
+		);
+		if (systemBinding) {
+			code.prependRight(this.end - 1, ')');
+		}
 	}
 }

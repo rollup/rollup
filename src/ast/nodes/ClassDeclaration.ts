@@ -4,6 +4,11 @@ import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../Module';
+import { Node } from './shared/Node';
+
+export function isClassDeclaration (node: Node): node is ClassDeclaration {
+	return node.type === NodeType.ClassDeclaration;
+}
 
 export default class ClassDeclaration extends ClassNode {
 	type: NodeType.ClassDeclaration;

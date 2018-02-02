@@ -109,6 +109,11 @@ export interface RenderOptions {
 	systemBindings: boolean;
 }
 
+export interface NodeRenderOptions {
+	start?: number,
+	end?: number
+}
+
 export default class Module {
 	type: 'Module';
 	graph: Graph;
