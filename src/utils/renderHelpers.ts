@@ -3,12 +3,14 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../Module';
 import { NodeType } from '../ast/nodes/NodeType';
 
-function findFirstLineBreakOutsideComment (code: string) {
+// Note that if the string is not found, "0" is returned instead of e.g. "-1"
+// as this seems to work best for the main use case
+export function findFirstOccurrenceOutsideComment (code: string, searchString: string) {
 	let codeStart = 0;
 	let commentStart, commentLength, lineBreakPos;
 	while (true) {
 		commentStart = code.indexOf('/*');
-		lineBreakPos = (~commentStart ? code.slice(0, commentStart) : code).indexOf('\n');
+		lineBreakPos = (~commentStart ? code.slice(0, commentStart) : code).indexOf(searchString);
 		if (~lineBreakPos || !~commentStart) {
 			break;
 		}
@@ -24,17 +26,15 @@ export function renderStatementBlock (statements: Node[], code: MagicString, sta
 	if (statements.length === 0) return;
 	let currentNode, currentNodeStart;
 	let nextNode = statements[0];
-	// TODO we need to work around a bug in magic-string when nodeStart = start = 0
-	let nextNodeStart = start + (nextNode.start === start ? 0 : findFirstLineBreakOutsideComment(code.slice(start, nextNode.start)));
+	let nextNodeStart = start + findFirstOccurrenceOutsideComment(code.original.slice(start, nextNode.start), '\n');
 
 	for (let nextIndex = 1; nextIndex <= statements.length; nextIndex++) {
 		currentNode = nextNode;
 		currentNodeStart = nextNodeStart;
 		nextNode = statements[nextIndex];
-		nextNodeStart = currentNode.end + (findFirstLineBreakOutsideComment(code.slice(
-			currentNode.end,
-			nextNode !== undefined ? nextNode.start : end
-		)));
+		nextNodeStart = currentNode.end + (findFirstOccurrenceOutsideComment(code.original.slice(
+			currentNode.end, nextNode !== undefined ? nextNode.start : end
+		), '\n'));
 		if (!currentNode.included && currentNode.type !== NodeType.IfStatement) {
 			code.remove(currentNodeStart, nextNodeStart);
 		} else {

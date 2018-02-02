@@ -11,7 +11,7 @@ define(function () { 'use strict';
 	/* header 3*/
 
 	/* leading retained */
-	console.log( 'side-effect' ) || 43; // trailing retained
+	/*#__KEEP__*/ globalFunction( 'side-effect' ) || 43; // trailing retained
 
 	/* footer 3 */
 

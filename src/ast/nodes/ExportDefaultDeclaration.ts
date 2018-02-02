@@ -6,25 +6,24 @@ import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../Module';
+import { findFirstOccurrenceOutsideComment } from '../../utils/renderHelpers';
 
-function buildRegexWithSpaces (re: RegExp) {
-	const spaceOrComment =
-		'(?:' +
-		[
-			/\s/.source, // Space
-			/\/\/.*[\n\r]/.source, // Single line comment
-			/\/\*[^]*?\*\//.source // Multiline comment. There is [^] instead of . because it also matches \n
-		].join('|') +
-		')';
-	return new RegExp(re.source.replace(/\s|\\s/g, spaceOrComment), re.flags);
+// The header ends at the first white-space or comment after "default"
+function getDeclarationStart (code: string) {
+	const headerLength = findFirstOccurrenceOutsideComment(code, 'default') + 7;
+	return headerLength + code.slice(headerLength).search(/\S|\/\*/);
 }
 
-const sourceRE = {
-	exportDefault: buildRegexWithSpaces(/^ *export +default */),
-	declarationHeader: buildRegexWithSpaces(
-		/^ *export +default +(?:(?:async +)?function(?: *\*)?|class)/
-	)
-};
+function getIdInsertPosition (code: string, declarationKeyword: string) {
+	const declarationEnd = findFirstOccurrenceOutsideComment(code, declarationKeyword) + declarationKeyword.length;
+	code = code.slice(declarationEnd);
+	code = code.slice(0, findFirstOccurrenceOutsideComment(code, '{'));
+	const generatorStarPos = findFirstOccurrenceOutsideComment(code, '*');
+	if (generatorStarPos === 0) {
+		return declarationEnd + (code[0] === '*' ? 1 : 0);
+	}
+	return declarationEnd + generatorStarPos + 1;
+}
 
 export default class ExportDefaultDeclaration extends NodeBase {
 	type: NodeType.ExportDefaultDeclaration;
@@ -54,11 +53,12 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	}
 
 	render (code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = {}) {
-		// paren workaround: find first non-whitespace character position after `export default`
-		const declarationStart = this.start + code.original.slice(this.start, this.end).match(sourceRE.exportDefault)[0].length;
+		const declarationStart = this.start + getDeclarationStart(code.original.slice(this.start, this.end));
 
-		if (isFunctionDeclaration(this.declaration) || isClassDeclaration(this.declaration)) {
-			this.renderFunctionOrClassDeclaration(code, declarationStart, this.declaration.id === null, options);
+		if (isFunctionDeclaration(this.declaration)) {
+			this.renderDeclaration(code, declarationStart, 'function', this.declaration.id === null, options);
+		} else if (isClassDeclaration(this.declaration)) {
+			this.renderDeclaration(code, declarationStart, 'class', this.declaration.id === null, options);
 		} else if (this.variable.getOriginalVariableName() === this.variable.getName()) {
 			// Remove altogether to prevent re-declaring the same variable
 			code.remove(nodeRenderOptions.start || this.start, nodeRenderOptions.end || this.end);
@@ -72,13 +72,15 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		super.render(code, options);
 	}
 
-	private renderFunctionOrClassDeclaration (code: MagicString, declarationStart: number, needsId: boolean, options: RenderOptions) {
+	private renderDeclaration (
+		code: MagicString, declarationStart: number, declarationKeyword: string, needsId: boolean, options: RenderOptions
+	) {
 		const name = this.variable.getName();
 		// Remove `export default`
 		code.remove(this.start, declarationStart);
 
 		if (needsId) {
-			const idInsertPos = this.start + code.original.slice(this.start, this.end).match(sourceRE.declarationHeader)[0].length;
+			const idInsertPos = declarationStart + getIdInsertPosition(code.original.slice(declarationStart, this.end), declarationKeyword);
 			code.appendLeft(idInsertPos, ` ${name}`);
 		}
 		if (options.systemBindings && isClassDeclaration(this.declaration)) {
