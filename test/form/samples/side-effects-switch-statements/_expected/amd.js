@@ -14,7 +14,6 @@ define(function () { 'use strict';
 		case baz:
 			effect();
 		default:
-
 	}
 
 	switch ( globalVar ) {

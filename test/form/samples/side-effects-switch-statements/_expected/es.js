@@ -12,7 +12,6 @@ switch ( globalVar ) {
 	case baz:
 		effect();
 	default:
-
 }
 
 switch ( globalVar ) {
