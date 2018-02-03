@@ -20,10 +20,10 @@ function getIdInsertPosition (code: string, declarationKeyword: string) {
 	code = code.slice(declarationEnd);
 	code = code.slice(0, findFirstOccurrenceOutsideComment(code, '{'));
 	const generatorStarPos = findFirstOccurrenceOutsideComment(code, '*');
-	if (generatorStarPos === 0) {
-		return declarationEnd + (code[0] === '*' ? 1 : 0);
+	if (~generatorStarPos) {
+		return declarationEnd + generatorStarPos + 1;
 	}
-	return declarationEnd + generatorStarPos + 1;
+	return declarationEnd;
 }
 
 const needsToBeWrapped = isObjectExpression;
@@ -69,7 +69,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		} else if (this.variable.included) {
 			this.renderVariableDeclaration(code, declarationStart, options);
 		} else {
-			this.renderForSideEffects(code, declarationStart);
+			this.renderForSideEffectsOnly(code, declarationStart);
 		}
 		super.render(code, options);
 	}
@@ -102,7 +102,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		}
 	}
 
-	private renderForSideEffects (code: MagicString, declarationStart: number) {
+	private renderForSideEffectsOnly (code: MagicString, declarationStart: number) {
 		code.remove(this.start, declarationStart);
 		if (needsToBeWrapped(this.declaration)) {
 			code.appendLeft(declarationStart, '(');

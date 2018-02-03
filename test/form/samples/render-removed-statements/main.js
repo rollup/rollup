@@ -63,7 +63,7 @@ switch (globalVar) {
 		console.log(2); // trail retained
 		// lead removed
 		var a = 1;
-	case 4: var a = 1; /* lead retained */ console.log('3') // trail retained
+	case 4: /* lead removed */ var a = 1; /* lead retained */ console.log('3'); // trail retained
 	default:
 		/* lead removed */
 		var a = 1; // trail removed

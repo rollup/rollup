@@ -1,7 +1,8 @@
 /* header 5 */
 
 /* leading retained */
-export default function () {
+export /* default */ // default
+default function () {
 	console.log( 'unnamed' );
 } // trailing retained
 
