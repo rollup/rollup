@@ -268,10 +268,7 @@ export default class Graph {
 
 				this.link();
 
-				const { orderedModules, dynamicImports, hasCycles } = this.analyseExecution([entryModule]);
-				if (hasCycles) {
-					this.warnCycle(entryModule, orderedModules);
-				}
+				const { orderedModules, dynamicImports } = this.analyseExecution([entryModule]);
 
 				timeEnd('phase 2');
 
@@ -428,20 +425,14 @@ export default class Graph {
 	}
 
 	private analyseExecution (entryModules: Module[]) {
-		let hasCycles = false, curEntry: Module, curEntryHash: Uint8Array;
+		let curEntry: Module, curEntryHash: Uint8Array;
 		const allSeen: { [id: string]: boolean } = {};
 
 		const ordered: Module[] = [];
 
 		const dynamicImports: Module[] = [];
 
-		const visit = (module: Module, seen: { [id: string]: boolean } = {}) => {
-			if (seen[module.id]) {
-				hasCycles = true;
-				return;
-			}
-			seen[module.id] = true;
-
+		const visit = (module: Module, parents: { [id: string]: string | null } = { [module.id]: null }) => {
 			if (module.isEntryPoint && module !== curEntry)
 				return;
 
@@ -453,7 +444,15 @@ export default class Graph {
 
 			module.dependencies.forEach(depModule => {
 				if (!depModule.isExternal) {
-					visit(<Module>depModule, seen);
+					if (depModule.id in parents) {
+						if (!allSeen[depModule.id]) {
+							this.warnCycle(depModule.id, module.id, parents);
+						}
+						return;
+					}
+
+					parents[depModule.id] = module.id;
+					visit(<Module>depModule, parents);
 				}
 			});
 
@@ -490,11 +489,24 @@ export default class Graph {
 			visit(curEntry);
 		}
 
-		return { orderedModules: ordered, dynamicImports, hasCycles };
+		return { orderedModules: ordered, dynamicImports };
 	}
 
-	private warnCycle (_entryModule: Module, _ordered: Module[]) {
-		// TODO: reinstate
+	private warnCycle (id: string, parentId: string, parents: { [id: string]: string | null }) {
+		const path = [relativeId(id)];
+		let curId = parentId;
+		while (curId !== id) {
+			path.push(relativeId(curId));
+			curId = parents[curId];
+			if (!curId) break;
+		}
+		path.push(path[0]);
+		path.reverse();
+		this.warn({
+			code: 'CIRCULAR_DEPENDENCY',
+			importer: path[0],
+			message: `Circular dependency: ${path.join(' -> ')}`
+		});
 	}
 
 	private fetchModule (id: string, importer: string): Promise<Module> {

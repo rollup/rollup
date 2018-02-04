@@ -4,8 +4,16 @@ module.exports = {
 	skip: true,
 	description: 'resolves pathological cyclical dependencies gracefully',
 	buble: true,
-	warnings: warnings => {
-		assert.equal( warnings.length, warnings );
-		assert.ok( /Module .+B\.js may be unable to evaluate without .+A\.js, but is included first due to a cyclical dependency. Consider swapping the import statements in .+main\.js to ensure correct ordering/.test( warnings[0] ) );
-	}
+	warnings: [
+		{
+			code: 'CIRCULAR_DEPENDENCY',
+			importer: 'A.js',
+			message: 'Circular dependency: A.js -> B.js -> A.js'
+		},
+		{
+			code: 'CIRCULAR_DEPENDENCY',
+			importer: 'C.js',
+			message: 'Circular dependency: C.js -> D.js -> C.js'
+		}
+	]
 };
