@@ -14,7 +14,7 @@
     "test": "npm run test:only && npm run test:typescript",
     "test:only": "mocha",
     "test:leak": "node --expose-gc test/leak/index.js",
-    "test:quick": "rollup -c && mocha -b",
+    "test:quick": "mocha -b",
     "pretest:typescript": "rm -rf test/typescript/dist && rm -rf test/typescript/typings && cp -r dist test/typescript/ && cp -r typings test/typescript/",
     "test:typescript": "tsc -p test/typescript",
     "pretest-coverage": "npm run build",
