@@ -51,7 +51,7 @@ function generateChunkName (id: string, chunkNames: { [name: string ]: boolean }
 }
 
 export default class Graph {
-	acornOptions: any;
+	acornOptions: acorn.Options;
 	acornParse: acorn.IParse;
 	cachedModules: Map<string, ModuleJSON>;
 	context: string;

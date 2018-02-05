@@ -15,6 +15,7 @@ import { SourceMap } from 'magic-string';
 import { WatcherOptions } from '../watch/index';
 import { Deprecation } from '../utils/deprecateOptions';
 import Graph from '../Graph';
+import { TransformContext } from '../utils/transform';
 
 export const VERSION = '<@VERSION@>';
 
@@ -24,7 +25,7 @@ export type ResolveIdHook = (id: string, parent: string) => Promise<string | boo
 export type MissingExportHook = (module: Module, name: string, otherModule: Module | ExternalModule, start?: number) => void;
 export type IsExternalHook = (id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void;
 export type LoadHook = (id: string) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
-export type TransformHook = (code: string, id: String) => Promise<SourceDescription | string | void>;
+export type TransformHook = (this: TransformContext, code: string, id: String) => Promise<SourceDescription | string | void>;
 export type TransformBundleHook = (code: string, options: OutputOptions) => Promise<SourceDescription | string>;
 export type ResolveDynamicImportHook = (specifier: string | Node, parentId: string) => Promise<string | void> | string | void
 
