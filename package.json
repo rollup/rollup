@@ -14,7 +14,7 @@
     "test": "npm run test:only && npm run test:typescript",
     "test:only": "mocha",
     "test:leak": "node --expose-gc test/leak/index.js",
-    "test:quick": "rollup -c && mocha -b",
+    "test:quick": "mocha -b",
     "test:typescript": "mv src src_tmp; tsc -p test/typescript; mv src_tmp src",
     "pretest-coverage": "npm run build",
     "test-coverage": "rm -rf coverage/* && istanbul cover --report json node_modules/.bin/_mocha -- -u exports -R spec test/test.js",

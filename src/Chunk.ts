@@ -468,13 +468,13 @@ export default class Chunk {
 
 		const toDeshadow: Set<string> = new Set();
 
-		this.externalModules.forEach(module => {
-			if (!es || module.exportsNamespace) {
+		if (!es) {
+			this.externalModules.forEach(module => {		
 				const safeName = getSafeName(module.name);
 				toDeshadow.add(safeName);
 				module.name = safeName;
-			}
-		});
+			});
+		}
 
 		this.imports.forEach(impt => {
 			impt.variables.forEach(({ name, module, variable }) => {
@@ -489,9 +489,10 @@ export default class Chunk {
 							safeName = module.name;
 						}
 					} else {
-						safeName = (es || system) ? getSafeName(variable.name) : `${module.name}.${name}`;
+						safeName = (es || system) ? variable.name : `${module.name}.${name}`;
 					}
 					if (es || system) {
+						safeName = getSafeName(safeName);
 						toDeshadow.add(safeName);
 					}
 				} else if (es || system) {
