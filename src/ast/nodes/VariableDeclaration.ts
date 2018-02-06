@@ -1,30 +1,26 @@
 import { Node, NodeBase } from './shared/Node';
-import extractNames from '../utils/extractNames';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import VariableDeclarator from './VariableDeclarator';
-import ForInStatement from './ForInStatement';
-import ForOfStatement from './ForOfStatement';
-import ForStatement from './ForStatement';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
-import { isIdentifier } from './Identifier';
 import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../Module';
+import { getCommaSeparatedNodesWithBoundaries } from '../../utils/renderHelpers';
+import { isIdentifier } from './Identifier';
+import { isForStatement } from './ForStatement';
+import { isForOfStatement } from './ForOfStatement';
+import { isForInStatement } from './ForInStatement';
+import Variable from '../variables/Variable';
 
-function getSeparator (code: string, start: number) {
-	let c = start;
-
-	while (c > 0 && code[c - 1] !== '\n') {
-		c -= 1;
-		if (code[c] === ';' || code[c] === '{') return '; ';
-	}
-
-	const lineStart = code.slice(c, start).match(/^\s*/)[0];
-
-	return `;\n${lineStart}`;
+function isDeclarationInForLoop (node: Node): boolean {
+	const parent = <Node>node.parent;
+	return (isForStatement(parent) && parent.init === node)
+		|| ((isForOfStatement(parent) || isForInStatement(parent)) && parent.left === node);
 }
 
-const forStatement = /^For(?:Of|In)?Statement/;
+function isReassignedPartOfExportsObject (variable: Variable): boolean {
+	return variable.safeName && variable.safeName.indexOf('.') !== -1 && variable.exportName && variable.isReassigned;
+}
 
 export function isVariableDeclaration (node: Node): node is VariableDeclaration {
 	return node.type === NodeType.VariableDeclaration;
@@ -74,102 +70,51 @@ export default class VariableDeclaration extends NodeBase {
 	}
 
 	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
-		const treeshake = this.module.graph.treeshake;
-
-		let shouldSeparate = false;
-		let separator;
-
-		if (this.scope.isModuleScope && !forStatement.test(this.parent.type)) {
-			shouldSeparate = true;
-			separator = getSeparator(this.module.code, this.start);
+		let declarationsEnd = this.end;
+		if (code.original[declarationsEnd - 1] === ';') {
+			declarationsEnd--;
+			code.overwrite(declarationsEnd, declarationsEnd + 1, '');
 		}
-
-		let c = this.start;
-		let empty = true;
-		let lastSystemWrap = false;
-		let curSystemWrap = false;
-
-		for (let i = 0; i < this.declarations.length; i += 1) {
-			const declarator = this.declarations[i];
-
-			const prefix = empty ? '' : separator; // TODO indentation
-
-			if (isIdentifier(declarator.id)) {
-				const variable = this.scope.findVariable(declarator.id.name);
-
-				const isExportedAndReassigned = variable.safeName && variable.safeName.indexOf(
-					'.') !== -1 && variable.exportName && variable.isReassigned;
-
-				if (options.systemBindings && variable.exportName && declarator.init) {
-					code.prependLeft(declarator.init.start, `exports('${variable.exportName}', `);
-					curSystemWrap = true;
-				}
-
-				if (isExportedAndReassigned) {
-					if (declarator.init) {
-						if (shouldSeparate) code.overwrite(c, declarator.start, (lastSystemWrap ? ')' : '') + prefix);
-						c = declarator.end;
-						empty = false;
-					}
-				} else if (!treeshake || variable.included) {
-					if (shouldSeparate)
-						code.overwrite(c, declarator.start, `${lastSystemWrap ? ')' : ''}${prefix}${this.kind} `); // TODO indentation
-					c = declarator.end;
-					empty = false;
-				}
-			} else {
-				const exportAssignments: any[] = [];
-				let isIncluded = false;
-
-				extractNames(declarator.id).forEach(name => {
-					const variable = this.scope.findVariable(name);
-					const isExportedAndReassigned = variable.safeName && variable.safeName.indexOf(
-						'.') !== -1 && variable.exportName && variable.isReassigned;
-
-					if (isExportedAndReassigned) {
-						// code.overwrite( c, declarator.start, prefix );
-						// c = declarator.end;
-						// empty = false;
-						exportAssignments.push('TODO');
-					} else if (declarator.included) {
-						isIncluded = true;
-					}
-				});
-
-				if (!treeshake || isIncluded) {
-					if (shouldSeparate)
-						code.overwrite(c, declarator.start, `${lastSystemWrap ? ')' : ''}${prefix}${this.kind} `); // TODO indentation
-					c = declarator.end;
-					empty = false;
-				}
-
-				if (exportAssignments.length) {
-					throw new Error('TODO');
-				}
+		const nodesWithBoundaries = getCommaSeparatedNodesWithBoundaries(
+			this.declarations, code, this.start + this.kind.length - 1, declarationsEnd
+		);
+		// Make sure the first node overwrites "var " with whatever is appropriate
+		nodesWithBoundaries[0].start = this.start;
+		let isInDeclaration = false;
+		let hasRenderedContent = false;
+		let hasOpenSystemBinding = false;
+		let renderedContentEnd;
+		for (const { node, start, contentStart, end } of nodesWithBoundaries) {
+			if (!node.included || (isIdentifier(node.id) && isReassignedPartOfExportsObject(node.id.variable) && node.init === null)) {
+				code.remove(start, end);
+				continue;
 			}
-
-			declarator.render(code, options);
-
-			lastSystemWrap = curSystemWrap;
-			curSystemWrap = false;
+			if (isIdentifier(node.id) && isReassignedPartOfExportsObject(node.id.variable)) {
+				code.overwrite(start, contentStart, (hasOpenSystemBinding ? ')' : '') + (hasRenderedContent ? '; ' : ''));
+				isInDeclaration = false;
+				hasOpenSystemBinding = false;
+			} else if (!isInDeclaration) {
+				code.overwrite(start, contentStart, (hasOpenSystemBinding ? ')' : '') + (hasRenderedContent ? '; ' : '') + this.kind + ' ');
+				isInDeclaration = true;
+				hasOpenSystemBinding = false;
+				if (options.systemBindings && node.init !== null && isIdentifier(node.id) && node.id.variable.exportName) {
+					code.prependLeft(node.init.start, `exports('${node.id.variable.exportName}', `);
+					hasOpenSystemBinding = true;
+				}
+			} else if (hasOpenSystemBinding) {
+				code.overwrite(start, contentStart, '), ');
+				hasOpenSystemBinding = false;
+			}
+			node.render(code, options);
+			renderedContentEnd = end;
+			hasRenderedContent = true;
 		}
-
-		if (treeshake && empty) {
-			code.remove(
-				start || this.start,
-				end || this.end
-			);
+		if (hasRenderedContent) {
+			if (!isDeclarationInForLoop(this)) {
+				code.appendLeft(renderedContentEnd, (hasOpenSystemBinding ? ')' : '') + ';');
+			}
 		} else {
-			// always include a semi-colon (https://github.com/rollup/rollup/pull/1013),
-			// unless it's a var declaration in a loop head
-			const needsSemicolon =
-				!forStatement.test(this.parent.type) || this === (<ForStatement | ForOfStatement | ForInStatement>this.parent).body;
-
-			if (this.end > c) {
-				code.overwrite(c, this.end, (lastSystemWrap ? ')' : '') + (needsSemicolon ? ';' : ''));
-			} else if (needsSemicolon) {
-				this.insertSemicolon(code);
-			}
+			code.remove(start || this.start, end || this.end);
 		}
 	}
 }

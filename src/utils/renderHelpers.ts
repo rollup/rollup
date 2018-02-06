@@ -28,7 +28,7 @@ export function findFirstOccurrenceOutsideComment (code: string, searchString: s
 
 // Note that if the string is not found, "0" is returned instead of e.g. "-1" as this works best
 // for the main use case
-function findFirstLineBreakOutsideComment (code: string) {
+export function findFirstLineBreakOutsideComment (code: string) {
 	let codeStart = 0;
 	let commentStart, commentLength, lineBreakPos;
 	while (true) {
@@ -45,7 +45,7 @@ function findFirstLineBreakOutsideComment (code: string) {
 	return ~lineBreakPos ? codeStart + lineBreakPos : 0;
 }
 
-export function renderStatementBlock (statements: Node[], code: MagicString, start: number, end: number, options: RenderOptions) {
+export function renderStatementList (statements: Node[], code: MagicString, start: number, end: number, options: RenderOptions) {
 	if (statements.length === 0) return;
 	let currentNode, currentNodeStart;
 	let nextNode = statements[0];
@@ -55,13 +55,48 @@ export function renderStatementBlock (statements: Node[], code: MagicString, sta
 		currentNode = nextNode;
 		currentNodeStart = nextNodeStart;
 		nextNode = statements[nextIndex];
-		nextNodeStart = currentNode.end + (findFirstLineBreakOutsideComment(code.original.slice(
-			currentNode.end, nextNode !== undefined ? nextNode.start : end
-		)));
-		if (!currentNode.included) {
-			code.remove(currentNodeStart, nextNodeStart);
-		} else {
+		nextNodeStart = currentNode.end + findFirstLineBreakOutsideComment(
+			code.original.slice(currentNode.end, nextNode === undefined ? end : nextNode.start)
+		);
+		if (currentNode.included) {
 			currentNode.render(code, options, { start: currentNodeStart, end: nextNodeStart });
+		} else {
+			code.remove(currentNodeStart, nextNodeStart);
 		}
 	}
+}
+
+// This assumes that the first character is not part of the first node
+export function getCommaSeparatedNodesWithBoundaries<N extends Node> (
+	nodes: N[],
+	code: MagicString,
+	start: number,
+	end: number
+): ({
+	node: N;
+	start: number;
+	contentStart: number;
+	end: number;
+})[] {
+	const splitUpNodes = [];
+	let currentNode, currentNodeStart, currentNodeContentStart;
+	let nextNode = nodes[0];
+	let nextNodeStart = start;
+
+	for (let nextIndex = 1; nextIndex <= nodes.length; nextIndex++) {
+		currentNode = nextNode;
+		currentNodeStart = nextNodeStart;
+		nextNode = nodes[nextIndex];
+		nextNodeStart = nextNode === undefined ? end : currentNode.end + findFirstOccurrenceOutsideComment(
+			code.original.slice(currentNode.end, nextNode.start), ','
+		);
+		// Each node starts with a non-content character e.g. ","; that way we can always safely code.overwrite(start, contentStart, ..)
+		currentNodeContentStart = currentNodeStart + 1;
+		// We remove leading spaces (but not other white-space) to avoid double spaces when rendering
+		currentNodeContentStart += code.original.slice(currentNodeContentStart, nextNodeStart).search(/[^ ]/);
+		splitUpNodes.push({
+			node: currentNode, start: currentNodeStart, end: nextNodeStart, contentStart: currentNodeContentStart
+		});
+	}
+	return splitUpNodes;
 }

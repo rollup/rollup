@@ -1,4 +1,4 @@
-import { NodeBase } from './shared/Node';
+import { NodeBase, Node } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Literal from './Literal';
 import MagicString from 'magic-string';
@@ -31,11 +31,11 @@ export default class ExportNamedDeclaration extends NodeBase {
 	}
 
 	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
-		if (this.declaration) {
-			code.remove(this.start, this.declaration.start);
-			this.declaration.render(code, options);
-		} else {
+		if (this.declaration === null) {
 			code.remove(start || this.start, end || this.end);
+		} else {
+			code.remove(this.start, this.declaration.start);
+			(<Node>this.declaration).render(code, options, { start, end });
 		}
 	}
 }

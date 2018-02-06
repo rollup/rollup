@@ -5,6 +5,10 @@ import Scope from '../scopes/Scope';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase, Node } from './shared/Node';
 
+export function isForStatement (node: Node): node is ForStatement {
+	return node.type === NodeType.ForStatement;
+}
+
 export default class ForStatement extends NodeBase {
 	type: NodeType.ForStatement;
 	init: VariableDeclaration | ExpressionNode | null;

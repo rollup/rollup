@@ -9,10 +9,10 @@ import { NodeRenderOptions, RenderOptions } from '../../Module';
 import { findFirstOccurrenceOutsideComment } from '../../utils/renderHelpers';
 import { isObjectExpression } from './ObjectExpression';
 
-// The header ends at the first white-space or comment after "default"
+// The header ends at the first non-white-space after "default"
 function getDeclarationStart (code: string) {
 	const headerLength = findFirstOccurrenceOutsideComment(code, 'default') + 7;
-	return headerLength + code.slice(headerLength).search(/\S|\/\*/);
+	return headerLength + code.slice(headerLength).search(/\S/);
 }
 
 function getIdInsertPosition (code: string, declarationKeyword: string) {

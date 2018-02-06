@@ -1,6 +1,6 @@
 import { ExpressionNode, NodeBase, Node } from './shared/Node';
 import { NodeType } from './NodeType';
-import { findFirstOccurrenceOutsideComment, renderStatementBlock } from '../../utils/renderHelpers';
+import { findFirstOccurrenceOutsideComment, renderStatementList } from '../../utils/renderHelpers';
 import { RenderOptions } from '../../Module';
 import MagicString from 'magic-string';
 
@@ -31,7 +31,7 @@ export default class SwitchCase extends NodeBase {
 				? this.test.end
 				: this.start + findFirstOccurrenceOutsideComment(code.original.slice(this.start, this.end), 'default') + 7;
 			const consequentStart = testEnd + findFirstOccurrenceOutsideComment(code.original.slice(testEnd, this.end), ':') + 1;
-			renderStatementBlock(this.consequent, code, consequentStart, this.end, options);
+			renderStatementList(this.consequent, code, consequentStart, this.end, options);
 		} else {
 			super.render(code, options);
 		}

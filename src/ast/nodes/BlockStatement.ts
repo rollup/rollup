@@ -6,7 +6,7 @@ import MagicString from 'magic-string';
 import { Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../Module';
-import { renderStatementBlock } from '../../utils/renderHelpers';
+import { renderStatementList } from '../../utils/renderHelpers';
 
 export function isBlockStatement (node: Node): node is BlockStatement {
 	return node.type === NodeType.BlockStatement;
@@ -59,7 +59,7 @@ export default class BlockStatement extends NodeBase {
 
 	render (code: MagicString, options: RenderOptions) {
 		if (this.body.length) {
-			renderStatementBlock(this.body, code, this.start + 1, this.end - 1, options);
+			renderStatementList(this.body, code, this.start + 1, this.end - 1, options);
 		} else {
 			super.render(code, options);
 		}

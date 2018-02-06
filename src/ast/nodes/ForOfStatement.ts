@@ -7,6 +7,10 @@ import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase, Node } from './shared/Node';
 
+export function isForOfStatement (node: Node): node is ForOfStatement {
+	return node.type === NodeType.ForOfStatement;
+}
+
 export default class ForOfStatement extends NodeBase {
 	type: NodeType.ForOfStatement;
 	left: VariableDeclaration | PatternNode;
