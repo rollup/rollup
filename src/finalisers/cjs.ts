@@ -53,7 +53,7 @@ export default function cjs (
 		needsInterop = true;
 
 		const exportsNames = imports && imports.some(specifier => specifier.imported !== 'default' && specifier.imported !== '*') ||
-				reexports && reexports.some(specifier => specifier.imported === 'default');
+				reexports && reexports.some(specifier => specifier.imported !== 'default' && specifier.imported !== '*');
 		if (exportsNames) {
 			return `${varOrConst} ${name} = require('${getPath(id)}');` +
 					`\n${varOrConst} ${name}__default = _interopDefault(${name});`;

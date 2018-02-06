@@ -9,7 +9,7 @@ export default function es (chunk: Chunk, magicString: MagicStringBundle, { getP
 	outro: string
 }) {
 	const { dependencies, exports } = chunk.getModuleDeclarations();
-	const importBlock = dependencies.map(({ id, reexports, imports }) => {
+	const importBlock = dependencies.map(({ id, reexports, imports, name }) => {
 		if (!reexports && !imports) {
 			return `import '${getPath(id)}';`;
 		}
@@ -35,16 +35,27 @@ export default function es (chunk: Chunk, magicString: MagicStringBundle, { getP
 			}
 		}
 		if (reexports) {
+			if (imports)
+				output += '\n';
 			const starExport = reexports.find(specifier => specifier.reexported === '*');
+			const nsReexport = reexports.find(specifier => specifier.imported === '*' && specifier.reexported !== '*');
 			if (starExport) {
-				output += `export * from '${id}';`;
+				output += `export * from '${getPath(id)}';`;
 				if (reexports.length === 1) {
 					return output;
 				}
 				output += '\n';
 			}
+			if (nsReexport) {
+				output += `import * as ${name} from '${getPath(id)}';\n`;
+				output += `export { ${name === nsReexport.reexported ? name : `${name} as ${nsReexport.reexported}`} };`;
+				if (reexports.length === (starExport ? 2 : 1)) {
+					return output;
+				}
+				output += '\n';
+			}
 			output += `export { ${reexports
-				.filter(specifier => specifier !== starExport)
+				.filter(specifier => specifier !== starExport && specifier !== nsReexport)
 				.map(specifier => {
 					if (specifier.imported === specifier.reexported) {
 						return specifier.imported;
