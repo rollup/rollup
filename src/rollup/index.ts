@@ -73,7 +73,7 @@ export interface InputOptions {
 	watch?: WatcherOptions;
 	experimentalDynamicImport?: boolean;
 	experimentalCodeSplitting?: boolean;
-	preserveSymlinks: boolean;
+	preserveSymlinks?: boolean;
 
 	// undocumented?
 	pureExternalModules?: boolean;
