@@ -75,7 +75,7 @@ export default class VariableDeclaration extends NodeBase {
 		let hasRenderedContent = false;
 		let hasOpenSystemBinding = false;
 		let renderedContentEnd;
-		for (const { node, start, contentStart, end } of nodesWithBoundaries) {
+		for (let { node, start, contentStart, end } of nodesWithBoundaries) {
 			if (!node.included || (isIdentifier(node.id) && isReassignedPartOfExportsObject(node.id.variable) && node.init === null)) {
 				code.remove(start, end);
 				continue;
@@ -99,6 +99,7 @@ export default class VariableDeclaration extends NodeBase {
 						separatorString += '; ';
 					}
 					separatorString += `${this.kind}`;
+					contentStart += code.original.slice(contentStart, node.end).search(/\S/);
 					isInDeclaration = true;
 				}
 			}
