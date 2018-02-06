@@ -84,7 +84,7 @@ export default class VariableDeclaration extends NodeBase {
 			hasOpenSystemBinding = false;
 			if (isIdentifier(node.id) && isReassignedPartOfExportsObject(node.id.variable)) {
 				if (hasRenderedContent) {
-					separatorString += '; ';
+					separatorString += ';';
 				}
 				isInDeclaration = false;
 			} else {
@@ -93,14 +93,17 @@ export default class VariableDeclaration extends NodeBase {
 					hasOpenSystemBinding = true;
 				}
 				if (isInDeclaration) {
-					separatorString += ', ';
+					separatorString += ',';
 				} else {
-					isInDeclaration = true;
 					if (hasRenderedContent) {
 						separatorString += '; ';
 					}
-					separatorString += `${this.kind} `;
+					separatorString += `${this.kind}`;
+					isInDeclaration = true;
 				}
+			}
+			if (separatorString !== '' && /\S/.test(code.original[contentStart])) {
+				separatorString += ' ';
 			}
 			code.overwrite(start, contentStart, separatorString);
 			node.render(code, options);
