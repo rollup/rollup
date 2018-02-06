@@ -333,7 +333,35 @@ export default class Chunk {
 			return { name, module };
 		}
 
-		if (module.exports[name]) {
+		const exportDeclaration = module.exports[name];
+		if (exportDeclaration) {
+			// if export binding is itself an import binding then continue tracing
+			const importDeclaration = module.imports[exportDeclaration.localName];
+			if (importDeclaration) {
+				// add the import binding to the shape
+				const declaration = module.imports[exportDeclaration.localName];
+
+				const tracedExport = this.traceExport(declaration.module, declaration.name);
+
+				// ignore imports to modules already in this chunk
+				if (!tracedExport || tracedExport.module.chunk === this) {
+					return tracedExport;
+				}
+
+				const variable = tracedExport.module.traceExport(tracedExport.name);
+
+				// namespace variable can indicate multiple imports
+				if (tracedExport.name === '*') {
+					Object.keys((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations).forEach(importName => {
+						const original = ((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations)[importName];
+						this.populateImport(original, tracedExport);
+					});
+					return tracedExport;
+				}
+
+				this.populateImport(variable, tracedExport);
+				return tracedExport;
+			}
 			return { name, module };
 		}
 
