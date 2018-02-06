@@ -7,16 +7,7 @@ import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../Module';
 import { getCommaSeparatedNodesWithBoundaries } from '../../utils/renderHelpers';
 import { isIdentifier } from './Identifier';
-import { isForStatement } from './ForStatement';
-import { isForOfStatement } from './ForOfStatement';
-import { isForInStatement } from './ForInStatement';
 import Variable from '../variables/Variable';
-
-function isDeclarationInForLoop (node: Node): boolean {
-	const parent = <Node>node.parent;
-	return (isForStatement(parent) && parent.init === node)
-		|| ((isForOfStatement(parent) || isForInStatement(parent)) && parent.left === node);
-}
 
 function isReassignedPartOfExportsObject (variable: Variable): boolean {
 	return variable.safeName && variable.safeName.indexOf('.') !== -1 && variable.exportName && variable.isReassigned;
@@ -39,7 +30,7 @@ export default class VariableDeclaration extends NodeBase {
 		return false;
 	}
 
-	includeWithAllDeclarations () {
+	includeWithAllDeclaredVariables () {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		this.declarations.forEach(declarator => {
@@ -69,7 +60,7 @@ export default class VariableDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
+	render (code: MagicString, options: RenderOptions, { start, end, noSemicolon }: NodeRenderOptions = {}) {
 		let declarationsEnd = this.end;
 		if (code.original[declarationsEnd - 1] === ';') {
 			declarationsEnd--;
@@ -89,28 +80,35 @@ export default class VariableDeclaration extends NodeBase {
 				code.remove(start, end);
 				continue;
 			}
+			let separatorString = hasOpenSystemBinding ? ')' : '';
+			hasOpenSystemBinding = false;
 			if (isIdentifier(node.id) && isReassignedPartOfExportsObject(node.id.variable)) {
-				code.overwrite(start, contentStart, (hasOpenSystemBinding ? ')' : '') + (hasRenderedContent ? '; ' : ''));
+				if (hasRenderedContent) {
+					separatorString += '; ';
+				}
 				isInDeclaration = false;
-				hasOpenSystemBinding = false;
-			} else if (!isInDeclaration) {
-				code.overwrite(start, contentStart, (hasOpenSystemBinding ? ')' : '') + (hasRenderedContent ? '; ' : '') + this.kind + ' ');
-				isInDeclaration = true;
-				hasOpenSystemBinding = false;
+			} else {
 				if (options.systemBindings && node.init !== null && isIdentifier(node.id) && node.id.variable.exportName) {
 					code.prependLeft(node.init.start, `exports('${node.id.variable.exportName}', `);
 					hasOpenSystemBinding = true;
 				}
-			} else if (hasOpenSystemBinding) {
-				code.overwrite(start, contentStart, '), ');
-				hasOpenSystemBinding = false;
+				if (isInDeclaration) {
+					separatorString += ', ';
+				} else {
+					isInDeclaration = true;
+					if (hasRenderedContent) {
+						separatorString += '; ';
+					}
+					separatorString += `${this.kind} `;
+				}
 			}
+			code.overwrite(start, contentStart, separatorString);
 			node.render(code, options);
 			renderedContentEnd = end;
 			hasRenderedContent = true;
 		}
 		if (hasRenderedContent) {
-			if (!isDeclarationInForLoop(this)) {
+			if (!noSemicolon) {
 				code.appendLeft(renderedContentEnd, (hasOpenSystemBinding ? ')' : '') + ';');
 			}
 		} else {

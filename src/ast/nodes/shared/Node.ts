@@ -50,7 +50,7 @@ export interface Node extends Entity {
 	 * declarations to only include nodes for declarators that have an effect. Necessary
 	 * for for-loops that do not use a declared loop variable.
 	 */
-	includeWithAllDeclarations(): boolean;
+	includeWithAllDeclaredVariables(): boolean;
 
 	/**
 	 * Assign a scope to this node and make sure all children have the right scopes.
@@ -166,7 +166,7 @@ export class NodeBase implements ExpressionNode {
 		return addedNewNodes;
 	}
 
-	includeWithAllDeclarations () {
+	includeWithAllDeclaredVariables () {
 		return this.includeInBundle();
 	}
 

@@ -1,6 +1,6 @@
 'use strict';
 
-var a = 'a',
+var a = 'a', 
     b = 'b';
 
 assert.equal( a, 'a' );

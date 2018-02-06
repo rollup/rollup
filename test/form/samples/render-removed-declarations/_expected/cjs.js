@@ -3,7 +3,7 @@
 // Middle removed
 var kept1 = 1, kept2 = 3; // retained comment
 var /* retained */ kept1 = 1 /* retained */, /* retained */ kept2 = 3 /* retained */;
-var /* retained */kept1 = 1/* retained */,/* retained */kept2 = 3/* retained */;
+var /* retained */kept1 = 1/* retained */, /* retained */kept2 = 3/* retained */;
 
 // Start and end removed
 var kept1 = 2; // retained comment
