@@ -86,7 +86,7 @@ export default class Scope {
 			const declaration = this.variables[key];
 
 			// we can disregard exports.foo etc
-			if (declaration.exportName && declaration.isReassigned) return;
+			if (declaration.exportName && declaration.isReassigned && !declaration.isId) return;
 
 			let name = declaration.getName(true);
 

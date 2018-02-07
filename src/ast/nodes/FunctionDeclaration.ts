@@ -11,7 +11,10 @@ export default class FunctionDeclaration extends FunctionNode {
 	type: NodeType.FunctionDeclaration;
 
 	initialiseChildren (parentScope: Scope) {
-		this.id && this.id.initialiseAndDeclare(parentScope, 'function', this);
+		if (this.id !== null) {
+			this.id.initialiseAndDeclare(parentScope, 'function', this);
+			this.id.variable.isId = true;
+		}
 		this.params.forEach(param =>
 			param.initialiseAndDeclare(this.scope, 'parameter', null)
 		);

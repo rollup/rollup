@@ -12,6 +12,7 @@ export default class Variable implements ExpressionEntity {
 	isGlobal?: boolean;
 	isNamespace?: boolean;
 	isReassigned: boolean;
+	isId: boolean;
 	name: string;
 	reexported?: boolean;
 	safeName: string;
@@ -37,9 +38,9 @@ export default class Variable implements ExpressionEntity {
 	) { }
 
 	getName (reset?: boolean): string {
-		if (reset && this.safeName && this.safeName !== this.name && 
-				this.safeName[this.name.length] === '$' &&
-				this.safeName[this.name.length + 1] === '$') {
+		if (reset && this.safeName && this.safeName !== this.name &&
+			this.safeName[this.name.length] === '$' &&
+			this.safeName[this.name.length + 1] === '$') {
 			this.safeName = undefined;
 			return this.name;
 		}
