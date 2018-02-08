@@ -34,6 +34,7 @@ export default function getExportBlock (
 
 	let exportBlock = '';
 
+	// star exports must always output first for precedence
 	dependencies.forEach(({ name, reexports }) => {
 		if (reexports && exportMode !== 'default') {
 			reexports.forEach(specifier => {
