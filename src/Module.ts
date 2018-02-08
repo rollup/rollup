@@ -74,10 +74,10 @@ export const defaultAcornOptions: AcornOptions = {
 
 function tryParse (module: Module, parse: IParse, acornOptions: AcornOptions) {
 	try {
-		return parse(module.code, Object.assign({}, defaultAcornOptions, {
+		return parse(module.code, Object.assign({}, defaultAcornOptions, acornOptions, {
 			onComment: (block: boolean, text: string, start: number, end: number) =>
 				module.comments.push({ block, text, start, end })
-		}, acornOptions));
+		}));
 	} catch (err) {
 		module.error({
 			code: 'PARSE_ERROR',
