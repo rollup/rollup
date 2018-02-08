@@ -1,1 +1,1 @@
-import * as rollup from '../../dist/typings/node-entry';
+import * as rollup from './dist/typings/node-entry';
