@@ -26,8 +26,6 @@ export function findFirstOccurrenceOutsideComment (code: string, searchString: s
 	return ~lineBreakPos ? codeStart + lineBreakPos : -1;
 }
 
-// Note that if the string is not found, "0" is returned instead of e.g. "-1" as this works best
-// for the main use case
 export function findFirstLineBreakOutsideComment (code: string) {
 	let codeStart = 0;
 	let commentStart, commentLength, lineBreakPos;
@@ -42,14 +40,14 @@ export function findFirstLineBreakOutsideComment (code: string) {
 		code = code.slice(commentLength);
 		codeStart += commentStart + commentLength;
 	}
-	return ~lineBreakPos ? codeStart + lineBreakPos : 0;
+	return ~lineBreakPos ? codeStart + lineBreakPos : -1;
 }
 
 export function renderStatementList (statements: Node[], code: MagicString, start: number, end: number, options: RenderOptions) {
 	if (statements.length === 0) return;
 	let currentNode, currentNodeStart;
 	let nextNode = statements[0];
-	let nextNodeStart = start + findFirstLineBreakOutsideComment(code.original.slice(start, nextNode.start));
+	let nextNodeStart = start + findFirstLineBreakOutsideComment(code.original.slice(start, nextNode.start)) + 1;
 
 	for (let nextIndex = 1; nextIndex <= statements.length; nextIndex++) {
 		currentNode = nextNode;
@@ -57,7 +55,7 @@ export function renderStatementList (statements: Node[], code: MagicString, star
 		nextNode = statements[nextIndex];
 		nextNodeStart = currentNode.end + findFirstLineBreakOutsideComment(
 			code.original.slice(currentNode.end, nextNode === undefined ? end : nextNode.start)
-		);
+		) + 1;
 		if (currentNode.included) {
 			currentNode.render(code, options, { start: currentNodeStart, end: nextNodeStart });
 		} else {
