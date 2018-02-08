@@ -69,7 +69,7 @@ export interface ReexportDescription {
 function tryParse (module: Module, parse: IParse, acornOptions: Object) {
 	try {
 		return parse(module.code, Object.assign({
-			ecmaVersion: 8,
+			ecmaVersion: 9,
 			sourceType: 'module',
 			onComment: (block: boolean, text: string, start: number, end: number) =>
 				module.comments.push({ block, text, start, end }),
