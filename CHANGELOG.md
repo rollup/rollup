@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 0.55.4
+* Improve name deconflicting of external variables ([#1930](https://github.com/rollup/rollup/pull/1930))
+* Improve re-export handling ([#1947](https://github.com/rollup/rollup/pull/1947))
+* Mark preserveSymlinks option as optional ([#1939](https://github.com/rollup/rollup/pull/1939))
+* Enable code-splitting tests to check directory structures ([#1924](https://github.com/rollup/rollup/pull/1924))
+* Improve TypeScript definition test ([#1954](https://github.com/rollup/rollup/pull/1954))
+
 ## 0.55.3
 * Remove OpenCollective dependency ([#1915](https://github.com/rollup/rollup/pull/1915))
 

@@ -68,7 +68,6 @@ export default class Graph {
 	modules: Module[];
 	onwarn: WarningHandler;
 	plugins: Plugin[];
-	preserveSymlinks: boolean;
 	resolveDynamicImport: ResolveDynamicImportHandler;
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
 	scope: GlobalScope;
@@ -194,8 +193,6 @@ export default class Graph {
 
 		acornPluginsToInject.push(...ensureArray(options.acornInjectPlugins));
 		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
-
-		this.preserveSymlinks = options.preserveSymlinks;
 	}
 
 	getPathRelativeToBaseDirname (resolvedId: string, parentId: string): string {

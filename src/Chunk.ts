@@ -245,26 +245,7 @@ export default class Chunk {
 		this.orderedModules.forEach(module => {
 			Object.keys(module.imports).forEach(importName => {
 				const declaration = module.imports[importName];
-
-				const tracedExport = this.traceExport(declaration.module, declaration.name);
-
-				// ignore imports to modules already in this chunk
-				if (!tracedExport || tracedExport.module.chunk === this) {
-					return;
-				}
-
-				const variable = tracedExport.module.traceExport(tracedExport.name);
-
-				// namespace variable can indicate multiple imports
-				if (tracedExport.name === '*') {
-					Object.keys((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations).forEach(importName => {
-						const original = ((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations)[importName];
-						this.populateImport(original, tracedExport);
-					});
-					return;
-				}
-
-				this.populateImport(variable, tracedExport);
+				this.traceImport(declaration.module, declaration.name);
 			});
 		});
 	}
@@ -315,6 +296,29 @@ export default class Chunk {
 		return this.orderedModules.map(module => module.toJSON());
 	}
 
+	traceImport (module: Module | ExternalModule, exportName: string) {
+		const tracedExport = this.traceExport(module, exportName);
+
+		// ignore imports to modules already in this chunk
+		if (!tracedExport || tracedExport.module.chunk === this) {
+			return tracedExport;
+		}
+
+		const variable = tracedExport.module.traceExport(tracedExport.name);
+
+		// namespace variable can indicate multiple imports
+		if (tracedExport.name === '*') {
+			Object.keys((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations).forEach(importName => {
+				const original = ((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations)[importName];
+				this.populateImport(original, tracedExport);
+			});
+			return tracedExport;
+		}
+
+		this.populateImport(variable, tracedExport);
+		return tracedExport;
+	}
+
 	// trace a module export to its exposed chunk module export
 	// either in this chunk or in another
 	// we follow reexports if they are not entry points in the hope
@@ -333,7 +337,12 @@ export default class Chunk {
 			return { name, module };
 		}
 
-		if (module.exports[name]) {
+		const exportDeclaration = module.exports[name];
+		if (exportDeclaration) {
+			// if export binding is itself an import binding then continue tracing
+			const importDeclaration = module.imports[exportDeclaration.localName];
+			if (importDeclaration)
+				return this.traceImport(importDeclaration.module, importDeclaration.name);
 			return { name, module };
 		}
 
@@ -468,13 +477,13 @@ export default class Chunk {
 
 		const toDeshadow: Set<string> = new Set();
 
-		this.externalModules.forEach(module => {
-			if (!es || module.exportsNamespace) {
+		if (!es) {
+			this.externalModules.forEach(module => {		
 				const safeName = getSafeName(module.name);
 				toDeshadow.add(safeName);
 				module.name = safeName;
-			}
-		});
+			});
+		}
 
 		this.imports.forEach(impt => {
 			impt.variables.forEach(({ name, module, variable }) => {
@@ -489,9 +498,10 @@ export default class Chunk {
 							safeName = module.name;
 						}
 					} else {
-						safeName = (es || system) ? getSafeName(variable.name) : `${module.name}.${name}`;
+						safeName = (es || system) ? variable.name : `${module.name}.${name}`;
 					}
 					if (es || system) {
+						safeName = getSafeName(safeName);
 						toDeshadow.add(safeName);
 					}
 				} else if (es || system) {

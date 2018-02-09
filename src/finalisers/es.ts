@@ -9,7 +9,7 @@ export default function es (chunk: Chunk, magicString: MagicStringBundle, { getP
 	outro: string
 }) {
 	const { dependencies, exports } = chunk.getModuleDeclarations();
-	const importBlock = dependencies.map(({ id, reexports, imports }) => {
+	const importBlock = dependencies.map(({ id, reexports, imports, name }) => {
 		if (!reexports && !imports) {
 			return `import '${getPath(id)}';`;
 		}
@@ -19,11 +19,14 @@ export default function es (chunk: Chunk, magicString: MagicStringBundle, { getP
 			const starImport = imports.find(specifier => specifier.imported === '*');
 			if (starImport) {
 				output += `import * as ${starImport.local} from '${getPath(id)}';`;
-			} else if (defaultImport && imports.length === 1) {
+				if (imports.length > 1)
+					output += '\n';
+			}
+			if (defaultImport && imports.length === 1) {
 				output += `import ${defaultImport.local} from '${getPath(id)}';`;
-			} else {
+			} else if (!starImport || imports.length > 1) {
 				output += `import ${defaultImport ? `${defaultImport.local}, ` : ''}{ ${imports
-					.filter(specifier => specifier !== defaultImport)
+					.filter(specifier => specifier !== defaultImport && specifier !== starImport)
 					.map(specifier => {
 						if (specifier.imported === specifier.local) {
 							return specifier.imported;
@@ -35,16 +38,27 @@ export default function es (chunk: Chunk, magicString: MagicStringBundle, { getP
 			}
 		}
 		if (reexports) {
+			if (imports)
+				output += '\n';
 			const starExport = reexports.find(specifier => specifier.reexported === '*');
+			const namespaceReexport = reexports.find(specifier => specifier.imported === '*' && specifier.reexported !== '*');
 			if (starExport) {
-				output += `export * from '${id}';`;
+				output += `export * from '${getPath(id)}';`;
 				if (reexports.length === 1) {
 					return output;
 				}
 				output += '\n';
 			}
+			if (namespaceReexport) {
+				output += `import * as ${name} from '${getPath(id)}';\n`;
+				output += `export { ${name === namespaceReexport.reexported ? name : `${name} as ${namespaceReexport.reexported}`} };`;
+				if (reexports.length === (starExport ? 2 : 1)) {
+					return output;
+				}
+				output += '\n';
+			}
 			output += `export { ${reexports
-				.filter(specifier => specifier !== starExport)
+				.filter(specifier => specifier !== starExport && specifier !== namespaceReexport)
 				.map(specifier => {
 					if (specifier.imported === specifier.reexported) {
 						return specifier.imported;

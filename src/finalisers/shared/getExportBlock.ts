@@ -34,21 +34,33 @@ export default function getExportBlock (
 
 	let exportBlock = '';
 
+	// star exports must always output first for precedence
 	dependencies.forEach(({ name, reexports }) => {
 		if (reexports && exportMode !== 'default') {
 			reexports.forEach(specifier => {
-				if (specifier.imported === '*') {
+				if (specifier.reexported === '*') {
 					exportBlock += `${exportBlock ? '\n' : ''}Object.keys(${name}).forEach(function (key) { exports[key] = ${name}[key]; });`;
 				}
 			});
 		}
 	});
 
-	dependencies.forEach(({ name, reexports }) => {
+	dependencies.forEach(({ name, imports, reexports }) => {
 		if (reexports && exportMode !== 'default') {
 			reexports.forEach(specifier => {
-				if (specifier.imported !== '*') {
+				if (specifier.imported === 'default') {
+					const exportsNamesOrNamespace = imports && 
+						imports.some(specifier => specifier.imported === '*' || specifier.imported !== 'default') ||
+						reexports && reexports.some(specifier => specifier.imported !== 'default' && specifier.imported !== '*');
+					if (exportsNamesOrNamespace) {
+						exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name}__default;`;
+					} else {
+						exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name};`;
+					}
+				} else if (specifier.imported !== '*') {
 					exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name}.${specifier.imported};`;
+				} else if (specifier.reexported !== '*') {
+					exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name};`;
 				}
 			});
 		}
