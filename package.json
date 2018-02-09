@@ -15,7 +15,8 @@
     "test:only": "mocha",
     "test:leak": "node --expose-gc test/leak/index.js",
     "test:quick": "mocha -b",
-    "test:typescript": "mv src src_tmp; tsc -p test/typescript; mv src_tmp src",
+    "pretest:typescript": "rm -rf test/typescript/dist && rm -rf test/typescript/typings && cp -r dist test/typescript/ && cp -r typings test/typescript/",
+    "test:typescript": "tsc -p test/typescript",
     "pretest-coverage": "npm run build",
     "test-coverage": "rm -rf coverage/* && istanbul cover --report json node_modules/.bin/_mocha -- -u exports -R spec test/test.js",
     "posttest-coverage": "remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.json -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.lcov -t lcovonly -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped -t html -b dist",
@@ -25,7 +26,8 @@
     "watch": "rollup -cw",
     "prepublishOnly": "npm run lint && npm run test && npm run test:leak",
     "prepare": "npm run build",
-    "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js"
+    "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js",
+    "postinstall": "opencollective postinstall"
   },
   "repository": "rollup/rollup",
   "keywords": [
@@ -55,7 +57,7 @@
     "acorn-dynamic-import": "^3.0.0",
     "ansi-escapes": "^3.0.0",
     "buble": "^0.18.0",
-    "cash-mv": "^0.2.0",
+    "cash-cp": "^0.2.0",
     "cash-rm": "^0.2.0",
     "chalk": "^2.3.0",
     "codecov.io": "^0.1.6",
@@ -63,6 +65,7 @@
     "date-time": "^2.1.0",
     "eslint": "^4.11.0",
     "eslint-plugin-import": "^2.8.0",
+    "fixturify": "^0.3.4",
     "immutable": "^3.8.2",
     "is-reference": "^1.0.0",
     "istanbul": "^0.4.3",
@@ -99,5 +102,13 @@
     "typings/package.json.d.ts",
     "bin/rollup",
     "README.md"
-  ]
+  ],
+  "dependencies": {
+    "opencollective": "^1.0.3"
+  },
+  "collective": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/rollup",
+    "logo": "https://opencollective.com/rollup/logo.txt"
+  }
 }

@@ -1,5 +1,2 @@
 import x from 'x';
-
-
-
-export { x };
+export { default as x } from 'x';
