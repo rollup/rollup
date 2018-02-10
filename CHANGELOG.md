@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.55.5
+* Remove OpenCollective dependency ([#1915](https://github.com/rollup/rollup/pull/1915))
+
 ## 0.55.4
 * Improve name deconflicting of external variables ([#1930](https://github.com/rollup/rollup/pull/1930))
 * Improve re-export handling ([#1947](https://github.com/rollup/rollup/pull/1947))
