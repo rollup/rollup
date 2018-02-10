@@ -1,11 +1,15 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('external')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'external'], factory) :
-	(factory((global.myBundle = {}),global.external));
-}(this, (function (exports,external) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(factory());
+}(this, (function () { 'use strict';
 
-	Object.keys(external).forEach(function (key) { exports[key] = external[key]; });
+	function foo() { return true; }
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+	var baz = function foo$$1() {
+		return foo();
+	};
+
+	console.log(baz());
 
 })));

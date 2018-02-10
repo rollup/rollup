@@ -1,10 +1,12 @@
-var myBundle = (function (exports,external) {
+(function () {
 	'use strict';
 
+	function foo() { return true; }
 
+	var baz = function foo$$1() {
+		return foo();
+	};
 
-	Object.keys(external).forEach(function (key) { exports[key] = external[key]; });
+	console.log(baz());
 
-	return exports;
-
-}({},external));
+}());
