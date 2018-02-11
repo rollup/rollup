@@ -60,7 +60,7 @@ export default class VariableDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, options: RenderOptions, { start, end, noSemicolon }: NodeRenderOptions = {}) {
+	render (code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = {}) {
 		const separatedNodes = getCommaSeparatedNodesWithSeparators(
 			this.declarations,
 			code,
@@ -118,9 +118,9 @@ export default class VariableDeclaration extends NodeBase {
 			separatorString = nextSeparatorString;
 		}
 		if (hasRenderedContent) {
-			this.renderDeclarationEnd(code, separatorString, lastSeparatorPos, renderedContentEnd, !noSemicolon);
+			this.renderDeclarationEnd(code, separatorString, lastSeparatorPos, renderedContentEnd, !nodeRenderOptions.noSemicolon);
 		} else {
-			code.remove(start || this.start, end || this.end);
+			code.remove(nodeRenderOptions.start || this.start, nodeRenderOptions.end || this.end);
 		}
 	}
 
