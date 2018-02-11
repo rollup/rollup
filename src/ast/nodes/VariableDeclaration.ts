@@ -5,7 +5,7 @@ import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../Module';
-import { getCommaSeparatedNodesWithBoundaries } from '../../utils/renderHelpers';
+import { getCommaSeparatedNodesWithSeparators } from '../../utils/renderHelpers';
 import { isIdentifier } from './Identifier';
 import Variable from '../variables/Variable';
 
@@ -61,27 +61,30 @@ export default class VariableDeclaration extends NodeBase {
 	}
 
 	render (code: MagicString, options: RenderOptions, { start, end, noSemicolon }: NodeRenderOptions = {}) {
-		let declarationsEnd = this.end;
-		if (code.original[declarationsEnd - 1] === ';') {
-			declarationsEnd--;
-			code.overwrite(declarationsEnd, declarationsEnd + 1, '');
-		}
-		const nodesWithBoundaries = getCommaSeparatedNodesWithBoundaries(
-			this.declarations, code, this.start + this.kind.length - 1, declarationsEnd
+		const separatedNodes = getCommaSeparatedNodesWithSeparators(
+			this.declarations,
+			code,
+			this.start + this.kind.length,
+			this.end - (code.original[this.end - 1] === ';' ? 1 : 0)
 		);
-		// Make sure the first node overwrites "var " with whatever is appropriate
-		nodesWithBoundaries[0].start = this.start;
+		let renderedContentEnd;
+		if (/\n\s*$/.test(code.slice(this.start, separatedNodes[0].start))) {
+			renderedContentEnd = this.start + this.kind.length;
+		} else {
+			renderedContentEnd = separatedNodes[0].start;
+		}
+		let lastSeparatorPos = renderedContentEnd - 1;
+		code.remove(this.start, lastSeparatorPos);
 		let isInDeclaration = false;
 		let hasRenderedContent = false;
-		let hasOpenSystemBinding = false;
-		let renderedContentEnd;
-		for (let { node, start, contentStart, end } of nodesWithBoundaries) {
+		let separatorString = '', leadingString, nextSeparatorString;
+		for (let { node, start, separator, end } of separatedNodes) {
 			if (!node.included || (isIdentifier(node.id) && isReassignedPartOfExportsObject(node.id.variable) && node.init === null)) {
 				code.remove(start, end);
 				continue;
 			}
-			let separatorString = hasOpenSystemBinding ? ')' : '';
-			hasOpenSystemBinding = false;
+			leadingString = '';
+			nextSeparatorString = '';
 			if (isIdentifier(node.id) && isReassignedPartOfExportsObject(node.id.variable)) {
 				if (hasRenderedContent) {
 					separatorString += ';';
@@ -90,33 +93,65 @@ export default class VariableDeclaration extends NodeBase {
 			} else {
 				if (options.systemBindings && node.init !== null && isIdentifier(node.id) && node.id.variable.exportName) {
 					code.prependLeft(node.init.start, `exports('${node.id.variable.exportName}', `);
-					hasOpenSystemBinding = true;
+					nextSeparatorString += ')';
 				}
 				if (isInDeclaration) {
 					separatorString += ',';
 				} else {
 					if (hasRenderedContent) {
-						separatorString += '; ';
+						separatorString += ';';
 					}
-					separatorString += `${this.kind}`;
-					contentStart += code.original.slice(contentStart, node.end).search(/\S/);
+					leadingString += `${this.kind} `;
 					isInDeclaration = true;
 				}
 			}
-			if (separatorString !== '' && /\S/.test(code.original[contentStart])) {
-				separatorString += ' ';
+			if (renderedContentEnd === lastSeparatorPos + 1) {
+				code.overwrite(lastSeparatorPos, renderedContentEnd, separatorString + leadingString);
+			} else {
+				code.overwrite(lastSeparatorPos, lastSeparatorPos + 1, separatorString);
+				code.appendLeft(renderedContentEnd, leadingString);
 			}
-			code.overwrite(start, contentStart, separatorString);
 			node.render(code, options);
 			renderedContentEnd = end;
 			hasRenderedContent = true;
+			lastSeparatorPos = separator;
+			separatorString = nextSeparatorString;
 		}
 		if (hasRenderedContent) {
-			if (!noSemicolon) {
-				code.appendLeft(renderedContentEnd, (hasOpenSystemBinding ? ')' : '') + ';');
-			}
+			this.renderDeclarationEnd(code, separatorString, lastSeparatorPos, renderedContentEnd, !noSemicolon);
 		} else {
 			code.remove(start || this.start, end || this.end);
 		}
+	}
+
+	private renderDeclarationEnd (
+		code: MagicString,
+		separatorString: string,
+		lastSeparatorPos: number,
+		renderedContentEnd: number,
+		addSemicolon: boolean
+	) {
+		if (code.original[this.end - 1] === ';') {
+			code.remove(this.end - 1, this.end);
+		}
+		if (addSemicolon) {
+			separatorString += ';';
+		}
+		if (lastSeparatorPos !== null) {
+			let actualContentEnd = lastSeparatorPos + code.original.slice(lastSeparatorPos, renderedContentEnd).search(/\s*$/);
+			// Do not remove trailing white-space if we might remove an essential comment-closing line-break
+			if (code.original[actualContentEnd] === '\n' && code.original[this.end] !== '\n') {
+				actualContentEnd = renderedContentEnd;
+			}
+			if (actualContentEnd === lastSeparatorPos + 1) {
+				code.overwrite(lastSeparatorPos, renderedContentEnd, separatorString);
+			} else {
+				code.overwrite(lastSeparatorPos, lastSeparatorPos + 1, separatorString);
+				code.remove(actualContentEnd, renderedContentEnd);
+			}
+		} else {
+			code.appendLeft(renderedContentEnd, separatorString);
+		}
+		return separatorString;
 	}
 }

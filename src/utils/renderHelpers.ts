@@ -65,7 +65,7 @@ export function renderStatementList (statements: Node[], code: MagicString, star
 }
 
 // This assumes that the first character is not part of the first node
-export function getCommaSeparatedNodesWithBoundaries<N extends Node> (
+export function getCommaSeparatedNodesWithSeparators<N extends Node> (
 	nodes: N[],
 	code: MagicString,
 	start: number,
@@ -73,28 +73,36 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node> (
 ): ({
 	node: N;
 	start: number;
-	contentStart: number;
+	separator: number | null;
 	end: number;
 })[] {
 	const splitUpNodes = [];
-	let currentNode, currentNodeStart, currentNodeContentStart;
+	let currentNode, currentNodeStart, separator;
 	let nextNode = nodes[0];
-	let nextNodeStart = start;
+	let nextNodeStart = start + findFirstLineBreakOutsideComment(code.original.slice(start, nextNode.start)) + 1;
+	nextNodeStart += code.original.slice(nextNodeStart, nextNode.start + 1).search(/\S/);
 
 	for (let nextIndex = 1; nextIndex <= nodes.length; nextIndex++) {
 		currentNode = nextNode;
 		currentNodeStart = nextNodeStart;
 		nextNode = nodes[nextIndex];
-		nextNodeStart = nextNode === undefined ? end : currentNode.end + findFirstOccurrenceOutsideComment(
-			code.original.slice(currentNode.end, nextNode.start), ','
-		);
-		// Each node starts with a non-content character e.g. ","; that way we can always safely code.overwrite(start, contentStart, ..)
-		currentNodeContentStart = currentNodeStart + 1;
-		// We remove leading spaces (but not other white-space) to avoid double spaces when rendering
-		currentNodeContentStart += code.original.slice(currentNodeContentStart, nextNodeStart).search(/[^ ]/);
-		splitUpNodes.push({
-			node: currentNode, start: currentNodeStart, end: nextNodeStart, contentStart: currentNodeContentStart
-		});
+
+		if (nextNode === undefined) {
+			splitUpNodes.push({
+				node: currentNode, start: currentNodeStart, end, separator: null
+			});
+		} else {
+			separator = currentNode.end + findFirstOccurrenceOutsideComment(
+				code.original.slice(currentNode.end, nextNode.start), ','
+			);
+			nextNodeStart = separator + 1 + findFirstLineBreakOutsideComment(
+				code.original.slice(separator + 1, nextNode.start)
+			) + 1;
+			nextNodeStart += code.original.slice(nextNodeStart, nextNode.start + 1).search(/\S/);
+			splitUpNodes.push({
+				node: currentNode, start: currentNodeStart, end: nextNodeStart, separator
+			});
+		}
 	}
 	return splitUpNodes;
 }
