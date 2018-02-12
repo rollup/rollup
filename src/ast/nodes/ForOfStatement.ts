@@ -5,7 +5,7 @@ import Scope from '../scopes/Scope';
 import BlockStatement from './BlockStatement';
 import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
-import { ExpressionNode, NodeBase, Node } from './shared/Node';
+import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
 import { NO_SEMICOLON, RenderOptions } from '../../Module';
 import MagicString from 'magic-string';
 
@@ -13,11 +13,11 @@ export function isForOfStatement (node: Node): node is ForOfStatement {
 	return node.type === NodeType.ForOfStatement;
 }
 
-export default class ForOfStatement extends NodeBase {
+export default class ForOfStatement extends StatementBase {
 	type: NodeType.ForOfStatement;
 	left: VariableDeclaration | PatternNode;
 	right: ExpressionNode;
-	body: Node;
+	body: StatementNode;
 
 	bindNode () {
 		this.left.reassignPath([], ExecutionPathOptions.create());

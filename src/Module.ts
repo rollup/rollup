@@ -112,10 +112,10 @@ export interface RenderOptions {
 export interface NodeRenderOptions {
 	start?: number,
 	end?: number,
-	noSemicolon?: boolean
+	isStatement?: boolean
 }
 
-export const NO_SEMICOLON: NodeRenderOptions = { noSemicolon: true };
+export const NO_SEMICOLON: NodeRenderOptions = { isStatement: true };
 
 export default class Module {
 	type: 'Module';

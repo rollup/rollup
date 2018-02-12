@@ -1,11 +1,11 @@
 import extractNames from '../utils/extractNames';
 import { UNKNOWN_VALUE } from '../values';
 import Scope from '../scopes/Scope';
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
+import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
 import { isVariableDeclaration } from './VariableDeclaration';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { NodeRenderOptions, RenderOptions } from '../../Module';
+import { RenderOptions } from '../../Module';
 
 // Statement types which may contain if-statements as direct children.
 const statementsWithIfStatements = new Set([
@@ -17,7 +17,7 @@ const statementsWithIfStatements = new Set([
 	'WhileStatement'
 ]);
 
-function getHoistedVars (node: Node, scope: Scope) {
+function getHoistedVars (node: StatementNode, scope: Scope) {
 	const hoistedVars: string[] = [];
 
 	function visit (node: Node) {
@@ -40,11 +40,11 @@ function getHoistedVars (node: Node, scope: Scope) {
 	return hoistedVars;
 }
 
-export default class IfStatement extends NodeBase {
+export default class IfStatement extends StatementBase {
 	type: NodeType.IfStatement;
 	test: ExpressionNode;
-	consequent: Node;
-	alternate: Node | null;
+	consequent: StatementNode;
+	alternate: StatementNode | null;
 
 	private testValue: any;
 	private hoistedVars?: string[];
@@ -73,7 +73,7 @@ export default class IfStatement extends NodeBase {
 		this.hoistedVars = [];
 	}
 
-	render (code: MagicString, options: RenderOptions, { end }: NodeRenderOptions = {}) {
+	render (code: MagicString, options: RenderOptions) {
 		if (this.module.graph.treeshake) {
 			if (this.testValue === UNKNOWN_VALUE) {
 				super.render(code, options);
@@ -107,7 +107,7 @@ export default class IfStatement extends NodeBase {
 				} else {
 					code.remove(
 						this.start,
-						this.alternate ? this.alternate.start : end || this.end
+						this.alternate ? this.alternate.start : this.end
 					);
 
 					if (this.alternate) {

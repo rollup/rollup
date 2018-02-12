@@ -1,9 +1,9 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
 import { NodeType } from './NodeType';
-import { NodeBase } from './shared/Node';
+import { StatementBase } from './shared/Node';
 
-export default class BreakStatement extends NodeBase {
+export default class BreakStatement extends StatementBase {
 	type: NodeType.BreakStatement;
 	label: Identifier | null;
 

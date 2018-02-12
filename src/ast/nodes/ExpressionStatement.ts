@@ -1,9 +1,9 @@
 import MagicString from 'magic-string';
 import Scope from '../scopes/Scope';
 import { RenderOptions } from '../../Module';
-import { NodeBase } from './shared/Node';
+import { StatementBase } from './shared/Node';
 
-export default class ExpressionStatement extends NodeBase {
+export default class ExpressionStatement extends StatementBase {
 	directive?: string;
 
 	initialiseNode (_parentScope: Scope) {

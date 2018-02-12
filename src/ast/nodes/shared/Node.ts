@@ -74,6 +74,8 @@ export interface Node extends Entity {
 	someChild(callback: (node: Node) => boolean): boolean;
 }
 
+export interface StatementNode extends Node {}
+
 export interface ExpressionNode extends ExpressionEntity, Node {}
 
 export class NodeBase implements ExpressionNode {
@@ -250,3 +252,5 @@ export class NodeBase implements ExpressionNode {
 		return this.module.code.slice(this.start, this.end);
 	}
 }
+
+export { NodeBase as StatementBase };

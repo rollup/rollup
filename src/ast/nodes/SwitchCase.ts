@@ -1,4 +1,4 @@
-import { ExpressionNode, NodeBase, Node } from './shared/Node';
+import { ExpressionNode, NodeBase, StatementNode } from './shared/Node';
 import { NodeType } from './NodeType';
 import { findFirstOccurrenceOutsideComment, renderStatementList } from '../../utils/renderHelpers';
 import { RenderOptions } from '../../Module';
@@ -7,7 +7,7 @@ import MagicString from 'magic-string';
 export default class SwitchCase extends NodeBase {
 	type: NodeType.SwitchCase;
 	test: ExpressionNode | null;
-	consequent: Node[];
+	consequent: StatementNode[];
 
 	includeInBundle () {
 		let addedNewNodes = !this.included;

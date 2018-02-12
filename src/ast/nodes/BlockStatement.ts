@@ -3,7 +3,7 @@ import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
-import { Node, NodeBase } from './shared/Node';
+import { Node, StatementBase, StatementNode } from './shared/Node';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../Module';
 import { renderStatementList } from '../../utils/renderHelpers';
@@ -12,10 +12,10 @@ export function isBlockStatement (node: Node): node is BlockStatement {
 	return node.type === NodeType.BlockStatement;
 }
 
-export default class BlockStatement extends NodeBase {
+export default class BlockStatement extends StatementBase {
 	type: NodeType.BlockStatement;
 	scope: Scope;
-	body: Node[];
+	body: StatementNode[];
 
 	bindImplicitReturnExpressionToScope () {
 		const lastStatement = this.body[this.body.length - 1];

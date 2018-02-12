@@ -60,7 +60,7 @@ export default class VariableDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, options: RenderOptions, { start = this.start, end = this.end, noSemicolon }: NodeRenderOptions = {}) {
+	render (code: MagicString, options: RenderOptions, { start = this.start, end = this.end, isStatement }: NodeRenderOptions = {}) {
 		const separatedNodes = getCommaSeparatedNodesWithSeparators(
 			this.declarations,
 			code,
@@ -118,7 +118,7 @@ export default class VariableDeclaration extends NodeBase {
 			separatorString = nextSeparatorString;
 		}
 		if (hasRenderedContent) {
-			this.renderDeclarationEnd(code, separatorString, lastSeparatorPos, renderedContentEnd, !noSemicolon);
+			this.renderDeclarationEnd(code, separatorString, lastSeparatorPos, renderedContentEnd, !isStatement);
 		} else {
 			code.remove(start, end);
 		}

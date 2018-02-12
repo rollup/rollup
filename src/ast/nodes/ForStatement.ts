@@ -3,7 +3,7 @@ import VariableDeclaration from './VariableDeclaration';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import { NodeType } from './NodeType';
-import { ExpressionNode, NodeBase, Node } from './shared/Node';
+import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
 import { NO_SEMICOLON, RenderOptions } from '../../Module';
 import MagicString from 'magic-string';
 
@@ -11,12 +11,12 @@ export function isForStatement (node: Node): node is ForStatement {
 	return node.type === NodeType.ForStatement;
 }
 
-export default class ForStatement extends NodeBase {
+export default class ForStatement extends StatementBase {
 	type: NodeType.ForStatement;
 	init: VariableDeclaration | ExpressionNode | null;
 	test: ExpressionNode | null;
 	update: ExpressionNode | null;
-	body: Node;
+	body: StatementNode;
 
 	hasEffects (options: ExecutionPathOptions): boolean {
 		return (
