@@ -4,11 +4,11 @@ import { RenderOptions } from '../Module';
 
 export function findFirstOccurrenceOutsideComment (code: string, searchString: string) {
 	let codeStart = 0;
-	let commentStart, commentLength, lineBreakPos;
+	let commentStart, commentLength, searchPos;
 	while (true) {
 		commentStart = code.indexOf('/');
-		lineBreakPos = (~commentStart ? code.slice(0, commentStart) : code).indexOf(searchString);
-		if (~lineBreakPos || !~commentStart) {
+		searchPos = (commentStart === -1 ? code : code.slice(0, commentStart)).indexOf(searchString);
+		if (searchPos !== -1 || commentStart === -1) {
 			break;
 		}
 		code = code.slice(commentStart + 1);
@@ -23,7 +23,7 @@ export function findFirstOccurrenceOutsideComment (code: string, searchString: s
 		code = code.slice(commentLength);
 		codeStart += commentLength;
 	}
-	return ~lineBreakPos ? codeStart + lineBreakPos : -1;
+	return searchPos === -1 ? -1 : codeStart + searchPos;
 }
 
 export function findFirstLineBreakOutsideComment (code: string) {
@@ -31,8 +31,8 @@ export function findFirstLineBreakOutsideComment (code: string) {
 	let commentStart, commentLength, lineBreakPos;
 	while (true) {
 		commentStart = code.indexOf('/*');
-		lineBreakPos = (~commentStart ? code.slice(0, commentStart) : code).indexOf('\n');
-		if (~lineBreakPos || !~commentStart) {
+		lineBreakPos = (commentStart !== -1 ? code.slice(0, commentStart) : code).indexOf('\n');
+		if (lineBreakPos !== -1 || commentStart === -1) {
 			break;
 		}
 		code = code.slice(commentStart);
@@ -40,7 +40,7 @@ export function findFirstLineBreakOutsideComment (code: string) {
 		code = code.slice(commentLength);
 		codeStart += commentStart + commentLength;
 	}
-	return ~lineBreakPos ? codeStart + lineBreakPos : -1;
+	return lineBreakPos === -1 ? -1 : codeStart + lineBreakPos;
 }
 
 export function renderStatementList (statements: Node[], code: MagicString, start: number, end: number, options: RenderOptions) {

@@ -38,9 +38,13 @@ export default class Variable implements ExpressionEntity {
 	) { }
 
 	getName (reset?: boolean): string {
-		if (reset && this.safeName && this.safeName !== this.name &&
+		if (
+			reset &&
+			this.safeName &&
+			this.safeName !== this.name &&
 			this.safeName[this.name.length] === '$' &&
-			this.safeName[this.name.length + 1] === '$') {
+			this.safeName[this.name.length + 1] === '$'
+		) {
 			this.safeName = undefined;
 			return this.name;
 		}

@@ -9,7 +9,7 @@ import { getCommaSeparatedNodesWithSeparators } from '../../utils/renderHelpers'
 import { isIdentifier } from './Identifier';
 import Variable from '../variables/Variable';
 
-function isReassignedPartOfExportsObject (variable: Variable): boolean {
+function isReassignedExportsMember (variable: Variable): boolean {
 	return variable.safeName && variable.safeName.indexOf('.') !== -1 && variable.exportName && variable.isReassigned;
 }
 
@@ -60,7 +60,7 @@ export default class VariableDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = {}) {
+	render (code: MagicString, options: RenderOptions, { start = this.start, end = this.end, noSemicolon }: NodeRenderOptions = {}) {
 		const separatedNodes = getCommaSeparatedNodesWithSeparators(
 			this.declarations,
 			code,
@@ -79,13 +79,13 @@ export default class VariableDeclaration extends NodeBase {
 		let hasRenderedContent = false;
 		let separatorString = '', leadingString, nextSeparatorString;
 		for (let { node, start, separator, end } of separatedNodes) {
-			if (!node.included || (isIdentifier(node.id) && isReassignedPartOfExportsObject(node.id.variable) && node.init === null)) {
+			if (!node.included || (isIdentifier(node.id) && isReassignedExportsMember(node.id.variable) && node.init === null)) {
 				code.remove(start, end);
 				continue;
 			}
 			leadingString = '';
 			nextSeparatorString = '';
-			if (isIdentifier(node.id) && isReassignedPartOfExportsObject(node.id.variable)) {
+			if (isIdentifier(node.id) && isReassignedExportsMember(node.id.variable)) {
 				if (hasRenderedContent) {
 					separatorString += ';';
 				}
@@ -118,9 +118,9 @@ export default class VariableDeclaration extends NodeBase {
 			separatorString = nextSeparatorString;
 		}
 		if (hasRenderedContent) {
-			this.renderDeclarationEnd(code, separatorString, lastSeparatorPos, renderedContentEnd, !nodeRenderOptions.noSemicolon);
+			this.renderDeclarationEnd(code, separatorString, lastSeparatorPos, renderedContentEnd, !noSemicolon);
 		} else {
-			code.remove(nodeRenderOptions.start || this.start, nodeRenderOptions.end || this.end);
+			code.remove(start, end);
 		}
 	}
 

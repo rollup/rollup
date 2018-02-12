@@ -20,7 +20,7 @@ function findFile (file: string, preserveSymlinks: boolean): string | void {
 			const name = basename(file);
 			const files = readdirSync(dirname(file));
 
-			if (~files.indexOf(name)) return file;
+			if (files.indexOf(name) !== -1) return file;
 		}
 	} catch (err) {
 		// suppress

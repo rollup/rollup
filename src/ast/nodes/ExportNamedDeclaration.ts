@@ -32,7 +32,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 
 	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
 		if (this.declaration === null) {
-			code.remove(start || this.start, end || this.end);
+			code.remove(start, end);
 		} else {
 			code.remove(this.start, this.declaration.start);
 			(<Node>this.declaration).render(code, options, { start, end });

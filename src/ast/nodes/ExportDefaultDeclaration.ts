@@ -20,10 +20,10 @@ function getIdInsertPosition (code: string, declarationKeyword: string) {
 	code = code.slice(declarationEnd);
 	code = code.slice(0, findFirstOccurrenceOutsideComment(code, '{'));
 	const generatorStarPos = findFirstOccurrenceOutsideComment(code, '*');
-	if (~generatorStarPos) {
-		return declarationEnd + generatorStarPos + 1;
+	if (generatorStarPos === -1) {
+		return declarationEnd;
 	}
-	return declarationEnd;
+	return declarationEnd + generatorStarPos + 1;
 }
 
 const needsToBeWrapped = isObjectExpression;
@@ -64,7 +64,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			this.renderNamedDeclaration(code, declarationStart, 'class', this.declaration.id === null, options);
 		} else if (this.variable.getOriginalVariableName() === this.variable.getName()) {
 			// Remove altogether to prevent re-declaring the same variable
-			code.remove(start || this.start, end || this.end);
+			code.remove(start, end);
 			return;
 		} else if (this.variable.included) {
 			this.renderVariableDeclaration(code, declarationStart, options);

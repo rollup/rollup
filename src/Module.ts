@@ -259,7 +259,7 @@ export default class Module {
 
 		// export { name } from './other'
 		if (source) {
-			if (!~this.sources.indexOf(source)) this.sources.push(source);
+			if (this.sources.indexOf(source) === -1) this.sources.push(source);
 
 			if (node.type === NodeType.ExportAllDeclaration) {
 				// Store `export * from '...'` statements in an array of delegates.
@@ -351,7 +351,7 @@ export default class Module {
 	private addImport (node: ImportDeclaration) {
 		const source = node.source.value;
 
-		if (!~this.sources.indexOf(source)) this.sources.push(source);
+		if (this.sources.indexOf(source) === -1) this.sources.push(source);
 
 		node.specifiers.forEach(specifier => {
 			const localName = specifier.local.name;
