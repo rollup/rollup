@@ -33,28 +33,27 @@ const needsToBeWrapped = isObjectExpression;
 export default class ExportDefaultDeclaration extends NodeBase {
 	type: NodeType.ExportDefaultDeclaration;
 	declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
-	needsBoundaries: true;
 
-	private _declarationName: string;
+	needsBoundaries: true;
 	isExportDeclaration: true;
 	variable: ExportDefaultVariable;
 
+	private declarationName: string;
+
 	bindNode () {
-		if (this._declarationName) {
+		if (this.declarationName) {
 			this.variable.setOriginalVariable(
-				this.scope.findVariable(this._declarationName)
+				this.scope.findVariable(this.declarationName)
 			);
 		}
 	}
 
 	initialiseNode () {
-		this.isExportDeclaration = true;
-		this.needsBoundaries = true;
-		this._declarationName =
+		this.declarationName =
 			((<FunctionDeclaration | ClassDeclaration>this.declaration).id && (<FunctionDeclaration | ClassDeclaration>this.declaration).id.name) ||
 			(<Identifier>this.declaration).name;
 		this.variable = this.scope.addExportDefaultDeclaration(
-			this._declarationName || this.module.basename(),
+			this.declarationName || this.module.basename(),
 			this
 		);
 	}
@@ -117,3 +116,6 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		}
 	}
 }
+
+ExportDefaultDeclaration.prototype.needsBoundaries = true;
+ExportDefaultDeclaration.prototype.isExportDeclaration = true;

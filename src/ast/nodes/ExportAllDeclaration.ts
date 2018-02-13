@@ -10,12 +10,10 @@ export default class ExportAllDeclaration extends NodeBase {
 	isExportDeclaration: true;
 	needsBoundaries: true;
 
-	initialiseNode () {
-		this.isExportDeclaration = true;
-		this.needsBoundaries = true;
-	}
-
 	render (code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
 		code.remove(start, end);
 	}
 }
+
+ExportAllDeclaration.prototype.needsBoundaries = true;
+ExportAllDeclaration.prototype.isExportDeclaration = true;

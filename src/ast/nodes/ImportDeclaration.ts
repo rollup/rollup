@@ -9,19 +9,18 @@ import { NodeRenderOptions, RenderOptions } from '../../Module';
 
 export default class ImportDeclaration extends NodeBase {
 	type: NodeType.ImportDeclaration;
-	isImportDeclaration: true;
 	specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
 	source: Literal<string>;
+
+	isImportDeclaration: true;
 	needsBoundaries: true;
 
 	bindChildren () { }
-
-	initialiseNode () {
-		this.isImportDeclaration = true;
-		this.needsBoundaries = true;
-	}
 
 	render (code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
 		code.remove(start, end);
 	}
 }
+
+ImportDeclaration.prototype.isImportDeclaration = true;
+ImportDeclaration.prototype.needsBoundaries = true;
