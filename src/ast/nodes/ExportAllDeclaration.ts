@@ -8,9 +8,11 @@ export default class ExportAllDeclaration extends NodeBase {
 	type: NodeType.ExportAllDeclaration;
 	source: Literal<string>;
 	isExportDeclaration: true;
+	needsBoundaries: true;
 
 	initialiseNode () {
 		this.isExportDeclaration = true;
+		this.needsBoundaries = true;
 	}
 
 	render (code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = {}) {

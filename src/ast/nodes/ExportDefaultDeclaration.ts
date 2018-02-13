@@ -33,6 +33,7 @@ const needsToBeWrapped = isObjectExpression;
 export default class ExportDefaultDeclaration extends NodeBase {
 	type: NodeType.ExportDefaultDeclaration;
 	declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
+	needsBoundaries: true;
 
 	private _declarationName: string;
 	isExportDeclaration: true;
@@ -48,6 +49,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 	initialiseNode () {
 		this.isExportDeclaration = true;
+		this.needsBoundaries = true;
 		this._declarationName =
 			((<FunctionDeclaration | ClassDeclaration>this.declaration).id && (<FunctionDeclaration | ClassDeclaration>this.declaration).id.name) ||
 			(<Identifier>this.declaration).name;

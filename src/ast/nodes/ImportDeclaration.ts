@@ -12,11 +12,13 @@ export default class ImportDeclaration extends NodeBase {
 	isImportDeclaration: true;
 	specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
 	source: Literal<string>;
+	needsBoundaries: true;
 
 	bindChildren () { }
 
 	initialiseNode () {
 		this.isImportDeclaration = true;
+		this.needsBoundaries = true;
 	}
 
 	render (code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = {}) {

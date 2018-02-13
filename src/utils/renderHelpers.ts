@@ -41,21 +41,32 @@ function findFirstLineBreakOutsideComment (code: string, start: number = 0) {
 
 export function renderStatementList (statements: Node[], code: MagicString, start: number, end: number, options: RenderOptions) {
 	if (statements.length === 0) return;
-	let currentNode, currentNodeStart;
+	let currentNode, currentNodeStart, currentNodeNeedsBoundaries, nextNodeStart;
 	let nextNode = statements[0];
-	let nextNodeStart = start + findFirstLineBreakOutsideComment(code.original.slice(start, nextNode.start)) + 1;
+	let nextNodeNeedsBoundaries = !nextNode.included || nextNode.needsBoundaries;
+	if (nextNodeNeedsBoundaries) {
+		nextNodeStart = start + findFirstLineBreakOutsideComment(code.original.slice(start, nextNode.start)) + 1;
+	}
 
 	for (let nextIndex = 1; nextIndex <= statements.length; nextIndex++) {
 		currentNode = nextNode;
 		currentNodeStart = nextNodeStart;
+		currentNodeNeedsBoundaries = nextNodeNeedsBoundaries;
 		nextNode = statements[nextIndex];
-		nextNodeStart = currentNode.end + findFirstLineBreakOutsideComment(
-			code.original.slice(currentNode.end, nextNode === undefined ? end : nextNode.start)
-		) + 1;
-		if (currentNode.included) {
-			currentNode.render(code, options, { start: currentNodeStart, end: nextNodeStart });
+		nextNodeNeedsBoundaries = nextNode === undefined ? false : !nextNode.included || nextNode.needsBoundaries;
+		if (currentNodeNeedsBoundaries || nextNodeNeedsBoundaries) {
+			nextNodeStart = currentNode.end + findFirstLineBreakOutsideComment(
+				code.original.slice(currentNode.end, nextNode === undefined ? end : nextNode.start)
+			) + 1;
+			if (currentNode.included) {
+				currentNodeNeedsBoundaries
+					? currentNode.render(code, options, { start: currentNodeStart, end: nextNodeStart })
+					: currentNode.render(code, options);
+			} else {
+				code.remove(currentNodeStart, nextNodeStart);
+			}
 		} else {
-			code.remove(currentNodeStart, nextNodeStart);
+			currentNode.render(code, options);
 		}
 	}
 }

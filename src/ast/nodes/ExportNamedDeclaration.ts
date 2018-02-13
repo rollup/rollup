@@ -15,6 +15,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 	specifiers: ExportSpecifier[];
 	source: Literal<string> | null;
 
+	needsBoundaries: true;
 	isExportDeclaration: true;
 
 	bindChildren () {
@@ -26,10 +27,6 @@ export default class ExportNamedDeclaration extends NodeBase {
 		return this.declaration && this.declaration.hasEffects(options);
 	}
 
-	initialiseNode () {
-		this.isExportDeclaration = true;
-	}
-
 	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
 		if (this.declaration === null) {
 			code.remove(start, end);
@@ -39,3 +36,6 @@ export default class ExportNamedDeclaration extends NodeBase {
 		}
 	}
 }
+
+ExportNamedDeclaration.prototype.needsBoundaries = true;
+ExportNamedDeclaration.prototype.isExportDeclaration = true;

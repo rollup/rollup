@@ -15,6 +15,7 @@ export interface Node extends Entity {
 	included: boolean;
 	keys: string[];
 	module: Module;
+	needsBoundaries?: boolean;
 	parent: Node | { type?: string };
 	start: number;
 	type: string;
