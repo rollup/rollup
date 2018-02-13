@@ -41,9 +41,9 @@ export function timeEnd (label: string) {
 }
 
 export function flushTime (log = defaultLog) {
-	for (const item of <any> map.entries()) {
-		log(item[0], item[1].time);
-	}
+	map.forEach((value, key) => {
+		log(key, value.time);
+	});
 	map.clear();
 }
 
