@@ -29,8 +29,8 @@ export default class SwitchCase extends NodeBase {
 		if (this.consequent.length) {
 			const testEnd = this.test
 				? this.test.end
-				: this.start + findFirstOccurrenceOutsideComment(code.original.slice(this.start, this.end), 'default') + 7;
-			const consequentStart = testEnd + findFirstOccurrenceOutsideComment(code.original.slice(testEnd, this.end), ':') + 1;
+				: findFirstOccurrenceOutsideComment(code.original, 'default', this.start) + 7;
+			const consequentStart = findFirstOccurrenceOutsideComment(code.original, ':', testEnd) + 1;
 			renderStatementList(this.consequent, code, consequentStart, this.end, options);
 		} else {
 			super.render(code, options);

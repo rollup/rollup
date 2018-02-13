@@ -9,16 +9,18 @@ import { NodeRenderOptions, RenderOptions } from '../../Module';
 import { findFirstOccurrenceOutsideComment } from '../../utils/renderHelpers';
 import { isObjectExpression } from './ObjectExpression';
 
+const WHITESPACE = /\s/;
+
 // The header ends at the first non-white-space after "default"
-function getDeclarationStart (code: string) {
-	const headerLength = findFirstOccurrenceOutsideComment(code, 'default') + 7;
-	return headerLength + code.slice(headerLength).search(/\S/);
+function getDeclarationStart (code: string, start = 0) {
+	start = findFirstOccurrenceOutsideComment(code, 'default', start) + 7;
+	while (WHITESPACE.test(code[start])) start++;
+	return start;
 }
 
-function getIdInsertPosition (code: string, declarationKeyword: string) {
-	const declarationEnd = findFirstOccurrenceOutsideComment(code, declarationKeyword) + declarationKeyword.length;
-	code = code.slice(declarationEnd);
-	code = code.slice(0, findFirstOccurrenceOutsideComment(code, '{'));
+function getIdInsertPosition (code: string, declarationKeyword: string, start = 0) {
+	const declarationEnd = findFirstOccurrenceOutsideComment(code, declarationKeyword, start) + declarationKeyword.length;
+	code = code.slice(declarationEnd, findFirstOccurrenceOutsideComment(code, '{', declarationEnd));
 	const generatorStarPos = findFirstOccurrenceOutsideComment(code, '*');
 	if (generatorStarPos === -1) {
 		return declarationEnd;
@@ -56,7 +58,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	}
 
 	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
-		const declarationStart = this.start + getDeclarationStart(code.original.slice(this.start, this.end));
+		const declarationStart = getDeclarationStart(code.original, this.start);
 
 		if (isFunctionDeclaration(this.declaration)) {
 			this.renderNamedDeclaration(code, declarationStart, 'function', this.declaration.id === null, options);
@@ -82,8 +84,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		code.remove(this.start, declarationStart);
 
 		if (needsId) {
-			const idInsertPos = declarationStart + getIdInsertPosition(code.original.slice(declarationStart, this.end), declarationKeyword);
-			code.appendLeft(idInsertPos, ` ${name}`);
+			code.appendLeft(getIdInsertPosition(code.original, declarationKeyword, declarationStart), ` ${name}`);
 		}
 		if (options.systemBindings && isClassDeclaration(this.declaration)) {
 			code.appendRight(this.end, ` exports('default', ${name});`);
