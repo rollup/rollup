@@ -56,7 +56,7 @@
 
     // -> No line-break after declaration
     var kept1 = 1; // retained
-        console.log(1);
+    console.log(1);
 
     console.log( kept1, kept2 );
 

@@ -8,6 +8,7 @@ import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../Module';
 import { findFirstOccurrenceOutsideComment } from '../../utils/renderHelpers';
 import { isObjectExpression } from './ObjectExpression';
+import { BLANK } from '../../utils/object';
 
 const WHITESPACE = /\s/;
 
@@ -58,7 +59,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
+	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
 		const declarationStart = getDeclarationStart(code.original, this.start);
 
 		if (isFunctionDeclaration(this.declaration)) {

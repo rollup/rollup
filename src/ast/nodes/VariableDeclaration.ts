@@ -5,9 +5,10 @@ import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../Module';
-import { getCommaSeparatedNodesWithSeparators } from '../../utils/renderHelpers';
+import { getCommaSeparatedNodesWithBoundaries } from '../../utils/renderHelpers';
 import { isIdentifier } from './Identifier';
 import Variable from '../variables/Variable';
+import { BLANK } from '../../utils/object';
 
 function isReassignedExportsMember (variable: Variable): boolean {
 	return variable.safeName && variable.safeName.indexOf('.') !== -1 && variable.exportName && variable.isReassigned;
@@ -60,14 +61,31 @@ export default class VariableDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, options: RenderOptions, { start = this.start, end = this.end, isStatement }: NodeRenderOptions = {}) {
-		const separatedNodes = getCommaSeparatedNodesWithSeparators(
+	render (code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {
+		if (this.declarations.every(declarator => declarator.included && (
+				!declarator.id.variable || !declarator.id.variable.exportName
+			))
+		) {
+			for (const declarator of this.declarations) {
+				declarator.render(code, options);
+				if (!nodeRenderOptions.isNoStatement && code.original[this.end - 1] !== ';') {
+					code.appendLeft(this.end, ';');
+				}
+			}
+		} else {
+			this.renderReplacedDeclarations(code, options, nodeRenderOptions);
+		}
+	}
+
+	private renderReplacedDeclarations (
+		code: MagicString, options: RenderOptions, { start = this.start, end = this.end, isNoStatement }: NodeRenderOptions) {
+		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
 			code,
 			this.start + this.kind.length,
 			this.end - (code.original[this.end - 1] === ';' ? 1 : 0)
 		);
-		let renderedContentEnd;
+		let actualContentEnd, renderedContentEnd;
 		if (/\n\s*$/.test(code.slice(this.start, separatedNodes[0].start))) {
 			renderedContentEnd = this.start + this.kind.length;
 		} else {
@@ -78,7 +96,7 @@ export default class VariableDeclaration extends NodeBase {
 		let isInDeclaration = false;
 		let hasRenderedContent = false;
 		let separatorString = '', leadingString, nextSeparatorString;
-		for (let { node, start, separator, end } of separatedNodes) {
+		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
 			if (!node.included || (isIdentifier(node.id) && isReassignedExportsMember(node.id.variable) && node.init === null)) {
 				code.remove(start, end);
 				continue;
@@ -112,13 +130,14 @@ export default class VariableDeclaration extends NodeBase {
 				code.appendLeft(renderedContentEnd, leadingString);
 			}
 			node.render(code, options);
+			actualContentEnd = contentEnd;
 			renderedContentEnd = end;
 			hasRenderedContent = true;
 			lastSeparatorPos = separator;
 			separatorString = nextSeparatorString;
 		}
 		if (hasRenderedContent) {
-			this.renderDeclarationEnd(code, separatorString, lastSeparatorPos, renderedContentEnd, !isStatement);
+			this.renderDeclarationEnd(code, separatorString, lastSeparatorPos, actualContentEnd, renderedContentEnd, !isNoStatement);
 		} else {
 			code.remove(start, end);
 		}
@@ -128,6 +147,7 @@ export default class VariableDeclaration extends NodeBase {
 		code: MagicString,
 		separatorString: string,
 		lastSeparatorPos: number,
+		actualContentEnd: number,
 		renderedContentEnd: number,
 		addSemicolon: boolean
 	) {
@@ -138,10 +158,8 @@ export default class VariableDeclaration extends NodeBase {
 			separatorString += ';';
 		}
 		if (lastSeparatorPos !== null) {
-			let actualContentEnd = lastSeparatorPos + code.original.slice(lastSeparatorPos, renderedContentEnd).search(/\s*$/);
-			// Do not remove trailing white-space if we might remove an essential comment-closing line-break
-			if (code.original[actualContentEnd] === '\n' && code.original[this.end] !== '\n') {
-				actualContentEnd = renderedContentEnd;
+			if (code.original[this.end] === '\n' && code.original[actualContentEnd - 1] === '\n') {
+				actualContentEnd--;
 			}
 			if (actualContentEnd === lastSeparatorPos + 1) {
 				code.overwrite(lastSeparatorPos, renderedContentEnd, separatorString);

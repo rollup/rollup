@@ -2,10 +2,6 @@ import { Node } from '../ast/nodes/shared/Node';
 import MagicString from 'magic-string';
 import { RenderOptions } from '../Module';
 
-const NON_WHITESPACE = /\S/;
-
-// It is the responsibility of the caller to make sure this is not searching a potentially very long comment-less
-// string for a comment; experiments show, however, that this is only relevant for about 1000+ characters
 export function findFirstOccurrenceOutsideComment (code: string, searchString: string, start: number = 0) {
 	let commentStart, searchPos;
 	while (true) {
@@ -72,7 +68,7 @@ export function renderStatementList (statements: Node[], code: MagicString, star
 }
 
 // This assumes that the first character is not part of the first node
-export function getCommaSeparatedNodesWithSeparators<N extends Node> (
+export function getCommaSeparatedNodesWithBoundaries<N extends Node> (
 	nodes: N[],
 	code: MagicString,
 	start: number,
@@ -81,35 +77,35 @@ export function getCommaSeparatedNodesWithSeparators<N extends Node> (
 	node: N;
 	start: number;
 	separator: number | null;
+	contentEnd: number,
 	end: number;
 })[] {
 	const splitUpNodes = [];
-	let currentNode, currentNodeStart, separator;
-	let nextNode = nodes[0];
-	let nextNodeStart = start + findFirstLineBreakOutsideComment(code.original.slice(start, nextNode.start)) + 1;
-	nextNodeStart += code.original.slice(nextNodeStart, nextNode.start + 1).search(NON_WHITESPACE);
+	let node, nextNode, nextNodeStart, contentEnd, char;
+	let separator = start - 1;
 
-	for (let nextIndex = 1; nextIndex <= nodes.length; nextIndex++) {
-		currentNode = nextNode;
-		currentNodeStart = nextNodeStart;
+	for (let nextIndex = 0; nextIndex < nodes.length; nextIndex++) {
 		nextNode = nodes[nextIndex];
-
-		if (nextNode === undefined) {
-			splitUpNodes.push({
-				node: currentNode, start: currentNodeStart, end, separator: null
-			});
-		} else {
-			separator = currentNode.end + findFirstOccurrenceOutsideComment(
-				code.original.slice(currentNode.end, nextNode.start), ','
+		if (node !== undefined) {
+			separator = node.end + findFirstOccurrenceOutsideComment(
+				code.original.slice(node.end, nextNode.start), ','
 			);
-			nextNodeStart = separator + 1 + findFirstLineBreakOutsideComment(
-				code.original.slice(separator + 1, nextNode.start)
-			) + 1;
-			nextNodeStart += code.original.slice(nextNodeStart, nextNode.start + 1).search(NON_WHITESPACE);
+		}
+		nextNodeStart = contentEnd = separator + 2 + findFirstLineBreakOutsideComment(
+			code.original.slice(separator + 1, nextNode.start)
+		);
+		while (char = code.original.charCodeAt(nextNodeStart),
+		char === 32 /*" "*/ || char === 9 /*"\t"*/ || char === 10 /*"\n"*/ || char === 13/*"\r"*/) nextNodeStart++;
+		if (node !== undefined) {
 			splitUpNodes.push({
-				node: currentNode, start: currentNodeStart, end: nextNodeStart, separator
+				node, start, contentEnd, separator, end: nextNodeStart
 			});
 		}
+		node = nextNode;
+		start = nextNodeStart;
 	}
+	splitUpNodes.push({
+		node, start, separator: null, contentEnd: end, end
+	});
 	return splitUpNodes;
 }
