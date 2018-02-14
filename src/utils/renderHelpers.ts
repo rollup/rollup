@@ -12,9 +12,9 @@ export function findFirstOccurrenceOutsideComment (code: string, searchString: s
 			searchPos = -1;
 		} else if (searchPos !== -1) break;
 		start = commentStart + 1;
-		if (code[start] === '*') {
+		if (code.charCodeAt(start) === 42 /*"*"*/) {
 			start = code.indexOf('*/', start) + 2;
-		} else if (code[start] === '/') {
+		} else if (code.charCodeAt(start) === 47 /*"/"*/) {
 			start = code.indexOf('\n', start) + 1;
 		}
 	}

@@ -68,7 +68,7 @@ export default class VariableDeclaration extends NodeBase {
 		) {
 			for (const declarator of this.declarations) {
 				declarator.render(code, options);
-				if (!nodeRenderOptions.isNoStatement && code.original[this.end - 1] !== ';') {
+				if (!nodeRenderOptions.isNoStatement && code.original.charCodeAt(this.end - 1) !== 59 /*";"*/) {
 					code.appendLeft(this.end, ';');
 				}
 			}
@@ -83,7 +83,7 @@ export default class VariableDeclaration extends NodeBase {
 			this.declarations,
 			code,
 			this.start + this.kind.length,
-			this.end - (code.original[this.end - 1] === ';' ? 1 : 0)
+			this.end - (code.original.charCodeAt(this.end - 1) === 59 /*";"*/ ? 1 : 0)
 		);
 		let actualContentEnd, renderedContentEnd;
 		if (/\n\s*$/.test(code.slice(this.start, separatedNodes[0].start))) {
@@ -151,15 +151,21 @@ export default class VariableDeclaration extends NodeBase {
 		renderedContentEnd: number,
 		addSemicolon: boolean
 	) {
-		if (code.original[this.end - 1] === ';') {
+		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
 			code.remove(this.end - 1, this.end);
 		}
 		if (addSemicolon) {
 			separatorString += ';';
 		}
 		if (lastSeparatorPos !== null) {
-			if (code.original[this.end] === '\n' && code.original[actualContentEnd - 1] === '\n') {
+			if (
+				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/
+				&& (code.original.charCodeAt(this.end) === 10 /*"\n"*/ || code.original.charCodeAt(this.end) === 13 /*"\r"*/)
+			) {
 				actualContentEnd--;
+				if (code.original.charCodeAt(actualContentEnd) === 13 /*"\r"*/) {
+					actualContentEnd--;
+				}
 			}
 			if (actualContentEnd === lastSeparatorPos + 1) {
 				code.overwrite(lastSeparatorPos, renderedContentEnd, separatorString);
