@@ -8,19 +8,17 @@ define(function () { 'use strict';
 		case foo:
 		case bar:
 			effect();
-			
 			if ( globalVar > 1 ) {
 				break;
 			}
 		case baz:
 			effect();
 		default:
-			
+
 	}
 
 	switch ( globalVar ) {
 		case foo:
-			
 			break;
 		case bar:
 			effect();

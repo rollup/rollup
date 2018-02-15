@@ -55,7 +55,7 @@ export default function iife (
 	if (exportMode !== 'none' && !name) {
 		error({
 			code: 'INVALID_OPTION',
-			message: `You must supply options.name for IIFE bundles`
+			message: `You must supply output.name for IIFE bundles`
 		});
 	}
 

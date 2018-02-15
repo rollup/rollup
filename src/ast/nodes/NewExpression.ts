@@ -30,7 +30,7 @@ export default class NewExpression extends NodeBase {
 		this._callOptions = CallOptions.create({
 			withNew: true,
 			args: this.arguments,
-			caller: this
+			callIdentifier: this
 		});
 	}
 }

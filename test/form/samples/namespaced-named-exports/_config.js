@@ -1,6 +1,4 @@
 module.exports = {
 	description: 'creates namespaced module names',
-	options: {
-		name: 'foo.bar.baz'
-	}
+	options: { output: { name: 'foo.bar.baz' } }
 };

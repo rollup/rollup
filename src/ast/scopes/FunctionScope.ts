@@ -7,8 +7,7 @@ import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import LocalVariable from '../variables/LocalVariable';
 import GlobalVariable from '../variables/GlobalVariable';
 import ExternalVariable from '../variables/ExternalVariable';
-import { UNKNOWN_OBJECT_EXPRESSION } from '../nodes/ObjectExpression';
-import { UNKNOWN_EXPRESSION } from '../values';
+import { UNKNOWN_EXPRESSION, UNKNOWN_OBJECT_EXPRESSION } from '../values';
 
 export default class FunctionScope extends ReturnValueScope {
 	variables: {

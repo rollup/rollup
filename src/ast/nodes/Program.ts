@@ -1,8 +1,18 @@
-import { Node } from './shared/Node';
-import { StatementNode } from './shared/Statement';
+import MagicString from 'magic-string';
+import { NodeBase, StatementNode } from './shared/Node';
 import { NodeType } from './NodeType';
+import { RenderOptions } from '../../Module';
+import { renderStatementList } from '../../utils/renderHelpers';
 
-export default interface Program extends Node {
-  type: NodeType.Program;
-  body: StatementNode[];
+export default class Program extends NodeBase {
+	type: NodeType.Program;
+	body: StatementNode[];
+
+	render (code: MagicString, options: RenderOptions) {
+		if (this.body.length) {
+			renderStatementList(this.body, code, this.start, this.end, options);
+		} else {
+			super.render(code, options);
+		}
+	}
 }

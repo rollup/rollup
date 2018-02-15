@@ -11,7 +11,6 @@ define(function () { 'use strict';
 			return {};
 		}
 	}).foo.bar.baz;
-
 	({
 		get foo () {
 			console.log( 'effect' );
@@ -23,7 +22,6 @@ define(function () { 'use strict';
 			return () => console.log( 'effect' );
 		}
 	}).foo();
-
 	({
 		get foo () {
 			console.log( 'effect' );

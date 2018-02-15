@@ -1,6 +1,4 @@
 module.exports = {
 	description: 'break statements should always by included but not always cause their parents to have effects',
-	options: {
-		name: 'myBundle'
-	}
+	options: { output: { name: 'myBundle' } }
 };

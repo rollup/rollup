@@ -2,9 +2,14 @@ import BlockScope from '../scopes/BlockScope';
 import VariableDeclaration from './VariableDeclaration';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
-import { StatementBase, StatementNode } from './shared/Statement';
 import { NodeType } from './NodeType';
-import { ExpressionNode } from './shared/Node';
+import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
+import { NO_SEMICOLON, RenderOptions } from '../../Module';
+import MagicString from 'magic-string';
+
+export function isForStatement (node: Node): node is ForStatement {
+	return node.type === NodeType.ForStatement;
+}
 
 export default class ForStatement extends StatementBase {
 	type: NodeType.ForStatement;
@@ -31,5 +36,12 @@ export default class ForStatement extends StatementBase {
 
 	initialiseScope (parentScope: Scope) {
 		this.scope = new BlockScope({ parent: parentScope });
+	}
+
+	render (code: MagicString, options: RenderOptions) {
+		if (this.init) this.init.render(code, options, NO_SEMICOLON);
+		if (this.test) this.test.render(code, options, NO_SEMICOLON);
+		if (this.update) this.update.render(code, options, NO_SEMICOLON);
+		this.body.render(code, options);
 	}
 }

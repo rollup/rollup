@@ -1,5 +1,9 @@
 'use strict';
 
+// jsjjjsjjjjsjs
+
+/* jsjjddjksj */ // Too many comments lol
+
 function Fn
 
 //iian iaouns
@@ -12,6 +16,11 @@ function Fn
   console.log("Foo");
 }
 
+// jsjjjsjjjjsjs
+
+/* jsjjddjksj
+*/ // Too many comments lol
+
 async /* [no LineTerminator here] */ function Async
 
 //iian iaouns
@@ -20,6 +29,10 @@ async /* [no LineTerminator here] */ function Async
 () {
   console.log("Foo");
 }
+
+// jsjjjsjjjjsjs
+
+/* jsjjddjksj */ // Too many comments lol
 
 function
 
@@ -38,6 +51,10 @@ function
   console.log("Foo");
 }
 
+// jsjjjsjjjjsjs
+
+/* jsjjddjksj */ // Too many comments lol
+
 class Class
 
 /* oiasnpiueno */
@@ -55,7 +72,17 @@ class Class
   }
 }
 
+/* 2 */function spacelessFn/* 3 */()/* 4 */{
+  console.log("Foo");
+}
+
+function* spacelessGenerator(){
+  console.log("Foo");
+}
+
 Fn();
 Async();
 Generator();
 new Class();
+spacelessFn();
+spacelessGenerator();

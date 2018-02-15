@@ -2,6 +2,8 @@ module.exports = {
 	description: 'dedupes external imports',
 	options: {
 		external: [ 'external' ],
-		name: 'myBundle'
+		output: {
+			name: 'myBundle'
+		}
 	}
 };

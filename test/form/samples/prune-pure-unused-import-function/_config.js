@@ -1,9 +1,9 @@
-const assert = require('assert');
+const assert = require( 'assert' );
 
 module.exports = {
 	options: {
-		external: ['external', 'other'],
-		pureExternalModules: id => id === 'external'
+		external: [ 'external', 'other' ],
+		treeshake: { pureExternalModules: id => id === 'external' }
 	},
 	description: 'prunes pure unused external imports ([#1352])'
 };

@@ -1,6 +1,4 @@
 module.exports = {
 	description: 'disregards side-effects that are contained within a function',
-	options: {
-		name: 'myBundle'
-	}
+	options: { output: { name: 'myBundle' } }
 };

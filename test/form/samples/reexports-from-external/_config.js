@@ -4,6 +4,6 @@ module.exports = {
 	description: 're-exports * from external module (#791)',
 	options: {
 		external: [ 'external' ],
-		name: 'myBundle'
+		output: { name: 'myBundle' }
 	}
 };

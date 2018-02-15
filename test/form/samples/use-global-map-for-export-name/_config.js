@@ -1,10 +1,10 @@
 module.exports = {
 	description: 'applies globals to output name',
 	options: {
-		name: 'leaflet.terminator',
+		output: {
+			name: 'leaflet.terminator',
+			globals: { 'leaflet': 'L' }
+		},
 		external: [ 'leaflet' ],
-		globals: {
-			'leaflet': 'L'
-		}
 	}
 };

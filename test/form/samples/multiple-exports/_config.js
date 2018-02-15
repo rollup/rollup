@@ -1,6 +1,4 @@
 module.exports = {
 	description: 'multiple named exports',
-	options: {
-		name: 'myBundle'
-	}
+	options: { output: { name: 'myBundle' } }
 };

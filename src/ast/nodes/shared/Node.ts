@@ -1,7 +1,7 @@
 import { locate } from 'locate-character';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import Scope from '../../scopes/Scope';
-import Module, { RenderOptions } from '../../../Module';
+import Module, { NodeRenderOptions, RenderOptions } from '../../../Module';
 import MagicString from 'magic-string';
 import Variable from '../../variables/Variable';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
@@ -14,9 +14,8 @@ export interface Node extends Entity {
 	end: number;
 	included: boolean;
 	keys: string[];
-	leadingCommentStart: number;
 	module: Module;
-	next: number;
+	needsBoundaries?: boolean;
 	parent: Node | { type?: string };
 	start: number;
 	type: string;
@@ -52,7 +51,7 @@ export interface Node extends Entity {
 	 * declarations to only include nodes for declarators that have an effect. Necessary
 	 * for for-loops that do not use a declared loop variable.
 	 */
-	includeWithAllDeclarations(): boolean;
+	includeWithAllDeclaredVariables(): boolean;
 
 	/**
 	 * Assign a scope to this node and make sure all children have the right scopes.
@@ -64,7 +63,7 @@ export interface Node extends Entity {
 	 */
 	initialise (parentScope: Scope): void;
 	initialiseAndDeclare (parentScope: Scope, kind: string, init: ExpressionEntity | null): void;
-	render(code: MagicString, options: RenderOptions): void;
+	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
 	 * Start a new execution path to determine if this node has an effect on the bundle and
@@ -76,6 +75,8 @@ export interface Node extends Entity {
 	someChild(callback: (node: Node) => boolean): boolean;
 }
 
+export interface StatementNode extends Node {}
+
 export interface ExpressionNode extends ExpressionEntity, Node {}
 
 export class NodeBase implements ExpressionNode {
@@ -85,9 +86,6 @@ export class NodeBase implements ExpressionNode {
 	scope: Scope;
 	start: number;
 	end: number;
-	leadingCommentStart: number;
-	trailingCommentEnd: number;
-	next: number;
 	module: Module;
 	parent: Node | { type?: string };
 	__enhanced: boolean;
@@ -171,7 +169,7 @@ export class NodeBase implements ExpressionNode {
 		return addedNewNodes;
 	}
 
-	includeWithAllDeclarations () {
+	includeWithAllDeclaredVariables () {
 		return this.includeInBundle();
 	}
 
@@ -225,9 +223,8 @@ export class NodeBase implements ExpressionNode {
 
 	shouldBeIncluded () {
 		return (
-			this.included ||
-			this.hasEffects(ExecutionPathOptions.create()) ||
 			this.hasIncludedChild()
+			|| this.hasEffects(ExecutionPathOptions.create())
 		);
 	}
 
@@ -256,3 +253,5 @@ export class NodeBase implements ExpressionNode {
 		return this.module.code.slice(this.start, this.end);
 	}
 }
+
+export { NodeBase as StatementBase };

@@ -1,10 +1,9 @@
 import extractNames from '../utils/extractNames';
 import { UNKNOWN_VALUE } from '../values';
 import Scope from '../scopes/Scope';
-import { ExpressionNode, Node } from './shared/Node';
+import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
 import { isVariableDeclaration } from './VariableDeclaration';
 import MagicString from 'magic-string';
-import { StatementBase, StatementNode } from './shared/Statement';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../Module';
 
@@ -47,8 +46,8 @@ export default class IfStatement extends StatementBase {
 	consequent: StatementNode;
 	alternate: StatementNode | null;
 
-	testValue: any;
-	hoistedVars: string[];
+	private testValue: any;
+	private hoistedVars?: string[];
 
 	initialiseChildren (parentScope: Scope) {
 		super.initialiseChildren(parentScope);
@@ -68,6 +67,10 @@ export default class IfStatement extends StatementBase {
 				this.consequent = null;
 			}
 		}
+	}
+
+	initialiseNode () {
+		this.hoistedVars = [];
 	}
 
 	render (code: MagicString, options: RenderOptions) {
@@ -104,7 +107,7 @@ export default class IfStatement extends StatementBase {
 				} else {
 					code.remove(
 						this.start,
-						this.alternate ? this.alternate.start : this.next || this.end
+						this.alternate ? this.alternate.start : this.end
 					);
 
 					if (this.alternate) {
@@ -117,5 +120,9 @@ export default class IfStatement extends StatementBase {
 		} else {
 			super.render(code, options);
 		}
+	}
+
+	shouldBeIncluded () {
+		return this.hoistedVars.length > 0 || super.shouldBeIncluded();
 	}
 }

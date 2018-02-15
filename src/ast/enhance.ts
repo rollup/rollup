@@ -3,31 +3,13 @@ import UnknownNode from './nodes/UnknownNode';
 import keys from './keys';
 import { Node } from './nodes/shared/Node';
 import Module from '../Module';
-import Comment from './comment';
 import MagicString from 'magic-string';
 import Import from './nodes/Import';
 
-const newline = /\n/;
-
-export default function enhance (ast: any, module: Module, comments: Comment[], dynamicImportReturnList: Import[]) {
+export default function enhance (ast: any, module: Module, dynamicImportReturnList: Import[]) {
 	enhanceNode(ast, {}, module, module.magicString, dynamicImportReturnList);
 
-	let comment = comments.shift();
-
 	for (const node of ast.body) {
-		if (comment && comment.start < node.start) {
-			node.leadingCommentStart = comment.start;
-		}
-
-		while (comment && comment.end < node.end) comment = comments.shift();
-
-		// if the next comment is on the same line as the end of the node,
-		// treat is as a trailing comment
-		if (comment && !newline.test(module.code.slice(node.end, comment.start))) {
-			node.trailingCommentEnd = comment.end; // TODO is node.trailingCommentEnd used anywhere?
-			comment = comments.shift();
-		}
-
 		node.initialise(module.scope);
 	}
 }

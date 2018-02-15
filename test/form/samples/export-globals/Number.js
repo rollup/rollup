@@ -1,0 +1,1 @@
+export { isNaN, isFinite, parseFloat, Number }

@@ -1,6 +1,4 @@
 module.exports = {
 	description: 'single (default) exports',
-	options: {
-		name: 'myBundle'
-	}
+	options: { output: { name: 'myBundle' } }
 };

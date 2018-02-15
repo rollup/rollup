@@ -1,17 +1,24 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
+import { SomeReturnExpressionCallback } from './shared/Expression';
 import { Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
+import CallOptions from '../CallOptions';
 import { RenderOptions } from '../../Module';
+import { getLiteralMembersForValue, hasMemberEffectWhenCalled, MemberDescription, someMemberReturnExpressionWhenCalled } from '../values';
+
+export type LiteralValueTypes = string | boolean | null | number | RegExp;
 
 export function isLiteral (node: Node): node is Literal {
 	return node.type === NodeType.Literal;
 }
 
-export default class Literal<T = string | boolean | null | number | RegExp> extends NodeBase {
+export default class Literal<T = LiteralValueTypes> extends NodeBase {
 	type: NodeType.Literal;
 	value: T;
+
+	private members: { [key: string]: MemberDescription };
 
 	getValue () {
 		return this.value;
@@ -25,15 +32,35 @@ export default class Literal<T = string | boolean | null | number | RegExp> exte
 	}
 
 	hasEffectsWhenAssignedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
-		if (this.value === null) {
-			return path.length > 0;
+		return path.length > 0;
+	}
+
+	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+		if (path.length === 1) {
+			return hasMemberEffectWhenCalled(this.members, path[0], callOptions, options);
 		}
-		return path.length > 1;
+		return true;
+	}
+
+	initialiseNode () {
+		this.members = getLiteralMembersForValue(this.value);
 	}
 
 	render (code: MagicString, _options: RenderOptions) {
 		if (typeof this.value === 'string') {
 			(<any> code).indentExclusionRanges.push([this.start + 1, this.end - 1]); // TODO TypeScript: Awaiting MagicString PR
 		}
+	}
+
+	someReturnExpressionWhenCalledAtPath (
+		path: ObjectPath,
+		callOptions: CallOptions,
+		predicateFunction: SomeReturnExpressionCallback,
+		options: ExecutionPathOptions
+	): boolean {
+		if (path.length === 1) {
+			return someMemberReturnExpressionWhenCalled(this.members, path[0], callOptions, predicateFunction, options);
+		}
+		return true;
 	}
 }

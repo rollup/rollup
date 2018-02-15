@@ -1,16 +1,13 @@
 var aExp = {};
-var logicalAExp = aExp || true;
+var logicalAExp = aExp || {};
 logicalAExp.bar = 1;
 
 var bExp = {};
+var logicalBExp = false || bExp;
+logicalBExp.bar = 1;
+
 var cExp = {};
-var logicalCExp = false || cExp;
+var logicalCExp = true && cExp;
 logicalCExp.bar = 1;
 
-var dExp = {};
-var logicalDExp = true && dExp;
-logicalDExp.bar = 1;
-
-var eExp = {};
-
-export { aExp, bExp, cExp, dExp, eExp };
+export { aExp, bExp, cExp };

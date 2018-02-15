@@ -77,7 +77,7 @@ export default class MemberExpression extends NodeBase {
 			} else if (typeof resolvedVariable === 'string') {
 				this.replacement = resolvedVariable;
 			} else {
-				if (isExternalVariable(resolvedVariable)) {
+				if (isExternalVariable(resolvedVariable) && resolvedVariable.module) {
 					resolvedVariable.module.suggestName(path[0].key);
 				}
 				this.variable = resolvedVariable;

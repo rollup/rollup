@@ -140,7 +140,7 @@ export default class CallExpression extends NodeBase {
 		this._callOptions = CallOptions.create({
 			withNew: false,
 			args: this.arguments,
-			caller: this
+			callIdentifier: this
 		});
 	}
 

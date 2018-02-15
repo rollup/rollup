@@ -4,6 +4,10 @@
   (factory());
 }(this, (function () { 'use strict';
 
+  // jsjjjsjjjjsjs
+
+  /* jsjjddjksj */ // Too many comments lol
+
   function Fn
 
   //iian iaouns
@@ -16,6 +20,11 @@
     console.log("Foo");
   }
 
+  // jsjjjsjjjjsjs
+
+  /* jsjjddjksj
+  */ // Too many comments lol
+
   async /* [no LineTerminator here] */ function Async
 
   //iian iaouns
@@ -24,6 +33,10 @@
   () {
     console.log("Foo");
   }
+
+  // jsjjjsjjjjsjs
+
+  /* jsjjddjksj */ // Too many comments lol
 
   function
 
@@ -42,6 +55,10 @@
     console.log("Foo");
   }
 
+  // jsjjjsjjjjsjs
+
+  /* jsjjddjksj */ // Too many comments lol
+
   class Class
 
   /* oiasnpiueno */
@@ -59,9 +76,19 @@
     }
   }
 
+  /* 2 */function spacelessFn/* 3 */()/* 4 */{
+    console.log("Foo");
+  }
+
+  function* spacelessGenerator(){
+    console.log("Foo");
+  }
+
   Fn();
   Async();
   Generator();
   new Class();
+  spacelessFn();
+  spacelessGenerator();
 
 })));

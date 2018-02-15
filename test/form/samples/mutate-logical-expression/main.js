@@ -1,49 +1,29 @@
 var a = {};
-var logicalA = a || true;
+var logicalA = a || {};
 logicalA.bar = 1;
 
 var aExp = {};
-var logicalAExp = aExp || true;
+var logicalAExp = aExp || {};
 logicalAExp.bar = 1;
 
 export {aExp}
 
 var b = {};
-var logicalB = true || b;
+var logicalB = false || b;
 logicalB.bar = 1;
 
 var bExp = {};
-var logicalBExp = true || bExp;
+var logicalBExp = false || bExp;
 logicalBExp.bar = 1;
 
 export {bExp}
 
 var c = {};
-var logicalC = false || c;
+var logicalC = true && c;
 logicalC.bar = 1;
 
 var cExp = {};
-var logicalCExp = false || cExp;
+var logicalCExp = true && cExp;
 logicalCExp.bar = 1;
 
 export {cExp}
-
-var d = {};
-var logicalD = true && d;
-logicalD.bar = 1;
-
-var dExp = {};
-var logicalDExp = true && dExp;
-logicalDExp.bar = 1;
-
-export {dExp}
-
-var e = {};
-var logicalE = false && e;
-logicalE.bar = 1;
-
-var eExp = {};
-var logicalEExp = false && eExp;
-logicalEExp.bar = 1;
-
-export {eExp}

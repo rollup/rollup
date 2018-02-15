@@ -1,13 +1,13 @@
 import MagicString from 'magic-string';
-import { StatementBase } from './shared/Statement';
 import Scope from '../scopes/Scope';
 import { RenderOptions } from '../../Module';
+import { StatementBase } from './shared/Node';
 
 export default class ExpressionStatement extends StatementBase {
 	directive?: string;
 
-	initialiseNode(_parentScope: Scope){
-		if (this.directive && this.directive !== 'use strict' && this.parent.type === "Program") {
+	initialiseNode (_parentScope: Scope) {
+		if (this.directive && this.directive !== 'use strict' && this.parent.type === 'Program') {
 			this.module.warn( // This is necessary, because either way (deleting or not) can lead to errors.
 				{
 					code: 'MODULE_LEVEL_DIRECTIVE',
@@ -20,9 +20,9 @@ export default class ExpressionStatement extends StatementBase {
 		return super.initialiseNode(_parentScope);
 	}
 
-	shouldBeIncluded() {
+	shouldBeIncluded () {
 		if (this.directive && this.directive !== 'use strict')
-			return this.parent.type !== "Program";
+			return this.parent.type !== 'Program';
 
 		return super.shouldBeIncluded();
 	}

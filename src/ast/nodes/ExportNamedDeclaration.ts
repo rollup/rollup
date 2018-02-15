@@ -1,4 +1,4 @@
-import { NodeBase } from './shared/Node';
+import { NodeBase, Node } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Literal from './Literal';
 import MagicString from 'magic-string';
@@ -7,7 +7,8 @@ import FunctionDeclaration from './FunctionDeclaration';
 import ClassDeclaration from './ClassDeclaration';
 import VariableDeclaration from './VariableDeclaration';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
+import { NodeRenderOptions, RenderOptions } from '../../Module';
+import { BLANK } from '../../utils/object';
 
 export default class ExportNamedDeclaration extends NodeBase {
 	type: NodeType.ExportNamedDeclaration;
@@ -15,6 +16,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 	specifiers: ExportSpecifier[];
 	source: Literal<string> | null;
 
+	needsBoundaries: true;
 	isExportDeclaration: true;
 
 	bindChildren () {
@@ -26,18 +28,15 @@ export default class ExportNamedDeclaration extends NodeBase {
 		return this.declaration && this.declaration.hasEffects(options);
 	}
 
-	initialiseNode () {
-		this.isExportDeclaration = true;
-	}
-
-	render (code: MagicString, options: RenderOptions) {
-		if (this.declaration) {
-			code.remove(this.start, this.declaration.start);
-			this.declaration.render(code, options);
-		} else {
-			const start = this.leadingCommentStart || this.start;
-			const end = this.next || this.end;
+	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
+		if (this.declaration === null) {
 			code.remove(start, end);
+		} else {
+			code.remove(this.start, this.declaration.start);
+			(<Node>this.declaration).render(code, options, { start, end });
 		}
 	}
 }
+
+ExportNamedDeclaration.prototype.needsBoundaries = true;
+ExportNamedDeclaration.prototype.isExportDeclaration = true;

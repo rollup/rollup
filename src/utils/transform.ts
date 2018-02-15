@@ -1,11 +1,19 @@
+import { IParse, Options as AcornOptions } from 'acorn';
 import { decode } from 'sourcemap-codec';
 import { locate } from 'locate-character';
 import error, { RollupError } from './error';
 import getCodeFrame from './getCodeFrame';
 import Graph from '../Graph';
+import { defaultAcornOptions } from '../Module';
 import { RawSourceMap } from 'source-map';
 import { Plugin, RollupWarning, SourceDescription } from '../rollup/index';
 import Program from '../ast/nodes/Program';
+
+export interface TransformContext {
+	parse: IParse;
+	warn(warning: RollupWarning, pos?: { line: number, column: number }): void;
+	error(err: RollupError, pos?: { line: number, column: number }): void;
+}
 
 export default function transform (
 	graph: Graph,
@@ -58,8 +66,12 @@ export default function transform (
 
 			let throwing;
 
-			const context = {
-				warn: (warning: RollupWarning, pos: { line: number, column: number }) => {
+			const context: TransformContext = {
+				parse (code: string, options: AcornOptions = {}) {
+					return graph.acornParse(code, Object.assign({}, defaultAcornOptions, options, graph.acornOptions));
+				},
+
+				warn (warning: RollupWarning, pos?: { line: number, column: number }) {
 					warning = augment(warning, pos, 'PLUGIN_WARNING');
 					graph.warn(warning);
 				},

@@ -4,6 +4,11 @@ import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../Module';
+import { Node } from './shared/Node';
+
+export function isClassDeclaration (node: Node): node is ClassDeclaration {
+	return node.type === NodeType.ClassDeclaration;
+}
 
 export default class ClassDeclaration extends ClassNode {
 	type: NodeType.ClassDeclaration;
@@ -11,21 +16,17 @@ export default class ClassDeclaration extends ClassNode {
 
 	initialiseChildren (parentScope: Scope) {
 		// Class declarations are like let declarations: Not hoisted, can be reassigned, cannot be redeclared
-		this.id && this.id.initialiseAndDeclare(parentScope, 'class', this);
+		if (this.id) {
+			this.id.initialiseAndDeclare(parentScope, 'class', this);
+			this.id.variable.isId = true;
+		}
 		super.initialiseChildren(parentScope);
 	}
 
 	render (code: MagicString, options: RenderOptions) {
-		if (!this.module.graph.treeshake || this.included) {
-			if (options.systemBindings && this.id.variable.exportName) {
-				code.appendRight(this.end, ` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`);
-			}
-			super.render(code, options);
-		} else {
-			code.remove(
-				this.leadingCommentStart || this.start,
-				this.next || this.end
-			);
+		if (options.systemBindings && this.id.variable.exportName) {
+			code.appendRight(this.end, ` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`);
 		}
+		super.render(code, options);
 	}
 }

@@ -517,7 +517,7 @@ export default class Chunk {
 			forOwn(module.scope.variables, variable => {
 				if (!(<ExportDefaultVariable>variable).isDefault || !(<ExportDefaultVariable>variable).hasId) {
 					let safeName;
-					if (es || system || !variable.isReassigned) {
+					if (es || system || !variable.isReassigned || variable.isId) {
 						safeName = getSafeName(variable.name);
 					} else {
 						const safeExportName = this.exportedVariables.get(variable);
