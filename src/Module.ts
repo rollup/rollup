@@ -1,4 +1,4 @@
-import { IParse } from 'acorn';
+import { IParse, Options as AcornOptions } from 'acorn';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
 import { timeStart, timeEnd } from './utils/flushTime';
@@ -66,15 +66,19 @@ export interface ReexportDescription {
 	module: Module;
 }
 
-function tryParse (module: Module, parse: IParse, acornOptions: Object) {
+export const defaultAcornOptions: AcornOptions = {
+	// TODO TypeScript waiting for acorn types to be updated
+	ecmaVersion: <any>2018,
+	sourceType: 'module',
+	preserveParens: false
+};
+
+function tryParse (module: Module, parse: IParse, acornOptions: AcornOptions) {
 	try {
-		return parse(module.code, Object.assign({
-			ecmaVersion: 9,
-			sourceType: 'module',
+		return parse(module.code, Object.assign({}, defaultAcornOptions, acornOptions, {
 			onComment: (block: boolean, text: string, start: number, end: number) =>
-				module.comments.push({ block, text, start, end }),
-			preserveParens: false
-		}, acornOptions));
+				module.comments.push({ block, text, start, end })
+		}));
 	} catch (err) {
 		module.error({
 			code: 'PARSE_ERROR',
