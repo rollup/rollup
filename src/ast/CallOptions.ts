@@ -10,25 +10,25 @@ export type CallExpressionType = TaggedTemplateExpression | CallExpression | New
 export interface CallCreateOptions {
 	withNew: boolean;
 	args?: (ExpressionEntity | SpreadElement)[];
-	caller: CallExpressionType;
+	callIdentifier: Object;
 }
 
 export default class CallOptions implements CallCreateOptions {
 	withNew: boolean;
 	args: (ExpressionEntity | SpreadElement)[];
-	caller: CallExpressionType;
+	callIdentifier: Object;
 
 	static create (callOptions: CallCreateOptions) {
 		return new this(callOptions);
 	}
 
-	constructor ({ withNew = false, args = [], caller = undefined }: CallCreateOptions = {} as any) {
+	constructor ({ withNew = false, args = [], callIdentifier = undefined }: CallCreateOptions = {} as any) {
 		this.withNew = withNew;
 		this.args = args;
-		this.caller = caller;
+		this.callIdentifier = callIdentifier;
 	}
 
 	equals (callOptions: CallOptions) {
-		return callOptions && this.caller === callOptions.caller;
+		return callOptions && this.callIdentifier === callOptions.callIdentifier;
 	}
 }

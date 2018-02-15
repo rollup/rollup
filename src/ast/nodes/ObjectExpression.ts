@@ -1,26 +1,15 @@
-import { ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
+import { isUnknownKey, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
 import Property from './Property';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
-import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { UNKNOWN_VALUE } from '../values';
+import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { objectMembers } from '../values';
 import { Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
 const PROPERTY_KINDS_WRITE = ['init', 'set'];
-
-export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
-	reassignPath: () => {},
-	forEachReturnExpressionWhenCalledAtPath: () => {},
-	getValue: () => UNKNOWN_VALUE,
-	hasEffectsWhenAccessedAtPath: path => path.length > 1,
-	hasEffectsWhenAssignedAtPath: path => path.length > 1,
-	hasEffectsWhenCalledAtPath: () => true,
-	someReturnExpressionWhenCalledAtPath: () => true,
-	toString: () => '[[UNKNOWN OBJECT]]'
-};
 
 export function isObjectExpression (node: Node): node is ObjectExpression {
 	return node.type === NodeType.ObjectExpression;
@@ -123,6 +112,10 @@ export default class ObjectExpression extends NodeBase {
 
 	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return true;
+		const subPath = path[0];
+		if (path.length === 1 && !isUnknownKey(subPath) && objectMembers[subPath]) {
+			return false;
+		}
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
 			path[0],
@@ -143,9 +136,13 @@ export default class ObjectExpression extends NodeBase {
 		options: ExecutionPathOptions
 	): boolean {
 		if (path.length === 0) return true;
+		const subPath = path[0];
+		if (path.length === 1 && !isUnknownKey(subPath) && objectMembers[subPath]) {
+			return predicateFunction(options)(objectMembers[subPath].returns);
+		}
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
-			path[0],
+			subPath,
 			PROPERTY_KINDS_READ
 		);
 		return (

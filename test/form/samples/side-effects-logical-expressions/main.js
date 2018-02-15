@@ -29,8 +29,6 @@ const foo = {
 // assigned - no effect
 (false || {}).foo = 1;
 (true && {}).foo = 1;
-(true || null).foo = 1;
-(false && null).foo = 1;
 
 // effect
 (false || null).foo = 1;

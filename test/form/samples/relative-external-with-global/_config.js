@@ -6,8 +6,6 @@ module.exports = {
 	description: 'applies globals to externalised relative imports',
 	options: {
 		external: [ throttle ],
-		globals: {
-			[ throttle ]: 'Lib.throttle'
-		}
+		output: { globals: { [ throttle ]: 'Lib.throttle' } }
 	}
 };

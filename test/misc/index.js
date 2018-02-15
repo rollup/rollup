@@ -234,7 +234,7 @@ describe('bundle.write()', () => {
 			});
 	});
 
-	it('expects options.name for IIFE and UMD bundles', () => {
+	it('expects output.name for IIFE and UMD bundles', () => {
 		let bundle;
 
 		return rollup
@@ -260,7 +260,7 @@ describe('bundle.write()', () => {
 			.catch(err => {
 				assert.throws(() => {
 					throw err;
-				}, /You must supply options\.name for UMD bundles/);
+				}, /You must supply output\.name for UMD bundles/);
 			})
 			.then(() => {
 				return bundle.generate({
@@ -270,7 +270,7 @@ describe('bundle.write()', () => {
 			.catch(err => {
 				assert.throws(() => {
 					throw err;
-				}, /You must supply options\.name for IIFE bundles/);
+				}, /You must supply output\.name for IIFE bundles/);
 			});
 	});
 

@@ -19,11 +19,8 @@ retained4.x.y = 2;
 const retained5 = { x: null };
 retained5.x.y = 2;
 
-const removed2 = { x: 99 };
-removed2.x.y = 2;
-
-const removed3 = { x: { y: {} } };
-removed3.x.y.z = 3;
+const removed2 = { x: { y: {} } };
+removed2.x.y.z = 3;
 
 const retained6 = { x: { y: {} } };
 retained6.x = {};
@@ -33,6 +30,6 @@ const retained7 = { x: { y: globalVar } };
 const retained8 = { x: retained7.x };
 retained8.x.y.z = 3;
 
-const removed4 = { a: { x: { y: globalVar } } };
-const removed5 = { x: removed4.a.x };
-removed5.x.y = 2;
+const removed3 = { a: { x: { y: globalVar } } };
+const removed4 = { x: removed3.a.x };
+removed4.x.y = 2;
