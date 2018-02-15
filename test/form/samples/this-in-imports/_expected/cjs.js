@@ -13,7 +13,5 @@ function B3 () {
 }
 
 const b1 = B();
-
 const b2 = B$1();
-
 const b3 = B3();

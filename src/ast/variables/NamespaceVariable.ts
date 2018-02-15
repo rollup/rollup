@@ -52,7 +52,7 @@ export default class NamespaceVariable extends Variable {
 				return `${indentString}get ${name} () { return ${original.getName()}; }`;
 			}
 
-			if (legacy && ~reservedWords.indexOf(name)) name = `'${name}'`;
+			if (legacy && reservedWords.indexOf(name) !== -1) name = `'${name}'`;
 			return `${indentString}${name}: ${original.getName()}`;
 		});
 

@@ -3,10 +3,10 @@ import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
-import { Node } from './shared/Node';
-import { StatementBase, StatementNode } from './shared/Statement';
+import { Node, StatementBase, StatementNode } from './shared/Node';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../Module';
+import { renderStatementList } from '../../utils/renderHelpers';
 
 export function isBlockStatement (node: Node): node is BlockStatement {
 	return node.type === NodeType.BlockStatement;
@@ -48,12 +48,8 @@ export default class BlockStatement extends StatementBase {
 	}
 
 	initialiseChildren (_parentScope: Scope) {
-		let lastNode;
 		for (const node of this.body) {
 			node.initialise(this.scope);
-
-			if (lastNode) lastNode.next = node.start;
-			lastNode = node;
 		}
 	}
 
@@ -63,9 +59,7 @@ export default class BlockStatement extends StatementBase {
 
 	render (code: MagicString, options: RenderOptions) {
 		if (this.body.length) {
-			for (const node of this.body) {
-				node.render(code, options);
-			}
+			renderStatementList(this.body, code, this.start + 1, this.end - 1, options);
 		} else {
 			super.render(code, options);
 		}

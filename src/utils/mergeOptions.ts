@@ -107,7 +107,7 @@ export default function mergeOptions ({
 	}
 
 	if (typeof configExternal === 'function') {
-		inputOptions.external = (id, ...rest: any[]) => configExternal(id, ...rest) || ~commandExternal.indexOf(id);
+		inputOptions.external = (id, ...rest: any[]) => configExternal(id, ...rest) || commandExternal.indexOf(id) !== -1;
 	} else {
 		inputOptions.external = (configExternal || []).concat(commandExternal);
 	}

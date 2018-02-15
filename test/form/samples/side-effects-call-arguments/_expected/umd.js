@@ -5,7 +5,6 @@
 }(this, (function () { 'use strict';
 
 	function foo () {}
-
 	foo( globalFunction() );
 
 	var baz = 2;

@@ -20,7 +20,6 @@ var Arrow = ( x ) => {
 };
 
 console.log( 'before' );
-
 var bar = new Bar(5);
 var baz = new Baz(5);
 var qux = new Qux(5);

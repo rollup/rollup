@@ -20,8 +20,7 @@ function baz () {
 
 const moreExternal = external.more;
 
-var create = Object.create;
-var getPrototypeOf = Object.getPrototypeOf;
+var create = Object.create, getPrototypeOf = Object.getPrototypeOf;
 
 exports.baz = baz;
 exports.create = create;

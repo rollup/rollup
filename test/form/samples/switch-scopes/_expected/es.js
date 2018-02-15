@@ -1,4 +1,5 @@
 const x = globalFunction;
+
 switch ( anotherGlobal ) {
 	case 2:
 		x();

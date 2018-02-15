@@ -5,21 +5,23 @@ import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
+import { NodeRenderOptions, RenderOptions } from '../../Module';
+import { BLANK } from '../../utils/object';
 
 export default class ImportDeclaration extends NodeBase {
 	type: NodeType.ImportDeclaration;
-	isImportDeclaration: true;
 	specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
 	source: Literal<string>;
 
+	isImportDeclaration: true;
+	needsBoundaries: true;
+
 	bindChildren () { }
 
-	initialiseNode () {
-		this.isImportDeclaration = true;
-	}
-
-	render (code: MagicString, _options: RenderOptions) {
-		code.remove(this.start, this.next || this.end);
+	render (code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
+		code.remove(start, end);
 	}
 }
+
+ImportDeclaration.prototype.isImportDeclaration = true;
+ImportDeclaration.prototype.needsBoundaries = true;

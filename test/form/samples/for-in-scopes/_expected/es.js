@@ -7,7 +7,6 @@ associated();
 
 var effect3 = () => console.log( 'effect' );
 for ( const foo in { x: effect3() } ) {
-	 // This can be removed
 }
 
 for ( globalVar in { x: 1 } ) {}

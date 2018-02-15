@@ -38,7 +38,7 @@ import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
 import Chunk, { DynamicImportMechanism } from './Chunk';
 
-export interface IdMap { [key: string]: string; }
+export interface IdMap {[key: string]: string;}
 
 export interface CommentDescription {
 	block: boolean;
@@ -107,7 +107,15 @@ export interface RenderOptions {
 	freeze: boolean;
 	importMechanism?: DynamicImportMechanism;
 	systemBindings: boolean;
-};
+}
+
+export interface NodeRenderOptions {
+	start?: number,
+	end?: number,
+	isNoStatement?: boolean
+}
+
+export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
 
 export default class Module {
 	type: 'Module';
@@ -227,17 +235,7 @@ export default class Module {
 			filename: this.excludeFromSourcemap ? null : this.id, // don't include plugin helpers in sourcemap
 			indentExclusionRanges: []
 		});
-
-		// remove existing sourceMappingURL comments
-		this.comments = this.comments.filter(comment => {
-			//only one line comment can contain source maps
-			const isSourceMapComment =
-				!comment.block && SOURCEMAPPING_URL_RE.test(comment.text);
-			if (isSourceMapComment) {
-				this.magicString.remove(comment.start, comment.end);
-			}
-			return !isSourceMapComment;
-		});
+		this.removeExistingSourceMap();
 
 		timeStart('analyse');
 
@@ -246,12 +244,20 @@ export default class Module {
 		timeEnd('analyse');
 	}
 
+	private removeExistingSourceMap(){
+		this.comments.forEach(comment => {
+			if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
+				this.magicString.remove(comment.start, comment.end);
+			}
+		});
+	}
+
 	private addExport (node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration) {
 		const source = (<ExportAllDeclaration>node).source && (<ExportAllDeclaration>node).source.value;
 
 		// export { name } from './other'
 		if (source) {
-			if (!~this.sources.indexOf(source)) this.sources.push(source);
+			if (this.sources.indexOf(source) === -1) this.sources.push(source);
 
 			if (node.type === NodeType.ExportAllDeclaration) {
 				// Store `export * from '...'` statements in an array of delegates.
@@ -343,7 +349,7 @@ export default class Module {
 	private addImport (node: ImportDeclaration) {
 		const source = node.source.value;
 
-		if (!~this.sources.indexOf(source)) this.sources.push(source);
+		if (this.sources.indexOf(source) === -1) this.sources.push(source);
 
 		node.specifiers.forEach(specifier => {
 			const localName = specifier.local.name;
@@ -369,20 +375,13 @@ export default class Module {
 	}
 
 	private analyse () {
-		enhance(this.ast, this, this.comments, this.dynamicImports);
-
-		// discover this module's imports and exports
-		let lastNode: Node;
-
+		enhance(this.ast, this, this.dynamicImports);
 		this.ast.body.forEach(node => {
 			if ((<ImportDeclaration>node).isImportDeclaration) {
 				this.addImport(<ImportDeclaration>node);
 			} else if ((<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration>node).isExportDeclaration) {
 				this.addExport((<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration>node));
 			}
-
-			if (lastNode) lastNode.next = node.leadingCommentStart || node.start;
-			lastNode = node;
 		});
 	}
 
@@ -588,10 +587,7 @@ export default class Module {
 
 	render (options: RenderOptions): MagicString {
 		const magicString = this.magicString.clone();
-
-		this.ast.body.forEach(node => {
-			node.render(magicString, options);
-		});
+		this.ast.render(magicString, options);
 
 		if (this.namespace().needsNamespaceBlock) {
 			magicString.append(
@@ -648,7 +644,7 @@ export default class Module {
 			// namespace
 			if (name.length === 1) {
 				return this.namespace();
-			// export * from 'external'
+				// export * from 'external'
 			} else {
 				const module = <ExternalModule>this.graph.moduleById.get(name.slice(1));
 				return module.traceExport('*');

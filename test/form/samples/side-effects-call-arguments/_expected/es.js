@@ -1,5 +1,4 @@
 function foo () {}
-
 foo( globalFunction() );
 
 var baz = 2;

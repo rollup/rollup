@@ -9,7 +9,6 @@
 		return {};
 	}
 }).foo.bar.baz;
-
 ({
 	get foo () {
 		console.log( 'effect' );
@@ -21,7 +20,6 @@
 		return () => console.log( 'effect' );
 	}
 }).foo();
-
 ({
 	get foo () {
 		console.log( 'effect' );

@@ -3,10 +3,15 @@ import VariableDeclaration from './VariableDeclaration';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import BlockStatement from './BlockStatement';
-import { StatementBase, StatementNode } from './shared/Statement';
 import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
-import { ExpressionNode } from './shared/Node';
+import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
+import { NO_SEMICOLON, RenderOptions } from '../../Module';
+import MagicString from 'magic-string';
+
+export function isForInStatement (node: Node): node is ForInStatement {
+	return node.type === NodeType.ForInStatement;
+}
 
 export default class ForInStatement extends StatementBase {
 	type: NodeType.ForInStatement;
@@ -34,7 +39,7 @@ export default class ForInStatement extends StatementBase {
 
 	includeInBundle () {
 		let addedNewNodes = super.includeInBundle();
-		if (this.left.includeWithAllDeclarations()) {
+		if (this.left.includeWithAllDeclaredVariables()) {
 			addedNewNodes = true;
 		}
 		return addedNewNodes;
@@ -42,5 +47,11 @@ export default class ForInStatement extends StatementBase {
 
 	initialiseScope (parentScope: Scope) {
 		this.scope = new BlockScope({ parent: parentScope });
+	}
+
+	render (code: MagicString, options: RenderOptions) {
+		this.left.render(code, options, NO_SEMICOLON);
+		this.right.render(code, options, NO_SEMICOLON);
+		this.body.render(code, options);
 	}
 }

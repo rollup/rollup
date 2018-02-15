@@ -36,6 +36,7 @@ import MethodDefinition from './MethodDefinition';
 import NewExpression from './NewExpression';
 import ObjectExpression from './ObjectExpression';
 import ObjectPattern from './ObjectPattern';
+import Program from './Program';
 import Property from './Property';
 import RestElement from './RestElement';
 import ReturnStatement from './ReturnStatement';
@@ -53,8 +54,7 @@ import VariableDeclarator from './VariableDeclarator';
 import VariableDeclaration from './VariableDeclaration';
 import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
-import { StatementBase } from './shared/Statement';
-import { NodeBase } from './shared/Node';
+import { NodeBase, StatementBase } from './shared/Node';
 
 const nodes: {
 	[name: string]: typeof NodeBase
@@ -97,6 +97,7 @@ const nodes: {
 	NewExpression,
 	ObjectExpression,
 	ObjectPattern,
+	Program,
 	Property,
 	RestElement,
 	ReturnStatement,
