@@ -2,6 +2,7 @@
 
 ## 0.56.0
 * Update to ECMAScript 2018 ([#1953](https://github.com/rollup/rollup/pull/1953))
+* Rework tree-shaking rendering algorithm ([#1949](https://github.com/rollup/rollup/pull/1949))
 
 ## 0.55.5
 * Remove OpenCollective dependency ([#1915](https://github.com/rollup/rollup/pull/1915))
