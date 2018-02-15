@@ -40,7 +40,7 @@ export default class ModuleScope extends Scope {
 				localNames.add(declaration.getName());
 			};
 
-			(<Module>specifier.module).getExports().forEach(name => {
+			(<Module>specifier.module).getAllExports().forEach(name => {
 				addDeclaration(specifier.module.traceExport(name));
 			});
 
