@@ -235,23 +235,21 @@ export default class Module {
 			filename: this.excludeFromSourcemap ? null : this.id, // don't include plugin helpers in sourcemap
 			indentExclusionRanges: []
 		});
-
-		// remove existing sourceMappingURL comments
-		this.comments = this.comments.filter(comment => {
-			//only one line comment can contain source maps
-			const isSourceMapComment =
-				!comment.block && SOURCEMAPPING_URL_RE.test(comment.text);
-			if (isSourceMapComment) {
-				this.magicString.remove(comment.start, comment.end);
-			}
-			return !isSourceMapComment;
-		});
+		this.removeExistingSourceMap();
 
 		timeStart('analyse');
 
 		this.analyse();
 
 		timeEnd('analyse');
+	}
+
+	private removeExistingSourceMap(){
+		this.comments.forEach(comment => {
+			if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
+				this.magicString.remove(comment.start, comment.end);
+			}
+		});
 	}
 
 	private addExport (node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration) {
