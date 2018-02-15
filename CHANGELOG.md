@@ -7,6 +7,7 @@
 * Expose AST parser to plugins ([#1945](https://github.com/rollup/rollup/pull/1945))
 * Fix namespace re-export deconflicting ([#1960](https://github.com/rollup/rollup/pull/1960))
 * Allow globals to be re-exported ([#1959](https://github.com/rollup/rollup/pull/1959))
+* Fix internal performance timers ([#1966](https://github.com/rollup/rollup/pull/1966))
 
 ## 0.55.5
 * Remove OpenCollective dependency ([#1915](https://github.com/rollup/rollup/pull/1915))

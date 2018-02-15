@@ -41,17 +41,15 @@ export function timeEnd (label: string) {
 }
 
 export function flushTime (log = defaultLog) {
-	for (const item of <any> map.entries()) {
-		log(item[0], item[1].time);
-	}
+	map.forEach((value, key) => {
+		log(key, value.time);
+	});
 	map.clear();
 }
 
 /** @interal */
 export function defaultLog (label: string, time: number) {
 	if (DEBUG) {
-		/* eslint-disable no-console */
 		console.info('%dms: %s', time, label);
-		/* eslint-enable no-console */
 	}
 }
