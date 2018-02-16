@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.56.1
+* Fix regression when rendering switch statements ([#1971](https://github.com/rollup/rollup/pull/1971))
+
 ## 0.56.0
 * Update to ECMAScript 2018 ([#1953](https://github.com/rollup/rollup/pull/1953))
 * Rework tree-shaking rendering algorithm ([#1949](https://github.com/rollup/rollup/pull/1949))
