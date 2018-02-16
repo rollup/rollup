@@ -68,7 +68,11 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			this.renderNamedDeclaration(code, declarationStart, 'class', this.declaration.id === null, options);
 		} else if (this.variable.getOriginalVariableName() === this.variable.getName()) {
 			// Remove altogether to prevent re-declaring the same variable
-			code.remove(start, end);
+			if (!options.systemBindings) {
+				code.remove(start, end);
+			} else {
+				code.overwrite(start, end, `exports('${this.variable.exportName}', ${this.variable.getName()});`);
+			}
 			return;
 		} else if (this.variable.included) {
 			this.renderVariableDeclaration(code, declarationStart, options);
