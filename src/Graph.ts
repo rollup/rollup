@@ -5,8 +5,7 @@ import first from './utils/first';
 import Module, { IdMap, ModuleJSON } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
-import { load, makeOnwarn, resolveId, handleMissingExport } from './utils/defaults';
-import { mapSequence } from './utils/promise';
+import { load, makeOnwarn, resolveId } from './utils/defaults';
 import transform from './utils/transform';
 import relativeId from './utils/relativeId';
 import error from './utils/error';
@@ -14,7 +13,6 @@ import { isAbsolute, isRelative, normalize, relative, resolve } from './utils/pa
 import {
 	InputOptions,
 	IsExternalHook,
-	MissingExportHook,
 	Plugin,
 	ResolveIdHook,
 	RollupWarning,
@@ -30,7 +28,7 @@ import * as path from './utils/path';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { randomUint8Array, Uint8ArrayXor, Uint8ArrayToHexString } from './utils/entryHashing';
 import { blank } from './utils/object';
-import firstSync from './utils/first-sync';
+import { mapSequence } from './utils/promise';
 
 export type ResolveDynamicImportHandler = (specifier: string | Node, parentId: string) => Promise<string | void>;
 
@@ -63,7 +61,6 @@ export default class Graph {
 	isPureExternalModule: (id: string) => boolean;
 	legacy: boolean;
 	load: (id: string) => Promise<SourceDescription | string | void>;
-	handleMissingExport: MissingExportHook;
 	moduleById: Map<string, Module | ExternalModule>;
 	modules: Module[];
 	onwarn: WarningHandler;
@@ -134,11 +131,6 @@ export default class Graph {
 		const loaders = this.plugins.map(plugin => plugin.load).filter(Boolean);
 		this.hasLoaders = loaders.length !== 0;
 		this.load = first(loaders.concat(load));
-
-		this.handleMissingExport = firstSync(
-			this.plugins.map(plugin => plugin.missingExport).filter(Boolean)
-				.concat(handleMissingExport)
-		);
 
 		this.scope = new GlobalScope();
 

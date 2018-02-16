@@ -36,6 +36,7 @@ import Import from './ast/nodes/Import';
 import { NodeType } from './ast/nodes/index';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
+import { handleMissingExport } from './utils/defaults';
 import Chunk, { DynamicImportMechanism } from './Chunk';
 
 export interface IdMap {[key: string]: string;}
@@ -633,7 +634,7 @@ export default class Module {
 			const declaration = otherModule.traceExport(importDeclaration.name);
 
 			if (!declaration) {
-				this.graph.handleMissingExport(this, importDeclaration.name, otherModule, importDeclaration.specifier.start);
+				handleMissingExport(this, importDeclaration.name, otherModule, importDeclaration.specifier.start);
 			}
 
 			return declaration;
@@ -661,7 +662,7 @@ export default class Module {
 			const declaration = reexportDeclaration.module.traceExport(reexportDeclaration.localName);
 
 			if (!declaration) {
-				this.graph.handleMissingExport(this, reexportDeclaration.localName, reexportDeclaration.module, reexportDeclaration.start);
+				handleMissingExport(this, reexportDeclaration.localName, reexportDeclaration.module, reexportDeclaration.start);
 			}
 
 			return declaration;
