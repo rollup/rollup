@@ -2,6 +2,7 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "outDir": "./dist/typings",
+        "emitDeclarationOnly": true,
         "declaration": true,
         "stripInternal": true
     },
