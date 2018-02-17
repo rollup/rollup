@@ -181,11 +181,18 @@ export default class Chunk {
 		entryModule.getAllExports().forEach(exportName => {
 			const traced = this.traceExport(entryModule, exportName);
 			const variable = traced.module.traceExport(traced.name);
-			this.exports[exportName] = { module: traced.module, name: traced.name, variable };
-			// if we exposed an export in another module ensure it is exported there
-			if (traced.module.chunk !== this && !traced.module.isExternal) {
-				(<Module>traced.module).chunk.ensureExport(traced.module, variable);
+			let tracedName: string;
+			if (traced.module.chunk === this || traced.module.isExternal) {
+				tracedName = traced.name;
+			} else {
+				// if we exposed an export in another module ensure it is exported there
+				tracedName = (<Module>traced.module).chunk.ensureExport(traced.module, variable);
 			}
+			this.exports[exportName] = {
+				module: traced.module,
+				name: tracedName,
+				variable
+			};
 			this.exportedVariables.set(variable, exportName);
 		});
 	}
