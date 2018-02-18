@@ -403,6 +403,7 @@ export default class Chunk {
 	private setDynamicImportResolutions ({ format }: OutputOptions) {
 		const es = format === 'es';
 		let dynamicImportMechanism: DynamicImportMechanism;
+		let hasDynamicImports = false;
 		if (!es) {
 			if (format === 'cjs') {
 				dynamicImportMechanism = {
@@ -428,6 +429,7 @@ export default class Chunk {
 		this.orderedModules.forEach(module => {
 			module.dynamicImportResolutions.forEach((replacement, index) => {
 				const node = module.dynamicImports[index];
+				hasDynamicImports = true;
 
 				if (!replacement)
 					return;
@@ -450,7 +452,8 @@ export default class Chunk {
 				}
 			});
 		});
-		return dynamicImportMechanism;
+		if (hasDynamicImports)
+			return dynamicImportMechanism;
 	}
 
 	private setIdentifierRenderResolutions (options: OutputOptions) {
@@ -690,7 +693,8 @@ export default class Chunk {
 				magicString = finalise(
 					this,
 					(<any>magicString).trim(), // TODO TypeScript: Awaiting MagicString PR
-					{ exportMode, getPath, indentString, intro, outro },
+					{ exportMode, getPath, indentString, intro, outro,
+						dynamicImport: !!renderOptions.importMechanism },
 					options
 				);
 

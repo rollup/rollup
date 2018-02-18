@@ -9,12 +9,13 @@ import { OutputOptions } from '../rollup/index';
 export default function amd (
 	chunk: Chunk,
 	magicString: MagicStringBundle,
-	{ exportMode, getPath, indentString, intro, outro }: {
+	{ exportMode, getPath, indentString, intro, outro, dynamicImport }: {
 		exportMode: string;
 		indentString: string;
 		getPath: (name: string) => string;
 		intro: string;
-		outro: string
+		outro: string;
+		dynamicImport: boolean;
 	},
 	options: OutputOptions
 ) {
@@ -28,6 +29,11 @@ export default function amd (
 	if (exportMode === 'named') {
 		args.unshift(`exports`);
 		deps.unshift(`'exports'`);
+	}
+
+	if (dynamicImport) {
+		args.unshift('require');
+		deps.unshift(`'require'`);
 	}
 
 	const amdOptions = options.amd || {};
