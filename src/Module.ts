@@ -402,6 +402,10 @@ export default class Module {
 		this.getExports().forEach(name => {
 			const variable = this.traceExport(name);
 
+			if (!variable) {
+				return;
+			}
+
 			variable.exportName = name;
 			variable.includeVariable();
 
@@ -412,6 +416,10 @@ export default class Module {
 
 		this.getReexports().forEach(name => {
 			const variable = this.traceExport(name);
+
+			if (!variable) {
+				return;
+			}
 
 			variable.exportName = name;
 
