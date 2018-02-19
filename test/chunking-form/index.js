@@ -62,7 +62,11 @@ describe('chunking form', () => {
 								expectedFiles = [];
 							}
 
-							assert.deepEqual(actualFiles, expectedFiles);
+							assert.deepEqual(Object.keys(actualFiles), Object.keys(expectedFiles));
+
+							Object.keys(actualFiles).forEach(fileName => {
+								assert.strictEqual(actualFiles[fileName], expectedFiles[fileName], 'Unexpected output for ' + fileName);
+							});
 						});
 					});
 				});

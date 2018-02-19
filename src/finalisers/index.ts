@@ -16,7 +16,8 @@ export type Finaliser = (
 		indentString: string;
 		getPath: (name: string) => string;
 		intro: string;
-		outro: string
+		outro: string;
+		dynamicImport: boolean;
 	},
 	options: OutputOptions
 ) => MagicStringBundle;

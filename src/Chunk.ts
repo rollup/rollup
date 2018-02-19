@@ -181,11 +181,18 @@ export default class Chunk {
 		entryModule.getAllExports().forEach(exportName => {
 			const traced = this.traceExport(entryModule, exportName);
 			const variable = traced.module.traceExport(traced.name);
-			this.exports[exportName] = { module: traced.module, name: traced.name, variable };
-			// if we exposed an export in another module ensure it is exported there
-			if (traced.module.chunk !== this && !traced.module.isExternal) {
-				(<Module>traced.module).chunk.ensureExport(traced.module, variable);
+			let tracedName: string;
+			if (traced.module.chunk === this || traced.module.isExternal) {
+				tracedName = traced.name;
+			} else {
+				// if we exposed an export in another module ensure it is exported there
+				tracedName = (<Module>traced.module).chunk.ensureExport(traced.module, variable);
 			}
+			this.exports[exportName] = {
+				module: traced.module,
+				name: tracedName,
+				variable
+			};
 			this.exportedVariables.set(variable, exportName);
 		});
 	}
@@ -403,6 +410,7 @@ export default class Chunk {
 	private setDynamicImportResolutions ({ format }: OutputOptions) {
 		const es = format === 'es';
 		let dynamicImportMechanism: DynamicImportMechanism;
+		let hasDynamicImports = false;
 		if (!es) {
 			if (format === 'cjs') {
 				dynamicImportMechanism = {
@@ -428,6 +436,7 @@ export default class Chunk {
 		this.orderedModules.forEach(module => {
 			module.dynamicImportResolutions.forEach((replacement, index) => {
 				const node = module.dynamicImports[index];
+				hasDynamicImports = true;
 
 				if (!replacement)
 					return;
@@ -450,7 +459,8 @@ export default class Chunk {
 				}
 			});
 		});
-		return dynamicImportMechanism;
+		if (hasDynamicImports)
+			return dynamicImportMechanism;
 	}
 
 	private setIdentifierRenderResolutions (options: OutputOptions) {
@@ -575,7 +585,7 @@ export default class Chunk {
 				for (let i = 0; i < importSpecifiers.variables.length; i++) {
 					const impt = importSpecifiers.variables[i];
 					imports.push({
-						local: impt.variable.getName(),
+						local: impt.variable.safeName || impt.variable.name,
 						imported: impt.name
 					});
 				}
@@ -690,7 +700,8 @@ export default class Chunk {
 				magicString = finalise(
 					this,
 					(<any>magicString).trim(), // TODO TypeScript: Awaiting MagicString PR
-					{ exportMode, getPath, indentString, intro, outro },
+					{ exportMode, getPath, indentString, intro, outro,
+						dynamicImport: !!renderOptions.importMechanism },
 					options
 				);
 

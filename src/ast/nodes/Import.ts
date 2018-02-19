@@ -19,7 +19,6 @@ export default class Import extends NodeBase {
 
 	render (code: MagicString, options: RenderOptions) {
 		// if we have the module in the chunk, inline as Promise.resolve(namespace)
-		let resolution: string;
 		if (this.resolution instanceof NamespaceVariable) {
 			// ideally this should be handled like normal tree shaking
 			this.resolution.includeVariable();
@@ -27,16 +26,15 @@ export default class Import extends NodeBase {
 			code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, this.resolution.getName());
 			code.overwrite(this.parent.arguments[0].end, this.parent.end, '; })');
 
-		} else if (this.resolution) {
-			resolution = this.resolution;
+		} else {
 
 			if (options.importMechanism) {
 				const leftMechanism = this.resolutionInterop && options.importMechanism.interopLeft || options.importMechanism.left;
 				code.overwrite(this.parent.start, this.parent.arguments[0].start, leftMechanism);
 			}
 
-			if (resolution) {
-				code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, resolution);
+			if (this.resolution) {
+				code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, this.resolution);
 			}
 
 			if (options.importMechanism) {
