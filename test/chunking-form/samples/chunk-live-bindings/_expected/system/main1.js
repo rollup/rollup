@@ -3,8 +3,8 @@ System.register(['./chunk1.js'], function (exports, module) {
   var fn, text;
   return {
     setters: [function (module) {
-      fn = module.fn;
-      text = module.text;
+      fn = module.a;
+      text = module.b;
     }],
     execute: function () {
 

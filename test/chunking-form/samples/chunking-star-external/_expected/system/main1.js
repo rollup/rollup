@@ -11,7 +11,7 @@ System.register(['starexternal1', 'external1', './chunk1.js'], function (exports
 		}, function (module) {
 			exports('e', module.e);
 		}, function (module) {
-			exports('dep', module.dep);
+			exports('dep', module.a);
 		}],
 		execute: function () {
 

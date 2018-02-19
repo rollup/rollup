@@ -3,4 +3,4 @@ import 'external2';
 
 var dep = 'dep';
 
-export { dep };
+export { dep as a };

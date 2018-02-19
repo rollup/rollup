@@ -7,9 +7,9 @@ System.register([], function (exports, module) {
         test() {
             return ONE_CONSTANT;
         }
-      } exports('ItemOne', One);
+      } exports('a', One);
 
-      const ONE_CONSTANT = exports('ONE_CONSTANT', 'oneconstant');
+      const ONE_CONSTANT = exports('b', 'oneconstant');
 
     }
   };

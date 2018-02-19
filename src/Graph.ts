@@ -407,7 +407,11 @@ export default class Graph {
 							entryPointFacade.generateImports();
 							entryPointFacade.generateEntryExports(chunk.entryModule);
 							chunks['./' + entryName] = entryPointFacade;
+							chunk.generateMangledExportNames();
 						}
+					}
+					else {
+						chunk.generateMangledExportNames();
 					}
 					// name the chunk itself
 					const chunkName = generateChunkName('chunk', chunkNames);

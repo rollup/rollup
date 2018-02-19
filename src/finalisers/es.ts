@@ -8,7 +8,7 @@ export default function es (chunk: Chunk, magicString: MagicStringBundle, { getP
 	intro: string;
 	outro: string
 }) {
-	const { dependencies, exports } = chunk.getModuleDeclarations();
+	const { dependencies, exports } = chunk.getModuleDeclarations(true);
 	const importBlock = dependencies.map(({ id, reexports, imports, name }) => {
 		if (!reexports && !imports) {
 			return `import '${getPath(id)}';`;
