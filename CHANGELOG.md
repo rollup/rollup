@@ -6,6 +6,7 @@
 * Update internal TypeScript version ([#1980](https://github.com/rollup/rollup/pull/1980))
 * Omit compiled source files from published types ([#1981](https://github.com/rollup/rollup/pull/1981))
 * Fix example in readme file ([#1984](https://github.com/rollup/rollup/pull/1984))
+* Fix non-replaced dynamic imports in non-ESM output ([#1985](https://github.com/rollup/rollup/pull/1985))
 
 ## 0.56.1
 * Fix regression when rendering switch statements ([#1971](https://github.com/rollup/rollup/pull/1971))
