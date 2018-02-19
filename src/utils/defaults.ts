@@ -3,7 +3,6 @@ import { basename, dirname, isAbsolute, resolve } from './path';
 import { blank } from './object';
 import error from './error';
 import Module from '../Module';
-import ExternalModule from '../ExternalModule';
 import relativeId from './relativeId';
 import { InputOptions } from '../rollup';
 
@@ -69,17 +68,17 @@ export function makeOnwarn() {
 }
 
 export function handleMissingExport(
-	module: Module,
-	name: string,
-	otherModule: Module | ExternalModule,
-	start?: number
+	exportName: string,
+	importingModule: Module,
+	importedModule: string,
+	importerStart?: number
 ) {
-	module.error(
+	importingModule.error(
 		{
 			code: 'MISSING_EXPORT',
-			message: `'${name}' is not exported by ${relativeId(otherModule.id)}`,
+			message: `'${exportName}' is not exported by ${relativeId(importedModule)}`,
 			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
 		},
-		start
+		importerStart
 	);
 }

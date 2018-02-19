@@ -14,7 +14,6 @@ import { isAbsolute, isRelative, normalize, relative, resolve } from './utils/pa
 import {
 	InputOptions,
 	IsExternalHook,
-	MissingExportHook,
 	Plugin,
 	ResolveIdHook,
 	RollupWarning,
@@ -69,7 +68,12 @@ export default class Graph {
 	isPureExternalModule: (id: string) => boolean;
 	legacy: boolean;
 	load: (id: string) => Promise<SourceDescription | string | void>;
-	handleMissingExport: MissingExportHook;
+	handleMissingExport: (
+		exportName: string,
+		importingModule: Module,
+		importedModule: string,
+		importerStart?: number
+	) => void;
 	moduleById: Map<string, Module | ExternalModule>;
 	modules: Module[];
 	onwarn: WarningHandler;
@@ -144,6 +148,16 @@ export default class Graph {
 			this.plugins
 				.map(plugin => plugin.missingExport)
 				.filter(Boolean)
+				.map(missingExport => {
+					return (
+						exportName: string,
+						importingModule: Module,
+						importedModule: string,
+						importerStart?: number
+					) => {
+						return missingExport(importingModule.id, exportName, importedModule, importerStart);
+					};
+				})
 				.concat(handleMissingExport)
 		);
 

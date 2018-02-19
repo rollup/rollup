@@ -6,8 +6,7 @@ import { mapSequence } from '../utils/promise';
 import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
-import Module, { ModuleJSON } from '../Module';
-import ExternalModule from '../ExternalModule';
+import { ModuleJSON } from '../Module';
 import { RawSourceMap } from 'source-map';
 import Program from '../ast/nodes/Program';
 import { Node } from '../ast/nodes/shared/Node';
@@ -30,10 +29,10 @@ export type ResolveIdHook = (
 	parent: string
 ) => Promise<string | boolean | void> | string | boolean | void;
 export type MissingExportHook = (
-	module: Module,
-	name: string,
-	otherModule: Module | ExternalModule,
-	start?: number
+	exportName: string,
+	importingModule: string,
+	importedModule: string,
+	importerStart?: number
 ) => void;
 export type IsExternalHook = (
 	id: string,
