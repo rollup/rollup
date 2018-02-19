@@ -48,7 +48,7 @@ For browsers:
 
 ```bash
 # compile to a <script> containing a self-executing function
-$ rollup main.js --output.format iife --output.file bundle.js
+$ rollup main.js --output.format iife --name "myBundle" --output.file bundle.js
 ```
 
 For Node.js:
