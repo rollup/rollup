@@ -575,7 +575,7 @@ export default class Chunk {
 				for (let i = 0; i < importSpecifiers.variables.length; i++) {
 					const impt = importSpecifiers.variables[i];
 					imports.push({
-						local: impt.variable.getName(),
+						local: impt.variable.safeName || impt.variable.name,
 						imported: impt.name
 					});
 				}

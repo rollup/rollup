@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.56.2
+* Fix handling of reassigned default exports ([#1975](https://github.com/rollup/rollup/pull/1975))
+
 ## 0.56.1
 * Fix regression when rendering switch statements ([#1971](https://github.com/rollup/rollup/pull/1971))
 
