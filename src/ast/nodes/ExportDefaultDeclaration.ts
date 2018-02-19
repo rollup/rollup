@@ -71,7 +71,10 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			if (!options.systemBindings) {
 				code.remove(start, end);
 			} else {
-				code.overwrite(start, end, `exports('${this.variable.exportName}', ${this.variable.getName()});`);
+				let exportName = this.variable.exportName;
+				if (options.mangledExportNameMap)
+					exportName = options.mangledExportNameMap[exportName] || exportName;
+				code.overwrite(start, end, `exports('${exportName}', ${this.variable.getName()});`);
 			}
 			return;
 		} else if (this.variable.included) {
@@ -93,12 +96,18 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			code.appendLeft(getIdInsertPosition(code.original, declarationKeyword, declarationStart), ` ${name}`);
 		}
 		if (options.systemBindings && isClassDeclaration(this.declaration)) {
-			code.appendRight(this.end, ` exports('default', ${name});`);
+			let exportName = this.variable.exportName;
+			if (options.mangledExportNameMap)
+				exportName = options.mangledExportNameMap[exportName] || exportName;
+			code.appendRight(this.end, ` exports('${exportName}', ${name});`);
 		}
 	}
 
 	private renderVariableDeclaration (code: MagicString, declarationStart: number, options: RenderOptions) {
-		const systemBinding = options.systemBindings ? `exports('${this.variable.exportName}', ` : '';
+		let exportName = this.variable.exportName;
+		if (options.mangledExportNameMap)
+			exportName = options.mangledExportNameMap[exportName] || exportName;
+		const systemBinding = options.systemBindings ? `exports('${exportName}', ` : '';
 		code.overwrite(
 			this.start,
 			declarationStart,

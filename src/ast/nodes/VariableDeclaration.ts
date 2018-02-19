@@ -110,7 +110,10 @@ export default class VariableDeclaration extends NodeBase {
 				isInDeclaration = false;
 			} else {
 				if (options.systemBindings && node.init !== null && isIdentifier(node.id) && node.id.variable.exportName) {
-					code.prependLeft(node.init.start, `exports('${node.id.variable.exportName}', `);
+					let exportName = node.id.variable.exportName;
+					if (options.mangledExportNameMap)
+						exportName = options.mangledExportNameMap[exportName] || exportName;
+					code.prependLeft(node.init.start, `exports('${exportName}', `);
 					nextSeparatorString += ')';
 				}
 				if (isInDeclaration) {

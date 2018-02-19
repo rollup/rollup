@@ -111,6 +111,9 @@ export interface RenderOptions {
 	freeze: boolean;
 	importMechanism?: DynamicImportMechanism;
 	systemBindings: boolean;
+	mangledExportNameMap?: {
+		[name: string]: string
+	}
 }
 
 export interface NodeRenderOptions {

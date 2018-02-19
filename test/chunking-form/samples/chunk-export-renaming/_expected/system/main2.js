@@ -3,7 +3,7 @@ System.register(['./chunk1.js'], function (exports, module) {
     var ONE_CONSTANT;
     return {
         setters: [function (module) {
-            ONE_CONSTANT = module.ONE_CONSTANT;
+            ONE_CONSTANT = module.b;
         }],
         execute: function () {
 

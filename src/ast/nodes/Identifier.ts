@@ -119,12 +119,18 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	renderSystemBindingUpdate (code: MagicString, name: string) {
+	renderSystemBindingUpdate (code: MagicString, name: string, mangledExportNameMap?: { [name: string]: string }) {
+		let exportName = this.variable.exportName;
+		if (mangledExportNameMap)
+			exportName = mangledExportNameMap[exportName] || exportName;
 		switch (this.parent.type) {
 			case NodeType.AssignmentExpression: {
 				let expression: AssignmentExpression = <AssignmentExpression>this.parent;
 				if (expression.left === this) {
-					code.prependLeft(expression.right.start, `exports('${this.variable.exportName}', `);
+					let exportName = this.variable.exportName;
+					if (mangledExportNameMap)
+						exportName = mangledExportNameMap[exportName] || exportName;
+					code.prependLeft(expression.right.start, `exports('${exportName}', `);
 					code.prependRight(expression.right.end, `)`);
 				}
 			}
@@ -134,7 +140,7 @@ export default class Identifier extends NodeBase {
 				let expression: UpdateExpression = <UpdateExpression>this.parent;
 				if (expression.prefix) {
 					code.overwrite(expression.start, expression.end,
-							`exports('${this.variable.exportName}', ${expression.operator}${name})`);
+							`exports('${exportName}', ${expression.operator}${name})`);
 				} else {
 					let op;
 					switch (expression.operator) {
@@ -149,7 +155,7 @@ export default class Identifier extends NodeBase {
 						break;
 					}
 					code.overwrite(expression.start, expression.end,
-						`(exports(${this.variable.exportName}, ${op}), ${name}${expression.operator})`);
+						`(exports(${exportName}, ${op}), ${name}${expression.operator})`);
 				}
 			}
 			break;
@@ -173,7 +179,7 @@ export default class Identifier extends NodeBase {
 			}
 
 			if (options.systemBindings && this.variable.exportName) {
-				this.renderSystemBindingUpdate(code, name);
+				this.renderSystemBindingUpdate(code, name, options.mangledExportNameMap);
 			}
 		}
 	}

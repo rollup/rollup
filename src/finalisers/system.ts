@@ -26,7 +26,7 @@ export default function system (
 		outro: string
 	}
 ) {
-	const { dependencies, exports } = chunk.getModuleDeclarations();
+	const { dependencies, exports } = chunk.getModuleDeclarations(true);
 
 	const dependencyIds = dependencies.map(m => `'${getPath(m.id)}'`);
 

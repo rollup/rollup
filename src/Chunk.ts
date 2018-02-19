@@ -102,6 +102,9 @@ export default class Chunk {
 	// an input entry point module
 	entryModule: Module;
 	isEntryModuleFacade: boolean;
+	mangledExportNameMap: {
+		[safeName: string]: string
+	};
 
 	constructor (graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
@@ -131,6 +134,22 @@ export default class Chunk {
 	setId (id: string) {
 		this.id = id;
 		this.name = makeLegal(id);
+	}
+
+	generateMangledExportNames () {
+		let curIndex = 9;
+		this.mangledExportNameMap = {};
+		Object.keys(this.exports).forEach(exportName => {
+			if (exportName[0] === '*')
+				return;
+			let mangledName: string;
+			do {
+				curIndex++;
+				mangledName = curIndex.toString(36);
+			}
+			while (mangledName.charCodeAt(0) > 47 && mangledName.charCodeAt(0) < 58)
+			this.mangledExportNameMap[exportName] = mangledName;
+		});
 	}
 
 	// ensure that the module exports or reexports the given variable
@@ -551,7 +570,7 @@ export default class Chunk {
 		this.graph.scope.deshadow(toDeshadow, this.orderedModules.map(module => module.scope));
 	}
 
-	getModuleDeclarations (): ModuleDeclarations {
+	getModuleDeclarations (mangleInternalExports = false): ModuleDeclarations {
 		const reexportDeclarations: {
 			[id: string]: ReexportSpecifier[]
 		} = {};
@@ -568,8 +587,17 @@ export default class Chunk {
 				depId = (<Chunk>expt.module.chunk).id;
 			}
 			const exportDeclaration = reexportDeclarations[depId] = reexportDeclarations[depId] || [];
+			let exportName = expt.name;
+
+			if (mangleInternalExports) {
+				if (expt.module.chunk && expt.module.chunk.mangledExportNameMap)
+					exportName = expt.module.chunk.mangledExportNameMap[exportName] || exportName;
+				if (this.mangledExportNameMap)
+					name = this.mangledExportNameMap[name] || name;
+			}
+
 			exportDeclaration.push({
-				imported: expt.name,
+				imported: exportName,
 				reexported: name[0] === '*' ? '*' : name
 			});
 		}
@@ -584,9 +612,15 @@ export default class Chunk {
 				imports = [];
 				for (let i = 0; i < importSpecifiers.variables.length; i++) {
 					const impt = importSpecifiers.variables[i];
+
+					let importName = impt.name;
+					if (mangleInternalExports && impt.module.chunk && impt.module.chunk.mangledExportNameMap) {
+						importName = impt.module.chunk.mangledExportNameMap[importName] || importName;
+					}
+
 					imports.push({
 						local: impt.variable.safeName || impt.variable.name,
-						imported: impt.name
+						imported: importName
 					});
 				}
 			}
@@ -622,6 +656,10 @@ export default class Chunk {
 				});
 			}
 
+			if (mangleInternalExports && this.mangledExportNameMap) {
+				name = this.mangledExportNameMap[name] || name;
+			}
+
 			exports.push({
 				local: expt.variable.getName(),
 				exported: name,
@@ -655,7 +693,8 @@ export default class Chunk {
 					legacy: this.graph.legacy,
 					freeze: options.freeze !== false,
 					systemBindings: options.format === 'system',
-					importMechanism: this.graph.dynamicImport && this.setDynamicImportResolutions(options)
+					importMechanism: this.graph.dynamicImport && this.setDynamicImportResolutions(options),
+					mangledExportNameMap: this.mangledExportNameMap
 				};
 
 				this.setIdentifierRenderResolutions(options);
