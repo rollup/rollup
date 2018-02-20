@@ -62,7 +62,16 @@ describe('chunking form', () => {
 								expectedFiles = [];
 							}
 
-							assert.deepEqual(actualFiles, expectedFiles);
+							(function recurse(actualFiles, expectedFiles, dirs) {
+								const fileNames = Array.from(new Set(Object.keys(actualFiles).concat(Object.keys(expectedFiles))));
+								fileNames.forEach(fileName => {
+									const sections = dirs.concat(fileName);
+									if (typeof actualFiles[fileName] === 'object' && typeof expectedFiles[fileName] === 'object') {
+										return recurse(actualFiles[fileName], expectedFiles[fileName], sections);
+									}
+									assert.strictEqual(actualFiles[fileName], expectedFiles[fileName], 'Unexpected output for ' + sections.join('/'));
+								});
+							})(actualFiles, expectedFiles, []);
 						});
 					});
 				});
