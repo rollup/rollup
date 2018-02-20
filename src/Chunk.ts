@@ -26,22 +26,22 @@ import { NodeType } from './ast/nodes/index';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;
-	dependencies: {
-		id: string,
-		name: string,
-		isChunk: boolean,
-		reexports?: ReexportSpecifier[],
-		imports?: ImportSpecifier[]
-	}[];
-}
+	dependencies: ModuleDeclarationDependency[];
+};
 
-export type ChunkDependencies = {
+export interface ModuleDeclarationDependency {
 	id: string;
 	name: string;
 	isChunk: boolean;
+	// these used as interop signifiers
+	exportsDefault: boolean;
+	exportsNames: boolean;
+	exportsNamespace: boolean;
 	reexports?: ReexportSpecifier[];
 	imports?: ImportSpecifier[];
-}[];
+};
+
+export type ChunkDependencies = ModuleDeclarationDependency[];
 
 export type ChunkExports = {
 	local: string;
@@ -97,7 +97,6 @@ export default class Chunk {
 		}
 	};
 	dependencies: (ExternalModule | Chunk)[];
-	externalModules: ExternalModule[];
 	// an entry module chunk is a chunk that exactly exports the exports of
 	// an input entry point module
 	entryModule: Module;
@@ -110,7 +109,6 @@ export default class Chunk {
 		this.exportedVariables = new Map();
 		this.imports = [];
 		this.exports = {};
-		this.externalModules = undefined;
 
 		this.dependencies = undefined;
 		this.entryModule = undefined;
@@ -199,12 +197,10 @@ export default class Chunk {
 
 	collectDependencies (entryFacade?: Module) {
 		if (entryFacade) {
-			this.externalModules = [];
 			this.dependencies = [entryFacade.chunk];
 			return;
 		}
 
-		this.externalModules = [];
 		this.dependencies = [];
 
 		this.orderedModules.forEach(module => {
@@ -226,9 +222,6 @@ export default class Chunk {
 
 				if (!this.dependencies.some(dep => dep === depModule)) {
 					this.dependencies.push(depModule);
-					if (dep.isExternal) {
-						this.externalModules.push(dep);
-					}
 				}
 			});
 		});
@@ -238,7 +231,6 @@ export default class Chunk {
 			if (expt.module instanceof ExternalModule) {
 				if (!this.dependencies.some(dep => dep === expt.module)) {
 					this.dependencies.push(expt.module);
-					this.externalModules.push(expt.module);
 				}
 			} else if (expt.module.chunk !== this) {
 				if (!this.dependencies.some(dep => dep === expt.module.chunk)) {
@@ -292,7 +284,7 @@ export default class Chunk {
 	}
 
 	getImportIds (): string[] {
-		return this.imports.map(impt => impt.module.id);
+		return this.dependencies.map(module => module.id);
 	}
 
 	getExportNames (): string[] {
@@ -488,10 +480,12 @@ export default class Chunk {
 		const toDeshadow: Set<string> = new Set();
 
 		if (!es) {
-			this.externalModules.forEach(module => {		
-				const safeName = getSafeName(module.name);
-				toDeshadow.add(safeName);
-				module.name = safeName;
+			this.dependencies.forEach(module => {
+				if ((<ExternalModule>module).isExternal) {
+					const safeName = getSafeName(module.name);
+					toDeshadow.add(safeName);
+					module.name = safeName;
+				}
 			});
 		}
 
@@ -592,10 +586,26 @@ export default class Chunk {
 			}
 
 			let reexports = reexportDeclarations[dep.id];
+			const isExternal = !!(<ExternalModule>dep).isExternal;
+			let exportsNames: boolean, exportsNamespace: boolean, exportsDefault: boolean;
+			if (isExternal) {
+				exportsNames = (<ExternalModule>dep).exportsNames;
+				exportsNamespace = (<ExternalModule>dep).exportsNamespace;
+				exportsDefault = 'default' in (<ExternalModule>dep).declarations;
+			} else {
+				exportsNames = true;
+				// we don't want any interop patterns to trigger
+				exportsNamespace = false;
+				exportsDefault = false;
+			}
+
 			dependencies.push({
 				id: dep.id,
 				name: dep.name,
 				isChunk: !(<ExternalModule>dep).isExternal,
+				exportsNames,
+				exportsNamespace,
+				exportsDefault,
 				reexports,
 				imports
 			});
