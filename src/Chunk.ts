@@ -27,7 +27,7 @@ import { NodeType } from './ast/nodes/index';
 export interface ModuleDeclarations {
 	exports: ChunkExports;
 	dependencies: ModuleDeclarationDependency[];
-};
+}
 
 export interface ModuleDeclarationDependency {
 	id: string;
@@ -39,7 +39,7 @@ export interface ModuleDeclarationDependency {
 	exportsNamespace: boolean;
 	reexports?: ReexportSpecifier[];
 	imports?: ImportSpecifier[];
-};
+}
 
 export type ChunkDependencies = ModuleDeclarationDependency[];
 
@@ -52,19 +52,19 @@ export type ChunkExports = {
 export interface ReexportSpecifier {
 	reexported: string;
 	imported: string;
-};
+}
 
 export interface ImportSpecifier {
 	local: string;
 	imported: string;
-};
+}
 
 export interface DynamicImportMechanism {
 	left: string;
 	right: string;
 	interopLeft?: string;
 	interopRight?: string;
-};
+}
 
 export default class Chunk {
 	id: string;
@@ -578,9 +578,8 @@ export default class Chunk {
 			}
 
 			let reexports = reexportDeclarations[dep.id];
-			const isExternal = !!(<ExternalModule>dep).isExternal;
 			let exportsNames: boolean, exportsNamespace: boolean, exportsDefault: boolean;
-			if (isExternal) {
+			if ((<ExternalModule>dep).isExternal) {
 				exportsNames = (<ExternalModule>dep).exportsNames;
 				exportsNamespace = (<ExternalModule>dep).exportsNamespace;
 				exportsDefault = 'default' in (<ExternalModule>dep).declarations;
