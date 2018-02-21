@@ -297,7 +297,10 @@ export default class Chunk {
 		if (tracedExport.name === '*') {
 			Object.keys((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations).forEach(importName => {
 				const original = ((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations)[importName];
-				this.populateImport(original, tracedExport);
+				this.populateImport(original, {
+					name: importName,
+					module: tracedExport.module
+				});
 			});
 			return tracedExport;
 		}
