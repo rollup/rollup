@@ -1,4 +1,4 @@
-define(['external'], function (external) { 'use strict';
+define(['exports', 'external'], function (exports, external) { 'use strict';
 
 	console.log('dep');
 

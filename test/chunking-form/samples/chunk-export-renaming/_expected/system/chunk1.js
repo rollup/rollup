@@ -7,7 +7,7 @@ System.register([], function (exports, module) {
         test() {
             return ONE_CONSTANT;
         }
-      } exports('ItemOne', One);
+      } exports('One', One);
 
       const ONE_CONSTANT = exports('ONE_CONSTANT', 'oneconstant');
 

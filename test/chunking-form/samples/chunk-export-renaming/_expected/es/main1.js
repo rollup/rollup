@@ -1,1 +1,1 @@
-export { ItemOne } from './chunk1.js';
+export { One as ItemOne } from './chunk1.js';

@@ -14,6 +14,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 		super(name, exportDefaultDeclaration, exportDefaultDeclaration.declaration);
 		this.isDefault = true;
 		this.hasId = !!(<FunctionDeclaration | ClassDeclaration>exportDefaultDeclaration.declaration).id;
+		this.exportName = 'default';
 	}
 
 	addReference (identifier: Identifier) {
@@ -23,11 +24,16 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
-	getName () {
-		if (this._original && !this._original.isReassigned) {
+	getName (reset?: boolean) {
+		if (!reset && this.safeName)
+			return this.safeName;
+		if (this._original && !this._original.isReassigned)
 			return this._original.getName();
-		}
-		return this.safeName || this.name;
+		return this.name;
+	}
+
+	referencesOriginal () {
+		return this._original && !this._original.isReassigned;
 	}
 
 	getOriginalVariableName () {

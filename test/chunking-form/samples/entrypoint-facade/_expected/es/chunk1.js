@@ -7,4 +7,4 @@ function log (x) {
 }
 
 export default log;
-export { dep };
+export { dep as default$1 };
