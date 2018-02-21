@@ -2,6 +2,6 @@ const other = {
 	something: 'here'
 };
 
-const other$2 = {
+const other$1 = {
 	somethingElse: 'here'
 };

@@ -4,8 +4,8 @@ function foo () {
 	return bar;
 }
 
-function bar$2 () {
+function bar$1 () {
 	alert( foo() );
 }
 
-bar$2();
+bar$1();
