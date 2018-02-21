@@ -68,9 +68,9 @@ export default class VariableDeclaration extends NodeBase {
 		) {
 			for (const declarator of this.declarations) {
 				declarator.render(code, options);
-				if (!nodeRenderOptions.isNoStatement && code.original.charCodeAt(this.end - 1) !== 59 /*";"*/) {
-					code.appendLeft(this.end, ';');
-				}
+			}
+			if (!nodeRenderOptions.isNoStatement && code.original.charCodeAt(this.end - 1) !== 59 /*";"*/) {
+				code.appendLeft(this.end, ';');
 			}
 		} else {
 			this.renderReplacedDeclarations(code, options, nodeRenderOptions);
