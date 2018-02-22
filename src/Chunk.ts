@@ -545,7 +545,7 @@ export default class Chunk {
 		this.graph.scope.deshadow(toDeshadow, this.orderedModules.map(module => module.scope));
 	}
 
-	getModuleDeclarations (): ModuleDeclarations {
+	private getCheckReexportDeclarations (): { [id: string]: ReexportSpecifier[] } {
 		const reexportDeclarations: {
 			[id: string]: ReexportSpecifier[]
 		} = {};
@@ -567,6 +567,12 @@ export default class Chunk {
 				reexported: name[0] === '*' ? '*' : name
 			});
 		}
+
+		return reexportDeclarations;
+	}
+
+	private getChunkDependencyDeclarations (): ChunkDependencies {
+		const reexportDeclarations = this.getCheckReexportDeclarations();
 
 		const dependencies: ChunkDependencies = [];
 
@@ -610,6 +616,10 @@ export default class Chunk {
 			});
 		});
 
+		return dependencies;
+	}
+
+	private getChunkExportDeclarations (): ChunkExports {
 		const exports: ChunkExports = [];
 		for (let name in this.exports) {
 			const expt = this.exports[name];
@@ -637,8 +647,14 @@ export default class Chunk {
 				hoisted
 			});
 		}
+		return exports;
+	}
 
-		return { dependencies, exports };
+	getModuleDeclarations (): ModuleDeclarations {
+		return {
+			dependencies: this.getChunkDependencyDeclarations(),
+			exports: this.getChunkExportDeclarations()
+		};
 	}
 
 	render (options: OutputOptions) {
