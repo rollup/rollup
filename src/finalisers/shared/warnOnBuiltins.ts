@@ -27,8 +27,7 @@ const builtins = {
 // Creating a browser chunk that depends on Node.js built-in modules ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins
 
 export default function warnOnBuiltins (chunk: Chunk) {
-	const externalBuiltins = chunk.dependencies
-		.map(module => module.id)
+	const externalBuiltins = chunk.getImportIds()
 		.filter(id => id in builtins)
 
 	if (!externalBuiltins.length) return;

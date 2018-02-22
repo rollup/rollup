@@ -70,14 +70,14 @@ export default class Chunk {
 	id: string;
 	name: string;
 	graph: Graph;
-	orderedModules: Module[];
+	private orderedModules: Module[];
 
 	// this represents the chunk module wrappings
 	// which form the output dependency graph
 
 	// map from variable exported by this chunk to its safe exported name
-	exportedVariables: Map<Variable, string>;
-	imports: {
+	private exportedVariableNames: Map<Variable, string>;
+	private imports: {
 		module: Chunk | ExternalModule;
 		variables: {
 			// the name of the export this import corresponds to
@@ -86,7 +86,7 @@ export default class Chunk {
 			variable: Variable;
 		}[];
 	}[];
-	exports: {
+	private exports: {
 		[safeName: string]: {
 			// module can be in or out of chunk
 			// if module is out of the chunk then it is a reexport
@@ -96,7 +96,7 @@ export default class Chunk {
 			variable: Variable;
 		}
 	};
-	dependencies: (ExternalModule | Chunk)[];
+	private dependencies: (ExternalModule | Chunk)[];
 	externalModules: ExternalModule[];
 	// an entry module chunk is a chunk that exactly exports the exports of
 	// an input entry point module
@@ -107,16 +107,14 @@ export default class Chunk {
 		this.graph = graph;
 		this.orderedModules = orderedModules;
 
-		this.exportedVariables = new Map();
+		this.exportedVariableNames = new Map();
 		this.imports = [];
 		this.exports = {};
 		this.externalModules = undefined;
 
 		this.dependencies = undefined;
 		this.entryModule = undefined;
-		this.isEntryModuleFacade = false;
-		if (orderedModules.length === 0)
-			this.isEntryModuleFacade = true;
+		this.isEntryModuleFacade = orderedModules.length === 0;
 		orderedModules.forEach(module => {
 			if (module.isEntryPoint) {
 				if (!this.entryModule) {
@@ -140,7 +138,7 @@ export default class Chunk {
 	// as this might result in exposing an internal module which taints an entryModule chunk
 	ensureExport (module: Module | ExternalModule, variable: Variable, exportName: string): string {
 		// assert(module.chunk === this || module.isExternal);
-		let safeExportName = this.exportedVariables.get(variable);
+		let safeExportName = this.exportedVariableNames.get(variable);
 		if (safeExportName) {
 			return safeExportName;
 		}
@@ -153,7 +151,7 @@ export default class Chunk {
 		variable.exportName = safeExportName;
 
 		this.exports[safeExportName] = { module, name: safeExportName, variable };
-		this.exportedVariables.set(variable, safeExportName);
+		this.exportedVariableNames.set(variable, safeExportName);
 
 		// if we've just exposed an export of a non-entry-point or had to use a safe name,
 		// then note we are no longer an entry point chunk
@@ -181,7 +179,7 @@ export default class Chunk {
 				name: tracedName,
 				variable
 			};
-			this.exportedVariables.set(variable, exportName);
+			this.exportedVariableNames.set(variable, exportName);
 		});
 	}
 
@@ -525,7 +523,7 @@ export default class Chunk {
 					if (es || system || !variable.isReassigned || variable.isId) {
 						safeName = getSafeName(variable.name);
 					} else {
-						const safeExportName = this.exportedVariables.get(variable);
+						const safeExportName = this.exportedVariableNames.get(variable);
 						if (safeExportName) {
 							safeName = `exports.${safeExportName}`;
 						} else {
