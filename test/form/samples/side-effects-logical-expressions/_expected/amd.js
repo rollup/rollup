@@ -37,4 +37,10 @@ define(function () { 'use strict';
 	(true && x.y)();
 	(false || x.y)();
 
+	// do not need to maintain context
+	f(x.y);
+	f(true);
+	f(x.y);
+	f(false);
+
 });

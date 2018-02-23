@@ -7,6 +7,7 @@ import { ForEachReturnExpressionCallback, PredicateFunction, SomeReturnExpressio
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { RenderOptions } from '../../Module';
+import CallExpression from './CallExpression';
 
 export type LogicalOperator = '||' | '&&';
 
@@ -91,7 +92,9 @@ export default class LogicalExpression extends NodeBase {
 			const leftValue = this.left.getValue();
 			if (
 				leftValue === UNKNOWN_VALUE ||
-				(this.parent.type === NodeType.CallExpression && this.right.type === NodeType.MemberExpression)
+					(this.parent.type === NodeType.CallExpression &&
+						(<CallExpression>this.parent).callee === this &&
+						this.right.type === NodeType.MemberExpression)
 			) {
 				super.render(code, options);
 			} else {
