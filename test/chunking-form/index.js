@@ -15,7 +15,7 @@ describe('chunking form', () => {
 
 		const config = loadConfig(samples + '/' + dir + '/_config.js');
 
-		if (config.skipIfWindows && process.platform === 'win32') return;
+		if ( !config || (config.skipIfWindows && process.platform === 'win32') ) return;
 		if (!config.options) {
 			config.options = {};
 		}
