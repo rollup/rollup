@@ -11,9 +11,10 @@ describe('sourcemaps', () => {
 	sander.readdirSync(samples).sort().forEach(dir => {
 		if (dir[0] === '.') return; // .DS_Store...
 
-		describe(dir, () => {
-			const config = loadConfig(samples + '/' + dir + '/_config.js');
+		const config = loadConfig( samples + '/' + dir + '/_config.js' );
+		if ( !config ) return;
 
+		describe( dir, () => {
 			const input = path.resolve(samples, dir, 'main.js');
 			const output = path.resolve(samples, dir, '_actual/bundle');
 
