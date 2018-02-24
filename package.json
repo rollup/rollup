@@ -26,7 +26,8 @@
     "watch": "rollup -cw",
     "prepublishOnly": "npm run lint && npm run test && npm run test:leak",
     "prepare": "npm run build",
-    "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js"
+    "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js",
+    "precommit": "lint-staged"
   },
   "repository": "rollup/rollup",
   "keywords": [
@@ -65,13 +66,16 @@
     "eslint": "^4.17.0",
     "eslint-plugin-import": "^2.8.0",
     "fixturify": "^0.3.4",
+    "husky": "^0.14.3",
     "immutable": "^3.8.2",
     "is-reference": "^1.1.0",
     "istanbul": "^0.4.3",
+    "lint-staged": "^7.0.0",
     "locate-character": "^2.0.5",
     "magic-string": "^0.22.4",
     "minimist": "^1.2.0",
     "mocha": "^5.0.1",
+    "prettier": "^1.10.2",
     "pretty-ms": "^3.1.0",
     "remap-istanbul": "^0.10.1",
     "require-relative": "^0.8.7",
@@ -101,5 +105,12 @@
     "typings/package.json.d.ts",
     "bin/rollup",
     "README.md"
-  ]
+  ],
+  "dependencies": {},
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "git add"
+    ]
+  }
 }
