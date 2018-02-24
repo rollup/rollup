@@ -85,8 +85,10 @@ function loadConfig ( configFile ) {
 	} catch ( err ) {
 		if ( err.code === 'MODULE_NOT_FOUND' ) {
 			const dir = path.dirname( configFile );
-			console.warn( `Test configuration ${configFile} not found.\nRemoving directory as this test probably no longer exists.` );
-			sander.rimrafSync( dir );
+			console.warn( `Test configuration ${configFile} not found.\nTrying to clean up no longer existing test...` );
+			sander.rimrafSync( path.join( dir, '_actual' ) );
+			sander.rmdirSync( dir );
+			console.warn( 'Directory removed.' );
 		} else {
 			throw new Error( `Failed to load ${path}: ${err.message}` );
 		}
