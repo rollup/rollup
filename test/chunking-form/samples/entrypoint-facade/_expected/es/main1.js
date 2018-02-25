@@ -1,3 +1,3 @@
-import log, { dep } from './chunk1.js';
+import log, { default$1 as dep } from './chunk1.js';
 
 log(dep);

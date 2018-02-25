@@ -3,9 +3,9 @@
 var __chunk1_js = require('./chunk1.js');
 var __chunk3_js = require('./chunk3.js');
 
-var x = x + 1;
+var x = __chunk1_js.default + 1;
 
-var y = x + 1;
+var y = __chunk3_js.default + 1;
 
-exports.x = x;
-exports.y = y;
+exports.default = x;
+exports.default$1 = y;

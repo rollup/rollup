@@ -6,4 +6,4 @@ var __chunk1_js = require('./chunk1.js');
 
 
 
-exports.ItemOne = __chunk1_js.ItemOne;
+exports.ItemOne = __chunk1_js.One;
