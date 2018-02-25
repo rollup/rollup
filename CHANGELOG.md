@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.56.3
+* Improve code-splitting tests ([#1990](https://github.com/rollup/rollup/pull/1990))
+
 ## 0.56.2
 * Fix handling of reassigned default exports ([#1975](https://github.com/rollup/rollup/pull/1975))
 * Fix handling of renamed exports in entry points ([#1977](https://github.com/rollup/rollup/pull/1977))
