@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.56.4/0.57.0 (unreleased)
+* Automatically clean up outdated tests ([#2009](https://github.com/rollup/rollup/pull/2009))
+
 ## 0.56.3
 * Fix issues around default exports and module facades ([#2001](https://github.com/rollup/rollup/pull/2001))
 * Improve and fix internal chunk interface ([#1994](https://github.com/rollup/rollup/pull/1994))

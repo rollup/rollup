@@ -1,4 +1,6 @@
-const assert = require('assert');
+const assert = require( 'assert' );
+const path = require( 'path' );
+const sander = require( 'sander' );
 
 exports.compareError = compareError;
 exports.compareWarnings = compareWarnings;
@@ -77,15 +79,19 @@ function extend(target) {
 	return target;
 }
 
-function loadConfig(path) {
+function loadConfig ( configFile ) {
 	try {
-		return require(path);
-	} catch (err) {
-		console.error(err.message);
-		console.error(err.stack);
-		throw new Error(
-			`Failed to load ${path}. An old test perhaps? You should probably delete the directory`
-		);
+		return require( configFile );
+	} catch ( err ) {
+		if ( err.code === 'MODULE_NOT_FOUND' ) {
+			const dir = path.dirname( configFile );
+			console.warn( `Test configuration ${configFile} not found.\nTrying to clean up no longer existing test...` );
+			sander.rimrafSync( path.join( dir, '_actual' ) );
+			sander.rmdirSync( dir );
+			console.warn( 'Directory removed.' );
+		} else {
+			throw new Error( `Failed to load ${path}: ${err.message}` );
+		}
 	}
 }
 
