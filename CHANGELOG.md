@@ -1,6 +1,7 @@
 # rollup changelog
 
 ## 0.56.3
+* Improve and fix internal chunk interface ([#1994](https://github.com/rollup/rollup/pull/1994))
 * Improve code-splitting tests ([#1990](https://github.com/rollup/rollup/pull/1990))
 
 ## 0.56.2

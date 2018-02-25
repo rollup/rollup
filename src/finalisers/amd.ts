@@ -49,7 +49,7 @@ export default function amd (
 	)}) {${useStrict}\n\n`;
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(chunk, options);
+	const interopBlock = getInteropBlock(dependencies, options, chunk.graph.varOrConst);
 	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
 
 	if (intro) magicString.prepend(intro);

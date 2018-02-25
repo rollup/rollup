@@ -1,13 +1,14 @@
-import Module from "../../Module";
-import ExternalModule from "../../ExternalModule";
+import { ModuleDeclarationDependency } from "../../Chunk";
 
-export default function trimEmptyImports (modules: (Module | ExternalModule)[]) {
-	let i = modules.length;
+export default function trimEmptyImports (dependencies: ModuleDeclarationDependency[]) {
+	let i = dependencies.length;
 
 	while (i--) {
-		const module = modules[i];
-		if (Object.keys(module.declarations).length > 0) {
-			return modules.slice(0, i + 1);
+		const dependency = dependencies[i];
+		if (dependency.exportsDefault ||
+				dependency.exportsNames ||
+				dependency.exportsNamespace) {
+			return dependencies.slice(0, i + 1);
 		}
 	}
 

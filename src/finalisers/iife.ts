@@ -11,7 +11,6 @@ import { isLegal } from '../utils/identifierHelpers';
 import Chunk from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
-import ExternalModule from '../ExternalModule';
 
 const thisProp = (name: string) => `this${keypath(name)}`;
 
@@ -29,7 +28,7 @@ export default function iife (
 ) {
 	const globalNameMaker = getGlobalNameMaker(
 		options.globals || blank(),
-		chunk,
+		chunk.graph,
 		'null'
 	);
 
@@ -48,9 +47,9 @@ export default function iife (
 
 	warnOnBuiltins(chunk);
 
-	const external = trimEmptyImports(chunk.externalModules);
+	const external = trimEmptyImports(moduleDeclarations.dependencies);
 	const dependencies = external.map(globalNameMaker);
-	const args = (<ExternalModule[]>external).map(m => m.name);
+	const args = external.map(m => m.name);
 
 	if (exportMode !== 'none' && !name) {
 		error({
@@ -90,7 +89,7 @@ export default function iife (
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(chunk, options);
+	const interopBlock = getInteropBlock(moduleDeclarations.dependencies, options, chunk.graph.varOrConst);
 	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
 
 	if (intro) magicString.prepend(intro);

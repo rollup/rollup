@@ -11,7 +11,6 @@ import setupNamespace from './shared/setupNamespace';
 import Chunk from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
-import ExternalModule from '../ExternalModule';
 
 function globalProp (name: string) {
 	if (!name) return 'null';
@@ -52,17 +51,17 @@ export default function umd (
 
 	const globalNameMaker = getGlobalNameMaker(
 		options.globals || blank(),
-		chunk
+		chunk.graph
 	);
 
-	const amdDeps = chunk.externalModules.map(m => `'${getPath(m.id)}'`);
-	const cjsDeps = chunk.externalModules.map(
+	const amdDeps = moduleDeclarations.dependencies.map(m => `'${getPath(m.id)}'`);
+	const cjsDeps = moduleDeclarations.dependencies.map(
 		m => `require('${getPath(m.id)}')`
 	);
 
-	const trimmed = trimEmptyImports(chunk.externalModules);
+	const trimmed = trimEmptyImports(moduleDeclarations.dependencies);
 	const globalDeps = trimmed.map(module => globalProp(globalNameMaker(module)));
-	const args = trimmed.map(m => (<ExternalModule>m).name);
+	const args = trimmed.map(m => m.name);
 
 	if (exportMode === 'named') {
 		amdDeps.unshift(`'exports'`);
@@ -129,7 +128,7 @@ export default function umd (
 		.replace(/^\t/gm, indentString || '\t');
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(chunk, options);
+	const interopBlock = getInteropBlock(moduleDeclarations.dependencies, options, chunk.graph.varOrConst);
 	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
 
 	if (intro) magicString.prepend(intro);

@@ -1,29 +1,19 @@
 import { OutputOptions } from "../../rollup/index";
-import Chunk from "../../Chunk";
+import { ModuleDeclarationDependency } from "../../Chunk";
 
-export default function getInteropBlock (chunk: Chunk, options: OutputOptions) {
-	return chunk.externalModules
-		.map(module => {
-			if (!module.declarations.default || options.interop === false)
+export default function getInteropBlock (dependencies: ModuleDeclarationDependency[], options: OutputOptions, varOrConst: string) {
+	return dependencies
+		.map(({ name, exportsNamespace, exportsNames, exportsDefault }) => {
+			if (!exportsDefault || options.interop === false)
 				return null;
 
-			if (module.exportsNamespace) {
-				return `${chunk.graph.varOrConst} ${module.name}__default = ${
-					module.name
-					}['default'];`;
-			}
+			if (exportsNamespace)
+				return `${varOrConst} ${name}__default = ${name}['default'];`;
 
-			if (module.exportsNames) {
-				return `${chunk.graph.varOrConst} ${module.name}__default = 'default' in ${
-					module.name
-					} ? ${module.name}['default'] : ${module.name};`;
-			}
+			if (exportsNames)
+				return `${varOrConst} ${name}__default = 'default' in ${name} ? ${name}['default'] : ${name};`;
 
-			return `${module.name} = ${module.name} && ${
-				module.name
-				}.hasOwnProperty('default') ? ${module.name}['default'] : ${
-				module.name
-				};`;
+			return `${name} = ${name} && ${name}.hasOwnProperty('default') ? ${name}['default'] : ${name};`;
 		})
 		.filter(Boolean)
 		.join('\n');
