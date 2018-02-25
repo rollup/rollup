@@ -1,10 +1,13 @@
 import { UNKNOWN_VALUE } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
+import MagicString from 'magic-string';
 import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ForEachReturnExpressionCallback, PredicateFunction, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
+import { RenderOptions } from '../../Module';
+import CallExpression from './CallExpression';
 
 export type LogicalOperator = '||' | '&&';
 
@@ -80,6 +83,31 @@ export default class LogicalExpression extends NodeBase {
 		return this._someRelevantBranch(node =>
 			node.hasEffectsWhenCalledAtPath(path, callOptions, options)
 		);
+	}
+
+	render (code: MagicString, options: RenderOptions) {
+		if (!this.module.graph.treeshake) {
+			super.render(code, options);
+		} else {
+			const leftValue = this.left.getValue();
+			if (
+				leftValue === UNKNOWN_VALUE ||
+					(this.parent.type === NodeType.CallExpression &&
+						(<CallExpression>this.parent).callee === this &&
+						this.right.type === NodeType.MemberExpression)
+			) {
+				super.render(code, options);
+			} else {
+				const branchToRetain = !!leftValue !== (this.operator === '&&') ? this.left : this.right;
+				code.remove(this.start, branchToRetain.start);
+				code.remove(branchToRetain.end, this.end);
+				if (branchToRetain.type === NodeType.SequenceExpression) {
+					code.prependLeft(branchToRetain.start, '(');
+					code.appendRight(branchToRetain.end, ')');
+				}
+				branchToRetain.render(code, options);
+			}
+		}
 	}
 
 	someReturnExpressionWhenCalledAtPath (

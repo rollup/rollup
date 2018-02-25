@@ -53,3 +53,13 @@ const foo = {
 (false && (() => () => {}))()();
 (false || (() => () => console.log( 'effect' )))()();
 (true && (() => () => console.log( 'effect' )))()();
+
+// should maintain this context
+(true && x.y)();
+(false || x.y)();
+
+// do not need to maintain context
+f(true && x.y);
+f(true || x.y);
+f(false || x.y);
+f(false && x.y);

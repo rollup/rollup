@@ -5,8 +5,8 @@
 }(this, (function () { 'use strict';
 
 	// effect
-	false || console.log( 'effect' );
-	true && console.log( 'effect' );
+	console.log( 'effect' );
+	console.log( 'effect' );
 	console.log( 'effect' ) || {};
 	console.log( 'effect' ) && {};
 
@@ -18,23 +18,33 @@
 	};
 
 	// effect
-	(false || foo).effect;
-	(true && foo).effect;
+	(foo).effect;
+	(foo).effect;
 
 	// effect
-	(false || null).foo = 1;
-	(true && null).foo = 1;
+	(null).foo = 1;
+	(null).foo = 1;
 
 	// effect
-	(true || (() => {}))();
-	(false && (() => {}))();
-	(false || (() => console.log( 'effect' )))();
-	(true && (() => console.log( 'effect' )))();
+	(true)();
+	(false)();
+	(() => console.log( 'effect' ))();
+	(() => console.log( 'effect' ))();
 
 	// effect
-	(true || (() => () => {}))()();
-	(false && (() => () => {}))()();
-	(false || (() => () => console.log( 'effect' )))()();
-	(true && (() => () => console.log( 'effect' )))()();
+	(true)()();
+	(false)()();
+	(() => () => console.log( 'effect' ))()();
+	(() => () => console.log( 'effect' ))()();
+
+	// should maintain this context
+	(true && x.y)();
+	(false || x.y)();
+
+	// do not need to maintain context
+	f(x.y);
+	f(true);
+	f(x.y);
+	f(false);
 
 })));
