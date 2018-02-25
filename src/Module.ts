@@ -467,11 +467,7 @@ export default class Module {
 		});
 	}
 
-	private getOriginalLocation (sourcemapChain: RawSourceMap[], line: number, column: number) {
-		let location = {
-			line,
-			column
-		};
+	private getOriginalLocation (sourcemapChain: RawSourceMap[], location: { line: number, column: number } ) {
 		const filteredSourcemapChain = sourcemapChain
 			.filter(sourcemap => sourcemap.mappings)
 			.map(sourcemap => {
@@ -496,12 +492,21 @@ export default class Module {
 		if (pos !== undefined) {
 			props.pos = pos;
 
-			const { line, column } = locate(this.code, pos, { offsetLine: 1 });
-			const location = this.getOriginalLocation(
-				this.sourcemapChain,
-				line,
-				column
-			);
+			let location = locate(this.code, pos, { offsetLine: 1 });
+			try {
+				location = this.getOriginalLocation(this.sourcemapChain, location);
+			} catch (e) {
+				this.warn({
+					loc: {
+						file: this.id,
+						line: location.line,
+						column: location.column
+					},
+					pos: pos,
+					message: `Error when using sourcemap for reporting an error: ${e.message}`,
+					code: 'SOURCEMAP_ERROR'
+				}, undefined);
+			}
 
 			props.loc = {
 				file: this.id,
