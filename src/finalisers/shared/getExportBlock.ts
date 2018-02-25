@@ -45,10 +45,10 @@ export default function getExportBlock (
 		}
 	});
 
-	dependencies.forEach(({ name, imports, reexports }) => {
+	dependencies.forEach(({ name, imports, reexports, isChunk }) => {
 		if (reexports && exportMode !== 'default') {
 			reexports.forEach(specifier => {
-				if (specifier.imported === 'default') {
+				if (specifier.imported === 'default' && !isChunk) {
 					const exportsNamesOrNamespace = imports && 
 						imports.some(specifier => specifier.imported === '*' || specifier.imported !== 'default') ||
 						reexports && reexports.some(specifier => specifier.imported !== 'default' && specifier.imported !== '*');

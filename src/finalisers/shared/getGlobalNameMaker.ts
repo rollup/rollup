@@ -1,26 +1,25 @@
-import Chunk from "../../Chunk";
-import Module from "../../Module";
 import { GlobalsOption } from "../../rollup/index";
-import ExternalModule from "../../ExternalModule";
+import Graph from "../../Graph";
+import { ModuleDeclarationDependency } from "../../Chunk";
 
-export default function getGlobalNameMaker (globals: GlobalsOption, chunk: Chunk, fallback: string = null) {
+export default function getGlobalNameMaker (globals: GlobalsOption, graph: Graph, fallback: string = null) {
 	const fn = typeof globals === 'function' ? globals : (id: string) => globals[id];
 
-	return function (module: Module | ExternalModule) {
-		const name = fn(module.id);
+	return function (dependency: ModuleDeclarationDependency) {
+		const name = fn(dependency.id);
 		if (name) return name;
 
-		if (Object.keys(module.declarations).length > 0) {
-			chunk.graph.warn({
+		if (dependency.exportsDefault || dependency.exportsNames || dependency.exportsNamespace) {
+			graph.warn({
 				code: 'MISSING_GLOBAL_NAME',
 				source: module.id,
-				guess: (<ExternalModule>module).name,
+				guess: dependency.name,
 				message: `No name was provided for external module '${
 					module.id
-					}' in options.globals – guessing '${(<ExternalModule>module).name}'`
+					}' in options.globals – guessing '${dependency.name}'`
 			});
 
-			return (<ExternalModule>module).name;
+			return dependency.name;
 		}
 
 		return fallback;

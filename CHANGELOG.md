@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 0.56.3
+* Fix issues around default exports and module facades ([#2001](https://github.com/rollup/rollup/pull/2001))
+* Improve and fix internal chunk interface ([#1994](https://github.com/rollup/rollup/pull/1994))
+* Fix superfluous semicolons added after declarations ([#1999](https://github.com/rollup/rollup/pull/1999))
+* Improve code-splitting tests ([#1990](https://github.com/rollup/rollup/pull/1990))
+
 ## 0.56.2
 * Fix handling of reassigned default exports ([#1975](https://github.com/rollup/rollup/pull/1975))
 * Fix handling of renamed exports in entry points ([#1977](https://github.com/rollup/rollup/pull/1977))

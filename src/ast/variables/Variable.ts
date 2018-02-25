@@ -10,6 +10,7 @@ export default class Variable implements ExpressionEntity {
 	included: boolean;
 	isExternal?: boolean;
 	isGlobal?: boolean;
+	isDefault?: boolean;
 	isNamespace?: boolean;
 	isReassigned: boolean;
 	isId: boolean;

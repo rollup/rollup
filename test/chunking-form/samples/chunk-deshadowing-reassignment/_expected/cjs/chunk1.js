@@ -2,4 +2,4 @@
 
 var x = 42;
 
-exports.x = x;
+exports.default = x;
