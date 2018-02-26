@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import typescript from 'rollup-plugin-typescript';
-import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
+import resolve from 'rollup-plugin-node-resolve';
 import string from 'rollup-plugin-string';
+import typescript from 'rollup-plugin-typescript';
 import pkg from './package.json';
 
 const commitHash = (function () {
@@ -23,6 +23,13 @@ const banner = `/*
 
 	Released under the MIT License.
 */`;
+
+const onwarn = warning => {
+	// eslint-disable-next-line no-console
+	console.error( 'Building Rollup produced warnings that need to be resolved. ' +
+		'Please keep in mind that the browser build may never have external dependencies!' );
+	throw new Error( warning.message );
+};
 
 const src = path.resolve( 'src' );
 const bin = path.resolve( 'bin' );
@@ -54,6 +61,7 @@ export default [
 	/* rollup.js and rollup.es.js */
 	{
 		input: 'src/node-entry.ts',
+		onwarn,
 		plugins: [
 			json(),
 			resolveTypescript(),
@@ -73,6 +81,7 @@ export default [
 	/* rollup.browser.js */
 	{
 		input: 'src/browser-entry.ts',
+		onwarn,
 		plugins: [
 			json(),
 			{
@@ -102,6 +111,7 @@ export default [
 	/* bin/rollup */
 	{
 		input: 'bin/src/index.ts',
+		onwarn,
 		plugins: [
 			string( { include: '**/*.md' } ),
 			json(),
