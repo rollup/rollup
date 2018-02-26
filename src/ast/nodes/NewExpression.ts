@@ -1,8 +1,8 @@
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
+import { ObjectPath } from '../values';
 
 export default class NewExpression extends NodeBase {
 	type: NodeType.NewExpression;

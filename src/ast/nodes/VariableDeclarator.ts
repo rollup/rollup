@@ -1,9 +1,9 @@
-import { NodeBase, ExpressionNode } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
+import { ObjectPath } from '../values';
 
 export default class VariableDeclarator extends NodeBase {
 	type: NodeType.VariableDeclarator;

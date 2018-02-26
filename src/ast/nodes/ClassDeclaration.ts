@@ -3,8 +3,8 @@ import Scope from '../scopes/Scope';
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
 import { Node } from './shared/Node';
+import { RenderOptions } from '../../utils/renderHelpers';
 
 export function isClassDeclaration (node: Node): node is ClassDeclaration {
 	return node.type === NodeType.ClassDeclaration;

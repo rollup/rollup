@@ -1,8 +1,8 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { PatternNode } from './shared/Pattern';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
+import { ObjectPath } from '../values';
 
 export default class AssignmentExpression extends NodeBase {
 	type: NodeType.AssignmentExpression;

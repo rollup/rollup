@@ -1,13 +1,12 @@
-import { NodeBase, Node, ExpressionNode } from './shared/Node';
+import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import CallOptions from '../CallOptions';
-import { UNKNOWN_EXPRESSION } from '../values';
+import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
+import { RenderOptions } from '../../utils/renderHelpers';
 
 export function isProperty (node: Node): node is Property {
 	return node.type === NodeType.Property;

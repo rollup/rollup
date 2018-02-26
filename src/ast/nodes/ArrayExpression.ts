@@ -1,11 +1,10 @@
 import SpreadElement from './SpreadElement';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { SomeReturnExpressionCallback } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { hasMemberEffectWhenCalled, arrayMembers, someMemberReturnExpressionWhenCalled } from '../values';
+import { arrayMembers, hasMemberEffectWhenCalled, ObjectPath, someMemberReturnExpressionWhenCalled } from '../values';
 
 export default class ArrayExpression extends NodeBase {
 	type: NodeType.ArrayExpression;

@@ -2,12 +2,12 @@ import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import SpreadElement from './SpreadElement';
 import { isGlobalVariable } from '../variables/GlobalVariable';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { isIdentifier } from './Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { isNamespaceVariable } from '../variables/NamespaceVariable';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
+import { ObjectPath } from '../values';
 
 export default class CallExpression extends NodeBase {
 	type: NodeType.CallExpression;
