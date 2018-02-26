@@ -69,6 +69,7 @@
     "is-reference": "^1.1.0",
     "istanbul": "^0.4.3",
     "locate-character": "^2.0.5",
+    "lodash-es": "^4.17.5",
     "magic-string": "^0.22.4",
     "minimist": "^1.2.0",
     "mocha": "^5.0.1",
@@ -91,7 +92,8 @@
     "source-map-support": "^0.5.3",
     "sourcemap-codec": "^1.4.0",
     "typescript": "^2.7.2",
-    "uglify-js": "^3.3.10"
+    "uglify-js": "^3.3.10",
+    "walk-sync": "^0.3.2"
   },
   "files": [
     "dist/rollup.browser.js",

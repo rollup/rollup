@@ -1,0 +1,19 @@
+'use strict';
+
+var __identity_js = require('./identity.js');
+var ___metaMap_js = require('./_metaMap.js');
+
+/**
+ * The base implementation of `setData` without support for hot loop shorting.
+ *
+ * @private
+ * @param {Function} func The function to associate metadata with.
+ * @param {*} data The metadata.
+ * @returns {Function} Returns `func`.
+ */
+var baseSetData = !___metaMap_js.default ? __identity_js.default : function(func, data) {
+  ___metaMap_js.default.set(func, data);
+  return func;
+};
+
+module.exports = baseSetData;
