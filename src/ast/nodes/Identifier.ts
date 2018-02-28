@@ -149,7 +149,7 @@ export default class Identifier extends NodeBase {
 						break;
 					}
 					code.overwrite(expression.start, expression.end,
-						`(exports(${this.variable.exportName}, ${op}), ${name}${expression.operator})`);
+						`(exports('${this.variable.exportName}', ${op}), ${name}${expression.operator})`);
 				}
 			}
 			break;

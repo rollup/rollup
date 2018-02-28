@@ -105,7 +105,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			`${this.module.graph.varOrConst} ${this.variable.getName()} = ${systemBinding}`
 		);
 		if (systemBinding) {
-			code.prependRight(this.end - 1, ')');
+			code.appendRight(code.original[this.end - 1] === ';' ? this.end - 1 : this.end, ')');
 		}
 	}
 

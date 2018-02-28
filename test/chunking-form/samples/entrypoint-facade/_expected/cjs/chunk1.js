@@ -1,6 +1,6 @@
 'use strict';
 
-var dep = 42;
+var dep = { x: 42 }
 
 function log (x) {
   if (dep) {
