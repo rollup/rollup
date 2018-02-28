@@ -14,7 +14,6 @@ export default class ExportDefaultVariable extends LocalVariable {
 		super(name, exportDefaultDeclaration, exportDefaultDeclaration.declaration);
 		this.isDefault = true;
 		this.hasId = !!(<FunctionDeclaration | ClassDeclaration>exportDefaultDeclaration.declaration).id;
-		this.exportName = 'default';
 	}
 
 	addReference (identifier: Identifier) {

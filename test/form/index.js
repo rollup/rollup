@@ -6,7 +6,7 @@ const { extend, loadConfig, normaliseOutput } = require('../utils.js');
 
 const samples = path.resolve(__dirname, 'samples');
 
-const FORMATS = ['amd', 'cjs', 'es', 'iife', 'umd'];
+const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
 describe('form', () => {
 	sander.readdirSync(samples).sort().forEach(dir => {

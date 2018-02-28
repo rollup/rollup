@@ -446,8 +446,7 @@ export default class Chunk {
 
 	private setIdentifierRenderResolutions (options: OutputOptions) {
 		const used = blank();
-		const es = options.format === 'es';
-		const system = options.format === 'system';
+		const es = options.format === 'es' || options.format === 'system';
 
 		// ensure no conflicts with globals
 		Object.keys(this.graph.scope.variables).forEach(name => (used[name] = 1));
@@ -462,7 +461,7 @@ export default class Chunk {
 		}
 
 		// reserved internal binding names for system format wiring
-		if (system) {
+		if (options.format === 'system') {
 			used['_setter'] = used['_starExcludes'] = used['_$p'] = 1;
 		}
 
@@ -491,13 +490,13 @@ export default class Chunk {
 							safeName = module.name;
 						}
 					} else {
-						safeName = (es || system) ? variable.name : `${module.name}.${name}`;
+						safeName = es ? variable.name : `${module.name}.${name}`;
 					}
-					if (es || system) {
+					if (es) {
 						safeName = getSafeName(safeName);
 						toDeshadow.add(safeName);
 					}
-				} else if (es || system) {
+				} else if (es) {
 					safeName = getSafeName(variable.name);
 				} else {
 					safeName = `${(<Module>module).chunk.name}.${name}`;
@@ -514,7 +513,7 @@ export default class Chunk {
 				}
 				if (!variable.isDefault || !(<ExportDefaultVariable>variable).hasId) {
 					let safeName;
-					if (es || system || !variable.isReassigned || variable.isId) {
+					if (es || !variable.isReassigned || variable.isId) {
 						safeName = getSafeName(variable.name);
 					} else {
 						const safeExportName = this.exportedVariableNames.get(variable);

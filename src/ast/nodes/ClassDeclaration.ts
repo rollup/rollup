@@ -24,8 +24,8 @@ export default class ClassDeclaration extends ClassNode {
 	}
 
 	render (code: MagicString, options: RenderOptions) {
-		if (options.systemBindings && this.id.variable.exportName) {
-			code.appendRight(this.end, ` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`);
+		if (options.systemBindings && this.id && this.id.variable.exportName) {
+			code.overwrite(this.end - 1, this.end, `} exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`);
 		}
 		super.render(code, options);
 	}
