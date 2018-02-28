@@ -106,7 +106,6 @@
     "bin/rollup",
     "README.md"
   ],
-  "dependencies": {},
   "lint-staged": {
     "*.ts": [
       "prettier --write",
