@@ -7,6 +7,4 @@ define(['exports', '../lib/lib2.js'], function (exports, __lib_lib2_js) { 'use s
 
   exports.fn = fn;
 
-  Object.defineProperty(exports, '__esModule', { value: true });
-
 });

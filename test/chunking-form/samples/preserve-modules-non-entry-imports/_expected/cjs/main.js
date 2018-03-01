@@ -1,7 +1,8 @@
 'use strict';
 
-var __dep1_js = require('./dep1.js');
+require('./dep1.js');
+var __dep2_js = require('./dep2.js');
 
 
 
-module.exports = __dep1_js.default;
+module.exports = __dep2_js.default;

@@ -28,12 +28,3 @@ export function randomUint8Array(len: number) {
 	for (let i = 0; i < buffer.length; i++) buffer[i] = Math.random() * (2 << 8);
 	return buffer;
 }
-
-export function isZero(buffer: Uint8Array) {
-	for (let i = 0; i < buffer.length; i++) {
-		if (buffer[i] !== 0) {
-			return false;
-		}
-	}
-	return true;
-}

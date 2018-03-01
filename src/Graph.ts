@@ -28,12 +28,7 @@ import { Node } from './ast/nodes/shared/Node';
 import Chunk from './Chunk';
 import * as path from './utils/path';
 import GlobalScope from './ast/scopes/GlobalScope';
-import {
-	randomUint8Array,
-	Uint8ArrayXor,
-	Uint8ArrayToHexString,
-	isZero
-} from './utils/entryHashing';
+import { randomUint8Array, Uint8ArrayXor, Uint8ArrayToHexString } from './utils/entryHashing';
 import { blank } from './utils/object';
 import firstSync from './utils/first-sync';
 import commondir from './utils/commondir';
@@ -376,41 +371,41 @@ export default class Graph {
 				//       exposed as an unresolvable export * (to a graph external export *,
 				//       either as a namespace import reexported or top-level export *)
 				//       should be made to be its own entry point module before chunking
-				const chunkModules: { [entryHashSum: string]: Module[] } = {};
-				orderedModules.forEach(module => {
-					const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
-					let curChunk = chunkModules[entryPointsHashStr];
-					if (curChunk) {
-						curChunk.push(module);
-					} else {
-						chunkModules[entryPointsHashStr] = [module];
-					}
-				});
-
-				// create each chunk
 				const chunkList: Chunk[] = [];
-				Object.keys(chunkModules).forEach(entryHashSum => {
-					const chunk = chunkModules[entryHashSum];
-					const chunkModulesOrdered = chunk.sort(
-						(moduleA, moduleB) => (moduleA.execIndex > moduleB.execIndex ? 1 : -1)
-					);
-					chunkList.push(new Chunk(this, chunkModulesOrdered));
-				});
+				if (!preserveModules) {
+					const chunkModules: { [entryHashSum: string]: Module[] } = {};
+					orderedModules.forEach(module => {
+						const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
+						let curChunk = chunkModules[entryPointsHashStr];
+						if (curChunk) {
+							curChunk.push(module);
+						} else {
+							chunkModules[entryPointsHashStr] = [module];
+						}
+					});
+
+					// create each chunk
+					Object.keys(chunkModules).forEach(entryHashSum => {
+						const chunk = chunkModules[entryHashSum];
+						const chunkModulesOrdered = chunk.sort(
+							(moduleA, moduleB) => (moduleA.execIndex > moduleB.execIndex ? 1 : -1)
+						);
+						chunkList.push(new Chunk(this, chunkModulesOrdered));
+					});
+				} else {
+					orderedModules.forEach(module => {
+						const chunkInstance = new Chunk(this, [module]);
+						chunkInstance.entryModule = module;
+						chunkInstance.isEntryModuleFacade = true;
+						chunkList.push(chunkInstance);
+					});
+				}
 
 				// for each entry point module, ensure its exports
 				// are exported by the chunk itself, with safe name deduping
 				entryModules.forEach(entryModule => {
 					entryModule.chunk.generateEntryExports(entryModule);
 				});
-				if (preserveModules) {
-					// preserve the links between modules
-					// (normally lost when combining modules into chunks)
-					orderedModules.forEach(module => {
-						if (entryModules.indexOf(module) === -1) {
-							module.chunk.generateEntryExports(module, preserveModules);
-						}
-					});
-				}
 				// for each chunk module, set up its imports to other
 				// chunks, if those variables are included after treeshaking
 				chunkList.forEach(chunk => {
@@ -447,7 +442,7 @@ export default class Graph {
 
 						// if the chunk exactly exports the entry point exports then
 						// it can replace the entry point
-						if (chunk.isEntryModuleFacade) {
+						if (chunk.isEntryModuleFacade || preserveModules) {
 							chunks['./' + entryName] = chunk;
 							chunk.setId('./' + entryName);
 							return;
@@ -495,9 +490,6 @@ export default class Graph {
 			// This is really all there is to automated chunking, the rest is chunk wiring.
 			if (!preserveModules) {
 				Uint8ArrayXor(module.entryPointsHash, curEntryHash);
-			} else if (isZero(module.entryPointsHash)) {
-				module.isEntryPoint = true;
-				module.entryPointsHash = randomUint8Array(10);
 			}
 
 			module.dependencies.forEach(depModule => {
