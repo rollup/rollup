@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const assert = require('assert');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
@@ -6,7 +7,7 @@ const { extend, loadConfig, normaliseOutput } = require('../utils.js');
 
 const samples = path.resolve(__dirname, 'samples');
 
-const FORMATS = ['amd', 'cjs', 'es', 'iife', 'umd'];
+const FORMATS = ['amd', 'cjs', 'es', 'iife', 'umd', 'system'];
 
 describe('form', () => {
 	sander.readdirSync(samples).sort().forEach(dir => {
@@ -37,6 +38,11 @@ describe('form', () => {
 			const createBundle = () => promise || (promise = rollup.rollup(options));
 
 			FORMATS.forEach(format => {
+				const skipBecauseNoSystem = format === 'system' && !fs.existsSync(path.resolve(__dirname, samples, dir, '_expected', 'system.js'))
+				if (skipBecauseNoSystem) {
+					return;
+				}
+
 				it('generates ' + format, () => {
 					process.chdir(samples + '/' + dir);
 

@@ -1,5 +1,6 @@
 import Chunk, { ModuleDeclarations } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
+import { OutputOptions } from '../rollup/index';
 
 function getStarExcludes ({ dependencies, exports } : ModuleDeclarations) {
 	const starExcludes = new Set(exports.map(expt => expt.exported));
@@ -24,7 +25,8 @@ export default function system (
 		getPath: (name: string) => string;
 		intro: string;
 		outro: string
-	}
+	},
+	outputOptions: OutputOptions
 ) {
 	const { dependencies, exports } = chunk.getModuleDeclarations();
 
@@ -92,8 +94,9 @@ export default function system (
 			`\n${t}${varOrConst} _starExcludes = { ${Array.from(starExcludes).join(': 1, ')}${starExcludes.size ? ': 1' : ''} };`;
 
 	const importBindingsSection = importBindings.length ? `\n${t}var ${importBindings.join(', ')};` : '';
+	const registeredName = outputOptions.name ? `'${outputOptions.name}', ` : '';
 
-	const wrapperStart = `System.register([${dependencyIds.join(', ')}], function (exports, module) {
+	const wrapperStart = `System.register(${registeredName}[${dependencyIds.join(', ')}], function (exports, module) {
 ${t}'use strict';${starExcludesSection}${importBindingsSection}
 ${t}return {${setters.length ? `\n${t}${t}setters: [${setters.map(s => `function (module) {
 ${t}${t}${t}${s}
