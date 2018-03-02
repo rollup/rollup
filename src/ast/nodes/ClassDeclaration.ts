@@ -27,6 +27,12 @@ export default class ClassDeclaration extends ClassNode {
 		if (options.systemBindings && this.id && this.id.variable.exportName) {
 			code.appendLeft(this.end, ` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`);
 		}
+		if (this.id) {
+			const name = this.id.variable.getName()
+			if (name !== this.id.variable.name) {
+				code.appendRight(this.start, `let ${this.id.variable.safeName} = `)
+			}
+		}
 		super.render(code, options);
 	}
 }
