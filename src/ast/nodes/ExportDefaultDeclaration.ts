@@ -93,7 +93,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			code.appendLeft(getIdInsertPosition(code.original, declarationKeyword, declarationStart), ` ${name}`);
 		}
 		if (options.systemBindings && isClassDeclaration(this.declaration) && this.variable.exportName) {
-			code.appendRight(this.end, ` exports('${this.variable.exportName}', ${name});`);
+			code.appendLeft(this.end, ` exports('${this.variable.exportName}', ${name});`);
 		}
 	}
 
