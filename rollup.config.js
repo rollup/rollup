@@ -15,7 +15,7 @@ const commitHash = (function () {
 	}
 })();
 
-const now = new Date(process.env.SOURCE_DATE_EPOCH ? (process.env.SOURCE_DATE_EPOCH * 1000) : new Date().getTime()).getTime();
+const now = new Date(process.env.SOURCE_DATE_EPOCH ? (process.env.SOURCE_DATE_EPOCH * 1000) : new Date().getTime()).toUTCString();
 
 const banner = `/*
 	Rollup.js v${pkg.version}
