@@ -310,9 +310,6 @@ export default class Chunk {
 
 	// trace a module export to its exposed chunk module export
 	// either in this chunk or in another
-	// we follow reexports if they are not entry points in the hope
-	// that we can get an entry point reexport to reduce the chance of
-	// tainting an entryModule chunk by exposing other unnecessary exports
 	traceExport (module: Module | ExternalModule, name: string): { name: string, module: Module | ExternalModule } {
 		if (name === '*') {
 			return { name, module };
@@ -322,8 +319,13 @@ export default class Chunk {
 			return { name, module };
 		}
 
-		if (module.chunk !== this && module.isEntryPoint) {
-			return { name, module };
+		if (module.chunk !== this) {
+			// we follow reexports if they are not entry points in the hope
+			// that we can get an entry point reexport to reduce the chance of
+			// tainting an entryModule chunk by exposing other unnecessary exports
+			if (module.isEntryPoint)
+				return { name, module };
+			return module.chunk.traceExport(module, name);
 		}
 
 		const exportDeclaration = module.exports[name];
@@ -569,6 +571,12 @@ export default class Chunk {
 		const reexportDeclarations = this.getCheckReexportDeclarations();
 
 		const dependencies: ChunkDependencies = [];
+
+		// shortcut cross-chunk relations can be added by traceExport
+		this.imports.forEach(impt => {
+			if (this.dependencies.indexOf(impt.module) === -1)
+				this.dependencies.push(impt.module);
+		});
 
 		this.dependencies.forEach(dep => {
 			const importSpecifiers = this.imports.find(impt => impt.module === dep);

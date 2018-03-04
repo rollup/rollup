@@ -4,6 +4,7 @@
 * Improve error handling for source maps ([#2012](https://github.com/rollup/rollup/pull/2012))
 * Properly handle SystemJS default exports without semicolons ([#2019](https://github.com/rollup/rollup/pull/2019))
 * Properly handle importing the same variable several times when code-splitting ([#2020](https://github.com/rollup/rollup/pull/2020))
+* Improve re-export tracing ([#2021](https://github.com/rollup/rollup/pull/2021))
 * Automatically clean up outdated tests ([#2009](https://github.com/rollup/rollup/pull/2009))
 * Improve internal build configuration ([#2016](https://github.com/rollup/rollup/pull/2016))
 
