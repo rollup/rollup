@@ -1,6 +1,7 @@
 # rollup changelog
 
-## 0.56.4/0.57.0 (unreleased)
+## 0.56.4
+* Improve error handling for source maps ([#2012](https://github.com/rollup/rollup/pull/2012))
 * Automatically clean up outdated tests ([#2009](https://github.com/rollup/rollup/pull/2009))
 
 ## 0.56.3
