@@ -1,9 +1,8 @@
 import LocalVariable from './LocalVariable';
-import { UNKNOWN_EXPRESSION } from '../values';
+import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import ParameterVariable from './ParameterVariable';
-import { ObjectPath } from './VariableReassignmentTracker';
 import { SomeReturnExpressionCallback } from '../nodes/shared/Expression';
 
 const getParameterVariable = (path: ObjectPath, options: ExecutionPathOptions) => {

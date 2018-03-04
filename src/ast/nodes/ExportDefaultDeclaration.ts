@@ -5,8 +5,7 @@ import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaratio
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { NodeRenderOptions, RenderOptions } from '../../Module';
-import { findFirstOccurrenceOutsideComment } from '../../utils/renderHelpers';
+import { findFirstOccurrenceOutsideComment, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { isObjectExpression } from './ObjectExpression';
 import { BLANK } from '../../utils/object';
 

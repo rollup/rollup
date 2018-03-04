@@ -3,10 +3,10 @@ import CallExpression from './nodes/CallExpression';
 import CallOptions from './CallOptions';
 import ThisVariable from './variables/ThisVariable';
 import ParameterVariable from './variables/ParameterVariable';
-import { ObjectPath } from './variables/VariableReassignmentTracker';
 import { Entity, WritableEntity } from './Entity';
 import Property from './nodes/Property';
 import { ExpressionEntity } from './nodes/shared/Expression';
+import { ObjectPath } from './values';
 
 export enum OptionTypes {
 	IGNORED_LABELS,

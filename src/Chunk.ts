@@ -1,8 +1,8 @@
-import { timeStart, timeEnd } from './utils/flushTime';
+import { timeEnd, timeStart } from './utils/flushTime';
 import { decode } from 'sourcemap-codec';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { blank, forOwn } from './utils/object';
-import Module, { ModuleJSON, RenderOptions } from './Module';
+import Module, { ModuleJSON } from './Module';
 import finalisers from './finalisers/index';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
@@ -23,6 +23,7 @@ import ExternalVariable from './ast/variables/ExternalVariable';
 import { makeLegal } from './utils/identifierHelpers';
 import LocalVariable from './ast/variables/LocalVariable';
 import { NodeType } from './ast/nodes/index';
+import { RenderOptions } from './utils/renderHelpers';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;

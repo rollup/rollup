@@ -1,9 +1,24 @@
 import { ExpressionEntity, SomeReturnExpressionCallback } from './nodes/shared/Expression';
 import { blank } from '../utils/object';
 import CallOptions from './CallOptions';
-import { isUnknownKey, ObjectPath, ObjectPathKey } from './variables/VariableReassignmentTracker';
 import { LiteralValueTypes } from './nodes/Literal';
 import ExecutionPathOptions from './ExecutionPathOptions';
+
+export interface UnknownKey {
+	type: 'UNKNOWN_KEY';
+}
+
+export type ObjectPathKey = string | UnknownKey
+export type ObjectPath = ObjectPathKey[];
+
+export function isUnknownKey (key: ObjectPathKey): key is UnknownKey {
+	return key === UNKNOWN_KEY;
+}
+
+export const UNKNOWN_KEY: UnknownKey = { type: 'UNKNOWN_KEY' };
+
+export type PathCallback = (path: ObjectPath, expression: ExpressionEntity) => void;
+export type PathPredicate = (path: ObjectPath, expression: ExpressionEntity) => boolean;
 
 export interface MemberDescription {
 	returns: ExpressionEntity,

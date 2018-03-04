@@ -1,7 +1,7 @@
 import { IParse, Options as AcornOptions } from 'acorn';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
-import { timeStart, timeEnd } from './utils/flushTime';
+import { timeEnd, timeStart } from './utils/flushTime';
 import { blank } from './utils/object';
 import { basename, extname } from './utils/path';
 import { makeLegal } from './utils/identifierHelpers';
@@ -36,7 +36,8 @@ import Import from './ast/nodes/Import';
 import { NodeType } from './ast/nodes/index';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
-import Chunk, { DynamicImportMechanism } from './Chunk';
+import Chunk from './Chunk';
+import { RenderOptions } from './utils/renderHelpers';
 
 export interface IdMap {[key: string]: string;}
 
@@ -105,21 +106,6 @@ export interface ModuleJSON {
 	sourcemapChain: RawSourceMap[];
 	resolvedIds: IdMap;
 }
-
-export interface RenderOptions {
-	legacy: boolean;
-	freeze: boolean;
-	importMechanism?: DynamicImportMechanism;
-	systemBindings: boolean;
-}
-
-export interface NodeRenderOptions {
-	start?: number,
-	end?: number,
-	isNoStatement?: boolean
-}
-
-export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
 
 export default class Module {
 	type: 'Module';

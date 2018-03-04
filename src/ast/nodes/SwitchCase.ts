@@ -1,7 +1,6 @@
 import { ExpressionNode, NodeBase, StatementNode } from './shared/Node';
 import { NodeType } from './NodeType';
-import { findFirstOccurrenceOutsideComment, renderStatementList } from '../../utils/renderHelpers';
-import { RenderOptions } from '../../Module';
+import { findFirstOccurrenceOutsideComment, RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import MagicString from 'magic-string';
 
 export default class SwitchCase extends NodeBase {

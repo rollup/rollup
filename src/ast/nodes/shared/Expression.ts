@@ -1,7 +1,7 @@
 import { WritableEntity } from '../../Entity';
-import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
+import { ObjectPath } from '../../values';
 
 export type PredicateFunction = (node: ExpressionEntity) => boolean;
 export type SomeReturnExpressionCallback = (options: ExecutionPathOptions) => PredicateFunction;

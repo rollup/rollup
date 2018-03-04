@@ -1,6 +1,5 @@
 import relativeId from '../../utils/relativeId';
 import { ExpressionNode, Node, NodeBase } from './shared/Node';
-import { isUnknownKey, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
 import Variable from '../variables/Variable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { isLiteral } from './Literal';
@@ -11,7 +10,8 @@ import { isNamespaceVariable } from '../variables/NamespaceVariable';
 import { isExternalVariable } from '../variables/ExternalVariable';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
+import { RenderOptions } from '../../utils/renderHelpers';
+import { isUnknownKey, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../values';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 

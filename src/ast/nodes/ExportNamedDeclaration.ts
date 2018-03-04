@@ -1,4 +1,4 @@
-import { NodeBase, Node } from './shared/Node';
+import { Node, NodeBase } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Literal from './Literal';
 import MagicString from 'magic-string';
@@ -7,8 +7,8 @@ import FunctionDeclaration from './FunctionDeclaration';
 import ClassDeclaration from './ClassDeclaration';
 import VariableDeclaration from './VariableDeclaration';
 import { NodeType } from './NodeType';
-import { NodeRenderOptions, RenderOptions } from '../../Module';
 import { BLANK } from '../../utils/object';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 
 export default class ExportNamedDeclaration extends NodeBase {
 	type: NodeType.ExportNamedDeclaration;

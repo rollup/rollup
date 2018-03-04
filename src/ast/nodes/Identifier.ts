@@ -1,6 +1,6 @@
 import { Node, NodeBase } from './shared/Node';
 import isReference from 'is-reference';
-import { UNKNOWN_EXPRESSION } from '../values';
+import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Variable from '../variables/Variable';
@@ -8,12 +8,11 @@ import CallOptions from '../CallOptions';
 import FunctionScope from '../scopes/FunctionScope';
 import MagicString from 'magic-string';
 import Property from './Property';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
 import AssignmentExpression from './AssignmentExpression';
 import UpdateExpression from './UpdateExpression';
+import { RenderOptions } from '../../utils/renderHelpers';
 
 export function isIdentifier (node: Node): node is Identifier {
 	return node.type === NodeType.Identifier;
