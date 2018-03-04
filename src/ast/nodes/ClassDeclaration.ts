@@ -31,6 +31,7 @@ export default class ClassDeclaration extends ClassNode {
 			const name = this.id.variable.getName()
 			if (name !== this.id.variable.name) {
 				code.appendRight(this.start, `let ${this.id.variable.safeName} = `)
+				code.prependRight(this.end, ';');
 			}
 		}
 		super.render(code, options);
