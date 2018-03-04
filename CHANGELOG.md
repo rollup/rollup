@@ -6,6 +6,7 @@
 * Properly handle SystemJS default exports without semicolons ([#2019](https://github.com/rollup/rollup/pull/2019))
 * Properly handle importing the same variable several times when code-splitting ([#2020](https://github.com/rollup/rollup/pull/2020))
 * Improve re-export tracing ([#2021](https://github.com/rollup/rollup/pull/2021))
+* Apply "prettier" on commit ([#2017](https://github.com/rollup/rollup/pull/2017))
 * Automatically clean up outdated tests ([#2009](https://github.com/rollup/rollup/pull/2009))
 * Add SystemJS output to form tests ([#2022](https://github.com/rollup/rollup/pull/2022))
 * Improve internal build configuration ([#2016](https://github.com/rollup/rollup/pull/2016))
