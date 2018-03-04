@@ -2,6 +2,7 @@
 
 ## 0.56.4
 * Improve error handling for source maps ([#2012](https://github.com/rollup/rollup/pull/2012))
+* Properly handle SystemJS default exports without semicolons ([#2019](https://github.com/rollup/rollup/pull/2019))
 * Automatically clean up outdated tests ([#2009](https://github.com/rollup/rollup/pull/2009))
 
 ## 0.56.3
