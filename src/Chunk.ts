@@ -253,14 +253,14 @@ export default class Chunk {
 			exportName = variable.name;
 		}
 
+		// if we already import this variable skip
+		if (this.imports.some(impt => impt.variables.some(v => v.variable === variable))) {
+			return;
+		}
+
 		let impt = this.imports.find(impt => impt.module === importModule);
 		if (!impt) {
 			this.imports.push(impt = { module: importModule, variables: [] });
-		}
-
-		// if we already import this variable skip
-		if (impt.variables.some(v => v.module === tracedExport.module && v.variable === variable)) {
-			return;
 		}
 
 		impt.variables.push({
