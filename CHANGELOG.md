@@ -1,6 +1,7 @@
 # rollup changelog
 
 ## 0.56.4
+* Make rollup builds reproducible ([#2024](https://github.com/rollup/rollup/pull/2024))
 * Improve error handling for source maps ([#2012](https://github.com/rollup/rollup/pull/2012))
 * Properly handle SystemJS default exports without semicolons ([#2019](https://github.com/rollup/rollup/pull/2019))
 * Properly handle importing the same variable several times when code-splitting ([#2020](https://github.com/rollup/rollup/pull/2020))
