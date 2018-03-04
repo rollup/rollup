@@ -8,7 +8,7 @@ System.register([], function (exports, module) {
 			function noEffects () {}
 
 			function modifyX () {
-				return (exports( 'x', x + 1 ), x++);
+				return (exports('x', x + 1), x++);
 			}
 
 			const b = `${globalFunction()}has effects`;

@@ -13,7 +13,7 @@ System.register([], function (exports, module) {
       let foo = exports('foo', 10);
 
       function update$1 () {
-	      (exports( 'bar', bar + 1 ), bar++);
+        (exports('bar', bar + 1), bar++);
       }
 
       let bar = exports('bar', 10);
