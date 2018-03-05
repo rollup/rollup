@@ -4,10 +4,10 @@ import BlockStatement from '../BlockStatement';
 import Identifier from '../Identifier';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
-import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import { PatternNode } from './Pattern';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
 import { NodeBase } from './Node';
+import { ObjectPath } from '../../values';
 
 export default class FunctionNode extends NodeBase {
 	id: Identifier;

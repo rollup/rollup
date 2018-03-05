@@ -50,28 +50,45 @@ export default function system (
 			});
 		}
 		if (reexports) {
+			let createdSetter = false;
 			// bulk-reexport form
-			if (reexports.length > 1 || reexports.length === 1 && reexports[0].imported === '*') {
-				setter.push(`${varOrConst} _setter = {};`);
+			if (reexports.length > 1 ||
+					reexports.length === 1 && (reexports[0].reexported === '*' || reexports[0].imported === '*')) {
 				// star reexports
 				reexports.forEach(specifier => {
-					if (specifier.imported !== '*')
+					if (specifier.reexported !== '*')
 						return;
 					// need own exports list for deduping in star export case
 					if (!starExcludes) {
 						starExcludes = getStarExcludes({ dependencies, exports });
 					}
+					if (!createdSetter) {
+						setter.push(`${varOrConst} _setter = {};`);
+						createdSetter = true;
+					}
 					setter.push(`for (var _$p in module) {`);
 					setter.push(`${t}if (!_starExcludes[_$p]) _setter[_$p] = module[_$p];`);
 					setter.push('}');
 				});
+				// star import reexport
+				reexports.forEach(specifier => {
+					if (specifier.imported !== '*' || specifier.reexported === '*')
+						return;
+					setter.push(`exports('${specifier.reexported}', module);`);
+				});
 				// reexports
 				reexports.forEach(specifier => {
-					if (specifier.imported === '*')
+					if (specifier.reexported === '*' || specifier.imported === '*')
 						return;
+					if (!createdSetter) {
+						setter.push(`${varOrConst} _setter = {};`);
+						createdSetter = true;
+					}
 					setter.push(`_setter.${specifier.reexported} = module.${specifier.imported};`);
 				});
-				setter.push('exports(_setter);');
+				if (createdSetter) {
+					setter.push('exports(_setter);');
+				}
 			}
 			// single reexport
 			else {

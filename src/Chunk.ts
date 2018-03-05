@@ -1,8 +1,8 @@
-import { timeStart, timeEnd } from './utils/flushTime';
+import { timeEnd, timeStart } from './utils/flushTime';
 import { decode } from 'sourcemap-codec';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { blank, forOwn } from './utils/object';
-import Module, { ModuleJSON, RenderOptions } from './Module';
+import Module, { ModuleJSON } from './Module';
 import finalisers from './finalisers/index';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
@@ -23,6 +23,7 @@ import ExternalVariable from './ast/variables/ExternalVariable';
 import { makeLegal } from './utils/identifierHelpers';
 import LocalVariable from './ast/variables/LocalVariable';
 import { NodeType } from './ast/nodes/index';
+import { RenderOptions } from './utils/renderHelpers';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;
@@ -252,14 +253,14 @@ export default class Chunk {
 			exportName = variable.name;
 		}
 
+		// if we already import this variable skip
+		if (this.imports.some(impt => impt.variables.some(v => v.variable === variable))) {
+			return;
+		}
+
 		let impt = this.imports.find(impt => impt.module === importModule);
 		if (!impt) {
 			this.imports.push(impt = { module: importModule, variables: [] });
-		}
-
-		// if we already import this variable skip
-		if (impt.variables.some(v => v.module === tracedExport.module && v.variable === variable)) {
-			return;
 		}
 
 		impt.variables.push({
@@ -309,9 +310,6 @@ export default class Chunk {
 
 	// trace a module export to its exposed chunk module export
 	// either in this chunk or in another
-	// we follow reexports if they are not entry points in the hope
-	// that we can get an entry point reexport to reduce the chance of
-	// tainting an entryModule chunk by exposing other unnecessary exports
 	traceExport (module: Module | ExternalModule, name: string): { name: string, module: Module | ExternalModule } {
 		if (name === '*') {
 			return { name, module };
@@ -321,8 +319,13 @@ export default class Chunk {
 			return { name, module };
 		}
 
-		if (module.chunk !== this && module.isEntryPoint) {
-			return { name, module };
+		if (module.chunk !== this) {
+			// we follow reexports if they are not entry points in the hope
+			// that we can get an entry point reexport to reduce the chance of
+			// tainting an entryModule chunk by exposing other unnecessary exports
+			if (module.isEntryPoint)
+				return { name, module };
+			return module.chunk.traceExport(module, name);
 		}
 
 		const exportDeclaration = module.exports[name];
@@ -446,8 +449,7 @@ export default class Chunk {
 
 	private setIdentifierRenderResolutions (options: OutputOptions) {
 		const used = blank();
-		const es = options.format === 'es';
-		const system = options.format === 'system';
+		const es = options.format === 'es' || options.format === 'system';
 
 		// ensure no conflicts with globals
 		Object.keys(this.graph.scope.variables).forEach(name => (used[name] = 1));
@@ -462,7 +464,7 @@ export default class Chunk {
 		}
 
 		// reserved internal binding names for system format wiring
-		if (system) {
+		if (options.format === 'system') {
 			used['_setter'] = used['_starExcludes'] = used['_$p'] = 1;
 		}
 
@@ -491,13 +493,13 @@ export default class Chunk {
 							safeName = module.name;
 						}
 					} else {
-						safeName = (es || system) ? variable.name : `${module.name}.${name}`;
+						safeName = es ? variable.name : `${module.name}.${name}`;
 					}
-					if (es || system) {
+					if (es) {
 						safeName = getSafeName(safeName);
 						toDeshadow.add(safeName);
 					}
-				} else if (es || system) {
+				} else if (es) {
 					safeName = getSafeName(variable.name);
 				} else {
 					safeName = `${(<Module>module).chunk.name}.${name}`;
@@ -514,7 +516,7 @@ export default class Chunk {
 				}
 				if (!variable.isDefault || !(<ExportDefaultVariable>variable).hasId) {
 					let safeName;
-					if (es || system || !variable.isReassigned || variable.isId) {
+					if (es || !variable.isReassigned || variable.isId) {
 						safeName = getSafeName(variable.name);
 					} else {
 						const safeExportName = this.exportedVariableNames.get(variable);
@@ -568,6 +570,12 @@ export default class Chunk {
 		const reexportDeclarations = this.getCheckReexportDeclarations();
 
 		const dependencies: ChunkDependencies = [];
+
+		// shortcut cross-chunk relations can be added by traceExport
+		this.imports.forEach(impt => {
+			if (this.dependencies.indexOf(impt.module) === -1)
+				this.dependencies.push(impt.module);
+		});
 
 		this.dependencies.forEach(dep => {
 			const importSpecifiers = this.imports.find(impt => impt.module === dep);

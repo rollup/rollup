@@ -1,5 +1,5 @@
 import ExecutionPathOptions from './ExecutionPathOptions';
-import { ObjectPath } from './variables/VariableReassignmentTracker';
+import { ObjectPath } from './values';
 
 export interface Entity {
 	toString: () => string;

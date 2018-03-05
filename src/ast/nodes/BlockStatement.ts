@@ -5,8 +5,7 @@ import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { Node, StatementBase, StatementNode } from './shared/Node';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
-import { renderStatementList } from '../../utils/renderHelpers';
+import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 
 export function isBlockStatement (node: Node): node is BlockStatement {
 	return node.type === NodeType.BlockStatement;

@@ -4,8 +4,8 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import { NodeType } from './NodeType';
 import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
-import { NO_SEMICOLON, RenderOptions } from '../../Module';
 import MagicString from 'magic-string';
+import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
 
 export function isForStatement (node: Node): node is ForStatement {
 	return node.type === NodeType.ForStatement;

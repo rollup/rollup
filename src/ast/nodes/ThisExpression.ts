@@ -1,10 +1,10 @@
 import ThisVariable from '../variables/ThisVariable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
+import { RenderOptions } from '../../utils/renderHelpers';
+import { ObjectPath } from '../values';
 
 export default class ThisExpression extends NodeBase {
 	type: NodeType.ThisExpression;

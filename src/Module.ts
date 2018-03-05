@@ -1,7 +1,7 @@
 import { IParse, Options as AcornOptions } from 'acorn';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
-import { timeStart, timeEnd } from './utils/flushTime';
+import { timeEnd, timeStart } from './utils/flushTime';
 import { blank } from './utils/object';
 import { basename, extname } from './utils/path';
 import { makeLegal } from './utils/identifierHelpers';
@@ -36,7 +36,8 @@ import Import from './ast/nodes/Import';
 import { NodeType } from './ast/nodes/index';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
-import Chunk, { DynamicImportMechanism } from './Chunk';
+import Chunk from './Chunk';
+import { RenderOptions } from './utils/renderHelpers';
 
 export interface IdMap {[key: string]: string;}
 
@@ -105,21 +106,6 @@ export interface ModuleJSON {
 	sourcemapChain: RawSourceMap[];
 	resolvedIds: IdMap;
 }
-
-export interface RenderOptions {
-	legacy: boolean;
-	freeze: boolean;
-	importMechanism?: DynamicImportMechanism;
-	systemBindings: boolean;
-}
-
-export interface NodeRenderOptions {
-	start?: number,
-	end?: number,
-	isNoStatement?: boolean
-}
-
-export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
 
 export default class Module {
 	type: 'Module';
@@ -467,11 +453,7 @@ export default class Module {
 		});
 	}
 
-	private getOriginalLocation (sourcemapChain: RawSourceMap[], line: number, column: number) {
-		let location = {
-			line,
-			column
-		};
+	private getOriginalLocation (sourcemapChain: RawSourceMap[], location: { line: number, column: number } ) {
 		const filteredSourcemapChain = sourcemapChain
 			.filter(sourcemap => sourcemap.mappings)
 			.map(sourcemap => {
@@ -496,12 +478,21 @@ export default class Module {
 		if (pos !== undefined) {
 			props.pos = pos;
 
-			const { line, column } = locate(this.code, pos, { offsetLine: 1 });
-			const location = this.getOriginalLocation(
-				this.sourcemapChain,
-				line,
-				column
-			);
+			let location = locate(this.code, pos, { offsetLine: 1 });
+			try {
+				location = this.getOriginalLocation(this.sourcemapChain, location);
+			} catch (e) {
+				this.warn({
+					loc: {
+						file: this.id,
+						line: location.line,
+						column: location.column
+					},
+					pos: pos,
+					message: `Error when using sourcemap for reporting an error: ${e.message}`,
+					code: 'SOURCEMAP_ERROR'
+				}, undefined);
+			}
 
 			props.loc = {
 				file: this.id,

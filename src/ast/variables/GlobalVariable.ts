@@ -1,6 +1,6 @@
 import Variable from './Variable';
 import pureFunctions from '../nodes/shared/pureFunctions';
-import { ObjectPath } from './VariableReassignmentTracker';
+import { ObjectPath } from '../values';
 
 export function isGlobalVariable (variable: Variable): variable is GlobalVariable {
 	return variable.isGlobal;

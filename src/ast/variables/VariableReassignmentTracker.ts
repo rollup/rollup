@@ -1,22 +1,6 @@
-import { UNKNOWN_EXPRESSION } from '../values';
+import { ObjectPath, ObjectPathKey, PathCallback, PathPredicate, UNKNOWN_EXPRESSION, UNKNOWN_KEY } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-
-export interface UnknownKey {
-	type: 'UNKNOWN_KEY';
-}
-
-export type ObjectPathKey = string | UnknownKey
-export type ObjectPath = ObjectPathKey[];
-
-export function isUnknownKey (key: ObjectPathKey): key is UnknownKey {
-	return key === UNKNOWN_KEY;
-}
-
-export const UNKNOWN_KEY: UnknownKey = { type: 'UNKNOWN_KEY' };
-
-export type PathCallback = (path: ObjectPath, expression: ExpressionEntity) => void;
-export type PathPredicate = (path: ObjectPath, expression: ExpressionEntity) => boolean;
 
 class ReassignedPathTracker {
 	_reassigned: boolean;

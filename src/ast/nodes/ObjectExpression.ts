@@ -1,10 +1,9 @@
-import { isUnknownKey, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../variables/VariableReassignmentTracker';
 import Property from './Property';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { objectMembers } from '../values';
+import { isUnknownKey, objectMembers, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../values';
 import { Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 
