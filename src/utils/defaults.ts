@@ -14,21 +14,30 @@ export function load (id: string) {
 function findFile (file: string, preserveSymlinks: boolean): string | void {
 	try {
 		const stats = lstatSync(file);
-		if (!preserveSymlinks && stats.isSymbolicLink()) return findFile(realpathSync(file), preserveSymlinks);
-		if ((preserveSymlinks && stats.isSymbolicLink()) || stats.isFile()) {
+		if (!preserveSymlinks && stats.isSymbolicLink()) {
+			return findFile(realpathSync(file), preserveSymlinks);
+		}
+		if (preserveSymlinks && stats.isSymbolicLink() || stats.isFile()) {
 			// check case
 			const name = basename(file);
 			const files = readdirSync(dirname(file));
 
-			if (files.indexOf(name) !== -1) return file;
+			if (files.indexOf(name) !== -1) {
+				return file;
+			}
+		}
+		if (stats.isDirectory()) {
+			const id = findFile(`${file}/index.js`, preserveSymlinks);
+			if (id) {
+				return id;
+			}
 		}
 	} catch (err) {
 		// suppress
 	}
-}
-
-function addJsExtensionIfNecessary (file: string, preserveSymlinks: boolean) {
-	return findFile(file, preserveSymlinks) || findFile(file + '.js', preserveSymlinks);
+	if (!file.endsWith('.js')) {
+		return findFile(`${file}.js`, preserveSymlinks);
+	}
 }
 
 export function resolveId (options: InputOptions) {
@@ -50,7 +59,7 @@ export function resolveId (options: InputOptions) {
 		// absolute path is created. Absolute importees therefore shortcircuit the
 		// resolve call and require no special handing on our part.
 		// See https://nodejs.org/api/path.html#path_path_resolve_paths
-		return addJsExtensionIfNecessary(
+		return findFile(
 			resolve(importer ? dirname(importer) : resolve(), importee),
 			options.preserveSymlinks
 		);
