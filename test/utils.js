@@ -1,6 +1,6 @@
-const assert = require( 'assert' );
-const path = require( 'path' );
-const sander = require( 'sander' );
+const assert = require('assert');
+const path = require('path');
+const sander = require('sander');
 
 exports.compareError = compareError;
 exports.compareWarnings = compareWarnings;
@@ -11,38 +11,38 @@ exports.loadConfig = loadConfig;
 exports.loader = loader;
 exports.normaliseOutput = normaliseOutput;
 
-function compareError ( actual, expected ) {
+function compareError(actual, expected) {
 	delete actual.stack;
-	actual = Object.assign( {}, actual, {
+	actual = Object.assign({}, actual, {
 		message: actual.message
 	});
 
-	if ( actual.frame ) {
-		actual.frame = actual.frame.replace( /\s+$/gm, '' );
+	if (actual.frame) {
+		actual.frame = actual.frame.replace(/\s+$/gm, '');
 	}
 
-	if ( expected.frame ) {
-		expected.frame = deindent( expected.frame );
+	if (expected.frame) {
+		expected.frame = deindent(expected.frame);
 	}
 
-	assert.deepEqual( actual, expected );
+	assert.deepEqual(actual, expected);
 }
 
-function compareWarnings ( actual, expected ) {
+function compareWarnings(actual, expected) {
 	assert.deepEqual(
-		actual.map( warning => {
-			const clone = Object.assign( {}, warning );
+		actual.map(warning => {
+			const clone = Object.assign({}, warning);
 			delete clone.toString;
 
-			if ( clone.frame ) {
-				clone.frame = clone.frame.replace( /\s+$/gm, '' );
+			if (clone.frame) {
+				clone.frame = clone.frame.replace(/\s+$/gm, '');
 			}
 
 			return clone;
 		}),
-		expected.map( warning => {
-			if ( warning.frame ) {
-				warning.frame = deindent( warning.frame );
+		expected.map(warning => {
+			if (warning.frame) {
+				warning.frame = deindent(warning.frame);
 			}
 			return warning;
 		})
@@ -50,7 +50,11 @@ function compareWarnings ( actual, expected ) {
 }
 
 function deindent(str) {
-	return str.slice(1).replace(/^\t+/gm, '').replace(/\s+$/gm, '').trim();
+	return str
+		.slice(1)
+		.replace(/^\t+/gm, '')
+		.replace(/\s+$/gm, '')
+		.trim();
 }
 
 function executeBundle(bundle) {
@@ -79,18 +83,18 @@ function extend(target) {
 	return target;
 }
 
-function loadConfig ( configFile ) {
+function loadConfig(configFile) {
 	try {
-		return require( configFile );
-	} catch ( err ) {
-		if ( err.code === 'MODULE_NOT_FOUND' ) {
-			const dir = path.dirname( configFile );
-			console.warn( `Test configuration ${configFile} not found.\nTrying to clean up no longer existing test...` );
-			sander.rimrafSync( path.join( dir, '_actual' ) );
-			sander.rmdirSync( dir );
-			console.warn( 'Directory removed.' );
+		return require(configFile);
+	} catch (err) {
+		if (err.code === 'MODULE_NOT_FOUND') {
+			const dir = path.dirname(configFile);
+			console.warn(`Test configuration ${configFile} not found.\nTrying to clean up no longer existing test...`);
+			sander.rimrafSync(path.join(dir, '_actual'));
+			sander.rmdirSync(dir);
+			console.warn('Directory removed.');
 		} else {
-			throw new Error( `Failed to load ${path}: ${err.message}` );
+			throw new Error(`Failed to load ${path}: ${err.message}`);
 		}
 	}
 }
@@ -108,5 +112,8 @@ function loader(modules) {
 }
 
 function normaliseOutput(code) {
-	return code.toString().trim().replace(/\r\n/g, '\n');
+	return code
+		.toString()
+		.trim()
+		.replace(/\r\n/g, '\n');
 }

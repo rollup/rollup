@@ -24,9 +24,9 @@ interface WatchEvent {
 interface Watcher {
 	on: (event: string, fn: (event: WatchEvent) => void) => void;
 	close: () => void;
-};
+}
 
-export default function watch (configFile: string, configs: RollupWatchOptions[], command: any, silent = false) {
+export default function watch(configFile: string, configs: RollupWatchOptions[], command: any, silent = false) {
 	const isTTY = Boolean(process.stderr.isTTY);
 
 	const screen = alternateScreen(isTTY);
@@ -37,12 +37,16 @@ export default function watch (configFile: string, configs: RollupWatchOptions[]
 	let watcher: Watcher;
 	let configWatcher: Watcher;
 
-	function start (configs: RollupWatchOptions[]) {
+	function start(configs: RollupWatchOptions[]) {
 		screen.reset(chalk.underline(`rollup v${rollup.VERSION}`));
 
 		let screenWriter = screen.reset;
 		configs = configs.map(options => {
-			const merged = mergeOptions({ config: options, command, defaultOnWarnHandler: warnings.add });
+			const merged = mergeOptions({
+				config: options,
+				command,
+				defaultOnWarnHandler: warnings.add
+			});
 
 			const result: RollupWatchOptions = Object.assign({}, merged.inputOptions, {
 				output: merged.outputOptions
@@ -53,7 +57,11 @@ export default function watch (configFile: string, configs: RollupWatchOptions[]
 				(<{ _deprecations: any }>result.watch)._deprecations = merged.deprecations;
 			}
 
-			if (merged.optionError) merged.inputOptions.onwarn({message: merged.optionError, code: 'UNKNOWN_OPTION'});
+			if (merged.optionError)
+				merged.inputOptions.onwarn({
+					message: merged.optionError,
+					code: 'UNKNOWN_OPTION'
+				});
 
 			if (
 				(<RollupWatchOptions>merged.inputOptions).watch &&
@@ -88,9 +96,9 @@ export default function watch (configFile: string, configs: RollupWatchOptions[]
 					if (!silent)
 						stderr(
 							chalk.cyan(
-								`bundles ${chalk.bold(typeof event.input === 'string' ? event.input : event.input.join(', '))} → ${chalk.bold(
-									event.output.map(relativeId).join(', ')
-								)}...`
+								`bundles ${chalk.bold(
+									typeof event.input === 'string' ? event.input : event.input.join(', ')
+								)} → ${chalk.bold(event.output.map(relativeId).join(', '))}...`
 							)
 						);
 					break;
@@ -100,9 +108,7 @@ export default function watch (configFile: string, configs: RollupWatchOptions[]
 					if (!silent)
 						stderr(
 							chalk.green(
-								`created ${chalk.bold(
-									event.output.map(relativeId).join(', ')
-								)} in ${chalk.bold(ms(event.duration))}`
+								`created ${chalk.bold(event.output.map(relativeId).join(', '))} in ${chalk.bold(ms(event.duration))}`
 							)
 						);
 					break;
@@ -125,7 +131,7 @@ export default function watch (configFile: string, configs: RollupWatchOptions[]
 		process.stdin.resume();
 	}
 
-	function close (err: Error) {
+	function close(err: Error) {
 		if (err) {
 			console.error(err);
 		}

@@ -6,7 +6,7 @@ export default class ThrowStatement extends StatementBase {
 	type: NodeType.ThrowStatement;
 	argument: ExpressionNode;
 
-	hasEffects (_options: ExecutionPathOptions) {
+	hasEffects(_options: ExecutionPathOptions) {
 		return true;
 	}
 }

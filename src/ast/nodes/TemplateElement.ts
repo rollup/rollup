@@ -10,7 +10,7 @@ export default class TemplateElement extends NodeBase {
 		raw: string;
 	};
 
-	hasEffects (_options: ExecutionPathOptions) {
+	hasEffects(_options: ExecutionPathOptions) {
 		return false;
 	}
 }

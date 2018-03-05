@@ -7,9 +7,8 @@ const opts = { encoding: 'utf-8', persistent: true };
 
 const watchers = new Map<string, Map<string, FileWatcher>>();
 
-export function addTask (id: string, task: Task, chokidarOptions: WatchOptions, chokidarOptionsHash: string) {
-	if (!watchers.has(chokidarOptionsHash))
-		watchers.set(chokidarOptionsHash, new Map());
+export function addTask(id: string, task: Task, chokidarOptions: WatchOptions, chokidarOptionsHash: string) {
+	if (!watchers.has(chokidarOptionsHash)) watchers.set(chokidarOptionsHash, new Map());
 	const group = watchers.get(chokidarOptionsHash);
 
 	if (!group.has(id)) {
@@ -27,7 +26,7 @@ export function addTask (id: string, task: Task, chokidarOptions: WatchOptions, 
 	group.get(id).tasks.add(task);
 }
 
-export function deleteTask (id: string, target: Task, chokidarOptionsHash: string) {
+export function deleteTask(id: string, target: Task, chokidarOptionsHash: string) {
 	const group = watchers.get(chokidarOptionsHash);
 
 	const watcher = group.get(id);
@@ -46,7 +45,7 @@ export default class FileWatcher {
 	fsWatcher: FSWatcher | fs.FSWatcher;
 	tasks: Set<Task>;
 
-	constructor (id: string, chokidarOptions: WatchOptions, dispose: () => void) {
+	constructor(id: string, chokidarOptions: WatchOptions, dispose: () => void) {
 		this.tasks = new Set();
 
 		let data: string;
@@ -81,19 +80,17 @@ export default class FileWatcher {
 		};
 
 		if (chokidarOptions) {
-			this.fsWatcher = chokidar
-				.watch(id, chokidarOptions)
-				.on('all', handleWatchEvent);
+			this.fsWatcher = chokidar.watch(id, chokidarOptions).on('all', handleWatchEvent);
 		} else {
 			this.fsWatcher = fs.watch(id, opts, handleWatchEvent);
 		}
 	}
 
-	close () {
+	close() {
 		this.fsWatcher.close();
 	}
 
-	trigger () {
+	trigger() {
 		this.tasks.forEach(task => {
 			task.makeDirty();
 		});

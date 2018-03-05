@@ -14,7 +14,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 
 	private _callOptions: CallOptions;
 
-	bindNode () {
+	bindNode() {
 		if (this.tag.type === NodeType.Identifier) {
 			const variable = this.scope.findVariable((<Identifier>this.tag).name);
 
@@ -33,8 +33,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 					{
 						code: 'EVAL',
 						message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
-						url:
-							'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
+						url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
 					},
 					this.start
 				);
@@ -42,18 +41,17 @@ export default class TaggedTemplateExpression extends NodeBase {
 		}
 	}
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects(options: ExecutionPathOptions) {
 		return (
 			super.hasEffects(options) ||
-			this.tag.hasEffectsWhenCalledAtPath(
-				[],
-				this._callOptions,
-				options.getHasEffectsWhenCalledOptions()
-			)
+			this.tag.hasEffectsWhenCalledAtPath([], this._callOptions, options.getHasEffectsWhenCalledOptions())
 		);
 	}
 
-	initialiseNode () {
-		this._callOptions = CallOptions.create({ withNew: false, callIdentifier: this });
+	initialiseNode() {
+		this._callOptions = CallOptions.create({
+			withNew: false,
+			callIdentifier: this
+		});
 	}
 }

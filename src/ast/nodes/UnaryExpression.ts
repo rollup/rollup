@@ -23,35 +23,34 @@ export default class UnaryExpression extends NodeBase {
 
 	value: any;
 
-	bindNode () {
+	bindNode() {
 		if (this.operator === 'delete') {
 			this.argument.reassignPath([], ExecutionPathOptions.create());
 		}
 	}
 
-	getValue (): any {
+	getValue(): any {
 		const argumentValue: any = this.argument.getValue();
 		if (argumentValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		return operators[this.operator](argumentValue);
 	}
 
-	hasEffects (options: ExecutionPathOptions): boolean {
+	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			this.argument.hasEffects(options) ||
-			(this.operator === 'delete' &&
-			 this.argument.hasEffectsWhenAssignedAtPath([], options))
+			(this.operator === 'delete' && this.argument.hasEffectsWhenAssignedAtPath([], options))
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
 		if (this.operator === 'void') {
 			return path.length > 0;
 		}
 		return path.length > 1;
 	}
 
-	initialiseNode () {
+	initialiseNode() {
 		this.value = this.getValue();
 	}
 }

@@ -1,22 +1,24 @@
-const path = require( 'path' );
+const path = require('path');
 
 module.exports = {
 	description: '`this.error(...)` accepts { line, column } object as second parameter (#1265)',
 	options: {
-		plugins: [{
-			name: 'test',
-			transform ( code, id ) {
-				this.error( 'nope', { line: 1, column: 22 });
+		plugins: [
+			{
+				name: 'test',
+				transform(code, id) {
+					this.error('nope', { line: 1, column: 22 });
+				}
 			}
-		}]
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',
 		plugin: 'test',
 		message: 'nope',
-		id: path.resolve( __dirname, 'main.js' ),
+		id: path.resolve(__dirname, 'main.js'),
 		loc: {
-			file: path.resolve( __dirname, 'main.js' ),
+			file: path.resolve(__dirname, 'main.js'),
 			line: 1,
 			column: 22
 		},

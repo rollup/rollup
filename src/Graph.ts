@@ -34,7 +34,7 @@ import firstSync from './utils/first-sync';
 
 export type ResolveDynamicImportHandler = (specifier: string | Node, parentId: string) => Promise<string | void>;
 
-function generateChunkName (id: string, chunkNames: { [name: string ]: boolean }, startAtTwo = false): string {
+function generateChunkName(id: string, chunkNames: { [name: string]: boolean }, startAtTwo = false): string {
 	let name = path.basename(id);
 	let ext = path.extname(name);
 	name = name.substr(0, name.length - ext.length);
@@ -44,8 +44,7 @@ function generateChunkName (id: string, chunkNames: { [name: string ]: boolean }
 	}
 	let uniqueName = name;
 	let uniqueIndex = startAtTwo ? 2 : 1;
-	while (chunkNames[uniqueName])
-		uniqueName = name + uniqueIndex++;
+	while (chunkNames[uniqueName]) uniqueName = name + uniqueIndex++;
 	chunkNames[uniqueName] = true;
 	return uniqueName + ext;
 }
@@ -77,7 +76,7 @@ export default class Graph {
 	// deprecated
 	treeshake: boolean;
 
-	constructor (options: InputOptions) {
+	constructor(options: InputOptions) {
 		this.cachedModules = new Map();
 		if (options.cache) {
 			options.cache.modules.forEach(module => {
@@ -103,20 +102,14 @@ export default class Graph {
 				propertyReadSideEffects: options.treeshake
 					? (<TreeshakingOptions>options.treeshake).propertyReadSideEffects !== false
 					: true,
-				pureExternalModules: options.treeshake
-					? (<TreeshakingOptions>options.treeshake).pureExternalModules
-					: false
+				pureExternalModules: options.treeshake ? (<TreeshakingOptions>options.treeshake).pureExternalModules : false
 			};
 			if (this.treeshakingOptions.pureExternalModules === true) {
 				this.isPureExternalModule = () => true;
-			} else if (
-				typeof this.treeshakingOptions.pureExternalModules === 'function'
-			) {
+			} else if (typeof this.treeshakingOptions.pureExternalModules === 'function') {
 				this.isPureExternalModule = this.treeshakingOptions.pureExternalModules;
 			} else if (Array.isArray(this.treeshakingOptions.pureExternalModules)) {
-				const pureExternalModules = new Set(
-					this.treeshakingOptions.pureExternalModules
-				);
+				const pureExternalModules = new Set(this.treeshakingOptions.pureExternalModules);
 				this.isPureExternalModule = id => pureExternalModules.has(id);
 			} else {
 				this.isPureExternalModule = () => false;
@@ -136,7 +129,9 @@ export default class Graph {
 		this.load = first(loaders.concat(load));
 
 		this.handleMissingExport = firstSync(
-			this.plugins.map(plugin => plugin.missingExport).filter(Boolean)
+			this.plugins
+				.map(plugin => plugin.missingExport)
+				.filter(Boolean)
 				.concat(handleMissingExport)
 		);
 
@@ -179,12 +174,14 @@ export default class Graph {
 		this.acornOptions = options.acorn || {};
 		const acornPluginsToInject = [];
 
-		this.dynamicImport = typeof options.experimentalDynamicImport === 'boolean' ? options.experimentalDynamicImport : false;
+		this.dynamicImport =
+			typeof options.experimentalDynamicImport === 'boolean' ? options.experimentalDynamicImport : false;
 
 		if (this.dynamicImport) {
 			this.resolveDynamicImport = first([
 				...this.plugins.map(plugin => plugin.resolveDynamicImport).filter(Boolean),
-				<ResolveDynamicImportHandler> ((specifier, parentId) => typeof specifier === 'string' && this.resolveId(specifier, parentId))
+				<ResolveDynamicImportHandler>((specifier, parentId) =>
+					typeof specifier === 'string' && this.resolveId(specifier, parentId))
 			]);
 			acornPluginsToInject.push(injectDynamicImportPlugin);
 			this.acornOptions.plugins = this.acornOptions.plugins || {};
@@ -195,45 +192,42 @@ export default class Graph {
 		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
 	}
 
-	getPathRelativeToBaseDirname (resolvedId: string, parentId: string): string {
+	getPathRelativeToBaseDirname(resolvedId: string, parentId: string): string {
 		if (isRelative(resolvedId) || isAbsolute(resolvedId)) {
 			const relativeToEntry = normalize(relative(path.dirname(parentId), resolvedId));
 
-			return isRelative(relativeToEntry)
-				? relativeToEntry
-				: `./${relativeToEntry}`;
+			return isRelative(relativeToEntry) ? relativeToEntry : `./${relativeToEntry}`;
 		}
 
 		return resolvedId;
 	}
 
-	private loadModule (entryName: string) {
-		return this.resolveId(entryName, undefined)
-			.then(id => {
-				if (id === false) {
-					error({
-						code: 'UNRESOLVED_ENTRY',
-						message: `Entry module cannot be external`
-					});
-				}
+	private loadModule(entryName: string) {
+		return this.resolveId(entryName, undefined).then(id => {
+			if (id === false) {
+				error({
+					code: 'UNRESOLVED_ENTRY',
+					message: `Entry module cannot be external`
+				});
+			}
 
-				if (id == null) {
-					error({
-						code: 'UNRESOLVED_ENTRY',
-						message: `Could not resolve entry (${entryName})`
-					});
-				}
+			if (id == null) {
+				error({
+					code: 'UNRESOLVED_ENTRY',
+					message: `Could not resolve entry (${entryName})`
+				});
+			}
 
-				return this.fetchModule(<string>id, undefined);
-			});
+			return this.fetchModule(<string>id, undefined);
+		});
 	}
 
-	private link () {
+	private link() {
 		this.modules.forEach(module => module.linkDependencies());
 		this.modules.forEach(module => module.bindReferences());
 	}
 
-	includeMarked (modules: Module[]) {
+	includeMarked(modules: Module[]) {
 		if (this.treeshake) {
 			let addedNewNodes;
 			do {
@@ -250,178 +244,174 @@ export default class Graph {
 		}
 	}
 
-	buildSingle (entryModuleId: string): Promise<Chunk> {
+	buildSingle(entryModuleId: string): Promise<Chunk> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
 		timeStart('phase 1');
-		return this.loadModule(entryModuleId)
-			.then(entryModule => {
-				timeEnd('phase 1');
+		return this.loadModule(entryModuleId).then(entryModule => {
+			timeEnd('phase 1');
 
-				// Phase 2 - linking. We populate the module dependency links and
-				// determine the topological execution order for the bundle
-				timeStart('phase 2');
+			// Phase 2 - linking. We populate the module dependency links and
+			// determine the topological execution order for the bundle
+			timeStart('phase 2');
 
-				this.link();
+			this.link();
 
-				const { orderedModules, dynamicImports } = this.analyseExecution([entryModule]);
+			const { orderedModules, dynamicImports } = this.analyseExecution([entryModule]);
 
-				timeEnd('phase 2');
+			timeEnd('phase 2');
 
-				// Phase 3 – marking. We include all statements that should be included
-				timeStart('phase 3');
+			// Phase 3 – marking. We include all statements that should be included
+			timeStart('phase 3');
 
+			entryModule.markExports();
+
+			dynamicImports.forEach(dynamicImportModule => {
+				if (entryModule !== dynamicImportModule) dynamicImportModule.markExports();
+				// all dynamic import modules inlined for single-file build
+				dynamicImportModule.namespace().includeVariable();
+			});
+
+			// only include statements that should appear in the bundle
+			this.includeMarked(orderedModules);
+
+			// check for unused external imports
+			this.externalModules.forEach(module => module.warnUnusedImports());
+
+			timeEnd('phase 3');
+
+			// Phase 4 – we construct the chunk itself, generating its import and export facades
+			timeStart('phase 4');
+
+			// generate the imports and exports for the output chunk file
+			const chunk = new Chunk(this, orderedModules);
+			chunk.setId(entryModule.id);
+			chunk.collectDependencies();
+			chunk.generateImports();
+			chunk.generateEntryExports(entryModule);
+
+			timeEnd('phase 4');
+
+			return chunk;
+		});
+	}
+
+	buildChunks(entryModuleIds: string[]): Promise<{ [name: string]: Chunk }> {
+		// Phase 1 – discovery. We load the entry module and find which
+		// modules it imports, and import those, until we have all
+		// of the entry module's dependencies
+		timeStart('phase 1');
+		return Promise.all(entryModuleIds.map(entryId => this.loadModule(entryId))).then(entryModules => {
+			timeEnd('phase 1');
+
+			// Phase 2 - linking. We populate the module dependency links and
+			// determine the topological execution order for the bundle
+			timeStart('phase 2');
+
+			this.link();
+			const { orderedModules, dynamicImports } = this.analyseExecution(entryModules);
+			dynamicImports.forEach(dynamicImportModule => {
+				if (entryModules.indexOf(dynamicImportModule) === -1) entryModules.push(dynamicImportModule);
+			});
+
+			// Phase 3 – marking. We include all statements that should be included
+			timeStart('phase 3');
+
+			entryModules.forEach(entryModule => {
 				entryModule.markExports();
+			});
 
-				dynamicImports.forEach(dynamicImportModule => {
-					if (entryModule !== dynamicImportModule)
-						dynamicImportModule.markExports();
-					// all dynamic import modules inlined for single-file build
-					dynamicImportModule.namespace().includeVariable();
-				});
+			// only include statements that should appear in the bundle
+			this.includeMarked(orderedModules);
 
-				// only include statements that should appear in the bundle
-				this.includeMarked(orderedModules);
+			// check for unused external imports
+			this.externalModules.forEach(module => module.warnUnusedImports());
 
-				// check for unused external imports
-				this.externalModules.forEach(module => module.warnUnusedImports());
+			timeEnd('phase 3');
 
-				timeEnd('phase 3');
+			// Phase 4 – we construct the chunks, working out the optimal chunking using
+			// entry point graph colouring, before generating the import and export facades
+			timeStart('phase 4');
 
-				// Phase 4 – we construct the chunk itself, generating its import and export facades
-				timeStart('phase 4');
+			// TODO: there is one special edge case unhandled here and that is that any module
+			//       exposed as an unresolvable export * (to a graph external export *,
+			//       either as a namespace import reexported or top-level export *)
+			//       should be made to be its own entry point module before chunking
+			const chunkModules: { [entryHashSum: string]: Module[] } = {};
+			orderedModules.forEach(module => {
+				const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
+				let curChunk = chunkModules[entryPointsHashStr];
+				if (curChunk) {
+					curChunk.push(module);
+				} else {
+					chunkModules[entryPointsHashStr] = [module];
+				}
+			});
 
-				// generate the imports and exports for the output chunk file
-				const chunk = new Chunk(this, orderedModules);
-				chunk.setId(entryModule.id);
+			// create each chunk
+			const chunkList: Chunk[] = [];
+			Object.keys(chunkModules).forEach(entryHashSum => {
+				const chunk = chunkModules[entryHashSum];
+				const chunkModulesOrdered = chunk.sort((moduleA, moduleB) => (moduleA.execIndex > moduleB.execIndex ? 1 : -1));
+				chunkList.push(new Chunk(this, chunkModulesOrdered));
+			});
+
+			// for each entry point module, ensure its exports
+			// are exported by the chunk itself, with safe name deduping
+			entryModules.forEach(entryModule => {
+				entryModule.chunk.generateEntryExports(entryModule);
+			});
+			// for each chunk module, set up its imports to other
+			// chunks, if those variables are included after treeshaking
+			chunkList.forEach(chunk => {
 				chunk.collectDependencies();
 				chunk.generateImports();
-				chunk.generateEntryExports(entryModule);
-
-				timeEnd('phase 4');
-
-				return chunk;
 			});
-	}
 
-	buildChunks (entryModuleIds: string[]): Promise<{ [name: string]: Chunk }> {
-		// Phase 1 – discovery. We load the entry module and find which
-		// modules it imports, and import those, until we have all
-		// of the entry module's dependencies
-		timeStart('phase 1');
-		return Promise.all(entryModuleIds.map(entryId => this.loadModule(entryId)))
-			.then(entryModules => {
-				timeEnd('phase 1');
+			// finally prepare output chunks
+			const chunks: {
+				[name: string]: Chunk;
+			} = {};
 
-				// Phase 2 - linking. We populate the module dependency links and
-				// determine the topological execution order for the bundle
-				timeStart('phase 2');
+			// name the chunks
+			const chunkNames: { [name: string]: boolean } = blank();
+			chunkNames['chunk'] = true;
+			chunkList.forEach(chunk => {
+				// generate the imports and exports for the output chunk file
+				if (chunk.entryModule) {
+					const entryName = generateChunkName(chunk.entryModule.id, chunkNames, true);
 
-				this.link();
-				const { orderedModules, dynamicImports } = this.analyseExecution(entryModules);
-				dynamicImports.forEach(dynamicImportModule => {
-					if (entryModules.indexOf(dynamicImportModule) === -1)
-						entryModules.push(dynamicImportModule);
-				});
-
-				// Phase 3 – marking. We include all statements that should be included
-				timeStart('phase 3');
-
-				entryModules.forEach(entryModule => {
-					entryModule.markExports()
-				});
-
-				// only include statements that should appear in the bundle
-				this.includeMarked(orderedModules);
-
-				// check for unused external imports
-				this.externalModules.forEach(module => module.warnUnusedImports());
-
-				timeEnd('phase 3');
-
-				// Phase 4 – we construct the chunks, working out the optimal chunking using
-				// entry point graph colouring, before generating the import and export facades
-				timeStart('phase 4');
-
-				// TODO: there is one special edge case unhandled here and that is that any module
-				//       exposed as an unresolvable export * (to a graph external export *,
-			  //       either as a namespace import reexported or top-level export *)
-				//       should be made to be its own entry point module before chunking
-				const chunkModules: { [entryHashSum: string]: Module[] } = {};
-				orderedModules.forEach(module => {
-					const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
-					let curChunk = chunkModules[entryPointsHashStr];
-					if (curChunk) {
-						curChunk.push(module);
-					} else {
-						chunkModules[entryPointsHashStr] = [module];
-					}
-				});
-
-				// create each chunk
-				const chunkList: Chunk[] = [];
-				Object.keys(chunkModules).forEach(entryHashSum => {
-					const chunk = chunkModules[entryHashSum];
-					const chunkModulesOrdered = chunk.sort((moduleA, moduleB) => moduleA.execIndex > moduleB.execIndex ? 1 : -1);
-					chunkList.push(new Chunk(this, chunkModulesOrdered));
-				});
-
-				// for each entry point module, ensure its exports
-				// are exported by the chunk itself, with safe name deduping
-				entryModules.forEach(entryModule => {
-					entryModule.chunk.generateEntryExports(entryModule);
-				});
-				// for each chunk module, set up its imports to other
-				// chunks, if those variables are included after treeshaking
-				chunkList.forEach(chunk => {
-					chunk.collectDependencies();
-					chunk.generateImports();
-				});
-
-				// finally prepare output chunks
-				const chunks: {
-					[name: string]: Chunk
-				} = {};
-
-				// name the chunks
-				const chunkNames: { [name: string]: boolean } = blank();
-				chunkNames['chunk'] = true;
-				chunkList.forEach(chunk => {
-					// generate the imports and exports for the output chunk file
-					if (chunk.entryModule) {
-						const entryName = generateChunkName(chunk.entryModule.id, chunkNames, true);
-
-						// if the chunk exactly exports the entry point exports then
-						// it can replace the entry point
-						if (chunk.isEntryModuleFacade) {
-							chunks['./' + entryName] = chunk;
-							chunk.setId('./' + entryName);
-							return;
+					// if the chunk exactly exports the entry point exports then
+					// it can replace the entry point
+					if (chunk.isEntryModuleFacade) {
+						chunks['./' + entryName] = chunk;
+						chunk.setId('./' + entryName);
+						return;
 						// otherwise we create a special re-exporting entry point
 						// facade chunk with no modules
-						} else {
-							const entryPointFacade = new Chunk(this, []);
-							entryPointFacade.setId('./' + entryName);
-							entryPointFacade.collectDependencies(chunk.entryModule);
-							entryPointFacade.generateImports();
-							entryPointFacade.generateEntryExports(chunk.entryModule);
-							chunks['./' + entryName] = entryPointFacade;
-						}
+					} else {
+						const entryPointFacade = new Chunk(this, []);
+						entryPointFacade.setId('./' + entryName);
+						entryPointFacade.collectDependencies(chunk.entryModule);
+						entryPointFacade.generateImports();
+						entryPointFacade.generateEntryExports(chunk.entryModule);
+						chunks['./' + entryName] = entryPointFacade;
 					}
-					// name the chunk itself
-					const chunkName = generateChunkName('chunk', chunkNames);
-					chunk.setId('./' + chunkName);
-					chunks['./' + chunkName] = chunk;
-				});
-
-				timeEnd('phase 4');
-
-				return chunks;
+				}
+				// name the chunk itself
+				const chunkName = generateChunkName('chunk', chunkNames);
+				chunk.setId('./' + chunkName);
+				chunks['./' + chunkName] = chunk;
 			});
+
+			timeEnd('phase 4');
+
+			return chunks;
+		});
 	}
 
-	private analyseExecution (entryModules: Module[]) {
+	private analyseExecution(entryModules: Module[]) {
 		let curEntry: Module, curEntryHash: Uint8Array;
 		const allSeen: { [id: string]: boolean } = {};
 
@@ -430,8 +420,7 @@ export default class Graph {
 		const dynamicImports: Module[] = [];
 
 		const visit = (module: Module, parents: { [id: string]: string | null } = { [module.id]: null }) => {
-			if (module.isEntryPoint && module !== curEntry)
-				return;
+			if (module.isEntryPoint && module !== curEntry) return;
 
 			// Track entry point graph colouring by tracing all modules loaded by a given
 			// entry point and colouring those modules by the hash of its id. Colours are mixed as
@@ -463,8 +452,7 @@ export default class Graph {
 				});
 			}
 
-			if (allSeen[module.id])
-				return;
+			if (allSeen[module.id]) return;
 			allSeen[module.id] = true;
 
 			module.execIndex = ordered.length;
@@ -489,7 +477,7 @@ export default class Graph {
 		return { orderedModules: ordered, dynamicImports };
 	}
 
-	private warnCycle (id: string, parentId: string, parents: { [id: string]: string | null }) {
+	private warnCycle(id: string, parentId: string, parents: { [id: string]: string | null }) {
 		const path = [relativeId(id)];
 		let curId = parentId;
 		while (curId !== id) {
@@ -506,12 +494,11 @@ export default class Graph {
 		});
 	}
 
-	private fetchModule (id: string, importer: string): Promise<Module> {
+	private fetchModule(id: string, importer: string): Promise<Module> {
 		// short-circuit cycles
 		const existingModule = this.moduleById.get(id);
 		if (existingModule) {
-			if (existingModule.isExternal)
-				throw new Error(`Cannot fetch external module ${id}`);
+			if (existingModule.isExternal) throw new Error(`Cannot fetch external module ${id}`);
 			return Promise.resolve(<Module>existingModule);
 		}
 
@@ -539,113 +526,107 @@ export default class Graph {
 				});
 			})
 			.then(source => {
-				const sourceDescription: SourceDescription = typeof source === 'string' ? {
-					code: source,
-					ast: null
-				} : source;
+				const sourceDescription: SourceDescription =
+					typeof source === 'string'
+						? {
+								code: source,
+								ast: null
+						  }
+						: source;
 
-				if (
-					this.cachedModules.has(id) &&
-					this.cachedModules.get(id).originalCode === sourceDescription.code
-				) {
+				if (this.cachedModules.has(id) && this.cachedModules.get(id).originalCode === sourceDescription.code) {
 					return this.cachedModules.get(id);
 				}
 
 				return transform(this, sourceDescription, id, this.plugins);
 			})
-			.then((source: {
-				code: string,
-				originalCode: string,
-				originalSourcemap: RawSourceMap,
-				ast: Program,
-				sourcemapChain: RawSourceMap[],
-				resolvedIds?: IdMap
-			}) => {
-				module.setSource(source);
+			.then(
+				(source: {
+					code: string;
+					originalCode: string;
+					originalSourcemap: RawSourceMap;
+					ast: Program;
+					sourcemapChain: RawSourceMap[];
+					resolvedIds?: IdMap;
+				}) => {
+					module.setSource(source);
 
-				this.modules.push(module);
-				this.moduleById.set(id, module);
+					this.modules.push(module);
+					this.moduleById.set(id, module);
 
-				return this.fetchAllDependencies(module).then(() => {
-					Object.keys(module.exports).forEach(name => {
-						if (name !== 'default') {
-							module.exportsAll[name] = module.id;
-						}
-					});
-					module.exportAllSources.forEach(source => {
-						const id = module.resolvedIds[source];
-						const exportAllModule = this.moduleById.get(id);
-						if (exportAllModule.isExternal) return;
-
-						Object.keys((<Module>exportAllModule).exportsAll).forEach(name => {
-							if (name in module.exportsAll) {
-								this.warn({
-									code: 'NAMESPACE_CONFLICT',
-									reexporter: module.id,
-									name,
-									sources: [
-										module.exportsAll[name],
-										(<Module>exportAllModule).exportsAll[name]
-									],
-									message: `Conflicting namespaces: ${relativeId(
-										module.id
-									)} re-exports '${name}' from both ${relativeId(
-										module.exportsAll[name]
-									)} and ${relativeId(
-										(<Module>exportAllModule).exportsAll[name]
-									)} (will be ignored)`
-								});
-							} else {
-								module.exportsAll[name] = (<Module>exportAllModule).exportsAll[name];
+					return this.fetchAllDependencies(module).then(() => {
+						Object.keys(module.exports).forEach(name => {
+							if (name !== 'default') {
+								module.exportsAll[name] = module.id;
 							}
 						});
+						module.exportAllSources.forEach(source => {
+							const id = module.resolvedIds[source];
+							const exportAllModule = this.moduleById.get(id);
+							if (exportAllModule.isExternal) return;
+
+							Object.keys((<Module>exportAllModule).exportsAll).forEach(name => {
+								if (name in module.exportsAll) {
+									this.warn({
+										code: 'NAMESPACE_CONFLICT',
+										reexporter: module.id,
+										name,
+										sources: [module.exportsAll[name], (<Module>exportAllModule).exportsAll[name]],
+										message: `Conflicting namespaces: ${relativeId(
+											module.id
+										)} re-exports '${name}' from both ${relativeId(module.exportsAll[name])} and ${relativeId(
+											(<Module>exportAllModule).exportsAll[name]
+										)} (will be ignored)`
+									});
+								} else {
+									module.exportsAll[name] = (<Module>exportAllModule).exportsAll[name];
+								}
+							});
+						});
+						return module;
 					});
-					return module;
-				});
-			});
+				}
+			);
 	}
 
-	private fetchAllDependencies (module: Module) {
+	private fetchAllDependencies(module: Module) {
 		// resolve and fetch dynamic imports where possible
-		const fetchDynamicImportsPromise = !this.dynamicImport ? Promise.resolve() : Promise.all(
-			module.getDynamicImportExpressions()
-			.map((dynamicImportExpression, index) => {
-				return Promise.resolve(this.resolveDynamicImport(dynamicImportExpression, module.id))
-				.then(replacement => {
-					if (!replacement) {
-						module.dynamicImportResolutions[index] = null;
-					} else if (typeof dynamicImportExpression !== 'string') {
-						module.dynamicImportResolutions[index] = replacement;
-					} else if (this.isExternal(replacement, module.id, true)) {
-							let externalModule;
-							if (!this.moduleById.has(replacement)) {
-								externalModule = new ExternalModule({ graph: this, id: replacement });
-								this.externalModules.push(externalModule);
-								this.moduleById.set(replacement, module);
+		const fetchDynamicImportsPromise = !this.dynamicImport
+			? Promise.resolve()
+			: Promise.all(
+					module.getDynamicImportExpressions().map((dynamicImportExpression, index) => {
+						return Promise.resolve(this.resolveDynamicImport(dynamicImportExpression, module.id)).then(replacement => {
+							if (!replacement) {
+								module.dynamicImportResolutions[index] = null;
+							} else if (typeof dynamicImportExpression !== 'string') {
+								module.dynamicImportResolutions[index] = replacement;
+							} else if (this.isExternal(replacement, module.id, true)) {
+								let externalModule;
+								if (!this.moduleById.has(replacement)) {
+									externalModule = new ExternalModule({
+										graph: this,
+										id: replacement
+									});
+									this.externalModules.push(externalModule);
+									this.moduleById.set(replacement, module);
+								} else {
+									externalModule = <ExternalModule>this.moduleById.get(replacement);
+								}
+								module.dynamicImportResolutions[index] = externalModule;
+								externalModule.exportsNamespace = true;
+							} else {
+								return this.fetchModule(replacement, module.id).then(depModule => {
+									module.dynamicImportResolutions[index] = depModule;
+								});
 							}
-							else {
-								externalModule = <ExternalModule>this.moduleById.get(replacement);
-							}
-							module.dynamicImportResolutions[index] = externalModule;
-							externalModule.exportsNamespace = true;
-					} else {
-						return this.fetchModule(replacement, module.id)
-						.then(depModule => {
-							module.dynamicImportResolutions[index] = depModule;
 						});
-					}
-				})
-			})
-		)
-		.then(() => {});
+					})
+			  ).then(() => {});
 		fetchDynamicImportsPromise.catch(() => {});
 
 		return mapSequence(module.sources, source => {
 			const resolvedId = module.resolvedIds[source];
-			return (resolvedId
-					? Promise.resolve(resolvedId)
-					: this.resolveId(source, module.id)
-			).then(resolvedId => {
+			return (resolvedId ? Promise.resolve(resolvedId) : this.resolveId(source, module.id)).then(resolvedId => {
 				// TODO types of `resolvedId` are not compatable with 'externalId'.
 				// `this.resolveId` returns `string`, `void`, and `boolean`
 				const externalId = <string>resolvedId || (isRelative(source) ? resolve(module.id, '..', source) : source);
@@ -655,9 +636,7 @@ export default class Graph {
 					if (isRelative(source)) {
 						error({
 							code: 'UNRESOLVED_IMPORT',
-							message: `Could not resolve '${source}' from ${relativeId(
-								module.id
-							)}`
+							message: `Could not resolve '${source}' from ${relativeId(module.id)}`
 						});
 					}
 
@@ -669,8 +648,7 @@ export default class Graph {
 							message: `'${source}' is imported by ${relativeId(
 								module.id
 							)}, but could not be resolved – treating it as an external dependency`,
-							url:
-								'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
+							url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
 						});
 					}
 					isExternal = true;
@@ -699,19 +677,15 @@ export default class Graph {
 					return this.fetchModule(<string>resolvedId, module.id);
 				}
 			});
-		})
-		.then(() => fetchDynamicImportsPromise);
+		}).then(() => fetchDynamicImportsPromise);
 	}
 
-	warn (warning: RollupWarning) {
+	warn(warning: RollupWarning) {
 		warning.toString = () => {
 			let str = '';
 
 			if (warning.plugin) str += `(${warning.plugin} plugin) `;
-			if (warning.loc)
-				str += `${relativeId(warning.loc.file)} (${warning.loc.line}:${
-					warning.loc.column
-					}) `;
+			if (warning.loc) str += `${relativeId(warning.loc.file)} (${warning.loc.line}:${warning.loc.column}) `;
 			str += warning.message;
 
 			return str;

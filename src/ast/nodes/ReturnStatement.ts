@@ -7,11 +7,11 @@ export default class ReturnStatement extends StatementBase {
 	type: NodeType.ReturnStatement;
 	argument: ExpressionNode | null;
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects(options: ExecutionPathOptions) {
 		return super.hasEffects(options) || !options.ignoreReturnAwaitYield();
 	}
 
-	initialiseNode () {
+	initialiseNode() {
 		this.scope.addReturnExpression(this.argument || UNKNOWN_EXPRESSION);
 	}
 }

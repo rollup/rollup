@@ -4,20 +4,27 @@ module.exports = {
 	description: 'Dynamic import expression replacement',
 	options: {
 		experimentalDynamicImport: true,
-		plugins: [{
-			resolveDynamicImport (specifier, parent) {
-				if (typeof specifier !== 'string') {
-					// string literal concatenation
-					if (specifier.type === 'BinaryExpression' && specifier.operator === '+' &&
-							specifier.left.type === 'Literal' && specifier.right.type === 'Literal' &&
-							typeof specifier.left.value === 'string' && typeof specifier.right.value === 'string') {
-						return '"' + specifier.left.value + specifier.right.value + '"';
+		plugins: [
+			{
+				resolveDynamicImport(specifier, parent) {
+					if (typeof specifier !== 'string') {
+						// string literal concatenation
+						if (
+							specifier.type === 'BinaryExpression' &&
+							specifier.operator === '+' &&
+							specifier.left.type === 'Literal' &&
+							specifier.right.type === 'Literal' &&
+							typeof specifier.left.value === 'string' &&
+							typeof specifier.right.value === 'string'
+						) {
+							return '"' + specifier.left.value + specifier.right.value + '"';
+						}
 					}
 				}
 			}
-		}]
+		]
 	},
-	runtimeError: function (error) {
+	runtimeError: function(error) {
 		assert.equal("Cannot find module 'x/y'", error.message);
 	}
 };

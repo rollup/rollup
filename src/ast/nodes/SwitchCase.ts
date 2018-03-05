@@ -8,7 +8,7 @@ export default class SwitchCase extends NodeBase {
 	test: ExpressionNode | null;
 	consequent: StatementNode[];
 
-	includeInBundle () {
+	includeInBundle() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		if (this.test && this.test.includeInBundle()) {
@@ -24,7 +24,7 @@ export default class SwitchCase extends NodeBase {
 		return addedNewNodes;
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions) {
 		if (this.consequent.length) {
 			this.test && this.test.render(code, options);
 			const testEnd = this.test

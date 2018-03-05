@@ -30,7 +30,7 @@ export class Watcher extends EventEmitter {
 	tasks: Task[];
 	succeeded: boolean;
 
-	constructor (configs: RollupWatchOptions[]) {
+	constructor(configs: RollupWatchOptions[]) {
 		super();
 
 		this.dirty = true;
@@ -43,7 +43,7 @@ export class Watcher extends EventEmitter {
 		});
 	}
 
-	close () {
+	close() {
 		this.tasks.forEach(task => {
 			task.close();
 		});
@@ -51,7 +51,7 @@ export class Watcher extends EventEmitter {
 		this.removeAllListeners();
 	}
 
-	_makeDirty () {
+	_makeDirty() {
 		if (this.dirty) return;
 		this.dirty = true;
 
@@ -62,7 +62,7 @@ export class Watcher extends EventEmitter {
 		}
 	}
 
-	_run () {
+	_run() {
 		this.running = true;
 		this.dirty = false;
 
@@ -107,11 +107,11 @@ export class Task {
 	outputFiles: string[];
 	outputs: OutputOptions[];
 
-	deprecations: { old: string, new: string }[];
+	deprecations: { old: string; new: string }[];
 
 	filter: (id: string) => boolean;
 
-	constructor (watcher: Watcher, config: RollupWatchOptions) {
+	constructor(watcher: Watcher, config: RollupWatchOptions) {
 		this.cache = null;
 		this.watcher = watcher;
 
@@ -119,15 +119,15 @@ export class Task {
 		this.closed = false;
 		this.watched = new Set();
 
-		const { inputOptions, outputOptions, deprecations } = mergeOptions({ config });
+		const { inputOptions, outputOptions, deprecations } = mergeOptions({
+			config
+		});
 		this.inputOptions = inputOptions;
 
 		this.outputs = outputOptions;
 		this.outputFiles = this.outputs.map(output => {
 			if (!output.file) {
-				throw new Error(
-					`watch is currently only supported for a single output.file`
-				);
+				throw new Error(`watch is currently only supported for a single output.file`);
 			}
 			return path.resolve(output.file);
 		});
@@ -136,18 +136,13 @@ export class Task {
 		if ('useChokidar' in watchOptions) watchOptions.chokidar = watchOptions.useChokidar;
 		let chokidarOptions = 'chokidar' in watchOptions ? watchOptions.chokidar : !!chokidar;
 		if (chokidarOptions) {
-			chokidarOptions = Object.assign(
-				chokidarOptions === true ? {} : chokidarOptions,
-				{
-					ignoreInitial: true
-				}
-			);
+			chokidarOptions = Object.assign(chokidarOptions === true ? {} : chokidarOptions, {
+				ignoreInitial: true
+			});
 		}
 
 		if (chokidarOptions && !chokidar) {
-			throw new Error(
-				`options.watch.chokidar was provided, but chokidar could not be found. Have you installed it?`
-			);
+			throw new Error(`options.watch.chokidar was provided, but chokidar could not be found. Have you installed it?`);
 		}
 
 		this.chokidarOptions = chokidarOptions;
@@ -157,21 +152,21 @@ export class Task {
 		this.deprecations = [...deprecations, ...(watchOptions._deprecations || [])];
 	}
 
-	close () {
+	close() {
 		this.closed = true;
 		this.watched.forEach(id => {
 			deleteTask(id, this, this.chokidarOptionsHash);
 		});
 	}
 
-	makeDirty () {
+	makeDirty() {
 		if (!this.dirty) {
 			this.dirty = true;
 			this.watcher._makeDirty();
 		}
 	}
 
-	run () {
+	run() {
 		if (!this.dirty) return;
 		this.dirty = false;
 
@@ -191,8 +186,9 @@ export class Task {
 			this.inputOptions.onwarn({
 				code: 'DEPRECATED_OPTIONS',
 				deprecations: this.deprecations,
-				message: `The following options have been renamed — please update your config: ${this.deprecations.map(
-					option => `${option.old} -> ${option.new}`).join(', ')}`,
+				message: `The following options have been renamed — please update your config: ${this.deprecations
+					.map(option => `${option.old} -> ${option.new}`)
+					.join(', ')}`
 			});
 		}
 
@@ -239,7 +235,7 @@ export class Task {
 			});
 	}
 
-	watchFile (id: string) {
+	watchFile(id: string) {
 		if (!this.filter(id)) return;
 
 		if (this.outputFiles.some(file => file === id)) {
@@ -252,6 +248,6 @@ export class Task {
 	}
 }
 
-export default function watch (configs: RollupWatchOptions[]) {
+export default function watch(configs: RollupWatchOptions[]) {
 	return new Watcher(configs);
 }

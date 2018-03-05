@@ -11,12 +11,12 @@ export default class CatchClause extends NodeBase {
 	body: BlockStatement;
 	scope: CatchScope;
 
-	initialiseChildren () {
+	initialiseChildren() {
 		this.param && this.param.initialiseAndDeclare(this.scope, 'parameter', null);
 		this.body.initialiseAndReplaceScope(this.scope);
 	}
 
-	initialiseScope (parentScope: Scope) {
+	initialiseScope(parentScope: Scope) {
 		this.scope = new CatchScope({ parent: parentScope });
 	}
 }

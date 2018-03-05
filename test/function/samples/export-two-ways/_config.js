@@ -1,10 +1,10 @@
-var assert = require( 'assert' );
+var assert = require('assert');
 
 module.exports = {
 	description: 'exports the same binding more than one way',
-	exports: function ( exports ) {
-		assert.equal( exports.a, 2 );
-		assert.equal( exports.b, 2 );
-		assert.equal( exports.c, 2 );
+	exports: function(exports) {
+		assert.equal(exports.a, 2);
+		assert.equal(exports.b, 2);
+		assert.equal(exports.c, 2);
 	}
 };

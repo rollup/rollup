@@ -1,5 +1,5 @@
-var path = require( 'path' );
-var assert = require( 'assert' );
+var path = require('path');
+var assert = require('assert');
 
 module.exports = {
 	description: 'errors if code calls an external namespace',
@@ -8,7 +8,7 @@ module.exports = {
 		message: `Cannot call a namespace ('foo')`,
 		pos: 28,
 		loc: {
-			file: path.resolve( __dirname, 'main.js' ),
+			file: path.resolve(__dirname, 'main.js'),
 			line: 2,
 			column: 0
 		},

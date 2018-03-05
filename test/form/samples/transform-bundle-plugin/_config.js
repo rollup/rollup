@@ -3,12 +3,12 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				transformBundle: function (code) {
+				transformBundle: function(code) {
 					return '/* first plugin */';
 				}
 			},
 			{
-				transformBundle: function (code) {
+				transformBundle: function(code) {
 					return code + '\n/* second plugin */';
 				}
 			}

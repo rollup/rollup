@@ -17,19 +17,17 @@ export default class FunctionScope extends ReturnValueScope {
 		[name: string]: LocalVariable | GlobalVariable | ExternalVariable | ArgumentsVariable;
 	};
 
-	constructor (options = {}) {
+	constructor(options = {}) {
 		super(options);
-		this.variables.arguments = new ArgumentsVariable(
-			super.getParameterVariables()
-		);
+		this.variables.arguments = new ArgumentsVariable(super.getParameterVariables());
 		this.variables.this = new ThisVariable();
 	}
 
-	findLexicalBoundary () {
+	findLexicalBoundary() {
 		return this;
 	}
 
-	getOptionsWhenCalledWith ({ args, withNew }: CallOptions, options: ExecutionPathOptions): ExecutionPathOptions {
+	getOptionsWhenCalledWith({ args, withNew }: CallOptions, options: ExecutionPathOptions): ExecutionPathOptions {
 		return options
 			.replaceVariableInit(this.variables.this, withNew ? UNKNOWN_OBJECT_EXPRESSION : UNKNOWN_EXPRESSION)
 			.setArgumentsVariables(args.map((parameter, index) => super.getParameterVariables()[index] || parameter));

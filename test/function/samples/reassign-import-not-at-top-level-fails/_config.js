@@ -1,5 +1,5 @@
-var path = require( 'path' );
-var assert = require( 'assert' );
+var path = require('path');
+var assert = require('assert');
 
 module.exports = {
 	description: 'disallows assignments to imported bindings not at the top level',
@@ -8,7 +8,7 @@ module.exports = {
 		message: `Illegal reassignment to import 'x'`,
 		pos: 95,
 		loc: {
-			file: path.resolve( __dirname, 'main.js' ),
+			file: path.resolve(__dirname, 'main.js'),
 			line: 7,
 			column: 2
 		},

@@ -1,13 +1,13 @@
-var assert = require( 'assert' );
-var path = require( 'path' );
+var assert = require('assert');
+var path = require('path');
 
 module.exports = {
 	description: 'exports directly from an external module',
 	options: {
-		external: [ 'path' ]
+		external: ['path']
 	},
-	exports: function ( exports ) {
-		assert.equal( exports.sep, path.sep );
+	exports: function(exports) {
+		assert.equal(exports.sep, path.sep);
 	}
 };
 

@@ -7,10 +7,7 @@ export default class DoWhileStatement extends StatementBase {
 	body: StatementNode;
 	test: ExpressionNode;
 
-	hasEffects (options: ExecutionPathOptions): boolean {
-		return (
-			this.test.hasEffects(options) ||
-			this.body.hasEffects(options.setIgnoreBreakStatements())
-		);
+	hasEffects(options: ExecutionPathOptions): boolean {
+		return this.test.hasEffects(options) || this.body.hasEffects(options.setIgnoreBreakStatements());
 	}
 }

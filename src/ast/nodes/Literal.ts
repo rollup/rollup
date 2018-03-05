@@ -15,7 +15,7 @@ import { RenderOptions } from '../../utils/renderHelpers';
 
 export type LiteralValueTypes = string | boolean | null | number | RegExp;
 
-export function isLiteral (node: Node): node is Literal {
+export function isLiteral(node: Node): node is Literal {
 	return node.type === NodeType.Literal;
 }
 
@@ -25,39 +25,39 @@ export default class Literal<T = LiteralValueTypes> extends NodeBase {
 
 	private members: { [key: string]: MemberDescription };
 
-	getValue () {
+	getValue() {
 		return this.value;
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
 		if (this.value === null) {
 			return path.length > 0;
 		}
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(this.members, path[0], callOptions, options);
 		}
 		return true;
 	}
 
-	initialiseNode () {
+	initialiseNode() {
 		this.members = getLiteralMembersForValue(this.value);
 	}
 
-	render (code: MagicString, _options: RenderOptions) {
+	render(code: MagicString, _options: RenderOptions) {
 		if (typeof this.value === 'string') {
-			(<any> code).indentExclusionRanges.push([this.start + 1, this.end - 1]); // TODO TypeScript: Awaiting MagicString PR
+			(<any>code).indentExclusionRanges.push([this.start + 1, this.end - 1]); // TODO TypeScript: Awaiting MagicString PR
 		}
 	}
 
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,

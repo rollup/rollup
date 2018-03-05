@@ -1,5 +1,5 @@
 const keys: {
-	[name: string]: string[]
+	[name: string]: string[];
 } = {
 	Program: ['body'],
 	Literal: []

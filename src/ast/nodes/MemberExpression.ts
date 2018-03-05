@@ -15,13 +15,13 @@ import { isUnknownKey, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../values'
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
-function getPropertyKey (memberExpression: MemberExpression): ObjectPathKey {
+function getPropertyKey(memberExpression: MemberExpression): ObjectPathKey {
 	return memberExpression.computed
 		? getComputedPropertyKey(memberExpression.property)
 		: (<Identifier>memberExpression.property).name;
 }
 
-function getComputedPropertyKey (propertyKey: ExpressionNode): ObjectPathKey {
+function getComputedPropertyKey(propertyKey: ExpressionNode): ObjectPathKey {
 	if (isLiteral(propertyKey)) {
 		const key = String(propertyKey.value);
 		return validProp.test(key) ? key : UNKNOWN_KEY;
@@ -29,29 +29,25 @@ function getComputedPropertyKey (propertyKey: ExpressionNode): ObjectPathKey {
 	return UNKNOWN_KEY;
 }
 
-type PathWithPositions = { key: string, pos: number }[];
+type PathWithPositions = { key: string; pos: number }[];
 
-function getPathIfNotComputed (memberExpression: MemberExpression): PathWithPositions | null {
+function getPathIfNotComputed(memberExpression: MemberExpression): PathWithPositions | null {
 	const nextPathKey = memberExpression.propertyKey;
 	const object = memberExpression.object;
 	if (isUnknownKey(nextPathKey)) {
 		return null;
 	}
 	if (isIdentifier(object)) {
-		return [
-			{ key: object.name, pos: object.start },
-			{ key: nextPathKey, pos: memberExpression.property.start }
-		];
+		return [{ key: object.name, pos: object.start }, { key: nextPathKey, pos: memberExpression.property.start }];
 	}
 	if (isMemberExpression(object)) {
 		const parentPath = getPathIfNotComputed(object);
-		return parentPath
-		       && [...parentPath, { key: nextPathKey, pos: memberExpression.property.start }];
+		return parentPath && [...parentPath, { key: nextPathKey, pos: memberExpression.property.start }];
 	}
 	return null;
 }
 
-export function isMemberExpression (node: Node): node is MemberExpression {
+export function isMemberExpression(node: Node): node is MemberExpression {
 	return node.type === NodeType.MemberExpression;
 }
 
@@ -67,7 +63,7 @@ export default class MemberExpression extends NodeBase {
 	private replacement: string;
 	private arePropertyReadSideEffectsChecked: boolean;
 
-	bind () {
+	bind() {
 		const path = getPathIfNotComputed(this);
 		const baseVariable = path && this.scope.findVariable(path[0].key);
 		if (baseVariable && isNamespaceVariable(baseVariable)) {
@@ -88,7 +84,7 @@ export default class MemberExpression extends NodeBase {
 		this.isBound = true;
 	}
 
-	private resolveNamespaceVariables (baseVariable: Variable, path: PathWithPositions): Variable | string | null {
+	private resolveNamespaceVariables(baseVariable: Variable, path: PathWithPositions): Variable | string | null {
 		if (path.length === 0) return baseVariable;
 		if (!isNamespaceVariable(baseVariable)) return null;
 		const exportName = path[0].key;
@@ -110,7 +106,7 @@ export default class MemberExpression extends NodeBase {
 		return this.resolveNamespaceVariables(variable, path.slice(1));
 	}
 
-	forEachReturnExpressionWhenCalledAtPath (
+	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
@@ -118,75 +114,47 @@ export default class MemberExpression extends NodeBase {
 	) {
 		if (!this.isBound) this.bind();
 		if (this.variable) {
-			this.variable.forEachReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				callback,
-				options
-			);
+			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 		} else {
-			this.object.forEachReturnExpressionWhenCalledAtPath(
-				[this.propertyKey, ...path],
-				callOptions,
-				callback,
-				options
-			);
+			this.object.forEachReturnExpressionWhenCalledAtPath([this.propertyKey, ...path], callOptions, callback, options);
 		}
 	}
 
-	hasEffects (options: ExecutionPathOptions): boolean {
+	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			super.hasEffects(options) ||
-			(this.arePropertyReadSideEffectsChecked &&
-			 this.object.hasEffectsWhenAccessedAtPath(
-				 [this.propertyKey],
-				 options
-			 ))
+			(this.arePropertyReadSideEffectsChecked && this.object.hasEffectsWhenAccessedAtPath([this.propertyKey], options))
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) {
 			return false;
 		}
 		if (this.variable) {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, options);
 		}
-		return this.object.hasEffectsWhenAccessedAtPath(
-			[this.propertyKey, ...path],
-			options
-		);
+		return this.object.hasEffectsWhenAccessedAtPath([this.propertyKey, ...path], options);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (this.variable) {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 		}
-		return this.object.hasEffectsWhenAssignedAtPath(
-			[this.propertyKey, ...path],
-			options
-		);
+		return this.object.hasEffectsWhenAssignedAtPath([this.propertyKey, ...path], options);
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (this.variable) {
-			return this.variable.hasEffectsWhenCalledAtPath(
-				path,
-				callOptions,
-				options
-			);
+			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 		}
 		return (
 			this.propertyKey === UNKNOWN_KEY ||
-			this.object.hasEffectsWhenCalledAtPath(
-				[this.propertyKey, ...path],
-				callOptions,
-				options
-			)
+			this.object.hasEffectsWhenCalledAtPath([this.propertyKey, ...path], callOptions, options)
 		);
 	}
 
-	includeInBundle () {
+	includeInBundle() {
 		let addedNewNodes = super.includeInBundle();
 		if (this.variable && !this.variable.included) {
 			this.variable.includeVariable();
@@ -195,14 +163,13 @@ export default class MemberExpression extends NodeBase {
 		return addedNewNodes;
 	}
 
-	initialiseNode () {
+	initialiseNode() {
 		this.propertyKey = getPropertyKey(this);
 		this.arePropertyReadSideEffectsChecked =
-			this.module.graph.treeshake &&
-			this.module.graph.treeshakingOptions.propertyReadSideEffects;
+			this.module.graph.treeshake && this.module.graph.treeshakingOptions.propertyReadSideEffects;
 	}
 
-	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (!this.isBound) this.bind();
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
@@ -212,7 +179,7 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	private disallowNamespaceReassignment () {
+	private disallowNamespaceReassignment() {
 		if (isIdentifier(this.object) && isNamespaceVariable(this.scope.findVariable(this.object.name))) {
 			this.module.error(
 				{
@@ -224,7 +191,7 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions) {
 		if (this.variable) {
 			code.overwrite(this.start, this.end, this.variable.getName(), {
 				storeName: true,
@@ -240,19 +207,14 @@ export default class MemberExpression extends NodeBase {
 		super.render(code, options);
 	}
 
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		if (this.variable) {
-			return this.variable.someReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				predicateFunction,
-				options
-			);
+			return this.variable.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options);
 		}
 		return (
 			getPropertyKey(this) === UNKNOWN_KEY ||

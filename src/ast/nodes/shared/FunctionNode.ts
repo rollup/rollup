@@ -15,29 +15,24 @@ export default class FunctionNode extends NodeBase {
 	scope: BlockScope;
 	params: PatternNode[];
 
-	bindNode () {
+	bindNode() {
 		this.body.bindImplicitReturnExpressionToScope();
 	}
 
-	forEachReturnExpressionWhenCalledAtPath (
+	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		path.length === 0 &&
-		this.scope.forEachReturnExpressionWhenCalled(
-			callOptions,
-			callback,
-			options
-		);
+		path.length === 0 && this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
 	}
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects(options: ExecutionPathOptions) {
 		return this.id && this.id.hasEffects(options);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		if (path.length <= 1) {
 			return false;
 		}
@@ -47,7 +42,7 @@ export default class FunctionNode extends NodeBase {
 		return true;
 	}
 
-	hasEffectsWhenAssignedAtPath (path: ObjectPath) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
 		if (path.length <= 1) {
 			return false;
 		}
@@ -57,42 +52,29 @@ export default class FunctionNode extends NodeBase {
 		return true;
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
 		if (path.length > 0) {
 			return true;
 		}
-		const innerOptions = this.scope.getOptionsWhenCalledWith(
-			callOptions,
-			options
-		);
-		return (
-			this.params.some(param => param.hasEffects(innerOptions)) ||
-			this.body.hasEffects(innerOptions)
-		);
+		const innerOptions = this.scope.getOptionsWhenCalledWith(callOptions, options);
+		return this.params.some(param => param.hasEffects(innerOptions)) || this.body.hasEffects(innerOptions);
 	}
 
-	includeInBundle () {
+	includeInBundle() {
 		this.scope.variables.arguments.includeVariable();
 		return super.includeInBundle();
 	}
 
-	initialiseScope (parentScope: FunctionScope) {
+	initialiseScope(parentScope: FunctionScope) {
 		this.scope = new FunctionScope({ parent: parentScope });
 	}
 
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		return (
-			path.length > 0 ||
-			this.scope.someReturnExpressionWhenCalled(
-				callOptions,
-				predicateFunction,
-				options
-			)
-		);
+		return path.length > 0 || this.scope.someReturnExpressionWhenCalled(callOptions, predicateFunction, options);
 	}
 }
