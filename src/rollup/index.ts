@@ -83,15 +83,15 @@ export interface TreeshakingOptions {
 export type ExternalOption = string[] | IsExternalHook;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 
+export type CachedChunk = { modules: ModuleJSON[] };
+export type CachedChunkSet = { chunks: { [chunkName: string]: CachedChunk } };
 export interface InputOptions {
 	input: string | string[];
 	external?: ExternalOption;
 	plugins?: Plugin[];
 
 	onwarn?: WarningHandler;
-	cache?: {
-		modules: ModuleJSON[];
-	};
+	cache?: CachedChunk | CachedChunkSet;
 
 	acorn?: {};
 	acornInjectPlugins?: Function[];
@@ -242,8 +242,21 @@ export interface OutputChunk {
 	write: (options: OutputOptions) => Promise<void>;
 }
 
-export default function rollup(rawInputOptions: InputOptions): Promise<OutputChunk>;
-export default function rollup(rawInputOptions: GenericConfigObject) {
+export interface OutputChunkSet {
+	chunks: {
+		[chunkName: string]: {
+			name: string,
+			imports: string[],
+			exports: string[],
+			modules: ModuleJSON[]
+		}
+	};
+	generate: (outputOptions: OutputOptions) => Promise<{ [chunkName: string]: SourceDescription }>;
+	write: (options: OutputOptions) => Promise<void>;
+}
+
+export default function rollup (rawInputOptions: InputOptions): Promise<OutputChunk | OutputChunkSet>;
+export default function rollup (rawInputOptions: GenericConfigObject): Promise<OutputChunk | OutputChunkSet> {
 	try {
 		if (!rawInputOptions) {
 			throw new Error('You must supply an options object to rollup');
@@ -479,7 +492,7 @@ export default function rollup(rawInputOptions: GenericConfigObject) {
 			return {
 				chunks: chunks,
 				generate,
-				write(outputOptions: OutputOptions) {
+				write (outputOptions: OutputOptions): Promise<void> {
 					if (!outputOptions || !outputOptions.dir) {
 						error({
 							code: 'MISSING_OPTION',
@@ -522,11 +535,9 @@ export default function rollup(rawInputOptions: GenericConfigObject) {
 													)
 											);
 										})
-										// ensures return isn't void[]
-										.then(() => {})
 								);
 							})
-						);
+						).then(() => {}); // ensures return void and not void[][]
 					});
 				}
 			};
