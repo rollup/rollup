@@ -1,14 +1,14 @@
 import { locate } from 'locate-character';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import Scope from '../../scopes/Scope';
-import Module, { NodeRenderOptions, RenderOptions } from '../../../Module';
+import Module from '../../../Module';
 import MagicString from 'magic-string';
 import Variable from '../../variables/Variable';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
-import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import CallOptions from '../../CallOptions';
-import { UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
+import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import { Entity } from '../../Entity';
+import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 
 export interface Node extends Entity {
 	end: number;

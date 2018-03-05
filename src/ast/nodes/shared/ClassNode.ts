@@ -2,9 +2,9 @@ import Scope from '../../scopes/Scope';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import Identifier from '../Identifier';
-import { ObjectPath } from '../../variables/VariableReassignmentTracker';
 import ClassBody from '../ClassBody';
 import { ExpressionNode, NodeBase } from './Node';
+import { ObjectPath } from '../../values';
 
 export default class ClassNode extends NodeBase {
 	body: ClassBody;

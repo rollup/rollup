@@ -1,8 +1,8 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { isIdentifier } from './Identifier';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
+import { ObjectPath } from '../values';
 
 export default class UpdateExpression extends NodeBase {
 	type: NodeType.UpdateExpression;

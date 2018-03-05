@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
 import { StatementBase } from './shared/Node';
+import { RenderOptions } from '../../utils/renderHelpers';
 
 export default class EmptyStatement extends StatementBase {
 	type: NodeType.EmptyStatement;

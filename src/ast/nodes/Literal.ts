@@ -1,12 +1,17 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { SomeReturnExpressionCallback } from './shared/Expression';
 import { Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 import CallOptions from '../CallOptions';
-import { RenderOptions } from '../../Module';
-import { getLiteralMembersForValue, hasMemberEffectWhenCalled, MemberDescription, someMemberReturnExpressionWhenCalled } from '../values';
+import {
+	getLiteralMembersForValue,
+	hasMemberEffectWhenCalled,
+	MemberDescription,
+	ObjectPath,
+	someMemberReturnExpressionWhenCalled
+} from '../values';
+import { RenderOptions } from '../../utils/renderHelpers';
 
 export type LiteralValueTypes = string | boolean | null | number | RegExp;
 

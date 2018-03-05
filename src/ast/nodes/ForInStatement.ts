@@ -6,8 +6,8 @@ import BlockStatement from './BlockStatement';
 import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
 import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
-import { NO_SEMICOLON, RenderOptions } from '../../Module';
 import MagicString from 'magic-string';
+import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
 
 export function isForInStatement (node: Node): node is ForInStatement {
 	return node.type === NodeType.ForInStatement;

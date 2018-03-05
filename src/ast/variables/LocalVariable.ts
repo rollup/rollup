@@ -1,10 +1,11 @@
 import Variable from './Variable';
-import VariableReassignmentTracker, { ObjectPath } from './VariableReassignmentTracker';
+import VariableReassignmentTracker from './VariableReassignmentTracker';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import Identifier from '../nodes/Identifier';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
+import { ObjectPath } from '../values';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;

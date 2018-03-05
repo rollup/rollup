@@ -2,8 +2,8 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import FunctionExpression from './FunctionExpression';
 import CallOptions from '../CallOptions';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { NodeType } from './NodeType';
+import { ObjectPath } from '../values';
 
 export default class MethodDefinition extends NodeBase {
 	type: NodeType.MethodDefinition;

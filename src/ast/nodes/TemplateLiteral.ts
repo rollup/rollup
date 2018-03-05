@@ -1,8 +1,8 @@
 import TemplateElement from './TemplateElement';
 import MagicString from 'magic-string';
-import { Node, ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../Module';
+import { RenderOptions } from '../../utils/renderHelpers';
 
 export function isTemplateLiteral (node: Node): node is TemplateLiteral {
 	return node.type === NodeType.TemplateLiteral;

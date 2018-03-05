@@ -5,8 +5,7 @@ import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaratio
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { NodeRenderOptions, RenderOptions } from '../../Module';
-import { findFirstOccurrenceOutsideComment } from '../../utils/renderHelpers';
+import { findFirstOccurrenceOutsideComment, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { isObjectExpression } from './ObjectExpression';
 import { BLANK } from '../../utils/object';
 
@@ -68,10 +67,10 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			this.renderNamedDeclaration(code, declarationStart, 'class', this.declaration.id === null, options);
 		} else if (this.variable.referencesOriginal()) {
 			// Remove altogether to prevent re-declaring the same variable
-			if (!options.systemBindings) {
-				code.remove(start, end);
-			} else {
+			if (options.systemBindings && this.variable.exportName) {
 				code.overwrite(start, end, `exports('${this.variable.exportName}', ${this.variable.getName()});`);
+			} else {
+				code.remove(start, end);
 			}
 			return;
 		} else if (this.variable.included) {
@@ -92,20 +91,20 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		if (needsId) {
 			code.appendLeft(getIdInsertPosition(code.original, declarationKeyword, declarationStart), ` ${name}`);
 		}
-		if (options.systemBindings && isClassDeclaration(this.declaration)) {
-			code.appendRight(this.end, ` exports('default', ${name});`);
+		if (options.systemBindings && isClassDeclaration(this.declaration) && this.variable.exportName) {
+			code.appendLeft(this.end, ` exports('${this.variable.exportName}', ${name});`);
 		}
 	}
 
 	private renderVariableDeclaration (code: MagicString, declarationStart: number, options: RenderOptions) {
-		const systemBinding = options.systemBindings ? `exports('${this.variable.exportName}', ` : '';
+		const systemBinding = options.systemBindings && this.variable.exportName ? `exports('${this.variable.exportName}', ` : '';
 		code.overwrite(
 			this.start,
 			declarationStart,
 			`${this.module.graph.varOrConst} ${this.variable.getName()} = ${systemBinding}`
 		);
 		if (systemBinding) {
-			code.prependRight(this.end - 1, ')');
+			code.appendRight(code.original[this.end - 1] === ';' ? this.end - 1 : this.end, ')');
 		}
 	}
 

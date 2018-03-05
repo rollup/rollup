@@ -2,13 +2,12 @@ import { Node, NodeBase } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import VariableDeclarator from './VariableDeclarator';
 import MagicString from 'magic-string';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { NodeType } from './NodeType';
-import { NodeRenderOptions, RenderOptions } from '../../Module';
-import { getCommaSeparatedNodesWithBoundaries } from '../../utils/renderHelpers';
+import { getCommaSeparatedNodesWithBoundaries, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { isIdentifier } from './Identifier';
 import Variable from '../variables/Variable';
 import { BLANK } from '../../utils/object';
+import { ObjectPath } from '../values';
 
 function isReassignedExportsMember (variable: Variable): boolean {
 	return variable.safeName && variable.safeName.indexOf('.') !== -1 && variable.exportName && variable.isReassigned;

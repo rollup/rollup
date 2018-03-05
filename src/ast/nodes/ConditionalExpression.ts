@@ -1,13 +1,12 @@
-import { UNKNOWN_VALUE } from '../values';
+import { ObjectPath, UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
-import { ObjectPath } from '../variables/VariableReassignmentTracker';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { RenderOptions } from '../../Module';
+import { RenderOptions } from '../../utils/renderHelpers';
 
 export default class ConditionalExpression extends NodeBase {
 	type: NodeType.ConditionalExpression;

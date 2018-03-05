@@ -10,7 +10,6 @@ System.register(['./chunk1.js'], function (exports, module) {
 
 			commonjsGlobal.fn = d => d + 1;
 			var cjs = commonjsGlobal.fn;
-			exports('default', cjs);
 
 			var main1 = exports('default', d.map(cjs));
 

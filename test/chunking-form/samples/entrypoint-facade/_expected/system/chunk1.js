@@ -4,7 +4,7 @@ System.register([], function (exports, module) {
     execute: function () {
 
       exports('default', log);
-      var dep = exports('default$1', 42);
+      var dep = exports('default$1', { x: 42 })
 
       function log (x) {
         if (dep) {

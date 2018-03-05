@@ -1,6 +1,21 @@
 import { Node } from '../ast/nodes/shared/Node';
 import MagicString from 'magic-string';
-import { RenderOptions } from '../Module';
+import { DynamicImportMechanism } from '../Chunk';
+
+export interface RenderOptions {
+	legacy: boolean;
+	freeze: boolean;
+	importMechanism?: DynamicImportMechanism;
+	systemBindings: boolean;
+}
+
+export interface NodeRenderOptions {
+	start?: number,
+	end?: number,
+	isNoStatement?: boolean
+}
+
+export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
 
 export function findFirstOccurrenceOutsideComment (code: string, searchString: string, start: number = 0) {
 	let commentStart, searchPos;
