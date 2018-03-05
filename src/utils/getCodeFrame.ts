@@ -1,14 +1,14 @@
-function spaces (i: number) {
+function spaces(i: number) {
 	let result = '';
 	while (i--) result += ' ';
 	return result;
 }
 
-function tabsToSpaces (str: string) {
+function tabsToSpaces(str: string) {
 	return str.replace(/^\t+/, match => match.split('\t').join('  '));
 }
 
-export default function getCodeFrame (source: string, line: number, column: number) {
+export default function getCodeFrame(source: string, line: number, column: number) {
 	let lines = source.split('\n');
 
 	const frameStart = Math.max(0, line - 3);
@@ -30,8 +30,7 @@ export default function getCodeFrame (source: string, line: number, column: numb
 			while (lineNum.length < digits) lineNum = ` ${lineNum}`;
 
 			if (isErrorLine) {
-				const indicator =
-					spaces(digits + 2 + tabsToSpaces(str.slice(0, column)).length) + '^';
+				const indicator = spaces(digits + 2 + tabsToSpaces(str.slice(0, column)).length) + '^';
 				return `${lineNum}: ${tabsToSpaces(str)}\n${indicator}`;
 			}
 

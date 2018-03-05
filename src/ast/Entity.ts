@@ -6,7 +6,7 @@ export interface Entity {
 }
 
 export interface WritableEntity extends Entity {
-	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean;
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
 
 	/**
 	 * Reassign a given path of an object.
@@ -15,5 +15,5 @@ export interface WritableEntity extends Entity {
 	 * The default noop implementation is ok as long as hasEffectsWhenAssignedAtPath
 	 * always returns true for this node. Otherwise it should be overridden.
 	 */
-	reassignPath (path: ObjectPath, options: ExecutionPathOptions): void;
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions): void;
 }

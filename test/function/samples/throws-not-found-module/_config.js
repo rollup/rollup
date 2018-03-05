@@ -1,5 +1,5 @@
-var assert = require( 'assert' );
-var path = require( 'path' );
+var assert = require('assert');
+var path = require('path');
 
 module.exports = {
 	description: 'throws error if module is not found',

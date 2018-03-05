@@ -10,7 +10,7 @@ import { NodeType } from './NodeType';
 const PROPERTY_KINDS_READ = ['init', 'get'];
 const PROPERTY_KINDS_WRITE = ['init', 'set'];
 
-export function isObjectExpression (node: Node): node is ObjectExpression {
+export function isObjectExpression(node: Node): node is ObjectExpression {
 	return node.type === NodeType.ObjectExpression;
 }
 
@@ -18,7 +18,7 @@ export default class ObjectExpression extends NodeBase {
 	type: NodeType.ObjectExpression;
 	properties: Property[];
 
-	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
@@ -26,14 +26,12 @@ export default class ObjectExpression extends NodeBase {
 			path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ
 		);
 		(path.length === 1 || hasCertainHit) &&
-		properties.forEach(
-			property =>
-				(path.length > 1 || property.kind === 'set') &&
-				property.reassignPath(path.slice(1), options)
-		);
+			properties.forEach(
+				property => (path.length > 1 || property.kind === 'set') && property.reassignPath(path.slice(1), options)
+			);
 	}
 
-	forEachReturnExpressionWhenCalledAtPath (
+	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
@@ -41,22 +39,14 @@ export default class ObjectExpression extends NodeBase {
 	) {
 		if (path.length === 0) return;
 
-		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
-			path[0],
-			PROPERTY_KINDS_READ
-		);
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(path[0], PROPERTY_KINDS_READ);
 		hasCertainHit &&
-		properties.forEach(property =>
-			property.forEachReturnExpressionWhenCalledAtPath(
-				path.slice(1),
-				callOptions,
-				callback,
-				options
-			)
-		);
+			properties.forEach(property =>
+				property.forEachReturnExpressionWhenCalledAtPath(path.slice(1), callOptions, callback, options)
+			);
 	}
 
-	_getPossiblePropertiesWithName (name: ObjectPathKey, kinds: ObjectPath) {
+	_getPossiblePropertiesWithName(name: ObjectPathKey, kinds: ObjectPath) {
 		if (name === UNKNOWN_KEY) {
 			return { properties: this.properties, hasCertainHit: false };
 		}
@@ -77,22 +67,17 @@ export default class ObjectExpression extends NodeBase {
 		return { properties, hasCertainHit };
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return false;
 
-		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
-			path[0],
-			PROPERTY_KINDS_READ
-		);
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(path[0], PROPERTY_KINDS_READ);
 		return (
 			(path.length > 1 && !hasCertainHit) ||
-			properties.some(property =>
-				property.hasEffectsWhenAccessedAtPath(path.slice(1), options)
-			)
+			properties.some(property => property.hasEffectsWhenAccessedAtPath(path.slice(1), options))
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return false;
 
 		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
@@ -103,32 +88,26 @@ export default class ObjectExpression extends NodeBase {
 			(path.length > 1 && !hasCertainHit) ||
 			properties.some(
 				property =>
-					(path.length > 1 || property.kind === 'set') &&
-					property.hasEffectsWhenAssignedAtPath(path.slice(1), options)
+					(path.length > 1 || property.kind === 'set') && property.hasEffectsWhenAssignedAtPath(path.slice(1), options)
 			)
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return true;
 		const subPath = path[0];
 		if (path.length === 1 && !isUnknownKey(subPath) && objectMembers[subPath]) {
 			return false;
 		}
 
-		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
-			path[0],
-			PROPERTY_KINDS_READ
-		);
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(path[0], PROPERTY_KINDS_READ);
 		return (
 			!hasCertainHit ||
-			properties.some(property =>
-				property.hasEffectsWhenCalledAtPath(path.slice(1), callOptions, options)
-			)
+			properties.some(property => property.hasEffectsWhenCalledAtPath(path.slice(1), callOptions, options))
 		);
 	}
 
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,
@@ -140,19 +119,11 @@ export default class ObjectExpression extends NodeBase {
 			return predicateFunction(options)(objectMembers[subPath].returns);
 		}
 
-		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(
-			subPath,
-			PROPERTY_KINDS_READ
-		);
+		const { properties, hasCertainHit } = this._getPossiblePropertiesWithName(subPath, PROPERTY_KINDS_READ);
 		return (
 			!hasCertainHit ||
 			properties.some(property =>
-				property.someReturnExpressionWhenCalledAtPath(
-					path.slice(1),
-					callOptions,
-					predicateFunction,
-					options
-				)
+				property.someReturnExpressionWhenCalledAtPath(path.slice(1), callOptions, predicateFunction, options)
 			)
 		);
 	}

@@ -8,15 +8,15 @@ export default class SequenceExpression extends NodeBase {
 	type: NodeType.SequenceExpression;
 	expressions: ExpressionNode[];
 
-	getValue (): any {
+	getValue(): any {
 		return this.expressions[this.expressions.length - 1].getValue();
 	}
 
-	hasEffects (options: ExecutionPathOptions): boolean {
+	hasEffects(options: ExecutionPathOptions): boolean {
 		return this.expressions.some(expression => expression.hasEffects(options));
 	}
 
-	includeInBundle () {
+	includeInBundle() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		if (this.expressions[this.expressions.length - 1].includeInBundle()) {
@@ -32,7 +32,7 @@ export default class SequenceExpression extends NodeBase {
 		return addedNewNodes;
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions) {
 		if (!this.module.graph.treeshake) {
 			super.render(code, options);
 		} else {
@@ -47,9 +47,7 @@ export default class SequenceExpression extends NodeBase {
 				this.expressions[0].included = true;
 			}
 
-			const included = this.expressions
-				.slice(0, this.expressions.length - 1)
-				.filter(expression => expression.included);
+			const included = this.expressions.slice(0, this.expressions.length - 1).filter(expression => expression.included);
 			if (included.length === 0) {
 				code.remove(this.start, last.start);
 				code.remove(last.end, this.end);

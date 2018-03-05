@@ -1,8 +1,8 @@
-const assert = require( 'assert' );
+const assert = require('assert');
 
 module.exports = {
 	description: 'handles default exports with no space before declaration',
 	exports: exports => {
-		assert.deepEqual( exports, {} );
+		assert.deepEqual(exports, {});
 	}
 };

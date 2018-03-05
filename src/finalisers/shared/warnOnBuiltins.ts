@@ -1,4 +1,4 @@
-import Chunk from "../../Chunk";
+import Chunk from '../../Chunk';
 
 const builtins = {
 	process: true,
@@ -26,9 +26,8 @@ const builtins = {
 
 // Creating a browser chunk that depends on Node.js built-in modules ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins
 
-export default function warnOnBuiltins (chunk: Chunk) {
-	const externalBuiltins = chunk.getImportIds()
-		.filter(id => id in builtins)
+export default function warnOnBuiltins(chunk: Chunk) {
+	const externalBuiltins = chunk.getImportIds().filter(id => id in builtins);
 
 	if (!externalBuiltins.length) return;
 
@@ -36,9 +35,9 @@ export default function warnOnBuiltins (chunk: Chunk) {
 		externalBuiltins.length === 1
 			? `module ('${externalBuiltins[0]}')`
 			: `modules (${externalBuiltins
-				.slice(0, -1)
-				.map(name => `'${name}'`)
-				.join(', ')} and '${externalBuiltins.slice(-1)}')`;
+					.slice(0, -1)
+					.map(name => `'${name}'`)
+					.join(', ')} and '${externalBuiltins.slice(-1)}')`;
 
 	chunk.graph.warn({
 		code: 'MISSING_NODE_BUILTINS',

@@ -4,7 +4,7 @@ import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../utils/renderHelpers';
 
-export function isTemplateLiteral (node: Node): node is TemplateLiteral {
+export function isTemplateLiteral(node: Node): node is TemplateLiteral {
 	return node.type === NodeType.TemplateLiteral;
 }
 
@@ -13,8 +13,8 @@ export default class TemplateLiteral extends NodeBase {
 	quasis: TemplateElement[];
 	expressions: ExpressionNode[];
 
-	render (code: MagicString, options: RenderOptions) {
-		(<any> code).indentExclusionRanges.push([this.start, this.end]); // TODO TypeScript: Awaiting PR
+	render(code: MagicString, options: RenderOptions) {
+		(<any>code).indentExclusionRanges.push([this.start, this.end]); // TODO TypeScript: Awaiting PR
 		super.render(code, options);
 	}
 }

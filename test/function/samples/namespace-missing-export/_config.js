@@ -6,12 +6,12 @@ module.exports = {
 			code: 'MISSING_EXPORT',
 			exporter: 'empty.js',
 			importer: 'main.js',
-			id: path.resolve( __dirname, 'main.js' ),
+			id: path.resolve(__dirname, 'main.js'),
 			missing: 'foo',
 			message: `'foo' is not exported by 'empty.js'`,
 			pos: 61,
 			loc: {
-				file: require( 'path' ).resolve( __dirname, 'main.js' ),
+				file: require('path').resolve(__dirname, 'main.js'),
 				line: 3,
 				column: 25
 			},

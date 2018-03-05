@@ -15,7 +15,7 @@ import UpdateExpression from './UpdateExpression';
 import ClassDeclaration from './ClassDeclaration';
 import { RenderOptions } from '../../utils/renderHelpers';
 
-export function isIdentifier (node: Node): node is Identifier {
+export function isIdentifier(node: Node): node is Identifier {
 	return node.type === NodeType.Identifier;
 }
 
@@ -26,57 +26,43 @@ export default class Identifier extends NodeBase {
 	variable: Variable;
 	private isBound: boolean;
 
-	bindNode () {
+	bindNode() {
 		if (isReference(this, this.parent)) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 		}
 	}
 
-	forEachReturnExpressionWhenCalledAtPath (
+	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		if (!this.isBound) this.bind();
-		this.variable &&
-		this.variable.forEachReturnExpressionWhenCalledAtPath(
-			path,
-			callOptions,
-			callback,
-			options
-		);
+		this.variable && this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return (
-			this.variable && this.variable.hasEffectsWhenAccessedAtPath(path, options)
-		);
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+		return this.variable && this.variable.hasEffectsWhenAccessedAtPath(path, options);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return (
-			!this.variable ||
-			this.variable.hasEffectsWhenAssignedAtPath(path, options)
-		);
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+		return !this.variable || this.variable.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
-		return (
-			!this.variable ||
-			this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options)
-		);
+	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
+		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	includeInBundle () {
+	includeInBundle() {
 		if (this.included) return false;
 		this.included = true;
 		this.variable && this.variable.includeVariable();
 		return true;
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: ExpressionEntity | null) {
+	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null) {
 		this.initialiseScope(parentScope);
 		switch (kind) {
 			case 'var':
@@ -99,7 +85,7 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (!this.isBound) this.bind();
 		if (this.variable) {
 			if (path.length === 0) this.disallowImportReassignment();
@@ -107,7 +93,7 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	private disallowImportReassignment () {
+	private disallowImportReassignment() {
 		if (this.module.imports[this.name] && !this.scope.contains(this.name)) {
 			this.module.error(
 				{
@@ -119,44 +105,52 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	renderSystemBindingUpdate (code: MagicString, name: string) {
+	renderSystemBindingUpdate(code: MagicString, name: string) {
 		switch (this.parent.type) {
-			case NodeType.AssignmentExpression: {
-				let expression: AssignmentExpression = <AssignmentExpression>this.parent;
-				if (expression.left === this) {
-					code.prependLeft(expression.right.start, `exports('${this.variable.exportName}', `);
-					code.prependRight(expression.right.end, `)`);
-				}
-			}
-			break;
-
-			case NodeType.UpdateExpression: {
-				let expression: UpdateExpression = <UpdateExpression>this.parent;
-				if (expression.prefix) {
-					code.overwrite(expression.start, expression.end,
-							`exports('${this.variable.exportName}', ${expression.operator}${name})`);
-				} else {
-					let op;
-					switch (expression.operator) {
-						case '++':
-							op = `${name} + 1`;
-						break;
-						case '--':
-							op = `${name} - 1`;
-						break;
-						case '**':
-							op = `${name} * ${name}`;
-						break;
+			case NodeType.AssignmentExpression:
+				{
+					let expression: AssignmentExpression = <AssignmentExpression>this.parent;
+					if (expression.left === this) {
+						code.prependLeft(expression.right.start, `exports('${this.variable.exportName}', `);
+						code.prependRight(expression.right.end, `)`);
 					}
-					code.overwrite(expression.start, expression.end,
-						`(exports('${this.variable.exportName}', ${op}), ${name}${expression.operator})`);
 				}
-			}
-			break;
+				break;
+
+			case NodeType.UpdateExpression:
+				{
+					let expression: UpdateExpression = <UpdateExpression>this.parent;
+					if (expression.prefix) {
+						code.overwrite(
+							expression.start,
+							expression.end,
+							`exports('${this.variable.exportName}', ${expression.operator}${name})`
+						);
+					} else {
+						let op;
+						switch (expression.operator) {
+							case '++':
+								op = `${name} + 1`;
+								break;
+							case '--':
+								op = `${name} - 1`;
+								break;
+							case '**':
+								op = `${name} * ${name}`;
+								break;
+						}
+						code.overwrite(
+							expression.start,
+							expression.end,
+							`(exports('${this.variable.exportName}', ${op}), ${name}${expression.operator})`
+						);
+					}
+				}
+				break;
 		}
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions) {
 		if (this.variable) {
 			const name = this.variable.getName();
 
@@ -178,19 +172,14 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		if (this.variable) {
-			return this.variable.someReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				predicateFunction,
-				options
-			);
+			return this.variable.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options);
 		}
 		return predicateFunction(options)(UNKNOWN_EXPRESSION);
 	}

@@ -6,7 +6,7 @@ import Module from '../Module';
 import MagicString from 'magic-string';
 import Import from './nodes/Import';
 
-export default function enhance (ast: any, module: Module, dynamicImportReturnList: Import[]) {
+export default function enhance(ast: any, module: Module, dynamicImportReturnList: Import[]) {
 	enhanceNode(ast, {}, module, module.magicString, dynamicImportReturnList);
 
 	for (const node of ast.body) {
@@ -14,11 +14,17 @@ export default function enhance (ast: any, module: Module, dynamicImportReturnLi
 	}
 }
 
-function isArrayOfNodes (raw: Node | Node[]): raw is Node[] {
+function isArrayOfNodes(raw: Node | Node[]): raw is Node[] {
 	return 'length' in raw;
 }
 
-function enhanceNode (raw: Node | Node[], parent: Node | {}, module: Module, code: MagicString, dynamicImportReturnList: Import[]) {
+function enhanceNode(
+	raw: Node | Node[],
+	parent: Node | {},
+	module: Module,
+	code: MagicString,
+	dynamicImportReturnList: Import[]
+) {
 	if (!raw) return;
 
 	if (isArrayOfNodes(raw)) {
@@ -36,9 +42,7 @@ function enhanceNode (raw: Node | Node[], parent: Node | {}, module: Module, cod
 	rawNode.__enhanced = true;
 
 	if (!keys[rawNode.type]) {
-		keys[rawNode.type] = Object.keys(rawNode).filter(
-			key => typeof (<any>rawNode)[key] === 'object'
-		);
+		keys[rawNode.type] = Object.keys(rawNode).filter(key => typeof (<any>rawNode)[key] === 'object');
 	}
 
 	rawNode.parent = parent;

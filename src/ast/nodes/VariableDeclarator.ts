@@ -10,11 +10,11 @@ export default class VariableDeclarator extends NodeBase {
 	id: PatternNode;
 	init: ExpressionNode | null;
 
-	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
 		this.id.reassignPath(path, options);
 	}
 
-	initialiseDeclarator (parentScope: Scope, kind: string) {
+	initialiseDeclarator(parentScope: Scope, kind: string) {
 		this.initialiseScope(parentScope);
 		this.init && this.init.initialise(this.scope);
 		this.id.initialiseAndDeclare(this.scope, kind, this.init);

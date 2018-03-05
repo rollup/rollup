@@ -57,7 +57,7 @@ import YieldExpression from './YieldExpression';
 import { NodeBase, StatementBase } from './shared/Node';
 
 const nodes: {
-	[name: string]: typeof NodeBase
+	[name: string]: typeof NodeBase;
 } = {
 	ArrayExpression,
 	ArrayPattern,

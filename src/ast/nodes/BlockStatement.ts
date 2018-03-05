@@ -7,7 +7,7 @@ import { Node, StatementBase, StatementNode } from './shared/Node';
 import { NodeType } from './NodeType';
 import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 
-export function isBlockStatement (node: Node): node is BlockStatement {
+export function isBlockStatement(node: Node): node is BlockStatement {
 	return node.type === NodeType.BlockStatement;
 }
 
@@ -16,18 +16,18 @@ export default class BlockStatement extends StatementBase {
 	scope: Scope;
 	body: StatementNode[];
 
-	bindImplicitReturnExpressionToScope () {
+	bindImplicitReturnExpressionToScope() {
 		const lastStatement = this.body[this.body.length - 1];
 		if (!lastStatement || lastStatement.type !== NodeType.ReturnStatement) {
 			this.scope.addReturnExpression(UNKNOWN_EXPRESSION);
 		}
 	}
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects(options: ExecutionPathOptions) {
 		return this.body.some(child => child.hasEffects(options));
 	}
 
-	includeInBundle () {
+	includeInBundle() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		this.body.forEach(node => {
@@ -40,23 +40,23 @@ export default class BlockStatement extends StatementBase {
 		return addedNewNodes;
 	}
 
-	initialiseAndReplaceScope (scope: Scope) {
+	initialiseAndReplaceScope(scope: Scope) {
 		this.scope = scope;
 		this.initialiseNode(scope);
 		this.initialiseChildren(scope);
 	}
 
-	initialiseChildren (_parentScope: Scope) {
+	initialiseChildren(_parentScope: Scope) {
 		for (const node of this.body) {
 			node.initialise(this.scope);
 		}
 	}
 
-	initialiseScope (parentScope: Scope) {
+	initialiseScope(parentScope: Scope) {
 		this.scope = new BlockScope({ parent: parentScope });
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions) {
 		if (this.body.length) {
 			renderStatementList(this.body, code, this.start + 1, this.end - 1, options);
 		} else {

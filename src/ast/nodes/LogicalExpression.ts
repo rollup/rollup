@@ -13,40 +13,31 @@ export default class LogicalExpression extends NodeBase {
 	left: ExpressionNode;
 	right: ExpressionNode;
 
-	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
-		path.length > 0 &&
-			this._forEachRelevantBranch(node => node.reassignPath(path, options));
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+		path.length > 0 && this._forEachRelevantBranch(node => node.reassignPath(path, options));
 	}
 
-	forEachReturnExpressionWhenCalledAtPath (
+	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		this._forEachRelevantBranch(node =>
-			node.forEachReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				callback,
-				options
-			)
+			node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options)
 		);
 	}
 
-	getValue (): any {
+	getValue(): any {
 		const leftValue = this.left.getValue();
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
-		if (
-			(leftValue && this.operator === '||') ||
-			(!leftValue && this.operator === '&&')
-		) {
+		if ((leftValue && this.operator === '||') || (!leftValue && this.operator === '&&')) {
 			return leftValue;
 		}
 		return this.right.getValue();
 	}
 
-	hasEffects (options: ExecutionPathOptions): boolean {
+	hasEffects(options: ExecutionPathOptions): boolean {
 		const leftValue = this.left.getValue();
 		return (
 			this.left.hasEffects(options) ||
@@ -57,70 +48,47 @@ export default class LogicalExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return (
-			path.length > 0 &&
-			this._someRelevantBranch(node =>
-				node.hasEffectsWhenAccessedAtPath(path, options)
-			)
-		);
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+		return path.length > 0 && this._someRelevantBranch(node => node.hasEffectsWhenAccessedAtPath(path, options));
 	}
 
-	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return (
-			path.length === 0 ||
-			this._someRelevantBranch(node =>
-				node.hasEffectsWhenAssignedAtPath(path, options)
-			)
-		);
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+		return path.length === 0 || this._someRelevantBranch(node => node.hasEffectsWhenAssignedAtPath(path, options));
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
-		return this._someRelevantBranch(node =>
-			node.hasEffectsWhenCalledAtPath(path, callOptions, options)
-		);
+	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+		return this._someRelevantBranch(node => node.hasEffectsWhenCalledAtPath(path, callOptions, options));
 	}
 
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		return this._someRelevantBranch(node =>
-			node.someReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				predicateFunction,
-				options
-			)
+			node.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options)
 		);
 	}
 
-	_forEachRelevantBranch (callback: (node: ExpressionNode) => void) {
+	_forEachRelevantBranch(callback: (node: ExpressionNode) => void) {
 		const leftValue = this.left.getValue();
 		if (leftValue === UNKNOWN_VALUE) {
 			callback(this.left);
 			callback(this.right);
-		} else if (
-			(leftValue && this.operator === '||') ||
-			(!leftValue && this.operator === '&&')
-		) {
+		} else if ((leftValue && this.operator === '||') || (!leftValue && this.operator === '&&')) {
 			callback(this.left);
 		} else {
 			callback(this.right);
 		}
 	}
 
-	_someRelevantBranch (predicateFunction: PredicateFunction) {
+	_someRelevantBranch(predicateFunction: PredicateFunction) {
 		const leftValue = this.left.getValue();
 		if (leftValue === UNKNOWN_VALUE) {
 			return predicateFunction(this.left) || predicateFunction(this.right);
 		}
-		if (
-			(leftValue && this.operator === '||') ||
-			(!leftValue && this.operator === '&&')
-		) {
+		if ((leftValue && this.operator === '||') || (!leftValue && this.operator === '&&')) {
 			return predicateFunction(this.left);
 		}
 		return predicateFunction(this.right);

@@ -10,18 +10,18 @@ export default class ArrayExpression extends NodeBase {
 	type: NodeType.ArrayExpression;
 	elements: (ExpressionNode | SpreadElement | null)[];
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(arrayMembers, path[0], callOptions, options);
 		}
 		return true;
 	}
 
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,

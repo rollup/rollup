@@ -2,7 +2,11 @@ import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
-import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
+import {
+	ExpressionEntity,
+	ForEachReturnExpressionCallback,
+	SomeReturnExpressionCallback
+} from '../nodes/shared/Expression';
 
 export default class Variable implements ExpressionEntity {
 	exportName?: string;
@@ -17,7 +21,7 @@ export default class Variable implements ExpressionEntity {
 	reexported?: boolean;
 	safeName: string;
 
-	constructor (name: string) {
+	constructor(name: string) {
 		this.name = name;
 		this.safeName = null;
 	}
@@ -26,18 +30,18 @@ export default class Variable implements ExpressionEntity {
 	 * Binds identifiers that reference this variable to this variable.
 	 * Necessary to be able to change variable names.
 	 */
-	addReference (_identifier: Identifier) { }
+	addReference(_identifier: Identifier) {}
 
-	reassignPath (_path: ObjectPath, _options: ExecutionPathOptions) { }
+	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
 
-	forEachReturnExpressionWhenCalledAtPath (
+	forEachReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
 		_callback: ForEachReturnExpressionCallback,
 		_options: ExecutionPathOptions
-	) { }
+	) {}
 
-	getName (reset?: boolean): string {
+	getName(reset?: boolean): string {
 		if (
 			reset &&
 			this.safeName &&
@@ -51,19 +55,19 @@ export default class Variable implements ExpressionEntity {
 		return this.safeName || this.name;
 	}
 
-	getValue () {
+	getValue() {
 		return UNKNOWN_VALUE;
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenAssignedAtPath (_path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
 		return true;
 	}
 
-	hasEffectsWhenCalledAtPath (_path: ObjectPath, _callOptions: CallOptions, _options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(_path: ObjectPath, _callOptions: CallOptions, _options: ExecutionPathOptions) {
 		return true;
 	}
 
@@ -73,7 +77,7 @@ export default class Variable implements ExpressionEntity {
 	 * previously.
 	 * Once a variable is included, it should take care all its declarations are included.
 	 */
-	includeVariable () {
+	includeVariable() {
 		if (this.included) {
 			return false;
 		}
@@ -81,7 +85,7 @@ export default class Variable implements ExpressionEntity {
 		return true;
 	}
 
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,
@@ -90,11 +94,11 @@ export default class Variable implements ExpressionEntity {
 		return predicateFunction(options)(UNKNOWN_EXPRESSION);
 	}
 
-	toString () {
+	toString() {
 		return this.name;
 	}
 
-	setSafeName (name: string) {
+	setSafeName(name: string) {
 		this.safeName = name;
 	}
 }

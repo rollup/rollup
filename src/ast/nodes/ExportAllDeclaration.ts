@@ -11,7 +11,7 @@ export default class ExportAllDeclaration extends NodeBase {
 	isExportDeclaration: true;
 	needsBoundaries: true;
 
-	render (code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
+	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
 		code.remove(start, end);
 	}
 }

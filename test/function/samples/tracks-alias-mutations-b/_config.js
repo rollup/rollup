@@ -1,4 +1,4 @@
-const assert = require( 'assert' );
+const assert = require('assert');
 
 const foo = {};
 
@@ -7,7 +7,7 @@ module.exports = {
 	context: {
 		foo
 	},
-	exports () {
-		assert.equal( foo.x, 42 );
+	exports() {
+		assert.equal(foo.x, 42);
 	}
 };

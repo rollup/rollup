@@ -9,11 +9,11 @@ import Variable from '../variables/Variable';
 import { BLANK } from '../../utils/object';
 import { ObjectPath } from '../values';
 
-function isReassignedExportsMember (variable: Variable): boolean {
+function isReassignedExportsMember(variable: Variable): boolean {
 	return variable.safeName && variable.safeName.indexOf('.') !== -1 && variable.exportName && variable.isReassigned;
 }
 
-export function isVariableDeclaration (node: Node): node is VariableDeclaration {
+export function isVariableDeclaration(node: Node): node is VariableDeclaration {
 	return node.type === NodeType.VariableDeclaration;
 }
 
@@ -22,15 +22,15 @@ export default class VariableDeclaration extends NodeBase {
 	declarations: VariableDeclarator[];
 	kind: 'var' | 'let' | 'const';
 
-	reassignPath (_path: ObjectPath, _options: ExecutionPathOptions) {
+	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {
 		this.declarations.forEach(declarator => declarator.reassignPath([], ExecutionPathOptions.create()));
 	}
 
-	hasEffectsWhenAssignedAtPath (_path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
 		return false;
 	}
 
-	includeWithAllDeclaredVariables () {
+	includeWithAllDeclaredVariables() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		this.declarations.forEach(declarator => {
@@ -41,7 +41,7 @@ export default class VariableDeclaration extends NodeBase {
 		return addedNewNodes;
 	}
 
-	includeInBundle () {
+	includeInBundle() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		this.declarations.forEach(declarator => {
@@ -54,16 +54,15 @@ export default class VariableDeclaration extends NodeBase {
 		return addedNewNodes;
 	}
 
-	initialiseChildren () {
-		this.declarations.forEach(child =>
-			child.initialiseDeclarator(this.scope, this.kind)
-		);
+	initialiseChildren() {
+		this.declarations.forEach(child => child.initialiseDeclarator(this.scope, this.kind));
 	}
 
-	render (code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {
-		if (this.declarations.every(declarator => declarator.included && (
-				!declarator.id.variable || !declarator.id.variable.exportName
-			))
+	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {
+		if (
+			this.declarations.every(
+				declarator => declarator.included && (!declarator.id.variable || !declarator.id.variable.exportName)
+			)
 		) {
 			for (const declarator of this.declarations) {
 				declarator.render(code, options);
@@ -76,8 +75,11 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	private renderReplacedDeclarations (
-		code: MagicString, options: RenderOptions, { start = this.start, end = this.end, isNoStatement }: NodeRenderOptions) {
+	private renderReplacedDeclarations(
+		code: MagicString,
+		options: RenderOptions,
+		{ start = this.start, end = this.end, isNoStatement }: NodeRenderOptions
+	) {
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
 			code,
@@ -94,9 +96,14 @@ export default class VariableDeclaration extends NodeBase {
 		code.remove(this.start, lastSeparatorPos);
 		let isInDeclaration = false;
 		let hasRenderedContent = false;
-		let separatorString = '', leadingString, nextSeparatorString;
+		let separatorString = '',
+			leadingString,
+			nextSeparatorString;
 		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
-			if (!node.included || (isIdentifier(node.id) && isReassignedExportsMember(node.id.variable) && node.init === null)) {
+			if (
+				!node.included ||
+				(isIdentifier(node.id) && isReassignedExportsMember(node.id.variable) && node.init === null)
+			) {
 				code.remove(start, end);
 				continue;
 			}
@@ -136,13 +143,20 @@ export default class VariableDeclaration extends NodeBase {
 			separatorString = nextSeparatorString;
 		}
 		if (hasRenderedContent) {
-			this.renderDeclarationEnd(code, separatorString, lastSeparatorPos, actualContentEnd, renderedContentEnd, !isNoStatement);
+			this.renderDeclarationEnd(
+				code,
+				separatorString,
+				lastSeparatorPos,
+				actualContentEnd,
+				renderedContentEnd,
+				!isNoStatement
+			);
 		} else {
 			code.remove(start, end);
 		}
 	}
 
-	private renderDeclarationEnd (
+	private renderDeclarationEnd(
 		code: MagicString,
 		separatorString: string,
 		lastSeparatorPos: number,
@@ -158,8 +172,8 @@ export default class VariableDeclaration extends NodeBase {
 		}
 		if (lastSeparatorPos !== null) {
 			if (
-				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/
-				&& (code.original.charCodeAt(this.end) === 10 /*"\n"*/ || code.original.charCodeAt(this.end) === 13 /*"\r"*/)
+				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
+				(code.original.charCodeAt(this.end) === 10 /*"\n"*/ || code.original.charCodeAt(this.end) === 13) /*"\r"*/
 			) {
 				actualContentEnd--;
 				if (code.original.charCodeAt(actualContentEnd) === 13 /*"\r"*/) {

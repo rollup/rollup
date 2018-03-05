@@ -1,5 +1,5 @@
-var path = require( 'path' );
-var assert = require( 'assert' );
+var path = require('path');
+var assert = require('assert');
 
 module.exports = {
 	description: 'disallows updates to imported bindings',
@@ -8,7 +8,7 @@ module.exports = {
 		message: `Illegal reassignment to import 'a'`,
 		pos: 28,
 		loc: {
-			file: path.resolve( __dirname, 'main.js' ),
+			file: path.resolve(__dirname, 'main.js'),
 			line: 3,
 			column: 0
 		},

@@ -8,7 +8,7 @@ import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpression
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../utils/renderHelpers';
 
-export function isProperty (node: Node): node is Property {
+export function isProperty(node: Node): node is Property {
 	return node.type === NodeType.Property;
 }
 
@@ -23,24 +23,21 @@ export default class Property extends NodeBase {
 
 	private _accessorCallOptions: CallOptions;
 
-	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (this.kind === 'get') {
 			path.length > 0 &&
-			this.value.forEachReturnExpressionWhenCalledAtPath(
-				[],
-				this._accessorCallOptions,
-				innerOptions => node =>
-					node.reassignPath(
-						path, innerOptions.addAssignedReturnExpressionAtPath(path, this)
-					),
-				options
-			);
+				this.value.forEachReturnExpressionWhenCalledAtPath(
+					[],
+					this._accessorCallOptions,
+					innerOptions => node => node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
+					options
+				);
 		} else if (this.kind !== 'set') {
 			this.value.reassignPath(path, options);
 		}
 	}
 
-	forEachReturnExpressionWhenCalledAtPath (
+	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
@@ -50,30 +47,19 @@ export default class Property extends NodeBase {
 			this.value.forEachReturnExpressionWhenCalledAtPath(
 				[],
 				this._accessorCallOptions,
-				innerOptions => node =>
-					node.forEachReturnExpressionWhenCalledAtPath(
-						path,
-						callOptions,
-						callback,
-						innerOptions
-					),
+				innerOptions => node => node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, innerOptions),
 				options
 			);
 		} else {
-			this.value.forEachReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				callback,
-				options
-			);
+			this.value.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 		}
 	}
 
-	hasEffects (options: ExecutionPathOptions): boolean {
+	hasEffects(options: ExecutionPathOptions): boolean {
 		return this.key.hasEffects(options) || this.value.hasEffects(options);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (this.kind === 'get') {
 			return (
 				this.value.hasEffectsWhenCalledAtPath(
@@ -82,22 +68,19 @@ export default class Property extends NodeBase {
 					options.getHasEffectsWhenCalledOptions()
 				) ||
 				(!options.hasReturnExpressionBeenAccessedAtPath(path, this) &&
-				 this.value.someReturnExpressionWhenCalledAtPath(
-					 [],
-					 this._accessorCallOptions,
-					 innerOptions => node =>
-						 node.hasEffectsWhenAccessedAtPath(
-							 path,
-							 innerOptions.addAccessedReturnExpressionAtPath(path, this)
-						 ),
-					 options
-				 ))
+					this.value.someReturnExpressionWhenCalledAtPath(
+						[],
+						this._accessorCallOptions,
+						innerOptions => node =>
+							node.hasEffectsWhenAccessedAtPath(path, innerOptions.addAccessedReturnExpressionAtPath(path, this)),
+						options
+					))
 			);
 		}
 		return this.value.hasEffectsWhenAccessedAtPath(path, options);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (this.kind === 'get') {
 			return (
 				path.length === 0 ||
@@ -105,10 +88,7 @@ export default class Property extends NodeBase {
 					[],
 					this._accessorCallOptions,
 					innerOptions => node =>
-						node.hasEffectsWhenAssignedAtPath(
-							path,
-							innerOptions.addAssignedReturnExpressionAtPath(path, this)
-						),
+						node.hasEffectsWhenAssignedAtPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
 					options
 				)
 			);
@@ -116,17 +96,13 @@ export default class Property extends NodeBase {
 		if (this.kind === 'set') {
 			return (
 				path.length > 0 ||
-				this.value.hasEffectsWhenCalledAtPath(
-					[],
-					this._accessorCallOptions,
-					options.getHasEffectsWhenCalledOptions()
-				)
+				this.value.hasEffectsWhenCalledAtPath([], this._accessorCallOptions, options.getHasEffectsWhenCalledOptions())
 			);
 		}
 		return this.value.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
 		if (this.kind === 'get') {
 			return (
 				this.value.hasEffectsWhenCalledAtPath(
@@ -135,44 +111,44 @@ export default class Property extends NodeBase {
 					options.getHasEffectsWhenCalledOptions()
 				) ||
 				(!options.hasReturnExpressionBeenCalledAtPath(path, this) &&
-				 this.value.someReturnExpressionWhenCalledAtPath(
-					 [],
-					 this._accessorCallOptions,
-					 innerOptions => node =>
-						 node.hasEffectsWhenCalledAtPath(
-							 path,
-							 callOptions,
-							 innerOptions.addCalledReturnExpressionAtPath(path, this)
-						 ),
-					 options
-				 ))
+					this.value.someReturnExpressionWhenCalledAtPath(
+						[],
+						this._accessorCallOptions,
+						innerOptions => node =>
+							node.hasEffectsWhenCalledAtPath(
+								path,
+								callOptions,
+								innerOptions.addCalledReturnExpressionAtPath(path, this)
+							),
+						options
+					))
 			);
 		}
 		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	initialiseAndDeclare (parentScope: Scope, kind: string, _init: ExpressionEntity | null) {
+	initialiseAndDeclare(parentScope: Scope, kind: string, _init: ExpressionEntity | null) {
 		this.initialiseScope(parentScope);
 		this.initialiseNode(parentScope);
 		this.key.initialise(parentScope);
 		this.value.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION);
 	}
 
-	initialiseNode (_parentScope: Scope) {
+	initialiseNode(_parentScope: Scope) {
 		this._accessorCallOptions = CallOptions.create({
 			withNew: false,
 			callIdentifier: this
 		});
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions) {
 		if (!this.shorthand) {
 			this.key.render(code, options);
 		}
 		this.value.render(code, options);
 	}
 
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,
@@ -189,21 +165,11 @@ export default class Property extends NodeBase {
 					[],
 					this._accessorCallOptions,
 					innerOptions => node =>
-						node.someReturnExpressionWhenCalledAtPath(
-							path,
-							callOptions,
-							predicateFunction,
-							innerOptions
-						),
+						node.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, innerOptions),
 					options
 				)
 			);
 		}
-		return this.value.someReturnExpressionWhenCalledAtPath(
-			path,
-			callOptions,
-			predicateFunction,
-			options
-		);
+		return this.value.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options);
 	}
 }

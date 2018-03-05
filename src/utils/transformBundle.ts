@@ -3,7 +3,7 @@ import error from './error';
 import { RawSourceMap } from 'source-map';
 import { OutputOptions, Plugin } from '../rollup/index';
 
-export default function transformBundle (
+export default function transformBundle(
 	code: string,
 	plugins: Plugin[],
 	sourcemapChain: RawSourceMap[],
@@ -27,10 +27,7 @@ export default function transformBundle (
 						};
 					}
 
-					const map =
-						typeof result.map === 'string'
-							? JSON.parse(result.map)
-							: result.map;
+					const map = typeof result.map === 'string' ? JSON.parse(result.map) : result.map;
 					if (map && typeof map.mappings === 'string') {
 						map.mappings = decode(map.mappings);
 					}
@@ -45,9 +42,7 @@ export default function transformBundle (
 				.catch(err => {
 					error({
 						code: 'BAD_BUNDLE_TRANSFORMER',
-						message: `Error transforming bundle${
-							plugin.name ? ` with '${plugin.name}' plugin` : ''
-							}: ${err.message}`,
+						message: `Error transforming bundle${plugin.name ? ` with '${plugin.name}' plugin` : ''}: ${err.message}`,
 						plugin: plugin.name
 					});
 				});

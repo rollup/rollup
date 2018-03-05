@@ -3,8 +3,8 @@ module.exports = {
 	options: {
 		output: {
 			name: 'leaflet.terminator',
-			globals: { 'leaflet': 'L' }
+			globals: { leaflet: 'L' }
 		},
-		external: [ 'leaflet' ],
+		external: ['leaflet']
 	}
 };

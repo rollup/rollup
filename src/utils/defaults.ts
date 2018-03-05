@@ -7,11 +7,11 @@ import ExternalModule from '../ExternalModule';
 import relativeId from './relativeId';
 import { InputOptions } from '../rollup';
 
-export function load (id: string) {
+export function load(id: string) {
 	return readFileSync(id, 'utf-8');
 }
 
-function findFile (file: string, preserveSymlinks: boolean): string | void {
+function findFile(file: string, preserveSymlinks: boolean): string | void {
 	try {
 		const stats = lstatSync(file);
 		if (!preserveSymlinks && stats.isSymbolicLink()) return findFile(realpathSync(file), preserveSymlinks);
@@ -27,12 +27,12 @@ function findFile (file: string, preserveSymlinks: boolean): string | void {
 	}
 }
 
-function addJsExtensionIfNecessary (file: string, preserveSymlinks: boolean) {
+function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
 	return findFile(file, preserveSymlinks) || findFile(file + '.js', preserveSymlinks);
 }
 
-export function resolveId (options: InputOptions) {
-	return function (importee: string, importer: string) {
+export function resolveId(options: InputOptions) {
+	return function(importee: string, importer: string) {
 		if (typeof process === 'undefined') {
 			error({
 				code: 'MISSING_PROCESS',
@@ -43,8 +43,7 @@ export function resolveId (options: InputOptions) {
 
 		// external modules (non-entry modules that start with neither '.' or '/')
 		// are skipped at this stage.
-		if (importer !== undefined && !isAbsolute(importee) && importee[0] !== '.')
-			return null;
+		if (importer !== undefined && !isAbsolute(importee) && importee[0] !== '.') return null;
 
 		// `resolve` processes paths from right to left, prepending them until an
 		// absolute path is created. Absolute importees therefore shortcircuit the
@@ -54,10 +53,10 @@ export function resolveId (options: InputOptions) {
 			resolve(importer ? dirname(importer) : resolve(), importee),
 			options.preserveSymlinks
 		);
-	}
+	};
 }
 
-export function makeOnwarn () {
+export function makeOnwarn() {
 	const warned = blank();
 
 	return (warning: any) => {
@@ -68,13 +67,16 @@ export function makeOnwarn () {
 	};
 }
 
-export function handleMissingExport (module: Module, name: string, otherModule: Module | ExternalModule, start?: number) {
+export function handleMissingExport(
+	module: Module,
+	name: string,
+	otherModule: Module | ExternalModule,
+	start?: number
+) {
 	module.error(
 		{
 			code: 'MISSING_EXPORT',
-			message: `'${
-				name
-				}' is not exported by ${relativeId(otherModule.id)}`,
+			message: `'${name}' is not exported by ${relativeId(otherModule.id)}`,
 			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
 		},
 		start

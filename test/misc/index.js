@@ -18,10 +18,7 @@ describe('sanity checks', () => {
 				throw new Error('Missing expected error');
 			})
 			.catch(err => {
-				assert.equal(
-					err.message,
-					'You must supply an options object to rollup'
-				);
+				assert.equal(err.message, 'You must supply an options object to rollup');
 			});
 	});
 
@@ -31,17 +28,19 @@ describe('sanity checks', () => {
 			.rollup({
 				entry: 'x',
 				plugins: [loader({ x: `console.log( 42 );` })],
-				onwarn (warning, onwarn) {
+				onwarn(warning, onwarn) {
 					args = [warning, onwarn];
 				}
 			})
 			.then(() => {
 				assert.deepEqual(args[0], {
 					code: 'DEPRECATED_OPTIONS',
-					deprecations: [{
-						new: 'input',
-						old: 'entry',
-					}],
+					deprecations: [
+						{
+							new: 'input',
+							old: 'entry'
+						}
+					],
 					message: `The following options have been renamed — please update your config: entry -> input`
 				});
 				assert.equal(typeof args[1], 'function');
@@ -62,17 +61,22 @@ describe('sanity checks', () => {
 	it('fails with invalid keys', () => {
 		const warnings = [];
 		const onwarn = warning => warnings.push(warning);
-		return rollup.rollup({ input: 'x', onwarn, plUgins: [], plugins: [loader({ x: `console.log( 42 );` })] }).then(
-			() => {
-				assert.deepEqual(
-					warnings,
-					[{
+		return rollup
+			.rollup({
+				input: 'x',
+				onwarn,
+				plUgins: [],
+				plugins: [loader({ x: `console.log( 42 );` })]
+			})
+			.then(() => {
+				assert.deepEqual(warnings, [
+					{
 						code: 'UNKNOWN_OPTION',
-						message: 'Unknown option found: plUgins. Allowed keys: input, legacy, treeshake, acorn, acornInjectPlugins, context, moduleContext, plugins, onwarn, watch, cache, preferConst, experimentalDynamicImport, experimentalCodeSplitting, preserveSymlinks, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, indent, strict, noConflict, paths, exports, file, dir, pureExternalModules'
-					}]
-				);
-			}
-		);
+						message:
+							'Unknown option found: plUgins. Allowed keys: input, legacy, treeshake, acorn, acornInjectPlugins, context, moduleContext, plugins, onwarn, watch, cache, preferConst, experimentalDynamicImport, experimentalCodeSplitting, preserveSymlinks, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, indent, strict, noConflict, paths, exports, file, dir, pureExternalModules'
+					}
+				]);
+			});
 	});
 
 	it('treats Literals as leaf nodes, even if first literal encountered is null', () => {
@@ -134,52 +138,57 @@ describe('sanity checks', () => {
 describe('deprecations', () => {
 	it('warns on options.entry, but handles', () => {
 		const warnings = [];
-		return rollup.rollup({
-			entry: 'x',
-			plugins: [loader({ x: `export default 42` })],
-			onwarn: warning => {
-				warnings.push(warning);
-			}
-		}).then(executeBundle).then(result => {
-			assert.equal(result, 42);
-			assert.deepEqual(warnings, [
-				{
-					code: 'DEPRECATED_OPTIONS',
-					deprecations: [{
-						new: 'input',
-						old: 'entry',
-					}],
-					message: `The following options have been renamed — please update your config: entry -> input`
+		return rollup
+			.rollup({
+				entry: 'x',
+				plugins: [loader({ x: `export default 42` })],
+				onwarn: warning => {
+					warnings.push(warning);
 				}
-			]);
-		});
+			})
+			.then(executeBundle)
+			.then(result => {
+				assert.equal(result, 42);
+				assert.deepEqual(warnings, [
+					{
+						code: 'DEPRECATED_OPTIONS',
+						deprecations: [
+							{
+								new: 'input',
+								old: 'entry'
+							}
+						],
+						message: `The following options have been renamed — please update your config: entry -> input`
+					}
+				]);
+			});
 	});
 
 	it('adds deprecations correctly for rollup', () => {
 		const warnings = [];
-		return rollup.rollup({
-			entry: 'x',
-			format: 'cjs',
-			indent: true,
-			sourceMap: true,
-			plugins: [loader({ x: `export default 42` })],
-			onwarn: warning => {
-				warnings.push(warning);
-			}
-		}).then(executeBundle).then(result => {
-			assert.equal(result, 42);
-			const deprecations = warnings[0].deprecations;
-			assert.equal(deprecations.length, 4);
-			assert.deepEqual(
-				deprecations,
-				[
-					{ new: "input", old: "entry" },
-					{ new: "output.indent", old: "indent" },
-					{ new: "output.sourcemap", old: "sourceMap" },
-					{ new: "output.format", old: "format" }
-				]
-			);
-		});
+		return rollup
+			.rollup({
+				entry: 'x',
+				format: 'cjs',
+				indent: true,
+				sourceMap: true,
+				plugins: [loader({ x: `export default 42` })],
+				onwarn: warning => {
+					warnings.push(warning);
+				}
+			})
+			.then(executeBundle)
+			.then(result => {
+				assert.equal(result, 42);
+				const deprecations = warnings[0].deprecations;
+				assert.equal(deprecations.length, 4);
+				assert.deepEqual(deprecations, [
+					{ new: 'input', old: 'entry' },
+					{ new: 'output.indent', old: 'indent' },
+					{ new: 'output.sourcemap', old: 'sourceMap' },
+					{ new: 'output.format', old: 'format' }
+				]);
+			});
 	});
 
 	it('throws a useful error on accessing code/map properties of bundle.generate promise', () => {
@@ -195,10 +204,7 @@ describe('deprecations', () => {
 					const { code, map } = bundle.generate({ format: 'es' });
 					console.log(code, map);
 				} catch (err) {
-					assert.equal(
-						err.message,
-						`bundle.generate(...) now returns a Promise instead of a { code, map } object`
-					);
+					assert.equal(err.message, `bundle.generate(...) now returns a Promise instead of a { code, map } object`);
 					errored = true;
 				}
 
@@ -302,20 +308,21 @@ describe('bundle.write()', () => {
 			input: 'x',
 			plugins: [loader({ x: `console.log( 42 );` })],
 			onwarn: warning => warnings.push(warning),
-			output: [{
-				format: 'cjs'
-			}, {
-				format: 'es'
-			}]
+			output: [
+				{
+					format: 'cjs'
+				},
+				{
+					format: 'es'
+				}
+			]
 		};
-		return rollup
-			.rollup(options)
-			.then(bundle => {
-				assert.equal(warnings.length, 0, 'No warnings for UNKNOWN');
-				assert.throws(() => {
-					return Promise.all(options.output.map(o => bundle.write(o)));
-				}, /You must specify output\.file/);
-			});
+		return rollup.rollup(options).then(bundle => {
+			assert.equal(warnings.length, 0, 'No warnings for UNKNOWN');
+			assert.throws(() => {
+				return Promise.all(options.output.map(o => bundle.write(o)));
+			}, /You must specify output\.file/);
+		});
 	});
 });
 
@@ -328,18 +335,27 @@ describe('acorn plugins', () => {
 		let pluginAInjected = false;
 		let pluginBInjected = false;
 
-		return rollup.rollup({
-			input: 'x',
-			plugins: [loader({ x: `export default 42` })],
-			acornInjectPlugins: [
-				function pluginA(acorn) { pluginAInjected = true; return acorn; },
-				function pluginB(acorn) { pluginBInjected = true; return acorn; },
-			]
-		}).then(executeBundle).then(result => {
-			assert.equal(result, 42);
-			assert(pluginAInjected, 'A plugin passed via acornInjectPlugins should inject itself into Acorn.');
-			assert(pluginBInjected, 'A plugin passed via acornInjectPlugins should inject itself into Acorn.');
-		});
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins: [loader({ x: `export default 42` })],
+				acornInjectPlugins: [
+					function pluginA(acorn) {
+						pluginAInjected = true;
+						return acorn;
+					},
+					function pluginB(acorn) {
+						pluginBInjected = true;
+						return acorn;
+					}
+				]
+			})
+			.then(executeBundle)
+			.then(result => {
+				assert.equal(result, 42);
+				assert(pluginAInjected, 'A plugin passed via acornInjectPlugins should inject itself into Acorn.');
+				assert(pluginBInjected, 'A plugin passed via acornInjectPlugins should inject itself into Acorn.');
+			});
 	});
 
 	it('injected plugins are registered with Acorn only if acorn.plugins is set', () => {
@@ -347,65 +363,73 @@ describe('acorn plugins', () => {
 		let pluginDRegistered = false;
 
 		function pluginC(acorn) {
-			acorn.plugins.pluginC = () => pluginCRegistered = true;
+			acorn.plugins.pluginC = () => (pluginCRegistered = true);
 			return acorn;
 		}
 
 		function pluginD(acorn) {
-			acorn.plugins.pluginD = () => pluginDRegistered = true;
+			acorn.plugins.pluginD = () => (pluginDRegistered = true);
 			return acorn;
 		}
 
-		return rollup.rollup({
-			input: 'x',
-			plugins: [loader({ x: `export default 42` })],
-			acorn: {
-				plugins: {
-					pluginC: true
-				}
-			},
-			acornInjectPlugins: [
-				pluginC,
-				pluginD
-			]
-		}).then(executeBundle).then(result => {
-			assert.equal(result, 42);
-			assert.equal(pluginCRegistered, true, 'A plugin enabled in acorn.plugins should register with Acorn.');
-			assert.equal(pluginDRegistered, false, 'A plugin not enabled in acorn.plugins should not register with Acorn.');
-		});
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins: [loader({ x: `export default 42` })],
+				acorn: {
+					plugins: {
+						pluginC: true
+					}
+				},
+				acornInjectPlugins: [pluginC, pluginD]
+			})
+			.then(executeBundle)
+			.then(result => {
+				assert.equal(result, 42);
+				assert.equal(pluginCRegistered, true, 'A plugin enabled in acorn.plugins should register with Acorn.');
+				assert.equal(pluginDRegistered, false, 'A plugin not enabled in acorn.plugins should not register with Acorn.');
+			});
 	});
 
 	it('throws if acorn.plugins is set and acornInjectPlugins is missing', () => {
-		return rollup.rollup({
-			input: 'x',
-			plugins: [loader({ x: `export default 42` })],
-			acorn: {
-				plugins: {
-					pluginE: true
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins: [loader({ x: `export default 42` })],
+				acorn: {
+					plugins: {
+						pluginE: true
+					}
 				}
-			}
-		}).then(executeBundle).then(() => {
-			throw new Error('Missing expected error');
-		}).catch(error => {
-			assert.equal(error.message, 'Plugin \'pluginE\' not found');
-		});
+			})
+			.then(executeBundle)
+			.then(() => {
+				throw new Error('Missing expected error');
+			})
+			.catch(error => {
+				assert.equal(error.message, "Plugin 'pluginE' not found");
+			});
 	});
 
 	it('throws if acorn.plugins is set and acornInjectPlugins is empty', () => {
-		return rollup.rollup({
-			input: 'x',
-			plugins: [loader({ x: `export default 42` })],
-			acorn: {
-				plugins: {
-					pluginF: true
-				}
-			},
-			acornInjectPlugins: []
-		}).then(executeBundle).then(() => {
-			throw new Error('Missing expected error');
-		}).catch(error => {
-			assert.equal(error.message, 'Plugin \'pluginF\' not found');
-		});
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins: [loader({ x: `export default 42` })],
+				acorn: {
+					plugins: {
+						pluginF: true
+					}
+				},
+				acornInjectPlugins: []
+			})
+			.then(executeBundle)
+			.then(() => {
+				throw new Error('Missing expected error');
+			})
+			.catch(error => {
+				assert.equal(error.message, "Plugin 'pluginF' not found");
+			});
 	});
 });
 
@@ -430,9 +454,7 @@ describe('misc', () => {
 				})
 			)
 			.then(() => {
-				const relevantWarnings = warnings.filter(
-					warning => warning.code === 'MISSING_NODE_BUILTINS'
-				);
+				const relevantWarnings = warnings.filter(warning => warning.code === 'MISSING_NODE_BUILTINS');
 				assert.equal(relevantWarnings.length, 1);
 				assert.equal(
 					relevantWarnings[0].message,

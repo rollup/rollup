@@ -14,23 +14,24 @@ import { OutputOptions } from '../rollup/index';
 
 const thisProp = (name: string) => `this${keypath(name)}`;
 
-export default function iife (
+export default function iife(
 	chunk: Chunk,
 	magicString: MagicStringBundle,
-	{ exportMode, indentString, intro, outro }: {
+	{
+		exportMode,
+		indentString,
+		intro,
+		outro
+	}: {
 		exportMode: string;
 		indentString: string;
 		getPath: (name: string) => string;
 		intro: string;
-		outro: string
+		outro: string;
 	},
 	options: OutputOptions
 ) {
-	const globalNameMaker = getGlobalNameMaker(
-		options.globals || blank(),
-		chunk.graph,
-		'null'
-	);
+	const globalNameMaker = getGlobalNameMaker(options.globals || blank(), chunk.graph, 'null');
 
 	const { extend, name } = options;
 	const isNamespaced = name && name.indexOf('.') !== -1;
@@ -66,20 +67,16 @@ export default function iife (
 		args.unshift('exports');
 	}
 
-	const useStrict =
-		options.strict !== false ? `${indentString}'use strict';\n\n` : ``;
+	const useStrict = options.strict !== false ? `${indentString}'use strict';\n\n` : ``;
 
 	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
 
 	if (exportMode !== 'none' && !extend) {
-		wrapperIntro =
-			(isNamespaced ? thisProp(name) : `${chunk.graph.varOrConst} ${name}`) +
-			` = ${wrapperIntro}`;
+		wrapperIntro = (isNamespaced ? thisProp(name) : `${chunk.graph.varOrConst} ${name}`) + ` = ${wrapperIntro}`;
 	}
 
 	if (isNamespaced) {
-		wrapperIntro =
-			setupNamespace(name, 'this', false, options.globals) + wrapperIntro;
+		wrapperIntro = setupNamespace(name, 'this', false, options.globals) + wrapperIntro;
 	}
 
 	let wrapperOutro = `\n\n}(${dependencies}));`;
@@ -95,10 +92,10 @@ export default function iife (
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(moduleDeclarations.exports, moduleDeclarations.dependencies, exportMode);
-	if (exportBlock) (<any> magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
-	if (outro) (<any> magicString).append(outro); // TODO TypeScript: Awaiting PR
+	if (exportBlock) (<any>magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
+	if (outro) (<any>magicString).append(outro); // TODO TypeScript: Awaiting PR
 
-	return (<any> magicString)
+	return (<any>magicString)
 		.indent(indentString) // TODO TypeScript: Awaiting PR
 		.prepend(wrapperIntro)
 		.append(wrapperOutro);

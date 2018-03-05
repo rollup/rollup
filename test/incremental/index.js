@@ -143,14 +143,8 @@ describe('incremental', () => {
 					asts[module.id] = module.ast;
 				});
 
-				assert.deepEqual(
-					asts.entry,
-					acorn.parse(modules.entry, { sourceType: 'module' })
-				);
-				assert.deepEqual(
-					asts.foo,
-					acorn.parse(modules.foo, { sourceType: 'module' })
-				);
+				assert.deepEqual(asts.entry, acorn.parse(modules.entry, { sourceType: 'module' }));
+				assert.deepEqual(asts.foo, acorn.parse(modules.foo, { sourceType: 'module' }));
 			});
 	});
 

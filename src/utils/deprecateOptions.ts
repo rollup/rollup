@@ -3,16 +3,19 @@
 // unlike the config file which passes whole options in one go
 import { GenericConfigObject } from './mergeOptions';
 
-export type Deprecation = { old: string, new: string };
+export type Deprecation = { old: string; new: string };
 
-export default function deprecateOptions (options: GenericConfigObject, deprecateConfig: GenericConfigObject): Deprecation[] {
+export default function deprecateOptions(
+	options: GenericConfigObject,
+	deprecateConfig: GenericConfigObject
+): Deprecation[] {
 	const deprecations: Deprecation[] = [];
 	if (deprecateConfig.input) deprecateInputOptions();
 	if (deprecateConfig.output) deprecateOutputOptions();
 
 	return deprecations;
 
-	function deprecateInputOptions () {
+	function deprecateInputOptions() {
 		if (!options.input && options.entry) deprecate('entry', 'input', false);
 		if (options.moduleName) deprecate('moduleName', 'output.name', true);
 		if (options.name) deprecate('name', 'output.name', true);
@@ -64,7 +67,10 @@ export default function deprecateOptions (options: GenericConfigObject, deprecat
 		}
 
 		if (options.pureExternalModules) {
-			deprecations.push({ old: 'pureExternalModules', new: 'treeshake.pureExternalModules' });
+			deprecations.push({
+				old: 'pureExternalModules',
+				new: 'treeshake.pureExternalModules'
+			});
 			if (options.treeshake === undefined) {
 				options.treeshake = {};
 			}
@@ -75,7 +81,7 @@ export default function deprecateOptions (options: GenericConfigObject, deprecat
 		}
 	}
 
-	function deprecateOutputOptions () {
+	function deprecateOutputOptions() {
 		if (options.output && options.output.moduleId) {
 			options.output.amd = { id: options.moduleId };
 			deprecations.push({ old: 'moduleId', new: 'amd' });
@@ -84,7 +90,7 @@ export default function deprecateOptions (options: GenericConfigObject, deprecat
 	}
 
 	// a utility function to add deprecations for straightforward options
-	function deprecate (oldOption: string, newOption: string, shouldDelete: boolean) {
+	function deprecate(oldOption: string, newOption: string, shouldDelete: boolean) {
 		deprecations.push({ new: newOption, old: oldOption });
 
 		if (newOption.indexOf('output') > -1) {

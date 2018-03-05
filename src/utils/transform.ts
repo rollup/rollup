@@ -11,20 +11,14 @@ import Program from '../ast/nodes/Program';
 
 export interface TransformContext {
 	parse: IParse;
-	warn(warning: RollupWarning, pos?: { line: number, column: number }): void;
-	error(err: RollupError, pos?: { line: number, column: number }): void;
+	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
+	error(err: RollupError, pos?: { line: number; column: number }): void;
 }
 
-export default function transform (
-	graph: Graph,
-	source: SourceDescription,
-	id: string,
-	plugins: Plugin[]
-) {
+export default function transform(graph: Graph, source: SourceDescription, id: string, plugins: Plugin[]) {
 	const sourcemapChain: RawSourceMap[] = [];
 
-	const originalSourcemap =
-		typeof source.map === 'string' ? JSON.parse(source.map) : source.map;
+	const originalSourcemap = typeof source.map === 'string' ? JSON.parse(source.map) : source.map;
 
 	if (originalSourcemap && typeof originalSourcemap.mappings === 'string') {
 		originalSourcemap.mappings = decode(originalSourcemap.mappings);
@@ -39,7 +33,11 @@ export default function transform (
 		if (!plugin.transform) return;
 
 		promise = promise.then(previous => {
-			function augment<T extends RollupError | RollupWarning> (object: T | string, pos: { line: number, column: number }, code: string): T {
+			function augment<T extends RollupError | RollupWarning>(
+				object: T | string,
+				pos: { line: number; column: number },
+				code: string
+			): T {
 				const outObject = typeof object === 'string' ? <T>{ message: object } : object;
 
 				if (outObject.code) outObject.pluginCode = outObject.code;
@@ -67,16 +65,16 @@ export default function transform (
 			let throwing;
 
 			const context: TransformContext = {
-				parse (code: string, options: AcornOptions = {}) {
+				parse(code: string, options: AcornOptions = {}) {
 					return graph.acornParse(code, Object.assign({}, defaultAcornOptions, options, graph.acornOptions));
 				},
 
-				warn (warning: RollupWarning, pos?: { line: number, column: number }) {
+				warn(warning: RollupWarning, pos?: { line: number; column: number }) {
 					warning = augment(warning, pos, 'PLUGIN_WARNING');
 					graph.warn(warning);
 				},
 
-				error (err: RollupError, pos?: { line: number, column: number }) {
+				error(err: RollupError, pos?: { line: number; column: number }) {
 					err = augment(err, pos, 'PLUGIN_ERROR');
 					throwing = true;
 					error(err);
@@ -113,9 +111,7 @@ export default function transform (
 
 					// strict null check allows 'null' maps to not be pushed to the chain, while 'undefined' gets the missing map warning
 					if (result.map !== null) {
-						sourcemapChain.push(
-							result.map || { missing: true, plugin: plugin.name }
-						);
+						sourcemapChain.push(result.map || { missing: true, plugin: plugin.name });
 					}
 
 					ast = result.ast;
