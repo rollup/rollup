@@ -1,7 +1,7 @@
 import path from 'path';
 import { EventEmitter } from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
-import rollup, { CachedChunkSet, InputOptions, OutputOptions, OutputChunk, OutputChunkSet } from '../rollup/index';
+import rollup, { CachedChunk, CachedChunkSet, InputOptions, OutputOptions, OutputChunk, OutputChunkSet } from '../rollup/index';
 import ensureArray from '../utils/ensureArray';
 import { mapSequence } from '../utils/promise';
 import { addTask, deleteTask } from './fileWatchers';
@@ -100,7 +100,7 @@ export class Task {
 	closed: boolean;
 	watched: Set<string>;
 	inputOptions: InputOptions;
-	cache: CachedChunkSet;
+	cache: CachedChunk | CachedChunkSet;
 
 	chokidarOptions: WatchOptions;
 	chokidarOptionsHash: string;
@@ -208,15 +208,14 @@ export class Task {
 					});
 				}
 
+				this.cache = result;
 				if ((<OutputChunkSet>result).chunks) {
 					const chunks = (<OutputChunkSet>result).chunks;
-					this.cache = { chunks };
 					for (const chunkName in chunks) {
 						watchChunk(chunks[chunkName]);
 					}
 				} else {
 					const chunk = (<OutputChunk>result);
-					this.cache = { chunks: { [this.inputOptions.entry]: chunk } };
 					watchChunk(chunk)
 				}
 
@@ -234,12 +233,19 @@ export class Task {
 				if (this.closed) return;
 
 				if (this.cache) {
-					for (const chunk in this.cache.chunks) {
-						this.cache.chunks[chunk].modules.forEach(module => {
-							// this is necessary to ensure that any 'renamed' files
-							// continue to be watched following an error
+					// this is necessary to ensure that any 'renamed' files
+					// continue to be watched following an error
+					if ((<CachedChunk>this.cache).modules) {
+						(<CachedChunk>this.cache).modules.forEach(module => {
 							this.watchFile(module.id);
-						});
+						})
+					} else {
+						const chunks = (<CachedChunkSet>this.cache).chunks;
+						for (const chunkName in chunks) {
+							chunks[chunkName].modules.forEach(module => {
+								this.watchFile(module.id);
+							});
+						}
 					}
 				}
 				throw error;
