@@ -16,20 +16,18 @@ export default class CallExpression extends NodeBase {
 
 	private _callOptions: CallOptions;
 
-	reassignPath (path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
 		!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
-		this.callee.forEachReturnExpressionWhenCalledAtPath(
-			[],
-			this._callOptions,
-			innerOptions => node =>
-				node.reassignPath(
-					path, innerOptions.addAssignedReturnExpressionAtPath(path, this)
-				),
-			options
-		);
+			this.callee.forEachReturnExpressionWhenCalledAtPath(
+				[],
+				this._callOptions,
+				innerOptions => node =>
+					node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
+				options
+			);
 	}
 
-	bindNode () {
+	bindNode() {
 		if (isIdentifier(this.callee)) {
 			const variable = this.scope.findVariable(this.callee.name);
 
@@ -48,8 +46,7 @@ export default class CallExpression extends NodeBase {
 					{
 						code: 'EVAL',
 						message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
-						url:
-							'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
+						url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
 					},
 					this.start
 				);
@@ -57,7 +54,7 @@ export default class CallExpression extends NodeBase {
 		}
 	}
 
-	forEachReturnExpressionWhenCalledAtPath (
+	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
@@ -67,17 +64,12 @@ export default class CallExpression extends NodeBase {
 			[],
 			this._callOptions,
 			innerOptions => node =>
-				node.forEachReturnExpressionWhenCalledAtPath(
-					path,
-					callOptions,
-					callback,
-					innerOptions
-				),
+				node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, innerOptions),
 			options
 		);
 	}
 
-	hasEffects (options: ExecutionPathOptions): boolean {
+	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			this.arguments.some(child => child.hasEffects(options)) ||
 			this.callee.hasEffectsWhenCalledAtPath(
@@ -88,7 +80,7 @@ export default class CallExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 &&
 			!options.hasReturnExpressionBeenAccessedAtPath(path, this) &&
@@ -97,14 +89,15 @@ export default class CallExpression extends NodeBase {
 				this._callOptions,
 				innerOptions => node =>
 					node.hasEffectsWhenAccessedAtPath(
-						path, innerOptions.addAccessedReturnExpressionAtPath(path, this)
+						path,
+						innerOptions.addAccessedReturnExpressionAtPath(path, this)
 					),
 				options
 			)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
 			this.callee.someReturnExpressionWhenCalledAtPath(
@@ -112,14 +105,19 @@ export default class CallExpression extends NodeBase {
 				this._callOptions,
 				innerOptions => node =>
 					node.hasEffectsWhenAssignedAtPath(
-						path, innerOptions.addAssignedReturnExpressionAtPath(path, this)
+						path,
+						innerOptions.addAssignedReturnExpressionAtPath(path, this)
 					),
 				options
 			)
 		);
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	): boolean {
 		return (
 			!options.hasReturnExpressionBeenCalledAtPath(path, this) &&
 			this.callee.someReturnExpressionWhenCalledAtPath(
@@ -136,7 +134,7 @@ export default class CallExpression extends NodeBase {
 		);
 	}
 
-	initialiseNode () {
+	initialiseNode() {
 		this._callOptions = CallOptions.create({
 			withNew: false,
 			args: this.arguments,
@@ -144,7 +142,7 @@ export default class CallExpression extends NodeBase {
 		});
 	}
 
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,

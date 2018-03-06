@@ -4,7 +4,7 @@ import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export type BinaryOperator =
-	'=='
+	| '=='
 	| '!='
 	| '==='
 	| '!=='
@@ -28,7 +28,7 @@ export type BinaryOperator =
 	| 'instanceof';
 
 const operators: {
-	[operator: string]: (left: any, right: any) => any
+	[operator: string]: (left: any, right: any) => any;
 } = {
 	'==': (left: any, right: any) => left == right,
 	'!=': (left: any, right: any) => left != right,
@@ -60,7 +60,7 @@ export default class BinaryExpression extends NodeBase {
 	right: ExpressionNode;
 	operator: BinaryOperator;
 
-	getValue (): any {
+	getValue(): any {
 		const leftValue = this.left.getValue();
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
@@ -73,7 +73,7 @@ export default class BinaryExpression extends NodeBase {
 		return operatorFn(leftValue, rightValue);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 }

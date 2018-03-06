@@ -19,16 +19,16 @@ export default class ExportNamedDeclaration extends NodeBase {
 	needsBoundaries: true;
 	isExportDeclaration: true;
 
-	bindChildren () {
+	bindChildren() {
 		// Do not bind specifiers
 		if (this.declaration) this.declaration.bind();
 	}
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects(options: ExecutionPathOptions) {
 		return this.declaration && this.declaration.hasEffects(options);
 	}
 
-	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
+	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
 		if (this.declaration === null) {
 			code.remove(start, end);
 		} else {

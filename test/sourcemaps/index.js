@@ -8,27 +8,28 @@ const samples = path.resolve(__dirname, 'samples');
 const FORMATS = ['amd', 'cjs', 'es', 'iife', 'umd'];
 
 describe('sourcemaps', () => {
-	sander.readdirSync(samples).sort().forEach(dir => {
-		if (dir[0] === '.') return; // .DS_Store...
+	sander
+		.readdirSync(samples)
+		.sort()
+		.forEach(dir => {
+			if (dir[0] === '.') return; // .DS_Store...
 
-		const config = loadConfig( samples + '/' + dir + '/_config.js' );
-		if ( !config ) return;
+			const config = loadConfig(samples + '/' + dir + '/_config.js');
+			if (!config) return;
 
-		describe( dir, () => {
-			const input = path.resolve(samples, dir, 'main.js');
-			const output = path.resolve(samples, dir, '_actual/bundle');
+			describe(dir, () => {
+				const input = path.resolve(samples, dir, 'main.js');
+				const output = path.resolve(samples, dir, '_actual/bundle');
 
-			let warnings;
+				let warnings;
 
-			const options = extend({}, config.options, {
-				input,
-				onwarn: warning => warnings.push(warning)
-			});
+				const options = extend({}, config.options, {
+					input,
+					onwarn: warning => warnings.push(warning)
+				});
 
-			FORMATS.forEach(format => {
-				(config.skip ? it.skip : config.solo ? it.only : it)(
-					'generates ' + format,
-					() => {
+				FORMATS.forEach(format => {
+					(config.skip ? it.skip : config.solo ? it.only : it)('generates ' + format, () => {
 						warnings = [];
 
 						const testBundle = bundle => {
@@ -49,12 +50,11 @@ describe('sourcemaps', () => {
 									throw new Error(`Unexpected warnings`);
 								}
 
-								return bundle.generate(options)
-									.then(({ code, map }) => {
-										if (config.test) {
-											config.test(code, map, { format });
-										}
-									});
+								return bundle.generate(options).then(({ code, map }) => {
+									if (config.test) {
+										config.test(code, map, { format });
+									}
+								});
 							});
 						};
 
@@ -65,16 +65,13 @@ describe('sourcemaps', () => {
 									return;
 								}
 								// test cache noop rebuild
-								return rollup
-									.rollup(extend({ cache: bundle }, options))
-									.then(bundle => {
-										testBundle(bundle);
-									});
+								return rollup.rollup(extend({ cache: bundle }, options)).then(bundle => {
+									testBundle(bundle);
+								});
 							});
 						});
-					}
-				);
+					});
+				});
 			});
 		});
-	});
 });

@@ -23,7 +23,7 @@ export default class Scope {
 	isModuleScope: boolean;
 	children: Scope[];
 
-	constructor (options: { parent?: Scope, isModuleScope?: boolean } = {}) {
+	constructor(options: { parent?: Scope; isModuleScope?: boolean } = {}) {
 		this.parent = options.parent;
 		this.isModuleScope = !!options.isModuleScope;
 
@@ -40,13 +40,16 @@ export default class Scope {
 	 *        {boolean} isHoisted
 	 * @return {Variable}
 	 */
-	addDeclaration (identifier: Identifier, options: {
-		init?: ExpressionEntity | null;
-		isHoisted?: boolean;
-	} = {
-		init: null,
-		isHoisted: false
-	}) {
+	addDeclaration(
+		identifier: Identifier,
+		options: {
+			init?: ExpressionEntity | null;
+			isHoisted?: boolean;
+		} = {
+			init: null,
+			isHoisted: false
+		}
+	) {
 		const name = identifier.name;
 		if (this.variables[name]) {
 			const variable = <LocalVariable>this.variables[name];
@@ -62,35 +65,30 @@ export default class Scope {
 		return this.variables[name];
 	}
 
-	addExportDefaultDeclaration (name: string, exportDefaultDeclaration: ExportDefaultDeclaration): ExportDefaultVariable {
-		this.variables.default = new ExportDefaultVariable(
-			name,
-			exportDefaultDeclaration
-		);
+	addExportDefaultDeclaration(
+		name: string,
+		exportDefaultDeclaration: ExportDefaultDeclaration
+	): ExportDefaultVariable {
+		this.variables.default = new ExportDefaultVariable(name, exportDefaultDeclaration);
 		return this.variables.default;
 	}
 
-	addReturnExpression (expression: ExpressionEntity) {
+	addReturnExpression(expression: ExpressionEntity) {
 		this.parent && this.parent.addReturnExpression(expression);
 	}
 
-	contains (name: string): boolean {
-		return (
-			!!this.variables[name] ||
-			(this.parent ? this.parent.contains(name) : false)
-		);
+	contains(name: string): boolean {
+		return !!this.variables[name] || (this.parent ? this.parent.contains(name) : false);
 	}
 
-	deshadow (names: Set<string>, children = this.children) {
+	deshadow(names: Set<string>, children = this.children) {
 		keys(this.variables).forEach(key => {
 			const declaration = this.variables[key];
 
 			// we can disregard exports.foo etc
-			if (declaration.exportName && declaration.isReassigned && !declaration.isId)
-				return;
+			if (declaration.exportName && declaration.isReassigned && !declaration.isId) return;
 
-			if (declaration.isDefault)
-				return;
+			if (declaration.isDefault) return;
 
 			let name = declaration.getName(true);
 
@@ -99,11 +97,11 @@ export default class Scope {
 			}
 
 			name = declaration.name;
-			let deshadowed, i = 1;
+			let deshadowed,
+				i = 1;
 			do {
 				deshadowed = `${name}$$${i++}`;
-			}
-			while (names.has(deshadowed))
+			} while (names.has(deshadowed));
 
 			declaration.setSafeName(deshadowed);
 		});
@@ -111,11 +109,11 @@ export default class Scope {
 		children.forEach(scope => scope.deshadow(names));
 	}
 
-	findLexicalBoundary (): Scope {
+	findLexicalBoundary(): Scope {
 		return (<Scope>this.parent).findLexicalBoundary();
 	}
 
-	findVariable (name: string): Variable {
+	findVariable(name: string): Variable {
 		return this.variables[name] || (this.parent && this.parent.findVariable(name));
 	}
 }

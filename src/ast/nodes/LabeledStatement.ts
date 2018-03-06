@@ -8,9 +8,7 @@ export default class LabeledStatement extends StatementBase {
 	label: Identifier;
 	body: StatementNode;
 
-	hasEffects (options: ExecutionPathOptions) {
-		return this.body.hasEffects(
-			options.setIgnoreLabel(this.label.name).setIgnoreBreakStatements()
-		);
+	hasEffects(options: ExecutionPathOptions) {
+		return this.body.hasEffects(options.setIgnoreLabel(this.label.name).setIgnoreBreakStatements());
 	}
 }

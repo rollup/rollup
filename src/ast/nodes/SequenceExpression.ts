@@ -8,15 +8,15 @@ export default class SequenceExpression extends NodeBase {
 	type: NodeType.SequenceExpression;
 	expressions: ExpressionNode[];
 
-	getValue (): any {
+	getValue(): any {
 		return this.expressions[this.expressions.length - 1].getValue();
 	}
 
-	hasEffects (options: ExecutionPathOptions): boolean {
+	hasEffects(options: ExecutionPathOptions): boolean {
 		return this.expressions.some(expression => expression.hasEffects(options));
 	}
 
-	includeInBundle () {
+	includeInBundle() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		if (this.expressions[this.expressions.length - 1].includeInBundle()) {
@@ -32,7 +32,7 @@ export default class SequenceExpression extends NodeBase {
 		return addedNewNodes;
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions) {
 		if (!this.module.graph.treeshake) {
 			super.render(code, options);
 		} else {

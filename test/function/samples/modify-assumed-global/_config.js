@@ -1,4 +1,4 @@
-var assert = require( 'assert' );
+var assert = require('assert');
 
 var Math = {};
 
@@ -7,8 +7,8 @@ module.exports = {
 	context: {
 		Math: Math
 	},
-	exports: function ( exports ) {
-		assert.equal( Math.square( 3 ), 9 );
-		assert.equal( Math.cube( 3 ), 27 );
+	exports: function(exports) {
+		assert.equal(Math.square(3), 9);
+		assert.equal(Math.cube(3), 27);
 	}
 };

@@ -1,11 +1,11 @@
 module.exports = {
 	description: 'all code should be included if tree-shaking is disabled',
 	options: {
-		external: [ 'external' ],
+		external: ['external'],
 		treeshake: false,
 		output: {
 			globals: { external: 'external' },
-			name: /* not shaken, but */ 'stirred',
+			name: /* not shaken, but */ 'stirred'
 		}
 	}
 };

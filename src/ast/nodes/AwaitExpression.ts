@@ -6,7 +6,7 @@ export default class AwaitExpression extends NodeBase {
 	type: NodeType.AwaitExpression;
 	argument: ExpressionNode;
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects(options: ExecutionPathOptions) {
 		return super.hasEffects(options) || !options.ignoreReturnAwaitYield();
 	}
 }

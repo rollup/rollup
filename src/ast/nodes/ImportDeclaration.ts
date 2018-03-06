@@ -16,9 +16,9 @@ export default class ImportDeclaration extends NodeBase {
 	isImportDeclaration: true;
 	needsBoundaries: true;
 
-	bindChildren () { }
+	bindChildren() {}
 
-	render (code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
+	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
 		code.remove(start, end);
 	}
 }

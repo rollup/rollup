@@ -6,4 +6,4 @@ export default interface ExportSpecifier extends Node {
 	type: NodeType.ExportSpecifier;
 	local: Identifier;
 	exported: Identifier;
-}
+};

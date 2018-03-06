@@ -1,9 +1,9 @@
 module.exports = {
 	description: 'handles call of aliased external function (#957)',
-	warnings () {},
+	warnings() {},
 	context: {
-		require ( id ) {
-			if ( id === 'foo' ) {
+		require(id) {
+			if (id === 'foo') {
 				return () => 42;
 			}
 		}

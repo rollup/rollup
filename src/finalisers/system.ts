@@ -1,10 +1,9 @@
 import Chunk, { ModuleDeclarations } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 
-function getStarExcludes ({ dependencies, exports } : ModuleDeclarations) {
+function getStarExcludes({ dependencies, exports }: ModuleDeclarations) {
 	const starExcludes = new Set(exports.map(expt => expt.exported));
-	if (!starExcludes.has('default'))
-		starExcludes.add('default');
+	if (!starExcludes.has('default')) starExcludes.add('default');
 	// also include reexport names
 	dependencies.forEach(({ reexports }) => {
 		if (reexports)
@@ -16,14 +15,19 @@ function getStarExcludes ({ dependencies, exports } : ModuleDeclarations) {
 	return starExcludes;
 }
 
-export default function system (
+export default function system(
 	chunk: Chunk,
 	magicString: MagicStringBundle,
-	{ getPath, indentString: t, intro, outro }: {
+	{
+		getPath,
+		indentString: t,
+		intro,
+		outro
+	}: {
 		indentString: string;
 		getPath: (name: string) => string;
 		intro: string;
-		outro: string
+		outro: string;
 	}
 ) {
 	const { dependencies, exports } = chunk.getModuleDeclarations();
@@ -50,12 +54,14 @@ export default function system (
 		if (reexports) {
 			let createdSetter = false;
 			// bulk-reexport form
-			if (reexports.length > 1 ||
-					reexports.length === 1 && (reexports[0].reexported === '*' || reexports[0].imported === '*')) {
+			if (
+				reexports.length > 1 ||
+				(reexports.length === 1 &&
+					(reexports[0].reexported === '*' || reexports[0].imported === '*'))
+			) {
 				// star reexports
 				reexports.forEach(specifier => {
-					if (specifier.reexported !== '*')
-						return;
+					if (specifier.reexported !== '*') return;
 					// need own exports list for deduping in star export case
 					if (!starExcludes) {
 						starExcludes = getStarExcludes({ dependencies, exports });
@@ -70,14 +76,12 @@ export default function system (
 				});
 				// star import reexport
 				reexports.forEach(specifier => {
-					if (specifier.imported !== '*' || specifier.reexported === '*')
-						return;
+					if (specifier.imported !== '*' || specifier.reexported === '*') return;
 					setter.push(`exports('${specifier.reexported}', module);`);
 				});
 				// reexports
 				reexports.forEach(specifier => {
-					if (specifier.reexported === '*' || specifier.imported === '*')
-						return;
+					if (specifier.reexported === '*' || specifier.imported === '*') return;
 					if (!createdSetter) {
 						setter.push(`${varOrConst} _setter = {};`);
 						createdSetter = true;
@@ -87,9 +91,8 @@ export default function system (
 				if (createdSetter) {
 					setter.push('exports(_setter);');
 				}
-			}
-			// single reexport
-			else {
+			} else {
+				// single reexport
 				reexports.forEach(specifier => {
 					setter.push(`exports('${specifier.reexported}', module.${specifier.imported});`);
 				});
@@ -101,29 +104,41 @@ export default function system (
 	// function declarations hoist
 	const functionExports: string[] = [];
 	exports.forEach(expt => {
-		if (expt.hoisted)
-			functionExports.push(`exports('${expt.exported}', ${expt.local});`);
+		if (expt.hoisted) functionExports.push(`exports('${expt.exported}', ${expt.local});`);
 	});
 
-	const starExcludesSection = !starExcludes ? '' :
-			`\n${t}${varOrConst} _starExcludes = { ${Array.from(starExcludes).join(': 1, ')}${starExcludes.size ? ': 1' : ''} };`;
+	const starExcludesSection = !starExcludes
+		? ''
+		: `\n${t}${varOrConst} _starExcludes = { ${Array.from(starExcludes).join(': 1, ')}${
+				starExcludes.size ? ': 1' : ''
+		  } };`;
 
-	const importBindingsSection = importBindings.length ? `\n${t}var ${importBindings.join(', ')};` : '';
+	const importBindingsSection = importBindings.length
+		? `\n${t}var ${importBindings.join(', ')};`
+		: '';
 
 	const wrapperStart = `System.register([${dependencyIds.join(', ')}], function (exports, module) {
 ${t}'use strict';${starExcludesSection}${importBindingsSection}
-${t}return {${setters.length ? `\n${t}${t}setters: [${setters.map(s => `function (module) {
+${t}return {${
+		setters.length
+			? `\n${t}${t}setters: [${setters
+					.map(
+						s => `function (module) {
 ${t}${t}${t}${s}
-${t}${t}}`).join(', ')}],` : ''}
+${t}${t}}`
+					)
+					.join(', ')}],`
+			: ''
+	}
 ${t}${t}execute: function () {
 
 ${functionExports.length ? `${t}${t}${t}` + functionExports.join(`\n${t}${t}${t}`) + '\n' : ''}`;
 
 	if (intro) magicString.prepend(intro);
 
-	if (outro) (<any> magicString).append(outro);
+	if (outro) (<any>magicString).append(outro);
 
-	return (<any> magicString) // TODO TypeScript: Awaiting PR
+	return (<any>magicString) // TODO TypeScript: Awaiting PR
 		.indent(`${t}${t}${t}`)
 		.append(`\n\n${t}${t}}\n${t}};\n});`)
 		.prepend(wrapperStart);

@@ -13,7 +13,7 @@ export default class ModuleScope extends Scope {
 	parent: Scope;
 	module: Module;
 
-	constructor (module: Module) {
+	constructor(module: Module) {
 		super({
 			isModuleScope: true,
 			parent: module.graph.scope
@@ -23,7 +23,7 @@ export default class ModuleScope extends Scope {
 		this.variables.this = new LocalVariable('this', null, UNKNOWN_EXPRESSION);
 	}
 
-	deshadow (names: Set<string>, children = this.children) {
+	deshadow(names: Set<string>, children = this.children) {
 		let localNames = new Set(names);
 
 		forOwn(this.module.imports, specifier => {
@@ -33,7 +33,8 @@ export default class ModuleScope extends Scope {
 
 			const addDeclaration = (declaration: Variable) => {
 				if (isNamespaceVariable(declaration) && !isExternalVariable(declaration)) {
-					declaration.module.getExports()
+					declaration.module
+						.getExports()
 						.forEach(name => addDeclaration(declaration.module.traceExport(name)));
 				}
 
@@ -52,9 +53,9 @@ export default class ModuleScope extends Scope {
 							code: 'NON_EXISTENT_EXPORT',
 							name: specifier.name,
 							source: specifier.module.id,
-							message: `Non-existent export '${
-								specifier.name
-								}' is imported from ${relativeId(specifier.module.id)}`
+							message: `Non-existent export '${specifier.name}' is imported from ${relativeId(
+								specifier.module.id
+							)}`
 						},
 						specifier.specifier.start
 					);
@@ -78,11 +79,11 @@ export default class ModuleScope extends Scope {
 		super.deshadow(localNames, children);
 	}
 
-	findLexicalBoundary () {
+	findLexicalBoundary() {
 		return this;
 	}
 
-	findVariable (name: string) {
+	findVariable(name: string) {
 		if (this.variables[name]) {
 			return this.variables[name];
 		}

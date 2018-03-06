@@ -6,35 +6,35 @@ module.exports = {
 			outro: '/* this is an outro */',
 			name: 'foo'
 		},
-		external: [ 'external' ],
+		external: ['external'],
 		plugins: [
 			{
-				intro () {
+				intro() {
 					return '// intro 1';
 				},
-				outro () {
+				outro() {
 					return '// outro 1';
 				}
 			},
 			{
-				intro () {
+				intro() {
 					return '// intro 2';
 				},
-				outro () {
-					return Promise.resolve( '// outro 2' );
+				outro() {
+					return Promise.resolve('// outro 2');
 				}
 			},
 			{
-				intro () {
-					return Promise.resolve( '// intro 3' );
+				intro() {
+					return Promise.resolve('// intro 3');
 				},
-				outro () {
+				outro() {
 					return '// outro 3';
 				}
 			},
 			{
 				intro: '// intro 4',
-				outro: '// outro 4',
+				outro: '// outro 4'
 			}
 		]
 	}

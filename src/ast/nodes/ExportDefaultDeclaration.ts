@@ -5,21 +5,26 @@ import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaratio
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { findFirstOccurrenceOutsideComment, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	NodeRenderOptions,
+	RenderOptions
+} from '../../utils/renderHelpers';
 import { isObjectExpression } from './ObjectExpression';
 import { BLANK } from '../../utils/object';
 
 const WHITESPACE = /\s/;
 
 // The header ends at the first non-white-space after "default"
-function getDeclarationStart (code: string, start = 0) {
+function getDeclarationStart(code: string, start = 0) {
 	start = findFirstOccurrenceOutsideComment(code, 'default', start) + 7;
 	while (WHITESPACE.test(code[start])) start++;
 	return start;
 }
 
-function getIdInsertPosition (code: string, declarationKeyword: string, start = 0) {
-	const declarationEnd = findFirstOccurrenceOutsideComment(code, declarationKeyword, start) + declarationKeyword.length;
+function getIdInsertPosition(code: string, declarationKeyword: string, start = 0) {
+	const declarationEnd =
+		findFirstOccurrenceOutsideComment(code, declarationKeyword, start) + declarationKeyword.length;
 	code = code.slice(declarationEnd, findFirstOccurrenceOutsideComment(code, '{', declarationEnd));
 	const generatorStarPos = findFirstOccurrenceOutsideComment(code, '*');
 	if (generatorStarPos === -1) {
@@ -40,17 +45,16 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 	private declarationName: string;
 
-	bindNode () {
+	bindNode() {
 		if (this.declarationName) {
-			this.variable.setOriginalVariable(
-				this.scope.findVariable(this.declarationName)
-			);
+			this.variable.setOriginalVariable(this.scope.findVariable(this.declarationName));
 		}
 	}
 
-	initialiseNode () {
+	initialiseNode() {
 		this.declarationName =
-			((<FunctionDeclaration | ClassDeclaration>this.declaration).id && (<FunctionDeclaration | ClassDeclaration>this.declaration).id.name) ||
+			((<FunctionDeclaration | ClassDeclaration>this.declaration).id &&
+				(<FunctionDeclaration | ClassDeclaration>this.declaration).id.name) ||
 			(<Identifier>this.declaration).name;
 		this.variable = this.scope.addExportDefaultDeclaration(
 			this.declarationName || this.module.basename(),
@@ -58,17 +62,33 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		);
 	}
 
-	render (code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
+	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
 		const declarationStart = getDeclarationStart(code.original, this.start);
 
 		if (isFunctionDeclaration(this.declaration)) {
-			this.renderNamedDeclaration(code, declarationStart, 'function', this.declaration.id === null, options);
+			this.renderNamedDeclaration(
+				code,
+				declarationStart,
+				'function',
+				this.declaration.id === null,
+				options
+			);
 		} else if (isClassDeclaration(this.declaration)) {
-			this.renderNamedDeclaration(code, declarationStart, 'class', this.declaration.id === null, options);
+			this.renderNamedDeclaration(
+				code,
+				declarationStart,
+				'class',
+				this.declaration.id === null,
+				options
+			);
 		} else if (this.variable.referencesOriginal()) {
 			// Remove altogether to prevent re-declaring the same variable
 			if (options.systemBindings && this.variable.exportName) {
-				code.overwrite(start, end, `exports('${this.variable.exportName}', ${this.variable.getName()});`);
+				code.overwrite(
+					start,
+					end,
+					`exports('${this.variable.exportName}', ${this.variable.getName()});`
+				);
 			} else {
 				code.remove(start, end);
 			}
@@ -81,23 +101,41 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		super.render(code, options);
 	}
 
-	private renderNamedDeclaration (
-		code: MagicString, declarationStart: number, declarationKeyword: string, needsId: boolean, options: RenderOptions
+	private renderNamedDeclaration(
+		code: MagicString,
+		declarationStart: number,
+		declarationKeyword: string,
+		needsId: boolean,
+		options: RenderOptions
 	) {
 		const name = this.variable.getName();
 		// Remove `export default`
 		code.remove(this.start, declarationStart);
 
 		if (needsId) {
-			code.appendLeft(getIdInsertPosition(code.original, declarationKeyword, declarationStart), ` ${name}`);
+			code.appendLeft(
+				getIdInsertPosition(code.original, declarationKeyword, declarationStart),
+				` ${name}`
+			);
 		}
-		if (options.systemBindings && isClassDeclaration(this.declaration) && this.variable.exportName) {
+		if (
+			options.systemBindings &&
+			isClassDeclaration(this.declaration) &&
+			this.variable.exportName
+		) {
 			code.appendLeft(this.end, ` exports('${this.variable.exportName}', ${name});`);
 		}
 	}
 
-	private renderVariableDeclaration (code: MagicString, declarationStart: number, options: RenderOptions) {
-		const systemBinding = options.systemBindings && this.variable.exportName ? `exports('${this.variable.exportName}', ` : '';
+	private renderVariableDeclaration(
+		code: MagicString,
+		declarationStart: number,
+		options: RenderOptions
+	) {
+		const systemBinding =
+			options.systemBindings && this.variable.exportName
+				? `exports('${this.variable.exportName}', `
+				: '';
 		code.overwrite(
 			this.start,
 			declarationStart,
@@ -108,7 +146,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		}
 	}
 
-	private renderForSideEffectsOnly (code: MagicString, declarationStart: number) {
+	private renderForSideEffectsOnly(code: MagicString, declarationStart: number) {
 		code.remove(this.start, declarationStart);
 		if (needsToBeWrapped(this.declaration)) {
 			code.appendLeft(declarationStart, '(');

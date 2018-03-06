@@ -7,7 +7,7 @@ export default class BreakStatement extends StatementBase {
 	type: NodeType.BreakStatement;
 	label: Identifier | null;
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects(options: ExecutionPathOptions) {
 		return (
 			super.hasEffects(options) ||
 			!options.ignoreBreakStatements() ||

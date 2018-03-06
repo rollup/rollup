@@ -17,10 +17,10 @@ const statementsWithIfStatements = new Set([
 	'WhileStatement'
 ]);
 
-function getHoistedVars (node: StatementNode, scope: Scope) {
+function getHoistedVars(node: StatementNode, scope: Scope) {
 	const hoistedVars: string[] = [];
 
-	function visit (node: Node) {
+	function visit(node: Node) {
 		if (isVariableDeclaration(node) && node.kind === 'var') {
 			node.declarations.forEach(declarator => {
 				declarator.init = null;
@@ -49,7 +49,7 @@ export default class IfStatement extends StatementBase {
 	private testValue: any;
 	private hoistedVars?: string[];
 
-	initialiseChildren (parentScope: Scope) {
+	initialiseChildren(parentScope: Scope) {
 		super.initialiseChildren(parentScope);
 		if (this.module.graph.treeshake) {
 			this.testValue = this.test.getValue();
@@ -69,20 +69,16 @@ export default class IfStatement extends StatementBase {
 		}
 	}
 
-	initialiseNode () {
+	initialiseNode() {
 		this.hoistedVars = [];
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions) {
 		if (this.module.graph.treeshake) {
 			if (this.testValue === UNKNOWN_VALUE) {
 				super.render(code, options);
 			} else {
-				code.overwrite(
-					this.test.start,
-					this.test.end,
-					JSON.stringify(this.testValue)
-				);
+				code.overwrite(this.test.start, this.test.end, JSON.stringify(this.testValue));
 
 				// TODO if no block-scoped declarations, remove enclosing
 				// curlies and dedent block (if there is a block)
@@ -105,10 +101,7 @@ export default class IfStatement extends StatementBase {
 					code.remove(this.consequent.end, this.end);
 					this.consequent.render(code, options);
 				} else {
-					code.remove(
-						this.start,
-						this.alternate ? this.alternate.start : this.end
-					);
+					code.remove(this.start, this.alternate ? this.alternate.start : this.end);
 
 					if (this.alternate) {
 						this.alternate.render(code, options);
@@ -122,7 +115,7 @@ export default class IfStatement extends StatementBase {
 		}
 	}
 
-	shouldBeIncluded () {
+	shouldBeIncluded() {
 		return this.hoistedVars.length > 0 || super.shouldBeIncluded();
 	}
 }

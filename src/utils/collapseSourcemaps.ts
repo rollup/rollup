@@ -10,24 +10,26 @@ class Source {
 	filename: string;
 	content: string;
 
-	constructor (filename: string, content: string) {
+	constructor(filename: string, content: string) {
 		this.isOriginal = true;
 		this.filename = filename;
 		this.content = content;
 	}
 
-	traceSegment (line: number, column: number, name: string): SourceMapSegmentObject {
+	traceSegment(line: number, column: number, name: string): SourceMapSegmentObject {
 		return { line, column, name, source: this };
 	}
 }
 
-type SourceMapSegmentVector = [number, number, number, number, number] | [number, number, number, number];
+type SourceMapSegmentVector =
+	| [number, number, number, number, number]
+	| [number, number, number, number];
 
 interface SourceMapSegmentObject {
 	line: number;
 	column: number;
 	name: string;
-	source: Source
+	source: Source;
 }
 
 class Link {
@@ -35,13 +37,13 @@ class Link {
 	names: string[];
 	mappings: SourceMapSegmentVector[][];
 
-	constructor (map: { names: string[], mappings: SourceMapSegmentVector[][] }, sources: Source[]) {
+	constructor(map: { names: string[]; mappings: SourceMapSegmentVector[][] }, sources: Source[]) {
 		this.sources = sources;
 		this.names = map.names;
 		this.mappings = map.mappings;
 	}
 
-	traceMappings () {
+	traceMappings() {
 		const sources: string[] = [];
 		const sourcesContent: string[] = [];
 		const names: string[] = [];
@@ -54,11 +56,7 @@ class Link {
 
 				if (!source) return;
 
-				const traced = source.traceSegment(
-					segment[2],
-					segment[3],
-					this.names[segment[4]]
-				);
+				const traced = source.traceSegment(segment[2], segment[3], this.names[segment[4]]);
 
 				if (traced) {
 					let sourceIndex = null;
@@ -78,9 +76,7 @@ class Link {
 						sourcesContent[sourceIndex] !== traced.source.content
 					) {
 						error({
-							message: `Multiple conflicting contents for sourcemap source ${
-								source.filename
-								}`
+							message: `Multiple conflicting contents for sourcemap source ${source.filename}`
 						});
 					}
 
@@ -106,7 +102,7 @@ class Link {
 		return { sources, sourcesContent, names, mappings };
 	}
 
-	traceSegment (line: number, column: number, name: string) {
+	traceSegment(line: number, column: number, name: string) {
 		const segments = this.mappings[line];
 
 		if (!segments) return null;
@@ -120,11 +116,7 @@ class Link {
 				const source = this.sources[segment[1]];
 				if (!source) return null;
 
-				return source.traceSegment(
-					segment[2],
-					segment[3],
-					this.names[segment[4]] || name
-				);
+				return source.traceSegment(segment[2], segment[3], this.names[segment[4]] || name);
 			}
 		}
 
@@ -133,71 +125,66 @@ class Link {
 }
 
 // TODO TypeScript: Fix <any> typecasts
-export default function collapseSourcemaps (
+export default function collapseSourcemaps(
 	bundle: Chunk,
 	file: string,
 	map: RawSourceMap,
 	modules: Module[],
 	bundleSourcemapChain: RawSourceMap[]
 ) {
-	const moduleSources = modules
-		.filter(module => !module.excludeFromSourcemap)
-		.map(module => {
-			let sourcemapChain = module.sourcemapChain;
+	const moduleSources = modules.filter(module => !module.excludeFromSourcemap).map(module => {
+		let sourcemapChain = module.sourcemapChain;
 
-			let source: Source;
-			if (!module.originalSourcemap) {
-				source = new Source(module.id, module.originalCode);
+		let source: Source;
+		if (!module.originalSourcemap) {
+			source = new Source(module.id, module.originalCode);
+		} else {
+			const sources = module.originalSourcemap.sources;
+			const sourcesContent = module.originalSourcemap.sourcesContent || [];
+
+			if (sources == null || (sources.length <= 1 && sources[0] == null)) {
+				source = new Source(module.id, sourcesContent[0]);
+				sourcemapChain = [module.originalSourcemap].concat(sourcemapChain);
 			} else {
-				const sources = module.originalSourcemap.sources;
-				const sourcesContent = module.originalSourcemap.sourcesContent || [];
+				// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
+				const directory = dirname(module.id) || '.';
+				const sourceRoot = module.originalSourcemap.sourceRoot || '.';
 
-				if (sources == null || (sources.length <= 1 && sources[0] == null)) {
-					source = new Source(module.id, sourcesContent[0]);
-					sourcemapChain = [module.originalSourcemap].concat(sourcemapChain);
-				} else {
-					// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
-					const directory = dirname(module.id) || '.';
-					const sourceRoot = module.originalSourcemap.sourceRoot || '.';
+				const baseSources = sources.map((source, i) => {
+					return new Source(resolve(directory, sourceRoot, source), sourcesContent[i]);
+				});
 
-					const baseSources = sources.map((source, i) => {
-						return new Source(
-							resolve(directory, sourceRoot, source),
-							sourcesContent[i]
-						);
-					});
+				source = <any>new Link(<any>module.originalSourcemap, baseSources);
+			}
+		}
 
-					source = <any> new Link(<any> module.originalSourcemap, baseSources);
-				}
+		sourcemapChain.forEach((map: any) => {
+			if (map.missing) {
+				bundle.graph.warn({
+					code: 'SOURCEMAP_BROKEN',
+					plugin: map.plugin,
+					message: `Sourcemap is likely to be incorrect: a plugin${
+						map.plugin ? ` ('${map.plugin}')` : ``
+					} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
+					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect`
+				});
+
+				map = {
+					names: [],
+					mappings: ''
+				};
 			}
 
-			sourcemapChain.forEach((map: any) => {
-				if (map.missing) {
-					bundle.graph.warn({
-						code: 'SOURCEMAP_BROKEN',
-						plugin: map.plugin,
-						message: `Sourcemap is likely to be incorrect: a plugin${
-							map.plugin ? ` ('${map.plugin}')` : ``
-							} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
-						url: `https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect`
-					});
-
-					map = {
-						names: [],
-						mappings: ''
-					};
-				}
-
-				source = <any> new Link(map, [source]);
-			});
-
-			return source;
+			source = <any>new Link(map, [source]);
 		});
 
-	let source = new Link(<any> map, moduleSources);
+		return source;
+	});
+
+	let source = new Link(<any>map, moduleSources);
 
 	bundleSourcemapChain.forEach(map => {
-		source = new Link(<any> map, [<any> source]);
+		source = new Link(<any>map, [<any>source]);
 	});
 
 	let { sources, sourcesContent, names, mappings } = source.traceMappings();

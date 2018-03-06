@@ -9,19 +9,27 @@ import { InputOptions, OutputOptions, OutputChunk } from '../../../src/rollup/in
 import { BatchWarnings } from './batchWarnings';
 import { SourceMap } from 'magic-string';
 
-export default function build (inputOptions: InputOptions, outputOptions: OutputOptions[], warnings: BatchWarnings, silent = false) {
-	const useStdout = outputOptions.length === 1 && !outputOptions[0].file && inputOptions.input instanceof Array === false;
+export default function build(
+	inputOptions: InputOptions,
+	outputOptions: OutputOptions[],
+	warnings: BatchWarnings,
+	silent = false
+) {
+	const useStdout =
+		outputOptions.length === 1 &&
+		!outputOptions[0].file &&
+		inputOptions.input instanceof Array === false;
 
 	const start = Date.now();
-	const files = useStdout
-		? ['stdout']
-		: outputOptions.map(t => relativeId(t.file || t.dir));
+	const files = useStdout ? ['stdout'] : outputOptions.map(t => relativeId(t.file || t.dir));
 	if (!silent)
 		stderr(
 			chalk.cyan(
-				`\n${chalk.bold(typeof inputOptions.input === 'string' ? inputOptions.input : inputOptions.input && inputOptions.input.join(', '))} → ${chalk.bold(
-					files.join(', ')
-				)}...`
+				`\n${chalk.bold(
+					typeof inputOptions.input === 'string'
+						? inputOptions.input
+						: inputOptions.input && inputOptions.input.join(', ')
+				)} → ${chalk.bold(files.join(', '))}...`
 			)
 		);
 
@@ -38,7 +46,7 @@ export default function build (inputOptions: InputOptions, outputOptions: Output
 					});
 				}
 
-				return bundle.generate(output).then(({ code, map }: { code: string, map: SourceMap }) => {
+				return bundle.generate(output).then(({ code, map }: { code: string; map: SourceMap }) => {
 					if (output.sourcemap === 'inline') {
 						code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
 					}
@@ -56,9 +64,7 @@ export default function build (inputOptions: InputOptions, outputOptions: Output
 			if (!silent)
 				stderr(
 					chalk.green(
-						`created ${chalk.bold(files.join(', '))} in ${chalk.bold(
-							ms(Date.now() - start)
-						)}`
+						`created ${chalk.bold(files.join(', '))} in ${chalk.bold(ms(Date.now() - start))}`
 					)
 				);
 		})

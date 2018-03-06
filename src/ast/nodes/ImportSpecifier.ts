@@ -6,4 +6,4 @@ export default interface ImportSpecifier extends Node {
 	type: NodeType.ImportSpecifier;
 	local: Identifier;
 	imported: Identifier;
-}
+};

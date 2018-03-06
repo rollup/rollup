@@ -1,5 +1,5 @@
-var path = require( 'path' );
-var assert = require( 'assert' );
+var path = require('path');
+var assert = require('assert');
 
 module.exports = {
 	description: 'disallows non-top-level exports',
@@ -8,7 +8,7 @@ module.exports = {
 		message: `'import' and 'export' may only appear at the top level`,
 		pos: 19,
 		loc: {
-			file: path.resolve( __dirname, 'main.js' ),
+			file: path.resolve(__dirname, 'main.js'),
 			line: 2,
 			column: 2
 		},

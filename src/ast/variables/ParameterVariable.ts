@@ -2,7 +2,7 @@ import ReplaceableInitializationVariable from './ReplaceableInitializationVariab
 import Identifier from '../nodes/Identifier';
 
 export default class ParameterVariable extends ReplaceableInitializationVariable {
-	constructor (identifier: Identifier) {
+	constructor(identifier: Identifier) {
 		super(identifier.name, identifier);
 	}
 }

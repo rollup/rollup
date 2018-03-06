@@ -9,7 +9,7 @@ import build from './build';
 import watch from './watch';
 import { InputOptions } from '../../../src/rollup/index';
 
-export default function runRollup (command: any) {
+export default function runRollup(command: any) {
 	if (command._.length >= 1) {
 		if (command.input) {
 			handleError({
@@ -22,8 +22,7 @@ export default function runRollup (command: any) {
 	if (command.output && command.output.dir) {
 		command.input = command._;
 		command._ = [];
-	}
-	else if (command._.length === 1) {
+	} else if (command._.length === 1) {
 		command.input = command._[0];
 	}
 
@@ -44,17 +43,13 @@ export default function runRollup (command: any) {
 		});
 	}
 
-	let configFile =
-		command.config === true ? 'rollup.config.js' : command.config;
+	let configFile = command.config === true ? 'rollup.config.js' : command.config;
 
 	if (configFile) {
 		if (configFile.slice(0, 5) === 'node:') {
 			const pkgName = configFile.slice(5);
 			try {
-				configFile = relative.resolve(
-					`rollup-config-${pkgName}`,
-					process.cwd()
-				);
+				configFile = relative.resolve(`rollup-config-${pkgName}`, process.cwd());
 			} catch (err) {
 				try {
 					configFile = relative.resolve(pkgName, process.cwd());
@@ -80,17 +75,21 @@ export default function runRollup (command: any) {
 			.then(normalized => execute(configFile, normalized, command))
 			.catch(handleError);
 	} else {
-		return execute(configFile, [{input: null}], command);
+		return execute(configFile, [{ input: null }], command);
 	}
 }
 
-function execute (configFile: string, configs: InputOptions[], command: any) {
+function execute(configFile: string, configs: InputOptions[], command: any) {
 	if (command.watch) {
 		watch(configFile, configs, command, command.silent);
 	} else {
-		return sequence( configs, config => {
+		return sequence(configs, config => {
 			const warnings = batchWarnings();
-			const { inputOptions, outputOptions, deprecations, optionError } = mergeOptions({ config, command, defaultOnWarnHandler: warnings.add });
+			const { inputOptions, outputOptions, deprecations, optionError } = mergeOptions({
+				config,
+				command,
+				defaultOnWarnHandler: warnings.add
+			});
 
 			if (deprecations.length) {
 				inputOptions.onwarn({
@@ -102,7 +101,7 @@ function execute (configFile: string, configs: InputOptions[], command: any) {
 				});
 			}
 
-			if (optionError)	inputOptions.onwarn({code: 'UNKNOWN_OPTION', message: optionError});
+			if (optionError) inputOptions.onwarn({ code: 'UNKNOWN_OPTION', message: optionError });
 
 			return build(inputOptions, outputOptions, warnings, command.silent);
 		});
