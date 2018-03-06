@@ -27,9 +27,17 @@ export default class FunctionScope extends ReturnValueScope {
 		return this;
 	}
 
-	getOptionsWhenCalledWith({ args, withNew }: CallOptions, options: ExecutionPathOptions): ExecutionPathOptions {
+	getOptionsWhenCalledWith(
+		{ args, withNew }: CallOptions,
+		options: ExecutionPathOptions
+	): ExecutionPathOptions {
 		return options
-			.replaceVariableInit(this.variables.this, withNew ? UNKNOWN_OBJECT_EXPRESSION : UNKNOWN_EXPRESSION)
-			.setArgumentsVariables(args.map((parameter, index) => super.getParameterVariables()[index] || parameter));
+			.replaceVariableInit(
+				this.variables.this,
+				withNew ? UNKNOWN_OBJECT_EXPRESSION : UNKNOWN_EXPRESSION
+			)
+			.setArgumentsVariables(
+				args.map((parameter, index) => super.getParameterVariables()[index] || parameter)
+			);
 	}
 }

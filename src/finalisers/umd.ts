@@ -78,13 +78,17 @@ export default function umd(
 
 	const amdOptions = options.amd || {};
 
-	const amdParams = (amdOptions.id ? `'${amdOptions.id}', ` : ``) + (amdDeps.length ? `[${amdDeps.join(', ')}], ` : ``);
+	const amdParams =
+		(amdOptions.id ? `'${amdOptions.id}', ` : ``) +
+		(amdDeps.length ? `[${amdDeps.join(', ')}], ` : ``);
 
 	const define = amdOptions.define || 'define';
 
 	const cjsExport = exportMode === 'default' ? `module.exports = ` : ``;
 	const defaultExport =
-		exportMode === 'default' ? `${setupNamespace(options.name, 'global', true, options.globals)} = ` : '';
+		exportMode === 'default'
+			? `${setupNamespace(options.name, 'global', true, options.globals)} = `
+			: '';
 
 	const useStrict = options.strict !== false ? ` 'use strict';` : ``;
 
@@ -111,7 +115,9 @@ export default function umd(
 	}
 
 	const wrapperIntro = `(function (global, factory) {
-			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join(', ')}) :
+			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join(
+		', '
+	)}) :
 			typeof ${define} === 'function' && ${define}.amd ? ${define}(${amdParams}factory) :
 			${globalExport};
 		}(this, (function (${args}) {${useStrict}
@@ -121,14 +127,23 @@ export default function umd(
 		.replace(/^\t/gm, indentString || '\t');
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(moduleDeclarations.dependencies, options, chunk.graph.varOrConst);
+	const interopBlock = getInteropBlock(
+		moduleDeclarations.dependencies,
+		options,
+		chunk.graph.varOrConst
+	);
 	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(moduleDeclarations.exports, moduleDeclarations.dependencies, exportMode);
+	const exportBlock = getExportBlock(
+		moduleDeclarations.exports,
+		moduleDeclarations.dependencies,
+		exportMode
+	);
 	if (exportBlock) (<any>magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
-	if (exportMode === 'named' && options.legacy !== true) (<any>magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR
+	if (exportMode === 'named' && options.legacy !== true)
+		(<any>magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR
 	if (outro) (<any>magicString).append(outro); // TODO TypeScript: Awaiting PR
 
 	return (<any>magicString)

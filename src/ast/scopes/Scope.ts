@@ -56,12 +56,19 @@ export default class Scope {
 			variable.addDeclaration(identifier);
 			variable.reassignPath([], ExecutionPathOptions.create());
 		} else {
-			this.variables[name] = new LocalVariable(identifier.name, identifier, options.init || UNKNOWN_EXPRESSION);
+			this.variables[name] = new LocalVariable(
+				identifier.name,
+				identifier,
+				options.init || UNKNOWN_EXPRESSION
+			);
 		}
 		return this.variables[name];
 	}
 
-	addExportDefaultDeclaration(name: string, exportDefaultDeclaration: ExportDefaultDeclaration): ExportDefaultVariable {
+	addExportDefaultDeclaration(
+		name: string,
+		exportDefaultDeclaration: ExportDefaultDeclaration
+	): ExportDefaultVariable {
 		this.variables.default = new ExportDefaultVariable(name, exportDefaultDeclaration);
 		return this.variables.default;
 	}

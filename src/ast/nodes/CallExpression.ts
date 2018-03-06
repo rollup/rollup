@@ -21,7 +21,8 @@ export default class CallExpression extends NodeBase {
 			this.callee.forEachReturnExpressionWhenCalledAtPath(
 				[],
 				this._callOptions,
-				innerOptions => node => node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
+				innerOptions => node =>
+					node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
 				options
 			);
 	}
@@ -62,7 +63,8 @@ export default class CallExpression extends NodeBase {
 		this.callee.forEachReturnExpressionWhenCalledAtPath(
 			[],
 			this._callOptions,
-			innerOptions => node => node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, innerOptions),
+			innerOptions => node =>
+				node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, innerOptions),
 			options
 		);
 	}
@@ -70,7 +72,11 @@ export default class CallExpression extends NodeBase {
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			this.arguments.some(child => child.hasEffects(options)) ||
-			this.callee.hasEffectsWhenCalledAtPath([], this._callOptions, options.getHasEffectsWhenCalledOptions())
+			this.callee.hasEffectsWhenCalledAtPath(
+				[],
+				this._callOptions,
+				options.getHasEffectsWhenCalledOptions()
+			)
 		);
 	}
 
@@ -82,7 +88,10 @@ export default class CallExpression extends NodeBase {
 				[],
 				this._callOptions,
 				innerOptions => node =>
-					node.hasEffectsWhenAccessedAtPath(path, innerOptions.addAccessedReturnExpressionAtPath(path, this)),
+					node.hasEffectsWhenAccessedAtPath(
+						path,
+						innerOptions.addAccessedReturnExpressionAtPath(path, this)
+					),
 				options
 			)
 		);
@@ -95,20 +104,31 @@ export default class CallExpression extends NodeBase {
 				[],
 				this._callOptions,
 				innerOptions => node =>
-					node.hasEffectsWhenAssignedAtPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
+					node.hasEffectsWhenAssignedAtPath(
+						path,
+						innerOptions.addAssignedReturnExpressionAtPath(path, this)
+					),
 				options
 			)
 		);
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	): boolean {
 		return (
 			!options.hasReturnExpressionBeenCalledAtPath(path, this) &&
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
 				this._callOptions,
 				innerOptions => node =>
-					node.hasEffectsWhenCalledAtPath(path, callOptions, innerOptions.addCalledReturnExpressionAtPath(path, this)),
+					node.hasEffectsWhenCalledAtPath(
+						path,
+						callOptions,
+						innerOptions.addCalledReturnExpressionAtPath(path, this)
+					),
 				options
 			)
 		);
@@ -132,7 +152,12 @@ export default class CallExpression extends NodeBase {
 			[],
 			this._callOptions,
 			innerOptions => node =>
-				node.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, innerOptions),
+				node.someReturnExpressionWhenCalledAtPath(
+					path,
+					callOptions,
+					predicateFunction,
+					innerOptions
+				),
 			options
 		);
 	}

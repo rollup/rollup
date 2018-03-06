@@ -5,7 +5,9 @@ import { ObjectPath } from '../../values';
 
 export type PredicateFunction = (node: ExpressionEntity) => boolean;
 export type SomeReturnExpressionCallback = (options: ExecutionPathOptions) => PredicateFunction;
-export type ForEachReturnExpressionCallback = (options: ExecutionPathOptions) => (node: ExpressionEntity) => void;
+export type ForEachReturnExpressionCallback = (
+	options: ExecutionPathOptions
+) => (node: ExpressionEntity) => void;
 
 export interface ExpressionEntity extends WritableEntity {
 	/**
@@ -19,7 +21,11 @@ export interface ExpressionEntity extends WritableEntity {
 	): void;
 	getValue(): any;
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean;
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	): boolean;
 
 	/**
 	 * Should return true if some possible return expression when called at the given

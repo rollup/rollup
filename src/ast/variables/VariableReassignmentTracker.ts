@@ -1,4 +1,11 @@
-import { ObjectPath, ObjectPathKey, PathCallback, PathPredicate, UNKNOWN_EXPRESSION, UNKNOWN_KEY } from '../values';
+import {
+	ObjectPath,
+	ObjectPathKey,
+	PathCallback,
+	PathPredicate,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_KEY
+} from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 

@@ -13,7 +13,8 @@ export default class ExportDefaultVariable extends LocalVariable {
 	constructor(name: string, exportDefaultDeclaration: ExportDefaultDeclaration) {
 		super(name, exportDefaultDeclaration, exportDefaultDeclaration.declaration);
 		this.isDefault = true;
-		this.hasId = !!(<FunctionDeclaration | ClassDeclaration>exportDefaultDeclaration.declaration).id;
+		this.hasId = !!(<FunctionDeclaration | ClassDeclaration>exportDefaultDeclaration.declaration)
+			.id;
 	}
 
 	addReference(identifier: Identifier) {

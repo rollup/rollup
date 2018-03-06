@@ -204,7 +204,10 @@ describe('deprecations', () => {
 					const { code, map } = bundle.generate({ format: 'es' });
 					console.log(code, map);
 				} catch (err) {
-					assert.equal(err.message, `bundle.generate(...) now returns a Promise instead of a { code, map } object`);
+					assert.equal(
+						err.message,
+						`bundle.generate(...) now returns a Promise instead of a { code, map } object`
+					);
 					errored = true;
 				}
 
@@ -353,8 +356,14 @@ describe('acorn plugins', () => {
 			.then(executeBundle)
 			.then(result => {
 				assert.equal(result, 42);
-				assert(pluginAInjected, 'A plugin passed via acornInjectPlugins should inject itself into Acorn.');
-				assert(pluginBInjected, 'A plugin passed via acornInjectPlugins should inject itself into Acorn.');
+				assert(
+					pluginAInjected,
+					'A plugin passed via acornInjectPlugins should inject itself into Acorn.'
+				);
+				assert(
+					pluginBInjected,
+					'A plugin passed via acornInjectPlugins should inject itself into Acorn.'
+				);
 			});
 	});
 
@@ -386,8 +395,16 @@ describe('acorn plugins', () => {
 			.then(executeBundle)
 			.then(result => {
 				assert.equal(result, 42);
-				assert.equal(pluginCRegistered, true, 'A plugin enabled in acorn.plugins should register with Acorn.');
-				assert.equal(pluginDRegistered, false, 'A plugin not enabled in acorn.plugins should not register with Acorn.');
+				assert.equal(
+					pluginCRegistered,
+					true,
+					'A plugin enabled in acorn.plugins should register with Acorn.'
+				);
+				assert.equal(
+					pluginDRegistered,
+					false,
+					'A plugin not enabled in acorn.plugins should not register with Acorn.'
+				);
 			});
 	});
 
@@ -454,7 +471,9 @@ describe('misc', () => {
 				})
 			)
 			.then(() => {
-				const relevantWarnings = warnings.filter(warning => warning.code === 'MISSING_NODE_BUILTINS');
+				const relevantWarnings = warnings.filter(
+					warning => warning.code === 'MISSING_NODE_BUILTINS'
+				);
 				assert.equal(relevantWarnings.length, 1);
 				assert.equal(
 					relevantWarnings[0].message,

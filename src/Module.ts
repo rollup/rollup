@@ -250,7 +250,9 @@ export default class Module {
 		});
 	}
 
-	private addExport(node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration) {
+	private addExport(
+		node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration
+	) {
 		const source = (<ExportAllDeclaration>node).source && (<ExportAllDeclaration>node).source.value;
 
 		// export { name } from './other'
@@ -365,7 +367,9 @@ export default class Module {
 			const isDefault = specifier.type === NodeType.ImportDefaultSpecifier;
 			const isNamespace = specifier.type === NodeType.ImportNamespaceSpecifier;
 
-			const name = isDefault ? 'default' : isNamespace ? '*' : (<ImportSpecifier>specifier).imported.name;
+			const name = isDefault
+				? 'default'
+				: isNamespace ? '*' : (<ImportSpecifier>specifier).imported.name;
 			this.imports[localName] = { source, specifier, name, module: null };
 		});
 	}
@@ -375,8 +379,14 @@ export default class Module {
 		this.ast.body.forEach(node => {
 			if ((<ImportDeclaration>node).isImportDeclaration) {
 				this.addImport(<ImportDeclaration>node);
-			} else if ((<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration>node).isExportDeclaration) {
-				this.addExport(<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration>node);
+			} else if (
+				(<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration>node)
+					.isExportDeclaration
+			) {
+				this.addExport(<
+					| ExportDefaultDeclaration
+					| ExportNamedDeclaration
+					| ExportAllDeclaration>node);
 			}
 		});
 	}
@@ -459,14 +469,19 @@ export default class Module {
 		});
 	}
 
-	private getOriginalLocation(sourcemapChain: RawSourceMap[], location: { line: number; column: number }) {
-		const filteredSourcemapChain = sourcemapChain.filter(sourcemap => sourcemap.mappings).map(sourcemap => {
-			const encodedSourcemap = sourcemap;
-			if (sourcemap.mappings) {
-				encodedSourcemap.mappings = encode(encodedSourcemap.mappings);
-			}
-			return encodedSourcemap;
-		});
+	private getOriginalLocation(
+		sourcemapChain: RawSourceMap[],
+		location: { line: number; column: number }
+	) {
+		const filteredSourcemapChain = sourcemapChain
+			.filter(sourcemap => sourcemap.mappings)
+			.map(sourcemap => {
+				const encodedSourcemap = sourcemap;
+				if (sourcemap.mappings) {
+					encodedSourcemap.mappings = encode(encodedSourcemap.mappings);
+				}
+				return encodedSourcemap;
+			});
 		while (filteredSourcemapChain.length > 0) {
 			const sourcemap = filteredSourcemapChain.pop();
 			const smc = new SourceMapConsumer(sourcemap);
@@ -586,7 +601,9 @@ export default class Module {
 		this.ast.render(magicString, options);
 
 		if (this.namespace().needsNamespaceBlock) {
-			magicString.append('\n\n' + this.namespace().renderBlock(options.legacy, options.freeze, '\t')); // TODO use correct indentation
+			magicString.append(
+				'\n\n' + this.namespace().renderBlock(options.legacy, options.freeze, '\t')
+			); // TODO use correct indentation
 		}
 
 		// TODO TypeScript: It seems magicString is missing type information here
@@ -623,7 +640,12 @@ export default class Module {
 			const declaration = otherModule.traceExport(importDeclaration.name);
 
 			if (!declaration) {
-				this.graph.handleMissingExport(this, importDeclaration.name, otherModule, importDeclaration.specifier.start);
+				this.graph.handleMissingExport(
+					this,
+					importDeclaration.name,
+					otherModule,
+					importDeclaration.specifier.start
+				);
 			}
 
 			return declaration;

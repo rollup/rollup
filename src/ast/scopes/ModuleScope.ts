@@ -33,7 +33,9 @@ export default class ModuleScope extends Scope {
 
 			const addDeclaration = (declaration: Variable) => {
 				if (isNamespaceVariable(declaration) && !isExternalVariable(declaration)) {
-					declaration.module.getExports().forEach(name => addDeclaration(declaration.module.traceExport(name)));
+					declaration.module
+						.getExports()
+						.forEach(name => addDeclaration(declaration.module.traceExport(name)));
 				}
 
 				localNames.add(declaration.getName());
@@ -51,7 +53,9 @@ export default class ModuleScope extends Scope {
 							code: 'NON_EXISTENT_EXPORT',
 							name: specifier.name,
 							source: specifier.module.id,
-							message: `Non-existent export '${specifier.name}' is imported from ${relativeId(specifier.module.id)}`
+							message: `Non-existent export '${specifier.name}' is imported from ${relativeId(
+								specifier.module.id
+							)}`
 						},
 						specifier.specifier.start
 					);

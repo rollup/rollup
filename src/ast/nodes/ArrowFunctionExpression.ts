@@ -27,7 +27,8 @@ export default class ArrowFunctionExpression extends NodeBase {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		path.length === 0 && this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
+		path.length === 0 &&
+			this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
 	}
 
 	hasEffects(_options: ExecutionPathOptions) {
@@ -42,7 +43,11 @@ export default class ArrowFunctionExpression extends NodeBase {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, _callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		_callOptions: CallOptions,
+		options: ExecutionPathOptions
+	): boolean {
 		if (path.length > 0) {
 			return true;
 		}
@@ -68,6 +73,9 @@ export default class ArrowFunctionExpression extends NodeBase {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		return path.length > 0 || this.scope.someReturnExpressionWhenCalled(callOptions, predicateFunction, options);
+		return (
+			path.length > 0 ||
+			this.scope.someReturnExpressionWhenCalled(callOptions, predicateFunction, options)
+		);
 	}
 }

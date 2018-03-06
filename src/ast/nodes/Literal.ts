@@ -40,7 +40,11 @@ export default class Literal<T = LiteralValueTypes> extends NodeBase {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	): boolean {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(this.members, path[0], callOptions, options);
 		}
@@ -64,7 +68,13 @@ export default class Literal<T = LiteralValueTypes> extends NodeBase {
 		options: ExecutionPathOptions
 	): boolean {
 		if (path.length === 1) {
-			return someMemberReturnExpressionWhenCalled(this.members, path[0], callOptions, predicateFunction, options);
+			return someMemberReturnExpressionWhenCalled(
+				this.members,
+				path[0],
+				callOptions,
+				predicateFunction,
+				options
+			);
 		}
 		return true;
 	}

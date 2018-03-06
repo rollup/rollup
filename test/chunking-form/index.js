@@ -66,10 +66,15 @@ describe('chunking form', () => {
 								}
 
 								(function recurse(actualFiles, expectedFiles, dirs) {
-									const fileNames = Array.from(new Set(Object.keys(actualFiles).concat(Object.keys(expectedFiles))));
+									const fileNames = Array.from(
+										new Set(Object.keys(actualFiles).concat(Object.keys(expectedFiles)))
+									);
 									fileNames.forEach(fileName => {
 										const sections = dirs.concat(fileName);
-										if (typeof actualFiles[fileName] === 'object' && typeof expectedFiles[fileName] === 'object') {
+										if (
+											typeof actualFiles[fileName] === 'object' &&
+											typeof expectedFiles[fileName] === 'object'
+										) {
 											return recurse(actualFiles[fileName], expectedFiles[fileName], sections);
 										}
 										assert.strictEqual(

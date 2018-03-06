@@ -23,7 +23,9 @@ export default function cjs(
 ) {
 	intro =
 		(options.strict === false ? intro : `'use strict';\n\n${intro}`) +
-		(exportMode === 'named' && options.legacy !== true && chunk.isEntryModuleFacade ? `${esModuleExport}\n\n` : '');
+		(exportMode === 'named' && options.legacy !== true && chunk.isEntryModuleFacade
+			? `${esModuleExport}\n\n`
+			: '');
 
 	let needsInterop = false;
 
@@ -60,8 +62,14 @@ export default function cjs(
 			needsInterop = true;
 
 			const exportsNames =
-				(imports && imports.some(specifier => specifier.imported !== 'default' && specifier.imported !== '*')) ||
-				(reexports && reexports.some(specifier => specifier.imported !== 'default' && specifier.imported !== '*'));
+				(imports &&
+					imports.some(
+						specifier => specifier.imported !== 'default' && specifier.imported !== '*'
+					)) ||
+				(reexports &&
+					reexports.some(
+						specifier => specifier.imported !== 'default' && specifier.imported !== '*'
+					));
 			if (exportsNames) {
 				return (
 					`${varOrConst} ${name} = require('${getPath(id)}');` +

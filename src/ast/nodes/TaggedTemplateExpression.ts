@@ -44,7 +44,11 @@ export default class TaggedTemplateExpression extends NodeBase {
 	hasEffects(options: ExecutionPathOptions) {
 		return (
 			super.hasEffects(options) ||
-			this.tag.hasEffectsWhenCalledAtPath([], this._callOptions, options.getHasEffectsWhenCalledOptions())
+			this.tag.hasEffectsWhenCalledAtPath(
+				[],
+				this._callOptions,
+				options.getHasEffectsWhenCalledOptions()
+			)
 		);
 	}
 

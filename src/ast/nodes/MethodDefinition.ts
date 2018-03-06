@@ -17,7 +17,11 @@ export default class MethodDefinition extends NodeBase {
 		return this.key.hasEffects(options);
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	) {
 		return path.length > 0 || this.value.hasEffectsWhenCalledAtPath([], callOptions, options);
 	}
 }

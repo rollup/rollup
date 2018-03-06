@@ -16,7 +16,9 @@ export default function build(
 	silent = false
 ) {
 	const useStdout =
-		outputOptions.length === 1 && !outputOptions[0].file && inputOptions.input instanceof Array === false;
+		outputOptions.length === 1 &&
+		!outputOptions[0].file &&
+		inputOptions.input instanceof Array === false;
 
 	const start = Date.now();
 	const files = useStdout ? ['stdout'] : outputOptions.map(t => relativeId(t.file || t.dir));
@@ -39,7 +41,8 @@ export default function build(
 				if (output.sourcemap && output.sourcemap !== 'inline') {
 					handleError({
 						code: 'MISSING_OUTPUT_OPTION',
-						message: 'You must specify an --output (-o) option when creating a file with a sourcemap'
+						message:
+							'You must specify an --output (-o) option when creating a file with a sourcemap'
 					});
 				}
 
@@ -59,7 +62,11 @@ export default function build(
 		.then(() => {
 			warnings.flush();
 			if (!silent)
-				stderr(chalk.green(`created ${chalk.bold(files.join(', '))} in ${chalk.bold(ms(Date.now() - start))}`));
+				stderr(
+					chalk.green(
+						`created ${chalk.bold(files.join(', '))} in ${chalk.bold(ms(Date.now() - start))}`
+					)
+				);
 		})
 		.catch(handleError);
 }

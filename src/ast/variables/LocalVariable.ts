@@ -18,7 +18,11 @@ export default class LocalVariable extends Variable {
 	declarations: Set<Identifier | ExportDefaultDeclaration>;
 	boundExpressions: VariableReassignmentTracker;
 
-	constructor(name: string, declarator: Identifier | ExportDefaultDeclaration | null, init: ExpressionEntity) {
+	constructor(
+		name: string,
+		declarator: Identifier | ExportDefaultDeclaration | null,
+		init: ExpressionEntity
+	) {
 		super(name);
 		this.isReassigned = false;
 		this.exportName = null;
@@ -58,7 +62,10 @@ export default class LocalVariable extends Variable {
 				(relativePath, node) =>
 					relativePath.length > 0 &&
 					!options.hasNodeBeenAccessedAtPath(relativePath, node) &&
-					node.hasEffectsWhenAccessedAtPath(relativePath, options.addAccessedNodeAtPath(relativePath, node))
+					node.hasEffectsWhenAccessedAtPath(
+						relativePath,
+						options.addAccessedNodeAtPath(relativePath, node)
+					)
 			)
 		);
 	}
@@ -72,12 +79,19 @@ export default class LocalVariable extends Variable {
 				(relativePath, node) =>
 					relativePath.length > 0 &&
 					!options.hasNodeBeenAssignedAtPath(relativePath, node) &&
-					node.hasEffectsWhenAssignedAtPath(relativePath, options.addAssignedNodeAtPath(relativePath, node))
+					node.hasEffectsWhenAssignedAtPath(
+						relativePath,
+						options.addAssignedNodeAtPath(relativePath, node)
+					)
 			)
 		);
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	) {
 		return (
 			path.length > MAX_PATH_DEPTH ||
 			(this.included && path.length > 0) ||

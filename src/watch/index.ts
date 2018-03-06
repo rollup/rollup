@@ -142,7 +142,9 @@ export class Task {
 		}
 
 		if (chokidarOptions && !chokidar) {
-			throw new Error(`options.watch.chokidar was provided, but chokidar could not be found. Have you installed it?`);
+			throw new Error(
+				`options.watch.chokidar was provided, but chokidar could not be found. Have you installed it?`
+			);
 		}
 
 		this.chokidarOptions = chokidarOptions;

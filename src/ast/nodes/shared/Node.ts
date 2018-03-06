@@ -4,7 +4,11 @@ import Scope from '../../scopes/Scope';
 import Module from '../../../Module';
 import MagicString from 'magic-string';
 import Variable from '../../variables/Variable';
-import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
+import {
+	ExpressionEntity,
+	ForEachReturnExpressionCallback,
+	SomeReturnExpressionCallback
+} from './Expression';
 import CallOptions from '../../CallOptions';
 import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import { Entity } from '../../Entity';
@@ -148,7 +152,11 @@ export class NodeBase implements ExpressionNode {
 		return true;
 	}
 
-	hasEffectsWhenCalledAtPath(_path: ObjectPath, _callOptions: CallOptions, _options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(
+		_path: ObjectPath,
+		_callOptions: CallOptions,
+		_options: ExecutionPathOptions
+	) {
 		return true;
 	}
 

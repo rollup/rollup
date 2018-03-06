@@ -15,7 +15,12 @@ export interface TransformContext {
 	error(err: RollupError, pos?: { line: number; column: number }): void;
 }
 
-export default function transform(graph: Graph, source: SourceDescription, id: string, plugins: Plugin[]) {
+export default function transform(
+	graph: Graph,
+	source: SourceDescription,
+	id: string,
+	plugins: Plugin[]
+) {
 	const sourcemapChain: RawSourceMap[] = [];
 
 	const originalSourcemap = typeof source.map === 'string' ? JSON.parse(source.map) : source.map;
@@ -66,7 +71,10 @@ export default function transform(graph: Graph, source: SourceDescription, id: s
 
 			const context: TransformContext = {
 				parse(code: string, options: AcornOptions = {}) {
-					return graph.acornParse(code, Object.assign({}, defaultAcornOptions, options, graph.acornOptions));
+					return graph.acornParse(
+						code,
+						Object.assign({}, defaultAcornOptions, options, graph.acornOptions)
+					);
 				},
 
 				warn(warning: RollupWarning, pos?: { line: number; column: number }) {

@@ -67,7 +67,11 @@ export default class Variable implements ExpressionEntity {
 		return true;
 	}
 
-	hasEffectsWhenCalledAtPath(_path: ObjectPath, _callOptions: CallOptions, _options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(
+		_path: ObjectPath,
+		_callOptions: CallOptions,
+		_options: ExecutionPathOptions
+	) {
 		return true;
 	}
 

@@ -15,11 +15,16 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
-		return path.length > 0 || this.elements.some(child => child && child.hasEffectsWhenAssignedAtPath([], options));
+		return (
+			path.length > 0 ||
+			this.elements.some(child => child && child.hasEffectsWhenAssignedAtPath([], options))
+		);
 	}
 
 	initialiseAndDeclare(parentScope: Scope, kind: string, _init: ExpressionEntity | null) {
 		this.initialiseScope(parentScope);
-		this.elements.forEach(child => child && child.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION));
+		this.elements.forEach(
+			child => child && child.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION)
+		);
 	}
 }

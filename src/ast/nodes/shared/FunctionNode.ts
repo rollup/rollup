@@ -25,7 +25,8 @@ export default class FunctionNode extends NodeBase {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		path.length === 0 && this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
+		path.length === 0 &&
+			this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
 	}
 
 	hasEffects(options: ExecutionPathOptions) {
@@ -52,12 +53,19 @@ export default class FunctionNode extends NodeBase {
 		return true;
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	) {
 		if (path.length > 0) {
 			return true;
 		}
 		const innerOptions = this.scope.getOptionsWhenCalledWith(callOptions, options);
-		return this.params.some(param => param.hasEffects(innerOptions)) || this.body.hasEffects(innerOptions);
+		return (
+			this.params.some(param => param.hasEffects(innerOptions)) ||
+			this.body.hasEffects(innerOptions)
+		);
 	}
 
 	includeInBundle() {
@@ -75,6 +83,9 @@ export default class FunctionNode extends NodeBase {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		return path.length > 0 || this.scope.someReturnExpressionWhenCalled(callOptions, predicateFunction, options);
+		return (
+			path.length > 0 ||
+			this.scope.someReturnExpressionWhenCalled(callOptions, predicateFunction, options)
+		);
 	}
 }

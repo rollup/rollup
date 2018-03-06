@@ -45,7 +45,8 @@ export default function amd(
 
 	const amdOptions = options.amd || {};
 
-	const params = (amdOptions.id ? `'${amdOptions.id}', ` : ``) + (deps.length ? `[${deps.join(', ')}], ` : ``);
+	const params =
+		(amdOptions.id ? `'${amdOptions.id}', ` : ``) + (deps.length ? `[${deps.join(', ')}], ` : ``);
 
 	const useStrict = options.strict !== false ? ` 'use strict';` : ``;
 	const define = amdOptions.define || 'define';

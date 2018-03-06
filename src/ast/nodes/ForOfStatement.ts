@@ -25,7 +25,8 @@ export default class ForOfStatement extends StatementBase {
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
-			(this.left && (this.left.hasEffects(options) || this.left.hasEffectsWhenAssignedAtPath([], options))) ||
+			(this.left &&
+				(this.left.hasEffects(options) || this.left.hasEffectsWhenAssignedAtPath([], options))) ||
 			(this.right && this.right.hasEffects(options)) ||
 			this.body.hasEffects(options.setIgnoreBreakStatements())
 		);

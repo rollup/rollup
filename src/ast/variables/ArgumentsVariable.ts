@@ -9,7 +9,8 @@ const getParameterVariable = (path: ObjectPath, options: ExecutionPathOptions) =
 	const firstArgNum = parseInt(<string>path[0], 10);
 
 	return (
-		(firstArgNum < options.getArgumentsVariables().length && options.getArgumentsVariables()[firstArgNum]) ||
+		(firstArgNum < options.getArgumentsVariables().length &&
+			options.getArgumentsVariables()[firstArgNum]) ||
 		UNKNOWN_EXPRESSION
 	);
 };
@@ -32,7 +33,10 @@ export default class ArgumentsVariable extends LocalVariable {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
-		return path.length > 1 && getParameterVariable(path, options).hasEffectsWhenAccessedAtPath(path.slice(1), options);
+		return (
+			path.length > 1 &&
+			getParameterVariable(path, options).hasEffectsWhenAccessedAtPath(path.slice(1), options)
+		);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -43,11 +47,19 @@ export default class ArgumentsVariable extends LocalVariable {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	): boolean {
 		if (path.length === 0) {
 			return true;
 		}
-		return getParameterVariable(path, options).hasEffectsWhenCalledAtPath(path.slice(1), callOptions, options);
+		return getParameterVariable(path, options).hasEffectsWhenCalledAtPath(
+			path.slice(1),
+			callOptions,
+			options
+		);
 	}
 
 	someReturnExpressionWhenCalledAtPath(

@@ -14,7 +14,8 @@ export function load(id: string) {
 function findFile(file: string, preserveSymlinks: boolean): string | void {
 	try {
 		const stats = lstatSync(file);
-		if (!preserveSymlinks && stats.isSymbolicLink()) return findFile(realpathSync(file), preserveSymlinks);
+		if (!preserveSymlinks && stats.isSymbolicLink())
+			return findFile(realpathSync(file), preserveSymlinks);
 		if ((preserveSymlinks && stats.isSymbolicLink()) || stats.isFile()) {
 			// check case
 			const name = basename(file);

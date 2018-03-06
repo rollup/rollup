@@ -16,7 +16,10 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
-		return path.length > 0 || this.properties.some(child => child.hasEffectsWhenAssignedAtPath([], options));
+		return (
+			path.length > 0 ||
+			this.properties.some(child => child.hasEffectsWhenAssignedAtPath([], options))
+		);
 	}
 
 	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null) {

@@ -7,7 +7,12 @@ const opts = { encoding: 'utf-8', persistent: true };
 
 const watchers = new Map<string, Map<string, FileWatcher>>();
 
-export function addTask(id: string, task: Task, chokidarOptions: WatchOptions, chokidarOptionsHash: string) {
+export function addTask(
+	id: string,
+	task: Task,
+	chokidarOptions: WatchOptions,
+	chokidarOptionsHash: string
+) {
 	if (!watchers.has(chokidarOptionsHash)) watchers.set(chokidarOptionsHash, new Map());
 	const group = watchers.get(chokidarOptionsHash);
 

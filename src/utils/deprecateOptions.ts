@@ -43,7 +43,9 @@ export default function deprecateOptions(
 
 			// as targets is an array and we need to merge other output options
 			// like sourcemap etc.
-			options.output = options.targets.map((target: GenericConfigObject) => Object.assign({}, target, options.output));
+			options.output = options.targets.map((target: GenericConfigObject) =>
+				Object.assign({}, target, options.output)
+			);
 			delete options.targets;
 
 			let deprecatedDest = false;

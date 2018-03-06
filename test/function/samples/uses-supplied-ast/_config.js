@@ -7,10 +7,13 @@ var modules = {
 	// can check the AST is being used
 	foo: {
 		code: "import bar from 'bar';\nexport default function foo () {\n\tconsole.log( bar );\n}",
-		ast: acorn.parse("import bar from 'baz';\nexport default function foo () {\n\tconsole.log( bar );\n}", {
-			ecmaVersion: 6,
-			sourceType: 'module'
-		})
+		ast: acorn.parse(
+			"import bar from 'baz';\nexport default function foo () {\n\tconsole.log( bar );\n}",
+			{
+				ecmaVersion: 6,
+				sourceType: 'module'
+			}
+		)
 	},
 
 	baz: 'export default 42;'

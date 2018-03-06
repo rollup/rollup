@@ -50,7 +50,9 @@ export default function mergeOptions({
 		const commandOption = normalizeObjectOptionValue(command[name]);
 		const configOption = normalizeObjectOptionValue(config[name]);
 		if (commandOption !== undefined) {
-			return commandOption && configOption ? Object.assign({}, configOption, commandOption) : commandOption;
+			return commandOption && configOption
+				? Object.assign({}, configOption, commandOption)
+				: commandOption;
 		}
 		return configOption;
 	}
@@ -105,7 +107,8 @@ export default function mergeOptions({
 	}
 
 	if (typeof configExternal === 'function') {
-		inputOptions.external = (id, ...rest: any[]) => configExternal(id, ...rest) || commandExternal.indexOf(id) !== -1;
+		inputOptions.external = (id, ...rest: any[]) =>
+			configExternal(id, ...rest) || commandExternal.indexOf(id) !== -1;
 	} else {
 		inputOptions.external = (configExternal || []).concat(commandExternal);
 	}
@@ -140,7 +143,9 @@ export default function mergeOptions({
 
 	let mergedOutputOptions;
 	if (Array.isArray(config.output)) {
-		mergedOutputOptions = config.output.map((output: any) => Object.assign({}, output, command.output));
+		mergedOutputOptions = config.output.map((output: any) =>
+			Object.assign({}, output, command.output)
+		);
 	} else if (config.output && command.output) {
 		mergedOutputOptions = [Object.assign({}, config.output, command.output)];
 	} else {
