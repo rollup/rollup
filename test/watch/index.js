@@ -351,7 +351,9 @@ describe('rollup.watch', () => {
 						'BUNDLE_END',
 						'END',
 						() => {
-							const generated = sander.readFileSync('test/_tmp/output/bundle.js', { encoding: 'utf-8' });
+							const generated = sander.readFileSync('test/_tmp/output/bundle.js', {
+								encoding: 'utf-8'
+							});
 							assert.ok(/jQuery/.test(generated));
 							watcher.close();
 						}

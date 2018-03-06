@@ -51,15 +51,25 @@ export default function getExportBlock(
 			reexports.forEach(specifier => {
 				if (specifier.imported === 'default' && !isChunk) {
 					const exportsNamesOrNamespace =
-						(imports && imports.some(specifier => specifier.imported === '*' || specifier.imported !== 'default')) ||
-						(reexports && reexports.some(specifier => specifier.imported !== 'default' && specifier.imported !== '*'));
+						(imports &&
+							imports.some(
+								specifier => specifier.imported === '*' || specifier.imported !== 'default'
+							)) ||
+						(reexports &&
+							reexports.some(
+								specifier => specifier.imported !== 'default' && specifier.imported !== '*'
+							));
 					if (exportsNamesOrNamespace) {
-						exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name}__default;`;
+						exportBlock += `${exportBlock ? '\n' : ''}exports.${
+							specifier.reexported
+						} = ${name}__default;`;
 					} else {
 						exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name};`;
 					}
 				} else if (specifier.imported !== '*') {
-					exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name}.${specifier.imported};`;
+					exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name}.${
+						specifier.imported
+					};`;
 				} else if (specifier.reexported !== '*') {
 					exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name};`;
 				}

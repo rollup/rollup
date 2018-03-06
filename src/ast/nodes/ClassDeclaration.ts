@@ -25,7 +25,10 @@ export default class ClassDeclaration extends ClassNode {
 
 	render(code: MagicString, options: RenderOptions) {
 		if (options.systemBindings && this.id && this.id.variable.exportName) {
-			code.appendLeft(this.end, ` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`);
+			code.appendLeft(
+				this.end,
+				` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`
+			);
 		}
 		if (this.id) {
 			const name = this.id.variable.getName()

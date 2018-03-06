@@ -8,7 +8,11 @@ import CallOptions from '../CallOptions';
 import FunctionScope from '../scopes/FunctionScope';
 import MagicString from 'magic-string';
 import Property from './Property';
-import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import {
+	ExpressionEntity,
+	ForEachReturnExpressionCallback,
+	SomeReturnExpressionCallback
+} from './shared/Expression';
 import { NodeType } from './NodeType';
 import AssignmentExpression from './AssignmentExpression';
 import UpdateExpression from './UpdateExpression';
@@ -40,7 +44,8 @@ export default class Identifier extends NodeBase {
 		options: ExecutionPathOptions
 	) {
 		if (!this.isBound) this.bind();
-		this.variable && this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+		this.variable &&
+			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
@@ -51,7 +56,11 @@ export default class Identifier extends NodeBase {
 		return !this.variable || this.variable.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	) {
 		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
@@ -179,7 +188,12 @@ export default class Identifier extends NodeBase {
 		options: ExecutionPathOptions
 	) {
 		if (this.variable) {
-			return this.variable.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options);
+			return this.variable.someReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				predicateFunction,
+				options
+			);
 		}
 		return predicateFunction(options)(UNKNOWN_EXPRESSION);
 	}

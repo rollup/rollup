@@ -5,7 +5,11 @@ import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaratio
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { findFirstOccurrenceOutsideComment, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	NodeRenderOptions,
+	RenderOptions
+} from '../../utils/renderHelpers';
 import { isObjectExpression } from './ObjectExpression';
 import { BLANK } from '../../utils/object';
 
@@ -19,7 +23,8 @@ function getDeclarationStart(code: string, start = 0) {
 }
 
 function getIdInsertPosition(code: string, declarationKeyword: string, start = 0) {
-	const declarationEnd = findFirstOccurrenceOutsideComment(code, declarationKeyword, start) + declarationKeyword.length;
+	const declarationEnd =
+		findFirstOccurrenceOutsideComment(code, declarationKeyword, start) + declarationKeyword.length;
 	code = code.slice(declarationEnd, findFirstOccurrenceOutsideComment(code, '{', declarationEnd));
 	const generatorStarPos = findFirstOccurrenceOutsideComment(code, '*');
 	if (generatorStarPos === -1) {
@@ -51,20 +56,39 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			((<FunctionDeclaration | ClassDeclaration>this.declaration).id &&
 				(<FunctionDeclaration | ClassDeclaration>this.declaration).id.name) ||
 			(<Identifier>this.declaration).name;
-		this.variable = this.scope.addExportDefaultDeclaration(this.declarationName || this.module.basename(), this);
+		this.variable = this.scope.addExportDefaultDeclaration(
+			this.declarationName || this.module.basename(),
+			this
+		);
 	}
 
 	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
 		const declarationStart = getDeclarationStart(code.original, this.start);
 
 		if (isFunctionDeclaration(this.declaration)) {
-			this.renderNamedDeclaration(code, declarationStart, 'function', this.declaration.id === null, options);
+			this.renderNamedDeclaration(
+				code,
+				declarationStart,
+				'function',
+				this.declaration.id === null,
+				options
+			);
 		} else if (isClassDeclaration(this.declaration)) {
-			this.renderNamedDeclaration(code, declarationStart, 'class', this.declaration.id === null, options);
+			this.renderNamedDeclaration(
+				code,
+				declarationStart,
+				'class',
+				this.declaration.id === null,
+				options
+			);
 		} else if (this.variable.referencesOriginal()) {
 			// Remove altogether to prevent re-declaring the same variable
 			if (options.systemBindings && this.variable.exportName) {
-				code.overwrite(start, end, `exports('${this.variable.exportName}', ${this.variable.getName()});`);
+				code.overwrite(
+					start,
+					end,
+					`exports('${this.variable.exportName}', ${this.variable.getName()});`
+				);
 			} else {
 				code.remove(start, end);
 			}
@@ -89,16 +113,29 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		code.remove(this.start, declarationStart);
 
 		if (needsId) {
-			code.appendLeft(getIdInsertPosition(code.original, declarationKeyword, declarationStart), ` ${name}`);
+			code.appendLeft(
+				getIdInsertPosition(code.original, declarationKeyword, declarationStart),
+				` ${name}`
+			);
 		}
-		if (options.systemBindings && isClassDeclaration(this.declaration) && this.variable.exportName) {
+		if (
+			options.systemBindings &&
+			isClassDeclaration(this.declaration) &&
+			this.variable.exportName
+		) {
 			code.appendLeft(this.end, ` exports('${this.variable.exportName}', ${name});`);
 		}
 	}
 
-	private renderVariableDeclaration(code: MagicString, declarationStart: number, options: RenderOptions) {
+	private renderVariableDeclaration(
+		code: MagicString,
+		declarationStart: number,
+		options: RenderOptions
+	) {
 		const systemBinding =
-			options.systemBindings && this.variable.exportName ? `exports('${this.variable.exportName}', ` : '';
+			options.systemBindings && this.variable.exportName
+				? `exports('${this.variable.exportName}', `
+				: '';
 		code.overwrite(
 			this.start,
 			declarationStart,

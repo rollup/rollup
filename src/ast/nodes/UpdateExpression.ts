@@ -19,7 +19,9 @@ export default class UpdateExpression extends NodeBase {
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return this.argument.hasEffects(options) || this.argument.hasEffectsWhenAssignedAtPath([], options);
+		return (
+			this.argument.hasEffects(options) || this.argument.hasEffectsWhenAssignedAtPath([], options)
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {

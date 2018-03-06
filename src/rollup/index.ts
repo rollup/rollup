@@ -25,7 +25,10 @@ export type SourceDescription = {
 	ast?: Program;
 };
 
-export type ResolveIdHook = (id: string, parent: string) => Promise<string | boolean | void> | string | boolean | void;
+export type ResolveIdHook = (
+	id: string,
+	parent: string
+) => Promise<string | boolean | void> | string | boolean | void;
 export type MissingExportHook = (
 	module: Module,
 	name: string,
@@ -37,13 +40,18 @@ export type IsExternalHook = (
 	parentId: string,
 	isResolved: boolean
 ) => Promise<boolean | void> | boolean | void;
-export type LoadHook = (id: string) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
+export type LoadHook = (
+	id: string
+) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
 export type TransformHook = (
 	this: TransformContext,
 	code: string,
 	id: String
 ) => Promise<SourceDescription | string | void>;
-export type TransformBundleHook = (code: string, options: OutputOptions) => Promise<SourceDescription | string>;
+export type TransformBundleHook = (
+	code: string,
+	options: OutputOptions
+) => Promise<SourceDescription | string>;
 export type ResolveDynamicImportHook = (
 	specifier: string | Node,
 	parentId: string
@@ -253,7 +261,8 @@ export default function rollup(rawInputOptions: GenericConfigObject) {
 
 		timeStart('--BUILD--');
 
-		const codeSplitting = inputOptions.experimentalCodeSplitting && inputOptions.input instanceof Array;
+		const codeSplitting =
+			inputOptions.experimentalCodeSplitting && inputOptions.input instanceof Array;
 
 		if (!codeSplitting)
 			return graph.buildSingle(inputOptions.input).then(chunk => {
@@ -268,7 +277,12 @@ export default function rollup(rawInputOptions: GenericConfigObject) {
 					const consolidatedOutputOptions = Object.assign(
 						{},
 						{
-							output: Object.assign({}, rawOutputOptions, rawOutputOptions.output, inputOptions.output)
+							output: Object.assign(
+								{},
+								rawOutputOptions,
+								rawOutputOptions.output,
+								inputOptions.output
+							)
 						}
 					);
 					const mergedOptions = mergeOptions({
@@ -366,19 +380,22 @@ export default function rollup(rawInputOptions: GenericConfigObject) {
 							return (
 								Promise.all(promises)
 									.then(() => {
-										return mapSequence(graph.plugins.filter(plugin => plugin.onwrite), (plugin: Plugin) => {
-											return Promise.resolve(
-												plugin.onwrite(
-													assign(
-														{
-															bundle: result
-														},
-														outputOptions
-													),
-													result
-												)
-											);
-										});
+										return mapSequence(
+											graph.plugins.filter(plugin => plugin.onwrite),
+											(plugin: Plugin) => {
+												return Promise.resolve(
+													plugin.onwrite(
+														assign(
+															{
+																bundle: result
+															},
+															outputOptions
+														),
+														result
+													)
+												);
+											}
+										);
 									})
 									// ensures return isn't void[]
 									.then(() => {})
@@ -422,7 +439,8 @@ export default function rollup(rawInputOptions: GenericConfigObject) {
 				if (outputOptions.format === 'umd' || outputOptions.format === 'iife') {
 					error({
 						code: 'INVALID_OPTION',
-						message: 'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
+						message:
+							'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
 					});
 				}
 
@@ -496,8 +514,12 @@ export default function rollup(rawInputOptions: GenericConfigObject) {
 								return (
 									Promise.all(promises)
 										.then(() => {
-											return mapSequence(graph.plugins.filter(plugin => plugin.onwrite), (plugin: Plugin) =>
-												Promise.resolve(plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk))
+											return mapSequence(
+												graph.plugins.filter(plugin => plugin.onwrite),
+												(plugin: Plugin) =>
+													Promise.resolve(
+														plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk)
+													)
 											);
 										})
 										// ensures return isn't void[]

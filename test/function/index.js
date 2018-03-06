@@ -85,7 +85,10 @@ describe('function', () => {
 									exports: {}
 								};
 
-								const context = extend({ require, module, assert, exports: module.exports }, config.context || {});
+								const context = extend(
+									{ require, module, assert, exports: module.exports },
+									config.context || {}
+								);
 
 								const contextKeys = Object.keys(context);
 								const contextValues = contextKeys.map(key => context[key]);
@@ -136,7 +139,9 @@ describe('function', () => {
 											}
 										} else if (warnings.length) {
 											throw new Error(
-												`Got unexpected warnings:\n${warnings.map(warning => warning.message).join('\n')}`
+												`Got unexpected warnings:\n${warnings
+													.map(warning => warning.message)
+													.join('\n')}`
 											);
 										}
 

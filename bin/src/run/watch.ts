@@ -26,7 +26,12 @@ interface Watcher {
 	close: () => void;
 }
 
-export default function watch(configFile: string, configs: RollupWatchOptions[], command: any, silent = false) {
+export default function watch(
+	configFile: string,
+	configs: RollupWatchOptions[],
+	command: any,
+	silent = false
+) {
 	const isTTY = Boolean(process.stderr.isTTY);
 
 	const screen = alternateScreen(isTTY);
@@ -108,7 +113,9 @@ export default function watch(configFile: string, configs: RollupWatchOptions[],
 					if (!silent)
 						stderr(
 							chalk.green(
-								`created ${chalk.bold(event.output.map(relativeId).join(', '))} in ${chalk.bold(ms(event.duration))}`
+								`created ${chalk.bold(event.output.map(relativeId).join(', '))} in ${chalk.bold(
+									ms(event.duration)
+								)}`
 							)
 						);
 					break;

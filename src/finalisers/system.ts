@@ -8,7 +8,8 @@ function getStarExcludes({ dependencies, exports }: ModuleDeclarations) {
 	dependencies.forEach(({ reexports }) => {
 		if (reexports)
 			reexports.forEach(reexport => {
-				if (reexport.imported !== '*' && !starExcludes.has(reexport.reexported)) starExcludes.add(reexport.reexported);
+				if (reexport.imported !== '*' && !starExcludes.has(reexport.reexported))
+					starExcludes.add(reexport.reexported);
 			});
 	});
 	return starExcludes;
@@ -55,7 +56,8 @@ export default function system(
 			// bulk-reexport form
 			if (
 				reexports.length > 1 ||
-				(reexports.length === 1 && (reexports[0].reexported === '*' || reexports[0].imported === '*'))
+				(reexports.length === 1 &&
+					(reexports[0].reexported === '*' || reexports[0].imported === '*'))
 			) {
 				// star reexports
 				reexports.forEach(specifier => {
@@ -111,7 +113,9 @@ export default function system(
 				starExcludes.size ? ': 1' : ''
 		  } };`;
 
-	const importBindingsSection = importBindings.length ? `\n${t}var ${importBindings.join(', ')};` : '';
+	const importBindingsSection = importBindings.length
+		? `\n${t}var ${importBindings.join(', ')};`
+		: '';
 
 	const wrapperStart = `System.register([${dependencyIds.join(', ')}], function (exports, module) {
 ${t}'use strict';${starExcludesSection}${importBindingsSection}

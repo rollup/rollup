@@ -42,7 +42,9 @@ function enhanceNode(
 	rawNode.__enhanced = true;
 
 	if (!keys[rawNode.type]) {
-		keys[rawNode.type] = Object.keys(rawNode).filter(key => typeof (<any>rawNode)[key] === 'object');
+		keys[rawNode.type] = Object.keys(rawNode).filter(
+			key => typeof (<any>rawNode)[key] === 'object'
+		);
 	}
 
 	rawNode.parent = parent;

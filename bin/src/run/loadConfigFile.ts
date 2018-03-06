@@ -6,7 +6,10 @@ import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import { InputOptions, OutputChunk } from '../../../src/rollup/index';
 
-export default function loadConfigFile(configFile: string, silent = false): Promise<InputOptions[]> {
+export default function loadConfigFile(
+	configFile: string,
+	silent = false
+): Promise<InputOptions[]> {
 	const warnings = batchWarnings();
 
 	return rollup

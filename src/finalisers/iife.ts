@@ -72,7 +72,8 @@ export default function iife(
 	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
 
 	if (exportMode !== 'none' && !extend) {
-		wrapperIntro = (isNamespaced ? thisProp(name) : `${chunk.graph.varOrConst} ${name}`) + ` = ${wrapperIntro}`;
+		wrapperIntro =
+			(isNamespaced ? thisProp(name) : `${chunk.graph.varOrConst} ${name}`) + ` = ${wrapperIntro}`;
 	}
 
 	if (isNamespaced) {
@@ -86,12 +87,20 @@ export default function iife(
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(moduleDeclarations.dependencies, options, chunk.graph.varOrConst);
+	const interopBlock = getInteropBlock(
+		moduleDeclarations.dependencies,
+		options,
+		chunk.graph.varOrConst
+	);
 	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(moduleDeclarations.exports, moduleDeclarations.dependencies, exportMode);
+	const exportBlock = getExportBlock(
+		moduleDeclarations.exports,
+		moduleDeclarations.dependencies,
+		exportMode
+	);
 	if (exportBlock) (<any>magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
 	if (outro) (<any>magicString).append(outro); // TODO TypeScript: Awaiting PR
 

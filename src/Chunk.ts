@@ -171,7 +171,11 @@ export default class Chunk {
 				tracedName = traced.name;
 			} else {
 				// if we exposed an export in another module ensure it is exported there
-				tracedName = (<Module>traced.module).chunk.ensureExport(traced.module, variable, traced.name);
+				tracedName = (<Module>traced.module).chunk.ensureExport(
+					traced.module,
+					variable,
+					traced.name
+				);
 			}
 			this.exports[exportName] = {
 				module: traced.module,
@@ -236,7 +240,10 @@ export default class Chunk {
 		});
 	}
 
-	populateImport(variable: Variable, tracedExport: { name: string; module: Module | ExternalModule }) {
+	populateImport(
+		variable: Variable,
+		tracedExport: { name: string; module: Module | ExternalModule }
+	) {
 		if (!variable.included) {
 			return;
 		}
@@ -246,7 +253,11 @@ export default class Chunk {
 		// ensure that the variable is exported by the other chunk to this one
 		if (tracedExport.module instanceof Module) {
 			importModule = tracedExport.module.chunk;
-			exportName = tracedExport.module.chunk.ensureExport(tracedExport.module, variable, tracedExport.name);
+			exportName = tracedExport.module.chunk.ensureExport(
+				tracedExport.module,
+				variable,
+				tracedExport.name
+			);
 		} else {
 			importModule = tracedExport.module;
 			exportName = variable.name;
@@ -293,16 +304,16 @@ export default class Chunk {
 
 		// namespace variable can indicate multiple imports
 		if (tracedExport.name === '*') {
-			Object.keys((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations).forEach(
-				importName => {
-					const original = ((<NamespaceVariable>variable).originals ||
-						(<ExternalVariable>variable).module.declarations)[importName];
-					this.populateImport(original, {
-						name: importName,
-						module: tracedExport.module
-					});
-				}
-			);
+			Object.keys(
+				(<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations
+			).forEach(importName => {
+				const original = ((<NamespaceVariable>variable).originals ||
+					(<ExternalVariable>variable).module.declarations)[importName];
+				this.populateImport(original, {
+					name: importName,
+					module: tracedExport.module
+				});
+			});
 			return tracedExport;
 		}
 
@@ -312,7 +323,10 @@ export default class Chunk {
 
 	// trace a module export to its exposed chunk module export
 	// either in this chunk or in another
-	traceExport(module: Module | ExternalModule, name: string): { name: string; module: Module | ExternalModule } {
+	traceExport(
+		module: Module | ExternalModule,
+		name: string
+	): { name: string; module: Module | ExternalModule } {
 		if (name === '*') {
 			return { name, module };
 		}
@@ -333,7 +347,8 @@ export default class Chunk {
 		if (exportDeclaration) {
 			// if export binding is itself an import binding then continue tracing
 			const importDeclaration = module.imports[exportDeclaration.localName];
-			if (importDeclaration) return this.traceImport(importDeclaration.module, importDeclaration.name);
+			if (importDeclaration)
+				return this.traceImport(importDeclaration.module, importDeclaration.name);
 			return { name, module };
 		}
 
@@ -361,9 +376,18 @@ export default class Chunk {
 		}
 	}
 
-	collectAddon(initialAddon: string, addonName: 'banner' | 'footer' | 'intro' | 'outro', sep: string = '\n') {
+	collectAddon(
+		initialAddon: string,
+		addonName: 'banner' | 'footer' | 'intro' | 'outro',
+		sep: string = '\n'
+	) {
 		return runSequence(
-			[{ pluginName: 'rollup', source: initialAddon } as { pluginName: string; source: string | (() => string) }]
+			[
+				{ pluginName: 'rollup', source: initialAddon } as {
+					pluginName: string;
+					source: string | (() => string);
+				}
+			]
 				.concat(
 					this.graph.plugins.map((plugin, idx) => {
 						return {
@@ -703,7 +727,9 @@ export default class Chunk {
 				if (!finalise) {
 					error({
 						code: 'INVALID_OPTION',
-						message: `Invalid format: ${options.format} - valid options are ${Object.keys(finalisers).join(', ')}`
+						message: `Invalid format: ${options.format} - valid options are ${Object.keys(
+							finalisers
+						).join(', ')}`
 					});
 				}
 
@@ -737,34 +763,38 @@ export default class Chunk {
 				let map: RawSourceMap = null;
 				const bundleSourcemapChain: RawSourceMap[] = [];
 
-				return transformBundle(prevCode, this.graph.plugins, bundleSourcemapChain, options).then((code: string) => {
-					if (options.sourcemap) {
-						timeStart('sourcemap');
+				return transformBundle(prevCode, this.graph.plugins, bundleSourcemapChain, options).then(
+					(code: string) => {
+						if (options.sourcemap) {
+							timeStart('sourcemap');
 
-						let file = options.file ? options.sourcemapFile || options.file : this.id;
-						if (file) file = resolve(typeof process !== 'undefined' ? process.cwd() : '', file);
+							let file = options.file ? options.sourcemapFile || options.file : this.id;
+							if (file) file = resolve(typeof process !== 'undefined' ? process.cwd() : '', file);
 
-						if (
-							this.graph.hasLoaders ||
-							this.graph.plugins.find(plugin => Boolean(plugin.transform || plugin.transformBundle))
-						) {
-							map = <any>magicString.generateMap({}); // TODO TypeScript: Awaiting missing version in SourceMap type
-							if (typeof map.mappings === 'string') {
-								map.mappings = decode(map.mappings);
+							if (
+								this.graph.hasLoaders ||
+								this.graph.plugins.find(plugin =>
+									Boolean(plugin.transform || plugin.transformBundle)
+								)
+							) {
+								map = <any>magicString.generateMap({}); // TODO TypeScript: Awaiting missing version in SourceMap type
+								if (typeof map.mappings === 'string') {
+									map.mappings = decode(map.mappings);
+								}
+								map = collapseSourcemaps(this, file, map, usedModules, bundleSourcemapChain);
+							} else {
+								map = <any>magicString.generateMap({ file, includeContent: true }); // TODO TypeScript: Awaiting missing version in SourceMap type
 							}
-							map = collapseSourcemaps(this, file, map, usedModules, bundleSourcemapChain);
-						} else {
-							map = <any>magicString.generateMap({ file, includeContent: true }); // TODO TypeScript: Awaiting missing version in SourceMap type
+
+							map.sources = map.sources.map(normalize);
+
+							timeEnd('sourcemap');
 						}
 
-						map.sources = map.sources.map(normalize);
-
-						timeEnd('sourcemap');
+						if (code[code.length - 1] !== '\n') code += '\n';
+						return { code, map } as { code: string; map: any }; // TODO TypeScript: Awaiting missing version in SourceMap type
 					}
-
-					if (code[code.length - 1] !== '\n') code += '\n';
-					return { code, map } as { code: string; map: any }; // TODO TypeScript: Awaiting missing version in SourceMap type
-				});
+				);
 			});
 	}
 
@@ -772,10 +802,13 @@ export default class Chunk {
 		const optionsPaths = options.paths;
 		const getPath =
 			typeof optionsPaths === 'function'
-				? (id: string) => optionsPaths(id, this.id) || this.graph.getPathRelativeToBaseDirname(id, this.id)
+				? (id: string) =>
+						optionsPaths(id, this.id) || this.graph.getPathRelativeToBaseDirname(id, this.id)
 				: optionsPaths
 					? (id: string) =>
-							optionsPaths.hasOwnProperty(id) ? optionsPaths[id] : this.graph.getPathRelativeToBaseDirname(id, this.id)
+							optionsPaths.hasOwnProperty(id)
+								? optionsPaths[id]
+								: this.graph.getPathRelativeToBaseDirname(id, this.id)
 					: (id: string) => this.graph.getPathRelativeToBaseDirname(id, this.id);
 		return getPath;
 	}

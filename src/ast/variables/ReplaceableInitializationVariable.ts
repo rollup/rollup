@@ -24,7 +24,11 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	) {
 		return (
 			this._getInit(options).hasEffectsWhenCalledAtPath(path, callOptions, options) ||
 			super.hasEffectsWhenCalledAtPath(path, callOptions, options)
@@ -38,8 +42,12 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 		options: ExecutionPathOptions
 	): boolean {
 		return (
-			this._getInit(options).someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options) ||
-			super.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options)
+			this._getInit(options).someReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				predicateFunction,
+				options
+			) || super.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options)
 		);
 	}
 

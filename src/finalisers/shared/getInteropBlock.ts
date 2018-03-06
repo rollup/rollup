@@ -12,7 +12,8 @@ export default function getInteropBlock(
 
 			if (exportsNamespace) return `${varOrConst} ${name}__default = ${name}['default'];`;
 
-			if (exportsNames) return `${varOrConst} ${name}__default = 'default' in ${name} ? ${name}['default'] : ${name};`;
+			if (exportsNames)
+				return `${varOrConst} ${name}__default = 'default' in ${name} ? ${name}['default'] : ${name};`;
 
 			return `${name} = ${name} && ${name}.hasOwnProperty('default') ? ${name}['default'] : ${name};`;
 		})

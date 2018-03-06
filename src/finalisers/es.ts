@@ -61,7 +61,9 @@ export default function es(
 				if (namespaceReexport) {
 					output += `import * as ${name} from '${getPath(id)}';\n`;
 					output += `export { ${
-						name === namespaceReexport.reexported ? name : `${name} as ${namespaceReexport.reexported}`
+						name === namespaceReexport.reexported
+							? name
+							: `${name} as ${namespaceReexport.reexported}`
 					} };`;
 					if (reexports.length === (starExport ? 2 : 1)) {
 						return output;
@@ -93,7 +95,9 @@ export default function es(
 			exportBlock.push(`export default ${specifier.local};`);
 		} else {
 			exportDeclaration.push(
-				specifier.exported === specifier.local ? specifier.local : `${specifier.local} as ${specifier.exported}`
+				specifier.exported === specifier.local
+					? specifier.local
+					: `${specifier.local} as ${specifier.exported}`
 			);
 		}
 	});

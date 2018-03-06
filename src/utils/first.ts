@@ -5,7 +5,9 @@ export default function first<T>(
 ): (...args: any[]) => Promise<T | void> {
 	return function(...args: any[]) {
 		return candidates.reduce((promise, candidate) => {
-			return promise.then(result => (result != null ? result : Promise.resolve(candidate(...args))));
+			return promise.then(
+				result => (result != null ? result : Promise.resolve(candidate(...args)))
+			);
 		}, Promise.resolve());
 	};
 }

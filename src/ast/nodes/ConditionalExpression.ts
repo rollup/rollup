@@ -39,19 +39,33 @@ export default class ConditionalExpression extends NodeBase {
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return this.test.hasEffects(options) || this.someRelevantBranch(node => node.hasEffects(options));
+		return (
+			this.test.hasEffects(options) || this.someRelevantBranch(node => node.hasEffects(options))
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return path.length > 0 && this.someRelevantBranch(node => node.hasEffectsWhenAccessedAtPath(path, options));
+		return (
+			path.length > 0 &&
+			this.someRelevantBranch(node => node.hasEffectsWhenAccessedAtPath(path, options))
+		);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return path.length === 0 || this.someRelevantBranch(node => node.hasEffectsWhenAssignedAtPath(path, options));
+		return (
+			path.length === 0 ||
+			this.someRelevantBranch(node => node.hasEffectsWhenAssignedAtPath(path, options))
+		);
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
-		return this.someRelevantBranch(node => node.hasEffectsWhenCalledAtPath(path, callOptions, options));
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	): boolean {
+		return this.someRelevantBranch(node =>
+			node.hasEffectsWhenCalledAtPath(path, callOptions, options)
+		);
 	}
 
 	initialiseChildren(parentScope: Scope) {

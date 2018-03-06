@@ -17,7 +17,11 @@ export interface NodeRenderOptions {
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
 
-export function findFirstOccurrenceOutsideComment(code: string, searchString: string, start: number = 0) {
+export function findFirstOccurrenceOutsideComment(
+	code: string,
+	searchString: string,
+	start: number = 0
+) {
 	let commentStart, searchPos;
 	while (true) {
 		commentStart = code.indexOf('/', start);
@@ -62,7 +66,8 @@ export function renderStatementList(
 	let nextNode = statements[0];
 	let nextNodeNeedsBoundaries = !nextNode.included || nextNode.needsBoundaries;
 	if (nextNodeNeedsBoundaries) {
-		nextNodeStart = start + findFirstLineBreakOutsideComment(code.original.slice(start, nextNode.start)) + 1;
+		nextNodeStart =
+			start + findFirstLineBreakOutsideComment(code.original.slice(start, nextNode.start)) + 1;
 	}
 
 	for (let nextIndex = 1; nextIndex <= statements.length; nextIndex++) {
@@ -70,7 +75,8 @@ export function renderStatementList(
 		currentNodeStart = nextNodeStart;
 		currentNodeNeedsBoundaries = nextNodeNeedsBoundaries;
 		nextNode = statements[nextIndex];
-		nextNodeNeedsBoundaries = nextNode === undefined ? false : !nextNode.included || nextNode.needsBoundaries;
+		nextNodeNeedsBoundaries =
+			nextNode === undefined ? false : !nextNode.included || nextNode.needsBoundaries;
 		if (currentNodeNeedsBoundaries || nextNodeNeedsBoundaries) {
 			nextNodeStart =
 				currentNode.end +
@@ -114,10 +120,14 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 	for (let nextIndex = 0; nextIndex < nodes.length; nextIndex++) {
 		nextNode = nodes[nextIndex];
 		if (node !== undefined) {
-			separator = node.end + findFirstOccurrenceOutsideComment(code.original.slice(node.end, nextNode.start), ',');
+			separator =
+				node.end +
+				findFirstOccurrenceOutsideComment(code.original.slice(node.end, nextNode.start), ',');
 		}
 		nextNodeStart = contentEnd =
-			separator + 2 + findFirstLineBreakOutsideComment(code.original.slice(separator + 1, nextNode.start));
+			separator +
+			2 +
+			findFirstLineBreakOutsideComment(code.original.slice(separator + 1, nextNode.start));
 		while (
 			((char = code.original.charCodeAt(nextNodeStart)),
 			char === 32 /*" "*/ || char === 9 /*"\t"*/ || char === 10 /*"\n"*/ || char === 13) /*"\r"*/

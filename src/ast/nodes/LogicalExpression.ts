@@ -1,7 +1,11 @@
 import { ObjectPath, UNKNOWN_VALUE } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { ForEachReturnExpressionCallback, PredicateFunction, SomeReturnExpressionCallback } from './shared/Expression';
+import {
+	ForEachReturnExpressionCallback,
+	PredicateFunction,
+	SomeReturnExpressionCallback
+} from './shared/Expression';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
@@ -49,15 +53,27 @@ export default class LogicalExpression extends NodeBase {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return path.length > 0 && this._someRelevantBranch(node => node.hasEffectsWhenAccessedAtPath(path, options));
+		return (
+			path.length > 0 &&
+			this._someRelevantBranch(node => node.hasEffectsWhenAccessedAtPath(path, options))
+		);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return path.length === 0 || this._someRelevantBranch(node => node.hasEffectsWhenAssignedAtPath(path, options));
+		return (
+			path.length === 0 ||
+			this._someRelevantBranch(node => node.hasEffectsWhenAssignedAtPath(path, options))
+		);
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
-		return this._someRelevantBranch(node => node.hasEffectsWhenCalledAtPath(path, callOptions, options));
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	): boolean {
+		return this._someRelevantBranch(node =>
+			node.hasEffectsWhenCalledAtPath(path, callOptions, options)
+		);
 	}
 
 	someReturnExpressionWhenCalledAtPath(

@@ -51,19 +51,25 @@ describe('form', () => {
 							});
 
 							return bundle.write(options).then(() => {
-								const actualCode = normaliseOutput(sander.readFileSync(samples, dir, '_actual', format + '.js'));
+								const actualCode = normaliseOutput(
+									sander.readFileSync(samples, dir, '_actual', format + '.js')
+								);
 								let expectedCode;
 								let actualMap;
 								let expectedMap;
 
 								try {
-									expectedCode = normaliseOutput(sander.readFileSync(samples, dir, '_expected', format + '.js'));
+									expectedCode = normaliseOutput(
+										sander.readFileSync(samples, dir, '_expected', format + '.js')
+									);
 								} catch (err) {
 									expectedCode = 'missing file';
 								}
 
 								try {
-									actualMap = JSON.parse(sander.readFileSync(samples, dir, '_actual', format + '.js.map').toString());
+									actualMap = JSON.parse(
+										sander.readFileSync(samples, dir, '_actual', format + '.js.map').toString()
+									);
 									actualMap.sourcesContent = actualMap.sourcesContent.map(normaliseOutput);
 								} catch (err) {
 									assert.equal(err.code, 'ENOENT');

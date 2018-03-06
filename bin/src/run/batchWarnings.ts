@@ -143,7 +143,9 @@ const deferredHandlers: {
 		priority: 1,
 		fn: warnings => {
 			title('Unresolved dependencies');
-			info('https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency');
+			info(
+				'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
+			);
 
 			const dependencies = new Map();
 			warnings.forEach(warning => {
@@ -204,9 +206,11 @@ const deferredHandlers: {
 			title(`Conflicting re-exports`);
 			warnings.forEach(warning => {
 				stderr(
-					`${chalk.bold(relativeId(warning.reexporter))} re-exports '${warning.name}' from both ${relativeId(
-						warning.sources[0]
-					)} and ${relativeId(warning.sources[1])} (will be ignored)`
+					`${chalk.bold(relativeId(warning.reexporter))} re-exports '${
+						warning.name
+					}' from both ${relativeId(warning.sources[0])} and ${relativeId(
+						warning.sources[1]
+					)} (will be ignored)`
 				);
 			});
 		}
@@ -216,7 +220,9 @@ const deferredHandlers: {
 		priority: 1,
 		fn: warnings => {
 			title(`Missing global variable ${warnings.length > 1 ? 'names' : 'name'}`);
-			stderr(`Use output.globals to specify browser global variable names corresponding to external modules`);
+			stderr(
+				`Use output.globals to specify browser global variable names corresponding to external modules`
+			);
 			warnings.forEach(warning => {
 				stderr(`${chalk.bold(warning.source)} (guessing '${warning.guess}')`);
 			});
@@ -227,7 +233,9 @@ const deferredHandlers: {
 		priority: 1,
 		fn: warnings => {
 			title(`Broken sourcemap`);
-			info('https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect');
+			info(
+				'https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect'
+			);
 
 			const plugins = Array.from(new Set(warnings.map(w => w.plugin).filter(Boolean)));
 			const detail =

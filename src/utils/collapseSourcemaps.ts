@@ -21,7 +21,9 @@ class Source {
 	}
 }
 
-type SourceMapSegmentVector = [number, number, number, number, number] | [number, number, number, number];
+type SourceMapSegmentVector =
+	| [number, number, number, number, number]
+	| [number, number, number, number];
 
 interface SourceMapSegmentObject {
 	line: number;
@@ -69,7 +71,10 @@ class Link {
 						sourcesContent[sourceIndex] = traced.source.content;
 					} else if (sourcesContent[sourceIndex] == null) {
 						sourcesContent[sourceIndex] = traced.source.content;
-					} else if (traced.source.content != null && sourcesContent[sourceIndex] !== traced.source.content) {
+					} else if (
+						traced.source.content != null &&
+						sourcesContent[sourceIndex] !== traced.source.content
+					) {
 						error({
 							message: `Multiple conflicting contents for sourcemap source ${source.filename}`
 						});

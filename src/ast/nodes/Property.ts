@@ -4,7 +4,11 @@ import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
-import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import {
+	ExpressionEntity,
+	ForEachReturnExpressionCallback,
+	SomeReturnExpressionCallback
+} from './shared/Expression';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../utils/renderHelpers';
 
@@ -29,7 +33,8 @@ export default class Property extends NodeBase {
 				this.value.forEachReturnExpressionWhenCalledAtPath(
 					[],
 					this._accessorCallOptions,
-					innerOptions => node => node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
+					innerOptions => node =>
+						node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
 					options
 				);
 		} else if (this.kind !== 'set') {
@@ -47,7 +52,8 @@ export default class Property extends NodeBase {
 			this.value.forEachReturnExpressionWhenCalledAtPath(
 				[],
 				this._accessorCallOptions,
-				innerOptions => node => node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, innerOptions),
+				innerOptions => node =>
+					node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, innerOptions),
 				options
 			);
 		} else {
@@ -72,7 +78,10 @@ export default class Property extends NodeBase {
 						[],
 						this._accessorCallOptions,
 						innerOptions => node =>
-							node.hasEffectsWhenAccessedAtPath(path, innerOptions.addAccessedReturnExpressionAtPath(path, this)),
+							node.hasEffectsWhenAccessedAtPath(
+								path,
+								innerOptions.addAccessedReturnExpressionAtPath(path, this)
+							),
 						options
 					))
 			);
@@ -88,7 +97,10 @@ export default class Property extends NodeBase {
 					[],
 					this._accessorCallOptions,
 					innerOptions => node =>
-						node.hasEffectsWhenAssignedAtPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
+						node.hasEffectsWhenAssignedAtPath(
+							path,
+							innerOptions.addAssignedReturnExpressionAtPath(path, this)
+						),
 					options
 				)
 			);
@@ -96,13 +108,21 @@ export default class Property extends NodeBase {
 		if (this.kind === 'set') {
 			return (
 				path.length > 0 ||
-				this.value.hasEffectsWhenCalledAtPath([], this._accessorCallOptions, options.getHasEffectsWhenCalledOptions())
+				this.value.hasEffectsWhenCalledAtPath(
+					[],
+					this._accessorCallOptions,
+					options.getHasEffectsWhenCalledOptions()
+				)
 			);
 		}
 		return this.value.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	) {
 		if (this.kind === 'get') {
 			return (
 				this.value.hasEffectsWhenCalledAtPath(
@@ -165,11 +185,21 @@ export default class Property extends NodeBase {
 					[],
 					this._accessorCallOptions,
 					innerOptions => node =>
-						node.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, innerOptions),
+						node.someReturnExpressionWhenCalledAtPath(
+							path,
+							callOptions,
+							predicateFunction,
+							innerOptions
+						),
 					options
 				)
 			);
 		}
-		return this.value.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options);
+		return this.value.someReturnExpressionWhenCalledAtPath(
+			path,
+			callOptions,
+			predicateFunction,
+			options
+		);
 	}
 }

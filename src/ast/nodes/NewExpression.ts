@@ -14,7 +14,11 @@ export default class NewExpression extends NodeBase {
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			this.arguments.some(child => child.hasEffects(options)) ||
-			this.callee.hasEffectsWhenCalledAtPath([], this._callOptions, options.getHasEffectsWhenCalledOptions())
+			this.callee.hasEffectsWhenCalledAtPath(
+				[],
+				this._callOptions,
+				options.getHasEffectsWhenCalledOptions()
+			)
 		);
 	}
 

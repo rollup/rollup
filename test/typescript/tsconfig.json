@@ -1,17 +1,10 @@
 {
-  "compilerOptions": {
-    "noEmit": true,
-    "strict": true,
-    "pretty": true,
-    "lib": [
-      "es2015"
-    ]
-  },
-  "include": [
-    "./dist",
-    "./typings"
-  ],
-  "files": [
-    "./index.ts"
-  ]
+	"compilerOptions": {
+		"noEmit": true,
+		"strict": true,
+		"pretty": true,
+		"lib": ["es2015"]
+	},
+	"include": ["./dist", "./typings"],
+	"files": ["./index.ts"]
 }

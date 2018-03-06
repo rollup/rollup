@@ -76,7 +76,13 @@ export const UNKNOWN_ARRAY_EXPRESSION: ExpressionEntity = {
 		options: ExecutionPathOptions
 	) => {
 		if (path.length === 1) {
-			return someMemberReturnExpressionWhenCalled(arrayMembers, path[0], callOptions, predicateFunction, options);
+			return someMemberReturnExpressionWhenCalled(
+				arrayMembers,
+				path[0],
+				callOptions,
+				predicateFunction,
+				options
+			);
 		}
 		return true;
 	},
@@ -225,7 +231,9 @@ export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 		if (path.length === 1) {
 			const subPath = path[0];
 			return (
-				isUnknownKey(subPath) || !objectMembers[subPath] || predicateFunction(options)(objectMembers[subPath].returns)
+				isUnknownKey(subPath) ||
+				!objectMembers[subPath] ||
+				predicateFunction(options)(objectMembers[subPath].returns)
 			);
 		}
 		return true;

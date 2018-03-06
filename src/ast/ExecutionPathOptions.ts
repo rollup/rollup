@@ -33,7 +33,9 @@ export default class ExecutionPathOptions {
 		return new this(Immutable.Map());
 	}
 
-	private constructor(optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>) {
+	private constructor(
+		optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>
+	) {
 		this.optionValues = optionValues;
 	}
 
@@ -58,7 +60,10 @@ export default class ExecutionPathOptions {
 	}
 
 	addAccessedReturnExpressionAtPath(path: ObjectPath, callExpression: CallExpression | Property) {
-		return this.setIn([OptionTypes.RETURN_EXPRESSIONS_ACCESSED_AT_PATH, callExpression, ...path, RESULT_KEY], true);
+		return this.setIn(
+			[OptionTypes.RETURN_EXPRESSIONS_ACCESSED_AT_PATH, callExpression, ...path, RESULT_KEY],
+			true
+		);
 	}
 
 	addAssignedNodeAtPath(path: ObjectPath, node: WritableEntity) {
@@ -66,15 +71,28 @@ export default class ExecutionPathOptions {
 	}
 
 	addAssignedReturnExpressionAtPath(path: ObjectPath, callExpression: CallExpression | Property) {
-		return this.setIn([OptionTypes.RETURN_EXPRESSIONS_ASSIGNED_AT_PATH, callExpression, ...path, RESULT_KEY], true);
+		return this.setIn(
+			[OptionTypes.RETURN_EXPRESSIONS_ASSIGNED_AT_PATH, callExpression, ...path, RESULT_KEY],
+			true
+		);
 	}
 
-	addCalledNodeAtPathWithOptions(path: ObjectPath, node: ExpressionEntity, callOptions: CallOptions) {
-		return this.setIn([OptionTypes.NODES_CALLED_AT_PATH_WITH_OPTIONS, node, ...path, RESULT_KEY, callOptions], true);
+	addCalledNodeAtPathWithOptions(
+		path: ObjectPath,
+		node: ExpressionEntity,
+		callOptions: CallOptions
+	) {
+		return this.setIn(
+			[OptionTypes.NODES_CALLED_AT_PATH_WITH_OPTIONS, node, ...path, RESULT_KEY, callOptions],
+			true
+		);
 	}
 
 	addCalledReturnExpressionAtPath(path: ObjectPath, callExpression: CallExpression | Property) {
-		return this.setIn([OptionTypes.RETURN_EXPRESSIONS_CALLED_AT_PATH, callExpression, ...path, RESULT_KEY], true);
+		return this.setIn(
+			[OptionTypes.RETURN_EXPRESSIONS_CALLED_AT_PATH, callExpression, ...path, RESULT_KEY],
+			true
+		);
 	}
 
 	getArgumentsVariables(): ExpressionEntity[] {
@@ -99,7 +117,11 @@ export default class ExecutionPathOptions {
 		return this.optionValues.getIn([OptionTypes.ASSIGNED_NODES, node, ...path, RESULT_KEY]);
 	}
 
-	hasNodeBeenCalledAtPathWithOptions(path: ObjectPath, node: ExpressionEntity, callOptions: CallOptions): boolean {
+	hasNodeBeenCalledAtPathWithOptions(
+		path: ObjectPath,
+		node: ExpressionEntity,
+		callOptions: CallOptions
+	): boolean {
 		const previousCallOptions = this.optionValues.getIn([
 			OptionTypes.NODES_CALLED_AT_PATH_WITH_OPTIONS,
 			node,
@@ -108,11 +130,16 @@ export default class ExecutionPathOptions {
 		]);
 		return (
 			previousCallOptions &&
-			previousCallOptions.find((_: any, otherCallOptions: CallOptions) => otherCallOptions.equals(callOptions))
+			previousCallOptions.find((_: any, otherCallOptions: CallOptions) =>
+				otherCallOptions.equals(callOptions)
+			)
 		);
 	}
 
-	hasReturnExpressionBeenAccessedAtPath(path: ObjectPath, callExpression: CallExpression | Property): boolean {
+	hasReturnExpressionBeenAccessedAtPath(
+		path: ObjectPath,
+		callExpression: CallExpression | Property
+	): boolean {
 		return this.optionValues.getIn([
 			OptionTypes.RETURN_EXPRESSIONS_ACCESSED_AT_PATH,
 			callExpression,
@@ -121,7 +148,10 @@ export default class ExecutionPathOptions {
 		]);
 	}
 
-	hasReturnExpressionBeenAssignedAtPath(path: ObjectPath, callExpression: CallExpression | Property): boolean {
+	hasReturnExpressionBeenAssignedAtPath(
+		path: ObjectPath,
+		callExpression: CallExpression | Property
+	): boolean {
 		return this.optionValues.getIn([
 			OptionTypes.RETURN_EXPRESSIONS_ASSIGNED_AT_PATH,
 			callExpression,
@@ -130,7 +160,10 @@ export default class ExecutionPathOptions {
 		]);
 	}
 
-	hasReturnExpressionBeenCalledAtPath(path: ObjectPath, callExpression: CallExpression | Property): boolean {
+	hasReturnExpressionBeenCalledAtPath(
+		path: ObjectPath,
+		callExpression: CallExpression | Property
+	): boolean {
 		return this.optionValues.getIn([
 			OptionTypes.RETURN_EXPRESSIONS_CALLED_AT_PATH,
 			callExpression,

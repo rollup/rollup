@@ -22,23 +22,37 @@ export default class Import extends NodeBase {
 		if (this.resolution instanceof NamespaceVariable) {
 			// ideally this should be handled like normal tree shaking
 			this.resolution.includeVariable();
-			code.overwrite(this.parent.start, this.parent.arguments[0].start, 'Promise.resolve().then(function () { return ');
-			code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, this.resolution.getName());
+			code.overwrite(
+				this.parent.start,
+				this.parent.arguments[0].start,
+				'Promise.resolve().then(function () { return '
+			);
+			code.overwrite(
+				this.parent.arguments[0].start,
+				this.parent.arguments[0].end,
+				this.resolution.getName()
+			);
 			code.overwrite(this.parent.arguments[0].end, this.parent.end, '; })');
 		} else {
 			if (options.importMechanism) {
 				const leftMechanism =
-					(this.resolutionInterop && options.importMechanism.interopLeft) || options.importMechanism.left;
+					(this.resolutionInterop && options.importMechanism.interopLeft) ||
+					options.importMechanism.left;
 				code.overwrite(this.parent.start, this.parent.arguments[0].start, leftMechanism);
 			}
 
 			if (this.resolution) {
-				code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, this.resolution);
+				code.overwrite(
+					this.parent.arguments[0].start,
+					this.parent.arguments[0].end,
+					this.resolution
+				);
 			}
 
 			if (options.importMechanism) {
 				const rightMechanism =
-					(this.resolutionInterop && options.importMechanism.interopRight) || options.importMechanism.right;
+					(this.resolutionInterop && options.importMechanism.interopRight) ||
+					options.importMechanism.right;
 				code.overwrite(this.parent.arguments[0].end, this.parent.end, rightMechanism);
 			}
 		}

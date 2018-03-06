@@ -1,7 +1,12 @@
 import { property } from './sanitize';
 import { GlobalsOption } from '../../rollup/index';
 
-export default function setupNamespace(name: string, root: string, forAssignment: boolean, globals: GlobalsOption) {
+export default function setupNamespace(
+	name: string,
+	root: string,
+	forAssignment: boolean,
+	globals: GlobalsOption
+) {
 	const parts = name.split('.');
 	if (globals) {
 		parts[0] = (typeof globals === 'function' ? globals(parts[0]) : globals[parts[0]]) || parts[0];

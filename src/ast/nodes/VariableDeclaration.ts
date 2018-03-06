@@ -3,14 +3,23 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import VariableDeclarator from './VariableDeclarator';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { getCommaSeparatedNodesWithBoundaries, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import {
+	getCommaSeparatedNodesWithBoundaries,
+	NodeRenderOptions,
+	RenderOptions
+} from '../../utils/renderHelpers';
 import { isIdentifier } from './Identifier';
 import Variable from '../variables/Variable';
 import { BLANK } from '../../utils/object';
 import { ObjectPath } from '../values';
 
 function isReassignedExportsMember(variable: Variable): boolean {
-	return variable.safeName && variable.safeName.indexOf('.') !== -1 && variable.exportName && variable.isReassigned;
+	return (
+		variable.safeName &&
+		variable.safeName.indexOf('.') !== -1 &&
+		variable.exportName &&
+		variable.isReassigned
+	);
 }
 
 export function isVariableDeclaration(node: Node): node is VariableDeclaration {
@@ -23,7 +32,9 @@ export default class VariableDeclaration extends NodeBase {
 	kind: 'var' | 'let' | 'const';
 
 	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {
-		this.declarations.forEach(declarator => declarator.reassignPath([], ExecutionPathOptions.create()));
+		this.declarations.forEach(declarator =>
+			declarator.reassignPath([], ExecutionPathOptions.create())
+		);
 	}
 
 	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
@@ -61,13 +72,17 @@ export default class VariableDeclaration extends NodeBase {
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {
 		if (
 			this.declarations.every(
-				declarator => declarator.included && (!declarator.id.variable || !declarator.id.variable.exportName)
+				declarator =>
+					declarator.included && (!declarator.id.variable || !declarator.id.variable.exportName)
 			)
 		) {
 			for (const declarator of this.declarations) {
 				declarator.render(code, options);
 			}
-			if (!nodeRenderOptions.isNoStatement && code.original.charCodeAt(this.end - 1) !== 59 /*";"*/) {
+			if (
+				!nodeRenderOptions.isNoStatement &&
+				code.original.charCodeAt(this.end - 1) !== 59 /*";"*/
+			) {
 				code.appendLeft(this.end, ';');
 			}
 		} else {
@@ -115,7 +130,12 @@ export default class VariableDeclaration extends NodeBase {
 				}
 				isInDeclaration = false;
 			} else {
-				if (options.systemBindings && node.init !== null && isIdentifier(node.id) && node.id.variable.exportName) {
+				if (
+					options.systemBindings &&
+					node.init !== null &&
+					isIdentifier(node.id) &&
+					node.id.variable.exportName
+				) {
 					code.prependLeft(node.init.start, `exports('${node.id.variable.exportName}', `);
 					nextSeparatorString += ')';
 				}
@@ -173,7 +193,8 @@ export default class VariableDeclaration extends NodeBase {
 		if (lastSeparatorPos !== null) {
 			if (
 				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
-				(code.original.charCodeAt(this.end) === 10 /*"\n"*/ || code.original.charCodeAt(this.end) === 13) /*"\r"*/
+				(code.original.charCodeAt(this.end) === 10 /*"\n"*/ ||
+					code.original.charCodeAt(this.end) === 13) /*"\r"*/
 			) {
 				actualContentEnd--;
 				if (code.original.charCodeAt(actualContentEnd) === 13 /*"\r"*/) {

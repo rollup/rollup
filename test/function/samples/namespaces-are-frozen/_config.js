@@ -1,7 +1,8 @@
 var assert = require('assert');
 
 module.exports = {
-	description: 'namespaces should be non-extensible and its properties immutatable and non-configurable',
+	description:
+		'namespaces should be non-extensible and its properties immutatable and non-configurable',
 
 	exports: function(exports) {
 		const ns = exports.ns;

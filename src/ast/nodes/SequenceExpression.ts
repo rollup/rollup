@@ -47,7 +47,9 @@ export default class SequenceExpression extends NodeBase {
 				this.expressions[0].included = true;
 			}
 
-			const included = this.expressions.slice(0, this.expressions.length - 1).filter(expression => expression.included);
+			const included = this.expressions
+				.slice(0, this.expressions.length - 1)
+				.filter(expression => expression.included);
 			if (included.length === 0) {
 				code.remove(this.start, last.start);
 				code.remove(last.end, this.end);

@@ -27,7 +27,9 @@ export default function runRollup(command: any) {
 	}
 
 	if (command.environment) {
-		const environment = Array.isArray(command.environment) ? command.environment : [command.environment];
+		const environment = Array.isArray(command.environment)
+			? command.environment
+			: [command.environment];
 
 		environment.forEach((arg: string) => {
 			arg.split(',').forEach((pair: string) => {

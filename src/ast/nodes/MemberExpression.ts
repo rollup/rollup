@@ -38,11 +38,16 @@ function getPathIfNotComputed(memberExpression: MemberExpression): PathWithPosit
 		return null;
 	}
 	if (isIdentifier(object)) {
-		return [{ key: object.name, pos: object.start }, { key: nextPathKey, pos: memberExpression.property.start }];
+		return [
+			{ key: object.name, pos: object.start },
+			{ key: nextPathKey, pos: memberExpression.property.start }
+		];
 	}
 	if (isMemberExpression(object)) {
 		const parentPath = getPathIfNotComputed(object);
-		return parentPath && [...parentPath, { key: nextPathKey, pos: memberExpression.property.start }];
+		return (
+			parentPath && [...parentPath, { key: nextPathKey, pos: memberExpression.property.start }]
+		);
 	}
 	return null;
 }
@@ -84,7 +89,10 @@ export default class MemberExpression extends NodeBase {
 		this.isBound = true;
 	}
 
-	private resolveNamespaceVariables(baseVariable: Variable, path: PathWithPositions): Variable | string | null {
+	private resolveNamespaceVariables(
+		baseVariable: Variable,
+		path: PathWithPositions
+	): Variable | string | null {
 		if (path.length === 0) return baseVariable;
 		if (!isNamespaceVariable(baseVariable)) return null;
 		const exportName = path[0].key;
@@ -116,14 +124,20 @@ export default class MemberExpression extends NodeBase {
 		if (this.variable) {
 			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 		} else {
-			this.object.forEachReturnExpressionWhenCalledAtPath([this.propertyKey, ...path], callOptions, callback, options);
+			this.object.forEachReturnExpressionWhenCalledAtPath(
+				[this.propertyKey, ...path],
+				callOptions,
+				callback,
+				options
+			);
 		}
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			super.hasEffects(options) ||
-			(this.arePropertyReadSideEffectsChecked && this.object.hasEffectsWhenAccessedAtPath([this.propertyKey], options))
+			(this.arePropertyReadSideEffectsChecked &&
+				this.object.hasEffectsWhenAccessedAtPath([this.propertyKey], options))
 		);
 	}
 
@@ -144,7 +158,11 @@ export default class MemberExpression extends NodeBase {
 		return this.object.hasEffectsWhenAssignedAtPath([this.propertyKey, ...path], options);
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	): boolean {
 		if (this.variable) {
 			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 		}
@@ -180,7 +198,10 @@ export default class MemberExpression extends NodeBase {
 	}
 
 	private disallowNamespaceReassignment() {
-		if (isIdentifier(this.object) && isNamespaceVariable(this.scope.findVariable(this.object.name))) {
+		if (
+			isIdentifier(this.object) &&
+			isNamespaceVariable(this.scope.findVariable(this.object.name))
+		) {
 			this.module.error(
 				{
 					code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
@@ -214,7 +235,12 @@ export default class MemberExpression extends NodeBase {
 		options: ExecutionPathOptions
 	): boolean {
 		if (this.variable) {
-			return this.variable.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options);
+			return this.variable.someReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				predicateFunction,
+				options
+			);
 		}
 		return (
 			getPropertyKey(this) === UNKNOWN_KEY ||

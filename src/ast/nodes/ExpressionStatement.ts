@@ -12,7 +12,9 @@ export default class ExpressionStatement extends StatementBase {
 				// This is necessary, because either way (deleting or not) can lead to errors.
 				{
 					code: 'MODULE_LEVEL_DIRECTIVE',
-					message: `Module level directives cause errors when bundled, '${this.directive}' was ignored.`
+					message: `Module level directives cause errors when bundled, '${
+						this.directive
+					}' was ignored.`
 				},
 				this.start
 			);
