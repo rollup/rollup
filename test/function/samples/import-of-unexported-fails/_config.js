@@ -1,5 +1,5 @@
-var path = require( 'path' );
-var assert = require( 'assert' );
+var path = require('path');
+var assert = require('assert');
 
 module.exports = {
 	description: 'marking an imported, but unexported, identifier should throw',
@@ -8,7 +8,7 @@ module.exports = {
 		message: `'default' is not exported by empty.js`,
 		pos: 7,
 		loc: {
-			file: path.resolve( __dirname, 'main.js' ),
+			file: path.resolve(__dirname, 'main.js'),
 			line: 1,
 			column: 7
 		},

@@ -8,10 +8,10 @@ export interface UnknownKey {
 	type: 'UNKNOWN_KEY';
 }
 
-export type ObjectPathKey = string | UnknownKey
+export type ObjectPathKey = string | UnknownKey;
 export type ObjectPath = ObjectPathKey[];
 
-export function isUnknownKey (key: ObjectPathKey): key is UnknownKey {
+export function isUnknownKey(key: ObjectPathKey): key is UnknownKey {
 	return key === UNKNOWN_KEY;
 }
 
@@ -21,17 +21,17 @@ export type PathCallback = (path: ObjectPath, expression: ExpressionEntity) => v
 export type PathPredicate = (path: ObjectPath, expression: ExpressionEntity) => boolean;
 
 export interface MemberDescription {
-	returns: ExpressionEntity,
-	callsArgs: number[] | null
+	returns: ExpressionEntity;
+	callsArgs: number[] | null;
 }
 
 export interface MemberDescriptions {
-	[key: string]: MemberDescription
+	[key: string]: MemberDescription;
 }
 
 type RawMemberDescription = { value: MemberDescription };
 
-function assembleMemberDescriptions (
+function assembleMemberDescriptions(
 	memberDescriptions: { [key: string]: RawMemberDescription },
 	inheritedDescriptions: MemberDescriptions = null
 ): MemberDescriptions {
@@ -50,8 +50,12 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	someReturnExpressionWhenCalledAtPath: () => true,
 	toString: () => '[[UNKNOWN]]'
 };
-const returnsUnknown: RawMemberDescription = { value: { returns: UNKNOWN_EXPRESSION, callsArgs: null } };
-const callsArgReturnsUnknown: RawMemberDescription = { value: { returns: UNKNOWN_EXPRESSION, callsArgs: [0] } };
+const returnsUnknown: RawMemberDescription = {
+	value: { returns: UNKNOWN_EXPRESSION, callsArgs: null }
+};
+const callsArgReturnsUnknown: RawMemberDescription = {
+	value: { returns: UNKNOWN_EXPRESSION, callsArgs: [0] }
+};
 
 export const UNKNOWN_ARRAY_EXPRESSION: ExpressionEntity = {
 	reassignPath: () => {},
@@ -72,14 +76,24 @@ export const UNKNOWN_ARRAY_EXPRESSION: ExpressionEntity = {
 		options: ExecutionPathOptions
 	) => {
 		if (path.length === 1) {
-			return someMemberReturnExpressionWhenCalled(arrayMembers, path[0], callOptions, predicateFunction, options);
+			return someMemberReturnExpressionWhenCalled(
+				arrayMembers,
+				path[0],
+				callOptions,
+				predicateFunction,
+				options
+			);
 		}
 		return true;
 	},
 	toString: () => '[[UNKNOWN ARRAY]]'
 };
-const returnsArray: RawMemberDescription = { value: { returns: UNKNOWN_ARRAY_EXPRESSION, callsArgs: null } };
-const callsArgReturnsArray: RawMemberDescription = { value: { returns: UNKNOWN_ARRAY_EXPRESSION, callsArgs: [0] } };
+const returnsArray: RawMemberDescription = {
+	value: { returns: UNKNOWN_ARRAY_EXPRESSION, callsArgs: null }
+};
+const callsArgReturnsArray: RawMemberDescription = {
+	value: { returns: UNKNOWN_ARRAY_EXPRESSION, callsArgs: [0] }
+};
 
 const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 	reassignPath: () => {},
@@ -102,16 +116,22 @@ const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 	) => {
 		if (path.length === 1) {
 			const subPath = path[0];
-			return isUnknownKey(subPath)
-				|| !literalBooleanMembers[subPath]
-				|| predicateFunction(options)(literalBooleanMembers[subPath].returns);
+			return (
+				isUnknownKey(subPath) ||
+				!literalBooleanMembers[subPath] ||
+				predicateFunction(options)(literalBooleanMembers[subPath].returns)
+			);
 		}
 		return true;
 	},
 	toString: () => '[[UNKNOWN BOOLEAN]]'
 };
-const returnsBoolean: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_BOOLEAN, callsArgs: null } };
-const callsArgReturnsBoolean: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_BOOLEAN, callsArgs: [0] } };
+const returnsBoolean: RawMemberDescription = {
+	value: { returns: UNKNOWN_LITERAL_BOOLEAN, callsArgs: null }
+};
+const callsArgReturnsBoolean: RawMemberDescription = {
+	value: { returns: UNKNOWN_LITERAL_BOOLEAN, callsArgs: [0] }
+};
 
 const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 	reassignPath: () => {},
@@ -134,17 +154,22 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 	) => {
 		if (path.length === 1) {
 			const subPath = path[0];
-			return isUnknownKey(subPath)
-				|| !literalNumberMembers[subPath]
-				|| predicateFunction(options)(literalNumberMembers[subPath].returns);
+			return (
+				isUnknownKey(subPath) ||
+				!literalNumberMembers[subPath] ||
+				predicateFunction(options)(literalNumberMembers[subPath].returns)
+			);
 		}
 		return true;
 	},
 	toString: () => '[[UNKNOWN NUMBER]]'
 };
-const returnsNumber: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_NUMBER, callsArgs: null } };
-const callsArgReturnsNumber: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_NUMBER, callsArgs: [0] } };
-
+const returnsNumber: RawMemberDescription = {
+	value: { returns: UNKNOWN_LITERAL_NUMBER, callsArgs: null }
+};
+const callsArgReturnsNumber: RawMemberDescription = {
+	value: { returns: UNKNOWN_LITERAL_NUMBER, callsArgs: [0] }
+};
 
 const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 	reassignPath: () => {},
@@ -167,16 +192,22 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 	) => {
 		if (path.length === 1) {
 			const subPath = path[0];
-			return isUnknownKey(subPath)
-				|| !literalStringMembers[subPath]
-				|| predicateFunction(options)(literalStringMembers[subPath].returns);
+			return (
+				isUnknownKey(subPath) ||
+				!literalStringMembers[subPath] ||
+				predicateFunction(options)(literalStringMembers[subPath].returns)
+			);
 		}
 		return true;
 	},
 	toString: () => '[[UNKNOWN STRING]]'
 };
-const returnsString: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_STRING, callsArgs: null } };
-const callsSecondArgReturnsString: RawMemberDescription = { value: { returns: UNKNOWN_LITERAL_STRING, callsArgs: [1] } };
+const returnsString: RawMemberDescription = {
+	value: { returns: UNKNOWN_LITERAL_STRING, callsArgs: null }
+};
+const callsSecondArgReturnsString: RawMemberDescription = {
+	value: { returns: UNKNOWN_LITERAL_STRING, callsArgs: [1] }
+};
 
 export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 	reassignPath: () => {},
@@ -199,27 +230,28 @@ export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 	) => {
 		if (path.length === 1) {
 			const subPath = path[0];
-			return isUnknownKey(subPath)
-				|| !objectMembers[subPath]
-				|| predicateFunction(options)(objectMembers[subPath].returns);
+			return (
+				isUnknownKey(subPath) ||
+				!objectMembers[subPath] ||
+				predicateFunction(options)(objectMembers[subPath].returns)
+			);
 		}
 		return true;
 	},
 	toString: () => '[[UNKNOWN OBJECT]]'
 };
 
-export const objectMembers: MemberDescriptions =
-	assembleMemberDescriptions({
-		hasOwnProperty: returnsBoolean,
-		isPrototypeOf: returnsBoolean,
-		propertyIsEnumerable: returnsBoolean,
-		toLocaleString: returnsString,
-		toString: returnsString,
-		valueOf: returnsUnknown
-	});
+export const objectMembers: MemberDescriptions = assembleMemberDescriptions({
+	hasOwnProperty: returnsBoolean,
+	isPrototypeOf: returnsBoolean,
+	propertyIsEnumerable: returnsBoolean,
+	toLocaleString: returnsString,
+	toString: returnsString,
+	valueOf: returnsUnknown
+});
 
-export const arrayMembers: MemberDescriptions =
-	assembleMemberDescriptions({
+export const arrayMembers: MemberDescriptions = assembleMemberDescriptions(
+	{
 		concat: returnsArray,
 		copyWithin: returnsArray,
 		every: callsArgReturnsBoolean,
@@ -244,51 +276,62 @@ export const arrayMembers: MemberDescriptions =
 		sort: callsArgReturnsArray,
 		splice: returnsArray,
 		unshift: returnsNumber
-	}, objectMembers);
+	},
+	objectMembers
+);
 
-const literalBooleanMembers: MemberDescriptions = assembleMemberDescriptions({
-	valueOf: returnsBoolean
-}, objectMembers);
+const literalBooleanMembers: MemberDescriptions = assembleMemberDescriptions(
+	{
+		valueOf: returnsBoolean
+	},
+	objectMembers
+);
 
-const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions({
-	toExponential: returnsString,
-	toFixed: returnsString,
-	toLocaleString: returnsString,
-	toPrecision: returnsString,
-	valueOf: returnsNumber
-}, objectMembers);
+const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
+	{
+		toExponential: returnsString,
+		toFixed: returnsString,
+		toLocaleString: returnsString,
+		toPrecision: returnsString,
+		valueOf: returnsNumber
+	},
+	objectMembers
+);
 
-const literalStringMembers: MemberDescriptions = assembleMemberDescriptions({
-	charAt: returnsString,
-	charCodeAt: returnsNumber,
-	codePointAt: returnsNumber,
-	concat: returnsString,
-	includes: returnsBoolean,
-	endsWith: returnsBoolean,
-	indexOf: returnsNumber,
-	lastIndexOf: returnsNumber,
-	localeCompare: returnsNumber,
-	match: returnsBoolean,
-	normalize: returnsString,
-	padEnd: returnsString,
-	padStart: returnsString,
-	repeat: returnsString,
-	replace: callsSecondArgReturnsString,
-	search: returnsNumber,
-	slice: returnsString,
-	split: returnsArray,
-	startsWith: returnsBoolean,
-	substr: returnsString,
-	substring: returnsString,
-	toLocaleLowerCase: returnsString,
-	toLocaleUpperCase: returnsString,
-	toLowerCase: returnsString,
-	toUpperCase: returnsString,
-	trim: returnsString,
-	valueOf: returnsString
-}, objectMembers);
+const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
+	{
+		charAt: returnsString,
+		charCodeAt: returnsNumber,
+		codePointAt: returnsNumber,
+		concat: returnsString,
+		includes: returnsBoolean,
+		endsWith: returnsBoolean,
+		indexOf: returnsNumber,
+		lastIndexOf: returnsNumber,
+		localeCompare: returnsNumber,
+		match: returnsBoolean,
+		normalize: returnsString,
+		padEnd: returnsString,
+		padStart: returnsString,
+		repeat: returnsString,
+		replace: callsSecondArgReturnsString,
+		search: returnsNumber,
+		slice: returnsString,
+		split: returnsArray,
+		startsWith: returnsBoolean,
+		substr: returnsString,
+		substring: returnsString,
+		toLocaleLowerCase: returnsString,
+		toLocaleUpperCase: returnsString,
+		toLowerCase: returnsString,
+		toUpperCase: returnsString,
+		trim: returnsString,
+		valueOf: returnsString
+	},
+	objectMembers
+);
 
-export function getLiteralMembersForValue<T = LiteralValueTypes> (value: T) {
+export function getLiteralMembersForValue<T = LiteralValueTypes>(value: T) {
 	switch (typeof value) {
 		case 'boolean':
 			return literalBooleanMembers;
@@ -301,37 +344,42 @@ export function getLiteralMembersForValue<T = LiteralValueTypes> (value: T) {
 	}
 }
 
-export function hasMemberEffectWhenCalled (
+export function hasMemberEffectWhenCalled(
 	members: MemberDescriptions,
 	memberName: ObjectPathKey,
 	callOptions: CallOptions,
 	options: ExecutionPathOptions
 ) {
-	return isUnknownKey(memberName)
-		|| !members[memberName]
-		|| (
-			members[memberName].callsArgs
-			&& members[memberName].callsArgs.some(argIndex => callOptions.args[argIndex]
-				&& callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
-					[],
-					CallOptions.create({
-						withNew: false,
-						args: [],
-						callIdentifier: {} // make sure the caller is unique to avoid this check being ignored
-					}),
-					options.getHasEffectsWhenCalledOptions()
-				))
-		);
+	return (
+		isUnknownKey(memberName) ||
+		!members[memberName] ||
+		(members[memberName].callsArgs &&
+			members[memberName].callsArgs.some(
+				argIndex =>
+					callOptions.args[argIndex] &&
+					callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
+						[],
+						CallOptions.create({
+							withNew: false,
+							args: [],
+							callIdentifier: {} // make sure the caller is unique to avoid this check being ignored
+						}),
+						options.getHasEffectsWhenCalledOptions()
+					)
+			))
+	);
 }
 
-export function someMemberReturnExpressionWhenCalled (
+export function someMemberReturnExpressionWhenCalled(
 	members: MemberDescriptions,
 	memberName: ObjectPathKey,
 	callOptions: CallOptions,
 	predicateFunction: SomeReturnExpressionCallback,
 	options: ExecutionPathOptions
 ) {
-	return hasMemberEffectWhenCalled(members, memberName, callOptions, options)
+	return (
+		hasMemberEffectWhenCalled(members, memberName, callOptions, options) ||
 		// if calling has no effect, memberName is a string and members[memberName] exists
-		|| predicateFunction(options)(members[<string>memberName].returns);
+		predicateFunction(options)(members[<string>memberName].returns)
+	);
 }

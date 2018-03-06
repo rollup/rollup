@@ -5,30 +5,36 @@ import { ObjectPath } from '../../values';
 
 export type PredicateFunction = (node: ExpressionEntity) => boolean;
 export type SomeReturnExpressionCallback = (options: ExecutionPathOptions) => PredicateFunction;
-export type ForEachReturnExpressionCallback = (options: ExecutionPathOptions) => (node: ExpressionEntity) => void
+export type ForEachReturnExpressionCallback = (
+	options: ExecutionPathOptions
+) => (node: ExpressionEntity) => void;
 
 export interface ExpressionEntity extends WritableEntity {
 	/**
 	 * Executes the callback on each possible return expression when calling this node.
 	 */
-	forEachReturnExpressionWhenCalledAtPath (
+	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): void;
-	getValue (): any;
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean;
-	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions): boolean;
+	getValue(): any;
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	): boolean;
 
 	/**
 	 * Should return true if some possible return expression when called at the given
 	 * path returns true.
 	 */
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
-	): boolean
+	): boolean;
 }

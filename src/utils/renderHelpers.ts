@@ -10,14 +10,18 @@ export interface RenderOptions {
 }
 
 export interface NodeRenderOptions {
-	start?: number,
-	end?: number,
-	isNoStatement?: boolean
+	start?: number;
+	end?: number;
+	isNoStatement?: boolean;
 }
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
 
-export function findFirstOccurrenceOutsideComment (code: string, searchString: string, start: number = 0) {
+export function findFirstOccurrenceOutsideComment(
+	code: string,
+	searchString: string,
+	start: number = 0
+) {
 	let commentStart, searchPos;
 	while (true) {
 		commentStart = code.indexOf('/', start);
@@ -36,7 +40,7 @@ export function findFirstOccurrenceOutsideComment (code: string, searchString: s
 	return searchPos;
 }
 
-function findFirstLineBreakOutsideComment (code: string, start: number = 0) {
+function findFirstLineBreakOutsideComment(code: string, start: number = 0) {
 	let commentStart, lineBreakPos;
 	while (true) {
 		commentStart = code.indexOf('/*', start);
@@ -50,13 +54,20 @@ function findFirstLineBreakOutsideComment (code: string, start: number = 0) {
 	return lineBreakPos;
 }
 
-export function renderStatementList (statements: Node[], code: MagicString, start: number, end: number, options: RenderOptions) {
+export function renderStatementList(
+	statements: Node[],
+	code: MagicString,
+	start: number,
+	end: number,
+	options: RenderOptions
+) {
 	if (statements.length === 0) return;
 	let currentNode, currentNodeStart, currentNodeNeedsBoundaries, nextNodeStart;
 	let nextNode = statements[0];
 	let nextNodeNeedsBoundaries = !nextNode.included || nextNode.needsBoundaries;
 	if (nextNodeNeedsBoundaries) {
-		nextNodeStart = start + findFirstLineBreakOutsideComment(code.original.slice(start, nextNode.start)) + 1;
+		nextNodeStart =
+			start + findFirstLineBreakOutsideComment(code.original.slice(start, nextNode.start)) + 1;
 	}
 
 	for (let nextIndex = 1; nextIndex <= statements.length; nextIndex++) {
@@ -64,14 +75,21 @@ export function renderStatementList (statements: Node[], code: MagicString, star
 		currentNodeStart = nextNodeStart;
 		currentNodeNeedsBoundaries = nextNodeNeedsBoundaries;
 		nextNode = statements[nextIndex];
-		nextNodeNeedsBoundaries = nextNode === undefined ? false : !nextNode.included || nextNode.needsBoundaries;
+		nextNodeNeedsBoundaries =
+			nextNode === undefined ? false : !nextNode.included || nextNode.needsBoundaries;
 		if (currentNodeNeedsBoundaries || nextNodeNeedsBoundaries) {
-			nextNodeStart = currentNode.end + findFirstLineBreakOutsideComment(
-				code.original.slice(currentNode.end, nextNode === undefined ? end : nextNode.start)
-			) + 1;
+			nextNodeStart =
+				currentNode.end +
+				findFirstLineBreakOutsideComment(
+					code.original.slice(currentNode.end, nextNode === undefined ? end : nextNode.start)
+				) +
+				1;
 			if (currentNode.included) {
 				currentNodeNeedsBoundaries
-					? currentNode.render(code, options, { start: currentNodeStart, end: nextNodeStart })
+					? currentNode.render(code, options, {
+							start: currentNodeStart,
+							end: nextNodeStart
+					  })
 					: currentNode.render(code, options);
 			} else {
 				code.remove(currentNodeStart, nextNodeStart);
@@ -83,7 +101,7 @@ export function renderStatementList (statements: Node[], code: MagicString, star
 }
 
 // This assumes that the first character is not part of the first node
-export function getCommaSeparatedNodesWithBoundaries<N extends Node> (
+export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 	nodes: N[],
 	code: MagicString,
 	start: number,
@@ -92,7 +110,7 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node> (
 	node: N;
 	start: number;
 	separator: number | null;
-	contentEnd: number,
+	contentEnd: number;
 	end: number;
 })[] {
 	const splitUpNodes = [];
@@ -102,25 +120,37 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node> (
 	for (let nextIndex = 0; nextIndex < nodes.length; nextIndex++) {
 		nextNode = nodes[nextIndex];
 		if (node !== undefined) {
-			separator = node.end + findFirstOccurrenceOutsideComment(
-				code.original.slice(node.end, nextNode.start), ','
-			);
+			separator =
+				node.end +
+				findFirstOccurrenceOutsideComment(code.original.slice(node.end, nextNode.start), ',');
 		}
-		nextNodeStart = contentEnd = separator + 2 + findFirstLineBreakOutsideComment(
-			code.original.slice(separator + 1, nextNode.start)
-		);
-		while (char = code.original.charCodeAt(nextNodeStart),
-		char === 32 /*" "*/ || char === 9 /*"\t"*/ || char === 10 /*"\n"*/ || char === 13/*"\r"*/) nextNodeStart++;
+		nextNodeStart = contentEnd =
+			separator +
+			2 +
+			findFirstLineBreakOutsideComment(code.original.slice(separator + 1, nextNode.start));
+		while (
+			((char = code.original.charCodeAt(nextNodeStart)),
+			char === 32 /*" "*/ || char === 9 /*"\t"*/ || char === 10 /*"\n"*/ || char === 13) /*"\r"*/
+		)
+			nextNodeStart++;
 		if (node !== undefined) {
 			splitUpNodes.push({
-				node, start, contentEnd, separator, end: nextNodeStart
+				node,
+				start,
+				contentEnd,
+				separator,
+				end: nextNodeStart
 			});
 		}
 		node = nextNode;
 		start = nextNodeStart;
 	}
 	splitUpNodes.push({
-		node, start, separator: null, contentEnd: end, end
+		node,
+		start,
+		separator: null,
+		contentEnd: end,
+		end
 	});
 	return splitUpNodes;
 }

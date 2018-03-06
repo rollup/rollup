@@ -1,5 +1,5 @@
-var path = require( 'path' );
-var assert = require( 'assert' );
+var path = require('path');
+var assert = require('assert');
 
 module.exports = {
 	description: 'reexporting a missing identifier should print an error',
@@ -8,7 +8,7 @@ module.exports = {
 		message: `'foo' is not exported by empty.js`,
 		pos: 9,
 		loc: {
-			file: path.resolve( __dirname, 'main.js' ),
+			file: path.resolve(__dirname, 'main.js'),
 			line: 1,
 			column: 9
 		},

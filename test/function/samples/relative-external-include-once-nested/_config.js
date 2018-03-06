@@ -1,18 +1,18 @@
-var assert = require( 'assert' );
-var path = require( 'path' );
+var assert = require('assert');
+var path = require('path');
 
 module.exports = {
 	description: 'includes a relative external module only once (nested version)',
 	options: {
-		external: path.join( __dirname, './first/foo.js' )
+		external: path.join(__dirname, './first/foo.js')
 	},
 	context: {
-		require: function ( required ) {
-			assert.equal( required, './first/foo.js' );
+		require: function(required) {
+			assert.equal(required, './first/foo.js');
 			return 1;
 		}
 	},
-	exports: function ( exports ) {
-		assert.equal( exports, 3 );
+	exports: function(exports) {
+		assert.equal(exports, 3);
 	}
 };

@@ -122,11 +122,11 @@ simdTypes.forEach(t => {
 	// TODO properties of e.g. window...
 ]
 	.concat(
-	arrayTypes,
-	arrayTypes.map(t => `${t}.from`),
-	arrayTypes.map(t => `${t}.of`),
-	simdTypes.map(t => `SIMD.${t}`),
-	allSimdMethods
+		arrayTypes,
+		arrayTypes.map(t => `${t}.from`),
+		arrayTypes.map(t => `${t}.of`),
+		simdTypes.map(t => `SIMD.${t}`),
+		allSimdMethods
 	)
 	.forEach(name => (pureFunctions[name] = true));
 // TODO add others to this list from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects

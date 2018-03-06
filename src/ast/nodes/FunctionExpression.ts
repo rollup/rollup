@@ -5,11 +5,9 @@ import { NodeType } from './NodeType';
 export default class FunctionExpression extends FunctionNode {
 	type: NodeType.FunctionExpression;
 
-	initialiseChildren () {
+	initialiseChildren() {
 		this.id && this.id.initialiseAndDeclare(this.scope, 'function', this);
-		this.params.forEach(param =>
-			param.initialiseAndDeclare(this.scope, 'parameter', null)
-		);
+		this.params.forEach(param => param.initialiseAndDeclare(this.scope, 'parameter', null));
 		this.body.initialiseAndReplaceScope(new Scope({ parent: this.scope }));
 	}
 }

@@ -9,16 +9,16 @@ export interface BatchWarnings {
 	flush: () => void;
 }
 
-export default function batchWarnings () {
+export default function batchWarnings() {
 	let allWarnings = new Map<string, RollupWarning[]>();
 	let count = 0;
 
 	return {
-		get count () {
+		get count() {
 			return count;
 		},
 
-		add: (warning: string | RollupWarning)  => {
+		add: (warning: string | RollupWarning) => {
 			if (typeof warning === 'string') {
 				warning = { code: 'UNKNOWN', message: warning };
 			}
@@ -55,20 +55,14 @@ export default function batchWarnings () {
 					handler.fn(warnings);
 				} else {
 					warnings.forEach(warning => {
-						stderr(
-							`${chalk.bold.yellow('(!)')} ${chalk.bold.yellow(
-								warning.message
-							)}`
-						);
+						stderr(`${chalk.bold.yellow('(!)')} ${chalk.bold.yellow(warning.message)}`);
 
 						if (warning.url) info(warning.url);
 
 						const id = (warning.loc && warning.loc.file) || warning.id;
 						if (id) {
 							const loc = warning.loc
-								? `${relativeId(id)}: (${warning.loc.line}:${
-								warning.loc.column
-								})`
+								? `${relativeId(id)}: (${warning.loc.line}:${warning.loc.column})`
 								: relativeId(id);
 
 							stderr(chalk.bold(relativeId(loc)));
@@ -86,7 +80,7 @@ export default function batchWarnings () {
 }
 
 const immediateHandlers: {
-	[code: string]: (warning: RollupWarning) => void
+	[code: string]: (warning: RollupWarning) => void;
 } = {
 	UNKNOWN_OPTION: warning => {
 		title(`You have passed an unrecognized option`);
@@ -95,9 +89,7 @@ const immediateHandlers: {
 
 	DEPRECATED_OPTIONS: warning => {
 		title(`Some options have been renamed`);
-		info(
-			`https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32`
-		);
+		info(`https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32`);
 		warning.deprecations.forEach(option => {
 			stderr(`${chalk.bold(option.old)} is now ${option.new}`);
 		});
@@ -110,9 +102,9 @@ const immediateHandlers: {
 			warning.modules.length === 1
 				? `'${warning.modules[0]}'`
 				: `${warning.modules
-					.slice(0, -1)
-					.map(name => `'${name}'`)
-					.join(', ')} and '${warning.modules.slice(-1)}'`;
+						.slice(0, -1)
+						.map(name => `'${name}'`)
+						.join(', ')} and '${warning.modules.slice(-1)}'`;
 		stderr(
 			`Creating a browser bundle that depends on ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`
 		);
@@ -135,18 +127,14 @@ const deferredHandlers: {
 	[code: string]: {
 		priority: number;
 		fn: (warnings: RollupWarning[]) => void;
-	}
+	};
 } = {
 	UNUSED_EXTERNAL_IMPORT: {
 		priority: 1,
 		fn: warnings => {
 			title('Unused external imports');
 			warnings.forEach(warning => {
-				stderr(
-					`${warning.names} imported from external module '${
-					warning.source
-					}' but never used`
-				);
+				stderr(`${warning.names} imported from external module '${warning.source}' but never used`);
 			});
 		}
 	},
@@ -161,16 +149,13 @@ const deferredHandlers: {
 
 			const dependencies = new Map();
 			warnings.forEach(warning => {
-				if (!dependencies.has(warning.source))
-					dependencies.set(warning.source, []);
+				if (!dependencies.has(warning.source)) dependencies.set(warning.source, []);
 				dependencies.get(warning.source).push(warning.importer);
 			});
 
 			Array.from(dependencies.keys()).forEach(dependency => {
 				const importers = dependencies.get(dependency);
-				stderr(
-					`${chalk.bold(dependency)} (imported by ${importers.join(', ')})`
-				);
+				stderr(`${chalk.bold(dependency)} (imported by ${importers.join(', ')})`);
 			});
 		}
 	},
@@ -179,9 +164,7 @@ const deferredHandlers: {
 		priority: 1,
 		fn: warnings => {
 			title('Missing exports');
-			info(
-				'https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module'
-			);
+			info('https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module');
 
 			warnings.forEach(warning => {
 				stderr(chalk.bold(warning.importer));
@@ -195,9 +178,7 @@ const deferredHandlers: {
 		priority: 1,
 		fn: warnings => {
 			title('`this` has been rewritten to `undefined`');
-			info(
-				'https://github.com/rollup/rollup/wiki/Troubleshooting#this-is-undefined'
-			);
+			info('https://github.com/rollup/rollup/wiki/Troubleshooting#this-is-undefined');
 			showTruncatedWarnings(warnings);
 		}
 	},
@@ -206,9 +187,7 @@ const deferredHandlers: {
 		priority: 1,
 		fn: warnings => {
 			title('Use of eval is strongly discouraged');
-			info(
-				'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
-			);
+			info('https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval');
 			showTruncatedWarnings(warnings);
 		}
 	},
@@ -216,9 +195,7 @@ const deferredHandlers: {
 	NON_EXISTENT_EXPORT: {
 		priority: 1,
 		fn: warnings => {
-			title(
-				`Import of non-existent ${warnings.length > 1 ? 'exports' : 'export'}`
-			);
+			title(`Import of non-existent ${warnings.length > 1 ? 'exports' : 'export'}`);
 			showTruncatedWarnings(warnings);
 		}
 	},
@@ -230,7 +207,7 @@ const deferredHandlers: {
 			warnings.forEach(warning => {
 				stderr(
 					`${chalk.bold(relativeId(warning.reexporter))} re-exports '${
-					warning.name
+						warning.name
 					}' from both ${relativeId(warning.sources[0])} and ${relativeId(
 						warning.sources[1]
 					)} (will be ignored)`
@@ -242,9 +219,7 @@ const deferredHandlers: {
 	MISSING_GLOBAL_NAME: {
 		priority: 1,
 		fn: warnings => {
-			title(
-				`Missing global variable ${warnings.length > 1 ? 'names' : 'name'}`
-			);
+			title(`Missing global variable ${warnings.length > 1 ? 'names' : 'name'}`);
 			stderr(
 				`Use output.globals to specify browser global variable names corresponding to external modules`
 			);
@@ -262,22 +237,18 @@ const deferredHandlers: {
 				'https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect'
 			);
 
-			const plugins = Array.from(
-				new Set(warnings.map(w => w.plugin).filter(Boolean))
-			);
+			const plugins = Array.from(new Set(warnings.map(w => w.plugin).filter(Boolean)));
 			const detail =
 				plugins.length === 0
 					? ''
 					: plugins.length > 1
 						? ` (such as ${plugins
-							.slice(0, -1)
-							.map(p => `'${p}'`)
-							.join(', ')} and '${plugins.slice(-1)}')`
+								.slice(0, -1)
+								.map(p => `'${p}'`)
+								.join(', ')} and '${plugins.slice(-1)}')`
 						: ` (such as '${plugins[0]}')`;
 
-			stderr(
-				`Plugins that transform code${detail} should generate accompanying sourcemaps`
-			);
+			stderr(`Plugins that transform code${detail} should generate accompanying sourcemaps`);
 		}
 	},
 
@@ -297,9 +268,7 @@ const deferredHandlers: {
 						if (warning.url !== lastUrl) info((lastUrl = warning.url));
 
 						const loc = warning.loc
-							? `${relativeId(warning.id)}: (${warning.loc.line}:${
-							warning.loc.column
-							})`
+							? `${relativeId(warning.id)}: (${warning.loc.line}:${warning.loc.column})`
 							: relativeId(warning.id);
 
 						stderr(chalk.bold(relativeId(loc)));
@@ -311,17 +280,17 @@ const deferredHandlers: {
 	}
 };
 
-function title (str: string) {
+function title(str: string) {
 	stderr(`${chalk.bold.yellow('(!)')} ${chalk.bold.yellow(str)}`);
 }
 
-function info (url: string) {
+function info(url: string) {
 	stderr(chalk.grey(url));
 }
 
-function nest<T> (array: T[], prop: string) {
-	const nested: { key: string, items: T[] }[] = [];
-	const lookup = new Map<string, { key: string, items: T[] }>();
+function nest<T>(array: T[], prop: string) {
+	const nested: { key: string; items: T[] }[] = [];
+	const lookup = new Map<string, { key: string; items: T[] }>();
 
 	array.forEach(item => {
 		const key = (<any>item)[prop];
@@ -340,21 +309,16 @@ function nest<T> (array: T[], prop: string) {
 	return nested;
 }
 
-function showTruncatedWarnings (warnings: RollupWarning[]) {
+function showTruncatedWarnings(warnings: RollupWarning[]) {
 	const nestedByModule = nest(warnings, 'id');
 
-	const sliced =
-		nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;
+	const sliced = nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;
 	sliced.forEach(({ key: id, items }) => {
 		stderr(chalk.bold(relativeId(id)));
 		stderr(chalk.grey(items[0].frame));
 
 		if (items.length > 1) {
-			stderr(
-				`...and ${items.length - 1} other ${
-				items.length > 2 ? 'occurrences' : 'occurrence'
-				}`
-			);
+			stderr(`...and ${items.length - 1} other ${items.length > 2 ? 'occurrences' : 'occurrence'}`);
 		}
 	});
 

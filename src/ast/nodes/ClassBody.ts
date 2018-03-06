@@ -10,7 +10,11 @@ export default class ClassBody extends NodeBase {
 	body: MethodDefinition[];
 	classConstructor: MethodDefinition | null;
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	) {
 		if (path.length > 0) {
 			return true;
 		}
@@ -20,9 +24,7 @@ export default class ClassBody extends NodeBase {
 		);
 	}
 
-	initialiseNode () {
-		this.classConstructor = this.body.find(
-			method => method.kind === 'constructor'
-		);
+	initialiseNode() {
+		this.classConstructor = this.body.find(method => method.kind === 'constructor');
 	}
 }

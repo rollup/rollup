@@ -1,4 +1,4 @@
-var assert = require( 'assert' );
+var assert = require('assert');
 
 module.exports = {
 	description: 'throws error only with first plugin transformBundle',
@@ -6,14 +6,14 @@ module.exports = {
 		plugins: [
 			{
 				name: 'plugin1',
-				transformBundle: function () {
-					throw Error( 'Something happened 1' );
+				transformBundle: function() {
+					throw Error('Something happened 1');
 				}
 			},
 			{
 				name: 'plugin2',
-				transformBundle: function () {
-					throw Error( 'Something happened 2' );
+				transformBundle: function() {
+					throw Error('Something happened 2');
 				}
 			}
 		]

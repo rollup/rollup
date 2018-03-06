@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.56.5 (to be released)
+* Convert code style using prettier ([#2031](https://github.com/rollup/rollup/pull/2031))
+
 ## 0.56.4
 * Make rollup builds reproducible ([#2024](https://github.com/rollup/rollup/pull/2024))
 * Improve error handling for source maps ([#2012](https://github.com/rollup/rollup/pull/2012))

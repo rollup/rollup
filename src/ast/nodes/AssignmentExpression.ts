@@ -9,20 +9,15 @@ export default class AssignmentExpression extends NodeBase {
 	left: PatternNode | ExpressionNode;
 	right: ExpressionNode;
 
-	bindNode () {
+	bindNode() {
 		this.left.reassignPath([], ExecutionPathOptions.create());
 	}
 
-	hasEffects (options: ExecutionPathOptions): boolean {
-		return (
-			super.hasEffects(options) ||
-			this.left.hasEffectsWhenAssignedAtPath([], options)
-		);
+	hasEffects(options: ExecutionPathOptions): boolean {
+		return super.hasEffects(options) || this.left.hasEffectsWhenAssignedAtPath([], options);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return (
-			path.length > 0 && this.right.hasEffectsWhenAccessedAtPath(path, options)
-		);
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+		return path.length > 0 && this.right.hasEffectsWhenAccessedAtPath(path, options);
 	}
 }

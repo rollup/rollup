@@ -9,7 +9,7 @@ import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Nod
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
 
-export function isForInStatement (node: Node): node is ForInStatement {
+export function isForInStatement(node: Node): node is ForInStatement {
 	return node.type === NodeType.ForInStatement;
 }
 
@@ -19,17 +19,16 @@ export default class ForInStatement extends StatementBase {
 	right: ExpressionNode;
 	body: StatementNode;
 
-	hasEffects (options: ExecutionPathOptions): boolean {
+	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			(this.left &&
-				(this.left.hasEffects(options) ||
-					this.left.hasEffectsWhenAssignedAtPath([], options))) ||
+				(this.left.hasEffects(options) || this.left.hasEffectsWhenAssignedAtPath([], options))) ||
 			(this.right && this.right.hasEffects(options)) ||
 			this.body.hasEffects(options.setIgnoreBreakStatements())
 		);
 	}
 
-	initialiseChildren () {
+	initialiseChildren() {
 		this.left.initialise(this.scope);
 		this.right.initialise(<Scope>this.scope.parent);
 		(<BlockStatement>this.body).initialiseAndReplaceScope
@@ -37,7 +36,7 @@ export default class ForInStatement extends StatementBase {
 			: this.body.initialise(this.scope);
 	}
 
-	includeInBundle () {
+	includeInBundle() {
 		let addedNewNodes = super.includeInBundle();
 		if (this.left.includeWithAllDeclaredVariables()) {
 			addedNewNodes = true;
@@ -45,11 +44,11 @@ export default class ForInStatement extends StatementBase {
 		return addedNewNodes;
 	}
 
-	initialiseScope (parentScope: Scope) {
+	initialiseScope(parentScope: Scope) {
 		this.scope = new BlockScope({ parent: parentScope });
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions) {
 		this.left.render(code, options, NO_SEMICOLON);
 		this.right.render(code, options, NO_SEMICOLON);
 		this.body.render(code, options);

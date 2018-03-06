@@ -15,48 +15,47 @@ export default class ArrowFunctionExpression extends NodeBase {
 	params: PatternNode[];
 	scope: ReturnValueScope;
 
-	bindNode () {
+	bindNode() {
 		isBlockStatement(this.body)
 			? this.body.bindImplicitReturnExpressionToScope()
 			: this.scope.addReturnExpression(this.body);
 	}
 
-	forEachReturnExpressionWhenCalledAtPath (
+	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		path.length === 0
-		&& this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
+		path.length === 0 &&
+			this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
 	}
 
-	hasEffects (_options: ExecutionPathOptions) {
+	hasEffects(_options: ExecutionPathOptions) {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath, _callOptions: CallOptions, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		_callOptions: CallOptions,
+		options: ExecutionPathOptions
+	): boolean {
 		if (path.length > 0) {
 			return true;
 		}
-		return (
-			this.params.some(param => param.hasEffects(options)) ||
-			this.body.hasEffects(options)
-		);
+		return this.params.some(param => param.hasEffects(options)) || this.body.hasEffects(options);
 	}
 
-	initialiseChildren () {
-		this.params.forEach(param =>
-			param.initialiseAndDeclare(this.scope, 'parameter', null)
-		);
+	initialiseChildren() {
+		this.params.forEach(param => param.initialiseAndDeclare(this.scope, 'parameter', null));
 		if ((<BlockStatement>this.body).initialiseAndReplaceScope) {
 			(<BlockStatement>this.body).initialiseAndReplaceScope(new Scope({ parent: this.scope }));
 		} else {
@@ -64,11 +63,11 @@ export default class ArrowFunctionExpression extends NodeBase {
 		}
 	}
 
-	initialiseScope (parentScope: Scope) {
+	initialiseScope(parentScope: Scope) {
 		this.scope = new ReturnValueScope({ parent: parentScope });
 	}
 
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,
@@ -76,11 +75,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 	): boolean {
 		return (
 			path.length > 0 ||
-			this.scope.someReturnExpressionWhenCalled(
-				callOptions,
-				predicateFunction,
-				options
-			)
+			this.scope.someReturnExpressionWhenCalled(callOptions, predicateFunction, options)
 		);
 	}
 }

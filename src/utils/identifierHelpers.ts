@@ -14,17 +14,15 @@ const illegalCharacters = /[^$_a-zA-Z0-9]/g;
 
 const startsWithDigit = (str: string) => /\d/.test(str[0]);
 
-export function isLegal (str: string): boolean {
+export function isLegal(str: string): boolean {
 	if (startsWithDigit(str) || blacklisted[str]) {
 		return false;
 	}
 	return !illegalCharacters.test(str);
 }
 
-export function makeLegal (str: string): string {
-	str = str
-		.replace(/-(\w)/g, (_, letter) => letter.toUpperCase())
-		.replace(illegalCharacters, '_');
+export function makeLegal(str: string): string {
+	str = str.replace(/-(\w)/g, (_, letter) => letter.toUpperCase()).replace(illegalCharacters, '_');
 
 	if (startsWithDigit(str) || blacklisted[str]) str = `_${str}`;
 

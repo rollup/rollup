@@ -1,6 +1,10 @@
 import { ExpressionNode, NodeBase, StatementNode } from './shared/Node';
 import { NodeType } from './NodeType';
-import { findFirstOccurrenceOutsideComment, RenderOptions, renderStatementList } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	RenderOptions,
+	renderStatementList
+} from '../../utils/renderHelpers';
 import MagicString from 'magic-string';
 
 export default class SwitchCase extends NodeBase {
@@ -8,7 +12,7 @@ export default class SwitchCase extends NodeBase {
 	test: ExpressionNode | null;
 	consequent: StatementNode[];
 
-	includeInBundle () {
+	includeInBundle() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		if (this.test && this.test.includeInBundle()) {
@@ -24,7 +28,7 @@ export default class SwitchCase extends NodeBase {
 		return addedNewNodes;
 	}
 
-	render (code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions) {
 		if (this.consequent.length) {
 			this.test && this.test.render(code, options);
 			const testEnd = this.test

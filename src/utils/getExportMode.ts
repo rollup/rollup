@@ -2,7 +2,7 @@ import error from './error';
 import Chunk from '../Chunk';
 import { OutputOptions } from '../rollup/index';
 
-function badExports (option: string, keys: string[]) {
+function badExports(option: string, keys: string[]) {
 	error({
 		code: 'INVALID_EXPORT_OPTION',
 		message: `'${option}' was specified for options.exports, but entry module has following exports: ${keys.join(
@@ -11,7 +11,7 @@ function badExports (option: string, keys: string[]) {
 	});
 }
 
-export default function getExportMode (
+export default function getExportMode(
 	chunk: Chunk,
 	{ exports: exportMode, name, format }: OutputOptions
 ) {

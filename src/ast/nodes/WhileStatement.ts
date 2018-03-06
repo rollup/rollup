@@ -7,10 +7,9 @@ export default class WhileStatement extends StatementBase {
 	test: ExpressionNode;
 	body: StatementNode;
 
-	hasEffects (options: ExecutionPathOptions): boolean {
+	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
-			this.test.hasEffects(options) ||
-			this.body.hasEffects(options.setIgnoreBreakStatements())
+			this.test.hasEffects(options) || this.body.hasEffects(options.setIgnoreBreakStatements())
 		);
 	}
 }

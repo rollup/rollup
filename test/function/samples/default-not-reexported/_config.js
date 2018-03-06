@@ -1,5 +1,5 @@
-const path = require( 'path' );
-const assert = require( 'assert' );
+const path = require('path');
+const assert = require('assert');
 
 module.exports = {
 	description: 'default export is not re-exported with export *',
@@ -8,7 +8,7 @@ module.exports = {
 		message: `'default' is not exported by foo.js`,
 		pos: 7,
 		loc: {
-			file: path.resolve( __dirname, 'main.js' ),
+			file: path.resolve(__dirname, 'main.js'),
 			line: 1,
 			column: 7
 		},

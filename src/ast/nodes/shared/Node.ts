@@ -4,7 +4,11 @@ import Scope from '../../scopes/Scope';
 import Module from '../../../Module';
 import MagicString from 'magic-string';
 import Variable from '../../variables/Variable';
-import { ExpressionEntity, ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
+import {
+	ExpressionEntity,
+	ForEachReturnExpressionCallback,
+	SomeReturnExpressionCallback
+} from './Expression';
 import CallOptions from '../../CallOptions';
 import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import { Entity } from '../../Entity';
@@ -27,8 +31,8 @@ export interface Node extends Entity {
 	 * Usually one should not override this function but override bindNode and/or
 	 * bindChildren instead.
 	 */
-	bind (): void;
-	eachChild (callback: (node: Node) => void): void;
+	bind(): void;
+	eachChild(callback: (node: Node) => void): void;
 
 	/**
 	 * Determine if this Node would have an effect on the bundle.
@@ -36,7 +40,7 @@ export interface Node extends Entity {
 	 * which only have an effect if their surrounding loop or switch statement is included.
 	 * The options pass on information like this about the current execution path.
 	 */
-	hasEffects (options: ExecutionPathOptions): boolean;
+	hasEffects(options: ExecutionPathOptions): boolean;
 
 	/**
 	 * Includes the node in the bundle. Children are usually included if they are
@@ -61,8 +65,8 @@ export interface Node extends Entity {
 	 * initialiseNode and/or initialiseChildren instead. BlockScopes have a special
 	 * alternative initialisation initialiseAndReplaceScope.
 	 */
-	initialise (parentScope: Scope): void;
-	initialiseAndDeclare (parentScope: Scope, kind: string, init: ExpressionEntity | null): void;
+	initialise(parentScope: Scope): void;
+	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -90,11 +94,11 @@ export class NodeBase implements ExpressionNode {
 	parent: Node | { type?: string };
 	__enhanced: boolean;
 
-	constructor () {
+	constructor() {
 		this.keys = [];
 	}
 
-	bind () {
+	bind() {
 		this.bindChildren();
 		this.bindNode();
 	}
@@ -102,7 +106,7 @@ export class NodeBase implements ExpressionNode {
 	/**
 	 * Override to control on which children "bind" is called.
 	 */
-	bindChildren () {
+	bindChildren() {
 		this.eachChild((child: Node) => child.bind());
 	}
 
@@ -110,9 +114,9 @@ export class NodeBase implements ExpressionNode {
 	 * Override this to bind assignments to variables and do any initialisations that
 	 * require the scopes to be populated with variables.
 	 */
-	bindNode () { }
+	bindNode() {}
 
-	eachChild (callback: (node: Node) => void) {
+	eachChild(callback: (node: Node) => void) {
 		this.keys.forEach(key => {
 			const value = (<any>this)[key];
 			if (!value) return;
@@ -125,40 +129,42 @@ export class NodeBase implements ExpressionNode {
 		});
 	}
 
-	forEachReturnExpressionWhenCalledAtPath (
+	forEachReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
 		_callback: ForEachReturnExpressionCallback,
 		_options: ExecutionPathOptions
-	) { }
+	) {}
 
-	getValue () {
+	getValue() {
 		return UNKNOWN_VALUE;
 	}
 
-	hasEffects (options: ExecutionPathOptions): boolean {
+	hasEffects(options: ExecutionPathOptions): boolean {
 		return this.someChild((child: NodeBase) => child.hasEffects(options));
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenAssignedAtPath (_path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
 		return true;
 	}
 
-	hasEffectsWhenCalledAtPath (_path: ObjectPath, _callOptions: CallOptions, _options: ExecutionPathOptions) {
+	hasEffectsWhenCalledAtPath(
+		_path: ObjectPath,
+		_callOptions: CallOptions,
+		_options: ExecutionPathOptions
+	) {
 		return true;
 	}
 
-	private hasIncludedChild (): boolean {
-		return (
-			this.included || this.someChild((child: NodeBase) => child.hasIncludedChild())
-		);
+	private hasIncludedChild(): boolean {
+		return this.included || this.someChild((child: NodeBase) => child.hasIncludedChild());
 	}
 
-	includeInBundle () {
+	includeInBundle() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		this.eachChild(childNode => {
@@ -169,44 +175,44 @@ export class NodeBase implements ExpressionNode {
 		return addedNewNodes;
 	}
 
-	includeWithAllDeclaredVariables () {
+	includeWithAllDeclaredVariables() {
 		return this.includeInBundle();
 	}
 
-	initialise (parentScope: Scope) {
+	initialise(parentScope: Scope) {
 		this.initialiseScope(parentScope);
 		this.initialiseNode(parentScope);
 		this.initialiseChildren(parentScope);
 	}
 
-	initialiseAndDeclare (_parentScope: Scope, _kind: string, _init: ExpressionEntity | null) {}
+	initialiseAndDeclare(_parentScope: Scope, _kind: string, _init: ExpressionEntity | null) {}
 
 	/**
 	 * Override to change how and with what scopes children are initialised
 	 */
-	initialiseChildren (_parentScope: Scope) {
+	initialiseChildren(_parentScope: Scope) {
 		this.eachChild(child => child.initialise(this.scope));
 	}
 
 	/**
 	 * Override to perform special initialisation steps after the scope is initialised
 	 */
-	initialiseNode (_parentScope: Scope) { }
+	initialiseNode(_parentScope: Scope) {}
 
 	/**
 	 * Override if this scope should receive a different scope than the parent scope.
 	 */
-	initialiseScope (parentScope: Scope) {
+	initialiseScope(parentScope: Scope) {
 		this.scope = parentScope;
 	}
 
-	insertSemicolon (code: MagicString) {
+	insertSemicolon(code: MagicString) {
 		if (code.original[this.end - 1] !== ';') {
 			code.appendLeft(this.end, ';');
 		}
 	}
 
-	locate () {
+	locate() {
 		// useful for debugging
 		const location = locate(this.module.code, this.start, { offsetLine: 1 });
 		location.file = this.module.id;
@@ -215,20 +221,17 @@ export class NodeBase implements ExpressionNode {
 		return location;
 	}
 
-	reassignPath (_path: ObjectPath, _options: ExecutionPathOptions) { }
+	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
 
-	render (code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions) {
 		this.eachChild(child => child.render(code, options));
 	}
 
-	shouldBeIncluded () {
-		return (
-			this.hasIncludedChild()
-			|| this.hasEffects(ExecutionPathOptions.create())
-		);
+	shouldBeIncluded() {
+		return this.hasIncludedChild() || this.hasEffects(ExecutionPathOptions.create());
 	}
 
-	someChild (callback: (node: NodeBase) => boolean) {
+	someChild(callback: (node: NodeBase) => boolean) {
 		return this.keys.some(key => {
 			const value = (<any>this)[key];
 			if (!value) return false;
@@ -240,7 +243,7 @@ export class NodeBase implements ExpressionNode {
 		});
 	}
 
-	someReturnExpressionWhenCalledAtPath (
+	someReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
 		predicateFunction: SomeReturnExpressionCallback,
@@ -249,7 +252,7 @@ export class NodeBase implements ExpressionNode {
 		return predicateFunction(options)(UNKNOWN_EXPRESSION);
 	}
 
-	toString () {
+	toString() {
 		return this.module.code.slice(this.start, this.end);
 	}
 }

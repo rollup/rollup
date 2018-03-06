@@ -5,7 +5,7 @@ import { NodeType } from './NodeType';
 export default interface AssignmentProperty extends PatternNode {
 	type: NodeType.Property;
 	value: PatternNode;
-	key: ExpressionNode,
+	key: ExpressionNode;
 	kind: 'init';
 	method: false;
-}
+};

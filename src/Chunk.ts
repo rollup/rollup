@@ -95,7 +95,7 @@ export default class Chunk {
 			// exported name from source module
 			name: string;
 			variable: Variable;
-		}
+		};
 	};
 	private dependencies: (ExternalModule | Chunk)[];
 	// an entry module chunk is a chunk that exactly exports the exports of
@@ -103,7 +103,7 @@ export default class Chunk {
 	entryModule: Module;
 	isEntryModuleFacade: boolean;
 
-	constructor (graph: Graph, orderedModules: Module[]) {
+	constructor(graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
 		this.orderedModules = orderedModules;
 
@@ -127,7 +127,7 @@ export default class Chunk {
 		});
 	}
 
-	setId (id: string) {
+	setId(id: string) {
 		this.id = id;
 		this.name = makeLegal(id);
 	}
@@ -135,7 +135,7 @@ export default class Chunk {
 	// ensure that the module exports or reexports the given variable
 	// we don't replace reexports with the direct reexport from the final module
 	// as this might result in exposing an internal module which taints an entryModule chunk
-	ensureExport (module: Module | ExternalModule, variable: Variable, exportName: string): string {
+	ensureExport(module: Module | ExternalModule, variable: Variable, exportName: string): string {
 		// assert(module.chunk === this || module.isExternal);
 		let safeExportName = this.exportedVariableNames.get(variable);
 		if (safeExportName) {
@@ -162,7 +162,7 @@ export default class Chunk {
 		return safeExportName;
 	}
 
-	generateEntryExports (entryModule: Module) {
+	generateEntryExports(entryModule: Module) {
 		entryModule.getAllExports().forEach(exportName => {
 			const traced = this.traceExport(entryModule, exportName);
 			const variable = traced.module.traceExport(traced.name);
@@ -171,7 +171,11 @@ export default class Chunk {
 				tracedName = traced.name;
 			} else {
 				// if we exposed an export in another module ensure it is exported there
-				tracedName = (<Module>traced.module).chunk.ensureExport(traced.module, variable, traced.name);
+				tracedName = (<Module>traced.module).chunk.ensureExport(
+					traced.module,
+					variable,
+					traced.name
+				);
 			}
 			this.exports[exportName] = {
 				module: traced.module,
@@ -182,7 +186,7 @@ export default class Chunk {
 		});
 	}
 
-	collectDependencies (entryFacade?: Module) {
+	collectDependencies(entryFacade?: Module) {
 		if (entryFacade) {
 			this.dependencies = [entryFacade.chunk];
 			return;
@@ -227,7 +231,7 @@ export default class Chunk {
 		});
 	}
 
-	generateImports () {
+	generateImports() {
 		this.orderedModules.forEach(module => {
 			Object.keys(module.imports).forEach(importName => {
 				const declaration = module.imports[importName];
@@ -236,7 +240,10 @@ export default class Chunk {
 		});
 	}
 
-	populateImport (variable: Variable, tracedExport: { name: string, module: Module | ExternalModule }) {
+	populateImport(
+		variable: Variable,
+		tracedExport: { name: string; module: Module | ExternalModule }
+	) {
 		if (!variable.included) {
 			return;
 		}
@@ -246,9 +253,12 @@ export default class Chunk {
 		// ensure that the variable is exported by the other chunk to this one
 		if (tracedExport.module instanceof Module) {
 			importModule = tracedExport.module.chunk;
-			exportName = tracedExport.module.chunk.ensureExport(tracedExport.module, variable, tracedExport.name);
-		}
-		else {
+			exportName = tracedExport.module.chunk.ensureExport(
+				tracedExport.module,
+				variable,
+				tracedExport.name
+			);
+		} else {
 			importModule = tracedExport.module;
 			exportName = variable.name;
 		}
@@ -260,7 +270,7 @@ export default class Chunk {
 
 		let impt = this.imports.find(impt => impt.module === importModule);
 		if (!impt) {
-			this.imports.push(impt = { module: importModule, variables: [] });
+			this.imports.push((impt = { module: importModule, variables: [] }));
 		}
 
 		impt.variables.push({
@@ -270,19 +280,19 @@ export default class Chunk {
 		});
 	}
 
-	getImportIds (): string[] {
+	getImportIds(): string[] {
 		return this.dependencies.map(module => module.id);
 	}
 
-	getExportNames (): string[] {
+	getExportNames(): string[] {
 		return Object.keys(this.exports);
 	}
 
-	getJsonModules (): ModuleJSON[] {
+	getJsonModules(): ModuleJSON[] {
 		return this.orderedModules.map(module => module.toJSON());
 	}
 
-	traceImport (module: Module | ExternalModule, exportName: string) {
+	traceImport(module: Module | ExternalModule, exportName: string) {
 		const tracedExport = this.traceExport(module, exportName);
 
 		// ignore imports to modules already in this chunk
@@ -294,8 +304,11 @@ export default class Chunk {
 
 		// namespace variable can indicate multiple imports
 		if (tracedExport.name === '*') {
-			Object.keys((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations).forEach(importName => {
-				const original = ((<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations)[importName];
+			Object.keys(
+				(<NamespaceVariable>variable).originals || (<ExternalVariable>variable).module.declarations
+			).forEach(importName => {
+				const original = ((<NamespaceVariable>variable).originals ||
+					(<ExternalVariable>variable).module.declarations)[importName];
 				this.populateImport(original, {
 					name: importName,
 					module: tracedExport.module
@@ -310,7 +323,10 @@ export default class Chunk {
 
 	// trace a module export to its exposed chunk module export
 	// either in this chunk or in another
-	traceExport (module: Module | ExternalModule, name: string): { name: string, module: Module | ExternalModule } {
+	traceExport(
+		module: Module | ExternalModule,
+		name: string
+	): { name: string; module: Module | ExternalModule } {
 		if (name === '*') {
 			return { name, module };
 		}
@@ -323,8 +339,7 @@ export default class Chunk {
 			// we follow reexports if they are not entry points in the hope
 			// that we can get an entry point reexport to reduce the chance of
 			// tainting an entryModule chunk by exposing other unnecessary exports
-			if (module.isEntryPoint)
-				return { name, module };
+			if (module.isEntryPoint) return { name, module };
 			return module.chunk.traceExport(module, name);
 		}
 
@@ -361,9 +376,18 @@ export default class Chunk {
 		}
 	}
 
-	collectAddon (initialAddon: string, addonName: 'banner' | 'footer' | 'intro' | 'outro', sep: string = '\n') {
+	collectAddon(
+		initialAddon: string,
+		addonName: 'banner' | 'footer' | 'intro' | 'outro',
+		sep: string = '\n'
+	) {
 		return runSequence(
-			[{ pluginName: 'rollup', source: initialAddon } as { pluginName: string, source: string | (() => string) }]
+			[
+				{ pluginName: 'rollup', source: initialAddon } as {
+					pluginName: string;
+					source: string | (() => string);
+				}
+			]
 				.concat(
 					this.graph.plugins.map((plugin, idx) => {
 						return {
@@ -391,7 +415,7 @@ export default class Chunk {
 		).then(addons => addons.filter(Boolean).join(sep));
 	}
 
-	private setDynamicImportResolutions ({ format }: OutputOptions) {
+	private setDynamicImportResolutions({ format }: OutputOptions) {
 		const es = format === 'es';
 		let dynamicImportMechanism: DynamicImportMechanism;
 		let hasDynamicImports = false;
@@ -408,7 +432,7 @@ export default class Chunk {
 					left: 'new Promise(function (resolve, reject) { require([',
 					right: '], resolve, reject) })',
 					interopLeft: 'new Promise(function (resolve, reject) { require([',
-					interopRight: '], function (m) { resolve({ default: m }) }, reject) })',
+					interopRight: '], function (m) { resolve({ default: m }) }, reject) })'
 				};
 			} else if (format === 'system') {
 				dynamicImportMechanism = {
@@ -422,8 +446,7 @@ export default class Chunk {
 				const node = module.dynamicImports[index];
 				hasDynamicImports = true;
 
-				if (!replacement)
-					return;
+				if (!replacement) return;
 
 				if (replacement instanceof Module) {
 					// if we have the module in the chunk, inline as Promise.resolve(namespace)
@@ -443,18 +466,17 @@ export default class Chunk {
 				}
 			});
 		});
-		if (hasDynamicImports)
-			return dynamicImportMechanism;
+		if (hasDynamicImports) return dynamicImportMechanism;
 	}
 
-	private setIdentifierRenderResolutions (options: OutputOptions) {
+	private setIdentifierRenderResolutions(options: OutputOptions) {
 		const used = blank();
 		const es = options.format === 'es' || options.format === 'system';
 
 		// ensure no conflicts with globals
 		Object.keys(this.graph.scope.variables).forEach(name => (used[name] = 1));
 
-		function getSafeName (name: string): string {
+		function getSafeName(name: string): string {
 			let safeName = name;
 			while (used[safeName]) {
 				safeName = `${name}$${used[name]++}`;
@@ -487,7 +509,7 @@ export default class Chunk {
 					if (variable.name === '*') {
 						safeName = module.name;
 					} else if (variable.name === 'default') {
-						if (module.exportsNamespace || !es && module.exportsNames) {
+						if (module.exportsNamespace || (!es && module.exportsNames)) {
 							safeName = `${module.name}__default`;
 						} else {
 							safeName = module.name;
@@ -540,23 +562,22 @@ export default class Chunk {
 		this.graph.scope.deshadow(toDeshadow, this.orderedModules.map(module => module.scope));
 	}
 
-	private getCheckReexportDeclarations (): { [id: string]: ReexportSpecifier[] } {
+	private getCheckReexportDeclarations(): { [id: string]: ReexportSpecifier[] } {
 		const reexportDeclarations: {
-			[id: string]: ReexportSpecifier[]
+			[id: string]: ReexportSpecifier[];
 		} = {};
 
 		for (let name in this.exports) {
 			const expt = this.exports[name];
 			// skip local exports
-			if (expt.module.chunk === this)
-				continue;
+			if (expt.module.chunk === this) continue;
 			let depId;
 			if (expt.module.isExternal) {
 				depId = expt.module.id;
 			} else {
 				depId = (<Chunk>expt.module.chunk).id;
 			}
-			const exportDeclaration = reexportDeclarations[depId] = reexportDeclarations[depId] || [];
+			const exportDeclaration = (reexportDeclarations[depId] = reexportDeclarations[depId] || []);
 			exportDeclaration.push({
 				imported: expt.name,
 				reexported: name[0] === '*' ? '*' : name
@@ -566,15 +587,14 @@ export default class Chunk {
 		return reexportDeclarations;
 	}
 
-	private getChunkDependencyDeclarations (): ChunkDependencies {
+	private getChunkDependencyDeclarations(): ChunkDependencies {
 		const reexportDeclarations = this.getCheckReexportDeclarations();
 
 		const dependencies: ChunkDependencies = [];
 
 		// shortcut cross-chunk relations can be added by traceExport
 		this.imports.forEach(impt => {
-			if (this.dependencies.indexOf(impt.module) === -1)
-				this.dependencies.push(impt.module);
+			if (this.dependencies.indexOf(impt.module) === -1) this.dependencies.push(impt.module);
 		});
 
 		this.dependencies.forEach(dep => {
@@ -620,23 +640,20 @@ export default class Chunk {
 		return dependencies;
 	}
 
-	private getChunkExportDeclarations (): ChunkExports {
+	private getChunkExportDeclarations(): ChunkExports {
 		const exports: ChunkExports = [];
 		for (let name in this.exports) {
 			const expt = this.exports[name];
 			// skip external exports
-			if (expt.module.chunk !== this)
-				continue;
+			if (expt.module.chunk !== this) continue;
 
 			// determine if a hoisted export (function)
 			let hoisted = false;
 			if (expt.variable instanceof LocalVariable) {
 				expt.variable.declarations.forEach(decl => {
 					if (decl.type === NodeType.ExportDefaultDeclaration) {
-						if (decl.declaration.type === NodeType.FunctionDeclaration)
-							hoisted = true;
-					}
-					else if (decl.parent.type === NodeType.FunctionDeclaration) {
+						if (decl.declaration.type === NodeType.FunctionDeclaration) hoisted = true;
+					} else if (decl.parent.type === NodeType.FunctionDeclaration) {
 						hoisted = true;
 					}
 				});
@@ -651,14 +668,14 @@ export default class Chunk {
 		return exports;
 	}
 
-	getModuleDeclarations (): ModuleDeclarations {
+	getModuleDeclarations(): ModuleDeclarations {
 		return {
 			dependencies: this.getChunkDependencyDeclarations(),
 			exports: this.getChunkExportDeclarations()
 		};
 	}
 
-	render (options: OutputOptions) {
+	render(options: OutputOptions) {
 		return Promise.resolve()
 			.then(() => {
 				return Promise.all([
@@ -710,9 +727,9 @@ export default class Chunk {
 				if (!finalise) {
 					error({
 						code: 'INVALID_OPTION',
-						message: `Invalid format: ${
-							options.format
-							} - valid options are ${Object.keys(finalisers).join(', ')}`
+						message: `Invalid format: ${options.format} - valid options are ${Object.keys(
+							finalisers
+						).join(', ')}`
 					});
 				}
 
@@ -726,8 +743,14 @@ export default class Chunk {
 				magicString = finalise(
 					this,
 					(<any>magicString).trim(), // TODO TypeScript: Awaiting MagicString PR
-					{ exportMode, getPath, indentString, intro, outro,
-						dynamicImport: !!renderOptions.importMechanism },
+					{
+						exportMode,
+						getPath,
+						indentString,
+						intro,
+						outro,
+						dynamicImport: !!renderOptions.importMechanism
+					},
 					options
 				);
 
@@ -740,65 +763,53 @@ export default class Chunk {
 				let map: RawSourceMap = null;
 				const bundleSourcemapChain: RawSourceMap[] = [];
 
-				return transformBundle(
-					prevCode,
-					this.graph.plugins,
-					bundleSourcemapChain,
-					options
-				).then((code: string) => {
-					if (options.sourcemap) {
-						timeStart('sourcemap');
+				return transformBundle(prevCode, this.graph.plugins, bundleSourcemapChain, options).then(
+					(code: string) => {
+						if (options.sourcemap) {
+							timeStart('sourcemap');
 
-						let file = options.file ? options.sourcemapFile || options.file : this.id;
-						if (file)
-							file = resolve(
-								typeof process !== 'undefined' ? process.cwd() : '',
-								file
-							);
+							let file = options.file ? options.sourcemapFile || options.file : this.id;
+							if (file) file = resolve(typeof process !== 'undefined' ? process.cwd() : '', file);
 
-						if (
-							this.graph.hasLoaders ||
-							this.graph.plugins.find(
-								plugin => Boolean(plugin.transform || plugin.transformBundle)
-							)
-						) {
-							map = <any>magicString.generateMap({}); // TODO TypeScript: Awaiting missing version in SourceMap type
-							if (typeof map.mappings === 'string') {
-								map.mappings = decode(map.mappings);
+							if (
+								this.graph.hasLoaders ||
+								this.graph.plugins.find(plugin =>
+									Boolean(plugin.transform || plugin.transformBundle)
+								)
+							) {
+								map = <any>magicString.generateMap({}); // TODO TypeScript: Awaiting missing version in SourceMap type
+								if (typeof map.mappings === 'string') {
+									map.mappings = decode(map.mappings);
+								}
+								map = collapseSourcemaps(this, file, map, usedModules, bundleSourcemapChain);
+							} else {
+								map = <any>magicString.generateMap({ file, includeContent: true }); // TODO TypeScript: Awaiting missing version in SourceMap type
 							}
-							map = collapseSourcemaps(
-								this,
-								file,
-								map,
-								usedModules,
-								bundleSourcemapChain
-							);
-						} else {
-							map = <any>magicString.generateMap({ file, includeContent: true }); // TODO TypeScript: Awaiting missing version in SourceMap type
+
+							map.sources = map.sources.map(normalize);
+
+							timeEnd('sourcemap');
 						}
 
-						map.sources = map.sources.map(normalize);
-
-						timeEnd('sourcemap');
+						if (code[code.length - 1] !== '\n') code += '\n';
+						return { code, map } as { code: string; map: any }; // TODO TypeScript: Awaiting missing version in SourceMap type
 					}
-
-					if (code[code.length - 1] !== '\n') code += '\n';
-					return { code, map } as { code: string, map: any }; // TODO TypeScript: Awaiting missing version in SourceMap type
-				});
+				);
 			});
 	}
 
-	private createGetPath (options: OutputOptions) {
+	private createGetPath(options: OutputOptions) {
 		const optionsPaths = options.paths;
 		const getPath =
 			typeof optionsPaths === 'function'
-				? (id: string) => optionsPaths(id, this.id) || this.graph.getPathRelativeToBaseDirname(id, this.id)
-				: optionsPaths
 				? (id: string) =>
-					optionsPaths.hasOwnProperty(id)
-						? optionsPaths[id]
-						: this.graph.getPathRelativeToBaseDirname(id, this.id)
-				: (id: string) => this.graph.getPathRelativeToBaseDirname(id, this.id);
+						optionsPaths(id, this.id) || this.graph.getPathRelativeToBaseDirname(id, this.id)
+				: optionsPaths
+					? (id: string) =>
+							optionsPaths.hasOwnProperty(id)
+								? optionsPaths[id]
+								: this.graph.getPathRelativeToBaseDirname(id, this.id)
+					: (id: string) => this.graph.getPathRelativeToBaseDirname(id, this.id);
 		return getPath;
 	}
 }

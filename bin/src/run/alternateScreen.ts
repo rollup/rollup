@@ -9,13 +9,13 @@ const isMintty = isWindows && !!(process.env.SHELL || process.env.TERM);
 const isConEmuAnsiOn = (process.env.ConEmuANSI || '').toLowerCase() === 'on';
 const supportsAnsi = !isWindows || isMintty || isConEmuAnsiOn;
 
-export default function alternateScreen (enabled: boolean) {
+export default function alternateScreen(enabled: boolean) {
 	if (!enabled) {
 		let needAnnounce = true;
 		return {
-			open () { },
-			close () { },
-			reset (heading: string) {
+			open() {},
+			close() {},
+			reset(heading: string) {
 				if (needAnnounce) {
 					stderr(heading);
 					needAnnounce = false;
@@ -25,17 +25,17 @@ export default function alternateScreen (enabled: boolean) {
 	}
 
 	return {
-		open () {
+		open() {
 			if (supportsAnsi) {
 				process.stderr.write(SHOW_ALTERNATE_SCREEN);
 			}
 		},
-		close () {
+		close() {
 			if (supportsAnsi) {
 				process.stderr.write(HIDE_ALTERNATE_SCREEN);
 			}
 		},
-		reset (heading: string) {
+		reset(heading: string) {
 			stderr(`${ansiEscape.eraseScreen}${ansiEscape.cursorTo(0, 0)}${heading}`);
 		}
 	};

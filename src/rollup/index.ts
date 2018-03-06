@@ -19,15 +19,43 @@ import { TransformContext } from '../utils/transform';
 
 export const VERSION = '<@VERSION@>';
 
-export type SourceDescription = { code: string, map?: RawSourceMap, ast?: Program };
+export type SourceDescription = {
+	code: string;
+	map?: RawSourceMap;
+	ast?: Program;
+};
 
-export type ResolveIdHook = (id: string, parent: string) => Promise<string | boolean | void> | string | boolean | void;
-export type MissingExportHook = (module: Module, name: string, otherModule: Module | ExternalModule, start?: number) => void;
-export type IsExternalHook = (id: string, parentId: string, isResolved: boolean) => Promise<boolean | void> | boolean | void;
-export type LoadHook = (id: string) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
-export type TransformHook = (this: TransformContext, code: string, id: String) => Promise<SourceDescription | string | void>;
-export type TransformBundleHook = (code: string, options: OutputOptions) => Promise<SourceDescription | string>;
-export type ResolveDynamicImportHook = (specifier: string | Node, parentId: string) => Promise<string | void> | string | void
+export type ResolveIdHook = (
+	id: string,
+	parent: string
+) => Promise<string | boolean | void> | string | boolean | void;
+export type MissingExportHook = (
+	module: Module,
+	name: string,
+	otherModule: Module | ExternalModule,
+	start?: number
+) => void;
+export type IsExternalHook = (
+	id: string,
+	parentId: string,
+	isResolved: boolean
+) => Promise<boolean | void> | boolean | void;
+export type LoadHook = (
+	id: string
+) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
+export type TransformHook = (
+	this: TransformContext,
+	code: string,
+	id: String
+) => Promise<SourceDescription | string | void>;
+export type TransformBundleHook = (
+	code: string,
+	options: OutputOptions
+) => Promise<SourceDescription | string>;
+export type ResolveDynamicImportHook = (
+	specifier: string | Node,
+	parentId: string
+) => Promise<string | void> | string | void;
 
 export interface Plugin {
 	name: string;
@@ -115,7 +143,7 @@ export interface OutputOptions {
 	amd?: {
 		id?: string;
 		define?: string;
-	}
+	};
 	indent?: boolean;
 	strict?: boolean;
 	freeze?: boolean;
@@ -139,7 +167,7 @@ export interface RollupWarning {
 		line: number;
 		column: number;
 	};
-	deprecations?: { old: string, new: string }[];
+	deprecations?: { old: string; new: string }[];
 	modules?: string[];
 	names?: string[];
 	source?: string;
@@ -160,9 +188,10 @@ export interface RollupWarning {
 
 export type WarningHandler = (warning: string | RollupWarning) => void;
 
-function addDeprecations (deprecations: Deprecation[], warn: WarningHandler) {
-	const message = `The following options have been renamed — please update your config: ${deprecations.map(
-		option => `${option.old} -> ${option.new}`).join(', ')}`;
+function addDeprecations(deprecations: Deprecation[], warn: WarningHandler) {
+	const message = `The following options have been renamed — please update your config: ${deprecations
+		.map(option => `${option.old} -> ${option.new}`)
+		.join(', ')}`;
 	warn({
 		code: 'DEPRECATED_OPTIONS',
 		message,
@@ -170,7 +199,7 @@ function addDeprecations (deprecations: Deprecation[], warn: WarningHandler) {
 	});
 }
 
-function checkInputOptions (options: InputOptions) {
+function checkInputOptions(options: InputOptions) {
 	if (options.transform || options.load || options.resolveId || options.resolveExternal) {
 		throw new Error(
 			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details'
@@ -178,7 +207,7 @@ function checkInputOptions (options: InputOptions) {
 	}
 }
 
-function checkOutputOptions (options: OutputOptions) {
+function checkOutputOptions(options: OutputOptions) {
 	if (options.format === 'es6') {
 		error({
 			message: 'The `es6` output format is deprecated – use `es` instead',
@@ -199,10 +228,8 @@ function checkOutputOptions (options: OutputOptions) {
 }
 
 const throwAsyncGenerateError = {
-	get () {
-		throw new Error(
-			`bundle.generate(...) now returns a Promise instead of a { code, map } object`
-		);
+	get() {
+		throw new Error(`bundle.generate(...) now returns a Promise instead of a { code, map } object`);
 	}
 };
 
@@ -211,22 +238,22 @@ export interface OutputChunk {
 	exports: string[];
 	modules: ModuleJSON[];
 
-	generate: (outputOptions: OutputOptions) => Promise<{ code: string, map: SourceMap }>;
+	generate: (outputOptions: OutputOptions) => Promise<{ code: string; map: SourceMap }>;
 	write: (options: OutputOptions) => Promise<void>;
 }
 
-export default function rollup (rawInputOptions: InputOptions): Promise<OutputChunk>;
-export default function rollup (rawInputOptions: GenericConfigObject) {
+export default function rollup(rawInputOptions: InputOptions): Promise<OutputChunk>;
+export default function rollup(rawInputOptions: GenericConfigObject) {
 	try {
 		if (!rawInputOptions) {
 			throw new Error('You must supply an options object to rollup');
 		}
 		const { inputOptions, deprecations, optionError } = mergeOptions({
 			config: rawInputOptions,
-			deprecateConfig: { input: true },
+			deprecateConfig: { input: true }
 		});
 
-		if (optionError) inputOptions.onwarn({message: optionError, code: 'UNKNOWN_OPTION'});
+		if (optionError) inputOptions.onwarn({ message: optionError, code: 'UNKNOWN_OPTION' });
 
 		if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
 		checkInputOptions(inputOptions);
@@ -234,29 +261,42 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 
 		timeStart('--BUILD--');
 
-		const codeSplitting = inputOptions.experimentalCodeSplitting && inputOptions.input instanceof Array;
+		const codeSplitting =
+			inputOptions.experimentalCodeSplitting && inputOptions.input instanceof Array;
 
-		if (!codeSplitting) return graph.buildSingle(inputOptions.input)
-			.then(chunk => {
+		if (!codeSplitting)
+			return graph.buildSingle(inputOptions.input).then(chunk => {
 				timeEnd('--BUILD--');
 
-				function normalizeOptions (rawOutputOptions: GenericConfigObject) {
+				function normalizeOptions(rawOutputOptions: GenericConfigObject) {
 					if (!rawOutputOptions) {
 						throw new Error('You must supply an options object');
 					}
 					// since deprecateOptions, adds the output properties
 					// to `inputOptions` so adding that lastly
-					const consolidatedOutputOptions = Object.assign({}, {
-						output: Object.assign({}, rawOutputOptions, rawOutputOptions.output, inputOptions.output)
-					});
+					const consolidatedOutputOptions = Object.assign(
+						{},
+						{
+							output: Object.assign(
+								{},
+								rawOutputOptions,
+								rawOutputOptions.output,
+								inputOptions.output
+							)
+						}
+					);
 					const mergedOptions = mergeOptions({
 						// just for backward compatiblity to fallback on root
 						// if the option isn't present in `output`
 						config: consolidatedOutputOptions,
-						deprecateConfig: { output: true },
+						deprecateConfig: { output: true }
 					});
 
-					if (mergedOptions.optionError) mergedOptions.inputOptions.onwarn({message: mergedOptions.optionError, code: 'UNKNOWN_OPTION'});
+					if (mergedOptions.optionError)
+						mergedOptions.inputOptions.onwarn({
+							message: mergedOptions.optionError,
+							code: 'UNKNOWN_OPTION'
+						});
 
 					// now outputOptions is an array, but rollup.rollup API doesn't support arrays
 					const outputOptions = mergedOptions.outputOptions[0];
@@ -268,7 +308,7 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 					return outputOptions;
 				}
 
-				function generate (rawOutputOptions: GenericConfigObject) {
+				function generate(rawOutputOptions: GenericConfigObject) {
 					const outputOptions = normalizeOptions(rawOutputOptions);
 
 					timeStart('--GENERATE--');
@@ -337,26 +377,29 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 							}
 
 							promises.push(writeFile(file, code));
-							return Promise.all(promises).then(() => {
-								return mapSequence(
-									graph.plugins.filter(plugin => plugin.onwrite),
-									(plugin: Plugin) => {
-										return Promise.resolve(
-											plugin.onwrite(
-												assign(
-													{
-														bundle: result
-													},
-													outputOptions
-												),
-												result
-											)
+							return (
+								Promise.all(promises)
+									.then(() => {
+										return mapSequence(
+											graph.plugins.filter(plugin => plugin.onwrite),
+											(plugin: Plugin) => {
+												return Promise.resolve(
+													plugin.onwrite(
+														assign(
+															{
+																bundle: result
+															},
+															outputOptions
+														),
+														result
+													)
+												);
+											}
 										);
-									}
-								);
-							})
-								// ensures return isn't void[]
-								.then(() => { });
+									})
+									// ensures return isn't void[]
+									.then(() => {})
+							);
 						});
 					}
 				};
@@ -364,90 +407,91 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 				return result;
 			});
 
-		return graph.buildChunks(inputOptions.input)
-			.then(bundle => {
-				const chunks: {
-					[name: string]: {
-						name: string,
-						imports: string[],
-						exports: string[],
-						modules: ModuleJSON[]
-					}
-				} = {};
-				Object.keys(bundle).forEach(chunkName => {
-					const chunk = bundle[chunkName];
+		return graph.buildChunks(inputOptions.input).then(bundle => {
+			const chunks: {
+				[name: string]: {
+					name: string;
+					imports: string[];
+					exports: string[];
+					modules: ModuleJSON[];
+				};
+			} = {};
+			Object.keys(bundle).forEach(chunkName => {
+				const chunk = bundle[chunkName];
 
-					chunks[chunkName] = {
-						name: chunkName,
-						imports: chunk.getImportIds(),
-						exports: chunk.getExportNames(),
-						modules: chunk.getJsonModules()
-					};
-				});
+				chunks[chunkName] = {
+					name: chunkName,
+					imports: chunk.getImportIds(),
+					exports: chunk.getExportNames(),
+					modules: chunk.getJsonModules()
+				};
+			});
 
-				function generate (rawOutputOptions: GenericConfigObject) {
-					const outputOptions = getAndCheckOutputOptions(inputOptions, rawOutputOptions);
+			function generate(rawOutputOptions: GenericConfigObject) {
+				const outputOptions = getAndCheckOutputOptions(inputOptions, rawOutputOptions);
 
-					if (typeof outputOptions.file === 'string')
-						error({
-							code: 'INVALID_OPTION',
-							message: 'When code splitting, the "dir" output option must be used, not "file".'
-						});
+				if (typeof outputOptions.file === 'string')
+					error({
+						code: 'INVALID_OPTION',
+						message: 'When code splitting, the "dir" output option must be used, not "file".'
+					});
 
-					if (outputOptions.format === 'umd' || outputOptions.format === 'iife') {
-						error({
-							code: 'INVALID_OPTION',
-							message: 'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
-						});
-					}
-
-					timeStart('--GENERATE--');
-
-					const generated: { [chunkName: string]: SourceDescription } = {};
-
-					const promise = Promise.all(Object.keys(bundle).map(chunkName => {
-						const chunk = bundle[chunkName];
-						return chunk.render(outputOptions)
-							.then(rendered => {
-								timeEnd('--GENERATE--');
-
-								graph.plugins.forEach(plugin => {
-									if (plugin.ongenerate) {
-										const bundle = chunks[chunkName];
-										plugin.ongenerate(assign({ bundle }, outputOptions), rendered);
-									}
-								});
-
-								flushTime();
-
-								generated[chunkName] = rendered;
-							});
-					}))
-						.then(() => {
-							return generated;
-						});
-
-					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
-					Object.defineProperty(promise, 'map', throwAsyncGenerateError);
-
-					return promise;
+				if (outputOptions.format === 'umd' || outputOptions.format === 'iife') {
+					error({
+						code: 'INVALID_OPTION',
+						message:
+							'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
+					});
 				}
 
-				return {
-					chunks: chunks,
-					generate,
-					write (outputOptions: OutputOptions) {
-						if (!outputOptions || !outputOptions.dir) {
-							error({
-								code: 'MISSING_OPTION',
-								message: 'You must specify output.dir for multiple inputs'
+				timeStart('--GENERATE--');
+
+				const generated: { [chunkName: string]: SourceDescription } = {};
+
+				const promise = Promise.all(
+					Object.keys(bundle).map(chunkName => {
+						const chunk = bundle[chunkName];
+						return chunk.render(outputOptions).then(rendered => {
+							timeEnd('--GENERATE--');
+
+							graph.plugins.forEach(plugin => {
+								if (plugin.ongenerate) {
+									const bundle = chunks[chunkName];
+									plugin.ongenerate(assign({ bundle }, outputOptions), rendered);
+								}
 							});
-						}
 
-						return generate(outputOptions).then(result => {
-							const dir = outputOptions.dir;
+							flushTime();
 
-							return Promise.all(Object.keys(result).map(chunkName => {
+							generated[chunkName] = rendered;
+						});
+					})
+				).then(() => {
+					return generated;
+				});
+
+				Object.defineProperty(promise, 'code', throwAsyncGenerateError);
+				Object.defineProperty(promise, 'map', throwAsyncGenerateError);
+
+				return promise;
+			}
+
+			return {
+				chunks: chunks,
+				generate,
+				write(outputOptions: OutputOptions) {
+					if (!outputOptions || !outputOptions.dir) {
+						error({
+							code: 'MISSING_OPTION',
+							message: 'You must specify output.dir for multiple inputs'
+						});
+					}
+
+					return generate(outputOptions).then(result => {
+						const dir = outputOptions.dir;
+
+						return Promise.all(
+							Object.keys(result).map(chunkName => {
 								let chunk = result[chunkName];
 								let { code, map } = chunk;
 
@@ -467,41 +511,51 @@ export default function rollup (rawInputOptions: GenericConfigObject) {
 								}
 
 								promises.push(writeFile(dir + '/' + chunkName, code));
-								return Promise.all(promises).then(() => {
-									return mapSequence(
-										graph.plugins.filter(plugin => plugin.onwrite), (plugin: Plugin) =>
-											Promise.resolve(plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk))
-									);
-								})
-									// ensures return isn't void[]
-									.then(() => { });
-							}));
-						});
-					}
+								return (
+									Promise.all(promises)
+										.then(() => {
+											return mapSequence(
+												graph.plugins.filter(plugin => plugin.onwrite),
+												(plugin: Plugin) =>
+													Promise.resolve(
+														plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk)
+													)
+											);
+										})
+										// ensures return isn't void[]
+										.then(() => {})
+								);
+							})
+						);
+					});
 				}
-
-			});
-
-
+			};
+		});
 	} catch (err) {
 		return Promise.reject(err);
 	}
 }
 
-function getAndCheckOutputOptions (inputOptions: GenericConfigObject, rawOutputOptions: GenericConfigObject): OutputOptions {
+function getAndCheckOutputOptions(
+	inputOptions: GenericConfigObject,
+	rawOutputOptions: GenericConfigObject
+): OutputOptions {
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
 	}
 	// since deprecateOptions, adds the output properties
 	// to `inputOptions` so adding that lastly
-	const consolidatedOutputOptions = Object.assign({}, {
-		output: Object.assign({}, rawOutputOptions, rawOutputOptions.output, inputOptions.output)
-	});
+	const consolidatedOutputOptions = Object.assign(
+		{},
+		{
+			output: Object.assign({}, rawOutputOptions, rawOutputOptions.output, inputOptions.output)
+		}
+	);
 	const mergedOptions = mergeOptions({
 		// just for backward compatiblity to fallback on root
 		// if the option isn't present in `output`
 		config: consolidatedOutputOptions,
-		deprecateConfig: { output: true },
+		deprecateConfig: { output: true }
 	});
 
 	if (mergedOptions.optionError) throw new Error(mergedOptions.optionError);

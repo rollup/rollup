@@ -4,7 +4,7 @@ import { reservedWords } from '../../utils/identifierHelpers';
 import Identifier from '../nodes/Identifier';
 import Module from '../../Module';
 
-export function isNamespaceVariable (variable: Variable): variable is NamespaceVariable {
+export function isNamespaceVariable(variable: Variable): variable is NamespaceVariable {
 	return variable.isNamespace;
 }
 
@@ -16,7 +16,7 @@ export default class NamespaceVariable extends Variable {
 		[name: string]: Variable;
 	};
 
-	constructor (module: Module) {
+	constructor(module: Module) {
 		super(module.basename());
 		this.isNamespace = true;
 		this.module = module;
@@ -31,11 +31,11 @@ export default class NamespaceVariable extends Variable {
 			});
 	}
 
-	addReference (identifier: Identifier) {
+	addReference(identifier: Identifier) {
 		this.name = identifier.name;
 	}
 
-	includeVariable () {
+	includeVariable() {
 		if (!super.includeVariable()) {
 			return false;
 		}
@@ -44,7 +44,7 @@ export default class NamespaceVariable extends Variable {
 		return true;
 	}
 
-	renderBlock (legacy: boolean, freeze: boolean, indentString: string) {
+	renderBlock(legacy: boolean, freeze: boolean, indentString: string) {
 		const members = keys(this.originals).map(name => {
 			const original = this.originals[name];
 
@@ -56,9 +56,9 @@ export default class NamespaceVariable extends Variable {
 			return `${indentString}${name}: ${original.getName()}`;
 		});
 
-		const callee = freeze
-			? legacy ? `(Object.freeze || Object)` : `Object.freeze`
-			: '';
-		return `${this.module.graph.varOrConst} ${this.getName()} = ${callee}({\n${members.join(',\n')}\n});\n\n`;
+		const callee = freeze ? (legacy ? `(Object.freeze || Object)` : `Object.freeze`) : '';
+		return `${this.module.graph.varOrConst} ${this.getName()} = ${callee}({\n${members.join(
+			',\n'
+		)}\n});\n\n`;
 	}
 }

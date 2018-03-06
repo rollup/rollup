@@ -13,14 +13,15 @@ export default class MethodDefinition extends NodeBase {
 	computed: boolean;
 	static: boolean;
 
-	hasEffects (options: ExecutionPathOptions) {
+	hasEffects(options: ExecutionPathOptions) {
 		return this.key.hasEffects(options);
 	}
 
-	hasEffectsWhenCalledAtPath (path: ObjectPath, callOptions: CallOptions, options: ExecutionPathOptions) {
-		return (
-			path.length > 0 ||
-			this.value.hasEffectsWhenCalledAtPath([], callOptions, options)
-		);
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	) {
+		return path.length > 0 || this.value.hasEffectsWhenCalledAtPath([], callOptions, options);
 	}
 }

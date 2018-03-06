@@ -12,7 +12,7 @@ export default class ThisExpression extends NodeBase {
 
 	alias: string;
 
-	initialiseNode () {
+	initialiseNode() {
 		const lexicalBoundary = this.scope.findLexicalBoundary();
 
 		if (lexicalBoundary.isModuleScope) {
@@ -30,22 +30,19 @@ export default class ThisExpression extends NodeBase {
 		}
 	}
 
-	bindNode () {
+	bindNode() {
 		this.variable = <ThisVariable>this.scope.findVariable('this');
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return (
-			path.length > 0 &&
-			this.variable.hasEffectsWhenAccessedAtPath(path, options)
-		);
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+		return path.length > 0 && this.variable.hasEffectsWhenAccessedAtPath(path, options);
 	}
 
-	hasEffectsWhenAssignedAtPath (path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
-	render (code: MagicString, _options: RenderOptions) {
+	render(code: MagicString, _options: RenderOptions) {
 		if (this.alias) {
 			code.overwrite(this.start, this.end, this.alias, {
 				storeName: true,

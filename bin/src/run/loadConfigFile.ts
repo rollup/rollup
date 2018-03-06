@@ -6,19 +6,19 @@ import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import { InputOptions, OutputChunk } from '../../../src/rollup/index';
 
-export default function loadConfigFile (configFile: string, silent = false): Promise<InputOptions[]> {
+export default function loadConfigFile(
+	configFile: string,
+	silent = false
+): Promise<InputOptions[]> {
 	const warnings = batchWarnings();
 
 	return rollup
 		.rollup({
 			input: configFile,
 			external: (id: string) => {
-				return (
-					(id[0] !== '.' && !path.isAbsolute(id)) ||
-					id.slice(-5, id.length) === '.json'
-				);
+				return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json';
 			},
-			onwarn: warnings.add,
+			onwarn: warnings.add
 		})
 		.then((bundle: OutputChunk) => {
 			if (!silent && warnings.count > 0) {
@@ -46,8 +46,7 @@ export default function loadConfigFile (configFile: string, silent = false): Pro
 				if (Object.keys(configs).length === 0) {
 					handleError({
 						code: 'MISSING_CONFIG',
-						message:
-							'Config file must export an options object, or an array of options objects',
+						message: 'Config file must export an options object, or an array of options objects',
 						url: 'https://rollupjs.org/#using-config-files'
 					});
 				}

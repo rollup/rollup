@@ -7,8 +7,8 @@ module.exports = {
 	},
 	context: {
 		require: id => {
-			if ( id === 'external' ) return 42;
-			return require( id );
+			if (id === 'external') return 42;
+			return require(id);
 		}
 	}
 };

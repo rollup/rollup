@@ -2,7 +2,7 @@ import ensureArray from './ensureArray';
 import deprecateOptions, { Deprecation } from './deprecateOptions';
 import { InputOptions, WarningHandler, OutputOptions } from '../rollup/index';
 
-function normalizeObjectOptionValue (optionValue: any) {
+function normalizeObjectOptionValue(optionValue: any) {
 	if (!optionValue) {
 		return optionValue;
 	}
@@ -18,35 +18,35 @@ const defaultOnWarn: WarningHandler = warning => {
 	} else {
 		console.warn(warning.message); // eslint-disable-line no-console
 	}
-}
+};
 
 export type GenericConfigObject = { [key: string]: any };
 
-export default function mergeOptions ({
+export default function mergeOptions({
 	config,
 	command = {},
 	deprecateConfig,
 	defaultOnWarnHandler = defaultOnWarn
 }: {
-	config: GenericConfigObject,
-	command?: GenericConfigObject,
-	deprecateConfig?: GenericConfigObject,
-	defaultOnWarnHandler?: WarningHandler
+	config: GenericConfigObject;
+	command?: GenericConfigObject;
+	deprecateConfig?: GenericConfigObject;
+	defaultOnWarnHandler?: WarningHandler;
 }): {
-	inputOptions: any,
-	outputOptions: any,
-	deprecations: Deprecation[],
-	optionError: string | null
+	inputOptions: any;
+	outputOptions: any;
+	deprecations: Deprecation[];
+	optionError: string | null;
 } {
 	const deprecations = deprecate(config, command, deprecateConfig);
 
 	const getOption = (config: GenericConfigObject) => (name: string) =>
-			command[name] !== undefined ? command[name] : config[name];
+		command[name] !== undefined ? command[name] : config[name];
 
 	const getInputOption = getOption(config);
 	const getOutputOption = getOption(config.output || {});
 
-	function getObjectOption (name: string) {
+	function getObjectOption(name: string) {
 		const commandOption = normalizeObjectOptionValue(command[name]);
 		const configOption = normalizeObjectOptionValue(config[name]);
 		if (commandOption !== undefined) {
@@ -107,13 +107,14 @@ export default function mergeOptions ({
 	}
 
 	if (typeof configExternal === 'function') {
-		inputOptions.external = (id, ...rest: any[]) => configExternal(id, ...rest) || commandExternal.indexOf(id) !== -1;
+		inputOptions.external = (id, ...rest: any[]) =>
+			configExternal(id, ...rest) || commandExternal.indexOf(id) !== -1;
 	} else {
 		inputOptions.external = (configExternal || []).concat(commandExternal);
 	}
 
 	if (command.silent) {
-		inputOptions.onwarn = () => { };
+		inputOptions.onwarn = () => {};
 	}
 
 	const baseOutputOptions = {
@@ -152,11 +153,11 @@ export default function mergeOptions ({
 			command.output || config.output
 				? ensureArray(command.output || config.output)
 				: [
-					{
-						file: command.output ? command.output.file : null,
-						format: command.output ? command.output.format : null
-					}
-				];
+						{
+							file: command.output ? command.output.file : null,
+							format: command.output ? command.output.format : null
+						}
+				  ];
 	}
 
 	const outputOptions = mergedOutputOptions.map((output: any) => {
@@ -172,10 +173,9 @@ export default function mergeOptions ({
 	const outputOptionKeys: string[] = Array.isArray(config.output)
 		? config.output.reduce((keys: string[], o: OutputOptions) => [...keys, ...Object.keys(o)], [])
 		: Object.keys(config.output || {});
-	const errors = [
-		...Object.keys(config || {}),
-		...outputOptionKeys
-	].filter(k => k !== 'output' && validKeys.indexOf(k) === -1);
+	const errors = [...Object.keys(config || {}), ...outputOptionKeys].filter(
+		k => k !== 'output' && validKeys.indexOf(k) === -1
+	);
 
 	return {
 		inputOptions,
@@ -187,7 +187,7 @@ export default function mergeOptions ({
 	};
 }
 
-function deprecate (
+function deprecate(
 	config: GenericConfigObject,
 	command: GenericConfigObject = {},
 	deprecateConfig: GenericConfigObject = { input: true, output: true }

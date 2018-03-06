@@ -1,5 +1,5 @@
-const path = require( 'path' );
-const assert = require( 'assert' );
+const path = require('path');
+const assert = require('assert');
 
 module.exports = {
 	description: 'warns on missing (but unused) imports',
@@ -12,7 +12,7 @@ module.exports = {
 			message: `Non-existent export 'b' is imported from foo.js`,
 			pos: 12,
 			loc: {
-				file: path.resolve( __dirname, 'main.js' ),
+				file: path.resolve(__dirname, 'main.js'),
 				line: 1,
 				column: 12
 			},

@@ -11,7 +11,7 @@ export default class NewExpression extends NodeBase {
 
 	_callOptions: CallOptions;
 
-	hasEffects (options: ExecutionPathOptions): boolean {
+	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			this.arguments.some(child => child.hasEffects(options)) ||
 			this.callee.hasEffectsWhenCalledAtPath(
@@ -22,11 +22,11 @@ export default class NewExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath (path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
 
-	initialiseNode () {
+	initialiseNode() {
 		this._callOptions = CallOptions.create({
 			withNew: true,
 			args: this.arguments,

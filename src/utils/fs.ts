@@ -3,7 +3,7 @@ import { dirname } from './path';
 
 export * from 'fs';
 
-function mkdirpath (path: string) {
+function mkdirpath(path: string) {
 	const dir = dirname(path);
 	try {
 		fs.readdirSync(dir);
@@ -19,7 +19,7 @@ function mkdirpath (path: string) {
 	}
 }
 
-export function writeFile (dest: string, data: string | Buffer) {
+export function writeFile(dest: string, data: string | Buffer) {
 	return new Promise((fulfil, reject) => {
 		mkdirpath(dest);
 

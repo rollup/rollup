@@ -92,10 +92,7 @@ describe('hooks', () => {
 				});
 			})
 			.then(() => {
-				assert.deepEqual(result, [
-					{ a: file, format: 'cjs' },
-					{ b: file, format: 'cjs' }
-				]);
+				assert.deepEqual(result, [{ a: file, format: 'cjs' }, { b: file, format: 'cjs' }]);
 
 				return sander.unlink(file);
 			});

@@ -1,6 +1,6 @@
-import { ChunkExports, ChunkDependencies } from "../../Chunk";
+import { ChunkExports, ChunkDependencies } from '../../Chunk';
 
-export default function getExportBlock (
+export default function getExportBlock(
 	exports: ChunkExports,
 	dependencies: ChunkDependencies,
 	exportMode: string,
@@ -18,8 +18,7 @@ export default function getExportBlock (
 		// search for reexported default otherwise
 		if (!local) {
 			dependencies.some(dep => {
-				if (!dep.reexports)
-					return false;
+				if (!dep.reexports) return false;
 				return dep.reexports.some(expt => {
 					if (expt.reexported === 'default') {
 						local = `${dep.name}.${expt.imported}`;
@@ -27,7 +26,7 @@ export default function getExportBlock (
 					}
 					return false;
 				});
-			})
+			});
 		}
 		return `${mechanism} ${local};`;
 	}
@@ -39,7 +38,9 @@ export default function getExportBlock (
 		if (reexports && exportMode !== 'default') {
 			reexports.forEach(specifier => {
 				if (specifier.reexported === '*') {
-					exportBlock += `${exportBlock ? '\n' : ''}Object.keys(${name}).forEach(function (key) { exports[key] = ${name}[key]; });`;
+					exportBlock += `${
+						exportBlock ? '\n' : ''
+					}Object.keys(${name}).forEach(function (key) { exports[key] = ${name}[key]; });`;
 				}
 			});
 		}
@@ -49,16 +50,26 @@ export default function getExportBlock (
 		if (reexports && exportMode !== 'default') {
 			reexports.forEach(specifier => {
 				if (specifier.imported === 'default' && !isChunk) {
-					const exportsNamesOrNamespace = imports && 
-						imports.some(specifier => specifier.imported === '*' || specifier.imported !== 'default') ||
-						reexports && reexports.some(specifier => specifier.imported !== 'default' && specifier.imported !== '*');
+					const exportsNamesOrNamespace =
+						(imports &&
+							imports.some(
+								specifier => specifier.imported === '*' || specifier.imported !== 'default'
+							)) ||
+						(reexports &&
+							reexports.some(
+								specifier => specifier.imported !== 'default' && specifier.imported !== '*'
+							));
 					if (exportsNamesOrNamespace) {
-						exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name}__default;`;
+						exportBlock += `${exportBlock ? '\n' : ''}exports.${
+							specifier.reexported
+						} = ${name}__default;`;
 					} else {
 						exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name};`;
 					}
 				} else if (specifier.imported !== '*') {
-					exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name}.${specifier.imported};`;
+					exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name}.${
+						specifier.imported
+					};`;
 				} else if (specifier.reexported !== '*') {
 					exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name};`;
 				}

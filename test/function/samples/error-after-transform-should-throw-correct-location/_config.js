@@ -1,15 +1,15 @@
-var path = require( 'path' );
-var assert = require( 'assert' );
-var MagicString = require( 'magic-string' );
+var path = require('path');
+var assert = require('assert');
+var MagicString = require('magic-string');
 
 module.exports = {
 	description: 'error after transform should throw with correct location of file',
 	options: {
 		plugins: [
 			{
-				transform: function ( source, id ) {
-					var s = new MagicString( source );
-					s.prepend( "import _assign from 'object-assign';\n" );
+				transform: function(source, id) {
+					var s = new MagicString(source);
+					s.prepend("import _assign from 'object-assign';\n");
 
 					return {
 						code: s.toString(),
@@ -24,7 +24,7 @@ module.exports = {
 		message: `'default' is not exported by empty.js`,
 		pos: 44,
 		loc: {
-			file: path.resolve( __dirname, 'main.js' ),
+			file: path.resolve(__dirname, 'main.js'),
 			line: 1,
 			column: 7
 		},
