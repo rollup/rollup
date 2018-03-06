@@ -1,4 +1,4 @@
-System.register(['external'], function (exports, module) {
+System.register('reexportsDefaultExternal', ['external'], function (exports, module) {
 	'use strict';
 	return {
 		setters: [function (module) {

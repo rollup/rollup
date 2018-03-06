@@ -1,4 +1,4 @@
-System.register(['foo', 'bar', 'baz'], function (exports, module) {
+System.register('myBundle', ['foo', 'bar', 'baz'], function (exports, module) {
 	'use strict';
 	var _starExcludes = { default: 1 };
 	return {

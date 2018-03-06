@@ -1,4 +1,4 @@
-System.register(['babel-polyfill', 'other'], function (exports, module) {
+System.register('myBundle', ['babel-polyfill', 'other'], function (exports, module) {
 	'use strict';
 	var x;
 	return {

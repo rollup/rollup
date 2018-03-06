@@ -1,4 +1,4 @@
-System.register(['external'], function (exports, module) {
+System.register('stirred', ['external'], function (exports, module) {
 	'use strict';
 	var value, more;
 	return {

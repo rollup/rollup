@@ -1,4 +1,4 @@
-System.register(['d'], function (exports, module) {
+System.register('reexportsAliasingExternal', ['d'], function (exports, module) {
 	'use strict';
 	return {
 		setters: [function (module) {
