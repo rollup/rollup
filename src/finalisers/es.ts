@@ -59,7 +59,11 @@ export default function es(
 					output += '\n';
 				}
 				if (namespaceReexport) {
-					output += `import * as ${name} from '${getPath(id)}';\n`;
+					if (
+						!imports ||
+						!imports.some(specifier => specifier.imported === '*' && specifier.local === name)
+					)
+						output += `import * as ${name} from '${getPath(id)}';\n`;
 					output += `export { ${
 						name === namespaceReexport.reexported
 							? name

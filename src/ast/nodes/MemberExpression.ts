@@ -69,6 +69,7 @@ export default class MemberExpression extends NodeBase {
 	private arePropertyReadSideEffectsChecked: boolean;
 
 	bind() {
+		this.isBound = true;
 		const path = getPathIfNotComputed(this);
 		const baseVariable = path && this.scope.findVariable(path[0].key);
 		if (baseVariable && isNamespaceVariable(baseVariable)) {
@@ -86,7 +87,6 @@ export default class MemberExpression extends NodeBase {
 		} else {
 			this.bindChildren();
 		}
-		this.isBound = true;
 	}
 
 	private resolveNamespaceVariables(

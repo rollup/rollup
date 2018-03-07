@@ -30,6 +30,13 @@ export default class ClassDeclaration extends ClassNode {
 				` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`
 			);
 		}
+		if (this.id) {
+			const name = this.id.variable.getName();
+			if (name !== this.id.variable.name) {
+				code.appendRight(this.start, `let ${this.id.variable.safeName} = `);
+				code.prependLeft(this.end, ';');
+			}
+		}
 		super.render(code, options);
 	}
 }
