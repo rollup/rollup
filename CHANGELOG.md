@@ -1,8 +1,9 @@
 # rollup changelog
 
 ## 0.56.5
-* Convert code style via prettier ([#2031](https://github.com/rollup/rollup/pull/2031))
+* Preserve ids when deconflicting classes ([#2025](https://github.com/rollup/rollup/pull/2025))
 * Fix an issue with re-exported namespace imports ([#2034](https://github.com/rollup/rollup/pull/2034))
+* Convert code style via prettier ([#2031](https://github.com/rollup/rollup/pull/2031))
 * Fix links in documentation ([#2026](https://github.com/rollup/rollup/pull/2026))
 
 ## 0.56.4
