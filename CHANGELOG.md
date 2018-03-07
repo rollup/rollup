@@ -3,6 +3,7 @@
 ## 0.56.5
 * Preserve ids when deconflicting classes ([#2025](https://github.com/rollup/rollup/pull/2025))
 * Fix an issue with re-exported namespace imports ([#2034](https://github.com/rollup/rollup/pull/2034))
+* Prevent an infinite loop when binding member expressions ([#1963](https://github.com/rollup/rollup/pull/1963))
 * Convert code style via prettier ([#2031](https://github.com/rollup/rollup/pull/2031))
 * Fix links in documentation ([#2026](https://github.com/rollup/rollup/pull/2026))
 
