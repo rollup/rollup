@@ -1,7 +1,8 @@
 # rollup changelog
 
-## 0.56.5 (to be released)
-* Convert code style using prettier ([#2031](https://github.com/rollup/rollup/pull/2031))
+## 0.56.5
+* Convert code style via prettier ([#2031](https://github.com/rollup/rollup/pull/2031))
+* Fix an issue with re-exported namespace imports ([#2034](https://github.com/rollup/rollup/pull/2034))
 
 ## 0.56.4
 * Make rollup builds reproducible ([#2024](https://github.com/rollup/rollup/pull/2024))
