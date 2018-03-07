@@ -6,9 +6,15 @@
          alt="build status">
   </a>
   <a href="https://www.npmjs.com/package/rollup">
-    <a href="#backers" alt="sponsors on Open Collective"><img src="https://opencollective.com/rollup/backers/badge.svg" /></a> <a href="#sponsors" alt="Sponsors on Open Collective"><img src="https://opencollective.com/rollup/sponsors/badge.svg" /></a> <img src="https://img.shields.io/npm/v/rollup.svg"
+    <img src="https://img.shields.io/npm/v/rollup.svg"
          alt="npm version">
   </a>
+    <a href="#backers" alt="sponsors on Open Collective">
+      <img src="https://opencollective.com/rollup/backers/badge.svg" />
+  </a> 
+  <a href="#sponsors" alt="Sponsors on Open Collective">
+    <img src="https://opencollective.com/rollup/sponsors/badge.svg" />
+  </a> 
   <a href="https://github.com/rollup/rollup/blob/master/LICENSE.md">
     <img src="https://img.shields.io/npm/l/rollup.svg"
          alt="license">
