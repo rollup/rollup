@@ -34,7 +34,7 @@ export function handleError(err: RollupError, recover = false) {
 		stderr(chalk.dim(err.stack));
 	}
 
-	stderr('');
+	stderr(chalk.enabled ? '\u0007' : '');
 
 	if (!recover) process.exit(1);
 }
