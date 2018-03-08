@@ -147,6 +147,7 @@ export interface OutputOptions {
 	indent?: boolean;
 	strict?: boolean;
 	freeze?: boolean;
+	toStringTag?: boolean;
 
 	// shared?
 	legacy?: boolean;

@@ -11,7 +11,6 @@ var foo = (function (exports) {
 
 	function foo() {}
 
-
 	var browserStuff = (Object.freeze || Object)({
 		browserSpecificThing: browserSpecificThing,
 		foo: foo

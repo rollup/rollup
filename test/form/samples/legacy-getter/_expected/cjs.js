@@ -10,7 +10,6 @@ if ('ActiveXObject' in window) {
 
 function foo() {}
 
-
 var browserStuff = (Object.freeze || Object)({
 	browserSpecificThing: browserSpecificThing,
 	foo: foo

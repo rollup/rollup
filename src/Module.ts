@@ -599,15 +599,7 @@ export default class Module {
 	render(options: RenderOptions): MagicString {
 		const magicString = this.magicString.clone();
 		this.ast.render(magicString, options);
-
-		if (this.namespace().needsNamespaceBlock) {
-			magicString.append(
-				'\n\n' + this.namespace().renderBlock(options.legacy, options.freeze, '\t')
-			); // TODO use correct indentation
-		}
-
-		// TODO TypeScript: It seems magicString is missing type information here
-		return (<any>magicString).trim();
+		return magicString;
 	}
 
 	toJSON(): ModuleJSON {

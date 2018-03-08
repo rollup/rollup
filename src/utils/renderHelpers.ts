@@ -5,6 +5,8 @@ import { DynamicImportMechanism } from '../Chunk';
 export interface RenderOptions {
 	legacy: boolean;
 	freeze: boolean;
+	toStringTag: boolean;
+	indent: string;
 	importMechanism?: DynamicImportMechanism;
 	systemBindings: boolean;
 }

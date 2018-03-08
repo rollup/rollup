@@ -3,7 +3,6 @@ define(['other'], function (other) { 'use strict';
 	const a = 1;
 	const b = 2;
 
-
 	const namespace = Object.freeze({
 		a: a,
 		b: b

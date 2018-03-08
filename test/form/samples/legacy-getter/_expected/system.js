@@ -13,11 +13,11 @@ System.register([], function (exports, module) {
 
 			function foo() {}
 
-
 			var browserStuff = (Object.freeze || Object)({
 				browserSpecificThing: browserSpecificThing,
 				foo: foo
 			});
+			exports('B', browserStuff);
 
 			console.log(browserSpecificThing);
 
