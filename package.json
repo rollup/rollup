@@ -28,7 +28,10 @@
     "prepare": "npm run build",
     "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js",
     "precommit": "lint-staged",
-    "postcommit": "git reset"
+    "postcommit": "git reset",
+    "perf": "node scripts/perf.js",
+    "perf:init": "node scripts/perf-init.js",
+    "perf:debug": "node --inspect-brk scripts/perf.js 1"
   },
   "repository": "rollup/rollup",
   "keywords": [
@@ -75,6 +78,7 @@
     "console-group": "^0.3.1",
     "eslint": "^4.18.2",
     "eslint-plugin-import": "^2.9.0",
+    "execa": "^0.9.0",
     "fixturify": "^0.3.4",
     "husky": "^0.14.3",
     "immutable": "^3.8.2",
