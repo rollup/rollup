@@ -3,7 +3,7 @@ module.exports = {
 	options: {
 		output: {
 			name: 'iife',
-			toStringTag: true
+			namespaceToStringTag: true
 		}
 	}
 };

@@ -47,12 +47,12 @@ export default class NamespaceVariable extends Variable {
 		}
 		this.needsNamespaceBlock = true;
 		if (this.references) {
-			this.references.some(identifier => {
+			for (const identifier of this.references) {
 				if (identifier.module.execIndex <= this.module.execIndex) {
 					this.referencedEarly = true;
-					return true;
+					break;
 				}
-			});
+			}
 		}
 		Object.keys(this.originals).forEach(original => this.originals[original].includeVariable());
 		return true;
@@ -81,12 +81,12 @@ export default class NamespaceVariable extends Variable {
 			: '';
 
 		let output = `${this.module.graph.varOrConst} ${name} = ${
-			options.toStringTag
+			options.namespaceToStringTag
 				? `{\n${members.join(',\n')}\n};`
 				: `${callee}({\n${members.join(',\n')}\n});`
 		}`;
 
-		if (options.toStringTag) {
+		if (options.namespaceToStringTag) {
 			output += `\nif (typeof Symbol !== 'undefined' && Symbol.toStringTag)
 ${options.indent}Object.defineProperty(${name}, Symbol.toStringTag, { value: 'Module' });
 else

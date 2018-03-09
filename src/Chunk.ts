@@ -702,7 +702,7 @@ export default class Chunk {
 				const renderOptions: RenderOptions = {
 					legacy: this.graph.legacy,
 					freeze: options.freeze !== false,
-					toStringTag: options.toStringTag === true,
+					namespaceToStringTag: options.namespaceToStringTag === true,
 					indent: indentString,
 					systemBindings: options.format === 'system',
 					importMechanism: this.graph.dynamicImport && this.setDynamicImportResolutions(options)
