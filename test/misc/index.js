@@ -62,18 +62,13 @@ describe('sanity checks', () => {
 		const warnings = [];
 		const onwarn = warning => warnings.push(warning);
 		return rollup
-			.rollup({
-				input: 'x',
-				onwarn,
-				plUgins: [],
-				plugins: [loader({ x: `console.log( 42 );` })]
-			})
+			.rollup({ input: 'x', onwarn, plUgins: [], plugins: [loader({ x: `console.log( 42 );` })] })
 			.then(() => {
 				assert.deepEqual(warnings, [
 					{
 						code: 'UNKNOWN_OPTION',
 						message:
-							'Unknown option found: plUgins. Allowed keys: input, legacy, treeshake, acorn, acornInjectPlugins, context, moduleContext, plugins, onwarn, watch, cache, preferConst, experimentalDynamicImport, experimentalCodeSplitting, preserveSymlinks, entry, external, extend, amd, banner, footer, intro, format, outro, sourcemap, sourcemapFile, name, globals, interop, legacy, freeze, namespaceToStringTag, indent, strict, noConflict, paths, exports, file, dir, pureExternalModules'
+							'Unknown option found: plUgins. Allowed keys: acorn, acornInjectPlugins, cache, context, experimentalCodeSplitting, experimentalDynamicImport, input, legacy, moduleContext, onwarn, plugins, preferConst, preserveSymlinks, treeshake, watch, entry, external, amd, banner, dir, exports, extend, file, footer, format, freeze, globals, indent, interop, intro, legacy, name, namespaceToStringTag, noConflict, outro, paths, sourcemap, sourcemapFile, strict, pureExternalModules'
 					}
 				]);
 			});

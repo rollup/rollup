@@ -1,1 +1,1 @@
-["extend","amd","banner","footer","intro","format","outro","sourcemap","sourcemapFile","name","globals","interop","legacy","freeze","namespaceToStringTag","indent","strict","noConflict","paths","exports","file","dir","plugins"]
+["amd","banner","dir","exports","extend","file","footer","format","freeze","globals","indent","interop","intro","legacy","name","namespaceToStringTag","noConflict","outro","paths","sourcemap","sourcemapFile","strict","plugins"]
