@@ -67,21 +67,21 @@ export default function mergeOptions({
 	}
 
 	const inputOptions: InputOptions = {
-		input: getInputOption('input'),
-		legacy: getInputOption('legacy'),
-		treeshake: getObjectOption('treeshake'),
 		acorn: config.acorn,
 		acornInjectPlugins: config.acornInjectPlugins,
-		context: config.context,
-		moduleContext: config.moduleContext,
-		plugins: config.plugins,
-		onwarn: warn,
-		watch: config.watch,
 		cache: getInputOption('cache'),
-		preferConst: getInputOption('preferConst'),
-		experimentalDynamicImport: getInputOption('experimentalDynamicImport'),
+		context: config.context,
 		experimentalCodeSplitting: getInputOption('experimentalCodeSplitting'),
-		preserveSymlinks: getInputOption('preserveSymlinks')
+		experimentalDynamicImport: getInputOption('experimentalDynamicImport'),
+		input: getInputOption('input'),
+		legacy: getInputOption('legacy'),
+		moduleContext: config.moduleContext,
+		onwarn: warn,
+		plugins: config.plugins,
+		preferConst: getInputOption('preferConst'),
+		preserveSymlinks: getInputOption('preserveSymlinks'),
+		treeshake: getObjectOption('treeshake'),
+		watch: config.watch
 	};
 
 	// legacy, to ensure e.g. commonjs plugin still works
@@ -118,28 +118,28 @@ export default function mergeOptions({
 	}
 
 	const baseOutputOptions = {
-		extend: getOutputOption('extend'),
 		amd: Object.assign({}, config.amd, command.amd),
 		banner: getOutputOption('banner'),
+		dir: getOutputOption('dir'),
+		exports: getOutputOption('exports'),
+		extend: getOutputOption('extend'),
+		file: getOutputOption('file'),
 		footer: getOutputOption('footer'),
-		intro: getOutputOption('intro'),
 		format: getOutputOption('format'),
+		freeze: getOutputOption('freeze'),
+		globals: getOutputOption('globals'),
+		indent: getOutputOption('indent'),
+		interop: getOutputOption('interop'),
+		intro: getOutputOption('intro'),
+		legacy: getOutputOption('legacy'),
+		name: getOutputOption('name'),
+		namespaceToStringTag: getOutputOption('namespaceToStringTag'),
+		noConflict: getOutputOption('noConflict'),
 		outro: getOutputOption('outro'),
+		paths: getOutputOption('paths'),
 		sourcemap: getOutputOption('sourcemap'),
 		sourcemapFile: getOutputOption('sourcemapFile'),
-		name: getOutputOption('name'),
-		globals: getOutputOption('globals'),
-		interop: getOutputOption('interop'),
-		legacy: getOutputOption('legacy'),
-		freeze: getOutputOption('freeze'),
-		namespaceToStringTag: getOutputOption('namespaceToStringTag'),
-		indent: getOutputOption('indent'),
-		strict: getOutputOption('strict'),
-		noConflict: getOutputOption('noConflict'),
-		paths: getOutputOption('paths'),
-		exports: getOutputOption('exports'),
-		file: getOutputOption('file'),
-		dir: getOutputOption('dir')
+		strict: getOutputOption('strict')
 	};
 
 	let mergedOutputOptions;
