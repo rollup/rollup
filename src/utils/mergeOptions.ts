@@ -1,6 +1,6 @@
 import ensureArray from './ensureArray';
 import deprecateOptions, { Deprecation } from './deprecateOptions';
-import { InputOptions, WarningHandler, OutputOptions } from '../rollup/index';
+import { InputOptions, OutputOptions, WarningHandler } from '../rollup/index';
 
 function normalizeObjectOptionValue(optionValue: any) {
 	if (!optionValue) {
@@ -77,6 +77,7 @@ export default function mergeOptions({
 		legacy: getInputOption('legacy'),
 		moduleContext: config.moduleContext,
 		onwarn: warn,
+		perf: getInputOption('perf'),
 		plugins: config.plugins,
 		preferConst: getInputOption('preferConst'),
 		preserveSymlinks: getInputOption('preserveSymlinks'),

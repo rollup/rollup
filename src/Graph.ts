@@ -1,15 +1,16 @@
 import * as acorn from 'acorn';
 import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
-import { timeEnd, timeStart } from './utils/flushTime';
+import { timeEnd, timeStart } from './utils/timers';
 import first from './utils/first';
 import Module, { IdMap, ModuleJSON } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
-import { load, makeOnwarn, resolveId, handleMissingExport } from './utils/defaults';
+import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
 import { mapSequence } from './utils/promise';
 import transform from './utils/transform';
 import relativeId from './utils/relativeId';
 import error from './utils/error';
+import * as path from './utils/path';
 import { isAbsolute, isRelative, normalize, relative, resolve } from './utils/path';
 import {
 	CachedChunk,
@@ -27,11 +28,15 @@ import { RawSourceMap } from 'source-map';
 import Program from './ast/nodes/Program';
 import { Node } from './ast/nodes/shared/Node';
 import Chunk from './Chunk';
-import * as path from './utils/path';
 import GlobalScope from './ast/scopes/GlobalScope';
-import { randomUint8Array, Uint8ArrayXor, Uint8ArrayToHexString } from './utils/entryHashing';
+import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
 import { blank } from './utils/object';
 import firstSync from './utils/first-sync';
+
+const TIME_PARSE_MODULES = '## parse modules';
+const TIME_ANALYSE_GRAPH = '## analyse dependency graph';
+const TIME_MARK_INCLUDED = '## mark included statements';
+const TIME_GENERATE_CHUNKS = '## generate chunks';
 
 export type ResolveDynamicImportHandler = (
 	specifier: string | Node,
@@ -270,14 +275,17 @@ export default class Graph {
 
 	includeMarked(modules: Module[]) {
 		if (this.treeshake) {
-			let addedNewNodes;
+			let addedNewNodes,
+				treeshakingPass = 1;
 			do {
+				timeStart(`- treeshaking pass ${treeshakingPass}`);
 				addedNewNodes = false;
 				modules.forEach(module => {
 					if (module.includeInBundle()) {
 						addedNewNodes = true;
 					}
 				});
+				timeEnd(`- treeshaking pass ${treeshakingPass++}`);
 			} while (addedNewNodes);
 		} else {
 			// Necessary to properly replace namespace imports
@@ -289,22 +297,22 @@ export default class Graph {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
-		timeStart('phase 1');
+		timeStart(TIME_PARSE_MODULES);
 		return this.loadModule(entryModuleId).then(entryModule => {
-			timeEnd('phase 1');
+			timeEnd(TIME_PARSE_MODULES);
 
 			// Phase 2 - linking. We populate the module dependency links and
 			// determine the topological execution order for the bundle
-			timeStart('phase 2');
+			timeStart(TIME_ANALYSE_GRAPH);
 
 			this.link();
 
 			const { orderedModules, dynamicImports } = this.analyseExecution([entryModule]);
 
-			timeEnd('phase 2');
+			timeEnd(TIME_ANALYSE_GRAPH);
 
 			// Phase 3 – marking. We include all statements that should be included
-			timeStart('phase 3');
+			timeStart(TIME_MARK_INCLUDED);
 
 			entryModule.markExports();
 
@@ -320,10 +328,10 @@ export default class Graph {
 			// check for unused external imports
 			this.externalModules.forEach(module => module.warnUnusedImports());
 
-			timeEnd('phase 3');
+			timeEnd(TIME_MARK_INCLUDED);
 
 			// Phase 4 – we construct the chunk itself, generating its import and export facades
-			timeStart('phase 4');
+			timeStart(TIME_GENERATE_CHUNKS);
 
 			// generate the imports and exports for the output chunk file
 			const chunk = new Chunk(this, orderedModules);
@@ -332,7 +340,7 @@ export default class Graph {
 			chunk.generateImports();
 			chunk.generateEntryExports(entryModule);
 
-			timeEnd('phase 4');
+			timeEnd(TIME_GENERATE_CHUNKS);
 
 			return chunk;
 		});
@@ -342,14 +350,14 @@ export default class Graph {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
-		timeStart('phase 1');
+		timeStart(TIME_PARSE_MODULES);
 		return Promise.all(entryModuleIds.map(entryId => this.loadModule(entryId))).then(
 			entryModules => {
-				timeEnd('phase 1');
+				timeEnd(TIME_PARSE_MODULES);
 
 				// Phase 2 - linking. We populate the module dependency links and
 				// determine the topological execution order for the bundle
-				timeStart('phase 2');
+				timeStart(TIME_ANALYSE_GRAPH);
 
 				this.link();
 				const { orderedModules, dynamicImports } = this.analyseExecution(entryModules);
@@ -358,8 +366,10 @@ export default class Graph {
 						entryModules.push(dynamicImportModule);
 				});
 
+				timeEnd(TIME_ANALYSE_GRAPH);
+
 				// Phase 3 – marking. We include all statements that should be included
-				timeStart('phase 3');
+				timeStart(TIME_MARK_INCLUDED);
 
 				entryModules.forEach(entryModule => {
 					entryModule.markExports();
@@ -371,11 +381,11 @@ export default class Graph {
 				// check for unused external imports
 				this.externalModules.forEach(module => module.warnUnusedImports());
 
-				timeEnd('phase 3');
+				timeEnd(TIME_MARK_INCLUDED);
 
 				// Phase 4 – we construct the chunks, working out the optimal chunking using
 				// entry point graph colouring, before generating the import and export facades
-				timeStart('phase 4');
+				timeStart(TIME_GENERATE_CHUNKS);
 
 				// TODO: there is one special edge case unhandled here and that is that any module
 				//       exposed as an unresolvable export * (to a graph external export *,
@@ -450,7 +460,7 @@ export default class Graph {
 					chunks['./' + chunkName] = chunk;
 				});
 
-				timeEnd('phase 4');
+				timeEnd(TIME_GENERATE_CHUNKS);
 
 				return chunks;
 			}
@@ -554,8 +564,10 @@ export default class Graph {
 		const module: Module = new Module(this, id);
 		this.moduleById.set(id, module);
 
+		timeStart('- load modules');
 		return this.load(id)
 			.catch((err: Error) => {
+				timeEnd('load modules');
 				let msg = `Could not load ${id}`;
 				if (importer) msg += ` (imported by ${importer})`;
 
@@ -563,6 +575,7 @@ export default class Graph {
 				throw new Error(msg);
 			})
 			.then(source => {
+				timeEnd('- load modules');
 				if (typeof source === 'string') return source;
 				if (source && typeof source === 'object' && typeof source.code === 'string') return source;
 

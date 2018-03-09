@@ -68,7 +68,7 @@ describe('sanity checks', () => {
 					{
 						code: 'UNKNOWN_OPTION',
 						message:
-							'Unknown option found: plUgins. Allowed keys: acorn, acornInjectPlugins, cache, context, experimentalCodeSplitting, experimentalDynamicImport, input, legacy, moduleContext, onwarn, plugins, preferConst, preserveSymlinks, treeshake, watch, entry, external, amd, banner, dir, exports, extend, file, footer, format, freeze, globals, indent, interop, intro, legacy, name, namespaceToStringTag, noConflict, outro, paths, sourcemap, sourcemapFile, strict, pureExternalModules'
+							'Unknown option found: plUgins. Allowed keys: acorn, acornInjectPlugins, cache, context, experimentalCodeSplitting, experimentalDynamicImport, input, legacy, moduleContext, onwarn, perf, plugins, preferConst, preserveSymlinks, treeshake, watch, entry, external, amd, banner, dir, exports, extend, file, footer, format, freeze, globals, indent, interop, intro, legacy, name, namespaceToStringTag, noConflict, outro, paths, sourcemap, sourcemapFile, strict, pureExternalModules'
 					}
 				]);
 			});
