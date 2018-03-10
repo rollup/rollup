@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var self = Object.freeze({
+			var self = /*#__PURE__*/Object.freeze({
 				get p () { return p$$1; }
 			});
 

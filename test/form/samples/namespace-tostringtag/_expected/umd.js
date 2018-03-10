@@ -11,7 +11,7 @@
 		Object.defineProperty(self, Symbol.toStringTag, { value: 'Module' });
 	else
 		Object.defineProperty(self, 'toString', { value: function () { return '[object Module]' } });
-	Object.freeze(self);
+	/*#__PURE__*/Object.freeze(self);
 
 	console.log(Object.keys(self));
 

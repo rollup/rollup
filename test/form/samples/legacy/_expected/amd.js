@@ -3,7 +3,7 @@ define(['exports'], function (exports) { 'use strict';
 	const foo = 1;
 	const bar = 2;
 
-	var namespace = (Object.freeze || Object)({
+	var namespace = /*#__PURE__*/(Object.freeze || Object)({
 		foo: foo,
 		bar: bar
 	});

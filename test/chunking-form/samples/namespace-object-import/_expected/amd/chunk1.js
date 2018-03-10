@@ -3,7 +3,7 @@ define(['exports'], function (exports) { 'use strict';
 	var a = 'a';
 	var b = 'a';
 
-	var main2 = Object.freeze({
+	var main2 = /*#__PURE__*/Object.freeze({
 		a: a,
 		b: b
 	});

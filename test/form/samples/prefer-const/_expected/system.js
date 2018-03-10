@@ -10,7 +10,7 @@ System.register(['other'], function (exports, module) {
 			const a = 1;
 			const b = 2;
 
-			const namespace = Object.freeze({
+			const namespace = /*#__PURE__*/Object.freeze({
 				a: a,
 				b: b
 			});

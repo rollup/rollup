@@ -4,7 +4,7 @@
 	(factory((global.iife = {})));
 }(this, (function (exports) { 'use strict';
 
-	var self = Object.freeze({
+	var self = /*#__PURE__*/Object.freeze({
 		get p () { return p$$1; }
 	});
 
