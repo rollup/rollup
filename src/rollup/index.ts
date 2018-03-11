@@ -286,6 +286,9 @@ export interface OutputChunkSet {
 	write: (options: OutputOptions) => Promise<void>;
 }
 
+const TIME_BUILD = '# BUILD';
+const TIME_GENERATE = '# GENERATE';
+
 export default function rollup (rawInputOptions: InputOptions): Promise<OutputChunk | OutputChunkSet>;
 export default function rollup (rawInputOptions: GenericConfigObject): Promise<OutputChunk | OutputChunkSet> {
 	try {
@@ -293,14 +296,14 @@ export default function rollup (rawInputOptions: GenericConfigObject): Promise<O
 		initialiseTimers(inputOptions);
 		const graph = new Graph(inputOptions);
 
-		timeStart('# BUILD');
+		timeStart(TIME_BUILD);
 
 		const codeSplitting =
 			inputOptions.experimentalCodeSplitting && inputOptions.input instanceof Array;
 
 		if (!codeSplitting)
 			return graph.buildSingle(inputOptions.input).then(chunk => {
-				timeEnd('# BUILD');
+				timeEnd(TIME_BUILD);
 
 				function normalizeOptions(rawOutputOptions: GenericConfigObject) {
 					if (!rawOutputOptions) {
@@ -345,12 +348,12 @@ export default function rollup (rawInputOptions: GenericConfigObject): Promise<O
 				function generate(rawOutputOptions: GenericConfigObject) {
 					const outputOptions = normalizeOptions(rawOutputOptions);
 
-					timeStart('# GENERATE');
+					timeStart(TIME_GENERATE);
 
 					const promise = Promise.resolve()
 						.then(() => chunk.render(outputOptions))
 						.then(rendered => {
-							timeEnd('# GENERATE');
+							timeEnd(TIME_GENERATE);
 
 							graph.plugins.forEach(plugin => {
 								if (plugin.ongenerate) {
@@ -440,6 +443,7 @@ export default function rollup (rawInputOptions: GenericConfigObject): Promise<O
 			});
 
 		return graph.buildChunks(inputOptions.input).then(bundle => {
+			timeEnd(TIME_BUILD);
 			const chunks: {
 				[name: string]: {
 					name: string;
@@ -476,7 +480,7 @@ export default function rollup (rawInputOptions: GenericConfigObject): Promise<O
 					});
 				}
 
-				timeStart('# GENERATE');
+				timeStart(TIME_GENERATE);
 
 				const generated: { [chunkName: string]: SourceDescription } = {};
 
@@ -484,7 +488,7 @@ export default function rollup (rawInputOptions: GenericConfigObject): Promise<O
 					Object.keys(bundle).map(chunkName => {
 						const chunk = bundle[chunkName];
 						return chunk.render(outputOptions).then(rendered => {
-							timeEnd('# GENERATE');
+							timeEnd(TIME_GENERATE);
 
 							graph.plugins.forEach(plugin => {
 								if (plugin.ongenerate) {
