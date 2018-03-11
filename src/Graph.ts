@@ -34,6 +34,7 @@ import { blank } from './utils/object';
 import firstSync from './utils/first-sync';
 
 const TIME_PARSE_MODULES = '## parse modules';
+const TIME_LOAD_MODULES = '- load modules';
 const TIME_ANALYSE_GRAPH = '## analyse dependency graph';
 const TIME_MARK_INCLUDED = '## mark included statements';
 const TIME_GENERATE_CHUNKS = '## generate chunks';
@@ -559,10 +560,10 @@ export default class Graph {
 		const module: Module = new Module(this, id);
 		this.moduleById.set(id, module);
 
-		timeStart('- load modules');
+		timeStart(TIME_LOAD_MODULES);
 		return this.load(id)
 			.catch((err: Error) => {
-				timeEnd('load modules');
+				timeEnd(TIME_LOAD_MODULES);
 				let msg = `Could not load ${id}`;
 				if (importer) msg += ` (imported by ${importer})`;
 
@@ -570,7 +571,7 @@ export default class Graph {
 				throw new Error(msg);
 			})
 			.then(source => {
-				timeEnd('- load modules');
+				timeEnd(TIME_LOAD_MODULES);
 				if (typeof source === 'string') return source;
 				if (source && typeof source === 'object' && typeof source.code === 'string') return source;
 

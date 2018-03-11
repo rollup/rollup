@@ -31,7 +31,7 @@
     "postcommit": "git reset",
     "perf": "node scripts/perf.js",
     "perf:init": "node scripts/perf-init.js",
-    "perf:debug": "node --inspect-brk scripts/perf.js 1"
+    "perf:debug": "node --inspect-brk scripts/perf-debug.js"
   },
   "repository": "rollup/rollup",
   "keywords": [
