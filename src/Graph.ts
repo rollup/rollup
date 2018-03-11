@@ -112,12 +112,7 @@ export default class Graph {
 		}
 		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
 
-		this.plugins = ensureArray(options.plugins);
-
-		options = this.plugins.reduce((acc, plugin) => {
-			if (plugin.options) return plugin.options(acc) || acc;
-			return acc;
-		}, options);
+		this.plugins = options.plugins;
 
 		if (!options.input) {
 			throw new Error('You must supply options.input to rollup');
