@@ -8,7 +8,6 @@ import { defaultAcornOptions } from '../Module';
 import { RawSourceMap } from 'source-map';
 import { Plugin, RollupWarning, SourceDescription } from '../rollup/index';
 import Program from '../ast/nodes/Program';
-import { timeEnd, timeStart } from './timers';
 
 export interface TransformContext {
 	parse: IParse;
@@ -35,7 +34,7 @@ export default function transform(
 
 	let promise = Promise.resolve(source.code);
 
-	plugins.forEach((plugin, pluginIndex) => {
+	plugins.forEach(plugin => {
 		if (!plugin.transform) return;
 
 		promise = promise.then(previous => {
@@ -92,7 +91,6 @@ export default function transform(
 
 			let transformed;
 
-			timeStart(`- plugin ${pluginIndex} - transform`);
 			try {
 				transformed = plugin.transform.call(context, previous, id);
 			} catch (err) {
@@ -102,7 +100,6 @@ export default function transform(
 
 			return Promise.resolve(transformed)
 				.then(result => {
-					timeEnd(`- plugin ${pluginIndex} - transform`);
 					if (result == null) return previous;
 
 					if (typeof result === 'string') {

@@ -21,6 +21,7 @@ import { WatcherOptions } from '../watch/index';
 import { Deprecation } from '../utils/deprecateOptions';
 import Graph from '../Graph';
 import { TransformContext } from '../utils/transform';
+import ensureArray from '../utils/ensureArray';
 
 export const VERSION = '<@VERSION@>';
 
@@ -250,6 +251,28 @@ export interface OutputChunk {
 	getTimings?: () => SerializedTimings;
 }
 
+function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
+	if (plugin.options) return plugin.options(inputOptions) || inputOptions;
+	return inputOptions;
+}
+
+function getInputOptions(rawInputOptions: GenericConfigObject): any {
+	if (!rawInputOptions) {
+		throw new Error('You must supply an options object to rollup');
+	}
+	const { inputOptions, deprecations, optionError } = mergeOptions({
+		config: rawInputOptions,
+		deprecateConfig: { input: true }
+	});
+
+	if (optionError) inputOptions.onwarn({ message: optionError, code: 'UNKNOWN_OPTION' });
+	if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
+
+	checkInputOptions(inputOptions);
+	inputOptions.plugins = ensureArray(inputOptions.plugins);
+	return inputOptions.plugins.reduce(applyOptionHook, inputOptions);
+}
+
 export interface OutputChunkSet {
 	chunks: {
 		[chunkName: string]: {
@@ -266,21 +289,10 @@ export interface OutputChunkSet {
 export default function rollup (rawInputOptions: InputOptions): Promise<OutputChunk | OutputChunkSet>;
 export default function rollup (rawInputOptions: GenericConfigObject): Promise<OutputChunk | OutputChunkSet> {
 	try {
-		if (!rawInputOptions) {
-			throw new Error('You must supply an options object to rollup');
-		}
-		const { inputOptions, deprecations, optionError } = mergeOptions({
-			config: rawInputOptions,
-			deprecateConfig: { input: true }
-		});
-
-		if (optionError) inputOptions.onwarn({ message: optionError, code: 'UNKNOWN_OPTION' });
-
-		if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
-		checkInputOptions(inputOptions);
+		const inputOptions = getInputOptions(rawInputOptions);
+		initialiseTimers(inputOptions);
 		const graph = new Graph(inputOptions);
 
-		initialiseTimers(inputOptions.perf);
 		timeStart('# BUILD');
 
 		const codeSplitting =
