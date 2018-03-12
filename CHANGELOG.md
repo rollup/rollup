@@ -1,6 +1,7 @@
 # rollup changelog
 
 ## 0.57.0 (unreleased)
+* Include missing TypeScript dependencies ([#1965](https://github.com/rollup/rollup/pull/1965))
 * [BREAKING] Refactor missing export plugin hook ([#1987](https://github.com/rollup/rollup/pull/1987))
 
 ## 0.56.5
