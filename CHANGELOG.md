@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.57.0 (unreleased)
+* [BREAKING] Refactor missing export plugin hook ([#1987](https://github.com/rollup/rollup/pull/1987))
+
 ## 0.56.5
 * Preserve ids when deconflicting classes ([#2025](https://github.com/rollup/rollup/pull/2025))
 * Fix an issue with re-exported namespace imports ([#2034](https://github.com/rollup/rollup/pull/2034))
