@@ -12,6 +12,8 @@ import relativeId from './utils/relativeId';
 import error from './utils/error';
 import { isAbsolute, isRelative, normalize, relative, resolve } from './utils/path';
 import {
+	CachedChunk,
+	CachedChunkSet,
 	InputOptions,
 	IsExternalHook,
 	Plugin,
@@ -90,9 +92,18 @@ export default class Graph {
 	constructor(options: InputOptions) {
 		this.cachedModules = new Map();
 		if (options.cache) {
-			options.cache.modules.forEach(module => {
-				this.cachedModules.set(module.id, module);
-			});
+			if ((<CachedChunk>options.cache).modules) {
+				(<CachedChunk>options.cache).modules.forEach(module => {
+					this.cachedModules.set(module.id, module);
+				})
+			} else {
+				const chunks = (<CachedChunkSet>options.cache).chunks;
+				for (const chunkName in chunks) {
+					chunks[chunkName].modules.forEach(module => {
+						this.cachedModules.set(module.id, module);
+					});
+				}
+			}
 		}
 		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
 
