@@ -276,21 +276,26 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 export interface OutputChunkSet {
 	chunks: {
 		[chunkName: string]: {
-			name: string,
-			imports: string[],
-			exports: string[],
-			modules: ModuleJSON[]
-		}
+			name: string;
+			imports: string[];
+			exports: string[];
+			modules: ModuleJSON[];
+		};
 	};
 	generate: (outputOptions: OutputOptions) => Promise<{ [chunkName: string]: SourceDescription }>;
 	write: (options: OutputOptions) => Promise<void>;
+	getTimings?: () => SerializedTimings;
 }
 
 const TIME_BUILD = '# BUILD';
 const TIME_GENERATE = '# GENERATE';
 
-export default function rollup (rawInputOptions: InputOptions): Promise<OutputChunk | OutputChunkSet>;
-export default function rollup (rawInputOptions: GenericConfigObject): Promise<OutputChunk | OutputChunkSet> {
+export default function rollup(
+	rawInputOptions: InputOptions
+): Promise<OutputChunk | OutputChunkSet>;
+export default function rollup(
+	rawInputOptions: GenericConfigObject
+): Promise<OutputChunk | OutputChunkSet> {
 	try {
 		const inputOptions = getInputOptions(rawInputOptions);
 		initialiseTimers(inputOptions);
@@ -435,10 +440,10 @@ export default function rollup (rawInputOptions: GenericConfigObject): Promise<O
 						});
 					}
 				};
+
 				if (inputOptions.perf === true) {
 					result.getTimings = getTimings;
 				}
-
 				return result;
 			});
 
@@ -508,10 +513,10 @@ export default function rollup (rawInputOptions: GenericConfigObject): Promise<O
 				return promise;
 			}
 
-			return {
+			const result: OutputChunkSet = {
 				chunks: chunks,
 				generate,
-				write (outputOptions: OutputOptions): Promise<void> {
+				write(outputOptions: OutputOptions): Promise<void> {
 					if (!outputOptions || !outputOptions.dir) {
 						error({
 							code: 'MISSING_OPTION',
@@ -543,23 +548,25 @@ export default function rollup (rawInputOptions: GenericConfigObject): Promise<O
 								}
 
 								promises.push(writeFile(dir + '/' + chunkName, code));
-								return (
-									Promise.all(promises)
-										.then(() => {
-											return mapSequence(
-												graph.plugins.filter(plugin => plugin.onwrite),
-												(plugin: Plugin) =>
-													Promise.resolve(
-														plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk)
-													)
-											);
-										})
-								);
+								return Promise.all(promises).then(() => {
+									return mapSequence(
+										graph.plugins.filter(plugin => plugin.onwrite),
+										(plugin: Plugin) =>
+											Promise.resolve(
+												plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk)
+											)
+									);
+								});
 							})
 						).then(() => {}); // ensures return void and not void[][]
 					});
 				}
 			};
+
+			if (inputOptions.perf === true) {
+				result.getTimings = getTimings;
+			}
+			return result;
 		});
 	} catch (err) {
 		return Promise.reject(err);
