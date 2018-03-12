@@ -16,7 +16,6 @@ import {
 import { NodeType } from './NodeType';
 import AssignmentExpression from './AssignmentExpression';
 import UpdateExpression from './UpdateExpression';
-import ClassDeclaration from './ClassDeclaration';
 import { RenderOptions } from '../../utils/renderHelpers';
 
 export function isIdentifier(node: Node): node is Identifier {
@@ -163,13 +162,7 @@ export default class Identifier extends NodeBase {
 		if (this.variable) {
 			const name = this.variable.getName();
 
-			if (
-				name !== this.name &&
-				!(
-					this.parent.type === NodeType.ClassDeclaration &&
-					(<ClassDeclaration>this.parent).id === this
-				)
-			) {
+			if (name !== this.name) {
 				code.overwrite(this.start, this.end, name, {
 					storeName: true,
 					contentOnly: false
