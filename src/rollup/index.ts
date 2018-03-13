@@ -6,8 +6,7 @@ import { mapSequence } from '../utils/promise';
 import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
-import Module, { ModuleJSON } from '../Module';
-import ExternalModule from '../ExternalModule';
+import { ModuleJSON } from '../Module';
 import { RawSourceMap } from 'source-map';
 import Program from '../ast/nodes/Program';
 import { Node } from '../ast/nodes/shared/Node';
@@ -30,10 +29,10 @@ export type ResolveIdHook = (
 	parent: string
 ) => Promise<string | boolean | void> | string | boolean | void;
 export type MissingExportHook = (
-	module: Module,
-	name: string,
-	otherModule: Module | ExternalModule,
-	start?: number
+	exportName: string,
+	importingModule: string,
+	importedModule: string,
+	importerStart?: number
 ) => void;
 export type IsExternalHook = (
 	id: string,
@@ -83,15 +82,15 @@ export interface TreeshakingOptions {
 export type ExternalOption = string[] | IsExternalHook;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 
+export type CachedChunk = { modules: ModuleJSON[] };
+export type CachedChunkSet = { chunks: { [chunkName: string]: CachedChunk } };
 export interface InputOptions {
 	input: string | string[];
 	external?: ExternalOption;
 	plugins?: Plugin[];
 
 	onwarn?: WarningHandler;
-	cache?: {
-		modules: ModuleJSON[];
-	};
+	cache?: CachedChunk | CachedChunkSet;
 
 	acorn?: {};
 	acornInjectPlugins?: Function[];
@@ -243,8 +242,21 @@ export interface OutputChunk {
 	write: (options: OutputOptions) => Promise<void>;
 }
 
-export default function rollup(rawInputOptions: InputOptions): Promise<OutputChunk>;
-export default function rollup(rawInputOptions: GenericConfigObject) {
+export interface OutputChunkSet {
+	chunks: {
+		[chunkName: string]: {
+			name: string,
+			imports: string[],
+			exports: string[],
+			modules: ModuleJSON[]
+		}
+	};
+	generate: (outputOptions: OutputOptions) => Promise<{ [chunkName: string]: SourceDescription }>;
+	write: (options: OutputOptions) => Promise<void>;
+}
+
+export default function rollup (rawInputOptions: InputOptions): Promise<OutputChunk | OutputChunkSet>;
+export default function rollup (rawInputOptions: GenericConfigObject): Promise<OutputChunk | OutputChunkSet> {
 	try {
 		if (!rawInputOptions) {
 			throw new Error('You must supply an options object to rollup');
@@ -480,7 +492,7 @@ export default function rollup(rawInputOptions: GenericConfigObject) {
 			return {
 				chunks: chunks,
 				generate,
-				write(outputOptions: OutputOptions) {
+				write (outputOptions: OutputOptions): Promise<void> {
 					if (!outputOptions || !outputOptions.dir) {
 						error({
 							code: 'MISSING_OPTION',
@@ -523,11 +535,9 @@ export default function rollup(rawInputOptions: GenericConfigObject) {
 													)
 											);
 										})
-										// ensures return isn't void[]
-										.then(() => {})
 								);
 							})
-						);
+						).then(() => {}); // ensures return void and not void[][]
 					});
 				}
 			};

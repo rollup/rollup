@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.57.0 (unreleased)
+* Enable watch mode when code-splitting ([#2035](https://github.com/rollup/rollup/pull/2035))
+* Include missing TypeScript dependencies ([#1965](https://github.com/rollup/rollup/pull/1965))
+* [BREAKING] Refactor missing export plugin hook ([#1987](https://github.com/rollup/rollup/pull/1987))
+
 ## 0.56.5
 * Preserve ids when deconflicting classes ([#2025](https://github.com/rollup/rollup/pull/2025))
 * Fix an issue with re-exported namespace imports ([#2034](https://github.com/rollup/rollup/pull/2034))

@@ -1,7 +1,7 @@
 import path from 'path';
 import { EventEmitter } from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
-import rollup, { InputOptions, OutputOptions, OutputChunk } from '../rollup/index';
+import rollup, { CachedChunk, CachedChunkSet, InputOptions, OutputOptions, OutputChunk, OutputChunkSet } from '../rollup/index';
 import ensureArray from '../utils/ensureArray';
 import { mapSequence } from '../utils/promise';
 import { addTask, deleteTask } from './fileWatchers';
@@ -100,7 +100,7 @@ export class Task {
 	closed: boolean;
 	watched: Set<string>;
 	inputOptions: InputOptions;
-	cache: OutputChunk;
+	cache: CachedChunk | CachedChunkSet;
 
 	chokidarOptions: WatchOptions;
 	chokidarOptionsHash: string;
@@ -126,10 +126,7 @@ export class Task {
 
 		this.outputs = outputOptions;
 		this.outputFiles = this.outputs.map(output => {
-			if (!output.file) {
-				throw new Error(`watch is currently only supported for a single output.file`);
-			}
-			return path.resolve(output.file);
+			return path.resolve(output.file || output.dir);
 		});
 
 		const watchOptions = inputOptions.watch || {};
@@ -195,25 +192,34 @@ export class Task {
 		}
 
 		return rollup(options)
-			.then((chunk: OutputChunk) => {
+			.then((result: OutputChunk | OutputChunkSet) => {
 				if (this.closed) return;
 
-				this.cache = chunk;
+				const watched = this.watched = new Set();
 
-				const watched = new Set();
+				const watchChunk = (chunk: {modules: ModuleJSON[]}) => {
+					chunk.modules.forEach((module: ModuleJSON) => {
+						watched.add(module.id);
+						this.watchFile(module.id);
+					});
 
-				chunk.modules.forEach((module: ModuleJSON) => {
-					watched.add(module.id);
-					this.watchFile(module.id);
-				});
+					this.watched.forEach(id => {
+						if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
+					});
+				}
 
-				this.watched.forEach(id => {
-					if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
-				});
+				this.cache = result;
+				if ((<OutputChunkSet>result).chunks) {
+					const chunks = (<OutputChunkSet>result).chunks;
+					for (const chunkName in chunks) {
+						watchChunk(chunks[chunkName]);
+					}
+				} else {
+					const chunk = (<OutputChunk>result);
+					watchChunk(chunk)
+				}
 
-				this.watched = watched;
-
-				return Promise.all(this.outputs.map(output => chunk.write(output)));
+				return Promise.all(this.outputs.map(output => result.write(output)));
 			})
 			.then(() => {
 				this.watcher.emit('event', {
@@ -227,11 +233,20 @@ export class Task {
 				if (this.closed) return;
 
 				if (this.cache) {
-					this.cache.modules.forEach(module => {
-						// this is necessary to ensure that any 'renamed' files
-						// continue to be watched following an error
-						this.watchFile(module.id);
-					});
+					// this is necessary to ensure that any 'renamed' files
+					// continue to be watched following an error
+					if ((<CachedChunk>this.cache).modules) {
+						(<CachedChunk>this.cache).modules.forEach(module => {
+							this.watchFile(module.id);
+						})
+					} else {
+						const chunks = (<CachedChunkSet>this.cache).chunks;
+						for (const chunkName in chunks) {
+							chunks[chunkName].modules.forEach(module => {
+								this.watchFile(module.id);
+							});
+						}
+					}
 				}
 				throw error;
 			});

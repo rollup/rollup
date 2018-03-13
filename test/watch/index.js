@@ -64,6 +64,7 @@ describe('rollup.watch', () => {
 	}
 
 	function runTests(chokidar) {
+
 		it('watches a file', () => {
 			return sander
 				.copydir('test/watch/samples/basic')
@@ -93,6 +94,49 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 43);
+							watcher.close();
+						}
+					]);
+				});
+		});
+
+		it('watches a file in code-splitting mode', () => {
+			return sander
+				.copydir('test/watch/samples/code-splitting')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: ['test/_tmp/input/main1.js', 'test/_tmp/input/main2.js'],
+						output: {
+							dir: 'test/_tmp/output',
+							format: 'cjs'
+						},
+						watch: { chokidar },
+						experimentalCodeSplitting: true
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							delete require.cache[require.resolve('../_tmp/output/chunk1.js')];
+							assert.equal(run('../_tmp/output/main1.js'), 21);
+							assert.equal(run('../_tmp/output/main2.js'), 42);
+							sander.writeFileSync(
+								'test/_tmp/input/shared.js',
+								'export const value = 22;'
+							);
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							delete require.cache[require.resolve('../_tmp/output/chunk1.js')];
+							assert.equal(run('../_tmp/output/main1.js'), 22);
+							assert.equal(run('../_tmp/output/main2.js'), 44);
 							watcher.close();
 						}
 					]);
