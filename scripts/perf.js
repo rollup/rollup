@@ -72,6 +72,7 @@ async function buildAndGetTimings(config) {
 	if (Array.isArray(config.output)) {
 		config.output = config.output[0];
 	}
+	gc();
 	const bundle = await rollup.rollup(config);
 	await bundle.generate(config.output);
 	return bundle.getTimings();
