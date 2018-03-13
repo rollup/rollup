@@ -7,7 +7,7 @@ const { loadPerfConfig, targetDir } = require('./load-perf-config');
 const perfFile = path.resolve(targetDir, 'rollup.perf.json');
 
 let numberOfRunsToAverage = 6;
-let numberOfDiscardedResults = 1;
+let numberOfDiscardedResults = 3;
 if (process.argv.length >= 3) {
 	numberOfRunsToAverage = Number.parseInt(process.argv[2]);
 	if (process.argv.length >= 4) {
@@ -24,35 +24,46 @@ if (!(numberOfDiscardedResults >= 0) || !(numberOfDiscardedResults < numberOfRun
 }
 console.info(
 	chalk.bold(
-		`Calculating the average of ${chalk.cyan(numberOfRunsToAverage)} runs discarding ${chalk.cyan(
-			numberOfDiscardedResults
-		)} outliers.\n`
+		`Calculating the average of ${chalk.cyan(
+			numberOfRunsToAverage
+		)} runs discarding the ${chalk.cyan(numberOfDiscardedResults)} largest results.\n`
 	) + 'Run "npm run perf <number of runs> <number of discarded results>" to change that.'
 );
 
-function getAverage(times) {
-	const initialAverage = times.reduce((sum, time) => sum + time, 0) / numberOfRunsToAverage;
+function getSingleAverage(times, runs, discarded) {
+	const actualDiscarded = Math.min(discarded, runs - 1);
 	return (
 		times
-			.map(time => ({ time, deviation: Math.abs(time - initialAverage) }))
-			.sort(({ deviation: dev1 }, { deviation: dev2 }) => dev2 - dev1)
-			.slice(numberOfDiscardedResults)
-			.reduce((sum, { time }) => sum + time, 0) /
-		(numberOfRunsToAverage - numberOfDiscardedResults)
+			.sort()
+			.reverse()
+			.slice(actualDiscarded)
+			.reduce((sum, time) => sum + time, 0) /
+		(runs - actualDiscarded)
 	);
 }
 
-async function getAverageTimings(config) {
-	await buildAndGetTimings(config);
-	console.info('Completed initial run (Discarded).');
+function getAverage(accumulatedTimings, runs, discarded) {
+	const averageTimings = {};
+	Object.keys(accumulatedTimings).forEach(label => {
+		averageTimings[label] = getSingleAverage(accumulatedTimings[label], runs, discarded);
+	});
+	return averageTimings;
+}
+
+async function calculatePrintAndPersistTimings(config, existingTimings) {
 	const timings = await buildAndGetTimings(config);
-	console.info('Completed run 1.');
 	Object.keys(timings).forEach(label => {
 		timings[label] = [timings[label]];
 	});
-	for (let currentRun = 2; currentRun <= numberOfRunsToAverage; currentRun++) {
-		const currentTimings = await buildAndGetTimings(config);
+	for (let currentRun = 1; currentRun < numberOfRunsToAverage; currentRun++) {
+		const numberOfLinesToClear = printTimings(
+			getAverage(timings, currentRun, numberOfDiscardedResults),
+			existingTimings,
+			/^#/
+		);
 		console.info(`Completed run ${currentRun}.`);
+		const currentTimings = await buildAndGetTimings(config);
+		clearLines(numberOfLinesToClear);
 		Object.keys(timings).forEach(label => {
 			if (!currentTimings.hasOwnProperty(label)) {
 				delete timings[label];
@@ -61,10 +72,9 @@ async function getAverageTimings(config) {
 			}
 		});
 	}
-	Object.keys(timings).forEach(label => {
-		timings[label] = getAverage(timings[label]);
-	});
-	return timings;
+	const averageTimings = getAverage(timings, numberOfRunsToAverage, numberOfDiscardedResults);
+	printTimings(averageTimings, existingTimings);
+	if (Object.keys(existingTimings).length === 0) persistTimings(averageTimings);
 }
 
 async function buildAndGetTimings(config) {
@@ -78,10 +88,10 @@ async function buildAndGetTimings(config) {
 	return bundle.getTimings();
 }
 
-function safeAndPrintTimings(timings) {
-	const existingTimings = getExistingTimings();
+function printTimings(timings, existingTimings, filter = /.*/) {
+	const printedLabels = Object.keys(timings).filter(label => filter.test(label));
 	console.info('');
-	Object.keys(timings).forEach(label => {
+	printedLabels.forEach(label => {
 		let color = chalk;
 		if (label[0] === '#') {
 			color = color.bold;
@@ -91,7 +101,11 @@ function safeAndPrintTimings(timings) {
 		}
 		console.info(color(`${label}: ${getFormattedTime(timings[label], existingTimings[label])}`));
 	});
-	if (Object.keys(existingTimings).length === 0) persistTimings(timings);
+	return printedLabels.length + 2;
+}
+
+function clearLines(numberOfLines) {
+	console.info('\33[A' + '\33[2K\33[A'.repeat(numberOfLines));
 }
 
 function getExistingTimings() {
@@ -142,6 +156,6 @@ function getFormattedTime(currentTime, persistedTime = currentTime) {
 	return color(formattedTime);
 }
 
-loadPerfConfig()
-	.then(getAverageTimings)
-	.then(safeAndPrintTimings);
+loadPerfConfig().then(async config =>
+	calculatePrintAndPersistTimings(config, await getExistingTimings())
+);
