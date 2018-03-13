@@ -10,6 +10,6 @@ export function printTimings(timings: SerializedTimings) {
 				color = color.underline;
 			}
 		}
-		console.info(color(`${label}: ${timings[label]}ms`));
+		console.info(color(`${label}: ${timings[label].toFixed(0)}ms`));
 	});
 }
