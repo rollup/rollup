@@ -146,6 +146,7 @@ export interface OutputOptions {
 	indent?: boolean;
 	strict?: boolean;
 	freeze?: boolean;
+	namespaceToStringTag?: boolean;
 
 	// shared?
 	legacy?: boolean;

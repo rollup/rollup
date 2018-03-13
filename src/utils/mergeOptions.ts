@@ -132,6 +132,7 @@ export default function mergeOptions({
 		interop: getOutputOption('interop'),
 		legacy: getOutputOption('legacy'),
 		freeze: getOutputOption('freeze'),
+		namespaceToStringTag: getOutputOption('namespaceToStringTag'),
 		indent: getOutputOption('indent'),
 		strict: getOutputOption('strict'),
 		noConflict: getOutputOption('noConflict'),

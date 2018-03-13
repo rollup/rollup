@@ -2,6 +2,8 @@
 
 ## 0.57.0 (unreleased)
 * Enable watch mode when code-splitting ([#2035](https://github.com/rollup/rollup/pull/2035))
+* Option to add correct `.toString` tags to namespaces ([#2041](https://github.com/rollup/rollup/pull/2041))
+* Fixes for exported or early accessed namespaces + improved namespace indentation ([#2041](https://github.com/rollup/rollup/pull/2041))
 * Include missing TypeScript dependencies ([#1965](https://github.com/rollup/rollup/pull/1965))
 * [BREAKING] Refactor missing export plugin hook ([#1987](https://github.com/rollup/rollup/pull/1987))
 
