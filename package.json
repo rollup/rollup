@@ -29,7 +29,7 @@
     "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js",
     "precommit": "lint-staged",
     "postcommit": "git reset",
-    "perf": "node scripts/perf.js",
+    "perf": "node --expose-gc scripts/perf.js",
     "perf:init": "node scripts/perf-init.js",
     "perf:debug": "node --inspect-brk scripts/perf-debug.js"
   },
