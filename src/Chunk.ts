@@ -67,10 +67,6 @@ export interface DynamicImportMechanism {
 	interopRight?: string;
 }
 
-const TIME_RENDER_MODULES = '- render modules';
-const TIME_RENDER_FORMAT = '- render format';
-const TIME_SOURCEMAP = '- sourcemap';
-
 export default class Chunk {
 	id: string;
 	name: string;
@@ -699,7 +695,7 @@ export default class Chunk {
 				let magicString = new MagicStringBundle({ separator: '\n\n' });
 				const usedModules: Module[] = [];
 
-				timeStart(TIME_RENDER_MODULES);
+				timeStart('render modules', 3);
 
 				const indentString = getIndentString(this.orderedModules, options);
 
@@ -742,7 +738,7 @@ export default class Chunk {
 					});
 				}
 
-				timeEnd(TIME_RENDER_MODULES);
+				timeEnd('render modules', 3);
 
 				const finalise = finalisers[options.format];
 				if (!finalise) {
@@ -754,7 +750,7 @@ export default class Chunk {
 					});
 				}
 
-				timeStart(TIME_RENDER_FORMAT);
+				timeStart('render format', 3);
 
 				const getPath = this.createGetPath(options);
 
@@ -775,7 +771,7 @@ export default class Chunk {
 					options
 				);
 
-				timeEnd(TIME_RENDER_FORMAT);
+				timeEnd('render format', 3);
 
 				if (banner) magicString.prepend(banner + '\n');
 				if (footer) (<any>magicString).append('\n' + footer); // TODO TypeScript: Awaiting MagicString PR
@@ -787,7 +783,7 @@ export default class Chunk {
 				return transformBundle(prevCode, this.graph.plugins, bundleSourcemapChain, options).then(
 					(code: string) => {
 						if (options.sourcemap) {
-							timeStart(TIME_SOURCEMAP);
+							timeStart('sourcemap', 3);
 
 							let file = options.file ? options.sourcemapFile || options.file : this.id;
 							if (file) file = resolve(typeof process !== 'undefined' ? process.cwd() : '', file);
@@ -809,7 +805,7 @@ export default class Chunk {
 
 							map.sources = map.sources.map(normalize);
 
-							timeEnd(TIME_SOURCEMAP);
+							timeEnd('sourcemap', 3);
 						}
 
 						if (code[code.length - 1] !== '\n') code += '\n';
