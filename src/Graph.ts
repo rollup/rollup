@@ -33,12 +33,6 @@ import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/
 import { blank } from './utils/object';
 import firstSync from './utils/first-sync';
 
-const TIME_PARSE_MODULES = '## parse modules';
-const TIME_LOAD_MODULES = '- load modules';
-const TIME_ANALYSE_GRAPH = '## analyse dependency graph';
-const TIME_MARK_INCLUDED = '## mark included statements';
-const TIME_GENERATE_CHUNKS = '## generate chunks';
-
 export type ResolveDynamicImportHandler = (
 	specifier: string | Node,
 	parentId: string
@@ -101,7 +95,7 @@ export default class Graph {
 			if ((<CachedChunk>options.cache).modules) {
 				(<CachedChunk>options.cache).modules.forEach(module => {
 					this.cachedModules.set(module.id, module);
-				})
+				});
 			} else {
 				const chunks = (<CachedChunkSet>options.cache).chunks;
 				for (const chunkName in chunks) {
@@ -274,14 +268,14 @@ export default class Graph {
 			let addedNewNodes,
 				treeshakingPass = 1;
 			do {
-				timeStart(`- treeshaking pass ${treeshakingPass}`);
+				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
 				addedNewNodes = false;
 				modules.forEach(module => {
 					if (module.includeInBundle()) {
 						addedNewNodes = true;
 					}
 				});
-				timeEnd(`- treeshaking pass ${treeshakingPass++}`);
+				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
 			} while (addedNewNodes);
 		} else {
 			// Necessary to properly replace namespace imports
@@ -293,22 +287,22 @@ export default class Graph {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
-		timeStart(TIME_PARSE_MODULES);
+		timeStart('parse modules', 2);
 		return this.loadModule(entryModuleId).then(entryModule => {
-			timeEnd(TIME_PARSE_MODULES);
+			timeEnd('parse modules', 2);
 
 			// Phase 2 - linking. We populate the module dependency links and
 			// determine the topological execution order for the bundle
-			timeStart(TIME_ANALYSE_GRAPH);
+			timeStart('analyse dependency graph', 2);
 
 			this.link();
 
 			const { orderedModules, dynamicImports } = this.analyseExecution([entryModule]);
 
-			timeEnd(TIME_ANALYSE_GRAPH);
+			timeEnd('analyse dependency graph', 2);
 
 			// Phase 3 – marking. We include all statements that should be included
-			timeStart(TIME_MARK_INCLUDED);
+			timeStart('mark included statements', 2);
 
 			entryModule.markExports();
 
@@ -324,10 +318,10 @@ export default class Graph {
 			// check for unused external imports
 			this.externalModules.forEach(module => module.warnUnusedImports());
 
-			timeEnd(TIME_MARK_INCLUDED);
+			timeEnd('mark included statements', 2);
 
 			// Phase 4 – we construct the chunk itself, generating its import and export facades
-			timeStart(TIME_GENERATE_CHUNKS);
+			timeStart('generate chunks', 2);
 
 			// generate the imports and exports for the output chunk file
 			const chunk = new Chunk(this, orderedModules);
@@ -336,7 +330,7 @@ export default class Graph {
 			chunk.generateImports();
 			chunk.generateEntryExports(entryModule);
 
-			timeEnd(TIME_GENERATE_CHUNKS);
+			timeEnd('generate chunks', 2);
 
 			return chunk;
 		});
@@ -346,14 +340,14 @@ export default class Graph {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
-		timeStart(TIME_PARSE_MODULES);
+		timeStart('parse modules', 2);
 		return Promise.all(entryModuleIds.map(entryId => this.loadModule(entryId))).then(
 			entryModules => {
-				timeEnd(TIME_PARSE_MODULES);
+				timeEnd('parse modules', 2);
 
 				// Phase 2 - linking. We populate the module dependency links and
 				// determine the topological execution order for the bundle
-				timeStart(TIME_ANALYSE_GRAPH);
+				timeStart('analyse dependency graph', 2);
 
 				this.link();
 				const { orderedModules, dynamicImports } = this.analyseExecution(entryModules);
@@ -362,10 +356,10 @@ export default class Graph {
 						entryModules.push(dynamicImportModule);
 				});
 
-				timeEnd(TIME_ANALYSE_GRAPH);
+				timeEnd('analyse dependency graph', 2);
 
 				// Phase 3 – marking. We include all statements that should be included
-				timeStart(TIME_MARK_INCLUDED);
+				timeStart('mark included statements', 2);
 
 				entryModules.forEach(entryModule => {
 					entryModule.markExports();
@@ -377,11 +371,11 @@ export default class Graph {
 				// check for unused external imports
 				this.externalModules.forEach(module => module.warnUnusedImports());
 
-				timeEnd(TIME_MARK_INCLUDED);
+				timeEnd('mark included statements', 2);
 
 				// Phase 4 – we construct the chunks, working out the optimal chunking using
 				// entry point graph colouring, before generating the import and export facades
-				timeStart(TIME_GENERATE_CHUNKS);
+				timeStart('generate chunks', 2);
 
 				// TODO: there is one special edge case unhandled here and that is that any module
 				//       exposed as an unresolvable export * (to a graph external export *,
@@ -456,7 +450,7 @@ export default class Graph {
 					chunks['./' + chunkName] = chunk;
 				});
 
-				timeEnd(TIME_GENERATE_CHUNKS);
+				timeEnd('generate chunks', 2);
 
 				return chunks;
 			}
@@ -560,10 +554,10 @@ export default class Graph {
 		const module: Module = new Module(this, id);
 		this.moduleById.set(id, module);
 
-		timeStart(TIME_LOAD_MODULES);
+		timeStart('load modules', 3);
 		return this.load(id)
 			.catch((err: Error) => {
-				timeEnd(TIME_LOAD_MODULES);
+				timeEnd('load modules', 3);
 				let msg = `Could not load ${id}`;
 				if (importer) msg += ` (imported by ${importer})`;
 
@@ -571,7 +565,7 @@ export default class Graph {
 				throw new Error(msg);
 			})
 			.then(source => {
-				timeEnd(TIME_LOAD_MODULES);
+				timeEnd('load modules', 3);
 				if (typeof source === 'string') return source;
 				if (source && typeof source === 'object' && typeof source.code === 'string') return source;
 

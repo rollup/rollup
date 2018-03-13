@@ -24,7 +24,21 @@ function setTimeHelpers() {
 	}
 }
 
-function timeStartImpl(label: string) {
+function getPersistedLabel(label: string, level: number) {
+	switch (level) {
+		case 1:
+			return `# ${label}`;
+		case 2:
+			return `## ${label}`;
+		case 3:
+			return label;
+		default:
+			return `${'  '.repeat(level - 4)}- ${label}`;
+	}
+}
+
+function timeStartImpl(label: string, level: number = 3) {
+	label = getPersistedLabel(label, level);
 	if (!timers.hasOwnProperty(label)) {
 		timers[label] = {
 			start: undefined,
@@ -34,7 +48,8 @@ function timeStartImpl(label: string) {
 	timers[label].start = getStartTime();
 }
 
-function timeEndImpl(label: string) {
+function timeEndImpl(label: string, level: number = 3) {
+	label = getPersistedLabel(label, level);
 	if (timers.hasOwnProperty(label)) {
 		timers[label].time += getElapsedTime(timers[label].start);
 	}
@@ -48,8 +63,8 @@ export function getTimings(): SerializedTimings {
 	return newTimings;
 }
 
-export let timeStart: (label: string) => void = NOOP,
-	timeEnd: (label: string) => void = NOOP;
+export let timeStart: (label: string, level?: number) => void = NOOP,
+	timeEnd: (label: string, level?: number) => void = NOOP;
 
 const TIMED_PLUGIN_HOOKS: { [hook: string]: boolean } = {
 	transform: true,
@@ -66,18 +81,18 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 
 	for (const hook of Object.keys(plugin)) {
 		if (TIMED_PLUGIN_HOOKS[hook] === true) {
-			let timerLabel = `- plugin ${index}`;
+			let timerLabel = `plugin ${index}`;
 			if (plugin.name) {
 				timerLabel += ` (${plugin.name})`;
 			}
 			timerLabel += ` - ${hook}`;
 			timedPlugin[hook] = function() {
-				timeStart(timerLabel);
+				timeStart(timerLabel, 4);
 				const result = plugin[hook].apply(this === timedPlugin ? plugin : this, arguments);
-				timeEnd(timerLabel);
+				timeEnd(timerLabel, 4);
 				if (result && typeof result.then === 'function') {
-					timeStart(`${timerLabel} (async)`);
-					result.then(() => timeEnd(`${timerLabel} (async)`));
+					timeStart(`${timerLabel} (async)`, 4);
+					result.then(() => timeEnd(`${timerLabel} (async)`, 4));
 				}
 				return result;
 			};

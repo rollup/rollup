@@ -115,9 +115,6 @@ export interface ModuleJSON {
 	resolvedIds: IdMap;
 }
 
-const TIME_GENERATE_AST = '- generate ast';
-const TIME_ANALYSE_AST = '- analyse ast';
-
 export default class Module {
 	type: 'Module';
 	graph: Graph;
@@ -213,7 +210,7 @@ export default class Module {
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain;
 
-		timeStart(TIME_GENERATE_AST);
+		timeStart('generate ast', 3);
 
 		if (ast) {
 			// prevent mutating the provided AST, as it may be reused on
@@ -226,7 +223,7 @@ export default class Module {
 			this.astClone = clone(this.ast);
 		}
 
-		timeEnd(TIME_GENERATE_AST);
+		timeEnd('generate ast', 3);
 
 		this.resolvedIds = resolvedIds || blank();
 
@@ -238,11 +235,11 @@ export default class Module {
 		});
 		this.removeExistingSourceMap();
 
-		timeStart(TIME_ANALYSE_AST);
+		timeStart('analyse ast', 3);
 
 		this.analyse();
 
-		timeEnd(TIME_ANALYSE_AST);
+		timeEnd('analyse ast', 3);
 	}
 
 	private removeExistingSourceMap() {
