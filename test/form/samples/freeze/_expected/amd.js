@@ -3,7 +3,6 @@ define(['exports'], function (exports) { 'use strict';
 	const foo = 1;
 	const bar = 2;
 
-
 	var namespace = ({
 		foo: foo,
 		bar: bar
