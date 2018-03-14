@@ -73,6 +73,7 @@ export default function mergeOptions({
 		context: config.context,
 		experimentalCodeSplitting: getInputOption('experimentalCodeSplitting'),
 		experimentalDynamicImport: getInputOption('experimentalDynamicImport'),
+		experimentalPreserveModules: getInputOption('experimentalPreserveModules'),
 		input: getInputOption('input'),
 		legacy: getInputOption('legacy'),
 		moduleContext: config.moduleContext,
@@ -116,6 +117,11 @@ export default function mergeOptions({
 
 	if (command.silent) {
 		inputOptions.onwarn = () => {};
+	}
+
+	// Make sure the CLI treats this the same way as when we are code-splitting
+	if (inputOptions.experimentalPreserveModules && !Array.isArray(inputOptions.input)) {
+		inputOptions.input = [inputOptions.input];
 	}
 
 	const baseOutputOptions = {

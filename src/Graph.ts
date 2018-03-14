@@ -32,6 +32,7 @@ import GlobalScope from './ast/scopes/GlobalScope';
 import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
 import { blank } from './utils/object';
 import firstSync from './utils/first-sync';
+import commondir from './utils/commondir';
 
 export type ResolveDynamicImportHandler = (
 	specifier: string | Node,
@@ -41,9 +42,15 @@ export type ResolveDynamicImportHandler = (
 function generateChunkName(
 	id: string,
 	chunkNames: { [name: string]: boolean },
-	startAtTwo = false
+	startAtTwo = false,
+	inputRelativeDir = ''
 ): string {
-	let name = path.basename(id);
+	let name;
+	if (inputRelativeDir) {
+		name = path.relative(inputRelativeDir, id).replace(/\\/g, '/');
+	} else {
+		name = path.basename(id);
+	}
 	let ext = path.extname(name);
 	name = name.substr(0, name.length - ext.length);
 	if (ext !== '.js' && ext !== '.mjs') {
@@ -336,7 +343,10 @@ export default class Graph {
 		});
 	}
 
-	buildChunks(entryModuleIds: string[]): Promise<{ [name: string]: Chunk }> {
+	buildChunks(
+		entryModuleIds: string[],
+		preserveModules: boolean
+	): Promise<{ [name: string]: Chunk }> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
@@ -350,7 +360,12 @@ export default class Graph {
 				timeStart('analyse dependency graph', 2);
 
 				this.link();
-				const { orderedModules, dynamicImports } = this.analyseExecution(entryModules);
+
+				const { orderedModules, dynamicImports } = this.analyseExecution(
+					entryModules,
+					preserveModules
+				);
+
 				dynamicImports.forEach(dynamicImportModule => {
 					if (entryModules.indexOf(dynamicImportModule) === -1)
 						entryModules.push(dynamicImportModule);
@@ -381,26 +396,35 @@ export default class Graph {
 				//       exposed as an unresolvable export * (to a graph external export *,
 				//       either as a namespace import reexported or top-level export *)
 				//       should be made to be its own entry point module before chunking
-				const chunkModules: { [entryHashSum: string]: Module[] } = {};
-				orderedModules.forEach(module => {
-					const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
-					let curChunk = chunkModules[entryPointsHashStr];
-					if (curChunk) {
-						curChunk.push(module);
-					} else {
-						chunkModules[entryPointsHashStr] = [module];
-					}
-				});
-
-				// create each chunk
 				const chunkList: Chunk[] = [];
-				Object.keys(chunkModules).forEach(entryHashSum => {
-					const chunk = chunkModules[entryHashSum];
-					const chunkModulesOrdered = chunk.sort(
-						(moduleA, moduleB) => (moduleA.execIndex > moduleB.execIndex ? 1 : -1)
-					);
-					chunkList.push(new Chunk(this, chunkModulesOrdered));
-				});
+				if (!preserveModules) {
+					const chunkModules: { [entryHashSum: string]: Module[] } = {};
+					orderedModules.forEach(module => {
+						const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
+						let curChunk = chunkModules[entryPointsHashStr];
+						if (curChunk) {
+							curChunk.push(module);
+						} else {
+							chunkModules[entryPointsHashStr] = [module];
+						}
+					});
+
+					// create each chunk
+					Object.keys(chunkModules).forEach(entryHashSum => {
+						const chunk = chunkModules[entryHashSum];
+						const chunkModulesOrdered = chunk.sort(
+							(moduleA, moduleB) => (moduleA.execIndex > moduleB.execIndex ? 1 : -1)
+						);
+						chunkList.push(new Chunk(this, chunkModulesOrdered));
+					});
+				} else {
+					orderedModules.forEach(module => {
+						const chunkInstance = new Chunk(this, [module]);
+						chunkInstance.entryModule = module;
+						chunkInstance.isEntryModuleFacade = true;
+						chunkList.push(chunkInstance);
+					});
+				}
 
 				// for each entry point module, ensure its exports
 				// are exported by the chunk itself, with safe name deduping
@@ -419,17 +443,31 @@ export default class Graph {
 					[name: string]: Chunk;
 				} = {};
 
+				let inputRelativeDir: string;
+				if (preserveModules) {
+					if (orderedModules.length === 1) {
+						inputRelativeDir = path.dirname(orderedModules[0].id);
+					} else {
+						inputRelativeDir = commondir(orderedModules.map(module => module.id));
+					}
+				}
+
 				// name the chunks
 				const chunkNames: { [name: string]: boolean } = blank();
 				chunkNames['chunk'] = true;
 				chunkList.forEach(chunk => {
 					// generate the imports and exports for the output chunk file
 					if (chunk.entryModule) {
-						const entryName = generateChunkName(chunk.entryModule.id, chunkNames, true);
+						const entryName = generateChunkName(
+							chunk.entryModule.id,
+							chunkNames,
+							true,
+							inputRelativeDir
+						);
 
 						// if the chunk exactly exports the entry point exports then
 						// it can replace the entry point
-						if (chunk.isEntryModuleFacade) {
+						if (chunk.isEntryModuleFacade || preserveModules) {
 							chunks['./' + entryName] = chunk;
 							chunk.setId('./' + entryName);
 							return;
@@ -457,7 +495,7 @@ export default class Graph {
 		);
 	}
 
-	private analyseExecution(entryModules: Module[]) {
+	private analyseExecution(entryModules: Module[], preserveModules: boolean = false) {
 		let curEntry: Module, curEntryHash: Uint8Array;
 		const allSeen: { [id: string]: boolean } = {};
 
@@ -475,7 +513,9 @@ export default class Graph {
 			// entry point and colouring those modules by the hash of its id. Colours are mixed as
 			// hash xors, providing the unique colouring of the graph into unique hash chunks.
 			// This is really all there is to automated chunking, the rest is chunk wiring.
-			Uint8ArrayXor(module.entryPointsHash, curEntryHash);
+			if (!preserveModules) {
+				Uint8ArrayXor(module.entryPointsHash, curEntryHash);
+			}
 
 			module.dependencies.forEach(depModule => {
 				if (!depModule.isExternal) {

@@ -1,6 +1,7 @@
 # rollup changelog
 
 ## 0.57.0 (unreleased)
+* Add option to preserve the module structure instead of bundling ([#1922](https://github.com/rollup/rollup/pull/1922))
 * Enable watch mode when code-splitting ([#2035](https://github.com/rollup/rollup/pull/2035))
 * Option to add correct `.toString` tags to namespaces ([#2041](https://github.com/rollup/rollup/pull/2041))
 * Option and scripts to display performance timings ([#2045](https://github.com/rollup/rollup/pull/2045))
