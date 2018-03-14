@@ -31,8 +31,8 @@ import Chunk from './Chunk';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
 import firstSync from './utils/first-sync';
+import { generateChunkName } from './utils/chunkName';
 import commondir from './utils/commondir';
-import { generateChunkName } from './utils/chunk-name';
 
 export type ResolveDynamicImportHandler = (
 	specifier: string | Node,
@@ -321,14 +321,23 @@ export default class Graph {
 	}
 
 	buildChunks(
-		entryModules: { [entryAlias: string]: string },
+		entryModules: { [entryAlias: string]: string } | string[],
 		preserveModules: boolean
 	): Promise<{ [name: string]: Chunk }> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
-		const entryModuleAliases = Object.keys(entryModules);
-		const entryModuleIds = entryModuleAliases.map(name => entryModules[name]);
+
+		let entryModuleIds: string[];
+		let entryModuleAliases: string[];
+		if (Array.isArray(entryModules)) {
+			entryModuleIds = entryModules;
+		} else {
+			entryModuleAliases = Object.keys(entryModules);
+			entryModuleIds = entryModuleAliases.map(
+				name => (<{ [entryAlias: string]: string }>entryModules)[name]
+			);
+		}
 
 		timeStart('parse modules', 2);
 		return Promise.all(entryModuleIds.map(entryId => this.loadModule(entryId))).then(
@@ -421,23 +430,31 @@ export default class Graph {
 					[name: string]: Chunk;
 				} = {};
 
-				let inputRelativeDir: string;
-				if (preserveModules) {
-					if (orderedModules.length === 1) {
-						inputRelativeDir = path.dirname(orderedModules[0].id);
-					} else {
-						inputRelativeDir = commondir(orderedModules.map(module => module.id));
-					}
-				}
+				const inputRelativeDir =
+					preserveModules && commondir(orderedModules.map(module => module.id));
 
 				// name the chunks
 				const chunkNames: { [name: string]: boolean } = Object.create(null);
-				chunkNames['chunk'] = true;
-				entryModuleAliases.forEach(alias => (chunkNames[alias] = true));
 				chunkList.forEach(chunk => {
 					// generate the imports and exports for the output chunk file
 					if (chunk.entryModule) {
-						const entryName = entryModuleAliases[entryModuleIds.indexOf(chunk.entryModule.id)];
+						let entryName: string;
+						// without preserve modules, entry names are provided aliases, falling back to basenames
+						if (entryModuleAliases) {
+							let alias = entryModuleAliases[entryModules.indexOf(chunk.entryModule)];
+							if (alias) entryName = generateChunkName(alias, chunkNames, false);
+						} else if (!preserveModules) {
+							entryName = generateChunkName(chunk.entryModule.id, chunkNames, false);
+						}
+						// with preserve modules, entry names are provided aliases, falling back to commondir-relative
+						if (preserveModules && !entryName) {
+							entryName = generateChunkName(
+								chunk.entryModule.id,
+								chunkNames,
+								false,
+								inputRelativeDir
+							);
+						}
 
 						// if the chunk exactly exports the entry point exports then
 						// it can replace the entry point
@@ -457,7 +474,7 @@ export default class Graph {
 						}
 					}
 					// name the chunk itself
-					const chunkName = generateChunkName('chunk', chunkNames);
+					const chunkName = generateChunkName('chunk', chunkNames, true);
 					chunk.setId('./' + chunkName);
 					chunks['./' + chunkName] = chunk;
 				});
