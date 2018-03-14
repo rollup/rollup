@@ -88,15 +88,15 @@ export interface TreeshakingOptions {
 export type ExternalOption = string[] | IsExternalHook;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 
-export type CachedChunk = { modules: ModuleJSON[] };
-export type CachedChunkSet = { chunks: { [chunkName: string]: CachedChunk } };
 export interface InputOptions {
 	input: string | string[] | { [entryAlias: string]: string };
 	external?: ExternalOption;
 	plugins?: Plugin[];
 
 	onwarn?: WarningHandler;
-	cache?: CachedChunk | CachedChunkSet;
+	cache?: {
+		modules: ModuleJSON[];
+	};
 
 	acorn?: {};
 	acornInjectPlugins?: Function[];
@@ -242,7 +242,7 @@ const throwAsyncGenerateError = {
 export interface OutputChunk {
 	imports: string[];
 	exports: string[];
-	modules: ModuleJSON[];
+	modules: string[];
 	code: string;
 	map?: SourceMap;
 }
@@ -252,6 +252,9 @@ export interface Bundle {
 	imports: string[];
 	exports: string[];
 	modules: ModuleJSON[];
+	cache: {
+		modules: ModuleJSON[];
+	};
 
 	generate: (outputOptions: OutputOptions) => Promise<OutputChunk>;
 	write: (options: OutputOptions) => Promise<void>;
@@ -259,6 +262,9 @@ export interface Bundle {
 }
 
 export interface BundleSet {
+	cache: {
+		modules: ModuleJSON[];
+	};
 	generate: (outputOptions: OutputOptions) => Promise<{ [chunkName: string]: OutputChunk }>;
 	write: (options: OutputOptions) => Promise<{ [chunkName: string]: OutputChunk }>;
 	getTimings?: () => SerializedTimings;
@@ -306,7 +312,7 @@ export default function rollup(
 
 				const imports = chunk.getImportIds();
 				const exports = chunk.getExportNames();
-				const modules = chunk.getJsonModules();
+				const modules = graph.getCache().modules;
 
 				function generate(rawOutputOptions: GenericConfigObject) {
 					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
@@ -318,6 +324,14 @@ export default function rollup(
 						.then(rendered => {
 							timeEnd('GENERATE', 1);
 
+							const output = {
+								imports,
+								exports,
+								modules: chunk.getModuleIds(),
+								code: rendered.code,
+								map: rendered.map
+							};
+
 							graph.plugins.forEach(plugin => {
 								if (plugin.ongenerate) {
 									plugin.ongenerate(
@@ -327,21 +341,12 @@ export default function rollup(
 											},
 											outputOptions
 										),
-										rendered
+										output
 									);
 								}
 							});
 
-							return rendered;
-						})
-						.then(({ code, map }) => {
-							return {
-								imports,
-								exports,
-								modules,
-								code,
-								map
-							};
+							return output;
 						});
 
 					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
@@ -354,6 +359,8 @@ export default function rollup(
 					imports,
 					exports,
 					modules,
+
+					cache: { modules },
 
 					generate,
 					write: (outputOptions: OutputOptions) => {
@@ -456,20 +463,22 @@ export default function rollup(
 							return chunk.render(outputOptions).then(rendered => {
 								timeEnd('GENERATE', 1);
 
-								graph.plugins.forEach(plugin => {
-									if (plugin.ongenerate) {
-										plugin.ongenerate(Object.assign(chunk, outputOptions), rendered);
-									}
-								});
-
-								generated[chunkName] = {
+								const output = {
 									imports: chunk.getImportIds(),
 									exports: chunk.getExportNames(),
-									modules: chunk.getJsonModules(),
+									modules: chunk.getModuleIds(),
 
 									code: rendered.code,
 									map: rendered.map
 								};
+
+								graph.plugins.forEach(plugin => {
+									if (plugin.ongenerate) {
+										plugin.ongenerate(Object.assign(chunk, outputOptions), output);
+									}
+								});
+
+								generated[chunkName] = output;
 							});
 						})
 					).then(() => generated);
@@ -481,6 +490,7 @@ export default function rollup(
 				}
 
 				const result: BundleSet = {
+					cache: graph.getCache(),
 					generate,
 					write(outputOptions: OutputOptions) {
 						if (!outputOptions || !outputOptions.dir) {
