@@ -479,16 +479,19 @@ export default class Module {
 			const line = sourcemap.mappings[location.line - 1];
 			let locationFound = false;
 
-			for (const segment of line) {
-				if (+segment[0] >= location.column) {
-					location = {
-						line: +segment[2] + 1,
-						column: +segment[3],
-						source: sourcemap.sources[+segment[1]],
-						name: sourcemap.names[+segment[4]]
-					};
-					locationFound = true;
-					break;
+			if (line !== undefined) {
+				for (const segment of line) {
+					if (+segment[0] >= location.column) {
+						if (segment.length < 4) break;
+						location = {
+							line: +segment[2] + 1,
+							column: +segment[3],
+							source: sourcemap.sources[+segment[1]],
+							name: sourcemap.names[+segment[4]]
+						};
+						locationFound = true;
+						break;
+					}
 				}
 			}
 			if (!locationFound) {
