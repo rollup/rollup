@@ -2,7 +2,7 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration, { isClassDeclaration } from './ClassDeclaration';
 import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaration';
-import Identifier from './Identifier';
+import Identifier, { isIdentifier } from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
 import {
@@ -46,7 +46,13 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	private declarationName: string;
 
 	bindNode() {
-		if (this.declarationName) {
+		if (
+			this.declarationName &&
+			// Do not set it for Class and FunctionExpressions otherwise they get treeshaken away
+			(isFunctionDeclaration(this.declaration) ||
+				isClassDeclaration(this.declaration) ||
+				isIdentifier(this.declaration))
+		) {
 			this.variable.setOriginalVariable(this.scope.findVariable(this.declarationName));
 		}
 	}
