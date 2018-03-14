@@ -13,8 +13,6 @@ import error from './utils/error';
 import * as path from './utils/path';
 import { isAbsolute, isRelative, normalize, relative, resolve } from './utils/path';
 import {
-	CachedChunk,
-	CachedChunkSet,
 	InputOptions,
 	IsExternalHook,
 	Plugin,
@@ -73,17 +71,10 @@ export default class Graph {
 	constructor(options: InputOptions) {
 		this.cachedModules = new Map();
 		if (options.cache) {
-			if ((<CachedChunk>options.cache).modules) {
-				for (const module of (<CachedChunk>options.cache).modules) {
+			if (options.cache.modules) {
+				options.cache.modules.forEach(module => {
 					this.cachedModules.set(module.id, module);
-				}
-			} else {
-				const chunks = (<CachedChunkSet>options.cache).chunks;
-				for (const chunkName in chunks) {
-					for (const module of chunks[chunkName].modules) {
-						this.cachedModules.set(module.id, module);
-					}
-				}
+				});
 			}
 		}
 		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
@@ -216,6 +207,12 @@ export default class Graph {
 		}
 
 		return resolvedId;
+	}
+
+	getCache() {
+		return {
+			modules: this.modules.map(module => module.toJSON())
+		};
 	}
 
 	private loadModule(entryName: string) {

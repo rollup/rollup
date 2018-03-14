@@ -202,10 +202,10 @@ describe('incremental', () => {
 			.then(bundle => {
 				assert.deepEqual(bundle.imports, ['external']);
 
-				assert.equal(bundle.modules[0].id, 'foo');
-				assert.equal(bundle.modules[1].id, 'entry');
+				assert.equal(bundle.modules[1].id, 'foo');
+				assert.equal(bundle.modules[0].id, 'entry');
 
-				assert.deepEqual(bundle.modules[1].resolvedIds, {
+				assert.deepEqual(bundle.modules[0].resolvedIds, {
 					foo: 'foo',
 					external: 'external'
 				});

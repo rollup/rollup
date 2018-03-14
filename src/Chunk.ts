@@ -289,8 +289,8 @@ export default class Chunk {
 		return Object.keys(this.exports);
 	}
 
-	getJsonModules(): ModuleJSON[] {
-		return this.orderedModules.map(module => module.toJSON());
+	getModuleIds(): string[] {
+		return this.orderedModules.map(module => module.id);
 	}
 
 	traceImport(module: Module | ExternalModule, exportName: string) {
