@@ -166,6 +166,9 @@ export default class Chunk {
 		entryModule.getAllExports().forEach(exportName => {
 			const traced = this.traceExport(entryModule, exportName);
 			const variable = traced.module.traceExport(traced.name);
+			if (!variable) {
+				return;
+			}
 			let tracedName: string;
 			if (traced.module.chunk === this || traced.module.isExternal) {
 				tracedName = traced.name;
@@ -244,7 +247,7 @@ export default class Chunk {
 		variable: Variable,
 		tracedExport: { name: string; module: Module | ExternalModule }
 	) {
-		if (!variable.included) {
+		if (variable && !variable.included) {
 			return;
 		}
 
@@ -253,18 +256,23 @@ export default class Chunk {
 		// ensure that the variable is exported by the other chunk to this one
 		if (tracedExport.module instanceof Module) {
 			importModule = tracedExport.module.chunk;
-			exportName = tracedExport.module.chunk.ensureExport(
-				tracedExport.module,
-				variable,
-				tracedExport.name
-			);
+			if (variable) {
+				exportName = tracedExport.module.chunk.ensureExport(
+					tracedExport.module,
+					variable,
+					tracedExport.name
+				);
+			} else {
+				// broken import/export chain, leave the import the way it is
+				exportName = tracedExport.name;
+			}
 		} else {
 			importModule = tracedExport.module;
 			exportName = variable.name;
 		}
 
 		// if we already import this variable skip
-		if (this.imports.some(impt => impt.variables.some(v => v.variable === variable))) {
+		if (variable && this.imports.some(impt => impt.variables.some(v => v.variable === variable))) {
 			return;
 		}
 
@@ -505,6 +513,10 @@ export default class Chunk {
 
 		this.imports.forEach(impt => {
 			impt.variables.forEach(({ name, module, variable }) => {
+				if (!variable) {
+					return;
+				}
+
 				let safeName;
 				if (module.isExternal) {
 					if (variable.name === '*') {
@@ -607,7 +619,7 @@ export default class Chunk {
 				for (let i = 0; i < importSpecifiers.variables.length; i++) {
 					const impt = importSpecifiers.variables[i];
 					imports.push({
-						local: impt.variable.safeName || impt.variable.name,
+						local: impt.variable ? impt.variable.safeName || impt.variable.name : impt.name,
 						imported: impt.name
 					});
 				}
