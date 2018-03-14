@@ -1,6 +1,6 @@
 import { timeEnd, timeStart } from './utils/timers';
 import { decode } from 'sourcemap-codec';
-import MagicString, { Bundle as MagicStringBundle } from 'magic-string';
+import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
 import { blank, forOwn } from './utils/object';
 import Module, { ModuleJSON } from './Module';
 import finalisers from './finalisers/index';
@@ -780,7 +780,7 @@ export default class Chunk {
 				if (footer) magicString.append('\n' + footer);
 
 				const prevCode = magicString.toString();
-				let map: RawSourceMap = null;
+				let map: SourceMap = null;
 				const bundleSourcemapChain: RawSourceMap[] = [];
 
 				return transformBundle(prevCode, this.graph.plugins, bundleSourcemapChain, options).then(

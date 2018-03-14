@@ -21,6 +21,7 @@ import { Deprecation } from '../utils/deprecateOptions';
 import Graph from '../Graph';
 import { TransformContext } from '../utils/transform';
 import ensureArray from '../utils/ensureArray';
+import { SourceMap } from 'magic-string';
 
 export const VERSION = '<@VERSION@>';
 
@@ -246,7 +247,7 @@ export interface OutputChunk {
 	exports: string[];
 	modules: ModuleJSON[];
 
-	generate: (outputOptions: OutputOptions) => Promise<{ code: string; map: RawSourceMap }>;
+	generate: (outputOptions: OutputOptions) => Promise<{ code: string; map: SourceMap }>;
 	write: (options: OutputOptions) => Promise<void>;
 	getTimings?: () => SerializedTimings;
 }
