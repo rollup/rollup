@@ -214,13 +214,17 @@ function getInputOptions(
 		watch: config.watch
 	};
 
-	if (inputOptions.experimentalPreserveModules && !Array.isArray(inputOptions.input)) {
-		inputOptions.input = [inputOptions.input];
-	}
 	// legacy to make sure certain plugins still work
-	inputOptions.entry = Array.isArray(inputOptions.input)
-		? inputOptions.input[0]
-		: inputOptions.input;
+	if (Array.isArray(inputOptions.input)) {
+		inputOptions.entry = inputOptions.input[0];
+	} else if (typeof inputOptions.input === 'object') {
+		for (let name in inputOptions.input) {
+			inputOptions.entry = inputOptions.input[name];
+			break;
+		}
+	} else {
+		inputOptions.entry = inputOptions.input;
+	}
 	return inputOptions;
 }
 

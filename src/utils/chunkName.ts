@@ -3,7 +3,7 @@ import * as path from './path';
 export function generateChunkName(
 	id: string,
 	existingNames: { [name: string]: boolean },
-	startAtTwo = false,
+	numberFirst = false,
 	inputRelativeDir = ''
 ): string {
 	let name;
@@ -18,8 +18,8 @@ export function generateChunkName(
 		name += ext;
 		ext = '.js';
 	}
-	let uniqueName = name;
-	let uniqueIndex = startAtTwo ? 2 : 1;
+	let uniqueName = numberFirst ? name + 1 : name;
+	let uniqueIndex = 1;
 	while (existingNames[uniqueName]) uniqueName = name + uniqueIndex++;
 	existingNames[uniqueName] = true;
 	return uniqueName + ext;

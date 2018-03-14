@@ -402,8 +402,15 @@ export default function rollup(
 				return result;
 			});
 
-		if (!Array.isArray(inputOptions.input)) {
+		// code splitting case
+		if (inputOptions.experimentalPreserveModules && typeof inputOptions.input === 'string') {
 			inputOptions.input = [inputOptions.input];
+		}
+		if (!(Array.isArray(inputOptions.input) || typeof inputOptions.input === 'object')) {
+			error({
+				code: 'INVALID_OPTION',
+				message: 'When code splitting, "input" must be an array or object of entry points.'
+			});
 		}
 		return graph
 			.buildChunks(inputOptions.input, inputOptions.experimentalPreserveModules)
@@ -555,11 +562,7 @@ function normalizeOutputOptions(
 		deprecateConfig: { output: true }
 	});
 
-	if (mergedOptions.optionError)
-		mergedOptions.inputOptions.onwarn({
-			message: mergedOptions.optionError,
-			code: 'UNKNOWN_OPTION'
-		});
+	if (mergedOptions.optionError) throw new Error(mergedOptions.optionError);
 
 	// now outputOptions is an array, but rollup.rollup API doesn't support arrays
 	const outputOptions = mergedOptions.outputOptions[0];
