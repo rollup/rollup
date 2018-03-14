@@ -48,6 +48,7 @@ export default function build(
 				}
 
 				return bundle.generate(output).then(({ code, map }: { code: string; map: SourceMap }) => {
+					if (!code) return;
 					if (output.sourcemap === 'inline') {
 						code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
 					}

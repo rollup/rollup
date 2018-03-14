@@ -109,6 +109,7 @@ export interface InputOptions {
 	experimentalDynamicImport?: boolean;
 	experimentalCodeSplitting?: boolean;
 	preserveSymlinks?: boolean;
+	experimentalPreserveModules?: boolean;
 
 	// undocumented?
 	pureExternalModules?: boolean;
@@ -301,7 +302,8 @@ export default function rollup(
 		timeStart('BUILD', 1);
 
 		const codeSplitting =
-			inputOptions.experimentalCodeSplitting && inputOptions.input instanceof Array;
+			(inputOptions.experimentalCodeSplitting && inputOptions.input instanceof Array) ||
+			inputOptions.experimentalPreserveModules;
 
 		if (!codeSplitting)
 			return graph.buildSingle(inputOptions.input).then(chunk => {
@@ -444,127 +446,132 @@ export default function rollup(
 				return result;
 			});
 
-		return graph.buildChunks(inputOptions.input).then(bundle => {
-			timeEnd('BUILD', 1);
-			const chunks: {
-				[name: string]: {
-					name: string;
-					imports: string[];
-					exports: string[];
-					modules: ModuleJSON[];
-				};
-			} = {};
-			Object.keys(bundle).forEach(chunkName => {
-				const chunk = bundle[chunkName];
+		if (!Array.isArray(inputOptions.input)) {
+			inputOptions.input = [inputOptions.input];
+		}
+		return graph
+			.buildChunks(inputOptions.input, inputOptions.experimentalPreserveModules)
+			.then(bundle => {
+				timeEnd('BUILD', 1);
+				const chunks: {
+					[name: string]: {
+						name: string;
+						imports: string[];
+						exports: string[];
+						modules: ModuleJSON[];
+					};
+				} = {};
+				Object.keys(bundle).forEach(chunkName => {
+					const chunk = bundle[chunkName];
 
-				chunks[chunkName] = {
-					name: chunkName,
-					imports: chunk.getImportIds(),
-					exports: chunk.getExportNames(),
-					modules: chunk.getJsonModules()
-				};
-			});
+					chunks[chunkName] = {
+						name: chunkName,
+						imports: chunk.getImportIds(),
+						exports: chunk.getExportNames(),
+						modules: chunk.getJsonModules()
+					};
+				});
 
-			function generate(rawOutputOptions: GenericConfigObject) {
-				const outputOptions = getAndCheckOutputOptions(inputOptions, rawOutputOptions);
+				function generate(rawOutputOptions: GenericConfigObject) {
+					const outputOptions = getAndCheckOutputOptions(inputOptions, rawOutputOptions);
 
-				if (typeof outputOptions.file === 'string')
-					error({
-						code: 'INVALID_OPTION',
-						message: 'When code splitting, the "dir" output option must be used, not "file".'
-					});
-
-				if (outputOptions.format === 'umd' || outputOptions.format === 'iife') {
-					error({
-						code: 'INVALID_OPTION',
-						message:
-							'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
-					});
-				}
-
-				timeStart('GENERATE', 1);
-
-				const generated: { [chunkName: string]: SourceDescription } = {};
-
-				const promise = Promise.all(
-					Object.keys(bundle).map(chunkName => {
-						const chunk = bundle[chunkName];
-						return chunk.render(outputOptions).then(rendered => {
-							timeEnd('GENERATE', 1);
-
-							graph.plugins.forEach(plugin => {
-								if (plugin.ongenerate) {
-									const bundle = chunks[chunkName];
-									plugin.ongenerate(assign({ bundle }, outputOptions), rendered);
-								}
-							});
-
-							generated[chunkName] = rendered;
-						});
-					})
-				).then(() => generated);
-
-				Object.defineProperty(promise, 'code', throwAsyncGenerateError);
-				Object.defineProperty(promise, 'map', throwAsyncGenerateError);
-
-				return promise;
-			}
-
-			const result: OutputChunkSet = {
-				chunks: chunks,
-				generate,
-				write(outputOptions: OutputOptions): Promise<void> {
-					if (!outputOptions || !outputOptions.dir) {
+					if (typeof outputOptions.file === 'string')
 						error({
-							code: 'MISSING_OPTION',
-							message: 'You must specify output.dir for multiple inputs'
+							code: 'INVALID_OPTION',
+							message: 'When code splitting, the "dir" output option must be used, not "file".'
+						});
+
+					if (outputOptions.format === 'umd' || outputOptions.format === 'iife') {
+						error({
+							code: 'INVALID_OPTION',
+							message:
+								'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
 						});
 					}
 
-					return generate(outputOptions).then(result => {
-						const dir = outputOptions.dir;
+					timeStart('GENERATE', 1);
 
-						return Promise.all(
-							Object.keys(result).map(chunkName => {
-								let chunk = result[chunkName];
-								let { code, map } = chunk;
+					const generated: { [chunkName: string]: SourceDescription } = {};
 
-								const promises = [];
+					const promise = Promise.all(
+						Object.keys(bundle).map(chunkName => {
+							const chunk = bundle[chunkName];
+							return chunk.render(outputOptions).then(rendered => {
+								timeEnd('GENERATE', 1);
 
-								if (outputOptions.sourcemap) {
-									let url;
+								graph.plugins.forEach(plugin => {
+									if (plugin.ongenerate) {
+										const bundle = chunks[chunkName];
+										plugin.ongenerate(assign({ bundle }, outputOptions), rendered);
+									}
+								});
 
-									if (outputOptions.sourcemap === 'inline') {
-										url = (<any>map).toUrl();
-									} else {
-										url = `${chunkName}.map`;
-										promises.push(writeFile(dir + '/' + chunkName + '.map', map.toString()));
+								generated[chunkName] = rendered;
+							});
+						})
+					).then(() => generated);
+
+					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
+					Object.defineProperty(promise, 'map', throwAsyncGenerateError);
+
+					return promise;
+				}
+
+				const result: OutputChunkSet = {
+					chunks: chunks,
+					generate,
+					write(outputOptions: OutputOptions): Promise<void> {
+						if (!outputOptions || !outputOptions.dir) {
+							error({
+								code: 'MISSING_OPTION',
+								message: 'You must specify output.dir when code splitting'
+							});
+						}
+
+						return generate(outputOptions).then(result => {
+							const dir = outputOptions.dir;
+
+							return Promise.all(
+								Object.keys(result).map(chunkName => {
+									let chunk = result[chunkName];
+									let { code, map } = chunk;
+
+									const promises = [];
+
+									if (outputOptions.sourcemap) {
+										let url;
+
+										if (outputOptions.sourcemap === 'inline') {
+											url = (<any>map).toUrl();
+										} else {
+											url = `${chunkName}.map`;
+											promises.push(writeFile(dir + '/' + chunkName + '.map', map.toString()));
+										}
+
+										code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
 									}
 
-									code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
-								}
+									promises.push(writeFile(dir + '/' + chunkName, code));
+									return Promise.all(promises).then(() => {
+										return mapSequence(
+											graph.plugins.filter(plugin => plugin.onwrite),
+											(plugin: Plugin) =>
+												Promise.resolve(
+													plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk)
+												)
+										);
+									});
+								})
+							).then(() => {}); // ensures return void and not void[][]
+						});
+					}
+				};
 
-								promises.push(writeFile(dir + '/' + chunkName, code));
-								return Promise.all(promises).then(() => {
-									return mapSequence(
-										graph.plugins.filter(plugin => plugin.onwrite),
-										(plugin: Plugin) =>
-											Promise.resolve(
-												plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk)
-											)
-									);
-								});
-							})
-						).then(() => {}); // ensures return void and not void[][]
-					});
+				if (inputOptions.perf === true) {
+					result.getTimings = getTimings;
 				}
-			};
-
-			if (inputOptions.perf === true) {
-				result.getTimings = getTimings;
-			}
-			return result;
-		});
+				return result;
+			});
 	} catch (err) {
 		return Promise.reject(err);
 	}
