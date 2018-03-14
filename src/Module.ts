@@ -1,7 +1,7 @@
 import { IParse, Options as AcornOptions } from 'acorn';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
-import { timeEnd, timeStart } from './utils/flushTime';
+import { timeEnd, timeStart } from './utils/timers';
 import { blank } from './utils/object';
 import { basename, extname } from './utils/path';
 import { makeLegal } from './utils/identifierHelpers';
@@ -210,7 +210,7 @@ export default class Module {
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain;
 
-		timeStart('ast');
+		timeStart('generate ast', 3);
 
 		if (ast) {
 			// prevent mutating the provided AST, as it may be reused on
@@ -223,7 +223,7 @@ export default class Module {
 			this.astClone = clone(this.ast);
 		}
 
-		timeEnd('ast');
+		timeEnd('generate ast', 3);
 
 		this.resolvedIds = resolvedIds || blank();
 
@@ -235,11 +235,11 @@ export default class Module {
 		});
 		this.removeExistingSourceMap();
 
-		timeStart('analyse');
+		timeStart('analyse ast', 3);
 
 		this.analyse();
 
-		timeEnd('analyse');
+		timeEnd('analyse ast', 3);
 	}
 
 	private removeExistingSourceMap() {

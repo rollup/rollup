@@ -133,11 +133,13 @@ export default function transform(
 		});
 	});
 
-	return promise.then(code => ({
-		code,
-		originalCode,
-		originalSourcemap,
-		ast,
-		sourcemapChain
-	}));
+	return promise.then(code => {
+		return {
+			code,
+			originalCode,
+			originalSourcemap,
+			ast,
+			sourcemapChain
+		};
+	});
 }
