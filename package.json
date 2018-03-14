@@ -60,7 +60,7 @@
     "signal-exit": "^3.0.2",
     "date-time": "^2.1.0",
     "is-reference": "^1.1.0",
-    "sourcemap-codec": "^1.4.0",
+    "sourcemap-codec": "^1.4.1",
     "require-relative": "^0.8.7",
     "rollup-pluginutils": "^2.0.1"
   },

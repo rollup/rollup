@@ -117,16 +117,18 @@ export class NodeBase implements ExpressionNode {
 	bindNode() {}
 
 	eachChild(callback: (node: Node) => void) {
-		this.keys.forEach(key => {
+		for (const key of this.keys) {
 			const value = (<any>this)[key];
-			if (!value) return;
+			if (!value) continue;
 
 			if (Array.isArray(value)) {
-				value.forEach(child => child && callback(child));
+				for (const child of value) {
+					if (child) callback(child);
+				}
 			} else {
 				callback(value);
 			}
-		});
+		}
 	}
 
 	forEachReturnExpressionWhenCalledAtPath(
@@ -232,15 +234,17 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	someChild(callback: (node: NodeBase) => boolean) {
-		return this.keys.some(key => {
+		for (const key of this.keys) {
 			const value = (<any>this)[key];
-			if (!value) return false;
+			if (!value) continue;
 
 			if (Array.isArray(value)) {
-				return value.some(child => child && callback(child));
-			}
-			return callback(value);
-		});
+				for (const child of value) {
+					if (child && callback(child)) return true;
+				}
+			} else if (callback(value)) return true;
+		}
+		return false;
 	}
 
 	someReturnExpressionWhenCalledAtPath(
