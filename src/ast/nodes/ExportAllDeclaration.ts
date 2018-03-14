@@ -2,7 +2,6 @@ import { NodeBase } from './shared/Node';
 import Literal from './Literal';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { BLANK } from '../../utils/object';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 
 export default class ExportAllDeclaration extends NodeBase {
@@ -11,7 +10,7 @@ export default class ExportAllDeclaration extends NodeBase {
 	isExportDeclaration: true;
 	needsBoundaries: true;
 
-	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
+	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
 		code.remove(start, end);
 	}
 }

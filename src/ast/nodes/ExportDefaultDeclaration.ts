@@ -11,7 +11,6 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { isObjectExpression } from './ObjectExpression';
-import { BLANK } from '../../utils/object';
 
 const WHITESPACE = /\s/;
 
@@ -68,7 +67,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		);
 	}
 
-	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
+	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
 		const declarationStart = getDeclarationStart(code.original, this.start);
 
 		if (isFunctionDeclaration(this.declaration)) {

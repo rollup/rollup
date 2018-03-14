@@ -1,5 +1,4 @@
 import { ExpressionEntity, SomeReturnExpressionCallback } from './nodes/shared/Expression';
-import { blank } from '../utils/object';
 import CallOptions from './CallOptions';
 import { LiteralValueTypes } from './nodes/Literal';
 import ExecutionPathOptions from './ExecutionPathOptions';
@@ -340,7 +339,7 @@ export function getLiteralMembersForValue<T = LiteralValueTypes>(value: T) {
 		case 'string':
 			return literalStringMembers;
 		default:
-			return blank();
+			return Object.create(null);
 	}
 }
 

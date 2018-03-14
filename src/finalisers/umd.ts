@@ -1,4 +1,3 @@
-import { blank } from '../utils/object';
 import error from '../utils/error';
 import getInteropBlock from './shared/getInteropBlock';
 import getExportBlock from './shared/getExportBlock';
@@ -55,7 +54,7 @@ export default function umd(
 
 	const moduleDeclarations = chunk.getModuleDeclarations();
 
-	const globalNameMaker = getGlobalNameMaker(options.globals || blank(), chunk.graph);
+	const globalNameMaker = getGlobalNameMaker(options.globals || Object.create(null), chunk.graph);
 
 	const amdDeps = moduleDeclarations.dependencies.map(m => `'${getPath(m.id)}'`);
 	const cjsDeps = moduleDeclarations.dependencies.map(m => `require('${getPath(m.id)}')`);
