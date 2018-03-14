@@ -13,7 +13,7 @@ System.register([], function (exports, module) {
 
 			function foo() {}
 
-			var browserStuff = (Object.freeze || Object)({
+			var browserStuff = /*#__PURE__*/(Object.freeze || Object)({
 				browserSpecificThing: browserSpecificThing,
 				foo: foo
 			});

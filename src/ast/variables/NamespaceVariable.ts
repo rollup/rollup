@@ -77,7 +77,7 @@ export default class NamespaceVariable extends Variable {
 		const name = this.getName();
 
 		const callee = options.freeze
-			? options.legacy ? `(Object.freeze || Object)` : `Object.freeze`
+			? `/*#__PURE__*/${options.legacy ? `(Object.freeze || Object)` : `Object.freeze`}`
 			: '';
 
 		let output = `${this.module.graph.varOrConst} ${name} = ${

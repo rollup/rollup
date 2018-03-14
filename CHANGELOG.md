@@ -6,6 +6,7 @@
 * Option and scripts to display performance timings ([#2045](https://github.com/rollup/rollup/pull/2045))
 * Fixes for exported or early accessed namespaces + improved namespace indentation ([#2041](https://github.com/rollup/rollup/pull/2041))
 * Include missing TypeScript dependencies ([#1965](https://github.com/rollup/rollup/pull/1965))
+* Add #_PURE annotation to frozen namespaces ([#2044](https://github.com/rollup/rollup/pull/2044))
 * [BREAKING] Revert class id preservation from #2025 ([#2048](https://github.com/rollup/rollup/pull/2048))
 * [BREAKING] Refactor missing export plugin hook ([#1987](https://github.com/rollup/rollup/pull/1987))
 

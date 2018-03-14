@@ -10,7 +10,7 @@ define(['exports'], function (exports) { 'use strict';
 
 	function foo() {}
 
-	var browserStuff = (Object.freeze || Object)({
+	var browserStuff = /*#__PURE__*/(Object.freeze || Object)({
 		browserSpecificThing: browserSpecificThing,
 		foo: foo
 	});

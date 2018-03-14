@@ -3,7 +3,7 @@
 const _typeof = 'typeof';
 const foo = 1;
 
-var namespace = (Object.freeze || Object)({
+var namespace = /*#__PURE__*/(Object.freeze || Object)({
 	'typeof': _typeof,
 	foo: foo
 });

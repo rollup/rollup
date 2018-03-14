@@ -5,7 +5,7 @@ const other = require('other');
 const a = 1;
 const b = 2;
 
-const namespace = Object.freeze({
+const namespace = /*#__PURE__*/Object.freeze({
 	a: a,
 	b: b
 });
