@@ -134,6 +134,7 @@ export interface OutputOptions {
 	format?: ModuleFormat;
 	name?: string;
 	globals?: GlobalsOption;
+	chunkNames?: string;
 
 	paths?: Record<string, string> | ((id: string, parent: string) => string);
 	banner?: string;
@@ -242,9 +243,24 @@ export interface OutputChunk {
 	imports: string[];
 	exports: string[];
 	modules: ModuleJSON[];
+	code: string;
+	map?: SourceMap;
+}
 
-	generate: (outputOptions: OutputOptions) => Promise<{ code: string; map: SourceMap }>;
+export interface Bundle {
+	// TODO: consider deprecating to match code splitting
+	imports: string[];
+	exports: string[];
+	modules: ModuleJSON[];
+
+	generate: (outputOptions: OutputOptions) => Promise<OutputChunk>;
 	write: (options: OutputOptions) => Promise<void>;
+	getTimings?: () => SerializedTimings;
+}
+
+export interface BundleSet {
+	generate: (outputOptions: OutputOptions) => Promise<{ [chunkName: string]: OutputChunk }>;
+	write: (options: OutputOptions) => Promise<{ [chunkName: string]: OutputChunk }>;
 	getTimings?: () => SerializedTimings;
 }
 
@@ -270,26 +286,9 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	return inputOptions.plugins.reduce(applyOptionHook, inputOptions);
 }
 
-export interface OutputChunkSet {
-	chunks: {
-		[chunkName: string]: {
-			name: string;
-			imports: string[];
-			exports: string[];
-			modules: ModuleJSON[];
-		};
-	};
-	generate: (outputOptions: OutputOptions) => Promise<{ [chunkName: string]: SourceDescription }>;
-	write: (options: OutputOptions) => Promise<void>;
-	getTimings?: () => SerializedTimings;
-}
-
 export default function rollup(
-	rawInputOptions: InputOptions
-): Promise<OutputChunk | OutputChunkSet>;
-export default function rollup(
-	rawInputOptions: GenericConfigObject
-): Promise<OutputChunk | OutputChunkSet> {
+	rawInputOptions: GenericConfigObject | InputOptions
+): Promise<Bundle | BundleSet> {
 	try {
 		const inputOptions = getInputOptions(rawInputOptions);
 		initialiseTimers(inputOptions);
@@ -304,6 +303,10 @@ export default function rollup(
 		if (!codeSplitting)
 			return graph.buildSingle(inputOptions.input).then(chunk => {
 				timeEnd('BUILD', 1);
+
+				const imports = chunk.getImportIds();
+				const exports = chunk.getExportNames();
+				const modules = chunk.getJsonModules();
 
 				function generate(rawOutputOptions: GenericConfigObject) {
 					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
@@ -330,6 +333,15 @@ export default function rollup(
 							});
 
 							return rendered;
+						})
+						.then(({ code, map }) => {
+							return {
+								imports,
+								exports,
+								modules,
+								code,
+								map
+							};
 						});
 
 					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
@@ -338,10 +350,10 @@ export default function rollup(
 					return promise;
 				}
 
-				const result: OutputChunk = {
-					imports: chunk.getImportIds(),
-					exports: chunk.getExportNames(),
-					modules: chunk.getJsonModules(),
+				const result: Bundle = {
+					imports,
+					exports,
+					modules,
 
 					generate,
 					write: (outputOptions: OutputOptions) => {
@@ -416,24 +428,6 @@ export default function rollup(
 			.buildChunks(inputOptions.input, inputOptions.experimentalPreserveModules)
 			.then(bundle => {
 				timeEnd('BUILD', 1);
-				const chunks: {
-					[name: string]: {
-						name: string;
-						imports: string[];
-						exports: string[];
-						modules: ModuleJSON[];
-					};
-				} = {};
-				Object.keys(bundle).forEach(chunkName => {
-					const chunk = bundle[chunkName];
-
-					chunks[chunkName] = {
-						name: chunkName,
-						imports: chunk.getImportIds(),
-						exports: chunk.getExportNames(),
-						modules: chunk.getJsonModules()
-					};
-				});
 
 				function generate(rawOutputOptions: GenericConfigObject) {
 					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
@@ -454,7 +448,7 @@ export default function rollup(
 
 					timeStart('GENERATE', 1);
 
-					const generated: { [chunkName: string]: SourceDescription } = {};
+					const generated: { [chunkName: string]: OutputChunk } = {};
 
 					const promise = Promise.all(
 						Object.keys(bundle).map(chunkName => {
@@ -464,12 +458,18 @@ export default function rollup(
 
 								graph.plugins.forEach(plugin => {
 									if (plugin.ongenerate) {
-										const bundle = chunks[chunkName];
-										plugin.ongenerate(Object.assign({ bundle }, outputOptions), rendered);
+										plugin.ongenerate(Object.assign(chunk, outputOptions), rendered);
 									}
 								});
 
-								generated[chunkName] = rendered;
+								generated[chunkName] = {
+									imports: chunk.getImportIds(),
+									exports: chunk.getExportNames(),
+									modules: chunk.getJsonModules(),
+
+									code: rendered.code,
+									map: rendered.map
+								};
 							});
 						})
 					).then(() => generated);
@@ -480,10 +480,9 @@ export default function rollup(
 					return promise;
 				}
 
-				const result: OutputChunkSet = {
-					chunks: chunks,
+				const result: BundleSet = {
 					generate,
-					write(outputOptions: OutputOptions): Promise<void> {
+					write(outputOptions: OutputOptions) {
 						if (!outputOptions || !outputOptions.dir) {
 							error({
 								code: 'MISSING_OPTION',
@@ -525,7 +524,7 @@ export default function rollup(
 										);
 									});
 								})
-							).then(() => {}); // ensures return void and not void[][]
+							).then(() => result);
 						});
 					}
 				};

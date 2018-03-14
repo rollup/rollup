@@ -1,1 +1,1 @@
-["amd","banner","dir","exports","extend","file","footer","format","freeze","globals","indent","interop","intro","legacy","name","namespaceToStringTag","noConflict","outro","paths","sourcemap","sourcemapFile","strict"]
+amd
