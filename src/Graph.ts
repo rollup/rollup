@@ -30,39 +30,14 @@ import { Node } from './ast/nodes/shared/Node';
 import Chunk from './Chunk';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
-import { blank } from './utils/object';
 import firstSync from './utils/first-sync';
 import commondir from './utils/commondir';
+import { generateChunkName } from './utils/chunk-name';
 
 export type ResolveDynamicImportHandler = (
 	specifier: string | Node,
 	parentId: string
 ) => Promise<string | void>;
-
-function generateChunkName(
-	id: string,
-	chunkNames: { [name: string]: boolean },
-	startAtTwo = false,
-	inputRelativeDir = ''
-): string {
-	let name;
-	if (inputRelativeDir) {
-		name = path.relative(inputRelativeDir, id).replace(/\\/g, '/');
-	} else {
-		name = path.basename(id);
-	}
-	let ext = path.extname(name);
-	name = name.substr(0, name.length - ext.length);
-	if (ext !== '.js' && ext !== '.mjs') {
-		name += ext;
-		ext = '.js';
-	}
-	let uniqueName = name;
-	let uniqueIndex = startAtTwo ? 2 : 1;
-	while (chunkNames[uniqueName]) uniqueName = name + uniqueIndex++;
-	chunkNames[uniqueName] = true;
-	return uniqueName + ext;
-}
 
 export default class Graph {
 	acornOptions: acorn.Options;
@@ -346,12 +321,15 @@ export default class Graph {
 	}
 
 	buildChunks(
-		entryModuleIds: string[],
+		entryModules: { [entryAlias: string]: string },
 		preserveModules: boolean
 	): Promise<{ [name: string]: Chunk }> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
+		const entryModuleAliases = Object.keys(entryModules);
+		const entryModuleIds = entryModuleAliases.map(name => entryModules[name]);
+
 		timeStart('parse modules', 2);
 		return Promise.all(entryModuleIds.map(entryId => this.loadModule(entryId))).then(
 			entryModules => {
@@ -453,17 +431,13 @@ export default class Graph {
 				}
 
 				// name the chunks
-				const chunkNames: { [name: string]: boolean } = blank();
+				const chunkNames: { [name: string]: boolean } = Object.create(null);
 				chunkNames['chunk'] = true;
+				entryModuleAliases.forEach(alias => (chunkNames[alias] = true));
 				chunkList.forEach(chunk => {
 					// generate the imports and exports for the output chunk file
 					if (chunk.entryModule) {
-						const entryName = generateChunkName(
-							chunk.entryModule.id,
-							chunkNames,
-							true,
-							inputRelativeDir
-						);
+						const entryName = entryModuleAliases[entryModuleIds.indexOf(chunk.entryModule.id)];
 
 						// if the chunk exactly exports the entry point exports then
 						// it can replace the entry point

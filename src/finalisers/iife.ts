@@ -1,4 +1,3 @@
-import { blank } from '../utils/object';
 import error from '../utils/error';
 import getInteropBlock from './shared/getInteropBlock';
 import getExportBlock from './shared/getExportBlock';
@@ -31,7 +30,11 @@ export default function iife(
 	},
 	options: OutputOptions
 ) {
-	const globalNameMaker = getGlobalNameMaker(options.globals || blank(), chunk.graph, 'null');
+	const globalNameMaker = getGlobalNameMaker(
+		options.globals || Object.create(null),
+		chunk.graph,
+		'null'
+	);
 
 	const { extend, name } = options;
 	const isNamespaced = name && name.indexOf('.') !== -1;

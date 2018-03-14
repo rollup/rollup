@@ -1,6 +1,5 @@
 import { timeEnd, timeStart } from './utils/timers';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
-import { blank, forOwn } from './utils/object';
 import Module, { ModuleJSON } from './Module';
 import finalisers from './finalisers/index';
 import getExportMode from './utils/getExportMode';
@@ -473,7 +472,7 @@ export default class Chunk {
 	}
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
-		const used = blank();
+		const used = Object.create(null);
 		const es = options.format === 'es' || options.format === 'system';
 
 		// ensure no conflicts with globals
@@ -534,7 +533,8 @@ export default class Chunk {
 		});
 
 		this.orderedModules.forEach(module => {
-			forOwn(module.scope.variables, variable => {
+			Object.keys(module.scope.variables).forEach(variableName => {
+				const variable = module.scope.variables[variableName];
 				if (isExportDefaultVariable(variable) && variable.referencesOriginal()) {
 					variable.setSafeName(null);
 					return;

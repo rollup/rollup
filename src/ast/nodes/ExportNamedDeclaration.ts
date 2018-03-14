@@ -7,7 +7,6 @@ import FunctionDeclaration from './FunctionDeclaration';
 import ClassDeclaration from './ClassDeclaration';
 import VariableDeclaration from './VariableDeclaration';
 import { NodeType } from './NodeType';
-import { BLANK } from '../../utils/object';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 
 export default class ExportNamedDeclaration extends NodeBase {
@@ -28,7 +27,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 		return this.declaration && this.declaration.hasEffects(options);
 	}
 
-	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
+	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
 		if (this.declaration === null) {
 			code.remove(start, end);
 		} else {

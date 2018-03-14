@@ -1,6 +1,5 @@
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path';
-import { blank } from './object';
 import error from './error';
 import Module from '../Module';
 import relativeId from './relativeId';
@@ -57,7 +56,7 @@ export function resolveId(options: InputOptions) {
 }
 
 export function makeOnwarn() {
-	const warned = blank();
+	const warned = Object.create(null);
 
 	return (warning: any) => {
 		const str = warning.toString();

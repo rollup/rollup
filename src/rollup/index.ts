@@ -7,7 +7,6 @@ import {
 } from '../utils/timers';
 import { basename } from '../utils/path';
 import { writeFile } from '../utils/fs';
-import { assign } from '../utils/object';
 import { mapSequence } from '../utils/promise';
 import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
@@ -92,7 +91,7 @@ export type GlobalsOption = { [name: string]: string } | ((name: string) => stri
 export type CachedChunk = { modules: ModuleJSON[] };
 export type CachedChunkSet = { chunks: { [chunkName: string]: CachedChunk } };
 export interface InputOptions {
-	input: string | string[];
+	input: string | string[] | { [entryAlias: string]: string };
 	external?: ExternalOption;
 	plugins?: Plugin[];
 
@@ -299,55 +298,15 @@ export default function rollup(
 		timeStart('BUILD', 1);
 
 		const codeSplitting =
-			(inputOptions.experimentalCodeSplitting && inputOptions.input instanceof Array) ||
+			(inputOptions.experimentalCodeSplitting && typeof inputOptions.input !== 'string') ||
 			inputOptions.experimentalPreserveModules;
 
 		if (!codeSplitting)
 			return graph.buildSingle(inputOptions.input).then(chunk => {
 				timeEnd('BUILD', 1);
 
-				function normalizeOptions(rawOutputOptions: GenericConfigObject) {
-					if (!rawOutputOptions) {
-						throw new Error('You must supply an options object');
-					}
-					// since deprecateOptions, adds the output properties
-					// to `inputOptions` so adding that lastly
-					const consolidatedOutputOptions = Object.assign(
-						{},
-						{
-							output: Object.assign(
-								{},
-								rawOutputOptions,
-								rawOutputOptions.output,
-								inputOptions.output
-							)
-						}
-					);
-					const mergedOptions = mergeOptions({
-						// just for backward compatiblity to fallback on root
-						// if the option isn't present in `output`
-						config: consolidatedOutputOptions,
-						deprecateConfig: { output: true }
-					});
-
-					if (mergedOptions.optionError)
-						mergedOptions.inputOptions.onwarn({
-							message: mergedOptions.optionError,
-							code: 'UNKNOWN_OPTION'
-						});
-
-					// now outputOptions is an array, but rollup.rollup API doesn't support arrays
-					const outputOptions = mergedOptions.outputOptions[0];
-					const deprecations = mergedOptions.deprecations;
-
-					if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
-					checkOutputOptions(outputOptions);
-
-					return outputOptions;
-				}
-
 				function generate(rawOutputOptions: GenericConfigObject) {
-					const outputOptions = normalizeOptions(rawOutputOptions);
+					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
 
 					timeStart('GENERATE', 1);
 
@@ -359,7 +318,7 @@ export default function rollup(
 							graph.plugins.forEach(plugin => {
 								if (plugin.ongenerate) {
 									plugin.ongenerate(
-										assign(
+										Object.assign(
 											{
 												bundle: result
 											},
@@ -419,7 +378,7 @@ export default function rollup(
 										mapSequence(graph.plugins.filter(plugin => plugin.onwrite), (plugin: Plugin) =>
 											Promise.resolve(
 												plugin.onwrite(
-													assign(
+													Object.assign(
 														{
 															bundle: result
 														},
@@ -470,7 +429,7 @@ export default function rollup(
 				});
 
 				function generate(rawOutputOptions: GenericConfigObject) {
-					const outputOptions = getAndCheckOutputOptions(inputOptions, rawOutputOptions);
+					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
 
 					if (typeof outputOptions.file === 'string')
 						error({
@@ -499,7 +458,7 @@ export default function rollup(
 								graph.plugins.forEach(plugin => {
 									if (plugin.ongenerate) {
 										const bundle = chunks[chunkName];
-										plugin.ongenerate(assign({ bundle }, outputOptions), rendered);
+										plugin.ongenerate(Object.assign({ bundle }, outputOptions), rendered);
 									}
 								});
 
@@ -554,7 +513,7 @@ export default function rollup(
 											graph.plugins.filter(plugin => plugin.onwrite),
 											(plugin: Plugin) =>
 												Promise.resolve(
-													plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk)
+													plugin.onwrite(Object.assign({ bundle: chunk }, outputOptions), chunk)
 												)
 										);
 									});
@@ -574,7 +533,7 @@ export default function rollup(
 	}
 }
 
-function getAndCheckOutputOptions(
+function normalizeOutputOptions(
 	inputOptions: GenericConfigObject,
 	rawOutputOptions: GenericConfigObject
 ): OutputOptions {
@@ -596,7 +555,11 @@ function getAndCheckOutputOptions(
 		deprecateConfig: { output: true }
 	});
 
-	if (mergedOptions.optionError) throw new Error(mergedOptions.optionError);
+	if (mergedOptions.optionError)
+		mergedOptions.inputOptions.onwarn({
+			message: mergedOptions.optionError,
+			code: 'UNKNOWN_OPTION'
+		});
 
 	// now outputOptions is an array, but rollup.rollup API doesn't support arrays
 	const outputOptions = mergedOptions.outputOptions[0];

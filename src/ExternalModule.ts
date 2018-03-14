@@ -1,4 +1,3 @@
-import { blank } from './utils/object';
 import { makeLegal } from './utils/identifierHelpers';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Graph from './Graph';
@@ -27,12 +26,12 @@ export default class ExternalModule {
 		const parts = id.split(/[\\/]/);
 		this.name = makeLegal(parts.pop());
 
-		this.nameSuggestions = blank();
+		this.nameSuggestions = Object.create(null);
 		this.mostCommonSuggestion = 0;
 
 		this.isExternal = true;
 		this.used = false;
-		this.declarations = blank();
+		this.declarations = Object.create(null);
 
 		this.exportsNames = false;
 	}

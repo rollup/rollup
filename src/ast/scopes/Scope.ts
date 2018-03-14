@@ -1,4 +1,3 @@
-import { blank, keys } from '../../utils/object';
 import LocalVariable from '../variables/LocalVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import { UNKNOWN_EXPRESSION } from '../values';
@@ -30,7 +29,7 @@ export default class Scope {
 		this.children = [];
 		if (this.parent) this.parent.children.push(this);
 
-		this.variables = blank();
+		this.variables = Object.create(null);
 	}
 
 	/**
@@ -82,7 +81,7 @@ export default class Scope {
 	}
 
 	deshadow(names: Set<string>, children = this.children) {
-		keys(this.variables).forEach(key => {
+		Object.keys(this.variables).forEach(key => {
 			const declaration = this.variables[key];
 
 			// we can disregard exports.foo etc

@@ -10,7 +10,6 @@ import {
 } from '../../utils/renderHelpers';
 import { isIdentifier } from './Identifier';
 import Variable from '../variables/Variable';
-import { BLANK } from '../../utils/object';
 import { ObjectPath } from '../values';
 
 function isReassignedExportsMember(variable: Variable): boolean {
@@ -69,7 +68,7 @@ export default class VariableDeclaration extends NodeBase {
 		this.declarations.forEach(child => child.initialiseDeclarator(this.scope, this.kind));
 	}
 
-	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {
+	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = {}) {
 		if (
 			this.declarations.every(
 				declarator =>

@@ -5,7 +5,6 @@ import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { BLANK } from '../../utils/object';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 
 export default class ImportDeclaration extends NodeBase {
@@ -18,7 +17,7 @@ export default class ImportDeclaration extends NodeBase {
 
 	bindChildren() {}
 
-	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
+	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
 		code.remove(start, end);
 	}
 }
