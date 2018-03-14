@@ -109,9 +109,9 @@ export default function es(
 		exportBlock.push(`export { ${exportDeclaration.join(', ')} };`);
 	}
 
-	if (exportBlock.length) (<any>magicString).append('\n\n' + exportBlock.join('\n').trim()); // TODO TypeScript: Awaiting PR
+	if (exportBlock.length) magicString.append('\n\n' + exportBlock.join('\n').trim());
 
-	if (outro) (<any>magicString).append(outro); // TODO TypeScript: Awaiting PR
+	if (outro) magicString.append(outro);
 
-	return (<any>magicString).trim(); // TODO TypeScript: Awaiting PR
+	return magicString.trim();
 }

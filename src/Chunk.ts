@@ -762,7 +762,7 @@ export default class Chunk {
 
 				magicString = finalise(
 					this,
-					(<any>magicString).trim(), // TODO TypeScript: Awaiting MagicString PR
+					magicString.trim(),
 					{
 						exportMode,
 						getPath,
@@ -777,7 +777,7 @@ export default class Chunk {
 				timeEnd('render format', 3);
 
 				if (banner) magicString.prepend(banner + '\n');
-				if (footer) (<any>magicString).append('\n' + footer); // TODO TypeScript: Awaiting MagicString PR
+				if (footer) magicString.append('\n' + footer);
 
 				const prevCode = magicString.toString();
 				let map: RawSourceMap = null;
@@ -797,13 +797,13 @@ export default class Chunk {
 									Boolean(plugin.transform || plugin.transformBundle)
 								)
 							) {
-								map = <any>magicString.generateMap({}); // TODO TypeScript: Awaiting missing version in SourceMap type
+								map = magicString.generateMap({});
 								if (typeof map.mappings === 'string') {
 									map.mappings = decode(map.mappings);
 								}
 								map = collapseSourcemaps(this, file, map, usedModules, bundleSourcemapChain);
 							} else {
-								map = <any>magicString.generateMap({ file, includeContent: true }); // TODO TypeScript: Awaiting missing version in SourceMap type
+								map = magicString.generateMap({ file, includeContent: true });
 							}
 
 							map.sources = map.sources.map(normalize);
@@ -812,7 +812,7 @@ export default class Chunk {
 						}
 
 						if (code[code.length - 1] !== '\n') code += '\n';
-						return { code, map } as { code: string; map: any }; // TODO TypeScript: Awaiting missing version in SourceMap type
+						return { code, map };
 					}
 				);
 			});

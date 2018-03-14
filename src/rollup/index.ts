@@ -16,7 +16,6 @@ import { ModuleJSON } from '../Module';
 import { RawSourceMap } from 'source-map';
 import Program from '../ast/nodes/Program';
 import { Node } from '../ast/nodes/shared/Node';
-import { SourceMap } from 'magic-string';
 import { WatcherOptions } from '../watch/index';
 import { Deprecation } from '../utils/deprecateOptions';
 import Graph from '../Graph';
@@ -247,7 +246,7 @@ export interface OutputChunk {
 	exports: string[];
 	modules: ModuleJSON[];
 
-	generate: (outputOptions: OutputOptions) => Promise<{ code: string; map: SourceMap }>;
+	generate: (outputOptions: OutputOptions) => Promise<{ code: string; map: RawSourceMap }>;
 	write: (options: OutputOptions) => Promise<void>;
 	getTimings?: () => SerializedTimings;
 }

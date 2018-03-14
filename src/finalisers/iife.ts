@@ -101,11 +101,11 @@ export default function iife(
 		moduleDeclarations.dependencies,
 		exportMode
 	);
-	if (exportBlock) (<any>magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
-	if (outro) (<any>magicString).append(outro); // TODO TypeScript: Awaiting PR
+	if (exportBlock) magicString.append('\n\n' + exportBlock);
+	if (outro) magicString.append(outro);
 
-	return (<any>magicString)
-		.indent(indentString) // TODO TypeScript: Awaiting PR
+	return magicString
+		.indent(indentString)
 		.prepend(wrapperIntro)
 		.append(wrapperOutro);
 }
