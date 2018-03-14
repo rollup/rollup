@@ -3,7 +3,7 @@ module.exports = {
 	options: {
 		input: {
 			'main1alias': 'main1.js',
-			'main2alias.mjs': 'main2.js'
+			'main2alias.js': 'main2.js'
 		}
 	}
 };

@@ -1,10 +1,13 @@
+const assert = require('assert');
+
 module.exports = {
 	description: 'plugin .transformBundle gets passed options',
 	options: {
 		plugins: [
 			{
 				transformBundle: function(code, options) {
-					return JSON.stringify(Object.keys(options));
+					assert.strictEqual(Object.keys(options).join(', '), require('../../../misc/optionList').output);
+					return options.format;
 				}
 			}
 		]
