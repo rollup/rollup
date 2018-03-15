@@ -14,7 +14,7 @@ export default class TemplateLiteral extends NodeBase {
 	expressions: ExpressionNode[];
 
 	render(code: MagicString, options: RenderOptions) {
-		(<any>code).indentExclusionRanges.push([this.start, this.end]); // TODO TypeScript: Awaiting PR
+		(<[number, number][]>code.indentExclusionRanges).push(<[number, number]>[this.start, this.end]);
 		super.render(code, options);
 	}
 }

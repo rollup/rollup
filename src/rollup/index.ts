@@ -16,12 +16,12 @@ import { ModuleJSON } from '../Module';
 import { RawSourceMap } from 'source-map';
 import Program from '../ast/nodes/Program';
 import { Node } from '../ast/nodes/shared/Node';
-import { SourceMap } from 'magic-string';
 import { WatcherOptions } from '../watch/index';
 import { Deprecation } from '../utils/deprecateOptions';
 import Graph from '../Graph';
 import { TransformContext } from '../utils/transform';
 import ensureArray from '../utils/ensureArray';
+import { SourceMap } from 'magic-string';
 
 export const VERSION = '<@VERSION@>';
 

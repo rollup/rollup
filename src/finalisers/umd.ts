@@ -141,13 +141,13 @@ export default function umd(
 		moduleDeclarations.dependencies,
 		exportMode
 	);
-	if (exportBlock) (<any>magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
+	if (exportBlock) magicString.append('\n\n' + exportBlock);
 	if (exportMode === 'named' && options.legacy !== true)
-		(<any>magicString).append(`\n\n${esModuleExport}`); // TODO TypeScript: Awaiting PR
-	if (outro) (<any>magicString).append(outro); // TODO TypeScript: Awaiting PR
+		magicString.append(`\n\n${esModuleExport}`);
+	if (outro) magicString.append(outro);
 
-	return (<any>magicString)
-		.trim() // TODO TypeScript: Awaiting PR
+	return magicString
+		.trim()
 		.indent(indentString)
 		.append(wrapperOutro)
 		.prepend(wrapperIntro);

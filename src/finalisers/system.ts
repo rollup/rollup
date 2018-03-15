@@ -136,9 +136,9 @@ ${functionExports.length ? `${t}${t}${t}` + functionExports.join(`\n${t}${t}${t}
 
 	if (intro) magicString.prepend(intro);
 
-	if (outro) (<any>magicString).append(outro);
+	if (outro) magicString.append(outro);
 
-	return (<any>magicString) // TODO TypeScript: Awaiting PR
+	return magicString
 		.indent(`${t}${t}${t}`)
 		.append(`\n\n${t}${t}}\n${t}};\n});`)
 		.prepend(wrapperStart);

@@ -4,6 +4,7 @@ import { basename, dirname, relative, resolve } from './path';
 import Module from '../Module';
 import { RawSourceMap } from 'source-map';
 import Chunk from '../Chunk';
+import { SourceMap } from 'magic-string';
 
 class Source {
 	isOriginal: boolean;
@@ -128,7 +129,7 @@ class Link {
 export default function collapseSourcemaps(
 	bundle: Chunk,
 	file: string,
-	map: RawSourceMap,
+	map: SourceMap,
 	modules: Module[],
 	bundleSourcemapChain: RawSourceMap[]
 ) {

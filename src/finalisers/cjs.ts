@@ -93,8 +93,8 @@ export default function cjs(
 
 	magicString.prepend(intro);
 
-	if (exportBlock) (<any>magicString).append('\n\n' + exportBlock); // TODO TypeScript: Awaiting PR
-	if (outro) (<any>magicString).append(outro); // TODO TypeScript: Awaiting PR
+	if (exportBlock) magicString.append('\n\n' + exportBlock);
+	if (outro) magicString.append(outro);
 
 	return magicString;
 }
