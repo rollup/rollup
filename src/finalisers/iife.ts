@@ -80,7 +80,7 @@ export default function iife (
 
 	if (isNamespaced) {
 		wrapperIntro =
-			setupNamespace(name, typeof self !== 'undefined' ?  self : typeof global !== 'undefined' ? 'global' : 'this', false, options.globals) + wrapperIntro;
+			setupNamespace(name, `${typeof self !== 'undefined' ?  self : typeof global !== 'undefined' ? global : this}`, false, options.globals) + wrapperIntro;
 	}
 
 	let wrapperOutro = `\n\n}(${dependencies}));`;
