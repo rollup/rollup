@@ -177,7 +177,7 @@ export default function watch(
 
 			restarting = true;
 
-			loadConfigFile(configFile, silent)
+			loadConfigFile(configFile, command)
 				.then((configs: RollupWatchOptions[]) => {
 					restarting = false;
 
