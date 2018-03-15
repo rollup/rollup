@@ -1,6 +1,6 @@
 import ensureArray from './ensureArray';
 import deprecateOptions, { Deprecation } from './deprecateOptions';
-import { InputOptions, OutputOptions, WarningHandler } from '../rollup/index';
+import { InputOptions, WarningHandler } from '../rollup/index';
 
 function normalizeObjectOptionValue(optionValue: any) {
 	if (!optionValue) {
@@ -22,8 +22,29 @@ const defaultOnWarn: WarningHandler = warning => {
 
 export type GenericConfigObject = { [key: string]: any };
 
+export const commandAliases: { [key: string]: string } = {
+	// Aliases
+	strict: 'useStrict',
+	dir: 'output.dir',
+
+	// Short options
+	c: 'config',
+	d: 'indent',
+	e: 'external',
+	f: 'output.format',
+	g: 'globals',
+	h: 'help',
+	i: 'input',
+	l: 'legacy',
+	m: 'sourcemap',
+	n: 'name',
+	o: 'output.file',
+	v: 'version',
+	w: 'watch'
+};
+
 export default function mergeOptions({
-	config,
+	config = {},
 	command = {},
 	deprecateConfig,
 	defaultOnWarnHandler = defaultOnWarn
@@ -66,7 +87,7 @@ export default function mergeOptions({
 		warn = defaultOnWarnHandler;
 	}
 
-	const inputOptions: InputOptions = {
+	const baseInputOptions: InputOptions = {
 		acorn: config.acorn,
 		acornInjectPlugins: config.acornInjectPlugins,
 		cache: getInputOption('cache'),
@@ -87,7 +108,7 @@ export default function mergeOptions({
 	};
 
 	// legacy, to ensure e.g. commonjs plugin still works
-	(<any>inputOptions).entry = inputOptions.input;
+	(<any>baseInputOptions).entry = baseInputOptions.input;
 
 	const commandExternal = (command.external || '').split(',');
 	const configExternal = config.external;
@@ -109,19 +130,19 @@ export default function mergeOptions({
 	}
 
 	if (typeof configExternal === 'function') {
-		inputOptions.external = (id, ...rest: any[]) =>
+		baseInputOptions.external = (id, ...rest: any[]) =>
 			configExternal(id, ...rest) || commandExternal.indexOf(id) !== -1;
 	} else {
-		inputOptions.external = (configExternal || []).concat(commandExternal);
+		baseInputOptions.external = (configExternal || []).concat(commandExternal);
 	}
 
 	if (command.silent) {
-		inputOptions.onwarn = () => {};
+		baseInputOptions.onwarn = () => {};
 	}
 
 	// Make sure the CLI treats this the same way as when we are code-splitting
-	if (inputOptions.experimentalPreserveModules && !Array.isArray(inputOptions.input)) {
-		inputOptions.input = [inputOptions.input];
+	if (baseInputOptions.experimentalPreserveModules && !Array.isArray(baseInputOptions.input)) {
+		baseInputOptions.input = [baseInputOptions.input];
 	}
 
 	const baseOutputOptions = {
@@ -172,27 +193,55 @@ export default function mergeOptions({
 		return Object.assign({}, baseOutputOptions, output);
 	});
 
-	// check for errors
-	const validKeys = [
-		...Object.keys(inputOptions),
-		...Object.keys(baseOutputOptions),
-		'pureExternalModules' // (backward compatibility) till everyone moves to treeshake.pureExternalModules
-	];
-	const outputOptionKeys: string[] = Array.isArray(config.output)
-		? config.output.reduce((keys: string[], o: OutputOptions) => [...keys, ...Object.keys(o)], [])
-		: Object.keys(config.output || {});
-	const errors = [...Object.keys(config || {}), ...outputOptionKeys].filter(
-		k => k !== 'output' && validKeys.indexOf(k) === -1
+	const missingOptionErrors: string[] = [];
+	const validInputOptions = Object.keys(baseInputOptions);
+	addMissingOptionErrors(
+		missingOptionErrors,
+		Object.keys(config),
+		validInputOptions,
+		'input',
+		/^output$/
+	);
+	addMissingOptionErrors(
+		missingOptionErrors,
+		Array.isArray(config.output)
+			? config.output.reduce((allOptions, options) => allOptions.concat(Object.keys(options)), [])
+			: Object.keys(config.output || {}),
+		Object.keys(baseOutputOptions),
+		'output'
+	);
+	addMissingOptionErrors(
+		missingOptionErrors,
+		Object.keys(command),
+		validInputOptions.concat('config', 'output', Object.keys(commandAliases)),
+		'CLI',
+		/^_|(config.*)$/
 	);
 
 	return {
-		inputOptions,
+		inputOptions: baseInputOptions,
 		outputOptions,
 		deprecations,
-		optionError: errors.length
-			? `Unknown option found: ${errors.join(', ')}. Allowed keys: ${validKeys.join(', ')}`
-			: null
+		optionError: missingOptionErrors.length > 0 ? missingOptionErrors.join('\n') : null
 	};
+}
+
+function addMissingOptionErrors(
+	errors: string[],
+	options: string[],
+	validOptions: string[],
+	optionType: string,
+	ignoredKeys: RegExp = /$./
+) {
+	const unknownOptions = options.filter(
+		key => validOptions.indexOf(key) === -1 && !ignoredKeys.test(key)
+	);
+	if (unknownOptions.length > 0)
+		errors.push(
+			`Unknown ${optionType} option: ${unknownOptions.join(
+				', '
+			)}. Allowed options: ${validOptions.sort().join(', ')}`
+		);
 }
 
 function deprecate(
