@@ -266,8 +266,12 @@ export default class Graph {
 	}
 
 	private link() {
-		this.modules.forEach(module => module.linkDependencies());
-		this.modules.forEach(module => module.bindReferences());
+		for (let module of this.modules) {
+			module.linkDependencies();
+		}
+		for (let module of this.modules) {
+			module.bindReferences();
+		}
 	}
 
 	includeMarked(modules: Module[]) {
@@ -277,11 +281,11 @@ export default class Graph {
 			do {
 				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
 				addedNewNodes = false;
-				modules.forEach(module => {
+				for (let module of modules) {
 					if (module.includeInBundle()) {
 						addedNewNodes = true;
 					}
-				});
+				}
 				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
 			} while (addedNewNodes);
 		} else {
@@ -304,7 +308,7 @@ export default class Graph {
 
 			this.link();
 
-			const { orderedModules, dynamicImports } = this.analyseExecution([entryModule]);
+			const { orderedModules, dynamicImports } = this.analyseExecution([entryModule], false);
 
 			timeEnd('analyse dependency graph', 2);
 
@@ -363,7 +367,7 @@ export default class Graph {
 
 				const { orderedModules, dynamicImports } = this.analyseExecution(
 					entryModules,
-					preserveModules
+					!preserveModules
 				);
 
 				dynamicImports.forEach(dynamicImportModule => {
@@ -376,9 +380,7 @@ export default class Graph {
 				// Phase 3 – marking. We include all statements that should be included
 				timeStart('mark included statements', 2);
 
-				entryModules.forEach(entryModule => {
-					entryModule.markExports();
-				});
+				entryModules.forEach(entryModule => entryModule.markExports());
 
 				// only include statements that should appear in the bundle
 				this.includeMarked(orderedModules);
@@ -495,7 +497,7 @@ export default class Graph {
 		);
 	}
 
-	private analyseExecution(entryModules: Module[], preserveModules: boolean = false) {
+	private analyseExecution(entryModules: Module[], graphColouring: boolean) {
 		let curEntry: Module, curEntryHash: Uint8Array;
 		const allSeen: { [id: string]: boolean } = {};
 
@@ -503,42 +505,41 @@ export default class Graph {
 
 		const dynamicImports: Module[] = [];
 
-		const visit = (
-			module: Module,
-			parents: { [id: string]: string | null } = { [module.id]: null }
-		) => {
+		let parents: { [id: string]: string };
+
+		const visit = (module: Module) => {
 			if (module.isEntryPoint && module !== curEntry) return;
 
 			// Track entry point graph colouring by tracing all modules loaded by a given
 			// entry point and colouring those modules by the hash of its id. Colours are mixed as
 			// hash xors, providing the unique colouring of the graph into unique hash chunks.
 			// This is really all there is to automated chunking, the rest is chunk wiring.
-			if (!preserveModules) {
+			if (graphColouring) {
 				Uint8ArrayXor(module.entryPointsHash, curEntryHash);
 			}
 
-			module.dependencies.forEach(depModule => {
-				if (!depModule.isExternal) {
-					if (depModule.id in parents) {
-						if (!allSeen[depModule.id]) {
-							this.warnCycle(depModule.id, module.id, parents);
-						}
-						return;
-					}
+			for (let depModule of module.dependencies) {
+				if (depModule.isExternal) continue;
 
-					parents[depModule.id] = module.id;
-					visit(<Module>depModule, parents);
+				if (depModule.id in parents) {
+					if (!allSeen[depModule.id]) {
+						this.warnCycle(depModule.id, module.id, parents);
+					}
+					continue;
 				}
-			});
+
+				parents[depModule.id] = module.id;
+				visit(<Module>depModule);
+			}
 
 			if (this.dynamicImport) {
-				module.dynamicImportResolutions.forEach(module => {
-					if (module instanceof Module) {
-						if (dynamicImports.indexOf(module) === -1) {
-							dynamicImports.push(module);
+				for (let dynamicModule of module.dynamicImportResolutions) {
+					if (dynamicModule instanceof Module) {
+						if (dynamicImports.indexOf(dynamicModule) === -1) {
+							dynamicImports.push(dynamicModule);
 						}
 					}
-				});
+				}
 			}
 
 			if (allSeen[module.id]) return;
@@ -548,18 +549,18 @@ export default class Graph {
 			ordered.push(module);
 		};
 
-		for (let i = 0; i < entryModules.length; i++) {
-			curEntry = entryModules[i];
+		for (curEntry of entryModules) {
 			curEntry.isEntryPoint = true;
 			curEntryHash = randomUint8Array(10);
+			parents = { [curEntry.id]: null };
 			visit(curEntry);
 		}
 
 		// new items can be added during this loop
-		for (let i = 0; i < dynamicImports.length; i++) {
-			curEntry = dynamicImports[i];
+		for (curEntry of dynamicImports) {
 			curEntry.isEntryPoint = true;
 			curEntryHash = randomUint8Array(10);
+			parents = { [curEntry.id]: null };
 			visit(curEntry);
 		}
 

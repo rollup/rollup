@@ -423,23 +423,28 @@ export default class Module {
 	}
 
 	linkDependencies() {
-		this.sources.forEach(source => {
+		for (let source of this.sources) {
 			const id = this.resolvedIds[source];
 
 			if (id) {
 				const module = this.graph.moduleById.get(id);
 				this.dependencies.push(<Module>module);
 			}
-		});
+		}
 
-		[this.imports, this.reexports].forEach(specifiers => {
-			Object.keys(specifiers).forEach(name => {
+		const resolveSpecifiers = (specifiers: {
+			[name: string]: ImportDescription | ReexportDescription;
+		}) => {
+			for (let name of Object.keys(specifiers)) {
 				const specifier = specifiers[name];
 
 				const id = this.resolvedIds[specifier.source];
 				specifier.module = this.graph.moduleById.get(id);
-			});
-		});
+			}
+		};
+
+		resolveSpecifiers(this.imports);
+		resolveSpecifiers(this.reexports);
 
 		this.exportAllModules = this.exportAllSources.map(source => {
 			const id = this.resolvedIds[source];
@@ -448,7 +453,9 @@ export default class Module {
 	}
 
 	bindReferences() {
-		this.ast.body.forEach(node => node.bind());
+		for (let node of this.ast.body) {
+			node.bind();
+		}
 	}
 
 	getDynamicImportExpressions(): (string | Node)[] {
@@ -581,18 +588,20 @@ export default class Module {
 	}
 
 	includeAllInBundle() {
-		this.ast.body.forEach(includeFully);
+		for (let node of this.ast.body) {
+			includeFully(node);
+		}
 	}
 
 	includeInBundle() {
 		let addedNewNodes = false;
-		this.ast.body.forEach((node: Node) => {
+		for (let node of this.ast.body) {
 			if (node.shouldBeIncluded()) {
 				if (node.includeInBundle()) {
 					addedNewNodes = true;
 				}
 			}
-		});
+		}
 		return addedNewNodes;
 	}
 
