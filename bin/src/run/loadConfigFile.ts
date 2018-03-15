@@ -6,10 +6,15 @@ import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import { InputOptions, OutputChunk } from '../../../src/rollup/index';
 
+interface NodeModuleWithCompile extends NodeModule {
+	_compile(code: string, filename: string): any;
+}
+
 export default function loadConfigFile(
 	configFile: string,
-	silent = false
+	commandOptions: any = {}
 ): Promise<InputOptions[]> {
+	const silent = commandOptions.silent || false;
 	const warnings = batchWarnings();
 
 	return rollup
@@ -33,27 +38,35 @@ export default function loadConfigFile(
 		.then(({ code }: { code: string }) => {
 			// temporarily override require
 			const defaultLoader = require.extensions['.js'];
-			require.extensions['.js'] = (m, filename) => {
+			require.extensions['.js'] = (module, filename) => {
 				if (filename === configFile) {
-					(<{ _compile?: any }>m)._compile(code, filename);
+					(module as NodeModuleWithCompile)._compile(code, filename);
 				} else {
-					defaultLoader(m, filename);
+					defaultLoader(module, filename);
 				}
 			};
 
 			delete require.cache[configFile];
-			return Promise.resolve(require(configFile)).then(configs => {
-				if (Object.keys(configs).length === 0) {
-					handleError({
-						code: 'MISSING_CONFIG',
-						message: 'Config file must export an options object, or an array of options objects',
-						url: 'https://rollupjs.org/#using-config-files'
-					});
-				}
 
-				require.extensions['.js'] = defaultLoader;
+			return Promise.resolve(require(configFile))
+				.then(configFileContent => {
+					if (typeof configFileContent === 'function') {
+						return configFileContent(commandOptions);
+					}
+					return configFileContent;
+				})
+				.then(configs => {
+					if (Object.keys(configs).length === 0) {
+						handleError({
+							code: 'MISSING_CONFIG',
+							message: 'Config file must export an options object, or an array of options objects',
+							url: 'https://rollupjs.org/#using-config-files'
+						});
+					}
 
-				return Array.isArray(configs) ? configs : [configs];
-			});
+					require.extensions['.js'] = defaultLoader;
+
+					return Array.isArray(configs) ? configs : [configs];
+				});
 		});
 }
