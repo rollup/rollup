@@ -117,13 +117,12 @@ export default function umd (
 	}
 
 	const wrapperIntro = `(function (global, factory) {
-			if (typeof global === 'undefined' && typeof window !== 'undefined') global = window;
 			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join(
 			', '
 		)}) :
 			typeof ${define} === 'function' && ${define}.amd ? ${define}(${amdParams}factory) :
 			${globalExport};
-		}(this, (function (${args}) {${useStrict}
+		}(typeof self !== 'undefined' ?  self : typeof global !== 'undefined' ? global : this, (function (${args}) {${useStrict}
 
 		`
 		.replace(/^\t\t/gm, '')
