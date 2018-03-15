@@ -13,8 +13,7 @@ import extractNames from './ast/utils/extractNames';
 import enhance from './ast/enhance';
 import clone from './ast/clone';
 import ModuleScope from './ast/scopes/ModuleScope';
-import { encode } from 'sourcemap-codec';
-import { RawSourceMap, SourceMapConsumer } from 'source-map';
+import { RawSourceMap } from 'source-map';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
 import Graph from './Graph';
 import Variable from './ast/variables/Variable';
@@ -471,24 +470,33 @@ export default class Module {
 
 	private getOriginalLocation(
 		sourcemapChain: RawSourceMap[],
-		location: { line: number; column: number }
+		location: { line: number; column: number; source?: string; name?: string }
 	) {
-		const filteredSourcemapChain = sourcemapChain
-			.filter(sourcemap => sourcemap.mappings)
-			.map(sourcemap => {
-				const encodedSourcemap = sourcemap;
-				if (sourcemap.mappings) {
-					encodedSourcemap.mappings = encode(encodedSourcemap.mappings);
-				}
-				return encodedSourcemap;
-			});
+		const filteredSourcemapChain = sourcemapChain.filter(sourcemap => sourcemap.mappings);
+
 		while (filteredSourcemapChain.length > 0) {
 			const sourcemap = filteredSourcemapChain.pop();
-			const smc = new SourceMapConsumer(sourcemap);
-			location = smc.originalPositionFor({
-				line: location.line,
-				column: location.column
-			});
+			const line: any = sourcemap.mappings[location.line - 1];
+			let locationFound = false;
+
+			if (line !== undefined) {
+				for (const segment of line) {
+					if (segment[0] >= location.column) {
+						if (segment.length < 4) break;
+						location = {
+							line: segment[2] + 1,
+							column: segment[3],
+							source: sourcemap.sources[segment[1]],
+							name: sourcemap.names[segment[4]]
+						};
+						locationFound = true;
+						break;
+					}
+				}
+			}
+			if (!locationFound) {
+				throw new Error("Can't resolve original location of error.");
+			}
 		}
 		return location;
 	}
