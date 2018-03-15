@@ -1,6 +1,6 @@
 # rollup changelog
 
-## 0.57.0 (unreleased)
+## 0.57.0
 * Add option to preserve the module structure instead of bundling ([#1922](https://github.com/rollup/rollup/pull/1922))
 * Enable watch mode when code-splitting ([#2035](https://github.com/rollup/rollup/pull/2035))
 * Optionally pass CLI commands to config file ([#1926](https://github.com/rollup/rollup/pull/1926))
