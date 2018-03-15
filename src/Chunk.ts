@@ -1,6 +1,6 @@
 import { timeEnd, timeStart } from './utils/timers';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
-import Module, { ModuleJSON } from './Module';
+import Module from './Module';
 import finalisers from './finalisers/index';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
@@ -190,6 +190,8 @@ export default class Chunk {
 	collectDependencies(entryFacade?: Module) {
 		if (entryFacade) {
 			this.dependencies = [entryFacade.chunk];
+			this.entryModule = entryFacade;
+			this.isEntryModuleFacade = true;
 			return;
 		}
 

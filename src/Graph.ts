@@ -415,11 +415,27 @@ export default class Graph {
 				for (const entryModule of entryModules) {
 					entryModule.chunk.generateEntryExports(entryModule);
 				}
+
 				// for each chunk module, set up its imports to other
 				// chunks, if those variables are included after treeshaking
 				for (const chunk of chunkList) {
 					chunk.collectDependencies();
 					chunk.generateImports();
+				}
+
+				// create entry point facades for entry module chunks that have tainted exports
+				if (!preserveModules) {
+					const chunkListLen = chunkList.length;
+					for (let i = 0; i < chunkListLen; i++) {
+						const chunk = chunkList[i];
+						if (chunk.entryModule && !chunk.isEntryModuleFacade) {
+							const entryPointFacade = new Chunk(this, []);
+							entryPointFacade.collectDependencies(chunk.entryModule);
+							entryPointFacade.generateImports();
+							entryPointFacade.generateEntryExports(chunk.entryModule);
+							chunkList.push(entryPointFacade);
+						}
+					}
 				}
 
 				// finally prepare output chunks
@@ -459,40 +475,26 @@ export default class Graph {
 		// name the chunks
 		const chunkNames: { [name: string]: boolean } = Object.create(null);
 		chunkList.forEach(chunk => {
-			// generate the imports and exports for the output chunk file
-			if (chunk.entryModule) {
-				let entryName: string;
+			let chunkName: string;
+
+			// name entry files
+			if (chunk.isEntryModuleFacade || preserveModules) {
 				// without preserve modules, entry names are provided aliases, falling back to basenames
 				if (entryModuleAliases) {
 					let alias = entryModuleAliases[entryModules.indexOf(chunk.entryModule)];
-					if (alias) entryName = generateChunkName(alias, chunkNames, false);
+					if (alias) chunkName = generateChunkName(alias, chunkNames, false);
 				} else if (!preserveModules) {
-					entryName = generateChunkName(chunk.entryModule.id, chunkNames, false);
+					chunkName = generateChunkName(chunk.entryModule.id, chunkNames, false);
 				}
 				// with preserve modules, entry names are provided aliases, falling back to commondir-relative
-				if (preserveModules && !entryName) {
-					entryName = generateChunkName(chunk.entryModule.id, chunkNames, false, inputRelativeDir);
+				if (preserveModules && !chunkName) {
+					chunkName = generateChunkName(chunk.entryModule.id, chunkNames, false, inputRelativeDir);
 				}
-
-				// if the chunk exactly exports the entry point exports then
-				// it can replace the entry point
-				if (chunk.isEntryModuleFacade || preserveModules) {
-					chunks['./' + entryName] = chunk;
-					chunk.setId('./' + entryName);
-					return;
-					// otherwise we create a special re-exporting entry point
-					// facade chunk with no modules
-				} else {
-					const entryPointFacade = new Chunk(this, []);
-					entryPointFacade.setId('./' + entryName);
-					entryPointFacade.collectDependencies(chunk.entryModule);
-					entryPointFacade.generateImports();
-					entryPointFacade.generateEntryExports(chunk.entryModule);
-					chunks['./' + entryName] = entryPointFacade;
-				}
+				// name chunks
+			} else {
+				chunkName = generateChunkName('chunk', chunkNames, true);
 			}
-			// name the chunk itself
-			const chunkName = generateChunkName('chunk', chunkNames, true);
+
 			chunk.setId('./' + chunkName);
 			chunks['./' + chunkName] = chunk;
 		});
