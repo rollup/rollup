@@ -10,7 +10,7 @@ import collapseSourcemaps from './utils/collapseSourcemaps';
 import callIfFunction from './utils/callIfFunction';
 import error from './utils/error';
 import { normalize, resolve } from './utils/path';
-import { OutputOptions } from './rollup/index';
+import { OutputOptions, GlobalsOption } from './rollup/index';
 import { RawSourceMap } from 'source-map';
 import Graph from './Graph';
 import ExternalModule from './ExternalModule';
@@ -22,6 +22,7 @@ import { makeLegal } from './utils/identifierHelpers';
 import LocalVariable from './ast/variables/LocalVariable';
 import { NodeType } from './ast/nodes/index';
 import { RenderOptions } from './utils/renderHelpers';
+import { isAbsolute, isRelative, relative, dirname } from './utils/path';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;
@@ -31,6 +32,7 @@ export interface ModuleDeclarations {
 export interface ModuleDeclarationDependency {
 	id: string;
 	name: string;
+	globalName: string;
 	isChunk: boolean;
 	// these used as interop signifiers
 	exportsDefault: boolean;
@@ -63,6 +65,47 @@ export interface DynamicImportMechanism {
 	right: string;
 	interopLeft?: string;
 	interopRight?: string;
+}
+
+function getExternalPath(id: string, options: OutputOptions, inputPath: string) {
+	if (typeof options.paths === 'function') {
+		let outPath = options.paths(id);
+		if (outPath) return outPath;
+	} else if (options.paths && options.paths.hasOwnProperty(id)) {
+		return options.paths[id];
+	}
+
+	if (isAbsolute(id)) {
+		let outDir: string;
+		if (options.dir) outDir = resolve(options.dir);
+		else if (options.file) outDir = dirname(resolve(options.file));
+		else outDir = dirname(inputPath);
+		const relativeToEntry = normalize(relative(outDir, id));
+		return isRelative(relativeToEntry) ? relativeToEntry : `./${relativeToEntry}`;
+	}
+
+	return id;
+}
+
+function getGlobalName(
+	module: ExternalModule,
+	globals: GlobalsOption,
+	graph: Graph,
+	hasExports: boolean
+) {
+	if (typeof globals === 'function') return globals(module.id);
+	if (globals) return globals[module.id];
+	if (hasExports) {
+		graph.warn({
+			code: 'MISSING_GLOBAL_NAME',
+			source: module.id,
+			guess: module.name,
+			message: `No name was provided for external module '${
+				module.id
+			}' in options.globals – guessing '${module.name}'`
+		});
+		return module.name;
+	}
 }
 
 export default class Chunk {
@@ -592,7 +635,7 @@ export default class Chunk {
 		return reexportDeclarations;
 	}
 
-	private getChunkDependencyDeclarations(): ChunkDependencies {
+	private getChunkDependencyDeclarations(options: OutputOptions): ChunkDependencies {
 		const reexportDeclarations = this.getCheckReexportDeclarations();
 
 		const dependencies: ChunkDependencies = [];
@@ -625,10 +668,29 @@ export default class Chunk {
 				exportsDefault = false;
 			}
 
+			const isChunk = !(<ExternalModule>dep).isExternal;
+
+			let id: string;
+			let globalName: string;
+			if (isChunk) {
+				id = dep.id;
+			} else {
+				id = getExternalPath(dep.id, options, this.id);
+				if (options.format === 'umd' || options.format === 'iife') {
+					globalName = getGlobalName(
+						<ExternalModule>dep,
+						options.globals,
+						this.graph,
+						exportsNames || exportsNamespace || exportsDefault
+					);
+				}
+			}
+
 			dependencies.push({
-				id: dep.id,
+				id,
+				globalName,
 				name: dep.name,
-				isChunk: !(<ExternalModule>dep).isExternal,
+				isChunk,
 				exportsNames,
 				exportsNamespace,
 				exportsDefault,
@@ -687,15 +749,6 @@ export default class Chunk {
 				if (this.dependencies.indexOf(impt.module) === -1) this.dependencies.push(impt.module);
 			});
 		}
-	}
-
-	getModuleDeclarations(): ModuleDeclarations {
-		this.inlineDeepModuleDependencies();
-
-		return {
-			dependencies: this.getChunkDependencyDeclarations(),
-			exports: this.getChunkExportDeclarations()
-		};
 	}
 
 	render(options: OutputOptions) {
@@ -772,21 +825,22 @@ export default class Chunk {
 
 				timeStart('render format', 3);
 
-				const getPath = this.createGetPath(options);
-
 				if (intro) intro += '\n\n';
 				if (outro) outro = `\n\n${outro}`;
+
+				this.inlineDeepModuleDependencies();
 
 				magicString = finalise(
 					this,
 					magicString.trim(),
 					{
 						exportMode,
-						getPath,
 						indentString,
 						intro,
 						outro,
-						dynamicImport: !!renderOptions.importMechanism
+						dynamicImport: !!renderOptions.importMechanism,
+						dependencies: this.getChunkDependencyDeclarations(options),
+						exports: this.getChunkExportDeclarations()
 					},
 					options
 				);
@@ -831,20 +885,5 @@ export default class Chunk {
 					}
 				);
 			});
-	}
-
-	private createGetPath(options: OutputOptions) {
-		const optionsPaths = options.paths;
-		const getPath =
-			typeof optionsPaths === 'function'
-				? (id: string) =>
-						optionsPaths(id, this.id) || this.graph.getPathRelativeToBaseDirname(id, this.id)
-				: optionsPaths
-					? (id: string) =>
-							optionsPaths.hasOwnProperty(id)
-								? optionsPaths[id]
-								: this.graph.getPathRelativeToBaseDirname(id, this.id)
-					: (id: string) => this.graph.getPathRelativeToBaseDirname(id, this.id);
-		return getPath;
 	}
 }

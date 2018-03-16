@@ -1,7 +1,7 @@
 import esModuleExport from './shared/esModuleExport';
 import { OutputOptions } from '../rollup/index';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import Chunk from '../Chunk';
+import Chunk, { ChunkDependencies, ChunkExports } from '../Chunk';
 import getExportBlock from './shared/getExportBlock';
 
 export default function cjs(
@@ -9,15 +9,17 @@ export default function cjs(
 	magicString: MagicStringBundle,
 	{
 		exportMode,
-		getPath,
 		intro,
-		outro
+		outro,
+		dependencies,
+		exports
 	}: {
 		exportMode: string;
 		indentString: string;
-		getPath: (name: string) => string;
 		intro: string;
 		outro: string;
+		dependencies: ChunkDependencies;
+		exports: ChunkExports;
 	},
 	options: OutputOptions
 ) {
@@ -32,29 +34,27 @@ export default function cjs(
 	const varOrConst = chunk.graph.varOrConst;
 	const interop = options.interop !== false;
 
-	const { dependencies, exports } = chunk.getModuleDeclarations();
-
 	const importBlock = dependencies
 		.map(({ id, isChunk, name, reexports, imports }) => {
 			if (!reexports && !imports) {
-				return `require('${getPath(id)}');`;
+				return `require('${id}');`;
 			}
 
 			if (!interop || isChunk) {
-				return `${varOrConst} ${name} = require('${getPath(id)}');`;
+				return `${varOrConst} ${name} = require('${id}');`;
 			}
 
 			const usesDefault =
 				(imports && imports.some(specifier => specifier.imported === 'default')) ||
 				(reexports && reexports.some(specifier => specifier.imported === 'default'));
 			if (!usesDefault) {
-				return `${varOrConst} ${name} = require('${getPath(id)}');`;
+				return `${varOrConst} ${name} = require('${id}');`;
 			}
 
 			const exportsNamespace = imports && imports.some(specifier => specifier.imported === '*');
 			if (exportsNamespace) {
 				return (
-					`${varOrConst} ${name} = require('${getPath(id)}');` +
+					`${varOrConst} ${name} = require('${id}');` +
 					`\n${varOrConst} ${name}__default = ${name}['default'];`
 				);
 			}
@@ -72,12 +72,12 @@ export default function cjs(
 					));
 			if (exportsNames) {
 				return (
-					`${varOrConst} ${name} = require('${getPath(id)}');` +
+					`${varOrConst} ${name} = require('${id}');` +
 					`\n${varOrConst} ${name}__default = _interopDefault(${name});`
 				);
 			}
 
-			return `${varOrConst} ${name} = _interopDefault(require('${getPath(id)}'));`;
+			return `${varOrConst} ${name} = _interopDefault(require('${id}'));`;
 		})
 		.join('\n');
 

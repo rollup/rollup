@@ -124,6 +124,8 @@ export interface InputOptions {
 
 export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'es6' | 'iife' | 'umd';
 
+export type OptionsPaths = Record<string, string> | ((id: string) => string);
+
 export interface OutputOptions {
 	// only required for bundle.write
 	file?: string;
@@ -136,7 +138,7 @@ export interface OutputOptions {
 	globals?: GlobalsOption;
 	chunkNames?: string;
 
-	paths?: Record<string, string> | ((id: string, parent: string) => string);
+	paths?: OptionsPaths;
 	banner?: string;
 	footer?: string;
 	intro?: string;
@@ -309,6 +311,8 @@ export default function rollup(
 		if (!codeSplitting)
 			return graph.buildSingle(inputOptions.input).then(chunk => {
 				timeEnd('BUILD', 1);
+
+				chunk.setId(inputOptions.input);
 
 				const imports = chunk.getImportIds();
 				const exports = chunk.getExportNames();
