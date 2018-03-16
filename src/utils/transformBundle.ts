@@ -14,9 +14,7 @@ export default function transformBundle(
 
 		return promise.then(code => {
 			return Promise.resolve()
-				.then(() => {
-					return plugin.transformBundle(code, options);
-				})
+				.then(() => plugin.transformBundle(code, options))
 				.then(result => {
 					if (result == null) return code;
 

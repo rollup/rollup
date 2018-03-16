@@ -30,7 +30,7 @@ module.exports = {
 				warnings[1],
 				{
 					code: 'UNKNOWN_OPTION',
-					message: 'Unknown input option: abc. Allowed options: acorn, acornInjectPlugins, cache, context, entry, experimentalCodeSplitting, experimentalDynamicImport, experimentalPreserveModules, external, input, legacy, moduleContext, onwarn, perf, plugins, preferConst, preserveSymlinks, treeshake, watch'
+					message: 'Unknown input option: abc. Allowed options: acorn, acornInjectPlugins, cache, context, entry, experimentalCodeSplitting, experimentalDynamicImport, experimentalPreserveModules, external, input, moduleContext, onwarn, perf, plugins, preferConst, preserveSymlinks, treeshake, watch'
 				}
 			);
 		} else {

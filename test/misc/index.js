@@ -68,7 +68,7 @@ describe('sanity checks', () => {
 					{
 						code: 'UNKNOWN_OPTION',
 						message:
-							'Unknown input option: plUgins. Allowed options: acorn, acornInjectPlugins, cache, context, entry, experimentalCodeSplitting, experimentalDynamicImport, experimentalPreserveModules, external, input, legacy, moduleContext, onwarn, perf, plugins, preferConst, preserveSymlinks, treeshake, watch'
+							'Unknown input option: plUgins. Allowed options: acorn, acornInjectPlugins, cache, context, entry, experimentalCodeSplitting, experimentalDynamicImport, experimentalPreserveModules, external, input, moduleContext, onwarn, perf, plugins, preferConst, preserveSymlinks, treeshake, watch'
 					}
 				]);
 			});

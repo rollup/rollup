@@ -104,7 +104,6 @@ export interface InputOptions {
 	treeshake?: boolean | TreeshakingOptions;
 	context?: string;
 	moduleContext?: string | ((id: string) => string) | { [id: string]: string };
-	legacy?: boolean;
 	watch?: WatcherOptions;
 	experimentalDynamicImport?: boolean;
 	experimentalCodeSplitting?: boolean;
@@ -156,8 +155,6 @@ export interface OutputOptions {
 	strict?: boolean;
 	freeze?: boolean;
 	namespaceToStringTag?: boolean;
-
-	// shared?
 	legacy?: boolean;
 
 	// undocumented?

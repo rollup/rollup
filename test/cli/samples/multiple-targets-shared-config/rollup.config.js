@@ -1,14 +1,15 @@
 export default {
 	input: 'main.js',
-	sourcemap: true,
 	targets: [
 		{
 			format: 'cjs',
-			file: '_actual/cjs.js'
+			file: '_actual/cjs.js',
+			sourcemap: true
 		},
 		{
 			format: 'es',
-			file: '_actual/es.js'
+			file: '_actual/es.js',
+			sourcemap: true
 		}
 	]
 };

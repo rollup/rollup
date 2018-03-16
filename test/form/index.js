@@ -22,7 +22,7 @@ describe('form', () => {
 				config.options = {};
 			}
 
-			const options = extend(
+			const inputOptions = extend(
 				{},
 				{
 					input: samples + '/' + dir + '/main.js',
@@ -37,20 +37,23 @@ describe('form', () => {
 
 			(config.skip ? describe.skip : config.solo ? describe.only : describe)(dir, () => {
 				let promise;
-				const createBundle = () => promise || (promise = rollup.rollup(options));
+				const createBundle = () => promise || (promise = rollup.rollup(inputOptions));
 
 				FORMATS.forEach(format => {
 					it('generates ' + format, () => {
 						process.chdir(samples + '/' + dir);
 
 						return createBundle().then(bundle => {
-							const options = extend({}, config.options, {
-								file: samples + '/' + dir + '/_actual/' + format + '.js',
-								format,
-								indent: !('indent' in config.options) ? true : config.options.indent
-							});
+							const outputOptions = extend(
+								{},
+								{
+									file: samples + '/' + dir + '/_actual/' + format + '.js',
+									format
+								},
+								inputOptions.output || {}
+							);
 
-							return bundle.write(options).then(() => {
+							return bundle.write(outputOptions).then(() => {
 								const actualCode = normaliseOutput(
 									sander.readFileSync(samples, dir, '_actual', format + '.js')
 								);

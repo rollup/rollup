@@ -47,11 +47,14 @@ describe('chunking form', () => {
 						process.chdir(samples + '/' + dir);
 
 						return createBundle().then(bundle => {
-							const outputOptions = extend({}, config.options.output || {}, {
-								dir: samples + '/' + dir + '/_actual/' + format,
-								format,
-								indent: !('indent' in config.options) ? true : config.options.indent
-							});
+							const outputOptions = extend(
+								{},
+								{
+									dir: samples + '/' + dir + '/_actual/' + format,
+									format
+								},
+								inputOptions.output || {}
+							);
 
 							sander.rimrafSync(outputOptions.dir);
 

@@ -1,4 +1,4 @@
 module.exports = {
 	description: 'renders named export declarations',
-	options: { name: 'bundle' }
+	options: { output: { name: 'bundle' } }
 };

@@ -75,7 +75,6 @@ export default class Graph {
 	hasLoaders: boolean;
 	isExternal: IsExternalHook;
 	isPureExternalModule: (id: string) => boolean;
-	legacy: boolean;
 	load: (id: string) => Promise<SourceDescription | string | void>;
 	handleMissingExport: (
 		exportName: string,
@@ -210,7 +209,6 @@ export default class Graph {
 		this.onwarn = options.onwarn || makeOnwarn();
 
 		this.varOrConst = options.preferConst ? 'const' : 'var';
-		this.legacy = options.legacy;
 
 		this.acornOptions = options.acorn || {};
 		const acornPluginsToInject = [];

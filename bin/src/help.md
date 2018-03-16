@@ -11,8 +11,8 @@ Basic options:
                               is unspecified, defaults to rollup.config.js)
 -w, --watch                 Watch files in bundle and rebuild on changes
 -i, --input                 Input (alternative to <entry file>)
--o, --output.file <output>  Output (if absent, prints to stdout)
--f, --output.format [es]    Type of output (amd, cjs, es, iife, umd)
+-o, --file <output>         Output (if absent, prints to stdout)
+-f, --format [es]           Type of output (amd, cjs, es, iife, umd)
 -e, --external              Comma-separate list of module IDs to exclude
 -g, --globals               Comma-separate list of `module ID:Global` pairs
                               Any module IDs defined here are added to external
@@ -31,7 +31,7 @@ Basic options:
 --outro                     Content to insert at end of bundle (inside wrapper)
 --banner                    Content to insert at top of bundle (outside wrapper)
 --footer                    Content to insert at end of bundle (outside wrapper)
---interop                   Include interop block (true by default)
+--no-interop                Do not include interop block
 
 Examples:
 
@@ -43,7 +43,7 @@ rollup -c
 rollup -c --environment INCLUDE_DEPS,BUILD:production
 
 # create CommonJS bundle.js from src/main.js
-rollup --format=cjs --output=bundle.js -- src/main.js
+rollup --format=cjs --file=bundle.js -- src/main.js
 
 # create self-executing IIFE using `window.jQuery`
 # and `window._` as external globals

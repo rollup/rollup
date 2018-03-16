@@ -702,7 +702,7 @@ export default class Chunk {
 				const indentString = getIndentString(this.orderedModules, options);
 
 				const renderOptions: RenderOptions = {
-					legacy: this.graph.legacy,
+					legacy: options.legacy,
 					freeze: options.freeze !== false,
 					namespaceToStringTag: options.namespaceToStringTag === true,
 					indent: indentString,

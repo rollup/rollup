@@ -1,6 +1,5 @@
 module.exports = {
 	input: 'main.js',
-	indent: true,
 	treeshake: {
 		propertyReadSideEffects: false
 	},

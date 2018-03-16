@@ -9,8 +9,8 @@
 	})();
 }(this, (function () { 'use strict';
 
-var main = {};
+	var main = {};
 
-return main;
+	return main;
 
 })));
