@@ -18,7 +18,6 @@ import ImportSpecifier from './ast/nodes/ImportSpecifier';
 import Graph from './Graph';
 import Variable from './ast/variables/Variable';
 import Program from './ast/nodes/Program';
-import VariableDeclarator from './ast/nodes/VariableDeclarator';
 import { Node } from './ast/nodes/shared/Node';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
@@ -242,11 +241,11 @@ export default class Module {
 	}
 
 	private removeExistingSourceMap() {
-		this.comments.forEach(comment => {
+		for (const comment of this.comments) {
 			if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
 				this.magicString.remove(comment.start, comment.end);
 			}
-		});
+		}
 	}
 
 	private addExport(
@@ -263,7 +262,7 @@ export default class Module {
 				// When an unknown import is encountered, we see if one of them can satisfy it.
 				this.exportAllSources.push(source);
 			} else {
-				(<ExportNamedDeclaration>node).specifiers.forEach(specifier => {
+				for (const specifier of (<ExportNamedDeclaration>node).specifiers) {
 					const name = specifier.exported.name;
 
 					if (this.exports[name] || this.reexports[name]) {
@@ -282,7 +281,7 @@ export default class Module {
 						localName: specifier.local.name,
 						module: null // filled in later
 					};
-				});
+				}
 			}
 		} else if (node.type === NodeType.ExportDefaultDeclaration) {
 			// export default function foo () {}
@@ -314,11 +313,11 @@ export default class Module {
 			const declaration = (<ExportNamedDeclaration>node).declaration;
 
 			if (declaration.type === NodeType.VariableDeclaration) {
-				declaration.declarations.forEach((decl: VariableDeclarator) => {
-					extractNames(decl.id).forEach(localName => {
+				for (const decl of declaration.declarations) {
+					for (const localName of extractNames(decl.id)) {
 						this.exports[localName] = { localName };
-					});
-				});
+					}
+				}
 			} else {
 				// export function foo () {}
 				const localName = declaration.id.name;
@@ -326,7 +325,7 @@ export default class Module {
 			}
 		} else {
 			// export { foo, bar, baz }
-			(<ExportNamedDeclaration>node).specifiers.forEach(specifier => {
+			for (const specifier of (<ExportNamedDeclaration>node).specifiers) {
 				const localName = specifier.local.name;
 				const exportedName = specifier.exported.name;
 
@@ -341,7 +340,7 @@ export default class Module {
 				}
 
 				this.exports[exportedName] = { localName };
-			});
+			}
 		}
 	}
 
@@ -350,7 +349,7 @@ export default class Module {
 
 		if (this.sources.indexOf(source) === -1) this.sources.push(source);
 
-		node.specifiers.forEach(specifier => {
+		for (const specifier of node.specifiers) {
 			const localName = specifier.local.name;
 
 			if (this.imports[localName]) {
@@ -370,12 +369,12 @@ export default class Module {
 				? 'default'
 				: isNamespace ? '*' : (<ImportSpecifier>specifier).imported.name;
 			this.imports[localName] = { source, specifier, name, module: null };
-		});
+		}
 	}
 
 	private analyse() {
 		enhance(this.ast, this, this.dynamicImports);
-		this.ast.body.forEach(node => {
+		for (const node of this.ast.body) {
 			if ((<ImportDeclaration>node).isImportDeclaration) {
 				this.addImport(<ImportDeclaration>node);
 			} else if (
@@ -387,7 +386,7 @@ export default class Module {
 					| ExportNamedDeclaration
 					| ExportAllDeclaration>node);
 			}
-		});
+		}
 	}
 
 	basename() {
@@ -398,18 +397,18 @@ export default class Module {
 	}
 
 	markExports() {
-		this.getExports().forEach(name => {
-			const variable = this.traceExport(name);
+		for (const exportName of this.getExports()) {
+			const variable = this.traceExport(exportName);
 
-			variable.exportName = name;
+			variable.exportName = exportName;
 			variable.includeVariable();
 
 			if (variable.isNamespace) {
 				(<NamespaceVariable>variable).needsNamespaceBlock = true;
 			}
-		});
+		}
 
-		this.getReexports().forEach(name => {
+		for (const name of this.getReexports()) {
 			const variable = this.traceExport(name);
 
 			variable.exportName = name;
@@ -419,7 +418,7 @@ export default class Module {
 			} else {
 				variable.includeVariable();
 			}
-		});
+		}
 	}
 
 	linkDependencies() {
@@ -551,9 +550,9 @@ export default class Module {
 				return;
 			}
 
-			(<Module>module).getAllExports().forEach(name => {
+			for (const name of (<Module>module).getAllExports()) {
 				if (name !== 'default') allExports[name] = true;
-			});
+			}
 		});
 
 		return Object.keys(allExports);
@@ -566,9 +565,9 @@ export default class Module {
 	getReexports() {
 		const reexports = blank();
 
-		Object.keys(this.reexports).forEach(name => {
+		for (const name in this.reexports) {
 			reexports[name] = true;
-		});
+		}
 
 		this.exportAllModules.forEach(module => {
 			if (module.isExternal) {
@@ -576,12 +575,9 @@ export default class Module {
 				return;
 			}
 
-			(<Module>module)
-				.getExports()
-				.concat((<Module>module).getReexports())
-				.forEach(name => {
-					if (name !== 'default') reexports[name] = true;
-				});
+			for (const name of (<Module>module).getExports().concat((<Module>module).getReexports())) {
+				if (name !== 'default') reexports[name] = true;
+			}
 		});
 
 		return Object.keys(reexports);

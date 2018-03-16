@@ -100,15 +100,15 @@ export default class Graph {
 		this.cachedModules = new Map();
 		if (options.cache) {
 			if ((<CachedChunk>options.cache).modules) {
-				(<CachedChunk>options.cache).modules.forEach(module => {
+				for (const module of (<CachedChunk>options.cache).modules) {
 					this.cachedModules.set(module.id, module);
-				});
+				}
 			} else {
 				const chunks = (<CachedChunkSet>options.cache).chunks;
 				for (const chunkName in chunks) {
-					chunks[chunkName].modules.forEach(module => {
+					for (const module of chunks[chunkName].modules) {
 						this.cachedModules.set(module.id, module);
-					});
+					}
 				}
 			}
 		}
@@ -177,9 +177,9 @@ export default class Graph {
 		this.scope = new GlobalScope();
 
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
-		['module', 'exports', '_interopDefault'].forEach(name => {
+		for (const name of ['module', 'exports', '_interopDefault']) {
 			this.scope.findVariable(name); // creates global variable as side-effect
-		});
+		}
 
 		this.moduleById = new Map();
 		this.modules = [];
@@ -192,9 +192,9 @@ export default class Graph {
 			this.getModuleContext = id => optionsModuleContext(id) || this.context;
 		} else if (typeof optionsModuleContext === 'object') {
 			const moduleContext = new Map();
-			Object.keys(optionsModuleContext).forEach(key =>
-				moduleContext.set(resolve(key), optionsModuleContext[key])
-			);
+			for (const key in optionsModuleContext) {
+				moduleContext.set(resolve(key), optionsModuleContext[key]);
+			}
 			this.getModuleContext = id => moduleContext.get(id) || this.context;
 		} else {
 			this.getModuleContext = () => this.context;
@@ -290,7 +290,7 @@ export default class Graph {
 			} while (addedNewNodes);
 		} else {
 			// Necessary to properly replace namespace imports
-			modules.forEach(module => module.includeAllInBundle());
+			for (const module of modules) module.includeAllInBundle();
 		}
 	}
 
@@ -317,17 +317,17 @@ export default class Graph {
 
 			entryModule.markExports();
 
-			dynamicImports.forEach(dynamicImportModule => {
+			for (const dynamicImportModule of dynamicImports) {
 				if (entryModule !== dynamicImportModule) dynamicImportModule.markExports();
 				// all dynamic import modules inlined for single-file build
 				dynamicImportModule.namespace().includeVariable();
-			});
+			}
 
 			// only include statements that should appear in the bundle
 			this.includeMarked(orderedModules);
 
 			// check for unused external imports
-			this.externalModules.forEach(module => module.warnUnusedImports());
+			for (const module of this.externalModules) module.warnUnusedImports();
 
 			timeEnd('mark included statements', 2);
 
@@ -370,23 +370,23 @@ export default class Graph {
 					!preserveModules
 				);
 
-				dynamicImports.forEach(dynamicImportModule => {
+				for (const dynamicImportModule of dynamicImports) {
 					if (entryModules.indexOf(dynamicImportModule) === -1)
 						entryModules.push(dynamicImportModule);
-				});
+				}
 
 				timeEnd('analyse dependency graph', 2);
 
 				// Phase 3 – marking. We include all statements that should be included
 				timeStart('mark included statements', 2);
 
-				entryModules.forEach(entryModule => entryModule.markExports());
+				for (const entryModule of entryModules) entryModule.markExports();
 
 				// only include statements that should appear in the bundle
 				this.includeMarked(orderedModules);
 
 				// check for unused external imports
-				this.externalModules.forEach(module => module.warnUnusedImports());
+				for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
 
 				timeEnd('mark included statements', 2);
 
@@ -401,7 +401,7 @@ export default class Graph {
 				const chunkList: Chunk[] = [];
 				if (!preserveModules) {
 					const chunkModules: { [entryHashSum: string]: Module[] } = {};
-					orderedModules.forEach(module => {
+					for (const module of orderedModules) {
 						const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
 						let curChunk = chunkModules[entryPointsHashStr];
 						if (curChunk) {
@@ -409,36 +409,36 @@ export default class Graph {
 						} else {
 							chunkModules[entryPointsHashStr] = [module];
 						}
-					});
+					}
 
 					// create each chunk
-					Object.keys(chunkModules).forEach(entryHashSum => {
+					for (const entryHashSum in chunkModules) {
 						const chunk = chunkModules[entryHashSum];
 						const chunkModulesOrdered = chunk.sort(
 							(moduleA, moduleB) => (moduleA.execIndex > moduleB.execIndex ? 1 : -1)
 						);
 						chunkList.push(new Chunk(this, chunkModulesOrdered));
-					});
+					}
 				} else {
-					orderedModules.forEach(module => {
+					for (const module of orderedModules) {
 						const chunkInstance = new Chunk(this, [module]);
 						chunkInstance.entryModule = module;
 						chunkInstance.isEntryModuleFacade = true;
 						chunkList.push(chunkInstance);
-					});
+					}
 				}
 
 				// for each entry point module, ensure its exports
 				// are exported by the chunk itself, with safe name deduping
-				entryModules.forEach(entryModule => {
+				for (const entryModule of entryModules) {
 					entryModule.chunk.generateEntryExports(entryModule);
-				});
+				}
 				// for each chunk module, set up its imports to other
 				// chunks, if those variables are included after treeshaking
-				chunkList.forEach(chunk => {
+				for (const chunk of chunkList) {
 					chunk.collectDependencies();
 					chunk.generateImports();
-				});
+				}
 
 				// finally prepare output chunks
 				const chunks: {
@@ -651,17 +651,17 @@ export default class Graph {
 					this.moduleById.set(id, module);
 
 					return this.fetchAllDependencies(module).then(() => {
-						Object.keys(module.exports).forEach(name => {
+						for (const name in module.exports) {
 							if (name !== 'default') {
 								module.exportsAll[name] = module.id;
 							}
-						});
+						}
 						module.exportAllSources.forEach(source => {
 							const id = module.resolvedIds[source];
 							const exportAllModule = this.moduleById.get(id);
 							if (exportAllModule.isExternal) return;
 
-							Object.keys((<Module>exportAllModule).exportsAll).forEach(name => {
+							for (const name in (<Module>exportAllModule).exportsAll) {
 								if (name in module.exportsAll) {
 									this.warn({
 										code: 'NAMESPACE_CONFLICT',
@@ -679,7 +679,7 @@ export default class Graph {
 								} else {
 									module.exportsAll[name] = (<Module>exportAllModule).exportsAll[name];
 								}
-							});
+							}
 						});
 						return module;
 					});
@@ -769,12 +769,12 @@ export default class Graph {
 						const externalModule = this.moduleById.get(externalId);
 
 						// add external declarations so we can detect which are never used
-						Object.keys(module.imports).forEach(name => {
+						for (const name in module.imports) {
 							const importDeclaration = module.imports[name];
 							if (importDeclaration.source !== source) return;
 
 							externalModule.traceExport(importDeclaration.name);
-						});
+						}
 					} else {
 						module.resolvedIds[source] = <string>resolvedId;
 						return this.fetchModule(<string>resolvedId, module.id);
