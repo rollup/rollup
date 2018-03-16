@@ -1,10 +1,9 @@
-import { encode } from 'sourcemap-codec';
 import error from './error';
 import { basename, dirname, relative, resolve } from './path';
 import Module from '../Module';
 import { RawSourceMap } from 'source-map';
 import Chunk from '../Chunk';
-import { SourceMap } from 'magic-string';
+import { SourceMap, DecodedSourceMap } from 'magic-string';
 
 class Source {
 	isOriginal: boolean;
@@ -49,23 +48,20 @@ class Link {
 		const sourcesContent: string[] = [];
 		const names: string[] = [];
 
-		const mappings = this.mappings.map(line => {
+		const mappings = [];
+
+		for (const line of this.mappings) {
 			const tracedLine: SourceMapSegmentVector[] = [];
 
-			line.forEach(segment => {
+			for (const segment of line) {
 				const source = this.sources[segment[1]];
-
-				if (!source) return;
+				if (!source) continue;
 
 				const traced = source.traceSegment(segment[2], segment[3], this.names[segment[4]]);
 
 				if (traced) {
-					let sourceIndex = null;
-					let nameIndex = null;
-					segment = [segment[0], null, traced.line, traced.column];
-
 					// newer sources are more likely to be used, so search backwards.
-					sourceIndex = sources.lastIndexOf(traced.source.filename);
+					let sourceIndex = sources.lastIndexOf(traced.source.filename);
 					if (sourceIndex === -1) {
 						sourceIndex = sources.length;
 						sources.push(traced.source.filename);
@@ -81,36 +77,38 @@ class Link {
 						});
 					}
 
-					segment[1] = sourceIndex;
+					const tracedSegment: SourceMapSegmentVector = [
+						segment[0],
+						sourceIndex,
+						traced.line,
+						traced.column
+					];
 
 					if (traced.name) {
-						nameIndex = names.indexOf(traced.name);
+						let nameIndex = names.indexOf(traced.name);
 						if (nameIndex === -1) {
 							nameIndex = names.length;
 							names.push(traced.name);
 						}
 
-						segment[4] = nameIndex;
+						tracedSegment[4] = nameIndex;
 					}
 
-					tracedLine.push(segment);
+					tracedLine.push(tracedSegment);
 				}
-			});
+			}
 
-			return tracedLine;
-		});
+			mappings.push(tracedLine);
+		}
 
 		return { sources, sourcesContent, names, mappings };
 	}
 
 	traceSegment(line: number, column: number, name: string) {
 		const segments = this.mappings[line];
-
 		if (!segments) return null;
 
-		for (let i = 0; i < segments.length; i += 1) {
-			const segment = segments[i];
-
+		for (const segment of segments) {
 			if (segment[0] > column) return null;
 
 			if (segment[0] === column) {
@@ -129,7 +127,7 @@ class Link {
 export default function collapseSourcemaps(
 	bundle: Chunk,
 	file: string,
-	map: SourceMap,
+	map: DecodedSourceMap,
 	modules: Module[],
 	bundleSourcemapChain: RawSourceMap[]
 ) {
@@ -193,15 +191,8 @@ export default function collapseSourcemaps(
 	if (file) {
 		const directory = dirname(file);
 		sources = sources.map((source: string) => relative(directory, source));
-
-		map.file = basename(file);
+		file = basename(file);
 	}
 
-	// we re-use the `map` object because it has convenient toString/toURL methods
-	map.sources = sources;
-	map.sourcesContent = sourcesContent;
-	map.names = names;
-	map.mappings = encode(mappings);
-
-	return map;
+	return new SourceMap({ file, sources, sourcesContent, names, mappings });
 }

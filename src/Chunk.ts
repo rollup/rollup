@@ -1,5 +1,4 @@
 import { timeEnd, timeStart } from './utils/timers';
-import { decode } from 'sourcemap-codec';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
 import { blank, forOwn } from './utils/object';
 import Module, { ModuleJSON } from './Module';
@@ -780,11 +779,12 @@ export default class Chunk {
 				if (footer) magicString.append('\n' + footer);
 
 				const prevCode = magicString.toString();
-				let map: SourceMap = null;
 				const bundleSourcemapChain: RawSourceMap[] = [];
 
 				return transformBundle(prevCode, this.graph.plugins, bundleSourcemapChain, options).then(
 					(code: string) => {
+						let map: SourceMap;
+
 						if (options.sourcemap) {
 							timeStart('sourcemap', 3);
 
@@ -797,11 +797,8 @@ export default class Chunk {
 									Boolean(plugin.transform || plugin.transformBundle)
 								)
 							) {
-								map = magicString.generateMap({});
-								if (typeof map.mappings === 'string') {
-									map.mappings = decode(map.mappings);
-								}
-								map = collapseSourcemaps(this, file, map, usedModules, bundleSourcemapChain);
+								let decodedMap = magicString.generateDecodedMap({});
+								map = collapseSourcemaps(this, file, decodedMap, usedModules, bundleSourcemapChain);
 							} else {
 								map = magicString.generateMap({ file, includeContent: true });
 							}
