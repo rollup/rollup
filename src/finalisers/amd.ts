@@ -2,7 +2,7 @@ import getInteropBlock from './shared/getInteropBlock';
 import getExportBlock from './shared/getExportBlock';
 import esModuleExport from './shared/esModuleExport';
 import warnOnBuiltins from './shared/warnOnBuiltins';
-import Chunk from '../Chunk';
+import Chunk, { ChunkDependencies, ChunkExports } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
 
@@ -11,26 +11,26 @@ export default function amd(
 	magicString: MagicStringBundle,
 	{
 		exportMode,
-		getPath,
 		indentString,
 		intro,
 		outro,
-		dynamicImport
+		dynamicImport,
+		dependencies,
+		exports
 	}: {
 		exportMode: string;
 		indentString: string;
-		getPath: (name: string) => string;
 		intro: string;
 		outro: string;
 		dynamicImport: boolean;
+		dependencies: ChunkDependencies;
+		exports: ChunkExports;
 	},
 	options: OutputOptions
 ) {
 	warnOnBuiltins(chunk);
 
-	const { dependencies, exports } = chunk.getModuleDeclarations();
-
-	const deps = dependencies.map(m => `'${getPath(m.id)}'`);
+	const deps = dependencies.map(m => `'${m.id}'`);
 	const args = dependencies.map(m => m.name);
 
 	if (exportMode === 'named') {

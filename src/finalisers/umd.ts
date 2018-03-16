@@ -1,13 +1,12 @@
 import error from '../utils/error';
 import getInteropBlock from './shared/getInteropBlock';
 import getExportBlock from './shared/getExportBlock';
-import getGlobalNameMaker from './shared/getGlobalNameMaker';
 import esModuleExport from './shared/esModuleExport';
 import { property, keypath } from './shared/sanitize';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import trimEmptyImports from './shared/trimEmptyImports';
 import setupNamespace from './shared/setupNamespace';
-import Chunk from '../Chunk';
+import Chunk, { ChunkDependencies, ChunkExports } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
 
@@ -31,15 +30,17 @@ export default function umd(
 	{
 		exportMode,
 		indentString,
-		getPath,
 		intro,
-		outro
+		outro,
+		dependencies,
+		exports
 	}: {
 		exportMode: string;
 		indentString: string;
-		getPath: (name: string) => string;
 		intro: string;
 		outro: string;
+		dependencies: ChunkDependencies;
+		exports: ChunkExports;
 	},
 	options: OutputOptions
 ) {
@@ -52,15 +53,11 @@ export default function umd(
 
 	warnOnBuiltins(chunk);
 
-	const moduleDeclarations = chunk.getModuleDeclarations();
+	const amdDeps = dependencies.map(m => `'${m.id}'`);
+	const cjsDeps = dependencies.map(m => `require('${m.id}')`);
 
-	const globalNameMaker = getGlobalNameMaker(options.globals || Object.create(null), chunk.graph);
-
-	const amdDeps = moduleDeclarations.dependencies.map(m => `'${getPath(m.id)}'`);
-	const cjsDeps = moduleDeclarations.dependencies.map(m => `require('${getPath(m.id)}')`);
-
-	const trimmed = trimEmptyImports(moduleDeclarations.dependencies);
-	const globalDeps = trimmed.map(module => globalProp(globalNameMaker(module)));
+	const trimmed = trimEmptyImports(dependencies);
+	const globalDeps = trimmed.map(module => globalProp(module.globalName));
 	const args = trimmed.map(m => m.name);
 
 	if (exportMode === 'named') {
@@ -126,20 +123,12 @@ export default function umd(
 		.replace(/^\t/gm, indentString || '\t');
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(
-		moduleDeclarations.dependencies,
-		options,
-		chunk.graph.varOrConst
-	);
+	const interopBlock = getInteropBlock(dependencies, options, chunk.graph.varOrConst);
 	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(
-		moduleDeclarations.exports,
-		moduleDeclarations.dependencies,
-		exportMode
-	);
+	const exportBlock = getExportBlock(exports, dependencies, exportMode);
 	if (exportBlock) magicString.append('\n\n' + exportBlock);
 	if (exportMode === 'named' && options.legacy !== true)
 		magicString.append(`\n\n${esModuleExport}`);

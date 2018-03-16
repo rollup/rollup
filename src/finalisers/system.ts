@@ -1,4 +1,4 @@
-import Chunk, { ModuleDeclarations } from '../Chunk';
+import Chunk, { ModuleDeclarations, ChunkDependencies, ChunkExports } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 
 function getStarExcludes({ dependencies, exports }: ModuleDeclarations) {
@@ -19,20 +19,20 @@ export default function system(
 	chunk: Chunk,
 	magicString: MagicStringBundle,
 	{
-		getPath,
 		indentString: t,
 		intro,
-		outro
+		outro,
+		dependencies,
+		exports
 	}: {
 		indentString: string;
-		getPath: (name: string) => string;
 		intro: string;
 		outro: string;
+		dependencies: ChunkDependencies;
+		exports: ChunkExports;
 	}
 ) {
-	const { dependencies, exports } = chunk.getModuleDeclarations();
-
-	const dependencyIds = dependencies.map(m => `'${getPath(m.id)}'`);
+	const dependencyIds = dependencies.map(m => `'${m.id}'`);
 
 	const importBindings: string[] = [];
 	let starExcludes: Set<string>;

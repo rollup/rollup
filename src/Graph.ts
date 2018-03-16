@@ -10,8 +10,7 @@ import { mapSequence } from './utils/promise';
 import transform from './utils/transform';
 import relativeId from './utils/relativeId';
 import error from './utils/error';
-import * as path from './utils/path';
-import { isAbsolute, isRelative, normalize, relative, resolve } from './utils/path';
+import { isRelative, resolve } from './utils/path';
 import {
 	InputOptions,
 	IsExternalHook,
@@ -199,16 +198,6 @@ export default class Graph {
 		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
 	}
 
-	getPathRelativeToBaseDirname(resolvedId: string, parentId: string): string {
-		if (isRelative(resolvedId) || isAbsolute(resolvedId)) {
-			const relativeToEntry = normalize(relative(path.dirname(parentId), resolvedId));
-
-			return isRelative(relativeToEntry) ? relativeToEntry : `./${relativeToEntry}`;
-		}
-
-		return resolvedId;
-	}
-
 	getCache() {
 		return {
 			modules: this.modules.map(module => module.toJSON())
@@ -306,7 +295,6 @@ export default class Graph {
 
 			// generate the imports and exports for the output chunk file
 			const chunk = new Chunk(this, orderedModules);
-			chunk.setId(entryModule.id);
 			chunk.collectDependencies();
 			chunk.generateImports();
 			chunk.generateEntryExports(entryModule);
@@ -320,7 +308,7 @@ export default class Graph {
 	buildChunks(
 		entryModules: { [entryAlias: string]: string } | string[],
 		preserveModules: boolean
-	): Promise<{ [name: string]: Chunk }> {
+	): Promise<{ entries: Chunk[]; chunks: Chunk[] }> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
