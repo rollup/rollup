@@ -2,6 +2,7 @@
 
 ## 0.57.1 (unreleased)
 * Improve sourcemap generation performance ([#2062](https://github.com/rollup/rollup/pull/2062))
+* Fix issue with default exported function and class expressions ([#2059](https://github.com/rollup/rollup/pull/2059))
 * Replace `forEach` with faster `for` loops in some places ([#2064](https://github.com/rollup/rollup/pull/2064))
 
 ## 0.57.0
