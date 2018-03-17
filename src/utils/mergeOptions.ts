@@ -116,7 +116,7 @@ export default function mergeOptions({
 		unknownOptionErrors,
 		Object.keys(config),
 		validInputOptions,
-		'input',
+		'input option',
 		/^output$/
 	);
 
@@ -125,7 +125,7 @@ export default function mergeOptions({
 		unknownOptionErrors,
 		outputOptions.reduce((allKeys, options) => allKeys.concat(Object.keys(options)), []),
 		validOutputOptions,
-		'output'
+		'output option'
 	);
 
 	addUnknownOptionErrors(
@@ -138,7 +138,7 @@ export default function mergeOptions({
 			'environment',
 			'silent'
 		),
-		'CLI',
+		'CLI flag',
 		/^_|output|(config.*)$/
 	);
 
@@ -162,7 +162,7 @@ function addUnknownOptionErrors(
 	);
 	if (unknownOptions.length > 0)
 		errors.push(
-			`Unknown ${optionType} option: ${unknownOptions.join(
+			`Unknown ${optionType}: ${unknownOptions.join(
 				', '
 			)}. Allowed options: ${validOptions.sort().join(', ')}`
 		);
