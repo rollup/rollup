@@ -23,7 +23,7 @@ describe('sourcemaps', () => {
 
 				let warnings;
 
-				const options = extend({}, config.options, {
+				const inputOptions = extend({}, config.options, {
 					input,
 					onwarn: warning => warnings.push(warning)
 				});
@@ -33,24 +33,24 @@ describe('sourcemaps', () => {
 						warnings = [];
 
 						const testBundle = bundle => {
-							const options = extend(
+							const outputOptions = extend(
 								{},
 								{
 									format,
 									sourcemap: true,
 									file: `${output}.${format}.js`
 								},
-								config.options
+								inputOptions.output || {}
 							);
 
-							return bundle.write(options).then(() => {
+							return bundle.write(outputOptions).then(() => {
 								if (config.warnings) {
 									compareWarnings(warnings, config.warnings);
 								} else if (warnings.length) {
 									throw new Error(`Unexpected warnings`);
 								}
 
-								return bundle.generate(options).then(({ code, map }) => {
+								return bundle.generate(outputOptions).then(({ code, map }) => {
 									if (config.test) {
 										config.test(code, map, { format });
 									}
@@ -58,14 +58,14 @@ describe('sourcemaps', () => {
 							});
 						};
 
-						return rollup.rollup(options).then(bundle => {
+						return rollup.rollup(inputOptions).then(bundle => {
 							return testBundle(bundle).then(() => {
 								// cache rebuild does not reemit warnings.
 								if (config.warnings) {
 									return;
 								}
 								// test cache noop rebuild
-								return rollup.rollup(extend({ cache: bundle }, options)).then(bundle => {
+								return rollup.rollup(extend({ cache: bundle }, inputOptions)).then(bundle => {
 									testBundle(bundle);
 								});
 							});

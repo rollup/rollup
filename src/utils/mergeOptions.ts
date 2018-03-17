@@ -2,7 +2,17 @@ import ensureArray from './ensureArray';
 import deprecateOptions, { Deprecation } from './deprecateOptions';
 import { InputOptions, OutputOptions, WarningHandler } from '../rollup/index';
 
-function normalizeObjectOptionValue(optionValue: any) {
+export type GenericConfigObject = { [key: string]: any };
+
+const createGetOption = (config: GenericConfigObject, command: GenericConfigObject) => (
+	name: string,
+	defaultValue?: any
+) =>
+	command[name] !== undefined
+		? command[name]
+		: config[name] !== undefined ? config[name] : defaultValue;
+
+const normalizeObjectOptionValue = (optionValue: any) => {
 	if (!optionValue) {
 		return optionValue;
 	}
@@ -10,7 +20,22 @@ function normalizeObjectOptionValue(optionValue: any) {
 		return {};
 	}
 	return optionValue;
-}
+};
+
+const getObjectOption = (
+	config: GenericConfigObject,
+	command: GenericConfigObject,
+	name: string
+) => {
+	const commandOption = normalizeObjectOptionValue(command[name]);
+	const configOption = normalizeObjectOptionValue(config[name]);
+	if (commandOption !== undefined) {
+		return commandOption && configOption
+			? Object.assign({}, configOption, commandOption)
+			: commandOption;
+	}
+	return configOption;
+};
 
 const defaultOnWarn: WarningHandler = warning => {
 	if (typeof warning === 'string') {
@@ -20,13 +45,46 @@ const defaultOnWarn: WarningHandler = warning => {
 	}
 };
 
-export type GenericConfigObject = { [key: string]: any };
+const getOnWarn = (
+	config: GenericConfigObject,
+	command: GenericConfigObject,
+	defaultOnWarnHandler: WarningHandler = defaultOnWarn
+): WarningHandler =>
+	command.silent
+		? () => {}
+		: config.onwarn
+			? warning => config.onwarn(warning, defaultOnWarnHandler)
+			: defaultOnWarnHandler;
+
+const getExternal = (config: GenericConfigObject, command: GenericConfigObject) => {
+	const configExternal = config.external;
+	return typeof configExternal === 'function'
+		? (id: string, ...rest: string[]) =>
+				configExternal(id, ...rest) || command.external.indexOf(id) !== -1
+		: (configExternal || []).concat(command.external);
+};
+
+export const commandAliases: { [key: string]: string } = {
+	c: 'config',
+	d: 'indent',
+	e: 'external',
+	f: 'format',
+	g: 'globals',
+	h: 'help',
+	i: 'input',
+	l: 'legacy',
+	m: 'sourcemap',
+	n: 'name',
+	o: 'file',
+	v: 'version',
+	w: 'watch'
+};
 
 export default function mergeOptions({
-	config,
-	command = {},
+	config = {},
+	command: rawCommandOptions = {},
 	deprecateConfig,
-	defaultOnWarnHandler = defaultOnWarn
+	defaultOnWarnHandler
 }: {
 	config: GenericConfigObject;
 	command?: GenericConfigObject;
@@ -38,160 +96,164 @@ export default function mergeOptions({
 	deprecations: Deprecation[];
 	optionError: string | null;
 } {
-	const deprecations = deprecate(config, command, deprecateConfig);
+	const deprecations = deprecate(config, rawCommandOptions, deprecateConfig);
+	const command = getCommandOptions(rawCommandOptions);
+	const inputOptions = getInputOptions(config, command, defaultOnWarnHandler);
 
-	const getOption = (config: GenericConfigObject) => (name: string) =>
-		command[name] !== undefined ? command[name] : config[name];
-
-	const getInputOption = getOption(config);
-	const getOutputOption = getOption(config.output || {});
-
-	function getObjectOption(name: string) {
-		const commandOption = normalizeObjectOptionValue(command[name]);
-		const configOption = normalizeObjectOptionValue(config[name]);
-		if (commandOption !== undefined) {
-			return commandOption && configOption
-				? Object.assign({}, configOption, commandOption)
-				: commandOption;
-		}
-		return configOption;
+	if (command.output) {
+		Object.assign(command, command.output);
 	}
 
-	const onwarn = config.onwarn;
-	let warn: WarningHandler;
+	const normalizedOutputOptions = ensureArray(config.output);
+	if (normalizedOutputOptions.length === 0) normalizedOutputOptions.push({});
+	const outputOptions = normalizedOutputOptions.map(singleOutputOptions =>
+		getOutputOptions(singleOutputOptions, command)
+	);
 
-	if (onwarn) {
-		warn = warning => onwarn(warning, defaultOnWarnHandler);
-	} else {
-		warn = defaultOnWarnHandler;
-	}
+	const unknownOptionErrors: string[] = [];
+	const validInputOptions = Object.keys(inputOptions);
+	addUnknownOptionErrors(
+		unknownOptionErrors,
+		Object.keys(config),
+		validInputOptions,
+		'input option',
+		/^output$/
+	);
 
-	const inputOptions: InputOptions = {
-		acorn: config.acorn,
-		acornInjectPlugins: config.acornInjectPlugins,
-		cache: getInputOption('cache'),
-		context: config.context,
-		experimentalCodeSplitting: getInputOption('experimentalCodeSplitting'),
-		experimentalDynamicImport: getInputOption('experimentalDynamicImport'),
-		experimentalPreserveModules: getInputOption('experimentalPreserveModules'),
-		input: getInputOption('input'),
-		legacy: getInputOption('legacy'),
-		moduleContext: config.moduleContext,
-		onwarn: warn,
-		perf: getInputOption('perf'),
-		plugins: config.plugins,
-		preferConst: getInputOption('preferConst'),
-		preserveSymlinks: getInputOption('preserveSymlinks'),
-		treeshake: getObjectOption('treeshake'),
-		watch: config.watch
-	};
+	const validOutputOptions = Object.keys(outputOptions[0]);
+	addUnknownOptionErrors(
+		unknownOptionErrors,
+		outputOptions.reduce((allKeys, options) => allKeys.concat(Object.keys(options)), []),
+		validOutputOptions,
+		'output option'
+	);
 
-	// legacy, to ensure e.g. commonjs plugin still works
-	(<any>inputOptions).entry = inputOptions.input;
-
-	const commandExternal = (command.external || '').split(',');
-	const configExternal = config.external;
-
-	if (command.globals) {
-		const globals = Object.create(null);
-
-		command.globals.split(',').forEach((str: string) => {
-			const names = str.split(':');
-			globals[names[0]] = names[1];
-
-			// Add missing Module IDs to external.
-			if (commandExternal.indexOf(names[0]) === -1) {
-				commandExternal.push(names[0]);
-			}
-		});
-
-		command.globals = globals;
-	}
-
-	if (typeof configExternal === 'function') {
-		inputOptions.external = (id, ...rest: any[]) =>
-			configExternal(id, ...rest) || commandExternal.indexOf(id) !== -1;
-	} else {
-		inputOptions.external = (configExternal || []).concat(commandExternal);
-	}
-
-	if (command.silent) {
-		inputOptions.onwarn = () => {};
-	}
-
-	// Make sure the CLI treats this the same way as when we are code-splitting
-	if (inputOptions.experimentalPreserveModules && !Array.isArray(inputOptions.input)) {
-		inputOptions.input = [inputOptions.input];
-	}
-
-	const baseOutputOptions = {
-		amd: Object.assign({}, config.amd, command.amd),
-		banner: getOutputOption('banner'),
-		dir: getOutputOption('dir'),
-		exports: getOutputOption('exports'),
-		extend: getOutputOption('extend'),
-		file: getOutputOption('file'),
-		footer: getOutputOption('footer'),
-		format: getOutputOption('format'),
-		freeze: getOutputOption('freeze'),
-		globals: getOutputOption('globals'),
-		indent: getOutputOption('indent'),
-		interop: getOutputOption('interop'),
-		intro: getOutputOption('intro'),
-		legacy: getOutputOption('legacy'),
-		name: getOutputOption('name'),
-		namespaceToStringTag: getOutputOption('namespaceToStringTag'),
-		noConflict: getOutputOption('noConflict'),
-		outro: getOutputOption('outro'),
-		paths: getOutputOption('paths'),
-		sourcemap: getOutputOption('sourcemap'),
-		sourcemapFile: getOutputOption('sourcemapFile'),
-		strict: getOutputOption('strict')
-	};
-
-	let mergedOutputOptions;
-	if (Array.isArray(config.output)) {
-		mergedOutputOptions = config.output.map((output: any) =>
-			Object.assign({}, output, command.output)
-		);
-	} else if (config.output && command.output) {
-		mergedOutputOptions = [Object.assign({}, config.output, command.output)];
-	} else {
-		mergedOutputOptions =
-			command.output || config.output
-				? ensureArray(command.output || config.output)
-				: [
-						{
-							file: command.output ? command.output.file : null,
-							format: command.output ? command.output.format : null
-						}
-				  ];
-	}
-
-	const outputOptions = mergedOutputOptions.map((output: any) => {
-		return Object.assign({}, baseOutputOptions, output);
-	});
-
-	// check for errors
-	const validKeys = [
-		...Object.keys(inputOptions),
-		...Object.keys(baseOutputOptions),
-		'pureExternalModules' // (backward compatibility) till everyone moves to treeshake.pureExternalModules
-	];
-	const outputOptionKeys: string[] = Array.isArray(config.output)
-		? config.output.reduce((keys: string[], o: OutputOptions) => [...keys, ...Object.keys(o)], [])
-		: Object.keys(config.output || {});
-	const errors = [...Object.keys(config || {}), ...outputOptionKeys].filter(
-		k => k !== 'output' && validKeys.indexOf(k) === -1
+	addUnknownOptionErrors(
+		unknownOptionErrors,
+		Object.keys(command),
+		validInputOptions.concat(
+			validOutputOptions,
+			Object.keys(commandAliases),
+			'config',
+			'environment',
+			'silent'
+		),
+		'CLI flag',
+		/^_|output|(config.*)$/
 	);
 
 	return {
 		inputOptions,
 		outputOptions,
 		deprecations,
-		optionError: errors.length
-			? `Unknown option found: ${errors.join(', ')}. Allowed keys: ${validKeys.join(', ')}`
-			: null
+		optionError: unknownOptionErrors.length > 0 ? unknownOptionErrors.join('\n') : null
+	};
+}
+
+function addUnknownOptionErrors(
+	errors: string[],
+	options: string[],
+	validOptions: string[],
+	optionType: string,
+	ignoredKeys: RegExp = /$./
+) {
+	const unknownOptions = options.filter(
+		key => validOptions.indexOf(key) === -1 && !ignoredKeys.test(key)
+	);
+	if (unknownOptions.length > 0)
+		errors.push(
+			`Unknown ${optionType}: ${unknownOptions.join(
+				', '
+			)}. Allowed options: ${validOptions.sort().join(', ')}`
+		);
+}
+
+function getCommandOptions(rawCommandOptions: GenericConfigObject): GenericConfigObject {
+	const command = Object.assign({}, rawCommandOptions);
+	command.external = (rawCommandOptions.external || '').split(',');
+
+	if (rawCommandOptions.globals) {
+		command.globals = Object.create(null);
+
+		rawCommandOptions.globals.split(',').forEach((str: string) => {
+			const names = str.split(':');
+			command.globals[names[0]] = names[1];
+
+			// Add missing Module IDs to external.
+			if (command.external.indexOf(names[0]) === -1) {
+				command.external.push(names[0]);
+			}
+		});
+	}
+	return command;
+}
+
+function getInputOptions(
+	config: GenericConfigObject,
+	command: GenericConfigObject = {},
+	defaultOnWarnHandler: WarningHandler
+): InputOptions {
+	const getOption = createGetOption(config, command);
+
+	const inputOptions: InputOptions = {
+		acorn: config.acorn,
+		acornInjectPlugins: config.acornInjectPlugins,
+		cache: getOption('cache'),
+		context: config.context,
+		experimentalCodeSplitting: getOption('experimentalCodeSplitting'),
+		experimentalDynamicImport: getOption('experimentalDynamicImport'),
+		experimentalPreserveModules: getOption('experimentalPreserveModules'),
+		external: getExternal(config, command),
+		input: getOption('input'),
+		moduleContext: config.moduleContext,
+		onwarn: getOnWarn(config, command, defaultOnWarnHandler),
+		perf: getOption('perf', false),
+		plugins: config.plugins,
+		preferConst: getOption('preferConst'),
+		preserveSymlinks: getOption('preserveSymlinks'),
+		treeshake: getObjectOption(config, command, 'treeshake'),
+		watch: config.watch
+	};
+
+	if (inputOptions.experimentalPreserveModules && !Array.isArray(inputOptions.input)) {
+		inputOptions.input = [inputOptions.input];
+	}
+	// legacy to make sure certain plugins still work
+	inputOptions.entry = Array.isArray(inputOptions.input)
+		? inputOptions.input[0]
+		: inputOptions.input;
+	return inputOptions;
+}
+
+function getOutputOptions(
+	config: GenericConfigObject,
+	command: GenericConfigObject = {}
+): OutputOptions {
+	const getOption = createGetOption(config, command);
+
+	return {
+		amd: Object.assign({}, config.amd, command.amd),
+		banner: getOption('banner'),
+		dir: getOption('dir'),
+		exports: getOption('exports'),
+		extend: getOption('extend'),
+		file: getOption('file'),
+		footer: getOption('footer'),
+		format: getOption('format'),
+		freeze: getOption('freeze'),
+		globals: getOption('globals'),
+		indent: getOption('indent', true),
+		interop: getOption('interop', true),
+		intro: getOption('intro'),
+		legacy: getOption('legacy', false),
+		name: getOption('name'),
+		namespaceToStringTag: getOption('namespaceToStringTag'),
+		noConflict: getOption('noConflict'),
+		outro: getOption('outro'),
+		paths: getOption('paths'),
+		sourcemap: getOption('sourcemap'),
+		sourcemapFile: getOption('sourcemapFile'),
+		strict: getOption('strict', true)
 	};
 }
 
@@ -214,17 +276,9 @@ function deprecate(
 	if (typeof command.output === 'string') {
 		deprecations.push({
 			old: '--output',
-			new: '--output.file'
+			new: '--file'
 		});
 		command.output = { file: command.output };
-	}
-
-	if (command.format) {
-		deprecations.push({
-			old: '--format',
-			new: '--output.format'
-		});
-		(command.output || (command.output = {})).format = command.format;
 	}
 
 	// config file

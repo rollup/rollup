@@ -64,7 +64,6 @@ describe('rollup.watch', () => {
 	}
 
 	function runTests(chokidar) {
-
 		it('watches a file', () => {
 			return sander
 				.copydir('test/watch/samples/basic')
@@ -124,10 +123,7 @@ describe('rollup.watch', () => {
 							delete require.cache[require.resolve('../_tmp/output/chunk1.js')];
 							assert.equal(run('../_tmp/output/main1.js'), 21);
 							assert.equal(run('../_tmp/output/main2.js'), 42);
-							sander.writeFileSync(
-								'test/_tmp/input/shared.js',
-								'export const value = 22;'
-							);
+							sander.writeFileSync('test/_tmp/input/shared.js', 'export const value = 22;');
 						},
 						'START',
 						'BUNDLE_START',
@@ -371,7 +367,7 @@ describe('rollup.watch', () => {
 				});
 		});
 
-		it('respects options.globals', () => {
+		it('respects output.globals', () => {
 			return sander
 				.copydir('test/watch/samples/globals')
 				.to('test/_tmp/input')
@@ -380,13 +376,13 @@ describe('rollup.watch', () => {
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
-							format: 'iife'
+							format: 'iife',
+							globals: {
+								jquery: 'jQuery'
+							}
 						},
 						watch: { chokidar },
-						external: ['jquery'],
-						globals: {
-							jquery: 'jQuery'
-						}
+						external: ['jquery']
 					});
 
 					return sequence(watcher, [

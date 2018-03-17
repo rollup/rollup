@@ -14,7 +14,8 @@ module.exports = {
 					return babiliResults[format];
 				}
 			}
-		]
+		],
+		output: { indent: false }
 	},
 	test: function(code, map) {
 		var smc = new SourceMapConsumer(map);

@@ -2,28 +2,10 @@ import minimist from 'minimist';
 import help from 'help.md';
 import { version } from 'package.json';
 import run from './run/index';
+import { commandAliases } from '../../src/utils/mergeOptions';
 
 const command = minimist(process.argv.slice(2), {
-	alias: {
-		// Aliases
-		strict: 'useStrict',
-		dir: 'output.dir',
-
-		// Short options
-		c: 'config',
-		d: 'indent',
-		e: 'external',
-		f: 'output.format',
-		g: 'globals',
-		h: 'help',
-		i: 'input',
-		l: 'legacy',
-		m: 'sourcemap',
-		n: 'name',
-		o: 'output.file',
-		v: 'version',
-		w: 'watch'
-	}
+	alias: commandAliases
 });
 
 if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {

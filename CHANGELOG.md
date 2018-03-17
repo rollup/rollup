@@ -1,7 +1,8 @@
 # rollup changelog
 
-## 0.57.1 (unreleased)
+## 0.57.1
 * Improve sourcemap generation performance ([#2062](https://github.com/rollup/rollup/pull/2062))
+* Add reserved config option namespace and improve CLI interface ([#2063](https://github.com/rollup/rollup/pull/2063))
 * Fix issue with default exported function and class expressions ([#2059](https://github.com/rollup/rollup/pull/2059))
 * Replace `forEach` with faster `for` loops in some places ([#2064](https://github.com/rollup/rollup/pull/2064))
 

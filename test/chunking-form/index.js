@@ -23,7 +23,7 @@ describe('chunking form', () => {
 				config.options = {};
 			}
 
-			const options = extend(
+			const inputOptions = extend(
 				{},
 				{
 					input: [samples + '/' + dir + '/main.js'],
@@ -40,22 +40,25 @@ describe('chunking form', () => {
 
 			(config.skip ? describe.skip : config.solo ? describe.only : describe)(dir, () => {
 				let promise;
-				const createBundle = () => promise || (promise = rollup.rollup(options));
+				const createBundle = () => promise || (promise = rollup.rollup(inputOptions));
 
 				FORMATS.forEach(format => {
 					it('generates ' + format, () => {
 						process.chdir(samples + '/' + dir);
 
 						return createBundle().then(bundle => {
-							const options = extend({}, config.options, {
-								dir: samples + '/' + dir + '/_actual/' + format,
-								format,
-								indent: !('indent' in config.options) ? true : config.options.indent
-							});
+							const outputOptions = extend(
+								{},
+								{
+									dir: samples + '/' + dir + '/_actual/' + format,
+									format
+								},
+								inputOptions.output || {}
+							);
 
-							sander.rimrafSync(options.dir);
+							sander.rimrafSync(outputOptions.dir);
 
-							return bundle.write(options).then(() => {
+							return bundle.write(outputOptions).then(() => {
 								const actualFiles = fixturify.readSync(path.join(samples, dir, '_actual', format));
 
 								let expectedFiles;
