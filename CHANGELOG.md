@@ -2,6 +2,7 @@
 
 ## 0.57.1 (unreleased)
 * Improve sourcemap generation performance ([#2062](https://github.com/rollup/rollup/pull/2062))
+* Replace `forEach` with faster `for` loops in some places ([#2064](https://github.com/rollup/rollup/pull/2064))
 
 ## 0.57.0
 * Add option to preserve the module structure instead of bundling ([#1922](https://github.com/rollup/rollup/pull/1922))
