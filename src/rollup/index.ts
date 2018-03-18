@@ -21,6 +21,8 @@ import Graph from '../Graph';
 import { TransformContext } from '../utils/transform';
 import ensureArray from '../utils/ensureArray';
 import { SourceMap } from 'magic-string';
+import { createAddons } from '../utils/addons';
+import commondir from '../utils/commondir';
 
 export const VERSION = '<@VERSION@>';
 
@@ -312,8 +314,6 @@ export default function rollup(
 			return graph.buildSingle(inputOptions.input).then(chunk => {
 				timeEnd('BUILD', 1);
 
-				chunk.setId(inputOptions.input);
-
 				const imports = chunk.getImportIds();
 				const exports = chunk.getExportNames();
 				const modules = graph.getCache().modules;
@@ -324,7 +324,13 @@ export default function rollup(
 					timeStart('GENERATE', 1);
 
 					const promise = Promise.resolve()
-						.then(() => chunk.render(outputOptions))
+						.then(() => {
+							return createAddons(graph, outputOptions);
+						})
+						.then(addons => {
+							chunk.preRender(outputOptions);
+							return chunk.render(outputOptions, addons);
+						})
 						.then(rendered => {
 							timeEnd('GENERATE', 1);
 
@@ -435,9 +441,11 @@ export default function rollup(
 				message: 'When code splitting, "input" must be an array or object of entry points.'
 			});
 		}
+
+		// const inputRelativeDir = preserveModules && commondir(orderedModules.map(module => module.id));
 		return graph
 			.buildChunks(inputOptions.input, inputOptions.experimentalPreserveModules)
-			.then(bundle => {
+			.then(chunks => {
 				timeEnd('BUILD', 1);
 
 				function generate(rawOutputOptions: GenericConfigObject) {
@@ -461,31 +469,59 @@ export default function rollup(
 
 					const generated: { [chunkName: string]: OutputChunk } = {};
 
-					const promise = Promise.all(
-						Object.keys(bundle).map(chunkName => {
-							const chunk = bundle[chunkName];
-							return chunk.render(outputOptions).then(rendered => {
-								timeEnd('GENERATE', 1);
+					let preserveModulesBase: string;
+					if (inputOptions.experimentalPreserveModules)
+						preserveModulesBase = commondir(chunks.map(chunk => chunk.entryModule.id));
+					let existingNames = Object.create(null);
 
-								const output = {
-									imports: chunk.getImportIds(),
-									exports: chunk.getExportNames(),
-									modules: chunk.getModuleIds(),
+					const promise = createAddons(graph, outputOptions)
+						.then(addons => {
+							// first pre-render and name all chunks
+							return (
+								Promise.all(
+									chunks.map(chunk => {
+										chunk.preRender(outputOptions);
+										if (inputOptions.experimentalPreserveModules) {
+											chunk.generateNamePreserveModules(preserveModulesBase);
+										} else {
+											let pattern;
+											if (chunk.isEntryModuleFacade) pattern = basename(chunk.entryModule.id);
+											else pattern = outputOptions.chunkNames || 'chunk-[hash]';
+											chunk.generateName(pattern, addons, existingNames);
+										}
+									})
+								)
+									// second render chunks given known names
+									.then(() => {
+										return Promise.all(
+											chunks.map(chunk => {
+												return chunk.render(outputOptions, addons).then(rendered => {
+													const output = {
+														imports: chunk.getImportIds(),
+														exports: chunk.getExportNames(),
+														modules: chunk.getModuleIds(),
 
-									code: rendered.code,
-									map: rendered.map
-								};
+														code: rendered.code,
+														map: rendered.map
+													};
 
-								graph.plugins.forEach(plugin => {
-									if (plugin.ongenerate) {
-										plugin.ongenerate(Object.assign(chunk, outputOptions), output);
-									}
-								});
+													graph.plugins.forEach(plugin => {
+														if (plugin.ongenerate) {
+															plugin.ongenerate(Object.assign(chunk, outputOptions), output);
+														}
+													});
 
-								generated[chunkName] = output;
-							});
+													generated[chunk.id] = output;
+												});
+											})
+										);
+									})
+							);
 						})
-					).then(() => generated);
+						.then(() => {
+							timeEnd('GENERATE', 1);
+							return generated;
+						});
 
 					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
 					Object.defineProperty(promise, 'map', throwAsyncGenerateError);

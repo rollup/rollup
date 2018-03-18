@@ -1,6 +1,6 @@
 'use strict';
 
-var __chunk1_js = require('./chunk1.js');
+var __chunk_1 = require('./chunk-b663d499.js');
 
 function fn () {
   console.log('lib1 fn');
@@ -14,7 +14,7 @@ function fn$1 () {
 class Main2 {
   constructor () {
     fn$1();
-    __chunk1_js.fn();
+    __chunk_1.fn();
   }
 }
 

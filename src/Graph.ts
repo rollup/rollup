@@ -28,8 +28,6 @@ import Chunk from './Chunk';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
 import firstSync from './utils/first-sync';
-import { generateChunkName } from './utils/chunkName';
-import commondir from './utils/commondir';
 
 export type ResolveDynamicImportHandler = (
 	specifier: string | Node,
@@ -308,7 +306,7 @@ export default class Graph {
 	buildChunks(
 		entryModules: { [entryAlias: string]: string } | string[],
 		preserveModules: boolean
-	): Promise<{ entries: Chunk[]; chunks: Chunk[] }> {
+	): Promise<Chunk[]> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
@@ -426,68 +424,11 @@ export default class Graph {
 					}
 				}
 
-				// finally prepare output chunks
-				const chunks = this.nameChunks({
-					orderedModules,
-					preserveModules,
-					chunkList,
-					entryModuleAliases,
-					entryModules
-				});
 				timeEnd('generate chunks', 2);
 
-				return chunks;
+				return chunkList;
 			}
 		);
-	}
-
-	private nameChunks({
-		orderedModules,
-		preserveModules,
-		chunkList,
-		entryModuleAliases,
-		entryModules
-	}: {
-		orderedModules: Module[];
-		preserveModules: boolean;
-		chunkList: Chunk[];
-		entryModuleAliases: string[];
-		entryModules: Module[];
-	}): { [name: string]: Chunk } {
-		const chunks: {
-			[name: string]: Chunk;
-		} = {};
-
-		const inputRelativeDir = preserveModules && commondir(orderedModules.map(module => module.id));
-
-		// name the chunks
-		const chunkNames: { [name: string]: boolean } = Object.create(null);
-		chunkList.forEach(chunk => {
-			let chunkName: string;
-
-			// name entry files
-			if (chunk.isEntryModuleFacade || preserveModules) {
-				// without preserve modules, entry names are provided aliases, falling back to basenames
-				if (entryModuleAliases) {
-					let alias = entryModuleAliases[entryModules.indexOf(chunk.entryModule)];
-					if (alias) chunkName = generateChunkName(alias, chunkNames, false);
-				} else if (!preserveModules) {
-					chunkName = generateChunkName(chunk.entryModule.id, chunkNames, false);
-				}
-				// with preserve modules, entry names are provided aliases, falling back to commondir-relative
-				if (preserveModules && !chunkName) {
-					chunkName = generateChunkName(chunk.entryModule.id, chunkNames, false, inputRelativeDir);
-				}
-				// name chunks
-			} else {
-				chunkName = generateChunkName('chunk', chunkNames, true);
-			}
-
-			chunk.setId('./' + chunkName);
-			chunks['./' + chunkName] = chunk;
-		});
-
-		return chunks;
 	}
 
 	private analyseExecution(entryModules: Module[], graphColouring: boolean = false) {

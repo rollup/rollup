@@ -1,5 +1,6 @@
-import Chunk, { ModuleDeclarations, ChunkDependencies, ChunkExports } from '../Chunk';
+import { ModuleDeclarations } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
+import { FinaliserOptions } from './index';
 
 function getStarExcludes({ dependencies, exports }: ModuleDeclarations) {
 	const starExcludes = new Set(exports.map(expt => expt.exported));
@@ -16,28 +17,15 @@ function getStarExcludes({ dependencies, exports }: ModuleDeclarations) {
 }
 
 export default function system(
-	chunk: Chunk,
 	magicString: MagicStringBundle,
-	{
-		indentString: t,
-		intro,
-		outro,
-		dependencies,
-		exports
-	}: {
-		indentString: string;
-		intro: string;
-		outro: string;
-		dependencies: ChunkDependencies;
-		exports: ChunkExports;
-	}
+	{ graph, indentString: t, intro, outro, dependencies, exports }: FinaliserOptions
 ) {
 	const dependencyIds = dependencies.map(m => `'${m.id}'`);
 
 	const importBindings: string[] = [];
 	let starExcludes: Set<string>;
 	const setters: string[] = [];
-	const varOrConst = chunk.graph.varOrConst;
+	const varOrConst = graph.varOrConst;
 
 	dependencies.forEach(({ imports, reexports }) => {
 		let setter: string[] = [];

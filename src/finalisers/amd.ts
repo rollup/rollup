@@ -2,33 +2,26 @@ import getInteropBlock from './shared/getInteropBlock';
 import getExportBlock from './shared/getExportBlock';
 import esModuleExport from './shared/esModuleExport';
 import warnOnBuiltins from './shared/warnOnBuiltins';
-import Chunk, { ChunkDependencies, ChunkExports } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
+import { FinaliserOptions } from './index';
 
 export default function amd(
-	chunk: Chunk,
 	magicString: MagicStringBundle,
 	{
+		graph,
 		exportMode,
 		indentString,
 		intro,
 		outro,
 		dynamicImport,
 		dependencies,
-		exports
-	}: {
-		exportMode: string;
-		indentString: string;
-		intro: string;
-		outro: string;
-		dynamicImport: boolean;
-		dependencies: ChunkDependencies;
-		exports: ChunkExports;
-	},
+		exports,
+		isEntryModuleFacade
+	}: FinaliserOptions,
 	options: OutputOptions
 ) {
-	warnOnBuiltins(chunk);
+	warnOnBuiltins(graph, dependencies);
 
 	const deps = dependencies.map(m => `'${m.id}'`);
 	const args = dependencies.map(m => m.name);
@@ -53,14 +46,14 @@ export default function amd(
 	const wrapperStart = `${define}(${params}function (${args.join(', ')}) {${useStrict}\n\n`;
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(dependencies, options, chunk.graph.varOrConst);
+	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
 	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
 
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(exports, dependencies, exportMode);
 	if (exportBlock) magicString.append('\n\n' + exportBlock);
-	if (exportMode === 'named' && options.legacy !== true && chunk.isEntryModuleFacade)
+	if (exportMode === 'named' && options.legacy !== true && isEntryModuleFacade)
 		magicString.append(`\n\n${esModuleExport}`);
 	if (outro) magicString.append(outro);
 

@@ -6,9 +6,9 @@ import { property, keypath } from './shared/sanitize';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import trimEmptyImports from './shared/trimEmptyImports';
 import setupNamespace from './shared/setupNamespace';
-import Chunk, { ChunkDependencies, ChunkExports } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
+import { FinaliserOptions } from './index';
 
 function globalProp(name: string) {
 	if (!name) return 'null';
@@ -25,23 +25,8 @@ function safeAccess(name: string) {
 const wrapperOutro = '\n\n})));';
 
 export default function umd(
-	chunk: Chunk,
 	magicString: MagicStringBundle,
-	{
-		exportMode,
-		indentString,
-		intro,
-		outro,
-		dependencies,
-		exports
-	}: {
-		exportMode: string;
-		indentString: string;
-		intro: string;
-		outro: string;
-		dependencies: ChunkDependencies;
-		exports: ChunkExports;
-	},
+	{ graph, exportMode, indentString, intro, outro, dependencies, exports }: FinaliserOptions,
 	options: OutputOptions
 ) {
 	if (exportMode !== 'none' && !options.name) {
@@ -51,7 +36,7 @@ export default function umd(
 		});
 	}
 
-	warnOnBuiltins(chunk);
+	warnOnBuiltins(graph, dependencies);
 
 	const amdDeps = dependencies.map(m => `'${m.id}'`);
 	const cjsDeps = dependencies.map(m => `require('${m.id}')`);
@@ -123,7 +108,7 @@ export default function umd(
 		.replace(/^\t/gm, indentString || '\t');
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(dependencies, options, chunk.graph.varOrConst);
+	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
 	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
 
 	if (intro) magicString.prepend(intro);
