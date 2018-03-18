@@ -1,22 +1,9 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import Chunk, { ChunkDependencies, ChunkExports } from '../Chunk';
+import { FinaliserOptions } from './index';
 
 export default function es(
-	_chunk: Chunk,
 	magicString: MagicStringBundle,
-	{
-		intro,
-		outro,
-		dependencies,
-		exports
-	}: {
-		exportMode: string;
-		indentString: string;
-		intro: string;
-		outro: string;
-		dependencies: ChunkDependencies;
-		exports: ChunkExports;
-	}
+	{ intro, outro, dependencies, exports }: FinaliserOptions
 ) {
 	const importBlock = dependencies
 		.map(({ id, reexports, imports, name }) => {

@@ -1,37 +1,23 @@
 import esModuleExport from './shared/esModuleExport';
 import { OutputOptions } from '../rollup/index';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import Chunk, { ChunkDependencies, ChunkExports } from '../Chunk';
 import getExportBlock from './shared/getExportBlock';
+import { FinaliserOptions } from './index';
 
 export default function cjs(
-	chunk: Chunk,
 	magicString: MagicStringBundle,
-	{
-		exportMode,
-		intro,
-		outro,
-		dependencies,
-		exports
-	}: {
-		exportMode: string;
-		indentString: string;
-		intro: string;
-		outro: string;
-		dependencies: ChunkDependencies;
-		exports: ChunkExports;
-	},
+	{ graph, isEntryModuleFacade, exportMode, intro, outro, dependencies, exports }: FinaliserOptions,
 	options: OutputOptions
 ) {
 	intro =
 		(options.strict === false ? intro : `'use strict';\n\n${intro}`) +
-		(exportMode === 'named' && options.legacy !== true && chunk.isEntryModuleFacade
+		(exportMode === 'named' && options.legacy !== true && isEntryModuleFacade
 			? `${esModuleExport}\n\n`
 			: '');
 
 	let needsInterop = false;
 
-	const varOrConst = chunk.graph.varOrConst;
+	const varOrConst = graph.varOrConst;
 	const interop = options.interop !== false;
 
 	const importBlock = dependencies

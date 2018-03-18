@@ -6,30 +6,15 @@ import warnOnBuiltins from './shared/warnOnBuiltins';
 import trimEmptyImports from './shared/trimEmptyImports';
 import setupNamespace from './shared/setupNamespace';
 import { isLegal } from '../utils/identifierHelpers';
-import Chunk, { ChunkDependencies, ChunkExports } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/index';
+import { FinaliserOptions } from './index';
 
 const thisProp = (name: string) => `this${keypath(name)}`;
 
 export default function iife(
-	chunk: Chunk,
 	magicString: MagicStringBundle,
-	{
-		exportMode,
-		indentString,
-		intro,
-		outro,
-		dependencies,
-		exports
-	}: {
-		exportMode: string;
-		indentString: string;
-		intro: string;
-		outro: string;
-		dependencies: ChunkDependencies;
-		exports: ChunkExports;
-	},
+	{ graph, exportMode, indentString, intro, outro, dependencies, exports }: FinaliserOptions,
 	options: OutputOptions
 ) {
 	const { extend, name } = options;
@@ -43,7 +28,7 @@ export default function iife(
 		});
 	}
 
-	warnOnBuiltins(chunk);
+	warnOnBuiltins(graph, dependencies);
 
 	const external = trimEmptyImports(dependencies);
 	const deps = external.map(dep => dep.globalName || 'null');
@@ -70,7 +55,7 @@ export default function iife(
 
 	if (exportMode !== 'none' && !extend) {
 		wrapperIntro =
-			(isNamespaced ? thisProp(name) : `${chunk.graph.varOrConst} ${name}`) + ` = ${wrapperIntro}`;
+			(isNamespaced ? thisProp(name) : `${graph.varOrConst} ${name}`) + ` = ${wrapperIntro}`;
 	}
 
 	if (isNamespaced) {
@@ -84,7 +69,7 @@ export default function iife(
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(dependencies, options, chunk.graph.varOrConst);
+	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
 	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
 
 	if (intro) magicString.prepend(intro);

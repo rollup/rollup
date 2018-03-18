@@ -73,7 +73,7 @@ export default [
 			resolve(),
 			commonjs()
 		],
-		external: [ 'fs', 'path', 'events', 'module' ],
+		external: [ 'fs', 'path', 'events', 'module', 'util' ],
 		output: [
 			{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
 			{ file: 'dist/rollup.es.js', format: 'es', sourcemap: true, banner }
@@ -96,7 +96,7 @@ export default [
 			typescript( {
 				typescript: require( 'typescript' )
 			} ),
-			resolve(),
+			resolve({ browser: true }),
 			commonjs()
 		],
 		output: [
@@ -133,7 +133,8 @@ export default [
 			'events',
 			'rollup',
 			'assert',
-			'os'
+			'os',
+			'util'
 		],
 		output: {
 			file: 'bin/rollup',
