@@ -1,4 +1,4 @@
-System.register(['./chunk1.js'], function (exports, module) {
+System.register(['./chunk-909b409c.js'], function (exports, module) {
   'use strict';
   var multiplier;
   return {
@@ -16,7 +16,7 @@ System.register(['./chunk1.js'], function (exports, module) {
       }
 
       function dynamic (num) {
-        return module.import("./dep2.js")
+        return module.import("dep2.js")
         .then(dep2 => {
           return dep2.mult(num);
         });

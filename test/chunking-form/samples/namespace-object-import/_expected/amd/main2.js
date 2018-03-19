@@ -1,9 +1,9 @@
-define(['exports', './chunk1.js'], function (exports, __chunk1_js) { 'use strict';
+define(['exports', './chunk-2dbe93bf.js'], function (exports, main2_js) { 'use strict';
 
 
 
-	exports.a = __chunk1_js.a;
-	exports.b = __chunk1_js.b;
+	exports.a = main2_js.a;
+	exports.b = main2_js.b;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

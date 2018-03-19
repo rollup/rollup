@@ -1,9 +1,9 @@
-define(['exports', './chunk1.js', 'external2', 'starexternal2'], function (exports, __chunk1_js, external2, starexternal2) { 'use strict';
+define(['exports', './chunk-5a45fc42.js', 'external2', 'starexternal2'], function (exports, __chunk_12, external2, starexternal2) { 'use strict';
 
 	var main = '2';
 
 	Object.keys(starexternal2).forEach(function (key) { exports[key] = starexternal2[key]; });
-	exports.dep = __chunk1_js.dep;
+	exports.dep = __chunk_12.dep;
 	exports.e = external2.e;
 	exports.main = main;
 

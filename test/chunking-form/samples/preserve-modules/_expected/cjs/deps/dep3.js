@@ -1,9 +1,9 @@
 'use strict';
 
-var __lib_lib1_js = require('../lib/lib1.js');
+var __chunk_25 = require('../lib/lib1.js');
 
 function fn () {
-  __lib_lib1_js.fn();
+  __chunk_25.fn();
   console.log('dep3 fn');
 }
 

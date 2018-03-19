@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var __main2_js = require('./main2.js');
+var main2_js = require('./main2.js');
 
 class C {
   fn (num) {
-    console.log(num - __main2_js.p);
+    console.log(num - main2_js.p);
   }
 }
 

@@ -1,4 +1,4 @@
-define(['./first.js', './head.js'], function (__first_js, __head_js) { 'use strict';
+define(['./first.js', './head.js'], function (first_js, head_js) { 'use strict';
 
 
 

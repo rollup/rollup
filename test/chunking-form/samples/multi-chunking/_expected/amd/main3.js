@@ -1,5 +1,5 @@
-define(['./chunk1.js', './chunk3.js'], function (__chunk1_js, __chunk3_js) { 'use strict';
+define(['./chunk-77b21cda.js', './chunk-38f206da.js'], function (__chunk_18, __chunk_20) { 'use strict';
 
-	console.log(__chunk1_js.num + __chunk3_js.num);
+	console.log(__chunk_18.num + __chunk_20.num);
 
 });

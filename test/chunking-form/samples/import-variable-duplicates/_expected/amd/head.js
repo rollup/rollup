@@ -1,7 +1,7 @@
-define(['./first.js'], function (__first_js) { 'use strict';
+define(['./first.js'], function (first_js) { 'use strict';
 
 
 
-	return __first_js.default;
+	return first_js.default;
 
 });

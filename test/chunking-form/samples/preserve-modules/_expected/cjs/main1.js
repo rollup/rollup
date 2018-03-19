@@ -1,13 +1,13 @@
 'use strict';
 
-var __deps_dep1_js = require('./deps/dep1.js');
-var __deps_dep2_js = require('./deps/dep2.js');
+var __chunk_22 = require('./deps/dep1.js');
+var __chunk_24 = require('./deps/dep2.js');
 require('./lib/lib2.js');
 
 class Main1 {
   constructor () {
-    __deps_dep1_js.fn();
-    __deps_dep2_js.fn();
+    __chunk_22.fn();
+    __chunk_24.fn();
   }
 }
 

@@ -325,6 +325,12 @@ export default class Graph {
 		timeStart('parse modules', 2);
 		return Promise.all(entryModuleIds.map(entryId => this.loadModule(entryId))).then(
 			entryModules => {
+				if (entryModuleAliases) {
+					entryModules.forEach((entryModule, index) => {
+						entryModule.alias = entryModuleAliases[index];
+					});
+				}
+
 				timeEnd('parse modules', 2);
 
 				// Phase 2 - linking. We populate the module dependency links and

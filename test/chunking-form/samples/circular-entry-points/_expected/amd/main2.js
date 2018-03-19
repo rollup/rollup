@@ -1,8 +1,8 @@
-define(['exports', './main1.js'], function (exports, __main1_js) { 'use strict';
+define(['exports', './main1.js'], function (exports, main1_js) { 'use strict';
 
   class C {
     fn (num) {
-      console.log(num - __main1_js.p);
+      console.log(num - main1_js.p);
     }
   }
 

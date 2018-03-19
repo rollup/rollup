@@ -2,8 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var __chunk1_js = require('./chunk1.js');
+var __chunk_6 = require('./chunk-8a5db948.js');
 
 
 
-exports.ItemOne = __chunk1_js.One;
+exports.ItemOne = __chunk_6.One;

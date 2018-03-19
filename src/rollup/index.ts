@@ -442,7 +442,6 @@ export default function rollup(
 			});
 		}
 
-		// const inputRelativeDir = preserveModules && commondir(orderedModules.map(module => module.id));
 		return graph
 			.buildChunks(inputOptions.input, inputOptions.experimentalPreserveModules)
 			.then(chunks => {
@@ -476,21 +475,27 @@ export default function rollup(
 
 					const promise = createAddons(graph, outputOptions)
 						.then(addons => {
-							// first pre-render and name all chunks
+							// first pre-render all chunks
+							// then name all chunks
 							return (
-								Promise.all(
-									chunks.map(chunk => {
-										chunk.preRender(outputOptions);
-										if (inputOptions.experimentalPreserveModules) {
-											chunk.generateNamePreserveModules(preserveModulesBase);
-										} else {
-											let pattern;
-											if (chunk.isEntryModuleFacade) pattern = basename(chunk.entryModule.id);
-											else pattern = outputOptions.chunkNames || 'chunk-[hash]';
-											chunk.generateName(pattern, addons, existingNames);
-										}
+								Promise.resolve()
+									.then(() => {
+										chunks.forEach(chunk => chunk.preRender(outputOptions));
+
+										chunks.forEach(chunk => {
+											if (inputOptions.experimentalPreserveModules) {
+												chunk.generateNamePreserveModules(preserveModulesBase);
+											} else {
+												let pattern;
+												if (chunk.isEntryModuleFacade) {
+													pattern = basename(chunk.entryModule.alias || chunk.entryModule.id);
+												} else {
+													pattern = outputOptions.chunkNames || 'chunk-[hash]';
+												}
+												chunk.generateName(pattern, addons, existingNames);
+											}
+										});
 									})
-								)
 									// second render chunks given known names
 									.then(() => {
 										return Promise.all(

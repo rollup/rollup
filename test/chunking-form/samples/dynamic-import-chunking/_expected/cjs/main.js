@@ -1,9 +1,9 @@
 'use strict';
 
-var __chunk1_js = require('./chunk1.js');
+var __chunk_14 = require('./chunk-909b409c.js');
 
 function calc (num) {
-  return num * __chunk1_js.multiplier;
+  return num * __chunk_14.multiplier;
 }
 
 function fn (num) {
@@ -11,7 +11,7 @@ function fn (num) {
 }
 
 function dynamic (num) {
-  return Promise.resolve(require("./dep2.js"))
+  return Promise.resolve(require("dep2.js"))
   .then(dep2 => {
     return dep2.mult(num);
   });
