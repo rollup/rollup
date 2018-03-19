@@ -208,7 +208,7 @@ export class Task {
 				});
 
 				return Promise.all(this.outputs.map(output => {
-					return <Promise<void | Record<string, OutputChunk>>>result.write(output);
+					return <Promise<OutputChunk | Record<string, OutputChunk>>>result.write(output);
 				}))
 				.then(() => result);
 			})

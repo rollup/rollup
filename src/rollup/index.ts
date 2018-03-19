@@ -261,7 +261,7 @@ export interface Bundle {
 	};
 
 	generate: (outputOptions: OutputOptions) => Promise<OutputChunk>;
-	write: (options: OutputOptions) => Promise<void>;
+	write: (options: OutputOptions) => Promise<OutputChunk>;
 	getTimings?: () => SerializedTimings;
 }
 
@@ -419,7 +419,7 @@ export default function rollup(
 										)
 									)
 									// ensures return isn't void[]
-									.then(() => {})
+									.then(() => result)
 							);
 						});
 					}
