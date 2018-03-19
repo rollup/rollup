@@ -1,5 +1,5 @@
 'use strict';
 
-var __chunk1_js = require('./chunk1.js');
+var main2_js = require('./chunk-085d66d3.js');
 
-__chunk1_js.default(__chunk1_js.default$1);
+main2_js.default(main2_js.default$1);

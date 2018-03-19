@@ -1,7 +1,7 @@
-define(['require', './chunk1.js'], function (require, __chunk1_js) { 'use strict';
+define(['require', './chunk-909b409c.js'], function (require, __chunk_15) { 'use strict';
 
   function calc (num) {
-    return num * __chunk1_js.multiplier;
+    return num * __chunk_15.multiplier;
   }
 
   function fn (num) {

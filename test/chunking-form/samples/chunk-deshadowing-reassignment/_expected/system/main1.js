@@ -1,4 +1,4 @@
-System.register(['./chunk2.js'], function (exports, module) {
+System.register(['./chunk-eddabbe7.js'], function (exports, module) {
 	'use strict';
 	var x, y;
 	return {

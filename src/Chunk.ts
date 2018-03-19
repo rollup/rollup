@@ -771,14 +771,18 @@ export default class Chunk {
 		// resolve external module paths
 		for (let external of this.dependencies) {
 			if (!(external instanceof ExternalModule)) continue;
-			external.setRenderPath(options, this.entryModule.id);
+			external.setRenderPath(options, this.entryModule && this.entryModule.id);
 		}
 
 		if (hoistedSource) magicString.prepend(hoistedSource + '\n\n');
 
 		this.renderedSource = magicString.trim();
 
-		if (this.getExportNames().length === 0 && this.renderedSource.isEmpty()) {
+		if (
+			this.getExportNames().length === 0 &&
+			this.getImportIds().length === 0 &&
+			this.renderedSource.isEmpty()
+		) {
 			this.graph.warn({
 				code: 'EMPTY_BUNDLE',
 				message: 'Generated an empty bundle'

@@ -1,4 +1,4 @@
-import { fn } from './chunk1.js';
+import { fn } from './chunk-b663d499.js';
 
 function fn$1 () {
   console.log('lib1 fn');
@@ -17,4 +17,4 @@ class Main2 {
 }
 
 export default Main2;
-//# sourceMappingURL=./main2.js.map
+//# sourceMappingURL=main2.js.map

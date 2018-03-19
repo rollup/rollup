@@ -1,4 +1,4 @@
-export { dep } from './chunk1.js';
+export { dep } from './chunk-5a45fc42.js';
 export { e } from 'external2';
 export * from 'starexternal2';
 

@@ -2,9 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var __chunk1_js = require('./chunk1.js');
+var main2_js = require('./chunk-2dbe93bf.js');
 
 
 
-exports.a = __chunk1_js.a;
-exports.b = __chunk1_js.b;
+exports.a = main2_js.a;
+exports.b = main2_js.b;

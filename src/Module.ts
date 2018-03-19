@@ -124,6 +124,7 @@ export default class Module {
 	exportsAll: { [name: string]: string };
 	exportAllSources: string[];
 	id: string;
+	alias: string;
 
 	imports: { [name: string]: ImportDescription };
 	isExternal: false;
@@ -156,6 +157,7 @@ export default class Module {
 
 	constructor(graph: Graph, id: string) {
 		this.id = id;
+		this.alias = undefined;
 		this.graph = graph;
 		this.comments = [];
 

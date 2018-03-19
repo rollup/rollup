@@ -15,10 +15,6 @@ module.exports = {
 			source: 'external',
 			names: ['unused', 'notused', 'neverused'],
 			message: `'unused', 'notused' and 'neverused' are imported from external module 'external' but never used`
-		},
-		{
-			code: 'EMPTY_BUNDLE',
-			message: `Generated an empty bundle`
 		}
 	]
 };

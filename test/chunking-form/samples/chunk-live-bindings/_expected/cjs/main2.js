@@ -1,11 +1,11 @@
 'use strict';
 
-var __chunk1_js = require('./chunk1.js');
+var __chunk_7 = require('./chunk-c4e4bfeb.js');
 
 class Main2 {
   constructor () {
-    __chunk1_js.fn$1();
-    console.log(__chunk1_js.text$1);
+    __chunk_7.fn$1();
+    console.log(__chunk_7.text$1);
   }
 }
 

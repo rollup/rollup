@@ -120,7 +120,6 @@ describe('rollup.watch', () => {
 						'BUNDLE_END',
 						'END',
 						() => {
-							delete require.cache[require.resolve('../_tmp/output/chunk1.js')];
 							assert.equal(run('../_tmp/output/main1.js'), 21);
 							assert.equal(run('../_tmp/output/main2.js'), 42);
 							sander.writeFileSync('test/_tmp/input/shared.js', 'export const value = 22;');
@@ -130,7 +129,6 @@ describe('rollup.watch', () => {
 						'BUNDLE_END',
 						'END',
 						() => {
-							delete require.cache[require.resolve('../_tmp/output/chunk1.js')];
 							assert.equal(run('../_tmp/output/main1.js'), 22);
 							assert.equal(run('../_tmp/output/main2.js'), 44);
 							watcher.close();

@@ -1,5 +1,5 @@
-define(['./main1.js'], function (__main1_js) { 'use strict';
+define(['./main1.js'], function (main1_js) { 'use strict';
 
-	console.log( __main1_js.p );
+	console.log( main1_js.p );
 
 });

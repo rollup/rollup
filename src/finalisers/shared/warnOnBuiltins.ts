@@ -1,4 +1,4 @@
-import Chunk, { ChunkDependencies } from '../../Chunk';
+import { ChunkDependencies } from '../../Chunk';
 import Graph from '../../Graph';
 
 const builtins = {

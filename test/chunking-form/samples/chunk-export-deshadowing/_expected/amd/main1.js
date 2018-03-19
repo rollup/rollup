@@ -1,8 +1,8 @@
-define(['./chunk1.js'], function (__chunk1_js) { 'use strict';
+define(['./chunk-735f12f8.js'], function (__chunk_5) { 'use strict';
 
   class Main1 {
     constructor () {
-      __chunk1_js.fn();
+      __chunk_5.fn();
     }
   }
 

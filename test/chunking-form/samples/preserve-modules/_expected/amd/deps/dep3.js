@@ -1,7 +1,7 @@
-define(['exports', '../lib/lib1.js'], function (exports, __lib_lib1_js) { 'use strict';
+define(['exports', '../lib/lib1.js'], function (exports, __chunk_25) { 'use strict';
 
   function fn () {
-    __lib_lib1_js.fn();
+    __chunk_25.fn();
     console.log('dep3 fn');
   }
 
