@@ -1,4 +1,4 @@
-define(['./dep2.js'], function (__chunk_28) { 'use strict';
+define(['./dep2.js'], function (__chunk_1) { 'use strict';
 
 
 

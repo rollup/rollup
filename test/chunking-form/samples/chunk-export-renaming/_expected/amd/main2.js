@@ -1,8 +1,8 @@
-define(['exports', './chunk-8a5db948.js'], function (exports, __chunk_6) { 'use strict';
+define(['exports', './chunk-8a5db948.js'], function (exports, __chunk_1) { 'use strict';
 
     class Two {
         test() {
-            return __chunk_6.ONE_CONSTANT;
+            return __chunk_1.ONE_CONSTANT;
         }
     }
 

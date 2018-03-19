@@ -89,7 +89,6 @@ function getGlobalName(
 	}
 }
 
-let curChunkIndex = 0;
 export default class Chunk {
 	hasDynamicImport: boolean;
 	indentString: string;
@@ -163,8 +162,9 @@ export default class Chunk {
 		this.usedModules = undefined;
 		this.hasDynamicImport = false;
 
-		if (this.entryModule) this.name = makeLegal(basename(this.entryModule.id));
-		else this.name = '__chunk_' + ++curChunkIndex;
+		if (this.entryModule)
+			this.name = makeLegal(basename(this.entryModule.alias || this.entryModule.id));
+		else this.name = '__chunk_' + ++graph.curChunkIndex;
 	}
 
 	// ensure that the module exports or reexports the given variable
@@ -830,7 +830,7 @@ export default class Chunk {
 		let uniqueName = pattern;
 		let uniqueIndex = 1;
 		if (existingNames) {
-			while (existingNames[uniqueName]) uniqueName = pattern + uniqueIndex++;
+			while (existingNames[uniqueName]) uniqueName = pattern + ++uniqueIndex;
 			existingNames[uniqueName] = true;
 		}
 		return (this.id = uniqueName + ext);

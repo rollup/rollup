@@ -488,7 +488,7 @@ export default function rollup(
 											} else {
 												let pattern;
 												if (chunk.isEntryModuleFacade) {
-													pattern = basename(chunk.entryModule.alias || chunk.entryModule.id);
+													pattern = chunk.entryModule.alias || basename(chunk.entryModule.id);
 												} else {
 													pattern = outputOptions.chunkNames || 'chunk-[hash]';
 												}
