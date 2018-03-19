@@ -1,5 +1,3 @@
-/// <reference path="./Chunk.d.ts" />
-
 import { timeEnd, timeStart } from './utils/timers';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
 import Module from './Module';
@@ -910,13 +908,14 @@ export default class Chunk {
 					map = magicString.generateMap({ file, includeContent: true });
 				}
 
-				map.sources = map.sources.map(normalize);
+					map.sources = map.sources.map(normalize);
 
-				timeEnd('sourcemap', 3);
+					timeEnd('sourcemap', 3);
+				}
+
+				if (code[code.length - 1] !== '\n') code += '\n';
+				return { code, map };
 			}
-
-			if (code[code.length - 1] !== '\n') code += '\n';
-			return { code, map };
-		});
+		);
 	}
 }
