@@ -35,6 +35,7 @@ export type ResolveDynamicImportHandler = (
 ) => Promise<string | void>;
 
 export default class Graph {
+	curChunkIndex: number;
 	acornOptions: acorn.Options;
 	acornParse: acorn.IParse;
 	cachedModules: Map<string, ModuleJSON>;
@@ -66,6 +67,7 @@ export default class Graph {
 	treeshake: boolean;
 
 	constructor(options: InputOptions) {
+		this.curChunkIndex = 0;
 		this.cachedModules = new Map();
 		if (options.cache) {
 			if (options.cache.modules) {
