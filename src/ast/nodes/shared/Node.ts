@@ -13,6 +13,13 @@ import CallOptions from '../../CallOptions';
 import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import { Entity } from '../../Entity';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
+import { getAndCreateKeys, keys } from '../../keys';
+import Import from '../Import';
+
+export interface GenericEsTreeNode {
+	type: string;
+	[key: string]: any;
+}
 
 export interface Node extends Entity {
 	end: number;
@@ -24,7 +31,6 @@ export interface Node extends Entity {
 	start: number;
 	type: string;
 	variable?: Variable;
-	__enhanced: boolean;
 
 	/**
 	 * Called once all nodes have been initialised and the scopes have been populated.
@@ -86,16 +92,53 @@ export interface ExpressionNode extends ExpressionEntity, Node {}
 export class NodeBase implements ExpressionNode {
 	type: string;
 	keys: string[];
-	included: boolean;
+	included: boolean = false;
 	scope: Scope;
 	start: number;
 	end: number;
 	module: Module;
 	parent: Node | { type?: string };
-	__enhanced: boolean;
 
-	constructor() {
-		this.keys = [];
+	constructor(
+		esTreeNode: GenericEsTreeNode,
+		// we need to pass down the node constructors to avoid a circular dependency
+		nodeConstructors: { [p: string]: typeof NodeBase },
+		parent: Node | {},
+		module: Module,
+		dynamicImportReturnList: Import[]
+	) {
+		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
+		this.parent = parent;
+		this.module = module;
+		for (const key in esTreeNode) {
+			const value = esTreeNode[key];
+			if (typeof value !== 'object' || value === null) {
+				(<GenericEsTreeNode>this)[key] = value;
+			} else if (Array.isArray(value)) {
+				(<GenericEsTreeNode>this)[key] = [];
+				for (const child of value) {
+					if (child === null) {
+						(<GenericEsTreeNode>this)[key].push(null);
+					} else {
+						const Type = nodeConstructors[child.type] || nodeConstructors.UnknownNode;
+						(<GenericEsTreeNode>this)[key].push(
+							new Type(child, nodeConstructors, this, module, dynamicImportReturnList)
+						);
+					}
+				}
+			} else {
+				const Type = nodeConstructors[value.type] || nodeConstructors.UnknownNode;
+				(<GenericEsTreeNode>this)[key] = new Type(
+					value,
+					nodeConstructors,
+					this,
+					module,
+					dynamicImportReturnList
+				);
+			}
+		}
+		module.magicString.addSourcemapLocation(this.start);
+		module.magicString.addSourcemapLocation(this.end);
 	}
 
 	bind() {
@@ -118,7 +161,7 @@ export class NodeBase implements ExpressionNode {
 
 	eachChild(callback: (node: Node) => void) {
 		for (const key of this.keys) {
-			const value = (<any>this)[key];
+			const value = (<GenericEsTreeNode>this)[key];
 			if (!value) continue;
 
 			if (Array.isArray(value)) {
@@ -235,7 +278,7 @@ export class NodeBase implements ExpressionNode {
 
 	someChild(callback: (node: NodeBase) => boolean) {
 		for (const key of this.keys) {
-			const value = (<any>this)[key];
+			const value = (<GenericEsTreeNode>this)[key];
 			if (!value) continue;
 
 			if (Array.isArray(value)) {

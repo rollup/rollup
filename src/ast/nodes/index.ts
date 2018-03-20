@@ -49,6 +49,7 @@ import TemplateLiteral from './TemplateLiteral';
 import ThisExpression from './ThisExpression';
 import ThrowStatement from './ThrowStatement';
 import UnaryExpression from './UnaryExpression';
+import UnknownNode from './UnknownNode';
 import UpdateExpression from './UpdateExpression';
 import VariableDeclarator from './VariableDeclarator';
 import VariableDeclaration from './VariableDeclaration';
@@ -111,6 +112,7 @@ const nodes: {
 	ThrowStatement,
 	TryStatement: StatementBase,
 	UnaryExpression,
+	UnknownNode,
 	UpdateExpression,
 	VariableDeclarator,
 	VariableDeclaration,

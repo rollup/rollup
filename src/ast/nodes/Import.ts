@@ -1,22 +1,28 @@
 import CallExpression from './CallExpression';
 import { NodeType } from './NodeType';
-import { NodeBase } from './shared/Node';
+import { Node, NodeBase } from './shared/Node';
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
+import Module from '../../Module';
 
 export default class Import extends NodeBase {
 	type: NodeType.Import;
 	parent: CallExpression;
 
-	constructor() {
-		super();
-		this.resolutionNamespace = undefined;
-		this.resolutionInterop = false;
-	}
+	private resolutionNamespace: string = undefined;
+	private resolutionInterop: boolean = false;
+	private rendered: boolean = false;
 
-	private resolutionNamespace: string;
-	private resolutionInterop: boolean;
-	private rendered: boolean;
+	constructor(
+		esTreeNode: any,
+		nodeConstructors: { [name: string]: typeof NodeBase },
+		parent: Node,
+		module: Module,
+		dynamicImportReturnList: Import[]
+	) {
+		super(esTreeNode, nodeConstructors, parent, module, dynamicImportReturnList);
+		dynamicImportReturnList.push(this);
+	}
 
 	setResolution(interop: boolean, namespace: string = undefined): void {
 		this.rendered = false;
