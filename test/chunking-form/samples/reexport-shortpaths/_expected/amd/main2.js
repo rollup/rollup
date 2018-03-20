@@ -1,4 +1,4 @@
-define(['./chunk2.js'], function (__chunk2_js) { 'use strict';
+define(['./chunk2.js', './chunk1.js'], function (__chunk2_js, __chunk1_js) { 'use strict';
 
 
 
