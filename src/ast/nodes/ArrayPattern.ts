@@ -12,7 +12,13 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	elements: (PatternNode | null)[];
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		path.length === 0 && this.elements.forEach(child => child && child.reassignPath([], options));
+		if (path.length === 0) {
+			for (const element of this.elements) {
+				if (element !== null) {
+					element.reassignPath(path, options);
+				}
+			}
+		}
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -28,11 +34,16 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		kind: string,
 		_init: ExpressionEntity | null
 	) {
-		this.initialiseScope(parentScope);
-		this.elements.forEach(
-			child =>
-				child &&
-				child.initialiseAndDeclare(parentScope, dynamicImportReturnList, kind, UNKNOWN_EXPRESSION)
-		);
+		this.scope = parentScope;
+		for (const element of this.elements) {
+			if (element !== null) {
+				element.initialiseAndDeclare(
+					parentScope,
+					dynamicImportReturnList,
+					kind,
+					UNKNOWN_EXPRESSION
+				);
+			}
+		}
 	}
 }

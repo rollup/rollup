@@ -15,6 +15,7 @@ import { Entity } from '../../Entity';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import { getAndCreateKeys, keys } from '../../keys';
 import Import from '../Import';
+import { hasIncludedChild } from './nodeHelpers';
 
 export interface GenericEsTreeNode {
 	type: string;
@@ -87,7 +88,6 @@ export interface Node extends Entity {
 	 * nodes in e.g. block statements.
 	 */
 	shouldBeIncluded(): boolean;
-	someChild(callback: (node: Node) => boolean): boolean;
 }
 
 export interface StatementNode extends Node {}
@@ -158,8 +158,7 @@ export class NodeBase implements ExpressionNode {
 	eachChild(callback: (node: Node) => void) {
 		for (const key of this.keys) {
 			const value = (<GenericEsTreeNode>this)[key];
-			if (!value) continue;
-
+			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					if (child) callback(child);
@@ -182,7 +181,16 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return this.someChild((child: NodeBase) => child.hasEffects(options));
+		for (const key of this.keys) {
+			const value = (<GenericEsTreeNode>this)[key];
+			if (value === null) continue;
+			if (Array.isArray(value)) {
+				for (const child of value) {
+					if (child !== null && child.hasEffects(options)) return true;
+				}
+			} else if (value.hasEffects(options)) return true;
+		}
+		return false;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
@@ -199,10 +207,6 @@ export class NodeBase implements ExpressionNode {
 		_options: ExecutionPathOptions
 	) {
 		return true;
-	}
-
-	private hasIncludedChild(): boolean {
-		return this.included || this.someChild((child: NodeBase) => child.hasIncludedChild());
 	}
 
 	includeInBundle() {
@@ -273,22 +277,8 @@ export class NodeBase implements ExpressionNode {
 		this.eachChild(child => child.render(code, options));
 	}
 
-	shouldBeIncluded() {
-		return this.hasIncludedChild() || this.hasEffects(ExecutionPathOptions.create());
-	}
-
-	someChild(callback: (node: NodeBase) => boolean) {
-		for (const key of this.keys) {
-			const value = (<GenericEsTreeNode>this)[key];
-			if (!value) continue;
-
-			if (Array.isArray(value)) {
-				for (const child of value) {
-					if (child && callback(child)) return true;
-				}
-			} else if (callback(value)) return true;
-		}
-		return false;
+	shouldBeIncluded(): boolean {
+		return hasIncludedChild(this) || this.hasEffects(ExecutionPathOptions.create());
 	}
 
 	someReturnExpressionWhenCalledAtPath(

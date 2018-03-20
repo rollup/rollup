@@ -28,12 +28,13 @@ export default class ObjectExpression extends NodeBase {
 			path[0],
 			path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ
 		);
-		(path.length === 1 || hasCertainHit) &&
-			properties.forEach(
-				property =>
-					(path.length > 1 || property.kind === 'set') &&
-					property.reassignPath(path.slice(1), options)
-			);
+		if (path.length === 1 || hasCertainHit) {
+			for (const property of properties) {
+				if (path.length > 1 || property.kind === 'set') {
+					property.reassignPath(path.slice(1), options);
+				}
+			}
+		}
 	}
 
 	forEachReturnExpressionWhenCalledAtPath(
@@ -48,15 +49,16 @@ export default class ObjectExpression extends NodeBase {
 			path[0],
 			PROPERTY_KINDS_READ
 		);
-		hasCertainHit &&
-			properties.forEach(property =>
+		if (hasCertainHit) {
+			for (const property of properties) {
 				property.forEachReturnExpressionWhenCalledAtPath(
 					path.slice(1),
 					callOptions,
 					callback,
 					options
-				)
-			);
+				);
+			}
+		}
 	}
 
 	_getPossiblePropertiesWithName(name: ObjectPathKey, kinds: ObjectPath) {

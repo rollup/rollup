@@ -8,9 +8,9 @@ export default class FunctionExpression extends FunctionNode {
 
 	initialiseChildren(_parentScope: Scope, dynamicImportReturnList: Import[]) {
 		this.id && this.id.initialiseAndDeclare(this.scope, dynamicImportReturnList, 'function', this);
-		this.params.forEach(param =>
-			param.initialiseAndDeclare(this.scope, dynamicImportReturnList, 'parameter', null)
-		);
+		for (const param of this.params) {
+			param.initialiseAndDeclare(this.scope, dynamicImportReturnList, 'parameter', null);
+		}
 		this.body.initialiseAndReplaceScope(new Scope({ parent: this.scope }), dynamicImportReturnList);
 	}
 }

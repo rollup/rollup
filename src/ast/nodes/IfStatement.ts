@@ -23,14 +23,14 @@ function getHoistedVars(node: StatementNode, scope: Scope) {
 
 	function visit(node: Node) {
 		if (isVariableDeclaration(node) && node.kind === 'var') {
-			node.declarations.forEach(declarator => {
+			for (const declarator of node.declarations) {
 				declarator.init = null;
 				declarator.initialise(scope, []);
 
-				extractNames(declarator.id).forEach(name => {
+				for (const name of extractNames(declarator.id)) {
 					if (hoistedVars.indexOf(name) < 0) hoistedVars.push(name);
-				});
-			});
+				}
+			}
 		} else if (!/Function/.test(node.type)) {
 			node.eachChild(visit);
 		}

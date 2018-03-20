@@ -31,13 +31,11 @@ export default class BlockStatement extends StatementBase {
 	includeInBundle() {
 		let addedNewNodes = !this.included;
 		this.included = true;
-		this.body.forEach(node => {
-			if (node.shouldBeIncluded()) {
-				if (node.includeInBundle()) {
-					addedNewNodes = true;
-				}
+		for (const node of this.body) {
+			if (node.shouldBeIncluded() && node.includeInBundle()) {
+				addedNewNodes = true;
 			}
-		});
+		}
 		return addedNewNodes;
 	}
 

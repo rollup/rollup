@@ -25,7 +25,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 		kind: string,
 		_init: ExpressionEntity | null
 	) {
-		this.initialiseScope(parentScope);
+		this.scope = parentScope;
 		this.argument.initialiseAndDeclare(
 			parentScope,
 			dynamicImportReturnList,

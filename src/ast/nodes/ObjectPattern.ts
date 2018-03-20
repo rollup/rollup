@@ -13,7 +13,11 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	properties: AssignmentProperty[];
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		path.length === 0 && this.properties.forEach(child => child.reassignPath(path, options));
+		if (path.length === 0) {
+			for (const property of this.properties) {
+				property.reassignPath(path, options);
+			}
+		}
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -29,9 +33,9 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		kind: string,
 		init: ExpressionEntity | null
 	) {
-		this.initialiseScope(parentScope);
-		this.properties.forEach(child =>
-			child.initialiseAndDeclare(parentScope, dynamicImportReturnList, kind, init)
-		);
+		this.scope = parentScope;
+		for (const property of this.properties) {
+			property.initialiseAndDeclare(parentScope, dynamicImportReturnList, kind, init);
+		}
 	}
 }

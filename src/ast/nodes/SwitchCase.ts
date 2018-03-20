@@ -18,13 +18,11 @@ export default class SwitchCase extends NodeBase {
 		if (this.test && this.test.includeInBundle()) {
 			addedNewNodes = true;
 		}
-		this.consequent.forEach(node => {
-			if (node.shouldBeIncluded()) {
-				if (node.includeInBundle()) {
-					addedNewNodes = true;
-				}
+		for (const node of this.consequent) {
+			if (node.shouldBeIncluded() && node.includeInBundle()) {
+				addedNewNodes = true;
 			}
-		});
+		}
 		return addedNewNodes;
 	}
 

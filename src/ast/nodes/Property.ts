@@ -154,7 +154,7 @@ export default class Property extends NodeBase {
 		kind: string,
 		_init: ExpressionEntity | null
 	) {
-		this.initialiseScope(parentScope);
+		this.scope = parentScope;
 		this.initialiseNode(parentScope, dynamicImportReturnList);
 		this.key.initialise(parentScope, dynamicImportReturnList);
 		this.value.initialiseAndDeclare(parentScope, dynamicImportReturnList, kind, UNKNOWN_EXPRESSION);

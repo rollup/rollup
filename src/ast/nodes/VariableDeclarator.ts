@@ -16,7 +16,7 @@ export default class VariableDeclarator extends NodeBase {
 	}
 
 	initialiseDeclarator(parentScope: Scope, dynamicImportReturnList: Import[], kind: string) {
-		this.initialiseScope(parentScope);
+		this.scope = parentScope;
 		this.init && this.init.initialise(this.scope, dynamicImportReturnList);
 		this.id.initialiseAndDeclare(this.scope, dynamicImportReturnList, kind, this.init);
 	}

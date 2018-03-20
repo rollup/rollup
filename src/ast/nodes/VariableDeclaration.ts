@@ -30,9 +30,9 @@ export default class VariableDeclaration extends NodeBase {
 	kind: 'var' | 'let' | 'const';
 
 	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {
-		this.declarations.forEach(declarator =>
-			declarator.reassignPath([], ExecutionPathOptions.create())
-		);
+		for (const declarator of this.declarations) {
+			declarator.reassignPath([], ExecutionPathOptions.create());
+		}
 	}
 
 	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
@@ -42,31 +42,29 @@ export default class VariableDeclaration extends NodeBase {
 	includeWithAllDeclaredVariables() {
 		let addedNewNodes = !this.included;
 		this.included = true;
-		this.declarations.forEach(declarator => {
+		for (const declarator of this.declarations) {
 			if (declarator.includeInBundle()) {
 				addedNewNodes = true;
 			}
-		});
+		}
 		return addedNewNodes;
 	}
 
 	includeInBundle() {
 		let addedNewNodes = !this.included;
 		this.included = true;
-		this.declarations.forEach(declarator => {
-			if (declarator.shouldBeIncluded()) {
-				if (declarator.includeInBundle()) {
-					addedNewNodes = true;
-				}
+		for (const declarator of this.declarations) {
+			if (declarator.shouldBeIncluded() && declarator.includeInBundle()) {
+				addedNewNodes = true;
 			}
-		});
+		}
 		return addedNewNodes;
 	}
 
 	initialiseChildren(_parentScope: Scope, dynamicImportReturnList: Import[]) {
-		this.declarations.forEach(child =>
-			child.initialiseDeclarator(this.scope, dynamicImportReturnList, this.kind)
-		);
+		for (const declarator of this.declarations) {
+			declarator.initialiseDeclarator(this.scope, dynamicImportReturnList, this.kind);
+		}
 	}
 
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {

@@ -56,9 +56,9 @@ export default class ArrowFunctionExpression extends NodeBase {
 	}
 
 	initialiseChildren(_parentScope: Scope, dynamicImportReturnList: Import[]) {
-		this.params.forEach(param =>
-			param.initialiseAndDeclare(this.scope, dynamicImportReturnList, 'parameter', null)
-		);
+		for (const param of this.params) {
+			param.initialiseAndDeclare(this.scope, dynamicImportReturnList, 'parameter', null);
+		}
 		if ((<BlockStatement>this.body).initialiseAndReplaceScope) {
 			(<BlockStatement>this.body).initialiseAndReplaceScope(
 				new Scope({ parent: this.scope }),

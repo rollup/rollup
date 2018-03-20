@@ -16,9 +16,9 @@ export default class FunctionDeclaration extends FunctionNode {
 			this.id.initialiseAndDeclare(parentScope, dynamicImportReturnList, 'function', this);
 			this.id.variable.isId = true;
 		}
-		this.params.forEach(param =>
-			param.initialiseAndDeclare(this.scope, dynamicImportReturnList, 'parameter', null)
-		);
+		for (const param of this.params) {
+			param.initialiseAndDeclare(this.scope, dynamicImportReturnList, 'parameter', null);
+		}
 		this.body.initialiseAndReplaceScope(new Scope({ parent: this.scope }), dynamicImportReturnList);
 	}
 }

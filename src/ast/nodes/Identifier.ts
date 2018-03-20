@@ -78,7 +78,7 @@ export default class Identifier extends NodeBase {
 		kind: string,
 		init: ExpressionEntity | null
 	) {
-		this.initialiseScope(parentScope);
+		this.scope = parentScope;
 		switch (kind) {
 			case 'var':
 			case 'function':

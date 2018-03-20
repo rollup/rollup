@@ -30,7 +30,7 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		kind: string,
 		init: ExpressionEntity | null
 	) {
-		this.initialiseScope(parentScope);
+		this.scope = parentScope;
 		this.right.initialise(parentScope, dynamicImportReturnList);
 		this.left.initialiseAndDeclare(parentScope, dynamicImportReturnList, kind, init);
 	}
