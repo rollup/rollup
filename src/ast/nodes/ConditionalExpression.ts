@@ -6,8 +6,8 @@ import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from '.
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { BLANK } from '../../utils/blank';
 import CallExpression from './CallExpression';
+import { BLANK } from '../../utils/blank';
 
 export default class ConditionalExpression extends NodeBase {
 	type: NodeType.ConditionalExpression;

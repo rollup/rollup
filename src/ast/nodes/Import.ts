@@ -4,6 +4,7 @@ import { Node, NodeBase } from './shared/Node';
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import Module from '../../Module';
+import Scope from '../scopes/Scope';
 
 export default class Import extends NodeBase {
 	type: NodeType.Import;
@@ -17,10 +18,12 @@ export default class Import extends NodeBase {
 		esTreeNode: any,
 		nodeConstructors: { [name: string]: typeof NodeBase },
 		parent: Node,
-		module: Module,
-		dynamicImportReturnList: Import[]
+		module: Module
 	) {
-		super(esTreeNode, nodeConstructors, parent, module, dynamicImportReturnList);
+		super(esTreeNode, nodeConstructors, parent, module);
+	}
+
+	initialiseNode(_parentScope: Scope, dynamicImportReturnList: Import[]) {
 		dynamicImportReturnList.push(this);
 	}
 

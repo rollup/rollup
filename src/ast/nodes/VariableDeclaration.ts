@@ -3,14 +3,12 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import VariableDeclarator from './VariableDeclarator';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import {
-	getCommaSeparatedNodesWithBoundaries,
-	NodeRenderOptions,
-	RenderOptions
-} from '../../utils/renderHelpers';
+import { getCommaSeparatedNodesWithBoundaries, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { isIdentifier } from './Identifier';
 import Variable from '../variables/Variable';
 import { ObjectPath } from '../values';
+import Import from './Import';
+import Scope from '../scopes/Scope';
 import { BLANK } from '../../utils/blank';
 
 function isReassignedExportsMember(variable: Variable): boolean {
@@ -65,8 +63,10 @@ export default class VariableDeclaration extends NodeBase {
 		return addedNewNodes;
 	}
 
-	initialiseChildren() {
-		this.declarations.forEach(child => child.initialiseDeclarator(this.scope, this.kind));
+	initialiseChildren(_parentScope: Scope, dynamicImportReturnList: Import[]) {
+		this.declarations.forEach(child =>
+			child.initialiseDeclarator(this.scope, dynamicImportReturnList, this.kind)
+		);
 	}
 
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {

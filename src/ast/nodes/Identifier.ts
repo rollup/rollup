@@ -17,6 +17,7 @@ import { NodeType } from './NodeType';
 import AssignmentExpression from './AssignmentExpression';
 import UpdateExpression from './UpdateExpression';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import Import from './Import';
 import { BLANK } from '../../utils/blank';
 
 export function isIdentifier(node: Node): node is Identifier {
@@ -71,7 +72,12 @@ export default class Identifier extends NodeBase {
 		return true;
 	}
 
-	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null) {
+	initialiseAndDeclare(
+		parentScope: Scope,
+		_dynamicImportReturnList: Import[],
+		kind: string,
+		init: ExpressionEntity | null
+	) {
 		this.initialiseScope(parentScope);
 		switch (kind) {
 			case 'var':

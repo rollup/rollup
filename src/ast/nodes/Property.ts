@@ -11,6 +11,7 @@ import {
 } from './shared/Expression';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../utils/renderHelpers';
+import Import from './Import';
 
 export function isProperty(node: Node): node is Property {
 	return node.type === NodeType.Property;
@@ -147,14 +148,19 @@ export default class Property extends NodeBase {
 		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	initialiseAndDeclare(parentScope: Scope, kind: string, _init: ExpressionEntity | null) {
+	initialiseAndDeclare(
+		parentScope: Scope,
+		dynamicImportReturnList: Import[],
+		kind: string,
+		_init: ExpressionEntity | null
+	) {
 		this.initialiseScope(parentScope);
-		this.initialiseNode(parentScope);
-		this.key.initialise(parentScope);
-		this.value.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION);
+		this.initialiseNode(parentScope, dynamicImportReturnList);
+		this.key.initialise(parentScope, dynamicImportReturnList);
+		this.value.initialiseAndDeclare(parentScope, dynamicImportReturnList, kind, UNKNOWN_EXPRESSION);
 	}
 
-	initialiseNode(_parentScope: Scope) {
+	initialiseNode(_parentScope: Scope, _dynamicImportReturnList: Import[]) {
 		this._accessorCallOptions = CallOptions.create({
 			withNew: false,
 			callIdentifier: this

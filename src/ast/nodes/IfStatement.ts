@@ -6,6 +6,7 @@ import { isVariableDeclaration } from './VariableDeclaration';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
 import { RenderOptions } from '../../utils/renderHelpers';
+import Import from './Import';
 
 // Statement types which may contain if-statements as direct children.
 const statementsWithIfStatements = new Set([
@@ -24,7 +25,7 @@ function getHoistedVars(node: StatementNode, scope: Scope) {
 		if (isVariableDeclaration(node) && node.kind === 'var') {
 			node.declarations.forEach(declarator => {
 				declarator.init = null;
-				declarator.initialise(scope);
+				declarator.initialise(scope, []);
 
 				extractNames(declarator.id).forEach(name => {
 					if (hoistedVars.indexOf(name) < 0) hoistedVars.push(name);
@@ -49,8 +50,8 @@ export default class IfStatement extends StatementBase {
 	private testValue: any;
 	private hoistedVars?: string[];
 
-	initialiseChildren(parentScope: Scope) {
-		super.initialiseChildren(parentScope);
+	initialiseChildren(parentScope: Scope, dynamicImportReturnList: Import[]) {
+		super.initialiseChildren(parentScope, dynamicImportReturnList);
 		if (this.module.graph.treeshake) {
 			this.testValue = this.test.getValue();
 

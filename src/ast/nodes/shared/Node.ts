@@ -71,8 +71,13 @@ export interface Node extends Entity {
 	 * initialiseNode and/or initialiseChildren instead. BlockScopes have a special
 	 * alternative initialisation initialiseAndReplaceScope.
 	 */
-	initialise(parentScope: Scope): void;
-	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null): void;
+	initialise(parentScope: Scope, dynamicImportReturnList: Import[]): void;
+	initialiseAndDeclare(
+		parentScope: Scope,
+		dynamicImportReturnList: Import[],
+		kind: string,
+		init: ExpressionEntity | null
+	): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -104,8 +109,7 @@ export class NodeBase implements ExpressionNode {
 		// we need to pass down the node constructors to avoid a circular dependency
 		nodeConstructors: { [p: string]: typeof NodeBase },
 		parent: Node | {},
-		module: Module,
-		dynamicImportReturnList: Import[]
+		module: Module
 	) {
 		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
 		this.parent = parent;
@@ -121,20 +125,12 @@ export class NodeBase implements ExpressionNode {
 						(<GenericEsTreeNode>this)[key].push(null);
 					} else {
 						const Type = nodeConstructors[child.type] || nodeConstructors.UnknownNode;
-						(<GenericEsTreeNode>this)[key].push(
-							new Type(child, nodeConstructors, this, module, dynamicImportReturnList)
-						);
+						(<GenericEsTreeNode>this)[key].push(new Type(child, nodeConstructors, this, module));
 					}
 				}
 			} else {
 				const Type = nodeConstructors[value.type] || nodeConstructors.UnknownNode;
-				(<GenericEsTreeNode>this)[key] = new Type(
-					value,
-					nodeConstructors,
-					this,
-					module,
-					dynamicImportReturnList
-				);
+				(<GenericEsTreeNode>this)[key] = new Type(value, nodeConstructors, this, module);
 			}
 		}
 		module.magicString.addSourcemapLocation(this.start);
@@ -224,25 +220,30 @@ export class NodeBase implements ExpressionNode {
 		return this.includeInBundle();
 	}
 
-	initialise(parentScope: Scope) {
+	initialise(parentScope: Scope, dynamicImportReturnList: Import[]) {
 		this.initialiseScope(parentScope);
-		this.initialiseNode(parentScope);
-		this.initialiseChildren(parentScope);
+		this.initialiseNode(parentScope, dynamicImportReturnList);
+		this.initialiseChildren(parentScope, dynamicImportReturnList);
 	}
 
-	initialiseAndDeclare(_parentScope: Scope, _kind: string, _init: ExpressionEntity | null) {}
+	initialiseAndDeclare(
+		_parentScope: Scope,
+		_dynamicImportReturnList: Import[],
+		_kind: string,
+		_init: ExpressionEntity | null
+	) {}
 
 	/**
 	 * Override to change how and with what scopes children are initialised
 	 */
-	initialiseChildren(_parentScope: Scope) {
-		this.eachChild(child => child.initialise(this.scope));
+	initialiseChildren(_parentScope: Scope, dynamicImportReturnList: Import[]) {
+		this.eachChild(child => child.initialise(this.scope, dynamicImportReturnList));
 	}
 
 	/**
 	 * Override to perform special initialisation steps after the scope is initialised
 	 */
-	initialiseNode(_parentScope: Scope) {}
+	initialiseNode(_parentScope: Scope, _dynamicImportReturnList: Import[]) {}
 
 	/**
 	 * Override if this scope should receive a different scope than the parent scope.

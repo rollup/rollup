@@ -6,6 +6,7 @@ import MagicString from 'magic-string';
 import { Node, StatementBase, StatementNode } from './shared/Node';
 import { NodeType } from './NodeType';
 import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
+import Import from './Import';
 
 export function isBlockStatement(node: Node): node is BlockStatement {
 	return node.type === NodeType.BlockStatement;
@@ -40,15 +41,15 @@ export default class BlockStatement extends StatementBase {
 		return addedNewNodes;
 	}
 
-	initialiseAndReplaceScope(scope: Scope) {
+	initialiseAndReplaceScope(scope: Scope, dynamicImportReturnList: Import[]) {
 		this.scope = scope;
-		this.initialiseNode(scope);
-		this.initialiseChildren(scope);
+		this.initialiseNode(scope, dynamicImportReturnList);
+		this.initialiseChildren(scope, dynamicImportReturnList);
 	}
 
-	initialiseChildren(_parentScope: Scope) {
+	initialiseChildren(_parentScope: Scope, dynamicImportReturnList: Import[]) {
 		for (const node of this.body) {
-			node.initialise(this.scope);
+			node.initialise(this.scope, dynamicImportReturnList);
 		}
 	}
 
