@@ -1,7 +1,7 @@
 'use strict';
 
-var main2alias_js = require('./chunk-085d66d3.js');
+var main2alias = require('./chunk-085d66d3.js');
 
 
 
-module.exports = main2alias_js.default;
+module.exports = main2alias.default;

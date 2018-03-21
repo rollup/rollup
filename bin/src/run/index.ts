@@ -8,6 +8,7 @@ import sequence from '../utils/sequence';
 import build from './build';
 import watch from './watch';
 import { InputOptions } from '../../../src/rollup/index';
+import { basename } from '../../../src/utils/path';
 
 export default function runRollup(command: any) {
 	if (command._.length >= 1) {
@@ -19,8 +20,23 @@ export default function runRollup(command: any) {
 		}
 	}
 
-	if (command.output && command.output.dir) {
-		command.input = command._;
+	if (command.dir) {
+		if (!command._.some((input: string) => input.indexOf('=') !== -1)) {
+			command.input = command._;
+		} else {
+			command.input = {};
+			command._.forEach((input: string) => {
+				const equalsIndex = input.indexOf('=');
+				const value = input.substr(equalsIndex + 1);
+				let key = input.substr(0, equalsIndex);
+				if (!key) {
+					key = basename(input);
+					if (key.endsWith('.js')) key = key.substr(0, key.length - 3);
+					else if (key.endsWith('.mjs')) key = key.substr(0, key.length - 4);
+				}
+				command.input[key] = value;
+			});
+		}
 		command._ = [];
 	} else if (command._.length === 1) {
 		command.input = command._[0];
