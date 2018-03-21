@@ -144,6 +144,7 @@ export default class Module {
 
 	execIndex: number;
 	isEntryPoint: boolean;
+	manualChunkName: string;
 	entryPointsHash: Uint8Array;
 	chunk: Chunk;
 
@@ -169,6 +170,7 @@ export default class Module {
 			this.dynamicImportResolutions = [];
 		}
 		this.isEntryPoint = false;
+		this.manualChunkName = undefined;
 		this.execIndex = null;
 		this.entryPointsHash = new Uint8Array(10);
 

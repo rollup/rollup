@@ -92,6 +92,7 @@ export type GlobalsOption = { [name: string]: string } | ((name: string) => stri
 
 export interface InputOptions {
 	input: string | string[] | { [entryAlias: string]: string };
+	manualChunks: string[] | { [chunkAlias: string]: string };
 	external?: ExternalOption;
 	plugins?: Plugin[];
 
@@ -311,7 +312,13 @@ export default function rollup(
 			(inputOptions.experimentalCodeSplitting && typeof inputOptions.input !== 'string') ||
 			inputOptions.experimentalPreserveModules;
 
-		if (!codeSplitting)
+		if (!codeSplitting) {
+			if (inputOptions.manualChunks)
+				error({
+					code: 'INVALID_OPTION',
+					message: '"chunks" option is only supported for code-splitting builds.'
+				});
+
 			return graph.buildSingle(inputOptions.input).then(chunk => {
 				timeEnd('BUILD', 1);
 
@@ -321,6 +328,13 @@ export default function rollup(
 
 				function generate(rawOutputOptions: GenericConfigObject) {
 					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
+
+					if (outputOptions.entryNames || outputOptions.chunkNames)
+						error({
+							code: 'INVALID_OPTION',
+							message:
+								'"entryNames" and "chunkNames" options are only supported for code-splitting builds.'
+						});
 
 					timeStart('GENERATE', 1);
 
@@ -431,6 +445,7 @@ export default function rollup(
 				}
 				return result;
 			});
+		}
 
 		// code splitting case
 		if (inputOptions.experimentalPreserveModules && typeof inputOptions.input === 'string') {
@@ -439,12 +454,16 @@ export default function rollup(
 		if (!(Array.isArray(inputOptions.input) || typeof inputOptions.input === 'object')) {
 			error({
 				code: 'INVALID_OPTION',
-				message: 'When code splitting, "input" must be an array or object of entry points.'
+				message: 'When code-splitting, "input" must be an array or object of entry points.'
 			});
 		}
 
 		return graph
-			.buildChunks(inputOptions.input, inputOptions.experimentalPreserveModules)
+			.buildChunks(
+				inputOptions.input,
+				inputOptions.manualChunks,
+				inputOptions.experimentalPreserveModules
+			)
 			.then(chunks => {
 				timeEnd('BUILD', 1);
 
@@ -454,7 +473,7 @@ export default function rollup(
 					if (typeof outputOptions.file === 'string')
 						error({
 							code: 'INVALID_OPTION',
-							message: 'When code splitting, the "dir" output option must be used, not "file".'
+							message: 'When code-splitting, the "dir" output option must be used, not "file".'
 						});
 
 					if (outputOptions.format === 'umd' || outputOptions.format === 'iife') {
@@ -542,7 +561,7 @@ export default function rollup(
 						if (!outputOptions || !outputOptions.dir) {
 							error({
 								code: 'MISSING_OPTION',
-								message: 'You must specify output.dir when code splitting'
+								message: 'You must specify output.dir when code-splitting.'
 							});
 						}
 

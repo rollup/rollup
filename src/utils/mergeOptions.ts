@@ -204,6 +204,7 @@ function getInputOptions(
 		experimentalPreserveModules: getOption('experimentalPreserveModules'),
 		external: getExternal(config, command),
 		input: getOption('input'),
+		manualChunks: getOption('chunks'),
 		moduleContext: config.moduleContext,
 		onwarn: getOnWarn(config, command, defaultOnWarnHandler),
 		perf: getOption('perf', false),

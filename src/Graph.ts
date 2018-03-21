@@ -306,7 +306,8 @@ export default class Graph {
 	}
 
 	buildChunks(
-		entryModules: { [entryAlias: string]: string } | string[],
+		entryModules: Record<string, string> | string[],
+		manualChunks: Record<string, string[]> | void,
 		preserveModules: boolean
 	): Promise<Chunk[]> {
 		// Phase 1 – discovery. We load the entry module and find which
@@ -320,14 +321,32 @@ export default class Graph {
 			entryModuleIds = entryModules;
 		} else {
 			entryModuleAliases = Object.keys(entryModules);
-			entryModuleIds = entryModuleAliases.map(
-				name => (<{ [entryAlias: string]: string }>entryModules)[name]
-			);
+			entryModuleIds = entryModuleAliases.map(name => (<Record<string, string>>entryModules)[name]);
+		}
+
+		let entryAndManualChunkIds = entryModuleIds.concat([]);
+		if (manualChunks) {
+			Object.keys(manualChunks).forEach(name => {
+				const chunk = manualChunks[name];
+				chunk.forEach(id => {
+					if (entryAndManualChunkIds.indexOf(id) === -1) entryAndManualChunkIds.push(id);
+				});
+			});
 		}
 
 		timeStart('parse modules', 2);
-		return Promise.all(entryModuleIds.map(entryId => this.loadModule(entryId))).then(
-			entryModules => {
+		return Promise.all(entryAndManualChunkIds.map(id => this.loadModule(id))).then(
+			entryAndChunkModules => {
+				timeEnd('parse modules', 2);
+
+				// Phase 2 - linking. We populate the module dependency links and
+				// determine the topological execution order for the bundle
+				timeStart('analyse dependency graph', 2);
+
+				this.link();
+
+				const entryModules = entryAndChunkModules.slice(0, entryModuleIds.length);
+
 				if (entryModuleAliases) {
 					entryModules.forEach((entryModule, index) => {
 						if (entryModule.alias)
@@ -341,17 +360,22 @@ export default class Graph {
 					});
 				}
 
-				timeEnd('parse modules', 2);
-
-				// Phase 2 - linking. We populate the module dependency links and
-				// determine the topological execution order for the bundle
-				timeStart('analyse dependency graph', 2);
-
-				this.link();
+				let manualChunkModules: { [chunkName: string]: Module[] };
+				if (manualChunks) {
+					manualChunkModules = {};
+					for (let chunkName of Object.keys(manualChunks)) {
+						const chunk = manualChunks[chunkName];
+						manualChunkModules[chunkName] = chunk.map(entryId => {
+							const entryIndex = entryAndManualChunkIds.indexOf(entryId);
+							return entryAndChunkModules[entryIndex];
+						});
+					}
+				}
 
 				const { orderedModules, dynamicImports, dynamicImportAliases } = this.analyseExecution(
 					entryModules,
-					!preserveModules
+					!preserveModules,
+					manualChunkModules
 				);
 
 				for (let i = 0; i < dynamicImports.length; i++) {
@@ -400,11 +424,12 @@ export default class Graph {
 
 					// create each chunk
 					for (const entryHashSum in chunkModules) {
-						const chunk = chunkModules[entryHashSum];
-						const chunkModulesOrdered = chunk.sort(
+						const chunkModuleList = chunkModules[entryHashSum];
+						const chunkModulesOrdered = chunkModuleList.sort(
 							(moduleA, moduleB) => (moduleA.execIndex > moduleB.execIndex ? 1 : -1)
 						);
-						chunkList.push(new Chunk(this, chunkModulesOrdered));
+						const chunk = new Chunk(this, chunkModulesOrdered);
+						chunkList.push(chunk);
 					}
 				} else {
 					for (const module of orderedModules) {
@@ -450,7 +475,11 @@ export default class Graph {
 		);
 	}
 
-	private analyseExecution(entryModules: Module[], graphColouring: boolean = false) {
+	private analyseExecution(
+		entryModules: Module[],
+		graphColouring: boolean,
+		chunkModules?: Record<string, Module[]>
+	) {
 		let curEntry: Module, curEntryHash: Uint8Array;
 		const allSeen: { [id: string]: boolean } = {};
 
@@ -468,6 +497,9 @@ export default class Graph {
 			// This is really all there is to automated chunking, the rest is chunk wiring.
 			if (graphColouring) {
 				Uint8ArrayXor(module.entryPointsHash, curEntryHash);
+			} else if (curEntry.manualChunkName) {
+				module.manualChunkName = curEntry.manualChunkName;
+				module.entryPointsHash = curEntry.entryPointsHash;
 			}
 
 			for (let depModule of module.dependencies) {
@@ -481,7 +513,7 @@ export default class Graph {
 				}
 
 				parents[depModule.id] = module.id;
-				if (!depModule.isEntryPoint) visit(<Module>depModule);
+				if (!depModule.isEntryPoint && !module.manualChunkName) visit(<Module>depModule);
 			}
 
 			if (this.dynamicImport) {
@@ -501,6 +533,18 @@ export default class Graph {
 			module.execIndex = orderedModules.length;
 			orderedModules.push(module);
 		};
+
+		if (chunkModules) {
+			for (let chunkName of Object.keys(chunkModules)) {
+				for (curEntry of chunkModules[chunkName]) {
+					curEntry.isEntryPoint = true;
+					curEntry.manualChunkName = chunkName;
+					curEntryHash = randomUint8Array(10);
+					parents = { [curEntry.id]: null };
+					visit(curEntry);
+				}
+			}
+		}
 
 		for (curEntry of entryModules) {
 			curEntry.isEntryPoint = true;
