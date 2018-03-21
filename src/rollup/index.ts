@@ -139,6 +139,7 @@ export interface OutputOptions {
 	name?: string;
 	globals?: GlobalsOption;
 	chunkNames?: string;
+	entryNames?: string;
 
 	paths?: OptionsPaths;
 	banner?: string;
@@ -488,9 +489,9 @@ export default function rollup(
 											} else {
 												let pattern;
 												if (chunk.isEntryModuleFacade) {
-													pattern = chunk.entryModule.alias || basename(chunk.entryModule.id);
+													pattern = outputOptions.entryNames || '[alias].js';
 												} else {
-													pattern = outputOptions.chunkNames || 'chunk-[hash]';
+													pattern = outputOptions.chunkNames || '[alias]-[hash].js';
 												}
 												chunk.generateName(pattern, addons, existingNames);
 											}

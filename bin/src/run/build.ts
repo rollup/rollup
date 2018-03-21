@@ -5,9 +5,14 @@ import { handleError, stderr } from '../logging';
 import relativeId from '../../../src/utils/relativeId';
 import { mapSequence } from '../../../src/utils/promise';
 import SOURCEMAPPING_URL from '../sourceMappingUrl';
-import { InputOptions, OutputChunk, OutputOptions } from '../../../src/rollup/index';
+import {
+	InputOptions,
+	OutputChunk,
+	OutputOptions,
+	Bundle,
+	BundleSet
+} from '../../../src/rollup/index';
 import { BatchWarnings } from './batchWarnings';
-import { SourceMap } from 'magic-string';
 import { printTimings } from './timings';
 
 export default function build(
@@ -19,24 +24,28 @@ export default function build(
 	const useStdout =
 		outputOptions.length === 1 &&
 		!outputOptions[0].file &&
-		inputOptions.input instanceof Array === false;
+		inputOptions.input instanceof Array === false &&
+		typeof inputOptions.input !== 'object';
 
 	const start = Date.now();
 	const files = useStdout ? ['stdout'] : outputOptions.map(t => relativeId(t.file || t.dir));
-	if (!silent)
-		stderr(
-			chalk.cyan(
-				`\n${chalk.bold(
-					typeof inputOptions.input === 'string'
-						? inputOptions.input
-						: inputOptions.input && inputOptions.input.join(', ')
-				)} → ${chalk.bold(files.join(', '))}...`
-			)
-		);
+	if (!silent) {
+		let inputFiles: string;
+		if (typeof inputOptions.input === 'string') {
+			inputFiles = inputOptions.input;
+		} else if (inputOptions.input instanceof Array) {
+			inputFiles = inputOptions.input.join(', ');
+		} else if (typeof inputOptions.input === 'object' && inputOptions.input !== null) {
+			inputFiles = Object.keys(inputOptions.input)
+				.map(name => (<Record<string, string>>inputOptions.input)[name])
+				.join(', ');
+		}
+		stderr(chalk.cyan(`\n${chalk.bold(inputFiles)} → ${chalk.bold(files.join(', '))}...`));
+	}
 
 	return rollup
 		.rollup(inputOptions)
-		.then((bundle: OutputChunk) => {
+		.then((bundle: Bundle | BundleSet) => {
 			if (useStdout) {
 				const output = outputOptions[0];
 				if (output.sourcemap && output.sourcemap !== 'inline') {
@@ -46,7 +55,7 @@ export default function build(
 					});
 				}
 
-				return bundle.generate(output).then(({ code, map }: { code: string; map: SourceMap }) => {
+				return (<Bundle>bundle).generate(output).then(({ code, map }) => {
 					if (!code) return;
 					if (output.sourcemap === 'inline') {
 						code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
@@ -56,9 +65,12 @@ export default function build(
 				});
 			}
 
-			return mapSequence(outputOptions, output => bundle.write(output)).then(() => bundle);
+			return mapSequence<OutputOptions, Promise<OutputChunk | Record<string, OutputChunk>>>(
+				outputOptions,
+				output => bundle.write(output)
+			).then(() => bundle);
 		})
-		.then((bundle?: OutputChunk) => {
+		.then((bundle?: Bundle | BundleSet) => {
 			warnings.flush();
 			if (!silent)
 				stderr(

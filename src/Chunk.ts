@@ -814,24 +814,43 @@ export default class Chunk {
 		return (this.id = normalize(relative(preserveModulesRelativeDir, this.entryModule.id)));
 	}
 
-	generateName(pattern: string, addons: Addons, existingNames: { [name: string]: boolean }) {
-		let ext = extname(pattern);
-		pattern = pattern.substr(0, pattern.length - ext.length);
-		if (ext !== '.js' && ext !== '.mjs') {
-			pattern += ext;
-			ext = '.js';
-		}
-
+	generateName(pattern: string, addons: Addons, existingNames?: { [name: string]: boolean }) {
 		// replace any chunk replacements
-		pattern = pattern.replace(/\[hash\]/g, () => this.computeFullHash(addons));
+		let outName = pattern.replace(/\[(hash|alias)\]/g, type => {
+			switch (type) {
+				case '[hash]':
+					return this.computeFullHash(addons);
+				case '[alias]':
+					if (!this.isEntryModuleFacade) {
+						return 'chunk';
+					} else if (this.entryModule.alias) {
+						return this.entryModule.alias;
+					} else {
+						let alias = basename(this.entryModule.id);
+						if (alias.endsWith('.js')) alias = alias.substr(0, alias.length - 3);
+						else if (alias.endsWith('.mjs')) alias = alias.substr(0, alias.length - 4);
+						return alias;
+					}
+			}
+		});
 
-		let uniqueName = pattern;
-		let uniqueIndex = 1;
 		if (existingNames) {
-			while (existingNames[uniqueName]) uniqueName = pattern + ++uniqueIndex;
-			existingNames[uniqueName] = true;
+			if (!existingNames[outName]) {
+				existingNames[outName] = true;
+			} else {
+				let ext = extname(outName);
+				if (ext === '.js' || ext === '.mjs')
+					outName = outName.substr(0, outName.length - ext.length);
+				else ext = '';
+				let uniqueName,
+					uniqueIndex = 1;
+				while (existingNames[(uniqueName = outName + ++uniqueIndex + ext)]);
+				existingNames[uniqueName] = true;
+				outName = uniqueName;
+			}
 		}
-		return (this.id = uniqueName + ext);
+
+		this.id = outName;
 	}
 
 	render(options: OutputOptions, addons: Addons) {
@@ -892,21 +911,27 @@ export default class Chunk {
 
 		return transformBundle(prevCode, this.graph.plugins, bundleSourcemapChain, options).then(
 			(code: string) => {
-			if (options.sourcemap) {
-				timeStart('sourcemap', 3);
+				if (options.sourcemap) {
+					timeStart('sourcemap', 3);
 
-				let file = options.file ? options.sourcemapFile || options.file : this.id;
-				if (file) file = resolve(typeof process !== 'undefined' ? process.cwd() : '', file);
+					let file = options.file ? options.sourcemapFile || options.file : this.id;
+					if (file) file = resolve(typeof process !== 'undefined' ? process.cwd() : '', file);
 
-				if (
-					this.graph.hasLoaders ||
-					this.graph.plugins.find(plugin => Boolean(plugin.transform || plugin.transformBundle))
-				) {
-					let decodedMap = magicString.generateDecodedMap({});
-					map = collapseSourcemaps(this, file, decodedMap, this.usedModules, bundleSourcemapChain);
-				} else {
-					map = magicString.generateMap({ file, includeContent: true });
-				}
+					if (
+						this.graph.hasLoaders ||
+						this.graph.plugins.find(plugin => Boolean(plugin.transform || plugin.transformBundle))
+					) {
+						let decodedMap = magicString.generateDecodedMap({});
+						map = collapseSourcemaps(
+							this,
+							file,
+							decodedMap,
+							this.usedModules,
+							bundleSourcemapChain
+						);
+					} else {
+						map = magicString.generateMap({ file, includeContent: true });
+					}
 
 					map.sources = map.sources.map(normalize);
 

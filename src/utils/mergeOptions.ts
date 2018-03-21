@@ -239,6 +239,7 @@ function getOutputOptions(
 		banner: getOption('banner'),
 		dir: getOption('dir'),
 		chunkNames: getOption('chunkNames'),
+		entryNames: getOption('entryNames'),
 		exports: getOption('exports'),
 		extend: getOption('extend'),
 		file: getOption('file'),
