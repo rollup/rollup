@@ -42,8 +42,7 @@ export default function build(
 				if (output.sourcemap && output.sourcemap !== 'inline') {
 					handleError({
 						code: 'MISSING_OUTPUT_OPTION',
-						message:
-							'You must specify an --output (-o) option when creating a file with a sourcemap'
+						message: 'You must specify a --file (-o) option when creating a file with a sourcemap'
 					});
 				}
 
