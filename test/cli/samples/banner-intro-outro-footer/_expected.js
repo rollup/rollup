@@ -1,12 +1,12 @@
 // banner
 (function () {
-	'use strict';
+'use strict';
 
-	// intro
+// intro
 
-	console.log( 42 );
+console.log( 42 );
 
-	// outro
+// outro
 
 }());
 // footer

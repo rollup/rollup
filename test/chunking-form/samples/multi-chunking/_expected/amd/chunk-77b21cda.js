@@ -1,7 +1,7 @@
 define(['exports'], function (exports) { 'use strict';
 
-	var num = 1;
+var num = 1;
 
-	exports.num = num;
+exports.num = num;
 
 });

@@ -1,12 +1,12 @@
 (function () {
-	'use strict';
+'use strict';
 
-	function foo() { return true; }
+function foo() { return true; }
 
-	var baz = function foo$$1() {
-		return foo();
-	};
+var baz = function foo$$1() {
+	return foo();
+};
 
-	console.log(baz());
+console.log(baz());
 
 }());

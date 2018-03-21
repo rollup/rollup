@@ -8,9 +8,9 @@ System.register(['./chunk-909b409c.js'], function (exports, module) {
     execute: function () {
 
       exports('mult', mult);
-      function mult (num) {
-        return num + multiplier;
-      }
+function mult (num) {
+  return num + multiplier;
+}
 
     }
   };

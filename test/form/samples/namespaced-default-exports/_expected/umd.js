@@ -4,8 +4,8 @@
 	(global.foo = global.foo || {}, global.foo.bar = global.foo.bar || {}, global.foo.bar.baz = factory());
 }(this, (function () { 'use strict';
 
-	var main = 42;
+var main = 42;
 
-	return main;
+return main;
 
 })));

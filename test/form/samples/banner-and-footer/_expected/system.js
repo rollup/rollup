@@ -7,7 +7,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			console.log( 'hello world' );
+console.log( 'hello world' );
 
 		}
 	};

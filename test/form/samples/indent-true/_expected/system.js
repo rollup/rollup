@@ -4,9 +4,9 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			exports('default', foo);
-			function foo () {
-				console.log( 'indented with tabs' );
-			}
+function foo () {
+	console.log( 'indented with tabs' );
+}
 
 		}
 	};

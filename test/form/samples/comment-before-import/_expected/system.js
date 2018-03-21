@@ -3,16 +3,16 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			// bar.js
-			var bar = 21;
+// bar.js
+var bar = 21;
 
-			// foo.js
+// foo.js
 
-			var foo = bar * 2;
+var foo = bar * 2;
 
-			// main.js
+// main.js
 
-			console.log( foo );
+console.log( foo );
 
 		}
 	};

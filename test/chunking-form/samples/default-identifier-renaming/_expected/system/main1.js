@@ -7,7 +7,7 @@ System.register(['./chunk-e3242ee5.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			var main1 = exports('default', d.map(d => d + 1));
+var main1 = exports('default', d.map(d => d + 1));
 
 		}
 	};

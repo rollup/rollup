@@ -4,12 +4,12 @@
 	(global.myBundle = factory());
 }(this, (function () { 'use strict';
 
-	var augment;
-	augment = x => x.augmented = true;
+var augment;
+augment = x => x.augmented = true;
 
-	function x () {}
-	augment( x );
+function x () {}
+augment( x );
 
-	return x;
+return x;
 
 })));

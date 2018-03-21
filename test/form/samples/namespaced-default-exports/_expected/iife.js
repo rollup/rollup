@@ -1,10 +1,10 @@
 this.foo = this.foo || {};
 this.foo.bar = this.foo.bar || {};
 this.foo.bar.baz = (function () {
-	'use strict';
+'use strict';
 
-	var main = 42;
+var main = 42;
 
-	return main;
+return main;
 
 }());

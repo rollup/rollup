@@ -1,9 +1,9 @@
 define(function () { 'use strict';
 
-	function yar() {
-		console.log('yar?');
-	}
+function yar() {
+	console.log('yar?');
+}
 
-	yar();
+yar();
 
 });

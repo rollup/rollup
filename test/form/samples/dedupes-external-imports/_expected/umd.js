@@ -4,35 +4,35 @@
 	(factory((global.myBundle = {}),global.external));
 }(this, (function (exports,external) { 'use strict';
 
-	class Foo extends external.Component {
-		constructor () {
-			super();
-			this.isFoo = true;
-		}
+class Foo extends external.Component {
+	constructor () {
+		super();
+		this.isFoo = true;
 	}
+}
 
-	class Bar extends external.Component {
-		constructor () {
-			super();
-			this.isBar = true;
-		}
+class Bar extends external.Component {
+	constructor () {
+		super();
+		this.isBar = true;
 	}
+}
 
-	class Baz extends external.Component {
-		constructor () {
-			super();
-			this.isBaz = true;
-		}
+class Baz extends external.Component {
+	constructor () {
+		super();
+		this.isBaz = true;
 	}
+}
 
-	const foo = new Foo();
-	const bar = new Bar();
-	const baz = new Baz();
+const foo = new Foo();
+const bar = new Bar();
+const baz = new Baz();
 
-	exports.foo = foo;
-	exports.bar = bar;
-	exports.baz = baz;
+exports.foo = foo;
+exports.bar = bar;
+exports.baz = baz;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

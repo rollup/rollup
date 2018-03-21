@@ -7,11 +7,11 @@ System.register(['acorn'], function (exports, module) {
 		}],
 		execute: function () {
 
-			function parse$1(source) {
-				return parse(source, { ecmaVersion: 6 });
-			}
+function parse$1(source) {
+	return parse(source, { ecmaVersion: 6 });
+}
 
-			console.log(parse$1('foo'));
+console.log(parse$1('foo'));
 
 		}
 	};

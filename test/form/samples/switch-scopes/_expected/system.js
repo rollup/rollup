@@ -3,16 +3,16 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const x = globalFunction;
+const x = globalFunction;
 
-			switch ( anotherGlobal ) {
-				case 2:
-					x();
-			}
+switch ( anotherGlobal ) {
+	case 2:
+		x();
+}
 
-			switch ( globalFunction() ) {
-				case 4:
-			}
+switch ( globalFunction() ) {
+	case 4:
+}
 
 		}
 	};

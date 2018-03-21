@@ -1,9 +1,9 @@
 define(['exports'], function (exports) { 'use strict';
 
-  function fn () {
-    console.log('dep fn');
-  }
+function fn () {
+  console.log('dep fn');
+}
 
-  exports.fn = fn;
+exports.fn = fn;
 
 });

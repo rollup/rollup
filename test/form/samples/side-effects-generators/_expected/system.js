@@ -3,30 +3,30 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			function* sideEffectYield() {
-				yield globalFunction();
-				yield 'no side-effect but must be included to ensure proper control flow';
-			}
+function* sideEffectYield() {
+	yield globalFunction();
+	yield 'no side-effect but must be included to ensure proper control flow';
+}
 
-			const iterator2 = sideEffectYield();
+const iterator2 = sideEffectYield();
 
-			function* effectCallYield() {
-				const yieldedValue = yield;
-				yieldedValue();
-			}
+function* effectCallYield() {
+	const yieldedValue = yield;
+	yieldedValue();
+}
 
-			const iterator3 = effectCallYield();
-			iterator3.next(globalFunction);
+const iterator3 = effectCallYield();
+iterator3.next(globalFunction);
 
-			function* sideEffectYield2() {
-				yield globalFunction();
-			}
+function* sideEffectYield2() {
+	yield globalFunction();
+}
 
-			function* sideEffectNestedYield() {
-				yield* sideEffectYield2();
-			}
+function* sideEffectNestedYield() {
+	yield* sideEffectYield2();
+}
 
-			const iterator4 = sideEffectNestedYield();
+const iterator4 = sideEffectNestedYield();
 
 		}
 	};

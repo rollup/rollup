@@ -26,7 +26,16 @@ const wrapperOutro = '\n\n})));';
 
 export default function umd(
 	magicString: MagicStringBundle,
-	{ graph, exportMode, indentString, intro, outro, dependencies, exports }: FinaliserOptions,
+	{
+		graph,
+		exportMode,
+		indentString,
+		indentWrapper,
+		intro,
+		outro,
+		dependencies,
+		exports
+	}: FinaliserOptions,
 	options: OutputOptions
 ) {
 	if (exportMode !== 'none' && !options.name) {
@@ -119,9 +128,9 @@ export default function umd(
 		magicString.append(`\n\n${esModuleExport}`);
 	if (outro) magicString.append(outro);
 
-	return magicString
-		.trim()
-		.indent(indentString)
-		.append(wrapperOutro)
-		.prepend(wrapperIntro);
+	magicString.trim();
+
+	if (indentWrapper) magicString.indent(indentString);
+
+	return magicString.append(wrapperOutro).prepend(wrapperIntro);
 }

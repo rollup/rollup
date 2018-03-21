@@ -3,11 +3,11 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			/** A comment for a number */
-			var number = 5;
+/** A comment for a number */
+var number = 5;
 
-			/** A comment for obj */
-			var obj = exports('obj', { number });
+/** A comment for obj */
+var obj = exports('obj', { number });
 
 		}
 	};

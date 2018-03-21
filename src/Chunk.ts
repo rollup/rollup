@@ -874,6 +874,7 @@ export default class Chunk {
 			{
 				exportMode,
 				indentString: this.indentString,
+				indentWrapper: options.indentWrapper,
 				intro: addons.intro,
 				outro: addons.outro,
 				dynamicImport: this.hasDynamicImport,

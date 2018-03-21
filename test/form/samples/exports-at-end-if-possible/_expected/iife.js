@@ -1,13 +1,13 @@
 var myBundle = (function (exports) {
-	'use strict';
+'use strict';
 
-	var FOO = 'foo';
+var FOO = 'foo';
 
-	console.log( FOO );
-	console.log( FOO );
-	console.log( FOO );
+console.log( FOO );
+console.log( FOO );
+console.log( FOO );
 
-	exports.FOO = FOO;
+exports.FOO = FOO;
 
 	return exports;
 

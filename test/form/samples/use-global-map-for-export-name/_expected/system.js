@@ -7,8 +7,8 @@ System.register(['leaflet'], function (exports, module) {
 		}],
 		execute: function () {
 
-			L.terminator = function(options) {
-			};
+L.terminator = function(options) {
+};
 
 		}
 	};

@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			lolwut.prop = '???';
+lolwut.prop = '???';
 
 		}
 	};

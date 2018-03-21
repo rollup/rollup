@@ -8,7 +8,7 @@ System.register(['starexternal2', 'external2'], function (exports, module) {
 		}],
 		execute: function () {
 
-			var dep = exports('dep', 'dep');
+var dep = exports('dep', 'dep');
 
 		}
 	};

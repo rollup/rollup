@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const isNaN$1 = exports('isNaN', isNaN);
+const isNaN$1 = exports('isNaN', isNaN);
 
 		}
 	};

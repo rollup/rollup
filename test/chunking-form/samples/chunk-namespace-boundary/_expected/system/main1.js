@@ -8,10 +8,10 @@ System.register(['./chunk-6868de09.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			commonjsGlobal.fn = d => d + 1;
-			var cjs = commonjsGlobal.fn;
+commonjsGlobal.fn = d => d + 1;
+var cjs = commonjsGlobal.fn;
 
-			var main1 = exports('default', d.map(cjs));
+var main1 = exports('default', d.map(cjs));
 
 		}
 	};

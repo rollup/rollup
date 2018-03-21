@@ -1,14 +1,14 @@
 (function () {
-	'use strict';
+'use strict';
 
-	function yar() {
-		return {
-			har() {
-				console.log('har?');
-			}
-		};
-	}
+function yar() {
+	return {
+		har() {
+			console.log('har?');
+		}
+	};
+}
 
-	yar.har();
+yar.har();
 
 }());

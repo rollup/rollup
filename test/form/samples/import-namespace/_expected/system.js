@@ -9,8 +9,8 @@ System.register(['foo', 'bar'], function (exports, module) {
 		}],
 		execute: function () {
 
-			x();
-			console.log(bar);
+x();
+console.log(bar);
 
 		}
 	};

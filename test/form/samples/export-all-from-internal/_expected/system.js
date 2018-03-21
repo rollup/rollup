@@ -3,8 +3,8 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const a = exports('a', 1);
-			const b = exports('b', 2);
+const a = exports('a', 1);
+const b = exports('b', 2);
 
 		}
 	};

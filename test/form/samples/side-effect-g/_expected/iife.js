@@ -1,8 +1,8 @@
 var myBundle = (function () {
-	'use strict';
+'use strict';
 
-	var main = 42;
+var main = 42;
 
-	return main;
+return main;
 
 }());

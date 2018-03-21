@@ -1,10 +1,10 @@
 (function () {
-	'use strict';
+'use strict';
 
-	function yar() {
-		console.log('yar?');
-	}
+function yar() {
+	console.log('yar?');
+}
 
-	yar();
+yar();
 
 }());

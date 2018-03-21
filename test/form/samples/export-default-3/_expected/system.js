@@ -3,9 +3,9 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var bar = 1;
+var bar = 1;
 
-			exports('default', bar);
+exports('default', bar);
 
 		}
 	};

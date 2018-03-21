@@ -12,6 +12,7 @@ export default function amd(
 		graph,
 		exportMode,
 		indentString,
+		indentWrapper,
 		intro,
 		outro,
 		dynamicImport,
@@ -57,8 +58,7 @@ export default function amd(
 		magicString.append(`\n\n${esModuleExport}`);
 	if (outro) magicString.append(outro);
 
-	return magicString
-		.indent(indentString)
-		.append('\n\n});')
-		.prepend(wrapperStart);
+	if (indentWrapper) magicString.indent(indentString);
+
+	return magicString.append('\n\n});').prepend(wrapperStart);
 }

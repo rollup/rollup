@@ -1,7 +1,7 @@
 define(function () { 'use strict';
 
-	{
-		console.log( 'true' );
-	}
+{
+	console.log( 'true' );
+}
 
 });

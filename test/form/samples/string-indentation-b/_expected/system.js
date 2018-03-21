@@ -3,11 +3,11 @@ System.register([], function (exports, module) {
     return {
         execute: function () {
 
-            var a = 'a',
-                b = 'b';
+var a = 'a',
+    b = 'b';
 
-            assert.equal( a, 'a' );
-            assert.equal( b, 'b' );
+assert.equal( a, 'a' );
+assert.equal( b, 'b' );
 
         }
     };

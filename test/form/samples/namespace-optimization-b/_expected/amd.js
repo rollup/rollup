@@ -1,19 +1,19 @@
 define(function () { 'use strict';
 
-	function foo () {
-		console.log( 'foo' );
+function foo () {
+	console.log( 'foo' );
+}
+
+function a () {
+	foo();
+	foo();
+
+	var a;
+	if ( a.b ) {
+		// empty
 	}
+}
 
-	function a () {
-		foo();
-		foo();
-
-		var a;
-		if ( a.b ) {
-			// empty
-		}
-	}
-
-	a();
+a();
 
 });

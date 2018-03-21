@@ -1,7 +1,7 @@
 (function (foo,bar) {
-	'use strict';
+'use strict';
 
-	foo.x();
-	console.log(bar);
+foo.x();
+console.log(bar);
 
 }(foo,bar));

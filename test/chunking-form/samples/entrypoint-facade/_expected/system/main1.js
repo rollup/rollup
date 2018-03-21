@@ -8,7 +8,7 @@ System.register(['./chunk-085d66d3.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			log(dep);
+log(dep);
 
 		}
 	};

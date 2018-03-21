@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const { [globalValue()]: isKept } = {};
+const { [globalValue()]: isKept } = {};
 
 		}
 	};

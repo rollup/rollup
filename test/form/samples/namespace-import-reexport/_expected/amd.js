@@ -2,8 +2,8 @@ define(['exports', 'external-package'], function (exports, externalPackage) { 'u
 
 
 
-	exports.ext = externalPackage;
+exports.ext = externalPackage;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 });

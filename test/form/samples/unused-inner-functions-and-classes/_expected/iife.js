@@ -1,24 +1,24 @@
 (function () {
-    'use strict';
+'use strict';
 
-    function bar () { console.log("outer bar"); }
+function bar () { console.log("outer bar"); }
 
-    function Baz() {
-        function bar () { console.log("inner bar"); }
-        function bog () { console.log("inner bog"); }
+function Baz() {
+    function bar () { console.log("inner bar"); }
+    function bog () { console.log("inner bog"); }
 
-        return bar(), bog;
-    }
+    return bar(), bog;
+}
 
-    bar();
-    var f = Baz();
-    f();
+bar();
+var f = Baz();
+f();
 
-    function getClass () {
-        class MyClass {}
-        return MyClass;
-    }
+function getClass () {
+    class MyClass {}
+    return MyClass;
+}
 
-    console.log( getClass().name );
+console.log( getClass().name );
 
 }());

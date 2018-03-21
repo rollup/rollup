@@ -4,8 +4,8 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	undefined.prop = 'nope';
+undefined.prop = 'nope';
 
-	lolwut.prop = '???';
+lolwut.prop = '???';
 
 })));

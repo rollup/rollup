@@ -7,18 +7,18 @@ System.register(['other'], function (exports, module) {
 		}],
 		execute: function () {
 
-			const a = 1;
-			const b = 2;
+const a = 1;
+const b = 2;
 
-			const namespace = /*#__PURE__*/Object.freeze({
-				a: a,
-				b: b
-			});
+const namespace = /*#__PURE__*/Object.freeze({
+	a: a,
+	b: b
+});
 
-			console.log( Object.keys( namespace ) );
-			console.log( name );
+console.log( Object.keys( namespace ) );
+console.log( name );
 
-			const main = exports('default', 42);
+const main = exports('default', 42);
 
 		}
 	};

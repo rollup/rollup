@@ -1,18 +1,18 @@
 define(['other'], function (other) { 'use strict';
 
-	const a = 1;
-	const b = 2;
+const a = 1;
+const b = 2;
 
-	const namespace = /*#__PURE__*/Object.freeze({
-		a: a,
-		b: b
-	});
+const namespace = /*#__PURE__*/Object.freeze({
+	a: a,
+	b: b
+});
 
-	console.log( Object.keys( namespace ) );
-	console.log( other.name );
+console.log( Object.keys( namespace ) );
+console.log( other.name );
 
-	const main = 42;
+const main = 42;
 
-	return main;
+return main;
 
 });

@@ -18,7 +18,7 @@ function getStarExcludes({ dependencies, exports }: ModuleDeclarations) {
 
 export default function system(
 	magicString: MagicStringBundle,
-	{ graph, indentString: t, intro, outro, dependencies, exports }: FinaliserOptions
+	{ graph, indentString: t, indentWrapper, intro, outro, dependencies, exports }: FinaliserOptions
 ) {
 	const dependencyIds = dependencies.map(m => `'${m.id}'`);
 
@@ -126,8 +126,7 @@ ${functionExports.length ? `${t}${t}${t}` + functionExports.join(`\n${t}${t}${t}
 
 	if (outro) magicString.append(outro);
 
-	return magicString
-		.indent(`${t}${t}${t}`)
-		.append(`\n\n${t}${t}}\n${t}};\n});`)
-		.prepend(wrapperStart);
+	if (indentWrapper) magicString.indent(`${t}${t}${t}`);
+
+	return magicString.append(`\n\n${t}${t}}\n${t}};\n});`).prepend(wrapperStart);
 }

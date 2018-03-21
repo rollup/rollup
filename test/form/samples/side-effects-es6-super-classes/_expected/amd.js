@@ -1,40 +1,40 @@
 define(function () { 'use strict';
 
-	class GlobalSuper extends GlobalClass {}
-	const globalSuper = new GlobalSuper();
+class GlobalSuper extends GlobalClass {}
+const globalSuper = new GlobalSuper();
 
-	class SideEffectSuper extends (() => {
+class SideEffectSuper extends (() => {
+	console.log( 'effect' );
+	return class {};
+})() {
+}
+
+class SuperConstructorEffect {
+	constructor () {
 		console.log( 'effect' );
-		return class {};
-	})() {
 	}
+}
+class SideEffectsSuperConstructor1 extends SuperConstructorEffect {}
+const sideEffectsSuperConstructor1 = new SideEffectsSuperConstructor1();
 
-	class SuperConstructorEffect {
-		constructor () {
-			console.log( 'effect' );
-		}
+class SideEffectsSuperConstructor2 extends SuperConstructorEffect {
+	constructor () {
+		super();
 	}
-	class SideEffectsSuperConstructor1 extends SuperConstructorEffect {}
-	const sideEffectsSuperConstructor1 = new SideEffectsSuperConstructor1();
+}
+const sideEffectsSuperConstructor2 = new SideEffectsSuperConstructor2();
 
-	class SideEffectsSuperConstructor2 extends SuperConstructorEffect {
-		constructor () {
-			super();
-		}
+class SuperMethodEffect {
+	effect () {
+		console.log( 'effect' );
 	}
-	const sideEffectsSuperConstructor2 = new SideEffectsSuperConstructor2();
-
-	class SuperMethodEffect {
-		effect () {
-			console.log( 'effect' );
-		}
+}
+class SideEffectsSuperMethod extends SuperMethodEffect {
+	constructor () {
+		super();
+		super.effect();
 	}
-	class SideEffectsSuperMethod extends SuperMethodEffect {
-		constructor () {
-			super();
-			super.effect();
-		}
-	}
-	const sideEffectsSuperMethod = new SideEffectsSuperMethod();
+}
+const sideEffectsSuperMethod = new SideEffectsSuperMethod();
 
 });

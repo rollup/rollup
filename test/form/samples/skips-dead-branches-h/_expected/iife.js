@@ -1,9 +1,9 @@
 (function () {
-	'use strict';
+'use strict';
 
-	function baz() {
-		console.log("baz");
-	}
-	baz();
+function baz() {
+	console.log("baz");
+}
+baz();
 
 }());

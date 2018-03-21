@@ -1,9 +1,9 @@
 var myBundle = (function (exports,highcharts) {
-	'use strict';
+'use strict';
 
 
 
-	exports.Highcharts = highcharts;
+exports.Highcharts = highcharts;
 
 	return exports;
 

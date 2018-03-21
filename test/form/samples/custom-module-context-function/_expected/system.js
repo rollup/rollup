@@ -3,9 +3,9 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			undefined.prop = 'nope';
+undefined.prop = 'nope';
 
-			lolwut.prop = '???';
+lolwut.prop = '???';
 
 		}
 	};

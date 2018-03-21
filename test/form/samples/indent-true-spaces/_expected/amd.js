@@ -1,9 +1,9 @@
 define(function () { 'use strict';
 
-  function foo () {
-    console.log( 'indented with spaces' );
-  }
+function foo () {
+  console.log( 'indented with spaces' );
+}
 
-  return foo;
+return foo;
 
 });

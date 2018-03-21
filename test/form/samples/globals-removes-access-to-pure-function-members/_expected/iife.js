@@ -1,7 +1,7 @@
 (function () {
-	'use strict';
+'use strict';
 
-	Unknown.staticMember;
-	Unknown.prototype.method;
+Unknown.staticMember;
+Unknown.prototype.method;
 
 }());

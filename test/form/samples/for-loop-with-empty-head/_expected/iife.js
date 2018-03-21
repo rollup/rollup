@@ -1,8 +1,8 @@
 (function () {
-	'use strict';
+'use strict';
 
-	for ( ; ; ) {
-		console.log( 42 );
-	}
+for ( ; ; ) {
+	console.log( 42 );
+}
 
 }());

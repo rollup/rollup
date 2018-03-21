@@ -3,13 +3,13 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			class Foo {
-				constructor () {
-					console.log( 'Foo' );
-				}
-			}
+class Foo {
+	constructor () {
+		console.log( 'Foo' );
+	}
+}
 
-			new Foo;
+new Foo;
 
 		}
 	};

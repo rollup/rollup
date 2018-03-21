@@ -1,10 +1,10 @@
 var shakeless = (function () {
-	'use strict';
+'use strict';
 
-	const version = '1.2.0';
+const version = '1.2.0';
 
-	var main = ( x, y ) => x + y;
+var main = ( x, y ) => x + y;
 
-	return main;
+return main;
 
 }());

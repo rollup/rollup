@@ -1,65 +1,65 @@
 define(function () { 'use strict';
 
-	/* header 1 */
+/* header 1 */
 
-	/* footer 1 */
+/* footer 1 */
 
-	/* header 2 */
+/* header 2 */
 
-	/* footer 2 */
+/* footer 2 */
 
-	/* header 3 */
+/* header 3 */
 
-	/* leading retained */
-	/*#__KEEP__*/ console.log( 'side-effect' ) || 43; // trailing retained
+/* leading retained */
+/*#__KEEP__*/ console.log( 'side-effect' ) || 43; // trailing retained
 
-	/* footer 3 */
+/* footer 3 */
 
-	/* header 4 */
+/* header 4 */
 
-	/* leading retained */
-	var importedValue = 42; // trailing retained
+/* leading retained */
+var importedValue = 42; // trailing retained
 
-	/* footer 4 */
+/* footer 4 */
 
-	/* header 5 */
+/* header 5 */
 
-	/* leading retained */
-	function importedUsedFunction () {
-		console.log( 'unnamed' );
-	} // trailing retained
+/* leading retained */
+function importedUsedFunction () {
+	console.log( 'unnamed' );
+} // trailing retained
 
-	/* footer 5 */
+/* footer 5 */
 
-	/* header 6 */
+/* header 6 */
 
-	/* leading retained */
-	function usedNamedFunction () {
-		console.log( 'named' );
-	} // trailing retained
+/* leading retained */
+function usedNamedFunction () {
+	console.log( 'named' );
+} // trailing retained
 
-	/* footer 6 */
+/* footer 6 */
 
-	/* header 7 */
+/* header 7 */
 
-	/* leading retained */
-(	{
-		effect: console.log( 'side-effect' ) || 43
-	}); // trailing retained
+/* leading retained */
+({
+	effect: console.log( 'side-effect' ) || 43
+}); // trailing retained
 
-	/* footer 7 */
+/* footer 7 */
 
-	/* header 8 */
+/* header 8 */
 
-	/* leading retained */
-(	{
-		effect: console.log( 'side-effect' ) || 43
-	}); // trailing retained
+/* leading retained */
+({
+	effect: console.log( 'side-effect' ) || 43
+}); // trailing retained
 
-	/* footer 8 */
+/* footer 8 */
 
-	console.log(importedValue);
-	importedUsedFunction();
-	usedNamedFunction();
+console.log(importedValue);
+importedUsedFunction();
+usedNamedFunction();
 
 });

@@ -3,18 +3,18 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var foo = function () {
-				return 42;
-			};
+var foo = function () {
+	return 42;
+};
 
-			function bar () {
-				return contrivedExample( foo );
-			}
+function bar () {
+	return contrivedExample( foo );
+}
 
-			var answer = foo();
-			var somethingElse = bar();
+var answer = foo();
+var somethingElse = bar();
 
-			console.log( answer );
+console.log( answer );
 
 		}
 	};

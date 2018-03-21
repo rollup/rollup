@@ -3,18 +3,18 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var Foo = function () {
-				console.log( 'side effect' );
-				this.isFoo = true;
-			};
+var Foo = function () {
+	console.log( 'side effect' );
+	this.isFoo = true;
+};
 
-			Foo.prototype = {
-				answer: function () {
-					return 42;
-				}
-			};
+Foo.prototype = {
+	answer: function () {
+		return 42;
+	}
+};
 
-			var foo = new Foo();
+var foo = new Foo();
 
 		}
 	};

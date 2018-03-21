@@ -4,12 +4,12 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	function foo () {}
-	foo( globalFunction() );
+function foo () {}
+foo( globalFunction() );
 
-	var baz = 2;
-	foo( baz++ );
+var baz = 2;
+foo( baz++ );
 
-	assert.equal(baz, 3);
+assert.equal(baz, 3);
 
 })));

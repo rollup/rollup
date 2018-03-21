@@ -4,14 +4,14 @@
 	(factory((global.myBundle = {})));
 }(this, (function (exports) { 'use strict';
 
-	/** A comment for a number */
-	var number = 5;
+/** A comment for a number */
+var number = 5;
 
-	/** A comment for obj */
-	var obj = { number };
+/** A comment for obj */
+var obj = { number };
 
-	exports.obj = obj;
+exports.obj = obj;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

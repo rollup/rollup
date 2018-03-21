@@ -1,12 +1,12 @@
 (function () {
-	'use strict';
+'use strict';
 
-	var bool = true;
+var bool = true;
 
-	const hs = document.documentElement.style;
+const hs = document.documentElement.style;
 
-	if ( bool ) {
-		hs.color = "#222";
-	}
+if ( bool ) {
+	hs.color = "#222";
+}
 
 }());

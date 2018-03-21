@@ -3,15 +3,15 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			function foo ( ok ) {
-				if ( !ok ) {
-					throw new Error( 'this will be ignored' );
-				}
-			}
+function foo ( ok ) {
+	if ( !ok ) {
+		throw new Error( 'this will be ignored' );
+	}
+}
 
-			foo();
+foo();
 
-			var main = exports('default', 42);
+var main = exports('default', 42);
 
 		}
 	};

@@ -3,20 +3,20 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			function foo () {
-				var Object = {
-					keys: function () {
-						console.log( 'side-effect' );
-					}
-				};
+function foo () {
+	var Object = {
+		keys: function () {
+			console.log( 'side-effect' );
+		}
+	};
 
-				var obj = { foo: 1, bar: 2 };
-				var keys = Object.keys( obj );
-			}
+	var obj = { foo: 1, bar: 2 };
+	var keys = Object.keys( obj );
+}
 
-			foo();
+foo();
 
-			var main = exports('default', 42);
+var main = exports('default', 42);
 
 		}
 	};

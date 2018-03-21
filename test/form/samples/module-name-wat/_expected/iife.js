@@ -2,11 +2,11 @@ this.foo = this.foo || {};
 this.foo['@scoped/npm-package'] = this.foo['@scoped/npm-package'] || {};
 this.foo['@scoped/npm-package'].bar = this.foo['@scoped/npm-package'].bar || {};
 this.foo['@scoped/npm-package'].bar['why-would-you-do-this'] = (function (exports) {
-	'use strict';
+'use strict';
 
-	let foo = 'foo';
+let foo = 'foo';
 
-	exports.foo = foo;
+exports.foo = foo;
 
 	return exports;
 

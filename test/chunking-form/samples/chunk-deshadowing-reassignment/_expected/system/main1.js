@@ -8,7 +8,7 @@ System.register(['./chunk-eddabbe7.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			console.log(x + y);
+console.log(x + y);
 
 		}
 	};

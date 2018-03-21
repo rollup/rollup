@@ -4,28 +4,28 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			exports('default', x);
-			function augment ( x ) {
-				var prop, source;
+function augment ( x ) {
+	var prop, source;
 
-				var i = arguments.length;
-				var sources = Array( i - 1 );
-				while ( i-- ) {
-					sources[i-1] = arguments[i];
-				}
+	var i = arguments.length;
+	var sources = Array( i - 1 );
+	while ( i-- ) {
+		sources[i-1] = arguments[i];
+	}
 
-				while (source = sources.shift()) {
-					for (prop in source) {
-						if (hasOwn.call(source, prop)) {
-							x[prop] = source[prop];
-						}
-					}
-				}
-
-				return x;
+	while (source = sources.shift()) {
+		for (prop in source) {
+			if (hasOwn.call(source, prop)) {
+				x[prop] = source[prop];
 			}
+		}
+	}
 
-			function x () {}
-			augment( x.prototype );
+	return x;
+}
+
+function x () {}
+augment( x.prototype );
 
 		}
 	};

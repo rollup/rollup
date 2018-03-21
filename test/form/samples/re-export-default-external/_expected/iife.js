@@ -1,8 +1,8 @@
 var reexportsDefaultExternal = (function (external) {
-	'use strict';
+'use strict';
 
 
 
-	return external.objAlias;
+return external.objAlias;
 
 }(external));

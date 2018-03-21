@@ -4,10 +4,10 @@
 	(factory((global.myBundle = {})));
 }(this, (function (exports) { 'use strict';
 
-	const isNaN$1 = isNaN;
+const isNaN$1 = isNaN;
 
-	exports.isNaN = isNaN$1;
+exports.isNaN = isNaN$1;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

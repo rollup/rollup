@@ -4,8 +4,8 @@
 	(global.foo = factory(global.View));
 }(this, (function (View) { 'use strict';
 
-	var main = View.extend({});
+var main = View.extend({});
 
-	return main;
+return main;
 
 })));

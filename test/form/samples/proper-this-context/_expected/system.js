@@ -3,15 +3,15 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const mutateThis = () => {
-				undefined.x = 1;
-			};
+const mutateThis = () => {
+	undefined.x = 1;
+};
 
-			function Test () {
-				mutateThis();
-			}
+function Test () {
+	mutateThis();
+}
 
-			const test = new Test();
+const test = new Test();
 
 		}
 	};

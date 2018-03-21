@@ -7,13 +7,13 @@ System.register(['react-sticky'], function (exports, module) {
 		}],
 		execute: function () {
 
-			var Sticky$1 = exports('default', function () {
-				function Sticky$$1() {}
+var Sticky$1 = exports('default', function () {
+	function Sticky$$1() {}
 
-				Sticky$$1.foo = Sticky;
+	Sticky$$1.foo = Sticky;
 
-				return Sticky$$1;
-			}());
+	return Sticky$$1;
+}());
 
 		}
 	};

@@ -4,10 +4,10 @@
 	(factory((global['module-name-with-dashes'] = global['module-name-with-dashes'] || {})));
 }(this, (function (exports) { 'use strict';
 
-	let foo = 'foo';
+let foo = 'foo';
 
-	exports.foo = foo;
+exports.foo = foo;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

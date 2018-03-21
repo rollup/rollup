@@ -7,11 +7,11 @@ System.register(['./chunk-8a5db948.js'], function (exports, module) {
         }],
         execute: function () {
 
-            class Two {
-                test() {
-                    return ONE_CONSTANT;
-                }
-            } exports('ItemTwo', Two);
+class Two {
+    test() {
+        return ONE_CONSTANT;
+    }
+} exports('ItemTwo', Two);
 
         }
     };

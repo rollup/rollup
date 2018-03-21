@@ -1,10 +1,10 @@
 define(function () { 'use strict';
 
-	var effect = function() {
-		console.log('effect');
-	};
+var effect = function() {
+	console.log('effect');
+};
 
-	var alsoEffect = effect;
-	alsoEffect();
+var alsoEffect = effect;
+alsoEffect();
 
 });

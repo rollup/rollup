@@ -3,8 +3,8 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var bar = 1;
-			exports('default', bar);
+var bar = 1;
+exports('default', bar);
 
 		}
 	};

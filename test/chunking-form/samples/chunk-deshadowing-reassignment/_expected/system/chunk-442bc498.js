@@ -3,8 +3,8 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var x = 42;
-			exports('default', x);
+var x = 42;
+exports('default', x);
 
 		}
 	};

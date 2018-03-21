@@ -3,23 +3,23 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var browserSpecificThing;
+var browserSpecificThing;
 
-			if ('ActiveXObject' in window) {
-				browserSpecificThing = "InternetExplorerThing";
-			} else {
-				browserSpecificThing = "DecentBrowserThing";
-			}
+if ('ActiveXObject' in window) {
+	browserSpecificThing = "InternetExplorerThing";
+} else {
+	browserSpecificThing = "DecentBrowserThing";
+}
 
-			function foo() {}
+function foo() {}
 
-			var browserStuff = /*#__PURE__*/(Object.freeze || Object)({
-				browserSpecificThing: browserSpecificThing,
-				foo: foo
-			});
-			exports('B', browserStuff);
+var browserStuff = /*#__PURE__*/(Object.freeze || Object)({
+	browserSpecificThing: browserSpecificThing,
+	foo: foo
+});
+exports('B', browserStuff);
 
-			console.log(browserSpecificThing);
+console.log(browserSpecificThing);
 
 		}
 	};

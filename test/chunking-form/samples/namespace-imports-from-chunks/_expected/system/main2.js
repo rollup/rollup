@@ -7,7 +7,7 @@ System.register(['./main1.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			console.log( p );
+console.log( p );
 
 		}
 	};

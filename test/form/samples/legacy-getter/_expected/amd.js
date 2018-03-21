@@ -1,22 +1,22 @@
 define(['exports'], function (exports) { 'use strict';
 
-	var browserSpecificThing;
+var browserSpecificThing;
 
-	if ('ActiveXObject' in window) {
-		browserSpecificThing = "InternetExplorerThing";
-	} else {
-		browserSpecificThing = "DecentBrowserThing";
-	}
+if ('ActiveXObject' in window) {
+	browserSpecificThing = "InternetExplorerThing";
+} else {
+	browserSpecificThing = "DecentBrowserThing";
+}
 
-	function foo() {}
+function foo() {}
 
-	var browserStuff = /*#__PURE__*/(Object.freeze || Object)({
-		browserSpecificThing: browserSpecificThing,
-		foo: foo
-	});
+var browserStuff = /*#__PURE__*/(Object.freeze || Object)({
+	browserSpecificThing: browserSpecificThing,
+	foo: foo
+});
 
-	console.log(browserSpecificThing);
+console.log(browserSpecificThing);
 
-	exports.B = browserStuff;
+exports.B = browserStuff;
 
 });

@@ -4,11 +4,11 @@
     (factory());
 }(this, (function () { 'use strict';
 
-    var a = () => {
-        console.log('props');
-    };
+var a = () => {
+    console.log('props');
+};
 
-    a();
-    a();
+a();
+a();
 
 })));

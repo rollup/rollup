@@ -14,7 +14,16 @@ const thisProp = (name: string) => `this${keypath(name)}`;
 
 export default function iife(
 	magicString: MagicStringBundle,
-	{ graph, exportMode, indentString, intro, outro, dependencies, exports }: FinaliserOptions,
+	{
+		graph,
+		exportMode,
+		indentString,
+		indentWrapper,
+		intro,
+		outro,
+		dependencies,
+		exports
+	}: FinaliserOptions,
 	options: OutputOptions
 ) {
 	const { extend, name } = options;
@@ -49,7 +58,8 @@ export default function iife(
 		args.unshift('exports');
 	}
 
-	const useStrict = options.strict !== false ? `${indentString}'use strict';\n\n` : ``;
+	const useStrict =
+		options.strict !== false ? `${indentWrapper ? indentString : ''}'use strict';\n\n` : ``;
 
 	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
 
@@ -78,8 +88,7 @@ export default function iife(
 	if (exportBlock) magicString.append('\n\n' + exportBlock);
 	if (outro) magicString.append(outro);
 
-	return magicString
-		.indent(indentString)
-		.prepend(wrapperIntro)
-		.append(wrapperOutro);
+	if (indentWrapper) magicString.indent(indentString);
+
+	return magicString.prepend(wrapperIntro).append(wrapperOutro);
 }

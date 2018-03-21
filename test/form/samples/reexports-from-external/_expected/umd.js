@@ -4,8 +4,8 @@
 	(factory((global.myBundle = {}),global.external));
 }(this, (function (exports,external) { 'use strict';
 
-	Object.keys(external).forEach(function (key) { exports[key] = external[key]; });
+Object.keys(external).forEach(function (key) { exports[key] = external[key]; });
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

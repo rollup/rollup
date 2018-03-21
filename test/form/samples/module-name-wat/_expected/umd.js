@@ -4,10 +4,10 @@
 	(factory((global.foo = global.foo || {}, global.foo['@scoped/npm-package'] = global.foo['@scoped/npm-package'] || {}, global.foo['@scoped/npm-package'].bar = global.foo['@scoped/npm-package'].bar || {}, global.foo['@scoped/npm-package'].bar['why-would-you-do-this'] = {})));
 }(this, (function (exports) { 'use strict';
 
-	let foo = 'foo';
+let foo = 'foo';
 
-	exports.foo = foo;
+exports.foo = foo;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

@@ -7,9 +7,9 @@ System.register(['jquery'], function (exports, module) {
 		}],
 		execute: function () {
 
-			$( function () {
-				$( 'body' ).html( '<h1>hello world!</h1>' );
-			});
+$( function () {
+	$( 'body' ).html( '<h1>hello world!</h1>' );
+});
 
 		}
 	};

@@ -3,8 +3,8 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			Unknown.staticMember;
-			Unknown.prototype.method;
+Unknown.staticMember;
+Unknown.prototype.method;
 
 		}
 	};

@@ -3,17 +3,17 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			let foo = () => function () {};
-			foo.value = foo;
+let foo = () => function () {};
+foo.value = foo;
 
-			while ( foo.value ) {
-				foo = foo.value;
-			}
+while ( foo.value ) {
+	foo = foo.value;
+}
 
-			foo();
-			foo()();
-			new (foo())();
-			foo.bar = 1;
+foo();
+foo()();
+new (foo())();
+foo.bar = 1;
 
 		}
 	};

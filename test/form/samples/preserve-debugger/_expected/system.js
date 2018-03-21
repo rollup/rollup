@@ -3,9 +3,9 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			before();
-			debugger;
-			after();
+before();
+debugger;
+after();
 
 		}
 	};

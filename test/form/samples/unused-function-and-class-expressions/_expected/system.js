@@ -3,11 +3,11 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			function foo() {
-				console.log("foo");
-			}
+function foo() {
+	console.log("foo");
+}
 
-			foo();
+foo();
 
 		}
 	};

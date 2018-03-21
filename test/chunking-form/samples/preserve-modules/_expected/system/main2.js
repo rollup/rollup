@@ -9,12 +9,12 @@ System.register(['./deps/dep2.js', './deps/dep3.js'], function (exports, module)
     }],
     execute: function () {
 
-      class Main2 {
-        constructor () {
-          fn$1();
-          fn();
-        }
-      } exports('default', Main2);
+class Main2 {
+  constructor () {
+    fn$1();
+    fn();
+  }
+} exports('default', Main2);
 
     }
   };

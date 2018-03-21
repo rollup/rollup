@@ -249,6 +249,7 @@ function getOutputOptions(
 		freeze: getOption('freeze'),
 		globals: getOption('globals'),
 		indent: getOption('indent', true),
+		indentWrapper: getOption('indentWrapper', false),
 		interop: getOption('interop', true),
 		intro: getOption('intro'),
 		legacy: getOption('legacy', false),

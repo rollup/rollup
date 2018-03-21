@@ -4,7 +4,7 @@
 /* 3rd banner */
 define(function () { 'use strict';
 
-	console.log( 'hello world' );
+console.log( 'hello world' );
 
 });
 /* this is a footer */

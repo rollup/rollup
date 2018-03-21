@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			globalVar = 1;
+globalVar = 1;
 
 		}
 	};

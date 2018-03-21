@@ -3,10 +3,10 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			function baz() {
-				console.log("baz");
-			}
-			baz();
+function baz() {
+	console.log("baz");
+}
+baz();
 
 		}
 	};

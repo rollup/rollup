@@ -3,9 +3,9 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			for ( ; ; ) {
-				console.log( 42 );
-			}
+for ( ; ; ) {
+	console.log( 42 );
+}
 
 		}
 	};

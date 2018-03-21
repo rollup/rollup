@@ -4,8 +4,8 @@
 	(global.myBundle = factory());
 }(this, (function () { 'use strict';
 
-	var main = 42;
+var main = 42;
 
-	return main;
+return main;
 
 })));

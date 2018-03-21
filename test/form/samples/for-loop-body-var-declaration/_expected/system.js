@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			for(var x=1;x<2;x++)var d=x|0;console.log(d);
+for(var x=1;x<2;x++)var d=x|0;console.log(d);
 
 		}
 	};

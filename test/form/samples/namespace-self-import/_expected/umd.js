@@ -4,16 +4,16 @@
 	(factory((global.iife = {})));
 }(this, (function (exports) { 'use strict';
 
-	var self = /*#__PURE__*/Object.freeze({
-		get p () { return p$$1; }
-	});
+var self = /*#__PURE__*/Object.freeze({
+	get p () { return p$$1; }
+});
 
-	console.log(Object.keys(self));
+console.log(Object.keys(self));
 
-	var p$$1 = 5;
+var p$$1 = 5;
 
-	exports.p = p$$1;
+exports.p = p$$1;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
