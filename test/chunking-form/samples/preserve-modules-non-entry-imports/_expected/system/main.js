@@ -9,7 +9,7 @@ System.register(['./dep1.js', './dep2.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			exports('default', foo);
+exports('default', foo);
 
 		}
 	};

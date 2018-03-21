@@ -1,9 +1,9 @@
 define(function () { 'use strict';
 
-  function foo () {
-  	console.log( 'indented with tabs' );
-  }
+function foo () {
+	console.log( 'indented with tabs' );
+}
 
-  return foo;
+return foo;
 
 });

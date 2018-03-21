@@ -4,10 +4,10 @@
 	(factory(global.acorn));
 }(this, (function (acorn) { 'use strict';
 
-	function parse(source) {
-		return acorn.parse(source, { ecmaVersion: 6 });
-	}
+function parse(source) {
+	return acorn.parse(source, { ecmaVersion: 6 });
+}
 
-	console.log(parse('foo'));
+console.log(parse('foo'));
 
 })));

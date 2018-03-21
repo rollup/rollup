@@ -4,8 +4,8 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	for ( ; ; ) {
-		console.log( 42 );
-	}
+for ( ; ; ) {
+	console.log( 42 );
+}
 
 })));

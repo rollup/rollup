@@ -4,8 +4,8 @@
 	(factory((global.myBundle = {}),global.external));
 }(this, (function (exports,external) { 'use strict';
 
-	exports.s = external.p;
+exports.s = external.p;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

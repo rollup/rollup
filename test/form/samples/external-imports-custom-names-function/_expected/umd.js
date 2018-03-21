@@ -4,6 +4,6 @@
 	(factory(global.a_b_c));
 }(this, (function (aBC) { 'use strict';
 
-	aBC.foo();
+aBC.foo();
 
 })));

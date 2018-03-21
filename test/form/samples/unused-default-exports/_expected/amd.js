@@ -1,14 +1,14 @@
 define(function () { 'use strict';
 
-	var foo = { value: 1 };
+var foo = { value: 1 };
 
-	function mutate ( obj ) {
-		obj.value += 1;
-		return obj;
-	}
+function mutate ( obj ) {
+	obj.value += 1;
+	return obj;
+}
 
-	mutate( foo );
+mutate( foo );
 
-	assert.equal( foo.value, 2 );
+assert.equal( foo.value, 2 );
 
 });

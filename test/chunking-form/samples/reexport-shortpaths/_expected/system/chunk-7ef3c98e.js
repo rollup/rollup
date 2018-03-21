@@ -4,7 +4,7 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			exports('default', foo);
-			function foo() {}
+function foo() {}
 
 		}
 	};

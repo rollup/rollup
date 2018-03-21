@@ -4,12 +4,12 @@
 	(global.myBundle = factory());
 }(this, (function () { 'use strict';
 
-	if ( !ok ) {
-		throw new Error( 'this will be included' );
-	}
+if ( !ok ) {
+	throw new Error( 'this will be included' );
+}
 
-	var main = 42;
+var main = 42;
 
-	return main;
+return main;
 
 })));

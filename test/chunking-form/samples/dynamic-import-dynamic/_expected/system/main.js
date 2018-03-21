@@ -3,9 +3,9 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var dep = 'dep';
+var dep = 'dep';
 
-			module.import(dep);
+module.import(dep);
 
 		}
 	};

@@ -1,8 +1,8 @@
 (function (foo) {
-	'use strict';
+'use strict';
 
-	console.log(foo);
-	console.log(foo.blah);
-	console.log(foo.bar);
+console.log(foo);
+console.log(foo.blah);
+console.log(foo.bar);
 
 }(foo));

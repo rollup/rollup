@@ -4,14 +4,14 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	function foo () {
-		return 42;
-	}
+function foo () {
+	return 42;
+}
 
-	var str = `
+var str = `
 //# sourceMappingURL=main.js.map
 `;
 
-	console.log( foo(str) );
+console.log( foo(str) );
 
 })));

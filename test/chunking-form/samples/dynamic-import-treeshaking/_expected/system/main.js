@@ -7,15 +7,15 @@ System.register(['./chunk-909b409c.js'], function (exports, module) {
     }],
     execute: function () {
 
-      function calc (num) {
-        return num * multiplier;
-      }
+function calc (num) {
+  return num * multiplier;
+}
 
-      function fn (num) {
-        return num * calc(num);
-      }
+function fn (num) {
+  return num * calc(num);
+}
 
-      console.log(fn(5));
+console.log(fn(5));
 
     }
   };

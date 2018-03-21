@@ -16,11 +16,11 @@ System.register(['factory', 'baz', 'shipping-port', 'alphabet'], function (expor
 		}],
 		execute: function () {
 
-			factory( null );
-			foo( bar, port );
-			forEach( console.log, console );
-			console.log( a );
-			console.log( alphabet.length );
+factory( null );
+foo( bar, port );
+forEach( console.log, console );
+console.log( a );
+console.log( alphabet.length );
 
 		}
 	};

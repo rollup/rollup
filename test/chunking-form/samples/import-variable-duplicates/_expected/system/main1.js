@@ -9,8 +9,8 @@ System.register(['./first.js', './head.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			console.log(head2);
-			console.log(head2);
+console.log(head2);
+console.log(head2);
 
 		}
 	};

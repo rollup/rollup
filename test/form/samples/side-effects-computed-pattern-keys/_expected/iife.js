@@ -1,6 +1,6 @@
 (function () {
-	'use strict';
+'use strict';
 
-	const { [globalValue()]: isKept } = {};
+const { [globalValue()]: isKept } = {};
 
 }());

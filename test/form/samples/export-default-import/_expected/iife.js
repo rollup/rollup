@@ -1,11 +1,11 @@
 var myBundle = (function (exports,x) {
-	'use strict';
+'use strict';
 
-	x = x && x.hasOwnProperty('default') ? x['default'] : x;
+x = x && x.hasOwnProperty('default') ? x['default'] : x;
 
 
 
-	exports.x = x;
+exports.x = x;
 
 	return exports;
 

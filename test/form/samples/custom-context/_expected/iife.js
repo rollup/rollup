@@ -1,6 +1,6 @@
 (function () {
-	'use strict';
+'use strict';
 
-	lolwut.prop = '???';
+lolwut.prop = '???';
 
 }());

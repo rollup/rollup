@@ -1,9 +1,9 @@
 var iife = (function (exports,externalPackage) {
-	'use strict';
+'use strict';
 
 
 
-	exports.ext = externalPackage;
+exports.ext = externalPackage;
 
 	return exports;
 

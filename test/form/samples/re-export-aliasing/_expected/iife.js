@@ -1,9 +1,9 @@
 var reexportsAliasingExternal = (function (exports,d) {
-	'use strict';
+'use strict';
 
 
 
-	exports.b = d.d;
+exports.b = d.d;
 
 	return exports;
 

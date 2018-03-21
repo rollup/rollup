@@ -1,8 +1,8 @@
 (function () {
-	'use strict';
+'use strict';
 
-	undefined.prop = 'nope';
+undefined.prop = 'nope';
 
-	lolwut.prop = '???';
+lolwut.prop = '???';
 
 }());

@@ -3,12 +3,12 @@ System.register([], function (exports, module) {
     return {
         execute: function () {
 
-            var a = () => {
-                console.log('props');
-            };
+var a = () => {
+    console.log('props');
+};
 
-            a();
-            a();
+a();
+a();
 
         }
     };

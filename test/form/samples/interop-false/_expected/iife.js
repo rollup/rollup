@@ -1,8 +1,8 @@
 var foo = (function (View) {
-	'use strict';
+'use strict';
 
-	var main = View.extend({});
+var main = View.extend({});
 
-	return main;
+return main;
 
 }(View));

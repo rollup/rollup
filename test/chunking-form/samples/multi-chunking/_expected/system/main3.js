@@ -9,7 +9,7 @@ System.register(['./chunk-77b21cda.js', './chunk-38f206da.js'], function (export
 		}],
 		execute: function () {
 
-			console.log(num + num$1);
+console.log(num + num$1);
 
 		}
 	};

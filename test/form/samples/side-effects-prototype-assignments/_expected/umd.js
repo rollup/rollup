@@ -4,15 +4,15 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	function V8Engine () {}
+function V8Engine () {}
 
-	V8Engine.prototype.toString = function () { return 'V8'; };
+V8Engine.prototype.toString = function () { return 'V8'; };
 
-	function V6Engine () {}
+function V6Engine () {}
 
-	V6Engine.prototype = V8Engine.prototype;
-	V6Engine.prototype.toString = function () { return 'V6'; };
+V6Engine.prototype = V8Engine.prototype;
+V6Engine.prototype.toString = function () { return 'V6'; };
 
-	console.log( new V8Engine().toString() );
+console.log( new V8Engine().toString() );
 
 })));

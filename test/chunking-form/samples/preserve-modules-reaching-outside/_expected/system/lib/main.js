@@ -7,11 +7,11 @@ System.register(['../dep.js'], function (exports, module) {
     }],
     execute: function () {
 
-      class Main {
-        constructor () {
-          fn();
-        }
-      } exports('default', Main);
+class Main {
+  constructor () {
+    fn();
+  }
+} exports('default', Main);
 
     }
   };

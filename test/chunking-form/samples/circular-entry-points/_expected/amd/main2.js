@@ -1,17 +1,17 @@
 define(['exports', './main1.js'], function (exports, main1_js) { 'use strict';
 
-  class C {
-    fn (num) {
-      console.log(num - main1_js.p);
-    }
+class C {
+  fn (num) {
+    console.log(num - main1_js.p);
   }
+}
 
-  var p = 43;
+var p = 43;
 
-  new C().fn(p);
+new C().fn(p);
 
-  exports.p = p;
+exports.p = p;
 
-  Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 });

@@ -3,30 +3,30 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const items = { children: [ {}, {}, {} ] };
+const items = { children: [ {}, {}, {} ] };
 
-			function a () {
-				for ( const item of items.children ) {
-					item.foo = 'a';
-				}
-			}
+function a () {
+	for ( const item of items.children ) {
+		item.foo = 'a';
+	}
+}
 
-			a();
+a();
 
-			function c () {
-				let item;
-				for ( item of items.children ) {
-					item.bar = 'c';
-				}
-			}
+function c () {
+	let item;
+	for ( item of items.children ) {
+		item.bar = 'c';
+	}
+}
 
-			c();
+c();
 
-			assert.deepEqual( items, [
-				{ foo: 'a', bar: 'c' },
-				{ foo: 'a', bar: 'c' },
-				{ foo: 'a', bar: 'c' }
-			] );
+assert.deepEqual( items, [
+	{ foo: 'a', bar: 'c' },
+	{ foo: 'a', bar: 'c' },
+	{ foo: 'a', bar: 'c' }
+] );
 
 		}
 	};

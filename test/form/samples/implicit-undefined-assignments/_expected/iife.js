@@ -1,16 +1,16 @@
 (function () {
-	'use strict';
+'use strict';
 
-	let a;
-	a();
+let a;
+a();
 
-	let b;
-	b.foo = 'bar';
+let b;
+b.foo = 'bar';
 
-	let { c } = {};
-	c();
+let { c } = {};
+c();
 
-	let { d } = {};
-	d.foo = 'bar';
+let { d } = {};
+d.foo = 'bar';
 
 }());

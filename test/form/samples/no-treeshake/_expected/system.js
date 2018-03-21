@@ -9,23 +9,23 @@ System.register(['external'], function (exports, module) {
 		execute: function () {
 
 			exports('baz', baz);
-			var foo = 'unused';
+var foo = 'unused';
 
-			const quux = exports('strange', 1);
+const quux = exports('strange', 1);
 
-			const other = () => quux;
+const other = () => quux;
 
-			function bar () {
-				return foo;
-			}
+function bar () {
+	return foo;
+}
 
-			function baz () {
-				return 13 + value;
-			}
+function baz () {
+	return 13 + value;
+}
 
-			const moreExternal = more;
+const moreExternal = more;
 
-			var create = exports('create', Object.create), getPrototypeOf = exports('getPrototypeOf', Object.getPrototypeOf);
+var create = exports('create', Object.create), getPrototypeOf = exports('getPrototypeOf', Object.getPrototypeOf);
 
 		}
 	};

@@ -1,12 +1,12 @@
 (function (throttle) {
-	'use strict';
+'use strict';
 
-	throttle = throttle && throttle.hasOwnProperty('default') ? throttle['default'] : throttle;
+throttle = throttle && throttle.hasOwnProperty('default') ? throttle['default'] : throttle;
 
-	const fn = throttle( () => {
-		console.log( '.' );
-	}, 500 );
+const fn = throttle( () => {
+	console.log( '.' );
+}, 500 );
 
-	window.addEventListener( 'mousemove', throttle );
+window.addEventListener( 'mousemove', throttle );
 
 }(Lib.throttle));

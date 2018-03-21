@@ -9,9 +9,9 @@ System.register(['./chunk-442bc498.js', './chunk-7cae80d7.js'], function (export
 		}],
 		execute: function () {
 
-			var x$2 = exports('default', x + 1);
+var x$2 = exports('default', x + 1);
 
-			var y = exports('default$1', x$1 + 1);
+var y = exports('default$1', x$1 + 1);
 
 		}
 	};

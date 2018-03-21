@@ -4,10 +4,10 @@
 	(factory((global['@scoped/npm-package'] = global['@scoped/npm-package'] || {})));
 }(this, (function (exports) { 'use strict';
 
-	let foo = 'foo';
+let foo = 'foo';
 
-	exports.foo = foo;
+exports.foo = foo;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

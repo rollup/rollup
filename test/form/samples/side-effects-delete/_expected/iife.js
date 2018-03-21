@@ -1,12 +1,12 @@
 var myBundle = (function (exports) {
-	'use strict';
+'use strict';
 
-	var x = {foo: 'bar'};
-	delete x.foo;
+var x = {foo: 'bar'};
+delete x.foo;
 
-	delete globalVariable.foo;
+delete globalVariable.foo;
 
-	exports.x = x;
+exports.x = x;
 
 	return exports;
 

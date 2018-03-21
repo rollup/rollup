@@ -1,28 +1,28 @@
 var stirred = (function (exports,external) {
-	'use strict';
+'use strict';
 
-	var foo = 'unused';
+var foo = 'unused';
 
-	const quux = 1;
+const quux = 1;
 
-	const other = () => quux;
+const other = () => quux;
 
-	function bar () {
-		return foo;
-	}
+function bar () {
+	return foo;
+}
 
-	function baz () {
-		return 13 + external.value;
-	}
+function baz () {
+	return 13 + external.value;
+}
 
-	const moreExternal = external.more;
+const moreExternal = external.more;
 
-	var create = Object.create, getPrototypeOf = Object.getPrototypeOf;
+var create = Object.create, getPrototypeOf = Object.getPrototypeOf;
 
-	exports.baz = baz;
-	exports.create = create;
-	exports.getPrototypeOf = getPrototypeOf;
-	exports.strange = quux;
+exports.baz = baz;
+exports.create = create;
+exports.getPrototypeOf = getPrototypeOf;
+exports.strange = quux;
 
 	return exports;
 

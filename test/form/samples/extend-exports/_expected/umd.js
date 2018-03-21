@@ -4,10 +4,10 @@
 	(factory((global.foo = global.foo || {})));
 }(this, (function (exports) { 'use strict';
 
-	const answer = 42;
+const answer = 42;
 
-	exports.answer = answer;
+exports.answer = answer;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

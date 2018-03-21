@@ -4,14 +4,14 @@
 	(global.Sticky = factory(global.reactSticky));
 }(this, (function (reactSticky) { 'use strict';
 
-	var Sticky = function () {
-		function Sticky() {}
+var Sticky = function () {
+	function Sticky() {}
 
-		Sticky.foo = reactSticky.Sticky;
-
-		return Sticky;
-	}();
+	Sticky.foo = reactSticky.Sticky;
 
 	return Sticky;
+}();
+
+return Sticky;
 
 })));

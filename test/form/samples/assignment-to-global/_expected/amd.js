@@ -1,5 +1,5 @@
 define(function () { 'use strict';
 
-	globalVar = 1;
+globalVar = 1;
 
 });

@@ -3,18 +3,18 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const foo = 1;
-			const bar = 2;
+const foo = 1;
+const bar = 2;
 
-			var namespace = /*#__PURE__*/(Object.freeze || Object)({
-				foo: foo,
-				bar: bar
-			});
+var namespace = /*#__PURE__*/(Object.freeze || Object)({
+	foo: foo,
+	bar: bar
+});
 
-			console.log( Object.keys( namespace ) );
+console.log( Object.keys( namespace ) );
 
-			const a = exports('a', 1);
-			const b = exports('b', 2);
+const a = exports('a', 1);
+const b = exports('b', 2);
 
 		}
 	};

@@ -4,13 +4,13 @@
 	(factory((global.myBundle = {})));
 }(this, (function (exports) { 'use strict';
 
-	var x = {foo: 'bar'};
-	delete x.foo;
+var x = {foo: 'bar'};
+delete x.foo;
 
-	delete globalVariable.foo;
+delete globalVariable.foo;
 
-	exports.x = x;
+exports.x = x;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

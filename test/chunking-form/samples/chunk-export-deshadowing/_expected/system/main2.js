@@ -7,11 +7,11 @@ System.register(['./chunk-735f12f8.js'], function (exports, module) {
     }],
     execute: function () {
 
-      class Main2 {
-        constructor () {
-          fn();
-        }
-      } exports('default', Main2);
+class Main2 {
+  constructor () {
+    fn();
+  }
+} exports('default', Main2);
 
     }
   };

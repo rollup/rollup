@@ -7,15 +7,15 @@ System.register(['./main2.js'], function (exports, module) {
     }],
     execute: function () {
 
-      class C {
-        fn (num) {
-          console.log(num - p);
-        }
-      }
+class C {
+  fn (num) {
+    console.log(num - p);
+  }
+}
 
-      var p$1 = exports('p', 42);
+var p$1 = exports('p', 42);
 
-      new C().fn(p$1);
+new C().fn(p$1);
 
     }
   };

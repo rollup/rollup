@@ -7,7 +7,7 @@ System.register(['a-b-c'], function (exports, module) {
 		}],
 		execute: function () {
 
-			foo();
+foo();
 
 		}
 	};

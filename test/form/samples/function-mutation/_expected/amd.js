@@ -1,50 +1,50 @@
 define(['exports'], function (exports) { 'use strict';
 
-	function foo () {
-		console.log( 'foo' );
+function foo () {
+	console.log( 'foo' );
+}
+
+const bar = function () {
+	console.log( 'bar' );
+};
+
+const baz = () => console.log( 'baz' );
+
+function a () {
+	console.log( 'a' );
+}
+
+a.foo = foo;
+
+const c = function () {
+	console.log( 'c' );
+};
+c.bar = bar;
+
+const e = () => console.log( 'e' );
+e.baz = baz;
+
+class g {
+	constructor () {
+		console.log( 'g' );
 	}
+}
 
-	const bar = function () {
-		console.log( 'bar' );
-	};
+g.foo = foo;
 
-	const baz = () => console.log( 'baz' );
-
-	function a () {
-		console.log( 'a' );
+const i = class {
+	constructor () {
+		console.log( 'i' );
 	}
+};
+i.foo = foo;
 
-	a.foo = foo;
+exports.a = a;
+exports.c = c;
+exports.e = e;
+exports.g = g;
+exports.i = i;
 
-	const c = function () {
-		console.log( 'c' );
-	};
-	c.bar = bar;
-
-	const e = () => console.log( 'e' );
-	e.baz = baz;
-
-	class g {
-		constructor () {
-			console.log( 'g' );
-		}
-	}
-
-	g.foo = foo;
-
-	const i = class {
-		constructor () {
-			console.log( 'i' );
-		}
-	};
-	i.foo = foo;
-
-	exports.a = a;
-	exports.c = c;
-	exports.e = e;
-	exports.g = g;
-	exports.i = i;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 });

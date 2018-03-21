@@ -3,11 +3,11 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			function yar() {
-				console.log('yar?');
-			}
+function yar() {
+	console.log('yar?');
+}
 
-			yar();
+yar();
 
 		}
 	};

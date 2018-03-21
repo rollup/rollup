@@ -4,10 +4,10 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	async function foo () {
-		return 'foo';
-	}
+async function foo () {
+	return 'foo';
+}
 
-	foo().then( value => console.log( value ) );
+foo().then( value => console.log( value ) );
 
 })));

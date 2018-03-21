@@ -4,9 +4,9 @@ System.register([], function (exports, module) {
     execute: function () {
 
       exports('fn', fn);
-      function fn () {
-        console.log('lib1 fn');
-      }
+function fn () {
+  console.log('lib1 fn');
+}
 
     }
   };

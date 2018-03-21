@@ -1,5 +1,5 @@
 define(function () { 'use strict';
 
-	const { [globalValue()]: isKept } = {};
+const { [globalValue()]: isKept } = {};
 
 });

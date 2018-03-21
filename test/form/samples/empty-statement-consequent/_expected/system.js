@@ -3,8 +3,8 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			if ( a === 0 );
-			else a++;
+if ( a === 0 );
+else a++;
 
 		}
 	};

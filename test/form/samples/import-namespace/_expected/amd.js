@@ -1,6 +1,6 @@
 define(['foo', 'bar'], function (foo, bar) { 'use strict';
 
-	foo.x();
-	console.log(bar);
+foo.x();
+console.log(bar);
 
 });

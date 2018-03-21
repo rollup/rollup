@@ -1,15 +1,15 @@
 define(function () { 'use strict';
 
-	function foo ( ok ) {
-		if ( !ok ) {
-			throw new Error( 'this will be ignored' );
-		}
+function foo ( ok ) {
+	if ( !ok ) {
+		throw new Error( 'this will be ignored' );
 	}
+}
 
-	foo();
+foo();
 
-	var main = 42;
+var main = 42;
 
-	return main;
+return main;
 
 });

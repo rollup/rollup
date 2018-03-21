@@ -3,11 +3,11 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			console.log( 1 );
-			{
-				var tmp = 10;
-			}
-			console.log( tmp );
+console.log( 1 );
+{
+	var tmp = 10;
+}
+console.log( tmp );
 
 		}
 	};

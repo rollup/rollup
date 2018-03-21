@@ -8,9 +8,9 @@ System.register(['foo'], function (exports, module) {
 		}],
 		execute: function () {
 
-			console.log( bar );
+console.log( bar );
 
-			console.log( foo__default );
+console.log( foo__default );
 
 		}
 	};

@@ -1,42 +1,42 @@
 define(function () { 'use strict';
 
-	function retained1 () {
+function retained1 () {
+	return () => console.log( 'effect' );
+}
+
+retained1()();
+
+function retained2 () {
+	if ( globalCondition ) {
 		return () => console.log( 'effect' );
 	}
+	return () => {};
+}
 
-	retained1()();
+retained2()();
 
-	function retained2 () {
-		if ( globalCondition ) {
-			return () => console.log( 'effect' );
-		}
+function retained3 () {
+	if ( globalCondition ) {
 		return () => {};
 	}
+}
 
-	retained2()();
+retained3()();
 
-	function retained3 () {
-		if ( globalCondition ) {
-			return () => {};
-		}
-	}
+function retained4 () {}
 
-	retained3()();
+retained4()();
 
-	function retained4 () {}
+function retained5 () {
+	return {};
+}
 
-	retained4()();
+retained5().x.y = 1;
 
-	function retained5 () {
-		return {};
-	}
+function retained6 () {
+	return { x: () => console.log( 'effect' ) };
+}
 
-	retained5().x.y = 1;
-
-	function retained6 () {
-		return { x: () => console.log( 'effect' ) };
-	}
-
-	retained6().x();
+retained6().x();
 
 });

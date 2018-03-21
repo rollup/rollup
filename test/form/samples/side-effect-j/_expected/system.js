@@ -4,11 +4,11 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			exports('default', x);
-			var augment;
-			augment = x => x.augmented = true;
+var augment;
+augment = x => x.augmented = true;
 
-			function x () {}
-			augment( x );
+function x () {}
+augment( x );
 
 		}
 	};

@@ -4,8 +4,8 @@
 	(factory((global.iife = {}),global.externalPackage));
 }(this, (function (exports,externalPackage) { 'use strict';
 
-	exports.ext = externalPackage;
+exports.ext = externalPackage;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

@@ -1,12 +1,12 @@
 define(function () { 'use strict';
 
-	function withEffects() {
-		console.log('effect');
-	}
+function withEffects() {
+	console.log('effect');
+}
 
-	if (globalVar > 0) {
-		console.log('effect');
-		withEffects();
-	}
+if (globalVar > 0) {
+	console.log('effect');
+	withEffects();
+}
 
 });

@@ -3,21 +3,21 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			function foo () {
-				console.log( 'foo' );
-			}
+function foo () {
+	console.log( 'foo' );
+}
 
-			function a () {
-				foo();
-				foo();
+function a () {
+	foo();
+	foo();
 
-				var a;
-				if ( a.b ) {
-					// empty
-				}
-			}
+	var a;
+	if ( a.b ) {
+		// empty
+	}
+}
 
-			a();
+a();
 
 		}
 	};

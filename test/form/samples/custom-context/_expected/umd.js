@@ -4,6 +4,6 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	lolwut.prop = '???';
+lolwut.prop = '???';
 
 })));

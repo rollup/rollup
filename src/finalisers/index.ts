@@ -12,6 +12,7 @@ import Graph from '../Graph';
 export interface FinaliserOptions {
 	exportMode: string;
 	indentString: string;
+	indentWrapper: boolean;
 	intro: string;
 	outro: string;
 	dynamicImport: boolean;

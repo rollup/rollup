@@ -9,9 +9,9 @@ System.register(['babel-polyfill', 'other'], function (exports, module) {
 		}],
 		execute: function () {
 
-			x();
+x();
 
-			var main = exports('default', new WeakMap());
+var main = exports('default', new WeakMap());
 
 		}
 	};

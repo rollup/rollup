@@ -1,9 +1,9 @@
 var myBundle = (function (exports) {
-	'use strict';
+'use strict';
 
-	const isNaN$1 = isNaN;
+const isNaN$1 = isNaN;
 
-	exports.isNaN = isNaN$1;
+exports.isNaN = isNaN$1;
 
 	return exports;
 

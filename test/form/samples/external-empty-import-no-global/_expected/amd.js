@@ -1,7 +1,7 @@
 define(['babel-polyfill'], function (babelPolyfill) { 'use strict';
 
-	var main = new WeakMap();
+var main = new WeakMap();
 
-	return main;
+return main;
 
 });

@@ -9,9 +9,9 @@ System.register(['./chunk-2dbe93bf.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			console.log(a);
+console.log(a);
 
-			console.log(main2);
+console.log(main2);
 
 		}
 	};

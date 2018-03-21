@@ -4,6 +4,6 @@
 	(global.reexportsDefaultExternal = factory(global.external));
 }(this, (function (external) { 'use strict';
 
-	return external.objAlias;
+return external.objAlias;
 
 })));

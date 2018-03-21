@@ -4,7 +4,7 @@
 	(factory(global.foo,global.bar));
 }(this, (function (foo,bar) { 'use strict';
 
-	foo.x();
-	console.log(bar);
+foo.x();
+console.log(bar);
 
 })));

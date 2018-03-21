@@ -1,6 +1,6 @@
 (function () {
-	'use strict';
+'use strict';
 
-	globalVar = 1;
+globalVar = 1;
 
 }());

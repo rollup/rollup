@@ -1,8 +1,8 @@
 (function (exports) {
-	'use strict';
+'use strict';
 
-	let foo = 'foo';
+let foo = 'foo';
 
-	exports.foo = foo;
+exports.foo = foo;
 
 }((this['module-name-with-dashes'] = this['module-name-with-dashes'] || {})));

@@ -7,7 +7,7 @@ System.register(['core/view'], function (exports, module) {
 		}],
 		execute: function () {
 
-			var main = exports('default', View.extend({}));
+var main = exports('default', View.extend({}));
 
 		}
 	};

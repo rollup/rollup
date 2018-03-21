@@ -1,9 +1,9 @@
 var myBundle = (function (exports,external) {
-	'use strict';
+'use strict';
 
 
 
-	exports.s = external.p;
+exports.s = external.p;
 
 	return exports;
 

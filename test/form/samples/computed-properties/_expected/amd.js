@@ -1,21 +1,21 @@
 define(['exports'], function (exports) { 'use strict';
 
-	var foo = 'foo';
-	var bar = 'bar';
-	var baz = 'baz';
-	var bam = 'bam';
+var foo = 'foo';
+var bar = 'bar';
+var baz = 'baz';
+var bam = 'bam';
 
-	var x = { [foo]: 'bar' };
+var x = { [foo]: 'bar' };
 
-	class X {
-		[bar] () {}
-		get [baz] () {}
-		set [bam] ( value ) {}
-	}
+class X {
+	[bar] () {}
+	get [baz] () {}
+	set [bam] ( value ) {}
+}
 
-	exports.x = x;
-	exports.X = X;
+exports.x = x;
+exports.X = X;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 });

@@ -2,8 +2,8 @@ define(['exports', './chunk-62bda8c0.js', 'external'], function (exports, __chun
 
 
 
-	exports.dep = external.asdf;
+exports.dep = external.asdf;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 });

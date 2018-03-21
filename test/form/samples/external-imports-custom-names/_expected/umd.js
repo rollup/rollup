@@ -4,10 +4,10 @@
 	(factory(global.jQuery));
 }(this, (function ($) { 'use strict';
 
-	$ = $ && $.hasOwnProperty('default') ? $['default'] : $;
+$ = $ && $.hasOwnProperty('default') ? $['default'] : $;
 
-	$( function () {
-		$( 'body' ).html( '<h1>hello world!</h1>' );
-	});
+$( function () {
+	$( 'body' ).html( '<h1>hello world!</h1>' );
+});
 
 })));

@@ -7,16 +7,16 @@ System.register(['./chunk-b663d499.js'], function (exports, module) {
     }],
     execute: function () {
 
-      function fn$1 () {
-        console.log('dep1 fn');
-      }
+function fn$1 () {
+  console.log('dep1 fn');
+}
 
-      class Main1 {
-        constructor () {
-          fn$1();
-          fn();
-        }
-      } exports('default', Main1);
+class Main1 {
+  constructor () {
+    fn$1();
+    fn();
+  }
+} exports('default', Main1);
 
     }
   };

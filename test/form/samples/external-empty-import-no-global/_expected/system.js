@@ -6,7 +6,7 @@ System.register(['babel-polyfill'], function (exports, module) {
 		}],
 		execute: function () {
 
-			var main = exports('default', new WeakMap());
+var main = exports('default', new WeakMap());
 
 		}
 	};

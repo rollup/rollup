@@ -4,10 +4,10 @@
   (factory());
 }(this, (function () { 'use strict';
 
-  var foo = function() {
-    foo.toString = null;
-  }.toString();
+var foo = function() {
+  foo.toString = null;
+}.toString();
 
-  console.log(foo);
+console.log(foo);
 
 })));

@@ -1,11 +1,11 @@
 define(['../dep.js'], function (__chunk_1) { 'use strict';
 
-  class Main {
-    constructor () {
-      __chunk_1.fn();
-    }
+class Main {
+  constructor () {
+    __chunk_1.fn();
   }
+}
 
-  return Main;
+return Main;
 
 });

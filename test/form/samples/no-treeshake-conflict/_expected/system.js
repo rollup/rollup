@@ -3,13 +3,13 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const other = {
-				something: 'here'
-			};
+const other = {
+	something: 'here'
+};
 
-			const other$1 = {
-				somethingElse: 'here'
-			};
+const other$1 = {
+	somethingElse: 'here'
+};
 
 		}
 	};

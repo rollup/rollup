@@ -1,12 +1,12 @@
 define(['./chunk-c4e4bfeb.js'], function (__chunk_1) { 'use strict';
 
-  class Main2 {
-    constructor () {
-      __chunk_1.fn$1();
-      console.log(__chunk_1.text$1);
-    }
+class Main2 {
+  constructor () {
+    __chunk_1.fn$1();
+    console.log(__chunk_1.text$1);
   }
+}
 
-  return Main2;
+return Main2;
 
 });

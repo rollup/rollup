@@ -9,13 +9,13 @@ System.register(['a', 'b'], function (exports, module) {
     }],
     execute: function () {
 
-      const Test$2 = exports('Test', () => {
-        console.log(Test);
-      });
+const Test$2 = exports('Test', () => {
+  console.log(Test);
+});
 
-      const Test1 = exports('Test1', () => {
-        console.log(Test$1);
-      });
+const Test1 = exports('Test1', () => {
+  console.log(Test$1);
+});
 
     }
   };

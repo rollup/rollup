@@ -8,30 +8,30 @@ System.register(['external'], function (exports, module) {
 		}],
 		execute: function () {
 
-			/* this is an intro */
+/* this is an intro */
 
-			// intro 1
+// intro 1
 
-			// intro 2
+// intro 2
 
-			// intro 3
+// intro 3
 
-			// intro 4
+// intro 4
 
-			console.log( a );
-			console.log( b );
+console.log( a );
+console.log( b );
 
-			var main = exports('default', 42);
+var main = exports('default', 42);
 
-			/* this is an outro */
+/* this is an outro */
 
-			// outro 1
+// outro 1
 
-			// outro 2
+// outro 2
 
-			// outro 3
+// outro 3
 
-			// outro 4
+// outro 4
 
 		}
 	};

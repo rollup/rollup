@@ -157,6 +157,7 @@ export interface OutputOptions {
 		define?: string;
 	};
 	indent?: boolean;
+	indentWrapper?: boolean;
 	strict?: boolean;
 	freeze?: boolean;
 	namespaceToStringTag?: boolean;

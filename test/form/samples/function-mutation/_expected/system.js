@@ -4,44 +4,44 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			exports('a', a);
-			function foo () {
-				console.log( 'foo' );
-			}
+function foo () {
+	console.log( 'foo' );
+}
 
-			const bar = function () {
-				console.log( 'bar' );
-			};
+const bar = function () {
+	console.log( 'bar' );
+};
 
-			const baz = () => console.log( 'baz' );
+const baz = () => console.log( 'baz' );
 
-			function a () {
-				console.log( 'a' );
-			}
+function a () {
+	console.log( 'a' );
+}
 
-			a.foo = foo;
+a.foo = foo;
 
-			const c = exports('c', function () {
-				console.log( 'c' );
-			});
-			c.bar = bar;
+const c = exports('c', function () {
+	console.log( 'c' );
+});
+c.bar = bar;
 
-			const e = exports('e', () => console.log( 'e' ));
-			e.baz = baz;
+const e = exports('e', () => console.log( 'e' ));
+e.baz = baz;
 
-			class g {
-				constructor () {
-					console.log( 'g' );
-				}
-			} exports('g', g);
+class g {
+	constructor () {
+		console.log( 'g' );
+	}
+} exports('g', g);
 
-			g.foo = foo;
+g.foo = foo;
 
-			const i = exports('i', class {
-				constructor () {
-					console.log( 'i' );
-				}
-			});
-			i.foo = foo;
+const i = exports('i', class {
+	constructor () {
+		console.log( 'i' );
+	}
+});
+i.foo = foo;
 
 		}
 	};

@@ -3,39 +3,39 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			class KeySideEffect {
-				[console.log( 'effect' )] () {}
-			}
+class KeySideEffect {
+	[console.log( 'effect' )] () {}
+}
 
-			class ConstructorSideEffect {
-				constructor () {
-					console.log( 'effect' );
-				}
-			}
-			const constructorSideEffect = new ConstructorSideEffect();
+class ConstructorSideEffect {
+	constructor () {
+		console.log( 'effect' );
+	}
+}
+const constructorSideEffect = new ConstructorSideEffect();
 
-			class ConstructorParamSideEffect {
-				constructor ( foo = console.log( 'effect' ) ) {}
-			}
-			const constructorParamSideEffect = new ConstructorParamSideEffect();
+class ConstructorParamSideEffect {
+	constructor ( foo = console.log( 'effect' ) ) {}
+}
+const constructorParamSideEffect = new ConstructorParamSideEffect();
 
-			class ConstructorParamCallSideEffect {
-				constructor ( foo = () => console.log( 'effect' ) ) {
-					foo();
-				}
-			}
-			const constructorParamCallSideEffect = new ConstructorParamCallSideEffect();
+class ConstructorParamCallSideEffect {
+	constructor ( foo = () => console.log( 'effect' ) ) {
+		foo();
+	}
+}
+const constructorParamCallSideEffect = new ConstructorParamCallSideEffect();
 
-			class MethodCallSideEffect {
-				constructor () {
-					this.effect();
-				}
+class MethodCallSideEffect {
+	constructor () {
+		this.effect();
+	}
 
-				effect () {
-					console.log( 'effect' );
-				}
-			}
-			const methodCallSideEffect = new MethodCallSideEffect();
+	effect () {
+		console.log( 'effect' );
+	}
+}
+const methodCallSideEffect = new MethodCallSideEffect();
 
 		}
 	};

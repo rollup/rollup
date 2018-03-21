@@ -8,12 +8,12 @@ System.register(['./chunk-c4e4bfeb.js'], function (exports, module) {
     }],
     execute: function () {
 
-      class Main1 {
-        constructor () {
-          fn();
-          console.log(text);
-        }
-      } exports('default', Main1);
+class Main1 {
+  constructor () {
+    fn();
+    console.log(text);
+  }
+} exports('default', Main1);
 
     }
   };

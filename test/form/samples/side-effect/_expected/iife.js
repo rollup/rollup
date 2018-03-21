@@ -1,8 +1,8 @@
 (function () {
-	'use strict';
+'use strict';
 
-	var foo = 42;
+var foo = 42;
 
-	assert.equal( foo, 42 );
+assert.equal( foo, 42 );
 
 }());

@@ -1,7 +1,7 @@
 (function () {
-	'use strict';
+'use strict';
 
-	function x () { return 'x' }
-	assert.equal( x(), 'x' );
+function x () { return 'x' }
+assert.equal( x(), 'x' );
 
 }());

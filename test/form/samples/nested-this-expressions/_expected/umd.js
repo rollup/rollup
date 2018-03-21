@@ -4,30 +4,30 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	function mutateThis () {
-		this.x = 1;
-	}
-	mutateThis();
+function mutateThis () {
+	this.x = 1;
+}
+mutateThis();
 
-	function mutateNestedThis () {
-		const mutateNested = () => this.bar = 1;
-		mutateNested();
-	}
-	mutateNestedThis();
+function mutateNestedThis () {
+	const mutateNested = () => this.bar = 1;
+	mutateNested();
+}
+mutateNestedThis();
 
-	function mutateThisConditionally () {
-		if ( globalCondition ) {
-			this.baz = 1;
-		}
+function mutateThisConditionally () {
+	if ( globalCondition ) {
+		this.baz = 1;
 	}
-	mutateThisConditionally();
+}
+mutateThisConditionally();
 
-	function CallSelfWithoutNew () {
-		this.quux = 1;
-		if ( globalCondition ) {
-			CallSelfWithoutNew();
-		}
+function CallSelfWithoutNew () {
+	this.quux = 1;
+	if ( globalCondition ) {
+		CallSelfWithoutNew();
 	}
-	const c = new CallSelfWithoutNew();
+}
+const c = new CallSelfWithoutNew();
 
 })));

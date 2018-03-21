@@ -6,7 +6,7 @@ System.register(['external'], function (exports, module) {
 		}],
 		execute: function () {
 
-			console.log('dep');
+console.log('dep');
 
 		}
 	};

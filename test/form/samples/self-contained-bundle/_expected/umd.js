@@ -4,19 +4,19 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	function foo () {
-		console.log( bar() );
-	}
+function foo () {
+	console.log( bar() );
+}
 
-	function bar () {
-		return 42;
-	}
+function bar () {
+	return 42;
+}
 
-	// comment before 1
+// comment before 1
 
-	console.log( 1 );
-	console.log( 2 ); // comment alongside 2
-	foo();
-	console.log( 3 );
+console.log( 1 );
+console.log( 2 ); // comment alongside 2
+foo();
+console.log( 3 );
 
 })));

@@ -4,7 +4,7 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	Unknown.staticMember;
-	Unknown.prototype.method;
+Unknown.staticMember;
+Unknown.prototype.method;
 
 })));

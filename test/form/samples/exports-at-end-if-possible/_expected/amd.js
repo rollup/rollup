@@ -1,13 +1,13 @@
 define(['exports'], function (exports) { 'use strict';
 
-	var FOO = 'foo';
+var FOO = 'foo';
 
-	console.log( FOO );
-	console.log( FOO );
-	console.log( FOO );
+console.log( FOO );
+console.log( FOO );
+console.log( FOO );
 
-	exports.FOO = FOO;
+exports.FOO = FOO;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 
 });

@@ -1,10 +1,10 @@
 (function () {
-	'use strict';
+'use strict';
 
-	function bar () {
-		console.log( 'this should be included' );
-	}
+function bar () {
+	console.log( 'this should be included' );
+}
 
-	bar();
+bar();
 
 }());

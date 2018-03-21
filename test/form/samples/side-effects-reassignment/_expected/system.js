@@ -3,12 +3,12 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var effect = function() {
-				console.log('effect');
-			};
+var effect = function() {
+	console.log('effect');
+};
 
-			var alsoEffect = effect;
-			alsoEffect();
+var alsoEffect = effect;
+alsoEffect();
 
 		}
 	};

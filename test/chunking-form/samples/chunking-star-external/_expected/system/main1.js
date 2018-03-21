@@ -15,7 +15,7 @@ System.register(['starexternal1', 'external1', './chunk-5a45fc42.js'], function 
 		}],
 		execute: function () {
 
-			var main = exports('main', '1');
+var main = exports('main', '1');
 
 		}
 	};

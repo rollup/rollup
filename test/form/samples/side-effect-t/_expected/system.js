@@ -3,11 +3,11 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			function foo () {
-				throw new Error( 'throw side effect' );
-			}
+function foo () {
+	throw new Error( 'throw side effect' );
+}
 
-			foo();
+foo();
 
 		}
 	};

@@ -3,26 +3,26 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var foo = () => {};
+var foo = () => {};
 
-			while ( true ) {
-				var foo = () => console.log( 'effect' );
-				break;
-			}
+while ( true ) {
+	var foo = () => console.log( 'effect' );
+	break;
+}
 
-			foo();
+foo();
 
-			function baz () {}
+function baz () {}
 
-			while ( true ) {
-				function baz () {
-					console.log( 'effect' );
-				}
+while ( true ) {
+	function baz () {
+		console.log( 'effect' );
+	}
 
-				break;
-			}
+	break;
+}
 
-			baz();
+baz();
 
 		}
 	};

@@ -3,13 +3,13 @@ System.register([], function (exports, module) {
   return {
     execute: function () {
 
-      class One {
-        test() {
-            return ONE_CONSTANT;
-        }
-      } exports('One', One);
+class One {
+  test() {
+      return ONE_CONSTANT;
+  }
+} exports('One', One);
 
-      const ONE_CONSTANT = exports('ONE_CONSTANT', 'oneconstant');
+const ONE_CONSTANT = exports('ONE_CONSTANT', 'oneconstant');
 
     }
   };

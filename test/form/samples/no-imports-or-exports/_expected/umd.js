@@ -4,6 +4,6 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	console.log( 'this is it' );
+console.log( 'this is it' );
 
 })));

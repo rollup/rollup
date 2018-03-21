@@ -1,21 +1,21 @@
 (function () {
-	'use strict';
+'use strict';
 
-	const getter = {
-		get foo () {
-			console.log( 'effect' );
-		}
-	};
-	const foo1 = getter.foo;
-
-	const empty = {};
-	const foo2 = empty.foo.tooDeep;
-
-	function accessArg(arg) {
-		const foo3 = arg.tooDeep;
+const getter = {
+	get foo () {
+		console.log( 'effect' );
 	}
-	accessArg(null);
+};
+const foo1 = getter.foo;
 
-	const foo4 = globalVar.unknownProperty;
+const empty = {};
+const foo2 = empty.foo.tooDeep;
+
+function accessArg(arg) {
+	const foo3 = arg.tooDeep;
+}
+accessArg(null);
+
+const foo4 = globalVar.unknownProperty;
 
 }());

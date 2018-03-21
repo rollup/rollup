@@ -7,30 +7,30 @@ System.register(['external'], function (exports, module) {
 		}],
 		execute: function () {
 
-			class Foo extends Component {
-				constructor () {
-					super();
-					this.isFoo = true;
-				}
-			}
+class Foo extends Component {
+	constructor () {
+		super();
+		this.isFoo = true;
+	}
+}
 
-			class Bar extends Component {
-				constructor () {
-					super();
-					this.isBar = true;
-				}
-			}
+class Bar extends Component {
+	constructor () {
+		super();
+		this.isBar = true;
+	}
+}
 
-			class Baz extends Component {
-				constructor () {
-					super();
-					this.isBaz = true;
-				}
-			}
+class Baz extends Component {
+	constructor () {
+		super();
+		this.isBaz = true;
+	}
+}
 
-			const foo = exports('foo', new Foo());
-			const bar = exports('bar', new Bar());
-			const baz = exports('baz', new Baz());
+const foo = exports('foo', new Foo());
+const bar = exports('bar', new Bar());
+const baz = exports('baz', new Baz());
 
 		}
 	};

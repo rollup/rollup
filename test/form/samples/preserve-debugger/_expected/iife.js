@@ -1,8 +1,8 @@
 (function () {
-	'use strict';
+'use strict';
 
-	before();
-	debugger;
-	after();
+before();
+debugger;
+after();
 
 }());

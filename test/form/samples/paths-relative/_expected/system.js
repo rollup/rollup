@@ -7,7 +7,7 @@ System.register(['../foo'], function (exports, module) {
 		}],
 		execute: function () {
 
-			assert.equal( foo, 42 );
+assert.equal( foo, 42 );
 
 		}
 	};

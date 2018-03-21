@@ -3,92 +3,92 @@ System.register([], function (exports, module) {
   return {
     execute: function () {
 
-      // jsjjjsjjjjsjs
+// jsjjjsjjjjsjs
 
-      /* jsjjddjksj */ // Too many comments lol
+/* jsjjddjksj */ // Too many comments lol
 
-      function Fn
+function Fn
 
-      //iian iaouns
-      /* aaain ob skubz
+//iian iaouns
+/* aaain ob skubz
 
 
-      */
+*/
 
-      () {
-        console.log("Foo");
-      }
+() {
+  console.log("Foo");
+}
 
-      // jsjjjsjjjjsjs
+// jsjjjsjjjjsjs
 
-      /* jsjjddjksj
-      */ // Too many comments lol
+/* jsjjddjksj
+*/ // Too many comments lol
 
-      async /* [no LineTerminator here] */ function Async
+async /* [no LineTerminator here] */ function Async
 
-      //iian iaouns
-      /* aaain ob skubz */
+//iian iaouns
+/* aaain ob skubz */
 
-      () {
-        console.log("Foo");
-      }
+() {
+  console.log("Foo");
+}
 
-      // jsjjjsjjjjsjs
+// jsjjjsjjjjsjs
 
-      /* jsjjddjksj */ // Too many comments lol
+/* jsjjddjksj */ // Too many comments lol
 
-      function
+function
 
-      /* oiasnpiueno */
-      /// iauianpns
+/* oiasnpiueno */
+/// iauianpns
 
-      /* aiusni
-      */
+/* aiusni
+*/
 
-      * Generator
+* Generator
 
-      //iian iaouns
-      /* aaain ob skubz */
+//iian iaouns
+/* aaain ob skubz */
 
-      () {
-        console.log("Foo");
-      }
+() {
+  console.log("Foo");
+}
 
-      // jsjjjsjjjjsjs
+// jsjjjsjjjjsjs
 
-      /* jsjjddjksj */ // Too many comments lol
+/* jsjjddjksj */ // Too many comments lol
 
-      class Class
+class Class
 
-      /* oiasnpiueno */
-      /// iauianpns
+/* oiasnpiueno */
+/// iauianpns
 
-      /* aiusni
-      */
+/* aiusni
+*/
 
-      //iian iaouns
-      /* aaain ob skubz */
+//iian iaouns
+/* aaain ob skubz */
 
-      {
-        constructor() {
-          console.log("Foo");
-        }
-      }
+{
+  constructor() {
+    console.log("Foo");
+  }
+}
 
-      /* 2 */function spacelessFn/* 3 */()/* 4 */{
-        console.log("Foo");
-      }
+/* 2 */function spacelessFn/* 3 */()/* 4 */{
+  console.log("Foo");
+}
 
-      function* spacelessGenerator(){
-        console.log("Foo");
-      }
+function* spacelessGenerator(){
+  console.log("Foo");
+}
 
-      Fn();
-      Async();
-      Generator();
-      new Class();
-      spacelessFn();
-      spacelessGenerator();
+Fn();
+Async();
+Generator();
+new Class();
+spacelessFn();
+spacelessGenerator();
 
     }
   };

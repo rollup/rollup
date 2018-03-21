@@ -3,10 +3,10 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var x = exports('x', {foo: 'bar'});
-			delete x.foo;
+var x = exports('x', {foo: 'bar'});
+delete x.foo;
 
-			delete globalVariable.foo;
+delete globalVariable.foo;
 
 		}
 	};
