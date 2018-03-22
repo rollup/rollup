@@ -1,7 +1,14 @@
 import path from 'path';
 import { EventEmitter } from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
-import rollup, { CachedChunk, CachedChunkSet, InputOptions, OutputOptions, OutputChunk, OutputChunkSet } from '../rollup/index';
+import rollup, {
+	CachedChunk,
+	CachedChunkSet,
+	InputOptions,
+	OutputOptions,
+	OutputChunk,
+	OutputChunkSet
+} from '../rollup/index';
 import ensureArray from '../utils/ensureArray';
 import { mapSequence } from '../utils/promise';
 import { addTask, deleteTask } from './fileWatchers';
@@ -195,9 +202,9 @@ export class Task {
 			.then((result: OutputChunk | OutputChunkSet) => {
 				if (this.closed) return;
 
-				const watched = this.watched = new Set();
+				const watched = (this.watched = new Set());
 
-				const watchChunk = (chunk: {modules: ModuleJSON[]}) => {
+				const watchChunk = (chunk: { modules: ModuleJSON[] }) => {
 					chunk.modules.forEach((module: ModuleJSON) => {
 						watched.add(module.id);
 						this.watchFile(module.id);
@@ -206,7 +213,7 @@ export class Task {
 					this.watched.forEach(id => {
 						if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
 					});
-				}
+				};
 
 				this.cache = result;
 				if ((<OutputChunkSet>result).chunks) {
@@ -215,18 +222,19 @@ export class Task {
 						watchChunk(chunks[chunkName]);
 					}
 				} else {
-					const chunk = (<OutputChunk>result);
-					watchChunk(chunk)
+					const chunk = <OutputChunk>result;
+					watchChunk(chunk);
 				}
 
-				return Promise.all(this.outputs.map(output => result.write(output)));
+				return Promise.all(this.outputs.map(output => result.write(output))).then(() => result);
 			})
-			.then(() => {
+			.then((result: OutputChunk | OutputChunkSet) => {
 				this.watcher.emit('event', {
 					code: 'BUNDLE_END',
 					input: this.inputOptions.input,
 					output: this.outputFiles,
-					duration: Date.now() - start
+					duration: Date.now() - start,
+					result
 				});
 			})
 			.catch((error: Error) => {
@@ -238,7 +246,7 @@ export class Task {
 					if ((<CachedChunk>this.cache).modules) {
 						(<CachedChunk>this.cache).modules.forEach(module => {
 							this.watchFile(module.id);
-						})
+						});
 					} else {
 						const chunks = (<CachedChunkSet>this.cache).chunks;
 						for (const chunkName in chunks) {
