@@ -12,6 +12,7 @@ import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import { RollupError } from '../../../src/utils/error';
 import { RollupWatchOptions } from '../../../src/watch/index';
+import { printTimings } from './timings';
 
 interface WatchEvent {
 	code: string;
@@ -118,6 +119,9 @@ export default function watch(
 								)}`
 							)
 						);
+					if (event.result && event.result.getTimings) {
+						printTimings(event.result.getTimings());
+					}
 					break;
 
 				case 'END':

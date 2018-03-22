@@ -1,5 +1,8 @@
 # rollup changelog
 
+## 0.58.0 (unreleased)
+* Enable `--perf` timings in watch mode ([#2065](https://github.com/rollup/rollup/pull/2065))
+
 ## 0.57.1
 * Improve sourcemap generation performance ([#2062](https://github.com/rollup/rollup/pull/2062))
 * Add reserved config option namespace and improve CLI interface ([#2063](https://github.com/rollup/rollup/pull/2063))
