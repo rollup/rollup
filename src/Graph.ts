@@ -10,7 +10,7 @@ import { mapSequence } from './utils/promise';
 import transform from './utils/transform';
 import relativeId, { nameWithoutExtension } from './utils/relativeId';
 import error from './utils/error';
-import { isRelative, resolve, basename } from './utils/path';
+import { isRelative, resolve, basename, relative } from './utils/path';
 import {
 	InputOptions,
 	IsExternalHook,
@@ -545,6 +545,16 @@ export default class Graph {
 				curEntryHash = randomUint8Array(10);
 
 				for (curEntry of chunkModules[chunkName]) {
+					if (curEntry.chunkAlias) {
+						error({
+							code: 'INVALID_CHUNK',
+							message: `Cannot assign ${relative(
+								process.cwd(),
+								curEntry.id
+							)} to the "${chunkName}" chunk as it is already in the "${curEntry.chunkAlias}" chunk.
+Try defining "${chunkName}" first in the manualChunks definitions of the Rollup configuration.`
+						});
+					}
 					curEntry.chunkAlias = chunkName;
 					parents = { [curEntry.id]: null };
 					visit(curEntry);
