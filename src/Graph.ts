@@ -347,19 +347,6 @@ export default class Graph {
 
 				const entryModules = entryAndChunkModules.slice(0, entryModuleIds.length);
 
-				if (entryModuleAliases) {
-					entryModules.forEach((entryModule, index) => {
-						if (entryModule.alias)
-							error({
-								code: 'DUPLICATE_ENTRY_POINTS',
-								message: `Duplicate entry points detected. The input entries ${
-									entryModule.alias
-								} and ${entryModuleAliases[index]} both point to the same module, ${entryModule.id}`
-							});
-						entryModule.alias = entryModuleAliases[index];
-					});
-				}
-
 				let manualChunkModules: { [chunkName: string]: Module[] };
 				if (manualChunks) {
 					manualChunkModules = {};
@@ -378,11 +365,25 @@ export default class Graph {
 					manualChunkModules
 				);
 
+				if (entryModuleAliases) {
+					entryModules.forEach((entryModule, index) => {
+						if (entryModule.chunkAlias)
+							error({
+								code: 'DUPLICATE_ENTRY_POINTS',
+								message: `Duplicate entry points detected. The input entries ${
+									entryModule.chunkAlias
+								} and ${entryModuleAliases[index]} both point to the same module, ${entryModule.id}`
+							});
+						entryModule.chunkAlias = entryModuleAliases[index];
+					});
+				}
+
 				for (let i = 0; i < dynamicImports.length; i++) {
 					const dynamicImportModule = dynamicImports[i];
 					if (entryModules.indexOf(dynamicImportModule) === -1) {
 						entryModules.push(dynamicImportModule);
-						dynamicImportModule.alias = dynamicImportAliases[i];
+						if (!dynamicImportModule.chunkAlias)
+							dynamicImportModule.chunkAlias = dynamicImportAliases[i];
 					}
 				}
 
@@ -496,14 +497,19 @@ export default class Graph {
 			// hash xors, providing the unique colouring of the graph into unique hash chunks.
 			// This is really all there is to automated chunking, the rest is chunk wiring.
 			if (graphColouring) {
-				Uint8ArrayXor(module.entryPointsHash, curEntryHash);
-			} else if (curEntry.manualChunkName) {
-				module.manualChunkName = curEntry.manualChunkName;
-				module.entryPointsHash = curEntry.entryPointsHash;
+				if (!curEntry.chunkAlias) {
+					Uint8ArrayXor(module.entryPointsHash, curEntryHash);
+				} else {
+					// manual chunks are indicated in this phase by having a chunk alias
+					// they are treated as a single colour in the colouring
+					// and aren't divisable by future colourings
+					module.chunkAlias = curEntry.chunkAlias;
+					module.entryPointsHash = curEntryHash;
+				}
 			}
 
 			for (let depModule of module.dependencies) {
-				if (depModule.isExternal) continue;
+				if (depModule instanceof ExternalModule) continue;
 
 				if (depModule.id in parents) {
 					if (!allSeen[depModule.id]) {
@@ -513,7 +519,7 @@ export default class Graph {
 				}
 
 				parents[depModule.id] = module.id;
-				if (!depModule.isEntryPoint && !module.manualChunkName) visit(<Module>depModule);
+				if (!depModule.isEntryPoint && !depModule.chunkAlias) visit(<Module>depModule);
 			}
 
 			if (this.dynamicImport) {
@@ -534,12 +540,12 @@ export default class Graph {
 			orderedModules.push(module);
 		};
 
-		if (chunkModules) {
+		if (graphColouring && chunkModules) {
 			for (let chunkName of Object.keys(chunkModules)) {
+				curEntryHash = randomUint8Array(10);
+
 				for (curEntry of chunkModules[chunkName]) {
-					curEntry.isEntryPoint = true;
-					curEntry.manualChunkName = chunkName;
-					curEntryHash = randomUint8Array(10);
+					curEntry.chunkAlias = chunkName;
 					parents = { [curEntry.id]: null };
 					visit(curEntry);
 				}

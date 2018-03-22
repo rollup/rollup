@@ -124,7 +124,6 @@ export default class Module {
 	exportsAll: { [name: string]: string };
 	exportAllSources: string[];
 	id: string;
-	alias: string;
 
 	imports: { [name: string]: ImportDescription };
 	isExternal: false;
@@ -144,7 +143,7 @@ export default class Module {
 
 	execIndex: number;
 	isEntryPoint: boolean;
-	manualChunkName: string;
+	chunkAlias: string;
 	entryPointsHash: Uint8Array;
 	chunk: Chunk;
 
@@ -161,7 +160,7 @@ export default class Module {
 
 	constructor(graph: Graph, id: string) {
 		this.id = id;
-		this.alias = undefined;
+		this.chunkAlias = undefined;
 		this.graph = graph;
 		this.comments = [];
 
@@ -170,7 +169,6 @@ export default class Module {
 			this.dynamicImportResolutions = [];
 		}
 		this.isEntryPoint = false;
-		this.manualChunkName = undefined;
 		this.execIndex = null;
 		this.entryPointsHash = new Uint8Array(10);
 
