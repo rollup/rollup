@@ -27,14 +27,6 @@
     <img src='https://badges.gitter.im/rollup/rollup.svg'
          alt='Join the chat at https://gitter.im/rollup/rollup'>
   </a>
-  <a href='https://opencollective.com/rollup/backers'>
-    <img src='https://opencollective.com/rollup/backers/badge.svg'
-         alt='Backers on Open Collective'>
-  </a>
-  <a href='https://opencollective.com/rollup/sponsors'>
-    <img src='https://opencollective.com/rollup/sponsors/badge.svg'
-         alt='Sponsors on Open Collective'>
-  </a>
 </p>
 
 
