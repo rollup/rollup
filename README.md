@@ -53,7 +53,7 @@ For Node.js:
 
 ```bash
 # compile to a CommonJS module
-$ rollup main.js --format cjs --output.file bundle.js
+$ rollup main.js --format cjs --file bundle.js
 ```
 
 For both browsers and Node.js:
