@@ -1,4 +1,4 @@
-System.register(['./deps/dep2.js', './deps/dep3.js'], function (exports, module) {
+System.register(['./deps/dep2.js', './deps/dep3.js', './lib/lib2.js', './lib/lib1.js'], function (exports, module) {
   'use strict';
   var fn, fn$1;
   return {
@@ -6,6 +6,10 @@ System.register(['./deps/dep2.js', './deps/dep3.js'], function (exports, module)
       fn = module.fn;
     }, function (module) {
       fn$1 = module.fn;
+    }, function (module) {
+      
+    }, function (module) {
+      
     }],
     execute: function () {
 

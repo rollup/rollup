@@ -1,6 +1,7 @@
 # rollup changelog
 
 ## 0.58.0 (unreleased)
+* Automatically import deep dependencies when code splitting for better performance ([#2073](https://github.com/rollup/rollup/pull/2073))
 * Enable `--perf` timings in watch mode ([#2065](https://github.com/rollup/rollup/pull/2065))
 * Remove duplicate badges from readme ([#2083](https://github.com/rollup/rollup/pull/2083))
 

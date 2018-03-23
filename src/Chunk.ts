@@ -595,11 +595,6 @@ export default class Chunk {
 
 		const dependencies: ChunkDependencies = [];
 
-		// shortcut cross-chunk relations can be added by traceExport
-		this.imports.forEach(impt => {
-			if (this.dependencies.indexOf(impt.module) === -1) this.dependencies.push(impt.module);
-		});
-
 		this.dependencies.forEach(dep => {
 			const importSpecifiers = this.imports.find(impt => impt.module === dep);
 
@@ -673,7 +668,28 @@ export default class Chunk {
 		return exports;
 	}
 
+	private inlineDeepModuleDependencies() {
+		// if an entry point facade, inline the execution list to avoid loading latency
+		if (this.isEntryModuleFacade) {
+			const inlineDeepChunkDependencies = (dep: Chunk | ExternalModule) => {
+				if (dep === this || this.dependencies.indexOf(dep) !== -1) return;
+				this.dependencies.push(dep);
+				if (dep instanceof Chunk) dep.dependencies.forEach(inlineDeepChunkDependencies);
+			};
+			this.dependencies.forEach(dep => {
+				if (dep instanceof Chunk) dep.dependencies.forEach(inlineDeepChunkDependencies);
+			});
+		} else {
+			// shortcut cross-chunk relations can be added by traceExport
+			this.imports.forEach(impt => {
+				if (this.dependencies.indexOf(impt.module) === -1) this.dependencies.push(impt.module);
+			});
+		}
+	}
+
 	getModuleDeclarations(): ModuleDeclarations {
+		this.inlineDeepModuleDependencies();
+
 		return {
 			dependencies: this.getChunkDependencyDeclarations(),
 			exports: this.getChunkExportDeclarations()
