@@ -111,10 +111,10 @@ export default class Chunk {
 	entryModule: Module;
 	isEntryModuleFacade: boolean;
 
-	renderedHash: string;
-	renderedSources: MagicString[];
-	renderedSource: MagicStringBundle;
-	renderedDeclarations: { dependencies: ChunkDependencies; exports: ChunkExports };
+	private renderedHash: string;
+	private renderedSources: MagicString[];
+	private renderedSource: MagicStringBundle;
+	private renderedDeclarations: { dependencies: ChunkDependencies; exports: ChunkExports };
 
 	constructor(graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
@@ -374,8 +374,9 @@ export default class Chunk {
 		}
 	}
 
-	generateInternalExports(mangle: boolean = false) {
+	generateInternalExports(options: OutputOptions) {
 		if (this.isEntryModuleFacade) return;
+		const mangle = options.format === 'system' || options.format === 'es';
 		let i = 0,
 			safeExportName: string;
 		this.exportNames = Object.create(null);
@@ -717,6 +718,25 @@ export default class Chunk {
 		return (this.renderedHash = hash.digest('hex'));
 	}
 
+	/*
+	 * Chunk dependency output graph post-visitor
+	 * Visitor can return "true" to indicate a propogated stop condition
+	 */
+	postVisit(visitor: (dep: Chunk | ExternalModule) => any): boolean {
+		// add in hashes of all dependent chunks and resolved external ids
+		function visitDep(dep: Chunk | ExternalModule, seen: (Chunk | ExternalModule)[]): boolean {
+			if (seen.indexOf(dep) !== -1) return;
+			seen.push(dep);
+			if (dep instanceof Chunk) {
+				for (let subDep of dep.dependencies) {
+					if (visitDep(subDep, seen)) return true;
+				}
+			}
+			return visitor(dep) === true;
+		}
+		return visitDep(this, []);
+	}
+
 	private computeFullHash(addons: Addons, options: OutputOptions): string {
 		const hash = sha256();
 
@@ -733,21 +753,10 @@ export default class Chunk {
 		hash.update(this.dependencies.length);
 
 		// add in hashes of all dependent chunks and resolved external ids
-		function visitDep(dep: Chunk, seen: Chunk[]) {
-			if (seen.indexOf(dep) !== -1) return;
-			seen.push(dep);
-
-			hash.update(dep.dependencies.length);
-			for (const subDep of dep.dependencies) {
-				if (subDep instanceof ExternalModule) {
-					hash.update(':' + subDep.renderPath);
-					return;
-				}
-				hash.update(subDep.getRenderedHash());
-				visitDep(subDep, seen);
-			}
-		}
-		visitDep(this, []);
+		this.postVisit(dep => {
+			if (dep instanceof ExternalModule) hash.update(':' + dep.renderPath);
+			else hash.update(dep.getRenderedHash());
+		});
 
 		return hash.digest('hex').substr(0, 8);
 	}
@@ -824,6 +833,62 @@ export default class Chunk {
 		};
 
 		timeEnd('render modules', 3);
+	}
+
+	getRenderedSourceLength() {
+		return this.renderedSource.toString().length;
+	}
+
+	/*
+	 * Performs a full merge of another chunk into this chunk
+	 * chunkList allows updating references in other chunks for the merged chunk to this chunk
+	 * A new facade will be added to chunkList if tainting exports of either as an entry point
+	 */
+	merge(chunk: Chunk, chunkList: Chunk[], options: OutputOptions) {
+		if (this.isEntryModuleFacade || chunk.isEntryModuleFacade)
+			throw new Error('Internal error: Code splitting chunk merges not supported for facades');
+
+		chunkList.forEach(c => {
+			let included = false;
+			for (let i = 0; i < c.dependencies.length; i++) {
+				const dep = c.dependencies[i];
+				if (dep === chunk) {
+					if (included) {
+						c.dependencies.splice(i--, 1);
+						break;
+					}
+					c.dependencies[i] = this;
+					included = true;
+				} else if (dep === this) {
+					if (included) {
+						c.dependencies.splice(i--, 1);
+						break;
+					}
+					included = true;
+				}
+			}
+		});
+
+		this.orderedModules = this.orderedModules.concat(chunk.orderedModules);
+		this.orderedModules.forEach(module => (module.chunk = this));
+
+		for (let [variable, module] of Array.from(chunk.imports.entries())) {
+			if (!this.imports.has(variable) && module.chunk !== this) {
+				this.imports.set(variable, module);
+			}
+		}
+
+		for (let [variable, module] of Array.from(chunk.exports.entries())) {
+			if (!this.exports.has(variable)) {
+				this.exports.set(variable, module);
+			}
+		}
+
+		// regenerate internal names
+		this.generateInternalExports(options);
+
+		// re-render the merged chunk
+		this.preRender(options);
 	}
 
 	generateNamePreserveModules(preserveModulesRelativeDir: string) {

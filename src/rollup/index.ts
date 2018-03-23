@@ -11,6 +11,8 @@ import ensureArray from '../utils/ensureArray';
 import { SourceMap } from 'magic-string';
 import { createAddons } from '../utils/addons';
 import commondir from '../utils/commondir';
+import { optimizeChunks } from '../chunk-optimization';
+
 import {
 	WarningHandler,
 	InputOptions,
@@ -165,7 +167,7 @@ export default function rollup(
 							return createAddons(graph, outputOptions);
 						})
 						.then(addons => {
-							chunk.generateInternalExports();
+							chunk.generateInternalExports(outputOptions);
 							chunk.preRender(outputOptions);
 							return chunk.render(outputOptions, addons);
 						})
@@ -324,15 +326,14 @@ export default function rollup(
 								Promise.resolve()
 									.then(() => {
 										if (!inputOptions.experimentalPreserveModules) {
-											const mangleExportNames =
-												outputOptions.format === 'system' || outputOptions.format === 'es';
 											for (let chunk of chunks) {
-												chunk.generateInternalExports(mangleExportNames);
+												chunk.generateInternalExports(outputOptions);
 											}
 										}
 										for (let chunk of chunks) {
 											chunk.preRender(outputOptions);
 										}
+										chunks = optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize);
 										for (let chunk of chunks) {
 											if (inputOptions.experimentalPreserveModules) {
 												chunk.generateNamePreserveModules(preserveModulesBase);
