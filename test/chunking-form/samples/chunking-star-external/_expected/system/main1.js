@@ -12,11 +12,7 @@ System.register(['starexternal1', 'external1', './chunk-c79a883a.js', 'starexter
 			exports('e', module.e);
 		}, function (module) {
 			exports('dep', module.dep);
-		}, function (module) {
-			
-		}, function (module) {
-			
-		}],
+		}, function () {}, function () {}],
 		execute: function () {
 
 			var main = exports('main', '1');

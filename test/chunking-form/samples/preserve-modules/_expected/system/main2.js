@@ -6,11 +6,7 @@ System.register(['./deps/dep2.js', './deps/dep3.js', './lib/lib2.js', './lib/lib
       fn = module.fn;
     }, function (module) {
       fn$1 = module.fn;
-    }, function (module) {
-      
-    }, function (module) {
-      
-    }],
+    }, function () {}, function () {}],
     execute: function () {
 
       class Main2 {

@@ -110,11 +110,7 @@ ${t}'use strict';${starExcludesSection}${importBindingsSection}
 ${t}return {${
 		setters.length
 			? `\n${t}${t}setters: [${setters
-					.map(
-						s => `function (module) {
-${t}${t}${t}${s}
-${t}${t}}`
-					)
+					.map(s => (s ? `function (module) {\n${t}${t}${t}${s}\n${t}${t}}` : `function () {}`))
 					.join(', ')}],`
 			: ''
 	}

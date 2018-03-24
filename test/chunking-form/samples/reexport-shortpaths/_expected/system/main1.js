@@ -2,9 +2,7 @@ System.register(['./chunk-a87fa548.js', './chunk-aa2ad1a6.js'], function (export
 	'use strict';
 	var foo;
 	return {
-		setters: [function (module) {
-			
-		}, function (module) {
+		setters: [function () {}, function (module) {
 			foo = module.default;
 		}],
 		execute: function () {

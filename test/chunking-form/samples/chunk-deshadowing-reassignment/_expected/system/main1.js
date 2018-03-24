@@ -5,11 +5,7 @@ System.register(['./chunk-9b7c35aa.js', './chunk-2ec47290.js', './chunk-a5be984a
 		setters: [function (module) {
 			x = module.default;
 			y = module.default$1;
-		}, function (module) {
-			
-		}, function (module) {
-			
-		}],
+		}, function () {}, function () {}],
 		execute: function () {
 
 			console.log(x + y);

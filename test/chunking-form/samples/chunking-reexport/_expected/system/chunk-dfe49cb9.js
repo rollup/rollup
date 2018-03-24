@@ -1,9 +1,7 @@
 System.register(['external'], function (exports, module) {
 	'use strict';
 	return {
-		setters: [function (module) {
-			
-		}],
+		setters: [function () {}],
 		execute: function () {
 
 			console.log('dep');
