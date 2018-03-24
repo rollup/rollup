@@ -493,7 +493,7 @@ export default function rollup(
 												} else {
 													pattern = outputOptions.chunkNames || '[alias]-[hash].js';
 												}
-												chunk.generateName(pattern, addons, existingNames);
+												chunk.generateName(pattern, addons, outputOptions, existingNames);
 											}
 										});
 									})

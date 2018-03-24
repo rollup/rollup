@@ -1,4 +1,4 @@
-define(['exports', './chunk-8a5db948.js'], function (exports, __chunk_1) { 'use strict';
+define(['exports', './chunk-312a5d4c.js'], function (exports, __chunk_1) { 'use strict';
 
     class Two {
         test() {

@@ -710,7 +710,7 @@ export default class Chunk {
 		return (this.renderedHash = hash.digest('hex'));
 	}
 
-	private computeFullHash(addons: Addons): string {
+	private computeFullHash(addons: Addons, options: OutputOptions): string {
 		const hash = sha256();
 
 		// own rendered source, except for finalizer wrapping
@@ -718,6 +718,8 @@ export default class Chunk {
 
 		// hash of addons
 		hash.update(addons.hash);
+
+		hash.update(options.format);
 
 		// import names of dependency sources
 		hash.update(this.dependencies.length);
@@ -815,12 +817,17 @@ export default class Chunk {
 		return (this.id = normalize(relative(preserveModulesRelativeDir, this.entryModule.id)));
 	}
 
-	generateName(pattern: string, addons: Addons, existingNames?: { [name: string]: boolean }) {
+	generateName(
+		pattern: string,
+		addons: Addons,
+		options: OutputOptions,
+		existingNames?: { [name: string]: boolean }
+	) {
 		// replace any chunk replacements
 		let outName = pattern.replace(/\[(hash|alias)\]/g, type => {
 			switch (type) {
 				case '[hash]':
-					return this.computeFullHash(addons);
+					return this.computeFullHash(addons, options);
 				case '[alias]':
 					if (!this.isEntryModuleFacade) {
 						return 'chunk';

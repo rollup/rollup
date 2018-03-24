@@ -1,5 +1,5 @@
 import { fn } from 'external';
-import { fn as fn$1 } from './chunk-b663d499.js';
+import { fn as fn$1 } from './chunk-7e4b4a9e.js';
 
 function fn$2 () {
   console.log('lib1 fn');

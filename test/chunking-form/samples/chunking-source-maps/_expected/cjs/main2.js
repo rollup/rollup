@@ -1,6 +1,6 @@
 'use strict';
 
-var __chunk_1 = require('./chunk-b663d499.js');
+var __chunk_1 = require('./chunk-4f86373a.js');
 
 function fn () {
   console.log('lib1 fn');

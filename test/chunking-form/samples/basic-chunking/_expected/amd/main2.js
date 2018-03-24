@@ -1,4 +1,4 @@
-define(['./chunk-b663d499.js'], function (__chunk_1) { 'use strict';
+define(['./chunk-aaa4e18a.js'], function (__chunk_1) { 'use strict';
 
   function fn () {
     console.log('lib1 fn');
