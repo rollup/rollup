@@ -22,6 +22,7 @@ import { NodeType } from './ast/nodes/index';
 import { RenderOptions } from './utils/renderHelpers';
 import { Addons } from './utils/addons';
 import sha256 from 'hash.js/lib/hash/sha/256';
+import { nameWithoutExtension, jsExts } from './utils/relativeId';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;
@@ -826,10 +827,7 @@ export default class Chunk {
 					} else if (this.entryModule.alias) {
 						return this.entryModule.alias;
 					} else {
-						let alias = basename(this.entryModule.id);
-						if (alias.endsWith('.js')) alias = alias.substr(0, alias.length - 3);
-						else if (alias.endsWith('.mjs')) alias = alias.substr(0, alias.length - 4);
-						return alias;
+						return nameWithoutExtension(basename(this.entryModule.id));
 					}
 			}
 		});
@@ -839,8 +837,7 @@ export default class Chunk {
 				existingNames[outName] = true;
 			} else {
 				let ext = extname(outName);
-				if (ext === '.js' || ext === '.mjs')
-					outName = outName.substr(0, outName.length - ext.length);
+				if (jsExts.indexOf(ext) !== -1) outName = outName.substr(0, outName.length - ext.length);
 				else ext = '';
 				let uniqueName,
 					uniqueIndex = 1;
