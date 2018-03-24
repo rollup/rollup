@@ -17,27 +17,27 @@ export default function deprecateOptions(
 
 	function deprecateInputOptions() {
 		if (!options.input && options.entry) deprecate('entry', 'input');
-		if (options.dest) deprecate('dest', 'output.file');
-		if (options.moduleName) deprecate('moduleName', 'output.name');
-		if (options.name) deprecate('name', 'output.name');
-		if (options.extend) deprecate('extend', 'output.extend');
-		if (options.globals) deprecate('globals', 'output.globals');
-		if (options.indent) deprecate('indent', 'output.indent');
-		if (options.noConflict) deprecate('noConflict', 'output.noConflict');
-		if (options.paths) deprecate('paths', 'output.paths');
-		if (options.sourcemap) deprecate('sourcemap', 'output.sourcemap');
-		if (options.sourceMap) deprecate('sourceMap', 'output.sourcemap');
-		if (options.sourceMapFile) deprecate('sourceMapFile', 'output.sourcemapFile');
-		if (options.useStrict) deprecate('useStrict', 'output.strict');
-		if (options.strict) deprecate('strict', 'output.strict');
-		if (options.format) deprecate('format', 'output.format');
-		if (options.banner) deprecate('banner', 'output.banner');
-		if (options.footer) deprecate('footer', 'output.footer');
-		if (options.intro) deprecate('intro', 'output.intro');
-		if (options.outro) deprecate('outro', 'output.outro');
-		if (options.interop) deprecate('interop', 'output.interop');
-		if (options.freeze) deprecate('freeze', 'output.freeze');
-		if (options.exports) deprecate('exports', 'output.exports');
+		if (options.dest) deprecateToOutputOption('dest', 'file');
+		if (options.moduleName) deprecateToOutputOption('moduleName', 'name');
+		if (options.name) deprecateToOutputOption('name', 'name');
+		if (options.extend) deprecateToOutputOption('extend', 'extend');
+		if (options.globals) deprecateToOutputOption('globals', 'globals');
+		if (options.indent) deprecateToOutputOption('indent', 'indent');
+		if (options.noConflict) deprecateToOutputOption('noConflict', 'noConflict');
+		if (options.paths) deprecateToOutputOption('paths', 'paths');
+		if (options.sourcemap) deprecateToOutputOption('sourcemap', 'sourcemap');
+		if (options.sourceMap) deprecateToOutputOption('sourceMap', 'sourcemap');
+		if (options.sourceMapFile) deprecateToOutputOption('sourceMapFile', 'sourcemapFile');
+		if (options.useStrict) deprecateToOutputOption('useStrict', 'strict');
+		if (options.strict) deprecateToOutputOption('strict', 'strict');
+		if (options.format) deprecateToOutputOption('format', 'format');
+		if (options.banner) deprecateToOutputOption('banner', 'banner');
+		if (options.footer) deprecateToOutputOption('footer', 'footer');
+		if (options.intro) deprecateToOutputOption('intro', 'intro');
+		if (options.outro) deprecateToOutputOption('outro', 'outro');
+		if (options.interop) deprecateToOutputOption('interop', 'interop');
+		if (options.freeze) deprecateToOutputOption('freeze', 'freeze');
+		if (options.exports) deprecateToOutputOption('exports', 'exports');
 
 		if (options.targets) {
 			deprecations.push({ old: 'targets', new: 'output' });
@@ -85,17 +85,20 @@ export default function deprecateOptions(
 		}
 	}
 
-	// a utility function to add deprecations for straightforward options
 	function deprecate(oldOption: string, newOption: string) {
 		deprecations.push({ new: newOption, old: oldOption });
-
-		if (newOption.indexOf('output') > -1) {
-			options.output = options.output || {};
-			options.output[newOption.replace(/output\./, '')] = options[oldOption];
-		} else {
+		if (!(newOption in options)) {
 			options[newOption] = options[oldOption];
 		}
+		delete options[oldOption];
+	}
 
+	function deprecateToOutputOption(oldOption: string, newOption: string) {
+		deprecations.push({ new: `output.${newOption}`, old: oldOption });
+		options.output = options.output || {};
+		if (!(newOption in options.output)) {
+			options.output[newOption] = options[oldOption];
+		}
 		delete options[oldOption];
 	}
 }

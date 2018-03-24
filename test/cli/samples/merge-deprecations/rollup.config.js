@@ -8,7 +8,7 @@ module.exports = {
 	format: 'es',
 	dest: '_actual/bundle1.js',
 	output: {
-		file: '_actual/bundle1.js',
+		file: '_actual/bundle2.js',
 		format: 'es'
 	},
 	plugins: [
