@@ -9,6 +9,6 @@ define(['exports'], function (exports) { 'use strict';
   }
 
   exports.default = log;
-  exports.default$1 = dep;
+  exports.dep = dep;
 
 });

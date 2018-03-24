@@ -196,6 +196,13 @@ export default class Chunk {
 		}
 	}
 
+	ensureExport(variable: Variable, module: Module | ExternalModule) {
+		if (this.isEntryModuleFacade && !this.exports.has(variable)) {
+			this.isEntryModuleFacade = false;
+		}
+		this.exports.set(variable, module);
+	}
+
 	linkFacade(entryFacade: Module) {
 		this.dependencies = [entryFacade.chunk];
 		this.entryModule = entryFacade;
@@ -204,7 +211,9 @@ export default class Chunk {
 		for (let exportName of entryFacade.getAllExports()) {
 			const traced = this.traceExport(exportName, entryFacade);
 			if (traced.variable) {
-				if (traced.module.chunk) traced.module.chunk.exports.set(traced.variable, traced.module);
+				if (traced.module.chunk) {
+					traced.module.chunk.ensureExport(traced.variable, traced.module);
+				}
 				this.exports.set(traced.variable, traced.module);
 			}
 			this.exportNames[exportName] = traced.variable;
@@ -253,7 +262,7 @@ export default class Chunk {
 
 				tracedExports[index] = traced;
 				if (!traced.variable) continue;
-				if (traced.module.chunk) traced.module.chunk.exports.set(traced.variable, traced.module);
+				if (traced.module.chunk) traced.module.chunk.ensureExport(traced.variable, traced.module);
 				const existingExport = this.exportNames[exportName];
 				// tainted entryModule boundary
 				if (existingExport && existingExport !== traced.variable) {
@@ -286,7 +295,7 @@ export default class Chunk {
 				const original = namespaceVariables[importName];
 				if (original.included) {
 					if (traced.module.chunk) {
-						traced.module.chunk.exports.set(original, traced.module);
+						traced.module.chunk.ensureExport(original, traced.module);
 					}
 					this.imports.set(original, traced.module);
 				}
@@ -299,7 +308,7 @@ export default class Chunk {
 
 		this.imports.set(traced.variable, traced.module);
 		if (traced.module instanceof Module) {
-			traced.module.chunk.exports.set(traced.variable, traced.module);
+			traced.module.chunk.ensureExport(traced.variable, traced.module);
 		}
 		return traced;
 	}
@@ -573,7 +582,7 @@ export default class Chunk {
 	}
 
 	private getChunkDependencyDeclarations(options: OutputOptions): ChunkDependencies {
-		const reexportDeclarations: { [id: string]: ReexportSpecifier[] } = {};
+		const reexportDeclarations: { [id: string]: ReexportSpecifier[] } = Object.create(null);
 
 		for (let exportName of Object.keys(this.exportNames)) {
 			let depId;
@@ -583,11 +592,16 @@ export default class Chunk {
 				importName = exportName = '*';
 			} else {
 				const variable = this.exportNames[exportName];
-				importName = variable.name;
 				const module = this.exports.get(variable);
 				// skip local exports
 				if (module.chunk === this) continue;
-				depId = module instanceof Module ? module.chunk.id : module.id;
+				if (module instanceof Module) {
+					depId = module.chunk.id;
+					importName = module.chunk.getVariableExportName(variable);
+				} else {
+					depId = module.id;
+					importName = variable.name;
+				}
 			}
 			const exportDeclaration = (reexportDeclarations[depId] = reexportDeclarations[depId] || []);
 			exportDeclaration.push({ imported: importName, reexported: exportName });
