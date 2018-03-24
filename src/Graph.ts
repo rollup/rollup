@@ -8,9 +8,9 @@ import ensureArray from './utils/ensureArray';
 import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
 import { mapSequence } from './utils/promise';
 import transform from './utils/transform';
-import relativeId from './utils/relativeId';
+import relativeId, { nameWithoutExtension } from './utils/relativeId';
 import error from './utils/error';
-import { isRelative, resolve } from './utils/path';
+import { isRelative, resolve, basename } from './utils/path';
 import {
 	InputOptions,
 	IsExternalHook,
@@ -316,6 +316,7 @@ export default class Graph {
 		let entryModuleIds: string[];
 		let entryModuleAliases: string[];
 		if (Array.isArray(entryModules)) {
+			entryModuleAliases = entryModules.map(id => nameWithoutExtension(basename(id)));
 			entryModuleIds = entryModules;
 		} else {
 			entryModuleAliases = Object.keys(entryModules);
@@ -329,6 +330,13 @@ export default class Graph {
 			entryModules => {
 				if (entryModuleAliases) {
 					entryModules.forEach((entryModule, index) => {
+						if (entryModule.alias)
+							error({
+								code: 'DUPLICATE_ENTRY_POINTS',
+								message: `Duplicate entry points detected. The input entries ${
+									entryModule.alias
+								} and ${entryModuleAliases[index]} both point to the same module, ${entryModule.id}`
+							});
 						entryModule.alias = entryModuleAliases[index];
 					});
 				}
@@ -443,15 +451,13 @@ export default class Graph {
 		let curEntry: Module, curEntryHash: Uint8Array;
 		const allSeen: { [id: string]: boolean } = {};
 
-		const ordered: Module[] = [];
+		const orderedModules: Module[] = [];
 
 		const dynamicImports: Module[] = [];
 
 		let parents: { [id: string]: string };
 
 		const visit = (module: Module) => {
-			if (module.isEntryPoint && module !== curEntry) return;
-
 			// Track entry point graph colouring by tracing all modules loaded by a given
 			// entry point and colouring those modules by the hash of its id. Colours are mixed as
 			// hash xors, providing the unique colouring of the graph into unique hash chunks.
@@ -471,7 +477,7 @@ export default class Graph {
 				}
 
 				parents[depModule.id] = module.id;
-				visit(<Module>depModule);
+				if (!depModule.isEntryPoint) visit(<Module>depModule);
 			}
 
 			if (this.dynamicImport) {
@@ -487,8 +493,8 @@ export default class Graph {
 			if (allSeen[module.id]) return;
 			allSeen[module.id] = true;
 
-			module.execIndex = ordered.length;
-			ordered.push(module);
+			module.execIndex = orderedModules.length;
+			orderedModules.push(module);
 		};
 
 		for (curEntry of entryModules) {
@@ -506,7 +512,7 @@ export default class Graph {
 			visit(curEntry);
 		}
 
-		return { orderedModules: ordered, dynamicImports };
+		return { orderedModules, dynamicImports };
 	}
 
 	private warnCycle(id: string, parentId: string, parents: { [id: string]: string | null }) {

@@ -1,7 +1,7 @@
 'use strict';
 
-var first_js = require('./first.js');
+var first = require('./first.js');
 
 
 
-module.exports = first_js.default;
+module.exports = first.default;

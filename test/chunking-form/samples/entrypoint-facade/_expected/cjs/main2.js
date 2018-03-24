@@ -1,7 +1,7 @@
 'use strict';
 
-var main2_js = require('./chunk-6ba819ba.js');
+var main2 = require('./chunk-6ba819ba.js');
 
 
 
-module.exports = main2_js.default;
+module.exports = main2.default;
