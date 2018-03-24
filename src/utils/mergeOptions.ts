@@ -66,7 +66,6 @@ const getExternal = (config: GenericConfigObject, command: GenericConfigObject) 
 
 export const commandAliases: { [key: string]: string } = {
 	c: 'config',
-	d: 'indent',
 	e: 'external',
 	f: 'format',
 	g: 'globals',
@@ -279,6 +278,14 @@ function deprecate(
 			new: '--file'
 		});
 		command.output = { file: command.output };
+	}
+
+	if (command.d) {
+		deprecations.push({
+			old: '-d',
+			new: '--indent'
+		});
+		command.indent = command.d;
 	}
 
 	// config file
