@@ -343,6 +343,9 @@ export default function rollup(
 							return createAddons(graph, outputOptions);
 						})
 						.then(addons => {
+							chunk.generateExportNames(
+								outputOptions.format === 'system' || outputOptions.format === 'es'
+							);
 							chunk.preRender(outputOptions);
 							return chunk.render(outputOptions, addons);
 						})
@@ -500,9 +503,15 @@ export default function rollup(
 							return (
 								Promise.resolve()
 									.then(() => {
-										chunks.forEach(chunk => chunk.preRender(outputOptions));
-
-										chunks.forEach(chunk => {
+										const mangleExportNames =
+											outputOptions.format === 'system' || outputOptions.format === 'es';
+										for (let chunk of chunks) {
+											chunk.generateExportNames(mangleExportNames);
+										}
+										for (let chunk of chunks) {
+											chunk.preRender(outputOptions);
+										}
+										for (let chunk of chunks) {
 											if (inputOptions.experimentalPreserveModules) {
 												chunk.generateNamePreserveModules(preserveModulesBase);
 											} else {
@@ -514,7 +523,7 @@ export default function rollup(
 												}
 												chunk.generateName(pattern, addons, outputOptions, existingNames);
 											}
-										});
+										}
 									})
 									// second render chunks given known names
 									.then(() => {

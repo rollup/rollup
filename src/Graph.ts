@@ -295,9 +295,7 @@ export default class Graph {
 
 			// generate the imports and exports for the output chunk file
 			const chunk = new Chunk(this, orderedModules);
-			chunk.collectDependencies();
-			chunk.generateImports();
-			chunk.generateEntryExports(entryModule);
+			chunk.link();
 
 			timeEnd('generate chunks', 2);
 
@@ -461,29 +459,18 @@ export default class Graph {
 					}
 				}
 
-				// for each entry point module, ensure its exports
-				// are exported by the chunk itself, with safe name deduping
-				for (const entryModule of entryModules) {
-					entryModule.chunk.generateEntryExports(entryModule);
-				}
-
 				// for each chunk module, set up its imports to other
 				// chunks, if those variables are included after treeshaking
 				for (const chunk of chunkList) {
-					chunk.collectDependencies();
-					chunk.generateImports();
+					chunk.link();
 				}
 
 				// create entry point facades for entry module chunks that have tainted exports
 				if (!preserveModules) {
-					const chunkListLen = chunkList.length;
-					for (let i = 0; i < chunkListLen; i++) {
-						const chunk = chunkList[i];
-						if (chunk.entryModule && !chunk.isEntryModuleFacade) {
+					for (let entryModule of entryModules) {
+						if (!entryModule.chunk.isEntryModuleFacade) {
 							const entryPointFacade = new Chunk(this, []);
-							entryPointFacade.collectDependencies(chunk.entryModule);
-							entryPointFacade.generateImports();
-							entryPointFacade.generateEntryExports(chunk.entryModule);
+							entryPointFacade.linkFacade(entryModule);
 							chunkList.push(entryPointFacade);
 						}
 					}
