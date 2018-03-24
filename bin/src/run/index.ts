@@ -22,10 +22,16 @@ export default function runRollup(command: any) {
 	}
 
 	if (command.dir) {
-		if (!command._.some((input: string) => input.indexOf('=') !== -1)) {
+		if (command._.length && !command._.some((input: string) => input.indexOf('=') !== -1)) {
 			command.input = command._;
-		} else if (command._.length || Array.isArray(command.input)) {
-			let input = command._.length ? command._ : command.input;
+		} else if (
+			command._.length ||
+			Array.isArray(command.input) ||
+			typeof command.input === 'string'
+		) {
+			let input: string[];
+			if (command._.length) input = command._;
+			else input = typeof command.input === 'string' ? [command.input] : command.input;
 			command.input = {};
 			input.forEach((input: string) => {
 				const equalsIndex = input.indexOf('=');
