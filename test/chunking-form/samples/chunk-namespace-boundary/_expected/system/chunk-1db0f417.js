@@ -7,7 +7,7 @@ System.register([], function (exports, module) {
 
                         commonjsGlobal.data = [4, 5, 6];
                         var shared = commonjsGlobal.data;
-                        exports('default', shared);
+                        exports('d', shared);
 
                 }
         };

@@ -284,7 +284,12 @@ export default class Chunk {
 				(<ExternalVariable>traced.variable).module.declarations;
 			for (let importName of Object.keys(namespaceVariables)) {
 				const original = namespaceVariables[importName];
-				if (original.included) this.imports.set(original, traced.module);
+				if (original.included) {
+					if (traced.module.chunk) {
+						traced.module.chunk.exports.set(original, traced.module);
+					}
+					this.imports.set(original, traced.module);
+				}
 			}
 		}
 
@@ -705,6 +710,7 @@ export default class Chunk {
 		// hash of addons
 		hash.update(addons.hash);
 
+		// output options
 		hash.update(options.format);
 
 		// import names of dependency sources

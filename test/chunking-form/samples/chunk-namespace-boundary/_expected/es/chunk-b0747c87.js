@@ -3,5 +3,4 @@ var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 
 commonjsGlobal.data = [4, 5, 6];
 var shared = commonjsGlobal.data;
 
-export default shared;
-export { commonjsGlobal };
+export { commonjsGlobal, shared as d };

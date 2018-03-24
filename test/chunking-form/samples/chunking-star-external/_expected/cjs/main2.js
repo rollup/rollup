@@ -3,8 +3,8 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var __chunk_1 = require('./chunk-1a23f886.js');
-var external2 = require('external2');
 var starexternal2 = require('starexternal2');
+var external2 = require('external2');
 
 var main = '2';
 

@@ -1,4 +1,4 @@
-import d from './chunk-b0747c87.js';
+import { d } from './chunk-b0747c87.js';
 
 var main2 = d.map(d => d + 2);
 

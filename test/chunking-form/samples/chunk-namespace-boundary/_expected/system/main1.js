@@ -4,7 +4,7 @@ System.register(['./chunk-1db0f417.js'], function (exports, module) {
 	return {
 		setters: [function (module) {
 			commonjsGlobal = module.commonjsGlobal;
-			d = module.default;
+			d = module.d;
 		}],
 		execute: function () {
 
