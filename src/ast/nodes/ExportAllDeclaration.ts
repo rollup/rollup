@@ -3,6 +3,7 @@ import Literal from './Literal';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { BLANK } from '../../utils/blank';
 
 export default class ExportAllDeclaration extends NodeBase {
 	type: NodeType.ExportAllDeclaration;
@@ -10,7 +11,7 @@ export default class ExportAllDeclaration extends NodeBase {
 	isExportDeclaration: true;
 	needsBoundaries: true;
 
-	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
+	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
 		code.remove(start, end);
 	}
 }

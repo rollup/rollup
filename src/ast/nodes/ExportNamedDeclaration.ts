@@ -8,6 +8,7 @@ import ClassDeclaration from './ClassDeclaration';
 import VariableDeclaration from './VariableDeclaration';
 import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { BLANK } from '../../utils/blank';
 
 export default class ExportNamedDeclaration extends NodeBase {
 	type: NodeType.ExportNamedDeclaration;
@@ -27,7 +28,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 		return this.declaration && this.declaration.hasEffects(options);
 	}
 
-	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = {}) {
+	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
 		if (this.declaration === null) {
 			code.remove(start, end);
 		} else {
