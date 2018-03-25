@@ -1,4 +1,4 @@
-import { fn } from './lib1-9e470ebb.js';
+import { a as fn } from './lib1-9e470ebb.js';
 
 function fn$1 () {
   console.log('lib2 fn');
@@ -14,4 +14,4 @@ function fn$3 () {
   console.log('dep3 fn');
 }
 
-export { fn$2 as fn, fn$3 as fn$1 };
+export { fn$2 as a, fn$3 as b };

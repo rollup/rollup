@@ -1,1 +1,1 @@
-export { log as default } from './main2alias-78537ca8.js';
+export { b as default } from './main2alias-78537ca8.js';

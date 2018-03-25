@@ -1,3 +1,3 @@
 function foo() {}
 
-export { foo };
+export { foo as a };

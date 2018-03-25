@@ -239,10 +239,7 @@ export default class Chunk {
 
 	// Note preserveModules implementation is not a comprehensive technique
 	// this will likely need to be reworked at some stage for edge cases
-	generateEntryExports(preserveModules: boolean) {
-		if (!this.entryModule) {
-			return;
-		}
+	populateEntryExports(preserveModules: boolean) {
 		const entryExportEntries = Array.from(this.entryModule.getAllExports().entries());
 		const tracedExports: { variable: Variable; module: Module | ExternalModule }[] = [];
 		for (let [index, exportName] of entryExportEntries) {
@@ -385,18 +382,12 @@ export default class Chunk {
 		}
 	}
 
-	generateExportNames(mangle: boolean) {
-		mangle = false;
-		const namedVariables: Variable[] = [];
-		for (let exportName of Object.keys(this.exportNames)) {
-			if (exportName[0] === '*') continue;
-			const variable = this.exportNames[exportName];
-			if (namedVariables.indexOf(variable) === -1) namedVariables.push(variable);
-		}
+	generateInternalExports(mangle: boolean = false) {
+		if (this.isEntryModuleFacade) return;
 		let i = 0,
 			safeExportName: string;
+		this.exportNames = {};
 		for (let variable of Array.from(this.exports.keys())) {
-			if (namedVariables.indexOf(variable) !== -1) continue;
 			if (mangle) {
 				do {
 					safeExportName = (i++).toString(36);

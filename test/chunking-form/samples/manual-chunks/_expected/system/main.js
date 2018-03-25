@@ -3,8 +3,8 @@ System.register(['./deps2and3-0135c87a.js', './lib1-2ca2caed.js'], function (exp
   var fn, fn$1;
   return {
     setters: [function (module) {
-      fn = module.fn;
-      fn$1 = module.fn$1;
+      fn = module.a;
+      fn$1 = module.b;
     }, function () {}],
     execute: function () {
 

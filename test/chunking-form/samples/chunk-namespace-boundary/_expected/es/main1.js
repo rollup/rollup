@@ -1,4 +1,4 @@
-import { commonjsGlobal, d } from './chunk-b0747c87.js';
+import { a as commonjsGlobal, b as d } from './chunk-b0747c87.js';
 
 commonjsGlobal.fn = d => d + 1;
 var cjs = commonjsGlobal.fn;

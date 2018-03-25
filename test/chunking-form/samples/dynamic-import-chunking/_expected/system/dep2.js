@@ -3,7 +3,7 @@ System.register(['./chunk-b2c58526.js'], function (exports, module) {
   var multiplier;
   return {
     setters: [function (module) {
-      multiplier = module.multiplier;
+      multiplier = module.a;
     }],
     execute: function () {
 

@@ -343,9 +343,7 @@ export default function rollup(
 							return createAddons(graph, outputOptions);
 						})
 						.then(addons => {
-							chunk.generateExportNames(
-								outputOptions.format === 'system' || outputOptions.format === 'es'
-							);
+							chunk.generateInternalExports();
 							chunk.preRender(outputOptions);
 							return chunk.render(outputOptions, addons);
 						})
@@ -503,10 +501,12 @@ export default function rollup(
 							return (
 								Promise.resolve()
 									.then(() => {
-										const mangleExportNames =
-											outputOptions.format === 'system' || outputOptions.format === 'es';
-										for (let chunk of chunks) {
-											chunk.generateExportNames(mangleExportNames);
+										if (!inputOptions.experimentalPreserveModules) {
+											const mangleExportNames =
+												outputOptions.format === 'system' || outputOptions.format === 'es';
+											for (let chunk of chunks) {
+												chunk.generateInternalExports(mangleExportNames);
+											}
 										}
 										for (let chunk of chunks) {
 											chunk.preRender(outputOptions);

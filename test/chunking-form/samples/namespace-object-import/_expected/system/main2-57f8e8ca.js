@@ -10,7 +10,7 @@ System.register([], function (exports, module) {
 				a: a,
 				b: b
 			});
-			exports('main2', main2);
+			exports('c', main2);
 
 		}
 	};

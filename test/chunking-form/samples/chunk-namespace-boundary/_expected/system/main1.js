@@ -3,8 +3,8 @@ System.register(['./chunk-1db0f417.js'], function (exports, module) {
 	var commonjsGlobal, d;
 	return {
 		setters: [function (module) {
-			commonjsGlobal = module.commonjsGlobal;
-			d = module.d;
+			commonjsGlobal = module.a;
+			d = module.b;
 		}],
 		execute: function () {
 

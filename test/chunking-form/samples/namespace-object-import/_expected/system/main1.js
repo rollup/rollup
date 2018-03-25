@@ -5,7 +5,7 @@ System.register(['./main2-57f8e8ca.js'], function (exports, module) {
 		setters: [function (module) {
 			a = module.a;
 			b = module.b;
-			main2 = module.main2;
+			main2 = module.c;
 		}],
 		execute: function () {
 

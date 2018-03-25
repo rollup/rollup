@@ -3,8 +3,8 @@ System.register(['./chunk-9b7c35aa.js', './chunk-2ec47290.js', './chunk-a5be984a
 	var x, y;
 	return {
 		setters: [function (module) {
-			x = module.x;
-			y = module.y;
+			x = module.a;
+			y = module.b;
 		}, function () {}, function () {}],
 		execute: function () {
 

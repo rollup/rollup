@@ -1,3 +1,3 @@
 var num = 2;
 
-export { num };
+export { num as a };

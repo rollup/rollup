@@ -3,8 +3,8 @@ System.register([], function (exports, module) {
   return {
     execute: function () {
 
-      exports('log', log);
-      var dep = exports('dep', { x: 42 })
+      exports('b', log);
+      var dep = exports('a', { x: 42 })
 
       function log (x) {
         if (dep) {

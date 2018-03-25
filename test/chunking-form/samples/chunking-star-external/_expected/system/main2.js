@@ -3,7 +3,7 @@ System.register(['./chunk-c79a883a.js', 'starexternal2', 'external2'], function 
 	var _starExcludes = { main: 1, default: 1, dep: 1, e: 1 };
 	return {
 		setters: [function (module) {
-			exports('dep', module.dep);
+			exports('dep', module.a);
 		}, function (module) {
 			var _setter = {};
 			for (var _$p in module) {

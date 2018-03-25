@@ -1,3 +1,3 @@
 var multiplier = 7;
 
-export { multiplier };
+export { multiplier as a };

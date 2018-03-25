@@ -3,9 +3,9 @@ System.register(['./chunks/chunk2.js', './chunks/chunk3.js'], function (exports,
 	var num, num$1;
 	return {
 		setters: [function (module) {
-			num = module.num;
+			num = module.a;
 		}, function (module) {
-			num$1 = module.num;
+			num$1 = module.a;
 		}],
 		execute: function () {
 

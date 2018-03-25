@@ -7,5 +7,5 @@ function fn$1 () {
   console.log('dep2 fn');
 }
 
-export { fn$1 as fn };
+export { fn$1 as a };
 //# sourceMappingURL=chunk-7e4b4a9e.js.map
