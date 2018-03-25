@@ -9,7 +9,7 @@ define(['require', './chunk-dd50f329.js'], function (require, __chunk_1) { 'use 
   }
 
   function dynamic (num) {
-    return new Promise(function (resolve, reject) { require(["dep2.js"], resolve, reject) })
+    return new Promise(function (resolve, reject) { require(["./dep2.js"], resolve, reject) })
     .then(dep2 => {
       return dep2.mult(num);
     });
