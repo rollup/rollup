@@ -1,1 +1,1 @@
-export { default } from './chunk-78537ca8.js';
+export { default } from './main2alias-78537ca8.js';

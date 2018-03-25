@@ -1,6 +1,6 @@
 'use strict';
 
-var main2alias = require('./chunk-6ba819ba.js');
+var main2alias = require('./main2alias-6ba819ba.js');
 
 
 

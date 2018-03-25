@@ -137,7 +137,10 @@ export default class Module {
 	sourcemapChain: RawSourceMap[];
 	sources: string[];
 	dynamicImports: Import[];
-	dynamicImportResolutions: (Module | ExternalModule | string | void)[];
+	dynamicImportResolutions: {
+		alias: string;
+		resolution: Module | ExternalModule | string | void;
+	}[];
 
 	execIndex: number;
 	isEntryPoint: boolean;

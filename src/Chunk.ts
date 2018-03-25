@@ -22,7 +22,7 @@ import { NodeType } from './ast/nodes/index';
 import { RenderOptions } from './utils/renderHelpers';
 import { Addons } from './utils/addons';
 import sha256 from 'hash.js/lib/hash/sha/256';
-import { nameWithoutExtension, jsExts } from './utils/relativeId';
+import { jsExts } from './utils/relativeId';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;
@@ -128,6 +128,7 @@ export default class Chunk {
 	isEntryModuleFacade: boolean;
 
 	renderedHash: string;
+	renderedSources: MagicString[];
 	renderedSource: MagicStringBundle;
 	renderedDeclarations: { dependencies: ChunkDependencies; exports: ChunkExports };
 
@@ -155,6 +156,7 @@ export default class Chunk {
 		});
 		this.id = undefined;
 		this.renderedHash = undefined;
+		this.renderedSources = undefined;
 		this.renderedSource = undefined;
 		this.renderedDeclarations = undefined;
 		this.indentString = undefined;
@@ -416,7 +418,7 @@ export default class Chunk {
 		}
 	}
 
-	private setDynamicImportResolutions({ format }: OutputOptions) {
+	private prepareDynamicImports({ format }: OutputOptions) {
 		const es = format === 'es';
 		let dynamicImportMechanism: DynamicImportMechanism;
 		let hasDynamicImports = false;
@@ -442,32 +444,61 @@ export default class Chunk {
 				};
 			}
 		}
-		this.orderedModules.forEach(module => {
-			module.dynamicImportResolutions.forEach((replacement, index) => {
-				const node = module.dynamicImports[index];
+		for (let module of this.orderedModules) {
+			for (let i = 0; i < module.dynamicImportResolutions.length; i++) {
+				const node = module.dynamicImports[i];
+				const resolution = module.dynamicImportResolutions[i].resolution;
 				hasDynamicImports = true;
 
-				if (!replacement) return;
+				if (!resolution) continue;
 
-				if (replacement instanceof Module) {
+				if (resolution instanceof Module) {
 					// if we have the module in the chunk, inline as Promise.resolve(namespace)
 					// ensuring that we create a namespace import of it as well
-					if (replacement.chunk === this) {
-						node.setResolution(replacement.namespace(), false);
+					if (resolution.chunk === this) {
+						const namespace = resolution.namespace();
+						namespace.includeVariable();
+						node.setResolution(false, namespace.getName());
 						// for the module in another chunk, import that other chunk directly
 					} else {
-						node.setResolution(`"${replacement.chunk.id}"`, false);
+						node.setResolution(false);
 					}
 					// external dynamic import resolution
-				} else if (replacement instanceof ExternalModule) {
-					node.setResolution(`"${replacement.id}"`, true);
+				} else if (resolution instanceof ExternalModule) {
+					node.setResolution(true);
 					// AST Node -> source replacement
 				} else {
-					node.setResolution(replacement, false);
+					node.setResolution(false);
 				}
-			});
-		});
-		if (hasDynamicImports) return dynamicImportMechanism;
+			}
+		}
+
+		return hasDynamicImports && dynamicImportMechanism;
+	}
+
+	private finaliseDynamicImports() {
+		for (let i = 0; i < this.orderedModules.length; i++) {
+			const module = this.orderedModules[i];
+			const code = this.renderedSources[i];
+			for (let j = 0; j < module.dynamicImportResolutions.length; j++) {
+				const node = module.dynamicImports[j];
+				const resolution = module.dynamicImportResolutions[j].resolution;
+
+				if (!resolution) continue;
+				if (resolution instanceof Module) {
+					if (resolution.chunk !== this) {
+						let relPath = normalize(relative(dirname(this.id), resolution.chunk.id));
+						if (!relPath.startsWith('../')) relPath = './' + relPath;
+						node.renderFinalResolution(code, `"${relPath}"`);
+					}
+				} else if (resolution instanceof ExternalModule) {
+					node.renderFinalResolution(code, `"${resolution.id}"`);
+					// AST Node -> source replacement
+				} else {
+					node.renderFinalResolution(code, resolution);
+				}
+			}
+		}
 	}
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
@@ -759,16 +790,19 @@ export default class Chunk {
 			namespaceToStringTag: options.namespaceToStringTag === true,
 			indent: this.indentString,
 			systemBindings: options.format === 'system',
-			importMechanism: this.graph.dynamicImport && this.setDynamicImportResolutions(options)
+			importMechanism: this.graph.dynamicImport && this.prepareDynamicImports(options)
 		};
 
 		this.setIdentifierRenderResolutions(options);
 
 		let hoistedSource = '';
 
+		this.renderedSources = [];
+
 		for (let module of this.orderedModules) {
 			const source = module.render(renderOptions);
 			source.trim();
+			this.renderedSources.push(source);
 
 			const namespace = module.namespace();
 			if (namespace.needsNamespaceBlock || !source.isEmpty()) {
@@ -829,13 +863,7 @@ export default class Chunk {
 				case '[hash]':
 					return this.computeFullHash(addons, options);
 				case '[alias]':
-					if (!this.isEntryModuleFacade) {
-						return 'chunk';
-					} else if (this.entryModule.alias) {
-						return this.entryModule.alias;
-					} else {
-						return nameWithoutExtension(basename(this.entryModule.id));
-					}
+					return this.entryModule ? this.entryModule.alias : 'chunk';
 			}
 		});
 
@@ -855,10 +883,12 @@ export default class Chunk {
 		}
 
 		this.id = outName;
+
+		timeEnd('render modules', 3);
 	}
 
 	render(options: OutputOptions, addons: Addons) {
-		timeEnd('render modules', 3);
+		timeStart('render format', 3);
 
 		if (!this.renderedSource)
 			throw new Error('Internal error: Chunk render called before preRender');
@@ -886,7 +916,7 @@ export default class Chunk {
 			this.renderedDeclarations.dependencies[i].id = relPath;
 		}
 
-		timeStart('render format', 3);
+		if (this.graph.dynamicImport) this.finaliseDynamicImports();
 
 		const magicString = finalise(
 			this.renderedSource,

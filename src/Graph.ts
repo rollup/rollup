@@ -349,14 +349,17 @@ export default class Graph {
 
 				this.link();
 
-				const { orderedModules, dynamicImports } = this.analyseExecution(
+				const { orderedModules, dynamicImports, dynamicImportAliases } = this.analyseExecution(
 					entryModules,
 					!preserveModules
 				);
 
-				for (const dynamicImportModule of dynamicImports) {
-					if (entryModules.indexOf(dynamicImportModule) === -1)
+				for (let i = 0; i < dynamicImports.length; i++) {
+					const dynamicImportModule = dynamicImports[i];
+					if (entryModules.indexOf(dynamicImportModule) === -1) {
 						entryModules.push(dynamicImportModule);
+						dynamicImportModule.alias = dynamicImportAliases[i];
+					}
 				}
 
 				timeEnd('analyse dependency graph', 2);
@@ -454,6 +457,7 @@ export default class Graph {
 		const orderedModules: Module[] = [];
 
 		const dynamicImports: Module[] = [];
+		const dynamicImportAliases: string[] = [];
 
 		let parents: { [id: string]: string };
 
@@ -482,9 +486,10 @@ export default class Graph {
 
 			if (this.dynamicImport) {
 				for (let dynamicModule of module.dynamicImportResolutions) {
-					if (dynamicModule instanceof Module) {
-						if (dynamicImports.indexOf(dynamicModule) === -1) {
-							dynamicImports.push(dynamicModule);
+					if (dynamicModule.resolution instanceof Module) {
+						if (dynamicImports.indexOf(dynamicModule.resolution) === -1) {
+							dynamicImports.push(dynamicModule.resolution);
+							dynamicImportAliases.push(dynamicModule.alias);
 						}
 					}
 				}
@@ -506,13 +511,14 @@ export default class Graph {
 
 		// new items can be added during this loop
 		for (curEntry of dynamicImports) {
+			if (curEntry.isEntryPoint) continue;
 			curEntry.isEntryPoint = true;
 			curEntryHash = randomUint8Array(10);
 			parents = { [curEntry.id]: null };
 			visit(curEntry);
 		}
 
-		return { orderedModules, dynamicImports };
+		return { orderedModules, dynamicImports, dynamicImportAliases };
 	}
 
 	private warnCycle(id: string, parentId: string, parents: { [id: string]: string | null }) {
@@ -645,9 +651,15 @@ export default class Graph {
 							this.resolveDynamicImport(dynamicImportExpression, module.id)
 						).then(replacement => {
 							if (!replacement) {
-								module.dynamicImportResolutions[index] = null;
-							} else if (typeof dynamicImportExpression !== 'string') {
-								module.dynamicImportResolutions[index] = replacement;
+								module.dynamicImportResolutions[index] = {
+									alias: undefined,
+									resolution: undefined
+								};
+								return;
+							}
+							const alias = nameWithoutExtension(basename(replacement));
+							if (typeof dynamicImportExpression !== 'string') {
+								module.dynamicImportResolutions[index] = { alias, resolution: replacement };
 							} else if (this.isExternal(replacement, module.id, true)) {
 								let externalModule;
 								if (!this.moduleById.has(replacement)) {
@@ -660,11 +672,11 @@ export default class Graph {
 								} else {
 									externalModule = <ExternalModule>this.moduleById.get(replacement);
 								}
-								module.dynamicImportResolutions[index] = externalModule;
+								module.dynamicImportResolutions[index] = { alias, resolution: externalModule };
 								externalModule.exportsNamespace = true;
 							} else {
 								return this.fetchModule(replacement, module.id).then(depModule => {
-									module.dynamicImportResolutions[index] = depModule;
+									module.dynamicImportResolutions[index] = { alias, resolution: depModule };
 								});
 							}
 						});
