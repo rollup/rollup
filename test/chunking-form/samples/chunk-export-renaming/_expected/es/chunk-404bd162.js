@@ -6,4 +6,4 @@ class One {
 
 const ONE_CONSTANT = 'oneconstant';
 
-export { One, ONE_CONSTANT };
+export { ONE_CONSTANT, One };

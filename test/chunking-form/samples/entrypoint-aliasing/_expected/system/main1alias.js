@@ -4,7 +4,7 @@ System.register(['./main2alias-9c0ea573.js'], function (exports, module) {
 	return {
 		setters: [function (module) {
 			dep = module.dep;
-			log = module.default;
+			log = module.log;
 		}],
 		execute: function () {
 

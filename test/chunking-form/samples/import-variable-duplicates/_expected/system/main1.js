@@ -2,9 +2,9 @@ System.register(['./first.js', './head.js'], function (exports, module) {
 	'use strict';
 	var head2;
 	return {
-		setters: [function (module) {
+		setters: [function () {}, function (module) {
 			head2 = module.default;
-		}, function () {}],
+		}],
 		execute: function () {
 
 			console.log(head2);

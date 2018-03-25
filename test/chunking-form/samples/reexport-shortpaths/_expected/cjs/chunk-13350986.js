@@ -2,4 +2,4 @@
 
 function foo() {}
 
-exports.default = foo;
+exports.foo = foo;

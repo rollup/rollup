@@ -1,11 +1,11 @@
 System.register(['./main2-57f8e8ca.js'], function (exports, module) {
 	'use strict';
-	var main2, a, b;
+	var a, b, main2;
 	return {
 		setters: [function (module) {
-			main2 = module.main2;
 			a = module.a;
 			b = module.b;
+			main2 = module.main2;
 		}],
 		execute: function () {
 

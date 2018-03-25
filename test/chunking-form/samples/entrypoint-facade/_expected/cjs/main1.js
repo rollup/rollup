@@ -2,4 +2,4 @@
 
 var main2 = require('./main2-6ba819ba.js');
 
-main2.default(main2.dep);
+main2.log(main2.dep);

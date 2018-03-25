@@ -296,6 +296,7 @@ export default class Graph {
 			// generate the imports and exports for the output chunk file
 			const chunk = new Chunk(this, orderedModules);
 			chunk.link();
+			chunk.generateEntryExports(false);
 
 			timeEnd('generate chunks', 2);
 
@@ -454,7 +455,6 @@ export default class Graph {
 					for (const module of orderedModules) {
 						const chunkInstance = new Chunk(this, [module]);
 						chunkInstance.entryModule = module;
-						chunkInstance.isEntryModuleFacade = true;
 						chunkList.push(chunkInstance);
 					}
 				}
@@ -463,6 +463,11 @@ export default class Graph {
 				// chunks, if those variables are included after treeshaking
 				for (const chunk of chunkList) {
 					chunk.link();
+				}
+
+				// then go over and ensure all entry chunks export their variables
+				for (const chunk of chunkList) {
+					chunk.generateEntryExports(preserveModules);
 				}
 
 				// create entry point facades for entry module chunks that have tainted exports
