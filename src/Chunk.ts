@@ -188,14 +188,6 @@ export default class Chunk {
 		}
 	}
 
-	ensureExport(variable: Variable, module: Module | ExternalModule) {
-		// this may now be covered by deep inlining
-		/* const dep = module instanceof Module ? module.chunk : module;
-		if (this.dependencies.indexOf(dep) === -1)
-			this.dependencies.push(dep); */
-		this.exports.set(variable, module);
-	}
-
 	// note we assume the facade module chunk is itself linked
 	// with generateEntryExports called
 	linkFacade(entryFacade: Module) {
@@ -252,7 +244,7 @@ export default class Chunk {
 				continue;
 			}
 			if (traced.module.chunk) {
-				traced.module.chunk.ensureExport(traced.variable, traced.module);
+				traced.module.chunk.exports.set(traced.variable, traced.module);
 			}
 			const existingExport = this.exportNames[exportName];
 			// tainted entryModule boundary
@@ -303,7 +295,7 @@ export default class Chunk {
 				const original = namespaceVariables[importName];
 				if (original.included) {
 					if (traced.module.chunk) {
-						traced.module.chunk.ensureExport(original, traced.module);
+						traced.module.chunk.exports.set(original, traced.module);
 					}
 					this.imports.set(original, traced.module);
 				}
@@ -316,7 +308,7 @@ export default class Chunk {
 
 		this.imports.set(traced.variable, traced.module);
 		if (traced.module instanceof Module) {
-			traced.module.chunk.ensureExport(traced.variable, traced.module);
+			traced.module.chunk.exports.set(traced.variable, traced.module);
 		}
 		return traced;
 	}
