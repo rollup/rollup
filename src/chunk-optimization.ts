@@ -38,30 +38,38 @@ export function optimizeChunks(
 		}
 
 		let j = 1;
-		let seekingFirstChunkForMerge = true;
+		let seekingFirstMergeCandidate = true;
 		let lastChunk: Chunk,
 			chunk = execGroup[0],
 			nextChunk = execGroup[1];
 
+		const isMergeCandidate = (chunk: Chunk) => {
+			if (chunk.isEntryModuleFacade || chunk.isManualChunk) {
+				return false;
+			}
+			if (!nextChunk || nextChunk.isEntryModuleFacade) {
+				return false;
+			}
+			if (getChunkSize(chunk) > CHUNK_GROUPING_SIZE) {
+				return false;
+			}
+			// if (!chunk.isPure()) continue;
+			return true;
+		};
+
 		do {
-			if (seekingFirstChunkForMerge) {
-				if (chunk.isEntryModuleFacade || chunk.isManualChunk) {
-					continue;
+			if (seekingFirstMergeCandidate) {
+				if (isMergeCandidate(chunk)) {
+					seekingFirstMergeCandidate = false;
 				}
-				if (!nextChunk || nextChunk.isEntryModuleFacade) {
-					continue;
-				}
-				if (getChunkSize(chunk) > CHUNK_GROUPING_SIZE) {
-					continue;
-				}
-				// if (!chunk.isPure()) continue;
-				seekingFirstChunkForMerge = false;
 				continue;
 			}
 
 			let remainingSize = CHUNK_GROUPING_SIZE - getChunkSize(lastChunk) - getChunkSize(chunk);
 			if (remainingSize <= 0) {
-				seekingFirstChunkForMerge = true;
+				if (!isMergeCandidate(chunk)) {
+					seekingFirstMergeCandidate = true;
+				}
 				continue;
 			}
 			// if (!chunk.isPure()) continue;
@@ -88,7 +96,9 @@ export function optimizeChunks(
 					countedChunks.push(dep);
 				})
 			) {
-				seekingFirstChunkForMerge = true;
+				if (!isMergeCandidate(chunk)) {
+					seekingFirstMergeCandidate = true;
+				}
 				continue;
 			}
 
@@ -106,7 +116,9 @@ export function optimizeChunks(
 					}
 				})
 			) {
-				seekingFirstChunkForMerge = true;
+				if (!isMergeCandidate(chunk)) {
+					seekingFirstMergeCandidate = true;
+				}
 				continue;
 			}
 
@@ -122,8 +134,8 @@ export function optimizeChunks(
 			chunk = lastChunk;
 			chunkSize.set(chunk, CHUNK_GROUPING_SIZE - remainingSize);
 			// keep going to see if we can merge this with the next again
-			if (nextChunk && (nextChunk.isEntryModuleFacade || nextChunk.isManualChunk)) {
-				seekingFirstChunkForMerge = true;
+			if (nextChunk && !isMergeCandidate(nextChunk)) {
+				seekingFirstMergeCandidate = true;
 			}
 		} while (((lastChunk = chunk), (chunk = nextChunk), (nextChunk = execGroup[++j]), chunk));
 	}
