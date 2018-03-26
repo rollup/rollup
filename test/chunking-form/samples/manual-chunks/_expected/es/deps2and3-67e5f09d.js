@@ -1,4 +1,4 @@
-import { a as fn } from './lib1-9e470ebb.js';
+import { a as fn } from './lib1-a9a3a51f.js';
 
 function fn$1 () {
   console.log('lib2 fn');

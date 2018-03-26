@@ -1,6 +1,6 @@
 'use strict';
 
-var main2 = require('./main2-e806b502.js');
+var main2 = require('./main2-c3a8a9cf.js');
 
 console.log(main2.a);
 

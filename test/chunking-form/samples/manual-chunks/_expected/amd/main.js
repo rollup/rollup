@@ -1,4 +1,4 @@
-define(['./deps2and3-f10dec76.js', './lib1-89a376a1.js'], function (__chunk_2, __chunk_1) { 'use strict';
+define(['./deps2and3-0624412b.js', './lib1-4c530ea2.js'], function (__chunk_2, __chunk_1) { 'use strict';
 
   function fn () {
     console.log('dep1 fn');

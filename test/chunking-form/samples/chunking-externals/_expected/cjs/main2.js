@@ -1,7 +1,7 @@
 'use strict';
 
 var external = require('external');
-var __chunk_1 = require('./chunk-4f86373a.js');
+var __chunk_1 = require('./chunk-ca3a1cbb.js');
 
 function fn () {
   console.log('lib1 fn');
