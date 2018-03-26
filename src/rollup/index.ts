@@ -317,6 +317,7 @@ export default function rollup(
 					if (inputOptions.experimentalPreserveModules)
 						preserveModulesBase = commondir(chunks.map(chunk => chunk.entryModule.id));
 					let existingNames = Object.create(null);
+					let optimizedChunks = chunks;
 
 					const promise = createAddons(graph, outputOptions)
 						.then(addons => {
@@ -333,7 +334,13 @@ export default function rollup(
 										for (let chunk of chunks) {
 											chunk.preRender(outputOptions);
 										}
-										chunks = optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize);
+										if (!inputOptions.experimentalPreserveModules) {
+											optimizedChunks = optimizeChunks(
+												chunks,
+												outputOptions,
+												inputOptions.chunkGroupingSize
+											);
+										}
 										for (let chunk of chunks) {
 											if (inputOptions.experimentalPreserveModules) {
 												chunk.generateNamePreserveModules(preserveModulesBase);
@@ -351,7 +358,7 @@ export default function rollup(
 									// second render chunks given known names
 									.then(() => {
 										return Promise.all(
-											chunks.map(chunk => {
+											optimizedChunks.map(chunk => {
 												return chunk.render(outputOptions, addons).then(rendered => {
 													const output = {
 														imports: chunk.getImportIds(),

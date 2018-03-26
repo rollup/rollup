@@ -848,29 +848,10 @@ export default class Chunk {
 		if (this.isEntryModuleFacade || chunk.isEntryModuleFacade)
 			throw new Error('Internal error: Code splitting chunk merges not supported for facades');
 
-		chunkList.forEach(c => {
-			let included = false;
-			for (let i = 0; i < c.dependencies.length; i++) {
-				const dep = c.dependencies[i];
-				if (dep === chunk) {
-					if (included) {
-						c.dependencies.splice(i--, 1);
-						break;
-					}
-					c.dependencies[i] = this;
-					included = true;
-				} else if (dep === this) {
-					if (included) {
-						c.dependencies.splice(i--, 1);
-						break;
-					}
-					included = true;
-				}
-			}
-		});
-
-		this.orderedModules = this.orderedModules.concat(chunk.orderedModules);
-		this.orderedModules.forEach(module => (module.chunk = this));
+		for (let module of chunk.orderedModules) {
+			module.chunk = this;
+			this.orderedModules.push(module);
+		}
 
 		for (let [variable, module] of Array.from(chunk.imports.entries())) {
 			if (!this.imports.has(variable) && module.chunk !== this) {
@@ -878,14 +859,98 @@ export default class Chunk {
 			}
 		}
 
+		// NB detect when exported variables are orphaned by the merge itself
+		// (involves reverse tracing dependents)
 		for (let [variable, module] of Array.from(chunk.exports.entries())) {
 			if (!this.exports.has(variable)) {
 				this.exports.set(variable, module);
 			}
 		}
 
+		const oldExportNames = this.exportNames;
+
 		// regenerate internal names
 		this.generateInternalExports(options);
+
+		const updateRenderedDeclaration = (dep: ModuleDeclarationDependency) => {
+			if (dep.imports) {
+				for (let impt of dep.imports) {
+					impt.imported = this.getVariableExportName(
+						oldExportNames[impt.imported] || chunk.exportNames[impt.imported]
+					);
+				}
+			}
+			if (dep.reexports) {
+				for (let reexport of dep.reexports) {
+					reexport.imported = this.getVariableExportName(
+						oldExportNames[reexport.imported] || chunk.exportNames[reexport.imported]
+					);
+				}
+			}
+		};
+
+		const mergeRenderedDeclaration = (
+			into: ModuleDeclarationDependency,
+			from: ModuleDeclarationDependency
+		) => {
+			if (from.imports) {
+				if (!into.imports) {
+					into.imports = from.imports;
+				} else {
+					into.imports = into.imports.concat(from.imports);
+				}
+			}
+			if (from.reexports) {
+				if (!into.reexports) {
+					into.reexports = from.reexports;
+				} else {
+					into.reexports = into.reexports.concat(from.reexports);
+				}
+			}
+			if (!into.exportsNames && from.exportsNames) {
+				into.exportsNames = true;
+			}
+			if (!into.exportsNamespace && from.exportsNamespace) {
+				into.exportsNamespace = true;
+			}
+			if (!into.exportsDefault && from.exportsDefault) {
+				into.exportsDefault = true;
+			}
+			into.name = this.name;
+		};
+
+		// go through the other chunks and update their dependencies
+		// also update their import and reexport names in the process
+		for (let c of chunkList) {
+			let includedDeclaration: ModuleDeclarationDependency;
+			for (let i = 0; i < c.dependencies.length; i++) {
+				const dep = c.dependencies[i];
+				if (dep === chunk) {
+					if (includedDeclaration) {
+						const duplicateDeclaration = c.renderedDeclarations.dependencies[i];
+						updateRenderedDeclaration(duplicateDeclaration);
+						mergeRenderedDeclaration(includedDeclaration, duplicateDeclaration);
+						c.renderedDeclarations.dependencies.splice(i, 1);
+						c.dependencies.splice(i--, 1);
+						break;
+					}
+					c.dependencies[i] = this;
+					includedDeclaration = c.renderedDeclarations.dependencies[i];
+					updateRenderedDeclaration(includedDeclaration);
+				} else if (dep === this) {
+					if (includedDeclaration) {
+						const duplicateDeclaration = c.renderedDeclarations.dependencies[i];
+						updateRenderedDeclaration(duplicateDeclaration);
+						mergeRenderedDeclaration(includedDeclaration, duplicateDeclaration);
+						c.renderedDeclarations.dependencies.splice(i, 1);
+						c.dependencies.splice(i--, 1);
+						break;
+					}
+					includedDeclaration = c.renderedDeclarations.dependencies[i];
+					updateRenderedDeclaration(includedDeclaration);
+				}
+			}
+		}
 
 		// re-render the merged chunk
 		this.preRender(options);

@@ -4,7 +4,7 @@ import { OutputOptions } from './rollup';
 
 /*
  * Given a chunk list, perform optimizations on that chunk list
- * to reduce the mumber of chunks
+ * to reduce the mumber of chunks. Mutates the chunks array.
  *
  * Manual chunks (with chunk.chunkAlias already set) are preserved
  * Entry points are carefully preserved as well
@@ -17,7 +17,7 @@ export function optimizeChunks(
 	options: OutputOptions,
 	CHUNK_GROUPING_SIZE = 5000
 ): Chunk[] {
-	const optimizedChunks: Chunk[] = chunks.concat([]);
+	const optimizedChunks = chunks.concat([]);
 
 	const chunkSize = new Map<Chunk, number>();
 	function getChunkSize(chunk: Chunk) {
@@ -28,28 +28,28 @@ export function optimizeChunks(
 		return size;
 	}
 
+	let i = 1;
 	let seekingFirstChunkForMerge = true;
-	let lastChunk: Chunk;
+	let lastChunk: Chunk,
+		chunk = optimizedChunks[0],
+		nextChunk = optimizedChunks[1];
 
-	for (let i = 0; i < optimizedChunks.length; i++) {
+	do {
 		if (seekingFirstChunkForMerge) {
-			lastChunk = optimizedChunks[i];
-			if (lastChunk.isEntryModuleFacade) {
+			if (chunk.isEntryModuleFacade) {
 				continue;
 			}
-			let nextChunk = optimizedChunks[i + 1];
 			if (nextChunk && nextChunk.isEntryModuleFacade) {
 				continue;
 			}
-			if (getChunkSize(lastChunk) > CHUNK_GROUPING_SIZE) {
+			if (getChunkSize(chunk) > CHUNK_GROUPING_SIZE) {
 				continue;
 			}
-			// if (!lastChunk.isPure()) continue;
+			// if (!chunk.isPure()) continue;
 			seekingFirstChunkForMerge = false;
 			continue;
 		}
 
-		const chunk = optimizedChunks[i];
 		const chunkSourceSize = getChunkSize(chunk);
 		let remainingSize = CHUNK_GROUPING_SIZE - chunkSourceSize;
 		if (remainingSize <= 0) {
@@ -61,7 +61,6 @@ export function optimizeChunks(
 		chunk.postVisit(dep => chunkDependencies.push(dep));
 		remainingSize -= getChunkSize(lastChunk);
 		if (remainingSize <= 0) {
-			lastChunk = chunk;
 			continue;
 		}
 
@@ -81,7 +80,6 @@ export function optimizeChunks(
 				}
 			})
 		) {
-			lastChunk = chunk;
 			continue;
 		}
 
@@ -99,16 +97,19 @@ export function optimizeChunks(
 				}
 			})
 		) {
-			lastChunk = chunk;
 			continue;
 		}
 
 		// within the size limit -> merge!
-		optimizedChunks.splice(i--, 1);
+		optimizedChunks.splice(--i, 1);
 		lastChunk.merge(chunk, optimizedChunks, options);
-		chunkSize.delete(lastChunk);
-		seekingFirstChunkForMerge = true;
-	}
+		chunk = lastChunk;
+		chunkSize.set(chunk, CHUNK_GROUPING_SIZE - remainingSize);
+		// keep going to see if we can merge this with the next again
+		if (nextChunk && nextChunk.isEntryModuleFacade) {
+			seekingFirstChunkForMerge = true;
+		}
+	} while (((lastChunk = chunk), (chunk = nextChunk), (nextChunk = optimizedChunks[++i]), chunk));
 
 	return optimizedChunks;
 }
