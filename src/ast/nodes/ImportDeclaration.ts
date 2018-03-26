@@ -5,8 +5,8 @@ import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { BLANK } from '../../utils/object';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { BLANK } from '../../utils/blank';
 
 export default class ImportDeclaration extends NodeBase {
 	type: NodeType.ImportDeclaration;

@@ -1,4 +1,3 @@
-import { forOwn } from '../../utils/object';
 import relativeId from '../../utils/relativeId';
 import Scope from './Scope';
 import LocalVariable from '../variables/LocalVariable';
@@ -26,7 +25,9 @@ export default class ModuleScope extends Scope {
 	deshadow(names: Set<string>, children = this.children) {
 		let localNames = new Set(names);
 
-		forOwn(this.module.imports, specifier => {
+		Object.keys(this.module.imports).forEach(importName => {
+			const specifier = this.module.imports[importName];
+
 			if (specifier.module.isExternal || specifier.module.chunk !== this.module.chunk) {
 				return;
 			}

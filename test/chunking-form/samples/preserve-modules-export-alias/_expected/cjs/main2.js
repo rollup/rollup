@@ -2,8 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var __dep_js = require('./dep.js');
+var __chunk_1 = require('./dep.js');
 
 
 
-exports.bar = __dep_js.foo;
+exports.bar = __chunk_1.foo;

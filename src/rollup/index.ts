@@ -7,7 +7,6 @@ import {
 } from '../utils/timers';
 import { basename } from '../utils/path';
 import { writeFile } from '../utils/fs';
-import { assign } from '../utils/object';
 import { mapSequence } from '../utils/promise';
 import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
@@ -22,6 +21,8 @@ import Graph from '../Graph';
 import { TransformContext } from '../utils/transform';
 import ensureArray from '../utils/ensureArray';
 import { SourceMap } from 'magic-string';
+import { createAddons } from '../utils/addons';
+import commondir from '../utils/commondir';
 
 export const VERSION = '<@VERSION@>';
 
@@ -89,15 +90,15 @@ export interface TreeshakingOptions {
 export type ExternalOption = string[] | IsExternalHook;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 
-export type CachedChunk = { modules: ModuleJSON[] };
-export type CachedChunkSet = { chunks: { [chunkName: string]: CachedChunk } };
 export interface InputOptions {
-	input: string | string[];
+	input: string | string[] | { [entryAlias: string]: string };
 	external?: ExternalOption;
 	plugins?: Plugin[];
 
 	onwarn?: WarningHandler;
-	cache?: CachedChunk | CachedChunkSet;
+	cache?: {
+		modules: ModuleJSON[];
+	};
 
 	acorn?: {};
 	acornInjectPlugins?: Function[];
@@ -125,6 +126,8 @@ export interface InputOptions {
 
 export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'es6' | 'iife' | 'umd';
 
+export type OptionsPaths = Record<string, string> | ((id: string) => string);
+
 export interface OutputOptions {
 	// only required for bundle.write
 	file?: string;
@@ -135,8 +138,10 @@ export interface OutputOptions {
 	format?: ModuleFormat;
 	name?: string;
 	globals?: GlobalsOption;
+	chunkNames?: string;
+	entryNames?: string;
 
-	paths?: Record<string, string> | ((id: string, parent: string) => string);
+	paths?: OptionsPaths;
 	banner?: string;
 	footer?: string;
 	intro?: string;
@@ -242,10 +247,31 @@ const throwAsyncGenerateError = {
 export interface OutputChunk {
 	imports: string[];
 	exports: string[];
-	modules: ModuleJSON[];
+	modules: string[];
+	code: string;
+	map?: SourceMap;
+}
 
-	generate: (outputOptions: OutputOptions) => Promise<{ code: string; map: SourceMap }>;
-	write: (options: OutputOptions) => Promise<void>;
+export interface Bundle {
+	// TODO: consider deprecating to match code splitting
+	imports: string[];
+	exports: string[];
+	modules: ModuleJSON[];
+	cache: {
+		modules: ModuleJSON[];
+	};
+
+	generate: (outputOptions: OutputOptions) => Promise<OutputChunk>;
+	write: (options: OutputOptions) => Promise<OutputChunk>;
+	getTimings?: () => SerializedTimings;
+}
+
+export interface BundleSet {
+	cache: {
+		modules: ModuleJSON[];
+	};
+	generate: (outputOptions: OutputOptions) => Promise<{ [chunkName: string]: OutputChunk }>;
+	write: (options: OutputOptions) => Promise<{ [chunkName: string]: OutputChunk }>;
 	getTimings?: () => SerializedTimings;
 }
 
@@ -271,26 +297,9 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	return inputOptions.plugins.reduce(applyOptionHook, inputOptions);
 }
 
-export interface OutputChunkSet {
-	chunks: {
-		[chunkName: string]: {
-			name: string;
-			imports: string[];
-			exports: string[];
-			modules: ModuleJSON[];
-		};
-	};
-	generate: (outputOptions: OutputOptions) => Promise<{ [chunkName: string]: SourceDescription }>;
-	write: (options: OutputOptions) => Promise<void>;
-	getTimings?: () => SerializedTimings;
-}
-
 export default function rollup(
-	rawInputOptions: InputOptions
-): Promise<OutputChunk | OutputChunkSet>;
-export default function rollup(
-	rawInputOptions: GenericConfigObject
-): Promise<OutputChunk | OutputChunkSet> {
+	rawInputOptions: GenericConfigObject | InputOptions
+): Promise<Bundle | BundleSet> {
 	try {
 		const inputOptions = getInputOptions(rawInputOptions);
 		initialiseTimers(inputOptions);
@@ -299,78 +308,56 @@ export default function rollup(
 		timeStart('BUILD', 1);
 
 		const codeSplitting =
-			(inputOptions.experimentalCodeSplitting && inputOptions.input instanceof Array) ||
+			(inputOptions.experimentalCodeSplitting && typeof inputOptions.input !== 'string') ||
 			inputOptions.experimentalPreserveModules;
 
 		if (!codeSplitting)
 			return graph.buildSingle(inputOptions.input).then(chunk => {
 				timeEnd('BUILD', 1);
 
-				function normalizeOptions(rawOutputOptions: GenericConfigObject) {
-					if (!rawOutputOptions) {
-						throw new Error('You must supply an options object');
-					}
-					// since deprecateOptions, adds the output properties
-					// to `inputOptions` so adding that lastly
-					const consolidatedOutputOptions = Object.assign(
-						{},
-						{
-							output: Object.assign(
-								{},
-								rawOutputOptions,
-								rawOutputOptions.output,
-								inputOptions.output
-							)
-						}
-					);
-					const mergedOptions = mergeOptions({
-						// just for backward compatiblity to fallback on root
-						// if the option isn't present in `output`
-						config: consolidatedOutputOptions,
-						deprecateConfig: { output: true }
-					});
-
-					if (mergedOptions.optionError)
-						mergedOptions.inputOptions.onwarn({
-							message: mergedOptions.optionError,
-							code: 'UNKNOWN_OPTION'
-						});
-
-					// now outputOptions is an array, but rollup.rollup API doesn't support arrays
-					const outputOptions = mergedOptions.outputOptions[0];
-					const deprecations = mergedOptions.deprecations;
-
-					if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
-					checkOutputOptions(outputOptions);
-
-					return outputOptions;
-				}
+				const imports = chunk.getImportIds();
+				const exports = chunk.getExportNames();
+				const modules = graph.getCache().modules;
 
 				function generate(rawOutputOptions: GenericConfigObject) {
-					const outputOptions = normalizeOptions(rawOutputOptions);
+					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
 
 					timeStart('GENERATE', 1);
 
 					const promise = Promise.resolve()
-						.then(() => chunk.render(outputOptions))
+						.then(() => {
+							return createAddons(graph, outputOptions);
+						})
+						.then(addons => {
+							chunk.preRender(outputOptions);
+							return chunk.render(outputOptions, addons);
+						})
 						.then(rendered => {
 							timeEnd('GENERATE', 1);
+
+							const output = {
+								imports,
+								exports,
+								modules: chunk.getModuleIds(),
+								code: rendered.code,
+								map: rendered.map
+							};
 
 							graph.plugins.forEach(plugin => {
 								if (plugin.ongenerate) {
 									plugin.ongenerate(
-										assign(
+										Object.assign(
 											{
 												bundle: result
 											},
 											outputOptions
 										),
-										rendered
+										output
 									);
 								}
 							});
 
-							return rendered;
+							return output;
 						});
 
 					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
@@ -379,10 +366,12 @@ export default function rollup(
 					return promise;
 				}
 
-				const result: OutputChunk = {
-					imports: chunk.getImportIds(),
-					exports: chunk.getExportNames(),
-					modules: chunk.getJsonModules(),
+				const result: Bundle = {
+					imports,
+					exports,
+					modules,
+
+					cache: { modules },
 
 					generate,
 					write: (outputOptions: OutputOptions) => {
@@ -419,7 +408,7 @@ export default function rollup(
 										mapSequence(graph.plugins.filter(plugin => plugin.onwrite), (plugin: Plugin) =>
 											Promise.resolve(
 												plugin.onwrite(
-													assign(
+													Object.assign(
 														{
 															bundle: result
 														},
@@ -431,7 +420,7 @@ export default function rollup(
 										)
 									)
 									// ensures return isn't void[]
-									.then(() => {})
+									.then(() => result)
 							);
 						});
 					}
@@ -443,34 +432,24 @@ export default function rollup(
 				return result;
 			});
 
-		if (!Array.isArray(inputOptions.input)) {
+		// code splitting case
+		if (inputOptions.experimentalPreserveModules && typeof inputOptions.input === 'string') {
 			inputOptions.input = [inputOptions.input];
 		}
+		if (!(Array.isArray(inputOptions.input) || typeof inputOptions.input === 'object')) {
+			error({
+				code: 'INVALID_OPTION',
+				message: 'When code splitting, "input" must be an array or object of entry points.'
+			});
+		}
+
 		return graph
 			.buildChunks(inputOptions.input, inputOptions.experimentalPreserveModules)
-			.then(bundle => {
+			.then(chunks => {
 				timeEnd('BUILD', 1);
-				const chunks: {
-					[name: string]: {
-						name: string;
-						imports: string[];
-						exports: string[];
-						modules: ModuleJSON[];
-					};
-				} = {};
-				Object.keys(bundle).forEach(chunkName => {
-					const chunk = bundle[chunkName];
-
-					chunks[chunkName] = {
-						name: chunkName,
-						imports: chunk.getImportIds(),
-						exports: chunk.getExportNames(),
-						modules: chunk.getJsonModules()
-					};
-				});
 
 				function generate(rawOutputOptions: GenericConfigObject) {
-					const outputOptions = getAndCheckOutputOptions(inputOptions, rawOutputOptions);
+					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
 
 					if (typeof outputOptions.file === 'string')
 						error({
@@ -488,25 +467,67 @@ export default function rollup(
 
 					timeStart('GENERATE', 1);
 
-					const generated: { [chunkName: string]: SourceDescription } = {};
+					const generated: { [chunkName: string]: OutputChunk } = {};
 
-					const promise = Promise.all(
-						Object.keys(bundle).map(chunkName => {
-							const chunk = bundle[chunkName];
-							return chunk.render(outputOptions).then(rendered => {
-								timeEnd('GENERATE', 1);
+					let preserveModulesBase: string;
+					if (inputOptions.experimentalPreserveModules)
+						preserveModulesBase = commondir(chunks.map(chunk => chunk.entryModule.id));
+					let existingNames = Object.create(null);
 
-								graph.plugins.forEach(plugin => {
-									if (plugin.ongenerate) {
-										const bundle = chunks[chunkName];
-										plugin.ongenerate(assign({ bundle }, outputOptions), rendered);
-									}
-								});
+					const promise = createAddons(graph, outputOptions)
+						.then(addons => {
+							// first pre-render all chunks
+							// then name all chunks
+							return (
+								Promise.resolve()
+									.then(() => {
+										chunks.forEach(chunk => chunk.preRender(outputOptions));
 
-								generated[chunkName] = rendered;
-							});
+										chunks.forEach(chunk => {
+											if (inputOptions.experimentalPreserveModules) {
+												chunk.generateNamePreserveModules(preserveModulesBase);
+											} else {
+												let pattern;
+												if (chunk.isEntryModuleFacade) {
+													pattern = outputOptions.entryNames || '[alias].js';
+												} else {
+													pattern = outputOptions.chunkNames || '[alias]-[hash].js';
+												}
+												chunk.generateName(pattern, addons, outputOptions, existingNames);
+											}
+										});
+									})
+									// second render chunks given known names
+									.then(() => {
+										return Promise.all(
+											chunks.map(chunk => {
+												return chunk.render(outputOptions, addons).then(rendered => {
+													const output = {
+														imports: chunk.getImportIds(),
+														exports: chunk.getExportNames(),
+														modules: chunk.getModuleIds(),
+
+														code: rendered.code,
+														map: rendered.map
+													};
+
+													graph.plugins.forEach(plugin => {
+														if (plugin.ongenerate) {
+															plugin.ongenerate(Object.assign(chunk, outputOptions), output);
+														}
+													});
+
+													generated[chunk.id] = output;
+												});
+											})
+										);
+									})
+							);
 						})
-					).then(() => generated);
+						.then(() => {
+							timeEnd('GENERATE', 1);
+							return generated;
+						});
 
 					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
 					Object.defineProperty(promise, 'map', throwAsyncGenerateError);
@@ -514,10 +535,10 @@ export default function rollup(
 					return promise;
 				}
 
-				const result: OutputChunkSet = {
-					chunks: chunks,
+				const result: BundleSet = {
+					cache: graph.getCache(),
 					generate,
-					write(outputOptions: OutputOptions): Promise<void> {
+					write(outputOptions: OutputOptions) {
 						if (!outputOptions || !outputOptions.dir) {
 							error({
 								code: 'MISSING_OPTION',
@@ -554,12 +575,12 @@ export default function rollup(
 											graph.plugins.filter(plugin => plugin.onwrite),
 											(plugin: Plugin) =>
 												Promise.resolve(
-													plugin.onwrite(assign({ bundle: chunk }, outputOptions), chunk)
+													plugin.onwrite(Object.assign({ bundle: chunk }, outputOptions), chunk)
 												)
 										);
 									});
 								})
-							).then(() => {}); // ensures return void and not void[][]
+							).then(() => result);
 						});
 					}
 				};
@@ -574,7 +595,7 @@ export default function rollup(
 	}
 }
 
-function getAndCheckOutputOptions(
+function normalizeOutputOptions(
 	inputOptions: GenericConfigObject,
 	rawOutputOptions: GenericConfigObject
 ): OutputOptions {

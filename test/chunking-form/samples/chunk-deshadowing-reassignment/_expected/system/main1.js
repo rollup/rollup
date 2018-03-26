@@ -1,15 +1,11 @@
-System.register(['./chunk2.js', './chunk1.js', './chunk3.js'], function (exports, module) {
+System.register(['./chunk-9b7c35aa.js', './chunk-2ec47290.js', './chunk-a5be984a.js'], function (exports, module) {
 	'use strict';
 	var x, y;
 	return {
 		setters: [function (module) {
 			x = module.default;
 			y = module.default$1;
-		}, function (module) {
-			
-		}, function (module) {
-			
-		}],
+		}, function () {}, function () {}],
 		execute: function () {
 
 			console.log(x + y);

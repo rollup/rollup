@@ -1,6 +1,6 @@
 'use strict';
 
-var __chunk1_js = require('./chunk1.js');
-var __chunk3_js = require('./chunk3.js');
+var __chunk_1 = require('./chunk-5785ab3d.js');
+var __chunk_3 = require('./chunk-cc5a8c30.js');
 
-console.log(__chunk1_js.num + __chunk3_js.num);
+console.log(__chunk_1.num + __chunk_3.num);

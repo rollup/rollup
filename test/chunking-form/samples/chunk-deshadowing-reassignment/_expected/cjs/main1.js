@@ -1,7 +1,7 @@
 'use strict';
 
-var __chunk2_js = require('./chunk2.js');
-require('./chunk1.js');
-require('./chunk3.js');
+var __chunk_2 = require('./chunk-78384718.js');
+require('./chunk-844f8975.js');
+require('./chunk-39aa871e.js');
 
-console.log(__chunk2_js.default + __chunk2_js.default$1);
+console.log(__chunk_2.default + __chunk_2.default$1);

@@ -2,59 +2,52 @@ import CallExpression from './CallExpression';
 import { NodeType } from './NodeType';
 import { NodeBase } from './shared/Node';
 import MagicString from 'magic-string';
-import NamespaceVariable from '../variables/NamespaceVariable';
 import { RenderOptions } from '../../utils/renderHelpers';
 
 export default class Import extends NodeBase {
 	type: NodeType.Import;
 	parent: CallExpression;
 
-	private resolution: NamespaceVariable | string | void;
-	private resolutionInterop: boolean;
+	constructor() {
+		super();
+		this.resolutionNamespace = undefined;
+		this.resolutionInterop = false;
+	}
 
-	setResolution(resolution: NamespaceVariable | string | void, interop: boolean): void {
-		this.resolution = resolution;
+	private resolutionNamespace: string;
+	private resolutionInterop: boolean;
+	private rendered: boolean;
+
+	setResolution(interop: boolean, namespace: string = undefined): void {
+		this.rendered = false;
 		this.resolutionInterop = interop;
+		this.resolutionNamespace = namespace;
+	}
+
+	renderFinalResolution(code: MagicString, resolution: string) {
+		// avoid unnecessary writes when tree-shaken
+		if (this.rendered)
+			code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, resolution);
 	}
 
 	render(code: MagicString, options: RenderOptions) {
-		// if we have the module in the chunk, inline as Promise.resolve(namespace)
-		if (this.resolution instanceof NamespaceVariable) {
-			// ideally this should be handled like normal tree shaking
-			this.resolution.includeVariable();
+		this.rendered = true;
+		if (this.resolutionNamespace) {
 			code.overwrite(
 				this.parent.start,
-				this.parent.arguments[0].start,
-				'Promise.resolve().then(function () { return '
+				this.parent.end,
+				`Promise.resolve().then(function () { return ${this.resolutionNamespace}; })`
 			);
-			code.overwrite(
-				this.parent.arguments[0].start,
-				this.parent.arguments[0].end,
-				this.resolution.getName()
-			);
-			code.overwrite(this.parent.arguments[0].end, this.parent.end, '; })');
-		} else {
-			if (options.importMechanism) {
-				const leftMechanism =
-					(this.resolutionInterop && options.importMechanism.interopLeft) ||
-					options.importMechanism.left;
-				code.overwrite(this.parent.start, this.parent.arguments[0].start, leftMechanism);
-			}
+		} else if (options.importMechanism) {
+			const leftMechanism =
+				(this.resolutionInterop && options.importMechanism.interopLeft) ||
+				options.importMechanism.left;
+			code.overwrite(this.parent.start, this.parent.arguments[0].start, leftMechanism);
 
-			if (this.resolution) {
-				code.overwrite(
-					this.parent.arguments[0].start,
-					this.parent.arguments[0].end,
-					this.resolution
-				);
-			}
-
-			if (options.importMechanism) {
-				const rightMechanism =
-					(this.resolutionInterop && options.importMechanism.interopRight) ||
-					options.importMechanism.right;
-				code.overwrite(this.parent.arguments[0].end, this.parent.end, rightMechanism);
-			}
+			const rightMechanism =
+				(this.resolutionInterop && options.importMechanism.interopRight) ||
+				options.importMechanism.right;
+			code.overwrite(this.parent.arguments[0].end, this.parent.end, rightMechanism);
 		}
 	}
 }

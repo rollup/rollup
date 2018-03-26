@@ -1,5 +1,6 @@
-import Chunk, { ModuleDeclarations } from '../Chunk';
+import { ModuleDeclarations } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
+import { FinaliserOptions } from './index';
 
 function getStarExcludes({ dependencies, exports }: ModuleDeclarations) {
 	const starExcludes = new Set(exports.map(expt => expt.exported));
@@ -16,28 +17,15 @@ function getStarExcludes({ dependencies, exports }: ModuleDeclarations) {
 }
 
 export default function system(
-	chunk: Chunk,
 	magicString: MagicStringBundle,
-	{
-		getPath,
-		indentString: t,
-		intro,
-		outro
-	}: {
-		indentString: string;
-		getPath: (name: string) => string;
-		intro: string;
-		outro: string;
-	}
+	{ graph, indentString: t, intro, outro, dependencies, exports }: FinaliserOptions
 ) {
-	const { dependencies, exports } = chunk.getModuleDeclarations();
-
-	const dependencyIds = dependencies.map(m => `'${getPath(m.id)}'`);
+	const dependencyIds = dependencies.map(m => `'${m.id}'`);
 
 	const importBindings: string[] = [];
 	let starExcludes: Set<string>;
 	const setters: string[] = [];
-	const varOrConst = chunk.graph.varOrConst;
+	const varOrConst = graph.varOrConst;
 
 	dependencies.forEach(({ imports, reexports }) => {
 		let setter: string[] = [];
@@ -122,11 +110,7 @@ ${t}'use strict';${starExcludesSection}${importBindingsSection}
 ${t}return {${
 		setters.length
 			? `\n${t}${t}setters: [${setters
-					.map(
-						s => `function (module) {
-${t}${t}${t}${s}
-${t}${t}}`
-					)
+					.map(s => (s ? `function (module) {\n${t}${t}${t}${s}\n${t}${t}}` : `function () {}`))
 					.join(', ')}],`
 			: ''
 	}

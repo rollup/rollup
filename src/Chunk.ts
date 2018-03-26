@@ -1,17 +1,14 @@
 import { timeEnd, timeStart } from './utils/timers';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
-import { blank, forOwn } from './utils/object';
-import Module, { ModuleJSON } from './Module';
+import Module from './Module';
 import finalisers from './finalisers/index';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
-import { runSequence } from './utils/promise';
 import transformBundle from './utils/transformBundle';
 import collapseSourcemaps from './utils/collapseSourcemaps';
-import callIfFunction from './utils/callIfFunction';
 import error from './utils/error';
-import { normalize, resolve } from './utils/path';
-import { OutputOptions } from './rollup/index';
+import { normalize, resolve, extname, dirname, relative, basename } from './utils/path';
+import { OutputOptions, GlobalsOption } from './rollup/index';
 import { RawSourceMap } from 'source-map';
 import Graph from './Graph';
 import ExternalModule from './ExternalModule';
@@ -23,6 +20,9 @@ import { makeLegal } from './utils/identifierHelpers';
 import LocalVariable from './ast/variables/LocalVariable';
 import { NodeType } from './ast/nodes/index';
 import { RenderOptions } from './utils/renderHelpers';
+import { Addons } from './utils/addons';
+import sha256 from 'hash.js/lib/hash/sha/256';
+import { jsExts } from './utils/relativeId';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;
@@ -32,6 +32,7 @@ export interface ModuleDeclarations {
 export interface ModuleDeclarationDependency {
 	id: string;
 	name: string;
+	globalName: string;
 	isChunk: boolean;
 	// these used as interop signifiers
 	exportsDefault: boolean;
@@ -66,7 +67,31 @@ export interface DynamicImportMechanism {
 	interopRight?: string;
 }
 
+function getGlobalName(
+	module: ExternalModule,
+	globals: GlobalsOption,
+	graph: Graph,
+	hasExports: boolean
+) {
+	if (typeof globals === 'function') return globals(module.id);
+	if (globals) return globals[module.id];
+	if (hasExports) {
+		graph.warn({
+			code: 'MISSING_GLOBAL_NAME',
+			source: module.id,
+			guess: module.name,
+			message: `No name was provided for external module '${
+				module.id
+			}' in options.globals – guessing '${module.name}'`
+		});
+		return module.name;
+	}
+}
+
 export default class Chunk {
+	hasDynamicImport: boolean;
+	indentString: string;
+	usedModules: Module[];
 	id: string;
 	name: string;
 	graph: Graph;
@@ -102,6 +127,11 @@ export default class Chunk {
 	entryModule: Module;
 	isEntryModuleFacade: boolean;
 
+	renderedHash: string;
+	renderedSources: MagicString[];
+	renderedSource: MagicStringBundle;
+	renderedDeclarations: { dependencies: ChunkDependencies; exports: ChunkExports };
+
 	constructor(graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
 		this.orderedModules = orderedModules;
@@ -124,11 +154,18 @@ export default class Chunk {
 			}
 			module.chunk = this;
 		});
-	}
+		this.id = undefined;
+		this.renderedHash = undefined;
+		this.renderedSources = undefined;
+		this.renderedSource = undefined;
+		this.renderedDeclarations = undefined;
+		this.indentString = undefined;
+		this.usedModules = undefined;
+		this.hasDynamicImport = false;
 
-	setId(id: string) {
-		this.id = id;
-		this.name = makeLegal(id);
+		if (this.entryModule)
+			this.name = makeLegal(basename(this.entryModule.alias || this.entryModule.id));
+		else this.name = '__chunk_' + ++graph.curChunkIndex;
 	}
 
 	// ensure that the module exports or reexports the given variable
@@ -191,6 +228,8 @@ export default class Chunk {
 	collectDependencies(entryFacade?: Module) {
 		if (entryFacade) {
 			this.dependencies = [entryFacade.chunk];
+			this.entryModule = entryFacade;
+			this.isEntryModuleFacade = true;
 			return;
 		}
 
@@ -290,8 +329,8 @@ export default class Chunk {
 		return Object.keys(this.exports);
 	}
 
-	getJsonModules(): ModuleJSON[] {
-		return this.orderedModules.map(module => module.toJSON());
+	getModuleIds(): string[] {
+		return this.orderedModules.map(module => module.id);
 	}
 
 	traceImport(module: Module | ExternalModule, exportName: string) {
@@ -379,46 +418,7 @@ export default class Chunk {
 		}
 	}
 
-	collectAddon(
-		initialAddon: string,
-		addonName: 'banner' | 'footer' | 'intro' | 'outro',
-		sep: string = '\n'
-	) {
-		return runSequence(
-			[
-				{ pluginName: 'rollup', source: initialAddon } as {
-					pluginName: string;
-					source: string | (() => string);
-				}
-			]
-				.concat(
-					this.graph.plugins.map((plugin, idx) => {
-						return {
-							pluginName: plugin.name || `Plugin at pos ${idx}`,
-							source: plugin[addonName]
-						};
-					})
-				)
-				.map(addon => {
-					addon.source = callIfFunction(addon.source);
-					return addon;
-				})
-				.filter(addon => {
-					return addon.source;
-				})
-				.map(({ pluginName, source }) => {
-					return Promise.resolve(source).catch(err => {
-						error({
-							code: 'ADDON_ERROR',
-							message: `Could not retrieve ${addonName}. Check configuration of ${pluginName}.
-	Error Message: ${err.message}`
-						});
-					});
-				})
-		).then(addons => addons.filter(Boolean).join(sep));
-	}
-
-	private setDynamicImportResolutions({ format }: OutputOptions) {
+	private prepareDynamicImports({ format }: OutputOptions) {
 		const es = format === 'es';
 		let dynamicImportMechanism: DynamicImportMechanism;
 		let hasDynamicImports = false;
@@ -444,36 +444,65 @@ export default class Chunk {
 				};
 			}
 		}
-		this.orderedModules.forEach(module => {
-			module.dynamicImportResolutions.forEach((replacement, index) => {
-				const node = module.dynamicImports[index];
+		for (let module of this.orderedModules) {
+			for (let i = 0; i < module.dynamicImportResolutions.length; i++) {
+				const node = module.dynamicImports[i];
+				const resolution = module.dynamicImportResolutions[i].resolution;
 				hasDynamicImports = true;
 
-				if (!replacement) return;
+				if (!resolution) continue;
 
-				if (replacement instanceof Module) {
+				if (resolution instanceof Module) {
 					// if we have the module in the chunk, inline as Promise.resolve(namespace)
 					// ensuring that we create a namespace import of it as well
-					if (replacement.chunk === this) {
-						node.setResolution(replacement.namespace(), false);
+					if (resolution.chunk === this) {
+						const namespace = resolution.namespace();
+						namespace.includeVariable();
+						node.setResolution(false, namespace.getName());
 						// for the module in another chunk, import that other chunk directly
 					} else {
-						node.setResolution(`"${replacement.chunk.id}"`, false);
+						node.setResolution(false);
 					}
 					// external dynamic import resolution
-				} else if (replacement instanceof ExternalModule) {
-					node.setResolution(`"${replacement.id}"`, true);
+				} else if (resolution instanceof ExternalModule) {
+					node.setResolution(true);
 					// AST Node -> source replacement
 				} else {
-					node.setResolution(replacement, false);
+					node.setResolution(false);
 				}
-			});
-		});
-		if (hasDynamicImports) return dynamicImportMechanism;
+			}
+		}
+
+		return hasDynamicImports && dynamicImportMechanism;
+	}
+
+	private finaliseDynamicImports() {
+		for (let i = 0; i < this.orderedModules.length; i++) {
+			const module = this.orderedModules[i];
+			const code = this.renderedSources[i];
+			for (let j = 0; j < module.dynamicImportResolutions.length; j++) {
+				const node = module.dynamicImports[j];
+				const resolution = module.dynamicImportResolutions[j].resolution;
+
+				if (!resolution) continue;
+				if (resolution instanceof Module) {
+					if (resolution.chunk !== this) {
+						let relPath = normalize(relative(dirname(this.id), resolution.chunk.id));
+						if (!relPath.startsWith('../')) relPath = './' + relPath;
+						node.renderFinalResolution(code, `"${relPath}"`);
+					}
+				} else if (resolution instanceof ExternalModule) {
+					node.renderFinalResolution(code, `"${resolution.id}"`);
+					// AST Node -> source replacement
+				} else {
+					node.renderFinalResolution(code, resolution);
+				}
+			}
+		}
 	}
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
-		const used = blank();
+		const used = Object.create(null);
 		const es = options.format === 'es' || options.format === 'system';
 
 		// ensure no conflicts with globals
@@ -534,7 +563,8 @@ export default class Chunk {
 		});
 
 		this.orderedModules.forEach(module => {
-			forOwn(module.scope.variables, variable => {
+			Object.keys(module.scope.variables).forEach(variableName => {
+				const variable = module.scope.variables[variableName];
 				if (isExportDefaultVariable(variable) && variable.referencesOriginal()) {
 					variable.setSafeName(null);
 					return;
@@ -590,7 +620,7 @@ export default class Chunk {
 		return reexportDeclarations;
 	}
 
-	private getChunkDependencyDeclarations(): ChunkDependencies {
+	private getChunkDependencyDeclarations(options: OutputOptions): ChunkDependencies {
 		const reexportDeclarations = this.getCheckReexportDeclarations();
 
 		const dependencies: ChunkDependencies = [];
@@ -623,8 +653,25 @@ export default class Chunk {
 				exportsDefault = false;
 			}
 
+			let id: string;
+			let globalName: string;
+			if (dep instanceof ExternalModule) {
+				id = dep.renderPath;
+				if (options.format === 'umd' || options.format === 'iife') {
+					globalName = getGlobalName(
+						<ExternalModule>dep,
+						options.globals,
+						this.graph,
+						exportsNames || exportsNamespace || exportsDefault
+					);
+				}
+			}
+
+			// id is left undefined for other chunks for now
+			// this will be populated on render
 			dependencies.push({
-				id: dep.id,
+				id,
+				globalName,
 				name: dep.name,
 				isChunk: !(<ExternalModule>dep).isExternal,
 				exportsNames,
@@ -687,162 +734,247 @@ export default class Chunk {
 		}
 	}
 
-	getModuleDeclarations(): ModuleDeclarations {
-		this.inlineDeepModuleDependencies();
+	getRenderedHash() {
+		if (this.renderedHash) return this.renderedHash;
+		const hash = sha256();
+		hash.update(this.renderedSource.toString());
+		return (this.renderedHash = hash.digest('hex'));
+	}
 
-		return {
-			dependencies: this.getChunkDependencyDeclarations(),
+	private computeFullHash(addons: Addons, options: OutputOptions): string {
+		const hash = sha256();
+
+		// own rendered source, except for finalizer wrapping
+		hash.update(this.getRenderedHash());
+
+		// hash of addons
+		hash.update(addons.hash);
+
+		hash.update(options.format);
+
+		// import names of dependency sources
+		hash.update(this.dependencies.length);
+
+		// add in hashes of all dependent chunks and resolved external ids
+		function visitDep(dep: Chunk, seen: Chunk[]) {
+			if (seen.indexOf(dep) !== -1) return;
+			seen.push(dep);
+
+			hash.update(dep.dependencies.length);
+			for (let subDep of dep.dependencies) {
+				if (subDep instanceof ExternalModule) {
+					hash.update(':' + subDep.renderPath);
+					return;
+				}
+				hash.update(subDep.getRenderedHash());
+				visitDep(subDep, seen);
+			}
+		}
+		visitDep(this, []);
+
+		return hash.digest('hex').substr(0, 8);
+	}
+
+	// prerender allows chunk hashes and names to be generated before finalizing
+	preRender(options: OutputOptions) {
+		let magicString = new MagicStringBundle({ separator: '\n\n' });
+		this.usedModules = [];
+
+		timeStart('render modules', 3);
+
+		this.indentString = getIndentString(this.orderedModules, options);
+
+		const renderOptions: RenderOptions = {
+			legacy: options.legacy,
+			freeze: options.freeze !== false,
+			namespaceToStringTag: options.namespaceToStringTag === true,
+			indent: this.indentString,
+			systemBindings: options.format === 'system',
+			importMechanism: this.graph.dynamicImport && this.prepareDynamicImports(options)
+		};
+
+		this.setIdentifierRenderResolutions(options);
+
+		let hoistedSource = '';
+
+		this.renderedSources = [];
+
+		for (let module of this.orderedModules) {
+			const source = module.render(renderOptions);
+			source.trim();
+			this.renderedSources.push(source);
+
+			const namespace = module.namespace();
+			if (namespace.needsNamespaceBlock || !source.isEmpty()) {
+				magicString.addSource(source);
+				this.usedModules.push(module);
+
+				if (namespace.needsNamespaceBlock) {
+					const rendered = namespace.renderBlock(renderOptions);
+					if (namespace.renderFirst()) hoistedSource += '\n' + rendered;
+					else magicString.addSource(new MagicString(rendered));
+				}
+			}
+		}
+
+		// resolve external module paths
+		for (let external of this.dependencies) {
+			if (!(external instanceof ExternalModule)) continue;
+			external.setRenderPath(options, this.entryModule && this.entryModule.id);
+		}
+
+		if (hoistedSource) magicString.prepend(hoistedSource + '\n\n');
+
+		this.renderedSource = magicString.trim();
+
+		if (
+			this.getExportNames().length === 0 &&
+			this.getImportIds().length === 0 &&
+			this.renderedSource.isEmpty()
+		) {
+			this.graph.warn({
+				code: 'EMPTY_BUNDLE',
+				message: 'Generated an empty bundle'
+			});
+		}
+
+		this.hasDynamicImport = !!renderOptions.importMechanism;
+
+		this.inlineDeepModuleDependencies();
+		this.renderedDeclarations = {
+			dependencies: this.getChunkDependencyDeclarations(options),
 			exports: this.getChunkExportDeclarations()
 		};
 	}
 
-	render(options: OutputOptions) {
-		return Promise.resolve()
-			.then(() => {
-				return Promise.all([
-					this.collectAddon(options.banner, 'banner'),
-					this.collectAddon(options.footer, 'footer'),
-					this.collectAddon(options.intro, 'intro', '\n\n'),
-					this.collectAddon(options.outro, 'outro', '\n\n')
-				]);
-			})
-			.then(([banner, footer, intro, outro]) => {
-				// Determine export mode - 'default', 'named', 'none'
-				const exportMode = this.isEntryModuleFacade ? getExportMode(this, options) : 'named';
-
-				let magicString = new MagicStringBundle({ separator: '\n\n' });
-				const usedModules: Module[] = [];
-
-				timeStart('render modules', 3);
-
-				const indentString = getIndentString(this.orderedModules, options);
-
-				const renderOptions: RenderOptions = {
-					legacy: options.legacy,
-					freeze: options.freeze !== false,
-					namespaceToStringTag: options.namespaceToStringTag === true,
-					indent: indentString,
-					systemBindings: options.format === 'system',
-					importMechanism: this.graph.dynamicImport && this.setDynamicImportResolutions(options)
-				};
-
-				this.setIdentifierRenderResolutions(options);
-
-				let hoistedSource = '';
-
-				this.orderedModules.forEach(module => {
-					const source = module.render(renderOptions);
-					(<any>source).trim();
-
-					const namespace = module.namespace();
-					if (namespace.needsNamespaceBlock || source.toString().length) {
-						magicString.addSource(source);
-						usedModules.push(module);
-
-						if (namespace.needsNamespaceBlock) {
-							const rendered = namespace.renderBlock(renderOptions);
-							if (namespace.renderFirst()) hoistedSource += '\n' + rendered;
-							else magicString.addSource(new MagicString(rendered));
-						}
-					}
-				});
-
-				if (hoistedSource) magicString.prepend(hoistedSource + '\n\n');
-
-				if (this.getExportNames().length === 0 && !magicString.toString().trim()) {
-					this.graph.warn({
-						code: 'EMPTY_BUNDLE',
-						message: 'Generated an empty bundle'
-					});
-				}
-
-				timeEnd('render modules', 3);
-
-				const finalise = finalisers[options.format];
-				if (!finalise) {
-					error({
-						code: 'INVALID_OPTION',
-						message: `Invalid format: ${options.format} - valid options are ${Object.keys(
-							finalisers
-						).join(', ')}`
-					});
-				}
-
-				timeStart('render format', 3);
-
-				const getPath = this.createGetPath(options);
-
-				if (intro) intro += '\n\n';
-				if (outro) outro = `\n\n${outro}`;
-
-				magicString = finalise(
-					this,
-					magicString.trim(),
-					{
-						exportMode,
-						getPath,
-						indentString,
-						intro,
-						outro,
-						dynamicImport: !!renderOptions.importMechanism
-					},
-					options
-				);
-
-				timeEnd('render format', 3);
-
-				if (banner) magicString.prepend(banner + '\n');
-				if (footer) magicString.append('\n' + footer);
-
-				const prevCode = magicString.toString();
-				const bundleSourcemapChain: RawSourceMap[] = [];
-
-				return transformBundle(prevCode, this.graph.plugins, bundleSourcemapChain, options).then(
-					(code: string) => {
-						let map: SourceMap;
-
-						if (options.sourcemap) {
-							timeStart('sourcemap', 3);
-
-							let file = options.file ? options.sourcemapFile || options.file : this.id;
-							if (file) file = resolve(typeof process !== 'undefined' ? process.cwd() : '', file);
-
-							if (
-								this.graph.hasLoaders ||
-								this.graph.plugins.find(plugin =>
-									Boolean(plugin.transform || plugin.transformBundle)
-								)
-							) {
-								let decodedMap = magicString.generateDecodedMap({});
-								map = collapseSourcemaps(this, file, decodedMap, usedModules, bundleSourcemapChain);
-							} else {
-								map = magicString.generateMap({ file, includeContent: true });
-							}
-
-							map.sources = map.sources.map(normalize);
-
-							timeEnd('sourcemap', 3);
-						}
-
-						if (code[code.length - 1] !== '\n') code += '\n';
-						return { code, map };
-					}
-				);
-			});
+	generateNamePreserveModules(preserveModulesRelativeDir: string) {
+		return (this.id = normalize(relative(preserveModulesRelativeDir, this.entryModule.id)));
 	}
 
-	private createGetPath(options: OutputOptions) {
-		const optionsPaths = options.paths;
-		const getPath =
-			typeof optionsPaths === 'function'
-				? (id: string) =>
-						optionsPaths(id, this.id) || this.graph.getPathRelativeToBaseDirname(id, this.id)
-				: optionsPaths
-					? (id: string) =>
-							optionsPaths.hasOwnProperty(id)
-								? optionsPaths[id]
-								: this.graph.getPathRelativeToBaseDirname(id, this.id)
-					: (id: string) => this.graph.getPathRelativeToBaseDirname(id, this.id);
-		return getPath;
+	generateName(
+		pattern: string,
+		addons: Addons,
+		options: OutputOptions,
+		existingNames?: { [name: string]: boolean }
+	) {
+		// replace any chunk replacements
+		let outName = pattern.replace(/\[(hash|alias)\]/g, type => {
+			switch (type) {
+				case '[hash]':
+					return this.computeFullHash(addons, options);
+				case '[alias]':
+					return this.entryModule ? this.entryModule.alias : 'chunk';
+			}
+		});
+
+		if (existingNames) {
+			if (!existingNames[outName]) {
+				existingNames[outName] = true;
+			} else {
+				let ext = extname(outName);
+				if (jsExts.indexOf(ext) !== -1) outName = outName.substr(0, outName.length - ext.length);
+				else ext = '';
+				let uniqueName,
+					uniqueIndex = 1;
+				while (existingNames[(uniqueName = outName + ++uniqueIndex + ext)]);
+				existingNames[uniqueName] = true;
+				outName = uniqueName;
+			}
+		}
+
+		this.id = outName;
+
+		timeEnd('render modules', 3);
+	}
+
+	render(options: OutputOptions, addons: Addons) {
+		timeStart('render format', 3);
+
+		if (!this.renderedSource)
+			throw new Error('Internal error: Chunk render called before preRender');
+
+		// Determine export mode - 'default', 'named', 'none'
+		const exportMode = this.isEntryModuleFacade ? getExportMode(this, options) : 'named';
+
+		const finalise = finalisers[options.format];
+		if (!finalise) {
+			error({
+				code: 'INVALID_OPTION',
+				message: `Invalid format: ${options.format} - valid options are ${Object.keys(
+					finalisers
+				).join(', ')}`
+			});
+		}
+
+		// populate ids in the rendered declarations only here
+		// as chunk ids known only after prerender
+		for (let i = 0; i < this.dependencies.length; i++) {
+			const dep = this.dependencies[i];
+			if (dep instanceof ExternalModule) continue;
+			let relPath = normalize(relative(dirname(this.id), dep.id));
+			if (!relPath.startsWith('../')) relPath = './' + relPath;
+			this.renderedDeclarations.dependencies[i].id = relPath;
+		}
+
+		if (this.graph.dynamicImport) this.finaliseDynamicImports();
+
+		const magicString = finalise(
+			this.renderedSource,
+			{
+				exportMode,
+				indentString: this.indentString,
+				intro: addons.intro,
+				outro: addons.outro,
+				dynamicImport: this.hasDynamicImport,
+				dependencies: this.renderedDeclarations.dependencies,
+				exports: this.renderedDeclarations.exports,
+				graph: this.graph,
+				isEntryModuleFacade: this.isEntryModuleFacade
+			},
+			options
+		);
+
+		timeEnd('render format', 3);
+
+		if (addons.banner) magicString.prepend(addons.banner + '\n');
+		if (addons.footer) magicString.append('\n' + addons.footer);
+
+		const prevCode = magicString.toString();
+		let map: SourceMap = null;
+		const bundleSourcemapChain: RawSourceMap[] = [];
+
+		return transformBundle(prevCode, this.graph.plugins, bundleSourcemapChain, options).then(
+			(code: string) => {
+				if (options.sourcemap) {
+					timeStart('sourcemap', 3);
+
+					let file = options.file ? options.sourcemapFile || options.file : this.id;
+					if (file) file = resolve(typeof process !== 'undefined' ? process.cwd() : '', file);
+
+					if (
+						this.graph.hasLoaders ||
+						this.graph.plugins.find(plugin => Boolean(plugin.transform || plugin.transformBundle))
+					) {
+						let decodedMap = magicString.generateDecodedMap({});
+						map = collapseSourcemaps(
+							this,
+							file,
+							decodedMap,
+							this.usedModules,
+							bundleSourcemapChain
+						);
+					} else {
+						map = magicString.generateMap({ file, includeContent: true });
+					}
+
+					map.sources = map.sources.map(normalize);
+
+					timeEnd('sourcemap', 3);
+				}
+
+				if (code[code.length - 1] !== '\n') code += '\n';
+				return { code, map };
+			}
+		);
 	}
 }

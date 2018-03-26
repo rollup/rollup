@@ -1,9 +1,7 @@
-System.register(['./chunk3.js'], function (exports, module) {
+System.register(['./chunk-a5be984a.js'], function (exports, module) {
 	'use strict';
 	return {
-		setters: [function (module) {
-			
-		}],
+		setters: [function () {}],
 		execute: function () {
 
 

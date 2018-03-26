@@ -1,7 +1,7 @@
 'use strict';
 
-var __chunk1_js = require('./chunk1.js');
+var main2 = require('./main2-e806b502.js');
 
-console.log(__chunk1_js.a);
+console.log(main2.a);
 
-console.log(__chunk1_js.main2);
+console.log(main2.main2);

@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var __chunk1_js = require('./chunk1.js');
+var __chunk_1 = require('./chunk-acbad357.js');
 
 function mult (num) {
-  return num + __chunk1_js.multiplier;
+  return num + __chunk_1.multiplier;
 }
 
 exports.mult = mult;

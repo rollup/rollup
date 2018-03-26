@@ -4,9 +4,7 @@ System.register(['./first.js', './head.js'], function (exports, module) {
 	return {
 		setters: [function (module) {
 			head2 = module.default;
-		}, function (module) {
-			
-		}],
+		}, function () {}],
 		execute: function () {
 
 			console.log(head2);

@@ -2,8 +2,8 @@ import { NodeBase } from './shared/Node';
 import Literal from './Literal';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { BLANK } from '../../utils/object';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { BLANK } from '../../utils/blank';
 
 export default class ExportAllDeclaration extends NodeBase {
 	type: NodeType.ExportAllDeclaration;

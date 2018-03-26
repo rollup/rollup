@@ -2,7 +2,6 @@ import { IParse, Options as AcornOptions } from 'acorn';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
 import { timeEnd, timeStart } from './utils/timers';
-import { blank } from './utils/object';
 import { basename, extname } from './utils/path';
 import { makeLegal } from './utils/identifierHelpers';
 import getCodeFrame from './utils/getCodeFrame';
@@ -125,6 +124,7 @@ export default class Module {
 	exportsAll: { [name: string]: string };
 	exportAllSources: string[];
 	id: string;
+	alias: string;
 
 	imports: { [name: string]: ImportDescription };
 	isExternal: false;
@@ -137,7 +137,10 @@ export default class Module {
 	sourcemapChain: RawSourceMap[];
 	sources: string[];
 	dynamicImports: Import[];
-	dynamicImportResolutions: (Module | ExternalModule | string | void)[];
+	dynamicImportResolutions: {
+		alias: string;
+		resolution: Module | ExternalModule | string | void;
+	}[];
 
 	execIndex: number;
 	isEntryPoint: boolean;
@@ -157,6 +160,7 @@ export default class Module {
 
 	constructor(graph: Graph, id: string) {
 		this.id = id;
+		this.alias = undefined;
 		this.graph = graph;
 		this.comments = [];
 
@@ -176,15 +180,15 @@ export default class Module {
 		this.dependencies = [];
 
 		// imports and exports, indexed by local name
-		this.imports = blank();
-		this.exports = blank();
-		this.exportsAll = blank();
-		this.reexports = blank();
+		this.imports = Object.create(null);
+		this.exports = Object.create(null);
+		this.exportsAll = Object.create(null);
+		this.reexports = Object.create(null);
 
 		this.exportAllSources = [];
 		this.exportAllModules = null;
 
-		this.declarations = blank();
+		this.declarations = Object.create(null);
 		this.scope = new ModuleScope(this);
 	}
 
@@ -223,7 +227,7 @@ export default class Module {
 
 		timeEnd('generate ast', 3);
 
-		this.resolvedIds = resolvedIds || blank();
+		this.resolvedIds = resolvedIds || Object.create(null);
 
 		// By default, `id` is the filename. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source filename
@@ -542,7 +546,7 @@ export default class Module {
 	}
 
 	getAllExports() {
-		const allExports = Object.assign(blank(), this.exports, this.reexports);
+		const allExports = Object.assign(Object.create(null), this.exports, this.reexports);
 
 		this.exportAllModules.forEach(module => {
 			if (module.isExternal) {
@@ -563,7 +567,7 @@ export default class Module {
 	}
 
 	getReexports() {
-		const reexports = blank();
+		const reexports = Object.create(null);
 
 		for (const name in this.reexports) {
 			reexports[name] = true;

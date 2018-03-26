@@ -8,6 +8,8 @@ import sequence from '../utils/sequence';
 import build from './build';
 import watch from './watch';
 import { InputOptions } from '../../../src/rollup/index';
+import { basename } from '../../../src/utils/path';
+import { nameWithoutExtension } from '../../../src/utils/relativeId';
 
 export default function runRollup(command: any) {
 	if (command._.length >= 1) {
@@ -19,8 +21,28 @@ export default function runRollup(command: any) {
 		}
 	}
 
-	if (command.output && command.output.dir) {
-		command.input = command._;
+	if (command.dir) {
+		if (command._.length && !command._.some((input: string) => input.indexOf('=') !== -1)) {
+			command.input = command._;
+		} else if (
+			command._.length ||
+			Array.isArray(command.input) ||
+			typeof command.input === 'string'
+		) {
+			let input: string[];
+			if (command._.length) input = command._;
+			else input = typeof command.input === 'string' ? [command.input] : command.input;
+			command.input = {};
+			input.forEach((input: string) => {
+				const equalsIndex = input.indexOf('=');
+				const value = input.substr(equalsIndex + 1);
+				let key = input.substr(0, equalsIndex);
+				if (!key) {
+					key = nameWithoutExtension(basename(input));
+				}
+				command.input[key] = value;
+			});
+		}
 		command._ = [];
 	} else if (command._.length === 1) {
 		command.input = command._[0];

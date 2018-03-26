@@ -1,5 +1,5 @@
-define(['./chunk1.js'], function (__chunk1_js) { 'use strict';
+define(['./main2-1bf8582d.js'], function (main2) { 'use strict';
 
-	__chunk1_js.default(__chunk1_js.default$1);
+	main2.default(main2.default$1);
 
 });

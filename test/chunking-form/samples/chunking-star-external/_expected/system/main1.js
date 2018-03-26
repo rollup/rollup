@@ -1,4 +1,4 @@
-System.register(['starexternal1', 'external1', './chunk1.js', 'starexternal2', 'external2'], function (exports, module) {
+System.register(['starexternal1', 'external1', './chunk-c79a883a.js', 'starexternal2', 'external2'], function (exports, module) {
 	'use strict';
 	var _starExcludes = { main: 1, default: 1, e: 1, dep: 1 };
 	return {
@@ -12,11 +12,7 @@ System.register(['starexternal1', 'external1', './chunk1.js', 'starexternal2', '
 			exports('e', module.e);
 		}, function (module) {
 			exports('dep', module.dep);
-		}, function (module) {
-			
-		}, function (module) {
-			
-		}],
+		}, function () {}, function () {}],
 		execute: function () {
 
 			var main = exports('main', '1');

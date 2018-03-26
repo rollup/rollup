@@ -1,10 +1,10 @@
 'use strict';
 
-var __dep_js = require('../dep.js');
+var __chunk_1 = require('../dep.js');
 
 class Main {
   constructor () {
-    __dep_js.fn();
+    __chunk_1.fn();
   }
 }
 

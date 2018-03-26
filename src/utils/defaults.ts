@@ -1,9 +1,8 @@
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path';
-import { blank } from './object';
 import error from './error';
 import Module from '../Module';
-import relativeId from './relativeId';
+import relativeId, { jsExts } from './relativeId';
 import { InputOptions } from '../rollup';
 
 export function load(id: string) {
@@ -28,7 +27,12 @@ function findFile(file: string, preserveSymlinks: boolean): string | void {
 }
 
 function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
-	return findFile(file, preserveSymlinks) || findFile(file + '.js', preserveSymlinks);
+	let found = findFile(file, preserveSymlinks);
+	if (found) return found;
+	for (let ext of jsExts) {
+		found = findFile(file + ext, preserveSymlinks);
+		if (found) return found;
+	}
 }
 
 export function resolveId(options: InputOptions) {
@@ -57,7 +61,7 @@ export function resolveId(options: InputOptions) {
 }
 
 export function makeOnwarn() {
-	const warned = blank();
+	const warned = Object.create(null);
 
 	return (warning: any) => {
 		const str = warning.toString();

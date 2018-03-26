@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var __chunk1_js = require('./chunk1.js');
+var __chunk_1 = require('./chunk-a89a857d.js');
 
 class Two {
     test() {
-        return __chunk1_js.ONE_CONSTANT;
+        return __chunk_1.ONE_CONSTANT;
     }
 }
 

@@ -1,4 +1,4 @@
-import { main2, a, b } from './chunk1.js';
+import { main2, a, b } from './main2-08e916fb.js';
 
 console.log(a);
 

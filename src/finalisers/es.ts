@@ -1,37 +1,25 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import Chunk from '../Chunk';
+import { FinaliserOptions } from './index';
 
 export default function es(
-	chunk: Chunk,
 	magicString: MagicStringBundle,
-	{
-		getPath,
-		intro,
-		outro
-	}: {
-		exportMode: string;
-		indentString: string;
-		getPath: (name: string) => string;
-		intro: string;
-		outro: string;
-	}
+	{ intro, outro, dependencies, exports }: FinaliserOptions
 ) {
-	const { dependencies, exports } = chunk.getModuleDeclarations();
 	const importBlock = dependencies
 		.map(({ id, reexports, imports, name }) => {
 			if (!reexports && !imports) {
-				return `import '${getPath(id)}';`;
+				return `import '${id}';`;
 			}
 			let output = '';
 			if (imports) {
 				const defaultImport = imports.find(specifier => specifier.imported === 'default');
 				const starImport = imports.find(specifier => specifier.imported === '*');
 				if (starImport) {
-					output += `import * as ${starImport.local} from '${getPath(id)}';`;
+					output += `import * as ${starImport.local} from '${id}';`;
 					if (imports.length > 1) output += '\n';
 				}
 				if (defaultImport && imports.length === 1) {
-					output += `import ${defaultImport.local} from '${getPath(id)}';`;
+					output += `import ${defaultImport.local} from '${id}';`;
 				} else if (!starImport || imports.length > 1) {
 					output += `import ${defaultImport ? `${defaultImport.local}, ` : ''}{ ${imports
 						.filter(specifier => specifier !== defaultImport && specifier !== starImport)
@@ -42,7 +30,7 @@ export default function es(
 								return `${specifier.imported} as ${specifier.local}`;
 							}
 						})
-						.join(', ')} } from '${getPath(id)}';`;
+						.join(', ')} } from '${id}';`;
 				}
 			}
 			if (reexports) {
@@ -52,7 +40,7 @@ export default function es(
 					specifier => specifier.imported === '*' && specifier.reexported !== '*'
 				);
 				if (starExport) {
-					output += `export * from '${getPath(id)}';`;
+					output += `export * from '${id}';`;
 					if (reexports.length === 1) {
 						return output;
 					}
@@ -63,7 +51,7 @@ export default function es(
 						!imports ||
 						!imports.some(specifier => specifier.imported === '*' && specifier.local === name)
 					)
-						output += `import * as ${name} from '${getPath(id)}';\n`;
+						output += `import * as ${name} from '${id}';\n`;
 					output += `export { ${
 						name === namespaceReexport.reexported
 							? name
@@ -83,7 +71,7 @@ export default function es(
 							return `${specifier.imported} as ${specifier.reexported}`;
 						}
 					})
-					.join(', ')} } from '${getPath(id)}';`;
+					.join(', ')} } from '${id}';`;
 			}
 			return output;
 		})

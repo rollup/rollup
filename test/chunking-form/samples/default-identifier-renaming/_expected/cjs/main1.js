@@ -1,7 +1,7 @@
 'use strict';
 
-var __chunk1_js = require('./chunk1.js');
+var __chunk_1 = require('./chunk-70b4a0a3.js');
 
-var main1 = __chunk1_js.default.map(d => d + 1);
+var main1 = __chunk_1.default.map(d => d + 1);
 
 module.exports = main1;

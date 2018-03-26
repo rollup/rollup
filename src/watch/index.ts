@@ -1,14 +1,7 @@
 import path from 'path';
 import { EventEmitter } from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
-import rollup, {
-	CachedChunk,
-	CachedChunkSet,
-	InputOptions,
-	OutputOptions,
-	OutputChunk,
-	OutputChunkSet
-} from '../rollup/index';
+import rollup, { InputOptions, OutputOptions, Bundle, BundleSet, OutputChunk } from '../rollup/index';
 import ensureArray from '../utils/ensureArray';
 import { mapSequence } from '../utils/promise';
 import { addTask, deleteTask } from './fileWatchers';
@@ -107,8 +100,9 @@ export class Task {
 	closed: boolean;
 	watched: Set<string>;
 	inputOptions: InputOptions;
-	cache: CachedChunk | CachedChunkSet;
-
+	cache: {
+		modules: ModuleJSON[];
+	};
 	chokidarOptions: WatchOptions;
 	chokidarOptionsHash: string;
 	outputFiles: string[];
@@ -199,36 +193,26 @@ export class Task {
 		}
 
 		return rollup(options)
-			.then((result: OutputChunk | OutputChunkSet) => {
+			.then(result => {
 				if (this.closed) return;
 
 				const watched = (this.watched = new Set());
 
-				const watchChunk = (chunk: { modules: ModuleJSON[] }) => {
-					chunk.modules.forEach((module: ModuleJSON) => {
-						watched.add(module.id);
-						this.watchFile(module.id);
-					});
+				this.cache = result.cache;
+				result.cache.modules.forEach(module => {
+					watched.add(module.id);
+					this.watchFile(module.id);
+				});
+				this.watched.forEach(id => {
+					if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
+				});
 
-					this.watched.forEach(id => {
-						if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
-					});
-				};
-
-				this.cache = result;
-				if ((<OutputChunkSet>result).chunks) {
-					const chunks = (<OutputChunkSet>result).chunks;
-					for (const chunkName in chunks) {
-						watchChunk(chunks[chunkName]);
-					}
-				} else {
-					const chunk = <OutputChunk>result;
-					watchChunk(chunk);
-				}
-
-				return Promise.all(this.outputs.map(output => result.write(output))).then(() => result);
+				return Promise.all(this.outputs.map(output => {
+					return <Promise<OutputChunk | Record<string, OutputChunk>>>result.write(output);
+				}))
+				.then(() => result);
 			})
-			.then((result: OutputChunk | OutputChunkSet) => {
+			.then((result: Bundle | BundleSet) => {
 				this.watcher.emit('event', {
 					code: 'BUNDLE_END',
 					input: this.inputOptions.input,
@@ -243,17 +227,8 @@ export class Task {
 				if (this.cache) {
 					// this is necessary to ensure that any 'renamed' files
 					// continue to be watched following an error
-					if ((<CachedChunk>this.cache).modules) {
-						(<CachedChunk>this.cache).modules.forEach(module => {
-							this.watchFile(module.id);
-						});
-					} else {
-						const chunks = (<CachedChunkSet>this.cache).chunks;
-						for (const chunkName in chunks) {
-							chunks[chunkName].modules.forEach(module => {
-								this.watchFile(module.id);
-							});
-						}
+					if (this.cache.modules) {
+						this.cache.modules.forEach(module => this.watchFile(module.id));
 					}
 				}
 				throw error;

@@ -1,5 +1,5 @@
 'use strict';
 
-var __main1_js = require('./main1.js');
+var main1 = require('./main1.js');
 
-console.log( __main1_js.p );
+console.log( main1.p );

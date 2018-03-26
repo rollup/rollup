@@ -1,8 +1,9 @@
-import { blank } from './utils/object';
 import { makeLegal } from './utils/identifierHelpers';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Graph from './Graph';
 import Variable from './ast/variables/Variable';
+import { OutputOptions } from './rollup';
+import { isAbsolute, resolve, dirname, normalize, relative, isRelative } from './utils/path';
 
 export default class ExternalModule {
 	private graph: Graph;
@@ -11,6 +12,7 @@ export default class ExternalModule {
 	exportsNames: boolean;
 	exportsNamespace: boolean;
 	id: string;
+	renderPath: string;
 	isExternal: true;
 	isEntryPoint: false;
 	name: string;
@@ -23,18 +25,43 @@ export default class ExternalModule {
 	constructor({ graph, id }: { graph: Graph; id: string }) {
 		this.graph = graph;
 		this.id = id;
+		this.renderPath = undefined;
 
 		const parts = id.split(/[\\/]/);
 		this.name = makeLegal(parts.pop());
 
-		this.nameSuggestions = blank();
+		this.nameSuggestions = Object.create(null);
 		this.mostCommonSuggestion = 0;
 
 		this.isExternal = true;
 		this.used = false;
-		this.declarations = blank();
+		this.declarations = Object.create(null);
 
 		this.exportsNames = false;
+	}
+
+	setRenderPath(options: OutputOptions, inputPath: string) {
+		if (typeof options.paths === 'function') {
+			let outPath = options.paths(this.id);
+			if (outPath) {
+				this.renderPath = outPath;
+				return;
+			}
+		} else if (options.paths && options.paths.hasOwnProperty(this.id)) {
+			this.renderPath = options.paths[this.id];
+			return;
+		}
+
+		if (isAbsolute(this.id)) {
+			let outDir: string;
+			if (options.dir) outDir = resolve(options.dir);
+			else if (options.file) outDir = dirname(resolve(options.file));
+			else outDir = dirname(inputPath);
+			const relativeToEntry = normalize(relative(outDir, this.id));
+			this.renderPath = isRelative(relativeToEntry) ? relativeToEntry : `./${relativeToEntry}`;
+		} else {
+			this.renderPath = this.id;
+		}
 	}
 
 	suggestName(name: string) {

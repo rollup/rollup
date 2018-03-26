@@ -1,6 +1,6 @@
-define(['./chunk1.js'], function (__chunk1_js) { 'use strict';
+define(['./chunk-07a63167.js'], function (__chunk_1) { 'use strict';
 
-	var main2 = __chunk1_js.default.map(d => d + 2);
+	var main2 = __chunk_1.default.map(d => d + 2);
 
 	return main2;
 

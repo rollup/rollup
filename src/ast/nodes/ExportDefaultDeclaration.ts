@@ -11,7 +11,7 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { isObjectExpression } from './ObjectExpression';
-import { BLANK } from '../../utils/object';
+import { BLANK } from '../../utils/blank';
 
 const WHITESPACE = /\s/;
 

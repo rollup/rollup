@@ -10,8 +10,8 @@ import {
 } from '../../utils/renderHelpers';
 import { isIdentifier } from './Identifier';
 import Variable from '../variables/Variable';
-import { BLANK } from '../../utils/object';
 import { ObjectPath } from '../values';
+import { BLANK } from '../../utils/blank';
 
 function isReassignedExportsMember(variable: Variable): boolean {
 	return (

@@ -1,10 +1,10 @@
 'use strict';
 
-var __chunk1_js = require('./chunk1.js');
+var __chunk_1 = require('./chunk-7da4a328.js');
 
-__chunk1_js.commonjsGlobal.fn = d => d + 1;
-var cjs = __chunk1_js.commonjsGlobal.fn;
+__chunk_1.commonjsGlobal.fn = d => d + 1;
+var cjs = __chunk_1.commonjsGlobal.fn;
 
-var main1 = __chunk1_js.default.map(cjs);
+var main1 = __chunk_1.default.map(cjs);
 
 module.exports = main1;

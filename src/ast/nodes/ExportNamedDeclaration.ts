@@ -7,8 +7,8 @@ import FunctionDeclaration from './FunctionDeclaration';
 import ClassDeclaration from './ClassDeclaration';
 import VariableDeclaration from './VariableDeclaration';
 import { NodeType } from './NodeType';
-import { BLANK } from '../../utils/object';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { BLANK } from '../../utils/blank';
 
 export default class ExportNamedDeclaration extends NodeBase {
 	type: NodeType.ExportNamedDeclaration;
