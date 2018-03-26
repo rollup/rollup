@@ -57,14 +57,15 @@ export function optimizeChunks(
 			continue;
 		}
 		// if (!chunk.isPure()) continue;
-		const chunkDependencies: (Chunk | External)[] = [];
-		chunk.postVisit(dep => chunkDependencies.push(dep));
 		remainingSize -= getChunkSize(lastChunk);
 		if (remainingSize <= 0) {
 			continue;
 		}
 
-		const lastChunkDependencies: (Chunk | External)[] = [];
+		const chunkDependencies: (Chunk | External)[] = [lastChunk];
+		chunk.postVisit(dep => chunkDependencies.push(dep));
+
+		const lastChunkDependencies: (Chunk | External)[] = [chunk];
 		if (
 			lastChunk.postVisit(dep => {
 				lastChunkDependencies.push(dep);
