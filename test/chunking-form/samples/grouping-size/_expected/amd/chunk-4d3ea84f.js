@@ -1,9 +1,10 @@
 define(['exports'], function (exports) { 'use strict';
 
-	const y = 2;
+	const x = 1;
 
 	const z = 3;
 
-	exports.y = y;
+	exports.x = x;
+	exports.z = z;
 
 });
