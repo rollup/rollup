@@ -1,24 +1,19 @@
 import { ObjectPath, UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
-import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { RenderOptions } from '../../utils/renderHelpers';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { BLANK } from '../../utils/blank';
+import { isCallExpression } from './CallExpression';
 
 export default class ConditionalExpression extends NodeBase {
 	type: NodeType.ConditionalExpression;
 	test: ExpressionNode;
 	alternate: ExpressionNode;
 	consequent: ExpressionNode;
-
-	testValue: any;
-
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		path.length > 0 && this.forEachRelevantBranch(node => node.reassignPath(path, options));
-	}
 
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
@@ -34,7 +29,6 @@ export default class ConditionalExpression extends NodeBase {
 	getValue(): any {
 		const testValue = this.test.getValue();
 		if (testValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
-
 		return testValue ? this.consequent.getValue() : this.alternate.getValue();
 	}
 
@@ -68,38 +62,39 @@ export default class ConditionalExpression extends NodeBase {
 		);
 	}
 
-	initialiseChildren(parentScope: Scope) {
-		super.initialiseChildren(parentScope);
-		if (this.module.graph.treeshake) {
-			this.testValue = this.test.getValue();
-
-			if (this.testValue === UNKNOWN_VALUE) {
-				return;
-			} else if (this.testValue) {
-				this.alternate = null;
-			} else if (this.alternate) {
-				this.consequent = null;
-			}
-		}
+	includeInBundle() {
+		let addedNewNodes = !this.included;
+		this.included = true;
+		const testValue = this.test.getValue();
+		if (testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
+			if (this.test.includeInBundle()) addedNewNodes = true;
+			if (this.consequent.includeInBundle()) addedNewNodes = true;
+			if (this.alternate.includeInBundle()) addedNewNodes = true;
+		} else if (testValue ? this.consequent.includeInBundle() : this.alternate.includeInBundle())
+			addedNewNodes = true;
+		return addedNewNodes;
 	}
 
-	render(code: MagicString, options: RenderOptions) {
-		if (!this.module.graph.treeshake) {
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+		if (path.length > 0) this.forEachRelevantBranch(node => node.reassignPath(path, options));
+	}
+
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		{ hasBecomeCallee }: NodeRenderOptions = BLANK
+	) {
+		if (!this.module.graph.treeshake || this.test.included) {
 			super.render(code, options);
 		} else {
-			if (this.testValue === UNKNOWN_VALUE) {
-				super.render(code, options);
-			} else {
-				const branchToRetain = this.testValue ? this.consequent : this.alternate;
-
-				code.remove(this.start, branchToRetain.start);
-				code.remove(branchToRetain.end, this.end);
-				if (branchToRetain.type === NodeType.SequenceExpression) {
-					code.prependLeft(branchToRetain.start, '(');
-					code.appendRight(branchToRetain.end, ')');
-				}
-				branchToRetain.render(code, options);
-			}
+			const branchToRetain = this.test.getValue() ? this.consequent : this.alternate;
+			code.remove(this.start, branchToRetain.start);
+			code.remove(branchToRetain.end, this.end);
+			branchToRetain.render(code, options, {
+				hasBecomeCallee:
+					hasBecomeCallee || (isCallExpression(this.parent) && this.parent.callee === this),
+				hasDifferentParent: true
+			});
 		}
 	}
 
@@ -115,17 +110,22 @@ export default class ConditionalExpression extends NodeBase {
 	}
 
 	private forEachRelevantBranch(callback: (node: ExpressionNode) => void) {
-		if (this.testValue === UNKNOWN_VALUE) {
+		const testValue = this.test.getValue();
+		if (testValue === UNKNOWN_VALUE) {
 			callback(this.consequent);
 			callback(this.alternate);
+		} else if (testValue) {
+			callback(this.consequent);
 		} else {
-			this.testValue ? callback(this.consequent) : callback(this.alternate);
+			callback(this.alternate);
 		}
 	}
 
 	private someRelevantBranch(predicateFunction: (node: ExpressionNode) => boolean): boolean {
-		return this.testValue === UNKNOWN_VALUE
-			? predicateFunction(this.consequent) || predicateFunction(this.alternate)
-			: this.testValue ? predicateFunction(this.consequent) : predicateFunction(this.alternate);
+		const testValue = this.test.getValue();
+		if (testValue === UNKNOWN_VALUE) {
+			return predicateFunction(this.consequent) || predicateFunction(this.alternate);
+		}
+		return testValue ? predicateFunction(this.consequent) : predicateFunction(this.alternate);
 	}
 }

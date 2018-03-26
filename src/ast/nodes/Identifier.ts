@@ -16,7 +16,8 @@ import {
 import { NodeType } from './NodeType';
 import AssignmentExpression from './AssignmentExpression';
 import UpdateExpression from './UpdateExpression';
-import { RenderOptions } from '../../utils/renderHelpers';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { BLANK } from '../../utils/blank';
 
 export function isIdentifier(node: Node): node is Identifier {
 	return node.type === NodeType.Identifier;
@@ -158,22 +159,26 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		{ hasBecomeCallee }: NodeRenderOptions = BLANK
+	) {
 		if (this.variable) {
 			const name = this.variable.getName();
 
 			if (name !== this.name) {
 				code.overwrite(this.start, this.end, name, {
 					storeName: true,
-					contentOnly: false
+					contentOnly: true
 				});
-
-				// special case
 				if (this.parent.type === NodeType.Property && (<Property>this.parent).shorthand) {
-					code.appendLeft(this.start, `${this.name}: `);
+					code.prependRight(this.start, `${this.name}: `);
 				}
 			}
-
+			if (hasBecomeCallee && name === 'eval') {
+				code.appendRight(this.start, '0, ');
+			}
 			if (options.systemBindings && this.variable.exportName) {
 				this.renderSystemBindingUpdate(code, name);
 			}

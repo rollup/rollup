@@ -8,9 +8,10 @@ import {
 } from './shared/Expression';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { RenderOptions } from '../../utils/renderHelpers';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import MagicString from 'magic-string';
-import Scope from '../scopes/Scope';
+import { isCallExpression } from './CallExpression';
+import { BLANK } from '../../utils/blank';
 
 export type LogicalOperator = '||' | '&&';
 
@@ -19,14 +20,6 @@ export default class LogicalExpression extends NodeBase {
 	operator: LogicalOperator;
 	left: ExpressionNode;
 	right: ExpressionNode;
-
-	private value: any;
-	private needsLeft: boolean;
-	private needsRight: boolean;
-
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (path.length > 0) this.forEachRelevantBranch(node => node.reassignPath(path, options));
-	}
 
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
@@ -40,11 +33,19 @@ export default class LogicalExpression extends NodeBase {
 	}
 
 	getValue(): any {
-		return this.value;
+		const leftValue = this.left.getValue();
+		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
+		if (!leftValue === (this.operator === '&&')) return leftValue;
+		return this.right.getValue();
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return this.left.hasEffects(options) || (this.needsRight && this.right.hasEffects(options));
+		if (this.left.hasEffects(options)) return true;
+		const leftValue = this.left.getValue();
+		return (
+			(leftValue === UNKNOWN_VALUE || !leftValue === (this.operator === '||')) &&
+			this.right.hasEffects(options)
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
@@ -72,44 +73,44 @@ export default class LogicalExpression extends NodeBase {
 	}
 
 	includeInBundle() {
-		let addedNewNodes = false;
-		if (!this.included) addedNewNodes = this.included = true;
-		if (this.needsLeft || this.left.shouldBeIncluded())
-			addedNewNodes = this.left.includeInBundle() || addedNewNodes;
-		if (this.needsRight) addedNewNodes = this.right.includeInBundle() || addedNewNodes;
+		let addedNewNodes = !this.included;
+		this.included = true;
+		const leftValue = this.left.getValue();
+		if (
+			(leftValue === UNKNOWN_VALUE ||
+				!leftValue === (this.operator === '&&') ||
+				this.left.shouldBeIncluded()) &&
+			this.left.includeInBundle()
+		)
+			addedNewNodes = true;
+		if (
+			(leftValue === UNKNOWN_VALUE || !leftValue === (this.operator === '||')) &&
+			this.right.includeInBundle()
+		)
+			addedNewNodes = true;
 		return addedNewNodes;
 	}
 
-	initialiseChildren(parentScope: Scope) {
-		super.initialiseChildren(parentScope);
-		if (this.module.graph.treeshake) {
-			const leftValue = this.left.getValue();
-			if (leftValue === UNKNOWN_VALUE) {
-				this.value = UNKNOWN_VALUE;
-				this.needsLeft = true;
-				this.needsRight = true;
-			} else if (!!leftValue === (this.operator === '||')) {
-				this.value = leftValue;
-				this.needsLeft = true;
-			} else {
-				this.value = this.right.getValue();
-				this.needsRight = true;
-			}
-		}
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+		if (path.length > 0) this.forEachRelevantBranch(node => node.reassignPath(path, options));
 	}
 
-	render(code: MagicString, options: RenderOptions) {
-		if (!this.module.graph.treeshake) {
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		{ hasBecomeCallee }: NodeRenderOptions = BLANK
+	) {
+		if (!this.module.graph.treeshake || (this.left.included && this.right.included)) {
 			super.render(code, options);
 		} else {
-			if (this.left.included && this.right.included) {
-				super.render(code, options);
-			} else {
-				const branchToRetain = this.left.included ? this.left : this.right;
-				code.remove(this.start, branchToRetain.start);
-				code.remove(branchToRetain.end, this.end);
-				branchToRetain.render(code, options);
-			}
+			const branchToRetain = this.left.included ? this.left : this.right;
+			code.remove(this.start, branchToRetain.start);
+			code.remove(branchToRetain.end, this.end);
+			branchToRetain.render(code, options, {
+				hasBecomeCallee:
+					hasBecomeCallee || (isCallExpression(this.parent) && this.parent.callee === this),
+				hasDifferentParent: true
+			});
 		}
 	}
 
@@ -125,14 +126,24 @@ export default class LogicalExpression extends NodeBase {
 	}
 
 	private forEachRelevantBranch(callback: (node: ExpressionNode) => void) {
-		if (this.needsLeft) callback(this.left);
-		if (this.needsRight) callback(this.right);
+		const leftValue = this.left.getValue();
+		if (leftValue === UNKNOWN_VALUE) {
+			callback(this.left);
+			callback(this.right);
+		} else if (!leftValue === (this.operator === '&&')) {
+			callback(this.left);
+		} else {
+			callback(this.right);
+		}
 	}
 
 	private someRelevantBranch(predicateFunction: PredicateFunction) {
-		return (
-			(this.needsLeft && predicateFunction(this.left)) ||
-			(this.needsRight && predicateFunction(this.right))
-		);
+		const leftValue = this.left.getValue();
+		if (leftValue === UNKNOWN_VALUE) {
+			return predicateFunction(this.left) || predicateFunction(this.right);
+		}
+		return !leftValue === (this.operator === '&&')
+			? predicateFunction(this.left)
+			: predicateFunction(this.right);
 	}
 }
