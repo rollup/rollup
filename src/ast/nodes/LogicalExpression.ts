@@ -8,6 +8,9 @@ import {
 } from './shared/Expression';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
+import { RenderOptions } from '../../utils/renderHelpers';
+import MagicString from 'magic-string';
+import Scope from '../scopes/Scope';
 
 export type LogicalOperator = '||' | '&&';
 
@@ -17,8 +20,12 @@ export default class LogicalExpression extends NodeBase {
 	left: ExpressionNode;
 	right: ExpressionNode;
 
+	private value: any;
+	private needsLeft: boolean;
+	private needsRight: boolean;
+
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		path.length > 0 && this._forEachRelevantBranch(node => node.reassignPath(path, options));
+		if (path.length > 0) this.forEachRelevantBranch(node => node.reassignPath(path, options));
 	}
 
 	forEachReturnExpressionWhenCalledAtPath(
@@ -27,42 +34,30 @@ export default class LogicalExpression extends NodeBase {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		this._forEachRelevantBranch(node =>
+		this.forEachRelevantBranch(node =>
 			node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options)
 		);
 	}
 
 	getValue(): any {
-		const leftValue = this.left.getValue();
-		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
-		if ((leftValue && this.operator === '||') || (!leftValue && this.operator === '&&')) {
-			return leftValue;
-		}
-		return this.right.getValue();
+		return this.value;
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		const leftValue = this.left.getValue();
-		return (
-			this.left.hasEffects(options) ||
-			((leftValue === UNKNOWN_VALUE ||
-				(!leftValue && this.operator === '||') ||
-				(leftValue && this.operator === '&&')) &&
-				this.right.hasEffects(options))
-		);
+		return this.left.hasEffects(options) || (this.needsRight && this.right.hasEffects(options));
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 &&
-			this._someRelevantBranch(node => node.hasEffectsWhenAccessedAtPath(path, options))
+			this.someRelevantBranch(node => node.hasEffectsWhenAccessedAtPath(path, options))
 		);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length === 0 ||
-			this._someRelevantBranch(node => node.hasEffectsWhenAssignedAtPath(path, options))
+			this.someRelevantBranch(node => node.hasEffectsWhenAssignedAtPath(path, options))
 		);
 	}
 
@@ -71,9 +66,51 @@ export default class LogicalExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		return this._someRelevantBranch(node =>
+		return this.someRelevantBranch(node =>
 			node.hasEffectsWhenCalledAtPath(path, callOptions, options)
 		);
+	}
+
+	includeInBundle() {
+		let addedNewNodes = false;
+		if (!this.included) addedNewNodes = this.included = true;
+		if (this.needsLeft || this.left.shouldBeIncluded())
+			addedNewNodes = this.left.includeInBundle() || addedNewNodes;
+		if (this.needsRight) addedNewNodes = this.right.includeInBundle() || addedNewNodes;
+		return addedNewNodes;
+	}
+
+	initialiseChildren(parentScope: Scope) {
+		super.initialiseChildren(parentScope);
+		if (this.module.graph.treeshake) {
+			const leftValue = this.left.getValue();
+			if (leftValue === UNKNOWN_VALUE) {
+				this.value = UNKNOWN_VALUE;
+				this.needsLeft = true;
+				this.needsRight = true;
+			} else if (!!leftValue === (this.operator === '||')) {
+				this.value = leftValue;
+				this.needsLeft = true;
+			} else {
+				this.value = this.right.getValue();
+				this.needsRight = true;
+			}
+		}
+	}
+
+	render(code: MagicString, options: RenderOptions) {
+		if (!this.module.graph.treeshake) {
+			super.render(code, options);
+		} else {
+			if (this.left.included && this.right.included) {
+				super.render(code, options);
+			} else {
+				const branchToRetain = this.left.included ? this.left : this.right;
+				code.remove(this.start, branchToRetain.start);
+				code.remove(branchToRetain.end, this.end);
+				branchToRetain.render(code, options);
+			}
+		}
 	}
 
 	someReturnExpressionWhenCalledAtPath(
@@ -82,31 +119,20 @@ export default class LogicalExpression extends NodeBase {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		return this._someRelevantBranch(node =>
+		return this.someRelevantBranch(node =>
 			node.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options)
 		);
 	}
 
-	_forEachRelevantBranch(callback: (node: ExpressionNode) => void) {
-		const leftValue = this.left.getValue();
-		if (leftValue === UNKNOWN_VALUE) {
-			callback(this.left);
-			callback(this.right);
-		} else if ((leftValue && this.operator === '||') || (!leftValue && this.operator === '&&')) {
-			callback(this.left);
-		} else {
-			callback(this.right);
-		}
+	private forEachRelevantBranch(callback: (node: ExpressionNode) => void) {
+		if (this.needsLeft) callback(this.left);
+		if (this.needsRight) callback(this.right);
 	}
 
-	_someRelevantBranch(predicateFunction: PredicateFunction) {
-		const leftValue = this.left.getValue();
-		if (leftValue === UNKNOWN_VALUE) {
-			return predicateFunction(this.left) || predicateFunction(this.right);
-		}
-		if ((leftValue && this.operator === '||') || (!leftValue && this.operator === '&&')) {
-			return predicateFunction(this.left);
-		}
-		return predicateFunction(this.right);
+	private someRelevantBranch(predicateFunction: PredicateFunction) {
+		return (
+			(this.needsLeft && predicateFunction(this.left)) ||
+			(this.needsRight && predicateFunction(this.right))
+		);
 	}
 }

@@ -6,11 +6,11 @@ var bundle = (function (exports) {
 	logicalAExp.bar = 1;
 
 	var bExp = {};
-	var logicalBExp = false || bExp;
+	var logicalBExp = bExp;
 	logicalBExp.bar = 1;
 
 	var cExp = {};
-	var logicalCExp = true && cExp;
+	var logicalCExp = cExp;
 	logicalCExp.bar = 1;
 
 	exports.aExp = aExp;
