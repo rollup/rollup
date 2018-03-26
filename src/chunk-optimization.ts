@@ -9,16 +9,12 @@ import { OutputOptions } from './rollup';
  * Manual chunks (with chunk.chunkAlias already set) are preserved
  * Entry points are carefully preserved as well
  *
- * If an untainted entryPointFacade chunk is tainted by this process,
- * it will be assigned a new entrypoint facade.
  */
 export function optimizeChunks(
 	chunks: Chunk[],
 	options: OutputOptions,
 	CHUNK_GROUPING_SIZE = 5000
 ): Chunk[] {
-	const optimizedChunks = chunks.concat([]);
-
 	const chunkSize = new Map<Chunk, number>();
 	function getChunkSize(chunk: Chunk) {
 		let size = chunkSize.get(chunk);
@@ -28,13 +24,20 @@ export function optimizeChunks(
 		return size;
 	}
 
-	for (let mainChunk of chunks) {
+	for (let i = 0; i < chunks.length; i++) {
+		const mainChunk = chunks[i];
 		const execGroup: Chunk[] = [];
 		mainChunk.postVisit(dep => {
-			if (dep instanceof Chunk) execGroup.push(dep);
+			if (dep instanceof Chunk) {
+				execGroup.push(dep);
+			}
 		});
 
-		let i = 1;
+		if (execGroup.length < 2) {
+			continue;
+		}
+
+		let j = 1;
 		let seekingFirstChunkForMerge = true;
 		let lastChunk: Chunk,
 			chunk = execGroup[0],
@@ -42,10 +45,10 @@ export function optimizeChunks(
 
 		do {
 			if (seekingFirstChunkForMerge) {
-				if (chunk.isEntryModuleFacade) {
+				if (chunk.isEntryModuleFacade || chunk.isManualChunk) {
 					continue;
 				}
-				if (nextChunk && nextChunk.isEntryModuleFacade) {
+				if (!nextChunk || nextChunk.isEntryModuleFacade) {
 					continue;
 				}
 				if (getChunkSize(chunk) > CHUNK_GROUPING_SIZE) {
@@ -56,25 +59,22 @@ export function optimizeChunks(
 				continue;
 			}
 
-			const chunkSourceSize = getChunkSize(chunk);
-			let remainingSize = CHUNK_GROUPING_SIZE - chunkSourceSize;
+			let remainingSize = CHUNK_GROUPING_SIZE - getChunkSize(lastChunk) - getChunkSize(chunk);
 			if (remainingSize <= 0) {
 				seekingFirstChunkForMerge = true;
 				continue;
 			}
 			// if (!chunk.isPure()) continue;
-			remainingSize -= getChunkSize(lastChunk);
-			if (remainingSize <= 0) {
-				continue;
-			}
 
-			const chunkDependencies: (Chunk | External)[] = [lastChunk];
+			const chunkDependencies: (Chunk | External)[] = [];
 			chunk.postVisit(dep => chunkDependencies.push(dep));
 
-			const lastChunkDependencies: (Chunk | External)[] = [chunk];
+			const countedChunks: (Chunk | External)[] = [chunk, lastChunk];
 			if (
 				lastChunk.postVisit(dep => {
-					lastChunkDependencies.push(dep);
+					if (dep === chunk || dep === lastChunk) {
+						return false;
+					}
 					if (chunkDependencies.indexOf(dep) !== -1) {
 						return false;
 					}
@@ -85,14 +85,16 @@ export function optimizeChunks(
 					if (remainingSize <= 0) {
 						return true;
 					}
+					countedChunks.push(dep);
 				})
 			) {
+				seekingFirstChunkForMerge = true;
 				continue;
 			}
 
 			if (
 				chunk.postVisit(dep => {
-					if (lastChunkDependencies.indexOf(dep) !== -1) {
+					if (countedChunks.indexOf(dep) !== -1) {
 						return false;
 					}
 					if (dep instanceof ExternalModule) {
@@ -104,21 +106,27 @@ export function optimizeChunks(
 					}
 				})
 			) {
+				seekingFirstChunkForMerge = true;
 				continue;
 			}
 
 			// within the size limit -> merge!
-			execGroup.splice(--i, 1);
-			optimizedChunks.splice(optimizedChunks.indexOf(chunk), 1);
-			lastChunk.merge(chunk, execGroup, options);
+			const optimizedChunkIndex = chunks.indexOf(chunk);
+			if (optimizedChunkIndex <= i) i--;
+			chunks.splice(optimizedChunkIndex, 1);
+
+			lastChunk.merge(chunk, chunks, options);
+
+			execGroup.splice(--j, 1);
+
 			chunk = lastChunk;
 			chunkSize.set(chunk, CHUNK_GROUPING_SIZE - remainingSize);
 			// keep going to see if we can merge this with the next again
-			if (nextChunk && nextChunk.isEntryModuleFacade) {
+			if (nextChunk && (nextChunk.isEntryModuleFacade || nextChunk.isManualChunk)) {
 				seekingFirstChunkForMerge = true;
 			}
-		} while (((lastChunk = chunk), (chunk = nextChunk), (nextChunk = execGroup[++i]), chunk));
+		} while (((lastChunk = chunk), (chunk = nextChunk), (nextChunk = execGroup[++j]), chunk));
 	}
 
-	return optimizedChunks;
+	return chunks;
 }

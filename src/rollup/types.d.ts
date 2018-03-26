@@ -150,6 +150,7 @@ export interface InputOptions {
 	experimentalCodeSplitting?: boolean;
 	preserveSymlinks?: boolean;
 	experimentalPreserveModules?: boolean;
+	optimizeChunks?: boolean;
 	chunkGroupingSize?: number;
 
 	// undocumented?

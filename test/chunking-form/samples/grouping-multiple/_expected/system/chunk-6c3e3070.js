@@ -3,9 +3,11 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const y = exports('a', 2);
+			const x = exports('a', 1);
 
-			const z = exports('b', 3);
+			const y = exports('b', 2);
+
+			const z = exports('c', 3);
 
 		}
 	};

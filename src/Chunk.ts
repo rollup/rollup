@@ -110,6 +110,7 @@ export default class Chunk {
 	// an input entry point module
 	entryModule: Module;
 	isEntryModuleFacade: boolean;
+	isManualChunk: boolean;
 
 	private renderedHash: string;
 	private renderedSources: MagicString[];
@@ -127,7 +128,11 @@ export default class Chunk {
 		this.dependencies = undefined;
 		this.entryModule = undefined;
 		this.isEntryModuleFacade = false;
+		this.isManualChunk = false;
 		for (const module of orderedModules) {
+			if (module.chunkAlias) {
+				this.isManualChunk = true;
+			}
 			module.chunk = this;
 			if (module.isEntryPoint && !this.entryModule) {
 				this.entryModule = module;
@@ -144,7 +149,11 @@ export default class Chunk {
 		this.hasDynamicImport = false;
 
 		if (this.entryModule)
-			this.name = makeLegal(basename(this.entryModule.chunkAlias || this.entryModule.id));
+			this.name = makeLegal(
+				basename(
+					this.entryModule.chunkAlias || this.orderedModules[0].chunkAlias || this.entryModule.id
+				)
+			);
 		else this.name = '__chunk_' + ++graph.curChunkIndex;
 	}
 
