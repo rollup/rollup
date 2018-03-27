@@ -305,15 +305,10 @@ export default class Graph {
 		});
 	}
 
-	buildChunks(
+	private loadEntryModules(
 		entryModules: Record<string, string> | string[],
-		manualChunks: Record<string, string[]> | void,
-		preserveModules: boolean
-	): Promise<Chunk[]> {
-		// Phase 1 – discovery. We load the entry module and find which
-		// modules it imports, and import those, until we have all
-		// of the entry module's dependencies
-
+		manualChunks: Record<string, string[]> | void
+	) {
 		let entryModuleIds: string[];
 		let entryModuleAliases: string[];
 		if (Array.isArray(entryModules)) {
@@ -327,24 +322,15 @@ export default class Graph {
 		let entryAndManualChunkIds = entryModuleIds.concat([]);
 		if (manualChunks) {
 			Object.keys(manualChunks).forEach(name => {
-				const chunk = manualChunks[name];
-				chunk.forEach(id => {
+				const manualChunkIds = manualChunks[name];
+				manualChunkIds.forEach(id => {
 					if (entryAndManualChunkIds.indexOf(id) === -1) entryAndManualChunkIds.push(id);
 				});
 			});
 		}
 
-		timeStart('parse modules', 2);
 		return Promise.all(entryAndManualChunkIds.map(id => this.loadModule(id))).then(
 			entryAndChunkModules => {
-				timeEnd('parse modules', 2);
-
-				// Phase 2 - linking. We populate the module dependency links and
-				// determine the topological execution order for the bundle
-				timeStart('analyse dependency graph', 2);
-
-				this.link();
-
 				const entryModules = entryAndChunkModules.slice(0, entryModuleIds.length);
 
 				let manualChunkModules: { [chunkName: string]: Module[] };
@@ -359,6 +345,47 @@ export default class Graph {
 					}
 				}
 
+				return { entryModules, entryModuleAliases, manualChunkModules };
+			}
+		);
+	}
+
+	buildChunks(
+		entryModules: Record<string, string> | string[],
+		manualChunks: Record<string, string[]> | void,
+		preserveModules: boolean
+	): Promise<Chunk[]> {
+		// Phase 1 – discovery. We load the entry module and find which
+		// modules it imports, and import those, until we have all
+		// of the entry module's dependencies
+
+		timeStart('parse modules', 2);
+
+		return this.loadEntryModules(entryModules, manualChunks).then(
+			({ entryModules, entryModuleAliases, manualChunkModules }) => {
+				timeEnd('parse modules', 2);
+
+				// Phase 2 - linking. We populate the module dependency links and
+				// determine the topological execution order for the bundle
+				timeStart('analyse dependency graph', 2);
+
+				for (let i = 0; i < entryModules.length; i++) {
+					const entryModule = entryModules[i];
+					const duplicateIndex = entryModules.indexOf(entryModule, i + 1);
+					if (duplicateIndex !== -1) {
+						error({
+							code: 'DUPLICATE_ENTRY_POINTS',
+							message: `Duplicate entry points detected. The input entries ${
+								entryModuleAliases[i]
+							} and ${entryModuleAliases[duplicateIndex]} both point to the same module, ${
+								entryModule.id
+							}`
+						});
+					}
+				}
+
+				this.link();
+
 				const { orderedModules, dynamicImports, dynamicImportAliases } = this.analyseExecution(
 					entryModules,
 					!preserveModules,
@@ -366,16 +393,9 @@ export default class Graph {
 				);
 
 				if (entryModuleAliases) {
-					entryModules.forEach((entryModule, index) => {
-						if (entryModule.chunkAlias)
-							error({
-								code: 'DUPLICATE_ENTRY_POINTS',
-								message: `Duplicate entry points detected. The input entries ${
-									entryModule.chunkAlias
-								} and ${entryModuleAliases[index]} both point to the same module, ${entryModule.id}`
-							});
-						entryModule.chunkAlias = entryModuleAliases[index];
-					});
+					for (let i = entryModules.length - 1; i >= 0; i--) {
+						entryModules[i].chunkAlias = entryModuleAliases[i];
+					}
 				}
 
 				for (let i = 0; i < dynamicImports.length; i++) {
