@@ -876,24 +876,23 @@ export default class Chunk {
 			}
 		}
 
-		const oldExportNames = this.exportNames;
+		const thisOldExportNames = this.exportNames;
 
 		// regenerate internal names
 		this.generateInternalExports(options);
 
-		const updateRenderedDeclaration = (dep: ModuleDeclarationDependency) => {
+		const updateRenderedDeclaration = (
+			dep: ModuleDeclarationDependency,
+			oldExportNames: Record<string, Variable>
+		) => {
 			if (dep.imports) {
 				for (let impt of dep.imports) {
-					impt.imported = this.getVariableExportName(
-						oldExportNames[impt.imported] || chunk.exportNames[impt.imported]
-					);
+					impt.imported = this.getVariableExportName(oldExportNames[impt.imported]);
 				}
 			}
 			if (dep.reexports) {
 				for (let reexport of dep.reexports) {
-					reexport.imported = this.getVariableExportName(
-						oldExportNames[reexport.imported] || chunk.exportNames[reexport.imported]
-					);
+					reexport.imported = this.getVariableExportName(oldExportNames[reexport.imported]);
 				}
 			}
 		};
@@ -937,7 +936,7 @@ export default class Chunk {
 				if (dep === chunk) {
 					if (includedDeclaration) {
 						const duplicateDeclaration = c.renderedDeclarations.dependencies[i];
-						updateRenderedDeclaration(duplicateDeclaration);
+						updateRenderedDeclaration(duplicateDeclaration, chunk.exportNames);
 						mergeRenderedDeclaration(includedDeclaration, duplicateDeclaration);
 						c.renderedDeclarations.dependencies.splice(i, 1);
 						c.dependencies.splice(i--, 1);
@@ -945,18 +944,18 @@ export default class Chunk {
 					}
 					c.dependencies[i] = this;
 					includedDeclaration = c.renderedDeclarations.dependencies[i];
-					updateRenderedDeclaration(includedDeclaration);
+					updateRenderedDeclaration(includedDeclaration, chunk.exportNames);
 				} else if (dep === this) {
 					if (includedDeclaration) {
 						const duplicateDeclaration = c.renderedDeclarations.dependencies[i];
-						updateRenderedDeclaration(duplicateDeclaration);
+						updateRenderedDeclaration(duplicateDeclaration, thisOldExportNames);
 						mergeRenderedDeclaration(includedDeclaration, duplicateDeclaration);
 						c.renderedDeclarations.dependencies.splice(i, 1);
 						c.dependencies.splice(i--, 1);
 						break;
 					}
 					includedDeclaration = c.renderedDeclarations.dependencies[i];
-					updateRenderedDeclaration(includedDeclaration);
+					updateRenderedDeclaration(includedDeclaration, thisOldExportNames);
 				}
 			}
 		}
