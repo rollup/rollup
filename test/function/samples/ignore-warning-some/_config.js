@@ -1,7 +1,6 @@
 var assert = require('assert');
 
 module.exports = {
-	solo: true,
 	description: 'cycles work with default exports',
 	options: {
 		ignoreWarnings: ['UNRESOLVED_IMPORT', 'CIRCULAR_DEPENDENCY'],
