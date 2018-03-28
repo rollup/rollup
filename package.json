@@ -102,7 +102,7 @@
     "sander": "^0.6.0",
     "source-map": "^0.6.1",
     "source-map-support": "^0.5.4",
-    "typescript": "^2.7.2",
+    "typescript": "^2.8.1",
     "uglify-js": "^3.3.16"
   },
   "files": [

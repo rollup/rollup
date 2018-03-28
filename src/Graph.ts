@@ -10,7 +10,7 @@ import { mapSequence } from './utils/promise';
 import transform from './utils/transform';
 import relativeId, { nameWithoutExtension } from './utils/relativeId';
 import error from './utils/error';
-import { isRelative, resolve, basename } from './utils/path';
+import { isRelative, resolve, basename, relative } from './utils/path';
 import {
 	InputOptions,
 	IsExternalHook,
@@ -305,14 +305,10 @@ export default class Graph {
 		});
 	}
 
-	buildChunks(
-		entryModules: { [entryAlias: string]: string } | string[],
-		preserveModules: boolean
-	): Promise<Chunk[]> {
-		// Phase 1 – discovery. We load the entry module and find which
-		// modules it imports, and import those, until we have all
-		// of the entry module's dependencies
-
+	private loadEntryModules(
+		entryModules: Record<string, string> | string[],
+		manualChunks: Record<string, string[]> | void
+	) {
 		let entryModuleIds: string[];
 		let entryModuleAliases: string[];
 		if (Array.isArray(entryModules)) {
@@ -320,45 +316,94 @@ export default class Graph {
 			entryModuleIds = entryModules;
 		} else {
 			entryModuleAliases = Object.keys(entryModules);
-			entryModuleIds = entryModuleAliases.map(
-				name => (<{ [entryAlias: string]: string }>entryModules)[name]
-			);
+			entryModuleIds = entryModuleAliases.map(name => (<Record<string, string>>entryModules)[name]);
 		}
 
-		timeStart('parse modules', 2);
-		return Promise.all(entryModuleIds.map(entryId => this.loadModule(entryId))).then(
-			entryModules => {
-				if (entryModuleAliases) {
-					entryModules.forEach((entryModule, index) => {
-						if (entryModule.alias)
-							error({
-								code: 'DUPLICATE_ENTRY_POINTS',
-								message: `Duplicate entry points detected. The input entries ${
-									entryModule.alias
-								} and ${entryModuleAliases[index]} both point to the same module, ${entryModule.id}`
-							});
-						entryModule.alias = entryModuleAliases[index];
-					});
+		let entryAndManualChunkIds = entryModuleIds.concat([]);
+		if (manualChunks) {
+			Object.keys(manualChunks).forEach(name => {
+				const manualChunkIds = manualChunks[name];
+				manualChunkIds.forEach(id => {
+					if (entryAndManualChunkIds.indexOf(id) === -1) entryAndManualChunkIds.push(id);
+				});
+			});
+		}
+
+		return Promise.all(entryAndManualChunkIds.map(id => this.loadModule(id))).then(
+			entryAndChunkModules => {
+				const entryModules = entryAndChunkModules.slice(0, entryModuleIds.length);
+
+				let manualChunkModules: { [chunkName: string]: Module[] };
+				if (manualChunks) {
+					manualChunkModules = {};
+					for (let chunkName of Object.keys(manualChunks)) {
+						const chunk = manualChunks[chunkName];
+						manualChunkModules[chunkName] = chunk.map(entryId => {
+							const entryIndex = entryAndManualChunkIds.indexOf(entryId);
+							return entryAndChunkModules[entryIndex];
+						});
+					}
 				}
 
+				return { entryModules, entryModuleAliases, manualChunkModules };
+			}
+		);
+	}
+
+	buildChunks(
+		entryModules: Record<string, string> | string[],
+		manualChunks: Record<string, string[]> | void,
+		preserveModules: boolean
+	): Promise<Chunk[]> {
+		// Phase 1 – discovery. We load the entry module and find which
+		// modules it imports, and import those, until we have all
+		// of the entry module's dependencies
+
+		timeStart('parse modules', 2);
+
+		return this.loadEntryModules(entryModules, manualChunks).then(
+			({ entryModules, entryModuleAliases, manualChunkModules }) => {
 				timeEnd('parse modules', 2);
 
 				// Phase 2 - linking. We populate the module dependency links and
 				// determine the topological execution order for the bundle
 				timeStart('analyse dependency graph', 2);
 
+				for (let i = 0; i < entryModules.length; i++) {
+					const entryModule = entryModules[i];
+					const duplicateIndex = entryModules.indexOf(entryModule, i + 1);
+					if (duplicateIndex !== -1) {
+						error({
+							code: 'DUPLICATE_ENTRY_POINTS',
+							message: `Duplicate entry points detected. The input entries ${
+								entryModuleAliases[i]
+							} and ${entryModuleAliases[duplicateIndex]} both point to the same module, ${
+								entryModule.id
+							}`
+						});
+					}
+				}
+
 				this.link();
 
 				const { orderedModules, dynamicImports, dynamicImportAliases } = this.analyseExecution(
 					entryModules,
-					!preserveModules
+					!preserveModules,
+					manualChunkModules
 				);
+
+				if (entryModuleAliases) {
+					for (let i = entryModules.length - 1; i >= 0; i--) {
+						entryModules[i].chunkAlias = entryModuleAliases[i];
+					}
+				}
 
 				for (let i = 0; i < dynamicImports.length; i++) {
 					const dynamicImportModule = dynamicImports[i];
 					if (entryModules.indexOf(dynamicImportModule) === -1) {
 						entryModules.push(dynamicImportModule);
-						dynamicImportModule.alias = dynamicImportAliases[i];
+						if (!dynamicImportModule.chunkAlias)
+							dynamicImportModule.chunkAlias = dynamicImportAliases[i];
 					}
 				}
 
@@ -400,11 +445,12 @@ export default class Graph {
 
 					// create each chunk
 					for (const entryHashSum in chunkModules) {
-						const chunk = chunkModules[entryHashSum];
-						const chunkModulesOrdered = chunk.sort(
+						const chunkModuleList = chunkModules[entryHashSum];
+						const chunkModulesOrdered = chunkModuleList.sort(
 							(moduleA, moduleB) => (moduleA.execIndex > moduleB.execIndex ? 1 : -1)
 						);
-						chunkList.push(new Chunk(this, chunkModulesOrdered));
+						const chunk = new Chunk(this, chunkModulesOrdered);
+						chunkList.push(chunk);
 					}
 				} else {
 					for (const module of orderedModules) {
@@ -450,7 +496,11 @@ export default class Graph {
 		);
 	}
 
-	private analyseExecution(entryModules: Module[], graphColouring: boolean = false) {
+	private analyseExecution(
+		entryModules: Module[],
+		graphColouring: boolean,
+		chunkModules?: Record<string, Module[]>
+	) {
 		let curEntry: Module, curEntryHash: Uint8Array;
 		const allSeen: { [id: string]: boolean } = {};
 
@@ -467,11 +517,19 @@ export default class Graph {
 			// hash xors, providing the unique colouring of the graph into unique hash chunks.
 			// This is really all there is to automated chunking, the rest is chunk wiring.
 			if (graphColouring) {
-				Uint8ArrayXor(module.entryPointsHash, curEntryHash);
+				if (!curEntry.chunkAlias) {
+					Uint8ArrayXor(module.entryPointsHash, curEntryHash);
+				} else {
+					// manual chunks are indicated in this phase by having a chunk alias
+					// they are treated as a single colour in the colouring
+					// and aren't divisable by future colourings
+					module.chunkAlias = curEntry.chunkAlias;
+					module.entryPointsHash = curEntryHash;
+				}
 			}
 
 			for (let depModule of module.dependencies) {
-				if (depModule.isExternal) continue;
+				if (depModule instanceof ExternalModule) continue;
 
 				if (depModule.id in parents) {
 					if (!allSeen[depModule.id]) {
@@ -481,7 +539,7 @@ export default class Graph {
 				}
 
 				parents[depModule.id] = module.id;
-				if (!depModule.isEntryPoint) visit(<Module>depModule);
+				if (!depModule.isEntryPoint && !depModule.chunkAlias) visit(<Module>depModule);
 			}
 
 			if (this.dynamicImport) {
@@ -501,6 +559,28 @@ export default class Graph {
 			module.execIndex = orderedModules.length;
 			orderedModules.push(module);
 		};
+
+		if (graphColouring && chunkModules) {
+			for (let chunkName of Object.keys(chunkModules)) {
+				curEntryHash = randomUint8Array(10);
+
+				for (curEntry of chunkModules[chunkName]) {
+					if (curEntry.chunkAlias) {
+						error({
+							code: 'INVALID_CHUNK',
+							message: `Cannot assign ${relative(
+								process.cwd(),
+								curEntry.id
+							)} to the "${chunkName}" chunk as it is already in the "${curEntry.chunkAlias}" chunk.
+Try defining "${chunkName}" first in the manualChunks definitions of the Rollup configuration.`
+						});
+					}
+					curEntry.chunkAlias = chunkName;
+					parents = { [curEntry.id]: null };
+					visit(curEntry);
+				}
+			}
+		}
 
 		for (curEntry of entryModules) {
 			curEntry.isEntryPoint = true;

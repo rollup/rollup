@@ -164,7 +164,7 @@ export default class Chunk {
 		this.hasDynamicImport = false;
 
 		if (this.entryModule)
-			this.name = makeLegal(basename(this.entryModule.alias || this.entryModule.id));
+			this.name = makeLegal(basename(this.entryModule.chunkAlias || this.entryModule.id));
 		else this.name = '__chunk_' + ++graph.curChunkIndex;
 	}
 
@@ -863,7 +863,13 @@ export default class Chunk {
 				case '[hash]':
 					return this.computeFullHash(addons, options);
 				case '[alias]':
-					return this.entryModule ? this.entryModule.alias : 'chunk';
+					if (this.entryModule && this.entryModule.chunkAlias)
+						return this.entryModule.chunkAlias;
+					for (let module of this.orderedModules) {
+						if (module.chunkAlias)
+							return module.chunkAlias;
+					}
+					return 'chunk';
 			}
 		});
 

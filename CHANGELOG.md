@@ -2,6 +2,7 @@
 
 ## 0.58.0 (unreleased)
 * Support individual chunk names with optional content hashes ([#2068](https://github.com/rollup/rollup/pull/2068))
+* Support manually created chunks ([#2084](https://github.com/rollup/rollup/pull/2084))
 * Automatically import deep dependencies when code splitting for better performance ([#2073](https://github.com/rollup/rollup/pull/2073))
 * Improve deprecation handling ([#2076](https://github.com/rollup/rollup/pull/2076))
 * Enable `--perf` timings in watch mode ([#2065](https://github.com/rollup/rollup/pull/2065))
