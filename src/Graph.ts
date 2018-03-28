@@ -56,6 +56,7 @@ export default class Graph {
 	moduleById: Map<string, Module | ExternalModule>;
 	modules: Module[];
 	onwarn: WarningHandler;
+	shouldFilterWarning: (warning: RollupWarning) => boolean;
 	plugins: Plugin[];
 	resolveDynamicImport: ResolveDynamicImportHandler;
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
@@ -173,7 +174,7 @@ export default class Graph {
 
 		this.onwarn = options.onwarn || makeOnwarn();
 
-		this.shouldFilterWarning = warning => options.ignoreWarnings.includes(warning.code);
+		this.shouldFilterWarning = warning => !!options.ignoreWarnings.find(v => v === warning.code);
 
 		this.varOrConst = options.preferConst ? 'const' : 'var';
 
