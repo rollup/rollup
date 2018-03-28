@@ -43,6 +43,10 @@ export default function build(
 		stderr(chalk.cyan(`\n${chalk.bold(inputFiles)} → ${chalk.bold(files.join(', '))}...`));
 	}
 
+	if (inputOptions.ignoreWarnings) {
+		inputOptions.ignoreWarnings = inputOptions.ignoreWarnings.split(',');
+	}
+
 	return rollup
 		.rollup(inputOptions)
 		.then((bundle: Bundle | BundleSet) => {
