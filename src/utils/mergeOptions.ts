@@ -65,7 +65,6 @@ const getExternal = (config: GenericConfigObject, command: GenericConfigObject) 
 };
 
 const getIgnoreWarnings = (config: GenericConfigObject, command: GenericConfigObject) => {
-	const ignoreWarnings = config.external;
 	return config.ignoreWarnings
 		? config.ignoreWarnings
 		: typeof command.ignoreWarnings === 'string'

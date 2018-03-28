@@ -177,8 +177,8 @@ export default class Graph {
 		if (options.ignoreWarnings === true) {
 			this.shouldFilterWarning = () => true;
 		} else if (Array.isArray(options.ignoreWarnings)) {
+			const ignorePattern = new RegExp(options.ignoreWarnings.join('|'));
 			this.shouldFilterWarning = warning => {
-				console.log('checking warning', ignorePattern, warning.code);
 				return ignorePattern.test(warning.code);
 			};
 		}
