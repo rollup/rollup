@@ -207,6 +207,7 @@ function getInputOptions(
 		manualChunks: getOption('manualChunks'),
 		moduleContext: config.moduleContext,
 		onwarn: getOnWarn(config, command, defaultOnWarnHandler),
+		ignoreWarnings: getOption('ignoreWarnings', []),
 		perf: getOption('perf', false),
 		plugins: config.plugins,
 		preferConst: getOption('preferConst'),
