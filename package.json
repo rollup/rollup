@@ -52,7 +52,6 @@
   },
   "homepage": "https://github.com/rollup/rollup",
   "dependencies": {
-    "@types/acorn": "^4.0.3",
     "acorn": "^5.5.3",
     "acorn-dynamic-import": "^3.0.0",
     "locate-character": "^2.0.5",
@@ -65,6 +64,7 @@
     "rollup-pluginutils": "^2.0.1"
   },
   "devDependencies": {
+    "@types/acorn": "^4.0.3",
     "@types/chokidar": "^1.7.5",
     "@types/minimist": "^1.2.0",
     "@types/node": "^9.6.0",
