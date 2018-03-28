@@ -68,7 +68,9 @@ const getIgnoreWarnings = (config: GenericConfigObject, command: GenericConfigOb
 	const ignoreWarnings = config.external;
 	return config.ignoreWarnings
 		? config.ignoreWarnings
-		: command.ignoreWarnings ? command.ignoreWarnings.split(',') : [];
+		: typeof command.ignoreWarnings === 'string'
+			? command.ignoreWarnings.split(',')
+			: command.ignoreWarnings;
 };
 
 export const commandAliases: { [key: string]: string } = {

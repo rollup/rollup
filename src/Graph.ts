@@ -174,7 +174,14 @@ export default class Graph {
 
 		this.onwarn = options.onwarn || makeOnwarn();
 
-		this.shouldFilterWarning = warning => !!options.ignoreWarnings.find(v => v === warning.code);
+		if (options.ignoreWarnings === true) {
+			this.shouldFilterWarning = () => true;
+		} else if (Array.isArray(options.ignoreWarnings)) {
+			this.shouldFilterWarning = warning => {
+				console.log('checking warning', ignorePattern, warning.code);
+				return ignorePattern.test(warning.code);
+			};
+		}
 
 		this.varOrConst = options.preferConst ? 'const' : 'var';
 
@@ -828,7 +835,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 	}
 
 	warn(warning: RollupWarning) {
-		if (this.shouldFilterWarning(warning)) return;
+		if (this.shouldFilterWarning && this.shouldFilterWarning(warning)) return;
 
 		warning.toString = () => {
 			let str = '';
