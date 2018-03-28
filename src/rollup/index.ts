@@ -97,7 +97,7 @@ export interface InputOptions {
 	plugins?: Plugin[];
 
 	onwarn?: WarningHandler;
-	ignoreWarnings: string[];
+	ignoreWarnings?: string[];
 	cache?: {
 		modules: ModuleJSON[];
 	};

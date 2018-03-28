@@ -64,6 +64,13 @@ const getExternal = (config: GenericConfigObject, command: GenericConfigObject) 
 		: (configExternal || []).concat(command.external);
 };
 
+const getIgnoreWarnings = (config: GenericConfigObject, command: GenericConfigObject) => {
+	const ignoreWarnings = config.external;
+	return config.ignoreWarnings
+		? config.ignoreWarnings
+		: command.ignoreWarnings ? command.ignoreWarnings.split(',') : [];
+};
+
 export const commandAliases: { [key: string]: string } = {
 	c: 'config',
 	e: 'external',
@@ -207,7 +214,7 @@ function getInputOptions(
 		manualChunks: getOption('manualChunks'),
 		moduleContext: config.moduleContext,
 		onwarn: getOnWarn(config, command, defaultOnWarnHandler),
-		ignoreWarnings: getOption('ignoreWarnings', []),
+		ignoreWarnings: getIgnoreWarnings(config, command),
 		perf: getOption('perf', false),
 		plugins: config.plugins,
 		preferConst: getOption('preferConst'),
