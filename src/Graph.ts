@@ -174,10 +174,10 @@ export default class Graph {
 
 		this.onwarn = options.onwarn || makeOnwarn();
 
-		if (options.ignoreWarnings === true) {
+		if (options.skipWarning === true) {
 			this.shouldFilterWarning = () => true;
-		} else if (Array.isArray(options.ignoreWarnings) && options.ignoreWarnings.length) {
-			const ignorePattern = new RegExp(options.ignoreWarnings.join('|'));
+		} else if (Array.isArray(options.skipWarning) && options.skipWarning.length) {
+			const ignorePattern = new RegExp(options.skipWarning.join('|'));
 			this.shouldFilterWarning = warning => {
 				return ignorePattern.test(warning.code);
 			};

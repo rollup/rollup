@@ -64,12 +64,12 @@ const getExternal = (config: GenericConfigObject, command: GenericConfigObject) 
 		: (configExternal || []).concat(command.external);
 };
 
-const getIgnoreWarnings = (config: GenericConfigObject, command: GenericConfigObject) => {
-	return config.ignoreWarnings
-		? config.ignoreWarnings
-		: typeof command.ignoreWarnings === 'string'
-			? command.ignoreWarnings.split(',')
-			: command.ignoreWarnings;
+const getskipWarning = (config: GenericConfigObject, command: GenericConfigObject) => {
+	return config.skipWarning
+		? config.skipWarning
+		: typeof command.skipWarning === 'string'
+			? command.skipWarning.split(',')
+			: command.skipWarning;
 };
 
 export const commandAliases: { [key: string]: string } = {
@@ -215,7 +215,7 @@ function getInputOptions(
 		manualChunks: getOption('manualChunks'),
 		moduleContext: config.moduleContext,
 		onwarn: getOnWarn(config, command, defaultOnWarnHandler),
-		ignoreWarnings: getIgnoreWarnings(config, command),
+		skipWarning: getskipWarning(config, command),
 		perf: getOption('perf', false),
 		plugins: config.plugins,
 		preferConst: getOption('preferConst'),

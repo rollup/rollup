@@ -3,7 +3,7 @@ var assert = require('assert');
 module.exports = {
 	description: 'cycles work with default exports',
 	options: {
-		ignoreWarnings: true,
+		skipWarning: true,
 	},
 	warnings: [],
 	runtimeError: function(error) {
