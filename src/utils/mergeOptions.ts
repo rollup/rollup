@@ -67,9 +67,7 @@ const getExternal = (config: GenericConfigObject, command: GenericConfigObject) 
 const getskipWarning = (config: GenericConfigObject, command: GenericConfigObject) => {
 	return config.skipWarning
 		? config.skipWarning
-		: typeof command.skipWarning === 'string'
-			? command.skipWarning.split(',')
-			: command.skipWarning;
+		: typeof command.skipWarning === 'string' ? [command.skipWarning] : command.skipWarning;
 };
 
 export const commandAliases: { [key: string]: string } = {
@@ -83,6 +81,7 @@ export const commandAliases: { [key: string]: string } = {
 	m: 'sourcemap',
 	n: 'name',
 	o: 'file',
+	s: 'skipWarning',
 	v: 'version',
 	w: 'watch'
 };

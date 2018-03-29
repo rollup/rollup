@@ -1,17 +1,19 @@
 var assert = require('assert');
 
-let warnings = 0;
+let warnings = [];
 
 module.exports = commands => ({
 	input: 'main.js',
 	plugins: [
 		{
 			ongenerate() {
-				assert.equal(warnings, 0);
+				assert.deepEqual(warnings, [
+					'UNUSED_EXTERNAL_IMPORT',
+				]);
 			}
 		},
 	],
 	onwarn(warning) {
-		warnings++;
-	}
+		warnings.push(warning.code);
+	},
 });
