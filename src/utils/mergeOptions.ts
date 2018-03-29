@@ -65,9 +65,8 @@ const getExternal = (config: GenericConfigObject, command: GenericConfigObject) 
 };
 
 const getskipWarning = (config: GenericConfigObject, command: GenericConfigObject) => {
-	return config.skipWarning
-		? config.skipWarning
-		: typeof command.skipWarning === 'string' ? [command.skipWarning] : command.skipWarning;
+	const s = config.skipWarning || command.skipWarning;
+	return typeof s === 'string' ? [s] : s;
 };
 
 export const commandAliases: { [key: string]: string } = {
