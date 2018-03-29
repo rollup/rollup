@@ -1,4 +1,4 @@
-import { fn } from './chunk-7e4b4a9e.js';
+import { a as fn } from './chunk-7e4b4a9e.js';
 
 function fn$1 () {
   console.log('lib1 fn');

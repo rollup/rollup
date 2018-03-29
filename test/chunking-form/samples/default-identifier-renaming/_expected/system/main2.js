@@ -3,7 +3,7 @@ System.register(['./chunk-b8e20cf6.js'], function (exports, module) {
 	var d;
 	return {
 		setters: [function (module) {
-			d = module.default;
+			d = module.a;
 		}],
 		execute: function () {
 

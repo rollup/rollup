@@ -8,5 +8,5 @@ class One {
 
 const ONE_CONSTANT = 'oneconstant';
 
-exports.One = One;
 exports.ONE_CONSTANT = ONE_CONSTANT;
+exports.One = One;

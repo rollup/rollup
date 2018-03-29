@@ -3,8 +3,8 @@ System.register(['./main2-9c0ea573.js'], function (exports, module) {
 	var dep, log;
 	return {
 		setters: [function (module) {
-			dep = module.default$1;
-			log = module.default;
+			dep = module.a;
+			log = module.b;
 		}],
 		execute: function () {
 

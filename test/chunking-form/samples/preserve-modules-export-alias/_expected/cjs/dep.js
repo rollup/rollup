@@ -3,3 +3,4 @@
 const foo = 1;
 
 exports.foo = foo;
+exports.bar = foo;

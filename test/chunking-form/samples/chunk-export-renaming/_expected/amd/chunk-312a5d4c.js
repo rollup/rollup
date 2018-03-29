@@ -8,7 +8,7 @@ define(['exports'], function (exports) { 'use strict';
 
   const ONE_CONSTANT = 'oneconstant';
 
-  exports.One = One;
   exports.ONE_CONSTANT = ONE_CONSTANT;
+  exports.One = One;
 
 });

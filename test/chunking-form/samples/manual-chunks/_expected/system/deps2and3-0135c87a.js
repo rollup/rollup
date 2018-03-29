@@ -3,12 +3,12 @@ System.register(['./lib1-2ca2caed.js'], function (exports, module) {
   var fn;
   return {
     setters: [function (module) {
-      fn = module.fn;
+      fn = module.a;
     }],
     execute: function () {
 
-      exports('fn', fn$2);
-      exports('fn$1', fn$3);
+      exports('a', fn$2);
+      exports('b', fn$3);
       function fn$1 () {
         console.log('lib2 fn');
       }

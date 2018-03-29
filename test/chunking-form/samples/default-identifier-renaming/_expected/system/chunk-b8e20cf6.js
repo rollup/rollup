@@ -4,7 +4,7 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			const data = [1, 2, 3];
-			exports('default', data);
+			exports('a', data);
 
 		}
 	};

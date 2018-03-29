@@ -6,6 +6,6 @@ define(['exports'], function (exports) { 'use strict';
         var shared = commonjsGlobal.data;
 
         exports.commonjsGlobal = commonjsGlobal;
-        exports.default = shared;
+        exports.d = shared;
 
 });

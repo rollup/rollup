@@ -6,5 +6,4 @@ function log (x) {
   }
 }
 
-export default log;
-export { dep as default$1 };
+export { dep as a, log as b };

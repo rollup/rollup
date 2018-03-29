@@ -5,4 +5,4 @@ var __chunk_1 = require('./chunk-13350986.js');
 
 
 
-module.exports = __chunk_1.default;
+module.exports = __chunk_1.foo;

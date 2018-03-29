@@ -3,15 +3,15 @@ System.register(['./chunk-2ec47290.js', './chunk-a5be984a.js'], function (export
 	var x, x$1;
 	return {
 		setters: [function (module) {
-			x = module.default;
+			x = module.a;
 		}, function (module) {
-			x$1 = module.default;
+			x$1 = module.a;
 		}],
 		execute: function () {
 
-			var x$2 = exports('default', x + 1);
+			var x$2 = exports('a', x + 1);
 
-			var y = exports('default$1', x$1 + 1);
+			var y = exports('b', x$1 + 1);
 
 		}
 	};

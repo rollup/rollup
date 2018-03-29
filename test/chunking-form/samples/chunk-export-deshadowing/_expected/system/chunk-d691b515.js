@@ -3,8 +3,8 @@ System.register([], function (exports, module) {
   return {
     execute: function () {
 
-      exports('fn', fn$2);
-      exports('fn$1', fn$1);
+      exports('a', fn$2);
+      exports('b', fn$1);
       function fn () {
         console.log('lib fn');
       }

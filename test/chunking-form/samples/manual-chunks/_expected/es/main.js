@@ -1,4 +1,4 @@
-import { fn, fn$1 } from './deps2and3-b1fa6e3b.js';
+import { a as fn, b as fn$1 } from './deps2and3-b1fa6e3b.js';
 import './lib1-9e470ebb.js';
 
 function fn$2 () {

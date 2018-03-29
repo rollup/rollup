@@ -5,7 +5,7 @@ System.register(['external', './chunk-ff89a1a3.js'], function (exports, module) 
     setters: [function (module) {
       fn = module.fn;
     }, function (module) {
-      fn$1 = module.fn;
+      fn$1 = module.a;
     }],
     execute: function () {
 

@@ -2,6 +2,6 @@ define(['./chunk-b893bb82.js', './chunk-97d30bda.js'], function (__chunk_2, __ch
 
 
 
-	return __chunk_1.default;
+	return __chunk_1.foo;
 
 });
