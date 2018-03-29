@@ -46,7 +46,7 @@ System.register([], function (exports, module) {
 			/* header 7 */
 
 			/* leading retained */
-(			{
+			({
 				effect: console.log( 'side-effect' ) || 43
 			}); // trailing retained
 
@@ -55,7 +55,7 @@ System.register([], function (exports, module) {
 			/* header 8 */
 
 			/* leading retained */
-(			{
+			({
 				effect: console.log( 'side-effect' ) || 43
 			}); // trailing retained
 

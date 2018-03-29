@@ -16,6 +16,7 @@ export interface NodeRenderOptions {
 	end?: number;
 	isNoStatement?: boolean;
 	hasBecomeCallee?: boolean;
+	hasBecomeStatement?: boolean;
 	hasDifferentParent?: boolean;
 }
 

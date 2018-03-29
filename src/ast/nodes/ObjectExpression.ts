@@ -6,6 +6,9 @@ import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from '.
 import { isUnknownKey, objectMembers, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../values';
 import { Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { BLANK } from '../../utils/blank';
+import MagicString from 'magic-string';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
 const PROPERTY_KINDS_WRITE = ['init', 'set'];
@@ -128,6 +131,18 @@ export default class ObjectExpression extends NodeBase {
 				property.hasEffectsWhenCalledAtPath(path.slice(1), callOptions, options)
 			)
 		);
+	}
+
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		{ hasBecomeStatement }: NodeRenderOptions = BLANK
+	) {
+		super.render(code, options);
+		if (hasBecomeStatement) {
+			code.appendRight(this.start, '(');
+			code.prependLeft(this.end, ')');
+		}
 	}
 
 	someReturnExpressionWhenCalledAtPath(

@@ -82,7 +82,7 @@ export default class ConditionalExpression extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ hasBecomeCallee }: NodeRenderOptions = BLANK
+		{ hasBecomeCallee, hasBecomeStatement }: NodeRenderOptions = BLANK
 	) {
 		if (!this.module.graph.treeshake || this.test.included) {
 			super.render(code, options);
@@ -91,6 +91,7 @@ export default class ConditionalExpression extends NodeBase {
 			code.remove(this.start, branchToRetain.start);
 			code.remove(branchToRetain.end, this.end);
 			branchToRetain.render(code, options, {
+				hasBecomeStatement,
 				hasBecomeCallee:
 					hasBecomeCallee || (isCallExpression(this.parent) && this.parent.callee === this),
 				hasDifferentParent: true
