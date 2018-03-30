@@ -4,10 +4,9 @@ import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { ExpressionNode, Node, NodeBase } from './shared/Node';
+import { getFieldOfParent, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { BLANK } from '../../utils/blank';
-import { isCallExpression } from './CallExpression';
 
 export default class ConditionalExpression extends NodeBase {
 	type: NodeType.ConditionalExpression;
@@ -70,8 +69,9 @@ export default class ConditionalExpression extends NodeBase {
 			if (this.test.includeInBundle()) addedNewNodes = true;
 			if (this.consequent.includeInBundle()) addedNewNodes = true;
 			if (this.alternate.includeInBundle()) addedNewNodes = true;
-		} else if (testValue ? this.consequent.includeInBundle() : this.alternate.includeInBundle())
+		} else if (testValue ? this.consequent.includeInBundle() : this.alternate.includeInBundle()) {
 			addedNewNodes = true;
+		}
 		return addedNewNodes;
 	}
 
@@ -82,7 +82,7 @@ export default class ConditionalExpression extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ hasBecomeCallee, hasBecomeStatement }: NodeRenderOptions = BLANK
+		{ renderedParent, fieldOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
 		if (!this.module.graph.treeshake || this.test.included) {
 			super.render(code, options);
@@ -91,10 +91,8 @@ export default class ConditionalExpression extends NodeBase {
 			code.remove(this.start, branchToRetain.start);
 			code.remove(branchToRetain.end, this.end);
 			branchToRetain.render(code, options, {
-				hasBecomeStatement,
-				hasBecomeCallee:
-					hasBecomeCallee || (isCallExpression(this.parent) && this.parent.callee === this),
-				hasDifferentParent: true
+				renderedParent: renderedParent || <Node>this.parent,
+				fieldOfRenderedParent: renderedParent ? fieldOfRenderedParent : getFieldOfParent(this)
 			});
 		}
 	}

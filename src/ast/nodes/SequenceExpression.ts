@@ -1,9 +1,10 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 import {
 	getCommaSeparatedNodesWithBoundaries,
+	getFieldOfParent,
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
@@ -11,7 +12,6 @@ import { BLANK } from '../../utils/blank';
 import { ObjectPath } from '../values';
 import CallOptions from '../CallOptions';
 import { ForEachReturnExpressionCallback } from './shared/Expression';
-import { isCallExpression } from './CallExpression';
 
 export default class SequenceExpression extends NodeBase {
 	type: NodeType.SequenceExpression;
@@ -83,7 +83,7 @@ export default class SequenceExpression extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ hasBecomeCallee, hasDifferentParent }: NodeRenderOptions = BLANK
+		{ renderedParent, fieldOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
 		if (!this.module.graph.treeshake) {
 			super.render(code, options);
@@ -106,15 +106,15 @@ export default class SequenceExpression extends NodeBase {
 				lastEnd = end;
 				if (node === this.expressions[this.expressions.length - 1] && includedNodes === 1) {
 					node.render(code, options, {
-						hasBecomeCallee:
-							hasBecomeCallee || (isCallExpression(this.parent) && this.parent.callee === this),
-						hasDifferentParent: true
+						renderedParent: renderedParent || <Node>this.parent,
+						fieldOfRenderedParent: renderedParent ? fieldOfRenderedParent : getFieldOfParent(this)
 					});
 				} else {
 					node.render(code, options);
 				}
 			}
-			if (includedNodes > 1 && hasDifferentParent) {
+			// Round brackets are part of the actual parent and should be re-added in case the parent changed
+			if (includedNodes > 1 && renderedParent && renderedParent !== this.parent) {
 				code.prependRight(firstStart, '(');
 				code.appendLeft(lastEnd, ')');
 			}

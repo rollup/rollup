@@ -216,17 +216,21 @@ export default class MemberExpression extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ hasBecomeCallee }: NodeRenderOptions = BLANK
+		{ renderedParent, fieldOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
+		const isCalleeOfDifferentParent =
+			renderedParent &&
+			renderedParent.type === 'CallExpression' &&
+			fieldOfRenderedParent === 'callee';
 		if (this.variable || this.replacement) {
 			let replacement = this.variable ? this.variable.getName() : this.replacement;
-			if (hasBecomeCallee) replacement = '0, ' + replacement;
+			if (isCalleeOfDifferentParent) replacement = '0, ' + replacement;
 			code.overwrite(this.start, this.end, replacement, {
 				storeName: true,
 				contentOnly: true
 			});
 		} else {
-			if (hasBecomeCallee) {
+			if (isCalleeOfDifferentParent) {
 				code.appendRight(this.start, '0, ');
 			}
 			super.render(code, options);

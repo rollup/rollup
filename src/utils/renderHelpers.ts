@@ -15,9 +15,28 @@ export interface NodeRenderOptions {
 	start?: number;
 	end?: number;
 	isNoStatement?: boolean;
-	hasBecomeCallee?: boolean;
-	hasBecomeStatement?: boolean;
-	hasDifferentParent?: boolean;
+	renderedParent?: Node;
+	fieldOfRenderedParent?: string | null;
+}
+
+export function getFieldOfParent(child: Node): string | null {
+	const parent = <Node>child.parent;
+	for (const key of parent.keys) {
+		const value = (<any>parent)[key];
+		if (value === child) return key;
+		if (Array.isArray(value)) {
+			for (const nestedValue of value) {
+				if (nestedValue === child) return key;
+			}
+		}
+	}
+	return null;
+}
+
+export function childIsStatement(parent: { type?: string }) {
+	return (
+		parent.type === 'Program' || parent.type === 'ExpressionStatement' // e.g. default exports rendered for side-effects only
+	);
 }
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };

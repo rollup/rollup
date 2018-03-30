@@ -6,7 +6,7 @@ import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from '.
 import { isUnknownKey, objectMembers, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../values';
 import { Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { childIsStatement, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { BLANK } from '../../utils/blank';
 import MagicString from 'magic-string';
 
@@ -133,13 +133,9 @@ export default class ObjectExpression extends NodeBase {
 		);
 	}
 
-	render(
-		code: MagicString,
-		options: RenderOptions,
-		{ hasBecomeStatement }: NodeRenderOptions = BLANK
-	) {
+	render(code: MagicString, options: RenderOptions, { renderedParent }: NodeRenderOptions = BLANK) {
 		super.render(code, options);
-		if (hasBecomeStatement) {
+		if (renderedParent && childIsStatement(renderedParent)) {
 			code.appendRight(this.start, '(');
 			code.prependLeft(this.end, ')');
 		}

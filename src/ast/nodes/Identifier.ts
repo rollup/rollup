@@ -162,7 +162,7 @@ export default class Identifier extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ hasBecomeCallee }: NodeRenderOptions = BLANK
+		{ renderedParent, fieldOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
 		if (this.variable) {
 			const name = this.variable.getName();
@@ -176,7 +176,13 @@ export default class Identifier extends NodeBase {
 					code.prependRight(this.start, `${this.name}: `);
 				}
 			}
-			if (hasBecomeCallee && name === 'eval') {
+			// In strict mode, any variable named "eval" must be the actual "eval" function
+			if (
+				name === 'eval' &&
+				renderedParent &&
+				renderedParent.type === 'CallExpression' &&
+				fieldOfRenderedParent === 'callee'
+			) {
 				code.appendRight(this.start, '0, ');
 			}
 			if (options.systemBindings && this.variable.exportName) {
