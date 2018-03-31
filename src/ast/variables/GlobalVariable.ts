@@ -2,10 +2,6 @@ import Variable from './Variable';
 import pureFunctions from '../nodes/shared/pureFunctions';
 import { ObjectPath } from '../values';
 
-export function isGlobalVariable(variable: Variable): variable is GlobalVariable {
-	return variable.isGlobal;
-}
-
 export default class GlobalVariable extends Variable {
 	isExternal: true;
 	isGlobal: true;

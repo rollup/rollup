@@ -5,12 +5,8 @@ import { isIdentifier } from './Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { isNamespaceVariable } from '../variables/NamespaceVariable';
 import { NodeType } from './NodeType';
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 import { ObjectPath } from '../values';
-
-export function isCallExpression(node: Node | { type?: string }): node is CallExpression {
-	return node.type === NodeType.CallExpression;
-}
 
 export default class CallExpression extends NodeBase {
 	type: NodeType.CallExpression;

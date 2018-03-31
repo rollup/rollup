@@ -7,10 +7,11 @@ import {
 	SomeReturnExpressionCallback
 } from './shared/Expression';
 import { NodeType } from './NodeType';
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
-import { getFieldOfParent, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { ExpressionNode, NodeBase } from './shared/Node';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
+import CallExpression from './CallExpression';
 
 export type LogicalOperator = '||' | '&&';
 
@@ -97,7 +98,7 @@ export default class LogicalExpression extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParent, fieldOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
 		if (!this.module.graph.treeshake || (this.left.included && this.right.included)) {
 			super.render(code, options);
@@ -106,8 +107,10 @@ export default class LogicalExpression extends NodeBase {
 			code.remove(this.start, branchToRetain.start);
 			code.remove(branchToRetain.end, this.end);
 			branchToRetain.render(code, options, {
-				renderedParent: renderedParent || <Node>this.parent,
-				fieldOfRenderedParent: renderedParent ? fieldOfRenderedParent : getFieldOfParent(this)
+				renderedParentType: renderedParentType || this.parent.type,
+				isCalleeOfRenderedParent: renderedParentType
+					? isCalleeOfRenderedParent
+					: (<CallExpression>this.parent).callee === this
 			});
 		}
 	}

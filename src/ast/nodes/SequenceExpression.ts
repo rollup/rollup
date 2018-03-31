@@ -1,10 +1,9 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 import {
 	getCommaSeparatedNodesWithBoundaries,
-	getFieldOfParent,
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
@@ -12,6 +11,7 @@ import { BLANK } from '../../utils/blank';
 import { ObjectPath } from '../values';
 import CallOptions from '../CallOptions';
 import { ForEachReturnExpressionCallback } from './shared/Expression';
+import CallExpression from './CallExpression';
 
 export default class SequenceExpression extends NodeBase {
 	type: NodeType.SequenceExpression;
@@ -83,7 +83,7 @@ export default class SequenceExpression extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParent, fieldOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
 		if (!this.module.graph.treeshake) {
 			super.render(code, options);
@@ -106,15 +106,17 @@ export default class SequenceExpression extends NodeBase {
 				lastEnd = end;
 				if (node === this.expressions[this.expressions.length - 1] && includedNodes === 1) {
 					node.render(code, options, {
-						renderedParent: renderedParent || <Node>this.parent,
-						fieldOfRenderedParent: renderedParent ? fieldOfRenderedParent : getFieldOfParent(this)
+						renderedParentType: renderedParentType || this.parent.type,
+						isCalleeOfRenderedParent: renderedParentType
+							? isCalleeOfRenderedParent
+							: (<CallExpression>this.parent).callee === this
 					});
 				} else {
 					node.render(code, options);
 				}
 			}
 			// Round brackets are part of the actual parent and should be re-added in case the parent changed
-			if (includedNodes > 1 && renderedParent && renderedParent !== this.parent) {
+			if (includedNodes > 1 && renderedParentType) {
 				code.prependRight(firstStart, '(');
 				code.appendLeft(lastEnd, ')');
 			}

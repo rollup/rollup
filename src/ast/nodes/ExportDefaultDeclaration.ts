@@ -11,7 +11,6 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { BLANK } from '../../utils/blank';
-import Program from './Program';
 
 const WHITESPACE = /\s/;
 
@@ -102,8 +101,8 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		} else {
 			code.remove(this.start, declarationStart);
 			this.declaration.render(code, options, {
-				renderedParent: <Program>this.parent,
-				fieldOfRenderedParent: 'body'
+				renderedParentType: NodeType.ExpressionStatement,
+				isCalleeOfRenderedParent: false
 			});
 			if (code.original[this.end - 1] !== ';') {
 				code.appendLeft(this.end, ';');

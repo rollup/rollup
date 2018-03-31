@@ -2,7 +2,6 @@ import CallOptions from '../CallOptions';
 import TemplateLiteral from './TemplateLiteral';
 import Identifier from './Identifier';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { isGlobalVariable } from '../variables/GlobalVariable';
 import { isNamespaceVariable } from '../variables/NamespaceVariable';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -28,7 +27,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 				);
 			}
 
-			if ((<Identifier>this.tag).name === 'eval' && isGlobalVariable(variable)) {
+			if ((<Identifier>this.tag).name === 'eval' && variable.isGlobal) {
 				this.module.warn(
 					{
 						code: 'EVAL',

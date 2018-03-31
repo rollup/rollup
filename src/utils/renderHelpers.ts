@@ -15,28 +15,8 @@ export interface NodeRenderOptions {
 	start?: number;
 	end?: number;
 	isNoStatement?: boolean;
-	renderedParent?: Node;
-	fieldOfRenderedParent?: string | null;
-}
-
-export function getFieldOfParent(child: Node): string | null {
-	const parent = <Node>child.parent;
-	for (const key of parent.keys) {
-		const value = (<any>parent)[key];
-		if (value === child) return key;
-		if (Array.isArray(value)) {
-			for (const nestedValue of value) {
-				if (nestedValue === child) return key;
-			}
-		}
-	}
-	return null;
-}
-
-export function childIsStatement(parent: { type?: string }) {
-	return (
-		parent.type === 'Program' || parent.type === 'ExpressionStatement' // e.g. default exports rendered for side-effects only
-	);
+	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
+	isCalleeOfRenderedParent?: boolean;
 }
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };

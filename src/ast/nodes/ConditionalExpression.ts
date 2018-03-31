@@ -4,9 +4,10 @@ import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
-import { getFieldOfParent, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { ExpressionNode, NodeBase } from './shared/Node';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { BLANK } from '../../utils/blank';
+import CallExpression from './CallExpression';
 
 export default class ConditionalExpression extends NodeBase {
 	type: NodeType.ConditionalExpression;
@@ -82,7 +83,7 @@ export default class ConditionalExpression extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParent, fieldOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
 		if (!this.module.graph.treeshake || this.test.included) {
 			super.render(code, options);
@@ -91,8 +92,10 @@ export default class ConditionalExpression extends NodeBase {
 			code.remove(this.start, branchToRetain.start);
 			code.remove(branchToRetain.end, this.end);
 			branchToRetain.render(code, options, {
-				renderedParent: renderedParent || <Node>this.parent,
-				fieldOfRenderedParent: renderedParent ? fieldOfRenderedParent : getFieldOfParent(this)
+				renderedParentType: renderedParentType || this.parent.type,
+				isCalleeOfRenderedParent: renderedParentType
+					? isCalleeOfRenderedParent
+					: (<CallExpression>this.parent).callee === this
 			});
 		}
 	}
