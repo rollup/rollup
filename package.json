@@ -77,14 +77,14 @@
     "codecov.io": "^0.1.6",
     "console-group": "^0.3.1",
     "eslint": "^4.19.1",
-    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-import": "^2.10.0",
     "execa": "^0.10.0",
     "fixturify": "^0.3.4",
     "hash.js": "^1.1.3",
     "husky": "^0.14.3",
     "immutable": "^3.8.2",
     "istanbul": "^0.4.3",
-    "lint-staged": "^7.0.0",
+    "lint-staged": "^7.0.1",
     "magic-string": "^0.24.0",
     "minimist": "^1.2.0",
     "mocha": "^5.0.5",
@@ -103,7 +103,7 @@
     "source-map": "^0.6.1",
     "source-map-support": "^0.5.4",
     "typescript": "^2.8.1",
-    "uglify-js": "^3.3.16"
+    "uglify-js": "^3.3.17"
   },
   "files": [
     "dist/rollup.browser.js",

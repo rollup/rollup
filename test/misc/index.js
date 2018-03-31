@@ -128,6 +128,34 @@ describe('sanity checks', () => {
 				}, /You must specify options\.format, which can be one of 'amd', 'cjs', 'system', 'es', 'iife' or 'umd'/);
 			});
 	});
+
+	it('reuses existing error object', () => {
+		let error;
+
+		class CustomError extends Error {
+			constructor(message, x) {
+				super(message);
+				this.prop = x.toUpperCase();
+			}
+		}
+
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins: [
+					loader({ x: `console.log( 42 );` }),
+					{
+						transform(code) {
+							error = new CustomError('foo', 'bar')
+							this.error(error);
+						}
+					}
+				]
+			})
+			.catch(e => {
+				assert.equal(e, error);
+			});
+	});
 });
 
 describe('deprecations', () => {
