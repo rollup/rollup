@@ -236,6 +236,7 @@ function getOutputOptions(
 	command: GenericConfigObject = {}
 ): OutputOptions {
 	const getOption = createGetOption(config, command);
+	const format = getOption('format');
 
 	return {
 		amd: Object.assign({}, config.amd, command.amd),
@@ -247,7 +248,7 @@ function getOutputOptions(
 		extend: getOption('extend'),
 		file: getOption('file'),
 		footer: getOption('footer'),
-		format: getOption('format'),
+		format: format === 'esm' ? 'es' : format,
 		freeze: getOption('freeze'),
 		globals: getOption('globals'),
 		indent: getOption('indent', true),

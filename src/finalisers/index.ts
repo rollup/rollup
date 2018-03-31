@@ -27,6 +27,6 @@ export type Finaliser = (
 	options: OutputOptions
 ) => MagicStringBundle;
 
-export default { system, amd, cjs, esm, es: esm, iife, umd } as {
+export default { system, amd, cjs, es: esm, iife, umd } as {
 	[format: string]: Finaliser;
 };
