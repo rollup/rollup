@@ -1,7 +1,7 @@
 import system from './system';
 import amd from './amd';
 import cjs from './cjs';
-import es from './es';
+import esm from './esm';
 import iife from './iife';
 import umd from './umd';
 import { ChunkDependencies, ChunkExports } from '../Chunk';
@@ -27,6 +27,6 @@ export type Finaliser = (
 	options: OutputOptions
 ) => MagicStringBundle;
 
-export default { system, amd, cjs, es, iife, umd } as {
+export default { system, amd, cjs, esm, es: esm, iife, umd } as {
 	[format: string]: Finaliser;
 };

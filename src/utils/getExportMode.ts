@@ -31,7 +31,12 @@ export default function getExportMode(
 		} else if (exportKeys.length === 1 && exportKeys[0] === 'default') {
 			exportMode = 'default';
 		} else {
-			if (chunk.isEntryModuleFacade && format !== 'es' && exportKeys.indexOf('default') !== -1) {
+			if (
+				chunk.isEntryModuleFacade &&
+				format !== 'esm' &&
+				format !== 'es' &&
+				exportKeys.indexOf('default') !== -1
+			) {
 				chunk.graph.warn({
 					code: 'MIXED_EXPORTS',
 					message: `Using named and default exports together. Consumers of your bundle will have to use ${name ||

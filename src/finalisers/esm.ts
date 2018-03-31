@@ -1,7 +1,7 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { FinaliserOptions } from './index';
 
-export default function es(
+export default function esm(
 	magicString: MagicStringBundle,
 	{ intro, outro, dependencies, exports }: FinaliserOptions
 ) {

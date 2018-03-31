@@ -125,7 +125,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate({ file: 'x' });
-				}, /You must specify options\.format, which can be one of 'amd', 'cjs', 'system', 'es', 'iife' or 'umd'/);
+				}, /You must specify options\.format, which can be one of 'amd', 'cjs', 'system', 'esm', 'iife' or 'umd'/);
 			});
 	});
 
