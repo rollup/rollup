@@ -33,7 +33,6 @@ export interface RawSourceMap {
 	names: string[];
 	sourcesContent?: string[];
 	mappings: string;
-	toUrl: () => string;
 }
 
 export interface SourceMap {

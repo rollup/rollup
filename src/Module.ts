@@ -1,3 +1,4 @@
+import * as ESTree from 'estree';
 import { IParse, Options as AcornOptions } from 'acorn';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
@@ -133,7 +134,7 @@ export default class Module {
 	chunk: Chunk;
 
 	ast: Program;
-	private astClone: Program;
+	private astClone: ESTree.Program;
 
 	// this is unused on Module,
 	// only used for namespace and then ExternalExport.declarations
@@ -184,14 +185,7 @@ export default class Module {
 		ast,
 		sourcemapChain,
 		resolvedIds
-	}: {
-		code: string;
-		originalCode: string;
-		originalSourcemap: RawSourceMap;
-		ast: Program;
-		sourcemapChain: RawSourceMap[];
-		resolvedIds?: IdMap;
-	}) {
+	}: ModuleJSON) {
 		this.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
@@ -202,12 +196,12 @@ export default class Module {
 		if (ast) {
 			// prevent mutating the provided AST, as it may be reused on
 			// subsequent incremental rebuilds
-			this.ast = clone(ast);
+			this.ast = <Program>clone(ast);
 			this.astClone = ast;
 		} else {
 			// TODO what happens to comments if AST is provided?
-			this.ast = <any>tryParse(this, this.graph.acornParse, this.graph.acornOptions);
-			this.astClone = clone(this.ast);
+			this.ast = <Program>tryParse(this, this.graph.acornParse, this.graph.acornOptions);
+			this.astClone = clone(<ESTree.Program>this.ast);
 		}
 
 		timeEnd('generate ast', 3);

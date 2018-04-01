@@ -6,6 +6,7 @@ import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 export default class Program extends NodeBase {
 	type: NodeType.Program;
 	body: StatementNode[];
+	sourceType: 'module';
 
 	render(code: MagicString, options: RenderOptions) {
 		if (this.body.length) {

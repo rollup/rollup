@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import relativeId from '../../src/utils/relativeId';
-import { RollupError } from '../../src/utils/error';
+import { RollupError } from '../../src/rollup/types';
 
 if (!chalk.supportsColor) chalk.enabled = false;
 
