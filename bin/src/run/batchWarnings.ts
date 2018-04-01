@@ -113,7 +113,7 @@ const immediateHandlers: {
 	MIXED_EXPORTS: () => {
 		title('Mixing named and default exports');
 		stderr(
-			`Consumers of your bundle will have to use bundle['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning`
+			`Consumers of your bundle will have to use bundle['default'] to access the default export, which may not be what you want. Use \`output.exports: 'named'\` to disable this warning`
 		);
 	},
 

@@ -10,6 +10,7 @@
 * Improve error handling for plugins ([#2100](https://github.com/rollup/rollup/pull/2100))
 * Remove duplicate badges from readme ([#2083](https://github.com/rollup/rollup/pull/2083))
 * Update readme examples ([#2086](https://github.com/rollup/rollup/pull/2086))
+* Update mixed export warning message ([#2107](https://github.com/rollup/rollup/pull/2107))
 
 ## 0.57.1
 * Improve sourcemap generation performance ([#2062](https://github.com/rollup/rollup/pull/2062))
