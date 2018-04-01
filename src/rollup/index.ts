@@ -92,7 +92,7 @@ export type GlobalsOption = { [name: string]: string } | ((name: string) => stri
 
 export interface InputOptions {
 	input: string | string[] | { [entryAlias: string]: string };
-	manualChunks: { [chunkAlias: string]: string[] };
+	manualChunks?: { [chunkAlias: string]: string[] };
 	external?: ExternalOption;
 	plugins?: Plugin[];
 

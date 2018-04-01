@@ -10,7 +10,6 @@ import {
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
-import { isObjectExpression } from './ObjectExpression';
 import { BLANK } from '../../utils/blank';
 
 const WHITESPACE = /\s/;
@@ -32,8 +31,6 @@ function getIdInsertPosition(code: string, declarationKeyword: string, start = 0
 	}
 	return declarationEnd + generatorStarPos + 1;
 }
-
-const needsToBeWrapped = isObjectExpression;
 
 export default class ExportDefaultDeclaration extends NodeBase {
 	type: NodeType.ExportDefaultDeclaration;
@@ -102,7 +99,15 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		} else if (this.variable.included) {
 			this.renderVariableDeclaration(code, declarationStart, options);
 		} else {
-			this.renderForSideEffectsOnly(code, declarationStart);
+			code.remove(this.start, declarationStart);
+			this.declaration.render(code, options, {
+				renderedParentType: NodeType.ExpressionStatement,
+				isCalleeOfRenderedParent: false
+			});
+			if (code.original[this.end - 1] !== ';') {
+				code.appendLeft(this.end, ';');
+			}
+			return;
 		}
 		super.render(code, options);
 	}
@@ -149,18 +154,6 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		);
 		if (systemBinding) {
 			code.appendRight(code.original[this.end - 1] === ';' ? this.end - 1 : this.end, ')');
-		}
-	}
-
-	private renderForSideEffectsOnly(code: MagicString, declarationStart: number) {
-		code.remove(this.start, declarationStart);
-		if (needsToBeWrapped(this.declaration)) {
-			code.appendLeft(declarationStart, '(');
-			if (code.original[this.end - 1] === ';') {
-				code.prependRight(this.end - 1, ')');
-			} else {
-				code.prependRight(this.end, ');');
-			}
 		}
 	}
 }

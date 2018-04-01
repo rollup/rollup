@@ -10,8 +10,9 @@ import { isNamespaceVariable } from '../variables/NamespaceVariable';
 import { isExternalVariable } from '../variables/ExternalVariable';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
-import { RenderOptions } from '../../utils/renderHelpers';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { isUnknownKey, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../values';
+import { BLANK } from '../../utils/blank';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -212,20 +213,26 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	render(code: MagicString, options: RenderOptions) {
-		if (this.variable) {
-			code.overwrite(this.start, this.end, this.variable.getName(), {
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+	) {
+		const isCalleeOfDifferentParent =
+			renderedParentType === NodeType.CallExpression && isCalleeOfRenderedParent;
+		if (this.variable || this.replacement) {
+			let replacement = this.variable ? this.variable.getName() : this.replacement;
+			if (isCalleeOfDifferentParent) replacement = '0, ' + replacement;
+			code.overwrite(this.start, this.end, replacement, {
 				storeName: true,
-				contentOnly: false
+				contentOnly: true
 			});
-		} else if (this.replacement) {
-			code.overwrite(this.start, this.end, this.replacement, {
-				storeName: true,
-				contentOnly: false
-			});
+		} else {
+			if (isCalleeOfDifferentParent) {
+				code.appendRight(this.start, '0, ');
+			}
+			super.render(code, options);
 		}
-
-		super.render(code, options);
 	}
 
 	someReturnExpressionWhenCalledAtPath(

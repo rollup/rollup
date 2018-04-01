@@ -1,8 +1,8 @@
 'use strict';
 
 // effect
-false || console.log( 'effect' );
-true && console.log( 'effect' );
+console.log( 'effect' );
+console.log( 'effect' );
 console.log( 'effect' ) || {};
 console.log( 'effect' ) && {};
 
@@ -14,21 +14,21 @@ const foo = {
 };
 
 // effect
-(false || foo).effect;
-(true && foo).effect;
+(foo).effect;
+(foo).effect;
 
 // effect
-(false || null).foo = 1;
-(true && null).foo = 1;
+(null).foo = 1;
+(null).foo = 1;
 
 // effect
-(true || (() => {}))();
-(false && (() => {}))();
-(false || (() => console.log( 'effect' )))();
-(true && (() => console.log( 'effect' )))();
+(true)();
+(false)();
+(() => console.log( 'effect' ))();
+(() => console.log( 'effect' ))();
 
 // effect
-(true || (() => () => {}))()();
-(false && (() => () => {}))()();
-(false || (() => () => console.log( 'effect' )))()();
-(true && (() => () => console.log( 'effect' )))()();
+(true)()();
+(false)()();
+(() => () => console.log( 'effect' ))()();
+(() => () => console.log( 'effect' ))()();

@@ -1,7 +1,6 @@
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import SpreadElement from './SpreadElement';
-import { isGlobalVariable } from '../variables/GlobalVariable';
 import { isIdentifier } from './Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { isNamespaceVariable } from '../variables/NamespaceVariable';
@@ -41,7 +40,7 @@ export default class CallExpression extends NodeBase {
 				);
 			}
 
-			if (this.callee.name === 'eval' && isGlobalVariable(variable)) {
+			if (this.callee.name === 'eval') {
 				this.module.warn(
 					{
 						code: 'EVAL',

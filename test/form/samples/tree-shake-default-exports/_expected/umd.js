@@ -47,7 +47,7 @@
 	/* header 7 */
 
 	/* leading retained */
-(	{
+	({
 		effect: console.log( 'side-effect' ) || 43
 	}); // trailing retained
 
@@ -56,7 +56,7 @@
 	/* header 8 */
 
 	/* leading retained */
-(	{
+	({
 		effect: console.log( 'side-effect' ) || 43
 	}); // trailing retained
 

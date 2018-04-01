@@ -5,6 +5,7 @@
 * Support manually created chunks ([#2084](https://github.com/rollup/rollup/pull/2084))
 * Automatically import deep dependencies when code splitting for better performance ([#2073](https://github.com/rollup/rollup/pull/2073))
 * Automatically minify internal export/import names for esm and system output ([#2087](https://github.com/rollup/rollup/pull/2087))
+* Enable tree-shaking for logical expressions ([#2098](https://github.com/rollup/rollup/pull/2098))
 * Improve deprecation handling ([#2076](https://github.com/rollup/rollup/pull/2076))
 * Enable `--perf` timings in watch mode ([#2065](https://github.com/rollup/rollup/pull/2065))
 * Improve error handling for plugins ([#2100](https://github.com/rollup/rollup/pull/2100))

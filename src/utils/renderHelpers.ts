@@ -15,6 +15,8 @@ export interface NodeRenderOptions {
 	start?: number;
 	end?: number;
 	isNoStatement?: boolean;
+	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
+	isCalleeOfRenderedParent?: boolean;
 }
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
