@@ -1,204 +1,24 @@
-import {
-	getTimings,
-	initialiseTimers,
-	SerializedTimings,
-	timeEnd,
-	timeStart
-} from '../utils/timers';
+import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import { basename } from '../utils/path';
 import { writeFile } from '../utils/fs';
 import { mapSequence } from '../utils/promise';
 import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
-import { ModuleJSON } from '../Module';
-import { RawSourceMap } from 'source-map';
-import Program from '../ast/nodes/Program';
-import { Node } from '../ast/nodes/shared/Node';
-import { WatcherOptions } from '../watch/index';
 import { Deprecation } from '../utils/deprecateOptions';
 import Graph from '../Graph';
-import { TransformContext } from '../utils/transform';
 import ensureArray from '../utils/ensureArray';
 import { SourceMap } from 'magic-string';
 import { createAddons } from '../utils/addons';
 import commondir from '../utils/commondir';
-
-export const VERSION = '<@VERSION@>';
-
-export type SourceDescription = {
-	code: string;
-	map?: RawSourceMap;
-	ast?: Program;
-};
-
-export type ResolveIdHook = (
-	id: string,
-	parent: string
-) => Promise<string | boolean | void> | string | boolean | void;
-export type MissingExportHook = (
-	exportName: string,
-	importingModule: string,
-	importedModule: string,
-	importerStart?: number
-) => void;
-export type IsExternalHook = (
-	id: string,
-	parentId: string,
-	isResolved: boolean
-) => Promise<boolean | void> | boolean | void;
-export type LoadHook = (
-	id: string
-) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
-export type TransformHook = (
-	this: TransformContext,
-	code: string,
-	id: String
-) => Promise<SourceDescription | string | void>;
-export type TransformBundleHook = (
-	code: string,
-	options: OutputOptions
-) => Promise<SourceDescription | string>;
-export type ResolveDynamicImportHook = (
-	specifier: string | Node,
-	parentId: string
-) => Promise<string | void> | string | void;
-
-export interface Plugin {
-	name: string;
-	options?: (options: InputOptions) => void;
-	load?: LoadHook;
-	resolveId?: ResolveIdHook;
-	missingExport?: MissingExportHook;
-	transform?: TransformHook;
-	transformBundle?: TransformBundleHook;
-	ongenerate?: (options: OutputOptions, source: SourceDescription) => void;
-	onwrite?: (options: OutputOptions, source: SourceDescription) => void;
-	resolveDynamicImport?: ResolveDynamicImportHook;
-
-	banner?: () => string;
-	footer?: () => string;
-	intro?: () => string;
-	outro?: () => string;
-}
-
-export interface TreeshakingOptions {
-	propertyReadSideEffects: boolean;
-	pureExternalModules: boolean;
-}
-
-export type ExternalOption = string[] | IsExternalHook;
-export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
-
-export interface InputOptions {
-	input: string | string[] | { [entryAlias: string]: string };
-	manualChunks?: { [chunkAlias: string]: string[] };
-	external?: ExternalOption;
-	plugins?: Plugin[];
-
-	onwarn?: WarningHandler;
-	cache?: {
-		modules: ModuleJSON[];
-	};
-
-	acorn?: {};
-	acornInjectPlugins?: Function[];
-	treeshake?: boolean | TreeshakingOptions;
-	context?: string;
-	moduleContext?: string | ((id: string) => string) | { [id: string]: string };
-	watch?: WatcherOptions;
-	experimentalDynamicImport?: boolean;
-	experimentalCodeSplitting?: boolean;
-	preserveSymlinks?: boolean;
-	experimentalPreserveModules?: boolean;
-
-	// undocumented?
-	pureExternalModules?: boolean;
-	preferConst?: boolean;
-	perf?: boolean;
-
-	// deprecated
-	entry?: string;
-	transform?: TransformHook;
-	load?: LoadHook;
-	resolveId?: ResolveIdHook;
-	resolveExternal?: any;
-}
-
-export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'es6' | 'iife' | 'umd';
-
-export type OptionsPaths = Record<string, string> | ((id: string) => string);
-
-export interface OutputOptions {
-	// only required for bundle.write
-	file?: string;
-	// only required for bundles.write
-	dir?: string;
-	// this is optional at the base-level of RollupWatchOptions,
-	// which extends from this interface through config merge
-	format?: ModuleFormat;
-	name?: string;
-	globals?: GlobalsOption;
-	chunkNames?: string;
-	entryNames?: string;
-
-	paths?: OptionsPaths;
-	banner?: string;
-	footer?: string;
-	intro?: string;
-	outro?: string;
-	sourcemap?: boolean | 'inline';
-	sourcemapFile?: string;
-	interop?: boolean;
-	extend?: boolean;
-
-	exports?: 'default' | 'named' | 'none' | 'auto';
-	amd?: {
-		id?: string;
-		define?: string;
-	};
-	indent?: boolean;
-	strict?: boolean;
-	freeze?: boolean;
-	namespaceToStringTag?: boolean;
-	legacy?: boolean;
-
-	// undocumented?
-	noConflict?: boolean;
-
-	// deprecated
-	dest?: string;
-	moduleId?: string;
-}
-
-export interface RollupWarning {
-	message?: string;
-	code?: string;
-	loc?: {
-		file: string;
-		line: number;
-		column: number;
-	};
-	deprecations?: { old: string; new: string }[];
-	modules?: string[];
-	names?: string[];
-	source?: string;
-	importer?: string;
-	frame?: any;
-	missing?: string;
-	exporter?: string;
-	name?: string;
-	sources?: string[];
-	reexporter?: string;
-	guess?: string;
-	url?: string;
-	id?: string;
-	plugin?: string;
-	pos?: number;
-	pluginCode?: string;
-}
-
-export type WarningHandler = (warning: string | RollupWarning) => void;
+import {
+	WarningHandler,
+	InputOptions,
+	OutputOptions,
+	SerializedTimings,
+	Plugin,
+	ModuleJSON
+} from './types';
 
 function addDeprecations(deprecations: Deprecation[], warn: WarningHandler) {
 	const message = `The following options have been renamed — please update your config: ${deprecations

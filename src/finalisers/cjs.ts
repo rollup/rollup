@@ -1,5 +1,5 @@
 import esModuleExport from './shared/esModuleExport';
-import { OutputOptions } from '../rollup/index';
+import { OutputOptions } from '../rollup/types';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import getExportBlock from './shared/getExportBlock';
 import { FinaliserOptions } from './index';

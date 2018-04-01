@@ -7,7 +7,7 @@ import warnOnBuiltins from './shared/warnOnBuiltins';
 import trimEmptyImports from './shared/trimEmptyImports';
 import setupNamespace from './shared/setupNamespace';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/index';
+import { OutputOptions } from '../rollup/types';
 import { FinaliserOptions } from './index';
 
 function globalProp(name: string) {

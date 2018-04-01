@@ -1,11 +1,10 @@
 import path from 'path';
 import chalk from 'chalk';
-import * as rollup from 'rollup';
+import rollup from 'rollup';
 import batchWarnings from './batchWarnings';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
-import { InputOptions } from '../../../src/rollup/index';
-import { Bundle } from '../../../src/rollup';
+import { InputOptions, Bundle } from '../../../src/rollup/types';
 
 interface NodeModuleWithCompile extends NodeModule {
 	_compile(code: string, filename: string): any;

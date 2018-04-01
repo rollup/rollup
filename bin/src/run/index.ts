@@ -7,7 +7,7 @@ import loadConfigFile from './loadConfigFile';
 import sequence from '../utils/sequence';
 import build from './build';
 import watch from './watch';
-import { InputOptions } from '../../../src/rollup/index';
+import { InputOptions } from '../../../src/rollup/types';
 import { basename } from '../../../src/utils/path';
 import { nameWithoutExtension } from '../../../src/utils/relativeId';
 
@@ -97,7 +97,7 @@ export default function runRollup(command: any) {
 			.then(configs => execute(configFile, configs, command))
 			.catch(handleError);
 	} else {
-		return execute(configFile, [{ input: null }], command);
+		return execute(configFile, <any>[{ input: null }], command);
 	}
 }
 

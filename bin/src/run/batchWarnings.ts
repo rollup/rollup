@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { stderr } from '../logging';
 import relativeId from '../../../src/utils/relativeId';
-import { RollupWarning } from '../../../src/rollup/index';
+import { RollupWarning } from '../../../src/rollup/types';
 
 export interface BatchWarnings {
 	readonly count: number;

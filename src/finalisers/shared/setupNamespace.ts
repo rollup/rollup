@@ -1,5 +1,5 @@
 import { property } from './sanitize';
-import { GlobalsOption } from '../../rollup/index';
+import { GlobalsOption } from '../../rollup/types';
 
 export default function setupNamespace(
 	name: string,

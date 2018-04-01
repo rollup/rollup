@@ -2,7 +2,7 @@ import * as acorn from 'acorn';
 import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import { timeEnd, timeStart } from './utils/timers';
 import first from './utils/first';
-import Module, { IdMap, ModuleJSON } from './Module';
+import Module, { IdMap } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
 import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
@@ -19,8 +19,9 @@ import {
 	RollupWarning,
 	SourceDescription,
 	TreeshakingOptions,
-	WarningHandler
-} from './rollup/index';
+	WarningHandler,
+	ModuleJSON
+} from './rollup/types';
 import { RawSourceMap } from 'source-map';
 import Program from './ast/nodes/Program';
 import { Node } from './ast/nodes/shared/Node';

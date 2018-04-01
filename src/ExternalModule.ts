@@ -2,7 +2,7 @@ import { makeLegal } from './utils/identifierHelpers';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Graph from './Graph';
 import Variable from './ast/variables/Variable';
-import { OutputOptions } from './rollup';
+import { OutputOptions } from './rollup/types';
 import { isAbsolute, resolve, dirname, normalize, relative, isRelative } from './utils/path';
 
 export default class ExternalModule {
