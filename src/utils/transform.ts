@@ -1,4 +1,4 @@
-import { IParse, Options as AcornOptions } from 'acorn';
+import { Options as AcornOptions } from 'acorn';
 import { decode } from 'sourcemap-codec';
 import { locate } from 'locate-character';
 import error, { RollupError } from './error';
@@ -6,14 +6,9 @@ import getCodeFrame from './getCodeFrame';
 import Graph from '../Graph';
 import { defaultAcornOptions } from '../Module';
 import { RawSourceMap } from 'source-map';
-import { Plugin, RollupWarning, SourceDescription } from '../rollup/index';
+import { Plugin, RollupWarning, SourceDescription } from '../rollup/types';
 import Program from '../ast/nodes/Program';
-
-export interface TransformContext {
-	parse: IParse;
-	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
-	error(err: RollupError, pos?: { line: number; column: number }): void;
-}
+import { TransformContext } from '../rollup/types';
 
 export default function transform(
 	graph: Graph,

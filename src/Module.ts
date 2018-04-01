@@ -6,7 +6,7 @@ import { basename, extname } from './utils/path';
 import { makeLegal } from './utils/identifierHelpers';
 import getCodeFrame from './utils/getCodeFrame';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
-import error, { RollupError } from './utils/error';
+import error from './utils/error';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import extractNames from './ast/utils/extractNames';
 import enhance from './ast/enhance';
@@ -26,7 +26,7 @@ import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ImportDefaultSpecifier from './ast/nodes/ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
-import { RollupWarning } from './rollup/index';
+import { RollupWarning, ModuleJSON, IdMap, RollupError } from './rollup/types';
 import ExternalModule from './ExternalModule';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Import from './ast/nodes/Import';
@@ -35,10 +35,6 @@ import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
 import Chunk from './Chunk';
 import { RenderOptions } from './utils/renderHelpers';
-
-export interface IdMap {
-	[key: string]: string;
-}
 
 export interface CommentDescription {
 	block: boolean;
@@ -99,17 +95,6 @@ function includeFully(node: Node) {
 		node.variable.includeVariable();
 	}
 	node.eachChild(includeFully);
-}
-
-export interface ModuleJSON {
-	id: string;
-	dependencies: string[];
-	code: string;
-	originalCode: string;
-	originalSourcemap: RawSourceMap | void;
-	ast: Program;
-	sourcemapChain: RawSourceMap[];
-	resolvedIds: IdMap;
 }
 
 export default class Module {

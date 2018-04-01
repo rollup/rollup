@@ -1,4 +1,4 @@
-import { SerializedTimings } from '../../../src/utils/timers';
+import { SerializedTimings } from '../../../src/rollup/types';
 import chalk from 'chalk';
 
 export function printTimings(timings: SerializedTimings) {

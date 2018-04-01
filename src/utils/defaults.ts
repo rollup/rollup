@@ -3,7 +3,7 @@ import { basename, dirname, isAbsolute, resolve } from './path';
 import error from './error';
 import Module from '../Module';
 import relativeId, { jsExts } from './relativeId';
-import { InputOptions } from '../rollup';
+import { InputOptions } from '../rollup/types';
 
 export function load(id: string) {
 	return readFileSync(id, 'utf-8');

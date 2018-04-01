@@ -7,7 +7,7 @@ import trimEmptyImports from './shared/trimEmptyImports';
 import setupNamespace from './shared/setupNamespace';
 import { isLegal } from '../utils/identifierHelpers';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/index';
+import { OutputOptions } from '../rollup/types';
 import { FinaliserOptions } from './index';
 
 const thisProp = (name: string) => `this${keypath(name)}`;

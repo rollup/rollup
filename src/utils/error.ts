@@ -1,20 +1,4 @@
-export interface RollupError {
-	message: string;
-	code?: string;
-	name?: string;
-	url?: string;
-	id?: string;
-	loc?: {
-		file?: string;
-		line: number;
-		column: number;
-	};
-	stack?: string;
-	frame?: string;
-	pos?: number;
-	plugin?: string;
-	pluginCode?: string;
-}
+import { RollupError } from '../rollup/types';
 
 export default function error(props: Error | RollupError) {
 	if (props instanceof Error) throw props;

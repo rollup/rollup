@@ -6,7 +6,7 @@ import iife from './iife';
 import umd from './umd';
 import { ChunkDependencies, ChunkExports } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/index';
+import { OutputOptions } from '../rollup/types';
 import Graph from '../Graph';
 
 export interface FinaliserOptions {

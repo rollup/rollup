@@ -3,7 +3,7 @@ import getExportBlock from './shared/getExportBlock';
 import esModuleExport from './shared/esModuleExport';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/index';
+import { OutputOptions } from '../rollup/types';
 import { FinaliserOptions } from './index';
 
 export default function amd(

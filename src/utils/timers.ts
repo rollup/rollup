@@ -1,9 +1,8 @@
-import { InputOptions } from '../rollup';
+import { InputOptions, SerializedTimings } from '../rollup/types';
 
 type StartTime = [number, number] | number;
 type Timer = { time: number; start: StartTime };
 type Timers = { [label: string]: Timer };
-export type SerializedTimings = { [label: string]: number };
 
 const NOOP = () => {};
 

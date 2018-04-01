@@ -5,7 +5,7 @@
   "main": "dist/rollup.js",
   "module": "dist/rollup.es.js",
   "jsnext:main": "dist/rollup.es.js",
-  "typings": "dist/typings/node-entry.d.ts",
+  "typings": "dist/rollup.d.ts",
   "bin": {
     "rollup": "./bin/rollup"
   },
@@ -22,7 +22,7 @@
     "posttest-coverage": "remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.json -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.lcov -t lcovonly -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped -t html -b dist",
     "ci": "npm run test-coverage && codecov < coverage/coverage-remapped.lcov",
     "prebuild": "rm -rf dist",
-    "build": "git rev-parse HEAD > .commithash && rollup -c && tsc -p tsconfig-types.json && chmod a+x bin/rollup",
+    "build": "git rev-parse HEAD > .commithash && rollup -c && cp src/rollup/types.d.ts dist/rollup.d.ts && chmod a+x bin/rollup",
     "watch": "rollup -cw",
     "prepublishOnly": "npm run lint && npm run test && npm run test:leak",
     "prepare": "npm run build",

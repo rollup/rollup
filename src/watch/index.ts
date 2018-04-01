@@ -1,28 +1,24 @@
 import path from 'path';
 import { EventEmitter } from 'events';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
-import rollup, { InputOptions, OutputOptions, Bundle, BundleSet, OutputChunk } from '../rollup/index';
+import rollup from '../rollup/index';
+import {
+	InputOptions,
+	OutputOptions,
+	Bundle,
+	BundleSet,
+	OutputChunk,
+	ModuleJSON,
+	RollupWatchOptions
+} from '../rollup/types';
 import ensureArray from '../utils/ensureArray';
 import { mapSequence } from '../utils/promise';
 import { addTask, deleteTask } from './fileWatchers';
 import chokidar from './chokidar';
 import mergeOptions from '../utils/mergeOptions';
 import { WatchOptions } from 'chokidar';
-import { ModuleJSON } from '../Module';
 
 const DELAY = 100;
-
-export interface WatcherOptions {
-	chokidar?: boolean | WatchOptions;
-	include?: string[];
-	exclude?: string[];
-	clearScreen?: boolean;
-}
-
-export interface RollupWatchOptions extends InputOptions {
-	output?: OutputOptions;
-	watch?: WatcherOptions;
-}
 
 export class Watcher extends EventEmitter {
 	dirty: boolean;
@@ -207,10 +203,11 @@ export class Task {
 					if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
 				});
 
-				return Promise.all(this.outputs.map(output => {
-					return <Promise<OutputChunk | Record<string, OutputChunk>>>result.write(output);
-				}))
-				.then(() => result);
+				return Promise.all(
+					this.outputs.map(output => {
+						return <Promise<OutputChunk | Record<string, OutputChunk>>>result.write(output);
+					})
+				).then(() => result);
 			})
 			.then((result: Bundle | BundleSet) => {
 				this.watcher.emit('event', {

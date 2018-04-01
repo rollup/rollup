@@ -1,6 +1,6 @@
 import ensureArray from './ensureArray';
 import deprecateOptions, { Deprecation } from './deprecateOptions';
-import { InputOptions, OutputOptions, WarningHandler } from '../rollup/index';
+import { InputOptions, OutputOptions, WarningHandler } from '../rollup/types';
 
 export type GenericConfigObject = { [key: string]: any };
 
