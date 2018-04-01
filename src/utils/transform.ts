@@ -1,12 +1,13 @@
+import * as ESTree from 'estree';
 import { Options as AcornOptions } from 'acorn';
 import { decode } from 'sourcemap-codec';
 import { locate } from 'locate-character';
-import error, { RollupError } from './error';
+import error from './error';
 import getCodeFrame from './getCodeFrame';
 import Graph from '../Graph';
 import { defaultAcornOptions } from '../Module';
 import { RawSourceMap } from 'source-map';
-import { Plugin, RollupWarning, SourceDescription } from '../rollup/types';
+import { Plugin, RollupWarning, RollupError, SourceDescription } from '../rollup/types';
 import Program from '../ast/nodes/Program';
 import { TransformContext } from '../rollup/types';
 
@@ -133,7 +134,7 @@ export default function transform(
 			code,
 			originalCode,
 			originalSourcemap,
-			ast,
+			ast: <ESTree.Program>ast,
 			sourcemapChain
 		};
 	});
