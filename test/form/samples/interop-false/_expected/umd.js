@@ -1,5 +1,5 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' && !module.nodeType ? module.exports = factory(require('core/view')) :
+	typeof module === 'object' && module.exports ? module.exports = factory(require('core/view')) :
 	typeof define === 'function' && define.amd ? define(['core/view'], factory) :
 	(global.foo = factory(global.View));
 }(this, (function (View) { 'use strict';

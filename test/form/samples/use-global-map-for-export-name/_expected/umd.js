@@ -1,5 +1,5 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' && !module.nodeType ? factory(require('leaflet')) :
+	typeof module === 'object' && module.exports ? factory(require('leaflet')) :
 	typeof define === 'function' && define.amd ? define(['leaflet'], factory) :
 	(factory(global.L));
 }(this, (function (L) { 'use strict';

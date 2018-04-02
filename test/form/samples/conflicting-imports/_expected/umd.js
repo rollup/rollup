@@ -1,5 +1,5 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' && !module.nodeType ? factory(require('bar'), require('foo')) :
+	typeof module === 'object' && module.exports ? factory(require('bar'), require('foo')) :
 	typeof define === 'function' && define.amd ? define(['bar', 'foo'], factory) :
 	(factory(global.bar,global.foo));
 }(this, (function (bar,foo) { 'use strict';

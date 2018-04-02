@@ -1,5 +1,5 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' && !module.nodeType ? factory(require('../lib/throttle.js')) :
+	typeof module === 'object' && module.exports ? factory(require('../lib/throttle.js')) :
 	typeof define === 'function' && define.amd ? define(['../lib/throttle.js'], factory) :
 	(factory(global.Lib.throttle));
 }(this, (function (throttle) { 'use strict';

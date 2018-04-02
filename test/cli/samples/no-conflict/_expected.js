@@ -1,5 +1,5 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' && !module.nodeType ? module.exports = factory() :
+	typeof module === 'object' && module.exports ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
 	(function() {
 		var current = global.conflictyName;

@@ -1,5 +1,5 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' && !module.nodeType ? factory() :
+    typeof module === 'object' && module.exports ? factory() :
     typeof enifed === 'function' && enifed.amd ? enifed(factory) :
     (factory());
 }(this, (function () { 'use strict';
