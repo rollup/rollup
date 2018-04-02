@@ -6,7 +6,7 @@ const { extend, loadConfig, normaliseOutput } = require('../utils.js');
 
 const samples = path.resolve(__dirname, 'samples');
 
-const FORMATS = ['amd', 'cjs', 'system', 'es', 'esm', 'iife', 'umd'];
+const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
 describe('form', () => {
 	sander
@@ -40,9 +40,6 @@ describe('form', () => {
 				const createBundle = () => promise || (promise = rollup.rollup(inputOptions));
 
 				FORMATS.forEach(format => {
-					// temporary hack to reuse es expected code
-					const expectedFormat = format === 'esm' ? 'es' : format;
-
 					it('generates ' + format, () => {
 						process.chdir(samples + '/' + dir);
 
@@ -57,7 +54,7 @@ describe('form', () => {
 							);
 
 							return bundle.write(outputOptions).then(() => {
-								let actualCode = normaliseOutput(
+								const actualCode = normaliseOutput(
 									sander.readFileSync(samples, dir, '_actual', format + '.js')
 								);
 								let expectedCode;
@@ -66,7 +63,7 @@ describe('form', () => {
 
 								try {
 									expectedCode = normaliseOutput(
-										sander.readFileSync(samples, dir, '_expected', expectedFormat + '.js')
+										sander.readFileSync(samples, dir, '_expected', format + '.js')
 									);
 								} catch (err) {
 									expectedCode = 'missing file';
@@ -83,9 +80,7 @@ describe('form', () => {
 
 								try {
 									expectedMap = JSON.parse(
-										sander
-											.readFileSync(samples, dir, '_expected', expectedFormat + '.js.map')
-											.toString()
+										sander.readFileSync(samples, dir, '_expected', format + '.js.map').toString()
 									);
 									expectedMap.sourcesContent = expectedMap.sourcesContent.map(normaliseOutput);
 								} catch (err) {
@@ -96,17 +91,8 @@ describe('form', () => {
 									console.log(actualCode + '\n\n\n');
 								}
 
-								// temporary hack to reuse es expected code
-								if (format === 'esm') {
-									actualCode = actualCode.replace(/\/\/#.+/, '');
-									expectedCode = expectedCode.replace(/\/\/#.+/, '');
-								}
-
 								assert.equal(actualCode, expectedCode);
-								// temporary hack to reuse es expected code
-								if (format !== 'esm') {
-									assert.deepEqual(actualMap, expectedMap);
-								}
+								assert.deepEqual(actualMap, expectedMap);
 							});
 						});
 					});

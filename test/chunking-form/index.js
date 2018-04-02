@@ -7,7 +7,7 @@ const { extend, loadConfig } = require('../utils.js');
 
 const samples = path.resolve(__dirname, 'samples');
 
-const FORMATS = ['es', 'esm', 'cjs', 'amd', 'system'];
+const FORMATS = ['es', 'cjs', 'amd', 'system'];
 
 describe('chunking form', () => {
 	sander
@@ -43,9 +43,6 @@ describe('chunking form', () => {
 				const createBundle = () => promise || (promise = rollup.rollup(inputOptions));
 
 				FORMATS.forEach(format => {
-					// temporary hack to reuse es expected code
-					const expectedFormat = format === 'esm' ? 'es' : format;
-
 					it('generates ' + format, () => {
 						process.chdir(samples + '/' + dir);
 
@@ -66,7 +63,7 @@ describe('chunking form', () => {
 
 								let expectedFiles;
 								try {
-									expectedFiles = fixturify.readSync(path.join(samples, dir, '_expected', expectedFormat));
+									expectedFiles = fixturify.readSync(path.join(samples, dir, '_expected', format));
 								} catch (err) {
 									expectedFiles = [];
 								}
