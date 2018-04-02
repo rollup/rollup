@@ -1,5 +1,5 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('acorn')) :
+	typeof exports === 'object' && typeof module !== 'undefined' && !module.nodeType ? factory(require('acorn')) :
 	typeof define === 'function' && define.amd ? define(['acorn'], factory) :
 	(factory(global.acorn));
 }(this, (function (acorn) { 'use strict';

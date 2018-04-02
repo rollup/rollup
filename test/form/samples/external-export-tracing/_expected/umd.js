@@ -1,5 +1,5 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('external')) :
+	typeof exports === 'object' && typeof module !== 'undefined' && !module.nodeType ? factory(exports, require('external')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'external'], factory) :
 	(factory((global.myBundle = {}),global.external));
 }(this, (function (exports,external) { 'use strict';

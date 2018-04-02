@@ -96,7 +96,7 @@ export default function umd(
 	}
 
 	const wrapperIntro = `(function (global, factory) {
-			typeof exports === 'object' && typeof module !== 'undefined' ? ${cjsExport}factory(${cjsDeps.join(
+			typeof exports === 'object' && typeof module !== 'undefined' && !module.nodeType ? ${cjsExport}factory(${cjsDeps.join(
 		', '
 	)}) :
 			typeof ${define} === 'function' && ${define}.amd ? ${define}(${amdParams}factory) :

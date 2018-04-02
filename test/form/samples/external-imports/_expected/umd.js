@@ -1,5 +1,5 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('factory'), require('baz'), require('shipping-port'), require('alphabet')) :
+	typeof exports === 'object' && typeof module !== 'undefined' && !module.nodeType ? factory(require('factory'), require('baz'), require('shipping-port'), require('alphabet')) :
 	typeof define === 'function' && define.amd ? define(['factory', 'baz', 'shipping-port', 'alphabet'], factory) :
 	(factory(global.factory,global.baz,global.containers,global.alphabet));
 }(this, (function (factory,baz,containers,alphabet) { 'use strict';
