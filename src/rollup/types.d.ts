@@ -1,8 +1,7 @@
 import { EventEmitter } from 'events';
+import * as ESTree from 'estree';
 
-// ast node types just any, unless acorn public dependency added
-export type Program = any;
-export type Node = any;
+export const VERSION: string;
 
 export interface IdMap {
 	[key: string]: string;
@@ -25,8 +24,6 @@ export interface RollupError {
 	plugin?: string;
 	pluginCode?: string;
 }
-
-export type VERSION = string;
 
 export interface RawSourceMap {
 	file?: string;
@@ -54,7 +51,7 @@ export interface SourceMap {
 export interface SourceDescription {
 	code: string;
 	map?: RawSourceMap;
-	ast?: Program;
+	ast?: ESTree.Program;
 }
 
 export interface ModuleJSON {
@@ -63,7 +60,7 @@ export interface ModuleJSON {
 	code: string;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
-	ast: Program;
+	ast: ESTree.Program;
 	sourcemapChain: RawSourceMap[];
 	resolvedIds: IdMap;
 }
@@ -74,7 +71,7 @@ export type ResolveIdHook = (
 ) => Promise<string | boolean | void> | string | boolean | void;
 
 export interface TransformContext {
-	parse: (input: string, options: any) => any;
+	parse: (input: string, options: any) => ESTree.Program;
 	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
 	error(err: RollupError, pos?: { line: number; column: number }): void;
 }
@@ -103,7 +100,7 @@ export type TransformBundleHook = (
 	options: OutputOptions
 ) => Promise<SourceDescription | string>;
 export type ResolveDynamicImportHook = (
-	specifier: string | Node,
+	specifier: string | ESTree.Node,
 	parentId: string
 ) => Promise<string | void> | string | void;
 
@@ -160,7 +157,7 @@ export interface InputOptions {
 	preferConst?: boolean;
 	perf?: boolean;
 
-	// deprecated
+	/** @deprecated */
 	entry?: string;
 	transform?: TransformHook;
 	load?: LoadHook;
