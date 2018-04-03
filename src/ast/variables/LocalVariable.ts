@@ -10,6 +10,8 @@ import {
 	SomeReturnExpressionCallback
 } from '../nodes/shared/Expression';
 import { ObjectPath } from '../values';
+import { Node } from '../nodes/shared/Node';
+import { NodeType } from '../nodes/NodeType';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
@@ -110,7 +112,18 @@ export default class LocalVariable extends Variable {
 
 	includeVariable() {
 		if (!super.includeVariable()) return false;
-		this.declarations.forEach(identifier => identifier.includeInBundle());
+		this.declarations.forEach((node: Node) => {
+			// If node is a default export, it can save a tree-shaking run to include the full declaration now
+			if (!node.included) node.includeInBundle();
+			node = <Node>node.parent;
+			while (!node.included) {
+				// We do not want to properly include parents in case they are part of a dead branch
+				// in which case .includeInBundle might pull in more dead code
+				node.included = true;
+				if (node.type === NodeType.Program) break;
+				node = <Node>node.parent;
+			}
+		});
 		return true;
 	}
 

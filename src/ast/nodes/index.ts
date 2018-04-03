@@ -120,5 +120,4 @@ const nodes: {
 	YieldExpression
 };
 
-export { NodeType } from './NodeType';
 export default nodes;

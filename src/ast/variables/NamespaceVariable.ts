@@ -27,12 +27,9 @@ export default class NamespaceVariable extends Variable {
 
 		this.references = null;
 		this.originals = Object.create(null);
-		this.module
-			.getExports()
-			.concat(module.getReexports())
-			.forEach(name => {
-				this.originals[name] = this.module.traceExport(name);
-			});
+		for (const name of this.module.getExports().concat(module.getReexports())) {
+			this.originals[name] = this.module.traceExport(name);
+		}
 	}
 
 	addReference(identifier: Identifier) {

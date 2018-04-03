@@ -16,7 +16,7 @@ import Variable from './ast/variables/Variable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import { makeLegal } from './utils/identifierHelpers';
 import LocalVariable from './ast/variables/LocalVariable';
-import { NodeType } from './ast/nodes/index';
+import { NodeType } from './ast/nodes/NodeType';
 import { RenderOptions } from './utils/renderHelpers';
 import { Addons } from './utils/addons';
 import sha256 from 'hash.js/lib/hash/sha/256';

@@ -15,7 +15,6 @@ import { Entity } from '../../Entity';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import { getAndCreateKeys, keys } from '../../keys';
 import Import from '../Import';
-import { hasIncludedChild } from './nodeHelpers';
 
 export interface GenericEsTreeNode {
 	type: string;
@@ -278,7 +277,7 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	shouldBeIncluded(): boolean {
-		return hasIncludedChild(this) || this.hasEffects(ExecutionPathOptions.create());
+		return this.included || this.hasEffects(ExecutionPathOptions.create());
 	}
 
 	someReturnExpressionWhenCalledAtPath(

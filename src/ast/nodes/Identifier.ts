@@ -68,7 +68,7 @@ export default class Identifier extends NodeBase {
 	includeInBundle() {
 		if (this.included) return false;
 		this.included = true;
-		this.variable && this.variable.includeVariable();
+		if (this.variable && !this.variable.included) this.variable.includeVariable();
 		return true;
 	}
 
