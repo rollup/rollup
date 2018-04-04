@@ -15,15 +15,22 @@ export default class ConditionalExpression extends NodeBase {
 	alternate: ExpressionNode;
 	consequent: ExpressionNode;
 
+	private hasUnknownTestValue = false;
+
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		this.forEachRelevantBranch(node =>
-			node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options)
-		);
+		if (this.hasUnknownTestValue) {
+			this.consequent.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+			this.alternate.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+		} else {
+			this.forEachRelevantBranch(node =>
+				node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options)
+			);
+		}
 	}
 
 	getValue(): any {
@@ -34,21 +41,30 @@ export default class ConditionalExpression extends NodeBase {
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
-			this.test.hasEffects(options) || this.someRelevantBranch(node => node.hasEffects(options))
+			this.test.hasEffects(options) ||
+			(this.hasUnknownTestValue
+				? this.consequent.hasEffects(options) || this.alternate.hasEffects(options)
+				: this.someRelevantBranch(node => node.hasEffects(options)))
 		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 &&
-			this.someRelevantBranch(node => node.hasEffectsWhenAccessedAtPath(path, options))
+			(this.hasUnknownTestValue
+				? this.consequent.hasEffectsWhenAccessedAtPath(path, options) ||
+				  this.alternate.hasEffectsWhenAccessedAtPath(path, options)
+				: this.someRelevantBranch(node => node.hasEffectsWhenAccessedAtPath(path, options)))
 		);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length === 0 ||
-			this.someRelevantBranch(node => node.hasEffectsWhenAssignedAtPath(path, options))
+			(this.hasUnknownTestValue
+				? this.consequent.hasEffectsWhenAssignedAtPath(path, options) ||
+				  this.alternate.hasEffectsWhenAssignedAtPath(path, options)
+				: this.someRelevantBranch(node => node.hasEffectsWhenAssignedAtPath(path, options)))
 		);
 	}
 
@@ -57,9 +73,12 @@ export default class ConditionalExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		return this.someRelevantBranch(node =>
-			node.hasEffectsWhenCalledAtPath(path, callOptions, options)
-		);
+		return this.hasUnknownTestValue
+			? this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
+					this.alternate.hasEffectsWhenCalledAtPath(path, callOptions, options)
+			: this.someRelevantBranch(node =>
+					node.hasEffectsWhenCalledAtPath(path, callOptions, options)
+			  );
 	}
 
 	includeInBundle() {
@@ -77,7 +96,14 @@ export default class ConditionalExpression extends NodeBase {
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (path.length > 0) this.forEachRelevantBranch(node => node.reassignPath(path, options));
+		if (path.length > 0) {
+			if (this.hasUnknownTestValue) {
+				this.consequent.reassignPath(path, options);
+				this.alternate.reassignPath(path, options);
+			} else {
+				this.forEachRelevantBranch(node => node.reassignPath(path, options));
+			}
+		}
 	}
 
 	render(
@@ -88,7 +114,7 @@ export default class ConditionalExpression extends NodeBase {
 		if (!this.module.graph.treeshake || this.test.included) {
 			super.render(code, options);
 		} else {
-			const branchToRetain = this.test.getValue() ? this.consequent : this.alternate;
+			const branchToRetain = this.consequent.included ? this.consequent : this.alternate;
 			code.remove(this.start, branchToRetain.start);
 			code.remove(branchToRetain.end, this.end);
 			branchToRetain.render(code, options, {
@@ -106,14 +132,28 @@ export default class ConditionalExpression extends NodeBase {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		return this.someRelevantBranch(node =>
-			node.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options)
-		);
+		return this.hasUnknownTestValue
+			? this.consequent.someReturnExpressionWhenCalledAtPath(
+					path,
+					callOptions,
+					predicateFunction,
+					options
+			  ) ||
+					this.alternate.someReturnExpressionWhenCalledAtPath(
+						path,
+						callOptions,
+						predicateFunction,
+						options
+					)
+			: this.someRelevantBranch(node =>
+					node.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options)
+			  );
 	}
 
 	private forEachRelevantBranch(callback: (node: ExpressionNode) => void) {
 		const testValue = this.test.getValue();
 		if (testValue === UNKNOWN_VALUE) {
+			this.hasUnknownTestValue = true;
 			callback(this.consequent);
 			callback(this.alternate);
 		} else if (testValue) {
@@ -126,6 +166,7 @@ export default class ConditionalExpression extends NodeBase {
 	private someRelevantBranch(predicateFunction: (node: ExpressionNode) => boolean): boolean {
 		const testValue = this.test.getValue();
 		if (testValue === UNKNOWN_VALUE) {
+			this.hasUnknownTestValue = true;
 			return predicateFunction(this.consequent) || predicateFunction(this.alternate);
 		}
 		return testValue ? predicateFunction(this.consequent) : predicateFunction(this.alternate);

@@ -11,10 +11,13 @@ export default class IfStatement extends StatementBase {
 	consequent: StatementNode;
 	alternate: StatementNode | null;
 
+	private hasUnknownTestValue = false;
+
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return (
-			this.test.hasEffects(options) || this.someRelevantBranch(node => node.hasEffects(options))
-		);
+		return this.test.hasEffects(options) || this.hasUnknownTestValue
+			? this.consequent.hasEffects(options) ||
+					(this.alternate !== null && this.alternate.hasEffects(options))
+			: this.someRelevantBranch(node => node.hasEffects(options));
 	}
 
 	includeInBundle() {
@@ -60,6 +63,7 @@ export default class IfStatement extends StatementBase {
 	private someRelevantBranch(predicateFunction: (node: StatementNode) => boolean): boolean {
 		const testValue = this.test.getValue();
 		if (testValue === UNKNOWN_VALUE) {
+			this.hasUnknownTestValue = true;
 			return (
 				predicateFunction(this.consequent) ||
 				(this.alternate !== null && predicateFunction(this.alternate))
