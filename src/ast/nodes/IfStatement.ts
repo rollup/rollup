@@ -14,10 +14,13 @@ export default class IfStatement extends StatementBase {
 	private hasUnknownTestValue = false;
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return this.test.hasEffects(options) || this.hasUnknownTestValue
-			? this.consequent.hasEffects(options) ||
-					(this.alternate !== null && this.alternate.hasEffects(options))
-			: this.someRelevantBranch(node => node.hasEffects(options));
+		return (
+			this.test.hasEffects(options) ||
+			(this.hasUnknownTestValue
+				? this.consequent.hasEffects(options) ||
+				  (this.alternate !== null && this.alternate.hasEffects(options))
+				: this.someRelevantBranch(node => node.hasEffects(options)))
+		);
 	}
 
 	includeInBundle() {
