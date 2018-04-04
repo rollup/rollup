@@ -754,11 +754,10 @@ export default class Chunk {
 
 	// prerender allows chunk hashes and names to be generated before finalizing
 	preRender(options: OutputOptions) {
-		let magicString = new MagicStringBundle({ separator: '\n\n' });
-		this.usedModules = [];
-
 		timeStart('render modules', 3);
 
+		let magicString = new MagicStringBundle({ separator: '\n\n' });
+		this.usedModules = [];
 		this.indentString = getIndentString(this.orderedModules, options);
 
 		const renderOptions: RenderOptions = {
@@ -823,6 +822,8 @@ export default class Chunk {
 			dependencies: this.getChunkDependencyDeclarations(options),
 			exports: this.getChunkExportDeclarations()
 		};
+
+		timeEnd('render modules', 3);
 	}
 
 	generateNamePreserveModules(preserveModulesRelativeDir: string) {
@@ -865,8 +866,6 @@ export default class Chunk {
 		}
 
 		this.id = outName;
-
-		timeEnd('render modules', 3);
 	}
 
 	render(options: OutputOptions, addons: Addons) {
@@ -915,13 +914,12 @@ export default class Chunk {
 			},
 			options
 		);
+		if (addons.banner) magicString.prepend(addons.banner + '\n');
+		if (addons.footer) magicString.append('\n' + addons.footer);
+		const prevCode = magicString.toString();
 
 		timeEnd('render format', 3);
 
-		if (addons.banner) magicString.prepend(addons.banner + '\n');
-		if (addons.footer) magicString.append('\n' + addons.footer);
-
-		const prevCode = magicString.toString();
 		let map: SourceMap = null;
 		const bundleSourcemapChain: RawSourceMap[] = [];
 
