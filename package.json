@@ -61,7 +61,6 @@
     "@types/acorn": "^4.0.3",
     "@types/chokidar": "^1.7.5",
     "@types/minimist": "^1.2.0",
-    "@types/node": "^9.6.2",
     "@types/pretty-ms": "^3.0.0",
     "ansi-escapes": "^3.1.0",
     "buble": "^0.19.3",
