@@ -12,6 +12,7 @@
 * Remove duplicate badges from readme ([#2083](https://github.com/rollup/rollup/pull/2083))
 * Update readme examples ([#2086](https://github.com/rollup/rollup/pull/2086))
 * Update mixed export warning message ([#2107](https://github.com/rollup/rollup/pull/2107))
+* Improve performance timers ([#2111](https://github.com/rollup/rollup/pull/2111))
 
 ## 0.57.1
 * Improve sourcemap generation performance ([#2062](https://github.com/rollup/rollup/pull/2062))

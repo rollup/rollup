@@ -29,7 +29,7 @@
     "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js",
     "precommit": "lint-staged",
     "postcommit": "git reset",
-    "perf": "node --expose-gc scripts/perf.js",
+    "perf": "npm run build && node --expose-gc scripts/perf.js",
     "perf:init": "node scripts/perf-init.js",
     "perf:debug": "node --inspect-brk scripts/perf-debug.js"
   },
@@ -67,7 +67,7 @@
   "devDependencies": {
     "@types/chokidar": "^1.7.5",
     "@types/minimist": "^1.2.0",
-    "@types/node": "^9.6.1",
+    "@types/node": "^9.6.2",
     "@types/pretty-ms": "^3.0.0",
     "ansi-escapes": "^3.1.0",
     "buble": "^0.19.3",
@@ -84,7 +84,7 @@
     "husky": "^0.14.3",
     "immutable": "^3.8.2",
     "istanbul": "^0.4.3",
-    "lint-staged": "^7.0.1",
+    "lint-staged": "^7.0.3",
     "magic-string": "^0.24.0",
     "minimist": "^1.2.0",
     "mocha": "^5.0.5",
@@ -103,7 +103,7 @@
     "source-map": "^0.6.1",
     "source-map-support": "^0.5.4",
     "typescript": "^2.8.1",
-    "uglify-js": "^3.3.17"
+    "uglify-js": "^3.3.18"
   },
   "files": [
     "dist/rollup.browser.js",
