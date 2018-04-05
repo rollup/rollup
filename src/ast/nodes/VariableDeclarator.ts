@@ -4,7 +4,6 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
 import { ObjectPath } from '../values';
-import Import from './Import';
 
 export default class VariableDeclarator extends NodeBase {
 	type: NodeType.VariableDeclarator;
@@ -15,9 +14,9 @@ export default class VariableDeclarator extends NodeBase {
 		this.id.reassignPath(path, options);
 	}
 
-	initialiseDeclarator(parentScope: Scope, dynamicImportReturnList: Import[], kind: string) {
+	initialiseDeclarator(parentScope: Scope, kind: string) {
 		this.scope = parentScope;
-		this.init && this.init.initialise(this.scope, dynamicImportReturnList);
-		this.id.initialiseAndDeclare(this.scope, dynamicImportReturnList, kind, this.init);
+		this.init && this.init.initialise(this.scope);
+		this.id.initialiseAndDeclare(this.scope, kind, this.init);
 	}
 }

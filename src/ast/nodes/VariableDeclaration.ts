@@ -3,11 +3,14 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import VariableDeclarator from './VariableDeclarator';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { getCommaSeparatedNodesWithBoundaries, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import {
+	getCommaSeparatedNodesWithBoundaries,
+	NodeRenderOptions,
+	RenderOptions
+} from '../../utils/renderHelpers';
 import { isIdentifier } from './Identifier';
 import Variable from '../variables/Variable';
 import { ObjectPath } from '../values';
-import Import from './Import';
 import Scope from '../scopes/Scope';
 import { BLANK } from '../../utils/blank';
 
@@ -61,9 +64,9 @@ export default class VariableDeclaration extends NodeBase {
 		return addedNewNodes;
 	}
 
-	initialiseChildren(_parentScope: Scope, dynamicImportReturnList: Import[]) {
+	initialiseChildren(_parentScope: Scope) {
 		for (const declarator of this.declarations) {
-			declarator.initialiseDeclarator(this.scope, dynamicImportReturnList, this.kind);
+			declarator.initialiseDeclarator(this.scope, this.kind);
 		}
 	}
 

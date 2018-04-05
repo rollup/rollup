@@ -5,7 +5,6 @@ import { PatternNode } from './shared/Pattern';
 import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
-import Import from './Import';
 
 export default class RestElement extends NodeBase implements PatternNode {
 	type: NodeType.RestElement;
@@ -19,18 +18,8 @@ export default class RestElement extends NodeBase implements PatternNode {
 		return path.length > 0 || this.argument.hasEffectsWhenAssignedAtPath([], options);
 	}
 
-	initialiseAndDeclare(
-		parentScope: Scope,
-		dynamicImportReturnList: Import[],
-		kind: string,
-		_init: ExpressionEntity | null
-	) {
+	initialiseAndDeclare(parentScope: Scope, kind: string, _init: ExpressionEntity | null) {
 		this.scope = parentScope;
-		this.argument.initialiseAndDeclare(
-			parentScope,
-			dynamicImportReturnList,
-			kind,
-			UNKNOWN_EXPRESSION
-		);
+		this.argument.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION);
 	}
 }

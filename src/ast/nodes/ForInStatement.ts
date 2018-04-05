@@ -8,7 +8,6 @@ import { NodeType } from './NodeType';
 import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import Import from './Import';
 
 export function isForInStatement(node: Node): node is ForInStatement {
 	return node.type === NodeType.ForInStatement;
@@ -29,12 +28,12 @@ export default class ForInStatement extends StatementBase {
 		);
 	}
 
-	initialiseChildren(_parentScope: Scope, dynamicImportReturnList: Import[]) {
-		this.left.initialise(this.scope, dynamicImportReturnList);
-		this.right.initialise(<Scope>this.scope.parent, dynamicImportReturnList);
+	initialiseChildren(_parentScope: Scope) {
+		this.left.initialise(this.scope);
+		this.right.initialise(<Scope>this.scope.parent);
 		(<BlockStatement>this.body).initialiseAndReplaceScope
-			? (<BlockStatement>this.body).initialiseAndReplaceScope(this.scope, dynamicImportReturnList)
-			: this.body.initialise(this.scope, dynamicImportReturnList);
+			? (<BlockStatement>this.body).initialiseAndReplaceScope(this.scope)
+			: this.body.initialise(this.scope);
 	}
 
 	includeInBundle() {

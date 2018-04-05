@@ -6,7 +6,6 @@ import { NodeType } from './NodeType';
 import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import Import from './Import';
 
 export function isForStatement(node: Node): node is ForStatement {
 	return node.type === NodeType.ForStatement;
@@ -28,11 +27,11 @@ export default class ForStatement extends StatementBase {
 		);
 	}
 
-	initialiseChildren(_parentScope: Scope, dynamicImportReturnList: Import[]) {
-		if (this.init) this.init.initialise(this.scope, dynamicImportReturnList);
-		if (this.test) this.test.initialise(this.scope, dynamicImportReturnList);
-		if (this.update) this.update.initialise(this.scope, dynamicImportReturnList);
-		this.body.initialise(this.scope, dynamicImportReturnList);
+	initialiseChildren(_parentScope: Scope) {
+		if (this.init) this.init.initialise(this.scope);
+		if (this.test) this.test.initialise(this.scope);
+		if (this.update) this.update.initialise(this.scope);
+		this.body.initialise(this.scope);
 	}
 
 	initialiseScope(parentScope: Scope) {

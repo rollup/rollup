@@ -8,7 +8,6 @@ import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { ObjectPath } from '../values';
-import Import from './Import';
 
 export default class ArrowFunctionExpression extends NodeBase {
 	type: NodeType.ArrowFunctionExpression;
@@ -55,17 +54,14 @@ export default class ArrowFunctionExpression extends NodeBase {
 		return this.params.some(param => param.hasEffects(options)) || this.body.hasEffects(options);
 	}
 
-	initialiseChildren(_parentScope: Scope, dynamicImportReturnList: Import[]) {
+	initialiseChildren(_parentScope: Scope) {
 		for (const param of this.params) {
-			param.initialiseAndDeclare(this.scope, dynamicImportReturnList, 'parameter', null);
+			param.initialiseAndDeclare(this.scope, 'parameter', null);
 		}
 		if ((<BlockStatement>this.body).initialiseAndReplaceScope) {
-			(<BlockStatement>this.body).initialiseAndReplaceScope(
-				new Scope({ parent: this.scope }),
-				dynamicImportReturnList
-			);
+			(<BlockStatement>this.body).initialiseAndReplaceScope(new Scope({ parent: this.scope }));
 		} else {
-			this.body.initialise(this.scope, dynamicImportReturnList);
+			this.body.initialise(this.scope);
 		}
 	}
 

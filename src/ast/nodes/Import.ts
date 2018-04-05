@@ -23,8 +23,8 @@ export default class Import extends NodeBase {
 		super(esTreeNode, nodeConstructors, parent, module);
 	}
 
-	initialiseNode(_parentScope: Scope, dynamicImportReturnList: Import[]) {
-		dynamicImportReturnList.push(this);
+	initialiseNode(_parentScope: Scope) {
+		this.module.dynamicImports.push(this);
 	}
 
 	setResolution(interop: boolean, namespace: string = undefined): void {

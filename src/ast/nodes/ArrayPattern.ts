@@ -5,7 +5,6 @@ import { PatternNode } from './shared/Pattern';
 import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
-import Import from './Import';
 
 export default class ArrayPattern extends NodeBase implements PatternNode {
 	type: NodeType.ArrayPattern;
@@ -28,21 +27,11 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		);
 	}
 
-	initialiseAndDeclare(
-		parentScope: Scope,
-		dynamicImportReturnList: Import[],
-		kind: string,
-		_init: ExpressionEntity | null
-	) {
+	initialiseAndDeclare(parentScope: Scope, kind: string, _init: ExpressionEntity | null) {
 		this.scope = parentScope;
 		for (const element of this.elements) {
 			if (element !== null) {
-				element.initialiseAndDeclare(
-					parentScope,
-					dynamicImportReturnList,
-					kind,
-					UNKNOWN_EXPRESSION
-				);
+				element.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION);
 			}
 		}
 	}

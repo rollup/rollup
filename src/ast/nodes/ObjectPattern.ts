@@ -6,7 +6,6 @@ import { PatternNode } from './shared/Pattern';
 import { NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 import { ObjectPath } from '../values';
-import Import from './Import';
 
 export default class ObjectPattern extends NodeBase implements PatternNode {
 	type: NodeType.ObjectPattern;
@@ -27,15 +26,10 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		);
 	}
 
-	initialiseAndDeclare(
-		parentScope: Scope,
-		dynamicImportReturnList: Import[],
-		kind: string,
-		init: ExpressionEntity | null
-	) {
+	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null) {
 		this.scope = parentScope;
 		for (const property of this.properties) {
-			property.initialiseAndDeclare(parentScope, dynamicImportReturnList, kind, init);
+			property.initialiseAndDeclare(parentScope, kind, init);
 		}
 	}
 }

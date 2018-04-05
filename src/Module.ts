@@ -350,7 +350,7 @@ export default class Module {
 	private analyse() {
 		this.ast = new Program(this.esTreeAst, nodeConstructors, {}, this);
 		for (const node of this.ast.body) {
-			node.initialise(this.scope, this.dynamicImports);
+			node.initialise(this.scope);
 		}
 		for (const node of this.ast.body) {
 			if ((<ImportDeclaration>node).isImportDeclaration) {

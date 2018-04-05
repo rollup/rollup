@@ -14,7 +14,6 @@ import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import { Entity } from '../../Entity';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import { getAndCreateKeys, keys } from '../../keys';
-import Import from '../Import';
 
 export interface GenericEsTreeNode {
 	type: string;
@@ -71,13 +70,8 @@ export interface Node extends Entity {
 	 * initialiseNode and/or initialiseChildren instead. BlockScopes have a special
 	 * alternative initialisation initialiseAndReplaceScope.
 	 */
-	initialise(parentScope: Scope, dynamicImportReturnList: Import[]): void;
-	initialiseAndDeclare(
-		parentScope: Scope,
-		dynamicImportReturnList: Import[],
-		kind: string,
-		init: ExpressionEntity | null
-	): void;
+	initialise(parentScope: Scope): void;
+	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -223,30 +217,25 @@ export class NodeBase implements ExpressionNode {
 		return this.includeInBundle();
 	}
 
-	initialise(parentScope: Scope, dynamicImportReturnList: Import[]) {
+	initialise(parentScope: Scope) {
 		this.initialiseScope(parentScope);
-		this.initialiseNode(parentScope, dynamicImportReturnList);
-		this.initialiseChildren(parentScope, dynamicImportReturnList);
+		this.initialiseNode(parentScope);
+		this.initialiseChildren(parentScope);
 	}
 
-	initialiseAndDeclare(
-		_parentScope: Scope,
-		_dynamicImportReturnList: Import[],
-		_kind: string,
-		_init: ExpressionEntity | null
-	) {}
+	initialiseAndDeclare(_parentScope: Scope, _kind: string, _init: ExpressionEntity | null) {}
 
 	/**
 	 * Override to change how and with what scopes children are initialised
 	 */
-	initialiseChildren(_parentScope: Scope, dynamicImportReturnList: Import[]) {
-		this.eachChild(child => child.initialise(this.scope, dynamicImportReturnList));
+	initialiseChildren(_parentScope: Scope) {
+		this.eachChild(child => child.initialise(this.scope));
 	}
 
 	/**
 	 * Override to perform special initialisation steps after the scope is initialised
 	 */
-	initialiseNode(_parentScope: Scope, _dynamicImportReturnList: Import[]) {}
+	initialiseNode(_parentScope: Scope) {}
 
 	/**
 	 * Override if this scope should receive a different scope than the parent scope.
