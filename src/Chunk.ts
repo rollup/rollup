@@ -452,6 +452,9 @@ export default class Chunk {
 				} else if (resolution instanceof ExternalModule) {
 					node.setResolution(true);
 					// AST Node -> source replacement
+				} else if (resolution instanceof WasmModule) {
+					// refer to the entrypoint of the module which is our loader
+					node.setResolution(false, resolution.basename());
 				} else {
 					node.setResolution(false);
 				}
@@ -480,7 +483,7 @@ export default class Chunk {
 					node.renderFinalResolution(code, `"${resolution.id}"`);
 					// AST Node -> source replacement
 				} else if (resolution instanceof WasmModule) {
-					node.renderFinalResolution(code, `"${resolution.id}"`);
+					// do nothing
 				} else {
 					node.renderFinalResolution(code, resolution);
 				}
