@@ -2,7 +2,7 @@ import { decode } from '@webassemblyjs/wasm-parser';
 import ast from '@webassemblyjs/ast';
 
 import Graph from './Graph';
-import { IdMap, ModuleJSON, WebAssemblyJSAst } from './rollup/types';
+import { IdMap, ModuleJSON } from './rollup/types';
 
 import { makeLegal } from './utils/identifierHelpers';
 import { RenderOptions } from './utils/renderHelpers';
@@ -58,7 +58,7 @@ export default class WasmModule {
 
 	scope: ModuleScope;
 
-	ast: WebAssemblyJSAst.Program;
+	ast: ast.Program;
 
 	sources: string[];
 	resolvedIds: IdMap;

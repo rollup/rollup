@@ -1,11 +1,8 @@
 import { EventEmitter } from 'events';
 import * as ESTree from 'estree';
+import WebAssemblyJsAst from '@webassemblyjs/ast';
 
 export const VERSION: string;
-
-export interface WebAssemblyJSAst {
-	Program: object;
-}
 
 export interface IdMap {
 	[key: string]: string;
@@ -63,7 +60,7 @@ export interface ModuleJSON {
 	code: string | Buffer;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
-	ast: ESTree.Program | WebAssemblyJSAst.Program;
+	ast: ESTree.Program | WebAssemblyJsAst.Program;
 	sourcemapChain: RawSourceMap[];
 	resolvedIds: IdMap;
 }
