@@ -238,11 +238,13 @@ export default function rollup(
 								code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
 							}
 
-							const wasmModule = modules.find(x => extname(x.id) === '.wasm');
+							modules.forEach(module => {
+								const isWasmModule = extname(module.id) === '.wasm';
 
-							if (wasmModule !== undefined) {
-								promises.push(writeFile('./dist/addTwo.wasm', wasmModule.code));
-							}
+								if (isWasmModule === true) {
+									promises.push(writeFile(`./dist/${basename(module.id)}`, module.code));
+								}
+							});
 
 							promises.push(writeFile(file, code));
 							return (

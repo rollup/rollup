@@ -20,7 +20,8 @@ const decoderOpts = {
 	ignoreDataSection: true
 };
 
-const buildLoader = ({ URL, IMPORT_OBJECT }) => `
+const buildLoader = ({ NAME, URL, IMPORT_OBJECT }) => `
+	// function then$${NAME}(resolve) {
 	function then(resolve) {
 		if (typeof WebAssembly.instantiateStreaming !== 'function') {
 		  throw new Error('WebAssembly.instantiateStreaming is not supported');
@@ -42,7 +43,6 @@ const buildLoader = ({ URL, IMPORT_OBJECT }) => `
 
 export interface ExportDescription {
 	localName: string;
-	identifier?: string;
 }
 
 export interface ImportDescription {
@@ -101,15 +101,22 @@ export default class WasmModule {
 
 		this.scope = new ModuleScope(this);
 
-		// expose Thenable
+		// expose Thenable which is the entry point of our loader
+		// this.exports['then$' + this.basename()] = {
 		this.exports.then = {
 			localName: 'then'
 		};
+
+		// FIXME(sven): a different then allows multiple wasm modules to be load
+		// in the same chunk (avoids collision). I need to figure out how to
+		// have an object like {then: then$foo} as the export;
 	}
 
 	render(options: RenderOptions) {
-		const URL = 'foo';
-		const content = buildLoader({ URL });
+		const NAME = this.basename();
+		const URL = `/dist/${NAME}.wasm`;
+
+		const content = buildLoader({ URL, NAME });
 
 		return { trim() {}, content };
 	}
