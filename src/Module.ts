@@ -104,7 +104,7 @@ export default class Module {
 	code: string;
 	comments: CommentDescription[];
 	context: string;
-	dependencies: (Module | ExternalModule)[];
+	dependencies: (Module | ExternalModule | WasmModule)[];
 	excludeFromSourcemap: boolean;
 	exports: { [name: string]: ExportDescription };
 	exportsAll: { [name: string]: string };

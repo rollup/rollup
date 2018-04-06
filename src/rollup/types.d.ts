@@ -3,6 +3,10 @@ import * as ESTree from 'estree';
 
 export const VERSION: string;
 
+export interface WebAssemblyJSAst {
+	Program: object;
+}
+
 export interface IdMap {
 	[key: string]: string;
 }
@@ -56,10 +60,10 @@ export interface SourceDescription {
 export interface ModuleJSON {
 	id: string;
 	dependencies: string[];
-	code: string;
+	code: string | Buffer;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
-	ast: ESTree.Program;
+	ast: ESTree.Program | WebAssemblyJSAst.Program;
 	sourcemapChain: RawSourceMap[];
 	resolvedIds: IdMap;
 }

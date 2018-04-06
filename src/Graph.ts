@@ -3,6 +3,7 @@ import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import { timeEnd, timeStart } from './utils/timers';
 import first from './utils/first';
 import Module from './Module';
+import WasmModule from './WasmModule';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
 import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
@@ -10,7 +11,7 @@ import { mapSequence } from './utils/promise';
 import transform from './utils/transform';
 import relativeId, { nameWithoutExtension } from './utils/relativeId';
 import error from './utils/error';
-import { isRelative, resolve, basename, relative } from './utils/path';
+import { isRelative, resolve, basename, relative, extname } from './utils/path';
 import {
 	InputOptions,
 	IsExternalHook,
@@ -52,7 +53,7 @@ export default class Graph {
 		importedModule: string,
 		importerStart?: number
 	) => void;
-	moduleById: Map<string, Module | ExternalModule>;
+	moduleById: Map<string, Module | WasmModule | ExternalModule>;
 	modules: Module[];
 	onwarn: WarningHandler;
 	plugins: Plugin[];
@@ -425,9 +426,9 @@ export default class Graph {
 				timeStart('generate chunks', 2);
 
 				// TODO: there is one special edge case unhandled here and that is that any module
-				//       exposed as an unresolvable export * (to a graph external export *,
-				//       either as a namespace import reexported or top-level export *)
-				//       should be made to be its own entry point module before chunking
+				//	   exposed as an unresolvable export * (to a graph external export *,
+				//	   either as a namespace import reexported or top-level export *)
+				//	   should be made to be its own entry point module before chunking
 				const chunkList: Chunk[] = [];
 				if (!preserveModules) {
 					const chunkModules: { [entryHashSum: string]: Module[] } = {};
@@ -497,14 +498,14 @@ export default class Graph {
 		let curEntry: Module, curEntryHash: Uint8Array;
 		const allSeen: { [id: string]: boolean } = {};
 
-		const orderedModules: Module[] = [];
+		const orderedModules: Module | WasmModule[] = [];
 
-		const dynamicImports: Module[] = [];
+		const dynamicImports: Module | WasmModule[] = [];
 		const dynamicImportAliases: string[] = [];
 
 		let parents: { [id: string]: string };
 
-		const visit = (module: Module) => {
+		const visit = (module: Module | WasmModule) => {
 			// Track entry point graph colouring by tracing all modules loaded by a given
 			// entry point and colouring those modules by the hash of its id. Colours are mixed as
 			// hash xors, providing the unique colouring of the graph into unique hash chunks.
@@ -523,6 +524,7 @@ export default class Graph {
 
 			for (let depModule of module.dependencies) {
 				if (depModule instanceof ExternalModule) continue;
+				if (depModule instanceof WasmModule) continue;
 
 				if (depModule.id in parents) {
 					if (!allSeen[depModule.id]) {
@@ -537,7 +539,10 @@ export default class Graph {
 
 			if (this.dynamicImport) {
 				for (let dynamicModule of module.dynamicImportResolutions) {
-					if (dynamicModule.resolution instanceof Module) {
+					if (
+						dynamicModule.resolution instanceof Module ||
+						dynamicModule.resolution instanceof WasmModule
+					) {
 						if (dynamicImports.indexOf(dynamicModule.resolution) === -1) {
 							dynamicImports.push(dynamicModule.resolution);
 							dynamicImportAliases.push(dynamicModule.alias);
@@ -611,12 +616,35 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 		});
 	}
 
-	private fetchModule(id: string, importer: string): Promise<Module> {
+	private fetchModule(id: string, importer: string): Promise<Module | WasmModule> {
 		// short-circuit cycles
 		const existingModule = this.moduleById.get(id);
 		if (existingModule) {
 			if (existingModule.isExternal) throw new Error(`Cannot fetch external module ${id}`);
-			return Promise.resolve(<Module>existingModule);
+			return Promise.resolve(<Module | WasmModule>existingModule);
+		}
+
+		if (extname(id) === '.wasm') {
+			const module = new WasmModule(this, id);
+			this.moduleById.set(id, module);
+
+			// FIXME(sven): alternatively we can use a loadBinary method
+			return this.load(id)
+				.catch((err: Error) => {
+					// FIXME(sven): error handling here
+					throw err;
+				})
+				.then((data: string) => {
+					// TODO(sven): still check magic header here
+					const bin = new Buffer(data);
+					module.setSource(bin);
+
+					this.fetchAllDependencies(module);
+
+					this.modules.push(module);
+
+					return module;
+				});
 		}
 
 		const module: Module = new Module(this, id);
@@ -705,7 +733,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 			});
 	}
 
-	private fetchAllDependencies(module: Module) {
+	private fetchAllDependencies(module: Module | WasmModule) {
 		// resolve and fetch dynamic imports where possible
 		const fetchDynamicImportsPromise = !this.dynamicImport
 			? Promise.resolve()
@@ -721,6 +749,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 								};
 								return;
 							}
+
 							const alias = nameWithoutExtension(basename(replacement));
 							if (typeof dynamicImportExpression !== 'string') {
 								module.dynamicImportResolutions[index] = { alias, resolution: replacement };

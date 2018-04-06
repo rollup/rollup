@@ -1,5 +1,5 @@
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
-import { basename } from '../utils/path';
+import { basename, extname } from '../utils/path';
 import { writeFile } from '../utils/fs';
 import { mapSequence } from '../utils/promise';
 import error from '../utils/error';
@@ -236,6 +236,12 @@ export default function rollup(
 								}
 
 								code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
+							}
+
+							const wasmModule = modules.find(x => extname(x.id) === '.wasm');
+
+							if (wasmModule !== undefined) {
+								promises.push(writeFile('./dist/addTwo.wasm', wasmModule.code));
 							}
 
 							promises.push(writeFile(file, code));

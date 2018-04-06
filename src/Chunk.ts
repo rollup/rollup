@@ -11,6 +11,7 @@ import { normalize, resolve, extname, dirname, relative, basename } from './util
 import { RawSourceMap } from 'source-map';
 import Graph from './Graph';
 import ExternalModule from './ExternalModule';
+import WasmModule from './WasmModule';
 import { isExportDefaultVariable } from './ast/variables/ExportDefaultVariable';
 import Variable from './ast/variables/Variable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
@@ -478,6 +479,8 @@ export default class Chunk {
 				} else if (resolution instanceof ExternalModule) {
 					node.renderFinalResolution(code, `"${resolution.id}"`);
 					// AST Node -> source replacement
+				} else if (resolution instanceof WasmModule) {
+					node.renderFinalResolution(code, `"${resolution.id}"`);
 				} else {
 					node.renderFinalResolution(code, resolution);
 				}

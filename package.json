@@ -53,7 +53,9 @@
   "homepage": "https://github.com/rollup/rollup",
   "dependencies": {
     "@types/estree": "0.0.38",
-    "@types/node": "*"
+    "@types/node": "*",
+    "@webassemblyjs/ast": "^1.2.2",
+    "@webassemblyjs/wasm-parser": "^1.2.2"
   },
   "devDependencies": {
     "acorn": "^5.5.3",
