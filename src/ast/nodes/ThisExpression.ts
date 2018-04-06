@@ -8,11 +8,23 @@ import { ObjectPath } from '../values';
 
 export default class ThisExpression extends NodeBase {
 	type: NodeType.ThisExpression;
-	variable: ThisVariable;
 
+	variable: ThisVariable;
 	alias: string;
 
-	initialiseNode() {
+	bindNode() {
+		this.variable = <ThisVariable>this.scope.findVariable('this');
+	}
+
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+		return path.length > 0 && this.variable.hasEffectsWhenAccessedAtPath(path, options);
+	}
+
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+		return this.variable.hasEffectsWhenAssignedAtPath(path, options);
+	}
+
+	initialise() {
 		const lexicalBoundary = this.scope.findLexicalBoundary();
 
 		if (lexicalBoundary.isModuleScope) {
@@ -28,18 +40,6 @@ export default class ThisExpression extends NodeBase {
 				);
 			}
 		}
-	}
-
-	bindNode() {
-		this.variable = <ThisVariable>this.scope.findVariable('this');
-	}
-
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return path.length > 0 && this.variable.hasEffectsWhenAccessedAtPath(path, options);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
 	render(code: MagicString, _options: RenderOptions) {

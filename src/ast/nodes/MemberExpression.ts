@@ -90,31 +90,6 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	private resolveNamespaceVariables(
-		baseVariable: Variable,
-		path: PathWithPositions
-	): Variable | string | null {
-		if (path.length === 0) return baseVariable;
-		if (!isNamespaceVariable(baseVariable)) return null;
-		const exportName = path[0].key;
-		const variable = baseVariable.module.traceExport(exportName);
-		if (!variable) {
-			this.module.warn(
-				{
-					code: 'MISSING_EXPORT',
-					missing: exportName,
-					importer: relativeId(this.module.id),
-					exporter: relativeId(baseVariable.module.id),
-					message: `'${exportName}' is not exported by '${relativeId(baseVariable.module.id)}'`,
-					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
-				},
-				path[0].pos
-			);
-			return 'undefined';
-		}
-		return this.resolveNamespaceVariables(variable, path.slice(1));
-	}
-
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
@@ -173,16 +148,16 @@ export default class MemberExpression extends NodeBase {
 		);
 	}
 
-	includeInBundle() {
-		let addedNewNodes = super.includeInBundle();
+	include() {
+		let addedNewNodes = super.include();
 		if (this.variable && !this.variable.included) {
-			this.variable.includeVariable();
+			this.variable.include();
 			addedNewNodes = true;
 		}
 		return addedNewNodes;
 	}
 
-	initialiseNode() {
+	initialise() {
 		this.propertyKey = getPropertyKey(this);
 		this.arePropertyReadSideEffectsChecked =
 			this.module.graph.treeshake && this.module.graph.treeshakingOptions.propertyReadSideEffects;
@@ -195,21 +170,6 @@ export default class MemberExpression extends NodeBase {
 			this.variable.reassignPath(path, options);
 		} else {
 			this.object.reassignPath([this.propertyKey, ...path], options);
-		}
-	}
-
-	private disallowNamespaceReassignment() {
-		if (
-			isIdentifier(this.object) &&
-			isNamespaceVariable(this.scope.findVariable(this.object.name))
-		) {
-			this.module.error(
-				{
-					code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
-					message: `Illegal reassignment to import '${this.object.name}'`
-				},
-				this.start
-			);
 		}
 	}
 
@@ -258,5 +218,45 @@ export default class MemberExpression extends NodeBase {
 				options
 			)
 		);
+	}
+
+	private disallowNamespaceReassignment() {
+		if (
+			isIdentifier(this.object) &&
+			isNamespaceVariable(this.scope.findVariable(this.object.name))
+		) {
+			this.module.error(
+				{
+					code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
+					message: `Illegal reassignment to import '${this.object.name}'`
+				},
+				this.start
+			);
+		}
+	}
+
+	private resolveNamespaceVariables(
+		baseVariable: Variable,
+		path: PathWithPositions
+	): Variable | string | null {
+		if (path.length === 0) return baseVariable;
+		if (!isNamespaceVariable(baseVariable)) return null;
+		const exportName = path[0].key;
+		const variable = baseVariable.module.traceExport(exportName);
+		if (!variable) {
+			this.module.warn(
+				{
+					code: 'MISSING_EXPORT',
+					missing: exportName,
+					importer: relativeId(this.module.id),
+					exporter: relativeId(baseVariable.module.id),
+					message: `'${exportName}' is not exported by '${relativeId(baseVariable.module.id)}'`,
+					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+				},
+				path[0].pos
+			);
+			return 'undefined';
+		}
+		return this.resolveNamespaceVariables(variable, path.slice(1));
 	}
 }

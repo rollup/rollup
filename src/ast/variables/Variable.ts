@@ -32,8 +32,6 @@ export default class Variable implements ExpressionEntity {
 	 */
 	addReference(_identifier: Identifier) {}
 
-	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
-
 	forEachReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
@@ -81,13 +79,15 @@ export default class Variable implements ExpressionEntity {
 	 * previously.
 	 * Once a variable is included, it should take care all its declarations are included.
 	 */
-	includeVariable() {
+	include() {
 		if (this.included) {
 			return false;
 		}
 		this.included = true;
 		return true;
 	}
+
+	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
 
 	someReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,

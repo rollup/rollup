@@ -1,5 +1,4 @@
 import AssignmentProperty from './AssignmentProperty';
-import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ExpressionEntity } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
@@ -11,11 +10,9 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	type: NodeType.ObjectPattern;
 	properties: AssignmentProperty[];
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (path.length === 0) {
-			for (const property of this.properties) {
-				property.reassignPath(path, options);
-			}
+	declare(kind: string, init: ExpressionEntity | null) {
+		for (const property of this.properties) {
+			property.declare(kind, init);
 		}
 	}
 
@@ -26,10 +23,11 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		);
 	}
 
-	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null) {
-		this.scope = parentScope;
-		for (const property of this.properties) {
-			property.initialiseAndDeclare(parentScope, kind, init);
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+		if (path.length === 0) {
+			for (const property of this.properties) {
+				property.reassignPath(path, options);
+			}
 		}
 	}
 }

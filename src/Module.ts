@@ -94,7 +94,7 @@ function tryParse(module: Module, parse: IParse, acornOptions: AcornOptions) {
 function includeFully(node: Node) {
 	node.included = true;
 	if (node.variable && !node.variable.included) {
-		node.variable.includeVariable();
+		node.variable.include();
 	}
 	node.eachChild(includeFully);
 }
@@ -348,10 +348,7 @@ export default class Module {
 	}
 
 	private analyse() {
-		this.ast = new Program(this.esTreeAst, nodeConstructors, {}, this);
-		for (const node of this.ast.body) {
-			node.initialise(this.scope);
-		}
+		this.ast = new Program(this.esTreeAst, nodeConstructors, {}, this, this.scope, false);
 		for (const node of this.ast.body) {
 			if ((<ImportDeclaration>node).isImportDeclaration) {
 				this.addImport(<ImportDeclaration>node);
@@ -379,7 +376,7 @@ export default class Module {
 			const variable = this.traceExport(exportName);
 
 			variable.exportName = exportName;
-			variable.includeVariable();
+			variable.include();
 
 			if (variable.isNamespace) {
 				(<NamespaceVariable>variable).needsNamespaceBlock = true;
@@ -394,7 +391,7 @@ export default class Module {
 			if (variable.isExternal) {
 				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
 			} else {
-				variable.includeVariable();
+				variable.include();
 			}
 		}
 	}
@@ -567,11 +564,11 @@ export default class Module {
 		}
 	}
 
-	includeInBundle() {
+	include() {
 		let addedNewNodes = false;
 		for (let node of this.ast.body) {
 			if (node.shouldBeIncluded()) {
-				if (node.includeInBundle()) {
+				if (node.include()) {
 					addedNewNodes = true;
 				}
 			}

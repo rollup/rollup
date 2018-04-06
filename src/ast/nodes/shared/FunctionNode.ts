@@ -6,17 +6,22 @@ import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import { PatternNode } from './Pattern';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
-import { NodeBase } from './Node';
+import { GenericEsTreeNode, NodeBase } from './Node';
 import { ObjectPath } from '../../values';
+import Scope from '../../scopes/Scope';
 
 export default class FunctionNode extends NodeBase {
-	id: Identifier;
+	id: Identifier | null;
 	body: BlockStatement;
-	scope: BlockScope;
 	params: PatternNode[];
+	scope: BlockScope;
 
 	bindNode() {
 		this.body.bindImplicitReturnExpressionToScope();
+	}
+
+	createScope(parentScope: FunctionScope) {
+		this.scope = new FunctionScope({ parent: parentScope });
 	}
 
 	forEachReturnExpressionWhenCalledAtPath(
@@ -68,13 +73,30 @@ export default class FunctionNode extends NodeBase {
 		);
 	}
 
-	includeInBundle() {
-		this.scope.variables.arguments.includeVariable();
-		return super.includeInBundle();
+	include() {
+		this.scope.variables.arguments.include();
+		return super.include();
 	}
 
-	initialiseScope(parentScope: FunctionScope) {
-		this.scope = new FunctionScope({ parent: parentScope });
+	initialise() {
+		if (this.id !== null) {
+			this.id.declare('function', this);
+		}
+		for (const param of this.params) {
+			param.declare('parameter', null);
+		}
+	}
+
+	parseNode(esTreeNode: GenericEsTreeNode, nodeConstructors: { [p: string]: typeof NodeBase }) {
+		this.body = <BlockStatement>new nodeConstructors.BlockStatement(
+			esTreeNode.body,
+			nodeConstructors,
+			this,
+			this.module,
+			new Scope({ parent: this.scope }),
+			true
+		);
+		super.parseNode(esTreeNode, nodeConstructors);
 	}
 
 	someReturnExpressionWhenCalledAtPath(

@@ -38,8 +38,8 @@ export default class NamespaceVariable extends Variable {
 		this.name = identifier.name;
 	}
 
-	includeVariable() {
-		if (!super.includeVariable()) {
+	include() {
+		if (!super.include()) {
 			return false;
 		}
 		this.needsNamespaceBlock = true;
@@ -51,7 +51,7 @@ export default class NamespaceVariable extends Variable {
 				}
 			}
 		}
-		Object.keys(this.originals).forEach(original => this.originals[original].includeVariable());
+		Object.keys(this.originals).forEach(original => this.originals[original].include());
 		return true;
 	}
 

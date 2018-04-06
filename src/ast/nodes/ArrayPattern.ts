@@ -1,5 +1,4 @@
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
-import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { PatternNode } from './shared/Pattern';
 import { ExpressionEntity } from './shared/Expression';
@@ -10,12 +9,10 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	type: NodeType.ArrayPattern;
 	elements: (PatternNode | null)[];
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (path.length === 0) {
-			for (const element of this.elements) {
-				if (element !== null) {
-					element.reassignPath(path, options);
-				}
+	declare(kind: string, _init: ExpressionEntity | null) {
+		for (const element of this.elements) {
+			if (element !== null) {
+				element.declare(kind, UNKNOWN_EXPRESSION);
 			}
 		}
 	}
@@ -27,11 +24,12 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		);
 	}
 
-	initialiseAndDeclare(parentScope: Scope, kind: string, _init: ExpressionEntity | null) {
-		this.scope = parentScope;
-		for (const element of this.elements) {
-			if (element !== null) {
-				element.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION);
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+		if (path.length === 0) {
+			for (const element of this.elements) {
+				if (element !== null) {
+					element.reassignPath(path, options);
+				}
 			}
 		}
 	}

@@ -1,5 +1,4 @@
 import MagicString from 'magic-string';
-import Scope from '../scopes/Scope';
 import { StatementBase } from './shared/Node';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { NodeType } from './NodeType';
@@ -7,7 +6,7 @@ import { NodeType } from './NodeType';
 export default class ExpressionStatement extends StatementBase {
 	directive?: string;
 
-	initialiseNode(_parentScope: Scope) {
+	initialise() {
 		if (
 			this.directive &&
 			this.directive !== 'use strict' &&
@@ -24,8 +23,6 @@ export default class ExpressionStatement extends StatementBase {
 				this.start
 			);
 		}
-
-		return super.initialiseNode(_parentScope);
 	}
 
 	shouldBeIncluded() {

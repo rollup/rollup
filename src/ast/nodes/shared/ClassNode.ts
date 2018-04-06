@@ -11,6 +11,10 @@ export default class ClassNode extends NodeBase {
 	superClass: ExpressionNode | null;
 	id: Identifier | null;
 
+	createScope(parentScope: Scope) {
+		this.scope = new Scope({ parent: parentScope });
+	}
+
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 1;
 	}
@@ -30,14 +34,9 @@ export default class ClassNode extends NodeBase {
 		);
 	}
 
-	initialiseChildren(_parentScope: Scope) {
-		if (this.superClass) {
-			this.superClass.initialise(this.scope);
+	initialise() {
+		if (this.id !== null) {
+			this.id.declare('class', this);
 		}
-		this.body.initialise(this.scope);
-	}
-
-	initialiseScope(parentScope: Scope) {
-		this.scope = new Scope({ parent: parentScope });
 	}
 }

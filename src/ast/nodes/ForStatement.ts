@@ -18,6 +18,10 @@ export default class ForStatement extends StatementBase {
 	update: ExpressionNode | null;
 	body: StatementNode;
 
+	createScope(parentScope: Scope) {
+		this.scope = new BlockScope({ parent: parentScope });
+	}
+
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			(this.init && this.init.hasEffects(options)) ||
@@ -25,17 +29,6 @@ export default class ForStatement extends StatementBase {
 			(this.update && this.update.hasEffects(options)) ||
 			this.body.hasEffects(options.setIgnoreBreakStatements())
 		);
-	}
-
-	initialiseChildren(_parentScope: Scope) {
-		if (this.init) this.init.initialise(this.scope);
-		if (this.test) this.test.initialise(this.scope);
-		if (this.update) this.update.initialise(this.scope);
-		this.body.initialise(this.scope);
-	}
-
-	initialiseScope(parentScope: Scope) {
-		this.scope = new BlockScope({ parent: parentScope });
 	}
 
 	render(code: MagicString, options: RenderOptions) {

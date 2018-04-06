@@ -2,7 +2,6 @@ import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import CallOptions from '../CallOptions';
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import {
 	ExpressionEntity,
@@ -25,21 +24,10 @@ export default class Property extends NodeBase {
 	shorthand: boolean;
 	computed: boolean;
 
-	private _accessorCallOptions: CallOptions;
+	private accessorCallOptions: CallOptions;
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (this.kind === 'get') {
-			path.length > 0 &&
-				this.value.forEachReturnExpressionWhenCalledAtPath(
-					[],
-					this._accessorCallOptions,
-					innerOptions => node =>
-						node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
-					options
-				);
-		} else if (this.kind !== 'set') {
-			this.value.reassignPath(path, options);
-		}
+	declare(kind: string, _init: ExpressionEntity | null) {
+		this.value.declare(kind, UNKNOWN_EXPRESSION);
 	}
 
 	forEachReturnExpressionWhenCalledAtPath(
@@ -51,7 +39,7 @@ export default class Property extends NodeBase {
 		if (this.kind === 'get') {
 			this.value.forEachReturnExpressionWhenCalledAtPath(
 				[],
-				this._accessorCallOptions,
+				this.accessorCallOptions,
 				innerOptions => node =>
 					node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, innerOptions),
 				options
@@ -70,13 +58,13 @@ export default class Property extends NodeBase {
 			return (
 				this.value.hasEffectsWhenCalledAtPath(
 					[],
-					this._accessorCallOptions,
+					this.accessorCallOptions,
 					options.getHasEffectsWhenCalledOptions()
 				) ||
 				(!options.hasReturnExpressionBeenAccessedAtPath(path, this) &&
 					this.value.someReturnExpressionWhenCalledAtPath(
 						[],
-						this._accessorCallOptions,
+						this.accessorCallOptions,
 						innerOptions => node =>
 							node.hasEffectsWhenAccessedAtPath(
 								path,
@@ -95,7 +83,7 @@ export default class Property extends NodeBase {
 				path.length === 0 ||
 				this.value.someReturnExpressionWhenCalledAtPath(
 					[],
-					this._accessorCallOptions,
+					this.accessorCallOptions,
 					innerOptions => node =>
 						node.hasEffectsWhenAssignedAtPath(
 							path,
@@ -110,7 +98,7 @@ export default class Property extends NodeBase {
 				path.length > 0 ||
 				this.value.hasEffectsWhenCalledAtPath(
 					[],
-					this._accessorCallOptions,
+					this.accessorCallOptions,
 					options.getHasEffectsWhenCalledOptions()
 				)
 			);
@@ -127,13 +115,13 @@ export default class Property extends NodeBase {
 			return (
 				this.value.hasEffectsWhenCalledAtPath(
 					[],
-					this._accessorCallOptions,
+					this.accessorCallOptions,
 					options.getHasEffectsWhenCalledOptions()
 				) ||
 				(!options.hasReturnExpressionBeenCalledAtPath(path, this) &&
 					this.value.someReturnExpressionWhenCalledAtPath(
 						[],
-						this._accessorCallOptions,
+						this.accessorCallOptions,
 						innerOptions => node =>
 							node.hasEffectsWhenCalledAtPath(
 								path,
@@ -147,18 +135,26 @@ export default class Property extends NodeBase {
 		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	initialiseAndDeclare(parentScope: Scope, kind: string, _init: ExpressionEntity | null) {
-		this.scope = parentScope;
-		this.initialiseNode(parentScope);
-		this.key.initialise(parentScope);
-		this.value.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION);
-	}
-
-	initialiseNode(_parentScope: Scope) {
-		this._accessorCallOptions = CallOptions.create({
+	initialise() {
+		this.accessorCallOptions = CallOptions.create({
 			withNew: false,
 			callIdentifier: this
 		});
+	}
+
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+		if (this.kind === 'get') {
+			path.length > 0 &&
+				this.value.forEachReturnExpressionWhenCalledAtPath(
+					[],
+					this.accessorCallOptions,
+					innerOptions => node =>
+						node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
+					options
+				);
+		} else if (this.kind !== 'set') {
+			this.value.reassignPath(path, options);
+		}
 	}
 
 	render(code: MagicString, options: RenderOptions) {
@@ -178,12 +174,12 @@ export default class Property extends NodeBase {
 			return (
 				this.value.hasEffectsWhenCalledAtPath(
 					[],
-					this._accessorCallOptions,
+					this.accessorCallOptions,
 					options.getHasEffectsWhenCalledOptions()
 				) ||
 				this.value.someReturnExpressionWhenCalledAtPath(
 					[],
-					this._accessorCallOptions,
+					this.accessorCallOptions,
 					innerOptions => node =>
 						node.someReturnExpressionWhenCalledAtPath(
 							path,

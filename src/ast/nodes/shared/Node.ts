@@ -29,7 +29,7 @@ export interface Node extends Entity {
 	parent: Node | { type?: string };
 	start: number;
 	type: string;
-	variable?: Variable;
+	variable?: Variable | null;
 
 	/**
 	 * Called once all nodes have been initialised and the scopes have been populated.
@@ -37,6 +37,11 @@ export interface Node extends Entity {
 	 * bindChildren instead.
 	 */
 	bind(): void;
+
+	/**
+	 * Declare a new variable with the optional initialisation.
+	 */
+	declare(kind: string, init: ExpressionEntity | null): void;
 	eachChild(callback: (node: Node) => void): void;
 
 	/**
@@ -53,25 +58,14 @@ export interface Node extends Entity {
 	 * Necessary variables need to be included as well. Should return true if any
 	 * nodes or variables have been added that were missing before.
 	 */
-	includeInBundle(): boolean;
+	include(): boolean;
 
 	/**
-	 * Alternative version of includeInBundle to override the default behaviour of
+	 * Alternative version of include to override the default behaviour of
 	 * declarations to only include nodes for declarators that have an effect. Necessary
 	 * for for-loops that do not use a declared loop variable.
 	 */
 	includeWithAllDeclaredVariables(): boolean;
-
-	/**
-	 * Assign a scope to this node and make sure all children have the right scopes.
-	 * Perform any additional initialisation that does not depend on the scope being
-	 * populated with variables.
-	 * Usually one should not override this function but override initialiseScope,
-	 * initialiseNode and/or initialiseChildren instead. BlockScopes have a special
-	 * alternative initialisation initialiseAndReplaceScope.
-	 */
-	initialise(parentScope: Scope): void;
-	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -102,30 +96,16 @@ export class NodeBase implements ExpressionNode {
 		// we need to pass down the node constructors to avoid a circular dependency
 		nodeConstructors: { [p: string]: typeof NodeBase },
 		parent: Node | {},
-		module: Module
+		module: Module,
+		parentScope: Scope,
+		preventNewScope: boolean
 	) {
 		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
 		this.parent = parent;
 		this.module = module;
-		for (const key in esTreeNode) {
-			const value = esTreeNode[key];
-			if (typeof value !== 'object' || value === null) {
-				(<GenericEsTreeNode>this)[key] = value;
-			} else if (Array.isArray(value)) {
-				(<GenericEsTreeNode>this)[key] = [];
-				for (const child of value) {
-					if (child === null) {
-						(<GenericEsTreeNode>this)[key].push(null);
-					} else {
-						const Type = nodeConstructors[child.type] || nodeConstructors.UnknownNode;
-						(<GenericEsTreeNode>this)[key].push(new Type(child, nodeConstructors, this, module));
-					}
-				}
-			} else {
-				const Type = nodeConstructors[value.type] || nodeConstructors.UnknownNode;
-				(<GenericEsTreeNode>this)[key] = new Type(value, nodeConstructors, this, module);
-			}
-		}
+		this.createScope(parentScope, preventNewScope);
+		this.parseNode(esTreeNode, nodeConstructors);
+		this.initialise();
 		module.magicString.addSourcemapLocation(this.start);
 		module.magicString.addSourcemapLocation(this.end);
 	}
@@ -147,6 +127,15 @@ export class NodeBase implements ExpressionNode {
 	 * require the scopes to be populated with variables.
 	 */
 	bindNode() {}
+
+	/**
+	 * Override if this node should receive a different scope than the parent scope.
+	 */
+	createScope(parentScope: Scope, _preventNewScope: boolean) {
+		this.scope = parentScope;
+	}
+
+	declare(_kind: string, _init: ExpressionEntity | null) {}
 
 	eachChild(callback: (node: Node) => void) {
 		for (const key of this.keys) {
@@ -202,11 +191,11 @@ export class NodeBase implements ExpressionNode {
 		return true;
 	}
 
-	includeInBundle() {
+	include() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		this.eachChild(childNode => {
-			if (childNode.includeInBundle()) {
+			if (childNode.include()) {
 				addedNewNodes = true;
 			}
 		});
@@ -214,35 +203,13 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	includeWithAllDeclaredVariables() {
-		return this.includeInBundle();
-	}
-
-	initialise(parentScope: Scope) {
-		this.initialiseScope(parentScope);
-		this.initialiseNode(parentScope);
-		this.initialiseChildren(parentScope);
-	}
-
-	initialiseAndDeclare(_parentScope: Scope, _kind: string, _init: ExpressionEntity | null) {}
-
-	/**
-	 * Override to change how and with what scopes children are initialised
-	 */
-	initialiseChildren(_parentScope: Scope) {
-		this.eachChild(child => child.initialise(this.scope));
+		return this.include();
 	}
 
 	/**
 	 * Override to perform special initialisation steps after the scope is initialised
 	 */
-	initialiseNode(_parentScope: Scope) {}
-
-	/**
-	 * Override if this scope should receive a different scope than the parent scope.
-	 */
-	initialiseScope(parentScope: Scope) {
-		this.scope = parentScope;
-	}
+	initialise() {}
 
 	insertSemicolon(code: MagicString) {
 		if (code.original[this.end - 1] !== ';') {
@@ -257,6 +224,39 @@ export class NodeBase implements ExpressionNode {
 		location.toString = () => JSON.stringify(location);
 
 		return location;
+	}
+
+	parseNode(esTreeNode: GenericEsTreeNode, nodeConstructors: { [p: string]: typeof NodeBase }) {
+		for (const key in esTreeNode) {
+			// That way, we can override this function to add custom initialisation and then call super.parseNode
+			if (key in this) continue;
+			const value = esTreeNode[key];
+			if (typeof value !== 'object' || value === null) {
+				(<GenericEsTreeNode>this)[key] = value;
+			} else if (Array.isArray(value)) {
+				(<GenericEsTreeNode>this)[key] = [];
+				for (const child of value) {
+					if (child === null) {
+						(<GenericEsTreeNode>this)[key].push(null);
+					} else {
+						const Type = nodeConstructors[child.type] || nodeConstructors.UnknownNode;
+						(<GenericEsTreeNode>this)[key].push(
+							new Type(child, nodeConstructors, this, this.module, this.scope, false)
+						);
+					}
+				}
+			} else {
+				const Type = nodeConstructors[value.type] || nodeConstructors.UnknownNode;
+				(<GenericEsTreeNode>this)[key] = new Type(
+					value,
+					nodeConstructors,
+					this,
+					this.module,
+					this.scope,
+					false
+				);
+			}
+		}
 	}
 
 	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}

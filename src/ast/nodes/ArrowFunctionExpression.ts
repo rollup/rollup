@@ -6,19 +6,24 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
 import { ObjectPath } from '../values';
 
 export default class ArrowFunctionExpression extends NodeBase {
 	type: NodeType.ArrowFunctionExpression;
 	body: BlockStatement | ExpressionNode;
 	params: PatternNode[];
+
 	scope: ReturnValueScope;
 
 	bindNode() {
 		isBlockStatement(this.body)
 			? this.body.bindImplicitReturnExpressionToScope()
 			: this.scope.addReturnExpression(this.body);
+	}
+
+	createScope(parentScope: Scope) {
+		this.scope = new ReturnValueScope({ parent: parentScope });
 	}
 
 	forEachReturnExpressionWhenCalledAtPath(
@@ -54,19 +59,24 @@ export default class ArrowFunctionExpression extends NodeBase {
 		return this.params.some(param => param.hasEffects(options)) || this.body.hasEffects(options);
 	}
 
-	initialiseChildren(_parentScope: Scope) {
+	initialise() {
 		for (const param of this.params) {
-			param.initialiseAndDeclare(this.scope, 'parameter', null);
-		}
-		if ((<BlockStatement>this.body).initialiseAndReplaceScope) {
-			(<BlockStatement>this.body).initialiseAndReplaceScope(new Scope({ parent: this.scope }));
-		} else {
-			this.body.initialise(this.scope);
+			param.declare('parameter', null);
 		}
 	}
 
-	initialiseScope(parentScope: Scope) {
-		this.scope = new ReturnValueScope({ parent: parentScope });
+	parseNode(esTreeNode: GenericEsTreeNode, nodeConstructors: { [p: string]: typeof NodeBase }) {
+		if (esTreeNode.body.type === NodeType.BlockStatement) {
+			this.body = new nodeConstructors.BlockStatement(
+				esTreeNode.body,
+				nodeConstructors,
+				this,
+				this.module,
+				new Scope({ parent: this.scope }),
+				true
+			);
+		}
+		super.parseNode(esTreeNode, nodeConstructors);
 	}
 
 	someReturnExpressionWhenCalledAtPath(

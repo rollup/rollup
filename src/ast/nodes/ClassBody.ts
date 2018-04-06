@@ -8,7 +8,8 @@ import { ObjectPath } from '../values';
 export default class ClassBody extends NodeBase {
 	type: NodeType.ClassBody;
 	body: MethodDefinition[];
-	classConstructor: MethodDefinition | null;
+
+	private classConstructor: MethodDefinition | null;
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
@@ -24,7 +25,7 @@ export default class ClassBody extends NodeBase {
 		);
 	}
 
-	initialiseNode() {
+	initialise() {
 		this.classConstructor = this.body.find(method => method.kind === 'constructor');
 	}
 }

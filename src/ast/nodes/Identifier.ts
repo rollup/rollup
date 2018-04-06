@@ -1,7 +1,6 @@
 import { Node, NodeBase } from './shared/Node';
 import isReference from 'is-reference';
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
-import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Variable from '../variables/Variable';
 import CallOptions from '../CallOptions';
@@ -37,6 +36,28 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
+	declare(kind: string, init: ExpressionEntity | null) {
+		switch (kind) {
+			case 'var':
+			case 'function':
+				this.variable = this.scope.addDeclaration(this, {
+					isHoisted: true,
+					init
+				});
+				break;
+			case 'let':
+			case 'const':
+			case 'class':
+				this.variable = this.scope.addDeclaration(this, { init });
+				break;
+			case 'parameter':
+				this.variable = (<FunctionScope>this.scope).addParameterDeclaration(this);
+				break;
+			default:
+				throw new Error(`Unexpected identifier kind ${kind}.`);
+		}
+	}
+
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
@@ -64,34 +85,11 @@ export default class Identifier extends NodeBase {
 		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	includeInBundle() {
+	include() {
 		if (this.included) return false;
 		this.included = true;
-		if (this.variable && !this.variable.included) this.variable.includeVariable();
+		if (this.variable && !this.variable.included) this.variable.include();
 		return true;
-	}
-
-	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null) {
-		this.scope = parentScope;
-		switch (kind) {
-			case 'var':
-			case 'function':
-				this.variable = this.scope.addDeclaration(this, {
-					isHoisted: true,
-					init
-				});
-				break;
-			case 'let':
-			case 'const':
-			case 'class':
-				this.variable = this.scope.addDeclaration(this, { init });
-				break;
-			case 'parameter':
-				this.variable = (<FunctionScope>this.scope).addParameterDeclaration(this);
-				break;
-			default:
-				throw new Error(`Unexpected identifier kind ${kind}.`);
-		}
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -99,63 +97,6 @@ export default class Identifier extends NodeBase {
 		if (this.variable) {
 			if (path.length === 0) this.disallowImportReassignment();
 			this.variable.reassignPath(path, options);
-		}
-	}
-
-	private disallowImportReassignment() {
-		if (this.module.imports[this.name] && !this.scope.contains(this.name)) {
-			this.module.error(
-				{
-					code: 'ILLEGAL_REASSIGNMENT',
-					message: `Illegal reassignment to import '${this.name}'`
-				},
-				this.start
-			);
-		}
-	}
-
-	renderSystemBindingUpdate(code: MagicString, name: string) {
-		switch (this.parent.type) {
-			case NodeType.AssignmentExpression:
-				{
-					let expression: AssignmentExpression = <AssignmentExpression>this.parent;
-					if (expression.left === this) {
-						code.prependLeft(expression.right.start, `exports('${this.variable.exportName}', `);
-						code.prependRight(expression.right.end, `)`);
-					}
-				}
-				break;
-
-			case NodeType.UpdateExpression:
-				{
-					let expression: UpdateExpression = <UpdateExpression>this.parent;
-					if (expression.prefix) {
-						code.overwrite(
-							expression.start,
-							expression.end,
-							`exports('${this.variable.exportName}', ${expression.operator}${name})`
-						);
-					} else {
-						let op;
-						switch (expression.operator) {
-							case '++':
-								op = `${name} + 1`;
-								break;
-							case '--':
-								op = `${name} - 1`;
-								break;
-							case '**':
-								op = `${name} * ${name}`;
-								break;
-						}
-						code.overwrite(
-							expression.start,
-							expression.end,
-							`(exports('${this.variable.exportName}', ${op}), ${name}${expression.operator})`
-						);
-					}
-				}
-				break;
 		}
 	}
 
@@ -205,5 +146,62 @@ export default class Identifier extends NodeBase {
 			);
 		}
 		return predicateFunction(options)(UNKNOWN_EXPRESSION);
+	}
+
+	private disallowImportReassignment() {
+		if (this.module.imports[this.name] && !this.scope.contains(this.name)) {
+			this.module.error(
+				{
+					code: 'ILLEGAL_REASSIGNMENT',
+					message: `Illegal reassignment to import '${this.name}'`
+				},
+				this.start
+			);
+		}
+	}
+
+	private renderSystemBindingUpdate(code: MagicString, name: string) {
+		switch (this.parent.type) {
+			case NodeType.AssignmentExpression:
+				{
+					let expression: AssignmentExpression = <AssignmentExpression>this.parent;
+					if (expression.left === this) {
+						code.prependLeft(expression.right.start, `exports('${this.variable.exportName}', `);
+						code.prependRight(expression.right.end, `)`);
+					}
+				}
+				break;
+
+			case NodeType.UpdateExpression:
+				{
+					let expression: UpdateExpression = <UpdateExpression>this.parent;
+					if (expression.prefix) {
+						code.overwrite(
+							expression.start,
+							expression.end,
+							`exports('${this.variable.exportName}', ${expression.operator}${name})`
+						);
+					} else {
+						let op;
+						switch (expression.operator) {
+							case '++':
+								op = `${name} + 1`;
+								break;
+							case '--':
+								op = `${name} - 1`;
+								break;
+							case '**':
+								op = `${name} * ${name}`;
+								break;
+						}
+						code.overwrite(
+							expression.start,
+							expression.end,
+							`(exports('${this.variable.exportName}', ${op}), ${name}${expression.operator})`
+						);
+					}
+				}
+				break;
+		}
 	}
 }

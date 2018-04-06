@@ -110,15 +110,15 @@ export default class LocalVariable extends Variable {
 		);
 	}
 
-	includeVariable() {
-		if (!super.includeVariable()) return false;
+	include() {
+		if (!super.include()) return false;
 		this.declarations.forEach((node: Node) => {
 			// If node is a default export, it can save a tree-shaking run to include the full declaration now
-			if (!node.included) node.includeInBundle();
+			if (!node.included) node.include();
 			node = <Node>node.parent;
 			while (!node.included) {
 				// We do not want to properly include parents in case they are part of a dead branch
-				// in which case .includeInBundle might pull in more dead code
+				// in which case .include() might pull in more dead code
 				node.included = true;
 				if (node.type === NodeType.Program) break;
 				node = <Node>node.parent;

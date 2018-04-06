@@ -439,7 +439,7 @@ export default class Chunk {
 					// ensuring that we create a namespace import of it as well
 					if (resolution.chunk === this) {
 						const namespace = resolution.namespace();
-						namespace.includeVariable();
+						namespace.include();
 						node.setResolution(false, namespace.getName());
 						// for the module in another chunk, import that other chunk directly
 					} else {

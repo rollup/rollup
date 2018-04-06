@@ -239,7 +239,7 @@ export default class Graph {
 				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
 				addedNewNodes = false;
 				for (let module of modules) {
-					if (module.includeInBundle()) {
+					if (module.include()) {
 						addedNewNodes = true;
 					}
 				}
@@ -277,7 +277,7 @@ export default class Graph {
 			for (const dynamicImportModule of dynamicImports) {
 				if (entryModule !== dynamicImportModule) dynamicImportModule.markExports();
 				// all dynamic import modules inlined for single-file build
-				dynamicImportModule.namespace().includeVariable();
+				dynamicImportModule.namespace().include();
 			}
 
 			// only include statements that should appear in the bundle

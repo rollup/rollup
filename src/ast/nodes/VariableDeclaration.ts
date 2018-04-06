@@ -11,7 +11,6 @@ import {
 import { isIdentifier } from './Identifier';
 import Variable from '../variables/Variable';
 import { ObjectPath } from '../values';
-import Scope from '../scopes/Scope';
 import { BLANK } from '../../utils/blank';
 
 function isReassignedExportsMember(variable: Variable): boolean {
@@ -32,12 +31,6 @@ export default class VariableDeclaration extends NodeBase {
 	declarations: VariableDeclarator[];
 	kind: 'var' | 'let' | 'const';
 
-	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {
-		for (const declarator of this.declarations) {
-			declarator.reassignPath([], ExecutionPathOptions.create());
-		}
-	}
-
 	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
 		return false;
 	}
@@ -46,27 +39,33 @@ export default class VariableDeclaration extends NodeBase {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		for (const declarator of this.declarations) {
-			if (declarator.includeInBundle()) {
+			if (declarator.include()) {
 				addedNewNodes = true;
 			}
 		}
 		return addedNewNodes;
 	}
 
-	includeInBundle() {
+	include() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		for (const declarator of this.declarations) {
-			if (declarator.shouldBeIncluded() && declarator.includeInBundle()) {
+			if (declarator.shouldBeIncluded() && declarator.include()) {
 				addedNewNodes = true;
 			}
 		}
 		return addedNewNodes;
 	}
 
-	initialiseChildren(_parentScope: Scope) {
+	initialise() {
 		for (const declarator of this.declarations) {
-			declarator.initialiseDeclarator(this.scope, this.kind);
+			declarator.declareDeclarator(this.kind);
+		}
+	}
+
+	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {
+		for (const declarator of this.declarations) {
+			declarator.reassignPath([], ExecutionPathOptions.create());
 		}
 	}
 

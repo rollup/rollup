@@ -11,7 +11,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 	tag: ExpressionNode;
 	quasi: TemplateLiteral;
 
-	private _callOptions: CallOptions;
+	private callOptions: CallOptions;
 
 	bindNode() {
 		if (this.tag.type === NodeType.Identifier) {
@@ -45,14 +45,14 @@ export default class TaggedTemplateExpression extends NodeBase {
 			super.hasEffects(options) ||
 			this.tag.hasEffectsWhenCalledAtPath(
 				[],
-				this._callOptions,
+				this.callOptions,
 				options.getHasEffectsWhenCalledOptions()
 			)
 		);
 	}
 
-	initialiseNode() {
-		this._callOptions = CallOptions.create({
+	initialise() {
+		this.callOptions = CallOptions.create({
 			withNew: false,
 			callIdentifier: this
 		});

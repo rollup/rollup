@@ -1,10 +1,8 @@
 import CallExpression from './CallExpression';
 import { NodeType } from './NodeType';
-import { Node, NodeBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import Module from '../../Module';
-import Scope from '../scopes/Scope';
 
 export default class Import extends NodeBase {
 	type: NodeType.Import;
@@ -14,23 +12,8 @@ export default class Import extends NodeBase {
 	private resolutionInterop: boolean = false;
 	private rendered: boolean = false;
 
-	constructor(
-		esTreeNode: any,
-		nodeConstructors: { [name: string]: typeof NodeBase },
-		parent: Node,
-		module: Module
-	) {
-		super(esTreeNode, nodeConstructors, parent, module);
-	}
-
-	initialiseNode(_parentScope: Scope) {
+	initialise() {
 		this.module.dynamicImports.push(this);
-	}
-
-	setResolution(interop: boolean, namespace: string = undefined): void {
-		this.rendered = false;
-		this.resolutionInterop = interop;
-		this.resolutionNamespace = namespace;
 	}
 
 	renderFinalResolution(code: MagicString, resolution: string) {
@@ -58,5 +41,11 @@ export default class Import extends NodeBase {
 				options.importMechanism.right;
 			code.overwrite(this.parent.arguments[0].end, this.parent.end, rightMechanism);
 		}
+	}
+
+	setResolution(interop: boolean, namespace: string = undefined): void {
+		this.rendered = false;
+		this.resolutionInterop = interop;
+		this.resolutionNamespace = namespace;
 	}
 }

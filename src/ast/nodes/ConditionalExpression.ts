@@ -81,15 +81,15 @@ export default class ConditionalExpression extends NodeBase {
 			  );
 	}
 
-	includeInBundle() {
+	include() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		const testValue = this.test.getValue();
 		if (testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
-			if (this.test.includeInBundle()) addedNewNodes = true;
-			if (this.consequent.includeInBundle()) addedNewNodes = true;
-			if (this.alternate.includeInBundle()) addedNewNodes = true;
-		} else if (testValue ? this.consequent.includeInBundle() : this.alternate.includeInBundle()) {
+			if (this.test.include()) addedNewNodes = true;
+			if (this.consequent.include()) addedNewNodes = true;
+			if (this.alternate.include()) addedNewNodes = true;
+		} else if (testValue ? this.consequent.include() : this.alternate.include()) {
 			addedNewNodes = true;
 		}
 		return addedNewNodes;

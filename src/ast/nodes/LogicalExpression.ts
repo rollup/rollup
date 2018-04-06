@@ -88,7 +88,7 @@ export default class LogicalExpression extends NodeBase {
 			  );
 	}
 
-	includeInBundle() {
+	include() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		const leftValue = this.left.getValue();
@@ -96,12 +96,12 @@ export default class LogicalExpression extends NodeBase {
 			(leftValue === UNKNOWN_VALUE ||
 				!leftValue === (this.operator === '&&') ||
 				this.left.shouldBeIncluded()) &&
-			this.left.includeInBundle()
+			this.left.include()
 		)
 			addedNewNodes = true;
 		if (
 			(leftValue === UNKNOWN_VALUE || !leftValue === (this.operator === '||')) &&
-			this.right.includeInBundle()
+			this.right.include()
 		)
 			addedNewNodes = true;
 		return addedNewNodes;

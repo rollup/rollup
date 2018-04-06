@@ -13,18 +13,7 @@ export default class CallExpression extends NodeBase {
 	callee: ExpressionNode;
 	arguments: (ExpressionNode | SpreadElement)[];
 
-	private _callOptions: CallOptions;
-
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
-			this.callee.forEachReturnExpressionWhenCalledAtPath(
-				[],
-				this._callOptions,
-				innerOptions => node =>
-					node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
-				options
-			);
-	}
+	private callOptions: CallOptions;
 
 	bindNode() {
 		if (isIdentifier(this.callee)) {
@@ -61,7 +50,7 @@ export default class CallExpression extends NodeBase {
 	) {
 		this.callee.forEachReturnExpressionWhenCalledAtPath(
 			[],
-			this._callOptions,
+			this.callOptions,
 			innerOptions => node =>
 				node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, innerOptions),
 			options
@@ -73,7 +62,7 @@ export default class CallExpression extends NodeBase {
 			this.arguments.some(child => child.hasEffects(options)) ||
 			this.callee.hasEffectsWhenCalledAtPath(
 				[],
-				this._callOptions,
+				this.callOptions,
 				options.getHasEffectsWhenCalledOptions()
 			)
 		);
@@ -85,7 +74,7 @@ export default class CallExpression extends NodeBase {
 			!options.hasReturnExpressionBeenAccessedAtPath(path, this) &&
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
-				this._callOptions,
+				this.callOptions,
 				innerOptions => node =>
 					node.hasEffectsWhenAccessedAtPath(
 						path,
@@ -101,7 +90,7 @@ export default class CallExpression extends NodeBase {
 			!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
-				this._callOptions,
+				this.callOptions,
 				innerOptions => node =>
 					node.hasEffectsWhenAssignedAtPath(
 						path,
@@ -121,7 +110,7 @@ export default class CallExpression extends NodeBase {
 			!options.hasReturnExpressionBeenCalledAtPath(path, this) &&
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
-				this._callOptions,
+				this.callOptions,
 				innerOptions => node =>
 					node.hasEffectsWhenCalledAtPath(
 						path,
@@ -133,12 +122,23 @@ export default class CallExpression extends NodeBase {
 		);
 	}
 
-	initialiseNode() {
-		this._callOptions = CallOptions.create({
+	initialise() {
+		this.callOptions = CallOptions.create({
 			withNew: false,
 			args: this.arguments,
 			callIdentifier: this
 		});
+	}
+
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+		!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
+			this.callee.forEachReturnExpressionWhenCalledAtPath(
+				[],
+				this.callOptions,
+				innerOptions => node =>
+					node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
+				options
+			);
 	}
 
 	someReturnExpressionWhenCalledAtPath(
@@ -149,7 +149,7 @@ export default class CallExpression extends NodeBase {
 	): boolean {
 		return this.callee.someReturnExpressionWhenCalledAtPath(
 			[],
-			this._callOptions,
+			this.callOptions,
 			innerOptions => node =>
 				node.someReturnExpressionWhenCalledAtPath(
 					path,

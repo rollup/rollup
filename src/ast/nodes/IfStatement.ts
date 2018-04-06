@@ -23,23 +23,18 @@ export default class IfStatement extends StatementBase {
 		);
 	}
 
-	includeInBundle() {
+	include() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		const testValue = this.test.getValue();
-		if (
-			(testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) &&
-			this.test.includeInBundle()
-		) {
+		if ((testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) && this.test.include()) {
 			addedNewNodes = true;
 		}
 		if (testValue === UNKNOWN_VALUE) {
-			if (this.consequent.includeInBundle()) addedNewNodes = true;
-			if (this.alternate !== null && this.alternate.includeInBundle()) addedNewNodes = true;
+			if (this.consequent.include()) addedNewNodes = true;
+			if (this.alternate !== null && this.alternate.include()) addedNewNodes = true;
 		} else if (
-			testValue
-				? this.consequent.includeInBundle()
-				: this.alternate !== null && this.alternate.includeInBundle()
+			testValue ? this.consequent.include() : this.alternate !== null && this.alternate.include()
 		) {
 			addedNewNodes = true;
 		}

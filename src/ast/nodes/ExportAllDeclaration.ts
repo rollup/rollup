@@ -8,6 +8,7 @@ import { BLANK } from '../../utils/blank';
 export default class ExportAllDeclaration extends NodeBase {
 	type: NodeType.ExportAllDeclaration;
 	source: Literal<string>;
+
 	isExportDeclaration: true;
 	needsBoundaries: true;
 

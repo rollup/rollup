@@ -43,7 +43,6 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	needsBoundaries: true;
 	isExportDeclaration: true;
 	variable: ExportDefaultVariable;
-
 	private declarationName: string;
 
 	bindNode() {
@@ -58,7 +57,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		}
 	}
 
-	initialiseNode() {
+	initialise() {
 		this.declarationName =
 			((<FunctionDeclaration | ClassDeclaration>this.declaration).id &&
 				(<FunctionDeclaration | ClassDeclaration>this.declaration).id.name) ||

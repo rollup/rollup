@@ -65,14 +65,14 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	includeInBundle() {
+	include() {
 		let addedNewNodes = !this.included;
 		this.included = true;
 		for (let i = 0; i < this.expressions.length - 1; i++) {
 			const node = this.expressions[i];
-			if (node.shouldBeIncluded() && node.includeInBundle()) addedNewNodes = true;
+			if (node.shouldBeIncluded() && node.include()) addedNewNodes = true;
 		}
-		if (this.expressions[this.expressions.length - 1].includeInBundle()) addedNewNodes = true;
+		if (this.expressions[this.expressions.length - 1].include()) addedNewNodes = true;
 		return addedNewNodes;
 	}
 

@@ -2,7 +2,6 @@ import BlockScope from '../scopes/BlockScope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import VariableDeclaration from './VariableDeclaration';
 import Scope from '../scopes/Scope';
-import BlockStatement from './BlockStatement';
 import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
 import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
@@ -23,6 +22,10 @@ export default class ForOfStatement extends StatementBase {
 		this.left.reassignPath([], ExecutionPathOptions.create());
 	}
 
+	createScope(parentScope: Scope) {
+		this.scope = new BlockScope({ parent: parentScope });
+	}
+
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			(this.left &&
@@ -32,24 +35,12 @@ export default class ForOfStatement extends StatementBase {
 		);
 	}
 
-	includeInBundle() {
-		let addedNewNodes = super.includeInBundle();
+	include() {
+		let addedNewNodes = super.include();
 		if (this.left.includeWithAllDeclaredVariables()) {
 			addedNewNodes = true;
 		}
 		return addedNewNodes;
-	}
-
-	initialiseChildren(_parentScope: Scope) {
-		this.left.initialise(this.scope);
-		this.right.initialise(<Scope>this.scope.parent);
-		(<BlockStatement>this.body).initialiseAndReplaceScope
-			? (<BlockStatement>this.body).initialiseAndReplaceScope(this.scope)
-			: this.body.initialise(this.scope);
-	}
-
-	initialiseScope(parentScope: Scope) {
-		this.scope = new BlockScope({ parent: parentScope });
 	}
 
 	render(code: MagicString, options: RenderOptions) {
