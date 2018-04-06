@@ -9,8 +9,11 @@ export default class ExportAllDeclaration extends NodeBase {
 	type: NodeType.ExportAllDeclaration;
 	source: Literal<string>;
 
-	isExportDeclaration: true;
 	needsBoundaries: true;
+
+	initialise() {
+		this.module.addExport(this);
+	}
 
 	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
 		code.remove(start, end);
@@ -18,4 +21,3 @@ export default class ExportAllDeclaration extends NodeBase {
 }
 
 ExportAllDeclaration.prototype.needsBoundaries = true;
-ExportAllDeclaration.prototype.isExportDeclaration = true;

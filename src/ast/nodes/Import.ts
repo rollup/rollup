@@ -13,7 +13,7 @@ export default class Import extends NodeBase {
 	private rendered: boolean = false;
 
 	initialise() {
-		this.module.dynamicImports.push(this);
+		this.module.addDynamicImport(this);
 	}
 
 	renderFinalResolution(code: MagicString, resolution: string) {

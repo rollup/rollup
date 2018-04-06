@@ -210,7 +210,7 @@ export default class Module {
 
 		timeStart('analyse ast', 3);
 
-		this.analyse();
+		this.ast = new Program(this.esTreeAst, nodeConstructors, {}, this, this.scope, false);
 
 		timeEnd('analyse ast', 3);
 	}
@@ -223,9 +223,7 @@ export default class Module {
 		}
 	}
 
-	private addExport(
-		node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration
-	) {
+	addExport(node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration) {
 		const source = (<ExportAllDeclaration>node).source && (<ExportAllDeclaration>node).source.value;
 
 		// export { name } from './other'
@@ -319,7 +317,7 @@ export default class Module {
 		}
 	}
 
-	private addImport(node: ImportDeclaration) {
+	addImport(node: ImportDeclaration) {
 		const source = node.source.value;
 
 		if (this.sources.indexOf(source) === -1) this.sources.push(source);
@@ -347,21 +345,8 @@ export default class Module {
 		}
 	}
 
-	private analyse() {
-		this.ast = new Program(this.esTreeAst, nodeConstructors, {}, this, this.scope, false);
-		for (const node of this.ast.body) {
-			if ((<ImportDeclaration>node).isImportDeclaration) {
-				this.addImport(<ImportDeclaration>node);
-			} else if (
-				(<ExportDefaultDeclaration | ExportNamedDeclaration | ExportAllDeclaration>node)
-					.isExportDeclaration
-			) {
-				this.addExport(<
-					| ExportDefaultDeclaration
-					| ExportNamedDeclaration
-					| ExportAllDeclaration>node);
-			}
-		}
+	addDynamicImport(node: Import) {
+		this.dynamicImports.push(node);
 	}
 
 	basename() {

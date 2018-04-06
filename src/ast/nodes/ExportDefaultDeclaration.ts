@@ -41,7 +41,6 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
 
 	needsBoundaries: true;
-	isExportDeclaration: true;
 	variable: ExportDefaultVariable;
 	private declarationName: string;
 
@@ -66,6 +65,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			this.declarationName || this.module.basename(),
 			this
 		);
+		this.module.addExport(this);
 	}
 
 	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
@@ -162,4 +162,3 @@ export default class ExportDefaultDeclaration extends NodeBase {
 }
 
 ExportDefaultDeclaration.prototype.needsBoundaries = true;
-ExportDefaultDeclaration.prototype.isExportDeclaration = true;
