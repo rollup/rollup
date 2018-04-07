@@ -9,8 +9,10 @@ import { ObjectPath } from '../values';
 export default class ThisExpression extends NodeBase {
 	type: NodeType.ThisExpression;
 
-	variable: ThisVariable;
-	alias: string;
+	private alias: string | null;
+
+	// Not initialised during construction
+	variable: ThisVariable = null;
 
 	bind() {
 		super.bind();
@@ -26,25 +28,21 @@ export default class ThisExpression extends NodeBase {
 	}
 
 	initialise() {
-		const lexicalBoundary = this.scope.findLexicalBoundary();
-
-		if (lexicalBoundary.isModuleScope) {
-			this.alias = this.module.context;
-			if (this.alias === 'undefined') {
-				this.module.warn(
-					{
-						code: 'THIS_IS_UNDEFINED',
-						message: `The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten`,
-						url: `https://github.com/rollup/rollup/wiki/Troubleshooting#this-is-undefined`
-					},
-					this.start
-				);
-			}
+		this.alias = this.scope.findLexicalBoundary().isModuleScope ? this.module.context : null;
+		if (this.alias === 'undefined') {
+			this.module.warn(
+				{
+					code: 'THIS_IS_UNDEFINED',
+					message: `The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten`,
+					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#this-is-undefined`
+				},
+				this.start
+			);
 		}
 	}
 
 	render(code: MagicString, _options: RenderOptions) {
-		if (this.alias) {
+		if (this.alias !== null) {
 			code.overwrite(this.start, this.end, this.alias, {
 				storeName: true,
 				contentOnly: false

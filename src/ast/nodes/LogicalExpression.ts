@@ -21,6 +21,7 @@ export default class LogicalExpression extends NodeBase {
 	left: ExpressionNode;
 	right: ExpressionNode;
 
+	// Not initialised during construction
 	private hasUnknownLeftValue = false;
 
 	forEachReturnExpressionWhenCalledAtPath(

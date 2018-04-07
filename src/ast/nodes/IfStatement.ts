@@ -11,6 +11,7 @@ export default class IfStatement extends StatementBase {
 	consequent: StatementNode;
 	alternate: StatementNode | null;
 
+	// Not initialised during construction
 	private hasUnknownTestValue = false;
 
 	hasEffects(options: ExecutionPathOptions): boolean {

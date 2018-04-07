@@ -20,12 +20,18 @@ export default class ClassBody extends NodeBase {
 			return true;
 		}
 		return (
-			this.classConstructor &&
+			this.classConstructor !== null &&
 			this.classConstructor.hasEffectsWhenCalledAtPath([], callOptions, options)
 		);
 	}
 
 	initialise() {
-		this.classConstructor = this.body.find(method => method.kind === 'constructor');
+		for (const method of this.body) {
+			if (method.kind === 'constructor') {
+				this.classConstructor = method;
+				return;
+			}
+		}
+		this.classConstructor = null;
 	}
 }

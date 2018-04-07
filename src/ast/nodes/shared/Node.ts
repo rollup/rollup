@@ -81,12 +81,14 @@ export interface ExpressionNode extends ExpressionEntity, Node {}
 export class NodeBase implements ExpressionNode {
 	type: string;
 	keys: string[];
-	included: boolean = false;
 	scope: Scope;
 	start: number;
 	end: number;
 	module: Module;
 	parent: Node | { type?: string };
+
+	// Not initialised during construction
+	included: boolean = false;
 
 	constructor(
 		esTreeNode: GenericEsTreeNode,

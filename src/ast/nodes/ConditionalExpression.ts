@@ -15,6 +15,7 @@ export default class ConditionalExpression extends NodeBase {
 	alternate: ExpressionNode;
 	consequent: ExpressionNode;
 
+	// Not initialised during construction
 	private hasUnknownTestValue = false;
 
 	forEachReturnExpressionWhenCalledAtPath(
