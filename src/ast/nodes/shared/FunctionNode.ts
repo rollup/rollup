@@ -16,7 +16,8 @@ export default class FunctionNode extends NodeBase {
 	params: PatternNode[];
 	scope: BlockScope;
 
-	bindNode() {
+	bind() {
+		super.bind();
 		this.body.bindImplicitReturnExpressionToScope();
 	}
 

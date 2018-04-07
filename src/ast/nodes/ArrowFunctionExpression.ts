@@ -16,7 +16,8 @@ export default class ArrowFunctionExpression extends NodeBase {
 
 	scope: ReturnValueScope;
 
-	bindNode() {
+	bind() {
+		super.bind();
 		isBlockStatement(this.body)
 			? this.body.bindImplicitReturnExpressionToScope()
 			: this.scope.addReturnExpression(this.body);

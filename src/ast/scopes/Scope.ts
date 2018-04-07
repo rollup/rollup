@@ -77,7 +77,7 @@ export default class Scope {
 	}
 
 	contains(name: string): boolean {
-		return !!this.variables[name] || (this.parent ? this.parent.contains(name) : false);
+		return name in this.variables || (this.parent ? this.parent.contains(name) : false);
 	}
 
 	deshadow(names: Set<string>, children = this.children) {

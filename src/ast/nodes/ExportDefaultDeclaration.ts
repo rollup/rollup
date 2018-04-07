@@ -44,7 +44,8 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	variable: ExportDefaultVariable;
 	private declarationName: string;
 
-	bindNode() {
+	bind() {
+		super.bind();
 		if (
 			this.declarationName &&
 			// Do not set it for Class and FunctionExpressions otherwise they get treeshaken away

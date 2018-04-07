@@ -33,8 +33,6 @@ export interface Node extends Entity {
 
 	/**
 	 * Called once all nodes have been initialised and the scopes have been populated.
-	 * Usually one should not override this function but override bindNode and/or
-	 * bindChildren instead.
 	 */
 	bind(): void;
 
@@ -42,7 +40,6 @@ export interface Node extends Entity {
 	 * Declare a new variable with the optional initialisation.
 	 */
 	declare(kind: string, init: ExpressionEntity | null): void;
-	eachChild(callback: (node: Node) => void): void;
 
 	/**
 	 * Determine if this Node would have an effect on the bundle.
@@ -110,23 +107,23 @@ export class NodeBase implements ExpressionNode {
 		module.magicString.addSourcemapLocation(this.end);
 	}
 
-	bind() {
-		this.bindChildren();
-		this.bindNode();
-	}
-
-	/**
-	 * Override to control on which children "bind" is called.
-	 */
-	bindChildren() {
-		this.eachChild((child: Node) => child.bind());
-	}
-
 	/**
 	 * Override this to bind assignments to variables and do any initialisations that
 	 * require the scopes to be populated with variables.
 	 */
-	bindNode() {}
+	bind() {
+		for (const key of this.keys) {
+			const value = (<GenericEsTreeNode>this)[key];
+			if (value === null) continue;
+			if (Array.isArray(value)) {
+				for (const child of value) {
+					if (child !== null) child.bind();
+				}
+			} else {
+				value.bind();
+			}
+		}
+	}
 
 	/**
 	 * Override if this node should receive a different scope than the parent scope.
@@ -143,7 +140,7 @@ export class NodeBase implements ExpressionNode {
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child) callback(child);
+					if (child !== null) callback(child);
 				}
 			} else {
 				callback(value);
@@ -194,11 +191,19 @@ export class NodeBase implements ExpressionNode {
 	include() {
 		let addedNewNodes = !this.included;
 		this.included = true;
-		this.eachChild(childNode => {
-			if (childNode.include()) {
+		for (const key of this.keys) {
+			const value = (<GenericEsTreeNode>this)[key];
+			if (value === null) continue;
+			if (Array.isArray(value)) {
+				for (const child of value) {
+					if (child !== null && child.include()) {
+						addedNewNodes = true;
+					}
+				}
+			} else if (value.include()) {
 				addedNewNodes = true;
 			}
-		});
+		}
 		return addedNewNodes;
 	}
 
@@ -236,18 +241,21 @@ export class NodeBase implements ExpressionNode {
 			} else if (Array.isArray(value)) {
 				(<GenericEsTreeNode>this)[key] = [];
 				for (const child of value) {
-					if (child === null) {
-						(<GenericEsTreeNode>this)[key].push(null);
-					} else {
-						const Type = nodeConstructors[child.type] || nodeConstructors.UnknownNode;
-						(<GenericEsTreeNode>this)[key].push(
-							new Type(child, nodeConstructors, this, this.module, this.scope, false)
-						);
-					}
+					(<GenericEsTreeNode>this)[key].push(
+						child &&
+							new (nodeConstructors[child.type] || nodeConstructors.UnknownNode)(
+								child,
+								nodeConstructors,
+								this,
+								this.module,
+								this.scope,
+								false
+							)
+					);
 				}
 			} else {
-				const Type = nodeConstructors[value.type] || nodeConstructors.UnknownNode;
-				(<GenericEsTreeNode>this)[key] = new Type(
+				(<GenericEsTreeNode>this)[key] = new (nodeConstructors[value.type] ||
+					nodeConstructors.UnknownNode)(
 					value,
 					nodeConstructors,
 					this,
@@ -262,7 +270,17 @@ export class NodeBase implements ExpressionNode {
 	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
 
 	render(code: MagicString, options: RenderOptions) {
-		this.eachChild(child => child.render(code, options));
+		for (const key of this.keys) {
+			const value = (<GenericEsTreeNode>this)[key];
+			if (value === null) continue;
+			if (Array.isArray(value)) {
+				for (const child of value) {
+					if (child !== null) child.render(code, options);
+				}
+			} else {
+				value.render(code, options);
+			}
+		}
 	}
 
 	shouldBeIncluded(): boolean {

@@ -15,7 +15,8 @@ export default class CallExpression extends NodeBase {
 
 	private callOptions: CallOptions;
 
-	bindNode() {
+	bind() {
+		super.bind();
 		if (isIdentifier(this.callee)) {
 			const variable = this.scope.findVariable(this.callee.name);
 

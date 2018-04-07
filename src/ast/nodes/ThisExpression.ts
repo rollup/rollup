@@ -12,7 +12,8 @@ export default class ThisExpression extends NodeBase {
 	variable: ThisVariable;
 	alias: string;
 
-	bindNode() {
+	bind() {
+		super.bind();
 		this.variable = <ThisVariable>this.scope.findVariable('this');
 	}
 

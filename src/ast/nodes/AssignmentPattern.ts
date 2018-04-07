@@ -10,7 +10,8 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 	left: PatternNode;
 	right: ExpressionNode;
 
-	bindNode() {
+	bind() {
+		super.bind();
 		this.left.reassignPath([], ExecutionPathOptions.create());
 	}
 

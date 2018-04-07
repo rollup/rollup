@@ -64,19 +64,22 @@ export default class MemberExpression extends NodeBase {
 	computed: boolean;
 
 	propertyKey: ObjectPathKey;
-	variable: Variable;
-	private isBound: boolean;
-	private replacement: string;
 	private arePropertyReadSideEffectsChecked: boolean;
 
+	// Not initialised during construction
+	variable: Variable = null;
+	private bound: boolean = false;
+	private replacement: string | null = null;
+
 	bind() {
-		this.isBound = true;
+		if (this.bound) return;
+		this.bound = true;
 		const path = getPathIfNotComputed(this);
 		const baseVariable = path && this.scope.findVariable(path[0].key);
 		if (baseVariable && isNamespaceVariable(baseVariable)) {
 			const resolvedVariable = this.resolveNamespaceVariables(baseVariable, path.slice(1));
 			if (!resolvedVariable) {
-				this.bindChildren();
+				super.bind();
 			} else if (typeof resolvedVariable === 'string') {
 				this.replacement = resolvedVariable;
 			} else {
@@ -86,7 +89,7 @@ export default class MemberExpression extends NodeBase {
 				this.variable = resolvedVariable;
 			}
 		} else {
-			this.bindChildren();
+			super.bind();
 		}
 	}
 
@@ -96,8 +99,8 @@ export default class MemberExpression extends NodeBase {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		if (!this.isBound) this.bind();
-		if (this.variable) {
+		if (!this.bound) this.bind();
+		if (this.variable !== null) {
 			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 		} else {
 			this.object.forEachReturnExpressionWhenCalledAtPath(
@@ -121,14 +124,14 @@ export default class MemberExpression extends NodeBase {
 		if (path.length === 0) {
 			return false;
 		}
-		if (this.variable) {
+		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, options);
 		}
 		return this.object.hasEffectsWhenAccessedAtPath([this.propertyKey, ...path], options);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		if (this.variable) {
+		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 		}
 		return this.object.hasEffectsWhenAssignedAtPath([this.propertyKey, ...path], options);
@@ -139,7 +142,7 @@ export default class MemberExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		if (this.variable) {
+		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 		}
 		return (
@@ -150,7 +153,7 @@ export default class MemberExpression extends NodeBase {
 
 	include() {
 		let addedNewNodes = super.include();
-		if (this.variable && !this.variable.included) {
+		if (this.variable !== null && !this.variable.included) {
 			this.variable.include();
 			addedNewNodes = true;
 		}
@@ -164,7 +167,7 @@ export default class MemberExpression extends NodeBase {
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (!this.isBound) this.bind();
+		if (!this.bound) this.bind();
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
 			this.variable.reassignPath(path, options);

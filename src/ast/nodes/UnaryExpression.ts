@@ -21,7 +21,8 @@ export default class UnaryExpression extends NodeBase {
 	prefix: boolean;
 	argument: ExpressionNode;
 
-	bindNode() {
+	bind() {
+		super.bind();
 		if (this.operator === 'delete') {
 			this.argument.reassignPath([], ExecutionPathOptions.create());
 		}

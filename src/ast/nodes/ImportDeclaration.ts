@@ -15,7 +15,7 @@ export default class ImportDeclaration extends NodeBase {
 
 	needsBoundaries: true;
 
-	bindChildren() {}
+	bind() {}
 
 	initialise() {
 		this.module.addImport(this);

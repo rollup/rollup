@@ -18,9 +18,9 @@ export default class ExportNamedDeclaration extends NodeBase {
 
 	needsBoundaries: true;
 
-	bindChildren() {
+	bind() {
 		// Do not bind specifiers
-		if (this.declaration) this.declaration.bind();
+		if (this.declaration !== null) this.declaration.bind();
 	}
 
 	hasEffects(options: ExecutionPathOptions) {

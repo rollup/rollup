@@ -27,10 +27,14 @@ export default class Identifier extends NodeBase {
 	name: string;
 
 	variable: Variable;
-	private isBound: boolean;
 
-	bindNode() {
-		if (isReference(this, this.parent)) {
+	// Not initialised during construction
+	private bound: boolean = false;
+
+	bind() {
+		if (this.bound) return;
+		this.bound = true;
+		if (this.variable === null && isReference(this, this.parent)) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 		}
@@ -64,9 +68,10 @@ export default class Identifier extends NodeBase {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		if (!this.isBound) this.bind();
-		this.variable &&
+		if (!this.bound) this.bind();
+		if (this.variable !== null) {
 			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+		}
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
@@ -88,14 +93,27 @@ export default class Identifier extends NodeBase {
 	include() {
 		if (this.included) return false;
 		this.included = true;
-		if (this.variable && !this.variable.included) this.variable.include();
+		if (this.variable !== null && !this.variable.included) this.variable.include();
 		return true;
 	}
 
+	initialise() {
+		// To avoid later shape mutations
+		if (!this.variable) {
+			this.variable = null;
+		}
+	}
+
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (!this.isBound) this.bind();
-		if (this.variable) {
-			if (path.length === 0) this.disallowImportReassignment();
+		if (!this.bound) this.bind();
+		if (this.variable !== null) {
+			if (
+				path.length === 0 &&
+				this.name in this.module.imports &&
+				!this.scope.contains(this.name)
+			) {
+				this.disallowImportReassignment();
+			}
 			this.variable.reassignPath(path, options);
 		}
 	}
@@ -149,15 +167,13 @@ export default class Identifier extends NodeBase {
 	}
 
 	private disallowImportReassignment() {
-		if (this.module.imports[this.name] && !this.scope.contains(this.name)) {
-			this.module.error(
-				{
-					code: 'ILLEGAL_REASSIGNMENT',
-					message: `Illegal reassignment to import '${this.name}'`
-				},
-				this.start
-			);
-		}
+		this.module.error(
+			{
+				code: 'ILLEGAL_REASSIGNMENT',
+				message: `Illegal reassignment to import '${this.name}'`
+			},
+			this.start
+		);
 	}
 
 	private renderSystemBindingUpdate(code: MagicString, name: string) {

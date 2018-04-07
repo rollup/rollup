@@ -18,7 +18,8 @@ export default class ForOfStatement extends StatementBase {
 	right: ExpressionNode;
 	body: StatementNode;
 
-	bindNode() {
+	bind() {
+		super.bind();
 		this.left.reassignPath([], ExecutionPathOptions.create());
 	}
 

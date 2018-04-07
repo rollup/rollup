@@ -13,7 +13,8 @@ export default class TaggedTemplateExpression extends NodeBase {
 
 	private callOptions: CallOptions;
 
-	bindNode() {
+	bind() {
+		super.bind();
 		if (this.tag.type === NodeType.Identifier) {
 			const variable = this.scope.findVariable((<Identifier>this.tag).name);
 
