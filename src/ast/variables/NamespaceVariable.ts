@@ -11,29 +11,22 @@ export function isNamespaceVariable(variable: Variable): variable is NamespaceVa
 export default class NamespaceVariable extends Variable {
 	isNamespace: true;
 	module: Module;
-	needsNamespaceBlock: boolean;
-	referencedEarly: boolean;
-	originals: {
-		[name: string]: Variable;
-	};
-	references: Identifier[];
+
+	// Not initialised during construction
+	originals: { [name: string]: Variable } = Object.create(null);
+	needsNamespaceBlock: boolean = false;
+	private referencedEarly: boolean = false;
+	private references: Identifier[] = [];
 
 	constructor(module: Module) {
 		super(module.basename());
-		this.isNamespace = true;
 		this.module = module;
-		this.needsNamespaceBlock = false;
-		this.referencedEarly = false;
-
-		this.references = null;
-		this.originals = Object.create(null);
 		for (const name of this.module.getExports().concat(module.getReexports())) {
 			this.originals[name] = this.module.traceExport(name);
 		}
 	}
 
 	addReference(identifier: Identifier) {
-		this.references = this.references || [];
 		this.references.push(identifier);
 		this.name = identifier.name;
 	}
@@ -43,12 +36,10 @@ export default class NamespaceVariable extends Variable {
 			return false;
 		}
 		this.needsNamespaceBlock = true;
-		if (this.references) {
-			for (const identifier of this.references) {
-				if (identifier.module.execIndex <= this.module.execIndex) {
-					this.referencedEarly = true;
-					break;
-				}
+		for (const identifier of this.references) {
+			if (identifier.module.execIndex <= this.module.execIndex) {
+				this.referencedEarly = true;
+				break;
 			}
 		}
 		Object.keys(this.originals).forEach(original => this.originals[original].include());
@@ -100,3 +91,5 @@ ${callee}(${name});`;
 		return output;
 	}
 }
+
+NamespaceVariable.prototype.isNamespace = true;

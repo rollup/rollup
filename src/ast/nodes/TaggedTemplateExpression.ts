@@ -28,7 +28,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 				);
 			}
 
-			if ((<Identifier>this.tag).name === 'eval' && variable.isGlobal) {
+			if ((<Identifier>this.tag).name === 'eval') {
 				this.module.warn(
 					{
 						code: 'EVAL',

@@ -10,88 +10,81 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 
 class ReassignedPathTracker {
-	_reassigned: boolean;
-	_unknownReassignedSubPath: boolean;
-	_subPaths: Map<ObjectPathKey, ReassignedPathTracker>;
-
-	constructor() {
-		this._reassigned = false;
-		this._unknownReassignedSubPath = false;
-		this._subPaths = new Map();
-	}
+	private reassigned: boolean = false;
+	private unknownReassignedSubPath: boolean = false;
+	private subPaths: Map<ObjectPathKey, ReassignedPathTracker> = new Map();
 
 	isReassigned(path: ObjectPath): boolean {
 		if (path.length === 0) {
-			return this._reassigned;
+			return this.reassigned;
 		}
 		const [subPath, ...remainingPath] = path;
 		return (
-			this._unknownReassignedSubPath ||
-			(this._subPaths.has(subPath) && this._subPaths.get(subPath).isReassigned(remainingPath))
+			this.unknownReassignedSubPath ||
+			(this.subPaths.has(subPath) && this.subPaths.get(subPath).isReassigned(remainingPath))
 		);
 	}
 
 	reassignPath(path: ObjectPath) {
-		if (this._reassigned) return;
+		if (this.reassigned) return;
 		if (path.length === 0) {
-			this._reassigned = true;
+			this.reassigned = true;
 		} else {
-			this._reassignSubPath(path);
+			this.reassignSubPath(path);
 		}
 	}
 
-	_reassignSubPath(path: ObjectPath) {
-		if (this._unknownReassignedSubPath) return;
+	reassignSubPath(path: ObjectPath) {
+		if (this.unknownReassignedSubPath) return;
 		const [subPath, ...remainingPath] = path;
 		if (subPath === UNKNOWN_KEY) {
-			this._unknownReassignedSubPath = true;
+			this.unknownReassignedSubPath = true;
 		} else {
-			if (!this._subPaths.has(<string>subPath)) {
-				this._subPaths.set(<string>subPath, new ReassignedPathTracker());
+			if (!this.subPaths.has(<string>subPath)) {
+				this.subPaths.set(<string>subPath, new ReassignedPathTracker());
 			}
-			this._subPaths.get(<string>subPath).reassignPath(remainingPath);
+			this.subPaths.get(<string>subPath).reassignPath(remainingPath);
 		}
 	}
 
 	someReassignedPath(path: ObjectPath, callback: PathPredicate): boolean {
-		return this._reassigned
+		return this.reassigned
 			? callback(path, UNKNOWN_EXPRESSION)
-			: path.length >= 1 && this._onSubPathIfReassigned(path, callback);
+			: path.length >= 1 && this.onSubPathIfReassigned(path, callback);
 	}
 
-	_onSubPathIfReassigned(path: ObjectPath, callback: PathPredicate): boolean {
+	onSubPathIfReassigned(path: ObjectPath, callback: PathPredicate): boolean {
 		const [subPath, ...remainingPath] = path;
-		return this._unknownReassignedSubPath || subPath === UNKNOWN_KEY
+		return this.unknownReassignedSubPath || subPath === UNKNOWN_KEY
 			? callback(remainingPath, UNKNOWN_EXPRESSION)
-			: this._subPaths.has(<string>subPath) &&
-					this._subPaths.get(<string>subPath).someReassignedPath(remainingPath, callback);
+			: this.subPaths.has(<string>subPath) &&
+					this.subPaths.get(<string>subPath).someReassignedPath(remainingPath, callback);
 	}
 }
 
 export default class VariableReassignmentTracker {
-	private _initialExpression: ExpressionEntity;
-	private _reassignedPathTracker: ReassignedPathTracker;
+	private initialExpression: ExpressionEntity;
+	private reassignedPathTracker: ReassignedPathTracker = new ReassignedPathTracker();
 
 	constructor(initialExpression: ExpressionEntity) {
-		this._initialExpression = initialExpression;
-		this._reassignedPathTracker = new ReassignedPathTracker();
+		this.initialExpression = initialExpression;
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length > 0) {
-			this._initialExpression && this._initialExpression.reassignPath(path, options);
+			this.initialExpression && this.initialExpression.reassignPath(path, options);
 		}
-		this._reassignedPathTracker.reassignPath(path);
+		this.reassignedPathTracker.reassignPath(path);
 	}
 
 	forEachAtPath(path: ObjectPath, callback: PathCallback) {
-		this._initialExpression && callback(path, this._initialExpression);
+		this.initialExpression && callback(path, this.initialExpression);
 	}
 
 	someAtPath(path: ObjectPath, predicateFunction: PathPredicate) {
 		return (
-			this._reassignedPathTracker.someReassignedPath(path, predicateFunction) ||
-			(this._initialExpression && predicateFunction(path, this._initialExpression))
+			this.reassignedPathTracker.someReassignedPath(path, predicateFunction) ||
+			(this.initialExpression && predicateFunction(path, this.initialExpression))
 		);
 	}
 }

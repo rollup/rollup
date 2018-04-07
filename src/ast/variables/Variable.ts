@@ -9,17 +9,18 @@ import {
 } from '../nodes/shared/Expression';
 
 export default class Variable implements ExpressionEntity {
-	exportName?: string;
-	included: boolean;
+	name: string;
+	safeName: string;
 	isExternal?: boolean;
-	isGlobal?: boolean;
 	isDefault?: boolean;
 	isNamespace?: boolean;
-	isReassigned: boolean;
-	isId: boolean;
-	name: string;
-	reexported?: boolean;
-	safeName: string;
+
+	// Not initialised during construction
+	exportName: string | null = null;
+	included: boolean = false;
+	isId: boolean = false;
+	reexported: boolean = false;
+	isReassigned: boolean = false;
 
 	constructor(name: string) {
 		this.name = name;
@@ -89,6 +90,10 @@ export default class Variable implements ExpressionEntity {
 
 	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
 
+	setSafeName(name: string) {
+		this.safeName = name;
+	}
+
 	someReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
@@ -100,9 +105,5 @@ export default class Variable implements ExpressionEntity {
 
 	toString() {
 		return this.name;
-	}
-
-	setSafeName(name: string) {
-		this.safeName = name;
 	}
 }

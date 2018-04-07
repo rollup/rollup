@@ -26,8 +26,6 @@ export default class LocalVariable extends Variable {
 		init: ExpressionEntity
 	) {
 		super(name);
-		this.isReassigned = false;
-		this.exportName = null;
 		this.declarations = new Set(declarator ? [declarator] : null);
 		this.boundExpressions = new VariableReassignmentTracker(init);
 	}
