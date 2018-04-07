@@ -8,6 +8,17 @@ export default class Program extends NodeBase {
 	body: StatementNode[];
 	sourceType: 'module';
 
+	include() {
+		let addedNewNodes = !this.included;
+		this.included = true;
+		for (const node of this.body) {
+			if (node.shouldBeIncluded() && node.include()) {
+				addedNewNodes = true;
+			}
+		}
+		return addedNewNodes;
+	}
+
 	render(code: MagicString, options: RenderOptions) {
 		if (this.body.length) {
 			renderStatementList(this.body, code, this.start, this.end, options);

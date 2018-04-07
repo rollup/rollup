@@ -558,21 +558,11 @@ export default class Module {
 	}
 
 	includeAllInBundle() {
-		for (let node of this.ast.body) {
-			includeFully(node);
-		}
+		includeFully(this.ast);
 	}
 
 	include() {
-		let addedNewNodes = false;
-		for (let node of this.ast.body) {
-			if (node.shouldBeIncluded()) {
-				if (node.include()) {
-					addedNewNodes = true;
-				}
-			}
-		}
-		return addedNewNodes;
+		return this.ast.include();
 	}
 
 	namespace(): NamespaceVariable {
