@@ -220,7 +220,13 @@ export default class Module {
 
 		timeStart('analyse ast', 3);
 
-		this.ast = new Program(this.esTreeAst, nodeConstructors, {}, this, this.scope, false);
+		this.ast = new Program(
+			this.esTreeAst,
+			nodeConstructors,
+			{ type: 'Module', module: this },
+			this.scope,
+			false
+		);
 
 		timeEnd('analyse ast', 3);
 	}

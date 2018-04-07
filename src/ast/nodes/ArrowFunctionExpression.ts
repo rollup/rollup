@@ -72,7 +72,6 @@ export default class ArrowFunctionExpression extends NodeBase {
 				esTreeNode.body,
 				nodeConstructors,
 				this,
-				this.module,
 				new Scope({ parent: this.scope }),
 				true
 			);

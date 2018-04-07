@@ -27,7 +27,6 @@ export default class ClassDeclaration extends ClassNode {
 				esTreeNode.id,
 				nodeConstructors,
 				this,
-				this.module,
 				<Scope>this.scope.parent,
 				false
 			);

@@ -23,7 +23,6 @@ export default class FunctionDeclaration extends FunctionNode {
 				esTreeNode.id,
 				nodeConstructors,
 				this,
-				this.module,
 				this.scope.parent,
 				false
 			);

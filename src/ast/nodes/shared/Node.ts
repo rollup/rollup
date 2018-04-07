@@ -85,7 +85,7 @@ export class NodeBase implements ExpressionNode {
 	start: number;
 	end: number;
 	module: Module;
-	parent: Node | { type?: string };
+	parent: Node | { type: string; module: Module };
 
 	// Not initialised during construction
 	included: boolean = false;
@@ -94,19 +94,18 @@ export class NodeBase implements ExpressionNode {
 		esTreeNode: GenericEsTreeNode,
 		// we need to pass down the node constructors to avoid a circular dependency
 		nodeConstructors: { [p: string]: typeof NodeBase },
-		parent: Node | {},
-		module: Module,
+		parent: Node | { type: string; module: Module },
 		parentScope: Scope,
 		preventNewScope: boolean
 	) {
 		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
 		this.parent = parent;
-		this.module = module;
+		this.module = parent.module;
 		this.createScope(parentScope, preventNewScope);
 		this.parseNode(esTreeNode, nodeConstructors);
 		this.initialise();
-		module.magicString.addSourcemapLocation(this.start);
-		module.magicString.addSourcemapLocation(this.end);
+		this.module.magicString.addSourcemapLocation(this.start);
+		this.module.magicString.addSourcemapLocation(this.end);
 	}
 
 	/**
@@ -249,7 +248,6 @@ export class NodeBase implements ExpressionNode {
 								child,
 								nodeConstructors,
 								this,
-								this.module,
 								this.scope,
 								false
 							)
@@ -257,14 +255,7 @@ export class NodeBase implements ExpressionNode {
 				}
 			} else {
 				(<GenericEsTreeNode>this)[key] = new (nodeConstructors[value.type] ||
-					nodeConstructors.UnknownNode)(
-					value,
-					nodeConstructors,
-					this,
-					this.module,
-					this.scope,
-					false
-				);
+					nodeConstructors.UnknownNode)(value, nodeConstructors, this, this.scope, false);
 			}
 		}
 	}

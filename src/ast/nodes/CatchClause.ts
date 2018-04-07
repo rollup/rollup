@@ -25,7 +25,6 @@ export default class CatchClause extends NodeBase {
 			esTreeNode.body,
 			nodeConstructors,
 			this,
-			this.module,
 			this.scope,
 			true
 		);
