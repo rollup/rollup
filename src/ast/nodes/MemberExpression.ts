@@ -152,12 +152,17 @@ export default class MemberExpression extends NodeBase {
 	}
 
 	include() {
-		let addedNewNodes = super.include();
-		if (this.variable !== null && !this.variable.included) {
-			this.variable.include();
-			addedNewNodes = true;
+		let anotherPassNeeded = false;
+		if (!this.included) {
+			this.included = true;
+			if (this.variable !== null && !this.variable.included) {
+				this.variable.include();
+				anotherPassNeeded = true;
+			}
 		}
-		return addedNewNodes;
+		if (this.object.include()) anotherPassNeeded = true;
+		if (this.property.include()) anotherPassNeeded = true;
+		return anotherPassNeeded;
 	}
 
 	initialise() {

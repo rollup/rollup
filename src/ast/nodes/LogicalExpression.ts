@@ -90,7 +90,7 @@ export default class LogicalExpression extends NodeBase {
 	}
 
 	include() {
-		let addedNewNodes = !this.included;
+		let anotherPassNeeded = false;
 		this.included = true;
 		const leftValue = this.left.getValue();
 		if (
@@ -99,13 +99,13 @@ export default class LogicalExpression extends NodeBase {
 				this.left.shouldBeIncluded()) &&
 			this.left.include()
 		)
-			addedNewNodes = true;
+			anotherPassNeeded = true;
 		if (
 			(leftValue === UNKNOWN_VALUE || !leftValue === (this.operator === '||')) &&
 			this.right.include()
 		)
-			addedNewNodes = true;
-		return addedNewNodes;
+			anotherPassNeeded = true;
+		return anotherPassNeeded;
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {

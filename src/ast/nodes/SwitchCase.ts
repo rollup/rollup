@@ -13,17 +13,13 @@ export default class SwitchCase extends NodeBase {
 	consequent: StatementNode[];
 
 	include() {
-		let addedNewNodes = !this.included;
+		let anotherPassNeeded = false;
 		this.included = true;
-		if (this.test && this.test.include()) {
-			addedNewNodes = true;
-		}
+		if (this.test && this.test.include()) anotherPassNeeded = true;
 		for (const node of this.consequent) {
-			if (node.shouldBeIncluded() && node.include()) {
-				addedNewNodes = true;
-			}
+			if (node.shouldBeIncluded() && node.include()) anotherPassNeeded = true;
 		}
-		return addedNewNodes;
+		return anotherPassNeeded;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

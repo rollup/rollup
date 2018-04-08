@@ -14,6 +14,7 @@ export default class FunctionNode extends NodeBase {
 	id: Identifier | null;
 	body: BlockStatement;
 	params: PatternNode[];
+
 	scope: BlockScope;
 
 	bind() {

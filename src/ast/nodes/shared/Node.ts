@@ -190,22 +190,18 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	include() {
-		let addedNewNodes = !this.included;
+		let anotherPassNeeded = false;
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (<GenericEsTreeNode>this)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null && child.include()) {
-						addedNewNodes = true;
-					}
+					if (child !== null && child.include()) anotherPassNeeded = true;
 				}
-			} else if (value.include()) {
-				addedNewNodes = true;
-			}
+			} else if (value.include()) anotherPassNeeded = true;
 		}
-		return addedNewNodes;
+		return anotherPassNeeded;
 	}
 
 	includeWithAllDeclaredVariables() {

@@ -37,11 +37,12 @@ export default class ForOfStatement extends StatementBase {
 	}
 
 	include() {
-		let addedNewNodes = super.include();
-		if (this.left.includeWithAllDeclaredVariables()) {
-			addedNewNodes = true;
-		}
-		return addedNewNodes;
+		let anotherPassNeeded = false;
+		this.included = true;
+		if (this.left.includeWithAllDeclaredVariables()) anotherPassNeeded = true;
+		if (this.right.include()) anotherPassNeeded = true;
+		if (this.body.include()) anotherPassNeeded = true;
+		return anotherPassNeeded;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

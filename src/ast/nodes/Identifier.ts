@@ -93,8 +93,11 @@ export default class Identifier extends NodeBase {
 	include() {
 		if (this.included) return false;
 		this.included = true;
-		if (this.variable !== null && !this.variable.included) this.variable.include();
-		return true;
+		if (this.variable !== null && !this.variable.included) {
+			this.variable.include();
+			return true;
+		}
+		return false;
 	}
 
 	initialise() {
