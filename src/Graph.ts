@@ -6,7 +6,6 @@ import Module from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
 import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
-import { mapSequence } from './utils/promise';
 import transform from './utils/transform';
 import relativeId, { nameWithoutExtension } from './utils/relativeId';
 import error from './utils/error';
@@ -748,64 +747,67 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 			  ).then(() => {});
 		fetchDynamicImportsPromise.catch(() => {});
 
-		return mapSequence(module.sources, source => {
-			const resolvedId = module.resolvedIds[source];
-			return (resolvedId ? Promise.resolve(resolvedId) : this.resolveId(source, module.id)).then(
-				resolvedId => {
-					// TODO types of `resolvedId` are not compatable with 'externalId'.
-					// `this.resolveId` returns `string`, `void`, and `boolean`
-					const externalId =
-						<string>resolvedId || (isRelative(source) ? resolve(module.id, '..', source) : source);
-					let isExternal = this.isExternal(externalId, module.id, true);
+		return Promise.all(
+			module.sources.map(source => {
+				const resolvedId = module.resolvedIds[source];
+				return (resolvedId ? Promise.resolve(resolvedId) : this.resolveId(source, module.id)).then(
+					resolvedId => {
+						// TODO types of `resolvedId` are not compatable with 'externalId'.
+						// `this.resolveId` returns `string`, `void`, and `boolean`
+						const externalId =
+							<string>resolvedId ||
+							(isRelative(source) ? resolve(module.id, '..', source) : source);
+						let isExternal = this.isExternal(externalId, module.id, true);
 
-					if (!resolvedId && !isExternal) {
-						if (isRelative(source)) {
-							error({
-								code: 'UNRESOLVED_IMPORT',
-								message: `Could not resolve '${source}' from ${relativeId(module.id)}`
-							});
+						if (!resolvedId && !isExternal) {
+							if (isRelative(source)) {
+								error({
+									code: 'UNRESOLVED_IMPORT',
+									message: `Could not resolve '${source}' from ${relativeId(module.id)}`
+								});
+							}
+
+							if (resolvedId !== false) {
+								this.warn({
+									code: 'UNRESOLVED_IMPORT',
+									source,
+									importer: relativeId(module.id),
+									message: `'${source}' is imported by ${relativeId(
+										module.id
+									)}, but could not be resolved – treating it as an external dependency`,
+									url:
+										'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
+								});
+							}
+							isExternal = true;
 						}
 
-						if (resolvedId !== false) {
-							this.warn({
-								code: 'UNRESOLVED_IMPORT',
-								source,
-								importer: relativeId(module.id),
-								message: `'${source}' is imported by ${relativeId(
-									module.id
-								)}, but could not be resolved – treating it as an external dependency`,
-								url:
-									'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
-							});
+						if (isExternal) {
+							module.resolvedIds[source] = externalId;
+
+							if (!this.moduleById.has(externalId)) {
+								const module = new ExternalModule({ graph: this, id: externalId });
+								this.externalModules.push(module);
+								this.moduleById.set(externalId, module);
+							}
+
+							const externalModule = this.moduleById.get(externalId);
+
+							// add external declarations so we can detect which are never used
+							for (const name in module.imports) {
+								const importDeclaration = module.imports[name];
+								if (importDeclaration.source !== source) return;
+
+								externalModule.traceExport(importDeclaration.name);
+							}
+						} else {
+							module.resolvedIds[source] = <string>resolvedId;
+							return this.fetchModule(<string>resolvedId, module.id);
 						}
-						isExternal = true;
 					}
-
-					if (isExternal) {
-						module.resolvedIds[source] = externalId;
-
-						if (!this.moduleById.has(externalId)) {
-							const module = new ExternalModule({ graph: this, id: externalId });
-							this.externalModules.push(module);
-							this.moduleById.set(externalId, module);
-						}
-
-						const externalModule = this.moduleById.get(externalId);
-
-						// add external declarations so we can detect which are never used
-						for (const name in module.imports) {
-							const importDeclaration = module.imports[name];
-							if (importDeclaration.source !== source) return;
-
-							externalModule.traceExport(importDeclaration.name);
-						}
-					} else {
-						module.resolvedIds[source] = <string>resolvedId;
-						return this.fetchModule(<string>resolvedId, module.id);
-					}
-				}
-			);
-		}).then(() => fetchDynamicImportsPromise);
+				);
+			})
+		).then(() => fetchDynamicImportsPromise);
 	}
 
 	warn(warning: RollupWarning) {
