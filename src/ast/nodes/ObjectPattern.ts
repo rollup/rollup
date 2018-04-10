@@ -17,10 +17,11 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
-		return (
-			path.length > 0 ||
-			this.properties.some(child => child.hasEffectsWhenAssignedAtPath([], options))
-		);
+		if (path.length > 0) return true;
+		for (const property of this.properties) {
+			if (property.hasEffectsWhenAssignedAtPath([], options)) return true;
+		}
+		return false;
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {

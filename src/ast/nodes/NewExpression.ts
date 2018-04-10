@@ -12,13 +12,13 @@ export default class NewExpression extends NodeBase {
 	private callOptions: CallOptions;
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return (
-			this.arguments.some(child => child.hasEffects(options)) ||
-			this.callee.hasEffectsWhenCalledAtPath(
-				[],
-				this.callOptions,
-				options.getHasEffectsWhenCalledOptions()
-			)
+		for (const argument of this.arguments) {
+			if (argument.hasEffects(options)) return true;
+		}
+		return this.callee.hasEffectsWhenCalledAtPath(
+			[],
+			this.callOptions,
+			options.getHasEffectsWhenCalledOptions()
 		);
 	}
 

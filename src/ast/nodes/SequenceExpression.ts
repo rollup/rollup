@@ -36,7 +36,10 @@ export default class SequenceExpression extends NodeBase {
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return this.expressions.some(expression => expression.hasEffects(options));
+		for (const expression of this.expressions) {
+			if (expression.hasEffects(options)) return true;
+		}
+		return false;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {

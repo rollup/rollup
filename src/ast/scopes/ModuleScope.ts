@@ -8,6 +8,14 @@ import Variable from '../variables/Variable';
 import { isNamespaceVariable } from '../variables/NamespaceVariable';
 import { isExternalVariable } from '../variables/ExternalVariable';
 
+const addDeclaredNames = (declaration: Variable, names: Set<string>) => {
+	if (isNamespaceVariable(declaration) && !isExternalVariable(declaration)) {
+		for (const name of declaration.module.getExports())
+			addDeclaredNames(declaration.module.traceExport(name), names);
+	}
+	names.add(declaration.getName());
+};
+
 export default class ModuleScope extends Scope {
 	parent: Scope;
 	module: Module;
@@ -25,26 +33,13 @@ export default class ModuleScope extends Scope {
 	deshadow(names: Set<string>, children = this.children) {
 		let localNames = new Set(names);
 
-		Object.keys(this.module.imports).forEach(importName => {
+		for (const importName of Object.keys(this.module.imports)) {
 			const specifier = this.module.imports[importName];
 
-			if (specifier.module.isExternal || specifier.module.chunk !== this.module.chunk) {
-				return;
-			}
+			if (specifier.module.isExternal || specifier.module.chunk !== this.module.chunk) continue;
 
-			const addDeclaration = (declaration: Variable) => {
-				if (isNamespaceVariable(declaration) && !isExternalVariable(declaration)) {
-					declaration.module
-						.getExports()
-						.forEach(name => addDeclaration(declaration.module.traceExport(name)));
-				}
-
-				localNames.add(declaration.getName());
-			};
-
-			(<Module>specifier.module).getAllExports().forEach(name => {
-				addDeclaration(specifier.module.traceExport(name));
-			});
+			for (const name of (<Module>specifier.module).getAllExports())
+				addDeclaredNames(specifier.module.traceExport(name), localNames);
 
 			if (specifier.name !== '*') {
 				const declaration = specifier.module.traceExport(specifier.name);
@@ -60,7 +55,7 @@ export default class ModuleScope extends Scope {
 						},
 						specifier.specifier.start
 					);
-					return;
+					continue;
 				}
 
 				const name = declaration.getName();
@@ -75,7 +70,7 @@ export default class ModuleScope extends Scope {
 					localNames.add((<ImportSpecifier>specifier.specifier).imported.name);
 				}
 			}
-		});
+		}
 
 		super.deshadow(localNames, children);
 	}

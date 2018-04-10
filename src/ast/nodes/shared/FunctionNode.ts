@@ -69,10 +69,10 @@ export default class FunctionNode extends NodeBase {
 			return true;
 		}
 		const innerOptions = this.scope.getOptionsWhenCalledWith(callOptions, options);
-		return (
-			this.params.some(param => param.hasEffects(innerOptions)) ||
-			this.body.hasEffects(innerOptions)
-		);
+		for (const param of this.params) {
+			if (param.hasEffects(innerOptions)) return true;
+		}
+		return this.body.hasEffects(innerOptions);
 	}
 
 	include() {

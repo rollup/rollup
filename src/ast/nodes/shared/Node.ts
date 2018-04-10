@@ -229,9 +229,9 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode, nodeConstructors: { [p: string]: typeof NodeBase }) {
-		for (const key in esTreeNode) {
+		for (const key of Object.keys(esTreeNode)) {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
-			if (key in this) continue;
+			if (this.hasOwnProperty(key)) continue;
 			const value = esTreeNode[key];
 			if (typeof value !== 'object' || value === null) {
 				(<GenericEsTreeNode>this)[key] = value;

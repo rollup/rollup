@@ -27,7 +27,9 @@ export default class BlockStatement extends StatementBase {
 	}
 
 	hasEffects(options: ExecutionPathOptions) {
-		return this.body.some(child => child.hasEffects(options));
+		for (const node of this.body) {
+			if (node.hasEffects(options)) return true;
+		}
 	}
 
 	include() {

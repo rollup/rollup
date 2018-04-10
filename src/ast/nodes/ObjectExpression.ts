@@ -52,10 +52,11 @@ export default class ObjectExpression extends NodeBase {
 			path[0],
 			PROPERTY_KINDS_READ
 		);
-		return (
-			(path.length > 1 && !hasCertainHit) ||
-			properties.some(property => property.hasEffectsWhenAccessedAtPath(path.slice(1), options))
-		);
+		if (path.length > 1 && !hasCertainHit) return true;
+		for (const property of properties) {
+			if (property.hasEffectsWhenAccessedAtPath(path.slice(1), options)) return true;
+		}
+		return false;
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -65,14 +66,15 @@ export default class ObjectExpression extends NodeBase {
 			path[0],
 			path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ
 		);
-		return (
-			(path.length > 1 && !hasCertainHit) ||
-			properties.some(
-				property =>
-					(path.length > 1 || property.kind === 'set') &&
-					property.hasEffectsWhenAssignedAtPath(path.slice(1), options)
+		if (path.length > 1 && !hasCertainHit) return true;
+		for (const property of properties) {
+			if (
+				(path.length > 1 || property.kind === 'set') &&
+				property.hasEffectsWhenAssignedAtPath(path.slice(1), options)
 			)
-		);
+				return true;
+		}
+		return false;
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -90,12 +92,11 @@ export default class ObjectExpression extends NodeBase {
 			path[0],
 			PROPERTY_KINDS_READ
 		);
-		return (
-			!hasCertainHit ||
-			properties.some(property =>
-				property.hasEffectsWhenCalledAtPath(path.slice(1), callOptions, options)
-			)
-		);
+		if (!hasCertainHit) return true;
+		for (const property of properties) {
+			if (property.hasEffectsWhenCalledAtPath(path.slice(1), callOptions, options)) return true;
+		}
+		return false;
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -142,9 +143,9 @@ export default class ObjectExpression extends NodeBase {
 			subPath,
 			PROPERTY_KINDS_READ
 		);
-		return (
-			!hasCertainHit ||
-			properties.some(property =>
+		if (!hasCertainHit) return true;
+		for (const property of properties) {
+			if (
 				property.someReturnExpressionWhenCalledAtPath(
 					path.slice(1),
 					callOptions,
@@ -152,7 +153,9 @@ export default class ObjectExpression extends NodeBase {
 					options
 				)
 			)
-		);
+				return true;
+		}
+		return false;
 	}
 
 	private getPossiblePropertiesWithName(name: ObjectPathKey, kinds: ObjectPath) {

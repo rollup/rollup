@@ -57,7 +57,10 @@ export default class ArrowFunctionExpression extends NodeBase {
 		if (path.length > 0) {
 			return true;
 		}
-		return this.params.some(param => param.hasEffects(options)) || this.body.hasEffects(options);
+		for (const param of this.params) {
+			if (param.hasEffects(options)) return true;
+		}
+		return this.body.hasEffects(options);
 	}
 
 	initialise() {

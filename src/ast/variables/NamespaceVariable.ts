@@ -42,7 +42,7 @@ export default class NamespaceVariable extends Variable {
 				break;
 			}
 		}
-		Object.keys(this.originals).forEach(original => this.originals[original].include());
+		for (const original of Object.keys(this.originals)) this.originals[original].include();
 		return true;
 	}
 

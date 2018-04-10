@@ -18,10 +18,11 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
-		return (
-			path.length > 0 ||
-			this.elements.some(child => child && child.hasEffectsWhenAssignedAtPath([], options))
-		);
+		if (path.length > 0) return true;
+		for (const element of this.elements) {
+			if (element !== null && element.hasEffectsWhenAssignedAtPath([], options)) return true;
+		}
+		return false;
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
