@@ -223,7 +223,7 @@ export default function rollup(
 							const file = outputOptions.file;
 							let { code, map } = result;
 
-							const promises = [];
+							const promises: Promise<object>[] = [];
 
 							if (outputOptions.sourcemap) {
 								let url;

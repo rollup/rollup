@@ -279,7 +279,7 @@ export default class Chunk {
 		}
 	}
 
-	private traceImport(exportName: string, module: Module | ExternalModule) {
+	private traceImport(exportName: string, module: Module | WasmModule | ExternalModule) {
 		const traced = this.traceExport(exportName, module);
 
 		// ignore imports to modules already in this chunk
@@ -318,10 +318,10 @@ export default class Chunk {
 	// either in this chunk or in another
 	traceExport(
 		name: string,
-		module: Module | ExternalModule
+		module: Module | WasmModule | ExternalModule
 	): {
 		variable: Variable;
-		module: Module | ExternalModule;
+		module: Module | WasmModule | ExternalModule;
 	} {
 		if (name === '*' || module instanceof ExternalModule) {
 			return { variable: module.traceExport(name), module };

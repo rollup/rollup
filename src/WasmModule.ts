@@ -5,7 +5,6 @@ import Graph from './Graph';
 import { IdMap, ModuleJSON } from './rollup/types';
 
 import { makeLegal } from './utils/identifierHelpers';
-import { RenderOptions } from './utils/renderHelpers';
 import { basename, extname } from './utils/path';
 
 import ExternalModule from './ExternalModule';
@@ -20,7 +19,13 @@ const decoderOpts = {
 	ignoreDataSection: true
 };
 
-const buildLoader = ({ NAME, URL, IMPORT_OBJECT }) => `
+type BuildLoadArgs = {
+	NAME: string;
+	URL: string;
+	IMPORT_OBJECT?: string;
+};
+
+const buildLoader = ({ NAME, URL, IMPORT_OBJECT }: BuildLoadArgs) => `
 	// function then$${NAME}(resolve) {
 	function then(resolve) {
 		if (typeof WebAssembly.instantiateStreaming !== 'function') {
@@ -52,6 +57,8 @@ export interface ImportDescription {
 }
 
 export default class WasmModule {
+	type: 'WasmModule';
+
 	id: string;
 	graph: Graph;
 	code: Buffer;
@@ -99,7 +106,7 @@ export default class WasmModule {
 		this.sources = [];
 		this.dependencies = [];
 
-		this.scope = new ModuleScope(this);
+		this.scope = new ModuleScope(<any>this);
 
 		// expose Thenable which is the entry point of our loader
 		// this.exports['then$' + this.basename()] = {
@@ -112,7 +119,7 @@ export default class WasmModule {
 		// have an object like {then: then$foo} as the export;
 	}
 
-	render(options: RenderOptions) {
+	render() {
 		const NAME = this.basename();
 		const URL = `/dist/${NAME}.wasm`;
 
@@ -131,7 +138,7 @@ export default class WasmModule {
 	// TODO(sven): what is this?
 	namespace(): NamespaceVariable {
 		if (!this.declarations['*']) {
-			this.declarations['*'] = new NamespaceVariable(this);
+			this.declarations['*'] = new NamespaceVariable(<any>this);
 		}
 
 		return this.declarations['*'];
@@ -148,7 +155,7 @@ export default class WasmModule {
 		return Object.keys(this.exports);
 	}
 
-	getReexports() {
+	getReexports(): any[] {
 		return [];
 	}
 
@@ -157,21 +164,20 @@ export default class WasmModule {
 	}
 
 	linkDependencies() {
-		const { imports, exports } = this;
-
-		ast.traverse(this.ast, {
-			// ModuleImport({node}: any) {
-			// 	const source = node.module
-			// 	const name = node.name;
-			// 	imports[`${source}.${name}`] = { source, name, module: null };
-			// },
-			// ModuleExport({node}: any) {
-			// 	const name = node.name;
-			// 	exports[name] = {
-			// 		localName: name
-			// 	};
-			// }
-		});
+		// const { imports, exports } = this;
+		// ast.traverse(this.ast, {
+		// 	ModuleImport({node}: any) {
+		// 		const source = node.module
+		// 		const name = node.name;
+		// 		imports[`${source}.${name}`] = { source, name, module: this };
+		// 	},
+		// 	ModuleExport({node}: any) {
+		// 		const name = node.name;
+		// 		exports[name] = {
+		// 			localName: name
+		// 		};
+		// 	}
+		// });
 	}
 
 	bindReferences() {}

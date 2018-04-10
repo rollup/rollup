@@ -29,6 +29,7 @@ import ImportDefaultSpecifier from './ast/nodes/ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
 import { RollupWarning, ModuleJSON, IdMap, RollupError } from './rollup/types';
 import ExternalModule from './ExternalModule';
+import WasmModule from './WasmModule';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Import from './ast/nodes/Import';
 import { NodeType } from './ast/nodes/index';
