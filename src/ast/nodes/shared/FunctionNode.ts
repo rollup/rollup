@@ -81,6 +81,7 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
 		if (this.id !== null) {
 			this.id.declare('function', this);
 		}

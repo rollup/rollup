@@ -64,12 +64,10 @@ export default class MemberExpression extends NodeBase {
 	computed: boolean;
 
 	propertyKey: ObjectPathKey;
-	private arePropertyReadSideEffectsChecked: boolean;
-
-	// Not initialised during construction
 	variable: Variable = null;
-	private bound: boolean = false;
-	private replacement: string | null = null;
+	private arePropertyReadSideEffectsChecked: boolean;
+	private bound: boolean;
+	private replacement: string | null;
 
 	bind() {
 		if (this.bound) return;
@@ -166,9 +164,13 @@ export default class MemberExpression extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
 		this.propertyKey = getPropertyKey(this);
+		this.variable = null;
 		this.arePropertyReadSideEffectsChecked =
 			this.module.graph.treeshake && this.module.graph.treeshakingOptions.propertyReadSideEffects;
+		this.bound = false;
+		this.replacement = null;
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {

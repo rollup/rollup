@@ -9,10 +9,8 @@ import { ObjectPath } from '../values';
 export default class ThisExpression extends NodeBase {
 	type: NodeType.ThisExpression;
 
+	variable: ThisVariable;
 	private alias: string | null;
-
-	// Not initialised during construction
-	variable: ThisVariable = null;
 
 	bind() {
 		super.bind();
@@ -28,6 +26,8 @@ export default class ThisExpression extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
+		this.variable = null;
 		this.alias = this.scope.findLexicalBoundary().isModuleScope ? this.module.context : null;
 		if (this.alias === 'undefined') {
 			this.module.warn(

@@ -17,6 +17,7 @@ export default class CatchClause extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
 		this.param.declare('parameter', null);
 	}
 

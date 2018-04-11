@@ -18,6 +18,7 @@ export default class ImportDeclaration extends NodeBase {
 	bind() {}
 
 	initialise() {
+		this.included = false;
 		this.module.addImport(this);
 	}
 

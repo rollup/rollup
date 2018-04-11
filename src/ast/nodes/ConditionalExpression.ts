@@ -15,8 +15,7 @@ export default class ConditionalExpression extends NodeBase {
 	alternate: ExpressionNode;
 	consequent: ExpressionNode;
 
-	// Not initialised during construction
-	private hasUnknownTestValue = false;
+	private hasUnknownTestValue: boolean;
 
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
@@ -80,6 +79,11 @@ export default class ConditionalExpression extends NodeBase {
 			: this.someRelevantBranch(node =>
 					node.hasEffectsWhenCalledAtPath(path, callOptions, options)
 			  );
+	}
+
+	initialise() {
+		this.included = false;
+		this.hasUnknownTestValue = false;
 	}
 
 	include() {

@@ -56,6 +56,7 @@ export default class VariableDeclaration extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
 		for (const declarator of this.declarations) {
 			declarator.declareDeclarator(this.kind);
 		}

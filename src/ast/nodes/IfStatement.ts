@@ -11,8 +11,7 @@ export default class IfStatement extends StatementBase {
 	consequent: StatementNode;
 	alternate: StatementNode | null;
 
-	// Not initialised during construction
-	private hasUnknownTestValue = false;
+	private hasUnknownTestValue: boolean;
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
@@ -40,6 +39,11 @@ export default class IfStatement extends StatementBase {
 			anotherPassNeeded = true;
 		}
 		return anotherPassNeeded;
+	}
+
+	initialise() {
+		this.included = false;
+		this.hasUnknownTestValue = false;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

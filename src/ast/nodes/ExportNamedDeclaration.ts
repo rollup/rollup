@@ -28,6 +28,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
 		this.module.addExport(this);
 	}
 

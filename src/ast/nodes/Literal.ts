@@ -52,6 +52,7 @@ export default class Literal<T = LiteralValueTypes> extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
 		this.members = getLiteralMembersForValue(this.value);
 	}
 

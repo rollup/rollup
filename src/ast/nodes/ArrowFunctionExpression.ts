@@ -64,6 +64,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
 		for (const param of this.params) {
 			param.declare('parameter', null);
 		}

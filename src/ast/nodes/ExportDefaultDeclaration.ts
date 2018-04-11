@@ -58,6 +58,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
 		this.declarationName =
 			((<FunctionDeclaration | ClassDeclaration>this.declaration).id &&
 				(<FunctionDeclaration | ClassDeclaration>this.declaration).id.name) ||

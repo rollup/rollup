@@ -26,6 +26,7 @@ export default class ClassBody extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
 		for (const method of this.body) {
 			if (method.kind === 'constructor') {
 				this.classConstructor = method;

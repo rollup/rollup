@@ -124,6 +124,7 @@ export default class CallExpression extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
 		this.callOptions = CallOptions.create({
 			withNew: false,
 			args: this.arguments,

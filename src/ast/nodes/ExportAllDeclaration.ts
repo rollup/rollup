@@ -12,6 +12,7 @@ export default class ExportAllDeclaration extends NodeBase {
 	needsBoundaries: true;
 
 	initialise() {
+		this.included = false;
 		this.module.addExport(this);
 	}
 

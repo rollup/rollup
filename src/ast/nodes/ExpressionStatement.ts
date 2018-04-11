@@ -7,6 +7,7 @@ export default class ExpressionStatement extends StatementBase {
 	directive?: string;
 
 	initialise() {
+		this.included = false;
 		if (
 			this.directive &&
 			this.directive !== 'use strict' &&

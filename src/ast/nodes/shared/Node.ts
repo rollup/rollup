@@ -86,9 +86,7 @@ export class NodeBase implements ExpressionNode {
 	end: number;
 	module: Module;
 	parent: Node | { type: string; module: Module };
-
-	// Not initialised during construction
-	included: boolean = false;
+	included: boolean;
 
 	constructor(
 		esTreeNode: GenericEsTreeNode,
@@ -211,7 +209,9 @@ export class NodeBase implements ExpressionNode {
 	/**
 	 * Override to perform special initialisation steps after the scope is initialised
 	 */
-	initialise() {}
+	initialise() {
+		this.included = false;
+	}
 
 	insertSemicolon(code: MagicString) {
 		if (code.original[this.end - 1] !== ';') {

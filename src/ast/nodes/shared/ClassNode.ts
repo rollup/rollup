@@ -35,6 +35,7 @@ export default class ClassNode extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
 		if (this.id !== null) {
 			this.id.declare('class', this);
 		}

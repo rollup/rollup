@@ -27,9 +27,7 @@ export default class Identifier extends NodeBase {
 	name: string;
 
 	variable: Variable;
-
-	// Not initialised during construction
-	private bound: boolean = false;
+	private bound: boolean;
 
 	bind() {
 		if (this.bound) return;
@@ -101,6 +99,8 @@ export default class Identifier extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
+		this.bound = false;
 		// To avoid later shape mutations
 		if (!this.variable) {
 			this.variable = null;

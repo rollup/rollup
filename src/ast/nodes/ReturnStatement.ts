@@ -12,6 +12,7 @@ export default class ReturnStatement extends StatementBase {
 	}
 
 	initialise() {
+		this.included = false;
 		this.scope.addReturnExpression(this.argument || UNKNOWN_EXPRESSION);
 	}
 }

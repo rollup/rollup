@@ -21,8 +21,7 @@ export default class LogicalExpression extends NodeBase {
 	left: ExpressionNode;
 	right: ExpressionNode;
 
-	// Not initialised during construction
-	private hasUnknownLeftValue = false;
+	private hasUnknownLeftValue: boolean;
 
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
@@ -106,6 +105,10 @@ export default class LogicalExpression extends NodeBase {
 		)
 			anotherPassNeeded = true;
 		return anotherPassNeeded;
+	}
+
+	initialise() {
+		this.hasUnknownLeftValue = false;
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {

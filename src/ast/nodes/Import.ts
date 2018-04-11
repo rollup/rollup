@@ -8,12 +8,15 @@ export default class Import extends NodeBase {
 	type: NodeType.Import;
 	parent: CallExpression;
 
-	// Not initialised during construction
-	private resolutionNamespace: string = undefined;
-	private resolutionInterop: boolean = false;
-	private rendered: boolean = false;
+	private resolutionNamespace: string;
+	private resolutionInterop: boolean;
+	private rendered: boolean;
 
 	initialise() {
+		this.included = false;
+		this.resolutionNamespace = undefined;
+		this.resolutionInterop = false;
+		this.rendered = false;
 		this.module.addDynamicImport(this);
 	}
 

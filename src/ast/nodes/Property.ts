@@ -136,6 +136,7 @@ export default class Property extends NodeBase {
 	}
 
 	initialise() {
+		this.included = false;
 		this.accessorCallOptions = CallOptions.create({
 			withNew: false,
 			callIdentifier: this
