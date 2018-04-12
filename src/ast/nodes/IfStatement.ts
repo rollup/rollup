@@ -24,21 +24,19 @@ export default class IfStatement extends StatementBase {
 	}
 
 	include() {
-		let anotherPassNeeded = false;
 		this.included = true;
 		const testValue = this.test.getValue();
-		if ((testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) && this.test.include()) {
-			anotherPassNeeded = true;
+		if (testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
+			this.test.include();
 		}
 		if (testValue === UNKNOWN_VALUE) {
-			if (this.consequent.include()) anotherPassNeeded = true;
-			if (this.alternate !== null && this.alternate.include()) anotherPassNeeded = true;
-		} else if (
-			testValue ? this.consequent.include() : this.alternate !== null && this.alternate.include()
-		) {
-			anotherPassNeeded = true;
+			this.consequent.include();
+			if (this.alternate !== null) this.alternate.include();
+		} else if (testValue) {
+			this.consequent.include();
+		} else if (this.alternate !== null) {
+			this.alternate.include();
 		}
-		return anotherPassNeeded;
 	}
 
 	initialise() {

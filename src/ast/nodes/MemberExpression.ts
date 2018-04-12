@@ -150,17 +150,15 @@ export default class MemberExpression extends NodeBase {
 	}
 
 	include() {
-		let anotherPassNeeded = false;
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null && !this.variable.included) {
 				this.variable.include();
-				anotherPassNeeded = true;
+				this.module.graph.needsTreeshakingPass = true;
 			}
 		}
-		if (this.object.include()) anotherPassNeeded = true;
-		if (this.property.include()) anotherPassNeeded = true;
-		return anotherPassNeeded;
+		this.object.include();
+		this.property.include();
 	}
 
 	initialise() {

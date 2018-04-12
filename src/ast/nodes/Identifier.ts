@@ -89,13 +89,13 @@ export default class Identifier extends NodeBase {
 	}
 
 	include() {
-		if (this.included) return false;
-		this.included = true;
-		if (this.variable !== null && !this.variable.included) {
-			this.variable.include();
-			return true;
+		if (!this.included) {
+			this.included = true;
+			if (this.variable !== null && !this.variable.included) {
+				this.variable.include();
+				this.module.graph.needsTreeshakingPass = true;
+			}
 		}
-		return false;
 	}
 
 	initialise() {

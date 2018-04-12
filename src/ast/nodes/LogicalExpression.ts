@@ -89,22 +89,16 @@ export default class LogicalExpression extends NodeBase {
 	}
 
 	include() {
-		let anotherPassNeeded = false;
 		this.included = true;
 		const leftValue = this.left.getValue();
 		if (
-			(leftValue === UNKNOWN_VALUE ||
-				!leftValue === (this.operator === '&&') ||
-				this.left.shouldBeIncluded()) &&
-			this.left.include()
+			leftValue === UNKNOWN_VALUE ||
+			!leftValue === (this.operator === '&&') ||
+			this.left.shouldBeIncluded()
 		)
-			anotherPassNeeded = true;
-		if (
-			(leftValue === UNKNOWN_VALUE || !leftValue === (this.operator === '||')) &&
-			this.right.include()
-		)
-			anotherPassNeeded = true;
-		return anotherPassNeeded;
+			this.left.include();
+		if (leftValue === UNKNOWN_VALUE || !leftValue === (this.operator === '||'))
+			this.right.include();
 	}
 
 	initialise() {

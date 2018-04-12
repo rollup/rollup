@@ -87,17 +87,17 @@ export default class ConditionalExpression extends NodeBase {
 	}
 
 	include() {
-		let anotherPassNeeded = false;
 		this.included = true;
 		const testValue = this.test.getValue();
 		if (testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
-			if (this.test.include()) anotherPassNeeded = true;
-			if (this.consequent.include()) anotherPassNeeded = true;
-			if (this.alternate.include()) anotherPassNeeded = true;
-		} else if (testValue ? this.consequent.include() : this.alternate.include()) {
-			anotherPassNeeded = true;
+			this.test.include();
+			this.consequent.include();
+			this.alternate.include();
+		} else if (testValue) {
+			this.consequent.include();
+		} else {
+			this.alternate.include();
 		}
-		return anotherPassNeeded;
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {

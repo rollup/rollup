@@ -16,14 +16,10 @@ export default class Program extends NodeBase {
 	}
 
 	include() {
-		let anotherPassNeeded = false;
 		this.included = true;
 		for (const node of this.body) {
-			if (node.shouldBeIncluded() && node.include()) {
-				anotherPassNeeded = true;
-			}
+			if (node.shouldBeIncluded()) node.include();
 		}
-		return anotherPassNeeded;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

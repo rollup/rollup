@@ -55,14 +55,14 @@ export interface Node extends Entity {
 	 * Necessary variables need to be included as well. Should return true if any
 	 * nodes or variables have been added that were missing before.
 	 */
-	include(): boolean;
+	include(): void;
 
 	/**
 	 * Alternative version of include to override the default behaviour of
 	 * declarations to only include nodes for declarators that have an effect. Necessary
 	 * for for-loops that do not use a declared loop variable.
 	 */
-	includeWithAllDeclaredVariables(): boolean;
+	includeWithAllDeclaredVariables(): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -188,22 +188,22 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	include() {
-		let anotherPassNeeded = false;
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (<GenericEsTreeNode>this)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null && child.include()) anotherPassNeeded = true;
+					if (child !== null) child.include();
 				}
-			} else if (value.include()) anotherPassNeeded = true;
+			} else {
+				value.include();
+			}
 		}
-		return anotherPassNeeded;
 	}
 
 	includeWithAllDeclaredVariables() {
-		return this.include();
+		this.include();
 	}
 
 	/**

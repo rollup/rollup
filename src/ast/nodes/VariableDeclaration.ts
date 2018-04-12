@@ -45,14 +45,10 @@ export default class VariableDeclaration extends NodeBase {
 	}
 
 	include() {
-		let addedNewNodes = !this.included;
 		this.included = true;
 		for (const declarator of this.declarations) {
-			if (declarator.shouldBeIncluded() && declarator.include()) {
-				addedNewNodes = true;
-			}
+			if (declarator.shouldBeIncluded()) declarator.include();
 		}
-		return addedNewNodes;
 	}
 
 	initialise() {

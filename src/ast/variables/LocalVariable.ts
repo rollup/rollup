@@ -109,20 +109,21 @@ export default class LocalVariable extends Variable {
 	}
 
 	include() {
-		if (!super.include()) return false;
-		this.declarations.forEach((node: Node) => {
-			// If node is a default export, it can save a tree-shaking run to include the full declaration now
-			if (!node.included) node.include();
-			node = <Node>node.parent;
-			while (!node.included) {
-				// We do not want to properly include parents in case they are part of a dead branch
-				// in which case .include() might pull in more dead code
-				node.included = true;
-				if (node.type === NodeType.Program) break;
+		if (!this.included) {
+			this.included = true;
+			this.declarations.forEach((node: Node) => {
+				// If node is a default export, it can save a tree-shaking run to include the full declaration now
+				if (!node.included) node.include();
 				node = <Node>node.parent;
-			}
-		});
-		return true;
+				while (!node.included) {
+					// We do not want to properly include parents in case they are part of a dead branch
+					// in which case .include() might pull in more dead code
+					node.included = true;
+					if (node.type === NodeType.Program) break;
+					node = <Node>node.parent;
+				}
+			});
+		}
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {

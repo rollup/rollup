@@ -33,14 +33,10 @@ export default class BlockStatement extends StatementBase {
 	}
 
 	include() {
-		let anotherPassNeeded = false;
 		this.included = true;
 		for (const node of this.body) {
-			if (node.shouldBeIncluded() && node.include()) {
-				anotherPassNeeded = true;
-			}
+			if (node.shouldBeIncluded()) node.include();
 		}
-		return anotherPassNeeded;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

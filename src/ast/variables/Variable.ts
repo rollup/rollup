@@ -81,11 +81,7 @@ export default class Variable implements ExpressionEntity {
 	 * Once a variable is included, it should take care all its declarations are included.
 	 */
 	include() {
-		if (this.included) {
-			return false;
-		}
 		this.included = true;
-		return true;
 	}
 
 	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}

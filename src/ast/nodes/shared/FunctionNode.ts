@@ -77,7 +77,7 @@ export default class FunctionNode extends NodeBase {
 
 	include() {
 		this.scope.variables.arguments.include();
-		return super.include();
+		super.include();
 	}
 
 	initialise() {

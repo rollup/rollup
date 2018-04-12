@@ -32,18 +32,17 @@ export default class NamespaceVariable extends Variable {
 	}
 
 	include() {
-		if (!super.include()) {
-			return false;
-		}
-		this.needsNamespaceBlock = true;
-		for (const identifier of this.references) {
-			if (identifier.module.execIndex <= this.module.execIndex) {
-				this.referencedEarly = true;
-				break;
+		if (!this.included) {
+			this.included = true;
+			this.needsNamespaceBlock = true;
+			for (const identifier of this.references) {
+				if (identifier.module.execIndex <= this.module.execIndex) {
+					this.referencedEarly = true;
+					break;
+				}
 			}
+			for (const original of Object.keys(this.originals)) this.originals[original].include();
 		}
-		for (const original of Object.keys(this.originals)) this.originals[original].include();
-		return true;
 	}
 
 	renderFirst() {

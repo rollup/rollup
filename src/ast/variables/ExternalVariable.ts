@@ -27,12 +27,10 @@ export default class ExternalVariable extends Variable {
 	}
 
 	include() {
-		if (this.included) {
-			return false;
+		if (!this.included) {
+			this.included = true;
+			this.module.used = true;
 		}
-		this.included = true;
-		this.module.used = true;
-		return true;
 	}
 }
 
