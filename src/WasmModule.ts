@@ -25,24 +25,54 @@ type BuildLoadArgs = {
 	IMPORT_OBJECT?: string;
 };
 
+// FIXME(sven): uncommented the loader you need for your current env
+// how to get the env?
+
+const generateLoadBinaryCode = (url: string) => `fetch("${url}")`;
+
+// const generateLoadBinaryCode = (path: string) =>
+// 	`new Promise(function (resolve, reject) {
+// 		var {readFile} = require("fs");
+// 		var {join} = require("path");
+
+// 		try {
+// 			readFile(join(__dirname, "${path}"), function(err, buffer) {
+// 				if (err) return reject(err);
+
+// 				// Fake fetch response
+// 				resolve({
+// 					arrayBuffer() {
+// 						return Promise.resolve(buffer);
+// 					}
+// 				});
+// 			});
+// 		} catch (err) {
+// 			reject(err);
+// 		}
+// 	});
+// 	`;
+
 const buildLoader = ({ NAME, URL, IMPORT_OBJECT }: BuildLoadArgs) => `
 	// function then$${NAME}(resolve) {
 	function then(resolve) {
-		if (typeof WebAssembly.instantiateStreaming !== 'function') {
-		  throw new Error('WebAssembly.instantiateStreaming is not supported');
+		const req = ${generateLoadBinaryCode(URL)};
+
+		if (typeof WebAssembly.instantiateStreaming === 'function') {
+			WebAssembly
+				.instantiateStreaming(req, ${IMPORT_OBJECT || '{}'})
+				.then(res => res.instance.exports)
+				.then(resolve)
+				.catch(resolve);
+		} else {
+			req
+				.then(x => x.arrayBuffer())
+				.then(function(bytes) {
+					return WebAssembly.instantiate(bytes, ${IMPORT_OBJECT || '{}'});
+				})
+				.then(res => res.instance.exports)
+				.then(resolve)
+				.catch(resolve);
 		}
-
-		if (typeof window.fetch !== 'function') {
-		  throw new Error('window.fetch is not supported');
-		}
-
-		const req = window.fetch('${URL}');
-
-		WebAssembly
-			.instantiateStreaming(req, ${IMPORT_OBJECT || '{}'})
-			.then(res => res.instance.exports)
-			.then(resolve)
-			.catch(resolve);
 	}
 `;
 
