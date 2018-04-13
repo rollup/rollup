@@ -10,15 +10,18 @@ export default class ExternalVariable extends Variable {
 	module: ExternalModule;
 	isExternal: true;
 	isNamespace: boolean;
+	referenced: boolean;
 
 	constructor(module: ExternalModule, name: string) {
 		super(name);
 		this.module = module;
 		this.isExternal = true;
 		this.isNamespace = name === '*';
+		this.referenced = false;
 	}
 
 	addReference(identifier: Identifier) {
+		this.referenced = true;
 		if (this.name === 'default' || this.name === '*') {
 			(<ExternalModule>this.module).suggestName(identifier.name);
 		}
