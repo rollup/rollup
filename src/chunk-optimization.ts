@@ -1,6 +1,6 @@
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
-import { OutputOptions } from './rollup';
+import { OutputOptions } from './rollup/types';
 
 /*
  * Given a chunk list, perform optimizations on that chunk list
@@ -13,21 +13,12 @@ import { OutputOptions } from './rollup';
 export function optimizeChunks(
 	chunks: Chunk[],
 	options: OutputOptions,
-	CHUNK_GROUPING_SIZE = 5000
+	CHUNK_GROUPING_SIZE: number
 ): Chunk[] {
-	const chunkSize = new Map<Chunk, number>();
-	function getChunkSize(chunk: Chunk) {
-		let size = chunkSize.get(chunk);
-		if (size) return size;
-		size = chunk.getRenderedSourceLength();
-		chunkSize.set(chunk, size);
-		return size;
-	}
-
-	for (let i = 0; i < chunks.length; i++) {
-		const mainChunk = chunks[i];
+	for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+		const mainChunk = chunks[chunkIndex];
 		const execGroup: Chunk[] = [];
-		mainChunk.postVisit(dep => {
+		mainChunk.postVisitChunkDependencies(dep => {
 			if (dep instanceof Chunk) {
 				execGroup.push(dep);
 			}
@@ -37,7 +28,7 @@ export function optimizeChunks(
 			continue;
 		}
 
-		let j = 1;
+		let execGroupIndex = 1;
 		let seekingFirstMergeCandidate = true;
 		let lastChunk: Chunk,
 			chunk = execGroup[0],
@@ -50,7 +41,7 @@ export function optimizeChunks(
 			if (!nextChunk || nextChunk.isEntryModuleFacade) {
 				return false;
 			}
-			if (getChunkSize(chunk) > CHUNK_GROUPING_SIZE) {
+			if (chunk.getRenderedSourceLength() > CHUNK_GROUPING_SIZE) {
 				return false;
 			}
 			// if (!chunk.isPure()) continue;
@@ -65,7 +56,8 @@ export function optimizeChunks(
 				continue;
 			}
 
-			let remainingSize = CHUNK_GROUPING_SIZE - getChunkSize(lastChunk) - getChunkSize(chunk);
+			let remainingSize =
+				CHUNK_GROUPING_SIZE - lastChunk.getRenderedSourceLength() - chunk.getRenderedSourceLength();
 			if (remainingSize <= 0) {
 				if (!isMergeCandidate(chunk)) {
 					seekingFirstMergeCandidate = true;
@@ -74,26 +66,26 @@ export function optimizeChunks(
 			}
 			// if (!chunk.isPure()) continue;
 
-			const chunkDependencies: (Chunk | External)[] = [];
-			chunk.postVisit(dep => chunkDependencies.push(dep));
+			const chunkDependencies = new Set<Chunk | External>();
+			chunk.postVisitChunkDependencies(dep => chunkDependencies.add(dep));
 
-			const countedChunks: (Chunk | External)[] = [chunk, lastChunk];
+			const ignoreSizeChunks = new Set<Chunk | External>([chunk, lastChunk]);
 			if (
-				lastChunk.postVisit(dep => {
+				lastChunk.postVisitChunkDependencies(dep => {
 					if (dep === chunk || dep === lastChunk) {
 						return false;
 					}
-					if (chunkDependencies.indexOf(dep) !== -1) {
+					if (chunkDependencies.has(dep)) {
 						return false;
 					}
 					if (dep instanceof ExternalModule) {
 						return true;
 					}
-					remainingSize -= getChunkSize(dep);
+					remainingSize -= dep.getRenderedSourceLength();
 					if (remainingSize <= 0) {
 						return true;
 					}
-					countedChunks.push(dep);
+					ignoreSizeChunks.add(dep);
 				})
 			) {
 				if (!isMergeCandidate(chunk)) {
@@ -103,14 +95,14 @@ export function optimizeChunks(
 			}
 
 			if (
-				chunk.postVisit(dep => {
-					if (countedChunks.indexOf(dep) !== -1) {
+				chunk.postVisitChunkDependencies(dep => {
+					if (ignoreSizeChunks.has(dep)) {
 						return false;
 					}
 					if (dep instanceof ExternalModule) {
 						return true;
 					}
-					remainingSize -= getChunkSize(dep);
+					remainingSize -= dep.getRenderedSourceLength();
 					if (remainingSize <= 0) {
 						return true;
 					}
@@ -124,20 +116,21 @@ export function optimizeChunks(
 
 			// within the size limit -> merge!
 			const optimizedChunkIndex = chunks.indexOf(chunk);
-			if (optimizedChunkIndex <= i) i--;
+			if (optimizedChunkIndex <= chunkIndex) chunkIndex--;
 			chunks.splice(optimizedChunkIndex, 1);
 
 			lastChunk.merge(chunk, chunks, options);
 
-			execGroup.splice(--j, 1);
+			execGroup.splice(--execGroupIndex, 1);
 
 			chunk = lastChunk;
-			chunkSize.set(chunk, CHUNK_GROUPING_SIZE - remainingSize);
 			// keep going to see if we can merge this with the next again
 			if (nextChunk && !isMergeCandidate(nextChunk)) {
 				seekingFirstMergeCandidate = true;
 			}
-		} while (((lastChunk = chunk), (chunk = nextChunk), (nextChunk = execGroup[++j]), chunk));
+		} while (
+			((lastChunk = chunk), (chunk = nextChunk), (nextChunk = execGroup[++execGroupIndex]), chunk)
+		);
 	}
 
 	return chunks;

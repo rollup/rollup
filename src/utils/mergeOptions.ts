@@ -205,7 +205,7 @@ function getInputOptions(
 		external: getExternal(config, command),
 		input: getOption('input'),
 		manualChunks: getOption('manualChunks'),
-		chunkGroupingSize: getOption('chunkGroupingSize'),
+		chunkGroupingSize: getOption('chunkGroupingSize', 5000),
 		optimizeChunks: getOption('optimizeChunks'),
 		moduleContext: config.moduleContext,
 		onwarn: getOnWarn(config, command, defaultOnWarnHandler),

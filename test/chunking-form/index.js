@@ -29,7 +29,6 @@ describe('chunking form', () => {
 					input: [samples + '/' + dir + '/main.js'],
 					experimentalCodeSplitting: true,
 					experimentalDynamicImport: true,
-					optimizeChunks: false,
 					onwarn: msg => {
 						if (/No name was provided for/.test(msg)) return;
 						if (/as external dependency/.test(msg)) return;

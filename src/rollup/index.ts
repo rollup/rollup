@@ -336,11 +336,14 @@ export default function rollup(
 										for (let chunk of chunks) {
 											chunk.preRender(outputOptions);
 										}
-										if (
-											!optimized &&
-											!inputOptions.experimentalPreserveModules &&
-											inputOptions.optimizeChunks
-										) {
+										if (!optimized && inputOptions.optimizeChunks) {
+											if (inputOptions.experimentalPreserveModules) {
+												error({
+													code: 'INVALID_OPTION',
+													message:
+														'experimentalPreserveModules does not support the optimizeChunks option.'
+												});
+											}
 											optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize);
 											optimized = true;
 										}
