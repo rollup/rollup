@@ -54,8 +54,8 @@
   "dependencies": {
     "@types/estree": "0.0.38",
     "@types/node": "*",
-    "@webassemblyjs/ast": "^1.2.2",
-    "@webassemblyjs/wasm-parser": "^1.2.2"
+    "@webassemblyjs/ast": "^1.2.5",
+    "@webassemblyjs/wasm-parser": "^1.2.5"
   },
   "devDependencies": {
     "acorn": "^5.5.3",
