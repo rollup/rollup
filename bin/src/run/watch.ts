@@ -41,7 +41,7 @@ export default function watch(
 
 	const initialConfigs = processConfigs(configs);
 
-	const clearScreen = initialConfigs.some(config => config.watch.clearScreen);
+	const clearScreen = initialConfigs.every(config => config.watch.clearScreen !== false);
 
 	const screen = alternateScreen(isTTY && clearScreen);
 	screen.open();
@@ -61,8 +61,9 @@ export default function watch(
 				output: merged.outputOptions
 			});
 
+			if (!result.watch) result.watch = {};
+
 			if (merged.deprecations.length) {
-				if (!result.watch) result.watch = {};
 				(<{ _deprecations: any }>result.watch)._deprecations = merged.deprecations;
 			}
 
