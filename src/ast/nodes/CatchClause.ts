@@ -11,6 +11,7 @@ export default class CatchClause extends NodeBase {
 	body: BlockStatement;
 
 	scope: CatchScope;
+	preventChildBlockScope: true;
 
 	createScope(parentScope: Scope) {
 		this.scope = new CatchScope({ parent: parentScope });
@@ -21,14 +22,14 @@ export default class CatchClause extends NodeBase {
 		this.param.declare('parameter', null);
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode, nodeConstructors: { [p: string]: typeof NodeBase }) {
-		this.body = <BlockStatement>new nodeConstructors.BlockStatement(
+	parseNode(esTreeNode: GenericEsTreeNode) {
+		this.body = <BlockStatement>new this.context.nodeConstructors.BlockStatement(
 			esTreeNode.body,
-			nodeConstructors,
 			this,
-			this.scope,
-			true
+			this.scope
 		);
-		super.parseNode(esTreeNode, nodeConstructors);
+		super.parseNode(esTreeNode);
 	}
 }
+
+CatchClause.prototype.preventChildBlockScope = true;

@@ -16,6 +16,7 @@ export default class FunctionNode extends NodeBase {
 	params: PatternNode[];
 
 	scope: BlockScope;
+	preventChildBlockScope: true;
 
 	bind() {
 		super.bind();
@@ -90,15 +91,13 @@ export default class FunctionNode extends NodeBase {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode, nodeConstructors: { [p: string]: typeof NodeBase }) {
-		this.body = <BlockStatement>new nodeConstructors.BlockStatement(
+	parseNode(esTreeNode: GenericEsTreeNode) {
+		this.body = <BlockStatement>new this.context.nodeConstructors.BlockStatement(
 			esTreeNode.body,
-			nodeConstructors,
 			this,
-			new Scope({ parent: this.scope }),
-			true
+			new Scope({ parent: this.scope })
 		);
-		super.parseNode(esTreeNode, nodeConstructors);
+		super.parseNode(esTreeNode);
 	}
 
 	someReturnExpressionWhenCalledAtPath(
@@ -113,3 +112,5 @@ export default class FunctionNode extends NodeBase {
 		);
 	}
 }
+
+FunctionNode.prototype.preventChildBlockScope = true;

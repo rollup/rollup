@@ -2,10 +2,6 @@ import Variable from './Variable';
 import Identifier from '../nodes/Identifier';
 import ExternalModule from '../../ExternalModule';
 
-export function isExternalVariable(variable: Variable): variable is ExternalVariable {
-	return variable.isExternal;
-}
-
 export default class ExternalVariable extends Variable {
 	module: ExternalModule;
 	isExternal: true;

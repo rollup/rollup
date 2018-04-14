@@ -1,7 +1,7 @@
 import { locate } from 'locate-character';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import Scope from '../../scopes/Scope';
-import Module from '../../../Module';
+import { AstContext } from '../../../Module';
 import MagicString from 'magic-string';
 import Variable from '../../variables/Variable';
 import {
@@ -24,11 +24,12 @@ export interface Node extends Entity {
 	end: number;
 	included: boolean;
 	keys: string[];
-	module: Module;
-	needsBoundaries?: boolean;
+	context: AstContext;
 	parent: Node | { type?: string };
 	start: number;
 	type: string;
+	needsBoundaries?: boolean;
+	preventChildBlockScope?: boolean;
 	variable?: Variable | null;
 
 	/**
@@ -84,26 +85,24 @@ export class NodeBase implements ExpressionNode {
 	scope: Scope;
 	start: number;
 	end: number;
-	module: Module;
-	parent: Node | { type: string; module: Module };
+	context: AstContext;
+	parent: Node | { type: string; context: AstContext };
 	included: boolean;
 
 	constructor(
 		esTreeNode: GenericEsTreeNode,
 		// we need to pass down the node constructors to avoid a circular dependency
-		nodeConstructors: { [p: string]: typeof NodeBase },
-		parent: Node | { type: string; module: Module },
-		parentScope: Scope,
-		preventNewScope: boolean
+		parent: Node | { type: string; context: AstContext },
+		parentScope: Scope
 	) {
 		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
 		this.parent = parent;
-		this.module = parent.module;
-		this.createScope(parentScope, preventNewScope);
-		this.parseNode(esTreeNode, nodeConstructors);
+		this.context = parent.context;
+		this.createScope(parentScope);
+		this.parseNode(esTreeNode);
 		this.initialise();
-		this.module.magicString.addSourcemapLocation(this.start);
-		this.module.magicString.addSourcemapLocation(this.end);
+		this.context.magicString.addSourcemapLocation(this.start);
+		this.context.magicString.addSourcemapLocation(this.end);
 	}
 
 	/**
@@ -127,25 +126,11 @@ export class NodeBase implements ExpressionNode {
 	/**
 	 * Override if this node should receive a different scope than the parent scope.
 	 */
-	createScope(parentScope: Scope, _preventNewScope: boolean) {
+	createScope(parentScope: Scope) {
 		this.scope = parentScope;
 	}
 
 	declare(_kind: string, _init: ExpressionEntity | null) {}
-
-	eachChild(callback: (node: Node) => void) {
-		for (const key of this.keys) {
-			const value = (<GenericEsTreeNode>this)[key];
-			if (value === null) continue;
-			if (Array.isArray(value)) {
-				for (const child of value) {
-					if (child !== null) callback(child);
-				}
-			} else {
-				callback(value);
-			}
-		}
-	}
 
 	forEachReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
@@ -221,14 +206,14 @@ export class NodeBase implements ExpressionNode {
 
 	locate() {
 		// useful for debugging
-		const location = locate(this.module.code, this.start, { offsetLine: 1 });
-		location.file = this.module.id;
+		const location = locate(this.context.code, this.start, { offsetLine: 1 });
+		location.file = this.context.fileName;
 		location.toString = () => JSON.stringify(location);
 
 		return location;
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode, nodeConstructors: { [p: string]: typeof NodeBase }) {
+	parseNode(esTreeNode: GenericEsTreeNode) {
 		for (const key of Object.keys(esTreeNode)) {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
 			if (this.hasOwnProperty(key)) continue;
@@ -239,19 +224,15 @@ export class NodeBase implements ExpressionNode {
 				(<GenericEsTreeNode>this)[key] = [];
 				for (const child of value) {
 					(<GenericEsTreeNode>this)[key].push(
-						child &&
-							new (nodeConstructors[child.type] || nodeConstructors.UnknownNode)(
-								child,
-								nodeConstructors,
-								this,
-								this.scope,
-								false
-							)
+						child === null
+							? null
+							: new (this.context.nodeConstructors[child.type] ||
+									this.context.nodeConstructors.UnknownNode)(child, this, this.scope)
 					);
 				}
 			} else {
-				(<GenericEsTreeNode>this)[key] = new (nodeConstructors[value.type] ||
-					nodeConstructors.UnknownNode)(value, nodeConstructors, this, this.scope, false);
+				(<GenericEsTreeNode>this)[key] = new (this.context.nodeConstructors[value.type] ||
+					this.context.nodeConstructors.UnknownNode)(value, this, this.scope);
 			}
 		}
 	}
@@ -286,7 +267,7 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	toString() {
-		return this.module.code.slice(this.start, this.end);
+		return this.context.code.slice(this.start, this.end);
 	}
 }
 

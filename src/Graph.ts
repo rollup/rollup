@@ -60,7 +60,6 @@ export default class Graph {
 	scope: GlobalScope;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
-	needsTreeshakingPass: boolean = false;
 
 	// deprecated
 	treeshake: boolean;
@@ -234,13 +233,18 @@ export default class Graph {
 
 	includeMarked(modules: Module[]) {
 		if (this.treeshake) {
-			let treeshakingPass = 1;
+			let needsTreeshakingPass,
+				treeshakingPass = 1;
 			do {
 				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
-				this.needsTreeshakingPass = false;
-				for (let module of modules) module.include();
+				needsTreeshakingPass = false;
+				for (let module of modules) {
+					if (module.include()) {
+						needsTreeshakingPass = true;
+					}
+				}
 				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
-			} while (this.needsTreeshakingPass);
+			} while (needsTreeshakingPass);
 		} else {
 			// Necessary to properly replace namespace imports
 			for (const module of modules) module.includeAllInBundle();
@@ -273,7 +277,7 @@ export default class Graph {
 			for (const dynamicImportModule of dynamicImports) {
 				if (entryModule !== dynamicImportModule) dynamicImportModule.markExports();
 				// all dynamic import modules inlined for single-file build
-				dynamicImportModule.namespace().include();
+				dynamicImportModule.getAndCreateNamespace().include();
 			}
 
 			// only include statements that should appear in the bundle

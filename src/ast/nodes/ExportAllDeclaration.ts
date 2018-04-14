@@ -13,7 +13,7 @@ export default class ExportAllDeclaration extends NodeBase {
 
 	initialise() {
 		this.included = false;
-		this.module.addExport(this);
+		this.context.addExport(this);
 	}
 
 	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {

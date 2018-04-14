@@ -13,7 +13,7 @@ export default class ExpressionStatement extends StatementBase {
 			this.directive !== 'use strict' &&
 			this.parent.type === NodeType.Program
 		) {
-			this.module.warn(
+			this.context.warn(
 				// This is necessary, because either way (deleting or not) can lead to errors.
 				{
 					code: 'MODULE_LEVEL_DIRECTIVE',

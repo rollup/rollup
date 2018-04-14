@@ -19,7 +19,7 @@ export default class ImportDeclaration extends NodeBase {
 
 	initialise() {
 		this.included = false;
-		this.module.addImport(this);
+		this.context.addImport(this);
 	}
 
 	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {

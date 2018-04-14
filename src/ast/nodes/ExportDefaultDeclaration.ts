@@ -64,10 +64,10 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				(<FunctionDeclaration | ClassDeclaration>this.declaration).id.name) ||
 			(<Identifier>this.declaration).name;
 		this.variable = this.scope.addExportDefaultDeclaration(
-			this.declarationName || this.module.basename(),
+			this.declarationName || this.context.getModuleName(),
 			this
 		);
-		this.module.addExport(this);
+		this.context.addExport(this);
 	}
 
 	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
@@ -155,7 +155,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		code.overwrite(
 			this.start,
 			declarationStart,
-			`${this.module.graph.varOrConst} ${this.variable.getName()} = ${systemBinding}`
+			`${this.context.varOrConst} ${this.variable.getName()} = ${systemBinding}`
 		);
 		if (systemBinding) {
 			code.appendRight(code.original[this.end - 1] === ';' ? this.end - 1 : this.end, ')');

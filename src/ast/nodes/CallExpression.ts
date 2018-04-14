@@ -3,7 +3,6 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import SpreadElement from './SpreadElement';
 import { isIdentifier } from './Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { isNamespaceVariable } from '../variables/NamespaceVariable';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { ObjectPath } from '../values';
@@ -20,8 +19,8 @@ export default class CallExpression extends NodeBase {
 		if (isIdentifier(this.callee)) {
 			const variable = this.scope.findVariable(this.callee.name);
 
-			if (isNamespaceVariable(variable)) {
-				this.module.error(
+			if (variable.isNamespace) {
+				this.context.error(
 					{
 						code: 'CANNOT_CALL_NAMESPACE',
 						message: `Cannot call a namespace ('${this.callee.name}')`
@@ -31,7 +30,7 @@ export default class CallExpression extends NodeBase {
 			}
 
 			if (this.callee.name === 'eval') {
-				this.module.warn(
+				this.context.warn(
 					{
 						code: 'EVAL',
 						message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,

@@ -17,7 +17,7 @@ export default class Import extends NodeBase {
 		this.resolutionNamespace = undefined;
 		this.resolutionInterop = false;
 		this.rendered = false;
-		this.module.addDynamicImport(this);
+		this.context.addDynamicImport(this);
 	}
 
 	renderFinalResolution(code: MagicString, resolution: string) {

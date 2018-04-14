@@ -86,7 +86,7 @@ export default class SequenceExpression extends NodeBase {
 		options: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
-		if (!this.module.graph.treeshake) {
+		if (!this.context.treeshake) {
 			super.render(code, options);
 		} else {
 			let firstStart = 0,

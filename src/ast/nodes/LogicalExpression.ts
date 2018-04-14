@@ -121,7 +121,7 @@ export default class LogicalExpression extends NodeBase {
 		options: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
-		if (!this.module.graph.treeshake || (this.left.included && this.right.included)) {
+		if (!this.context.treeshake || (this.left.included && this.right.included)) {
 			super.render(code, options);
 		} else {
 			const branchToRetain = this.left.included ? this.left : this.right;

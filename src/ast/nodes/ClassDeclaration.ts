@@ -2,7 +2,7 @@ import ClassNode from './shared/ClassNode';
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { GenericEsTreeNode, Node, NodeBase } from './shared/Node';
+import { GenericEsTreeNode, Node } from './shared/Node';
 import { RenderOptions } from '../../utils/renderHelpers';
 import Scope from '../scopes/Scope';
 
@@ -21,17 +21,15 @@ export default class ClassDeclaration extends ClassNode {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode, nodeConstructors: { [p: string]: typeof NodeBase }) {
+	parseNode(esTreeNode: GenericEsTreeNode) {
 		if (esTreeNode.id !== null) {
-			this.id = <Identifier>new nodeConstructors.Identifier(
+			this.id = <Identifier>new this.context.nodeConstructors.Identifier(
 				esTreeNode.id,
-				nodeConstructors,
 				this,
-				<Scope>this.scope.parent,
-				false
+				<Scope>this.scope.parent
 			);
 		}
-		super.parseNode(esTreeNode, nodeConstructors);
+		super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions) {

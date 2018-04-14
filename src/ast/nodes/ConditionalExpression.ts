@@ -116,7 +116,7 @@ export default class ConditionalExpression extends NodeBase {
 		options: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
-		if (!this.module.graph.treeshake || this.test.included) {
+		if (!this.context.treeshake || this.test.included) {
 			super.render(code, options);
 		} else {
 			const branchToRetain = this.consequent.included ? this.consequent : this.alternate;

@@ -47,7 +47,7 @@ export default class IfStatement extends StatementBase {
 	render(code: MagicString, options: RenderOptions) {
 		const testValue = this.test.getValue();
 		if (
-			!this.module.graph.treeshake ||
+			!this.context.treeshake ||
 			this.test.included ||
 			(testValue ? this.alternate !== null && this.alternate.included : this.consequent.included)
 		) {

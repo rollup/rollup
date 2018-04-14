@@ -1,6 +1,6 @@
 import FunctionNode from './shared/FunctionNode';
 import { NodeType } from './NodeType';
-import { GenericEsTreeNode, Node, NodeBase } from './shared/Node';
+import { GenericEsTreeNode, Node } from './shared/Node';
 import Identifier from './Identifier';
 
 export function isFunctionDeclaration(node: Node): node is FunctionDeclaration {
@@ -17,16 +17,14 @@ export default class FunctionDeclaration extends FunctionNode {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode, nodeConstructors: { [p: string]: typeof NodeBase }) {
+	parseNode(esTreeNode: GenericEsTreeNode) {
 		if (esTreeNode.id !== null) {
-			this.id = <Identifier>new nodeConstructors.Identifier(
+			this.id = <Identifier>new this.context.nodeConstructors.Identifier(
 				esTreeNode.id,
-				nodeConstructors,
 				this,
-				this.scope.parent,
-				false
+				this.scope.parent
 			);
 		}
-		super.parseNode(esTreeNode, nodeConstructors);
+		super.parseNode(esTreeNode);
 	}
 }

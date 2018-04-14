@@ -6,8 +6,8 @@ import { isLiteral } from './Literal';
 import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
 import Identifier, { isIdentifier } from './Identifier';
-import { isNamespaceVariable } from '../variables/NamespaceVariable';
-import { isExternalVariable } from '../variables/ExternalVariable';
+import NamespaceVariable from '../variables/NamespaceVariable';
+import ExternalVariable from '../variables/ExternalVariable';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
@@ -74,15 +74,15 @@ export default class MemberExpression extends NodeBase {
 		this.bound = true;
 		const path = getPathIfNotComputed(this);
 		const baseVariable = path && this.scope.findVariable(path[0].key);
-		if (baseVariable && isNamespaceVariable(baseVariable)) {
+		if (baseVariable && baseVariable.isNamespace) {
 			const resolvedVariable = this.resolveNamespaceVariables(baseVariable, path.slice(1));
 			if (!resolvedVariable) {
 				super.bind();
 			} else if (typeof resolvedVariable === 'string') {
 				this.replacement = resolvedVariable;
 			} else {
-				if (isExternalVariable(resolvedVariable) && resolvedVariable.module) {
-					resolvedVariable.module.suggestName(path[0].key);
+				if (resolvedVariable.isExternal && (<ExternalVariable>resolvedVariable).module) {
+					(<ExternalVariable>resolvedVariable).module.suggestName(path[0].key);
 				}
 				this.variable = resolvedVariable;
 			}
@@ -154,7 +154,7 @@ export default class MemberExpression extends NodeBase {
 			this.included = true;
 			if (this.variable !== null && !this.variable.included) {
 				this.variable.include();
-				this.module.graph.needsTreeshakingPass = true;
+				this.context.requestTreeshakingPass();
 			}
 		}
 		this.object.include();
@@ -165,8 +165,7 @@ export default class MemberExpression extends NodeBase {
 		this.included = false;
 		this.propertyKey = getPropertyKey(this);
 		this.variable = null;
-		this.arePropertyReadSideEffectsChecked =
-			this.module.graph.treeshake && this.module.graph.treeshakingOptions.propertyReadSideEffects;
+		this.arePropertyReadSideEffectsChecked = this.context.propertyReadSideEffects;
 		this.bound = false;
 		this.replacement = null;
 	}
@@ -229,11 +228,8 @@ export default class MemberExpression extends NodeBase {
 	}
 
 	private disallowNamespaceReassignment() {
-		if (
-			isIdentifier(this.object) &&
-			isNamespaceVariable(this.scope.findVariable(this.object.name))
-		) {
-			this.module.error(
+		if (isIdentifier(this.object) && this.scope.findVariable(this.object.name).isNamespace) {
+			this.context.error(
 				{
 					code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
 					message: `Illegal reassignment to import '${this.object.name}'`
@@ -248,17 +244,22 @@ export default class MemberExpression extends NodeBase {
 		path: PathWithPositions
 	): Variable | string | null {
 		if (path.length === 0) return baseVariable;
-		if (!isNamespaceVariable(baseVariable)) return null;
+		if (!baseVariable.isNamespace) return null;
 		const exportName = path[0].key;
-		const variable = baseVariable.module.traceExport(exportName);
+		const variable = baseVariable.isExternal
+			? (<ExternalVariable>baseVariable).module.traceExport(exportName)
+			: (<NamespaceVariable>baseVariable).context.traceExport(exportName);
 		if (!variable) {
-			this.module.warn(
+			const fileName = baseVariable.isExternal
+				? (<ExternalVariable>baseVariable).module.id
+				: (<NamespaceVariable>baseVariable).context.fileName;
+			this.context.warn(
 				{
 					code: 'MISSING_EXPORT',
 					missing: exportName,
-					importer: relativeId(this.module.id),
-					exporter: relativeId(baseVariable.module.id),
-					message: `'${exportName}' is not exported by '${relativeId(baseVariable.module.id)}'`,
+					importer: relativeId(this.context.fileName),
+					exporter: relativeId(fileName),
+					message: `'${exportName}' is not exported by '${relativeId(fileName)}'`,
 					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
 				},
 				path[0].pos

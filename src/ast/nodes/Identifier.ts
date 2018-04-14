@@ -93,7 +93,7 @@ export default class Identifier extends NodeBase {
 			this.included = true;
 			if (this.variable !== null && !this.variable.included) {
 				this.variable.include();
-				this.module.graph.needsTreeshakingPass = true;
+				this.context.requestTreeshakingPass();
 			}
 		}
 	}
@@ -112,7 +112,7 @@ export default class Identifier extends NodeBase {
 		if (this.variable !== null) {
 			if (
 				path.length === 0 &&
-				this.name in this.module.imports &&
+				this.name in this.context.imports &&
 				!this.scope.contains(this.name)
 			) {
 				this.disallowImportReassignment();
@@ -170,7 +170,7 @@ export default class Identifier extends NodeBase {
 	}
 
 	private disallowImportReassignment() {
-		this.module.error(
+		this.context.error(
 			{
 				code: 'ILLEGAL_REASSIGNMENT',
 				message: `Illegal reassignment to import '${this.name}'`

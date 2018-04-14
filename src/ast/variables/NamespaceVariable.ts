@@ -1,16 +1,12 @@
 import Variable from './Variable';
 import { reservedWords } from '../../utils/identifierHelpers';
 import Identifier from '../nodes/Identifier';
-import Module from '../../Module';
+import { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
-
-export function isNamespaceVariable(variable: Variable): variable is NamespaceVariable {
-	return variable.isNamespace;
-}
 
 export default class NamespaceVariable extends Variable {
 	isNamespace: true;
-	module: Module;
+	context: AstContext;
 
 	// Not initialised during construction
 	originals: { [name: string]: Variable } = Object.create(null);
@@ -18,11 +14,11 @@ export default class NamespaceVariable extends Variable {
 	private referencedEarly: boolean = false;
 	private references: Identifier[] = [];
 
-	constructor(module: Module) {
-		super(module.basename());
-		this.module = module;
-		for (const name of this.module.getExports().concat(module.getReexports())) {
-			this.originals[name] = this.module.traceExport(name);
+	constructor(context: AstContext) {
+		super(context.getModuleName());
+		this.context = context;
+		for (const name of this.context.getExports().concat(this.context.getReexports())) {
+			this.originals[name] = this.context.traceExport(name);
 		}
 	}
 
@@ -36,7 +32,7 @@ export default class NamespaceVariable extends Variable {
 			this.included = true;
 			this.needsNamespaceBlock = true;
 			for (const identifier of this.references) {
-				if (identifier.module.execIndex <= this.module.execIndex) {
+				if (identifier.context.getModuleExecIndex() <= this.context.getModuleExecIndex()) {
 					this.referencedEarly = true;
 					break;
 				}
@@ -67,7 +63,7 @@ export default class NamespaceVariable extends Variable {
 			? `/*#__PURE__*/${options.legacy ? `(Object.freeze || Object)` : `Object.freeze`}`
 			: '';
 
-		let output = `${this.module.graph.varOrConst} ${name} = ${
+		let output = `${this.context.varOrConst} ${name} = ${
 			options.namespaceToStringTag
 				? `{\n${members.join(',\n')}\n};`
 				: `${callee}({\n${members.join(',\n')}\n});`

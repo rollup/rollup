@@ -15,6 +15,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 	params: PatternNode[];
 
 	scope: ReturnValueScope;
+	preventChildBlockScope: true;
 
 	bind() {
 		super.bind();
@@ -70,17 +71,15 @@ export default class ArrowFunctionExpression extends NodeBase {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode, nodeConstructors: { [p: string]: typeof NodeBase }) {
+	parseNode(esTreeNode: GenericEsTreeNode) {
 		if (esTreeNode.body.type === NodeType.BlockStatement) {
-			this.body = new nodeConstructors.BlockStatement(
+			this.body = new this.context.nodeConstructors.BlockStatement(
 				esTreeNode.body,
-				nodeConstructors,
 				this,
-				new Scope({ parent: this.scope }),
-				true
+				new Scope({ parent: this.scope })
 			);
 		}
-		super.parseNode(esTreeNode, nodeConstructors);
+		super.parseNode(esTreeNode);
 	}
 
 	someReturnExpressionWhenCalledAtPath(
@@ -95,3 +94,5 @@ export default class ArrowFunctionExpression extends NodeBase {
 		);
 	}
 }
+
+ArrowFunctionExpression.prototype.preventChildBlockScope = true;

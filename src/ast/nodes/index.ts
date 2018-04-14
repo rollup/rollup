@@ -57,7 +57,7 @@ import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
 import { NodeBase, StatementBase } from './shared/Node';
 
-const nodes: {
+export const nodeConstructors: {
 	[name: string]: typeof NodeBase;
 } = {
 	ArrayExpression,
@@ -119,5 +119,3 @@ const nodes: {
 	WhileStatement,
 	YieldExpression
 };
-
-export default nodes;
