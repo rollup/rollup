@@ -34,13 +34,13 @@ export type ResolveDynamicImportHandler = (
 ) => Promise<string | void>;
 
 export default class Graph {
-	curChunkIndex: number;
+	curChunkIndex = 0;
 	acornOptions: acorn.Options;
 	acornParse: acorn.IParse;
 	cachedModules: Map<string, ModuleJSON>;
 	context: string;
 	dynamicImport: boolean;
-	externalModules: ExternalModule[];
+	externalModules: ExternalModule[] = [];
 	getModuleContext: (id: string) => string;
 	hasLoaders: boolean;
 	isExternal: IsExternalHook;
@@ -52,8 +52,8 @@ export default class Graph {
 		importedModule: string,
 		importerStart?: number
 	) => void;
-	moduleById: Map<string, Module | ExternalModule>;
-	modules: Module[];
+	moduleById = new Map<string, Module | ExternalModule>();
+	modules: Module[] = [];
 	onwarn: WarningHandler;
 	plugins: Plugin[];
 	resolveDynamicImport: ResolveDynamicImportHandler;
@@ -143,10 +143,6 @@ export default class Graph {
 		for (const name of ['module', 'exports', '_interopDefault']) {
 			this.scope.findVariable(name); // creates global variable as side-effect
 		}
-
-		this.moduleById = new Map();
-		this.modules = [];
-		this.externalModules = [];
 
 		this.context = String(options.context);
 

@@ -20,7 +20,7 @@ function mkdirpath(path: string) {
 }
 
 export function writeFile(dest: string, data: string | Buffer) {
-	return new Promise((fulfil, reject) => {
+	return new Promise<void>((fulfil, reject) => {
 		mkdirpath(dest);
 
 		fs.writeFile(dest, data, err => {

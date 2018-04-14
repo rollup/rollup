@@ -1,7 +1,6 @@
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
-import { basename, resolve, dirname } from '../utils/path';
+import { basename, resolve, dirname, relative } from '../utils/path';
 import { writeFile } from '../utils/fs';
-import { mapSequence } from '../utils/promise';
 import error from '../utils/error';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
@@ -71,6 +70,7 @@ const throwAsyncGenerateError = {
 };
 
 export interface OutputChunk {
+	name: string;
 	imports: string[];
 	exports: string[];
 	modules: string[];
@@ -123,9 +123,7 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	return inputOptions.plugins.reduce(applyOptionHook, inputOptions);
 }
 
-export default function rollup(
-	rawInputOptions: GenericConfigObject | InputOptions
-): Promise<Bundle | BundleSet> {
+export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bundle | BundleSet> {
 	try {
 		const inputOptions = getInputOptions(rawInputOptions);
 		initialiseTimers(inputOptions);
@@ -163,10 +161,7 @@ export default function rollup(
 
 					timeStart('GENERATE', 1);
 
-					const promise = Promise.resolve()
-						.then(() => {
-							return createAddons(graph, outputOptions);
-						})
+					return createAddons(graph, outputOptions)
 						.then(addons => {
 							chunk.generateInternalExports(outputOptions);
 							const inputBase = dirname(resolve(inputOptions.input));
@@ -179,6 +174,7 @@ export default function rollup(
 							timeEnd('GENERATE', 1);
 
 							const output = {
+								name: relative(process.cwd(), resolve(outputOptions.file || inputOptions.input)),
 								imports,
 								exports,
 								modules: chunk.getModuleIds(),
@@ -186,27 +182,14 @@ export default function rollup(
 								map: rendered.map
 							};
 
-							graph.plugins.forEach(plugin => {
-								if (plugin.ongenerate) {
-									plugin.ongenerate(
-										Object.assign(
-											{
-												bundle: result
-											},
-											outputOptions
-										),
-										output
-									);
-								}
-							});
-
-							return output;
+							return Promise.all(
+								graph.plugins
+									.filter(plugin => plugin.ongenerate)
+									.map(plugin =>
+										plugin.ongenerate(Object.assign({ bundle: result }, outputOptions), output)
+									)
+							).then(() => output);
 						});
-
-					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
-					Object.defineProperty(promise, 'map', throwAsyncGenerateError);
-
-					return promise;
 				}
 
 				const result: Bundle = {
@@ -214,9 +197,8 @@ export default function rollup(
 					exports,
 					modules,
 
-					cache: { modules },
-
-					generate,
+					cache: graph.getCache(),
+					generate: wrapGeneratePromise(generate),
 					write: (outputOptions: OutputOptions) => {
 						if (!outputOptions || (!outputOptions.file && !outputOptions.dest)) {
 							error({
@@ -224,54 +206,15 @@ export default function rollup(
 								message: 'You must specify output.file when doing a single-file input build'
 							});
 						}
-
 						return generate(outputOptions).then(result => {
-							const file = outputOptions.file;
-							let { code, map } = result;
-
-							const promises = [];
-
-							if (outputOptions.sourcemap) {
-								let url;
-
-								if (outputOptions.sourcemap === 'inline') {
-									url = map.toUrl();
-								} else {
-									url = `${basename(file)}.map`;
-									promises.push(writeFile(file + '.map', map.toString()));
-								}
-
-								code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
-							}
-
-							promises.push(writeFile(file, code));
-							return (
-								Promise.all(promises)
-									.then(() =>
-										mapSequence(graph.plugins.filter(plugin => plugin.onwrite), (plugin: Plugin) =>
-											Promise.resolve(
-												plugin.onwrite(
-													Object.assign(
-														{
-															bundle: result
-														},
-														outputOptions
-													),
-													result
-												)
-											)
-										)
-									)
-									// ensures return isn't void[]
-									.then(() => result)
+							return writeChunk(outputOptions.file, result, outputOptions, graph.plugins).then(
+								() => result
 							);
 						});
 					}
 				};
 
-				if (inputOptions.perf === true) {
-					result.getTimings = getTimings;
-				}
+				if (inputOptions.perf === true) result.getTimings = getTimings;
 				return result;
 			});
 		}
@@ -308,13 +251,12 @@ export default function rollup(
 							message: 'When code-splitting, the "dir" output option must be used, not "file".'
 						});
 
-					if (outputOptions.format === 'umd' || outputOptions.format === 'iife') {
+					if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
 						error({
 							code: 'INVALID_OPTION',
 							message:
 								'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
 						});
-					}
 
 					if (outputOptions.sourcemapFile)
 						error({
@@ -324,18 +266,18 @@ export default function rollup(
 
 					timeStart('GENERATE', 1);
 
-					const generated: { [chunkName: string]: OutputChunk } = {};
+					const generated: Record<string, OutputChunk> = {};
 
 					const inputBase = commondir(
 						chunks.filter(chunk => chunk.entryModule).map(chunk => chunk.entryModule.id)
 					);
 					let existingNames = Object.create(null);
 
-					const promise = createAddons(graph, outputOptions)
-						.then(addons => {
+					return (
+						createAddons(graph, outputOptions)
 							// first pre-render all chunks
 							// then name all chunks
-							return (
+							.then(addons =>
 								Promise.resolve()
 									.then(() => {
 										for (let chunk of chunks) {
@@ -378,11 +320,12 @@ export default function rollup(
 										}
 									})
 									// second render chunks given known names
-									.then(() => {
-										return Promise.all(
+									.then(() =>
+										Promise.all(
 											chunks.map(chunk => {
 												return chunk.render(outputOptions, addons).then(rendered => {
 													const output = {
+														name: chunk.id,
 														imports: chunk.getImportIds(),
 														exports: chunk.getExportNames(),
 														modules: chunk.getModuleIds(),
@@ -391,33 +334,28 @@ export default function rollup(
 														map: rendered.map
 													};
 
-													graph.plugins.forEach(plugin => {
-														if (plugin.ongenerate) {
-															plugin.ongenerate(Object.assign(chunk, outputOptions), output);
-														}
+													return Promise.all(
+														graph.plugins
+															.filter(plugin => plugin.ongenerate)
+															.map(plugin => plugin.ongenerate(outputOptions, output))
+													).then(() => {
+														generated[chunk.id] = output;
 													});
-
-													generated[chunk.id] = output;
 												});
 											})
-										);
-									})
-							);
-						})
-						.then(() => {
-							timeEnd('GENERATE', 1);
-							return generated;
-						});
-
-					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
-					Object.defineProperty(promise, 'map', throwAsyncGenerateError);
-
-					return promise;
+										)
+									)
+							)
+							.then(() => {
+								timeEnd('GENERATE', 1);
+								return generated;
+							})
+					);
 				}
 
 				const result: BundleSet = {
 					cache: graph.getCache(),
-					generate,
+					generate: wrapGeneratePromise(generate),
 					write(outputOptions: OutputOptions) {
 						if (!outputOptions || !outputOptions.dir) {
 							error({
@@ -425,54 +363,69 @@ export default function rollup(
 								message: 'You must specify output.dir when code-splitting.'
 							});
 						}
-
 						return generate(outputOptions).then(result => {
-							const dir = outputOptions.dir;
-
 							return Promise.all(
-								Object.keys(result).map(chunkName => {
-									let chunk = result[chunkName];
-									let { code, map } = chunk;
-
-									const promises = [];
-
-									if (outputOptions.sourcemap) {
-										let url;
-
-										if (outputOptions.sourcemap === 'inline') {
-											url = (<any>map).toUrl();
-										} else {
-											url = `${chunkName}.map`;
-											promises.push(writeFile(dir + '/' + chunkName + '.map', map.toString()));
-										}
-
-										code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
-									}
-
-									promises.push(writeFile(dir + '/' + chunkName, code));
-									return Promise.all(promises).then(() => {
-										return mapSequence(
-											graph.plugins.filter(plugin => plugin.onwrite),
-											(plugin: Plugin) =>
-												Promise.resolve(
-													plugin.onwrite(Object.assign({ bundle: chunk }, outputOptions), chunk)
-												)
-										);
-									});
-								})
+								Object.keys(result).map(chunkName =>
+									writeChunk(
+										resolve(outputOptions.dir, chunkName),
+										result[chunkName],
+										outputOptions,
+										graph.plugins
+									)
+								)
 							).then(() => result);
 						});
 					}
 				};
-
-				if (inputOptions.perf === true) {
-					result.getTimings = getTimings;
-				}
+				if (inputOptions.perf === true) result.getTimings = getTimings;
 				return result;
 			});
 	} catch (err) {
 		return Promise.reject(err);
 	}
+}
+
+function wrapGeneratePromise<T = OutputChunk | Record<string, OutputChunk>>(
+	generate: (rawOutputOptions: GenericConfigObject) => Promise<T>
+) {
+	return (rawOutputOptions: GenericConfigObject) => {
+		const promise = generate(rawOutputOptions);
+		Object.defineProperty(promise, 'code', throwAsyncGenerateError);
+		Object.defineProperty(promise, 'map', throwAsyncGenerateError);
+		return promise;
+	};
+}
+
+function writeChunk(
+	filename: string,
+	chunk: OutputChunk,
+	outputOptions: OutputOptions,
+	plugins: Plugin[]
+): Promise<void> {
+	let { code, map } = chunk;
+
+	let writeSourceMapPromise: Promise<void>;
+	if (outputOptions.sourcemap) {
+		let url: string;
+		if (outputOptions.sourcemap === 'inline') {
+			url = map.toUrl();
+		} else {
+			url = `${basename(chunk.name)}.map`;
+			writeSourceMapPromise = writeFile(`${filename}.map`, map.toString());
+		}
+		code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
+	}
+
+	return writeFile(filename, code)
+		.then(() => writeSourceMapPromise)
+		.then(() => {
+			return Promise.all(
+				plugins
+					.filter(plugin => plugin.onwrite)
+					.map(plugin => plugin.onwrite(Object.assign({ bundle: chunk }, outputOptions), chunk))
+			);
+		})
+		.then(() => {});
 }
 
 function normalizeOutputOptions(

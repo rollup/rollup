@@ -64,44 +64,51 @@ export interface ModuleJSON {
 	resolvedIds: IdMap;
 }
 
-export type ResolveIdHook = (
-	id: string,
-	parent: string
-) => Promise<string | boolean | void> | string | boolean | void;
-
-export interface TransformContext {
-	parse: (input: string, options: any) => ESTree.Program;
+export interface PluginContext {
+	parse: IParse;
 	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
 	error(err: RollupError, pos?: { line: number; column: number }): void;
 }
 
+export type ResolveIdHook = (
+	this: PluginContext,
+	id: string,
+	parent: string
+) => Promise<string | boolean | void> | string | boolean | void;
 export type MissingExportHook = (
+	this: PluginContext,
 	exportName: string,
 	importingModule: string,
 	importedModule: string,
 	importerStart?: number
 ) => void;
 export type IsExternalHook = (
+	this: PluginContext,
 	id: string,
 	parentId: string,
 	isResolved: boolean
 ) => Promise<boolean | void> | boolean | void;
 export type LoadHook = (
+	this: PluginContext,
 	id: string
 ) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
 export type TransformHook = (
-	this: TransformContext,
+	this: PluginContext,
 	code: string,
 	id: String
 ) => Promise<SourceDescription | string | void>;
-export type TransformBundleHook = (
+export type TransformChunkHook = (
+	this: PluginContext,
 	code: string,
-	options: OutputOptions
-) => Promise<SourceDescription | string>;
+	options: OutputOptions,
+	chunk: OutputChunk
+) => Promise<{ code: string; map: RawSourceMap }>;
 export type ResolveDynamicImportHook = (
-	specifier: string | ESTree.Node,
+	this: PluginContext,
+	specifier: string | Node,
 	parentId: string
 ) => Promise<string | void> | string | void;
+export type AddonHook = (output: OutputChunk) => string | Promise<string>;
 
 export interface Plugin {
 	name: string;
@@ -110,16 +117,17 @@ export interface Plugin {
 	resolveId?: ResolveIdHook;
 	missingExport?: MissingExportHook;
 	transform?: TransformHook;
-	transformBundle?: TransformBundleHook;
-	ongenerate?: (options: OutputOptions, source: SourceDescription) => void;
-	onwrite?: (options: OutputOptions, source: SourceDescription) => void;
+	transformBundle?: TransformChunkHook;
+	transformChunk?: TransformChunkHook;
+	ongenerate?: (options: OutputOptions, chunk: OutputChunk) => void | Promise<void>;
+	onwrite?: (options: OutputOptions, chunk: OutputChunk) => void | Promise<void>;
 	resolveDynamicImport?: ResolveDynamicImportHook;
-
-	banner?: () => string;
-	footer?: () => string;
-	intro?: () => string;
-	outro?: () => string;
+	banner?: AddonHook;
+	footer?: AddonHook;
+	intro?: AddonHook;
+	outro?: AddonHook;
 }
+
 
 export interface TreeshakingOptions {
 	propertyReadSideEffects: boolean;

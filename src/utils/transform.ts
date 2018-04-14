@@ -11,10 +11,10 @@ import {
 	RollupWarning,
 	RollupError,
 	SourceDescription,
+	PluginContext,
 	RawSourceMap
 } from '../rollup/types';
 import Program from '../ast/nodes/Program';
-import { TransformContext } from '../rollup/types';
 
 export default function transform(
 	graph: Graph,
@@ -70,7 +70,7 @@ export default function transform(
 
 			let throwing;
 
-			const context: TransformContext = {
+			const context: PluginContext = {
 				parse(code: string, options: AcornOptions = {}) {
 					return graph.acornParse(
 						code,
