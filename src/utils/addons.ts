@@ -1,6 +1,5 @@
 import { runSequence } from './promise';
 import error from './error';
-import callIfFunction from './callIfFunction';
 import Graph from '../Graph';
 import { OutputOptions } from '../rollup/types';
 
@@ -39,34 +38,32 @@ function collectAddon(
 ) {
 	return runSequence(
 		[
-			{ pluginName: 'rollup', source: initialAddon } as {
+			{
+				pluginName: 'rollup',
+				source: initialAddon
+			} as {
 				pluginName: string;
 				source: string | (() => string);
 			}
 		]
 			.concat(
-				graph.plugins.map((plugin, idx) => {
-					return {
-						pluginName: plugin.name || `Plugin at pos ${idx}`,
-						source: plugin[addonName]
-					};
-				})
+				graph.plugins.map((plugin, idx) => ({
+					pluginName: plugin.name || `Plugin at pos ${idx}`,
+					source: plugin[addonName]
+				}))
 			)
-			.map(addon => {
-				addon.source = callIfFunction(addon.source);
-				return addon;
-			})
 			.filter(addon => {
+				if (typeof addon.source === 'function') addon.source = addon.source();
 				return addon.source;
 			})
 			.map(({ pluginName, source }) => {
-				return Promise.resolve(source).catch(err => {
+				return Promise.resolve(source).catch(err =>
 					error({
 						code: 'ADDON_ERROR',
 						message: `Could not retrieve ${addonName}. Check configuration of ${pluginName}.
-	Error Message: ${err.message}`
-					});
-				});
+Error Message: ${err.message}`
+					})
+				);
 			})
 	).then(addons => addons.filter(Boolean).join(sep));
 }
