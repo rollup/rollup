@@ -1,6 +1,6 @@
 import error from './error';
 import Chunk from '../Chunk';
-import { OutputOptions } from '../rollup/index';
+import { OutputOptions } from '../rollup/types';
 
 function badExports(option: string, keys: string[]) {
 	error({

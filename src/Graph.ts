@@ -2,7 +2,7 @@ import * as acorn from 'acorn';
 import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import { timeEnd, timeStart } from './utils/timers';
 import first from './utils/first';
-import Module, { IdMap, ModuleJSON } from './Module';
+import Module from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
 import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
@@ -19,10 +19,9 @@ import {
 	RollupWarning,
 	SourceDescription,
 	TreeshakingOptions,
-	WarningHandler
-} from './rollup/index';
-import { RawSourceMap } from 'source-map';
-import Program from './ast/nodes/Program';
+	WarningHandler,
+	ModuleJSON
+} from './rollup/types';
 import { Node } from './ast/nodes/shared/Node';
 import Chunk from './Chunk';
 import GlobalScope from './ast/scopes/GlobalScope';
@@ -664,55 +663,46 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 
 				return transform(this, sourceDescription, id, this.plugins);
 			})
-			.then(
-				(source: {
-					code: string;
-					originalCode: string;
-					originalSourcemap: RawSourceMap;
-					ast: Program;
-					sourcemapChain: RawSourceMap[];
-					resolvedIds?: IdMap;
-				}) => {
-					module.setSource(source);
+			.then((source: ModuleJSON) => {
+				module.setSource(source);
 
-					this.modules.push(module);
-					this.moduleById.set(id, module);
+				this.modules.push(module);
+				this.moduleById.set(id, module);
 
-					return this.fetchAllDependencies(module).then(() => {
-						for (const name in module.exports) {
-							if (name !== 'default') {
-								module.exportsAll[name] = module.id;
+				return this.fetchAllDependencies(module).then(() => {
+					for (const name in module.exports) {
+						if (name !== 'default') {
+							module.exportsAll[name] = module.id;
+						}
+					}
+					module.exportAllSources.forEach(source => {
+						const id = module.resolvedIds[source];
+						const exportAllModule = this.moduleById.get(id);
+						if (exportAllModule.isExternal) return;
+
+						for (const name in (<Module>exportAllModule).exportsAll) {
+							if (name in module.exportsAll) {
+								this.warn({
+									code: 'NAMESPACE_CONFLICT',
+									reexporter: module.id,
+									name,
+									sources: [module.exportsAll[name], (<Module>exportAllModule).exportsAll[name]],
+									message: `Conflicting namespaces: ${relativeId(
+										module.id
+									)} re-exports '${name}' from both ${relativeId(
+										module.exportsAll[name]
+									)} and ${relativeId(
+										(<Module>exportAllModule).exportsAll[name]
+									)} (will be ignored)`
+								});
+							} else {
+								module.exportsAll[name] = (<Module>exportAllModule).exportsAll[name];
 							}
 						}
-						module.exportAllSources.forEach(source => {
-							const id = module.resolvedIds[source];
-							const exportAllModule = this.moduleById.get(id);
-							if (exportAllModule.isExternal) return;
-
-							for (const name in (<Module>exportAllModule).exportsAll) {
-								if (name in module.exportsAll) {
-									this.warn({
-										code: 'NAMESPACE_CONFLICT',
-										reexporter: module.id,
-										name,
-										sources: [module.exportsAll[name], (<Module>exportAllModule).exportsAll[name]],
-										message: `Conflicting namespaces: ${relativeId(
-											module.id
-										)} re-exports '${name}' from both ${relativeId(
-											module.exportsAll[name]
-										)} and ${relativeId(
-											(<Module>exportAllModule).exportsAll[name]
-										)} (will be ignored)`
-									});
-								} else {
-									module.exportsAll[name] = (<Module>exportAllModule).exportsAll[name];
-								}
-							}
-						});
-						return module;
 					});
-				}
-			);
+					return module;
+				});
+			});
 	}
 
 	private fetchAllDependencies(module: Module) {

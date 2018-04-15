@@ -10,11 +10,8 @@ import alternateScreen from './alternateScreen';
 import loadConfigFile from './loadConfigFile';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
-import { RollupError } from '../../../src/utils/error';
-import { RollupWatchOptions } from '../../../src/watch/index';
 import { printTimings } from './timings';
-import { Bundle, BundleSet } from '../../../src/rollup';
-
+import { RollupError, RollupWatchOptions, Bundle, BundleSet } from '../../../src/rollup/types';
 interface WatchEvent {
 	code?: string;
 	error?: RollupError | Error;

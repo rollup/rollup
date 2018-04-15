@@ -1,3 +1,4 @@
+import * as ESTree from 'estree';
 import { IParse, Options as AcornOptions } from 'acorn';
 import MagicString from 'magic-string';
 import { locate } from 'locate-character';
@@ -6,7 +7,7 @@ import { basename, extname } from './utils/path';
 import { makeLegal } from './utils/identifierHelpers';
 import getCodeFrame from './utils/getCodeFrame';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
-import error, { RollupError } from './utils/error';
+import error from './utils/error';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import extractNames from './ast/utils/extractNames';
 import enhance from './ast/enhance';
@@ -26,7 +27,7 @@ import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ImportDefaultSpecifier from './ast/nodes/ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
-import { RollupWarning } from './rollup/index';
+import { RollupWarning, ModuleJSON, IdMap, RollupError } from './rollup/types';
 import ExternalModule from './ExternalModule';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Import from './ast/nodes/Import';
@@ -35,10 +36,6 @@ import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
 import Chunk from './Chunk';
 import { RenderOptions } from './utils/renderHelpers';
-
-export interface IdMap {
-	[key: string]: string;
-}
 
 export interface CommentDescription {
 	block: boolean;
@@ -101,17 +98,6 @@ function includeFully(node: Node) {
 	node.eachChild(includeFully);
 }
 
-export interface ModuleJSON {
-	id: string;
-	dependencies: string[];
-	code: string;
-	originalCode: string;
-	originalSourcemap: RawSourceMap | void;
-	ast: Program;
-	sourcemapChain: RawSourceMap[];
-	resolvedIds: IdMap;
-}
-
 export default class Module {
 	type: 'Module';
 	graph: Graph;
@@ -148,7 +134,7 @@ export default class Module {
 	chunk: Chunk;
 
 	ast: Program;
-	private astClone: Program;
+	private astClone: ESTree.Program;
 
 	// this is unused on Module,
 	// only used for namespace and then ExternalExport.declarations
@@ -199,14 +185,7 @@ export default class Module {
 		ast,
 		sourcemapChain,
 		resolvedIds
-	}: {
-		code: string;
-		originalCode: string;
-		originalSourcemap: RawSourceMap;
-		ast: Program;
-		sourcemapChain: RawSourceMap[];
-		resolvedIds?: IdMap;
-	}) {
+	}: ModuleJSON) {
 		this.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
@@ -217,12 +196,12 @@ export default class Module {
 		if (ast) {
 			// prevent mutating the provided AST, as it may be reused on
 			// subsequent incremental rebuilds
-			this.ast = clone(ast);
+			this.ast = <Program>clone(ast);
 			this.astClone = ast;
 		} else {
 			// TODO what happens to comments if AST is provided?
-			this.ast = <any>tryParse(this, this.graph.acornParse, this.graph.acornOptions);
-			this.astClone = clone(this.ast);
+			this.ast = <Program>tryParse(this, this.graph.acornParse, this.graph.acornOptions);
+			this.astClone = clone(<ESTree.Program>this.ast);
 		}
 
 		timeEnd('generate ast', 3);

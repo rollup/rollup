@@ -11,7 +11,7 @@ import {
 	OutputOptions,
 	Bundle,
 	BundleSet
-} from '../../../src/rollup/index';
+} from '../../../src/rollup/types';
 import { BatchWarnings } from './batchWarnings';
 import { printTimings } from './timings';
 

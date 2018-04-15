@@ -2,7 +2,7 @@ import { runSequence } from './promise';
 import error from './error';
 import callIfFunction from './callIfFunction';
 import Graph from '../Graph';
-import { OutputOptions } from '../rollup';
+import { OutputOptions } from '../rollup/types';
 
 export interface Addons {
 	intro?: string;
