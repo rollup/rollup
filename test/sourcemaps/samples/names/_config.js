@@ -9,9 +9,7 @@ module.exports = {
 			name: 'myModule'
 		}
 	},
-	test: function(code, map) {
-		var smc = new SourceMapConsumer(map);
-
+	test: (code, map) => SourceMapConsumer.with(map, null, smc => {
 		var pattern = /Object\.create\( ([\w\$\d]+)\.prototype \)/;
 		var match = pattern.exec(code);
 
@@ -25,5 +23,5 @@ module.exports = {
 		generatedLoc = getLocation(code, match.index + 'function '.length);
 		original = smc.originalPositionFor(generatedLoc);
 		assert.equal(original.name, 'Foo');
-	}
+	})
 };

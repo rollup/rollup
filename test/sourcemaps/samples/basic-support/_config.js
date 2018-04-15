@@ -4,11 +4,10 @@ var SourceMapConsumer = require('source-map').SourceMapConsumer;
 
 module.exports = {
 	description: 'basic sourcemap support',
-	test: function(code, map) {
+	test: (code, map) => SourceMapConsumer.with(map, null, smc => {
 		assert.equal(map.version, 3);
 		assert.ok(/^bundle\.(\w+)\.js/.test(map.file));
 
-		var smc = new SourceMapConsumer(map);
 		var generatedLoc, originalLoc;
 
 		// main.js
@@ -34,5 +33,5 @@ module.exports = {
 		assert.equal(originalLoc.line, 2);
 		assert.equal(originalLoc.column, 1);
 		assert.equal(originalLoc.source, '../bar.js');
-	}
+	})
 };

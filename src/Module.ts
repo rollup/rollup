@@ -11,7 +11,6 @@ import error from './utils/error';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import extractNames from './ast/utils/extractNames';
 import ModuleScope from './ast/scopes/ModuleScope';
-import { RawSourceMap } from 'source-map';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
 import Graph from './Graph';
 import Variable from './ast/variables/Variable';
@@ -27,7 +26,7 @@ import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ImportDefaultSpecifier from './ast/nodes/ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
-import { RollupWarning, ModuleJSON, IdMap, RollupError } from './rollup/types';
+import { RollupWarning, ModuleJSON, IdMap, RollupError, RawSourceMap } from './rollup/types';
 import ExternalModule from './ExternalModule';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Import from './ast/nodes/Import';
@@ -411,7 +410,9 @@ export default class Module {
 
 			const name = isDefault
 				? 'default'
-				: isNamespace ? '*' : (<ImportSpecifier>specifier).imported.name;
+				: isNamespace
+					? '*'
+					: (<ImportSpecifier>specifier).imported.name;
 			this.imports[localName] = { source, specifier, name, module: null };
 		}
 	}

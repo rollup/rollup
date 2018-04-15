@@ -23,9 +23,7 @@ module.exports = {
 			name: 'x'
 		}
 	},
-	test: function(code, map) {
-		var smc = new SourceMapConsumer(map);
-
+	test: (code, map) => SourceMapConsumer.with(map, null, smc => {
 		['Foo', 'log'].forEach(function(token) {
 			var generatedLoc = getLocation(code, code.indexOf(token));
 			var originalLoc = smc.originalPositionFor(generatedLoc);
@@ -35,5 +33,5 @@ module.exports = {
 			assert.equal(originalLoc.line, expectedLoc.line);
 			assert.equal(originalLoc.column, expectedLoc.column);
 		});
-	}
+	})
 };

@@ -1,4 +1,4 @@
-import { RawSourceMap } from 'source-map/source-map';
+import { RawSourceMap } from '../rollup/types';
 
 export function getOriginalLocation(
 	sourcemapChain: RawSourceMap[],

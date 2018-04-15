@@ -8,7 +8,6 @@ import transformBundle from './utils/transformBundle';
 import collapseSourcemaps from './utils/collapseSourcemaps';
 import error from './utils/error';
 import { normalize, resolve, extname, dirname, relative, basename } from './utils/path';
-import { RawSourceMap } from 'source-map';
 import Graph from './Graph';
 import ExternalModule from './ExternalModule';
 import { isExportDefaultVariable } from './ast/variables/ExportDefaultVariable';
@@ -22,7 +21,7 @@ import { Addons } from './utils/addons';
 import sha256 from 'hash.js/lib/hash/sha/256';
 import { jsExts } from './utils/relativeId';
 import ExternalVariable from './ast/variables/ExternalVariable';
-import { GlobalsOption, OutputOptions } from './rollup/types';
+import { GlobalsOption, OutputOptions, RawSourceMap } from './rollup/types';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;

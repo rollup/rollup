@@ -26,13 +26,13 @@ export interface RollupError {
 }
 
 export interface RawSourceMap {
-	file?: string;
-	sourceRoot?: string;
-	version: string;
+	version: number | string; // there is a conflict between magic-string and source-map here
 	sources: string[];
 	names: string[];
+	sourceRoot?: string;
 	sourcesContent?: string[];
 	mappings: string;
+	file: string;
 }
 
 export interface SourceMap {
