@@ -5,6 +5,7 @@
 * Support manually created chunks ([#2084](https://github.com/rollup/rollup/pull/2084))
 * Automatically import deep dependencies when code splitting for better performance ([#2073](https://github.com/rollup/rollup/pull/2073))
 * Automatically minify internal export/import names for esm and system output ([#2087](https://github.com/rollup/rollup/pull/2087))
+* Add option to automatically merge small chunks ([#2090](https://github.com/rollup/rollup/pull/2090))
 * Enable tree-shaking for logical expressions ([#2098](https://github.com/rollup/rollup/pull/2098))
 * Rework external types and reduce type related dependencies ([#2108](https://github.com/rollup/rollup/pull/2108))
 * Support parallel dependency resolution ([#2116](https://github.com/rollup/rollup/pull/2116))

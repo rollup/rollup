@@ -1,4 +1,4 @@
-import { a as ONE_CONSTANT } from './chunk-404bd162.js';
+import { a as ONE_CONSTANT } from './chunk-6cf80db6.js';
 
 class Two {
     test() {

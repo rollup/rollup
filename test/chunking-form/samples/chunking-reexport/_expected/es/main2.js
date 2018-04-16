@@ -1,2 +1,2 @@
-import './chunk-9f0d7917.js';
+import './chunk-70b1cf27.js';
 export { asdf as dep } from 'external';

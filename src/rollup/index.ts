@@ -11,6 +11,8 @@ import ensureArray from '../utils/ensureArray';
 import { SourceMap } from 'magic-string';
 import { createAddons } from '../utils/addons';
 import commondir from '../utils/commondir';
+import { optimizeChunks } from '../chunk-optimization';
+
 import {
 	WarningHandler,
 	InputOptions,
@@ -165,7 +167,7 @@ export default function rollup(
 							return createAddons(graph, outputOptions);
 						})
 						.then(addons => {
-							chunk.generateInternalExports();
+							chunk.generateInternalExports(outputOptions);
 							chunk.preRender(outputOptions);
 							return chunk.render(outputOptions, addons);
 						})
@@ -290,6 +292,9 @@ export default function rollup(
 			.then(chunks => {
 				timeEnd('BUILD', 1);
 
+				// ensure we only do one optimization pass per build
+				let optimized = false;
+
 				function generate(rawOutputOptions: GenericConfigObject) {
 					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
 
@@ -324,14 +329,23 @@ export default function rollup(
 								Promise.resolve()
 									.then(() => {
 										if (!inputOptions.experimentalPreserveModules) {
-											const mangleExportNames =
-												outputOptions.format === 'system' || outputOptions.format === 'es';
 											for (let chunk of chunks) {
-												chunk.generateInternalExports(mangleExportNames);
+												chunk.generateInternalExports(outputOptions);
 											}
 										}
 										for (let chunk of chunks) {
 											chunk.preRender(outputOptions);
+										}
+										if (!optimized && inputOptions.optimizeChunks) {
+											if (inputOptions.experimentalPreserveModules) {
+												error({
+													code: 'INVALID_OPTION',
+													message:
+														'experimentalPreserveModules does not support the optimizeChunks option.'
+												});
+											}
+											optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize);
+											optimized = true;
 										}
 										for (let chunk of chunks) {
 											if (inputOptions.experimentalPreserveModules) {

@@ -89,62 +89,59 @@ function getGlobalName(
 }
 
 export default class Chunk {
-	hasDynamicImport: boolean;
-	indentString: string;
-	usedModules: Module[];
-	id: string;
+	hasDynamicImport: boolean = false;
+	indentString: string = undefined;
+	usedModules: Module[] = undefined;
+	id: string = undefined;
 	name: string;
 	graph: Graph;
 	private orderedModules: Module[];
 
 	// this represents the chunk module wrappings
 	// which form the output dependency graph
-	private imports: Map<Variable, Module | ExternalModule>;
+	private imports = new Map<Variable, Module | ExternalModule>();
 	// module can be in or out of chunk
 	// if module is out of the chunk then it is a reexport
-	private exports: Map<Variable, Module | ExternalModule>;
-	private exportNames: { [name: string]: Variable };
+	private exports = new Map<Variable, Module | ExternalModule>();
+	private exportNames: { [name: string]: Variable } = Object.create(null);
 
-	private dependencies: (ExternalModule | Chunk)[];
+	private dependencies: (ExternalModule | Chunk)[] = undefined;
 	// an entry module chunk is a chunk that exactly exports the exports of
 	// an input entry point module
-	entryModule: Module;
-	isEntryModuleFacade: boolean;
+	entryModule: Module = undefined;
+	isEntryModuleFacade: boolean = false;
+	isManualChunk: boolean = false;
 
-	renderedHash: string;
-	renderedSources: MagicString[];
-	renderedSource: MagicStringBundle;
-	renderedDeclarations: { dependencies: ChunkDependencies; exports: ChunkExports };
+	private renderedHash: string = undefined;
+	private renderedModuleSources: MagicString[] = undefined;
+	private renderedSource: MagicStringBundle = undefined;
+	private renderedSourceLength: number = undefined;
+	private renderedDeclarations: {
+		dependencies: ChunkDependencies;
+		exports: ChunkExports;
+	} = undefined;
 
 	constructor(graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
 		this.orderedModules = orderedModules;
 
-		this.imports = new Map();
-		this.exports = new Map();
-		this.exportNames = Object.create(null);
-
-		this.dependencies = undefined;
-		this.entryModule = undefined;
-		this.isEntryModuleFacade = false;
 		for (const module of orderedModules) {
+			if (module.chunkAlias) {
+				this.isManualChunk = true;
+			}
 			module.chunk = this;
 			if (module.isEntryPoint && !this.entryModule) {
 				this.entryModule = module;
 				this.isEntryModuleFacade = true;
 			}
 		}
-		this.id = undefined;
-		this.renderedHash = undefined;
-		this.renderedSources = undefined;
-		this.renderedSource = undefined;
-		this.renderedDeclarations = undefined;
-		this.indentString = undefined;
-		this.usedModules = undefined;
-		this.hasDynamicImport = false;
 
 		if (this.entryModule)
-			this.name = makeLegal(basename(this.entryModule.chunkAlias || this.entryModule.id));
+			this.name = makeLegal(
+				basename(
+					this.entryModule.chunkAlias || this.orderedModules[0].chunkAlias || this.entryModule.id
+				)
+			);
 		else this.name = '__chunk_' + ++graph.curChunkIndex;
 	}
 
@@ -374,8 +371,9 @@ export default class Chunk {
 		}
 	}
 
-	generateInternalExports(mangle: boolean = false) {
+	generateInternalExports(options: OutputOptions) {
 		if (this.isEntryModuleFacade) return;
+		const mangle = options.format === 'system' || options.format === 'es';
 		let i = 0,
 			safeExportName: string;
 		this.exportNames = Object.create(null);
@@ -463,7 +461,7 @@ export default class Chunk {
 	private finaliseDynamicImports() {
 		for (let i = 0; i < this.orderedModules.length; i++) {
 			const module = this.orderedModules[i];
-			const code = this.renderedSources[i];
+			const code = this.renderedModuleSources[i];
 			for (let j = 0; j < module.dynamicImportResolutions.length; j++) {
 				const node = module.dynamicImports[j];
 				const resolution = module.dynamicImportResolutions[j].resolution;
@@ -717,6 +715,26 @@ export default class Chunk {
 		return (this.renderedHash = hash.digest('hex'));
 	}
 
+	/*
+	 * Chunk dependency output graph post-visitor
+	 * Visitor can return "true" to indicate a propogated stop condition
+	 */
+	postVisitChunkDependencies(visitor: (dep: Chunk | ExternalModule) => any): boolean {
+		const seen = new Set<Chunk | ExternalModule>();
+		// add in hashes of all dependent chunks and resolved external ids
+		function visitDep(dep: Chunk | ExternalModule): boolean {
+			if (seen.has(dep)) return;
+			seen.add(dep);
+			if (dep instanceof Chunk) {
+				for (let subDep of dep.dependencies) {
+					if (visitDep(subDep)) return true;
+				}
+			}
+			return visitor(dep) === true;
+		}
+		return visitDep(this);
+	}
+
 	private computeFullHash(addons: Addons, options: OutputOptions): string {
 		const hash = sha256();
 
@@ -733,21 +751,10 @@ export default class Chunk {
 		hash.update(this.dependencies.length);
 
 		// add in hashes of all dependent chunks and resolved external ids
-		function visitDep(dep: Chunk, seen: Chunk[]) {
-			if (seen.indexOf(dep) !== -1) return;
-			seen.push(dep);
-
-			hash.update(dep.dependencies.length);
-			for (const subDep of dep.dependencies) {
-				if (subDep instanceof ExternalModule) {
-					hash.update(':' + subDep.renderPath);
-					return;
-				}
-				hash.update(subDep.getRenderedHash());
-				visitDep(subDep, seen);
-			}
-		}
-		visitDep(this, []);
+		this.postVisitChunkDependencies(dep => {
+			if (dep instanceof ExternalModule) hash.update(':' + dep.renderPath);
+			else hash.update(dep.getRenderedHash());
+		});
 
 		return hash.digest('hex').substr(0, 8);
 	}
@@ -775,12 +782,12 @@ export default class Chunk {
 
 		let hoistedSource = '';
 
-		this.renderedSources = [];
+		this.renderedModuleSources = [];
 
 		for (const module of this.orderedModules) {
 			const source = module.render(renderOptions);
 			source.trim();
-			this.renderedSources.push(source);
+			this.renderedModuleSources.push(source);
 
 			const namespace = module.namespace();
 			if (namespace.needsNamespaceBlock || !source.isEmpty()) {
@@ -804,6 +811,7 @@ export default class Chunk {
 		if (hoistedSource) magicString.prepend(hoistedSource + '\n\n');
 
 		this.renderedSource = magicString.trim();
+		this.renderedSourceLength = undefined;
 
 		if (
 			this.getExportNames().length === 0 &&
@@ -824,6 +832,120 @@ export default class Chunk {
 		};
 
 		timeEnd('render modules', 3);
+	}
+
+	getRenderedSourceLength() {
+		if (this.renderedSourceLength !== undefined) return this.renderedSourceLength;
+		return (this.renderedSourceLength = this.renderedSource.toString().length);
+	}
+
+	/*
+	 * Performs a full merge of another chunk into this chunk
+	 * chunkList allows updating references in other chunks for the merged chunk to this chunk
+	 * A new facade will be added to chunkList if tainting exports of either as an entry point
+	 */
+	merge(chunk: Chunk, chunkList: Chunk[], options: OutputOptions) {
+		if (this.isEntryModuleFacade || chunk.isEntryModuleFacade)
+			throw new Error('Internal error: Code splitting chunk merges not supported for facades');
+
+		for (let module of chunk.orderedModules) {
+			module.chunk = this;
+			this.orderedModules.push(module);
+		}
+
+		for (let [variable, module] of Array.from(chunk.imports.entries())) {
+			if (!this.imports.has(variable) && module.chunk !== this) {
+				this.imports.set(variable, module);
+			}
+		}
+
+		// NB detect when exported variables are orphaned by the merge itself
+		// (involves reverse tracing dependents)
+		for (let [variable, module] of Array.from(chunk.exports.entries())) {
+			if (!this.exports.has(variable)) {
+				this.exports.set(variable, module);
+			}
+		}
+
+		const thisOldExportNames = this.exportNames;
+
+		// regenerate internal names
+		this.generateInternalExports(options);
+
+		const updateRenderedDeclaration = (
+			dep: ModuleDeclarationDependency,
+			oldExportNames: Record<string, Variable>
+		) => {
+			if (dep.imports) {
+				for (let impt of dep.imports) {
+					impt.imported = this.getVariableExportName(oldExportNames[impt.imported]);
+				}
+			}
+			if (dep.reexports) {
+				for (let reexport of dep.reexports) {
+					reexport.imported = this.getVariableExportName(oldExportNames[reexport.imported]);
+				}
+			}
+		};
+
+		const mergeRenderedDeclaration = (
+			into: ModuleDeclarationDependency,
+			from: ModuleDeclarationDependency
+		) => {
+			if (from.imports) {
+				if (!into.imports) {
+					into.imports = from.imports;
+				} else {
+					into.imports = into.imports.concat(from.imports);
+				}
+			}
+			if (from.reexports) {
+				if (!into.reexports) {
+					into.reexports = from.reexports;
+				} else {
+					into.reexports = into.reexports.concat(from.reexports);
+				}
+			}
+			if (!into.exportsNames && from.exportsNames) {
+				into.exportsNames = true;
+			}
+			if (!into.exportsNamespace && from.exportsNamespace) {
+				into.exportsNamespace = true;
+			}
+			if (!into.exportsDefault && from.exportsDefault) {
+				into.exportsDefault = true;
+			}
+			into.name = this.name;
+		};
+
+		// go through the other chunks and update their dependencies
+		// also update their import and reexport names in the process
+		for (let c of chunkList) {
+			let includedDeclaration: ModuleDeclarationDependency;
+			for (let i = 0; i < c.dependencies.length; i++) {
+				const dep = c.dependencies[i];
+				if ((dep === chunk || dep === this) && includedDeclaration) {
+					const duplicateDeclaration = c.renderedDeclarations.dependencies[i];
+					updateRenderedDeclaration(
+						duplicateDeclaration,
+						dep === chunk ? chunk.exportNames : thisOldExportNames
+					);
+					mergeRenderedDeclaration(includedDeclaration, duplicateDeclaration);
+					c.renderedDeclarations.dependencies.splice(i, 1);
+					c.dependencies.splice(i--, 1);
+				} else if (dep === chunk) {
+					c.dependencies[i] = this;
+					includedDeclaration = c.renderedDeclarations.dependencies[i];
+					updateRenderedDeclaration(includedDeclaration, chunk.exportNames);
+				} else if (dep === this) {
+					includedDeclaration = c.renderedDeclarations.dependencies[i];
+					updateRenderedDeclaration(includedDeclaration, thisOldExportNames);
+				}
+			}
+		}
+
+		// re-render the merged chunk
+		this.preRender(options);
 	}
 
 	generateNamePreserveModules(preserveModulesRelativeDir: string) {
