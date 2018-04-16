@@ -66,7 +66,7 @@ export interface ModuleJSON {
 
 export interface PluginContext {
 	resolveId: ResolveIdHook;
-	parse: IParse;
+	parse: (input: string, options: any) => ESTree.Program;
 	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
 	error(err: RollupError, pos?: { line: number; column: number }): void;
 }
@@ -106,7 +106,7 @@ export type TransformChunkHook = (
 ) => Promise<{ code: string; map: RawSourceMap }>;
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
-	specifier: string | Node,
+	specifier: string | ESTree.Node,
 	parentId: string
 ) => Promise<string | void> | string | void;
 export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);
