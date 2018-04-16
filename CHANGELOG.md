@@ -7,6 +7,7 @@
 * Automatically minify internal export/import names for esm and system output ([#2087](https://github.com/rollup/rollup/pull/2087))
 * Enable tree-shaking for logical expressions ([#2098](https://github.com/rollup/rollup/pull/2098))
 * Rework external types and reduce type related dependencies ([#2108](https://github.com/rollup/rollup/pull/2108))
+* Support parallel dependency resolution ([#2116](https://github.com/rollup/rollup/pull/2116))
 * Improve deprecation handling ([#2076](https://github.com/rollup/rollup/pull/2076))
 * Enable `--perf` timings in watch mode ([#2065](https://github.com/rollup/rollup/pull/2065))
 * Improve error handling for plugins ([#2100](https://github.com/rollup/rollup/pull/2100))
