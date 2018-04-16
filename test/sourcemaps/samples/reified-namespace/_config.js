@@ -6,7 +6,9 @@ const SourceMapConsumer = require('source-map').SourceMapConsumer;
 
 module.exports = {
 	description: 'generates correct sourcemap with reified namespace (#668)',
-	test: (code, map) => SourceMapConsumer.with(map, null, smc => {
+	test: (code, map) => {
+		const smc = new SourceMapConsumer(map);
+
 		const main = fs.readFileSync(path.join(__dirname, 'main.js'), 'utf-8');
 		const generatedLoc = getLocation(code, 'deepEqual');
 
@@ -16,5 +18,5 @@ module.exports = {
 		assert.equal(actual.line, expected.line);
 		assert.equal(actual.column, expected.column);
 		assert.equal(actual.source, '../main.js');
-	})
+	}
 };

@@ -26,7 +26,7 @@ export interface RollupError {
 }
 
 export interface RawSourceMap {
-	version: number | string; // there is a conflict between magic-string and source-map here
+	version: string;
 	sources: string[];
 	names: string[];
 	sourceRoot?: string;

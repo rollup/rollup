@@ -36,7 +36,9 @@ module.exports = {
 			}
 		]
 	},
-	test: (code, map) => SourceMapConsumer.with(map, null, smc => {
+	test: function(code, map) {
+		var smc = new SourceMapConsumer(map);
+
 		var generatedLoc = getLocation(code, /\w+=["']this/.exec(code).index);
 		var originalLoc = smc.originalPositionFor(generatedLoc);
 
@@ -56,5 +58,5 @@ module.exports = {
 			column: 4,
 			name: 'mangleMe'
 		});
-	})
+	}
 };
