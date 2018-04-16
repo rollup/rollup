@@ -786,8 +786,8 @@ export default class Chunk {
 			importMechanism: this.graph.dynamicImport && this.prepareDynamicImports(options)
 		};
 
-		this.dependencies = this.dependencies.filter(dep => !(dep instanceof Chunk) || !dep.isEmpty);
 		this.inlineDeepModuleDependencies();
+		this.dependencies = this.dependencies.filter(dep => !(dep instanceof Chunk) || !dep.isEmpty);
 
 		this.setIdentifierRenderResolutions(options);
 

@@ -447,7 +447,6 @@ export default class Graph {
 							(moduleA, moduleB) => (moduleA.execIndex > moduleB.execIndex ? 1 : -1)
 						);
 						const chunk = new Chunk(this, chunkModulesOrdered);
-						if (chunk.isEmpty && !chunk.entryModule) continue;
 						chunkList.push(chunk);
 					}
 				} else {
@@ -462,6 +461,16 @@ export default class Graph {
 				// chunks, if those variables are included after treeshaking
 				for (const chunk of chunkList) {
 					chunk.link();
+				}
+
+				// filter out empty dependencies
+				if (!preserveModules) {
+					for (let i = 0; i < chunkList.length; i++) {
+						const chunk = chunkList[i];
+						if (chunk.isEmpty && !chunk.entryModule) {
+							chunkList.splice(i--, 1);
+						}
+					}
 				}
 
 				// then go over and ensure all entry chunks export their variables
