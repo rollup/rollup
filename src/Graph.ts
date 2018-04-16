@@ -3,7 +3,7 @@ import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import injectImportMeta from 'acorn-import-meta/inject';
 import { timeEnd, timeStart } from './utils/timers';
 import first from './utils/first';
-import Module from './Module';
+import Module, { defaultAcornOptions } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
 import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
@@ -14,24 +14,24 @@ import { isRelative, resolve, relative } from './utils/path';
 import {
 	InputOptions,
 	IsExternalHook,
+	LoadHook,
+	MissingExportHook,
 	Plugin,
+	PluginContext,
+	ResolveDynamicImportHook,
 	ResolveIdHook,
 	RollupWarning,
 	SourceDescription,
 	TreeshakingOptions,
 	WarningHandler,
-	ModuleJSON
+	ModuleJSON,
+	RollupError
 } from './rollup/types';
-import { Node } from './ast/nodes/shared/Node';
 import Chunk from './Chunk';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
 import firstSync from './utils/first-sync';
-
-export type ResolveDynamicImportHandler = (
-	specifier: string | Node,
-	parentId: string
-) => Promise<string | void>;
+import { Program } from 'estree';
 
 export default class Graph {
 	curChunkIndex = 0;
@@ -45,22 +45,20 @@ export default class Graph {
 	hasLoaders: boolean;
 	isExternal: IsExternalHook;
 	isPureExternalModule: (id: string) => boolean;
-	load: (id: string) => Promise<SourceDescription | string | void>;
-	handleMissingExport: (
-		exportName: string,
-		importingModule: Module,
-		importedModule: string,
-		importerStart?: number
-	) => void;
+	load: LoadHook;
+	handleMissingExport: MissingExportHook;
 	moduleById = new Map<string, Module | ExternalModule>();
 	modules: Module[] = [];
 	onwarn: WarningHandler;
 	plugins: Plugin[];
-	resolveDynamicImport: ResolveDynamicImportHandler;
+	pluginContext: PluginContext;
+	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
 	scope: GlobalScope;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
+
+	contextParse: (code: string, acornOptions?: acorn.Options) => Program;
 
 	// deprecated
 	treeshake: boolean;
@@ -107,14 +105,43 @@ export default class Graph {
 			this.isPureExternalModule = () => false;
 		}
 
+		this.contextParse = (code: string, options: acorn.Options = {}) => {
+			return this.acornParse(
+				code,
+				Object.assign({}, defaultAcornOptions, options, this.acornOptions)
+			);
+		};
+
+		this.pluginContext = {
+			resolveId: undefined,
+			parse: this.contextParse,
+			warn(warning: RollupWarning | string) {
+				if (typeof warning === 'string') warning = { message: warning };
+				this.warn(warning);
+			},
+			error(err: RollupError | string) {
+				if (typeof err === 'string') throw new Error(err);
+				error(err);
+			}
+		};
+
 		this.resolveId = first(
 			[
 				((id: string, parentId: string) =>
-					this.isExternal(id, parentId, false) ? false : null) as ResolveIdHook
+					this.isExternal.call(this.pluginContext, id, parentId, false)
+						? false
+						: null) as ResolveIdHook
 			]
-				.concat(this.plugins.map(plugin => plugin.resolveId).filter(Boolean))
+				.concat(
+					this.plugins
+						.map(plugin => plugin.resolveId)
+						.filter(Boolean)
+						.map(resolveId => resolveId.bind(this.pluginContext))
+				)
 				.concat(resolveId(options))
 		);
+
+		this.pluginContext.resolveId = this.resolveId;
 
 		const loaders = this.plugins.map(plugin => plugin.load).filter(Boolean);
 		this.hasLoaders = loaders.length !== 0;
@@ -131,7 +158,13 @@ export default class Graph {
 						importedModule: string,
 						importerStart?: number
 					) => {
-						return missingExport(importingModule.id, exportName, importedModule, importerStart);
+						return missingExport.call(
+							this.pluginContext,
+							importingModule.id,
+							exportName,
+							importedModule,
+							importerStart
+						);
 					};
 				})
 				.concat(handleMissingExport)
@@ -179,11 +212,14 @@ export default class Graph {
 				: false;
 
 		if (this.dynamicImport) {
-			this.resolveDynamicImport = first([
-				...this.plugins.map(plugin => plugin.resolveDynamicImport).filter(Boolean),
-				<ResolveDynamicImportHandler>((specifier, parentId) =>
-					typeof specifier === 'string' && this.resolveId(specifier, parentId))
-			]);
+			this.resolveDynamicImport = first(
+				[
+					...this.plugins.map(plugin => plugin.resolveDynamicImport).filter(Boolean),
+					<ResolveDynamicImportHook>function(specifier, parentId) {
+						return typeof specifier === 'string' && this.resolveId(specifier, parentId);
+					}
+				].map(resolveDynamicImport => resolveDynamicImport.bind(this.pluginContext))
+			);
 			acornPluginsToInject.push(injectDynamicImportPlugin);
 			acornPluginsToInject.push(injectImportMeta);
 			this.acornOptions.plugins = this.acornOptions.plugins || {};
@@ -636,7 +672,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 		this.moduleById.set(id, module);
 
 		timeStart('load modules', 3);
-		return this.load(id)
+		return Promise.resolve(this.load.call(this.pluginContext, id))
 			.catch((err: Error) => {
 				timeEnd('load modules', 3);
 				let msg = `Could not load ${id}`;
@@ -725,7 +761,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 			: Promise.all(
 					module.getDynamicImportExpressions().map((dynamicImportExpression, index) => {
 						return Promise.resolve(
-							this.resolveDynamicImport(dynamicImportExpression, module.id)
+							this.resolveDynamicImport.call(this.pluginContext, dynamicImportExpression, module.id)
 						).then(replacement => {
 							if (!replacement) {
 								module.dynamicImportResolutions[index] = {
@@ -740,7 +776,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 							);
 							if (typeof dynamicImportExpression !== 'string') {
 								module.dynamicImportResolutions[index] = { alias, resolution: replacement };
-							} else if (this.isExternal(replacement, module.id, true)) {
+							} else if (this.isExternal.call(this.pluginContext, replacement, module.id, true)) {
 								let externalModule;
 								if (!this.moduleById.has(replacement)) {
 									externalModule = new ExternalModule({
@@ -774,7 +810,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 						const externalId =
 							<string>resolvedId ||
 							(isRelative(source) ? resolve(module.id, '..', source) : source);
-						let isExternal = this.isExternal(externalId, module.id, true);
+						let isExternal = this.isExternal.call(this.pluginContext, externalId, module.id, true);
 
 						if (!resolvedId && !isExternal) {
 							if (isRelative(source)) {

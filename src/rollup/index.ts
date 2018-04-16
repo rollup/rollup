@@ -186,7 +186,11 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 								graph.plugins
 									.filter(plugin => plugin.ongenerate)
 									.map(plugin =>
-										plugin.ongenerate(Object.assign({ bundle: result }, outputOptions), output)
+										plugin.ongenerate.call(
+											graph.pluginContext,
+											Object.assign({ bundle: result }, outputOptions),
+											output
+										)
 									)
 							).then(() => output);
 						});
@@ -207,7 +211,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 							});
 						}
 						return generate(outputOptions).then(result => {
-							return writeChunk(outputOptions.file, result, outputOptions, graph.plugins).then(
+							return writeChunk(graph, outputOptions.file, result, outputOptions).then(
 								() => result
 							);
 						});
@@ -337,7 +341,9 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 													return Promise.all(
 														graph.plugins
 															.filter(plugin => plugin.ongenerate)
-															.map(plugin => plugin.ongenerate(outputOptions, output))
+															.map(plugin =>
+																plugin.ongenerate.call(graph.pluginContext, outputOptions, output)
+															)
 													).then(() => {
 														generated[chunk.id] = output;
 													});
@@ -367,10 +373,10 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 							return Promise.all(
 								Object.keys(result).map(chunkName =>
 									writeChunk(
+										graph,
 										resolve(outputOptions.dir, chunkName),
 										result[chunkName],
-										outputOptions,
-										graph.plugins
+										outputOptions
 									)
 								)
 							).then(() => result);
@@ -397,10 +403,10 @@ function wrapGeneratePromise<T = OutputChunk | Record<string, OutputChunk>>(
 }
 
 function writeChunk(
+	graph: Graph,
 	filename: string,
 	chunk: OutputChunk,
-	outputOptions: OutputOptions,
-	plugins: Plugin[]
+	outputOptions: OutputOptions
 ): Promise<void> {
 	let { code, map } = chunk;
 
@@ -420,9 +426,15 @@ function writeChunk(
 		.then(() => writeSourceMapPromise)
 		.then(() => {
 			return Promise.all(
-				plugins
+				graph.plugins
 					.filter(plugin => plugin.onwrite)
-					.map(plugin => plugin.onwrite(Object.assign({ bundle: chunk }, outputOptions), chunk))
+					.map(plugin =>
+						plugin.onwrite.call(
+							graph.pluginContext,
+							Object.assign({ bundle: chunk }, outputOptions),
+							chunk
+						)
+					)
 			);
 		})
 		.then(() => {});

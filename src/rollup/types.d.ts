@@ -65,6 +65,7 @@ export interface ModuleJSON {
 }
 
 export interface PluginContext {
+	resolveId: ResolveIdHook;
 	parse: IParse;
 	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
 	error(err: RollupError, pos?: { line: number; column: number }): void;
@@ -108,7 +109,7 @@ export type ResolveDynamicImportHook = (
 	specifier: string | Node,
 	parentId: string
 ) => Promise<string | void> | string | void;
-export type AddonHook = (output: OutputChunk) => string | Promise<string>;
+export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);
 
 export interface Plugin {
 	name: string;
@@ -119,15 +120,22 @@ export interface Plugin {
 	transform?: TransformHook;
 	transformBundle?: TransformChunkHook;
 	transformChunk?: TransformChunkHook;
-	ongenerate?: (options: OutputOptions, chunk: OutputChunk) => void | Promise<void>;
-	onwrite?: (options: OutputOptions, chunk: OutputChunk) => void | Promise<void>;
+	ongenerate?: (
+		this: PluginContext,
+		options: OutputOptions,
+		chunk: OutputChunk
+	) => void | Promise<void>;
+	onwrite?: (
+		this: PluginContext,
+		options: OutputOptions,
+		chunk: OutputChunk
+	) => void | Promise<void>;
 	resolveDynamicImport?: ResolveDynamicImportHook;
 	banner?: AddonHook;
 	footer?: AddonHook;
 	intro?: AddonHook;
 	outro?: AddonHook;
 }
-
 
 export interface TreeshakingOptions {
 	propertyReadSideEffects: boolean;
@@ -193,10 +201,10 @@ export interface OutputOptions {
 	entryNames?: string;
 
 	paths?: OptionsPaths;
-	banner?: string;
-	footer?: string;
-	intro?: string;
-	outro?: string;
+	banner?: string | (() => string | Promise<string>);
+	footer?: string | (() => string | Promise<string>);
+	intro?: string | (() => string | Promise<string>);
+	outro?: string | (() => string | Promise<string>);
 	sourcemap?: boolean | 'inline';
 	sourcemapFile?: string;
 	interop?: boolean;
