@@ -1,7 +1,6 @@
 'use strict';
 
-require('./first.js');
-var head = require('./head.js');
+var first = require('./first.js');
 
-console.log(head.default);
-console.log(head.default);
+console.log(first.default);
+console.log(first.default);

@@ -119,12 +119,17 @@ export default class Chunk {
 		dependencies: ChunkDependencies;
 		exports: ChunkExports;
 	} = undefined;
+	isEmpty: boolean;
 
 	constructor(graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
 		this.orderedModules = orderedModules;
 
+		this.isEmpty = true;
 		for (const module of orderedModules) {
+			if (this.isEmpty && module.isIncluded() && !module.isEmpty()) {
+				this.isEmpty = false;
+			}
 			if (module.chunkAlias) {
 				this.isManualChunk = true;
 			}
@@ -163,7 +168,9 @@ export default class Chunk {
 				if (dep === this || this.dependencies.indexOf(dep) !== -1) {
 					return;
 				}
-				this.dependencies.push(dep);
+				if (!(dep instanceof Chunk) || !dep.isEmpty) {
+					this.dependencies.push(dep);
+				}
 				if (dep instanceof Chunk) {
 					dep.dependencies.forEach(inlineDeepChunkDependencies);
 				}
@@ -173,13 +180,12 @@ export default class Chunk {
 					dep.dependencies.forEach(inlineDeepChunkDependencies);
 				}
 			}
-		} else {
-			// shortcut cross-chunk relations can be added by traceExport
-			for (const module of Array.from(this.imports.values())) {
-				const chunkOrExternal = module instanceof Module ? module.chunk : module;
-				if (this.dependencies.indexOf(chunkOrExternal) === -1) {
-					this.dependencies.push(chunkOrExternal);
-				}
+		}
+		// shortcut cross-chunk relations can be added by traceExport
+		for (const module of Array.from(this.imports.values())) {
+			const chunkOrExternal = module instanceof Module ? module.chunk : module;
+			if (this.dependencies.indexOf(chunkOrExternal) === -1) {
+				this.dependencies.push(chunkOrExternal);
 			}
 		}
 	}
@@ -329,7 +335,8 @@ export default class Chunk {
 			// we follow reexports if they are not entry points in the hope
 			// that we can get an entry point reexport to reduce the chance of
 			// tainting an entryModule chunk by exposing other unnecessary exports
-			if (module.isEntryPoint) return { variable: module.traceExport(name), module };
+			if (module.isEntryPoint && !module.chunk.isEmpty)
+				return { variable: module.traceExport(name), module };
 			return module.chunk.traceExport(name, module);
 		}
 
@@ -779,7 +786,8 @@ export default class Chunk {
 			importMechanism: this.graph.dynamicImport && this.prepareDynamicImports(options)
 		};
 
-		if (this.isEntryModuleFacade) this.inlineDeepModuleDependencies();
+		this.dependencies = this.dependencies.filter(dep => !(dep instanceof Chunk) || !dep.isEmpty);
+		this.inlineDeepModuleDependencies();
 
 		this.setIdentifierRenderResolutions(options);
 

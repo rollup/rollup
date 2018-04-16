@@ -447,6 +447,7 @@ export default class Graph {
 							(moduleA, moduleB) => (moduleA.execIndex > moduleB.execIndex ? 1 : -1)
 						);
 						const chunk = new Chunk(this, chunkModulesOrdered);
+						if (chunk.isEmpty && !chunk.entryModule) continue;
 						chunkList.push(chunk);
 					}
 				} else {
