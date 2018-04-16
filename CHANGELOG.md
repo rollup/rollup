@@ -13,6 +13,7 @@
 * Enable `--perf` timings in watch mode ([#2065](https://github.com/rollup/rollup/pull/2065))
 * Improve error handling for plugins ([#2100](https://github.com/rollup/rollup/pull/2100))
 * Improve error when using `--dir` in a single file build ([#2123](https://github.com/rollup/rollup/pull/2123))
+* Do not warn for external imports that are unused due to tree-shaking ([#2124](https://github.com/rollup/rollup/pull/2124))
 * Remove duplicate badges from readme ([#2083](https://github.com/rollup/rollup/pull/2083))
 * Update readme examples ([#2086](https://github.com/rollup/rollup/pull/2086))
 * Update mixed export warning message ([#2107](https://github.com/rollup/rollup/pull/2107))

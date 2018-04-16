@@ -75,9 +75,11 @@ export default class ExternalModule {
 	}
 
 	warnUnusedImports() {
-		const unused = Object.keys(this.declarations)
-			.filter(name => name !== '*')
-			.filter(name => !this.declarations[name].included && !this.declarations[name].reexported);
+		const unused = Object.keys(this.declarations).filter(name => {
+			if (name === '*') return false;
+			const declaration = this.declarations[name];
+			return !declaration.included && !this.reexported && !declaration.referenced;
+		});
 
 		if (unused.length === 0) return;
 
