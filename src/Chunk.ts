@@ -161,31 +161,14 @@ export default class Chunk {
 		return this.orderedModules.map(module => module.id);
 	}
 
-	private inlineDeepModuleDependencies() {
-		// if an entry point facade, inline the execution list to avoid loading latency
-		if (this.isEntryModuleFacade) {
-			const inlineDeepChunkDependencies = (dep: Chunk | ExternalModule) => {
-				if (dep === this || this.dependencies.indexOf(dep) !== -1) {
-					return;
-				}
-				if (!(dep instanceof Chunk) || !dep.isEmpty) {
-					this.dependencies.push(dep);
-				}
-				if (dep instanceof Chunk) {
-					dep.dependencies.forEach(inlineDeepChunkDependencies);
-				}
-			};
-			for (const dep of this.dependencies) {
-				if (dep instanceof Chunk) {
-					dep.dependencies.forEach(inlineDeepChunkDependencies);
-				}
-			}
-		}
-		// shortcut cross-chunk relations can be added by traceExport
-		for (const module of Array.from(this.imports.values())) {
-			const chunkOrExternal = module instanceof Module ? module.chunk : module;
-			if (this.dependencies.indexOf(chunkOrExternal) === -1) {
-				this.dependencies.push(chunkOrExternal);
+	private inlineChunkDependencies(chunk: Chunk, deep: boolean) {
+		for (let dep of chunk.dependencies) {
+			if (dep instanceof ExternalModule) {
+				if (this.dependencies.indexOf(dep) === -1) this.dependencies.push(dep);
+			} else {
+				if (dep === this || this.dependencies.indexOf(dep) !== -1) continue;
+				if (!dep.isEmpty) this.dependencies.push(dep);
+				if (deep) this.inlineChunkDependencies(dep, true);
 			}
 		}
 	}
@@ -786,8 +769,28 @@ export default class Chunk {
 			importMechanism: this.graph.dynamicImport && this.prepareDynamicImports(options)
 		};
 
-		this.inlineDeepModuleDependencies();
-		this.dependencies = this.dependencies.filter(dep => !(dep instanceof Chunk) || !dep.isEmpty);
+		// if an entry point facade, inline the execution list to avoid loading latency
+		if (this.isEntryModuleFacade) {
+			for (let dep of this.dependencies) {
+				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
+			}
+		} else {
+			// shortcut cross-chunk relations can be added by traceExport
+			for (const module of Array.from(this.imports.values())) {
+				const chunkOrExternal = module instanceof Module ? module.chunk : module;
+				if (this.dependencies.indexOf(chunkOrExternal) === -1) {
+					this.dependencies.push(chunkOrExternal);
+				}
+			}
+		}
+		// prune empty dependency chunks, inlining their side-effect dependencies
+		for (let i = 0; i < this.dependencies.length; i++) {
+			const dep = this.dependencies[i];
+			if (dep instanceof Chunk && dep.isEmpty) {
+				this.dependencies.splice(i--, 1);
+				this.inlineChunkDependencies(dep, false);
+			}
+		}
 
 		this.setIdentifierRenderResolutions(options);
 
