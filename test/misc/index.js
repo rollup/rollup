@@ -146,7 +146,7 @@ describe('sanity checks', () => {
 					loader({ x: `console.log( 42 );` }),
 					{
 						transform(code) {
-							error = new CustomError('foo', 'bar')
+							error = new CustomError('foo', 'bar');
 							this.error(error);
 						}
 					}
