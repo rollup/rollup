@@ -1,6 +1,7 @@
 # rollup changelog
 
 ## 0.58.0
+*2018-04-16*
 * Support individual chunk names with optional content hashes ([#2068](https://github.com/rollup/rollup/pull/2068))
 * Support manually created chunks ([#2084](https://github.com/rollup/rollup/pull/2084))
 * Automatically import deep dependencies when code splitting for better performance ([#2073](https://github.com/rollup/rollup/pull/2073))
@@ -21,12 +22,14 @@
 * Update readme examples ([#2086](https://github.com/rollup/rollup/pull/2086))
 
 ## 0.57.1
+*2018-03-17*
 * Improve sourcemap generation performance ([#2062](https://github.com/rollup/rollup/pull/2062))
 * Add reserved config option namespace and improve CLI interface ([#2063](https://github.com/rollup/rollup/pull/2063))
 * Fix issue with default exported function and class expressions ([#2059](https://github.com/rollup/rollup/pull/2059))
 * Replace `forEach` with faster `for` loops in some places ([#2064](https://github.com/rollup/rollup/pull/2064))
 
 ## 0.57.0
+*2018-03-15*
 * Add option to preserve the module structure instead of bundling ([#1922](https://github.com/rollup/rollup/pull/1922))
 * Enable watch mode when code-splitting ([#2035](https://github.com/rollup/rollup/pull/2035))
 * Optionally pass CLI commands to config file ([#1926](https://github.com/rollup/rollup/pull/1926))
@@ -42,6 +45,7 @@
 * [BREAKING] Refactor missing export plugin hook ([#1987](https://github.com/rollup/rollup/pull/1987))
 
 ## 0.56.5
+*2018-03-07*
 * Preserve ids when deconflicting classes ([#2025](https://github.com/rollup/rollup/pull/2025))
 * Fix an issue with re-exported namespace imports ([#2034](https://github.com/rollup/rollup/pull/2034))
 * Prevent an infinite loop when binding member expressions ([#1963](https://github.com/rollup/rollup/pull/1963))
@@ -49,6 +53,7 @@
 * Fix links in documentation ([#2026](https://github.com/rollup/rollup/pull/2026))
 
 ## 0.56.4
+*2018-03-05*
 * Make rollup builds reproducible ([#2024](https://github.com/rollup/rollup/pull/2024))
 * Improve error handling for source maps ([#2012](https://github.com/rollup/rollup/pull/2012))
 * Properly handle SystemJS default exports without semicolons ([#2019](https://github.com/rollup/rollup/pull/2019))
@@ -60,12 +65,14 @@
 * Improve internal build configuration ([#2016](https://github.com/rollup/rollup/pull/2016))
 
 ## 0.56.3
+*2018-02-25*
 * Fix issues around default exports and module facades ([#2001](https://github.com/rollup/rollup/pull/2001))
 * Improve and fix internal chunk interface ([#1994](https://github.com/rollup/rollup/pull/1994))
 * Fix superfluous semicolons added after declarations ([#1999](https://github.com/rollup/rollup/pull/1999))
 * Improve code-splitting tests ([#1990](https://github.com/rollup/rollup/pull/1990))
 
 ## 0.56.2
+*2018-02-19*
 * Fix handling of reassigned default exports ([#1975](https://github.com/rollup/rollup/pull/1975))
 * Fix handling of renamed exports in entry points ([#1977](https://github.com/rollup/rollup/pull/1977))
 * Update internal TypeScript version ([#1980](https://github.com/rollup/rollup/pull/1980))
@@ -74,9 +81,11 @@
 * Fix non-replaced dynamic imports in non-ESM output ([#1985](https://github.com/rollup/rollup/pull/1985))
 
 ## 0.56.1
+*2018-02-16*
 * Fix regression when rendering switch statements ([#1971](https://github.com/rollup/rollup/pull/1971))
 
 ## 0.56.0
+*2018-02-15*
 * Update to ECMAScript 2018 ([#1953](https://github.com/rollup/rollup/pull/1953))
 * Rework tree-shaking rendering algorithm ([#1949](https://github.com/rollup/rollup/pull/1949))
 * Tree-shake pure prototype calls on literals ([#1916](https://github.com/rollup/rollup/pull/1916))
@@ -86,9 +95,11 @@
 * Fix internal performance timers ([#1966](https://github.com/rollup/rollup/pull/1966))
 
 ## 0.55.5
+*2018-02-10*
 * Remove OpenCollective dependency ([#1915](https://github.com/rollup/rollup/pull/1915))
 
 ## 0.55.4
+*2018-02-09*
 * Improve name deconflicting of external variables ([#1930](https://github.com/rollup/rollup/pull/1930))
 * Improve re-export handling ([#1947](https://github.com/rollup/rollup/pull/1947))
 * Mark preserveSymlinks option as optional ([#1939](https://github.com/rollup/rollup/pull/1939))
@@ -96,9 +107,11 @@
 * Improve TypeScript definition test ([#1954](https://github.com/rollup/rollup/pull/1954))
 
 ## 0.55.3
+*2018-02-01*
 * Remove OpenCollective dependency ([#1915](https://github.com/rollup/rollup/pull/1915))
 
 ## 0.55.2
+*2018-02-01*
 * Add option to not follow symlinks ([#1819](https://github.com/rollup/rollup/pull/1819))
 * Fix crash in windows shell ([#1928](https://github.com/rollup/rollup/pull/1928))
 * Fix and test for external TypeScript errors ([#1903](https://github.com/rollup/rollup/pull/1903))
@@ -106,6 +119,7 @@
 * Optimize CI scripts ([#1921](https://github.com/rollup/rollup/pull/1921))
 
 ## 0.55.1
+*2018-01-26*
 * Improve dynamic import workflow ([#1907](https://github.com/rollup/rollup/pull/1907))
 * Properly handle multiple dynamic imports of the same module ([#1911](https://github.com/rollup/rollup/pull/1911))
 * Fix import specifier deshadowing ([#1912](https://github.com/rollup/rollup/pull/1912))
@@ -113,6 +127,7 @@
 * Let onwarn handler accept strings ([#1905](https://github.com/rollup/rollup/pull/1905))
 
 ## 0.55.0
+*2018-01-23*
 * Support code splitting ([#1841](https://github.com/rollup/rollup/pull/1841))
 * Support SystemJS as output format ([#1897](https://github.com/rollup/rollup/pull/1897))
 * Allow injecting acorn plugins ([#1857](https://github.com/rollup/rollup/pull/1857))
@@ -128,9 +143,11 @@
 * Clean up some tests ([#1888](https://github.com/rollup/rollup/pull/1888))
 
 ## 0.54.1
+*2018-01-17*
 * Fix TypeScript errors in emitted type definitions ([#1871](https://github.com/rollup/rollup/pull/1871))
 
 ## 0.54.0
+*2018-01-12*
 * Automatically inline locally resolvable dynamic imports ([#1816](https://github.com/rollup/rollup/pull/1816))
 * Preserve directives in function bodies ([#1856](https://github.com/rollup/rollup/pull/1856))
 * Refactor an error notification ([#1846](https://github.com/rollup/rollup/pull/1846))
