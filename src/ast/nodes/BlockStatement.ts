@@ -13,7 +13,6 @@ export function isBlockStatement(node: Node): node is BlockStatement {
 
 export default class BlockStatement extends StatementBase {
 	type: NodeType.BlockStatement;
-	scope: Scope;
 	body: StatementNode[];
 
 	bindImplicitReturnExpressionToScope() {
@@ -23,37 +22,23 @@ export default class BlockStatement extends StatementBase {
 		}
 	}
 
+	createScope(parentScope: Scope) {
+		this.scope = (<Node>this.parent).preventChildBlockScope
+			? parentScope
+			: new BlockScope({ parent: parentScope });
+	}
+
 	hasEffects(options: ExecutionPathOptions) {
-		return this.body.some(child => child.hasEffects(options));
-	}
-
-	includeInBundle() {
-		let addedNewNodes = !this.included;
-		this.included = true;
-		this.body.forEach(node => {
-			if (node.shouldBeIncluded()) {
-				if (node.includeInBundle()) {
-					addedNewNodes = true;
-				}
-			}
-		});
-		return addedNewNodes;
-	}
-
-	initialiseAndReplaceScope(scope: Scope) {
-		this.scope = scope;
-		this.initialiseNode(scope);
-		this.initialiseChildren(scope);
-	}
-
-	initialiseChildren(_parentScope: Scope) {
 		for (const node of this.body) {
-			node.initialise(this.scope);
+			if (node.hasEffects(options)) return true;
 		}
 	}
 
-	initialiseScope(parentScope: Scope) {
-		this.scope = new BlockScope({ parent: parentScope });
+	include() {
+		this.included = true;
+		for (const node of this.body) {
+			if (node.shouldBeIncluded()) node.include();
+		}
 	}
 
 	render(code: MagicString, options: RenderOptions) {

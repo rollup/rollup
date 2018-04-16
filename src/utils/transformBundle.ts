@@ -1,7 +1,6 @@
 import { decode } from 'sourcemap-codec';
 import error from './error';
-import { RawSourceMap } from 'source-map';
-import { OutputOptions, Plugin } from '../rollup/types';
+import { OutputOptions, Plugin, RawSourceMap } from '../rollup/types';
 
 export default function transformBundle(
 	code: string,

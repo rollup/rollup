@@ -9,16 +9,16 @@ export default class NewExpression extends NodeBase {
 	callee: ExpressionNode;
 	arguments: ExpressionNode[];
 
-	_callOptions: CallOptions;
+	private callOptions: CallOptions;
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return (
-			this.arguments.some(child => child.hasEffects(options)) ||
-			this.callee.hasEffectsWhenCalledAtPath(
-				[],
-				this._callOptions,
-				options.getHasEffectsWhenCalledOptions()
-			)
+		for (const argument of this.arguments) {
+			if (argument.hasEffects(options)) return true;
+		}
+		return this.callee.hasEffectsWhenCalledAtPath(
+			[],
+			this.callOptions,
+			options.getHasEffectsWhenCalledOptions()
 		);
 	}
 
@@ -26,8 +26,9 @@ export default class NewExpression extends NodeBase {
 		return path.length > 1;
 	}
 
-	initialiseNode() {
-		this._callOptions = CallOptions.create({
+	initialise() {
+		this.included = false;
+		this.callOptions = CallOptions.create({
 			withNew: true,
 			args: this.arguments,
 			callIdentifier: this

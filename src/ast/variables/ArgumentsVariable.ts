@@ -16,20 +16,11 @@ const getParameterVariable = (path: ObjectPath, options: ExecutionPathOptions) =
 };
 
 export default class ArgumentsVariable extends LocalVariable {
-	private _parameters: ParameterVariable[];
+	private parameters: ParameterVariable[];
 
 	constructor(parameters: ParameterVariable[]) {
 		super('arguments', null, UNKNOWN_EXPRESSION);
-		this._parameters = parameters;
-	}
-
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		const firstArgNum = parseInt(<string>path[0], 10);
-		if (path.length > 0) {
-			if (firstArgNum >= 0 && this._parameters[firstArgNum]) {
-				this._parameters[firstArgNum].reassignPath(path.slice(1), options);
-			}
-		}
+		this.parameters = parameters;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -60,6 +51,15 @@ export default class ArgumentsVariable extends LocalVariable {
 			callOptions,
 			options
 		);
+	}
+
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+		const firstArgNum = parseInt(<string>path[0], 10);
+		if (path.length > 0) {
+			if (firstArgNum >= 0 && this.parameters[firstArgNum]) {
+				this.parameters[firstArgNum].reassignPath(path.slice(1), options);
+			}
+		}
 	}
 
 	someReturnExpressionWhenCalledAtPath(

@@ -1,5 +1,4 @@
 import { ExpressionNode, NodeBase } from './shared/Node';
-import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
@@ -10,13 +9,11 @@ export default class VariableDeclarator extends NodeBase {
 	id: PatternNode;
 	init: ExpressionNode | null;
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		this.id.reassignPath(path, options);
+	declareDeclarator(kind: string) {
+		this.id.declare(kind, this.init);
 	}
 
-	initialiseDeclarator(parentScope: Scope, kind: string) {
-		this.initialiseScope(parentScope);
-		this.init && this.init.initialise(this.scope);
-		this.id.initialiseAndDeclare(this.scope, kind, this.init);
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+		this.id.reassignPath(path, options);
 	}
 }

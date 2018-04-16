@@ -49,6 +49,7 @@ import TemplateLiteral from './TemplateLiteral';
 import ThisExpression from './ThisExpression';
 import ThrowStatement from './ThrowStatement';
 import UnaryExpression from './UnaryExpression';
+import UnknownNode from './UnknownNode';
 import UpdateExpression from './UpdateExpression';
 import VariableDeclarator from './VariableDeclarator';
 import VariableDeclaration from './VariableDeclaration';
@@ -56,7 +57,7 @@ import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
 import { NodeBase, StatementBase } from './shared/Node';
 
-const nodes: {
+export const nodeConstructors: {
 	[name: string]: typeof NodeBase;
 } = {
 	ArrayExpression,
@@ -111,12 +112,10 @@ const nodes: {
 	ThrowStatement,
 	TryStatement: StatementBase,
 	UnaryExpression,
+	UnknownNode,
 	UpdateExpression,
 	VariableDeclarator,
 	VariableDeclaration,
 	WhileStatement,
 	YieldExpression
 };
-
-export { NodeType } from './NodeType';
-export default nodes;

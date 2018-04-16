@@ -13,15 +13,18 @@ export default class ImportDeclaration extends NodeBase {
 	specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
 	source: Literal<string>;
 
-	isImportDeclaration: true;
 	needsBoundaries: true;
 
-	bindChildren() {}
+	bind() {}
+
+	initialise() {
+		this.included = false;
+		this.context.addImport(this);
+	}
 
 	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
 		code.remove(start, end);
 	}
 }
 
-ImportDeclaration.prototype.isImportDeclaration = true;
 ImportDeclaration.prototype.needsBoundaries = true;

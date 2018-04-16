@@ -31,42 +31,37 @@ export default class VariableDeclaration extends NodeBase {
 	declarations: VariableDeclarator[];
 	kind: 'var' | 'let' | 'const';
 
-	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {
-		this.declarations.forEach(declarator =>
-			declarator.reassignPath([], ExecutionPathOptions.create())
-		);
-	}
-
 	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
 		return false;
 	}
 
 	includeWithAllDeclaredVariables() {
-		let addedNewNodes = !this.included;
+		let anotherPassNeeded = false;
 		this.included = true;
-		this.declarations.forEach(declarator => {
-			if (declarator.includeInBundle()) {
-				addedNewNodes = true;
-			}
-		});
-		return addedNewNodes;
+		for (const declarator of this.declarations) {
+			if (declarator.include()) anotherPassNeeded = true;
+		}
+		return anotherPassNeeded;
 	}
 
-	includeInBundle() {
-		let addedNewNodes = !this.included;
+	include() {
 		this.included = true;
-		this.declarations.forEach(declarator => {
-			if (declarator.shouldBeIncluded()) {
-				if (declarator.includeInBundle()) {
-					addedNewNodes = true;
-				}
-			}
-		});
-		return addedNewNodes;
+		for (const declarator of this.declarations) {
+			if (declarator.shouldBeIncluded()) declarator.include();
+		}
 	}
 
-	initialiseChildren() {
-		this.declarations.forEach(child => child.initialiseDeclarator(this.scope, this.kind));
+	initialise() {
+		this.included = false;
+		for (const declarator of this.declarations) {
+			declarator.declareDeclarator(this.kind);
+		}
+	}
+
+	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {
+		for (const declarator of this.declarations) {
+			declarator.reassignPath([], ExecutionPathOptions.create());
+		}
 	}
 
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {

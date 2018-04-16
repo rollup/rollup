@@ -349,24 +349,24 @@ export function hasMemberEffectWhenCalled(
 	callOptions: CallOptions,
 	options: ExecutionPathOptions
 ) {
-	return (
-		isUnknownKey(memberName) ||
-		!members[memberName] ||
-		(members[memberName].callsArgs &&
-			members[memberName].callsArgs.some(
-				argIndex =>
-					callOptions.args[argIndex] &&
-					callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
-						[],
-						CallOptions.create({
-							withNew: false,
-							args: [],
-							callIdentifier: {} // make sure the caller is unique to avoid this check being ignored
-						}),
-						options.getHasEffectsWhenCalledOptions()
-					)
-			))
-	);
+	if (isUnknownKey(memberName) || !members[memberName]) return true;
+	if (!members[memberName].callsArgs) return false;
+	for (const argIndex of members[memberName].callsArgs) {
+		if (
+			callOptions.args[argIndex] &&
+			callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
+				[],
+				CallOptions.create({
+					withNew: false,
+					args: [],
+					callIdentifier: {} // make sure the caller is unique to avoid this check being ignored
+				}),
+				options.getHasEffectsWhenCalledOptions()
+			)
+		)
+			return true;
+	}
+	return false;
 }
 
 export function someMemberReturnExpressionWhenCalled(

@@ -1,7 +1,6 @@
 import { Node, NodeBase } from './shared/Node';
 import isReference from 'is-reference';
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
-import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Variable from '../variables/Variable';
 import CallOptions from '../CallOptions';
@@ -28,51 +27,18 @@ export default class Identifier extends NodeBase {
 	name: string;
 
 	variable: Variable;
-	private isBound: boolean;
+	private bound: boolean;
 
-	bindNode() {
-		if (isReference(this, this.parent)) {
+	bind() {
+		if (this.bound) return;
+		this.bound = true;
+		if (this.variable === null && isReference(this, this.parent)) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 		}
 	}
 
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) {
-		if (!this.isBound) this.bind();
-		this.variable &&
-			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
-	}
-
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return this.variable && this.variable.hasEffectsWhenAccessedAtPath(path, options);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return !this.variable || this.variable.hasEffectsWhenAssignedAtPath(path, options);
-	}
-
-	hasEffectsWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		options: ExecutionPathOptions
-	) {
-		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
-	}
-
-	includeInBundle() {
-		if (this.included) return false;
-		this.included = true;
-		this.variable && this.variable.includeVariable();
-		return true;
-	}
-
-	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null) {
-		this.initialiseScope(parentScope);
+	declare(kind: string, init: ExpressionEntity | null) {
 		switch (kind) {
 			case 'var':
 			case 'function':
@@ -94,68 +60,64 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
+	forEachReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		callback: ForEachReturnExpressionCallback,
+		options: ExecutionPathOptions
+	) {
+		if (!this.bound) this.bind();
+		if (this.variable !== null) {
+			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+		}
+	}
+
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+		return this.variable && this.variable.hasEffectsWhenAccessedAtPath(path, options);
+	}
+
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+		return !this.variable || this.variable.hasEffectsWhenAssignedAtPath(path, options);
+	}
+
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	) {
+		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
+	}
+
+	include() {
+		if (!this.included) {
+			this.included = true;
+			if (this.variable !== null && !this.variable.included) {
+				this.variable.include();
+				this.context.requestTreeshakingPass();
+			}
+		}
+	}
+
+	initialise() {
+		this.included = false;
+		this.bound = false;
+		// To avoid later shape mutations
+		if (!this.variable) {
+			this.variable = null;
+		}
+	}
+
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (!this.isBound) this.bind();
-		if (this.variable) {
-			if (path.length === 0) this.disallowImportReassignment();
+		if (!this.bound) this.bind();
+		if (this.variable !== null) {
+			if (
+				path.length === 0 &&
+				this.name in this.context.imports &&
+				!this.scope.contains(this.name)
+			) {
+				this.disallowImportReassignment();
+			}
 			this.variable.reassignPath(path, options);
-		}
-	}
-
-	private disallowImportReassignment() {
-		if (this.module.imports[this.name] && !this.scope.contains(this.name)) {
-			this.module.error(
-				{
-					code: 'ILLEGAL_REASSIGNMENT',
-					message: `Illegal reassignment to import '${this.name}'`
-				},
-				this.start
-			);
-		}
-	}
-
-	renderSystemBindingUpdate(code: MagicString, name: string) {
-		switch (this.parent.type) {
-			case NodeType.AssignmentExpression:
-				{
-					let expression: AssignmentExpression = <AssignmentExpression>this.parent;
-					if (expression.left === this) {
-						code.prependLeft(expression.right.start, `exports('${this.variable.exportName}', `);
-						code.prependRight(expression.right.end, `)`);
-					}
-				}
-				break;
-
-			case NodeType.UpdateExpression:
-				{
-					let expression: UpdateExpression = <UpdateExpression>this.parent;
-					if (expression.prefix) {
-						code.overwrite(
-							expression.start,
-							expression.end,
-							`exports('${this.variable.exportName}', ${expression.operator}${name})`
-						);
-					} else {
-						let op;
-						switch (expression.operator) {
-							case '++':
-								op = `${name} + 1`;
-								break;
-							case '--':
-								op = `${name} - 1`;
-								break;
-							case '**':
-								op = `${name} * ${name}`;
-								break;
-						}
-						code.overwrite(
-							expression.start,
-							expression.end,
-							`(exports('${this.variable.exportName}', ${op}), ${name}${expression.operator})`
-						);
-					}
-				}
-				break;
 		}
 	}
 
@@ -205,5 +167,60 @@ export default class Identifier extends NodeBase {
 			);
 		}
 		return predicateFunction(options)(UNKNOWN_EXPRESSION);
+	}
+
+	private disallowImportReassignment() {
+		this.context.error(
+			{
+				code: 'ILLEGAL_REASSIGNMENT',
+				message: `Illegal reassignment to import '${this.name}'`
+			},
+			this.start
+		);
+	}
+
+	private renderSystemBindingUpdate(code: MagicString, name: string) {
+		switch (this.parent.type) {
+			case NodeType.AssignmentExpression:
+				{
+					let expression: AssignmentExpression = <AssignmentExpression>this.parent;
+					if (expression.left === this) {
+						code.prependLeft(expression.right.start, `exports('${this.variable.exportName}', `);
+						code.prependRight(expression.right.end, `)`);
+					}
+				}
+				break;
+
+			case NodeType.UpdateExpression:
+				{
+					let expression: UpdateExpression = <UpdateExpression>this.parent;
+					if (expression.prefix) {
+						code.overwrite(
+							expression.start,
+							expression.end,
+							`exports('${this.variable.exportName}', ${expression.operator}${name})`
+						);
+					} else {
+						let op;
+						switch (expression.operator) {
+							case '++':
+								op = `${name} + 1`;
+								break;
+							case '--':
+								op = `${name} - 1`;
+								break;
+							case '**':
+								op = `${name} * ${name}`;
+								break;
+						}
+						code.overwrite(
+							expression.start,
+							expression.end,
+							`(exports('${this.variable.exportName}', ${op}), ${name}${expression.operator})`
+						);
+					}
+				}
+				break;
+		}
 	}
 }

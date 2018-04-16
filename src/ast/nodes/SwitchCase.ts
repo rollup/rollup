@@ -12,20 +12,12 @@ export default class SwitchCase extends NodeBase {
 	test: ExpressionNode | null;
 	consequent: StatementNode[];
 
-	includeInBundle() {
-		let addedNewNodes = !this.included;
+	include() {
 		this.included = true;
-		if (this.test && this.test.includeInBundle()) {
-			addedNewNodes = true;
+		if (this.test) this.test.include();
+		for (const node of this.consequent) {
+			if (node.shouldBeIncluded()) node.include();
 		}
-		this.consequent.forEach(node => {
-			if (node.shouldBeIncluded()) {
-				if (node.includeInBundle()) {
-					addedNewNodes = true;
-				}
-			}
-		});
-		return addedNewNodes;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

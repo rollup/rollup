@@ -6,17 +6,25 @@ import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import { PatternNode } from './Pattern';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
-import { NodeBase } from './Node';
+import { GenericEsTreeNode, NodeBase } from './Node';
 import { ObjectPath } from '../../values';
+import Scope from '../../scopes/Scope';
 
 export default class FunctionNode extends NodeBase {
-	id: Identifier;
+	id: Identifier | null;
 	body: BlockStatement;
-	scope: BlockScope;
 	params: PatternNode[];
 
-	bindNode() {
+	scope: BlockScope;
+	preventChildBlockScope: true;
+
+	bind() {
+		super.bind();
 		this.body.bindImplicitReturnExpressionToScope();
+	}
+
+	createScope(parentScope: FunctionScope) {
+		this.scope = new FunctionScope({ parent: parentScope });
 	}
 
 	forEachReturnExpressionWhenCalledAtPath(
@@ -62,19 +70,34 @@ export default class FunctionNode extends NodeBase {
 			return true;
 		}
 		const innerOptions = this.scope.getOptionsWhenCalledWith(callOptions, options);
-		return (
-			this.params.some(param => param.hasEffects(innerOptions)) ||
-			this.body.hasEffects(innerOptions)
+		for (const param of this.params) {
+			if (param.hasEffects(innerOptions)) return true;
+		}
+		return this.body.hasEffects(innerOptions);
+	}
+
+	include() {
+		this.scope.variables.arguments.include();
+		super.include();
+	}
+
+	initialise() {
+		this.included = false;
+		if (this.id !== null) {
+			this.id.declare('function', this);
+		}
+		for (const param of this.params) {
+			param.declare('parameter', null);
+		}
+	}
+
+	parseNode(esTreeNode: GenericEsTreeNode) {
+		this.body = <BlockStatement>new this.context.nodeConstructors.BlockStatement(
+			esTreeNode.body,
+			this,
+			new Scope({ parent: this.scope })
 		);
-	}
-
-	includeInBundle() {
-		this.scope.variables.arguments.includeVariable();
-		return super.includeInBundle();
-	}
-
-	initialiseScope(parentScope: FunctionScope) {
-		this.scope = new FunctionScope({ parent: parentScope });
+		super.parseNode(esTreeNode);
 	}
 
 	someReturnExpressionWhenCalledAtPath(
@@ -89,3 +112,5 @@ export default class FunctionNode extends NodeBase {
 		);
 	}
 }
+
+FunctionNode.prototype.preventChildBlockScope = true;

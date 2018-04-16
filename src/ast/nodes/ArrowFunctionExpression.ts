@@ -6,19 +6,26 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
 import { NodeType } from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
 import { ObjectPath } from '../values';
 
 export default class ArrowFunctionExpression extends NodeBase {
 	type: NodeType.ArrowFunctionExpression;
 	body: BlockStatement | ExpressionNode;
 	params: PatternNode[];
-	scope: ReturnValueScope;
 
-	bindNode() {
+	scope: ReturnValueScope;
+	preventChildBlockScope: true;
+
+	bind() {
+		super.bind();
 		isBlockStatement(this.body)
 			? this.body.bindImplicitReturnExpressionToScope()
 			: this.scope.addReturnExpression(this.body);
+	}
+
+	createScope(parentScope: Scope) {
+		this.scope = new ReturnValueScope({ parent: parentScope });
 	}
 
 	forEachReturnExpressionWhenCalledAtPath(
@@ -51,20 +58,28 @@ export default class ArrowFunctionExpression extends NodeBase {
 		if (path.length > 0) {
 			return true;
 		}
-		return this.params.some(param => param.hasEffects(options)) || this.body.hasEffects(options);
+		for (const param of this.params) {
+			if (param.hasEffects(options)) return true;
+		}
+		return this.body.hasEffects(options);
 	}
 
-	initialiseChildren() {
-		this.params.forEach(param => param.initialiseAndDeclare(this.scope, 'parameter', null));
-		if ((<BlockStatement>this.body).initialiseAndReplaceScope) {
-			(<BlockStatement>this.body).initialiseAndReplaceScope(new Scope({ parent: this.scope }));
-		} else {
-			this.body.initialise(this.scope);
+	initialise() {
+		this.included = false;
+		for (const param of this.params) {
+			param.declare('parameter', null);
 		}
 	}
 
-	initialiseScope(parentScope: Scope) {
-		this.scope = new ReturnValueScope({ parent: parentScope });
+	parseNode(esTreeNode: GenericEsTreeNode) {
+		if (esTreeNode.body.type === NodeType.BlockStatement) {
+			this.body = new this.context.nodeConstructors.BlockStatement(
+				esTreeNode.body,
+				this,
+				new Scope({ parent: this.scope })
+			);
+		}
+		super.parseNode(esTreeNode);
 	}
 
 	someReturnExpressionWhenCalledAtPath(
@@ -79,3 +94,5 @@ export default class ArrowFunctionExpression extends NodeBase {
 		);
 	}
 }
+
+ArrowFunctionExpression.prototype.preventChildBlockScope = true;

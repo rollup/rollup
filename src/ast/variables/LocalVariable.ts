@@ -10,6 +10,8 @@ import {
 	SomeReturnExpressionCallback
 } from '../nodes/shared/Expression';
 import { ObjectPath } from '../values';
+import { Node } from '../nodes/shared/Node';
+import { NodeType } from '../nodes/NodeType';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
@@ -24,8 +26,6 @@ export default class LocalVariable extends Variable {
 		init: ExpressionEntity
 	) {
 		super(name);
-		this.isReassigned = false;
-		this.exportName = null;
 		this.declarations = new Set(declarator ? [declarator] : null);
 		this.boundExpressions = new VariableReassignmentTracker(init);
 	}
@@ -108,10 +108,22 @@ export default class LocalVariable extends Variable {
 		);
 	}
 
-	includeVariable() {
-		if (!super.includeVariable()) return false;
-		this.declarations.forEach(identifier => identifier.includeInBundle());
-		return true;
+	include() {
+		if (!this.included) {
+			this.included = true;
+			this.declarations.forEach((node: Node) => {
+				// If node is a default export, it can save a tree-shaking run to include the full declaration now
+				if (!node.included) node.include();
+				node = <Node>node.parent;
+				while (!node.included) {
+					// We do not want to properly include parents in case they are part of a dead branch
+					// in which case .include() might pull in more dead code
+					node.included = true;
+					if (node.type === NodeType.Program) break;
+					node = <Node>node.parent;
+				}
+			});
+		}
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {

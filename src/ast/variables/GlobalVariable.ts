@@ -4,15 +4,7 @@ import { ObjectPath } from '../values';
 
 export default class GlobalVariable extends Variable {
 	isExternal: true;
-	isGlobal: true;
-
-	constructor(name: string) {
-		super(name);
-		this.isExternal = true;
-		this.isGlobal = true;
-		this.isReassigned = false;
-		this.included = true;
-	}
+	included = true;
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		// path.length == 0 can also have an effect but we postpone this for now
@@ -37,3 +29,5 @@ export default class GlobalVariable extends Variable {
 		);
 	}
 }
+
+GlobalVariable.prototype.isExternal = true;

@@ -52,7 +52,7 @@ describe('sourcemaps', () => {
 
 								return bundle.generate(outputOptions).then(({ code, map }) => {
 									if (config.test) {
-										config.test(code, map, { format });
+										return config.test(code, map, { format });
 									}
 								});
 							});

@@ -10,11 +10,11 @@ export default class SwitchStatement extends StatementBase {
 	discriminant: ExpressionNode;
 	cases: SwitchCase[];
 
-	hasEffects(options: ExecutionPathOptions) {
-		return super.hasEffects(options.setIgnoreBreakStatements());
+	createScope(parentScope: Scope) {
+		this.scope = new BlockScope({ parent: parentScope });
 	}
 
-	initialiseScope(parentScope: Scope) {
-		this.scope = new BlockScope({ parent: parentScope });
+	hasEffects(options: ExecutionPathOptions) {
+		return super.hasEffects(options.setIgnoreBreakStatements());
 	}
 }

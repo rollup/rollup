@@ -1,16 +1,18 @@
 {
     "compilerOptions": {
-        "pretty": true,
         "allowSyntheticDefaultImports": true,
-        "target": "es5",
         "diagnostics": true,
+        "downlevelIteration": false,
         "lib": ["es5", "es6", "dom"],
         "noEmitOnError": true,
         "noImplicitAny": true,
         "noImplicitThis": true,
-        "noUnusedParameters": true,
         "noUnusedLocals": true,
-        "skipLibCheck": true
+        "noUnusedParameters": true,
+        "pretty": true,
+        "skipLibCheck": true,
+        "strictPropertyInitialization": true,
+        "target": "es5"
     },
     "include": [
         "typings/**/*.d.ts",

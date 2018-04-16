@@ -1,4 +1,4 @@
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration, { isClassDeclaration } from './ClassDeclaration';
 import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaration';
@@ -32,17 +32,20 @@ function getIdInsertPosition(code: string, declarationKeyword: string, start = 0
 	return declarationEnd + generatorStarPos + 1;
 }
 
+export function isExportDefaultDeclaration(node: Node): node is ExportDefaultDeclaration {
+	return node.type === NodeType.ExportDefaultDeclaration;
+}
+
 export default class ExportDefaultDeclaration extends NodeBase {
 	type: NodeType.ExportDefaultDeclaration;
 	declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
 
 	needsBoundaries: true;
-	isExportDeclaration: true;
 	variable: ExportDefaultVariable;
-
 	private declarationName: string;
 
-	bindNode() {
+	bind() {
+		super.bind();
 		if (
 			this.declarationName &&
 			// Do not set it for Class and FunctionExpressions otherwise they get treeshaken away
@@ -54,15 +57,17 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		}
 	}
 
-	initialiseNode() {
+	initialise() {
+		this.included = false;
 		this.declarationName =
 			((<FunctionDeclaration | ClassDeclaration>this.declaration).id &&
 				(<FunctionDeclaration | ClassDeclaration>this.declaration).id.name) ||
 			(<Identifier>this.declaration).name;
 		this.variable = this.scope.addExportDefaultDeclaration(
-			this.declarationName || this.module.basename(),
+			this.declarationName || this.context.getModuleName(),
 			this
 		);
+		this.context.addExport(this);
 	}
 
 	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
@@ -150,7 +155,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		code.overwrite(
 			this.start,
 			declarationStart,
-			`${this.module.graph.varOrConst} ${this.variable.getName()} = ${systemBinding}`
+			`${this.context.varOrConst} ${this.variable.getName()} = ${systemBinding}`
 		);
 		if (systemBinding) {
 			code.appendRight(code.original[this.end - 1] === ';' ? this.end - 1 : this.end, ')');
@@ -159,4 +164,3 @@ export default class ExportDefaultDeclaration extends NodeBase {
 }
 
 ExportDefaultDeclaration.prototype.needsBoundaries = true;
-ExportDefaultDeclaration.prototype.isExportDeclaration = true;

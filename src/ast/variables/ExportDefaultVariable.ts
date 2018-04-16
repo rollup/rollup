@@ -12,37 +12,40 @@ export function isExportDefaultVariable(variable: Variable): variable is ExportD
 export default class ExportDefaultVariable extends LocalVariable {
 	isDefault: true;
 	hasId: boolean;
-	private _original: Variable;
+
+	// Not initialised during construction
+	private original: Variable | null = null;
 
 	constructor(name: string, exportDefaultDeclaration: ExportDefaultDeclaration) {
 		super(name, exportDefaultDeclaration, exportDefaultDeclaration.declaration);
-		this.isDefault = true;
 		this.hasId = !!(<FunctionDeclaration | ClassDeclaration>exportDefaultDeclaration.declaration)
 			.id;
 	}
 
 	addReference(identifier: Identifier) {
 		this.name = identifier.name;
-		if (this._original) {
-			this._original.addReference(identifier);
+		if (this.original !== null) {
+			this.original.addReference(identifier);
 		}
 	}
 
 	getName(reset?: boolean) {
 		if (!reset && this.safeName) return this.safeName;
-		if (this._original && !this._original.isReassigned) return this._original.getName();
+		if (this.original !== null && !this.original.isReassigned) return this.original.getName();
 		return this.name;
 	}
 
 	referencesOriginal() {
-		return this._original && !this._original.isReassigned;
+		return this.original && !this.original.isReassigned;
 	}
 
 	getOriginalVariableName() {
-		return this._original && this._original.getName();
+		return this.original && this.original.getName();
 	}
 
 	setOriginalVariable(original: Variable) {
-		this._original = original;
+		this.original = original;
 	}
 }
+
+ExportDefaultVariable.prototype.isDefault = true;

@@ -9,7 +9,8 @@ export default class AssignmentExpression extends NodeBase {
 	left: PatternNode | ExpressionNode;
 	right: ExpressionNode;
 
-	bindNode() {
+	bind() {
+		super.bind();
 		this.left.reassignPath([], ExecutionPathOptions.create());
 	}
 

@@ -1,5 +1,4 @@
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
-import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { PatternNode } from './shared/Pattern';
 import { ExpressionEntity } from './shared/Expression';
@@ -10,21 +9,29 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	type: NodeType.ArrayPattern;
 	elements: (PatternNode | null)[];
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		path.length === 0 && this.elements.forEach(child => child && child.reassignPath([], options));
+	declare(kind: string, _init: ExpressionEntity | null) {
+		for (const element of this.elements) {
+			if (element !== null) {
+				element.declare(kind, UNKNOWN_EXPRESSION);
+			}
+		}
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
-		return (
-			path.length > 0 ||
-			this.elements.some(child => child && child.hasEffectsWhenAssignedAtPath([], options))
-		);
+		if (path.length > 0) return true;
+		for (const element of this.elements) {
+			if (element !== null && element.hasEffectsWhenAssignedAtPath([], options)) return true;
+		}
+		return false;
 	}
 
-	initialiseAndDeclare(parentScope: Scope, kind: string, _init: ExpressionEntity | null) {
-		this.initialiseScope(parentScope);
-		this.elements.forEach(
-			child => child && child.initialiseAndDeclare(parentScope, kind, UNKNOWN_EXPRESSION)
-		);
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+		if (path.length === 0) {
+			for (const element of this.elements) {
+				if (element !== null) {
+					element.reassignPath(path, options);
+				}
+			}
+		}
 	}
 }

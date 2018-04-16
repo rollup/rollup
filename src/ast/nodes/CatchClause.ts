@@ -1,4 +1,4 @@
-import { NodeBase } from './shared/Node';
+import { GenericEsTreeNode, NodeBase } from './shared/Node';
 import CatchScope from '../scopes/CatchScope';
 import BlockStatement from './BlockStatement';
 import Scope from '../scopes/Scope';
@@ -9,14 +9,27 @@ export default class CatchClause extends NodeBase {
 	type: NodeType.CatchClause;
 	param: PatternNode;
 	body: BlockStatement;
+
 	scope: CatchScope;
+	preventChildBlockScope: true;
 
-	initialiseChildren() {
-		this.param && this.param.initialiseAndDeclare(this.scope, 'parameter', null);
-		this.body.initialiseAndReplaceScope(this.scope);
-	}
-
-	initialiseScope(parentScope: Scope) {
+	createScope(parentScope: Scope) {
 		this.scope = new CatchScope({ parent: parentScope });
 	}
+
+	initialise() {
+		this.included = false;
+		this.param.declare('parameter', null);
+	}
+
+	parseNode(esTreeNode: GenericEsTreeNode) {
+		this.body = <BlockStatement>new this.context.nodeConstructors.BlockStatement(
+			esTreeNode.body,
+			this,
+			this.scope
+		);
+		super.parseNode(esTreeNode);
+	}
 }
+
+CatchClause.prototype.preventChildBlockScope = true;

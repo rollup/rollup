@@ -2,80 +2,76 @@ import relativeId from '../../utils/relativeId';
 import Scope from './Scope';
 import LocalVariable from '../variables/LocalVariable';
 import { UNKNOWN_EXPRESSION } from '../values';
-import Module from '../../Module';
+import Module, { AstContext } from '../../Module';
 import ImportSpecifier from '../nodes/ImportSpecifier';
 import Variable from '../variables/Variable';
-import { isNamespaceVariable } from '../variables/NamespaceVariable';
-import { isExternalVariable } from '../variables/ExternalVariable';
+import NamespaceVariable from '../variables/NamespaceVariable';
+
+const addDeclaredNames = (variable: Variable, names: Set<string>) => {
+	if (variable.isNamespace && !variable.isExternal) {
+		for (const name of (<NamespaceVariable>variable).context.getExports())
+			addDeclaredNames((<NamespaceVariable>variable).context.traceExport(name), names);
+	}
+	names.add(variable.getName());
+};
 
 export default class ModuleScope extends Scope {
 	parent: Scope;
-	module: Module;
+	context: AstContext;
 
-	constructor(module: Module) {
+	constructor(parent: Scope, context: AstContext) {
 		super({
 			isModuleScope: true,
-			parent: module.graph.scope
+			parent
 		});
 
-		this.module = module;
+		this.context = context;
 		this.variables.this = new LocalVariable('this', null, UNKNOWN_EXPRESSION);
 	}
 
 	deshadow(names: Set<string>, children = this.children) {
 		let localNames = new Set(names);
 
-		Object.keys(this.module.imports).forEach(importName => {
-			const specifier = this.module.imports[importName];
+		for (const importName of Object.keys(this.context.imports)) {
+			const importDescription = this.context.imports[importName];
 
-			if (specifier.module.isExternal || specifier.module.chunk !== this.module.chunk) {
-				return;
-			}
+			if (importDescription.module.isExternal || this.context.isCrossChunkImport(importDescription))
+				continue;
 
-			const addDeclaration = (declaration: Variable) => {
-				if (isNamespaceVariable(declaration) && !isExternalVariable(declaration)) {
-					declaration.module
-						.getExports()
-						.forEach(name => addDeclaration(declaration.module.traceExport(name)));
-				}
+			for (const name of (<Module>importDescription.module).getAllExports())
+				addDeclaredNames(importDescription.module.traceExport(name), localNames);
 
-				localNames.add(declaration.getName());
-			};
-
-			(<Module>specifier.module).getAllExports().forEach(name => {
-				addDeclaration(specifier.module.traceExport(name));
-			});
-
-			if (specifier.name !== '*') {
-				const declaration = specifier.module.traceExport(specifier.name);
+			if (importDescription.name !== '*') {
+				const declaration = importDescription.module.traceExport(importDescription.name);
 				if (!declaration) {
-					this.module.warn(
+					this.context.warn(
 						{
 							code: 'NON_EXISTENT_EXPORT',
-							name: specifier.name,
-							source: specifier.module.id,
-							message: `Non-existent export '${specifier.name}' is imported from ${relativeId(
-								specifier.module.id
-							)}`
+							name: importDescription.name,
+							source: importDescription.module.id,
+							message: `Non-existent export '${
+								importDescription.name
+							}' is imported from ${relativeId(importDescription.module.id)}`
 						},
-						specifier.specifier.start
+						importDescription.specifier.start
 					);
-					return;
+					continue;
 				}
 
 				const name = declaration.getName();
-				if (name !== specifier.name) {
+				if (name !== importDescription.name) {
 					localNames.add(name);
 				}
 
 				if (
-					specifier.name !== 'default' &&
-					(<ImportSpecifier>specifier.specifier).imported.name !== specifier.specifier.local.name
+					importDescription.name !== 'default' &&
+					(<ImportSpecifier>importDescription.specifier).imported.name !==
+						importDescription.specifier.local.name
 				) {
-					localNames.add((<ImportSpecifier>specifier.specifier).imported.name);
+					localNames.add((<ImportSpecifier>importDescription.specifier).imported.name);
 				}
 			}
-		});
+		}
 
 		super.deshadow(localNames, children);
 	}
@@ -89,6 +85,6 @@ export default class ModuleScope extends Scope {
 			return this.variables[name];
 		}
 
-		return this.module.trace(name) || this.parent.findVariable(name);
+		return this.context.traceVariable(name) || this.parent.findVariable(name);
 	}
 }

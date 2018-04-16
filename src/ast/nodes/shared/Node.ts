@@ -1,7 +1,7 @@
 import { locate } from 'locate-character';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
 import Scope from '../../scopes/Scope';
-import Module from '../../../Module';
+import { AstContext } from '../../../Module';
 import MagicString from 'magic-string';
 import Variable from '../../variables/Variable';
 import {
@@ -13,26 +13,34 @@ import CallOptions from '../../CallOptions';
 import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import { Entity } from '../../Entity';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
+import { getAndCreateKeys, keys } from '../../keys';
+
+export interface GenericEsTreeNode {
+	type: string;
+	[key: string]: any;
+}
 
 export interface Node extends Entity {
 	end: number;
 	included: boolean;
 	keys: string[];
-	module: Module;
-	needsBoundaries?: boolean;
+	context: AstContext;
 	parent: Node | { type?: string };
 	start: number;
 	type: string;
-	variable?: Variable;
-	__enhanced: boolean;
+	needsBoundaries?: boolean;
+	preventChildBlockScope?: boolean;
+	variable?: Variable | null;
 
 	/**
 	 * Called once all nodes have been initialised and the scopes have been populated.
-	 * Usually one should not override this function but override bindNode and/or
-	 * bindChildren instead.
 	 */
 	bind(): void;
-	eachChild(callback: (node: Node) => void): void;
+
+	/**
+	 * Declare a new variable with the optional initialisation.
+	 */
+	declare(kind: string, init: ExpressionEntity | null): void;
 
 	/**
 	 * Determine if this Node would have an effect on the bundle.
@@ -48,25 +56,14 @@ export interface Node extends Entity {
 	 * Necessary variables need to be included as well. Should return true if any
 	 * nodes or variables have been added that were missing before.
 	 */
-	includeInBundle(): boolean;
+	include(): void;
 
 	/**
-	 * Alternative version of includeInBundle to override the default behaviour of
+	 * Alternative version of include to override the default behaviour of
 	 * declarations to only include nodes for declarators that have an effect. Necessary
 	 * for for-loops that do not use a declared loop variable.
 	 */
-	includeWithAllDeclaredVariables(): boolean;
-
-	/**
-	 * Assign a scope to this node and make sure all children have the right scopes.
-	 * Perform any additional initialisation that does not depend on the scope being
-	 * populated with variables.
-	 * Usually one should not override this function but override initialiseScope,
-	 * initialiseNode and/or initialiseChildren instead. BlockScopes have a special
-	 * alternative initialisation initialiseAndReplaceScope.
-	 */
-	initialise(parentScope: Scope): void;
-	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null): void;
+	includeWithAllDeclaredVariables(): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -76,7 +73,6 @@ export interface Node extends Entity {
 	 * nodes in e.g. block statements.
 	 */
 	shouldBeIncluded(): boolean;
-	someChild(callback: (node: Node) => boolean): boolean;
 }
 
 export interface StatementNode extends Node {}
@@ -86,50 +82,55 @@ export interface ExpressionNode extends ExpressionEntity, Node {}
 export class NodeBase implements ExpressionNode {
 	type: string;
 	keys: string[];
-	included: boolean;
 	scope: Scope;
 	start: number;
 	end: number;
-	module: Module;
-	parent: Node | { type?: string };
-	__enhanced: boolean;
+	context: AstContext;
+	parent: Node | { type: string; context: AstContext };
+	included: boolean;
 
-	constructor() {
-		this.keys = [];
-	}
-
-	bind() {
-		this.bindChildren();
-		this.bindNode();
-	}
-
-	/**
-	 * Override to control on which children "bind" is called.
-	 */
-	bindChildren() {
-		this.eachChild((child: Node) => child.bind());
+	constructor(
+		esTreeNode: GenericEsTreeNode,
+		// we need to pass down the node constructors to avoid a circular dependency
+		parent: Node | { type: string; context: AstContext },
+		parentScope: Scope
+	) {
+		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
+		this.parent = parent;
+		this.context = parent.context;
+		this.createScope(parentScope);
+		this.parseNode(esTreeNode);
+		this.initialise();
+		this.context.magicString.addSourcemapLocation(this.start);
+		this.context.magicString.addSourcemapLocation(this.end);
 	}
 
 	/**
 	 * Override this to bind assignments to variables and do any initialisations that
 	 * require the scopes to be populated with variables.
 	 */
-	bindNode() {}
-
-	eachChild(callback: (node: Node) => void) {
+	bind() {
 		for (const key of this.keys) {
-			const value = (<any>this)[key];
-			if (!value) continue;
-
+			const value = (<GenericEsTreeNode>this)[key];
+			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child) callback(child);
+					if (child !== null) child.bind();
 				}
 			} else {
-				callback(value);
+				value.bind();
 			}
 		}
 	}
+
+	/**
+	 * Override if this node should receive a different scope than the parent scope.
+	 */
+	createScope(parentScope: Scope) {
+		this.scope = parentScope;
+	}
+
+	declare(_kind: string, _init: ExpressionEntity | null) {}
 
 	forEachReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
@@ -143,7 +144,16 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return this.someChild((child: NodeBase) => child.hasEffects(options));
+		for (const key of this.keys) {
+			const value = (<GenericEsTreeNode>this)[key];
+			if (value === null) continue;
+			if (Array.isArray(value)) {
+				for (const child of value) {
+					if (child !== null && child.hasEffects(options)) return true;
+				}
+			} else if (value.hasEffects(options)) return true;
+		}
+		return false;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
@@ -162,50 +172,30 @@ export class NodeBase implements ExpressionNode {
 		return true;
 	}
 
-	private hasIncludedChild(): boolean {
-		return this.included || this.someChild((child: NodeBase) => child.hasIncludedChild());
-	}
-
-	includeInBundle() {
-		let addedNewNodes = !this.included;
+	include() {
 		this.included = true;
-		this.eachChild(childNode => {
-			if (childNode.includeInBundle()) {
-				addedNewNodes = true;
+		for (const key of this.keys) {
+			const value = (<GenericEsTreeNode>this)[key];
+			if (value === null) continue;
+			if (Array.isArray(value)) {
+				for (const child of value) {
+					if (child !== null) child.include();
+				}
+			} else {
+				value.include();
 			}
-		});
-		return addedNewNodes;
+		}
 	}
 
 	includeWithAllDeclaredVariables() {
-		return this.includeInBundle();
-	}
-
-	initialise(parentScope: Scope) {
-		this.initialiseScope(parentScope);
-		this.initialiseNode(parentScope);
-		this.initialiseChildren(parentScope);
-	}
-
-	initialiseAndDeclare(_parentScope: Scope, _kind: string, _init: ExpressionEntity | null) {}
-
-	/**
-	 * Override to change how and with what scopes children are initialised
-	 */
-	initialiseChildren(_parentScope: Scope) {
-		this.eachChild(child => child.initialise(this.scope));
+		this.include();
 	}
 
 	/**
 	 * Override to perform special initialisation steps after the scope is initialised
 	 */
-	initialiseNode(_parentScope: Scope) {}
-
-	/**
-	 * Override if this scope should receive a different scope than the parent scope.
-	 */
-	initialiseScope(parentScope: Scope) {
-		this.scope = parentScope;
+	initialise() {
+		this.included = false;
 	}
 
 	insertSemicolon(code: MagicString) {
@@ -216,35 +206,55 @@ export class NodeBase implements ExpressionNode {
 
 	locate() {
 		// useful for debugging
-		const location = locate(this.module.code, this.start, { offsetLine: 1 });
-		location.file = this.module.id;
+		const location = locate(this.context.code, this.start, { offsetLine: 1 });
+		location.file = this.context.fileName;
 		location.toString = () => JSON.stringify(location);
 
 		return location;
 	}
 
+	parseNode(esTreeNode: GenericEsTreeNode) {
+		for (const key of Object.keys(esTreeNode)) {
+			// That way, we can override this function to add custom initialisation and then call super.parseNode
+			if (this.hasOwnProperty(key)) continue;
+			const value = esTreeNode[key];
+			if (typeof value !== 'object' || value === null) {
+				(<GenericEsTreeNode>this)[key] = value;
+			} else if (Array.isArray(value)) {
+				(<GenericEsTreeNode>this)[key] = [];
+				for (const child of value) {
+					(<GenericEsTreeNode>this)[key].push(
+						child === null
+							? null
+							: new (this.context.nodeConstructors[child.type] ||
+									this.context.nodeConstructors.UnknownNode)(child, this, this.scope)
+					);
+				}
+			} else {
+				(<GenericEsTreeNode>this)[key] = new (this.context.nodeConstructors[value.type] ||
+					this.context.nodeConstructors.UnknownNode)(value, this, this.scope);
+			}
+		}
+	}
+
 	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
 
 	render(code: MagicString, options: RenderOptions) {
-		this.eachChild(child => child.render(code, options));
-	}
-
-	shouldBeIncluded() {
-		return this.hasIncludedChild() || this.hasEffects(ExecutionPathOptions.create());
-	}
-
-	someChild(callback: (node: NodeBase) => boolean) {
 		for (const key of this.keys) {
-			const value = (<any>this)[key];
-			if (!value) continue;
-
+			const value = (<GenericEsTreeNode>this)[key];
+			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child && callback(child)) return true;
+					if (child !== null) child.render(code, options);
 				}
-			} else if (callback(value)) return true;
+			} else {
+				value.render(code, options);
+			}
 		}
-		return false;
+	}
+
+	shouldBeIncluded(): boolean {
+		return this.included || this.hasEffects(ExecutionPathOptions.create());
 	}
 
 	someReturnExpressionWhenCalledAtPath(
@@ -257,7 +267,7 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	toString() {
-		return this.module.code.slice(this.start, this.end);
+		return this.context.code.slice(this.start, this.end);
 	}
 }
 

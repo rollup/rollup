@@ -233,18 +233,18 @@ export default class Graph {
 
 	includeMarked(modules: Module[]) {
 		if (this.treeshake) {
-			let addedNewNodes,
+			let needsTreeshakingPass,
 				treeshakingPass = 1;
 			do {
 				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
-				addedNewNodes = false;
+				needsTreeshakingPass = false;
 				for (let module of modules) {
-					if (module.includeInBundle()) {
-						addedNewNodes = true;
+					if (module.include()) {
+						needsTreeshakingPass = true;
 					}
 				}
 				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
-			} while (addedNewNodes);
+			} while (needsTreeshakingPass);
 		} else {
 			// Necessary to properly replace namespace imports
 			for (const module of modules) module.includeAllInBundle();
@@ -277,7 +277,7 @@ export default class Graph {
 			for (const dynamicImportModule of dynamicImports) {
 				if (entryModule !== dynamicImportModule) dynamicImportModule.markExports();
 				// all dynamic import modules inlined for single-file build
-				dynamicImportModule.namespace().includeVariable();
+				dynamicImportModule.getAndCreateNamespace().include();
 			}
 
 			// only include statements that should appear in the bundle

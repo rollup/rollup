@@ -11,7 +11,8 @@ export default class ReturnStatement extends StatementBase {
 		return super.hasEffects(options) || !options.ignoreReturnAwaitYield();
 	}
 
-	initialiseNode() {
+	initialise() {
+		this.included = false;
 		this.scope.addReturnExpression(this.argument || UNKNOWN_EXPRESSION);
 	}
 }

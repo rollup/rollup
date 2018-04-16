@@ -1,23 +1,24 @@
 # rollup changelog
 
-## 0.58.0 (unreleased)
+## 0.58.0
 * Support individual chunk names with optional content hashes ([#2068](https://github.com/rollup/rollup/pull/2068))
 * Support manually created chunks ([#2084](https://github.com/rollup/rollup/pull/2084))
 * Automatically import deep dependencies when code splitting for better performance ([#2073](https://github.com/rollup/rollup/pull/2073))
 * Automatically minify internal export/import names for esm and system output ([#2087](https://github.com/rollup/rollup/pull/2087))
 * Add option to automatically merge small chunks ([#2090](https://github.com/rollup/rollup/pull/2090))
+* Significantly improve tree-shaking performance ([#2119](https://github.com/rollup/rollup/pull/2119))
 * Enable tree-shaking for logical expressions ([#2098](https://github.com/rollup/rollup/pull/2098))
 * Rework external types and reduce type related dependencies ([#2108](https://github.com/rollup/rollup/pull/2108))
 * Support parallel dependency resolution ([#2116](https://github.com/rollup/rollup/pull/2116))
 * Improve deprecation handling ([#2076](https://github.com/rollup/rollup/pull/2076))
 * Enable `--perf` timings in watch mode ([#2065](https://github.com/rollup/rollup/pull/2065))
+* Improve performance timers ([#2111](https://github.com/rollup/rollup/pull/2111))
 * Improve error handling for plugins ([#2100](https://github.com/rollup/rollup/pull/2100))
 * Improve error when using `--dir` in a single file build ([#2123](https://github.com/rollup/rollup/pull/2123))
 * Do not warn for external imports that are unused due to tree-shaking ([#2124](https://github.com/rollup/rollup/pull/2124))
+* Update mixed export warning message ([#2107](https://github.com/rollup/rollup/pull/2107))
 * Remove duplicate badges from readme ([#2083](https://github.com/rollup/rollup/pull/2083))
 * Update readme examples ([#2086](https://github.com/rollup/rollup/pull/2086))
-* Update mixed export warning message ([#2107](https://github.com/rollup/rollup/pull/2107))
-* Improve performance timers ([#2111](https://github.com/rollup/rollup/pull/2111))
 
 ## 0.57.1
 * Improve sourcemap generation performance ([#2062](https://github.com/rollup/rollup/pull/2062))

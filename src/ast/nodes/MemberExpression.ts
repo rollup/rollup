@@ -6,8 +6,8 @@ import { isLiteral } from './Literal';
 import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
 import Identifier, { isIdentifier } from './Identifier';
-import { isNamespaceVariable } from '../variables/NamespaceVariable';
-import { isExternalVariable } from '../variables/ExternalVariable';
+import NamespaceVariable from '../variables/NamespaceVariable';
+import ExternalVariable from '../variables/ExternalVariable';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
@@ -64,55 +64,31 @@ export default class MemberExpression extends NodeBase {
 	computed: boolean;
 
 	propertyKey: ObjectPathKey;
-	variable: Variable;
-	private isBound: boolean;
-	private replacement: string;
+	variable: Variable = null;
 	private arePropertyReadSideEffectsChecked: boolean;
+	private bound: boolean;
+	private replacement: string | null;
 
 	bind() {
-		this.isBound = true;
+		if (this.bound) return;
+		this.bound = true;
 		const path = getPathIfNotComputed(this);
 		const baseVariable = path && this.scope.findVariable(path[0].key);
-		if (baseVariable && isNamespaceVariable(baseVariable)) {
+		if (baseVariable && baseVariable.isNamespace) {
 			const resolvedVariable = this.resolveNamespaceVariables(baseVariable, path.slice(1));
 			if (!resolvedVariable) {
-				this.bindChildren();
+				super.bind();
 			} else if (typeof resolvedVariable === 'string') {
 				this.replacement = resolvedVariable;
 			} else {
-				if (isExternalVariable(resolvedVariable) && resolvedVariable.module) {
-					resolvedVariable.module.suggestName(path[0].key);
+				if (resolvedVariable.isExternal && (<ExternalVariable>resolvedVariable).module) {
+					(<ExternalVariable>resolvedVariable).module.suggestName(path[0].key);
 				}
 				this.variable = resolvedVariable;
 			}
 		} else {
-			this.bindChildren();
+			super.bind();
 		}
-	}
-
-	private resolveNamespaceVariables(
-		baseVariable: Variable,
-		path: PathWithPositions
-	): Variable | string | null {
-		if (path.length === 0) return baseVariable;
-		if (!isNamespaceVariable(baseVariable)) return null;
-		const exportName = path[0].key;
-		const variable = baseVariable.module.traceExport(exportName);
-		if (!variable) {
-			this.module.warn(
-				{
-					code: 'MISSING_EXPORT',
-					missing: exportName,
-					importer: relativeId(this.module.id),
-					exporter: relativeId(baseVariable.module.id),
-					message: `'${exportName}' is not exported by '${relativeId(baseVariable.module.id)}'`,
-					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
-				},
-				path[0].pos
-			);
-			return 'undefined';
-		}
-		return this.resolveNamespaceVariables(variable, path.slice(1));
 	}
 
 	forEachReturnExpressionWhenCalledAtPath(
@@ -121,8 +97,8 @@ export default class MemberExpression extends NodeBase {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		if (!this.isBound) this.bind();
-		if (this.variable) {
+		if (!this.bound) this.bind();
+		if (this.variable !== null) {
 			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 		} else {
 			this.object.forEachReturnExpressionWhenCalledAtPath(
@@ -146,14 +122,14 @@ export default class MemberExpression extends NodeBase {
 		if (path.length === 0) {
 			return false;
 		}
-		if (this.variable) {
+		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, options);
 		}
 		return this.object.hasEffectsWhenAccessedAtPath([this.propertyKey, ...path], options);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		if (this.variable) {
+		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 		}
 		return this.object.hasEffectsWhenAssignedAtPath([this.propertyKey, ...path], options);
@@ -164,7 +140,7 @@ export default class MemberExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		if (this.variable) {
+		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 		}
 		return (
@@ -173,43 +149,34 @@ export default class MemberExpression extends NodeBase {
 		);
 	}
 
-	includeInBundle() {
-		let addedNewNodes = super.includeInBundle();
-		if (this.variable && !this.variable.included) {
-			this.variable.includeVariable();
-			addedNewNodes = true;
+	include() {
+		if (!this.included) {
+			this.included = true;
+			if (this.variable !== null && !this.variable.included) {
+				this.variable.include();
+				this.context.requestTreeshakingPass();
+			}
 		}
-		return addedNewNodes;
+		this.object.include();
+		this.property.include();
 	}
 
-	initialiseNode() {
+	initialise() {
+		this.included = false;
 		this.propertyKey = getPropertyKey(this);
-		this.arePropertyReadSideEffectsChecked =
-			this.module.graph.treeshake && this.module.graph.treeshakingOptions.propertyReadSideEffects;
+		this.variable = null;
+		this.arePropertyReadSideEffectsChecked = this.context.propertyReadSideEffects;
+		this.bound = false;
+		this.replacement = null;
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (!this.isBound) this.bind();
+		if (!this.bound) this.bind();
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
 			this.variable.reassignPath(path, options);
 		} else {
 			this.object.reassignPath([this.propertyKey, ...path], options);
-		}
-	}
-
-	private disallowNamespaceReassignment() {
-		if (
-			isIdentifier(this.object) &&
-			isNamespaceVariable(this.scope.findVariable(this.object.name))
-		) {
-			this.module.error(
-				{
-					code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
-					message: `Illegal reassignment to import '${this.object.name}'`
-				},
-				this.start
-			);
 		}
 	}
 
@@ -258,5 +225,47 @@ export default class MemberExpression extends NodeBase {
 				options
 			)
 		);
+	}
+
+	private disallowNamespaceReassignment() {
+		if (isIdentifier(this.object) && this.scope.findVariable(this.object.name).isNamespace) {
+			this.context.error(
+				{
+					code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
+					message: `Illegal reassignment to import '${this.object.name}'`
+				},
+				this.start
+			);
+		}
+	}
+
+	private resolveNamespaceVariables(
+		baseVariable: Variable,
+		path: PathWithPositions
+	): Variable | string | null {
+		if (path.length === 0) return baseVariable;
+		if (!baseVariable.isNamespace) return null;
+		const exportName = path[0].key;
+		const variable = baseVariable.isExternal
+			? (<ExternalVariable>baseVariable).module.traceExport(exportName)
+			: (<NamespaceVariable>baseVariable).context.traceExport(exportName);
+		if (!variable) {
+			const fileName = baseVariable.isExternal
+				? (<ExternalVariable>baseVariable).module.id
+				: (<NamespaceVariable>baseVariable).context.fileName;
+			this.context.warn(
+				{
+					code: 'MISSING_EXPORT',
+					missing: exportName,
+					importer: relativeId(this.context.fileName),
+					exporter: relativeId(fileName),
+					message: `'${exportName}' is not exported by '${relativeId(fileName)}'`,
+					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+				},
+				path[0].pos
+			);
+			return 'undefined';
+		}
+		return this.resolveNamespaceVariables(variable, path.slice(1));
 	}
 }

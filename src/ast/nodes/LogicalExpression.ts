@@ -21,15 +21,22 @@ export default class LogicalExpression extends NodeBase {
 	left: ExpressionNode;
 	right: ExpressionNode;
 
+	private hasUnknownLeftValue: boolean;
+
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		this.forEachRelevantBranch(node =>
-			node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options)
-		);
+		if (this.hasUnknownLeftValue) {
+			this.left.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+			this.right.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+		} else {
+			this.forEachRelevantBranch(node =>
+				node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options)
+			);
+		}
 	}
 
 	getValue(): any {
@@ -51,14 +58,20 @@ export default class LogicalExpression extends NodeBase {
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length > 0 &&
-			this.someRelevantBranch(node => node.hasEffectsWhenAccessedAtPath(path, options))
+			(this.hasUnknownLeftValue
+				? this.left.hasEffectsWhenAccessedAtPath(path, options) ||
+				  this.right.hasEffectsWhenAccessedAtPath(path, options)
+				: this.someRelevantBranch(node => node.hasEffectsWhenAccessedAtPath(path, options)))
 		);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
 			path.length === 0 ||
-			this.someRelevantBranch(node => node.hasEffectsWhenAssignedAtPath(path, options))
+			(this.hasUnknownLeftValue
+				? this.left.hasEffectsWhenAssignedAtPath(path, options) ||
+				  this.right.hasEffectsWhenAssignedAtPath(path, options)
+				: this.someRelevantBranch(node => node.hasEffectsWhenAssignedAtPath(path, options)))
 		);
 	}
 
@@ -67,32 +80,40 @@ export default class LogicalExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		return this.someRelevantBranch(node =>
-			node.hasEffectsWhenCalledAtPath(path, callOptions, options)
-		);
+		return this.hasUnknownLeftValue
+			? this.left.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
+					this.right.hasEffectsWhenCalledAtPath(path, callOptions, options)
+			: this.someRelevantBranch(node =>
+					node.hasEffectsWhenCalledAtPath(path, callOptions, options)
+			  );
 	}
 
-	includeInBundle() {
-		let addedNewNodes = !this.included;
+	include() {
 		this.included = true;
 		const leftValue = this.left.getValue();
 		if (
-			(leftValue === UNKNOWN_VALUE ||
-				!leftValue === (this.operator === '&&') ||
-				this.left.shouldBeIncluded()) &&
-			this.left.includeInBundle()
+			leftValue === UNKNOWN_VALUE ||
+			!leftValue === (this.operator === '&&') ||
+			this.left.shouldBeIncluded()
 		)
-			addedNewNodes = true;
-		if (
-			(leftValue === UNKNOWN_VALUE || !leftValue === (this.operator === '||')) &&
-			this.right.includeInBundle()
-		)
-			addedNewNodes = true;
-		return addedNewNodes;
+			this.left.include();
+		if (leftValue === UNKNOWN_VALUE || !leftValue === (this.operator === '||'))
+			this.right.include();
+	}
+
+	initialise() {
+		this.hasUnknownLeftValue = false;
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (path.length > 0) this.forEachRelevantBranch(node => node.reassignPath(path, options));
+		if (path.length > 0) {
+			if (this.hasUnknownLeftValue) {
+				this.left.reassignPath(path, options);
+				this.right.reassignPath(path, options);
+			} else {
+				this.forEachRelevantBranch(node => node.reassignPath(path, options));
+			}
+		}
 	}
 
 	render(
@@ -100,7 +121,7 @@ export default class LogicalExpression extends NodeBase {
 		options: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
-		if (!this.module.graph.treeshake || (this.left.included && this.right.included)) {
+		if (!this.context.treeshake || (this.left.included && this.right.included)) {
 			super.render(code, options);
 		} else {
 			const branchToRetain = this.left.included ? this.left : this.right;
@@ -121,14 +142,28 @@ export default class LogicalExpression extends NodeBase {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		return this.someRelevantBranch(node =>
-			node.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options)
-		);
+		return this.hasUnknownLeftValue
+			? this.left.someReturnExpressionWhenCalledAtPath(
+					path,
+					callOptions,
+					predicateFunction,
+					options
+			  ) ||
+					this.right.someReturnExpressionWhenCalledAtPath(
+						path,
+						callOptions,
+						predicateFunction,
+						options
+					)
+			: this.someRelevantBranch(node =>
+					node.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options)
+			  );
 	}
 
 	private forEachRelevantBranch(callback: (node: ExpressionNode) => void) {
 		const leftValue = this.left.getValue();
 		if (leftValue === UNKNOWN_VALUE) {
+			this.hasUnknownLeftValue = true;
 			callback(this.left);
 			callback(this.right);
 		} else if (!leftValue === (this.operator === '&&')) {
@@ -141,6 +176,7 @@ export default class LogicalExpression extends NodeBase {
 	private someRelevantBranch(predicateFunction: PredicateFunction) {
 		const leftValue = this.left.getValue();
 		if (leftValue === UNKNOWN_VALUE) {
+			this.hasUnknownLeftValue = true;
 			return predicateFunction(this.left) || predicateFunction(this.right);
 		}
 		return !leftValue === (this.operator === '&&')

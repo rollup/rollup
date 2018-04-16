@@ -36,7 +36,10 @@ export default class SequenceExpression extends NodeBase {
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return this.expressions.some(expression => expression.hasEffects(options));
+		for (const expression of this.expressions) {
+			if (expression.hasEffects(options)) return true;
+		}
+		return false;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
@@ -65,15 +68,13 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	includeInBundle() {
-		let addedNewNodes = !this.included;
+	include() {
 		this.included = true;
 		for (let i = 0; i < this.expressions.length - 1; i++) {
 			const node = this.expressions[i];
-			if (node.shouldBeIncluded() && node.includeInBundle()) addedNewNodes = true;
+			if (node.shouldBeIncluded()) node.include();
 		}
-		if (this.expressions[this.expressions.length - 1].includeInBundle()) addedNewNodes = true;
-		return addedNewNodes;
+		this.expressions[this.expressions.length - 1].include();
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -85,7 +86,7 @@ export default class SequenceExpression extends NodeBase {
 		options: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
-		if (!this.module.graph.treeshake) {
+		if (!this.context.treeshake) {
 			super.render(code, options);
 		} else {
 			let firstStart = 0,

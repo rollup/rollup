@@ -77,23 +77,19 @@ export default class Scope {
 	}
 
 	contains(name: string): boolean {
-		return !!this.variables[name] || (this.parent ? this.parent.contains(name) : false);
+		return name in this.variables || (this.parent ? this.parent.contains(name) : false);
 	}
 
 	deshadow(names: Set<string>, children = this.children) {
-		Object.keys(this.variables).forEach(key => {
+		for (const key of Object.keys(this.variables)) {
 			const declaration = this.variables[key];
 
 			// we can disregard exports.foo etc
-			if (declaration.exportName && declaration.isReassigned && !declaration.isId) return;
-
-			if (declaration.isDefault) return;
+			if (declaration.exportName && declaration.isReassigned && !declaration.isId) continue;
+			if (declaration.isDefault) continue;
 
 			let name = declaration.getName(true);
-
-			if (!names.has(name)) {
-				return;
-			}
+			if (!names.has(name)) continue;
 
 			name = declaration.name;
 			let deshadowed,
@@ -103,9 +99,9 @@ export default class Scope {
 			} while (names.has(deshadowed));
 
 			declaration.setSafeName(deshadowed);
-		});
+		}
 
-		children.forEach(scope => scope.deshadow(names));
+		for (const scope of children) scope.deshadow(names);
 	}
 
 	findLexicalBoundary(): Scope {

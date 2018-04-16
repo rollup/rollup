@@ -2,10 +2,6 @@ import Variable from './Variable';
 import Identifier from '../nodes/Identifier';
 import ExternalModule from '../../ExternalModule';
 
-export function isExternalVariable(variable: Variable): variable is ExternalVariable {
-	return variable.isExternal;
-}
-
 export default class ExternalVariable extends Variable {
 	module: ExternalModule;
 	isExternal: true;
@@ -15,7 +11,6 @@ export default class ExternalVariable extends Variable {
 	constructor(module: ExternalModule, name: string) {
 		super(name);
 		this.module = module;
-		this.isExternal = true;
 		this.isNamespace = name === '*';
 		this.referenced = false;
 	}
@@ -27,12 +22,12 @@ export default class ExternalVariable extends Variable {
 		}
 	}
 
-	includeVariable() {
-		if (this.included) {
-			return false;
+	include() {
+		if (!this.included) {
+			this.included = true;
+			this.module.used = true;
 		}
-		this.included = true;
-		this.module.used = true;
-		return true;
 	}
 }
+
+ExternalVariable.prototype.isExternal = true;

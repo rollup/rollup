@@ -51,16 +51,14 @@ export default class Literal<T = LiteralValueTypes> extends NodeBase {
 		return true;
 	}
 
-	initialiseNode() {
+	initialise() {
+		this.included = false;
 		this.members = getLiteralMembersForValue(this.value);
 	}
 
 	render(code: MagicString, _options: RenderOptions) {
 		if (typeof this.value === 'string') {
-			(<[number, number][]>code.indentExclusionRanges).push(<[number, number]>[
-				this.start + 1,
-				this.end - 1
-			]);
+			(<[number, number][]>code.indentExclusionRanges).push([this.start + 1, this.end - 1]);
 		}
 	}
 

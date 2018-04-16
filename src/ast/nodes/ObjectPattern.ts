@@ -1,5 +1,4 @@
 import AssignmentProperty from './AssignmentProperty';
-import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ExpressionEntity } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
@@ -11,19 +10,25 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	type: NodeType.ObjectPattern;
 	properties: AssignmentProperty[];
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		path.length === 0 && this.properties.forEach(child => child.reassignPath(path, options));
+	declare(kind: string, init: ExpressionEntity | null) {
+		for (const property of this.properties) {
+			property.declare(kind, init);
+		}
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
-		return (
-			path.length > 0 ||
-			this.properties.some(child => child.hasEffectsWhenAssignedAtPath([], options))
-		);
+		if (path.length > 0) return true;
+		for (const property of this.properties) {
+			if (property.hasEffectsWhenAssignedAtPath([], options)) return true;
+		}
+		return false;
 	}
 
-	initialiseAndDeclare(parentScope: Scope, kind: string, init: ExpressionEntity | null) {
-		this.initialiseScope(parentScope);
-		this.properties.forEach(child => child.initialiseAndDeclare(parentScope, kind, init));
+	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+		if (path.length === 0) {
+			for (const property of this.properties) {
+				property.reassignPath(path, options);
+			}
+		}
 	}
 }

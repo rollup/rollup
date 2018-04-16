@@ -9,17 +9,18 @@ import {
 } from '../nodes/shared/Expression';
 
 export default class Variable implements ExpressionEntity {
-	exportName?: string;
-	included: boolean;
+	name: string;
+	safeName: string;
 	isExternal?: boolean;
-	isGlobal?: boolean;
 	isDefault?: boolean;
 	isNamespace?: boolean;
-	isReassigned: boolean;
-	isId: boolean;
-	name: string;
-	reexported?: boolean;
-	safeName: string;
+
+	// Not initialised during construction
+	exportName: string | null = null;
+	included: boolean = false;
+	isId: boolean = false;
+	reexported: boolean = false;
+	isReassigned: boolean = false;
 
 	constructor(name: string) {
 		this.name = name;
@@ -31,8 +32,6 @@ export default class Variable implements ExpressionEntity {
 	 * Necessary to be able to change variable names.
 	 */
 	addReference(_identifier: Identifier) {}
-
-	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
 
 	forEachReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
@@ -81,12 +80,14 @@ export default class Variable implements ExpressionEntity {
 	 * previously.
 	 * Once a variable is included, it should take care all its declarations are included.
 	 */
-	includeVariable() {
-		if (this.included) {
-			return false;
-		}
+	include() {
 		this.included = true;
-		return true;
+	}
+
+	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
+
+	setSafeName(name: string) {
+		this.safeName = name;
 	}
 
 	someReturnExpressionWhenCalledAtPath(
@@ -100,9 +101,5 @@ export default class Variable implements ExpressionEntity {
 
 	toString() {
 		return this.name;
-	}
-
-	setSafeName(name: string) {
-		this.safeName = name;
 	}
 }

@@ -26,13 +26,13 @@ export interface RollupError {
 }
 
 export interface RawSourceMap {
-	file?: string;
-	sourceRoot?: string;
 	version: string;
 	sources: string[];
 	names: string[];
+	sourceRoot?: string;
 	sourcesContent?: string[];
 	mappings: string;
+	file: string;
 }
 
 export interface SourceMap {

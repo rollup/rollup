@@ -1,61 +1,44 @@
 import Variable from './Variable';
 import { reservedWords } from '../../utils/identifierHelpers';
 import Identifier from '../nodes/Identifier';
-import Module from '../../Module';
+import { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
-
-export function isNamespaceVariable(variable: Variable): variable is NamespaceVariable {
-	return variable.isNamespace;
-}
 
 export default class NamespaceVariable extends Variable {
 	isNamespace: true;
-	module: Module;
-	needsNamespaceBlock: boolean;
-	referencedEarly: boolean;
-	originals: {
-		[name: string]: Variable;
-	};
-	references: Identifier[];
+	context: AstContext;
 
-	constructor(module: Module) {
-		super(module.basename());
-		this.isNamespace = true;
-		this.module = module;
-		this.needsNamespaceBlock = false;
-		this.referencedEarly = false;
+	// Not initialised during construction
+	originals: { [name: string]: Variable } = Object.create(null);
+	needsNamespaceBlock: boolean = false;
+	private referencedEarly: boolean = false;
+	private references: Identifier[] = [];
 
-		this.references = null;
-		this.originals = Object.create(null);
-		this.module
-			.getExports()
-			.concat(module.getReexports())
-			.forEach(name => {
-				this.originals[name] = this.module.traceExport(name);
-			});
+	constructor(context: AstContext) {
+		super(context.getModuleName());
+		this.context = context;
+		for (const name of this.context.getExports().concat(this.context.getReexports())) {
+			this.originals[name] = this.context.traceExport(name);
+		}
 	}
 
 	addReference(identifier: Identifier) {
-		this.references = this.references || [];
 		this.references.push(identifier);
 		this.name = identifier.name;
 	}
 
-	includeVariable() {
-		if (!super.includeVariable()) {
-			return false;
-		}
-		this.needsNamespaceBlock = true;
-		if (this.references) {
+	include() {
+		if (!this.included) {
+			this.included = true;
+			this.needsNamespaceBlock = true;
 			for (const identifier of this.references) {
-				if (identifier.module.execIndex <= this.module.execIndex) {
+				if (identifier.context.getModuleExecIndex() <= this.context.getModuleExecIndex()) {
 					this.referencedEarly = true;
 					break;
 				}
 			}
+			for (const original of Object.keys(this.originals)) this.originals[original].include();
 		}
-		Object.keys(this.originals).forEach(original => this.originals[original].includeVariable());
-		return true;
 	}
 
 	renderFirst() {
@@ -80,7 +63,7 @@ export default class NamespaceVariable extends Variable {
 			? `/*#__PURE__*/${options.legacy ? `(Object.freeze || Object)` : `Object.freeze`}`
 			: '';
 
-		let output = `${this.module.graph.varOrConst} ${name} = ${
+		let output = `${this.context.varOrConst} ${name} = ${
 			options.namespaceToStringTag
 				? `{\n${members.join(',\n')}\n};`
 				: `${callee}({\n${members.join(',\n')}\n});`
@@ -103,3 +86,5 @@ ${callee}(${name});`;
 		return output;
 	}
 }
+
+NamespaceVariable.prototype.isNamespace = true;

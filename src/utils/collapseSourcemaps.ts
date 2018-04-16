@@ -1,9 +1,9 @@
 import error from './error';
 import { basename, dirname, relative, resolve } from './path';
 import Module from '../Module';
-import { RawSourceMap } from 'source-map';
 import Chunk from '../Chunk';
 import { SourceMap, DecodedSourceMap } from 'magic-string';
+import { RawSourceMap } from '../rollup/types';
 
 class Source {
 	isOriginal: boolean;

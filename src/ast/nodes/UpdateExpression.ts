@@ -10,7 +10,8 @@ export default class UpdateExpression extends NodeBase {
 	argument: ExpressionNode;
 	prefix: boolean;
 
-	bindNode() {
+	bind() {
+		super.bind();
 		this.argument.reassignPath([], ExecutionPathOptions.create());
 		if (isIdentifier(this.argument)) {
 			const variable = this.scope.findVariable(this.argument.name);

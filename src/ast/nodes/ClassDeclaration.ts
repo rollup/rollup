@@ -1,10 +1,10 @@
 import ClassNode from './shared/ClassNode';
-import Scope from '../scopes/Scope';
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
 import { NodeType } from './NodeType';
-import { Node } from './shared/Node';
+import { GenericEsTreeNode, Node } from './shared/Node';
 import { RenderOptions } from '../../utils/renderHelpers';
+import Scope from '../scopes/Scope';
 
 export function isClassDeclaration(node: Node): node is ClassDeclaration {
 	return node.type === NodeType.ClassDeclaration;
@@ -14,13 +14,22 @@ export default class ClassDeclaration extends ClassNode {
 	type: NodeType.ClassDeclaration;
 	id: Identifier;
 
-	initialiseChildren(parentScope: Scope) {
-		// Class declarations are like let declarations: Not hoisted, can be reassigned, cannot be redeclared
-		if (this.id) {
-			this.id.initialiseAndDeclare(parentScope, 'class', this);
+	initialise() {
+		super.initialise();
+		if (this.id !== null) {
 			this.id.variable.isId = true;
 		}
-		super.initialiseChildren(parentScope);
+	}
+
+	parseNode(esTreeNode: GenericEsTreeNode) {
+		if (esTreeNode.id !== null) {
+			this.id = <Identifier>new this.context.nodeConstructors.Identifier(
+				esTreeNode.id,
+				this,
+				<Scope>this.scope.parent
+			);
+		}
+		super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions) {

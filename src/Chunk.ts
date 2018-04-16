@@ -8,7 +8,6 @@ import transformBundle from './utils/transformBundle';
 import collapseSourcemaps from './utils/collapseSourcemaps';
 import error from './utils/error';
 import { normalize, resolve, extname, dirname, relative, basename } from './utils/path';
-import { RawSourceMap } from 'source-map';
 import Graph from './Graph';
 import ExternalModule from './ExternalModule';
 import { isExportDefaultVariable } from './ast/variables/ExportDefaultVariable';
@@ -16,13 +15,13 @@ import Variable from './ast/variables/Variable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import { makeLegal } from './utils/identifierHelpers';
 import LocalVariable from './ast/variables/LocalVariable';
-import { NodeType } from './ast/nodes/index';
+import { NodeType } from './ast/nodes/NodeType';
 import { RenderOptions } from './utils/renderHelpers';
 import { Addons } from './utils/addons';
 import sha256 from 'hash.js/lib/hash/sha/256';
 import { jsExts } from './utils/relativeId';
 import ExternalVariable from './ast/variables/ExternalVariable';
-import { GlobalsOption, OutputOptions } from './rollup/types';
+import { GlobalsOption, OutputOptions, RawSourceMap } from './rollup/types';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;
@@ -192,7 +191,7 @@ export default class Chunk {
 		this.entryModule = entryFacade;
 		this.isEntryModuleFacade = true;
 		for (const exportName of entryFacade.getAllExports()) {
-			const tracedVariable = entryFacade.trace(exportName);
+			const tracedVariable = entryFacade.traceVariable(exportName);
 			this.exports.set(tracedVariable, entryFacade);
 			this.exportNames[exportName] = tracedVariable;
 		}
@@ -438,8 +437,8 @@ export default class Chunk {
 					// if we have the module in the chunk, inline as Promise.resolve(namespace)
 					// ensuring that we create a namespace import of it as well
 					if (resolution.chunk === this) {
-						const namespace = resolution.namespace();
-						namespace.includeVariable();
+						const namespace = resolution.getAndCreateNamespace();
+						namespace.include();
 						node.setResolution(false, namespace.getName());
 						// for the module in another chunk, import that other chunk directly
 					} else {
@@ -571,7 +570,7 @@ export default class Chunk {
 			});
 
 			// deconflict reified namespaces
-			const namespace = module.namespace();
+			const namespace = module.getAndCreateNamespace();
 			if (namespace.needsNamespaceBlock) {
 				namespace.setSafeName(getSafeName(namespace.name));
 			}
@@ -789,7 +788,7 @@ export default class Chunk {
 			source.trim();
 			this.renderedModuleSources.push(source);
 
-			const namespace = module.namespace();
+			const namespace = module.getAndCreateNamespace();
 			if (namespace.needsNamespaceBlock || !source.isEmpty()) {
 				magicString.addSource(source);
 				this.usedModules.push(module);

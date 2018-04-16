@@ -17,15 +17,19 @@ export default class ExportNamedDeclaration extends NodeBase {
 	source: Literal<string> | null;
 
 	needsBoundaries: true;
-	isExportDeclaration: true;
 
-	bindChildren() {
+	bind() {
 		// Do not bind specifiers
-		if (this.declaration) this.declaration.bind();
+		if (this.declaration !== null) this.declaration.bind();
 	}
 
 	hasEffects(options: ExecutionPathOptions) {
 		return this.declaration && this.declaration.hasEffects(options);
+	}
+
+	initialise() {
+		this.included = false;
+		this.context.addExport(this);
 	}
 
 	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
@@ -39,4 +43,3 @@ export default class ExportNamedDeclaration extends NodeBase {
 }
 
 ExportNamedDeclaration.prototype.needsBoundaries = true;
-ExportNamedDeclaration.prototype.isExportDeclaration = true;

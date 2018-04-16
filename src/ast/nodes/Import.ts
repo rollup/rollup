@@ -8,20 +8,16 @@ export default class Import extends NodeBase {
 	type: NodeType.Import;
 	parent: CallExpression;
 
-	constructor() {
-		super();
-		this.resolutionNamespace = undefined;
-		this.resolutionInterop = false;
-	}
-
 	private resolutionNamespace: string;
 	private resolutionInterop: boolean;
 	private rendered: boolean;
 
-	setResolution(interop: boolean, namespace: string = undefined): void {
+	initialise() {
+		this.included = false;
+		this.resolutionNamespace = undefined;
+		this.resolutionInterop = false;
 		this.rendered = false;
-		this.resolutionInterop = interop;
-		this.resolutionNamespace = namespace;
+		this.context.addDynamicImport(this);
 	}
 
 	renderFinalResolution(code: MagicString, resolution: string) {
@@ -49,5 +45,11 @@ export default class Import extends NodeBase {
 				options.importMechanism.right;
 			code.overwrite(this.parent.arguments[0].end, this.parent.end, rightMechanism);
 		}
+	}
+
+	setResolution(interop: boolean, namespace: string = undefined): void {
+		this.rendered = false;
+		this.resolutionInterop = interop;
+		this.resolutionNamespace = namespace;
 	}
 }
