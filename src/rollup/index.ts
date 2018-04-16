@@ -215,7 +215,7 @@ export default function rollup(
 						if (!outputOptions || (!outputOptions.file && !outputOptions.dest)) {
 							error({
 								code: 'MISSING_OPTION',
-								message: 'You must specify output.file'
+								message: 'You must specify output.file when doing a single-file input build'
 							});
 						}
 

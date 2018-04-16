@@ -24,6 +24,7 @@ export default function build(
 	const useStdout =
 		outputOptions.length === 1 &&
 		!outputOptions[0].file &&
+		!outputOptions[0].dir &&
 		inputOptions.input instanceof Array === false &&
 		typeof inputOptions.input !== 'object';
 
