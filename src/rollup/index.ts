@@ -106,15 +106,9 @@ function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	return inputOptions;
 }
 
-function applyOnbuildendHook(graph: Graph) {
+function applyOnbuildendHook(graph: Graph, err?: any) {
 	for (let plugin of graph.plugins) {
-		if (plugin.onbuildend) plugin.onbuildend.call(graph.pluginContext);
-	}
-}
-
-function applyOnbuilderrorHook(graph: Graph, err: any) {
-	for (let plugin of graph.plugins) {
-		if (plugin.onbuilderror) plugin.onbuildend.call(graph.pluginContext, err);
+		if (plugin.onbuildend) plugin.onbuildend.call(graph.pluginContext, err);
 	}
 }
 
@@ -161,7 +155,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 			return graph
 				.buildSingle(inputOptions.input)
 				.catch(err => {
-					applyOnbuilderrorHook(graph, err);
+					applyOnbuildendHook(graph, err);
 					throw err;
 				})
 				.then(chunk => {
@@ -264,7 +258,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 				inputOptions.experimentalPreserveModules
 			)
 			.catch(err => {
-				applyOnbuilderrorHook(graph, err);
+				applyOnbuildendHook(graph, err);
 				throw err;
 			})
 			.then(chunks => {
