@@ -113,13 +113,15 @@ export type AddonHook = string | ((this: PluginContext) => string | Promise<stri
 
 export interface Plugin {
 	name: string;
-	options?: (options: InputOptions) => void;
+	options?: (options: InputOptions) => InputOptions | void;
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
 	missingExport?: MissingExportHook;
 	transform?: TransformHook;
 	transformBundle?: TransformChunkHook;
 	transformChunk?: TransformChunkHook;
+	onbuildstart?: (this: PluginContext, options: InputOptions) => void;
+	onbuildend?: (this: PluginContext) => void;
 	ongenerate?: (
 		this: PluginContext,
 		options: OutputOptions,
