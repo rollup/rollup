@@ -103,7 +103,7 @@ export type TransformChunkHook = (
 	code: string,
 	options: OutputOptions,
 	chunk: OutputChunk
-) => Promise<{ code: string; map: RawSourceMap }>;
+) => Promise<{ code: string; map: RawSourceMap } | void>;
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | ESTree.Node,
