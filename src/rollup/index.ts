@@ -18,7 +18,10 @@ import {
 	OutputOptions,
 	SerializedTimings,
 	Plugin,
-	ModuleJSON
+	ModuleJSON,
+	Bundle,
+	BundleSet,
+	OutputChunk
 } from './types';
 import getExportMode from '../utils/getExportMode';
 
@@ -68,38 +71,6 @@ const throwAsyncGenerateError = {
 		throw new Error(`bundle.generate(...) now returns a Promise instead of a { code, map } object`);
 	}
 };
-
-export interface OutputChunk {
-	name: string;
-	imports: string[];
-	exports: string[];
-	modules: string[];
-	code: string;
-	map?: SourceMap;
-}
-
-export interface Bundle {
-	// TODO: consider deprecating to match code splitting
-	imports: string[];
-	exports: string[];
-	modules: ModuleJSON[];
-	cache: {
-		modules: ModuleJSON[];
-	};
-
-	generate: (outputOptions: OutputOptions) => Promise<OutputChunk>;
-	write: (options: OutputOptions) => Promise<OutputChunk>;
-	getTimings?: () => SerializedTimings;
-}
-
-export interface BundleSet {
-	cache: {
-		modules: ModuleJSON[];
-	};
-	generate: (outputOptions: OutputOptions) => Promise<{ [chunkName: string]: OutputChunk }>;
-	write: (options: OutputOptions) => Promise<{ [chunkName: string]: OutputChunk }>;
-	getTimings?: () => SerializedTimings;
-}
 
 function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	if (plugin.options) return plugin.options(inputOptions) || inputOptions;

@@ -272,6 +272,7 @@ export type WarningHandler = (warning: string | RollupWarning) => void;
 export type SerializedTimings = { [label: string]: number };
 
 export interface OutputChunk {
+	name: string;
 	imports: string[];
 	exports: string[];
 	modules: string[];
