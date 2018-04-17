@@ -102,7 +102,12 @@ export type TransformChunkHook = (
 	this: PluginContext,
 	code: string,
 	options: OutputOptions,
-	chunk: OutputChunk
+	chunk: {
+		name: string;
+		imports: string[];
+		exports: string[];
+		modules: string[];
+	}
 ) => Promise<{ code: string; map: RawSourceMap } | void>;
 export type ResolveDynamicImportHook = (
 	this: PluginContext,

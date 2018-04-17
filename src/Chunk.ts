@@ -1036,7 +1036,7 @@ export default class Chunk {
 		let map: SourceMap = null;
 		const chunkSourcemapChain: RawSourceMap[] = [];
 
-		return transformChunk(this.graph, prevCode, chunkSourcemapChain, options).then(
+		return transformChunk(this.graph, this, prevCode, chunkSourcemapChain, options).then(
 			(code: string) => {
 				if (options.sourcemap) {
 					timeStart('sourcemap', 3);
