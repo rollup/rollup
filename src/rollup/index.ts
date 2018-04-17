@@ -106,22 +106,10 @@ function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	return inputOptions;
 }
 
-function applyOnbuildstartHook(inputOptions: InputOptions, graph: Graph) {
-	return Promise.all(
-		graph.plugins.map(plugin => {
-			if (!plugin.onbuildstart) return;
-			return plugin.onbuildstart.call(graph.pluginContext, inputOptions);
-		})
-	);
-}
-
 function applyOnbuildendHook(graph: Graph) {
-	return Promise.all(
-		graph.plugins.map(plugin => {
-			if (!plugin.onbuildend) return;
-			return plugin.onbuildend.call(graph.pluginContext);
-		})
-	);
+	for (let plugin of graph.plugins) {
+		if (plugin.onbuildend) plugin.onbuildend.call(graph.pluginContext);
+	}
 }
 
 function getInputOptions(rawInputOptions: GenericConfigObject): any {
@@ -147,6 +135,10 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 		initialiseTimers(inputOptions);
 		const graph = new Graph(inputOptions);
 
+		for (let plugin of graph.plugins) {
+			if (plugin.onbuildstart) plugin.onbuildstart.call(graph.pluginContext, inputOptions);
+		}
+
 		timeStart('BUILD', 1);
 
 		const codeSplitting =
@@ -160,90 +152,86 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 					message: '"chunks" option is only supported for code-splitting builds.'
 				});
 
-			return applyOnbuildstartHook(inputOptions, graph)
-				.then(() => graph.buildSingle(inputOptions.input))
-				.then(chunk => {
-					return applyOnbuildendHook(graph).then(() => chunk);
-				})
-				.then(chunk => {
-					timeEnd('BUILD', 1);
+			return graph.buildSingle(inputOptions.input).then(chunk => {
+				applyOnbuildendHook(graph);
+				timeEnd('BUILD', 1);
 
-					const imports = chunk.getImportIds();
-					const exports = chunk.getExportNames();
-					const modules = graph.getCache().modules;
+				const imports = chunk.getImportIds();
+				const exports = chunk.getExportNames();
+				const modules = graph.getCache().modules;
 
-					function generate(rawOutputOptions: GenericConfigObject) {
-						const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
+				function generate(rawOutputOptions: GenericConfigObject) {
+					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
 
-						if (outputOptions.entryNames || outputOptions.chunkNames)
-							error({
-								code: 'INVALID_OPTION',
-								message:
-									'"entryNames" and "chunkNames" options are only supported for code-splitting builds.'
-							});
+					if (outputOptions.entryNames || outputOptions.chunkNames)
+						error({
+							code: 'INVALID_OPTION',
+							message:
+								'"entryNames" and "chunkNames" options are only supported for code-splitting builds.'
+						});
 
-						timeStart('GENERATE', 1);
+					timeStart('GENERATE', 1);
 
-						return createAddons(graph, outputOptions)
-							.then(addons => {
-								chunk.generateInternalExports(outputOptions);
-								const inputBase = dirname(resolve(inputOptions.input));
-								chunk.exportMode = getExportMode(chunk, outputOptions);
-								chunk.preRender(outputOptions, inputBase);
-								chunk.id = basename(inputOptions.input);
-								return chunk.render(outputOptions, addons);
-							})
-							.then(rendered => {
-								timeEnd('GENERATE', 1);
+					return createAddons(graph, outputOptions)
+						.then(addons => {
+							chunk.generateInternalExports(outputOptions);
+							const inputBase = dirname(resolve(inputOptions.input));
+							chunk.exportMode = getExportMode(chunk, outputOptions);
+							chunk.preRender(outputOptions, inputBase);
+							chunk.id = basename(inputOptions.input);
+							return chunk.render(outputOptions, addons);
+						})
+						.then(rendered => {
+							timeEnd('GENERATE', 1);
 
-								const output = {
-									name: relative(process.cwd(), resolve(outputOptions.file || inputOptions.input)),
-									imports,
-									exports,
-									modules: chunk.getModuleIds(),
-									code: rendered.code,
-									map: rendered.map
-								};
+							const output = {
+								name: relative(process.cwd(), resolve(outputOptions.file || inputOptions.input)),
+								imports,
+								exports,
+								modules: chunk.getModuleIds(),
+								code: rendered.code,
+								map: rendered.map
+							};
 
-								return Promise.all(
-									graph.plugins
-										.filter(plugin => plugin.ongenerate)
-										.map(plugin =>
-											plugin.ongenerate.call(
-												graph.pluginContext,
-												Object.assign({ bundle: result }, outputOptions),
-												output
-											)
+							return Promise.all(
+								graph.plugins
+									.filter(plugin => plugin.ongenerate)
+									.map(plugin =>
+										plugin.ongenerate.call(
+											graph.pluginContext,
+											Object.assign({ bundle: result }, outputOptions),
+											output
 										)
-								).then(() => output);
-							});
-					}
+									)
+							).then(() => output);
+						});
+				}
 
-					const result: Bundle = {
-						imports,
-						exports,
-						modules,
+				const result: Bundle = {
+					imports,
+					exports,
+					modules,
 
-						cache: graph.getCache(),
-						generate: wrapGeneratePromise(generate),
-						write: (outputOptions: OutputOptions) => {
-							if (!outputOptions || (!outputOptions.file && !outputOptions.dest)) {
-								error({
-									code: 'MISSING_OPTION',
-									message: 'You must specify output.file when doing a single-file input build'
-								});
-							}
-							return generate(outputOptions).then(result => {
-								return writeChunk(graph, outputOptions.file, result, outputOptions).then(
-									() => result
-								);
+					cache: graph.getCache(),
+					generate: wrapGeneratePromise(generate),
+					write: (outputOptions: OutputOptions) => {
+						if (!outputOptions || (!outputOptions.file && !outputOptions.dest)) {
+							error({
+								code: 'MISSING_OPTION',
+								message: 'You must specify output.file when doing a single-file input build'
 							});
 						}
-					};
+						return generate(outputOptions).then(result => {
+							return writeChunk(graph, outputOptions.file, result, outputOptions).then(
+								() => result
+							);
+						});
+					}
+				};
 
-					if (inputOptions.perf === true) result.getTimings = getTimings;
-					return result;
-				});
+				if (inputOptions.perf === true) result.getTimings = getTimings;
+				return result;
+			});
 		}
 
 		// code splitting case
@@ -257,18 +245,14 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 			});
 		}
 
-		return applyOnbuildstartHook(inputOptions, graph)
-			.then(() =>
-				graph.buildChunks(
-					inputOptions.input,
-					inputOptions.manualChunks,
-					inputOptions.experimentalPreserveModules
-				)
+		return graph
+			.buildChunks(
+				inputOptions.input,
+				inputOptions.manualChunks,
+				inputOptions.experimentalPreserveModules
 			)
 			.then(chunks => {
-				return applyOnbuildendHook(graph).then(() => chunks);
-			})
-			.then(chunks => {
+				applyOnbuildendHook(graph);
 				timeEnd('BUILD', 1);
 
 				// ensure we only do one optimization pass per build
