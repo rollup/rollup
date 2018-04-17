@@ -125,7 +125,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate({ file: 'x' });
-				}, /You must specify options\.format, which can be one of 'amd', 'cjs', 'system', 'es', 'iife' or 'umd'/);
+				}, /You must specify options\.format, which can be one of 'amd', 'cjs', 'system', 'esm', 'iife' or 'umd'/);
 			});
 	});
 
@@ -235,6 +235,15 @@ describe('deprecations', () => {
 				}
 
 				assert.ok(errored);
+			});
+	});
+
+	it('supports esm format alias', () => {
+		return rollup
+			.rollup({ input: 'x', plugins: [loader({ x: 'export const x = function () {}' })] })
+			.then(bundle => bundle.generate({ format: 'esm' }))
+			.then(({ code }) => {
+				assert.equal(code, 'const x = function () {};\n\nexport { x };\n');
 			});
 	});
 });

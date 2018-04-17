@@ -400,10 +400,10 @@ export default class Chunk {
 	}
 
 	private prepareDynamicImports({ format }: OutputOptions) {
-		const es = format === 'es';
+		const esm = format === 'es';
 		let dynamicImportMechanism: DynamicImportMechanism;
 		let hasDynamicImports = false;
-		if (!es) {
+		if (!esm) {
 			if (format === 'cjs') {
 				dynamicImportMechanism = {
 					left: 'Promise.resolve(require(',
@@ -484,7 +484,7 @@ export default class Chunk {
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
 		const used = Object.create(null);
-		const es = options.format === 'es' || options.format === 'system';
+		const esm = options.format === 'es' || options.format === 'system';
 
 		// ensure no conflicts with globals
 		Object.keys(this.graph.scope.variables).forEach(name => (used[name] = 1));
@@ -505,7 +505,7 @@ export default class Chunk {
 
 		const toDeshadow: Set<string> = new Set();
 
-		if (!es) {
+		if (!esm) {
 			this.dependencies.forEach(module => {
 				if ((<ExternalModule>module).isExternal) {
 					const safeName = getSafeName(module.name);
@@ -526,19 +526,19 @@ export default class Chunk {
 				if (variable.name === '*') {
 					safeName = module.name;
 				} else if (variable.name === 'default') {
-					if (module.exportsNamespace || (!es && module.exportsNames)) {
+					if (module.exportsNamespace || (!esm && module.exportsNames)) {
 						safeName = `${module.name}__default`;
 					} else {
 						safeName = module.name;
 					}
 				} else {
-					safeName = es ? variable.name : `${module.name}.${variable.name}`;
+					safeName = esm ? variable.name : `${module.name}.${variable.name}`;
 				}
-				if (es) {
+				if (esm) {
 					safeName = getSafeName(safeName);
 					toDeshadow.add(safeName);
 				}
-			} else if (es) {
+			} else if (esm) {
 				safeName = getSafeName(variable.name);
 			} else {
 				safeName = `${(<Module>module).chunk.name}.${module.chunk.getVariableExportName(variable)}`;
@@ -555,7 +555,7 @@ export default class Chunk {
 				}
 				if (!(isExportDefaultVariable(variable) && variable.hasId)) {
 					let safeName;
-					if (es || !variable.isReassigned || variable.isId) {
+					if (esm || !variable.isReassigned || variable.isId) {
 						safeName = getSafeName(variable.name);
 					} else {
 						const safeExportName = variable.exportName;

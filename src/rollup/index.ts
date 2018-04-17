@@ -53,7 +53,7 @@ function checkOutputOptions(options: OutputOptions) {
 
 	if (!options.format) {
 		error({
-			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'system', 'es', 'iife' or 'umd'`,
+			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'system', 'esm', 'iife' or 'umd'`,
 			url: `https://rollupjs.org/#format-f-output-format-`
 		});
 	}
