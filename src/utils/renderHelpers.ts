@@ -45,17 +45,20 @@ export function findFirstOccurrenceOutsideComment(
 }
 
 function findFirstLineBreakOutsideComment(code: string, start: number = 0) {
-	let commentStart, lineBreakPos;
+	let commentStart, lineBreakPos, nextChar;
 	while (true) {
-		commentStart = code.indexOf('/*', start);
 		lineBreakPos = code.indexOf('\n', start);
-		if (commentStart === -1) break;
-		if (lineBreakPos >= commentStart) {
-			lineBreakPos = -1;
-		} else if (lineBreakPos !== -1) break;
+		do {
+			commentStart = code.indexOf('/', start);
+			if (commentStart === -1 || commentStart > lineBreakPos) return lineBreakPos;
+			nextChar = code[commentStart + 1];
+			if (nextChar === '/') return lineBreakPos;
+			if (nextChar === '*') break;
+			start = commentStart + 2;
+		} while (true);
 		start = code.indexOf('*/', commentStart) + 2;
+		if (start === -1) return -1;
 	}
-	return lineBreakPos;
 }
 
 export function renderStatementList(
