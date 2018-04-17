@@ -2,20 +2,38 @@ import { decode } from 'sourcemap-codec';
 import error from './error';
 import { OutputOptions, RawSourceMap } from '../rollup/types';
 import Graph from '../Graph';
+import Chunk from '../Chunk';
 
 export default function transformChunk(
 	graph: Graph,
+	chunk: Chunk,
 	code: string,
 	sourcemapChain: RawSourceMap[],
 	options: OutputOptions
 ) {
+	let outputChunk;
+
 	return graph.plugins.reduce((promise, plugin) => {
 		if (!plugin.transformBundle) return promise;
+
+		if (!outputChunk) {
+			outputChunk = {
+				name: chunk.id,
+				imports: chunk.getImportIds(),
+				exports: chunk.getExportNames(),
+				modules: chunk.getModuleIds()
+			};
+		}
 
 		return promise.then(code => {
 			return Promise.resolve()
 				.then(() =>
-					(plugin.transformChunk || plugin.transformBundle).call(graph.pluginContext, code, options)
+					(plugin.transformChunk || plugin.transformBundle).call(
+						graph.pluginContext,
+						code,
+						options,
+						outputChunk
+					)
 				)
 				.then(result => {
 					if (result == null) return code;
