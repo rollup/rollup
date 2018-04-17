@@ -122,6 +122,7 @@ export interface Plugin {
 	transformChunk?: TransformChunkHook;
 	onbuildstart?: (this: PluginContext, options: InputOptions) => void;
 	onbuildend?: (this: PluginContext) => void;
+	onbuilderror?: (this: PluginContext) => void;
 	ongenerate?: (
 		this: PluginContext,
 		options: OutputOptions,

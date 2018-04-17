@@ -112,6 +112,12 @@ function applyOnbuildendHook(graph: Graph) {
 	}
 }
 
+function applyOnbuilderrorHook(graph: Graph, err: any) {
+	for (let plugin of graph.plugins) {
+		if (plugin.onbuilderror) plugin.onbuildend.call(graph.pluginContext, err);
+	}
+}
+
 function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
@@ -152,86 +158,92 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 					message: '"chunks" option is only supported for code-splitting builds.'
 				});
 
-			return graph.buildSingle(inputOptions.input).then(chunk => {
-				applyOnbuildendHook(graph);
-				timeEnd('BUILD', 1);
+			return graph
+				.buildSingle(inputOptions.input)
+				.catch(err => {
+					applyOnbuilderrorHook(graph, err);
+					throw err;
+				})
+				.then(chunk => {
+					applyOnbuildendHook(graph);
+					timeEnd('BUILD', 1);
 
-				const imports = chunk.getImportIds();
-				const exports = chunk.getExportNames();
-				const modules = graph.getCache().modules;
+					const imports = chunk.getImportIds();
+					const exports = chunk.getExportNames();
+					const modules = graph.getCache().modules;
 
-				function generate(rawOutputOptions: GenericConfigObject) {
-					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
+					function generate(rawOutputOptions: GenericConfigObject) {
+						const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
 
-					if (outputOptions.entryNames || outputOptions.chunkNames)
-						error({
-							code: 'INVALID_OPTION',
-							message:
-								'"entryNames" and "chunkNames" options are only supported for code-splitting builds.'
-						});
-
-					timeStart('GENERATE', 1);
-
-					return createAddons(graph, outputOptions)
-						.then(addons => {
-							chunk.generateInternalExports(outputOptions);
-							const inputBase = dirname(resolve(inputOptions.input));
-							chunk.exportMode = getExportMode(chunk, outputOptions);
-							chunk.preRender(outputOptions, inputBase);
-							chunk.id = basename(inputOptions.input);
-							return chunk.render(outputOptions, addons);
-						})
-						.then(rendered => {
-							timeEnd('GENERATE', 1);
-
-							const output = {
-								name: relative(process.cwd(), resolve(outputOptions.file || inputOptions.input)),
-								imports,
-								exports,
-								modules: chunk.getModuleIds(),
-								code: rendered.code,
-								map: rendered.map
-							};
-
-							return Promise.all(
-								graph.plugins
-									.filter(plugin => plugin.ongenerate)
-									.map(plugin =>
-										plugin.ongenerate.call(
-											graph.pluginContext,
-											Object.assign({ bundle: result }, outputOptions),
-											output
-										)
-									)
-							).then(() => output);
-						});
-				}
-
-				const result: Bundle = {
-					imports,
-					exports,
-					modules,
-
-					cache: graph.getCache(),
-					generate: wrapGeneratePromise(generate),
-					write: (outputOptions: OutputOptions) => {
-						if (!outputOptions || (!outputOptions.file && !outputOptions.dest)) {
+						if (outputOptions.entryNames || outputOptions.chunkNames)
 							error({
-								code: 'MISSING_OPTION',
-								message: 'You must specify output.file when doing a single-file input build'
+								code: 'INVALID_OPTION',
+								message:
+									'"entryNames" and "chunkNames" options are only supported for code-splitting builds.'
+							});
+
+						timeStart('GENERATE', 1);
+
+						return createAddons(graph, outputOptions)
+							.then(addons => {
+								chunk.generateInternalExports(outputOptions);
+								const inputBase = dirname(resolve(inputOptions.input));
+								chunk.exportMode = getExportMode(chunk, outputOptions);
+								chunk.preRender(outputOptions, inputBase);
+								chunk.id = basename(inputOptions.input);
+								return chunk.render(outputOptions, addons);
+							})
+							.then(rendered => {
+								timeEnd('GENERATE', 1);
+
+								const output = {
+									name: relative(process.cwd(), resolve(outputOptions.file || inputOptions.input)),
+									imports,
+									exports,
+									modules: chunk.getModuleIds(),
+									code: rendered.code,
+									map: rendered.map
+								};
+
+								return Promise.all(
+									graph.plugins
+										.filter(plugin => plugin.ongenerate)
+										.map(plugin =>
+											plugin.ongenerate.call(
+												graph.pluginContext,
+												Object.assign({ bundle: result }, outputOptions),
+												output
+											)
+										)
+								).then(() => output);
+							});
+					}
+
+					const result: Bundle = {
+						imports,
+						exports,
+						modules,
+
+						cache: graph.getCache(),
+						generate: wrapGeneratePromise(generate),
+						write: (outputOptions: OutputOptions) => {
+							if (!outputOptions || (!outputOptions.file && !outputOptions.dest)) {
+								error({
+									code: 'MISSING_OPTION',
+									message: 'You must specify output.file when doing a single-file input build'
+								});
+							}
+							return generate(outputOptions).then(result => {
+								return writeChunk(graph, outputOptions.file, result, outputOptions).then(
+									() => result
+								);
 							});
 						}
-						return generate(outputOptions).then(result => {
-							return writeChunk(graph, outputOptions.file, result, outputOptions).then(
-								() => result
-							);
-						});
-					}
-				};
+					};
 
-				if (inputOptions.perf === true) result.getTimings = getTimings;
-				return result;
-			});
+					if (inputOptions.perf === true) result.getTimings = getTimings;
+					return result;
+				});
 		}
 
 		// code splitting case
@@ -251,6 +263,10 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 				inputOptions.manualChunks,
 				inputOptions.experimentalPreserveModules
 			)
+			.catch(err => {
+				applyOnbuilderrorHook(graph, err);
+				throw err;
+			})
 			.then(chunks => {
 				applyOnbuildendHook(graph);
 				timeEnd('BUILD', 1);
