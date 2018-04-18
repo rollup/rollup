@@ -97,7 +97,7 @@ export type TransformHook = (
 	this: PluginContext,
 	code: string,
 	id: String
-) => Promise<SourceDescription | string | void>;
+) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
 export type TransformChunkHook = (
 	this: PluginContext,
 	code: string,
@@ -108,7 +108,10 @@ export type TransformChunkHook = (
 		exports: string[];
 		modules: string[];
 	}
-) => Promise<{ code: string; map: RawSourceMap } | void>;
+) =>
+	| Promise<{ code: string; map: RawSourceMap } | void>
+	| { code: string; map: RawSourceMap }
+	| void;
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | ESTree.Node,
