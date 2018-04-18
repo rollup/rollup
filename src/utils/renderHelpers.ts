@@ -26,38 +26,43 @@ export function findFirstOccurrenceOutsideComment(
 	searchString: string,
 	start: number = 0
 ) {
-	let commentStart, searchPos;
+	let searchPos, charCodeAfterSlash;
+	searchPos = code.indexOf(searchString, start);
 	while (true) {
-		commentStart = code.indexOf('/', start);
-		searchPos = code.indexOf(searchString, start);
-		if (commentStart === -1) break;
-		if (searchPos >= commentStart) {
-			searchPos = -1;
-		} else if (searchPos !== -1) break;
-		start = commentStart + 1;
-		if (code.charCodeAt(start) === 42 /*"*"*/) {
-			start = code.indexOf('*/', start) + 2;
-		} else if (code.charCodeAt(start) === 47 /*"/"*/) {
+		start = code.indexOf('/', start);
+		if (start === -1 || start > searchPos) return searchPos;
+		charCodeAfterSlash = code.charCodeAt(++start);
+		++start;
+		if (charCodeAfterSlash === 47 /*"/"*/) {
 			start = code.indexOf('\n', start) + 1;
+			if (start === 0) return -1;
+			if (start > searchPos) {
+				searchPos = code.indexOf(searchString, start);
+			}
+		} else if (charCodeAfterSlash === 42 /*"*"*/) {
+			start = code.indexOf('*/', start) + 2;
+			if (start > searchPos) {
+				searchPos = code.indexOf(searchString, start);
+			}
 		}
 	}
-	return searchPos;
 }
 
 function findFirstLineBreakOutsideComment(code: string, start: number = 0) {
-	let commentStart, lineBreakPos, nextChar;
+	let lineBreakPos, charCodeAfterSlash;
+	lineBreakPos = code.indexOf('\n', start);
 	while (true) {
-		lineBreakPos = code.indexOf('\n', start);
-		do {
-			commentStart = code.indexOf('/', start);
-			if (commentStart === -1 || commentStart > lineBreakPos) return lineBreakPos;
-			nextChar = code[commentStart + 1];
-			if (nextChar === '/') return lineBreakPos;
-			if (nextChar === '*') break;
-			start = commentStart + 2;
-		} while (true);
-		start = code.indexOf('*/', commentStart) + 2;
-		if (start === -1) return -1;
+		start = code.indexOf('/', start);
+		if (start === -1 || start > lineBreakPos) return lineBreakPos;
+		charCodeAfterSlash = code.charCodeAt(++start);
+		if (charCodeAfterSlash === 47 /*"/"*/) return lineBreakPos;
+		++start;
+		if (charCodeAfterSlash === 42 /*"*"*/) {
+			start = code.indexOf('*/', start) + 2;
+			if (start > lineBreakPos) {
+				lineBreakPos = code.indexOf('\n', start);
+			}
+		}
 	}
 }
 

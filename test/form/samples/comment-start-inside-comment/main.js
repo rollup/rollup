@@ -1,4 +1,6 @@
 // /*
-import foo from './foo.js'; //
+import foo from './foo.js';
 
-console.log(foo(), bar());
+const bar = 'unused'; /*/ this comment is not closed yet
+*/
+console.log(foo());

@@ -6,8 +6,7 @@ System.register([], function (exports, module) {
 			var foo = () => 'foo';
 
 			// /*
-
-			console.log(foo(), bar());
+			console.log(foo());
 
 		}
 	};
