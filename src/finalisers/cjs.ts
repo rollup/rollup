@@ -21,41 +21,17 @@ export default function cjs(
 	const interop = options.interop !== false;
 
 	const importBlock = dependencies
-		.map(({ id, isChunk, name, reexports, imports }) => {
+		.map(({ id, isChunk, name, reexports, imports, exportsNames, exportsDefault }) => {
 			if (!reexports && !imports) {
 				return `require('${id}');`;
 			}
 
-			if (!interop || isChunk) {
+			if (!interop || isChunk || !exportsDefault) {
 				return `${varOrConst} ${name} = require('${id}');`;
-			}
-
-			const usesDefault =
-				(imports && imports.some(specifier => specifier.imported === 'default')) ||
-				(reexports && reexports.some(specifier => specifier.imported === 'default'));
-			if (!usesDefault) {
-				return `${varOrConst} ${name} = require('${id}');`;
-			}
-
-			const exportsNamespace = imports && imports.some(specifier => specifier.imported === '*');
-			if (exportsNamespace) {
-				return (
-					`${varOrConst} ${name} = require('${id}');` +
-					`\n${varOrConst} ${name}__default = ${name}['default'];`
-				);
 			}
 
 			needsInterop = true;
 
-			const exportsNames =
-				(imports &&
-					imports.some(
-						specifier => specifier.imported !== 'default' && specifier.imported !== '*'
-					)) ||
-				(reexports &&
-					reexports.some(
-						specifier => specifier.imported !== 'default' && specifier.imported !== '*'
-					));
 			if (exportsNames) {
 				return (
 					`${varOrConst} ${name} = require('${id}');` +

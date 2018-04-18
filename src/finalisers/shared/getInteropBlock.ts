@@ -7,10 +7,8 @@ export default function getInteropBlock(
 	varOrConst: string
 ) {
 	return dependencies
-		.map(({ name, exportsNamespace, exportsNames, exportsDefault }) => {
+		.map(({ name, exportsNames, exportsDefault }) => {
 			if (!exportsDefault || options.interop === false) return null;
-
-			if (exportsNamespace) return `${varOrConst} ${name}__default = ${name}['default'];`;
 
 			if (exportsNames)
 				return `${varOrConst} ${name}__default = 'default' in ${name} ? ${name}['default'] : ${name};`;
