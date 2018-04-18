@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.58.1
+*2018-04-18*
+* Fix comment detection ([#2129](https://github.com/rollup/rollup/pull/2129))
+
 ## 0.58.0
 *2018-04-16*
 * Support individual chunk names with optional content hashes ([#2068](https://github.com/rollup/rollup/pull/2068))
