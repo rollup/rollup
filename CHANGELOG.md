@@ -2,6 +2,7 @@
 
 ## 0.59.0
 *unreleased*
+* Add `esm` format alias ([#2102](https://github.com/rollup/rollup/pull/2102))
 * Fix wrong file name in error message ([#2137](https://github.com/rollup/rollup/pull/2137))
 
 ## 0.58.1
