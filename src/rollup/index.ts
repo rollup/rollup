@@ -7,7 +7,6 @@ import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
 import { Deprecation } from '../utils/deprecateOptions';
 import Graph from '../Graph';
 import ensureArray from '../utils/ensureArray';
-import { SourceMap } from 'magic-string';
 import { createAddons } from '../utils/addons';
 import commondir from '../utils/commondir';
 import { optimizeChunks } from '../chunk-optimization';
@@ -16,9 +15,7 @@ import {
 	WarningHandler,
 	InputOptions,
 	OutputOptions,
-	SerializedTimings,
 	Plugin,
-	ModuleJSON,
 	Bundle,
 	BundleSet,
 	OutputChunk
@@ -161,8 +158,11 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 							.then(rendered => {
 								timeEnd('GENERATE', 1);
 
+								let name = outputOptions.file || inputOptions.input;
+								if (typeof process !== 'undefined') name = relative(process.cwd(), resolve(name));
+
 								const output = {
-									name: relative(process.cwd(), resolve(outputOptions.file || inputOptions.input)),
+									name,
 									imports,
 									exports,
 									modules: chunk.getModuleIds(),
