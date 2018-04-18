@@ -1,7 +1,7 @@
 (function (foo) {
 	'use strict';
 
-	var foo__default = foo['default'];
+	var foo__default = 'default' in foo ? foo['default'] : foo;
 
 	console.log( foo.bar );
 

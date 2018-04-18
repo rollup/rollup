@@ -36,7 +36,6 @@ export interface ModuleDeclarationDependency {
 	// these used as interop signifiers
 	exportsDefault: boolean;
 	exportsNames: boolean;
-	exportsNamespace: boolean;
 	reexports?: ReexportSpecifier[];
 	imports?: ImportSpecifier[];
 }
@@ -629,15 +628,13 @@ export default class Chunk {
 			}
 
 			let reexports = reexportDeclarations.get(dep);
-			let exportsNames: boolean, exportsNamespace: boolean, exportsDefault: boolean;
+			let exportsNames: boolean, exportsDefault: boolean;
 			if (dep instanceof ExternalModule) {
-				exportsNames = dep.exportsNames;
-				exportsNamespace = dep.exportsNamespace;
+				exportsNames = dep.exportsNames || dep.exportsNamespace;
 				exportsDefault = 'default' in dep.declarations;
 			} else {
 				exportsNames = true;
 				// we don't want any interop patterns to trigger
-				exportsNamespace = false;
 				exportsDefault = false;
 			}
 
@@ -650,7 +647,7 @@ export default class Chunk {
 						<ExternalModule>dep,
 						options.globals,
 						this.graph,
-						exportsNames || exportsNamespace || exportsDefault
+						exportsNames || exportsDefault
 					);
 				}
 			}
@@ -663,7 +660,6 @@ export default class Chunk {
 				name: dep.name,
 				isChunk: !(<ExternalModule>dep).isExternal,
 				exportsNames,
-				exportsNamespace,
 				exportsDefault,
 				reexports,
 				imports
@@ -907,9 +903,6 @@ export default class Chunk {
 			}
 			if (!into.exportsNames && from.exportsNames) {
 				into.exportsNames = true;
-			}
-			if (!into.exportsNamespace && from.exportsNamespace) {
-				into.exportsNamespace = true;
 			}
 			if (!into.exportsDefault && from.exportsDefault) {
 				into.exportsDefault = true;

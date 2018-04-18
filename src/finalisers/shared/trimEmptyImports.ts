@@ -5,7 +5,7 @@ export default function trimEmptyImports(dependencies: ModuleDeclarationDependen
 
 	while (i--) {
 		const dependency = dependencies[i];
-		if (dependency.exportsDefault || dependency.exportsNames || dependency.exportsNamespace) {
+		if (dependency.exportsDefault || dependency.exportsNames) {
 			return dependencies.slice(0, i + 1);
 		}
 	}
