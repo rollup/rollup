@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.59.0
+*unreleased*
+* Fix wrong file name in error message ([#2137](https://github.com/rollup/rollup/pull/2137))
+
 ## 0.58.1
 *2018-04-18*
 * Fix comment detection ([#2129](https://github.com/rollup/rollup/pull/2129))
