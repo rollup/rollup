@@ -18,7 +18,6 @@ Basic options:
                               Any module IDs defined here are added to external
 -n, --name                  Name for UMD export
 -m, --sourcemap             Generate sourcemap (`-m inline` for inline map)
--l, --legacy                Support IE8
 --amd.id                    ID for AMD module (default is anonymous)
 --amd.define                Function to use in place of `define`
 --no-strict                 Don't emit a `"use strict";` in the generated modules.

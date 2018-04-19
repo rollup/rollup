@@ -1,5 +1,4 @@
 import Variable from './Variable';
-import { reservedWords } from '../../utils/identifierHelpers';
 import Identifier from '../nodes/Identifier';
 import { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
@@ -54,21 +53,18 @@ export default class NamespaceVariable extends Variable {
 		const members = Object.keys(this.originals).map(name => {
 			const original = this.originals[name];
 
-			if ((this.referencedEarly || original.isReassigned) && !options.legacy) {
+			if (this.referencedEarly || original.isReassigned) {
 				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${
 					options.compact ? '' : ';'
 				}${_}}`;
 			}
 
-			if (options.legacy && reservedWords.indexOf(name) !== -1) name = `'${name}'`;
 			return `${t}${name}: ${original.getName()}`;
 		});
 
 		const name = this.getName();
 
-		const callee = options.freeze
-			? `/*#__PURE__*/${options.legacy ? `(Object.freeze${_}||${_}Object)` : `Object.freeze`}`
-			: '';
+		const callee = options.freeze ? `/*#__PURE__*/Object.freeze` : '';
 
 		let output = `${this.context.varOrConst} ${name} = ${
 			options.namespaceToStringTag
