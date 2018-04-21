@@ -1,3 +1,9 @@
+if (console.log(1) || unknown) {
+	const x = 1;
+} else {
+	const x = 2;
+}
+
 if (true) {
 	console.log('kept');
 }

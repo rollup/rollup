@@ -1,5 +1,7 @@
 'use strict';
 
+if (console.log(1) || unknown) {}
+
 {
 	console.log('kept');
 }
@@ -22,7 +24,6 @@ if (console.log('effect'), true) {
 
 if (console.log('effect'), true) {
 	console.log('kept');
-} else {
 }
 
 {
@@ -43,10 +44,8 @@ if (false) {
 }
 console.log(typeof e, typeof f);
 
-if (console.log('effect'), false) {
-}
+if (console.log('effect'), false) {}
 
-if (console.log('effect'), false) {
-} else {
+if (console.log('effect'), false) {} else {
 	console.log('kept');
 }

@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			if ( a === 0 );
+			if ( a === 0 ){}
 			else a++;
 
 		}

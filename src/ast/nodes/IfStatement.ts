@@ -14,27 +14,32 @@ export default class IfStatement extends StatementBase {
 	private hasUnknownTestValue: boolean;
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return (
-			this.test.hasEffects(options) ||
-			(this.hasUnknownTestValue
-				? this.consequent.hasEffects(options) ||
-				  (this.alternate !== null && this.alternate.hasEffects(options))
-				: this.someRelevantBranch(node => node.hasEffects(options)))
-		);
+		if (this.test.hasEffects(options)) return true;
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
+		if (testValue === UNKNOWN_VALUE) {
+			return (
+				this.consequent.hasEffects(options) ||
+				(this.alternate !== null && this.alternate.hasEffects(options))
+			);
+		}
+		return testValue
+			? this.consequent.hasEffects(options)
+			: this.alternate !== null && this.alternate.hasEffects(options);
 	}
 
 	include() {
 		this.included = true;
-		const testValue = this.test.getValue();
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
 		if (testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
 			this.test.include();
 		}
-		if (testValue === UNKNOWN_VALUE) {
+		if ((testValue === UNKNOWN_VALUE || testValue) && this.consequent.shouldBeIncluded()) {
 			this.consequent.include();
-			if (this.alternate !== null) this.alternate.include();
-		} else if (testValue) {
-			this.consequent.include();
-		} else if (this.alternate !== null) {
+		}
+		if (
+			this.alternate !== null &&
+			((testValue === UNKNOWN_VALUE || !testValue) && this.alternate.shouldBeIncluded())
+		) {
 			this.alternate.include();
 		}
 	}
@@ -45,15 +50,28 @@ export default class IfStatement extends StatementBase {
 	}
 
 	render(code: MagicString, options: RenderOptions) {
-		const testValue = this.test.getValue();
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.test.getValue();
 		if (
 			!this.context.treeshake ||
 			this.test.included ||
 			(testValue ? this.alternate !== null && this.alternate.included : this.consequent.included)
 		) {
-			super.render(code, options);
+			this.test.render(code, options);
+			if (this.consequent.included) {
+				this.consequent.render(code, options);
+			} else {
+				code.overwrite(this.consequent.start, this.consequent.end, '{}');
+			}
+			if (this.alternate !== null) {
+				if (this.alternate.included) {
+					this.alternate.render(code, options);
+				} else {
+					code.remove(this.consequent.end, this.alternate.end);
+				}
+			}
 		} else {
-			// if test is not included, it is impossible that alternate===null even though it is the retained branch
+			// if test is not included, then the if statement is included because
+			// there is exactly one included branch
 			const branchToRetain = testValue ? this.consequent : this.alternate;
 			code.remove(this.start, branchToRetain.start);
 			code.remove(branchToRetain.end, this.end);
@@ -61,17 +79,12 @@ export default class IfStatement extends StatementBase {
 		}
 	}
 
-	private someRelevantBranch(predicateFunction: (node: StatementNode) => boolean): boolean {
-		const testValue = this.test.getValue();
-		if (testValue === UNKNOWN_VALUE) {
+	private getTestValue() {
+		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
+		const value = this.test.getValue();
+		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownTestValue = true;
-			return (
-				predicateFunction(this.consequent) ||
-				(this.alternate !== null && predicateFunction(this.alternate))
-			);
 		}
-		return testValue
-			? predicateFunction(this.consequent)
-			: this.alternate !== null && predicateFunction(this.alternate);
+		return value;
 	}
 }

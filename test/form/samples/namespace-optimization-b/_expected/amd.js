@@ -9,9 +9,7 @@ define(function () { 'use strict';
 		foo();
 
 		var a;
-		if ( a.b ) {
-			// empty
-		}
+		if ( a.b ) {}
 	}
 
 	a();
