@@ -5,6 +5,9 @@ module.exports = {
 	description: 'reexporting a missing identifier should print an error',
 	error: {
 		code: 'MISSING_EXPORT',
+		missing: 'foo',
+		importer: 'main.js',
+		exporter: 'empty.js',
 		message: `'foo' is not exported by empty.js`,
 		pos: 9,
 		loc: {

@@ -77,6 +77,13 @@ export interface AstContext {
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
 	getReexports: () => string[];
+	handleMissingExport: (
+		logger: (props: RollupWarning | RollupError, pos: number) => void,
+		exportName: string,
+		importer: string,
+		exporter: string,
+		importerStart: number
+	) => void;
 	imports: { [name: string]: ImportDescription };
 	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	magicString: MagicString;
@@ -258,6 +265,7 @@ export default class Module {
 			getReexports: this.getReexports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
+			handleMissingExport: this.graph.handleMissingExport,
 			imports: this.imports,
 			isCrossChunkImport: importDescription => importDescription.module.chunk !== this.chunk,
 			magicString: this.magicString,
@@ -634,9 +642,10 @@ export default class Module {
 			const declaration = otherModule.traceExport(importDeclaration.name);
 
 			if (!declaration) {
-				this.graph.handleMissingExport(
+				this.astContext.handleMissingExport(
+					this.astContext.error,
 					importDeclaration.name,
-					this,
+					this.id,
 					otherModule.id,
 					importDeclaration.specifier.start
 				);
@@ -666,9 +675,10 @@ export default class Module {
 			const declaration = reexportDeclaration.module.traceExport(reexportDeclaration.localName);
 
 			if (!declaration) {
-				this.graph.handleMissingExport(
+				this.astContext.handleMissingExport(
+					this.astContext.error,
 					reexportDeclaration.localName,
-					this,
+					this.id,
 					reexportDeclaration.module.id,
 					reexportDeclaration.start
 				);

@@ -19,7 +19,8 @@ import {
 	SourceDescription,
 	TreeshakingOptions,
 	WarningHandler,
-	ModuleJSON
+	ModuleJSON,
+	RollupError
 } from './rollup/types';
 import { Node } from './ast/nodes/shared/Node';
 import Chunk from './Chunk';
@@ -46,10 +47,11 @@ export default class Graph {
 	isPureExternalModule: (id: string) => boolean;
 	load: (id: string) => Promise<SourceDescription | string | void>;
 	handleMissingExport: (
+		logger: (props: RollupWarning | RollupError, pos: number) => void,
 		exportName: string,
-		importingModule: Module,
-		importedModule: string,
-		importerStart?: number
+		importer: string,
+		exporter: string,
+		importerStart: number
 	) => void;
 	moduleById: Map<string, Module | ExternalModule>;
 	modules: Module[];
@@ -125,12 +127,13 @@ export default class Graph {
 				.filter(Boolean)
 				.map(missingExport => {
 					return (
+						_logger: any,
 						exportName: string,
-						importingModule: Module,
-						importedModule: string,
+						importer: string,
+						exporter: string,
 						importerStart?: number
 					) => {
-						return missingExport(exportName, importingModule.id, importedModule, importerStart);
+						return missingExport(exportName, importer, exporter, importerStart);
 					};
 				})
 				.concat(handleMissingExport)

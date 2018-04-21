@@ -1,9 +1,8 @@
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path';
 import error from './error';
-import Module from '../Module';
 import relativeId, { jsExts } from './relativeId';
-import { InputOptions } from '../rollup/types';
+import { InputOptions, RollupWarning, RollupError } from '../rollup/types';
 
 export function load(id: string) {
 	return readFileSync(id, 'utf-8');
@@ -72,15 +71,19 @@ export function makeOnwarn() {
 }
 
 export function handleMissingExport(
+	logger: (props: RollupWarning | RollupError, pos: number) => void,
 	exportName: string,
-	importingModule: Module,
-	importedModule: string,
-	importerStart?: number
+	importer: string,
+	exporter: string,
+	importerStart: number
 ) {
-	importingModule.error(
+	logger(
 		{
 			code: 'MISSING_EXPORT',
-			message: `'${exportName}' is not exported by ${relativeId(importedModule)}`,
+			missing: exportName,
+			importer: relativeId(importer),
+			exporter: relativeId(exporter),
+			message: `'${exportName}' is not exported by ${relativeId(exporter)}`,
 			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
 		},
 		importerStart

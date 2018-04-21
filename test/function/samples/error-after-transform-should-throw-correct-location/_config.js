@@ -21,6 +21,9 @@ module.exports = {
 	},
 	error: {
 		code: 'MISSING_EXPORT',
+		missing: 'default',
+		importer: 'main.js',
+		exporter: 'empty.js',
 		message: `'default' is not exported by empty.js`,
 		pos: 44,
 		loc: {
