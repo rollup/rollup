@@ -130,7 +130,7 @@ export default class Graph {
 						importedModule: string,
 						importerStart?: number
 					) => {
-						return missingExport(importingModule.id, exportName, importedModule, importerStart);
+						return missingExport(exportName, importingModule.id, importedModule, importerStart);
 					};
 				})
 				.concat(handleMissingExport)
