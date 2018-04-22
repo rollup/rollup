@@ -11,26 +11,32 @@ interface DynamicImportMechanism {
 	interopRight?: string;
 }
 
-const dynamicImportMechanisms: Record<string, DynamicImportMechanism> = {
-	es: undefined,
-	cjs: {
-		left: 'Promise.resolve(require(',
-		right: '))',
-		interopLeft: 'Promise.resolve({ default: require(',
-		interopRight: ') })'
-	},
-	amd: {
-		left: 'new Promise(function (resolve, reject) { require([',
-		right: '], resolve, reject) })',
-		interopLeft: 'new Promise(function (resolve, reject) { require([',
-		interopRight: '], function (m) { resolve({ default: m }) }, reject) })'
-	},
-	system: {
-		left: 'module.import(',
-		right: ')'
-	},
-	umd: undefined,
-	iife: undefined
+const getDynamicImportMechanism = (format: string, compact: boolean): DynamicImportMechanism => {
+	switch (format) {
+		case 'cjs': {
+			const _ = compact ? '' : ' ';
+			return {
+				left: 'Promise.resolve(require(',
+				right: '))',
+				interopLeft: `Promise.resolve({${_}default:${_}require(`,
+				interopRight: `)${_}})`
+			};
+		}
+		case 'amd': {
+			const _ = compact ? '' : ' ';
+			return {
+				left: `new Promise(function${_}(resolve,${_}reject)${_}{${_}require([`,
+				right: `],${_}resolve,${_}reject)${_}})`,
+				interopLeft: `new Promise(function${_}(resolve,${_}reject)${_}{${_}require([`,
+				interopRight: `],${_}function${_}(m)${_}{${_}resolve({${_}default:${_}m${_}})${_}},${_}reject)${_}})`
+			};
+		}
+		case 'system':
+			return {
+				left: 'module.import(',
+				right: ')'
+			};
+	}
 };
 
 export default class Import extends NodeBase {
@@ -58,15 +64,17 @@ export default class Import extends NodeBase {
 	render(code: MagicString, options: RenderOptions) {
 		this.rendered = true;
 		if (this.resolutionNamespace) {
+			const _ = options.compact ? '' : ' ';
+			const s = options.compact ? '' : ';';
 			code.overwrite(
 				this.parent.start,
 				this.parent.end,
-				`Promise.resolve().then(function () { return ${this.resolutionNamespace}; })`
+				`Promise.resolve().then(function${_}()${_}{${_}return ${this.resolutionNamespace}${s}${_}})`
 			);
 			return;
 		}
 
-		const importMechanism = dynamicImportMechanisms[options.format];
+		const importMechanism = getDynamicImportMechanism(options.format, options.compact);
 		if (importMechanism) {
 			const leftMechanism =
 				(this.resolutionInterop && importMechanism.interopLeft) || importMechanism.left;

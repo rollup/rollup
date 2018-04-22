@@ -14,18 +14,12 @@ const thisProp = (name: string) => `this${keypath(name)}`;
 
 export default function iife(
 	magicString: MagicStringBundle,
-	{
-		graph,
-		namedExportsMode,
-		hasExports,
-		indentString,
-		intro,
-		outro,
-		dependencies,
-		exports
-	}: FinaliserOptions,
+	{ graph, namedExportsMode, hasExports, indentString: t, intro, outro, dependencies, exports }: FinaliserOptions,
 	options: OutputOptions
 ) {
+	const _ = options.compact ? '' : ' ';
+	const nl = options.compact ? '' : '\n';
+
 	const { extend, name } = options;
 	const isNamespaced = name && name.indexOf('.') !== -1;
 	const possibleVariableAssignment = !extend && !isNamespaced;
@@ -51,44 +45,46 @@ export default function iife(
 	}
 
 	if (extend) {
-		deps.unshift(`(${thisProp(name)} = ${thisProp(name)} || {})`);
+		deps.unshift(`(${thisProp(name)}${_}=${_}${thisProp(name)}${_}||${_}{})`);
 		args.unshift('exports');
 	} else if (namedExportsMode && hasExports) {
 		deps.unshift('{}');
 		args.unshift('exports');
 	}
 
-	const useStrict = options.strict !== false ? `${indentString}'use strict';\n\n` : ``;
+	const useStrict = options.strict !== false ? `${t}'use strict';${nl}${nl}` : ``;
 
-	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
+	let wrapperIntro = `(function${_}(${args})${_}{${nl}${useStrict}`;
 
 	if (hasExports && !extend) {
 		wrapperIntro =
-			(isNamespaced ? thisProp(name) : `${graph.varOrConst} ${name}`) + ` = ${wrapperIntro}`;
+			(isNamespaced ? thisProp(name) : `${graph.varOrConst}${_}${name}`) +
+			`${_}=${_}${wrapperIntro}`;
 	}
 
 	if (isNamespaced) {
-		wrapperIntro = setupNamespace(name, 'this', false, options.globals) + wrapperIntro;
+		wrapperIntro =
+			setupNamespace(name, 'this', false, options.globals, options.compact) + wrapperIntro;
 	}
 
-	let wrapperOutro = `\n\n}(${deps}));`;
+	let wrapperOutro = `${nl}${nl}}(${deps}));`;
 
 	if (!extend && namedExportsMode && hasExports) {
-		wrapperOutro = `\n\n${indentString}return exports;${wrapperOutro}`;
+		wrapperOutro = `${nl}${nl}${t}return exports;${wrapperOutro}`;
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
 	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
-	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
+	if (interopBlock) magicString.prepend(interopBlock + nl + nl);
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, options.interop);
-	if (exportBlock) magicString.append('\n\n' + exportBlock);
+	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, options.interop, options.compact);
+	if (exportBlock) magicString.append(nl + nl + exportBlock);
 	if (outro) magicString.append(outro);
 
 	return magicString
-		.indent(indentString)
+		.indent(t)
 		.prepend(wrapperIntro)
 		.append(wrapperOutro);
 }

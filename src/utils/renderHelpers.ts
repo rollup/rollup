@@ -2,6 +2,7 @@ import { Node } from '../ast/nodes/shared/Node';
 import MagicString from 'magic-string';
 
 export interface RenderOptions {
+	compact: boolean;
 	legacy: boolean;
 	freeze: boolean;
 	namespaceToStringTag: boolean;

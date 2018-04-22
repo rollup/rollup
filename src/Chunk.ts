@@ -726,13 +726,16 @@ export default class Chunk {
 	preRender(options: OutputOptions, inputBase: string) {
 		timeStart('render modules', 3);
 
-		let magicString = new MagicStringBundle({ separator: '\n\n' });
+		let magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
 		this.usedModules = [];
-		this.indentString = getIndentString(this.orderedModules, options);
+		this.indentString = options.compact ? '' : getIndentString(this.orderedModules, options);
+
+		const nl = options.compact ? '' : '\n';
 
 		if (this.graph.dynamicImport) this.prepareDynamicImports();
 
 		const renderOptions: RenderOptions = {
+			compact: options.compact,
 			legacy: options.legacy,
 			freeze: options.freeze !== false,
 			namespaceToStringTag: options.namespaceToStringTag === true,
@@ -782,13 +785,13 @@ export default class Chunk {
 
 				if (namespace.needsNamespaceBlock) {
 					const rendered = namespace.renderBlock(renderOptions);
-					if (namespace.renderFirst()) hoistedSource += '\n' + rendered;
+					if (namespace.renderFirst()) hoistedSource += nl + rendered;
 					else magicString.addSource(new MagicString(rendered));
 				}
 			}
 		}
 
-		if (hoistedSource) magicString.prepend(hoistedSource + '\n\n');
+		if (hoistedSource) magicString.prepend(hoistedSource + nl + nl);
 
 		this.renderedSource = magicString.trim();
 		this.renderedSourceLength = undefined;
@@ -965,6 +968,8 @@ export default class Chunk {
 	render(options: OutputOptions, addons: Addons) {
 		timeStart('render format', 3);
 
+		const nl = options.compact ? '' : '\n';
+
 		if (!this.renderedSource)
 			throw new Error('Internal error: Chunk render called before preRender');
 
@@ -1020,8 +1025,8 @@ export default class Chunk {
 			},
 			options
 		);
-		if (addons.banner) magicString.prepend(addons.banner + '\n');
-		if (addons.footer) magicString.append('\n' + addons.footer);
+		if (addons.banner) magicString.prepend(addons.banner + nl);
+		if (addons.footer) magicString.append(nl + addons.footer);
 		const prevCode = magicString.toString();
 
 		timeEnd('render format', 3);
@@ -1060,7 +1065,7 @@ export default class Chunk {
 					timeEnd('sourcemap', 3);
 				}
 
-				if (code[code.length - 1] !== '\n') code += '\n';
+				if (options.compact !== true && code[code.length - 1] !== '\n') code += '\n';
 				return { code, map };
 			}
 		);
