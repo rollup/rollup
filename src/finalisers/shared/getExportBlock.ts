@@ -4,6 +4,7 @@ export default function getExportBlock(
 	exports: ChunkExports,
 	dependencies: ChunkDependencies,
 	exportMode: string,
+	interop: boolean,
 	mechanism = 'return'
 ) {
 	if (exportMode === 'default') {
@@ -60,9 +61,9 @@ export default function getExportBlock(
 								specifier => specifier.imported !== 'default' && specifier.imported !== '*'
 							));
 					if (exportsNamesOrNamespace) {
-						exportBlock += `${exportBlock ? '\n' : ''}exports.${
-							specifier.reexported
-						} = ${name}__default;`;
+						exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name}${
+							interop !== false ? '__default' : '.default'
+						};`;
 					} else {
 						exportBlock += `${exportBlock ? '\n' : ''}exports.${specifier.reexported} = ${name};`;
 					}
