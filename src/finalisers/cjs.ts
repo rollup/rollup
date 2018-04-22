@@ -45,7 +45,7 @@ export default function cjs(
 					definingVariable = false;
 					importBlock += `require('${id}')`;
 				} else {
-					importBlock += definingVariable ? ',' : ';${varOrConst} ';
+					importBlock += definingVariable ? ',' : `;${varOrConst} `;
 					definingVariable = true;
 
 					if (!interop || isChunk || !exportsDefault || !namedExportsMode) {
@@ -59,6 +59,7 @@ export default function cjs(
 				}
 			}
 		);
+		if (importBlock.length) importBlock += ';';
 	} else {
 		importBlock = dependencies
 			.map(({ id, isChunk, name, reexports, imports, exportsNames, exportsDefault }) => {
