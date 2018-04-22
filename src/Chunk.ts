@@ -527,7 +527,10 @@ export default class Chunk {
 				if (variable.name === '*') {
 					safeName = module.name;
 				} else if (variable.name === 'default') {
-					if (module.exportsNamespace || (!esm && module.exportsNames)) {
+					if (
+						options.interop !== false &&
+						(module.exportsNamespace || (!esm && module.exportsNames))
+					) {
 						safeName = `${module.name}__default`;
 					} else {
 						safeName = module.name;
