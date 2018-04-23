@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.58.2
+*2018-04-23*
+* Fix rendering of certain statically resolvable if statements ([#2146](https://github.com/rollup/rollup/pull/2146))
+
 ## 0.58.1
 *2018-04-18*
 * Fix comment detection ([#2129](https://github.com/rollup/rollup/pull/2129))
