@@ -103,7 +103,7 @@ export type TransformChunkHook = (
 	code: string,
 	options: OutputOptions,
 	chunk: {
-		name: string;
+		file: string;
 		imports: string[];
 		exports: string[];
 		modules: string[];
@@ -207,8 +207,8 @@ export interface OutputOptions {
 	format?: ModuleFormat;
 	name?: string;
 	globals?: GlobalsOption;
-	chunkNames?: string;
-	entryNames?: string;
+	chunkFileNames?: string;
+	entryFileNames?: string;
 
 	paths?: OptionsPaths;
 	banner?: string | (() => string | Promise<string>);
@@ -280,7 +280,7 @@ export type WarningHandler = (warning: string | RollupWarning) => void;
 export type SerializedTimings = { [label: string]: number };
 
 export interface OutputChunk {
-	name: string;
+	file: string;
 	imports: string[];
 	exports: string[];
 	modules: string[];
