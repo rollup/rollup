@@ -10,7 +10,9 @@ const createGetOption = (config: GenericConfigObject, command: GenericConfigObje
 ) =>
 	command[name] !== undefined
 		? command[name]
-		: config[name] !== undefined ? config[name] : defaultValue;
+		: config[name] !== undefined
+			? config[name]
+			: defaultValue;
 
 const normalizeObjectOptionValue = (optionValue: any) => {
 	if (!optionValue) {
@@ -242,8 +244,8 @@ function getOutputOptions(
 		amd: Object.assign({}, config.amd, command.amd),
 		banner: getOption('banner'),
 		dir: getOption('dir'),
-		chunkNames: getOption('chunkNames'),
-		entryNames: getOption('entryNames'),
+		chunkFileNames: getOption('chunkNames'),
+		entryFileNames: getOption('entryNames'),
 		exports: getOption('exports'),
 		extend: getOption('extend'),
 		file: getOption('file'),

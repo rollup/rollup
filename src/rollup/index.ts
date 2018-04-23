@@ -137,7 +137,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 					function generate(rawOutputOptions: GenericConfigObject) {
 						const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
 
-						if (outputOptions.entryNames || outputOptions.chunkNames)
+						if (outputOptions.entryFileNames || outputOptions.chunkFileNames)
 							error({
 								code: 'INVALID_OPTION',
 								message:
@@ -158,11 +158,11 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 							.then(rendered => {
 								timeEnd('GENERATE', 1);
 
-								let name = outputOptions.file || inputOptions.input;
-								if (typeof process !== 'undefined') name = relative(process.cwd(), resolve(name));
+								let file = outputOptions.file || inputOptions.input;
+								if (typeof process !== 'undefined') file = relative(process.cwd(), resolve(file));
 
 								const output = {
-									name,
+									file,
 									imports,
 									exports,
 									modules: chunk.getModuleIds(),
@@ -198,11 +198,9 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 									message: 'You must specify output.file when doing a single-file input build'
 								});
 							}
-							return generate(outputOptions).then(result => {
-								return writeChunk(graph, outputOptions.file, result, outputOptions).then(
-									() => result
-								);
-							});
+							return generate(outputOptions).then(result =>
+								writeChunk(graph, outputOptions.file, result, outputOptions).then(() => result)
+							);
 						}
 					};
 
@@ -308,9 +306,9 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 											} else {
 												let pattern;
 												if (chunk.isEntryModuleFacade) {
-													pattern = outputOptions.entryNames || '[alias].js';
+													pattern = outputOptions.entryFileNames || '[alias].js';
 												} else {
-													pattern = outputOptions.chunkNames || '[alias]-[hash].js';
+													pattern = outputOptions.chunkFileNames || '[alias]-[hash].js';
 												}
 												chunk.generateName(pattern, addons, outputOptions, existingNames);
 											}
@@ -322,7 +320,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 											chunks.map(chunk => {
 												return chunk.render(outputOptions, addons).then(rendered => {
 													const output = {
-														name: chunk.id,
+														file: chunk.id,
 														imports: chunk.getImportIds(),
 														exports: chunk.getExportNames(),
 														modules: chunk.getModuleIds(),
@@ -362,8 +360,8 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 								message: 'You must specify output.dir when code-splitting.'
 							});
 						}
-						return generate(outputOptions).then(result => {
-							return Promise.all(
+						return generate(outputOptions).then(result =>
+							Promise.all(
 								Object.keys(result).map(chunkName =>
 									writeChunk(
 										graph,
@@ -372,8 +370,8 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 										outputOptions
 									)
 								)
-							).then(() => result);
-						});
+							).then(() => result)
+						);
 					}
 				};
 				if (inputOptions.perf === true) result.getTimings = getTimings;
@@ -409,7 +407,7 @@ function writeChunk(
 		if (outputOptions.sourcemap === 'inline') {
 			url = map.toUrl();
 		} else {
-			url = `${basename(chunk.name)}.map`;
+			url = `${basename(chunk.filename)}.map`;
 			writeSourceMapPromise = writeFile(`${filename}.map`, map.toString());
 		}
 		code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
@@ -417,8 +415,8 @@ function writeChunk(
 
 	return writeFile(filename, code)
 		.then(() => writeSourceMapPromise)
-		.then(() => {
-			return Promise.all(
+		.then(() =>
+			Promise.all(
 				graph.plugins
 					.filter(plugin => plugin.onwrite)
 					.map(plugin =>
@@ -428,8 +426,8 @@ function writeChunk(
 							chunk
 						)
 					)
-			);
-		})
+			)
+		)
 		.then(() => {});
 }
 
