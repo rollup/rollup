@@ -64,7 +64,7 @@ export default class IfStatement extends StatementBase {
 			if (this.test.included) {
 				this.test.render(code, options);
 			} else {
-				code.overwrite(this.test.start, this.test.end, JSON.stringify(testValue));
+				code.overwrite(this.test.start, this.test.end, testValue ? 'true' : 'false');
 			}
 			if (this.consequent.included) {
 				this.consequent.render(code, options);
