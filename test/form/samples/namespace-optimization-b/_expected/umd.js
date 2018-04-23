@@ -13,7 +13,7 @@
 		foo();
 
 		var a;
-		if ( a.b ) {}
+		if ( a.b ) ;
 	}
 
 	a();

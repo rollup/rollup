@@ -23,6 +23,17 @@ if (true) {
 }
 console.log(typeof a, typeof b);
 
+function noEffect(){}
+
+if (noEffect(), true) {
+	console.log('kept');
+} else {
+	console.log('removed');
+	var a;
+	function b() {}
+}
+console.log(typeof a, typeof b);
+
 if (console.log('effect'), true) {
 	console.log('kept');
 }

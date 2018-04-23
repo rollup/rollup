@@ -50,17 +50,26 @@ export default class IfStatement extends StatementBase {
 	}
 
 	render(code: MagicString, options: RenderOptions) {
+		// Note that unknown test values are always included
 		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.test.getValue();
 		if (
-			!this.context.treeshake ||
-			this.test.included ||
-			(testValue ? this.alternate !== null && this.alternate.included : this.consequent.included)
+			!this.test.included &&
+			(testValue ? this.alternate === null || !this.alternate.included : !this.consequent.included)
 		) {
-			this.test.render(code, options);
+			const singleRetainedBranch = testValue ? this.consequent : this.alternate;
+			code.remove(this.start, singleRetainedBranch.start);
+			code.remove(singleRetainedBranch.end, this.end);
+			singleRetainedBranch.render(code, options);
+		} else {
+			if (this.test.included) {
+				this.test.render(code, options);
+			} else {
+				code.overwrite(this.test.start, this.test.end, JSON.stringify(testValue));
+			}
 			if (this.consequent.included) {
 				this.consequent.render(code, options);
 			} else {
-				code.overwrite(this.consequent.start, this.consequent.end, '{}');
+				code.overwrite(this.consequent.start, this.consequent.end, ';');
 			}
 			if (this.alternate !== null) {
 				if (this.alternate.included) {
@@ -69,13 +78,6 @@ export default class IfStatement extends StatementBase {
 					code.remove(this.consequent.end, this.alternate.end);
 				}
 			}
-		} else {
-			// if test is not included, then the if statement is included because
-			// there is exactly one included branch
-			const branchToRetain = testValue ? this.consequent : this.alternate;
-			code.remove(this.start, branchToRetain.start);
-			code.remove(branchToRetain.end, this.end);
-			branchToRetain.render(code, options);
 		}
 	}
 

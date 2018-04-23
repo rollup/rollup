@@ -4,7 +4,7 @@
 	(factory());
 }(this, (function () { 'use strict';
 
-	if (console.log(1) || unknown) {}
+	if (console.log(1) || unknown) ;
 
 	{
 		console.log('kept');
@@ -13,6 +13,14 @@
 	{
 		console.log('kept');
 	}
+
+	if (true) {
+		console.log('kept');
+	} else {
+		var a;
+		function b() {}
+	}
+	console.log(typeof a, typeof b);
 
 	if (true) {
 		console.log('kept');
@@ -48,9 +56,9 @@
 	}
 	console.log(typeof e, typeof f);
 
-	if (console.log('effect'), false) {}
+	if (console.log('effect'), false) ;
 
-	if (console.log('effect'), false) {} else {
+	if (console.log('effect'), false) ; else {
 		console.log('kept');
 	}
 
