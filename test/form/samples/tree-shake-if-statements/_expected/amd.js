@@ -1,5 +1,7 @@
 define(function () { 'use strict';
 
+	if (console.log(1) || unknown) ;
+
 	{
 		console.log('kept');
 	}
@@ -16,13 +18,20 @@ define(function () { 'use strict';
 	}
 	console.log(typeof a, typeof b);
 
+	if (true) {
+		console.log('kept');
+	} else {
+		var a;
+		function b() {}
+	}
+	console.log(typeof a, typeof b);
+
 	if (console.log('effect'), true) {
 		console.log('kept');
 	}
 
 	if (console.log('effect'), true) {
 		console.log('kept');
-	} else {
 	}
 
 	{
@@ -43,11 +52,9 @@ define(function () { 'use strict';
 	}
 	console.log(typeof e, typeof f);
 
-	if (console.log('effect'), false) {
-	}
+	if (console.log('effect'), false) ;
 
-	if (console.log('effect'), false) {
-	} else {
+	if (console.log('effect'), false) ; else {
 		console.log('kept');
 	}
 

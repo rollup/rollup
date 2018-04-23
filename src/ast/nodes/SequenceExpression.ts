@@ -86,41 +86,37 @@ export default class SequenceExpression extends NodeBase {
 		options: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
-		if (!this.context.treeshake) {
-			super.render(code, options);
-		} else {
-			let firstStart = 0,
-				lastEnd,
-				includedNodes = 0;
-			for (const { node, start, end } of getCommaSeparatedNodesWithBoundaries(
-				this.expressions,
-				code,
-				this.start,
-				this.end
-			)) {
-				if (!node.included) {
-					code.remove(start, end);
-					continue;
-				}
-				includedNodes++;
-				if (firstStart === 0) firstStart = start;
-				lastEnd = end;
-				if (node === this.expressions[this.expressions.length - 1] && includedNodes === 1) {
-					node.render(code, options, {
-						renderedParentType: renderedParentType || this.parent.type,
-						isCalleeOfRenderedParent: renderedParentType
-							? isCalleeOfRenderedParent
-							: (<CallExpression>this.parent).callee === this
-					});
-				} else {
-					node.render(code, options);
-				}
+		let firstStart = 0,
+			lastEnd,
+			includedNodes = 0;
+		for (const { node, start, end } of getCommaSeparatedNodesWithBoundaries(
+			this.expressions,
+			code,
+			this.start,
+			this.end
+		)) {
+			if (!node.included) {
+				code.remove(start, end);
+				continue;
 			}
-			// Round brackets are part of the actual parent and should be re-added in case the parent changed
-			if (includedNodes > 1 && renderedParentType) {
-				code.prependRight(firstStart, '(');
-				code.appendLeft(lastEnd, ')');
+			includedNodes++;
+			if (firstStart === 0) firstStart = start;
+			lastEnd = end;
+			if (node === this.expressions[this.expressions.length - 1] && includedNodes === 1) {
+				node.render(code, options, {
+					renderedParentType: renderedParentType || this.parent.type,
+					isCalleeOfRenderedParent: renderedParentType
+						? isCalleeOfRenderedParent
+						: (<CallExpression>this.parent).callee === this
+				});
+			} else {
+				node.render(code, options);
 			}
+		}
+		// Round brackets are part of the actual parent and should be re-added in case the parent changed
+		if (includedNodes > 1 && renderedParentType) {
+			code.prependRight(firstStart, '(');
+			code.appendLeft(lastEnd, ')');
 		}
 	}
 }

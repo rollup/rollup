@@ -12,9 +12,7 @@ System.register([], function (exports, module) {
 				foo();
 
 				var a;
-				if ( a.b ) {
-					// empty
-				}
+				if ( a.b ) ;
 			}
 
 			a();
