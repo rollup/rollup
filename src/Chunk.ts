@@ -360,7 +360,7 @@ export default class Chunk {
 
 	generateInternalExports(options: OutputOptions) {
 		if (this.isEntryModuleFacade) return;
-		const mangle = options.format === 'system' || options.format === 'es';
+		const mangle = options.format === 'system' || options.format === 'es' || options.compact;
 		let i = 0,
 			safeExportName: string;
 		this.exportNames = Object.create(null);
