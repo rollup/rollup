@@ -277,7 +277,7 @@ export default class Graph {
 			for (const dynamicImportModule of dynamicImports) {
 				if (entryModule !== dynamicImportModule) dynamicImportModule.markExports();
 				// all dynamic import modules inlined for single-file build
-				dynamicImportModule.getAndCreateNamespace().include();
+				dynamicImportModule.getOrCreateNamespace().include();
 			}
 
 			// only include statements that should appear in the bundle

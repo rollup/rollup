@@ -29,6 +29,7 @@ export default class NamespaceVariable extends Variable {
 
 	include() {
 		if (!this.included) {
+			this.context.includeNamespace();
 			this.included = true;
 			this.needsNamespaceBlock = true;
 			for (const identifier of this.references) {
