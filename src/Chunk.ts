@@ -583,7 +583,10 @@ export default class Chunk {
 		this.graph.scope.deshadow(toDeshadow, this.orderedModules.map(module => module.scope));
 	}
 
-	private getChunkDependencyDeclarations(options: OutputOptions): ChunkDependencies {
+	private getChunkDependencyDeclarations(
+		options: OutputOptions,
+		inputBase: string
+	): ChunkDependencies {
 		const reexportDeclarations = new Map<Chunk | ExternalModule, ReexportSpecifier[]>();
 
 		for (let exportName of Object.keys(this.exportNames)) {
@@ -646,7 +649,7 @@ export default class Chunk {
 			let id: string;
 			let globalName: string;
 			if (dep instanceof ExternalModule) {
-				id = dep.renderPath;
+				id = dep.renderPath || dep.setRenderPath(options, inputBase);
 				if (options.format === 'umd' || options.format === 'iife') {
 					globalName = getGlobalName(
 						<ExternalModule>dep,
@@ -760,7 +763,7 @@ export default class Chunk {
 	}
 
 	// prerender allows chunk hashes and names to be generated before finalizing
-	preRender(options: OutputOptions) {
+	preRender(options: OutputOptions, inputBase: string) {
 		timeStart('render modules', 3);
 
 		let magicString = new MagicStringBundle({ separator: '\n\n' });
@@ -802,12 +805,6 @@ export default class Chunk {
 			}
 		}
 
-		// resolve external module paths
-		for (const external of this.dependencies) {
-			if (!(external instanceof ExternalModule)) continue;
-			external.setRenderPath(options, this.entryModule && this.entryModule.id);
-		}
-
 		if (hoistedSource) magicString.prepend(hoistedSource + '\n\n');
 
 		this.renderedSource = magicString.trim();
@@ -828,7 +825,7 @@ export default class Chunk {
 		this.hasDynamicImport = !!renderOptions.importMechanism;
 
 		this.renderedDeclarations = {
-			dependencies: this.getChunkDependencyDeclarations(options),
+			dependencies: this.getChunkDependencyDeclarations(options, inputBase),
 			exports: this.getChunkExportDeclarations()
 		};
 
@@ -845,7 +842,7 @@ export default class Chunk {
 	 * chunkList allows updating references in other chunks for the merged chunk to this chunk
 	 * A new facade will be added to chunkList if tainting exports of either as an entry point
 	 */
-	merge(chunk: Chunk, chunkList: Chunk[], options: OutputOptions) {
+	merge(chunk: Chunk, chunkList: Chunk[], options: OutputOptions, inputBase: string) {
 		if (this.isEntryModuleFacade || chunk.isEntryModuleFacade)
 			throw new Error('Internal error: Code splitting chunk merges not supported for facades');
 
@@ -943,7 +940,7 @@ export default class Chunk {
 		}
 
 		// re-render the merged chunk
-		this.preRender(options);
+		this.preRender(options, inputBase);
 	}
 
 	generateNamePreserveModules(preserveModulesRelativeDir: string) {
@@ -1011,10 +1008,12 @@ export default class Chunk {
 		// as chunk ids known only after prerender
 		for (let i = 0; i < this.dependencies.length; i++) {
 			const dep = this.dependencies[i];
-			if (dep instanceof ExternalModule) continue;
-			let relPath = normalize(relative(dirname(this.id), dep.id));
+			if (dep instanceof ExternalModule && !dep.renormalizeRenderPath) continue;
+			const renderedDependency = this.renderedDeclarations.dependencies[i];
+			let depId = dep instanceof ExternalModule ? renderedDependency.id : dep.id;
+			let relPath = this.id ? normalize(relative(dirname(this.id), depId)) : depId;
 			if (!relPath.startsWith('../')) relPath = './' + relPath;
-			this.renderedDeclarations.dependencies[i].id = relPath;
+			renderedDependency.id = relPath;
 		}
 
 		if (this.graph.dynamicImport) this.finaliseDynamicImports();
