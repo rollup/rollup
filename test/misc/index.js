@@ -162,26 +162,28 @@ describe('sanity checks', () => {
 });
 
 describe('in-memory sourcemaps', () => {
-	it( 'generates an in-memory sourcemap', async () => {
-		const bundle = await rollup.rollup({
+	it( 'generates an in-memory sourcemap', () => {
+		return rollup.rollup({
 			input: 'main',
 			plugins: [loader({ main: `console.log( 42 );` })],
+		})
+		.then(bundle => {
+			return bundle.generate({
+				format: 'cjs',
+				sourcemap: true,
+				sourcemapFile: path.resolve( 'bundle.js' )
+			});
+		})
+		.then(generated => {
+			const smc = new SourceMapConsumer( generated.map );
+			const locator = getLocator( generated.code, { offsetLine: 1 });
+	
+			let generatedLoc = locator( '42' );
+			let loc = smc.originalPositionFor( generatedLoc ); // 42
+			assert.equal( loc.source, 'main' );
+			assert.equal( loc.line, 1 );
+			assert.equal( loc.column, 13 );
 		});
-
-		const generated = await bundle.generate({
-			format: 'cjs',
-			sourcemap: true,
-			sourcemapFile: path.resolve( 'bundle.js' )
-		});
-
-		const smc = new SourceMapConsumer( generated.map );
-		const locator = getLocator( generated.code, { offsetLine: 1 });
-
-		let generatedLoc = locator( '42' );
-		let loc = smc.originalPositionFor( generatedLoc ); // 42
-		assert.equal( loc.source, 'main' );
-		assert.equal( loc.line, 1 );
-		assert.equal( loc.column, 13 );
 	});
 
 });
