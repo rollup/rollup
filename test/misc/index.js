@@ -1,6 +1,9 @@
 const assert = require('assert');
+const path = require('path');
 const rollup = require('../../dist/rollup');
 const { executeBundle, loader } = require('../utils.js');
+const { SourceMapConsumer } = require( 'source-map' );
+const { getLocator } = require( 'locate-character' );
 
 describe('sanity checks', () => {
 	it('exists', () => {
@@ -156,6 +159,31 @@ describe('sanity checks', () => {
 				assert.equal(e, error);
 			});
 	});
+});
+
+describe('in-memory sourcemaps', () => {
+	it( 'generates an in-memory sourcemap', async () => {
+		const bundle = await rollup.rollup({
+			input: 'main',
+			plugins: [loader({ main: `console.log( 42 );` })],
+		});
+
+		const generated = await bundle.generate({
+			format: 'cjs',
+			sourcemap: true,
+			sourcemapFile: path.resolve( 'bundle.js' )
+		});
+
+		const smc = new SourceMapConsumer( generated.map );
+		const locator = getLocator( generated.code, { offsetLine: 1 });
+
+		let generatedLoc = locator( '42' );
+		let loc = smc.originalPositionFor( generatedLoc ); // 42
+		assert.equal( loc.source, 'main' );
+		assert.equal( loc.line, 1 );
+		assert.equal( loc.column, 13 );
+	});
+
 });
 
 describe('deprecations', () => {

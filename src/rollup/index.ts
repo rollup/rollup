@@ -1,5 +1,5 @@
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
-import { basename } from '../utils/path';
+import { basename, resolve, dirname, relative } from '../utils/path';
 import { writeFile } from '../utils/fs';
 import { mapSequence } from '../utils/promise';
 import error from '../utils/error';
@@ -169,6 +169,10 @@ export default function rollup(
 						.then(addons => {
 							chunk.generateInternalExports(outputOptions);
 							chunk.preRender(outputOptions);
+							chunk.id =
+								typeof process !== 'undefined'
+									? relative(process.cwd(), inputOptions.input)
+									: inputOptions.input;
 							return chunk.render(outputOptions, addons);
 						})
 						.then(rendered => {
@@ -311,6 +315,12 @@ export default function rollup(
 								'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
 						});
 					}
+
+					if (outputOptions.sourcemapFile)
+						error({
+							code: 'INVALID_OPTION',
+							message: '"sourcemapFile" is only supported for single-file builds.'
+						});
 
 					timeStart('GENERATE', 1);
 
