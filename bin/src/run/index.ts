@@ -97,7 +97,7 @@ export default function runRollup(command: any) {
 			.then(configs => execute(configFile, configs, command))
 			.catch(handleError);
 	} else {
-		return execute(configFile, <any>[{ input: null }], command);
+		execute(configFile, <any>[{ input: null }], command);
 	}
 }
 
@@ -126,6 +126,10 @@ function execute(configFile: string, configs: InputOptions[], command: any) {
 			if (optionError) inputOptions.onwarn({ code: 'UNKNOWN_OPTION', message: optionError });
 
 			return build(inputOptions, outputOptions, warnings, command.silent);
+		}).then(results => {
+			if (!results.every(Boolean)) {
+				process.exit(1);
+			}
 		});
 	}
 }

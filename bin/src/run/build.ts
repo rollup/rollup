@@ -82,6 +82,10 @@ export default function build(
 			if (bundle && bundle.getTimings) {
 				printTimings(bundle.getTimings());
 			}
+			return true;
 		})
-		.catch(handleError);
+		.catch((error: any) => {
+			handleError(error, true);
+			return false;
+		});
 }
