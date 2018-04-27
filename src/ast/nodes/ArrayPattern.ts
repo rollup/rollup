@@ -3,10 +3,10 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import { PatternNode } from './shared/Pattern';
 import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 
 export default class ArrayPattern extends NodeBase implements PatternNode {
-	type: NodeType.ArrayPattern;
+	type: NodeType.tArrayPattern;
 	elements: (PatternNode | null)[];
 
 	declare(kind: string, _init: ExpressionEntity | null) {

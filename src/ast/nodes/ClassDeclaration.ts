@@ -1,7 +1,7 @@
 import ClassNode from './shared/ClassNode';
 import Identifier from './Identifier';
 import MagicString from 'magic-string';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { GenericEsTreeNode, Node } from './shared/Node';
 import { RenderOptions } from '../../utils/renderHelpers';
 import Scope from '../scopes/Scope';
@@ -11,7 +11,7 @@ export function isClassDeclaration(node: Node): node is ClassDeclaration {
 }
 
 export default class ClassDeclaration extends ClassNode {
-	type: NodeType.ClassDeclaration;
+	type: NodeType.tClassDeclaration;
 	id: Identifier;
 
 	initialise() {
@@ -33,7 +33,7 @@ export default class ClassDeclaration extends ClassNode {
 	}
 
 	render(code: MagicString, options: RenderOptions) {
-		if (options.systemBindings && this.id && this.id.variable.exportName) {
+		if (options.format === 'system' && this.id && this.id.variable.exportName) {
 			code.appendLeft(
 				this.end,
 				` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`

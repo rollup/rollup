@@ -11,7 +11,7 @@ import {
 } from '../nodes/shared/Expression';
 import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
 import { Node } from '../nodes/shared/Node';
-import { NodeType } from '../nodes/NodeType';
+import * as NodeType from '../nodes/NodeType';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;

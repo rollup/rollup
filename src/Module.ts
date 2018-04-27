@@ -29,7 +29,7 @@ import ExternalModule from './ExternalModule';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Import from './ast/nodes/Import';
 import { nodeConstructors } from './ast/nodes/index';
-import { NodeType } from './ast/nodes/NodeType';
+import * as NodeType from './ast/nodes/NodeType';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
 import Chunk from './Chunk';
@@ -75,6 +75,7 @@ export interface AstContext {
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
 	getReexports: () => string[];
+	hasImportMeta: boolean;
 	imports: { [name: string]: ImportDescription };
 	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	includeNamespace: () => void;
@@ -168,6 +169,7 @@ export default class Module {
 	entryPointsHash: Uint8Array;
 	chunk: Chunk;
 	exportAllModules: (Module | ExternalModule)[];
+	hasImportMeta: boolean = false;
 
 	private ast: Program;
 	private astContext: AstContext;
@@ -258,6 +260,7 @@ export default class Module {
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
 			includeNamespace: this.includeNamespace.bind(this),
+			hasImportMeta: false,
 			imports: this.imports,
 			isCrossChunkImport: importDescription => importDescription.module.chunk !== this.chunk,
 			magicString: this.magicString,
@@ -624,6 +627,7 @@ export default class Module {
 	render(options: RenderOptions): MagicString {
 		const magicString = this.magicString.clone();
 		this.ast.render(magicString, options);
+		this.hasImportMeta = this.astContext.hasImportMeta;
 		return magicString;
 	}
 

@@ -1,12 +1,12 @@
 import { UNKNOWN_VALUE } from '../values';
 import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
 import MagicString from 'magic-string';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { RenderOptions } from '../../utils/renderHelpers';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class IfStatement extends StatementBase {
-	type: NodeType.IfStatement;
+	type: NodeType.tIfStatement;
 	test: ExpressionNode;
 	consequent: StatementNode;
 	alternate: StatementNode | null;

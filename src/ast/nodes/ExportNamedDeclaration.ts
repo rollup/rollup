@@ -6,12 +6,12 @@ import ExportSpecifier from './ExportSpecifier';
 import FunctionDeclaration from './FunctionDeclaration';
 import ClassDeclaration from './ClassDeclaration';
 import VariableDeclaration from './VariableDeclaration';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { BLANK } from '../../utils/blank';
 
 export default class ExportNamedDeclaration extends NodeBase {
-	type: NodeType.ExportNamedDeclaration;
+	type: NodeType.tExportNamedDeclaration;
 	declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
 	specifiers: ExportSpecifier[];
 	source: Literal<string> | null;

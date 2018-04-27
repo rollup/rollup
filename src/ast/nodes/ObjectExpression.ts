@@ -12,7 +12,7 @@ import {
 	UNKNOWN_VALUE
 } from '../values';
 import { Node, NodeBase } from './shared/Node';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { BLANK } from '../../utils/blank';
 import MagicString from 'magic-string';
@@ -26,7 +26,7 @@ export function isObjectExpression(node: Node): node is ObjectExpression {
 }
 
 export default class ObjectExpression extends NodeBase {
-	type: NodeType.ObjectExpression;
+	type: NodeType.tObjectExpression;
 	properties: Property[];
 
 	forEachReturnExpressionWhenCalledAtPath(

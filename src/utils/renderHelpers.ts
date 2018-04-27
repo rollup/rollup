@@ -1,14 +1,13 @@
 import { Node } from '../ast/nodes/shared/Node';
 import MagicString from 'magic-string';
-import { DynamicImportMechanism } from '../Chunk';
 
 export interface RenderOptions {
 	legacy: boolean;
 	freeze: boolean;
 	namespaceToStringTag: boolean;
 	indent: string;
-	importMechanism?: DynamicImportMechanism;
-	systemBindings: boolean;
+	format: string;
+	dynamicImport: boolean;
 }
 
 export interface NodeRenderOptions {

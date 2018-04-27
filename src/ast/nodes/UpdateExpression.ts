@@ -1,11 +1,11 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { isIdentifier } from './Identifier';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { ObjectPath } from '../values';
 
 export default class UpdateExpression extends NodeBase {
-	type: NodeType.UpdateExpression;
+	type: NodeType.tUpdateExpression;
 	operator: '++' | '--' | '**';
 	argument: ExpressionNode;
 	prefix: boolean;

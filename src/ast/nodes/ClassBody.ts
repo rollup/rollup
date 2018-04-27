@@ -2,11 +2,11 @@ import { NodeBase } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import MethodDefinition from './MethodDefinition';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ObjectPath } from '../values';
 
 export default class ClassBody extends NodeBase {
-	type: NodeType.ClassBody;
+	type: NodeType.tClassBody;
 	body: MethodDefinition[];
 
 	private classConstructor: MethodDefinition | null;

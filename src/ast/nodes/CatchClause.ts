@@ -3,10 +3,10 @@ import CatchScope from '../scopes/CatchScope';
 import BlockStatement from './BlockStatement';
 import Scope from '../scopes/Scope';
 import { PatternNode } from './shared/Pattern';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 
 export default class CatchClause extends NodeBase {
-	type: NodeType.CatchClause;
+	type: NodeType.tCatchClause;
 	param: PatternNode;
 	body: BlockStatement;
 

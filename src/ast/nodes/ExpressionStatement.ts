@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
 import { StatementBase } from './shared/Node';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 
 export default class ExpressionStatement extends StatementBase {
 	directive?: string;

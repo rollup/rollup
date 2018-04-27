@@ -2,7 +2,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { SomeReturnExpressionCallback } from './shared/Expression';
 import { Node, NodeBase } from './shared/Node';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import CallOptions from '../CallOptions';
 import {
 	getLiteralMembersForValue,
@@ -22,7 +22,7 @@ export function isLiteral(node: Node): node is Literal {
 }
 
 export default class Literal<T = LiteralValue> extends NodeBase {
-	type: NodeType.Literal;
+	type: NodeType.tLiteral;
 	value: T;
 
 	private members: { [key: string]: MemberDescription };

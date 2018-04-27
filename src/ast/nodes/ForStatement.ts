@@ -2,7 +2,7 @@ import BlockScope from '../scopes/BlockScope';
 import VariableDeclaration from './VariableDeclaration';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
@@ -12,7 +12,7 @@ export function isForStatement(node: Node): node is ForStatement {
 }
 
 export default class ForStatement extends StatementBase {
-	type: NodeType.ForStatement;
+	type: NodeType.tForStatement;
 	init: VariableDeclaration | ExpressionNode | null;
 	test: ExpressionNode | null;
 	update: ExpressionNode | null;

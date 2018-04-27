@@ -1,5 +1,5 @@
 import { ExpressionNode, NodeBase, StatementNode } from './shared/Node';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import {
 	findFirstOccurrenceOutsideComment,
 	RenderOptions,
@@ -8,7 +8,7 @@ import {
 import MagicString from 'magic-string';
 
 export default class SwitchCase extends NodeBase {
-	type: NodeType.SwitchCase;
+	type: NodeType.tSwitchCase;
 	test: ExpressionNode | null;
 	consequent: StatementNode[];
 

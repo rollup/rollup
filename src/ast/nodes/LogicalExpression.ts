@@ -2,7 +2,7 @@ import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import MagicString from 'magic-string';
@@ -12,7 +12,7 @@ import CallExpression from './CallExpression';
 export type LogicalOperator = '||' | '&&';
 
 export default class LogicalExpression extends NodeBase {
-	type: NodeType.LogicalExpression;
+	type: NodeType.tLogicalExpression;
 	operator: LogicalOperator;
 	left: ExpressionNode;
 	right: ExpressionNode;

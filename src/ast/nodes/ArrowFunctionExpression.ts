@@ -5,12 +5,12 @@ import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
-import { NodeType } from './NodeType';
 import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
 import { ObjectPath } from '../values';
+import * as NodeType from './NodeType';
 
 export default class ArrowFunctionExpression extends NodeBase {
-	type: NodeType.ArrowFunctionExpression;
+	type: NodeType.tArrowFunctionExpression;
 	body: BlockStatement | ExpressionNode;
 	params: PatternNode[];
 

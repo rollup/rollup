@@ -1,7 +1,7 @@
 import { ExpressionNode } from './shared/Node';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 
 export default interface SpreadElement extends ExpressionNode {
-	type: NodeType.SpreadElement;
+	type: NodeType.tSpreadElement;
 	argument: ExpressionNode;
-};
+}

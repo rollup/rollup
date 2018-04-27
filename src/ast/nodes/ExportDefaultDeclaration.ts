@@ -4,7 +4,7 @@ import ClassDeclaration, { isClassDeclaration } from './ClassDeclaration';
 import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaration';
 import Identifier, { isIdentifier } from './Identifier';
 import MagicString from 'magic-string';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import {
 	findFirstOccurrenceOutsideComment,
 	NodeRenderOptions,
@@ -37,7 +37,7 @@ export function isExportDefaultDeclaration(node: Node): node is ExportDefaultDec
 }
 
 export default class ExportDefaultDeclaration extends NodeBase {
-	type: NodeType.ExportDefaultDeclaration;
+	type: NodeType.tExportDefaultDeclaration;
 	declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
 
 	needsBoundaries: true;
@@ -91,7 +91,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			);
 		} else if (this.variable.referencesOriginal()) {
 			// Remove altogether to prevent re-declaring the same variable
-			if (options.systemBindings && this.variable.exportName) {
+			if (options.format === 'system' && this.variable.exportName) {
 				code.overwrite(
 					start,
 					end,
@@ -135,7 +135,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			);
 		}
 		if (
-			options.systemBindings &&
+			options.format === 'system' &&
 			isClassDeclaration(this.declaration) &&
 			this.variable.exportName
 		) {
@@ -149,7 +149,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		options: RenderOptions
 	) {
 		const systemBinding =
-			options.systemBindings && this.variable.exportName
+			options.format === 'system' && this.variable.exportName
 				? `exports('${this.variable.exportName}', `
 				: '';
 		code.overwrite(

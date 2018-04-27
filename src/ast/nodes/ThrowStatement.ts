@@ -1,9 +1,9 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
 
 export default class ThrowStatement extends StatementBase {
-	type: NodeType.ThrowStatement;
+	type: NodeType.tThrowStatement;
 	argument: ExpressionNode;
 
 	hasEffects(_options: ExecutionPathOptions) {

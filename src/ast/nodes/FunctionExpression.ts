@@ -1,6 +1,6 @@
 import FunctionNode from './shared/FunctionNode';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 
 export default class FunctionExpression extends FunctionNode {
-	type: NodeType.FunctionExpression;
+	type: NodeType.tFunctionExpression;
 }
