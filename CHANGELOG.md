@@ -5,6 +5,7 @@
 * Add `esm` format alias ([#2102](https://github.com/rollup/rollup/pull/2102))
 * Improve handling of external modules imported as both default and named imports ([#2136](https://github.com/rollup/rollup/pull/2136))
 * Fix wrong file name in error message ([#2137](https://github.com/rollup/rollup/pull/2137))
+* Fix file paths in source maps ([#2161](https://github.com/rollup/rollup/pull/2161))
 
 ## 0.58.2
 *2018-04-23*
