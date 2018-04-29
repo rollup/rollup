@@ -74,7 +74,7 @@ export default function iife(
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, dependencies, exportMode);
+	const exportBlock = getExportBlock(exports, dependencies, exportMode, options.interop);
 	if (exportBlock) magicString.append('\n\n' + exportBlock);
 	if (outro) magicString.append(outro);
 

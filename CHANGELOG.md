@@ -5,6 +5,7 @@
 * Add `esm` format alias ([#2102](https://github.com/rollup/rollup/pull/2102))
 * Improve handling of external modules imported as both default and named imports ([#2136](https://github.com/rollup/rollup/pull/2136))
 * Fix an issue with namespaces containing reexports ([#2157](https://github.com/rollup/rollup/pull/2157))
+* Fix an issue when using default exports and `interop: false` ([#2149](https://github.com/rollup/rollup/pull/2149))
 * Fix file paths in source maps ([#2161](https://github.com/rollup/rollup/pull/2161))
 * Fix wrong file name in error message ([#2137](https://github.com/rollup/rollup/pull/2137))
 
