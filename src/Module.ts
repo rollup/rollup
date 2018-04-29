@@ -603,7 +603,6 @@ export default class Module {
 
 		let hasReexports = false;
 		for (const importName in this.reexports) {
-			if (importName in this.exports) continue;
 			hasReexports = true;
 			const reexport = this.reexports[importName];
 			this.imports[importName] = {
