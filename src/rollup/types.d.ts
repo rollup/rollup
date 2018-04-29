@@ -65,6 +65,8 @@ export interface ModuleJSON {
 }
 
 export interface PluginContext {
+	emitAsset: (file: string, source: string | Buffer) => string;
+	getAssetUrl: (assetId: string) => string;
 	resolveId: ResolveIdHook;
 	parse: (input: string, options: any) => ESTree.Program;
 	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
@@ -126,15 +128,25 @@ export interface Plugin {
 	resolveId?: ResolveIdHook;
 	missingExport?: MissingExportHook;
 	transform?: TransformHook;
+	// TODO: deprecate
 	transformBundle?: TransformChunkHook;
 	transformChunk?: TransformChunkHook;
-	onbuildstart?: (this: PluginContext, options: InputOptions) => void;
-	onbuildend?: (this: PluginContext, err?: any) => void;
+	buildStart?: (this: PluginContext, options: InputOptions) => void;
+	buildEnd?: (this: PluginContext, err?: any) => void;
+	// TODO: deprecate
 	ongenerate?: (
 		this: PluginContext,
 		options: OutputOptions,
-		chunk: OutputChunk
+		chunk: OutputChunk,
+		isWrite: boolean
 	) => void | Promise<void>;
+	generateChunk?: (
+		this: PluginContext,
+		options: OutputOptions,
+		chunk: OutputChunk,
+		isWrite: boolean
+	) => void | Promise<void>;
+	// TODO: deprecate
 	onwrite?: (
 		this: PluginContext,
 		options: OutputOptions,
@@ -209,6 +221,7 @@ export interface OutputOptions {
 	globals?: GlobalsOption;
 	chunkFileNames?: string;
 	entryFileNames?: string;
+	assetFileNames?: string;
 
 	paths?: OptionsPaths;
 	banner?: string | (() => string | Promise<string>);
@@ -281,11 +294,18 @@ export type SerializedTimings = { [label: string]: number };
 
 export interface OutputChunk {
 	file: string;
+	isAsset: false;
 	imports: string[];
 	exports: string[];
 	modules: string[];
 	code: string;
 	map?: SourceMap;
+}
+
+export interface OutputAsset {
+	file: string;
+	isAsset: true;
+	source: string | Buffer;
 }
 
 export interface RollupCache {
@@ -304,12 +324,14 @@ export interface Bundle {
 	getTimings?: () => SerializedTimings;
 }
 
+export interface OutputFiles {
+	[file: string]: OutputChunk | OutputAsset;
+}
+
 export interface BundleSet {
-	cache: {
-		modules: ModuleJSON[];
-	};
-	generate: (outputOptions: OutputOptions) => Promise<{ [chunkName: string]: OutputChunk }>;
-	write: (options: OutputOptions) => Promise<{ [chunkName: string]: OutputChunk }>;
+	cache: RollupCache;
+	generate: (outputOptions: OutputOptions) => Promise<OutputFiles>;
+	write: (options: OutputOptions) => Promise<OutputFiles>;
 	getTimings?: () => SerializedTimings;
 }
 

@@ -241,11 +241,12 @@ function getOutputOptions(
 
 	return {
 		amd: Object.assign({}, config.amd, command.amd),
+		assetFileNames: getOption('assetFileNames'),
 		banner: getOption('banner'),
 		dir: getOption('dir'),
-		chunkFileNames: getOption('chunkNames'),
+		chunkFileNames: getOption('chunkFileNames'),
 		compact: getOption('compact', false),
-		entryFileNames: getOption('entryNames'),
+		entryFileNames: getOption('entryFileNames'),
 		exports: getOption('exports'),
 		extend: getOption('extend'),
 		file: getOption('file'),

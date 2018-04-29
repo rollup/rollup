@@ -7,7 +7,7 @@ module.exports = {
 			'custom/entryC': 'main3.js'
 		},
 		output: {
-			chunkNames: 'chunks/chunk.js'
+			chunkFileNames: 'chunks/chunk.js'
 		}
 	}
 };
