@@ -3,7 +3,6 @@ import Scope from './Scope';
 import LocalVariable from '../variables/LocalVariable';
 import { UNKNOWN_EXPRESSION } from '../values';
 import Module, { AstContext } from '../../Module';
-import ImportSpecifier from '../nodes/ImportSpecifier';
 import Variable from '../variables/Variable';
 import NamespaceVariable from '../variables/NamespaceVariable';
 
@@ -53,23 +52,16 @@ export default class ModuleScope extends Scope {
 								importDescription.name
 							}' is imported from ${relativeId(importDescription.module.id)}`
 						},
-						importDescription.specifier.start
+						importDescription.start
 					);
 					continue;
 				}
 
 				const name = declaration.getName();
-				if (name !== importDescription.name) {
-					localNames.add(name);
-				}
+				if (name !== importDescription.name) localNames.add(name);
 
-				if (
-					importDescription.name !== 'default' &&
-					(<ImportSpecifier>importDescription.specifier).imported.name !==
-						importDescription.specifier.local.name
-				) {
-					localNames.add((<ImportSpecifier>importDescription.specifier).imported.name);
-				}
+				if (importDescription.name !== 'default' && importDescription.name !== importName)
+					localNames.add(importDescription.name);
 			}
 		}
 

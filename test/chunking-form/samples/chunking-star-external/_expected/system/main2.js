@@ -1,4 +1,4 @@
-System.register(['./chunk-6f59fdb2.js', 'starexternal2', 'external2'], function (exports, module) {
+System.register(['./chunk-16fda336.js', 'starexternal2', 'external2'], function (exports, module) {
 	'use strict';
 	var _starExcludes = { main: 1, default: 1, dep: 1, e: 1 };
 	return {

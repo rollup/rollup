@@ -24,8 +24,6 @@ import ExportDefaultDeclaration, {
 } from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
-import ImportDefaultSpecifier from './ast/nodes/ImportDefaultSpecifier';
-import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
 import { RollupWarning, ModuleJSON, IdMap, RollupError, RawSourceMap } from './rollup/types';
 import ExternalModule from './ExternalModule';
 import ExternalVariable from './ast/variables/ExternalVariable';
@@ -47,7 +45,7 @@ export interface CommentDescription {
 
 export interface ImportDescription {
 	source: string;
-	specifier: ImportSpecifier | ImportNamespaceSpecifier | ImportDefaultSpecifier;
+	start: number;
 	name: string;
 	module: Module | ExternalModule | null;
 }
@@ -79,6 +77,7 @@ export interface AstContext {
 	getReexports: () => string[];
 	imports: { [name: string]: ImportDescription };
 	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
+	includeNamespace: () => void;
 	magicString: MagicString;
 	moduleContext: string;
 	nodeConstructors: { [name: string]: typeof NodeBase };
@@ -258,6 +257,7 @@ export default class Module {
 			getReexports: this.getReexports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
+			includeNamespace: this.includeNamespace.bind(this),
 			imports: this.imports,
 			isCrossChunkImport: importDescription => importDescription.module.chunk !== this.chunk,
 			magicString: this.magicString,
@@ -413,7 +413,7 @@ export default class Module {
 				: isNamespace
 					? '*'
 					: (<ImportSpecifier>specifier).imported.name;
-			this.imports[localName] = { source, specifier, name, module: null };
+			this.imports[localName] = { source, start: specifier.start, name, module: null };
 		}
 	}
 
@@ -590,12 +590,31 @@ export default class Module {
 		return this.needsTreeshakingPass;
 	}
 
-	getAndCreateNamespace(): NamespaceVariable {
-		if (!this.declarations['*']) {
-			this.declarations['*'] = new NamespaceVariable(this.astContext);
+	getOrCreateNamespace(): NamespaceVariable {
+		const namespace = this.declarations['*'];
+		if (namespace) return namespace;
+
+		return (this.declarations['*'] = new NamespaceVariable(this.astContext));
+	}
+
+	private includeNamespace() {
+		const namespace = this.getOrCreateNamespace();
+		if (namespace.needsNamespaceBlock) return;
+
+		let hasReexports = false;
+		for (const importName in this.reexports) {
+			hasReexports = true;
+			const reexport = this.reexports[importName];
+			this.imports[importName] = {
+				source: reexport.source,
+				start: reexport.start,
+				name: reexport.localName,
+				module: reexport.module
+			};
+			namespace.originals[importName] = reexport.module.traceExport(reexport.localName);
 		}
 
-		return this.declarations['*'];
+		if (this.chunk && this.chunk.linked && hasReexports) this.chunk.linkModule(this);
 	}
 
 	render(options: RenderOptions): MagicString {
@@ -628,7 +647,7 @@ export default class Module {
 			const otherModule = importDeclaration.module;
 
 			if (!otherModule.isExternal && importDeclaration.name === '*') {
-				return (<Module>otherModule).getAndCreateNamespace();
+				return (<Module>otherModule).getOrCreateNamespace();
 			}
 
 			const declaration = otherModule.traceExport(importDeclaration.name);
@@ -638,7 +657,7 @@ export default class Module {
 					importDeclaration.name,
 					this,
 					otherModule.id,
-					importDeclaration.specifier.start
+					importDeclaration.start
 				);
 			}
 
@@ -652,7 +671,7 @@ export default class Module {
 		if (name[0] === '*') {
 			// namespace
 			if (name.length === 1) {
-				return this.getAndCreateNamespace();
+				return this.getOrCreateNamespace();
 				// export * from 'external'
 			} else {
 				const module = <ExternalModule>this.graph.moduleById.get(name.slice(1));

@@ -94,6 +94,7 @@ export default class Chunk {
 	name: string;
 	graph: Graph;
 	private orderedModules: Module[];
+	linked = false;
 
 	// this represents the chunk module wrappings
 	// which form the output dependency graph
@@ -190,7 +191,7 @@ export default class Chunk {
 		this.entryModule = entryFacade;
 		this.isEntryModuleFacade = true;
 		for (const exportName of entryFacade.getAllExports()) {
-			const tracedVariable = entryFacade.traceVariable(exportName);
+			const tracedVariable = entryFacade.traceExport(exportName);
 			this.exports.set(tracedVariable, entryFacade);
 			this.exportNames[exportName] = tracedVariable;
 		}
@@ -198,29 +199,32 @@ export default class Chunk {
 
 	link() {
 		this.dependencies = [];
-		for (const module of this.orderedModules) {
-			for (const dep of module.dependencies) {
-				if (dep.chunk === this) {
+		for (const module of this.orderedModules) this.linkModule(module);
+		this.linked = true;
+	}
+
+	linkModule(module: Module) {
+		for (const dep of module.dependencies) {
+			if (dep.chunk === this) {
+				continue;
+			}
+			let depModule: Chunk | ExternalModule;
+			if (dep instanceof Module) {
+				depModule = dep.chunk;
+			} else {
+				// unused pure external modules can be skipped
+				if (!dep.used && this.graph.isPureExternalModule(dep.id)) {
 					continue;
 				}
-				let depModule: Chunk | ExternalModule;
-				if (dep instanceof Module) {
-					depModule = dep.chunk;
-				} else {
-					// unused pure external modules can be skipped
-					if (!dep.used && this.graph.isPureExternalModule(dep.id)) {
-						continue;
-					}
-					depModule = dep;
-				}
-				if (this.dependencies.indexOf(depModule) === -1) {
-					this.dependencies.push(depModule);
-				}
+				depModule = dep;
 			}
-			for (const importName of Object.keys(module.imports)) {
-				const declaration = module.imports[importName];
-				this.traceImport(declaration.name, declaration.module);
+			if (this.dependencies.indexOf(depModule) === -1) {
+				this.dependencies.push(depModule);
 			}
+		}
+		for (const importName of Object.keys(module.imports)) {
+			const declaration = module.imports[importName];
+			this.traceImport(declaration.name, declaration.module);
 		}
 	}
 
@@ -436,7 +440,7 @@ export default class Chunk {
 					// if we have the module in the chunk, inline as Promise.resolve(namespace)
 					// ensuring that we create a namespace import of it as well
 					if (resolution.chunk === this) {
-						const namespace = resolution.getAndCreateNamespace();
+						const namespace = resolution.getOrCreateNamespace();
 						namespace.include();
 						node.setResolution(false, namespace.getName());
 						// for the module in another chunk, import that other chunk directly
@@ -506,11 +510,9 @@ export default class Chunk {
 
 		if (!esm) {
 			this.dependencies.forEach(module => {
-				if ((<ExternalModule>module).isExternal) {
-					const safeName = getSafeName(module.name);
-					toDeshadow.add(safeName);
-					module.name = safeName;
-				}
+				const safeName = getSafeName(module.name);
+				toDeshadow.add(safeName);
+				module.name = safeName;
 			});
 		}
 
@@ -542,7 +544,7 @@ export default class Chunk {
 			} else {
 				safeName = `${(<Module>module).chunk.name}.${module.chunk.getVariableExportName(variable)}`;
 			}
-			variable.setSafeName(safeName);
+			if (safeName) variable.setSafeName(safeName);
 		});
 
 		this.orderedModules.forEach(module => {
@@ -569,7 +571,7 @@ export default class Chunk {
 			});
 
 			// deconflict reified namespaces
-			const namespace = module.getAndCreateNamespace();
+			const namespace = module.getOrCreateNamespace();
 			if (namespace.needsNamespaceBlock) {
 				namespace.setSafeName(getSafeName(namespace.name));
 			}
@@ -784,7 +786,7 @@ export default class Chunk {
 			source.trim();
 			this.renderedModuleSources.push(source);
 
-			const namespace = module.getAndCreateNamespace();
+			const namespace = module.getOrCreateNamespace();
 			if (namespace.needsNamespaceBlock || !source.isEmpty()) {
 				magicString.addSource(source);
 				this.usedModules.push(module);
@@ -807,6 +809,7 @@ export default class Chunk {
 
 		this.renderedSource = magicString.trim();
 		this.renderedSourceLength = undefined;
+		this.renderedHash = undefined;
 
 		if (
 			this.getExportNames().length === 0 &&
