@@ -110,7 +110,18 @@ describe('hooks', () => {
 						foo: `export const named = 42;`
 					}),
 					{
-						missingExport() {
+						missingExport(
+							exportName,
+							importingModule,
+							importedModule,
+							importerStart
+						) {
+							assert.deepEqual(Array.from(arguments), [
+								'default',
+								'main',
+								'foo',
+								7
+							]);
 							wasCalled = true;
 							return true;
 						}

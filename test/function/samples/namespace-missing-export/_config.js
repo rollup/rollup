@@ -8,7 +8,7 @@ module.exports = {
 			importer: 'main.js',
 			id: path.resolve(__dirname, 'main.js'),
 			missing: 'foo',
-			message: `'foo' is not exported by 'empty.js'`,
+			message: `'foo' is not exported by empty.js`,
 			pos: 61,
 			loc: {
 				file: require('path').resolve(__dirname, 'main.js'),

@@ -5,6 +5,9 @@ module.exports = {
 	description: 'marking an imported, but unexported, identifier should throw',
 	error: {
 		code: 'MISSING_EXPORT',
+		missing: 'default',
+		importer: 'main.js',
+		exporter: 'empty.js',
 		message: `'default' is not exported by empty.js`,
 		pos: 7,
 		loc: {

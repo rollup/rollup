@@ -1,4 +1,3 @@
-import relativeId from '../../utils/relativeId';
 import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import Variable from '../variables/Variable';
 import ExecutionPathOptions from '../ExecutionPathOptions';
@@ -253,15 +252,11 @@ export default class MemberExpression extends NodeBase {
 			const fileName = baseVariable.isExternal
 				? (<ExternalVariable>baseVariable).module.id
 				: (<NamespaceVariable>baseVariable).context.fileName;
-			this.context.warn(
-				{
-					code: 'MISSING_EXPORT',
-					missing: exportName,
-					importer: relativeId(this.context.fileName),
-					exporter: relativeId(fileName),
-					message: `'${exportName}' is not exported by '${relativeId(fileName)}'`,
-					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
-				},
+			this.context.handleMissingExport(
+				this.context.warn,
+				exportName,
+				this.context.fileName,
+				fileName,
 				path[0].pos
 			);
 			return 'undefined';

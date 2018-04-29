@@ -5,6 +5,9 @@ module.exports = {
 	description: 'default export is not re-exported with export *',
 	error: {
 		code: 'MISSING_EXPORT',
+		missing: 'default',
+		importer: 'main.js',
+		exporter: 'foo.js',
 		message: `'default' is not exported by foo.js`,
 		pos: 7,
 		loc: {
