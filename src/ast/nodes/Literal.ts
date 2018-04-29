@@ -25,7 +25,7 @@ export default class Literal<T = LiteralValueTypes> extends NodeBase {
 
 	private members: { [key: string]: MemberDescription };
 
-	getValue() {
+	getPrimitiveValue() {
 		return this.value;
 	}
 

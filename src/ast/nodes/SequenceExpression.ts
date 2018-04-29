@@ -31,8 +31,8 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	getValue(): any {
-		return this.expressions[this.expressions.length - 1].getValue();
+	getPrimitiveValue(): any {
+		return this.expressions[this.expressions.length - 1].getPrimitiveValue();
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

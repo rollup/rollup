@@ -28,8 +28,8 @@ export default class UnaryExpression extends NodeBase {
 		}
 	}
 
-	getValue(): any {
-		const argumentValue: any = this.argument.getValue();
+	getPrimitiveValue(): any {
+		const argumentValue: any = this.argument.getPrimitiveValue();
 		if (argumentValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		return operators[this.operator](argumentValue);

@@ -36,11 +36,11 @@ export default class LogicalExpression extends NodeBase {
 		}
 	}
 
-	getValue(): any {
+	getPrimitiveValue(): any {
 		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue();
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 		if (leftValue === (this.operator === '||')) return leftValue;
-		return this.right.getValue();
+		return this.right.getPrimitiveValue();
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
@@ -191,7 +191,7 @@ export default class LogicalExpression extends NodeBase {
 
 	private getLeftValue() {
 		if (this.hasUnknownLeftValue) return UNKNOWN_VALUE;
-		const value = this.left.getValue();
+		const value = this.left.getPrimitiveValue();
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownLeftValue = true;
 		}

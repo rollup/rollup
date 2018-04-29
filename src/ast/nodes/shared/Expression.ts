@@ -19,7 +19,7 @@ export interface ExpressionEntity extends WritableEntity {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): void;
-	getValue(): any;
+	getPrimitiveValue(): any;
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,

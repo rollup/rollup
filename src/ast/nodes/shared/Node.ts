@@ -139,7 +139,7 @@ export class NodeBase implements ExpressionNode {
 		_options: ExecutionPathOptions
 	) {}
 
-	getValue() {
+	getPrimitiveValue() {
 		return UNKNOWN_VALUE;
 	}
 

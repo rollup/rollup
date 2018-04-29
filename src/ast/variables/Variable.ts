@@ -54,7 +54,7 @@ export default class Variable implements ExpressionEntity {
 		return this.safeName || this.name;
 	}
 
-	getValue() {
+	getPrimitiveValue() {
 		return UNKNOWN_VALUE;
 	}
 

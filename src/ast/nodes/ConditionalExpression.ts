@@ -32,10 +32,10 @@ export default class ConditionalExpression extends NodeBase {
 		}
 	}
 
-	getValue(): any {
+	getPrimitiveValue(): any {
 		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
 		if (testValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
-		return testValue ? this.consequent.getValue() : this.alternate.getValue();
+		return testValue ? this.consequent.getPrimitiveValue() : this.alternate.getPrimitiveValue();
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
@@ -183,7 +183,7 @@ export default class ConditionalExpression extends NodeBase {
 
 	private getTestValue() {
 		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
-		const value = this.test.getValue();
+		const value = this.test.getPrimitiveValue();
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownTestValue = true;
 		}
