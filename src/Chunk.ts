@@ -22,6 +22,7 @@ import { jsExts } from './utils/relativeId';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import { GlobalsOption, OutputOptions, RawSourceMap } from './rollup/types';
 import { toBase64 } from './utils/base64';
+import renderNamePattern from './utils/renderNamePattern';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;
@@ -920,22 +921,22 @@ export default class Chunk {
 		this.preRender(options, inputBase);
 	}
 
-	generateNamePreserveModules(preserveModulesRelativeDir: string) {
+	generateIdPreserveModules(preserveModulesRelativeDir: string) {
 		return (this.id = normalize(relative(preserveModulesRelativeDir, this.entryModule.id)));
 	}
 
-	generateName(
+	generateId(
 		pattern: string,
+		patternName: string,
 		addons: Addons,
 		options: OutputOptions,
-		existingNames?: { [name: string]: boolean }
+		existingNames: { [name: string]: boolean }
 	) {
-		// replace any chunk replacements
-		let outName = pattern.replace(/\[(hash|alias)\]/g, type => {
+		let outName = renderNamePattern(pattern, patternName, type => {
 			switch (type) {
 				case '[hash]':
 					return this.computeFullHash(addons, options);
-				case '[alias]':
+				case '[name]':
 					if (this.entryModule && this.entryModule.chunkAlias) return this.entryModule.chunkAlias;
 					for (const module of this.orderedModules) {
 						if (module.chunkAlias) return module.chunkAlias;
@@ -944,19 +945,17 @@ export default class Chunk {
 			}
 		});
 
-		if (existingNames) {
-			if (!existingNames[outName]) {
-				existingNames[outName] = true;
-			} else {
-				let ext = extname(outName);
-				if (jsExts.indexOf(ext) !== -1) outName = outName.substr(0, outName.length - ext.length);
-				else ext = '';
-				let uniqueName,
-					uniqueIndex = 1;
-				while (existingNames[(uniqueName = outName + ++uniqueIndex + ext)]);
-				existingNames[uniqueName] = true;
-				outName = uniqueName;
-			}
+		if (!existingNames[outName]) {
+			existingNames[outName] = true;
+		} else {
+			let ext = extname(outName);
+			if (jsExts.indexOf(ext) !== -1) outName = outName.substr(0, outName.length - ext.length);
+			else ext = '';
+			let uniqueName,
+				uniqueIndex = 1;
+			while (existingNames[(uniqueName = outName + ++uniqueIndex + ext)]);
+			existingNames[uniqueName] = true;
+			outName = uniqueName;
 		}
 
 		this.id = outName;
