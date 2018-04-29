@@ -3,10 +3,8 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const hs = document.documentElement.style;
-
 			{
-				hs.color = "#222";
+				console.log('retained');
 			}
 
 		}

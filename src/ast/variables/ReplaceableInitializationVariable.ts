@@ -1,5 +1,5 @@
 import LocalVariable from './LocalVariable';
-import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
+import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import Identifier from '../nodes/Identifier';
@@ -8,6 +8,10 @@ import { ExpressionEntity, SomeReturnExpressionCallback } from '../nodes/shared/
 export default class ReplaceableInitializationVariable extends LocalVariable {
 	constructor(name: string, declarator: Identifier | null) {
 		super(name, declarator, null);
+	}
+
+	getPrimitiveValue() {
+		return UNKNOWN_VALUE;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {

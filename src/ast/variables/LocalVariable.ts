@@ -9,7 +9,7 @@ import {
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from '../nodes/shared/Expression';
-import { ObjectPath } from '../values';
+import { ObjectPath, UNKNOWN_VALUE } from '../values';
 import { Node } from '../nodes/shared/Node';
 import { NodeType } from '../nodes/NodeType';
 
@@ -55,6 +55,13 @@ export default class LocalVariable extends Variable {
 				options.addCalledNodeAtPathWithOptions(path, this.init, callOptions)
 			);
 		}
+	}
+
+	getPrimitiveValue() {
+		if (!this.init || this.reassignments.isPathReassigned([])) {
+			return UNKNOWN_VALUE;
+		}
+		return this.init.getPrimitiveValue();
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
