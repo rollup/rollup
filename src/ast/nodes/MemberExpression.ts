@@ -5,13 +5,13 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import { isLiteral } from './Literal';
 import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
-import Identifier, { isIdentifier } from './Identifier';
+import Identifier from './Identifier';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import ExternalVariable from '../variables/ExternalVariable';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { isUnknownKey, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../values';
+import { ObjectPath, ObjectPathKey, PrimitiveValue, UNKNOWN_KEY } from '../values';
 import { BLANK } from '../../utils/blank';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
@@ -35,20 +35,19 @@ type PathWithPositions = { key: string; pos: number }[];
 function getPathIfNotComputed(memberExpression: MemberExpression): PathWithPositions | null {
 	const nextPathKey = memberExpression.propertyKey;
 	const object = memberExpression.object;
-	if (isUnknownKey(nextPathKey)) {
-		return null;
-	}
-	if (isIdentifier(object)) {
-		return [
-			{ key: object.name, pos: object.start },
-			{ key: nextPathKey, pos: memberExpression.property.start }
-		];
-	}
-	if (isMemberExpression(object)) {
-		const parentPath = getPathIfNotComputed(object);
-		return (
-			parentPath && [...parentPath, { key: nextPathKey, pos: memberExpression.property.start }]
-		);
+	if (typeof nextPathKey === 'string') {
+		if (object instanceof Identifier) {
+			return [
+				{ key: object.name, pos: object.start },
+				{ key: nextPathKey, pos: memberExpression.property.start }
+			];
+		}
+		if (isMemberExpression(object)) {
+			const parentPath = getPathIfNotComputed(object);
+			return (
+				parentPath && [...parentPath, { key: nextPathKey, pos: memberExpression.property.start }]
+			);
+		}
 	}
 	return null;
 }
@@ -108,6 +107,13 @@ export default class MemberExpression extends NodeBase {
 				options
 			);
 		}
+	}
+
+	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
+		if (this.variable !== null) {
+			return this.variable.getPrimitiveValueAtPath(path);
+		}
+		return this.object.getPrimitiveValueAtPath([this.propertyKey, ...path]);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
@@ -228,7 +234,10 @@ export default class MemberExpression extends NodeBase {
 	}
 
 	private disallowNamespaceReassignment() {
-		if (isIdentifier(this.object) && this.scope.findVariable(this.object.name).isNamespace) {
+		if (
+			this.object instanceof Identifier &&
+			this.scope.findVariable(this.object.name).isNamespace
+		) {
 			this.context.error(
 				{
 					code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',

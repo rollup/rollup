@@ -1,23 +1,13 @@
 import { ExpressionEntity, SomeReturnExpressionCallback } from './nodes/shared/Expression';
 import CallOptions from './CallOptions';
-import { LiteralValueTypes } from './nodes/Literal';
+import { LiteralValue } from './nodes/Literal';
 import ExecutionPathOptions from './ExecutionPathOptions';
 
-export interface UnknownKey {
-	type: 'UNKNOWN_KEY';
-}
+export type UnknownKey = { UNKNOWN_KEY: true };
+export const UNKNOWN_KEY: UnknownKey = { UNKNOWN_KEY: true };
 
 export type ObjectPathKey = string | UnknownKey;
 export type ObjectPath = ObjectPathKey[];
-
-export function isUnknownKey(key: ObjectPathKey): key is UnknownKey {
-	return key === UNKNOWN_KEY;
-}
-
-export const UNKNOWN_KEY: UnknownKey = { type: 'UNKNOWN_KEY' };
-
-export type PathCallback = (path: ObjectPath, expression: ExpressionEntity) => void;
-export type PathPredicate = (path: ObjectPath, expression: ExpressionEntity) => boolean;
 
 export interface MemberDescription {
 	returns: ExpressionEntity;
@@ -37,12 +27,14 @@ function assembleMemberDescriptions(
 	return Object.create(inheritedDescriptions, memberDescriptions);
 }
 
-export const UNKNOWN_VALUE = { toString: () => '[[UNKNOWN]]' };
+export type UnknownValue = { UNKNOWN_VALUE: true };
+export const UNKNOWN_VALUE: UnknownValue = { UNKNOWN_VALUE: true };
+export type PrimitiveValue = LiteralValue | UnknownValue;
 
 export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	reassignPath: () => {},
 	forEachReturnExpressionWhenCalledAtPath: () => {},
-	getPrimitiveValue: () => UNKNOWN_VALUE,
+	getPrimitiveValueAtPath: () => UNKNOWN_VALUE,
 	hasEffectsWhenAccessedAtPath: path => path.length > 0,
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
 	hasEffectsWhenCalledAtPath: () => true,
@@ -59,7 +51,7 @@ const callsArgReturnsUnknown: RawMemberDescription = {
 export const UNKNOWN_ARRAY_EXPRESSION: ExpressionEntity = {
 	reassignPath: () => {},
 	forEachReturnExpressionWhenCalledAtPath: () => {},
-	getPrimitiveValue: () => UNKNOWN_VALUE,
+	getPrimitiveValueAtPath: () => UNKNOWN_VALUE,
 	hasEffectsWhenAccessedAtPath: path => path.length > 1,
 	hasEffectsWhenAssignedAtPath: path => path.length > 1,
 	hasEffectsWhenCalledAtPath: (path, callOptions, options) => {
@@ -97,13 +89,13 @@ const callsArgReturnsArray: RawMemberDescription = {
 const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 	reassignPath: () => {},
 	forEachReturnExpressionWhenCalledAtPath: () => {},
-	getPrimitiveValue: () => UNKNOWN_VALUE,
+	getPrimitiveValueAtPath: () => UNKNOWN_VALUE,
 	hasEffectsWhenAccessedAtPath: path => path.length > 1,
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
 	hasEffectsWhenCalledAtPath: path => {
 		if (path.length === 1) {
 			const subPath = path[0];
-			return isUnknownKey(subPath) || !literalBooleanMembers[subPath];
+			return typeof subPath !== 'string' || !literalBooleanMembers[subPath];
 		}
 		return true;
 	},
@@ -116,7 +108,7 @@ const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 		if (path.length === 1) {
 			const subPath = path[0];
 			return (
-				isUnknownKey(subPath) ||
+				typeof subPath !== 'string' ||
 				!literalBooleanMembers[subPath] ||
 				predicateFunction(options)(literalBooleanMembers[subPath].returns)
 			);
@@ -135,13 +127,13 @@ const callsArgReturnsBoolean: RawMemberDescription = {
 const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 	reassignPath: () => {},
 	forEachReturnExpressionWhenCalledAtPath: () => {},
-	getPrimitiveValue: () => UNKNOWN_VALUE,
+	getPrimitiveValueAtPath: () => UNKNOWN_VALUE,
 	hasEffectsWhenAccessedAtPath: path => path.length > 1,
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
 	hasEffectsWhenCalledAtPath: path => {
 		if (path.length === 1) {
 			const subPath = path[0];
-			return isUnknownKey(subPath) || !literalNumberMembers[subPath];
+			return typeof subPath !== 'string' || !literalNumberMembers[subPath];
 		}
 		return true;
 	},
@@ -154,7 +146,7 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 		if (path.length === 1) {
 			const subPath = path[0];
 			return (
-				isUnknownKey(subPath) ||
+				typeof subPath !== 'string' ||
 				!literalNumberMembers[subPath] ||
 				predicateFunction(options)(literalNumberMembers[subPath].returns)
 			);
@@ -173,13 +165,13 @@ const callsArgReturnsNumber: RawMemberDescription = {
 const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 	reassignPath: () => {},
 	forEachReturnExpressionWhenCalledAtPath: () => {},
-	getPrimitiveValue: () => UNKNOWN_VALUE,
+	getPrimitiveValueAtPath: () => UNKNOWN_VALUE,
 	hasEffectsWhenAccessedAtPath: path => path.length > 1,
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
 	hasEffectsWhenCalledAtPath: path => {
 		if (path.length === 1) {
 			const subPath = path[0];
-			return isUnknownKey(subPath) || !literalStringMembers[subPath];
+			return typeof subPath !== 'string' || !literalStringMembers[subPath];
 		}
 		return true;
 	},
@@ -192,7 +184,7 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 		if (path.length === 1) {
 			const subPath = path[0];
 			return (
-				isUnknownKey(subPath) ||
+				typeof subPath !== 'string' ||
 				!literalStringMembers[subPath] ||
 				predicateFunction(options)(literalStringMembers[subPath].returns)
 			);
@@ -211,13 +203,13 @@ const callsSecondArgReturnsString: RawMemberDescription = {
 export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 	reassignPath: () => {},
 	forEachReturnExpressionWhenCalledAtPath: () => {},
-	getPrimitiveValue: () => UNKNOWN_VALUE,
+	getPrimitiveValueAtPath: () => UNKNOWN_VALUE,
 	hasEffectsWhenAccessedAtPath: path => path.length > 1,
 	hasEffectsWhenAssignedAtPath: path => path.length > 1,
 	hasEffectsWhenCalledAtPath: path => {
 		if (path.length === 1) {
 			const subPath = path[0];
-			return isUnknownKey(subPath) || !objectMembers[subPath];
+			return typeof subPath !== 'string' || !objectMembers[subPath];
 		}
 		return true;
 	},
@@ -230,7 +222,7 @@ export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 		if (path.length === 1) {
 			const subPath = path[0];
 			return (
-				isUnknownKey(subPath) ||
+				typeof subPath !== 'string' ||
 				!objectMembers[subPath] ||
 				predicateFunction(options)(objectMembers[subPath].returns)
 			);
@@ -330,7 +322,7 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 	objectMembers
 );
 
-export function getLiteralMembersForValue<T = LiteralValueTypes>(value: T) {
+export function getLiteralMembersForValue<T = LiteralValue>(value: T) {
 	switch (typeof value) {
 		case 'boolean':
 			return literalBooleanMembers;
@@ -349,7 +341,7 @@ export function hasMemberEffectWhenCalled(
 	callOptions: CallOptions,
 	options: ExecutionPathOptions
 ) {
-	if (isUnknownKey(memberName) || !members[memberName]) return true;
+	if (typeof memberName !== 'string' || !members[memberName]) return true;
 	if (!members[memberName].callsArgs) return false;
 	for (const argIndex of members[memberName].callsArgs) {
 		if (

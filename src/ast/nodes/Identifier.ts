@@ -1,6 +1,6 @@
 import { Node, NodeBase } from './shared/Node';
 import isReference from 'is-reference';
-import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import { ObjectPath, PrimitiveValue, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Variable from '../variables/Variable';
 import CallOptions from '../CallOptions';
@@ -72,9 +72,9 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	getPrimitiveValue() {
+	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
 		if (this.variable !== null) {
-			return this.variable.getPrimitiveValue();
+			return this.variable.getPrimitiveValueAtPath(path);
 		}
 		return UNKNOWN_VALUE;
 	}

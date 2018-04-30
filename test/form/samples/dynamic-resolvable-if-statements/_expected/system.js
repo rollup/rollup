@@ -7,6 +7,22 @@ System.register([], function (exports, module) {
 				console.log('retained');
 			}
 
+			{
+				console.log('retained');
+			}
+
+			{
+				console.log('retained');
+			}
+
+			{
+				console.log('retained');
+			}
+
+			{
+				console.log('retained');
+			}
+
 		}
 	};
 });

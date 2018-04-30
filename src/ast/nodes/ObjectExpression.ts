@@ -3,7 +3,14 @@ import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from './Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { isUnknownKey, objectMembers, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../values';
+import {
+	objectMembers,
+	ObjectPath,
+	ObjectPathKey,
+	PrimitiveValue,
+	UNKNOWN_KEY,
+	UNKNOWN_VALUE
+} from '../values';
 import { Node, NodeBase } from './shared/Node';
 import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
@@ -45,6 +52,17 @@ export default class ObjectExpression extends NodeBase {
 		}
 	}
 
+	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
+		if (path.length === 0) return UNKNOWN_VALUE;
+
+		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
+			path[0],
+			PROPERTY_KINDS_READ
+		);
+		if (!hasCertainHit || properties.length > 1) return UNKNOWN_VALUE;
+		return properties[0].getPrimitiveValueAtPath(path.slice(1));
+	}
+
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return false;
 
@@ -84,7 +102,7 @@ export default class ObjectExpression extends NodeBase {
 	): boolean {
 		if (path.length === 0) return true;
 		const subPath = path[0];
-		if (path.length === 1 && !isUnknownKey(subPath) && objectMembers[subPath]) {
+		if (path.length === 1 && typeof subPath === 'string' && objectMembers[subPath]) {
 			return false;
 		}
 
@@ -135,7 +153,7 @@ export default class ObjectExpression extends NodeBase {
 	): boolean {
 		if (path.length === 0) return true;
 		const subPath = path[0];
-		if (path.length === 1 && !isUnknownKey(subPath) && objectMembers[subPath]) {
+		if (path.length === 1 && typeof subPath === 'string' && objectMembers[subPath]) {
 			return predicateFunction(options)(objectMembers[subPath].returns);
 		}
 

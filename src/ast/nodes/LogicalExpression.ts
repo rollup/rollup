@@ -1,4 +1,4 @@
-import { ObjectPath, UNKNOWN_VALUE } from '../values';
+import { ObjectPath, PrimitiveValue, UNKNOWN_VALUE } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
@@ -36,11 +36,11 @@ export default class LogicalExpression extends NodeBase {
 		}
 	}
 
-	getPrimitiveValue(): any {
+	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
 		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue();
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 		if (leftValue === (this.operator === '||')) return leftValue;
-		return this.right.getPrimitiveValue();
+		return this.right.getPrimitiveValueAtPath(path);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
@@ -191,7 +191,7 @@ export default class LogicalExpression extends NodeBase {
 
 	private getLeftValue() {
 		if (this.hasUnknownLeftValue) return UNKNOWN_VALUE;
-		const value = this.left.getPrimitiveValue();
+		const value = this.left.getPrimitiveValueAtPath([]);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownLeftValue = true;
 		}

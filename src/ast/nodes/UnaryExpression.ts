@@ -1,23 +1,24 @@
-import { ObjectPath, UNKNOWN_VALUE } from '../values';
+import { ObjectPath, PrimitiveValue, UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
+import { LiteralValue } from './Literal';
 
-const operators: {
-	[operator: string]: (value: any) => any;
+const unaryOperators: {
+	[operator: string]: (value: LiteralValue) => PrimitiveValue;
 } = {
-	'-': (value: any) => -value,
-	'+': (value: any) => +value,
-	'!': (value: any) => !value,
-	'~': (value: any) => ~value,
-	typeof: (value: any) => typeof value,
-	void: (): any => undefined,
+	'-': value => -value,
+	'+': value => +value,
+	'!': value => !value,
+	'~': value => ~value,
+	typeof: value => typeof value,
+	void: () => undefined,
 	delete: () => UNKNOWN_VALUE
 };
 
 export default class UnaryExpression extends NodeBase {
 	type: NodeType.UnaryExpression;
-	operator: '-' | '+' | '!' | '~' | 'typeof' | 'void' | 'delete';
+	operator: keyof typeof unaryOperators;
 	prefix: boolean;
 	argument: ExpressionNode;
 
@@ -28,11 +29,12 @@ export default class UnaryExpression extends NodeBase {
 		}
 	}
 
-	getPrimitiveValue(): any {
-		const argumentValue: any = this.argument.getPrimitiveValue();
+	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
+		if (path.length > 0) return UNKNOWN_VALUE;
+		const argumentValue = this.argument.getPrimitiveValueAtPath([]);
 		if (argumentValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
-		return operators[this.operator](argumentValue);
+		return unaryOperators[this.operator](<LiteralValue>argumentValue);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

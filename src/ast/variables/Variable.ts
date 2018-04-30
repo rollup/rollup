@@ -1,4 +1,4 @@
-import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import { ObjectPath, PrimitiveValue, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
@@ -54,7 +54,7 @@ export default class Variable implements ExpressionEntity {
 		return this.safeName || this.name;
 	}
 
-	getPrimitiveValue() {
+	getPrimitiveValueAtPath(_path: ObjectPath): PrimitiveValue {
 		return UNKNOWN_VALUE;
 	}
 

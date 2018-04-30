@@ -51,7 +51,9 @@ export default class IfStatement extends StatementBase {
 
 	render(code: MagicString, options: RenderOptions) {
 		// Note that unknown test values are always included
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.test.getPrimitiveValue();
+		const testValue = this.hasUnknownTestValue
+			? UNKNOWN_VALUE
+			: this.test.getPrimitiveValueAtPath([]);
 		if (
 			!this.test.included &&
 			(testValue ? this.alternate === null || !this.alternate.included : !this.consequent.included)
@@ -83,7 +85,7 @@ export default class IfStatement extends StatementBase {
 
 	private getTestValue() {
 		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
-		const value = this.test.getPrimitiveValue();
+		const value = this.test.getPrimitiveValueAtPath([]);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownTestValue = true;
 		}

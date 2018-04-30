@@ -9,24 +9,29 @@ import {
 	hasMemberEffectWhenCalled,
 	MemberDescription,
 	ObjectPath,
-	someMemberReturnExpressionWhenCalled
+	PrimitiveValue,
+	someMemberReturnExpressionWhenCalled,
+	UNKNOWN_VALUE
 } from '../values';
 import { RenderOptions } from '../../utils/renderHelpers';
 
-export type LiteralValueTypes = string | boolean | null | number | RegExp;
+export type LiteralValue = string | boolean | null | number | RegExp;
 
 export function isLiteral(node: Node): node is Literal {
 	return node.type === NodeType.Literal;
 }
 
-export default class Literal<T = LiteralValueTypes> extends NodeBase {
+export default class Literal<T = LiteralValue> extends NodeBase {
 	type: NodeType.Literal;
 	value: T;
 
 	private members: { [key: string]: MemberDescription };
 
-	getPrimitiveValue() {
-		return this.value;
+	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
+		if (path.length > 0) {
+			return UNKNOWN_VALUE;
+		}
+		return <any>this.value;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {

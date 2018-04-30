@@ -1,4 +1,4 @@
-import { ObjectPath, UNKNOWN_VALUE } from '../values';
+import { ObjectPath, PrimitiveValue, UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
@@ -32,10 +32,12 @@ export default class ConditionalExpression extends NodeBase {
 		}
 	}
 
-	getPrimitiveValue(): any {
+	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
 		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
 		if (testValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
-		return testValue ? this.consequent.getPrimitiveValue() : this.alternate.getPrimitiveValue();
+		return testValue
+			? this.consequent.getPrimitiveValueAtPath(path)
+			: this.alternate.getPrimitiveValueAtPath(path);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
@@ -183,7 +185,7 @@ export default class ConditionalExpression extends NodeBase {
 
 	private getTestValue() {
 		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
-		const value = this.test.getPrimitiveValue();
+		const value = this.test.getPrimitiveValueAtPath([]);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownTestValue = true;
 		}

@@ -10,7 +10,7 @@ import {
 	SomeReturnExpressionCallback
 } from './Expression';
 import CallOptions from '../../CallOptions';
-import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
+import { ObjectPath, PrimitiveValue, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import { Entity } from '../../Entity';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import { getAndCreateKeys, keys } from '../../keys';
@@ -139,7 +139,7 @@ export class NodeBase implements ExpressionNode {
 		_options: ExecutionPathOptions
 	) {}
 
-	getPrimitiveValue() {
+	getPrimitiveValueAtPath(_path: ObjectPath): PrimitiveValue {
 		return UNKNOWN_VALUE;
 	}
 
