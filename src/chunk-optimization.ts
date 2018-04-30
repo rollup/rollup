@@ -13,7 +13,8 @@ import { OutputOptions } from './rollup/types';
 export function optimizeChunks(
 	chunks: Chunk[],
 	options: OutputOptions,
-	CHUNK_GROUPING_SIZE: number
+	CHUNK_GROUPING_SIZE: number,
+	inputBase: string
 ): Chunk[] {
 	for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
 		const mainChunk = chunks[chunkIndex];
@@ -119,7 +120,7 @@ export function optimizeChunks(
 			if (optimizedChunkIndex <= chunkIndex) chunkIndex--;
 			chunks.splice(optimizedChunkIndex, 1);
 
-			lastChunk.merge(chunk, chunks, options);
+			lastChunk.merge(chunk, chunks, options, inputBase);
 
 			execGroup.splice(--execGroupIndex, 1);
 
