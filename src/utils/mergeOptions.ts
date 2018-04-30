@@ -204,6 +204,7 @@ function getInputOptions(
 		experimentalDynamicImport: getOption('experimentalDynamicImport'),
 		experimentalPreserveModules: getOption('experimentalPreserveModules'),
 		external: getExternal(config, command),
+		inlineDynamicImports: getOption('inlineDynamicImports', false),
 		input: getOption('input'),
 		manualChunks: getOption('manualChunks'),
 		chunkGroupingSize: getOption('chunkGroupingSize', 5000),

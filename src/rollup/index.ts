@@ -23,6 +23,7 @@ import {
 	OutputAsset
 } from './types';
 import getExportMode from '../utils/getExportMode';
+import Chunk from '../Chunk';
 
 export const VERSION = '<@VERSION@>';
 
@@ -76,7 +77,7 @@ function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	return inputOptions;
 }
 
-function applyOnbuildendHook(graph: Graph, err?: any) {
+function applyBuildEndHook(graph: Graph, err?: any) {
 	for (let plugin of graph.plugins) {
 		if (plugin.buildEnd) plugin.buildEnd.call(graph.pluginContext, err);
 	}
@@ -111,36 +112,48 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 
 		timeStart('BUILD', 1);
 
-		const codeSplitting =
-			inputOptions.experimentalCodeSplitting || inputOptions.experimentalPreserveModules;
-
-		// Note: when code splitting is no longer experimental,
-		// inputOptions.experimentalCodeSplitting becomes inputOptions.codeSplitting
-		// the following error path can then enable codeSplitting by default rather
-		if (!codeSplitting && typeof inputOptions.input !== 'string')
-			error({
-				code: 'INVALID_OPTION',
-				message: `Enable "experimentalCodeSplitting" for multiple input support.`
-			});
-
-		if (!codeSplitting) {
+		if (!inputOptions.experimentalCodeSplitting) {
+			if (inputOptions.experimentalDynamicImport) inputOptions.inlineDynamicImports = true;
 			if (inputOptions.manualChunks)
 				error({
 					code: 'INVALID_OPTION',
-					message: '"manualChunks" option is only supported for code-splitting builds.'
+					message: '"manualChunks" option is only supported for experimentalCodeSplitting.'
+				});
+			if (inputOptions.optimizeChunks)
+				error({
+					code: 'INVALID_OPTION',
+					message: '"optimizeChunks" option is only supported for experimentalCodeSplitting.'
+				});
+			if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
+				error({
+					code: 'INVALID_OPTION',
+					message: 'Multiple inputs are only supported for experimentalCodeSplitting.'
+				});
+		}
+
+		if (inputOptions.inlineDynamicImports) {
+			if (inputOptions.manualChunks)
+				error({
+					code: 'INVALID_OPTION',
+					message: '"manualChunks" option is not supported for inlineDynamicImports.'
 				});
 
 			if (inputOptions.optimizeChunks)
 				error({
 					code: 'INVALID_OPTION',
-					message: '"optimizeChunks" option is only supported for code-splitting builds.'
+					message: '"optimizeChunks" option is not supported for inlineDynamicImports.'
 				});
 			if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
 				error({
 					code: 'INVALID_OPTION',
-					message: 'Multiple inputs are only supported for code-splitting builds.'
+					message: 'Multiple inputs are not supported for inlineDynamicImports.'
 				});
 		} else if (inputOptions.experimentalPreserveModules) {
+			if (inputOptions.inlineDynamicImports)
+				error({
+					code: 'INVALID_OPTION',
+					message: `experimentalPreserveModules does not support the inlineDynamicImports option.`
+				});
 			if (inputOptions.manualChunks)
 				error({
 					code: 'INVALID_OPTION',
@@ -157,25 +170,29 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 			.build(
 				inputOptions.input,
 				inputOptions.manualChunks,
-				!codeSplitting,
+				inputOptions.inlineDynamicImports,
 				inputOptions.experimentalPreserveModules
 			)
 			.catch(err => {
-				applyOnbuildendHook(graph, err);
+				applyBuildEndHook(graph, err);
 				throw err;
 			})
 			.then(chunks => {
-				applyOnbuildendHook(graph);
+				applyBuildEndHook(graph);
 				timeEnd('BUILD', 1);
 
-				const singleChunk = !codeSplitting && chunks[0];
-
-				// TODO: deprecate
-				let imports, exports, modules;
-				if (!codeSplitting) {
-					imports = singleChunk.getImportIds();
-					exports = singleChunk.getExportNames();
-					modules = graph.getCache().modules;
+				// TODO: deprecate legacy single chunk return
+				let singleInputChunk: Chunk;
+				let imports: string[], exports: string[];
+				if (!inputOptions.experimentalPreserveModules) {
+					if (
+						typeof inputOptions.input === 'string' ||
+						(inputOptions.input instanceof Array && inputOptions.input.length === 1)
+					) {
+						singleInputChunk = chunks.find(chunk => chunk.entryModule !== undefined);
+						imports = singleInputChunk.getImportIds();
+						exports = singleInputChunk.getExportNames();
+					}
 				}
 
 				// ensure we only do one optimization pass per build
@@ -184,41 +201,37 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 				function generate(rawOutputOptions: GenericConfigObject, isWrite: boolean) {
 					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
 
-					if (codeSplitting) {
+					if (inputOptions.experimentalCodeSplitting) {
 						if (typeof outputOptions.file === 'string' && typeof outputOptions.dir === 'string')
 							error({
 								code: 'INVALID_OPTION',
 								message:
 									'Build must set either output.file for a single-file build or output.dir when generating multiple chunks.'
 							});
+						if (chunks.length > 1) {
+							if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
+								error({
+									code: 'INVALID_OPTION',
+									message:
+										'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
+								});
 
-						if (typeof outputOptions.file === 'string' && chunks.length > 1)
+							if (outputOptions.sourcemapFile)
+								error({
+									code: 'INVALID_OPTION',
+									message: '"sourcemapFile" is only supported for single-file builds.'
+								});
+						}
+						if (!singleInputChunk && typeof outputOptions.file === 'string')
 							error({
 								code: 'INVALID_OPTION',
 								message:
-									'When generating multiple chunks, the output.dir option must be used, not output.file.'
-							});
-
-						if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
-							error({
-								code: 'INVALID_OPTION',
-								message:
-									'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
-							});
-
-						if (outputOptions.sourcemapFile)
-							error({
-								code: 'INVALID_OPTION',
-								message: '"sourcemapFile" is only supported for single-file builds.'
-							});
-					} else {
-						if (outputOptions.entryFileNames || outputOptions.chunkFileNames)
-							error({
-								code: 'INVALID_OPTION',
-								message:
-									'"entryFileNames" and "chunkFileNames" options are only supported for code-splitting builds.'
+									'When providing multiple entry points, the output.dir option must be used, not output.file.'
 							});
 					}
+
+					if (!outputOptions.file && inputOptions.experimentalCodeSplitting)
+						singleInputChunk = undefined;
 
 					timeStart('GENERATE', 1);
 
@@ -247,42 +260,49 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 									optimized = true;
 								}
 
-								if (singleChunk) {
-									singleChunk.id = basename(outputOptions.file || inputOptions.input);
-									generated[singleChunk.id] = {
-										file: singleChunk.id,
+								if (singleInputChunk) {
+									singleInputChunk.id = basename(
+										outputOptions.file ||
+											(inputOptions.input instanceof Array
+												? inputOptions.input[0]
+												: inputOptions.input)
+									);
+									const outputChunk: OutputChunk = {
+										file: singleInputChunk.id,
 										isAsset: false,
-										imports: (imports = singleChunk.getImportIds()),
-										exports: (exports = singleChunk.getExportNames()),
-										modules: (modules = singleChunk.getModuleIds()),
+										imports,
+										exports,
+										modules: singleInputChunk.getModuleIds(),
 										code: undefined,
 										map: undefined
 									};
-								} else {
-									for (let chunk of chunks) {
-										if (inputOptions.experimentalPreserveModules) {
-											chunk.generateIdPreserveModules(inputBase);
+									generated[singleInputChunk.id] = outputChunk;
+								}
+
+								for (let chunk of chunks) {
+									if (chunk === singleInputChunk) continue;
+									if (inputOptions.experimentalPreserveModules) {
+										chunk.generateIdPreserveModules(inputBase);
+									} else {
+										let pattern, patternName;
+										if (chunk.isEntryModuleFacade) {
+											pattern = outputOptions.entryFileNames || '[name].js';
+											patternName = 'output.entryFileNames';
 										} else {
-											let pattern, patternName;
-											if (chunk.isEntryModuleFacade) {
-												pattern = outputOptions.entryFileNames || '[name].js';
-												patternName = 'output.entryFileNames';
-											} else {
-												pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
-												patternName = 'output.chunkFileNames';
-											}
-											chunk.generateId(pattern, patternName, addons, outputOptions, generated);
+											pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
+											patternName = 'output.chunkFileNames';
 										}
-										generated[chunk.id] = {
-											file: chunk.id,
-											isAsset: false,
-											imports: chunk.getImportIds(),
-											exports: chunk.getExportNames(),
-											modules: chunk.getModuleIds(),
-											code: undefined,
-											map: undefined
-										};
+										chunk.generateId(pattern, patternName, addons, outputOptions, generated);
 									}
+									generated[chunk.id] = {
+										file: chunk.id,
+										isAsset: false,
+										imports: chunk.getImportIds(),
+										exports: chunk.getExportNames(),
+										modules: chunk.getModuleIds(),
+										code: undefined,
+										map: undefined
+									};
 								}
 
 								// then name and populate the assets into the output files object
@@ -322,23 +342,31 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 					);
 				}
 
+				const cache = graph.getCache();
 				const result: Bundle | BundleSet = {
-					cache: graph.getCache(),
+					cache,
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
 						const promise = generate(rawOutputOptions, false).then(
-							result => (codeSplitting ? result : <OutputChunk>result[chunks[0].id])
+							result =>
+								inputOptions.experimentalCodeSplitting ? result : <OutputChunk>result[chunks[0].id]
 						);
 						Object.defineProperty(promise, 'code', throwAsyncGenerateError);
 						Object.defineProperty(promise, 'map', throwAsyncGenerateError);
 						return promise;
 					}),
 					write: <any>((outputOptions: OutputOptions) => {
-						if (codeSplitting && (!outputOptions || (!outputOptions.dir && !outputOptions.file))) {
+						if (
+							inputOptions.experimentalCodeSplitting &&
+							(!outputOptions || (!outputOptions.dir && !outputOptions.file))
+						) {
 							error({
 								code: 'MISSING_OPTION',
 								message: 'You must specify output.dir when code-splitting.'
 							});
-						} else if (!codeSplitting && (!outputOptions || !outputOptions.file)) {
+						} else if (
+							!inputOptions.experimentalCodeSplitting &&
+							(!outputOptions || !outputOptions.file)
+						) {
 							error({
 								code: 'MISSING_OPTION',
 								message: 'You must specify output.file.'
@@ -349,14 +377,19 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 								Object.keys(result).map(chunkId => {
 									return writeOutputFile(graph, result[chunkId], outputOptions);
 								})
-							).then(() => (codeSplitting ? result : <OutputChunk>result[chunks[0].id]))
+							).then(
+								() =>
+									inputOptions.experimentalCodeSplitting
+										? result
+										: <OutputChunk>result[chunks[0].id]
+							)
 						);
 					})
 				};
-				if (!codeSplitting) {
+				if (!inputOptions.experimentalCodeSplitting) {
 					(<any>result).imports = imports;
 					(<any>result).exports = exports;
-					(<any>result).modules = modules;
+					(<any>result).modules = cache.modules;
 				}
 				if (inputOptions.perf === true) result.getTimings = getTimings;
 				return result;
