@@ -6,7 +6,7 @@ import getIndentString from './utils/getIndentString';
 import transformChunk from './utils/transformChunk';
 import collapseSourcemaps from './utils/collapseSourcemaps';
 import error from './utils/error';
-import { normalize, resolve, extname, dirname, relative, basename } from './utils/path';
+import { normalize, resolve, dirname, relative, basename } from './utils/path';
 import Graph from './Graph';
 import ExternalModule from './ExternalModule';
 import { isExportDefaultVariable } from './ast/variables/ExportDefaultVariable';
@@ -21,7 +21,7 @@ import sha256 from 'hash.js/lib/hash/sha/256';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import { GlobalsOption, OutputOptions, RawSourceMap } from './rollup/types';
 import { toBase64 } from './utils/base64';
-import renderNamePattern from './utils/renderNamePattern';
+import { renderNamePattern, makeUnique } from './utils/renderNamePattern';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;
@@ -938,34 +938,23 @@ export default class Chunk {
 		patternName: string,
 		addons: Addons,
 		options: OutputOptions,
-		existingNames: { [name: string]: boolean }
+		existingNames: { [name: string]: any }
 	) {
-		let outName = renderNamePattern(pattern, patternName, type => {
-			switch (type) {
-				case '[hash]':
-					return this.computeFullHash(addons, options);
-				case '[name]':
-					if (this.entryModule && this.entryModule.chunkAlias) return this.entryModule.chunkAlias;
-					for (const module of this.orderedModules) {
-						if (module.chunkAlias) return module.chunkAlias;
-					}
-					return 'chunk';
-			}
-		});
-
-		if (existingNames) {
-			if (!existingNames[outName]) {
-				existingNames[outName] = true;
-			} else {
-				let ext = extname(outName);
-				outName = outName.substr(0, outName.length - ext.length);
-				let uniqueName,
-					uniqueIndex = 1;
-				while (existingNames[(uniqueName = outName + ++uniqueIndex + ext)]);
-				existingNames[uniqueName] = true;
-				outName = uniqueName;
-			}
-		}
+		let outName = makeUnique(
+			renderNamePattern(pattern, patternName, type => {
+				switch (type) {
+					case 'hash':
+						return this.computeFullHash(addons, options);
+					case 'name':
+						if (this.entryModule && this.entryModule.chunkAlias) return this.entryModule.chunkAlias;
+						for (const module of this.orderedModules) {
+							if (module.chunkAlias) return module.chunkAlias;
+						}
+						return 'chunk';
+				}
+			}),
+			existingNames
+		);
 
 		this.id = outName;
 	}

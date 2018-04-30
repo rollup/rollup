@@ -8,9 +8,9 @@ import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
 import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
 import transform from './utils/transform';
-import relativeId, { getAliasName } from './utils/relativeId';
+import relativeId, { isPlainName, getAliasName } from './utils/relativeId';
 import error from './utils/error';
-import { isRelative, resolve, relative } from './utils/path';
+import { isRelative, resolve, relative, extname } from './utils/path';
 import {
 	InputOptions,
 	IsExternalHook,
@@ -26,7 +26,7 @@ import {
 	WarningHandler,
 	ModuleJSON,
 	RollupError,
-	OutputOptions
+	OutputFiles
 } from './rollup/types';
 import Chunk from './Chunk';
 import GlobalScope from './ast/scopes/GlobalScope';
@@ -34,10 +34,11 @@ import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/
 import firstSync from './utils/first-sync';
 import { Program } from 'estree';
 import sha256 from 'hash.js/lib/hash/sha/256';
+import { renderNamePattern, makeUnique } from './utils/renderNamePattern';
 
 export interface Asset {
 	name: string;
-	source: string;
+	source: string | Buffer;
 	file: string;
 }
 
@@ -125,7 +126,7 @@ export default class Graph {
 			resolveId: undefined,
 			parse: this.contextParse,
 			emitAsset: this.emitAsset.bind(this),
-			getAssetUrl: this.getAssetUrl.bind(this),
+			getAssetFileName: this.getAssetFileName.bind(this),
 			warn(warning: RollupWarning | string) {
 				if (typeof warning === 'string') warning = { message: warning };
 				this.warn(warning);
@@ -244,6 +245,17 @@ export default class Graph {
 
 	private emitAsset(name: string, source: string) {
 		const hash = sha256();
+		const ext = extname(name);
+		if (!isPlainName(name))
+			error({
+				code: 'INVALID_ASSET_NAME',
+				message: `Asset name "${name}" is not a plain (non relative or absolute URL) name.`
+			});
+		if (!ext)
+			error({
+				code: 'INVALID_ASSET_NAME',
+				message: `Asset name "${name}" must include a file extension.`
+			});
 		hash.update(name);
 		hash.update(':');
 		hash.update(source);
@@ -251,12 +263,47 @@ export default class Graph {
 		this.assetsById.set(assetId, { name, source, file: undefined });
 	}
 
-	private generateAssetName() {}
+	// name the assets and populate them into the output files map
+	finaliseAssets(assetFileNamesPattern: string, outputFiles: OutputFiles) {
+		const assets = Object.create(null);
+		this.assetsById.forEach((asset, assetId) => {
+			const ext = extname(name);
+			const file = makeUnique(
+				renderNamePattern(assetFileNamesPattern, 'assetFileNames', name => {
+					switch (name) {
+						case 'hash':
+							return assetId;
+						case 'name':
+							return asset.name.substr(0, asset.name.length - ext.length);
+						case 'ext':
+							return ext;
+					}
+				}),
+				outputFiles
+			);
 
-	private getAssetUrl(assetId: string, options: OutputOptions) {
+			outputFiles[(asset.file = file)] = {
+				file: asset.file,
+				isAsset: true,
+				source: asset.source
+			};
+		});
+		return assets;
+	}
+
+	private getAssetFileName(assetId: string) {
 		const asset = this.assetsById.get(assetId);
-		const assetFileName = asset.file;
-		if (assetFileName === undefined);
+		if (!asset)
+			error({
+				code: 'ASSET_NOT_FOUND',
+				message: `Unable to name asset ${assetId}, as there is no emitted asset with this id.`
+			});
+		if (!asset.file)
+			error({
+				code: 'NO_ASSET_NAME',
+				message: `getAssetFileName can only be called from the transformChunk plugin hook.`
+			});
+		return asset.file;
 	}
 
 	getCache() {
