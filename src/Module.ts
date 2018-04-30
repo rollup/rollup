@@ -410,7 +410,9 @@ export default class Module {
 
 			const name = isDefault
 				? 'default'
-				: isNamespace ? '*' : (<ImportSpecifier>specifier).imported.name;
+				: isNamespace
+					? '*'
+					: (<ImportSpecifier>specifier).imported.name;
 			this.imports[localName] = { source, start: specifier.start, name, module: null };
 		}
 	}
@@ -584,10 +586,6 @@ export default class Module {
 
 	isIncluded() {
 		return this.ast.included;
-	}
-
-	isEmpty() {
-		return this.magicString.isEmpty();
 	}
 
 	include(): boolean {

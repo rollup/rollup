@@ -127,7 +127,7 @@ export default class Chunk {
 
 		this.isEmpty = true;
 		for (const module of orderedModules) {
-			if (this.isEmpty && module.isIncluded() && !module.isEmpty()) {
+			if (this.isEmpty && module.isIncluded()) {
 				this.isEmpty = false;
 			}
 			if (module.chunkAlias) {
@@ -822,11 +822,7 @@ export default class Chunk {
 		this.renderedSourceLength = undefined;
 		this.renderedHash = undefined;
 
-		if (
-			this.getExportNames().length === 0 &&
-			this.getImportIds().length === 0 &&
-			this.renderedSource.isEmpty()
-		) {
+		if (this.getExportNames().length === 0 && this.getImportIds().length === 0 && this.isEmpty) {
 			this.graph.warn({
 				code: 'EMPTY_BUNDLE',
 				message: 'Generated an empty bundle'

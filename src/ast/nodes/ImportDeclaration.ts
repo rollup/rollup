@@ -22,6 +22,10 @@ export default class ImportDeclaration extends NodeBase {
 		this.context.addImport(this);
 	}
 
+	hasEffects() {
+		return false;
+	}
+
 	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
 		code.remove(start, end);
 	}
