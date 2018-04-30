@@ -241,105 +241,103 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 						chunks.filter(chunk => chunk.entryModule).map(chunk => chunk.entryModule.id)
 					);
 
-					return (
-						createAddons(graph, outputOptions)
-							// first pre-render all chunks
+					return createAddons(graph, outputOptions)
+						.then(addons => {
+							// name and populate the assets into the output files object
+							graph.finaliseAssets(
+								outputOptions.assetFileNames || 'assets/[name]-[hash].[ext]',
+								generated
+							);
+
+							// pre-render all chunks
+							for (let chunk of chunks) {
+								if (!inputOptions.experimentalPreserveModules)
+									chunk.generateInternalExports(outputOptions);
+								if (chunk.isEntryModuleFacade)
+									chunk.exportMode = getExportMode(chunk, outputOptions);
+							}
+							for (let chunk of chunks) {
+								chunk.preRender(outputOptions, inputBase);
+							}
+							if (!optimized && inputOptions.optimizeChunks) {
+								optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize, inputBase);
+								optimized = true;
+							}
+
 							// then name all chunks
-							.then(addons => {
-								for (let chunk of chunks) {
-									if (!inputOptions.experimentalPreserveModules)
-										chunk.generateInternalExports(outputOptions);
-									if (chunk.isEntryModuleFacade)
-										chunk.exportMode = getExportMode(chunk, outputOptions);
-								}
-								for (let chunk of chunks) {
-									chunk.preRender(outputOptions, inputBase);
-								}
-								if (!optimized && inputOptions.optimizeChunks) {
-									optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize, inputBase);
-									optimized = true;
-								}
+							if (singleInputChunk) {
+								singleInputChunk.id = basename(
+									outputOptions.file ||
+										(inputOptions.input instanceof Array
+											? inputOptions.input[0]
+											: inputOptions.input)
+								);
+								const outputChunk: OutputChunk = {
+									file: singleInputChunk.id,
+									isAsset: false,
+									imports,
+									exports,
+									modules: singleInputChunk.getModuleIds(),
+									code: undefined,
+									map: undefined
+								};
+								generated[singleInputChunk.id] = outputChunk;
+							}
 
-								if (singleInputChunk) {
-									singleInputChunk.id = basename(
-										outputOptions.file ||
-											(inputOptions.input instanceof Array
-												? inputOptions.input[0]
-												: inputOptions.input)
-									);
-									const outputChunk: OutputChunk = {
-										file: singleInputChunk.id,
-										isAsset: false,
-										imports,
-										exports,
-										modules: singleInputChunk.getModuleIds(),
-										code: undefined,
-										map: undefined
-									};
-									generated[singleInputChunk.id] = outputChunk;
-								}
-
-								for (let chunk of chunks) {
-									if (chunk === singleInputChunk) continue;
-									if (inputOptions.experimentalPreserveModules) {
-										chunk.generateIdPreserveModules(inputBase);
+							for (let chunk of chunks) {
+								if (chunk === singleInputChunk) continue;
+								if (inputOptions.experimentalPreserveModules) {
+									chunk.generateIdPreserveModules(inputBase);
+								} else {
+									let pattern, patternName;
+									if (chunk.isEntryModuleFacade) {
+										pattern = outputOptions.entryFileNames || '[name].js';
+										patternName = 'output.entryFileNames';
 									} else {
-										let pattern, patternName;
-										if (chunk.isEntryModuleFacade) {
-											pattern = outputOptions.entryFileNames || '[name].js';
-											patternName = 'output.entryFileNames';
-										} else {
-											pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
-											patternName = 'output.chunkFileNames';
-										}
-										chunk.generateId(pattern, patternName, addons, outputOptions, generated);
+										pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
+										patternName = 'output.chunkFileNames';
 									}
-									generated[chunk.id] = {
-										file: chunk.id,
-										isAsset: false,
-										imports: chunk.getImportIds(),
-										exports: chunk.getExportNames(),
-										modules: chunk.getModuleIds(),
-										code: undefined,
-										map: undefined
-									};
+									chunk.generateId(pattern, patternName, addons, outputOptions, generated);
 								}
+								generated[chunk.id] = {
+									file: chunk.id,
+									isAsset: false,
+									imports: chunk.getImportIds(),
+									exports: chunk.getExportNames(),
+									modules: chunk.getModuleIds(),
+									code: undefined,
+									map: undefined
+								};
+							}
 
-								// then name and populate the assets into the output files object
-								graph.finaliseAssets(
-									outputOptions.assetFileNames || 'assets/[name]-[hash].[ext]',
-									generated
-								);
+							// render chunk import statements and finalizer wrappers given known names
+							return Promise.all(
+								chunks.map(chunk =>
+									chunk.render(outputOptions, addons).then(rendered => {
+										const outputChunk = <OutputChunk>generated[chunk.id];
+										outputChunk.code = rendered.code;
+										outputChunk.map = rendered.map;
 
-								// and render chunks given known names
-								return Promise.all(
-									chunks.map(chunk =>
-										chunk.render(outputOptions, addons).then(rendered => {
-											const outputChunk = <OutputChunk>generated[chunk.id];
-											outputChunk.code = rendered.code;
-											outputChunk.map = rendered.map;
-
-											return Promise.all(
-												graph.plugins
-													.filter(plugin => plugin.ongenerate)
-													.map(plugin =>
-														plugin.ongenerate.call(
-															graph.pluginContext,
-															outputOptions,
-															outputChunk,
-															isWrite
-														)
+										return Promise.all(
+											graph.plugins
+												.filter(plugin => plugin.ongenerate)
+												.map(plugin =>
+													plugin.ongenerate.call(
+														graph.pluginContext,
+														outputOptions,
+														outputChunk,
+														isWrite
 													)
-											).then(() => {});
-										})
-									)
-								);
-							})
-							.then(() => {
-								timeEnd('GENERATE', 1);
-								return generated;
-							})
-					);
+												)
+										).then(() => {});
+									})
+								)
+							);
+						})
+						.then(() => {
+							timeEnd('GENERATE', 1);
+							return generated;
+						});
 				}
 
 				const cache = graph.getCache();
