@@ -66,7 +66,7 @@ export interface ModuleJSON {
 
 export interface PluginContext {
 	emitAsset: (file: string, source: string | Buffer) => string;
-	getAssetUrl: (assetId: string) => string;
+	getAssetFileName: (assetId: string) => string;
 	resolveId: ResolveIdHook;
 	parse: (input: string, options: any) => ESTree.Program;
 	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
