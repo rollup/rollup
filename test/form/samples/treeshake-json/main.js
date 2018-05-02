@@ -1,9 +1,9 @@
-import { development, nested } from './config.json';
+import { production, nested } from './config.json';
 
-if (development) {
-	console.log('development');
-} else {
+if (production) {
 	console.log('production');
+} else {
+	console.log('development');
 }
 
 if (nested.specialConfig !== 1) {

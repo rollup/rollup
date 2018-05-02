@@ -1,6 +1,6 @@
 {
 	"unused": "unused string",
-	"development": false,
+	"production": true,
 	"nested": {
 		"specialConfig": 1
 	}
