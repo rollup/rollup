@@ -9,7 +9,7 @@ import {
 	hasMemberEffectWhenCalled,
 	MemberDescription,
 	ObjectPath,
-	PrimitiveValue,
+	LiteralValueOrUnknown,
 	someMemberReturnExpressionWhenCalled,
 	UNKNOWN_VALUE
 } from '../values';
@@ -27,10 +27,11 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 
 	private members: { [key: string]: MemberDescription };
 
-	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (path.length > 0) {
 			return UNKNOWN_VALUE;
 		}
+		// not sure why we need this type cast here
 		return <any>this.value;
 	}
 

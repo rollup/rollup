@@ -1,11 +1,11 @@
-import { ObjectPath, PrimitiveValue, UNKNOWN_VALUE } from '../values';
+import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { LiteralValue } from './Literal';
 
 const binaryOperators: {
-	[operator: string]: (left: LiteralValue, right: LiteralValue) => PrimitiveValue;
+	[operator: string]: (left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown;
 } = {
 	'==': (left, right) => left == right,
 	'!=': (left, right) => left != right,
@@ -37,12 +37,12 @@ export default class BinaryExpression extends NodeBase {
 	right: ExpressionNode;
 	operator: keyof typeof binaryOperators;
 
-	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (path.length > 0) return UNKNOWN_VALUE;
-		const leftValue = this.left.getPrimitiveValueAtPath([]);
+		const leftValue = this.left.getLiteralValueAtPath([]);
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
-		const rightValue = this.right.getPrimitiveValueAtPath([]);
+		const rightValue = this.right.getLiteralValueAtPath([]);
 		if (rightValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		const operatorFn = binaryOperators[this.operator];

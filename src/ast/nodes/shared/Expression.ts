@@ -1,7 +1,7 @@
 import { WritableEntity } from '../../Entity';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
-import { ObjectPath, PrimitiveValue } from '../../values';
+import { ObjectPath, LiteralValueOrUnknown } from '../../values';
 
 export type PredicateFunction = (node: ExpressionEntity) => boolean;
 export type SomeReturnExpressionCallback = (options: ExecutionPathOptions) => PredicateFunction;
@@ -19,7 +19,7 @@ export interface ExpressionEntity extends WritableEntity {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): void;
-	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue;
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown;
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,

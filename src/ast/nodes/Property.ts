@@ -1,6 +1,6 @@
 import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import CallOptions from '../CallOptions';
-import { ObjectPath, PrimitiveValue, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import {
@@ -49,11 +49,11 @@ export default class Property extends NodeBase {
 		}
 	}
 
-	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (this.kind === 'get') {
 			return UNKNOWN_VALUE;
 		}
-		return this.value.getPrimitiveValueAtPath(path);
+		return this.value.getLiteralValueAtPath(path);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

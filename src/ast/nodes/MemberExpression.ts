@@ -11,7 +11,7 @@ import ExternalVariable from '../variables/ExternalVariable';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { ObjectPath, ObjectPathKey, PrimitiveValue, UNKNOWN_KEY } from '../values';
+import { ObjectPath, ObjectPathKey, LiteralValueOrUnknown, UNKNOWN_KEY } from '../values';
 import { BLANK } from '../../utils/blank';
 
 const validProp = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
@@ -109,11 +109,11 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (this.variable !== null) {
-			return this.variable.getPrimitiveValueAtPath(path);
+			return this.variable.getLiteralValueAtPath(path);
 		}
-		return this.object.getPrimitiveValueAtPath([this.propertyKey, ...path]);
+		return this.object.getLiteralValueAtPath([this.propertyKey, ...path]);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

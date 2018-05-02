@@ -1,5 +1,5 @@
 import LocalVariable from './LocalVariable';
-import { ObjectPath, PrimitiveValue, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import Identifier from '../nodes/Identifier';
@@ -10,7 +10,7 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 		super(name, declarator, null);
 	}
 
-	getPrimitiveValueAtPath(): PrimitiveValue {
+	getLiteralValueAtPath(): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
 	}
 

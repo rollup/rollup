@@ -7,7 +7,7 @@ import {
 	objectMembers,
 	ObjectPath,
 	ObjectPathKey,
-	PrimitiveValue,
+	LiteralValueOrUnknown,
 	UNKNOWN_KEY,
 	UNKNOWN_VALUE
 } from '../values';
@@ -52,7 +52,7 @@ export default class ObjectExpression extends NodeBase {
 		}
 	}
 
-	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (path.length === 0) return UNKNOWN_VALUE;
 
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
@@ -60,7 +60,7 @@ export default class ObjectExpression extends NodeBase {
 			PROPERTY_KINDS_READ
 		);
 		if (!hasCertainHit || properties.length > 1) return UNKNOWN_VALUE;
-		return properties[0].getPrimitiveValueAtPath(path.slice(1));
+		return properties[0].getLiteralValueAtPath(path.slice(1));
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {

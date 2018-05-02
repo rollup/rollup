@@ -8,7 +8,7 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { BLANK } from '../../utils/blank';
-import { ObjectPath, PrimitiveValue } from '../values';
+import { ObjectPath, LiteralValueOrUnknown } from '../values';
 import CallOptions from '../CallOptions';
 import { ForEachReturnExpressionCallback } from './shared/Expression';
 import CallExpression from './CallExpression';
@@ -31,8 +31,8 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
-		return this.expressions[this.expressions.length - 1].getPrimitiveValueAtPath(path);
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+		return this.expressions[this.expressions.length - 1].getLiteralValueAtPath(path);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

@@ -1,11 +1,11 @@
-import { ObjectPath, PrimitiveValue, UNKNOWN_VALUE } from '../values';
+import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { LiteralValue } from './Literal';
 
 const unaryOperators: {
-	[operator: string]: (value: LiteralValue) => PrimitiveValue;
+	[operator: string]: (value: LiteralValue) => LiteralValueOrUnknown;
 } = {
 	'-': value => -value,
 	'+': value => +value,
@@ -29,9 +29,9 @@ export default class UnaryExpression extends NodeBase {
 		}
 	}
 
-	getPrimitiveValueAtPath(path: ObjectPath): PrimitiveValue {
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (path.length > 0) return UNKNOWN_VALUE;
-		const argumentValue = this.argument.getPrimitiveValueAtPath([]);
+		const argumentValue = this.argument.getLiteralValueAtPath([]);
 		if (argumentValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		return unaryOperators[this.operator](<LiteralValue>argumentValue);
