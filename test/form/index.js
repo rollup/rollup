@@ -5,9 +5,7 @@ const rollup = require('../../dist/rollup');
 const { extend, loadConfig, normaliseOutput, removeOldTest } = require('../utils.js');
 
 const SAMPLES_DIR = path.resolve(__dirname, 'samples');
-
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
-const CONFIG_FILE_NAME = '_config.js';
 
 describe('form', () => {
 	sander
@@ -20,9 +18,9 @@ describe('form', () => {
 function runTestsInDir(dir) {
 	const fileNames = sander.readdirSync(dir);
 
-	if (fileNames.indexOf(CONFIG_FILE_NAME) >= 0) {
-		runSingleTestInDir(dir);
-	} else if (fileNames.indexOf('_actual') >= 0) {
+	if (fileNames.indexOf('_config.js') >= 0) {
+		runTestCaseInDir(dir);
+	} else if (fileNames.indexOf('_actual') >= 0 || fileNames.indexOf('_actual.js') >= 0) {
 		removeOldTest(dir);
 	} else {
 		describe(path.basename(dir), () => {
@@ -34,84 +32,98 @@ function runTestsInDir(dir) {
 	}
 }
 
-function runSingleTestInDir(dir) {
+function runTestCaseInDir(dir) {
 	const config = loadConfig(dir + '/_config.js');
-
 	if (!config || (config.skipIfWindows && process.platform === 'win32')) return;
-	if (!config.options) {
-		config.options = {};
-	}
 
-	const inputOptions = extend(
-		{},
-		{
-			input: dir + '/main.js',
-			onwarn: msg => {
-				if (/No name was provided for/.test(msg)) return;
-				if (/as external dependency/.test(msg)) return;
-				console.error(msg);
-			}
-		},
-		config.options
-	);
-
-	(config.skip ? describe.skip : config.solo ? describe.only : describe)(path.basename(dir), () => {
-		let promise;
-		const createBundle = () => promise || (promise = rollup.rollup(inputOptions));
-
-		FORMATS.forEach(format => {
-			it('generates ' + format, () => {
+	const isSingleFormatTest = sander.existsSync(dir + '/_expected.js');
+	const itOrDescribe = isSingleFormatTest ? it : describe;
+	(config.skip ? itOrDescribe.skip : config.solo ? itOrDescribe.only : itOrDescribe)(
+		path.basename(dir) + ': ' + config.description,
+		() => {
+			let promise;
+			const runRollupTest = (inputFile, bundleFile, defaultFormat) => {
 				process.chdir(dir);
+				return (
+					promise ||
+					(promise = rollup.rollup(
+						extend(
+							{
+								input: dir + '/main.js',
+								onwarn: msg => {
+									if (/No name was provided for/.test(msg)) return;
+									if (/as external dependency/.test(msg)) return;
+									console.error(msg);
+								}
+							},
+							config.options || {}
+						)
+					))
+				).then(bundle =>
+					generateAndTestBundle(
+						bundle,
+						extend(
+							{
+								file: inputFile,
+								format: defaultFormat
+							},
+							(config.options || {}).output || {}
+						),
+						bundleFile,
+						config
+					)
+				);
+			};
 
-				return createBundle().then(bundle => {
-					const outputOptions = extend(
-						{},
-						{
-							file: dir + '/_actual/' + format + '.js',
-							format
-						},
-						inputOptions.output || {}
-					);
+			if (isSingleFormatTest) {
+				return runRollupTest(dir + '/_actual.js', dir + '/_expected.js', 'esm');
+			}
 
-					return bundle.write(outputOptions).then(() => {
-						const actualCode = normaliseOutput(sander.readFileSync(dir, '_actual', format + '.js'));
-						let expectedCode;
-						let actualMap;
-						let expectedMap;
+			FORMATS.forEach(format =>
+				it('generates ' + format, () =>
+					runRollupTest(
+						dir + '/_actual/' + format + '.js',
+						dir + '/_expected/' + format + '.js',
+						format
+					)
+				)
+			);
+		}
+	);
+}
 
-						try {
-							expectedCode = normaliseOutput(sander.readFileSync(dir, '_expected', format + '.js'));
-						} catch (err) {
-							expectedCode = 'missing file';
-						}
+function generateAndTestBundle(bundle, outputOptions, expectedFile, { show }) {
+	return bundle.write(outputOptions).then(() => {
+		const actualCode = normaliseOutput(sander.readFileSync(outputOptions.file));
+		let expectedCode;
+		let actualMap;
+		let expectedMap;
 
-						try {
-							actualMap = JSON.parse(
-								sander.readFileSync(dir, '_actual', format + '.js.map').toString()
-							);
-							actualMap.sourcesContent = actualMap.sourcesContent.map(normaliseOutput);
-						} catch (err) {
-							assert.equal(err.code, 'ENOENT');
-						}
+		try {
+			expectedCode = normaliseOutput(sander.readFileSync(expectedFile));
+		} catch (err) {
+			expectedCode = 'missing file';
+		}
 
-						try {
-							expectedMap = JSON.parse(
-								sander.readFileSync(dir, '_expected', format + '.js.map').toString()
-							);
-							expectedMap.sourcesContent = expectedMap.sourcesContent.map(normaliseOutput);
-						} catch (err) {
-							assert.equal(err.code, 'ENOENT');
-						}
+		try {
+			actualMap = JSON.parse(sander.readFileSync(outputOptions.file + '.map').toString());
+			actualMap.sourcesContent = actualMap.sourcesContent.map(normaliseOutput);
+		} catch (err) {
+			assert.equal(err.code, 'ENOENT');
+		}
 
-						if (config.show) {
-							console.log(actualCode + '\n\n\n');
-						}
+		try {
+			expectedMap = JSON.parse(sander.readFileSync(expectedFile + '.map').toString());
+			expectedMap.sourcesContent = expectedMap.sourcesContent.map(normaliseOutput);
+		} catch (err) {
+			assert.equal(err.code, 'ENOENT');
+		}
 
-						assert.equal(actualCode, expectedCode);
-						assert.deepEqual(actualMap, expectedMap);
-					});
-				});
-			});
-		});
+		if (show) {
+			console.log(actualCode + '\n\n\n');
+		}
+
+		assert.equal(actualCode, expectedCode);
+		assert.deepEqual(actualMap, expectedMap);
 	});
 }

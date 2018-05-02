@@ -120,7 +120,12 @@ function removeOldTest(dir) {
 	console.warn(
 		`Test configuration in ${dir} not found.\nTrying to clean up no longer existing test...`
 	);
-	sander.rimrafSync(path.join(dir, '_actual'));
+	if (sander.existsSync(path.join(dir, '_actual'))) {
+		sander.rimrafSync(path.join(dir, '_actual'));
+	}
+	if (sander.existsSync(path.join(dir, '_actual.js'))) {
+		sander.unlinkSync(path.join(dir, '_actual.js'));
+	}
 	sander.rmdirSync(dir);
 	console.warn('Directory removed.');
 }
