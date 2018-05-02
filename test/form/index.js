@@ -9,7 +9,7 @@ const SAMPLES_DIR = path.resolve(__dirname, 'samples');
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 const CONFIG_FILE_NAME = '_config.js';
 
-describe.only('form', () => {
+describe('form', () => {
 	sander
 		.readdirSync(SAMPLES_DIR)
 		.filter(name => name[0] !== '.')

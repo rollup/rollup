@@ -1,0 +1,7 @@
+{
+	"unused": "unused string",
+	"development": false,
+	"nested": {
+		"specialConfig": 1
+	}
+}
