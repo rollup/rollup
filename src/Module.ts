@@ -584,6 +584,10 @@ export default class Module {
 		includeFully(this.ast);
 	}
 
+	isIncluded() {
+		return this.ast.included;
+	}
+
 	include(): boolean {
 		this.needsTreeshakingPass = false;
 		if (this.ast.shouldBeIncluded()) this.ast.include();

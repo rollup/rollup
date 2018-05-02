@@ -1,8 +1,8 @@
-System.register(['./first.js', './head.js'], function (exports, module) {
+System.register(['./first.js'], function (exports, module) {
 	'use strict';
 	var head2;
 	return {
-		setters: [function () {}, function (module) {
+		setters: [function (module) {
 			head2 = module.default;
 		}],
 		execute: function () {

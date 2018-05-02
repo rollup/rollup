@@ -119,12 +119,17 @@ export default class Chunk {
 		dependencies: ChunkDependencies;
 		exports: ChunkExports;
 	} = undefined;
+	isEmpty: boolean;
 
 	constructor(graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
 		this.orderedModules = orderedModules;
 
+		this.isEmpty = true;
 		for (const module of orderedModules) {
+			if (this.isEmpty && module.isIncluded()) {
+				this.isEmpty = false;
+			}
 			if (module.chunkAlias) {
 				this.isManualChunk = true;
 			}
@@ -156,30 +161,14 @@ export default class Chunk {
 		return this.orderedModules.map(module => module.id);
 	}
 
-	private inlineDeepModuleDependencies() {
-		// if an entry point facade, inline the execution list to avoid loading latency
-		if (this.isEntryModuleFacade) {
-			const inlineDeepChunkDependencies = (dep: Chunk | ExternalModule) => {
-				if (dep === this || this.dependencies.indexOf(dep) !== -1) {
-					return;
-				}
-				this.dependencies.push(dep);
-				if (dep instanceof Chunk) {
-					dep.dependencies.forEach(inlineDeepChunkDependencies);
-				}
-			};
-			for (const dep of this.dependencies) {
-				if (dep instanceof Chunk) {
-					dep.dependencies.forEach(inlineDeepChunkDependencies);
-				}
-			}
-		} else {
-			// shortcut cross-chunk relations can be added by traceExport
-			for (const module of Array.from(this.imports.values())) {
-				const chunkOrExternal = module instanceof Module ? module.chunk : module;
-				if (this.dependencies.indexOf(chunkOrExternal) === -1) {
-					this.dependencies.push(chunkOrExternal);
-				}
+	private inlineChunkDependencies(chunk: Chunk, deep: boolean) {
+		for (let dep of chunk.dependencies) {
+			if (dep instanceof ExternalModule) {
+				if (this.dependencies.indexOf(dep) === -1) this.dependencies.push(dep);
+			} else {
+				if (dep === this || this.dependencies.indexOf(dep) !== -1) continue;
+				if (!dep.isEmpty) this.dependencies.push(dep);
+				if (deep) this.inlineChunkDependencies(dep, true);
 			}
 		}
 	}
@@ -329,7 +318,8 @@ export default class Chunk {
 			// we follow reexports if they are not entry points in the hope
 			// that we can get an entry point reexport to reduce the chance of
 			// tainting an entryModule chunk by exposing other unnecessary exports
-			if (module.isEntryPoint) return { variable: module.traceExport(name), module };
+			if (module.isEntryPoint && !module.chunk.isEmpty)
+				return { variable: module.traceExport(name), module };
 			return module.chunk.traceExport(name, module);
 		}
 
@@ -779,7 +769,28 @@ export default class Chunk {
 			importMechanism: this.graph.dynamicImport && this.prepareDynamicImports(options)
 		};
 
-		if (this.isEntryModuleFacade) this.inlineDeepModuleDependencies();
+		// if an entry point facade, inline the execution list to avoid loading latency
+		if (this.isEntryModuleFacade) {
+			for (let dep of this.dependencies) {
+				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
+			}
+		} else {
+			// shortcut cross-chunk relations can be added by traceExport
+			for (const module of Array.from(this.imports.values())) {
+				const chunkOrExternal = module instanceof Module ? module.chunk : module;
+				if (this.dependencies.indexOf(chunkOrExternal) === -1) {
+					this.dependencies.push(chunkOrExternal);
+				}
+			}
+		}
+		// prune empty dependency chunks, inlining their side-effect dependencies
+		for (let i = 0; i < this.dependencies.length; i++) {
+			const dep = this.dependencies[i];
+			if (dep instanceof Chunk && dep.isEmpty) {
+				this.dependencies.splice(i--, 1);
+				this.inlineChunkDependencies(dep, false);
+			}
+		}
 
 		this.setIdentifierRenderResolutions(options);
 
@@ -811,11 +822,7 @@ export default class Chunk {
 		this.renderedSourceLength = undefined;
 		this.renderedHash = undefined;
 
-		if (
-			this.getExportNames().length === 0 &&
-			this.getImportIds().length === 0 &&
-			this.renderedSource.isEmpty()
-		) {
+		if (this.getExportNames().length === 0 && this.getImportIds().length === 0 && this.isEmpty) {
 			this.graph.warn({
 				code: 'EMPTY_BUNDLE',
 				message: 'Generated an empty bundle'

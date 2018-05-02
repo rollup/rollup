@@ -1,6 +1,6 @@
-define(['./first.js', './head.js'], function (first, head) { 'use strict';
+define(['./first.js'], function (first) { 'use strict';
 
-	console.log(head.default);
-	console.log(head.default);
+	console.log(first.default);
+	console.log(first.default);
 
 });

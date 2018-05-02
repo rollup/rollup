@@ -452,7 +452,7 @@ export default class Graph {
 				} else {
 					for (const module of orderedModules) {
 						const chunkInstance = new Chunk(this, [module]);
-						chunkInstance.entryModule = module;
+						if (module.isEntryPoint || !chunkInstance.isEmpty) chunkInstance.entryModule = module;
 						chunkList.push(chunkInstance);
 					}
 				}
@@ -463,9 +463,17 @@ export default class Graph {
 					chunk.link();
 				}
 
+				// filter out empty dependencies
+				for (let i = 0; i < chunkList.length; i++) {
+					const chunk = chunkList[i];
+					if (chunk.isEmpty && !chunk.entryModule) {
+						chunkList.splice(i--, 1);
+					}
+				}
+
 				// then go over and ensure all entry chunks export their variables
 				for (const chunk of chunkList) {
-					if (chunk.entryModule) {
+					if (preserveModules || chunk.entryModule) {
 						chunk.populateEntryExports(preserveModules);
 					}
 				}
