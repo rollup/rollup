@@ -16,6 +16,7 @@ import { NodeType } from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { BLANK } from '../../utils/blank';
 import MagicString from 'magic-string';
+import Literal from './Literal';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
 const PROPERTY_KINDS_WRITE = ['init', 'set'];
@@ -187,8 +188,18 @@ export default class ObjectExpression extends NodeBase {
 			const property = this.properties[index];
 			if (kinds.indexOf(property.kind) < 0) continue;
 			if (property.computed) {
-				properties.push(property);
-			} else if ((<Identifier>property.key).name === name) {
+				const value = property.key.getLiteralValueAtPath([]);
+				if (String(value) === name) {
+					properties.push(property);
+					hasCertainHit = true;
+					break;
+				} else if (value === UNKNOWN_VALUE) {
+					properties.push(property);
+				}
+			} else if (
+				(property.key instanceof Identifier && property.key.name === name) ||
+				(property.key instanceof Literal && property.key.value === name)
+			) {
 				properties.push(property);
 				hasCertainHit = true;
 				break;
