@@ -19,21 +19,13 @@ import {
 } from '../values';
 import { BLANK } from '../../utils/blank';
 import Literal from './Literal';
-import MetaProperty, { isMetaProperty } from './MetaProperty';
+import MetaProperty from './MetaProperty';
 
 function getPropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
 		? getComputedPropertyKey(memberExpression.property)
 		: (<Identifier>memberExpression.property).name;
 }
-
-const globalImportMetaUrlMechanism = `(typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || location.href : new URL('file:' + __filename).href)`;
-const importMetaUrlMechanisms: Record<string, string> = {
-	amd: `new URL(module.uri.startsWith('file:') ? module.uri : 'file:' + module.uri).href`,
-	cjs: `new (typeof URL !== 'undefined' ? URL : require('url').URL)('file:' + __filename).href`,
-	iife: globalImportMetaUrlMechanism,
-	umd: globalImportMetaUrlMechanism
-};
 
 function getComputedPropertyKey(propertyKey: ExpressionNode): string | null {
 	if (propertyKey instanceof Literal) {
@@ -223,15 +215,14 @@ export default class MemberExpression extends NodeBase {
 				storeName: true,
 				contentOnly: true
 			});
-		} else if (isMetaProperty(this.object) && this.object.meta.name === 'import') {
+		} else if (this.object instanceof MetaProperty && this.object.meta.name === 'import') {
 			this.context.hasImportMeta = true;
-			if (options.format === 'system') {
-				const object: MetaProperty = this.object;
-				code.overwrite(object.meta.start, object.meta.end, 'module');
-			} else {
-				const importMetaUrlMechanism = importMetaUrlMechanisms[options.format];
-				if (importMetaUrlMechanism) code.overwrite(this.start, this.end, importMetaUrlMechanism);
-			}
+			const importMetaMechanism = this.object.renderImportMetaMechanism(
+				code,
+				this.property instanceof Identifier && this.property.name,
+				options.format
+			);
+			if (importMetaMechanism) code.overwrite(this.start, this.end, importMetaMechanism);
 		} else {
 			if (isCalleeOfDifferentParent) {
 				code.appendRight(this.start, '0, ');
