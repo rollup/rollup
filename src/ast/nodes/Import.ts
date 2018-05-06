@@ -24,11 +24,13 @@ const getDynamicImportMechanism = (format: string, compact: boolean): DynamicImp
 		}
 		case 'amd': {
 			const _ = compact ? '' : ' ';
+			const resolve = compact ? 'c' : 'resolve';
+			const reject = compact ? 'e' : 'reject';
 			return {
-				left: `new Promise(function${_}(resolve,${_}reject)${_}{${_}require([`,
-				right: `],${_}resolve,${_}reject)${_}})`,
-				interopLeft: `new Promise(function${_}(resolve,${_}reject)${_}{${_}require([`,
-				interopRight: `],${_}function${_}(m)${_}{${_}resolve({${_}default:${_}m${_}})${_}},${_}reject)${_}})`
+				left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
+				right: `],${_}${resolve},${_}${reject})${_}})`,
+				interopLeft: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
+				interopRight: `],${_}function${_}(m)${_}{${_}${resolve}({${_}default:${_}m${_}})${_}},${_}${reject})${_}})`
 			};
 		}
 		case 'system':

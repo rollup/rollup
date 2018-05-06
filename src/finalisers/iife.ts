@@ -18,7 +18,7 @@ export default function iife(
 	options: OutputOptions
 ) {
 	const _ = options.compact ? '' : ' ';
-	const nl = options.compact ? '' : '\n';
+	const n = options.compact ? '' : '\n';
 
 	const { extend, name } = options;
 	const isNamespaced = name && name.indexOf('.') !== -1;
@@ -52,9 +52,9 @@ export default function iife(
 		args.unshift('exports');
 	}
 
-	const useStrict = options.strict !== false ? `${t}'use strict';${nl}${nl}` : ``;
+	const useStrict = options.strict !== false ? `${t}'use strict';${n}${n}` : ``;
 
-	let wrapperIntro = `(function${_}(${args})${_}{${nl}${useStrict}`;
+	let wrapperIntro = `(function${_}(${args})${_}{${n}${useStrict}`;
 
 	if (hasExports && !extend) {
 		wrapperIntro =
@@ -66,20 +66,26 @@ export default function iife(
 			setupNamespace(name, 'this', false, options.globals, options.compact) + wrapperIntro;
 	}
 
-	let wrapperOutro = `${nl}${nl}}(${deps}));`;
+	let wrapperOutro = `${n}${n}}(${deps}));`;
 
 	if (!extend && namedExportsMode && hasExports) {
-		wrapperOutro = `${nl}${nl}${t}return exports;${wrapperOutro}`;
+		wrapperOutro = `${n}${n}${t}return exports;${wrapperOutro}`;
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
 	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
-	if (interopBlock) magicString.prepend(interopBlock + nl + nl);
+	if (interopBlock) magicString.prepend(interopBlock + n + n);
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, options.interop, options.compact);
-	if (exportBlock) magicString.append(nl + nl + exportBlock);
+	const exportBlock = getExportBlock(
+		exports,
+		dependencies,
+		namedExportsMode,
+		options.interop,
+		options.compact
+	);
+	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (outro) magicString.append(outro);
 
 	return magicString

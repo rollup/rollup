@@ -3,7 +3,8 @@ module.exports = {
 	options: {
 		output: {
 			name: 'foo',
-			compact: true
+			compact: true,
+			namespaceToStringTag: true
 		}
 	}
 };

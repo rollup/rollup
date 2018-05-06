@@ -22,7 +22,7 @@ export default function system(
 	{ graph, indentString: t, intro, outro, dependencies, exports }: FinaliserOptions,
 	options: OutputOptions
 ) {
-	const nl = options.compact ? '' : '\n';
+	const n = options.compact ? '' : '\n';
 	const _ = options.compact ? '' : ' ';
 
 	const dependencyIds = dependencies.map(m => `'${m.id}'`);
@@ -91,7 +91,7 @@ export default function system(
 				});
 			}
 		}
-		setters.push(setter.join(`${nl}${t}${t}${t}`));
+		setters.push(setter.join(`${n}${t}${t}${t}`));
 	});
 
 	// function declarations hoist
@@ -102,34 +102,34 @@ export default function system(
 
 	const starExcludesSection = !starExcludes
 		? ''
-		: `${nl}${t}${varOrConst} _starExcludes${_}=${_}{${_}${Array.from(starExcludes).join(
+		: `${n}${t}${varOrConst} _starExcludes${_}=${_}{${_}${Array.from(starExcludes).join(
 				`:${_}1,${_}`
 		  )}${starExcludes.size ? `:${_}1` : ''}${_}};`;
 
 	const importBindingsSection = importBindings.length
-		? `${nl}${t}var ${importBindings.join(`,${_}`)};`
+		? `${n}${t}var ${importBindings.join(`,${_}`)};`
 		: '';
 	const registeredName = options.name ? `'${options.name}',${_}` : '';
 
 	let wrapperStart = `System.register(${registeredName}[${dependencyIds.join(
 		`,${_}`
-	)}],${_}function${_}(exports,${_}module)${_}{${nl}`;
-	wrapperStart += `${t}'use strict';${starExcludesSection}${importBindingsSection}${nl}`;
+	)}],${_}function${_}(exports,${_}module)${_}{${n}`;
+	wrapperStart += `${t}'use strict';${starExcludesSection}${importBindingsSection}${n}`;
 	wrapperStart += `${t}return${_}{${
 		setters.length
-			? `${nl}${t}${t}setters:${_}[${setters
+			? `${n}${t}${t}setters:${_}[${setters
 					.map(
 						s =>
 							s
-								? `function${_}(module)${_}{${nl}${t}${t}${t}${s}${nl}${t}${t}}`
+								? `function${_}(module)${_}{${n}${t}${t}${t}${s}${n}${t}${t}}`
 								: `function${_}()${_}{}`
 					)
 					.join(`,${_}`)}],`
 			: ''
-	}${nl}`;
-	wrapperStart += `${t}${t}execute:${_}function${_}()${_}{${nl}${nl}`;
+	}${n}`;
+	wrapperStart += `${t}${t}execute:${_}function${_}()${_}{${n}${n}`;
 	wrapperStart += `${
-		functionExports.length ? `${t}${t}${t}` + functionExports.join(`${nl}${t}${t}${t}`) + nl : ''
+		functionExports.length ? `${t}${t}${t}` + functionExports.join(`${n}${t}${t}${t}`) + n : ''
 	}`;
 
 	if (intro) magicString.prepend(intro);
@@ -138,6 +138,6 @@ export default function system(
 
 	return magicString
 		.indent(`${t}${t}${t}`)
-		.append(`${nl}${nl}${t}${t}}${nl}${t}};${nl}});`)
+		.append(`${n}${n}${t}${t}}${n}${t}};${n}});`)
 		.prepend(wrapperStart);
 }

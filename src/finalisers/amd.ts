@@ -27,7 +27,7 @@ export default function amd(
 
 	const deps = dependencies.map(m => `'${m.id}'`);
 	const args = dependencies.map(m => m.name);
-	const nl = options.compact ? '' : '\n';
+	const n = options.compact ? '' : '\n';
 	const _ = options.compact ? '' : ' ';
 
 	if (namedExportsMode && hasExports) {
@@ -55,22 +55,28 @@ export default function amd(
 	const define = amdOptions.define || 'define';
 	const wrapperStart = `${define}(${params}function${_}(${args.join(
 		`,${_}`
-	)})${_}{${useStrict}${nl}${nl}`;
+	)})${_}{${useStrict}${n}${n}`;
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
 	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
-	if (interopBlock) magicString.prepend(interopBlock + nl + nl);
+	if (interopBlock) magicString.prepend(interopBlock + n + n);
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, options.interop, options.compact);
-	if (exportBlock) magicString.append(nl + nl + exportBlock);
+	const exportBlock = getExportBlock(
+		exports,
+		dependencies,
+		namedExportsMode,
+		options.interop,
+		options.compact
+	);
+	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (namedExportsMode && hasExports && options.legacy !== true && isEntryModuleFacade)
-		magicString.append(`${nl}${nl}${options.compact ? compactEsModuleExport : esModuleExport}`);
+		magicString.append(`${n}${n}${options.compact ? compactEsModuleExport : esModuleExport}`);
 	if (outro) magicString.append(outro);
 
 	return magicString
 		.indent(indentString)
-		.append(nl + nl + '});')
+		.append(n + n + '});')
 		.prepend(wrapperStart);
 }

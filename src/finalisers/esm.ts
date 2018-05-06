@@ -10,7 +10,7 @@ export default function esm(
 	options: OutputOptions
 ) {
 	const _ = options.compact ? '' : ' ';
-	const nl = options.compact ? '' : '\n';
+	const n = options.compact ? '' : '\n';
 
 	const importBlock = dependencies
 		.map(({ id, reexports, imports, name }) => {
@@ -23,7 +23,7 @@ export default function esm(
 				const starImport = imports.find(specifier => specifier.imported === '*');
 				if (starImport) {
 					output += `import${_}*${_}as ${starImport.local} from${_}'${id}';`;
-					if (imports.length > 1) output += nl;
+					if (imports.length > 1) output += n;
 				}
 				if (defaultImport && imports.length === 1) {
 					output += `import ${defaultImport.local} from${_}'${id}';`;
@@ -41,7 +41,7 @@ export default function esm(
 				}
 			}
 			if (reexports) {
-				if (imports) output += nl;
+				if (imports) output += n;
 				const starExport = reexports.find(specifier => specifier.reexported === '*');
 				const namespaceReexport = reexports.find(
 					specifier => specifier.imported === '*' && specifier.reexported !== '*'
@@ -51,14 +51,14 @@ export default function esm(
 					if (reexports.length === 1) {
 						return output;
 					}
-					output += nl;
+					output += n;
 				}
 				if (namespaceReexport) {
 					if (
 						!imports ||
 						!imports.some(specifier => specifier.imported === '*' && specifier.local === name)
 					)
-						output += `import${_}*${_}as ${name} from${_}'${id}';${nl}`;
+						output += `import${_}*${_}as ${name} from${_}'${id}';${n}`;
 					output += `export${_}{${_}${
 						name === namespaceReexport.reexported
 							? name
@@ -67,7 +67,7 @@ export default function esm(
 					if (reexports.length === (starExport ? 2 : 1)) {
 						return output;
 					}
-					output += nl;
+					output += n;
 				}
 				output += `export${_}{${_}${reexports
 					.filter(specifier => specifier !== starExport && specifier !== namespaceReexport)
@@ -82,9 +82,9 @@ export default function esm(
 			}
 			return output;
 		})
-		.join(nl);
+		.join(n);
 
-	if (importBlock) intro += importBlock + nl + nl;
+	if (importBlock) intro += importBlock + n + n;
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock: string[] = [];
@@ -104,7 +104,7 @@ export default function esm(
 		exportBlock.push(`export${_}{${_}${exportDeclaration.join(`,${_}`)}${_}};`);
 	}
 
-	if (exportBlock.length) magicString.append(nl + nl + exportBlock.join(nl).trim());
+	if (exportBlock.length) magicString.append(n + n + exportBlock.join(n).trim());
 
 	if (outro) magicString.append(outro);
 

@@ -28,9 +28,9 @@ export default function umd(
 	options: OutputOptions
 ) {
 	const _ = options.compact ? '' : ' ';
-	const nl = options.compact ? '' : '\n';
+	const n = options.compact ? '' : '\n';
 
-	const wrapperOutro = nl + nl + '})));';
+	const wrapperOutro = n + n + '})));';
 
 	if (hasExports && !options.name) {
 		error({
@@ -74,7 +74,7 @@ export default function umd(
 			? `${setupNamespace(options.name, 'global', true, options.globals, options.compact)}${_}=${_}`
 			: '';
 
-	const useStrict = options.strict !== false ? `${_}'use strict';${nl}` : ``;
+	const useStrict = options.strict !== false ? `${_}'use strict';${n}` : ``;
 
 	let globalExport;
 
@@ -85,42 +85,45 @@ export default function umd(
 			factory = `var exports${_}=${_}factory(${globalDeps});`;
 		} else if (namedExportsMode) {
 			const module = globalDeps.shift();
-			factory = `var exports${_}=${_}${module};${nl}`;
+			factory = `var exports${_}=${_}${module};${n}`;
 			factory += `${t}${t}factory(${['exports'].concat(globalDeps)});`;
 		}
-		globalExport = `(function()${_}{${nl}`;
-		globalExport += `${t}${t}var current${_}=${_}${safeAccess(
-			options.name,
-			options.compact
-		)};${nl}`;
-		globalExport += `${t}${t}${factory}${nl}`;
-		globalExport += `${t}${t}${globalProp(options.name)}${_}=${_}exports;${nl}`;
+		globalExport = `(function()${_}{${n}`;
+		globalExport += `${t}${t}var current${_}=${_}${safeAccess(options.name, options.compact)};${n}`;
+		globalExport += `${t}${t}${factory}${n}`;
+		globalExport += `${t}${t}${globalProp(options.name)}${_}=${_}exports;${n}`;
 		globalExport += `${t}${t}exports.noConflict${_}=${_}function()${_}{${_}`;
 		globalExport += `${globalProp(options.name)}${_}=${_}current;${_}return exports${
 			options.compact ? '' : '; '
-		}};${nl}`;
+		}};${n}`;
 		globalExport += `${t}})()`;
 	} else {
 		globalExport = `(${defaultExport}factory(${globalDeps}))`;
 	}
 
-	let wrapperIntro = `(function${_}(global,${_}factory)${_}{${nl}`;
+	let wrapperIntro = `(function${_}(global,${_}factory)${_}{${n}`;
 	wrapperIntro += `${t}typeof exports${_}===${_}'object'${_}&&${_}typeof module${_}!==${_}'undefined'${_}?`;
-	wrapperIntro += `${_}${cjsExport}factory(${cjsDeps.join(`,${_}`)})${_}:${nl}`;
-	wrapperIntro += `${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}factory)${_}:${nl}`;
-	wrapperIntro += `${t}${globalExport};${nl}`;
-	wrapperIntro += `}(this,${_}(function${_}(${args})${_}{${useStrict}${nl}`;
+	wrapperIntro += `${_}${cjsExport}factory(${cjsDeps.join(`,${_}`)})${_}:${n}`;
+	wrapperIntro += `${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}factory)${_}:${n}`;
+	wrapperIntro += `${t}${globalExport};${n}`;
+	wrapperIntro += `}(this,${_}(function${_}(${args})${_}{${useStrict}${n}`;
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
 	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
-	if (interopBlock) magicString.prepend(interopBlock + nl + nl);
+	if (interopBlock) magicString.prepend(interopBlock + n + n);
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, options.interop, options.compact);
-	if (exportBlock) magicString.append(nl + nl + exportBlock);
+	const exportBlock = getExportBlock(
+		exports,
+		dependencies,
+		namedExportsMode,
+		options.interop,
+		options.compact
+	);
+	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (namedExportsMode && hasExports && options.legacy !== true)
-		magicString.append(nl + nl + (options.compact ? compactEsModuleExport : esModuleExport));
+		magicString.append(n + n + (options.compact ? compactEsModuleExport : esModuleExport));
 	if (outro) magicString.append(outro);
 
 	return magicString

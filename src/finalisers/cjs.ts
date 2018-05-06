@@ -18,13 +18,13 @@ export default function cjs(
 	}: FinaliserOptions,
 	options: OutputOptions
 ) {
-	const nl = options.compact ? '' : '\n';
+	const n = options.compact ? '' : '\n';
 	const _ = options.compact ? '' : ' ';
 
 	intro =
-		(options.strict === false ? intro : `'use strict';${nl}${nl}${intro}`) +
+		(options.strict === false ? intro : `'use strict';${n}${n}${intro}`) +
 		(namedExportsMode && hasExports && options.legacy !== true && isEntryModuleFacade
-			? `${options.compact ? compactEsModuleExport : esModuleExport}${nl}${nl}`
+			? `${options.compact ? compactEsModuleExport : esModuleExport}${n}${n}`
 			: '');
 
 	let needsInterop = false;
@@ -88,7 +88,7 @@ export default function cjs(
 			intro += `function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }\n\n`;
 	}
 
-	if (importBlock) intro += importBlock + nl + nl;
+	if (importBlock) intro += importBlock + n + n;
 
 	const exportBlock = getExportBlock(
 		exports,
@@ -101,7 +101,7 @@ export default function cjs(
 
 	magicString.prepend(intro);
 
-	if (exportBlock) magicString.append(nl + nl + exportBlock);
+	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (outro) magicString.append(outro);
 
 	return magicString;
