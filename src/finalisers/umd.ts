@@ -26,10 +26,19 @@ const wrapperOutro = '\n\n})));';
 
 export default function umd(
 	magicString: MagicStringBundle,
-	{ graph, exportMode, indentString, intro, outro, dependencies, exports }: FinaliserOptions,
+	{
+		graph,
+		namedExportsMode,
+		hasExports,
+		indentString,
+		intro,
+		outro,
+		dependencies,
+		exports
+	}: FinaliserOptions,
 	options: OutputOptions
 ) {
-	if (exportMode !== 'none' && !options.name) {
+	if (hasExports && !options.name) {
 		error({
 			code: 'INVALID_OPTION',
 			message: 'You must supply output.name for UMD bundles'
@@ -45,7 +54,7 @@ export default function umd(
 	const globalDeps = trimmed.map(module => globalProp(module.globalName));
 	const args = trimmed.map(m => m.name);
 
-	if (exportMode === 'named') {
+	if (namedExportsMode && hasExports) {
 		amdDeps.unshift(`'exports'`);
 		cjsDeps.unshift(`exports`);
 		globalDeps.unshift(
@@ -65,9 +74,9 @@ export default function umd(
 
 	const define = amdOptions.define || 'define';
 
-	const cjsExport = exportMode === 'default' ? `module.exports = ` : ``;
+	const cjsExport = !namedExportsMode && hasExports ? `module.exports = ` : ``;
 	const defaultExport =
-		exportMode === 'default'
+		!namedExportsMode && hasExports
 			? `${setupNamespace(options.name, 'global', true, options.globals)} = `
 			: '';
 
@@ -78,9 +87,9 @@ export default function umd(
 	if (options.noConflict === true) {
 		let factory;
 
-		if (exportMode === 'default') {
+		if (!namedExportsMode && hasExports) {
 			factory = `var exports = factory(${globalDeps});`;
-		} else if (exportMode === 'named') {
+		} else if (namedExportsMode) {
 			const module = globalDeps.shift();
 			factory = `var exports = ${module};
 				factory(${['exports'].concat(globalDeps)});`;
@@ -113,9 +122,9 @@ export default function umd(
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, dependencies, exportMode, options.interop);
+	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, options.interop);
 	if (exportBlock) magicString.append('\n\n' + exportBlock);
-	if (exportMode === 'named' && options.legacy !== true)
+	if (namedExportsMode && hasExports && options.legacy !== true)
 		magicString.append(`\n\n${esModuleExport}`);
 	if (outro) magicString.append(outro);
 

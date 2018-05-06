@@ -1,6 +1,6 @@
 'use strict';
 
-var first = require('./first.js');
+var first = { default: require('./first.js') };
 
 console.log(first.default);
 console.log(first.default);

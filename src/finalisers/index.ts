@@ -10,8 +10,9 @@ import { OutputOptions } from '../rollup/types';
 import Graph from '../Graph';
 
 export interface FinaliserOptions {
-	exportMode: string;
 	indentString: string;
+	namedExportsMode: boolean;
+	hasExports: boolean;
 	intro: string;
 	outro: string;
 	dynamicImport: boolean;

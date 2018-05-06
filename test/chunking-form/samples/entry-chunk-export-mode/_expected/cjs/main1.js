@@ -1,5 +1,5 @@
 'use strict';
 
-var main2 = require('./main2.js');
+var main2 = { default: require('./main2.js') };
 
-main2();
+main2.default();
