@@ -19,6 +19,11 @@ export interface ExpressionEntity extends WritableEntity {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): void;
+	/**
+	 * If possible it returns a stringifyable literal value for this node that can be used
+	 * for inlining or comparing values.
+	 * Otherwise it should return UNKNOWN_VALUE.
+	 */
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown;
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
 	hasEffectsWhenCalledAtPath(
