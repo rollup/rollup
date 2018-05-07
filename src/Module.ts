@@ -38,6 +38,7 @@ import { basename, extname } from './utils/path';
 import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
+import ShimVariable from './ast/variables/ShimVariable';
 
 export interface CommentDescription {
 	block: boolean;
@@ -56,7 +57,8 @@ export interface ImportDescription {
 export interface ExportDescription {
 	localName: string;
 	identifier?: string;
-	node: Node;
+	node?: Node;
+	shim?: ShimVariable;
 }
 
 export interface ReexportDescription {
@@ -691,12 +693,12 @@ export default class Module {
 		const removedExports: string[] = [];
 		for (const exportName in this.exports) {
 			const expt = this.exports[exportName];
-			(expt.node.included ? renderedExports : removedExports).push(exportName);
+			(expt.node && expt.node.included ? renderedExports : removedExports).push(exportName);
 		}
 		return { renderedExports, removedExports };
 	}
 
-	traceExport(name: string): Variable {
+	traceExport(name: string, isExportAllSearch?: boolean): Variable {
 		if (name[0] === '*') {
 			// namespace
 			if (name.length === 1) {
@@ -728,19 +730,29 @@ export default class Module {
 
 		const exportDeclaration = this.exports[name];
 		if (exportDeclaration) {
+			if (exportDeclaration.shim) {
+				return exportDeclaration.shim;
+			}
+
 			const name = exportDeclaration.localName;
 			const declaration = this.traceVariable(name) || this.graph.scope.findVariable(name);
 
 			return declaration;
 		}
 
-		if (name === 'default') return;
+		if (name !== 'default') {
+			for (let i = 0; i < this.exportAllModules.length; i += 1) {
+				const module = this.exportAllModules[i];
+				const declaration = module.traceExport(name, true);
 
-		for (let i = 0; i < this.exportAllModules.length; i += 1) {
-			const module = this.exportAllModules[i];
-			const declaration = module.traceExport(name);
+				if (declaration) return declaration;
+			}
+		}
 
-			if (declaration) return declaration;
+		// we don't want to create shims when we are just
+		// probing export * modules for exports
+		if (this.graph.shimMissingExports && !isExportAllSearch) {
+			return this.shimMissingExport(name);
 		}
 	}
 
@@ -756,5 +768,20 @@ export default class Module {
 
 		warning.id = this.id;
 		this.graph.warn(warning);
+	}
+
+	shimMissingExport(name: string) {
+		// dedupe multiple broken exports per module
+		let shim = Object.keys(this.exports)
+			.map(name => this.exports[name].shim)
+			.filter(Boolean)[0];
+		if (!shim) {
+			shim = new ShimVariable('$$shim');
+		}
+		this.exports[name] = {
+			localName: name,
+			shim
+		};
+		return shim;
 	}
 }

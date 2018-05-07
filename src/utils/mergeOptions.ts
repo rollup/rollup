@@ -215,6 +215,7 @@ function getInputOptions(
 		preferConst: getOption('preferConst'),
 		preserveSymlinks: getOption('preserveSymlinks'),
 		treeshake: getObjectOption(config, command, 'treeshake'),
+		shimMissingExports: getOption('shimMissingExports'),
 		watch: config.watch
 	};
 
@@ -248,13 +249,13 @@ function getOutputOptions(
 		chunkFileNames: getOption('chunkFileNames'),
 		compact: getOption('compact', false),
 		entryFileNames: getOption('entryFileNames'),
+		esModule: getOption('esModule', true),
 		exports: getOption('exports'),
 		extend: getOption('extend'),
 		file: getOption('file'),
 		footer: getOption('footer'),
 		format: format === 'esm' ? 'es' : format,
 		freeze: getOption('freeze', true),
-		esModule: getOption('esModule', true),
 		globals: getOption('globals'),
 		indent: getOption('indent', true),
 		interop: getOption('interop', true),

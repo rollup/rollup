@@ -60,6 +60,7 @@ export default class Graph {
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
 	scope: GlobalScope;
+	shimMissingExports: boolean;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
 
@@ -152,6 +153,8 @@ export default class Graph {
 
 		this.load = first([...loaders, load]);
 
+		this.shimMissingExports = options.shimMissingExports;
+
 		this.handleMissingExport = firstSync(
 			this.plugins
 				.map(plugin => plugin.missingExport)
@@ -172,7 +175,7 @@ export default class Graph {
 						);
 					};
 				})
-				.concat(handleMissingExport)
+				.concat(this.shimMissingExports ? () => {} : handleMissingExport)
 		);
 
 		this.scope = new GlobalScope();

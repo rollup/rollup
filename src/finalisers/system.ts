@@ -116,6 +116,8 @@ export default function system(
 		hoistedExports.push(`});`);
 	}
 
+	const shimExports = exports.filter(expt => expt.shim).map(expt => `exports('${expt.exported}',${_}${expt.uninitialized ? 'void 0' : expt.local});`);
+
 	const starExcludesSection = !starExcludes
 		? ''
 		: `${n}${t}${varOrConst} _starExcludes${_}=${_}{${_}${Array.from(starExcludes).join(
@@ -147,12 +149,19 @@ export default function system(
 	if (hoistedExports.length)
 		wrapperStart += `${t}${t}${t}` + hoistedExports.join(`${n}${t}${t}${t}`) + n + n;
 
+	let wrapperEnd = `${n}${
+		shimExports.length ? `${t}${t}${t}` + shimExports.join(`${n}${t}${t}${t}`) + n : ''
+	}`;
+	wrapperEnd += `${n}${t}${t}}`;
+	wrapperEnd += `${n}${t}}${options.compact ? '' : ';'}`;
+	wrapperEnd += `${n}});`;
+
 	if (intro) magicString.prepend(intro);
 
 	if (outro) magicString.append(outro);
 
 	return magicString
 		.indent(`${t}${t}${t}`)
-		.append(`${n}${n}${t}${t}}${n}${t}}${options.compact ? '' : ';'}${n}});`)
+		.append(wrapperEnd)
 		.prepend(wrapperStart);
 }
