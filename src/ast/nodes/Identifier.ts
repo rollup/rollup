@@ -1,6 +1,6 @@
 import { Node, NodeBase } from './shared/Node';
 import isReference from 'is-reference';
-import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
+import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import Variable from '../variables/Variable';
 import CallOptions from '../CallOptions';
@@ -70,6 +70,13 @@ export default class Identifier extends NodeBase {
 		if (this.variable !== null) {
 			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 		}
+	}
+
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+		if (this.variable !== null) {
+			return this.variable.getLiteralValueAtPath(path);
+		}
+		return UNKNOWN_VALUE;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {

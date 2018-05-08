@@ -1,7 +1,7 @@
 import { WritableEntity } from '../../Entity';
 import CallOptions from '../../CallOptions';
 import ExecutionPathOptions from '../../ExecutionPathOptions';
-import { ObjectPath } from '../../values';
+import { ObjectPath, LiteralValueOrUnknown } from '../../values';
 
 export type PredicateFunction = (node: ExpressionEntity) => boolean;
 export type SomeReturnExpressionCallback = (options: ExecutionPathOptions) => PredicateFunction;
@@ -19,7 +19,12 @@ export interface ExpressionEntity extends WritableEntity {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): void;
-	getValue(): any;
+	/**
+	 * If possible it returns a stringifyable literal value for this node that can be used
+	 * for inlining or comparing values.
+	 * Otherwise it should return UNKNOWN_VALUE.
+	 */
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown;
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,

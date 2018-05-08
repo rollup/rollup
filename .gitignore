@@ -3,6 +3,7 @@
 .gobble*
 dist
 _actual
+_actual.js
 coverage
 .commithash
 .idea

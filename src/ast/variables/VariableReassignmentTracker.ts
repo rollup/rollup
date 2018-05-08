@@ -1,90 +1,59 @@
-import {
-	ObjectPath,
-	ObjectPathKey,
-	PathCallback,
-	PathPredicate,
-	UNKNOWN_EXPRESSION,
-	UNKNOWN_KEY
-} from '../values';
+import { ObjectPath, UNKNOWN_KEY } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 
-class ReassignedPathTracker {
-	private reassigned: boolean = false;
-	private unknownReassignedSubPath: boolean = false;
-	private subPaths: Map<ObjectPathKey, ReassignedPathTracker> = new Map();
-
-	isReassigned(path: ObjectPath): boolean {
-		if (path.length === 0) {
-			return this.reassigned;
-		}
-		const [subPath, ...remainingPath] = path;
-		return (
-			this.unknownReassignedSubPath ||
-			(this.subPaths.has(subPath) && this.subPaths.get(subPath).isReassigned(remainingPath))
-		);
-	}
-
-	reassignPath(path: ObjectPath) {
-		if (this.reassigned) return;
-		if (path.length === 0) {
-			this.reassigned = true;
-		} else {
-			this.reassignSubPath(path);
-		}
-	}
-
-	reassignSubPath(path: ObjectPath) {
-		if (this.unknownReassignedSubPath) return;
-		const [subPath, ...remainingPath] = path;
-		if (subPath === UNKNOWN_KEY) {
-			this.unknownReassignedSubPath = true;
-		} else {
-			if (!this.subPaths.has(<string>subPath)) {
-				this.subPaths.set(<string>subPath, new ReassignedPathTracker());
-			}
-			this.subPaths.get(<string>subPath).reassignPath(remainingPath);
-		}
-	}
-
-	someReassignedPath(path: ObjectPath, callback: PathPredicate): boolean {
-		return this.reassigned
-			? callback(path, UNKNOWN_EXPRESSION)
-			: path.length >= 1 && this.onSubPathIfReassigned(path, callback);
-	}
-
-	onSubPathIfReassigned(path: ObjectPath, callback: PathPredicate): boolean {
-		const [subPath, ...remainingPath] = path;
-		return this.unknownReassignedSubPath || subPath === UNKNOWN_KEY
-			? callback(remainingPath, UNKNOWN_EXPRESSION)
-			: this.subPaths.has(<string>subPath) &&
-					this.subPaths.get(<string>subPath).someReassignedPath(remainingPath, callback);
-	}
-}
+type PropertyReassignmentInfo = {
+	properties: {
+		[key: string]: PropertyReassignmentInfo;
+	};
+	isReassigned: boolean;
+	hasUnknownReassignedProperty: boolean;
+};
 
 export default class VariableReassignmentTracker {
 	private initialExpression: ExpressionEntity;
-	private reassignedPathTracker: ReassignedPathTracker = new ReassignedPathTracker();
+	private reassignedPaths: PropertyReassignmentInfo = {
+		properties: Object.create(null),
+		isReassigned: false,
+		hasUnknownReassignedProperty: false
+	};
 
 	constructor(initialExpression: ExpressionEntity) {
 		this.initialExpression = initialExpression;
+	}
+
+	isPathReassigned(path: ObjectPath): boolean {
+		if (this.reassignedPaths.isReassigned) return true;
+		let currentProperty = this.reassignedPaths;
+		for (let keyIndex = 0; keyIndex < path.length; keyIndex++) {
+			const key = path[keyIndex];
+			if (currentProperty.hasUnknownReassignedProperty || key === UNKNOWN_KEY) return true;
+			if (!currentProperty.properties[<string>key]) return false;
+			currentProperty = currentProperty.properties[<string>key];
+			if (currentProperty.isReassigned) return true;
+		}
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length > 0) {
 			this.initialExpression && this.initialExpression.reassignPath(path, options);
 		}
-		this.reassignedPathTracker.reassignPath(path);
-	}
-
-	forEachAtPath(path: ObjectPath, callback: PathCallback) {
-		this.initialExpression && callback(path, this.initialExpression);
-	}
-
-	someAtPath(path: ObjectPath, predicateFunction: PathPredicate) {
-		return (
-			this.reassignedPathTracker.someReassignedPath(path, predicateFunction) ||
-			(this.initialExpression && predicateFunction(path, this.initialExpression))
-		);
+		let currentProperty = this.reassignedPaths;
+		for (let keyIndex = 0; keyIndex < path.length; keyIndex++) {
+			if (currentProperty.isReassigned || currentProperty.hasUnknownReassignedProperty) return;
+			const key = path[keyIndex];
+			if (key === UNKNOWN_KEY) {
+				currentProperty.hasUnknownReassignedProperty = true;
+				return;
+			}
+			currentProperty =
+				currentProperty.properties[<string>key] ||
+				(currentProperty.properties[<string>key] = {
+					properties: Object.create(null),
+					isReassigned: false,
+					hasUnknownReassignedProperty: false
+				});
+		}
+		currentProperty.isReassigned = true;
 	}
 }

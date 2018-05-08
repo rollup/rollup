@@ -9,7 +9,7 @@ import {
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from '../nodes/shared/Expression';
-import { ObjectPath } from '../values';
+import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
 import { Node } from '../nodes/shared/Node';
 import { NodeType } from '../nodes/NodeType';
 
@@ -17,8 +17,9 @@ import { NodeType } from '../nodes/NodeType';
 const MAX_PATH_DEPTH = 7;
 
 export default class LocalVariable extends Variable {
-	declarations: Set<Identifier | ExportDefaultDeclaration>;
-	boundExpressions: VariableReassignmentTracker;
+	declarations: (Identifier | ExportDefaultDeclaration)[];
+	reassignments: VariableReassignmentTracker;
+	init: ExpressionEntity;
 
 	constructor(
 		name: string,
@@ -26,12 +27,13 @@ export default class LocalVariable extends Variable {
 		init: ExpressionEntity
 	) {
 		super(name);
-		this.declarations = new Set(declarator ? [declarator] : null);
-		this.boundExpressions = new VariableReassignmentTracker(init);
+		this.declarations = declarator ? [declarator] : [];
+		this.reassignments = new VariableReassignmentTracker(init);
+		this.init = init;
 	}
 
 	addDeclaration(identifier: Identifier) {
-		this.declarations.add(identifier);
+		this.declarations.push(identifier);
 	}
 
 	forEachReturnExpressionWhenCalledAtPath(
@@ -40,50 +42,53 @@ export default class LocalVariable extends Variable {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		if (path.length > MAX_PATH_DEPTH) return;
-		this.boundExpressions.forEachAtPath(
-			path,
-			(relativePath, node) =>
-				!options.hasNodeBeenCalledAtPathWithOptions(relativePath, node, callOptions) &&
-				node.forEachReturnExpressionWhenCalledAtPath(
-					relativePath,
-					callOptions,
-					callback,
-					options.addCalledNodeAtPathWithOptions(relativePath, node, callOptions)
-				)
-		);
+		if (
+			this.init &&
+			path.length <= MAX_PATH_DEPTH &&
+			!options.hasNodeBeenCalledAtPathWithOptions(path, this.init, callOptions) &&
+			!this.reassignments.isPathReassigned(path)
+		) {
+			this.init.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				options.addCalledNodeAtPathWithOptions(path, this.init, callOptions)
+			);
+		}
+	}
+
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+		if (!this.init || this.reassignments.isPathReassigned(path)) {
+			return UNKNOWN_VALUE;
+		}
+		return this.init.getLiteralValueAtPath(path);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+		if (path.length === 0) return false;
 		return (
 			path.length > MAX_PATH_DEPTH ||
-			this.boundExpressions.someAtPath(
-				path,
-				(relativePath, node) =>
-					relativePath.length > 0 &&
-					!options.hasNodeBeenAccessedAtPath(relativePath, node) &&
-					node.hasEffectsWhenAccessedAtPath(
-						relativePath,
-						options.addAccessedNodeAtPath(relativePath, node)
-					)
-			)
+			this.reassignments.isPathReassigned(path.slice(0, path.length - 1)) ||
+			(this.init &&
+				!options.hasNodeBeenAccessedAtPath(path, this.init) &&
+				this.init.hasEffectsWhenAccessedAtPath(
+					path,
+					options.addAccessedNodeAtPath(path, this.init)
+				))
 		);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+		if (this.included || path.length > MAX_PATH_DEPTH) return true;
+		if (path.length === 0) return false;
 		return (
-			this.included ||
-			path.length > MAX_PATH_DEPTH ||
-			this.boundExpressions.someAtPath(
-				path,
-				(relativePath, node) =>
-					relativePath.length > 0 &&
-					!options.hasNodeBeenAssignedAtPath(relativePath, node) &&
-					node.hasEffectsWhenAssignedAtPath(
-						relativePath,
-						options.addAssignedNodeAtPath(relativePath, node)
-					)
-			)
+			this.reassignments.isPathReassigned(path.slice(0, path.length - 1)) ||
+			(this.init &&
+				!options.hasNodeBeenAssignedAtPath(path, this.init) &&
+				this.init.hasEffectsWhenAssignedAtPath(
+					path,
+					options.addAssignedNodeAtPath(path, this.init)
+				))
 		);
 	}
 
@@ -92,29 +97,26 @@ export default class LocalVariable extends Variable {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	) {
+		if (path.length > MAX_PATH_DEPTH || (this.included && path.length > 0)) return true;
 		return (
-			path.length > MAX_PATH_DEPTH ||
-			(this.included && path.length > 0) ||
-			this.boundExpressions.someAtPath(
-				path,
-				(relativePath, node) =>
-					!options.hasNodeBeenCalledAtPathWithOptions(relativePath, node, callOptions) &&
-					node.hasEffectsWhenCalledAtPath(
-						relativePath,
-						callOptions,
-						options.addCalledNodeAtPathWithOptions(relativePath, node, callOptions)
-					)
-			)
+			this.reassignments.isPathReassigned(path) ||
+			(this.init &&
+				!options.hasNodeBeenCalledAtPathWithOptions(path, this.init, callOptions) &&
+				this.init.hasEffectsWhenCalledAtPath(
+					path,
+					callOptions,
+					options.addCalledNodeAtPathWithOptions(path, this.init, callOptions)
+				))
 		);
 	}
 
 	include() {
 		if (!this.included) {
 			this.included = true;
-			this.declarations.forEach((node: Node) => {
+			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
-				if (!node.included) node.include();
-				node = <Node>node.parent;
+				if (!declaration.included) declaration.include();
+				let node = <Node>declaration.parent;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch
 					// in which case .include() might pull in more dead code
@@ -122,7 +124,7 @@ export default class LocalVariable extends Variable {
 					if (node.type === NodeType.Program) break;
 					node = <Node>node.parent;
 				}
-			});
+			}
 		}
 	}
 
@@ -132,7 +134,7 @@ export default class LocalVariable extends Variable {
 			this.isReassigned = true;
 		}
 		if (!options.hasNodeBeenAssignedAtPath(path, this)) {
-			this.boundExpressions.reassignPath(path, options.addAssignedNodeAtPath(path, this));
+			this.reassignments.reassignPath(path, options.addAssignedNodeAtPath(path, this));
 		}
 	}
 
@@ -142,20 +144,17 @@ export default class LocalVariable extends Variable {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
+		if (path.length > MAX_PATH_DEPTH || (this.included && path.length > 0)) return true;
 		return (
-			path.length > MAX_PATH_DEPTH ||
-			(this.included && path.length > 0) ||
-			this.boundExpressions.someAtPath(
-				path,
-				(relativePath, node) =>
-					!options.hasNodeBeenCalledAtPathWithOptions(relativePath, node, callOptions) &&
-					node.someReturnExpressionWhenCalledAtPath(
-						relativePath,
-						callOptions,
-						predicateFunction,
-						options.addCalledNodeAtPathWithOptions(relativePath, node, callOptions)
-					)
-			)
+			this.reassignments.isPathReassigned(path) ||
+			(this.init &&
+				!options.hasNodeBeenCalledAtPathWithOptions(path, this.init, callOptions) &&
+				this.init.someReturnExpressionWhenCalledAtPath(
+					path,
+					callOptions,
+					predicateFunction,
+					options.addCalledNodeAtPathWithOptions(path, this.init, callOptions)
+				))
 		);
 	}
 }

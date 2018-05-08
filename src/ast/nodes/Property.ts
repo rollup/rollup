@@ -1,6 +1,6 @@
 import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import CallOptions from '../CallOptions';
-import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
+import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import {
@@ -47,6 +47,13 @@ export default class Property extends NodeBase {
 		} else {
 			this.value.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 		}
+	}
+
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+		if (this.kind === 'get') {
+			return UNKNOWN_VALUE;
+		}
+		return this.value.getLiteralValueAtPath(path);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

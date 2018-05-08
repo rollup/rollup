@@ -15,7 +15,11 @@ export default class AssignmentExpression extends NodeBase {
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return super.hasEffects(options) || this.left.hasEffectsWhenAssignedAtPath([], options);
+		return (
+			this.right.hasEffects(options) ||
+			this.left.hasEffects(options) ||
+			this.left.hasEffectsWhenAssignedAtPath([], options)
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {

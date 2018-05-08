@@ -1,4 +1,4 @@
-import { ObjectPath, UNKNOWN_VALUE } from '../values';
+import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
@@ -18,6 +18,7 @@ export default class LogicalExpression extends NodeBase {
 	right: ExpressionNode;
 
 	private hasUnknownLeftValue: boolean;
+	private isOrExpression: boolean;
 
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
@@ -29,25 +30,25 @@ export default class LogicalExpression extends NodeBase {
 		if (leftValue === UNKNOWN_VALUE) {
 			this.left.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 			this.right.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
-		} else if (leftValue === (this.operator === '||')) {
+		} else if (this.isOrExpression ? leftValue : !leftValue) {
 			this.left.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 		} else {
 			this.right.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 		}
 	}
 
-	getValue(): any {
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue();
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
-		if (leftValue === (this.operator === '||')) return leftValue;
-		return this.right.getValue();
+		if (this.isOrExpression ? leftValue : !leftValue) return leftValue;
+		return this.right.getLiteralValueAtPath(path);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		if (this.left.hasEffects(options)) return true;
 		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue();
 		return (
-			(leftValue === UNKNOWN_VALUE || leftValue === (this.operator === '&&')) &&
+			(leftValue === UNKNOWN_VALUE || (this.isOrExpression ? !leftValue : leftValue)) &&
 			this.right.hasEffects(options)
 		);
 	}
@@ -61,7 +62,9 @@ export default class LogicalExpression extends NodeBase {
 				this.right.hasEffectsWhenAccessedAtPath(path, options)
 			);
 		}
-		return leftValue === (this.operator === '||')
+		return (this.isOrExpression
+		? leftValue
+		: !leftValue)
 			? this.left.hasEffectsWhenAccessedAtPath(path, options)
 			: this.right.hasEffectsWhenAccessedAtPath(path, options);
 	}
@@ -75,7 +78,9 @@ export default class LogicalExpression extends NodeBase {
 				this.right.hasEffectsWhenAssignedAtPath(path, options)
 			);
 		}
-		return leftValue === (this.operator === '||')
+		return (this.isOrExpression
+		? leftValue
+		: !leftValue)
 			? this.left.hasEffectsWhenAssignedAtPath(path, options)
 			: this.right.hasEffectsWhenAssignedAtPath(path, options);
 	}
@@ -92,7 +97,9 @@ export default class LogicalExpression extends NodeBase {
 				this.right.hasEffectsWhenCalledAtPath(path, callOptions, options)
 			);
 		}
-		return leftValue === (this.operator === '||')
+		return (this.isOrExpression
+		? leftValue
+		: !leftValue)
 			? this.left.hasEffectsWhenCalledAtPath(path, callOptions, options)
 			: this.right.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
@@ -102,12 +109,12 @@ export default class LogicalExpression extends NodeBase {
 		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue();
 		if (
 			leftValue === UNKNOWN_VALUE ||
-			leftValue === (this.operator === '||') ||
+			(this.isOrExpression ? leftValue : !leftValue) ||
 			this.left.shouldBeIncluded()
 		) {
 			this.left.include();
 		}
-		if (leftValue === UNKNOWN_VALUE || leftValue === (this.operator === '&&')) {
+		if (leftValue === UNKNOWN_VALUE || (this.isOrExpression ? !leftValue : leftValue)) {
 			this.right.include();
 		}
 	}
@@ -115,6 +122,7 @@ export default class LogicalExpression extends NodeBase {
 	initialise() {
 		this.included = false;
 		this.hasUnknownLeftValue = false;
+		this.isOrExpression = this.operator === '||';
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -123,7 +131,7 @@ export default class LogicalExpression extends NodeBase {
 			if (leftValue === UNKNOWN_VALUE) {
 				this.left.reassignPath(path, options);
 				this.right.reassignPath(path, options);
-			} else if (leftValue === (this.operator === '||')) {
+			} else if (this.isOrExpression ? leftValue : !leftValue) {
 				this.left.reassignPath(path, options);
 			} else {
 				this.right.reassignPath(path, options);
@@ -174,7 +182,9 @@ export default class LogicalExpression extends NodeBase {
 				)
 			);
 		}
-		return leftValue === (this.operator === '||')
+		return (this.isOrExpression
+		? leftValue
+		: !leftValue)
 			? this.left.someReturnExpressionWhenCalledAtPath(
 					path,
 					callOptions,
@@ -191,7 +201,7 @@ export default class LogicalExpression extends NodeBase {
 
 	private getLeftValue() {
 		if (this.hasUnknownLeftValue) return UNKNOWN_VALUE;
-		const value = this.left.getValue();
+		const value = this.left.getLiteralValueAtPath([]);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownLeftValue = true;
 		}
