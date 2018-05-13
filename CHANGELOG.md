@@ -12,6 +12,7 @@
 * Fix an issue when using default exports and `interop: false` ([#2149](https://github.com/rollup/rollup/pull/2149))
 * Fix file paths in source maps ([#2161](https://github.com/rollup/rollup/pull/2161))
 * Fix wrong file name in error message ([#2137](https://github.com/rollup/rollup/pull/2137))
+* Always use npm 5 on CI ([#2185](https://github.com/rollup/rollup/pull/2185))
 
 ## 0.58.2
 *2018-04-23*
