@@ -11,6 +11,7 @@ export type ObjectPath = ObjectPathKey[];
 
 export interface MemberDescription {
 	returns: ExpressionEntity;
+	mutatesSelf: boolean;
 	callsArgs: number[] | null;
 }
 
@@ -42,10 +43,13 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	toString: () => '[[UNKNOWN]]'
 };
 const returnsUnknown: RawMemberDescription = {
-	value: { returns: UNKNOWN_EXPRESSION, callsArgs: null }
+	value: { returns: UNKNOWN_EXPRESSION, callsArgs: null, mutatesSelf: false }
+};
+const mutatesSelfReturnsUnknown: RawMemberDescription = {
+	value: { returns: UNKNOWN_EXPRESSION, callsArgs: null, mutatesSelf: true }
 };
 const callsArgReturnsUnknown: RawMemberDescription = {
-	value: { returns: UNKNOWN_EXPRESSION, callsArgs: [0] }
+	value: { returns: UNKNOWN_EXPRESSION, callsArgs: [0], mutatesSelf: false }
 };
 
 export const UNKNOWN_ARRAY_EXPRESSION: ExpressionEntity = {
@@ -56,7 +60,7 @@ export const UNKNOWN_ARRAY_EXPRESSION: ExpressionEntity = {
 	hasEffectsWhenAssignedAtPath: path => path.length > 1,
 	hasEffectsWhenCalledAtPath: (path, callOptions, options) => {
 		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(arrayMembers, path[0], callOptions, options);
+			return hasMemberEffectWhenCalled(arrayMembers, path[0], false, callOptions, options);
 		}
 		return true;
 	},
@@ -80,10 +84,16 @@ export const UNKNOWN_ARRAY_EXPRESSION: ExpressionEntity = {
 	toString: () => '[[UNKNOWN ARRAY]]'
 };
 const returnsArray: RawMemberDescription = {
-	value: { returns: UNKNOWN_ARRAY_EXPRESSION, callsArgs: null }
+	value: { returns: UNKNOWN_ARRAY_EXPRESSION, callsArgs: null, mutatesSelf: false }
+};
+const mutatesSelfReturnsArray: RawMemberDescription = {
+	value: { returns: UNKNOWN_ARRAY_EXPRESSION, callsArgs: null, mutatesSelf: true }
 };
 const callsArgReturnsArray: RawMemberDescription = {
-	value: { returns: UNKNOWN_ARRAY_EXPRESSION, callsArgs: [0] }
+	value: { returns: UNKNOWN_ARRAY_EXPRESSION, callsArgs: [0], mutatesSelf: false }
+};
+const callsArgMutatesSelfReturnsArray: RawMemberDescription = {
+	value: { returns: UNKNOWN_ARRAY_EXPRESSION, callsArgs: [0], mutatesSelf: true }
 };
 
 const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
@@ -118,10 +128,10 @@ const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 	toString: () => '[[UNKNOWN BOOLEAN]]'
 };
 const returnsBoolean: RawMemberDescription = {
-	value: { returns: UNKNOWN_LITERAL_BOOLEAN, callsArgs: null }
+	value: { returns: UNKNOWN_LITERAL_BOOLEAN, callsArgs: null, mutatesSelf: false }
 };
 const callsArgReturnsBoolean: RawMemberDescription = {
-	value: { returns: UNKNOWN_LITERAL_BOOLEAN, callsArgs: [0] }
+	value: { returns: UNKNOWN_LITERAL_BOOLEAN, callsArgs: [0], mutatesSelf: false }
 };
 
 const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
@@ -156,10 +166,13 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 	toString: () => '[[UNKNOWN NUMBER]]'
 };
 const returnsNumber: RawMemberDescription = {
-	value: { returns: UNKNOWN_LITERAL_NUMBER, callsArgs: null }
+	value: { returns: UNKNOWN_LITERAL_NUMBER, callsArgs: null, mutatesSelf: false }
+};
+const mutatesSelfReturnsNumber: RawMemberDescription = {
+	value: { returns: UNKNOWN_LITERAL_NUMBER, callsArgs: null, mutatesSelf: true }
 };
 const callsArgReturnsNumber: RawMemberDescription = {
-	value: { returns: UNKNOWN_LITERAL_NUMBER, callsArgs: [0] }
+	value: { returns: UNKNOWN_LITERAL_NUMBER, callsArgs: [0], mutatesSelf: false }
 };
 
 const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
@@ -194,10 +207,7 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 	toString: () => '[[UNKNOWN STRING]]'
 };
 const returnsString: RawMemberDescription = {
-	value: { returns: UNKNOWN_LITERAL_STRING, callsArgs: null }
-};
-const callsSecondArgReturnsString: RawMemberDescription = {
-	value: { returns: UNKNOWN_LITERAL_STRING, callsArgs: [1] }
+	value: { returns: UNKNOWN_LITERAL_STRING, callsArgs: null, mutatesSelf: false }
 };
 
 export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
@@ -244,9 +254,9 @@ export const objectMembers: MemberDescriptions = assembleMemberDescriptions({
 export const arrayMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
 		concat: returnsArray,
-		copyWithin: returnsArray,
+		copyWithin: mutatesSelfReturnsArray,
 		every: callsArgReturnsBoolean,
-		fill: returnsArray,
+		fill: mutatesSelfReturnsArray,
 		filter: callsArgReturnsArray,
 		find: callsArgReturnsUnknown,
 		findIndex: callsArgReturnsNumber,
@@ -256,17 +266,17 @@ export const arrayMembers: MemberDescriptions = assembleMemberDescriptions(
 		join: returnsString,
 		lastIndexOf: returnsNumber,
 		map: callsArgReturnsArray,
-		pop: returnsUnknown,
-		push: returnsNumber,
+		pop: mutatesSelfReturnsUnknown,
+		push: mutatesSelfReturnsNumber,
 		reduce: callsArgReturnsUnknown,
 		reduceRight: callsArgReturnsUnknown,
-		reverse: returnsArray,
-		shift: returnsUnknown,
+		reverse: mutatesSelfReturnsArray,
+		shift: mutatesSelfReturnsUnknown,
 		slice: returnsArray,
 		some: callsArgReturnsBoolean,
-		sort: callsArgReturnsArray,
-		splice: returnsArray,
-		unshift: returnsNumber
+		sort: callsArgMutatesSelfReturnsArray,
+		splice: mutatesSelfReturnsArray,
+		unshift: mutatesSelfReturnsNumber
 	},
 	objectMembers
 );
@@ -305,7 +315,9 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 		padEnd: returnsString,
 		padStart: returnsString,
 		repeat: returnsString,
-		replace: callsSecondArgReturnsString,
+		replace: {
+			value: { returns: UNKNOWN_LITERAL_STRING, callsArgs: [1], mutatesSelf: false }
+		},
 		search: returnsNumber,
 		slice: returnsString,
 		split: returnsArray,
@@ -338,10 +350,12 @@ export function getLiteralMembersForValue<T = LiteralValue>(value: T) {
 export function hasMemberEffectWhenCalled(
 	members: MemberDescriptions,
 	memberName: ObjectPathKey,
+	parentIncluded: boolean,
 	callOptions: CallOptions,
 	options: ExecutionPathOptions
 ) {
 	if (typeof memberName !== 'string' || !members[memberName]) return true;
+	if (members[memberName].mutatesSelf && parentIncluded) return true;
 	if (!members[memberName].callsArgs) return false;
 	for (const argIndex of members[memberName].callsArgs) {
 		if (
@@ -369,7 +383,7 @@ export function someMemberReturnExpressionWhenCalled(
 	options: ExecutionPathOptions
 ) {
 	return (
-		hasMemberEffectWhenCalled(members, memberName, callOptions, options) ||
+		hasMemberEffectWhenCalled(members, memberName, false, callOptions, options) ||
 		// if calling has no effect, memberName is a string and members[memberName] exists
 		predicateFunction(options)(members[<string>memberName].returns)
 	);

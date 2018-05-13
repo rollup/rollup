@@ -97,8 +97,7 @@ export default class LocalVariable extends Variable {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	) {
-		// The "included && path.length > 0" check is needed for mutating methods on arrays
-		if (path.length > MAX_PATH_DEPTH || (this.included && path.length > 0)) return true;
+		if (path.length > MAX_PATH_DEPTH) return true;
 		return (
 			this.reassignments.isPathReassigned(path) ||
 			(this.init &&

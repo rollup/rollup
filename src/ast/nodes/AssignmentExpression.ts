@@ -2,7 +2,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import { PatternNode } from './shared/Pattern';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import * as NodeType from './NodeType';
-import { ObjectPath } from '../values';
+import { ObjectPath, UNKNOWN_KEY } from '../values';
 
 export default class AssignmentExpression extends NodeBase {
 	type: NodeType.tAssignmentExpression;
@@ -12,6 +12,8 @@ export default class AssignmentExpression extends NodeBase {
 	bind() {
 		super.bind();
 		this.left.reassignPath([], ExecutionPathOptions.create());
+		// We can not propagate mutations of the new binding to the old binding with certainty
+		this.right.reassignPath([UNKNOWN_KEY], ExecutionPathOptions.create());
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

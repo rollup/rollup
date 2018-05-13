@@ -1,37 +1,34 @@
 var unknownValue = globalFunction();
+var foo = { x: () => {}, y: {} };
+var bar = { x: () => {}, y: {} };
+var baz = { x: () => console.log('effect') };
 
 // unknown branch without side-effects
-var foo1 = { x: () => {} };
-var bar1 = { x: () => {} };
-var a1 = (unknownValue ? foo1 : bar1).x.y;
-var b1 = (unknownValue ? foo1 : bar1).x();
-foo1.x();
-bar1.x();
+var a1 = (unknownValue ? foo : bar).y.z;
+var b1 = (unknownValue ? foo : bar).x();
 
 // unknown branch with side-effect
-var foo2 = { x: () => {} };
-var bar2 = { x: () => console.log( 'effect' ) };
-var a2 = (unknownValue ? foo2 : bar2).x.y.z;
-var b2 = (unknownValue ? foo2 : bar2).x();
-foo2.x();
-bar2.x();
+var a2 = (unknownValue ? foo : baz).y.z;
+var b2 = (unknownValue ? foo : baz).x();
 
-// no side-effects
-var foo3 = { x: () => {}, y: {} };
-var bar3 = { x: () => console.log( 'effect' ) };
-var a3 = (true ? foo3 : bar3).y.z;
-var b3 = (false ? bar3 : foo3).y.z;
-var c3 = (true ? foo3 : bar3).x();
-var d3 = (false ? bar3 : foo3).x();
-var e3 = (true ? foo3 : bar3).y.z = 1;
-var f3 = (false ? bar3 : foo3).y.z = 1;
+// known branch without side-effects
+var a3 = (true ? foo : baz).y.z;
+var b3 = (false ? baz : foo).y.z;
+var c3 = (true ? foo : baz).x();
+var d3 = (false ? baz : foo).x();
 
-// known side-effect
-var foo4 = { x: () => {}, y: {} };
-var bar4 = { x: () => console.log( 'effect' ) };
-var a4 = (true ? bar4 : foo4).y.z;
-var b4 = (false ? foo4 : bar4).y.z;
-var c4 = (true ? bar4 : foo4).x();
-var d4 = (false ? foo4 : bar4).x();
-var e4 = (true ? bar4 : foo4).y.z = 1;
-var f4 = (false ? foo4 : bar4).y.z = 1;
+var foo2 = { y: {} };
+var baz2 = {};
+(true ? foo2 : baz).y.z = 1;
+(false ? baz : foo2).y.z = 1;
+
+// known branch with side-effect
+var a4 = (true ? baz : foo).y.z;
+var b4 = (false ? foo : baz).y.z;
+var c4 = (true ? baz : foo).x();
+var d4 = (false ? foo : baz).x();
+
+var foo3 = { y: {} };
+var baz3 = {};
+(true ? baz3 : foo3).y.z = 1;
+(false ? foo3 : baz3).y.z = 1;
