@@ -55,7 +55,7 @@ export default class NamespaceVariable extends Variable {
 			const original = this.originals[name];
 
 			if ((this.referencedEarly || original.isReassigned) && !options.legacy) {
-				return `${t}get ${name}${_}()${_}{${_}return${_}${original.getName()}${
+				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${
 					options.compact ? '' : ';'
 				}${_}}`;
 			}
@@ -79,7 +79,7 @@ export default class NamespaceVariable extends Variable {
 		if (options.namespaceToStringTag) {
 			output += `${n}if${_}(typeof Symbol${_}!==${_}'undefined'${_}&&${_}Symbol.toStringTag)${n}`;
 			output += `${t}Object.defineProperty(${name},${_}Symbol.toStringTag,${_}{${_}value:${_}'Module'${_}});${n}`;
-			output += `else${n}`;
+			output += `else${n || ' '}`;
 			output += `${t}Object.defineProperty(${name},${_}'toString',${_}{${_}value:${_}function${_}()${_}{${_}return${_}'[object Module]'${
 				options.compact ? ';' : ''
 			}${_}}${_}});${n}`;

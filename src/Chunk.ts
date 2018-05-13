@@ -776,6 +776,7 @@ export default class Chunk {
 		for (const module of this.orderedModules) {
 			const source = module.render(renderOptions);
 			source.trim();
+			if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
 			this.renderedModuleSources.push(source);
 
 			const namespace = module.getOrCreateNamespace();
@@ -793,7 +794,8 @@ export default class Chunk {
 
 		if (hoistedSource) magicString.prepend(hoistedSource + n + n);
 
-		this.renderedSource = magicString.trim();
+		this.renderedSource = options.compact ? magicString : magicString.trim();
+
 		this.renderedSourceLength = undefined;
 		this.renderedHash = undefined;
 
@@ -1064,6 +1066,7 @@ export default class Chunk {
 				}
 
 				if (options.compact !== true && code[code.length - 1] !== '\n') code += '\n';
+
 				return { code, map };
 			}
 		);

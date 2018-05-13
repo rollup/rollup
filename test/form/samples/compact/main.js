@@ -4,3 +4,4 @@ console.log(self);
 export default function foo () {
 	console.log( x );
 }
+// trailing comment

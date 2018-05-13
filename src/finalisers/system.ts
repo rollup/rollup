@@ -138,6 +138,6 @@ export default function system(
 
 	return magicString
 		.indent(`${t}${t}${t}`)
-		.append(`${n}${n}${t}${t}}${n}${t}};${n}});`)
+		.append(`${n}${n}${t}${t}}${n}${t}}${options.compact ? '' : ';'}${n}});`)
 		.prepend(wrapperStart);
 }

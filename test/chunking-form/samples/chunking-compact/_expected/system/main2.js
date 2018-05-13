@@ -9,4 +9,4 @@ System.register(['external','./chunk-ad0e6b97.js'],function(exports,module){'use
     fn$3();
     fn$1();
   }
-} exports('default', Main2);}};});
+} exports('default', Main2);}}});
