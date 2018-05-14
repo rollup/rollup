@@ -8,7 +8,7 @@ export default function getInteropBlock(
 ) {
 	return dependencies
 		.map(({ name, exportsNames, exportsDefault, namedExportsMode }) => {
-			if (!namedExportsMode) return `${name} = { default: ${name} };`;
+			if (!namedExportsMode) return;
 
 			if (!exportsDefault || options.interop === false) return null;
 

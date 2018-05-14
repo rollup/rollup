@@ -45,11 +45,7 @@ export default function cjs(
 					return `require('${id}');`;
 				}
 
-				if (!namedExportsMode) {
-					return `${varOrConst} ${name} = { default: require('${id}') };`;
-				}
-
-				if (!interop || isChunk || !exportsDefault) {
+				if (!interop || isChunk || !exportsDefault || !namedExportsMode) {
 					return `${varOrConst} ${name} = require('${id}');`;
 				}
 

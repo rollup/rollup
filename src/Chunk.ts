@@ -2,7 +2,6 @@ import { timeEnd, timeStart } from './utils/timers';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
 import Module from './Module';
 import finalisers from './finalisers/index';
-import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import transformBundle from './utils/transformBundle';
 import collapseSourcemaps from './utils/collapseSourcemaps';
@@ -84,7 +83,7 @@ function getGlobalName(
 export default class Chunk {
 	hasDynamicImport: boolean = false;
 	indentString: string = undefined;
-	namedExportsMode: boolean = true;
+	exportMode: string = 'named';
 	usedModules: Module[] = undefined;
 	id: string = undefined;
 	name: string;
@@ -505,7 +504,9 @@ export default class Chunk {
 				safeName = getSafeName(variable.name);
 				toDeshadow.add(safeName);
 			} else {
-				safeName = `${(<Module>module).chunk.name}.${module.chunk.getVariableExportName(variable)}`;
+				const chunk = (<Module>module).chunk;
+				if (chunk.exportMode === 'default') safeName = chunk.name;
+				else safeName = `${chunk.name}.${module.chunk.getVariableExportName(variable)}`;
 			}
 			if (safeName) variable.setSafeName(safeName);
 		});
@@ -800,12 +801,9 @@ export default class Chunk {
 			});
 		}
 
-		const exportMode = this.isEntryModuleFacade && getExportMode(this, options);
-		this.namedExportsMode = exportMode !== 'default';
-
 		this.renderedDeclarations = {
 			dependencies: this.getChunkDependencyDeclarations(options, inputBase),
-			exports: exportMode === 'none' ? [] : this.getChunkExportDeclarations()
+			exports: this.exportMode === 'none' ? [] : this.getChunkExportDeclarations()
 		};
 
 		timeEnd('render modules', 3);
@@ -992,7 +990,7 @@ export default class Chunk {
 			let relPath = this.id ? normalize(relative(dirname(this.id), depId)) : depId;
 			if (!relPath.startsWith('../')) relPath = './' + relPath;
 
-			if (dep instanceof Chunk) renderedDependency.namedExportsMode = dep.namedExportsMode;
+			if (dep instanceof Chunk) renderedDependency.namedExportsMode = dep.exportMode !== 'default';
 			renderedDependency.id = relPath;
 		}
 
@@ -1009,7 +1007,7 @@ export default class Chunk {
 			this.renderedSource,
 			{
 				indentString: this.indentString,
-				namedExportsMode: this.namedExportsMode,
+				namedExportsMode: this.exportMode !== 'default',
 				hasExports,
 				intro: addons.intro,
 				outro: addons.outro,

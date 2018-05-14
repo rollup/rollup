@@ -22,7 +22,7 @@ export default function getExportBlock(
 				if (!dep.reexports) return false;
 				return dep.reexports.some(expt => {
 					if (expt.reexported === 'default') {
-						local = `${dep.name}.${expt.imported}`;
+						local = dep.namedExportsMode ? `${dep.name}.${expt.imported}` : dep.name;
 						return true;
 					}
 					return false;

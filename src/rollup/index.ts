@@ -21,6 +21,7 @@ import {
 	Plugin,
 	ModuleJSON
 } from './types';
+import getExportMode from '../utils/getExportMode';
 
 export const VERSION = '<@VERSION@>';
 
@@ -169,6 +170,7 @@ export default function rollup(
 						.then(addons => {
 							chunk.generateInternalExports(outputOptions);
 							const inputBase = dirname(resolve(inputOptions.input));
+							chunk.exportMode = getExportMode(chunk, outputOptions);
 							chunk.preRender(outputOptions, inputBase);
 							chunk.id = basename(inputOptions.input);
 							return chunk.render(outputOptions, addons);
@@ -336,10 +338,11 @@ export default function rollup(
 							return (
 								Promise.resolve()
 									.then(() => {
-										if (!inputOptions.experimentalPreserveModules) {
-											for (let chunk of chunks) {
+										for (let chunk of chunks) {
+											if (!inputOptions.experimentalPreserveModules)
 												chunk.generateInternalExports(outputOptions);
-											}
+											if (chunk.isEntryModuleFacade)
+												chunk.exportMode = getExportMode(chunk, outputOptions);
 										}
 										for (let chunk of chunks) {
 											chunk.preRender(outputOptions, inputBase);
