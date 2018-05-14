@@ -114,7 +114,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			}
 			return;
 		}
-		super.render(code, options);
+		this.declaration.render(code, options);
 	}
 
 	private renderNamedDeclaration(
@@ -158,7 +158,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			`${this.context.varOrConst} ${this.variable.getName()} = ${systemBinding}`
 		);
 		if (systemBinding) {
-			code.appendRight(code.original[this.end - 1] === ';' ? this.end - 1 : this.end, ')');
+			code.appendLeft(code.original[this.end - 1] === ';' ? this.end - 1 : this.end, ')');
 		}
 	}
 }
