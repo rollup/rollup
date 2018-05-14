@@ -62,6 +62,7 @@
     "@types/pretty-ms": "^3.0.0",
     "acorn": "^5.5.3",
     "acorn-dynamic-import": "^3.0.0",
+    "acorn-import-meta": "^0.2.1",
     "ansi-escapes": "^3.1.0",
     "buble": "^0.19.3",
     "cash-cp": "^0.2.0",

@@ -1,6 +1,6 @@
 import ClassNode from './shared/ClassNode';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 
 export default class ClassExpression extends ClassNode {
-	type: NodeType.ClassExpression;
+	type: NodeType.tClassExpression;
 }

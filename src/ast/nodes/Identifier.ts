@@ -12,7 +12,7 @@ import {
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from './shared/Expression';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import AssignmentExpression from './AssignmentExpression';
 import UpdateExpression from './UpdateExpression';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
@@ -23,7 +23,7 @@ export function isIdentifier(node: Node): node is Identifier {
 }
 
 export default class Identifier extends NodeBase {
-	type: NodeType.Identifier;
+	type: NodeType.tIdentifier;
 	name: string;
 
 	variable: Variable;
@@ -153,7 +153,7 @@ export default class Identifier extends NodeBase {
 			) {
 				code.appendRight(this.start, '0, ');
 			}
-			if (options.systemBindings && this.variable.exportName) {
+			if (options.format === 'system' && this.variable.exportName) {
 				this.renderSystemBindingUpdate(code, name);
 			}
 		}

@@ -15,6 +15,7 @@ export default function amd(
 		intro,
 		outro,
 		dynamicImport,
+		importMeta,
 		dependencies,
 		exports,
 		isEntryModuleFacade
@@ -34,6 +35,11 @@ export default function amd(
 	if (dynamicImport) {
 		args.unshift('require');
 		deps.unshift(`'require'`);
+	}
+
+	if (importMeta) {
+		args.unshift('module');
+		deps.unshift(`'module'`);
 	}
 
 	const amdOptions = options.amd || {};

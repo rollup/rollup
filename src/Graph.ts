@@ -1,5 +1,6 @@
 import * as acorn from 'acorn';
 import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
+import injectImportMeta from 'acorn-import-meta/inject';
 import { timeEnd, timeStart } from './utils/timers';
 import first from './utils/first';
 import Module from './Module';
@@ -188,8 +189,10 @@ export default class Graph {
 					typeof specifier === 'string' && this.resolveId(specifier, parentId))
 			]);
 			acornPluginsToInject.push(injectDynamicImportPlugin);
+			acornPluginsToInject.push(injectImportMeta);
 			this.acornOptions.plugins = this.acornOptions.plugins || {};
 			this.acornOptions.plugins.dynamicImport = true;
+			this.acornOptions.plugins.importMeta = true;
 		}
 
 		acornPluginsToInject.push(...ensureArray(options.acornInjectPlugins));

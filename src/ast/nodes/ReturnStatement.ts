@@ -1,10 +1,10 @@
 import { UNKNOWN_EXPRESSION } from '../values';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
 
 export default class ReturnStatement extends StatementBase {
-	type: NodeType.ReturnStatement;
+	type: NodeType.tReturnStatement;
 	argument: ExpressionNode | null;
 
 	hasEffects(options: ExecutionPathOptions) {

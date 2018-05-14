@@ -15,7 +15,7 @@ import Variable from './ast/variables/Variable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import { makeLegal } from './utils/identifierHelpers';
 import LocalVariable from './ast/variables/LocalVariable';
-import { NodeType } from './ast/nodes/NodeType';
+import * as NodeType from './ast/nodes/NodeType';
 import { RenderOptions } from './utils/renderHelpers';
 import { Addons } from './utils/addons';
 import sha256 from 'hash.js/lib/hash/sha/256';
@@ -56,13 +56,6 @@ export interface ReexportSpecifier {
 export interface ImportSpecifier {
 	local: string;
 	imported: string;
-}
-
-export interface DynamicImportMechanism {
-	left: string;
-	right: string;
-	interopLeft?: string;
-	interopRight?: string;
 }
 
 function getGlobalName(
@@ -392,37 +385,12 @@ export default class Chunk {
 		}
 	}
 
-	private prepareDynamicImports({ format }: OutputOptions) {
-		const esm = format === 'es';
-		let dynamicImportMechanism: DynamicImportMechanism;
-		let hasDynamicImports = false;
-		if (!esm) {
-			if (format === 'cjs') {
-				dynamicImportMechanism = {
-					left: 'Promise.resolve(require(',
-					right: '))',
-					interopLeft: 'Promise.resolve({ default: require(',
-					interopRight: ') })'
-				};
-			} else if (format === 'amd') {
-				dynamicImportMechanism = {
-					left: 'new Promise(function (resolve, reject) { require([',
-					right: '], resolve, reject) })',
-					interopLeft: 'new Promise(function (resolve, reject) { require([',
-					interopRight: '], function (m) { resolve({ default: m }) }, reject) })'
-				};
-			} else if (format === 'system') {
-				dynamicImportMechanism = {
-					left: 'module.import(',
-					right: ')'
-				};
-			}
-		}
+	private prepareDynamicImports() {
 		for (const module of this.orderedModules) {
 			for (let i = 0; i < module.dynamicImportResolutions.length; i++) {
 				const node = module.dynamicImports[i];
 				const resolution = module.dynamicImportResolutions[i].resolution;
-				hasDynamicImports = true;
+				this.hasDynamicImport = true;
 
 				if (!resolution) continue;
 
@@ -446,8 +414,6 @@ export default class Chunk {
 				}
 			}
 		}
-
-		return hasDynamicImports && dynamicImportMechanism;
 	}
 
 	private finaliseDynamicImports() {
@@ -761,13 +727,15 @@ export default class Chunk {
 		this.usedModules = [];
 		this.indentString = getIndentString(this.orderedModules, options);
 
+		if (this.graph.dynamicImport) this.prepareDynamicImports();
+
 		const renderOptions: RenderOptions = {
 			legacy: options.legacy,
 			freeze: options.freeze !== false,
 			namespaceToStringTag: options.namespaceToStringTag === true,
 			indent: this.indentString,
-			systemBindings: options.format === 'system',
-			importMechanism: this.graph.dynamicImport && this.prepareDynamicImports(options)
+			format: options.format,
+			dynamicImport: this.graph.dynamicImport
 		};
 
 		// if an entry point facade, inline the execution list to avoid loading latency
@@ -829,8 +797,6 @@ export default class Chunk {
 				message: 'Generated an empty bundle'
 			});
 		}
-
-		this.hasDynamicImport = !!renderOptions.importMechanism;
 
 		this.renderedDeclarations = {
 			dependencies: this.getChunkDependencyDeclarations(options, inputBase),
@@ -1026,6 +992,8 @@ export default class Chunk {
 
 		if (this.graph.dynamicImport) this.finaliseDynamicImports();
 
+		const hasImportMeta = this.orderedModules.some(module => module.hasImportMeta);
+
 		const magicString = finalise(
 			this.renderedSource,
 			{
@@ -1034,6 +1002,7 @@ export default class Chunk {
 				intro: addons.intro,
 				outro: addons.outro,
 				dynamicImport: this.hasDynamicImport,
+				importMeta: hasImportMeta,
 				dependencies: this.renderedDeclarations.dependencies,
 				exports: this.renderedDeclarations.exports,
 				graph: this.graph,

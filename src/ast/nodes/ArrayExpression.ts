@@ -1,7 +1,7 @@
 import SpreadElement from './SpreadElement';
 import { SomeReturnExpressionCallback } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import {
@@ -12,7 +12,7 @@ import {
 } from '../values';
 
 export default class ArrayExpression extends NodeBase {
-	type: NodeType.ArrayExpression;
+	type: NodeType.tArrayExpression;
 	elements: (ExpressionNode | SpreadElement | null)[];
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {

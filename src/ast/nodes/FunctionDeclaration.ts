@@ -1,5 +1,5 @@
 import FunctionNode from './shared/FunctionNode';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { GenericEsTreeNode, Node } from './shared/Node';
 import Identifier from './Identifier';
 
@@ -8,7 +8,7 @@ export function isFunctionDeclaration(node: Node): node is FunctionDeclaration {
 }
 
 export default class FunctionDeclaration extends FunctionNode {
-	type: NodeType.FunctionDeclaration;
+	type: NodeType.tFunctionDeclaration;
 
 	initialise() {
 		super.initialise();

@@ -3,14 +3,14 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallExpression from './CallExpression';
 import { BLANK } from '../../utils/blank';
 
 export default class ConditionalExpression extends NodeBase {
-	type: NodeType.ConditionalExpression;
+	type: NodeType.tConditionalExpression;
 	test: ExpressionNode;
 	alternate: ExpressionNode;
 	consequent: ExpressionNode;

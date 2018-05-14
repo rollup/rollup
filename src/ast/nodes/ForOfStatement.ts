@@ -3,7 +3,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import VariableDeclaration from './VariableDeclaration';
 import Scope from '../scopes/Scope';
 import { PatternNode } from './shared/Pattern';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
@@ -13,7 +13,7 @@ export function isForOfStatement(node: Node): node is ForOfStatement {
 }
 
 export default class ForOfStatement extends StatementBase {
-	type: NodeType.ForOfStatement;
+	type: NodeType.tForOfStatement;
 	left: VariableDeclaration | PatternNode;
 	right: ExpressionNode;
 	body: StatementNode;

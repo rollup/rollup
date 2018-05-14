@@ -1,11 +1,40 @@
 import CallExpression from './CallExpression';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 
+interface DynamicImportMechanism {
+	left: string;
+	right: string;
+	interopLeft?: string;
+	interopRight?: string;
+}
+
+const dynamicImportMechanisms: Record<string, DynamicImportMechanism> = {
+	es: undefined,
+	cjs: {
+		left: 'Promise.resolve(require(',
+		right: '))',
+		interopLeft: 'Promise.resolve({ default: require(',
+		interopRight: ') })'
+	},
+	amd: {
+		left: 'new Promise(function (resolve, reject) { require([',
+		right: '], resolve, reject) })',
+		interopLeft: 'new Promise(function (resolve, reject) { require([',
+		interopRight: '], function (m) { resolve({ default: m }) }, reject) })'
+	},
+	system: {
+		left: 'module.import(',
+		right: ')'
+	},
+	umd: undefined,
+	iife: undefined
+};
+
 export default class Import extends NodeBase {
-	type: NodeType.Import;
+	type: NodeType.tImport;
 	parent: CallExpression;
 
 	private resolutionNamespace: string;
@@ -34,15 +63,17 @@ export default class Import extends NodeBase {
 				this.parent.end,
 				`Promise.resolve().then(function () { return ${this.resolutionNamespace}; })`
 			);
-		} else if (options.importMechanism) {
+			return;
+		}
+
+		const importMechanism = dynamicImportMechanisms[options.format];
+		if (importMechanism) {
 			const leftMechanism =
-				(this.resolutionInterop && options.importMechanism.interopLeft) ||
-				options.importMechanism.left;
+				(this.resolutionInterop && importMechanism.interopLeft) || importMechanism.left;
 			code.overwrite(this.parent.start, this.parent.arguments[0].start, leftMechanism);
 
 			const rightMechanism =
-				(this.resolutionInterop && options.importMechanism.interopRight) ||
-				options.importMechanism.right;
+				(this.resolutionInterop && importMechanism.interopRight) || importMechanism.right;
 			code.overwrite(this.parent.arguments[0].end, this.parent.end, rightMechanism);
 		}
 	}

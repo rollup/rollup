@@ -15,6 +15,7 @@ export interface FinaliserOptions {
 	intro: string;
 	outro: string;
 	dynamicImport: boolean;
+	importMeta: boolean;
 	dependencies: ChunkDependencies;
 	exports: ChunkExports;
 	graph: Graph;

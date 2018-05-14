@@ -4,7 +4,7 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { Node, StatementBase, StatementNode } from './shared/Node';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 
 export function isBlockStatement(node: Node): node is BlockStatement {
@@ -12,7 +12,7 @@ export function isBlockStatement(node: Node): node is BlockStatement {
 }
 
 export default class BlockStatement extends StatementBase {
-	type: NodeType.BlockStatement;
+	type: NodeType.tBlockStatement;
 	body: StatementNode[];
 
 	bindImplicitReturnExpressionToScope() {

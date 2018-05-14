@@ -3,7 +3,7 @@ import VariableDeclaration from './VariableDeclaration';
 import Scope from '../scopes/Scope';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { PatternNode } from './shared/Pattern';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
@@ -13,7 +13,7 @@ export function isForInStatement(node: Node): node is ForInStatement {
 }
 
 export default class ForInStatement extends StatementBase {
-	type: NodeType.ForInStatement;
+	type: NodeType.tForInStatement;
 	left: VariableDeclaration | PatternNode;
 	right: ExpressionNode;
 	body: StatementNode;

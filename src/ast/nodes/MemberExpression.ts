@@ -8,7 +8,7 @@ import Identifier from './Identifier';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import ExternalVariable from '../variables/ExternalVariable';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import {
 	LiteralValueOrUnknown,
@@ -19,6 +19,7 @@ import {
 } from '../values';
 import { BLANK } from '../../utils/blank';
 import Literal from './Literal';
+import MetaProperty from './MetaProperty';
 
 function getPropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
@@ -60,7 +61,7 @@ export function isMemberExpression(node: Node): node is MemberExpression {
 }
 
 export default class MemberExpression extends NodeBase {
-	type: NodeType.MemberExpression;
+	type: NodeType.tMemberExpression;
 	object: ExpressionNode;
 	property: ExpressionNode;
 	computed: boolean;
@@ -214,6 +215,14 @@ export default class MemberExpression extends NodeBase {
 				storeName: true,
 				contentOnly: true
 			});
+		} else if (this.object instanceof MetaProperty && this.object.meta.name === 'import') {
+			this.context.hasImportMeta = true;
+			const importMetaMechanism = this.object.renderImportMetaMechanism(
+				code,
+				this.property instanceof Identifier && this.property.name,
+				options.format
+			);
+			if (importMetaMechanism) code.overwrite(this.start, this.end, importMetaMechanism);
 		} else {
 			if (isCalleeOfDifferentParent) {
 				code.appendRight(this.start, '0, ');

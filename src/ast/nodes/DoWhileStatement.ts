@@ -1,9 +1,9 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ExpressionNode, StatementNode, StatementBase } from './shared/Node';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 
 export default class DoWhileStatement extends StatementBase {
-	type: NodeType.DoWhileStatement;
+	type: NodeType.tDoWhileStatement;
 	body: StatementNode;
 	test: ExpressionNode;
 

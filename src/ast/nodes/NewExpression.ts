@@ -1,11 +1,11 @@
 import CallOptions from '../CallOptions';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ObjectPath } from '../values';
 
 export default class NewExpression extends NodeBase {
-	type: NodeType.NewExpression;
+	type: NodeType.tNewExpression;
 	callee: ExpressionNode;
 	arguments: ExpressionNode[];
 

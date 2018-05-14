@@ -1,11 +1,11 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { PatternNode } from './shared/Pattern';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ObjectPath } from '../values';
 
 export default class AssignmentExpression extends NodeBase {
-	type: NodeType.AssignmentExpression;
+	type: NodeType.tAssignmentExpression;
 	left: PatternNode | ExpressionNode;
 	right: ExpressionNode;
 

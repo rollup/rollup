@@ -1,11 +1,11 @@
 import { ExpressionNode, NodeBase } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import { PatternNode } from './shared/Pattern';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ObjectPath } from '../values';
 
 export default class VariableDeclarator extends NodeBase {
-	type: NodeType.VariableDeclarator;
+	type: NodeType.tVariableDeclarator;
 	id: PatternNode;
 	init: ExpressionNode | null;
 

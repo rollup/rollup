@@ -2,11 +2,11 @@ import CallOptions from '../CallOptions';
 import TemplateLiteral from './TemplateLiteral';
 import Identifier from './Identifier';
 import ExecutionPathOptions from '../ExecutionPathOptions';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class TaggedTemplateExpression extends NodeBase {
-	type: NodeType.TaggedTemplateExpression;
+	type: NodeType.tTaggedTemplateExpression;
 	tag: ExpressionNode;
 	quasi: TemplateLiteral;
 

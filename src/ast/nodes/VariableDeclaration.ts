@@ -2,7 +2,7 @@ import { Node, NodeBase } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import VariableDeclarator from './VariableDeclarator';
 import MagicString from 'magic-string';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import {
 	getCommaSeparatedNodesWithBoundaries,
 	NodeRenderOptions,
@@ -27,7 +27,7 @@ export function isVariableDeclaration(node: Node): node is VariableDeclaration {
 }
 
 export default class VariableDeclaration extends NodeBase {
-	type: NodeType.VariableDeclaration;
+	type: NodeType.tVariableDeclaration;
 	declarations: VariableDeclarator[];
 	kind: 'var' | 'let' | 'const';
 
@@ -126,7 +126,7 @@ export default class VariableDeclaration extends NodeBase {
 				isInDeclaration = false;
 			} else {
 				if (
-					options.systemBindings &&
+					options.format === 'system' &&
 					node.init !== null &&
 					isIdentifier(node.id) &&
 					node.id.variable.exportName

@@ -3,12 +3,12 @@ import ExecutionPathOptions from '../ExecutionPathOptions';
 import SpreadElement from './SpreadElement';
 import { isIdentifier } from './Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { ObjectPath } from '../values';
 
 export default class CallExpression extends NodeBase {
-	type: NodeType.CallExpression;
+	type: NodeType.tCallExpression;
 	callee: ExpressionNode;
 	arguments: (ExpressionNode | SpreadElement)[];
 

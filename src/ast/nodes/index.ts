@@ -56,6 +56,7 @@ import VariableDeclaration from './VariableDeclaration';
 import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
 import { NodeBase, StatementBase } from './shared/Node';
+import MetaProperty from './MetaProperty';
 
 export const nodeConstructors: {
 	[name: string]: typeof NodeBase;
@@ -94,6 +95,7 @@ export const nodeConstructors: {
 	Literal,
 	LogicalExpression,
 	MemberExpression,
+	MetaProperty,
 	MethodDefinition,
 	NewExpression,
 	ObjectExpression,

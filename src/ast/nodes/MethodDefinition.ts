@@ -2,11 +2,11 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import FunctionExpression from './FunctionExpression';
 import CallOptions from '../CallOptions';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ObjectPath } from '../values';
 
 export default class MethodDefinition extends NodeBase {
-	type: NodeType.MethodDefinition;
+	type: NodeType.tMethodDefinition;
 	key: ExpressionNode;
 	value: FunctionExpression;
 	kind: 'constructor' | 'method' | 'get' | 'set';

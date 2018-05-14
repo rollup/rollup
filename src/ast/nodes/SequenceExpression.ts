@@ -1,7 +1,7 @@
 import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import {
 	getCommaSeparatedNodesWithBoundaries,
 	NodeRenderOptions,
@@ -14,7 +14,7 @@ import { ForEachReturnExpressionCallback } from './shared/Expression';
 import CallExpression from './CallExpression';
 
 export default class SequenceExpression extends NodeBase {
-	type: NodeType.SequenceExpression;
+	type: NodeType.tSequenceExpression;
 	expressions: ExpressionNode[];
 
 	forEachReturnExpressionWhenCalledAtPath(

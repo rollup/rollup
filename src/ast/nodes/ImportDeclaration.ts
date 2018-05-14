@@ -4,12 +4,12 @@ import ImportSpecifier from './ImportSpecifier';
 import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import MagicString from 'magic-string';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { BLANK } from '../../utils/blank';
 
 export default class ImportDeclaration extends NodeBase {
-	type: NodeType.ImportDeclaration;
+	type: NodeType.tImportDeclaration;
 	specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
 	source: Literal<string>;
 

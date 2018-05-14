@@ -80,7 +80,7 @@ ${
 ${callee}(${name});`;
 		}
 
-		if (options.systemBindings && this.exportName) {
+		if (options.format === 'system' && this.exportName) {
 			output += `\nexports('${this.exportName}', ${name});`;
 		}
 

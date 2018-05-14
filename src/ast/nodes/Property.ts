@@ -8,7 +8,7 @@ import {
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from './shared/Expression';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { RenderOptions } from '../../utils/renderHelpers';
 
 export function isProperty(node: Node): node is Property {
@@ -16,7 +16,7 @@ export function isProperty(node: Node): node is Property {
 }
 
 export default class Property extends NodeBase {
-	type: NodeType.Property;
+	type: NodeType.tProperty;
 	key: ExpressionNode;
 	value: ExpressionNode;
 	kind: 'init' | 'get' | 'set';

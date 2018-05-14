@@ -1,11 +1,11 @@
 import MagicString from 'magic-string';
 import { NodeBase, StatementNode } from './shared/Node';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import ExecutionPathOptions from '../ExecutionPathOptions';
 
 export default class Program extends NodeBase {
-	type: NodeType.Program;
+	type: NodeType.tProgram;
 	body: StatementNode[];
 	sourceType: 'module';
 
