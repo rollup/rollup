@@ -22,6 +22,7 @@ import sha256 from 'hash.js/lib/hash/sha/256';
 import { jsExts } from './utils/relativeId';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import { GlobalsOption, OutputOptions, RawSourceMap } from './rollup/types';
+import { toBase64 } from './utils/base64';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;
@@ -365,11 +366,11 @@ export default class Chunk {
 		const exportedVariables = Array.from(this.exports.keys());
 		if (mangle) {
 			for (const variable of exportedVariables) {
-				safeExportName = (++i).toString(36);
+				safeExportName = toBase64(++i);
 				// skip past leading number identifiers
 				if (safeExportName.charCodeAt(0) === 49 /* '1' */) {
-					i += 9 * 36 ** (safeExportName.length - 1);
-					safeExportName = i.toString(36);
+					i += 9 * 64 ** (safeExportName.length - 1);
+					safeExportName = toBase64(i);
 				}
 				this.exportNames[safeExportName] = variable;
 			}
@@ -451,7 +452,7 @@ export default class Chunk {
 		function getSafeName(name: string): string {
 			let safeName = name;
 			while (used[safeName]) {
-				safeName = `${name}$${used[name]++}`;
+				safeName = `${name}$${toBase64(used[name]++)}`;
 			}
 			used[safeName] = 1;
 			return safeName;
