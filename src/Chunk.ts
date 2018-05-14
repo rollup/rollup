@@ -773,13 +773,11 @@ export default class Chunk {
 
 		this.renderedModuleSources = [];
 
-		for (const module of this.orderedModules) {
+		for (let i = 0; i < this.orderedModules.length; i++) {
+			const module = this.orderedModules[i];
 			const source = module.render(renderOptions);
 			source.trim();
-			if (options.compact) {
-				if (source.lastLine().indexOf('//') !== -1) source.append('\n');
-				else if (source.lastChar() !== ';') source.append(';');
-			}
+			if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
 			this.renderedModuleSources.push(source);
 
 			const namespace = module.getOrCreateNamespace();

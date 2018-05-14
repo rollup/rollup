@@ -1,4 +1,4 @@
-import { Node } from '../ast/nodes/shared/Node';
+import { Node, StatementNode } from '../ast/nodes/shared/Node';
 import MagicString from 'magic-string';
 
 export interface RenderOptions {
@@ -48,7 +48,7 @@ export function findFirstOccurrenceOutsideComment(
 	}
 }
 
-function findFirstLineBreakOutsideComment(code: string, start: number = 0) {
+export function findFirstLineBreakOutsideComment(code: string, start: number = 0) {
 	let lineBreakPos, charCodeAfterSlash;
 	lineBreakPos = code.indexOf('\n', start);
 	while (true) {
@@ -67,7 +67,7 @@ function findFirstLineBreakOutsideComment(code: string, start: number = 0) {
 }
 
 export function renderStatementList(
-	statements: Node[],
+	statements: StatementNode[],
 	code: MagicString,
 	start: number,
 	end: number,
