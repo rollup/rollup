@@ -1,7 +1,7 @@
 import ReturnValueScope from './ReturnValueScope';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import LocalVariable from '../variables/LocalVariable';

@@ -1,5 +1,5 @@
 import { ExpressionNode, NodeBase } from './shared/Node';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { PatternNode } from './shared/Pattern';
 import * as NodeType from './NodeType';
 import { ObjectPath } from '../values';

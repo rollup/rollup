@@ -11,6 +11,7 @@
 * Fix an issue with namespaces containing reexports ([#2157](https://github.com/rollup/rollup/pull/2157))
 * Fix an issue with wrong paths of relative external imports ([#2160](https://github.com/rollup/rollup/pull/2160))
 * Fix an issue when using default exports and `interop: false` ([#2149](https://github.com/rollup/rollup/pull/2149))
+* Fix an issue when tree-shaking call expressions and reassigned variables ([#2186](https://github.com/rollup/rollup/pull/2186))
 * Fix file paths in source maps ([#2161](https://github.com/rollup/rollup/pull/2161))
 * Fix wrong file name in error message ([#2137](https://github.com/rollup/rollup/pull/2137))
 * Always use npm 5 on CI ([#2185](https://github.com/rollup/rollup/pull/2185))

@@ -3,7 +3,7 @@ import BlockScope from '../../scopes/FunctionScope';
 import BlockStatement from '../BlockStatement';
 import Identifier from '../Identifier';
 import CallOptions from '../../CallOptions';
-import ExecutionPathOptions from '../../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import { PatternNode } from './Pattern';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
 import { GenericEsTreeNode, NodeBase } from './Node';

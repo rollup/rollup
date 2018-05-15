@@ -1,5 +1,5 @@
-import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { EMPTY_PATH, ObjectPath, UNKNOWN_EXPRESSION } from '../values';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { PatternNode } from './shared/Pattern';
 import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
@@ -20,7 +20,8 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length > 0) return true;
 		for (const element of this.elements) {
-			if (element !== null && element.hasEffectsWhenAssignedAtPath([], options)) return true;
+			if (element !== null && element.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options))
+				return true;
 		}
 		return false;
 	}

@@ -1,9 +1,9 @@
 import { ExpressionNode, NodeBase } from './shared/Node';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import FunctionExpression from './FunctionExpression';
 import CallOptions from '../CallOptions';
 import * as NodeType from './NodeType';
-import { ObjectPath } from '../values';
+import { EMPTY_PATH, ObjectPath } from '../values';
 
 export default class MethodDefinition extends NodeBase {
 	type: NodeType.tMethodDefinition;
@@ -22,6 +22,8 @@ export default class MethodDefinition extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	) {
-		return path.length > 0 || this.value.hasEffectsWhenCalledAtPath([], callOptions, options);
+		return (
+			path.length > 0 || this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, callOptions, options)
+		);
 	}
 }

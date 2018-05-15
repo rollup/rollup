@@ -1,5 +1,5 @@
 import { locate } from 'locate-character';
-import ExecutionPathOptions from '../../ExecutionPathOptions';
+import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../../ExecutionPathOptions';
 import Scope from '../../scopes/Scope';
 import { AstContext } from '../../../Module';
 import MagicString from 'magic-string';
@@ -254,7 +254,7 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	shouldBeIncluded(): boolean {
-		return this.included || this.hasEffects(ExecutionPathOptions.create());
+		return this.included || this.hasEffects(NEW_EXECUTION_PATH);
 	}
 
 	someReturnExpressionWhenCalledAtPath(

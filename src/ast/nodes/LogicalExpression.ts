@@ -1,6 +1,6 @@
-import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
+import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE, EMPTY_PATH } from '../values';
 import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -201,7 +201,7 @@ export default class LogicalExpression extends NodeBase {
 
 	private getLeftValue() {
 		if (this.hasUnknownLeftValue) return UNKNOWN_VALUE;
-		const value = this.left.getLiteralValueAtPath([]);
+		const value = this.left.getLiteralValueAtPath(EMPTY_PATH);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownLeftValue = true;
 		}

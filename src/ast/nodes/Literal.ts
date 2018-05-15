@@ -1,4 +1,4 @@
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { SomeReturnExpressionCallback } from './shared/Expression';
 import { Node, NodeBase } from './shared/Node';
@@ -52,7 +52,7 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 		options: ExecutionPathOptions
 	): boolean {
 		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(this.members, path[0], callOptions, options);
+			return hasMemberEffectWhenCalled(this.members, path[0], this.included, callOptions, options);
 		}
 		return true;
 	}

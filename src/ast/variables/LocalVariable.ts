@@ -1,6 +1,6 @@
 import Variable from './Variable';
 import VariableReassignmentTracker from './VariableReassignmentTracker';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import Identifier from '../nodes/Identifier';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
@@ -97,7 +97,7 @@ export default class LocalVariable extends Variable {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	) {
-		if (path.length > MAX_PATH_DEPTH || (this.included && path.length > 0)) return true;
+		if (path.length > MAX_PATH_DEPTH) return true;
 		return (
 			this.reassignments.isPathReassigned(path) ||
 			(this.init &&

@@ -1,7 +1,7 @@
 import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import CallOptions from '../CallOptions';
 import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import {
 	ExpressionEntity,

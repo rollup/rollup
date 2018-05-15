@@ -1,6 +1,6 @@
 import BlockScope from '../scopes/BlockScope';
 import SwitchCase from './SwitchCase';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';

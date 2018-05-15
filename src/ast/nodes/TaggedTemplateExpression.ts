@@ -1,7 +1,7 @@
 import CallOptions from '../CallOptions';
 import TemplateLiteral from './TemplateLiteral';
 import Identifier from './Identifier';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 

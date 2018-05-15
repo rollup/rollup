@@ -1,11 +1,11 @@
 import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
 import SpreadElement from './SpreadElement';
-import { isIdentifier } from './Identifier';
+import Identifier from './Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { ObjectPath } from '../values';
+import { ObjectPath, UNKNOWN_PATH } from '../values';
 
 export default class CallExpression extends NodeBase {
 	type: NodeType.tCallExpression;
@@ -16,7 +16,7 @@ export default class CallExpression extends NodeBase {
 
 	bind() {
 		super.bind();
-		if (isIdentifier(this.callee)) {
+		if (this.callee instanceof Identifier) {
 			const variable = this.scope.findVariable(this.callee.name);
 
 			if (variable.isNamespace) {
@@ -39,6 +39,10 @@ export default class CallExpression extends NodeBase {
 					this.start
 				);
 			}
+		}
+		for (const argument of this.arguments) {
+			// This will make sure all properties of parameters behave as "unknown"
+			argument.reassignPath(UNKNOWN_PATH, NEW_EXECUTION_PATH);
 		}
 	}
 

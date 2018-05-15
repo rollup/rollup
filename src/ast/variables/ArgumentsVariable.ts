@@ -1,6 +1,6 @@
 import LocalVariable from './LocalVariable';
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import ParameterVariable from './ParameterVariable';
 import { SomeReturnExpressionCallback } from '../nodes/shared/Expression';

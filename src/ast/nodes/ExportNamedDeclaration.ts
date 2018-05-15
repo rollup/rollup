@@ -1,5 +1,5 @@
 import { Node, NodeBase } from './shared/Node';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Literal from './Literal';
 import MagicString from 'magic-string';
 import ExportSpecifier from './ExportSpecifier';

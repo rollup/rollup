@@ -1,4 +1,4 @@
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import * as NodeType from './NodeType';

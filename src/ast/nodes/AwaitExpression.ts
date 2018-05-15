@@ -1,4 +1,4 @@
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
