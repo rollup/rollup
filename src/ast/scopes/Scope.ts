@@ -10,6 +10,7 @@ import ArgumentsVariable from '../variables/ArgumentsVariable';
 import Variable from '../variables/Variable';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import ExternalVariable from '../variables/ExternalVariable';
+import { toBase64 } from '../../utils/base64';
 
 export default class Scope {
 	parent: Scope | void;
@@ -95,7 +96,7 @@ export default class Scope {
 			let deshadowed,
 				i = 1;
 			do {
-				deshadowed = `${name}$$${i++}`;
+				deshadowed = `${name}$$${toBase64(i++)}`;
 			} while (names.has(deshadowed));
 
 			declaration.setSafeName(deshadowed);
