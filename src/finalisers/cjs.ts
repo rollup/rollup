@@ -39,7 +39,16 @@ export default function cjs(
 		importBlock = '';
 
 		dependencies.forEach(
-			({ id, namedExportsMode, isChunk, name, reexports, imports, exportsNames, exportsDefault }) => {
+			({
+				id,
+				namedExportsMode,
+				isChunk,
+				name,
+				reexports,
+				imports,
+				exportsNames,
+				exportsDefault
+			}) => {
 				if (!reexports && !imports) {
 					importBlock += definingVariable ? ';' : ',';
 					definingVariable = false;
@@ -62,22 +71,33 @@ export default function cjs(
 		if (importBlock.length) importBlock += ';';
 	} else {
 		importBlock = dependencies
-			.map(({ id, isChunk, name, reexports, imports, exportsNames, exportsDefault }) => {
-				if (!reexports && !imports) return `require('${id}');`;
+			.map(
+				({
+					id,
+					namedExportsMode,
+					isChunk,
+					name,
+					reexports,
+					imports,
+					exportsNames,
+					exportsDefault
+				}) => {
+					if (!reexports && !imports) return `require('${id}');`;
 
-				if (!interop || isChunk || !exportsDefault || !namedExportsMode)
-					return `${varOrConst} ${name} = require('${id}');`;
+					if (!interop || isChunk || !exportsDefault || !namedExportsMode)
+						return `${varOrConst} ${name} = require('${id}');`;
 
-				needsInterop = true;
+					needsInterop = true;
 
-				if (exportsNames)
-					return (
-						`${varOrConst} ${name} = require('${id}');` +
-						`\n${varOrConst} ${name}__default = _interopDefault(${name});`
-					);
+					if (exportsNames)
+						return (
+							`${varOrConst} ${name} = require('${id}');` +
+							`\n${varOrConst} ${name}__default = _interopDefault(${name});`
+						);
 
-				return `${varOrConst} ${name} = _interopDefault(require('${id}'));`;
-			})
+					return `${varOrConst} ${name} = _interopDefault(require('${id}'));`;
+				}
+			)
 			.join('\n');
 	}
 

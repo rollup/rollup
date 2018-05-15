@@ -1,10 +1,8 @@
 import MagicString from 'magic-string';
 import { NodeBase, StatementNode } from './shared/Node';
 import * as NodeType from './NodeType';
-import { RenderOptions, renderStatementList, findFirstLineBreakOutsideComment } from '../../utils/renderHelpers';
+import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import VariableDeclaration from './VariableDeclaration';
-import ExpressionStatement from './ExpressionStatement';
 
 export default class Program extends NodeBase {
 	type: NodeType.tProgram;
