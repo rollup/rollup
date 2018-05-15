@@ -10,6 +10,7 @@
 * Improve handling of external modules imported as both default and named imports ([#2136](https://github.com/rollup/rollup/pull/2136))
 * Properly deconflict named imports from other chunks ([#2177](https://github.com/rollup/rollup/pull/2177))
 * Fix an issue with namespaces containing reexports ([#2157](https://github.com/rollup/rollup/pull/2157))
+* Fix an issue with with incorrectly mapped default exports when code-splitting CJS or AMD modules ([#2178](https://github.com/rollup/rollup/pull/2178))
 * Fix an issue with wrong paths of relative external imports ([#2160](https://github.com/rollup/rollup/pull/2160))
 * Fix an issue when using default exports and `interop: false` ([#2149](https://github.com/rollup/rollup/pull/2149))
 * Fix in issue with invalid syntax in SystemJS output ([#2187](https://github.com/rollup/rollup/pull/2187))

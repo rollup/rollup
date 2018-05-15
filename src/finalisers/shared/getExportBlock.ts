@@ -3,11 +3,11 @@ import { ChunkExports, ChunkDependencies } from '../../Chunk';
 export default function getExportBlock(
 	exports: ChunkExports,
 	dependencies: ChunkDependencies,
-	exportMode: string,
+	namedExportsMode: boolean,
 	interop: boolean,
 	mechanism = 'return'
 ) {
-	if (exportMode === 'default') {
+	if (!namedExportsMode) {
 		let local;
 		exports.some(expt => {
 			if (expt.exported === 'default') {
@@ -22,7 +22,7 @@ export default function getExportBlock(
 				if (!dep.reexports) return false;
 				return dep.reexports.some(expt => {
 					if (expt.reexported === 'default') {
-						local = `${dep.name}.${expt.imported}`;
+						local = dep.namedExportsMode ? `${dep.name}.${expt.imported}` : dep.name;
 						return true;
 					}
 					return false;
@@ -36,7 +36,7 @@ export default function getExportBlock(
 
 	// star exports must always output first for precedence
 	dependencies.forEach(({ name, reexports }) => {
-		if (reexports && exportMode !== 'default') {
+		if (reexports && namedExportsMode) {
 			reexports.forEach(specifier => {
 				if (specifier.reexported === '*') {
 					exportBlock += `${
@@ -48,7 +48,7 @@ export default function getExportBlock(
 	});
 
 	dependencies.forEach(({ name, imports, reexports, isChunk }) => {
-		if (reexports && exportMode !== 'default') {
+		if (reexports && namedExportsMode) {
 			reexports.forEach(specifier => {
 				if (specifier.imported === 'default' && !isChunk) {
 					const exportsNamesOrNamespace =

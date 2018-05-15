@@ -2,7 +2,6 @@ import { timeEnd, timeStart } from './utils/timers';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
 import Module from './Module';
 import finalisers from './finalisers/index';
-import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import transformBundle from './utils/transformBundle';
 import collapseSourcemaps from './utils/collapseSourcemaps';
@@ -31,6 +30,7 @@ export interface ModuleDeclarations {
 
 export interface ModuleDeclarationDependency {
 	id: string;
+	namedExportsMode: boolean;
 	name: string;
 	globalName: string;
 	isChunk: boolean;
@@ -83,6 +83,7 @@ function getGlobalName(
 export default class Chunk {
 	hasDynamicImport: boolean = false;
 	indentString: string = undefined;
+	exportMode: string = 'named';
 	usedModules: Module[] = undefined;
 	id: string = undefined;
 	name: string;
@@ -503,7 +504,9 @@ export default class Chunk {
 				safeName = getSafeName(variable.name);
 				toDeshadow.add(safeName);
 			} else {
-				safeName = `${(<Module>module).chunk.name}.${module.chunk.getVariableExportName(variable)}`;
+				const chunk = (<Module>module).chunk;
+				if (chunk.exportMode === 'default') safeName = chunk.name;
+				else safeName = `${chunk.name}.${module.chunk.getVariableExportName(variable)}`;
 			}
 			if (safeName) variable.setSafeName(safeName);
 		});
@@ -618,10 +621,9 @@ export default class Chunk {
 				}
 			}
 
-			// id is left undefined for other chunks for now
-			// this will be populated on render
 			dependencies.push({
-				id,
+				id, // chunk id updated on render
+				namedExportsMode: true, // default mode updated on render
 				globalName,
 				name: dep.name,
 				isChunk: !(<ExternalModule>dep).isExternal,
@@ -801,7 +803,7 @@ export default class Chunk {
 
 		this.renderedDeclarations = {
 			dependencies: this.getChunkDependencyDeclarations(options, inputBase),
-			exports: this.getChunkExportDeclarations()
+			exports: this.exportMode === 'none' ? [] : this.getChunkExportDeclarations()
 		};
 
 		timeEnd('render modules', 3);
@@ -966,9 +968,6 @@ export default class Chunk {
 		if (!this.renderedSource)
 			throw new Error('Internal error: Chunk render called before preRender');
 
-		// Determine export mode - 'default', 'named', 'none'
-		const exportMode = this.isEntryModuleFacade ? getExportMode(this, options) : 'named';
-
 		const finalise = finalisers[options.format];
 		if (!finalise) {
 			error({
@@ -984,22 +983,32 @@ export default class Chunk {
 		for (let i = 0; i < this.dependencies.length; i++) {
 			const dep = this.dependencies[i];
 			if (dep instanceof ExternalModule && !dep.renormalizeRenderPath) continue;
+
 			const renderedDependency = this.renderedDeclarations.dependencies[i];
+
 			let depId = dep instanceof ExternalModule ? renderedDependency.id : dep.id;
 			let relPath = this.id ? normalize(relative(dirname(this.id), depId)) : depId;
 			if (!relPath.startsWith('../')) relPath = './' + relPath;
+
+			if (dep instanceof Chunk) renderedDependency.namedExportsMode = dep.exportMode !== 'default';
 			renderedDependency.id = relPath;
 		}
 
 		if (this.graph.dynamicImport) this.finaliseDynamicImports();
 
 		const hasImportMeta = this.orderedModules.some(module => module.hasImportMeta);
+		const hasExports =
+			this.renderedDeclarations.exports.length !== 0 ||
+			this.renderedDeclarations.dependencies.some(
+				dep => dep.reexports && dep.reexports.length !== 0
+			);
 
 		const magicString = finalise(
 			this.renderedSource,
 			{
-				exportMode,
 				indentString: this.indentString,
+				namedExportsMode: this.exportMode !== 'default',
+				hasExports,
 				intro: addons.intro,
 				outro: addons.outro,
 				dynamicImport: this.hasDynamicImport,

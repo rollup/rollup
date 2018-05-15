@@ -6,12 +6,21 @@ import { FinaliserOptions } from './index';
 
 export default function cjs(
 	magicString: MagicStringBundle,
-	{ graph, isEntryModuleFacade, exportMode, intro, outro, dependencies, exports }: FinaliserOptions,
+	{
+		graph,
+		isEntryModuleFacade,
+		namedExportsMode,
+		hasExports,
+		intro,
+		outro,
+		dependencies,
+		exports
+	}: FinaliserOptions,
 	options: OutputOptions
 ) {
 	intro =
 		(options.strict === false ? intro : `'use strict';\n\n${intro}`) +
-		(exportMode === 'named' && options.legacy !== true && isEntryModuleFacade
+		(namedExportsMode && hasExports && options.legacy !== true && isEntryModuleFacade
 			? `${esModuleExport}\n\n`
 			: '');
 
@@ -21,26 +30,37 @@ export default function cjs(
 	const interop = options.interop !== false;
 
 	const importBlock = dependencies
-		.map(({ id, isChunk, name, reexports, imports, exportsNames, exportsDefault }) => {
-			if (!reexports && !imports) {
-				return `require('${id}');`;
+		.map(
+			({
+				id,
+				namedExportsMode,
+				isChunk,
+				name,
+				reexports,
+				imports,
+				exportsNames,
+				exportsDefault
+			}) => {
+				if (!reexports && !imports) {
+					return `require('${id}');`;
+				}
+
+				if (!interop || isChunk || !exportsDefault || !namedExportsMode) {
+					return `${varOrConst} ${name} = require('${id}');`;
+				}
+
+				needsInterop = true;
+
+				if (exportsNames) {
+					return (
+						`${varOrConst} ${name} = require('${id}');` +
+						`\n${varOrConst} ${name}__default = _interopDefault(${name});`
+					);
+				}
+
+				return `${varOrConst} ${name} = _interopDefault(require('${id}'));`;
 			}
-
-			if (!interop || isChunk || !exportsDefault) {
-				return `${varOrConst} ${name} = require('${id}');`;
-			}
-
-			needsInterop = true;
-
-			if (exportsNames) {
-				return (
-					`${varOrConst} ${name} = require('${id}');` +
-					`\n${varOrConst} ${name}__default = _interopDefault(${name});`
-				);
-			}
-
-			return `${varOrConst} ${name} = _interopDefault(require('${id}'));`;
-		})
+		)
 		.join('\n');
 
 	if (needsInterop) {
@@ -54,7 +74,7 @@ export default function cjs(
 	const exportBlock = getExportBlock(
 		exports,
 		dependencies,
-		exportMode,
+		namedExportsMode,
 		options.interop,
 		'module.exports ='
 	);

@@ -14,7 +14,16 @@ const thisProp = (name: string) => `this${keypath(name)}`;
 
 export default function iife(
 	magicString: MagicStringBundle,
-	{ graph, exportMode, indentString, intro, outro, dependencies, exports }: FinaliserOptions,
+	{
+		graph,
+		namedExportsMode,
+		hasExports,
+		indentString,
+		intro,
+		outro,
+		dependencies,
+		exports
+	}: FinaliserOptions,
 	options: OutputOptions
 ) {
 	const { extend, name } = options;
@@ -34,7 +43,7 @@ export default function iife(
 	const deps = external.map(dep => dep.globalName || 'null');
 	const args = external.map(m => m.name);
 
-	if (exportMode !== 'none' && !name) {
+	if (hasExports && !name) {
 		error({
 			code: 'INVALID_OPTION',
 			message: `You must supply output.name for IIFE bundles`
@@ -44,7 +53,7 @@ export default function iife(
 	if (extend) {
 		deps.unshift(`(${thisProp(name)} = ${thisProp(name)} || {})`);
 		args.unshift('exports');
-	} else if (exportMode === 'named') {
+	} else if (namedExportsMode && hasExports) {
 		deps.unshift('{}');
 		args.unshift('exports');
 	}
@@ -53,7 +62,7 @@ export default function iife(
 
 	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
 
-	if (exportMode !== 'none' && !extend) {
+	if (hasExports && !extend) {
 		wrapperIntro =
 			(isNamespaced ? thisProp(name) : `${graph.varOrConst} ${name}`) + ` = ${wrapperIntro}`;
 	}
@@ -64,7 +73,7 @@ export default function iife(
 
 	let wrapperOutro = `\n\n}(${deps}));`;
 
-	if (!extend && exportMode === 'named') {
+	if (!extend && namedExportsMode && hasExports) {
 		wrapperOutro = `\n\n${indentString}return exports;${wrapperOutro}`;
 	}
 
@@ -74,7 +83,7 @@ export default function iife(
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, dependencies, exportMode, options.interop);
+	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, options.interop);
 	if (exportBlock) magicString.append('\n\n' + exportBlock);
 	if (outro) magicString.append(outro);
 

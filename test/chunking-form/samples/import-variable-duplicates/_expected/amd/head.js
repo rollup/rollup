@@ -2,6 +2,6 @@ define(['./first.js'], function (first) { 'use strict';
 
 
 
-	return first.default;
+	return first;
 
 });

@@ -10,7 +10,8 @@ export default function amd(
 	magicString: MagicStringBundle,
 	{
 		graph,
-		exportMode,
+		namedExportsMode,
+		hasExports,
 		indentString,
 		intro,
 		outro,
@@ -27,7 +28,7 @@ export default function amd(
 	const deps = dependencies.map(m => `'${m.id}'`);
 	const args = dependencies.map(m => m.name);
 
-	if (exportMode === 'named') {
+	if (namedExportsMode && hasExports) {
 		args.unshift(`exports`);
 		deps.unshift(`'exports'`);
 	}
@@ -57,9 +58,9 @@ export default function amd(
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, dependencies, exportMode, options.interop);
+	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, options.interop);
 	if (exportBlock) magicString.append('\n\n' + exportBlock);
-	if (exportMode === 'named' && options.legacy !== true && isEntryModuleFacade)
+	if (namedExportsMode && hasExports && options.legacy !== true && isEntryModuleFacade)
 		magicString.append(`\n\n${esModuleExport}`);
 	if (outro) magicString.append(outro);
 
