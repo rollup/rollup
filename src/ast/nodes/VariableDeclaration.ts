@@ -1,5 +1,5 @@
 import { Node, NodeBase } from './shared/Node';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
 import VariableDeclarator from './VariableDeclarator';
 import MagicString from 'magic-string';
 import * as NodeType from './NodeType';
@@ -10,7 +10,7 @@ import {
 } from '../../utils/renderHelpers';
 import { isIdentifier } from './Identifier';
 import Variable from '../variables/Variable';
-import { ObjectPath } from '../values';
+import { EMPTY_PATH, ObjectPath } from '../values';
 import { BLANK } from '../../utils/blank';
 
 function isReassignedExportsMember(variable: Variable): boolean {
@@ -60,7 +60,7 @@ export default class VariableDeclaration extends NodeBase {
 
 	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {
 		for (const declarator of this.declarations) {
-			declarator.reassignPath([], ExecutionPathOptions.create());
+			declarator.reassignPath(EMPTY_PATH, NEW_EXECUTION_PATH);
 		}
 	}
 

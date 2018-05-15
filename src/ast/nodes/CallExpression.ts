@@ -1,11 +1,11 @@
 import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
 import SpreadElement from './SpreadElement';
 import Identifier from './Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { ObjectPath, UNKNOWN_KEY } from '../values';
+import { ObjectPath, UNKNOWN_PATH } from '../values';
 
 export default class CallExpression extends NodeBase {
 	type: NodeType.tCallExpression;
@@ -42,7 +42,7 @@ export default class CallExpression extends NodeBase {
 		}
 		for (const argument of this.arguments) {
 			// This will make sure all properties of parameters behave as "unknown"
-			argument.reassignPath([UNKNOWN_KEY], ExecutionPathOptions.create());
+			argument.reassignPath(UNKNOWN_PATH, NEW_EXECUTION_PATH);
 		}
 	}
 

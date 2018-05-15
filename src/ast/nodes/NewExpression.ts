@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import * as NodeType from './NodeType';
 import { ObjectPath } from '../values';

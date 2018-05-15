@@ -1,6 +1,6 @@
 import { WritableEntity } from '../../Entity';
 import CallOptions from '../../CallOptions';
-import ExecutionPathOptions from '../../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import { ObjectPath, LiteralValueOrUnknown } from '../../values';
 
 export type PredicateFunction = (node: ExpressionEntity) => boolean;

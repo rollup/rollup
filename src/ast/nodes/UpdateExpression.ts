@@ -1,8 +1,8 @@
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
 import { isIdentifier } from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { ObjectPath } from '../values';
+import { EMPTY_PATH, ObjectPath } from '../values';
 
 export default class UpdateExpression extends NodeBase {
 	type: NodeType.tUpdateExpression;
@@ -12,7 +12,7 @@ export default class UpdateExpression extends NodeBase {
 
 	bind() {
 		super.bind();
-		this.argument.reassignPath([], ExecutionPathOptions.create());
+		this.argument.reassignPath(EMPTY_PATH, NEW_EXECUTION_PATH);
 		if (isIdentifier(this.argument)) {
 			const variable = this.scope.findVariable(this.argument.name);
 			variable.isReassigned = true;
@@ -21,7 +21,8 @@ export default class UpdateExpression extends NodeBase {
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
-			this.argument.hasEffects(options) || this.argument.hasEffectsWhenAssignedAtPath([], options)
+			this.argument.hasEffects(options) ||
+			this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options)
 		);
 	}
 

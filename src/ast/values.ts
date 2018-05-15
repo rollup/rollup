@@ -1,13 +1,15 @@
 import { ExpressionEntity, SomeReturnExpressionCallback } from './nodes/shared/Expression';
 import CallOptions from './CallOptions';
 import { LiteralValue } from './nodes/Literal';
-import ExecutionPathOptions from './ExecutionPathOptions';
+import { ExecutionPathOptions } from './ExecutionPathOptions';
 
 export type UnknownKey = { UNKNOWN_KEY: true };
 export const UNKNOWN_KEY: UnknownKey = { UNKNOWN_KEY: true };
 
 export type ObjectPathKey = string | UnknownKey;
 export type ObjectPath = ObjectPathKey[];
+export const EMPTY_PATH: ObjectPath = [];
+export const UNKNOWN_PATH: ObjectPath = [UNKNOWN_KEY];
 
 export interface MemberDescription {
 	returns: ExpressionEntity;

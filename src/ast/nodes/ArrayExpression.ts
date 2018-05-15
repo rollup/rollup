@@ -3,7 +3,7 @@ import { SomeReturnExpressionCallback } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import * as NodeType from './NodeType';
 import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	arrayMembers,
 	hasMemberEffectWhenCalled,

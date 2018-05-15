@@ -1,6 +1,6 @@
 import BlockScope from '../scopes/BlockScope';
 import { UNKNOWN_EXPRESSION } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
 import { Node, StatementBase, StatementNode } from './shared/Node';

@@ -1,5 +1,5 @@
 import { UNKNOWN_EXPRESSION } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
 

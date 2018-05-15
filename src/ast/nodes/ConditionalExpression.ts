@@ -1,5 +1,5 @@
-import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE, EMPTY_PATH } from '../values';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
@@ -185,7 +185,7 @@ export default class ConditionalExpression extends NodeBase {
 
 	private getTestValue() {
 		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
-		const value = this.test.getLiteralValueAtPath([]);
+		const value = this.test.getLiteralValueAtPath(EMPTY_PATH);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownTestValue = true;
 		}

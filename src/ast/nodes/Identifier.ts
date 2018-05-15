@@ -1,7 +1,7 @@
 import { Node, NodeBase } from './shared/Node';
 import isReference from 'is-reference';
 import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Variable from '../variables/Variable';
 import CallOptions from '../CallOptions';
 import FunctionScope from '../scopes/FunctionScope';

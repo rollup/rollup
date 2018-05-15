@@ -1,4 +1,4 @@
-import ExecutionPathOptions from './ExecutionPathOptions';
+import { ExecutionPathOptions } from './ExecutionPathOptions';
 import { ObjectPath } from './values';
 
 export interface Entity {

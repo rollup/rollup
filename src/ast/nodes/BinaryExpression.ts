@@ -1,5 +1,5 @@
-import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE, EMPTY_PATH } from '../values';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { LiteralValue } from './Literal';
@@ -39,10 +39,10 @@ export default class BinaryExpression extends NodeBase {
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (path.length > 0) return UNKNOWN_VALUE;
-		const leftValue = this.left.getLiteralValueAtPath([]);
+		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH);
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
-		const rightValue = this.right.getLiteralValueAtPath([]);
+		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH);
 		if (rightValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		const operatorFn = binaryOperators[this.operator];

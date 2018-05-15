@@ -1,5 +1,5 @@
 import { ObjectPath, UNKNOWN_KEY } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 
 type PropertyReassignmentInfo = {

@@ -1,10 +1,10 @@
 import AssignmentProperty from './AssignmentProperty';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ExpressionEntity } from './shared/Expression';
 import { PatternNode } from './shared/Pattern';
 import { NodeBase } from './shared/Node';
 import * as NodeType from './NodeType';
-import { ObjectPath } from '../values';
+import { EMPTY_PATH, ObjectPath } from '../values';
 
 export default class ObjectPattern extends NodeBase implements PatternNode {
 	type: NodeType.tObjectPattern;
@@ -19,7 +19,7 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length > 0) return true;
 		for (const property of this.properties) {
-			if (property.hasEffectsWhenAssignedAtPath([], options)) return true;
+			if (property.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options)) return true;
 		}
 		return false;
 	}

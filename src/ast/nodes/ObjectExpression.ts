@@ -1,6 +1,6 @@
 import Property from './Property';
 import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Identifier from './Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import {
@@ -9,7 +9,8 @@ import {
 	ObjectPathKey,
 	LiteralValueOrUnknown,
 	UNKNOWN_KEY,
-	UNKNOWN_VALUE
+	UNKNOWN_VALUE,
+	EMPTY_PATH
 } from '../values';
 import { Node, NodeBase } from './shared/Node';
 import * as NodeType from './NodeType';
@@ -188,7 +189,7 @@ export default class ObjectExpression extends NodeBase {
 			const property = this.properties[index];
 			if (kinds.indexOf(property.kind) < 0) continue;
 			if (property.computed) {
-				const value = property.key.getLiteralValueAtPath([]);
+				const value = property.key.getLiteralValueAtPath(EMPTY_PATH);
 				if (String(value) === name) {
 					properties.push(property);
 					hasCertainHit = true;

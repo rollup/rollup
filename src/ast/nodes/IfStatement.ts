@@ -1,9 +1,9 @@
-import { UNKNOWN_VALUE } from '../values';
+import { EMPTY_PATH, UNKNOWN_VALUE } from '../values';
 import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
 import MagicString from 'magic-string';
 import * as NodeType from './NodeType';
 import { RenderOptions } from '../../utils/renderHelpers';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 
 export default class IfStatement extends StatementBase {
 	type: NodeType.tIfStatement;
@@ -53,7 +53,7 @@ export default class IfStatement extends StatementBase {
 		// Note that unknown test values are always included
 		const testValue = this.hasUnknownTestValue
 			? UNKNOWN_VALUE
-			: this.test.getLiteralValueAtPath([]);
+			: this.test.getLiteralValueAtPath(EMPTY_PATH);
 		if (
 			!this.test.included &&
 			(testValue ? this.alternate === null || !this.alternate.included : !this.consequent.included)
@@ -85,7 +85,7 @@ export default class IfStatement extends StatementBase {
 
 	private getTestValue() {
 		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
-		const value = this.test.getLiteralValueAtPath([]);
+		const value = this.test.getLiteralValueAtPath(EMPTY_PATH);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownTestValue = true;
 		}

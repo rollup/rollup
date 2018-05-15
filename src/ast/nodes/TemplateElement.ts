@@ -1,5 +1,5 @@
 import { NodeBase } from './shared/Node';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import * as NodeType from './NodeType';
 
 export default class TemplateElement extends NodeBase {

@@ -1,7 +1,7 @@
 import relativeId from '../../utils/relativeId';
 import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import Variable from '../variables/Variable';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
 import Identifier from './Identifier';
@@ -11,6 +11,7 @@ import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from '.
 import * as NodeType from './NodeType';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import {
+	EMPTY_PATH,
 	LiteralValueOrUnknown,
 	ObjectPath,
 	ObjectPathKey,
@@ -269,7 +270,7 @@ export default class MemberExpression extends NodeBase {
 	}
 
 	private getComputedKey() {
-		const value = this.property.getLiteralValueAtPath([]);
+		const value = this.property.getLiteralValueAtPath(EMPTY_PATH);
 		return value === UNKNOWN_VALUE ? UNKNOWN_KEY : String(value);
 	}
 

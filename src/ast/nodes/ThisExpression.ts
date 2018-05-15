@@ -1,5 +1,5 @@
 import ThisVariable from '../variables/ThisVariable';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
 import { NodeBase } from './shared/Node';
 import * as NodeType from './NodeType';

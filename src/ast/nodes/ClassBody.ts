@@ -1,9 +1,9 @@
 import { NodeBase } from './shared/Node';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import MethodDefinition from './MethodDefinition';
 import * as NodeType from './NodeType';
-import { ObjectPath } from '../values';
+import { EMPTY_PATH, ObjectPath } from '../values';
 
 export default class ClassBody extends NodeBase {
 	type: NodeType.tClassBody;
@@ -21,7 +21,7 @@ export default class ClassBody extends NodeBase {
 		}
 		return (
 			this.classConstructor !== null &&
-			this.classConstructor.hasEffectsWhenCalledAtPath([], callOptions, options)
+			this.classConstructor.hasEffectsWhenCalledAtPath(EMPTY_PATH, callOptions, options)
 		);
 	}
 

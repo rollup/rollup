@@ -1,6 +1,6 @@
 import ParameterScope from './ParameterScope';
 import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ExpressionEntity, ForEachReturnExpressionCallback } from '../nodes/shared/Expression';
 
 export default class ReturnValueScope extends ParameterScope {

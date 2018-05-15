@@ -1,7 +1,7 @@
 import LocalVariable from '../variables/LocalVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
-import { UNKNOWN_EXPRESSION } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { EMPTY_PATH, UNKNOWN_EXPRESSION } from '../values';
+import { NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import GlobalVariable from '../variables/GlobalVariable';
@@ -53,7 +53,7 @@ export default class Scope {
 		if (this.variables[name]) {
 			const variable = <LocalVariable>this.variables[name];
 			variable.addDeclaration(identifier);
-			variable.reassignPath([], ExecutionPathOptions.create());
+			variable.reassignPath(EMPTY_PATH, NEW_EXECUTION_PATH);
 		} else {
 			this.variables[name] = new LocalVariable(
 				identifier.name,

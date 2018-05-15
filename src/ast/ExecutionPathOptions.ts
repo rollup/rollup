@@ -26,7 +26,7 @@ export type RESULT_KEY = {};
 export const RESULT_KEY: RESULT_KEY = {};
 export type KeyTypes = OptionTypes | Entity | RESULT_KEY;
 
-export default class ExecutionPathOptions {
+export class ExecutionPathOptions {
 	private optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>;
 
 	static create() {
@@ -208,3 +208,5 @@ export default class ExecutionPathOptions {
 		return this.set(OptionTypes.IGNORE_RETURN_AWAIT_YIELD, value);
 	}
 }
+
+export const NEW_EXECUTION_PATH = ExecutionPathOptions.create();

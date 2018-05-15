@@ -1,6 +1,6 @@
 import Scope from '../../scopes/Scope';
 import CallOptions from '../../CallOptions';
-import ExecutionPathOptions from '../../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import Identifier from '../Identifier';
 import ClassBody from '../ClassBody';
 import { ExpressionNode, NodeBase } from './Node';
