@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 0.59.0
-*unreleased*
+*2018-05-15*
 * Tree-shake statically analysable dynamic conditionals ([#2167](https://github.com/rollup/rollup/pull/2167))
 * Do not emit empty chunks when code-splitting or empty files when preserving modules ([#2128](https://github.com/rollup/rollup/pull/2128))
 * Support `import.meta.url` ([#2164](https://github.com/rollup/rollup/pull/2164))
