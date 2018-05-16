@@ -3,6 +3,7 @@
 ## 0.59.1
 *2018-05-16*
 * Fix infinite recursion when determining literal values of circular structures ([#2193](https://github.com/rollup/rollup/pull/2193))
+* Fix invalid code when simplifying expressions without spaces ([#2194](https://github.com/rollup/rollup/pull/2194))
 
 ## 0.59.0
 *2018-05-15*
