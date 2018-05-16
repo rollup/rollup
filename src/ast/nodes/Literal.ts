@@ -35,14 +35,14 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 		return <any>this.value;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		if (this.value === null) {
 			return path.length > 0;
 		}
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
 		return path.length > 0;
 	}
 

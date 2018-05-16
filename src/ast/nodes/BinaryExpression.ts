@@ -37,12 +37,12 @@ export default class BinaryExpression extends NodeBase {
 	right: ExpressionNode;
 	operator: keyof typeof binaryOperators;
 
-	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
 		if (path.length > 0) return UNKNOWN_VALUE;
-		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH);
+		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, options);
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
-		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH);
+		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, options);
 		if (rightValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		const operatorFn = binaryOperators[this.operator];

@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.59.1
+*2018-05-16*
+* Fix infinite recursion when determining literal values of circular structures ([#2193](https://github.com/rollup/rollup/pull/2193))
+
 ## 0.59.0
 *2018-05-15*
 * Tree-shake statically analysable dynamic conditionals ([#2167](https://github.com/rollup/rollup/pull/2167))

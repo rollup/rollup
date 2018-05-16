@@ -49,11 +49,11 @@ export default class Property extends NodeBase {
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
 		if (this.kind === 'get') {
 			return UNKNOWN_VALUE;
 		}
-		return this.value.getLiteralValueAtPath(path);
+		return this.value.getLiteralValueAtPath(path, options);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

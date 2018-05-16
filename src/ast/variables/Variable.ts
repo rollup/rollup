@@ -54,7 +54,7 @@ export default class Variable implements ExpressionEntity {
 		return this.safeName || this.name;
 	}
 
-	getLiteralValueAtPath(_path: ObjectPath): LiteralValueOrUnknown {
+	getLiteralValueAtPath(_path: ObjectPath, _options: ExecutionPathOptions): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
 	}
 

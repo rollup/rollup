@@ -72,9 +72,9 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
 		if (this.variable !== null) {
-			return this.variable.getLiteralValueAtPath(path);
+			return this.variable.getLiteralValueAtPath(path, options);
 		}
 		return UNKNOWN_VALUE;
 	}
