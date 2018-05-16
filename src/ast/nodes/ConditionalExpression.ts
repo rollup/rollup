@@ -1,5 +1,5 @@
 import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE, EMPTY_PATH } from '../values';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
@@ -23,7 +23,7 @@ export default class ConditionalExpression extends NodeBase {
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
 		if (testValue === UNKNOWN_VALUE || testValue) {
 			this.consequent.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
 		}
@@ -32,17 +32,17 @@ export default class ConditionalExpression extends NodeBase {
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
+	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
 		if (testValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 		return testValue
-			? this.consequent.getLiteralValueAtPath(path)
-			: this.alternate.getLiteralValueAtPath(path);
+			? this.consequent.getLiteralValueAtPath(path, options)
+			: this.alternate.getLiteralValueAtPath(path, options);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		if (this.test.hasEffects(options)) return true;
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
 		if (testValue === UNKNOWN_VALUE) {
 			return this.consequent.hasEffects(options) || this.alternate.hasEffects(options);
 		}
@@ -51,7 +51,7 @@ export default class ConditionalExpression extends NodeBase {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return false;
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
 		if (testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.hasEffectsWhenAccessedAtPath(path, options) ||
@@ -65,7 +65,7 @@ export default class ConditionalExpression extends NodeBase {
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return true;
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
 		if (testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.hasEffectsWhenAssignedAtPath(path, options) ||
@@ -82,7 +82,7 @@ export default class ConditionalExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
 		if (testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
@@ -101,7 +101,9 @@ export default class ConditionalExpression extends NodeBase {
 
 	include() {
 		this.included = true;
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
+		const testValue = this.hasUnknownTestValue
+			? UNKNOWN_VALUE
+			: this.getTestValue(NEW_EXECUTION_PATH);
 		if (testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
 			this.test.include();
 			this.consequent.include();
@@ -115,7 +117,7 @@ export default class ConditionalExpression extends NodeBase {
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length > 0) {
-			const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
+			const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
 			if (testValue === UNKNOWN_VALUE || testValue) {
 				this.consequent.reassignPath(path, options);
 			}
@@ -151,7 +153,7 @@ export default class ConditionalExpression extends NodeBase {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
 		if (testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.someReturnExpressionWhenCalledAtPath(
@@ -183,9 +185,9 @@ export default class ConditionalExpression extends NodeBase {
 			  );
 	}
 
-	private getTestValue() {
+	private getTestValue(options: ExecutionPathOptions) {
 		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
-		const value = this.test.getLiteralValueAtPath(EMPTY_PATH);
+		const value = this.test.getLiteralValueAtPath(EMPTY_PATH, options);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownTestValue = true;
 		}

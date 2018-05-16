@@ -29,9 +29,9 @@ export default class UnaryExpression extends NodeBase {
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
 		if (path.length > 0) return UNKNOWN_VALUE;
-		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH);
+		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH, options);
 		if (argumentValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		return unaryOperators[this.operator](<LiteralValue>argumentValue);

@@ -24,7 +24,7 @@ export interface ExpressionEntity extends WritableEntity {
 	 * for inlining or comparing values.
 	 * Otherwise it should return UNKNOWN_VALUE.
 	 */
-	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown;
+	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown;
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,

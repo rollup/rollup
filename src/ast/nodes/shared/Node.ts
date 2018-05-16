@@ -139,7 +139,7 @@ export class NodeBase implements ExpressionNode {
 		_options: ExecutionPathOptions
 	) {}
 
-	getLiteralValueAtPath(_path: ObjectPath): LiteralValueOrUnknown {
+	getLiteralValueAtPath(_path: ObjectPath, _options: ExecutionPathOptions): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
 	}
 

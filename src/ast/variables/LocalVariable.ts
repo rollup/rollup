@@ -57,11 +57,19 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
-		if (!this.init || this.reassignments.isPathReassigned(path)) {
+	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
+		if (
+			!this.init ||
+			path.length > MAX_PATH_DEPTH ||
+			this.reassignments.isPathReassigned(path) ||
+			options.hasNodeValueBeenRetrievedAtPath(path, this.init)
+		) {
 			return UNKNOWN_VALUE;
 		}
-		return this.init.getLiteralValueAtPath(path);
+		return this.init.getLiteralValueAtPath(
+			path,
+			options.addRetrievedNodeValueAtPath(path, this.init)
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
