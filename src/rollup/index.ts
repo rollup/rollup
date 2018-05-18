@@ -10,17 +10,18 @@ import ensureArray from '../utils/ensureArray';
 import { createAddons } from '../utils/addons';
 import commondir from '../utils/commondir';
 import { optimizeChunks } from '../chunk-optimization';
+import createGetAssetFileName from '../utils/getAssetFileName';
 
 import {
 	WarningHandler,
 	InputOptions,
 	OutputOptions,
 	Plugin,
-	Bundle,
-	BundleSet,
 	OutputChunk,
-	OutputFiles,
-	OutputAsset
+	OutputBundle,
+	OutputFile,
+	RollupFileBuild,
+	RollupBuild
 } from './types';
 import getExportMode from '../utils/getExportMode';
 import Chunk from '../Chunk';
@@ -100,7 +101,9 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	return inputOptions.plugins.reduce(applyOptionHook, inputOptions);
 }
 
-export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bundle | BundleSet> {
+export default function rollup(
+	rawInputOptions: GenericConfigObject
+): Promise<RollupFileBuild | RollupBuild> {
 	try {
 		const inputOptions = getInputOptions(rawInputOptions);
 		initialiseTimers(inputOptions);
@@ -235,7 +238,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 
 					timeStart('GENERATE', 1);
 
-					let generated: OutputFiles = Object.create(null);
+					let outputBundle: OutputBundle = Object.create(null);
 
 					const inputBase = commondir(
 						chunks.filter(chunk => chunk.entryModule).map(chunk => chunk.entryModule.id)
@@ -243,12 +246,6 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 
 					return createAddons(graph, outputOptions)
 						.then(addons => {
-							// name and populate the assets into the output files object
-							graph.finaliseAssets(
-								outputOptions.assetFileNames || 'assets/[name]-[hash].[ext]',
-								generated
-							);
-
 							// pre-render all chunks
 							for (let chunk of chunks) {
 								if (!inputOptions.experimentalPreserveModules)
@@ -273,15 +270,13 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 											: inputOptions.input)
 								);
 								const outputChunk: OutputChunk = {
-									file: singleInputChunk.id,
-									isAsset: false,
 									imports,
 									exports,
 									modules: singleInputChunk.getModuleIds(),
 									code: undefined,
 									map: undefined
 								};
-								generated[singleInputChunk.id] = outputChunk;
+								outputBundle[singleInputChunk.id] = outputChunk;
 							}
 
 							for (let chunk of chunks) {
@@ -297,11 +292,9 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 										pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
 										patternName = 'output.chunkFileNames';
 									}
-									chunk.generateId(pattern, patternName, addons, outputOptions, generated);
+									chunk.generateId(pattern, patternName, addons, outputOptions, outputBundle);
 								}
-								generated[chunk.id] = {
-									file: chunk.id,
-									isAsset: false,
+								outputBundle[chunk.id] = {
 									imports: chunk.getImportIds(),
 									exports: chunk.getExportNames(),
 									modules: chunk.getModuleIds(),
@@ -314,7 +307,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 							return Promise.all(
 								chunks.map(chunk =>
 									chunk.render(outputOptions, addons).then(rendered => {
-										const outputChunk = <OutputChunk>generated[chunk.id];
+										const outputChunk = <OutputChunk>outputBundle[chunk.id];
 										outputChunk.code = rendered.code;
 										outputChunk.map = rendered.map;
 
@@ -322,26 +315,39 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 											graph.plugins
 												.filter(plugin => plugin.ongenerate)
 												.map(plugin =>
-													plugin.ongenerate.call(
-														graph.pluginContext,
-														outputOptions,
-														outputChunk,
-														isWrite
-													)
+													plugin.ongenerate.call(graph.pluginContext, outputOptions, outputChunk)
 												)
-										).then(() => {});
+										);
 									})
+								)
+							).then(() => {});
+						})
+						.then(() => {
+							// run generateBundle hook
+							const generateBundlePlugins = graph.plugins.filter(plugin => plugin.generateBundle);
+							if (generateBundlePlugins.length === 0) return;
+							const getAssetFileName = createGetAssetFileName(
+								outputBundle,
+								outputOptions.assetFileNames
+							);
+							return generateBundlePlugins.map(plugin =>
+								plugin.generateBundle.call(
+									graph.pluginContext,
+									outputOptions,
+									outputBundle,
+									getAssetFileName,
+									isWrite
 								)
 							);
 						})
 						.then(() => {
 							timeEnd('GENERATE', 1);
-							return generated;
+							return outputBundle;
 						});
 				}
 
 				const cache = graph.getCache();
-				const result: Bundle | BundleSet = {
+				const result: RollupFileBuild | RollupBuild = {
 					cache,
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
 						const promise = generate(rawOutputOptions, false).then(
@@ -373,7 +379,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 						return generate(outputOptions, true).then(result =>
 							Promise.all(
 								Object.keys(result).map(chunkId => {
-									return writeOutputFile(graph, result[chunkId], outputOptions);
+									return writeOutputFile(graph, chunkId, result[chunkId], outputOptions);
 								})
 							).then(
 								() =>
@@ -397,35 +403,40 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Bu
 	}
 }
 
+function isOutputChunk(file: OutputFile): file is OutputChunk {
+	return typeof (<OutputChunk>file).code === 'string';
+}
+
 function writeOutputFile(
 	graph: Graph,
-	outputFile: OutputChunk | OutputAsset,
+	outputFileName: string,
+	outputFile: OutputFile,
 	outputOptions: OutputOptions
 ): Promise<void> {
-	const filename = resolve(outputOptions.dir || dirname(outputOptions.file), outputFile.file);
+	const filename = resolve(outputOptions.dir || dirname(outputOptions.file), outputFileName);
 	let writeSourceMapPromise: Promise<void>;
 	let source: string | Buffer;
-	if (outputFile.isAsset === false) {
+	if (isOutputChunk(outputFile)) {
 		source = outputFile.code;
-		if (outputOptions.sourcemap) {
+		if (outputOptions.sourcemap && outputFile.map) {
 			let url: string;
 			if (outputOptions.sourcemap === 'inline') {
 				url = outputFile.map.toUrl();
 			} else {
-				url = `${basename(outputFile.file)}.map`;
+				url = `${basename(outputFileName)}.map`;
 				writeSourceMapPromise = writeFile(`${filename}.map`, outputFile.map.toString());
 			}
 			source += `//# ${SOURCEMAPPING_URL}=${url}\n`;
 		}
 	} else {
-		source = outputFile.source;
+		source = outputFile;
 	}
 
 	return writeFile(filename, source)
 		.then(() => writeSourceMapPromise)
 		.then(
 			() =>
-				!outputFile.isAsset &&
+				isOutputChunk(outputFile) &&
 				Promise.all(
 					graph.plugins
 						.filter(plugin => plugin.onwrite)

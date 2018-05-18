@@ -11,14 +11,19 @@ import loadConfigFile from './loadConfigFile';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import { printTimings } from './timings';
-import { RollupError, RollupWatchOptions, Bundle, BundleSet } from '../../../src/rollup/types';
+import {
+	RollupError,
+	RollupWatchOptions,
+	RollupFileBuild,
+	RollupBuild
+} from '../../../src/rollup/types';
 interface WatchEvent {
 	code?: string;
 	error?: RollupError | Error;
 	input?: string | string[];
 	output?: string[];
 	duration?: number;
-	result?: Bundle | BundleSet;
+	result?: RollupFileBuild | RollupBuild;
 }
 
 interface Watcher {
