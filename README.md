@@ -9,6 +9,10 @@
     <img src="https://img.shields.io/npm/v/rollup.svg"
          alt="npm version">
   </a>
+  <a href="https://packagephobia.now.sh/result?p=rollup">
+    <img src="https://packagephobia.now.sh/badge?p=rollup"
+         alt="install size">
+  </a>
     <a href="#backers" alt="sponsors on Open Collective">
       <img src="https://opencollective.com/rollup/backers/badge.svg" />
   </a> 
