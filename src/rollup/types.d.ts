@@ -65,8 +65,6 @@ export interface ModuleJSON {
 }
 
 export interface PluginContext {
-	emitAsset: (file: string, source: string | Buffer) => string;
-	getAssetFileName: (assetId: string) => string;
 	resolveId: ResolveIdHook;
 	parse: (input: string, options: any) => ESTree.Program;
 	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
@@ -104,12 +102,7 @@ export type TransformChunkHook = (
 	this: PluginContext,
 	code: string,
 	options: OutputOptions,
-	chunk: {
-		file: string;
-		imports: string[];
-		exports: string[];
-		modules: string[];
-	}
+	chunk: OutputChunk
 ) =>
 	| Promise<{ code: string; map: RawSourceMap } | void>
 	| { code: string; map: RawSourceMap }
@@ -137,13 +130,13 @@ export interface Plugin {
 	ongenerate?: (
 		this: PluginContext,
 		options: OutputOptions,
-		chunk: OutputChunk,
-		isWrite: boolean
+		source: OutputChunk
 	) => void | Promise<void>;
-	generateChunk?: (
+	generateBundle?: (
 		this: PluginContext,
 		options: OutputOptions,
-		chunk: OutputChunk,
+		bundle: OutputBundle,
+		getAssetFileName: (name: string, source?: string) => string,
 		isWrite: boolean
 	) => void | Promise<void>;
 	// TODO: deprecate
@@ -293,27 +286,21 @@ export type WarningHandler = (warning: string | RollupWarning) => void;
 
 export type SerializedTimings = { [label: string]: number };
 
+export type OutputFile = string | Buffer | OutputChunk;
+
 export interface OutputChunk {
-	file: string;
-	isAsset: false;
+	code: string;
+	map?: SourceMap;
 	imports: string[];
 	exports: string[];
 	modules: string[];
-	code: string;
-	map?: SourceMap;
-}
-
-export interface OutputAsset {
-	file: string;
-	isAsset: true;
-	source: string | Buffer;
 }
 
 export interface RollupCache {
 	modules: ModuleJSON[];
 }
 
-export interface Bundle {
+export interface RollupFileBuild {
 	// TODO: consider deprecating to match code splitting
 	imports: string[];
 	exports: string[];
@@ -325,14 +312,14 @@ export interface Bundle {
 	getTimings?: () => SerializedTimings;
 }
 
-export interface OutputFiles {
-	[file: string]: OutputChunk | OutputAsset;
+export interface OutputBundle {
+	[fileName: string]: OutputChunk | OutputFile;
 }
 
-export interface BundleSet {
+export interface RollupBuild {
 	cache: RollupCache;
-	generate: (outputOptions: OutputOptions) => Promise<OutputFiles>;
-	write: (options: OutputOptions) => Promise<OutputFiles>;
+	generate: (outputOptions: OutputOptions) => Promise<OutputBundle>;
+	write: (options: OutputOptions) => Promise<OutputBundle>;
 	getTimings?: () => SerializedTimings;
 }
 
@@ -348,8 +335,8 @@ export interface RollupDirOptions extends InputOptions {
 	output?: OutputOptionsDir;
 }
 
-export function rollup(options: RollupFileOptions): Promise<Bundle>;
-export function rollup(options: RollupDirOptions): Promise<BundleSet>;
+export function rollup(options: RollupFileOptions): Promise<RollupFileBuild>;
+export function rollup(options: RollupDirOptions): Promise<RollupBuild>;
 
 export interface Watcher extends EventEmitter {}
 

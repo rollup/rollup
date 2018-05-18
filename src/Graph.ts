@@ -8,9 +8,9 @@ import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
 import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
 import transform from './utils/transform';
-import relativeId, { isPlainName, getAliasName } from './utils/relativeId';
+import relativeId, { getAliasName } from './utils/relativeId';
 import error from './utils/error';
-import { isRelative, resolve, relative, extname } from './utils/path';
+import { isRelative, resolve, relative } from './utils/path';
 import {
 	InputOptions,
 	IsExternalHook,
@@ -25,16 +25,13 @@ import {
 	TreeshakingOptions,
 	WarningHandler,
 	ModuleJSON,
-	RollupError,
-	OutputFiles
+	RollupError
 } from './rollup/types';
 import Chunk from './Chunk';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
 import firstSync from './utils/first-sync';
 import { Program } from 'estree';
-import sha256 from 'hash.js/lib/hash/sha/256';
-import { renderNamePattern, makeUnique } from './utils/renderNamePattern';
 
 export interface Asset {
 	name: string;
@@ -57,7 +54,6 @@ export default class Graph {
 	load: LoadHook;
 	handleMissingExport: MissingExportHook;
 	moduleById = new Map<string, Module | ExternalModule>();
-	assetsById = new Map<string, Asset>();
 	modules: Module[] = [];
 	onwarn: WarningHandler;
 	plugins: Plugin[];
@@ -125,8 +121,6 @@ export default class Graph {
 		this.pluginContext = {
 			resolveId: undefined,
 			parse: this.contextParse,
-			emitAsset: this.emitAsset.bind(this),
-			getAssetFileName: this.getAssetFileName.bind(this),
 			warn(warning: RollupWarning | string) {
 				if (typeof warning === 'string') warning = { message: warning };
 				this.warn(warning);
@@ -241,69 +235,6 @@ export default class Graph {
 
 		acornPluginsToInject.push(...ensureArray(options.acornInjectPlugins));
 		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
-	}
-
-	private emitAsset(name: string, source: string) {
-		const hash = sha256();
-		const ext = extname(name);
-		if (!isPlainName(name))
-			error({
-				code: 'INVALID_ASSET_NAME',
-				message: `Asset name "${name}" is not a plain (non relative or absolute URL) name.`
-			});
-		if (!ext)
-			error({
-				code: 'INVALID_ASSET_NAME',
-				message: `Asset name "${name}" must include a file extension.`
-			});
-		hash.update(name);
-		hash.update(':');
-		hash.update(source);
-		const assetId = hash.digest('hex').substr(0, 8);
-		this.assetsById.set(assetId, { name, source, file: undefined });
-	}
-
-	// name the assets and populate them into the output files map
-	finaliseAssets(assetFileNamesPattern: string, outputFiles: OutputFiles) {
-		const assets = Object.create(null);
-		this.assetsById.forEach((asset, assetId) => {
-			const ext = extname(name);
-			const file = makeUnique(
-				renderNamePattern(assetFileNamesPattern, 'assetFileNames', name => {
-					switch (name) {
-						case 'hash':
-							return assetId;
-						case 'name':
-							return asset.name.substr(0, asset.name.length - ext.length);
-						case 'ext':
-							return ext;
-					}
-				}),
-				outputFiles
-			);
-
-			outputFiles[(asset.file = file)] = {
-				file: asset.file,
-				isAsset: true,
-				source: asset.source
-			};
-		});
-		return assets;
-	}
-
-	private getAssetFileName(assetId: string) {
-		const asset = this.assetsById.get(assetId);
-		if (!asset)
-			error({
-				code: 'ASSET_NOT_FOUND',
-				message: `Unable to name asset ${assetId}, as there is no emitted asset with this id.`
-			});
-		if (!asset.file)
-			error({
-				code: 'NO_ASSET_NAME',
-				message: `getAssetFileName can only be called from the transformChunk plugin hook.`
-			});
-		return asset.file;
 	}
 
 	getCache() {

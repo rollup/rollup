@@ -14,7 +14,12 @@ export function renderNamePattern(
 		});
 	return pattern.replace(/\[(\w+)\]/g, (_match, type) => {
 		const replacement = getReplacement(type);
-		if (!replacement || !isPlainName(replacement))
+		if (replacement === undefined)
+			error({
+				code: 'INVALID_PATTERN_REPLACEMENT',
+				message: `"${type}" is not a valid substitution name in output option ${patternName} pattern.`
+			});
+		if (!isPlainName(replacement))
 			error({
 				code: 'INVALID_PATTERN_REPLACEMENT',
 				message: `Invalid replacement "${replacement}" for "${type}" in ${patternName} pattern, must be a plain path name.`

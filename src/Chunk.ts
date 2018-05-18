@@ -951,6 +951,8 @@ export default class Chunk {
 							if (module.chunkAlias) return module.chunkAlias;
 						}
 						return 'chunk';
+					default:
+						return false;
 				}
 			}),
 			existingNames
