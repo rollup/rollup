@@ -1,4 +1,4 @@
-System.register(['core/view'], function (exports, module) {
+System.register('foo', ['core/view'], function (exports, module) {
 	'use strict';
 	var View;
 	return {
