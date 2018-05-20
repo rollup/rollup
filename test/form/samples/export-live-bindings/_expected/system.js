@@ -1,4 +1,4 @@
-System.register([], function (exports, module) {
+System.register('iife', [], function (exports, module) {
   'use strict';
   return {
     execute: function () {

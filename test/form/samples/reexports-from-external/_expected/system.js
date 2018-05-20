@@ -1,4 +1,4 @@
-System.register(['external'], function (exports, module) {
+System.register('myBundle', ['external'], function (exports, module) {
 	'use strict';
 	var _starExcludes = { default: 1 };
 	return {

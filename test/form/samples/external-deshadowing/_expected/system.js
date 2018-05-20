@@ -1,4 +1,4 @@
-System.register(['a', 'b'], function (exports, module) {
+System.register('myBundle', ['a', 'b'], function (exports, module) {
   'use strict';
   var Test, Test$1;
   return {

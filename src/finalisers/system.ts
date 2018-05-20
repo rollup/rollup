@@ -1,6 +1,7 @@
 import { ModuleDeclarations } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { FinaliserOptions } from './index';
+import { OutputOptions } from '../rollup/types';
 
 function getStarExcludes({ dependencies, exports }: ModuleDeclarations) {
 	const starExcludes = new Set(exports.map(expt => expt.exported));
@@ -18,7 +19,8 @@ function getStarExcludes({ dependencies, exports }: ModuleDeclarations) {
 
 export default function system(
 	magicString: MagicStringBundle,
-	{ graph, indentString: t, intro, outro, dependencies, exports }: FinaliserOptions
+	{ graph, indentString: t, intro, outro, dependencies, exports }: FinaliserOptions,
+	outputOptions: OutputOptions
 ) {
 	const dependencyIds = dependencies.map(m => `'${m.id}'`);
 
@@ -104,8 +106,11 @@ export default function system(
 	const importBindingsSection = importBindings.length
 		? `\n${t}var ${importBindings.join(', ')};`
 		: '';
+	const registeredName = outputOptions.name ? `'${outputOptions.name}', ` : '';
 
-	const wrapperStart = `System.register([${dependencyIds.join(', ')}], function (exports, module) {
+	const wrapperStart = `System.register(${registeredName}[${dependencyIds.join(
+		', '
+	)}], function (exports, module) {
 ${t}'use strict';${starExcludesSection}${importBindingsSection}
 ${t}return {${
 		setters.length

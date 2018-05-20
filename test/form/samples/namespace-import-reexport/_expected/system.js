@@ -1,4 +1,4 @@
-System.register(['external-package'], function (exports, module) {
+System.register('iife', ['external-package'], function (exports, module) {
 	'use strict';
 	var externalPackage;
 	return {
