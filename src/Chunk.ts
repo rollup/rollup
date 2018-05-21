@@ -3,10 +3,10 @@ import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-strin
 import Module from './Module';
 import finalisers from './finalisers/index';
 import getIndentString from './utils/getIndentString';
-import transformBundle from './utils/transformBundle';
+import transformChunk from './utils/transformChunk';
 import collapseSourcemaps from './utils/collapseSourcemaps';
 import error from './utils/error';
-import { normalize, resolve, extname, dirname, relative, basename } from './utils/path';
+import { normalize, resolve, dirname, relative, basename } from './utils/path';
 import Graph from './Graph';
 import ExternalModule from './ExternalModule';
 import { isExportDefaultVariable } from './ast/variables/ExportDefaultVariable';
@@ -18,10 +18,10 @@ import * as NodeType from './ast/nodes/NodeType';
 import { RenderOptions } from './utils/renderHelpers';
 import { Addons } from './utils/addons';
 import sha256 from 'hash.js/lib/hash/sha/256';
-import { jsExts } from './utils/relativeId';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import { GlobalsOption, OutputOptions, RawSourceMap } from './rollup/types';
 import { toBase64 } from './utils/base64';
+import { renderNamePattern, makeUnique } from './utils/renderNamePattern';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;
@@ -920,44 +920,34 @@ export default class Chunk {
 		this.preRender(options, inputBase);
 	}
 
-	generateNamePreserveModules(preserveModulesRelativeDir: string) {
+	generateIdPreserveModules(preserveModulesRelativeDir: string) {
 		return (this.id = normalize(relative(preserveModulesRelativeDir, this.entryModule.id)));
 	}
 
-	generateName(
+	generateId(
 		pattern: string,
+		patternName: string,
 		addons: Addons,
 		options: OutputOptions,
-		existingNames?: { [name: string]: boolean }
+		existingNames: { [name: string]: any }
 	) {
-		// replace any chunk replacements
-		let outName = pattern.replace(/\[(hash|alias)\]/g, type => {
-			switch (type) {
-				case '[hash]':
-					return this.computeFullHash(addons, options);
-				case '[alias]':
-					if (this.entryModule && this.entryModule.chunkAlias) return this.entryModule.chunkAlias;
-					for (const module of this.orderedModules) {
-						if (module.chunkAlias) return module.chunkAlias;
-					}
-					return 'chunk';
-			}
-		});
-
-		if (existingNames) {
-			if (!existingNames[outName]) {
-				existingNames[outName] = true;
-			} else {
-				let ext = extname(outName);
-				if (jsExts.indexOf(ext) !== -1) outName = outName.substr(0, outName.length - ext.length);
-				else ext = '';
-				let uniqueName,
-					uniqueIndex = 1;
-				while (existingNames[(uniqueName = outName + ++uniqueIndex + ext)]);
-				existingNames[uniqueName] = true;
-				outName = uniqueName;
-			}
-		}
+		let outName = makeUnique(
+			renderNamePattern(pattern, patternName, type => {
+				switch (type) {
+					case 'hash':
+						return this.computeFullHash(addons, options);
+					case 'name':
+						if (this.entryModule && this.entryModule.chunkAlias) return this.entryModule.chunkAlias;
+						for (const module of this.orderedModules) {
+							if (module.chunkAlias) return module.chunkAlias;
+						}
+						return 'chunk';
+					default:
+						return false;
+				}
+			}),
+			existingNames
+		);
 
 		this.id = outName;
 	}
@@ -1027,9 +1017,9 @@ export default class Chunk {
 		timeEnd('render format', 3);
 
 		let map: SourceMap = null;
-		const bundleSourcemapChain: RawSourceMap[] = [];
+		const chunkSourcemapChain: RawSourceMap[] = [];
 
-		return transformBundle(prevCode, this.graph.plugins, bundleSourcemapChain, options).then(
+		return transformChunk(this.graph, this, prevCode, chunkSourcemapChain, options).then(
 			(code: string) => {
 				if (options.sourcemap) {
 					timeStart('sourcemap', 3);
@@ -1044,13 +1034,7 @@ export default class Chunk {
 						this.graph.plugins.find(plugin => Boolean(plugin.transform || plugin.transformBundle))
 					) {
 						let decodedMap = magicString.generateDecodedMap({});
-						map = collapseSourcemaps(
-							this,
-							file,
-							decodedMap,
-							this.usedModules,
-							bundleSourcemapChain
-						);
+						map = collapseSourcemaps(this, file, decodedMap, this.usedModules, chunkSourcemapChain);
 					} else {
 						map = magicString.generateMap({ file, includeContent: true });
 					}

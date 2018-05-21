@@ -10,7 +10,9 @@ const createGetOption = (config: GenericConfigObject, command: GenericConfigObje
 ) =>
 	command[name] !== undefined
 		? command[name]
-		: config[name] !== undefined ? config[name] : defaultValue;
+		: config[name] !== undefined
+			? config[name]
+			: defaultValue;
 
 const normalizeObjectOptionValue = (optionValue: any) => {
 	if (!optionValue) {
@@ -203,6 +205,7 @@ function getInputOptions(
 		experimentalDynamicImport: getOption('experimentalDynamicImport'),
 		experimentalPreserveModules: getOption('experimentalPreserveModules'),
 		external: getExternal(config, command),
+		inlineDynamicImports: getOption('inlineDynamicImports', false),
 		input: getOption('input'),
 		manualChunks: getOption('manualChunks'),
 		chunkGroupingSize: getOption('chunkGroupingSize', 5000),
@@ -240,10 +243,11 @@ function getOutputOptions(
 
 	return {
 		amd: Object.assign({}, config.amd, command.amd),
+		assetFileNames: getOption('assetFileNames'),
 		banner: getOption('banner'),
 		dir: getOption('dir'),
-		chunkNames: getOption('chunkNames'),
-		entryNames: getOption('entryNames'),
+		chunkFileNames: getOption('chunkFileNames'),
+		entryFileNames: getOption('entryFileNames'),
 		exports: getOption('exports'),
 		extend: getOption('extend'),
 		file: getOption('file'),

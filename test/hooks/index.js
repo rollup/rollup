@@ -5,6 +5,53 @@ const { loader } = require('../utils.js');
 const rollup = require('../../dist/rollup.js');
 
 describe('hooks', () => {
+	it('supports buildStart and buildEnd hooks', () => {
+		let buildStartCnt = 0;
+		let buildEndCnt = 0;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						buildStart () {
+							buildStartCnt++;
+						},
+						buildEnd () {
+							buildEndCnt++;
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				assert.equal(buildStartCnt, 1);
+				assert.equal(buildEndCnt, 1);
+
+				return rollup
+				.rollup({
+					input: 'input',
+					plugins: [
+						loader({ input: `invalid_source - @#$%^&*` }),
+						{
+							buildStart () {
+								buildStartCnt++;
+							},
+							buildEnd () {
+								buildEndCnt++;
+							}
+						}
+					]
+				})
+			})
+			.catch(err => {
+				assert.ok(err);
+			})
+			.then(() => {
+				assert.equal(buildStartCnt, 2);
+				assert.equal(buildEndCnt, 2);
+			});
+	});
+
 	it('passes bundle & output object to ongenerate & onwrite hooks', () => {
 		const file = path.join(__dirname, 'tmp/bundle.js');
 
@@ -119,6 +166,55 @@ describe('hooks', () => {
 			})
 			.then(() => {
 				assert.ok(wasCalled);
+			});
+	});
+
+	it('passes bundle object to generateBundle hook, supporting asset emission', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						generateBundle (options, outputBundle, getAssetFileName, isWrite) {
+							const assetSource = 'asset';
+							outputBundle[getAssetFileName('test.ext', assetSource)] = assetSource;
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
+			})
+			.then(outputBundle => {
+				assert.equal(outputBundle['assets/test-a1355196.ext'], 'asset');
+			});
+	});
+
+	it('supports custom asset file names', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						generateBundle (options, outputBundle, getAssetFileName, isWrite) {
+							const assetSource = 'asset';
+							outputBundle[getAssetFileName('test.ext', assetSource)] = assetSource;
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({
+					format: 'es',
+					assetFileNames: '[name][ext]'
+				});
+			})
+			.then(outputBundle => {
+				assert.equal(outputBundle['test.ext'], 'asset');
 			});
 	});
 });

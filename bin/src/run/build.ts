@@ -9,8 +9,9 @@ import {
 	InputOptions,
 	OutputChunk,
 	OutputOptions,
-	Bundle,
-	BundleSet
+	RollupFileBuild,
+	RollupBuild,
+	OutputBundle
 } from '../../../src/rollup/types';
 import { BatchWarnings } from './batchWarnings';
 import { printTimings } from './timings';
@@ -46,7 +47,7 @@ export default function build(
 
 	return rollup
 		.rollup(inputOptions)
-		.then((bundle: Bundle | BundleSet) => {
+		.then((bundle: RollupFileBuild | RollupBuild) => {
 			if (useStdout) {
 				const output = outputOptions[0];
 				if (output.sourcemap && output.sourcemap !== 'inline') {
@@ -56,7 +57,7 @@ export default function build(
 					});
 				}
 
-				return (<Bundle>bundle).generate(output).then(({ code, map }) => {
+				return (<RollupFileBuild>bundle).generate(output).then(({ code, map }) => {
 					if (!code) return;
 					if (output.sourcemap === 'inline') {
 						code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
@@ -66,12 +67,12 @@ export default function build(
 				});
 			}
 
-			return mapSequence<OutputOptions, Promise<OutputChunk | Record<string, OutputChunk>>>(
+			return mapSequence<OutputOptions, Promise<OutputChunk | OutputBundle>>(
 				outputOptions,
 				output => bundle.write(output)
 			).then(() => bundle);
 		})
-		.then((bundle?: Bundle | BundleSet) => {
+		.then((bundle?: RollupFileBuild | RollupBuild) => {
 			warnings.flush();
 			if (!silent)
 				stderr(

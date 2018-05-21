@@ -6,6 +6,7 @@ module.exports = {
 		plugins: [
 			{
 				transformBundle: function(code, options) {
+					console.log(Object.keys(options));
 					assert.strictEqual(Object.keys(options).join(', '), require('../../../misc/optionList').output);
 					return options.format;
 				}
