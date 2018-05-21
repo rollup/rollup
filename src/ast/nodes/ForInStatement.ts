@@ -1,7 +1,7 @@
 import BlockScope from '../scopes/BlockScope';
 import VariableDeclaration from './VariableDeclaration';
 import Scope from '../scopes/Scope';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
 import { PatternNode } from './shared/Pattern';
 import * as NodeType from './NodeType';
 import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
@@ -18,6 +18,13 @@ export default class ForInStatement extends StatementBase {
 	left: VariableDeclaration | PatternNode;
 	right: ExpressionNode;
 	body: StatementNode;
+
+	bind() {
+		super.bind();
+		if (this.left.type !== NodeType.VariableDeclaration) {
+			this.left.reassignPath(EMPTY_PATH, NEW_EXECUTION_PATH);
+		}
+	}
 
 	createScope(parentScope: Scope) {
 		this.scope = new BlockScope({ parent: parentScope });
