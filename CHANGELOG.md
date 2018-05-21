@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.59.2
+*2018-05-21*
+* Fix reassignment tracking in for-in loops ([#2205](https://github.com/rollup/rollup/pull/2205))
+
 ## 0.59.1
 *2018-05-16*
 * Fix infinite recursion when determining literal values of circular structures ([#2193](https://github.com/rollup/rollup/pull/2193))
