@@ -3,6 +3,7 @@
 ## 0.60.0
 *unreleased*
 * Enable for system format modules to be named ([#2028](https://github.com/rollup/rollup/pull/2028))
+* Display install size in readme ([#2196](https://github.com/rollup/rollup/pull/2196))
 
 ## 0.59.1
 *2018-05-16*
