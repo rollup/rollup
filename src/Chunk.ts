@@ -19,7 +19,7 @@ import { RenderOptions } from './utils/renderHelpers';
 import { Addons } from './utils/addons';
 import sha256 from 'hash.js/lib/hash/sha/256';
 import ExternalVariable from './ast/variables/ExternalVariable';
-import { GlobalsOption, OutputOptions, RawSourceMap, ChunkExport } from './rollup/types';
+import { GlobalsOption, OutputOptions, RawSourceMap } from './rollup/types';
 import { toBase64 } from './utils/base64';
 import { renderNamePattern, makeUnique } from './utils/renderNamePattern';
 
@@ -88,7 +88,7 @@ export default class Chunk {
 	id: string = undefined;
 	name: string;
 	graph: Graph;
-	private orderedModules: Module[];
+	orderedModules: Module[];
 	linked = false;
 
 	// this represents the chunk module wrappings
@@ -150,25 +150,6 @@ export default class Chunk {
 
 	getExportNames(): string[] {
 		return Object.keys(this.exportNames);
-	}
-
-	getExports(): ChunkExport[] {
-		return Object.keys(this.exportNames).map(exportName => {
-			if (exportName[0] === '*')
-				return {
-					name: '*',
-					originalName: '*',
-					moduleId: exportName.substr(1)
-				};
-
-			const variable = this.exportNames[exportName];
-			const module = this.exports.get(variable);
-			return {
-				name: exportName,
-				originalName: module.getExportName(variable),
-				moduleId: module.id
-			};
-		});
 	}
 
 	getModuleIds(): string[] {

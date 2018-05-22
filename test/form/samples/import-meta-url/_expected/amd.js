@@ -1,5 +1,5 @@
 define(['module'], function (module) { 'use strict';
 
-	console.log(new URL(module.uri.startsWith('file:') ? module.uri : 'file:' + module.uri).href);
+	console.log(new URL((typeof process !== 'undefined' && process.versions && process.versions.node ? 'file:' : '') + module.uri).href);
 
 });

@@ -56,6 +56,7 @@ export interface ImportDescription {
 export interface ExportDescription {
 	localName: string;
 	identifier?: string;
+	node: Node;
 }
 
 export interface ReexportDescription {
@@ -151,7 +152,6 @@ export default class Module {
 	exportsAll: { [name: string]: string };
 	exportAllSources: string[];
 	id: string;
-	exportedVariables: Map<Variable, string>;
 	imports: { [name: string]: ImportDescription };
 	isExternal: false;
 	originalCode: string;
@@ -213,7 +213,6 @@ export default class Module {
 
 		this.exportAllSources = [];
 		this.exportAllModules = null;
-		this.exportedVariables = new Map();
 	}
 
 	setSource({
@@ -257,7 +256,7 @@ export default class Module {
 			code, // Only needed for debugging
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
-			getAssetFileName: this.graph.getAssetFileName.bind(this),
+			getAssetFileName: this.graph.getAssetFileName.bind(this.graph),
 			getExports: this.getExports.bind(this),
 			getReexports: this.getReexports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
@@ -351,7 +350,8 @@ export default class Module {
 
 			this.exports.default = {
 				localName: 'default',
-				identifier
+				identifier,
+				node
 			};
 		} else if ((<ExportNamedDeclaration>node).declaration) {
 			// export var { foo, bar } = ...
@@ -363,13 +363,13 @@ export default class Module {
 			if (declaration.type === NodeType.VariableDeclaration) {
 				for (const decl of declaration.declarations) {
 					for (const localName of extractNames(decl.id)) {
-						this.exports[localName] = { localName };
+						this.exports[localName] = { localName, node };
 					}
 				}
 			} else {
 				// export function foo () {}
 				const localName = declaration.id.name;
-				this.exports[localName] = { localName };
+				this.exports[localName] = { localName, node };
 			}
 		} else {
 			// export { foo, bar, baz }
@@ -387,7 +387,7 @@ export default class Module {
 					);
 				}
 
-				this.exports[exportedName] = { localName };
+				this.exports[exportedName] = { localName, node };
 			}
 		}
 	}
@@ -427,7 +427,6 @@ export default class Module {
 	}
 
 	private addImportMeta(node: MetaProperty) {
-		console.log(this.importMetas);
 		this.importMetas.push(node);
 	}
 
@@ -683,8 +682,14 @@ export default class Module {
 		return null;
 	}
 
-	getExportName(variable: Variable) {
-		return this.exportedVariables.get(variable);
+	getIncludedExports(): string[] {
+		// only direct exports are counted here, not reexports at all
+		const includedExports = [];
+		for (let exportName in this.exports) {
+			const expt = this.exports[exportName];
+			if (expt.node.included) includedExports.push(exportName);
+		}
+		return includedExports;
 	}
 
 	traceExport(name: string): Variable {
@@ -704,9 +709,7 @@ export default class Module {
 		if (reexportDeclaration) {
 			const declaration = reexportDeclaration.module.traceExport(reexportDeclaration.localName);
 
-			if (declaration) {
-				this.exportedVariables.set(declaration, name);
-			} else {
+			if (!declaration) {
 				this.graph.handleMissingExport.call(
 					this.graph.pluginContext,
 					reexportDeclaration.localName,
@@ -724,8 +727,6 @@ export default class Module {
 			const name = exportDeclaration.localName;
 			const declaration = this.traceVariable(name) || this.graph.scope.findVariable(name);
 
-			if (declaration) this.exportedVariables.set(declaration, name);
-
 			return declaration;
 		}
 
@@ -735,10 +736,7 @@ export default class Module {
 			const module = this.exportAllModules[i];
 			const declaration = module.traceExport(name);
 
-			if (declaration) {
-				this.exportedVariables.set(declaration, name);
-				return declaration;
-			}
+			if (declaration) return declaration;
 		}
 	}
 

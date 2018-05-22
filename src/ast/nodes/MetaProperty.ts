@@ -22,6 +22,7 @@ const relUrlMechanisms: Record<string, (relPath: string) => string> = {
 		`new URL((typeof process !== 'undefined' && process.versions && process.versions.node ? 'file:' : '') + module.uri + '/../${relPath}').href`,
 	cjs: (relPath: string) =>
 		`new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)((process.browser ? 'file:' : '') + __dirname + '/${relPath}', process.browser && document.baseURI).href`,
+	es: (relPath: string) => `new URL('../${relPath}', import.meta.url).href`,
 	iife: globalRelUrlMechanism,
 	umd: globalRelUrlMechanism
 };
@@ -53,7 +54,7 @@ export default class MetaProperty extends NodeBase {
 		const parent = <MemberExpression>this.parent;
 
 		let importMetaProperty: string;
-		if (parent.property instanceof Identifier) importMetaProperty = this.property.name;
+		if (parent.property instanceof Identifier) importMetaProperty = parent.property.name;
 		else if (parent.property instanceof Literal && typeof parent.property.value === 'string')
 			importMetaProperty = parent.property.value;
 		else return false;
@@ -70,7 +71,7 @@ export default class MetaProperty extends NodeBase {
 			code.overwrite(this.meta.start, this.meta.end, 'module');
 		} else if (importMetaProperty === 'url') {
 			const importMetaUrlMechanism = importMetaUrlMechanisms[format];
-			code.overwrite(parent.start, parent.end, importMetaUrlMechanism);
+			if (importMetaUrlMechanism) code.overwrite(parent.start, parent.end, importMetaUrlMechanism);
 			return true;
 		}
 

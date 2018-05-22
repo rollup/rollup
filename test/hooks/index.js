@@ -169,17 +169,18 @@ describe('hooks', () => {
 			});
 	});
 
-	it('passes bundle object to generateBundle hook, supporting asset emission', () => {
+	it('supports asset emission', () => {
 		return rollup
 			.rollup({
 				input: 'input',
 				experimentalCodeSplitting: true,
+				experimentalDynamicImport: true,
 				plugins: [
-					loader({ input: `alert('hello')` }),
+					loader({ input: '' }),
 					{
-						generateBundle (options, outputBundle, getAssetFileName, isWrite) {
-							const assetSource = 'asset';
-							outputBundle[getAssetFileName('test.ext', assetSource)] = assetSource;
+						transform (code, id) {
+							const assetId = this.emitAsset('test.ext', 'hello world');
+							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
 						}
 					}
 				]
@@ -188,7 +189,37 @@ describe('hooks', () => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(outputBundle => {
-				assert.equal(outputBundle['assets/test-a1355196.ext'], 'asset');
+				assert.equal(outputBundle['assets/test-19916f7d.ext'], 'hello world');
+				assert.equal(outputBundle['input.js'].code, `var input = new URL(\'../assets/test-19916f7d.ext\', import.meta.url).href;\n\nexport default input;\n`);
+			});
+	});
+
+	it('supports CommonJS asset urls', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				experimentalDynamicImport: true,
+				plugins: [
+					loader({ input: '' }),
+					{
+						transform (code, id) {
+							const assetId = this.emitAsset('test.ext', 'hello world');
+							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'cjs' });
+			})
+			.then(outputBundle => {
+				assert.equal(outputBundle['input.js'].code, `'use strict';
+
+var input = new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)((process.browser ? 'file:' : '') + __dirname + '/assets/test-19916f7d.ext', process.browser && document.baseURI).href;
+
+module.exports = input;
+`);
 			});
 	});
 
@@ -200,9 +231,9 @@ describe('hooks', () => {
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						generateBundle (options, outputBundle, getAssetFileName, isWrite) {
-							const assetSource = 'asset';
-							outputBundle[getAssetFileName('test.ext', assetSource)] = assetSource;
+						transform (code, id) {
+							const assetId = this.emitAsset('test.ext', 'hello world');
+							return '';
 						}
 					}
 				]
@@ -214,7 +245,143 @@ describe('hooks', () => {
 				});
 			})
 			.then(outputBundle => {
-				assert.equal(outputBundle['test.ext'], 'asset');
+				assert.equal(outputBundle['test.ext'], 'hello world');
+			});
+	});
+
+	it('allows setting asset source separately', () => {
+		let assetId;
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						transform (code, id) {
+							assetId = this.emitAsset('test.ext');
+							return '';
+						},
+						processChunks () {
+							this.setAssetSource(assetId, 'hello world');
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
+			})
+			.then(outputBundle => {
+				assert.equal(outputBundle['assets/test-19916f7d.ext'], 'hello world');
+			});
+	});
+
+	it('throws when setting asset source twice', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						transform (code, id) {
+							const assetId = this.emitAsset('test.ext');
+							this.setAssetSource(assetId, 'hello world');
+							try {
+								this.setAssetSource(assetId, 'another');
+							}
+							catch (e) {
+								assert.equal(e.code, 'ASSET_SOURCE_ALREADY_SET');
+								return '';
+							}
+							assert.fail();
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
+			})
+			.then(outputBundle => {
+				assert.equal(outputBundle['assets/test-19916f7d.ext'], 'hello world');
+			});
+	});
+
+	it('throws when emitting assets too late', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						transformBundle (code, id) {
+							try {
+								const assetId = this.emitAsset('test.ext', 'hello world');
+							}
+							catch (e) {
+								assert.equal(e.code, 'ASSETS_ALREADY_FINALISED');
+							}
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({
+					format: 'es',
+					assetFileNames: '[name][ext]'
+				});
+			});
+	});
+
+	it('passes bundle object to generateBundle hook', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				experimentalDynamicImport: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						transform (code, id) {
+							const assetId = this.emitAsset('test.ext', 'hello world');
+							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
+						},
+						generateBundle (options, outputBundle, isWrite) {
+							assert.equal(outputBundle['assets/test-19916f7d.ext'], 'hello world');
+							assert.equal(outputBundle['input.js'].code, `var input = new URL(\'../assets/test-19916f7d.ext\', import.meta.url).href;\n\nexport default input;\n`);
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
+			});
+	});
+
+	it('supports processBundle hook including reporting tree-shaken exports', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({
+						input: `export { a as default } from 'dep';`,
+						dep: `export var a = 1; export var b = 2;`
+					}),
+					{
+						processChunks (chunks) {
+							assert.equal(chunks.length, 1);
+
+							// can detect that b has been tree-shaken this way
+							assert.equal(chunks[0]['dep'][0], 'a');
+							assert.equal(chunks[0]['dep'].length, 1);
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
 			});
 	});
 });

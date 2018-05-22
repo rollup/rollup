@@ -21,7 +21,7 @@ import {
 	OutputFile,
 	RollupFileBuild,
 	RollupBuild,
-	ChunkExport
+	ChunkDefinition
 } from './types';
 import getExportMode from '../utils/getExportMode';
 import Chunk from '../Chunk';
@@ -176,6 +176,24 @@ export default function rollup(
 				inputOptions.inlineDynamicImports,
 				inputOptions.experimentalPreserveModules
 			)
+			.then(chunks => {
+				// run generateBundle hook
+				const processChunksPlugins = graph.plugins.filter(plugin => plugin.processChunks);
+				if (processChunksPlugins.length === 0) return chunks;
+				const processChunksChunks: ChunkDefinition[] = chunks.map(chunk => {
+					const chunkModules: ChunkDefinition = Object.create(null);
+					for (let module of chunk.orderedModules)
+						chunkModules[module.id] = module.getIncludedExports();
+					return chunkModules;
+				});
+				return Promise.all(
+					processChunksPlugins.map(plugin =>
+						plugin.processChunks.call(graph.pluginContext, processChunksChunks)
+					)
+				).then(() => {
+					return chunks;
+				});
+			})
 			.catch(err => {
 				applyBuildEndHook(graph, err);
 				throw err;
@@ -186,7 +204,7 @@ export default function rollup(
 
 				// TODO: deprecate legacy single chunk return
 				let singleInputChunk: Chunk;
-				let imports: string[], exports: ChunkExport[];
+				let imports: string[], exports: string[];
 				if (!inputOptions.experimentalPreserveModules) {
 					if (
 						typeof inputOptions.input === 'string' ||
@@ -194,7 +212,7 @@ export default function rollup(
 					) {
 						singleInputChunk = chunks.find(chunk => chunk.entryModule !== undefined);
 						imports = singleInputChunk.getImportIds();
-						exports = singleInputChunk.getExports();
+						exports = singleInputChunk.getExportNames();
 					}
 				}
 
@@ -267,7 +285,7 @@ export default function rollup(
 							// then name all chunks
 							for (let chunk of chunks) {
 								const imports = chunk.getImportIds();
-								const exports = chunk.getExports();
+								const exports = chunk.getExportNames();
 								const modules = chunk.getModuleIds();
 
 								if (chunk === singleInputChunk) {
@@ -393,7 +411,7 @@ export default function rollup(
 				};
 				if (!inputOptions.experimentalCodeSplitting) {
 					(<any>result).imports = imports;
-					(<any>result).exports = exports.map(expt => expt.name);
+					(<any>result).exports = exports;
 					(<any>result).modules = cache.modules;
 				}
 				if (inputOptions.perf === true) result.getTimings = getTimings;

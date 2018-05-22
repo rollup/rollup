@@ -141,10 +141,7 @@ export interface Plugin {
 	resolveId?: ResolveIdHook;
 	missingExport?: MissingExportHook;
 	transform?: TransformHook;
-	processBundle?: (
-		this: PluginContext,
-		chunks: Record<string, ChunkDefinition>
-	) => void | Promise<void>;
+	processChunks?: (this: PluginContext, chunks: ChunkDefinition[]) => void | Promise<void>;
 	// TODO: deprecate
 	transformBundle?: TransformChunkHook;
 	transformChunk?: TransformChunkHook;
@@ -311,19 +308,14 @@ export type SerializedTimings = { [label: string]: number };
 
 export type OutputFile = string | Buffer | OutputChunk;
 
-export interface ChunkExport {
-	name: string;
-	originalName: string;
-	moduleId: string;
-}
-
 export interface ChunkDefinition {
-	imports: string[];
-	exports: ChunkExport[];
-	modules: string[];
+	[moduleId: string]: string[];
 }
 
 export interface OutputChunk extends ChunkDefinition {
+	imports: string[];
+	exports: string[];
+	modules: string[];
 	code: string;
 	map?: SourceMap;
 }

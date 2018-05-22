@@ -36,10 +36,6 @@ export default class ExternalModule {
 		this.exportedVariables = new Map();
 	}
 
-	getExportName(variable: Variable) {
-		return this.exportedVariables.get(<ExternalVariable>variable);
-	}
-
 	setRenderPath(options: OutputOptions, inputBase: string) {
 		if (options.paths)
 			this.renderPath =
