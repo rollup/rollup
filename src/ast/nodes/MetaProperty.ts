@@ -30,15 +30,18 @@ export default class MetaProperty extends NodeBase {
 	type: NodeType.tMetaProperty;
 	meta: Identifier;
 	property: Identifier;
-	rendered = false;
+	rendered: boolean;
 
 	initialise() {
-		this.context.addImportMeta(this);
+		if (this.meta.name === 'import') {
+			this.rendered = false;
+			this.context.addImportMeta(this);
+		}
 		this.included = false;
 	}
 
 	render(code: MagicString, options: RenderOptions) {
-		this.rendered = true;
+		if (this.meta.name === 'import') this.rendered = true;
 		super.render(code, options);
 	}
 
