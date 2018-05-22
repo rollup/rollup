@@ -104,7 +104,8 @@
     "source-map-support": "^0.5.6",
     "sourcemap-codec": "^1.4.1",
     "typescript": "^2.8.3",
-    "uglify-js": "^3.3.25"
+    "uglify-js": "^3.3.25",
+    "url-parse": "^1.4.0"
   },
   "files": [
     "dist/rollup.browser.js",
