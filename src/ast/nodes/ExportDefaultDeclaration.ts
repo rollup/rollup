@@ -157,8 +157,14 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			declarationStart,
 			`${this.context.varOrConst} ${this.variable.getName()} = ${systemBinding}`
 		);
+		const hasTrailingSemicolon = code.original.charCodeAt(this.end - 1) === 59; /*";"*/
 		if (systemBinding) {
-			code.appendLeft(code.original[this.end - 1] === ';' ? this.end - 1 : this.end, ')');
+			code.appendLeft(
+				hasTrailingSemicolon ? this.end - 1 : this.end,
+				')' + (hasTrailingSemicolon ? '' : ';')
+			);
+		} else if (!hasTrailingSemicolon) {
+			code.appendLeft(this.end, ';');
 		}
 	}
 }

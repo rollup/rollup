@@ -1,4 +1,4 @@
-System.register(['./main2-8bad9260.js'], function (exports, module) {
+System.register(['./main2-4b538eea.js'], function (exports, module) {
 	'use strict';
 	var dep, log;
 	return {

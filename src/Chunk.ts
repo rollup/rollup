@@ -360,7 +360,7 @@ export default class Chunk {
 
 	generateInternalExports(options: OutputOptions) {
 		if (this.isEntryModuleFacade) return;
-		const mangle = options.format === 'system' || options.format === 'es';
+		const mangle = options.format === 'system' || options.format === 'es' || options.compact;
 		let i = 0,
 			safeExportName: string;
 		this.exportNames = Object.create(null);
@@ -726,13 +726,16 @@ export default class Chunk {
 	preRender(options: OutputOptions, inputBase: string) {
 		timeStart('render modules', 3);
 
-		let magicString = new MagicStringBundle({ separator: '\n\n' });
+		let magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
 		this.usedModules = [];
-		this.indentString = getIndentString(this.orderedModules, options);
+		this.indentString = options.compact ? '' : getIndentString(this.orderedModules, options);
+
+		const n = options.compact ? '' : '\n';
 
 		if (this.graph.dynamicImport) this.prepareDynamicImports();
 
 		const renderOptions: RenderOptions = {
+			compact: options.compact,
 			legacy: options.legacy,
 			freeze: options.freeze !== false,
 			namespaceToStringTag: options.namespaceToStringTag === true,
@@ -770,9 +773,11 @@ export default class Chunk {
 
 		this.renderedModuleSources = [];
 
-		for (const module of this.orderedModules) {
+		for (let i = 0; i < this.orderedModules.length; i++) {
+			const module = this.orderedModules[i];
 			const source = module.render(renderOptions);
 			source.trim();
+			if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
 			this.renderedModuleSources.push(source);
 
 			const namespace = module.getOrCreateNamespace();
@@ -782,15 +787,20 @@ export default class Chunk {
 
 				if (namespace.needsNamespaceBlock) {
 					const rendered = namespace.renderBlock(renderOptions);
-					if (namespace.renderFirst()) hoistedSource += '\n' + rendered;
+					if (namespace.renderFirst()) hoistedSource += n + rendered;
 					else magicString.addSource(new MagicString(rendered));
 				}
 			}
 		}
 
-		if (hoistedSource) magicString.prepend(hoistedSource + '\n\n');
+		if (hoistedSource) magicString.prepend(hoistedSource + n + n);
 
-		this.renderedSource = magicString.trim();
+		if (options.compact) {
+			this.renderedSource = magicString;
+		} else {
+			this.renderedSource = magicString.trim();
+		}
+
 		this.renderedSourceLength = undefined;
 		this.renderedHash = undefined;
 
@@ -1020,8 +1030,8 @@ export default class Chunk {
 			},
 			options
 		);
-		if (addons.banner) magicString.prepend(addons.banner + '\n');
-		if (addons.footer) magicString.append('\n' + addons.footer);
+		if (addons.banner) magicString.prepend(addons.banner);
+		if (addons.footer) magicString.append(addons.footer);
 		const prevCode = magicString.toString();
 
 		timeEnd('render format', 3);
@@ -1060,7 +1070,8 @@ export default class Chunk {
 					timeEnd('sourcemap', 3);
 				}
 
-				if (code[code.length - 1] !== '\n') code += '\n';
+				if (options.compact !== true && code[code.length - 1] !== '\n') code += '\n';
+
 				return { code, map };
 			}
 		);

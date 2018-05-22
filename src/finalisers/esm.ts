@@ -1,27 +1,34 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { FinaliserOptions } from './index';
 
+export * from 'magic-string';
+import { OutputOptions } from '../rollup/types';
+
 export default function esm(
 	magicString: MagicStringBundle,
-	{ intro, outro, dependencies, exports }: FinaliserOptions
+	{ intro, outro, dependencies, exports }: FinaliserOptions,
+	options: OutputOptions
 ) {
+	const _ = options.compact ? '' : ' ';
+	const n = options.compact ? '' : '\n';
+
 	const importBlock = dependencies
 		.map(({ id, reexports, imports, name }) => {
 			if (!reexports && !imports) {
-				return `import '${id}';`;
+				return `import${_}'${id}';`;
 			}
 			let output = '';
 			if (imports) {
 				const defaultImport = imports.find(specifier => specifier.imported === 'default');
 				const starImport = imports.find(specifier => specifier.imported === '*');
 				if (starImport) {
-					output += `import * as ${starImport.local} from '${id}';`;
-					if (imports.length > 1) output += '\n';
+					output += `import${_}*${_}as ${starImport.local} from${_}'${id}';`;
+					if (imports.length > 1) output += n;
 				}
 				if (defaultImport && imports.length === 1) {
-					output += `import ${defaultImport.local} from '${id}';`;
+					output += `import ${defaultImport.local} from${_}'${id}';`;
 				} else if (!starImport || imports.length > 1) {
-					output += `import ${defaultImport ? `${defaultImport.local}, ` : ''}{ ${imports
+					output += `import ${defaultImport ? `${defaultImport.local},${_}` : ''}{${_}${imports
 						.filter(specifier => specifier !== defaultImport && specifier !== starImport)
 						.map(specifier => {
 							if (specifier.imported === specifier.local) {
@@ -30,29 +37,29 @@ export default function esm(
 								return `${specifier.imported} as ${specifier.local}`;
 							}
 						})
-						.join(', ')} } from '${id}';`;
+						.join(`,${_}`)}${_}}${_}from${_}'${id}';`;
 				}
 			}
 			if (reexports) {
-				if (imports) output += '\n';
+				if (imports) output += n;
 				const starExport = reexports.find(specifier => specifier.reexported === '*');
 				const namespaceReexport = reexports.find(
 					specifier => specifier.imported === '*' && specifier.reexported !== '*'
 				);
 				if (starExport) {
-					output += `export * from '${id}';`;
+					output += `export${_}*${_}from${_}'${id}';`;
 					if (reexports.length === 1) {
 						return output;
 					}
-					output += '\n';
+					output += n;
 				}
 				if (namespaceReexport) {
 					if (
 						!imports ||
 						!imports.some(specifier => specifier.imported === '*' && specifier.local === name)
 					)
-						output += `import * as ${name} from '${id}';\n`;
-					output += `export { ${
+						output += `import${_}*${_}as ${name} from${_}'${id}';${n}`;
+					output += `export${_}{${_}${
 						name === namespaceReexport.reexported
 							? name
 							: `${name} as ${namespaceReexport.reexported}`
@@ -60,9 +67,9 @@ export default function esm(
 					if (reexports.length === (starExport ? 2 : 1)) {
 						return output;
 					}
-					output += '\n';
+					output += n;
 				}
-				output += `export { ${reexports
+				output += `export${_}{${_}${reexports
 					.filter(specifier => specifier !== starExport && specifier !== namespaceReexport)
 					.map(specifier => {
 						if (specifier.imported === specifier.reexported) {
@@ -71,13 +78,13 @@ export default function esm(
 							return `${specifier.imported} as ${specifier.reexported}`;
 						}
 					})
-					.join(', ')} } from '${id}';`;
+					.join(`,${_}`)}${_}}${_}from${_}'${id}';`;
 			}
 			return output;
 		})
-		.join('\n');
+		.join(n);
 
-	if (importBlock) intro += importBlock + '\n\n';
+	if (importBlock) intro += importBlock + n + n;
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock: string[] = [];
@@ -94,10 +101,10 @@ export default function esm(
 		}
 	});
 	if (exportDeclaration.length) {
-		exportBlock.push(`export { ${exportDeclaration.join(', ')} };`);
+		exportBlock.push(`export${_}{${_}${exportDeclaration.join(`,${_}`)}${_}};`);
 	}
 
-	if (exportBlock.length) magicString.append('\n\n' + exportBlock.join('\n').trim());
+	if (exportBlock.length) magicString.append(n + n + exportBlock.join(n).trim());
 
 	if (outro) magicString.append(outro);
 

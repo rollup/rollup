@@ -47,41 +47,47 @@ export default class NamespaceVariable extends Variable {
 	}
 
 	renderBlock(options: RenderOptions) {
+		const _ = options.compact ? '' : ' ';
+		const n = options.compact ? '' : '\n';
+		const t = options.indent;
+
 		const members = Object.keys(this.originals).map(name => {
 			const original = this.originals[name];
 
 			if ((this.referencedEarly || original.isReassigned) && !options.legacy) {
-				return `${options.indent}get ${name} () { return ${original.getName()}; }`;
+				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${
+					options.compact ? '' : ';'
+				}${_}}`;
 			}
 
 			if (options.legacy && reservedWords.indexOf(name) !== -1) name = `'${name}'`;
-			return `${options.indent}${name}: ${original.getName()}`;
+			return `${t}${name}: ${original.getName()}`;
 		});
 
 		const name = this.getName();
 
 		const callee = options.freeze
-			? `/*#__PURE__*/${options.legacy ? `(Object.freeze || Object)` : `Object.freeze`}`
+			? `/*#__PURE__*/${options.legacy ? `(Object.freeze${_}||${_}Object)` : `Object.freeze`}`
 			: '';
 
 		let output = `${this.context.varOrConst} ${name} = ${
 			options.namespaceToStringTag
-				? `{\n${members.join(',\n')}\n};`
-				: `${callee}({\n${members.join(',\n')}\n});`
+				? `{${n}${members.join(`,${n}`)}${n}};`
+				: `${callee}({${n}${members.join(`,${n}`)}${n}});`
 		}`;
 
 		if (options.namespaceToStringTag) {
-			output += `\nif (typeof Symbol !== 'undefined' && Symbol.toStringTag)
-${options.indent}Object.defineProperty(${name}, Symbol.toStringTag, { value: 'Module' });
-else
-${
-				options.indent
-			}Object.defineProperty(${name}, 'toString', { value: function () { return '[object Module]' } });
-${callee}(${name});`;
+			output += `${n}if${_}(typeof Symbol${_}!==${_}'undefined'${_}&&${_}Symbol.toStringTag)${n}`;
+			output += `${t}Object.defineProperty(${name},${_}Symbol.toStringTag,${_}{${_}value:${_}'Module'${_}});${n}`;
+			output += `else${n || ' '}`;
+			output += `${t}Object.defineProperty(${name},${_}'toString',${_}{${_}value:${_}function${_}()${_}{${_}return${_}'[object Module]'${
+				options.compact ? ';' : ''
+			}${_}}${_}});${n}`;
+			output += `${callee}(${name});`;
 		}
 
 		if (options.format === 'system' && this.exportName) {
-			output += `\nexports('${this.exportName}', ${name});`;
+			output += `${n}exports('${this.exportName}',${_}${name});`;
 		}
 
 		return output;

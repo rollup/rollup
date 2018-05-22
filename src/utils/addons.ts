@@ -14,13 +14,16 @@ export interface Addons {
 
 export function createAddons(graph: Graph, options: OutputOptions): Promise<Addons> {
 	return Promise.all([
-		collectAddon(graph, options.banner, 'banner'),
-		collectAddon(graph, options.footer, 'footer'),
+		collectAddon(graph, options.banner, 'banner', '\n'),
+		collectAddon(graph, options.footer, 'footer', '\n'),
 		collectAddon(graph, options.intro, 'intro', '\n\n'),
 		collectAddon(graph, options.outro, 'outro', '\n\n')
 	]).then(([banner, footer, intro, outro]) => {
 		if (intro) intro += '\n\n';
 		if (outro) outro = `\n\n${outro}`;
+
+		if (banner.length) banner += '\n';
+		if (footer.length) footer = '\n' + footer;
 
 		const hash = new Uint8Array(4);
 
@@ -32,7 +35,7 @@ function collectAddon(
 	graph: Graph,
 	initialAddon: string,
 	addonName: 'banner' | 'footer' | 'intro' | 'outro',
-	sep: string = '\n'
+	sep: string
 ) {
 	return runSequence(
 		[

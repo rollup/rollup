@@ -10,7 +10,9 @@ const createGetOption = (config: GenericConfigObject, command: GenericConfigObje
 ) =>
 	command[name] !== undefined
 		? command[name]
-		: config[name] !== undefined ? config[name] : defaultValue;
+		: config[name] !== undefined
+			? config[name]
+			: defaultValue;
 
 const normalizeObjectOptionValue = (optionValue: any) => {
 	if (!optionValue) {
@@ -243,6 +245,7 @@ function getOutputOptions(
 		banner: getOption('banner'),
 		dir: getOption('dir'),
 		chunkNames: getOption('chunkNames'),
+		compact: getOption('compact', false),
 		entryNames: getOption('entryNames'),
 		exports: getOption('exports'),
 		extend: getOption('extend'),

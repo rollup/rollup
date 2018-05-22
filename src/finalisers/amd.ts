@@ -1,6 +1,6 @@
 import getInteropBlock from './shared/getInteropBlock';
 import getExportBlock from './shared/getExportBlock';
-import esModuleExport from './shared/esModuleExport';
+import { esModuleExport, compactEsModuleExport } from './shared/esModuleExport';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/types';
@@ -27,6 +27,8 @@ export default function amd(
 
 	const deps = dependencies.map(m => `'${m.id}'`);
 	const args = dependencies.map(m => m.name);
+	const n = options.compact ? '' : '\n';
+	const _ = options.compact ? '' : ' ';
 
 	if (namedExportsMode && hasExports) {
 		args.unshift(`exports`);
@@ -46,26 +48,35 @@ export default function amd(
 	const amdOptions = options.amd || {};
 
 	const params =
-		(amdOptions.id ? `'${amdOptions.id}', ` : ``) + (deps.length ? `[${deps.join(', ')}], ` : ``);
+		(amdOptions.id ? `'${amdOptions.id}',${_}` : ``) +
+		(deps.length ? `[${deps.join(`,${_}`)}],${_}` : ``);
 
-	const useStrict = options.strict !== false ? ` 'use strict';` : ``;
+	const useStrict = options.strict !== false ? `${_}'use strict';` : ``;
 	const define = amdOptions.define || 'define';
-	const wrapperStart = `${define}(${params}function (${args.join(', ')}) {${useStrict}\n\n`;
+	const wrapperStart = `${define}(${params}function${_}(${args.join(
+		`,${_}`
+	)})${_}{${useStrict}${n}${n}`;
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
 	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
-	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
+	if (interopBlock) magicString.prepend(interopBlock + n + n);
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, options.interop);
-	if (exportBlock) magicString.append('\n\n' + exportBlock);
+	const exportBlock = getExportBlock(
+		exports,
+		dependencies,
+		namedExportsMode,
+		options.interop,
+		options.compact
+	);
+	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (namedExportsMode && hasExports && options.legacy !== true && isEntryModuleFacade)
-		magicString.append(`\n\n${esModuleExport}`);
+		magicString.append(`${n}${n}${options.compact ? compactEsModuleExport : esModuleExport}`);
 	if (outro) magicString.append(outro);
 
 	return magicString
 		.indent(indentString)
-		.append('\n\n});')
+		.append(n + n + '});')
 		.prepend(wrapperStart);
 }
