@@ -11,19 +11,8 @@ export default function transformChunk(
 	sourcemapChain: RawSourceMap[],
 	options: OutputOptions
 ) {
-	let outputChunk;
-
 	return graph.plugins.reduce((promise, plugin) => {
 		if (!plugin.transformBundle) return promise;
-
-		if (!outputChunk) {
-			outputChunk = {
-				name: chunk.id,
-				imports: chunk.getImportIds(),
-				exports: chunk.getExportNames(),
-				modules: chunk.getModuleIds()
-			};
-		}
 
 		return promise.then(code => {
 			return Promise.resolve()
@@ -32,7 +21,7 @@ export default function transformChunk(
 						graph.pluginContext,
 						code,
 						options,
-						outputChunk
+						chunk
 					)
 				)
 				.then(result => {

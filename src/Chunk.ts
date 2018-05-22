@@ -148,8 +148,15 @@ export default class Chunk {
 		return this.dependencies.map(module => module.id);
 	}
 
-	getExportNames(): string[] {
-		return Object.keys(this.exportNames);
+	getExportNames(): { name: string; originalName: string; moduleId: string }[] {
+		return Object.keys(this.exportNames).map(exportName => {
+			const variable = this.exportNames[exportName];
+			return {
+				name: exportName,
+				originalName: variable.exportName,
+				moduleId: this.exports.get(variable).id
+			};
+		});
 	}
 
 	getModuleIds(): string[] {
@@ -476,7 +483,8 @@ export default class Chunk {
 
 		for (const exportName of Object.keys(this.exportNames)) {
 			const exportVariable = this.exportNames[exportName];
-			if (exportVariable) exportVariable.exportName = exportName;
+			if (exportVariable && exportVariable.exportName !== exportName)
+				exportVariable.safeExportName = exportName;
 		}
 
 		Array.from(this.imports.entries()).forEach(([variable, module]) => {
@@ -523,7 +531,7 @@ export default class Chunk {
 					if (esm || !variable.isReassigned || variable.isId) {
 						safeName = getSafeName(variable.name);
 					} else {
-						const safeExportName = variable.exportName;
+						const safeExportName = variable.safeExportName || variable.exportName;
 						if (safeExportName) {
 							safeName = `exports.${safeExportName}`;
 						} else {
@@ -951,8 +959,6 @@ export default class Chunk {
 							if (module.chunkAlias) return module.chunkAlias;
 						}
 						return 'chunk';
-					default:
-						return false;
 				}
 			}),
 			existingNames

@@ -10,7 +10,6 @@ import ensureArray from '../utils/ensureArray';
 import { createAddons } from '../utils/addons';
 import commondir from '../utils/commondir';
 import { optimizeChunks } from '../chunk-optimization';
-import createGetAssetFileName from '../utils/getAssetFileName';
 
 import {
 	WarningHandler,
@@ -21,7 +20,8 @@ import {
 	OutputBundle,
 	OutputFile,
 	RollupFileBuild,
-	RollupBuild
+	RollupBuild,
+	ChunkExport
 } from './types';
 import getExportMode from '../utils/getExportMode';
 import Chunk from '../Chunk';
@@ -186,7 +186,7 @@ export default function rollup(
 
 				// TODO: deprecate legacy single chunk return
 				let singleInputChunk: Chunk;
-				let imports: string[], exports: string[];
+				let imports: string[], exports: ChunkExport[];
 				if (!inputOptions.experimentalPreserveModules) {
 					if (
 						typeof inputOptions.input === 'string' ||
@@ -238,7 +238,10 @@ export default function rollup(
 
 					timeStart('GENERATE', 1);
 
-					let outputBundle: OutputBundle = Object.create(null);
+					// populate asset files into output
+					let outputBundle = graph.finaliseAssets(
+						outputOptions.assetFileNames || 'assets/[name]-[hash][ext]'
+					);
 
 					const inputBase = commondir(
 						chunks.filter(chunk => chunk.entryModule).map(chunk => chunk.entryModule.id)
@@ -262,26 +265,27 @@ export default function rollup(
 							}
 
 							// then name all chunks
-							if (singleInputChunk) {
-								singleInputChunk.id = basename(
-									outputOptions.file ||
-										(inputOptions.input instanceof Array
-											? inputOptions.input[0]
-											: inputOptions.input)
-								);
-								const outputChunk: OutputChunk = {
-									imports,
-									exports,
-									modules: singleInputChunk.getModuleIds(),
-									code: undefined,
-									map: undefined
-								};
-								outputBundle[singleInputChunk.id] = outputChunk;
-							}
-
 							for (let chunk of chunks) {
-								if (chunk === singleInputChunk) continue;
-								if (inputOptions.experimentalPreserveModules) {
+								const imports = chunk.getImportIds();
+								const exports = chunk.getExportNames();
+								const modules = chunk.getModuleIds();
+
+								if (chunk === singleInputChunk) {
+									singleInputChunk.id = basename(
+										outputOptions.file ||
+											(inputOptions.input instanceof Array
+												? inputOptions.input[0]
+												: inputOptions.input)
+									);
+									const outputChunk: OutputChunk = {
+										imports,
+										exports,
+										modules: singleInputChunk.getModuleIds(),
+										code: undefined,
+										map: undefined
+									};
+									outputBundle[singleInputChunk.id] = outputChunk;
+								} else if (inputOptions.experimentalPreserveModules) {
 									chunk.generateIdPreserveModules(inputBase);
 								} else {
 									let pattern, patternName;
@@ -295,9 +299,9 @@ export default function rollup(
 									chunk.generateId(pattern, patternName, addons, outputOptions, outputBundle);
 								}
 								outputBundle[chunk.id] = {
-									imports: chunk.getImportIds(),
-									exports: chunk.getExportNames(),
-									modules: chunk.getModuleIds(),
+									imports,
+									exports,
+									modules,
 									code: undefined,
 									map: undefined
 								};
@@ -326,17 +330,14 @@ export default function rollup(
 							// run generateBundle hook
 							const generateBundlePlugins = graph.plugins.filter(plugin => plugin.generateBundle);
 							if (generateBundlePlugins.length === 0) return;
-							const getAssetFileName = createGetAssetFileName(
-								outputBundle,
-								outputOptions.assetFileNames
-							);
-							return generateBundlePlugins.map(plugin =>
-								plugin.generateBundle.call(
-									graph.pluginContext,
-									outputOptions,
-									outputBundle,
-									getAssetFileName,
-									isWrite
+							return Promise.all(
+								generateBundlePlugins.map(plugin =>
+									plugin.generateBundle.call(
+										graph.pluginContext,
+										outputOptions,
+										outputBundle,
+										isWrite
+									)
 								)
 							);
 						})
@@ -392,7 +393,7 @@ export default function rollup(
 				};
 				if (!inputOptions.experimentalCodeSplitting) {
 					(<any>result).imports = imports;
-					(<any>result).exports = exports;
+					(<any>result).exports = exports.map(expt => expt.name);
 					(<any>result).modules = cache.modules;
 				}
 				if (inputOptions.perf === true) result.getTimings = getTimings;

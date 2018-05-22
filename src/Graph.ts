@@ -13,7 +13,7 @@ import error from './utils/error';
 import { isRelative, resolve, relative } from './utils/path';
 import {
 	InputOptions,
-	IsExternalHook,
+	IsExternal,
 	LoadHook,
 	MissingExportHook,
 	Plugin,
@@ -29,14 +29,19 @@ import {
 } from './rollup/types';
 import Chunk from './Chunk';
 import GlobalScope from './ast/scopes/GlobalScope';
-import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
+import {
+	randomUint8Array,
+	Uint8ArrayToHexString,
+	Uint8ArrayXor,
+	randomHexString
+} from './utils/entryHashing';
 import firstSync from './utils/first-sync';
 import { Program } from 'estree';
+import { getAssetFileName } from './utils/getAssetFileName';
 
 export interface Asset {
 	name: string;
 	source: string | Buffer;
-	file: string;
 }
 
 export default class Graph {
@@ -49,11 +54,12 @@ export default class Graph {
 	externalModules: ExternalModule[] = [];
 	getModuleContext: (id: string) => string;
 	hasLoaders: boolean;
-	isExternal: IsExternalHook;
+	isExternal: IsExternal;
 	isPureExternalModule: (id: string) => boolean;
 	load: LoadHook;
 	handleMissingExport: MissingExportHook;
 	moduleById = new Map<string, Module | ExternalModule>();
+	assetsById = new Map<string, Asset>();
 	modules: Module[] = [];
 	onwarn: WarningHandler;
 	plugins: Plugin[];
@@ -64,6 +70,7 @@ export default class Graph {
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
 
+	finalisedAssets = false;
 	contextParse: (code: string, acornOptions?: acorn.Options) => Program;
 
 	// deprecated
@@ -119,6 +126,27 @@ export default class Graph {
 		};
 
 		this.pluginContext = {
+			isExternal: this.isExternal,
+			emitAsset: (name: string, source?: string | Buffer) => {
+				if (this.finalisedAssets)
+					error({
+						code: 'ASSETS_ALREADY_FINALISED',
+						message: 'Plugin error - Unable to emit assets at this stage of the build pipeline.'
+					});
+				const assetId = randomHexString(8);
+				this.assetsById.set(assetId, { name, source });
+				return assetId;
+			},
+			setAssetSource: (assetId: string, source: string | Buffer) => {
+				if (this.finalisedAssets)
+					error({
+						code: 'ASSETS_ALREADY_FINALISED',
+						message:
+							'Plugin error - Unable to set asset sources at this stage of the build pipeline.'
+					});
+				const asset = this.assetsById.get(assetId);
+				asset.source = source;
+			},
 			resolveId: undefined,
 			parse: this.contextParse,
 			warn(warning: RollupWarning | string) {
@@ -134,9 +162,7 @@ export default class Graph {
 		this.resolveId = first(
 			[
 				((id: string, parentId: string) =>
-					this.isExternal.call(this.pluginContext, id, parentId, false)
-						? false
-						: null) as ResolveIdHook
+					this.isExternal(id, parentId, false) ? false : null) as ResolveIdHook
 			]
 				.concat(
 					this.plugins
@@ -151,7 +177,8 @@ export default class Graph {
 
 		const loaders = this.plugins.map(plugin => plugin.load).filter(Boolean);
 		this.hasLoaders = loaders.length !== 0;
-		this.load = first(loaders.concat(load));
+
+		this.load = first([...loaders, load]);
 
 		this.handleMissingExport = firstSync(
 			this.plugins
@@ -242,6 +269,18 @@ export default class Graph {
 			modules: this.modules.map(module => module.toJSON())
 		};
 	}
+
+	finaliseAssets(assetFileNames: string) {
+		this.finalisedAssets = true;
+		const assets: Record<string, string | Buffer> = Object.create(null);
+		this.assetsById.forEach(asset => {
+			const assetFile = getAssetFileName(asset.name, asset.source, assets, assetFileNames);
+			assets[assetFile] = asset.source;
+		});
+		return assets;
+	}
+
+	getAssetUrlExpression() {}
 
 	private loadModule(entryName: string) {
 		return this.resolveId(entryName, undefined).then(id => {
@@ -746,7 +785,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 							);
 							if (typeof dynamicImportExpression !== 'string') {
 								module.dynamicImportResolutions[index] = { alias, resolution: replacement };
-							} else if (this.isExternal.call(this.pluginContext, replacement, module.id, true)) {
+							} else if (this.isExternal(replacement, module.id, true)) {
 								let externalModule;
 								if (!this.moduleById.has(replacement)) {
 									externalModule = new ExternalModule({

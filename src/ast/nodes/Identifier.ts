@@ -192,7 +192,10 @@ export default class Identifier extends NodeBase {
 				{
 					let expression: AssignmentExpression = <AssignmentExpression>this.parent;
 					if (expression.left === this) {
-						code.prependLeft(expression.right.start, `exports('${this.variable.exportName}', `);
+						code.prependLeft(
+							expression.right.start,
+							`exports('${this.variable.safeExportName || this.variable.exportName}', `
+						);
 						code.prependRight(expression.right.end, `)`);
 					}
 				}
@@ -205,7 +208,9 @@ export default class Identifier extends NodeBase {
 						code.overwrite(
 							expression.start,
 							expression.end,
-							`exports('${this.variable.exportName}', ${expression.operator}${name})`
+							`exports('${this.variable.safeExportName || this.variable.exportName}', ${
+								expression.operator
+							}${name})`
 						);
 					} else {
 						let op;
@@ -223,7 +228,8 @@ export default class Identifier extends NodeBase {
 						code.overwrite(
 							expression.start,
 							expression.end,
-							`(exports('${this.variable.exportName}', ${op}), ${name}${expression.operator})`
+							`(exports('${this.variable.safeExportName ||
+								this.variable.exportName}', ${op}), ${name}${expression.operator})`
 						);
 					}
 				}

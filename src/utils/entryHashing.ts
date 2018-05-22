@@ -28,3 +28,7 @@ export function randomUint8Array(len: number) {
 	for (let i = 0; i < buffer.length; i++) buffer[i] = Math.random() * (2 << 8);
 	return buffer;
 }
+
+export function randomHexString(len: number) {
+	return Uint8ArrayToHexString(randomUint8Array(Math.floor(len / 2)));
+}

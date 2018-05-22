@@ -66,7 +66,10 @@ export interface ModuleJSON {
 
 export interface PluginContext {
 	resolveId: ResolveIdHook;
+	isExternal: IsExternal;
 	parse: (input: string, options: any) => ESTree.Program;
+	emitAsset: (name: string, source?: string | Buffer) => string;
+	setAssetSource: (assetId: string, source: string | Buffer) => void;
 	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
 	error(err: RollupError, pos?: { line: number; column: number }): void;
 }
@@ -76,6 +79,7 @@ export type ResolveIdHook = (
 	id: string,
 	parent: string
 ) => Promise<string | boolean | void> | string | boolean | void;
+
 export type MissingExportHook = (
 	this: PluginContext,
 	exportName: string,
@@ -83,22 +87,36 @@ export type MissingExportHook = (
 	importedModule: string,
 	importerStart?: number
 ) => void;
-export type IsExternalHook = (
-	this: PluginContext,
+
+export type IsExternal = (
 	id: string,
 	parentId: string,
 	isResolved: boolean
 ) => Promise<boolean | void> | boolean | void;
+
 export type LoadHook = (
 	this: PluginContext,
 	id: string
 ) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
+
 export type TransformHook = (
 	this: PluginContext,
 	code: string,
 	id: String
 ) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
+
+export type TransformHookBound = Bind<TransformHook, PluginContext>;
+
 export type TransformChunkHook = (
+	code: string,
+	options: OutputOptions,
+	chunk: OutputChunk
+) =>
+	| Promise<{ code: string; map: RawSourceMap } | void>
+	| { code: string; map: RawSourceMap }
+	| void;
+
+export type TransformChunkHookBound = (
 	this: PluginContext,
 	code: string,
 	options: OutputOptions,
@@ -107,11 +125,13 @@ export type TransformChunkHook = (
 	| Promise<{ code: string; map: RawSourceMap } | void>
 	| { code: string; map: RawSourceMap }
 	| void;
+
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | ESTree.Node,
 	parentId: string
 ) => Promise<string | void> | string | void;
+
 export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);
 
 export interface Plugin {
@@ -121,6 +141,10 @@ export interface Plugin {
 	resolveId?: ResolveIdHook;
 	missingExport?: MissingExportHook;
 	transform?: TransformHook;
+	processBundle?: (
+		this: PluginContext,
+		chunks: Record<string, ChunkDefinition>
+	) => void | Promise<void>;
 	// TODO: deprecate
 	transformBundle?: TransformChunkHook;
 	transformChunk?: TransformChunkHook;
@@ -130,20 +154,19 @@ export interface Plugin {
 	ongenerate?: (
 		this: PluginContext,
 		options: OutputOptions,
-		source: OutputChunk
-	) => void | Promise<void>;
-	generateBundle?: (
-		this: PluginContext,
-		options: OutputOptions,
-		bundle: OutputBundle,
-		getAssetFileName: (name: string, source?: string) => string,
-		isWrite: boolean
+		chunk: OutputChunk
 	) => void | Promise<void>;
 	// TODO: deprecate
 	onwrite?: (
 		this: PluginContext,
 		options: OutputOptions,
 		chunk: OutputChunk
+	) => void | Promise<void>;
+	generateBundle?: (
+		this: PluginContext,
+		options: OutputOptions,
+		bundle: OutputBundle,
+		isWrite: boolean
 	) => void | Promise<void>;
 	resolveDynamicImport?: ResolveDynamicImportHook;
 	banner?: AddonHook;
@@ -157,7 +180,7 @@ export interface TreeshakingOptions {
 	pureExternalModules: boolean;
 }
 
-export type ExternalOption = string[] | IsExternalHook;
+export type ExternalOption = string[] | IsExternal;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 export type InputOption = string | string[] | { [entryAlias: string]: string };
 
@@ -288,12 +311,21 @@ export type SerializedTimings = { [label: string]: number };
 
 export type OutputFile = string | Buffer | OutputChunk;
 
-export interface OutputChunk {
+export interface ChunkExport {
+	name: string;
+	originalName: string;
+	moduleId: string;
+}
+
+export interface ChunkDefinition {
+	imports: string[];
+	exports: ChunkExport[];
+	modules: string[];
+}
+
+export interface OutputChunk extends ChunkDefinition {
 	code: string;
 	map?: SourceMap;
-	imports: string[];
-	exports: string[];
-	modules: string[];
 }
 
 export interface RollupCache {
@@ -303,7 +335,7 @@ export interface RollupCache {
 export interface RollupFileBuild {
 	// TODO: consider deprecating to match code splitting
 	imports: string[];
-	exports: string[];
+	exports: { name: string; originalName: string; moduleId: string }[];
 	modules: ModuleJSON[];
 	cache: RollupCache;
 
