@@ -105,8 +105,6 @@ export type TransformHook = (
 	id: String
 ) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
 
-export type TransformHookBound = Bind<TransformHook, PluginContext>;
-
 export type TransformChunkHook = (
 	code: string,
 	options: OutputOptions,
@@ -312,7 +310,7 @@ export interface ChunkDefinition {
 	[moduleId: string]: string[];
 }
 
-export interface OutputChunk extends ChunkDefinition {
+export interface OutputChunk {
 	imports: string[];
 	exports: string[];
 	modules: string[];

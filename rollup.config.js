@@ -62,7 +62,7 @@ function resolveTypescript () {
 export default [
 	/* rollup.js and rollup.es.js */
 	{
-		input: 'src/rollup/node-entry.ts',
+		input: 'src/node-entry.ts',
 		onwarn,
 		plugins: [
 			json(),
@@ -82,7 +82,7 @@ export default [
 
 	/* rollup.browser.js */
 	{
-		input: 'src/rollup/browser-entry.ts',
+		input: 'src/browser-entry.ts',
 		onwarn,
 		plugins: [
 			json(),
