@@ -58,8 +58,11 @@ function createPluginTransformContext(
 	source: string
 ): PluginContext {
 	return {
-		resolveId: graph.resolveId,
-		parse: graph.contextParse,
+		isExternal: graph.pluginContext.isExternal,
+		resolveId: graph.pluginContext.resolveId,
+		parse: graph.pluginContext.parse,
+		emitAsset: graph.pluginContext.emitAsset,
+		setAssetSource: graph.pluginContext.setAssetSource,
 		warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
 			if (typeof warning === 'string') warning = { message: warning };
 			warning = augmentCodeLocation({

@@ -194,7 +194,7 @@ export default function rollup(
 					) {
 						singleInputChunk = chunks.find(chunk => chunk.entryModule !== undefined);
 						imports = singleInputChunk.getImportIds();
-						exports = singleInputChunk.getExportNames();
+						exports = singleInputChunk.getExports();
 					}
 				}
 
@@ -239,7 +239,7 @@ export default function rollup(
 					timeStart('GENERATE', 1);
 
 					// populate asset files into output
-					let outputBundle = graph.finaliseAssets(
+					let outputBundle: OutputBundle = graph.finaliseAssets(
 						outputOptions.assetFileNames || 'assets/[name]-[hash][ext]'
 					);
 
@@ -267,7 +267,7 @@ export default function rollup(
 							// then name all chunks
 							for (let chunk of chunks) {
 								const imports = chunk.getImportIds();
-								const exports = chunk.getExportNames();
+								const exports = chunk.getExports();
 								const modules = chunk.getModuleIds();
 
 								if (chunk === singleInputChunk) {

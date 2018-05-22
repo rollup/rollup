@@ -19,7 +19,7 @@ import { RenderOptions } from './utils/renderHelpers';
 import { Addons } from './utils/addons';
 import sha256 from 'hash.js/lib/hash/sha/256';
 import ExternalVariable from './ast/variables/ExternalVariable';
-import { GlobalsOption, OutputOptions, RawSourceMap } from './rollup/types';
+import { GlobalsOption, OutputOptions, RawSourceMap, ChunkExport } from './rollup/types';
 import { toBase64 } from './utils/base64';
 import { renderNamePattern, makeUnique } from './utils/renderNamePattern';
 
@@ -148,13 +148,25 @@ export default class Chunk {
 		return this.dependencies.map(module => module.id);
 	}
 
-	getExportNames(): { name: string; originalName: string; moduleId: string }[] {
+	getExportNames(): string[] {
+		return Object.keys(this.exportNames);
+	}
+
+	getExports(): ChunkExport[] {
 		return Object.keys(this.exportNames).map(exportName => {
+			if (exportName[0] === '*')
+				return {
+					name: '*',
+					originalName: '*',
+					moduleId: exportName.substr(1)
+				};
+
 			const variable = this.exportNames[exportName];
+			const module = this.exports.get(variable);
 			return {
 				name: exportName,
-				originalName: variable.exportName,
-				moduleId: this.exports.get(variable).id
+				originalName: module.getExportName(variable),
+				moduleId: module.id
 			};
 		});
 	}
@@ -450,6 +462,18 @@ export default class Chunk {
 		}
 	}
 
+	private finaliseImportMetas(options: OutputOptions): boolean {
+		let hasImportMetaUrl = false;
+		for (let i = 0; i < this.orderedModules.length; i++) {
+			const module = this.orderedModules[i];
+			const code = this.renderedModuleSources[i];
+			for (let importMeta of module.importMetas) {
+				if (importMeta.renderFinalMechanism(code, this.id, options.format)) hasImportMetaUrl = true;
+			}
+		}
+		return hasImportMetaUrl;
+	}
+
 	private setIdentifierRenderResolutions(options: OutputOptions) {
 		const used = Object.create(null);
 		const esm = options.format === 'es' || options.format === 'system';
@@ -484,7 +508,7 @@ export default class Chunk {
 		for (const exportName of Object.keys(this.exportNames)) {
 			const exportVariable = this.exportNames[exportName];
 			if (exportVariable && exportVariable.exportName !== exportName)
-				exportVariable.safeExportName = exportName;
+				exportVariable.exportName = exportName;
 		}
 
 		Array.from(this.imports.entries()).forEach(([variable, module]) => {
@@ -531,7 +555,7 @@ export default class Chunk {
 					if (esm || !variable.isReassigned || variable.isId) {
 						safeName = getSafeName(variable.name);
 					} else {
-						const safeExportName = variable.safeExportName || variable.exportName;
+						const safeExportName = variable.exportName;
 						if (safeExportName) {
 							safeName = `exports.${safeExportName}`;
 						} else {
@@ -606,6 +630,7 @@ export default class Chunk {
 
 			let reexports = reexportDeclarations.get(dep);
 			let exportsNames: boolean, exportsDefault: boolean;
+			let namedExportsMode = true;
 			if (dep instanceof ExternalModule) {
 				exportsNames = dep.exportsNames || dep.exportsNamespace;
 				exportsDefault = 'default' in dep.declarations;
@@ -613,6 +638,7 @@ export default class Chunk {
 				exportsNames = true;
 				// we don't want any interop patterns to trigger
 				exportsDefault = false;
+				namedExportsMode = dep.exportMode !== 'default';
 			}
 
 			let id: string;
@@ -631,7 +657,7 @@ export default class Chunk {
 
 			dependencies.push({
 				id, // chunk id updated on render
-				namedExportsMode: true, // default mode updated on render
+				namedExportsMode,
 				globalName,
 				name: dep.name,
 				isChunk: !(<ExternalModule>dep).isExternal,
@@ -999,9 +1025,12 @@ export default class Chunk {
 			renderedDependency.id = relPath;
 		}
 
-		if (this.graph.dynamicImport) this.finaliseDynamicImports();
+		let hasImportMetaUrl = false;
+		if (this.graph.dynamicImport) {
+			this.finaliseDynamicImports();
+			hasImportMetaUrl = this.finaliseImportMetas(options);
+		}
 
-		const hasImportMeta = this.orderedModules.some(module => module.hasImportMeta);
 		const hasExports =
 			this.renderedDeclarations.exports.length !== 0 ||
 			this.renderedDeclarations.dependencies.some(
@@ -1017,7 +1046,7 @@ export default class Chunk {
 				intro: addons.intro,
 				outro: addons.outro,
 				dynamicImport: this.hasDynamicImport,
-				importMeta: hasImportMeta,
+				hasImportMetaUrl,
 				dependencies: this.renderedDeclarations.dependencies,
 				exports: this.renderedDeclarations.exports,
 				graph: this.graph,

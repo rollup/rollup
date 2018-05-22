@@ -36,8 +36,7 @@ export default class ClassDeclaration extends ClassNode {
 		if (options.format === 'system' && this.id && this.id.variable.exportName) {
 			code.appendLeft(
 				this.end,
-				` exports('${this.id.variable.safeExportName ||
-					this.id.variable.exportName}', ${this.id.variable.getName()});`
+				` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`
 			);
 		}
 		super.render(code, options);

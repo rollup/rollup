@@ -222,14 +222,6 @@ export default class MemberExpression extends NodeBase {
 				storeName: true,
 				contentOnly: true
 			});
-		} else if (this.object instanceof MetaProperty && this.object.meta.name === 'import') {
-			this.context.hasImportMeta = true;
-			const importMetaMechanism = this.object.renderImportMetaMechanism(
-				code,
-				this.property instanceof Identifier && this.property.name,
-				options.format
-			);
-			if (importMetaMechanism) code.overwrite(this.start, this.end, importMetaMechanism);
 		} else {
 			if (isCalleeOfDifferentParent) {
 				code.appendRight(this.start, '0, ');

@@ -16,7 +16,7 @@ export default function amd(
 		intro,
 		outro,
 		dynamicImport,
-		importMeta,
+		hasImportMetaUrl,
 		dependencies,
 		exports,
 		isEntryModuleFacade
@@ -40,7 +40,7 @@ export default function amd(
 		deps.unshift(`'require'`);
 	}
 
-	if (importMeta) {
+	if (hasImportMetaUrl) {
 		args.unshift('module');
 		deps.unshift(`'module'`);
 	}

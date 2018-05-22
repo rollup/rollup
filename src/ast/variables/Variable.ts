@@ -17,7 +17,6 @@ export default class Variable implements ExpressionEntity {
 
 	// Not initialised during construction
 	exportName: string | null = null;
-	safeExportName: string | null = null;
 	included: boolean = false;
 	isId: boolean = false;
 	reexported: boolean = false;

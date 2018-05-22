@@ -42,6 +42,7 @@ import { getAssetFileName } from './utils/getAssetFileName';
 export interface Asset {
 	name: string;
 	source: string | Buffer;
+	fileName: string;
 }
 
 export default class Graph {
@@ -134,7 +135,11 @@ export default class Graph {
 						message: 'Plugin error - Unable to emit assets at this stage of the build pipeline.'
 					});
 				const assetId = randomHexString(8);
-				this.assetsById.set(assetId, { name, source });
+				this.assetsById.set(assetId, {
+					name,
+					source,
+					fileName: undefined
+				});
 				return assetId;
 			},
 			setAssetSource: (assetId: string, source: string | Buffer) => {
@@ -145,6 +150,13 @@ export default class Graph {
 							'Plugin error - Unable to set asset sources at this stage of the build pipeline.'
 					});
 				const asset = this.assetsById.get(assetId);
+				if (asset.source)
+					error({
+						code: 'ASSET_SOURCE_ALREADY_SET',
+						message: `Plugin error - Unable to set asset source for ${
+							asset.name
+						}, source already set.`
+					});
 				asset.source = source;
 			},
 			resolveId: undefined,
@@ -274,13 +286,16 @@ export default class Graph {
 		this.finalisedAssets = true;
 		const assets: Record<string, string | Buffer> = Object.create(null);
 		this.assetsById.forEach(asset => {
-			const assetFile = getAssetFileName(asset.name, asset.source, assets, assetFileNames);
-			assets[assetFile] = asset.source;
+			const fileName = getAssetFileName(asset.name, asset.source, assets, assetFileNames);
+			asset.fileName = fileName;
+			assets[fileName] = asset.source;
 		});
 		return assets;
 	}
 
-	getAssetUrlExpression() {}
+	getAssetFileName(assetId: string) {
+		return this.assetsById.get(assetId).fileName;
+	}
 
 	private loadModule(entryName: string) {
 		return this.resolveId(entryName, undefined).then(id => {
