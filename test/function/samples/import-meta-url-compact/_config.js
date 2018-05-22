@@ -10,7 +10,8 @@ module.exports = {
 		compact: true
 	},
 	context: {
-		__filename: path.resolve(__dirname, 'test.js')
+		__filename: path.resolve(__dirname, 'test.js'),
+		require: require
 	},
 	exports (exports) {
 		assert.equal(exports, new URL('file:' + path.resolve(__dirname, 'test.js')).href);
