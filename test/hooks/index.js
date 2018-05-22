@@ -216,7 +216,7 @@ describe('hooks', () => {
 			.then(outputBundle => {
 				assert.equal(outputBundle['input.js'].code, `'use strict';
 
-var input = new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)((process.browser ? 'file:' : '') + __dirname + '/assets/test-19916f7d.ext', process.browser && document.baseURI).href;
+var input = new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)((process.browser ? '' : 'file:') + __dirname + '/assets/test-19916f7d.ext', process.browser && document.baseURI).href;
 
 module.exports = input;
 `);

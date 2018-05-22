@@ -64,9 +64,6 @@ export default class Import extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions) {
-		const _ = options.compact ? '' : ' ';
-		const s = options.compact ? '' : ';';
-
 		this.rendered = true;
 		if (this.resolutionNamespace) {
 			const _ = options.compact ? '' : ' ';

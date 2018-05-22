@@ -449,7 +449,8 @@ export default class Chunk {
 			const module = this.orderedModules[i];
 			const code = this.renderedModuleSources[i];
 			for (let importMeta of module.importMetas) {
-				if (importMeta.renderFinalMechanism(code, this.id, options.format)) hasImportMetaUrl = true;
+				if (importMeta.renderFinalMechanism(code, this.id, options.format, options.compact))
+					hasImportMetaUrl = true;
 			}
 		}
 		return hasImportMetaUrl;
