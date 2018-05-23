@@ -1,11 +1,15 @@
-import { isAbsolute, relative } from './path';
+import { isAbsolute, relative, extname } from './path';
 
-export const jsExts = ['.js', '.mjs'];
+export const webExtensions = {
+	'.js': true,
+	'.mjs': true,
+	'.jsx': true,
+	'.ts': true
+};
 
 export function nameWithoutExtension(name: string) {
-	for (let ext of jsExts) {
-		if (name.endsWith(ext)) return name.substr(0, name.length - ext.length);
-	}
+	const ext = extname(name);
+	if (ext in webExtensions) return name.substr(0, name.length - ext.length);
 	return name;
 }
 
