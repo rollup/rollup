@@ -6,5 +6,5 @@ export default function foo () {
 }
 
 import('./main.js').then(self => {
-	console.log(self && sel['de' + 'fault']);
+	console.log(self && self['de' + 'fault']);
 });
