@@ -1,8 +1,8 @@
 import CallOptions from '../CallOptions';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import * as NodeType from './NodeType';
-import { ObjectPath } from '../values';
+import { ObjectPath, UNKNOWN_PATH } from '../values';
 
 export default class NewExpression extends NodeBase {
 	type: NodeType.tNewExpression;
@@ -10,6 +10,14 @@ export default class NewExpression extends NodeBase {
 	arguments: ExpressionNode[];
 
 	private callOptions: CallOptions;
+
+	bind() {
+		super.bind();
+		for (const argument of this.arguments) {
+			// This will make sure all properties of parameters behave as "unknown"
+			argument.reassignPath(UNKNOWN_PATH, NEW_EXECUTION_PATH);
+		}
+	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		for (const argument of this.arguments) {
