@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.59.3
+*2018-05-24*
+* Fix reassignment tracking for constructor parameters ([#2214](https://github.com/rollup/rollup/pull/2214))
+
 ## 0.59.2
 *2018-05-21*
 * Fix reassignment tracking in for-in loops ([#2205](https://github.com/rollup/rollup/pull/2205))
@@ -192,6 +196,7 @@
 * Refactor unused import ([#1866](https://github.com/rollup/rollup/pull/1866))
 
 ## 0.53.4
+*2018-01-10*
 * More type cleanup ([#1858](https://github.com/rollup/rollup/pull/1858))
 * Use chalks internal helper to detect if colors should be used ([#1853](https://github.com/rollup/rollup/pull/1853))
 * Refactor entity handling to use interfaces ([#1840](https://github.com/rollup/rollup/pull/1840))
@@ -199,26 +204,32 @@
 * Ship `TypeScript` declaration files ([#1837](https://github.com/rollup/rollup/pull/1837))
 
 ## 0.53.3
+*2018-01-02*
 * Use correct name when re-exporting from external modules ([#1794](https://github.com/rollup/rollup/pull/1794))
 * Disable warnings when `resolveId` returns false ([#1825](https://github.com/rollup/rollup/pull/1825))
 
 ## 0.53.2
+*2017-12-30*
 * Properly handle output arrays in the JavaScript API ([#1827](https://github.com/rollup/rollup/pull/1827))
 
 ## 0.53.1
+*2017-12-28*
 * Properly deprecate more config options ([#1812](https://github.com/rollup/rollup/pull/1812))
 * Pass output options to `transformBundle` plugin hook ([#1813](https://github.com/rollup/rollup/pull/1813))
 
 ## 0.53.0
+*2017-12-22*
 * Experimental dynamic import support ([#1790](https://github.com/rollup/rollup/pull/1790))
 * Unify config validation ([#1805](https://github.com/rollup/rollup/pull/1805))
 
 ## 0.52.3
+*2017-12-19*
 * Properly hoist default exported functions in more situations ([#1799](https://github.com/rollup/rollup/pull/1799))
 * Allow plugin transformations to not overwrite source maps by returning null ([#1797](https://github.com/rollup/rollup/pull/1797))
 * Provide more parameters to "external" handler ([#1792](https://github.com/rollup/rollup/pull/1792))
 
 ## 0.52.2
+*2017-12-15*
 * No longer ignore side-effects in JSON.parse and JSON.stringify ([#1785](https://github.com/rollup/rollup/pull/1785))
 * Updated links in warnings ([#1776](https://github.com/rollup/rollup/pull/1776))
 * No longer prevent self-imports ([#1777](https://github.com/rollup/rollup/pull/1777))
@@ -226,6 +237,7 @@
 * Prevent corruption when re-exporting default exports ([#1765](https://github.com/rollup/rollup/pull/1765))
 
 ## 0.52.1
+*2017-12-05*
 * Improve deprecation warnings ([#1765](https://github.com/rollup/rollup/pull/1765))
 * Properly use stdin ([#1774](https://github.com/rollup/rollup/pull/1774))
 * Let --environment be used multiple times ([#1768](https://github.com/rollup/rollup/pull/1768))
@@ -233,7 +245,7 @@
 * Respect globals option in headers of UMD and IIFE files ([#1747](https://github.com/rollup/rollup/pull/1747))
 
 ## 0.52.0
-
+*2017-11-25*
 * Accept config as promise ([#1731](https://github.com/rollup/rollup/pull/1731))
 * Accept promises for intro/outro/banner/footer ([#1253](https://github.com/rollup/rollup/pull/1253))
 * Option to prevent freezing of namespace imports ([#1696](https://github.com/rollup/rollup/pull/1696))
@@ -241,70 +253,70 @@
 * Options to fine-tune treeshaking ([#1760](https://github.com/rollup/rollup/pull/1760))
 
 ## 0.51.8
-
+*2017-11-19*
 * Fix speed problems by simplifying treeshaking reassignment handling ([#1740](https://github.com/rollup/rollup/pull/1740))
 * Update dependencies ([#1742](https://github.com/rollup/rollup/pull/1742))
 
 ## 0.51.7
-
+*2017-11-17*
 * Keep "this"-context when calling sequence expressions ([#1724](https://github.com/rollup/rollup/pull/1724))
 
 ## 0.51.6
-
+*2017-11-16*
 * Use sourcemaps to determine error locations ([#1728](https://github.com/rollup/rollup/pull/1728))
 
 ## 0.51.5
-
+*2017-11-11*
 * Fix regressions with uninitialised conditional expressions ([#1720](https://github.com/rollup/rollup/pull/1720))
 
 ## 0.51.4
-
+*2017-11-11*
 * Fix regressions preventing builds ([#1725](https://github.com/rollup/rollup/pull/1725))
 
 ## 0.51.3
-
+*2017-11-10*
 * Fix regression when treeshaking sequence expressions ([#1717](https://github.com/rollup/rollup/pull/1717))
 
 ## 0.51.2
-
+*2017-11-09*
 * Fix treeshaking regression when labels are used inside functions ([#1712](https://github.com/rollup/rollup/pull/1712))
 
 ## 0.51.1
-
+*2017-11-08*
 * Fix an issue with empty return statements ([#1704](https://github.com/rollup/rollup/pull/1704))
 
 ## 0.51.0
-
+*2017-11-08*
 * Massive improvements to the treeshaking algorithm ([#1667](https://github.com/rollup/rollup/pull/1667))
 
 ## 0.50.1
-
+*2017-11-08*
 * Fix treeshaking regression ([#1695](https://github.com/rollup/rollup/pull/1695))
 * Treeshaking improvements ([#1650](https://github.com/rollup/rollup/pull/1650))
 * Enable installation from Github ([#1670](https://github.com/rollup/rollup/pull/1670))
 * Update documentation ([#1660](https://github.com/rollup/rollup/pull/1660))
 
 ## 0.50.0
-
+*2017-09-16*
 * Many treeshaking improvements ([#1624](https://github.com/rollup/rollup/pull/1624))
 * Show finish time in watch mode ([#1620](https://github.com/rollup/rollup/pull/1620))
 
 ## 0.49.3
-
+*2017-09-08*
 * Respect `watch` options ([#1596](https://github.com/rollup/rollup/issues/1596))
 * Fix treeshaking regressions ([#1604](https://github.com/rollup/rollup/pull/1604))
 * Allow `-o` to work with `output.format` ([#1606](https://github.com/rollup/rollup/pull/1606))
 
 ## 0.49.2
-
+*2017-08-29*
 * Fix treeshaking regressions ([#1591](https://github.com/rollup/rollup/pull/1591))
 
 ## 0.49.1
-
+*2017-08-28*
 * Fix treeshaking regressions ([#1586](https://github.com/rollup/rollup/pull/1586))
 
 ## 0.49.0
-
+*2017-08-27*
 * Completely update the treeshaking algorithm ([#1582](https://github.com/rollup/rollup/pull/1582))
 * Only flip screen buffer if appropriate ([#1574](https://github.com/rollup/rollup/pull/1574))
 * Guard against two instances creating the same dir ([#1576](https://github.com/rollup/rollup/pull/1576))
