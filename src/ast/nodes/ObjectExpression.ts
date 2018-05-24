@@ -5,10 +5,12 @@ import Identifier from './Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import {
 	EMPTY_PATH,
+	hasMemberEffectWhenCalled,
 	LiteralValueOrUnknown,
 	objectMembers,
 	ObjectPath,
 	ObjectPathKey,
+	someMemberReturnExpressionWhenCalled,
 	UNKNOWN_KEY,
 	UNKNOWN_VALUE
 } from '../values';
@@ -30,6 +32,9 @@ export default class ObjectExpression extends NodeBase {
 	type: NodeType.tObjectExpression;
 	properties: Property[];
 
+	private reassignedPaths: { [key: string]: true };
+	private hasUnknownReassignedProperty: boolean;
+
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
@@ -38,25 +43,29 @@ export default class ObjectExpression extends NodeBase {
 	) {
 		if (path.length === 0) return;
 
-		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
+		const { properties } = this.getPossiblePropertiesWithName(
 			path[0],
 			PROPERTY_KINDS_READ,
 			options
 		);
-		if (hasCertainHit) {
-			for (const property of properties) {
-				property.forEachReturnExpressionWhenCalledAtPath(
-					path.slice(1),
-					callOptions,
-					callback,
-					options
-				);
-			}
+		for (const property of properties) {
+			property.forEachReturnExpressionWhenCalledAtPath(
+				path.slice(1),
+				callOptions,
+				callback,
+				options
+			);
 		}
 	}
 
 	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
-		if (path.length === 0) return UNKNOWN_VALUE;
+		const key = path[0];
+		if (
+			path.length === 0 ||
+			this.hasUnknownReassignedProperty ||
+			(typeof key === 'string' && this.reassignedPaths[key])
+		)
+			return UNKNOWN_VALUE;
 
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
 			path[0],
@@ -69,6 +78,12 @@ export default class ObjectExpression extends NodeBase {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return false;
+		const key = path[0];
+		if (
+			path.length > 1 &&
+			(this.hasUnknownReassignedProperty || (typeof key === 'string' && this.reassignedPaths[key]))
+		)
+			return true;
 
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
 			path[0],
@@ -76,14 +91,21 @@ export default class ObjectExpression extends NodeBase {
 			options
 		);
 		if (path.length > 1 && !hasCertainHit) return true;
+		const subPath = path.slice(1);
 		for (const property of properties) {
-			if (property.hasEffectsWhenAccessedAtPath(path.slice(1), options)) return true;
+			if (property.hasEffectsWhenAccessedAtPath(subPath, options)) return true;
 		}
 		return false;
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return false;
+		const key = path[0];
+		if (
+			path.length > 1 &&
+			(this.hasUnknownReassignedProperty || (typeof key === 'string' && this.reassignedPaths[key]))
+		)
+			return true;
 
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
 			path[0],
@@ -91,10 +113,11 @@ export default class ObjectExpression extends NodeBase {
 			options
 		);
 		if (path.length > 1 && !hasCertainHit) return true;
+		const subPath = path.slice(1);
 		for (const property of properties) {
 			if (
 				(path.length > 1 || property.kind === 'set') &&
-				property.hasEffectsWhenAssignedAtPath(path.slice(1), options)
+				property.hasEffectsWhenAssignedAtPath(subPath, options)
 			)
 				return true;
 		}
@@ -106,38 +129,58 @@ export default class ObjectExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		if (path.length === 0) return true;
-		const subPath = path[0];
-		if (path.length === 1 && typeof subPath === 'string' && objectMembers[subPath]) {
-			return false;
-		}
+		const key = path[0];
+		if (
+			path.length === 0 ||
+			this.hasUnknownReassignedProperty ||
+			(typeof key === 'string' && this.reassignedPaths[key])
+		)
+			return true;
 
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
-			path[0],
+			key,
 			PROPERTY_KINDS_READ,
 			options
 		);
-		if (!hasCertainHit) return true;
+		if (!(hasCertainHit || (path.length === 1 && typeof key === 'string' && objectMembers[key])))
+			return true;
+		const subPath = path.slice(1);
 		for (const property of properties) {
-			if (property.hasEffectsWhenCalledAtPath(path.slice(1), callOptions, options)) return true;
+			if (property.hasEffectsWhenCalledAtPath(subPath, callOptions, options)) return true;
 		}
+		if (path.length === 1 && typeof key === 'string' && objectMembers[key])
+			return hasMemberEffectWhenCalled(objectMembers, key, this.included, callOptions, options);
 		return false;
+	}
+
+	initialise() {
+		this.included = false;
+		this.hasUnknownReassignedProperty = false;
+		this.reassignedPaths = Object.create(null);
 	}
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return;
-
-		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
-			path[0],
-			path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ,
-			options
-		);
-		if (path.length === 1 || hasCertainHit) {
-			for (const property of properties) {
-				if (path.length > 1 || property.kind === 'set') {
-					property.reassignPath(path.slice(1), options);
+		if (path.length === 1) {
+			if (!this.hasUnknownReassignedProperty) {
+				const key = path[0];
+				if (typeof key === 'string') {
+					this.reassignedPaths[key] = true;
+				} else {
+					this.hasUnknownReassignedProperty = true;
 				}
 			}
+			return;
+		}
+
+		const { properties } = this.getPossiblePropertiesWithName(
+			path[0],
+			PROPERTY_KINDS_READ,
+			options
+		);
+		const subPath = path.slice(1);
+		for (const property of properties) {
+			property.reassignPath(subPath, options);
 		}
 	}
 
@@ -159,22 +202,30 @@ export default class ObjectExpression extends NodeBase {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		if (path.length === 0) return true;
-		const subPath = path[0];
-		if (path.length === 1 && typeof subPath === 'string' && objectMembers[subPath]) {
-			return predicateFunction(options)(objectMembers[subPath].returns);
+		const key = path[0];
+		if (
+			path.length === 0 ||
+			this.hasUnknownReassignedProperty ||
+			(typeof key === 'string' && this.reassignedPaths[key])
+		)
+			return true;
+
+		if (path.length === 1 && typeof key === 'string' && objectMembers[key]) {
+			return predicateFunction(options)(objectMembers[key].returns);
 		}
 
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
-			subPath,
+			key,
 			PROPERTY_KINDS_READ,
 			options
 		);
-		if (!hasCertainHit) return true;
+		if (!(hasCertainHit || (path.length === 1 && typeof key === 'string' && objectMembers[key])))
+			return true;
+		const subPath = path.slice(1);
 		for (const property of properties) {
 			if (
 				property.someReturnExpressionWhenCalledAtPath(
-					path.slice(1),
+					subPath,
 					callOptions,
 					predicateFunction,
 					options
@@ -182,6 +233,14 @@ export default class ObjectExpression extends NodeBase {
 			)
 				return true;
 		}
+		if (path.length === 1 && typeof key === 'string' && objectMembers[key])
+			return someMemberReturnExpressionWhenCalled(
+				objectMembers,
+				key,
+				callOptions,
+				predicateFunction,
+				options
+			);
 		return false;
 	}
 

@@ -1,5 +1,4 @@
 import Variable from './Variable';
-import VariableReassignmentTracker from './VariableReassignmentTracker';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
 import Identifier from '../nodes/Identifier';
@@ -9,7 +8,7 @@ import {
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from '../nodes/shared/Expression';
-import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
 import { Node } from '../nodes/shared/Node';
 import * as NodeType from '../nodes/NodeType';
 
@@ -18,7 +17,6 @@ const MAX_PATH_DEPTH = 7;
 
 export default class LocalVariable extends Variable {
 	declarations: (Identifier | ExportDefaultDeclaration)[];
-	reassignments: VariableReassignmentTracker;
 	init: ExpressionEntity;
 
 	constructor(
@@ -28,7 +26,6 @@ export default class LocalVariable extends Variable {
 	) {
 		super(name);
 		this.declarations = declarator ? [declarator] : [];
-		this.reassignments = new VariableReassignmentTracker(init);
 		this.init = init;
 	}
 
@@ -43,10 +40,10 @@ export default class LocalVariable extends Variable {
 		options: ExecutionPathOptions
 	) {
 		if (
+			!this.isReassigned &&
 			this.init &&
 			path.length <= MAX_PATH_DEPTH &&
-			!options.hasNodeBeenCalledAtPathWithOptions(path, this.init, callOptions) &&
-			!this.reassignments.isPathReassigned(path)
+			!options.hasNodeBeenCalledAtPathWithOptions(path, this.init, callOptions)
 		) {
 			this.init.forEachReturnExpressionWhenCalledAtPath(
 				path,
@@ -59,9 +56,9 @@ export default class LocalVariable extends Variable {
 
 	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
 		if (
+			this.isReassigned ||
 			!this.init ||
 			path.length > MAX_PATH_DEPTH ||
-			this.reassignments.isPathReassigned(path) ||
 			options.hasNodeValueBeenRetrievedAtPath(path, this.init)
 		) {
 			return UNKNOWN_VALUE;
@@ -75,8 +72,8 @@ export default class LocalVariable extends Variable {
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return false;
 		return (
+			this.isReassigned ||
 			path.length > MAX_PATH_DEPTH ||
-			this.reassignments.isPathReassigned(path.slice(0, path.length - 1)) ||
 			(this.init &&
 				!options.hasNodeBeenAccessedAtPath(path, this.init) &&
 				this.init.hasEffectsWhenAccessedAtPath(
@@ -90,7 +87,7 @@ export default class LocalVariable extends Variable {
 		if (this.included || path.length > MAX_PATH_DEPTH) return true;
 		if (path.length === 0) return false;
 		return (
-			this.reassignments.isPathReassigned(path.slice(0, path.length - 1)) ||
+			this.isReassigned ||
 			(this.init &&
 				!options.hasNodeBeenAssignedAtPath(path, this.init) &&
 				this.init.hasEffectsWhenAssignedAtPath(
@@ -107,7 +104,7 @@ export default class LocalVariable extends Variable {
 	) {
 		if (path.length > MAX_PATH_DEPTH) return true;
 		return (
-			this.reassignments.isPathReassigned(path) ||
+			this.isReassigned ||
 			(this.init &&
 				!options.hasNodeBeenCalledAtPathWithOptions(path, this.init, callOptions) &&
 				this.init.hasEffectsWhenCalledAtPath(
@@ -138,11 +135,12 @@ export default class LocalVariable extends Variable {
 
 	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length > MAX_PATH_DEPTH) return;
-		if (path.length === 0) {
-			this.isReassigned = true;
-		}
-		if (!options.hasNodeBeenAssignedAtPath(path, this)) {
-			this.reassignments.reassignPath(path, options.addAssignedNodeAtPath(path, this));
+		if (!(this.isReassigned || options.hasNodeBeenAssignedAtPath(path, this))) {
+			if (path.length === 0) {
+				this.isReassigned = true;
+			} else if (this.init) {
+				this.init.reassignPath(path, options.addAssignedNodeAtPath(path, this));
+			}
 		}
 	}
 
@@ -152,9 +150,9 @@ export default class LocalVariable extends Variable {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		if (path.length > MAX_PATH_DEPTH || (this.included && path.length > 0)) return true;
+		if (path.length > MAX_PATH_DEPTH) return true;
 		return (
-			this.reassignments.isPathReassigned(path) ||
+			this.isReassigned ||
 			(this.init &&
 				!options.hasNodeBeenCalledAtPathWithOptions(path, this.init, callOptions) &&
 				this.init.someReturnExpressionWhenCalledAtPath(
