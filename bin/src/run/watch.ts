@@ -49,6 +49,8 @@ export default function watch(
 	let watcher: Watcher;
 	let configWatcher: Watcher;
 
+	let processConfigsErr;
+
 	function processConfigs(configs: RollupWatchOptions[]): RollupWatchOptions[] {
 		return configs.map(options => {
 			const merged = mergeOptions({
@@ -73,6 +75,13 @@ export default function watch(
 					code: 'UNKNOWN_OPTION'
 				});
 
+			if (
+				(<RollupWatchOptions>merged.inputOptions).watch &&
+				(<RollupWatchOptions>merged.inputOptions).watch.clearScreen === false
+			) {
+				processConfigsErr = stderr;
+			}
+
 			return result;
 		});
 	}
@@ -80,7 +89,7 @@ export default function watch(
 	function start(configs: RollupWatchOptions[]) {
 		screen.reset(chalk.underline(`rollup v${rollup.VERSION}`));
 
-		let screenWriter = screen.reset;
+		let screenWriter = processConfigsErr || screen.reset;
 
 		watcher = rollup.watch(configs);
 
