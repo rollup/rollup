@@ -128,9 +128,10 @@ export interface TreeshakingOptions {
 
 export type ExternalOption = string[] | IsExternalHook;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
+export type InputOption = string | string[] | { [entryAlias: string]: string };
 
 export interface InputOptions {
-	input: string | string[] | { [entryAlias: string]: string };
+	input: InputOption;
 	manualChunks?: { [chunkAlias: string]: string[] };
 	external?: ExternalOption;
 	plugins?: Plugin[];
