@@ -4,6 +4,7 @@
 *unreleased*
 * Enable for system format modules to be named ([#2028](https://github.com/rollup/rollup/pull/2028))
 * Add compact output mode ([#2151](https://github.com/rollup/rollup/pull/2151))
+* Do not use alternate screen if clearScreen is set in watch mode ([#2125](https://github.com/rollup/rollup/pull/2125))
 * Add semicolons after default exports ([#2209](https://github.com/rollup/rollup/pull/2209))
 * Display install size in readme ([#2196](https://github.com/rollup/rollup/pull/2196))
 

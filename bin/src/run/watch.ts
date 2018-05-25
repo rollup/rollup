@@ -34,19 +34,22 @@ export default function watch(
 ) {
 	const isTTY = Boolean(process.stderr.isTTY);
 
-	const screen = alternateScreen(isTTY);
-	screen.open();
-
 	const warnings = batchWarnings();
+
+	const initialConfigs = processConfigs(configs);
+
+	const clearScreen = initialConfigs.every(config => config.watch.clearScreen !== false);
+
+	const screen = alternateScreen(isTTY && clearScreen);
+	screen.open();
 
 	let watcher: Watcher;
 	let configWatcher: Watcher;
 
-	function start(configs: RollupWatchOptions[]) {
-		screen.reset(chalk.underline(`rollup v${rollup.VERSION}`));
+	let processConfigsErr;
 
-		let screenWriter = screen.reset;
-		configs = configs.map(options => {
+	function processConfigs(configs: RollupWatchOptions[]): RollupWatchOptions[] {
+		return configs.map(options => {
 			const merged = mergeOptions({
 				config: options,
 				command,
@@ -57,8 +60,9 @@ export default function watch(
 				output: merged.outputOptions
 			});
 
+			if (!result.watch) result.watch = {};
+
 			if (merged.deprecations.length) {
-				if (!result.watch) result.watch = {};
 				(<{ _deprecations: any }>result.watch)._deprecations = merged.deprecations;
 			}
 
@@ -72,11 +76,17 @@ export default function watch(
 				(<RollupWatchOptions>merged.inputOptions).watch &&
 				(<RollupWatchOptions>merged.inputOptions).watch.clearScreen === false
 			) {
-				screenWriter = stderr;
+				processConfigsErr = stderr;
 			}
 
 			return result;
 		});
+	}
+
+	function start(configs: RollupWatchOptions[]) {
+		screen.reset(chalk.underline(`rollup v${rollup.VERSION}`));
+
+		let screenWriter = processConfigsErr || screen.reset;
 
 		watcher = rollup.watch(configs);
 
@@ -161,7 +171,7 @@ export default function watch(
 		}
 	}
 
-	start(configs);
+	start(initialConfigs);
 
 	if (configFile && !configFile.startsWith('node:')) {
 		let restarting = false;
@@ -189,7 +199,7 @@ export default function watch(
 						restart();
 					} else {
 						watcher.close();
-						start(configs);
+						start(initialConfigs);
 					}
 				})
 				.catch((err: Error) => {
