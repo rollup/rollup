@@ -1,6 +1,6 @@
 import Scope from '../scopes/Scope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
-import BlockStatement, { isBlockStatement } from './BlockStatement';
+import BlockStatement from './BlockStatement';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
@@ -16,13 +16,6 @@ export default class ArrowFunctionExpression extends NodeBase {
 
 	scope: ReturnValueScope;
 	preventChildBlockScope: true;
-
-	bind() {
-		super.bind();
-		isBlockStatement(this.body)
-			? this.body.bindImplicitReturnExpressionToScope()
-			: this.scope.addReturnExpression(this.body);
-	}
 
 	createScope(parentScope: Scope) {
 		this.scope = new ReturnValueScope({ parent: parentScope });
@@ -68,6 +61,11 @@ export default class ArrowFunctionExpression extends NodeBase {
 		this.included = false;
 		for (const param of this.params) {
 			param.declare('parameter', null);
+		}
+		if (this.body instanceof BlockStatement) {
+			this.body.addImplicitReturnExpressionToScope();
+		} else {
+			this.scope.addReturnExpression(this.body);
 		}
 	}
 

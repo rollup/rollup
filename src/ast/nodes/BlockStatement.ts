@@ -15,7 +15,7 @@ export default class BlockStatement extends StatementBase {
 	type: NodeType.tBlockStatement;
 	body: StatementNode[];
 
-	bindImplicitReturnExpressionToScope() {
+	addImplicitReturnExpressionToScope() {
 		const lastStatement = this.body[this.body.length - 1];
 		if (!lastStatement || lastStatement.type !== NodeType.ReturnStatement) {
 			this.scope.addReturnExpression(UNKNOWN_EXPRESSION);

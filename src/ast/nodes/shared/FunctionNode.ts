@@ -20,11 +20,6 @@ export default class FunctionNode extends NodeBase {
 
 	private isPrototypeReassigned: boolean;
 
-	bind() {
-		super.bind();
-		this.body.bindImplicitReturnExpressionToScope();
-	}
-
 	createScope(parentScope: FunctionScope) {
 		this.scope = new FunctionScope({ parent: parentScope });
 	}
@@ -86,6 +81,7 @@ export default class FunctionNode extends NodeBase {
 		for (const param of this.params) {
 			param.declare('parameter', null);
 		}
+		this.body.addImplicitReturnExpressionToScope();
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
