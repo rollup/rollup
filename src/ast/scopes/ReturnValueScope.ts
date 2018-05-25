@@ -1,7 +1,11 @@
 import ParameterScope from './ParameterScope';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
-import { ExpressionEntity, ForEachReturnExpressionCallback } from '../nodes/shared/Expression';
+import {
+	ExpressionEntity,
+	ForEachReturnExpressionCallback,
+	SomeReturnExpressionCallback
+} from '../nodes/shared/Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_PATH } from '../values';
 
 export default class ReturnValueScope extends ParameterScope {
@@ -25,22 +29,21 @@ export default class ReturnValueScope extends ParameterScope {
 		}
 	}
 
-	// TODO Lukas callback format?
 	forEachReturnExpressionWhenCalled(
 		_callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
 		if (!this.bound) this.bind();
-		callback(options)(this.returnExpression);
+		callback(options, this.returnExpression);
 	}
 
 	someReturnExpressionWhenCalled(
 		_callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => (node: ExpressionEntity) => boolean,
+		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
 		if (!this.bound) this.bind();
-		return predicateFunction(options)(this.returnExpression);
+		return predicateFunction(options, this.returnExpression);
 	}
 }

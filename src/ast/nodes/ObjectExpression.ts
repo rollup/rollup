@@ -211,7 +211,7 @@ export default class ObjectExpression extends NodeBase {
 			return true;
 
 		if (path.length === 1 && typeof key === 'string' && objectMembers[key]) {
-			return predicateFunction(options)(objectMembers[key].returns);
+			return predicateFunction(options, objectMembers[key].returns);
 		}
 
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(

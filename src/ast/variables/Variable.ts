@@ -96,7 +96,7 @@ export default class Variable implements ExpressionEntity {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	) {
-		return predicateFunction(options)(UNKNOWN_EXPRESSION);
+		return predicateFunction(options, UNKNOWN_EXPRESSION);
 	}
 
 	toString() {

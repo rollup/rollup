@@ -40,7 +40,7 @@ export default class Property extends NodeBase {
 			this.value.forEachReturnExpressionWhenCalledAtPath(
 				[],
 				this.accessorCallOptions,
-				innerOptions => node =>
+				(innerOptions, node) =>
 					node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, innerOptions),
 				options
 			);
@@ -72,7 +72,7 @@ export default class Property extends NodeBase {
 					this.value.someReturnExpressionWhenCalledAtPath(
 						[],
 						this.accessorCallOptions,
-						innerOptions => node =>
+						(innerOptions, node) =>
 							node.hasEffectsWhenAccessedAtPath(
 								path,
 								innerOptions.addAccessedReturnExpressionAtPath(path, this)
@@ -91,7 +91,7 @@ export default class Property extends NodeBase {
 				this.value.someReturnExpressionWhenCalledAtPath(
 					[],
 					this.accessorCallOptions,
-					innerOptions => node =>
+					(innerOptions, node) =>
 						node.hasEffectsWhenAssignedAtPath(
 							path,
 							innerOptions.addAssignedReturnExpressionAtPath(path, this)
@@ -129,7 +129,7 @@ export default class Property extends NodeBase {
 					this.value.someReturnExpressionWhenCalledAtPath(
 						[],
 						this.accessorCallOptions,
-						innerOptions => node =>
+						(innerOptions, node) =>
 							node.hasEffectsWhenCalledAtPath(
 								path,
 								callOptions,
@@ -156,7 +156,7 @@ export default class Property extends NodeBase {
 				this.value.forEachReturnExpressionWhenCalledAtPath(
 					[],
 					this.accessorCallOptions,
-					innerOptions => node =>
+					(innerOptions, node) =>
 						node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
 					options
 				);
@@ -188,7 +188,7 @@ export default class Property extends NodeBase {
 				this.value.someReturnExpressionWhenCalledAtPath(
 					[],
 					this.accessorCallOptions,
-					innerOptions => node =>
+					(innerOptions, node) =>
 						node.someReturnExpressionWhenCalledAtPath(
 							path,
 							callOptions,

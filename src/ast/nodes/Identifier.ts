@@ -173,7 +173,7 @@ export default class Identifier extends NodeBase {
 				options
 			);
 		}
-		return predicateFunction(options)(UNKNOWN_EXPRESSION);
+		return predicateFunction(options, UNKNOWN_EXPRESSION);
 	}
 
 	private disallowImportReassignment() {

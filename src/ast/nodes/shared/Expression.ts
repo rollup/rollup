@@ -3,11 +3,14 @@ import CallOptions from '../../CallOptions';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import { ObjectPath, LiteralValueOrUnknown } from '../../values';
 
-export type PredicateFunction = (node: ExpressionEntity) => boolean;
-export type SomeReturnExpressionCallback = (options: ExecutionPathOptions) => PredicateFunction;
+export type SomeReturnExpressionCallback = (
+	options: ExecutionPathOptions,
+	node: ExpressionEntity
+) => boolean;
 export type ForEachReturnExpressionCallback = (
-	options: ExecutionPathOptions
-) => (node: ExpressionEntity) => void;
+	options: ExecutionPathOptions,
+	node: ExpressionEntity
+) => void;
 
 export interface ExpressionEntity extends WritableEntity {
 	/**
