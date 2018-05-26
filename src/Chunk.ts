@@ -18,7 +18,6 @@ import * as NodeType from './ast/nodes/NodeType';
 import { RenderOptions } from './utils/renderHelpers';
 import { Addons } from './utils/addons';
 import sha256 from 'hash.js/lib/hash/sha/256';
-import { webExtensions } from './utils/relativeId';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import { GlobalsOption, OutputOptions, RawSourceMap } from './rollup/types';
 import { toBase64 } from './utils/base64';
@@ -959,8 +958,7 @@ export default class Chunk {
 				existingNames[outName] = true;
 			} else {
 				let ext = extname(outName);
-				if (ext in webExtensions) outName = outName.substr(0, outName.length - ext.length);
-				else ext = '';
+				outName = outName.substr(0, outName.length - ext.length);
 				let uniqueName,
 					uniqueIndex = 1;
 				while (existingNames[(uniqueName = outName + ++uniqueIndex + ext)]);
