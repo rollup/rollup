@@ -11,11 +11,11 @@ import loadConfigFile from './loadConfigFile';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import { printTimings } from './timings';
-import { RollupError, RollupWatchOptions, Bundle, BundleSet } from '../../../src/rollup/types';
+import { RollupError, RollupWatchOptions, Bundle, BundleSet, InputOption } from '../../../src/rollup/types';
 interface WatchEvent {
 	code?: string;
 	error?: RollupError | Error;
-	input?: string | string[];
+	input?: InputOption;
 	output?: string[];
 	duration?: number;
 	result?: Bundle | BundleSet;
@@ -108,14 +108,17 @@ export default function watch(
 					break;
 
 				case 'BUNDLE_START':
-					if (!silent)
+					if (!silent) {
+						let input = event.input;
+						if ( typeof input !== 'string' ) {
+							input = Array.isArray(input) ? input.join(', ') : Object.values(input).join(', ')
+						}
 						stderr(
 							chalk.cyan(
-								`bundles ${chalk.bold(
-									typeof event.input === 'string' ? event.input : event.input.join(', ')
-								)} → ${chalk.bold(event.output.map(relativeId).join(', '))}...`
+								`bundles ${chalk.bold(input)} → ${chalk.bold(event.output.map(relativeId).join(', '))}...`
 							)
 						);
+					}
 					break;
 
 				case 'BUNDLE_END':
