@@ -5,7 +5,7 @@ import rollup from '../rollup/index';
 import {
 	InputOptions,
 	OutputOptions,
-	RollupFileBuild,
+	RollupSingleFileBuild,
 	RollupBuild,
 	OutputChunk,
 	ModuleJSON,
@@ -209,7 +209,7 @@ export class Task {
 					})
 				).then(() => result);
 			})
-			.then((result: RollupFileBuild | RollupBuild) => {
+			.then((result: RollupSingleFileBuild | RollupBuild) => {
 				this.watcher.emit('event', {
 					code: 'BUNDLE_END',
 					input: this.inputOptions.input,

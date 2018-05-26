@@ -19,7 +19,7 @@ import {
 	OutputChunk,
 	OutputBundle,
 	OutputFile,
-	RollupFileBuild,
+	RollupSingleFileBuild,
 	RollupBuild,
 	ChunkDefinition
 } from './types';
@@ -103,7 +103,7 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 
 export default function rollup(
 	rawInputOptions: GenericConfigObject
-): Promise<RollupFileBuild | RollupBuild> {
+): Promise<RollupSingleFileBuild | RollupBuild> {
 	try {
 		const inputOptions = getInputOptions(rawInputOptions);
 		initialiseTimers(inputOptions);
@@ -366,7 +366,7 @@ export default function rollup(
 				}
 
 				const cache = graph.getCache();
-				const result: RollupFileBuild | RollupBuild = {
+				const result: RollupSingleFileBuild | RollupBuild = {
 					cache,
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
 						const promise = generate(rawOutputOptions, false).then(

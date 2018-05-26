@@ -9,7 +9,7 @@ import {
 	InputOptions,
 	OutputChunk,
 	OutputOptions,
-	RollupFileBuild,
+	RollupSingleFileBuild,
 	RollupBuild,
 	OutputBundle
 } from '../../../src/rollup/types';
@@ -47,7 +47,7 @@ export default function build(
 
 	return rollup
 		.rollup(inputOptions)
-		.then((bundle: RollupFileBuild | RollupBuild) => {
+		.then((bundle: RollupSingleFileBuild | RollupBuild) => {
 			if (useStdout) {
 				const output = outputOptions[0];
 				if (output.sourcemap && output.sourcemap !== 'inline') {
@@ -57,7 +57,7 @@ export default function build(
 					});
 				}
 
-				return (<RollupFileBuild>bundle).generate(output).then(({ code, map }) => {
+				return (<RollupSingleFileBuild>bundle).generate(output).then(({ code, map }) => {
 					if (!code) return;
 					if (output.sourcemap === 'inline') {
 						code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
@@ -72,7 +72,7 @@ export default function build(
 				output => bundle.write(output)
 			).then(() => bundle);
 		})
-		.then((bundle?: RollupFileBuild | RollupBuild) => {
+		.then((bundle?: RollupSingleFileBuild | RollupBuild) => {
 			warnings.flush();
 			if (!silent)
 				stderr(
