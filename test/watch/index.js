@@ -137,6 +137,48 @@ describe('rollup.watch', () => {
 				});
 		});
 
+		it('watches a file in code-splitting mode with an input object', () => {
+			return sander
+				.copydir('test/watch/samples/code-splitting')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: {
+							_main_1: 'test/_tmp/input/main1.js',
+							'subfolder/_main_2':'test/_tmp/input/main2.js',
+						},
+						output: {
+							dir: 'test/_tmp/output',
+							format: 'cjs'
+						},
+						watch: { chokidar },
+						experimentalCodeSplitting: true
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/_main_1.js'), 21);
+							assert.equal(run('../_tmp/output/subfolder/_main_2.js'), 42);
+							sander.writeFileSync('test/_tmp/input/shared.js', 'export const value = 22;');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/_main_1.js'), 22);
+							assert.equal(run('../_tmp/output/subfolder/_main_2.js'), 44);
+							watcher.close();
+						}
+					]);
+				});
+		});
+
+
 		it('recovers from an error', () => {
 			return sander
 				.copydir('test/watch/samples/basic')
