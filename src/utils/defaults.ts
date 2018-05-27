@@ -29,9 +29,10 @@ function findFile(file: string, preserveSymlinks: boolean): string | void {
 function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
 	let found = findFile(file, preserveSymlinks);
 	if (found) return found;
-	found = findFile(file + '.js', preserveSymlinks);
+	found = findFile(file + '.mjs', preserveSymlinks);
 	if (found) return found;
-	return findFile(file + '.mjs', preserveSymlinks);
+	found = findFile(file + '.js', preserveSymlinks);
+	return found;
 }
 
 export function resolveId(options: InputOptions) {
