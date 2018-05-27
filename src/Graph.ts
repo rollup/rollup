@@ -8,9 +8,9 @@ import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
 import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
 import transform from './utils/transform';
-import relativeId, { nameWithoutExtension } from './utils/relativeId';
+import relativeId, { getAliasName } from './utils/relativeId';
 import error from './utils/error';
-import { isRelative, resolve, basename, relative } from './utils/path';
+import { isRelative, resolve, relative } from './utils/path';
 import {
 	InputOptions,
 	IsExternalHook,
@@ -309,10 +309,12 @@ export default class Graph {
 		entryModules: Record<string, string> | string[],
 		manualChunks: Record<string, string[]> | void
 	) {
+		let removeAliasExtensions = false;
 		let entryModuleIds: string[];
 		let entryModuleAliases: string[];
 		if (Array.isArray(entryModules)) {
-			entryModuleAliases = entryModules.map(id => nameWithoutExtension(basename(id)));
+			removeAliasExtensions = true;
+			entryModuleAliases = entryModules.concat([]);
 			entryModuleIds = entryModules;
 		} else {
 			entryModuleAliases = Object.keys(entryModules);
@@ -331,6 +333,11 @@ export default class Graph {
 
 		return Promise.all(entryAndManualChunkIds.map(id => this.loadModule(id))).then(
 			entryAndChunkModules => {
+				if (removeAliasExtensions) {
+					for (let i = 0; i < entryModuleAliases.length; i++)
+						entryModuleAliases[i] = getAliasName(entryAndChunkModules[i].id, entryModuleAliases[i]);
+				}
+
 				const entryModules = entryAndChunkModules.slice(0, entryModuleIds.length);
 
 				let manualChunkModules: { [chunkName: string]: Module[] };
@@ -731,7 +738,10 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 								};
 								return;
 							}
-							const alias = nameWithoutExtension(basename(replacement));
+							const alias = getAliasName(
+								replacement,
+								typeof dynamicImportExpression === 'string' ? dynamicImportExpression : undefined
+							);
 							if (typeof dynamicImportExpression !== 'string') {
 								module.dynamicImportResolutions[index] = { alias, resolution: replacement };
 							} else if (this.isExternal(replacement, module.id, true)) {

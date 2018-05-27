@@ -1,12 +1,10 @@
-import { isAbsolute, relative } from './path';
+import { isAbsolute, relative, extname, basename } from './path';
 
-export const jsExts = ['.js', '.mjs'];
-
-export function nameWithoutExtension(name: string) {
-	for (let ext of jsExts) {
-		if (name.endsWith(ext)) return name.substr(0, name.length - ext.length);
-	}
-	return name;
+export function getAliasName(resolved: string, unresolved?: string) {
+	let alias = basename(unresolved || resolved);
+	const ext = extname(resolved);
+	if (alias.endsWith(ext)) alias = alias.substr(0, alias.length - ext.length);
+	return alias;
 }
 
 export default function relativeId(id: string) {

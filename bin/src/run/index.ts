@@ -8,8 +8,7 @@ import sequence from '../utils/sequence';
 import build from './build';
 import watch from './watch';
 import { InputOptions } from '../../../src/rollup/types';
-import { basename } from '../../../src/utils/path';
-import { nameWithoutExtension } from '../../../src/utils/relativeId';
+import { getAliasName } from '../../../src/utils/relativeId';
 
 export default function runRollup(command: any) {
 	if (command._.length >= 1) {
@@ -37,9 +36,7 @@ export default function runRollup(command: any) {
 				const equalsIndex = input.indexOf('=');
 				const value = input.substr(equalsIndex + 1);
 				let key = input.substr(0, equalsIndex);
-				if (!key) {
-					key = nameWithoutExtension(basename(input));
-				}
+				if (!key) key = getAliasName(input);
 				command.input[key] = value;
 			});
 		}

@@ -2,6 +2,7 @@
 
 ## 0.60.0
 *unreleased*
+* Detect more known extensions and load .mjs without extension ([#2211](https://github.com/rollup/rollup/pull/2211))
 * Enable naming SystemJS modules ([#2028](https://github.com/rollup/rollup/pull/2028))
 * Add compact output mode ([#2151](https://github.com/rollup/rollup/pull/2151))
 * Do not use alternate screen if clearScreen is set in watch mode ([#2125](https://github.com/rollup/rollup/pull/2125))

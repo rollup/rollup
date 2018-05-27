@@ -15,7 +15,7 @@ import ImportSpecifier from './ast/nodes/ImportSpecifier';
 import Graph from './Graph';
 import Variable from './ast/variables/Variable';
 import Program from './ast/nodes/Program';
-import { GenericEsTreeNode, Node, NodeBase, StatementNode } from './ast/nodes/shared/Node';
+import { GenericEsTreeNode, Node, NodeBase } from './ast/nodes/shared/Node';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import Identifier from './ast/nodes/Identifier';
@@ -35,8 +35,6 @@ import { isLiteral } from './ast/nodes/Literal';
 import Chunk from './Chunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { getOriginalLocation } from './utils/getOriginalLocation';
-import VariableDeclaration from './ast/nodes/VariableDeclaration';
-import ExpressionStatement from './ast/nodes/ExpressionStatement';
 
 export interface CommentDescription {
 	block: boolean;
