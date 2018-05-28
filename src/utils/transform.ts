@@ -57,12 +57,7 @@ function createPluginTransformContext(
 	id: string,
 	source: string
 ): PluginContext {
-	return {
-		isExternal: graph.pluginContext.isExternal,
-		resolveId: graph.pluginContext.resolveId,
-		parse: graph.pluginContext.parse,
-		emitAsset: graph.pluginContext.emitAsset,
-		setAssetSource: graph.pluginContext.setAssetSource,
+	return Object.assign({}, graph.pluginContext, {
 		warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
 			if (typeof warning === 'string') warning = { message: warning };
 			warning = augmentCodeLocation({
@@ -71,7 +66,7 @@ function createPluginTransformContext(
 				code: 'PLUGIN_WARNING',
 				id,
 				source,
-				pluginName: plugin.name
+				pluginName: plugin.name || '(anonymous plugin)'
 			});
 			graph.warn(warning);
 		},
@@ -83,11 +78,11 @@ function createPluginTransformContext(
 				code: 'PLUGIN_ERROR',
 				id,
 				source,
-				pluginName: plugin.name
+				pluginName: plugin.name || '(anonymous plugin)'
 			});
 			error(err);
 		}
-	};
+	});
 }
 
 export default function transform(

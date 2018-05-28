@@ -52,6 +52,117 @@ describe('hooks', () => {
 			});
 	});
 
+	it('supports warnings in buildStart and buildEnd hooks', () => {
+		let callCnt = 0;
+		return rollup
+			.rollup({
+				input: 'input',
+				onwarn (warning) {
+					if (callCnt === 0) {
+						assert.equal(warning.message, 'build start');
+						callCnt++;
+					} else if (callCnt === 1) {
+						assert.equal(warning.message, 'build end');
+						callCnt++;
+					}
+				},
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						buildStart () {
+							this.warn('build start');
+						},
+						buildEnd () {
+							this.warn('build end');
+						}
+					}
+				]
+			})
+			.then(() => {
+				assert.equal(callCnt, 2);
+			});
+	});
+
+	it('supports isExternal on plugin context', () => {
+		let callCnt = 0;
+		return rollup
+			.rollup({
+				input: 'input',
+				external: ['test'],
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						buildStart () {
+							assert.equal(this.isExternal('test'), true);
+							assert.equal(this.isExternal('another'), false);
+						}
+					}
+				]
+			});
+	});
+
+	it('supports resolveId on plugin context', () => {
+		let callCnt = 0;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({
+						input: `import 'test'`,
+						dep1: `import 'next'`,
+						dep2: `alert('hello')`
+					}),
+					{
+						resolveId (id, parent) {
+							if (id === 'test')
+								return 'dep1';
+							if (id === 'next')
+								return this.resolveId('final');
+							if (id === 'final')
+								return 'dep2';
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
+			})
+			.then(output => {
+				assert.equal(output.code, `alert('hello');\n`);
+			});
+	});
+
+	it('supports warnings in buildStart and buildEnd hooks', () => {
+		let callCnt = 0;
+		return rollup
+			.rollup({
+				input: 'input',
+				onwarn (warning) {
+					if (callCnt === 0) {
+						assert.equal(warning.message, 'build start');
+						callCnt++;
+					} else if (callCnt === 1) {
+						assert.equal(warning.message, 'build end');
+						callCnt++;
+					}
+				},
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						buildStart () {
+							this.warn('build start');
+						},
+						buildEnd () {
+							this.warn('build end');
+						}
+					}
+				]
+			})
+			.then(() => {
+				assert.equal(callCnt, 2);
+			});
+	});
+
 	it('passes bundle & output object to ongenerate & onwrite hooks', () => {
 		const file = path.join(__dirname, 'tmp/bundle.js');
 
@@ -308,6 +419,7 @@ module.exports = input;
 	});
 
 	it('throws when emitting assets too late', () => {
+		let calledHook = false;
 		return rollup
 			.rollup({
 				input: 'input',
@@ -316,6 +428,7 @@ module.exports = input;
 					loader({ input: `alert('hello')` }),
 					{
 						transformBundle (code, id) {
+							calledHook = true;
 							try {
 								const assetId = this.emitAsset('test.ext', 'hello world');
 							}
@@ -331,8 +444,44 @@ module.exports = input;
 					format: 'es',
 					assetFileNames: '[name][ext]'
 				});
+			})
+			.then(() => {
+				assert.equal(calledHook, true);
 			});
 	});
+
+	it('supports transformChunk in place of transformBundle', () => {
+		let calledHook = false;
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						transformChunk (code, id) {
+							calledHook = true;
+							try {
+								const assetId = this.emitAsset('test.ext', 'hello world');
+							}
+							catch (e) {
+								assert.equal(e.code, 'ASSETS_ALREADY_FINALISED');
+							}
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({
+					format: 'es',
+					assetFileNames: '[name][ext]'
+				});
+			})
+			.then(() => {
+				assert.equal(calledHook, true);
+			});
+	});
+
 
 	it('passes bundle object to generateBundle hook', () => {
 		return rollup
@@ -401,6 +550,30 @@ module.exports = input;
 				assert.equal(outputBundle2['assets/lateMainAsset-6dc2262b'], `references assets/lateDepAsset-c107f5fc`);
 			});
 	});
+
+	it('supports errors thrown in the generateBundle hook', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				experimentalDynamicImport: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						generateBundle (options, outputBundle, isWrite) {
+							this.error('test error');
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
+			})
+			.catch(err => {
+				assert.equal(err.message, 'test error');
+			});
+	});
+
 
 	it('supports processBundle hook including reporting tree-shaken exports', () => {
 		return rollup

@@ -12,7 +12,7 @@ export default function transformChunk(
 	options: OutputOptions
 ) {
 	return graph.plugins.reduce((promise, plugin) => {
-		if (!plugin.transformBundle) return promise;
+		if (!plugin.transformBundle && !plugin.transformChunk) return promise;
 
 		return promise.then(code => {
 			return Promise.resolve()

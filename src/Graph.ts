@@ -117,14 +117,14 @@ export default class Graph {
 
 		this.pluginContext = Object.assign(
 			{
-				isExternal: this.isExternal,
+				isExternal: undefined,
 				resolveId: undefined,
 				parse: this.contextParse,
-				warn(warning: RollupWarning | string) {
+				warn: (warning: RollupWarning | string) => {
 					if (typeof warning === 'string') warning = { message: warning };
 					this.warn(warning);
 				},
-				error(err: RollupError | string) {
+				error: (err: RollupError | string) => {
 					if (typeof err === 'string') throw new Error(err);
 					error(err);
 				}
@@ -204,6 +204,7 @@ export default class Graph {
 			const ids = ensureArray(options.external);
 			this.isExternal = id => ids.indexOf(id) !== -1;
 		}
+		this.pluginContext.isExternal = this.isExternal;
 
 		this.onwarn = options.onwarn || makeOnwarn();
 
