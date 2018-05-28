@@ -70,6 +70,7 @@ export interface PluginContext {
 	parse: (input: string, options: any) => ESTree.Program;
 	emitAsset: (name: string, source?: string | Buffer) => string;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
+	getAssetFileName: (assetId: string) => string;
 	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
 	error(err: RollupError, pos?: { line: number; column: number }): void;
 }

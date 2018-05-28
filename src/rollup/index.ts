@@ -25,6 +25,7 @@ import {
 } from './types';
 import getExportMode from '../utils/getExportMode';
 import Chunk from '../Chunk';
+import { finaliseAsset, createAssetPluginHooks } from '../utils/assetHooks';
 
 export const VERSION = '<@VERSION@>';
 
@@ -257,9 +258,8 @@ export default function rollup(
 					timeStart('GENERATE', 1);
 
 					// populate asset files into output
-					let outputBundle: OutputBundle = graph.finaliseAssets(
-						outputOptions.assetFileNames || 'assets/[name]-[hash][ext]'
-					);
+					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][ext]';
+					const outputBundle: OutputBundle = graph.finaliseAssets(assetFileNames);
 
 					const inputBase = commondir(
 						chunks.filter(chunk => chunk.entryModule).map(chunk => chunk.entryModule.id)
@@ -348,16 +348,31 @@ export default function rollup(
 							// run generateBundle hook
 							const generateBundlePlugins = graph.plugins.filter(plugin => plugin.generateBundle);
 							if (generateBundlePlugins.length === 0) return;
+
+							// assets emitted during generateBundle are unique to that specific generate call
+							const assets = new Map(graph.assetsById);
+							const generateBundleContext = Object.assign(
+								{},
+								graph.pluginContext,
+								createAssetPluginHooks(assets, outputBundle, assetFileNames)
+							);
+
 							return Promise.all(
 								generateBundlePlugins.map(plugin =>
 									plugin.generateBundle.call(
-										graph.pluginContext,
+										generateBundleContext,
 										outputOptions,
 										outputBundle,
 										isWrite
 									)
 								)
-							);
+							).then(() => {
+								// throw errors for assets not finalised with a source
+								assets.forEach(asset => {
+									if (asset.fileName === undefined)
+										finaliseAsset(asset, outputBundle, assetFileNames);
+								});
+							});
 						})
 						.then(() => {
 							timeEnd('GENERATE', 1);

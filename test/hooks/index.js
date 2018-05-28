@@ -359,6 +359,49 @@ module.exports = input;
 			});
 	});
 
+	it('supports assets uniquely defined in the generateBundle hook', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				experimentalDynamicImport: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						generateBundle (options, outputBundle, isWrite) {
+							if (options.format === 'es') {
+								const depAssetId = this.emitAsset('lateDepAsset', 'custom source');
+								const source = `references ${this.getAssetFileName(depAssetId)}`;
+								this.emitAsset('lateMainAsset', source);
+							} else {
+								const depAssetId = this.emitAsset('lateDepAsset', 'different source');
+								const source = `references ${this.getAssetFileName(depAssetId)}`;
+								this.emitAsset('lateMainAsset', source);
+							}
+						}
+					}
+				]
+			})
+			.then(bundle =>
+				bundle.generate({ format: 'es' })
+				.then(outputBundle1 =>
+					bundle.generate({ format: 'cjs' })
+					.then(outputBundle2 => [outputBundle1, outputBundle2])
+				)
+			)
+			.then(([outputBundle1, outputBundle2]) => {
+				assert.equal(outputBundle1['input.js'].code, `alert('hello');\n`);
+				assert.equal(outputBundle1['assets/lateDepAsset-671f747d'], `custom source`);
+				assert.equal(outputBundle1['assets/lateMainAsset-863ea4b5'], `references assets/lateDepAsset-671f747d`);
+
+				assert.equal(outputBundle2['input.js'].code, `'use strict';\n\nalert('hello');\n`);
+				assert.equal(outputBundle2['assets/lateDepAsset-671f747d'], undefined);
+				assert.equal(outputBundle2['assets/lateMainAsset-863ea4b5'], undefined);
+				assert.equal(outputBundle2['assets/lateDepAsset-c107f5fc'], `different source`);
+				assert.equal(outputBundle2['assets/lateMainAsset-6dc2262b'], `references assets/lateDepAsset-c107f5fc`);
+			});
+	});
+
 	it('supports processBundle hook including reporting tree-shaken exports', () => {
 		return rollup
 			.rollup({

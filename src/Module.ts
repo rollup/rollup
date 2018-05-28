@@ -256,7 +256,7 @@ export default class Module {
 			code, // Only needed for debugging
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
-			getAssetFileName: this.graph.getAssetFileName.bind(this.graph),
+			getAssetFileName: this.graph.pluginContext.getAssetFileName,
 			getExports: this.getExports.bind(this),
 			getReexports: this.getReexports.bind(this),
 			getModuleExecIndex: () => this.execIndex,

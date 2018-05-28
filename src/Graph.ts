@@ -25,25 +25,15 @@ import {
 	TreeshakingOptions,
 	WarningHandler,
 	ModuleJSON,
-	RollupError
+	RollupError,
+	OutputBundle
 } from './rollup/types';
 import Chunk from './Chunk';
 import GlobalScope from './ast/scopes/GlobalScope';
-import {
-	randomUint8Array,
-	Uint8ArrayToHexString,
-	Uint8ArrayXor,
-	randomHexString
-} from './utils/entryHashing';
+import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
 import firstSync from './utils/first-sync';
 import { Program } from 'estree';
-import { getAssetFileName } from './utils/getAssetFileName';
-
-export interface Asset {
-	name: string;
-	source: string | Buffer;
-	fileName: string;
-}
+import { createAssetPluginHooks, Asset, finaliseAsset } from './utils/assetHooks';
 
 export default class Graph {
 	curChunkIndex = 0;
@@ -71,7 +61,6 @@ export default class Graph {
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
 
-	finalisedAssets = false;
 	contextParse: (code: string, acornOptions?: acorn.Options) => Program;
 
 	// deprecated
@@ -126,50 +115,22 @@ export default class Graph {
 			);
 		};
 
-		this.pluginContext = {
-			isExternal: this.isExternal,
-			emitAsset: (name: string, source?: string | Buffer) => {
-				if (this.finalisedAssets)
-					error({
-						code: 'ASSETS_ALREADY_FINALISED',
-						message: 'Plugin error - Unable to emit assets at this stage of the build pipeline.'
-					});
-				const assetId = randomHexString(8);
-				this.assetsById.set(assetId, {
-					name,
-					source,
-					fileName: undefined
-				});
-				return assetId;
+		this.pluginContext = Object.assign(
+			{
+				isExternal: this.isExternal,
+				resolveId: undefined,
+				parse: this.contextParse,
+				warn(warning: RollupWarning | string) {
+					if (typeof warning === 'string') warning = { message: warning };
+					this.warn(warning);
+				},
+				error(err: RollupError | string) {
+					if (typeof err === 'string') throw new Error(err);
+					error(err);
+				}
 			},
-			setAssetSource: (assetId: string, source: string | Buffer) => {
-				if (this.finalisedAssets)
-					error({
-						code: 'ASSETS_ALREADY_FINALISED',
-						message:
-							'Plugin error - Unable to set asset sources at this stage of the build pipeline.'
-					});
-				const asset = this.assetsById.get(assetId);
-				if (asset.source)
-					error({
-						code: 'ASSET_SOURCE_ALREADY_SET',
-						message: `Plugin error - Unable to set asset source for ${
-							asset.name
-						}, source already set.`
-					});
-				asset.source = source;
-			},
-			resolveId: undefined,
-			parse: this.contextParse,
-			warn(warning: RollupWarning | string) {
-				if (typeof warning === 'string') warning = { message: warning };
-				this.warn(warning);
-			},
-			error(err: RollupError | string) {
-				if (typeof err === 'string') throw new Error(err);
-				error(err);
-			}
-		};
+			createAssetPluginHooks(this.assetsById)
+		);
 
 		this.resolveId = first(
 			[
@@ -283,18 +244,9 @@ export default class Graph {
 	}
 
 	finaliseAssets(assetFileNames: string) {
-		this.finalisedAssets = true;
-		const assets: Record<string, string | Buffer> = Object.create(null);
-		this.assetsById.forEach(asset => {
-			const fileName = getAssetFileName(asset.name, asset.source, assets, assetFileNames);
-			asset.fileName = fileName;
-			assets[fileName] = asset.source;
-		});
-		return assets;
-	}
-
-	getAssetFileName(assetId: string) {
-		return this.assetsById.get(assetId).fileName;
+		const outputBundle: OutputBundle = Object.create(null);
+		this.assetsById.forEach(asset => finaliseAsset(asset, outputBundle, assetFileNames));
+		return outputBundle;
 	}
 
 	private loadModule(entryName: string) {
