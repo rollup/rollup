@@ -263,7 +263,7 @@ export class NodeBase implements ExpressionNode {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		return predicateFunction(options)(UNKNOWN_EXPRESSION);
+		return predicateFunction(options, UNKNOWN_EXPRESSION);
 	}
 
 	toString() {

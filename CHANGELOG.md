@@ -10,6 +10,10 @@
 * Add semicolons after default exports ([#2209](https://github.com/rollup/rollup/pull/2209))
 * Display install size in readme ([#2196](https://github.com/rollup/rollup/pull/2196))
 
+## 0.59.4
+*2018-05-28*
+* Fix performance regression when many return statements are used ([#2218](https://github.com/rollup/rollup/pull/2218))
+
 ## 0.59.3
 *2018-05-24*
 * Fix reassignment tracking for constructor parameters ([#2214](https://github.com/rollup/rollup/pull/2214))

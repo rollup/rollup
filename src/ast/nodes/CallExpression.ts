@@ -55,7 +55,7 @@ export default class CallExpression extends NodeBase {
 		this.callee.forEachReturnExpressionWhenCalledAtPath(
 			[],
 			this.callOptions,
-			innerOptions => node =>
+			(innerOptions, node) =>
 				node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, innerOptions),
 			options
 		);
@@ -79,7 +79,7 @@ export default class CallExpression extends NodeBase {
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
 				this.callOptions,
-				innerOptions => node =>
+				(innerOptions, node) =>
 					node.hasEffectsWhenAccessedAtPath(
 						path,
 						innerOptions.addAccessedReturnExpressionAtPath(path, this)
@@ -95,7 +95,7 @@ export default class CallExpression extends NodeBase {
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
 				this.callOptions,
-				innerOptions => node =>
+				(innerOptions, node) =>
 					node.hasEffectsWhenAssignedAtPath(
 						path,
 						innerOptions.addAssignedReturnExpressionAtPath(path, this)
@@ -115,7 +115,7 @@ export default class CallExpression extends NodeBase {
 			this.callee.someReturnExpressionWhenCalledAtPath(
 				[],
 				this.callOptions,
-				innerOptions => node =>
+				(innerOptions, node) =>
 					node.hasEffectsWhenCalledAtPath(
 						path,
 						callOptions,
@@ -140,7 +140,7 @@ export default class CallExpression extends NodeBase {
 			this.callee.forEachReturnExpressionWhenCalledAtPath(
 				[],
 				this.callOptions,
-				innerOptions => node =>
+				(innerOptions, node) =>
 					node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
 				options
 			);
@@ -155,7 +155,7 @@ export default class CallExpression extends NodeBase {
 		return this.callee.someReturnExpressionWhenCalledAtPath(
 			[],
 			this.callOptions,
-			innerOptions => node =>
+			(innerOptions, node) =>
 				node.someReturnExpressionWhenCalledAtPath(
 					path,
 					callOptions,

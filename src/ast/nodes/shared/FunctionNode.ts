@@ -18,10 +18,7 @@ export default class FunctionNode extends NodeBase {
 	scope: BlockScope;
 	preventChildBlockScope: true;
 
-	bind() {
-		super.bind();
-		this.body.bindImplicitReturnExpressionToScope();
-	}
+	private isPrototypeReassigned: boolean;
 
 	createScope(parentScope: FunctionScope) {
 		this.scope = new FunctionScope({ parent: parentScope });
@@ -45,20 +42,14 @@ export default class FunctionNode extends NodeBase {
 		if (path.length <= 1) {
 			return false;
 		}
-		if (path[0] === 'prototype') {
-			return path.length > 2;
-		}
-		return true;
+		return path.length > 2 || path[0] !== 'prototype' || this.isPrototypeReassigned;
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
 		if (path.length <= 1) {
 			return false;
 		}
-		if (path[0] === 'prototype') {
-			return path.length > 2;
-		}
-		return true;
+		return path.length > 2 || path[0] !== 'prototype' || this.isPrototypeReassigned;
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -83,12 +74,14 @@ export default class FunctionNode extends NodeBase {
 
 	initialise() {
 		this.included = false;
+		this.isPrototypeReassigned = false;
 		if (this.id !== null) {
 			this.id.declare('function', this);
 		}
 		for (const param of this.params) {
 			param.declare('parameter', null);
 		}
+		this.body.addImplicitReturnExpressionToScope();
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
@@ -98,6 +91,12 @@ export default class FunctionNode extends NodeBase {
 			new Scope({ parent: this.scope })
 		);
 		super.parseNode(esTreeNode);
+	}
+
+	reassignPath(path: ObjectPath) {
+		if (path.length === 1 && path[0] === 'prototype') {
+			this.isPrototypeReassigned = true;
+		}
 	}
 
 	someReturnExpressionWhenCalledAtPath(

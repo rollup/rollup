@@ -122,7 +122,7 @@ const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 			return (
 				typeof subPath !== 'string' ||
 				!literalBooleanMembers[subPath] ||
-				predicateFunction(options)(literalBooleanMembers[subPath].returns)
+				predicateFunction(options, literalBooleanMembers[subPath].returns)
 			);
 		}
 		return true;
@@ -160,7 +160,7 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 			return (
 				typeof subPath !== 'string' ||
 				!literalNumberMembers[subPath] ||
-				predicateFunction(options)(literalNumberMembers[subPath].returns)
+				predicateFunction(options, literalNumberMembers[subPath].returns)
 			);
 		}
 		return true;
@@ -201,7 +201,7 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 			return (
 				typeof subPath !== 'string' ||
 				!literalStringMembers[subPath] ||
-				predicateFunction(options)(literalStringMembers[subPath].returns)
+				predicateFunction(options, literalStringMembers[subPath].returns)
 			);
 		}
 		return true;
@@ -236,7 +236,7 @@ export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 			return (
 				typeof subPath !== 'string' ||
 				!objectMembers[subPath] ||
-				predicateFunction(options)(objectMembers[subPath].returns)
+				predicateFunction(options, objectMembers[subPath].returns)
 			);
 		}
 		return true;
@@ -387,6 +387,6 @@ export function someMemberReturnExpressionWhenCalled(
 	return (
 		hasMemberEffectWhenCalled(members, memberName, false, callOptions, options) ||
 		// if calling has no effect, memberName is a string and members[memberName] exists
-		predicateFunction(options)(members[<string>memberName].returns)
+		predicateFunction(options, members[<string>memberName].returns)
 	);
 }
