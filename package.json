@@ -26,7 +26,7 @@
     "watch": "rollup -cw",
     "prepublishOnly": "npm run lint && npm run test && npm run test:leak",
     "prepare": "npm run build",
-    "lint": "eslint src browser bin test/test.js test/*/index.js test/utils test/**/_config.js",
+    "lint": "tslint --project . --fix && eslint --fix src browser bin test/test.js test/*/index.js test/utils test/**/_config.js",
     "precommit": "lint-staged",
     "postcommit": "git reset",
     "perf": "npm run build && node --expose-gc scripts/perf.js",
@@ -103,6 +103,7 @@
     "source-map": "^0.6.1",
     "source-map-support": "^0.5.6",
     "sourcemap-codec": "^1.4.1",
+    "tslint": "^5.10.0",
     "typescript": "^2.8.3",
     "uglify-js": "^3.3.25",
     "url-parse": "^1.4.0"
@@ -117,6 +118,7 @@
   ],
   "lint-staged": {
     "*.ts": [
+      "tslint --project . --fix",
       "prettier --write",
       "git add"
     ]
