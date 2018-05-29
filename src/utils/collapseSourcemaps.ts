@@ -110,14 +110,23 @@ class Link {
 		const segments = this.mappings[line];
 		if (!segments) return null;
 
-		for (const segment of segments) {
-			if (segment[0] > column) return null;
+		// binary search through segments for the given column
+		let i = 0;
+		let j = segments.length - 1;
 
+		while (i <= j) {
+			const m = (i + j) >> 1;
+			const segment = segments[m];
 			if (segment[0] === column) {
 				const source = this.sources[segment[1]];
 				if (!source) return null;
 
 				return source.traceSegment(segment[2], segment[3], this.names[segment[4]] || name);
+			}
+			if (segment[0] > column) {
+				j = m - 1;
+			} else {
+				i = m + 1;
 			}
 		}
 
