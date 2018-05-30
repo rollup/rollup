@@ -289,9 +289,9 @@ describe('bundle.generate()', () => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(({ modules }) => {
-        modules.forEach((module) => {
-          assert.ok(module.renderedLength);
-        })
+				modules.forEach((module) => {
+					assert.ok(module.renderedLength);
+				});
 			});
 	});
 });
