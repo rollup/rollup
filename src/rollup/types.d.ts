@@ -62,6 +62,7 @@ export interface ModuleJSON {
 	ast: ESTree.Program;
 	sourcemapChain: RawSourceMap[];
 	resolvedIds: IdMap;
+	renderedLength: number;
 }
 
 export type ResolveIdHook = (
