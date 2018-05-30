@@ -41,6 +41,10 @@ const relUrlMechanisms: Record<string, (relPath: string, compact: boolean) => st
 		const _ = compact ? '' : ' ';
 		return `new URL('../${relPath}',${_}import.meta.url).href`;
 	},
+	system: (relPath: string, compact: boolean) => {
+		const _ = compact ? '' : ' ';
+		return `new URL('../${relPath}',${_}module.url).href`;
+	},
 	iife: globalRelUrlMechanism,
 	umd: globalRelUrlMechanism
 };
@@ -84,10 +88,11 @@ export default class MetaProperty extends NodeBase {
 
 		// support import.meta.ROLLUP_ASSET_URL_[ID]
 		if (importMetaProperty.startsWith('ROLLUP_ASSET_URL_')) {
+			console.log('mechanism');
 			const assetFileName = this.context.getAssetFileName(importMetaProperty.substr(17));
 			const relPath = normalize(relative(dirname(chunkId), assetFileName));
 			code.overwrite(parent.start, parent.end, relUrlMechanisms[format](relPath, compact));
-			return false;
+			return true;
 		}
 
 		if (format === 'system') {

@@ -1,6 +1,7 @@
 import ensureArray from './ensureArray';
 import deprecateOptions, { Deprecation } from './deprecateOptions';
 import { InputOptions, OutputOptions, WarningHandler } from '../rollup/types';
+import error from './error';
 
 export type GenericConfigObject = { [key: string]: any };
 
@@ -230,6 +231,61 @@ function getInputOptions(
 	} else {
 		inputOptions.entry = inputOptions.input;
 	}
+
+	if (!inputOptions.experimentalCodeSplitting) {
+		if (inputOptions.experimentalDynamicImport) inputOptions.inlineDynamicImports = true;
+		if (inputOptions.manualChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"manualChunks" option is only supported for experimentalCodeSplitting.'
+			});
+		if (inputOptions.optimizeChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"optimizeChunks" option is only supported for experimentalCodeSplitting.'
+			});
+		if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
+			error({
+				code: 'INVALID_OPTION',
+				message: 'Multiple inputs are only supported for experimentalCodeSplitting.'
+			});
+	}
+
+	if (inputOptions.inlineDynamicImports) {
+		if (inputOptions.manualChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"manualChunks" option is not supported for inlineDynamicImports.'
+			});
+
+		if (inputOptions.optimizeChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"optimizeChunks" option is not supported for inlineDynamicImports.'
+			});
+		if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
+			error({
+				code: 'INVALID_OPTION',
+				message: 'Multiple inputs are not supported for inlineDynamicImports.'
+			});
+	} else if (inputOptions.experimentalPreserveModules) {
+		if (inputOptions.inlineDynamicImports)
+			error({
+				code: 'INVALID_OPTION',
+				message: `experimentalPreserveModules does not support the inlineDynamicImports option.`
+			});
+		if (inputOptions.manualChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: 'experimentalPreserveModules does not support the manualChunks option.'
+			});
+		if (inputOptions.optimizeChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: 'experimentalPreserveModules does not support the optimizeChunks option.'
+			});
+	}
+
 	return inputOptions;
 }
 

@@ -159,7 +159,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		);
 		const hasTrailingSemicolon = code.original.charCodeAt(this.end - 1) === 59; /*";"*/
 		if (systemBinding) {
-			code.appendLeft(
+			code.appendRight(
 				hasTrailingSemicolon ? this.end - 1 : this.end,
 				')' + (hasTrailingSemicolon ? '' : ';')
 			);

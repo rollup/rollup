@@ -116,60 +116,6 @@ export default function rollup(
 
 		timeStart('BUILD', 1);
 
-		if (!inputOptions.experimentalCodeSplitting) {
-			if (inputOptions.experimentalDynamicImport) inputOptions.inlineDynamicImports = true;
-			if (inputOptions.manualChunks)
-				error({
-					code: 'INVALID_OPTION',
-					message: '"manualChunks" option is only supported for experimentalCodeSplitting.'
-				});
-			if (inputOptions.optimizeChunks)
-				error({
-					code: 'INVALID_OPTION',
-					message: '"optimizeChunks" option is only supported for experimentalCodeSplitting.'
-				});
-			if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
-				error({
-					code: 'INVALID_OPTION',
-					message: 'Multiple inputs are only supported for experimentalCodeSplitting.'
-				});
-		}
-
-		if (inputOptions.inlineDynamicImports) {
-			if (inputOptions.manualChunks)
-				error({
-					code: 'INVALID_OPTION',
-					message: '"manualChunks" option is not supported for inlineDynamicImports.'
-				});
-
-			if (inputOptions.optimizeChunks)
-				error({
-					code: 'INVALID_OPTION',
-					message: '"optimizeChunks" option is not supported for inlineDynamicImports.'
-				});
-			if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
-				error({
-					code: 'INVALID_OPTION',
-					message: 'Multiple inputs are not supported for inlineDynamicImports.'
-				});
-		} else if (inputOptions.experimentalPreserveModules) {
-			if (inputOptions.inlineDynamicImports)
-				error({
-					code: 'INVALID_OPTION',
-					message: `experimentalPreserveModules does not support the inlineDynamicImports option.`
-				});
-			if (inputOptions.manualChunks)
-				error({
-					code: 'INVALID_OPTION',
-					message: 'experimentalPreserveModules does not support the manualChunks option.'
-				});
-			if (inputOptions.optimizeChunks)
-				error({
-					code: 'INVALID_OPTION',
-					message: 'experimentalPreserveModules does not support the optimizeChunks option.'
-				});
-		}
-
 		return graph
 			.build(
 				inputOptions.input,
@@ -258,7 +204,7 @@ export default function rollup(
 					timeStart('GENERATE', 1);
 
 					// populate asset files into output
-					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][ext]';
+					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
 					const outputBundle: OutputBundle = graph.finaliseAssets(assetFileNames);
 
 					const inputBase = commondir(

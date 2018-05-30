@@ -444,16 +444,16 @@ export default class Chunk {
 	}
 
 	private finaliseImportMetas(options: OutputOptions): boolean {
-		let hasImportMetaUrl = false;
+		let usesMechanism = false;
 		for (let i = 0; i < this.orderedModules.length; i++) {
 			const module = this.orderedModules[i];
 			const code = this.renderedModuleSources[i];
 			for (let importMeta of module.importMetas) {
 				if (importMeta.renderFinalMechanism(code, this.id, options.format, options.compact))
-					hasImportMetaUrl = true;
+					usesMechanism = true;
 			}
 		}
-		return hasImportMetaUrl;
+		return usesMechanism;
 	}
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
@@ -1007,10 +1007,10 @@ export default class Chunk {
 			renderedDependency.id = relPath;
 		}
 
-		let hasImportMetaUrl = false;
+		let needsAmdModule = false;
 		if (this.graph.dynamicImport) {
 			this.finaliseDynamicImports();
-			hasImportMetaUrl = this.finaliseImportMetas(options);
+			needsAmdModule = this.finaliseImportMetas(options);
 		}
 
 		const hasExports =
@@ -1028,7 +1028,7 @@ export default class Chunk {
 				intro: addons.intro,
 				outro: addons.outro,
 				dynamicImport: this.hasDynamicImport,
-				hasImportMetaUrl,
+				needsAmdModule,
 				dependencies: this.renderedDeclarations.dependencies,
 				exports: this.renderedDeclarations.exports,
 				graph: this.graph,

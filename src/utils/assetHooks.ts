@@ -36,8 +36,10 @@ export function getAssetFileName(
 					return hash.digest('hex').substr(0, 8);
 				case 'name':
 					return asset.name.substr(0, asset.name.length - extname(asset.name).length);
-				case 'ext':
+				case 'extname':
 					return extname(asset.name);
+				case 'ext':
+					return extname(asset.name).substr(1);
 			}
 		}),
 		existingNames

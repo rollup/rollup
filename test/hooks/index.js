@@ -132,37 +132,6 @@ describe('hooks', () => {
 			});
 	});
 
-	it('supports warnings in buildStart and buildEnd hooks', () => {
-		let callCnt = 0;
-		return rollup
-			.rollup({
-				input: 'input',
-				onwarn (warning) {
-					if (callCnt === 0) {
-						assert.equal(warning.message, 'build start');
-						callCnt++;
-					} else if (callCnt === 1) {
-						assert.equal(warning.message, 'build end');
-						callCnt++;
-					}
-				},
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						buildStart () {
-							this.warn('build start');
-						},
-						buildEnd () {
-							this.warn('build end');
-						}
-					}
-				]
-			})
-			.then(() => {
-				assert.equal(callCnt, 2);
-			});
-	});
-
 	it('passes bundle & output object to ongenerate & onwrite hooks', () => {
 		const file = path.join(__dirname, 'tmp/bundle.js');
 
@@ -352,7 +321,7 @@ module.exports = input;
 			.then(bundle => {
 				return bundle.generate({
 					format: 'es',
-					assetFileNames: '[name][ext]'
+					assetFileNames: '[name][extname]'
 				});
 			})
 			.then(outputBundle => {
@@ -442,7 +411,7 @@ module.exports = input;
 			.then(bundle => {
 				return bundle.generate({
 					format: 'es',
-					assetFileNames: '[name][ext]'
+					assetFileNames: '[name][extname]'
 				});
 			})
 			.then(() => {
@@ -474,7 +443,7 @@ module.exports = input;
 			.then(bundle => {
 				return bundle.generate({
 					format: 'es',
-					assetFileNames: '[name][ext]'
+					assetFileNames: '[name][extname]'
 				});
 			})
 			.then(() => {
