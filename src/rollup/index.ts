@@ -212,7 +212,7 @@ export default function rollup(
 				const result: Bundle = {
 					imports,
 					exports,
-					modules: graph.getCache().modules,
+					modules,
 
 					cache: { modules },
 
