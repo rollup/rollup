@@ -799,7 +799,7 @@ export default class Chunk {
 			this.renderedModules[module.id] = {
 				renderedExports,
 				removedExports,
-				renderedLength: source.toString().length,
+				renderedLength: source.length(),
 				originalLength: module.originalCode.length
 			};
 
@@ -844,7 +844,7 @@ export default class Chunk {
 
 	getRenderedSourceLength() {
 		if (this.renderedSourceLength !== undefined) return this.renderedSourceLength;
-		return (this.renderedSourceLength = this.renderedSource.toString().length);
+		return (this.renderedSourceLength = this.renderedSource.length());
 	}
 
 	/*
