@@ -3,7 +3,6 @@ import MagicString from 'magic-string';
 
 export interface RenderOptions {
 	compact: boolean;
-	legacy: boolean;
 	freeze: boolean;
 	namespaceToStringTag: boolean;
 	indent: string;

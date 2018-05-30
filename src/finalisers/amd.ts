@@ -63,15 +63,9 @@ export default function amd(
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(
-		exports,
-		dependencies,
-		namedExportsMode,
-		options.interop,
-		options.compact
-	);
+	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, options.interop, options.compact);
 	if (exportBlock) magicString.append(n + n + exportBlock);
-	if (namedExportsMode && hasExports && options.legacy !== true && isEntryModuleFacade)
+	if (namedExportsMode && hasExports && isEntryModuleFacade)
 		magicString.append(`${n}${n}${options.compact ? compactEsModuleExport : esModuleExport}`);
 	if (outro) magicString.append(outro);
 

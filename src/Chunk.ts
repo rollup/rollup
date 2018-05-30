@@ -735,7 +735,6 @@ export default class Chunk {
 
 		const renderOptions: RenderOptions = {
 			compact: options.compact,
-			legacy: options.legacy,
 			freeze: options.freeze !== false,
 			namespaceToStringTag: options.namespaceToStringTag === true,
 			indent: this.indentString,

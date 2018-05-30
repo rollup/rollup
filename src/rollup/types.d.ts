@@ -203,7 +203,6 @@ export interface OutputOptions {
 	strict?: boolean;
 	freeze?: boolean;
 	namespaceToStringTag?: boolean;
-	legacy?: boolean;
 	compact?: boolean;
 
 	// undocumented?

@@ -2,6 +2,7 @@
 
 ## 0.60.0
 *unreleased*
+* [BREAKING] Deprecate the `legacy` option and thus IE8 support ([#2141](https://github.com/rollup/rollup/pull/2141))
 * Detect more known extensions and load .mjs without extension ([#2211](https://github.com/rollup/rollup/pull/2211))
 * Enable naming SystemJS modules ([#2028](https://github.com/rollup/rollup/pull/2028))
 * Add compact output mode ([#2151](https://github.com/rollup/rollup/pull/2151))
