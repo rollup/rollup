@@ -680,14 +680,15 @@ export default class Module {
 		return null;
 	}
 
-	getIncludedExports(): string[] {
+	getRenderedExports() {
 		// only direct exports are counted here, not reexports at all
-		const includedExports = [];
+		const renderedExports: string[] = [];
+		const removedExports: string[] = [];
 		for (let exportName in this.exports) {
 			const expt = this.exports[exportName];
-			if (expt.node.included) includedExports.push(exportName);
+			(expt.node.included ? renderedExports : removedExports).push(exportName);
 		}
-		return includedExports;
+		return { renderedExports, removedExports };
 	}
 
 	traceExport(name: string): Variable {

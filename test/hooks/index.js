@@ -340,7 +340,7 @@ module.exports = input;
 							assetId = this.emitAsset('test.ext');
 							return '';
 						},
-						processChunks () {
+						generateBundle () {
 							this.setAssetSource(assetId, 'hello world');
 						}
 					}
@@ -539,7 +539,7 @@ module.exports = input;
 	});
 
 
-	it('supports processBundle hook including reporting tree-shaken exports', () => {
+	it('supports processBundle hook including reporting rendered exports and source length', () => {
 		return rollup
 			.rollup({
 				input: 'input',
@@ -550,12 +550,18 @@ module.exports = input;
 						dep: `export var a = 1; export var b = 2;`
 					}),
 					{
-						processChunks (chunks) {
-							assert.equal(chunks.length, 1);
+						generateBundle (options, outputBundle, isWrite) {
+							const chunk = outputBundle['input.js'];
 
 							// can detect that b has been tree-shaken this way
-							assert.equal(chunks[0]['dep'][0], 'a');
-							assert.equal(chunks[0]['dep'].length, 1);
+							assert.equal(chunk.modules['dep'].renderedExports[0], 'a');
+							assert.equal(chunk.modules['dep'].renderedExports.length, 1);
+
+							assert.equal(chunk.modules['dep'].removedExports[0], 'b');
+							assert.equal(chunk.modules['dep'].removedExports.length, 1);
+
+							assert.equal(chunk.modules['dep'].renderedLength, 10);
+							assert.equal(chunk.modules['dep'].originalLength, 35);
 						}
 					}
 				]

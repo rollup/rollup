@@ -140,12 +140,11 @@ export interface Plugin {
 	resolveId?: ResolveIdHook;
 	missingExport?: MissingExportHook;
 	transform?: TransformHook;
-	processChunks?: (this: PluginContext, chunks: ChunkDefinition[]) => void | Promise<void>;
 	// TODO: deprecate
 	transformBundle?: TransformChunkHook;
 	transformChunk?: TransformChunkHook;
-	buildStart?: (this: PluginContext, options: InputOptions) => void;
-	buildEnd?: (this: PluginContext, err?: any) => void;
+	buildStart?: (this: PluginContext, options: InputOptions) => Promise<void> | void;
+	buildEnd?: (this: PluginContext, err?: any) => Promise<void> | void;
 	// TODO: deprecate
 	ongenerate?: (
 		this: PluginContext,
@@ -306,14 +305,19 @@ export type SerializedTimings = { [label: string]: number };
 
 export type OutputFile = string | Buffer | OutputChunk;
 
-export interface ChunkDefinition {
-	[moduleId: string]: string[];
+export interface RenderedModule {
+	renderedExports: string[];
+	removedExports: string[];
+	renderedLength: number;
+	originalLength: number;
 }
 
 export interface OutputChunk {
 	imports: string[];
 	exports: string[];
-	modules: string[];
+	modules: {
+		[id: string]: RenderedModule;
+	};
 	code: string;
 	map?: SourceMap;
 }

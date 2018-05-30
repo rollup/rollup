@@ -238,7 +238,9 @@ export default class Graph {
 
 	finaliseAssets(assetFileNames: string) {
 		const outputBundle: OutputBundle = Object.create(null);
-		this.assetsById.forEach(asset => finaliseAsset(asset, outputBundle, assetFileNames));
+		this.assetsById.forEach(asset => {
+			if (asset.source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
+		});
 		return outputBundle;
 	}
 

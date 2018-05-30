@@ -88,7 +88,6 @@ export default class MetaProperty extends NodeBase {
 
 		// support import.meta.ROLLUP_ASSET_URL_[ID]
 		if (importMetaProperty.startsWith('ROLLUP_ASSET_URL_')) {
-			console.log('mechanism');
 			const assetFileName = this.context.getAssetFileName(importMetaProperty.substr(17));
 			const relPath = normalize(relative(dirname(chunkId), assetFileName));
 			code.overwrite(parent.start, parent.end, relUrlMechanisms[format](relPath, compact));

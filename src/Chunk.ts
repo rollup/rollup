@@ -19,7 +19,7 @@ import { RenderOptions } from './utils/renderHelpers';
 import { Addons } from './utils/addons';
 import sha256 from 'hash.js/lib/hash/sha/256';
 import ExternalVariable from './ast/variables/ExternalVariable';
-import { GlobalsOption, OutputOptions, RawSourceMap } from './rollup/types';
+import { GlobalsOption, OutputOptions, RawSourceMap, RenderedModule } from './rollup/types';
 import { toBase64 } from './utils/base64';
 import { renderNamePattern, makeUnique } from './utils/renderNamePattern';
 
@@ -91,6 +91,10 @@ export default class Chunk {
 	orderedModules: Module[];
 	linked = false;
 
+	renderedModules: {
+		[moduleId: string]: RenderedModule;
+	};
+
 	// this represents the chunk module wrappings
 	// which form the output dependency graph
 	private imports = new Map<Variable, Module | ExternalModule>();
@@ -150,10 +154,6 @@ export default class Chunk {
 
 	getExportNames(): string[] {
 		return Object.keys(this.exportNames);
-	}
-
-	getModuleIds(): string[] {
-		return this.orderedModules.map(module => module.id);
 	}
 
 	private inlineChunkDependencies(chunk: Chunk, deep: boolean) {
@@ -785,6 +785,7 @@ export default class Chunk {
 
 		let hoistedSource = '';
 
+		this.renderedModules = Object.create(null);
 		this.renderedModuleSources = [];
 
 		for (let i = 0; i < this.orderedModules.length; i++) {
@@ -793,6 +794,14 @@ export default class Chunk {
 			source.trim();
 			if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
 			this.renderedModuleSources.push(source);
+
+			const { renderedExports, removedExports } = module.getRenderedExports();
+			this.renderedModules[module.id] = {
+				renderedExports,
+				removedExports,
+				renderedLength: source.toString().length,
+				originalLength: module.originalCode.length
+			};
 
 			const namespace = module.getOrCreateNamespace();
 			if (namespace.needsNamespaceBlock || !source.isEmpty()) {

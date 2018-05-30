@@ -20,8 +20,7 @@ import {
 	OutputBundle,
 	OutputFile,
 	RollupSingleFileBuild,
-	RollupBuild,
-	ChunkDefinition
+	RollupBuild
 } from './types';
 import getExportMode from '../utils/getExportMode';
 import Chunk from '../Chunk';
@@ -79,10 +78,16 @@ function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	return inputOptions;
 }
 
+function applyBuildStartHook(graph: Graph) {
+	return Promise.all(
+		graph.plugins.map(plugin => plugin.buildStart && plugin.buildStart.call(graph.pluginContext))
+	).then(() => {});
+}
+
 function applyBuildEndHook(graph: Graph, err?: any) {
-	for (let plugin of graph.plugins) {
-		if (plugin.buildEnd) plugin.buildEnd.call(graph.pluginContext, err);
-	}
+	return Promise.all(
+		graph.plugins.map(plugin => plugin.buildEnd && plugin.buildEnd.call(graph.pluginContext, err))
+	).then(() => {});
 }
 
 function getInputOptions(rawInputOptions: GenericConfigObject): any {
@@ -110,43 +115,28 @@ export default function rollup(
 		initialiseTimers(inputOptions);
 		const graph = new Graph(inputOptions);
 
-		for (let plugin of graph.plugins) {
-			if (plugin.buildStart) plugin.buildStart.call(graph.pluginContext, inputOptions);
-		}
-
 		timeStart('BUILD', 1);
 
-		return graph
-			.build(
-				inputOptions.input,
-				inputOptions.manualChunks,
-				inputOptions.inlineDynamicImports,
-				inputOptions.experimentalPreserveModules
-			)
-			.then(chunks => {
-				// run generateBundle hook
-				const processChunksPlugins = graph.plugins.filter(plugin => plugin.processChunks);
-				if (processChunksPlugins.length === 0) return chunks;
-				const processChunksChunks: ChunkDefinition[] = chunks.map(chunk => {
-					const chunkModules: ChunkDefinition = Object.create(null);
-					for (let module of chunk.orderedModules)
-						chunkModules[module.id] = module.getIncludedExports();
-					return chunkModules;
+		return applyBuildStartHook(graph)
+			.then(() => {
+				return graph.build(
+					inputOptions.input,
+					inputOptions.manualChunks,
+					inputOptions.inlineDynamicImports,
+					inputOptions.experimentalPreserveModules
+				);
+			})
+			.catch(err => {
+				return applyBuildEndHook(graph, err).then(() => {
+					throw err;
 				});
-				return Promise.all(
-					processChunksPlugins.map(plugin =>
-						plugin.processChunks.call(graph.pluginContext, processChunksChunks)
-					)
-				).then(() => {
+			})
+			.then(chunks => {
+				return applyBuildEndHook(graph).then(() => {
 					return chunks;
 				});
 			})
-			.catch(err => {
-				applyBuildEndHook(graph, err);
-				throw err;
-			})
 			.then(chunks => {
-				applyBuildEndHook(graph);
 				timeEnd('BUILD', 1);
 
 				// TODO: deprecate legacy single chunk return
@@ -229,10 +219,11 @@ export default function rollup(
 							}
 
 							// then name all chunks
-							for (let chunk of chunks) {
+							for (let i = 0; i < chunks.length; i++) {
+								const chunk = chunks[i];
 								const imports = chunk.getImportIds();
 								const exports = chunk.getExportNames();
-								const modules = chunk.getModuleIds();
+								const modules = chunk.renderedModules;
 
 								if (chunk === singleInputChunk) {
 									singleInputChunk.id = basename(
@@ -244,7 +235,7 @@ export default function rollup(
 									const outputChunk: OutputChunk = {
 										imports,
 										exports,
-										modules: singleInputChunk.getModuleIds(),
+										modules,
 										code: undefined,
 										map: undefined
 									};
