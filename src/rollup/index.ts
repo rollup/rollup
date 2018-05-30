@@ -73,7 +73,7 @@ const throwAsyncGenerateError = {
 export interface OutputChunk {
 	imports: string[];
 	exports: string[];
-	modules: string[];
+	modules: ModuleJSON[];
 	code: string;
 	map?: SourceMap;
 }
@@ -181,7 +181,7 @@ export default function rollup(
 							const output = {
 								imports,
 								exports,
-								modules: chunk.getModuleIds(),
+								modules: graph.getCache().modules,
 								code: rendered.code,
 								map: rendered.map
 							};
@@ -212,7 +212,7 @@ export default function rollup(
 				const result: Bundle = {
 					imports,
 					exports,
-					modules,
+					modules: graph.getCache().modules,
 
 					cache: { modules },
 
@@ -385,7 +385,7 @@ export default function rollup(
 													const output = {
 														imports: chunk.getImportIds(),
 														exports: chunk.getExportNames(),
-														modules: chunk.getModuleIds(),
+														modules: graph.getCache().modules,
 
 														code: rendered.code,
 														map: rendered.map

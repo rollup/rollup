@@ -278,6 +278,24 @@ describe('deprecations', () => {
 	});
 });
 
+describe('bundle.generate()', () => {
+	it('includes renderedLength in each module', () => {
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins: [loader({ x: `console.log( 42 );` })]
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
+			})
+			.then(({ modules }) => {
+        modules.forEach((module) => {
+          assert.ok(module.renderedLength);
+        })
+			});
+	});
+});
+
 describe('bundle.write()', () => {
 	it('fails without options or options.file', () => {
 		return rollup

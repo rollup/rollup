@@ -782,6 +782,7 @@ export default class Chunk {
 			const namespace = module.getOrCreateNamespace();
 			if (namespace.needsNamespaceBlock || !source.isEmpty()) {
 				magicString.addSource(source);
+				module.incrementRenderedLength(source);
 				this.usedModules.push(module);
 
 				if (namespace.needsNamespaceBlock) {

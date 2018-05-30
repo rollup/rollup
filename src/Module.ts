@@ -153,6 +153,7 @@ export default class Module {
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
 	reexports: { [name: string]: ReexportDescription };
+	renderedLength: number = 0;
 	resolvedIds: IdMap;
 	scope: ModuleScope;
 	sourcemapChain: RawSourceMap[];
@@ -631,6 +632,10 @@ export default class Module {
 		return magicString;
 	}
 
+	incrementRenderedLength(source: MagicString) {
+		this.renderedLength += source.toString().length;
+	}
+
 	toJSON(): ModuleJSON {
 		return {
 			id: this.id,
@@ -640,7 +645,8 @@ export default class Module {
 			originalSourcemap: this.originalSourcemap,
 			ast: this.esTreeAst,
 			sourcemapChain: this.sourcemapChain,
-			resolvedIds: this.resolvedIds
+			resolvedIds: this.resolvedIds,
+			renderedLength: this.renderedLength
 		};
 	}
 
