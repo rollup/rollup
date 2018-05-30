@@ -3,7 +3,6 @@ var assert = require('assert');
 module.exports = {
 	description: 'Dynamic import expression replacement',
 	options: {
-		experimentalDynamicImport: true,
 		plugins: [
 			{
 				resolveDynamicImport(specifier, parent) {

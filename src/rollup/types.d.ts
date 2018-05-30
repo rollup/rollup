@@ -197,7 +197,6 @@ export interface InputOptions {
 	context?: string;
 	moduleContext?: string | ((id: string) => string) | { [id: string]: string };
 	watch?: WatcherOptions;
-	experimentalDynamicImport?: boolean;
 	inlineDynamicImports?: boolean;
 	experimentalCodeSplitting?: boolean;
 	preserveSymlinks?: boolean;

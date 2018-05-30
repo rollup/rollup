@@ -189,11 +189,9 @@ export default class Module {
 		this.graph = graph;
 		this.comments = [];
 
-		if (graph.dynamicImport) {
-			this.dynamicImports = [];
-			this.importMetas = [];
-			this.dynamicImportResolutions = [];
-		}
+		this.dynamicImports = [];
+		this.importMetas = [];
+		this.dynamicImportResolutions = [];
 		this.isEntryPoint = false;
 		this.execIndex = null;
 		this.entryPointsHash = new Uint8Array(10);

@@ -3,9 +3,6 @@ var path = require('path');
 
 module.exports = {
 	description: 'Dynamic import inlining when resolution id is a module in the bundle',
-	options: {
-		experimentalDynamicImport: true
-	},
 	code: function(code) {
 		assert.equal(code.indexOf('import('), -1);
 		assert.notEqual(code.indexOf('Promise.resolve('), -1);

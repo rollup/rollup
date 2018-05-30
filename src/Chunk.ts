@@ -748,15 +748,14 @@ export default class Chunk {
 
 		const n = options.compact ? '' : '\n';
 
-		if (this.graph.dynamicImport) this.prepareDynamicImports();
+		this.prepareDynamicImports();
 
 		const renderOptions: RenderOptions = {
 			compact: options.compact,
 			freeze: options.freeze !== false,
 			namespaceToStringTag: options.namespaceToStringTag === true,
 			indent: this.indentString,
-			format: options.format,
-			dynamicImport: this.graph.dynamicImport
+			format: options.format
 		};
 
 		// if an entry point facade, inline the execution list to avoid loading latency
@@ -1007,11 +1006,8 @@ export default class Chunk {
 			renderedDependency.id = relPath;
 		}
 
-		let needsAmdModule = false;
-		if (this.graph.dynamicImport) {
-			this.finaliseDynamicImports();
-			needsAmdModule = this.finaliseImportMetas(options);
-		}
+		this.finaliseDynamicImports();
+		let needsAmdModule = this.finaliseImportMetas(options);
 
 		const hasExports =
 			this.renderedDeclarations.exports.length !== 0 ||

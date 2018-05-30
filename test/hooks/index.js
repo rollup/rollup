@@ -254,7 +254,6 @@ describe('hooks', () => {
 			.rollup({
 				input: 'input',
 				experimentalCodeSplitting: true,
-				experimentalDynamicImport: true,
 				plugins: [
 					loader({ input: '' }),
 					{
@@ -279,7 +278,6 @@ describe('hooks', () => {
 			.rollup({
 				input: 'input',
 				experimentalCodeSplitting: true,
-				experimentalDynamicImport: true,
 				plugins: [
 					loader({ input: '' }),
 					{
@@ -457,7 +455,6 @@ module.exports = input;
 			.rollup({
 				input: 'input',
 				experimentalCodeSplitting: true,
-				experimentalDynamicImport: true,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -482,7 +479,6 @@ module.exports = input;
 			.rollup({
 				input: 'input',
 				experimentalCodeSplitting: true,
-				experimentalDynamicImport: true,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -525,7 +521,6 @@ module.exports = input;
 			.rollup({
 				input: 'input',
 				experimentalCodeSplitting: true,
-				experimentalDynamicImport: true,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{

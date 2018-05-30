@@ -7,7 +7,6 @@ export interface RenderOptions {
 	namespaceToStringTag: boolean;
 	indent: string;
 	format: string;
-	dynamicImport: boolean;
 }
 
 export interface NodeRenderOptions {

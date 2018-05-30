@@ -1,6 +1,3 @@
 module.exports = {
-	description: 'import.meta.url support',
-	options: {
-		experimentalDynamicImport: true
-	}
+	description: 'import.meta.url support'
 };

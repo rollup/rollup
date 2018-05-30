@@ -4,9 +4,6 @@ const URL = require('url-parse');
 
 module.exports = {
 	description: 'import.meta.url support',
-	options: {
-		experimentalDynamicImport: true
-	},
 	bundleOptions: {
 		compact: true
 	},

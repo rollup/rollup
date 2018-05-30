@@ -3,7 +3,6 @@ var assert = require('assert');
 module.exports = {
 	description: 'Dynamic import string specifier resolving',
 	options: {
-		experimentalDynamicImport: true,
 		external: ['asdf'],
 		plugins: [
 			{

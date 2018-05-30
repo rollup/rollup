@@ -202,7 +202,6 @@ function getInputOptions(
 		cache: getOption('cache'),
 		context: config.context,
 		experimentalCodeSplitting: getOption('experimentalCodeSplitting'),
-		experimentalDynamicImport: getOption('experimentalDynamicImport'),
 		experimentalPreserveModules: getOption('experimentalPreserveModules'),
 		external: getExternal(config, command),
 		inlineDynamicImports: getOption('inlineDynamicImports', false),
@@ -233,7 +232,7 @@ function getInputOptions(
 	}
 
 	if (!inputOptions.experimentalCodeSplitting) {
-		if (inputOptions.experimentalDynamicImport) inputOptions.inlineDynamicImports = true;
+		inputOptions.inlineDynamicImports = true;
 		if (inputOptions.manualChunks)
 			error({
 				code: 'INVALID_OPTION',

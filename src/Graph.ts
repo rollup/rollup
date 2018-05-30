@@ -41,7 +41,6 @@ export default class Graph {
 	acornParse: acorn.IParse;
 	cachedModules: Map<string, ModuleJSON>;
 	context: string;
-	dynamicImport: boolean;
 	externalModules: ExternalModule[] = [];
 	getModuleContext: (id: string) => string;
 	hasLoaders: boolean;
@@ -213,26 +212,19 @@ export default class Graph {
 		this.acornOptions = options.acorn || {};
 		const acornPluginsToInject = [];
 
-		this.dynamicImport =
-			typeof options.experimentalDynamicImport === 'boolean'
-				? options.experimentalDynamicImport
-				: false;
-
-		if (this.dynamicImport) {
-			this.resolveDynamicImport = first(
-				[
-					...this.plugins.map(plugin => plugin.resolveDynamicImport).filter(Boolean),
-					<ResolveDynamicImportHook>function(specifier, parentId) {
-						return typeof specifier === 'string' && this.resolveId(specifier, parentId);
-					}
-				].map(resolveDynamicImport => resolveDynamicImport.bind(this.pluginContext))
-			);
-			acornPluginsToInject.push(injectDynamicImportPlugin);
-			acornPluginsToInject.push(injectImportMeta);
-			this.acornOptions.plugins = this.acornOptions.plugins || {};
-			this.acornOptions.plugins.dynamicImport = true;
-			this.acornOptions.plugins.importMeta = true;
-		}
+		this.resolveDynamicImport = first(
+			[
+				...this.plugins.map(plugin => plugin.resolveDynamicImport).filter(Boolean),
+				<ResolveDynamicImportHook>function(specifier, parentId) {
+					return typeof specifier === 'string' && this.resolveId(specifier, parentId);
+				}
+			].map(resolveDynamicImport => resolveDynamicImport.bind(this.pluginContext))
+		);
+		acornPluginsToInject.push(injectDynamicImportPlugin);
+		acornPluginsToInject.push(injectImportMeta);
+		this.acornOptions.plugins = this.acornOptions.plugins || {};
+		this.acornOptions.plugins.dynamicImport = true;
+		this.acornOptions.plugins.importMeta = true;
 
 		acornPluginsToInject.push(...ensureArray(options.acornInjectPlugins));
 		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
@@ -561,13 +553,11 @@ export default class Graph {
 				if (!depModule.isEntryPoint && !depModule.chunkAlias) visit(<Module>depModule);
 			}
 
-			if (this.dynamicImport) {
-				for (let dynamicModule of module.dynamicImportResolutions) {
-					if (dynamicModule.resolution instanceof Module) {
-						if (dynamicImports.indexOf(dynamicModule.resolution) === -1) {
-							dynamicImports.push(dynamicModule.resolution);
-							dynamicImportAliases.push(dynamicModule.alias);
-						}
+			for (let dynamicModule of module.dynamicImportResolutions) {
+				if (dynamicModule.resolution instanceof Module) {
+					if (dynamicImports.indexOf(dynamicModule.resolution) === -1) {
+						dynamicImports.push(dynamicModule.resolution);
+						dynamicImportAliases.push(dynamicModule.alias);
 					}
 				}
 			}
@@ -733,48 +723,46 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 
 	private fetchAllDependencies(module: Module) {
 		// resolve and fetch dynamic imports where possible
-		const fetchDynamicImportsPromise = !this.dynamicImport
-			? Promise.resolve()
-			: Promise.all(
-					module.getDynamicImportExpressions().map((dynamicImportExpression, index) => {
-						return Promise.resolve(
-							this.resolveDynamicImport.call(this.pluginContext, dynamicImportExpression, module.id)
-						).then(replacement => {
-							if (!replacement) {
-								module.dynamicImportResolutions[index] = {
-									alias: undefined,
-									resolution: undefined
-								};
-								return;
-							}
-							const alias = getAliasName(
-								replacement,
-								typeof dynamicImportExpression === 'string' ? dynamicImportExpression : undefined
-							);
-							if (typeof dynamicImportExpression !== 'string') {
-								module.dynamicImportResolutions[index] = { alias, resolution: replacement };
-							} else if (this.isExternal(replacement, module.id, true)) {
-								let externalModule;
-								if (!this.moduleById.has(replacement)) {
-									externalModule = new ExternalModule({
-										graph: this,
-										id: replacement
-									});
-									this.externalModules.push(externalModule);
-									this.moduleById.set(replacement, module);
-								} else {
-									externalModule = <ExternalModule>this.moduleById.get(replacement);
-								}
-								module.dynamicImportResolutions[index] = { alias, resolution: externalModule };
-								externalModule.exportsNamespace = true;
-							} else {
-								return this.fetchModule(replacement, module.id).then(depModule => {
-									module.dynamicImportResolutions[index] = { alias, resolution: depModule };
-								});
-							}
+		const fetchDynamicImportsPromise = Promise.all(
+			module.getDynamicImportExpressions().map((dynamicImportExpression, index) => {
+				return Promise.resolve(
+					this.resolveDynamicImport.call(this.pluginContext, dynamicImportExpression, module.id)
+				).then(replacement => {
+					if (!replacement) {
+						module.dynamicImportResolutions[index] = {
+							alias: undefined,
+							resolution: undefined
+						};
+						return;
+					}
+					const alias = getAliasName(
+						replacement,
+						typeof dynamicImportExpression === 'string' ? dynamicImportExpression : undefined
+					);
+					if (typeof dynamicImportExpression !== 'string') {
+						module.dynamicImportResolutions[index] = { alias, resolution: replacement };
+					} else if (this.isExternal(replacement, module.id, true)) {
+						let externalModule;
+						if (!this.moduleById.has(replacement)) {
+							externalModule = new ExternalModule({
+								graph: this,
+								id: replacement
+							});
+							this.externalModules.push(externalModule);
+							this.moduleById.set(replacement, module);
+						} else {
+							externalModule = <ExternalModule>this.moduleById.get(replacement);
+						}
+						module.dynamicImportResolutions[index] = { alias, resolution: externalModule };
+						externalModule.exportsNamespace = true;
+					} else {
+						return this.fetchModule(replacement, module.id).then(depModule => {
+							module.dynamicImportResolutions[index] = { alias, resolution: depModule };
 						});
-					})
-			  ).then(() => {});
+					}
+				});
+			})
+		).then(() => {});
 		fetchDynamicImportsPromise.catch(() => {});
 
 		return Promise.all(
