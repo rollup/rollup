@@ -140,16 +140,14 @@ export default function rollup(
 				timeEnd('BUILD', 1);
 
 				// TODO: deprecate legacy single chunk return
-				let singleInputChunk: Chunk;
-				let imports: string[], exports: string[];
+				let singleInputChunk: Chunk | void;
+				//let imports: string[], exports: string[];
 				if (!inputOptions.experimentalPreserveModules) {
 					if (
 						typeof inputOptions.input === 'string' ||
 						(inputOptions.input instanceof Array && inputOptions.input.length === 1)
 					) {
 						singleInputChunk = chunks.find(chunk => chunk.entryModule !== undefined);
-						imports = singleInputChunk.getImportIds();
-						exports = singleInputChunk.getExportNames();
 					}
 				}
 
@@ -362,8 +360,8 @@ export default function rollup(
 					})
 				};
 				if (!inputOptions.experimentalCodeSplitting) {
-					(<any>result).imports = imports;
-					(<any>result).exports = exports;
+					(<any>result).imports = (<Chunk>singleInputChunk).getImportIds();
+					(<any>result).exports = (<Chunk>singleInputChunk).getExportNames();
 					(<any>result).modules = cache.modules;
 				}
 				if (inputOptions.perf === true) result.getTimings = getTimings;
