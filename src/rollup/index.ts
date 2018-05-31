@@ -449,13 +449,17 @@ export default function rollup(
 										code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
 									}
 
-									promises.push(writeFile(dir + '/' + chunkName, code));
+									const file = dir + '/' + chunkName;
+									promises.push(writeFile(file, code));
 									return Promise.all(promises).then(() => {
 										return mapSequence(
 											graph.plugins.filter(plugin => plugin.onwrite),
 											(plugin: Plugin) =>
 												Promise.resolve(
-													plugin.onwrite(Object.assign({ bundle: chunk }, outputOptions), chunk)
+													plugin.onwrite(
+														Object.assign({ bundle: chunk }, outputOptions, { file }),
+														chunk
+													)
 												)
 										);
 									});
