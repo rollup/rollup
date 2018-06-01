@@ -19,7 +19,15 @@ function getStarExcludes({ dependencies, exports }: ModuleDeclarations) {
 
 export default function system(
 	magicString: MagicStringBundle,
-	{ graph, indentString: t, intro, outro, dependencies, exports }: FinaliserOptions,
+	{
+		graph,
+		indentString: t,
+		intro,
+		outro,
+		dependencies,
+		exports,
+		usesTopLevelAwait
+	}: FinaliserOptions,
 	options: OutputOptions
 ) {
 	const n = options.compact ? '' : '\n';
@@ -143,7 +151,9 @@ export default function system(
 					.join(`,${_}`)}],`
 			: ''
 	}${n}`;
-	wrapperStart += `${t}${t}execute:${_}function${_}()${_}{${n}${n}`;
+	wrapperStart += `${t}${t}execute:${_}${
+		usesTopLevelAwait ? `async${_}` : ''
+	}function${_}()${_}{${n}${n}`;
 	if (hoistedExports.length)
 		wrapperStart += `${t}${t}${t}` + hoistedExports.join(`${n}${t}${t}${t}`) + n + n;
 

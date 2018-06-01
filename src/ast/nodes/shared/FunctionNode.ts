@@ -8,6 +8,8 @@ import BlockStatement from '../BlockStatement';
 import Identifier from '../Identifier';
 import { GenericEsTreeNode, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
+import MagicString from 'magic-string';
+import { RenderOptions } from '../../../utils/renderHelpers';
 
 export default class FunctionNode extends NodeBase {
 	id: Identifier | null;
@@ -90,6 +92,12 @@ export default class FunctionNode extends NodeBase {
 		if (path.length === 1 && path[0] === 'prototype') {
 			this.isPrototypeReassigned = true;
 		}
+	}
+
+	render(code: MagicString, options: RenderOptions) {
+		this.context.inFunction = true;
+		super.render(code, options);
+		this.context.inFunction = false;
 	}
 }
 

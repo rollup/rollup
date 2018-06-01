@@ -202,6 +202,7 @@ function getInputOptions(
 		context: config.context,
 		experimentalCodeSplitting: getOption('experimentalCodeSplitting'),
 		experimentalPreserveModules: getOption('experimentalPreserveModules'),
+		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
 		external: getExternal(config, command),
 		inlineDynamicImports: getOption('inlineDynamicImports', false),
 		input: getOption('input'),
