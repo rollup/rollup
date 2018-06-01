@@ -344,8 +344,8 @@ export interface OutputBundle {
 
 export interface RollupBuild {
 	cache: RollupCache;
-	generate: (outputOptions: OutputOptions) => Promise<OutputBundle>;
-	write: (options: OutputOptions) => Promise<OutputBundle>;
+	generate: (outputOptions: OutputOptions) => Promise<{ output: OutputBundle }>;
+	write: (options: OutputOptions) => Promise<{ output: OutputBundle }>;
 	getTimings?: () => SerializedTimings;
 }
 

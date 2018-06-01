@@ -321,7 +321,9 @@ export default function rollup(
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
 						const promise = generate(rawOutputOptions, false).then(
 							result =>
-								inputOptions.experimentalCodeSplitting ? result : <OutputChunk>result[chunks[0].id]
+								inputOptions.experimentalCodeSplitting
+									? { output: result }
+									: <OutputChunk>result[chunks[0].id]
 						);
 						Object.defineProperty(promise, 'code', throwAsyncGenerateError);
 						Object.defineProperty(promise, 'map', throwAsyncGenerateError);
@@ -353,7 +355,7 @@ export default function rollup(
 							).then(
 								() =>
 									inputOptions.experimentalCodeSplitting
-										? result
+										? { output: result }
 										: <OutputChunk>result[chunks[0].id]
 							)
 						);

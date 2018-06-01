@@ -267,9 +267,9 @@ describe('hooks', () => {
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
 			})
-			.then(outputBundle => {
-				assert.equal(outputBundle['assets/test-19916f7d.ext'], 'hello world');
-				assert.equal(outputBundle['input.js'].code, `var input = new URL(\'../assets/test-19916f7d.ext\', import.meta.url).href;\n\nexport default input;\n`);
+			.then(({ output }) => {
+				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
+				assert.equal(output['input.js'].code, `var input = new URL(\'../assets/test-19916f7d.ext\', import.meta.url).href;\n\nexport default input;\n`);
 			});
 	});
 
@@ -291,8 +291,8 @@ describe('hooks', () => {
 			.then(bundle => {
 				return bundle.generate({ format: 'cjs' });
 			})
-			.then(outputBundle => {
-				assert.equal(outputBundle['input.js'].code, `'use strict';
+			.then(({ output }) => {
+				assert.equal(output['input.js'].code, `'use strict';
 
 var input = new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)((process.browser ? '' : 'file:') + __dirname + '/assets/test-19916f7d.ext', process.browser && document.baseURI).href;
 
@@ -322,8 +322,8 @@ module.exports = input;
 					assetFileNames: '[name][extname]'
 				});
 			})
-			.then(outputBundle => {
-				assert.equal(outputBundle['test.ext'], 'hello world');
+			.then(({ output }) => {
+				assert.equal(output['test.ext'], 'hello world');
 			});
 	});
 
@@ -349,8 +349,8 @@ module.exports = input;
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
 			})
-			.then(outputBundle => {
-				assert.equal(outputBundle['assets/test-19916f7d.ext'], 'hello world');
+			.then(({ output }) => {
+				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
 			});
 	});
 
@@ -380,8 +380,8 @@ module.exports = input;
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
 			})
-			.then(outputBundle => {
-				assert.equal(outputBundle['assets/test-19916f7d.ext'], 'hello world');
+			.then(({ output }) => {
+				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
 			});
 	});
 
@@ -503,16 +503,16 @@ module.exports = input;
 					.then(outputBundle2 => [outputBundle1, outputBundle2])
 				)
 			)
-			.then(([outputBundle1, outputBundle2]) => {
-				assert.equal(outputBundle1['input.js'].code, `alert('hello');\n`);
-				assert.equal(outputBundle1['assets/lateDepAsset-671f747d'], `custom source`);
-				assert.equal(outputBundle1['assets/lateMainAsset-863ea4b5'], `references assets/lateDepAsset-671f747d`);
+			.then(([{ output: output1 }, { output: output2 }]) => {
+				assert.equal(output1['input.js'].code, `alert('hello');\n`);
+				assert.equal(output1['assets/lateDepAsset-671f747d'], `custom source`);
+				assert.equal(output1['assets/lateMainAsset-863ea4b5'], `references assets/lateDepAsset-671f747d`);
 
-				assert.equal(outputBundle2['input.js'].code, `'use strict';\n\nalert('hello');\n`);
-				assert.equal(outputBundle2['assets/lateDepAsset-671f747d'], undefined);
-				assert.equal(outputBundle2['assets/lateMainAsset-863ea4b5'], undefined);
-				assert.equal(outputBundle2['assets/lateDepAsset-c107f5fc'], `different source`);
-				assert.equal(outputBundle2['assets/lateMainAsset-6dc2262b'], `references assets/lateDepAsset-c107f5fc`);
+				assert.equal(output2['input.js'].code, `'use strict';\n\nalert('hello');\n`);
+				assert.equal(output2['assets/lateDepAsset-671f747d'], undefined);
+				assert.equal(output2['assets/lateMainAsset-863ea4b5'], undefined);
+				assert.equal(output2['assets/lateDepAsset-c107f5fc'], `different source`);
+				assert.equal(output2['assets/lateMainAsset-6dc2262b'], `references assets/lateDepAsset-c107f5fc`);
 			});
 	});
 
