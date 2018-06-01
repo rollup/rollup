@@ -1,9 +1,7 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Variable from './ast/variables/Variable';
 import Graph from './Graph';
-import { OutputOptions } from './rollup/types';
 import { makeLegal } from './utils/identifierHelpers';
-import { isAbsolute, normalize, relative } from './utils/path';
 
 export default class ExternalModule {
 	private graph: Graph;
@@ -13,8 +11,6 @@ export default class ExternalModule {
 	exportsNames = false;
 	exportsNamespace: boolean = false;
 	id: string;
-	renderPath: string = undefined;
-	renormalizeRenderPath = false;
 	isExternal = true;
 	isEntryPoint = false;
 	name: string;
@@ -34,21 +30,6 @@ export default class ExternalModule {
 		this.nameSuggestions = Object.create(null);
 		this.declarations = Object.create(null);
 		this.exportedVariables = new Map();
-	}
-
-	setRenderPath(options: OutputOptions, inputBase: string) {
-		if (options.paths)
-			this.renderPath =
-				typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id];
-		if (!this.renderPath) {
-			if (!isAbsolute(this.id)) {
-				this.renderPath = this.id;
-			} else {
-				this.renderPath = normalize(relative(inputBase, this.id));
-				this.renormalizeRenderPath = true;
-			}
-		}
-		return this.renderPath;
 	}
 
 	suggestName(name: string) {

@@ -19,7 +19,7 @@ import collapseSourcemaps from './utils/collapseSourcemaps';
 import error from './utils/error';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
-import { basename, dirname, normalize, relative, resolve } from './utils/path';
+import { basename, dirname, isAbsolute, normalize, relative, resolve } from './utils/path';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { timeEnd, timeStart } from './utils/timers';
@@ -90,6 +90,10 @@ function getGlobalName(
 		});
 		return module.name;
 	}
+}
+
+function addPathPrefix(id: string) {
+	return id && !isAbsolute(id) && !id.startsWith('.') ? `./${id}` : id;
 }
 
 export default class Chunk {
@@ -586,10 +590,7 @@ export default class Chunk {
 		}
 	}
 
-	private getChunkDependencyDeclarations(
-		options: OutputOptions,
-		inputBase: string
-	): ChunkDependencies {
+	private getChunkDependencyDeclarations(options: OutputOptions): ChunkDependencies {
 		const reexportDeclarations = new Map<Chunk | ExternalModule, ReexportSpecifier[]>();
 
 		for (let exportName of Object.keys(this.exportNames)) {
@@ -654,7 +655,7 @@ export default class Chunk {
 			let id: string;
 			let globalName: string;
 			if (dep instanceof ExternalModule) {
-				id = dep.renderPath || dep.setRenderPath(options, inputBase);
+				id = dep.id;
 				if (options.format === 'umd' || options.format === 'iife') {
 					globalName = getGlobalName(
 						dep,
@@ -766,7 +767,7 @@ export default class Chunk {
 
 		// add in hashes of all dependent chunks and resolved external ids
 		this.postVisitChunkDependencies(dep => {
-			if (dep instanceof ExternalModule) hash.update(':' + dep.renderPath);
+			if (dep instanceof ExternalModule) hash.update(':' + dep.id);
 			else hash.update(dep.getRenderedHash());
 		});
 
@@ -774,7 +775,7 @@ export default class Chunk {
 	}
 
 	// prerender allows chunk hashes and names to be generated before finalizing
-	preRender(options: OutputOptions, inputBase: string) {
+	preRender(options: OutputOptions) {
 		timeStart('render modules', 3);
 
 		const magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
@@ -877,7 +878,7 @@ export default class Chunk {
 		}
 
 		this.renderedDeclarations = {
-			dependencies: this.getChunkDependencyDeclarations(options, inputBase),
+			dependencies: this.getChunkDependencyDeclarations(options),
 			exports: this.exportMode === 'none' ? [] : this.getChunkExportDeclarations()
 		};
 
@@ -894,7 +895,7 @@ export default class Chunk {
 	 * chunkList allows updating references in other chunks for the merged chunk to this chunk
 	 * A new facade will be added to chunkList if tainting exports of either as an entry point
 	 */
-	merge(chunk: Chunk, chunkList: Chunk[], options: OutputOptions, inputBase: string) {
+	merge(chunk: Chunk, chunkList: Chunk[], options: OutputOptions) {
 		if (this.isEntryModuleFacade || chunk.isEntryModuleFacade)
 			throw new Error('Internal error: Code splitting chunk merges not supported for facades');
 
@@ -992,7 +993,7 @@ export default class Chunk {
 		}
 
 		// re-render the merged chunk
-		this.preRender(options, inputBase);
+		this.preRender(options);
 	}
 
 	generateIdPreserveModules(preserveModulesRelativeDir: string) {
@@ -1025,7 +1026,7 @@ export default class Chunk {
 		this.id = outName;
 	}
 
-	render(options: OutputOptions, addons: Addons) {
+	render(options: OutputOptions, addons: Addons, inputBase: string) {
 		timeStart('render format', 3);
 
 		if (!this.renderedSource)
@@ -1041,17 +1042,21 @@ export default class Chunk {
 			});
 		}
 
+		const getPath = this.createGetPath(options, inputBase);
+
 		// populate ids in the rendered declarations only here
 		// as chunk ids known only after prerender
 		for (let i = 0; i < this.dependencies.length; i++) {
 			const dep = this.dependencies[i];
-			if (dep instanceof ExternalModule && !dep.renormalizeRenderPath) continue;
-
 			const renderedDependency = this.renderedDeclarations.dependencies[i];
 
-			const depId = dep instanceof ExternalModule ? renderedDependency.id : dep.id;
-			let relPath = this.id ? normalize(relative(dirname(this.id), depId)) : depId;
-			if (!relPath.startsWith('../')) relPath = './' + relPath;
+			let depId = dep.id;
+			let normalizePrefix = true;
+			if (dep instanceof ExternalModule) {
+				depId = renderedDependency.id;
+				normalizePrefix = isAbsolute(depId);
+			}
+			const relPath = getPath(depId, normalizePrefix);
 
 			if (dep instanceof Chunk) renderedDependency.namedExportsMode = dep.exportMode !== 'default';
 			renderedDependency.id = relPath;
@@ -1133,5 +1138,36 @@ export default class Chunk {
 				return { code, map };
 			}
 		);
+	}
+
+	private createGetPath(options: OutputOptions, inputBase: string) {
+		const optionsPaths = options.paths;
+
+		const fallback = (id: string, normalizePrefix: Boolean) => {
+			if (!normalizePrefix) {
+				return id;
+			}
+			let path;
+			if (this.id) {
+				const base = isAbsolute(id) ? inputBase : dirname(this.id);
+				path = normalize(relative(base, id));
+			} else {
+				path = id;
+			}
+			return addPathPrefix(path);
+		};
+
+		if (!optionsPaths) {
+			return fallback;
+		}
+
+    const getPathForId = typeof optionsPaths === 'function'
+      ? (id: string) => optionsPaths(id, addPathPrefix(this.id))
+			: (id: string) => optionsPaths[id];
+
+		return function getPath(id: string, normalizePrefix: Boolean) {
+			const normalizedId = normalizePrefix ? addPathPrefix(id) : id;
+			return getPathForId(normalizedId) || fallback(id, normalizePrefix);
+		};
 	}
 }

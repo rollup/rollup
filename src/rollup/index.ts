@@ -279,7 +279,7 @@ export default function rollup(
 									chunk.exportMode = getExportMode(chunk, outputOptions);
 							}
 							for (const chunk of chunks) {
-								chunk.preRender(outputOptions, inputBase);
+								chunk.preRender(outputOptions);
 							}
 							if (!optimized && inputOptions.optimizeChunks) {
 								optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize, inputBase);
@@ -334,7 +334,7 @@ export default function rollup(
 							return Promise.all(
 								chunks.map(chunk => {
 									const chunkId = chunk.id;
-									return chunk.render(outputOptions, addons).then(rendered => {
+									return chunk.render(outputOptions, addons, inputBase).then(rendered => {
 										const outputChunk = <OutputChunk>outputBundle[chunkId];
 										outputChunk.code = rendered.code;
 										outputChunk.map = rendered.map;

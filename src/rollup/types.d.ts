@@ -247,7 +247,7 @@ export interface InputOptions {
 
 export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'iife' | 'umd';
 
-export type OptionsPaths = Record<string, string> | ((id: string) => string);
+export type OptionsPaths = Record<string, string> | ((id: string, parent: string) => string);
 
 export interface OutputOptions {
 	// only required for bundle.write
