@@ -4,7 +4,6 @@ System.register([], function (exports, module) {
     execute: function () {
 
       function a() {
-      	console.log('effect');
         a = someGlobal;
         return a();
       }
