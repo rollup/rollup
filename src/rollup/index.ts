@@ -140,14 +140,21 @@ export default function rollup(
 				timeEnd('BUILD', 1);
 
 				// TODO: deprecate legacy single chunk return
-				let singleInputChunk: Chunk | void;
+				let singleChunk: Chunk | void;
+				const singleInput =
+					typeof inputOptions.input === 'string' ||
+					(inputOptions.input instanceof Array && inputOptions.input.length === 1);
 				//let imports: string[], exports: string[];
 				if (!inputOptions.experimentalPreserveModules) {
-					if (
-						typeof inputOptions.input === 'string' ||
-						(inputOptions.input instanceof Array && inputOptions.input.length === 1)
-					) {
-						singleInputChunk = chunks.find(chunk => chunk.entryModule !== undefined);
+					if (singleInput) {
+						for (let chunk of chunks) {
+							if (chunk.entryModule === undefined) continue;
+							if (singleChunk) {
+								singleChunk = undefined;
+								break;
+							}
+							singleChunk = chunk;
+						}
 					}
 				}
 
@@ -178,16 +185,17 @@ export default function rollup(
 									message: '"sourcemapFile" is only supported for single-file builds.'
 								});
 						}
-						if (!singleInputChunk && typeof outputOptions.file === 'string')
+						if (!singleChunk && typeof outputOptions.file === 'string')
 							error({
 								code: 'INVALID_OPTION',
-								message:
-									'When providing multiple entry points, the output.dir option must be used, not output.file.'
+								message: singleInput
+									? 'When building a bundle using dynamic imports, the output.dir option must be used, not output.file. Alternatively set inlineDynamicImports: true to output a single file.'
+									: 'When building multiple entry point inputs, the output.dir option must be used, not output.file.'
 							});
 					}
 
 					if (!outputOptions.file && inputOptions.experimentalCodeSplitting)
-						singleInputChunk = undefined;
+						singleChunk = undefined;
 
 					timeStart('GENERATE', 1);
 
@@ -223,8 +231,8 @@ export default function rollup(
 								const exports = chunk.getExportNames();
 								const modules = chunk.renderedModules;
 
-								if (chunk === singleInputChunk) {
-									singleInputChunk.id = basename(
+								if (chunk === singleChunk) {
+									singleChunk.id = basename(
 										outputOptions.file ||
 											(inputOptions.input instanceof Array
 												? inputOptions.input[0]
@@ -237,7 +245,7 @@ export default function rollup(
 										code: undefined,
 										map: undefined
 									};
-									outputBundle[singleInputChunk.id] = outputChunk;
+									outputBundle[singleChunk.id] = outputChunk;
 								} else if (inputOptions.experimentalPreserveModules) {
 									chunk.generateIdPreserveModules(inputBase);
 								} else {
@@ -336,7 +344,7 @@ export default function rollup(
 						) {
 							error({
 								code: 'MISSING_OPTION',
-								message: 'You must specify output.dir when code-splitting.'
+								message: 'You must specify output.file or output.dir for the build.'
 							});
 						} else if (
 							!inputOptions.experimentalCodeSplitting &&
@@ -362,8 +370,8 @@ export default function rollup(
 					})
 				};
 				if (!inputOptions.experimentalCodeSplitting) {
-					(<any>result).imports = (<Chunk>singleInputChunk).getImportIds();
-					(<any>result).exports = (<Chunk>singleInputChunk).getExportNames();
+					(<any>result).imports = (<Chunk>singleChunk).getImportIds();
+					(<any>result).exports = (<Chunk>singleChunk).getExportNames();
 					(<any>result).modules = cache.modules;
 				}
 				if (inputOptions.perf === true) result.getTimings = getTimings;
