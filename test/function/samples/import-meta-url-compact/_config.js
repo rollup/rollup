@@ -1,6 +1,6 @@
 const assert = require('assert');
 const path = require('path');
-const URL = require('url-parse');
+const URL = global.URL || require('url-parse');
 
 module.exports = {
 	description: 'import.meta.url support',
