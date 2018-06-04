@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'change the module destination',
 	options: {
-		input: 'lib/main.js',
+		input: 'src/lib/main.js',
 		experimentalPreserveModules: true
 	}
 };

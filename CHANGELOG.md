@@ -13,6 +13,7 @@
 * Add semicolons after default exports ([#2209](https://github.com/rollup/rollup/pull/2209))
 * Fix build problems on Windows ([#2232](https://github.com/rollup/rollup/pull/2232))
 * Display install size in readme ([#2196](https://github.com/rollup/rollup/pull/2196))
+* Improve preserve modules test ([#2236](https://github.com/rollup/rollup/pull/2236))
 
 ## 0.59.4
 *2018-05-28*
