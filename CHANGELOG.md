@@ -10,6 +10,7 @@
 * Do not use alternate screen if clearScreen is set in watch mode ([#2125](https://github.com/rollup/rollup/pull/2125))
 * Allow object input form for code-splitting in watch mode ([#2217](https://github.com/rollup/rollup/pull/2217))
 * Track reassignments of methods of exports from outside ([#2240](https://github.com/rollup/rollup/pull/2240))
+* Preserve id of default exported functions and classes ([#2234](https://github.com/rollup/rollup/pull/2234))
 * Add semicolons after default exports ([#2209](https://github.com/rollup/rollup/pull/2209))
 * Fix build problems on Windows ([#2232](https://github.com/rollup/rollup/pull/2232))
 * Display install size in readme ([#2196](https://github.com/rollup/rollup/pull/2196))

@@ -23,9 +23,11 @@ export default class ExportDefaultVariable extends LocalVariable {
 	}
 
 	addReference(identifier: Identifier) {
-		this.name = identifier.name;
-		if (this.original !== null) {
-			this.original.addReference(identifier);
+		if (!this.hasId) {
+			this.name = identifier.name;
+			if (this.original !== null) {
+				this.original.addReference(identifier);
+			}
 		}
 	}
 
