@@ -387,6 +387,7 @@ export default class Graph {
 				const { orderedModules, dynamicImports, dynamicImportAliases } = this.analyseExecution(
 					entryModules,
 					!preserveModules && !inlineDynamicImports,
+					inlineDynamicImports,
 					manualChunkModules
 				);
 
@@ -512,6 +513,7 @@ export default class Graph {
 	private analyseExecution(
 		entryModules: Module[],
 		graphColouring: boolean,
+		inlineDynamicImports: boolean,
 		chunkModules?: Record<string, Module[]>
 	) {
 		let curEntry: Module, curEntryHash: Uint8Array;
@@ -603,7 +605,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 		// new items can be added during this loop
 		for (curEntry of dynamicImports) {
 			if (curEntry.isEntryPoint) continue;
-			curEntry.isEntryPoint = true;
+			if (!inlineDynamicImports) curEntry.isEntryPoint = true;
 			curEntryHash = randomUint8Array(10);
 			parents = { [curEntry.id]: null };
 			visit(curEntry);
