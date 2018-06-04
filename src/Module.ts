@@ -35,6 +35,8 @@ import { isLiteral } from './ast/nodes/Literal';
 import Chunk from './Chunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { getOriginalLocation } from './utils/getOriginalLocation';
+import { NEW_EXECUTION_PATH } from './ast/ExecutionPathOptions';
+import { UNKNOWN_PATH } from './ast/values';
 
 export interface CommentDescription {
 	block: boolean;
@@ -431,11 +433,12 @@ export default class Module {
 		return makeLegal(ext ? base.slice(0, -ext.length) : base);
 	}
 
-	markExports() {
+	markPublicExports() {
 		for (const exportName of this.getExports()) {
 			const variable = this.traceExport(exportName);
 
 			variable.exportName = exportName;
+			variable.reassignPath(UNKNOWN_PATH, NEW_EXECUTION_PATH);
 			variable.include();
 
 			if (variable.isNamespace) {
@@ -452,6 +455,7 @@ export default class Module {
 				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
 			} else {
 				variable.include();
+				variable.reassignPath(UNKNOWN_PATH, NEW_EXECUTION_PATH);
 			}
 		}
 	}

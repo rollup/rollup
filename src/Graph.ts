@@ -275,10 +275,10 @@ export default class Graph {
 			// Phase 3 – marking. We include all statements that should be included
 			timeStart('mark included statements', 2);
 
-			entryModule.markExports();
+			entryModule.markPublicExports();
 
 			for (const dynamicImportModule of dynamicImports) {
-				if (entryModule !== dynamicImportModule) dynamicImportModule.markExports();
+				if (entryModule !== dynamicImportModule) dynamicImportModule.markPublicExports();
 				// all dynamic import modules inlined for single-file build
 				dynamicImportModule.getOrCreateNamespace().include();
 			}
@@ -419,7 +419,7 @@ export default class Graph {
 				// Phase 3 – marking. We include all statements that should be included
 				timeStart('mark included statements', 2);
 
-				for (const entryModule of entryModules) entryModule.markExports();
+				for (const entryModule of entryModules) entryModule.markPublicExports();
 
 				// only include statements that should appear in the bundle
 				this.includeMarked(orderedModules);
