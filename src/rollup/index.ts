@@ -280,7 +280,11 @@ export default function rollup(
 											graph.plugins
 												.filter(plugin => plugin.ongenerate)
 												.map(plugin =>
-													plugin.ongenerate.call(graph.pluginContext, outputOptions, outputChunk)
+													plugin.ongenerate.call(
+														graph.pluginContext,
+														Object.assign({ bundle: outputChunk }, outputOptions),
+														outputChunk
+													)
 												)
 										);
 									})
