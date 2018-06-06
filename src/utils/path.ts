@@ -10,6 +10,7 @@ export function isRelative(path: string) {
 }
 
 export function normalize(path: string) {
+	if (path.indexOf('\\') == -1) return path;
 	return path.replace(/\\/g, '/');
 }
 

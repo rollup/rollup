@@ -1,6 +1,4 @@
-import { runSequence } from './promise';
 import error from './error';
-import callIfFunction from './callIfFunction';
 import Graph from '../Graph';
 import { OutputOptions } from '../rollup/types';
 
@@ -33,40 +31,36 @@ export function createAddons(graph: Graph, options: OutputOptions): Promise<Addo
 
 function collectAddon(
 	graph: Graph,
-	initialAddon: string,
+	initialAddon: string | (() => string | Promise<string>),
 	addonName: 'banner' | 'footer' | 'intro' | 'outro',
 	sep: string
 ) {
-	return runSequence(
+	return Promise.all(
 		[
-			{ pluginName: 'rollup', source: initialAddon } as {
-				pluginName: string;
-				source: string | (() => string);
-			}
-		]
-			.concat(
-				graph.plugins.map((plugin, idx) => {
-					return {
-						pluginName: plugin.name || `Plugin at pos ${idx}`,
-						source: plugin[addonName]
-					};
+			{
+				pluginName: 'rollup',
+				source: initialAddon
+			},
+			...graph.plugins.map((plugin, idx) => ({
+				pluginName: plugin.name || `Plugin at pos ${idx}`,
+				source: plugin[addonName]
+			}))
+		].map(({ pluginName, source }, idx) => {
+			if (!source) return;
+
+			if (typeof source === 'string') return source;
+
+			return Promise.resolve()
+				.then(() => {
+					return source.call(idx !== 0 && graph.pluginContext);
 				})
-			)
-			.map(addon => {
-				addon.source = callIfFunction(addon.source);
-				return addon;
-			})
-			.filter(addon => {
-				return addon.source;
-			})
-			.map(({ pluginName, source }) => {
-				return Promise.resolve(source).catch(err => {
+				.catch(err => {
 					error({
 						code: 'ADDON_ERROR',
 						message: `Could not retrieve ${addonName}. Check configuration of ${pluginName}.
-	Error Message: ${err.message}`
+\tError Message: ${err.message}`
 					});
 				});
-			})
+		})
 	).then(addons => addons.filter(Boolean).join(sep));
 }

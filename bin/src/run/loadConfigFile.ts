@@ -4,7 +4,7 @@ import rollup from 'rollup';
 import batchWarnings from './batchWarnings';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
-import { InputOptions, Bundle } from '../../../src/rollup/types';
+import { InputOptions, RollupSingleFileBuild } from '../../../src/rollup/types';
 
 interface NodeModuleWithCompile extends NodeModule {
 	_compile(code: string, filename: string): any;
@@ -25,7 +25,7 @@ export default function loadConfigFile(
 			},
 			onwarn: warnings.add
 		})
-		.then((bundle: Bundle) => {
+		.then((bundle: RollupSingleFileBuild) => {
 			if (!silent && warnings.count > 0) {
 				stderr(chalk.bold(`loaded ${relativeId(configFile)} with warnings`));
 				warnings.flush();

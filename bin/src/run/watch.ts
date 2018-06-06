@@ -11,14 +11,20 @@ import loadConfigFile from './loadConfigFile';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import { printTimings } from './timings';
-import { RollupError, RollupWatchOptions, Bundle, BundleSet, InputOption } from '../../../src/rollup/types';
+import {
+	RollupError,
+	RollupWatchOptions,
+	RollupSingleFileBuild,
+	RollupBuild,
+	InputOption
+} from '../../../src/rollup/types';
 interface WatchEvent {
 	code?: string;
 	error?: RollupError | Error;
 	input?: InputOption;
 	output?: string[];
 	duration?: number;
-	result?: Bundle | BundleSet;
+	result?: RollupSingleFileBuild | RollupBuild;
 }
 
 interface Watcher {
@@ -46,7 +52,7 @@ export default function watch(
 	let watcher: Watcher;
 	let configWatcher: Watcher;
 
-	let processConfigsErr;
+	let processConfigsErr: any;
 
 	function processConfigs(configs: RollupWatchOptions[]): RollupWatchOptions[] {
 		return configs.map(options => {
@@ -110,12 +116,18 @@ export default function watch(
 				case 'BUNDLE_START':
 					if (!silent) {
 						let input = event.input;
-						if ( typeof input !== 'string' ) {
-							input = Array.isArray(input) ? input.join(', ') : Object.values(input).join(', ')
+						if (typeof input !== 'string') {
+							input = Array.isArray(input)
+								? input.join(', ')
+								: Object.keys(input)
+										.map(key => (<Record<string, string>>input)[key])
+										.join(', ');
 						}
 						stderr(
 							chalk.cyan(
-								`bundles ${chalk.bold(input)} → ${chalk.bold(event.output.map(relativeId).join(', '))}...`
+								`bundles ${chalk.bold(input)} → ${chalk.bold(
+									event.output.map(relativeId).join(', ')
+								)}...`
 							)
 						);
 					}
@@ -194,7 +206,7 @@ export default function watch(
 			restarting = true;
 
 			loadConfigFile(configFile, command)
-				.then((configs: RollupWatchOptions[]) => {
+				.then((_configs: RollupWatchOptions[]) => {
 					restarting = false;
 
 					if (aborted) {

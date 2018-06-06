@@ -16,7 +16,7 @@ export interface FinaliserOptions {
 	intro: string;
 	outro: string;
 	dynamicImport: boolean;
-	importMeta: boolean;
+	needsAmdModule: boolean;
 	dependencies: ChunkDependencies;
 	exports: ChunkExports;
 	graph: Graph;

@@ -1,6 +1,7 @@
 import ensureArray from './ensureArray';
 import deprecateOptions, { Deprecation } from './deprecateOptions';
 import { InputOptions, OutputOptions, WarningHandler } from '../rollup/types';
+import error from './error';
 
 export type GenericConfigObject = { [key: string]: any };
 
@@ -201,9 +202,9 @@ function getInputOptions(
 		cache: getOption('cache'),
 		context: config.context,
 		experimentalCodeSplitting: getOption('experimentalCodeSplitting'),
-		experimentalDynamicImport: getOption('experimentalDynamicImport'),
 		experimentalPreserveModules: getOption('experimentalPreserveModules'),
 		external: getExternal(config, command),
+		inlineDynamicImports: getOption('inlineDynamicImports', false),
 		input: getOption('input'),
 		manualChunks: getOption('manualChunks'),
 		chunkGroupingSize: getOption('chunkGroupingSize', 5000),
@@ -229,6 +230,61 @@ function getInputOptions(
 	} else {
 		inputOptions.entry = inputOptions.input;
 	}
+
+	if (!inputOptions.experimentalCodeSplitting) {
+		inputOptions.inlineDynamicImports = true;
+		if (inputOptions.manualChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"manualChunks" option is only supported for experimentalCodeSplitting.'
+			});
+		if (inputOptions.optimizeChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"optimizeChunks" option is only supported for experimentalCodeSplitting.'
+			});
+		if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
+			error({
+				code: 'INVALID_OPTION',
+				message: 'Multiple inputs are only supported for experimentalCodeSplitting.'
+			});
+	}
+
+	if (inputOptions.inlineDynamicImports) {
+		if (inputOptions.manualChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"manualChunks" option is not supported for inlineDynamicImports.'
+			});
+
+		if (inputOptions.optimizeChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"optimizeChunks" option is not supported for inlineDynamicImports.'
+			});
+		if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
+			error({
+				code: 'INVALID_OPTION',
+				message: 'Multiple inputs are not supported for inlineDynamicImports.'
+			});
+	} else if (inputOptions.experimentalPreserveModules) {
+		if (inputOptions.inlineDynamicImports)
+			error({
+				code: 'INVALID_OPTION',
+				message: `experimentalPreserveModules does not support the inlineDynamicImports option.`
+			});
+		if (inputOptions.manualChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: 'experimentalPreserveModules does not support the manualChunks option.'
+			});
+		if (inputOptions.optimizeChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: 'experimentalPreserveModules does not support the optimizeChunks option.'
+			});
+	}
+
 	return inputOptions;
 }
 
@@ -241,11 +297,12 @@ function getOutputOptions(
 
 	return {
 		amd: Object.assign({}, config.amd, command.amd),
+		assetFileNames: getOption('assetFileNames'),
 		banner: getOption('banner'),
 		dir: getOption('dir'),
-		chunkNames: getOption('chunkNames'),
+		chunkFileNames: getOption('chunkFileNames'),
 		compact: getOption('compact', false),
-		entryNames: getOption('entryNames'),
+		entryFileNames: getOption('entryFileNames'),
 		exports: getOption('exports'),
 		extend: getOption('extend'),
 		file: getOption('file'),

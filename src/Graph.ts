@@ -3,7 +3,7 @@ import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import injectImportMeta from 'acorn-import-meta/inject';
 import { timeEnd, timeStart } from './utils/timers';
 import first from './utils/first';
-import Module from './Module';
+import Module, { defaultAcornOptions } from './Module';
 import ExternalModule from './ExternalModule';
 import ensureArray from './utils/ensureArray';
 import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
@@ -13,54 +13,54 @@ import error from './utils/error';
 import { isRelative, resolve, relative } from './utils/path';
 import {
 	InputOptions,
-	IsExternalHook,
+	IsExternal,
+	LoadHook,
+	MissingExportHook,
 	Plugin,
+	PluginContext,
+	ResolveDynamicImportHook,
 	ResolveIdHook,
 	RollupWarning,
 	SourceDescription,
 	TreeshakingOptions,
 	WarningHandler,
-	ModuleJSON
+	ModuleJSON,
+	RollupError,
+	OutputBundle
 } from './rollup/types';
-import { Node } from './ast/nodes/shared/Node';
 import Chunk from './Chunk';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
 import firstSync from './utils/first-sync';
-
-export type ResolveDynamicImportHandler = (
-	specifier: string | Node,
-	parentId: string
-) => Promise<string | void>;
+import { Program } from 'estree';
+import { createAssetPluginHooks, Asset, finaliseAsset } from './utils/assetHooks';
 
 export default class Graph {
-	curChunkIndex: number;
+	curChunkIndex = 0;
 	acornOptions: acorn.Options;
 	acornParse: acorn.IParse;
 	cachedModules: Map<string, ModuleJSON>;
 	context: string;
-	dynamicImport: boolean;
-	externalModules: ExternalModule[];
+	externalModules: ExternalModule[] = [];
 	getModuleContext: (id: string) => string;
 	hasLoaders: boolean;
-	isExternal: IsExternalHook;
+	isExternal: IsExternal;
 	isPureExternalModule: (id: string) => boolean;
-	load: (id: string) => Promise<SourceDescription | string | void>;
-	handleMissingExport: (
-		exportName: string,
-		importingModule: Module,
-		importedModule: string,
-		importerStart?: number
-	) => void;
-	moduleById: Map<string, Module | ExternalModule>;
-	modules: Module[];
+	load: LoadHook;
+	handleMissingExport: MissingExportHook;
+	moduleById = new Map<string, Module | ExternalModule>();
+	assetsById = new Map<string, Asset>();
+	modules: Module[] = [];
 	onwarn: WarningHandler;
 	plugins: Plugin[];
-	resolveDynamicImport: ResolveDynamicImportHandler;
+	pluginContext: PluginContext;
+	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
 	scope: GlobalScope;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
+
+	contextParse: (code: string, acornOptions?: acorn.Options) => Program;
 
 	// deprecated
 	treeshake: boolean;
@@ -107,18 +107,50 @@ export default class Graph {
 			this.isPureExternalModule = () => false;
 		}
 
+		this.contextParse = (code: string, options: acorn.Options = {}) => {
+			return this.acornParse(
+				code,
+				Object.assign({}, defaultAcornOptions, options, this.acornOptions)
+			);
+		};
+
+		this.pluginContext = Object.assign(
+			{
+				isExternal: undefined,
+				resolveId: undefined,
+				parse: this.contextParse,
+				warn: (warning: RollupWarning | string) => {
+					if (typeof warning === 'string') warning = { message: warning };
+					this.warn(warning);
+				},
+				error: (err: RollupError | string) => {
+					if (typeof err === 'string') throw new Error(err);
+					error(err);
+				}
+			},
+			createAssetPluginHooks(this.assetsById)
+		);
+
 		this.resolveId = first(
 			[
 				((id: string, parentId: string) =>
 					this.isExternal(id, parentId, false) ? false : null) as ResolveIdHook
 			]
-				.concat(this.plugins.map(plugin => plugin.resolveId).filter(Boolean))
+				.concat(
+					this.plugins
+						.map(plugin => plugin.resolveId)
+						.filter(Boolean)
+						.map(resolveId => resolveId.bind(this.pluginContext))
+				)
 				.concat(resolveId(options))
 		);
 
+		this.pluginContext.resolveId = this.resolveId;
+
 		const loaders = this.plugins.map(plugin => plugin.load).filter(Boolean);
 		this.hasLoaders = loaders.length !== 0;
-		this.load = first(loaders.concat(load));
+
+		this.load = first([...loaders, load]);
 
 		this.handleMissingExport = firstSync(
 			this.plugins
@@ -131,7 +163,13 @@ export default class Graph {
 						importedModule: string,
 						importerStart?: number
 					) => {
-						return missingExport(importingModule.id, exportName, importedModule, importerStart);
+						return missingExport.call(
+							this.pluginContext,
+							importingModule.id,
+							exportName,
+							importedModule,
+							importerStart
+						);
 					};
 				})
 				.concat(handleMissingExport)
@@ -143,10 +181,6 @@ export default class Graph {
 		for (const name of ['module', 'exports', '_interopDefault']) {
 			this.scope.findVariable(name); // creates global variable as side-effect
 		}
-
-		this.moduleById = new Map();
-		this.modules = [];
-		this.externalModules = [];
 
 		this.context = String(options.context);
 
@@ -169,6 +203,7 @@ export default class Graph {
 			const ids = ensureArray(options.external);
 			this.isExternal = id => ids.indexOf(id) !== -1;
 		}
+		this.pluginContext.isExternal = this.isExternal;
 
 		this.onwarn = options.onwarn || makeOnwarn();
 
@@ -177,23 +212,19 @@ export default class Graph {
 		this.acornOptions = options.acorn || {};
 		const acornPluginsToInject = [];
 
-		this.dynamicImport =
-			typeof options.experimentalDynamicImport === 'boolean'
-				? options.experimentalDynamicImport
-				: false;
-
-		if (this.dynamicImport) {
-			this.resolveDynamicImport = first([
+		this.resolveDynamicImport = first(
+			[
 				...this.plugins.map(plugin => plugin.resolveDynamicImport).filter(Boolean),
-				<ResolveDynamicImportHandler>((specifier, parentId) =>
-					typeof specifier === 'string' && this.resolveId(specifier, parentId))
-			]);
-			acornPluginsToInject.push(injectDynamicImportPlugin);
-			acornPluginsToInject.push(injectImportMeta);
-			this.acornOptions.plugins = this.acornOptions.plugins || {};
-			this.acornOptions.plugins.dynamicImport = true;
-			this.acornOptions.plugins.importMeta = true;
-		}
+				<ResolveDynamicImportHook>function(specifier, parentId) {
+					return typeof specifier === 'string' && this.resolveId(specifier, parentId);
+				}
+			].map(resolveDynamicImport => resolveDynamicImport.bind(this.pluginContext))
+		);
+		acornPluginsToInject.push(injectDynamicImportPlugin);
+		acornPluginsToInject.push(injectImportMeta);
+		this.acornOptions.plugins = this.acornOptions.plugins || {};
+		this.acornOptions.plugins.dynamicImport = true;
+		this.acornOptions.plugins.importMeta = true;
 
 		acornPluginsToInject.push(...ensureArray(options.acornInjectPlugins));
 		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
@@ -203,6 +234,14 @@ export default class Graph {
 		return {
 			modules: this.modules.map(module => module.toJSON())
 		};
+	}
+
+	finaliseAssets(assetFileNames: string) {
+		const outputBundle: OutputBundle = Object.create(null);
+		this.assetsById.forEach(asset => {
+			if (asset.source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
+		});
+		return outputBundle;
 	}
 
 	private loadModule(entryName: string) {
@@ -254,64 +293,15 @@ export default class Graph {
 		}
 	}
 
-	buildSingle(entryModuleId: string): Promise<Chunk> {
-		// Phase 1 – discovery. We load the entry module and find which
-		// modules it imports, and import those, until we have all
-		// of the entry module's dependencies
-		timeStart('parse modules', 2);
-		return this.loadModule(entryModuleId).then(entryModule => {
-			timeEnd('parse modules', 2);
-
-			// Phase 2 - linking. We populate the module dependency links and
-			// determine the topological execution order for the bundle
-			timeStart('analyse dependency graph', 2);
-
-			this.link();
-
-			const { orderedModules, dynamicImports } = this.analyseExecution([entryModule], false);
-
-			timeEnd('analyse dependency graph', 2);
-
-			// Phase 3 – marking. We include all statements that should be included
-			timeStart('mark included statements', 2);
-
-			entryModule.markPublicExports();
-
-			for (const dynamicImportModule of dynamicImports) {
-				if (entryModule !== dynamicImportModule) dynamicImportModule.markPublicExports();
-				// all dynamic import modules inlined for single-file build
-				dynamicImportModule.getOrCreateNamespace().include();
-			}
-
-			// only include statements that should appear in the bundle
-			this.includeMarked(orderedModules);
-
-			// check for unused external imports
-			for (const module of this.externalModules) module.warnUnusedImports();
-
-			timeEnd('mark included statements', 2);
-
-			// Phase 4 – we construct the chunk itself, generating its import and export facades
-			timeStart('generate chunks', 2);
-
-			// generate the imports and exports for the output chunk file
-			const chunk = new Chunk(this, orderedModules);
-			chunk.link();
-			chunk.populateEntryExports(false);
-
-			timeEnd('generate chunks', 2);
-
-			return chunk;
-		});
-	}
-
 	private loadEntryModules(
-		entryModules: Record<string, string> | string[],
+		entryModules: string | string[] | Record<string, string>,
 		manualChunks: Record<string, string[]> | void
 	) {
 		let removeAliasExtensions = false;
 		let entryModuleIds: string[];
 		let entryModuleAliases: string[];
+		if (typeof entryModules === 'string') entryModules = [entryModules];
+
 		if (Array.isArray(entryModules)) {
 			removeAliasExtensions = true;
 			entryModuleAliases = entryModules.concat([]);
@@ -357,9 +347,10 @@ export default class Graph {
 		);
 	}
 
-	buildChunks(
-		entryModules: Record<string, string> | string[],
+	build(
+		entryModules: string | string[] | Record<string, string>,
 		manualChunks: Record<string, string[]> | void,
+		inlineDynamicImports: boolean,
 		preserveModules: boolean
 	): Promise<Chunk[]> {
 		// Phase 1 – discovery. We load the entry module and find which
@@ -395,7 +386,8 @@ export default class Graph {
 
 				const { orderedModules, dynamicImports, dynamicImportAliases } = this.analyseExecution(
 					entryModules,
-					!preserveModules,
+					!preserveModules && !inlineDynamicImports,
+					inlineDynamicImports,
 					manualChunkModules
 				);
 
@@ -405,12 +397,24 @@ export default class Graph {
 					}
 				}
 
-				for (let i = 0; i < dynamicImports.length; i++) {
-					const dynamicImportModule = dynamicImports[i];
-					if (entryModules.indexOf(dynamicImportModule) === -1) {
-						entryModules.push(dynamicImportModule);
-						if (!dynamicImportModule.chunkAlias)
-							dynamicImportModule.chunkAlias = dynamicImportAliases[i];
+				if (inlineDynamicImports) {
+					const entryModule = entryModules[0];
+					if (entryModules.length > 1)
+						throw new Error(
+							'Internal Error: can only inline dynamic imports for single-file builds.'
+						);
+					for (const dynamicImportModule of dynamicImports) {
+						if (entryModule !== dynamicImportModule) dynamicImportModule.markPublicExports();
+						dynamicImportModule.getOrCreateNamespace().include();
+					}
+				} else {
+					for (let i = 0; i < dynamicImports.length; i++) {
+						const dynamicImportModule = dynamicImports[i];
+						if (entryModules.indexOf(dynamicImportModule) === -1) {
+							entryModules.push(dynamicImportModule);
+							if (!dynamicImportModule.chunkAlias)
+								dynamicImportModule.chunkAlias = dynamicImportAliases[i];
+						}
 					}
 				}
 
@@ -509,6 +513,7 @@ export default class Graph {
 	private analyseExecution(
 		entryModules: Module[],
 		graphColouring: boolean,
+		inlineDynamicImports: boolean,
 		chunkModules?: Record<string, Module[]>
 	) {
 		let curEntry: Module, curEntryHash: Uint8Array;
@@ -552,13 +557,11 @@ export default class Graph {
 				if (!depModule.isEntryPoint && !depModule.chunkAlias) visit(<Module>depModule);
 			}
 
-			if (this.dynamicImport) {
-				for (let dynamicModule of module.dynamicImportResolutions) {
-					if (dynamicModule.resolution instanceof Module) {
-						if (dynamicImports.indexOf(dynamicModule.resolution) === -1) {
-							dynamicImports.push(dynamicModule.resolution);
-							dynamicImportAliases.push(dynamicModule.alias);
-						}
+			for (let dynamicModule of module.dynamicImportResolutions) {
+				if (dynamicModule.resolution instanceof Module) {
+					if (dynamicImports.indexOf(dynamicModule.resolution) === -1) {
+						dynamicImports.push(dynamicModule.resolution);
+						dynamicImportAliases.push(dynamicModule.alias);
 					}
 				}
 			}
@@ -602,7 +605,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 		// new items can be added during this loop
 		for (curEntry of dynamicImports) {
 			if (curEntry.isEntryPoint) continue;
-			curEntry.isEntryPoint = true;
+			if (!inlineDynamicImports) curEntry.isEntryPoint = true;
 			curEntryHash = randomUint8Array(10);
 			parents = { [curEntry.id]: null };
 			visit(curEntry);
@@ -640,7 +643,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 		this.moduleById.set(id, module);
 
 		timeStart('load modules', 3);
-		return this.load(id)
+		return Promise.resolve(this.load.call(this.pluginContext, id))
 			.catch((err: Error) => {
 				timeEnd('load modules', 3);
 				let msg = `Could not load ${id}`;
@@ -724,48 +727,46 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 
 	private fetchAllDependencies(module: Module) {
 		// resolve and fetch dynamic imports where possible
-		const fetchDynamicImportsPromise = !this.dynamicImport
-			? Promise.resolve()
-			: Promise.all(
-					module.getDynamicImportExpressions().map((dynamicImportExpression, index) => {
-						return Promise.resolve(
-							this.resolveDynamicImport(dynamicImportExpression, module.id)
-						).then(replacement => {
-							if (!replacement) {
-								module.dynamicImportResolutions[index] = {
-									alias: undefined,
-									resolution: undefined
-								};
-								return;
-							}
-							const alias = getAliasName(
-								replacement,
-								typeof dynamicImportExpression === 'string' ? dynamicImportExpression : undefined
-							);
-							if (typeof dynamicImportExpression !== 'string') {
-								module.dynamicImportResolutions[index] = { alias, resolution: replacement };
-							} else if (this.isExternal(replacement, module.id, true)) {
-								let externalModule;
-								if (!this.moduleById.has(replacement)) {
-									externalModule = new ExternalModule({
-										graph: this,
-										id: replacement
-									});
-									this.externalModules.push(externalModule);
-									this.moduleById.set(replacement, module);
-								} else {
-									externalModule = <ExternalModule>this.moduleById.get(replacement);
-								}
-								module.dynamicImportResolutions[index] = { alias, resolution: externalModule };
-								externalModule.exportsNamespace = true;
-							} else {
-								return this.fetchModule(replacement, module.id).then(depModule => {
-									module.dynamicImportResolutions[index] = { alias, resolution: depModule };
-								});
-							}
+		const fetchDynamicImportsPromise = Promise.all(
+			module.getDynamicImportExpressions().map((dynamicImportExpression, index) => {
+				return Promise.resolve(
+					this.resolveDynamicImport.call(this.pluginContext, dynamicImportExpression, module.id)
+				).then(replacement => {
+					if (!replacement) {
+						module.dynamicImportResolutions[index] = {
+							alias: undefined,
+							resolution: undefined
+						};
+						return;
+					}
+					const alias = getAliasName(
+						replacement,
+						typeof dynamicImportExpression === 'string' ? dynamicImportExpression : undefined
+					);
+					if (typeof dynamicImportExpression !== 'string') {
+						module.dynamicImportResolutions[index] = { alias, resolution: replacement };
+					} else if (this.isExternal(replacement, module.id, true)) {
+						let externalModule;
+						if (!this.moduleById.has(replacement)) {
+							externalModule = new ExternalModule({
+								graph: this,
+								id: replacement
+							});
+							this.externalModules.push(externalModule);
+							this.moduleById.set(replacement, module);
+						} else {
+							externalModule = <ExternalModule>this.moduleById.get(replacement);
+						}
+						module.dynamicImportResolutions[index] = { alias, resolution: externalModule };
+						externalModule.exportsNamespace = true;
+					} else {
+						return this.fetchModule(replacement, module.id).then(depModule => {
+							module.dynamicImportResolutions[index] = { alias, resolution: depModule };
 						});
-					})
-			  ).then(() => {});
+					}
+				});
+			})
+		).then(() => {});
 		fetchDynamicImportsPromise.catch(() => {});
 
 		return Promise.all(
@@ -778,7 +779,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 						const externalId =
 							<string>resolvedId ||
 							(isRelative(source) ? resolve(module.id, '..', source) : source);
-						let isExternal = this.isExternal(externalId, module.id, true);
+						let isExternal = this.isExternal.call(this.pluginContext, externalId, module.id, true);
 
 						if (!resolvedId && !isExternal) {
 							if (isRelative(source)) {

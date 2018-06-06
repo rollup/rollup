@@ -1,8 +1,7 @@
 module.exports = {
 	description: 'compact output with compact: true',
 	options: {
-		external: ['external'],
-		experimentalDynamicImport: true
+		external: ['external']
 	},
 	bundleOptions: {
 		compact: true,

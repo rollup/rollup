@@ -1,20 +1,89 @@
 import * as ESTree from 'estree';
-import { Options as AcornOptions } from 'acorn';
 import { decode } from 'sourcemap-codec';
 import { locate } from 'locate-character';
 import error from './error';
 import getCodeFrame from './getCodeFrame';
 import Graph from '../Graph';
-import { defaultAcornOptions } from '../Module';
 import {
 	Plugin,
 	RollupWarning,
 	RollupError,
 	SourceDescription,
+	PluginContext,
 	RawSourceMap
 } from '../rollup/types';
 import Program from '../ast/nodes/Program';
-import { TransformContext } from '../rollup/types';
+
+function augmentCodeLocation<T extends RollupError | RollupWarning>({
+	object,
+	pos,
+	code,
+	id,
+	source,
+	pluginName
+}: {
+	object: T;
+	pos: { line: number; column: number };
+	code: string;
+	id: string;
+	source: string;
+	pluginName: string;
+}): T {
+	if (object.code) object.pluginCode = object.code;
+	object.code = code;
+
+	if (pos !== undefined) {
+		if (pos.line !== undefined && pos.column !== undefined) {
+			const { line, column } = pos;
+			object.loc = { file: id, line, column };
+			object.frame = getCodeFrame(source, line, column);
+		} else {
+			object.pos = <any>pos;
+			const { line, column } = locate(source, pos, { offsetLine: 1 });
+			object.loc = { file: id, line, column };
+			object.frame = getCodeFrame(source, line, column);
+		}
+	}
+
+	object.plugin = pluginName;
+	object.id = id;
+
+	return object;
+}
+
+function createPluginTransformContext(
+	graph: Graph,
+	plugin: Plugin,
+	id: string,
+	source: string
+): PluginContext {
+	return Object.assign({}, graph.pluginContext, {
+		warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
+			if (typeof warning === 'string') warning = { message: warning };
+			warning = augmentCodeLocation({
+				object: warning,
+				pos,
+				code: 'PLUGIN_WARNING',
+				id,
+				source,
+				pluginName: plugin.name || '(anonymous plugin)'
+			});
+			graph.warn(warning);
+		},
+		error(err: RollupError | string, pos?: { line: number; column: number }) {
+			if (typeof err === 'string') err = { message: err };
+			err = augmentCodeLocation({
+				object: err,
+				pos,
+				code: 'PLUGIN_ERROR',
+				id,
+				source,
+				pluginName: plugin.name || '(anonymous plugin)'
+			});
+			error(err);
+		}
+	});
+}
 
 export default function transform(
 	graph: Graph,
@@ -39,67 +108,11 @@ export default function transform(
 		if (!plugin.transform) return;
 
 		promise = promise.then(previous => {
-			function augment<T extends RollupError | RollupWarning>(
-				object: T | string,
-				pos: { line: number; column: number },
-				code: string
-			): T {
-				const outObject = typeof object === 'string' ? <T>{ message: object } : object;
-
-				if (outObject.code) outObject.pluginCode = outObject.code;
-				outObject.code = code;
-
-				if (pos !== undefined) {
-					if (pos.line !== undefined && pos.column !== undefined) {
-						const { line, column } = pos;
-						outObject.loc = { file: id, line, column };
-						outObject.frame = getCodeFrame(previous, line, column);
-					} else {
-						outObject.pos = <any>pos;
-						const { line, column } = locate(previous, pos, { offsetLine: 1 });
-						outObject.loc = { file: id, line, column };
-						outObject.frame = getCodeFrame(previous, line, column);
-					}
-				}
-
-				outObject.plugin = plugin.name;
-				outObject.id = id;
-
-				return outObject;
-			}
-
-			let throwing;
-
-			const context: TransformContext = {
-				parse(code: string, options: AcornOptions = {}) {
-					return graph.acornParse(
-						code,
-						Object.assign({}, defaultAcornOptions, options, graph.acornOptions)
-					);
-				},
-
-				warn(warning: RollupWarning, pos?: { line: number; column: number }) {
-					warning = augment(warning, pos, 'PLUGIN_WARNING');
-					graph.warn(warning);
-				},
-
-				error(err: RollupError, pos?: { line: number; column: number }) {
-					err = augment(err, pos, 'PLUGIN_ERROR');
-					throwing = true;
-					error(err);
-				}
-			};
-
-			let transformed;
-
-			try {
-				transformed = plugin.transform.call(context, previous, id);
-			} catch (err) {
-				if (!throwing) context.error(err);
-				error(err);
-			}
-
-			return Promise.resolve(transformed)
+			return Promise.resolve()
+				.then(() => {
+					const context = createPluginTransformContext(graph, plugin, id, previous);
+					return plugin.transform.call(context, previous, id);
+				})
 				.then(result => {
 					if (result == null) return previous;
 
@@ -128,7 +141,13 @@ export default function transform(
 					return result.code;
 				})
 				.catch(err => {
-					err = augment(err, undefined, 'PLUGIN_ERROR');
+					if (typeof err === 'string') err = { message: err };
+					if (err.code !== 'PLUGIN_ERROR') {
+						if (err.code) err.pluginCode = err.code;
+						err.code = 'PLUGIN_ERROR';
+					}
+					err.plugin = plugin.name;
+					err.id = id;
 					error(err);
 				});
 		});

@@ -131,7 +131,10 @@ export default class VariableDeclaration extends NodeBase {
 					isIdentifier(node.id) &&
 					node.id.variable.exportName
 				) {
-					code.prependLeft(node.init.start, `exports('${node.id.variable.exportName}', `);
+					code.prependLeft(
+						node.init.start,
+						`exports('${node.id.variable.safeExportName || node.id.variable.exportName}', `
+					);
 					nextSeparatorString += ')';
 				}
 				if (isInDeclaration) {

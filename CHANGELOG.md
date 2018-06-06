@@ -2,11 +2,12 @@
 
 ## 0.60.0
 *unreleased*
+* New plugin hooks: transformChunk, buildStart, buildEnd; extended plugin context with warn, error, resolveId, isExternal, emitAsset, setAssetSource and getAssetFileName available to any hook ([#2208](https://github.com/rollup/rollup/pull/2208))
 * [BREAKING] Deprecate the `legacy` option and thus IE8 support ([#2141](https://github.com/rollup/rollup/pull/2141))
 * Detect more known extensions and load .mjs without extension ([#2211](https://github.com/rollup/rollup/pull/2211))
-* Enable naming SystemJS modules ([#2028](https://github.com/rollup/rollup/pull/2028))
 * Add compact output mode ([#2151](https://github.com/rollup/rollup/pull/2151))
 * Significantly improve sourcemap generation performance ([#2228](https://github.com/rollup/rollup/pull/2228))
+* Enable naming SystemJS modules ([#2028](https://github.com/rollup/rollup/pull/2028))
 * Do not use alternate screen if clearScreen is set in watch mode ([#2125](https://github.com/rollup/rollup/pull/2125))
 * Allow object input form for code-splitting in watch mode ([#2217](https://github.com/rollup/rollup/pull/2217))
 * Track reassignments of methods of exports from outside ([#2240](https://github.com/rollup/rollup/pull/2240))

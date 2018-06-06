@@ -16,7 +16,7 @@ export default function amd(
 		intro,
 		outro,
 		dynamicImport,
-		importMeta,
+		needsAmdModule,
 		dependencies,
 		exports,
 		isEntryModuleFacade
@@ -40,7 +40,7 @@ export default function amd(
 		deps.unshift(`'require'`);
 	}
 
-	if (importMeta) {
+	if (needsAmdModule) {
 		args.unshift('module');
 		deps.unshift(`'module'`);
 	}
@@ -63,7 +63,13 @@ export default function amd(
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, options.interop, options.compact);
+	const exportBlock = getExportBlock(
+		exports,
+		dependencies,
+		namedExportsMode,
+		options.interop,
+		options.compact
+	);
 	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (namedExportsMode && hasExports && isEntryModuleFacade)
 		magicString.append(`${n}${n}${options.compact ? compactEsModuleExport : esModuleExport}`);

@@ -9,6 +9,7 @@ export default class ExternalModule {
 	private graph: Graph;
 	chunk: void;
 	declarations: { [name: string]: ExternalVariable };
+	exportedVariables: Map<ExternalVariable, string>;
 	exportsNames = false;
 	exportsNamespace: boolean = false;
 	id: string;
@@ -32,6 +33,7 @@ export default class ExternalModule {
 
 		this.nameSuggestions = Object.create(null);
 		this.declarations = Object.create(null);
+		this.exportedVariables = new Map();
 	}
 
 	setRenderPath(options: OutputOptions, inputBase: string) {
@@ -88,6 +90,11 @@ export default class ExternalModule {
 		if (name !== 'default' && name !== '*') this.exportsNames = true;
 		if (name === '*') this.exportsNamespace = true;
 
-		return this.declarations[name] || (this.declarations[name] = new ExternalVariable(this, name));
+		let declaration = this.declarations[name];
+		if (declaration) return declaration;
+
+		this.declarations[name] = declaration = new ExternalVariable(this, name);
+		this.exportedVariables.set(declaration, name);
+		return declaration;
 	}
 }

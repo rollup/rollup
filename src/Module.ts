@@ -37,6 +37,7 @@ import { RenderOptions } from './utils/renderHelpers';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { NEW_EXECUTION_PATH } from './ast/ExecutionPathOptions';
 import { UNKNOWN_PATH } from './ast/values';
+import MetaProperty from './ast/nodes/MetaProperty';
 
 export interface CommentDescription {
 	block: boolean;
@@ -55,6 +56,7 @@ export interface ImportDescription {
 export interface ExportDescription {
 	localName: string;
 	identifier?: string;
+	node: Node;
 }
 
 export interface ReexportDescription {
@@ -70,14 +72,15 @@ export interface AstContext {
 		node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration
 	) => void;
 	addImport: (node: ImportDeclaration) => void;
+	addImportMeta: (node: MetaProperty) => void;
 	code: string;
 	error: (props: RollupError, pos: number) => void;
 	fileName: string;
+	getAssetFileName: (assetId: string) => string;
 	getExports: () => string[];
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
 	getReexports: () => string[];
-	hasImportMeta: boolean;
 	imports: { [name: string]: ImportDescription };
 	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	includeNamespace: () => void;
@@ -149,7 +152,6 @@ export default class Module {
 	exportsAll: { [name: string]: string };
 	exportAllSources: string[];
 	id: string;
-
 	imports: { [name: string]: ImportDescription };
 	isExternal: false;
 	originalCode: string;
@@ -160,6 +162,7 @@ export default class Module {
 	sourcemapChain: RawSourceMap[];
 	sources: string[];
 	dynamicImports: Import[];
+	importMetas: MetaProperty[];
 	dynamicImportResolutions: {
 		alias: string;
 		resolution: Module | ExternalModule | string | void;
@@ -171,15 +174,11 @@ export default class Module {
 	entryPointsHash: Uint8Array;
 	chunk: Chunk;
 	exportAllModules: (Module | ExternalModule)[];
-	hasImportMeta: boolean = false;
 
 	private ast: Program;
 	private astContext: AstContext;
 	private context: string;
-	private declarations: {
-		'*'?: NamespaceVariable;
-		[name: string]: Variable | undefined;
-	};
+	private namespaceVariable: NamespaceVariable = undefined;
 	private esTreeAst: ESTree.Program;
 	private magicString: MagicString;
 	private needsTreeshakingPass: boolean = false;
@@ -190,10 +189,9 @@ export default class Module {
 		this.graph = graph;
 		this.comments = [];
 
-		if (graph.dynamicImport) {
-			this.dynamicImports = [];
-			this.dynamicImportResolutions = [];
-		}
+		this.dynamicImports = [];
+		this.importMetas = [];
+		this.dynamicImportResolutions = [];
 		this.isEntryPoint = false;
 		this.execIndex = null;
 		this.entryPointsHash = new Uint8Array(10);
@@ -213,8 +211,6 @@ export default class Module {
 
 		this.exportAllSources = [];
 		this.exportAllModules = null;
-
-		this.declarations = Object.create(null);
 	}
 
 	setSource({
@@ -254,15 +250,16 @@ export default class Module {
 			addDynamicImport: this.addDynamicImport.bind(this),
 			addExport: this.addExport.bind(this),
 			addImport: this.addImport.bind(this),
+			addImportMeta: this.addImportMeta.bind(this),
 			code, // Only needed for debugging
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
+			getAssetFileName: this.graph.pluginContext.getAssetFileName,
 			getExports: this.getExports.bind(this),
 			getReexports: this.getReexports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
 			includeNamespace: this.includeNamespace.bind(this),
-			hasImportMeta: false,
 			imports: this.imports,
 			isCrossChunkImport: importDescription => importDescription.module.chunk !== this.chunk,
 			magicString: this.magicString,
@@ -351,7 +348,8 @@ export default class Module {
 
 			this.exports.default = {
 				localName: 'default',
-				identifier
+				identifier,
+				node
 			};
 		} else if ((<ExportNamedDeclaration>node).declaration) {
 			// export var { foo, bar } = ...
@@ -363,13 +361,13 @@ export default class Module {
 			if (declaration.type === NodeType.VariableDeclaration) {
 				for (const decl of declaration.declarations) {
 					for (const localName of extractNames(decl.id)) {
-						this.exports[localName] = { localName };
+						this.exports[localName] = { localName, node };
 					}
 				}
 			} else {
 				// export function foo () {}
 				const localName = declaration.id.name;
-				this.exports[localName] = { localName };
+				this.exports[localName] = { localName, node };
 			}
 		} else {
 			// export { foo, bar, baz }
@@ -387,7 +385,7 @@ export default class Module {
 					);
 				}
 
-				this.exports[exportedName] = { localName };
+				this.exports[exportedName] = { localName, node };
 			}
 		}
 	}
@@ -424,6 +422,10 @@ export default class Module {
 
 	private addDynamicImport(node: Import) {
 		this.dynamicImports.push(node);
+	}
+
+	private addImportMeta(node: MetaProperty) {
+		this.importMetas.push(node);
 	}
 
 	basename() {
@@ -602,10 +604,9 @@ export default class Module {
 	}
 
 	getOrCreateNamespace(): NamespaceVariable {
-		const namespace = this.declarations['*'];
-		if (namespace) return namespace;
+		if (this.namespaceVariable) return this.namespaceVariable;
 
-		return (this.declarations['*'] = new NamespaceVariable(this.astContext));
+		return (this.namespaceVariable = new NamespaceVariable(this.astContext));
 	}
 
 	private includeNamespace() {
@@ -631,7 +632,6 @@ export default class Module {
 	render(options: RenderOptions): MagicString {
 		const magicString = this.magicString.clone();
 		this.ast.render(magicString, options);
-		this.hasImportMeta = this.astContext.hasImportMeta;
 		return magicString;
 	}
 
@@ -665,7 +665,8 @@ export default class Module {
 			const declaration = otherModule.traceExport(importDeclaration.name);
 
 			if (!declaration) {
-				this.graph.handleMissingExport(
+				this.graph.handleMissingExport.call(
+					this.graph.pluginContext,
 					importDeclaration.name,
 					this,
 					otherModule.id,
@@ -677,6 +678,17 @@ export default class Module {
 		}
 
 		return null;
+	}
+
+	getRenderedExports() {
+		// only direct exports are counted here, not reexports at all
+		const renderedExports: string[] = [];
+		const removedExports: string[] = [];
+		for (let exportName in this.exports) {
+			const expt = this.exports[exportName];
+			(expt.node.included ? renderedExports : removedExports).push(exportName);
+		}
+		return { renderedExports, removedExports };
 	}
 
 	traceExport(name: string): Variable {
@@ -697,7 +709,8 @@ export default class Module {
 			const declaration = reexportDeclaration.module.traceExport(reexportDeclaration.localName);
 
 			if (!declaration) {
-				this.graph.handleMissingExport(
+				this.graph.handleMissingExport.call(
+					this.graph.pluginContext,
 					reexportDeclaration.localName,
 					this,
 					reexportDeclaration.module.id,
@@ -711,9 +724,9 @@ export default class Module {
 		const exportDeclaration = this.exports[name];
 		if (exportDeclaration) {
 			const name = exportDeclaration.localName;
-			const declaration = this.traceVariable(name);
+			const declaration = this.traceVariable(name) || this.graph.scope.findVariable(name);
 
-			return declaration || this.graph.scope.findVariable(name);
+			return declaration;
 		}
 
 		if (name === 'default') return;
