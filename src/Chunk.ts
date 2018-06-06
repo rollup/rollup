@@ -466,7 +466,7 @@ export default class Chunk {
 		function getSafeName(name: string): string {
 			let safeName = name;
 			while (used[safeName]) {
-				safeName = `${name}$${toBase64(used[name]++)}`;
+				safeName = `${name}$${toBase64(used[name]++, true)}`;
 			}
 			used[safeName] = 1;
 			return safeName;
