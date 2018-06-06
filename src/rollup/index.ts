@@ -270,9 +270,10 @@ export default function rollup(
 
 							// render chunk import statements and finalizer wrappers given known names
 							return Promise.all(
-								chunks.map(chunk =>
-									chunk.render(outputOptions, addons).then(rendered => {
-										const outputChunk = <OutputChunk>outputBundle[chunk.id];
+								chunks.map(chunk => {
+									const chunkId = chunk.id;
+									return chunk.render(outputOptions, addons).then(rendered => {
+										const outputChunk = <OutputChunk>outputBundle[chunkId];
 										outputChunk.code = rendered.code;
 										outputChunk.map = rendered.map;
 
@@ -287,8 +288,8 @@ export default function rollup(
 													)
 												)
 										);
-									})
-								)
+									});
+								})
 							).then(() => {});
 						})
 						.then(() => {
