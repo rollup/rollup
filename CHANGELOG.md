@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 0.60.0
-*unreleased*
+*2018-06-06*
 * New plugin hooks: transformChunk, buildStart, buildEnd; extended plugin context with warn, error, resolveId, isExternal, emitAsset, setAssetSource and getAssetFileName available to any hook ([#2208](https://github.com/rollup/rollup/pull/2208))
 * [BREAKING] Deprecate the `legacy` option and thus IE8 support ([#2141](https://github.com/rollup/rollup/pull/2141))
 * Detect more known extensions and load .mjs without extension ([#2211](https://github.com/rollup/rollup/pull/2211))
