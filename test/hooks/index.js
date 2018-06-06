@@ -28,20 +28,20 @@ describe('hooks', () => {
 				assert.equal(buildEndCnt, 1);
 
 				return rollup
-				.rollup({
-					input: 'input',
-					plugins: [
-						loader({ input: `invalid_source - @#$%^&*` }),
-						{
-							buildStart () {
-								buildStartCnt++;
-							},
-							buildEnd () {
-								buildEndCnt++;
+					.rollup({
+						input: 'input',
+						plugins: [
+							loader({ input: `invalid_source - @#$%^&*` }),
+							{
+								buildStart () {
+									buildStartCnt++;
+								},
+								buildEnd () {
+									buildEndCnt++;
+								}
 							}
-						}
-					]
-				})
+						]
+					});
 			})
 			.catch(err => {
 				assert.ok(err);
@@ -84,7 +84,6 @@ describe('hooks', () => {
 	});
 
 	it('supports isExternal on plugin context', () => {
-		let callCnt = 0;
 		return rollup
 			.rollup({
 				input: 'input',
@@ -102,7 +101,6 @@ describe('hooks', () => {
 	});
 
 	it('supports resolveId on plugin context', () => {
-		let callCnt = 0;
 		return rollup
 			.rollup({
 				input: 'input',
@@ -113,7 +111,7 @@ describe('hooks', () => {
 						dep2: `alert('hello')`
 					}),
 					{
-						resolveId (id, parent) {
+						resolveId (id) {
 							if (id === 'test')
 								return 'dep1';
 							if (id === 'next')
@@ -257,7 +255,7 @@ describe('hooks', () => {
 				plugins: [
 					loader({ input: '' }),
 					{
-						transform (code, id) {
+						transform () {
 							const assetId = this.emitAsset('test.ext', 'hello world');
 							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
 						}
@@ -269,7 +267,7 @@ describe('hooks', () => {
 			})
 			.then(({ output }) => {
 				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
-				assert.equal(output['input.js'].code, `var input = new URL(\'../assets/test-19916f7d.ext\', import.meta.url).href;\n\nexport default input;\n`);
+				assert.equal(output['input.js'].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
 			});
 	});
 
@@ -281,7 +279,7 @@ describe('hooks', () => {
 				plugins: [
 					loader({ input: '' }),
 					{
-						transform (code, id) {
+						transform () {
 							const assetId = this.emitAsset('test.ext', 'hello world');
 							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
 						}
@@ -309,8 +307,8 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						transform (code, id) {
-							const assetId = this.emitAsset('test.ext', 'hello world');
+						transform () {
+							this.emitAsset('test.ext', 'hello world');
 							return '';
 						}
 					}
@@ -336,7 +334,7 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						transform (code, id) {
+						transform () {
 							assetId = this.emitAsset('test.ext');
 							return '';
 						},
@@ -362,7 +360,7 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						transform (code, id) {
+						transform () {
 							const assetId = this.emitAsset('test.ext');
 							this.setAssetSource(assetId, 'hello world');
 							try {
@@ -397,7 +395,7 @@ module.exports = input;
 						transformBundle (code, id) {
 							calledHook = true;
 							try {
-								const assetId = this.emitAsset('test.ext', 'hello world');
+								this.emitAsset('test.ext', 'hello world');
 							}
 							catch (e) {
 								assert.equal(e.code, 'ASSETS_ALREADY_FINALISED');
@@ -429,7 +427,7 @@ module.exports = input;
 						transformChunk (code, id) {
 							calledHook = true;
 							try {
-								const assetId = this.emitAsset('test.ext', 'hello world');
+								this.emitAsset('test.ext', 'hello world');
 							}
 							catch (e) {
 								assert.equal(e.code, 'ASSETS_ALREADY_FINALISED');
@@ -458,13 +456,13 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						transform (code, id) {
+						transform () {
 							const assetId = this.emitAsset('test.ext', 'hello world');
 							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
 						},
 						generateBundle (options, outputBundle, isWrite) {
 							assert.equal(outputBundle['assets/test-19916f7d.ext'], 'hello world');
-							assert.equal(outputBundle['input.js'].code, `var input = new URL(\'../assets/test-19916f7d.ext\', import.meta.url).href;\n\nexport default input;\n`);
+							assert.equal(outputBundle['input.js'].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
 						}
 					}
 				]
@@ -482,7 +480,7 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						generateBundle (options, outputBundle, isWrite) {
+						generateBundle (options) {
 							if (options.format === 'es') {
 								const depAssetId = this.emitAsset('lateDepAsset', 'custom source');
 								const source = `references ${this.getAssetFileName(depAssetId)}`;
@@ -498,10 +496,10 @@ module.exports = input;
 			})
 			.then(bundle =>
 				bundle.generate({ format: 'es' })
-				.then(outputBundle1 =>
-					bundle.generate({ format: 'cjs' })
-					.then(outputBundle2 => [outputBundle1, outputBundle2])
-				)
+					.then(outputBundle1 =>
+						bundle.generate({ format: 'cjs' })
+							.then(outputBundle2 => [outputBundle1, outputBundle2])
+					)
 			)
 			.then(([{ output: output1 }, { output: output2 }]) => {
 				assert.equal(output1['input.js'].code, `alert('hello');\n`);
@@ -524,7 +522,7 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						generateBundle (options, outputBundle, isWrite) {
+						generateBundle () {
 							this.error('test error');
 						}
 					}

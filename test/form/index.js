@@ -1,5 +1,4 @@
 const path = require('path');
-const fs = require('fs');
 const assert = require('assert');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
