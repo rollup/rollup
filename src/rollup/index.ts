@@ -94,7 +94,7 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
-	const { inputOptions, deprecations, optionError } = mergeOptions({
+	let { inputOptions, deprecations, optionError } = mergeOptions({
 		config: rawInputOptions,
 		deprecateConfig: { input: true }
 	});
@@ -104,7 +104,63 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 
 	checkInputOptions(inputOptions);
 	inputOptions.plugins = ensureArray(inputOptions.plugins);
-	return inputOptions.plugins.reduce(applyOptionHook, inputOptions);
+	inputOptions = inputOptions.plugins.reduce(applyOptionHook, inputOptions);
+
+	if (!inputOptions.experimentalCodeSplitting) {
+		inputOptions.inlineDynamicImports = true;
+		if (inputOptions.manualChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"manualChunks" option is only supported for experimentalCodeSplitting.'
+			});
+		if (inputOptions.optimizeChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"optimizeChunks" option is only supported for experimentalCodeSplitting.'
+			});
+		if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
+			error({
+				code: 'INVALID_OPTION',
+				message: 'Multiple inputs are only supported for experimentalCodeSplitting.'
+			});
+	}
+
+	if (inputOptions.inlineDynamicImports) {
+		if (inputOptions.manualChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"manualChunks" option is not supported for inlineDynamicImports.'
+			});
+
+		if (inputOptions.optimizeChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"optimizeChunks" option is not supported for inlineDynamicImports.'
+			});
+		if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
+			error({
+				code: 'INVALID_OPTION',
+				message: 'Multiple inputs are not supported for inlineDynamicImports.'
+			});
+	} else if (inputOptions.experimentalPreserveModules) {
+		if (inputOptions.inlineDynamicImports)
+			error({
+				code: 'INVALID_OPTION',
+				message: `experimentalPreserveModules does not support the inlineDynamicImports option.`
+			});
+		if (inputOptions.manualChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: 'experimentalPreserveModules does not support the manualChunks option.'
+			});
+		if (inputOptions.optimizeChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: 'experimentalPreserveModules does not support the optimizeChunks option.'
+			});
+	}
+
+	return inputOptions;
 }
 
 export default function rollup(
@@ -112,6 +168,7 @@ export default function rollup(
 ): Promise<RollupSingleFileBuild | RollupBuild> {
 	try {
 		const inputOptions = getInputOptions(rawInputOptions);
+
 		initialiseTimers(inputOptions);
 		const graph = new Graph(inputOptions);
 
