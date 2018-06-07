@@ -1,9 +1,9 @@
-import { ExpressionNode, NodeBase } from './shared/Node';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import FunctionExpression from './FunctionExpression';
 import CallOptions from '../CallOptions';
-import * as NodeType from './NodeType';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath } from '../values';
+import FunctionExpression from './FunctionExpression';
+import * as NodeType from './NodeType';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class MethodDefinition extends NodeBase {
 	type: NodeType.tMethodDefinition;

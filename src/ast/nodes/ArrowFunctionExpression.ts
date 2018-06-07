@@ -1,13 +1,13 @@
-import Scope from '../scopes/Scope';
-import ReturnValueScope from '../scopes/ReturnValueScope';
-import BlockStatement from './BlockStatement';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { PatternNode } from './shared/Pattern';
-import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
+import ReturnValueScope from '../scopes/ReturnValueScope';
+import Scope from '../scopes/Scope';
 import { ObjectPath } from '../values';
+import BlockStatement from './BlockStatement';
 import * as NodeType from './NodeType';
+import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
+import { PatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends NodeBase {
 	type: NodeType.tArrowFunctionExpression;

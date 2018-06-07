@@ -1,7 +1,3 @@
-import SpreadElement from './SpreadElement';
-import { SomeReturnExpressionCallback } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
-import * as NodeType from './NodeType';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
@@ -10,6 +6,10 @@ import {
 	ObjectPath,
 	someMemberReturnExpressionWhenCalled
 } from '../values';
+import * as NodeType from './NodeType';
+import { SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionNode, NodeBase } from './shared/Node';
+import SpreadElement from './SpreadElement';
 
 export default class ArrayExpression extends NodeBase {
 	type: NodeType.tArrayExpression;

@@ -1,9 +1,11 @@
-import ensureArray from './ensureArray';
-import deprecateOptions, { Deprecation } from './deprecateOptions';
 import { InputOptions, OutputOptions, WarningHandler } from '../rollup/types';
+import deprecateOptions, { Deprecation } from './deprecateOptions';
+import ensureArray from './ensureArray';
 import error from './error';
 
-export type GenericConfigObject = { [key: string]: any };
+export interface GenericConfigObject {
+	[key: string]: any;
+}
 
 const createGetOption = (config: GenericConfigObject, command: GenericConfigObject) => (
 	name: string,
@@ -223,7 +225,7 @@ function getInputOptions(
 	if (Array.isArray(inputOptions.input)) {
 		inputOptions.entry = inputOptions.input[0];
 	} else if (typeof inputOptions.input === 'object') {
-		for (let name in inputOptions.input) {
+		for (const name in inputOptions.input) {
 			inputOptions.entry = inputOptions.input[name];
 			break;
 		}

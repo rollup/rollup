@@ -1,9 +1,9 @@
-import BlockScope from '../scopes/BlockScope';
-import SwitchCase from './SwitchCase';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
+import SwitchCase from './SwitchCase';
 
 export default class SwitchStatement extends StatementBase {
 	type: NodeType.tSwitchStatement;

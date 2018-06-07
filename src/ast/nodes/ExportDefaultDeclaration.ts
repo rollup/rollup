@@ -1,16 +1,16 @@
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
-import ExportDefaultVariable from '../variables/ExportDefaultVariable';
-import ClassDeclaration, { isClassDeclaration } from './ClassDeclaration';
-import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaration';
-import Identifier, { isIdentifier } from './Identifier';
 import MagicString from 'magic-string';
-import * as NodeType from './NodeType';
+import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
-import { BLANK } from '../../utils/blank';
+import ExportDefaultVariable from '../variables/ExportDefaultVariable';
+import ClassDeclaration, { isClassDeclaration } from './ClassDeclaration';
+import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaration';
+import Identifier, { isIdentifier } from './Identifier';
+import * as NodeType from './NodeType';
+import { ExpressionNode, Node, NodeBase } from './shared/Node';
 
 const WHITESPACE = /\s/;
 

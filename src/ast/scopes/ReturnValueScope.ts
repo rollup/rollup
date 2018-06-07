@@ -1,4 +1,3 @@
-import ParameterScope from './ParameterScope';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
 import {
@@ -7,6 +6,7 @@ import {
 	SomeReturnExpressionCallback
 } from '../nodes/shared/Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_PATH } from '../values';
+import ParameterScope from './ParameterScope';
 
 export default class ReturnValueScope extends ParameterScope {
 	private returnExpressions: ExpressionEntity[] = [];

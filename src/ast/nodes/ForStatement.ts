@@ -1,11 +1,11 @@
-import BlockScope from '../scopes/BlockScope';
-import VariableDeclaration from './VariableDeclaration';
+import MagicString from 'magic-string';
+import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
 import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
-import MagicString from 'magic-string';
-import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
+import VariableDeclaration from './VariableDeclaration';
 
 export function isForStatement(node: Node): node is ForStatement {
 	return node.type === NodeType.ForStatement;

@@ -1,16 +1,16 @@
-import Variable from './Variable';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
-import Identifier from '../nodes/Identifier';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
+import Identifier from '../nodes/Identifier';
+import * as NodeType from '../nodes/NodeType';
 import {
 	ExpressionEntity,
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from '../nodes/shared/Expression';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
 import { Node } from '../nodes/shared/Node';
-import * as NodeType from '../nodes/NodeType';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import Variable from './Variable';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;

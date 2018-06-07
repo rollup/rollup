@@ -1,12 +1,12 @@
 import Immutable from 'immutable';
-import CallExpression from './nodes/CallExpression';
 import CallOptions from './CallOptions';
-import ThisVariable from './variables/ThisVariable';
-import ParameterVariable from './variables/ParameterVariable';
 import { Entity, WritableEntity } from './Entity';
+import CallExpression from './nodes/CallExpression';
 import Property from './nodes/Property';
 import { ExpressionEntity } from './nodes/shared/Expression';
 import { ObjectPath } from './values';
+import ParameterVariable from './variables/ParameterVariable';
+import ThisVariable from './variables/ThisVariable';
 
 export enum OptionTypes {
 	IGNORED_LABELS,
@@ -23,7 +23,7 @@ export enum OptionTypes {
 	RETURN_EXPRESSIONS_CALLED_AT_PATH
 }
 
-export type RESULT_KEY = {};
+export interface RESULT_KEY {}
 export const RESULT_KEY: RESULT_KEY = {};
 export type KeyTypes = OptionTypes | Entity | RESULT_KEY;
 

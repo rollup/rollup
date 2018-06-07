@@ -1,11 +1,11 @@
-import Identifier from './Identifier';
-import * as NodeType from './NodeType';
-import { NodeBase } from './shared/Node';
 import MagicString from 'magic-string';
+import { dirname, normalize, relative } from '../../utils/path';
 import { RenderOptions } from '../../utils/renderHelpers';
+import Identifier from './Identifier';
 import Literal from './Literal';
 import MemberExpression from './MemberExpression';
-import { dirname, relative, normalize } from '../../utils/path';
+import * as NodeType from './NodeType';
+import { NodeBase } from './shared/Node';
 
 const globalImportMetaUrlMechanism = `(typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || document.baseURI : new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)('file:' + __filename).href)`;
 const importMetaUrlMechanisms: Record<string, string> = {

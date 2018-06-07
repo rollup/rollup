@@ -1,9 +1,9 @@
+import CallExpression from './nodes/CallExpression';
+import NewExpression from './nodes/NewExpression';
+import Property from './nodes/Property';
 import { ExpressionEntity } from './nodes/shared/Expression';
 import SpreadElement from './nodes/SpreadElement';
 import TaggedTemplateExpression from './nodes/TaggedTemplateExpression';
-import NewExpression from './nodes/NewExpression';
-import Property from './nodes/Property';
-import CallExpression from './nodes/CallExpression';
 
 export type CallExpressionType =
 	| TaggedTemplateExpression

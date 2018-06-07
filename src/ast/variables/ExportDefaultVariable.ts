@@ -1,8 +1,8 @@
-import LocalVariable from './LocalVariable';
+import ClassDeclaration from '../nodes/ClassDeclaration';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
-import ClassDeclaration from '../nodes/ClassDeclaration';
 import Identifier from '../nodes/Identifier';
+import LocalVariable from './LocalVariable';
 import Variable from './Variable';
 
 export function isExportDefaultVariable(variable: Variable): variable is ExportDefaultVariable {

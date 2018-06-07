@@ -1,10 +1,10 @@
-import relativeId from '../../utils/relativeId';
-import Scope from './Scope';
-import LocalVariable from '../variables/LocalVariable';
-import { UNKNOWN_EXPRESSION } from '../values';
 import Module, { AstContext } from '../../Module';
-import Variable from '../variables/Variable';
+import relativeId from '../../utils/relativeId';
+import { UNKNOWN_EXPRESSION } from '../values';
+import LocalVariable from '../variables/LocalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
+import Variable from '../variables/Variable';
+import Scope from './Scope';
 
 const addDeclaredNames = (variable: Variable, names: Set<string>) => {
 	if (variable.isNamespace && !variable.isExternal) {
@@ -29,7 +29,7 @@ export default class ModuleScope extends Scope {
 	}
 
 	deshadow(names: Set<string>, children = this.children) {
-		let localNames = new Set(names);
+		const localNames = new Set(names);
 
 		for (const importName of Object.keys(this.context.imports)) {
 			const importDescription = this.context.imports[importName];

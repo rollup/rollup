@@ -1,9 +1,9 @@
-import { GenericEsTreeNode, NodeBase } from './shared/Node';
 import CatchScope from '../scopes/CatchScope';
-import BlockStatement from './BlockStatement';
 import Scope from '../scopes/Scope';
-import { PatternNode } from './shared/Pattern';
+import BlockStatement from './BlockStatement';
 import * as NodeType from './NodeType';
+import { GenericEsTreeNode, NodeBase } from './shared/Node';
+import { PatternNode } from './shared/Pattern';
 
 export default class CatchClause extends NodeBase {
 	type: NodeType.tCatchClause;

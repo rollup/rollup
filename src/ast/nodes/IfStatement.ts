@@ -1,9 +1,9 @@
-import { EMPTY_PATH, UNKNOWN_VALUE } from '../values';
-import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
 import MagicString from 'magic-string';
-import * as NodeType from './NodeType';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { EMPTY_PATH, UNKNOWN_VALUE } from '../values';
+import * as NodeType from './NodeType';
+import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
 
 export default class IfStatement extends StatementBase {
 	type: NodeType.tIfStatement;

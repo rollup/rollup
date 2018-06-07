@@ -1,23 +1,23 @@
-import fs from 'fs';
-import * as rollup from 'rollup';
 import chalk from 'chalk';
-import ms from 'pretty-ms';
-import onExit from 'signal-exit';
 import dateTime from 'date-time';
+import fs from 'fs';
+import ms from 'pretty-ms';
+import * as rollup from 'rollup';
+import onExit from 'signal-exit';
+import {
+	InputOption,
+	RollupBuild,
+	RollupError,
+	RollupSingleFileBuild,
+	RollupWatchOptions
+} from '../../../src/rollup/types';
 import mergeOptions from '../../../src/utils/mergeOptions';
-import batchWarnings from './batchWarnings';
-import alternateScreen from './alternateScreen';
-import loadConfigFile from './loadConfigFile';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
+import alternateScreen from './alternateScreen';
+import batchWarnings from './batchWarnings';
+import loadConfigFile from './loadConfigFile';
 import { printTimings } from './timings';
-import {
-	RollupError,
-	RollupWatchOptions,
-	RollupSingleFileBuild,
-	RollupBuild,
-	InputOption
-} from '../../../src/rollup/types';
 interface WatchEvent {
 	code?: string;
 	error?: RollupError | Error;
@@ -92,7 +92,7 @@ export default function watch(
 	function start(configs: RollupWatchOptions[]) {
 		screen.reset(chalk.underline(`rollup v${rollup.VERSION}`));
 
-		let screenWriter = processConfigsErr || screen.reset;
+		const screenWriter = processConfigsErr || screen.reset;
 
 		watcher = rollup.watch(configs);
 

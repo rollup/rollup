@@ -1,18 +1,18 @@
 import * as ESTree from 'estree';
-import { decode } from 'sourcemap-codec';
 import { locate } from 'locate-character';
-import error from './error';
-import getCodeFrame from './getCodeFrame';
+import { decode } from 'sourcemap-codec';
+import Program from '../ast/nodes/Program';
 import Graph from '../Graph';
 import {
 	Plugin,
-	RollupWarning,
-	RollupError,
-	SourceDescription,
 	PluginContext,
-	RawSourceMap
+	RawSourceMap,
+	RollupError,
+	RollupWarning,
+	SourceDescription
 } from '../rollup/types';
-import Program from '../ast/nodes/Program';
+import error from './error';
+import getCodeFrame from './getCodeFrame';
 
 function augmentCodeLocation<T extends RollupError | RollupWarning>({
 	object,

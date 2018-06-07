@@ -1,8 +1,8 @@
-import { ExpressionNode, NodeBase } from './shared/Node';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { PatternNode } from './shared/Pattern';
-import * as NodeType from './NodeType';
 import { ObjectPath } from '../values';
+import * as NodeType from './NodeType';
+import { ExpressionNode, NodeBase } from './shared/Node';
+import { PatternNode } from './shared/Pattern';
 
 export default class VariableDeclarator extends NodeBase {
 	type: NodeType.tVariableDeclarator;

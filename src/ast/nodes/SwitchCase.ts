@@ -1,11 +1,11 @@
-import { ExpressionNode, NodeBase, StatementNode } from './shared/Node';
-import * as NodeType from './NodeType';
+import MagicString from 'magic-string';
 import {
 	findFirstOccurrenceOutsideComment,
 	RenderOptions,
 	renderStatementList
 } from '../../utils/renderHelpers';
-import MagicString from 'magic-string';
+import * as NodeType from './NodeType';
+import { ExpressionNode, NodeBase, StatementNode } from './shared/Node';
 
 export default class SwitchCase extends NodeBase {
 	type: NodeType.tSwitchCase;

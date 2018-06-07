@@ -1,7 +1,7 @@
-import { ModuleDeclarations } from '../Chunk';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { FinaliserOptions } from './index';
+import { ModuleDeclarations } from '../Chunk';
 import { OutputOptions } from '../rollup/types';
+import { FinaliserOptions } from './index';
 
 function getStarExcludes({ dependencies, exports }: ModuleDeclarations) {
 	const starExcludes = new Set(exports.map(expt => expt.exported));
@@ -33,7 +33,7 @@ export default function system(
 	const varOrConst = graph.varOrConst;
 
 	dependencies.forEach(({ imports, reexports }) => {
-		let setter: string[] = [];
+		const setter: string[] = [];
 		if (imports) {
 			imports.forEach(specifier => {
 				importBindings.push(specifier.local);

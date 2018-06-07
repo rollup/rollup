@@ -1,5 +1,5 @@
-import { OutputOptions } from '../../rollup/types';
 import { ModuleDeclarationDependency } from '../../Chunk';
+import { OutputOptions } from '../../rollup/types';
 
 export default function getInteropBlock(
 	dependencies: ModuleDeclarationDependency[],

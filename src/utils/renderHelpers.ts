@@ -1,5 +1,5 @@
-import { Node, StatementNode } from '../ast/nodes/shared/Node';
 import MagicString from 'magic-string';
+import { Node, StatementNode } from '../ast/nodes/shared/Node';
 
 export interface RenderOptions {
 	compact: boolean;

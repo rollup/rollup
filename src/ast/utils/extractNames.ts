@@ -1,9 +1,9 @@
-import Identifier from '../nodes/Identifier';
-import { Node } from '../nodes/shared/Node';
-import ObjectPattern from '../nodes/ObjectPattern';
 import ArrayPattern from '../nodes/ArrayPattern';
-import RestElement from '../nodes/RestElement';
 import AssignmentPattern from '../nodes/AssignmentPattern';
+import Identifier from '../nodes/Identifier';
+import ObjectPattern from '../nodes/ObjectPattern';
+import RestElement from '../nodes/RestElement';
+import { Node } from '../nodes/shared/Node';
 
 export default function extractNames(param: Node) {
 	const names: string[] = [];

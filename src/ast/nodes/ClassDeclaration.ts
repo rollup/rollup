@@ -1,10 +1,10 @@
-import ClassNode from './shared/ClassNode';
-import Identifier from './Identifier';
 import MagicString from 'magic-string';
-import * as NodeType from './NodeType';
-import { GenericEsTreeNode, Node } from './shared/Node';
 import { RenderOptions } from '../../utils/renderHelpers';
 import Scope from '../scopes/Scope';
+import Identifier from './Identifier';
+import * as NodeType from './NodeType';
+import ClassNode from './shared/ClassNode';
+import { GenericEsTreeNode, Node } from './shared/Node';
 
 export function isClassDeclaration(node: Node): node is ClassDeclaration {
 	return node.type === NodeType.ClassDeclaration;

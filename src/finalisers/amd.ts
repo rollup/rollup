@@ -1,10 +1,10 @@
-import getInteropBlock from './shared/getInteropBlock';
-import getExportBlock from './shared/getExportBlock';
-import { esModuleExport, compactEsModuleExport } from './shared/esModuleExport';
-import warnOnBuiltins from './shared/warnOnBuiltins';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/types';
 import { FinaliserOptions } from './index';
+import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
+import getExportBlock from './shared/getExportBlock';
+import getInteropBlock from './shared/getInteropBlock';
+import warnOnBuiltins from './shared/warnOnBuiltins';
 
 export default function amd(
 	magicString: MagicStringBundle,

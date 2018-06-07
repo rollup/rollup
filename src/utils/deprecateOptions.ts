@@ -3,7 +3,10 @@
 // unlike the config file which passes whole options in one go
 import { GenericConfigObject } from './mergeOptions';
 
-export type Deprecation = { old: string; new: string };
+export interface Deprecation {
+	old: string;
+	new: string;
+}
 
 export default function deprecateOptions(
 	options: GenericConfigObject,

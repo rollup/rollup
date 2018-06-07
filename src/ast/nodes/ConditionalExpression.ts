@@ -1,13 +1,13 @@
-import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE, EMPTY_PATH } from '../values';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
-import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import CallExpression from './CallExpression';
 import { BLANK } from '../../utils/blank';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import CallOptions from '../CallOptions';
+import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import CallExpression from './CallExpression';
+import * as NodeType from './NodeType';
+import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class ConditionalExpression extends NodeBase {
 	type: NodeType.tConditionalExpression;

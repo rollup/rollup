@@ -1,7 +1,7 @@
-import { WritableEntity } from '../../Entity';
 import CallOptions from '../../CallOptions';
+import { WritableEntity } from '../../Entity';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
-import { ObjectPath, LiteralValueOrUnknown } from '../../values';
+import { LiteralValueOrUnknown, ObjectPath } from '../../values';
 
 export type SomeReturnExpressionCallback = (
 	options: ExecutionPathOptions,

@@ -1,4 +1,4 @@
-import { ChunkExports, ChunkDependencies } from '../../Chunk';
+import { ChunkDependencies, ChunkExports } from '../../Chunk';
 
 export default function getExportBlock(
 	exports: ChunkExports,
@@ -64,9 +64,10 @@ export default function getExportBlock(
 							));
 					if (exportBlock && !compact) exportBlock += '\n';
 					if (exportsNamesOrNamespace)
-						exportBlock += `exports.${specifier.reexported}${_}=${_}${name}${interop !== false ? '__default' : '.default'};`;
-					else
-						exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
+						exportBlock += `exports.${specifier.reexported}${_}=${_}${name}${
+							interop !== false ? '__default' : '.default'
+						};`;
+					else exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
 				} else if (specifier.imported !== '*') {
 					if (exportBlock && !compact) exportBlock += '\n';
 					exportBlock += `exports.${specifier.reexported}${_}=${_}${name}.${specifier.imported};`;

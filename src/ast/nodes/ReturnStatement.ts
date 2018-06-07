@@ -1,9 +1,9 @@
-import { UNKNOWN_EXPRESSION } from '../values';
+import MagicString from 'magic-string';
+import { RenderOptions } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
-import { RenderOptions } from '../../utils/renderHelpers';
-import MagicString from 'magic-string';
 
 export default class ReturnStatement extends StatementBase {
 	type: NodeType.tReturnStatement;

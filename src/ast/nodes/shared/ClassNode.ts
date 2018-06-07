@@ -1,10 +1,10 @@
-import Scope from '../../scopes/Scope';
 import CallOptions from '../../CallOptions';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
-import Identifier from '../Identifier';
-import ClassBody from '../ClassBody';
-import { ExpressionNode, NodeBase } from './Node';
+import Scope from '../../scopes/Scope';
 import { ObjectPath } from '../../values';
+import ClassBody from '../ClassBody';
+import Identifier from '../Identifier';
+import { ExpressionNode, NodeBase } from './Node';
 
 export default class ClassNode extends NodeBase {
 	body: ClassBody;

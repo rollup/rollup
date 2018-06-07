@@ -1,9 +1,9 @@
+import Module from '../Module';
+import { InputOptions } from '../rollup/types';
+import error from './error';
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path';
-import error from './error';
-import Module from '../Module';
 import relativeId from './relativeId';
-import { InputOptions } from '../rollup/types';
 
 export function load(id: string) {
 	return readFileSync(id, 'utf-8');

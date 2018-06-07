@@ -1,7 +1,7 @@
-import Variable from './Variable';
-import Identifier from '../nodes/Identifier';
 import { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
+import Identifier from '../nodes/Identifier';
+import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
 	isNamespace: true;

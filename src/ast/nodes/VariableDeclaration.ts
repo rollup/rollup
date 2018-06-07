@@ -1,17 +1,17 @@
-import { Node, NodeBase } from './shared/Node';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
-import VariableDeclarator from './VariableDeclarator';
 import MagicString from 'magic-string';
-import * as NodeType from './NodeType';
+import { BLANK } from '../../utils/blank';
 import {
 	getCommaSeparatedNodesWithBoundaries,
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
-import { isIdentifier } from './Identifier';
-import Variable from '../variables/Variable';
+import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath } from '../values';
-import { BLANK } from '../../utils/blank';
+import Variable from '../variables/Variable';
+import { isIdentifier } from './Identifier';
+import * as NodeType from './NodeType';
+import { Node, NodeBase } from './shared/Node';
+import VariableDeclarator from './VariableDeclarator';
 
 function isReassignedExportsMember(variable: Variable): boolean {
 	return (

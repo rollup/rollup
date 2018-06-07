@@ -1,22 +1,22 @@
-import { Node, NodeBase } from './shared/Node';
 import isReference from 'is-reference';
-import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import Variable from '../variables/Variable';
-import CallOptions from '../CallOptions';
-import FunctionScope from '../scopes/FunctionScope';
 import MagicString from 'magic-string';
+import { BLANK } from '../../utils/blank';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import CallOptions from '../CallOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import FunctionScope from '../scopes/FunctionScope';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import Variable from '../variables/Variable';
+import AssignmentExpression from './AssignmentExpression';
+import * as NodeType from './NodeType';
 import Property from './Property';
 import {
 	ExpressionEntity,
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from './shared/Expression';
-import * as NodeType from './NodeType';
-import AssignmentExpression from './AssignmentExpression';
+import { Node, NodeBase } from './shared/Node';
 import UpdateExpression from './UpdateExpression';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { BLANK } from '../../utils/blank';
 
 export function isIdentifier(node: Node): node is Identifier {
 	return node.type === NodeType.Identifier;
@@ -190,7 +190,7 @@ export default class Identifier extends NodeBase {
 		switch (this.parent.type) {
 			case NodeType.AssignmentExpression:
 				{
-					let expression: AssignmentExpression = <AssignmentExpression>this.parent;
+					const expression: AssignmentExpression = <AssignmentExpression>this.parent;
 					if (expression.left === this) {
 						code.prependLeft(expression.right.start, `exports('${this.variable.exportName}', `);
 						code.prependRight(expression.right.end, `)`);
@@ -200,7 +200,7 @@ export default class Identifier extends NodeBase {
 
 			case NodeType.UpdateExpression:
 				{
-					let expression: UpdateExpression = <UpdateExpression>this.parent;
+					const expression: UpdateExpression = <UpdateExpression>this.parent;
 					if (expression.prefix) {
 						code.overwrite(
 							expression.start,

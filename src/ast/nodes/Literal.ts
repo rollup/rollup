@@ -1,19 +1,19 @@
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
-import { SomeReturnExpressionCallback } from './shared/Expression';
-import { Node, NodeBase } from './shared/Node';
-import * as NodeType from './NodeType';
+import { RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	getLiteralMembersForValue,
 	hasMemberEffectWhenCalled,
+	LiteralValueOrUnknown,
 	MemberDescription,
 	ObjectPath,
-	LiteralValueOrUnknown,
 	someMemberReturnExpressionWhenCalled,
 	UNKNOWN_VALUE
 } from '../values';
-import { RenderOptions } from '../../utils/renderHelpers';
+import * as NodeType from './NodeType';
+import { SomeReturnExpressionCallback } from './shared/Expression';
+import { Node, NodeBase } from './shared/Node';
 
 export type LiteralValue = string | boolean | null | number | RegExp;
 

@@ -1,39 +1,39 @@
 import * as acorn from 'acorn';
 import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import injectImportMeta from 'acorn-import-meta/inject';
-import { timeEnd, timeStart } from './utils/timers';
-import first from './utils/first';
-import Module, { defaultAcornOptions } from './Module';
+import { Program } from 'estree';
+import GlobalScope from './ast/scopes/GlobalScope';
+import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
-import ensureArray from './utils/ensureArray';
-import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
-import transform from './utils/transform';
-import relativeId, { getAliasName } from './utils/relativeId';
-import error from './utils/error';
-import { isRelative, resolve, relative } from './utils/path';
+import Module, { defaultAcornOptions } from './Module';
 import {
 	InputOptions,
 	IsExternal,
 	LoadHook,
 	MissingExportHook,
+	ModuleJSON,
+	OutputBundle,
 	Plugin,
 	PluginContext,
 	ResolveDynamicImportHook,
 	ResolveIdHook,
+	RollupError,
 	RollupWarning,
 	SourceDescription,
 	TreeshakingOptions,
-	WarningHandler,
-	ModuleJSON,
-	RollupError,
-	OutputBundle
+	WarningHandler
 } from './rollup/types';
-import Chunk from './Chunk';
-import GlobalScope from './ast/scopes/GlobalScope';
+import { Asset, createAssetPluginHooks, finaliseAsset } from './utils/assetHooks';
+import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
+import ensureArray from './utils/ensureArray';
 import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
+import error from './utils/error';
+import first from './utils/first';
 import firstSync from './utils/first-sync';
-import { Program } from 'estree';
-import { createAssetPluginHooks, Asset, finaliseAsset } from './utils/assetHooks';
+import { isRelative, relative, resolve } from './utils/path';
+import relativeId, { getAliasName } from './utils/relativeId';
+import { timeEnd, timeStart } from './utils/timers';
+import transform from './utils/transform';
 
 export default class Graph {
 	curChunkIndex = 0;
@@ -265,10 +265,10 @@ export default class Graph {
 	}
 
 	private link() {
-		for (let module of this.modules) {
+		for (const module of this.modules) {
 			module.linkDependencies();
 		}
-		for (let module of this.modules) {
+		for (const module of this.modules) {
 			module.bindReferences();
 		}
 	}
@@ -280,7 +280,7 @@ export default class Graph {
 			do {
 				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
 				needsTreeshakingPass = false;
-				for (let module of modules) {
+				for (const module of modules) {
 					if (module.include()) {
 						needsTreeshakingPass = true;
 					}
@@ -311,7 +311,7 @@ export default class Graph {
 			entryModuleIds = entryModuleAliases.map(name => (<Record<string, string>>entryModules)[name]);
 		}
 
-		let entryAndManualChunkIds = entryModuleIds.concat([]);
+		const entryAndManualChunkIds = entryModuleIds.concat([]);
 		if (manualChunks) {
 			Object.keys(manualChunks).forEach(name => {
 				const manualChunkIds = manualChunks[name];
@@ -333,7 +333,7 @@ export default class Graph {
 				let manualChunkModules: { [chunkName: string]: Module[] };
 				if (manualChunks) {
 					manualChunkModules = {};
-					for (let chunkName of Object.keys(manualChunks)) {
+					for (const chunkName of Object.keys(manualChunks)) {
 						const chunk = manualChunks[chunkName];
 						manualChunkModules[chunkName] = chunk.map(entryId => {
 							const entryIndex = entryAndManualChunkIds.indexOf(entryId);
@@ -446,7 +446,7 @@ export default class Graph {
 					const chunkModules: { [entryHashSum: string]: Module[] } = {};
 					for (const module of orderedModules) {
 						const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
-						let curChunk = chunkModules[entryPointsHashStr];
+						const curChunk = chunkModules[entryPointsHashStr];
 						if (curChunk) {
 							curChunk.push(module);
 						} else {
@@ -494,7 +494,7 @@ export default class Graph {
 
 				// create entry point facades for entry module chunks that have tainted exports
 				if (!preserveModules) {
-					for (let entryModule of entryModules) {
+					for (const entryModule of entryModules) {
 						if (!entryModule.chunk.isEntryModuleFacade) {
 							const entryPointFacade = new Chunk(this, []);
 							entryPointFacade.linkFacade(entryModule);
@@ -543,7 +543,7 @@ export default class Graph {
 				}
 			}
 
-			for (let depModule of module.dependencies) {
+			for (const depModule of module.dependencies) {
 				if (depModule instanceof ExternalModule) continue;
 
 				if (depModule.id in parents) {
@@ -554,10 +554,10 @@ export default class Graph {
 				}
 
 				parents[depModule.id] = module.id;
-				if (!depModule.isEntryPoint && !depModule.chunkAlias) visit(<Module>depModule);
+				if (!depModule.isEntryPoint && !depModule.chunkAlias) visit(depModule);
 			}
 
-			for (let dynamicModule of module.dynamicImportResolutions) {
+			for (const dynamicModule of module.dynamicImportResolutions) {
 				if (dynamicModule.resolution instanceof Module) {
 					if (dynamicImports.indexOf(dynamicModule.resolution) === -1) {
 						dynamicImports.push(dynamicModule.resolution);
@@ -574,7 +574,7 @@ export default class Graph {
 		};
 
 		if (graphColouring && chunkModules) {
-			for (let chunkName of Object.keys(chunkModules)) {
+			for (const chunkName of Object.keys(chunkModules)) {
 				curEntryHash = randomUint8Array(10);
 
 				for (curEntry of chunkModules[chunkName]) {

@@ -1,6 +1,6 @@
-import Variable from './Variable';
 import pureFunctions from '../nodes/shared/pureFunctions';
 import { ObjectPath } from '../values';
+import Variable from './Variable';
 
 export default class GlobalVariable extends Variable {
 	isExternal: true;

@@ -1,11 +1,11 @@
-import BlockScope from '../scopes/BlockScope';
-import { UNKNOWN_EXPRESSION } from '../values';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import Scope from '../scopes/Scope';
 import MagicString from 'magic-string';
-import { Node, StatementBase, StatementNode } from './shared/Node';
-import * as NodeType from './NodeType';
 import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import BlockScope from '../scopes/BlockScope';
+import Scope from '../scopes/Scope';
+import { UNKNOWN_EXPRESSION } from '../values';
+import * as NodeType from './NodeType';
+import { Node, StatementBase, StatementNode } from './shared/Node';
 
 export function isBlockStatement(node: Node): node is BlockStatement {
 	return node.type === NodeType.BlockStatement;

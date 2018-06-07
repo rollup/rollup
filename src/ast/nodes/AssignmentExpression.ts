@@ -1,8 +1,8 @@
 import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
-import { PatternNode } from './shared/Pattern';
-import { ExpressionNode, NodeBase } from './shared/Node';
-import * as NodeType from './NodeType';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../values';
+import * as NodeType from './NodeType';
+import { ExpressionNode, NodeBase } from './shared/Node';
+import { PatternNode } from './shared/Pattern';
 
 export default class AssignmentExpression extends NodeBase {
 	type: NodeType.tAssignmentExpression;

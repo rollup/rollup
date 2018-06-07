@@ -1,4 +1,4 @@
-import { isAbsolute, relative, extname, basename } from './path';
+import { basename, extname, isAbsolute, relative } from './path';
 
 export function getAliasName(resolved: string, unresolved?: string) {
 	let alias = basename(unresolved || resolved);

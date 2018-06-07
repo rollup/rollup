@@ -1,9 +1,9 @@
-import { makeLegal } from './utils/identifierHelpers';
 import ExternalVariable from './ast/variables/ExternalVariable';
-import Graph from './Graph';
 import Variable from './ast/variables/Variable';
+import Graph from './Graph';
 import { OutputOptions } from './rollup/types';
-import { isAbsolute, relative, normalize } from './utils/path';
+import { makeLegal } from './utils/identifierHelpers';
+import { isAbsolute, normalize, relative } from './utils/path';
 
 export default class ExternalModule {
 	private graph: Graph;

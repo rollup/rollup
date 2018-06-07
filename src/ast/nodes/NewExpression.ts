@@ -1,8 +1,8 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
-import { ExpressionNode, NodeBase } from './shared/Node';
-import * as NodeType from './NodeType';
 import { ObjectPath, UNKNOWN_PATH } from '../values';
+import * as NodeType from './NodeType';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
 	type: NodeType.tNewExpression;

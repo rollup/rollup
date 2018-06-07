@@ -1,9 +1,11 @@
-import { ExpressionEntity, SomeReturnExpressionCallback } from './nodes/shared/Expression';
 import CallOptions from './CallOptions';
-import { LiteralValue } from './nodes/Literal';
 import { ExecutionPathOptions } from './ExecutionPathOptions';
+import { LiteralValue } from './nodes/Literal';
+import { ExpressionEntity, SomeReturnExpressionCallback } from './nodes/shared/Expression';
 
-export type UnknownKey = { UNKNOWN_KEY: true };
+export interface UnknownKey {
+	UNKNOWN_KEY: true;
+}
 export const UNKNOWN_KEY: UnknownKey = { UNKNOWN_KEY: true };
 
 export type ObjectPathKey = string | UnknownKey;
@@ -21,7 +23,9 @@ export interface MemberDescriptions {
 	[key: string]: MemberDescription;
 }
 
-type RawMemberDescription = { value: MemberDescription };
+interface RawMemberDescription {
+	value: MemberDescription;
+}
 
 function assembleMemberDescriptions(
 	memberDescriptions: { [key: string]: RawMemberDescription },
@@ -30,7 +34,9 @@ function assembleMemberDescriptions(
 	return Object.create(inheritedDescriptions, memberDescriptions);
 }
 
-export type UnknownValue = { UNKNOWN_VALUE: true };
+export interface UnknownValue {
+	UNKNOWN_VALUE: true;
+}
 export const UNKNOWN_VALUE: UnknownValue = { UNKNOWN_VALUE: true };
 export type LiteralValueOrUnknown = LiteralValue | UnknownValue;
 

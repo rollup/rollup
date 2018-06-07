@@ -1,22 +1,22 @@
-import path from 'path';
+import { WatchOptions } from 'chokidar';
 import { EventEmitter } from 'events';
+import path from 'path';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
 import rollup from '../rollup/index';
 import {
 	InputOptions,
-	OutputOptions,
-	RollupSingleFileBuild,
-	RollupBuild,
-	OutputChunk,
 	ModuleJSON,
+	OutputChunk,
+	OutputOptions,
+	RollupBuild,
+	RollupSingleFileBuild,
 	RollupWatchOptions
 } from '../rollup/types';
 import ensureArray from '../utils/ensureArray';
-import { mapSequence } from '../utils/promise';
-import { addTask, deleteTask } from './fileWatchers';
-import chokidar from './chokidar';
 import mergeOptions from '../utils/mergeOptions';
-import { WatchOptions } from 'chokidar';
+import { mapSequence } from '../utils/promise';
+import chokidar from './chokidar';
+import { addTask, deleteTask } from './fileWatchers';
 
 const DELAY = 100;
 

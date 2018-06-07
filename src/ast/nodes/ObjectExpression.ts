@@ -1,8 +1,8 @@
-import Property from './Property';
+import MagicString from 'magic-string';
+import { BLANK } from '../../utils/blank';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import Identifier from './Identifier';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import {
 	EMPTY_PATH,
 	hasMemberEffectWhenCalled,
@@ -14,12 +14,12 @@ import {
 	UNKNOWN_KEY,
 	UNKNOWN_VALUE
 } from '../values';
-import { Node, NodeBase } from './shared/Node';
-import * as NodeType from './NodeType';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { BLANK } from '../../utils/blank';
-import MagicString from 'magic-string';
+import Identifier from './Identifier';
 import Literal from './Literal';
+import * as NodeType from './NodeType';
+import Property from './Property';
+import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { Node, NodeBase } from './shared/Node';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
 const PROPERTY_KINDS_WRITE = ['init', 'set'];

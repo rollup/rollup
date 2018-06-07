@@ -1,13 +1,13 @@
-import BlockScope from '../scopes/BlockScope';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
-import VariableDeclaration from './VariableDeclaration';
-import Scope from '../scopes/Scope';
-import { PatternNode } from './shared/Pattern';
-import * as NodeType from './NodeType';
-import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
+import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import BlockScope from '../scopes/BlockScope';
+import Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../values';
+import * as NodeType from './NodeType';
+import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
+import { PatternNode } from './shared/Pattern';
+import VariableDeclaration from './VariableDeclaration';
 
 export function isForOfStatement(node: Node): node is ForOfStatement {
 	return node.type === NodeType.ForOfStatement;

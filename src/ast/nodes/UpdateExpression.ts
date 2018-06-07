@@ -1,8 +1,8 @@
 import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { EMPTY_PATH, ObjectPath } from '../values';
 import { isIdentifier } from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { EMPTY_PATH, ObjectPath } from '../values';
 
 export default class UpdateExpression extends NodeBase {
 	type: NodeType.tUpdateExpression;
