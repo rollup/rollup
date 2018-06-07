@@ -3,6 +3,7 @@
 ## 0.60.1
 *2018-06-07*
 * Fix plugin regressions ([#2246](https://github.com/rollup/rollup/pull/2246))
+* Avoid conflicts for large numbers of variables ([#2244](https://github.com/rollup/rollup/pull/2244))
 
 ## 0.60.0
 *2018-06-06*
