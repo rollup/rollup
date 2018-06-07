@@ -1,9 +1,9 @@
-import LocalVariable from './LocalVariable';
-import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
-import ParameterVariable from './ParameterVariable';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { SomeReturnExpressionCallback } from '../nodes/shared/Expression';
+import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
+import LocalVariable from './LocalVariable';
+import ParameterVariable from './ParameterVariable';
 
 const getParameterVariable = (path: ObjectPath, options: ExecutionPathOptions) => {
 	const firstArgNum = parseInt(<string>path[0], 10);

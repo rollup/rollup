@@ -1,20 +1,29 @@
-import error from '../utils/error';
-import getInteropBlock from './shared/getInteropBlock';
-import getExportBlock from './shared/getExportBlock';
-import { keypath } from './shared/sanitize';
-import warnOnBuiltins from './shared/warnOnBuiltins';
-import trimEmptyImports from './shared/trimEmptyImports';
-import setupNamespace from './shared/setupNamespace';
-import { isLegal } from '../utils/identifierHelpers';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/types';
+import error from '../utils/error';
+import { isLegal } from '../utils/identifierHelpers';
 import { FinaliserOptions } from './index';
+import getExportBlock from './shared/getExportBlock';
+import getInteropBlock from './shared/getInteropBlock';
+import { keypath } from './shared/sanitize';
+import setupNamespace from './shared/setupNamespace';
+import trimEmptyImports from './shared/trimEmptyImports';
+import warnOnBuiltins from './shared/warnOnBuiltins';
 
 const thisProp = (name: string) => `this${keypath(name)}`;
 
 export default function iife(
 	magicString: MagicStringBundle,
-	{ graph, namedExportsMode, hasExports, indentString: t, intro, outro, dependencies, exports }: FinaliserOptions,
+	{
+		graph,
+		namedExportsMode,
+		hasExports,
+		indentString: t,
+		intro,
+		outro,
+		dependencies,
+		exports
+	}: FinaliserOptions,
 	options: OutputOptions
 ) {
 	const _ = options.compact ? '' : ' ';

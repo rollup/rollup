@@ -1,8 +1,8 @@
 import MagicString from 'magic-string';
-import { NodeBase, StatementNode } from './shared/Node';
-import * as NodeType from './NodeType';
 import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import * as NodeType from './NodeType';
+import { NodeBase, StatementNode } from './shared/Node';
 
 export default class Program extends NodeBase {
 	type: NodeType.tProgram;

@@ -1,17 +1,17 @@
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
-import { ExpressionNode, NodeBase } from './shared/Node';
-import * as NodeType from './NodeType';
+import { BLANK } from '../../utils/blank';
 import {
 	getCommaSeparatedNodesWithBoundaries,
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
-import { BLANK } from '../../utils/blank';
-import { ObjectPath, LiteralValueOrUnknown } from '../values';
 import CallOptions from '../CallOptions';
-import { ForEachReturnExpressionCallback } from './shared/Expression';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { LiteralValueOrUnknown, ObjectPath } from '../values';
 import CallExpression from './CallExpression';
+import * as NodeType from './NodeType';
+import { ForEachReturnExpressionCallback } from './shared/Expression';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
 	type: NodeType.tSequenceExpression;

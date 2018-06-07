@@ -1,9 +1,9 @@
-import { EMPTY_PATH, ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { PatternNode } from './shared/Pattern';
+import { EMPTY_PATH, ObjectPath, UNKNOWN_EXPRESSION } from '../values';
+import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import * as NodeType from './NodeType';
+import { PatternNode } from './shared/Pattern';
 
 export default class ArrayPattern extends NodeBase implements PatternNode {
 	type: NodeType.tArrayPattern;

@@ -1,5 +1,5 @@
-import { SerializedTimings } from '../../../src/rollup/types';
 import chalk from 'chalk';
+import { SerializedTimings } from '../../../src/rollup/types';
 
 export function printTimings(timings: SerializedTimings) {
 	Object.keys(timings).forEach(label => {

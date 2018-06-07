@@ -1,13 +1,13 @@
-import system from './system';
+import { Bundle as MagicStringBundle } from 'magic-string';
+import { ChunkDependencies, ChunkExports } from '../Chunk';
+import Graph from '../Graph';
+import { OutputOptions } from '../rollup/types';
 import amd from './amd';
 import cjs from './cjs';
 import esm from './esm';
 import iife from './iife';
+import system from './system';
 import umd from './umd';
-import { ChunkDependencies, ChunkExports } from '../Chunk';
-import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/types';
-import Graph from '../Graph';
 
 export interface FinaliserOptions {
 	indentString: string;

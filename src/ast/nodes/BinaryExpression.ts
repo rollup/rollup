@@ -1,8 +1,8 @@
-import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_VALUE, EMPTY_PATH } from '../values';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { LiteralValue } from './Literal';
 
 const binaryOperators: {
 	[operator: string]: (left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown;

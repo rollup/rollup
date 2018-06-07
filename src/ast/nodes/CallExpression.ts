@@ -1,11 +1,11 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
-import SpreadElement from './SpreadElement';
-import Identifier from './Identifier';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
 import { ObjectPath, UNKNOWN_PATH } from '../values';
+import Identifier from './Identifier';
+import * as NodeType from './NodeType';
+import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionNode, NodeBase } from './shared/Node';
+import SpreadElement from './SpreadElement';
 
 export default class CallExpression extends NodeBase {
 	type: NodeType.tCallExpression;

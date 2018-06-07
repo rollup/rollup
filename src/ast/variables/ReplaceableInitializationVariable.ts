@@ -1,9 +1,9 @@
-import LocalVariable from './LocalVariable';
-import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import LocalVariable from './LocalVariable';
 
 export default class ReplaceableInitializationVariable extends LocalVariable {
 	constructor(name: string, declarator: Identifier | null) {

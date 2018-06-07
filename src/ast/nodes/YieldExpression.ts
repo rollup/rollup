@@ -1,8 +1,8 @@
+import MagicString from 'magic-string';
+import { RenderOptions } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { RenderOptions } from '../../utils/renderHelpers';
-import MagicString from 'magic-string';
 
 export default class YieldExpression extends NodeBase {
 	type: NodeType.tYieldExpression;

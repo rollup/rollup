@@ -1,30 +1,30 @@
-import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
-import { basename, resolve, dirname } from '../utils/path';
-import { writeFile } from '../utils/fs';
-import error from '../utils/error';
-import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
-import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
-import { Deprecation } from '../utils/deprecateOptions';
+import { optimizeChunks } from '../chunk-optimization';
 import Graph from '../Graph';
-import ensureArray from '../utils/ensureArray';
 import { createAddons } from '../utils/addons';
 import commondir from '../utils/commondir';
-import { optimizeChunks } from '../chunk-optimization';
+import { Deprecation } from '../utils/deprecateOptions';
+import ensureArray from '../utils/ensureArray';
+import error from '../utils/error';
+import { writeFile } from '../utils/fs';
+import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
+import { basename, dirname, resolve } from '../utils/path';
+import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
+import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 
+import Chunk from '../Chunk';
+import { createAssetPluginHooks, finaliseAsset } from '../utils/assetHooks';
+import getExportMode from '../utils/getExportMode';
 import {
-	WarningHandler,
 	InputOptions,
+	OutputBundle,
+	OutputChunk,
+	OutputFile,
 	OutputOptions,
 	Plugin,
-	OutputChunk,
-	OutputBundle,
-	OutputFile,
+	RollupBuild,
 	RollupSingleFileBuild,
-	RollupBuild
+	WarningHandler
 } from './types';
-import getExportMode from '../utils/getExportMode';
-import Chunk from '../Chunk';
-import { finaliseAsset, createAssetPluginHooks } from '../utils/assetHooks';
 
 export const VERSION = '<@VERSION@>';
 
@@ -204,7 +204,7 @@ export default function rollup(
 				//let imports: string[], exports: string[];
 				if (!inputOptions.experimentalPreserveModules) {
 					if (singleInput) {
-						for (let chunk of chunks) {
+						for (const chunk of chunks) {
 							if (chunk.entryModule === undefined) continue;
 							if (singleChunk) {
 								singleChunk = undefined;
@@ -267,13 +267,13 @@ export default function rollup(
 					return createAddons(graph, outputOptions)
 						.then(addons => {
 							// pre-render all chunks
-							for (let chunk of chunks) {
+							for (const chunk of chunks) {
 								if (!inputOptions.experimentalPreserveModules)
 									chunk.generateInternalExports(outputOptions);
 								if (chunk.isEntryModuleFacade)
 									chunk.exportMode = getExportMode(chunk, outputOptions);
 							}
-							for (let chunk of chunks) {
+							for (const chunk of chunks) {
 								chunk.preRender(outputOptions, inputBase);
 							}
 							if (!optimized && inputOptions.optimizeChunks) {
@@ -340,7 +340,7 @@ export default function rollup(
 												.map(plugin =>
 													plugin.ongenerate.call(
 														graph.pluginContext,
-														Object.assign({ bundle: outputChunk }, outputOptions),
+														{ bundle: outputChunk, ...outputOptions },
 														outputChunk
 													)
 												)
@@ -356,11 +356,10 @@ export default function rollup(
 
 							// assets emitted during generateBundle are unique to that specific generate call
 							const assets = new Map(graph.assetsById);
-							const generateBundleContext = Object.assign(
-								{},
-								graph.pluginContext,
-								createAssetPluginHooks(assets, outputBundle, assetFileNames)
-							);
+							const generateBundleContext = {
+								...graph.pluginContext,
+								...createAssetPluginHooks(assets, outputBundle, assetFileNames)
+							};
 
 							return Promise.all(
 								generateBundlePlugins.map(plugin =>
@@ -484,7 +483,7 @@ function writeOutputFile(
 						.map(plugin =>
 							plugin.onwrite.call(
 								graph.pluginContext,
-								Object.assign({ bundle: outputFile }, outputOptions),
+								{ bundle: outputFile, ...outputOptions },
 								outputFile
 							)
 						)
@@ -502,12 +501,9 @@ function normalizeOutputOptions(
 	}
 	// since deprecateOptions, adds the output properties
 	// to `inputOptions` so adding that lastly
-	const consolidatedOutputOptions = Object.assign(
-		{},
-		{
-			output: Object.assign({}, rawOutputOptions, rawOutputOptions.output, inputOptions.output)
-		}
-	);
+	const consolidatedOutputOptions = {
+		output: { ...rawOutputOptions, ...rawOutputOptions.output, ...inputOptions.output }
+	};
 	const mergedOptions = mergeOptions({
 		// just for backward compatiblity to fallback on root
 		// if the option isn't present in `output`

@@ -1,12 +1,12 @@
-import { NodeBase } from './shared/Node';
-import Literal from './Literal';
-import ImportSpecifier from './ImportSpecifier';
+import MagicString from 'magic-string';
+import { BLANK } from '../../utils/blank';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
-import MagicString from 'magic-string';
+import ImportSpecifier from './ImportSpecifier';
+import Literal from './Literal';
 import * as NodeType from './NodeType';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { BLANK } from '../../utils/blank';
+import { NodeBase } from './shared/Node';
 
 export default class ImportDeclaration extends NodeBase {
 	type: NodeType.tImportDeclaration;

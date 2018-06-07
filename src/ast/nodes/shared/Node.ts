@@ -1,19 +1,19 @@
 import { locate } from 'locate-character';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../../ExecutionPathOptions';
-import Scope from '../../scopes/Scope';
-import { AstContext } from '../../../Module';
 import MagicString from 'magic-string';
+import { AstContext } from '../../../Module';
+import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
+import CallOptions from '../../CallOptions';
+import { Entity } from '../../Entity';
+import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../../ExecutionPathOptions';
+import { getAndCreateKeys, keys } from '../../keys';
+import Scope from '../../scopes/Scope';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import Variable from '../../variables/Variable';
 import {
 	ExpressionEntity,
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from './Expression';
-import CallOptions from '../../CallOptions';
-import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
-import { Entity } from '../../Entity';
-import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
-import { getAndCreateKeys, keys } from '../../keys';
 
 export interface GenericEsTreeNode {
 	type: string;

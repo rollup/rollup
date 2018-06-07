@@ -1,14 +1,14 @@
-import { Node, NodeBase } from './shared/Node';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import Literal from './Literal';
 import MagicString from 'magic-string';
+import { BLANK } from '../../utils/blank';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import ClassDeclaration from './ClassDeclaration';
 import ExportSpecifier from './ExportSpecifier';
 import FunctionDeclaration from './FunctionDeclaration';
-import ClassDeclaration from './ClassDeclaration';
-import VariableDeclaration from './VariableDeclaration';
+import Literal from './Literal';
 import * as NodeType from './NodeType';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { BLANK } from '../../utils/blank';
+import { Node, NodeBase } from './shared/Node';
+import VariableDeclaration from './VariableDeclaration';
 
 export default class ExportNamedDeclaration extends NodeBase {
 	type: NodeType.tExportNamedDeclaration;

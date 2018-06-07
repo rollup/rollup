@@ -1,4 +1,3 @@
-import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
@@ -7,6 +6,7 @@ import {
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from '../nodes/shared/Expression';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 
 export default class Variable implements ExpressionEntity {
 	name: string;

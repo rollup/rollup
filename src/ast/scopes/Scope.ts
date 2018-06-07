@@ -1,16 +1,16 @@
-import LocalVariable from '../variables/LocalVariable';
-import ExportDefaultVariable from '../variables/ExportDefaultVariable';
-import { EMPTY_PATH, UNKNOWN_EXPRESSION } from '../values';
-import { NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
-import Identifier from '../nodes/Identifier';
-import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
-import GlobalVariable from '../variables/GlobalVariable';
-import ThisVariable from '../variables/ThisVariable';
-import ArgumentsVariable from '../variables/ArgumentsVariable';
-import Variable from '../variables/Variable';
-import { ExpressionEntity } from '../nodes/shared/Expression';
-import ExternalVariable from '../variables/ExternalVariable';
 import { toBase64 } from '../../utils/base64';
+import { NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
+import Identifier from '../nodes/Identifier';
+import { ExpressionEntity } from '../nodes/shared/Expression';
+import { EMPTY_PATH, UNKNOWN_EXPRESSION } from '../values';
+import ArgumentsVariable from '../variables/ArgumentsVariable';
+import ExportDefaultVariable from '../variables/ExportDefaultVariable';
+import ExternalVariable from '../variables/ExternalVariable';
+import GlobalVariable from '../variables/GlobalVariable';
+import LocalVariable from '../variables/LocalVariable';
+import ThisVariable from '../variables/ThisVariable';
+import Variable from '../variables/Variable';
 
 export default class Scope {
 	parent: Scope | void;

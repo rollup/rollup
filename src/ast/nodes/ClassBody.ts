@@ -1,9 +1,9 @@
-import { NodeBase } from './shared/Node';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import CallOptions from '../CallOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EMPTY_PATH, ObjectPath } from '../values';
 import MethodDefinition from './MethodDefinition';
 import * as NodeType from './NodeType';
-import { EMPTY_PATH, ObjectPath } from '../values';
+import { NodeBase } from './shared/Node';
 
 export default class ClassBody extends NodeBase {
 	type: NodeType.tClassBody;

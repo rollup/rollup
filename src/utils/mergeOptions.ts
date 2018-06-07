@@ -1,9 +1,10 @@
-import ensureArray from './ensureArray';
-import deprecateOptions, { Deprecation } from './deprecateOptions';
 import { InputOptions, OutputOptions, WarningHandler } from '../rollup/types';
-import error from './error';
+import deprecateOptions, { Deprecation } from './deprecateOptions';
+import ensureArray from './ensureArray';
 
-export type GenericConfigObject = { [key: string]: any };
+export interface GenericConfigObject {
+	[key: string]: any;
+}
 
 const createGetOption = (config: GenericConfigObject, command: GenericConfigObject) => (
 	name: string,
@@ -33,9 +34,7 @@ const getObjectOption = (
 	const commandOption = normalizeObjectOptionValue(command[name]);
 	const configOption = normalizeObjectOptionValue(config[name]);
 	if (commandOption !== undefined) {
-		return commandOption && configOption
-			? Object.assign({}, configOption, commandOption)
-			: commandOption;
+		return commandOption && configOption ? { ...configOption, ...commandOption } : commandOption;
 	}
 	return configOption;
 };
@@ -170,7 +169,7 @@ function addUnknownOptionErrors(
 }
 
 function getCommandOptions(rawCommandOptions: GenericConfigObject): GenericConfigObject {
-	const command = Object.assign({}, rawCommandOptions);
+	const command = { ...rawCommandOptions };
 	command.external = (rawCommandOptions.external || '').split(',');
 
 	if (rawCommandOptions.globals) {
@@ -223,7 +222,7 @@ function getInputOptions(
 	if (Array.isArray(inputOptions.input)) {
 		inputOptions.entry = inputOptions.input[0];
 	} else if (typeof inputOptions.input === 'object') {
-		for (let name in inputOptions.input) {
+		for (const name in inputOptions.input) {
 			inputOptions.entry = inputOptions.input[name];
 			break;
 		}
@@ -242,7 +241,7 @@ function getOutputOptions(
 	const format = getOption('format');
 
 	return {
-		amd: Object.assign({}, config.amd, command.amd),
+		amd: { ...config.amd, ...command.amd },
 		assetFileNames: getOption('assetFileNames'),
 		banner: getOption('banner'),
 		dir: getOption('dir'),

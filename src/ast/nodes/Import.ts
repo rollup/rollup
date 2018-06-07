@@ -1,8 +1,8 @@
+import MagicString from 'magic-string';
+import { RenderOptions } from '../../utils/renderHelpers';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
 
 interface DynamicImportMechanism {
 	left: string;

@@ -1,6 +1,6 @@
-import Scope from './Scope';
 import Identifier from '../nodes/Identifier';
 import LocalVariable from '../variables/LocalVariable';
+import Scope from './Scope';
 
 export default class BlockScope extends Scope {
 	parent: Scope;

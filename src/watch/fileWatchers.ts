@@ -1,6 +1,6 @@
+import { FSWatcher, WatchOptions } from 'chokidar';
 import * as fs from 'fs';
 import chokidar from './chokidar';
-import { WatchOptions, FSWatcher } from 'chokidar';
 import { Task } from './index';
 
 const opts = { encoding: 'utf-8', persistent: true };

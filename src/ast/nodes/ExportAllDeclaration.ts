@@ -1,9 +1,9 @@
-import { NodeBase } from './shared/Node';
-import Literal from './Literal';
 import MagicString from 'magic-string';
-import * as NodeType from './NodeType';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { BLANK } from '../../utils/blank';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import Literal from './Literal';
+import * as NodeType from './NodeType';
+import { NodeBase } from './shared/Node';
 
 export default class ExportAllDeclaration extends NodeBase {
 	type: NodeType.tExportAllDeclaration;

@@ -1,6 +1,6 @@
-import { isPlainName } from './relativeId';
 import error from './error';
 import { extname } from './path';
+import { isPlainName } from './relativeId';
 
 export function renderNamePattern(
 	pattern: string,
@@ -31,7 +31,7 @@ export function renderNamePattern(
 export function makeUnique(name: string, existingNames: Record<string, any>) {
 	if (name in existingNames === false) return name;
 
-	let ext = extname(name);
+	const ext = extname(name);
 	name = name.substr(0, name.length - ext.length);
 	let uniqueName,
 		uniqueIndex = 1;

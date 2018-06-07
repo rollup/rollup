@@ -3,7 +3,10 @@
 // unlike the config file which passes whole options in one go
 import { GenericConfigObject } from './mergeOptions';
 
-export type Deprecation = { old: string; new: string };
+export interface Deprecation {
+	old: string;
+	new: string;
+}
 
 export default function deprecateOptions(
 	options: GenericConfigObject,
@@ -44,9 +47,10 @@ export default function deprecateOptions(
 
 			// as targets is an array and we need to merge other output options
 			// like sourcemap etc.
-			options.output = options.targets.map((target: GenericConfigObject) =>
-				Object.assign({}, target, options.output)
-			);
+			options.output = options.targets.map((target: GenericConfigObject) => ({
+				...target,
+				...options.output
+			}));
 			delete options.targets;
 
 			let deprecatedDest = false;

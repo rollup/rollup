@@ -1,6 +1,6 @@
-import Variable from './Variable';
-import Identifier from '../nodes/Identifier';
 import ExternalModule from '../../ExternalModule';
+import Identifier from '../nodes/Identifier';
+import Variable from './Variable';
 
 export default class ExternalVariable extends Variable {
 	module: ExternalModule;
@@ -18,7 +18,7 @@ export default class ExternalVariable extends Variable {
 	addReference(identifier: Identifier) {
 		this.referenced = true;
 		if (this.name === 'default' || this.name === '*') {
-			(<ExternalModule>this.module).suggestName(identifier.name);
+			this.module.suggestName(identifier.name);
 		}
 	}
 

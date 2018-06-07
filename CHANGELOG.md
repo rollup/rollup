@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.60.2
+*unreleased*
+* Add automatic linting ([#2242](https://github.com/rollup/rollup/pull/2242))
+
 ## 0.60.1
 *2018-06-07*
 * Fix plugin regressions ([#2246](https://github.com/rollup/rollup/pull/2246))

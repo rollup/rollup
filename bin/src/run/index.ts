@@ -1,14 +1,14 @@
 import { realpathSync } from 'fs';
 import relative from 'require-relative';
-import { handleError } from '../logging';
-import mergeOptions from '../../../src/utils/mergeOptions';
-import batchWarnings from './batchWarnings';
-import loadConfigFile from './loadConfigFile';
-import sequence from '../utils/sequence';
-import build from './build';
-import watch from './watch';
 import { InputOptions } from '../../../src/rollup/types';
+import mergeOptions from '../../../src/utils/mergeOptions';
 import { getAliasName } from '../../../src/utils/relativeId';
+import { handleError } from '../logging';
+import sequence from '../utils/sequence';
+import batchWarnings from './batchWarnings';
+import build from './build';
+import loadConfigFile from './loadConfigFile';
+import watch from './watch';
 
 export default function runRollup(command: any) {
 	if (command._.length >= 1) {

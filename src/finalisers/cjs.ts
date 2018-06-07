@@ -1,8 +1,8 @@
-import { esModuleExport, compactEsModuleExport } from './shared/esModuleExport';
-import { OutputOptions } from '../rollup/types';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import getExportBlock from './shared/getExportBlock';
+import { OutputOptions } from '../rollup/types';
 import { FinaliserOptions } from './index';
+import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
+import getExportBlock from './shared/getExportBlock';
 
 export default function cjs(
 	magicString: MagicStringBundle,

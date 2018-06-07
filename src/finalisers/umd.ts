@@ -1,14 +1,14 @@
-import error from '../utils/error';
-import getInteropBlock from './shared/getInteropBlock';
-import getExportBlock from './shared/getExportBlock';
-import { esModuleExport, compactEsModuleExport } from './shared/esModuleExport';
-import { property, keypath } from './shared/sanitize';
-import warnOnBuiltins from './shared/warnOnBuiltins';
-import trimEmptyImports from './shared/trimEmptyImports';
-import setupNamespace from './shared/setupNamespace';
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/types';
+import error from '../utils/error';
 import { FinaliserOptions } from './index';
+import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
+import getExportBlock from './shared/getExportBlock';
+import getInteropBlock from './shared/getInteropBlock';
+import { keypath, property } from './shared/sanitize';
+import setupNamespace from './shared/setupNamespace';
+import trimEmptyImports from './shared/trimEmptyImports';
+import warnOnBuiltins from './shared/warnOnBuiltins';
 
 function globalProp(name: string) {
 	if (!name) return 'null';
@@ -24,7 +24,16 @@ function safeAccess(name: string, compact: boolean) {
 
 export default function umd(
 	magicString: MagicStringBundle,
-	{ graph, namedExportsMode, hasExports, indentString: t, intro, outro, dependencies, exports }: FinaliserOptions,
+	{
+		graph,
+		namedExportsMode,
+		hasExports,
+		indentString: t,
+		intro,
+		outro,
+		dependencies,
+		exports
+	}: FinaliserOptions,
 	options: OutputOptions
 ) {
 	const _ = options.compact ? '' : ' ';
@@ -81,7 +90,7 @@ export default function umd(
 	if (options.noConflict === true) {
 		let factory;
 
-	if (!namedExportsMode && hasExports) {
+		if (!namedExportsMode && hasExports) {
 			factory = `var exports${_}=${_}factory(${globalDeps});`;
 		} else if (namedExportsMode) {
 			const module = globalDeps.shift();

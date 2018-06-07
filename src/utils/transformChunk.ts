@@ -1,8 +1,8 @@
 import { decode } from 'sourcemap-codec';
-import error from './error';
-import { OutputOptions, RawSourceMap } from '../rollup/types';
-import Graph from '../Graph';
 import Chunk from '../Chunk';
+import Graph from '../Graph';
+import { OutputOptions, RawSourceMap } from '../rollup/types';
+import error from './error';
 
 export default function transformChunk(
 	graph: Graph,

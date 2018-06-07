@@ -1,15 +1,9 @@
-import relativeId from '../../utils/relativeId';
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
-import Variable from '../variables/Variable';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
-import Identifier from './Identifier';
-import NamespaceVariable from '../variables/NamespaceVariable';
-import ExternalVariable from '../variables/ExternalVariable';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import * as NodeType from './NodeType';
+import { BLANK } from '../../utils/blank';
+import relativeId from '../../utils/relativeId';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import CallOptions from '../CallOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	EMPTY_PATH,
 	LiteralValueOrUnknown,
@@ -18,9 +12,14 @@ import {
 	UNKNOWN_KEY,
 	UNKNOWN_VALUE
 } from '../values';
-import { BLANK } from '../../utils/blank';
+import ExternalVariable from '../variables/ExternalVariable';
+import NamespaceVariable from '../variables/NamespaceVariable';
+import Variable from '../variables/Variable';
+import Identifier from './Identifier';
 import Literal from './Literal';
-import MetaProperty from './MetaProperty';
+import * as NodeType from './NodeType';
+import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionNode, Node, NodeBase } from './shared/Node';
 
 function getPropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed

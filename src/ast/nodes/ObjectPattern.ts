@@ -1,10 +1,10 @@
-import AssignmentProperty from './AssignmentProperty';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { ExpressionEntity } from './shared/Expression';
-import { PatternNode } from './shared/Pattern';
-import { NodeBase } from './shared/Node';
-import * as NodeType from './NodeType';
 import { EMPTY_PATH, ObjectPath } from '../values';
+import AssignmentProperty from './AssignmentProperty';
+import * as NodeType from './NodeType';
+import { ExpressionEntity } from './shared/Expression';
+import { NodeBase } from './shared/Node';
+import { PatternNode } from './shared/Pattern';
 
 export default class ObjectPattern extends NodeBase implements PatternNode {
 	type: NodeType.tObjectPattern;

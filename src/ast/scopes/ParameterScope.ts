@@ -1,6 +1,6 @@
-import Scope from './Scope';
-import ParameterVariable from '../variables/ParameterVariable';
 import Identifier from '../nodes/Identifier';
+import ParameterVariable from '../variables/ParameterVariable';
+import Scope from './Scope';
 
 export default class ParameterScope extends Scope {
 	parent: Scope;

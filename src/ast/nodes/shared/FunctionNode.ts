@@ -1,14 +1,14 @@
-import FunctionScope from '../../scopes/FunctionScope';
-import BlockScope from '../../scopes/FunctionScope';
-import BlockStatement from '../BlockStatement';
-import Identifier from '../Identifier';
 import CallOptions from '../../CallOptions';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
-import { PatternNode } from './Pattern';
+import BlockScope from '../../scopes/FunctionScope';
+import FunctionScope from '../../scopes/FunctionScope';
+import Scope from '../../scopes/Scope';
+import { ObjectPath } from '../../values';
+import BlockStatement from '../BlockStatement';
+import Identifier from '../Identifier';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
 import { GenericEsTreeNode, NodeBase } from './Node';
-import { ObjectPath } from '../../values';
-import Scope from '../../scopes/Scope';
+import { PatternNode } from './Pattern';
 
 export default class FunctionNode extends NodeBase {
 	id: Identifier | null;

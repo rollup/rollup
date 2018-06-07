@@ -1,9 +1,9 @@
 import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
-import { PatternNode } from './shared/Pattern';
+import { EMPTY_PATH, ObjectPath } from '../values';
+import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import * as NodeType from './NodeType';
-import { EMPTY_PATH, ObjectPath } from '../values';
+import { PatternNode } from './shared/Pattern';
 
 export default class AssignmentPattern extends NodeBase implements PatternNode {
 	type: NodeType.tAssignmentPattern;

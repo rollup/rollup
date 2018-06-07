@@ -1,15 +1,15 @@
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
-import CallOptions from '../CallOptions';
-import { ObjectPath, LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
+import { RenderOptions } from '../../utils/renderHelpers';
+import CallOptions from '../CallOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import * as NodeType from './NodeType';
 import {
 	ExpressionEntity,
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from './shared/Expression';
-import * as NodeType from './NodeType';
-import { RenderOptions } from '../../utils/renderHelpers';
+import { ExpressionNode, Node, NodeBase } from './shared/Node';
 
 export function isProperty(node: Node): node is Property {
 	return node.type === NodeType.Property;
