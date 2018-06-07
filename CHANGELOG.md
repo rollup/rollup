@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.60.1
+*2018-06-07*
+* Fix plugin regressions ([#2246](https://github.com/rollup/rollup/pull/2246))
+
 ## 0.60.0
 *2018-06-06*
 * New plugin hooks: transformChunk, buildStart, buildEnd; extended plugin context with warn, error, resolveId, isExternal, emitAsset, setAssetSource and getAssetFileName available to any hook ([#2208](https://github.com/rollup/rollup/pull/2208))
