@@ -67,7 +67,7 @@ export default function build(
 				});
 			}
 
-			return mapSequence<OutputOptions, Promise<OutputChunk | OutputBundle>>(
+			return mapSequence<OutputOptions, Promise<OutputChunk | { output: OutputBundle }>>(
 				outputOptions,
 				output => bundle.write(output)
 			).then(() => bundle);
