@@ -340,7 +340,7 @@ export default function rollup(
 												.map(plugin =>
 													plugin.ongenerate.call(
 														graph.pluginContext,
-														Object.assign({ bundle: outputChunk }, outputOptions),
+														{ bundle: outputChunk, ...outputOptions },
 														outputChunk
 													)
 												)
@@ -356,11 +356,10 @@ export default function rollup(
 
 							// assets emitted during generateBundle are unique to that specific generate call
 							const assets = new Map(graph.assetsById);
-							const generateBundleContext = Object.assign(
-								{},
-								graph.pluginContext,
-								createAssetPluginHooks(assets, outputBundle, assetFileNames)
-							);
+							const generateBundleContext = {
+								...graph.pluginContext,
+								...createAssetPluginHooks(assets, outputBundle, assetFileNames)
+							};
 
 							return Promise.all(
 								generateBundlePlugins.map(plugin =>
@@ -484,7 +483,7 @@ function writeOutputFile(
 						.map(plugin =>
 							plugin.onwrite.call(
 								graph.pluginContext,
-								Object.assign({ bundle: outputFile }, outputOptions),
+								{ bundle: outputFile, ...outputOptions },
 								outputFile
 							)
 						)
@@ -502,12 +501,9 @@ function normalizeOutputOptions(
 	}
 	// since deprecateOptions, adds the output properties
 	// to `inputOptions` so adding that lastly
-	const consolidatedOutputOptions = Object.assign(
-		{},
-		{
-			output: Object.assign({}, rawOutputOptions, rawOutputOptions.output, inputOptions.output)
-		}
-	);
+	const consolidatedOutputOptions = {
+		output: { ...rawOutputOptions, ...rawOutputOptions.output, ...inputOptions.output }
+	};
 	const mergedOptions = mergeOptions({
 		// just for backward compatiblity to fallback on root
 		// if the option isn't present in `output`

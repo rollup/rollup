@@ -62,9 +62,10 @@ export default function watch(
 				defaultOnWarnHandler: warnings.add
 			});
 
-			const result: RollupWatchOptions = Object.assign({}, merged.inputOptions, {
+			const result: RollupWatchOptions = {
+				...merged.inputOptions,
 				output: merged.outputOptions
-			});
+			};
 
 			if (!result.watch) result.watch = {};
 

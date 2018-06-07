@@ -17,7 +17,6 @@ import NamespaceVariable from '../variables/NamespaceVariable';
 import Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import Literal from './Literal';
-import MetaProperty from './MetaProperty';
 import * as NodeType from './NodeType';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { ExpressionNode, Node, NodeBase } from './shared/Node';

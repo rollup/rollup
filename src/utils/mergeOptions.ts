@@ -1,7 +1,6 @@
 import { InputOptions, OutputOptions, WarningHandler } from '../rollup/types';
 import deprecateOptions, { Deprecation } from './deprecateOptions';
 import ensureArray from './ensureArray';
-import error from './error';
 
 export interface GenericConfigObject {
 	[key: string]: any;
@@ -35,9 +34,7 @@ const getObjectOption = (
 	const commandOption = normalizeObjectOptionValue(command[name]);
 	const configOption = normalizeObjectOptionValue(config[name]);
 	if (commandOption !== undefined) {
-		return commandOption && configOption
-			? Object.assign({}, configOption, commandOption)
-			: commandOption;
+		return commandOption && configOption ? { ...configOption, ...commandOption } : commandOption;
 	}
 	return configOption;
 };
@@ -172,7 +169,7 @@ function addUnknownOptionErrors(
 }
 
 function getCommandOptions(rawCommandOptions: GenericConfigObject): GenericConfigObject {
-	const command = Object.assign({}, rawCommandOptions);
+	const command = { ...rawCommandOptions };
 	command.external = (rawCommandOptions.external || '').split(',');
 
 	if (rawCommandOptions.globals) {
@@ -244,7 +241,7 @@ function getOutputOptions(
 	const format = getOption('format');
 
 	return {
-		amd: Object.assign({}, config.amd, command.amd),
+		amd: { ...config.amd, ...command.amd },
 		assetFileNames: getOption('assetFileNames'),
 		banner: getOption('banner'),
 		dir: getOption('dir'),

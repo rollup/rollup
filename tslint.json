@@ -6,9 +6,11 @@
 		"interface-over-type-literal": true,
 		"no-string-literal": true,
 		"no-unnecessary-type-assertion": true,
+		"no-unused-variable": true,
 		"object-literal-shorthand": true,
 		"ordered-imports": true,
-		"prefer-const": [true, { "destructuring": "all" }]
+		"prefer-const": [true, { "destructuring": "all" }],
+        "prefer-object-spread": true
 	},
 	"rulesDirectory": []
 }

@@ -108,28 +108,23 @@ export default class Graph {
 		}
 
 		this.contextParse = (code: string, options: acorn.Options = {}) => {
-			return this.acornParse(
-				code,
-				Object.assign({}, defaultAcornOptions, options, this.acornOptions)
-			);
+			return this.acornParse(code, { ...defaultAcornOptions, ...options, ...this.acornOptions });
 		};
 
-		this.pluginContext = Object.assign(
-			{
-				isExternal: undefined,
-				resolveId: undefined,
-				parse: this.contextParse,
-				warn: (warning: RollupWarning | string) => {
-					if (typeof warning === 'string') warning = { message: warning };
-					this.warn(warning);
-				},
-				error: (err: RollupError | string) => {
-					if (typeof err === 'string') throw new Error(err);
-					error(err);
-				}
+		this.pluginContext = {
+			isExternal: undefined,
+			resolveId: undefined,
+			parse: this.contextParse,
+			warn: (warning: RollupWarning | string) => {
+				if (typeof warning === 'string') warning = { message: warning };
+				this.warn(warning);
 			},
-			createAssetPluginHooks(this.assetsById)
-		);
+			error: (err: RollupError | string) => {
+				if (typeof err === 'string') throw new Error(err);
+				error(err);
+			},
+			...createAssetPluginHooks(this.assetsById)
+		};
 
 		this.resolveId = first(
 			[

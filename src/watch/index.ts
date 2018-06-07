@@ -130,9 +130,10 @@ export class Task {
 		if ('useChokidar' in watchOptions) watchOptions.chokidar = watchOptions.useChokidar;
 		let chokidarOptions = 'chokidar' in watchOptions ? watchOptions.chokidar : !!chokidar;
 		if (chokidarOptions) {
-			chokidarOptions = Object.assign(chokidarOptions === true ? {} : chokidarOptions, {
+			chokidarOptions = {
+				...(chokidarOptions === true ? {} : chokidarOptions),
 				ignoreInitial: true
-			});
+			};
 		}
 
 		if (chokidarOptions && !chokidar) {
@@ -166,9 +167,10 @@ export class Task {
 		if (!this.dirty) return;
 		this.dirty = false;
 
-		const options = Object.assign(this.inputOptions, {
+		const options = {
+			...this.inputOptions,
 			cache: this.cache
-		});
+		};
 
 		const start = Date.now();
 

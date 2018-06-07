@@ -57,7 +57,8 @@ function createPluginTransformContext(
 	id: string,
 	source: string
 ): PluginContext {
-	return Object.assign({}, graph.pluginContext, {
+	return {
+		...graph.pluginContext,
 		warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
 			if (typeof warning === 'string') warning = { message: warning };
 			warning = augmentCodeLocation({
@@ -82,7 +83,7 @@ function createPluginTransformContext(
 			});
 			error(err);
 		}
-	});
+	};
 }
 
 export default function transform(
