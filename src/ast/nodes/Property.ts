@@ -2,6 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import * as NodeType from './NodeType';
@@ -30,14 +31,29 @@ export default class Property extends NodeBase {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
+		callback: ForEachReturnExpressionCallback,
+		calledPathTracker: EntityPathTracker
 	) {
 		if (this.kind === 'get') {
-			this.value.forEachReturnExpressionWhenCalledAtPath([], this.accessorCallOptions, node =>
-				node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback)
+			this.value.forEachReturnExpressionWhenCalledAtPath(
+				[],
+				this.accessorCallOptions,
+				node =>
+					node.forEachReturnExpressionWhenCalledAtPath(
+						path,
+						callOptions,
+						callback,
+						calledPathTracker
+					),
+				calledPathTracker
 			);
 		} else {
-			this.value.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
+			this.value.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				calledPathTracker
+			);
 		}
 	}
 
@@ -148,8 +164,11 @@ export default class Property extends NodeBase {
 	reassignPath(path: ObjectPath) {
 		if (this.kind === 'get') {
 			if (path.length > 0 && !this.context.reassignmentTracker.track(this, path)) {
-				this.value.forEachReturnExpressionWhenCalledAtPath([], this.accessorCallOptions, node =>
-					node.reassignPath(path)
+				this.value.forEachReturnExpressionWhenCalledAtPath(
+					[],
+					this.accessorCallOptions,
+					node => node.reassignPath(path),
+					new EntityPathTracker()
 				);
 			}
 		} else if (this.kind !== 'set') {

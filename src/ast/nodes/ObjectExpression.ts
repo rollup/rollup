@@ -3,6 +3,7 @@ import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -42,7 +43,8 @@ export default class ObjectExpression extends NodeBase {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
+		callback: ForEachReturnExpressionCallback,
+		calledPathTracker: EntityPathTracker
 	) {
 		if (path.length === 0) return;
 
@@ -52,7 +54,12 @@ export default class ObjectExpression extends NodeBase {
 			EMPTY_IMMUTABLE_TRACKER
 		);
 		for (const property of properties) {
-			property.forEachReturnExpressionWhenCalledAtPath(path.slice(1), callOptions, callback);
+			property.forEachReturnExpressionWhenCalledAtPath(
+				path.slice(1),
+				callOptions,
+				callback,
+				calledPathTracker
+			);
 		}
 	}
 

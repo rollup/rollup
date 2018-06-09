@@ -3,6 +3,7 @@ import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -27,18 +28,39 @@ export default class LogicalExpression extends NodeBase {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
+		callback: ForEachReturnExpressionCallback,
+		calledPathTracker: EntityPathTracker
 	) {
 		const leftValue = this.hasUnknownLeftValue
 			? UNKNOWN_VALUE
 			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
 		if (leftValue === UNKNOWN_VALUE) {
-			this.left.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
-			this.right.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
+			this.left.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				calledPathTracker
+			);
+			this.right.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				calledPathTracker
+			);
 		} else if (this.isOrExpression ? leftValue : !leftValue) {
-			this.left.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
+			this.left.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				calledPathTracker
+			);
 		} else {
-			this.right.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
+			this.right.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				calledPathTracker
+			);
 		}
 	}
 

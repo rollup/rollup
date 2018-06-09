@@ -7,6 +7,7 @@ import {
 } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath } from '../values';
 import CallExpression from './CallExpression';
@@ -21,12 +22,14 @@ export default class SequenceExpression extends NodeBase {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
+		callback: ForEachReturnExpressionCallback,
+		calledPathTracker: EntityPathTracker
 	) {
 		this.expressions[this.expressions.length - 1].forEachReturnExpressionWhenCalledAtPath(
 			path,
 			callOptions,
-			callback
+			callback,
+			calledPathTracker
 		);
 	}
 

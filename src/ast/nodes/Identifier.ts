@@ -5,6 +5,7 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import FunctionScope from '../scopes/FunctionScope';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import Variable from '../variables/Variable';
@@ -74,11 +75,17 @@ export default class Identifier extends NodeBase {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
+		callback: ForEachReturnExpressionCallback,
+		calledPathTracker: EntityPathTracker
 	) {
 		if (!this.bound) this.bind();
 		if (this.variable !== null) {
-			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
+			this.variable.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				calledPathTracker
+			);
 		}
 	}
 

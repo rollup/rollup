@@ -1,5 +1,6 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ObjectPath, UNKNOWN_PATH } from '../values';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -49,10 +50,20 @@ export default class CallExpression extends NodeBase {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
+		callback: ForEachReturnExpressionCallback,
+		calledPathTracker: EntityPathTracker
 	) {
-		this.callee.forEachReturnExpressionWhenCalledAtPath([], this.callOptions, node =>
-			node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback)
+		this.callee.forEachReturnExpressionWhenCalledAtPath(
+			[],
+			this.callOptions,
+			node =>
+				node.forEachReturnExpressionWhenCalledAtPath(
+					path,
+					callOptions,
+					callback,
+					calledPathTracker
+				),
+			calledPathTracker
 		);
 	}
 
@@ -132,8 +143,11 @@ export default class CallExpression extends NodeBase {
 
 	reassignPath(path: ObjectPath) {
 		if (path.length > 0 && !this.context.reassignmentTracker.track(this, path)) {
-			this.callee.forEachReturnExpressionWhenCalledAtPath([], this.callOptions, node =>
-				node.reassignPath(path)
+			this.callee.forEachReturnExpressionWhenCalledAtPath(
+				[],
+				this.callOptions,
+				node => node.reassignPath(path),
+				new EntityPathTracker()
 			);
 		}
 	}

@@ -1,6 +1,7 @@
 import CallOptions from '../../CallOptions';
 import { WritableEntity } from '../../Entity';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
+import { EntityPathTracker } from '../../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath } from '../../values';
 
@@ -17,7 +18,8 @@ export interface ExpressionEntity extends WritableEntity {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
+		callback: ForEachReturnExpressionCallback,
+		calledPathTracker: EntityPathTracker
 	): void;
 	/**
 	 * If possible it returns a stringifyable literal value for this node that can be used

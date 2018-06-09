@@ -41,10 +41,21 @@ export default class LocalVariable extends Variable {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
+		callback: ForEachReturnExpressionCallback,
+		calledPathTracker: EntityPathTracker
 	) {
-		if (!this.isReassigned && this.init && path.length <= MAX_PATH_DEPTH) {
-			this.init.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
+		if (
+			!this.isReassigned &&
+			this.init &&
+			path.length <= MAX_PATH_DEPTH &&
+			!calledPathTracker.track(this.init, path)
+		) {
+			this.init.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				calledPathTracker
+			);
 		}
 	}
 

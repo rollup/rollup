@@ -6,6 +6,7 @@ import {
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from '../nodes/shared/Expression';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 
@@ -38,7 +39,8 @@ export default class Variable implements ExpressionEntity {
 	forEachReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
-		_callback: ForEachReturnExpressionCallback
+		_callback: ForEachReturnExpressionCallback,
+		_calledPathTracker: EntityPathTracker
 	) {}
 
 	getName(reset?: boolean): string {

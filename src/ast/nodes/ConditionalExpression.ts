@@ -3,6 +3,7 @@ import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -24,16 +25,27 @@ export default class ConditionalExpression extends NodeBase {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
+		callback: ForEachReturnExpressionCallback,
+		calledPathTracker: EntityPathTracker
 	) {
 		const testValue = this.hasUnknownTestValue
 			? UNKNOWN_VALUE
 			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
 		if (testValue === UNKNOWN_VALUE || testValue) {
-			this.consequent.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
+			this.consequent.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				calledPathTracker
+			);
 		}
 		if (testValue === UNKNOWN_VALUE || !testValue) {
-			this.alternate.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
+			this.alternate.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				calledPathTracker
+			);
 		}
 	}
 

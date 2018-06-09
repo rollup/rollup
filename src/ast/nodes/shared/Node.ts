@@ -7,6 +7,7 @@ import { Entity } from '../../Entity';
 import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../../ExecutionPathOptions';
 import { getAndCreateKeys, keys } from '../../keys';
 import Scope from '../../scopes/Scope';
+import { EntityPathTracker } from '../../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import Variable from '../../variables/Variable';
@@ -136,7 +137,8 @@ export class NodeBase implements ExpressionNode {
 	forEachReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
-		_callback: ForEachReturnExpressionCallback
+		_callback: ForEachReturnExpressionCallback,
+		_calledPathTracker: EntityPathTracker
 	) {}
 
 	getLiteralValueAtPath(

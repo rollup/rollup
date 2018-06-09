@@ -4,6 +4,7 @@ import relativeId from '../../utils/relativeId';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -101,16 +102,23 @@ export default class MemberExpression extends NodeBase {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
+		callback: ForEachReturnExpressionCallback,
+		calledPathTracker: EntityPathTracker
 	) {
 		if (!this.bound) this.bind();
 		if (this.variable !== null) {
-			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
+			this.variable.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				calledPathTracker
+			);
 		} else {
 			this.object.forEachReturnExpressionWhenCalledAtPath(
 				[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
 				callOptions,
-				callback
+				callback,
+				calledPathTracker
 			);
 		}
 	}
