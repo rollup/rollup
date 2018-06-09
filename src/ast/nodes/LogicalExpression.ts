@@ -2,7 +2,11 @@ import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import {
+	EMPTY_IMMUTABLE_TRACKER,
+	ImmutableEntityPathTracker
+} from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
@@ -23,30 +27,36 @@ export default class LogicalExpression extends NodeBase {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		callback: ForEachReturnExpressionCallback
 	) {
-		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue(options);
+		const leftValue = this.hasUnknownLeftValue
+			? UNKNOWN_VALUE
+			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
 		if (leftValue === UNKNOWN_VALUE) {
-			this.left.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
-			this.right.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+			this.left.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
+			this.right.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
 		} else if (this.isOrExpression ? leftValue : !leftValue) {
-			this.left.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+			this.left.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
 		} else {
-			this.right.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+			this.right.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
-		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue(options);
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		getValueTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
+		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue(getValueTracker);
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 		if (this.isOrExpression ? leftValue : !leftValue) return leftValue;
-		return this.right.getLiteralValueAtPath(path, options);
+		return this.right.getLiteralValueAtPath(path, getValueTracker);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		if (this.left.hasEffects(options)) return true;
-		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue(options);
+		const leftValue = this.hasUnknownLeftValue
+			? UNKNOWN_VALUE
+			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
 		return (
 			(leftValue === UNKNOWN_VALUE || (this.isOrExpression ? !leftValue : leftValue)) &&
 			this.right.hasEffects(options)
@@ -55,7 +65,9 @@ export default class LogicalExpression extends NodeBase {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return false;
-		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue(options);
+		const leftValue = this.hasUnknownLeftValue
+			? UNKNOWN_VALUE
+			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
 		if (leftValue === UNKNOWN_VALUE) {
 			return (
 				this.left.hasEffectsWhenAccessedAtPath(path, options) ||
@@ -71,7 +83,9 @@ export default class LogicalExpression extends NodeBase {
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return true;
-		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue(options);
+		const leftValue = this.hasUnknownLeftValue
+			? UNKNOWN_VALUE
+			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
 		if (leftValue === UNKNOWN_VALUE) {
 			return (
 				this.left.hasEffectsWhenAssignedAtPath(path, options) ||
@@ -90,7 +104,9 @@ export default class LogicalExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue(options);
+		const leftValue = this.hasUnknownLeftValue
+			? UNKNOWN_VALUE
+			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
 		if (leftValue === UNKNOWN_VALUE) {
 			return (
 				this.left.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
@@ -108,7 +124,7 @@ export default class LogicalExpression extends NodeBase {
 		this.included = true;
 		const leftValue = this.hasUnknownLeftValue
 			? UNKNOWN_VALUE
-			: this.getLeftValue(NEW_EXECUTION_PATH);
+			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
 		if (
 			leftValue === UNKNOWN_VALUE ||
 			(this.isOrExpression ? leftValue : !leftValue) ||
@@ -127,16 +143,18 @@ export default class LogicalExpression extends NodeBase {
 		this.isOrExpression = this.operator === '||';
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath) {
 		if (path.length > 0) {
-			const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue(options);
+			const leftValue = this.hasUnknownLeftValue
+				? UNKNOWN_VALUE
+				: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
 			if (leftValue === UNKNOWN_VALUE) {
-				this.left.reassignPath(path, options);
-				this.right.reassignPath(path, options);
+				this.left.reassignPath(path);
+				this.right.reassignPath(path);
 			} else if (this.isOrExpression ? leftValue : !leftValue) {
-				this.left.reassignPath(path, options);
+				this.left.reassignPath(path);
 			} else {
-				this.right.reassignPath(path, options);
+				this.right.reassignPath(path);
 			}
 		}
 	}
@@ -167,7 +185,9 @@ export default class LogicalExpression extends NodeBase {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue(options);
+		const leftValue = this.hasUnknownLeftValue
+			? UNKNOWN_VALUE
+			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
 		if (leftValue === UNKNOWN_VALUE) {
 			return (
 				this.left.someReturnExpressionWhenCalledAtPath(
@@ -201,9 +221,9 @@ export default class LogicalExpression extends NodeBase {
 			  );
 	}
 
-	private getLeftValue(options: ExecutionPathOptions) {
+	private getLeftValue(getValueTracker: ImmutableEntityPathTracker) {
 		if (this.hasUnknownLeftValue) return UNKNOWN_VALUE;
-		const value = this.left.getLiteralValueAtPath(EMPTY_PATH, options);
+		const value = this.left.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownLeftValue = true;
 		}

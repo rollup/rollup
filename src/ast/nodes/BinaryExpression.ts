@@ -1,4 +1,5 @@
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
@@ -37,12 +38,15 @@ export default class BinaryExpression extends NodeBase {
 	right: ExpressionNode;
 	operator: keyof typeof binaryOperators;
 
-	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		getValueTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
 		if (path.length > 0) return UNKNOWN_VALUE;
-		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, options);
+		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
-		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, options);
+		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
 		if (rightValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		const operatorFn = binaryOperators[this.operator];

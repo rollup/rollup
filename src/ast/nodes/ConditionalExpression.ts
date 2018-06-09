@@ -2,7 +2,11 @@ import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import {
+	EMPTY_IMMUTABLE_TRACKER,
+	ImmutableEntityPathTracker
+} from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
@@ -20,29 +24,35 @@ export default class ConditionalExpression extends NodeBase {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		callback: ForEachReturnExpressionCallback
 	) {
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
+		const testValue = this.hasUnknownTestValue
+			? UNKNOWN_VALUE
+			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
 		if (testValue === UNKNOWN_VALUE || testValue) {
-			this.consequent.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+			this.consequent.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
 		}
 		if (testValue === UNKNOWN_VALUE || !testValue) {
-			this.alternate.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+			this.alternate.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		getValueTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(getValueTracker);
 		if (testValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 		return testValue
-			? this.consequent.getLiteralValueAtPath(path, options)
-			: this.alternate.getLiteralValueAtPath(path, options);
+			? this.consequent.getLiteralValueAtPath(path, getValueTracker)
+			: this.alternate.getLiteralValueAtPath(path, getValueTracker);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		if (this.test.hasEffects(options)) return true;
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
+		const testValue = this.hasUnknownTestValue
+			? UNKNOWN_VALUE
+			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
 		if (testValue === UNKNOWN_VALUE) {
 			return this.consequent.hasEffects(options) || this.alternate.hasEffects(options);
 		}
@@ -51,7 +61,9 @@ export default class ConditionalExpression extends NodeBase {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return false;
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
+		const testValue = this.hasUnknownTestValue
+			? UNKNOWN_VALUE
+			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
 		if (testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.hasEffectsWhenAccessedAtPath(path, options) ||
@@ -65,7 +77,9 @@ export default class ConditionalExpression extends NodeBase {
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return true;
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
+		const testValue = this.hasUnknownTestValue
+			? UNKNOWN_VALUE
+			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
 		if (testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.hasEffectsWhenAssignedAtPath(path, options) ||
@@ -82,7 +96,9 @@ export default class ConditionalExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
+		const testValue = this.hasUnknownTestValue
+			? UNKNOWN_VALUE
+			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
 		if (testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
@@ -103,7 +119,7 @@ export default class ConditionalExpression extends NodeBase {
 		this.included = true;
 		const testValue = this.hasUnknownTestValue
 			? UNKNOWN_VALUE
-			: this.getTestValue(NEW_EXECUTION_PATH);
+			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
 		if (testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
 			this.test.include();
 			this.consequent.include();
@@ -115,14 +131,16 @@ export default class ConditionalExpression extends NodeBase {
 		}
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath) {
 		if (path.length > 0) {
-			const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
+			const testValue = this.hasUnknownTestValue
+				? UNKNOWN_VALUE
+				: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
 			if (testValue === UNKNOWN_VALUE || testValue) {
-				this.consequent.reassignPath(path, options);
+				this.consequent.reassignPath(path);
 			}
 			if (testValue === UNKNOWN_VALUE || !testValue) {
-				this.alternate.reassignPath(path, options);
+				this.alternate.reassignPath(path);
 			}
 		}
 	}
@@ -153,7 +171,9 @@ export default class ConditionalExpression extends NodeBase {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
+		const testValue = this.hasUnknownTestValue
+			? UNKNOWN_VALUE
+			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
 		if (testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.someReturnExpressionWhenCalledAtPath(
@@ -185,9 +205,9 @@ export default class ConditionalExpression extends NodeBase {
 			  );
 	}
 
-	private getTestValue(options: ExecutionPathOptions) {
+	private getTestValue(getValueTracker: ImmutableEntityPathTracker) {
 		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
-		const value = this.test.getLiteralValueAtPath(EMPTY_PATH, options);
+		const value = this.test.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownTestValue = true;
 		}

@@ -20,18 +20,21 @@ export default class FunctionNode extends NodeBase {
 
 	private isPrototypeReassigned: boolean;
 
+	bind() {
+		super.bind();
+		this.scope.bind();
+	}
+
 	createScope(parentScope: FunctionScope) {
-		this.scope = new FunctionScope({ parent: parentScope });
+		this.scope = new FunctionScope(parentScope, this.context.reassignmentTracker);
 	}
 
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		callback: ForEachReturnExpressionCallback
 	) {
-		path.length === 0 &&
-			this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
+		path.length === 0 && this.scope.forEachReturnExpressionWhenCalled(callOptions, callback);
 	}
 
 	hasEffects(options: ExecutionPathOptions) {
@@ -88,7 +91,7 @@ export default class FunctionNode extends NodeBase {
 		this.body = <BlockStatement>new this.context.nodeConstructors.BlockStatement(
 			esTreeNode.body,
 			this,
-			new Scope({ parent: this.scope })
+			new Scope(this.scope)
 		);
 		super.parseNode(esTreeNode);
 	}

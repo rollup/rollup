@@ -19,13 +19,15 @@ export default class ModuleScope extends Scope {
 	context: AstContext;
 
 	constructor(parent: Scope, context: AstContext) {
-		super({
-			isModuleScope: true,
-			parent
-		});
-
+		super(parent);
 		this.context = context;
-		this.variables.this = new LocalVariable('this', null, UNDEFINED_EXPRESSION);
+		this.isModuleScope = true;
+		this.variables.this = new LocalVariable(
+			'this',
+			null,
+			UNDEFINED_EXPRESSION,
+			context.reassignmentTracker
+		);
 	}
 
 	deshadow(names: Set<string>, children = this.children) {

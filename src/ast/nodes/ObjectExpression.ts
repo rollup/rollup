@@ -4,6 +4,10 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
+	EMPTY_IMMUTABLE_TRACKER,
+	ImmutableEntityPathTracker
+} from '../utils/ImmutableEntityPathTracker';
+import {
 	EMPTY_PATH,
 	hasMemberEffectWhenCalled,
 	LiteralValueOrUnknown,
@@ -38,27 +42,24 @@ export default class ObjectExpression extends NodeBase {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		callback: ForEachReturnExpressionCallback
 	) {
 		if (path.length === 0) return;
 
 		const { properties } = this.getPossiblePropertiesWithName(
 			path[0],
 			PROPERTY_KINDS_READ,
-			options
+			EMPTY_IMMUTABLE_TRACKER
 		);
 		for (const property of properties) {
-			property.forEachReturnExpressionWhenCalledAtPath(
-				path.slice(1),
-				callOptions,
-				callback,
-				options
-			);
+			property.forEachReturnExpressionWhenCalledAtPath(path.slice(1), callOptions, callback);
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		getValueTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
 		const key = path[0];
 		if (
 			path.length === 0 ||
@@ -70,10 +71,10 @@ export default class ObjectExpression extends NodeBase {
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
 			path[0],
 			PROPERTY_KINDS_READ,
-			options
+			getValueTracker
 		);
 		if (!hasCertainHit || properties.length > 1) return UNKNOWN_VALUE;
-		return properties[0].getLiteralValueAtPath(path.slice(1), options);
+		return properties[0].getLiteralValueAtPath(path.slice(1), getValueTracker);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -88,7 +89,7 @@ export default class ObjectExpression extends NodeBase {
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
 			path[0],
 			PROPERTY_KINDS_READ,
-			options
+			EMPTY_IMMUTABLE_TRACKER
 		);
 		if (path.length > 1 && !hasCertainHit) return true;
 		const subPath = path.slice(1);
@@ -110,7 +111,7 @@ export default class ObjectExpression extends NodeBase {
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
 			path[0],
 			path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ,
-			options
+			EMPTY_IMMUTABLE_TRACKER
 		);
 		if (path.length > 1 && !hasCertainHit) return true;
 		const subPath = path.slice(1);
@@ -140,7 +141,7 @@ export default class ObjectExpression extends NodeBase {
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
 			key,
 			PROPERTY_KINDS_READ,
-			options
+			EMPTY_IMMUTABLE_TRACKER
 		);
 		if (!(hasCertainHit || (path.length === 1 && typeof key === 'string' && objectMembers[key])))
 			return true;
@@ -159,7 +160,7 @@ export default class ObjectExpression extends NodeBase {
 		this.reassignedPaths = Object.create(null);
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath) {
 		if (path.length === 0) return;
 		if (path.length === 1) {
 			if (!this.hasUnknownReassignedProperty) {
@@ -176,11 +177,11 @@ export default class ObjectExpression extends NodeBase {
 		const { properties } = this.getPossiblePropertiesWithName(
 			path[0],
 			PROPERTY_KINDS_READ,
-			options
+			EMPTY_IMMUTABLE_TRACKER
 		);
 		const subPath = path.slice(1);
 		for (const property of properties) {
-			property.reassignPath(subPath, options);
+			property.reassignPath(subPath);
 		}
 	}
 
@@ -213,7 +214,7 @@ export default class ObjectExpression extends NodeBase {
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
 			key,
 			PROPERTY_KINDS_READ,
-			options
+			EMPTY_IMMUTABLE_TRACKER
 		);
 		if (!(hasCertainHit || (path.length === 1 && typeof key === 'string' && objectMembers[key])))
 			return true;
@@ -243,7 +244,7 @@ export default class ObjectExpression extends NodeBase {
 	private getPossiblePropertiesWithName(
 		name: ObjectPathKey,
 		kinds: ObjectPath,
-		options: ExecutionPathOptions
+		getValueTracker: ImmutableEntityPathTracker
 	) {
 		if (name === UNKNOWN_KEY) {
 			return { properties: this.properties, hasCertainHit: false };
@@ -255,7 +256,7 @@ export default class ObjectExpression extends NodeBase {
 			const property = this.properties[index];
 			if (kinds.indexOf(property.kind) < 0) continue;
 			if (property.computed) {
-				const value = property.key.getLiteralValueAtPath(EMPTY_PATH, options);
+				const value = property.key.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
 				if (String(value) === name) {
 					properties.push(property);
 					hasCertainHit = true;

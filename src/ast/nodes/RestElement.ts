@@ -17,7 +17,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 		return path.length > 0 || this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options);
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		path.length === 0 && this.argument.reassignPath(EMPTY_PATH, options);
+	reassignPath(path: ObjectPath) {
+		path.length === 0 && this.argument.reassignPath(EMPTY_PATH);
 	}
 }

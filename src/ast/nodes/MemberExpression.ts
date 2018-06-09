@@ -5,6 +5,10 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
+	EMPTY_IMMUTABLE_TRACKER,
+	ImmutableEntityPathTracker
+} from '../utils/ImmutableEntityPathTracker';
+import {
 	EMPTY_PATH,
 	LiteralValueOrUnknown,
 	ObjectPath,
@@ -97,29 +101,30 @@ export default class MemberExpression extends NodeBase {
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		callback: ForEachReturnExpressionCallback
 	) {
 		if (!this.bound) this.bind();
 		if (this.variable !== null) {
-			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback);
 		} else {
 			this.object.forEachReturnExpressionWhenCalledAtPath(
-				[this.propertyKey || this.getComputedKey(options), ...path],
+				[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
 				callOptions,
-				callback,
-				options
+				callback
 			);
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		getValueTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
 		if (this.variable !== null) {
-			return this.variable.getLiteralValueAtPath(path, options);
+			return this.variable.getLiteralValueAtPath(path, getValueTracker);
 		}
 		return this.object.getLiteralValueAtPath(
-			[this.propertyKey || this.getComputedKey(options), ...path],
-			options
+			[this.propertyKey || this.getComputedKey(getValueTracker), ...path],
+			getValueTracker
 		);
 	}
 
@@ -129,7 +134,7 @@ export default class MemberExpression extends NodeBase {
 			this.object.hasEffects(options) ||
 			(this.arePropertyReadSideEffectsChecked &&
 				this.object.hasEffectsWhenAccessedAtPath(
-					[this.propertyKey || this.getComputedKey(options)],
+					[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER)],
 					options
 				))
 		);
@@ -143,7 +148,7 @@ export default class MemberExpression extends NodeBase {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, options);
 		}
 		return this.object.hasEffectsWhenAccessedAtPath(
-			[this.propertyKey || this.getComputedKey(options), ...path],
+			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
 			options
 		);
 	}
@@ -153,7 +158,7 @@ export default class MemberExpression extends NodeBase {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 		}
 		return this.object.hasEffectsWhenAssignedAtPath(
-			[this.propertyKey || this.getComputedKey(options), ...path],
+			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
 			options
 		);
 	}
@@ -167,7 +172,7 @@ export default class MemberExpression extends NodeBase {
 			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 		}
 		return this.object.hasEffectsWhenCalledAtPath(
-			[this.propertyKey || this.getComputedKey(options), ...path],
+			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
 			callOptions,
 			options
 		);
@@ -194,16 +199,16 @@ export default class MemberExpression extends NodeBase {
 		this.replacement = null;
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath) {
 		if (!this.bound) this.bind();
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
-			this.variable.reassignPath(path, options);
+			this.variable.reassignPath(path);
 		} else {
-			this.object.reassignPath(
-				[this.propertyKey || this.getComputedKey(options), ...path],
-				options
-			);
+			this.object.reassignPath([
+				this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER),
+				...path
+			]);
 		}
 	}
 
@@ -244,7 +249,7 @@ export default class MemberExpression extends NodeBase {
 			);
 		}
 		return this.object.someReturnExpressionWhenCalledAtPath(
-			[this.propertyKey || this.getComputedKey(options), ...path],
+			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
 			callOptions,
 			predicateFunction,
 			options
@@ -266,8 +271,8 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	private getComputedKey(options: ExecutionPathOptions) {
-		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, options);
+	private getComputedKey(getValueTracker: ImmutableEntityPathTracker) {
+		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
 		return value === UNKNOWN_VALUE ? UNKNOWN_KEY : String(value);
 	}
 

@@ -1,5 +1,6 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { UNKNOWN_EXPRESSION, UNKNOWN_OBJECT_EXPRESSION } from '../values';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
@@ -8,6 +9,7 @@ import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import ThisVariable from '../variables/ThisVariable';
 import ReturnValueScope from './ReturnValueScope';
+import Scope from './Scope';
 
 export default class FunctionScope extends ReturnValueScope {
 	variables: {
@@ -17,10 +19,13 @@ export default class FunctionScope extends ReturnValueScope {
 		[name: string]: LocalVariable | GlobalVariable | ExternalVariable | ArgumentsVariable;
 	};
 
-	constructor(options = {}) {
-		super(options);
-		this.variables.arguments = new ArgumentsVariable(super.getParameterVariables());
-		this.variables.this = new ThisVariable();
+	constructor(parent: Scope, reassignmentTracker: EntityPathTracker) {
+		super(parent);
+		this.variables.arguments = new ArgumentsVariable(
+			super.getParameterVariables(),
+			reassignmentTracker
+		);
+		this.variables.this = new ThisVariable(reassignmentTracker);
 	}
 
 	findLexicalBoundary() {

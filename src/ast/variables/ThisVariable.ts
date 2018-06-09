@@ -1,7 +1,8 @@
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import ReplaceableInitializationVariable from './ReplaceableInitializationVariable';
 
 export default class ThisVariable extends ReplaceableInitializationVariable {
-	constructor() {
-		super('this', null);
+	constructor(reassignmentTracker: EntityPathTracker) {
+		super('this', null, reassignmentTracker);
 	}
 }

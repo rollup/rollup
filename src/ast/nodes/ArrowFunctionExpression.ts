@@ -17,18 +17,21 @@ export default class ArrowFunctionExpression extends NodeBase {
 	scope: ReturnValueScope;
 	preventChildBlockScope: true;
 
+	bind() {
+		super.bind();
+		this.scope.bind();
+	}
+
 	createScope(parentScope: Scope) {
-		this.scope = new ReturnValueScope({ parent: parentScope });
+		this.scope = new ReturnValueScope(parentScope);
 	}
 
 	forEachReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		callback: ForEachReturnExpressionCallback
 	) {
-		path.length === 0 &&
-			this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
+		path.length === 0 && this.scope.forEachReturnExpressionWhenCalled(callOptions, callback);
 	}
 
 	hasEffects(_options: ExecutionPathOptions) {
@@ -74,7 +77,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 			this.body = new this.context.nodeConstructors.BlockStatement(
 				esTreeNode.body,
 				this,
-				new Scope({ parent: this.scope })
+				new Scope(this.scope)
 			);
 		}
 		super.parseNode(esTreeNode);

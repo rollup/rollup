@@ -1,4 +1,4 @@
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath } from '../values';
 import { isIdentifier } from './Identifier';
 import * as NodeType from './NodeType';
@@ -12,7 +12,7 @@ export default class UpdateExpression extends NodeBase {
 
 	bind() {
 		super.bind();
-		this.argument.reassignPath(EMPTY_PATH, NEW_EXECUTION_PATH);
+		this.argument.reassignPath(EMPTY_PATH);
 		if (isIdentifier(this.argument)) {
 			const variable = this.scope.findVariable(this.argument.name);
 			variable.isReassigned = true;

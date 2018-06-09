@@ -5,7 +5,7 @@ import {
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath } from '../values';
 import Variable from '../variables/Variable';
 import { isIdentifier } from './Identifier';
@@ -58,9 +58,9 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {
+	reassignPath(_path: ObjectPath) {
 		for (const declarator of this.declarations) {
-			declarator.reassignPath(EMPTY_PATH, NEW_EXECUTION_PATH);
+			declarator.reassignPath(EMPTY_PATH);
 		}
 	}
 

@@ -2,12 +2,13 @@ import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import LocalVariable from './LocalVariable';
 
 export default class ReplaceableInitializationVariable extends LocalVariable {
-	constructor(name: string, declarator: Identifier | null) {
-		super(name, declarator, null);
+	constructor(name: string, declarator: Identifier | null, reassignmentTracker: EntityPathTracker) {
+		super(name, declarator, null, reassignmentTracker);
 	}
 
 	getLiteralValueAtPath(): LiteralValueOrUnknown {

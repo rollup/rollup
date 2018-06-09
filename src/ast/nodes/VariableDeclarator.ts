@@ -1,4 +1,3 @@
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ObjectPath } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -13,7 +12,7 @@ export default class VariableDeclarator extends NodeBase {
 		this.id.declare(kind, this.init);
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		this.id.reassignPath(path, options);
+	reassignPath(path: ObjectPath) {
+		this.id.reassignPath(path);
 	}
 }

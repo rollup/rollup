@@ -1,6 +1,3 @@
 module.exports = {
-	description: 'dynamic import inlining',
-	options: {
-		experimentalDynamicImport: true
-	}
+	description: 'dynamic import inlining'
 };

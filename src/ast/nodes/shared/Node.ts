@@ -7,6 +7,7 @@ import { Entity } from '../../Entity';
 import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../../ExecutionPathOptions';
 import { getAndCreateKeys, keys } from '../../keys';
 import Scope from '../../scopes/Scope';
+import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import Variable from '../../variables/Variable';
 import {
@@ -135,11 +136,13 @@ export class NodeBase implements ExpressionNode {
 	forEachReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
-		_callback: ForEachReturnExpressionCallback,
-		_options: ExecutionPathOptions
+		_callback: ForEachReturnExpressionCallback
 	) {}
 
-	getLiteralValueAtPath(_path: ObjectPath, _options: ExecutionPathOptions): LiteralValueOrUnknown {
+	getLiteralValueAtPath(
+		_path: ObjectPath,
+		_getValueTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
 	}
 
@@ -237,7 +240,7 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
-	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
+	reassignPath(_path: ObjectPath) {}
 
 	render(code: MagicString, options: RenderOptions) {
 		for (const key of this.keys) {

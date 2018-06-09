@@ -1,8 +1,8 @@
 import { toBase64 } from '../../utils/base64';
-import { NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { EMPTY_PATH, UNDEFINED_EXPRESSION } from '../values';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
@@ -13,53 +13,40 @@ import ThisVariable from '../variables/ThisVariable';
 import Variable from '../variables/Variable';
 
 export default class Scope {
-	parent: Scope | void;
+	parent: Scope | null;
 	variables: {
 		this: ThisVariable | LocalVariable;
 		default: ExportDefaultVariable;
 		arguments: ArgumentsVariable;
 		[name: string]: LocalVariable | GlobalVariable | ExternalVariable | ArgumentsVariable;
 	};
-	isModuleScope: boolean;
+	isModuleScope: boolean = false;
 	children: Scope[];
 
-	constructor(options: { parent?: Scope; isModuleScope?: boolean } = {}) {
-		this.parent = options.parent;
-		this.isModuleScope = !!options.isModuleScope;
-
+	constructor(parent: Scope | null = null) {
+		this.parent = parent;
 		this.children = [];
 		if (this.parent) this.parent.children.push(this);
-
 		this.variables = Object.create(null);
 	}
 
-	/**
-	 * @param identifier
-	 * @param {Object} [options] - valid options are
-	 *        {(Node|null)} init
-	 *        {boolean} isHoisted
-	 * @return {Variable}
-	 */
 	addDeclaration(
 		identifier: Identifier,
-		options: {
-			init?: ExpressionEntity | null;
-			isHoisted?: boolean;
-		} = {
-			init: null,
-			isHoisted: false
-		}
+		reassignmentTracker: EntityPathTracker,
+		init: ExpressionEntity | null = null,
+		_isHoisted: boolean
 	) {
 		const name = identifier.name;
 		if (this.variables[name]) {
 			const variable = <LocalVariable>this.variables[name];
 			variable.addDeclaration(identifier);
-			variable.reassignPath(EMPTY_PATH, NEW_EXECUTION_PATH);
+			variable.reassignPath(EMPTY_PATH);
 		} else {
 			this.variables[name] = new LocalVariable(
 				identifier.name,
 				identifier,
-				options.init || UNDEFINED_EXPRESSION
+				init || UNDEFINED_EXPRESSION,
+				reassignmentTracker
 			);
 		}
 		return this.variables[name];
@@ -67,9 +54,14 @@ export default class Scope {
 
 	addExportDefaultDeclaration(
 		name: string,
-		exportDefaultDeclaration: ExportDefaultDeclaration
+		exportDefaultDeclaration: ExportDefaultDeclaration,
+		reassignmentTracker: EntityPathTracker
 	): ExportDefaultVariable {
-		this.variables.default = new ExportDefaultVariable(name, exportDefaultDeclaration);
+		this.variables.default = new ExportDefaultVariable(
+			name,
+			exportDefaultDeclaration,
+			reassignmentTracker
+		);
 		return this.variables.default;
 	}
 
@@ -106,7 +98,7 @@ export default class Scope {
 	}
 
 	findLexicalBoundary(): Scope {
-		return (<Scope>this.parent).findLexicalBoundary();
+		return this.parent.findLexicalBoundary();
 	}
 
 	findVariable(name: string): Variable {
