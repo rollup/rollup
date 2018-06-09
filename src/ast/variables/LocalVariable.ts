@@ -11,7 +11,7 @@ import {
 import { Node } from '../nodes/shared/Node';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_PATH, UNKNOWN_VALUE } from '../values';
 import Variable from './Variable';
 
 // To avoid infinite recursions
@@ -143,6 +143,9 @@ export default class LocalVariable extends Variable {
 		if (!(this.isReassigned || this.reassignmentTracker.track(this, path))) {
 			if (path.length === 0) {
 				this.isReassigned = true;
+				if (this.init) {
+					this.init.reassignPath(UNKNOWN_PATH);
+				}
 			} else if (this.init) {
 				this.init.reassignPath(path);
 			}

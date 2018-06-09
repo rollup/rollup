@@ -17,6 +17,7 @@ import {
 	ObjectPathKey,
 	someMemberReturnExpressionWhenCalled,
 	UNKNOWN_KEY,
+	UNKNOWN_PATH,
 	UNKNOWN_VALUE
 } from '../values';
 import Identifier from './Identifier';
@@ -168,17 +169,21 @@ export default class ObjectExpression extends NodeBase {
 	}
 
 	reassignPath(path: ObjectPath) {
-		if (path.length === 0) return;
-		if (path.length === 1) {
-			if (!this.hasUnknownReassignedProperty) {
-				const key = path[0];
-				if (typeof key === 'string') {
-					this.reassignedPaths[key] = true;
-				} else {
-					this.hasUnknownReassignedProperty = true;
-				}
+		if (this.hasUnknownReassignedProperty) return;
+		if (path.length === 0) {
+			this.hasUnknownReassignedProperty = true;
+			for (const property of this.properties) {
+				property.reassignPath(UNKNOWN_PATH);
 			}
 			return;
+		}
+		if (path.length === 1) {
+			const key = path[0];
+			if (typeof key === 'string') {
+				this.reassignedPaths[key] = true;
+			} else {
+				this.hasUnknownReassignedProperty = true;
+			}
 		}
 
 		const { properties } = this.getPossiblePropertiesWithName(
@@ -186,7 +191,7 @@ export default class ObjectExpression extends NodeBase {
 			PROPERTY_KINDS_READ,
 			EMPTY_IMMUTABLE_TRACKER
 		);
-		const subPath = path.slice(1);
+		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
 		for (const property of properties) {
 			property.reassignPath(subPath);
 		}
