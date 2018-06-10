@@ -22,9 +22,9 @@ export enum OptionTypes {
 	RETURN_EXPRESSIONS_CALLED_AT_PATH
 }
 
-export interface RESULT_KEY {}
-export const RESULT_KEY: RESULT_KEY = {};
-export type KeyTypes = OptionTypes | Entity | RESULT_KEY;
+interface RESULT_KEY {}
+const RESULT_KEY: RESULT_KEY = {};
+type KeyTypes = OptionTypes | Entity | RESULT_KEY;
 
 export class ExecutionPathOptions {
 	private optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>;
