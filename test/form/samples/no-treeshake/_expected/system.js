@@ -9,6 +9,7 @@ System.register('stirred', ['external'], function (exports, module) {
 		execute: function () {
 
 			exports('baz', baz);
+
 			var foo = 'unused';
 
 			const quux = exports('strange', 1);

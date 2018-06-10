@@ -1,6 +1,6 @@
 import Module, { AstContext } from '../../Module';
 import relativeId from '../../utils/relativeId';
-import { UNKNOWN_EXPRESSION } from '../values';
+import { UNDEFINED_EXPRESSION } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import Variable from '../variables/Variable';
@@ -25,7 +25,7 @@ export default class ModuleScope extends Scope {
 		});
 
 		this.context = context;
-		this.variables.this = new LocalVariable('this', null, UNKNOWN_EXPRESSION);
+		this.variables.this = new LocalVariable('this', null, UNDEFINED_EXPRESSION);
 	}
 
 	deshadow(names: Set<string>, children = this.children) {

@@ -4,6 +4,7 @@ return {
 execute: function () {
 
 exports('default', foo);
+
 function foo () {
 	console.log( 'not indented' );
 }

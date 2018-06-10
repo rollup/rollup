@@ -3,9 +3,12 @@ System.register('bundle', [], function (exports, module) {
 	return {
 		execute: function () {
 
-			exports('foo', foo);
-			exports('bar', bar);
-			exports('baz', baz);
+			exports({
+				foo: foo,
+				bar: bar,
+				baz: baz
+			});
+
 			function foo () {}
 			foo = exports('foo', 1);
 

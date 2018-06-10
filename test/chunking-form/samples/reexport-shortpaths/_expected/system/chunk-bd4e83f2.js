@@ -4,6 +4,7 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			exports('a', foo);
+
 			function foo() {}
 
 		}

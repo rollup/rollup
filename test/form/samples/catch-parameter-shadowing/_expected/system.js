@@ -4,6 +4,7 @@ System.register('bundle', [], function (exports, module) {
 		execute: function () {
 
 			exports('something', something);
+
 			const e = 2.7182818284;
 
 			function something () {

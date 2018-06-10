@@ -95,10 +95,26 @@ export default function system(
 	});
 
 	// function declarations hoist
-	const functionExports: string[] = [];
-	exports.forEach(expt => {
-		if (expt.hoisted) functionExports.push(`exports('${expt.exported}',${_}${expt.local});`);
-	});
+	const hoistedExports: string[] = [];
+
+	const hoistedExportObjs = exports.filter(expt => expt.hoisted || expt.uninitialized);
+	if (hoistedExportObjs.length === 1) {
+		const expt = hoistedExportObjs[0];
+		hoistedExports.push(
+			`exports('${expt.exported}',${_}${expt.uninitialized ? 'void 0' : expt.local});`
+		);
+	} else if (hoistedExportObjs.length > 1) {
+		hoistedExports.push(`exports({`);
+		for (let i = 0; i < hoistedExportObjs.length; i++) {
+			const expt = hoistedExportObjs[i];
+			hoistedExports.push(
+				`${t}${expt.exported}:${_}${expt.uninitialized ? 'void 0' : expt.local}${
+					i === hoistedExportObjs.length - 1 ? '' : ','
+				}`
+			);
+		}
+		hoistedExports.push(`});`);
+	}
 
 	const starExcludesSection = !starExcludes
 		? ''
@@ -128,9 +144,8 @@ export default function system(
 			: ''
 	}${n}`;
 	wrapperStart += `${t}${t}execute:${_}function${_}()${_}{${n}${n}`;
-	wrapperStart += `${
-		functionExports.length ? `${t}${t}${t}` + functionExports.join(`${n}${t}${t}${t}`) + n : ''
-	}`;
+	if (hoistedExports.length)
+		wrapperStart += `${t}${t}${t}` + hoistedExports.join(`${n}${t}${t}${t}`) + n + n;
 
 	if (intro) magicString.prepend(intro);
 

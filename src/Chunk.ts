@@ -1,8 +1,10 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
 import * as NodeType from './ast/nodes/NodeType';
+import { UNDEFINED_EXPRESSION } from './ast/values';
 import { isExportDefaultVariable } from './ast/variables/ExportDefaultVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
+import GlobalVariable from './ast/variables/GlobalVariable';
 import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import Variable from './ast/variables/Variable';
@@ -47,6 +49,7 @@ export type ChunkExports = {
 	local: string;
 	exported: string;
 	hoisted: boolean;
+	uninitialized: boolean;
 }[];
 
 export interface ReexportSpecifier {
@@ -666,7 +669,11 @@ export default class Chunk {
 
 			// determine if a hoisted export (function)
 			let hoisted = false;
+			let uninitialized = false;
 			if (variable instanceof LocalVariable) {
+				if (variable.init === UNDEFINED_EXPRESSION) {
+					uninitialized = true;
+				}
 				variable.declarations.forEach(decl => {
 					if (decl.type === NodeType.ExportDefaultDeclaration) {
 						if (decl.declaration.type === NodeType.FunctionDeclaration) hoisted = true;
@@ -674,6 +681,8 @@ export default class Chunk {
 						hoisted = true;
 					}
 				});
+			} else if (variable instanceof GlobalVariable) {
+				hoisted = true;
 			}
 
 			const localName = variable.getName();
@@ -681,7 +690,8 @@ export default class Chunk {
 			exports.push({
 				local: localName,
 				exported: exportName === '*' ? localName : exportName,
-				hoisted
+				hoisted,
+				uninitialized
 			});
 		}
 		return exports;

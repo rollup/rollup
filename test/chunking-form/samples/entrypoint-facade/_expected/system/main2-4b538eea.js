@@ -4,6 +4,7 @@ System.register([], function (exports, module) {
     execute: function () {
 
       exports('b', log);
+
       var dep = exports('a', { x: 42 });
 
       function log (x) {

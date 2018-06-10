@@ -4,6 +4,7 @@ System.register('bundle', [], function (exports, module) {
 		execute: function () {
 
 			exports('a', a);
+
 			function foo () {
 				console.log( 'foo' );
 			}

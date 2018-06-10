@@ -7,8 +7,11 @@ System.register(['./lib1-f3edc83a.js'], function (exports, module) {
     }],
     execute: function () {
 
-      exports('a', fn$2);
-      exports('b', fn$3);
+      exports({
+        a: fn$2,
+        b: fn$3
+      });
+
       function fn$1 () {
         console.log('lib2 fn');
       }

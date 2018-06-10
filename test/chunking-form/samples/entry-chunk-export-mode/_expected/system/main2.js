@@ -4,6 +4,7 @@ System.register([], function (exports, module) {
     execute: function () {
 
       exports('default', fn);
+
       function fn () {
         console.log('main fn');
       }

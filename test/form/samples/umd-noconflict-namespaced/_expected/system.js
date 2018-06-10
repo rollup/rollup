@@ -4,6 +4,7 @@ System.register('my.name.spaced.module', [], function (exports, module) {
 		execute: function () {
 
 			exports('doThings', doThings);
+
 			function doThings() {
 				console.log( 'doing things...' );
 			}

@@ -3,6 +3,13 @@ System.register('bundle', [], function (exports, module) {
 	return {
 		execute: function () {
 
+			exports({
+				i: void 0,
+				j: void 0,
+				k: void 0,
+				l: void 0
+			});
+
 			var a, b;
 			console.log(a, b);
 
