@@ -526,36 +526,44 @@ export default class Chunk {
 		});
 
 		this.orderedModules.forEach(module => {
-			Object.keys(module.scope.variables).forEach(variableName => {
-				const variable = module.scope.variables[variableName];
-				if (isExportDefaultVariable(variable) && variable.referencesOriginal()) {
-					variable.setSafeName(null);
-					return;
-				}
-				if (!(isExportDefaultVariable(variable) && variable.hasId)) {
-					let safeName;
-					if (esm || !variable.isReassigned || variable.isId) {
-						safeName = getSafeName(variable.name);
-					} else {
-						const safeExportName = variable.exportName;
-						if (safeExportName) {
-							safeName = `exports.${safeExportName}`;
-						} else {
-							safeName = getSafeName(variable.name);
-						}
-					}
-					variable.setSafeName(safeName);
-				}
-			});
-
-			// deconflict reified namespaces
-			const namespace = module.getOrCreateNamespace();
-			if (namespace.needsNamespaceBlock) {
-				namespace.setSafeName(getSafeName(namespace.name));
-			}
+			this.deconflictExportsOfModule(module, getSafeName, esm);
 		});
 
 		this.graph.scope.deshadow(toDeshadow, this.orderedModules.map(module => module.scope));
+	}
+
+	private deconflictExportsOfModule(
+		module: Module,
+		getSafeName: (name: string) => string,
+		esm: boolean
+	) {
+		Object.keys(module.scope.variables).forEach(variableName => {
+			const variable = module.scope.variables[variableName];
+			if (isExportDefaultVariable(variable) && variable.referencesOriginal()) {
+				variable.setSafeName(null);
+				return;
+			}
+			if (!(isExportDefaultVariable(variable) && variable.hasId)) {
+				let safeName;
+				if (esm || !variable.isReassigned || variable.isId) {
+					safeName = getSafeName(variable.name);
+				} else {
+					const safeExportName = variable.exportName;
+					if (safeExportName) {
+						safeName = `exports.${safeExportName}`;
+					} else {
+						safeName = getSafeName(variable.name);
+					}
+				}
+				variable.setSafeName(safeName);
+			}
+		});
+
+		// deconflict reified namespaces
+		const namespace = module.getOrCreateNamespace();
+		if (namespace.needsNamespaceBlock) {
+			namespace.setSafeName(getSafeName(namespace.name));
+		}
 	}
 
 	private getChunkDependencyDeclarations(
