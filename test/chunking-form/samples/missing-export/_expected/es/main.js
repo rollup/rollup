@@ -1,17 +1,17 @@
-import { $$shim$2, $$shim } from './d1.js';
-import { $$shim$2 as $$shim$2$1, $$shim as $$shim$1 } from './d2.js';
-export { $$shim$2 as default, $$shim$2 as d3f1, $$shim$2 as d3f2, $$shim, $$shim as $$shim$1 } from './d3.js';
+import { _shimmedExport as _shimmedExport$1 } from './d1.js';
+import { _shimmedExport as _shimmedExport$2 } from './d2.js';
+export { _shimmedExport as default, _shimmedExport as d3f1, _shimmedExport as d3f2, _shimmedExport, _shimmedExport as _shimmedExportnpm$1 } from './d3.js';
 
-$$shim$2();
-$$shim$2();
-$$shim$2();
-$$shim$2();
+_shimmedExport();
+_shimmedExport();
+_shimmedExport$1();
+_shimmedExport();
 
-$$shim$2$1();
-$$shim$2$1();
-$$shim$2$1();
-$$shim$2$1();
+_shimmedExport();
+_shimmedExport();
+_shimmedExport$2();
+_shimmedExport();
 
-const $$shim$2$2 = null;
+const _shimmedExport$2$1 = null;
 
-export { $$shim$2$2 as $$shim$2 };
+export { _shimmedExport$2$1 as _shimmedExport$2 };

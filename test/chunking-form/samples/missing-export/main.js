@@ -17,4 +17,4 @@ d2.f4();
 export { default, default as d3f1, d3f2 } from './d3';
 export * from './d3';
 
-export const $$shim$2 = null;
+export const _shimmedExport$2 = null;

@@ -30,6 +30,7 @@ import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import { IdMap, ModuleJSON, RawSourceMap, RollupError, RollupWarning } from './rollup/types';
+import { handleMissingExport } from './utils/defaults';
 import error from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -38,7 +39,6 @@ import { basename, extname } from './utils/path';
 import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
-import ShimVariable from './ast/variables/ShimVariable';
 
 export interface CommentDescription {
 	block: boolean;
@@ -58,7 +58,6 @@ export interface ExportDescription {
 	localName: string;
 	identifier?: string;
 	node?: Node;
-	shim?: ShimVariable;
 }
 
 export interface ReexportDescription {
@@ -672,13 +671,7 @@ export default class Module {
 			const declaration = otherModule.traceExport(importDeclaration.name);
 
 			if (!declaration) {
-				this.graph.handleMissingExport.call(
-					this.graph.pluginContext,
-					importDeclaration.name,
-					this,
-					otherModule.id,
-					importDeclaration.start
-				);
+				handleMissingExport(importDeclaration.name, this, otherModule.id, importDeclaration.start);
 			}
 
 			return declaration;
@@ -716,8 +709,7 @@ export default class Module {
 			const declaration = reexportDeclaration.module.traceExport(reexportDeclaration.localName);
 
 			if (!declaration) {
-				this.graph.handleMissingExport.call(
-					this.graph.pluginContext,
+				handleMissingExport(
 					reexportDeclaration.localName,
 					this,
 					reexportDeclaration.module.id,
@@ -730,10 +722,6 @@ export default class Module {
 
 		const exportDeclaration = this.exports[name];
 		if (exportDeclaration) {
-			if (exportDeclaration.shim) {
-				return exportDeclaration.shim;
-			}
-
 			const name = exportDeclaration.localName;
 			const declaration = this.traceVariable(name) || this.graph.scope.findVariable(name);
 
@@ -771,17 +759,11 @@ export default class Module {
 	}
 
 	shimMissingExport(name: string) {
-		// dedupe multiple broken exports per module
-		let shim = Object.keys(this.exports)
-			.map(name => this.exports[name].shim)
-			.filter(Boolean)[0];
-		if (!shim) {
-			shim = new ShimVariable('$$shim');
-		}
-		this.exports[name] = {
-			localName: name,
-			shim
-		};
-		return shim;
+		// could have already been generated
+		if (!this.exports[name])
+			this.exports[name] = {
+				localName: '_shimmedExport'
+			};
+		return this.graph.scope.findVariable('_shimmedExport');
 	}
 }

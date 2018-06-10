@@ -3,6 +3,7 @@ import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import injectImportMeta from 'acorn-import-meta/inject';
 import { Program } from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
+import GlobalVariable from './ast/variables/GlobalVariable';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
@@ -11,7 +12,6 @@ import {
 	InputOptions,
 	IsExternal,
 	LoadHook,
-	MissingExportHook,
 	ModuleJSON,
 	OutputBundle,
 	Plugin,
@@ -26,12 +26,11 @@ import {
 	Watcher
 } from './rollup/types';
 import { Asset, createAssetPluginHooks, finaliseAsset } from './utils/assetHooks';
-import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
+import { load, makeOnwarn, resolveId } from './utils/defaults';
 import ensureArray from './utils/ensureArray';
 import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
 import error from './utils/error';
 import first from './utils/first';
-import firstSync from './utils/first-sync';
 import { isRelative, relative, resolve } from './utils/path';
 import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
@@ -49,7 +48,6 @@ export default class Graph {
 	isExternal: IsExternal;
 	isPureExternalModule: (id: string) => boolean;
 	load: LoadHook;
-	handleMissingExport: MissingExportHook;
 	moduleById = new Map<string, Module | ExternalModule>();
 	assetsById = new Map<string, Asset>();
 	modules: Module[] = [];
@@ -61,6 +59,7 @@ export default class Graph {
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
 	scope: GlobalScope;
 	shimMissingExports: boolean;
+	exportShimVariable: GlobalVariable;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
 
@@ -155,34 +154,12 @@ export default class Graph {
 
 		this.shimMissingExports = options.shimMissingExports;
 
-		this.handleMissingExport = firstSync(
-			this.plugins
-				.map(plugin => plugin.missingExport)
-				.filter(Boolean)
-				.map(missingExport => {
-					return (
-						exportName: string,
-						importingModule: Module,
-						importedModule: string,
-						importerStart?: number
-					) => {
-						return missingExport.call(
-							this.pluginContext,
-							importingModule.id,
-							exportName,
-							importedModule,
-							importerStart
-						);
-					};
-				})
-				.concat(this.shimMissingExports ? () => {} : handleMissingExport)
-		);
-
 		this.scope = new GlobalScope();
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		for (const name of ['module', 'exports', '_interopDefault']) {
 			this.scope.findVariable(name); // creates global variable as side-effect
 		}
+		this.exportShimVariable = this.scope.findVariable('_shimmedExport');
 
 		this.context = String(options.context);
 

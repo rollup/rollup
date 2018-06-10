@@ -3,10 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var $$shim$2 = null;
-
-			const $$shim = exports('$$shim$1', null);
-			exports('$$shim$2', $$shim$2);
+			const _shimmedExport$1 = exports('d3f2', null);
 
 		}
 	};

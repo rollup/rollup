@@ -29,5 +29,3 @@ export default class GlobalVariable extends Variable {
 		);
 	}
 }
-
-GlobalVariable.prototype.isExternal = true;

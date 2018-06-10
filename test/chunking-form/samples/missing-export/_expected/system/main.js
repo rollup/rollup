@@ -1,35 +1,33 @@
 System.register(['./d1.js', './d2.js', './d3.js'], function (exports, module) {
 	'use strict';
-	var $$shim$2, $$shim, $$shim$2$1, $$shim$1;
+	var _shimmedExport$1, _shimmedExport$2;
 	return {
 		setters: [function (module) {
-			$$shim$2 = module.$$shim$2;
-			$$shim = module.$$shim;
+			_shimmedExport$1 = module._shimmedExport;
 		}, function (module) {
-			$$shim$2$1 = module.$$shim$2;
-			$$shim$1 = module.$$shim;
+			_shimmedExport$2 = module._shimmedExport;
 		}, function (module) {
 			var _setter = {};
-			_setter.default = module.$$shim$2;
-			_setter.d3f1 = module.$$shim$2;
-			_setter.d3f2 = module.$$shim$2;
-			_setter.$$shim = module.$$shim;
-			_setter.$$shim$1 = module.$$shim;
+			_setter.default = module._shimmedExport;
+			_setter.d3f1 = module._shimmedExport;
+			_setter.d3f2 = module._shimmedExport;
+			_setter._shimmedExport = module._shimmedExport;
+			_setter._shimmedExportnpm$1 = module._shimmedExport;
 			exports(_setter);
 		}],
 		execute: function () {
 
-			$$shim$2();
-			$$shim$2();
-			$$shim$2();
-			$$shim$2();
+			_shimmedExport();
+			_shimmedExport();
+			_shimmedExport$1();
+			_shimmedExport();
 
-			$$shim$2$1();
-			$$shim$2$1();
-			$$shim$2$1();
-			$$shim$2$1();
+			_shimmedExport();
+			_shimmedExport();
+			_shimmedExport$2();
+			_shimmedExport();
 
-			const $$shim$2$2 = exports('$$shim$2', null);
+			const _shimmedExport$2$1 = exports('_shimmedExport$2', null);
 
 		}
 	};

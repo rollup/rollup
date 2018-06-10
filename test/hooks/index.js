@@ -223,30 +223,6 @@ describe('hooks', () => {
 			});
 	});
 
-	it('calls missingExport hook', () => {
-		let wasCalled;
-
-		return rollup
-			.rollup({
-				input: 'main',
-				plugins: [
-					loader({
-						main: `import def from 'foo'; console.log( def );`,
-						foo: `export const named = 42;`
-					}),
-					{
-						missingExport() {
-							wasCalled = true;
-							return true;
-						}
-					}
-				]
-			})
-			.then(() => {
-				assert.ok(wasCalled);
-			});
-	});
-
 	it('supports asset emission', () => {
 		return rollup
 			.rollup({
