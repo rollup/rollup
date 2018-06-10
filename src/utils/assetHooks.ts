@@ -60,7 +60,7 @@ export function createAssetPluginHooks(
 				});
 			const assetId = randomHexString(8);
 			const asset: Asset = { name, source, fileName: undefined };
-			if (outputBundle) finaliseAsset(asset, outputBundle, assetFileNames);
+			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
 			assetsById.set(assetId, asset);
 			return assetId;
 		},
@@ -71,7 +71,7 @@ export function createAssetPluginHooks(
 					code: 'ASSET_NOT_FOUND',
 					message: `Plugin error - Unable to set asset source for unknown asset ${assetId}.`
 				});
-			if (asset.source)
+			if (asset.source !== undefined)
 				error({
 					code: 'ASSET_SOURCE_ALREADY_SET',
 					message: `Plugin error - Unable to set asset source for ${
