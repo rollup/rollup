@@ -13,6 +13,7 @@ import {
 } from '../rollup/types';
 import error from './error';
 import getCodeFrame from './getCodeFrame';
+import { dirname, resolve } from './path';
 
 function augmentCodeLocation<T extends RollupError | RollupWarning>({
 	object,
@@ -104,6 +105,7 @@ export default function transform(
 	let ast = <Program>source.ast;
 
 	let promise = Promise.resolve(source.code);
+	let transformDependencies: string[];
 
 	plugins.forEach(plugin => {
 		if (!plugin.transform) return;
@@ -126,6 +128,13 @@ export default function transform(
 					} else if (typeof result.map === 'string') {
 						// `result.map` can only be a string if `result` isn't
 						result.map = JSON.parse(result.map);
+					}
+
+					if (Array.isArray(result.dependencies)) {
+						if (!transformDependencies) transformDependencies = [];
+						for (const dep of result.dependencies) {
+							transformDependencies.push(resolve(dirname(id), dep));
+						}
 					}
 
 					if (result.map && typeof result.map.mappings === 'string') {
@@ -157,6 +166,7 @@ export default function transform(
 	return promise.then(code => {
 		return {
 			code,
+			transformDependencies,
 			originalCode,
 			originalSourcemap,
 			ast: <ESTree.Program>ast,
