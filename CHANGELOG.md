@@ -1,7 +1,8 @@
 # rollup changelog
 
 ## 0.60.2
-*unreleased*
+*2018-06-11*
+* Permit setting an asset's source in `generateBundle` ([#2256](https://github.com/rollup/rollup/pull/2256))
 * Add automatic linting ([#2242](https://github.com/rollup/rollup/pull/2242))
 
 ## 0.60.1

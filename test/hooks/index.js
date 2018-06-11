@@ -383,6 +383,33 @@ module.exports = input;
 			});
 	});
 
+	it('allows setting asset source at generateBundle', () => {
+		let assetId;
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						transform () {
+							return '';
+						},
+						generateBundle () {
+							assetId = this.emitAsset('test.ext');
+							this.setAssetSource(assetId, 'hello world');
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
+			})
+			.then(({ output }) => {
+				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
+			});
+	});
+
 	it('throws when emitting assets too late', () => {
 		let calledHook = false;
 		return rollup
