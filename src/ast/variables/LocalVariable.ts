@@ -11,7 +11,13 @@ import {
 import { Node } from '../nodes/shared/Node';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_PATH, UNKNOWN_VALUE } from '../values';
+import {
+	LiteralValueOrUnknown,
+	ObjectPath,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_PATH,
+	UNKNOWN_VALUE
+} from '../values';
 import Variable from './Variable';
 
 // To avoid infinite recursions
@@ -72,6 +78,24 @@ export default class LocalVariable extends Variable {
 			return UNKNOWN_VALUE;
 		}
 		return this.init.getLiteralValueAtPath(path, recursionTracker.track(this.init, path));
+	}
+
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		calledPathTracker: ImmutableEntityPathTracker
+	): ExpressionEntity {
+		if (
+			this.isReassigned ||
+			!this.init ||
+			path.length > MAX_PATH_DEPTH ||
+			calledPathTracker.isTracked(this.init, path)
+		) {
+			return UNKNOWN_EXPRESSION;
+		}
+		return this.init.getReturnExpressionWhenCalledAtPath(
+			path,
+			calledPathTracker.track(this.init, path)
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {

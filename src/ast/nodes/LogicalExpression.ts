@@ -8,10 +8,20 @@ import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
 } from '../utils/ImmutableEntityPathTracker';
-import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import {
+	EMPTY_PATH,
+	LiteralValueOrUnknown,
+	ObjectPath,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_VALUE
+} from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import {
+	ExpressionEntity,
+	ForEachReturnExpressionCallback,
+	SomeReturnExpressionCallback
+} from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export type LogicalOperator = '||' | '&&';
@@ -74,6 +84,19 @@ export default class LogicalExpression extends NodeBase {
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 		if (this.isOrExpression ? leftValue : !leftValue) return leftValue;
 		return this.right.getLiteralValueAtPath(path, recursionTracker);
+	}
+
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		calledPathTracker: ImmutableEntityPathTracker
+	): ExpressionEntity {
+		const leftValue = this.hasUnknownLeftValue
+			? UNKNOWN_VALUE
+			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
+		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_EXPRESSION;
+		if (this.isOrExpression ? leftValue : !leftValue)
+			return this.left.getReturnExpressionWhenCalledAtPath(path, calledPathTracker);
+		return this.right.getReturnExpressionWhenCalledAtPath(path, calledPathTracker);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

@@ -99,6 +99,16 @@ export default class Identifier extends NodeBase {
 		return UNKNOWN_VALUE;
 	}
 
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		calledPathTracker: ImmutableEntityPathTracker
+	) {
+		if (this.variable !== null) {
+			return this.variable.getReturnExpressionWhenCalledAtPath(path, calledPathTracker);
+		}
+		return UNKNOWN_EXPRESSION;
+	}
+
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return this.variable && this.variable.hasEffectsWhenAccessedAtPath(path, options);
 	}

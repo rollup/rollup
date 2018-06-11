@@ -8,10 +8,20 @@ import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
 } from '../utils/ImmutableEntityPathTracker';
-import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import {
+	EMPTY_PATH,
+	LiteralValueOrUnknown,
+	ObjectPath,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_VALUE
+} from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import {
+	ExpressionEntity,
+	ForEachReturnExpressionCallback,
+	SomeReturnExpressionCallback
+} from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class ConditionalExpression extends NodeBase {
@@ -60,6 +70,19 @@ export default class ConditionalExpression extends NodeBase {
 		return testValue
 			? this.consequent.getLiteralValueAtPath(path, recursionTracker)
 			: this.alternate.getLiteralValueAtPath(path, recursionTracker);
+	}
+
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		calledPathTracker: ImmutableEntityPathTracker
+	): ExpressionEntity {
+		const testValue = this.hasUnknownTestValue
+			? UNKNOWN_VALUE
+			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
+		if (testValue === UNKNOWN_VALUE) return UNKNOWN_EXPRESSION;
+		return testValue
+			? this.consequent.getReturnExpressionWhenCalledAtPath(path, calledPathTracker)
+			: this.alternate.getReturnExpressionWhenCalledAtPath(path, calledPathTracker);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

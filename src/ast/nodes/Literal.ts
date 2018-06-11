@@ -4,11 +4,13 @@ import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	getLiteralMembersForValue,
+	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
 	LiteralValueOrUnknown,
 	MemberDescription,
 	ObjectPath,
 	someMemberReturnExpressionWhenCalled,
+	UNKNOWN_EXPRESSION,
 	UNKNOWN_VALUE
 } from '../values';
 import * as NodeType from './NodeType';
@@ -33,6 +35,11 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 		}
 		// not sure why we need this type cast here
 		return <any>this.value;
+	}
+
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+		if (path.length !== 1) return UNKNOWN_EXPRESSION;
+		return getMemberReturnExpressionWhenCalled(this.members, path[0]);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {

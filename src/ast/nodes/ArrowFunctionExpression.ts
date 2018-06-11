@@ -2,7 +2,7 @@ import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
-import { ObjectPath } from '../values';
+import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import BlockStatement from './BlockStatement';
 import * as NodeType from './NodeType';
 import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
@@ -17,11 +17,6 @@ export default class ArrowFunctionExpression extends NodeBase {
 	scope: ReturnValueScope;
 	preventChildBlockScope: true;
 
-	bind() {
-		super.bind();
-		this.scope.bind();
-	}
-
 	createScope(parentScope: Scope) {
 		this.scope = new ReturnValueScope(parentScope);
 	}
@@ -32,6 +27,10 @@ export default class ArrowFunctionExpression extends NodeBase {
 		callback: ForEachReturnExpressionCallback
 	) {
 		path.length === 0 && this.scope.forEachReturnExpressionWhenCalled(callOptions, callback);
+	}
+
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
 
 	hasEffects(_options: ExecutionPathOptions) {

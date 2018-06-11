@@ -11,31 +11,22 @@ import ParameterScope from './ParameterScope';
 export default class ReturnValueScope extends ParameterScope {
 	private returnExpressions: ExpressionEntity[] = [];
 	private returnExpression: ExpressionEntity | null = null;
-	private bound: boolean = false;
 
 	addReturnExpression(expression: ExpressionEntity) {
 		this.returnExpressions.push(expression);
-	}
-
-	bind() {
-		if (this.bound) return;
-		this.bound = true;
-		if (this.returnExpressions.length === 1) {
-			this.returnExpression = this.returnExpressions[0];
-		} else {
-			this.returnExpression = UNKNOWN_EXPRESSION;
-			for (const expression of this.returnExpressions) {
-				expression.reassignPath(UNKNOWN_PATH);
-			}
-		}
 	}
 
 	forEachReturnExpressionWhenCalled(
 		_callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback
 	) {
-		if (!this.bound) this.bind();
+		if (this.returnExpression === null) this.updateReturnExpression();
 		callback(this.returnExpression);
+	}
+
+	getReturnExpression(): ExpressionEntity {
+		if (this.returnExpression === null) this.updateReturnExpression();
+		return this.returnExpression;
 	}
 
 	someReturnExpressionWhenCalled(
@@ -44,5 +35,16 @@ export default class ReturnValueScope extends ParameterScope {
 		options: ExecutionPathOptions
 	): boolean {
 		return predicateFunction(options, this.returnExpression);
+	}
+
+	private updateReturnExpression() {
+		if (this.returnExpressions.length === 1) {
+			this.returnExpression = this.returnExpressions[0];
+		} else {
+			this.returnExpression = UNKNOWN_EXPRESSION;
+			for (const expression of this.returnExpressions) {
+				expression.reassignPath(UNKNOWN_PATH);
+			}
+		}
 	}
 }

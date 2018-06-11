@@ -150,6 +150,13 @@ export class NodeBase implements ExpressionNode {
 		return UNKNOWN_VALUE;
 	}
 
+	getReturnExpressionWhenCalledAtPath(
+		_path: ObjectPath,
+		_calledPathTracker: ImmutableEntityPathTracker
+	): ExpressionEntity {
+		return UNKNOWN_EXPRESSION;
+	}
+
 	hasEffects(options: ExecutionPathOptions): boolean {
 		for (const key of this.keys) {
 			const value = (<GenericEsTreeNode>this)[key];

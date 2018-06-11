@@ -64,6 +64,13 @@ export default class Variable implements ExpressionEntity {
 		return UNKNOWN_VALUE;
 	}
 
+	getReturnExpressionWhenCalledAtPath(
+		_path: ObjectPath,
+		_calledPathTracker: ImmutableEntityPathTracker
+	): ExpressionEntity {
+		return UNKNOWN_EXPRESSION;
+	}
+
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
 		return path.length > 0;
 	}

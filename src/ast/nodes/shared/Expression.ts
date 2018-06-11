@@ -30,6 +30,10 @@ export interface ExpressionEntity extends WritableEntity {
 		path: ObjectPath,
 		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown;
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		calledPathTracker: ImmutableEntityPathTracker
+	): ExpressionEntity;
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,

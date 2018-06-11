@@ -73,7 +73,6 @@ export default class MemberExpression extends NodeBase {
 
 	propertyKey: ObjectPathKey;
 	variable: Variable = null;
-	private arePropertyReadSideEffectsChecked: boolean;
 	private bound: boolean;
 	private replacement: string | null;
 
@@ -136,11 +135,24 @@ export default class MemberExpression extends NodeBase {
 		);
 	}
 
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		calledPathTracker: ImmutableEntityPathTracker
+	) {
+		if (this.variable !== null) {
+			return this.variable.getReturnExpressionWhenCalledAtPath(path, calledPathTracker);
+		}
+		return this.object.getReturnExpressionWhenCalledAtPath(
+			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
+			calledPathTracker
+		);
+	}
+
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			this.property.hasEffects(options) ||
 			this.object.hasEffects(options) ||
-			(this.arePropertyReadSideEffectsChecked &&
+			(this.context.propertyReadSideEffects &&
 				this.object.hasEffectsWhenAccessedAtPath(
 					[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER)],
 					options
@@ -202,7 +214,6 @@ export default class MemberExpression extends NodeBase {
 		this.included = false;
 		this.propertyKey = getPropertyKey(this);
 		this.variable = null;
-		this.arePropertyReadSideEffectsChecked = this.context.propertyReadSideEffects;
 		this.bound = false;
 		this.replacement = null;
 	}
