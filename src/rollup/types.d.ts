@@ -398,7 +398,7 @@ export interface WatcherOptions {
 }
 
 export interface RollupWatchOptions extends InputOptions {
-	output?: OutputOptions;
+	output?: OutputOptions | OutputOptions[];
 	watch?: WatcherOptions;
 }
 
