@@ -4,7 +4,6 @@ import relativeId from '../../utils/relativeId';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -23,7 +22,6 @@ import Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { ExpressionNode, Node, NodeBase } from './shared/Node';
 
 function getPropertyKey(memberExpression: MemberExpression): string | null {
@@ -98,30 +96,6 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		recursionTracker: EntityPathTracker
-	) {
-		if (!this.bound) this.bind();
-		if (this.variable !== null) {
-			this.variable.forEachReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				callback,
-				recursionTracker
-			);
-		} else {
-			this.object.forEachReturnExpressionWhenCalledAtPath(
-				[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
-				callOptions,
-				callback,
-				recursionTracker
-			);
-		}
-	}
-
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: ImmutableEntityPathTracker
@@ -137,14 +111,14 @@ export default class MemberExpression extends NodeBase {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		calledPathTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	) {
 		if (this.variable !== null) {
-			return this.variable.getReturnExpressionWhenCalledAtPath(path, calledPathTracker);
+			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
 		}
 		return this.object.getReturnExpressionWhenCalledAtPath(
 			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
-			calledPathTracker
+			recursionTracker
 		);
 	}
 
@@ -251,28 +225,6 @@ export default class MemberExpression extends NodeBase {
 			}
 			super.render(code, options);
 		}
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		if (this.variable) {
-			return this.variable.someReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				predicateFunction,
-				options
-			);
-		}
-		return this.object.someReturnExpressionWhenCalledAtPath(
-			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
-			callOptions,
-			predicateFunction,
-			options
-		);
 	}
 
 	private disallowNamespaceReassignment() {

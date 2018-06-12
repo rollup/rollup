@@ -3,11 +3,7 @@ import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
-import {
-	ExpressionEntity,
-	ForEachReturnExpressionCallback,
-	SomeReturnExpressionCallback
-} from '../nodes/shared/Expression';
+import { ExpressionEntity } from '../nodes/shared/Expression';
 import { Node } from '../nodes/shared/Node';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
@@ -44,27 +40,6 @@ export default class LocalVariable extends Variable {
 		this.declarations.push(identifier);
 	}
 
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		recursionTracker: EntityPathTracker
-	) {
-		if (
-			!this.isReassigned &&
-			this.init &&
-			path.length <= MAX_PATH_DEPTH &&
-			!recursionTracker.track(this.init, path)
-		) {
-			this.init.forEachReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				callback,
-				recursionTracker
-			);
-		}
-	}
-
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: ImmutableEntityPathTracker
@@ -82,19 +57,19 @@ export default class LocalVariable extends Variable {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		calledPathTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): ExpressionEntity {
 		if (
 			this.isReassigned ||
 			!this.init ||
 			path.length > MAX_PATH_DEPTH ||
-			calledPathTracker.isTracked(this.init, path)
+			recursionTracker.isTracked(this.init, path)
 		) {
 			return UNKNOWN_EXPRESSION;
 		}
 		return this.init.getReturnExpressionWhenCalledAtPath(
 			path,
-			calledPathTracker.track(this.init, path)
+			recursionTracker.track(this.init, path)
 		);
 	}
 
@@ -174,25 +149,5 @@ export default class LocalVariable extends Variable {
 				this.init.reassignPath(path);
 			}
 		}
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		if (path.length > MAX_PATH_DEPTH) return true;
-		return (
-			this.isReassigned ||
-			(this.init &&
-				!options.hasNodeBeenCalledAtPathWithOptions(path, this.init, callOptions) &&
-				this.init.someReturnExpressionWhenCalledAtPath(
-					path,
-					callOptions,
-					predicateFunction,
-					options.addCalledNodeAtPathWithOptions(path, this.init, callOptions)
-				))
-		);
 	}
 }

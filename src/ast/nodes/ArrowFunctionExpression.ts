@@ -5,7 +5,6 @@ import Scope from '../scopes/Scope';
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import BlockStatement from './BlockStatement';
 import * as NodeType from './NodeType';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
@@ -19,14 +18,6 @@ export default class ArrowFunctionExpression extends NodeBase {
 
 	createScope(parentScope: Scope) {
 		this.scope = new ReturnValueScope(parentScope);
-	}
-
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
-	) {
-		path.length === 0 && this.scope.forEachReturnExpressionWhenCalled(callOptions, callback);
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
@@ -80,18 +71,6 @@ export default class ArrowFunctionExpression extends NodeBase {
 			);
 		}
 		super.parseNode(esTreeNode);
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		return (
-			path.length > 0 ||
-			this.scope.someReturnExpressionWhenCalled(callOptions, predicateFunction, options)
-		);
 	}
 }
 

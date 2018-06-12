@@ -1,12 +1,7 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
-import {
-	ExpressionEntity,
-	ForEachReturnExpressionCallback,
-	SomeReturnExpressionCallback
-} from '../nodes/shared/Expression';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
+import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 
@@ -36,13 +31,6 @@ export default class Variable implements ExpressionEntity {
 	 */
 	addReference(_identifier: Identifier) {}
 
-	forEachReturnExpressionWhenCalledAtPath(
-		_path: ObjectPath,
-		_callOptions: CallOptions,
-		_callback: ForEachReturnExpressionCallback,
-		_recursionTracker: EntityPathTracker
-	) {}
-
 	getName(reset?: boolean): string {
 		if (
 			reset &&
@@ -66,7 +54,7 @@ export default class Variable implements ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
-		_calledPathTracker: ImmutableEntityPathTracker
+		_recursionTracker: ImmutableEntityPathTracker
 	): ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
@@ -101,15 +89,6 @@ export default class Variable implements ExpressionEntity {
 
 	setSafeName(name: string) {
 		this.safeName = name;
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		_path: ObjectPath,
-		_callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) {
-		return predicateFunction(options, UNKNOWN_EXPRESSION);
 	}
 
 	toString() {

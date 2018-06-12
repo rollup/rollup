@@ -2,18 +2,13 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
 } from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
-import {
-	ExpressionEntity,
-	ForEachReturnExpressionCallback,
-	SomeReturnExpressionCallback
-} from './shared/Expression';
+import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class Property extends NodeBase {
@@ -42,35 +37,6 @@ export default class Property extends NodeBase {
 		this.value.declare(kind, UNKNOWN_EXPRESSION);
 	}
 
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		recursionTracker: EntityPathTracker
-	) {
-		if (this.kind === 'get') {
-			this.value.forEachReturnExpressionWhenCalledAtPath(
-				[],
-				this.accessorCallOptions,
-				node =>
-					node.forEachReturnExpressionWhenCalledAtPath(
-						path,
-						callOptions,
-						callback,
-						recursionTracker
-					),
-				recursionTracker
-			);
-		} else {
-			this.value.forEachReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				callback,
-				recursionTracker
-			);
-		}
-	}
-
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: ImmutableEntityPathTracker
@@ -82,14 +48,14 @@ export default class Property extends NodeBase {
 					EMPTY_IMMUTABLE_TRACKER
 				);
 			}
-			return this.returnExpression.getLiteralValueAtPath(path, getValueTracker);
+			return this.returnExpression.getLiteralValueAtPath(path, recursionTracker);
 		}
 		return this.value.getLiteralValueAtPath(path, recursionTracker);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		calledPathTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): ExpressionEntity {
 		if (this.kind === 'set') {
 			return UNKNOWN_EXPRESSION;
@@ -101,9 +67,9 @@ export default class Property extends NodeBase {
 					EMPTY_IMMUTABLE_TRACKER
 				);
 			}
-			return this.returnExpression.getReturnExpressionWhenCalledAtPath(path, calledPathTracker);
+			return this.returnExpression.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
 		}
-		return this.value.getReturnExpressionWhenCalledAtPath(path, calledPathTracker);
+		return this.value.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
@@ -182,27 +148,5 @@ export default class Property extends NodeBase {
 			this.key.render(code, options);
 		}
 		this.value.render(code, options);
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		if (this.kind === 'get') {
-			return this.returnExpression.someReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				predicateFunction,
-				options
-			);
-		}
-		return this.value.someReturnExpressionWhenCalledAtPath(
-			path,
-			callOptions,
-			predicateFunction,
-			options
-		);
 	}
 }

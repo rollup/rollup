@@ -1,7 +1,7 @@
 import CallOptions from './CallOptions';
 import { ExecutionPathOptions } from './ExecutionPathOptions';
 import { LiteralValue } from './nodes/Literal';
-import { ExpressionEntity, SomeReturnExpressionCallback } from './nodes/shared/Expression';
+import { ExpressionEntity } from './nodes/shared/Expression';
 
 export interface UnknownKey {
 	UNKNOWN_KEY: true;
@@ -42,13 +42,11 @@ export type LiteralValueOrUnknown = LiteralValue | UnknownValue;
 
 export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	reassignPath: () => {},
-	forEachReturnExpressionWhenCalledAtPath: () => {},
 	getLiteralValueAtPath: () => UNKNOWN_VALUE,
 	getReturnExpressionWhenCalledAtPath: () => UNKNOWN_EXPRESSION,
 	hasEffectsWhenAccessedAtPath: path => path.length > 0,
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
 	hasEffectsWhenCalledAtPath: () => true,
-	someReturnExpressionWhenCalledAtPath: () => true,
 	toString: () => '[[UNKNOWN]]'
 };
 export const UNDEFINED_EXPRESSION: ExpressionEntity = {
@@ -73,7 +71,6 @@ const callsArgReturnsUnknown: RawMemberDescription = {
 
 export const UNKNOWN_ARRAY_EXPRESSION: ExpressionEntity = {
 	reassignPath: () => {},
-	forEachReturnExpressionWhenCalledAtPath: () => {},
 	getLiteralValueAtPath: () => UNKNOWN_VALUE,
 	getReturnExpressionWhenCalledAtPath: path => {
 		if (path.length === 1) {
@@ -86,23 +83,6 @@ export const UNKNOWN_ARRAY_EXPRESSION: ExpressionEntity = {
 	hasEffectsWhenCalledAtPath: (path, callOptions, options) => {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(arrayMembers, path[0], false, callOptions, options);
-		}
-		return true;
-	},
-	someReturnExpressionWhenCalledAtPath: (
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) => {
-		if (path.length === 1) {
-			return someMemberReturnExpressionWhenCalled(
-				arrayMembers,
-				path[0],
-				callOptions,
-				predicateFunction,
-				options
-			);
 		}
 		return true;
 	},
@@ -123,7 +103,6 @@ const callsArgMutatesSelfReturnsArray: RawMemberDescription = {
 
 const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 	reassignPath: () => {},
-	forEachReturnExpressionWhenCalledAtPath: () => {},
 	getLiteralValueAtPath: () => UNKNOWN_VALUE,
 	getReturnExpressionWhenCalledAtPath: path => {
 		if (path.length === 1) {
@@ -140,22 +119,6 @@ const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 		}
 		return true;
 	},
-	someReturnExpressionWhenCalledAtPath: (
-		path: ObjectPath,
-		_callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) => {
-		if (path.length === 1) {
-			const subPath = path[0];
-			return (
-				typeof subPath !== 'string' ||
-				!literalBooleanMembers[subPath] ||
-				predicateFunction(options, literalBooleanMembers[subPath].returns)
-			);
-		}
-		return true;
-	},
 	toString: () => '[[UNKNOWN BOOLEAN]]'
 };
 const returnsBoolean: RawMemberDescription = {
@@ -167,7 +130,6 @@ const callsArgReturnsBoolean: RawMemberDescription = {
 
 const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 	reassignPath: () => {},
-	forEachReturnExpressionWhenCalledAtPath: () => {},
 	getLiteralValueAtPath: () => UNKNOWN_VALUE,
 	getReturnExpressionWhenCalledAtPath: path => {
 		if (path.length === 1) {
@@ -181,22 +143,6 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 		if (path.length === 1) {
 			const subPath = path[0];
 			return typeof subPath !== 'string' || !literalNumberMembers[subPath];
-		}
-		return true;
-	},
-	someReturnExpressionWhenCalledAtPath: (
-		path: ObjectPath,
-		_callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) => {
-		if (path.length === 1) {
-			const subPath = path[0];
-			return (
-				typeof subPath !== 'string' ||
-				!literalNumberMembers[subPath] ||
-				predicateFunction(options, literalNumberMembers[subPath].returns)
-			);
 		}
 		return true;
 	},
@@ -214,7 +160,6 @@ const callsArgReturnsNumber: RawMemberDescription = {
 
 const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 	reassignPath: () => {},
-	forEachReturnExpressionWhenCalledAtPath: () => {},
 	getLiteralValueAtPath: () => UNKNOWN_VALUE,
 	getReturnExpressionWhenCalledAtPath: path => {
 		if (path.length === 1) {
@@ -231,22 +176,6 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 		}
 		return true;
 	},
-	someReturnExpressionWhenCalledAtPath: (
-		path: ObjectPath,
-		_callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) => {
-		if (path.length === 1) {
-			const subPath = path[0];
-			return (
-				typeof subPath !== 'string' ||
-				!literalStringMembers[subPath] ||
-				predicateFunction(options, literalStringMembers[subPath].returns)
-			);
-		}
-		return true;
-	},
 	toString: () => '[[UNKNOWN STRING]]'
 };
 const returnsString: RawMemberDescription = {
@@ -255,7 +184,6 @@ const returnsString: RawMemberDescription = {
 
 export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 	reassignPath: () => {},
-	forEachReturnExpressionWhenCalledAtPath: () => {},
 	getLiteralValueAtPath: () => UNKNOWN_VALUE,
 	getReturnExpressionWhenCalledAtPath: path => {
 		if (path.length === 1) {
@@ -269,22 +197,6 @@ export const UNKNOWN_OBJECT_EXPRESSION: ExpressionEntity = {
 		if (path.length === 1) {
 			const subPath = path[0];
 			return typeof subPath !== 'string' || !objectMembers[subPath];
-		}
-		return true;
-	},
-	someReturnExpressionWhenCalledAtPath: (
-		path: ObjectPath,
-		_callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) => {
-		if (path.length === 1) {
-			const subPath = path[0];
-			return (
-				typeof subPath !== 'string' ||
-				!objectMembers[subPath] ||
-				predicateFunction(options, objectMembers[subPath].returns)
-			);
 		}
 		return true;
 	},
@@ -431,18 +343,4 @@ export function getMemberReturnExpressionWhenCalled(
 	return typeof memberName !== 'string' || !members[memberName]
 		? UNKNOWN_EXPRESSION
 		: members[memberName].returns;
-}
-
-export function someMemberReturnExpressionWhenCalled(
-	members: MemberDescriptions,
-	memberName: ObjectPathKey,
-	callOptions: CallOptions,
-	predicateFunction: SomeReturnExpressionCallback,
-	options: ExecutionPathOptions
-) {
-	return (
-		hasMemberEffectWhenCalled(members, memberName, false, callOptions, options) ||
-		// if calling has no effect, memberName is a string and members[memberName] exists
-		predicateFunction(options, members[<string>memberName].returns)
-	);
 }

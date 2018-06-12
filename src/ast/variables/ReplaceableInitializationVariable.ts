@@ -1,7 +1,7 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
-import { ExpressionEntity, SomeReturnExpressionCallback } from '../nodes/shared/Expression';
+import { ExpressionEntity } from '../nodes/shared/Expression';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import LocalVariable from './LocalVariable';
@@ -37,22 +37,6 @@ export default class ReplaceableInitializationVariable extends LocalVariable {
 		return (
 			this._getInit(options).hasEffectsWhenCalledAtPath(path, callOptions, options) ||
 			super.hasEffectsWhenCalledAtPath(path, callOptions, options)
-		);
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		return (
-			this._getInit(options).someReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				predicateFunction,
-				options
-			) || super.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options)
 		);
 	}
 

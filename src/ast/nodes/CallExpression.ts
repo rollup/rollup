@@ -1,6 +1,5 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -8,11 +7,7 @@ import {
 import { EMPTY_PATH, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_PATH } from '../values';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import {
-	ExpressionEntity,
-	ForEachReturnExpressionCallback,
-	SomeReturnExpressionCallback
-} from './shared/Expression';
+import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 
@@ -60,26 +55,6 @@ export default class CallExpression extends NodeBase {
 			// This will make sure all properties of parameters behave as "unknown"
 			argument.reassignPath(UNKNOWN_PATH);
 		}
-	}
-
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		recursionTracker: EntityPathTracker
-	) {
-		if (this.returnExpression === null) {
-			this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
-				EMPTY_PATH,
-				EMPTY_IMMUTABLE_TRACKER
-			);
-		}
-		this.returnExpression.forEachReturnExpressionWhenCalledAtPath(
-			path,
-			callOptions,
-			callback,
-			recursionTracker
-		);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -170,19 +145,5 @@ export default class CallExpression extends NodeBase {
 			}
 			this.returnExpression.reassignPath(path);
 		}
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		return this.returnExpression.someReturnExpressionWhenCalledAtPath(
-			path,
-			callOptions,
-			predicateFunction,
-			options
-		);
 	}
 }

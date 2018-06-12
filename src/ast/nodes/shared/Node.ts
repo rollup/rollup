@@ -7,15 +7,10 @@ import { Entity } from '../../Entity';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import { getAndCreateKeys, keys } from '../../keys';
 import Scope from '../../scopes/Scope';
-import { EntityPathTracker } from '../../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import Variable from '../../variables/Variable';
-import {
-	ExpressionEntity,
-	ForEachReturnExpressionCallback,
-	SomeReturnExpressionCallback
-} from './Expression';
+import { ExpressionEntity } from './Expression';
 
 export interface GenericEsTreeNode {
 	type: string;
@@ -136,13 +131,6 @@ export class NodeBase implements ExpressionNode {
 
 	declare(_kind: string, _init: ExpressionEntity | null) {}
 
-	forEachReturnExpressionWhenCalledAtPath(
-		_path: ObjectPath,
-		_callOptions: CallOptions,
-		_callback: ForEachReturnExpressionCallback,
-		_recursionTracker: EntityPathTracker
-	) {}
-
 	getLiteralValueAtPath(
 		_path: ObjectPath,
 		_recursionTracker: ImmutableEntityPathTracker
@@ -152,7 +140,7 @@ export class NodeBase implements ExpressionNode {
 
 	getReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
-		_calledPathTracker: ImmutableEntityPathTracker
+		_recursionTracker: ImmutableEntityPathTracker
 	): ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
@@ -269,15 +257,6 @@ export class NodeBase implements ExpressionNode {
 
 	shouldBeIncluded(): boolean {
 		return this.included || this.hasEffects(NEW_EXECUTION_PATH);
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		_path: ObjectPath,
-		_callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		return predicateFunction(options, UNKNOWN_EXPRESSION);
 	}
 
 	toString() {

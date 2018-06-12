@@ -5,18 +5,13 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import FunctionScope from '../scopes/FunctionScope';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import Variable from '../variables/Variable';
 import AssignmentExpression from './AssignmentExpression';
 import * as NodeType from './NodeType';
 import Property from './Property';
-import {
-	ExpressionEntity,
-	ForEachReturnExpressionCallback,
-	SomeReturnExpressionCallback
-} from './shared/Expression';
+import { ExpressionEntity } from './shared/Expression';
 import { Node, NodeBase } from './shared/Node';
 import UpdateExpression from './UpdateExpression';
 
@@ -72,23 +67,6 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		recursionTracker: EntityPathTracker
-	) {
-		if (!this.bound) this.bind();
-		if (this.variable !== null) {
-			this.variable.forEachReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				callback,
-				recursionTracker
-			);
-		}
-	}
-
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: ImmutableEntityPathTracker
@@ -101,10 +79,10 @@ export default class Identifier extends NodeBase {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		calledPathTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	) {
 		if (this.variable !== null) {
-			return this.variable.getReturnExpressionWhenCalledAtPath(path, calledPathTracker);
+			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
 		}
 		return UNKNOWN_EXPRESSION;
 	}
@@ -187,23 +165,6 @@ export default class Identifier extends NodeBase {
 				this.renderSystemBindingUpdate(code, name);
 			}
 		}
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) {
-		if (this.variable) {
-			return this.variable.someReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				predicateFunction,
-				options
-			);
-		}
-		return predicateFunction(options, UNKNOWN_EXPRESSION);
 	}
 
 	private disallowImportReassignment() {
