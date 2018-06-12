@@ -32,7 +32,7 @@ export default class Property extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		calledPathTracker: EntityPathTracker
+		recursionTracker: EntityPathTracker
 	) {
 		if (this.kind === 'get') {
 			this.value.forEachReturnExpressionWhenCalledAtPath(
@@ -43,28 +43,28 @@ export default class Property extends NodeBase {
 						path,
 						callOptions,
 						callback,
-						calledPathTracker
+						recursionTracker
 					),
-				calledPathTracker
+				recursionTracker
 			);
 		} else {
 			this.value.forEachReturnExpressionWhenCalledAtPath(
 				path,
 				callOptions,
 				callback,
-				calledPathTracker
+				recursionTracker
 			);
 		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		getValueTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown {
 		if (this.kind === 'get') {
 			return UNKNOWN_VALUE;
 		}
-		return this.value.getLiteralValueAtPath(path, getValueTracker);
+		return this.value.getLiteralValueAtPath(path, recursionTracker);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

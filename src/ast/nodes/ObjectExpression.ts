@@ -45,7 +45,7 @@ export default class ObjectExpression extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		calledPathTracker: EntityPathTracker
+		recursionTracker: EntityPathTracker
 	) {
 		if (path.length === 0) return;
 
@@ -59,14 +59,14 @@ export default class ObjectExpression extends NodeBase {
 				path.slice(1),
 				callOptions,
 				callback,
-				calledPathTracker
+				recursionTracker
 			);
 		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		getValueTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown {
 		const key = path[0];
 		if (
@@ -79,10 +79,10 @@ export default class ObjectExpression extends NodeBase {
 		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
 			path[0],
 			PROPERTY_KINDS_READ,
-			getValueTracker
+			recursionTracker
 		);
 		if (!hasCertainHit || properties.length > 1) return UNKNOWN_VALUE;
-		return properties[0].getLiteralValueAtPath(path.slice(1), getValueTracker);
+		return properties[0].getLiteralValueAtPath(path.slice(1), recursionTracker);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -256,7 +256,7 @@ export default class ObjectExpression extends NodeBase {
 	private getPossiblePropertiesWithName(
 		name: ObjectPathKey,
 		kinds: ObjectPath,
-		getValueTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	) {
 		if (name === UNKNOWN_KEY) {
 			return { properties: this.properties, hasCertainHit: false };
@@ -268,7 +268,7 @@ export default class ObjectExpression extends NodeBase {
 			const property = this.properties[index];
 			if (kinds.indexOf(property.kind) < 0) continue;
 			if (property.computed) {
-				const value = property.key.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
+				const value = property.key.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
 				if (String(value) === name) {
 					properties.push(property);
 					hasCertainHit = true;

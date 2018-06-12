@@ -103,7 +103,7 @@ export default class MemberExpression extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		calledPathTracker: EntityPathTracker
+		recursionTracker: EntityPathTracker
 	) {
 		if (!this.bound) this.bind();
 		if (this.variable !== null) {
@@ -111,28 +111,28 @@ export default class MemberExpression extends NodeBase {
 				path,
 				callOptions,
 				callback,
-				calledPathTracker
+				recursionTracker
 			);
 		} else {
 			this.object.forEachReturnExpressionWhenCalledAtPath(
 				[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
 				callOptions,
 				callback,
-				calledPathTracker
+				recursionTracker
 			);
 		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		getValueTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown {
 		if (this.variable !== null) {
-			return this.variable.getLiteralValueAtPath(path, getValueTracker);
+			return this.variable.getLiteralValueAtPath(path, recursionTracker);
 		}
 		return this.object.getLiteralValueAtPath(
-			[this.propertyKey || this.getComputedKey(getValueTracker), ...path],
-			getValueTracker
+			[this.propertyKey || this.getComputedKey(recursionTracker), ...path],
+			recursionTracker
 		);
 	}
 
@@ -279,8 +279,8 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	private getComputedKey(getValueTracker: ImmutableEntityPathTracker) {
-		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
+	private getComputedKey(recursionTracker: ImmutableEntityPathTracker) {
+		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
 		return value === UNKNOWN_VALUE ? UNKNOWN_KEY : String(value);
 	}
 

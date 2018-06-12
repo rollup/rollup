@@ -40,13 +40,13 @@ export default class BinaryExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		getValueTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UNKNOWN_VALUE;
-		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
+		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
-		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
+		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
 		if (rightValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		const operatorFn = binaryOperators[this.operator];

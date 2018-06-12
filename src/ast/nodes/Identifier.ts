@@ -76,7 +76,7 @@ export default class Identifier extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		calledPathTracker: EntityPathTracker
+		recursionTracker: EntityPathTracker
 	) {
 		if (!this.bound) this.bind();
 		if (this.variable !== null) {
@@ -84,17 +84,17 @@ export default class Identifier extends NodeBase {
 				path,
 				callOptions,
 				callback,
-				calledPathTracker
+				recursionTracker
 			);
 		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		getValueTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown {
 		if (this.variable !== null) {
-			return this.variable.getLiteralValueAtPath(path, getValueTracker);
+			return this.variable.getLiteralValueAtPath(path, recursionTracker);
 		}
 		return UNKNOWN_VALUE;
 	}

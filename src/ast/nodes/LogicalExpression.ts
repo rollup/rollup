@@ -29,7 +29,7 @@ export default class LogicalExpression extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		calledPathTracker: EntityPathTracker
+		recursionTracker: EntityPathTracker
 	) {
 		const leftValue = this.hasUnknownLeftValue
 			? UNKNOWN_VALUE
@@ -39,39 +39,41 @@ export default class LogicalExpression extends NodeBase {
 				path,
 				callOptions,
 				callback,
-				calledPathTracker
+				recursionTracker
 			);
 			this.right.forEachReturnExpressionWhenCalledAtPath(
 				path,
 				callOptions,
 				callback,
-				calledPathTracker
+				recursionTracker
 			);
 		} else if (this.isOrExpression ? leftValue : !leftValue) {
 			this.left.forEachReturnExpressionWhenCalledAtPath(
 				path,
 				callOptions,
 				callback,
-				calledPathTracker
+				recursionTracker
 			);
 		} else {
 			this.right.forEachReturnExpressionWhenCalledAtPath(
 				path,
 				callOptions,
 				callback,
-				calledPathTracker
+				recursionTracker
 			);
 		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		getValueTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown {
-		const leftValue = this.hasUnknownLeftValue ? UNKNOWN_VALUE : this.getLeftValue(getValueTracker);
+		const leftValue = this.hasUnknownLeftValue
+			? UNKNOWN_VALUE
+			: this.getLeftValue(recursionTracker);
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 		if (this.isOrExpression ? leftValue : !leftValue) return leftValue;
-		return this.right.getLiteralValueAtPath(path, getValueTracker);
+		return this.right.getLiteralValueAtPath(path, recursionTracker);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
@@ -243,9 +245,9 @@ export default class LogicalExpression extends NodeBase {
 			  );
 	}
 
-	private getLeftValue(getValueTracker: ImmutableEntityPathTracker) {
+	private getLeftValue(recursionTracker: ImmutableEntityPathTracker) {
 		if (this.hasUnknownLeftValue) return UNKNOWN_VALUE;
-		const value = this.left.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
+		const value = this.left.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownLeftValue = true;
 		}

@@ -19,7 +19,7 @@ export interface ExpressionEntity extends WritableEntity {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		calledPathTracker: EntityPathTracker
+		recursionTracker: EntityPathTracker
 	): void;
 	/**
 	 * If possible it returns a stringifyable literal value for this node that can be used
@@ -28,7 +28,7 @@ export interface ExpressionEntity extends WritableEntity {
 	 */
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		getValueTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown;
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
 	hasEffectsWhenCalledAtPath(

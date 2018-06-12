@@ -23,23 +23,23 @@ export default class SequenceExpression extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		calledPathTracker: EntityPathTracker
+		recursionTracker: EntityPathTracker
 	) {
 		this.expressions[this.expressions.length - 1].forEachReturnExpressionWhenCalledAtPath(
 			path,
 			callOptions,
 			callback,
-			calledPathTracker
+			recursionTracker
 		);
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		getValueTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown {
 		return this.expressions[this.expressions.length - 1].getLiteralValueAtPath(
 			path,
-			getValueTracker
+			recursionTracker
 		);
 	}
 

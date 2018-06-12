@@ -26,7 +26,7 @@ export default class ConditionalExpression extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		calledPathTracker: EntityPathTracker
+		recursionTracker: EntityPathTracker
 	) {
 		const testValue = this.hasUnknownTestValue
 			? UNKNOWN_VALUE
@@ -36,7 +36,7 @@ export default class ConditionalExpression extends NodeBase {
 				path,
 				callOptions,
 				callback,
-				calledPathTracker
+				recursionTracker
 			);
 		}
 		if (testValue === UNKNOWN_VALUE || !testValue) {
@@ -44,20 +44,22 @@ export default class ConditionalExpression extends NodeBase {
 				path,
 				callOptions,
 				callback,
-				calledPathTracker
+				recursionTracker
 			);
 		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		getValueTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown {
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(getValueTracker);
+		const testValue = this.hasUnknownTestValue
+			? UNKNOWN_VALUE
+			: this.getTestValue(recursionTracker);
 		if (testValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 		return testValue
-			? this.consequent.getLiteralValueAtPath(path, getValueTracker)
-			: this.alternate.getLiteralValueAtPath(path, getValueTracker);
+			? this.consequent.getLiteralValueAtPath(path, recursionTracker)
+			: this.alternate.getLiteralValueAtPath(path, recursionTracker);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
@@ -217,9 +219,9 @@ export default class ConditionalExpression extends NodeBase {
 			  );
 	}
 
-	private getTestValue(getValueTracker: ImmutableEntityPathTracker) {
+	private getTestValue(recursionTracker: ImmutableEntityPathTracker) {
 		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
-		const value = this.test.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
+		const value = this.test.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownTestValue = true;
 		}

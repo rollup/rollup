@@ -40,7 +40,7 @@ export default class Variable implements ExpressionEntity {
 		_path: ObjectPath,
 		_callOptions: CallOptions,
 		_callback: ForEachReturnExpressionCallback,
-		_calledPathTracker: EntityPathTracker
+		_recursionTracker: EntityPathTracker
 	) {}
 
 	getName(reset?: boolean): string {
@@ -59,7 +59,7 @@ export default class Variable implements ExpressionEntity {
 
 	getLiteralValueAtPath(
 		_path: ObjectPath,
-		_getValueTracker: ImmutableEntityPathTracker
+		_recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
 	}

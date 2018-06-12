@@ -51,19 +51,14 @@ export default class CallExpression extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		calledPathTracker: EntityPathTracker
+		recursionTracker: EntityPathTracker
 	) {
 		this.callee.forEachReturnExpressionWhenCalledAtPath(
 			[],
 			this.callOptions,
 			node =>
-				node.forEachReturnExpressionWhenCalledAtPath(
-					path,
-					callOptions,
-					callback,
-					calledPathTracker
-				),
-			calledPathTracker
+				node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, recursionTracker),
+			recursionTracker
 		);
 	}
 

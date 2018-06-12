@@ -32,10 +32,10 @@ export default class UnaryExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		getValueTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UNKNOWN_VALUE;
-		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH, getValueTracker);
+		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
 		if (argumentValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		return unaryOperators[this.operator](<LiteralValue>argumentValue);

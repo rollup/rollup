@@ -208,5 +208,3 @@ export class ExecutionPathOptions {
 		return this.set(OptionTypes.IGNORE_RETURN_AWAIT_YIELD, value);
 	}
 }
-
-export const NEW_EXECUTION_PATH = ExecutionPathOptions.create();

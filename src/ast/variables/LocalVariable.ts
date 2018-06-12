@@ -42,36 +42,36 @@ export default class LocalVariable extends Variable {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		calledPathTracker: EntityPathTracker
+		recursionTracker: EntityPathTracker
 	) {
 		if (
 			!this.isReassigned &&
 			this.init &&
 			path.length <= MAX_PATH_DEPTH &&
-			!calledPathTracker.track(this.init, path)
+			!recursionTracker.track(this.init, path)
 		) {
 			this.init.forEachReturnExpressionWhenCalledAtPath(
 				path,
 				callOptions,
 				callback,
-				calledPathTracker
+				recursionTracker
 			);
 		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		getValueTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown {
 		if (
 			this.isReassigned ||
 			!this.init ||
 			path.length > MAX_PATH_DEPTH ||
-			getValueTracker.isTracked(this.init, path)
+			recursionTracker.isTracked(this.init, path)
 		) {
 			return UNKNOWN_VALUE;
 		}
-		return this.init.getLiteralValueAtPath(path, getValueTracker.track(this.init, path));
+		return this.init.getLiteralValueAtPath(path, recursionTracker.track(this.init, path));
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
