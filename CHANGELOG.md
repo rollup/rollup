@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.60.3
+*2018-06-13*
+* Fix types to allow watching an array of outputs ([#2262](https://github.com/rollup/rollup/pull/2262))
+
 ## 0.60.2
 *2018-06-11*
 * Permit setting an asset's source in `generateBundle` ([#2256](https://github.com/rollup/rollup/pull/2256))
