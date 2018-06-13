@@ -4,6 +4,7 @@ System.register('FooBar', [], function (exports, module) {
 		execute: function () {
 
 			exports('doThings', doThings);
+
 			function doThings() {
 				console.log( 'doing things...' );
 			}

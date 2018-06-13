@@ -8,6 +8,7 @@ System.register(['./chunk-4d8f4e43.js'], function (exports, module) {
     execute: function () {
 
       exports('mult', mult);
+
       function mult (num) {
         return num + multiplier;
       }

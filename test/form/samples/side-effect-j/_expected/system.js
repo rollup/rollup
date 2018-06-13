@@ -4,6 +4,7 @@ System.register('myBundle', [], function (exports, module) {
 		execute: function () {
 
 			exports('default', x);
+
 			var augment;
 			augment = x => x.augmented = true;
 

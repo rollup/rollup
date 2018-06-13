@@ -50,6 +50,16 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	someReturnExpressionWhenCalledAtPath: () => true,
 	toString: () => '[[UNKNOWN]]'
 };
+export const UNDEFINED_EXPRESSION: ExpressionEntity = {
+	reassignPath: () => {},
+	forEachReturnExpressionWhenCalledAtPath: () => {},
+	getLiteralValueAtPath: () => UNKNOWN_VALUE,
+	hasEffectsWhenAccessedAtPath: path => path.length > 0,
+	hasEffectsWhenAssignedAtPath: path => path.length > 0,
+	hasEffectsWhenCalledAtPath: () => true,
+	someReturnExpressionWhenCalledAtPath: () => true,
+	toString: () => 'undefined'
+};
 const returnsUnknown: RawMemberDescription = {
 	value: { returns: UNKNOWN_EXPRESSION, callsArgs: null, mutatesSelf: false }
 };

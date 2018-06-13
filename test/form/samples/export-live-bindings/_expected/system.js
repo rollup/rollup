@@ -3,9 +3,12 @@ System.register('iife', [], function (exports, module) {
   return {
     execute: function () {
 
-      exports('updateFoo', update);
-      exports('updateBar', update$1);
-      exports('updateBaz', update$2);
+      exports({
+        updateFoo: update,
+        updateBar: update$1,
+        updateBaz: update$2
+      });
+
       function update () {
         foo += exports('foo', 10);
       }

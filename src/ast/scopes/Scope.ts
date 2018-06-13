@@ -3,7 +3,7 @@ import { NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { EMPTY_PATH, UNKNOWN_EXPRESSION } from '../values';
+import { EMPTY_PATH, UNDEFINED_EXPRESSION } from '../values';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ExternalVariable from '../variables/ExternalVariable';
@@ -59,7 +59,7 @@ export default class Scope {
 			this.variables[name] = new LocalVariable(
 				identifier.name,
 				identifier,
-				options.init || UNKNOWN_EXPRESSION
+				options.init || UNDEFINED_EXPRESSION
 			);
 		}
 		return this.variables[name];

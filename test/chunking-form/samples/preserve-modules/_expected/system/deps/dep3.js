@@ -8,6 +8,7 @@ System.register(['../lib/lib1.js'], function (exports, module) {
     execute: function () {
 
       exports('fn', fn$1);
+
       function fn$1 () {
         fn();
         console.log('dep3 fn');

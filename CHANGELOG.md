@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.60.4
+*2018-06-13*
+* Properly handle initially uninitialized exports and exports of globals in SystemJS output ([#2258](https://github.com/rollup/rollup/pull/2258))
+
 ## 0.60.3
 *2018-06-13*
 * Fix types to allow watching an array of outputs ([#2262](https://github.com/rollup/rollup/pull/2262))
