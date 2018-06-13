@@ -22,12 +22,8 @@ export default class ModuleScope extends Scope {
 		super(parent);
 		this.context = context;
 		this.isModuleScope = true;
-		this.variables.this = new LocalVariable(
-			'this',
-			null,
-			UNDEFINED_EXPRESSION,
-			context.reassignmentTracker
-		);
+		this.variables.this = new LocalVariable('this', null, UNDEFINED_EXPRESSION, context.reassignmentTracker);
+		this.variables.undefined = new LocalVariable('undefined', null, UNDEFINED_EXPRESSION, context.reassignmentTracker);
 	}
 
 	deshadow(names: Set<string>, children = this.children) {
