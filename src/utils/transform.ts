@@ -3,7 +3,10 @@ import { locate } from 'locate-character';
 import { decode } from 'sourcemap-codec';
 import Program from '../ast/nodes/Program';
 import Graph from '../Graph';
+import Module from '../Module';
 import {
+	Asset,
+	EmitAsset,
 	Plugin,
 	PluginContext,
 	RawSourceMap,
@@ -56,33 +59,39 @@ function createPluginTransformContext(
 	graph: Graph,
 	plugin: Plugin,
 	id: string,
-	source: string
-): PluginContext {
+	source: string,
+	createTransformEmitAsset: () => { assets: Asset[]; emitAsset: EmitAsset }
+): { assets: Asset[]; context: PluginContext } {
+	const { assets, emitAsset } = createTransformEmitAsset();
 	return {
-		...graph.pluginContext,
-		warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
-			if (typeof warning === 'string') warning = { message: warning };
-			warning = augmentCodeLocation({
-				object: warning,
-				pos,
-				code: 'PLUGIN_WARNING',
-				id,
-				source,
-				pluginName: plugin.name || '(anonymous plugin)'
-			});
-			graph.warn(warning);
-		},
-		error(err: RollupError | string, pos?: { line: number; column: number }) {
-			if (typeof err === 'string') err = { message: err };
-			err = augmentCodeLocation({
-				object: err,
-				pos,
-				code: 'PLUGIN_ERROR',
-				id,
-				source,
-				pluginName: plugin.name || '(anonymous plugin)'
-			});
-			error(err);
+		assets,
+		context: {
+			...graph.pluginContext,
+			warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
+				if (typeof warning === 'string') warning = { message: warning };
+				warning = augmentCodeLocation({
+					object: warning,
+					pos,
+					code: 'PLUGIN_WARNING',
+					id,
+					source,
+					pluginName: plugin.name || '(anonymous plugin)'
+				});
+				graph.warn(warning);
+			},
+			error(err: RollupError | string, pos?: { line: number; column: number }) {
+				if (typeof err === 'string') err = { message: err };
+				err = augmentCodeLocation({
+					object: err,
+					pos,
+					code: 'PLUGIN_ERROR',
+					id,
+					source,
+					pluginName: plugin.name || '(anonymous plugin)'
+				});
+				error(err);
+			},
+			emitAsset
 		}
 	};
 }
@@ -90,9 +99,11 @@ function createPluginTransformContext(
 export default function transform(
 	graph: Graph,
 	source: SourceDescription,
-	id: string,
-	plugins: Plugin[]
+	module: Module,
+	plugins: Plugin[],
+	createTransformEmitAsset: () => { assets: Asset[]; emitAsset: EmitAsset }
 ) {
+	const id = module.id;
 	const sourcemapChain: RawSourceMap[] = [];
 
 	const originalSourcemap = typeof source.map === 'string' ? JSON.parse(source.map) : source.map;
@@ -111,9 +122,26 @@ export default function transform(
 		if (!plugin.transform) return;
 
 		promise = promise.then(previous => {
+			let assets: Asset[];
 			return Promise.resolve()
 				.then(() => {
-					const context = createPluginTransformContext(graph, plugin, id, previous);
+					let context;
+					({ assets, context } = createPluginTransformContext(
+						graph,
+						plugin,
+						id,
+						previous,
+						createTransformEmitAsset
+					));
+
+					// assets emitted by transform are transformDependencies
+					if (assets.length) module.transformAssets = assets;
+					for (const asset of assets) {
+						for (const depId of asset.dependencies) {
+							if (!transformDependencies) transformDependencies = [];
+							if (transformDependencies.indexOf(depId) === -1) transformDependencies.push(depId);
+						}
+					}
 					return plugin.transform.call(context, previous, id);
 				})
 				.then(result => {

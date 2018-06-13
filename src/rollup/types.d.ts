@@ -59,6 +59,7 @@ export interface ModuleJSON {
 	id: string;
 	dependencies: string[];
 	transformDependencies: string[];
+	transformAssets: Asset[] | void;
 	code: string;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
@@ -67,12 +68,22 @@ export interface ModuleJSON {
 	resolvedIds: IdMap;
 }
 
+export type EmitAsset = (name: string, source?: string | Buffer, dependencies?: string[]) => string;
+
+export interface Asset {
+	name: string;
+	source: string | Buffer;
+	fileName: string;
+	transform: boolean;
+	dependencies: string[];
+}
+
 export interface PluginContext {
 	watcher: Watcher;
 	resolveId: ResolveIdHook;
 	isExternal: IsExternal;
 	parse: (input: string, options: any) => ESTree.Program;
-	emitAsset: (name: string, source?: string | Buffer) => string;
+	emitAsset: EmitAsset;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
 	getAssetFileName: (assetId: string) => string;
 	warn(warning: RollupWarning | string, pos?: { line: number; column: number }): void;
@@ -325,6 +336,7 @@ export interface OutputChunk {
 
 export interface RollupCache {
 	modules: ModuleJSON[];
+	assetDependencies: string[];
 }
 
 export interface RollupSingleFileBuild {

@@ -1,16 +1,9 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
-import { OutputBundle } from '../rollup/types';
-import { randomHexString } from './entryHashing';
+import { Asset, OutputBundle } from '../rollup/types';
 import error from './error';
-import { extname } from './path';
+import { extname, normalize, resolve } from './path';
 import { isPlainName } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
-
-export interface Asset {
-	name: string;
-	source: string | Buffer;
-	fileName: string;
-}
 
 export function getAssetFileName(
 	asset: Asset,
@@ -51,18 +44,54 @@ export function createAssetPluginHooks(
 	outputBundle?: OutputBundle,
 	assetFileNames?: string
 ) {
+	function emitAsset(name: string, source?: string | Buffer, dependencies?: string[]) {
+		if (typeof name !== 'string' || !isPlainName(name))
+			error({
+				code: 'INVALID_ASSET_NAME',
+				message: `Plugin error creating asset, name is not a plain (non relative or absolute URL) string name.`
+			});
+
+		if (Array.isArray(source) && dependencies === undefined) {
+			dependencies = source;
+			source = undefined;
+		}
+
+		if (dependencies) dependencies = dependencies.map(depId => normalize(resolve(depId)));
+
+		let assetId: string;
+		do {
+			const assetHash = sha256();
+			if (assetId) {
+				// if there is a collision, chain until there isn't
+				assetHash.update(assetId);
+			} else {
+				assetHash.update(name);
+				if (dependencies) for (const depId of dependencies) assetHash.update(depId);
+			}
+			assetId = assetHash.digest('hex').substr(0, 8);
+		} while (assetsById.has(assetId));
+
+		const asset: Asset = { name, source, fileName: undefined, dependencies, transform: false };
+		if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
+		assetsById.set(assetId, asset);
+		return assetId;
+	}
+
 	return {
-		emitAsset(name: string, source?: string | Buffer) {
-			if (typeof name !== 'string' || !isPlainName(name))
-				error({
-					code: 'INVALID_ASSET_NAME',
-					message: `Plugin error creating asset, name is not a plain (non relative or absolute URL) string name.`
-				});
-			const assetId = randomHexString(8);
-			const asset: Asset = { name, source, fileName: undefined };
-			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
-			assetsById.set(assetId, asset);
-			return assetId;
+		emitAsset,
+		createTransformEmitAsset() {
+			const assets: Asset[] = [];
+			return {
+				assets,
+				emitAsset: (name: string, source?: string | Buffer, dependencies?: string[]) => {
+					const assetId = emitAsset(name, source, dependencies);
+					const asset = assetsById.get(assetId);
+					// distinguish transform assets
+					asset.transform = true;
+					assets.push(asset);
+					return assetId;
+				}
+			};
 		},
 		setAssetSource: (assetId: string, source: string | Buffer) => {
 			const asset = assetsById.get(assetId);
