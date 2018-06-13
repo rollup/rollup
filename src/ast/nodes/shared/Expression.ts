@@ -5,6 +5,8 @@ import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTrack
 import { LiteralValueOrUnknown, ObjectPath } from '../../values';
 
 export interface ExpressionEntity extends WritableEntity {
+	included: boolean;
+
 	/**
 	 * If possible it returns a stringifyable literal value for this node that can be used
 	 * for inlining or comparing values.
@@ -24,4 +26,5 @@ export interface ExpressionEntity extends WritableEntity {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean;
+	include(): void;
 }

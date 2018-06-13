@@ -125,6 +125,13 @@ export default class CallExpression extends NodeBase {
 		);
 	}
 
+	include() {
+		super.include();
+		if (!this.returnExpression.included) {
+			this.returnExpression.include();
+		}
+	}
+
 	initialise() {
 		this.included = false;
 		this.returnExpression = null;
