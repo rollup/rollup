@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.60.7
+*2018-06-14*
+* Fix typing issue ([#2269](https://github.com/rollup/rollup/pull/2269))
+
 ## 0.60.6
 *2018-06-14*
 * Track mutations of included virtual arrays ([#2263](https://github.com/rollup/rollup/pull/2263))
