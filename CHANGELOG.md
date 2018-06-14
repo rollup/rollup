@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.60.6
+*unreleased*
+* Update readme ([#2266](https://github.com/rollup/rollup/pull/2266))
+
 ## 0.60.5
 *2018-06-14*
 * Track deep reassignments of global and exported variables and improve performance ([#2254](https://github.com/rollup/rollup/pull/2254))
