@@ -1,7 +1,8 @@
 # rollup changelog
 
 ## 0.60.6
-*unreleased*
+*2018-06-14*
+* Track mutations of included virtual arrays ([#2263](https://github.com/rollup/rollup/pull/2263))
 * Update readme ([#2266](https://github.com/rollup/rollup/pull/2266))
 
 ## 0.60.5

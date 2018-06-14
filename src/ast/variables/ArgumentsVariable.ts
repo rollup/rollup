@@ -1,6 +1,5 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { SomeReturnExpressionCallback } from '../nodes/shared/Expression';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from './LocalVariable';
@@ -61,22 +60,5 @@ export default class ArgumentsVariable extends LocalVariable {
 				this.parameters[firstArgNum].reassignPath(path.slice(1));
 			}
 		}
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		if (path.length === 0) {
-			return true;
-		}
-		return getParameterVariable(path, options).someReturnExpressionWhenCalledAtPath(
-			path.slice(1),
-			callOptions,
-			predicateFunction,
-			options
-		);
 	}
 }

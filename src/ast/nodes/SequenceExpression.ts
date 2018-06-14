@@ -7,31 +7,15 @@ import {
 } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
-import { ForEachReturnExpressionCallback } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
 	type: NodeType.tSequenceExpression;
 	expressions: ExpressionNode[];
-
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		recursionTracker: EntityPathTracker
-	) {
-		this.expressions[this.expressions.length - 1].forEachReturnExpressionWhenCalledAtPath(
-			path,
-			callOptions,
-			callback,
-			recursionTracker
-		);
-	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,

@@ -1,10 +1,13 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
-import { ObjectPath, UNKNOWN_PATH } from '../values';
+import {
+	EMPTY_IMMUTABLE_TRACKER,
+	ImmutableEntityPathTracker
+} from '../utils/ImmutableEntityPathTracker';
+import { EMPTY_PATH, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_PATH } from '../values';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 
@@ -14,6 +17,7 @@ export default class CallExpression extends NodeBase {
 	arguments: (ExpressionNode | SpreadElement)[];
 
 	private callOptions: CallOptions;
+	private returnExpression: ExpressionEntity | null;
 
 	bind() {
 		super.bind();
@@ -41,24 +45,34 @@ export default class CallExpression extends NodeBase {
 				);
 			}
 		}
+		if (this.returnExpression === null) {
+			this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
+				EMPTY_PATH,
+				EMPTY_IMMUTABLE_TRACKER
+			);
+		}
 		for (const argument of this.arguments) {
 			// This will make sure all properties of parameters behave as "unknown"
 			argument.reassignPath(UNKNOWN_PATH);
 		}
 	}
 
-	forEachReturnExpressionWhenCalledAtPath(
+	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		recursionTracker: EntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker
 	) {
-		this.callee.forEachReturnExpressionWhenCalledAtPath(
-			[],
-			this.callOptions,
-			node =>
-				node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, recursionTracker),
-			recursionTracker
+		if (this.returnExpression === null) {
+			this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
+				EMPTY_PATH,
+				recursionTracker
+			);
+		}
+		if (recursionTracker.isTracked(this.returnExpression, path)) {
+			return UNKNOWN_EXPRESSION;
+		}
+		return this.returnExpression.getReturnExpressionWhenCalledAtPath(
+			path,
+			recursionTracker.track(this.returnExpression, path)
 		);
 	}
 
@@ -66,10 +80,13 @@ export default class CallExpression extends NodeBase {
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(options)) return true;
 		}
-		return this.callee.hasEffectsWhenCalledAtPath(
-			[],
-			this.callOptions,
-			options.getHasEffectsWhenCalledOptions()
+		return (
+			this.callee.hasEffects(options) ||
+			this.callee.hasEffectsWhenCalledAtPath(
+				EMPTY_PATH,
+				this.callOptions,
+				options.getHasEffectsWhenCalledOptions()
+			)
 		);
 	}
 
@@ -77,32 +94,21 @@ export default class CallExpression extends NodeBase {
 		return (
 			path.length > 0 &&
 			!options.hasReturnExpressionBeenAccessedAtPath(path, this) &&
-			this.callee.someReturnExpressionWhenCalledAtPath(
-				[],
-				this.callOptions,
-				(innerOptions, node) =>
-					node.hasEffectsWhenAccessedAtPath(
-						path,
-						innerOptions.addAccessedReturnExpressionAtPath(path, this)
-					),
-				options
+			this.returnExpression.hasEffectsWhenAccessedAtPath(
+				path,
+				options.addAccessedReturnExpressionAtPath(path, this)
 			)
 		);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		return (
-			!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
-			this.callee.someReturnExpressionWhenCalledAtPath(
-				[],
-				this.callOptions,
-				(innerOptions, node) =>
-					node.hasEffectsWhenAssignedAtPath(
-						path,
-						innerOptions.addAssignedReturnExpressionAtPath(path, this)
-					),
-				options
-			)
+			path.length === 0 ||
+			(!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
+				this.returnExpression.hasEffectsWhenAssignedAtPath(
+					path,
+					options.addAssignedReturnExpressionAtPath(path, this)
+				))
 		);
 	}
 
@@ -111,24 +117,24 @@ export default class CallExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
+		if (options.hasReturnExpressionBeenCalledAtPath(path, this)) return false;
+		const innerOptions = options.addCalledReturnExpressionAtPath(path, this);
 		return (
-			!options.hasReturnExpressionBeenCalledAtPath(path, this) &&
-			this.callee.someReturnExpressionWhenCalledAtPath(
-				[],
-				this.callOptions,
-				(innerOptions, node) =>
-					node.hasEffectsWhenCalledAtPath(
-						path,
-						callOptions,
-						innerOptions.addCalledReturnExpressionAtPath(path, this)
-					),
-				options
-			)
+			this.hasEffects(innerOptions) ||
+			this.returnExpression.hasEffectsWhenCalledAtPath(path, callOptions, innerOptions)
 		);
+	}
+
+	include() {
+		super.include();
+		if (!this.returnExpression.included) {
+			this.returnExpression.include();
+		}
 	}
 
 	initialise() {
 		this.included = false;
+		this.returnExpression = null;
 		this.callOptions = CallOptions.create({
 			withNew: false,
 			args: this.arguments,
@@ -138,32 +144,13 @@ export default class CallExpression extends NodeBase {
 
 	reassignPath(path: ObjectPath) {
 		if (path.length > 0 && !this.context.reassignmentTracker.track(this, path)) {
-			this.callee.forEachReturnExpressionWhenCalledAtPath(
-				[],
-				this.callOptions,
-				node => node.reassignPath(path),
-				new EntityPathTracker()
-			);
+			if (this.returnExpression === null) {
+				this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
+					EMPTY_PATH,
+					EMPTY_IMMUTABLE_TRACKER
+				);
+			}
+			this.returnExpression.reassignPath(path);
 		}
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		return this.callee.someReturnExpressionWhenCalledAtPath(
-			[],
-			this.callOptions,
-			(innerOptions, node) =>
-				node.someReturnExpressionWhenCalledAtPath(
-					path,
-					callOptions,
-					predicateFunction,
-					innerOptions
-				),
-			options
-		);
 	}
 }

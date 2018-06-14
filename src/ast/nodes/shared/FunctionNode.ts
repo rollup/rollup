@@ -3,10 +3,9 @@ import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import BlockScope from '../../scopes/FunctionScope';
 import FunctionScope from '../../scopes/FunctionScope';
 import Scope from '../../scopes/Scope';
-import { ObjectPath } from '../../values';
+import { ObjectPath, UNKNOWN_EXPRESSION } from '../../values';
 import BlockStatement from '../BlockStatement';
 import Identifier from '../Identifier';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './Expression';
 import { GenericEsTreeNode, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
 
@@ -20,21 +19,12 @@ export default class FunctionNode extends NodeBase {
 
 	private isPrototypeReassigned: boolean;
 
-	bind() {
-		super.bind();
-		this.scope.bind();
-	}
-
 	createScope(parentScope: FunctionScope) {
 		this.scope = new FunctionScope(parentScope, this.context.reassignmentTracker);
 	}
 
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
-	) {
-		path.length === 0 && this.scope.forEachReturnExpressionWhenCalled(callOptions, callback);
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
 
 	hasEffects(options: ExecutionPathOptions) {
@@ -100,18 +90,6 @@ export default class FunctionNode extends NodeBase {
 		if (path.length === 1 && path[0] === 'prototype') {
 			this.isPrototypeReassigned = true;
 		}
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		return (
-			path.length > 0 ||
-			this.scope.someReturnExpressionWhenCalled(callOptions, predicateFunction, options)
-		);
 	}
 }
 

@@ -3,19 +3,19 @@ import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
 } from '../utils/ImmutableEntityPathTracker';
 import {
 	EMPTY_PATH,
+	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
 	LiteralValueOrUnknown,
 	objectMembers,
 	ObjectPath,
 	ObjectPathKey,
-	someMemberReturnExpressionWhenCalled,
+	UNKNOWN_EXPRESSION,
 	UNKNOWN_KEY,
 	UNKNOWN_PATH,
 	UNKNOWN_VALUE
@@ -24,7 +24,7 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import Property from './Property';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
+import { ExpressionEntity } from './shared/Expression';
 import { Node, NodeBase } from './shared/Node';
 
 const PROPERTY_KINDS_READ = ['init', 'get'];
@@ -40,29 +40,6 @@ export default class ObjectExpression extends NodeBase {
 
 	private reassignedPaths: { [key: string]: true };
 	private hasUnknownReassignedProperty: boolean;
-
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		recursionTracker: EntityPathTracker
-	) {
-		if (path.length === 0) return;
-
-		const { properties } = this.getPossiblePropertiesWithName(
-			path[0],
-			PROPERTY_KINDS_READ,
-			EMPTY_IMMUTABLE_TRACKER
-		);
-		for (const property of properties) {
-			property.forEachReturnExpressionWhenCalledAtPath(
-				path.slice(1),
-				callOptions,
-				callback,
-				recursionTracker
-			);
-		}
-	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
@@ -83,6 +60,34 @@ export default class ObjectExpression extends NodeBase {
 		);
 		if (!hasCertainHit || properties.length > 1) return UNKNOWN_VALUE;
 		return properties[0].getLiteralValueAtPath(path.slice(1), recursionTracker);
+	}
+
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker
+	): ExpressionEntity {
+		const key = path[0];
+		if (
+			path.length === 0 ||
+			this.hasUnknownReassignedProperty ||
+			(typeof key === 'string' && this.reassignedPaths[key])
+		)
+			return UNKNOWN_EXPRESSION;
+
+		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
+			key,
+			PROPERTY_KINDS_READ,
+			EMPTY_IMMUTABLE_TRACKER
+		);
+		if (
+			path.length === 1 &&
+			typeof key === 'string' &&
+			objectMembers[key] &&
+			properties.length === 0
+		)
+			return getMemberReturnExpressionWhenCalled(objectMembers, key);
+		if (!hasCertainHit || properties.length > 1) return UNKNOWN_EXPRESSION;
+		return properties[0].getReturnExpressionWhenCalledAtPath(path.slice(1), recursionTracker);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -207,50 +212,6 @@ export default class ObjectExpression extends NodeBase {
 			code.appendRight(this.start, '(');
 			code.prependLeft(this.end, ')');
 		}
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		const key = path[0];
-		if (
-			path.length === 0 ||
-			this.hasUnknownReassignedProperty ||
-			(typeof key === 'string' && this.reassignedPaths[key])
-		)
-			return true;
-
-		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
-			key,
-			PROPERTY_KINDS_READ,
-			EMPTY_IMMUTABLE_TRACKER
-		);
-		if (!(hasCertainHit || (path.length === 1 && typeof key === 'string' && objectMembers[key])))
-			return true;
-		const subPath = path.slice(1);
-		for (const property of properties) {
-			if (
-				property.someReturnExpressionWhenCalledAtPath(
-					subPath,
-					callOptions,
-					predicateFunction,
-					options
-				)
-			)
-				return true;
-		}
-		if (path.length === 1 && typeof key === 'string' && objectMembers[key])
-			return someMemberReturnExpressionWhenCalled(
-				objectMembers,
-				key,
-				callOptions,
-				predicateFunction,
-				options
-			);
-		return false;
 	}
 
 	private getPossiblePropertiesWithName(

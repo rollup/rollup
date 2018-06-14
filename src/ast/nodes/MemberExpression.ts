@@ -4,7 +4,6 @@ import relativeId from '../../utils/relativeId';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -23,7 +22,6 @@ import Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { ExpressionNode, Node, NodeBase } from './shared/Node';
 
 function getPropertyKey(memberExpression: MemberExpression): string | null {
@@ -73,7 +71,6 @@ export default class MemberExpression extends NodeBase {
 
 	propertyKey: ObjectPathKey;
 	variable: Variable = null;
-	private arePropertyReadSideEffectsChecked: boolean;
 	private bound: boolean;
 	private replacement: string | null;
 
@@ -99,30 +96,6 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		recursionTracker: EntityPathTracker
-	) {
-		if (!this.bound) this.bind();
-		if (this.variable !== null) {
-			this.variable.forEachReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				callback,
-				recursionTracker
-			);
-		} else {
-			this.object.forEachReturnExpressionWhenCalledAtPath(
-				[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
-				callOptions,
-				callback,
-				recursionTracker
-			);
-		}
-	}
-
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: ImmutableEntityPathTracker
@@ -136,11 +109,24 @@ export default class MemberExpression extends NodeBase {
 		);
 	}
 
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker
+	) {
+		if (this.variable !== null) {
+			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
+		}
+		return this.object.getReturnExpressionWhenCalledAtPath(
+			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
+			recursionTracker
+		);
+	}
+
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			this.property.hasEffects(options) ||
 			this.object.hasEffects(options) ||
-			(this.arePropertyReadSideEffectsChecked &&
+			(this.context.propertyReadSideEffects &&
 				this.object.hasEffectsWhenAccessedAtPath(
 					[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER)],
 					options
@@ -202,7 +188,6 @@ export default class MemberExpression extends NodeBase {
 		this.included = false;
 		this.propertyKey = getPropertyKey(this);
 		this.variable = null;
-		this.arePropertyReadSideEffectsChecked = this.context.propertyReadSideEffects;
 		this.bound = false;
 		this.replacement = null;
 	}
@@ -240,28 +225,6 @@ export default class MemberExpression extends NodeBase {
 			}
 			super.render(code, options);
 		}
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		if (this.variable) {
-			return this.variable.someReturnExpressionWhenCalledAtPath(
-				path,
-				callOptions,
-				predicateFunction,
-				options
-			);
-		}
-		return this.object.someReturnExpressionWhenCalledAtPath(
-			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
-			callOptions,
-			predicateFunction,
-			options
-		);
 	}
 
 	private disallowNamespaceReassignment() {

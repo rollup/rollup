@@ -1,7 +1,7 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
-import { UNKNOWN_EXPRESSION, UNKNOWN_OBJECT_EXPRESSION } from '../values';
+import { UNKNOWN_EXPRESSION, UnknownObjectExpression } from '../values';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ExternalVariable from '../variables/ExternalVariable';
@@ -39,7 +39,7 @@ export default class FunctionScope extends ReturnValueScope {
 		return options
 			.replaceVariableInit(
 				this.variables.this,
-				withNew ? UNKNOWN_OBJECT_EXPRESSION : UNKNOWN_EXPRESSION
+				withNew ? new UnknownObjectExpression() : UNKNOWN_EXPRESSION
 			)
 			.setArgumentsVariables(
 				args.map((parameter, index) => super.getParameterVariables()[index] || parameter)

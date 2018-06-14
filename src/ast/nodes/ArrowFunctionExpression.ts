@@ -2,10 +2,9 @@ import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
-import { ObjectPath } from '../values';
+import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import BlockStatement from './BlockStatement';
 import * as NodeType from './NodeType';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
 import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
@@ -17,21 +16,12 @@ export default class ArrowFunctionExpression extends NodeBase {
 	scope: ReturnValueScope;
 	preventChildBlockScope: true;
 
-	bind() {
-		super.bind();
-		this.scope.bind();
-	}
-
 	createScope(parentScope: Scope) {
 		this.scope = new ReturnValueScope(parentScope);
 	}
 
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback
-	) {
-		path.length === 0 && this.scope.forEachReturnExpressionWhenCalled(callOptions, callback);
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
 
 	hasEffects(_options: ExecutionPathOptions) {
@@ -81,18 +71,6 @@ export default class ArrowFunctionExpression extends NodeBase {
 			);
 		}
 		super.parseNode(esTreeNode);
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		return (
-			path.length > 0 ||
-			this.scope.someReturnExpressionWhenCalled(callOptions, predicateFunction, options)
-		);
 	}
 }
 

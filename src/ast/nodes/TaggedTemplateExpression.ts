@@ -1,5 +1,6 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EMPTY_PATH } from '../values';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -44,7 +45,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 		return (
 			super.hasEffects(options) ||
 			this.tag.hasEffectsWhenCalledAtPath(
-				[],
+				EMPTY_PATH,
 				this.callOptions,
 				options.getHasEffectsWhenCalledOptions()
 			)

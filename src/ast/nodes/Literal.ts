@@ -4,15 +4,15 @@ import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	getLiteralMembersForValue,
+	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
 	LiteralValueOrUnknown,
 	MemberDescription,
 	ObjectPath,
-	someMemberReturnExpressionWhenCalled,
+	UNKNOWN_EXPRESSION,
 	UNKNOWN_VALUE
 } from '../values';
 import * as NodeType from './NodeType';
-import { SomeReturnExpressionCallback } from './shared/Expression';
 import { Node, NodeBase } from './shared/Node';
 
 export type LiteralValue = string | boolean | null | number | RegExp;
@@ -33,6 +33,11 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 		}
 		// not sure why we need this type cast here
 		return <any>this.value;
+	}
+
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+		if (path.length !== 1) return UNKNOWN_EXPRESSION;
+		return getMemberReturnExpressionWhenCalled(this.members, path[0]);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
@@ -66,23 +71,5 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 		if (typeof this.value === 'string') {
 			(<[number, number][]>code.indentExclusionRanges).push([this.start + 1, this.end - 1]);
 		}
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		if (path.length === 1) {
-			return someMemberReturnExpressionWhenCalled(
-				this.members,
-				path[0],
-				callOptions,
-				predicateFunction,
-				options
-			);
-		}
-		return true;
 	}
 }
