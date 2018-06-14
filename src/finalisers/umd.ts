@@ -115,7 +115,7 @@ export default function umd(
 	wrapperIntro += `${_}${cjsExport}factory(${cjsDeps.join(`,${_}`)})${_}:${n}`;
 	wrapperIntro += `${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}factory)${_}:${n}`;
 	wrapperIntro += `${t}${globalExport};${n}`;
-	wrapperIntro += `}(this,${_}(function${_}(${args})${_}{${useStrict}${n}`;
+	wrapperIntro += `}(typeof window!=='undefined'?window:this,${_}(function${_}(${args})${_}{${useStrict}${n}`;
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
 	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
