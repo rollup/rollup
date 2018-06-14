@@ -134,17 +134,20 @@ export default function transform(
 						createTransformEmitAsset
 					));
 
-					// assets emitted by transform are transformDependencies
-					if (assets.length) module.transformAssets = assets;
-					for (const asset of assets) {
-						for (const depId of asset.dependencies) {
-							if (!transformDependencies) transformDependencies = [];
-							if (transformDependencies.indexOf(depId) === -1) transformDependencies.push(depId);
-						}
-					}
 					return plugin.transform.call(context, previous, id);
 				})
 				.then(result => {
+					// assets emitted by transform are transformDependencies
+					if (assets.length) module.transformAssets = assets;
+					for (const asset of assets) {
+						if (asset.dependencies) {
+							for (const depId of asset.dependencies) {
+								if (!transformDependencies) transformDependencies = [];
+								if (transformDependencies.indexOf(depId) === -1) transformDependencies.push(depId);
+							}
+						}
+					}
+
 					if (result == null) return previous;
 
 					if (typeof result === 'string') {

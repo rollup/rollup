@@ -39,6 +39,7 @@ import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
+import { handleMissingExport } from './utils/defaults';
 
 export interface CommentDescription {
 	block: boolean;

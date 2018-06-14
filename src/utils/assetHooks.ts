@@ -5,6 +5,10 @@ import { extname, normalize, resolve } from './path';
 import { isPlainName } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
+export type EmitAsset =
+	| ((name: string, source?: string | Buffer) => string)
+	| ((name: string, dependencies?: string[], source?: string | Buffer) => string);
+
 export function getAssetFileName(
 	asset: Asset,
 	existingNames: Record<string, any>,
@@ -44,19 +48,26 @@ export function createAssetPluginHooks(
 	outputBundle?: OutputBundle,
 	assetFileNames?: string
 ) {
-	function emitAsset(name: string, source?: string | Buffer, dependencies?: string[]) {
+	function emitAsset(name: string, dependencies?: string[], source?: string | Buffer) {
 		if (typeof name !== 'string' || !isPlainName(name))
 			error({
 				code: 'INVALID_ASSET_NAME',
 				message: `Plugin error creating asset, name is not a plain (non relative or absolute URL) string name.`
 			});
 
-		if (Array.isArray(source) && dependencies === undefined) {
-			dependencies = source;
-			source = undefined;
+		if (source === undefined && !Array.isArray(dependencies)) {
+			source = dependencies;
+			dependencies = undefined;
 		}
 
-		if (dependencies) dependencies = dependencies.map(depId => normalize(resolve(depId)));
+		if (dependencies) {
+			if (outputBundle)
+				error({
+					code: 'ASSETS_FINALISED',
+					message: `Plugin error creating asset, asset dependencies are not supported during generation, only during the build.`
+				});
+			dependencies = dependencies.map(depId => normalize(resolve(depId)));
+		}
 
 		let assetId: string;
 		do {
@@ -78,13 +89,13 @@ export function createAssetPluginHooks(
 	}
 
 	return {
-		emitAsset,
+		emitAsset: <EmitAsset>emitAsset,
 		createTransformEmitAsset() {
 			const assets: Asset[] = [];
 			return {
 				assets,
-				emitAsset: (name: string, source?: string | Buffer, dependencies?: string[]) => {
-					const assetId = emitAsset(name, source, dependencies);
+				emitAsset: (name: string, dependencies?: string[], source?: string | Buffer) => {
+					const assetId = emitAsset(name, dependencies, source);
 					const asset = assetsById.get(assetId);
 					// distinguish transform assets
 					asset.transform = true;
