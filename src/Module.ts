@@ -213,10 +213,14 @@ export default class Module {
 		this.exportAllModules = null;
 	}
 
-	setSource(
-		{ code, originalCode, originalSourcemap, ast, sourcemapChain, resolvedIds }: ModuleJSON,
-		reassignmentTracker: EntityPathTracker
-	) {
+	setSource({
+		code,
+		originalCode,
+		originalSourcemap,
+		ast,
+		sourcemapChain,
+		resolvedIds
+	}: ModuleJSON) {
 		this.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
@@ -263,7 +267,7 @@ export default class Module {
 			nodeConstructors,
 			propertyReadSideEffects:
 				!this.graph.treeshake || this.graph.treeshakingOptions.propertyReadSideEffects,
-			reassignmentTracker,
+			reassignmentTracker: this.graph.reassignmentTracker,
 			requestTreeshakingPass: () => (this.needsTreeshakingPass = true),
 			traceExport: this.traceExport.bind(this),
 			traceVariable: this.traceVariable.bind(this),

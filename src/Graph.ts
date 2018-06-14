@@ -55,7 +55,7 @@ export default class Graph {
 	onwarn: WarningHandler;
 	plugins: Plugin[];
 	pluginContext: PluginContext;
-	private reassignmentTracker: EntityPathTracker;
+	reassignmentTracker: EntityPathTracker;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
 	scope: GlobalScope;
@@ -681,7 +681,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 				return transform(this, sourceDescription, id, this.plugins);
 			})
 			.then((source: ModuleJSON) => {
-				module.setSource(source, this.reassignmentTracker);
+				module.setSource(source);
 
 				this.modules.push(module);
 				this.moduleById.set(id, module);
