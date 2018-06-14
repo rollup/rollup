@@ -53,13 +53,14 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	toString: () => '[[UNKNOWN]]'
 };
 export const UNDEFINED_EXPRESSION: ExpressionEntity = {
-	reassignPath: () => {},
-	forEachReturnExpressionWhenCalledAtPath: () => {},
+	included: true,
 	getLiteralValueAtPath: () => UNKNOWN_VALUE,
+	getReturnExpressionWhenCalledAtPath: () => UNKNOWN_EXPRESSION,
 	hasEffectsWhenAccessedAtPath: path => path.length > 0,
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
 	hasEffectsWhenCalledAtPath: () => true,
-	someReturnExpressionWhenCalledAtPath: () => true,
+	include: () => {},
+	reassignPath: () => {},
 	toString: () => 'undefined'
 };
 const returnsUnknown: RawMemberDescription = {
@@ -442,7 +443,7 @@ export function hasMemberEffectWhenCalled(
 		if (
 			callOptions.args[argIndex] &&
 			callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
-				[],
+				EMPTY_PATH,
 				CallOptions.create({
 					withNew: false,
 					args: [],

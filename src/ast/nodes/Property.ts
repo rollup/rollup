@@ -80,7 +80,7 @@ export default class Property extends NodeBase {
 		if (this.kind === 'get') {
 			return (
 				this.value.hasEffectsWhenCalledAtPath(
-					[],
+					EMPTY_PATH,
 					this.accessorCallOptions,
 					options.getHasEffectsWhenCalledOptions()
 				) ||
@@ -98,7 +98,7 @@ export default class Property extends NodeBase {
 			return (
 				path.length > 0 ||
 				this.value.hasEffectsWhenCalledAtPath(
-					[],
+					EMPTY_PATH,
 					this.accessorCallOptions,
 					options.getHasEffectsWhenCalledOptions()
 				)

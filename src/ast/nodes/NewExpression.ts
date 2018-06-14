@@ -1,6 +1,6 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { ObjectPath, UNKNOWN_PATH } from '../values';
+import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
@@ -24,7 +24,7 @@ export default class NewExpression extends NodeBase {
 			if (argument.hasEffects(options)) return true;
 		}
 		return this.callee.hasEffectsWhenCalledAtPath(
-			[],
+			EMPTY_PATH,
 			this.callOptions,
 			options.getHasEffectsWhenCalledOptions()
 		);

@@ -83,7 +83,7 @@ export default class CallExpression extends NodeBase {
 		return (
 			this.callee.hasEffects(options) ||
 			this.callee.hasEffectsWhenCalledAtPath(
-				[],
+				EMPTY_PATH,
 				this.callOptions,
 				options.getHasEffectsWhenCalledOptions()
 			)
