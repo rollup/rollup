@@ -2,7 +2,6 @@ import { IParse, Options as AcornOptions } from 'acorn';
 import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
-import { NEW_EXECUTION_PATH } from './ast/ExecutionPathOptions';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration, {
 	isExportDefaultDeclaration
@@ -21,6 +20,7 @@ import Program from './ast/nodes/Program';
 import { GenericEsTreeNode, Node, NodeBase } from './ast/nodes/shared/Node';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import ModuleScope from './ast/scopes/ModuleScope';
+import { EntityPathTracker } from './ast/utils/EntityPathTracker';
 import extractNames from './ast/utils/extractNames';
 import { UNKNOWN_PATH } from './ast/values';
 import ExternalVariable from './ast/variables/ExternalVariable';
@@ -88,6 +88,7 @@ export interface AstContext {
 	moduleContext: string;
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	propertyReadSideEffects: boolean;
+	reassignmentTracker: EntityPathTracker;
 	requestTreeshakingPass: () => void;
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable;
@@ -266,6 +267,7 @@ export default class Module {
 			nodeConstructors,
 			propertyReadSideEffects:
 				!this.graph.treeshake || this.graph.treeshakingOptions.propertyReadSideEffects,
+			reassignmentTracker: this.graph.reassignmentTracker,
 			requestTreeshakingPass: () => (this.needsTreeshakingPass = true),
 			traceExport: this.traceExport.bind(this),
 			traceVariable: this.traceVariable.bind(this),
@@ -439,7 +441,7 @@ export default class Module {
 			const variable = this.traceExport(exportName);
 
 			variable.exportName = exportName;
-			variable.reassignPath(UNKNOWN_PATH, NEW_EXECUTION_PATH);
+			variable.reassignPath(UNKNOWN_PATH);
 			variable.include();
 
 			if (variable.isNamespace) {
@@ -456,7 +458,7 @@ export default class Module {
 				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
 			} else {
 				variable.include();
-				variable.reassignPath(UNKNOWN_PATH, NEW_EXECUTION_PATH);
+				variable.reassignPath(UNKNOWN_PATH);
 			}
 		}
 	}

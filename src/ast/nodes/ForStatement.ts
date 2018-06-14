@@ -19,7 +19,7 @@ export default class ForStatement extends StatementBase {
 	body: StatementNode;
 
 	createScope(parentScope: Scope) {
-		this.scope = new BlockScope({ parent: parentScope });
+		this.scope = new BlockScope(parentScope);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

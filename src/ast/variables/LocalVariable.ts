@@ -9,7 +9,9 @@ import {
 	SomeReturnExpressionCallback
 } from '../nodes/shared/Expression';
 import { Node } from '../nodes/shared/Node';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
+import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_PATH, UNKNOWN_VALUE } from '../values';
 import Variable from './Variable';
 
 // To avoid infinite recursions
@@ -18,15 +20,18 @@ const MAX_PATH_DEPTH = 7;
 export default class LocalVariable extends Variable {
 	declarations: (Identifier | ExportDefaultDeclaration)[];
 	init: ExpressionEntity;
+	reassignmentTracker: EntityPathTracker;
 
 	constructor(
 		name: string,
 		declarator: Identifier | ExportDefaultDeclaration | null,
-		init: ExpressionEntity
+		init: ExpressionEntity,
+		reassignmentTracker: EntityPathTracker
 	) {
 		super(name);
 		this.declarations = declarator ? [declarator] : [];
 		this.init = init;
+		this.reassignmentTracker = reassignmentTracker;
 	}
 
 	addDeclaration(identifier: Identifier) {
@@ -37,36 +42,36 @@ export default class LocalVariable extends Variable {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		recursionTracker: EntityPathTracker
 	) {
 		if (
 			!this.isReassigned &&
 			this.init &&
 			path.length <= MAX_PATH_DEPTH &&
-			!options.hasNodeBeenCalledAtPathWithOptions(path, this.init, callOptions)
+			!recursionTracker.track(this.init, path)
 		) {
 			this.init.forEachReturnExpressionWhenCalledAtPath(
 				path,
 				callOptions,
 				callback,
-				options.addCalledNodeAtPathWithOptions(path, this.init, callOptions)
+				recursionTracker
 			);
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
 		if (
 			this.isReassigned ||
 			!this.init ||
 			path.length > MAX_PATH_DEPTH ||
-			options.hasNodeValueBeenRetrievedAtPath(path, this.init)
+			recursionTracker.isTracked(this.init, path)
 		) {
 			return UNKNOWN_VALUE;
 		}
-		return this.init.getLiteralValueAtPath(
-			path,
-			options.addRetrievedNodeValueAtPath(path, this.init)
-		);
+		return this.init.getLiteralValueAtPath(path, recursionTracker.track(this.init, path));
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
@@ -133,13 +138,16 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath) {
 		if (path.length > MAX_PATH_DEPTH) return;
-		if (!(this.isReassigned || options.hasNodeBeenAssignedAtPath(path, this))) {
+		if (!(this.isReassigned || this.reassignmentTracker.track(this, path))) {
 			if (path.length === 0) {
 				this.isReassigned = true;
+				if (this.init) {
+					this.init.reassignPath(UNKNOWN_PATH);
+				}
 			} else if (this.init) {
-				this.init.reassignPath(path, options.addAssignedNodeAtPath(path, this));
+				this.init.reassignPath(path);
 			}
 		}
 	}

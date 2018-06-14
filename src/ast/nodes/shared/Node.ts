@@ -4,9 +4,11 @@ import { AstContext } from '../../../Module';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import CallOptions from '../../CallOptions';
 import { Entity } from '../../Entity';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import { getAndCreateKeys, keys } from '../../keys';
 import Scope from '../../scopes/Scope';
+import { EntityPathTracker } from '../../utils/EntityPathTracker';
+import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import Variable from '../../variables/Variable';
 import {
@@ -79,6 +81,8 @@ export interface StatementNode extends Node {}
 
 export interface ExpressionNode extends ExpressionEntity, Node {}
 
+const NEW_EXECUTION_PATH = ExecutionPathOptions.create();
+
 export class NodeBase implements ExpressionNode {
 	type: string;
 	keys: string[];
@@ -136,10 +140,13 @@ export class NodeBase implements ExpressionNode {
 		_path: ObjectPath,
 		_callOptions: CallOptions,
 		_callback: ForEachReturnExpressionCallback,
-		_options: ExecutionPathOptions
+		_recursionTracker: EntityPathTracker
 	) {}
 
-	getLiteralValueAtPath(_path: ObjectPath, _options: ExecutionPathOptions): LiteralValueOrUnknown {
+	getLiteralValueAtPath(
+		_path: ObjectPath,
+		_recursionTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
 	}
 
@@ -237,7 +244,7 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
-	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
+	reassignPath(_path: ObjectPath) {}
 
 	render(code: MagicString, options: RenderOptions) {
 		for (const key of this.keys) {

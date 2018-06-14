@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	ExpressionEntity,
 	ForEachReturnExpressionCallback,
@@ -18,24 +18,24 @@ export default class ReturnValueScope extends ParameterScope {
 	}
 
 	bind() {
+		if (this.bound) return;
 		this.bound = true;
 		if (this.returnExpressions.length === 1) {
 			this.returnExpression = this.returnExpressions[0];
 		} else {
 			this.returnExpression = UNKNOWN_EXPRESSION;
 			for (const expression of this.returnExpressions) {
-				expression.reassignPath(UNKNOWN_PATH, NEW_EXECUTION_PATH);
+				expression.reassignPath(UNKNOWN_PATH);
 			}
 		}
 	}
 
 	forEachReturnExpressionWhenCalled(
 		_callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		callback: ForEachReturnExpressionCallback
 	) {
 		if (!this.bound) this.bind();
-		callback(options, this.returnExpression);
+		callback(this.returnExpression);
 	}
 
 	someReturnExpressionWhenCalled(
@@ -43,7 +43,6 @@ export default class ReturnValueScope extends ParameterScope {
 		predicateFunction: SomeReturnExpressionCallback,
 		options: ExecutionPathOptions
 	): boolean {
-		if (!this.bound) this.bind();
 		return predicateFunction(options, this.returnExpression);
 	}
 }

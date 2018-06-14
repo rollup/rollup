@@ -1,4 +1,5 @@
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
@@ -25,13 +26,16 @@ export default class UnaryExpression extends NodeBase {
 	bind() {
 		super.bind();
 		if (this.operator === 'delete') {
-			this.argument.reassignPath(EMPTY_PATH, NEW_EXECUTION_PATH);
+			this.argument.reassignPath(EMPTY_PATH);
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
 		if (path.length > 0) return UNKNOWN_VALUE;
-		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH, options);
+		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
 		if (argumentValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		return unaryOperators[this.operator](<LiteralValue>argumentValue);

@@ -17,15 +17,14 @@ export enum OptionTypes {
 	IGNORE_RETURN_AWAIT_YIELD,
 	NODES_CALLED_AT_PATH_WITH_OPTIONS,
 	REPLACED_VARIABLE_INITS,
-	RETRIEVED_VALUE_NODES,
 	RETURN_EXPRESSIONS_ACCESSED_AT_PATH,
 	RETURN_EXPRESSIONS_ASSIGNED_AT_PATH,
 	RETURN_EXPRESSIONS_CALLED_AT_PATH
 }
 
-export interface RESULT_KEY {}
-export const RESULT_KEY: RESULT_KEY = {};
-export type KeyTypes = OptionTypes | Entity | RESULT_KEY;
+interface RESULT_KEY {}
+const RESULT_KEY: RESULT_KEY = {};
+type KeyTypes = OptionTypes | Entity | RESULT_KEY;
 
 export class ExecutionPathOptions {
 	private optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>;
@@ -96,10 +95,6 @@ export class ExecutionPathOptions {
 		);
 	}
 
-	addRetrievedNodeValueAtPath(path: ObjectPath, node: ExpressionEntity) {
-		return this.setIn([OptionTypes.RETRIEVED_VALUE_NODES, node, ...path, RESULT_KEY], true);
-	}
-
 	getArgumentsVariables(): ExpressionEntity[] {
 		return <ExpressionEntity[]>(this.get(OptionTypes.ARGUMENTS_VARIABLES) || []);
 	}
@@ -139,10 +134,6 @@ export class ExecutionPathOptions {
 				otherCallOptions.equals(callOptions)
 			)
 		);
-	}
-
-	hasNodeValueBeenRetrievedAtPath(path: ObjectPath, node: ExpressionEntity): boolean {
-		return this.optionValues.getIn([OptionTypes.RETRIEVED_VALUE_NODES, node, ...path, RESULT_KEY]);
 	}
 
 	hasReturnExpressionBeenAccessedAtPath(
@@ -217,5 +208,3 @@ export class ExecutionPathOptions {
 		return this.set(OptionTypes.IGNORE_RETURN_AWAIT_YIELD, value);
 	}
 }
-
-export const NEW_EXECUTION_PATH = ExecutionPathOptions.create();

@@ -1,4 +1,4 @@
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -11,9 +11,9 @@ export default class AssignmentExpression extends NodeBase {
 
 	bind() {
 		super.bind();
-		this.left.reassignPath(EMPTY_PATH, NEW_EXECUTION_PATH);
+		this.left.reassignPath(EMPTY_PATH);
 		// We can not propagate mutations of the new binding to the old binding with certainty
-		this.right.reassignPath(UNKNOWN_PATH, NEW_EXECUTION_PATH);
+		this.right.reassignPath(UNKNOWN_PATH);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

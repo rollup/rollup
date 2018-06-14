@@ -3,6 +3,7 @@ import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import injectImportMeta from 'acorn-import-meta/inject';
 import { Program } from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
+import { EntityPathTracker } from './ast/utils/EntityPathTracker';
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
@@ -54,6 +55,7 @@ export default class Graph {
 	onwarn: WarningHandler;
 	plugins: Plugin[];
 	pluginContext: PluginContext;
+	reassignmentTracker: EntityPathTracker;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
 	scope: GlobalScope;
@@ -67,6 +69,7 @@ export default class Graph {
 
 	constructor(options: InputOptions) {
 		this.curChunkIndex = 0;
+		this.reassignmentTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
 		if (options.cache) {
 			if (options.cache.modules) {
@@ -171,7 +174,6 @@ export default class Graph {
 		);
 
 		this.scope = new GlobalScope();
-
 		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
 		for (const name of ['module', 'exports', '_interopDefault']) {
 			this.scope.findVariable(name); // creates global variable as side-effect

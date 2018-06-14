@@ -1,5 +1,6 @@
 import CallOptions from '../CallOptions';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ObjectPath, UNKNOWN_PATH } from '../values';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -42,7 +43,7 @@ export default class CallExpression extends NodeBase {
 		}
 		for (const argument of this.arguments) {
 			// This will make sure all properties of parameters behave as "unknown"
-			argument.reassignPath(UNKNOWN_PATH, NEW_EXECUTION_PATH);
+			argument.reassignPath(UNKNOWN_PATH);
 		}
 	}
 
@@ -50,14 +51,14 @@ export default class CallExpression extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		recursionTracker: EntityPathTracker
 	) {
 		this.callee.forEachReturnExpressionWhenCalledAtPath(
 			[],
 			this.callOptions,
-			(innerOptions, node) =>
-				node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, innerOptions),
-			options
+			node =>
+				node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, recursionTracker),
+			recursionTracker
 		);
 	}
 
@@ -135,15 +136,15 @@ export default class CallExpression extends NodeBase {
 		});
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
+	reassignPath(path: ObjectPath) {
+		if (path.length > 0 && !this.context.reassignmentTracker.track(this, path)) {
 			this.callee.forEachReturnExpressionWhenCalledAtPath(
 				[],
 				this.callOptions,
-				(innerOptions, node) =>
-					node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
-				options
+				node => node.reassignPath(path),
+				new EntityPathTracker()
 			);
+		}
 	}
 
 	someReturnExpressionWhenCalledAtPath(

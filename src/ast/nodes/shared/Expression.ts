@@ -1,16 +1,15 @@
 import CallOptions from '../../CallOptions';
 import { WritableEntity } from '../../Entity';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
+import { EntityPathTracker } from '../../utils/EntityPathTracker';
+import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath } from '../../values';
 
 export type SomeReturnExpressionCallback = (
 	options: ExecutionPathOptions,
 	node: ExpressionEntity
 ) => boolean;
-export type ForEachReturnExpressionCallback = (
-	options: ExecutionPathOptions,
-	node: ExpressionEntity
-) => void;
+export type ForEachReturnExpressionCallback = (node: ExpressionEntity) => void;
 
 export interface ExpressionEntity extends WritableEntity {
 	/**
@@ -20,14 +19,17 @@ export interface ExpressionEntity extends WritableEntity {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		recursionTracker: EntityPathTracker
 	): void;
 	/**
 	 * If possible it returns a stringifyable literal value for this node that can be used
 	 * for inlining or comparing values.
 	 * Otherwise it should return UNKNOWN_VALUE.
 	 */
-	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown;
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown;
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,

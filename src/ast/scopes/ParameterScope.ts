@@ -1,4 +1,5 @@
 import Identifier from '../nodes/Identifier';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import ParameterVariable from '../variables/ParameterVariable';
 import Scope from './Scope';
 
@@ -13,8 +14,8 @@ export default class ParameterScope extends Scope {
 	 * @param {Identifier} identifier
 	 * @returns {Variable}
 	 */
-	addParameterDeclaration(identifier: Identifier) {
-		const variable = new ParameterVariable(identifier);
+	addParameterDeclaration(identifier: Identifier, reassignmentTracker: EntityPathTracker) {
+		const variable = new ParameterVariable(identifier, reassignmentTracker);
 		this.variables[identifier.name] = variable;
 		this.parameters.push(variable);
 		return variable;

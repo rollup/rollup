@@ -1,4 +1,4 @@
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
@@ -12,7 +12,7 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 
 	bind() {
 		super.bind();
-		this.left.reassignPath(EMPTY_PATH, NEW_EXECUTION_PATH);
+		this.left.reassignPath(EMPTY_PATH);
 	}
 
 	declare(kind: string, init: ExpressionEntity | null) {
@@ -23,7 +23,7 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options);
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		path.length === 0 && this.left.reassignPath(path, options);
+	reassignPath(path: ObjectPath) {
+		path.length === 0 && this.left.reassignPath(path);
 	}
 }

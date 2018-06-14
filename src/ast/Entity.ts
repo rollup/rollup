@@ -15,5 +15,5 @@ export interface WritableEntity extends Entity {
 	 * The default noop implementation is ok as long as hasEffectsWhenAssignedAtPath
 	 * always returns true for this node. Otherwise it should be overridden.
 	 */
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions): void;
+	reassignPath(path: ObjectPath): void;
 }

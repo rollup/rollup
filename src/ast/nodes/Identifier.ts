@@ -5,6 +5,8 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import FunctionScope from '../scopes/FunctionScope';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
+import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import Variable from '../variables/Variable';
 import AssignmentExpression from './AssignmentExpression';
@@ -42,18 +44,28 @@ export default class Identifier extends NodeBase {
 		switch (kind) {
 			case 'var':
 			case 'function':
-				this.variable = this.scope.addDeclaration(this, {
-					isHoisted: true,
-					init
-				});
+				this.variable = this.scope.addDeclaration(
+					this,
+					this.context.reassignmentTracker,
+					init,
+					true
+				);
 				break;
 			case 'let':
 			case 'const':
 			case 'class':
-				this.variable = this.scope.addDeclaration(this, { init });
+				this.variable = this.scope.addDeclaration(
+					this,
+					this.context.reassignmentTracker,
+					init,
+					false
+				);
 				break;
 			case 'parameter':
-				this.variable = (<FunctionScope>this.scope).addParameterDeclaration(this);
+				this.variable = (<FunctionScope>this.scope).addParameterDeclaration(
+					this,
+					this.context.reassignmentTracker
+				);
 				break;
 			default:
 				throw new Error(`Unexpected identifier kind ${kind}.`);
@@ -64,17 +76,25 @@ export default class Identifier extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		recursionTracker: EntityPathTracker
 	) {
 		if (!this.bound) this.bind();
 		if (this.variable !== null) {
-			this.variable.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+			this.variable.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				recursionTracker
+			);
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
 		if (this.variable !== null) {
-			return this.variable.getLiteralValueAtPath(path, options);
+			return this.variable.getLiteralValueAtPath(path, recursionTracker);
 		}
 		return UNKNOWN_VALUE;
 	}
@@ -114,7 +134,7 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath) {
 		if (!this.bound) this.bind();
 		if (this.variable !== null) {
 			if (
@@ -124,7 +144,7 @@ export default class Identifier extends NodeBase {
 			) {
 				this.disallowImportReassignment();
 			}
-			this.variable.reassignPath(path, options);
+			this.variable.reassignPath(path);
 		}
 	}
 

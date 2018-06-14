@@ -6,6 +6,8 @@ import {
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from '../nodes/shared/Expression';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
+import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 
 export default class Variable implements ExpressionEntity {
@@ -17,6 +19,7 @@ export default class Variable implements ExpressionEntity {
 
 	// Not initialised during construction
 	exportName: string | null = null;
+	safeExportName: string | null = null;
 	included: boolean = false;
 	isId: boolean = false;
 	reexported: boolean = false;
@@ -37,7 +40,7 @@ export default class Variable implements ExpressionEntity {
 		_path: ObjectPath,
 		_callOptions: CallOptions,
 		_callback: ForEachReturnExpressionCallback,
-		_options: ExecutionPathOptions
+		_recursionTracker: EntityPathTracker
 	) {}
 
 	getName(reset?: boolean): string {
@@ -54,7 +57,10 @@ export default class Variable implements ExpressionEntity {
 		return this.safeName || this.name;
 	}
 
-	getLiteralValueAtPath(_path: ObjectPath, _options: ExecutionPathOptions): LiteralValueOrUnknown {
+	getLiteralValueAtPath(
+		_path: ObjectPath,
+		_recursionTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
 	}
 
@@ -84,7 +90,7 @@ export default class Variable implements ExpressionEntity {
 		this.included = true;
 	}
 
-	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
+	reassignPath(_path: ObjectPath) {}
 
 	setSafeName(name: string) {
 		this.safeName = name;

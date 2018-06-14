@@ -12,7 +12,7 @@ export default class ClassNode extends NodeBase {
 	id: Identifier | null;
 
 	createScope(parentScope: Scope) {
-		this.scope = new Scope({ parent: parentScope });
+		this.scope = new Scope(parentScope);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {

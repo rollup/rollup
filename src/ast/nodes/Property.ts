@@ -2,6 +2,8 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
+import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import * as NodeType from './NodeType';
 import {
@@ -9,11 +11,7 @@ import {
 	ForEachReturnExpressionCallback,
 	SomeReturnExpressionCallback
 } from './shared/Expression';
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
-
-export function isProperty(node: Node): node is Property {
-	return node.type === NodeType.Property;
-}
+import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class Property extends NodeBase {
 	type: NodeType.tProperty;
@@ -34,26 +32,39 @@ export default class Property extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		recursionTracker: EntityPathTracker
 	) {
 		if (this.kind === 'get') {
 			this.value.forEachReturnExpressionWhenCalledAtPath(
 				[],
 				this.accessorCallOptions,
-				(innerOptions, node) =>
-					node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, innerOptions),
-				options
+				node =>
+					node.forEachReturnExpressionWhenCalledAtPath(
+						path,
+						callOptions,
+						callback,
+						recursionTracker
+					),
+				recursionTracker
 			);
 		} else {
-			this.value.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
+			this.value.forEachReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				callback,
+				recursionTracker
+			);
 		}
 	}
 
-	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
 		if (this.kind === 'get') {
 			return UNKNOWN_VALUE;
 		}
-		return this.value.getLiteralValueAtPath(path, options);
+		return this.value.getLiteralValueAtPath(path, recursionTracker);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
@@ -150,18 +161,18 @@ export default class Property extends NodeBase {
 		});
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath) {
 		if (this.kind === 'get') {
-			path.length > 0 &&
+			if (path.length > 0 && !this.context.reassignmentTracker.track(this, path)) {
 				this.value.forEachReturnExpressionWhenCalledAtPath(
 					[],
 					this.accessorCallOptions,
-					(innerOptions, node) =>
-						node.reassignPath(path, innerOptions.addAssignedReturnExpressionAtPath(path, this)),
-					options
+					node => node.reassignPath(path),
+					new EntityPathTracker()
 				);
+			}
 		} else if (this.kind !== 'set') {
-			this.value.reassignPath(path, options);
+			this.value.reassignPath(path);
 		}
 	}
 

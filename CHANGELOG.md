@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.60.5
+*2018-06-14*
+* Track deep reassignments of global and exported variables and improve performance ([#2254](https://github.com/rollup/rollup/pull/2254))
+
 ## 0.60.4
 *2018-06-13*
 * Properly handle initially uninitialized exports and exports of globals in SystemJS output ([#2258](https://github.com/rollup/rollup/pull/2258))

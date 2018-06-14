@@ -7,6 +7,8 @@ import {
 } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
+import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
@@ -21,18 +23,24 @@ export default class SequenceExpression extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
+		recursionTracker: EntityPathTracker
 	) {
 		this.expressions[this.expressions.length - 1].forEachReturnExpressionWhenCalledAtPath(
 			path,
 			callOptions,
 			callback,
-			options
+			recursionTracker
 		);
 	}
 
-	getLiteralValueAtPath(path: ObjectPath, options: ExecutionPathOptions): LiteralValueOrUnknown {
-		return this.expressions[this.expressions.length - 1].getLiteralValueAtPath(path, options);
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker
+	): LiteralValueOrUnknown {
+		return this.expressions[this.expressions.length - 1].getLiteralValueAtPath(
+			path,
+			recursionTracker
+		);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
@@ -77,8 +85,8 @@ export default class SequenceExpression extends NodeBase {
 		this.expressions[this.expressions.length - 1].include();
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (path.length > 0) this.expressions[this.expressions.length - 1].reassignPath(path, options);
+	reassignPath(path: ObjectPath) {
+		if (path.length > 0) this.expressions[this.expressions.length - 1].reassignPath(path);
 	}
 
 	render(

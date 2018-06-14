@@ -11,7 +11,7 @@ export default class SwitchStatement extends StatementBase {
 	cases: SwitchCase[];
 
 	createScope(parentScope: Scope) {
-		this.scope = new BlockScope({ parent: parentScope });
+		this.scope = new BlockScope(parentScope);
 	}
 
 	hasEffects(options: ExecutionPathOptions) {

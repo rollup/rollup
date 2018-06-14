@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ObjectPath, UNKNOWN_PATH } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -15,7 +15,7 @@ export default class NewExpression extends NodeBase {
 		super.bind();
 		for (const argument of this.arguments) {
 			// This will make sure all properties of parameters behave as "unknown"
-			argument.reassignPath(UNKNOWN_PATH, NEW_EXECUTION_PATH);
+			argument.reassignPath(UNKNOWN_PATH);
 		}
 	}
 

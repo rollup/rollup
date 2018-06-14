@@ -1,6 +1,7 @@
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { SomeReturnExpressionCallback } from '../nodes/shared/Expression';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from './LocalVariable';
 import ParameterVariable from './ParameterVariable';
@@ -18,8 +19,8 @@ const getParameterVariable = (path: ObjectPath, options: ExecutionPathOptions) =
 export default class ArgumentsVariable extends LocalVariable {
 	private parameters: ParameterVariable[];
 
-	constructor(parameters: ParameterVariable[]) {
-		super('arguments', null, UNKNOWN_EXPRESSION);
+	constructor(parameters: ParameterVariable[], reassignmentTracker: EntityPathTracker) {
+		super('arguments', null, UNKNOWN_EXPRESSION, reassignmentTracker);
 		this.parameters = parameters;
 	}
 
@@ -53,11 +54,11 @@ export default class ArgumentsVariable extends LocalVariable {
 		);
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
+	reassignPath(path: ObjectPath) {
 		const firstArgNum = parseInt(<string>path[0], 10);
 		if (path.length > 0) {
 			if (firstArgNum >= 0 && this.parameters[firstArgNum]) {
-				this.parameters[firstArgNum].reassignPath(path.slice(1), options);
+				this.parameters[firstArgNum].reassignPath(path.slice(1));
 			}
 		}
 	}

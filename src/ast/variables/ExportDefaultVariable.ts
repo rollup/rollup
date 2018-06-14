@@ -2,6 +2,7 @@ import ClassDeclaration from '../nodes/ClassDeclaration';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
 import Identifier from '../nodes/Identifier';
+import { EntityPathTracker } from '../utils/EntityPathTracker';
 import LocalVariable from './LocalVariable';
 import Variable from './Variable';
 
@@ -16,8 +17,17 @@ export default class ExportDefaultVariable extends LocalVariable {
 	// Not initialised during construction
 	private original: Variable | null = null;
 
-	constructor(name: string, exportDefaultDeclaration: ExportDefaultDeclaration) {
-		super(name, exportDefaultDeclaration, exportDefaultDeclaration.declaration);
+	constructor(
+		name: string,
+		exportDefaultDeclaration: ExportDefaultDeclaration,
+		reassignmentTracker: EntityPathTracker
+	) {
+		super(
+			name,
+			exportDefaultDeclaration,
+			exportDefaultDeclaration.declaration,
+			reassignmentTracker
+		);
 		this.hasId = !!(<FunctionDeclaration | ClassDeclaration>exportDefaultDeclaration.declaration)
 			.id;
 	}

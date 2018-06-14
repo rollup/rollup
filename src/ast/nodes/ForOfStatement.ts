@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../values';
@@ -22,12 +22,12 @@ export default class ForOfStatement extends StatementBase {
 	bind() {
 		super.bind();
 		if (this.left.type !== NodeType.VariableDeclaration) {
-			this.left.reassignPath(EMPTY_PATH, NEW_EXECUTION_PATH);
+			this.left.reassignPath(EMPTY_PATH);
 		}
 	}
 
 	createScope(parentScope: Scope) {
-		this.scope = new BlockScope({ parent: parentScope });
+		this.scope = new BlockScope(parentScope);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

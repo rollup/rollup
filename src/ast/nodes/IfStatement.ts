@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionPathOptions, NEW_EXECUTION_PATH } from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EMPTY_IMMUTABLE_TRACKER } from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, UNKNOWN_VALUE } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
@@ -15,7 +16,7 @@ export default class IfStatement extends StatementBase {
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		if (this.test.hasEffects(options)) return true;
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue(options);
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
 		if (testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.hasEffects(options) ||
@@ -29,9 +30,7 @@ export default class IfStatement extends StatementBase {
 
 	include() {
 		this.included = true;
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(NEW_EXECUTION_PATH);
+		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
 		if (testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
 			this.test.include();
 		}
@@ -55,7 +54,7 @@ export default class IfStatement extends StatementBase {
 		// Note that unknown test values are always included
 		const testValue = this.hasUnknownTestValue
 			? UNKNOWN_VALUE
-			: this.test.getLiteralValueAtPath(EMPTY_PATH, NEW_EXECUTION_PATH);
+			: this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER);
 		if (
 			!this.test.included &&
 			(testValue ? this.alternate === null || !this.alternate.included : !this.consequent.included)
@@ -85,9 +84,9 @@ export default class IfStatement extends StatementBase {
 		}
 	}
 
-	private getTestValue(options: ExecutionPathOptions) {
+	private getTestValue() {
 		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
-		const value = this.test.getLiteralValueAtPath(EMPTY_PATH, options);
+		const value = this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER);
 		if (value === UNKNOWN_VALUE) {
 			this.hasUnknownTestValue = true;
 		}

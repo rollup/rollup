@@ -2,7 +2,7 @@ import GlobalVariable from '../variables/GlobalVariable';
 import Scope from './Scope';
 
 export default class GlobalScope extends Scope {
-	parent: void;
+	parent: null;
 
 	findVariable(name: string) {
 		if (!this.variables[name]) {

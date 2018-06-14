@@ -14,7 +14,7 @@ export default class CatchClause extends NodeBase {
 	preventChildBlockScope: true;
 
 	createScope(parentScope: Scope) {
-		this.scope = new CatchScope({ parent: parentScope });
+		this.scope = new CatchScope(parentScope);
 	}
 
 	initialise() {
