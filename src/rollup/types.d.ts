@@ -103,7 +103,7 @@ export type LoadHook = (
 export type TransformHook = (
 	this: PluginContext,
 	code: string,
-	id: String
+	id: string
 ) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
 
 export type TransformChunkHook = (
