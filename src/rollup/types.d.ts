@@ -68,9 +68,6 @@ export interface ModuleJSON {
 	resolvedIds: IdMap;
 }
 
-export function emitAsset(name: string, source?: string | Buffer): string;
-export function emitAsset(name: string, dependencies: string[], source?: string | Buffer): string;
-
 export interface Asset {
 	name: string;
 	source: string | Buffer;
@@ -84,7 +81,8 @@ export interface PluginContext {
 	resolveId: ResolveIdHook;
 	isExternal: IsExternal;
 	parse: (input: string, options: any) => ESTree.Program;
-	emitAsset: EmitAsset;
+	emitAsset(name: string, source?: string | Buffer): string;
+	emitAsset(name: string, dependencies: string[], source?: string | Buffer): string;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
 	getAssetFileName: (assetId: string) => string;
 	warn(warning: RollupWarning | string, pos?: { line: number; column: number }): void;

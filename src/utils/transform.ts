@@ -6,7 +6,6 @@ import Graph from '../Graph';
 import Module from '../Module';
 import {
 	Asset,
-	EmitAsset,
 	Plugin,
 	PluginContext,
 	RawSourceMap,
@@ -14,6 +13,7 @@ import {
 	RollupWarning,
 	SourceDescription
 } from '../rollup/types';
+import { EmitAsset } from './assetHooks';
 import error from './error';
 import getCodeFrame from './getCodeFrame';
 import { dirname, resolve } from './path';

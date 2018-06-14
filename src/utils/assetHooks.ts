@@ -5,9 +5,11 @@ import { extname, normalize, resolve } from './path';
 import { isPlainName } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
-export type EmitAsset =
-	| ((name: string, source?: string | Buffer) => string)
-	| ((name: string, dependencies?: string[], source?: string | Buffer) => string);
+export type EmitAsset = (
+	name: string,
+	dependencies?: string[] | string | Buffer,
+	source?: string | Buffer
+) => string;
 
 export function getAssetFileName(
 	asset: Asset,
@@ -89,7 +91,7 @@ export function createAssetPluginHooks(
 	}
 
 	return {
-		emitAsset: <EmitAsset>emitAsset,
+		emitAsset,
 		createTransformEmitAsset() {
 			const assets: Asset[] = [];
 			return {
