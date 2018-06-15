@@ -249,7 +249,5 @@ export class Task {
 }
 
 export default function watch(configs: RollupWatchOptions[]) {
-	const watcher = new Watcher(configs);
-
-	return watcher;
+	return new Watcher(configs);
 }

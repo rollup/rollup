@@ -140,6 +140,7 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 43);
+							assert.equal(events.length, 8);
 							watcher.close();
 						}
 					]);
