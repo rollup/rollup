@@ -58,6 +58,7 @@ export default class ObjectExpression extends NodeBase {
 			PROPERTY_KINDS_READ,
 			recursionTracker
 		);
+		if (properties.length === 0) return undefined;
 		if (!hasCertainHit || properties.length > 1) return UNKNOWN_VALUE;
 		return properties[0].getLiteralValueAtPath(path.slice(1), recursionTracker);
 	}

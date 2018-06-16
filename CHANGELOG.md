@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 1.0.0
+*unreleased*
+* Handle known undefined properties when evaluating conditionals ([#2265](https://github.com/rollup/rollup/pull/2265))
+
 ## 0.60.7
 *2018-06-14*
 * Fix typing issue ([#2269](https://github.com/rollup/rollup/pull/2269))
