@@ -99,6 +99,54 @@ describe('rollup.watch', () => {
 				});
 		});
 
+		it('provides the watcher through the plugin context', () => {
+			let events = [];
+			return sander
+				.copydir('test/watch/samples/basic')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar },
+						plugins: [{
+							buildStart (id) {
+								if (!this.watcher)
+									throw new Error('No Watcher');
+
+								this.watcher.on('event', event => {
+									events.push(event);
+								});
+							}
+						}]
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(events.length, 2);
+							assert.equal(run('../_tmp/output/bundle.js'), 42);
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 43);
+							assert.equal(events.length, 8);
+							watcher.close();
+						}
+					]);
+				});
+		});
+
 		it('watches a file in code-splitting mode', () => {
 			return sander
 				.copydir('test/watch/samples/code-splitting')

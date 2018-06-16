@@ -1,5 +1,5 @@
-import { EventEmitter } from 'events';
 import * as ESTree from 'estree';
+import { EventEmitter } from 'events';
 
 export const VERSION: string;
 
@@ -65,6 +65,7 @@ export interface ModuleJSON {
 }
 
 export interface PluginContext {
+	watcher: Watcher;
 	resolveId: ResolveIdHook;
 	isExternal: IsExternal;
 	parse: (input: string, options: any) => ESTree.Program;
@@ -301,7 +302,9 @@ export interface RollupWarning {
 
 export type WarningHandler = (warning: string | RollupWarning) => void;
 
-export type SerializedTimings = { [label: string]: number };
+export interface SerializedTimings {
+	[label: string]: number;
+}
 
 export type OutputFile = string | Buffer | OutputChunk;
 

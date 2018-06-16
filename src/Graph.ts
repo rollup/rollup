@@ -22,7 +22,8 @@ import {
 	RollupWarning,
 	SourceDescription,
 	TreeshakingOptions,
-	WarningHandler
+	WarningHandler,
+	Watcher
 } from './rollup/types';
 import { Asset, createAssetPluginHooks, finaliseAsset } from './utils/assetHooks';
 import { handleMissingExport, load, makeOnwarn, resolveId } from './utils/defaults';
@@ -67,7 +68,7 @@ export default class Graph {
 	// deprecated
 	treeshake: boolean;
 
-	constructor(options: InputOptions) {
+	constructor(options: InputOptions, watcher?: Watcher) {
 		this.curChunkIndex = 0;
 		this.reassignmentTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
@@ -115,6 +116,7 @@ export default class Graph {
 		};
 
 		this.pluginContext = {
+			watcher,
 			isExternal: undefined,
 			resolveId: undefined,
 			parse: this.contextParse,

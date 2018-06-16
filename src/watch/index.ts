@@ -2,7 +2,7 @@ import { WatchOptions } from 'chokidar';
 import { EventEmitter } from 'events';
 import path from 'path';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
-import rollup from '../rollup/index';
+import rollup, { setWatcher } from '../rollup/index';
 import {
 	InputOptions,
 	ModuleJSON,
@@ -190,6 +190,7 @@ export class Task {
 			});
 		}
 
+		setWatcher(this.watcher);
 		return rollup(options)
 			.then(result => {
 				if (this.closed) return;
