@@ -1,8 +1,8 @@
 var z;
-if ((console.log('b'), true))
-	 console.log('yes');
-if ((console.log('b'), false))
-	;
-if (z ? (console.log('a'), false) : (console.log('b'), false))
+console.log('no');
+console.log('no');
+if (z)
 	console.log('yes');
+if (!z)
+	console.log('no');
 z = 1;
