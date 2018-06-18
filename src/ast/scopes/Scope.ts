@@ -3,7 +3,7 @@ import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
-import { EMPTY_PATH, UNDEFINED_EXPRESSION } from '../values';
+import { UNDEFINED_EXPRESSION } from '../values';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ExternalVariable from '../variables/ExternalVariable';
@@ -38,9 +38,7 @@ export default class Scope {
 	) {
 		const name = identifier.name;
 		if (this.variables[name]) {
-			const variable = <LocalVariable>this.variables[name];
-			variable.addDeclaration(identifier);
-			variable.reassignPath(EMPTY_PATH);
+			(<LocalVariable>this.variables[name]).addDeclaration(identifier, init);
 		} else {
 			this.variables[name] = new LocalVariable(
 				identifier.name,

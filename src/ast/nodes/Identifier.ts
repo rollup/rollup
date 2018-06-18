@@ -7,6 +7,7 @@ import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import FunctionScope from '../scopes/FunctionScope';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import AssignmentExpression from './AssignmentExpression';
 import * as NodeType from './NodeType';
@@ -33,9 +34,16 @@ export default class Identifier extends NodeBase {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 		}
+		if (
+			this.variable !== null &&
+			(<LocalVariable>this.variable).isLocal &&
+			!(<LocalVariable>this.variable).bound
+		) {
+			(<LocalVariable>this.variable).bind();
+		}
 	}
 
-	declare(kind: string, init: ExpressionEntity | null) {
+	declare(kind: string, init: ExpressionEntity) {
 		switch (kind) {
 			case 'var':
 			case 'function':

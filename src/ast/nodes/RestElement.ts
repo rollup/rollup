@@ -9,7 +9,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 	type: NodeType.tRestElement;
 	argument: PatternNode;
 
-	declare(kind: string, _init: ExpressionEntity | null) {
+	declare(kind: string, _init: ExpressionEntity) {
 		this.argument.declare(kind, UNKNOWN_EXPRESSION);
 	}
 

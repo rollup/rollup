@@ -15,7 +15,7 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		this.left.reassignPath(EMPTY_PATH);
 	}
 
-	declare(kind: string, init: ExpressionEntity | null) {
+	declare(kind: string, init: ExpressionEntity) {
 		this.left.declare(kind, init);
 	}
 

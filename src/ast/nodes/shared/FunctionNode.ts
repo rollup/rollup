@@ -72,7 +72,7 @@ export default class FunctionNode extends NodeBase {
 			this.id.declare('function', this);
 		}
 		for (const param of this.params) {
-			param.declare('parameter', null);
+			param.declare('parameter', UNKNOWN_EXPRESSION);
 		}
 		this.body.addImplicitReturnExpressionToScope();
 	}

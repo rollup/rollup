@@ -22,7 +22,11 @@ const MAX_PATH_DEPTH = 7;
 export default class LocalVariable extends Variable {
 	declarations: (Identifier | ExportDefaultDeclaration)[];
 	init: ExpressionEntity;
-	reassignmentTracker: EntityPathTracker;
+	isLocal: true;
+	bound: boolean = false;
+
+	private initialisers: ExpressionEntity[];
+	private reassignmentTracker: EntityPathTracker;
 
 	constructor(
 		name: string,
@@ -33,17 +37,32 @@ export default class LocalVariable extends Variable {
 		super(name);
 		this.declarations = declarator ? [declarator] : [];
 		this.init = init;
+		this.initialisers = [init];
 		this.reassignmentTracker = reassignmentTracker;
 	}
 
-	addDeclaration(identifier: Identifier) {
+	addDeclaration(identifier: Identifier, init: ExpressionEntity) {
 		this.declarations.push(identifier);
+		this.initialisers.push(init);
+	}
+
+	bind() {
+		if (this.bound) return;
+		this.bound = true;
+		if (this.initialisers.length > 1) {
+			this.isReassigned = true;
+			for (const initialiser of this.initialisers) {
+				initialiser.reassignPath(UNKNOWN_PATH);
+			}
+			this.init = UNKNOWN_EXPRESSION;
+		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: ImmutableEntityPathTracker
 	): LiteralValueOrUnknown {
+		if (!this.bound) this.bind();
 		if (
 			this.isReassigned ||
 			!this.init ||
@@ -59,6 +78,7 @@ export default class LocalVariable extends Variable {
 		path: ObjectPath,
 		recursionTracker: ImmutableEntityPathTracker
 	): ExpressionEntity {
+		if (!this.bound) this.bind();
 		if (
 			this.isReassigned ||
 			!this.init ||
@@ -138,6 +158,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	reassignPath(path: ObjectPath) {
+		if (!this.bound) this.bind();
 		if (path.length > MAX_PATH_DEPTH) return;
 		if (!(this.isReassigned || this.reassignmentTracker.track(this, path))) {
 			if (path.length === 0) {
@@ -151,3 +172,5 @@ export default class LocalVariable extends Variable {
 		}
 	}
 }
+
+LocalVariable.prototype.isLocal = true;
