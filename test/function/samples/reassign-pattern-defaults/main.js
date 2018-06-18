@@ -1,5 +1,5 @@
 var foo = {x: true};
-var {bar = foo} = {};
+var {bar: bar = foo} = {};
 
 bar.x = false;
 
