@@ -5,7 +5,8 @@ import {
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
 	ObjectPath,
-	UNKNOWN_EXPRESSION
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_PATH
 } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -14,6 +15,13 @@ import SpreadElement from './SpreadElement';
 export default class ArrayExpression extends NodeBase {
 	type: NodeType.tArrayExpression;
 	elements: (ExpressionNode | SpreadElement | null)[];
+
+	bind() {
+		super.bind();
+		for (const element of this.elements) {
+			if (element !== null) element.reassignPath(UNKNOWN_PATH);
+		}
+	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length !== 1) return UNKNOWN_EXPRESSION;
