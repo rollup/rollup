@@ -93,6 +93,9 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
+	if (typeof rawInputOptions !== 'object') {
+		throw new Error(`You must supply input options as an object, encountered ${typeof rawInputOptions}`);
+	}
 	let { inputOptions, deprecations, optionError } = mergeOptions({
 		config: rawInputOptions,
 		deprecateConfig: { input: true }
@@ -503,6 +506,9 @@ function normalizeOutputOptions(
 ): OutputOptions {
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
+	}
+	if ( typeof rawOutputOptions !== 'object') {
+		throw new Error(`You must supply output options as an object, encountered ${typeof rawOutputOptions}`);
 	}
 	// since deprecateOptions, adds the output properties
 	// to `inputOptions` so adding that lastly
