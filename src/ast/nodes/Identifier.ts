@@ -37,9 +37,9 @@ export default class Identifier extends NodeBase {
 		if (
 			this.variable !== null &&
 			(<LocalVariable>this.variable).isLocal &&
-			!(<LocalVariable>this.variable).bound
+			(<LocalVariable>this.variable).additionalInitializers !== null
 		) {
-			(<LocalVariable>this.variable).bind();
+			(<LocalVariable>this.variable).consolidateInitializers();
 		}
 	}
 
