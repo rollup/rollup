@@ -254,6 +254,7 @@ function getOutputOptions(
 		footer: getOption('footer'),
 		format: format === 'esm' ? 'es' : format,
 		freeze: getOption('freeze'),
+		esModule: getOption('esModule'),
 		globals: getOption('globals'),
 		indent: getOption('indent', true),
 		interop: getOption('interop', true),

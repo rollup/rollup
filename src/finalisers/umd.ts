@@ -131,7 +131,7 @@ export default function umd(
 		options.compact
 	);
 	if (exportBlock) magicString.append(n + n + exportBlock);
-	if (namedExportsMode && hasExports)
+	if (namedExportsMode && hasExports && options.esModule)
 		magicString.append(n + n + (options.compact ? compactEsModuleExport : esModuleExport));
 	if (outro) magicString.append(outro);
 

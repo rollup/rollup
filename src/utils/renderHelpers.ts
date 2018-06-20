@@ -4,6 +4,7 @@ import { Node, StatementNode } from '../ast/nodes/shared/Node';
 export interface RenderOptions {
 	compact: boolean;
 	freeze: boolean;
+	esModule: boolean;
 	namespaceToStringTag: boolean;
 	indent: string;
 	format: string;

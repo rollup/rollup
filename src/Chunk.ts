@@ -763,6 +763,7 @@ export default class Chunk {
 		const renderOptions: RenderOptions = {
 			compact: options.compact,
 			freeze: options.freeze !== false,
+			esModule: options.esModule !== false,
 			namespaceToStringTag: options.namespaceToStringTag === true,
 			indent: this.indentString,
 			format: options.format
