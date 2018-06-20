@@ -54,7 +54,7 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 };
 export const UNDEFINED_EXPRESSION: ExpressionEntity = {
 	included: true,
-	getLiteralValueAtPath: () => UNKNOWN_VALUE,
+	getLiteralValueAtPath: () => undefined,
 	getReturnExpressionWhenCalledAtPath: () => UNKNOWN_EXPRESSION,
 	hasEffectsWhenAccessedAtPath: path => path.length > 0,
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
