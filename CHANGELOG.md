@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 0.61.0
-*unreleased*
+*2018-06-20*
 * Declare file dependencies via transform plugin hooks ([#2259](https://github.com/rollup/rollup/pull/2259))
 * Handle undefined values when evaluating conditionals ([#2264](https://github.com/rollup/rollup/pull/2264))
 * Handle known undefined properties when evaluating conditionals ([#2265](https://github.com/rollup/rollup/pull/2265))
