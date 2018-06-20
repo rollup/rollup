@@ -7,6 +7,7 @@
 * Handle known undefined properties when evaluating conditionals ([#2265](https://github.com/rollup/rollup/pull/2265))
 * Access watch events via the plugin context ([#2261](https://github.com/rollup/rollup/pull/2261))
 * Fix issue when re-declaring variables, track reassignments in more cases ([#2279](https://github.com/rollup/rollup/pull/2279))
+* Add VSCode debug settings ([#2276](https://github.com/rollup/rollup/pull/2276))
 
 ## 0.60.7
 *2018-06-14*
