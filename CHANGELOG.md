@@ -2,6 +2,7 @@
 
 ## 0.61.0
 *unreleased*
+* Declare file dependencies via transform plugin hooks ([#2259](https://github.com/rollup/rollup/pull/2259))
 * Handle undefined values when evaluating conditionals ([#2264](https://github.com/rollup/rollup/pull/2264))
 * Handle known undefined properties when evaluating conditionals ([#2265](https://github.com/rollup/rollup/pull/2265))
 * Access watch events via the plugin context ([#2261](https://github.com/rollup/rollup/pull/2261))

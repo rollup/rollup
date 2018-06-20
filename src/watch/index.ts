@@ -21,25 +21,21 @@ import { addTask, deleteTask } from './fileWatchers';
 const DELAY = 100;
 
 export class Watcher extends EventEmitter {
-	dirty: boolean;
-	running: boolean;
-	tasks: Task[];
-	succeeded: boolean;
+	private buildTimeout: NodeJS.Timer;
+	private running: boolean;
+	private rerun: boolean = false;
+	private tasks: Task[];
+	private succeeded: boolean = false;
 
 	constructor(configs: RollupWatchOptions[]) {
 		super();
-
-		this.dirty = true;
-		this.running = false;
 		this.tasks = ensureArray(configs).map(config => new Task(this, config));
-		this.succeeded = false;
-
-		process.nextTick(() => {
-			this._run();
-		});
+		this.running = true;
+		process.nextTick(() => this.run());
 	}
 
 	close() {
+		if (this.buildTimeout) clearTimeout(this.buildTimeout);
 		this.tasks.forEach(task => {
 			task.close();
 		});
@@ -47,20 +43,24 @@ export class Watcher extends EventEmitter {
 		this.removeAllListeners();
 	}
 
-	_makeDirty() {
-		if (this.dirty) return;
-		this.dirty = true;
-
-		if (!this.running) {
-			setTimeout(() => {
-				this._run();
-			}, DELAY);
+	invalidate() {
+		if (this.running) {
+			this.rerun = true;
+			return;
 		}
+
+		if (this.buildTimeout) clearTimeout(this.buildTimeout);
+
+		this.buildTimeout = setTimeout(() => {
+			this.buildTimeout = undefined;
+			this.run();
+		}, DELAY);
 	}
 
-	_run() {
+	private run() {
 		this.running = true;
-		this.dirty = false;
+
+		const minBuildDelayPromise = new Promise(resolve => setTimeout(resolve, DELAY));
 
 		this.emit('event', {
 			code: 'START'
@@ -81,38 +81,40 @@ export class Watcher extends EventEmitter {
 				});
 			})
 			.then(() => {
+				return minBuildDelayPromise;
+			})
+			.then(() => {
 				this.running = false;
 
-				if (this.dirty) {
-					this._run();
+				if (this.rerun) {
+					this.rerun = false;
+					this.run();
 				}
 			});
 	}
 }
 
 export class Task {
-	watcher: Watcher;
-	dirty: boolean;
-	closed: boolean;
-	watched: Set<string>;
-	inputOptions: InputOptions;
+	private watcher: Watcher;
+	private closed: boolean;
+	private watched: Set<string>;
+	private inputOptions: InputOptions;
 	cache: {
 		modules: ModuleJSON[];
 	};
-	chokidarOptions: WatchOptions;
-	chokidarOptionsHash: string;
-	outputFiles: string[];
-	outputs: OutputOptions[];
+	private chokidarOptions: WatchOptions;
+	private chokidarOptionsHash: string;
+	private outputFiles: string[];
+	private outputs: OutputOptions[];
 
-	deprecations: { old: string; new: string }[];
+	private deprecations: { old: string; new: string }[];
 
-	filter: (id: string) => boolean;
+	private filter: (id: string) => boolean;
 
 	constructor(watcher: Watcher, config: RollupWatchOptions) {
 		this.cache = null;
 		this.watcher = watcher;
 
-		this.dirty = true;
 		this.closed = false;
 		this.watched = new Set();
 
@@ -156,17 +158,19 @@ export class Task {
 		});
 	}
 
-	makeDirty() {
-		if (!this.dirty) {
-			this.dirty = true;
-			this.watcher._makeDirty();
+	invalidate(id: string, isTransformDependency: boolean) {
+		if (isTransformDependency) {
+			this.cache.modules.forEach(module => {
+				if (!module.transformDependencies || module.transformDependencies.indexOf(id) === -1)
+					return;
+				// effective invalidation
+				module.originalCode = null;
+			});
 		}
+		this.watcher.invalidate();
 	}
 
 	run() {
-		if (!this.dirty) return;
-		this.dirty = false;
-
 		const options = {
 			...this.inputOptions,
 			cache: this.cache
@@ -198,9 +202,15 @@ export class Task {
 				const watched = (this.watched = new Set());
 
 				this.cache = result.cache;
-				result.cache.modules.forEach(module => {
+				this.cache.modules.forEach(module => {
 					watched.add(module.id);
 					this.watchFile(module.id);
+					if (module.transformDependencies) {
+						module.transformDependencies.forEach(depId => {
+							watched.add(depId);
+							this.watchFile(depId, true);
+						});
+					}
 				});
 				this.watched.forEach(id => {
 					if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
@@ -228,14 +238,21 @@ export class Task {
 					// this is necessary to ensure that any 'renamed' files
 					// continue to be watched following an error
 					if (this.cache.modules) {
-						this.cache.modules.forEach(module => this.watchFile(module.id));
+						this.cache.modules.forEach(module => {
+							this.watchFile(module.id);
+							if (module.transformDependencies) {
+								module.transformDependencies.forEach(depId => {
+									this.watchFile(depId, true);
+								});
+							}
+						});
 					}
 				}
 				throw error;
 			});
 	}
 
-	watchFile(id: string) {
+	watchFile(id: string, isTransformDependency = false) {
 		if (!this.filter(id)) return;
 
 		if (this.outputFiles.some(file => file === id)) {
@@ -244,7 +261,7 @@ export class Task {
 
 		// this is necessary to ensure that any 'renamed' files
 		// continue to be watched following an error
-		addTask(id, this, this.chokidarOptions, this.chokidarOptionsHash);
+		addTask(id, this, this.chokidarOptions, this.chokidarOptionsHash, isTransformDependency);
 	}
 }
 

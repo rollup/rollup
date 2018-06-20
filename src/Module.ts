@@ -182,6 +182,7 @@ export default class Module {
 	private esTreeAst: ESTree.Program;
 	private magicString: MagicString;
 	private needsTreeshakingPass: boolean = false;
+	private transformDependencies: string[];
 
 	constructor(graph: Graph, id: string) {
 		this.id = id;
@@ -219,12 +220,14 @@ export default class Module {
 		originalSourcemap,
 		ast,
 		sourcemapChain,
-		resolvedIds
+		resolvedIds,
+		transformDependencies
 	}: ModuleJSON) {
 		this.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain;
+		this.transformDependencies = transformDependencies;
 
 		timeStart('generate ast', 3);
 
@@ -640,6 +643,7 @@ export default class Module {
 		return {
 			id: this.id,
 			dependencies: this.dependencies.map(module => module.id),
+			transformDependencies: this.transformDependencies,
 			code: this.code,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,

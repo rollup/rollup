@@ -56,6 +56,7 @@ export interface SourceDescription {
 export interface ModuleJSON {
 	id: string;
 	dependencies: string[];
+	transformDependencies: string[];
 	code: string;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
