@@ -100,7 +100,7 @@ describe('rollup.watch', () => {
 		});
 
 		it('provides the watcher through the plugin context', () => {
-			let events = [];
+			const events = [];
 			return sander
 				.copydir('test/watch/samples/basic')
 				.to('test/_tmp/input')

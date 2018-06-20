@@ -170,282 +170,282 @@ export function setWatcher(watcher: Watcher) {
 export default function rollup(
 	rawInputOptions: GenericConfigObject
 ): Promise<RollupSingleFileBuild | RollupBuild> {
-	let inputOptions: InputOptions, graph: Graph;
-	const watcher = curWatcher;
-	curWatcher = undefined;
-	return Promise.resolve()
-		.then(function() {
-			inputOptions = getInputOptions(rawInputOptions);
+	try {
+		const inputOptions = getInputOptions(rawInputOptions);
+		initialiseTimers(inputOptions);
 
-			initialiseTimers(inputOptions);
-			graph = new Graph(inputOptions, watcher);
+		const graph = new Graph(inputOptions, curWatcher);
+		curWatcher = undefined;
 
-			timeStart('BUILD', 1);
+		timeStart('BUILD', 1);
 
-			return applyBuildStartHook(graph);
-		})
-		.then(() => {
-			return graph
-				.build(
+		return applyBuildStartHook(graph)
+			.then(() =>
+				graph.build(
 					inputOptions.input,
 					inputOptions.manualChunks,
 					inputOptions.inlineDynamicImports,
 					inputOptions.experimentalPreserveModules
 				)
-				.then(
-					chunks =>
-						applyBuildEndHook(graph).then(() => {
-							return chunks;
-						}),
-					err =>
-						applyBuildEndHook(graph, err).then(() => {
-							throw err;
-						})
-				);
-		})
-		.then(chunks => {
-			timeEnd('BUILD', 1);
+			)
+			.then(
+				chunks =>
+					applyBuildEndHook(graph).then(() => {
+						return chunks;
+					}),
+				err =>
+					applyBuildEndHook(graph, err).then(() => {
+						throw err;
+					})
+			)
+			.then(chunks => {
+				timeEnd('BUILD', 1);
 
-			// TODO: deprecate legacy single chunk return
-			let singleChunk: Chunk | void;
-			const singleInput =
-				typeof inputOptions.input === 'string' ||
-				(inputOptions.input instanceof Array && inputOptions.input.length === 1);
-			//let imports: string[], exports: string[];
-			if (!inputOptions.experimentalPreserveModules) {
-				if (singleInput) {
-					for (const chunk of chunks) {
-						if (chunk.entryModule === undefined) continue;
-						if (singleChunk) {
-							singleChunk = undefined;
-							break;
+				// TODO: deprecate legacy single chunk return
+				let singleChunk: Chunk | void;
+				const singleInput =
+					typeof inputOptions.input === 'string' ||
+					(inputOptions.input instanceof Array && inputOptions.input.length === 1);
+				//let imports: string[], exports: string[];
+				if (!inputOptions.experimentalPreserveModules) {
+					if (singleInput) {
+						for (const chunk of chunks) {
+							if (chunk.entryModule === undefined) continue;
+							if (singleChunk) {
+								singleChunk = undefined;
+								break;
+							}
+							singleChunk = chunk;
 						}
-						singleChunk = chunk;
 					}
 				}
-			}
 
-			// ensure we only do one optimization pass per build
-			let optimized = false;
+				// ensure we only do one optimization pass per build
+				let optimized = false;
 
-			function generate(rawOutputOptions: GenericConfigObject, isWrite: boolean) {
-				const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
+				function generate(rawOutputOptions: GenericConfigObject, isWrite: boolean) {
+					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
 
-				if (inputOptions.experimentalCodeSplitting) {
-					if (typeof outputOptions.file === 'string' && typeof outputOptions.dir === 'string')
-						error({
-							code: 'INVALID_OPTION',
-							message:
-								'Build must set either output.file for a single-file build or output.dir when generating multiple chunks.'
-						});
-					if (chunks.length > 1) {
-						if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
+					if (inputOptions.experimentalCodeSplitting) {
+						if (typeof outputOptions.file === 'string' && typeof outputOptions.dir === 'string')
 							error({
 								code: 'INVALID_OPTION',
 								message:
-									'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
+									'Build must set either output.file for a single-file build or output.dir when generating multiple chunks.'
 							});
+						if (chunks.length > 1) {
+							if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
+								error({
+									code: 'INVALID_OPTION',
+									message:
+										'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
+								});
 
-						if (outputOptions.sourcemapFile)
+							if (outputOptions.sourcemapFile)
+								error({
+									code: 'INVALID_OPTION',
+									message: '"sourcemapFile" is only supported for single-file builds.'
+								});
+						}
+						if (!singleChunk && typeof outputOptions.file === 'string')
 							error({
 								code: 'INVALID_OPTION',
-								message: '"sourcemapFile" is only supported for single-file builds.'
+								message: singleInput
+									? 'When building a bundle using dynamic imports, the output.dir option must be used, not output.file. Alternatively set inlineDynamicImports: true to output a single file.'
+									: 'When building multiple entry point inputs, the output.dir option must be used, not output.file.'
 							});
 					}
-					if (!singleChunk && typeof outputOptions.file === 'string')
-						error({
-							code: 'INVALID_OPTION',
-							message: singleInput
-								? 'When building a bundle using dynamic imports, the output.dir option must be used, not output.file. Alternatively set inlineDynamicImports: true to output a single file.'
-								: 'When building multiple entry point inputs, the output.dir option must be used, not output.file.'
-						});
-				}
 
-				if (!outputOptions.file && inputOptions.experimentalCodeSplitting) singleChunk = undefined;
+					if (!outputOptions.file && inputOptions.experimentalCodeSplitting)
+						singleChunk = undefined;
 
-				timeStart('GENERATE', 1);
+					timeStart('GENERATE', 1);
 
-				// populate asset files into output
-				const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
-				const outputBundle: OutputBundle = graph.finaliseAssets(assetFileNames);
+					// populate asset files into output
+					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
+					const outputBundle: OutputBundle = graph.finaliseAssets(assetFileNames);
 
-				const inputBase = commondir(
-					chunks.filter(chunk => chunk.entryModule).map(chunk => chunk.entryModule.id)
-				);
+					const inputBase = commondir(
+						chunks.filter(chunk => chunk.entryModule).map(chunk => chunk.entryModule.id)
+					);
 
-				return createAddons(graph, outputOptions)
-					.then(addons => {
-						// pre-render all chunks
-						for (const chunk of chunks) {
-							if (!inputOptions.experimentalPreserveModules)
-								chunk.generateInternalExports(outputOptions);
-							if (chunk.isEntryModuleFacade) chunk.exportMode = getExportMode(chunk, outputOptions);
-						}
-						for (const chunk of chunks) {
-							chunk.preRender(outputOptions, inputBase);
-						}
-						if (!optimized && inputOptions.optimizeChunks) {
-							optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize, inputBase);
-							optimized = true;
-						}
+					return createAddons(graph, outputOptions)
+						.then(addons => {
+							// pre-render all chunks
+							for (const chunk of chunks) {
+								if (!inputOptions.experimentalPreserveModules)
+									chunk.generateInternalExports(outputOptions);
+								if (chunk.isEntryModuleFacade)
+									chunk.exportMode = getExportMode(chunk, outputOptions);
+							}
+							for (const chunk of chunks) {
+								chunk.preRender(outputOptions, inputBase);
+							}
+							if (!optimized && inputOptions.optimizeChunks) {
+								optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize, inputBase);
+								optimized = true;
+							}
 
-						// then name all chunks
-						for (let i = 0; i < chunks.length; i++) {
-							const chunk = chunks[i];
-							const imports = chunk.getImportIds();
-							const exports = chunk.getExportNames();
-							const modules = chunk.renderedModules;
+							// then name all chunks
+							for (let i = 0; i < chunks.length; i++) {
+								const chunk = chunks[i];
+								const imports = chunk.getImportIds();
+								const exports = chunk.getExportNames();
+								const modules = chunk.renderedModules;
 
-							if (chunk === singleChunk) {
-								singleChunk.id = basename(
-									outputOptions.file ||
-										(inputOptions.input instanceof Array
-											? inputOptions.input[0]
-											: <string>inputOptions.input)
-								);
-								const outputChunk: OutputChunk = {
+								if (chunk === singleChunk) {
+									singleChunk.id = basename(
+										outputOptions.file ||
+											(inputOptions.input instanceof Array
+												? inputOptions.input[0]
+												: <string>inputOptions.input)
+									);
+									const outputChunk: OutputChunk = {
+										imports,
+										exports,
+										modules,
+										code: undefined,
+										map: undefined
+									};
+									outputBundle[singleChunk.id] = outputChunk;
+								} else if (inputOptions.experimentalPreserveModules) {
+									chunk.generateIdPreserveModules(inputBase);
+								} else {
+									let pattern, patternName;
+									if (chunk.isEntryModuleFacade) {
+										pattern = outputOptions.entryFileNames || '[name].js';
+										patternName = 'output.entryFileNames';
+									} else {
+										pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
+										patternName = 'output.chunkFileNames';
+									}
+									chunk.generateId(pattern, patternName, addons, outputOptions, outputBundle);
+								}
+								outputBundle[chunk.id] = {
 									imports,
 									exports,
 									modules,
 									code: undefined,
 									map: undefined
 								};
-								outputBundle[singleChunk.id] = outputChunk;
-							} else if (inputOptions.experimentalPreserveModules) {
-								chunk.generateIdPreserveModules(inputBase);
-							} else {
-								let pattern, patternName;
-								if (chunk.isEntryModuleFacade) {
-									pattern = outputOptions.entryFileNames || '[name].js';
-									patternName = 'output.entryFileNames';
-								} else {
-									pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
-									patternName = 'output.chunkFileNames';
-								}
-								chunk.generateId(pattern, patternName, addons, outputOptions, outputBundle);
 							}
-							outputBundle[chunk.id] = {
-								imports,
-								exports,
-								modules,
-								code: undefined,
-								map: undefined
-							};
-						}
 
-						// render chunk import statements and finalizer wrappers given known names
-						return Promise.all(
-							chunks.map(chunk => {
-								const chunkId = chunk.id;
-								return chunk.render(outputOptions, addons).then(rendered => {
-									const outputChunk = <OutputChunk>outputBundle[chunkId];
-									outputChunk.code = rendered.code;
-									outputChunk.map = rendered.map;
+							// render chunk import statements and finalizer wrappers given known names
+							return Promise.all(
+								chunks.map(chunk => {
+									const chunkId = chunk.id;
+									return chunk.render(outputOptions, addons).then(rendered => {
+										const outputChunk = <OutputChunk>outputBundle[chunkId];
+										outputChunk.code = rendered.code;
+										outputChunk.map = rendered.map;
 
-									return Promise.all(
-										graph.plugins
-											.filter(plugin => plugin.ongenerate)
-											.map(plugin =>
-												plugin.ongenerate.call(
-													graph.pluginContext,
-													{ bundle: outputChunk, ...outputOptions },
-													outputChunk
+										return Promise.all(
+											graph.plugins
+												.filter(plugin => plugin.ongenerate)
+												.map(plugin =>
+													plugin.ongenerate.call(
+														graph.pluginContext,
+														{ bundle: outputChunk, ...outputOptions },
+														outputChunk
+													)
 												)
-											)
-									);
-								});
-							})
-						).then(() => {});
-					})
-					.then(() => {
-						// run generateBundle hook
-						const generateBundlePlugins = graph.plugins.filter(plugin => plugin.generateBundle);
-						if (generateBundlePlugins.length === 0) return;
+										);
+									});
+								})
+							).then(() => {});
+						})
+						.then(() => {
+							// run generateBundle hook
+							const generateBundlePlugins = graph.plugins.filter(plugin => plugin.generateBundle);
+							if (generateBundlePlugins.length === 0) return;
 
-						// assets emitted during generateBundle are unique to that specific generate call
-						const assets = new Map(graph.assetsById);
-						const generateBundleContext = {
-							...graph.pluginContext,
-							...createAssetPluginHooks(assets, outputBundle, assetFileNames)
-						};
+							// assets emitted during generateBundle are unique to that specific generate call
+							const assets = new Map(graph.assetsById);
+							const generateBundleContext = {
+								...graph.pluginContext,
+								...createAssetPluginHooks(assets, outputBundle, assetFileNames)
+							};
 
-						return Promise.all(
-							generateBundlePlugins.map(plugin =>
-								plugin.generateBundle.call(
-									generateBundleContext,
-									outputOptions,
-									outputBundle,
-									isWrite
+							return Promise.all(
+								generateBundlePlugins.map(plugin =>
+									plugin.generateBundle.call(
+										generateBundleContext,
+										outputOptions,
+										outputBundle,
+										isWrite
+									)
 								)
-							)
-						).then(() => {
-							// throw errors for assets not finalised with a source
-							assets.forEach(asset => {
-								if (asset.fileName === undefined)
-									finaliseAsset(asset, outputBundle, assetFileNames);
+							).then(() => {
+								// throw errors for assets not finalised with a source
+								assets.forEach(asset => {
+									if (asset.fileName === undefined)
+										finaliseAsset(asset, outputBundle, assetFileNames);
+								});
 							});
+						})
+						.then(() => {
+							timeEnd('GENERATE', 1);
+							return outputBundle;
 						});
-					})
-					.then(() => {
-						timeEnd('GENERATE', 1);
-						return outputBundle;
-					});
-			}
+				}
 
-			const cache = graph.getCache();
-			const result: RollupSingleFileBuild | RollupBuild = {
-				cache,
-				generate: <any>((rawOutputOptions: GenericConfigObject) => {
-					const promise = generate(rawOutputOptions, false).then(
-						result =>
-							inputOptions.experimentalCodeSplitting
-								? { output: result }
-								: <OutputChunk>result[chunks[0].id]
-					);
-					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
-					Object.defineProperty(promise, 'map', throwAsyncGenerateError);
-					return promise;
-				}),
-				write: <any>((outputOptions: OutputOptions) => {
-					if (
-						inputOptions.experimentalCodeSplitting &&
-						(!outputOptions || (!outputOptions.dir && !outputOptions.file))
-					) {
-						error({
-							code: 'MISSING_OPTION',
-							message: 'You must specify output.file or output.dir for the build.'
-						});
-					} else if (
-						!inputOptions.experimentalCodeSplitting &&
-						(!outputOptions || !outputOptions.file)
-					) {
-						error({
-							code: 'MISSING_OPTION',
-							message: 'You must specify output.file.'
-						});
-					}
-					return generate(outputOptions, true).then(result =>
-						Promise.all(
-							Object.keys(result).map(chunkId => {
-								return writeOutputFile(graph, chunkId, result[chunkId], outputOptions);
-							})
-						).then(
-							() =>
+				const cache = graph.getCache();
+				const result: RollupSingleFileBuild | RollupBuild = {
+					cache,
+					generate: <any>((rawOutputOptions: GenericConfigObject) => {
+						const promise = generate(rawOutputOptions, false).then(
+							result =>
 								inputOptions.experimentalCodeSplitting
 									? { output: result }
 									: <OutputChunk>result[chunks[0].id]
-						)
-					);
-				})
-			};
-			if (!inputOptions.experimentalCodeSplitting) {
-				(<any>result).imports = (<Chunk>singleChunk).getImportIds();
-				(<any>result).exports = (<Chunk>singleChunk).getExportNames();
-				(<any>result).modules = cache.modules;
-			}
-			if (inputOptions.perf === true) result.getTimings = getTimings;
-			return result;
-		});
+						);
+						Object.defineProperty(promise, 'code', throwAsyncGenerateError);
+						Object.defineProperty(promise, 'map', throwAsyncGenerateError);
+						return promise;
+					}),
+					write: <any>((outputOptions: OutputOptions) => {
+						if (
+							inputOptions.experimentalCodeSplitting &&
+							(!outputOptions || (!outputOptions.dir && !outputOptions.file))
+						) {
+							error({
+								code: 'MISSING_OPTION',
+								message: 'You must specify output.file or output.dir for the build.'
+							});
+						} else if (
+							!inputOptions.experimentalCodeSplitting &&
+							(!outputOptions || !outputOptions.file)
+						) {
+							error({
+								code: 'MISSING_OPTION',
+								message: 'You must specify output.file.'
+							});
+						}
+						return generate(outputOptions, true).then(result =>
+							Promise.all(
+								Object.keys(result).map(chunkId => {
+									return writeOutputFile(graph, chunkId, result[chunkId], outputOptions);
+								})
+							).then(
+								() =>
+									inputOptions.experimentalCodeSplitting
+										? { output: result }
+										: <OutputChunk>result[chunks[0].id]
+							)
+						);
+					})
+				};
+				if (!inputOptions.experimentalCodeSplitting) {
+					(<any>result).imports = (<Chunk>singleChunk).getImportIds();
+					(<any>result).exports = (<Chunk>singleChunk).getExportNames();
+					(<any>result).modules = cache.modules;
+				}
+				if (inputOptions.perf === true) result.getTimings = getTimings;
+				return result;
+			});
+	} catch (err) {
+		return Promise.reject(err);
+	}
 }
 
 function isOutputChunk(file: OutputFile): file is OutputChunk {
