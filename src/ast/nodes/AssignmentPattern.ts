@@ -1,5 +1,5 @@
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EMPTY_PATH, ObjectPath } from '../values';
+import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -13,9 +13,10 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 	bind() {
 		super.bind();
 		this.left.reassignPath(EMPTY_PATH);
+		this.right.reassignPath(UNKNOWN_PATH);
 	}
 
-	declare(kind: string, init: ExpressionEntity | null) {
+	declare(kind: string, init: ExpressionEntity) {
 		this.left.declare(kind, init);
 	}
 

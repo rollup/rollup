@@ -9,7 +9,7 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	type: NodeType.tArrayPattern;
 	elements: (PatternNode | null)[];
 
-	declare(kind: string, _init: ExpressionEntity | null) {
+	declare(kind: string, _init: ExpressionEntity) {
 		for (const element of this.elements) {
 			if (element !== null) {
 				element.declare(kind, UNKNOWN_EXPRESSION);

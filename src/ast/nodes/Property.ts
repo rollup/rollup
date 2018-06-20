@@ -33,7 +33,7 @@ export default class Property extends NodeBase {
 		}
 	}
 
-	declare(kind: string, _init: ExpressionEntity | null) {
+	declare(kind: string, _init: ExpressionEntity) {
 		this.value.declare(kind, UNKNOWN_EXPRESSION);
 	}
 

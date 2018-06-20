@@ -1,5 +1,6 @@
 import CatchScope from '../scopes/CatchScope';
 import Scope from '../scopes/Scope';
+import { UNKNOWN_EXPRESSION } from '../values';
 import BlockStatement from './BlockStatement';
 import * as NodeType from './NodeType';
 import { GenericEsTreeNode, NodeBase } from './shared/Node';
@@ -19,7 +20,7 @@ export default class CatchClause extends NodeBase {
 
 	initialise() {
 		this.included = false;
-		this.param.declare('parameter', null);
+		this.param.declare('parameter', UNKNOWN_EXPRESSION);
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {

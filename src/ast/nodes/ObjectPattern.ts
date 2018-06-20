@@ -10,7 +10,7 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	type: NodeType.tObjectPattern;
 	properties: AssignmentProperty[];
 
-	declare(kind: string, init: ExpressionEntity | null) {
+	declare(kind: string, init: ExpressionEntity) {
 		for (const property of this.properties) {
 			property.declare(kind, init);
 		}

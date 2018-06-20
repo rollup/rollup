@@ -15,8 +15,12 @@ describe('function', () => {
 			if (dir[0] === '.') return; // .DS_Store...
 
 			const config = loadConfig(samples + '/' + dir + '/_config.js');
-			if (!config) return;
-
+			if (
+				!config ||
+				(config.minNodeVersion &&
+					config.minNodeVersion > Number(/^v(\d+)/.exec(process.version)[1]))
+			)
+				return;
 			(config.skip ? it.skip : config.solo ? it.only : it)(dir, () => {
 				process.chdir(samples + '/' + dir);
 
