@@ -254,6 +254,7 @@ export interface OutputOptions {
 	indent?: boolean;
 	strict?: boolean;
 	freeze?: boolean;
+	esModule?: boolean;
 	namespaceToStringTag?: boolean;
 	compact?: boolean;
 

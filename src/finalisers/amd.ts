@@ -71,7 +71,7 @@ export default function amd(
 		options.compact
 	);
 	if (exportBlock) magicString.append(n + n + exportBlock);
-	if (namedExportsMode && hasExports && isEntryModuleFacade)
+	if (namedExportsMode && hasExports && isEntryModuleFacade && options.esModule)
 		magicString.append(`${n}${n}${options.compact ? compactEsModuleExport : esModuleExport}`);
 	if (outro) magicString.append(outro);
 

@@ -23,7 +23,7 @@ export default function cjs(
 
 	intro =
 		(options.strict === false ? intro : `'use strict';${n}${n}${intro}`) +
-		(namedExportsMode && hasExports && isEntryModuleFacade
+		(namedExportsMode && hasExports && isEntryModuleFacade && options.esModule
 			? `${options.compact ? compactEsModuleExport : esModuleExport}${n}${n}`
 			: '');
 
