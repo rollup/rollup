@@ -449,6 +449,48 @@ describe('rollup.watch', () => {
 							file: 'test/_tmp/output/bundle.js',
 							format: 'cjs'
 						},
+						plugins: [{
+							transform (code) {
+								const dependencies = ['./'];
+								return { code: `export default ${v++}`, dependencies };
+							}
+						}],
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 1);
+							sander.unlinkSync('test/_tmp/input/asdf');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 2);
+							watcher.close();
+						}
+					]);
+				});
+		});
+
+		it('watches and rebuilds asset dependencies', () => {
+			let v = 1;
+			return sander
+				.copydir('test/watch/samples/transform-dependencies')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
 						experimentalCodeSplitting: true,
 						plugins: [{
 							buildStart () {
