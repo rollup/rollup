@@ -43,6 +43,7 @@ export default class ForOfStatement extends StatementBase {
 	include() {
 		this.included = true;
 		this.left.includeWithAllDeclaredVariables();
+		this.left.reassignPath(EMPTY_PATH);
 		this.right.include();
 		this.body.include();
 	}
