@@ -762,8 +762,8 @@ export default class Module {
 		// could have already been generated
 		if (!this.exports[name])
 			this.exports[name] = {
-				localName: '_shimmedExport'
+				localName: '_missingExportShim'
 			};
-		return this.graph.scope.findVariable('_shimmedExport');
+		return this.graph.exportShimVariable;
 	}
 }

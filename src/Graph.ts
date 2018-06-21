@@ -3,8 +3,8 @@ import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import injectImportMeta from 'acorn-import-meta/inject';
 import { Program } from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
-import GlobalVariable from './ast/variables/GlobalVariable';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
+import GlobalVariable from './ast/variables/GlobalVariable';
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
@@ -159,7 +159,7 @@ export default class Graph {
 		for (const name of ['module', 'exports', '_interopDefault']) {
 			this.scope.findVariable(name); // creates global variable as side-effect
 		}
-		this.exportShimVariable = this.scope.findVariable('_shimmedExport');
+		this.exportShimVariable = this.scope.findVariable('_missingExportShim');
 
 		this.context = String(options.context);
 

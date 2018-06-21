@@ -502,6 +502,7 @@ export default class Chunk {
 
 		Array.from(this.imports.entries()).forEach(([variable, module]) => {
 			let safeName;
+
 			if (module instanceof ExternalModule) {
 				if (variable.name === '*') {
 					safeName = module.name;
@@ -843,7 +844,9 @@ export default class Chunk {
 		if (hoistedSource) magicString.prepend(hoistedSource + n + n);
 
 		if (this.needsExportsShim) {
-			magicString.prepend(`${n}${this.graph.varOrConst} _shimmedExport${_}=${_}void 0;${n}${n}`);
+			magicString.prepend(
+				`${n}${this.graph.varOrConst} _missingExportShim${_}=${_}void 0;${n}${n}`
+			);
 		}
 
 		if (options.compact) {

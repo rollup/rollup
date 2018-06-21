@@ -11,10 +11,7 @@ export default class GlobalScope extends Scope {
 	}
 
 	findVariable(name: string) {
-		if (!this.variables[name]) {
-			this.variables[name] = new GlobalVariable(name);
-		}
-
+		if (!this.variables[name]) return (this.variables[name] = new GlobalVariable(name));
 		return this.variables[name] as GlobalVariable;
 	}
 
