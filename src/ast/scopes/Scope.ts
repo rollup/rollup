@@ -6,8 +6,6 @@ import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
-import ExternalVariable from '../variables/ExternalVariable';
-import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import ThisVariable from '../variables/ThisVariable';
 import Variable from '../variables/Variable';
@@ -15,10 +13,10 @@ import Variable from '../variables/Variable';
 export default class Scope {
 	parent: Scope | null;
 	variables: {
-		this: ThisVariable | LocalVariable;
-		default: ExportDefaultVariable;
-		arguments: ArgumentsVariable;
-		[name: string]: LocalVariable | GlobalVariable | ExternalVariable | ArgumentsVariable;
+		this?: ThisVariable | LocalVariable;
+		default?: ExportDefaultVariable;
+		arguments?: ArgumentsVariable;
+		[name: string]: Variable;
 	};
 	isModuleScope: boolean = false;
 	children: Scope[];
