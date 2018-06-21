@@ -28,7 +28,12 @@ import {
 import { Asset, createAssetPluginHooks, finaliseAsset } from './utils/assetHooks';
 import { load, makeOnwarn, resolveId } from './utils/defaults';
 import ensureArray from './utils/ensureArray';
-import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './utils/entryHashing';
+import {
+	randomUint8Array,
+	Uint8ArrayEqual,
+	Uint8ArrayToHexString,
+	Uint8ArrayXor
+} from './utils/entryHashing';
 import error from './utils/error';
 import first from './utils/first';
 import { isRelative, relative, resolve } from './utils/path';
@@ -537,7 +542,15 @@ export default class Graph {
 			}
 
 			for (const dynamicModule of module.dynamicImportResolutions) {
-				if (dynamicModule.resolution instanceof Module) {
+				if (!(dynamicModule.resolution instanceof Module)) continue;
+				// If the parent module of a dynamic import is to a child module whose graph
+				// colouring is the same as the parent module, then that dynamic import does
+				// not need to be treated as a new entry point as it is in the static graph
+				if (
+					!graphColouring ||
+					(!dynamicModule.resolution.chunkAlias &&
+						!Uint8ArrayEqual(dynamicModule.resolution.entryPointsHash, curEntry.entryPointsHash))
+				) {
 					if (dynamicImports.indexOf(dynamicModule.resolution) === -1) {
 						dynamicImports.push(dynamicModule.resolution);
 						dynamicImportAliases.push(dynamicModule.alias);
