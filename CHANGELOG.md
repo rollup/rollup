@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.61.1
+*2018-06-21*
+* Do not try to deconflict "undefined" ([#2291](https://github.com/rollup/rollup/pull/2291))
+
 ## 0.61.0
 *2018-06-20*
 * Declare file dependencies via transform plugin hooks ([#2259](https://github.com/rollup/rollup/pull/2259))
