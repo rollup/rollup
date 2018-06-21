@@ -204,8 +204,6 @@ function getInputOptions(
 		cache: getOption('cache'),
 		experimentalCacheExpiry: getOption('experimentalCacheExpiry', 10),
 		context: config.context,
-		experimentalCodeSplitting: getOption('experimentalCodeSplitting'),
-		experimentalPreserveModules: getOption('experimentalPreserveModules'),
 		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
 		external: getExternal(config, command),
 		inlineDynamicImports: getOption('inlineDynamicImports', false),
@@ -218,11 +216,16 @@ function getInputOptions(
 		perf: getOption('perf', false),
 		plugins: config.plugins,
 		preferConst: getOption('preferConst'),
+		preserveModules: getOption('preserveModules'),
 		preserveSymlinks: getOption('preserveSymlinks'),
 		treeshake: getObjectOption(config, command, 'treeshake'),
 		shimMissingExports: getOption('shimMissingExports'),
 		watch: config.watch
 	};
+
+	// support rollup({ cache: prevBuildObject })
+	if (inputOptions.cache && (<any>inputOptions.cache).cache)
+		inputOptions.cache = (<any>inputOptions.cache).cache;
 
 	// legacy to make sure certain plugins still work
 	if (Array.isArray(inputOptions.input)) {

@@ -15,11 +15,11 @@ import {
 	OutputBundle,
 	RollupCache,
 	RollupWarning,
+	RollupWatcher,
 	SerializablePluginCache,
 	SourceDescription,
 	TreeshakingOptions,
-	WarningHandler,
-	Watcher
+	WarningHandler
 } from './rollup/types';
 import { finaliseAsset } from './utils/assetHooks';
 import { assignChunkColouringHashes } from './utils/chunkColouring';
@@ -80,7 +80,7 @@ export default class Graph {
 	// deprecated
 	treeshake: boolean;
 
-	constructor(options: InputOptions, watcher?: Watcher) {
+	constructor(options: InputOptions, watcher?: RollupWatcher) {
 		this.curChunkIndex = 0;
 		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
@@ -97,7 +97,7 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		this.preserveModules = options.experimentalPreserveModules;
+		this.preserveModules = options.preserveModules;
 
 		this.cacheExpiry = options.experimentalCacheExpiry;
 

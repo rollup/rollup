@@ -92,7 +92,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				return bundle.generate({ format: 'iife' });
 			})
-			.then(({ code }) => {
+			.then(({ output: [{ code }] }) => {
 				assert.ok(code[code.length - 1] === '\n');
 			});
 	});

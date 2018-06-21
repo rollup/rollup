@@ -59,7 +59,7 @@ function generateAndTestBundle(bundle, outputOptions, config, format, warnings) 
 			}
 			return bundle.generate(outputOptions);
 		})
-		.then(({ code, map }) => {
+		.then(({ output: [{ code, map }] }) => {
 			if (config.test) {
 				return config.test(code, map, { format });
 			}

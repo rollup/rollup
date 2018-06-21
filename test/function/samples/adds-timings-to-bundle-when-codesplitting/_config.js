@@ -4,7 +4,6 @@ module.exports = {
 	description: 'Adds timing information to bundle when bundling with perf=true',
 	options: {
 		input: ['main.js', 'main2.js'],
-		experimentalCodeSplitting: true,
 		perf: true
 	},
 	bundle(bundle) {

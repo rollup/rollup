@@ -115,7 +115,7 @@ function getUmdCode(inputCode, outputOptions) {
 				Object.assign({ format: 'umd', globals: { external: 'external' } }, outputOptions)
 			)
 		)
-		.then(({ code }) => code);
+		.then(({ output }) => output[0].code);
 }
 
 function runTestsWithCode(code, outputOptions, expectedExports) {

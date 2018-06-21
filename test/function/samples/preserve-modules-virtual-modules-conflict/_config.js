@@ -4,8 +4,7 @@ module.exports = {
 	description: 'Generates actual files for virtual modules when preserving modules',
 	options: {
 		input: ['main.js'],
-		experimentalCodeSplitting: true,
-		experimentalPreserveModules: true,
+		preserveModules: true,
 		plugins: [
 			{
 				resolveId(id) {
@@ -26,7 +25,7 @@ module.exports = {
 		return bundle
 			.generate({ format: 'esm' })
 			.then(generated =>
-				assert.deepEqual(Object.keys(generated.output), [
+				assert.deepEqual(generated.output.map(chunk => chunk.fileName), [
 					'_virtual/_virtualModule.js',
 					'_virtual/_virtualModule2.js',
 					'main.js'

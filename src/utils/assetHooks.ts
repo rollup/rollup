@@ -113,7 +113,11 @@ export function createAssetPluginHooks(
 export function finaliseAsset(asset: Asset, outputBundle: OutputBundle, assetFileNames: string) {
 	const fileName = getAssetFileName(asset, outputBundle, assetFileNames);
 	asset.fileName = fileName;
-	outputBundle[fileName] = asset.source;
+	outputBundle[fileName] = {
+		isAsset: true,
+		fileName,
+		source: asset.source
+	};
 }
 
 export function createTransformEmitAsset(assetsById: Map<string, Asset>, emitAsset: EmitAsset) {

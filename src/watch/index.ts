@@ -5,11 +5,10 @@ import createFilter from 'rollup-pluginutils/src/createFilter.js';
 import rollup, { setWatcher } from '../rollup/index';
 import {
 	InputOptions,
-	OutputChunk,
 	OutputOptions,
 	RollupBuild,
 	RollupCache,
-	RollupSingleFileBuild,
+	RollupWatcher,
 	RollupWatchOptions
 } from '../rollup/types';
 import mergeOptions from '../utils/mergeOptions';
@@ -18,7 +17,8 @@ import { addTask, deleteTask } from './fileWatchers';
 
 const DELAY = 200;
 
-export class Watcher extends EventEmitter {
+export class Watcher {
+	emitter: RollupWatcher;
 	private buildTimeout: NodeJS.Timer;
 	private running: boolean;
 	private rerun: boolean = false;
@@ -26,12 +26,23 @@ export class Watcher extends EventEmitter {
 	private succeeded: boolean = false;
 	private invalidatedIds: Set<string> = new Set();
 
-	constructor(configs: RollupWatchOptions[] = []) {
-		super();
-		if (!Array.isArray(configs)) configs = [configs];
-		this.tasks = configs.map(config => new Task(this, config));
+	constructor(configs: RollupWatchOptions[]) {
+		this.emitter = new class extends EventEmitter implements RollupWatcher {
+			close: () => void;
+			constructor(close: () => void) {
+				super();
+				this.close = close;
+			}
+		}(this.close.bind(this));
+		this.tasks = (Array.isArray(configs) ? configs : configs ? [configs] : []).map(
+			config => new Task(this, config)
+		);
 		this.running = true;
 		process.nextTick(() => this.run());
+	}
+
+	emit(event: string, value?: any) {
+		this.emitter.emit(event, value);
 	}
 
 	close() {
@@ -40,7 +51,7 @@ export class Watcher extends EventEmitter {
 			task.close();
 		});
 
-		this.removeAllListeners();
+		this.emitter.removeAllListeners();
 	}
 
 	invalidate(id?: string) {
@@ -110,8 +121,6 @@ export class Task {
 	private outputs: OutputOptions[];
 	private invalidated = true;
 
-	private deprecations: { old: string; new: string }[];
-
 	private filter: (id: string) => boolean;
 
 	constructor(watcher: Watcher, config: RollupWatchOptions) {
@@ -121,7 +130,7 @@ export class Task {
 		this.closed = false;
 		this.watched = new Set();
 
-		const { inputOptions, outputOptions, deprecations } = mergeOptions({
+		const { inputOptions, outputOptions } = mergeOptions({
 			config
 		});
 		this.inputOptions = inputOptions;
@@ -152,7 +161,6 @@ export class Task {
 		this.chokidarOptionsHash = JSON.stringify(chokidarOptions);
 
 		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
-		this.deprecations = [...deprecations, ...(watchOptions._deprecations || [])];
 	}
 
 	close() {
@@ -192,17 +200,7 @@ export class Task {
 			output: this.outputFiles
 		});
 
-		if (this.deprecations.length) {
-			this.inputOptions.onwarn({
-				code: 'DEPRECATED_OPTIONS',
-				deprecations: this.deprecations,
-				message: `The following options have been renamed — please update your config: ${this.deprecations
-					.map(option => `${option.old} -> ${option.new}`)
-					.join(', ')}`
-			});
-		}
-
-		setWatcher(this.watcher);
+		setWatcher(this.watcher.emitter);
 		return rollup(options)
 			.then(result => {
 				if (this.closed) return;
@@ -229,11 +227,11 @@ export class Task {
 
 				return Promise.all(
 					this.outputs.map(output => {
-						return <Promise<OutputChunk | Record<string, OutputChunk>>>result.write(output);
+						return result.write(output);
 					})
 				).then(() => result);
 			})
-			.then((result: RollupSingleFileBuild | RollupBuild) => {
+			.then((result: RollupBuild) => {
 				this.watcher.emit('event', {
 					code: 'BUNDLE_END',
 					input: this.inputOptions.input,
@@ -278,6 +276,6 @@ export class Task {
 	}
 }
 
-export default function watch(configs: RollupWatchOptions[]) {
-	return new Watcher(configs);
+export default function watch(configs: RollupWatchOptions[]): EventEmitter {
+	return new Watcher(configs).emitter;
 }

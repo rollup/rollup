@@ -1,7 +1,6 @@
 module.exports = {
 	description: 'manual chunks support',
 	options: {
-		experimentalCodeSplitting: true,
 		input: ['main.js'],
 		manualChunks: {
 			dep1: ['dep1.js'],

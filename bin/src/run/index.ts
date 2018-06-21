@@ -19,7 +19,6 @@ export default function runRollup(command: any) {
 		}
 	}
 
-	if (command.dir) {
 		if (command._.length) {
 			if (command._.some((input: string) => input.indexOf('=') !== -1)) {
 				command.input = {};
@@ -36,9 +35,6 @@ export default function runRollup(command: any) {
 		} else if (typeof command.input === 'string') {
 			command.input = [command.input];
 		}
-	} else if (command._.length === 1) {
-		command.input = command._[0];
-	}
 
 	if (command.environment) {
 		const environment = Array.isArray(command.environment)

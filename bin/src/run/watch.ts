@@ -8,7 +8,6 @@ import {
 	InputOption,
 	RollupBuild,
 	RollupError,
-	RollupSingleFileBuild,
 	RollupWatchOptions
 } from '../../../src/rollup/types';
 import mergeOptions from '../../../src/utils/mergeOptions';
@@ -18,13 +17,14 @@ import alternateScreen from './alternateScreen';
 import batchWarnings from './batchWarnings';
 import loadConfigFile from './loadConfigFile';
 import { printTimings } from './timings';
+
 interface WatchEvent {
 	code?: string;
 	error?: RollupError | Error;
 	input?: InputOption;
 	output?: string[];
 	duration?: number;
-	result?: RollupSingleFileBuild | RollupBuild;
+	result?: RollupBuild;
 }
 
 interface Watcher {
@@ -68,10 +68,6 @@ export default function watch(
 			};
 
 			if (!result.watch) result.watch = {};
-
-			if (merged.deprecations.length) {
-				(<{ _deprecations: any }>result.watch)._deprecations = merged.deprecations;
-			}
 
 			if (merged.optionError)
 				merged.inputOptions.onwarn({
@@ -121,8 +117,8 @@ export default function watch(
 							input = Array.isArray(input)
 								? input.join(', ')
 								: Object.keys(input)
-										.map(key => (<Record<string, string>>input)[key])
-										.join(', ');
+									.map(key => (<Record<string, string>>input)[key])
+									.join(', ');
 						}
 						stderr(
 							tc.cyan(

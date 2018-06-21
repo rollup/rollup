@@ -14,7 +14,7 @@ describe('deprecations', () => {
 				}
 			})
 			.then(executeBundle)
-			.then(result => {
+			.then((result) => {
 				assert.equal(result, 42);
 				assert.deepEqual(warnings, [
 					{
@@ -86,7 +86,7 @@ describe('deprecations', () => {
 		return rollup
 			.rollup({ input: 'x', plugins: [loader({ x: 'export const x = function () {}' })] })
 			.then(bundle => bundle.generate({ format: 'esm' }))
-			.then(({ code }) => {
+			.then(({ output: [{ code }] }) => {
 				assert.equal(code, 'const x = function () {};\n\nexport { x };\n');
 			});
 	});

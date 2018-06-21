@@ -5,7 +5,6 @@ import { basename } from './path';
 
 export function assignChunkIds(
 	chunks: Chunk[],
-	singleChunk: Chunk | void,
 	inputOptions: InputOptions,
 	outputOptions: OutputOptions,
 	inputBase: string,
@@ -27,12 +26,9 @@ export function assignChunkIds(
 	for (let i = 0; i < chunksForNaming.length; i++) {
 		const chunk = chunksForNaming[i];
 
-		if (chunk === singleChunk) {
-			singleChunk.id = basename(
-				outputOptions.file ||
-					(inputOptions.input instanceof Array ? inputOptions.input[0] : <string>inputOptions.input)
-			);
-		} else if (inputOptions.experimentalPreserveModules) {
+		if (outputOptions.file) {
+			chunk.id = basename(outputOptions.file);
+		} else if (inputOptions.preserveModules) {
 			chunk.generateIdPreserveModules(inputBase, usedIds);
 		} else {
 			let pattern, patternName;

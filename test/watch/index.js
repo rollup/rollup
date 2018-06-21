@@ -227,8 +227,7 @@ describe('rollup.watch', () => {
 							dir: 'test/_tmp/output',
 							format: 'cjs'
 						},
-						watch: { chokidar },
-						experimentalCodeSplitting: true
+						watch: { chokidar }
 					});
 
 					return sequence(watcher, [
@@ -267,8 +266,7 @@ describe('rollup.watch', () => {
 							dir: 'test/_tmp/output',
 							format: 'cjs'
 						},
-						watch: { chokidar },
-						experimentalCodeSplitting: true
+						watch: { chokidar }
 					});
 
 					return sequence(watcher, [
@@ -433,7 +431,7 @@ describe('rollup.watch', () => {
 						plugins: [
 							{
 								cacheKey: 'asdf',
-								transform(code) {
+								transform() {
 									this.addWatchFile('test/_tmp/input/asdf');
 									const text = sander.readFileSync('test/_tmp/input/asdf').toString();
 									return `export default "${text}"`;
