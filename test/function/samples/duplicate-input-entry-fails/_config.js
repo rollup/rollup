@@ -3,7 +3,6 @@ const path = require('path');
 module.exports = {
 	description: 'duplicate entry modules',
 	options: {
-		experimentalCodeSplitting: true,
 		input: ['main.js', 'main.js']
 	},
 	error: {

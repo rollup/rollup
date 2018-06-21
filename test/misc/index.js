@@ -95,7 +95,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				return bundle.generate({ format: 'iife' });
 			})
-			.then(({ code }) => {
+			.then(({ output: [{ code }] }) => {
 				assert.ok(code[code.length - 1] === '\n');
 			});
 	});
@@ -175,7 +175,7 @@ describe('in-memory sourcemaps', () => {
 					sourcemapFile: path.resolve('bundle.js')
 				});
 			})
-			.then(generated => {
+			.then(({ output: [generated] }) => {
 				const smc = new SourceMapConsumer(generated.map);
 				const locator = getLocator(generated.code, { offsetLine: 1 });
 
@@ -200,7 +200,7 @@ describe('deprecations', () => {
 				}
 			})
 			.then(executeBundle)
-			.then(result => {
+			.then((result) => {
 				assert.equal(result, 42);
 				assert.deepEqual(warnings, [
 					{
@@ -272,7 +272,7 @@ describe('deprecations', () => {
 		return rollup
 			.rollup({ input: 'x', plugins: [loader({ x: 'export const x = function () {}' })] })
 			.then(bundle => bundle.generate({ format: 'esm' }))
-			.then(({ code }) => {
+			.then(({ output: [{ code }] }) => {
 				assert.equal(code, 'const x = function () {};\n\nexport { x };\n');
 			});
 	});
