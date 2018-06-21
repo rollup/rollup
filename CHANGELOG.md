@@ -3,6 +3,7 @@
 ## 0.61.1
 *2018-06-21*
 * Do not try to deconflict "undefined" ([#2291](https://github.com/rollup/rollup/pull/2291))
+* Properly track values for loop interator declarations and reassigned namespaces, add smoke test ([#2292](https://github.com/rollup/rollup/pull/2292))
 
 ## 0.61.0
 *2018-06-20*
