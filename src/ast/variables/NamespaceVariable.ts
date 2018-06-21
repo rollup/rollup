@@ -1,6 +1,7 @@
 import { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
 import Identifier from '../nodes/Identifier';
+import { UNKNOWN_PATH } from '../values';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -43,6 +44,16 @@ export default class NamespaceVariable extends Variable {
 
 	renderFirst() {
 		return this.referencedEarly;
+	}
+
+	// This is only called if "UNKNOWN_PATH" is reassigned as in all other situations, either the
+	// build fails due to an illegal namespace reassignment or MemberExpression already forwards
+	// the reassignment to the right variable. This means we lost track of this variable and thus
+	// need to reassign all exports.
+	reassignPath() {
+		for (const key in this.originals) {
+			this.originals[key].reassignPath(UNKNOWN_PATH);
+		}
 	}
 
 	renderBlock(options: RenderOptions) {
