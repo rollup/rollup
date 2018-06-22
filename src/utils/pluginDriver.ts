@@ -53,7 +53,7 @@ export function createPluginDriver(
 
 	let hasLoadersOrTransforms = false;
 
-	const pluginContexts = plugins.map(plugin => {
+	const pluginContexts: PluginContext[] = plugins.map(plugin => {
 		let cacheable = true;
 		if (typeof plugin.cacheKey !== 'string') {
 			if (typeof plugin.name !== 'string') {
@@ -82,7 +82,7 @@ export function createPluginDriver(
 			cacheInstance = uncacheablePlugin(plugin.name);
 		}
 
-		const context: PluginContext = {
+		return {
 			addWatchFile(id: string) {
 				if (graph.finished) this.error('addWatchFile can only be called during the build.');
 				graph.watchFiles[id] = true;
@@ -132,7 +132,6 @@ export function createPluginDriver(
 			},
 			watcher
 		};
-		return context;
 	});
 
 	function runHookSync<T>(

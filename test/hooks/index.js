@@ -301,34 +301,33 @@ describe('hooks', () => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(({ output }) => {
-				assert.equal(
-					output[0].code,
-					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
-				);
+				assert.equal(output[0].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
+				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output[1].source, 'hello world');
 				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
 				assert.equal(output[1].source, 'hello world');
 
-				return rollup.rollup({
-					cache,
-					input: 'input',
-					plugins: [
-						loader({ input: '' }),
-						{
-							transform() {
-								assert.fail('Should cache transform');
+				return rollup
+					.rollup({
+						cache,
+						input: 'input',
+						plugins: [
+							loader({ input: '' }),
+							{
+								transform() {
+									assert.fail('Should cache transform');
+								}
 							}
-						}
-					]
-				});
+						]
+					});
 			})
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(({ output }) => {
-				assert.equal(
-					output[0].code,
-					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
-				);
+				assert.equal(output[0].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
+				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output[1].source, 'hello world');
 				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
 				assert.equal(output[1].source, 'hello world');
 			});
@@ -358,27 +357,27 @@ describe('hooks', () => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(({ output }) => {
-				assert.equal(
-					output[0].code,
-					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
-				);
+				assert.equal(output[0].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
+				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output[1].source, 'hello world');
 				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
 				assert.equal(output[1].source, 'hello world');
 
-				return rollup.rollup({
-					cache,
-					input: 'input',
-					plugins: [
-						loader({ input: '' }),
-						{
-							name: 'x',
-							transform() {
-								runs++;
-								return `alert('hello world')`;
+				return rollup
+					.rollup({
+						cache,
+						input: 'input',
+						plugins: [
+							loader({ input: '' }),
+							{
+								name: 'x',
+								transform() {
+									runs++;
+									return `alert('hello world')`;
+								}
 							}
-						}
-					]
-				});
+						]
+					});
 			})
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
