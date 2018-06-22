@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import { optimizeChunks } from '../chunk-optimization';
 import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
@@ -11,7 +12,6 @@ import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
 import { basename, dirname, resolve } from '../utils/path';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
-import { Watcher } from '../watch';
 import {
 	InputOptions,
 	OutputAsset,
@@ -133,8 +133,8 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	return inputOptions;
 }
 
-let curWatcher: Watcher;
-export function setWatcher(watcher: Watcher) {
+let curWatcher: EventEmitter;
+export function setWatcher(watcher: EventEmitter) {
 	curWatcher = watcher;
 }
 
