@@ -18,7 +18,7 @@ import { mapSequence } from '../utils/promise';
 import chokidar from './chokidar';
 import { addTask, deleteTask } from './fileWatchers';
 
-const DELAY = 100;
+const DELAY = 200;
 
 export class Watcher extends EventEmitter {
 	private buildTimeout: NodeJS.Timer;
@@ -60,8 +60,6 @@ export class Watcher extends EventEmitter {
 	private run() {
 		this.running = true;
 
-		const minBuildDelayPromise = new Promise(resolve => setTimeout(resolve, DELAY));
-
 		this.emit('event', {
 			code: 'START'
 		});
@@ -69,26 +67,23 @@ export class Watcher extends EventEmitter {
 		mapSequence(this.tasks, (task: Task) => task.run())
 			.then(() => {
 				this.succeeded = true;
+				this.running = false;
 
 				this.emit('event', {
 					code: 'END'
 				});
 			})
 			.catch(error => {
+				this.running = false;
 				this.emit('event', {
 					code: this.succeeded ? 'ERROR' : 'FATAL',
 					error
 				});
 			})
 			.then(() => {
-				return minBuildDelayPromise;
-			})
-			.then(() => {
-				this.running = false;
-
 				if (this.rerun) {
 					this.rerun = false;
-					this.run();
+					this.invalidate();
 				}
 			});
 	}

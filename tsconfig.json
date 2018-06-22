@@ -11,7 +11,6 @@
         "noUnusedParameters": true,
         "pretty": true,
         "skipLibCheck": true,
-        "strictPropertyInitialization": true,
         "target": "es5"
     },
     "include": [
