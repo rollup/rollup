@@ -1,4 +1,4 @@
-import { missingExport, missingFn, x } from './dep.js';
+import missingDefault, { missingExport, missingFn, x } from './dep.js';
 
 missingFn();
-x(missingExport);
+x(missingExport, missingDefault);

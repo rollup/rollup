@@ -6,7 +6,8 @@ System.register([], function (exports, module) {
       exports({
         x: x,
         missingFn: dep.missingFn,
-        missingExport: dep.missingFn
+        missingExport: dep.missingFn,
+        default: dep.missingFn
       });
 
       var _missingExportShim = void 0;

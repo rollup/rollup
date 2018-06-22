@@ -11,3 +11,4 @@ function x () {
 exports.x = x;
 exports.missingFn = _missingExportShim;
 exports.missingExport = _missingExportShim;
+exports.default = _missingExportShim;

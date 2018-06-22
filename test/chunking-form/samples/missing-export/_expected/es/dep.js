@@ -4,4 +4,5 @@ function x () {
   sideEffect();
 }
 
+export default _missingExportShim;
 export { x, _missingExportShim as missingFn, _missingExportShim as missingExport };
