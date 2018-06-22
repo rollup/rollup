@@ -168,10 +168,6 @@ export default function watch(
 	}
 
 	function close(err: Error) {
-		if (err) {
-			console.error(err);
-		}
-
 		removeOnExit();
 		process.removeListener('uncaughtException', close);
 		// removing a non-existent listener is a no-op
@@ -183,11 +179,17 @@ export default function watch(
 		if (configWatcher) configWatcher.close();
 
 		if (err) {
+			console.error(err);
 			process.exit(1);
 		}
 	}
 
-	start(initialConfigs);
+	try {
+		start(initialConfigs);
+	} catch (err) {
+		close(err);
+		return;
+	}
 
 	if (configFile && !configFile.startsWith('node:')) {
 		let restarting = false;

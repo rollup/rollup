@@ -675,6 +675,52 @@ describe('rollup.watch', () => {
 				});
 		});
 
+		it('only rebuilds the appropriate configs', () => {
+			return sander
+				.copydir('test/watch/samples/multiple')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch([{
+						input: 'test/_tmp/input/main1.js',
+						output: {
+							file: 'test/_tmp/output/bundle1.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					}, {
+						input: 'test/_tmp/input/main2.js',
+						output: {
+							file: 'test/_tmp/output/bundle2.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					}]);
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.deepEqual(run('../_tmp/output/bundle1.js'), 42);
+							assert.deepEqual(run('../_tmp/output/bundle2.js'), 43);
+							sander.writeFileSync('test/_tmp/input/main2.js', 'export default 44');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.deepEqual(run('../_tmp/output/bundle1.js'), 42);
+							assert.deepEqual(run('../_tmp/output/bundle2.js'), 44);
+							watcher.close();
+						}
+					]);
+				});
+		});
+
 		it('respects output.globals', () => {
 			return sander
 				.copydir('test/watch/samples/globals')

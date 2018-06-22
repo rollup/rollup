@@ -106,6 +106,7 @@ export class Task {
 	private chokidarOptionsHash: string;
 	private outputFiles: string[];
 	private outputs: OutputOptions[];
+	private invalidated = true;
 
 	private deprecations: { old: string; new: string }[];
 
@@ -125,7 +126,7 @@ export class Task {
 
 		this.outputs = outputOptions;
 		this.outputFiles = this.outputs.map(output => {
-			return path.resolve(output.file || output.dir);
+			if (output.file || output.dir) return path.resolve(output.file || output.dir);
 		});
 
 		const watchOptions = inputOptions.watch || {};
@@ -159,6 +160,7 @@ export class Task {
 	}
 
 	invalidate(id: string, isTransformDependency: boolean) {
+		this.invalidated = true;
 		if (isTransformDependency) {
 			this.cache.modules.forEach(module => {
 				if (!module.transformDependencies || module.transformDependencies.indexOf(id) === -1)
@@ -171,6 +173,9 @@ export class Task {
 	}
 
 	run() {
+		if (!this.invalidated) return;
+		this.invalidated = false;
+
 		const options = {
 			...this.inputOptions,
 			cache: this.cache
