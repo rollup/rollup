@@ -283,6 +283,7 @@ export interface RollupWarning {
 	frame?: any;
 	missing?: string;
 	exporter?: string;
+	exportName?: string;
 	name?: string;
 	sources?: string[];
 	reexporter?: string;

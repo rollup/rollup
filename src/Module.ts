@@ -763,9 +763,9 @@ export default class Module {
 		// could have already been generated
 		if (!this.exports[name])
 			this.graph.warn({
-				message: `Export "${name}" has been shimmed in module ${relativeId(this.id)}.`,
+				message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`,
 				code: 'SHIMMED_EXPORT',
-				missing: name,
+				exportName: name,
 				exporter: relativeId(this.id)
 			});
 		this.exports[name] = {
