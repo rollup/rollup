@@ -36,6 +36,7 @@ import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, extname } from './utils/path';
+import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
@@ -761,9 +762,15 @@ export default class Module {
 	shimMissingExport(name: string) {
 		// could have already been generated
 		if (!this.exports[name])
-			this.exports[name] = {
-				localName: '_missingExportShim'
-			};
+			this.graph.warn({
+				message: `Export "${name}" has been shimmed in module ${relativeId(this.id)}.`,
+				code: 'SHIMMED_EXPORT',
+				missing: name,
+				exporter: relativeId(this.id)
+			});
+		this.exports[name] = {
+			localName: '_missingExportShim'
+		};
 		return this.graph.exportShimVariable;
 	}
 }
