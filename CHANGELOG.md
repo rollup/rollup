@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.61.2
+*2018-06-23*
+* Improve watcher error handling, only rebuild invalidated outputs ([#2296](https://github.com/rollup/rollup/pull/2296))
+* Update dependencies, make watcher more stable ([#2297](https://github.com/rollup/rollup/pull/2297))
+
 ## 0.61.1
 *2018-06-21*
 * Do not try to deconflict "undefined" ([#2291](https://github.com/rollup/rollup/pull/2291))
