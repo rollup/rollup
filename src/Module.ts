@@ -30,11 +30,13 @@ import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import { IdMap, ModuleJSON, RawSourceMap, RollupError, RollupWarning } from './rollup/types';
+import { handleMissingExport } from './utils/defaults';
 import error from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, extname } from './utils/path';
+import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
@@ -56,7 +58,7 @@ export interface ImportDescription {
 export interface ExportDescription {
 	localName: string;
 	identifier?: string;
-	node: Node;
+	node?: Node;
 }
 
 export interface ReexportDescription {
@@ -670,13 +672,7 @@ export default class Module {
 			const declaration = otherModule.traceExport(importDeclaration.name);
 
 			if (!declaration) {
-				this.graph.handleMissingExport.call(
-					this.graph.pluginContext,
-					importDeclaration.name,
-					this,
-					otherModule.id,
-					importDeclaration.start
-				);
+				handleMissingExport(importDeclaration.name, this, otherModule.id, importDeclaration.start);
 			}
 
 			return declaration;
@@ -691,12 +687,12 @@ export default class Module {
 		const removedExports: string[] = [];
 		for (const exportName in this.exports) {
 			const expt = this.exports[exportName];
-			(expt.node.included ? renderedExports : removedExports).push(exportName);
+			(expt.node && expt.node.included ? renderedExports : removedExports).push(exportName);
 		}
 		return { renderedExports, removedExports };
 	}
 
-	traceExport(name: string): Variable {
+	traceExport(name: string, isExportAllSearch?: boolean): Variable {
 		if (name[0] === '*') {
 			// namespace
 			if (name.length === 1) {
@@ -714,8 +710,7 @@ export default class Module {
 			const declaration = reexportDeclaration.module.traceExport(reexportDeclaration.localName);
 
 			if (!declaration) {
-				this.graph.handleMissingExport.call(
-					this.graph.pluginContext,
+				handleMissingExport(
 					reexportDeclaration.localName,
 					this,
 					reexportDeclaration.module.id,
@@ -734,13 +729,19 @@ export default class Module {
 			return declaration;
 		}
 
-		if (name === 'default') return;
+		if (name !== 'default') {
+			for (let i = 0; i < this.exportAllModules.length; i += 1) {
+				const module = this.exportAllModules[i];
+				const declaration = module.traceExport(name, true);
 
-		for (let i = 0; i < this.exportAllModules.length; i += 1) {
-			const module = this.exportAllModules[i];
-			const declaration = module.traceExport(name);
+				if (declaration) return declaration;
+			}
+		}
 
-			if (declaration) return declaration;
+		// we don't want to create shims when we are just
+		// probing export * modules for exports
+		if (this.graph.shimMissingExports && !isExportAllSearch) {
+			return this.shimMissingExport(name);
 		}
 	}
 
@@ -756,5 +757,20 @@ export default class Module {
 
 		warning.id = this.id;
 		this.graph.warn(warning);
+	}
+
+	shimMissingExport(name: string) {
+		// could have already been generated
+		if (!this.exports[name])
+			this.graph.warn({
+				message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`,
+				code: 'SHIMMED_EXPORT',
+				exportName: name,
+				exporter: relativeId(this.id)
+			});
+		this.exports[name] = {
+			localName: '_missingExportShim'
+		};
+		return this.graph.exportShimVariable;
 	}
 }

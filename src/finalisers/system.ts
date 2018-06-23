@@ -147,12 +147,16 @@ export default function system(
 	if (hoistedExports.length)
 		wrapperStart += `${t}${t}${t}` + hoistedExports.join(`${n}${t}${t}${t}`) + n + n;
 
+	let wrapperEnd = `${n}${n}${t}${t}}`;
+	wrapperEnd += `${n}${t}}${options.compact ? '' : ';'}`;
+	wrapperEnd += `${n}});`;
+
 	if (intro) magicString.prepend(intro);
 
 	if (outro) magicString.append(outro);
 
 	return magicString
 		.indent(`${t}${t}${t}`)
-		.append(`${n}${n}${t}${t}}${n}${t}}${options.compact ? '' : ';'}${n}});`)
+		.append(wrapperEnd)
 		.prepend(wrapperStart);
 }

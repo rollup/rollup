@@ -83,14 +83,6 @@ export type ResolveIdHook = (
 	parent: string
 ) => Promise<string | boolean | void> | string | boolean | void;
 
-export type MissingExportHook = (
-	this: PluginContext,
-	exportName: string,
-	importingModule: string,
-	importedModule: string,
-	importerStart?: number
-) => void;
-
 export type IsExternal = (
 	id: string,
 	parentId: string,
@@ -140,7 +132,6 @@ export interface Plugin {
 	options?: (options: InputOptions) => InputOptions | void;
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
-	missingExport?: MissingExportHook;
 	transform?: TransformHook;
 	// TODO: deprecate
 	transformBundle?: TransformChunkHook;
@@ -204,6 +195,7 @@ export interface InputOptions {
 	experimentalPreserveModules?: boolean;
 	optimizeChunks?: boolean;
 	chunkGroupingSize?: number;
+	shimMissingExports?: boolean;
 
 	// undocumented?
 	pureExternalModules?: boolean;
@@ -291,6 +283,7 @@ export interface RollupWarning {
 	frame?: any;
 	missing?: string;
 	exporter?: string;
+	exportName?: string;
 	name?: string;
 	sources?: string[];
 	reexporter?: string;
