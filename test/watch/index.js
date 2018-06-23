@@ -28,6 +28,7 @@ describe('rollup.watch', () => {
 				const next = events.shift();
 
 				if (!next) {
+					watcher.close();
 					fulfil();
 				} else if (typeof next === 'string') {
 					watcher.once('event', event => {
@@ -35,6 +36,7 @@ describe('rollup.watch', () => {
 							if (event.code === 'FATAL') {
 								console.error(event.error);
 							}
+							watcher.close();
 							reject(new Error(`Expected ${next} event, got ${event.code}`));
 						} else {
 							go(event);
@@ -45,7 +47,10 @@ describe('rollup.watch', () => {
 						.then(() => wait(100)) // gah, this appears to be necessary to fix random errors
 						.then(() => next(event))
 						.then(go)
-						.catch(reject);
+						.catch(error => {
+							watcher.close();
+							reject(error);
+						});
 				}
 			}
 
@@ -93,7 +98,6 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 43);
-							watcher.close();
 						}
 					]);
 				});
@@ -112,16 +116,17 @@ describe('rollup.watch', () => {
 							format: 'cjs'
 						},
 						watch: { chokidar },
-						plugins: [{
-							buildStart (id) {
-								if (!this.watcher)
-									throw new Error('No Watcher');
+						plugins: [
+							{
+								buildStart(id) {
+									if (!this.watcher) throw new Error('No Watcher');
 
-								this.watcher.on('event', event => {
-									events.push(event);
-								});
+									this.watcher.on('event', event => {
+										events.push(event);
+									});
+								}
 							}
-						}]
+						]
 					});
 
 					return sequence(watcher, [
@@ -141,7 +146,6 @@ describe('rollup.watch', () => {
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 43);
 							assert.equal(events.length, 8);
-							watcher.close();
 						}
 					]);
 				});
@@ -179,7 +183,6 @@ describe('rollup.watch', () => {
 						() => {
 							assert.equal(run('../_tmp/output/main1.js'), 22);
 							assert.equal(run('../_tmp/output/main2.js'), 44);
-							watcher.close();
 						}
 					]);
 				});
@@ -193,7 +196,7 @@ describe('rollup.watch', () => {
 					const watcher = rollup.watch({
 						input: {
 							_main_1: 'test/_tmp/input/main1.js',
-							'subfolder/_main_2':'test/_tmp/input/main2.js',
+							'subfolder/_main_2': 'test/_tmp/input/main2.js'
 						},
 						output: {
 							dir: 'test/_tmp/output',
@@ -220,12 +223,10 @@ describe('rollup.watch', () => {
 						() => {
 							assert.equal(run('../_tmp/output/_main_1.js'), 22);
 							assert.equal(run('../_tmp/output/subfolder/_main_2.js'), 44);
-							watcher.close();
 						}
 					]);
 				});
 		});
-
 
 		it('recovers from an error', () => {
 			return sander
@@ -262,7 +263,6 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 43);
-							watcher.close();
 						}
 					]);
 				});
@@ -305,7 +305,6 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 43);
-							watcher.close();
 						}
 					]);
 				});
@@ -322,13 +321,15 @@ describe('rollup.watch', () => {
 							file: 'test/_tmp/output/bundle.js',
 							format: 'cjs'
 						},
-						plugins: [{
-							transform (code) {
-								const dependencies = ['./asdf'];
-								const text = sander.readFileSync('test/_tmp/input/asdf').toString();
-								return { code: `export default "${text}"`, dependencies };
+						plugins: [
+							{
+								transform(code) {
+									const dependencies = ['./asdf'];
+									const text = sander.readFileSync('test/_tmp/input/asdf').toString();
+									return { code: `export default "${text}"`, dependencies };
+								}
 							}
-						}],
+						],
 						watch: { chokidar }
 					});
 
@@ -348,7 +349,6 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 'next');
-							watcher.close();
 						}
 					]);
 				});
@@ -365,13 +365,15 @@ describe('rollup.watch', () => {
 							file: 'test/_tmp/output/bundle.js',
 							format: 'cjs'
 						},
-						plugins: [{
-							transform (code) {
-								const dependencies = ['./doesnotexist'];
-								const text = sander.readFileSync('test/_tmp/input/asdf').toString();
-								return { code: `export default "${text}"`, dependencies };
+						plugins: [
+							{
+								transform(code) {
+									const dependencies = ['./doesnotexist'];
+									const text = sander.readFileSync('test/_tmp/input/asdf').toString();
+									return { code: `export default "${text}"`, dependencies };
+								}
 							}
-						}],
+						],
 						watch: { chokidar }
 					});
 
@@ -382,7 +384,6 @@ describe('rollup.watch', () => {
 						event => {
 							assert.ok(event.error.message.startsWith('Transform dependency'));
 							assert.ok(event.error.message.endsWith('does not exist.'));
-							watcher.close();
 						}
 					]);
 				});
@@ -399,13 +400,18 @@ describe('rollup.watch', () => {
 							file: 'test/_tmp/output/bundle.js',
 							format: 'cjs'
 						},
-						plugins: [{
-							transform (code) {
-								const dependencies = ['./main.js'];
-								const text = sander.readFileSync('test/_tmp/input/main.js').toString().trim();
-								return { code: `export default "${text}"`, dependencies };
+						plugins: [
+							{
+								transform(code) {
+									const dependencies = ['./main.js'];
+									const text = sander
+										.readFileSync('test/_tmp/input/main.js')
+										.toString()
+										.trim();
+									return { code: `export default "${text}"`, dependencies };
+								}
 							}
-						}],
+						],
 						watch: { chokidar }
 					});
 
@@ -425,7 +431,6 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 'next');
-							watcher.close();
 						}
 					]);
 				});
@@ -443,12 +448,14 @@ describe('rollup.watch', () => {
 							file: 'test/_tmp/output/bundle.js',
 							format: 'cjs'
 						},
-						plugins: [{
-							transform (code) {
-								const dependencies = ['./'];
-								return { code: `export default ${v++}`, dependencies };
+						plugins: [
+							{
+								transform(code) {
+									const dependencies = ['./'];
+									return { code: `export default ${v++}`, dependencies };
+								}
 							}
-						}],
+						],
 						watch: { chokidar }
 					});
 
@@ -467,7 +474,6 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 2);
-							watcher.close();
 						}
 					]);
 				});
@@ -485,14 +491,15 @@ describe('rollup.watch', () => {
 							file: 'test/_tmp/output/bundle.js',
 							format: 'cjs'
 						},
-						plugins: [{
-							transform (code) {
-								let dependencies = [];
-								if (v === 2)
-									dependencies = ['./asdf'];
-								return { code: `export default ${v++}`, dependencies };
+						plugins: [
+							{
+								transform(code) {
+									let dependencies = [];
+									if (v === 2) dependencies = ['./asdf'];
+									return { code: `export default ${v++}`, dependencies };
+								}
 							}
-						}],
+						],
 						watch: { chokidar }
 					});
 
@@ -522,14 +529,10 @@ describe('rollup.watch', () => {
 							assert.equal(run('../_tmp/output/bundle.js'), 3);
 							sander.writeFileSync('test/_tmp/input/asdf', 'ignored');
 							return new Promise(resolve => setTimeout(resolve, 50));
-						},
-						() => {
-							watcher.close();
 						}
 					]);
 				});
 		});
-
 
 		it('refuses to watch the output file (#15)', () => {
 			return sander
@@ -567,7 +570,6 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 43);
-							watcher.close();
 						}
 					]);
 				});
@@ -618,7 +620,6 @@ describe('rollup.watch', () => {
 								foo: 'foo-2',
 								bar: 'bar-1'
 							});
-							watcher.close();
 						}
 					]);
 				});
@@ -669,7 +670,6 @@ describe('rollup.watch', () => {
 								foo: 'foo-2',
 								bar: 'bar-1'
 							});
-							watcher.close();
 						}
 					]);
 				});
@@ -749,7 +749,6 @@ describe('rollup.watch', () => {
 								encoding: 'utf-8'
 							});
 							assert.ok(/jQuery/.test(generated));
-							watcher.close();
 						}
 					]);
 				});

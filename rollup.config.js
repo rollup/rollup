@@ -7,15 +7,17 @@ import string from 'rollup-plugin-string';
 import typescript from 'rollup-plugin-typescript';
 import pkg from './package.json';
 
-const commitHash = (function () {
+const commitHash = (function() {
 	try {
-		return fs.readFileSync( '.commithash', 'utf-8' );
-	} catch ( err ) {
+		return fs.readFileSync('.commithash', 'utf-8');
+	} catch (err) {
 		return 'unknown';
 	}
 })();
 
-const now = new Date(process.env.SOURCE_DATE_EPOCH ? (process.env.SOURCE_DATE_EPOCH * 1000) : new Date().getTime()).toUTCString();
+const now = new Date(
+	process.env.SOURCE_DATE_EPOCH ? process.env.SOURCE_DATE_EPOCH * 1000 : new Date().getTime()
+).toUTCString();
 
 const banner = `/*
 	Rollup.js v${pkg.version}
@@ -28,32 +30,34 @@ const banner = `/*
 
 const onwarn = warning => {
 	// eslint-disable-next-line no-console
-	console.error( 'Building Rollup produced warnings that need to be resolved. ' +
-		'Please keep in mind that the browser build may never have external dependencies!' );
-	throw new Error( warning.message );
+	console.error(
+		'Building Rollup produced warnings that need to be resolved. ' +
+			'Please keep in mind that the browser build may never have external dependencies!'
+	);
+	throw new Error(warning.message);
 };
 
-const src = path.resolve( 'src' );
-const bin = path.resolve( 'bin' );
+const src = path.resolve('src');
+const bin = path.resolve('bin');
 
-function resolveTypescript () {
+function resolveTypescript() {
 	return {
 		name: 'resolve-typescript',
-		resolveId ( importee, importer ) {
+		resolveId(importee, importer) {
 			// work around typescript's inability to resolve other extensions
-			if ( ~importee.indexOf( 'help.md' ) ) return path.resolve( 'bin/src/help.md' );
-			if ( ~importee.indexOf( 'package.json' ) ) return path.resolve( 'package.json' );
+			if (~importee.indexOf('help.md')) return path.resolve('bin/src/help.md');
+			if (~importee.indexOf('package.json')) return path.resolve('package.json');
 
 			// bit of a hack — TypeScript only really works if it can resolve imports,
 			// but they misguidedly chose to reject imports with file extensions. This
 			// means we need to resolve them here
 			if (
 				importer &&
-				(importer.startsWith( src ) || importer.startsWith( bin )) &&
-				importee[ 0 ] === '.' &&
-				path.extname( importee ) === ''
+				(importer.startsWith(src) || importer.startsWith(bin)) &&
+				importee[0] === '.' &&
+				path.extname(importee) === ''
 			) {
-				return path.resolve( path.dirname( importer ), `${importee}.ts` );
+				return path.resolve(path.dirname(importer), `${importee}.ts`);
 			}
 		}
 	};
@@ -67,13 +71,13 @@ export default [
 		plugins: [
 			json(),
 			resolveTypescript(),
-			typescript( {
-				typescript: require( 'typescript' )
-			} ),
+			typescript({
+				typescript: require('typescript')
+			}),
 			resolve(),
 			commonjs()
 		],
-		external: [ 'fs', 'path', 'events', 'module', 'util' ],
+		external: ['fs', 'path', 'events', 'module', 'util', 'crypto'],
 		output: [
 			{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
 			{ file: 'dist/rollup.es.js', format: 'es', sourcemap: true, banner }
@@ -88,14 +92,14 @@ export default [
 			json(),
 			{
 				load: id => {
-					if ( ~id.indexOf( 'fs.ts' ) ) return fs.readFileSync( 'browser/fs.ts', 'utf-8' );
-					if ( ~id.indexOf( 'path.ts' ) ) return fs.readFileSync( 'browser/path.ts', 'utf-8' );
+					if (~id.indexOf('fs.ts')) return fs.readFileSync('browser/fs.ts', 'utf-8');
+					if (~id.indexOf('path.ts')) return fs.readFileSync('browser/path.ts', 'utf-8');
 				}
 			},
 			resolveTypescript(),
-			typescript( {
-				typescript: require( 'typescript' )
-			} ),
+			typescript({
+				typescript: require('typescript')
+			}),
 			resolve({ browser: true }),
 			commonjs()
 		],
@@ -115,27 +119,18 @@ export default [
 		input: 'bin/src/index.ts',
 		onwarn,
 		plugins: [
-			string( { include: '**/*.md' } ),
+			string({ include: '**/*.md' }),
 			json(),
 			resolveTypescript(),
-			typescript( {
-				typescript: require( 'typescript' )
-			} ),
-			commonjs( {
+			typescript({
+				typescript: require('typescript')
+			}),
+			commonjs({
 				include: 'node_modules/**'
-			} ),
-			resolve(),
+			}),
+			resolve()
 		],
-		external: [
-			'fs',
-			'path',
-			'module',
-			'events',
-			'rollup',
-			'assert',
-			'os',
-			'util'
-		],
+		external: ['fs', 'path', 'module', 'events', 'rollup', 'assert', 'os', 'util'],
 		output: {
 			file: 'bin/rollup',
 			format: 'cjs',
