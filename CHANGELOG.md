@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.62.0
+*unreleased*
+* Add option to automatically shim missing exports ([#2118](https://github.com/rollup/rollup/pull/2118))
+
 ## 0.61.2
 *2018-06-23*
 * Improve watcher error handling, only rebuild invalidated outputs ([#2296](https://github.com/rollup/rollup/pull/2296))
