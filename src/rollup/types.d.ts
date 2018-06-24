@@ -81,7 +81,7 @@ export type ResolveIdHook = (
 	this: PluginContext,
 	id: string,
 	parent: string
-) => Promise<string | boolean | void> | string | boolean | void;
+) => Promise<string | boolean | void | null> | string | boolean | void | null;
 
 export type IsExternal = (
 	id: string,
@@ -92,7 +92,7 @@ export type IsExternal = (
 export type LoadHook = (
 	this: PluginContext,
 	id: string
-) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
+) => Promise<SourceDescription | string | void | null> | SourceDescription | string | void | null;
 
 export type TransformHook = (
 	this: PluginContext,
@@ -107,7 +107,8 @@ export type TransformChunkHook = (
 ) =>
 	| Promise<{ code: string; map: RawSourceMap } | void>
 	| { code: string; map: RawSourceMap }
-	| void;
+	| void
+	| null;
 
 export type TransformChunkHookBound = (
 	this: PluginContext,
@@ -129,7 +130,7 @@ export type AddonHook = string | ((this: PluginContext) => string | Promise<stri
 
 export interface Plugin {
 	name: string;
-	options?: (options: InputOptions) => InputOptions | void;
+	options?: (options: InputOptions) => InputOptions | void | null;
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
 	transform?: TransformHook;
