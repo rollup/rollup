@@ -73,8 +73,8 @@ export interface PluginContext {
 	emitAsset: (name: string, source?: string | Buffer) => string;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
 	getAssetFileName: (assetId: string) => string;
-	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
-	error(err: RollupError, pos?: { line: number; column: number }): void;
+	warn(warning: RollupWarning | string, pos?: { line: number; column: number }): void;
+	error(err: RollupError | string, pos?: { line: number; column: number }): void;
 }
 
 export type ResolveIdHook = (
