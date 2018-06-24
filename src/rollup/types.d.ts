@@ -25,15 +25,17 @@ export interface RollupError {
 	pluginCode?: string;
 }
 
-export interface RawSourceMap {
-	version: string;
-	sources: string[];
-	names: string[];
-	sourceRoot?: string;
-	sourcesContent?: string[];
-	mappings: string;
-	file: string;
-}
+export type RawSourceMap =
+	| { mappings: '' }
+	| {
+			version: string;
+			sources: string[];
+			names: string[];
+			sourceRoot?: string;
+			sourcesContent?: string[];
+			mappings: string;
+			file: string;
+	  };
 
 export interface SourceMap {
 	version: string;
@@ -49,7 +51,7 @@ export interface SourceMap {
 
 export interface SourceDescription {
 	code: string;
-	map?: RawSourceMap;
+	map?: string | RawSourceMap;
 	ast?: ESTree.Program;
 }
 
