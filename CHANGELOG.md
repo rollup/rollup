@@ -3,6 +3,7 @@
 ## 0.62.0
 *unreleased*
 * Add option to automatically shim missing exports ([#2118](https://github.com/rollup/rollup/pull/2118))
+* Fix plugin related types ([#2299](https://github.com/rollup/rollup/pull/2299))
 
 ## 0.61.2
 *2018-06-23*
