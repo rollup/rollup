@@ -25,15 +25,17 @@ export interface RollupError {
 	pluginCode?: string;
 }
 
-export interface RawSourceMap {
-	version: string;
-	sources: string[];
-	names: string[];
-	sourceRoot?: string;
-	sourcesContent?: string[];
-	mappings: string;
-	file: string;
-}
+export type RawSourceMap =
+	| { mappings: '' }
+	| {
+			version: string;
+			sources: string[];
+			names: string[];
+			sourceRoot?: string;
+			sourcesContent?: string[];
+			mappings: string;
+			file: string;
+	  };
 
 export interface SourceMap {
 	version: string;
@@ -49,7 +51,7 @@ export interface SourceMap {
 
 export interface SourceDescription {
 	code: string;
-	map?: RawSourceMap;
+	map?: string | RawSourceMap;
 	ast?: ESTree.Program;
 }
 
@@ -73,15 +75,15 @@ export interface PluginContext {
 	emitAsset: (name: string, source?: string | Buffer) => string;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
 	getAssetFileName: (assetId: string) => string;
-	warn(warning: RollupWarning, pos?: { line: number; column: number }): void;
-	error(err: RollupError, pos?: { line: number; column: number }): void;
+	warn(warning: RollupWarning | string, pos?: { line: number; column: number }): void;
+	error(err: RollupError | string, pos?: { line: number; column: number }): void;
 }
 
 export type ResolveIdHook = (
 	this: PluginContext,
 	id: string,
 	parent: string
-) => Promise<string | boolean | void> | string | boolean | void;
+) => Promise<string | boolean | void | null> | string | boolean | void | null;
 
 export type IsExternal = (
 	id: string,
@@ -92,7 +94,7 @@ export type IsExternal = (
 export type LoadHook = (
 	this: PluginContext,
 	id: string
-) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
+) => Promise<SourceDescription | string | void | null> | SourceDescription | string | void | null;
 
 export type TransformHook = (
 	this: PluginContext,
@@ -107,7 +109,8 @@ export type TransformChunkHook = (
 ) =>
 	| Promise<{ code: string; map: RawSourceMap } | void>
 	| { code: string; map: RawSourceMap }
-	| void;
+	| void
+	| null;
 
 export type TransformChunkHookBound = (
 	this: PluginContext,
@@ -129,7 +132,7 @@ export type AddonHook = string | ((this: PluginContext) => string | Promise<stri
 
 export interface Plugin {
 	name: string;
-	options?: (options: InputOptions) => InputOptions | void;
+	options?: (options: InputOptions) => InputOptions | void | null;
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
 	transform?: TransformHook;
