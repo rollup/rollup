@@ -50,25 +50,28 @@ export function createAssetPluginHooks(
 	outputBundle?: OutputBundle,
 	assetFileNames?: string
 ) {
-	function emitAsset(name: string, dependencies?: string[], source?: string | Buffer) {
+	function emitAsset(
+		name: string,
+		dependenciesOrSource?: string[] | string,
+		source?: string | Buffer
+	) {
 		if (typeof name !== 'string' || !isPlainName(name))
 			error({
 				code: 'INVALID_ASSET_NAME',
 				message: `Plugin error creating asset, name is not a plain (non relative or absolute URL) string name.`
 			});
 
-		if (source === undefined && !Array.isArray(dependencies)) {
-			source = dependencies;
-			dependencies = undefined;
-		}
+		let dependencies: string[];
 
-		if (dependencies) {
+		if (Array.isArray(dependenciesOrSource)) {
 			if (outputBundle)
 				error({
 					code: 'ASSETS_FINALISED',
 					message: `Plugin error creating asset, asset dependencies are not supported during generation, only during the build.`
 				});
-			dependencies = dependencies.map(depId => normalize(resolve(depId)));
+			dependencies = dependenciesOrSource.map(depId => normalize(resolve(depId)));
+		} else if (source === undefined) {
+			source = dependenciesOrSource;
 		}
 
 		let assetId: string;

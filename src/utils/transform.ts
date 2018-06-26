@@ -60,39 +60,35 @@ function createPluginTransformContext(
 	plugin: Plugin,
 	id: string,
 	source: string,
-	createTransformEmitAsset: () => { assets: Asset[]; emitAsset: EmitAsset }
-): { assets: Asset[]; context: PluginContext } {
-	const { assets, emitAsset } = createTransformEmitAsset();
+	emitAsset: EmitAsset
+): PluginContext {
 	return {
-		assets,
-		context: {
-			...graph.pluginContext,
-			warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
-				if (typeof warning === 'string') warning = { message: warning };
-				warning = augmentCodeLocation({
-					object: warning,
-					pos,
-					code: 'PLUGIN_WARNING',
-					id,
-					source,
-					pluginName: plugin.name || '(anonymous plugin)'
-				});
-				graph.warn(warning);
-			},
-			error(err: RollupError | string, pos?: { line: number; column: number }) {
-				if (typeof err === 'string') err = { message: err };
-				err = augmentCodeLocation({
-					object: err,
-					pos,
-					code: 'PLUGIN_ERROR',
-					id,
-					source,
-					pluginName: plugin.name || '(anonymous plugin)'
-				});
-				error(err);
-			},
-			emitAsset
-		}
+		...graph.pluginContext,
+		warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
+			if (typeof warning === 'string') warning = { message: warning };
+			warning = augmentCodeLocation({
+				object: warning,
+				pos,
+				code: 'PLUGIN_WARNING',
+				id,
+				source,
+				pluginName: plugin.name || '(anonymous plugin)'
+			});
+			graph.warn(warning);
+		},
+		error(err: RollupError | string, pos?: { line: number; column: number }) {
+			if (typeof err === 'string') err = { message: err };
+			err = augmentCodeLocation({
+				object: err,
+				pos,
+				code: 'PLUGIN_ERROR',
+				id,
+				source,
+				pluginName: plugin.name || '(anonymous plugin)'
+			});
+			error(err);
+		},
+		emitAsset
 	};
 }
 
@@ -122,18 +118,10 @@ export default function transform(
 		if (!plugin.transform) return;
 
 		promise = promise.then(previous => {
-			let assets: Asset[];
+			const { assets, emitAsset } = createTransformEmitAsset();
 			return Promise.resolve()
 				.then(() => {
-					let context;
-					({ assets, context } = createPluginTransformContext(
-						graph,
-						plugin,
-						id,
-						previous,
-						createTransformEmitAsset
-					));
-
+					const context = createPluginTransformContext(graph, plugin, id, previous, emitAsset);
 					return plugin.transform.call(context, previous, id);
 				})
 				.then(result => {
