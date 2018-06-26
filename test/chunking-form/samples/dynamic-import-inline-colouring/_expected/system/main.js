@@ -9,7 +9,7 @@ System.register([], function (exports, module) {
 				default: foo
 			});
 
-			var main = exports('default', () => foo);
+			var main = exports('default', Promise.resolve().then(function () { return foo$1; }));
 
 		}
 	};

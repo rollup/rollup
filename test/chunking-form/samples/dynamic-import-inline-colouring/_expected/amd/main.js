@@ -6,7 +6,7 @@ define(['require'], function (require) { 'use strict';
 		default: foo
 	});
 
-	var main = () => foo;
+	var main = Promise.resolve().then(function () { return foo$1; });
 
 	return main;
 
