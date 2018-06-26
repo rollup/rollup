@@ -1,15 +1,15 @@
+import MagicString from 'magic-string';
+import { RenderOptions } from '../../../utils/renderHelpers';
 import CallOptions from '../../CallOptions';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
-import BlockScope from '../../scopes/FunctionScope';
 import FunctionScope from '../../scopes/FunctionScope';
+import BlockScope from '../../scopes/FunctionScope';
 import Scope from '../../scopes/Scope';
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../../values';
 import BlockStatement from '../BlockStatement';
 import Identifier from '../Identifier';
 import { GenericEsTreeNode, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../../utils/renderHelpers';
 
 export default class FunctionNode extends NodeBase {
 	id: Identifier | null;
@@ -80,10 +80,8 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
-		this.body = <BlockStatement>new this.context.nodeConstructors.BlockStatement(
-			esTreeNode.body,
-			this,
-			new Scope(this.scope)
+		this.body = <BlockStatement>(
+			new this.context.nodeConstructors.BlockStatement(esTreeNode.body, this, new Scope(this.scope))
 		);
 		super.parseNode(esTreeNode);
 	}
@@ -95,9 +93,10 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions) {
+		const inFunction = this.context.inFunction;
 		this.context.inFunction = true;
 		super.render(code, options);
-		this.context.inFunction = false;
+		this.context.inFunction = inFunction;
 	}
 }
 
