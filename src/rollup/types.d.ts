@@ -52,7 +52,11 @@ export interface SourceMap {
 export interface SourceDescription {
 	code: string;
 	map?: string | RawSourceMap;
+}
+
+export interface TransformSourceDescription extends SourceDescription {
 	ast?: ESTree.Program;
+	dependencies?: string[];
 }
 
 export interface ModuleJSON {
@@ -115,7 +119,11 @@ export type TransformHook = (
 	this: PluginContext,
 	code: string,
 	id: string
-) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
+) =>
+	| Promise<TransformSourceDescription | string | void>
+	| TransformSourceDescription
+	| string
+	| void;
 
 export type TransformChunkHook = (
 	code: string,

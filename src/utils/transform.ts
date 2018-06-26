@@ -11,7 +11,7 @@ import {
 	RawSourceMap,
 	RollupError,
 	RollupWarning,
-	SourceDescription
+	TransformSourceDescription
 } from '../rollup/types';
 import { EmitAsset } from './assetHooks';
 import error from './error';
@@ -94,7 +94,7 @@ function createPluginTransformContext(
 
 export default function transform(
 	graph: Graph,
-	source: SourceDescription,
+	source: TransformSourceDescription,
 	module: Module,
 	plugins: Plugin[],
 	createTransformEmitAsset: () => { assets: Asset[]; emitAsset: EmitAsset }
