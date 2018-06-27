@@ -52,7 +52,7 @@ export function createAssetPluginHooks(
 ) {
 	function emitAsset(
 		name: string,
-		dependenciesOrSource?: string[] | string,
+		dependenciesOrSource?: string[] | string | Buffer,
 		source?: string | Buffer
 	) {
 		if (typeof name !== 'string' || !isPlainName(name))

@@ -25,17 +25,17 @@ export interface RollupError {
 	pluginCode?: string;
 }
 
-export type RawSourceMap =
-	| { mappings: '' }
-	| {
-			version: string;
-			sources: string[];
-			names: string[];
-			sourceRoot?: string;
-			sourcesContent?: string[];
-			mappings: string;
-			file: string;
-	  };
+export interface ExistingRawSourceMap {
+	version: string;
+	sources: string[];
+	names: string[];
+	sourceRoot?: string;
+	sourcesContent?: string[];
+	mappings: string;
+	file: string;
+}
+
+export type RawSourceMap = { mappings: '' } | ExistingRawSourceMap;
 
 export interface SourceMap {
 	version: string;
@@ -87,11 +87,6 @@ export interface PluginContext {
 	parse: (input: string, options: any) => ESTree.Program;
 	emitAsset(name: string, source?: string | Buffer): string;
 	emitAsset(name: string, dependencies: string[], source?: string | Buffer): string;
-	emitAsset(
-		name: string,
-		dependenciesOrSource: string[] | string,
-		source?: string | Buffer
-	): string;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
 	getAssetFileName: (assetId: string) => string;
 	warn(warning: RollupWarning | string, pos?: { line: number; column: number }): void;

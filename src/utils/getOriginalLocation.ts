@@ -1,4 +1,4 @@
-import { RawSourceMap } from '../rollup/types';
+import { ExistingRawSourceMap, RawSourceMap } from '../rollup/types';
 
 export function getOriginalLocation(
 	sourcemapChain: RawSourceMap[],
@@ -7,7 +7,7 @@ export function getOriginalLocation(
 	const filteredSourcemapChain = sourcemapChain.filter(sourcemap => sourcemap.mappings);
 
 	while (filteredSourcemapChain.length > 0) {
-		const sourcemap = filteredSourcemapChain.pop();
+		const sourcemap = <ExistingRawSourceMap>filteredSourcemapChain.pop();
 		const line: any = sourcemap.mappings[location.line - 1];
 		let locationFound = false;
 
