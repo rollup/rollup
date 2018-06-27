@@ -9,6 +9,7 @@ import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
 import {
+	Asset,
 	InputOptions,
 	IsExternal,
 	LoadHook,
@@ -25,7 +26,7 @@ import {
 	WarningHandler,
 	Watcher
 } from './rollup/types';
-import { Asset, createAssetPluginHooks, finaliseAsset } from './utils/assetHooks';
+import { createAssetPluginHooks, EmitAsset, finaliseAsset } from './utils/assetHooks';
 import { load, makeOnwarn, resolveId } from './utils/defaults';
 import ensureArray from './utils/ensureArray';
 import {
@@ -67,6 +68,8 @@ export default class Graph {
 	exportShimVariable: GlobalVariable;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
+
+	private createTransformEmitAsset: () => { assets: Asset[]; emitAsset: EmitAsset };
 
 	contextParse: (code: string, acornOptions?: acorn.Options) => Program;
 
@@ -120,6 +123,8 @@ export default class Graph {
 			return this.acornParse(code, { ...defaultAcornOptions, ...options, ...this.acornOptions });
 		};
 
+		const assetPluginHooks = createAssetPluginHooks(this.assetsById);
+
 		this.pluginContext = {
 			watcher,
 			isExternal: undefined,
@@ -133,8 +138,11 @@ export default class Graph {
 				if (typeof err === 'string') throw new Error(err);
 				error(err);
 			},
-			...createAssetPluginHooks(this.assetsById)
+			emitAsset: assetPluginHooks.emitAsset,
+			getAssetFileName: assetPluginHooks.getAssetFileName,
+			setAssetSource: assetPluginHooks.setAssetSource
 		};
+		this.createTransformEmitAsset = assetPluginHooks.createTransformEmitAsset;
 
 		this.resolveId = first(
 			[
@@ -215,8 +223,16 @@ export default class Graph {
 	}
 
 	getCache() {
+		const assetDependencies: string[] = [];
+		this.assetsById.forEach(asset => {
+			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
+				for (const depId of asset.dependencies) assetDependencies.push(depId);
+			}
+		});
+
 		return {
-			modules: this.modules.map(module => module.toJSON())
+			modules: this.modules.map(module => module.toJSON()),
+			assetDependencies
 		};
 	}
 
@@ -666,14 +682,24 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 						  }
 						: source;
 
-				if (
-					this.cachedModules.has(id) &&
-					this.cachedModules.get(id).originalCode === sourceDescription.code
-				) {
-					return this.cachedModules.get(id);
+				const cachedModule = this.cachedModules.get(id);
+				if (cachedModule && cachedModule.originalCode === sourceDescription.code) {
+					// re-emit transform assets
+					if (cachedModule.transformAssets) {
+						for (const asset of cachedModule.transformAssets) {
+							this.pluginContext.emitAsset(asset.name);
+						}
+					}
+					return cachedModule;
 				}
 
-				return transform(this, sourceDescription, id, this.plugins);
+				return transform(
+					this,
+					sourceDescription,
+					module,
+					this.plugins,
+					this.createTransformEmitAsset
+				);
 			})
 			.then((source: ModuleJSON) => {
 				module.setSource(source);

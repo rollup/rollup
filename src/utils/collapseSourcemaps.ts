@@ -1,7 +1,7 @@
 import { DecodedSourceMap, SourceMap } from 'magic-string';
 import Chunk from '../Chunk';
 import Module from '../Module';
-import { RawSourceMap } from '../rollup/types';
+import { ExistingRawSourceMap, RawSourceMap } from '../rollup/types';
 import error from './error';
 import { basename, dirname, relative, resolve } from './path';
 
@@ -146,25 +146,26 @@ export default function collapseSourcemaps(
 		let sourcemapChain = module.sourcemapChain;
 
 		let source: Source;
-		if (!module.originalSourcemap) {
+		const originalSourcemap = <ExistingRawSourceMap>module.originalSourcemap;
+		if (!originalSourcemap) {
 			source = new Source(module.id, module.originalCode);
 		} else {
-			const sources = module.originalSourcemap.sources;
-			const sourcesContent = module.originalSourcemap.sourcesContent || [];
+			const sources = originalSourcemap.sources;
+			const sourcesContent = originalSourcemap.sourcesContent || [];
 
 			if (sources == null || (sources.length <= 1 && sources[0] == null)) {
 				source = new Source(module.id, sourcesContent[0]);
-				sourcemapChain = [module.originalSourcemap].concat(sourcemapChain);
+				sourcemapChain = [<RawSourceMap>originalSourcemap].concat(sourcemapChain);
 			} else {
 				// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
 				const directory = dirname(module.id) || '.';
-				const sourceRoot = module.originalSourcemap.sourceRoot || '.';
+				const sourceRoot = originalSourcemap.sourceRoot || '.';
 
 				const baseSources = sources.map((source, i) => {
 					return new Source(resolve(directory, sourceRoot, source), sourcesContent[i]);
 				});
 
-				source = <any>new Link(<any>module.originalSourcemap, baseSources);
+				source = <any>new Link(<any>originalSourcemap, baseSources);
 			}
 		}
 

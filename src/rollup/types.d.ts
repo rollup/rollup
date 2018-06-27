@@ -25,17 +25,17 @@ export interface RollupError {
 	pluginCode?: string;
 }
 
-export type RawSourceMap =
-	| { mappings: '' }
-	| {
-			version: string;
-			sources: string[];
-			names: string[];
-			sourceRoot?: string;
-			sourcesContent?: string[];
-			mappings: string;
-			file: string;
-	  };
+export interface ExistingRawSourceMap {
+	version: string;
+	sources: string[];
+	names: string[];
+	sourceRoot?: string;
+	sourcesContent?: string[];
+	mappings: string;
+	file: string;
+}
+
+export type RawSourceMap = { mappings: '' } | ExistingRawSourceMap;
 
 export interface SourceMap {
 	version: string;
@@ -52,13 +52,18 @@ export interface SourceMap {
 export interface SourceDescription {
 	code: string;
 	map?: string | RawSourceMap;
+}
+
+export interface TransformSourceDescription extends SourceDescription {
 	ast?: ESTree.Program;
+	dependencies?: string[];
 }
 
 export interface ModuleJSON {
 	id: string;
 	dependencies: string[];
 	transformDependencies: string[];
+	transformAssets: Asset[] | void;
 	code: string;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
@@ -67,12 +72,21 @@ export interface ModuleJSON {
 	resolvedIds: IdMap;
 }
 
+export interface Asset {
+	name: string;
+	source: string | Buffer;
+	fileName: string;
+	transform: boolean;
+	dependencies: string[];
+}
+
 export interface PluginContext {
 	watcher: Watcher;
 	resolveId: ResolveIdHook;
 	isExternal: IsExternal;
 	parse: (input: string, options: any) => ESTree.Program;
-	emitAsset: (name: string, source?: string | Buffer) => string;
+	emitAsset(name: string, source?: string | Buffer): string;
+	emitAsset(name: string, dependencies: string[], source?: string | Buffer): string;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
 	getAssetFileName: (assetId: string) => string;
 	warn(warning: RollupWarning | string, pos?: { line: number; column: number }): void;
@@ -100,7 +114,11 @@ export type TransformHook = (
 	this: PluginContext,
 	code: string,
 	id: string
-) => Promise<SourceDescription | string | void> | SourceDescription | string | void;
+) =>
+	| Promise<TransformSourceDescription | string | void>
+	| TransformSourceDescription
+	| string
+	| void;
 
 export type TransformChunkHook = (
 	code: string,
@@ -325,6 +343,7 @@ export interface OutputChunk {
 
 export interface RollupCache {
 	modules: ModuleJSON[];
+	assetDependencies: string[];
 }
 
 export interface RollupSingleFileBuild {
