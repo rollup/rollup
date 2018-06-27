@@ -86,7 +86,6 @@ export interface AstContext {
 	imports: { [name: string]: ImportDescription };
 	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	includeNamespace: () => void;
-	inFunction: boolean;
 	magicString: MagicString;
 	moduleContext: string;
 	nodeConstructors: { [name: string]: typeof NodeBase };
@@ -269,7 +268,6 @@ export default class Module {
 			getModuleName: this.basename.bind(this),
 			imports: this.imports,
 			includeNamespace: this.includeNamespace.bind(this),
-			inFunction: false,
 			isCrossChunkImport: importDescription => importDescription.module.chunk !== this.chunk,
 			magicString: this.magicString,
 			moduleContext: this.context,

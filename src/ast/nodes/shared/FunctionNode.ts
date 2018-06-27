@@ -1,5 +1,3 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../../utils/renderHelpers';
 import CallOptions from '../../CallOptions';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import FunctionScope from '../../scopes/FunctionScope';
@@ -90,13 +88,6 @@ export default class FunctionNode extends NodeBase {
 		if (path.length === 1 && path[0] === 'prototype') {
 			this.isPrototypeReassigned = true;
 		}
-	}
-
-	render(code: MagicString, options: RenderOptions) {
-		const inFunction = this.context.inFunction;
-		this.context.inFunction = true;
-		super.render(code, options);
-		this.context.inFunction = inFunction;
 	}
 }
 
