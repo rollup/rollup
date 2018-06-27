@@ -214,6 +214,11 @@ export default class Chunk {
 			const declaration = module.imports[importName];
 			this.traceImport(declaration.name, declaration.module);
 		}
+		for (const { resolution } of module.dynamicImportResolutions) {
+			this.hasDynamicImport = true;
+			if (resolution instanceof Module && resolution.chunk === this)
+				resolution.getOrCreateNamespace().include();
+		}
 	}
 
 	// Note preserveModules implementation is not a comprehensive technique
@@ -397,7 +402,6 @@ export default class Chunk {
 			for (let i = 0; i < module.dynamicImportResolutions.length; i++) {
 				const node = module.dynamicImports[i];
 				const resolution = module.dynamicImportResolutions[i].resolution;
-				this.hasDynamicImport = true;
 
 				if (!resolution) continue;
 
@@ -406,7 +410,6 @@ export default class Chunk {
 					// ensuring that we create a namespace import of it as well
 					if (resolution.chunk === this) {
 						const namespace = resolution.getOrCreateNamespace();
-						namespace.include();
 						node.setResolution(false, namespace.getName());
 						// for the module in another chunk, import that other chunk directly
 					} else {
@@ -772,8 +775,6 @@ export default class Chunk {
 		const n = options.compact ? '' : '\n';
 		const _ = options.compact ? '' : ' ';
 
-		this.prepareDynamicImports();
-
 		const renderOptions: RenderOptions = {
 			compact: options.compact,
 			freeze: options.freeze !== false,
@@ -807,6 +808,7 @@ export default class Chunk {
 		}
 
 		this.setIdentifierRenderResolutions(options);
+		this.prepareDynamicImports();
 
 		let hoistedSource = '';
 
