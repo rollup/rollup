@@ -40,11 +40,14 @@ function augmentCodeLocation<T extends RollupError | RollupWarning>({
 		if (pos.line !== undefined && pos.column !== undefined) {
 			const { line, column } = pos;
 			object.loc = { file: id, line, column };
-			object.frame = getCodeFrame(source, line, column);
 		} else {
 			object.pos = <any>pos;
 			const { line, column } = locate(source, pos, { offsetLine: 1 });
 			object.loc = { file: id, line, column };
+		}
+
+		if (object.frame === undefined) {
+			const { line, column } = object.loc;
 			object.frame = getCodeFrame(source, line, column);
 		}
 	}
