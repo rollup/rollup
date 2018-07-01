@@ -1,4 +1,5 @@
 import CallOptions from '../CallOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
@@ -25,7 +26,10 @@ export default class LocalVariable extends Variable {
 	isLocal: true;
 	additionalInitializers: ExpressionEntity[] | null = null;
 
+	// Caching and deoptimization:
+	// We collect deoptimization when we do not return something unknown
 	private reassignmentTracker: EntityPathTracker;
+	private expressionsToBeDeoptimized: Set<DeoptimizableEntity> = new Set();
 
 	constructor(
 		name: string,
@@ -62,7 +66,8 @@ export default class LocalVariable extends Variable {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (
 			this.isReassigned ||
@@ -72,12 +77,14 @@ export default class LocalVariable extends Variable {
 		) {
 			return UNKNOWN_VALUE;
 		}
-		return this.init.getLiteralValueAtPath(path, recursionTracker.track(this.init, path));
+		this.expressionsToBeDeoptimized.add(origin);
+		return this.init.getLiteralValueAtPath(path, recursionTracker.track(this.init, path), origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		if (
 			this.isReassigned ||
@@ -87,9 +94,11 @@ export default class LocalVariable extends Variable {
 		) {
 			return UNKNOWN_EXPRESSION;
 		}
+		this.expressionsToBeDeoptimized.add(origin);
 		return this.init.getReturnExpressionWhenCalledAtPath(
 			path,
-			recursionTracker.track(this.init, path)
+			recursionTracker.track(this.init, path),
+			origin
 		);
 	}
 
@@ -161,9 +170,12 @@ export default class LocalVariable extends Variable {
 		if (path.length > MAX_PATH_DEPTH) return;
 		if (!(this.isReassigned || this.reassignmentTracker.track(this, path))) {
 			if (path.length === 0) {
-				this.isReassigned = true;
-				if (this.init) {
-					this.init.reassignPath(UNKNOWN_PATH);
+				if (!this.isReassigned) {
+					this.isReassigned = true;
+					this.expressionsToBeDeoptimized.forEach(node => node.deoptimize());
+					if (this.init) {
+						this.init.reassignPath(UNKNOWN_PATH);
+					}
 				}
 			} else if (this.init) {
 				this.init.reassignPath(path);

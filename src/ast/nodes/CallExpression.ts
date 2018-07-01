@@ -1,23 +1,35 @@
 import CallOptions from '../CallOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
 } from '../utils/ImmutableEntityPathTracker';
-import { EMPTY_PATH, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_PATH } from '../values';
+import {
+	EMPTY_PATH,
+	LiteralValueOrUnknown,
+	ObjectPath,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_PATH,
+	UNKNOWN_VALUE
+} from '../values';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 
-export default class CallExpression extends NodeBase {
+export default class CallExpression extends NodeBase implements DeoptimizableEntity {
 	type: NodeType.tCallExpression;
 	callee: ExpressionNode;
 	arguments: (ExpressionNode | SpreadElement)[];
 
 	private callOptions: CallOptions;
+
+	// Caching and deoptimization:
+	// We collect deoptimization information if returnExpression !== UNKNOWN_EXPRESSION
 	private returnExpression: ExpressionEntity | null;
+	private expressionsToBeDeoptimized: Set<DeoptimizableEntity>;
 
 	bind() {
 		super.bind();
@@ -48,7 +60,8 @@ export default class CallExpression extends NodeBase {
 		if (this.returnExpression === null) {
 			this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
 				EMPTY_PATH,
-				EMPTY_IMMUTABLE_TRACKER
+				EMPTY_IMMUTABLE_TRACKER,
+				this
 			);
 		}
 		for (const argument of this.arguments) {
@@ -57,22 +70,60 @@ export default class CallExpression extends NodeBase {
 		}
 	}
 
+	deoptimize() {
+		this.returnExpression = UNKNOWN_EXPRESSION;
+		this.expressionsToBeDeoptimized.forEach(node => node.deoptimize());
+	}
+
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
+		if (this.returnExpression === null) {
+			this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
+				EMPTY_PATH,
+				recursionTracker,
+				this
+			);
+		}
+		if (
+			this.returnExpression === UNKNOWN_EXPRESSION ||
+			recursionTracker.isTracked(this.returnExpression, path)
+		) {
+			return UNKNOWN_VALUE;
+		}
+		this.expressionsToBeDeoptimized.add(origin);
+		return this.returnExpression.getLiteralValueAtPath(
+			path,
+			recursionTracker.track(this.returnExpression, path),
+			origin
+		);
+	}
+
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	) {
 		if (this.returnExpression === null) {
 			this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
 				EMPTY_PATH,
-				recursionTracker
+				recursionTracker,
+				this
 			);
 		}
-		if (recursionTracker.isTracked(this.returnExpression, path)) {
+		if (
+			this.returnExpression === UNKNOWN_EXPRESSION ||
+			recursionTracker.isTracked(this.returnExpression, path)
+		) {
 			return UNKNOWN_EXPRESSION;
 		}
+		this.expressionsToBeDeoptimized.add(origin);
 		return this.returnExpression.getReturnExpressionWhenCalledAtPath(
 			path,
-			recursionTracker.track(this.returnExpression, path)
+			recursionTracker.track(this.returnExpression, path),
+			origin
 		);
 	}
 
@@ -140,6 +191,7 @@ export default class CallExpression extends NodeBase {
 			args: this.arguments,
 			callIdentifier: this
 		});
+		this.expressionsToBeDeoptimized = new Set();
 	}
 
 	reassignPath(path: ObjectPath) {
@@ -147,10 +199,13 @@ export default class CallExpression extends NodeBase {
 			if (this.returnExpression === null) {
 				this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
 					EMPTY_PATH,
-					EMPTY_IMMUTABLE_TRACKER
+					EMPTY_IMMUTABLE_TRACKER,
+					this
 				);
 			}
-			this.returnExpression.reassignPath(path);
+			if (this.returnExpression !== UNKNOWN_EXPRESSION) {
+				this.returnExpression.reassignPath(path);
+			}
 		}
 	}
 }

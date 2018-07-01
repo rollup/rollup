@@ -3,6 +3,7 @@ import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import FunctionScope from '../scopes/FunctionScope';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
@@ -77,20 +78,22 @@ export default class Identifier extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (this.variable !== null) {
-			return this.variable.getLiteralValueAtPath(path, recursionTracker);
+			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
 		}
 		return UNKNOWN_VALUE;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	) {
 		if (this.variable !== null) {
-			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
+			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 		}
 		return UNKNOWN_EXPRESSION;
 	}

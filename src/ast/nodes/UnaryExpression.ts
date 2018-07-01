@@ -1,3 +1,4 @@
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
@@ -32,10 +33,11 @@ export default class UnaryExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UNKNOWN_VALUE;
-		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
+		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
 		if (argumentValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		return unaryOperators[this.operator](<LiteralValue>argumentValue);

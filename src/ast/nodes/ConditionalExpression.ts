@@ -2,6 +2,7 @@ import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
@@ -11,87 +12,105 @@ import {
 	EMPTY_PATH,
 	LiteralValueOrUnknown,
 	ObjectPath,
-	UNKNOWN_EXPRESSION,
+	UNKNOWN_PATH,
 	UNKNOWN_VALUE
 } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
+import { MultiExpression } from './shared/MultiExpression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
-export default class ConditionalExpression extends NodeBase {
+export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
 	type: NodeType.tConditionalExpression;
 	test: ExpressionNode;
 	alternate: ExpressionNode;
 	consequent: ExpressionNode;
 
-	private hasUnknownTestValue: boolean;
+	// Caching and deoptimization:
+	// We collect deoptimization information if testValue !== UNKNOWN_VALUE
+	private testValue: LiteralValueOrUnknown;
+	private needsTestValue: boolean;
+	private expressionsToBeDeoptimized: Set<DeoptimizableEntity>;
+
+	bind() {
+		super.bind();
+		if (this.needsTestValue) this.updateTestValue();
+	}
+
+	deoptimize() {
+		if (this.testValue !== UNKNOWN_VALUE) {
+			// We did not track if there were reassignments to the previous branch.
+			// Also, the return value might need to be reassigned.
+			const previousUntrackedBranch = this.testValue ? this.alternate : this.consequent;
+			this.testValue = UNKNOWN_VALUE;
+			previousUntrackedBranch.reassignPath(UNKNOWN_PATH);
+			this.expressionsToBeDeoptimized.forEach(node => node.deoptimize());
+		}
+	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(recursionTracker);
-		if (testValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
-		return testValue
-			? this.consequent.getLiteralValueAtPath(path, recursionTracker)
-			: this.alternate.getLiteralValueAtPath(path, recursionTracker);
+		if (this.needsTestValue) this.updateTestValue();
+		if (this.testValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
+		this.expressionsToBeDeoptimized.add(origin);
+		return this.testValue
+			? this.consequent.getLiteralValueAtPath(path, recursionTracker, origin)
+			: this.alternate.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-		if (testValue === UNKNOWN_VALUE) return UNKNOWN_EXPRESSION;
-		return testValue
-			? this.consequent.getReturnExpressionWhenCalledAtPath(path, recursionTracker)
-			: this.alternate.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
+		if (this.needsTestValue) this.updateTestValue();
+		if (this.testValue === UNKNOWN_VALUE)
+			return new MultiExpression([
+				this.consequent.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin),
+				this.alternate.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin)
+			]);
+		this.expressionsToBeDeoptimized.add(origin);
+		return this.testValue
+			? this.consequent.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin)
+			: this.alternate.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		if (this.test.hasEffects(options)) return true;
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-		if (testValue === UNKNOWN_VALUE) {
+		if (this.testValue === UNKNOWN_VALUE) {
 			return this.consequent.hasEffects(options) || this.alternate.hasEffects(options);
 		}
-		return testValue ? this.consequent.hasEffects(options) : this.alternate.hasEffects(options);
+		return this.testValue
+			? this.consequent.hasEffects(options)
+			: this.alternate.hasEffects(options);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return false;
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-		if (testValue === UNKNOWN_VALUE) {
+		if (this.testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.hasEffectsWhenAccessedAtPath(path, options) ||
 				this.alternate.hasEffectsWhenAccessedAtPath(path, options)
 			);
 		}
-		return testValue
+		return this.testValue
 			? this.consequent.hasEffectsWhenAccessedAtPath(path, options)
 			: this.alternate.hasEffectsWhenAccessedAtPath(path, options);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return true;
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-		if (testValue === UNKNOWN_VALUE) {
+		if (this.testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.hasEffectsWhenAssignedAtPath(path, options) ||
 				this.alternate.hasEffectsWhenAssignedAtPath(path, options)
 			);
 		}
-		return testValue
+		return this.testValue
 			? this.consequent.hasEffectsWhenAssignedAtPath(path, options)
 			: this.alternate.hasEffectsWhenAssignedAtPath(path, options);
 	}
@@ -101,35 +120,30 @@ export default class ConditionalExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-		if (testValue === UNKNOWN_VALUE) {
+		if (this.testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
 				this.alternate.hasEffectsWhenCalledAtPath(path, callOptions, options)
 			);
 		}
-		return testValue
+		return this.testValue
 			? this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, options)
 			: this.alternate.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
 	initialise() {
 		this.included = false;
-		this.hasUnknownTestValue = false;
+		this.needsTestValue = true;
+		this.expressionsToBeDeoptimized = new Set();
 	}
 
 	include() {
 		this.included = true;
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-		if (testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
+		if (this.testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
 			this.test.include();
 			this.consequent.include();
 			this.alternate.include();
-		} else if (testValue) {
+		} else if (this.testValue) {
 			this.consequent.include();
 		} else {
 			this.alternate.include();
@@ -138,13 +152,13 @@ export default class ConditionalExpression extends NodeBase {
 
 	reassignPath(path: ObjectPath) {
 		if (path.length > 0) {
-			const testValue = this.hasUnknownTestValue
-				? UNKNOWN_VALUE
-				: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-			if (testValue === UNKNOWN_VALUE || testValue) {
+			if (this.needsTestValue) this.updateTestValue();
+			if (this.testValue === UNKNOWN_VALUE) {
 				this.consequent.reassignPath(path);
-			}
-			if (testValue === UNKNOWN_VALUE || !testValue) {
+				this.alternate.reassignPath(path);
+			} else if (this.testValue) {
+				this.consequent.reassignPath(path);
+			} else {
 				this.alternate.reassignPath(path);
 			}
 		}
@@ -170,12 +184,9 @@ export default class ConditionalExpression extends NodeBase {
 		}
 	}
 
-	private getTestValue(recursionTracker: ImmutableEntityPathTracker) {
-		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
-		const value = this.test.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
-		if (value === UNKNOWN_VALUE) {
-			this.hasUnknownTestValue = true;
-		}
-		return value;
+	private updateTestValue() {
+		this.testValue = UNKNOWN_VALUE;
+		this.needsTestValue = false;
+		this.testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
 	}
 }
