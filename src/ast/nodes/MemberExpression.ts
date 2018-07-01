@@ -74,7 +74,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	variable: Variable = null;
 	private bound: boolean;
 	private replacement: string | null;
-	private expressionsToBeDeoptimized: Set<DeoptimizableEntity>;
+	private expressionsToBeDeoptimized: DeoptimizableEntity[];
 
 	bind() {
 		if (this.bound) return;
@@ -100,7 +100,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	deoptimize() {
-		this.expressionsToBeDeoptimized.forEach(node => node.deoptimize());
+		for (const expression of this.expressionsToBeDeoptimized) {
+			expression.deoptimize();
+		}
 	}
 
 	getLiteralValueAtPath(
@@ -112,7 +114,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
 		}
 		if (this.propertyKey === null) this.updatePropertyKey();
-		this.expressionsToBeDeoptimized.add(origin);
+		this.expressionsToBeDeoptimized.push(origin);
 		return this.object.getLiteralValueAtPath([this.propertyKey, ...path], recursionTracker, origin);
 	}
 
@@ -125,7 +127,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 		}
 		if (this.propertyKey === null) this.updatePropertyKey();
-		this.expressionsToBeDeoptimized.add(origin);
+		this.expressionsToBeDeoptimized.push(origin);
 		return this.object.getReturnExpressionWhenCalledAtPath(
 			[this.propertyKey, ...path],
 			recursionTracker,
@@ -192,7 +194,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.variable = null;
 		this.bound = false;
 		this.replacement = null;
-		this.expressionsToBeDeoptimized = new Set();
+		this.expressionsToBeDeoptimized = [];
 	}
 
 	reassignPath(path: ObjectPath) {

@@ -31,7 +31,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	// We collect deoptimization information if testValue !== UNKNOWN_VALUE
 	private testValue: LiteralValueOrUnknown;
 	private needsTestValue: boolean;
-	private expressionsToBeDeoptimized: Set<DeoptimizableEntity>;
+	private expressionsToBeDeoptimized: DeoptimizableEntity[];
 
 	bind() {
 		super.bind();
@@ -45,7 +45,9 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			const previousUntrackedBranch = this.testValue ? this.alternate : this.consequent;
 			this.testValue = UNKNOWN_VALUE;
 			previousUntrackedBranch.reassignPath(UNKNOWN_PATH);
-			this.expressionsToBeDeoptimized.forEach(node => node.deoptimize());
+			for (const expression of this.expressionsToBeDeoptimized) {
+				expression.deoptimize();
+			}
 		}
 	}
 
@@ -56,7 +58,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	): LiteralValueOrUnknown {
 		if (this.needsTestValue) this.updateTestValue();
 		if (this.testValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
-		this.expressionsToBeDeoptimized.add(origin);
+		this.expressionsToBeDeoptimized.push(origin);
 		return this.testValue
 			? this.consequent.getLiteralValueAtPath(path, recursionTracker, origin)
 			: this.alternate.getLiteralValueAtPath(path, recursionTracker, origin);
@@ -73,7 +75,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 				this.consequent.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin),
 				this.alternate.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin)
 			]);
-		this.expressionsToBeDeoptimized.add(origin);
+		this.expressionsToBeDeoptimized.push(origin);
 		return this.testValue
 			? this.consequent.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin)
 			: this.alternate.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
@@ -134,7 +136,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	initialise() {
 		this.included = false;
 		this.needsTestValue = true;
-		this.expressionsToBeDeoptimized = new Set();
+		this.expressionsToBeDeoptimized = [];
 	}
 
 	include() {

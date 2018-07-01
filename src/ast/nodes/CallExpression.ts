@@ -29,7 +29,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	// Caching and deoptimization:
 	// We collect deoptimization information if returnExpression !== UNKNOWN_EXPRESSION
 	private returnExpression: ExpressionEntity | null;
-	private expressionsToBeDeoptimized: Set<DeoptimizableEntity>;
+	private expressionsToBeDeoptimized: DeoptimizableEntity[];
 
 	bind() {
 		super.bind();
@@ -72,7 +72,9 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 
 	deoptimize() {
 		this.returnExpression = UNKNOWN_EXPRESSION;
-		this.expressionsToBeDeoptimized.forEach(node => node.deoptimize());
+		for (const expression of this.expressionsToBeDeoptimized) {
+			expression.deoptimize();
+		}
 	}
 
 	getLiteralValueAtPath(
@@ -93,7 +95,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		) {
 			return UNKNOWN_VALUE;
 		}
-		this.expressionsToBeDeoptimized.add(origin);
+		this.expressionsToBeDeoptimized.push(origin);
 		return this.returnExpression.getLiteralValueAtPath(
 			path,
 			recursionTracker.track(this.returnExpression, path),
@@ -119,7 +121,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		) {
 			return UNKNOWN_EXPRESSION;
 		}
-		this.expressionsToBeDeoptimized.add(origin);
+		this.expressionsToBeDeoptimized.push(origin);
 		return this.returnExpression.getReturnExpressionWhenCalledAtPath(
 			path,
 			recursionTracker.track(this.returnExpression, path),
@@ -191,7 +193,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			args: this.arguments,
 			callIdentifier: this
 		});
-		this.expressionsToBeDeoptimized = new Set();
+		this.expressionsToBeDeoptimized = [];
 	}
 
 	reassignPath(path: ObjectPath) {

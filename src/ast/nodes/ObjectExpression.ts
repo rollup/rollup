@@ -46,7 +46,7 @@ export default class ObjectExpression extends NodeBase {
 	private unmatchablePropertiesWrite: Property[] | null;
 	private reassignedPaths: { [key: string]: true };
 	private hasUnknownReassignedProperty: boolean;
-	private expressionsToBeDeoptimized: { [key: string]: Set<DeoptimizableEntity> };
+	private expressionsToBeDeoptimized: { [key: string]: DeoptimizableEntity[] };
 
 	bind() {
 		super.bind();
@@ -85,9 +85,10 @@ export default class ObjectExpression extends NodeBase {
 			return UNKNOWN_VALUE;
 
 		if (!this.expressionsToBeDeoptimized[key]) {
-			this.expressionsToBeDeoptimized[key] = new Set();
+			this.expressionsToBeDeoptimized[key] = [origin];
+		} else {
+			this.expressionsToBeDeoptimized[key].push(origin);
 		}
-		this.expressionsToBeDeoptimized[key].add(origin);
 		return this.propertyMap[key].exactMatchRead.getLiteralValueAtPath(
 			path.slice(1),
 			recursionTracker,
@@ -127,9 +128,10 @@ export default class ObjectExpression extends NodeBase {
 			return UNKNOWN_EXPRESSION;
 
 		if (!this.expressionsToBeDeoptimized[key]) {
-			this.expressionsToBeDeoptimized[key] = new Set();
+			this.expressionsToBeDeoptimized[key] = [origin];
+		} else {
+			this.expressionsToBeDeoptimized[key].push(origin);
 		}
-		this.expressionsToBeDeoptimized[key].add(origin);
 		return this.propertyMap[key].exactMatchRead.getReturnExpressionWhenCalledAtPath(
 			path.slice(1),
 			recursionTracker,
@@ -239,7 +241,9 @@ export default class ObjectExpression extends NodeBase {
 				// we only deoptimize exact matches as in all other cases,
 				// we do not return a literal value or return expression
 				if (this.expressionsToBeDeoptimized[key]) {
-					this.expressionsToBeDeoptimized[key].forEach(node => node.deoptimize());
+					for (const expression of this.expressionsToBeDeoptimized[key]) {
+						expression.deoptimize();
+					}
 				}
 			}
 		}
@@ -259,7 +263,9 @@ export default class ObjectExpression extends NodeBase {
 			property.reassignPath(UNKNOWN_PATH);
 		}
 		for (const key of Object.keys(this.expressionsToBeDeoptimized)) {
-			this.expressionsToBeDeoptimized[key].forEach(node => node.deoptimize());
+			for (const expression of this.expressionsToBeDeoptimized[key]) {
+				expression.deoptimize();
+			}
 		}
 	}
 

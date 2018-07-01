@@ -34,7 +34,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	private leftValue: LiteralValueOrUnknown;
 	private needsLeftValue: boolean;
 	private isOrExpression: boolean;
-	private expressionsToBeDeoptimized: Set<DeoptimizableEntity>;
+	private expressionsToBeDeoptimized: DeoptimizableEntity[];
 
 	bind() {
 		super.bind();
@@ -52,7 +52,9 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 				: this.left;
 			this.leftValue = UNKNOWN_VALUE;
 			previousUntrackedBranch.reassignPath(UNKNOWN_PATH);
-			this.expressionsToBeDeoptimized.forEach(node => node.deoptimize());
+			for (const expression of this.expressionsToBeDeoptimized) {
+				expression.deoptimize();
+			}
 		}
 	}
 
@@ -63,7 +65,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	): LiteralValueOrUnknown {
 		if (this.needsLeftValue) this.updateLeftValue();
 		if (this.leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
-		this.expressionsToBeDeoptimized.add(origin);
+		this.expressionsToBeDeoptimized.push(origin);
 		if (this.isOrExpression ? this.leftValue : !this.leftValue) return this.leftValue;
 		return this.right.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
@@ -79,7 +81,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 				this.left.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin),
 				this.right.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin)
 			]);
-		this.expressionsToBeDeoptimized.add(origin);
+		this.expressionsToBeDeoptimized.push(origin);
 		if (this.isOrExpression ? this.leftValue : !this.leftValue)
 			return this.left.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 		return this.right.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
@@ -163,7 +165,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		this.included = false;
 		this.needsLeftValue = true;
 		this.isOrExpression = this.operator === '||';
-		this.expressionsToBeDeoptimized = new Set();
+		this.expressionsToBeDeoptimized = [];
 	}
 
 	reassignPath(path: ObjectPath) {

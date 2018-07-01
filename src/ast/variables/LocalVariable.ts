@@ -29,7 +29,7 @@ export default class LocalVariable extends Variable {
 	// Caching and deoptimization:
 	// We collect deoptimization when we do not return something unknown
 	private reassignmentTracker: EntityPathTracker;
-	private expressionsToBeDeoptimized: Set<DeoptimizableEntity> = new Set();
+	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	constructor(
 		name: string,
@@ -77,7 +77,7 @@ export default class LocalVariable extends Variable {
 		) {
 			return UNKNOWN_VALUE;
 		}
-		this.expressionsToBeDeoptimized.add(origin);
+		this.expressionsToBeDeoptimized.push(origin);
 		return this.init.getLiteralValueAtPath(path, recursionTracker.track(this.init, path), origin);
 	}
 
@@ -94,7 +94,7 @@ export default class LocalVariable extends Variable {
 		) {
 			return UNKNOWN_EXPRESSION;
 		}
-		this.expressionsToBeDeoptimized.add(origin);
+		this.expressionsToBeDeoptimized.push(origin);
 		return this.init.getReturnExpressionWhenCalledAtPath(
 			path,
 			recursionTracker.track(this.init, path),
@@ -172,7 +172,9 @@ export default class LocalVariable extends Variable {
 			if (path.length === 0) {
 				if (!this.isReassigned) {
 					this.isReassigned = true;
-					this.expressionsToBeDeoptimized.forEach(node => node.deoptimize());
+					for (const expression of this.expressionsToBeDeoptimized) {
+						expression.deoptimize();
+					}
 					if (this.init) {
 						this.init.reassignPath(UNKNOWN_PATH);
 					}
