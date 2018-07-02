@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.63.0
+*unreleased*
+* Add experimental support for top-level await ([#2235](https://github.com/rollup/rollup/pull/2235))
+
 ## 0.62.0
 *2018-06-27*
 * Add option to automatically shim missing exports ([#2118](https://github.com/rollup/rollup/pull/2118))
