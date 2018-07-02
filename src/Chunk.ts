@@ -1057,6 +1057,16 @@ export default class Chunk {
 				dep => dep.reexports && dep.reexports.length !== 0
 			);
 
+		const usesTopLevelAwait = this.orderedModules.some(module => module.usesTopLevelAwait);
+		if (usesTopLevelAwait && options.format !== 'es' && options.format !== 'system') {
+			error({
+				code: 'INVALID_TLA_FORMAT',
+				message: `Module format ${
+					options.format
+				} does not support top-level await. Use the "es" or "system" output formats rather.`
+			});
+		}
+
 		const magicString = finalise(
 			this.renderedSource,
 			{
@@ -1070,7 +1080,8 @@ export default class Chunk {
 				dependencies: this.renderedDeclarations.dependencies,
 				exports: this.renderedDeclarations.exports,
 				graph: this.graph,
-				isEntryModuleFacade: this.isEntryModuleFacade
+				isEntryModuleFacade: this.isEntryModuleFacade,
+				usesTopLevelAwait
 			},
 			options
 		);

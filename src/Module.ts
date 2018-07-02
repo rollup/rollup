@@ -95,6 +95,7 @@ export interface AstContext {
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable;
 	treeshake: boolean;
+	usesTopLevelAwait: boolean;
 	varOrConst: string;
 	warn: (warning: RollupWarning, pos: number) => void;
 }
@@ -177,6 +178,7 @@ export default class Module {
 	entryPointsHash: Uint8Array;
 	chunk: Chunk;
 	exportAllModules: (Module | ExternalModule)[];
+	usesTopLevelAwait: boolean = false;
 
 	private ast: Program;
 	private astContext: AstContext;
@@ -265,8 +267,8 @@ export default class Module {
 			getReexports: this.getReexports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
-			includeNamespace: this.includeNamespace.bind(this),
 			imports: this.imports,
+			includeNamespace: this.includeNamespace.bind(this),
 			isCrossChunkImport: importDescription => importDescription.module.chunk !== this.chunk,
 			magicString: this.magicString,
 			moduleContext: this.context,
@@ -278,6 +280,7 @@ export default class Module {
 			traceExport: this.traceExport.bind(this),
 			traceVariable: this.traceVariable.bind(this),
 			treeshake: this.graph.treeshake,
+			usesTopLevelAwait: false,
 			varOrConst: this.graph.varOrConst,
 			warn: this.warn.bind(this)
 		};
@@ -639,6 +642,7 @@ export default class Module {
 	render(options: RenderOptions): MagicString {
 		const magicString = this.magicString.clone();
 		this.ast.render(magicString, options);
+		this.usesTopLevelAwait = this.astContext.usesTopLevelAwait;
 		return magicString;
 	}
 
