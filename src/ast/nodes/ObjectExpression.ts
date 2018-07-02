@@ -66,19 +66,12 @@ export default class ObjectExpression extends NodeBase {
 		if (this.propertyMap === null) this.buildPropertyMap();
 		const key = path[0];
 
-		if (typeof key !== 'string') {
-			if (
-				!this.hasUnknownReassignedProperty &&
-				path.length === 1 &&
-				this.properties.length === 0 &&
-				Object.keys(this.reassignedPaths).length === 0
-			) {
-				return undefined;
-			}
-			return UNKNOWN_VALUE;
-		}
-
-		if (path.length === 0 || this.hasUnknownReassignedProperty || this.reassignedPaths[key])
+		if (
+			path.length === 0 ||
+			this.hasUnknownReassignedProperty ||
+			typeof key !== 'string' ||
+			this.reassignedPaths[key]
+		)
 			return UNKNOWN_VALUE;
 
 		if (path.length === 1 && !this.propertyMap[key] && this.unmatchablePropertiesRead.length === 0)
