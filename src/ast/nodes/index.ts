@@ -43,6 +43,7 @@ import RestElement from './RestElement';
 import ReturnStatement from './ReturnStatement';
 import SequenceExpression from './SequenceExpression';
 import { NodeBase, StatementBase } from './shared/Node';
+import SpreadElement from './SpreadElement';
 import SwitchCase from './SwitchCase';
 import SwitchStatement from './SwitchStatement';
 import TaggedTemplateExpression from './TaggedTemplateExpression';
@@ -105,6 +106,7 @@ export const nodeConstructors: {
 	RestElement,
 	ReturnStatement,
 	SequenceExpression,
+	SpreadElement,
 	SwitchCase,
 	SwitchStatement,
 	TaggedTemplateExpression,

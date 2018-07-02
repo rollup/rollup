@@ -25,24 +25,25 @@ import * as NodeType from './NodeType';
 import Property from './Property';
 import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
+import SpreadElement from './SpreadElement';
 
 interface PropertyMap {
 	[key: string]: {
 		exactMatchWrite: Property | null;
 		propertiesSet: Property[];
 		exactMatchRead: Property | null;
-		propertiesRead: Property[];
+		propertiesRead: (Property | SpreadElement)[];
 	};
 }
 
 export default class ObjectExpression extends NodeBase {
 	type: NodeType.tObjectExpression;
-	properties: Property[];
+	properties: (Property | SpreadElement)[];
 
 	// Caching and deoptimization:
 	// We collect deoptimization information if we can resolve a computed property access
 	private propertyMap: PropertyMap | null;
-	private unmatchablePropertiesRead: Property[] | null;
+	private unmatchablePropertiesRead: (Property | SpreadElement)[] | null;
 	private unmatchablePropertiesWrite: Property[] | null;
 	private reassignedPaths: { [key: string]: true };
 	private hasUnknownReassignedProperty: boolean;
@@ -287,6 +288,10 @@ export default class ObjectExpression extends NodeBase {
 		this.unmatchablePropertiesWrite = [];
 		for (let index = this.properties.length - 1; index >= 0; index--) {
 			const property = this.properties[index];
+			if (property instanceof SpreadElement) {
+				this.unmatchablePropertiesRead.push(property);
+				continue;
+			}
 			const isWrite = property.kind !== 'get';
 			const isRead = property.kind !== 'set';
 			let key;

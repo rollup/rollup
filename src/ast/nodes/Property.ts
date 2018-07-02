@@ -12,6 +12,7 @@ import {
 	LiteralValueOrUnknown,
 	ObjectPath,
 	UNKNOWN_EXPRESSION,
+	UNKNOWN_KEY,
 	UNKNOWN_VALUE
 } from '../values';
 import * as NodeType from './NodeType';
@@ -29,13 +30,18 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 
 	private accessorCallOptions: CallOptions;
 	private returnExpression: ExpressionEntity | null;
+	private declarationInit: ExpressionEntity | null = null;
 
 	bind() {
 		super.bind();
 		if (this.kind === 'get' && this.returnExpression === null) this.updateReturnExpression();
+		if (this.declarationInit !== null) {
+			this.declarationInit.reassignPath([UNKNOWN_KEY, UNKNOWN_KEY]);
+		}
 	}
 
-	declare(kind: string, _init: ExpressionEntity) {
+	declare(kind: string, init: ExpressionEntity) {
+		this.declarationInit = init;
 		this.value.declare(kind, UNKNOWN_EXPRESSION);
 	}
 

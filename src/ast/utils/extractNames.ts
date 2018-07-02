@@ -22,7 +22,11 @@ const extractors: Extractors = {
 
 	ObjectPattern(names, param: ObjectPattern) {
 		param.properties.forEach(prop => {
-			extractors[prop.value.type](names, prop.value);
+			if (prop instanceof RestElement) {
+				extractors[prop.argument.type](names, prop.argument);
+			} else {
+				extractors[prop.value.type](names, prop.value);
+			}
 		});
 	},
 

@@ -6,6 +6,20 @@ import { PatternNode } from './shared/Pattern';
 
 export default class AssignmentExpression extends NodeBase {
 	type: NodeType.tAssignmentExpression;
+	operator:
+		| '='
+		| '+='
+		| '-='
+		| '*='
+		| '/='
+		| '%='
+		| '<<='
+		| '>>='
+		| '>>>='
+		| '|='
+		| '^='
+		| '&='
+		| '**=';
 	left: PatternNode | ExpressionNode;
 	right: ExpressionNode;
 

@@ -18,6 +18,7 @@ export default class ForOfStatement extends StatementBase {
 	left: VariableDeclaration | PatternNode;
 	right: ExpressionNode;
 	body: StatementNode;
+	await: boolean;
 
 	bind() {
 		super.bind();

@@ -6,7 +6,7 @@ export default class TemplateElement extends NodeBase {
 	type: NodeType.tTemplateElement;
 	tail: boolean;
 	value: {
-		cooked: string;
+		cooked: string | null;
 		raw: string;
 	};
 
