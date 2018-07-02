@@ -21,9 +21,7 @@ export default class ForOfStatement extends StatementBase {
 
 	bind() {
 		super.bind();
-		if (this.left.type !== NodeType.VariableDeclaration) {
-			this.left.reassignPath(EMPTY_PATH);
-		}
+		this.left.reassignPath(EMPTY_PATH);
 	}
 
 	createScope(parentScope: Scope) {
