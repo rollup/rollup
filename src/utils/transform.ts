@@ -3,14 +3,17 @@ import { locate } from 'locate-character';
 import { decode } from 'sourcemap-codec';
 import Program from '../ast/nodes/Program';
 import Graph from '../Graph';
+import Module from '../Module';
 import {
+	Asset,
 	Plugin,
 	PluginContext,
 	RawSourceMap,
 	RollupError,
 	RollupWarning,
-	SourceDescription
+	TransformSourceDescription
 } from '../rollup/types';
+import { EmitAsset } from './assetHooks';
 import error from './error';
 import getCodeFrame from './getCodeFrame';
 import { dirname, resolve } from './path';
@@ -56,7 +59,8 @@ function createPluginTransformContext(
 	graph: Graph,
 	plugin: Plugin,
 	id: string,
-	source: string
+	source: string,
+	emitAsset: EmitAsset
 ): PluginContext {
 	return {
 		...graph.pluginContext,
@@ -83,16 +87,19 @@ function createPluginTransformContext(
 				pluginName: plugin.name || '(anonymous plugin)'
 			});
 			error(err);
-		}
+		},
+		emitAsset
 	};
 }
 
 export default function transform(
 	graph: Graph,
-	source: SourceDescription,
-	id: string,
-	plugins: Plugin[]
+	source: TransformSourceDescription,
+	module: Module,
+	plugins: Plugin[],
+	createTransformEmitAsset: () => { assets: Asset[]; emitAsset: EmitAsset }
 ) {
+	const id = module.id;
 	const sourcemapChain: RawSourceMap[] = [];
 
 	const originalSourcemap = typeof source.map === 'string' ? JSON.parse(source.map) : source.map;
@@ -111,12 +118,24 @@ export default function transform(
 		if (!plugin.transform) return;
 
 		promise = promise.then(previous => {
+			const { assets, emitAsset } = createTransformEmitAsset();
 			return Promise.resolve()
 				.then(() => {
-					const context = createPluginTransformContext(graph, plugin, id, previous);
+					const context = createPluginTransformContext(graph, plugin, id, previous, emitAsset);
 					return plugin.transform.call(context, previous, id);
 				})
 				.then(result => {
+					// assets emitted by transform are transformDependencies
+					if (assets.length) module.transformAssets = assets;
+					for (const asset of assets) {
+						if (asset.dependencies) {
+							for (const depId of asset.dependencies) {
+								if (!transformDependencies) transformDependencies = [];
+								if (transformDependencies.indexOf(depId) === -1) transformDependencies.push(depId);
+							}
+						}
+					}
+
 					if (result == null) return previous;
 
 					if (typeof result === 'string') {

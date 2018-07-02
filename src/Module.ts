@@ -29,7 +29,7 @@ import Variable from './ast/variables/Variable';
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
-import { IdMap, ModuleJSON, RawSourceMap, RollupError, RollupWarning } from './rollup/types';
+import { Asset, IdMap, ModuleJSON, RawSourceMap, RollupError, RollupWarning } from './rollup/types';
 import { handleMissingExport } from './utils/defaults';
 import error from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
@@ -170,6 +170,7 @@ export default class Module {
 		alias: string;
 		resolution: Module | ExternalModule | string | void;
 	}[];
+	transformAssets: Asset[];
 
 	execIndex: number;
 	isEntryPoint: boolean;
@@ -650,6 +651,7 @@ export default class Module {
 			id: this.id,
 			dependencies: this.dependencies.map(module => module.id),
 			transformDependencies: this.transformDependencies,
+			transformAssets: this.transformAssets,
 			code: this.code,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,

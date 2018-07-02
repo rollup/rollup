@@ -5,6 +5,6 @@ var foo$1 = /*#__PURE__*/Object.freeze({
 });
 
 const bar = 2;
-Promise.resolve().then(function () { return foo; });
+Promise.resolve().then(function () { return foo$1; });
 
 export { bar };

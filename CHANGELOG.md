@@ -1,8 +1,10 @@
 # rollup changelog
 
 ## 0.62.0
-*unreleased*
+*2018-06-27*
 * Add option to automatically shim missing exports ([#2118](https://github.com/rollup/rollup/pull/2118))
+* Inline dynamic imports that are also imported statically and only used in a single chunk ([#2295](https://github.com/rollup/rollup/pull/2295))
+* Handle caching and invalidation of assets ([#2267](https://github.com/rollup/rollup/pull/2267))
 * Fix plugin related types ([#2299](https://github.com/rollup/rollup/pull/2299))
 
 ## 0.61.2
