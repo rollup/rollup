@@ -91,8 +91,6 @@ export default function watch(
 	}
 
 	function start(configs: RollupWatchOptions[]) {
-		screen.reset(chalk.underline(`rollup v${rollup.VERSION}`));
-
 		const screenWriter = processConfigsErr || screen.reset;
 
 		watcher = rollup.watch(configs);
