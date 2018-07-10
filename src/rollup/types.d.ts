@@ -232,7 +232,7 @@ export interface InputOptions {
 	resolveExternal?: any;
 }
 
-export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'es6' | 'iife' | 'umd';
+export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'es6' | 'iife' | 'umd';
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
