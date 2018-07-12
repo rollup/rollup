@@ -3,6 +3,7 @@
 ## 0.63.0
 *unreleased*
 * Add experimental support for top-level await ([#2235](https://github.com/rollup/rollup/pull/2235))
+* Add `esm` format alias to types ([#2327](https://github.com/rollup/rollup/pull/2327))
 
 ## 0.62.0
 *2018-06-27*
