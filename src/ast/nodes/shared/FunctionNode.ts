@@ -1,7 +1,7 @@
 import CallOptions from '../../CallOptions';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
-import BlockScope from '../../scopes/FunctionScope';
 import FunctionScope from '../../scopes/FunctionScope';
+import BlockScope from '../../scopes/FunctionScope';
 import Scope from '../../scopes/Scope';
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../../values';
 import BlockStatement from '../BlockStatement';
@@ -78,10 +78,8 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
-		this.body = <BlockStatement>new this.context.nodeConstructors.BlockStatement(
-			esTreeNode.body,
-			this,
-			new Scope(this.scope)
+		this.body = <BlockStatement>(
+			new this.context.nodeConstructors.BlockStatement(esTreeNode.body, this, new Scope(this.scope))
 		);
 		super.parseNode(esTreeNode);
 	}

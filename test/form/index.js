@@ -79,7 +79,7 @@ function runTestCaseInDir(dir) {
 				return runRollupTest(dir + '/_actual.js', dir + '/_expected.js', 'esm');
 			}
 
-			FORMATS.forEach(format =>
+			(config.formats || FORMATS).forEach(format =>
 				it('generates ' + format, () =>
 					runRollupTest(
 						dir + '/_actual/' + format + '.js',

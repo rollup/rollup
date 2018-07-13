@@ -21,6 +21,7 @@ export interface FinaliserOptions {
 	exports: ChunkExports;
 	graph: Graph;
 	isEntryModuleFacade: boolean;
+	usesTopLevelAwait: boolean;
 }
 
 export type Finaliser = (
