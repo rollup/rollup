@@ -7,7 +7,6 @@ exports.compareWarnings = compareWarnings;
 exports.deindent = deindent;
 exports.executeBundle = executeBundle;
 exports.extend = extend;
-exports.loadConfig = loadConfig;
 exports.loader = loader;
 exports.normaliseOutput = normaliseOutput;
 exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
@@ -131,16 +130,27 @@ function normaliseOutput(code) {
 }
 
 function runTestSuiteWithSamples(suiteName, samplesDir, runTest, onTeardown) {
-	describe(suiteName, () => {
-		if (onTeardown) {
-			afterEach(onTeardown);
-		}
-		sander
-			.readdirSync(samplesDir)
-			.filter(name => name[0] !== '.')
-			.sort()
-			.forEach(fileName => runTestsInDir(samplesDir + '/' + fileName, runTest));
-	});
+	describe(suiteName, () => runSamples(samplesDir, runTest, onTeardown));
+}
+
+// You can run only or skip certain kinds of tests be appending .only or .skip
+runTestSuiteWithSamples.only = function(suiteName, samplesDir, runTest, onTeardown) {
+	describe.only(suiteName, () => runSamples(samplesDir, runTest, onTeardown));
+};
+
+runTestSuiteWithSamples.skip = function(suiteName) {
+	describe.skip(suiteName, () => {});
+};
+
+function runSamples(samplesDir, runTest, onTeardown) {
+	if (onTeardown) {
+		afterEach(onTeardown);
+	}
+	sander
+		.readdirSync(samplesDir)
+		.filter(name => name[0] !== '.')
+		.sort()
+		.forEach(fileName => runTestsInDir(samplesDir + '/' + fileName, runTest));
 }
 
 function runTestsInDir(dir, runTest) {
