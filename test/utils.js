@@ -10,7 +10,7 @@ exports.extend = extend;
 exports.loadConfig = loadConfig;
 exports.loader = loader;
 exports.normaliseOutput = normaliseOutput;
-exports.removeOldTest = removeOldTest;
+exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
 
 function compareError(actual, expected) {
 	delete actual.stack;
@@ -97,6 +97,20 @@ function loadConfig(configFile) {
 	}
 }
 
+function removeOldTest(dir) {
+	console.warn(
+		`Test configuration in ${dir} not found.\nTrying to clean up no longer existing test...`
+	);
+	if (sander.existsSync(path.join(dir, '_actual'))) {
+		sander.rimrafSync(path.join(dir, '_actual'));
+	}
+	if (sander.existsSync(path.join(dir, '_actual.js'))) {
+		sander.unlinkSync(path.join(dir, '_actual.js'));
+	}
+	sander.rmdirSync(dir);
+	console.warn('Directory removed.');
+}
+
 function loader(modules) {
 	return {
 		resolveId(id) {
@@ -116,16 +130,38 @@ function normaliseOutput(code) {
 		.replace(/\r\n/g, '\n');
 }
 
-function removeOldTest(dir) {
-	console.warn(
-		`Test configuration in ${dir} not found.\nTrying to clean up no longer existing test...`
+function runTestSuiteWithSamples(suiteName, samplesDir, runTest) {
+	describe(suiteName, () =>
+		sander
+			.readdirSync(samplesDir)
+			.filter(name => name[0] !== '.')
+			.sort()
+			.forEach(fileName => runTestsInDir(samplesDir + '/' + fileName, runTest))
 	);
-	if (sander.existsSync(path.join(dir, '_actual'))) {
-		sander.rimrafSync(path.join(dir, '_actual'));
+}
+
+function runTestsInDir(dir, runTest) {
+	const fileNames = sander.readdirSync(dir);
+
+	if (fileNames.indexOf('_config.js') >= 0) {
+		loadConfigAndRunTest(dir, runTest);
+	} else {
+		describe(path.basename(dir), () => {
+			fileNames
+				.filter(name => name[0] !== '.')
+				.sort()
+				.forEach(fileName => runTestsInDir(dir + '/' + fileName, runTest));
+		});
 	}
-	if (sander.existsSync(path.join(dir, '_actual.js'))) {
-		sander.unlinkSync(path.join(dir, '_actual.js'));
-	}
-	sander.rmdirSync(dir);
-	console.warn('Directory removed.');
+}
+
+function loadConfigAndRunTest(dir, runTest) {
+	const config = loadConfig(dir + '/_config.js');
+	if (
+		config &&
+		(!config.minNodeVersion ||
+			config.minNodeVersion <= Number(/^v(\d+)/.exec(process.version)[1])) &&
+		(!config.skipIfWindows || process.platform !== 'win32')
+	)
+		runTest(dir, config);
 }

@@ -2,40 +2,11 @@ const path = require('path');
 const assert = require('assert');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
-const { extend, loadConfig, normaliseOutput, removeOldTest } = require('../utils.js');
+const { extend, normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
 
-const SAMPLES_DIR = path.resolve(__dirname, 'samples');
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
-describe('form', () => {
-	sander
-		.readdirSync(SAMPLES_DIR)
-		.filter(name => name[0] !== '.')
-		.sort()
-		.forEach(fileName => runTestsInDir(SAMPLES_DIR + '/' + fileName));
-});
-
-function runTestsInDir(dir) {
-	const fileNames = sander.readdirSync(dir);
-
-	if (fileNames.indexOf('_config.js') >= 0) {
-		runTestCaseInDir(dir);
-	} else if (fileNames.indexOf('_actual') >= 0 || fileNames.indexOf('_actual.js') >= 0) {
-		removeOldTest(dir);
-	} else {
-		describe(path.basename(dir), () => {
-			fileNames
-				.filter(name => name[0] !== '.')
-				.sort()
-				.forEach(fileName => runTestsInDir(dir + '/' + fileName));
-		});
-	}
-}
-
-function runTestCaseInDir(dir) {
-	const config = loadConfig(dir + '/_config.js');
-	if (!config || (config.skipIfWindows && process.platform === 'win32')) return;
-
+runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config) => {
 	const isSingleFormatTest = sander.existsSync(dir + '/_expected.js');
 	const itOrDescribe = isSingleFormatTest ? it : describe;
 	(config.skip ? itOrDescribe.skip : config.solo ? itOrDescribe.only : itOrDescribe)(
@@ -90,7 +61,7 @@ function runTestCaseInDir(dir) {
 			);
 		}
 	);
-}
+});
 
 function generateAndTestBundle(bundle, outputOptions, expectedFile, { show }) {
 	return bundle.write(outputOptions).then(() => {
