@@ -130,14 +130,17 @@ function normaliseOutput(code) {
 		.replace(/\r\n/g, '\n');
 }
 
-function runTestSuiteWithSamples(suiteName, samplesDir, runTest) {
-	describe(suiteName, () =>
+function runTestSuiteWithSamples(suiteName, samplesDir, runTest, onTeardown) {
+	describe(suiteName, () => {
+		if (onTeardown) {
+			afterEach(onTeardown);
+		}
 		sander
 			.readdirSync(samplesDir)
 			.filter(name => name[0] !== '.')
 			.sort()
-			.forEach(fileName => runTestsInDir(samplesDir + '/' + fileName, runTest))
-	);
+			.forEach(fileName => runTestsInDir(samplesDir + '/' + fileName, runTest));
+	});
 }
 
 function runTestsInDir(dir, runTest) {

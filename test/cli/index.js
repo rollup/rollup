@@ -3,31 +3,21 @@ const assert = require('assert');
 const sander = require('sander');
 const buble = require('buble');
 const { exec } = require('child_process');
-const { deindent, loadConfig, normaliseOutput } = require('../utils.js');
-
-const samples = path.resolve(__dirname, 'samples');
+const { deindent, normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
 
 const cwd = process.cwd();
 
 sander.rimrafSync(__dirname, 'node_modules');
 sander.copydirSync(__dirname, 'node_modules_rename_me').to(__dirname, 'node_modules');
 
-describe('cli', () => {
-	afterEach(() => {
-		process.chdir(cwd);
-	});
-
-	sander
-		.readdirSync(samples)
-		.sort()
-		.forEach(dir => {
-			if (dir[0] === '.') return; // .DS_Store...
-
-			const config = loadConfig(samples + '/' + dir + '/_config.js');
-			if (!config) return;
-
-			(config.skip ? it.skip : config.solo ? it.only : it)(dir, done => {
-				process.chdir(config.cwd || path.resolve(samples, dir));
+runTestSuiteWithSamples(
+	'cli',
+	path.resolve(__dirname, 'samples'),
+	(dir, config) => {
+		(config.skip ? it.skip : config.solo ? it.only : it)(
+			path.basename(dir) + ': ' + config.description,
+			done => {
+				process.chdir(config.cwd || dir);
 
 				const command = 'node ' + path.resolve(__dirname, '../../bin') + path.sep + config.command;
 
@@ -121,6 +111,8 @@ describe('cli', () => {
 						}
 					}
 				});
-			});
-		});
-});
+			}
+		);
+	},
+	() => process.chdir(cwd)
+);
