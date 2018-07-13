@@ -20,7 +20,7 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 							input: dir + '/main.js',
 							onwarn: warning => warnings.push(warning)
 						},
-						config.options
+						config.options || {}
 					)
 				)
 				.then(bundle => {
@@ -34,9 +34,12 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 
 					return bundle
 						.generate(
-							extend({}, config.bundleOptions, {
-								format: 'cjs'
-							})
+							extend(
+								{
+									format: 'cjs'
+								},
+								(config.options || {}).output || {}
+							)
 						)
 						.then(code => {
 							if (config.generateError) {

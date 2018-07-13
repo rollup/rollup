@@ -1,19 +1,18 @@
+import Chunk from '../Chunk';
 import { optimizeChunks } from '../chunk-optimization';
 import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
+import { createAssetPluginHooks, finaliseAsset } from '../utils/assetHooks';
 import commondir from '../utils/commondir';
 import { Deprecation } from '../utils/deprecateOptions';
 import ensureArray from '../utils/ensureArray';
 import error from '../utils/error';
 import { writeFile } from '../utils/fs';
+import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
 import { basename, dirname, resolve } from '../utils/path';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
-
-import Chunk from '../Chunk';
-import { createAssetPluginHooks, finaliseAsset } from '../utils/assetHooks';
-import getExportMode from '../utils/getExportMode';
 import { Watcher } from '../watch';
 import {
 	InputOptions,
@@ -56,13 +55,13 @@ function checkOutputOptions(options: OutputOptions) {
 
 	if (!options.format) {
 		error({
-			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'system', 'esm', 'iife' or 'umd'`,
+			message: `You must specify output.format, which can be one of 'amd', 'cjs', 'system', 'esm', 'iife' or 'umd'`,
 			url: `https://rollupjs.org/#format-f-output-format-`
 		});
 	}
 
 	if (options.moduleId) {
-		if (options.amd) throw new Error('Cannot have both options.amd and options.moduleId');
+		if (options.amd) throw new Error('Cannot have both output.amd and output.moduleId');
 	}
 }
 
