@@ -823,7 +823,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 										'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
 								});
 							}
-							isExternal = true;
+							isExternal = !this.moduleById.has(module.id);
 						}
 
 						if (isExternal) {
