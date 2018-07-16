@@ -9,6 +9,7 @@ export default class SpreadElement extends NodeBase {
 	bind() {
 		super.bind();
 		// Only properties of properties of the argument could become subject to reassignment
+		// This will also reassign the return values of iterators
 		this.argument.reassignPath([UNKNOWN_KEY, UNKNOWN_KEY]);
 	}
 }
