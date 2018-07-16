@@ -75,8 +75,18 @@ export default class ObjectExpression extends NodeBase {
 		)
 			return UNKNOWN_VALUE;
 
-		if (path.length === 1 && !this.propertyMap[key] && this.unmatchablePropertiesRead.length === 0)
+		if (
+			path.length === 1 &&
+			!this.propertyMap[key] &&
+			this.unmatchablePropertiesRead.length === 0
+		) {
+			if (!this.expressionsToBeDeoptimized[key]) {
+				this.expressionsToBeDeoptimized[key] = [origin];
+			} else {
+				this.expressionsToBeDeoptimized[key].push(origin);
+			}
 			return undefined;
+		}
 
 		if (
 			!this.propertyMap[key] ||

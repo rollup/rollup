@@ -1,12 +1,26 @@
 let foo = false;
-const obj = {x: false};
+const obj = {};
 
 reassignFoo();
 
-(foo ? () => obj : () => ({}))().x = true;
+(foo
+	? function() {
+			return obj;
+	  }
+	: function() {
+			return {};
+	  })().x = true;
+
+(foo
+	? () => obj
+	: () => ({}))().y = true;
 
 if (!obj.x) {
-	throw new Error('Reassignment was not tracked');
+	throw new Error('function reassignment was not tracked');
+}
+
+if (!obj.y) {
+	throw new Error('arrow function reassignment was not tracked');
 }
 
 function reassignFoo() {
