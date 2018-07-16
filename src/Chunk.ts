@@ -69,7 +69,7 @@ function getGlobalName(
 	hasExports: boolean
 ) {
 	if (typeof globals === 'function') return globals(module.id);
-	if (globals) return globals[module.id];
+	if (globals && globals[module.id]) return globals[module.id];
 	if (hasExports) {
 		graph.warn({
 			code: 'MISSING_GLOBAL_NAME',
