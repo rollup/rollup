@@ -4,6 +4,7 @@
 *unreleased*
 * Add experimental support for top-level await ([#2235](https://github.com/rollup/rollup/pull/2235))
 * Prevent duplicate version printout in watch mode ([#2325](https://github.com/rollup/rollup/pull/2325))
+* Respect error frames provided by plugins ([#2309](https://github.com/rollup/rollup/pull/2309))
 * Add `esm` format alias to types ([#2327](https://github.com/rollup/rollup/pull/2327))
 * Further unify internal test setup ([#2329](https://github.com/rollup/rollup/pull/2329))
 
