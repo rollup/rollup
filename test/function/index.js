@@ -1,167 +1,151 @@
 const path = require('path');
 const assert = require('assert');
-const sander = require('sander');
 const buble = require('buble');
 const rollup = require('../../dist/rollup');
-const { compareError, compareWarnings, extend, loadConfig } = require('../utils.js');
+const { compareError, compareWarnings, extend, runTestSuiteWithSamples } = require('../utils.js');
 
-const samples = path.resolve(__dirname, 'samples');
+runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, config) => {
+	(config.skip ? it.skip : config.solo ? it.only : it)(
+		path.basename(dir) + ': ' + config.description,
+		() => {
+			if (config.solo) console.group(path.basename(dir));
 
-describe('function', () => {
-	sander
-		.readdirSync(samples)
-		.sort()
-		.forEach(dir => {
-			if (dir[0] === '.') return; // .DS_Store...
+			process.chdir(dir);
+			const warnings = [];
 
-			const config = loadConfig(samples + '/' + dir + '/_config.js');
-			if (
-				!config ||
-				(config.minNodeVersion &&
-					config.minNodeVersion > Number(/^v(\d+)/.exec(process.version)[1]))
-			)
-				return;
-			(config.skip ? it.skip : config.solo ? it.only : it)(dir, () => {
-				process.chdir(samples + '/' + dir);
+			return rollup
+				.rollup(
+					extend(
+						{
+							input: dir + '/main.js',
+							onwarn: warning => warnings.push(warning)
+						},
+						config.options || {}
+					)
+				)
+				.then(bundle => {
+					let unintendedError;
 
-				const warnings = [];
-				const captureWarning = msg => warnings.push(msg);
+					if (config.error) {
+						throw new Error('Expected an error while rolling up');
+					}
 
-				const options = extend(
-					{
-						input: samples + '/' + dir + '/main.js',
-						onwarn: captureWarning
-					},
-					config.options
-				);
+					let result;
 
-				if (config.solo) console.group(dir);
+					return bundle
+						.generate(
+							extend(
+								{
+									format: 'cjs'
+								},
+								(config.options || {}).output || {}
+							)
+						)
+						.then(code => {
+							if (config.generateError) {
+								unintendedError = new Error('Expected an error while generating output');
+							}
 
-				return rollup
-					.rollup(options)
-					.then(bundle => {
-						let unintendedError;
+							result = code;
+						})
+						.catch(err => {
+							if (config.generateError) {
+								compareError(err, config.generateError);
+							} else {
+								throw err;
+							}
+						})
+						.then(() => {
+							if (unintendedError) throw unintendedError;
+							if (config.error || config.generateError) return;
 
-						if (config.error) {
-							throw new Error('Expected an error while rolling up');
-						}
+							let code = result.code;
 
-						let result;
+							if (config.buble) {
+								code = buble.transform(code, {
+									transforms: { modules: false }
+								}).code;
+							}
 
-						// try to generate output
-						return Promise.resolve()
-							.then(() => {
-								return bundle.generate(
-									extend({}, config.bundleOptions, {
-										format: 'cjs'
-									})
-								);
-							})
-							.then(code => {
-								if (config.generateError) {
-									unintendedError = new Error('Expected an error while generating output');
+							if (config.code) config.code(code);
+
+							const module = {
+								exports: {}
+							};
+
+							const context = extend(
+								{ require, module, assert, exports: module.exports },
+								config.context || {}
+							);
+
+							const contextKeys = Object.keys(context);
+							const contextValues = contextKeys.map(key => context[key]);
+
+							try {
+								const fn = new Function(contextKeys, code);
+								fn.apply({}, contextValues);
+
+								if (config.runtimeError) {
+									unintendedError = new Error('Expected an error while executing output');
 								}
-
-								result = code;
-							})
-							.catch(err => {
-								if (config.generateError) {
-									compareError(err, config.generateError);
+							} catch (err) {
+								if (config.runtimeError) {
+									config.runtimeError(err);
 								} else {
 									unintendedError = err;
 								}
-							})
-							.then(() => {
-								if (unintendedError) throw unintendedError;
-								if (config.error || config.generateError) return;
+							}
 
-								let code = result.code;
-
-								if (config.buble) {
-									code = buble.transform(code, {
-										transforms: { modules: false }
-									}).code;
-								}
-
-								if (config.code) config.code(code);
-
-								const module = {
-									exports: {}
-								};
-
-								const context = extend(
-									{ require, module, assert, exports: module.exports },
-									config.context || {}
-								);
-
-								const contextKeys = Object.keys(context);
-								const contextValues = contextKeys.map(key => context[key]);
-
-								try {
-									const fn = new Function(contextKeys, code);
-									fn.apply({}, contextValues);
-
-									if (config.runtimeError) {
-										unintendedError = new Error('Expected an error while executing output');
+							return Promise.resolve()
+								.then(() => {
+									if (config.exports && !unintendedError) {
+										return config.exports(module.exports);
 									}
-								} catch (err) {
+								})
+								.then(() => {
+									if (config.bundle && !unintendedError) {
+										return config.bundle(bundle);
+									}
+								})
+								.catch(err => {
 									if (config.runtimeError) {
 										config.runtimeError(err);
 									} else {
 										unintendedError = err;
 									}
-								}
+								})
+								.then(() => {
+									if (config.show || unintendedError) {
+										console.log(result.code + '\n\n\n');
+									}
 
-								return Promise.resolve()
-									.then(() => {
-										if (config.exports && !unintendedError) {
-											return config.exports(module.exports);
-										}
-									})
-									.then(() => {
-										if (config.bundle && !unintendedError) {
-											return config.bundle(bundle);
-										}
-									})
-									.catch(err => {
-										if (config.runtimeError) {
-											config.runtimeError(err);
+									if (config.warnings) {
+										if (Array.isArray(config.warnings)) {
+											compareWarnings(warnings, config.warnings);
 										} else {
-											unintendedError = err;
+											config.warnings(warnings);
 										}
-									})
-									.then(() => {
-										if (config.show || unintendedError) {
-											console.log(result.code + '\n\n\n');
-										}
+									} else if (warnings.length) {
+										throw new Error(
+											`Got unexpected warnings:\n${warnings
+												.map(warning => warning.message)
+												.join('\n')}`
+										);
+									}
 
-										if (config.warnings) {
-											if (Array.isArray(config.warnings)) {
-												compareWarnings(warnings, config.warnings);
-											} else {
-												config.warnings(warnings);
-											}
-										} else if (warnings.length) {
-											throw new Error(
-												`Got unexpected warnings:\n${warnings
-													.map(warning => warning.message)
-													.join('\n')}`
-											);
-										}
+									if (config.solo) console.groupEnd();
 
-										if (config.solo) console.groupEnd();
-
-										if (unintendedError) throw unintendedError;
-									});
-							});
-					})
-					.catch(err => {
-						if (config.error) {
-							compareError(err, config.error);
-						} else {
-							throw err;
-						}
-					});
-			});
-		});
+									if (unintendedError) throw unintendedError;
+								});
+						});
+				})
+				.catch(err => {
+					if (config.error) {
+						compareError(err, config.error);
+					} else {
+						throw err;
+					}
+				});
+		}
+	);
 });

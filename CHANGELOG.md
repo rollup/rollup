@@ -5,6 +5,7 @@
 * Add experimental support for top-level await ([#2235](https://github.com/rollup/rollup/pull/2235))
 * Prevent duplicate version printout in watch mode ([#2325](https://github.com/rollup/rollup/pull/2325))
 * Add `esm` format alias to types ([#2327](https://github.com/rollup/rollup/pull/2327))
+* Further unify internal test setup ([#2329](https://github.com/rollup/rollup/pull/2329))
 
 ## 0.62.0
 *2018-06-27*

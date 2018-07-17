@@ -5,7 +5,7 @@ import error from './error';
 function badExports(option: string, keys: string[]) {
 	error({
 		code: 'INVALID_EXPORT_OPTION',
-		message: `'${option}' was specified for options.exports, but entry module has following exports: ${keys.join(
+		message: `'${option}' was specified for output.exports, but entry module has following exports: ${keys.join(
 			', '
 		)}`
 	});
@@ -46,7 +46,7 @@ export default function getExportMode(
 	if (!/(?:default|named|none)/.test(exportMode)) {
 		error({
 			code: 'INVALID_EXPORT_OPTION',
-			message: `options.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')`
+			message: `output.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')`
 		});
 	}
 
