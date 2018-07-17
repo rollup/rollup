@@ -1,7 +1,8 @@
 # rollup changelog
 
 ## 0.63.0
-*unreleased*
+*2018-07-17*
+* Fix many tree-shaking related issues ([#2315](https://github.com/rollup/rollup/pull/2315))
 * Add experimental support for top-level await ([#2235](https://github.com/rollup/rollup/pull/2235))
 * Prevent duplicate version printout in watch mode ([#2325](https://github.com/rollup/rollup/pull/2325))
 * Respect error frames provided by plugins ([#2309](https://github.com/rollup/rollup/pull/2309))
