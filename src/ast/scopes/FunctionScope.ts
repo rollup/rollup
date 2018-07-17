@@ -19,13 +19,13 @@ export default class FunctionScope extends ReturnValueScope {
 		[name: string]: LocalVariable | GlobalVariable | ExternalVariable | ArgumentsVariable;
 	};
 
-	constructor(parent: Scope, reassignmentTracker: EntityPathTracker) {
+	constructor(parent: Scope, deoptimizationTracker: EntityPathTracker) {
 		super(parent);
 		this.variables.arguments = new ArgumentsVariable(
 			super.getParameterVariables(),
-			reassignmentTracker
+			deoptimizationTracker
 		);
-		this.variables.this = new ThisVariable(reassignmentTracker);
+		this.variables.this = new ThisVariable(deoptimizationTracker);
 	}
 
 	findLexicalBoundary() {

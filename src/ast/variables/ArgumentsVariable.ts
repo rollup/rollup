@@ -18,8 +18,8 @@ const getParameterVariable = (path: ObjectPath, options: ExecutionPathOptions) =
 export default class ArgumentsVariable extends LocalVariable {
 	private parameters: ParameterVariable[];
 
-	constructor(parameters: ParameterVariable[], reassignmentTracker: EntityPathTracker) {
-		super('arguments', null, UNKNOWN_EXPRESSION, reassignmentTracker);
+	constructor(parameters: ParameterVariable[], deoptimizationTracker: EntityPathTracker) {
+		super('arguments', null, UNKNOWN_EXPRESSION, deoptimizationTracker);
 		this.parameters = parameters;
 	}
 
@@ -53,11 +53,11 @@ export default class ArgumentsVariable extends LocalVariable {
 		);
 	}
 
-	reassignPath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath) {
 		const firstArgNum = parseInt(<string>path[0], 10);
 		if (path.length > 0) {
 			if (firstArgNum >= 0 && this.parameters[firstArgNum]) {
-				this.parameters[firstArgNum].reassignPath(path.slice(1));
+				this.parameters[firstArgNum].deoptimizePath(path.slice(1));
 			}
 		}
 	}

@@ -3,6 +3,7 @@ import { BLANK } from '../../utils/blank';
 import relativeId from '../../utils/relativeId';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
@@ -24,13 +25,13 @@ import Literal from './Literal';
 import * as NodeType from './NodeType';
 import { ExpressionNode, Node, NodeBase } from './shared/Node';
 
-function getPropertyKey(memberExpression: MemberExpression): string | null {
+function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
-		? getComputedPropertyKey(memberExpression.property)
+		? getResolvableComputedPropertyKey(memberExpression.property)
 		: (<Identifier>memberExpression.property).name;
 }
 
-function getComputedPropertyKey(propertyKey: ExpressionNode): string | null {
+function getResolvableComputedPropertyKey(propertyKey: ExpressionNode): string | null {
 	if (propertyKey instanceof Literal) {
 		return String(propertyKey.value);
 	}
@@ -63,16 +64,17 @@ export function isMemberExpression(node: Node): node is MemberExpression {
 	return node.type === NodeType.MemberExpression;
 }
 
-export default class MemberExpression extends NodeBase {
+export default class MemberExpression extends NodeBase implements DeoptimizableEntity {
 	type: NodeType.tMemberExpression;
 	object: ExpressionNode;
 	property: ExpressionNode;
 	computed: boolean;
 
-	propertyKey: ObjectPathKey;
+	propertyKey: ObjectPathKey | null;
 	variable: Variable = null;
 	private bound: boolean;
 	private replacement: string | null;
+	private expressionsToBeDeoptimized: DeoptimizableEntity[];
 
 	bind() {
 		if (this.bound) return;
@@ -93,32 +95,43 @@ export default class MemberExpression extends NodeBase {
 			}
 		} else {
 			super.bind();
+			if (this.propertyKey === null) this.analysePropertyKey();
+		}
+	}
+
+	deoptimizeCache() {
+		for (const expression of this.expressionsToBeDeoptimized) {
+			expression.deoptimizeCache();
 		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (this.variable !== null) {
-			return this.variable.getLiteralValueAtPath(path, recursionTracker);
+			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
 		}
-		return this.object.getLiteralValueAtPath(
-			[this.propertyKey || this.getComputedKey(recursionTracker), ...path],
-			recursionTracker
-		);
+		if (this.propertyKey === null) this.analysePropertyKey();
+		this.expressionsToBeDeoptimized.push(origin);
+		return this.object.getLiteralValueAtPath([this.propertyKey, ...path], recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	) {
 		if (this.variable !== null) {
-			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
+			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 		}
+		if (this.propertyKey === null) this.analysePropertyKey();
+		this.expressionsToBeDeoptimized.push(origin);
 		return this.object.getReturnExpressionWhenCalledAtPath(
-			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
-			recursionTracker
+			[this.propertyKey, ...path],
+			recursionTracker,
+			origin
 		);
 	}
 
@@ -127,10 +140,7 @@ export default class MemberExpression extends NodeBase {
 			this.property.hasEffects(options) ||
 			this.object.hasEffects(options) ||
 			(this.context.propertyReadSideEffects &&
-				this.object.hasEffectsWhenAccessedAtPath(
-					[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER)],
-					options
-				))
+				this.object.hasEffectsWhenAccessedAtPath([this.propertyKey], options))
 		);
 	}
 
@@ -141,20 +151,14 @@ export default class MemberExpression extends NodeBase {
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, options);
 		}
-		return this.object.hasEffectsWhenAccessedAtPath(
-			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
-			options
-		);
+		return this.object.hasEffectsWhenAccessedAtPath([this.propertyKey, ...path], options);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 		}
-		return this.object.hasEffectsWhenAssignedAtPath(
-			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
-			options
-		);
+		return this.object.hasEffectsWhenAssignedAtPath([this.propertyKey, ...path], options);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -166,7 +170,7 @@ export default class MemberExpression extends NodeBase {
 			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 		}
 		return this.object.hasEffectsWhenCalledAtPath(
-			[this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER), ...path],
+			[this.propertyKey, ...path],
 			callOptions,
 			options
 		);
@@ -186,22 +190,21 @@ export default class MemberExpression extends NodeBase {
 
 	initialise() {
 		this.included = false;
-		this.propertyKey = getPropertyKey(this);
+		this.propertyKey = getResolvablePropertyKey(this);
 		this.variable = null;
 		this.bound = false;
 		this.replacement = null;
+		this.expressionsToBeDeoptimized = [];
 	}
 
-	reassignPath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath) {
 		if (!this.bound) this.bind();
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
-			this.variable.reassignPath(path);
+			this.variable.deoptimizePath(path);
 		} else {
-			this.object.reassignPath([
-				this.propertyKey || this.getComputedKey(EMPTY_IMMUTABLE_TRACKER),
-				...path
-			]);
+			if (this.propertyKey === null) this.analysePropertyKey();
+			this.object.deoptimizePath([this.propertyKey, ...path]);
 		}
 	}
 
@@ -242,11 +245,6 @@ export default class MemberExpression extends NodeBase {
 		}
 	}
 
-	private getComputedKey(recursionTracker: ImmutableEntityPathTracker) {
-		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
-		return value === UNKNOWN_VALUE ? UNKNOWN_KEY : String(value);
-	}
-
 	private resolveNamespaceVariables(
 		baseVariable: Variable,
 		path: PathWithPositions
@@ -275,5 +273,11 @@ export default class MemberExpression extends NodeBase {
 			return 'undefined';
 		}
 		return this.resolveNamespaceVariables(variable, path.slice(1));
+	}
+
+	private analysePropertyKey() {
+		this.propertyKey = UNKNOWN_KEY;
+		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
+		this.propertyKey = value === UNKNOWN_VALUE ? UNKNOWN_KEY : String(value);
 	}
 }

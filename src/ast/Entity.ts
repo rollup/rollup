@@ -10,10 +10,9 @@ export interface WritableEntity extends Entity {
 
 	/**
 	 * Reassign a given path of an object.
-	 * E.g., node.reassignPath(['x', 'y']) is called when something
-	 * is assigned to node.x.y.
-	 * The default noop implementation is ok as long as hasEffectsWhenAssignedAtPath
-	 * always returns true for this node. Otherwise it should be overridden.
+	 * E.g., node.deoptimizePath(['x', 'y']) is called when something
+	 * is assigned to node.x.y. If the path is [UNKNOWN_KEY], then the return
+	 * expression of this node is reassigned as well.
 	 */
-	reassignPath(path: ObjectPath): void;
+	deoptimizePath(path: ObjectPath): void;
 }

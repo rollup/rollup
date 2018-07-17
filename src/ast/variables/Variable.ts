@@ -1,4 +1,5 @@
 import CallOptions from '../CallOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
@@ -47,14 +48,16 @@ export default class Variable implements ExpressionEntity {
 
 	getLiteralValueAtPath(
 		_path: ObjectPath,
-		_recursionTracker: ImmutableEntityPathTracker
+		_recursionTracker: ImmutableEntityPathTracker,
+		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
-		_recursionTracker: ImmutableEntityPathTracker
+		_recursionTracker: ImmutableEntityPathTracker,
+		_origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
@@ -85,7 +88,7 @@ export default class Variable implements ExpressionEntity {
 		this.included = true;
 	}
 
-	reassignPath(_path: ObjectPath) {}
+	deoptimizePath(_path: ObjectPath) {}
 
 	setSafeName(name: string) {
 		this.safeName = name;

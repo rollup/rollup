@@ -49,7 +49,7 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
 	hasEffectsWhenCalledAtPath: () => true,
 	include: () => {},
-	reassignPath: () => {},
+	deoptimizePath: () => {},
 	toString: () => '[[UNKNOWN]]'
 };
 export const UNDEFINED_EXPRESSION: ExpressionEntity = {
@@ -60,7 +60,7 @@ export const UNDEFINED_EXPRESSION: ExpressionEntity = {
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
 	hasEffectsWhenCalledAtPath: () => true,
 	include: () => {},
-	reassignPath: () => {},
+	deoptimizePath: () => {},
 	toString: () => 'undefined'
 };
 const returnsUnknown: RawMemberDescription = {
@@ -115,7 +115,7 @@ export class UnknownArrayExpression implements ExpressionEntity {
 		this.included = true;
 	}
 
-	reassignPath() {}
+	deoptimizePath() {}
 
 	toString() {
 		return '[[UNKNOWN ARRAY]]';
@@ -174,7 +174,7 @@ const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 		return true;
 	},
 	include: () => {},
-	reassignPath: () => {},
+	deoptimizePath: () => {},
 	toString: () => '[[UNKNOWN BOOLEAN]]'
 };
 
@@ -214,7 +214,7 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 		return true;
 	},
 	include: () => {},
-	reassignPath: () => {},
+	deoptimizePath: () => {},
 	toString: () => '[[UNKNOWN NUMBER]]'
 };
 
@@ -262,7 +262,7 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 		return true;
 	},
 	include: () => {},
-	reassignPath: () => {},
+	deoptimizePath: () => {},
 	toString: () => '[[UNKNOWN STRING]]'
 };
 
@@ -312,7 +312,7 @@ export class UnknownObjectExpression implements ExpressionEntity {
 		this.included = true;
 	}
 
-	reassignPath() {}
+	deoptimizePath() {}
 
 	toString() {
 		return '[[UNKNOWN OBJECT]]';

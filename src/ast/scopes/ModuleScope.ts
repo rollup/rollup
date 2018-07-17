@@ -26,7 +26,7 @@ export default class ModuleScope extends Scope {
 			'this',
 			null,
 			UNDEFINED_EXPRESSION,
-			context.reassignmentTracker
+			context.deoptimizationTracker
 		);
 	}
 

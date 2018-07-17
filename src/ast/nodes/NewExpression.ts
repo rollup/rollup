@@ -15,7 +15,7 @@ export default class NewExpression extends NodeBase {
 		super.bind();
 		for (const argument of this.arguments) {
 			// This will make sure all properties of parameters behave as "unknown"
-			argument.reassignPath(UNKNOWN_PATH);
+			argument.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 

@@ -3,7 +3,7 @@ import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import FunctionScope from '../../scopes/FunctionScope';
 import BlockScope from '../../scopes/FunctionScope';
 import Scope from '../../scopes/Scope';
-import { ObjectPath, UNKNOWN_EXPRESSION } from '../../values';
+import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../../values';
 import BlockStatement from '../BlockStatement';
 import Identifier from '../Identifier';
 import { GenericEsTreeNode, NodeBase } from './Node';
@@ -13,14 +13,15 @@ export default class FunctionNode extends NodeBase {
 	id: Identifier | null;
 	body: BlockStatement;
 	params: PatternNode[];
+	async: boolean;
 
 	scope: BlockScope;
 	preventChildBlockScope: true;
 
-	private isPrototypeReassigned: boolean;
+	private isPrototypeDeoptimized: boolean;
 
 	createScope(parentScope: FunctionScope) {
-		this.scope = new FunctionScope(parentScope, this.context.reassignmentTracker);
+		this.scope = new FunctionScope(parentScope, this.context.deoptimizationTracker);
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
@@ -35,14 +36,14 @@ export default class FunctionNode extends NodeBase {
 		if (path.length <= 1) {
 			return false;
 		}
-		return path.length > 2 || path[0] !== 'prototype' || this.isPrototypeReassigned;
+		return path.length > 2 || path[0] !== 'prototype' || this.isPrototypeDeoptimized;
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
 		if (path.length <= 1) {
 			return false;
 		}
-		return path.length > 2 || path[0] !== 'prototype' || this.isPrototypeReassigned;
+		return path.length > 2 || path[0] !== 'prototype' || this.isPrototypeDeoptimized;
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -67,7 +68,7 @@ export default class FunctionNode extends NodeBase {
 
 	initialise() {
 		this.included = false;
-		this.isPrototypeReassigned = false;
+		this.isPrototypeDeoptimized = false;
 		if (this.id !== null) {
 			this.id.declare('function', this);
 		}
@@ -84,9 +85,17 @@ export default class FunctionNode extends NodeBase {
 		super.parseNode(esTreeNode);
 	}
 
-	reassignPath(path: ObjectPath) {
-		if (path.length === 1 && path[0] === 'prototype') {
-			this.isPrototypeReassigned = true;
+	deoptimizePath(path: ObjectPath) {
+		if (path.length === 1) {
+			if (path[0] === 'prototype') {
+				this.isPrototypeDeoptimized = true;
+			} else if (path[0] === UNKNOWN_KEY) {
+				this.isPrototypeDeoptimized = true;
+
+				// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
+				// which means the return expression needs to be reassigned as well
+				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
+			}
 		}
 	}
 }

@@ -1,17 +1,25 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
 } from '../utils/ImmutableEntityPathTracker';
-import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION } from '../values';
+import {
+	EMPTY_PATH,
+	LiteralValueOrUnknown,
+	ObjectPath,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_KEY,
+	UNKNOWN_VALUE
+} from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
-export default class Property extends NodeBase {
+export default class Property extends NodeBase implements DeoptimizableEntity {
 	type: NodeType.tProperty;
 	key: ExpressionNode;
 	value: ExpressionNode;
@@ -22,54 +30,59 @@ export default class Property extends NodeBase {
 
 	private accessorCallOptions: CallOptions;
 	private returnExpression: ExpressionEntity | null;
+	private declarationInit: ExpressionEntity | null = null;
 
 	bind() {
 		super.bind();
-		if (this.kind === 'get' && this.returnExpression === null) {
-			this.returnExpression = this.value.getReturnExpressionWhenCalledAtPath(
-				EMPTY_PATH,
-				EMPTY_IMMUTABLE_TRACKER
-			);
+		if (this.kind === 'get' && this.returnExpression === null) this.updateReturnExpression();
+		if (this.declarationInit !== null) {
+			this.declarationInit.deoptimizePath([UNKNOWN_KEY, UNKNOWN_KEY]);
 		}
 	}
 
-	declare(kind: string, _init: ExpressionEntity) {
+	declare(kind: string, init: ExpressionEntity) {
+		this.declarationInit = init;
 		this.value.declare(kind, UNKNOWN_EXPRESSION);
+	}
+
+	deoptimizeCache() {
+		// As getter properties directly receive their values from function expressions that always
+		// have a fixed return value, there is no known situation where a getter is deoptimized.
+		throw new Error('Unexpected deoptimization');
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (this.kind === 'get') {
-			if (this.returnExpression === null) {
-				this.returnExpression = this.value.getReturnExpressionWhenCalledAtPath(
-					EMPTY_PATH,
-					EMPTY_IMMUTABLE_TRACKER
-				);
-			}
-			return this.returnExpression.getLiteralValueAtPath(path, recursionTracker);
+		if (this.kind === 'set') {
+			return UNKNOWN_VALUE;
 		}
-		return this.value.getLiteralValueAtPath(path, recursionTracker);
+		if (this.kind === 'get') {
+			if (this.returnExpression === null) this.updateReturnExpression();
+			return this.returnExpression.getLiteralValueAtPath(path, recursionTracker, origin);
+		}
+		return this.value.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		if (this.kind === 'set') {
 			return UNKNOWN_EXPRESSION;
 		}
 		if (this.kind === 'get') {
-			if (this.returnExpression === null) {
-				this.returnExpression = this.value.getReturnExpressionWhenCalledAtPath(
-					EMPTY_PATH,
-					EMPTY_IMMUTABLE_TRACKER
-				);
-			}
-			return this.returnExpression.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
+			if (this.returnExpression === null) this.updateReturnExpression();
+			return this.returnExpression.getReturnExpressionWhenCalledAtPath(
+				path,
+				recursionTracker,
+				origin
+			);
 		}
-		return this.value.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
+		return this.value.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
@@ -127,19 +140,14 @@ export default class Property extends NodeBase {
 		});
 	}
 
-	reassignPath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath) {
 		if (this.kind === 'get') {
 			if (path.length > 0) {
-				if (this.returnExpression === null) {
-					this.returnExpression = this.value.getReturnExpressionWhenCalledAtPath(
-						EMPTY_PATH,
-						EMPTY_IMMUTABLE_TRACKER
-					);
-				}
-				this.returnExpression.reassignPath(path);
+				if (this.returnExpression === null) this.updateReturnExpression();
+				this.returnExpression.deoptimizePath(path);
 			}
 		} else if (this.kind !== 'set') {
-			this.value.reassignPath(path);
+			this.value.deoptimizePath(path);
 		}
 	}
 
@@ -148,5 +156,14 @@ export default class Property extends NodeBase {
 			this.key.render(code, options);
 		}
 		this.value.render(code, options);
+	}
+
+	private updateReturnExpression() {
+		this.returnExpression = UNKNOWN_EXPRESSION;
+		this.returnExpression = this.value.getReturnExpressionWhenCalledAtPath(
+			EMPTY_PATH,
+			EMPTY_IMMUTABLE_TRACKER,
+			this
+		);
 	}
 }

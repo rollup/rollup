@@ -19,7 +19,7 @@ export default class ArrayExpression extends NodeBase {
 	bind() {
 		super.bind();
 		for (const element of this.elements) {
-			if (element !== null) element.reassignPath(UNKNOWN_PATH);
+			if (element !== null) element.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 

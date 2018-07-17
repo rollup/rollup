@@ -20,13 +20,13 @@ export default class ExportDefaultVariable extends LocalVariable {
 	constructor(
 		name: string,
 		exportDefaultDeclaration: ExportDefaultDeclaration,
-		reassignmentTracker: EntityPathTracker
+		deoptimizationTracker: EntityPathTracker
 	) {
 		super(
 			name,
 			exportDefaultDeclaration,
 			exportDefaultDeclaration.declaration,
-			reassignmentTracker
+			deoptimizationTracker
 		);
 		this.hasId = !!(<FunctionDeclaration | ClassDeclaration>exportDefaultDeclaration.declaration)
 			.id;

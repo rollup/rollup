@@ -2,7 +2,7 @@ import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
-import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
+import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../values';
 import BlockStatement from './BlockStatement';
 import * as NodeType from './NodeType';
 import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
@@ -71,6 +71,14 @@ export default class ArrowFunctionExpression extends NodeBase {
 			);
 		}
 		super.parseNode(esTreeNode);
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
+		// which means the return expression needs to be reassigned
+		if (path.length === 1 && path[0] === UNKNOWN_KEY) {
+			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
+		}
 	}
 }
 

@@ -50,9 +50,9 @@ export default class NamespaceVariable extends Variable {
 	// build fails due to an illegal namespace reassignment or MemberExpression already forwards
 	// the reassignment to the right variable. This means we lost track of this variable and thus
 	// need to reassign all exports.
-	reassignPath() {
+	deoptimizePath() {
 		for (const key in this.originals) {
-			this.originals[key].reassignPath(UNKNOWN_PATH);
+			this.originals[key].deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 

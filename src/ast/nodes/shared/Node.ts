@@ -3,6 +3,7 @@ import MagicString from 'magic-string';
 import { AstContext } from '../../../Module';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import CallOptions from '../../CallOptions';
+import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { Entity } from '../../Entity';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import { getAndCreateKeys, keys } from '../../keys';
@@ -133,14 +134,16 @@ export class NodeBase implements ExpressionNode {
 
 	getLiteralValueAtPath(
 		_path: ObjectPath,
-		_recursionTracker: ImmutableEntityPathTracker
+		_recursionTracker: ImmutableEntityPathTracker,
+		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
-		_recursionTracker: ImmutableEntityPathTracker
+		_recursionTracker: ImmutableEntityPathTracker,
+		_origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
@@ -239,7 +242,7 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
-	reassignPath(_path: ObjectPath) {}
+	deoptimizePath(_path: ObjectPath) {}
 
 	render(code: MagicString, options: RenderOptions) {
 		for (const key of this.keys) {

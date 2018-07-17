@@ -6,6 +6,7 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath } from '../values';
@@ -19,11 +20,13 @@ export default class SequenceExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.expressions[this.expressions.length - 1].getLiteralValueAtPath(
 			path,
-			recursionTracker
+			recursionTracker,
+			origin
 		);
 	}
 
@@ -69,8 +72,8 @@ export default class SequenceExpression extends NodeBase {
 		this.expressions[this.expressions.length - 1].include();
 	}
 
-	reassignPath(path: ObjectPath) {
-		if (path.length > 0) this.expressions[this.expressions.length - 1].reassignPath(path);
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0) this.expressions[this.expressions.length - 1].deoptimizePath(path);
 	}
 
 	render(

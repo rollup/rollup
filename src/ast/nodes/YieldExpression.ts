@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { UNKNOWN_PATH } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
@@ -8,6 +9,13 @@ export default class YieldExpression extends NodeBase {
 	type: NodeType.tYieldExpression;
 	argument: ExpressionNode | null;
 	delegate: boolean;
+
+	bind() {
+		super.bind();
+		if (this.argument !== null) {
+			this.argument.deoptimizePath(UNKNOWN_PATH);
+		}
+	}
 
 	hasEffects(options: ExecutionPathOptions) {
 		return (

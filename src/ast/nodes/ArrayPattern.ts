@@ -26,11 +26,11 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		return false;
 	}
 
-	reassignPath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath) {
 		if (path.length === 0) {
 			for (const element of this.elements) {
 				if (element !== null) {
-					element.reassignPath(path);
+					element.deoptimizePath(path);
 				}
 			}
 		}

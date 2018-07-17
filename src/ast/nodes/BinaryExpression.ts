@@ -1,3 +1,4 @@
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
@@ -40,13 +41,14 @@ export default class BinaryExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UNKNOWN_VALUE;
-		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
+		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
 		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
-		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
+		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
 		if (rightValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
 		const operatorFn = binaryOperators[this.operator];

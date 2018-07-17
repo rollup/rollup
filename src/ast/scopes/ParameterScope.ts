@@ -14,8 +14,8 @@ export default class ParameterScope extends Scope {
 	 * @param {Identifier} identifier
 	 * @returns {Variable}
 	 */
-	addParameterDeclaration(identifier: Identifier, reassignmentTracker: EntityPathTracker) {
-		const variable = new ParameterVariable(identifier, reassignmentTracker);
+	addParameterDeclaration(identifier: Identifier, deoptimizationTracker: EntityPathTracker) {
+		const variable = new ParameterVariable(identifier, deoptimizationTracker);
 		this.variables[identifier.name] = variable;
 		this.parameters.push(variable);
 		return variable;

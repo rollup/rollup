@@ -12,7 +12,7 @@ export default class VariableDeclarator extends NodeBase {
 		this.id.declare(kind, this.init || UNDEFINED_EXPRESSION);
 	}
 
-	reassignPath(path: ObjectPath) {
-		this.id.reassignPath(path);
+	deoptimizePath(path: ObjectPath) {
+		this.id.deoptimizePath(path);
 	}
 }
