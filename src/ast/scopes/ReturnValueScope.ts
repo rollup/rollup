@@ -21,7 +21,7 @@ export default class ReturnValueScope extends ParameterScope {
 		} else {
 			this.returnExpression = UNKNOWN_EXPRESSION;
 			for (const expression of this.returnExpressions) {
-				expression.reassignPath(UNKNOWN_PATH);
+				expression.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
 	}

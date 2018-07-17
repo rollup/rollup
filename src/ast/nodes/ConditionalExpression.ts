@@ -39,14 +39,14 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
 	}
 
-	deoptimize() {
+	deoptimizeCache() {
 		if (this.usedBranch !== null) {
 			// We did not track if there were reassignments to the previous branch.
 			// Also, the return value might need to be reassigned.
 			this.usedBranch = null;
-			this.unusedBranch.reassignPath(UNKNOWN_PATH);
+			this.unusedBranch.deoptimizePath(UNKNOWN_PATH);
 			for (const expression of this.expressionsToBeDeoptimized) {
-				expression.deoptimize();
+				expression.deoptimizeCache();
 			}
 		}
 	}
@@ -140,14 +140,14 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 	}
 
-	reassignPath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath) {
 		if (path.length > 0) {
 			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
 			if (this.usedBranch === null) {
-				this.consequent.reassignPath(path);
-				this.alternate.reassignPath(path);
+				this.consequent.deoptimizePath(path);
+				this.alternate.deoptimizePath(path);
 			} else {
-				this.usedBranch.reassignPath(path);
+				this.usedBranch.deoptimizePath(path);
 			}
 		}
 	}

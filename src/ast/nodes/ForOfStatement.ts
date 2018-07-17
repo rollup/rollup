@@ -22,7 +22,7 @@ export default class ForOfStatement extends StatementBase {
 
 	bind() {
 		super.bind();
-		this.left.reassignPath(EMPTY_PATH);
+		this.left.deoptimizePath(EMPTY_PATH);
 	}
 
 	createScope(parentScope: Scope) {
@@ -42,7 +42,7 @@ export default class ForOfStatement extends StatementBase {
 	include() {
 		this.included = true;
 		this.left.includeWithAllDeclaredVariables();
-		this.left.reassignPath(EMPTY_PATH);
+		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.include();
 		this.body.include();
 	}

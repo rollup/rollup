@@ -1,3 +1,3 @@
 export interface DeoptimizableEntity {
-	deoptimize(): void;
+	deoptimizeCache(): void;
 }

@@ -66,15 +66,15 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		}
 		for (const argument of this.arguments) {
 			// This will make sure all properties of parameters behave as "unknown"
-			argument.reassignPath(UNKNOWN_PATH);
+			argument.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 
-	deoptimize() {
+	deoptimizeCache() {
 		if (this.returnExpression !== UNKNOWN_EXPRESSION) {
 			this.returnExpression = UNKNOWN_EXPRESSION;
 			for (const expression of this.expressionsToBeDeoptimized) {
-				expression.deoptimize();
+				expression.deoptimizeCache();
 			}
 		}
 	}
@@ -198,8 +198,8 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		this.expressionsToBeDeoptimized = [];
 	}
 
-	reassignPath(path: ObjectPath) {
-		if (path.length > 0 && !this.context.reassignmentTracker.track(this, path)) {
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0 && !this.context.deoptimizationTracker.track(this, path)) {
 			if (this.returnExpression === null) {
 				this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
 					EMPTY_PATH,
@@ -207,7 +207,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 					this
 				);
 			}
-			this.returnExpression.reassignPath(path);
+			this.returnExpression.deoptimizePath(path);
 		}
 	}
 }

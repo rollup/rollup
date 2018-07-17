@@ -41,14 +41,14 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
 	}
 
-	deoptimize() {
+	deoptimizeCache() {
 		if (this.usedBranch !== null) {
 			// We did not track if there were reassignments to any of the branches.
 			// Also, the return values might need reassignment.
 			this.usedBranch = null;
-			this.unusedBranch.reassignPath(UNKNOWN_PATH);
+			this.unusedBranch.deoptimizePath(UNKNOWN_PATH);
 			for (const expression of this.expressionsToBeDeoptimized) {
-				expression.deoptimize();
+				expression.deoptimizeCache();
 			}
 		}
 	}
@@ -140,14 +140,14 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		this.expressionsToBeDeoptimized = [];
 	}
 
-	reassignPath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath) {
 		if (path.length > 0) {
 			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
 			if (this.usedBranch === null) {
-				this.left.reassignPath(path);
-				this.right.reassignPath(path);
+				this.left.deoptimizePath(path);
+				this.right.deoptimizePath(path);
 			} else {
-				this.usedBranch.reassignPath(path);
+				this.usedBranch.deoptimizePath(path);
 			}
 		}
 	}

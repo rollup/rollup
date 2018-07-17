@@ -45,8 +45,8 @@ export default class ObjectExpression extends NodeBase {
 	private propertyMap: PropertyMap | null;
 	private unmatchablePropertiesRead: (Property | SpreadElement)[] | null;
 	private unmatchablePropertiesWrite: Property[] | null;
-	private reassignedPaths: { [key: string]: true };
-	private hasUnknownReassignedProperty: boolean;
+	private deoptimizedPaths: { [key: string]: true };
+	private hasUnknownDeoptimizedProperty: boolean;
 	private expressionsToBeDeoptimized: { [key: string]: DeoptimizableEntity[] };
 
 	bind() {
@@ -55,8 +55,8 @@ export default class ObjectExpression extends NodeBase {
 	}
 
 	// We could also track this per-property but this would quickly become much more complex
-	deoptimize() {
-		if (!this.hasUnknownReassignedProperty) this.reassignAllProperties();
+	deoptimizeCache() {
+		if (!this.hasUnknownDeoptimizedProperty) this.deoptimizeAllProperties();
 	}
 
 	getLiteralValueAtPath(
@@ -69,9 +69,9 @@ export default class ObjectExpression extends NodeBase {
 
 		if (
 			path.length === 0 ||
-			this.hasUnknownReassignedProperty ||
+			this.hasUnknownDeoptimizedProperty ||
 			typeof key !== 'string' ||
-			this.reassignedPaths[key]
+			this.deoptimizedPaths[key]
 		)
 			return UNKNOWN_VALUE;
 
@@ -117,9 +117,9 @@ export default class ObjectExpression extends NodeBase {
 
 		if (
 			path.length === 0 ||
-			this.hasUnknownReassignedProperty ||
+			this.hasUnknownDeoptimizedProperty ||
 			typeof key !== 'string' ||
-			this.reassignedPaths[key]
+			this.deoptimizedPaths[key]
 		)
 			return UNKNOWN_EXPRESSION;
 
@@ -155,9 +155,9 @@ export default class ObjectExpression extends NodeBase {
 		const key = path[0];
 		if (
 			path.length > 1 &&
-			(this.hasUnknownReassignedProperty ||
+			(this.hasUnknownDeoptimizedProperty ||
 				typeof key !== 'string' ||
-				this.reassignedPaths[key] ||
+				this.deoptimizedPaths[key] ||
 				!this.propertyMap[key] ||
 				this.propertyMap[key].exactMatchRead === null)
 		)
@@ -179,9 +179,9 @@ export default class ObjectExpression extends NodeBase {
 		const key = path[0];
 		if (
 			path.length > 1 &&
-			(this.hasUnknownReassignedProperty ||
+			(this.hasUnknownDeoptimizedProperty ||
 				typeof key !== 'string' ||
-				this.reassignedPaths[key] ||
+				this.deoptimizedPaths[key] ||
 				!this.propertyMap[key] ||
 				this.propertyMap[key].exactMatchRead === null)
 		)
@@ -208,9 +208,9 @@ export default class ObjectExpression extends NodeBase {
 		const key = path[0];
 		if (
 			path.length === 0 ||
-			this.hasUnknownReassignedProperty ||
+			this.hasUnknownDeoptimizedProperty ||
 			typeof key !== 'string' ||
-			this.reassignedPaths[key] ||
+			this.deoptimizedPaths[key] ||
 			(this.propertyMap[key]
 				? !this.propertyMap[key].exactMatchRead
 				: path.length > 1 || !objectMembers[key])
@@ -227,33 +227,33 @@ export default class ObjectExpression extends NodeBase {
 
 	initialise() {
 		this.included = false;
-		this.hasUnknownReassignedProperty = false;
-		this.reassignedPaths = Object.create(null);
+		this.hasUnknownDeoptimizedProperty = false;
+		this.deoptimizedPaths = Object.create(null);
 		this.propertyMap = null;
 		this.expressionsToBeDeoptimized = Object.create(null);
 	}
 
-	reassignPath(path: ObjectPath) {
-		if (this.hasUnknownReassignedProperty) return;
+	deoptimizePath(path: ObjectPath) {
+		if (this.hasUnknownDeoptimizedProperty) return;
 		if (this.propertyMap === null) this.buildPropertyMap();
 		if (path.length === 0) {
-			this.reassignAllProperties();
+			this.deoptimizeAllProperties();
 			return;
 		}
 		const key = path[0];
 		if (path.length === 1) {
 			if (typeof key !== 'string') {
-				this.reassignAllProperties();
+				this.deoptimizeAllProperties();
 				return;
 			}
-			if (!this.reassignedPaths[key]) {
-				this.reassignedPaths[key] = true;
+			if (!this.deoptimizedPaths[key]) {
+				this.deoptimizedPaths[key] = true;
 
-				// we only deoptimize exact matches as in all other cases,
+				// we only deoptimizeCache exact matches as in all other cases,
 				// we do not return a literal value or return expression
 				if (this.expressionsToBeDeoptimized[key]) {
 					for (const expression of this.expressionsToBeDeoptimized[key]) {
-						expression.deoptimize();
+						expression.deoptimizeCache();
 					}
 				}
 			}
@@ -264,18 +264,18 @@ export default class ObjectExpression extends NodeBase {
 				? this.propertyMap[key].propertiesRead
 				: []
 			: this.properties) {
-			property.reassignPath(subPath);
+			property.deoptimizePath(subPath);
 		}
 	}
 
-	private reassignAllProperties() {
-		this.hasUnknownReassignedProperty = true;
+	private deoptimizeAllProperties() {
+		this.hasUnknownDeoptimizedProperty = true;
 		for (const property of this.properties) {
-			property.reassignPath(UNKNOWN_PATH);
+			property.deoptimizePath(UNKNOWN_PATH);
 		}
 		for (const key of Object.keys(this.expressionsToBeDeoptimized)) {
 			for (const expression of this.expressionsToBeDeoptimized[key]) {
-				expression.deoptimize();
+				expression.deoptimizeCache();
 			}
 		}
 	}

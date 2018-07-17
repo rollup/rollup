@@ -50,7 +50,7 @@ export default class Identifier extends NodeBase {
 			case 'function':
 				this.variable = this.scope.addDeclaration(
 					this,
-					this.context.reassignmentTracker,
+					this.context.deoptimizationTracker,
 					init,
 					true
 				);
@@ -60,7 +60,7 @@ export default class Identifier extends NodeBase {
 			case 'class':
 				this.variable = this.scope.addDeclaration(
 					this,
-					this.context.reassignmentTracker,
+					this.context.deoptimizationTracker,
 					init,
 					false
 				);
@@ -68,7 +68,7 @@ export default class Identifier extends NodeBase {
 			case 'parameter':
 				this.variable = (<FunctionScope>this.scope).addParameterDeclaration(
 					this,
-					this.context.reassignmentTracker
+					this.context.deoptimizationTracker
 				);
 				break;
 			default:
@@ -133,7 +133,7 @@ export default class Identifier extends NodeBase {
 		}
 	}
 
-	reassignPath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath) {
 		if (!this.bound) this.bind();
 		if (this.variable !== null) {
 			if (
@@ -143,7 +143,7 @@ export default class Identifier extends NodeBase {
 			) {
 				this.disallowImportReassignment();
 			}
-			this.variable.reassignPath(path);
+			this.variable.deoptimizePath(path);
 		}
 	}
 

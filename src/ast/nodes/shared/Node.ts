@@ -242,7 +242,7 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
-	reassignPath(_path: ObjectPath) {}
+	deoptimizePath(_path: ObjectPath) {}
 
 	render(code: MagicString, options: RenderOptions) {
 		for (const key of this.keys) {

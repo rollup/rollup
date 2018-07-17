@@ -36,7 +36,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		super.bind();
 		if (this.kind === 'get' && this.returnExpression === null) this.updateReturnExpression();
 		if (this.declarationInit !== null) {
-			this.declarationInit.reassignPath([UNKNOWN_KEY, UNKNOWN_KEY]);
+			this.declarationInit.deoptimizePath([UNKNOWN_KEY, UNKNOWN_KEY]);
 		}
 	}
 
@@ -45,7 +45,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		this.value.declare(kind, UNKNOWN_EXPRESSION);
 	}
 
-	deoptimize() {
+	deoptimizeCache() {
 		// As getter properties directly receive their values from function expressions that always
 		// have a fixed return value, there is no known situation where a getter is deoptimized.
 		throw new Error('Unexpected deoptimization');
@@ -140,14 +140,14 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		});
 	}
 
-	reassignPath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath) {
 		if (this.kind === 'get') {
 			if (path.length > 0) {
 				if (this.returnExpression === null) this.updateReturnExpression();
-				this.returnExpression.reassignPath(path);
+				this.returnExpression.deoptimizePath(path);
 			}
 		} else if (this.kind !== 'set') {
-			this.value.reassignPath(path);
+			this.value.deoptimizePath(path);
 		}
 	}
 

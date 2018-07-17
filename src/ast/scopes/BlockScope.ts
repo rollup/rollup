@@ -9,19 +9,19 @@ export default class BlockScope extends Scope {
 
 	addDeclaration(
 		identifier: Identifier,
-		reassignmentTracker: EntityPathTracker,
+		deoptimizationTracker: EntityPathTracker,
 		init: ExpressionEntity | null = null,
 		isHoisted: boolean = false
 	) {
 		if (isHoisted) {
 			return this.parent.addDeclaration(
 				identifier,
-				reassignmentTracker,
+				deoptimizationTracker,
 				init,
 				true
 			) as LocalVariable;
 		} else {
-			return super.addDeclaration(identifier, reassignmentTracker, init, false) as LocalVariable;
+			return super.addDeclaration(identifier, deoptimizationTracker, init, false) as LocalVariable;
 		}
 	}
 }

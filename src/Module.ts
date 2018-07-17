@@ -90,7 +90,7 @@ export interface AstContext {
 	moduleContext: string;
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	propertyReadSideEffects: boolean;
-	reassignmentTracker: EntityPathTracker;
+	deoptimizationTracker: EntityPathTracker;
 	requestTreeshakingPass: () => void;
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable;
@@ -275,7 +275,7 @@ export default class Module {
 			nodeConstructors,
 			propertyReadSideEffects:
 				!this.graph.treeshake || this.graph.treeshakingOptions.propertyReadSideEffects,
-			reassignmentTracker: this.graph.reassignmentTracker,
+			deoptimizationTracker: this.graph.deoptimizationTracker,
 			requestTreeshakingPass: () => (this.needsTreeshakingPass = true),
 			traceExport: this.traceExport.bind(this),
 			traceVariable: this.traceVariable.bind(this),
@@ -450,7 +450,7 @@ export default class Module {
 			const variable = this.traceExport(exportName);
 
 			variable.exportName = exportName;
-			variable.reassignPath(UNKNOWN_PATH);
+			variable.deoptimizePath(UNKNOWN_PATH);
 			variable.include();
 
 			if (variable.isNamespace) {
@@ -467,7 +467,7 @@ export default class Module {
 				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
 			} else {
 				variable.include();
-				variable.reassignPath(UNKNOWN_PATH);
+				variable.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
 	}

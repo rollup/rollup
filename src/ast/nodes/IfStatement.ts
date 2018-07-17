@@ -25,7 +25,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		}
 	}
 
-	deoptimize() {
+	deoptimizeCache() {
 		this.testValue = UNKNOWN_VALUE;
 	}
 

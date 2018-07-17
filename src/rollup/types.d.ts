@@ -213,6 +213,7 @@ export interface InputOptions {
 	experimentalCodeSplitting?: boolean;
 	experimentalDynamicImport?: boolean;
 	experimentalTopLevelAwait?: boolean;
+	inlineDynamicImports: boolean;
 	preserveSymlinks?: boolean;
 	experimentalPreserveModules?: boolean;
 	optimizeChunks?: boolean;

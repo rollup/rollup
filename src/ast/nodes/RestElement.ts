@@ -14,7 +14,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 	bind() {
 		super.bind();
 		if (this.declarationInit !== null) {
-			this.declarationInit.reassignPath([UNKNOWN_KEY, UNKNOWN_KEY]);
+			this.declarationInit.deoptimizePath([UNKNOWN_KEY, UNKNOWN_KEY]);
 		}
 	}
 
@@ -27,7 +27,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 		return path.length > 0 || this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options);
 	}
 
-	reassignPath(path: ObjectPath) {
-		path.length === 0 && this.argument.reassignPath(EMPTY_PATH);
+	deoptimizePath(path: ObjectPath) {
+		path.length === 0 && this.argument.deoptimizePath(EMPTY_PATH);
 	}
 }

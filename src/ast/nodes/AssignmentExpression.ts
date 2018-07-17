@@ -25,9 +25,9 @@ export default class AssignmentExpression extends NodeBase {
 
 	bind() {
 		super.bind();
-		this.left.reassignPath(EMPTY_PATH);
-		// We can not propagate mutations of the new binding to the old binding with certainty
-		this.right.reassignPath(UNKNOWN_PATH);
+		this.left.deoptimizePath(EMPTY_PATH);
+		// We cannot propagate mutations of the new binding to the old binding with certainty
+		this.right.deoptimizePath(UNKNOWN_PATH);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

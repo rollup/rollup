@@ -57,9 +57,9 @@ export class MultiExpression implements ExpressionEntity {
 
 	include(): void {}
 
-	reassignPath(path: ObjectPath): void {
+	deoptimizePath(path: ObjectPath): void {
 		for (const expression of this.expressions) {
-			expression.reassignPath(path);
+			expression.deoptimizePath(path);
 		}
 	}
 }

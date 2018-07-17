@@ -60,7 +60,7 @@ export default class Graph {
 	onwarn: WarningHandler;
 	plugins: Plugin[];
 	pluginContext: PluginContext;
-	reassignmentTracker: EntityPathTracker;
+	deoptimizationTracker: EntityPathTracker;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
 	scope: GlobalScope;
@@ -78,7 +78,7 @@ export default class Graph {
 
 	constructor(options: InputOptions, watcher?: Watcher) {
 		this.curChunkIndex = 0;
-		this.reassignmentTracker = new EntityPathTracker();
+		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
 		if (options.cache) {
 			if (options.cache.modules) {

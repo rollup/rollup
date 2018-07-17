@@ -58,9 +58,9 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	reassignPath(_path: ObjectPath) {
+	deoptimizePath(_path: ObjectPath) {
 		for (const declarator of this.declarations) {
-			declarator.reassignPath(EMPTY_PATH);
+			declarator.deoptimizePath(EMPTY_PATH);
 		}
 	}
 

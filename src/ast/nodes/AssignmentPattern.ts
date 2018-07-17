@@ -12,8 +12,8 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 
 	bind() {
 		super.bind();
-		this.left.reassignPath(EMPTY_PATH);
-		this.right.reassignPath(UNKNOWN_PATH);
+		this.left.deoptimizePath(EMPTY_PATH);
+		this.right.deoptimizePath(UNKNOWN_PATH);
 	}
 
 	declare(kind: string, init: ExpressionEntity) {
@@ -24,7 +24,7 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options);
 	}
 
-	reassignPath(path: ObjectPath) {
-		path.length === 0 && this.left.reassignPath(path);
+	deoptimizePath(path: ObjectPath) {
+		path.length === 0 && this.left.deoptimizePath(path);
 	}
 }

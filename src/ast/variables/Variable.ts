@@ -88,7 +88,7 @@ export default class Variable implements ExpressionEntity {
 		this.included = true;
 	}
 
-	reassignPath(_path: ObjectPath) {}
+	deoptimizePath(_path: ObjectPath) {}
 
 	setSafeName(name: string) {
 		this.safeName = name;

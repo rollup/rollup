@@ -27,7 +27,7 @@ export default class UnaryExpression extends NodeBase {
 	bind() {
 		super.bind();
 		if (this.operator === 'delete') {
-			this.argument.reassignPath(EMPTY_PATH);
+			this.argument.deoptimizePath(EMPTY_PATH);
 		}
 	}
 

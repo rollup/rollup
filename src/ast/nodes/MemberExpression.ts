@@ -99,9 +99,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	deoptimize() {
+	deoptimizeCache() {
 		for (const expression of this.expressionsToBeDeoptimized) {
-			expression.deoptimize();
+			expression.deoptimizeCache();
 		}
 	}
 
@@ -197,14 +197,14 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.expressionsToBeDeoptimized = [];
 	}
 
-	reassignPath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath) {
 		if (!this.bound) this.bind();
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
-			this.variable.reassignPath(path);
+			this.variable.deoptimizePath(path);
 		} else {
 			if (this.propertyKey === null) this.analysePropertyKey();
-			this.object.reassignPath([this.propertyKey, ...path]);
+			this.object.deoptimizePath([this.propertyKey, ...path]);
 		}
 	}
 

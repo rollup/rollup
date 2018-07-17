@@ -30,7 +30,7 @@ export default class Scope {
 
 	addDeclaration(
 		identifier: Identifier,
-		reassignmentTracker: EntityPathTracker,
+		deoptimizationTracker: EntityPathTracker,
 		init: ExpressionEntity | null = null,
 		_isHoisted: boolean
 	) {
@@ -42,7 +42,7 @@ export default class Scope {
 				identifier.name,
 				identifier,
 				init || UNDEFINED_EXPRESSION,
-				reassignmentTracker
+				deoptimizationTracker
 			);
 		}
 		return this.variables[name];
@@ -51,12 +51,12 @@ export default class Scope {
 	addExportDefaultDeclaration(
 		name: string,
 		exportDefaultDeclaration: ExportDefaultDeclaration,
-		reassignmentTracker: EntityPathTracker
+		deoptimizationTracker: EntityPathTracker
 	): ExportDefaultVariable {
 		this.variables.default = new ExportDefaultVariable(
 			name,
 			exportDefaultDeclaration,
-			reassignmentTracker
+			deoptimizationTracker
 		);
 		return this.variables.default;
 	}

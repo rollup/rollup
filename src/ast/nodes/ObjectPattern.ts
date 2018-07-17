@@ -25,10 +25,10 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		return false;
 	}
 
-	reassignPath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath) {
 		if (path.length === 0) {
 			for (const property of this.properties) {
-				property.reassignPath(path);
+				property.deoptimizePath(path);
 			}
 		}
 	}

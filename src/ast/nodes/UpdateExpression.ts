@@ -12,7 +12,7 @@ export default class UpdateExpression extends NodeBase {
 
 	bind() {
 		super.bind();
-		this.argument.reassignPath(EMPTY_PATH);
+		this.argument.deoptimizePath(EMPTY_PATH);
 		if (isIdentifier(this.argument)) {
 			const variable = this.scope.findVariable(this.argument.name);
 			variable.isReassigned = true;

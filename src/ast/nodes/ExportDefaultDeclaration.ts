@@ -66,7 +66,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		this.variable = this.scope.addExportDefaultDeclaration(
 			this.declarationName || this.context.getModuleName(),
 			this,
-			this.context.reassignmentTracker
+			this.context.deoptimizationTracker
 		);
 		this.context.addExport(this);
 	}

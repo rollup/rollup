@@ -72,8 +72,8 @@ export default class SequenceExpression extends NodeBase {
 		this.expressions[this.expressions.length - 1].include();
 	}
 
-	reassignPath(path: ObjectPath) {
-		if (path.length > 0) this.expressions[this.expressions.length - 1].reassignPath(path);
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0) this.expressions[this.expressions.length - 1].deoptimizePath(path);
 	}
 
 	render(

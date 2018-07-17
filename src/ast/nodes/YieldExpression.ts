@@ -13,7 +13,7 @@ export default class YieldExpression extends NodeBase {
 	bind() {
 		super.bind();
 		if (this.argument !== null) {
-			this.argument.reassignPath(UNKNOWN_PATH);
+			this.argument.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 

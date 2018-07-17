@@ -7,8 +7,12 @@ import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } 
 import LocalVariable from './LocalVariable';
 
 export default class ReplaceableInitializationVariable extends LocalVariable {
-	constructor(name: string, declarator: Identifier | null, reassignmentTracker: EntityPathTracker) {
-		super(name, declarator, null, reassignmentTracker);
+	constructor(
+		name: string,
+		declarator: Identifier | null,
+		deoptimizationTracker: EntityPathTracker
+	) {
+		super(name, declarator, null, deoptimizationTracker);
 	}
 
 	getLiteralValueAtPath(): LiteralValueOrUnknown {

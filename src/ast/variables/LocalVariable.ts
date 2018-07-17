@@ -28,19 +28,19 @@ export default class LocalVariable extends Variable {
 
 	// Caching and deoptimization:
 	// We collect deoptimization when we do not return something unknown
-	private reassignmentTracker: EntityPathTracker;
+	private deoptimizationTracker: EntityPathTracker;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	constructor(
 		name: string,
 		declarator: Identifier | ExportDefaultDeclaration | null,
 		init: ExpressionEntity | null,
-		reassignmentTracker: EntityPathTracker
+		deoptimizationTracker: EntityPathTracker
 	) {
 		super(name);
 		this.declarations = declarator ? [declarator] : [];
 		this.init = init;
-		this.reassignmentTracker = reassignmentTracker;
+		this.deoptimizationTracker = deoptimizationTracker;
 	}
 
 	addDeclaration(identifier: Identifier, init: ExpressionEntity | null) {
@@ -58,7 +58,7 @@ export default class LocalVariable extends Variable {
 	consolidateInitializers() {
 		if (this.additionalInitializers !== null) {
 			for (const initializer of this.additionalInitializers) {
-				initializer.reassignPath(UNKNOWN_PATH);
+				initializer.deoptimizePath(UNKNOWN_PATH);
 			}
 			this.additionalInitializers = null;
 		}
@@ -166,21 +166,21 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	reassignPath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath) {
 		if (path.length > MAX_PATH_DEPTH) return;
-		if (!(this.isReassigned || this.reassignmentTracker.track(this, path))) {
+		if (!(this.isReassigned || this.deoptimizationTracker.track(this, path))) {
 			if (path.length === 0) {
 				if (!this.isReassigned) {
 					this.isReassigned = true;
 					for (const expression of this.expressionsToBeDeoptimized) {
-						expression.deoptimize();
+						expression.deoptimizeCache();
 					}
 					if (this.init) {
-						this.init.reassignPath(UNKNOWN_PATH);
+						this.init.deoptimizePath(UNKNOWN_PATH);
 					}
 				}
 			} else if (this.init) {
-				this.init.reassignPath(path);
+				this.init.deoptimizePath(path);
 			}
 		}
 	}
