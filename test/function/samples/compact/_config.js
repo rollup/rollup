@@ -1,11 +1,11 @@
 module.exports = {
 	description: 'compact output with compact: true',
 	options: {
-		external: ['external']
-	},
-	bundleOptions: {
-		compact: true,
-		namespaceToStringTag: true
+		external: ['external'],
+		output: {
+			compact: true,
+			namespaceToStringTag: true
+		}
 	},
 	warnings: [
 		{
@@ -15,7 +15,7 @@ module.exports = {
 		}
 	],
 	context: {
-		require (x) {
+		require(x) {
 			return 42;
 		}
 	}

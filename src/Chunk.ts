@@ -77,7 +77,7 @@ function getGlobalName(
 			guess: module.name,
 			message: `No name was provided for external module '${
 				module.id
-			}' in options.globals – guessing '${module.name}'`
+			}' in output.globals – guessing '${module.name}'`
 		});
 		return module.name;
 	}

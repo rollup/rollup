@@ -12,11 +12,8 @@ module.exports = {
 					};
 				}
 			}
-		]
-	},
-
-	// ensure source maps are generated
-	bundleOptions: {
-		sourcemap: true
+		],
+		// ensure source maps are generated
+		output: { sourcemap: true }
 	}
 };
