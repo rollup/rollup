@@ -3,7 +3,7 @@ const assert = require('assert');
 const sander = require('sander');
 const buble = require('buble');
 const { exec } = require('child_process');
-const { deindent, normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
+const { normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
 
 const cwd = process.cwd();
 
@@ -32,7 +32,8 @@ runTestSuiteWithSamples(
 					}
 
 					if ('stderr' in config) {
-						assert.equal(deindent(config.stderr), stderr.trim());
+						const shouldContinue = config.stderr(stderr.trim());
+						if (!shouldContinue) return done();
 					} else if (stderr) {
 						console.error(stderr);
 					}
