@@ -325,7 +325,8 @@ export default class ObjectExpression extends NodeBase {
 			} else {
 				key = String((<Literal>property.key).value);
 			}
-			if (!this.propertyMap[key]) {
+			const propertyMapProperty = this.propertyMap[key];
+			if (!propertyMapProperty) {
 				this.propertyMap[key] = {
 					exactMatchRead: isRead ? property : null,
 					propertiesRead: isRead ? [property, ...this.unmatchablePropertiesRead] : [],
@@ -334,13 +335,13 @@ export default class ObjectExpression extends NodeBase {
 				};
 				continue;
 			}
-			if (isRead && this.propertyMap[key].exactMatchRead === null) {
-				this.propertyMap[key].exactMatchRead = property;
-				this.propertyMap[key].propertiesRead.push(property, ...this.unmatchablePropertiesRead);
+			if (isRead && propertyMapProperty.exactMatchRead === null) {
+				propertyMapProperty.exactMatchRead = property;
+				propertyMapProperty.propertiesRead.push(property, ...this.unmatchablePropertiesRead);
 			}
-			if (isWrite && !isRead && this.propertyMap[key].exactMatchWrite === null) {
-				this.propertyMap[key].exactMatchWrite = property;
-				this.propertyMap[key].propertiesSet.push(property, ...this.unmatchablePropertiesWrite);
+			if (isWrite && !isRead && propertyMapProperty.exactMatchWrite === null) {
+				propertyMapProperty.exactMatchWrite = property;
+				propertyMapProperty.propertiesSet.push(property, ...this.unmatchablePropertiesWrite);
 			}
 		}
 	}

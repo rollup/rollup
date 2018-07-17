@@ -92,7 +92,7 @@ export default class FunctionNode extends NodeBase {
 			} else if (path[0] === UNKNOWN_KEY) {
 				this.isPrototypeReassigned = true;
 
-				// A reassignment of [UNKNOWN_PATH] is considered equivalent to having lost track
+				// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 				// which means the return expression needs to be reassigned as well
 				this.scope.getReturnExpression().reassignPath(UNKNOWN_PATH);
 			}

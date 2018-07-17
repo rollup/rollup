@@ -71,9 +71,11 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	}
 
 	deoptimize() {
-		this.returnExpression = UNKNOWN_EXPRESSION;
-		for (const expression of this.expressionsToBeDeoptimized) {
-			expression.deoptimize();
+		if (this.returnExpression !== UNKNOWN_EXPRESSION) {
+			this.returnExpression = UNKNOWN_EXPRESSION;
+			for (const expression of this.expressionsToBeDeoptimized) {
+				expression.deoptimize();
+			}
 		}
 	}
 
@@ -205,9 +207,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 					this
 				);
 			}
-			if (this.returnExpression !== UNKNOWN_EXPRESSION) {
-				this.returnExpression.reassignPath(path);
-			}
+			this.returnExpression.reassignPath(path);
 		}
 	}
 }

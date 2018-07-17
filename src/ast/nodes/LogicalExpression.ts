@@ -31,14 +31,14 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	// Caching and deoptimization:
 	// We collect deoptimization information if usedBranch !== null
-	private needsValueResolution: boolean;
+	private isBranchResolutionAnalysed: boolean;
 	private usedBranch: ExpressionNode | null;
 	private unusedBranch: ExpressionNode | null;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[];
 
 	bind() {
 		super.bind();
-		if (this.needsValueResolution) this.updateUsedBranch();
+		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
 	}
 
 	deoptimize() {
@@ -58,7 +58,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		recursionTracker: ImmutableEntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (this.needsValueResolution) this.updateUsedBranch();
+		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
 		if (this.usedBranch === null) return UNKNOWN_VALUE;
 		this.expressionsToBeDeoptimized.push(origin);
 		return this.usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
@@ -69,7 +69,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		recursionTracker: ImmutableEntityPathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		if (this.needsValueResolution) this.updateUsedBranch();
+		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
 		if (this.usedBranch === null)
 			return new MultiExpression([
 				this.left.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin),
@@ -134,7 +134,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	initialise() {
 		this.included = false;
-		this.needsValueResolution = true;
+		this.isBranchResolutionAnalysed = false;
 		this.usedBranch = null;
 		this.unusedBranch = null;
 		this.expressionsToBeDeoptimized = [];
@@ -142,7 +142,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	reassignPath(path: ObjectPath) {
 		if (path.length > 0) {
-			if (this.needsValueResolution) this.updateUsedBranch();
+			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
 			if (this.usedBranch === null) {
 				this.left.reassignPath(path);
 				this.right.reassignPath(path);
@@ -171,8 +171,8 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		}
 	}
 
-	private updateUsedBranch() {
-		this.needsValueResolution = false;
+	private analyseBranchResolution() {
+		this.isBranchResolutionAnalysed = true;
 		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
 		if (leftValue !== UNKNOWN_VALUE) {
 			if (this.operator === '||' ? leftValue : !leftValue) {

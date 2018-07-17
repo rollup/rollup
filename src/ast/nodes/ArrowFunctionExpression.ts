@@ -74,7 +74,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 	}
 
 	reassignPath(path: ObjectPath) {
-		// A reassignment of [UNKNOWN_PATH] is considered equivalent to having lost track
+		// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 		// which means the return expression needs to be reassigned
 		if (path.length === 1 && path[0] === UNKNOWN_KEY) {
 			this.scope.getReturnExpression().reassignPath(UNKNOWN_PATH);

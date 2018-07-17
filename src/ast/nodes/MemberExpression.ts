@@ -95,7 +95,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			}
 		} else {
 			super.bind();
-			if (this.propertyKey === null) this.updatePropertyKey();
+			if (this.propertyKey === null) this.analysePropertyKey();
 		}
 	}
 
@@ -113,7 +113,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable !== null) {
 			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
 		}
-		if (this.propertyKey === null) this.updatePropertyKey();
+		if (this.propertyKey === null) this.analysePropertyKey();
 		this.expressionsToBeDeoptimized.push(origin);
 		return this.object.getLiteralValueAtPath([this.propertyKey, ...path], recursionTracker, origin);
 	}
@@ -126,7 +126,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable !== null) {
 			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 		}
-		if (this.propertyKey === null) this.updatePropertyKey();
+		if (this.propertyKey === null) this.analysePropertyKey();
 		this.expressionsToBeDeoptimized.push(origin);
 		return this.object.getReturnExpressionWhenCalledAtPath(
 			[this.propertyKey, ...path],
@@ -203,7 +203,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable) {
 			this.variable.reassignPath(path);
 		} else {
-			if (this.propertyKey === null) this.updatePropertyKey();
+			if (this.propertyKey === null) this.analysePropertyKey();
 			this.object.reassignPath([this.propertyKey, ...path]);
 		}
 	}
@@ -275,7 +275,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		return this.resolveNamespaceVariables(variable, path.slice(1));
 	}
 
-	private updatePropertyKey() {
+	private analysePropertyKey() {
 		this.propertyKey = UNKNOWN_KEY;
 		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
 		this.propertyKey = value === UNKNOWN_VALUE ? UNKNOWN_KEY : String(value);

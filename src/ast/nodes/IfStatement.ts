@@ -14,13 +14,13 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	alternate: StatementNode | null;
 
 	private testValue: LiteralValueOrUnknown;
-	private needsTestValue: boolean;
+	private isTestValueAnalysed: boolean;
 
 	bind() {
 		super.bind();
-		if (this.needsTestValue) {
+		if (!this.isTestValueAnalysed) {
 			this.testValue = UNKNOWN_VALUE;
-			this.needsTestValue = false;
+			this.isTestValueAnalysed = true;
 			this.testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
 		}
 	}
@@ -63,7 +63,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	initialise() {
 		this.included = false;
-		this.needsTestValue = true;
+		this.isTestValueAnalysed = false;
 	}
 
 	render(code: MagicString, options: RenderOptions) {
