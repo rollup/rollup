@@ -21,8 +21,10 @@ export default class ForOfStatement extends StatementBase {
 	await: boolean;
 
 	bind() {
-		super.bind();
+		this.left.bind();
 		this.left.deoptimizePath(EMPTY_PATH);
+		this.right.bind();
+		this.body.bind();
 	}
 
 	createScope(parentScope: Scope) {
