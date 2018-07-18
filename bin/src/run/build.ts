@@ -1,6 +1,6 @@
-import chalk from 'chalk';
 import ms from 'pretty-ms';
 import * as rollup from 'rollup';
+import tc from 'turbocolor';
 import {
 	InputOptions,
 	OutputBundle,
@@ -42,7 +42,7 @@ export default function build(
 				.map(name => (<Record<string, string>>inputOptions.input)[name])
 				.join(', ');
 		}
-		stderr(chalk.cyan(`\n${chalk.bold(inputFiles)} → ${chalk.bold(files.join(', '))}...`));
+		stderr(tc.cyan(`\n${tc.bold(inputFiles)} → ${tc.bold(files.join(', '))}...`));
 	}
 
 	return rollup
@@ -76,9 +76,7 @@ export default function build(
 			warnings.flush();
 			if (!silent)
 				stderr(
-					chalk.green(
-						`created ${chalk.bold(files.join(', '))} in ${chalk.bold(ms(Date.now() - start))}`
-					)
+					tc.green(`created ${tc.bold(files.join(', '))} in ${tc.bold(ms(Date.now() - start))}`)
 				);
 			if (bundle && bundle.getTimings) {
 				printTimings(bundle.getTimings());

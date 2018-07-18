@@ -1,6 +1,6 @@
-import chalk from 'chalk';
 import path from 'path';
 import rollup from 'rollup';
+import tc from 'turbocolor';
 import { InputOptions, RollupSingleFileBuild } from '../../../src/rollup/types';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
@@ -27,7 +27,7 @@ export default function loadConfigFile(
 		})
 		.then((bundle: RollupSingleFileBuild) => {
 			if (!silent && warnings.count > 0) {
-				stderr(chalk.bold(`loaded ${relativeId(configFile)} with warnings`));
+				stderr(tc.bold(`loaded ${relativeId(configFile)} with warnings`));
 				warnings.flush();
 			}
 

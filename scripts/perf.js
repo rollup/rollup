@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const rollup = require('../dist/rollup.js');
-const chalk = require('chalk');
+const tc = require('turbocolor');
 const { loadPerfConfig, targetDir } = require('./load-perf-config');
 
 const perfFile = path.resolve(targetDir, 'rollup.perf.json');
@@ -23,10 +23,10 @@ if (!(numberOfDiscardedResults >= 0) || !(numberOfDiscardedResults < numberOfRun
 	process.exit(1);
 }
 console.info(
-	chalk.bold(
-		`Calculating the average of ${chalk.cyan(
+	tc.bold(
+		`Calculating the average of ${tc.cyan(
 			numberOfRunsToAverage
-		)} runs discarding the ${chalk.cyan(numberOfDiscardedResults)} largest results.\n`
+		)} runs discarding the ${tc.cyan(numberOfDiscardedResults)} largest results.\n`
 	) + 'Run "npm run perf <number of runs> <number of discarded results>" to change that.'
 );
 
@@ -92,7 +92,7 @@ function printTimings(timings, existingTimings, filter = /.*/) {
 	const printedLabels = Object.keys(timings).filter(label => filter.test(label));
 	console.info('');
 	printedLabels.forEach(label => {
-		let color = chalk;
+		let color = tc;
 		if (label[0] === '#') {
 			color = color.bold;
 			if (label[1] !== '#') {
@@ -112,8 +112,8 @@ function getExistingTimings() {
 	try {
 		const timings = JSON.parse(fs.readFileSync(perfFile, 'utf8'));
 		console.info(
-			chalk.bold(
-				`Comparing with ${chalk.cyan(perfFile)}. Delete this file to create a new base line.`
+			tc.bold(
+				`Comparing with ${tc.cyan(perfFile)}. Delete this file to create a new base line.`
 			)
 		);
 		return timings;
@@ -126,11 +126,11 @@ function persistTimings(timings) {
 	try {
 		fs.writeFileSync(perfFile, JSON.stringify(timings, null, 2), 'utf8');
 		console.info(
-			chalk.bold(`Saving performance information to new reference file ${chalk.cyan(perfFile)}.`)
+			tc.bold(`Saving performance information to new reference file ${tc.cyan(perfFile)}.`)
 		);
 	} catch (e) {
 		console.error(
-			chalk.bold(`Could not persist performance information in ${chalk.cyan(perfFile)}.`)
+			tc.bold(`Could not persist performance information in ${tc.cyan(perfFile)}.`)
 		);
 		system.exit(1);
 	}
@@ -140,7 +140,7 @@ const MIN_ABSOLUTE_DEVIATION = 10;
 const RELATIVE_DEVIATION_FOR_COLORING = 5;
 
 function getFormattedTime(currentTime, persistedTime = currentTime) {
-	let color = chalk,
+	let color = tc,
 		formattedTime = `${currentTime.toFixed(0)}ms`;
 	const absoluteDeviation = Math.abs(currentTime - persistedTime);
 	if (absoluteDeviation > MIN_ABSOLUTE_DEVIATION) {

@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import tc from 'turbocolor';
 import { RollupWarning } from '../../../src/rollup/types';
 import relativeId from '../../../src/utils/relativeId';
 import { stderr } from '../logging';
@@ -55,7 +55,7 @@ export default function batchWarnings() {
 					handler.fn(warnings);
 				} else {
 					warnings.forEach(warning => {
-						stderr(`${chalk.bold.yellow('(!)')} ${chalk.bold.yellow(warning.message)}`);
+						stderr(`${tc.bold.yellow('(!)')} ${tc.bold.yellow(warning.message)}`);
 
 						if (warning.url) info(warning.url);
 
@@ -65,7 +65,7 @@ export default function batchWarnings() {
 								? `${relativeId(id)}: (${warning.loc.line}:${warning.loc.column})`
 								: relativeId(id);
 
-							stderr(chalk.bold(relativeId(loc)));
+							stderr(tc.bold(relativeId(loc)));
 						}
 
 						if (warning.frame) info(warning.frame);
@@ -91,7 +91,7 @@ const immediateHandlers: {
 		title(`Some options have been renamed`);
 		info(`https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32`);
 		warning.deprecations.forEach(option => {
-			stderr(`${chalk.bold(option.old)} is now ${option.new}`);
+			stderr(`${tc.bold(option.old)} is now ${option.new}`);
 		});
 	},
 
@@ -155,7 +155,7 @@ const deferredHandlers: {
 
 			Array.from(dependencies.keys()).forEach(dependency => {
 				const importers = dependencies.get(dependency);
-				stderr(`${chalk.bold(dependency)} (imported by ${importers.join(', ')})`);
+				stderr(`${tc.bold(dependency)} (imported by ${importers.join(', ')})`);
 			});
 		}
 	},
@@ -167,9 +167,9 @@ const deferredHandlers: {
 			info('https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module');
 
 			warnings.forEach(warning => {
-				stderr(chalk.bold(warning.importer));
+				stderr(tc.bold(warning.importer));
 				stderr(`${warning.missing} is not exported by ${warning.exporter}`);
-				stderr(chalk.grey(warning.frame));
+				stderr(tc.gray(warning.frame));
 			});
 		}
 	},
@@ -206,7 +206,7 @@ const deferredHandlers: {
 			title(`Conflicting re-exports`);
 			warnings.forEach(warning => {
 				stderr(
-					`${chalk.bold(relativeId(warning.reexporter))} re-exports '${
+					`${tc.bold(relativeId(warning.reexporter))} re-exports '${
 						warning.name
 					}' from both ${relativeId(warning.sources[0])} and ${relativeId(
 						warning.sources[1]
@@ -224,7 +224,7 @@ const deferredHandlers: {
 				`Use output.globals to specify browser global variable names corresponding to external modules`
 			);
 			warnings.forEach(warning => {
-				stderr(`${chalk.bold(warning.source)} (guessing '${warning.guess}')`);
+				stderr(`${tc.bold(warning.source)} (guessing '${warning.guess}')`);
 			});
 		}
 	},
@@ -271,7 +271,7 @@ const deferredHandlers: {
 							? `${relativeId(warning.id)}: (${warning.loc.line}:${warning.loc.column})`
 							: relativeId(warning.id);
 
-						stderr(chalk.bold(relativeId(loc)));
+						stderr(tc.bold(relativeId(loc)));
 						if (warning.frame) info(warning.frame);
 					});
 				});
@@ -281,11 +281,11 @@ const deferredHandlers: {
 };
 
 function title(str: string) {
-	stderr(`${chalk.bold.yellow('(!)')} ${chalk.bold.yellow(str)}`);
+	stderr(`${tc.bold.yellow('(!)')} ${tc.bold.yellow(str)}`);
 }
 
 function info(url: string) {
-	stderr(chalk.grey(url));
+	stderr(tc.gray(url));
 }
 
 function nest<T>(array: T[], prop: string) {
@@ -314,8 +314,8 @@ function showTruncatedWarnings(warnings: RollupWarning[]) {
 
 	const sliced = nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;
 	sliced.forEach(({ key: id, items }) => {
-		stderr(chalk.bold(relativeId(id)));
-		stderr(chalk.grey(items[0].frame));
+		stderr(tc.bold(relativeId(id)));
+		stderr(tc.gray(items[0].frame));
 
 		if (items.length > 1) {
 			stderr(`...and ${items.length - 1} other ${items.length > 2 ? 'occurrences' : 'occurrence'}`);
