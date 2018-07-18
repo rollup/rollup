@@ -20,8 +20,10 @@ export default class ForInStatement extends StatementBase {
 	body: StatementNode;
 
 	bind() {
-		super.bind();
+		this.left.bind();
 		this.left.deoptimizePath(EMPTY_PATH);
+		this.right.bind();
+		this.body.bind();
 	}
 
 	createScope(parentScope: Scope) {
