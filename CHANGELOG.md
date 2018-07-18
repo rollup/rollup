@@ -1,6 +1,6 @@
 # rollup changelog
 
-## 0.63.0
+## 0.63.1
 *2018-07-18*
 * Fix bind order in for-of loops ([#2338](https://github.com/rollup/rollup/pull/2338))
 
