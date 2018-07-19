@@ -4,7 +4,7 @@
   (factory((global.myBundle = {}),global.a,global.Test));
 }(this, (function (exports,a,Test) { 'use strict';
 
-  Test = Test && Test.hasOwnProperty('default') ? Test['default'] : Test;
+  Test = Test && Object.prototype.hasOwnProperty.call(Test, 'default') ? Test['default'] : Test;
 
   const Test$1 = () => {
     console.log(a.Test);
