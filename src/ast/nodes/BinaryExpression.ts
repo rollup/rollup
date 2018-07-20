@@ -29,8 +29,8 @@ const binaryOperators: {
 	'^': (left: any, right: any) => left ^ right,
 	'&': (left: any, right: any) => left & right,
 	'**': (left: any, right: any) => Math.pow(left, right),
-	in: (left, right: any) => left in right,
-	instanceof: (left, right: any) => left instanceof right
+	in: () => UNKNOWN_VALUE,
+	instanceof: () => UNKNOWN_VALUE
 };
 
 export default class BinaryExpression extends NodeBase {
