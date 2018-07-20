@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.63.4
+*2018-07-20*
+* Use turbocolor instead of chalk ([#2339](https://github.com/rollup/rollup/pull/2339))
+
 ## 0.63.3
 *2018-07-20*
 * Handle expressions where "in" and "instanceof" are applied to primitive values ([#2344](https://github.com/rollup/rollup/pull/2344))
