@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.63.3
+*2018-07-20*
+* Handle expressions where "in" and "instanceof" are applied to primitive values ([#2344](https://github.com/rollup/rollup/pull/2344))
+
 ## 0.63.2
 *2018-07-18*
 * Fix bind order in for-of loops ([#2338](https://github.com/rollup/rollup/pull/2338))
