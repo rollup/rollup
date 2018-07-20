@@ -66,7 +66,6 @@
     "acorn-import-meta": "^0.2.1",
     "ansi-escapes": "^3.1.0",
     "buble": "^0.19.3",
-    "chalk": "^2.4.1",
     "chokidar": "^2.0.4",
     "console-group": "^0.3.1",
     "date-time": "^2.1.0",
@@ -104,6 +103,7 @@
     "source-map-support": "^0.5.6",
     "sourcemap-codec": "^1.4.1",
     "tslint": "^5.10.0",
+    "turbocolor": "2.4.0",
     "typescript": "^2.9.2",
     "uglify-js": "^3.4.1",
     "url-parse": "^1.4.0"

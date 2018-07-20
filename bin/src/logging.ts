@@ -1,8 +1,6 @@
-import chalk from 'chalk';
+import tc from 'turbocolor';
 import { RollupError } from '../../src/rollup/types';
 import relativeId from '../../src/utils/relativeId';
-
-if (!chalk.supportsColor) chalk.enabled = false;
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
 export const stderr = console.error.bind(console); // eslint-disable-line no-console
@@ -15,11 +13,11 @@ export function handleError(err: RollupError, recover = false) {
 			? `(${(<{ plugin?: string }>err).plugin} plugin) ${description}`
 			: description) || err;
 
-	stderr(chalk.bold.red(`[!] ${chalk.bold(message.toString())}`));
+	stderr(tc.bold.red(`[!] ${tc.bold(message.toString())}`));
 
 	// TODO should this be "err.url || (err.file && err.loc.file) || err.id"?
 	if (err.url) {
-		stderr(chalk.cyan(err.url));
+		stderr(tc.cyan(err.url));
 	}
 
 	if (err.loc) {
@@ -29,9 +27,9 @@ export function handleError(err: RollupError, recover = false) {
 	}
 
 	if (err.frame) {
-		stderr(chalk.dim(err.frame));
+		stderr(tc.dim(err.frame));
 	} else if (err.stack) {
-		stderr(chalk.dim(err.stack));
+		stderr(tc.dim(err.stack));
 	}
 
 	stderr('');

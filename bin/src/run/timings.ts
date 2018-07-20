@@ -1,9 +1,9 @@
-import chalk from 'chalk';
+import tc from 'turbocolor';
 import { SerializedTimings } from '../../../src/rollup/types';
 
 export function printTimings(timings: SerializedTimings) {
 	Object.keys(timings).forEach(label => {
-		let color = chalk;
+		let color = tc;
 		if (label[0] === '#') {
 			color = color.bold;
 			if (label[1] !== '#') {

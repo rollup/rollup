@@ -1,9 +1,9 @@
-import chalk from 'chalk';
 import dateTime from 'date-time';
 import fs from 'fs';
 import ms from 'pretty-ms';
 import * as rollup from 'rollup';
 import onExit from 'signal-exit';
+import tc from 'turbocolor';
 import {
 	InputOption,
 	RollupBuild,
@@ -109,7 +109,7 @@ export default function watch(
 					break;
 
 				case 'START':
-					screenWriter(chalk.underline(`rollup v${rollup.VERSION}`));
+					screenWriter(tc.underline(`rollup v${rollup.VERSION}`));
 					break;
 
 				case 'BUNDLE_START':
@@ -123,10 +123,8 @@ export default function watch(
 										.join(', ');
 						}
 						stderr(
-							chalk.cyan(
-								`bundles ${chalk.bold(input)} → ${chalk.bold(
-									event.output.map(relativeId).join(', ')
-								)}...`
+							tc.cyan(
+								`bundles ${tc.bold(input)} → ${tc.bold(event.output.map(relativeId).join(', '))}...`
 							)
 						);
 					}
@@ -136,8 +134,8 @@ export default function watch(
 					warnings.flush();
 					if (!silent)
 						stderr(
-							chalk.green(
-								`created ${chalk.bold(event.output.map(relativeId).join(', '))} in ${chalk.bold(
+							tc.green(
+								`created ${tc.bold(event.output.map(relativeId).join(', '))} in ${tc.bold(
 									ms(event.duration)
 								)}`
 							)
