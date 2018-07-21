@@ -4,7 +4,7 @@
 	(factory(global.jQuery));
 }(this, (function ($) { 'use strict';
 
-	$ = $ && $.hasOwnProperty('default') ? $['default'] : $;
+	$ = $ && Object.prototype.hasOwnProperty.call($, 'default') ? $['default'] : $;
 
 	$( function () {
 		$( 'body' ).html( '<h1>hello world!</h1>' );

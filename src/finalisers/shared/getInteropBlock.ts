@@ -19,8 +19,8 @@ export default function getInteropBlock(
 			}
 
 			if (options.compact)
-				return `${name}=${name}&&${name}.hasOwnProperty('default')?${name}['default']:${name};`;
-			return `${name} = ${name} && ${name}.hasOwnProperty('default') ? ${name}['default'] : ${name};`;
+				return `${name}=${name}&&Object.prototype.hasOwnProperty.call(${name},'default')?${name}['default']:${name};`;
+			return `${name} = ${name} && Object.prototype.hasOwnProperty.call(${name}, 'default') ? ${name}['default'] : ${name};`;
 		})
 		.filter(Boolean)
 		.join(options.compact ? '' : '\n');
