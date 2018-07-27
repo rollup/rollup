@@ -117,8 +117,13 @@
     "README.md"
   ],
   "lint-staged": {
-    "*.ts": [
+    "{src,bin,browser,typings}/**/*.ts": [
       "tslint --project . --fix",
+      "prettier --write",
+      "git add"
+    ],
+    "test/**/*.ts": [
+      "tslint --project test/typescript --fix",
       "prettier --write",
       "git add"
     ]
