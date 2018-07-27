@@ -158,7 +158,7 @@ export type AddonHook = string | ((this: PluginContext) => string | Promise<stri
  * const myPlugin: PluginImpl<Options> = (options = {}) => { ... }
  * ```
  */
-export type PluginImpl<O extends object> = (options?: O) => Plugin;
+export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
 
 export interface Plugin {
 	name: string;
