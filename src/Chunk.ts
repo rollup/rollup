@@ -68,8 +68,17 @@ function getGlobalName(
 	graph: Graph,
 	hasExports: boolean
 ) {
-	if (typeof globals === 'function') return globals(module.id);
-	if (globals) return globals[module.id];
+	let globalName: string | undefined;
+	if (typeof globals === 'function') {
+		globalName = globals(module.id);
+	} else if (globals) {
+		globalName = globals[module.id];
+	}
+
+	if (globalName) {
+		return globalName;
+	}
+
 	if (hasExports) {
 		graph.warn({
 			code: 'MISSING_GLOBAL_NAME',
