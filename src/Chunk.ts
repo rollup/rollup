@@ -353,7 +353,9 @@ export default class Chunk {
 		}
 
 		if (name === 'default') {
-			return;
+			// we found a missing default export, so
+			// let the module create it's own shim.
+			return { variable: module.traceExport(name), module };
 		}
 
 		// external star exports
