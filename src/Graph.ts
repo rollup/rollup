@@ -484,7 +484,7 @@ export default class Graph {
 				// filter out empty dependencies
 				for (let i = 0; i < chunkList.length; i++) {
 					const chunk = chunkList[i];
-					if (chunk.isEmpty && !chunk.entryModule) {
+					if (chunk.isEmpty && !chunk.entryModule && !chunk.isManualChunk) {
 						chunkList.splice(i--, 1);
 					}
 				}
