@@ -2,6 +2,7 @@
 
 ## 0.63.5
 *unreleased*
+* Always warn when no name is provided for a global module ([#2359](https://github.com/rollup/rollup/pull/2359))
 * Remove deprecated es6 format from types ([#2349](https://github.com/rollup/rollup/pull/2349))
 * Mark inlineDynamicImports as optional in types ([#2348](https://github.com/rollup/rollup/pull/2348))
 
