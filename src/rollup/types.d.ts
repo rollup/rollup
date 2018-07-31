@@ -225,7 +225,7 @@ export interface InputOptions {
 	experimentalCodeSplitting?: boolean;
 	experimentalDynamicImport?: boolean;
 	experimentalTopLevelAwait?: boolean;
-	inlineDynamicImports: boolean;
+	inlineDynamicImports?: boolean;
 	preserveSymlinks?: boolean;
 	experimentalPreserveModules?: boolean;
 	optimizeChunks?: boolean;
@@ -245,7 +245,7 @@ export interface InputOptions {
 	resolveExternal?: any;
 }
 
-export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'es6' | 'iife' | 'umd';
+export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'iife' | 'umd';
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
