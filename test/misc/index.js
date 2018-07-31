@@ -543,4 +543,36 @@ describe('misc', () => {
 				);
 			});
 	});
+
+	it('warns when globals option is specified and a global module name is guessed in a UMD bundle (#2358)', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({
+						input: `import * as _ from 'lodash'`
+					})
+				],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'umd',
+					globals: [],
+					name: 'myBundle'
+				})
+			)
+			.then(() => {
+				const relevantWarnings = warnings.filter(
+					warning => warning.code === 'MISSING_GLOBAL_NAME'
+				);
+				assert.equal(relevantWarnings.length, 1);
+				assert.equal(
+					relevantWarnings[0].message,
+					`No name was provided for external module 'lodash' in output.globals – guessing 'lodash'`
+				);
+			});
+	});
 });
