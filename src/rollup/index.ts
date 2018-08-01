@@ -11,6 +11,7 @@ import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
 import { basename, dirname, resolve } from '../utils/path';
+import { mapSequence } from '../utils/promise';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import { Watcher } from '../watch';
@@ -46,7 +47,7 @@ function checkInputOptions(options: InputOptions) {
 }
 
 function checkOutputOptions(options: OutputOptions) {
-	if (options.format === 'es6') {
+	if (<string>options.format === 'es6') {
 		error({
 			message: 'The `es6` output format is deprecated – use `es` instead',
 			url: `https://rollupjs.org/#format-f-output-format-`
@@ -420,16 +421,22 @@ export default function rollup(
 								message: 'You must specify output.file.'
 							});
 						}
-						return generate(outputOptions, true).then(result =>
+						return generate(outputOptions, true).then(outputBundle =>
 							Promise.all(
-								Object.keys(result).map(chunkId => {
-									return writeOutputFile(graph, chunkId, result[chunkId], outputOptions);
+								Object.keys(outputBundle).map(chunkId => {
+									return writeOutputFile(
+										graph,
+										result,
+										chunkId,
+										outputBundle[chunkId],
+										outputOptions
+									);
 								})
 							).then(
 								() =>
 									inputOptions.experimentalCodeSplitting
-										? { output: result }
-										: <OutputChunk>result[chunks[0].id]
+										? { output: outputBundle }
+										: <OutputChunk>outputBundle[chunks[0].id]
 							)
 						);
 					})
@@ -453,6 +460,7 @@ function isOutputChunk(file: OutputFile): file is OutputChunk {
 
 function writeOutputFile(
 	graph: Graph,
+	build: RollupBuild | RollupSingleFileBuild,
 	outputFileName: string,
 	outputFile: OutputFile,
 	outputOptions: OutputOptions
@@ -481,17 +489,18 @@ function writeOutputFile(
 		.then(
 			() =>
 				isOutputChunk(outputFile) &&
-				Promise.all(
-					graph.plugins
-						.filter(plugin => plugin.onwrite)
-						.map(plugin =>
-							plugin.onwrite.call(
-								graph.pluginContext,
-								{ bundle: outputFile, ...outputOptions },
-								outputFile
-							)
+				mapSequence(graph.plugins.filter(plugin => plugin.onwrite), (plugin: Plugin) => {
+					return Promise.resolve(
+						plugin.onwrite.call(
+							graph.pluginContext,
+							{
+								bundle: build,
+								...outputOptions
+							},
+							outputFile
 						)
-				)
+					);
+				})
 		)
 		.then(() => {});
 }
