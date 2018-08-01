@@ -198,8 +198,10 @@ describe('hooks', () => {
 					{
 						onwrite(info) {
 							return new Promise(fulfil => {
-								result.push({ a: info.file, format: info.format });
-								fulfil();
+								setTimeout(() => {
+									result.push({ a: info.file, format: info.format });
+									fulfil();
+								}, 10);
 							});
 						}
 					},
