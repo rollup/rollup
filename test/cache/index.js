@@ -5,6 +5,7 @@ describe('cache', () => {
 	let genPlugin;
 	let resolveIdCalls;
 	let loadCalls;
+	let transformCalls;
 	const expectedCode = `(function () {
 	'use strict';
 
@@ -15,6 +16,7 @@ describe('cache', () => {
 	beforeEach(() => {
 		resolveIdCalls = [];
 		loadCalls = [];
+		transformCalls = [];
 		genPlugin = (modules, i = 1) => ({
 			name: 'test-plugin',
 			cacheKey: `v${i}`,
@@ -25,11 +27,15 @@ describe('cache', () => {
 			load(id) {
 				loadCalls.push(id);
 				return modules[id];
+			},
+			transform(code) {
+				transformCalls.push(code);
+				return code;
 			}
 		});
 	});
 
-	it('caches calls to resolve, load on repeat loads', () => {
+	it('caches calls to resolve, load, transform on repeat loads', () => {
 		const plugins = [genPlugin({ x: `console.log( 42 );` })];
 		let cache = {};
 		return rollup
@@ -47,6 +53,7 @@ describe('cache', () => {
 			.then(({ code }) => {
 				assert.deepEqual(resolveIdCalls, ['x']);
 				assert.deepEqual(loadCalls, ['x']);
+				assert.deepEqual(transformCalls, ['console.log( 42 );']);
 				assert.deepEqual(code, expectedCode);
 			});
 	});
@@ -67,6 +74,7 @@ describe('cache', () => {
 			.then(({ code }) => {
 				assert.deepEqual(resolveIdCalls, []);
 				assert.deepEqual(loadCalls, ['x']);
+				assert.deepEqual(transformCalls, ['console.log( 42 );']);
 				assert.deepEqual(code, expectedCode);
 			});
 	});
@@ -87,6 +95,27 @@ describe('cache', () => {
 			.then(({ code }) => {
 				assert.deepEqual(resolveIdCalls, ['x']);
 				assert.deepEqual(loadCalls, []);
+				assert.deepEqual(code, expectedCode);
+			});
+	});
+
+	it('will not call transform if given correctly primed cache', () => {
+		const plugins = [genPlugin({ x: `console.log( 42 );` })];
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins,
+				cache: {
+					hooks: { 'transform|test-plugin|v1|x|console.log( 42 );': 'console.log( 42 )' }
+				}
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'iife' });
+			})
+			.then(({ code }) => {
+				assert.deepEqual(resolveIdCalls, ['x']);
+				assert.deepEqual(loadCalls, ['x']);
+				assert.deepEqual(transformCalls, []);
 				assert.deepEqual(code, expectedCode);
 			});
 	});

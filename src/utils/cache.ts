@@ -32,3 +32,14 @@ export function cacheLoadHook(cache: HookCache, plugin: Plugin) {
 			});
 	};
 }
+
+export function cacheTransformHook(cache: HookCache, plugin: Plugin) {
+	return function cachedTransform(code: string, id: string) {
+		const key = `transform|${plugin.name || '(anonymous plugin)'}|${plugin.cacheKey}|${id}|${code}`;
+		return key in cache
+			? Promise.resolve(cache[key])
+			: Promise.resolve()
+					.then(() => plugin.transform.call(this, code, id))
+					.then(value => (cache[key] = value));
+	};
+}
