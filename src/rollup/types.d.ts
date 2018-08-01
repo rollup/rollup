@@ -148,6 +148,18 @@ export type ResolveDynamicImportHook = (
 
 export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);
 
+/**
+ * use this type for plugin annotation
+ * @example
+ * ```ts
+ * interface Options {
+ * ...
+ * }
+ * const myPlugin: PluginImpl<Options> = (options = {}) => { ... }
+ * ```
+ */
+export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
+
 export interface Plugin {
 	name: string;
 	options?: (options: InputOptions) => InputOptions | void | null;
@@ -213,7 +225,7 @@ export interface InputOptions {
 	experimentalCodeSplitting?: boolean;
 	experimentalDynamicImport?: boolean;
 	experimentalTopLevelAwait?: boolean;
-	inlineDynamicImports: boolean;
+	inlineDynamicImports?: boolean;
 	preserveSymlinks?: boolean;
 	experimentalPreserveModules?: boolean;
 	optimizeChunks?: boolean;
@@ -233,7 +245,7 @@ export interface InputOptions {
 	resolveExternal?: any;
 }
 
-export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'es6' | 'iife' | 'umd';
+export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'iife' | 'umd';
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
