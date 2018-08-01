@@ -80,11 +80,15 @@ export default class Graph {
 		this.curChunkIndex = 0;
 		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
+		this.cachedHooks = {};
 		if (options.cache) {
 			if (options.cache.modules) {
 				options.cache.modules.forEach(module => {
 					this.cachedModules.set(module.id, module);
 				});
+			}
+			if (options.cache.hooks) {
+				this.cachedHooks = JSON.parse(JSON.stringify(options.cache.hooks));
 			}
 		}
 		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
@@ -151,9 +155,8 @@ export default class Graph {
 			]
 				.concat(
 					this.plugins
-						.map(plugin => plugin.resolveId)
-						.filter(Boolean)
-						.map(resolveId => resolveId.bind(this.pluginContext))
+						.filter(plugin => 'resolveId' in plugin)
+						.map(plugin => cacheResolveIdHook(this.cachedHooks, plugin))
 				)
 				.concat(resolveId(options))
 		);
@@ -236,6 +239,7 @@ export default class Graph {
 
 		return {
 			modules: this.modules.map(module => module.toJSON()),
+			hooks: this.cachedHooks,
 			assetDependencies
 		};
 	}
