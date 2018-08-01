@@ -18,11 +18,6 @@ about: Would you like something work differently? Have an alternative approach? 
   👉 https://opencollective.com/rollup/donate
 -->
 
-* Operating System:
-* Node Version:
-* NPM Version:
-* Rollup Version:
-* ${package} Version:
 
 ### Expected Behavior / Situation
 

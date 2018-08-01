@@ -18,12 +18,6 @@ about: Suggest an idea for this project
   👉 https://opencollective.com/rollup/donate
 -->
 
-* Operating System:
-* Node Version:
-* NPM Version:
-* Rollup Version:
-* ${package} Version:
-
 ### Feature Proposal
 
 

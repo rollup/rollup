@@ -18,11 +18,19 @@ about: Something went awry and you'd like to tell us about it.
   👉 https://opencollective.com/rollup/donate
 -->
 
-- Operating System:
+- Rollup Version (if applicable):
+- Operating System (or Browser):
 - Node Version:
 - NPM Version:
-- Rollup Version:
-- ${package} Version:
+
+### How Do We Reproduce?
+
+<!--
+  Issues without minimal reproductions will be closed! Please provide a repro by:
+  1. Using the REPL at https://rollupjs.org/repl, or
+  2. Provide a repository link (Read https://git.io/fNzHA for instructions)
+-->
+
 
 ### Expected Behavior
 
@@ -30,22 +38,11 @@ about: Something went awry and you'd like to tell us about it.
 ### Actual Behavior
 
 
-### Code
-
-```js
-// rollup.config.js
-
-// If your Rollup config is meaty 🍖 and over 20 lines long, please provide a
-// URL to a repo for your app or link to a gist https://gist.github.com
-```
-
-```js
-// additional code. remove this block if you don't need it
-```
-
-### How Do We Reproduce?
-
 <!--
-  Please read https://git.io/fNzHA on proper repros.
-  Issues without reproductions will be closed!
+  Most issues can be expressed or demonstrated through the REPL or a repository.
+  However, the situation may arise where some small code snippets also need to
+  be provided. In that situation, please add your code below using
+  Fenced Code Blocks (https://help.github.com/articles/creating-and-highlighting-code-blocks/)
 -->
+
+
