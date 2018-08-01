@@ -4,6 +4,7 @@ const rollup = require('../../dist/rollup');
 describe('cache', () => {
 	let genPlugin;
 	let resolveIdCalls;
+	let loadCalls;
 	const expectedCode = `(function () {
 	'use strict';
 
@@ -13,6 +14,7 @@ describe('cache', () => {
 `;
 	beforeEach(() => {
 		resolveIdCalls = [];
+		loadCalls = [];
 		genPlugin = (modules, i = 1) => ({
 			name: 'test-plugin',
 			cacheKey: `v${i}`,
@@ -21,12 +23,13 @@ describe('cache', () => {
 				return id in modules ? id : null;
 			},
 			load(id) {
+				loadCalls.push(id);
 				return modules[id];
 			}
 		});
 	});
 
-	it('caches calls to resolve on repeat loads', () => {
+	it('caches calls to resolve, load on repeat loads', () => {
 		const plugins = [genPlugin({ x: `console.log( 42 );` })];
 		let cache = {};
 		return rollup
@@ -43,6 +46,7 @@ describe('cache', () => {
 			})
 			.then(({ code }) => {
 				assert.deepEqual(resolveIdCalls, ['x']);
+				assert.deepEqual(loadCalls, ['x']);
 				assert.deepEqual(code, expectedCode);
 			});
 	});
@@ -62,8 +66,28 @@ describe('cache', () => {
 			})
 			.then(({ code }) => {
 				assert.deepEqual(resolveIdCalls, []);
+				assert.deepEqual(loadCalls, ['x']);
 				assert.deepEqual(code, expectedCode);
 			});
 	});
 
+	it('will not call load if given correctly primed cache', () => {
+		const plugins = [genPlugin({ x: '' })];
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins,
+				cache: {
+					hooks: { 'load|test-plugin|v1|x|0|0': 'console.log( 42 );' }
+				}
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'iife' });
+			})
+			.then(({ code }) => {
+				assert.deepEqual(resolveIdCalls, ['x']);
+				assert.deepEqual(loadCalls, []);
+				assert.deepEqual(code, expectedCode);
+			});
+	});
 });

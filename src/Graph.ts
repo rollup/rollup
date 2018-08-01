@@ -27,6 +27,7 @@ import {
 	Watcher
 } from './rollup/types';
 import { createAssetPluginHooks, EmitAsset, finaliseAsset } from './utils/assetHooks';
+import { cacheLoadHook, cacheResolveIdHook } from './utils/cache';
 import { load, makeOnwarn, resolveId } from './utils/defaults';
 import ensureArray from './utils/ensureArray';
 import {
@@ -163,7 +164,9 @@ export default class Graph {
 
 		this.pluginContext.resolveId = this.resolveId;
 
-		const loaders = this.plugins.map(plugin => plugin.load).filter(Boolean);
+		const loaders = this.plugins
+			.filter(plugin => 'load' in plugin)
+			.map(plugin => cacheLoadHook(this.cachedHooks, plugin));
 		this.hasLoaders = loaders.length !== 0;
 
 		this.load = first([...loaders, load]);
