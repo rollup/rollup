@@ -4,6 +4,7 @@
 *2018-08-01*
 * Ensure onwrite plugin hooks execute in sequence ([#2364](https://github.com/rollup/rollup/pull/2364))
 * Always warn when no name is provided for a global module ([#2359](https://github.com/rollup/rollup/pull/2359))
+* Add utility type for user created plugins ([#2355](https://github.com/rollup/rollup/pull/2355))
 * Remove deprecated es6 format from types ([#2349](https://github.com/rollup/rollup/pull/2349))
 * Mark inlineDynamicImports as optional in types ([#2348](https://github.com/rollup/rollup/pull/2348))
 
