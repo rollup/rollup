@@ -54,7 +54,8 @@
   "homepage": "https://github.com/rollup/rollup",
   "dependencies": {
     "@types/estree": "0.0.39",
-    "@types/node": "*"
+    "@types/node": "*",
+    "pretty-bytes": "^5.1.0"
   },
   "devDependencies": {
     "@types/acorn": "^4.0.3",
