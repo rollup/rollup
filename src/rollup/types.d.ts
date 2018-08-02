@@ -76,7 +76,7 @@ export interface Asset {
 	name: string;
 	source: string | Buffer;
 	fileName: string;
-	transform: boolean;
+	cacheType: string;
 	dependencies: string[];
 }
 

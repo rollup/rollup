@@ -249,6 +249,49 @@ describe('hooks', () => {
 			});
 	});
 
+	it('caches asset emission in transform hook', () => {
+		let cache;
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({ input: '' }),
+					{
+						transform () {
+							const assetId = this.emitAsset('test.ext', 'hello world');
+							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				cache = bundle.cache;
+				return bundle.generate({ format: 'es' });
+			})
+			.then(({ output }) => {
+				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
+				assert.equal(output['input.js'].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
+
+				return rollup
+				.rollup({
+					cache,
+					input: 'input',
+					experimentalCodeSplitting: true,
+					plugins: [
+						loader({ input: '' })
+					]
+				})
+			})
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
+			})
+			.then(({ output }) => {
+				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
+				assert.equal(output['input.js'].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
+			});
+	});
+
 	it('supports CommonJS asset urls', () => {
 		return rollup
 			.rollup({
@@ -330,7 +373,7 @@ module.exports = input;
 			});
 	});
 
-	it('throws when setting asset source twice', () => {
+	it('throws when calling setAssetSource in transform', () => {
 		return rollup
 			.rollup({
 				input: 'input',
@@ -340,12 +383,39 @@ module.exports = input;
 					{
 						transform () {
 							const assetId = this.emitAsset('test.ext');
+							this.setAssetSource(assetId, 'asdf');
+							return '';
+						}
+					}
+				]
+			})
+			.then(({ output }) => {
+				throw new Error('should fail');
+			})
+			.catch(err => {
+				assert.equal(err.code, 'PLUGIN_ERROR');
+				assert.equal(err.pluginCode, 'INVALID_SETASSETSOURCE');
+			});
+	});
+
+	it('throws when setting asset source twice', () => {
+		let thrown = false;
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						buildEnd () {
+							const assetId = this.emitAsset('test.ext');
 							this.setAssetSource(assetId, 'hello world');
 							try {
 								this.setAssetSource(assetId, 'another');
 							}
 							catch (e) {
 								assert.equal(e.code, 'ASSET_SOURCE_ALREADY_SET');
+								thrown = true;
 								return '';
 							}
 							assert.fail();
@@ -358,6 +428,7 @@ module.exports = input;
 			})
 			.then(({ output }) => {
 				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
+				assert.equal(thrown, true);
 			});
 	});
 
@@ -397,13 +468,45 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						transformBundle (code, id) {
-							calledHook = true;
+						generateBundle (code, id) {
 							try {
-								this.emitAsset('test.ext', 'hello world');
+								this.emitAsset('test.ext', [], 'hello world');
 							}
 							catch (e) {
-								assert.equal(e.code, 'ASSETS_ALREADY_FINALISED');
+								assert.equal(e.code, 'ASSETS_FINALISED');
+								calledHook = true;
+							}
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({
+					format: 'es',
+					assetFileNames: '[name][extname]'
+				});
+			})
+			.then(() => {
+				assert.equal(calledHook, true);
+			});
+	});
+
+	it('throws when calling setAssetSource from transform', () => {
+		let calledHook = false;
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						generateBundle (code, id) {
+							try {
+								this.emitAsset('test.ext', [], 'hello world');
+							}
+							catch (e) {
+								assert.equal(e.code, 'ASSETS_FINALISED');
+								calledHook = true;
 							}
 						}
 					}

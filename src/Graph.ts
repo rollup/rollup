@@ -26,7 +26,7 @@ import {
 	WarningHandler,
 	Watcher
 } from './rollup/types';
-import { createAssetPluginHooks, EmitAsset, finaliseAsset } from './utils/assetHooks';
+import { createAssetPluginHooks, finaliseAsset } from './utils/assetHooks';
 import { load, makeOnwarn, resolveId } from './utils/defaults';
 import ensureArray from './utils/ensureArray';
 import {
@@ -68,8 +68,6 @@ export default class Graph {
 	exportShimVariable: GlobalVariable;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
-
-	private createTransformEmitAsset: () => { assets: Asset[]; emitAsset: EmitAsset };
 
 	contextParse: (code: string, acornOptions?: acorn.Options) => Program;
 
@@ -138,11 +136,8 @@ export default class Graph {
 				if (typeof err === 'string') throw new Error(err);
 				error(err);
 			},
-			emitAsset: assetPluginHooks.emitAsset,
-			getAssetFileName: assetPluginHooks.getAssetFileName,
-			setAssetSource: assetPluginHooks.setAssetSource
+			...assetPluginHooks
 		};
-		this.createTransformEmitAsset = assetPluginHooks.createTransformEmitAsset;
 
 		this.resolveId = first(
 			[
@@ -229,7 +224,7 @@ export default class Graph {
 	getCache() {
 		const assetDependencies: string[] = [];
 		this.assetsById.forEach(asset => {
-			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
+			if (!asset.cacheType && asset.dependencies && asset.dependencies.length) {
 				for (const depId of asset.dependencies) assetDependencies.push(depId);
 			}
 		});
@@ -691,19 +686,17 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 					// re-emit transform assets
 					if (cachedModule.transformAssets) {
 						for (const asset of cachedModule.transformAssets) {
-							this.pluginContext.emitAsset(asset.name);
+							this.pluginContext.emitAsset(
+								asset.name,
+								<string[]>(asset.dependencies ? asset.dependencies : asset.source),
+								asset.dependencies && asset.source
+							);
 						}
 					}
 					return cachedModule;
 				}
 
-				return transform(
-					this,
-					sourceDescription,
-					module,
-					this.plugins,
-					this.createTransformEmitAsset
-				);
+				return transform(this, sourceDescription, module, this.plugins);
 			})
 			.then((source: ModuleJSON) => {
 				module.setSource(source);

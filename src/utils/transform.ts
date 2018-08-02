@@ -5,7 +5,6 @@ import Program from '../ast/nodes/Program';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
-	Asset,
 	Plugin,
 	PluginContext,
 	RawSourceMap,
@@ -13,7 +12,7 @@ import {
 	RollupWarning,
 	TransformSourceDescription
 } from '../rollup/types';
-import { EmitAsset } from './assetHooks';
+import { createTransformEmitAsset, EmitAsset } from './assetHooks';
 import error from './error';
 import getCodeFrame from './getCodeFrame';
 import { dirname, resolve } from './path';
@@ -91,7 +90,12 @@ function createPluginTransformContext(
 			});
 			error(err);
 		},
-		emitAsset
+		emitAsset,
+		setAssetSource: () =>
+			error({
+				code: 'INVALID_SETASSETSOURCE',
+				message: `setAssetSource cannot be called in transform for caching reasons. Use emitAsset with a source, or call setAssetSource in another hook.`
+			})
 	};
 }
 
@@ -99,8 +103,7 @@ export default function transform(
 	graph: Graph,
 	source: TransformSourceDescription,
 	module: Module,
-	plugins: Plugin[],
-	createTransformEmitAsset: () => { assets: Asset[]; emitAsset: EmitAsset }
+	plugins: Plugin[]
 ) {
 	const id = module.id;
 	const sourcemapChain: RawSourceMap[] = [];
@@ -110,6 +113,8 @@ export default function transform(
 	if (originalSourcemap && typeof originalSourcemap.mappings === 'string') {
 		originalSourcemap.mappings = decode(originalSourcemap.mappings);
 	}
+
+	const baseEmitAsset = graph.pluginContext.emitAsset;
 
 	const originalCode = source.code;
 	let ast = <Program>source.ast;
@@ -121,7 +126,7 @@ export default function transform(
 		if (!plugin.transform) return;
 
 		promise = promise.then(previous => {
-			const { assets, emitAsset } = createTransformEmitAsset();
+			const { assets, emitAsset } = createTransformEmitAsset(graph.assetsById, baseEmitAsset);
 			return Promise.resolve()
 				.then(() => {
 					const context = createPluginTransformContext(graph, plugin, id, previous, emitAsset);
