@@ -43,10 +43,22 @@ export function createPluginDriver(
 ): PluginDriver {
 	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
 	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
+	const existingPluginNames: string[] = [];
 
 	let hasLoadersOrTransforms = false;
 
 	const pluginContexts = plugins.map(plugin => {
+		if (typeof plugin.name === 'string') {
+			if (existingPluginNames.indexOf(plugin.name) !== -1)
+				error({
+					code: 'DUPLICATE_PLUGIN_NAME',
+					message: `The plugin name ${
+						plugin.name
+					} is already used by another plugin. Plugin names must be unique.`
+				});
+			existingPluginNames.push(plugin.name);
+		}
+
 		if (
 			!hasLoadersOrTransforms &&
 			(plugin.load || plugin.transform || plugin.transformBundle || plugin.transformChunk)
@@ -81,6 +93,16 @@ export function createPluginDriver(
 				error(err);
 			}
 		};
+		if (!plugin.name)
+			Object.defineProperty(context, 'cache', {
+				get() {
+					error({
+						code: 'ANONYMOUS_PLUGIN_CACHE',
+						message:
+							'A plugin is trying to use the Rollup cache but is not declaring a plugin name.'
+					});
+				}
+			});
 		return context;
 	});
 

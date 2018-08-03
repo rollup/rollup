@@ -1,4 +1,9 @@
+<<<<<<< HEAD:src/utils/default-plugin.ts
 import { InputOptions, Plugin } from '../rollup/types';
+=======
+import { InputOptions } from '../rollup/types';
+import { Plugin } from '../rollup/types';
+>>>>>>> refactor plugin hooks behind a single interface, plugin error augmentations:src/utils/default-plugin.ts
 import error from './error';
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path';
@@ -6,7 +11,11 @@ import { basename, dirname, isAbsolute, resolve } from './path';
 export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 	return {
 		name: 'Rollup Core',
+<<<<<<< HEAD:src/utils/default-plugin.ts
 		resolveId: createResolveId(options),
+=======
+		resolveId: resolveId(options),
+>>>>>>> refactor plugin hooks behind a single interface, plugin error augmentations:src/utils/default-plugin.ts
 		load(id) {
 			return readFileSync(id, 'utf-8');
 		},
