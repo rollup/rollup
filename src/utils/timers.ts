@@ -4,6 +4,7 @@ type StartTime = [number, number] | number;
 interface Timer {
 	time: number;
 	memory: number;
+	totalMemory: number;
 	startTime: StartTime;
 	startMemory: number;
 }
@@ -16,6 +17,7 @@ const NOOP = () => {};
 let getStartTime: () => StartTime = () => 0;
 let getElapsedTime: (previous: StartTime) => number = () => 0;
 let getStartMemory: () => number = () => 0;
+let getTotalMemory: () => number = () => 0;
 let getElapsedMemory: (previous: number) => number = () => 0;
 
 let timers: Timers = {};
@@ -32,6 +34,7 @@ function setTimeHelpers() {
 	}
 	if (typeof process !== 'undefined' && typeof process.memoryUsage === 'function') {
 		getStartMemory = () => process.memoryUsage().heapUsed;
+		getTotalMemory = () => process.memoryUsage().heapTotal;
 		getElapsedMemory = (previous: number) => getStartMemory() - previous;
 	}
 }
@@ -53,6 +56,7 @@ function timeStartImpl(label: string, level: number = 3) {
 	label = getPersistedLabel(label, level);
 	if (!timers.hasOwnProperty(label)) {
 		timers[label] = {
+			totalMemory: undefined,
 			startTime: undefined,
 			startMemory: undefined,
 			time: 0,
@@ -60,6 +64,7 @@ function timeStartImpl(label: string, level: number = 3) {
 		};
 	}
 	timers[label].startTime = getStartTime();
+	timers[label].totalMemory = getTotalMemory();
 	timers[label].startMemory = getStartMemory();
 }
 
@@ -74,7 +79,7 @@ function timeEndImpl(label: string, level: number = 3) {
 export function getTimings(): SerializedTimings {
 	const newTimings: SerializedTimings = {};
 	Object.keys(timers).forEach(label => {
-		newTimings[label] = [timers[label].time, timers[label].memory];
+		newTimings[label] = [timers[label].time, timers[label].memory, timers[label].totalMemory];
 	});
 	return newTimings;
 }
