@@ -224,7 +224,7 @@ export default class Graph {
 	getCache() {
 		const assetDependencies: string[] = [];
 		this.assetsById.forEach(asset => {
-			if (!asset.cacheType && asset.dependencies && asset.dependencies.length) {
+			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
 				for (const depId of asset.dependencies) assetDependencies.push(depId);
 			}
 		});
