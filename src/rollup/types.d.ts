@@ -333,7 +333,7 @@ export interface RollupWarning {
 export type WarningHandler = (warning: string | RollupWarning) => void;
 
 export interface SerializedTimings {
-	[label: string]: number;
+	[label: string]: [number, number, number];
 }
 
 export type OutputFile = string | Buffer | OutputChunk;
