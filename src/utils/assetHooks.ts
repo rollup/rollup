@@ -93,7 +93,7 @@ export function createAssetPluginHooks(
 				assetId = assetHash.digest('hex').substr(0, 8);
 			} while (assetsById.has(assetId));
 
-			const asset: Asset = { name, source, fileName: undefined, dependencies, cacheType: null };
+			const asset: Asset = { name, source, fileName: undefined, dependencies, transform: null };
 			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
 			assetsById.set(assetId, asset);
 			return assetId;
@@ -165,12 +165,12 @@ export function createTransformEmitAsset(assetsById: Map<string, Asset>, emitAss
 			const assetId = emitAsset(name, dependencies, source);
 			const asset = assetsById.get(assetId);
 			// distinguish transform assets
-			asset.cacheType = 'transform';
+			asset.transform = true;
 			assets.push({
 				name: asset.name,
 				source: asset.source,
 				fileName: undefined,
-				cacheType: 'transform',
+				transform: true,
 				dependencies: asset.dependencies
 			});
 			return assetId;
