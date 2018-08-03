@@ -18,6 +18,7 @@ module.exports = {
 			code: 'PLUGIN_WARNING',
 			id: path.resolve(__dirname, 'main.js'),
 			plugin: 'test',
+			hook: 'transform',
 			message: 'foo',
 			loc: {
 				file: path.resolve(__dirname, 'main.js'),

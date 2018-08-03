@@ -14,7 +14,6 @@ import {
 } from '../rollup/types';
 import ensureArray from '../utils/ensureArray';
 import mergeOptions from '../utils/mergeOptions';
-import { mapSequence } from '../utils/promise';
 import chokidar from './chokidar';
 import { addTask, deleteTask } from './fileWatchers';
 
@@ -64,7 +63,9 @@ export class Watcher extends EventEmitter {
 			code: 'START'
 		});
 
-		mapSequence(this.tasks, (task: Task) => task.run())
+		let taskPromise = Promise.resolve();
+		for (const task of this.tasks) taskPromise = taskPromise.then(() => task.run());
+		return taskPromise
 			.then(() => {
 				this.succeeded = true;
 				this.running = false;

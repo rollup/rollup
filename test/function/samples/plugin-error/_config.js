@@ -16,6 +16,7 @@ module.exports = {
 		code: 'PLUGIN_ERROR',
 		plugin: 'test',
 		message: 'nope',
+		hook: 'transform',
 		id: path.resolve(__dirname, 'main.js'),
 		pos: 22,
 		loc: {

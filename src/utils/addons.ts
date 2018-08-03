@@ -10,57 +10,45 @@ export interface Addons {
 	hash: Uint8Array;
 }
 
-export function createAddons(graph: Graph, options: OutputOptions): Promise<Addons> {
-	return Promise.all([
-		collectAddon(graph, options.banner, 'banner', '\n'),
-		collectAddon(graph, options.footer, 'footer', '\n'),
-		collectAddon(graph, options.intro, 'intro', '\n\n'),
-		collectAddon(graph, options.outro, 'outro', '\n\n')
-	]).then(([banner, footer, intro, outro]) => {
-		if (intro) intro += '\n\n';
-		if (outro) outro = `\n\n${outro}`;
-
-		if (banner.length) banner += '\n';
-		if (footer.length) footer = '\n' + footer;
-
-		const hash = new Uint8Array(4);
-
-		return { intro, outro, banner, footer, hash };
-	});
+function strOrFn(strOrFn: string | (() => string | Promise<string>)) {
+	switch (typeof strOrFn) {
+		case 'function':
+			return (<() => string | Promise<string>>strOrFn)();
+		case 'string':
+			return <string>strOrFn;
+		default:
+			return '';
+	}
 }
 
-function collectAddon(
-	graph: Graph,
-	initialAddon: string | (() => string | Promise<string>),
-	addonName: 'banner' | 'footer' | 'intro' | 'outro',
-	sep: string
-) {
-	return Promise.all(
-		[
-			{
-				pluginName: 'rollup',
-				source: initialAddon
-			},
-			...graph.plugins.map((plugin, idx) => ({
-				pluginName: plugin.name || `Plugin at pos ${idx}`,
-				source: plugin[addonName]
-			}))
-		].map(({ pluginName, source }, idx) => {
-			if (!source) return;
+const reduceSep = (out: string, next: string) => (next ? `${out}\n${next}` : out);
+const reduceDblSep = (out: string, next: string) => (next ? `${out}\n\n${next}` : out);
 
-			if (typeof source === 'string') return source;
+export function createAddons(graph: Graph, options: OutputOptions): Promise<Addons> {
+	const pluginDriver = graph.pluginDriver;
+	return Promise.all([
+		pluginDriver.hookReduceValue('banner', strOrFn(options.banner), [], reduceSep),
+		pluginDriver.hookReduceValue('footer', strOrFn(options.footer), [], reduceSep),
+		pluginDriver.hookReduceValue('intro', strOrFn(options.intro), [], reduceDblSep),
+		pluginDriver.hookReduceValue('outro', strOrFn(options.outro), [], reduceDblSep)
+	])
+		.then(([banner, footer, intro, outro]) => {
+			if (intro) intro += '\n\n';
+			if (outro) outro = `\n\n${outro}`;
+			if (banner.length) banner += '\n';
+			if (footer.length) footer = '\n' + footer;
 
-			return Promise.resolve()
-				.then(() => {
-					return source.call(idx !== 0 && graph.pluginContext);
-				})
-				.catch(err => {
-					error({
-						code: 'ADDON_ERROR',
-						message: `Could not retrieve ${addonName}. Check configuration of ${pluginName}.
-\tError Message: ${err.message}`
-					});
-				});
+			const hash = new Uint8Array(4);
+
+			return { intro, outro, banner, footer, hash };
 		})
-	).then(addons => addons.filter(Boolean).join(sep));
+		.catch(
+			(err): any => {
+				error({
+					code: 'ADDON_ERROR',
+					message: `Could not retrieve ${err.hook}. Check configuration of ${err.plugin}.
+\tError Message: ${err.message}`
+				});
+			}
+		);
 }
