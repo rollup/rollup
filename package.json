@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "0.63.4",
+  "version": "0.63.5",
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/rollup.es.js",
@@ -54,7 +54,8 @@
   "homepage": "https://github.com/rollup/rollup",
   "dependencies": {
     "@types/estree": "0.0.39",
-    "@types/node": "*"
+    "@types/node": "*",
+    "pretty-bytes": "^5.1.0"
   },
   "devDependencies": {
     "@types/acorn": "^4.0.3",
@@ -117,8 +118,13 @@
     "README.md"
   ],
   "lint-staged": {
-    "*.ts": [
+    "{src,bin,browser,typings}/**/*.ts": [
       "tslint --project . --fix",
+      "prettier --write",
+      "git add"
+    ],
+    "test/**/*.ts": [
+      "tslint --project test/typescript --fix",
       "prettier --write",
       "git add"
     ]

@@ -12,8 +12,9 @@ module.exports = {
 		assert.ok(timers.indexOf('# BUILD') >= 0, '# BUILD time is not measured.');
 		assert.ok(timers.indexOf('# GENERATE') >= 0, '# GENERATE time is not measured.');
 		timers.forEach(timer => {
-			assert.equal(typeof timings[timer], 'number');
-			assert.ok(timings[timer] >= 0, 'Timer is not non-negative.');
+			assert.equal(typeof timings[timer][0], 'number');
+			assert.equal(typeof timings[timer][1], 'number');
+			assert.ok(timings[timer][0] >= 0, 'Timer is not non-negative.');
 		})
 	}
 };

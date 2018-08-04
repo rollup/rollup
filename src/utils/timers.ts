@@ -3,7 +3,10 @@ import { InputOptions, SerializedTimings } from '../rollup/types';
 type StartTime = [number, number] | number;
 interface Timer {
 	time: number;
-	start: StartTime;
+	memory: number;
+	totalMemory: number;
+	startTime: StartTime;
+	startMemory: number;
 }
 interface Timers {
 	[label: string]: Timer;
@@ -13,6 +16,9 @@ const NOOP = () => {};
 
 let getStartTime: () => StartTime = () => 0;
 let getElapsedTime: (previous: StartTime) => number = () => 0;
+let getStartMemory: () => number = () => 0;
+let getTotalMemory: () => number = () => 0;
+let getElapsedMemory: (previous: number) => number = () => 0;
 
 let timers: Timers = {};
 
@@ -25,6 +31,11 @@ function setTimeHelpers() {
 	} else if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
 		getStartTime = performance.now.bind(performance);
 		getElapsedTime = (previous: number) => performance.now() - previous;
+	}
+	if (typeof process !== 'undefined' && typeof process.memoryUsage === 'function') {
+		getStartMemory = () => process.memoryUsage().heapUsed;
+		getTotalMemory = () => process.memoryUsage().heapTotal;
+		getElapsedMemory = (previous: number) => getStartMemory() - previous;
 	}
 }
 
@@ -45,24 +56,30 @@ function timeStartImpl(label: string, level: number = 3) {
 	label = getPersistedLabel(label, level);
 	if (!timers.hasOwnProperty(label)) {
 		timers[label] = {
-			start: undefined,
-			time: 0
+			totalMemory: undefined,
+			startTime: undefined,
+			startMemory: undefined,
+			time: 0,
+			memory: 0
 		};
 	}
-	timers[label].start = getStartTime();
+	timers[label].startTime = getStartTime();
+	timers[label].totalMemory = getTotalMemory();
+	timers[label].startMemory = getStartMemory();
 }
 
 function timeEndImpl(label: string, level: number = 3) {
 	label = getPersistedLabel(label, level);
 	if (timers.hasOwnProperty(label)) {
-		timers[label].time += getElapsedTime(timers[label].start);
+		timers[label].time += getElapsedTime(timers[label].startTime);
+		timers[label].memory += getElapsedMemory(timers[label].startMemory);
 	}
 }
 
 export function getTimings(): SerializedTimings {
 	const newTimings: SerializedTimings = {};
 	Object.keys(timers).forEach(label => {
-		newTimings[label] = timers[label].time;
+		newTimings[label] = [timers[label].time, timers[label].memory, timers[label].totalMemory];
 	});
 	return newTimings;
 }

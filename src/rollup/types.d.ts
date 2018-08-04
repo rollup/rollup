@@ -148,6 +148,18 @@ export type ResolveDynamicImportHook = (
 
 export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);
 
+/**
+ * use this type for plugin annotation
+ * @example
+ * ```ts
+ * interface Options {
+ * ...
+ * }
+ * const myPlugin: PluginImpl<Options> = (options = {}) => { ... }
+ * ```
+ */
+export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
+
 export interface Plugin {
 	name: string;
 	options?: (options: InputOptions) => InputOptions | void | null;
@@ -321,7 +333,7 @@ export interface RollupWarning {
 export type WarningHandler = (warning: string | RollupWarning) => void;
 
 export interface SerializedTimings {
-	[label: string]: number;
+	[label: string]: [number, number, number];
 }
 
 export type OutputFile = string | Buffer | OutputChunk;
