@@ -105,7 +105,7 @@
     "sourcemap-codec": "^1.4.1",
     "tslint": "^5.11.0",
     "turbocolor": "^2.4.1",
-    "typescript": "^2.9.2",
+    "typescript": "^3.0.1",
     "uglify-js": "^3.4.6",
     "url-parse": "^1.4.3"
   },
