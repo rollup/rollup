@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.64.0
+*unreleased*
+* Print memory consumption together with performance timings ([#2376](https://github.com/rollup/rollup/pull/2376))
+
 ## 0.63.5
 *2018-08-01*
 * Ensure onwrite plugin hooks execute in sequence ([#2364](https://github.com/rollup/rollup/pull/2364))
