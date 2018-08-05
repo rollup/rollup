@@ -82,5 +82,8 @@ export default function build(
 				printTimings(bundle.getTimings());
 			}
 		})
-		.catch(handleError);
+		.catch((err: any) => {
+			if (warnings.count > 0) warnings.flush();
+			handleError(err);
+		});
 }
