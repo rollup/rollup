@@ -1,15 +1,15 @@
-var babiliResults = require('./babili-results');
-var assert = require('assert');
-var getLocation = require('../../getLocation');
-var SourceMapConsumer = require('source-map').SourceMapConsumer;
+const babiliResults = require('./babili-results');
+const assert = require('assert');
+const getLocation = require('../../getLocation');
+const SourceMapConsumer = require('source-map').SourceMapConsumer;
 
 module.exports = {
 	description: 'generates valid sourcemap when source could not be determined',
 	options: {
 		plugins: [
 			{
-				transformBundle: function(code, options) {
-					var format = options.format;
+				transformBundle(code, options) {
+					const format = options.format;
 
 					return babiliResults[format];
 				}
@@ -17,11 +17,11 @@ module.exports = {
 		],
 		output: { indent: false }
 	},
-	test: function(code, map) {
-		var smc = new SourceMapConsumer(map);
+	test(code, map) {
+		const smc = new SourceMapConsumer(map);
 
-		var generatedLoc = getLocation(code, code.indexOf('42'));
-		var originalLoc = smc.originalPositionFor(generatedLoc);
+		let generatedLoc = getLocation(code, code.indexOf('42'));
+		let originalLoc = smc.originalPositionFor(generatedLoc);
 
 		assert.ok(/main/.test(originalLoc.source));
 		assert.equal(originalLoc.line, 1);

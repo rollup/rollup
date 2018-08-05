@@ -1,5 +1,3 @@
-var assert = require('assert');
-
 module.exports = {
 	skip: true,
 	description: 'resolves pathological cyclical dependencies gracefully',

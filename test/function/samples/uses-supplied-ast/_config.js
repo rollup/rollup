@@ -1,6 +1,6 @@
-var acorn = require('acorn');
+const acorn = require('acorn');
 
-var modules = {
+const modules = {
 	main: "import foo from 'foo';\nfoo();",
 
 	// the code points to './bar' but the AST points to './baz', so we
@@ -24,11 +24,11 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				resolveId: function(importee, importer) {
+				resolveId(importee, importer) {
 					if (!importer) return 'main';
 					return importee;
 				},
-				load: function(id) {
+				load(id) {
 					if (id === 'bar') {
 						throw new Error('loaded incorrect module');
 					}

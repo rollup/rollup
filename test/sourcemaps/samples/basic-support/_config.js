@@ -1,15 +1,15 @@
-var assert = require('assert');
-var getLocation = require('../../getLocation');
-var SourceMapConsumer = require('source-map').SourceMapConsumer;
+const assert = require('assert');
+const getLocation = require('../../getLocation');
+const SourceMapConsumer = require('source-map').SourceMapConsumer;
 
 module.exports = {
 	description: 'basic sourcemap support',
-	test: function(code, map) {
+	test(code, map) {
 		assert.equal(map.version, 3);
 		assert.ok(/^bundle\.(\w+)\.js/.test(map.file));
 
-		var smc = new SourceMapConsumer(map);
-		var generatedLoc, originalLoc;
+		const smc = new SourceMapConsumer(map);
+		let generatedLoc; let originalLoc;
 
 		// main.js
 		generatedLoc = getLocation(code, code.indexOf("console.log( 'hello from main.js' )"));

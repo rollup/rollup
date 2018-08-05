@@ -1,5 +1,3 @@
-const assert = require('assert');
-
 module.exports = {
 	options: {
 		external: ['external', 'other'],

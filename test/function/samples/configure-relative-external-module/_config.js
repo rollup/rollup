@@ -1,7 +1,7 @@
-var assert = require('assert');
-var path = require('path');
+const assert = require('assert');
+const path = require('path');
 
-var mockedValue = {
+const mockedValue = {
 	val: 'A value'
 };
 
@@ -11,11 +11,11 @@ module.exports = {
 		external: [path.join(__dirname, './nonexistent-relative-dependency.js')]
 	},
 	context: {
-		require: function() {
+		require() {
 			return mockedValue;
 		}
 	},
-	exports: function() {
+	exports() {
 		assert.equal(mockedValue.wasAltered, true);
 	}
 };

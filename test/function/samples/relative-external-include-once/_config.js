@@ -1,5 +1,5 @@
-var assert = require('assert');
-var path = require('path');
+const assert = require('assert');
+const path = require('path');
 
 module.exports = {
 	description: 'includes a relative external module only once',
@@ -7,12 +7,12 @@ module.exports = {
 		external: path.join(__dirname, './foo.js')
 	},
 	context: {
-		require: function(required) {
+		require(required) {
 			assert.equal(required, './foo.js');
 			return 1;
 		}
 	},
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports, 3);
 	}
 };
