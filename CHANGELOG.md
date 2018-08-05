@@ -3,6 +3,7 @@
 ## 0.64.0
 *unreleased*
 * Print memory consumption together with performance timings ([#2376](https://github.com/rollup/rollup/pull/2376))
+* Ensure CLI warnings are shown on errors and add error for external id collisions ([#2334](https://github.com/rollup/rollup/pull/2334))
 
 ## 0.63.5
 *2018-08-01*
