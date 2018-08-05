@@ -837,6 +837,15 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 
 							const externalModule = this.moduleById.get(externalId);
 
+							if (externalModule instanceof ExternalModule === false) {
+								error({
+									code: 'INVALID_EXTERNAL_ID',
+									message: `'${source}' is imported as an external by ${relativeId(
+										module.id
+									)}, but is already an existing non-external module id.`
+								});
+							}
+
 							// add external declarations so we can detect which are never used
 							for (const name in module.imports) {
 								const importDeclaration = module.imports[name];
