@@ -147,7 +147,7 @@ export default class Graph {
 		this.resolveId = first(
 			[
 				((id: string, parentId: string) =>
-					this.isExternal(id, parentId, false) ? false : null) as ResolveIdHook
+					parentId != null && this.isExternal(id, parentId, false) ? false : null) as ResolveIdHook
 			]
 				.concat(
 					this.plugins
