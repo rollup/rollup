@@ -801,7 +801,9 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 						const externalId =
 							<string>resolvedId ||
 							(isRelative(source) ? resolve(module.id, '..', source) : source);
-						let isExternal = this.isExternal.call(this.pluginContext, externalId, module.id, true);
+						let isExternal =
+							resolvedId === false ||
+							this.isExternal.call(this.pluginContext, externalId, module.id, true);
 
 						if (!resolvedId && !isExternal) {
 							if (isRelative(source)) {
