@@ -1,10 +1,10 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description:
 		'namespaces should be non-extensible and its properties immutatable and non-configurable',
 
-	exports: function(exports) {
+	exports(exports) {
 		const ns = exports.ns;
 
 		function extend(obj) {
@@ -21,15 +21,15 @@ module.exports = {
 			obj.a = 2;
 		}
 
-		assert.throws(function() {
+		assert.throws(() => {
 			extend(ns);
 		});
 
-		assert.throws(function() {
+		assert.throws(() => {
 			reconfigure(ns);
 		});
 
-		assert.throws(function() {
+		assert.throws(() => {
 			mutate(ns);
 		});
 	}

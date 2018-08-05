@@ -1,4 +1,3 @@
-const path = require('path');
 const assert = require('assert');
 
 module.exports = {
@@ -15,6 +14,6 @@ module.exports = {
 			assert.equal(typeof timings[timer][0], 'number');
 			assert.equal(typeof timings[timer][1], 'number');
 			assert.ok(timings[timer][0] >= 0, 'Timer is not non-negative.');
-		})
+		});
 	}
 };

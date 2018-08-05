@@ -1,4 +1,4 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'remove unused variables from declarations (#1937)',

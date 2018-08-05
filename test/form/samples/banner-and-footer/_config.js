@@ -8,18 +8,18 @@ module.exports = {
 		plugins: [
 			{
 				banner: '/* first banner */',
-				footer: function() {
+				footer() {
 					return '/* first footer */';
 				}
 			},
 			{
-				banner: function() {
+				banner() {
 					return '/* second banner */';
 				},
 				footer: '/* second footer */'
 			},
 			{
-				banner: function() {
+				banner() {
 					return Promise.resolve('/* 3rd banner */');
 				},
 				footer: '/* 3rd footer */'

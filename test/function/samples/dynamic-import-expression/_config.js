@@ -1,4 +1,4 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'Dynamic import expression replacement',
@@ -23,7 +23,7 @@ module.exports = {
 			}
 		]
 	},
-	runtimeError: function(error) {
+	runtimeError(error) {
 		assert.equal("Cannot find module 'x/y'", error.message);
 	}
 };

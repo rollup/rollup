@@ -1,8 +1,8 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'exports are kept up-to-date',
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports.count, 0);
 		exports.incr();
 		assert.equal(exports.count, 1);
