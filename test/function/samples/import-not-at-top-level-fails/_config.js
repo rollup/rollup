@@ -1,5 +1,4 @@
-var path = require('path');
-var assert = require('assert');
+const path = require('path');
 
 module.exports = {
 	description: 'disallows non-top-level imports',

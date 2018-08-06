@@ -1,6 +1,6 @@
-var assert = require('assert');
+const assert = require('assert');
 
-var modules = {
+const modules = {
 	'x\\y': 'export default 42;',
 	'x/y': 'export default 24;'
 };
@@ -11,16 +11,16 @@ module.exports = {
 		input: 'x\\y',
 		plugins: [
 			{
-				resolveId: function(importee) {
+				resolveId(importee) {
 					return importee;
 				},
-				load: function(moduleId) {
+				load(moduleId) {
 					return modules[moduleId];
 				}
 			}
 		]
 	},
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports, 42);
 	}
 };

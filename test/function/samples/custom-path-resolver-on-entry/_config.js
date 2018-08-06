@@ -1,8 +1,8 @@
-var path = require('path');
-var fs = require('fs');
-var assert = require('assert');
+const path = require('path');
+const fs = require('fs');
+const assert = require('assert');
 
-var cachedModules = {
+const cachedModules = {
 	'@main.js': 'import foo from "./foo"; export default foo();'
 };
 
@@ -11,7 +11,7 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				resolveId: function(importee, importer) {
+				resolveId(importee, importer) {
 					if (importer === undefined) {
 						return '@' + path.relative(__dirname, importee);
 					}
@@ -20,7 +20,7 @@ module.exports = {
 						return path.resolve(__dirname, importee) + '.js';
 					}
 				},
-				load: function(moduleId) {
+				load(moduleId) {
 					if (moduleId[0] === '@') {
 						return cachedModules[moduleId];
 					}
@@ -30,7 +30,7 @@ module.exports = {
 			}
 		]
 	},
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports, 42);
 	}
 };

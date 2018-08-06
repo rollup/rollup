@@ -1,5 +1,3 @@
-var assert = require('assert');
-
 module.exports = {
 	description: 'resolver error is not caught',
 	options: {

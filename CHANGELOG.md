@@ -1,8 +1,16 @@
 # rollup changelog
 
-## 0.63.5
+## 0.64.0
 *unreleased*
+* Print memory consumption together with performance timings ([#2370](https://github.com/rollup/rollup/pull/2370))
+* Enable plugins to mark imports as external by returning false for resolveId ([#2351](https://github.com/rollup/rollup/pull/2351))
+* Ensure CLI warnings are shown on errors and add error for external id collisions ([#2334](https://github.com/rollup/rollup/pull/2334))
+* Remove unnecessary dependency, update dependencies, fix linting of test config ([#2376](https://github.com/rollup/rollup/pull/2376))
+## 0.63.5
+*2018-08-01*
+* Ensure onwrite plugin hooks execute in sequence ([#2364](https://github.com/rollup/rollup/pull/2364))
 * Always warn when no name is provided for a global module ([#2359](https://github.com/rollup/rollup/pull/2359))
+* Add utility type for user created plugins ([#2355](https://github.com/rollup/rollup/pull/2355))
 * Remove deprecated es6 format from types ([#2349](https://github.com/rollup/rollup/pull/2349))
 * Mark inlineDynamicImports as optional in types ([#2348](https://github.com/rollup/rollup/pull/2348))
 

@@ -1,15 +1,15 @@
-var uglify = require('uglify-js');
-var assert = require('assert');
-var getLocation = require('../../getLocation');
-var SourceMapConsumer = require('source-map').SourceMapConsumer;
+const uglify = require('uglify-js');
+const assert = require('assert');
+const getLocation = require('../../getLocation');
+const SourceMapConsumer = require('source-map').SourceMapConsumer;
 
 module.exports = {
 	description: 'preserves sourcemap chains when transforming',
 	options: {
 		plugins: [
 			{
-				transformBundle: function(code) {
-					var options = {
+				transformBundle(code) {
+					const options = {
 						sourceMap: {
 							filename: 'x' // trigger sourcemap generation
 						}
@@ -20,11 +20,11 @@ module.exports = {
 			}
 		]
 	},
-	test: function(code, map) {
-		var smc = new SourceMapConsumer(map);
+	test(code, map) {
+		const smc = new SourceMapConsumer(map);
 
-		var generatedLoc = getLocation(code, code.indexOf('42'));
-		var originalLoc = smc.originalPositionFor(generatedLoc);
+		let generatedLoc = getLocation(code, code.indexOf('42'));
+		let originalLoc = smc.originalPositionFor(generatedLoc);
 
 		assert.ok(/main/.test(originalLoc.source));
 		assert.equal(originalLoc.line, 1);
