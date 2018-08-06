@@ -1,6 +1,6 @@
 ---
 name: 🆘 Support, Help, and Advice
-about: 👉🏽 Need help or tech support? Please don't open an issue! Head tohttps://gitter.im/rollup/rollup or https://stackoverflow.com/questions/tagged/rollupjs.
+about: 👉🏽 Need help or tech support? Please don't open an issue! Head to https://gitter.im/rollup/rollup or https://stackoverflow.com/questions/tagged/rollupjs.
 
 ---
 
