@@ -1,5 +1,3 @@
-var assert = require('assert');
-
 module.exports = {
 	description: 'checks that entry is resolved',
 	options: {

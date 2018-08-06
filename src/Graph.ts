@@ -801,7 +801,9 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 						const externalId =
 							<string>resolvedId ||
 							(isRelative(source) ? resolve(module.id, '..', source) : source);
-						let isExternal = this.isExternal.call(this.pluginContext, externalId, module.id, true);
+						let isExternal =
+							resolvedId === false ||
+							this.isExternal.call(this.pluginContext, externalId, module.id, true);
 
 						if (!resolvedId && !isExternal) {
 							if (isRelative(source)) {
@@ -836,6 +838,15 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 							}
 
 							const externalModule = this.moduleById.get(externalId);
+
+							if (externalModule instanceof ExternalModule === false) {
+								error({
+									code: 'INVALID_EXTERNAL_ID',
+									message: `'${source}' is imported as an external by ${relativeId(
+										module.id
+									)}, but is already an existing non-external module id.`
+								});
+							}
 
 							// add external declarations so we can detect which are never used
 							for (const name in module.imports) {

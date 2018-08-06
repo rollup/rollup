@@ -1,17 +1,17 @@
-var fs = require('fs');
-var path = require('path');
-var assert = require('assert');
-var getLocation = require('../../getLocation');
-var SourceMapConsumer = require('source-map').SourceMapConsumer;
+const fs = require('fs');
+const path = require('path');
+const assert = require('assert');
+const getLocation = require('../../getLocation');
+const SourceMapConsumer = require('source-map').SourceMapConsumer;
 
-var original = fs.readFileSync(path.resolve(__dirname, 'main.js'), 'utf-8');
+const original = fs.readFileSync(path.resolve(__dirname, 'main.js'), 'utf-8');
 
 module.exports = {
 	description: 'handles single-length sourcemap segments',
 	options: {
 		plugins: [
 			{
-				transform: function() {
+				transform() {
 					return {
 						code: fs.readFileSync(path.resolve(__dirname, 'output.js'), 'utf-8'),
 						map: fs.readFileSync(path.resolve(__dirname, 'output.js.map'), 'utf-8')
@@ -23,13 +23,13 @@ module.exports = {
 			name: 'x'
 		}
 	},
-	test: function(code, map) {
-		var smc = new SourceMapConsumer(map);
+	test(code, map) {
+		const smc = new SourceMapConsumer(map);
 
-		['Foo', 'log'].forEach(function(token) {
-			var generatedLoc = getLocation(code, code.indexOf(token));
-			var originalLoc = smc.originalPositionFor(generatedLoc);
-			var expectedLoc = getLocation(original, original.indexOf(token));
+		['Foo', 'log'].forEach((token) => {
+			const generatedLoc = getLocation(code, code.indexOf(token));
+			const originalLoc = smc.originalPositionFor(generatedLoc);
+			const expectedLoc = getLocation(original, original.indexOf(token));
 
 			assert.ok(/main/.test(originalLoc.source));
 			assert.equal(originalLoc.line, expectedLoc.line);
