@@ -1,10 +1,12 @@
 module.exports = {
-	description: 'prints useful error if external returns true for entry (#1264)',
+	description: 'skip entry point when testing for external',
 	options: {
 		external: id => true
 	},
-	error: {
-		code: 'UNRESOLVED_ENTRY',
-		message: 'Entry module cannot be external'
+	context: {
+		require: id => {
+			if (id === 'external') return 42;
+			return require(id);
+		}
 	}
 };
