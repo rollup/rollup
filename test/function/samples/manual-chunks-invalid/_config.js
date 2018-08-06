@@ -4,8 +4,8 @@ module.exports = {
 		experimentalCodeSplitting: true,
 		input: ['main.js'],
 		manualChunks: {
-			'dep1': ['dep1.js'],
-			'dep2': ['dep2.js']
+			dep1: ['dep1.js'],
+			dep2: ['dep2.js']
 		}
 	},
 	error: {

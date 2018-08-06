@@ -4,16 +4,16 @@ module.exports = {
 		plugins: [
 			{
 				name: 'fake plugin',
-				transform: function(code) {
+				transform(code) {
 					return code;
 				}
 			},
 			{
 				name: 'fake plugin',
-				transform: function(code) {
+				transform(code) {
 					return { code, map: null };
 				},
-				transformBundle: function(code) {
+				transformBundle(code) {
 					return { code, map: null };
 				}
 			}

@@ -1,4 +1,4 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'does not hang on missing module (#53)',
@@ -11,7 +11,7 @@ module.exports = {
 			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency`
 		}
 	],
-	runtimeError: function(error) {
+	runtimeError(error) {
 		assert.equal("Cannot find module 'unlessYouCreatedThisFileForSomeReason'", error.message);
 	}
 };

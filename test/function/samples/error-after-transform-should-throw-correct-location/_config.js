@@ -1,14 +1,13 @@
-var path = require('path');
-var assert = require('assert');
-var MagicString = require('magic-string');
+const path = require('path');
+const MagicString = require('magic-string');
 
 module.exports = {
 	description: 'error after transform should throw with correct location of file',
 	options: {
 		plugins: [
 			{
-				transform: function(source, id) {
-					var s = new MagicString(source);
+				transform(source, id) {
+					const s = new MagicString(source);
 					s.prepend("import _assign from 'object-assign';\n");
 
 					return {

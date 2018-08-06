@@ -1,5 +1,3 @@
-var assert = require('assert');
-
 module.exports = {
 	description: 'cannot have named exports if explicit export type is default',
 	options: { output: { exports: 'none' } },

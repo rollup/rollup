@@ -9,7 +9,7 @@ module.exports = {
 		__filename: path.resolve(__dirname, 'test.js'),
 		require: name => {
 			assert.equal(name, 'url');
-			return { URL: URL };
+			return { URL };
 		}
 	},
 	exports(exports) {

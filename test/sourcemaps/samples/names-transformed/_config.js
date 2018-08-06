@@ -1,18 +1,18 @@
-var assert = require('assert');
-var uglify = require('uglify-js');
-var MagicString = require('magic-string');
-var getLocation = require('../../getLocation');
-var SourceMapConsumer = require('source-map').SourceMapConsumer;
+const assert = require('assert');
+const uglify = require('uglify-js');
+const MagicString = require('magic-string');
+const getLocation = require('../../getLocation');
+const SourceMapConsumer = require('source-map').SourceMapConsumer;
 
 module.exports = {
 	description: 'names are recovered if transforms are used',
 	options: {
 		plugins: [
 			{
-				transform: function(code) {
-					var s = new MagicString(code);
-					var pattern = /mangleMe/g;
-					var match;
+				transform(code) {
+					const s = new MagicString(code);
+					const pattern = /mangleMe/g;
+					let match;
 
 					while ((match = pattern.exec(code))) {
 						s.overwrite(match.index, match.index + match[0].length, 'mangleMePlease', {
@@ -26,7 +26,7 @@ module.exports = {
 						map: s.generateMap({ hires: true })
 					};
 				},
-				transformBundle: function(code) {
+				transformBundle(code) {
 					return uglify.minify(code, {
 						sourceMap: {
 							filename: 'x'
@@ -36,11 +36,11 @@ module.exports = {
 			}
 		]
 	},
-	test: function(code, map) {
-		var smc = new SourceMapConsumer(map);
+	test(code, map) {
+		const smc = new SourceMapConsumer(map);
 
-		var generatedLoc = getLocation(code, /\w+=["']this/.exec(code).index);
-		var originalLoc = smc.originalPositionFor(generatedLoc);
+		let generatedLoc = getLocation(code, /\w+=["']this/.exec(code).index);
+		let originalLoc = smc.originalPositionFor(generatedLoc);
 
 		assert.deepEqual(originalLoc, {
 			source: '../a.js',
