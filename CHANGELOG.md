@@ -1,9 +1,10 @@
 # rollup changelog
 
 ## 0.64.0
-*unreleased*
+*2018-08-07*
 * Print memory consumption together with performance timings ([#2370](https://github.com/rollup/rollup/pull/2370))
 * Enable plugins to mark imports as external by returning false for resolveId ([#2351](https://github.com/rollup/rollup/pull/2351))
+* Always retain empty manual chunks ([#2362](https://github.com/rollup/rollup/pull/2362))
 * Ensure CLI warnings are shown on errors and add error for external id collisions ([#2334](https://github.com/rollup/rollup/pull/2334))
 * Remove unnecessary dependency, update dependencies, fix linting of test config ([#2376](https://github.com/rollup/rollup/pull/2376))
 * Add targeted Github issue templates ([#2356](https://github.com/rollup/rollup/pull/2356))
