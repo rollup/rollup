@@ -161,8 +161,12 @@ export function createTransformEmitAsset(assetsById: Map<string, Asset>, emitAss
 	const assets: Asset[] = [];
 	return {
 		assets,
-		emitAsset: (name: string, dependencies?: string[], source?: string | Buffer) => {
-			const assetId = emitAsset(name, dependencies, source);
+		emitAsset: (
+			name: string,
+			dependenciesOrSource?: string[] | string | Buffer,
+			source?: string | Buffer
+		) => {
+			const assetId = emitAsset(name, dependenciesOrSource, source);
 			const asset = assetsById.get(assetId);
 			// distinguish transform assets
 			asset.transform = true;
