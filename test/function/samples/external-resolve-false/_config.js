@@ -1,5 +1,4 @@
-var assert = require('assert');
-var path = require('path');
+const assert = require('assert');
 
 module.exports = {
 	description: 'includes an external module with a false resolve return',
@@ -7,7 +6,7 @@ module.exports = {
 		input: 'main.js',
 		plugins: [
 			{
-				resolveId: function(id) {
+				resolveId(id) {
 					if (id === './external')
 						return false;
 				}
@@ -15,7 +14,7 @@ module.exports = {
 		]
 	},
 	context: {
-		require: function(required) {
+		require(required) {
 			assert.equal(required, './external');
 			return 1;
 		}

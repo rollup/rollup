@@ -4,7 +4,7 @@ module.exports = {
 	options: {
 		input: ['main.js'],
 		manualChunks: {
-			'dynamic': ['dynamic.js']
+			dynamic: ['dynamic.js']
 		}
 	}
 };
