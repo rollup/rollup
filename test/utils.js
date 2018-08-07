@@ -158,6 +158,8 @@ function runTestsInDir(dir, runTest) {
 
 	if (fileNames.indexOf('_config.js') >= 0) {
 		loadConfigAndRunTest(dir, runTest);
+	} else if (fileNames.indexOf('_actual') >= 0 || fileNames.indexOf('_actual.js') >= 0) {
+		removeOldTest(dir);
 	} else {
 		describe(path.basename(dir), () => {
 			fileNames

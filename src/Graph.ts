@@ -445,7 +445,7 @@ export default class Graph {
 				//       exposed as an unresolvable export * (to a graph external export *,
 				//       either as a namespace import reexported or top-level export *)
 				//       should be made to be its own entry point module before chunking
-				const chunkList: Chunk[] = [];
+				let chunkList: Chunk[] = [];
 				if (!preserveModules) {
 					const chunkModules: { [entryHashSum: string]: Module[] } = {};
 					for (const module of orderedModules) {
@@ -482,12 +482,9 @@ export default class Graph {
 				}
 
 				// filter out empty dependencies
-				for (let i = 0; i < chunkList.length; i++) {
-					const chunk = chunkList[i];
-					if (chunk.isEmpty && !chunk.entryModule) {
-						chunkList.splice(i--, 1);
-					}
-				}
+				chunkList = chunkList.filter(
+					chunk => !chunk.isEmpty || chunk.entryModule || chunk.isManualChunk
+				);
 
 				// then go over and ensure all entry chunks export their variables
 				for (const chunk of chunkList) {

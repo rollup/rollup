@@ -1,6 +1,3 @@
-var path = require('path');
-var assert = require('assert');
-
 module.exports = {
 	description: 'external paths from custom resolver remain external (#633)',
 	options: {
