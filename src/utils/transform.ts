@@ -14,6 +14,7 @@ import {
 	TransformSourceDescription
 } from '../rollup/types';
 import { EmitAsset } from './assetHooks';
+import { cacheTransformHook } from './cache';
 import error from './error';
 import getCodeFrame from './getCodeFrame';
 import { dirname, resolve } from './path';
@@ -117,15 +118,14 @@ export default function transform(
 	let promise = Promise.resolve(source.code);
 	let transformDependencies: string[];
 
-	plugins.forEach(plugin => {
-		if (!plugin.transform) return;
-
+	plugins.filter(plugin => 'transform' in plugin).forEach(plugin => {
+		const transform = cacheTransformHook(graph.cachedHooks, plugin);
 		promise = promise.then(previous => {
 			const { assets, emitAsset } = createTransformEmitAsset();
 			return Promise.resolve()
 				.then(() => {
 					const context = createPluginTransformContext(graph, plugin, id, previous, emitAsset);
-					return plugin.transform.call(context, previous, id);
+					return transform.call(context, previous, id);
 				})
 				.then(result => {
 					// assets emitted by transform are transformDependencies

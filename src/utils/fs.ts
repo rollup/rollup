@@ -32,3 +32,12 @@ export function writeFile(dest: string, data: string | Buffer) {
 		});
 	});
 }
+
+export function stat(path: string) {
+	return new Promise((fulfil, reject) => {
+		fs.stat(path, (err, stats) => {
+			if (err) return reject(err);
+			fulfil(stats);
+		});
+	});
+}

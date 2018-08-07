@@ -27,6 +27,7 @@ import {
 	Watcher
 } from './rollup/types';
 import { createAssetPluginHooks, EmitAsset, finaliseAsset } from './utils/assetHooks';
+import { cacheLoadHook, cacheResolveIdHook } from './utils/cache';
 import { load, makeOnwarn, resolveId } from './utils/defaults';
 import ensureArray from './utils/ensureArray';
 import {
@@ -80,11 +81,15 @@ export default class Graph {
 		this.curChunkIndex = 0;
 		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
+		this.cachedHooks = {};
 		if (options.cache) {
 			if (options.cache.modules) {
 				options.cache.modules.forEach(module => {
 					this.cachedModules.set(module.id, module);
 				});
+			}
+			if (options.cache.hooks) {
+				this.cachedHooks = JSON.parse(JSON.stringify(options.cache.hooks));
 			}
 		}
 		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
@@ -151,16 +156,17 @@ export default class Graph {
 			]
 				.concat(
 					this.plugins
-						.map(plugin => plugin.resolveId)
-						.filter(Boolean)
-						.map(resolveId => resolveId.bind(this.pluginContext))
+						.filter(plugin => 'resolveId' in plugin)
+						.map(plugin => cacheResolveIdHook(this.cachedHooks, plugin))
 				)
 				.concat(resolveId(options))
 		);
 
 		this.pluginContext.resolveId = this.resolveId;
 
-		const loaders = this.plugins.map(plugin => plugin.load).filter(Boolean);
+		const loaders = this.plugins
+			.filter(plugin => 'load' in plugin)
+			.map(plugin => cacheLoadHook(this.cachedHooks, plugin));
 		this.hasLoaders = loaders.length !== 0;
 
 		this.load = first([...loaders, load]);
@@ -236,6 +242,7 @@ export default class Graph {
 
 		return {
 			modules: this.modules.map(module => module.toJSON()),
+			hooks: this.cachedHooks,
 			assetDependencies
 		};
 	}

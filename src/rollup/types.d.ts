@@ -162,6 +162,7 @@ export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
 
 export interface Plugin {
 	name: string;
+	cacheKey?: string;
 	options?: (options: InputOptions) => InputOptions | void | null;
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
@@ -205,6 +206,10 @@ export type ExternalOption = string[] | IsExternal;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 export type InputOption = string | string[] | { [entryAlias: string]: string };
 
+export interface HookCache {
+	[key: string]: TransformSourceDescription | SourceDescription | string | boolean | void | null;
+}
+
 export interface InputOptions {
 	input: InputOption;
 	manualChunks?: { [chunkAlias: string]: string[] };
@@ -214,6 +219,7 @@ export interface InputOptions {
 	onwarn?: WarningHandler;
 	cache?: {
 		modules: ModuleJSON[];
+		hooks: HookCache;
 	};
 
 	acorn?: {};
@@ -358,6 +364,7 @@ export interface OutputChunk {
 export interface RollupCache {
 	modules: ModuleJSON[];
 	assetDependencies: string[];
+	hooks: HookCache;
 }
 
 export interface RollupSingleFileBuild {
