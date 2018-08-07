@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.64.1
+*2018-08-07*
+* Do not render initializers of hoisted variables in dead branches ([#2384](https://github.com/rollup/rollup/pull/2384))
+
 ## 0.64.0
 *2018-08-07*
 * Print memory consumption together with performance timings ([#2370](https://github.com/rollup/rollup/pull/2370))
