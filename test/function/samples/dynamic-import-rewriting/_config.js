@@ -1,4 +1,4 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'Dynamic import string specifier resolving',
@@ -15,7 +15,7 @@ module.exports = {
 	exports(exports) {
 		return exports.promise;
 	},
-	runtimeError: function(error) {
+	runtimeError(error) {
 		assert.equal("Cannot find module 'asdf'", error.message);
 	}
 };

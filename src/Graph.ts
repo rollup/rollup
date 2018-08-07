@@ -440,7 +440,7 @@ export default class Graph {
 				//       exposed as an unresolvable export * (to a graph external export *,
 				//       either as a namespace import reexported or top-level export *)
 				//       should be made to be its own entry point module before chunking
-				const chunkList: Chunk[] = [];
+				let chunkList: Chunk[] = [];
 				if (!preserveModules) {
 					const chunkModules: { [entryHashSum: string]: Module[] } = {};
 					for (const module of orderedModules) {
@@ -477,12 +477,9 @@ export default class Graph {
 				}
 
 				// filter out empty dependencies
-				for (let i = 0; i < chunkList.length; i++) {
-					const chunk = chunkList[i];
-					if (chunk.isEmpty && !chunk.entryModule) {
-						chunkList.splice(i--, 1);
-					}
-				}
+				chunkList = chunkList.filter(
+					chunk => !chunk.isEmpty || chunk.entryModule || chunk.isManualChunk
+				);
 
 				// then go over and ensure all entry chunks export their variables
 				for (const chunk of chunkList) {
@@ -794,7 +791,9 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 						const externalId =
 							<string>resolvedId ||
 							(isRelative(source) ? resolve(module.id, '..', source) : source);
-						let isExternal = this.isExternal.call(this.pluginContext, externalId, module.id, true);
+						let isExternal =
+							resolvedId === false ||
+							this.isExternal.call(this.pluginContext, externalId, module.id, true);
 
 						if (!resolvedId && !isExternal) {
 							if (isRelative(source)) {
@@ -829,6 +828,15 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 							}
 
 							const externalModule = this.moduleById.get(externalId);
+
+							if (externalModule instanceof ExternalModule === false) {
+								error({
+									code: 'INVALID_EXTERNAL_ID',
+									message: `'${source}' is imported as an external by ${relativeId(
+										module.id
+									)}, but is already an existing non-external module id.`
+								});
+							}
 
 							// add external declarations so we can detect which are never used
 							for (const name in module.imports) {

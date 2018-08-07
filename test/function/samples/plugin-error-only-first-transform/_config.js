@@ -1,5 +1,4 @@
-var assert = require('assert');
-var path = require('path');
+const path = require('path');
 
 module.exports = {
 	description: 'throws error only with first plugin transform',

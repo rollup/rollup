@@ -1,5 +1,5 @@
-var assert = require('assert');
-var path = require('path');
+const assert = require('assert');
+const path = require('path');
 
 module.exports = {
 	description: 'Dynamic import inlining',
@@ -12,7 +12,7 @@ module.exports = {
 			}
 		]
 	},
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports.x, 41);
 		return exports.promise.then(y => {
 			assert.equal(y, 42);

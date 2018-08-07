@@ -1,8 +1,8 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'correctly namespaces sub-functions (#910)',
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports, 'foobar');
 	}
 };

@@ -1,5 +1,3 @@
-const assert = require('assert');
-
 module.exports = {
 	description: 'warns on unused imports ([#595])',
 	warnings: [

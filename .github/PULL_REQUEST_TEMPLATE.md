@@ -1,7 +1,38 @@
 <!--
-Thank you for creating a pull request. Before submitting, please note the following:
+  ⚡️ katchow! We ❤️ Pull Requests!
 
-* If your pull request implements a new feature, please raise an issue to discuss it before sending code. In many cases features are absent for a reason.
-* This message body should clearly illustrate what problems it solves. If there are related issues, remember to reference them.
-* Ideally, include a test that fails without this PR but passes with it. PRs will only be merged once they pass CI. (Remember to `npm run lint`!)
+  If you remove or skip this template, you'll make the 🐼 sad and the mighty god
+  of Github will appear and pile-drive the close button from a great height
+  while making animal noises.
+
+  Pull Request Requirements:
+  * Please include tests to illustrate the problem this PR resolves.
+  * Please lint your changes by running `npm run lint` before creating a PR.
+
+  Please place an x (no spaces - [x]) in all [ ] that apply.
 -->
+
+This PR contains:
+
+- [ ] bugfix
+- [ ] feature
+- [ ] refactor
+- [ ] tests
+- [ ] documentation
+- [ ] metadata
+
+### Breaking Changes?
+
+- [ ] yes
+- [ ] no
+
+If yes, please describe the breakage.
+
+### Please Describe Your Changes
+
+<!--
+  Please be thorough and clearly explain the problem being solved.
+  * If this PR adds a feature, look for previous discussion on the feature by searching the issues first.
+  * Is this PR related to an issue?
+-->
+

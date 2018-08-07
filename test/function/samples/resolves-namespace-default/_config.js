@@ -1,9 +1,9 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: "namespace's 'default' properties should be available",
 
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports, 42);
 	}
 };

@@ -1,8 +1,8 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'correctly exports deconflicted names',
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports.bar(), 'bar');
 	}
 };
