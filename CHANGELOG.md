@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.65.0
+*unreleased*
+* Refine asset handling ([#2369](https://github.com/rollup/rollup/pull/2369))
+
 ## 0.64.1
 *2018-08-07*
 * Do not render initializers of hoisted variables in dead branches ([#2384](https://github.com/rollup/rollup/pull/2384))
