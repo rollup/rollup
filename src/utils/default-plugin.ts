@@ -1,14 +1,46 @@
 import { InputOptions, Plugin } from '../rollup/types';
 import error from './error';
-import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // eslint-disable-line
+import { lstatSync, readdirSync, readFile, realpathSync, stat } from './fs'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path';
 
+interface LoadMemoization {
+	[key: string]: {
+		mtimeMs: number;
+		size: number;
+		contents: string;
+	};
+}
+
 export function getRollupDefaultPlugin(options: InputOptions): Plugin {
+	const loadMemoization: LoadMemoization = {};
 	return {
 		name: 'Rollup Core',
 		resolveId: createResolveId(options),
 		load(id) {
-			return readFileSync(id, 'utf-8');
+			if (loadMemoization[id]) {
+				return new Promise((fulfil, reject) => {
+					const file = loadMemoization[id];
+					// In order to avoid too much I/O `load` by default will
+					// only stat files, and do a full read if it doesn't already
+					// hold a files contents in memory.
+					stat(id, (err, { mtimeMs, size }) => {
+						if (err) {
+							reject(err);
+						} else if (mtimeMs === file.mtimeMs && size === file.size) {
+							fulfil(file.contents);
+						} else {
+							readFile(id, 'utf-8', (err, contents) => {
+								if (err) {
+									reject(err);
+								} else {
+									loadMemoization[id] = { mtimeMs, size, contents };
+									fulfil(contents);
+								}
+							});
+						}
+					});
+				});
+			}
 		},
 		resolveDynamicImport(specifier, parentId) {
 			if (typeof specifier === 'string')
