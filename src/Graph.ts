@@ -79,7 +79,7 @@ export default class Graph {
 		this.curChunkIndex = 0;
 		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
-		if (options.cache) {
+		if (options.cache !== false) {
 			options.cache.modules = options.cache.modules || Object.create(null);
 			options.cache.plugins = options.cache.plugins || Object.create(null);
 			for (const module of options.cache.modules) this.cachedModules.set(module.id, module);

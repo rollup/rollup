@@ -365,7 +365,7 @@ export default function rollup(
 						});
 				}
 
-				const cache = graph.getCache();
+				const cache = inputOptions.cache !== false && graph.getCache();
 				const result: RollupSingleFileBuild | RollupBuild = {
 					cache,
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
