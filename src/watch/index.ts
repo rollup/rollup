@@ -5,10 +5,10 @@ import createFilter from 'rollup-pluginutils/src/createFilter.js';
 import rollup, { setWatcher } from '../rollup/index';
 import {
 	InputOptions,
-	ModuleJSON,
 	OutputChunk,
 	OutputOptions,
 	RollupBuild,
+	RollupCache,
 	RollupSingleFileBuild,
 	RollupWatchOptions
 } from '../rollup/types';
@@ -95,10 +95,7 @@ export class Task {
 	private closed: boolean;
 	private watched: Set<string>;
 	private inputOptions: InputOptions;
-	cache: {
-		modules: ModuleJSON[];
-		assetDependencies: string[];
-	};
+	cache: RollupCache;
 	private chokidarOptions: WatchOptions;
 	private chokidarOptionsHash: string;
 	private outputFiles: string[];
@@ -214,7 +211,7 @@ export class Task {
 						});
 					}
 				});
-				this.cache.assetDependencies.forEach(assetDep => {
+				this.cache.watchDependencies.forEach(assetDep => {
 					watched.add(assetDep);
 					this.watchFile(assetDep);
 				});
@@ -253,8 +250,8 @@ export class Task {
 							}
 						});
 					}
-					if (this.cache.assetDependencies) {
-						this.cache.assetDependencies.forEach(assetDep => {
+					if (this.cache.watchDependencies) {
+						this.cache.watchDependencies.forEach(assetDep => {
 							this.watchFile(assetDep);
 						});
 					}

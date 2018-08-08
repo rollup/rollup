@@ -82,11 +82,12 @@ export default class Graph {
 		this.curChunkIndex = 0;
 		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
-		if (options.cache !== false) {
-			this.pluginCache = options.cache.plugins || Object.create(null);
+		if (options.cache) {
 			if (options.cache.modules)
 				for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
 		}
+		if (options.cache !== false)
+			this.pluginCache = (options.cache && options.cache.plugins) || Object.create(null);
 		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
 
 		if (!options.input) {
