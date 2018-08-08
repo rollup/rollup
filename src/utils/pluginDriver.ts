@@ -2,9 +2,11 @@ import Graph from '../Graph';
 import {
 	InputOptions,
 	Plugin,
+	PluginCache,
 	PluginContext,
 	RollupError,
 	RollupWarning,
+	SerialisablePluginCache,
 	Watcher
 } from '../rollup/types';
 import { createAssetPluginHooks, EmitAsset } from './assetHooks';
@@ -39,22 +41,36 @@ export type HookContext = (context: PluginContext, plugin?: Plugin) => PluginCon
 export function createPluginDriver(
 	graph: Graph,
 	options: InputOptions,
+	pluginCache: Record<string, SerialisablePluginCache>,
 	watcher?: Watcher
 ): PluginDriver {
 	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
 	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
+	const existingPluginKeys: string[] = [];
 
 	let hasLoadersOrTransforms = false;
 
 	const pluginContexts = plugins.map(plugin => {
+		let cacheable = true;
+		if (typeof plugin.name === 'string') {
+			if (existingPluginKeys.indexOf(plugin.name) === -1) cacheable = false;
+			existingPluginKeys.push(plugin.name);
+		}
+
 		if (
 			!hasLoadersOrTransforms &&
 			(plugin.load || plugin.transform || plugin.transformBundle || plugin.transformChunk)
 		)
 			hasLoadersOrTransforms = true;
 
+		const cacheKey = plugin.name + (plugin.cacheKey ? plugin.cacheKey : '');
+
+		const instanceCache =
+			pluginCache && (pluginCache[cacheKey] || (pluginCache[cacheKey] = Object.create(null)));
+
 		const context: PluginContext = {
 			watcher,
+			cache: instanceCache ? createPluginCache(instanceCache) : noCache,
 			isExternal(id: string, parentId: string, isResolved = false) {
 				return graph.isExternal(id, parentId, isResolved);
 			},
@@ -81,6 +97,23 @@ export function createPluginDriver(
 				error(err);
 			}
 		};
+		if (!cacheable)
+			Object.defineProperty(context, 'cache', {
+				get() {
+					if (!plugin.name)
+						error({
+							code: 'ANONYMOUS_PLUGIN_CACHE',
+							message:
+								'A plugin is trying to use the Rollup cache but is not declaring a unique plugin name.'
+						});
+					else
+						error({
+							code: 'DUPLICATE_PLUGIN_NAME',
+							message:
+								'The plugin name ${plugin.name} is being used twice in the same build. Plugin names must be distinct or provide a unique cacheKey (please post an issue to the plugin if you are a plugin user).'
+						});
+				}
+			});
 		return context;
 	});
 
@@ -192,3 +225,42 @@ export function createPluginDriver(
 
 	return pluginDriver;
 }
+
+export function createPluginCache(cache: SerialisablePluginCache): PluginCache {
+	return {
+		has(id: string) {
+			const item = cache[id];
+			if (!item) return false;
+			item.lastAccessCount = 0;
+			return true;
+		},
+		get(id: string) {
+			const item = cache[id];
+			if (!item) return false;
+			item.lastAccessCount = 0;
+			return item.value;
+		},
+		set(id: string, value: any) {
+			cache[id] = {
+				lastAccessCount: 0,
+				value
+			};
+		},
+		delete(id: string) {
+			return delete cache[id];
+		}
+	};
+}
+
+const noCache: PluginCache = {
+	has() {
+		return false;
+	},
+	get() {
+		return undefined;
+	},
+	set() {},
+	delete() {
+		return false;
+	}
+};

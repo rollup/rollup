@@ -1,5 +1,6 @@
 import * as ESTree from 'estree';
 import { EventEmitter } from 'events';
+import { SerialisablePluginCache } from '../utils/pluginDriver';
 
 export const VERSION: string;
 
@@ -81,8 +82,16 @@ export interface Asset {
 	dependencies: string[];
 }
 
+export interface PluginCache {
+	has(id: string): boolean;
+	get<T = any>(id: string): T;
+	set<T = any>(id: string, value: T): void;
+	delete(id: string): boolean;
+}
+
 export interface PluginContext {
 	watcher: Watcher;
+	cache: PluginCache;
 	resolveId: ResolveIdHook;
 	isExternal: IsExternal;
 	parse: (input: string, options: any) => ESTree.Program;
@@ -159,6 +168,7 @@ export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
 
 export interface Plugin {
 	name: string;
+	cacheKey: string;
 	options?: (options: InputOptions) => InputOptions | void | null;
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
@@ -209,9 +219,7 @@ export interface InputOptions {
 	plugins?: Plugin[];
 
 	onwarn?: WarningHandler;
-	cache?: {
-		modules: ModuleJSON[];
-	};
+	cache?: RollupCache;
 
 	acorn?: {};
 	acornInjectPlugins?: Function[];
@@ -353,9 +361,17 @@ export interface OutputChunk {
 	map?: SourceMap;
 }
 
+export interface SerialisablePluginCache {
+	[key: string]: {
+		lastAccessCount: number;
+		value: any;
+	};
+}
+
 export interface RollupCache {
 	modules: ModuleJSON[];
 	assetDependencies: string[];
+	plugins: Record<string, SerialisablePluginCache>;
 }
 
 export interface RollupSingleFileBuild {

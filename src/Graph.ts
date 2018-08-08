@@ -80,9 +80,9 @@ export default class Graph {
 		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
 		if (options.cache) {
-			if (options.cache.modules) {
-				for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
-			}
+			options.cache.modules = options.cache.modules || Object.create(null);
+			options.cache.plugins = options.cache.plugins || Object.create(null);
+			for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
 		}
 		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
 
@@ -118,7 +118,12 @@ export default class Graph {
 			return this.acornParse(code, { ...defaultAcornOptions, ...options, ...this.acornOptions });
 		};
 
-		this.pluginDriver = createPluginDriver(this, options, watcher);
+		this.pluginDriver = createPluginDriver(
+			this,
+			options,
+			options.cache && options.cache.plugins,
+			watcher
+		);
 
 		if (typeof options.external === 'function') {
 			this.isExternal = options.external;
