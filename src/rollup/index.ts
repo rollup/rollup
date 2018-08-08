@@ -5,7 +5,6 @@ import { createAddons } from '../utils/addons';
 import { createAssetPluginHooks, finaliseAsset } from '../utils/assetHooks';
 import commondir from '../utils/commondir';
 import { Deprecation } from '../utils/deprecateOptions';
-import ensureArray from '../utils/ensureArray';
 import error from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
@@ -89,7 +88,8 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
 
 	checkInputOptions(inputOptions);
-	inputOptions.plugins = ensureArray(inputOptions.plugins);
+	const plugins = inputOptions.plugins;
+	inputOptions.plugins = Array.isArray(plugins) ? plugins : plugins ? [plugins] : [];
 	inputOptions = inputOptions.plugins.reduce(applyOptionHook, inputOptions);
 
 	if (!inputOptions.experimentalCodeSplitting) {

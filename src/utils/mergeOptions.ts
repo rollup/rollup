@@ -1,6 +1,5 @@
 import { InputOptions, OutputOptions, WarningHandler } from '../rollup/types';
 import deprecateOptions, { Deprecation } from './deprecateOptions';
-import ensureArray from './ensureArray';
 
 export interface GenericConfigObject {
 	[key: string]: any;
@@ -104,7 +103,8 @@ export default function mergeOptions({
 		Object.assign(command, command.output);
 	}
 
-	const normalizedOutputOptions = ensureArray(config.output);
+	const output = config.output;
+	const normalizedOutputOptions = Array.isArray(output) ? output : output ? [output] : [];
 	if (normalizedOutputOptions.length === 0) normalizedOutputOptions.push({});
 	const outputOptions = normalizedOutputOptions.map(singleOutputOptions =>
 		getOutputOptions(singleOutputOptions, command)

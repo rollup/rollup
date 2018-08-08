@@ -21,7 +21,6 @@ import {
 	Watcher
 } from './rollup/types';
 import { finaliseAsset } from './utils/assetHooks';
-import ensureArray from './utils/ensureArray';
 import {
 	randomUint8Array,
 	Uint8ArrayEqual,
@@ -124,8 +123,9 @@ export default class Graph {
 		if (typeof options.external === 'function') {
 			this.isExternal = options.external;
 		} else {
-			const ids = ensureArray(options.external);
-			this.isExternal = id => ids.indexOf(id) !== -1;
+			const external = options.external;
+			const ids = new Set(Array.isArray(external) ? external : external ? [external] : []);
+			this.isExternal = id => ids.has(id);
 		}
 
 		this.shimMissingExports = options.shimMissingExports;
@@ -169,7 +169,14 @@ export default class Graph {
 			(<any>this.acornOptions).allowAwaitOutsideFunction = true;
 		}
 
-		acornPluginsToInject.push(...ensureArray(options.acornInjectPlugins));
+		const acornInjectPlugins = options.acornInjectPlugins;
+		acornPluginsToInject.push(
+			...(Array.isArray(acornInjectPlugins)
+				? acornInjectPlugins
+				: acornInjectPlugins
+					? [acornInjectPlugins]
+					: [])
+		);
 		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
 	}
 

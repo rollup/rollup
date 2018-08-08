@@ -12,7 +12,6 @@ import {
 	RollupSingleFileBuild,
 	RollupWatchOptions
 } from '../rollup/types';
-import ensureArray from '../utils/ensureArray';
 import mergeOptions from '../utils/mergeOptions';
 import chokidar from './chokidar';
 import { addTask, deleteTask } from './fileWatchers';
@@ -26,9 +25,10 @@ export class Watcher extends EventEmitter {
 	private tasks: Task[];
 	private succeeded: boolean = false;
 
-	constructor(configs: RollupWatchOptions[]) {
+	constructor(configs: RollupWatchOptions[] = []) {
 		super();
-		this.tasks = ensureArray(configs).map(config => new Task(this, config));
+		if (!Array.isArray(configs)) configs = [configs];
+		this.tasks = configs.map(config => new Task(this, config));
 		this.running = true;
 		process.nextTick(() => this.run());
 	}
