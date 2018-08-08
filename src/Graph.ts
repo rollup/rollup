@@ -36,6 +36,9 @@ import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
 
+// clear plugin cache items after 10 builds unnaccessed
+const PLUGIN_CACHE_EVICTION_EXPIRY = 10;
+
 function makeOnwarn() {
 	const warned = Object.create(null);
 
@@ -86,8 +89,15 @@ export default class Graph {
 			if (options.cache.modules)
 				for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
 		}
-		if (options.cache !== false)
+		if (options.cache !== false) {
 			this.pluginCache = (options.cache && options.cache.plugins) || Object.create(null);
+
+			// increment access counter
+			for (const name in this.pluginCache) {
+				const cache = this.pluginCache[name];
+				for (const key of Object.keys(cache)) cache[key][0]++;
+			}
+		}
 		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
 
 		if (!options.input) {
@@ -191,6 +201,17 @@ export default class Graph {
 				for (const depId of asset.dependencies) watchDependencies.push(depId);
 			}
 		});
+
+		// handle plugin cache eviction
+		for (const name in this.pluginCache) {
+			const cache = this.pluginCache[name];
+			let allDeleted = true;
+			for (const key of Object.keys(cache)) {
+				if (cache[key][0] > PLUGIN_CACHE_EVICTION_EXPIRY) delete cache[key];
+				else allDeleted = false;
+			}
+			if (allDeleted) delete this.pluginCache[name];
+		}
 
 		return <any>{
 			modules: this.modules.map(module => module.toJSON()),

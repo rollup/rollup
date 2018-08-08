@@ -362,10 +362,7 @@ export interface OutputChunk {
 }
 
 export interface SerialisablePluginCache {
-	[key: string]: {
-		lastAccessCount: number;
-		value: any;
-	};
+	[key: string]: [number, any];
 }
 
 export interface RollupCache {

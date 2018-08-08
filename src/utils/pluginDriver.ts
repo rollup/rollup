@@ -53,7 +53,9 @@ export function createPluginDriver(
 	const pluginContexts = plugins.map(plugin => {
 		let cacheable = true;
 		if (typeof plugin.name === 'string') {
-			if (existingPluginKeys.indexOf(plugin.name) !== -1) cacheable = false;
+			if (existingPluginKeys.indexOf(plugin.name) !== -1) {
+				if (!plugin.cacheKey) cacheable = false;
+			}
 			existingPluginKeys.push(plugin.name);
 		}
 
@@ -63,14 +65,21 @@ export function createPluginDriver(
 		)
 			hasLoadersOrTransforms = true;
 
-		const cacheKey = plugin.name + (plugin.cacheKey ? plugin.cacheKey : '');
-
-		const instanceCache =
-			pluginCache && (pluginCache[cacheKey] || (pluginCache[cacheKey] = Object.create(null)));
+		let cacheInstance: PluginCache;
+		if (!pluginCache) {
+			cacheInstance = noCache;
+		} else if (cacheable) {
+			const cacheKey = plugin.name + (plugin.cacheKey ? plugin.cacheKey : '');
+			cacheInstance = createPluginCache(
+				pluginCache[cacheKey] || (pluginCache[cacheKey] = Object.create(null))
+			);
+		} else {
+			cacheInstance = uncacheablePlugin(plugin.name);
+		}
 
 		const context: PluginContext = {
 			watcher,
-			cache: instanceCache ? createPluginCache(instanceCache) : noCache,
+			cache: cacheInstance,
 			isExternal(id: string, parentId: string, isResolved = false) {
 				return graph.isExternal(id, parentId, isResolved);
 			},
@@ -231,20 +240,16 @@ export function createPluginCache(cache: SerialisablePluginCache): PluginCache {
 		has(id: string) {
 			const item = cache[id];
 			if (!item) return false;
-			item.lastAccessCount = 0;
 			return true;
 		},
 		get(id: string) {
 			const item = cache[id];
 			if (!item) return false;
-			item.lastAccessCount = 0;
-			return item.value;
+			item[0] = 0;
+			return item[1];
 		},
 		set(id: string, value: any) {
-			cache[id] = {
-				lastAccessCount: 0,
-				value
-			};
+			cache[id] = [0, value];
 		},
 		delete(id: string) {
 			return delete cache[id];
@@ -264,3 +269,36 @@ const noCache: PluginCache = {
 		return false;
 	}
 };
+
+function uncacheablePluginError(pluginName: string) {
+	if (!pluginName)
+		error({
+			code: 'ANONYMOUS_PLUGIN_CACHE',
+			message:
+				'A plugin is trying to use the Rollup cache but is not declaring a unique plugin name.'
+		});
+	else
+		error({
+			code: 'DUPLICATE_PLUGIN_NAME',
+			message:
+				'The plugin name ${pluginName} is being used twice in the same build. Plugin names must be distinct or provide a unique cacheKey (please post an issue to the plugin if you are a plugin user).'
+		});
+}
+
+const uncacheablePlugin: (pluginName: string) => PluginCache = pluginName => ({
+	has() {
+		uncacheablePluginError(pluginName);
+		return false;
+	},
+	get() {
+		uncacheablePluginError(pluginName);
+		return undefined;
+	},
+	set() {
+		uncacheablePluginError(pluginName);
+	},
+	delete() {
+		uncacheablePluginError(pluginName);
+		return false;
+	}
+});
