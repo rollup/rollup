@@ -53,7 +53,7 @@ export function createPluginDriver(
 	const pluginContexts = plugins.map(plugin => {
 		let cacheable = true;
 		if (typeof plugin.name === 'string') {
-			if (existingPluginKeys.indexOf(plugin.name) === -1) cacheable = false;
+			if (existingPluginKeys.indexOf(plugin.name) !== -1) cacheable = false;
 			existingPluginKeys.push(plugin.name);
 		}
 

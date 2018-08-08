@@ -1,7 +1,7 @@
 import { decode } from 'sourcemap-codec';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
-import { OutputOptions, RawSourceMap } from '../rollup/types';
+import { OutputOptions, Plugin, RawSourceMap } from '../rollup/types';
 import { createAssetPluginHooks } from './assetHooks';
 import error from './error';
 

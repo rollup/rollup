@@ -14,7 +14,9 @@ import {
 	IsExternal,
 	ModuleJSON,
 	OutputBundle,
+	RollupCache,
 	RollupWarning,
+	SerialisablePluginCache,
 	SourceDescription,
 	TreeshakingOptions,
 	WarningHandler,
@@ -71,6 +73,7 @@ export default class Graph {
 	contextParse: (code: string, acornOptions?: acorn.Options) => Program;
 
 	pluginDriver: PluginDriver;
+	pluginCache: Record<string, SerialisablePluginCache>;
 
 	// deprecated
 	treeshake: boolean;
@@ -80,9 +83,9 @@ export default class Graph {
 		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
 		if (options.cache !== false) {
-			options.cache.modules = options.cache.modules || Object.create(null);
-			options.cache.plugins = options.cache.plugins || Object.create(null);
-			for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
+			this.pluginCache = options.cache.plugins || Object.create(null);
+			if (options.cache.modules)
+				for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
 		}
 		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
 
@@ -118,12 +121,7 @@ export default class Graph {
 			return this.acornParse(code, { ...defaultAcornOptions, ...options, ...this.acornOptions });
 		};
 
-		this.pluginDriver = createPluginDriver(
-			this,
-			options,
-			options.cache && options.cache.plugins,
-			watcher
-		);
+		this.pluginDriver = createPluginDriver(this, options, this.pluginCache, watcher);
 
 		if (typeof options.external === 'function') {
 			this.isExternal = options.external;
@@ -185,17 +183,18 @@ export default class Graph {
 		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
 	}
 
-	getCache() {
-		const assetDependencies: string[] = [];
+	getCache(): RollupCache {
+		const watchDependencies: string[] = [];
 		this.assetsById.forEach(asset => {
 			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
-				for (const depId of asset.dependencies) assetDependencies.push(depId);
+				for (const depId of asset.dependencies) watchDependencies.push(depId);
 			}
 		});
 
-		return {
+		return <any>{
 			modules: this.modules.map(module => module.toJSON()),
-			assetDependencies
+			plugins: this.pluginCache,
+			watchDependencies
 		};
 	}
 

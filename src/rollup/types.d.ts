@@ -370,8 +370,8 @@ export interface SerialisablePluginCache {
 
 export interface RollupCache {
 	modules: ModuleJSON[];
-	assetDependencies: string[];
 	plugins: Record<string, SerialisablePluginCache>;
+	watchDependencies: string[];
 }
 
 export interface RollupSingleFileBuild {

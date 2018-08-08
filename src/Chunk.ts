@@ -1027,7 +1027,7 @@ export default class Chunk {
 		this.id = outName;
 	}
 
-	render(options: OutputOptions, addons: Addons): SourceDescription {
+	render(options: OutputOptions, addons: Addons) {
 		timeStart('render format', 3);
 
 		if (!this.renderedSource)
