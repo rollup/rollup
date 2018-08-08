@@ -1009,6 +1009,8 @@ export default class Chunk {
 		const outName = makeUnique(
 			renderNamePattern(pattern, patternName, type => {
 				switch (type) {
+					case 'format':
+						return options.format === 'es' ? 'esm' : options.format;
 					case 'hash':
 						return this.computeFullHash(addons, options);
 					case 'name':
