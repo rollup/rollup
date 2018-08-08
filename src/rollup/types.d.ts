@@ -1,6 +1,5 @@
 import * as ESTree from 'estree';
 import { EventEmitter } from 'events';
-import { SerialisablePluginCache } from '../utils/pluginDriver';
 
 export const VERSION: string;
 
@@ -168,7 +167,7 @@ export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
 
 export interface Plugin {
 	name: string;
-	cacheKey: string;
+	cacheKey?: string;
 	options?: (options: InputOptions) => InputOptions | void | null;
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
