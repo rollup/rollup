@@ -45,7 +45,10 @@ export function createPluginDriver(
 	watcher?: Watcher
 ): PluginDriver {
 	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
-	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
+	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(
+		graph.assetsById,
+		graph.watchFiles
+	);
 	const existingPluginKeys: string[] = [];
 
 	let hasLoadersOrTransforms = false;
@@ -255,6 +258,29 @@ export function createPluginCache(cache: SerialisablePluginCache): PluginCache {
 			return delete cache[id];
 		}
 	};
+}
+
+export function trackPluginCache(pluginCache: PluginCache) {
+	const result = { used: false, cache: <PluginCache>undefined };
+	result.cache = {
+		has(id: string) {
+			result.used = true;
+			return pluginCache.has(id);
+		},
+		get(id: string) {
+			result.used = true;
+			return pluginCache.get(id);
+		},
+		set(id: string, value: any) {
+			result.used = true;
+			return pluginCache.set(id, value);
+		},
+		delete(id: string) {
+			result.used = true;
+			return pluginCache.delete(id);
+		}
+	};
+	return result;
 }
 
 const noCache: PluginCache = {

@@ -77,6 +77,7 @@ export default class Graph {
 
 	pluginDriver: PluginDriver;
 	pluginCache: Record<string, SerialisablePluginCache>;
+	watchFiles: string[] = [];
 
 	// deprecated
 	treeshake: boolean;
@@ -195,13 +196,6 @@ export default class Graph {
 	}
 
 	getCache(): RollupCache {
-		const watchDependencies: string[] = [];
-		this.assetsById.forEach(asset => {
-			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
-				for (const depId of asset.dependencies) watchDependencies.push(depId);
-			}
-		});
-
 		// handle plugin cache eviction
 		for (const name in this.pluginCache) {
 			const cache = this.pluginCache[name];
@@ -215,8 +209,7 @@ export default class Graph {
 
 		return <any>{
 			modules: this.modules.map(module => module.toJSON()),
-			plugins: this.pluginCache,
-			watchDependencies
+			plugins: this.pluginCache
 		};
 	}
 
@@ -632,6 +625,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 
 		const module: Module = new Module(this, id);
 		this.moduleById.set(id, module);
+		this.watchFiles.push(id);
 
 		timeStart('load modules', 3);
 		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
@@ -666,7 +660,11 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 						: source;
 
 				const cachedModule = this.cachedModules.get(id);
-				if (cachedModule && cachedModule.originalCode === sourceDescription.code) {
+				if (
+					cachedModule &&
+					!cachedModule.customTransformCache &&
+					cachedModule.originalCode === sourceDescription.code
+				) {
 					// re-emit transform assets
 					if (cachedModule.transformAssets) {
 						for (const asset of cachedModule.transformAssets) {

@@ -186,6 +186,7 @@ export default class Module {
 		resolution: Module | ExternalModule | string | void;
 	}[];
 	transformAssets: Asset[];
+	customTransformCache: boolean;
 
 	execIndex: number;
 	isEntryPoint: boolean;
@@ -672,7 +673,8 @@ export default class Module {
 			originalSourcemap: this.originalSourcemap,
 			ast: this.esTreeAst,
 			sourcemapChain: this.sourcemapChain,
-			resolvedIds: this.resolvedIds
+			resolvedIds: this.resolvedIds,
+			customTransformCache: this.customTransformCache
 		};
 	}
 

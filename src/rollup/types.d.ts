@@ -63,7 +63,7 @@ export interface TransformSourceDescription extends SourceDescription {
 export interface ModuleJSON {
 	id: string;
 	dependencies: string[];
-	transformDependencies: string[];
+	transformDependencies: string[] | null;
 	transformAssets: Asset[] | void;
 	code: string;
 	originalCode: string;
@@ -71,6 +71,8 @@ export interface ModuleJSON {
 	ast: ESTree.Program;
 	sourcemapChain: RawSourceMap[];
 	resolvedIds: IdMap;
+	// note if plugins use new this.cache to opt-out auto transform cache
+	customTransformCache: boolean;
 }
 
 export interface Asset {
@@ -365,9 +367,9 @@ export interface SerialisablePluginCache {
 }
 
 export interface RollupCache {
-	modules: ModuleJSON[];
-	plugins: Record<string, SerialisablePluginCache>;
-	watchDependencies: string[];
+	// to be deprecated
+	modules?: ModuleJSON[];
+	plugins?: Record<string, SerialisablePluginCache>;
 }
 
 export interface RollupSingleFileBuild {
@@ -376,6 +378,7 @@ export interface RollupSingleFileBuild {
 	exports: { name: string; originalName: string; moduleId: string }[];
 	modules: ModuleJSON[];
 	cache: RollupCache;
+	watchFiles: string[];
 
 	generate: (outputOptions: OutputOptions) => Promise<OutputChunk>;
 	write: (options: OutputOptions) => Promise<OutputChunk>;
@@ -388,6 +391,7 @@ export interface OutputBundle {
 
 export interface RollupBuild {
 	cache: RollupCache;
+	watchFiles: string[];
 	generate: (outputOptions: OutputOptions) => Promise<{ output: OutputBundle }>;
 	write: (options: OutputOptions) => Promise<{ output: OutputBundle }>;
 	getTimings?: () => SerializedTimings;

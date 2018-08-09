@@ -342,6 +342,7 @@ export default function rollup(
 							const assets = new Map(graph.assetsById);
 							const generateAssetPluginHooks = createAssetPluginHooks(
 								assets,
+								graph.watchFiles,
 								outputBundle,
 								assetFileNames
 							);
@@ -368,6 +369,7 @@ export default function rollup(
 				const cache = inputOptions.cache !== false && graph.getCache();
 				const result: RollupSingleFileBuild | RollupBuild = {
 					cache,
+					watchFiles: graph.watchFiles,
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
 						const promise = generate(rawOutputOptions, false).then(
 							result =>
