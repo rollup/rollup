@@ -109,7 +109,9 @@ export default function watch(
 					break;
 
 				case 'START':
-					screenWriter(tc.underline(`rollup v${rollup.VERSION}`));
+					if (!silent) {
+						screenWriter(tc.underline(`rollup v${rollup.VERSION}`));
+					}
 					break;
 
 				case 'BUNDLE_START':
