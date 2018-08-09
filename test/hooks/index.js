@@ -274,14 +274,14 @@ describe('hooks', () => {
 				assert.equal(output['input.js'].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
 
 				return rollup
-				.rollup({
-					cache,
-					input: 'input',
-					experimentalCodeSplitting: true,
-					plugins: [
-						loader({ input: '' })
-					]
-				})
+					.rollup({
+						cache,
+						input: 'input',
+						experimentalCodeSplitting: true,
+						plugins: [
+							loader({ input: '' })
+						]
+					});
 			})
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
