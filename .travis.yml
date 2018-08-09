@@ -1,6 +1,0 @@
-# blocklist
-branches:
-  except:
-  - master
-  - chore/travis-to-circle
-script: echo "noop"
