@@ -862,9 +862,10 @@ module.exports = input;
 		})
 	});
 
-	it('Evicts cache entries after 10 runs with no usage', () => {
+	it('Evicts cache entries after cacheExpiry runs with no usage', () => {
 		return rollup.rollup({
 			input: 'input',
+			cacheExpiry: 5,
 			plugins: [
 				loader({ input: `alert('hello')` }),
 				{
@@ -878,17 +879,18 @@ module.exports = input;
 		})
 		.then(bundle => {
 			let promise = Promise.resolve();
-			for (let i = 0; i < 11; i++) {
+			for (let i = 0; i < 5; i++) {
 				promise = promise.then(() => {
 					return rollup.rollup({
 						cache: bundle.cache,
 						input: 'input',
+						cacheExpiry: 5,
 						plugins: [
 							loader({ input: `alert('hello')` }),
 							{
 								name: 'x',
 								buildStart () {
-									if (i === 9)
+									if (i === 4)
 										assert.equal(this.cache.has('second'), true);
 								}
 							}
@@ -902,12 +904,14 @@ module.exports = input;
 			return rollup.rollup({
 				cache: bundle.cache,
 				input: 'input',
+				cacheExpiry: 5,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
 						name: 'x',
 						buildStart () {
 							assert.equal(this.cache.has('first'), false);
+							assert.equal(this.cache.get('first'), undefined);
 							assert.equal(this.cache.get('second'), 'second');
 						}
 					}

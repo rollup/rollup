@@ -233,7 +233,7 @@ export function createPluginCache(cache: SerialisablePluginCache): PluginCache {
 		},
 		get(id: string) {
 			const item = cache[id];
-			if (!item) return false;
+			if (!item) return undefined;
 			item[0] = 0;
 			return item[1];
 		},

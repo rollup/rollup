@@ -36,9 +36,6 @@ import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
 
-// clear plugin cache items after 10 builds unnaccessed
-const PLUGIN_CACHE_EVICTION_EXPIRY = 10;
-
 function makeOnwarn() {
 	const warned = Object.create(null);
 
@@ -78,6 +75,7 @@ export default class Graph {
 	pluginDriver: PluginDriver;
 	pluginCache: Record<string, SerialisablePluginCache>;
 	watchFiles: string[] = [];
+	cacheExpiry: number;
 
 	// deprecated
 	treeshake: boolean;
@@ -99,6 +97,8 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
+
+		this.cacheExpiry = options.cacheExpiry;
 
 		if (!options.input) {
 			throw new Error('You must supply options.input to rollup');
@@ -200,7 +200,7 @@ export default class Graph {
 			const cache = this.pluginCache[name];
 			let allDeleted = true;
 			for (const key of Object.keys(cache)) {
-				if (cache[key][0] > PLUGIN_CACHE_EVICTION_EXPIRY) delete cache[key];
+				if (cache[key][0] >= this.cacheExpiry) delete cache[key];
 				else allDeleted = false;
 			}
 			if (allDeleted) delete this.pluginCache[name];

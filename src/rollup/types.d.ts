@@ -221,6 +221,7 @@ export interface InputOptions {
 
 	onwarn?: WarningHandler;
 	cache?: false | RollupCache;
+	cacheExpiry?: number;
 
 	acorn?: {};
 	acornInjectPlugins?: Function[];
