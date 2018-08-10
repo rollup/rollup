@@ -1,3 +1,4 @@
+import { version } from 'package.json';
 import Chunk from '../Chunk';
 import { optimizeChunks } from '../chunk-optimization';
 import Graph from '../Graph';
@@ -73,7 +74,10 @@ const throwAsyncGenerateError = {
 };
 
 function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
-	if (plugin.options) return plugin.options(inputOptions) || inputOptions;
+	if (plugin.options) {
+		const meta = { version };
+		return plugin.options(inputOptions, meta) || inputOptions;
+	}
 	return inputOptions;
 }
 

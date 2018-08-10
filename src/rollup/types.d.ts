@@ -162,7 +162,7 @@ export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
 
 export interface Plugin {
 	name: string;
-	options?: (options: InputOptions) => InputOptions | void | null;
+	options?: (options: InputOptions, meta?: OptionsMeta) => InputOptions | void | null;
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
 	transform?: TransformHook;
@@ -246,6 +246,10 @@ export interface InputOptions {
 }
 
 export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'iife' | 'umd';
+
+export interface OptionsMeta {
+	version: string;
+}
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
