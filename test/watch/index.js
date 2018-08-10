@@ -1,6 +1,7 @@
 const assert = require('assert');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
+const path = require('path');
 
 const cwd = process.cwd();
 
@@ -327,6 +328,51 @@ describe('rollup.watch', () => {
 									const dependencies = ['./asdf'];
 									const text = sander.readFileSync('test/_tmp/input/asdf').toString();
 									return { code: `export default "${text}"`, dependencies };
+								}
+							}
+						],
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 'asdf');
+							sander.unlinkSync('test/_tmp/input/asdf');
+							sander.writeFileSync('test/_tmp/input/asdf', 'next');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 'next');
+						}
+					]);
+				});
+		});
+
+		it('supports transform cache opt-out via cacheKey and custom watchFiles', () => {
+			return sander
+				.copydir('test/watch/samples/transform-dependencies')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						plugins: [
+							{
+								cacheKey: 'asdf',
+								transform(code) {
+									this.addWatchFile('test/_tmp/input/asdf');
+									const text = sander.readFileSync('test/_tmp/input/asdf').toString();
+									return `export default "${text}"`;
 								}
 							}
 						],

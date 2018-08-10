@@ -43,7 +43,7 @@ export default function transform(
 
 	function transformReducer(code: string, result: any, plugin: Plugin) {
 		// track which plugins use the custom this.cache to opt-out of transform caching
-		if (trackedPluginCache.used) customTransformCache = true;
+		if (!customTransformCache && trackedPluginCache.used) customTransformCache = true;
 		if (customTransformCache) {
 			if (result && Array.isArray(result.dependencies)) {
 				for (const dep of result.dependencies) {
@@ -103,13 +103,14 @@ export default function transform(
 			[curSource, id],
 			transformReducer,
 			(pluginContext, plugin) => {
-				trackedPluginCache = trackPluginCache(pluginContext.cache);
+				if (plugin.cacheKey) customTransformCache = true;
+				else trackedPluginCache = trackPluginCache(pluginContext.cache);
 
 				let emitAsset: EmitAsset;
 				({ assets, emitAsset } = createTransformEmitAsset(graph.assetsById, baseEmitAsset));
 				return {
 					...pluginContext,
-					cache: trackedPluginCache.cache,
+					cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
 					warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
 						if (typeof warning === 'string') warning = { message: warning };
 						if (pos) augmentCodeLocation(warning, pos, curSource, id);

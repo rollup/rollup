@@ -92,6 +92,7 @@ export interface PluginCache {
 
 export interface PluginContext {
 	watcher: Watcher;
+	addWatchFile: (id: string) => void;
 	cache: PluginCache;
 	resolveId: ResolveIdHook;
 	isExternal: IsExternal;

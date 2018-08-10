@@ -12,6 +12,7 @@ import {
 import { createAssetPluginHooks, EmitAsset } from './assetHooks';
 import { getRollupDefaultPlugin } from './default-plugin';
 import error from './error';
+import { resolve } from './path';
 
 export interface PluginDriver {
 	emitAsset: EmitAsset;
@@ -84,6 +85,9 @@ export function createPluginDriver(
 
 		const context: PluginContext = {
 			watcher,
+			addWatchFile(id: string) {
+				graph.watchFiles.push(resolve(id));
+			},
 			cache: cacheInstance,
 			isExternal(id: string, parentId: string, isResolved = false) {
 				return graph.isExternal(id, parentId, isResolved);
