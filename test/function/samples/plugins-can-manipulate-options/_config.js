@@ -8,8 +8,6 @@ module.exports = {
 			{
 				options(options, meta) {
 					options.input = path.resolve(__dirname, 'answer.js');
-					assert(meta);
-					assert(meta.version);
 				}
 			}
 		]

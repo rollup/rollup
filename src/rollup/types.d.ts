@@ -84,6 +84,7 @@ export interface PluginContext {
 	watcher: Watcher;
 	resolveId: ResolveIdHook;
 	isExternal: IsExternal;
+	meta: PluginContextMeta;
 	parse: (input: string, options: any) => ESTree.Program;
 	emitAsset(name: string, source?: string | Buffer): string;
 	emitAsset(name: string, dependencies: string[], source?: string | Buffer): string;
@@ -91,6 +92,10 @@ export interface PluginContext {
 	getAssetFileName: (assetId: string) => string;
 	warn(warning: RollupWarning | string, pos?: { line: number; column: number }): void;
 	error(err: RollupError | string, pos?: { line: number; column: number }): void;
+}
+
+export interface PluginContextMeta {
+	rollupVersion: string;
 }
 
 export type ResolveIdHook = (
@@ -162,7 +167,7 @@ export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
 
 export interface Plugin {
 	name: string;
-	options?: (options: InputOptions, meta?: OptionsMeta) => InputOptions | void | null;
+	options?: (options: InputOptions) => InputOptions | void | null;
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
 	transform?: TransformHook;
@@ -246,10 +251,6 @@ export interface InputOptions {
 }
 
 export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'iife' | 'umd';
-
-export interface OptionsMeta {
-	version: string;
-}
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 

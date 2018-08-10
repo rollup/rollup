@@ -14,11 +14,15 @@ describe('hooks', () => {
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						buildStart () {
+						buildStart() {
 							buildStartCnt++;
+							assert(this.meta);
+							assert(this.meta.rollupVersion);
 						},
-						buildEnd () {
+						buildEnd() {
 							buildEndCnt++;
+							assert(this.meta);
+							assert(this.meta.rollupVersion);
 						}
 					}
 				]
@@ -27,21 +31,20 @@ describe('hooks', () => {
 				assert.equal(buildStartCnt, 1);
 				assert.equal(buildEndCnt, 1);
 
-				return rollup
-					.rollup({
-						input: 'input',
-						plugins: [
-							loader({ input: `invalid_source - @#$%^&*` }),
-							{
-								buildStart () {
-									buildStartCnt++;
-								},
-								buildEnd () {
-									buildEndCnt++;
-								}
+				return rollup.rollup({
+					input: 'input',
+					plugins: [
+						loader({ input: `invalid_source - @#$%^&*` }),
+						{
+							buildStart() {
+								buildStartCnt++;
+							},
+							buildEnd() {
+								buildEndCnt++;
 							}
-						]
-					});
+						}
+					]
+				});
 			})
 			.catch(err => {
 				assert.ok(err);
@@ -57,7 +60,7 @@ describe('hooks', () => {
 		return rollup
 			.rollup({
 				input: 'input',
-				onwarn (warning) {
+				onwarn(warning) {
 					if (callCnt === 0) {
 						assert.equal(warning.message, 'build start');
 						callCnt++;
@@ -69,10 +72,10 @@ describe('hooks', () => {
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						buildStart () {
+						buildStart() {
 							this.warn('build start');
 						},
-						buildEnd () {
+						buildEnd() {
 							this.warn('build end');
 						}
 					}
@@ -84,20 +87,19 @@ describe('hooks', () => {
 	});
 
 	it('supports isExternal on plugin context', () => {
-		return rollup
-			.rollup({
-				input: 'input',
-				external: ['test'],
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						buildStart () {
-							assert.equal(this.isExternal('test'), true);
-							assert.equal(this.isExternal('another'), false);
-						}
+		return rollup.rollup({
+			input: 'input',
+			external: ['test'],
+			plugins: [
+				loader({ input: `alert('hello')` }),
+				{
+					buildStart() {
+						assert.equal(this.isExternal('test'), true);
+						assert.equal(this.isExternal('another'), false);
 					}
-				]
-			});
+				}
+			]
+		});
 	});
 
 	it('supports resolveId on plugin context', () => {
@@ -111,13 +113,10 @@ describe('hooks', () => {
 						dep2: `alert('hello')`
 					}),
 					{
-						resolveId (id) {
-							if (id === 'test')
-								return 'dep1';
-							if (id === 'next')
-								return this.resolveId('final');
-							if (id === 'final')
-								return 'dep2';
+						resolveId(id) {
+							if (id === 'test') return 'dep1';
+							if (id === 'next') return this.resolveId('final');
+							if (id === 'final') return 'dep2';
 						}
 					}
 				]
@@ -233,7 +232,7 @@ describe('hooks', () => {
 				plugins: [
 					loader({ input: '' }),
 					{
-						transform () {
+						transform() {
 							const assetId = this.emitAsset('test.ext', 'hello world');
 							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
 						}
@@ -245,7 +244,10 @@ describe('hooks', () => {
 			})
 			.then(({ output }) => {
 				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
-				assert.equal(output['input.js'].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
+				assert.equal(
+					output['input.js'].code,
+					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
+				);
 			});
 	});
 
@@ -258,7 +260,7 @@ describe('hooks', () => {
 				plugins: [
 					loader({ input: '' }),
 					{
-						transform () {
+						transform() {
 							const assetId = this.emitAsset('test.ext', 'hello world');
 							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
 						}
@@ -271,24 +273,27 @@ describe('hooks', () => {
 			})
 			.then(({ output }) => {
 				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
-				assert.equal(output['input.js'].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
+				assert.equal(
+					output['input.js'].code,
+					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
+				);
 
-				return rollup
-				.rollup({
+				return rollup.rollup({
 					cache,
 					input: 'input',
 					experimentalCodeSplitting: true,
-					plugins: [
-						loader({ input: '' })
-					]
-				})
+					plugins: [loader({ input: '' })]
+				});
 			})
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(({ output }) => {
 				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
-				assert.equal(output['input.js'].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
+				assert.equal(
+					output['input.js'].code,
+					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
+				);
 			});
 	});
 
@@ -300,7 +305,7 @@ describe('hooks', () => {
 				plugins: [
 					loader({ input: '' }),
 					{
-						transform () {
+						transform() {
 							const assetId = this.emitAsset('test.ext', 'hello world');
 							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
 						}
@@ -311,12 +316,15 @@ describe('hooks', () => {
 				return bundle.generate({ format: 'cjs' });
 			})
 			.then(({ output }) => {
-				assert.equal(output['input.js'].code, `'use strict';
+				assert.equal(
+					output['input.js'].code,
+					`'use strict';
 
 var input = new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)((process.browser ? '' : 'file:') + __dirname + '/assets/test-19916f7d.ext', process.browser && document.baseURI).href;
 
 module.exports = input;
-`);
+`
+				);
 			});
 	});
 
@@ -328,7 +336,7 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						transform () {
+						transform() {
 							this.emitAsset('test.ext', 'hello world');
 							return '';
 						}
@@ -355,11 +363,11 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						transform () {
+						transform() {
 							assetId = this.emitAsset('test.ext');
 							return '';
 						},
-						generateBundle () {
+						generateBundle() {
 							this.setAssetSource(assetId, 'hello world');
 						}
 					}
@@ -381,7 +389,7 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						transform () {
+						transform() {
 							const assetId = this.emitAsset('test.ext');
 							this.setAssetSource(assetId, 'asdf');
 							return '';
@@ -407,13 +415,12 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						buildEnd () {
+						buildEnd() {
 							const assetId = this.emitAsset('test.ext');
 							this.setAssetSource(assetId, 'hello world');
 							try {
 								this.setAssetSource(assetId, 'another');
-							}
-							catch (e) {
+							} catch (e) {
 								assert.equal(e.code, 'ASSET_SOURCE_ALREADY_SET');
 								thrown = true;
 								return '';
@@ -441,10 +448,10 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						transform () {
+						transform() {
 							return '';
 						},
-						generateBundle () {
+						generateBundle() {
 							assetId = this.emitAsset('test.ext');
 							this.setAssetSource(assetId, 'hello world');
 						}
@@ -468,11 +475,10 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						generateBundle (code, id) {
+						generateBundle(code, id) {
 							try {
 								this.emitAsset('test.ext', [], 'hello world');
-							}
-							catch (e) {
+							} catch (e) {
 								assert.equal(e.code, 'ASSETS_FINALISED');
 								calledHook = true;
 							}
@@ -500,11 +506,10 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						generateBundle (code, id) {
+						generateBundle(code, id) {
 							try {
 								this.emitAsset('test.ext', [], 'hello world');
-							}
-							catch (e) {
+							} catch (e) {
 								assert.equal(e.code, 'ASSETS_FINALISED');
 								calledHook = true;
 							}
@@ -532,12 +537,11 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						transformChunk (code, id) {
+						transformChunk(code, id) {
 							calledHook = true;
 							try {
 								this.emitAsset('test.ext', 'hello world');
-							}
-							catch (e) {
+							} catch (e) {
 								assert.equal(e.code, 'ASSETS_ALREADY_FINALISED');
 							}
 						}
@@ -555,7 +559,6 @@ module.exports = input;
 			});
 	});
 
-
 	it('passes bundle object to generateBundle hook', () => {
 		return rollup
 			.rollup({
@@ -564,13 +567,16 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						transform () {
+						transform() {
 							const assetId = this.emitAsset('test.ext', 'hello world');
 							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
 						},
-						generateBundle (options, outputBundle, isWrite) {
+						generateBundle(options, outputBundle, isWrite) {
 							assert.equal(outputBundle['assets/test-19916f7d.ext'], 'hello world');
-							assert.equal(outputBundle['input.js'].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
+							assert.equal(
+								outputBundle['input.js'].code,
+								`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
+							);
 						}
 					}
 				]
@@ -588,7 +594,7 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						generateBundle (options) {
+						generateBundle(options) {
 							if (options.format === 'es') {
 								const depAssetId = this.emitAsset('lateDepAsset', 'custom source');
 								const source = `references ${this.getAssetFileName(depAssetId)}`;
@@ -603,22 +609,28 @@ module.exports = input;
 				]
 			})
 			.then(bundle =>
-				bundle.generate({ format: 'es' })
+				bundle
+					.generate({ format: 'es' })
 					.then(outputBundle1 =>
-						bundle.generate({ format: 'cjs' })
-							.then(outputBundle2 => [outputBundle1, outputBundle2])
+						bundle.generate({ format: 'cjs' }).then(outputBundle2 => [outputBundle1, outputBundle2])
 					)
 			)
 			.then(([{ output: output1 }, { output: output2 }]) => {
 				assert.equal(output1['input.js'].code, `alert('hello');\n`);
 				assert.equal(output1['assets/lateDepAsset-671f747d'], `custom source`);
-				assert.equal(output1['assets/lateMainAsset-863ea4b5'], `references assets/lateDepAsset-671f747d`);
+				assert.equal(
+					output1['assets/lateMainAsset-863ea4b5'],
+					`references assets/lateDepAsset-671f747d`
+				);
 
 				assert.equal(output2['input.js'].code, `'use strict';\n\nalert('hello');\n`);
 				assert.equal(output2['assets/lateDepAsset-671f747d'], undefined);
 				assert.equal(output2['assets/lateMainAsset-863ea4b5'], undefined);
 				assert.equal(output2['assets/lateDepAsset-c107f5fc'], `different source`);
-				assert.equal(output2['assets/lateMainAsset-6dc2262b'], `references assets/lateDepAsset-c107f5fc`);
+				assert.equal(
+					output2['assets/lateMainAsset-6dc2262b'],
+					`references assets/lateDepAsset-c107f5fc`
+				);
 			});
 	});
 
@@ -630,7 +642,7 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						generateBundle () {
+						generateBundle() {
 							this.error('test error');
 						}
 					}
@@ -644,7 +656,6 @@ module.exports = input;
 			});
 	});
 
-
 	it('supports processBundle hook including reporting rendered exports and source length', () => {
 		return rollup
 			.rollup({
@@ -656,7 +667,7 @@ module.exports = input;
 						dep: `export var a = 1; export var b = 2;`
 					}),
 					{
-						generateBundle (options, outputBundle, isWrite) {
+						generateBundle(options, outputBundle, isWrite) {
 							const chunk = outputBundle['input.js'];
 
 							// can detect that b has been tree-shaken this way

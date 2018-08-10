@@ -2,6 +2,7 @@ import * as acorn from 'acorn';
 import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import injectImportMeta from 'acorn-import-meta/inject';
 import { Program } from 'estree';
+import { version as rollupVersion } from 'package.json';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
 import GlobalVariable from './ast/variables/GlobalVariable';
@@ -126,6 +127,9 @@ export default class Graph {
 		this.pluginContext = {
 			watcher,
 			isExternal: undefined,
+			meta: {
+				rollupVersion
+			},
 			resolveId: undefined,
 			parse: this.contextParse,
 			warn: (warning: RollupWarning | string) => {
