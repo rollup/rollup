@@ -6,7 +6,7 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				options(options, meta) {
+				options(options) {
 					options.input = path.resolve(__dirname, 'answer.js');
 				}
 			}
