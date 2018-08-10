@@ -201,7 +201,6 @@ export interface Plugin {
 		options: OutputOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
-	/** @deprecated */
 	generateBundle?: (
 		this: PluginContext,
 		options: OutputOptions,

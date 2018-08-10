@@ -41,7 +41,7 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 								(config.options || {}).output || {}
 							)
 						)
-						.then(code => {
+						.then(({ output: [code] }) => {
 							if (config.generateError) {
 								unintendedError = new Error('Expected an error while generating output');
 							}

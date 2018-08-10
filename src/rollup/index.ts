@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { Asset } from '../../node_modules/rollup';
 import { optimizeChunks } from '../chunk-optimization';
 import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
@@ -322,7 +323,14 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 							});
 						}
 						return generate(outputOptions, true).then(bundle => {
-							if (Object.keys(bundle).length > 1) {
+							let chunkCnt = 0;
+							for (const fileName of Object.keys(bundle)) {
+								const file = bundle[fileName];
+								if ((<OutputAsset>file).isAsset) continue;
+								chunkCnt++;
+								if (chunkCnt > 1) break;
+							}
+							if (chunkCnt > 1) {
 								if (outputOptions.sourcemapFile)
 									error({
 										code: 'INVALID_OPTION',

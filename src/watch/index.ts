@@ -1,4 +1,5 @@
 import { WatchOptions } from 'chokidar';
+import { EventEmitter } from 'events';
 import path from 'path';
 import createFilter from 'rollup-pluginutils/src/createFilter.js';
 import rollup, { setWatcher } from '../rollup/index';
@@ -13,7 +14,6 @@ import {
 import mergeOptions from '../utils/mergeOptions';
 import chokidar from './chokidar';
 import { addTask, deleteTask } from './fileWatchers';
-import { EventEmitter } from 'events';
 
 const DELAY = 200;
 
@@ -34,7 +34,9 @@ export class Watcher {
 				this.close = close;
 			}
 		}(this.close.bind(this));
-		this.tasks = (Array.isArray(configs) ? configs : configs ? [configs] : []).map(config => new Task(this, config));
+		this.tasks = (Array.isArray(configs) ? configs : configs ? [configs] : []).map(
+			config => new Task(this, config)
+		);
 		this.running = true;
 		process.nextTick(() => this.run());
 	}
