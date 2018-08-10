@@ -6,8 +6,10 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				options(options) {
+				options(options, meta) {
 					options.input = path.resolve(__dirname, 'answer.js');
+					assert(meta);
+					assert(meta.version);
 				}
 			}
 		]
