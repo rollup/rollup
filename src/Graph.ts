@@ -99,7 +99,6 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
 
 		if (!options.input) {
 			throw new Error('You must supply options.input to rollup');
