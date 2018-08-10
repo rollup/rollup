@@ -366,7 +366,7 @@ export default function rollup(
 						});
 				}
 
-				const cache = inputOptions.cache !== false && graph.getCache();
+				const cache = rawInputOptions.cache === false ? undefined : graph.getCache();
 				const result: RollupSingleFileBuild | RollupBuild = {
 					cache,
 					watchFiles: graph.watchFiles,
@@ -422,7 +422,7 @@ export default function rollup(
 				if (!inputOptions.experimentalCodeSplitting) {
 					(<any>result).imports = (<Chunk>singleChunk).getImportIds();
 					(<any>result).exports = (<Chunk>singleChunk).getExportNames();
-					(<any>result).modules = cache.modules;
+					(<any>result).modules = (cache || graph.getCache()).modules;
 				}
 				if (inputOptions.perf === true) result.getTimings = getTimings;
 				return result;

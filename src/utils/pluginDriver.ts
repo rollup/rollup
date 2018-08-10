@@ -55,10 +55,11 @@ export function createPluginDriver(
 
 	const pluginContexts = plugins.map(plugin => {
 		let cacheable = true;
-		if (typeof plugin.name === 'string') {
-			if (existingPluginKeys.indexOf(plugin.name) !== -1) {
-				if (!plugin.cacheKey) cacheable = false;
-			}
+		if (typeof plugin.cacheKey === 'string') {
+		} else if (typeof plugin.name !== 'string') {
+			cacheable = false;
+		} else {
+			if (existingPluginKeys.indexOf(plugin.name) !== -1) cacheable = false;
 			existingPluginKeys.push(plugin.name);
 		}
 
@@ -72,7 +73,7 @@ export function createPluginDriver(
 		if (!pluginCache) {
 			cacheInstance = noCache;
 		} else if (cacheable) {
-			const cacheKey = plugin.name + (plugin.cacheKey ? plugin.cacheKey : '');
+			const cacheKey = plugin.cacheKey || plugin.name;
 			cacheInstance = createPluginCache(
 				pluginCache[cacheKey] || (pluginCache[cacheKey] = Object.create(null))
 			);
@@ -109,23 +110,6 @@ export function createPluginDriver(
 				error(err);
 			}
 		};
-		if (!cacheable)
-			Object.defineProperty(context, 'cache', {
-				get() {
-					if (!plugin.name)
-						error({
-							code: 'ANONYMOUS_PLUGIN_CACHE',
-							message:
-								'A plugin is trying to use the Rollup cache but is not declaring a unique plugin name.'
-						});
-					else
-						error({
-							code: 'DUPLICATE_PLUGIN_NAME',
-							message:
-								'The plugin name ${plugin.name} is being used twice in the same build. Plugin names must be distinct or provide a unique cacheKey (please post an issue to the plugin if you are a plugin user).'
-						});
-				}
-			});
 		return context;
 	});
 
@@ -243,6 +227,7 @@ export function createPluginCache(cache: SerialisablePluginCache): PluginCache {
 		has(id: string) {
 			const item = cache[id];
 			if (!item) return false;
+			item[0] = 0;
 			return true;
 		},
 		get(id: string) {
@@ -301,13 +286,13 @@ function uncacheablePluginError(pluginName: string) {
 		error({
 			code: 'ANONYMOUS_PLUGIN_CACHE',
 			message:
-				'A plugin is trying to use the Rollup cache but is not declaring a unique plugin name.'
+				'A plugin is trying to use the Rollup cache but is not declaring a plugin name or cacheKey.'
 		});
 	else
 		error({
 			code: 'DUPLICATE_PLUGIN_NAME',
 			message:
-				'The plugin name ${pluginName} is being used twice in the same build. Plugin names must be distinct or provide a unique cacheKey (please post an issue to the plugin if you are a plugin user).'
+				'The plugin name ${pluginName} is being used twice in the same build. Plugin names must be distinct or provide a cacheKey (please post an issue to the plugin if you are a plugin user).'
 		});
 }
 
