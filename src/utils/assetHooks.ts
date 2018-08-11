@@ -47,7 +47,7 @@ export function getAssetFileName(
 
 export function createAssetPluginHooks(
 	assetsById: Map<string, Asset>,
-	watchFiles: string[],
+	watchFiles: Record<string, true>,
 	outputBundle?: OutputBundle,
 	assetFileNames?: string
 ) {
@@ -98,9 +98,7 @@ export function createAssetPluginHooks(
 			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
 			assetsById.set(assetId, asset);
 			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
-				for (const depId of asset.dependencies) {
-					if (watchFiles.indexOf(depId) === -1) watchFiles.push(depId);
-				}
+				for (const depId of asset.dependencies) watchFiles[depId] = true;
 			}
 			return assetId;
 		},
@@ -139,9 +137,7 @@ export function createAssetPluginHooks(
 				});
 			asset.source = source;
 			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
-				for (const depId of asset.dependencies) {
-					if (watchFiles.indexOf(depId) === -1) watchFiles.push(depId);
-				}
+				for (const depId of asset.dependencies) watchFiles[depId] = true;
 			}
 			if (outputBundle) finaliseAsset(asset, outputBundle, assetFileNames);
 		},

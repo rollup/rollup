@@ -364,14 +364,14 @@ export interface OutputChunk {
 	map?: SourceMap;
 }
 
-export interface SerialisablePluginCache {
+export interface SerializablePluginCache {
 	[key: string]: [number, any];
 }
 
 export interface RollupCache {
 	// to be deprecated
 	modules?: ModuleJSON[];
-	plugins?: Record<string, SerialisablePluginCache>;
+	plugins?: Record<string, SerializablePluginCache>;
 }
 
 export interface RollupSingleFileBuild {

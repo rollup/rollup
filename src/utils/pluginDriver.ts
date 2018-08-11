@@ -6,13 +6,12 @@ import {
 	PluginContext,
 	RollupError,
 	RollupWarning,
-	SerialisablePluginCache,
+	SerializablePluginCache,
 	Watcher
 } from '../rollup/types';
 import { createAssetPluginHooks, EmitAsset } from './assetHooks';
 import { getRollupDefaultPlugin } from './default-plugin';
 import error from './error';
-import { resolve } from './path';
 
 export interface PluginDriver {
 	emitAsset: EmitAsset;
@@ -42,7 +41,7 @@ export type HookContext = (context: PluginContext, plugin?: Plugin) => PluginCon
 export function createPluginDriver(
 	graph: Graph,
 	options: InputOptions,
-	pluginCache: Record<string, SerialisablePluginCache>,
+	pluginCache: Record<string, SerializablePluginCache>,
 	watcher?: Watcher
 ): PluginDriver {
 	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
@@ -86,7 +85,7 @@ export function createPluginDriver(
 		const context: PluginContext = {
 			watcher,
 			addWatchFile(id: string) {
-				graph.watchFiles.push(resolve(id));
+				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,
 			isExternal(id: string, parentId: string, isResolved = false) {
@@ -227,7 +226,7 @@ export function createPluginDriver(
 	return pluginDriver;
 }
 
-export function createPluginCache(cache: SerialisablePluginCache): PluginCache {
+export function createPluginCache(cache: SerializablePluginCache): PluginCache {
 	return {
 		has(id: string) {
 			const item = cache[id];

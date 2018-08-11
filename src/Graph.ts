@@ -16,7 +16,7 @@ import {
 	OutputBundle,
 	RollupCache,
 	RollupWarning,
-	SerialisablePluginCache,
+	SerializablePluginCache,
 	SourceDescription,
 	TreeshakingOptions,
 	WarningHandler,
@@ -73,8 +73,8 @@ export default class Graph {
 	contextParse: (code: string, acornOptions?: acorn.Options) => Program;
 
 	pluginDriver: PluginDriver;
-	pluginCache: Record<string, SerialisablePluginCache>;
-	watchFiles: string[] = [];
+	pluginCache: Record<string, SerializablePluginCache>;
+	watchFiles: Record<string, true> = Object.create(null);
 	cacheExpiry: number;
 
 	// deprecated
@@ -624,7 +624,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 
 		const module: Module = new Module(this, id);
 		this.moduleById.set(id, module);
-		this.watchFiles.push(id);
+		this.watchFiles[id] = true;
 
 		timeStart('load modules', 3);
 		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))

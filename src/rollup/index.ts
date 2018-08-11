@@ -369,7 +369,7 @@ export default function rollup(
 				const cache = rawInputOptions.cache === false ? undefined : graph.getCache();
 				const result: RollupSingleFileBuild | RollupBuild = {
 					cache,
-					watchFiles: graph.watchFiles,
+					watchFiles: Object.keys(graph.watchFiles),
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
 						const promise = generate(rawOutputOptions, false).then(
 							result =>
