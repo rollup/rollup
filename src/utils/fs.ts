@@ -3,32 +3,27 @@ import { dirname } from './path';
 
 export * from 'fs';
 
-function mkdirpath(path: string) {
-	const dir = dirname(path);
-	try {
-		fs.readdirSync(dir);
-	} catch (err) {
-		mkdirpath(dir);
-		try {
-			fs.mkdirSync(dir);
-		} catch (err2) {
-			if (err2.code !== 'EEXIST') {
-				throw err2;
-			}
-		}
-	}
+function mkdirp(dir: string): Promise<void> {
+	return new Promise<void>((resolve, reject) =>
+		fs.mkdir(dir, err => (err ? reject(err) : resolve()))
+	).catch(err => {
+		if (err.code === 'ENOENT') return mkdirp(dirname(dir)).then(() => mkdirp(dir));
+		else if (err.code === 'EEXIST') return;
+		throw err;
+	});
 }
 
-export function writeFile(dest: string, data: string | Buffer) {
-	return new Promise<void>((fulfil, reject) => {
-		mkdirpath(dest);
+export function writeFile(path: string, data: string | Buffer) {
+	return mkdirp(dirname(path)).then(
+		() =>
+			new Promise<void>((resolve, reject) =>
+				fs.writeFile(path, data, err => (err ? reject(err) : resolve()))
+			)
+	);
+}
 
-		fs.writeFile(dest, data, err => {
-			if (err) {
-				reject(err);
-			} else {
-				fulfil();
-			}
-		});
-	});
+export function readFile(path: string, encoding = 'utf-8'): Promise<Buffer> {
+	return new Promise((resolve, reject) =>
+		fs.readFile(path, encoding, (err, source) => (err ? reject(err) : resolve(<any>source)))
+	);
 }

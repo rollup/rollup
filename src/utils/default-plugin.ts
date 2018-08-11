@@ -1,6 +1,6 @@
 import { InputOptions, Plugin } from '../rollup/types';
 import error from './error';
-import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // eslint-disable-line
+import { lstatSync, readdirSync, readFile, realpathSync } from './fs'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path';
 
 export function getRollupDefaultPlugin(options: InputOptions): Plugin {
@@ -8,7 +8,7 @@ export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 		name: 'Rollup Core',
 		resolveId: createResolveId(options),
 		load(id) {
-			return readFileSync(id, 'utf-8');
+			return readFile(id, 'utf-8').then(source => source.toString());
 		},
 		resolveDynamicImport(specifier, parentId) {
 			if (typeof specifier === 'string')

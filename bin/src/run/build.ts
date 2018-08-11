@@ -7,6 +7,8 @@ import {
 	RollupBuild,
 	RollupSingleFileBuild
 } from '../../../src/rollup/types';
+import { readFile, writeFile } from '../../../src/utils/fs';
+import { resolve } from '../../../src/utils/path';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import SOURCEMAPPING_URL from '../sourceMappingUrl';
@@ -17,7 +19,8 @@ export default function build(
 	inputOptions: InputOptions,
 	outputOptions: OutputOptions[],
 	warnings: BatchWarnings,
-	silent = false
+	silent: boolean,
+	configFile: string
 ) {
 	const useStdout =
 		outputOptions.length === 1 &&
@@ -42,9 +45,18 @@ export default function build(
 		stderr(tc.cyan(`\n${tc.bold(inputFiles)} → ${tc.bold(files.join(', '))}...`));
 	}
 
-	return rollup
-		.rollup(inputOptions)
-		.then((bundle: RollupSingleFileBuild | RollupBuild) => {
+	return readFile(resolve(configFile, '../.cache/rollup'))
+		.then(
+			pluginCache => {
+				const plugins = JSON.parse(pluginCache.toString());
+				inputOptions.cache = { plugins };
+			},
+			() => {}
+		)
+		.then(() => {
+			return rollup.rollup(inputOptions);
+		})
+		.then(bundle => {
 			if (useStdout) {
 				const output = outputOptions[0];
 				if (output.sourcemap && output.sourcemap !== 'inline') {
@@ -64,9 +76,26 @@ export default function build(
 				});
 			}
 
-			return Promise.all(outputOptions.map(output => <Promise<any>>bundle.write(output))).then(
-				() => bundle
-			);
+			let usedCache = false;
+			if (bundle.cache && bundle.cache.plugins) {
+				Object.keys(bundle.cache.plugins).forEach(cacheKey => {
+					for (const _p in bundle.cache.plugins[cacheKey]) {
+						usedCache = true;
+						return;
+					}
+				});
+			}
+
+			const cacheWritePromise = usedCache
+				? writeFile(resolve(configFile, '../.cache/rollup'), JSON.stringify(bundle.cache.plugins))
+				: Promise.resolve();
+			return Promise.all(
+				outputOptions.map(output => {
+					return <Promise<any>>bundle.write(output);
+				})
+			)
+				.then(() => cacheWritePromise)
+				.then(() => bundle);
 		})
 		.then((bundle?: RollupSingleFileBuild | RollupBuild) => {
 			warnings.flush();
