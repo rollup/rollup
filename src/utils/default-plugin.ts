@@ -7,7 +7,7 @@ import { basename, dirname, isAbsolute, resolve } from './path';
 export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 	return {
 		name: 'Rollup Core',
-		resolveId: resolveId(options),
+		resolveId: createResolveId(options),
 		load(id) {
 			return readFileSync(id, 'utf-8');
 		},
@@ -44,7 +44,7 @@ function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
 	return found;
 }
 
-export function resolveId(options: InputOptions) {
+export function createResolveId(options: InputOptions) {
 	return function(importee: string, importer: string) {
 		if (typeof process === 'undefined') {
 			error({

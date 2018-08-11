@@ -64,10 +64,9 @@ export default function build(
 				});
 			}
 
-			let writePromise: Promise<any> = Promise.resolve();
-			for (const output of outputOptions)
-				writePromise = writePromise.then(() => <Promise<any>>bundle.write(output));
-			return writePromise.then(() => bundle);
+			return Promise.all(outputOptions.map(output => <Promise<any>>bundle.write(output))).then(
+				() => bundle
+			);
 		})
 		.then((bundle?: RollupSingleFileBuild | RollupBuild) => {
 			warnings.flush();

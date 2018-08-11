@@ -10,27 +10,27 @@ export interface Addons {
 	hash: Uint8Array;
 }
 
-function strOrFn(strOrFn: string | (() => string | Promise<string>)) {
+function evalIfFn<T = string>(strOrFn: T | (() => T | Promise<T>)) {
 	switch (typeof strOrFn) {
 		case 'function':
-			return (<() => string | Promise<string>>strOrFn)();
+			return (<() => T | Promise<T>>strOrFn)();
 		case 'string':
-			return <string>strOrFn;
+			return <T>strOrFn;
 		default:
 			return '';
 	}
 }
 
-const reduceSep = (out: string, next: string) => (next ? `${out}\n${next}` : out);
-const reduceDblSep = (out: string, next: string) => (next ? `${out}\n\n${next}` : out);
+const concatSep = (out: string, next: string) => (next ? `${out}\n${next}` : out);
+const concatDblSep = (out: string, next: string) => (next ? `${out}\n\n${next}` : out);
 
 export function createAddons(graph: Graph, options: OutputOptions): Promise<Addons> {
 	const pluginDriver = graph.pluginDriver;
 	return Promise.all([
-		pluginDriver.hookReduceValue('banner', strOrFn(options.banner), [], reduceSep),
-		pluginDriver.hookReduceValue('footer', strOrFn(options.footer), [], reduceSep),
-		pluginDriver.hookReduceValue('intro', strOrFn(options.intro), [], reduceDblSep),
-		pluginDriver.hookReduceValue('outro', strOrFn(options.outro), [], reduceDblSep)
+		pluginDriver.hookReduceValue('banner', evalIfFn(options.banner), [], concatSep),
+		pluginDriver.hookReduceValue('footer', evalIfFn(options.footer), [], concatSep),
+		pluginDriver.hookReduceValue('intro', evalIfFn(options.intro), [], concatDblSep),
+		pluginDriver.hookReduceValue('outro', evalIfFn(options.outro), [], concatDblSep)
 	])
 		.then(([banner, footer, intro, outro]) => {
 			if (intro) intro += '\n\n';
