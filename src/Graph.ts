@@ -14,7 +14,9 @@ import {
 	IsExternal,
 	ModuleJSON,
 	OutputBundle,
+	RollupCache,
 	RollupWarning,
+	SerializablePluginCache,
 	SourceDescription,
 	TreeshakingOptions,
 	WarningHandler,
@@ -71,6 +73,9 @@ export default class Graph {
 	contextParse: (code: string, acornOptions?: acorn.Options) => Program;
 
 	pluginDriver: PluginDriver;
+	pluginCache: Record<string, SerializablePluginCache>;
+	watchFiles: Record<string, true> = Object.create(null);
+	cacheExpiry: number;
 
 	// deprecated
 	treeshake: boolean;
@@ -80,11 +85,20 @@ export default class Graph {
 		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
 		if (options.cache) {
-			if (options.cache.modules) {
+			if (options.cache.modules)
 				for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
+		}
+		if (options.cache !== false) {
+			this.pluginCache = (options.cache && options.cache.plugins) || Object.create(null);
+
+			// increment access counter
+			for (const name in this.pluginCache) {
+				const cache = this.pluginCache[name];
+				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
+
+		this.cacheExpiry = options.cacheExpiry;
 
 		if (!options.input) {
 			throw new Error('You must supply options.input to rollup');
@@ -118,7 +132,7 @@ export default class Graph {
 			return this.acornParse(code, { ...defaultAcornOptions, ...options, ...this.acornOptions });
 		};
 
-		this.pluginDriver = createPluginDriver(this, options, watcher);
+		this.pluginDriver = createPluginDriver(this, options, this.pluginCache, watcher);
 
 		if (typeof options.external === 'function') {
 			this.isExternal = options.external;
@@ -180,17 +194,21 @@ export default class Graph {
 		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
 	}
 
-	getCache() {
-		const assetDependencies: string[] = [];
-		this.assetsById.forEach(asset => {
-			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
-				for (const depId of asset.dependencies) assetDependencies.push(depId);
+	getCache(): RollupCache {
+		// handle plugin cache eviction
+		for (const name in this.pluginCache) {
+			const cache = this.pluginCache[name];
+			let allDeleted = true;
+			for (const key of Object.keys(cache)) {
+				if (cache[key][0] >= this.cacheExpiry) delete cache[key];
+				else allDeleted = false;
 			}
-		});
+			if (allDeleted) delete this.pluginCache[name];
+		}
 
-		return {
+		return <any>{
 			modules: this.modules.map(module => module.toJSON()),
-			assetDependencies
+			plugins: this.pluginCache
 		};
 	}
 
@@ -606,6 +624,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 
 		const module: Module = new Module(this, id);
 		this.moduleById.set(id, module);
+		this.watchFiles[id] = true;
 
 		timeStart('load modules', 3);
 		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
@@ -640,7 +659,11 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 						: source;
 
 				const cachedModule = this.cachedModules.get(id);
-				if (cachedModule && cachedModule.originalCode === sourceDescription.code) {
+				if (
+					cachedModule &&
+					!cachedModule.customTransformCache &&
+					cachedModule.originalCode === sourceDescription.code
+				) {
 					// re-emit transform assets
 					if (cachedModule.transformAssets) {
 						for (const asset of cachedModule.transformAssets) {

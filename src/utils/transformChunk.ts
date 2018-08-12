@@ -1,7 +1,7 @@
 import { decode } from 'sourcemap-codec';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
-import { OutputOptions, RawSourceMap } from '../rollup/types';
+import { OutputOptions, Plugin, RawSourceMap } from '../rollup/types';
 import { createAssetPluginHooks } from './assetHooks';
 import error from './error';
 
@@ -12,7 +12,7 @@ export default function transformChunk(
 	sourcemapChain: RawSourceMap[],
 	options: OutputOptions
 ) {
-	const transformChunkAssetPluginHooks = createAssetPluginHooks(graph.assetsById);
+	const transformChunkAssetPluginHooks = createAssetPluginHooks(graph.assetsById, graph.watchFiles);
 
 	const transformChunkReducer = (code: string, result: any, plugin: Plugin): string => {
 		if (result == null) return code;

@@ -342,6 +342,7 @@ export default function rollup(
 							const assets = new Map(graph.assetsById);
 							const generateAssetPluginHooks = createAssetPluginHooks(
 								assets,
+								graph.watchFiles,
 								outputBundle,
 								assetFileNames
 							);
@@ -365,9 +366,10 @@ export default function rollup(
 						});
 				}
 
-				const cache = graph.getCache();
+				const cache = rawInputOptions.cache === false ? undefined : graph.getCache();
 				const result: RollupSingleFileBuild | RollupBuild = {
 					cache,
+					watchFiles: Object.keys(graph.watchFiles),
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
 						const promise = generate(rawOutputOptions, false).then(
 							result =>
@@ -420,7 +422,7 @@ export default function rollup(
 				if (!inputOptions.experimentalCodeSplitting) {
 					(<any>result).imports = (<Chunk>singleChunk).getImportIds();
 					(<any>result).exports = (<Chunk>singleChunk).getExportNames();
-					(<any>result).modules = cache.modules;
+					(<any>result).modules = (cache || graph.getCache()).modules;
 				}
 				if (inputOptions.perf === true) result.getTimings = getTimings;
 				return result;

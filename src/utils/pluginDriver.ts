@@ -2,9 +2,11 @@ import Graph from '../Graph';
 import {
 	InputOptions,
 	Plugin,
+	PluginCache,
 	PluginContext,
 	RollupError,
 	RollupWarning,
+	SerializablePluginCache,
 	Watcher
 } from '../rollup/types';
 import { createAssetPluginHooks, EmitAsset } from './assetHooks';
@@ -39,22 +41,53 @@ export type HookContext = (context: PluginContext, plugin?: Plugin) => PluginCon
 export function createPluginDriver(
 	graph: Graph,
 	options: InputOptions,
+	pluginCache: Record<string, SerializablePluginCache>,
 	watcher?: Watcher
 ): PluginDriver {
 	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
-	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
+	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(
+		graph.assetsById,
+		graph.watchFiles
+	);
+	const existingPluginKeys: string[] = [];
 
 	let hasLoadersOrTransforms = false;
 
 	const pluginContexts = plugins.map(plugin => {
+		let cacheable = true;
+		if (typeof plugin.cacheKey !== 'string') {
+			if (typeof plugin.name !== 'string') {
+				cacheable = false;
+			} else {
+				if (existingPluginKeys.indexOf(plugin.name) !== -1) cacheable = false;
+				existingPluginKeys.push(plugin.name);
+			}
+		}
+
 		if (
 			!hasLoadersOrTransforms &&
 			(plugin.load || plugin.transform || plugin.transformBundle || plugin.transformChunk)
 		)
 			hasLoadersOrTransforms = true;
 
+		let cacheInstance: PluginCache;
+		if (!pluginCache) {
+			cacheInstance = noCache;
+		} else if (cacheable) {
+			const cacheKey = plugin.cacheKey || plugin.name;
+			cacheInstance = createPluginCache(
+				pluginCache[cacheKey] || (pluginCache[cacheKey] = Object.create(null))
+			);
+		} else {
+			cacheInstance = uncacheablePlugin(plugin.name);
+		}
+
 		const context: PluginContext = {
 			watcher,
+			addWatchFile(id: string) {
+				graph.watchFiles[id] = true;
+			},
+			cache: cacheInstance,
 			isExternal(id: string, parentId: string, isResolved = false) {
 				return graph.isExternal(id, parentId, isResolved);
 			},
@@ -192,3 +225,95 @@ export function createPluginDriver(
 
 	return pluginDriver;
 }
+
+export function createPluginCache(cache: SerializablePluginCache): PluginCache {
+	return {
+		has(id: string) {
+			const item = cache[id];
+			if (!item) return false;
+			item[0] = 0;
+			return true;
+		},
+		get(id: string) {
+			const item = cache[id];
+			if (!item) return undefined;
+			item[0] = 0;
+			return item[1];
+		},
+		set(id: string, value: any) {
+			cache[id] = [0, value];
+		},
+		delete(id: string) {
+			return delete cache[id];
+		}
+	};
+}
+
+export function trackPluginCache(pluginCache: PluginCache) {
+	const result = { used: false, cache: <PluginCache>undefined };
+	result.cache = {
+		has(id: string) {
+			result.used = true;
+			return pluginCache.has(id);
+		},
+		get(id: string) {
+			result.used = true;
+			return pluginCache.get(id);
+		},
+		set(id: string, value: any) {
+			result.used = true;
+			return pluginCache.set(id, value);
+		},
+		delete(id: string) {
+			result.used = true;
+			return pluginCache.delete(id);
+		}
+	};
+	return result;
+}
+
+const noCache: PluginCache = {
+	has() {
+		return false;
+	},
+	get() {
+		return undefined;
+	},
+	set() {},
+	delete() {
+		return false;
+	}
+};
+
+function uncacheablePluginError(pluginName: string) {
+	if (!pluginName)
+		error({
+			code: 'ANONYMOUS_PLUGIN_CACHE',
+			message:
+				'A plugin is trying to use the Rollup cache but is not declaring a plugin name or cacheKey.'
+		});
+	else
+		error({
+			code: 'DUPLICATE_PLUGIN_NAME',
+			message:
+				'The plugin name ${pluginName} is being used twice in the same build. Plugin names must be distinct or provide a cacheKey (please post an issue to the plugin if you are a plugin user).'
+		});
+}
+
+const uncacheablePlugin: (pluginName: string) => PluginCache = pluginName => ({
+	has() {
+		uncacheablePluginError(pluginName);
+		return false;
+	},
+	get() {
+		uncacheablePluginError(pluginName);
+		return undefined;
+	},
+	set() {
+		uncacheablePluginError(pluginName);
+	},
+	delete() {
+		uncacheablePluginError(pluginName);
+		return false;
+	}
+});

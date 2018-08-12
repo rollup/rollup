@@ -199,6 +199,7 @@ function getInputOptions(
 		acorn: config.acorn,
 		acornInjectPlugins: config.acornInjectPlugins,
 		cache: getOption('cache'),
+		cacheExpiry: getOption('cacheExpiry', 10),
 		context: config.context,
 		experimentalCodeSplitting: getOption('experimentalCodeSplitting'),
 		experimentalPreserveModules: getOption('experimentalPreserveModules'),

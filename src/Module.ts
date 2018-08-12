@@ -186,6 +186,7 @@ export default class Module {
 		resolution: Module | ExternalModule | string | void;
 	}[];
 	transformAssets: Asset[];
+	customTransformCache: boolean;
 
 	execIndex: number;
 	isEntryPoint: boolean;
@@ -241,13 +242,15 @@ export default class Module {
 		ast,
 		sourcemapChain,
 		resolvedIds,
-		transformDependencies
+		transformDependencies,
+		customTransformCache
 	}: ModuleJSON) {
 		this.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain;
 		this.transformDependencies = transformDependencies;
+		this.customTransformCache = customTransformCache;
 
 		timeStart('generate ast', 3);
 
@@ -672,7 +675,8 @@ export default class Module {
 			originalSourcemap: this.originalSourcemap,
 			ast: this.esTreeAst,
 			sourcemapChain: this.sourcemapChain,
-			resolvedIds: this.resolvedIds
+			resolvedIds: this.resolvedIds,
+			customTransformCache: this.customTransformCache
 		};
 	}
 

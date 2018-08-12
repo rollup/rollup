@@ -6,6 +6,7 @@ import Module from '../Module';
 import {
 	Asset,
 	Plugin,
+	PluginCache,
 	RawSourceMap,
 	RollupError,
 	RollupWarning,
@@ -14,6 +15,7 @@ import {
 import { createTransformEmitAsset, EmitAsset } from './assetHooks';
 import error, { augmentCodeLocation } from './error';
 import { dirname, resolve } from './path';
+import { trackPluginCache } from './pluginDriver';
 
 export default function transform(
 	graph: Graph,
@@ -35,17 +37,36 @@ export default function transform(
 	let transformDependencies: string[];
 
 	let assets: Asset[];
+	let customTransformCache = false;
+	let trackedPluginCache: { used: boolean; cache: PluginCache };
 	const curSource: string = source.code;
 
 	function transformReducer(code: string, result: any, plugin: Plugin) {
-		// assets emitted by transform are transformDependencies
-		if (assets.length) module.transformAssets = assets;
-		for (const asset of assets) {
-			if (asset.dependencies) {
-				for (const depId of asset.dependencies) {
-					if (!transformDependencies) transformDependencies = [];
-					if (transformDependencies.indexOf(depId) === -1) transformDependencies.push(depId);
+		// track which plugins use the custom this.cache to opt-out of transform caching
+		if (!customTransformCache && trackedPluginCache.used) customTransformCache = true;
+		if (customTransformCache) {
+			if (result && Array.isArray(result.dependencies)) {
+				for (const dep of result.dependencies) {
+					const depId = resolve(dirname(id), dep);
+					if (!graph.watchFiles[depId]) graph.watchFiles[depId] = true;
 				}
+			}
+		} else {
+			// assets emitted by transform are transformDependencies
+			if (assets.length) module.transformAssets = assets;
+			for (const asset of assets) {
+				if (asset.dependencies) {
+					for (const depId of asset.dependencies) {
+						if (!transformDependencies) transformDependencies = [];
+						if (transformDependencies.indexOf(depId) === -1) transformDependencies.push(depId);
+					}
+				}
+			}
+
+			if (result && Array.isArray(result.dependencies)) {
+				if (!transformDependencies) transformDependencies = [];
+				for (const dep of result.dependencies)
+					transformDependencies.push(resolve(dirname(id), dep));
 			}
 		}
 
@@ -60,13 +81,6 @@ export default function transform(
 		} else if (typeof result.map === 'string') {
 			// `result.map` can only be a string if `result` isn't
 			result.map = JSON.parse(result.map);
-		}
-
-		if (Array.isArray(result.dependencies)) {
-			if (!transformDependencies) transformDependencies = [];
-			for (const dep of result.dependencies) {
-				transformDependencies.push(resolve(dirname(id), dep));
-			}
 		}
 
 		if (result.map && typeof result.map.mappings === 'string') {
@@ -89,10 +103,14 @@ export default function transform(
 			[curSource, id],
 			transformReducer,
 			(pluginContext, plugin) => {
+				if (plugin.cacheKey) customTransformCache = true;
+				else trackedPluginCache = trackPluginCache(pluginContext.cache);
+
 				let emitAsset: EmitAsset;
 				({ assets, emitAsset } = createTransformEmitAsset(graph.assetsById, baseEmitAsset));
 				return {
 					...pluginContext,
+					cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
 					warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
 						if (typeof warning === 'string') warning = { message: warning };
 						if (pos) augmentCodeLocation(warning, pos, curSource, id);
@@ -131,12 +149,15 @@ export default function transform(
 			err.id = id;
 			error(err);
 		})
-		.then(code => ({
-			code,
-			transformDependencies,
-			originalCode,
-			originalSourcemap,
-			ast: <ESTree.Program>ast,
-			sourcemapChain
-		}));
+		.then(code => {
+			return {
+				code,
+				transformDependencies,
+				originalCode,
+				originalSourcemap,
+				ast: <ESTree.Program>ast,
+				sourcemapChain,
+				customTransformCache
+			};
+		});
 }
