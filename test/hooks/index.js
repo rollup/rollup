@@ -282,20 +282,15 @@ describe('hooks', () => {
 					cache,
 					input: 'input',
 					experimentalCodeSplitting: true,
-<<<<<<< HEAD
-					plugins: [loader({ input: '' })]
-				});
-=======
 					plugins: [
 						loader({ input: '' }),
 						{
-							transform () {
+							transform() {
 								assert.fail('Should cache transform');
 							}
 						}
 					]
-				})
->>>>>>> master
+				});
 			})
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
@@ -320,7 +315,7 @@ describe('hooks', () => {
 					loader({ input: '' }),
 					{
 						name: 'x',
-						transform () {
+						transform() {
 							this.cache.set('asdf', 'asdf');
 							runs++;
 							const assetId = this.emitAsset('test.ext', 'hello world');
@@ -335,10 +330,12 @@ describe('hooks', () => {
 			})
 			.then(({ output }) => {
 				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
-				assert.equal(output['input.js'].code, `var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`);
+				assert.equal(
+					output['input.js'].code,
+					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
+				);
 
-				return rollup
-				.rollup({
+				return rollup.rollup({
 					cache,
 					input: 'input',
 					experimentalCodeSplitting: true,
@@ -346,13 +343,13 @@ describe('hooks', () => {
 						loader({ input: '' }),
 						{
 							name: 'x',
-							transform () {
+							transform() {
 								runs++;
 								return `alert('hello world')`;
 							}
 						}
 					]
-				})
+				});
 			})
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
@@ -763,7 +760,7 @@ module.exports = input;
 					loader({ input: `alert('hello')` }),
 					{
 						name: 'cachePlugin',
-						buildStart () {
+						buildStart() {
 							this.cache.set('asdf', 'asdf');
 						}
 					}
@@ -777,7 +774,7 @@ module.exports = input;
 						loader({ input: `alert('hello')` }),
 						{
 							name: 'cachePlugin',
-							buildStart () {
+							buildStart() {
 								assert.ok(this.cache.has('asdf'));
 								assert.equal(this.cache.get('asdf'), 'asdf');
 							}
@@ -794,7 +791,7 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						buildStart () {
+						buildStart() {
 							this.cache.set('asdf', 'asdf');
 						}
 					}
@@ -825,28 +822,29 @@ module.exports = input;
 				]
 			})
 			.then(() => {
-				return rollup.rollup({
-					input: 'input',
-					plugins: [
-						loader({ input: `alert('hello')` }),
-						{
-							name: 'a',
-							buildStart () {
-								this.cache.set('asdf', 'asdf');
+				return rollup
+					.rollup({
+						input: 'input',
+						plugins: [
+							loader({ input: `alert('hello')` }),
+							{
+								name: 'a',
+								buildStart() {
+									this.cache.set('asdf', 'asdf');
+								}
+							},
+							{
+								name: 'a',
+								buildStart() {
+									this.cache.set('asdf', 'asdf');
+								}
 							}
-						},
-						{
-							name: 'a',
-							buildStart () {
-								this.cache.set('asdf', 'asdf');
-							}
-						}
-					]
-				})
-				.catch(err => {
-					assert.equal(err.code, 'PLUGIN_ERROR');
-					assert.equal(err.pluginCode, 'DUPLICATE_PLUGIN_NAME');
-				});
+						]
+					})
+					.catch(err => {
+						assert.equal(err.code, 'PLUGIN_ERROR');
+						assert.equal(err.pluginCode, 'DUPLICATE_PLUGIN_NAME');
+					});
 			});
 	});
 
@@ -858,144 +856,146 @@ module.exports = input;
 				{
 					name: 'a',
 					cacheKey: 'a9b6',
-					buildStart () {
+					buildStart() {
 						this.cache.set('asdf', 'asdf');
 					}
 				},
 				{
 					name: 'a',
 					cacheKey: 'a9b6',
-					buildEnd () {
+					buildEnd() {
 						assert.equal(this.cache.get('asdf'), 'asdf');
 					}
 				},
 				{
 					name: 'b',
 					cacheKey: 'a9b6',
-					buildEnd () {
+					buildEnd() {
 						assert.equal(this.cache.get('asdf'), 'asdf');
 					}
 				}
 			]
-		})
+		});
 	});
 
 	it('Evicts cache entries after cacheExpiry runs with no usage', () => {
-		return rollup.rollup({
-			input: 'input',
-			cacheExpiry: 5,
-			plugins: [
-				loader({ input: `alert('hello')` }),
-				{
-					name: 'x',
-					buildStart () {
-						this.cache.set('first', 'first');
-						this.cache.set('second', 'second');
-					}
-				}
-			]
-		})
-		.then(bundle => {
-			let promise = Promise.resolve();
-			for (let i = 0; i < 5; i++) {
-				promise = promise.then(() => {
-					return rollup.rollup({
-						cache: bundle.cache,
-						input: 'input',
-						cacheExpiry: 5,
-						plugins: [
-							loader({ input: `alert('hello')` }),
-							{
-								name: 'x',
-								buildStart () {
-									if (i === 4)
-										assert.equal(this.cache.has('second'), true);
-								}
-							}
-						]
-					});
-				});
-			}
-			return promise;
-		})
-		.then(bundle => {
-			return rollup.rollup({
-				cache: bundle.cache,
+		return rollup
+			.rollup({
 				input: 'input',
 				cacheExpiry: 5,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
 						name: 'x',
-						buildStart () {
-							assert.equal(this.cache.has('first'), false);
-							assert.equal(this.cache.get('first'), undefined);
-							assert.equal(this.cache.get('second'), 'second');
-						}
-					}
-				]
-			});
-		});
-	});
-
-	it('Supports disabling the cache with cache: false', () => {
-		return rollup.rollup({
-			input: 'input',
-			cache: false,
-			plugins: [
-				loader({ input: `alert('hello')` }),
-				{
-					name: 'x',
-					buildStart () {
-						this.cache.set('x', 'x');
-						assert.equal(this.cache.has('x'), false);
-						assert.equal(this.cache.get('x'), undefined);
-					}
-				}
-			]
-		})
-		.then(bundle => {
-			assert.equal(bundle.cache, undefined);
-		});
-	});
-
-	it('Disables the default transform cache when using cache in transform only', () => {
-		return rollup.rollup({
-			input: 'input',
-			plugins: [
-				loader({ input: `alert('hello')` }),
-				{
-					name: 'x',
-					transform () {
-						this.cache.set('asdf', 'asdf');
-						return `alert('hello world')`;
-					}
-				}
-			]
-		})
-		.then(bundle => {
-			return rollup.rollup({
-				input: 'input',
-				cache: bundle.cache,
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						name: 'x',
-						transform () {
-							assert.equal(this.cache.get('asdf'), 'asdf');
-							return `alert('hello')`;
+						buildStart() {
+							this.cache.set('first', 'first');
+							this.cache.set('second', 'second');
 						}
 					}
 				]
 			})
-		})
-		.then(bundle => {
-			return bundle.generate({
-				format: 'es'
+			.then(bundle => {
+				let promise = Promise.resolve();
+				for (let i = 0; i < 5; i++) {
+					promise = promise.then(() => {
+						return rollup.rollup({
+							cache: bundle.cache,
+							input: 'input',
+							cacheExpiry: 5,
+							plugins: [
+								loader({ input: `alert('hello')` }),
+								{
+									name: 'x',
+									buildStart() {
+										if (i === 4) assert.equal(this.cache.has('second'), true);
+									}
+								}
+							]
+						});
+					});
+				}
+				return promise;
+			})
+			.then(bundle => {
+				return rollup.rollup({
+					cache: bundle.cache,
+					input: 'input',
+					cacheExpiry: 5,
+					plugins: [
+						loader({ input: `alert('hello')` }),
+						{
+							name: 'x',
+							buildStart() {
+								assert.equal(this.cache.has('first'), false);
+								assert.equal(this.cache.get('first'), undefined);
+								assert.equal(this.cache.get('second'), 'second');
+							}
+						}
+					]
+				});
 			});
-		})
-		.then(bundle => {
-			assert.equal(bundle.code.trim(), `alert('hello');`);
-		});
+	});
+
+	it('Supports disabling the cache with cache: false', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				cache: false,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						name: 'x',
+						buildStart() {
+							this.cache.set('x', 'x');
+							assert.equal(this.cache.has('x'), false);
+							assert.equal(this.cache.get('x'), undefined);
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				assert.equal(bundle.cache, undefined);
+			});
+	});
+
+	it('Disables the default transform cache when using cache in transform only', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						name: 'x',
+						transform() {
+							this.cache.set('asdf', 'asdf');
+							return `alert('hello world')`;
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return rollup.rollup({
+					input: 'input',
+					cache: bundle.cache,
+					plugins: [
+						loader({ input: `alert('hello')` }),
+						{
+							name: 'x',
+							transform() {
+								assert.equal(this.cache.get('asdf'), 'asdf');
+								return `alert('hello')`;
+							}
+						}
+					]
+				});
+			})
+			.then(bundle => {
+				return bundle.generate({
+					format: 'es'
+				});
+			})
+			.then(bundle => {
+				assert.equal(bundle.code.trim(), `alert('hello');`);
+			});
 	});
 });
