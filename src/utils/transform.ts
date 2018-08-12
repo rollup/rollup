@@ -48,7 +48,7 @@ export default function transform(
 			if (result && Array.isArray(result.dependencies)) {
 				for (const dep of result.dependencies) {
 					const depId = resolve(dirname(id), dep);
-					if (graph.watchFiles.indexOf(depId) === -1) graph.watchFiles.push(depId);
+					if (!graph.watchFiles[depId]) graph.watchFiles[depId] = true;
 				}
 			}
 		} else {
