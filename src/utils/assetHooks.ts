@@ -47,6 +47,7 @@ export function getAssetFileName(
 
 export function createAssetPluginHooks(
 	assetsById: Map<string, Asset>,
+	watchFiles: Record<string, true>,
 	outputBundle?: OutputBundle,
 	assetFileNames?: string
 ) {
@@ -96,6 +97,9 @@ export function createAssetPluginHooks(
 			const asset: Asset = { name, source, fileName: undefined, dependencies, transform: null };
 			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
 			assetsById.set(assetId, asset);
+			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
+				for (const depId of asset.dependencies) watchFiles[depId] = true;
+			}
 			return assetId;
 		},
 		setAssetSource(
@@ -132,6 +136,9 @@ export function createAssetPluginHooks(
 					message: `Plugin error creating asset ${name}, setAssetSource call without a source.`
 				});
 			asset.source = source;
+			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
+				for (const depId of asset.dependencies) watchFiles[depId] = true;
+			}
 			if (outputBundle) finaliseAsset(asset, outputBundle, assetFileNames);
 		},
 		getAssetFileName(assetId: string) {

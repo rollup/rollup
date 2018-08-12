@@ -1009,6 +1009,8 @@ export default class Chunk {
 		const outName = makeUnique(
 			renderNamePattern(pattern, patternName, type => {
 				switch (type) {
+					case 'format':
+						return options.format === 'es' ? 'esm' : options.format;
 					case 'hash':
 						return this.computeFullHash(addons, options);
 					case 'name':
@@ -1113,10 +1115,7 @@ export default class Chunk {
 					else if (options.dir) file = resolve(options.dir, this.id);
 					else file = resolve(this.id);
 
-					if (
-						this.graph.hasLoaders ||
-						this.graph.plugins.find(plugin => Boolean(plugin.transform || plugin.transformBundle))
-					) {
+					if (this.graph.pluginDriver.hasLoadersOrTransforms) {
 						const decodedMap = magicString.generateDecodedMap({});
 						map = collapseSourcemaps(this, file, decodedMap, this.usedModules, chunkSourcemapChain);
 					} else {

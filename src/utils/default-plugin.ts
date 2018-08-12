@@ -1,12 +1,20 @@
-import Module from '../Module';
-import { InputOptions } from '../rollup/types';
+import { InputOptions, Plugin } from '../rollup/types';
 import error from './error';
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path';
-import relativeId from './relativeId';
 
-export function load(id: string) {
-	return readFileSync(id, 'utf-8');
+export function getRollupDefaultPlugin(options: InputOptions): Plugin {
+	return {
+		name: 'Rollup Core',
+		resolveId: createResolveId(options),
+		load(id) {
+			return readFileSync(id, 'utf-8');
+		},
+		resolveDynamicImport(specifier, parentId) {
+			if (typeof specifier === 'string')
+				return <Promise<string>>this.resolveId(specifier, parentId);
+		}
+	};
 }
 
 function findFile(file: string, preserveSymlinks: boolean): string | void {
@@ -35,7 +43,7 @@ function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
 	return found;
 }
 
-export function resolveId(options: InputOptions) {
+function createResolveId(options: InputOptions) {
 	return function(importee: string, importer: string) {
 		if (typeof process === 'undefined') {
 			error({
@@ -58,31 +66,4 @@ export function resolveId(options: InputOptions) {
 			options.preserveSymlinks
 		);
 	};
-}
-
-export function makeOnwarn() {
-	const warned = Object.create(null);
-
-	return (warning: any) => {
-		const str = warning.toString();
-		if (str in warned) return;
-		console.error(str); //eslint-disable-line no-console
-		warned[str] = true;
-	};
-}
-
-export function handleMissingExport(
-	exportName: string,
-	importingModule: Module,
-	importedModule: string,
-	importerStart?: number
-) {
-	importingModule.error(
-		{
-			code: 'MISSING_EXPORT',
-			message: `'${exportName}' is not exported by ${relativeId(importedModule)}`,
-			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
-		},
-		importerStart
-	);
 }

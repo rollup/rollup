@@ -19,6 +19,7 @@ module.exports = {
 	generateError: {
 		code: 'BAD_BUNDLE_TRANSFORMER',
 		plugin: 'plugin1',
+		hook: 'transformBundle',
 		message: `Error transforming bundle with 'plugin1' plugin: Something happened 1`
 	}
 };
