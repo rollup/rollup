@@ -1,5 +1,4 @@
-import { InputOptions } from '../rollup/types';
-import { Plugin } from '../rollup/types';
+import { InputOptions, Plugin } from '../rollup/types';
 import error from './error';
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path';
@@ -44,7 +43,7 @@ function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
 	return found;
 }
 
-export function createResolveId(options: InputOptions) {
+function createResolveId(options: InputOptions) {
 	return function(importee: string, importer: string) {
 		if (typeof process === 'undefined') {
 			error({
