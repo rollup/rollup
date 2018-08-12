@@ -3,6 +3,8 @@
 ## 0.65.0
 *unreleased*
 * Refine asset handling ([#2369](https://github.com/rollup/rollup/pull/2369))
+* Allow `[format]` placeholder for id generation ([#2387](https://github.com/rollup/rollup/pull/2387))
+* Add code of conduct ([#2388](https://github.com/rollup/rollup/pull/2388))
 
 ## 0.64.1
 *2018-08-07*
