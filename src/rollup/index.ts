@@ -5,13 +5,11 @@ import { createAddons } from '../utils/addons';
 import { createAssetPluginHooks, finaliseAsset } from '../utils/assetHooks';
 import commondir from '../utils/commondir';
 import { Deprecation } from '../utils/deprecateOptions';
-import ensureArray from '../utils/ensureArray';
 import error from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
 import { basename, dirname, resolve } from '../utils/path';
-import { mapSequence } from '../utils/promise';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import { Watcher } from '../watch';
@@ -78,18 +76,6 @@ function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	return inputOptions;
 }
 
-function applyBuildStartHook(graph: Graph) {
-	return Promise.all(
-		graph.plugins.map(plugin => plugin.buildStart && plugin.buildStart.call(graph.pluginContext))
-	).then(() => {});
-}
-
-function applyBuildEndHook(graph: Graph, err?: any) {
-	return Promise.all(
-		graph.plugins.map(plugin => plugin.buildEnd && plugin.buildEnd.call(graph.pluginContext, err))
-	).then(() => {});
-}
-
 function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
@@ -103,7 +89,8 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
 
 	checkInputOptions(inputOptions);
-	inputOptions.plugins = ensureArray(inputOptions.plugins);
+	const plugins = inputOptions.plugins;
+	inputOptions.plugins = Array.isArray(plugins) ? plugins : plugins ? [plugins] : [];
 	inputOptions = inputOptions.plugins.reduce(applyOptionHook, inputOptions);
 
 	if (!inputOptions.experimentalCodeSplitting) {
@@ -180,7 +167,8 @@ export default function rollup(
 
 		timeStart('BUILD', 1);
 
-		return applyBuildStartHook(graph)
+		return graph.pluginDriver
+			.hookParallel('buildStart')
 			.then(() =>
 				graph.build(
 					inputOptions.input,
@@ -191,11 +179,11 @@ export default function rollup(
 			)
 			.then(
 				chunks =>
-					applyBuildEndHook(graph).then(() => {
+					graph.pluginDriver.hookParallel('buildEnd').then(() => {
 						return chunks;
 					}),
 				err =>
-					applyBuildEndHook(graph, err).then(() => {
+					graph.pluginDriver.hookParallel('buildEnd', err).then(() => {
 						throw err;
 					})
 			)
@@ -340,49 +328,38 @@ export default function rollup(
 										outputChunk.code = rendered.code;
 										outputChunk.map = rendered.map;
 
-										return Promise.all(
-											graph.plugins
-												.filter(plugin => plugin.ongenerate)
-												.map(plugin =>
-													plugin.ongenerate.call(
-														graph.pluginContext,
-														{ bundle: outputChunk, ...outputOptions },
-														outputChunk
-													)
-												)
-										);
+										return graph.pluginDriver.hookParallel('ongenerate', [
+											{ bundle: outputChunk, ...outputOptions },
+											outputChunk
+										]);
 									});
 								})
 							).then(() => {});
 						})
 						.then(() => {
 							// run generateBundle hook
-							const generateBundlePlugins = graph.plugins.filter(plugin => plugin.generateBundle);
-							if (generateBundlePlugins.length === 0) return;
 
 							// assets emitted during generateBundle are unique to that specific generate call
 							const assets = new Map(graph.assetsById);
-							const generateBundleContext = {
-								...graph.pluginContext,
-								...createAssetPluginHooks(assets, outputBundle, assetFileNames)
-							};
+							const generateAssetPluginHooks = createAssetPluginHooks(
+								assets,
+								graph.watchFiles,
+								outputBundle,
+								assetFileNames
+							);
 
-							return Promise.all(
-								generateBundlePlugins.map(plugin =>
-									plugin.generateBundle.call(
-										generateBundleContext,
-										outputOptions,
-										outputBundle,
-										isWrite
-									)
-								)
-							).then(() => {
-								// throw errors for assets not finalised with a source
-								assets.forEach(asset => {
-									if (asset.fileName === undefined)
-										finaliseAsset(asset, outputBundle, assetFileNames);
+							return graph.pluginDriver
+								.hookSeq('generateBundle', [outputOptions, outputBundle, isWrite], context => ({
+									...context,
+									...generateAssetPluginHooks
+								}))
+								.then(() => {
+									// throw errors for assets not finalised with a source
+									assets.forEach(asset => {
+										if (asset.fileName === undefined)
+											finaliseAsset(asset, outputBundle, assetFileNames);
+									});
 								});
-							});
 						})
 						.then(() => {
 							timeEnd('GENERATE', 1);
@@ -390,9 +367,10 @@ export default function rollup(
 						});
 				}
 
-				const cache = graph.getCache();
+				const cache = rawInputOptions.cache === false ? undefined : graph.getCache();
 				const result: RollupSingleFileBuild | RollupBuild = {
 					cache,
+					watchFiles: Object.keys(graph.watchFiles),
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
 						const promise = generate(rawOutputOptions, false).then(
 							result =>
@@ -445,7 +423,7 @@ export default function rollup(
 				if (!inputOptions.experimentalCodeSplitting) {
 					(<any>result).imports = (<Chunk>singleChunk).getImportIds();
 					(<any>result).exports = (<Chunk>singleChunk).getExportNames();
-					(<any>result).modules = cache.modules;
+					(<any>result).modules = (cache || graph.getCache()).modules;
 				}
 				if (inputOptions.perf === true) result.getTimings = getTimings;
 				return result;
@@ -490,18 +468,13 @@ function writeOutputFile(
 		.then(
 			() =>
 				isOutputChunk(outputFile) &&
-				mapSequence(graph.plugins.filter(plugin => plugin.onwrite), (plugin: Plugin) => {
-					return Promise.resolve(
-						plugin.onwrite.call(
-							graph.pluginContext,
-							{
-								bundle: build,
-								...outputOptions
-							},
-							outputFile
-						)
-					);
-				})
+				graph.pluginDriver.hookSeq('onwrite', [
+					{
+						bundle: build,
+						...outputOptions
+					},
+					outputFile
+				])
 		)
 		.then(() => {});
 }

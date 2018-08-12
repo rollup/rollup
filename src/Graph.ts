@@ -2,7 +2,6 @@ import * as acorn from 'acorn';
 import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
 import injectImportMeta from 'acorn-import-meta/inject';
 import { Program } from 'estree';
-import { version as rollupVersion } from 'package.json';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
 import GlobalVariable from './ast/variables/GlobalVariable';
@@ -13,23 +12,17 @@ import {
 	Asset,
 	InputOptions,
 	IsExternal,
-	LoadHook,
 	ModuleJSON,
 	OutputBundle,
-	Plugin,
-	PluginContext,
-	ResolveDynamicImportHook,
-	ResolveIdHook,
-	RollupError,
+	RollupCache,
 	RollupWarning,
+	SerializablePluginCache,
 	SourceDescription,
 	TreeshakingOptions,
 	WarningHandler,
 	Watcher
 } from './rollup/types';
-import { createAssetPluginHooks, finaliseAsset } from './utils/assetHooks';
-import { load, makeOnwarn, resolveId } from './utils/defaults';
-import ensureArray from './utils/ensureArray';
+import { finaliseAsset } from './utils/assetHooks';
 import {
 	randomUint8Array,
 	Uint8ArrayEqual,
@@ -37,11 +30,22 @@ import {
 	Uint8ArrayXor
 } from './utils/entryHashing';
 import error from './utils/error';
-import first from './utils/first';
 import { isRelative, relative, resolve } from './utils/path';
+import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
+
+function makeOnwarn() {
+	const warned = Object.create(null);
+
+	return (warning: any) => {
+		const str = warning.toString();
+		if (str in warned) return;
+		console.error(str); //eslint-disable-line no-console
+		warned[str] = true;
+	};
+}
 
 export default class Graph {
 	curChunkIndex = 0;
@@ -52,25 +56,26 @@ export default class Graph {
 	externalModules: ExternalModule[] = [];
 	getModuleContext: (id: string) => string;
 	hasLoaders: boolean;
-	isExternal: IsExternal;
 	isPureExternalModule: (id: string) => boolean;
-	load: LoadHook;
 	moduleById = new Map<string, Module | ExternalModule>();
 	assetsById = new Map<string, Asset>();
 	modules: Module[] = [];
 	onwarn: WarningHandler;
-	plugins: Plugin[];
-	pluginContext: PluginContext;
 	deoptimizationTracker: EntityPathTracker;
-	resolveDynamicImport: ResolveDynamicImportHook;
-	resolveId: (id: string, parent: string) => Promise<string | boolean | void>;
 	scope: GlobalScope;
 	shimMissingExports: boolean;
 	exportShimVariable: GlobalVariable;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
 
+	isExternal: IsExternal;
+
 	contextParse: (code: string, acornOptions?: acorn.Options) => Program;
+
+	pluginDriver: PluginDriver;
+	pluginCache: Record<string, SerializablePluginCache>;
+	watchFiles: Record<string, true> = Object.create(null);
+	cacheExpiry: number;
 
 	// deprecated
 	treeshake: boolean;
@@ -80,15 +85,20 @@ export default class Graph {
 		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
 		if (options.cache) {
-			if (options.cache.modules) {
-				options.cache.modules.forEach(module => {
-					this.cachedModules.set(module.id, module);
-				});
+			if (options.cache.modules)
+				for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
+		}
+		if (options.cache !== false) {
+			this.pluginCache = (options.cache && options.cache.plugins) || Object.create(null);
+
+			// increment access counter
+			for (const name in this.pluginCache) {
+				const cache = this.pluginCache[name];
+				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		delete options.cache; // TODO not deleting it here causes a memory leak; needs further investigation
 
-		this.plugins = options.plugins;
+		this.cacheExpiry = options.cacheExpiry;
 
 		if (!options.input) {
 			throw new Error('You must supply options.input to rollup');
@@ -122,47 +132,15 @@ export default class Graph {
 			return this.acornParse(code, { ...defaultAcornOptions, ...options, ...this.acornOptions });
 		};
 
-		const assetPluginHooks = createAssetPluginHooks(this.assetsById);
+		this.pluginDriver = createPluginDriver(this, options, this.pluginCache, watcher);
 
-		this.pluginContext = {
-			watcher,
-			isExternal: undefined,
-			meta: {
-				rollupVersion
-			},
-			resolveId: undefined,
-			parse: this.contextParse,
-			warn: (warning: RollupWarning | string) => {
-				if (typeof warning === 'string') warning = { message: warning };
-				this.warn(warning);
-			},
-			error: (err: RollupError | string) => {
-				if (typeof err === 'string') throw new Error(err);
-				error(err);
-			},
-			...assetPluginHooks
-		};
-
-		this.resolveId = first(
-			[
-				((id: string, parentId: string) =>
-					this.isExternal(id, parentId, false) ? false : null) as ResolveIdHook
-			]
-				.concat(
-					this.plugins
-						.map(plugin => plugin.resolveId)
-						.filter(Boolean)
-						.map(resolveId => resolveId.bind(this.pluginContext))
-				)
-				.concat(resolveId(options))
-		);
-
-		this.pluginContext.resolveId = this.resolveId;
-
-		const loaders = this.plugins.map(plugin => plugin.load).filter(Boolean);
-		this.hasLoaders = loaders.length !== 0;
-
-		this.load = first([...loaders, load]);
+		if (typeof options.external === 'function') {
+			this.isExternal = options.external;
+		} else {
+			const external = options.external;
+			const ids = new Set(Array.isArray(external) ? external : external ? [external] : []);
+			this.isExternal = id => ids.has(id);
+		}
 
 		this.shimMissingExports = options.shimMissingExports;
 
@@ -188,14 +166,6 @@ export default class Graph {
 			this.getModuleContext = () => this.context;
 		}
 
-		if (typeof options.external === 'function') {
-			this.isExternal = options.external;
-		} else {
-			const ids = ensureArray(options.external);
-			this.isExternal = id => ids.indexOf(id) !== -1;
-		}
-		this.pluginContext.isExternal = this.isExternal;
-
 		this.onwarn = options.onwarn || makeOnwarn();
 
 		this.varOrConst = options.preferConst ? 'const' : 'var';
@@ -203,14 +173,6 @@ export default class Graph {
 		this.acornOptions = options.acorn || {};
 		const acornPluginsToInject = [];
 
-		this.resolveDynamicImport = first(
-			[
-				...this.plugins.map(plugin => plugin.resolveDynamicImport).filter(Boolean),
-				<ResolveDynamicImportHook>function(specifier, parentId) {
-					return typeof specifier === 'string' && this.resolveId(specifier, parentId);
-				}
-			].map(resolveDynamicImport => resolveDynamicImport.bind(this.pluginContext))
-		);
 		acornPluginsToInject.push(injectDynamicImportPlugin);
 		acornPluginsToInject.push(injectImportMeta);
 		this.acornOptions.plugins = this.acornOptions.plugins || {};
@@ -221,21 +183,32 @@ export default class Graph {
 			(<any>this.acornOptions).allowAwaitOutsideFunction = true;
 		}
 
-		acornPluginsToInject.push(...ensureArray(options.acornInjectPlugins));
+		const acornInjectPlugins = options.acornInjectPlugins;
+		acornPluginsToInject.push(
+			...(Array.isArray(acornInjectPlugins)
+				? acornInjectPlugins
+				: acornInjectPlugins
+					? [acornInjectPlugins]
+					: [])
+		);
 		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
 	}
 
-	getCache() {
-		const assetDependencies: string[] = [];
-		this.assetsById.forEach(asset => {
-			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
-				for (const depId of asset.dependencies) assetDependencies.push(depId);
+	getCache(): RollupCache {
+		// handle plugin cache eviction
+		for (const name in this.pluginCache) {
+			const cache = this.pluginCache[name];
+			let allDeleted = true;
+			for (const key of Object.keys(cache)) {
+				if (cache[key][0] >= this.cacheExpiry) delete cache[key];
+				else allDeleted = false;
 			}
-		});
+			if (allDeleted) delete this.pluginCache[name];
+		}
 
-		return {
+		return <any>{
 			modules: this.modules.map(module => module.toJSON()),
-			assetDependencies
+			plugins: this.pluginCache
 		};
 	}
 
@@ -248,23 +221,25 @@ export default class Graph {
 	}
 
 	private loadModule(entryName: string) {
-		return this.resolveId(entryName, undefined).then(id => {
-			if (id === false) {
-				error({
-					code: 'UNRESOLVED_ENTRY',
-					message: `Entry module cannot be external`
-				});
-			}
+		return this.pluginDriver
+			.hookFirst<string | boolean | void>('resolveId', [entryName, undefined])
+			.then(id => {
+				if (id === false) {
+					error({
+						code: 'UNRESOLVED_ENTRY',
+						message: `Entry module cannot be external`
+					});
+				}
 
-			if (id == null) {
-				error({
-					code: 'UNRESOLVED_ENTRY',
-					message: `Could not resolve entry (${entryName})`
-				});
-			}
+				if (id == null) {
+					error({
+						code: 'UNRESOLVED_ENTRY',
+						message: `Could not resolve entry (${entryName})`
+					});
+				}
 
-			return this.fetchModule(<string>id, undefined);
-		});
+				return this.fetchModule(<string>id, undefined);
+			});
 	}
 
 	private link() {
@@ -649,9 +624,10 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 
 		const module: Module = new Module(this, id);
 		this.moduleById.set(id, module);
+		this.watchFiles[id] = true;
 
 		timeStart('load modules', 3);
-		return Promise.resolve(this.load.call(this.pluginContext, id))
+		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
 			.catch((err: Error) => {
 				timeEnd('load modules', 3);
 				let msg = `Could not load ${id}`;
@@ -683,11 +659,15 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 						: source;
 
 				const cachedModule = this.cachedModules.get(id);
-				if (cachedModule && cachedModule.originalCode === sourceDescription.code) {
+				if (
+					cachedModule &&
+					!cachedModule.customTransformCache &&
+					cachedModule.originalCode === sourceDescription.code
+				) {
 					// re-emit transform assets
 					if (cachedModule.transformAssets) {
 						for (const asset of cachedModule.transformAssets) {
-							this.pluginContext.emitAsset(
+							this.pluginDriver.emitAsset(
 								asset.name,
 								<string[]>(asset.dependencies ? asset.dependencies : asset.source),
 								asset.dependencies && asset.source
@@ -697,7 +677,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 					return cachedModule;
 				}
 
-				return transform(this, sourceDescription, module, this.plugins);
+				return transform(this, sourceDescription, module);
 			})
 			.then((source: ModuleJSON) => {
 				module.setSource(source);
@@ -746,7 +726,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 		const fetchDynamicImportsPromise = Promise.all(
 			module.getDynamicImportExpressions().map((dynamicImportExpression, index) => {
 				return Promise.resolve(
-					this.resolveDynamicImport.call(this.pluginContext, dynamicImportExpression, module.id)
+					this.pluginDriver.hookFirst('resolveDynamicImport', [dynamicImportExpression, module.id])
 				).then(replacement => {
 					if (!replacement) {
 						module.dynamicImportResolutions[index] = {
@@ -787,17 +767,24 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 
 		return Promise.all(
 			module.sources.map(source => {
-				const resolvedId = module.resolvedIds[source];
-				return (resolvedId ? Promise.resolve(resolvedId) : this.resolveId(source, module.id)).then(
-					resolvedId => {
+				return Promise.resolve()
+					.then(() => {
+						const resolvedId = module.resolvedIds[source];
+						if (resolvedId) return resolvedId;
+						const isExternal = this.isExternal(source, module.id, false);
+						if (isExternal) return false;
+						return this.pluginDriver.hookFirst<string | boolean | void>('resolveId', [
+							source,
+							module.id
+						]);
+					})
+					.then(resolvedId => {
 						// TODO types of `resolvedId` are not compatable with 'externalId'.
 						// `this.resolveId` returns `string`, `void`, and `boolean`
 						const externalId =
 							<string>resolvedId ||
 							(isRelative(source) ? resolve(module.id, '..', source) : source);
-						let isExternal =
-							resolvedId === false ||
-							this.isExternal.call(this.pluginContext, externalId, module.id, true);
+						let isExternal = resolvedId === false || this.isExternal(externalId, module.id, true);
 
 						if (!resolvedId && !isExternal) {
 							if (isRelative(source)) {
@@ -853,8 +840,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 							module.resolvedIds[source] = <string>resolvedId;
 							return this.fetchModule(<string>resolvedId, module.id);
 						}
-					}
-				);
+					});
 			})
 		).then(() => fetchDynamicImportsPromise);
 	}
