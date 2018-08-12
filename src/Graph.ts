@@ -135,7 +135,9 @@ export default class Graph {
 		this.pluginDriver = createPluginDriver(this, options, this.pluginCache, watcher);
 
 		if (typeof options.external === 'function') {
-			this.isExternal = options.external;
+			const external = options.external;
+			this.isExternal = (id, parentId, isResolved) =>
+				!id.startsWith('\0') && external(id, parentId, isResolved);
 		} else {
 			const external = options.external;
 			const ids = new Set(Array.isArray(external) ? external : external ? [external] : []);
