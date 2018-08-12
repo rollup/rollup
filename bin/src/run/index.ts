@@ -4,7 +4,6 @@ import { InputOptions } from '../../../src/rollup/types';
 import mergeOptions from '../../../src/utils/mergeOptions';
 import { getAliasName } from '../../../src/utils/relativeId';
 import { handleError } from '../logging';
-import sequence from '../utils/sequence';
 import batchWarnings from './batchWarnings';
 import build from './build';
 import loadConfigFile from './loadConfigFile';
@@ -102,27 +101,30 @@ function execute(configFile: string, configs: InputOptions[], command: any) {
 	if (command.watch) {
 		watch(configFile, configs, command, command.silent);
 	} else {
-		return sequence(configs, config => {
-			const warnings = batchWarnings();
-			const { inputOptions, outputOptions, deprecations, optionError } = mergeOptions({
-				config,
-				command,
-				defaultOnWarnHandler: warnings.add
-			});
-
-			if (deprecations.length) {
-				inputOptions.onwarn({
-					code: 'DEPRECATED_OPTIONS',
-					message: `The following options have been renamed — please update your config: ${deprecations
-						.map(option => `${option.old} -> ${option.new}`)
-						.join(', ')}`,
-					deprecations
+		let promise = Promise.resolve();
+		for (const config of configs) {
+			promise = promise.then(() => {
+				const warnings = batchWarnings();
+				const { inputOptions, outputOptions, deprecations, optionError } = mergeOptions({
+					config,
+					command,
+					defaultOnWarnHandler: warnings.add
 				});
-			}
 
-			if (optionError) inputOptions.onwarn({ code: 'UNKNOWN_OPTION', message: optionError });
+				if (deprecations.length) {
+					inputOptions.onwarn({
+						code: 'DEPRECATED_OPTIONS',
+						message: `The following options have been renamed — please update your config: ${deprecations
+							.map(option => `${option.old} -> ${option.new}`)
+							.join(', ')}`,
+						deprecations
+					});
+				}
 
-			return build(inputOptions, outputOptions, warnings, command.silent);
-		});
+				if (optionError) inputOptions.onwarn({ code: 'UNKNOWN_OPTION', message: optionError });
+				return build(inputOptions, outputOptions, warnings, command.silent);
+			});
+		}
+		return promise;
 	}
 }

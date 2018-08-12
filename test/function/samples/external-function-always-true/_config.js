@@ -1,10 +1,10 @@
 module.exports = {
-	description: 'prints useful error if external returns true for entry (#1264)',
+	description: 'Does not call external for entry point',
 	options: {
-		external: id => true
-	},
-	error: {
-		code: 'UNRESOLVED_ENTRY',
-		message: 'Entry module cannot be external'
+		external (id, parentId, isResolved) {
+			if (!parentId)
+				throw new Error('Should not call external for entry point.');
+			return true;
+		}
 	}
 };
