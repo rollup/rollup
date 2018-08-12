@@ -23,6 +23,7 @@ export interface RollupError {
 	pos?: number;
 	plugin?: string;
 	pluginCode?: string;
+	hook?: string;
 }
 
 export interface ExistingRawSourceMap {
@@ -99,11 +100,7 @@ export type ResolveIdHook = (
 	parent: string
 ) => Promise<string | boolean | void | null> | string | boolean | void | null;
 
-export type IsExternal = (
-	id: string,
-	parentId: string,
-	isResolved: boolean
-) => Promise<boolean | void> | boolean | void;
+export type IsExternal = (id: string, parentId: string, isResolved: boolean) => boolean | void;
 
 export type LoadHook = (
 	this: PluginContext,
@@ -328,6 +325,7 @@ export interface RollupWarning {
 	plugin?: string;
 	pos?: number;
 	pluginCode?: string;
+	hook?: string;
 }
 
 export type WarningHandler = (warning: string | RollupWarning) => void;

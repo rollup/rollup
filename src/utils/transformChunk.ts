@@ -12,62 +12,66 @@ export default function transformChunk(
 	sourcemapChain: RawSourceMap[],
 	options: OutputOptions
 ) {
-	const transformChunkContext = {
-		...graph.pluginContext,
-		...createAssetPluginHooks(graph.assetsById)
+	const transformChunkAssetPluginHooks = createAssetPluginHooks(graph.assetsById);
+
+	const transformChunkReducer = (code: string, result: any, plugin: Plugin): string => {
+		if (result == null) return code;
+
+		if (typeof result === 'string') {
+			result = {
+				code: result,
+				map: undefined
+			};
+		} else if (!inTransformBundle && !result.map && options.sourcemap) {
+			throw new Error(
+				`${
+					inTransformBundle ? 'transformBundle' : 'transformChunk'
+				} must return a "map" sourcemap property when sourcemaps are enabled.`
+			);
+		}
+
+		const map = typeof result.map === 'string' ? JSON.parse(result.map) : result.map;
+		if (map && typeof map.mappings === 'string') {
+			map.mappings = decode(map.mappings);
+		}
+
+		// strict null check allows 'null' maps to not be pushed to the chain, while 'undefined' gets the missing map warning
+		if (map !== null) {
+			sourcemapChain.push(map || { missing: true, plugin: plugin.name });
+		}
+
+		return result.code;
 	};
 
-	return graph.plugins.reduce((promise, plugin) => {
-		if (!plugin.transformBundle && !plugin.transformChunk) return promise;
-
-		return promise.then(code => {
-			return Promise.resolve()
-				.then(() =>
-					(plugin.transformChunk || plugin.transformBundle).call(
-						transformChunkContext,
-						code,
-						options,
-						chunk
-					)
-				)
-				.then(result => {
-					if (result == null) return code;
-
-					if (plugin.transformBundle) {
-						if (typeof result === 'string') {
-							result = {
-								code: result,
-								map: undefined
-							};
-						}
-					} else if (typeof result === 'string') {
-						throw new Error('transformChunk must return a { code, map } object, not a string.');
-					} else if (!result.map && options.sourcemap) {
-						throw new Error(
-							'transformChunk must return a "map" sourcemap property when sourcemaps are enabled.'
-						);
-					}
-
-					const map = typeof result.map === 'string' ? JSON.parse(result.map) : result.map;
-					if (map && typeof map.mappings === 'string') {
-						map.mappings = decode(map.mappings);
-					}
-
-					// strict null check allows 'null' maps to not be pushed to the chain, while 'undefined' gets the missing map warning
-					if (map !== null) {
-						sourcemapChain.push(map || { missing: true, plugin: plugin.name });
-					}
-
-					return result.code;
+	let inTransformBundle = false;
+	return graph.pluginDriver
+		.hookReduceArg0(
+			'transformChunk',
+			[code, options, chunk],
+			transformChunkReducer,
+			pluginContext => ({
+				...pluginContext,
+				...transformChunkAssetPluginHooks
+			})
+		)
+		.then(code => {
+			inTransformBundle = true;
+			return graph.pluginDriver.hookReduceArg0(
+				'transformBundle',
+				[code, options, chunk],
+				transformChunkReducer,
+				pluginContext => ({
+					...pluginContext,
+					...transformChunkAssetPluginHooks
 				})
-				.catch(err => {
-					error({
-						code: plugin.transformChunk ? 'BAD_CHUNK_TRANSFORMER' : 'BAD_BUNDLE_TRANSFORMER',
-						message: `Error transforming ${(plugin.transformChunk ? 'chunk' : 'bundle') +
-							(plugin.name ? ` with '${plugin.name}' plugin` : '')}: ${err.message}`,
-						plugin: plugin.name
-					});
-				});
+			);
+		})
+		.catch(err => {
+			error(err, {
+				code: inTransformBundle ? 'BAD_BUNDLE_TRANSFORMER' : 'BAD_CHUNK_TRANSFORMER',
+				message: `Error transforming ${(inTransformBundle ? 'bundle' : 'chunk') +
+					(err.plugin ? ` with '${err.plugin}' plugin` : '')}: ${err.message}`,
+				plugin: err.plugin
+			});
 		});
-	}, Promise.resolve(code));
 }

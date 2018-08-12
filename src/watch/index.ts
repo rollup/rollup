@@ -12,9 +12,7 @@ import {
 	RollupSingleFileBuild,
 	RollupWatchOptions
 } from '../rollup/types';
-import ensureArray from '../utils/ensureArray';
 import mergeOptions from '../utils/mergeOptions';
-import { mapSequence } from '../utils/promise';
 import chokidar from './chokidar';
 import { addTask, deleteTask } from './fileWatchers';
 
@@ -27,9 +25,10 @@ export class Watcher extends EventEmitter {
 	private tasks: Task[];
 	private succeeded: boolean = false;
 
-	constructor(configs: RollupWatchOptions[]) {
+	constructor(configs: RollupWatchOptions[] = []) {
 		super();
-		this.tasks = ensureArray(configs).map(config => new Task(this, config));
+		if (!Array.isArray(configs)) configs = [configs];
+		this.tasks = configs.map(config => new Task(this, config));
 		this.running = true;
 		process.nextTick(() => this.run());
 	}
@@ -64,7 +63,9 @@ export class Watcher extends EventEmitter {
 			code: 'START'
 		});
 
-		mapSequence(this.tasks, (task: Task) => task.run())
+		let taskPromise = Promise.resolve();
+		for (const task of this.tasks) taskPromise = taskPromise.then(() => task.run());
+		return taskPromise
 			.then(() => {
 				this.succeeded = true;
 				this.running = false;

@@ -30,7 +30,6 @@ import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import { Asset, IdMap, ModuleJSON, RawSourceMap, RollupError, RollupWarning } from './rollup/types';
-import { handleMissingExport } from './utils/defaults';
 import error from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -142,6 +141,22 @@ function includeFully(node: Node) {
 			includeFully(value);
 		}
 	}
+}
+
+function handleMissingExport(
+	exportName: string,
+	importingModule: Module,
+	importedModule: string,
+	importerStart?: number
+) {
+	importingModule.error(
+		{
+			code: 'MISSING_EXPORT',
+			message: `'${exportName}' is not exported by ${relativeId(importedModule)}`,
+			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+		},
+		importerStart
+	);
 }
 
 export default class Module {
@@ -262,7 +277,7 @@ export default class Module {
 			code, // Only needed for debugging
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
-			getAssetFileName: this.graph.pluginContext.getAssetFileName,
+			getAssetFileName: this.graph.pluginDriver.getAssetFileName,
 			getExports: this.getExports.bind(this),
 			getReexports: this.getReexports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
