@@ -2,6 +2,7 @@ const assert = require('assert');
 const path = require('path');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
+const path = require('path');
 
 const cwd = process.cwd();
 
