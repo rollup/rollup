@@ -98,7 +98,7 @@ export default class Graph {
 			}
 		}
 
-		this.cacheExpiry = options.cacheExpiry;
+		this.cacheExpiry = options.experimentalCacheExpiry;
 
 		if (!options.input) {
 			throw new Error('You must supply options.input to rollup');
