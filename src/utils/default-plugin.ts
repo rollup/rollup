@@ -1,46 +1,43 @@
 import { InputOptions, Plugin } from '../rollup/types';
 import error from './error';
-import { lstatSync, readdirSync, readFile, realpathSync, stat } from './fs'; // eslint-disable-line
+import { lstatSync, readdirSync, readFile, realpathSync, stat, Stats } from './fs'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path';
 
 interface LoadMemoization {
 	[key: string]: {
 		mtimeMs: number;
 		size: number;
-		contents: string;
+		source: string;
 	};
 }
 
 export function getRollupDefaultPlugin(options: InputOptions): Plugin {
-	const loadMemoization: LoadMemoization = {};
+	const loadMemoization: LoadMemoization = Object.create(null);
 	return {
 		name: 'Rollup Core',
 		resolveId: createResolveId(options),
 		load(id) {
-			if (loadMemoization[id]) {
-				return new Promise((fulfil, reject) => {
-					const file = loadMemoization[id];
-					// In order to avoid too much I/O `load` by default will
-					// only stat files, and do a full read if it doesn't already
-					// hold a files contents in memory.
-					stat(id, (err, { mtimeMs, size }) => {
-						if (err) {
-							reject(err);
-						} else if (mtimeMs === file.mtimeMs && size === file.size) {
-							fulfil(file.contents);
-						} else {
-							readFile(id, 'utf-8', (err, contents) => {
-								if (err) {
-									reject(err);
-								} else {
-									loadMemoization[id] = { mtimeMs, size, contents };
-									fulfil(contents);
-								}
-							});
-						}
+			// In order to avoid too much I/O `load` by default will
+			// only stat files, and do a full read if it doesn't already
+			// hold a files contents in memory.
+			const memoized = loadMemoization[id];
+			if (memoized) {
+				return new Promise<Stats>((resolve, reject) =>
+					stat(id, (err, stats) => (err ? reject(err) : resolve(stats)))
+				).then(({ mtimeMs, size }) => {
+					if (mtimeMs === memoized.mtimeMs && size === memoized.size) return memoized.source;
+					return new Promise<string>((resolve, reject) =>
+						readFile(id, 'utf-8', (err, source) => (err ? reject(err) : resolve(source.toString())))
+					).then(source => {
+						loadMemoization[id] = { mtimeMs, size, source };
+						return source;
 					});
 				});
 			}
+
+			return new Promise<string>((resolve, reject) =>
+				readFile(id, 'utf-8', (err, source) => (err ? reject(err) : resolve(source.toString())))
+			);
 		},
 		resolveDynamicImport(specifier, parentId) {
 			if (typeof specifier === 'string')
