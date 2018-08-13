@@ -127,24 +127,14 @@ export type TransformHook = (
 	| void;
 
 export type TransformChunkHook = (
+	this: PluginContext,
 	code: string,
-	options: OutputOptions,
-	chunk: OutputChunk
+	options: OutputOptions
 ) =>
 	| Promise<{ code: string; map: RawSourceMap } | void>
 	| { code: string; map: RawSourceMap }
 	| void
 	| null;
-
-export type TransformChunkHookBound = (
-	this: PluginContext,
-	code: string,
-	options: OutputOptions,
-	chunk: OutputChunk
-) =>
-	| Promise<{ code: string; map: RawSourceMap } | void>
-	| { code: string; map: RawSourceMap }
-	| void;
 
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
@@ -353,12 +343,17 @@ export interface RenderedModule {
 	originalLength: number;
 }
 
-export interface OutputChunk {
+export interface RenderChunk {
+	fileName: string;
+	isEntry: boolean;
 	imports: string[];
 	exports: string[];
 	modules: {
 		[id: string]: RenderedModule;
 	};
+}
+
+export interface OutputChunk extends RenderChunk {
 	code: string;
 	map?: SourceMap;
 }
