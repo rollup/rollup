@@ -2,11 +2,12 @@
 
 ## 0.65.0
 *unreleased*
+* Refactor and unify plugin system ([#2382](https://github.com/rollup/rollup/pull/2382))
+* Implement plugin cache API ([#2389](https://github.com/rollup/rollup/pull/2389))
 * Refine asset handling ([#2369](https://github.com/rollup/rollup/pull/2369))
 * Allow `[format]` placeholder for id generation ([#2387](https://github.com/rollup/rollup/pull/2387))
 * Do not display version in watch mode when using `--silent` ([#2392](https://github.com/rollup/rollup/pull/2392))
 * Add code of conduct ([#2388](https://github.com/rollup/rollup/pull/2388))
-* Refactor and unify plugin system ([#2382](https://github.com/rollup/rollup/pull/2382))
 
 ## 0.64.1
 *2018-08-07*
