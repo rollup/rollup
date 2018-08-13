@@ -15,15 +15,16 @@
 This PR contains:
 - [ ] bugfix
 - [ ] feature
-- [ ] refactoring
+- [ ] refactor
 - [ ] documentation
 - [ ] other
 
 Are tests included?
-- [ ] yes
+- [ ] yes (*bugfixes and features will not be merged without tests*)
+- [ ] no
 
 Breaking Changes?
-- [ ] yes (please describe clearly below)
+- [ ] yes (*please describe clearly below*)
 - [ ] no
 
 List any relevent issue numbers:
