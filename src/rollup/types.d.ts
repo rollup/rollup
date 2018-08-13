@@ -97,6 +97,7 @@ export interface PluginContext {
 	isExternal: IsExternal;
 	meta: PluginContextMeta;
 	parse: (input: string, options: any) => ESTree.Program;
+	// deprecate asset dependencies
 	emitAsset(name: string, source?: string | Buffer): string;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
 	getAssetFileName: (assetId: string) => string;

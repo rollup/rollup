@@ -163,6 +163,7 @@ export class Task {
 	}
 
 	invalidate(id: string, isTransformDependency: boolean) {
+		this.watcher.emit('change', id);
 		this.invalidated = true;
 		if (isTransformDependency) {
 			this.cache.modules.forEach(module => {
