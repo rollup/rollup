@@ -77,6 +77,9 @@ export default class Graph {
 	watchFiles: Record<string, true> = Object.create(null);
 	cacheExpiry: number;
 
+	// track graph build status as each graph instance is used only once
+	finished = false;
+
 	// deprecated
 	treeshake: boolean;
 
@@ -133,6 +136,8 @@ export default class Graph {
 		};
 
 		this.pluginDriver = createPluginDriver(this, options, this.pluginCache, watcher);
+
+		if (watcher) watcher.on('change', id => this.pluginDriver.hookSeqSync('watchChange', [id]));
 
 		if (typeof options.external === 'function') {
 			this.isExternal = options.external;
@@ -480,6 +485,7 @@ export default class Graph {
 
 				timeEnd('generate chunks', 2);
 
+				this.finished = true;
 				return chunkList;
 			}
 		);
