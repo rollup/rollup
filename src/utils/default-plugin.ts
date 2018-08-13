@@ -11,8 +11,9 @@ interface LoadMemoization {
 	};
 }
 
+const loadMemoization: LoadMemoization = Object.create(null);
+
 export function getRollupDefaultPlugin(options: InputOptions): Plugin {
-	const loadMemoization: LoadMemoization = Object.create(null);
 	return {
 		name: 'Rollup Core',
 		resolveId: createResolveId(options),
