@@ -103,6 +103,52 @@ describe('rollup.watch', () => {
 				});
 		});
 
+		it('passes file events to the watchChange plugin hook', () => {
+			let watchChangeId, watchChangeCnt = 0;
+			return sander
+				.copydir('test/watch/samples/basic')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						plugins: [{
+							watchChange (id) {
+								watchChangeId = id;
+								watchChangeCnt++;
+							}
+						}],
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 42);
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 43);
+							assert.equal(watchChangeId, path.resolve('test/_tmp/input/main.js'));
+							if (chokidar)
+								assert.equal(watchChangeCnt, 1);
+							else
+								assert.ok(watchChangeCnt >= 1);
+						}
+					]);
+				});
+		});
+
 		it('provides the watcher through the plugin context', () => {
 			const events = [];
 			return sander

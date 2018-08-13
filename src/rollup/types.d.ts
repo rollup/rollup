@@ -91,12 +91,14 @@ export interface PluginCache {
 }
 
 export interface PluginContext {
+	// deprecate:
 	watcher: Watcher;
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
 	resolveId: ResolveIdHook;
 	isExternal: IsExternal;
 	parse: (input: string, options: any) => ESTree.Program;
+	// deprecate asset dependencies
 	emitAsset(name: string, source?: string | Buffer): string;
 	emitAsset(name: string, dependencies: string[], source?: string | Buffer): string;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
@@ -203,6 +205,7 @@ export interface Plugin {
 	footer?: AddonHook;
 	intro?: AddonHook;
 	outro?: AddonHook;
+	watchChange?: (id: string) => void;
 }
 
 export interface TreeshakingOptions {
