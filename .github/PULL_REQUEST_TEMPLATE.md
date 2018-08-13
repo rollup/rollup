@@ -13,20 +13,20 @@
 -->
 
 This PR contains:
-
 - [ ] bugfix
 - [ ] feature
-- [ ] refactor
-- [ ] tests
+- [ ] refactoring
 - [ ] documentation
-- [ ] metadata
+- [ ] other
 
-### Breaking Changes?
-
+Are tests included?
 - [ ] yes
+
+Breaking Changes?
+- [ ] yes (please describe clearly below)
 - [ ] no
 
-If yes, please describe the breakage.
+List any relevent issue numbers:
 
 ### Please Describe Your Changes
 
@@ -35,4 +35,3 @@ If yes, please describe the breakage.
   * If this PR adds a feature, look for previous discussion on the feature by searching the issues first.
   * Is this PR related to an issue?
 -->
-
