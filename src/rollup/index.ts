@@ -36,12 +36,8 @@ function addDeprecations(deprecations: Deprecation[], warn: WarningHandler) {
 	});
 }
 
-function checkInputOptions(options: InputOptions) {
-	if (options.transform || options.load || options.resolveId || options.resolveExternal) {
-		throw new Error(
-			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details'
-		);
-	}
+function checkInputOptions(_options: any) {
+	// no deprecations currently
 }
 
 function checkOutputOptions(options: OutputOptions) {

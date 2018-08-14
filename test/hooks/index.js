@@ -129,12 +129,25 @@ describe('hooks', () => {
 			});
 	});
 
-	it('passes bundle & output object to ongenerate & onwrite hooks', () => {
+	it('passes bundle & output object to ongenerate & onwrite hooks, with deprecation warnings', () => {
 		const file = path.join(__dirname, 'tmp/bundle.js');
+
+		let deprecationCnt = 0;
 
 		return rollup
 			.rollup({
 				input: 'input',
+				onwarn (warning) {
+					deprecationCnt++;
+					if (deprecationCnt === 1) {
+						assert.equal(warning.pluginCode, 'ONGENERATE_HOOK_DEPRECATED');
+						assert.equal(warning.message, 'The ongenerate hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.');
+					}
+					else {
+						assert.equal(warning.pluginCode, 'ONWRITE_HOOK_DEPRECATED');
+						assert.equal(warning.message, 'The onwrite hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.');
+					}
+				},
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -155,6 +168,7 @@ describe('hooks', () => {
 				});
 			})
 			.then(() => {
+				assert.equal(deprecationCnt, 2);
 				return sander.unlink(file);
 			});
 	});
@@ -530,12 +544,18 @@ module.exports = input;
 			});
 	});
 
-	it('supports transformChunk in place of transformBundle', () => {
+	it('supports transformChunk in place of transformBundle, with deprecation warning', () => {
 		let calledHook = false;
+		let deprecationCnt = 0;
 		return rollup
 			.rollup({
 				input: 'input',
 				experimentalCodeSplitting: true,
+				onwarn (warning) {
+					deprecationCnt++;
+					assert.equal(warning.pluginCode, 'TRANSFORMCHUNK_HOOK_DEPRECATED');
+					assert.equal(warning.message, 'The transformChunk hook used by plugin at position 2 is deprecated. The renderChunk hook should be used instead.');
+				},
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -557,6 +577,7 @@ module.exports = input;
 				});
 			})
 			.then(() => {
+				assert.equal(deprecationCnt, 1);
 				assert.equal(calledHook, true);
 			});
 	});
