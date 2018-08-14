@@ -29,7 +29,7 @@ Breaking Changes?
 
 List any relevent issue numbers:
 
-### Please Describe Your Changes
+### Description
 
 <!--
   Please be thorough and clearly explain the problem being solved.
