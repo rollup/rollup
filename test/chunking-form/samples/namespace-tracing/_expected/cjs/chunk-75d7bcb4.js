@@ -1,6 +1,6 @@
 'use strict';
 
-require('./chunk-26e52fae.js');
+require('./chunk-fb422dac.js');
 
 function bar() {
   console.log('bar');

@@ -1,5 +1,5 @@
-import { a as foo } from './chunk-d9da4d5a.js';
-import { a as broken } from './chunk-d20557f2.js';
+import { a as foo } from './chunk-59f2138c.js';
+import { a as broken } from './chunk-77a3d20f.js';
 
 foo();
 broken();
