@@ -141,6 +141,17 @@ export type TransformChunkHook = (
 	| void
 	| null;
 
+export type RenderChunkHook = (
+	this: PluginContext,
+	code: string,
+	chunk: RenderedChunk,
+	options: OutputOptions
+) =>
+	| Promise<{ code: string; map: RawSourceMap } | void>
+	| { code: string; map: RawSourceMap }
+	| void
+	| null;
+
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | ESTree.Node,
