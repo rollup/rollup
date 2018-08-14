@@ -46,10 +46,7 @@ export function createPluginDriver(
 	watcher?: Watcher
 ): PluginDriver {
 	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
-	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(
-		graph.assetsById,
-		graph.watchFiles
-	);
+	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
 	const existingPluginKeys: string[] = [];
 
 	let hasLoadersOrTransforms = false;

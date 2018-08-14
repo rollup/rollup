@@ -1,15 +1,11 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
 import { Asset, OutputBundle } from '../rollup/types';
 import error from './error';
-import { extname, normalize, resolve } from './path';
+import { extname } from './path';
 import { isPlainName } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
-export type EmitAsset = (
-	name: string,
-	dependencies?: string[] | string | Buffer,
-	source?: string | Buffer
-) => string;
+export type EmitAsset = (name: string, source?: string | Buffer) => string;
 
 export function getAssetFileName(
 	asset: Asset,
@@ -47,39 +43,16 @@ export function getAssetFileName(
 
 export function createAssetPluginHooks(
 	assetsById: Map<string, Asset>,
-	watchFiles: Record<string, true>,
 	outputBundle?: OutputBundle,
 	assetFileNames?: string
 ) {
 	return {
-		emitAsset(
-			name: string,
-			dependenciesOrSource?: string[] | string | Buffer,
-			source?: string | Buffer
-		) {
+		emitAsset(name: string, source?: string | Buffer) {
 			if (typeof name !== 'string' || !isPlainName(name))
 				error({
 					code: 'INVALID_ASSET_NAME',
 					message: `Plugin error creating asset, name is not a plain (non relative or absolute URL) string name.`
 				});
-
-			let dependencies: string[];
-
-			if (Array.isArray(dependenciesOrSource)) {
-				if (typeof source !== 'string' && !source)
-					error({
-						code: 'ASSET_SOURCE_MISSING',
-						message: `Plugin error creating asset ${name}, asset dependencies only supported when setting the asset source.`
-					});
-				if (outputBundle)
-					error({
-						code: 'ASSETS_FINALISED',
-						message: `Plugin error creating asset ${name}, asset dependencies are not supported during generation, only during the build.`
-					});
-				dependencies = dependenciesOrSource.map(depId => normalize(resolve(depId)));
-			} else if (source === undefined) {
-				source = dependenciesOrSource;
-			}
 
 			let assetId: string;
 			do {
@@ -89,24 +62,16 @@ export function createAssetPluginHooks(
 					assetHash.update(assetId);
 				} else {
 					assetHash.update(name);
-					if (dependencies) for (const depId of dependencies) assetHash.update(depId);
 				}
 				assetId = assetHash.digest('hex').substr(0, 8);
 			} while (assetsById.has(assetId));
 
-			const asset: Asset = { name, source, fileName: undefined, dependencies, transform: null };
+			const asset: Asset = { name, source, fileName: undefined };
 			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
 			assetsById.set(assetId, asset);
-			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
-				for (const depId of asset.dependencies) watchFiles[depId] = true;
-			}
 			return assetId;
 		},
-		setAssetSource(
-			assetId: string,
-			dependenciesOrSource?: string[] | string | Buffer,
-			source?: string | Buffer
-		) {
+		setAssetSource(assetId: string, source?: string | Buffer) {
 			const asset = assetsById.get(assetId);
 			if (!asset)
 				error({
@@ -120,25 +85,12 @@ export function createAssetPluginHooks(
 						asset.name
 					}, source already set.`
 				});
-			if (Array.isArray(dependenciesOrSource)) {
-				if (outputBundle)
-					error({
-						code: 'ASSETS_FINALISED',
-						message: `Plugin error creating asset ${name}, asset dependencies are not supported during generation, only during the build.`
-					});
-				asset.dependencies = dependenciesOrSource.map(depId => normalize(resolve(depId)));
-			} else {
-				source = dependenciesOrSource;
-			}
 			if (typeof source !== 'string' && !source)
 				error({
 					code: 'ASSET_SOURCE_MISSING',
 					message: `Plugin error creating asset ${name}, setAssetSource call without a source.`
 				});
 			asset.source = source;
-			if (!asset.transform && asset.dependencies && asset.dependencies.length) {
-				for (const depId of asset.dependencies) watchFiles[depId] = true;
-			}
 			if (outputBundle) finaliseAsset(asset, outputBundle, assetFileNames);
 		},
 		getAssetFileName(assetId: string) {
@@ -168,21 +120,14 @@ export function createTransformEmitAsset(assetsById: Map<string, Asset>, emitAss
 	const assets: Asset[] = [];
 	return {
 		assets,
-		emitAsset: (
-			name: string,
-			dependenciesOrSource?: string[] | string | Buffer,
-			source?: string | Buffer
-		) => {
-			const assetId = emitAsset(name, dependenciesOrSource, source);
+		emitAsset: (name: string, source?: string | Buffer) => {
+			const assetId = emitAsset(name, source);
 			const asset = assetsById.get(assetId);
 			// distinguish transform assets
-			asset.transform = true;
 			assets.push({
 				name: asset.name,
 				source: asset.source,
-				fileName: undefined,
-				transform: true,
-				dependencies: asset.dependencies
+				fileName: undefined
 			});
 			return assetId;
 		}
