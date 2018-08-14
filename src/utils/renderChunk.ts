@@ -1,7 +1,7 @@
 import { decode } from 'sourcemap-codec';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
-import { OutputOptions, Plugin, RawSourceMap, RenderChunk } from '../rollup/types';
+import { OutputOptions, Plugin, RawSourceMap, RenderedChunk } from '../rollup/types';
 import error from './error';
 
 export default function renderChunk({
@@ -14,7 +14,7 @@ export default function renderChunk({
 }: {
 	graph: Graph;
 	chunk: Chunk;
-	renderChunk: RenderChunk;
+	renderChunk: RenderedChunk;
 	code: string;
 	sourcemapChain: RawSourceMap[];
 	options: OutputOptions;

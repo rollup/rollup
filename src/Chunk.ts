@@ -16,7 +16,7 @@ import {
 	GlobalsOption,
 	OutputOptions,
 	RawSourceMap,
-	RenderChunk,
+	RenderedChunk,
 	RenderedModule
 } from './rollup/types';
 import { Addons } from './utils/addons';
@@ -1033,7 +1033,7 @@ export default class Chunk {
 		this.id = outName;
 	}
 
-	render(options: OutputOptions, addons: Addons, outputChunk: RenderChunk) {
+	render(options: OutputOptions, addons: Addons, outputChunk: RenderedChunk) {
 		timeStart('render format', 3);
 
 		if (!this.renderedSource)
