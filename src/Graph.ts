@@ -672,13 +672,8 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 				) {
 					// re-emit transform assets
 					if (cachedModule.transformAssets) {
-						for (const asset of cachedModule.transformAssets) {
-							this.pluginDriver.emitAsset(
-								asset.name,
-								<string[]>(asset.dependencies ? asset.dependencies : asset.source),
-								asset.dependencies && asset.source
-							);
-						}
+						for (const asset of cachedModule.transformAssets)
+							this.pluginDriver.emitAsset(asset.name, asset.source);
 					}
 					return cachedModule;
 				}
