@@ -17,6 +17,7 @@ export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 	return {
 		name: 'Rollup Core',
 		resolveId: createResolveId(options),
+		// (note this function is not currently designed to debounce fast repeated access)
 		load(id) {
 			// In order to avoid too much I/O `load` by default will
 			// only stat files, and do a full read if it doesn't already
@@ -36,9 +37,17 @@ export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 				});
 			}
 
-			return new Promise<string>((resolve, reject) =>
-				readFile(id, 'utf-8', (err, source) => (err ? reject(err) : resolve(source.toString())))
-			);
+			return Promise.all([
+				new Promise<string>((resolve, reject) =>
+					readFile(id, 'utf-8', (err, source) => (err ? reject(err) : resolve(source.toString())))
+				),
+				new Promise<Stats>((resolve, reject) =>
+					stat(id, (err, stats) => (err ? reject(err) : resolve(stats)))
+				)
+			]).then(([source, { mtimeMs, size }]) => {
+				loadMemoization[id] = { mtimeMs, size, source };
+				return source;
+			});
 		},
 		resolveDynamicImport(specifier, parentId) {
 			if (typeof specifier === 'string')
