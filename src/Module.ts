@@ -634,7 +634,7 @@ export default class Module {
 	getOrCreateNamespace(): NamespaceVariable {
 		if (this.namespaceVariable) return this.namespaceVariable;
 
-		return (this.namespaceVariable = new NamespaceVariable(this.astContext));
+		return (this.namespaceVariable = new NamespaceVariable(this.astContext, this));
 	}
 
 	private includeNamespace() {
