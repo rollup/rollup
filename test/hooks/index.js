@@ -1101,4 +1101,80 @@ module.exports = input;
 				assert.equal(renderErrorCount, 1, 'renderError count');
 			});
 	});
+
+	it('Warns when using deprecated this.watcher in plugins', () => {
+		let warned = false;
+		const watcher = rollup
+			.watch({
+				input: 'input',
+				onwarn (warning) {
+					warned = true;
+					assert.equal(warning.code, 'PLUGIN_WARNING');
+					assert.equal(warning.pluginCode, 'PLUGIN_WATCHER_DEPRECATED');
+					assert.equal(warning.message, 'this.watcher usage is deprecated in plugins. Use the watchChange plugin hook instead.');
+				},
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						name: 'x',
+						buildStart () {
+							this.watcher.on('change', () => {});
+						}
+					}
+				]
+			});
+		return new Promise((resolve, reject) => {
+			watcher.on('event', evt => {
+				if (evt.code === 'BUNDLE_END')
+					resolve();
+				else if (evt.code === 'ERROR' || evt.code === 'FATAL')
+					reject(evt.error);
+			});
+		})
+		.catch(err => {
+			assert.equal(err.message, 'You must specify output.file.');
+			assert.equal(warned, true);
+		});
+	});
+
+	it('Warns when using deprecated transform dependencies in plugins', () => {
+		let warned = false;
+		const watcher = rollup
+			.watch({
+				input: 'input',
+				output: {
+					file: 'asdf',
+					format: 'es'
+				},
+				onwarn (warning) {
+					warned = true;
+					assert.equal(warning.code, 'PLUGIN_WARNING');
+					assert.equal(warning.pluginCode, 'TRANSFORM_DEPENDENCIES_DEPRECATED');
+					assert.equal(warning.message, 'Returning "dependencies" from plugin transform hook is deprecated for using this.addWatchFile() instead.');
+					// throw here to stop file system write
+					throw new Error('STOP');
+				},
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						name: 'x',
+						transform (code) {
+							return { code, dependencies: [] };
+						}
+					}
+				]
+			});
+		return new Promise((resolve, reject) => {
+			watcher.on('event', evt => {
+				if (evt.code === 'END')
+					resolve();
+				else if (evt.code === 'ERROR' || evt.code === 'FATAL')
+					reject(evt.error);
+			});
+		})
+		.catch(err => {
+			assert.equal(err.message, 'STOP');
+			assert.equal(warned, true);
+		});
+	});
 });

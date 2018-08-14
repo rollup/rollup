@@ -257,7 +257,7 @@ export function createPluginDriver(
 					const hookPromise = runHook(name, [arg0, ...args], i, false, hookContext);
 					if (!hookPromise) return arg0;
 					return hookPromise.then((result: any) => {
-						return reduce(arg0, result, plugins[i]);
+						return reduce.call(pluginContexts[i], arg0, result, plugins[i]);
 					});
 				});
 			}
@@ -271,7 +271,7 @@ export function createPluginDriver(
 					const hookPromise = runHook(name, args, i, true, hookContext);
 					if (!hookPromise) return value;
 					return hookPromise.then((result: any) => {
-						return reduce(value, result, plugins[i]);
+						return reduce.call(pluginContexts[i], value, result, plugins[i]);
 					});
 				});
 			}

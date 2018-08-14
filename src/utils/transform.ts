@@ -7,6 +7,7 @@ import {
 	Asset,
 	Plugin,
 	PluginCache,
+	PluginContext,
 	RawSourceMap,
 	RollupError,
 	RollupWarning,
@@ -39,9 +40,10 @@ export default function transform(
 	let assets: Asset[];
 	let customTransformCache = false;
 	let trackedPluginCache: { used: boolean; cache: PluginCache };
+	let curPlugin: Plugin;
 	const curSource: string = source.code;
 
-	function transformReducer(code: string, result: any, plugin: Plugin) {
+	function transformReducer(this: PluginContext, code: string, result: any, plugin: Plugin) {
 		// track which plugins use the custom this.cache to opt-out of transform caching
 		if (!customTransformCache && trackedPluginCache.used) customTransformCache = true;
 		if (customTransformCache) {
@@ -56,6 +58,13 @@ export default function transform(
 			if (assets.length) module.transformAssets = assets;
 
 			if (result && Array.isArray(result.dependencies)) {
+				// not great, but a useful way to track this without assuming WeakMap
+				if (!(<any>curPlugin).warnedTransformDependencies)
+					this.warn({
+						code: 'TRANSFORM_DEPENDENCIES_DEPRECATED',
+						message: `Returning "dependencies" from plugin transform hook is deprecated for using this.addWatchFile() instead.`
+					});
+				(<any>curPlugin).warnedTransformDependencies = true;
 				if (!transformDependencies) transformDependencies = [];
 				for (const dep of result.dependencies)
 					transformDependencies.push(resolve(dirname(id), dep));
@@ -97,6 +106,7 @@ export default function transform(
 			[curSource, id],
 			transformReducer,
 			(pluginContext, plugin) => {
+				curPlugin = plugin;
 				if (plugin.cacheKey) customTransformCache = true;
 				else trackedPluginCache = trackPluginCache(pluginContext.cache);
 
