@@ -449,4 +449,4 @@ export interface RollupWatchOptions extends InputOptions {
 	watch?: WatcherOptions;
 }
 
-export function watch(configs: RollupWatchOptions[]): Watcher;
+export function watch(configs: RollupWatchOptions[]): EventEmitter;
