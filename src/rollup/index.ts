@@ -25,17 +25,6 @@ import {
 	WarningHandler
 } from './types';
 
-function addDeprecations(deprecations: Deprecation[], warn: WarningHandler) {
-	const message = `The following options have been renamed — please update your config: ${deprecations
-		.map(option => `${option.old} -> ${option.new}`)
-		.join(', ')}`;
-	warn({
-		code: 'DEPRECATED_OPTIONS',
-		message,
-		deprecations
-	});
-}
-
 function checkInputOptions(_options: any) {
 	// no deprecations currently
 }
@@ -76,13 +65,12 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
-	let { inputOptions, deprecations, optionError } = mergeOptions({
+	let { inputOptions, optionError } = mergeOptions({
 		config: rawInputOptions,
 		deprecateConfig: { input: true }
 	});
 
 	if (optionError) inputOptions.onwarn({ message: optionError, code: 'UNKNOWN_OPTION' });
-	if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
 
 	checkInputOptions(inputOptions);
 	const plugins = inputOptions.plugins;
@@ -499,7 +487,6 @@ function normalizeOutputOptions(
 	const outputOptions = mergedOptions.outputOptions[0];
 	const deprecations = mergedOptions.deprecations;
 
-	if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
 	checkOutputOptions(outputOptions);
 
 	return outputOptions;

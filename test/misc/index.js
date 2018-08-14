@@ -26,26 +26,21 @@ describe('sanity checks', () => {
 	});
 
 	it('node API passes warning and default handler to custom onwarn function', () => {
-		let args = [];
+		let args;
 		return rollup
 			.rollup({
-				entry: 'x',
-				plugins: [loader({ x: `console.log( 42 );` })],
+				input: 'x',
+				plugins: [loader({ x: `console.log( 42 );` }), { ongenerate () {} }],
 				onwarn(warning, onwarn) {
 					args = [warning, onwarn];
 				}
 			})
-			.then(() => {
-				assert.deepEqual(args[0], {
-					code: 'DEPRECATED_OPTIONS',
-					deprecations: [
-						{
-							new: 'input',
-							old: 'entry'
-						}
-					],
-					message: `The following options have been renamed — please update your config: entry -> input`
-				});
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
+			}).then(() => {
+				assert.equal(args[0].code, 'PLUGIN_WARNING');
+				assert.equal(args[0].pluginCode, 'ONGENERATE_HOOK_DEPRECATED');
+				assert.equal(args[0].message, 'The ongenerate hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.');
 				assert.equal(typeof args[1], 'function');
 			});
 	});
@@ -189,61 +184,6 @@ describe('in-memory sourcemaps', () => {
 });
 
 describe('deprecations', () => {
-	it('warns on options.entry, but handles', () => {
-		const warnings = [];
-		return rollup
-			.rollup({
-				entry: 'x',
-				plugins: [loader({ x: `export default 42` })],
-				onwarn: warning => {
-					warnings.push(warning);
-				}
-			})
-			.then(executeBundle)
-			.then(result => {
-				assert.equal(result, 42);
-				assert.deepEqual(warnings, [
-					{
-						code: 'DEPRECATED_OPTIONS',
-						deprecations: [
-							{
-								new: 'input',
-								old: 'entry'
-							}
-						],
-						message: `The following options have been renamed — please update your config: entry -> input`
-					}
-				]);
-			});
-	});
-
-	it('adds deprecations correctly for rollup', () => {
-		const warnings = [];
-		return rollup
-			.rollup({
-				entry: 'x',
-				format: 'cjs',
-				indent: true,
-				sourceMap: true,
-				plugins: [loader({ x: `export default 42` })],
-				onwarn: warning => {
-					warnings.push(warning);
-				}
-			})
-			.then(executeBundle)
-			.then(result => {
-				assert.equal(result, 42);
-				const deprecations = warnings[0].deprecations;
-				assert.equal(deprecations.length, 4);
-				assert.deepEqual(deprecations, [
-					{ new: 'input', old: 'entry' },
-					{ new: 'output.indent', old: 'indent' },
-					{ new: 'output.sourcemap', old: 'sourceMap' },
-					{ new: 'output.format', old: 'format' }
-				]);
-			});
-	});
-
 	it('throws a useful error on accessing code/map properties of bundle.generate promise', () => {
 		return rollup
 			.rollup({
