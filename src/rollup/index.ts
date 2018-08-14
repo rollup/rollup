@@ -43,10 +43,6 @@ function checkOutputOptions(options: OutputOptions) {
 			url: `https://rollupjs.org/#format-f-output-format-`
 		});
 	}
-
-	if (options.moduleId) {
-		if (options.amd) throw new Error('Cannot have both output.amd and output.moduleId');
-	}
 }
 
 const throwAsyncGenerateError = {

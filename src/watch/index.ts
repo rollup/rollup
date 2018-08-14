@@ -279,6 +279,6 @@ export class Task {
 	}
 }
 
-export default function watch(configs: RollupWatchOptions[]) {
+export default function watch(configs: RollupWatchOptions[]): EventEmitter {
 	return new Watcher(configs);
 }
