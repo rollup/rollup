@@ -24,7 +24,7 @@ Are tests included?
 - [ ] no
 
 Breaking Changes?
-- [ ] yes (*please describe clearly below*)
+- [ ] yes (*please describe clearly in the description*)
 - [ ] no
 
 List any relevent issue numbers:
