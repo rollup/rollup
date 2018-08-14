@@ -8,6 +8,7 @@
 * Allow `[format]` placeholder for id generation ([#2387](https://github.com/rollup/rollup/pull/2387))
 * Do not display version in watch mode when using `--silent` ([#2392](https://github.com/rollup/rollup/pull/2392))
 * Add code of conduct ([#2388](https://github.com/rollup/rollup/pull/2388))
+* Move to CircleCI ([#2390](https://github.com/rollup/rollup/pull/2390))
 
 ## 0.64.1
 *2018-08-07*
