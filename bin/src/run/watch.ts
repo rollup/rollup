@@ -148,7 +148,7 @@ export default function watch(
 					break;
 
 				case 'END':
-					if (!silent && isTTY) {
+					if (!silent) {
 						stderr(`\n[${dateTime()}] waiting for changes...`);
 					}
 			}
@@ -158,12 +158,6 @@ export default function watch(
 	// catch ctrl+c, kill, and uncaught errors
 	const removeOnExit = onExit(close);
 	process.on('uncaughtException', close);
-
-	// only listen to stdin if it is a pipe
-	if (!process.stdin.isTTY) {
-		process.stdin.on('end', close); // in case we ever support stdin!
-		process.stdin.resume();
-	}
 
 	function close(err: Error) {
 		removeOnExit();
