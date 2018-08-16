@@ -95,7 +95,7 @@ const immediateHandlers: {
 				? `'${warning.modules[0]}'`
 				: `${warning.modules
 						.slice(0, -1)
-						.map(name => `'${name}'`)
+						.map((name: string) => `'${name}'`)
 						.join(', ')} and '${warning.modules.slice(-1)}'`;
 		stderr(
 			`Creating a browser bundle that depends on ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`

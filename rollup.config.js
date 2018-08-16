@@ -29,6 +29,8 @@ const banner = `/*
 */`;
 
 const onwarn = warning => {
+	if (warning.pluginCode === 'ONWRITE_HOOK_DEPRECATED')
+		return;
 	// eslint-disable-next-line no-console
 	console.error(
 		'Building Rollup produced warnings that need to be resolved. ' +

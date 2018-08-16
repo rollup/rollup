@@ -7,23 +7,28 @@ export interface IdMap {
 	[key: string]: string;
 }
 
-export interface RollupError {
-	message: string;
+export interface RollupError extends RollupLogProps {
+	message?: string;
+	stack?: string;
+}
+
+export interface RollupWarning extends RollupLogProps {
+	message?: string;
+}
+
+export interface RollupLogProps {
 	code?: string;
-	name?: string;
 	url?: string;
-	id?: string;
+	plugin?: string;
+	pluginCode?: string;
+	hook?: string;
 	loc?: {
 		file?: string;
 		line: number;
 		column: number;
 	};
-	stack?: string;
 	frame?: string;
-	pos?: number;
-	plugin?: string;
-	pluginCode?: string;
-	hook?: string;
+	[key: string]: any;
 }
 
 export interface ExistingRawSourceMap {
@@ -242,14 +247,12 @@ export interface InputOptions {
 	experimentalDynamicImport?: boolean;
 	experimentalTopLevelAwait?: boolean;
 	inlineDynamicImports?: boolean;
+	preferConst?: boolean;
 	preserveSymlinks?: boolean;
 	experimentalPreserveModules?: boolean;
 	optimizeChunks?: boolean;
 	chunkGroupingSize?: number;
 	shimMissingExports?: boolean;
-
-	/** @deprecated */
-	preferConst?: boolean;
 }
 
 export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'iife' | 'umd';
@@ -302,35 +305,6 @@ export interface OutputOptionsFile extends OutputOptions {
 export interface OutputOptionsDir extends OutputOptions {
 	// only required for bundles.write
 	dir?: string;
-}
-
-export interface RollupWarning {
-	message?: string;
-	code?: string;
-	loc?: {
-		file: string;
-		line: number;
-		column: number;
-	};
-	deprecations?: { old: string; new: string }[];
-	modules?: string[];
-	names?: string[];
-	source?: string;
-	importer?: string;
-	frame?: any;
-	missing?: string;
-	exporter?: string;
-	exportName?: string;
-	name?: string;
-	sources?: string[];
-	reexporter?: string;
-	guess?: string;
-	url?: string;
-	id?: string;
-	plugin?: string;
-	pos?: number;
-	pluginCode?: string;
-	hook?: string;
 }
 
 export type WarningHandler = (warning: string | RollupWarning) => void;

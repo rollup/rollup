@@ -10,7 +10,6 @@ import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker'
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
-import AssignmentExpression from './AssignmentExpression';
 import AssignmentPattern from './AssignmentPattern';
 import * as NodeType from './NodeType';
 import Property from './Property';

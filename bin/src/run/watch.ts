@@ -69,10 +69,6 @@ export default function watch(
 
 			if (!result.watch) result.watch = {};
 
-			if (merged.deprecations.length) {
-				(<{ _deprecations: any }>result.watch)._deprecations = merged.deprecations;
-			}
-
 			if (merged.optionError)
 				merged.inputOptions.onwarn({
 					message: merged.optionError,

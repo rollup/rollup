@@ -4,7 +4,6 @@ import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
 import { createAssetPluginHooks, finaliseAsset } from '../utils/assetHooks';
 import commondir from '../utils/commondir';
-import { Deprecation } from '../utils/deprecateOptions';
 import error from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
@@ -21,13 +20,8 @@ import {
 	OutputOptions,
 	Plugin,
 	RollupBuild,
-	RollupSingleFileBuild,
-	WarningHandler
+	RollupSingleFileBuild
 } from './types';
-
-function checkInputOptions(_options: any) {
-	// no deprecations currently
-}
 
 function checkOutputOptions(options: OutputOptions) {
 	if (<string>options.format === 'es6') {
@@ -68,7 +62,6 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 
 	if (optionError) inputOptions.onwarn({ message: optionError, code: 'UNKNOWN_OPTION' });
 
-	checkInputOptions(inputOptions);
 	const plugins = inputOptions.plugins;
 	inputOptions.plugins = Array.isArray(plugins) ? plugins : plugins ? [plugins] : [];
 	inputOptions = inputOptions.plugins.reduce(applyOptionHook, inputOptions);
@@ -481,7 +474,6 @@ function normalizeOutputOptions(
 
 	// now outputOptions is an array, but rollup.rollup API doesn't support arrays
 	const outputOptions = mergedOptions.outputOptions[0];
-	const deprecations = mergedOptions.deprecations;
 
 	checkOutputOptions(outputOptions);
 

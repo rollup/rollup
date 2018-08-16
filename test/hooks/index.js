@@ -137,15 +137,20 @@ describe('hooks', () => {
 		return rollup
 			.rollup({
 				input: 'input',
-				onwarn (warning) {
+				onwarn(warning) {
 					deprecationCnt++;
 					if (deprecationCnt === 1) {
 						assert.equal(warning.pluginCode, 'ONGENERATE_HOOK_DEPRECATED');
-						assert.equal(warning.message, 'The ongenerate hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.');
-					}
-					else {
+						assert.equal(
+							warning.message,
+							'The ongenerate hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.'
+						);
+					} else {
 						assert.equal(warning.pluginCode, 'ONWRITE_HOOK_DEPRECATED');
-						assert.equal(warning.message, 'The onwrite hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.');
+						assert.equal(
+							warning.message,
+							'The onwrite hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.'
+						);
 					}
 				},
 				plugins: [
@@ -551,10 +556,13 @@ module.exports = input;
 			.rollup({
 				input: 'input',
 				experimentalCodeSplitting: true,
-				onwarn (warning) {
+				onwarn(warning) {
 					deprecationCnt++;
 					assert.equal(warning.pluginCode, 'TRANSFORMCHUNK_HOOK_DEPRECATED');
-					assert.equal(warning.message, 'The transformChunk hook used by plugin at position 2 is deprecated. The renderChunk hook should be used instead.');
+					assert.equal(
+						warning.message,
+						'The transformChunk hook used by plugin at position 2 is deprecated. The renderChunk hook should be used instead.'
+					);
 				},
 				plugins: [
 					loader({ input: `alert('hello')` }),
@@ -626,7 +634,7 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						renderChunk (code, chunk, options) {
+						renderChunk(code, chunk, options) {
 							calledHook = true;
 							assert.equal(chunk.fileName, 'input.js');
 							assert.equal(chunk.isEntry, true);
@@ -634,8 +642,7 @@ module.exports = input;
 							assert.ok(chunk.modules['input']);
 							try {
 								this.emitAsset('test.ext', 'hello world');
-							}
-							catch (e) {
+							} catch (e) {
 								assert.equal(e.code, 'ASSETS_ALREADY_FINALISED');
 							}
 						}
@@ -1104,34 +1111,33 @@ module.exports = input;
 
 	it('Warns when using deprecated this.watcher in plugins', () => {
 		let warned = false;
-		const watcher = rollup
-			.watch({
-				input: 'input',
-				onwarn (warning) {
-					warned = true;
-					assert.equal(warning.code, 'PLUGIN_WARNING');
-					assert.equal(warning.pluginCode, 'PLUGIN_WATCHER_DEPRECATED');
-					assert.equal(warning.message, 'this.watcher usage is deprecated in plugins. Use the watchChange plugin hook instead.');
-				},
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						name: 'x',
-						buildStart () {
-							this.watcher.on('change', () => {});
-						}
+		const watcher = rollup.watch({
+			input: 'input',
+			onwarn(warning) {
+				warned = true;
+				assert.equal(warning.code, 'PLUGIN_WARNING');
+				assert.equal(warning.pluginCode, 'PLUGIN_WATCHER_DEPRECATED');
+				assert.equal(
+					warning.message,
+					'this.watcher usage is deprecated in plugins. Use the watchChange plugin hook instead.'
+				);
+			},
+			plugins: [
+				loader({ input: `alert('hello')` }),
+				{
+					name: 'x',
+					buildStart() {
+						this.watcher.on('change', () => {});
 					}
-				]
-			});
+				}
+			]
+		});
 		return new Promise((resolve, reject) => {
 			watcher.on('event', evt => {
-				if (evt.code === 'BUNDLE_END')
-					resolve();
-				else if (evt.code === 'ERROR' || evt.code === 'FATAL')
-					reject(evt.error);
+				if (evt.code === 'BUNDLE_END') resolve();
+				else if (evt.code === 'ERROR' || evt.code === 'FATAL') reject(evt.error);
 			});
-		})
-		.catch(err => {
+		}).catch(err => {
 			assert.equal(err.message, 'You must specify output.file.');
 			assert.equal(warned, true);
 		});
@@ -1139,40 +1145,39 @@ module.exports = input;
 
 	it('Warns when using deprecated transform dependencies in plugins', () => {
 		let warned = false;
-		const watcher = rollup
-			.watch({
-				input: 'input',
-				output: {
-					file: 'asdf',
-					format: 'es'
-				},
-				onwarn (warning) {
-					warned = true;
-					assert.equal(warning.code, 'PLUGIN_WARNING');
-					assert.equal(warning.pluginCode, 'TRANSFORM_DEPENDENCIES_DEPRECATED');
-					assert.equal(warning.message, 'Returning "dependencies" from plugin transform hook is deprecated for using this.addWatchFile() instead.');
-					// throw here to stop file system write
-					throw new Error('STOP');
-				},
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						name: 'x',
-						transform (code) {
-							return { code, dependencies: [] };
-						}
+		const watcher = rollup.watch({
+			input: 'input',
+			output: {
+				file: 'asdf',
+				format: 'es'
+			},
+			onwarn(warning) {
+				warned = true;
+				assert.equal(warning.code, 'PLUGIN_WARNING');
+				assert.equal(warning.pluginCode, 'TRANSFORM_DEPENDENCIES_DEPRECATED');
+				assert.equal(
+					warning.message,
+					'Returning "dependencies" from plugin transform hook is deprecated for using this.addWatchFile() instead.'
+				);
+				// throw here to stop file system write
+				throw new Error('STOP');
+			},
+			plugins: [
+				loader({ input: `alert('hello')` }),
+				{
+					name: 'x',
+					transform(code) {
+						return { code, dependencies: [] };
 					}
-				]
-			});
+				}
+			]
+		});
 		return new Promise((resolve, reject) => {
 			watcher.on('event', evt => {
-				if (evt.code === 'END')
-					resolve();
-				else if (evt.code === 'ERROR' || evt.code === 'FATAL')
-					reject(evt.error);
+				if (evt.code === 'END') resolve();
+				else if (evt.code === 'ERROR' || evt.code === 'FATAL') reject(evt.error);
 			});
-		})
-		.catch(err => {
+		}).catch(err => {
 			assert.equal(err.message, 'STOP');
 			assert.equal(warned, true);
 		});

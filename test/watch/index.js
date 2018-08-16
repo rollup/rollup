@@ -2,7 +2,6 @@ const assert = require('assert');
 const path = require('path');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
-const path = require('path');
 
 const cwd = process.cwd();
 
@@ -667,7 +666,10 @@ describe('rollup.watch', () => {
 										if (err.code !== 'ENOENT') throw err;
 										this.emitAsset('test', 'test');
 									}
-									return { code: `export default ${v++}`, dependencies: v === 2 ? [path.resolve(file)] : [] };
+									return {
+										code: `export default ${v++}`,
+										dependencies: v === 2 ? [path.resolve(file)] : []
+									};
 								}
 							}
 						],

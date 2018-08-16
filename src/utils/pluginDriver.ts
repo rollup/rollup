@@ -1,7 +1,15 @@
 import { EventEmitter } from 'events';
 import { version as rollupVersion } from 'package.json';
 import Graph from '../Graph';
-import { InputOptions, Plugin, PluginCache, PluginContext, RollupError, RollupWarning, SerializablePluginCache } from '../rollup/types';
+import {
+	InputOptions,
+	Plugin,
+	PluginCache,
+	PluginContext,
+	RollupError,
+	RollupWarning,
+	SerializablePluginCache
+} from '../rollup/types';
 import { createAssetPluginHooks, EmitAsset } from './assetHooks';
 import { getRollupDefaultPlugin } from './default-plugin';
 import error from './error';
@@ -80,6 +88,17 @@ export function createPluginDriver(
 			cacheInstance = uncacheablePlugin(plugin.name);
 		}
 
+		const firstWatchHandler = true;
+
+		function deprecatedWatchListener(event: string, handler: () => void) {
+			if (firstWatchHandler)
+				context.warn({
+					code: 'PLUGIN_WATCHER_DEPRECATED',
+					message: `this.watcher usage is deprecated in plugins. Use the watchChange plugin hook instead.`
+				});
+			return watcher.on(event, handler);
+		}
+
 		const context: PluginContext = {
 			addWatchFile(id: string) {
 				if (graph.finished) this.error('addWatchFile can only be called during the build.');
@@ -113,7 +132,13 @@ export function createPluginDriver(
 				warning.plugin = plugin.name || `Plugin at position ${pidx + 1}`;
 				graph.warn(warning);
 			},
-			watcher
+			watcher: watcher
+				? <EventEmitter>{
+						...watcher,
+						on: deprecatedWatchListener,
+						addListener: deprecatedWatchListener
+				  }
+				: undefined
 		};
 		return context;
 	});

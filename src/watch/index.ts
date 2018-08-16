@@ -110,8 +110,6 @@ export class Task {
 	private outputs: OutputOptions[];
 	private invalidated = true;
 
-	private deprecations: { old: string; new: string }[];
-
 	private filter: (id: string) => boolean;
 
 	constructor(watcher: Watcher, config: RollupWatchOptions) {
@@ -121,7 +119,7 @@ export class Task {
 		this.closed = false;
 		this.watched = new Set();
 
-		const { inputOptions, outputOptions, deprecations } = mergeOptions({
+		const { inputOptions, outputOptions } = mergeOptions({
 			config
 		});
 		this.inputOptions = inputOptions;
@@ -152,7 +150,6 @@ export class Task {
 		this.chokidarOptionsHash = JSON.stringify(chokidarOptions);
 
 		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
-		this.deprecations = [...deprecations, ...(watchOptions._deprecations || [])];
 	}
 
 	close() {
@@ -163,7 +160,6 @@ export class Task {
 	}
 
 	invalidate(id: string, isTransformDependency: boolean) {
-		this.watcher.emit('change', id);
 		this.invalidated = true;
 		if (isTransformDependency) {
 			this.cache.modules.forEach(module => {
@@ -192,16 +188,6 @@ export class Task {
 			input: this.inputOptions.input,
 			output: this.outputFiles
 		});
-
-		if (this.deprecations.length) {
-			this.inputOptions.onwarn({
-				code: 'DEPRECATED_OPTIONS',
-				deprecations: this.deprecations,
-				message: `The following options have been renamed — please update your config: ${this.deprecations
-					.map(option => `${option.old} -> ${option.new}`)
-					.join(', ')}`
-			});
-		}
 
 		setWatcher(this.watcher);
 		return rollup(options)
