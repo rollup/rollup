@@ -59,7 +59,8 @@
   "homepage": "https://github.com/rollup/rollup",
   "dependencies": {
     "@types/estree": "0.0.39",
-    "@types/node": "*"
+    "@types/node": "*",
+    "ansi-colors": "^3.0.0"
   },
   "devDependencies": {
     "@types/acorn": "^4.0.3",
@@ -109,7 +110,6 @@
     "source-map-support": "^0.5.6",
     "sourcemap-codec": "^1.4.1",
     "tslint": "^5.11.0",
-    "turbocolor": "^2.4.1",
     "typescript": "^3.0.1",
     "uglify-js": "^3.4.6",
     "url-parse": "^1.4.3"

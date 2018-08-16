@@ -1,9 +1,9 @@
+import c from 'ansi-colors';
 import dateTime from 'date-time';
 import fs from 'fs';
 import ms from 'pretty-ms';
 import * as rollup from 'rollup';
 import onExit from 'signal-exit';
-import tc from 'turbocolor';
 import {
 	InputOption,
 	RollupBuild,
@@ -110,7 +110,7 @@ export default function watch(
 
 				case 'START':
 					if (!silent) {
-						screenWriter(tc.underline(`rollup v${rollup.VERSION}`));
+						screenWriter(c.underline(`rollup v${rollup.VERSION}`));
 					}
 					break;
 
@@ -125,8 +125,8 @@ export default function watch(
 										.join(', ');
 						}
 						stderr(
-							tc.cyan(
-								`bundles ${tc.bold(input)} → ${tc.bold(event.output.map(relativeId).join(', '))}...`
+							c.cyan(
+								`bundles ${c.bold(input)} → ${c.bold(event.output.map(relativeId).join(', '))}...`
 							)
 						);
 					}
@@ -136,8 +136,8 @@ export default function watch(
 					warnings.flush();
 					if (!silent)
 						stderr(
-							tc.green(
-								`created ${tc.bold(event.output.map(relativeId).join(', '))} in ${tc.bold(
+							c.green(
+								`created ${c.bold(event.output.map(relativeId).join(', '))} in ${c.bold(
 									ms(event.duration)
 								)}`
 							)

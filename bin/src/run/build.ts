@@ -1,6 +1,6 @@
+import c from 'ansi-colors';
 import ms from 'pretty-ms';
 import * as rollup from 'rollup';
-import tc from 'turbocolor';
 import {
 	InputOptions,
 	OutputOptions,
@@ -39,7 +39,7 @@ export default function build(
 				.map(name => (<Record<string, string>>inputOptions.input)[name])
 				.join(', ');
 		}
-		stderr(tc.cyan(`\n${tc.bold(inputFiles)} → ${tc.bold(files.join(', '))}...`));
+		stderr(c.cyan(`\n${c.bold(inputFiles)} → ${c.bold(files.join(', '))}...`));
 	}
 
 	return rollup
@@ -71,9 +71,7 @@ export default function build(
 		.then((bundle?: RollupSingleFileBuild | RollupBuild) => {
 			warnings.flush();
 			if (!silent)
-				stderr(
-					tc.green(`created ${tc.bold(files.join(', '))} in ${tc.bold(ms(Date.now() - start))}`)
-				);
+				stderr(c.green(`created ${c.bold(files.join(', '))} in ${c.bold(ms(Date.now() - start))}`));
 			if (bundle && bundle.getTimings) {
 				printTimings(bundle.getTimings());
 			}

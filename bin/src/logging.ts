@@ -1,4 +1,4 @@
-import tc from 'turbocolor';
+import c from 'ansi-colors';
 import { RollupError } from '../../src/rollup/types';
 import relativeId from '../../src/utils/relativeId';
 
@@ -13,11 +13,11 @@ export function handleError(err: RollupError, recover = false) {
 			? `(${(<{ plugin?: string }>err).plugin} plugin) ${description}`
 			: description) || err;
 
-	stderr(tc.bold.red(`[!] ${tc.bold(message.toString())}`));
+	stderr(c.bold.red(`[!] ${c.bold(message.toString())}`));
 
 	// TODO should this be "err.url || (err.file && err.loc.file) || err.id"?
 	if (err.url) {
-		stderr(tc.cyan(err.url));
+		stderr(c.cyan(err.url));
 	}
 
 	if (err.loc) {
@@ -27,9 +27,9 @@ export function handleError(err: RollupError, recover = false) {
 	}
 
 	if (err.frame) {
-		stderr(tc.dim(err.frame));
+		stderr(c.dim(err.frame));
 	} else if (err.stack) {
-		stderr(tc.dim(err.stack));
+		stderr(c.dim(err.stack));
 	}
 
 	stderr('');

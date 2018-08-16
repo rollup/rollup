@@ -1,3 +1,3 @@
-import tc from 'turbocolor';
+import c from 'ansi-colors';
 
-assert.ok( tc );
+assert.ok( c );

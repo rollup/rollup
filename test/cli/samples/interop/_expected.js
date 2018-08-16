@@ -1,5 +1,5 @@
 'use strict';
 
-var tc = require('turbocolor');
+var c = require('ansi-colors');
 
-assert.ok( tc );
+assert.ok( c );
