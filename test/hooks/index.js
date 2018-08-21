@@ -528,68 +528,6 @@ module.exports = input;
 			});
 	});
 
-	it('throws when emitting assets too late', () => {
-		let calledHook = false;
-		return rollup
-			.rollup({
-				input: 'input',
-				experimentalCodeSplitting: true,
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						generateBundle(code, id) {
-							try {
-								this.emitAsset('test.ext', [], 'hello world');
-							} catch (e) {
-								assert.equal(e.code, 'ASSETS_FINALISED');
-								calledHook = true;
-							}
-						}
-					}
-				]
-			})
-			.then(bundle => {
-				return bundle.generate({
-					format: 'es',
-					assetFileNames: '[name][extname]'
-				});
-			})
-			.then(() => {
-				assert.equal(calledHook, true);
-			});
-	});
-
-	it('throws when calling setAssetSource from transform', () => {
-		let calledHook = false;
-		return rollup
-			.rollup({
-				input: 'input',
-				experimentalCodeSplitting: true,
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						generateBundle(code, id) {
-							try {
-								this.emitAsset('test.ext', [], 'hello world');
-							} catch (e) {
-								assert.equal(e.code, 'ASSETS_FINALISED');
-								calledHook = true;
-							}
-						}
-					}
-				]
-			})
-			.then(bundle => {
-				return bundle.generate({
-					format: 'es',
-					assetFileNames: '[name][extname]'
-				});
-			})
-			.then(() => {
-				assert.equal(calledHook, true);
-			});
-	});
-
 	it('supports transformChunk in place of transformBundle', () => {
 		let calledHook = false;
 		return rollup

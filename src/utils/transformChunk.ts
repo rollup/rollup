@@ -12,7 +12,7 @@ export default function transformChunk(
 	sourcemapChain: RawSourceMap[],
 	options: OutputOptions
 ) {
-	const transformChunkAssetPluginHooks = createAssetPluginHooks(graph.assetsById, graph.watchFiles);
+	const transformChunkAssetPluginHooks = createAssetPluginHooks(graph.assetsById);
 
 	const transformChunkReducer = (code: string, result: any, plugin: Plugin): string => {
 		if (result == null) return code;

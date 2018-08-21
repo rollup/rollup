@@ -342,7 +342,6 @@ export default function rollup(
 							const assets = new Map(graph.assetsById);
 							const generateAssetPluginHooks = createAssetPluginHooks(
 								assets,
-								graph.watchFiles,
 								outputBundle,
 								assetFileNames
 							);

@@ -79,8 +79,6 @@ export interface Asset {
 	name: string;
 	source: string | Buffer;
 	fileName: string;
-	transform: boolean;
-	dependencies: string[];
 }
 
 export interface PluginCache {
@@ -91,6 +89,7 @@ export interface PluginCache {
 }
 
 export interface PluginContext {
+	// TODO deprecate:
 	watcher: Watcher;
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
@@ -98,7 +97,6 @@ export interface PluginContext {
 	isExternal: IsExternal;
 	parse: (input: string, options: any) => ESTree.Program;
 	emitAsset(name: string, source?: string | Buffer): string;
-	emitAsset(name: string, dependencies: string[], source?: string | Buffer): string;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
 	getAssetFileName: (assetId: string) => string;
 	warn(warning: RollupWarning | string, pos?: { line: number; column: number }): void;
@@ -203,6 +201,7 @@ export interface Plugin {
 	footer?: AddonHook;
 	intro?: AddonHook;
 	outro?: AddonHook;
+	watchChange?: (id: string) => void;
 }
 
 export interface TreeshakingOptions {
