@@ -11,6 +11,8 @@ export default class NamespaceVariable extends Variable {
 	// Not initialised during construction
 	originals: { [name: string]: Variable } = Object.create(null);
 	needsNamespaceBlock: boolean = false;
+	
+	// only to be used for chunk-to-chunk import tracing, use context for data manipulation
 	module: Module;
 	private referencedEarly: boolean = false;
 	private references: Identifier[] = [];
