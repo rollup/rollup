@@ -15,9 +15,13 @@ module.exports = {
 					}
 				},
 				load(id) {
+					if (id.slice(-7) === 'main.js') {
+						return 'import external from "\0external";assert.equal(external, 1);';
+					}
 					if (id === '\0external') {
 						return 'export default 1';
 					}
+					throw new Error('Unexpected id to be loaded: ' + id);
 				}
 			}
 		]
