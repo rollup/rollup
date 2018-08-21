@@ -4,6 +4,7 @@
 *unreleased*
 * Refactor and unify plugin system ([#2382](https://github.com/rollup/rollup/pull/2382))
 * Implement plugin cache API ([#2389](https://github.com/rollup/rollup/pull/2389))
+* Add watchChange plugin hook to watch changed files, deprecate asset dependencies ([#2405](https://github.com/rollup/rollup/pull/2405))
 * Refine asset handling ([#2369](https://github.com/rollup/rollup/pull/2369))
 * Allow `[format]` placeholder for id generation ([#2387](https://github.com/rollup/rollup/pull/2387))
 * Do not display version in watch mode when using `--silent` ([#2392](https://github.com/rollup/rollup/pull/2392))
