@@ -3,9 +3,9 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var dep =
+			var dep = exports('a',
 				/*#__PURE__*/
-				exports('a', (function() {
+				(function() {
 					return 0;
 				})());
 
