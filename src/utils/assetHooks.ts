@@ -1,15 +1,11 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
 import { Asset, OutputBundle } from '../rollup/types';
 import error from './error';
-import { extname, normalize, resolve } from './path';
+import { extname } from './path';
 import { isPlainName } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
-export type EmitAsset = (
-	name: string,
-	dependencies?: string[] | string | Buffer,
-	source?: string | Buffer
-) => string;
+export type EmitAsset = (name: string, source?: string | Buffer) => string;
 
 export function getAssetFileName(
 	asset: Asset,
@@ -50,66 +46,32 @@ export function createAssetPluginHooks(
 	outputBundle?: OutputBundle,
 	assetFileNames?: string
 ) {
-	function emitAsset(
-		name: string,
-		dependenciesOrSource?: string[] | string | Buffer,
-		source?: string | Buffer
-	) {
-		if (typeof name !== 'string' || !isPlainName(name))
-			error({
-				code: 'INVALID_ASSET_NAME',
-				message: `Plugin error creating asset, name is not a plain (non relative or absolute URL) string name.`
-			});
-
-		let dependencies: string[];
-
-		if (Array.isArray(dependenciesOrSource)) {
-			if (outputBundle)
-				error({
-					code: 'ASSETS_FINALISED',
-					message: `Plugin error creating asset, asset dependencies are not supported during generation, only during the build.`
-				});
-			dependencies = dependenciesOrSource.map(depId => normalize(resolve(depId)));
-		} else if (source === undefined) {
-			source = dependenciesOrSource;
-		}
-
-		let assetId: string;
-		do {
-			const assetHash = sha256();
-			if (assetId) {
-				// if there is a collision, chain until there isn't
-				assetHash.update(assetId);
-			} else {
-				assetHash.update(name);
-				if (dependencies) for (const depId of dependencies) assetHash.update(depId);
-			}
-			assetId = assetHash.digest('hex').substr(0, 8);
-		} while (assetsById.has(assetId));
-
-		const asset: Asset = { name, source, fileName: undefined, dependencies, transform: false };
-		if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
-		assetsById.set(assetId, asset);
-		return assetId;
-	}
-
 	return {
-		emitAsset,
-		createTransformEmitAsset() {
-			const assets: Asset[] = [];
-			return {
-				assets,
-				emitAsset: (name: string, dependencies?: string[], source?: string | Buffer) => {
-					const assetId = emitAsset(name, dependencies, source);
-					const asset = assetsById.get(assetId);
-					// distinguish transform assets
-					asset.transform = true;
-					assets.push(asset);
-					return assetId;
+		emitAsset(name: string, source?: string | Buffer) {
+			if (typeof name !== 'string' || !isPlainName(name))
+				error({
+					code: 'INVALID_ASSET_NAME',
+					message: `Plugin error creating asset, name is not a plain (non relative or absolute URL) string name.`
+				});
+
+			let assetId: string;
+			do {
+				const assetHash = sha256();
+				if (assetId) {
+					// if there is a collision, chain until there isn't
+					assetHash.update(assetId);
+				} else {
+					assetHash.update(name);
 				}
-			};
+				assetId = assetHash.digest('hex').substr(0, 8);
+			} while (assetsById.has(assetId));
+
+			const asset: Asset = { name, source, fileName: undefined };
+			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
+			assetsById.set(assetId, asset);
+			return assetId;
 		},
-		setAssetSource: (assetId: string, source: string | Buffer) => {
+		setAssetSource(assetId: string, source?: string | Buffer) {
 			const asset = assetsById.get(assetId);
 			if (!asset)
 				error({
@@ -123,10 +85,15 @@ export function createAssetPluginHooks(
 						asset.name
 					}, source already set.`
 				});
+			if (typeof source !== 'string' && !source)
+				error({
+					code: 'ASSET_SOURCE_MISSING',
+					message: `Plugin error creating asset ${name}, setAssetSource call without a source.`
+				});
 			asset.source = source;
 			if (outputBundle) finaliseAsset(asset, outputBundle, assetFileNames);
 		},
-		getAssetFileName: (assetId: string) => {
+		getAssetFileName(assetId: string) {
 			const asset = assetsById.get(assetId);
 			if (!asset)
 				error({
@@ -147,4 +114,22 @@ export function finaliseAsset(asset: Asset, outputBundle: OutputBundle, assetFil
 	const fileName = getAssetFileName(asset, outputBundle, assetFileNames);
 	asset.fileName = fileName;
 	outputBundle[fileName] = asset.source;
+}
+
+export function createTransformEmitAsset(assetsById: Map<string, Asset>, emitAsset: EmitAsset) {
+	const assets: Asset[] = [];
+	return {
+		assets,
+		emitAsset: (name: string, source?: string | Buffer) => {
+			const assetId = emitAsset(name, source);
+			const asset = assetsById.get(assetId);
+			// distinguish transform assets
+			assets.push({
+				name: asset.name,
+				source: asset.source,
+				fileName: undefined
+			});
+			return assetId;
+		}
+	};
 }

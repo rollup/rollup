@@ -1,5 +1,4 @@
 const path = require('path');
-const assert = require('assert');
 
 module.exports = {
 	description: 'warns on missing (but unused) imports',

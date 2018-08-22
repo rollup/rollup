@@ -1,5 +1,3 @@
-var assert = require('assert');
-
 module.exports = {
 	description: 'resolver error is not caught',
 	options: {
@@ -20,6 +18,9 @@ module.exports = {
 		]
 	},
 	error: {
-		message: 'nope'
+		code: 'PLUGIN_ERROR',
+		hook: 'resolveId',
+		message: 'nope',
+		plugin: 'Plugin at pos 0'
 	}
 };

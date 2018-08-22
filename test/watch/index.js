@@ -1,6 +1,7 @@
 const assert = require('assert');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
+const path = require('path');
 
 const cwd = process.cwd();
 
@@ -37,6 +38,8 @@ describe('rollup.watch', () => {
 								console.error(event.error);
 							}
 							watcher.close();
+							if (event.code === 'ERROR')
+								console.log(event.error);
 							reject(new Error(`Expected ${next} event, got ${event.code}`));
 						} else {
 							go(event);
@@ -98,6 +101,52 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 43);
+						}
+					]);
+				});
+		});
+
+		it('passes file events to the watchChange plugin hook', () => {
+			let watchChangeId, watchChangeCnt = 0;
+			return sander
+				.copydir('test/watch/samples/basic')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						plugins: [{
+							watchChange (id) {
+								watchChangeId = id;
+								watchChangeCnt++;
+							}
+						}],
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 42);
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 43);
+							assert.equal(watchChangeId, path.resolve('test/_tmp/input/main.js'));
+							if (chokidar)
+								assert.equal(watchChangeCnt, 1);
+							else
+								assert.ok(watchChangeCnt >= 1);
 						}
 					]);
 				});
@@ -354,6 +403,51 @@ describe('rollup.watch', () => {
 				});
 		});
 
+		it('supports transform cache opt-out via cacheKey and custom watchFiles', () => {
+			return sander
+				.copydir('test/watch/samples/transform-dependencies')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						plugins: [
+							{
+								cacheKey: 'asdf',
+								transform(code) {
+									this.addWatchFile('test/_tmp/input/asdf');
+									const text = sander.readFileSync('test/_tmp/input/asdf').toString();
+									return `export default "${text}"`;
+								}
+							}
+						],
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 'asdf');
+							sander.unlinkSync('test/_tmp/input/asdf');
+							sander.writeFileSync('test/_tmp/input/asdf', 'next');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 'next');
+						}
+					]);
+				});
+		});
+
 		it('throws if transform dependency doesnt exist', () => {
 			return sander
 				.copydir('test/watch/samples/transform-dependencies')
@@ -448,12 +542,14 @@ describe('rollup.watch', () => {
 							file: 'test/_tmp/output/bundle.js',
 							format: 'cjs'
 						},
-						plugins: [{
-							transform (code) {
-								const dependencies = ['./'];
-								return { code: `export default ${v++}`, dependencies };
+						plugins: [
+							{
+								transform(code) {
+									const dependencies = ['./'];
+									return { code: `export default ${v++}`, dependencies };
+								}
 							}
-						}],
+						],
 						watch: { chokidar }
 					});
 
@@ -478,7 +574,8 @@ describe('rollup.watch', () => {
 				});
 		});
 
-		it('watches and rebuilds asset dependencies, caching transform call correctly', () => {
+		it('watches and rebuilds transform dependencies, with transform cache opt-out for custom cache', () => {
+			const file = 'test/_tmp/input/asdf';
 			let v = 1;
 			return sander
 				.copydir('test/watch/samples/transform-dependencies')
@@ -490,23 +587,23 @@ describe('rollup.watch', () => {
 							file: 'test/_tmp/output/bundle.js',
 							format: 'cjs'
 						},
-						experimentalCodeSplitting: true,
-						plugins: [{
-							buildStart () {
-								try {
-									const file = 'test/_tmp/input/asdf';
-									const text = sander.readFileSync(file).toString();
-									this.emitAsset('test', [file], text);
+						plugins: [
+							{
+								name: 'x',
+								buildStart() {
+									try {
+										const text = sander.readFileSync(file).toString();
+										this.emitAsset('test', text);
+									} catch (err) {
+										if (err.code !== 'ENOENT') throw err;
+									}
+								},
+								transform(code) {
+									this.cache.set('asdf', 'asdf');
+									return { code: `export default "${v++}"`, dependencies: [path.resolve(file)] };
 								}
-								catch (err) {
-									if (err.code !== 'ENOENT')
-										throw err;
-								}
-							},
-							transform (code) {
-								return { code: `export default "${v++}"`};
 							}
-						}],
+						],
 						watch: { chokidar }
 					});
 
@@ -524,7 +621,7 @@ describe('rollup.watch', () => {
 						'BUNDLE_END',
 						'END',
 						() => {
-							assert.equal(run('../_tmp/output/bundle.js'), 1);
+							assert.equal(run('../_tmp/output/bundle.js'), 2);
 						}
 					]);
 				});
@@ -542,21 +639,21 @@ describe('rollup.watch', () => {
 							file: 'test/_tmp/output/bundle.js',
 							format: 'cjs'
 						},
-						plugins: [{
-							transform (code, id) {
-								const file = 'test/_tmp/input/asdf';
-								try {
-									const text = sander.readFileSync(file).toString();
-									this.emitAsset('test', [file], text);
+						plugins: [
+							{
+								transform(code, id) {
+									const file = 'test/_tmp/input/asdf';
+									try {
+										const text = sander.readFileSync(file).toString();
+										this.emitAsset('test', text);
+									} catch (err) {
+										if (err.code !== 'ENOENT') throw err;
+										this.emitAsset('test', 'test');
+									}
+									return { code: `export default ${v++}`, dependencies: v === 2 ? [path.resolve(file)] : [] };
 								}
-								catch (err) {
-									if (err.code !== 'ENOENT')
-										throw err;
-									this.emitAsset('test', 'test');
-								}
-								return { code: `export default ${v++}` };
 							}
-						}],
+						],
 						watch: { chokidar }
 					});
 
@@ -781,21 +878,24 @@ describe('rollup.watch', () => {
 				.copydir('test/watch/samples/multiple')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch([{
-						input: 'test/_tmp/input/main1.js',
-						output: {
-							file: 'test/_tmp/output/bundle1.js',
-							format: 'cjs'
+					const watcher = rollup.watch([
+						{
+							input: 'test/_tmp/input/main1.js',
+							output: {
+								file: 'test/_tmp/output/bundle1.js',
+								format: 'cjs'
+							},
+							watch: { chokidar }
 						},
-						watch: { chokidar }
-					}, {
-						input: 'test/_tmp/input/main2.js',
-						output: {
-							file: 'test/_tmp/output/bundle2.js',
-							format: 'cjs'
-						},
-						watch: { chokidar }
-					}]);
+						{
+							input: 'test/_tmp/input/main2.js',
+							output: {
+								file: 'test/_tmp/output/bundle2.js',
+								format: 'cjs'
+							},
+							watch: { chokidar }
+						}
+					]);
 
 					return sequence(watcher, [
 						'START',

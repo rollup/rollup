@@ -3,13 +3,10 @@ import * as rollup from 'rollup';
 import tc from 'turbocolor';
 import {
 	InputOptions,
-	OutputBundle,
-	OutputChunk,
 	OutputOptions,
 	RollupBuild,
 	RollupSingleFileBuild
 } from '../../../src/rollup/types';
-import { mapSequence } from '../../../src/utils/promise';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import SOURCEMAPPING_URL from '../sourceMappingUrl';
@@ -67,10 +64,9 @@ export default function build(
 				});
 			}
 
-			return mapSequence<OutputOptions, Promise<OutputChunk | { output: OutputBundle }>>(
-				outputOptions,
-				output => bundle.write(output)
-			).then(() => bundle);
+			return Promise.all(outputOptions.map(output => <Promise<any>>bundle.write(output))).then(
+				() => bundle
+			);
 		})
 		.then((bundle?: RollupSingleFileBuild | RollupBuild) => {
 			warnings.flush();
@@ -82,5 +78,8 @@ export default function build(
 				printTimings(bundle.getTimings());
 			}
 		})
-		.catch(handleError);
+		.catch((err: any) => {
+			if (warnings.count > 0) warnings.flush();
+			handleError(err);
+		});
 }

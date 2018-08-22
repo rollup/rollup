@@ -1,5 +1,4 @@
-var assert = require('assert');
-var path = require('path');
+const path = require('path');
 
 module.exports = {
 	description: 'throws error only with first plugin transform',
@@ -23,6 +22,7 @@ module.exports = {
 		code: 'PLUGIN_ERROR',
 		message: `Something happened 1`,
 		plugin: 'plugin1',
+		hook: 'transform',
 		id: path.resolve(__dirname, 'main.js')
 	}
 };

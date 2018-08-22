@@ -23,6 +23,7 @@ export interface RollupError {
 	pos?: number;
 	plugin?: string;
 	pluginCode?: string;
+	hook?: string;
 }
 
 export interface ExistingRawSourceMap {
@@ -62,7 +63,7 @@ export interface TransformSourceDescription extends SourceDescription {
 export interface ModuleJSON {
 	id: string;
 	dependencies: string[];
-	transformDependencies: string[];
+	transformDependencies: string[] | null;
 	transformAssets: Asset[] | void;
 	code: string;
 	originalCode: string;
@@ -70,23 +71,32 @@ export interface ModuleJSON {
 	ast: ESTree.Program;
 	sourcemapChain: RawSourceMap[];
 	resolvedIds: IdMap;
+	// note if plugins use new this.cache to opt-out auto transform cache
+	customTransformCache: boolean;
 }
 
 export interface Asset {
 	name: string;
 	source: string | Buffer;
 	fileName: string;
-	transform: boolean;
-	dependencies: string[];
+}
+
+export interface PluginCache {
+	has(id: string): boolean;
+	get<T = any>(id: string): T;
+	set<T = any>(id: string, value: T): void;
+	delete(id: string): boolean;
 }
 
 export interface PluginContext {
+	// TODO deprecate:
 	watcher: Watcher;
+	addWatchFile: (id: string) => void;
+	cache: PluginCache;
 	resolveId: ResolveIdHook;
 	isExternal: IsExternal;
 	parse: (input: string, options: any) => ESTree.Program;
 	emitAsset(name: string, source?: string | Buffer): string;
-	emitAsset(name: string, dependencies: string[], source?: string | Buffer): string;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
 	getAssetFileName: (assetId: string) => string;
 	warn(warning: RollupWarning | string, pos?: { line: number; column: number }): void;
@@ -99,11 +109,7 @@ export type ResolveIdHook = (
 	parent: string
 ) => Promise<string | boolean | void | null> | string | boolean | void | null;
 
-export type IsExternal = (
-	id: string,
-	parentId: string,
-	isResolved: boolean
-) => Promise<boolean | void> | boolean | void;
+export type IsExternal = (id: string, parentId: string, isResolved: boolean) => boolean | void;
 
 export type LoadHook = (
 	this: PluginContext,
@@ -162,6 +168,7 @@ export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
 
 export interface Plugin {
 	name: string;
+	cacheKey?: string;
 	options?: (options: InputOptions) => InputOptions | void | null;
 	load?: LoadHook;
 	resolveId?: ResolveIdHook;
@@ -194,6 +201,7 @@ export interface Plugin {
 	footer?: AddonHook;
 	intro?: AddonHook;
 	outro?: AddonHook;
+	watchChange?: (id: string) => void;
 }
 
 export interface TreeshakingOptions {
@@ -212,9 +220,8 @@ export interface InputOptions {
 	plugins?: Plugin[];
 
 	onwarn?: WarningHandler;
-	cache?: {
-		modules: ModuleJSON[];
-	};
+	cache?: false | RollupCache;
+	experimentalCacheExpiry?: number;
 
 	acorn?: {};
 	acornInjectPlugins?: Function[];
@@ -328,12 +335,13 @@ export interface RollupWarning {
 	plugin?: string;
 	pos?: number;
 	pluginCode?: string;
+	hook?: string;
 }
 
 export type WarningHandler = (warning: string | RollupWarning) => void;
 
 export interface SerializedTimings {
-	[label: string]: number;
+	[label: string]: [number, number, number];
 }
 
 export type OutputFile = string | Buffer | OutputChunk;
@@ -355,9 +363,14 @@ export interface OutputChunk {
 	map?: SourceMap;
 }
 
+export interface SerializablePluginCache {
+	[key: string]: [number, any];
+}
+
 export interface RollupCache {
-	modules: ModuleJSON[];
-	assetDependencies: string[];
+	// to be deprecated
+	modules?: ModuleJSON[];
+	plugins?: Record<string, SerializablePluginCache>;
 }
 
 export interface RollupSingleFileBuild {
@@ -366,6 +379,7 @@ export interface RollupSingleFileBuild {
 	exports: { name: string; originalName: string; moduleId: string }[];
 	modules: ModuleJSON[];
 	cache: RollupCache;
+	watchFiles: string[];
 
 	generate: (outputOptions: OutputOptions) => Promise<OutputChunk>;
 	write: (options: OutputOptions) => Promise<OutputChunk>;
@@ -378,6 +392,7 @@ export interface OutputBundle {
 
 export interface RollupBuild {
 	cache: RollupCache;
+	watchFiles: string[];
 	generate: (outputOptions: OutputOptions) => Promise<{ output: OutputBundle }>;
 	write: (options: OutputOptions) => Promise<{ output: OutputBundle }>;
 	getTimings?: () => SerializedTimings;

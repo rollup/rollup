@@ -5,16 +5,14 @@ import createFilter from 'rollup-pluginutils/src/createFilter.js';
 import rollup, { setWatcher } from '../rollup/index';
 import {
 	InputOptions,
-	ModuleJSON,
 	OutputChunk,
 	OutputOptions,
 	RollupBuild,
+	RollupCache,
 	RollupSingleFileBuild,
 	RollupWatchOptions
 } from '../rollup/types';
-import ensureArray from '../utils/ensureArray';
 import mergeOptions from '../utils/mergeOptions';
-import { mapSequence } from '../utils/promise';
 import chokidar from './chokidar';
 import { addTask, deleteTask } from './fileWatchers';
 
@@ -27,9 +25,10 @@ export class Watcher extends EventEmitter {
 	private tasks: Task[];
 	private succeeded: boolean = false;
 
-	constructor(configs: RollupWatchOptions[]) {
+	constructor(configs: RollupWatchOptions[] = []) {
 		super();
-		this.tasks = ensureArray(configs).map(config => new Task(this, config));
+		if (!Array.isArray(configs)) configs = [configs];
+		this.tasks = configs.map(config => new Task(this, config));
 		this.running = true;
 		process.nextTick(() => this.run());
 	}
@@ -64,7 +63,9 @@ export class Watcher extends EventEmitter {
 			code: 'START'
 		});
 
-		mapSequence(this.tasks, (task: Task) => task.run())
+		let taskPromise = Promise.resolve();
+		for (const task of this.tasks) taskPromise = taskPromise.then(() => task.run());
+		return taskPromise
 			.then(() => {
 				this.succeeded = true;
 				this.running = false;
@@ -94,10 +95,8 @@ export class Task {
 	private closed: boolean;
 	private watched: Set<string>;
 	private inputOptions: InputOptions;
-	cache: {
-		modules: ModuleJSON[];
-		assetDependencies: string[];
-	};
+	cache: RollupCache;
+	watchFiles: string[];
 	private chokidarOptions: WatchOptions;
 	private chokidarOptionsHash: string;
 	private outputFiles: string[];
@@ -156,6 +155,7 @@ export class Task {
 	}
 
 	invalidate(id: string, isTransformDependency: boolean) {
+		this.watcher.emit('change', id);
 		this.invalidated = true;
 		if (isTransformDependency) {
 			this.cache.modules.forEach(module => {
@@ -203,9 +203,8 @@ export class Task {
 				const watched = (this.watched = new Set());
 
 				this.cache = result.cache;
+				this.watchFiles = result.watchFiles;
 				this.cache.modules.forEach(module => {
-					watched.add(module.id);
-					this.watchFile(module.id);
 					if (module.transformDependencies) {
 						module.transformDependencies.forEach(depId => {
 							watched.add(depId);
@@ -213,9 +212,9 @@ export class Task {
 						});
 					}
 				});
-				this.cache.assetDependencies.forEach(assetDep => {
-					watched.add(assetDep);
-					this.watchFile(assetDep);
+				this.watchFiles.forEach(id => {
+					watched.add(id);
+					this.watchFile(id);
 				});
 				this.watched.forEach(id => {
 					if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
@@ -244,7 +243,6 @@ export class Task {
 					// continue to be watched following an error
 					if (this.cache.modules) {
 						this.cache.modules.forEach(module => {
-							this.watchFile(module.id);
 							if (module.transformDependencies) {
 								module.transformDependencies.forEach(depId => {
 									this.watchFile(depId, true);
@@ -252,11 +250,9 @@ export class Task {
 							}
 						});
 					}
-					if (this.cache.assetDependencies) {
-						this.cache.assetDependencies.forEach(assetDep => {
-							this.watchFile(assetDep);
-						});
-					}
+					this.watchFiles.forEach(id => {
+						this.watchFile(id);
+					});
 				}
 				throw error;
 			});

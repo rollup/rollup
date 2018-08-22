@@ -67,10 +67,10 @@ export function optimizeChunks(
 			}
 			// if (!chunk.isPure()) continue;
 
-			const chunkDependencies = new Set<Chunk | External>();
+			const chunkDependencies = new Set<Chunk | ExternalModule>();
 			chunk.postVisitChunkDependencies(dep => chunkDependencies.add(dep));
 
-			const ignoreSizeChunks = new Set<Chunk | External>([chunk, lastChunk]);
+			const ignoreSizeChunks = new Set<Chunk | ExternalModule>([chunk, lastChunk]);
 			if (
 				lastChunk.postVisitChunkDependencies(dep => {
 					if (dep === chunk || dep === lastChunk) {

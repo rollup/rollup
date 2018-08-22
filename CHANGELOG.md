@@ -1,5 +1,30 @@
 # rollup changelog
 
+## 0.65.0
+*unreleased*
+* Refactor and unify plugin system ([#2382](https://github.com/rollup/rollup/pull/2382))
+* Implement plugin cache API ([#2389](https://github.com/rollup/rollup/pull/2389))
+* Add watchChange plugin hook to watch changed files, deprecate asset dependencies ([#2405](https://github.com/rollup/rollup/pull/2405))
+* Refine asset handling ([#2369](https://github.com/rollup/rollup/pull/2369))
+* Allow `[format]` placeholder for id generation ([#2387](https://github.com/rollup/rollup/pull/2387))
+* Do not display version in watch mode when using `--silent` ([#2392](https://github.com/rollup/rollup/pull/2392))
+* Make `cacheExpiry` an experimental option for now ([#2401](https://github.com/rollup/rollup/pull/2401))
+* Add code of conduct ([#2388](https://github.com/rollup/rollup/pull/2388))
+* Move to CircleCI ([#2390](https://github.com/rollup/rollup/pull/2390))
+
+## 0.64.1
+*2018-08-07*
+* Do not render initializers of hoisted variables in dead branches ([#2384](https://github.com/rollup/rollup/pull/2384))
+
+## 0.64.0
+*2018-08-07*
+* Print memory consumption together with performance timings ([#2370](https://github.com/rollup/rollup/pull/2370))
+* Enable plugins to mark imports as external by returning false for resolveId ([#2351](https://github.com/rollup/rollup/pull/2351))
+* Always retain empty manual chunks ([#2362](https://github.com/rollup/rollup/pull/2362))
+* Ensure CLI warnings are shown on errors and add error for external id collisions ([#2334](https://github.com/rollup/rollup/pull/2334))
+* Remove unnecessary dependency, update dependencies, fix linting of test config ([#2376](https://github.com/rollup/rollup/pull/2376))
+* Add targeted Github issue templates ([#2356](https://github.com/rollup/rollup/pull/2356))
+
 ## 0.63.5
 *2018-08-01*
 * Ensure onwrite plugin hooks execute in sequence ([#2364](https://github.com/rollup/rollup/pull/2364))
