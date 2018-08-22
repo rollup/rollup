@@ -10,12 +10,10 @@ import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker'
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
-import AssignmentExpression from './AssignmentExpression';
 import * as NodeType from './NodeType';
 import Property from './Property';
 import { ExpressionEntity } from './shared/Expression';
 import { Node, NodeBase } from './shared/Node';
-import UpdateExpression from './UpdateExpression';
 
 export function isIdentifier(node: Node): node is Identifier {
 	return node.type === NodeType.Identifier;
@@ -149,7 +147,7 @@ export default class Identifier extends NodeBase {
 
 	render(
 		code: MagicString,
-		options: RenderOptions,
+		_options: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
 		if (this.variable) {
@@ -172,9 +170,6 @@ export default class Identifier extends NodeBase {
 			) {
 				code.appendRight(this.start, '0, ');
 			}
-			if (options.format === 'system' && this.variable.exportName) {
-				this.renderSystemBindingUpdate(code, name);
-			}
 		}
 	}
 
@@ -186,50 +181,5 @@ export default class Identifier extends NodeBase {
 			},
 			this.start
 		);
-	}
-
-	private renderSystemBindingUpdate(code: MagicString, name: string) {
-		switch (this.parent.type) {
-			case NodeType.AssignmentExpression:
-				{
-					const expression: AssignmentExpression = <AssignmentExpression>this.parent;
-					if (expression.left === this) {
-						code.prependLeft(expression.right.start, `exports('${this.variable.exportName}', `);
-						code.prependRight(expression.right.end, `)`);
-					}
-				}
-				break;
-
-			case NodeType.UpdateExpression:
-				{
-					const expression: UpdateExpression = <UpdateExpression>this.parent;
-					if (expression.prefix) {
-						code.overwrite(
-							expression.start,
-							expression.end,
-							`exports('${this.variable.exportName}', ${expression.operator}${name})`
-						);
-					} else {
-						let op;
-						switch (expression.operator) {
-							case '++':
-								op = `${name} + 1`;
-								break;
-							case '--':
-								op = `${name} - 1`;
-								break;
-							case '**':
-								op = `${name} * ${name}`;
-								break;
-						}
-						code.overwrite(
-							expression.start,
-							expression.end,
-							`(exports('${this.variable.exportName}', ${op}), ${name}${expression.operator})`
-						);
-					}
-				}
-				break;
-		}
 	}
 }
