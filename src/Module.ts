@@ -232,7 +232,7 @@ export default class Module {
 		this.reexports = Object.create(null);
 
 		this.exportAllSources = [];
-		this.exportAllModules = null;
+		this.exportAllModules = [];
 	}
 
 	setSource({
