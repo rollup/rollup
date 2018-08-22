@@ -17,6 +17,7 @@ export interface PluginDriver {
 	emitAsset: EmitAsset;
 	getAssetFileName(assetId: string): string;
 	hookSeq(hook: string, args?: any[], context?: HookContext): Promise<void>;
+	hookSeqSync(hook: string, args?: any[], context?: HookContext): void;
 	hookFirst<T = any>(hook: string, args?: any[], hookContext?: HookContext): Promise<T>;
 	hookParallel(hook: string, args?: any[], hookContext?: HookContext): Promise<void>;
 	hookReduceArg0<R = any, T = any>(
@@ -45,10 +46,7 @@ export function createPluginDriver(
 	watcher?: Watcher
 ): PluginDriver {
 	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
-	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(
-		graph.assetsById,
-		graph.watchFiles
-	);
+	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
 	const existingPluginKeys: string[] = [];
 
 	let hasLoadersOrTransforms = false;
@@ -85,6 +83,7 @@ export function createPluginDriver(
 		const context: PluginContext = {
 			watcher,
 			addWatchFile(id: string) {
+				if (graph.finished) this.error('addWatchFile can only be called during the build.');
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,
@@ -116,6 +115,45 @@ export function createPluginDriver(
 		};
 		return context;
 	});
+
+	function runHookSync<T>(
+		hookName: string,
+		args: any[],
+		pidx: number,
+		permitValues = false,
+		hookContext?: HookContext
+	): Promise<T> {
+		const plugin = plugins[pidx];
+		let context = pluginContexts[pidx];
+		const hook = (<any>plugin)[hookName];
+		if (!hook) return;
+		if (hookContext) {
+			context = hookContext(context, plugin);
+			if (!context || context === pluginContexts[pidx])
+				throw new Error('Internal Rollup error: hookContext must return a new context object.');
+		}
+		try {
+			// permit values allows values to be returned instead of a functional hook
+			if (typeof hook !== 'function') {
+				if (permitValues) return hook;
+				error({
+					code: 'INVALID_PLUGIN_HOOK',
+					message: `Error running plugin hook ${hookName} for ${plugin.name ||
+						`Plugin at pos ${pidx + 1}`}, expected a function hook.`
+				});
+			}
+			return hook.apply(context, args);
+		} catch (err) {
+			if (typeof err === 'string') err = { message: err };
+			if (err.code !== 'PLUGIN_ERROR') {
+				if (err.code) err.pluginCode = err.code;
+				err.code = 'PLUGIN_ERROR';
+			}
+			err.plugin = plugin.name || `Plugin at pos ${pidx}`;
+			err.hook = hookName;
+			error(err);
+		}
+	}
 
 	function runHook<T>(
 		hookName: string,
@@ -172,6 +210,12 @@ export function createPluginDriver(
 				});
 			return promise;
 		},
+
+		// chains, ignores returns
+		hookSeqSync(name, args, hookContext) {
+			for (let i = 0; i < plugins.length; i++) runHookSync<void>(name, args, i, false, hookContext);
+		},
+
 		// chains, first non-null result stops and returns
 		hookFirst(name, args, hookContext) {
 			let promise: Promise<any> = Promise.resolve();
