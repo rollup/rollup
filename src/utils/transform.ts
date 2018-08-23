@@ -54,14 +54,6 @@ export default function transform(
 		} else {
 			// assets emitted by transform are transformDependencies
 			if (assets.length) module.transformAssets = assets;
-			for (const asset of assets) {
-				if (asset.dependencies) {
-					for (const depId of asset.dependencies) {
-						if (!transformDependencies) transformDependencies = [];
-						if (transformDependencies.indexOf(depId) === -1) transformDependencies.push(depId);
-					}
-				}
-			}
 
 			if (result && Array.isArray(result.dependencies)) {
 				if (!transformDependencies) transformDependencies = [];
@@ -96,6 +88,8 @@ export default function transform(
 
 		return result.code;
 	}
+
+	let setAssetSourceErr: any;
 
 	return graph.pluginDriver
 		.hookReduceArg0<any, string>(
@@ -132,11 +126,19 @@ export default function transform(
 						error(err);
 					},
 					emitAsset,
-					setAssetSource: () =>
-						error({
-							code: 'INVALID_SETASSETSOURCE',
-							message: `setAssetSource cannot be called in transform for caching reasons. Use emitAsset with a source, or call setAssetSource in another hook.`
-						})
+					setAssetSource(assetId, source) {
+						pluginContext.setAssetSource(assetId, source);
+						if (!customTransformCache && !setAssetSourceErr) {
+							try {
+								this.error({
+									code: 'INVALID_SETASSETSOURCE',
+									message: `setAssetSource cannot be called in transform for caching reasons. Use emitAsset with a source, or call setAssetSource in another hook.`
+								});
+							} catch (err) {
+								setAssetSourceErr = err;
+							}
+						}
+					}
 				};
 			}
 		)
@@ -150,6 +152,8 @@ export default function transform(
 			error(err);
 		})
 		.then(code => {
+			if (!customTransformCache && setAssetSourceErr) throw setAssetSourceErr;
+
 			return {
 				code,
 				transformDependencies,

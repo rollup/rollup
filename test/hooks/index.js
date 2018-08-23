@@ -278,19 +278,20 @@ describe('hooks', () => {
 					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
 
-				return rollup.rollup({
-					cache,
-					input: 'input',
-					experimentalCodeSplitting: true,
-					plugins: [
-						loader({ input: '' }),
-						{
-							transform() {
-								assert.fail('Should cache transform');
+				return rollup
+					.rollup({
+						cache,
+						input: 'input',
+						experimentalCodeSplitting: true,
+						plugins: [
+							loader({ input: '' }),
+							{
+								transform () {
+									assert.fail('Should cache transform');
+								}
 							}
-						}
-					]
-				});
+						]
+					});
 			})
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
@@ -335,21 +336,22 @@ describe('hooks', () => {
 					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
 
-				return rollup.rollup({
-					cache,
-					input: 'input',
-					experimentalCodeSplitting: true,
-					plugins: [
-						loader({ input: '' }),
-						{
-							name: 'x',
-							transform() {
-								runs++;
-								return `alert('hello world')`;
+				return rollup
+					.rollup({
+						cache,
+						input: 'input',
+						experimentalCodeSplitting: true,
+						plugins: [
+							loader({ input: '' }),
+							{
+								name: 'x',
+								transform () {
+									runs++;
+									return `alert('hello world')`;
+								}
 							}
-						}
-					]
-				});
+						]
+					});
 			})
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
@@ -527,68 +529,6 @@ module.exports = input;
 			})
 			.then(({ output }) => {
 				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
-			});
-	});
-
-	it('throws when emitting assets too late', () => {
-		let calledHook = false;
-		return rollup
-			.rollup({
-				input: 'input',
-				experimentalCodeSplitting: true,
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						generateBundle(code, id) {
-							try {
-								this.emitAsset('test.ext', [], 'hello world');
-							} catch (e) {
-								assert.equal(e.code, 'ASSETS_FINALISED');
-								calledHook = true;
-							}
-						}
-					}
-				]
-			})
-			.then(bundle => {
-				return bundle.generate({
-					format: 'es',
-					assetFileNames: '[name][extname]'
-				});
-			})
-			.then(() => {
-				assert.equal(calledHook, true);
-			});
-	});
-
-	it('throws when calling setAssetSource from transform', () => {
-		let calledHook = false;
-		return rollup
-			.rollup({
-				input: 'input',
-				experimentalCodeSplitting: true,
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						generateBundle(code, id) {
-							try {
-								this.emitAsset('test.ext', [], 'hello world');
-							} catch (e) {
-								assert.equal(e.code, 'ASSETS_FINALISED');
-								calledHook = true;
-							}
-						}
-					}
-				]
-			})
-			.then(bundle => {
-				return bundle.generate({
-					format: 'es',
-					assetFileNames: '[name][extname]'
-				});
-			})
-			.then(() => {
-				assert.equal(calledHook, true);
 			});
 	});
 
@@ -882,12 +822,12 @@ module.exports = input;
 		return rollup
 			.rollup({
 				input: 'input',
-				cacheExpiry: 5,
+				experimentalCacheExpiry: 5,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
 						name: 'x',
-						buildStart() {
+						buildStart () {
 							this.cache.set('first', 'first');
 							this.cache.set('second', 'second');
 						}
@@ -901,13 +841,14 @@ module.exports = input;
 						return rollup.rollup({
 							cache: bundle.cache,
 							input: 'input',
-							cacheExpiry: 5,
+							experimentalCacheExpiry: 5,
 							plugins: [
 								loader({ input: `alert('hello')` }),
 								{
 									name: 'x',
-									buildStart() {
-										if (i === 4) assert.equal(this.cache.has('second'), true);
+									buildStart () {
+										if (i === 4)
+											assert.equal(this.cache.has('second'), true);
 									}
 								}
 							]
@@ -920,12 +861,12 @@ module.exports = input;
 				return rollup.rollup({
 					cache: bundle.cache,
 					input: 'input',
-					cacheExpiry: 5,
+					experimentalCacheExpiry: 5,
 					plugins: [
 						loader({ input: `alert('hello')` }),
 						{
 							name: 'x',
-							buildStart() {
+							buildStart () {
 								assert.equal(this.cache.has('first'), false);
 								assert.equal(this.cache.get('first'), undefined);
 								assert.equal(this.cache.get('second'), 'second');
