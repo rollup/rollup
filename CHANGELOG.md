@@ -11,6 +11,7 @@
 * Make `cacheExpiry` an experimental option for now ([#2401](https://github.com/rollup/rollup/pull/2401))
 * Add code of conduct ([#2388](https://github.com/rollup/rollup/pull/2388))
 * Move to CircleCI ([#2390](https://github.com/rollup/rollup/pull/2390))
+* Update pull request template ([#2404](https://github.com/rollup/rollup/pull/2404))
 
 ## 0.64.1
 *2018-08-07*
