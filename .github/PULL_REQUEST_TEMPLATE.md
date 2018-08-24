@@ -13,26 +13,26 @@
 -->
 
 This PR contains:
-
 - [ ] bugfix
 - [ ] feature
 - [ ] refactor
-- [ ] tests
 - [ ] documentation
-- [ ] metadata
+- [ ] other
 
-### Breaking Changes?
-
-- [ ] yes
+Are tests included?
+- [ ] yes (*bugfixes and features will not be merged without tests*)
 - [ ] no
 
-If yes, please describe the breakage.
+Breaking Changes?
+- [ ] yes (*breaking changes will not be merged unless absolutely necessary*)
+- [ ] no
 
-### Please Describe Your Changes
+List any relevent issue numbers:
+
+### Description
 
 <!--
   Please be thorough and clearly explain the problem being solved.
   * If this PR adds a feature, look for previous discussion on the feature by searching the issues first.
   * Is this PR related to an issue?
 -->
-
