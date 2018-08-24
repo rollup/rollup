@@ -1,4 +1,4 @@
-import { AstContext } from '../../Module';
+import Module, { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
 import Identifier from '../nodes/Identifier';
 import { UNKNOWN_PATH } from '../values';
@@ -11,12 +11,16 @@ export default class NamespaceVariable extends Variable {
 	// Not initialised during construction
 	originals: { [name: string]: Variable } = Object.create(null);
 	needsNamespaceBlock: boolean = false;
+	
+	// only to be used for chunk-to-chunk import tracing, use context for data manipulation
+	module: Module;
 	private referencedEarly: boolean = false;
 	private references: Identifier[] = [];
 
-	constructor(context: AstContext) {
+	constructor(context: AstContext, module: Module) {
 		super(context.getModuleName());
 		this.context = context;
+		this.module = module;
 		for (const name of this.context.getExports().concat(this.context.getReexports())) {
 			this.originals[name] = this.context.traceExport(name);
 		}

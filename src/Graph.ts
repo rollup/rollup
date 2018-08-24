@@ -140,7 +140,9 @@ export default class Graph {
 		if (watcher) watcher.on('change', id => this.pluginDriver.hookSeqSync('watchChange', [id]));
 
 		if (typeof options.external === 'function') {
-			this.isExternal = options.external;
+			const external = options.external;
+			this.isExternal = (id, parentId, isResolved) =>
+				!id.startsWith('\0') && external(id, parentId, isResolved);
 		} else {
 			const external = options.external;
 			const ids = new Set(Array.isArray(external) ? external : external ? [external] : []);
