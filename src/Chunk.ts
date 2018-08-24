@@ -92,6 +92,10 @@ function getGlobalName(
 	}
 }
 
+function isNamespaceVariable(variable: Variable): variable is NamespaceVariable | ExternalVariable {
+	return variable.isNamespace;
+}
+
 export default class Chunk {
 	hasDynamicImport: boolean = false;
 	indentString: string = undefined;
@@ -288,7 +292,7 @@ export default class Chunk {
 		}
 
 		// namespace variable can indicate multiple imports
-		if (traced.variable.isNamespace) {
+		if (isNamespaceVariable(traced.variable)) {
 			const namespaceVariables =
 				(<NamespaceVariable>traced.variable).originals ||
 				(<ExternalVariable>traced.variable).module.declarations;
@@ -296,10 +300,12 @@ export default class Chunk {
 			for (const importName of Object.keys(namespaceVariables)) {
 				const original = namespaceVariables[importName];
 				if (original.included) {
-					if (traced.module.chunk) {
-						traced.module.chunk.exports.set(original, traced.module);
+					// namespace exports could be imported themselves, so retrace
+					const importTrace = this.traceExport(importName, traced.variable.module);
+					if (importTrace.module.chunk) {
+						importTrace.module.chunk.exports.set(original, importTrace.module);
 					}
-					this.imports.set(original, traced.module);
+					this.imports.set(original, importTrace.module);
 				}
 			}
 		}
