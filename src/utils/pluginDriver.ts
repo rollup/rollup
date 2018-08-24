@@ -1,3 +1,4 @@
+import { version as rollupVersion } from 'package.json';
 import Graph from '../Graph';
 import {
 	InputOptions,
@@ -81,23 +82,31 @@ export function createPluginDriver(
 		}
 
 		const context: PluginContext = {
-			watcher,
 			addWatchFile(id: string) {
 				if (graph.finished) this.error('addWatchFile can only be called during the build.');
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,
+			emitAsset,
+			error: (err: RollupError | string) => {
+				if (typeof err === 'string') err = { message: err };
+				if (err.code) err.pluginCode = err.code;
+				err.code = 'PLUGIN_ERROR';
+				err.plugin = plugin.name || '(anonymous plugin)';
+				error(err);
+			},
 			isExternal(id: string, parentId: string, isResolved = false) {
 				return graph.isExternal(id, parentId, isResolved);
 			},
+			getAssetFileName,
+			meta: {
+				rollupVersion
+			},
+			parse: graph.contextParse,
 			resolveId(id: string, parent: string) {
 				return pluginDriver.hookFirst('resolveId', [id, parent]);
 			},
-			parse: graph.contextParse,
-			emitAsset,
-			getAssetFileName,
 			setAssetSource,
-
 			warn: (warning: RollupWarning | string) => {
 				if (typeof warning === 'string') warning = { message: warning };
 				if (warning.code) warning.pluginCode = warning.code;
@@ -105,13 +114,7 @@ export function createPluginDriver(
 				warning.plugin = plugin.name || '(anonymous plugin)';
 				graph.warn(warning);
 			},
-			error: (err: RollupError | string) => {
-				if (typeof err === 'string') err = { message: err };
-				if (err.code) err.pluginCode = err.code;
-				err.code = 'PLUGIN_ERROR';
-				err.plugin = plugin.name || '(anonymous plugin)';
-				error(err);
-			}
+			watcher
 		};
 		return context;
 	});

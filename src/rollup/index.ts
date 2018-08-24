@@ -72,6 +72,7 @@ const throwAsyncGenerateError = {
 
 function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	if (plugin.options) return plugin.options(inputOptions) || inputOptions;
+
 	return inputOptions;
 }
 

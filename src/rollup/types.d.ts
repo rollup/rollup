@@ -95,12 +95,17 @@ export interface PluginContext {
 	cache: PluginCache;
 	resolveId: ResolveIdHook;
 	isExternal: IsExternal;
+	meta: PluginContextMeta;
 	parse: (input: string, options: any) => ESTree.Program;
 	emitAsset(name: string, source?: string | Buffer): string;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
 	getAssetFileName: (assetId: string) => string;
 	warn(warning: RollupWarning | string, pos?: { line: number; column: number }): void;
 	error(err: RollupError | string, pos?: { line: number; column: number }): void;
+}
+
+export interface PluginContextMeta {
+	rollupVersion: string;
 }
 
 export type ResolveIdHook = (
