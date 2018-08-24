@@ -1,7 +1,7 @@
 const assert = require('assert');
+const path = require('path');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
-const path = require('path');
 
 const cwd = process.cwd();
 
@@ -38,8 +38,7 @@ describe('rollup.watch', () => {
 								console.error(event.error);
 							}
 							watcher.close();
-							if (event.code === 'ERROR')
-								console.log(event.error);
+							if (event.code === 'ERROR') console.log(event.error);
 							reject(new Error(`Expected ${next} event, got ${event.code}`));
 						} else {
 							go(event);
@@ -107,7 +106,8 @@ describe('rollup.watch', () => {
 		});
 
 		it('passes file events to the watchChange plugin hook', () => {
-			let watchChangeId, watchChangeCnt = 0;
+			let watchChangeId;
+			let watchChangeCnt = 0;
 			return sander
 				.copydir('test/watch/samples/basic')
 				.to('test/_tmp/input')
@@ -118,12 +118,14 @@ describe('rollup.watch', () => {
 							file: 'test/_tmp/output/bundle.js',
 							format: 'cjs'
 						},
-						plugins: [{
-							watchChange (id) {
-								watchChangeId = id;
-								watchChangeCnt++;
+						plugins: [
+							{
+								watchChange(id) {
+									watchChangeId = id;
+									watchChangeCnt++;
+								}
 							}
-						}],
+						],
 						watch: { chokidar }
 					});
 
@@ -143,10 +145,8 @@ describe('rollup.watch', () => {
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 43);
 							assert.equal(watchChangeId, path.resolve('test/_tmp/input/main.js'));
-							if (chokidar)
-								assert.equal(watchChangeCnt, 1);
-							else
-								assert.ok(watchChangeCnt >= 1);
+							if (chokidar) assert.equal(watchChangeCnt, 1);
+							else assert.ok(watchChangeCnt >= 1);
 						}
 					]);
 				});
@@ -650,7 +650,10 @@ describe('rollup.watch', () => {
 										if (err.code !== 'ENOENT') throw err;
 										this.emitAsset('test', 'test');
 									}
-									return { code: `export default ${v++}`, dependencies: v === 2 ? [path.resolve(file)] : [] };
+									return {
+										code: `export default ${v++}`,
+										dependencies: v === 2 ? [path.resolve(file)] : []
+									};
 								}
 							}
 						],
