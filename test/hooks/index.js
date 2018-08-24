@@ -16,9 +16,13 @@ describe('hooks', () => {
 					{
 						buildStart() {
 							buildStartCnt++;
+							assert(this.meta);
+							assert(this.meta.rollupVersion);
 						},
 						buildEnd() {
 							buildEndCnt++;
+							assert(this.meta);
+							assert(this.meta.rollupVersion);
 						}
 					}
 				]
