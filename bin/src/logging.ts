@@ -28,7 +28,9 @@ export function handleError(err: RollupError, recover = false) {
 
 	if (err.frame) {
 		stderr(tc.dim(err.frame));
-	} else if (err.stack) {
+	}
+
+	if (err.stack) {
 		stderr(tc.dim(err.stack));
 	}
 
