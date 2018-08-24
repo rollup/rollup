@@ -278,20 +278,19 @@ describe('hooks', () => {
 					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
 
-				return rollup
-					.rollup({
-						cache,
-						input: 'input',
-						experimentalCodeSplitting: true,
-						plugins: [
-							loader({ input: '' }),
-							{
-								transform () {
-									assert.fail('Should cache transform');
-								}
+				return rollup.rollup({
+					cache,
+					input: 'input',
+					experimentalCodeSplitting: true,
+					plugins: [
+						loader({ input: '' }),
+						{
+							transform() {
+								assert.fail('Should cache transform');
 							}
-						]
-					});
+						}
+					]
+				});
 			})
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
@@ -336,22 +335,21 @@ describe('hooks', () => {
 					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
 
-				return rollup
-					.rollup({
-						cache,
-						input: 'input',
-						experimentalCodeSplitting: true,
-						plugins: [
-							loader({ input: '' }),
-							{
-								name: 'x',
-								transform () {
-									runs++;
-									return `alert('hello world')`;
-								}
+				return rollup.rollup({
+					cache,
+					input: 'input',
+					experimentalCodeSplitting: true,
+					plugins: [
+						loader({ input: '' }),
+						{
+							name: 'x',
+							transform() {
+								runs++;
+								return `alert('hello world')`;
 							}
-						]
-					});
+						}
+					]
+				});
 			})
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
@@ -827,7 +825,7 @@ module.exports = input;
 					loader({ input: `alert('hello')` }),
 					{
 						name: 'x',
-						buildStart () {
+						buildStart() {
 							this.cache.set('first', 'first');
 							this.cache.set('second', 'second');
 						}
@@ -846,9 +844,8 @@ module.exports = input;
 								loader({ input: `alert('hello')` }),
 								{
 									name: 'x',
-									buildStart () {
-										if (i === 4)
-											assert.equal(this.cache.has('second'), true);
+									buildStart() {
+										if (i === 4) assert.equal(this.cache.has('second'), true);
 									}
 								}
 							]
@@ -866,7 +863,7 @@ module.exports = input;
 						loader({ input: `alert('hello')` }),
 						{
 							name: 'x',
-							buildStart () {
+							buildStart() {
 								assert.equal(this.cache.has('first'), false);
 								assert.equal(this.cache.get('first'), undefined);
 								assert.equal(this.cache.get('second'), 'second');
