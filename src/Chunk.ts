@@ -286,6 +286,8 @@ export default class Chunk {
 	private traceImport(exportName: string, module: Module | ExternalModule) {
 		const traced = this.traceExport(exportName, module);
 
+		if (!traced) return;
+
 		// namespace variable can indicate multiple imports
 		if (isNamespaceVariable(traced.variable)) {
 			const namespaceVariables =
@@ -296,20 +298,19 @@ export default class Chunk {
 				const original = namespaceVariables[importName];
 				if (original.included) {
 					// namespace exports could be imported themselves, so retrace
-					const importTrace = this.traceExport(importName, traced.variable.module);
-
-					if (!importTrace || importTrace.module.chunk === this || !importTrace.variable.included)
-						continue;
-
-					this.imports.set(original, importTrace.module);
-					if (importTrace.module instanceof Module)
-						importTrace.module.chunk.exports.set(original, importTrace.module);
+					// this handles recursive namespace exported on namespace cases as well
+					if (traced.variable.module instanceof Module) {
+						this.traceImport(importName, traced.variable.module);
+					} else {
+						const externalVariable = traced.variable.module.traceExport(importName);
+						if (externalVariable.included) this.imports.set(original, traced.variable.module);
+					}
 				}
 			}
 		}
 
 		// ignore unincluded or imports to modules already in this chunk
-		if (!traced || traced.module.chunk === this || !traced.variable.included) return traced;
+		if (traced.module.chunk === this || !traced.variable.included) return traced;
 
 		this.imports.set(traced.variable, traced.module);
 		if (traced.module instanceof Module)
