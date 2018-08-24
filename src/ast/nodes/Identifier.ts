@@ -10,6 +10,8 @@ import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker'
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
+import AssignmentExpression from './AssignmentExpression';
+import AssignmentPattern from './AssignmentPattern';
 import * as NodeType from './NodeType';
 import Property from './Property';
 import { ExpressionEntity } from './shared/Expression';
@@ -158,7 +160,11 @@ export default class Identifier extends NodeBase {
 					storeName: true,
 					contentOnly: true
 				});
-				if (this.parent.type === NodeType.Property && (<Property>this.parent).shorthand) {
+				let relevantParent = this.parent;
+				if (relevantParent.type === NodeType.AssignmentPattern) {
+					relevantParent = (<AssignmentPattern>relevantParent).parent;
+				}
+				if (relevantParent.type === NodeType.Property && (<Property>relevantParent).shorthand) {
 					code.prependRight(this.start, `${this.name}: `);
 				}
 			}
