@@ -96,16 +96,19 @@ function loadConfig(configFile) {
 	}
 }
 
-function removeOldTest(dir) {
-	console.warn(
-		`Test configuration in ${dir} not found.\nTrying to clean up no longer existing test...`
-	);
+function removeOldOutput(dir) {
 	if (sander.existsSync(path.join(dir, '_actual'))) {
 		sander.rimrafSync(path.join(dir, '_actual'));
 	}
 	if (sander.existsSync(path.join(dir, '_actual.js'))) {
 		sander.unlinkSync(path.join(dir, '_actual.js'));
 	}
+}
+
+function removeOldTest(dir) {
+	console.warn(
+		`Test configuration in ${dir} not found.\nTrying to clean up no longer existing test...`
+	);
 	sander.rmdirSync(dir);
 	console.warn('Directory removed.');
 }
@@ -171,6 +174,7 @@ function runTestsInDir(dir, runTest) {
 }
 
 function loadConfigAndRunTest(dir, runTest) {
+	removeOldOutput(dir);
 	const config = loadConfig(dir + '/_config.js');
 	if (
 		config &&
