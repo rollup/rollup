@@ -1,3 +1,3 @@
-import { a as Other } from './chunk-8b1ab447.js';
+import { a as Other } from './chunk-192b1326.js';
 
 Other.doSomething();
