@@ -286,10 +286,7 @@ export default class Chunk {
 	private traceImport(exportName: string, module: Module | ExternalModule) {
 		const traced = this.traceExport(exportName, module);
 
-		// ignore imports to modules already in this chunk
-		if (!traced || traced.module.chunk === this) {
-			return traced;
-		}
+		if (!traced) return;
 
 		// namespace variable can indicate multiple imports
 		if (isNamespaceVariable(traced.variable)) {
@@ -301,23 +298,23 @@ export default class Chunk {
 				const original = namespaceVariables[importName];
 				if (original.included) {
 					// namespace exports could be imported themselves, so retrace
-					const importTrace = this.traceExport(importName, traced.variable.module);
-					if (importTrace.module.chunk) {
-						importTrace.module.chunk.exports.set(original, importTrace.module);
+					// this handles recursive namespace exported on namespace cases as well
+					if (traced.variable.module instanceof Module) {
+						this.traceImport(importName, traced.variable.module);
+					} else {
+						const externalVariable = traced.variable.module.traceExport(importName);
+						if (externalVariable.included) this.imports.set(original, traced.variable.module);
 					}
-					this.imports.set(original, importTrace.module);
 				}
 			}
 		}
 
-		if (!traced.variable.included) {
-			return traced;
-		}
+		// ignore unincluded or imports to modules already in this chunk
+		if (traced.module.chunk === this || !traced.variable.included) return traced;
 
 		this.imports.set(traced.variable, traced.module);
-		if (traced.module instanceof Module) {
+		if (traced.module instanceof Module)
 			traced.module.chunk.exports.set(traced.variable, traced.module);
-		}
 		return traced;
 	}
 
