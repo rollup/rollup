@@ -71,10 +71,11 @@ function assertFilesAreEqual(actualFiles, expectedFiles, dirs) {
 		if (typeof actualFiles[fileName] === 'object' && typeof expectedFiles[fileName] === 'object') {
 			return assertFilesAreEqual(actualFiles[fileName], expectedFiles[fileName], pathSegments);
 		}
+
+		const shortName = pathSegments.join('/');
 		assert.strictEqual(
-			actualFiles[fileName],
-			expectedFiles[fileName],
-			'Unexpected output for ' + pathSegments.join('/')
+			`${shortName}: ${actualFiles[fileName]}`,
+			`${shortName}: ${expectedFiles[fileName]}`
 		);
 	});
 }
