@@ -1,5 +1,6 @@
 import { IParse, Options as AcornOptions } from 'acorn';
 import * as ESTree from 'estree';
+import sha256 from 'hash.js/lib/hash/sha/256';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
@@ -159,6 +160,8 @@ function handleMissingExport(
 	);
 }
 
+const astCache = Object.create(null);
+
 export default class Module {
 	type: 'Module';
 	private graph: Graph;
@@ -245,6 +248,12 @@ export default class Module {
 		transformDependencies,
 		customTransformCache
 	}: ModuleJSON) {
+		// simple ast memoization
+		const hash = sha256();
+		hash.update(code);
+		const hashString = hash.digest('hex');
+		if (!ast) ast = astCache[hashString];
+
 		this.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
@@ -255,6 +264,8 @@ export default class Module {
 		timeStart('generate ast', 3);
 
 		this.esTreeAst = ast || tryParse(this, this.graph.acornParse, this.graph.acornOptions);
+
+		if (!ast) astCache[hashString] = this.esTreeAst;
 
 		timeEnd('generate ast', 3);
 
