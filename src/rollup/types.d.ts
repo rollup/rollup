@@ -132,24 +132,25 @@ export type TransformHook = (
 	| void;
 
 export type TransformChunkHook = (
+	this: PluginContext,
 	code: string,
-	options: OutputOptions,
-	chunk: OutputChunk
+	options: OutputOptions
 ) =>
 	| Promise<{ code: string; map: RawSourceMap } | void>
 	| { code: string; map: RawSourceMap }
 	| void
 	| null;
 
-export type TransformChunkHookBound = (
+export type RenderChunkHook = (
 	this: PluginContext,
 	code: string,
-	options: OutputOptions,
-	chunk: OutputChunk
+	chunk: RenderedChunk,
+	options: OutputOptions
 ) =>
 	| Promise<{ code: string; map: RawSourceMap } | void>
 	| { code: string; map: RawSourceMap }
-	| void;
+	| void
+	| null;
 
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
@@ -181,6 +182,7 @@ export interface Plugin {
 	// TODO: deprecate
 	transformBundle?: TransformChunkHook;
 	transformChunk?: TransformChunkHook;
+	renderChunk?: RenderChunkHook;
 	buildStart?: (this: PluginContext, options: InputOptions) => Promise<void> | void;
 	buildEnd?: (this: PluginContext, err?: any) => Promise<void> | void;
 	// TODO: deprecate
@@ -358,12 +360,17 @@ export interface RenderedModule {
 	originalLength: number;
 }
 
-export interface OutputChunk {
+export interface RenderedChunk {
+	fileName: string;
+	isEntry: boolean;
 	imports: string[];
 	exports: string[];
 	modules: {
 		[id: string]: RenderedModule;
 	};
+}
+
+export interface OutputChunk extends RenderedChunk {
 	code: string;
 	map?: SourceMap;
 }

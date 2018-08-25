@@ -275,7 +275,7 @@ export default function rollup(
 								optimized = true;
 							}
 
-							// then name all chunks
+							// name all chunks
 							for (let i = 0; i < chunks.length; i++) {
 								const chunk = chunks[i];
 								const imports = chunk.getImportIds();
@@ -289,14 +289,6 @@ export default function rollup(
 												? inputOptions.input[0]
 												: <string>inputOptions.input)
 									);
-									const outputChunk: OutputChunk = {
-										imports,
-										exports,
-										modules,
-										code: undefined,
-										map: undefined
-									};
-									outputBundle[singleChunk.id] = outputChunk;
 								} else if (inputOptions.experimentalPreserveModules) {
 									chunk.generateIdPreserveModules(inputBase);
 								} else {
@@ -310,7 +302,10 @@ export default function rollup(
 									}
 									chunk.generateId(pattern, patternName, addons, outputOptions, outputBundle);
 								}
+
 								outputBundle[chunk.id] = {
+									fileName: chunk.id,
+									isEntry: chunk.entryModule !== undefined,
 									imports,
 									exports,
 									modules,
@@ -319,12 +314,10 @@ export default function rollup(
 								};
 							}
 
-							// render chunk import statements and finalizer wrappers given known names
 							return Promise.all(
 								chunks.map(chunk => {
-									const chunkId = chunk.id;
-									return chunk.render(outputOptions, addons).then(rendered => {
-										const outputChunk = <OutputChunk>outputBundle[chunkId];
+									const outputChunk = <OutputChunk>outputBundle[chunk.id];
+									return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
 										outputChunk.code = rendered.code;
 										outputChunk.map = rendered.map;
 

@@ -12,7 +12,13 @@ import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import Graph from './Graph';
 import Module from './Module';
-import { GlobalsOption, OutputOptions, RawSourceMap, RenderedModule } from './rollup/types';
+import {
+	GlobalsOption,
+	OutputOptions,
+	RawSourceMap,
+	RenderedChunk,
+	RenderedModule
+} from './rollup/types';
 import { Addons } from './utils/addons';
 import { toBase64 } from './utils/base64';
 import collapseSourcemaps from './utils/collapseSourcemaps';
@@ -20,10 +26,10 @@ import error from './utils/error';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, dirname, normalize, relative, resolve } from './utils/path';
+import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { timeEnd, timeStart } from './utils/timers';
-import transformChunk from './utils/transformChunk';
 
 export interface ModuleDeclarations {
 	exports: ChunkExports;
@@ -1030,7 +1036,7 @@ export default class Chunk {
 		this.id = outName;
 	}
 
-	render(options: OutputOptions, addons: Addons) {
+	render(options: OutputOptions, addons: Addons, outputChunk: RenderedChunk) {
 		timeStart('render format', 3);
 
 		if (!this.renderedSource)
@@ -1108,32 +1114,37 @@ export default class Chunk {
 		let map: SourceMap = null;
 		const chunkSourcemapChain: RawSourceMap[] = [];
 
-		return transformChunk(this.graph, this, prevCode, chunkSourcemapChain, options).then(
-			(code: string) => {
-				if (options.sourcemap) {
-					timeStart('sourcemap', 3);
+		return renderChunk({
+			graph: this.graph,
+			chunk: this,
+			renderChunk: outputChunk,
+			code: prevCode,
+			sourcemapChain: chunkSourcemapChain,
+			options
+		}).then((code: string) => {
+			if (options.sourcemap) {
+				timeStart('sourcemap', 3);
 
-					let file: string;
-					if (options.file) file = resolve(options.sourcemapFile || options.file);
-					else if (options.dir) file = resolve(options.dir, this.id);
-					else file = resolve(this.id);
+				let file: string;
+				if (options.file) file = resolve(options.sourcemapFile || options.file);
+				else if (options.dir) file = resolve(options.dir, this.id);
+				else file = resolve(this.id);
 
-					if (this.graph.pluginDriver.hasLoadersOrTransforms) {
-						const decodedMap = magicString.generateDecodedMap({});
-						map = collapseSourcemaps(this, file, decodedMap, this.usedModules, chunkSourcemapChain);
-					} else {
-						map = magicString.generateMap({ file, includeContent: true });
-					}
-
-					map.sources = map.sources.map(normalize);
-
-					timeEnd('sourcemap', 3);
+				if (this.graph.pluginDriver.hasLoadersOrTransforms) {
+					const decodedMap = magicString.generateDecodedMap({});
+					map = collapseSourcemaps(this, file, decodedMap, this.usedModules, chunkSourcemapChain);
+				} else {
+					map = magicString.generateMap({ file, includeContent: true });
 				}
 
-				if (options.compact !== true && code[code.length - 1] !== '\n') code += '\n';
+				map.sources = map.sources.map(normalize);
 
-				return { code, map };
+				timeEnd('sourcemap', 3);
 			}
-		);
+
+			if (options.compact !== true && code[code.length - 1] !== '\n') code += '\n';
+
+			return { code, map };
+		});
 	}
 }
