@@ -446,7 +446,7 @@ describe('acorn plugins', () => {
 		return rollup
 			.rollup({
 				input: 'x',
-				plugins: [loader({ x: `export default 42` })],
+				plugins: [loader({ x: `export default 43` })],
 				acorn: {
 					plugins: {
 						pluginC: true
@@ -456,7 +456,7 @@ describe('acorn plugins', () => {
 			})
 			.then(executeBundle)
 			.then(result => {
-				assert.equal(result, 42);
+				assert.equal(result, 43);
 				assert.equal(
 					pluginCRegistered,
 					true,
@@ -474,7 +474,7 @@ describe('acorn plugins', () => {
 		return rollup
 			.rollup({
 				input: 'x',
-				plugins: [loader({ x: `export default 42` })],
+				plugins: [loader({ x: `export default 44` })],
 				acorn: {
 					plugins: {
 						pluginE: true
@@ -494,7 +494,7 @@ describe('acorn plugins', () => {
 		return rollup
 			.rollup({
 				input: 'x',
-				plugins: [loader({ x: `export default 42` })],
+				plugins: [loader({ x: `export default 45` })],
 				acorn: {
 					plugins: {
 						pluginF: true
@@ -565,9 +565,7 @@ describe('misc', () => {
 				})
 			)
 			.then(() => {
-				const relevantWarnings = warnings.filter(
-					warning => warning.code === 'MISSING_GLOBAL_NAME'
-				);
+				const relevantWarnings = warnings.filter(warning => warning.code === 'MISSING_GLOBAL_NAME');
 				assert.equal(relevantWarnings.length, 1);
 				assert.equal(
 					relevantWarnings[0].message,
