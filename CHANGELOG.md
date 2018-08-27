@@ -1,17 +1,19 @@
 # rollup changelog
 
 ## 0.65.0
-*unreleased*
+*2018-08-25*
 * Refactor and unify plugin system ([#2382](https://github.com/rollup/rollup/pull/2382))
 * Implement plugin cache API ([#2389](https://github.com/rollup/rollup/pull/2389))
 * Add watchChange plugin hook to watch changed files, deprecate asset dependencies ([#2405](https://github.com/rollup/rollup/pull/2405))
 * Refine asset handling ([#2369](https://github.com/rollup/rollup/pull/2369))
+* Implement `renderChunk` hook to replace `transformChunk` and `transformBundle` hooks ([#2406](https://github.com/rollup/rollup/pull/2406))
 * Add rollup version to plugin context ([#2394](https://github.com/rollup/rollup/pull/2394))
 * Do not resume stdin in watch mode to fix it for Lerna users ([#2410](https://github.com/rollup/rollup/pull/2410))
 * Allow `[format]` placeholder for id generation ([#2387](https://github.com/rollup/rollup/pull/2387))
 * Always log error stacks even when a code frame is given ([#2417](https://github.com/rollup/rollup/pull/2417))
 * Do not test module ids starting with `\0` as external ([#2400](https://github.com/rollup/rollup/pull/2400))
 * Fix tracing of namespace variables ([#2408](https://github.com/rollup/rollup/pull/2408))
+* Fix re-tracing of namespace variables ([#2420](https://github.com/rollup/rollup/pull/2420))
 * Properly wrap comment annotations in SystemJS exports ([#2408](https://github.com/rollup/rollup/pull/2408))
 * Fix renaming of destructured parameters ([#2419](https://github.com/rollup/rollup/pull/2419))
 * Do not display version in watch mode when using `--silent` ([#2392](https://github.com/rollup/rollup/pull/2392))

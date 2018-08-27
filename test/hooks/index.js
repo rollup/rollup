@@ -561,6 +561,42 @@ module.exports = input;
 			});
 	});
 
+	it('supports renderChunk in place of transformBundle and transformChunk', () => {
+		let calledHook = false;
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						renderChunk (code, chunk, options) {
+							calledHook = true;
+							assert.equal(chunk.fileName, 'input.js');
+							assert.equal(chunk.isEntry, true);
+							assert.equal(chunk.exports.length, 0);
+							assert.ok(chunk.modules['input']);
+							try {
+								this.emitAsset('test.ext', 'hello world');
+							}
+							catch (e) {
+								assert.equal(e.code, 'ASSETS_ALREADY_FINALISED');
+							}
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({
+					format: 'es',
+					assetFileNames: '[name][extname]'
+				});
+			})
+			.then(() => {
+				assert.equal(calledHook, true);
+			});
+	});
+
 	it('passes bundle object to generateBundle hook', () => {
 		return rollup
 			.rollup({
