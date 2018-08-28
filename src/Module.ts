@@ -1,4 +1,5 @@
 import * as acorn from 'acorn';
+import walk from 'acorn/dist/walk';
 import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
@@ -152,6 +153,38 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	localName: MISSING_EXPORT_SHIM_VARIABLE
 };
 
+// Find syntax nodes following comments
+function findNodesAfterComments(ast, commentNodes) {
+	const state = {
+		commentIdx: 0,
+		nodes: []
+	};
+
+	(function c(node, state, override) {
+		if (state.commentIdx === commentNodes.length) return;
+		const pos = commentNodes[state.commentIdx].end;
+		if (node.end < pos) return;
+		const type = override || node.type;
+		if (node.start >= pos) {
+			state.commentIdx++;
+			state.nodes.push(node);
+		}
+		walk.base[type](node, state, c);
+	})(ast, state);
+
+	return state.nodes;
+}
+
+function markNodePure(node) {
+	if (node.type === 'ExpressionStatement') {
+		markNodePure(node.expression);
+	} else if (node.type === 'CallExpression') {
+		node.markedPure = true;
+	}
+}
+
+const pureCommentRegex = /^ ?#__PURE__\s*$/;
+
 export default class Module {
 	type: 'Module';
 	chunk: Chunk;
@@ -233,6 +266,11 @@ export default class Module {
 		);
 
 		timeEnd('generate ast', 3);
+
+		const pureMarkerComments = this.comments.filter(comment => pureCommentRegex.test(comment.text));
+		const nodesAfterPureComments = findNodesAfterComments(this.esTreeAst, pureMarkerComments);
+
+		nodesAfterPureComments.forEach(node => markNodePure(node));
 
 		this.resolvedIds = resolvedIds || Object.create(null);
 

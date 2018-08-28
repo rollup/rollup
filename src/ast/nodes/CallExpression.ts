@@ -138,6 +138,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(options)) return true;
 		}
+		if (this.markedPure) return false;
 		return (
 			this.callee.hasEffects(options) ||
 			this.callee.hasEffectsWhenCalledAtPath(
