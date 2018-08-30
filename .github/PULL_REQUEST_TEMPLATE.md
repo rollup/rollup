@@ -27,7 +27,7 @@ Breaking Changes?
 - [ ] yes (*breaking changes will not be merged unless absolutely necessary*)
 - [ ] no
 
-List any relevent issue numbers:
+List any relevant issue numbers:
 
 ### Description
 
