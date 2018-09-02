@@ -84,7 +84,7 @@ export default [
 		]
 	},
 
-	/* rollup.browser.js */
+	/* rollup.browser.js and rollup.browser.es.js */
 	{
 		input: 'src/browser-entry.ts',
 		onwarn,
@@ -104,13 +104,8 @@ export default [
 			commonjs()
 		],
 		output: [
-			{
-				file: 'dist/rollup.browser.js',
-				format: 'umd',
-				name: 'rollup',
-				sourcemap: true,
-				banner
-			}
+			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', sourcemap: true, banner },
+			{ file: 'dist/rollup.browser.es.js', format: 'es', sourcemap: true, banner }
 		]
 	},
 
