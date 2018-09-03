@@ -5,6 +5,7 @@ const tc = require('turbocolor');
 const { loadPerfConfig, targetDir } = require('./load-perf-config');
 const prettyBytes = require('pretty-bytes');
 
+const initialDir = process.cwd();
 const perfFile = path.resolve(targetDir, 'rollup.perf.json');
 
 let numberOfRunsToAverage = 6;
@@ -95,7 +96,9 @@ async function buildAndGetTimings(config) {
 		config.output = config.output[0];
 	}
 	gc();
+	process.chdir(targetDir);
 	const bundle = await rollup.rollup(config);
+	process.chdir(initialDir);
 	await bundle.generate(config.output);
 	return bundle.getTimings();
 }
