@@ -157,14 +157,14 @@ function persistTimings(timings) {
 	}
 }
 
-const MIN_ABSOLUTE_DEVIATION = 10;
+const MIN_ABSOLUTE_TIME_DEVIATION = 10;
 const RELATIVE_DEVIATION_FOR_COLORING = 5;
 
 function getFormattedTime(currentTime, persistedTime = currentTime) {
 	let color = text => text,
 		formattedTime = `${currentTime.toFixed(0)}ms`;
 	const absoluteDeviation = Math.abs(currentTime - persistedTime);
-	if (absoluteDeviation > MIN_ABSOLUTE_DEVIATION) {
+	if (absoluteDeviation > MIN_ABSOLUTE_TIME_DEVIATION) {
 		const sign = currentTime >= persistedTime ? '+' : '-';
 		const relativeDeviation = 100 * (absoluteDeviation / persistedTime);
 		formattedTime += ` (${sign}${absoluteDeviation.toFixed(
@@ -181,15 +181,11 @@ function getFormattedMemory(currentMemory, persistedMemory = currentMemory) {
 	let color = text => text,
 		formattedMemory = prettyBytes(currentMemory);
 	const absoluteDeviation = Math.abs(currentMemory - persistedMemory);
-	if (absoluteDeviation > MIN_ABSOLUTE_DEVIATION) {
-		const sign = currentMemory >= persistedMemory ? '+' : '-';
-		const relativeDeviation = 100 * (absoluteDeviation / persistedMemory);
-		formattedMemory += ` (${sign}${prettyBytes(
-			absoluteDeviation
-		)}, ${sign}${relativeDeviation.toFixed(1)}%)`;
-		if (relativeDeviation > RELATIVE_DEVIATION_FOR_COLORING) {
-			color = currentMemory >= persistedMemory ? tc.red : tc.green;
-		}
+	const sign = currentMemory >= persistedMemory ? '+' : '-';
+	const relativeDeviation = 100 * (absoluteDeviation / persistedMemory);
+	if (relativeDeviation > RELATIVE_DEVIATION_FOR_COLORING) {
+		formattedMemory += ` (${sign}${relativeDeviation.toFixed(0)}%)`;
+		color = currentMemory >= persistedMemory ? tc.red : tc.green;
 	}
 	return color(formattedMemory);
 }
