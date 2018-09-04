@@ -3,27 +3,35 @@ import walk from 'acorn/dist/walk';
 import * as ESTree from 'estree';
 import { CommentDescription } from '../Module';
 
+type ESTreeNodeWithLocation = ESTree.Node & { start: number; end: number };
+type NodeHandler = (node: ESTree.Node) => void;
+
+function checkCommentsBeforeNode(
+	node: ESTreeNodeWithLocation,
+	st: { handleNode: NodeHandler; commentIdx: number; commentNodes: CommentDescription[] }
+) {
+	if (st.commentIdx === st.commentNodes.length || st.commentNodes[st.commentIdx].end > node.end)
+		return;
+	let isFound = false;
+	while (
+		st.commentIdx < st.commentNodes.length &&
+		node.start >= st.commentNodes[st.commentIdx].end
+	) {
+		if (!isFound) {
+			st.handleNode(node);
+			isFound = true;
+		}
+		st.commentIdx++;
+	}
+	walk.base[node.type](node, st, checkCommentsBeforeNode);
+}
+
 function forEachNodeAfterComment(
 	ast: ESTree.Program,
 	commentNodes: CommentDescription[],
-	handleNode: (node: ESTree.Node) => void
+	handleNode: NodeHandler
 ): void {
-	let commentIdx = 0;
-
-	checkCommentsBeforeNode(<any>ast);
-
-	function checkCommentsBeforeNode(node: ESTree.Node & { start: number; end: number }) {
-		if (commentIdx === commentNodes.length || commentNodes[commentIdx].end > node.end) return;
-		let isFound = false;
-		while (commentIdx < commentNodes.length && node.start >= commentNodes[commentIdx].end) {
-			if (!isFound) {
-				handleNode(node);
-				isFound = true;
-			}
-			commentIdx++;
-		}
-		walk.base[node.type](node, null, checkCommentsBeforeNode);
-	}
+	checkCommentsBeforeNode(<any>ast, { commentNodes, commentIdx: 0, handleNode });
 }
 
 function markPureNode(node: ESTree.Node) {
