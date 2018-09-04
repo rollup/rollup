@@ -14,7 +14,7 @@ describe('deprecations', () => {
 				}
 			})
 			.then(executeBundle)
-			.then((result) => {
+			.then(result => {
 				assert.equal(result, 42);
 				assert.deepEqual(warnings, [
 					{

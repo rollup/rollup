@@ -40,7 +40,7 @@ function addDeprecations(deprecations: Deprecation[], warn: WarningHandler) {
 function checkInputOptions(options: InputOptions) {
 	if (options.transform || options.load || options.resolveId || options.resolveExternal) {
 		throw new Error(
-			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://rollupjs.org/guide/en#plugins'
+			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See "https://rollupjs.org/guide/en#plugins" for details'
 		);
 	}
 }
@@ -48,7 +48,7 @@ function checkInputOptions(options: InputOptions) {
 function checkOutputOptions(options: OutputOptions) {
 	if (<string>options.format === 'es6') {
 		error({
-			message: 'The `es6` output format is deprecated – use `es` instead',
+			message: 'The `es6` output format is deprecated – use `esm` instead',
 			url: `https://rollupjs.org/guide/en#output-format-f-format`
 		});
 	}
@@ -200,12 +200,35 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 				function generate(rawOutputOptions: GenericConfigObject, isWrite: boolean) {
 					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
 
-					if (typeof outputOptions.file === 'string' && typeof outputOptions.dir === 'string')
-						error({
-							code: 'INVALID_OPTION',
-							message:
-								'Build must set either output.file for a single-file build or output.dir when generating multiple chunks.'
-						});
+					if (typeof outputOptions.file === 'string') {
+						if (typeof outputOptions.dir === 'string')
+							error({
+								code: 'INVALID_OPTION',
+								message:
+									'You must set either output.file for a single-file build or output.dir when generating multiple chunks.'
+							});
+						if (inputOptions.preserveModules) {
+							error({
+								code: 'INVALID_OPTION',
+								message:
+									'You must set output.dir instead of output.file when using the preserveModules option.'
+							});
+						}
+						if (Array.isArray(inputOptions.input)) {
+							if (inputOptions.input.length > 1)
+								error({
+									code: 'INVALID_OPTION',
+									message:
+										'You must set output.dir instead of output.file when providing multiple inputs.'
+								});
+						} else if (typeof inputOptions.input === 'object')
+							error({
+								code: 'INVALID_OPTION',
+								message:
+									'You must set output.dir instead of output.file when providing named inputs.'
+							});
+					}
+
 					if (
 						chunks.length > 1 &&
 						(outputOptions.format === 'umd' || outputOptions.format === 'iife')
