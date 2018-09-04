@@ -62,7 +62,7 @@ export default function build(
 							}
 						}
 						if (outputs.length > 1)
-							process.stdout.write(`\n${tc.cyan(tc.bold(file.fileName))}:\n`);
+							process.stdout.write('\n' + tc.cyan(tc.bold('//→ ' + file.fileName + ':')) + '\n');
 						process.stdout.write(source);
 					}
 				});
