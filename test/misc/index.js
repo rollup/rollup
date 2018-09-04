@@ -172,7 +172,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate({ file: 'x', format: 'es' });
-				}, /You must set output\.dir instead of output\.file when providing multiple inputs\./);
+				}, /You must set output\.dir instead of output\.file when generating multiple chunks\./);
 			});
 	});
 
@@ -183,6 +183,35 @@ describe('sanity checks', () => {
 			.rollup({
 				input: ['x'],
 				plugins: [loader({ x: 'console.log( "x" );' })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => bundle.generate({ file: 'x', format: 'es' }));
+	});
+
+	it('throws when using dynamic imports with the "file" option', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins: [loader({ x: 'console.log( "x" );import("y");', y: 'console.log( "y" );' })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => {
+				assert.throws(() => {
+					bundle.generate({ file: 'x', format: 'es' });
+				}, /You must set output\.dir instead of output\.file when generating multiple chunks\./);
+			});
+	});
+
+	it.only('does not throw when using dynamic imports with the "file" option and "inlineDynamicImports"', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: 'x',
+				inlineDynamicImports: true,
+				plugins: [loader({ x: 'console.log( "x" );import("y");', y: 'console.log( "y" );' })],
 				onwarn: warning => warnings.push(warning)
 			})
 			.then(bundle => bundle.generate({ file: 'x', format: 'es' }));
