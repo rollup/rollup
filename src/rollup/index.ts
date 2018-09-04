@@ -198,45 +198,11 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 				let optimized = false;
 
 				function generate(rawOutputOptions: GenericConfigObject, isWrite: boolean) {
-					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
-
-					if (typeof outputOptions.file === 'string') {
-						if (typeof outputOptions.dir === 'string')
-							error({
-								code: 'INVALID_OPTION',
-								message:
-									'You must set either output.file for a single-file build or output.dir when generating multiple chunks.'
-							});
-						if (inputOptions.preserveModules) {
-							error({
-								code: 'INVALID_OPTION',
-								message:
-									'You must set output.dir instead of output.file when using the preserveModules option.'
-							});
-						}
-						if (Array.isArray(inputOptions.input)) {
-							if (inputOptions.input.length > 1)
-								error({
-									code: 'INVALID_OPTION',
-									message:
-										'You must set output.dir instead of output.file when providing multiple inputs.'
-								});
-						} else if (typeof inputOptions.input === 'object')
-							error({
-								code: 'INVALID_OPTION',
-								message:
-									'You must set output.dir instead of output.file when providing named inputs.'
-							});
-					}
-
-					if (
-						chunks.length > 1 &&
-						(outputOptions.format === 'umd' || outputOptions.format === 'iife')
-					)
-						error({
-							code: 'INVALID_OPTION',
-							message: 'UMD and IIFE output formats are not supported for code-splitting builds.'
-						});
+					const outputOptions = normalizeOutputOptions(
+						inputOptions,
+						rawOutputOptions,
+						chunks.length > 1
+					);
 
 					timeStart('GENERATE', 1);
 
@@ -455,7 +421,8 @@ function writeOutputFile(
 
 function normalizeOutputOptions(
 	inputOptions: GenericConfigObject,
-	rawOutputOptions: GenericConfigObject
+	rawOutputOptions: GenericConfigObject,
+	hasMultipleChunks: boolean
 ): OutputOptions {
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
@@ -480,6 +447,40 @@ function normalizeOutputOptions(
 
 	if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
 	checkOutputOptions(outputOptions);
+
+	if (typeof outputOptions.file === 'string') {
+		if (typeof outputOptions.dir === 'string')
+			error({
+				code: 'INVALID_OPTION',
+				message:
+					'You must set either output.file for a single-file build or output.dir when generating multiple chunks.'
+			});
+		if (inputOptions.preserveModules) {
+			error({
+				code: 'INVALID_OPTION',
+				message:
+					'You must set output.dir instead of output.file when using the preserveModules option.'
+			});
+		}
+		if (typeof inputOptions.input === 'object' && !Array.isArray(inputOptions.input))
+			error({
+				code: 'INVALID_OPTION',
+				message: 'You must set output.dir instead of output.file when providing named inputs.'
+			});
+	}
+
+	if (hasMultipleChunks) {
+		if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
+			error({
+				code: 'INVALID_OPTION',
+				message: 'UMD and IIFE output formats are not supported for code-splitting builds.'
+			});
+		if (typeof outputOptions.file === 'string')
+			error({
+				code: 'INVALID_OPTION',
+				message: 'You must set output.dir instead of output.file when generating multiple chunks.'
+			});
+	}
 
 	return outputOptions;
 }
