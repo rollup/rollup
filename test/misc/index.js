@@ -159,6 +159,67 @@ describe('sanity checks', () => {
 				assert.equal(e, error);
 			});
 	});
+
+	it('throws when using multiple inputs together with the "file" option', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: ['x', 'y'],
+				plugins: [loader({ x: 'console.log( "x" );', y: 'console.log( "y" );' })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => {
+				assert.throws(() => {
+					bundle.generate({ file: 'x', format: 'es' });
+				}, /You must set output\.dir instead of output\.file when providing multiple inputs\./);
+			});
+	});
+
+	it('does not throw when using a single element array of inputs together with the "file" option', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: ['x'],
+				plugins: [loader({ x: 'console.log( "x" );' })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => bundle.generate({ file: 'x', format: 'es' }));
+	});
+
+	it('throws when using the object form of "input" together with the "file" option', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: { main: 'x' },
+				plugins: [loader({ x: 'console.log( "x" );' })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => {
+				assert.throws(() => {
+					bundle.generate({ file: 'x', format: 'es' });
+				}, /You must set output\.dir instead of output\.file when providing named inputs\./);
+			});
+	});
+
+	it('throws when using preserveModules together with the "file" option', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: 'x',
+				preserveModules: true,
+				plugins: [loader({ x: 'console.log( "x" );' })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => {
+				assert.throws(() => {
+					bundle.generate({ file: 'x', format: 'es' });
+				}, /You must set output\.dir instead of output\.file when using the preserveModules option\./);
+			});
+	});
 });
 
 describe('in-memory sourcemaps', () => {
@@ -200,7 +261,7 @@ describe('deprecations', () => {
 				}
 			})
 			.then(executeBundle)
-			.then((result) => {
+			.then(result => {
 				assert.equal(result, 42);
 				assert.deepEqual(warnings, [
 					{
@@ -363,7 +424,7 @@ describe('bundle.write()', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					return bundle.generate({ format: 'es6' });
-				}, /The `es6` output format is deprecated – use `es` instead/);
+				}, /The `es6` output format is deprecated – use `esm` instead/);
 			});
 	});
 
@@ -565,9 +626,7 @@ describe('misc', () => {
 				})
 			)
 			.then(() => {
-				const relevantWarnings = warnings.filter(
-					warning => warning.code === 'MISSING_GLOBAL_NAME'
-				);
+				const relevantWarnings = warnings.filter(warning => warning.code === 'MISSING_GLOBAL_NAME');
 				assert.equal(relevantWarnings.length, 1);
 				assert.equal(
 					relevantWarnings[0].message,
