@@ -35,6 +35,7 @@ import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, extname } from './utils/path';
+import { markPureCallExpressions } from './utils/pureComments';
 import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
@@ -153,38 +154,6 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	localName: MISSING_EXPORT_SHIM_VARIABLE
 };
 
-// Find syntax nodes following comments
-function findNodesAfterComments(ast, commentNodes) {
-	const state = {
-		commentIdx: 0,
-		nodes: []
-	};
-
-	(function c(node, state, override) {
-		if (state.commentIdx === commentNodes.length) return;
-		const pos = commentNodes[state.commentIdx].end;
-		if (node.end < pos) return;
-		const type = override || node.type;
-		if (node.start >= pos) {
-			state.commentIdx++;
-			state.nodes.push(node);
-		}
-		walk.base[type](node, state, c);
-	})(ast, state);
-
-	return state.nodes;
-}
-
-function markNodePure(node) {
-	if (node.type === 'ExpressionStatement') {
-		markNodePure(node.expression);
-	} else if (node.type === 'CallExpression') {
-		node.markedPure = true;
-	}
-}
-
-const pureCommentRegex = /^ ?#__PURE__\s*$/;
-
 export default class Module {
 	type: 'Module';
 	chunk: Chunk;
@@ -264,13 +233,9 @@ export default class Module {
 		this.esTreeAst = <ESTree.Program>(
 			(ast || tryParse(this, this.graph.acornParser, this.graph.acornOptions))
 		);
+		markPureCallExpressions(this.comments, this.esTreeAst);
 
 		timeEnd('generate ast', 3);
-
-		const pureMarkerComments = this.comments.filter(comment => pureCommentRegex.test(comment.text));
-		const nodesAfterPureComments = findNodesAfterComments(this.esTreeAst, pureMarkerComments);
-
-		nodesAfterPureComments.forEach(node => markNodePure(node));
 
 		this.resolvedIds = resolvedIds || Object.create(null);
 

@@ -90,7 +90,6 @@ export class NodeBase implements ExpressionNode {
 
 	constructor(
 		esTreeNode: GenericEsTreeNode,
-		// we need to pass down the node constructors to avoid a circular dependency
 		parent: Node | { type: string; context: AstContext },
 		parentScope: ChildScope
 	) {
