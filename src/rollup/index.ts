@@ -1,5 +1,4 @@
 import { EventEmitter } from 'events';
-import { Asset } from '../../node_modules/rollup';
 import { optimizeChunks } from '../chunk-optimization';
 import Graph from '../Graph';
 import { createAddons } from '../utils/addons';

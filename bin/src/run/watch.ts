@@ -8,7 +8,6 @@ import {
 	InputOption,
 	RollupBuild,
 	RollupError,
-	RollupSingleFileBuild,
 	RollupWatchOptions
 } from '../../../src/rollup/types';
 import mergeOptions from '../../../src/utils/mergeOptions';
@@ -18,13 +17,14 @@ import alternateScreen from './alternateScreen';
 import batchWarnings from './batchWarnings';
 import loadConfigFile from './loadConfigFile';
 import { printTimings } from './timings';
+
 interface WatchEvent {
 	code?: string;
 	error?: RollupError | Error;
 	input?: InputOption;
 	output?: string[];
 	duration?: number;
-	result?: RollupSingleFileBuild | RollupBuild;
+	result?: RollupBuild;
 }
 
 interface Watcher {
