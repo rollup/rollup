@@ -4,6 +4,7 @@ import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
 import resolve from 'rollup-plugin-node-resolve';
 import string from 'rollup-plugin-string';
+import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
 import pkg from './package.json';
 
@@ -20,6 +21,7 @@ const now = new Date(
 ).toUTCString();
 
 const banner = `/*
+  @license
 	Rollup.js v${pkg.version}
 	${now} - commit ${commitHash}
 
@@ -101,11 +103,12 @@ export default [
 				typescript: require('typescript')
 			}),
 			resolve({ browser: true }),
-			commonjs()
+			commonjs(),
+			terser({ output: { comments: 'some' } })
 		],
 		output: [
 			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', sourcemap: true, banner },
-			{ file: 'dist/rollup.browser.es.js', format: 'es', sourcemap: true, banner }
+			{ file: 'dist/rollup.browser.mjs', format: 'es', sourcemap: true, banner }
 		]
 	},
 
