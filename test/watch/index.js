@@ -954,5 +954,39 @@ describe('rollup.watch', () => {
 					]);
 				});
 		});
+
+		it('treats filenames literally, not as globs', () => {
+			return sander
+				.copydir('test/watch/samples/non-glob')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 42);
+							sander.writeFileSync('test/_tmp/input/[foo]/bar.js', `export const bar = 43;`);
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 43);
+						}
+					]);
+				});
+		});
 	}
 });

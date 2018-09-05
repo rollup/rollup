@@ -130,7 +130,8 @@ export class Task {
 		if (chokidarOptions) {
 			chokidarOptions = {
 				...(chokidarOptions === true ? {} : chokidarOptions),
-				ignoreInitial: true
+				ignoreInitial: true,
+				disableGlobbing: true
 			};
 		}
 

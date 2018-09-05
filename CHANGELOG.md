@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.65.1
+*unreleased*
+* Prevent globbing when using chokidar ([#2432](https://github.com/rollup/rollup/pull/2432))
+
 ## 0.65.0
 *2018-08-25*
 * Refactor and unify plugin system ([#2382](https://github.com/rollup/rollup/pull/2382))
