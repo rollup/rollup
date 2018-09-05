@@ -259,7 +259,7 @@ export default function rollup(
 					);
 
 					return graph.pluginDriver
-						.hookSeq('renderStart')
+						.hookParallel('renderStart')
 						.then(() => createAddons(graph, outputOptions))
 						.then(addons => {
 							// pre-render all chunks
