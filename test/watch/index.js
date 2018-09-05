@@ -105,7 +105,7 @@ describe('rollup.watch', () => {
 				});
 		});
 
-		it('passes file events to the watchChange plugin hook', () => {
+		it('passes file events to the watchChange plugin hook once for each change', () => {
 			let watchChangeCnt = 0;
 			return sander
 				.copydir('test/watch/samples/basic')
@@ -144,7 +144,25 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.equal(run('../_tmp/output/bundle.js'), 43);
-							assert.ok(watchChangeCnt >= 1);
+							assert.equal(watchChangeCnt, 1);
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 43);
+							assert.equal(watchChangeCnt, 2);
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.equal(run('../_tmp/output/bundle.js'), 43);
+							assert.equal(watchChangeCnt, 3);
 						}
 					]);
 				});

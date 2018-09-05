@@ -137,7 +137,13 @@ export default class Graph {
 
 		this.pluginDriver = createPluginDriver(this, options, this.pluginCache, watcher);
 
-		if (watcher) watcher.on('change', id => this.pluginDriver.hookSeqSync('watchChange', [id]));
+		if (watcher) {
+			const handleChange = (id: string) => this.pluginDriver.hookSeqSync('watchChange', [id]);
+			watcher.on('change', handleChange);
+			watcher.once('restart', () => {
+				watcher.removeListener('change', handleChange);
+			});
+		}
 
 		if (typeof options.external === 'function') {
 			const external = options.external;
