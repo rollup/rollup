@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 0.65.1
-*unreleased*
+*2018-09-05*
 * Prevent globbing when using chokidar ([#2432](https://github.com/rollup/rollup/pull/2432))
 
 ## 0.65.0
