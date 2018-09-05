@@ -58,7 +58,7 @@ export class Watcher extends EventEmitter {
 			this.buildTimeout = undefined;
 			this.invalidatedIds.forEach(id => this.emit('change', id));
 			this.invalidatedIds.clear();
-			this.removeAllListeners('change');
+			this.emit('restart');
 			this.run();
 		}, DELAY);
 	}
