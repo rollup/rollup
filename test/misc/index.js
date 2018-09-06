@@ -204,7 +204,7 @@ describe('sanity checks', () => {
 			});
 	});
 
-	it.only('does not throw when using dynamic imports with the "file" option and "inlineDynamicImports"', () => {
+	it('does not throw when using dynamic imports with the "file" option and "inlineDynamicImports"', () => {
 		const warnings = [];
 
 		return rollup
@@ -661,6 +661,34 @@ describe('misc', () => {
 					relevantWarnings[0].message,
 					`No name was provided for external module 'lodash' in output.globals – guessing 'lodash'`
 				);
+			});
+	});
+
+	it('sorts chunks in the output', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: ['main1', 'main2'],
+				plugins: [
+					loader({
+						main1: 'import "dep";console.log("main1");',
+						main2: 'import "dep";console.log("main2");',
+						dep: 'console.log("dep");import("dyndep");',
+						dyndep: 'console.log("dyndep");'
+					})
+				],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => bundle.generate({ format: 'es' }))
+			.then(({ output }) => {
+				assert.equal(warnings.length, 0);
+				assert.deepEqual(output.map(({ fileName }) => fileName), [
+					'main1.js',
+					'main2.js',
+					'dyndep.js',
+					'chunk-7e6a340f.js'
+				]);
 			});
 	});
 });

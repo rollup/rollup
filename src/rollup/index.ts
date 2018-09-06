@@ -352,16 +352,31 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 	}
 }
 
+enum SortingFileType {
+	ENTRY_CHUNK = 0,
+	SECONDARY_CHUNK = 1,
+	ASSET = 2
+}
+
+function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
+	if ((<OutputAsset>file).isAsset) {
+		return SortingFileType.ASSET;
+	}
+	if ((<OutputChunk>file).isEntry) {
+		return SortingFileType.ENTRY_CHUNK;
+	}
+	return SortingFileType.SECONDARY_CHUNK;
+}
+
 function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset>): RollupOutput {
 	return {
 		output: Object.keys(outputBundle)
 			.map(fileName => outputBundle[fileName])
 			.sort((outputFileA, outputFileB) => {
-				// sort by entry chunks, shared chunks, then assets
-				if (isOutputAsset(outputFileA)) return isOutputAsset(outputFileB) ? 0 : 1;
-				if (isOutputAsset(outputFileB)) return -1;
-				if (outputFileA.isEntry) return outputFileB.isEntry ? 0 : -1;
-				outputFileB.isEntry ? 1 : 0;
+				const fileTypeA = getSortingFileType(outputFileA);
+				const fileTypeB = getSortingFileType(outputFileB);
+				if (fileTypeA === fileTypeB) return 0;
+				return fileTypeA < fileTypeB ? -1 : 1;
 			})
 	};
 }
