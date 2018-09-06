@@ -26,9 +26,9 @@ module.exports = {
 			.generate({ format: 'esm' })
 			.then(generated =>
 				assert.deepEqual(generated.output.map(chunk => chunk.fileName), [
+					'main.js',
 					'_virtual/_virtualModule',
-					'lib/lib.js',
-					'main.js'
+					'lib/lib.js'
 				])
 			);
 	}
