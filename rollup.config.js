@@ -104,7 +104,7 @@ export default [
 			}),
 			resolve({ browser: true }),
 			commonjs(),
-			terser({ output: { comments: 'some' } })
+			terser({ module: true, output: { comments: 'some' } })
 		],
 		output: [
 			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', sourcemap: true, banner },
