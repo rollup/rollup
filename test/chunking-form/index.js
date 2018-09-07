@@ -21,7 +21,6 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 							extend(
 								{
 									input: [dir + '/main.js'],
-									experimentalCodeSplitting: true,
 									onwarn: msg => {
 										if (/No name was provided for/.test(msg)) return;
 										if (/as external dependency/.test(msg)) return;

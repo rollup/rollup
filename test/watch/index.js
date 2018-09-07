@@ -227,8 +227,7 @@ describe('rollup.watch', () => {
 							dir: 'test/_tmp/output',
 							format: 'cjs'
 						},
-						watch: { chokidar },
-						experimentalCodeSplitting: true
+						watch: { chokidar }
 					});
 
 					return sequence(watcher, [
@@ -267,8 +266,7 @@ describe('rollup.watch', () => {
 							dir: 'test/_tmp/output',
 							format: 'cjs'
 						},
-						watch: { chokidar },
-						experimentalCodeSplitting: true
+						watch: { chokidar }
 					});
 
 					return sequence(watcher, [

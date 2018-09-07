@@ -62,7 +62,7 @@ function executeBundle(bundle) {
 		.generate({
 			format: 'cjs'
 		})
-		.then(cjs => {
+		.then(({ output: [cjs] }) => {
 			const m = new Function('module', 'exports', cjs.code);
 
 			const module = { exports: {} };

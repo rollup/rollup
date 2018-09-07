@@ -76,7 +76,7 @@ describe('incremental', () => {
 					assert.equal(result, 42);
 
 					modules.foo = `export default 43`;
-					cache = bundle;
+					cache = bundle.cache;
 				});
 			})
 			.then(() => {
@@ -111,7 +111,7 @@ describe('incremental', () => {
 					assert.equal(result, 42);
 
 					modules.entry = `import bar from 'bar'; export default bar;`;
-					cache = bundle;
+					cache = bundle.cache;
 				});
 			})
 			.then(() => {
@@ -139,7 +139,7 @@ describe('incremental', () => {
 			})
 			.then(bundle => {
 				const asts = {};
-				bundle.modules.forEach(module => {
+				bundle.cache.modules.forEach(module => {
 					asts[module.id] = module.ast;
 				});
 
@@ -200,12 +200,10 @@ describe('incremental', () => {
 				plugins: [plugin]
 			})
 			.then(bundle => {
-				assert.deepEqual(bundle.imports, ['external']);
+				assert.equal(bundle.cache.modules[1].id, 'foo');
+				assert.equal(bundle.cache.modules[0].id, 'entry');
 
-				assert.equal(bundle.modules[1].id, 'foo');
-				assert.equal(bundle.modules[0].id, 'entry');
-
-				assert.deepEqual(bundle.modules[0].resolvedIds, {
+				assert.deepEqual(bundle.cache.modules[0].resolvedIds, {
 					foo: 'foo',
 					external: 'external'
 				});

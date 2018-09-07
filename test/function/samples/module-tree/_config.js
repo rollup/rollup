@@ -4,7 +4,7 @@ const assert = require('assert');
 module.exports = {
 	description: 'bundle.modules includes dependencies (#903)',
 	bundle(bundle) {
-		const modules = bundle.modules.map(module => {
+		const modules = bundle.cache.modules.map(module => {
 			return {
 				id: path.relative(__dirname, module.id),
 				dependencies: module.dependencies.map(id => path.relative(__dirname, id))

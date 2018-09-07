@@ -8,6 +8,7 @@ import {
 	PluginContext,
 	RollupError,
 	RollupWarning,
+	RollupWatcher,
 	SerializablePluginCache
 } from '../rollup/types';
 import { createAssetPluginHooks, EmitAsset } from './assetHooks';
@@ -51,7 +52,7 @@ export function createPluginDriver(
 	graph: Graph,
 	options: InputOptions,
 	pluginCache: Record<string, SerializablePluginCache>,
-	watcher?: EventEmitter
+	watcher?: RollupWatcher
 ): PluginDriver {
 	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
 	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
@@ -59,7 +60,7 @@ export function createPluginDriver(
 
 	let hasLoadersOrTransforms = false;
 
-	const pluginContexts = plugins.map((plugin, pidx) => {
+	const pluginContexts: PluginContext[] = plugins.map((plugin, pidx) => {
 		let cacheable = true;
 		if (typeof plugin.cacheKey !== 'string') {
 			if (typeof plugin.name !== 'string') {
