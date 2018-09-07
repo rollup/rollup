@@ -55,7 +55,7 @@ export default function batchWarnings() {
 					handler.fn(warnings);
 				} else {
 					warnings.forEach(warning => {
-						stderr(`${tc.bold.yellow('(!)')} ${tc.bold.yellow(warning.message)}`);
+						title(warning.message);
 
 						if (warning.url) info(warning.url);
 
@@ -255,11 +255,13 @@ const deferredHandlers: {
 					items.forEach(warning => {
 						if (warning.url !== lastUrl) info((lastUrl = warning.url));
 
-						const loc = warning.loc
-							? `${relativeId(warning.id)}: (${warning.loc.line}:${warning.loc.column})`
-							: relativeId(warning.id);
-
-						stderr(tc.bold(relativeId(loc)));
+						if (warning.id) {
+							let loc = relativeId(warning.id);
+							if (warning.loc) {
+								loc += `: (${warning.loc.line}:${warning.loc.column})`;
+							}
+							stderr(tc.bold(loc));
+						}
 						if (warning.frame) info(warning.frame);
 					});
 				});

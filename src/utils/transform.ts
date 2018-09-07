@@ -118,22 +118,16 @@ export default function transform(
 					warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
 						if (typeof warning === 'string') warning = { message: warning };
 						if (pos) augmentCodeLocation(warning, pos, curSource, id);
-						if (warning.code) warning.pluginCode = warning.code;
 						warning.id = id;
-						warning.code = 'PLUGIN_WARNING';
-						warning.plugin = plugin.name || '(anonymous plugin)';
 						warning.hook = 'transform';
-						graph.warn(warning);
+						pluginContext.warn(warning);
 					},
 					error(err: RollupError | string, pos?: { line: number; column: number }) {
 						if (typeof err === 'string') err = { message: err };
 						if (pos) augmentCodeLocation(err, pos, curSource, id);
-						if (err.code) err.pluginCode = err.code;
 						err.id = id;
-						err.code = 'PLUGIN_ERROR';
-						err.plugin = plugin.name || '(anonymous plugin)';
 						err.hook = 'transform';
-						error(err);
+						pluginContext.error(err);
 					},
 					emitAsset,
 					setAssetSource(assetId, source) {
