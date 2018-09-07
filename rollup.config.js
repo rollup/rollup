@@ -86,7 +86,7 @@ export default [
 		]
 	},
 
-	/* rollup.browser.js and rollup.browser.es.js */
+	/* rollup.browser.js and rollup.browser.mjs */
 	{
 		input: 'src/browser-entry.ts',
 		onwarn,
