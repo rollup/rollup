@@ -108,6 +108,7 @@ function removeOldOutput(dir) {
 }
 
 function removeOldTest(dir) {
+	removeOldOutput(dir);
 	console.warn(
 		`Test configuration in ${dir} not found.\nTrying to clean up no longer existing test...`
 	);

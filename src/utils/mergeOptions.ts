@@ -1,5 +1,4 @@
 import { InputOptions, OutputOptions, WarningHandler } from '../rollup/types';
-import deprecateOptions, { Deprecation } from './deprecateOptions';
 
 export interface GenericConfigObject {
 	[key: string]: any;
@@ -82,20 +81,16 @@ export const commandAliases: { [key: string]: string } = {
 export default function mergeOptions({
 	config = {},
 	command: rawCommandOptions = {},
-	deprecateConfig,
 	defaultOnWarnHandler
 }: {
 	config: GenericConfigObject;
 	command?: GenericConfigObject;
-	deprecateConfig?: GenericConfigObject;
 	defaultOnWarnHandler?: WarningHandler;
 }): {
 	inputOptions: any;
 	outputOptions: any;
-	deprecations: Deprecation[];
 	optionError: string | null;
 } {
-	const deprecations = deprecate(config, rawCommandOptions, deprecateConfig);
 	const command = getCommandOptions(rawCommandOptions);
 	const inputOptions = getInputOptions(config, command, defaultOnWarnHandler);
 
@@ -148,7 +143,6 @@ export default function mergeOptions({
 	return {
 		inputOptions,
 		outputOptions,
-		deprecations,
 		optionError: unknownOptionErrors.length > 0 ? unknownOptionErrors.join('\n') : null
 	};
 }
@@ -227,18 +221,6 @@ function getInputOptions(
 	if (inputOptions.cache && (<any>inputOptions.cache).cache)
 		inputOptions.cache = (<any>inputOptions.cache).cache;
 
-	// legacy to make sure certain plugins still work
-	if (Array.isArray(inputOptions.input)) {
-		inputOptions.entry = inputOptions.input[0];
-	} else if (typeof inputOptions.input === 'object') {
-		for (const name in inputOptions.input) {
-			inputOptions.entry = inputOptions.input[name];
-			break;
-		}
-	} else {
-		inputOptions.entry = inputOptions.input;
-	}
-
 	return inputOptions;
 }
 
@@ -279,41 +261,4 @@ function getOutputOptions(
 		sourcemapPathTransform: getOption('sourcemapPathTransform'),
 		strict: getOption('strict', true)
 	};
-}
-
-function deprecate(
-	config: GenericConfigObject,
-	command: GenericConfigObject = {},
-	deprecateConfig: GenericConfigObject = { input: true, output: true }
-): Deprecation[] {
-	const deprecations = [];
-
-	// CLI
-	if (command.id) {
-		deprecations.push({
-			old: '-u/--id',
-			new: '--amd.id'
-		});
-		(command.amd || (command.amd = {})).id = command.id;
-	}
-
-	if (typeof command.output === 'string') {
-		deprecations.push({
-			old: '--output',
-			new: '--file'
-		});
-		command.output = { file: command.output };
-	}
-
-	if (command.d) {
-		deprecations.push({
-			old: '-d',
-			new: '--indent'
-		});
-		command.indent = command.d;
-	}
-
-	// config file
-	deprecations.push(...deprecateOptions(config, deprecateConfig));
-	return deprecations;
 }

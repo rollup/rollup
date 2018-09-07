@@ -200,7 +200,6 @@ describe('incremental', () => {
 				plugins: [plugin]
 			})
 			.then(bundle => {
-
 				assert.equal(bundle.cache.modules[1].id, 'foo');
 				assert.equal(bundle.cache.modules[0].id, 'entry');
 

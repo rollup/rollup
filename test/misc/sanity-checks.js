@@ -23,26 +23,25 @@ describe('sanity checks', () => {
 	});
 
 	it('node API passes warning and default handler to custom onwarn function', () => {
-		let args = [];
+		let args;
 		return rollup
 			.rollup({
-				entry: 'x',
-				plugins: [loader({ x: `console.log( 42 );` })],
+				input: 'x',
+				plugins: [loader({ x: `console.log( 42 );` }), { ongenerate() {} }],
 				onwarn(warning, onwarn) {
 					args = [warning, onwarn];
 				}
 			})
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
+			})
 			.then(() => {
-				assert.deepEqual(args[0], {
-					code: 'DEPRECATED_OPTIONS',
-					deprecations: [
-						{
-							new: 'input',
-							old: 'entry'
-						}
-					],
-					message: `The following options have been renamed — please update your config: entry -> input`
-				});
+				assert.equal(args[0].code, 'PLUGIN_WARNING');
+				assert.equal(args[0].pluginCode, 'ONGENERATE_HOOK_DEPRECATED');
+				assert.equal(
+					args[0].message,
+					'The ongenerate hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.'
+				);
 				assert.equal(typeof args[1], 'function');
 			});
 	});

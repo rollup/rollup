@@ -97,21 +97,11 @@ function execute(configFile: string, configs: InputOptions[], command: any) {
 		for (const config of configs) {
 			promise = promise.then(() => {
 				const warnings = batchWarnings();
-				const { inputOptions, outputOptions, deprecations, optionError } = mergeOptions({
+				const { inputOptions, outputOptions, optionError } = mergeOptions({
 					config,
 					command,
 					defaultOnWarnHandler: warnings.add
 				});
-
-				if (deprecations.length) {
-					inputOptions.onwarn({
-						code: 'DEPRECATED_OPTIONS',
-						message: `The following options have been renamed — please update your config: ${deprecations
-							.map(option => `${option.old} -> ${option.new}`)
-							.join(', ')}`,
-						deprecations
-					});
-				}
 
 				if (optionError) inputOptions.onwarn({ code: 'UNKNOWN_OPTION', message: optionError });
 				return build(inputOptions, outputOptions, warnings, command.silent);

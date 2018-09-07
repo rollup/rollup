@@ -87,14 +87,6 @@ const immediateHandlers: {
 		stderr(warning.message);
 	},
 
-	DEPRECATED_OPTIONS: warning => {
-		title(`Some options have been renamed`);
-		info(`https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32`);
-		warning.deprecations.forEach(option => {
-			stderr(`${tc.bold(option.old)} is now ${option.new}`);
-		});
-	},
-
 	MISSING_NODE_BUILTINS: warning => {
 		title(`Missing shims for Node.js built-ins`);
 
@@ -103,7 +95,7 @@ const immediateHandlers: {
 				? `'${warning.modules[0]}'`
 				: `${warning.modules
 						.slice(0, -1)
-						.map(name => `'${name}'`)
+						.map((name: string) => `'${name}'`)
 						.join(', ')} and '${warning.modules.slice(-1)}'`;
 		stderr(
 			`Creating a browser bundle that depends on ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`
