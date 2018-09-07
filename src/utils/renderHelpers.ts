@@ -16,6 +16,7 @@ export interface NodeRenderOptions {
 	isNoStatement?: boolean;
 	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
 	isCalleeOfRenderedParent?: boolean;
+	isShorthandProperty?: boolean;
 }
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
