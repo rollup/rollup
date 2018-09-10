@@ -86,6 +86,33 @@ describe('hooks', () => {
 			});
 	});
 
+	it('passes errors to the buildEnd hook', () => {
+		let handledError = false;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						buildStart() {
+							this.error('build start error');
+						},
+						buildEnd(error) {
+							assert.equal(error.message, 'build start error');
+							handledError = true;
+						}
+					}
+				]
+			})
+			.catch(error => {
+				assert.ok(handledError);
+				assert.equal(error.message, 'build start error');
+			})
+			.then(() => {
+				assert.ok(handledError);
+			});
+	});
+
 	it('supports isExternal on plugin context', () => {
 		return rollup.rollup({
 			input: 'input',
