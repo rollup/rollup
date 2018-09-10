@@ -3,6 +3,7 @@
 ## 0.66.0
 *unreleased*
 * Add renderStart and renderEnd plugin hooks ([#2438](https://github.com/rollup/rollup/pull/2438))
+* Expose ESM browser build and minify browser builds ([#2437](https://github.com/rollup/rollup/pull/2437)
 
 ## 0.65.2
 *2018-09-05*
