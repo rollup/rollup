@@ -183,7 +183,7 @@ export default function rollup(
 						return chunks;
 					}),
 				err =>
-					graph.pluginDriver.hookParallel('buildEnd', err).then(() => {
+					graph.pluginDriver.hookParallel('buildEnd', [err]).then(() => {
 						throw err;
 					})
 			)
@@ -258,7 +258,9 @@ export default function rollup(
 						chunks.filter(chunk => chunk.entryModule).map(chunk => chunk.entryModule.id)
 					);
 
-					return createAddons(graph, outputOptions)
+					return graph.pluginDriver
+						.hookParallel('renderStart')
+						.then(() => createAddons(graph, outputOptions))
 						.then(addons => {
 							// pre-render all chunks
 							for (const chunk of chunks) {
@@ -329,6 +331,11 @@ export default function rollup(
 								})
 							).then(() => {});
 						})
+						.catch(error =>
+							graph.pluginDriver.hookParallel('renderError', [error]).then(() => {
+								throw error;
+							})
+						)
 						.then(() => {
 							// run generateBundle hook
 

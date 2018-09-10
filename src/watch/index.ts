@@ -24,6 +24,7 @@ export class Watcher extends EventEmitter {
 	private rerun: boolean = false;
 	private tasks: Task[];
 	private succeeded: boolean = false;
+	private invalidatedIds: Set<string> = new Set();
 
 	constructor(configs: RollupWatchOptions[] = []) {
 		super();
@@ -42,7 +43,10 @@ export class Watcher extends EventEmitter {
 		this.removeAllListeners();
 	}
 
-	invalidate() {
+	invalidate(id?: string) {
+		if (id) {
+			this.invalidatedIds.add(id);
+		}
 		if (this.running) {
 			this.rerun = true;
 			return;
@@ -52,6 +56,9 @@ export class Watcher extends EventEmitter {
 
 		this.buildTimeout = setTimeout(() => {
 			this.buildTimeout = undefined;
+			this.invalidatedIds.forEach(id => this.emit('change', id));
+			this.invalidatedIds.clear();
+			this.emit('restart');
 			this.run();
 		}, DELAY);
 	}
@@ -130,7 +137,8 @@ export class Task {
 		if (chokidarOptions) {
 			chokidarOptions = {
 				...(chokidarOptions === true ? {} : chokidarOptions),
-				ignoreInitial: true
+				ignoreInitial: true,
+				disableGlobbing: true
 			};
 		}
 
@@ -155,7 +163,6 @@ export class Task {
 	}
 
 	invalidate(id: string, isTransformDependency: boolean) {
-		this.watcher.emit('change', id);
 		this.invalidated = true;
 		if (isTransformDependency) {
 			this.cache.modules.forEach(module => {
@@ -165,7 +172,7 @@ export class Task {
 				module.originalCode = null;
 			});
 		}
-		this.watcher.invalidate();
+		this.watcher.invalidate(id);
 	}
 
 	run() {
