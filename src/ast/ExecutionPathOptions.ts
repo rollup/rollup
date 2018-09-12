@@ -5,7 +5,6 @@ import CallExpression from './nodes/CallExpression';
 import Property from './nodes/Property';
 import { ExpressionEntity } from './nodes/shared/Expression';
 import { ObjectPath } from './values';
-import ParameterVariable from './variables/ParameterVariable';
 import ThisVariable from './variables/ThisVariable';
 
 export enum OptionTypes {
@@ -105,7 +104,7 @@ export class ExecutionPathOptions {
 			.setIgnoreNoLabels();
 	}
 
-	getReplacedVariableInit(variable: ThisVariable | ParameterVariable): ExpressionEntity {
+	getReplacedVariableInit(variable: ThisVariable): ExpressionEntity {
 		return this.optionValues.getIn([OptionTypes.REPLACED_VARIABLE_INITS, variable]);
 	}
 
@@ -184,7 +183,7 @@ export class ExecutionPathOptions {
 		return this.get(OptionTypes.IGNORE_RETURN_AWAIT_YIELD);
 	}
 
-	replaceVariableInit(variable: ThisVariable | ParameterVariable, init: ExpressionEntity) {
+	replaceVariableInit(variable: ThisVariable, init: ExpressionEntity) {
 		return this.setIn([OptionTypes.REPLACED_VARIABLE_INITS, variable], init);
 	}
 

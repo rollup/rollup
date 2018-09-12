@@ -27,7 +27,7 @@ export default class LocalVariable extends Variable {
 	additionalInitializers: ExpressionEntity[] | null = null;
 
 	// Caching and deoptimization:
-	// We collect deoptimization when we do not return something unknown
+	// We track deoptimization when we do not return something unknown
 	private deoptimizationTracker: EntityPathTracker;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
