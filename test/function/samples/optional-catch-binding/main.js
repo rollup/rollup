@@ -1,7 +1,7 @@
 export let foo;
 
 try {
-  foo();
+	foo();
 } catch {
-  foo = true;
+	foo = true;
 }
