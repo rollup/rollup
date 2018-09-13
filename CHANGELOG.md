@@ -2,6 +2,8 @@
 
 ## 0.66.0
 *unreleased*
+* Support ES2019 optional catch bindings ([#2455](https://github.com/rollup/rollup/pull/2455))
+* Add option to transform paths within sourcemaps ([#2430](https://github.com/rollup/rollup/pull/2430))
 * Add renderStart and renderEnd plugin hooks ([#2438](https://github.com/rollup/rollup/pull/2438))
 * Expose ESM browser build and minify browser builds ([#2437](https://github.com/rollup/rollup/pull/2437)
 
