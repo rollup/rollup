@@ -1137,7 +1137,11 @@ export default class Chunk {
 					map = magicString.generateMap({ file, includeContent: true });
 				}
 
-				map.sources = map.sources.map(normalize);
+				map.sources = map.sources.map(sourcePath =>
+					normalize(
+						options.sourcemapPathTransform ? options.sourcemapPathTransform(sourcePath) : sourcePath
+					)
+				);
 
 				timeEnd('sourcemap', 3);
 			}
