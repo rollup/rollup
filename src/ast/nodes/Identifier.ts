@@ -10,7 +10,6 @@ import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker'
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
-import AssignmentExpression from './AssignmentExpression';
 import AssignmentPattern from './AssignmentPattern';
 import * as NodeType from './NodeType';
 import Property from './Property';
@@ -66,10 +65,7 @@ export default class Identifier extends NodeBase {
 				);
 				break;
 			case 'parameter':
-				this.variable = (<FunctionScope>this.scope).addParameterDeclaration(
-					this,
-					this.context.deoptimizationTracker
-				);
+				this.variable = (<FunctionScope>this.scope).addParameterDeclaration(this);
 				break;
 			default:
 				throw new Error(`Unexpected identifier kind ${kind}.`);
