@@ -8,7 +8,7 @@ import { PatternNode } from './shared/Pattern';
 
 export default class CatchClause extends NodeBase {
 	type: NodeType.tCatchClause;
-	param: PatternNode;
+	param: PatternNode | null;
 	body: BlockStatement;
 
 	scope: CatchScope;
@@ -20,7 +20,10 @@ export default class CatchClause extends NodeBase {
 
 	initialise() {
 		this.included = false;
-		this.param.declare('parameter', UNKNOWN_EXPRESSION);
+
+		if (this.param) {
+			this.param.declare('parameter', UNKNOWN_EXPRESSION);
+		}
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {

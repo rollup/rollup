@@ -101,7 +101,7 @@ export interface AstContext {
 
 export const defaultAcornOptions: AcornOptions = {
 	// TODO TypeScript waiting for acorn types to be updated
-	ecmaVersion: <any>2018,
+	ecmaVersion: <any>2019,
 	sourceType: 'module',
 	preserveParens: false
 };
