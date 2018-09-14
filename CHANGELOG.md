@@ -6,6 +6,7 @@
 * Add option to transform paths within sourcemaps ([#2430](https://github.com/rollup/rollup/pull/2430))
 * Add renderStart and renderEnd plugin hooks ([#2438](https://github.com/rollup/rollup/pull/2438))
 * Expose ESM browser build and minify browser builds ([#2437](https://github.com/rollup/rollup/pull/2437)
+* Associate hoisted variables in function bodys with function parameters ([#2456](https://github.com/rollup/rollup/pull/2456)
 
 ## 0.65.2
 *2018-09-05*
