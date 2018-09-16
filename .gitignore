@@ -13,3 +13,4 @@ test/hooks/tmp
 test/tmp
 test/typescript/typings
 perf/
+.rpt2_cache/

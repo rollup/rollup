@@ -100,7 +100,7 @@
     "rollup-plugin-replace": "^2.0.0",
     "rollup-plugin-string": "^2.0.2",
     "rollup-plugin-terser": "^2.0.2",
-    "rollup-plugin-typescript": "^0.8.1",
+    "rollup-plugin-typescript2": "^0.17.0",
     "rollup-pluginutils": "^2.3.0",
     "sander": "^0.6.0",
     "shx": "^0.3.2",

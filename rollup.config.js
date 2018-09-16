@@ -5,7 +5,7 @@ import json from 'rollup-plugin-json';
 import resolve from 'rollup-plugin-node-resolve';
 import string from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
-import typescript from 'rollup-plugin-typescript';
+import typescript from 'rollup-plugin-typescript2';
 import pkg from './package.json';
 
 const commitHash = (function() {
@@ -74,10 +74,10 @@ export default command => {
 			plugins: [
 				json(),
 				resolveTypescript(),
+				resolve(),
 				typescript({
 					typescript: require('typescript')
 				}),
-				resolve(),
 				commonjs()
 			],
 			external: ['fs', 'path', 'events', 'module', 'util', 'crypto'],
@@ -94,13 +94,13 @@ export default command => {
 				string({ include: '**/*.md' }),
 				json(),
 				resolveTypescript(),
+				resolve(),
 				typescript({
 					typescript: require('typescript')
 				}),
 				commonjs({
 					include: 'node_modules/**'
-				}),
-				resolve()
+				})
 			],
 			external: ['fs', 'path', 'module', 'events', 'rollup', 'assert', 'os', 'util'],
 			output: {
@@ -132,10 +132,10 @@ export default command => {
 					}
 				},
 				resolveTypescript(),
+				resolve({ browser: true }),
 				typescript({
 					typescript: require('typescript')
 				}),
-				resolve({ browser: true }),
 				commonjs(),
 				terser({ module: true, output: { comments: 'some' } })
 			],
