@@ -20,7 +20,7 @@ export default class FunctionScope extends ReturnValueScope {
 	};
 
 	constructor(parent: Scope, deoptimizationTracker: EntityPathTracker) {
-		super(parent);
+		super(parent, deoptimizationTracker);
 		this.variables.arguments = new ArgumentsVariable(
 			super.getParameterVariables(),
 			deoptimizationTracker

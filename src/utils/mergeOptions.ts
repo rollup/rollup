@@ -128,11 +128,14 @@ export default function mergeOptions({
 		'output option'
 	);
 
+	const validCliOutputOptions = validOutputOptions.filter(
+		option => option !== 'sourcemapPathTransform'
+	);
 	addUnknownOptionErrors(
 		unknownOptionErrors,
 		Object.keys(command),
 		validInputOptions.concat(
-			validOutputOptions,
+			validCliOutputOptions,
 			Object.keys(commandAliases),
 			'config',
 			'environment',
@@ -269,6 +272,7 @@ function getOutputOptions(
 		paths: getOption('paths'),
 		sourcemap: getOption('sourcemap'),
 		sourcemapFile: getOption('sourcemapFile'),
+		sourcemapPathTransform: getOption('sourcemapPathTransform'),
 		strict: getOption('strict', true)
 	};
 }

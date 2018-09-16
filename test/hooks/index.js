@@ -86,6 +86,33 @@ describe('hooks', () => {
 			});
 	});
 
+	it('passes errors to the buildEnd hook', () => {
+		let handledError = false;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						buildStart() {
+							this.error('build start error');
+						},
+						buildEnd(error) {
+							assert.equal(error.message, 'build start error');
+							handledError = true;
+						}
+					}
+				]
+			})
+			.catch(error => {
+				assert.ok(handledError);
+				assert.equal(error.message, 'build start error');
+			})
+			.then(() => {
+				assert.ok(handledError);
+			});
+	});
+
 	it('supports isExternal on plugin context', () => {
 		return rollup.rollup({
 			input: 'input',
@@ -570,7 +597,7 @@ module.exports = input;
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
-						renderChunk (code, chunk, options) {
+						renderChunk(code, chunk, options) {
 							calledHook = true;
 							assert.equal(chunk.fileName, 'input.js');
 							assert.equal(chunk.isEntry, true);
@@ -578,8 +605,7 @@ module.exports = input;
 							assert.ok(chunk.modules['input']);
 							try {
 								this.emitAsset('test.ext', 'hello world');
-							}
-							catch (e) {
+							} catch (e) {
 								assert.equal(e.code, 'ASSETS_ALREADY_FINALISED');
 							}
 						}
@@ -970,6 +996,79 @@ module.exports = input;
 			})
 			.then(bundle => {
 				assert.equal(bundle.code.trim(), `alert('hello');`);
+			});
+	});
+
+	it('supports renderStart hook', () => {
+		let renderStartCount = 0;
+		let generateBundleCount = 0;
+		let renderErrorCount = 0;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						renderStart() {
+							renderStartCount++;
+							assert.equal(generateBundleCount, 0);
+							assert.equal(renderErrorCount, 0);
+						},
+						generateBundle() {
+							generateBundleCount++;
+							assert.equal(renderStartCount, 1);
+							assert.equal(renderErrorCount, 0);
+						},
+						renderError() {
+							renderErrorCount++;
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.generate({ format: 'esm' }))
+			.then(() => {
+				assert.equal(renderStartCount, 1, 'renderStart count');
+				assert.equal(generateBundleCount, 1, 'generateBundle count');
+				assert.equal(renderErrorCount, 0, 'renderError count');
+			});
+	});
+
+	it('supports renderError hook', () => {
+		let renderStartCount = 0;
+		let generateBundleCount = 0;
+		let renderErrorCount = 0;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						renderStart() {
+							renderStartCount++;
+						},
+						renderChunk() {
+							throw Error('renderChunk error');
+						},
+						generateBundle() {
+							generateBundleCount++;
+						},
+						renderError(error) {
+							assert(error);
+							assert.equal(error.message, 'renderChunk error');
+							assert.equal(renderStartCount, 1);
+							renderErrorCount++;
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.generate({ format: 'esm' }))
+			.catch(err => {
+				assert.ok(err);
+			})
+			.then(() => {
+				assert.equal(renderStartCount, 1, 'renderStart count');
+				assert.equal(generateBundleCount, 0, 'generateBundle count');
+				assert.equal(renderErrorCount, 1, 'renderError count');
 			});
 	});
 });

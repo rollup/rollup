@@ -1,5 +1,5 @@
 const assert = require('assert');
-const uglify = require('uglify-js');
+const terser = require('terser');
 const MagicString = require('magic-string');
 const getLocation = require('../../getLocation');
 const SourceMapConsumer = require('source-map').SourceMapConsumer;
@@ -27,7 +27,7 @@ module.exports = {
 					};
 				},
 				renderChunk(code) {
-					return uglify.minify(code, {
+					return terser.minify(code, {
 						sourceMap: {
 							filename: 'x'
 						}

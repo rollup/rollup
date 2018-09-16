@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 0.66.0
+*unreleased*
+* Support ES2019 optional catch bindings ([#2455](https://github.com/rollup/rollup/pull/2455))
+* Add option to transform paths within sourcemaps ([#2430](https://github.com/rollup/rollup/pull/2430))
+* Add renderStart and renderEnd plugin hooks ([#2438](https://github.com/rollup/rollup/pull/2438))
+* Expose ESM browser build and minify browser builds ([#2437](https://github.com/rollup/rollup/pull/2437)
+* Associate hoisted variables in function bodys with function parameters ([#2456](https://github.com/rollup/rollup/pull/2456)
+
+## 0.65.2
+*2018-09-05*
+* Prevent watch mode memory leak ([#2441](https://github.com/rollup/rollup/pull/2441))
+
+## 0.65.1
+*2018-09-05*
+* Prevent globbing when using chokidar ([#2432](https://github.com/rollup/rollup/pull/2432))
+
 ## 0.65.0
 *2018-08-25*
 * Refactor and unify plugin system ([#2382](https://github.com/rollup/rollup/pull/2382))
