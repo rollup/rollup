@@ -16,9 +16,7 @@ const NOOP = () => {};
 
 let getStartTime: () => StartTime = () => 0;
 let getElapsedTime: (previous: StartTime) => number = () => 0;
-let getStartMemory: () => number = () => 0;
-let getTotalMemory: () => number = () => 0;
-let getElapsedMemory: (previous: number) => number = () => 0;
+let getMemory: () => number = () => 0;
 
 let timers: Timers = {};
 
@@ -33,9 +31,7 @@ function setTimeHelpers() {
 		getElapsedTime = (previous: number) => performance.now() - previous;
 	}
 	if (typeof process !== 'undefined' && typeof process.memoryUsage === 'function') {
-		getStartMemory = () => process.memoryUsage().heapUsed;
-		getTotalMemory = () => process.memoryUsage().heapTotal;
-		getElapsedMemory = (previous: number) => getStartMemory() - previous;
+		getMemory = () => process.memoryUsage().heapUsed;
 	}
 }
 
@@ -56,23 +52,25 @@ function timeStartImpl(label: string, level: number = 3) {
 	label = getPersistedLabel(label, level);
 	if (!timers.hasOwnProperty(label)) {
 		timers[label] = {
-			totalMemory: undefined,
+			totalMemory: 0,
 			startTime: undefined,
 			startMemory: undefined,
 			time: 0,
 			memory: 0
 		};
 	}
+	const currentMemory = getMemory();
 	timers[label].startTime = getStartTime();
-	timers[label].totalMemory = getTotalMemory();
-	timers[label].startMemory = getStartMemory();
+	timers[label].startMemory = currentMemory;
 }
 
 function timeEndImpl(label: string, level: number = 3) {
 	label = getPersistedLabel(label, level);
 	if (timers.hasOwnProperty(label)) {
+		const currentMemory = getMemory();
 		timers[label].time += getElapsedTime(timers[label].startTime);
-		timers[label].memory += getElapsedMemory(timers[label].startMemory);
+		timers[label].totalMemory = Math.max(timers[label].totalMemory, currentMemory);
+		timers[label].memory += currentMemory - timers[label].startMemory;
 	}
 }
 

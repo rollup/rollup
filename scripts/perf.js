@@ -3,7 +3,9 @@ const fs = require('fs');
 const rollup = require('../dist/rollup.js');
 const tc = require('turbocolor');
 const { loadPerfConfig, targetDir } = require('./load-perf-config');
+const prettyBytes = require('pretty-bytes');
 
+const initialDir = process.cwd();
 const perfFile = path.resolve(targetDir, 'rollup.perf.json');
 
 let numberOfRunsToAverage = 6;
@@ -24,9 +26,9 @@ if (!(numberOfDiscardedResults >= 0) || !(numberOfDiscardedResults < numberOfRun
 }
 console.info(
 	tc.bold(
-		`Calculating the average of ${tc.cyan(
-			numberOfRunsToAverage
-		)} runs discarding the ${tc.cyan(numberOfDiscardedResults)} largest results.\n`
+		`Calculating the average of ${tc.cyan(numberOfRunsToAverage)} runs discarding the ${tc.cyan(
+			numberOfDiscardedResults
+		)} largest results.\n`
 	) + 'Run "npm run perf <number of runs> <number of discarded results>" to change that.'
 );
 
@@ -42,12 +44,23 @@ function getSingleAverage(times, runs, discarded) {
 	);
 }
 
-function getAverage(accumulatedTimings, runs, discarded) {
-	const averageTimings = {};
-	Object.keys(accumulatedTimings).forEach(label => {
-		averageTimings[label] = getSingleAverage(accumulatedTimings[label], runs, discarded);
+function getAverage(accumulatedMeasurements, runs, discarded) {
+	const average = {};
+	Object.keys(accumulatedMeasurements).forEach(label => {
+		average[label] = {
+			time: getSingleAverage(
+				accumulatedMeasurements[label].map(timing => timing[0]),
+				runs,
+				discarded
+			),
+			memory: getSingleAverage(
+				accumulatedMeasurements[label].map(timing => timing[2]),
+				runs,
+				discarded
+			)
+		};
 	});
-	return averageTimings;
+	return average;
 }
 
 async function calculatePrintAndPersistTimings(config, existingTimings) {
@@ -56,7 +69,7 @@ async function calculatePrintAndPersistTimings(config, existingTimings) {
 		timings[label] = [timings[label]];
 	});
 	for (let currentRun = 1; currentRun < numberOfRunsToAverage; currentRun++) {
-		const numberOfLinesToClear = printTimings(
+		const numberOfLinesToClear = printMeasurements(
 			getAverage(timings, currentRun, numberOfDiscardedResults),
 			existingTimings,
 			/^#/
@@ -73,7 +86,7 @@ async function calculatePrintAndPersistTimings(config, existingTimings) {
 		});
 	}
 	const averageTimings = getAverage(timings, numberOfRunsToAverage, numberOfDiscardedResults);
-	printTimings(averageTimings, existingTimings);
+	printMeasurements(averageTimings, existingTimings);
 	if (Object.keys(existingTimings).length === 0) persistTimings(averageTimings);
 }
 
@@ -83,23 +96,35 @@ async function buildAndGetTimings(config) {
 		config.output = config.output[0];
 	}
 	gc();
+	process.chdir(targetDir);
 	const bundle = await rollup.rollup(config);
+	process.chdir(initialDir);
 	await bundle.generate(config.output);
 	return bundle.getTimings();
 }
 
-function printTimings(timings, existingTimings, filter = /.*/) {
-	const printedLabels = Object.keys(timings).filter(label => filter.test(label));
+function printMeasurements(average, existingAverage, filter = /.*/) {
+	const printedLabels = Object.keys(average).filter(label => filter.test(label));
 	console.info('');
 	printedLabels.forEach(label => {
-		let color = tc;
+		let color = text => text;
 		if (label[0] === '#') {
-			color = color.bold;
+			color = tc.bold;
 			if (label[1] !== '#') {
-				color = color.underline;
+				color = tc.underline;
 			}
 		}
-		console.info(color(`${label}: ${getFormattedTime(timings[label], existingTimings[label])}`));
+		console.info(
+			color(
+				`${label}: ${getFormattedTime(
+					average[label].time,
+					existingAverage[label] && existingAverage[label].time
+				)}, ${getFormattedMemory(
+					average[label].memory,
+					existingAverage[label] && existingAverage[label].memory
+				)}`
+			)
+		);
 	});
 	return printedLabels.length + 2;
 }
@@ -112,9 +137,7 @@ function getExistingTimings() {
 	try {
 		const timings = JSON.parse(fs.readFileSync(perfFile, 'utf8'));
 		console.info(
-			tc.bold(
-				`Comparing with ${tc.cyan(perfFile)}. Delete this file to create a new base line.`
-			)
+			tc.bold(`Comparing with ${tc.cyan(perfFile)}. Delete this file to create a new base line.`)
 		);
 		return timings;
 	} catch (e) {
@@ -129,31 +152,42 @@ function persistTimings(timings) {
 			tc.bold(`Saving performance information to new reference file ${tc.cyan(perfFile)}.`)
 		);
 	} catch (e) {
-		console.error(
-			tc.bold(`Could not persist performance information in ${tc.cyan(perfFile)}.`)
-		);
+		console.error(tc.bold(`Could not persist performance information in ${tc.cyan(perfFile)}.`));
 		system.exit(1);
 	}
 }
 
-const MIN_ABSOLUTE_DEVIATION = 10;
+const MIN_ABSOLUTE_TIME_DEVIATION = 10;
 const RELATIVE_DEVIATION_FOR_COLORING = 5;
 
 function getFormattedTime(currentTime, persistedTime = currentTime) {
-	let color = tc,
+	let color = text => text,
 		formattedTime = `${currentTime.toFixed(0)}ms`;
 	const absoluteDeviation = Math.abs(currentTime - persistedTime);
-	if (absoluteDeviation > MIN_ABSOLUTE_DEVIATION) {
+	if (absoluteDeviation > MIN_ABSOLUTE_TIME_DEVIATION) {
 		const sign = currentTime >= persistedTime ? '+' : '-';
 		const relativeDeviation = 100 * (absoluteDeviation / persistedTime);
 		formattedTime += ` (${sign}${absoluteDeviation.toFixed(
 			0
 		)}ms, ${sign}${relativeDeviation.toFixed(1)}%)`;
 		if (relativeDeviation > RELATIVE_DEVIATION_FOR_COLORING) {
-			color = currentTime >= persistedTime ? color.red : color.green;
+			color = currentTime >= persistedTime ? tc.red : tc.green;
 		}
 	}
 	return color(formattedTime);
+}
+
+function getFormattedMemory(currentMemory, persistedMemory = currentMemory) {
+	let color = text => text,
+		formattedMemory = prettyBytes(currentMemory);
+	const absoluteDeviation = Math.abs(currentMemory - persistedMemory);
+	const sign = currentMemory >= persistedMemory ? '+' : '-';
+	const relativeDeviation = 100 * (absoluteDeviation / persistedMemory);
+	if (relativeDeviation > RELATIVE_DEVIATION_FOR_COLORING) {
+		formattedMemory += ` (${sign}${relativeDeviation.toFixed(0)}%)`;
+		color = currentMemory >= persistedMemory ? tc.red : tc.green;
+	}
+	return color(formattedMemory);
 }
 
 loadPerfConfig().then(async config =>
