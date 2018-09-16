@@ -1,12 +1,17 @@
 # rollup changelog
 
 ## 0.66.0
-*unreleased*
+*2018-09-16*
 * Support ES2019 optional catch bindings ([#2455](https://github.com/rollup/rollup/pull/2455))
 * Add option to transform paths within sourcemaps ([#2430](https://github.com/rollup/rollup/pull/2430))
 * Add renderStart and renderEnd plugin hooks ([#2438](https://github.com/rollup/rollup/pull/2438))
 * Expose ESM browser build and minify browser builds ([#2437](https://github.com/rollup/rollup/pull/2437)
 * Associate hoisted variables in function bodys with function parameters ([#2456](https://github.com/rollup/rollup/pull/2456)
+* Fix issue when deconflicting variables used as pattern defaults ([#2446](https://github.com/rollup/rollup/pull/2446)
+* Properly deconflict default exported class and function expressions with ids ([#2458](https://github.com/rollup/rollup/pull/2458)
+* Faster internal test builds ([#2457](https://github.com/rollup/rollup/pull/2457)
+* Fix internal "perf" script ([#2433](https://github.com/rollup/rollup/pull/2433)
+* Test errors are passed to the buildEnd hook ([#2450](https://github.com/rollup/rollup/pull/2450)
 
 ## 0.65.2
 *2018-09-05*
