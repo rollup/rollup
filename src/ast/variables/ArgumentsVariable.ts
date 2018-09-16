@@ -3,7 +3,6 @@ import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from './LocalVariable';
-import ParameterVariable from './ParameterVariable';
 
 const getParameterVariable = (path: ObjectPath, options: ExecutionPathOptions) => {
 	const firstArgNum = parseInt(<string>path[0], 10);
@@ -16,9 +15,9 @@ const getParameterVariable = (path: ObjectPath, options: ExecutionPathOptions) =
 };
 
 export default class ArgumentsVariable extends LocalVariable {
-	private parameters: ParameterVariable[];
+	private parameters: LocalVariable[];
 
-	constructor(parameters: ParameterVariable[], deoptimizationTracker: EntityPathTracker) {
+	constructor(parameters: LocalVariable[], deoptimizationTracker: EntityPathTracker) {
 		super('arguments', null, UNKNOWN_EXPRESSION, deoptimizationTracker);
 		this.parameters = parameters;
 	}
