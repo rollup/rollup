@@ -10,6 +10,7 @@
 * Fix issue when deconflicting variables used as pattern defaults ([#2446](https://github.com/rollup/rollup/pull/2446)
 * Properly deconflict default exported class and function expressions with ids ([#2458](https://github.com/rollup/rollup/pull/2458)
 * Faster internal test builds ([#2457](https://github.com/rollup/rollup/pull/2457)
+* Switch to rollup-plugin-typescript2 ([#2460](https://github.com/rollup/rollup/pull/2460)
 * Fix internal "perf" script ([#2433](https://github.com/rollup/rollup/pull/2433)
 * Test errors are passed to the buildEnd hook ([#2450](https://github.com/rollup/rollup/pull/2450)
 
