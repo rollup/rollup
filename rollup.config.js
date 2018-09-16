@@ -65,77 +65,84 @@ function resolveTypescript() {
 	};
 }
 
-export default [
-	/* rollup.js and rollup.es.js */
-	{
-		input: 'src/node-entry.ts',
-		onwarn,
-		plugins: [
-			json(),
-			resolveTypescript(),
-			typescript({
-				typescript: require('typescript')
-			}),
-			resolve(),
-			commonjs()
-		],
-		external: ['fs', 'path', 'events', 'module', 'util', 'crypto'],
-		output: [
-			{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
-			{ file: 'dist/rollup.es.js', format: 'es', sourcemap: true, banner }
-		]
-	},
-
-	/* rollup.browser.js and rollup.browser.mjs */
-	{
-		input: 'src/browser-entry.ts',
-		onwarn,
-		plugins: [
-			json(),
-			{
-				load: id => {
-					if (~id.indexOf('fs.ts')) return fs.readFileSync('browser/fs.ts', 'utf-8');
-					if (~id.indexOf('path.ts')) return fs.readFileSync('browser/path.ts', 'utf-8');
+export default command => {
+	const nodeBuilds = [
+		/* Rollup core node builds */
+		{
+			input: 'src/node-entry.ts',
+			onwarn,
+			plugins: [
+				json(),
+				resolveTypescript(),
+				typescript({
+					typescript: require('typescript')
+				}),
+				resolve(),
+				commonjs()
+			],
+			external: ['fs', 'path', 'events', 'module', 'util', 'crypto'],
+			output: [
+				{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
+				{ file: 'dist/rollup.es.js', format: 'es', sourcemap: true, banner }
+			]
+		},
+		/* Rollup CLI */
+		{
+			input: 'bin/src/index.ts',
+			onwarn,
+			plugins: [
+				string({ include: '**/*.md' }),
+				json(),
+				resolveTypescript(),
+				typescript({
+					typescript: require('typescript')
+				}),
+				commonjs({
+					include: 'node_modules/**'
+				}),
+				resolve()
+			],
+			external: ['fs', 'path', 'module', 'events', 'rollup', 'assert', 'os', 'util'],
+			output: {
+				file: 'bin/rollup',
+				format: 'cjs',
+				banner: '#!/usr/bin/env node',
+				paths: {
+					rollup: '../dist/rollup.js'
 				}
-			},
-			resolveTypescript(),
-			typescript({
-				typescript: require('typescript')
-			}),
-			resolve({ browser: true }),
-			commonjs(),
-			terser({ module: true, output: { comments: 'some' } })
-		],
-		output: [
-			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', sourcemap: true, banner },
-			{ file: 'dist/rollup.browser.mjs', format: 'es', sourcemap: true, banner }
-		]
-	},
-
-	/* bin/rollup */
-	{
-		input: 'bin/src/index.ts',
-		onwarn,
-		plugins: [
-			string({ include: '**/*.md' }),
-			json(),
-			resolveTypescript(),
-			typescript({
-				typescript: require('typescript')
-			}),
-			commonjs({
-				include: 'node_modules/**'
-			}),
-			resolve()
-		],
-		external: ['fs', 'path', 'module', 'events', 'rollup', 'assert', 'os', 'util'],
-		output: {
-			file: 'bin/rollup',
-			format: 'cjs',
-			banner: '#!/usr/bin/env node',
-			paths: {
-				rollup: '../dist/rollup.js'
 			}
 		}
+	];
+
+	if (command.noBrowser) {
+		delete command.noBrowser;
+		return nodeBuilds;
 	}
-];
+	return nodeBuilds.concat([
+		/* Rollup core browser builds */
+		{
+			input: 'src/browser-entry.ts',
+			onwarn,
+			plugins: [
+				json(),
+				{
+					load: id => {
+						if (~id.indexOf('fs.ts')) return fs.readFileSync('browser/fs.ts', 'utf-8');
+						if (~id.indexOf('path.ts')) return fs.readFileSync('browser/path.ts', 'utf-8');
+					}
+				},
+				resolveTypescript(),
+				typescript({
+					typescript: require('typescript')
+				}),
+				resolve({ browser: true }),
+				commonjs(),
+				terser({ module: true, output: { comments: 'some' } })
+			],
+			output: [
+				{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', sourcemap: true, banner },
+				{ file: 'dist/rollup.browser.mjs', format: 'es', sourcemap: true, banner }
+			]
+		}
+	]);
+};
