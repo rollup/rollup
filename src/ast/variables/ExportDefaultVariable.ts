@@ -2,6 +2,7 @@ import ClassDeclaration from '../nodes/ClassDeclaration';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
 import Identifier from '../nodes/Identifier';
+import * as NodeType from '../nodes/NodeType';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
 import LocalVariable from './LocalVariable';
 import Variable from './Variable';
@@ -28,8 +29,10 @@ export default class ExportDefaultVariable extends LocalVariable {
 			exportDefaultDeclaration.declaration,
 			deoptimizationTracker
 		);
-		this.hasId = !!(<FunctionDeclaration | ClassDeclaration>exportDefaultDeclaration.declaration)
-			.id;
+		this.hasId =
+			(exportDefaultDeclaration.declaration.type === NodeType.FunctionDeclaration ||
+				exportDefaultDeclaration.declaration.type === NodeType.ClassDeclaration) &&
+			!!(<FunctionDeclaration | ClassDeclaration>exportDefaultDeclaration.declaration).id;
 	}
 
 	addReference(identifier: Identifier) {
