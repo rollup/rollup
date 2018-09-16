@@ -155,7 +155,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		if (!this.shorthand) {
 			this.key.render(code, options);
 		}
-		this.value.render(code, options);
+		this.value.render(code, options, { isShorthandProperty: this.shorthand });
 	}
 
 	private updateReturnExpression() {

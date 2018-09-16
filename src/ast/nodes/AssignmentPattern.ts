@@ -1,3 +1,6 @@
+import MagicString from 'magic-string';
+import { BLANK } from '../../utils/blank';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../values';
 import * as NodeType from './NodeType';
@@ -26,5 +29,14 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 
 	deoptimizePath(path: ObjectPath) {
 		path.length === 0 && this.left.deoptimizePath(path);
+	}
+
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		{ isShorthandProperty }: NodeRenderOptions = BLANK
+	) {
+		this.left.render(code, options, { isShorthandProperty });
+		this.right.render(code, options);
 	}
 }
