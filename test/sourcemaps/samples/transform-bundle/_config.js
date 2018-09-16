@@ -1,4 +1,4 @@
-const uglify = require('uglify-js');
+const terser = require('terser');
 const assert = require('assert');
 const getLocation = require('../../getLocation');
 const SourceMapConsumer = require('source-map').SourceMapConsumer;
@@ -15,7 +15,7 @@ module.exports = {
 						}
 					};
 
-					return uglify.minify(code, options);
+					return terser.minify(code, options);
 				}
 			}
 		]

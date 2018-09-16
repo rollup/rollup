@@ -17,7 +17,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 	preventChildBlockScope: true;
 
 	createScope(parentScope: Scope) {
-		this.scope = new ReturnValueScope(parentScope);
+		this.scope = new ReturnValueScope(parentScope, this.context.deoptimizationTracker);
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
@@ -67,7 +67,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 			this.body = new this.context.nodeConstructors.BlockStatement(
 				esTreeNode.body,
 				this,
-				new Scope(this.scope)
+				this.scope.hoistedBodyVarScope
 			);
 		}
 		super.parseNode(esTreeNode);

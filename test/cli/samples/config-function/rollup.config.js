@@ -1,10 +1,15 @@
-var replace = require( 'rollup-plugin-replace' );
+import assert from 'assert';
+import replace from 'rollup-plugin-replace';
 
-module.exports = function(commandOptions) {
+export default commandOptions => {
+	assert.equal(commandOptions.silent, true);
 	return {
 		input: 'main.js',
 		output: {
 			format: 'cjs'
+		},
+		onwarn(warning) {
+			throw new Error(`Unexpected warning: ${warning.message}`);
 		},
 		plugins: [
 			replace( { 'COMMAND_OPTIONS': JSON.stringify(commandOptions) } )
