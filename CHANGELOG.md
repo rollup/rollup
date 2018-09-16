@@ -6,13 +6,13 @@
 * Add option to transform paths within sourcemaps ([#2430](https://github.com/rollup/rollup/pull/2430))
 * Add renderStart and renderEnd plugin hooks ([#2438](https://github.com/rollup/rollup/pull/2438))
 * Expose ESM browser build and minify browser builds ([#2437](https://github.com/rollup/rollup/pull/2437)
-* Associate hoisted variables in function bodys with function parameters ([#2456](https://github.com/rollup/rollup/pull/2456)
-* Fix issue when deconflicting variables used as pattern defaults ([#2446](https://github.com/rollup/rollup/pull/2446)
-* Properly deconflict default exported class and function expressions with ids ([#2458](https://github.com/rollup/rollup/pull/2458)
-* Faster internal test builds ([#2457](https://github.com/rollup/rollup/pull/2457)
-* Switch to rollup-plugin-typescript2 ([#2460](https://github.com/rollup/rollup/pull/2460)
-* Fix internal "perf" script ([#2433](https://github.com/rollup/rollup/pull/2433)
-* Test errors are passed to the buildEnd hook ([#2450](https://github.com/rollup/rollup/pull/2450)
+* Associate hoisted variables in function bodys with function parameters ([#2456](https://github.com/rollup/rollup/pull/2456))
+* Fix issue when deconflicting variables used as pattern defaults ([#2446](https://github.com/rollup/rollup/pull/2446))
+* Properly deconflict default exported class and function expressions with ids ([#2458](https://github.com/rollup/rollup/pull/2458))
+* Faster internal test builds ([#2457](https://github.com/rollup/rollup/pull/2457))
+* Switch to rollup-plugin-typescript2 ([#2460](https://github.com/rollup/rollup/pull/2460))
+* Fix internal "perf" script ([#2433](https://github.com/rollup/rollup/pull/2433))
+* Test that errors are passed to the buildEnd hook ([#2450](https://github.com/rollup/rollup/pull/2450))
 
 ## 0.65.2
 *2018-09-05*
