@@ -3,23 +3,13 @@ System.register('bundle', [], function (exports, module) {
 	return {
 		execute: function () {
 
-			exports({
-				foo: foo,
-				bar: bar,
-				baz: baz
-			});
+			exports('foo', foo);
 
 			function foo () {}
 			foo = exports('foo', 1);
 
-			var bar = exports('bar', 1);
-			function bar () {}
-
-			function baz () {}
-			var baz = exports('baz', 1);
-
-			class quux {} exports('quux', quux);
-			quux = exports('quux', 1);
+			class bar {} exports('bar', bar);
+			bar = exports('bar', 1);
 
 		}
 	};
