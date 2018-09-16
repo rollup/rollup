@@ -10,9 +10,7 @@ import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker'
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
-import AssignmentPattern from './AssignmentPattern';
 import * as NodeType from './NodeType';
-import Property from './Property';
 import { ExpressionEntity } from './shared/Expression';
 import { Node, NodeBase } from './shared/Node';
 
@@ -146,7 +144,7 @@ export default class Identifier extends NodeBase {
 	render(
 		code: MagicString,
 		_options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent, isShorthandProperty }: NodeRenderOptions = BLANK
 	) {
 		if (this.variable) {
 			const name = this.variable.getName();
@@ -156,11 +154,7 @@ export default class Identifier extends NodeBase {
 					storeName: true,
 					contentOnly: true
 				});
-				let relevantParent = this.parent;
-				if (relevantParent.type === NodeType.AssignmentPattern) {
-					relevantParent = (<AssignmentPattern>relevantParent).parent;
-				}
-				if (relevantParent.type === NodeType.Property && (<Property>relevantParent).shorthand) {
+				if (isShorthandProperty) {
 					code.prependRight(this.start, `${this.name}: `);
 				}
 			}
