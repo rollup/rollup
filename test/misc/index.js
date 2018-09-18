@@ -565,14 +565,19 @@ describe('misc', () => {
 				})
 			)
 			.then(() => {
-				const relevantWarnings = warnings.filter(
-					warning => warning.code === 'MISSING_GLOBAL_NAME'
-				);
+				const relevantWarnings = warnings.filter(warning => warning.code === 'MISSING_GLOBAL_NAME');
 				assert.equal(relevantWarnings.length, 1);
 				assert.equal(
 					relevantWarnings[0].message,
 					`No name was provided for external module 'lodash' in output.globals – guessing 'lodash'`
 				);
 			});
+	});
+
+	it('ignores falsy plugins', () => {
+		return rollup.rollup({
+			input: 'x',
+			plugins: [loader({ x: `console.log( 42 );` }), null, false, undefined]
+		});
 	});
 });
