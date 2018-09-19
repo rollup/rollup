@@ -1,7 +1,8 @@
 # rollup changelog
 
 ## 0.66.1
-*unreleased*
+*2018-09-19*
+* Ignore falsy plugins ([#2464](https://github.com/rollup/rollup/pull/2464))
 * Switch back to official TypeScript plugin ([#2465](https://github.com/rollup/rollup/pull/2465))
 
 ## 0.66.0
