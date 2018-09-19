@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.66.1
+*unreleased*
+* Switch back to official TypeScript plugin ([#2465](https://github.com/rollup/rollup/pull/2465))
+
 ## 0.66.0
 *2018-09-16*
 * Support ES2019 optional catch bindings ([#2455](https://github.com/rollup/rollup/pull/2455))
