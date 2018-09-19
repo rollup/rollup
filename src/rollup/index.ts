@@ -90,7 +90,11 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 
 	checkInputOptions(inputOptions);
 	const plugins = inputOptions.plugins;
-	inputOptions.plugins = Array.isArray(plugins) ? plugins : plugins ? [plugins] : [];
+	inputOptions.plugins = Array.isArray(plugins)
+		? plugins.filter(Boolean)
+		: plugins
+			? [plugins]
+			: [];
 	inputOptions = inputOptions.plugins.reduce(applyOptionHook, inputOptions);
 
 	if (!inputOptions.experimentalCodeSplitting) {
