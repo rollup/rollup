@@ -35,7 +35,7 @@
     "test:leak": "npm i --silent --no-save weak@1 && node --expose-gc test/leak/index.js",
     "test:only": "mocha",
     "test:quick": "mocha -b",
-    "test:typescript": "tsc -p test/typescript",
+    "test:typescript": "tsc --noEmit -p test/typescript && tsc --noEmit",
     "watch": "rollup -cw"
   },
   "repository": "rollup/rollup",
