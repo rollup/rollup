@@ -402,8 +402,8 @@ describe('acorn plugins', () => {
 
 		return rollup
 			.rollup({
-				input: 'x',
-				plugins: [loader({ x: `export default 42` })],
+				input: 'x.js',
+				plugins: [loader({ 'x.js': `export default 42` })],
 				acornInjectPlugins: [
 					function pluginA(acorn) {
 						pluginAInjected = true;
@@ -445,8 +445,8 @@ describe('acorn plugins', () => {
 
 		return rollup
 			.rollup({
-				input: 'x',
-				plugins: [loader({ x: `export default 42` })],
+				input: 'x.js',
+				plugins: [loader({ 'x.js': `export default 42` })],
 				acorn: {
 					plugins: {
 						pluginC: true
@@ -473,8 +473,8 @@ describe('acorn plugins', () => {
 	it('throws if acorn.plugins is set and acornInjectPlugins is missing', () => {
 		return rollup
 			.rollup({
-				input: 'x',
-				plugins: [loader({ x: `export default 42` })],
+				input: 'x.js',
+				plugins: [loader({ 'x.js': `export default 42` })],
 				acorn: {
 					plugins: {
 						pluginE: true
@@ -493,8 +493,8 @@ describe('acorn plugins', () => {
 	it('throws if acorn.plugins is set and acornInjectPlugins is empty', () => {
 		return rollup
 			.rollup({
-				input: 'x',
-				plugins: [loader({ x: `export default 42` })],
+				input: 'x.js',
+				plugins: [loader({ 'x.js': `export default 42` })],
 				acorn: {
 					plugins: {
 						pluginF: true
