@@ -343,7 +343,7 @@ function uncacheablePluginError(pluginName: string) {
 		error({
 			code: 'DUPLICATE_PLUGIN_NAME',
 			message:
-				'The plugin name ${pluginName} is being used twice in the same build. Plugin names must be distinct or provide a cacheKey (please post an issue to the plugin if you are a plugin user).'
+				`The plugin name ${pluginName} is being used twice in the same build. Plugin names must be distinct or provide a cacheKey (please post an issue to the plugin if you are a plugin user).`
 		});
 }
 
