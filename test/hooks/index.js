@@ -822,19 +822,20 @@ module.exports = input;
 				]
 			})
 			.then(() => {
+				const name = 'MyTestPluginName';
 				return rollup
 					.rollup({
 						input: 'input',
 						plugins: [
 							loader({ input: `alert('hello')` }),
 							{
-								name: 'a',
+								name: name,
 								buildStart() {
 									this.cache.set('asdf', 'asdf');
 								}
 							},
 							{
-								name: 'a',
+								name: name,
 								buildStart() {
 									this.cache.set('asdf', 'asdf');
 								}
@@ -844,6 +845,7 @@ module.exports = input;
 					.catch(err => {
 						assert.equal(err.code, 'PLUGIN_ERROR');
 						assert.equal(err.pluginCode, 'DUPLICATE_PLUGIN_NAME');
+						assert.equal(err.message.includes(name), true)
 					});
 			});
 	});
