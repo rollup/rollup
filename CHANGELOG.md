@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.66.3
+*unreleased*
+* Use proper plugin name in error ([#2470](https://github.com/rollup/rollup/pull/2470))
+
 ## 0.66.2
 *2018-09-21*
 * Add additional information to parse errors messages in JSON and other non-JS files ([#2466](https://github.com/rollup/rollup/pull/2466))
