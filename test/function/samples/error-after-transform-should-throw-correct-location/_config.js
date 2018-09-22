@@ -33,6 +33,6 @@ module.exports = {
 			2:
 			3: Object.assign({}, a);
 		`,
-		url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+		url: `https://rollupjs.org/guide/en#error-name-is-not-exported-by-module-`
 	}
 };

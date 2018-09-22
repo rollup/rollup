@@ -812,7 +812,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 										module.id
 									)}, but could not be resolved – treating it as an external dependency`,
 									url:
-										'https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency'
+										'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
 								});
 							}
 							isExternal = true;

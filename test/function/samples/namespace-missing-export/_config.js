@@ -21,7 +21,7 @@ module.exports = {
 				3: assert.equal( typeof mod.foo, 'undefined' );
 				                            ^
 			`,
-			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+			url: `https://rollupjs.org/guide/en#error-name-is-not-exported-by-module-`
 		}
 	]
 };
