@@ -15,10 +15,10 @@
   </a>
     <a href="#backers" alt="sponsors on Open Collective">
       <img src="https://opencollective.com/rollup/backers/badge.svg" />
-  </a> 
+  </a>
   <a href="#sponsors" alt="Sponsors on Open Collective">
     <img src="https://opencollective.com/rollup/sponsors/badge.svg" />
-  </a> 
+  </a>
   <a href="https://github.com/rollup/rollup/blob/master/LICENSE.md">
     <img src="https://img.shields.io/npm/l/rollup.svg"
          alt="license">
@@ -50,21 +50,21 @@ For browsers:
 
 ```bash
 # compile to a <script> containing a self-executing function
-$ rollup main.js --format iife --name "myBundle" --file bundle.js
+$ rollup main.js --output.format iife --name "myBundle" --file bundle.js
 ```
 
 For Node.js:
 
 ```bash
 # compile to a CommonJS module
-$ rollup main.js --format cjs --file bundle.js
+$ rollup main.js --output.format cjs --file bundle.js
 ```
 
 For both browsers and Node.js:
 
 ```bash
 # UMD format requires a bundle name
-$ rollup main.js --format umd --name "myBundle" --file bundle.js
+$ rollup main.js --output.format umd --name "myBundle" --file bundle.js
 ```
 
 ## Why
