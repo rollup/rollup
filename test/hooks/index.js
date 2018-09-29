@@ -1074,7 +1074,7 @@ module.exports = input;
 			});
 	});
 
-	it('assigns chunk IDs before creating outputBundle chunks', () => {
+	it.only('assigns chunk IDs before creating outputBundle chunks', () => {
 		const chunks = [];
 		return rollup
 			.rollup({
@@ -1083,7 +1083,7 @@ module.exports = input;
 				plugins: [
 					loader({
 						input: `export default [import('a'), import('b')];`,
-						a: `import c from 'c'; import d from 'd'; export default () => c();`,
+						a: `import d from 'd'; import c from 'c'; export default () => c();`,
 						b: `import c from 'c'; export default () => c();`,
 						c: `export default () => console.log('c');`,
 						d: `export default {};`
@@ -1114,14 +1114,14 @@ module.exports = input;
 						modules: ['input']
 					},
 					{
-						fileName: 'chunk.js',
-						imports: [],
-						modules: ['c']
-					},
-					{
 						fileName: 'a.js',
 						imports: ['chunk.js'],
 						modules: ['d', 'a']
+					},
+					{
+						fileName: 'chunk.js',
+						imports: [],
+						modules: ['c']
 					},
 					{
 						fileName: 'b.js',
