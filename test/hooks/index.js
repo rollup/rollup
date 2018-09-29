@@ -1074,7 +1074,7 @@ module.exports = input;
 			});
 	});
 
-	it.only('assigns chunk IDs before creating outputBundle chunks', () => {
+	it('assigns chunk IDs before creating outputBundle chunks', () => {
 		const chunks = [];
 		return rollup
 			.rollup({
