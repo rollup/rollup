@@ -282,6 +282,7 @@ export default function rollup(
 							}
 
 							// name all chunks
+							const usedIds: Record<string, true> = {};
 							for (let i = 0; i < chunks.length; i++) {
 								const chunk = chunks[i];
 
@@ -303,7 +304,8 @@ export default function rollup(
 										pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
 										patternName = 'output.chunkFileNames';
 									}
-									chunk.generateId(pattern, patternName, addons, outputOptions, outputBundle);
+									chunk.generateId(pattern, patternName, addons, outputOptions, usedIds);
+									usedIds[chunk.id] = true;
 								}
 							}
 
