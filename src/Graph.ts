@@ -1,6 +1,6 @@
 import * as acorn from 'acorn';
-import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
-import injectImportMeta from 'acorn-import-meta/inject';
+import injectDynamicImportPlugin from 'acorn-dynamic-import';
+import injectImportMeta from 'acorn-import-meta';
 import { Program } from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
@@ -50,7 +50,7 @@ function makeOnwarn() {
 export default class Graph {
 	curChunkIndex = 0;
 	acornOptions: acorn.Options;
-	acornParse: acorn.IParse;
+	acornParser: acorn.Parser;
 	cachedModules: Map<string, ModuleJSON>;
 	context: string;
 	externalModules: ExternalModule[] = [];
@@ -132,7 +132,11 @@ export default class Graph {
 		}
 
 		this.contextParse = (code: string, options: acorn.Options = {}) => {
-			return this.acornParse(code, { ...defaultAcornOptions, ...options, ...this.acornOptions });
+			return this.acornParser.parse(code, {
+				...defaultAcornOptions,
+				...options,
+				...this.acornOptions
+			});
 		};
 
 		this.pluginDriver = createPluginDriver(this, options, this.pluginCache, watcher);
@@ -188,9 +192,6 @@ export default class Graph {
 
 		acornPluginsToInject.push(injectDynamicImportPlugin);
 		acornPluginsToInject.push(injectImportMeta);
-		this.acornOptions.plugins = this.acornOptions.plugins || {};
-		this.acornOptions.plugins.dynamicImport = true;
-		this.acornOptions.plugins.importMeta = true;
 
 		if (options.experimentalTopLevelAwait) {
 			(<any>this.acornOptions).allowAwaitOutsideFunction = true;
@@ -204,7 +205,7 @@ export default class Graph {
 					? [acornInjectPlugins]
 					: [])
 		);
-		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
+		this.acornParser = <any>acorn.Parser.extend(...acornPluginsToInject);
 	}
 
 	getCache(): RollupCache {
