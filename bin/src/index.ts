@@ -14,7 +14,7 @@ if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
 	console.log(`rollup v${version}`); // eslint-disable-line no-console
 } else {
 	try {
-		require('source-map-support').install();
+		(0, require)('source-map-support').install();
 	} catch (err) {
 		// do nothing
 	}
