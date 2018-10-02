@@ -282,11 +282,9 @@ export default function rollup(
 							}
 
 							// name all chunks
+							const usedIds: Record<string, true> = {};
 							for (let i = 0; i < chunks.length; i++) {
 								const chunk = chunks[i];
-								const imports = chunk.getImportIds();
-								const exports = chunk.getExportNames();
-								const modules = chunk.renderedModules;
 
 								if (chunk === singleChunk) {
 									singleChunk.id = basename(
@@ -306,15 +304,21 @@ export default function rollup(
 										pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
 										patternName = 'output.chunkFileNames';
 									}
-									chunk.generateId(pattern, patternName, addons, outputOptions, outputBundle);
+									chunk.generateId(pattern, patternName, addons, outputOptions, usedIds);
+									usedIds[chunk.id] = true;
 								}
+							}
+
+							// assign to outputBundle
+							for (let i = 0; i < chunks.length; i++) {
+								const chunk = chunks[i];
 
 								outputBundle[chunk.id] = {
 									fileName: chunk.id,
 									isEntry: chunk.entryModule !== undefined,
-									imports,
-									exports,
-									modules,
+									imports: chunk.getImportIds(),
+									exports: chunk.getExportNames(),
+									modules: chunk.renderedModules,
 									code: undefined,
 									map: undefined
 								};
