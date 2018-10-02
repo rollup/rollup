@@ -93,7 +93,7 @@ class Link {
 							names.push(traced.name);
 						}
 
-						tracedSegment[4] = nameIndex;
+						(<SourceMapSegmentVector>tracedSegment)[4] = nameIndex;
 					}
 
 					tracedLine.push(tracedSegment);
