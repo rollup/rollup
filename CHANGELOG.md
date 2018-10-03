@@ -2,7 +2,9 @@
 
 ## 0.66.3
 *unreleased*
+* Make sure chunk ids are assigned before creating output bundle ([#2483](https://github.com/rollup/rollup/pull/2483))
 * Use proper plugin name in error ([#2470](https://github.com/rollup/rollup/pull/2470))
+* Update TypeScript version and fix type errors ([#2488](https://github.com/rollup/rollup/pull/2488))
 
 ## 0.66.2
 *2018-09-21*
