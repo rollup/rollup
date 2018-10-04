@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.66.4
+*2018-10-04*
+* Fix links in warnings and errors ([#2471](https://github.com/rollup/rollup/pull/2471))
+
 ## 0.66.3
 *2018-10-03*
 * Detect side-effects in string.replace function arguments ([#2476](https://github.com/rollup/rollup/pull/2476))
