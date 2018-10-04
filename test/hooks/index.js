@@ -829,13 +829,13 @@ module.exports = input;
 						plugins: [
 							loader({ input: `alert('hello')` }),
 							{
-								name: name,
+								name,
 								buildStart() {
 									this.cache.set('asdf', 'asdf');
 								}
 							},
 							{
-								name: name,
+								name,
 								buildStart() {
 									this.cache.set('asdf', 'asdf');
 								}
@@ -845,7 +845,7 @@ module.exports = input;
 					.catch(err => {
 						assert.equal(err.code, 'PLUGIN_ERROR');
 						assert.equal(err.pluginCode, 'DUPLICATE_PLUGIN_NAME');
-						assert.equal(err.message.includes(name), true)
+						assert.equal(err.message.includes(name), true);
 					});
 			});
 	});
@@ -1071,6 +1071,64 @@ module.exports = input;
 				assert.equal(renderStartCount, 1, 'renderStart count');
 				assert.equal(generateBundleCount, 0, 'generateBundle count');
 				assert.equal(renderErrorCount, 1, 'renderError count');
+			});
+	});
+
+	it('assigns chunk IDs before creating outputBundle chunks', () => {
+		const chunks = [];
+		return rollup
+			.rollup({
+				input: 'input',
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({
+						input: `export default [import('a'), import('b')];`,
+						a: `import d from 'd'; import c from 'c'; export default () => c();`,
+						b: `import c from 'c'; export default () => c();`,
+						c: `export default () => console.log('c');`,
+						d: `export default {};`
+					}),
+					{
+						renderChunk(code, chunk, options) {
+							chunks.push({
+								fileName: chunk.fileName,
+								imports: chunk.imports,
+								modules: Object.keys(chunk.modules)
+							});
+						}
+					}
+				]
+			})
+			.then(bundle =>
+				bundle.generate({
+					entryFileNames: '[name].js',
+					chunkFileNames: '[name].js',
+					format: 'esm'
+				})
+			)
+			.then(() => {
+				assert.deepEqual(chunks, [
+					{
+						fileName: 'input.js',
+						imports: [],
+						modules: ['input']
+					},
+					{
+						fileName: 'a.js',
+						imports: ['chunk.js'],
+						modules: ['d', 'a']
+					},
+					{
+						fileName: 'chunk.js',
+						imports: [],
+						modules: ['c']
+					},
+					{
+						fileName: 'b.js',
+						imports: ['chunk.js'],
+						modules: ['b']
+					}
+				]);
 			});
 	});
 });
