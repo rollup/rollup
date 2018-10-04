@@ -17,7 +17,7 @@ module.exports = {
 				1: var result = eval( '1 + 1' );
 				                ^
 			`,
-			url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
+			url: 'https://rollupjs.org/guide/en#avoiding-eval'
 		}
 	]
 };

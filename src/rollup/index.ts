@@ -39,7 +39,7 @@ function addDeprecations(deprecations: Deprecation[], warn: WarningHandler) {
 function checkInputOptions(options: InputOptions) {
 	if (options.transform || options.load || options.resolveId || options.resolveExternal) {
 		throw new Error(
-			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details'
+			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://rollupjs.org/guide/en#plugins'
 		);
 	}
 }
@@ -48,14 +48,14 @@ function checkOutputOptions(options: OutputOptions) {
 	if (<string>options.format === 'es6') {
 		error({
 			message: 'The `es6` output format is deprecated – use `es` instead',
-			url: `https://rollupjs.org/#format-f-output-format-`
+			url: `https://rollupjs.org/guide/en#output-format-f-format`
 		});
 	}
 
 	if (!options.format) {
 		error({
 			message: `You must specify output.format, which can be one of 'amd', 'cjs', 'system', 'esm', 'iife' or 'umd'`,
-			url: `https://rollupjs.org/#format-f-output-format-`
+			url: `https://rollupjs.org/guide/en#output-format-f-format`
 		});
 	}
 

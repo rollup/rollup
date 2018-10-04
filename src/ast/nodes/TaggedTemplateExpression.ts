@@ -33,7 +33,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 					{
 						code: 'EVAL',
 						message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
-						url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
+						url: 'https://rollupjs.org/guide/en#avoiding-eval'
 					},
 					this.start
 				);

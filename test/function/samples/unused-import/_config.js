@@ -6,7 +6,7 @@ module.exports = {
 			importer: 'main.js',
 			source: 'external',
 			message: `'external' is imported by main.js, but could not be resolved – treating it as an external dependency`,
-			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-external-dependency`
+			url: `https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency`
 		},
 		{
 			code: 'UNUSED_EXTERNAL_IMPORT',

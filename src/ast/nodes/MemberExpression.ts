@@ -266,7 +266,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 					importer: relativeId(this.context.fileName),
 					exporter: relativeId(fileName),
 					message: `'${exportName}' is not exported by '${relativeId(fileName)}'`,
-					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+					url: `https://rollupjs.org/guide/en#error-name-is-not-exported-by-module-`
 				},
 				path[0].pos
 			);
