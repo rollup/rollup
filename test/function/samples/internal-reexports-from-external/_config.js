@@ -1,0 +1,13 @@
+module.exports = {
+	description:
+		'fails with a helpful error if creating a namespace object containing a reexported external namespace',
+	options: {
+		external: ['external']
+	},
+	error: {
+		code: 'NAMESPACE_CANNOT_CONTAIN_EXTERNAL',
+		message:
+			'Cannot create an explicit namespace object for module "reexport" because it contains a reexported external namespace',
+		id: __dirname + '/reexport.js'
+	}
+};
