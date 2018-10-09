@@ -168,6 +168,9 @@ export default function rollup(
 
 		const graph = new Graph(inputOptions, curWatcher);
 		curWatcher = undefined;
+		
+		// remove the cache option from the memory after graph creation (cache is not used anymore)
+		delete inputOptions.cache;
 
 		timeStart('BUILD', 1);
 
