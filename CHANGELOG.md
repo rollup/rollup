@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.66.5
+*2018-10-09*
+* Remove cache from memory once no longer needed ([#2496](https://github.com/rollup/rollup/pull/2496))
+* Provide better error message when reexporting external namespace reexports ([#2499](https://github.com/rollup/rollup/pull/2499))
+
 ## 0.66.4
 *2018-10-04*
 * Fix links in warnings and errors ([#2471](https://github.com/rollup/rollup/pull/2471))
