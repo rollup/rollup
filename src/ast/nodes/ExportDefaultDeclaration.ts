@@ -8,7 +8,7 @@ import {
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration, { isClassDeclaration } from './ClassDeclaration';
 import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaration';
-import Identifier, { isIdentifier } from './Identifier';
+import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionNode, Node, NodeBase } from './shared/Node';
 
@@ -43,19 +43,6 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	needsBoundaries: true;
 	variable: ExportDefaultVariable;
 	private declarationName: string;
-
-	bind() {
-		super.bind();
-		if (
-			this.declarationName &&
-			// Do not set it for Class and FunctionExpressions otherwise they get treeshaken away
-			(isFunctionDeclaration(this.declaration) ||
-				isClassDeclaration(this.declaration) ||
-				isIdentifier(this.declaration))
-		) {
-			this.variable.setOriginalVariable(this.scope.findVariable(this.declarationName));
-		}
-	}
 
 	initialise() {
 		this.included = false;
