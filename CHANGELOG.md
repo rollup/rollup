@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.66.6
+*2018-10-10*
+* Properly deconflict function and class declaration ids of reassigned default exports ([#2502](https://github.com/rollup/rollup/pull/2502))
+
 ## 0.66.5
 *2018-10-09*
 * Remove cache from memory once no longer needed ([#2496](https://github.com/rollup/rollup/pull/2496))
