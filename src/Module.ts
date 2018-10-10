@@ -7,8 +7,6 @@ import ExportDefaultDeclaration, {
 	isExportDefaultDeclaration
 } from './ast/nodes/ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
-import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
-import Identifier from './ast/nodes/Identifier';
 import Import from './ast/nodes/Import';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
@@ -366,10 +364,6 @@ export default class Module {
 			// export default function foo () {}
 			// export default foo;
 			// export default 42;
-			const identifier =
-				((<FunctionDeclaration>node.declaration).id &&
-					(<FunctionDeclaration>node.declaration).id.name) ||
-				(<Identifier>node.declaration).name;
 			if (this.exports.default) {
 				this.error(
 					{
@@ -382,7 +376,7 @@ export default class Module {
 
 			this.exports.default = {
 				localName: 'default',
-				identifier,
+				identifier: node.variable.getOriginalVariableName(),
 				node
 			};
 		} else if ((<ExportNamedDeclaration>node).declaration) {
