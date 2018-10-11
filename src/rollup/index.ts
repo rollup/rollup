@@ -168,7 +168,7 @@ export default function rollup(
 
 		const graph = new Graph(inputOptions, curWatcher);
 		curWatcher = undefined;
-		
+
 		// remove the cache option from the memory after graph creation (cache is not used anymore)
 		delete inputOptions.cache;
 
@@ -455,6 +455,7 @@ function writeOutputFile(
 	outputOptions: OutputOptions
 ): Promise<void> {
 	const filename = resolve(outputOptions.dir || dirname(outputOptions.file), outputFileName);
+	console.log('file', filename);
 	let writeSourceMapPromise: Promise<void>;
 	let source: string | Buffer;
 	if (isOutputChunk(outputFile)) {
