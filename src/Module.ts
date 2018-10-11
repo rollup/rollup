@@ -7,8 +7,6 @@ import ExportDefaultDeclaration, {
 	isExportDefaultDeclaration
 } from './ast/nodes/ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
-import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
-import Identifier from './ast/nodes/Identifier';
 import Import from './ast/nodes/Import';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
@@ -158,7 +156,7 @@ function handleMissingExport(
 		{
 			code: 'MISSING_EXPORT',
 			message: `'${exportName}' is not exported by ${relativeId(importedModule)}`,
-			url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+			url: `https://rollupjs.org/guide/en#error-name-is-not-exported-by-module-`
 		},
 		importerStart
 	);
@@ -367,10 +365,6 @@ export default class Module {
 			// export default function foo () {}
 			// export default foo;
 			// export default 42;
-			const identifier =
-				((<FunctionDeclaration>node.declaration).id &&
-					(<FunctionDeclaration>node.declaration).id.name) ||
-				(<Identifier>node.declaration).name;
 			if (this.exports.default) {
 				this.error(
 					{
@@ -383,7 +377,7 @@ export default class Module {
 
 			this.exports.default = {
 				localName: 'default',
-				identifier,
+				identifier: node.variable.getOriginalVariableName(),
 				node
 			};
 		} else if ((<ExportNamedDeclaration>node).declaration) {

@@ -49,7 +49,7 @@ function createResolveId(options: InputOptions) {
 			error({
 				code: 'MISSING_PROCESS',
 				message: `It looks like you're using Rollup in a non-Node.js environment. This means you must supply a plugin with custom resolveId and load functions`,
-				url: 'https://github.com/rollup/rollup/wiki/Plugins'
+				url: 'https://rollupjs.org/guide/en#a-simple-example'
 			});
 		}
 

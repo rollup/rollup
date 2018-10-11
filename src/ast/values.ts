@@ -254,10 +254,9 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 	},
 	hasEffectsWhenAccessedAtPath: path => path.length > 1,
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
-	hasEffectsWhenCalledAtPath: path => {
+	hasEffectsWhenCalledAtPath: (path, callOptions, options) => {
 		if (path.length === 1) {
-			const subPath = path[0];
-			return typeof subPath !== 'string' || !literalStringMembers[subPath];
+			return hasMemberEffectWhenCalled(literalStringMembers, path[0], true, callOptions, options);
 		}
 		return true;
 	},

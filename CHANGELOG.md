@@ -1,8 +1,24 @@
 # rollup changelog
 
+## 0.66.6
+*2018-10-10*
+* Properly deconflict function and class declaration ids of reassigned default exports ([#2502](https://github.com/rollup/rollup/pull/2502))
+
+## 0.66.5
+*2018-10-09*
+* Remove cache from memory once no longer needed ([#2496](https://github.com/rollup/rollup/pull/2496))
+* Provide better error message when reexporting external namespace reexports ([#2499](https://github.com/rollup/rollup/pull/2499))
+
+## 0.66.4
+*2018-10-04*
+* Fix links in warnings and errors ([#2471](https://github.com/rollup/rollup/pull/2471))
+
 ## 0.66.3
-*unreleased*
+*2018-10-03*
+* Detect side-effects in string.replace function arguments ([#2476](https://github.com/rollup/rollup/pull/2476))
+* Make sure chunk ids are assigned before creating output bundle ([#2483](https://github.com/rollup/rollup/pull/2483))
 * Use proper plugin name in error ([#2470](https://github.com/rollup/rollup/pull/2470))
+* Update TypeScript version and fix type errors ([#2488](https://github.com/rollup/rollup/pull/2488))
 
 ## 0.66.2
 *2018-09-21*

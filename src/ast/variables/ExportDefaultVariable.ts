@@ -16,7 +16,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 	hasId: boolean;
 
 	// Not initialised during construction
-	private original: Variable | null = null;
+	private originalId: Identifier | null = null;
 
 	constructor(
 		name: string,
@@ -29,37 +29,37 @@ export default class ExportDefaultVariable extends LocalVariable {
 			exportDefaultDeclaration.declaration,
 			deoptimizationTracker
 		);
-		this.hasId =
-			(exportDefaultDeclaration.declaration.type === NodeType.FunctionDeclaration ||
-				exportDefaultDeclaration.declaration.type === NodeType.ClassDeclaration) &&
-			!!(<FunctionDeclaration | ClassDeclaration>exportDefaultDeclaration.declaration).id;
+		const declaration = exportDefaultDeclaration.declaration;
+		if (
+			(declaration.type === NodeType.FunctionDeclaration ||
+				declaration.type === NodeType.ClassDeclaration) &&
+			(<FunctionDeclaration | ClassDeclaration>declaration).id
+		) {
+			this.hasId = true;
+			this.originalId = (<FunctionDeclaration | ClassDeclaration>declaration).id;
+		} else if (declaration.type === NodeType.Identifier) {
+			this.originalId = <Identifier>declaration;
+		}
 	}
 
 	addReference(identifier: Identifier) {
 		if (!this.hasId) {
 			this.name = identifier.name;
-			if (this.original !== null) {
-				this.original.addReference(identifier);
-			}
 		}
 	}
 
 	getName(reset?: boolean) {
 		if (!reset && this.safeName) return this.safeName;
-		if (this.original !== null && !this.original.isReassigned) return this.original.getName();
+		if (this.referencesOriginal()) return this.originalId.variable.getName();
 		return this.name;
 	}
 
 	referencesOriginal() {
-		return this.original && !this.original.isReassigned;
+		return this.originalId && (this.hasId || !this.originalId.variable.isReassigned);
 	}
 
-	getOriginalVariableName() {
-		return this.original && this.original.getName();
-	}
-
-	setOriginalVariable(original: Variable) {
-		this.original = original;
+	getOriginalVariableName(): string | null {
+		return (this.originalId && this.originalId.name) || null;
 	}
 }
 

@@ -60,7 +60,7 @@ export default function loadConfigFile(
 						handleError({
 							code: 'MISSING_CONFIG',
 							message: 'Config file must export an options object, or an array of options objects',
-							url: 'https://rollupjs.org/#using-config-files'
+							url: 'https://rollupjs.org/guide/en#configuration-files'
 						});
 					}
 

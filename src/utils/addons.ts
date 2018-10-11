@@ -10,12 +10,12 @@ export interface Addons {
 	hash: Uint8Array;
 }
 
-function evalIfFn<T = string>(strOrFn: T | (() => T | Promise<T>)) {
+function evalIfFn(strOrFn: string | (() => string | Promise<string>)): string | Promise<string> {
 	switch (typeof strOrFn) {
 		case 'function':
-			return (<() => T | Promise<T>>strOrFn)();
+			return strOrFn();
 		case 'string':
-			return <T>strOrFn;
+			return strOrFn;
 		default:
 			return '';
 	}

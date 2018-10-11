@@ -247,7 +247,10 @@ export default class Chunk {
 		const tracedExports: { variable: Variable; module: Module | ExternalModule }[] = [];
 		for (const [index, exportName] of entryExportEntries) {
 			const traced = this.traceExport(exportName, this.entryModule);
-			if (traced.variable && !traced.variable.included && !traced.variable.isExternal) {
+			if (
+				!traced ||
+				(traced.variable && !traced.variable.included && !traced.variable.isExternal)
+			) {
 				continue;
 			}
 			tracedExports[index] = traced;
@@ -332,8 +335,8 @@ export default class Chunk {
 	): {
 		variable: Variable;
 		module: Module | ExternalModule;
-	} {
-		if (name === '*' || module instanceof ExternalModule) {
+	} | void {
+		if (name[0] === '*' || module instanceof ExternalModule) {
 			return { variable: module.traceExport(name), module };
 		}
 
@@ -363,11 +366,6 @@ export default class Chunk {
 
 		if (name === 'default') {
 			return;
-		}
-
-		// external star exports
-		if (name[0] === '*') {
-			return { variable: undefined, module: this.graph.moduleById.get(name.substr(1)) };
 		}
 
 		// resolve known star exports

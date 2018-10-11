@@ -39,7 +39,7 @@ function addDeprecations(deprecations: Deprecation[], warn: WarningHandler) {
 function checkInputOptions(options: InputOptions) {
 	if (options.transform || options.load || options.resolveId || options.resolveExternal) {
 		throw new Error(
-			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details'
+			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://rollupjs.org/guide/en#plugins'
 		);
 	}
 }
@@ -48,14 +48,14 @@ function checkOutputOptions(options: OutputOptions) {
 	if (<string>options.format === 'es6') {
 		error({
 			message: 'The `es6` output format is deprecated – use `es` instead',
-			url: `https://rollupjs.org/#format-f-output-format-`
+			url: `https://rollupjs.org/guide/en#output-format-f-format`
 		});
 	}
 
 	if (!options.format) {
 		error({
 			message: `You must specify output.format, which can be one of 'amd', 'cjs', 'system', 'esm', 'iife' or 'umd'`,
-			url: `https://rollupjs.org/#format-f-output-format-`
+			url: `https://rollupjs.org/guide/en#output-format-f-format`
 		});
 	}
 
@@ -168,6 +168,9 @@ export default function rollup(
 
 		const graph = new Graph(inputOptions, curWatcher);
 		curWatcher = undefined;
+		
+		// remove the cache option from the memory after graph creation (cache is not used anymore)
+		delete inputOptions.cache;
 
 		timeStart('BUILD', 1);
 
@@ -282,11 +285,9 @@ export default function rollup(
 							}
 
 							// name all chunks
+							const usedIds: Record<string, true> = {};
 							for (let i = 0; i < chunks.length; i++) {
 								const chunk = chunks[i];
-								const imports = chunk.getImportIds();
-								const exports = chunk.getExportNames();
-								const modules = chunk.renderedModules;
 
 								if (chunk === singleChunk) {
 									singleChunk.id = basename(
@@ -306,15 +307,21 @@ export default function rollup(
 										pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
 										patternName = 'output.chunkFileNames';
 									}
-									chunk.generateId(pattern, patternName, addons, outputOptions, outputBundle);
+									chunk.generateId(pattern, patternName, addons, outputOptions, usedIds);
+									usedIds[chunk.id] = true;
 								}
+							}
+
+							// assign to outputBundle
+							for (let i = 0; i < chunks.length; i++) {
+								const chunk = chunks[i];
 
 								outputBundle[chunk.id] = {
 									fileName: chunk.id,
 									isEntry: chunk.entryModule !== undefined,
-									imports,
-									exports,
-									modules,
+									imports: chunk.getImportIds(),
+									exports: chunk.getExportNames(),
+									modules: chunk.renderedModules,
 									code: undefined,
 									map: undefined
 								};
