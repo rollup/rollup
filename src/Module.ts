@@ -100,8 +100,7 @@ export interface AstContext {
 }
 
 export const defaultAcornOptions: acorn.Options = {
-	// TODO TypeScript waiting for acorn types to be updated
-	ecmaVersion: <any>2019,
+	ecmaVersion: 2019,
 	sourceType: 'module',
 	preserveParens: false
 };
@@ -260,7 +259,9 @@ export default class Module {
 
 		timeStart('generate ast', 3);
 
-		this.esTreeAst = ast || tryParse(this, this.graph.acornParser, this.graph.acornOptions);
+		this.esTreeAst = <ESTree.Program>(
+			(ast || tryParse(this, this.graph.acornParser, this.graph.acornOptions))
+		);
 
 		timeEnd('generate ast', 3);
 

@@ -829,13 +829,13 @@ module.exports = input;
 						plugins: [
 							loader({ input: `alert('hello')` }),
 							{
-								name: name,
+								name,
 								buildStart() {
 									this.cache.set('asdf', 'asdf');
 								}
 							},
 							{
-								name: name,
+								name,
 								buildStart() {
 									this.cache.set('asdf', 'asdf');
 								}
@@ -845,7 +845,7 @@ module.exports = input;
 					.catch(err => {
 						assert.equal(err.code, 'PLUGIN_ERROR');
 						assert.equal(err.pluginCode, 'DUPLICATE_PLUGIN_NAME');
-						assert.equal(err.message.includes(name), true)
+						assert.equal(err.message.includes(name), true);
 					});
 			});
 	});

@@ -1,7 +1,7 @@
 import * as acorn from 'acorn';
 import injectDynamicImportPlugin from 'acorn-dynamic-import';
 import injectImportMeta from 'acorn-import-meta';
-import { Program } from 'estree';
+import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
 import GlobalVariable from './ast/variables/GlobalVariable';
@@ -50,7 +50,7 @@ function makeOnwarn() {
 export default class Graph {
 	curChunkIndex = 0;
 	acornOptions: acorn.Options;
-	acornParser: acorn.Parser;
+	acornParser: typeof acorn.Parser;
 	cachedModules: Map<string, ModuleJSON>;
 	context: string;
 	externalModules: ExternalModule[] = [];
@@ -70,7 +70,7 @@ export default class Graph {
 
 	isExternal: IsExternal;
 
-	contextParse: (code: string, acornOptions?: acorn.Options) => Program;
+	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
 
 	pluginDriver: PluginDriver;
 	pluginCache: Record<string, SerializablePluginCache>;
@@ -136,7 +136,7 @@ export default class Graph {
 				...defaultAcornOptions,
 				...options,
 				...this.acornOptions
-			});
+			}) as any;
 		};
 
 		this.pluginDriver = createPluginDriver(this, options, this.pluginCache, watcher);
