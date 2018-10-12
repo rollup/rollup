@@ -1,5 +1,5 @@
 module.exports = {
-	solo: true,
+	// solo: true,
 	description: 'Retain the execution order of external imports',
 	options: {
 		external(id) {
