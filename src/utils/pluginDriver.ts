@@ -104,7 +104,9 @@ export function createPluginDriver(
 			},
 			parse: graph.contextParse,
 			resolveId(id: string, parent: string) {
-				return pluginDriver.hookFirst('resolveId', [id, parent]);
+				return this.isExternal(id, parent, false)
+					? false
+					: pluginDriver.hookFirst('resolveId', [id, parent]);
 			},
 			setAssetSource,
 			warn: (warning: RollupWarning | string) => {
@@ -342,8 +344,7 @@ function uncacheablePluginError(pluginName: string) {
 	else
 		error({
 			code: 'DUPLICATE_PLUGIN_NAME',
-			message:
-				`The plugin name ${pluginName} is being used twice in the same build. Plugin names must be distinct or provide a cacheKey (please post an issue to the plugin if you are a plugin user).`
+			message: `The plugin name ${pluginName} is being used twice in the same build. Plugin names must be distinct or provide a cacheKey (please post an issue to the plugin if you are a plugin user).`
 		});
 }
 

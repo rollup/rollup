@@ -788,7 +788,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 						]);
 					})
 					.then(resolvedId => {
-						// TODO types of `resolvedId` are not compatable with 'externalId'.
+						// TODO types of `resolvedId` are not compatible with 'externalId'.
 						// `this.resolveId` returns `string`, `void`, and `boolean`
 						const externalId =
 							<string>resolvedId ||
