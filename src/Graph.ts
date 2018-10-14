@@ -30,6 +30,7 @@ import {
 	Uint8ArrayXor
 } from './utils/entryHashing';
 import error from './utils/error';
+import { sortByExecutionOrder } from './utils/execution-order';
 import { isRelative, relative, resolve } from './utils/path';
 import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
@@ -432,8 +433,14 @@ export default class Graph {
 				//       exposed as an unresolvable export * (to a graph external export *,
 				//       either as a namespace import reexported or top-level export *)
 				//       should be made to be its own entry point module before chunking
-				let chunkList: Chunk[] = [];
-				if (!preserveModules) {
+				let chunks: Chunk[] = [];
+				if (preserveModules) {
+					for (const module of orderedModules) {
+						const chunk = new Chunk(this, [module]);
+						if (module.isEntryPoint || !chunk.isEmpty) chunk.entryModule = module;
+						chunks.push(chunk);
+					}
+				} else {
 					const chunkModules: { [entryHashSum: string]: Module[] } = {};
 					for (const module of orderedModules) {
 						const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
@@ -445,35 +452,25 @@ export default class Graph {
 						}
 					}
 
-					// create each chunk
 					for (const entryHashSum in chunkModules) {
-						const chunkModulesOrdered = chunkModules[entryHashSum].sort(
-							(moduleA, moduleB) => (moduleA.execIndex > moduleB.execIndex ? 1 : -1)
-						);
+						const chunkModulesOrdered = chunkModules[entryHashSum];
+						sortByExecutionOrder(chunkModulesOrdered);
 						const chunk = new Chunk(this, chunkModulesOrdered);
-						chunkList.push(chunk);
-					}
-				} else {
-					for (const module of orderedModules) {
-						const chunkInstance = new Chunk(this, [module]);
-						if (module.isEntryPoint || !chunkInstance.isEmpty) chunkInstance.entryModule = module;
-						chunkList.push(chunkInstance);
+						chunks.push(chunk);
 					}
 				}
 
 				// for each chunk module, set up its imports to other
 				// chunks, if those variables are included after treeshaking
-				for (const chunk of chunkList) {
+				for (const chunk of chunks) {
 					chunk.link();
 				}
 
 				// filter out empty dependencies
-				chunkList = chunkList.filter(
-					chunk => !chunk.isEmpty || chunk.entryModule || chunk.isManualChunk
-				);
+				chunks = chunks.filter(chunk => !chunk.isEmpty || chunk.entryModule || chunk.isManualChunk);
 
 				// then go over and ensure all entry chunks export their variables
-				for (const chunk of chunkList) {
+				for (const chunk of chunks) {
 					if (preserveModules || chunk.entryModule) {
 						chunk.populateEntryExports(preserveModules);
 					}
@@ -485,7 +482,7 @@ export default class Graph {
 						if (!entryModule.chunk.isEntryModuleFacade) {
 							const entryPointFacade = new Chunk(this, []);
 							entryPointFacade.linkFacade(entryModule);
-							chunkList.push(entryPointFacade);
+							chunks.push(entryPointFacade);
 						}
 					}
 				}
@@ -493,7 +490,7 @@ export default class Graph {
 				timeEnd('generate chunks', 2);
 
 				this.finished = true;
-				return chunkList;
+				return chunks;
 			}
 		);
 	}

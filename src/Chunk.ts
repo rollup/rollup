@@ -23,6 +23,7 @@ import { Addons } from './utils/addons';
 import { toBase64 } from './utils/base64';
 import collapseSourcemaps from './utils/collapseSourcemaps';
 import error from './utils/error';
+import { sortByExecutionOrder } from './utils/execution-order';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, dirname, normalize, relative, resolve } from './utils/path';
@@ -111,7 +112,6 @@ export default class Chunk {
 	name: string;
 	graph: Graph;
 	orderedModules: Module[];
-	linked = false;
 	execIndex: number;
 
 	renderedModules: {
@@ -208,12 +208,14 @@ export default class Chunk {
 
 	link() {
 		this.dependencies = [];
-		for (const module of this.orderedModules) this.linkModule(module);
-		this.dependencies.sort((depA, depB) => (depA.execIndex > depB.execIndex ? 1 : -1));
-		this.linked = true;
+		for (const module of this.orderedModules) {
+			this.addModuleDependenciesToChunk(module);
+			this.setUpModuleImports(module);
+		}
+		sortByExecutionOrder(this.dependencies);
 	}
 
-	linkModule(module: Module) {
+	private addModuleDependenciesToChunk(module: Module) {
 		for (const depModule of module.dependencies) {
 			if (depModule.chunk === this) {
 				continue;
@@ -232,9 +234,12 @@ export default class Chunk {
 				this.dependencies.push(dependency);
 			}
 		}
+	}
+
+	private setUpModuleImports(module: Module) {
 		for (const importName of Object.keys(module.imports)) {
 			const declaration = module.imports[importName];
-			this.traceImport(declaration.name, declaration.module);
+			this.traceAndInitializeImport(declaration.name, declaration.module);
 		}
 		for (const { resolution } of module.dynamicImportResolutions) {
 			this.hasDynamicImport = true;
@@ -295,7 +300,7 @@ export default class Chunk {
 		}
 	}
 
-	private traceImport(exportName: string, module: Module | ExternalModule) {
+	private traceAndInitializeImport(exportName: string, module: Module | ExternalModule) {
 		const traced = this.traceExport(exportName, module);
 
 		if (!traced) return;
@@ -312,7 +317,7 @@ export default class Chunk {
 					// namespace exports could be imported themselves, so retrace
 					// this handles recursive namespace exported on namespace cases as well
 					if (traced.variable.module instanceof Module) {
-						this.traceImport(importName, traced.variable.module);
+						this.traceAndInitializeImport(importName, traced.variable.module);
 					} else {
 						const externalVariable = traced.variable.module.traceExport(importName);
 						if (externalVariable.included) this.imports.set(original, traced.variable.module);
@@ -357,7 +362,7 @@ export default class Chunk {
 			// if export binding is itself an import binding then continue tracing
 			const importDeclaration = module.imports[exportDeclaration.localName];
 			if (importDeclaration) {
-				return this.traceImport(importDeclaration.name, importDeclaration.module);
+				return this.traceAndInitializeImport(importDeclaration.name, importDeclaration.module);
 			}
 			return { variable: module.traceExport(name), module };
 		}
