@@ -4,10 +4,7 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			const x = exports('a', 1);
-
-			const y = exports('b', 2);
-
-			const z = exports('c', 3);
+			console.log('too large for grouping');
 
 		}
 	};

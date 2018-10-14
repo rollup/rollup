@@ -112,6 +112,7 @@ export default class Chunk {
 	graph: Graph;
 	orderedModules: Module[];
 	linked = false;
+	execIndex: number;
 
 	renderedModules: {
 		[moduleId: string]: RenderedModule;
@@ -146,6 +147,7 @@ export default class Chunk {
 	constructor(graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
 		this.orderedModules = orderedModules;
+		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
 
 		this.isEmpty = true;
 		for (const module of orderedModules) {
@@ -207,26 +209,27 @@ export default class Chunk {
 	link() {
 		this.dependencies = [];
 		for (const module of this.orderedModules) this.linkModule(module);
+		this.dependencies.sort((depA, depB) => (depA.execIndex > depB.execIndex ? 1 : -1));
 		this.linked = true;
 	}
 
 	linkModule(module: Module) {
-		for (const dep of module.dependencies) {
-			if (dep.chunk === this) {
+		for (const depModule of module.dependencies) {
+			if (depModule.chunk === this) {
 				continue;
 			}
-			let depModule: Chunk | ExternalModule;
-			if (dep instanceof Module) {
-				depModule = dep.chunk;
+			let dependency: Chunk | ExternalModule;
+			if (depModule instanceof Module) {
+				dependency = depModule.chunk;
 			} else {
 				// unused pure external modules can be skipped
-				if (!dep.used && this.graph.isPureExternalModule(dep.id)) {
+				if (!depModule.used && this.graph.isPureExternalModule(depModule.id)) {
 					continue;
 				}
-				depModule = dep;
+				dependency = depModule;
 			}
-			if (this.dependencies.indexOf(depModule) === -1) {
-				this.dependencies.push(depModule);
+			if (this.dependencies.indexOf(dependency) === -1) {
+				this.dependencies.push(dependency);
 			}
 		}
 		for (const importName of Object.keys(module.imports)) {
@@ -1013,7 +1016,7 @@ export default class Chunk {
 		options: OutputOptions,
 		existingNames: { [name: string]: any }
 	) {
-		const outName = makeUnique(
+		this.id = makeUnique(
 			renderNamePattern(pattern, patternName, type => {
 				switch (type) {
 					case 'format':
@@ -1030,8 +1033,6 @@ export default class Chunk {
 			}),
 			existingNames
 		);
-
-		this.id = outName;
 	}
 
 	render(options: OutputOptions, addons: Addons, outputChunk: RenderedChunk) {

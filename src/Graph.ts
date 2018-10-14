@@ -447,8 +447,7 @@ export default class Graph {
 
 					// create each chunk
 					for (const entryHashSum in chunkModules) {
-						const chunkModuleList = chunkModules[entryHashSum];
-						const chunkModulesOrdered = chunkModuleList.sort(
+						const chunkModulesOrdered = chunkModules[entryHashSum].sort(
 							(moduleA, moduleB) => (moduleA.execIndex > moduleB.execIndex ? 1 : -1)
 						);
 						const chunk = new Chunk(this, chunkModulesOrdered);
@@ -509,6 +508,7 @@ export default class Graph {
 		const allSeen: { [id: string]: boolean } = {};
 
 		const orderedModules: Module[] = [];
+		let analyzedModuleCount = 0;
 
 		const dynamicImports: Module[] = [];
 		const dynamicImportAliases: string[] = [];
@@ -533,7 +533,10 @@ export default class Graph {
 			}
 
 			for (const depModule of module.dependencies) {
-				if (depModule instanceof ExternalModule) continue;
+				if (depModule instanceof ExternalModule) {
+					depModule.execIndex = analyzedModuleCount++;
+					continue;
+				}
 
 				if (depModule.id in parents) {
 					if (!allSeen[depModule.id]) {
@@ -566,7 +569,7 @@ export default class Graph {
 			if (allSeen[module.id]) return;
 			allSeen[module.id] = true;
 
-			module.execIndex = orderedModules.length;
+			module.execIndex = analyzedModuleCount++;
 			orderedModules.push(module);
 		};
 

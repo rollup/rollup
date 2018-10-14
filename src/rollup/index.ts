@@ -455,7 +455,6 @@ function writeOutputFile(
 	outputOptions: OutputOptions
 ): Promise<void> {
 	const filename = resolve(outputOptions.dir || dirname(outputOptions.file), outputFileName);
-	console.log('file', filename);
 	let writeSourceMapPromise: Promise<void>;
 	let source: string | Buffer;
 	if (isOutputChunk(outputFile)) {
