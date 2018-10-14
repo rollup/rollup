@@ -27,13 +27,13 @@ export interface RollupError {
 }
 
 export interface ExistingRawSourceMap {
-	version: string;
+	version: number;
 	sources: string[];
 	names: string[];
 	sourceRoot?: string;
 	sourcesContent?: string[];
 	mappings: string;
-	file: string;
+	file?: string;
 }
 
 export type RawSourceMap = { mappings: '' } | ExistingRawSourceMap;
