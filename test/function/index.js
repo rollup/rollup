@@ -30,20 +30,26 @@ function runSingleFileTest(code, configContext) {
 }
 
 function runCodeSplitTest(output, configContext) {
-	function requireFromOutput(fileName) {
-		const outputId = path.relative('.', fileName);
+	const requireFromOutputVia = importer => importee => {
+		const outputId = path.join(path.dirname(importer), importee);
 		const chunk = output[outputId];
 		if (chunk) {
-			return requireWithContext(chunk.code, context);
+			return requireWithContext(
+				chunk.code,
+				Object.assign({ require: requireFromOutputVia(outputId) }, context)
+			);
 		} else {
-			return require(fileName);
+			return require(importee);
 		}
-	}
+	};
 
-	const context = Object.assign({ require: requireFromOutput, assert }, configContext);
+	const context = Object.assign({ assert }, configContext);
 	let exports;
 	try {
-		exports = requireWithContext(output['main.js'].code, context);
+		exports = requireWithContext(
+			output['main.js'].code,
+			Object.assign({ require: requireFromOutputVia('main.js') }, context)
+		);
 	} catch (error) {
 		return { error, exports: error.exports };
 	}
