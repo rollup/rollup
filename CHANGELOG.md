@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.67.0
+*unreleased*
+* Fix public sourcemap type ([#2507](https://github.com/rollup/rollup/pull/2507))
+
 ## 0.66.6
 *2018-10-10*
 * Properly deconflict function and class declaration ids of reassigned default exports ([#2502](https://github.com/rollup/rollup/pull/2502))
