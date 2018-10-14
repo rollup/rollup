@@ -95,9 +95,11 @@ export class NodeBase implements ExpressionNode {
 		parent: Node | { type: string; context: AstContext },
 		parentScope: Scope
 	) {
-		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
 		this.parent = parent;
 		this.context = parent.context;
+		this.keys = this.context.nodeConstructors[esTreeNode.type]
+			? keys[esTreeNode.type] || getAndCreateKeys(esTreeNode)
+			: [];
 		this.createScope(parentScope);
 		this.parseNode(esTreeNode);
 		this.initialise();
