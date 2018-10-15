@@ -9,7 +9,7 @@ import error from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
-import { basename, dirname, resolve } from '../utils/path';
+import { basename, dirname, isAbsolute, resolve } from '../utils/path';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import { Watcher } from '../watch';
@@ -260,9 +260,10 @@ export default function rollup(
 					// populate asset files into output
 					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
 					const outputBundle: OutputBundle = graph.finaliseAssets(assetFileNames);
-
 					const inputBase = commondir(
-						chunks.filter(chunk => chunk.entryModule).map(chunk => chunk.entryModule.id)
+						chunks
+							.filter(chunk => chunk.entryModule && isAbsolute(chunk.entryModule.id))
+							.map(chunk => chunk.entryModule.id)
 					);
 
 					return graph.pluginDriver

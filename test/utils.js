@@ -160,8 +160,10 @@ function runTestsInDir(dir, runTest) {
 	const fileNames = sander.readdirSync(dir);
 
 	if (fileNames.indexOf('_config.js') >= 0) {
+		removeOldOutput(dir);
 		loadConfigAndRunTest(dir, runTest);
 	} else if (fileNames.indexOf('_actual') >= 0 || fileNames.indexOf('_actual.js') >= 0) {
+		removeOldOutput(dir);
 		removeOldTest(dir);
 	} else {
 		describe(path.basename(dir), () => {
@@ -174,7 +176,6 @@ function runTestsInDir(dir, runTest) {
 }
 
 function loadConfigAndRunTest(dir, runTest) {
-	removeOldOutput(dir);
 	const config = loadConfig(dir + '/_config.js');
 	if (
 		config &&

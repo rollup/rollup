@@ -26,7 +26,7 @@ import error from './utils/error';
 import { sortByExecutionOrder } from './utils/execution-order';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
-import { basename, dirname, normalize, relative, resolve } from './utils/path';
+import { basename, dirname, isAbsolute, normalize, relative, resolve } from './utils/path';
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
@@ -1011,7 +1011,13 @@ export default class Chunk {
 	}
 
 	generateIdPreserveModules(preserveModulesRelativeDir: string) {
-		return (this.id = normalize(relative(preserveModulesRelativeDir, this.entryModule.id)));
+		const sanitizedId = this.entryModule.id.replace('\0', '_');
+		this.id = normalize(
+			isAbsolute(this.entryModule.id)
+				? relative(preserveModulesRelativeDir, sanitizedId)
+				: 'ROLLUP_' + basename(sanitizedId)
+		);
+		return this.id;
 	}
 
 	generateId(
