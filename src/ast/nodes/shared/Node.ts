@@ -205,7 +205,7 @@ export class NodeBase implements ExpressionNode {
 
 	insertSemicolon(code: MagicString) {
 		if (code.original[this.end - 1] !== ';') {
-			code.appendLeft(this.end, ';');
+			code.appendRight(this.end, ';');
 		}
 	}
 
