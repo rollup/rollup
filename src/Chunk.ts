@@ -1010,14 +1010,19 @@ export default class Chunk {
 		this.preRender(options, inputBase);
 	}
 
-	generateIdPreserveModules(preserveModulesRelativeDir: string) {
+	generateIdPreserveModules(
+		preserveModulesRelativeDir: string,
+		existingNames: Record<string, true>
+	) {
 		const sanitizedId = this.entryModule.id.replace('\0', '_');
-		this.id = normalize(
-			isAbsolute(this.entryModule.id)
-				? relative(preserveModulesRelativeDir, sanitizedId)
-				: 'ROLLUP_' + basename(sanitizedId)
+		this.id = makeUnique(
+			normalize(
+				isAbsolute(this.entryModule.id)
+					? relative(preserveModulesRelativeDir, sanitizedId)
+					: '_virtual/' + basename(sanitizedId)
+			),
+			existingNames
 		);
-		return this.id;
 	}
 
 	generateId(
@@ -1025,7 +1030,7 @@ export default class Chunk {
 		patternName: string,
 		addons: Addons,
 		options: OutputOptions,
-		existingNames: { [name: string]: any }
+		existingNames: Record<string, true>
 	) {
 		this.id = makeUnique(
 			renderNamePattern(pattern, patternName, type => {

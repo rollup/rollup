@@ -1,10 +1,8 @@
-const assert = require('assert');
-
 module.exports = {
+	solo: true,
 	description: 'Generates actual files for virtual modules when preserving modules',
 	options: {
-		input: ['main.js'],
-		experimentalCodeSplitting: true,
+		input: 'main.js',
 		experimentalPreserveModules: true,
 		plugins: [
 			{
@@ -21,16 +19,5 @@ module.exports = {
 				}
 			}
 		]
-	},
-	bundle(bundle) {
-		return bundle
-			.generate({ format: 'esm' })
-			.then(generated =>
-				assert.deepEqual(Object.keys(generated.output), [
-					'_virtual/_virtualModule',
-					'lib/lib.js',
-					'main.js'
-				])
-			);
 	}
 };

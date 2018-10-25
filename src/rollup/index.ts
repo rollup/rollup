@@ -298,7 +298,7 @@ export default function rollup(
 												: <string>inputOptions.input)
 									);
 								} else if (inputOptions.experimentalPreserveModules) {
-									chunk.generateIdPreserveModules(inputBase);
+									chunk.generateIdPreserveModules(inputBase, usedIds);
 								} else {
 									let pattern, patternName;
 									if (chunk.isEntryModuleFacade) {
@@ -309,8 +309,8 @@ export default function rollup(
 										patternName = 'output.chunkFileNames';
 									}
 									chunk.generateId(pattern, patternName, addons, outputOptions, usedIds);
-									usedIds[chunk.id] = true;
 								}
+								usedIds[chunk.id] = true;
 							}
 
 							// assign to outputBundle

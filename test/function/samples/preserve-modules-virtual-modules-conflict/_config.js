@@ -9,15 +9,15 @@ module.exports = {
 		plugins: [
 			{
 				resolveId(id) {
-					if (id === '\0virtualModule') return id;
+					if (id === '\0virtualModule.js') return id;
 				},
 				load(id) {
-					if (id !== '\0virtualModule') return null;
+					if (id !== '\0virtualModule.js') return null;
 					return 'export const virtual = "Virtual!";\n';
 				},
 				transform(code, id) {
-					if (id === '\0virtualModule') return null;
-					return 'import {virtual} from "\0virtualModule";\n' + code;
+					if (id === '\0virtualModule.js') return null;
+					return 'import {virtual} from "\0virtualModule.js";\n' + code;
 				}
 			}
 		]
@@ -27,8 +27,8 @@ module.exports = {
 			.generate({ format: 'esm' })
 			.then(generated =>
 				assert.deepEqual(Object.keys(generated.output), [
-					'_virtual/_virtualModule',
-					'lib/lib.js',
+					'_virtual/_virtualModule.js',
+					'_virtual/_virtualModule2.js',
 					'main.js'
 				])
 			);
