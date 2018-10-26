@@ -271,6 +271,7 @@ function getOutputOptions(
 		outro: getOption('outro'),
 		paths: getOption('paths'),
 		sourcemap: getOption('sourcemap'),
+		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),
 		sourcemapFile: getOption('sourcemapFile'),
 		sourcemapPathTransform: getOption('sourcemapPathTransform'),
 		strict: getOption('strict', true)

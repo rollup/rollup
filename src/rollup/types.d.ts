@@ -283,6 +283,7 @@ export interface OutputOptions {
 	intro?: string | (() => string | Promise<string>);
 	outro?: string | (() => string | Promise<string>);
 	sourcemap?: boolean | 'inline';
+	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
 	sourcemapPathTransform?: (sourcePath: string) => string;
 	interop?: boolean;
