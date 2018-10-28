@@ -27,6 +27,7 @@ export default class ExternalModule {
 	constructor({ graph, id }: { graph: Graph; id: string }) {
 		this.graph = graph;
 		this.id = id;
+		this.execIndex = Infinity;
 
 		const parts = id.split(/[\\/]/);
 		this.name = makeLegal(parts.pop());

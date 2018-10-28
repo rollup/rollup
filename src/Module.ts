@@ -219,7 +219,7 @@ export default class Module {
 		this.importMetas = [];
 		this.dynamicImportResolutions = [];
 		this.isEntryPoint = false;
-		this.execIndex = null;
+		this.execIndex = Infinity;
 		this.entryPointsHash = new Uint8Array(10);
 
 		this.excludeFromSourcemap = /\0/.test(id);
