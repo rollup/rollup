@@ -18,7 +18,7 @@ export function sortByExecutionOrder(units: OrderedExecutionUnit[]) {
 
 export function analyzeModuleExecution(
 	entryModules: Module[],
-	generateChunkHashes: boolean,
+	generateChunkColouringHashes: boolean,
 	inlineDynamicImports: boolean,
 	manualChunkModules: Record<string, Module[]>
 ) {
@@ -39,7 +39,7 @@ export function analyzeModuleExecution(
 		// entry point and colouring those modules by the hash of its id. Colours are mixed as
 		// hash xors, providing the unique colouring of the graph into unique hash chunks.
 		// This is really all there is to automated chunking, the rest is chunk wiring.
-		if (generateChunkHashes) {
+		if (generateChunkColouringHashes) {
 			if (!curEntry.chunkAlias) {
 				Uint8ArrayXor(module.entryPointsHash, curEntryHash);
 			} else {
@@ -74,7 +74,7 @@ export function analyzeModuleExecution(
 			// colouring is the same as the parent module, then that dynamic import does
 			// not need to be treated as a new entry point as it is in the static graph
 			if (
-				!generateChunkHashes ||
+				!generateChunkColouringHashes ||
 				(!dynamicModule.resolution.chunkAlias &&
 					!Uint8ArrayEqual(dynamicModule.resolution.entryPointsHash, curEntry.entryPointsHash))
 			) {
@@ -92,7 +92,7 @@ export function analyzeModuleExecution(
 		orderedModules.push(module);
 	};
 
-	if (generateChunkHashes && manualChunkModules) {
+	if (generateChunkColouringHashes && manualChunkModules) {
 		for (const chunkName of Object.keys(manualChunkModules)) {
 			curEntryHash = randomUint8Array(10);
 
