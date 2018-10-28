@@ -2,6 +2,7 @@
 
 ## 0.67.0
 *unreleased*
+* Improve execution order of chunks and externals ([#2508](https://github.com/rollup/rollup/pull/2508))
 * Fix mis-placed semicolons for certain SystemJS exports ([#2529](https://github.com/rollup/rollup/pull/2529))
 * Fix public sourcemap type ([#2507](https://github.com/rollup/rollup/pull/2507))
 
