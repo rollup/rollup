@@ -1,4 +1,4 @@
-define(['external','./chunk-1e9855f7.js'],function(external,__chunk_1){'use strict';function fn () {
+define(['./chunk-1e9855f7.js','external'],function(__chunk_1,external){'use strict';function fn () {
   console.log('lib1 fn');
   external.fn();
 }function fn$1 () {

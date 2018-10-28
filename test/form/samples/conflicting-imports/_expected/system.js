@@ -1,11 +1,11 @@
-System.register(['bar', 'foo'], function (exports, module) {
+System.register(['foo', 'bar'], function (exports, module) {
 	'use strict';
-	var a, a$1;
+	var a$1, a;
 	return {
 		setters: [function (module) {
-			a = module.a;
-		}, function (module) {
 			a$1 = module.a;
+		}, function (module) {
+			a = module.a;
 		}],
 		execute: function () {
 
