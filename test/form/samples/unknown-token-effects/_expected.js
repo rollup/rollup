@@ -1,22 +1,32 @@
-(do {})();
-(do {}).y;
-(do {}).y();
-(do {}).y = 'retained';
+const functionUsedInExpr = () => 1;
+const objectUsedInExpr = {value: 2};
+const valueUsedInExpr = 3;
 
-const a = do {
-  if (c1) {
-    x();
-  } else if (c2) {
-    x.a;
-  } else {
-    x;
-  }
+const exprValue = do {
+	if (unknownCondition1) {
+		functionUsedInExpr();
+	} else if (unknownCondition2) {
+		objectUsedInExpr.value;
+	} else {
+		valueUsedInExpr;
+	}
 };
-a();
-a.x();
-a.y = 'retained';
 
-const b = (do {})();
-const c = (do {}).c;
-const d = (do {}).d();
-const e = (do {}).e = 'retained';
+(do {
+	() => console.log('retained');
+}());
+(do {
+	null;
+}.y);
+(do {
+	({ y: () => console.log('retained') });
+}.y());
+(do {
+	({
+		set y(value) {
+			console.log(value);
+		}
+	});
+}.y = 'retained');
+
+export { exprValue };
