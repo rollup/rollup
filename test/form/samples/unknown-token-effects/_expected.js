@@ -1,17 +1,3 @@
-const functionUsedInExpr = () => 1;
-const objectUsedInExpr = {value: 2};
-const valueUsedInExpr = 3;
-
-const exprValue = do {
-	if (unknownCondition1) {
-		functionUsedInExpr();
-	} else if (unknownCondition2) {
-		objectUsedInExpr.value;
-	} else {
-		valueUsedInExpr;
-	}
-};
-
 (do {
 	() => console.log('retained');
 }());
@@ -28,5 +14,21 @@ const exprValue = do {
 		}
 	});
 }.y = 'retained');
+
+const functionUsedInExpr = () => 1;
+const objectUsedInExpr = { value: 2 };
+const valueUsedInExpr = 3;
+
+const exprValue = do {
+	if (unknownCondition1) {
+		functionUsedInExpr();
+	} else if (unknownCondition2) {
+		objectUsedInExpr.value;
+	} else if (unknownCondition3) {
+		valueUsedInExpr;
+	} else {
+		'direct value';
+	}
+};
 
 export { exprValue };

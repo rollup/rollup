@@ -15,7 +15,7 @@ import { isLiteral } from './ast/nodes/Literal';
 import MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import Program from './ast/nodes/Program';
-import { GenericEsTreeNode, Node, NodeBase } from './ast/nodes/shared/Node';
+import { Node, NodeBase } from './ast/nodes/shared/Node';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
@@ -126,24 +126,6 @@ function tryParse(module: Module, parse: IParse, acornOptions: AcornOptions) {
 			},
 			err.pos
 		);
-	}
-}
-
-function includeFully(node: Node) {
-	node.included = true;
-	if (node.variable && !node.variable.included) {
-		node.variable.include();
-	}
-	for (const key of node.keys) {
-		const value = (<GenericEsTreeNode>node)[key];
-		if (value === null) continue;
-		if (Array.isArray(value)) {
-			for (const child of value) {
-				if (child !== null) includeFully(child);
-			}
-		} else {
-			includeFully(value);
-		}
 	}
 }
 
@@ -618,7 +600,7 @@ export default class Module {
 	}
 
 	includeAllInBundle() {
-		includeFully(this.ast);
+		this.ast.include(true);
 	}
 
 	isIncluded() {
@@ -627,7 +609,7 @@ export default class Module {
 
 	include(): boolean {
 		this.needsTreeshakingPass = false;
-		if (this.ast.shouldBeIncluded()) this.ast.include();
+		if (this.ast.shouldBeIncluded()) this.ast.include(false);
 		return this.needsTreeshakingPass;
 	}
 

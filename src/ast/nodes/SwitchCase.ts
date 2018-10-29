@@ -12,11 +12,12 @@ export default class SwitchCase extends NodeBase {
 	test: ExpressionNode | null;
 	consequent: StatementNode[];
 
-	include() {
+	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;
-		if (this.test) this.test.include();
+		if (this.test) this.test.include(includeAllChildrenRecursively);
 		for (const node of this.consequent) {
-			if (node.shouldBeIncluded()) node.include();
+			if (includeAllChildrenRecursively || node.shouldBeIncluded())
+				node.include(includeAllChildrenRecursively);
 		}
 	}
 

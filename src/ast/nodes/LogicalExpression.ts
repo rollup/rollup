@@ -122,13 +122,17 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	include() {
+	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;
-		if (this.usedBranch === null || this.unusedBranch.shouldBeIncluded()) {
-			this.left.include();
-			this.right.include();
+		if (
+			includeAllChildrenRecursively ||
+			this.usedBranch === null ||
+			this.unusedBranch.shouldBeIncluded()
+		) {
+			this.left.include(includeAllChildrenRecursively);
+			this.right.include(includeAllChildrenRecursively);
 		} else {
-			this.usedBranch.include();
+			this.usedBranch.include(includeAllChildrenRecursively);
 		}
 	}
 

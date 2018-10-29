@@ -153,7 +153,7 @@ export default class LocalVariable extends Variable {
 			this.included = true;
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
-				if (!declaration.included) declaration.include();
+				if (!declaration.included) declaration.include(false);
 				let node = <Node>declaration.parent;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch

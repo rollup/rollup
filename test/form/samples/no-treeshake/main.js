@@ -1,15 +1,28 @@
 import * as external from 'external';
-import foo from './foo.js'
+import foo from './foo.js';
 export { quux as strange } from './quux.js';
 
-function bar () {
-	return foo;
+function baz() {
+	return foo + external.value;
 }
 
-export function baz () {
-	return 13 + external.value;
+export var create = Object.create,
+	getPrototypeOf = Object.getPrototypeOf;
+
+function unusedButIncluded() {
+	const unusedConst = 'unused';
+	if (true) {
+		true ? 'first' : 'second';
+	} else {
+		(true && 'first') || 'second';
+	}
+	'sequence', 'expression';
+	switch ('test') {
+		case 'test':
+			(() => {})();
+		case 'other':
+			'no effect';
+		default:
+			const ignored = 2;
+	}
 }
-
-const moreExternal = external.more;
-
-export var create = Object.create, getPrototypeOf = Object.getPrototypeOf;

@@ -41,12 +41,12 @@ export default class ForOfStatement extends StatementBase {
 		);
 	}
 
-	include() {
+	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;
-		this.left.includeWithAllDeclaredVariables();
+		this.left.includeWithAllDeclaredVariables(includeAllChildrenRecursively);
 		this.left.deoptimizePath(EMPTY_PATH);
-		this.right.include();
-		this.body.include();
+		this.right.include(includeAllChildrenRecursively);
+		this.body.include(includeAllChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions) {

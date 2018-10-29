@@ -11,8 +11,8 @@ export default class AwaitExpression extends NodeBase {
 	type: NodeType.tAwaitExpression;
 	argument: ExpressionNode;
 
-	include() {
-		super.include();
+	include(includeAllChildrenRecursively: boolean) {
+		super.include(includeAllChildrenRecursively);
 		if (!this.context.usesTopLevelAwait) {
 			let parent = this.parent;
 			do {
