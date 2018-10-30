@@ -60,9 +60,9 @@ export default class FunctionNode extends NodeBase {
 		return this.body.hasEffects(innerOptions);
 	}
 
-	include() {
+	include(includeAllChildrenRecursively: boolean) {
 		this.scope.variables.arguments.include();
-		super.include();
+		super.include(includeAllChildrenRecursively);
 	}
 
 	initialise() {

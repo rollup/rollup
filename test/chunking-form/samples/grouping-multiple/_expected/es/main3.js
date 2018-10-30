@@ -1,5 +1,5 @@
-import { a as x, b as y } from './chunk-afd977c3.js';
+import { b as y, c as z } from './chunk-afd977c3.js';
 
-var main3 = x + y;
+var main3 = y + z;
 
 export default main3;

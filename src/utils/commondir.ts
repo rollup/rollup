@@ -2,6 +2,7 @@ import * as path from './path';
 
 // ported from https://github.com/substack/node-commondir
 export default function commondir(files: string[]) {
+	if (files.length === 0) return '/';
 	if (files.length === 1) return path.dirname(files[0]);
 	const commonSegments = files.slice(1).reduce((commonSegments, file) => {
 		const pathSegements = file.split(/\/+|\\+/);

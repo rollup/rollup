@@ -3,7 +3,7 @@ const assert = require('assert');
 module.exports = {
 	description: 'Adds timing information to bundle when bundling with perf=true',
 	options: {
-		input: ['main1.js', 'main2.js'],
+		input: ['main.js', 'main2.js'],
 		experimentalCodeSplitting: true,
 		perf: true
 	},

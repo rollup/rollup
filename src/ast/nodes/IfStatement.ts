@@ -42,22 +42,28 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			: this.alternate !== null && this.alternate.hasEffects(options);
 	}
 
-	include() {
+	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;
-		if (this.testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
-			this.test.include();
+		if (includeAllChildrenRecursively) {
+			this.test.include(true);
+			this.consequent.include(true);
+			if (this.alternate !== null) {
+				this.alternate.include(true);
+			}
+			return;
 		}
-		if (
-			(this.testValue === UNKNOWN_VALUE || this.testValue) &&
-			this.consequent.shouldBeIncluded()
-		) {
-			this.consequent.include();
+		const hasUnknownTest = this.testValue === UNKNOWN_VALUE;
+		if (hasUnknownTest || this.test.shouldBeIncluded()) {
+			this.test.include(false);
+		}
+		if ((hasUnknownTest || this.testValue) && this.consequent.shouldBeIncluded()) {
+			this.consequent.include(false);
 		}
 		if (
 			this.alternate !== null &&
-			((this.testValue === UNKNOWN_VALUE || !this.testValue) && this.alternate.shouldBeIncluded())
+			((hasUnknownTest || !this.testValue) && this.alternate.shouldBeIncluded())
 		) {
-			this.alternate.include();
+			this.alternate.include(false);
 		}
 	}
 
