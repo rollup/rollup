@@ -11,7 +11,7 @@ export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 			return readFileSync(id, 'utf-8');
 		},
 		resolveDynamicImport(specifier, parentId) {
-			if (typeof specifier === 'string')
+			if (typeof specifier === 'string' && !this.isExternal(specifier, parentId, false))
 				return <Promise<string>>this.resolveId(specifier, parentId);
 		}
 	};

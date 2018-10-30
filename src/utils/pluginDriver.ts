@@ -104,9 +104,7 @@ export function createPluginDriver(
 			},
 			parse: graph.contextParse,
 			resolveId(id: string, parent: string) {
-				return this.isExternal(id, parent, false)
-					? false
-					: pluginDriver.hookFirst('resolveId', [id, parent]);
+				return pluginDriver.hookFirst('resolveId', [id, parent]);
 			},
 			setAssetSource,
 			warn: (warning: RollupWarning | string) => {

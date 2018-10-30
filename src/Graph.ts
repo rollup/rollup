@@ -780,8 +780,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 					.then(() => {
 						const resolvedId = module.resolvedIds[source];
 						if (resolvedId) return resolvedId;
-						const isExternal = this.isExternal(source, module.id, false);
-						if (isExternal) return false;
+						if (this.isExternal(source, module.id, false)) return false;
 						return this.pluginDriver.hookFirst<string | boolean | void>('resolveId', [
 							source,
 							module.id
