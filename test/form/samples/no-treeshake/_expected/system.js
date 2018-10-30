@@ -1,32 +1,42 @@
 System.register('stirred', ['external'], function (exports, module) {
 	'use strict';
-	var value, more;
+	var value;
 	return {
 		setters: [function (module) {
 			value = module.value;
-			more = module.more;
 		}],
 		execute: function () {
 
-			exports('baz', baz);
-
-			var foo = 'unused';
+			var foo = 13;
 
 			const quux = exports('strange', 1);
 
 			const other = () => quux;
 
-			function bar () {
-				return foo;
+			function baz() {
+				return foo + value;
 			}
 
-			function baz () {
-				return 13 + value;
+			var create = exports('create', Object.create),
+				getPrototypeOf = exports('getPrototypeOf', Object.getPrototypeOf);
+
+			function unusedButIncluded() {
+				const unusedConst = 'unused';
+				if (true) {
+					true ? 'first' : 'second';
+				} else {
+					(true && 'first') || 'second';
+				}
+				'sequence', 'expression';
+				switch ('test') {
+					case 'test':
+						(() => {})();
+					case 'other':
+						'no effect';
+					default:
+						const ignored = 2;
+				}
 			}
-
-			const moreExternal = more;
-
-			var create = exports('create', Object.create), getPrototypeOf = exports('getPrototypeOf', Object.getPrototypeOf);
 
 		}
 	};

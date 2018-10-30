@@ -34,10 +34,11 @@ export default class BlockStatement extends StatementBase {
 		}
 	}
 
-	include() {
+	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;
 		for (const node of this.body) {
-			if (node.shouldBeIncluded()) node.include();
+			if (includeAllChildrenRecursively || node.shouldBeIncluded())
+				node.include(includeAllChildrenRecursively);
 		}
 	}
 

@@ -129,14 +129,14 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		this.expressionsToBeDeoptimized = [];
 	}
 
-	include() {
+	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;
-		if (this.usedBranch === null || this.test.shouldBeIncluded()) {
-			this.test.include();
-			this.consequent.include();
-			this.alternate.include();
+		if (includeAllChildrenRecursively || this.usedBranch === null || this.test.shouldBeIncluded()) {
+			this.test.include(includeAllChildrenRecursively);
+			this.consequent.include(includeAllChildrenRecursively);
+			this.alternate.include(includeAllChildrenRecursively);
 		} else {
-			this.usedBranch.include();
+			this.usedBranch.include(includeAllChildrenRecursively);
 		}
 	}
 

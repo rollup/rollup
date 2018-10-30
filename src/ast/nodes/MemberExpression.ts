@@ -176,7 +176,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	include() {
+	include(includeAllChildrenRecursively: boolean) {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null && !this.variable.included) {
@@ -184,8 +184,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 				this.context.requestTreeshakingPass();
 			}
 		}
-		this.object.include();
-		this.property.include();
+		this.object.include(includeAllChildrenRecursively);
+		this.property.include(includeAllChildrenRecursively);
 	}
 
 	initialise() {
