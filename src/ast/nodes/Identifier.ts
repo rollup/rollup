@@ -108,7 +108,7 @@ export default class Identifier extends NodeBase {
 		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	include() {
+	include(_includeAllChildrenRecursively: boolean) {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null && !this.variable.included) {

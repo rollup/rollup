@@ -140,7 +140,8 @@ export default function collapseSourcemaps(
 	file: string,
 	map: DecodedSourceMap,
 	modules: Module[],
-	bundleSourcemapChain: RawSourceMap[]
+	bundleSourcemapChain: RawSourceMap[],
+	excludeContent: boolean
 ) {
 	const moduleSources = modules.filter(module => !module.excludeFromSourcemap).map(module => {
 		let sourcemapChain = module.sourcemapChain;
@@ -205,6 +206,8 @@ export default function collapseSourcemaps(
 		sources = sources.map((source: string) => relative(directory, source));
 		file = basename(file);
 	}
+
+	sourcesContent = excludeContent ? null : sourcesContent;
 
 	return new SourceMap({ file, sources, sourcesContent, names, mappings });
 }

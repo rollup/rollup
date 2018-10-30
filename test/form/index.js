@@ -78,14 +78,18 @@ function generateAndTestBundle(bundle, outputOptions, expectedFile, { show }) {
 
 		try {
 			actualMap = JSON.parse(sander.readFileSync(outputOptions.file + '.map').toString());
-			actualMap.sourcesContent = actualMap.sourcesContent.map(normaliseOutput);
+			actualMap.sourcesContent = actualMap.sourcesContent
+				? actualMap.sourcesContent.map(normaliseOutput)
+				: null;
 		} catch (err) {
 			assert.equal(err.code, 'ENOENT');
 		}
 
 		try {
 			expectedMap = JSON.parse(sander.readFileSync(expectedFile + '.map').toString());
-			expectedMap.sourcesContent = expectedMap.sourcesContent.map(normaliseOutput);
+			expectedMap.sourcesContent = actualMap.sourcesContent
+				? expectedMap.sourcesContent.map(normaliseOutput)
+				: null;
 		} catch (err) {
 			assert.equal(err.code, 'ENOENT');
 		}

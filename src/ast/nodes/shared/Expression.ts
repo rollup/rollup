@@ -29,5 +29,5 @@ export interface ExpressionEntity extends WritableEntity {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean;
-	include(): void;
+	include(includeAllChildrenRecursively: boolean): void;
 }

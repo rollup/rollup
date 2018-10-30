@@ -18,7 +18,7 @@ function run() {
 		})
 		.then(bundle => {
 			weak(bundle, onCollect);
-			cache = bundle.cache;
+			cache = bundle;
 			global.gc();
 			if (shouldCollect && !isCollected) {
 				throw new Error('Memory leak detected');

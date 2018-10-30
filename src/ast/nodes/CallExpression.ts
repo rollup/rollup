@@ -180,10 +180,10 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		);
 	}
 
-	include() {
-		super.include();
+	include(includeAllChildrenRecursively: boolean) {
+		super.include(includeAllChildrenRecursively);
 		if (!this.returnExpression.included) {
-			this.returnExpression.include();
+			this.returnExpression.include(false);
 		}
 	}
 
