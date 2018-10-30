@@ -63,13 +63,14 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	include() {
+	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;
 		for (let i = 0; i < this.expressions.length - 1; i++) {
 			const node = this.expressions[i];
-			if (node.shouldBeIncluded()) node.include();
+			if (includeAllChildrenRecursively || node.shouldBeIncluded())
+				node.include(includeAllChildrenRecursively);
 		}
-		this.expressions[this.expressions.length - 1].include();
+		this.expressions[this.expressions.length - 1].include(includeAllChildrenRecursively);
 	}
 
 	deoptimizePath(path: ObjectPath) {

@@ -49,19 +49,18 @@ export interface Node extends Entity {
 	hasEffects(options: ExecutionPathOptions): boolean;
 
 	/**
-	 * Includes the node in the bundle. Children are usually included if they are
-	 * necessary for this node (e.g. a function body) or if they have effects.
-	 * Necessary variables need to be included as well. Should return true if any
-	 * nodes or variables have been added that were missing before.
+	 * Includes the node in the bundle. If the flag is not set, children are usually included
+	 * if they are necessary for this node (e.g. a function body) or if they have effects.
+	 * Necessary variables need to be included as well.
 	 */
-	include(): void;
+	include(includeAllChildrenRecursively: boolean): void;
 
 	/**
 	 * Alternative version of include to override the default behaviour of
 	 * declarations to only include nodes for declarators that have an effect. Necessary
 	 * for for-loops that do not use a declared loop variable.
 	 */
-	includeWithAllDeclaredVariables(): void;
+	includeWithAllDeclaredVariables(includeAllChildrenRecursively: boolean): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -177,23 +176,23 @@ export class NodeBase implements ExpressionNode {
 		return true;
 	}
 
-	include() {
+	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (<GenericEsTreeNode>this)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null) child.include();
+					if (child !== null) child.include(includeAllChildrenRecursively);
 				}
 			} else {
-				value.include();
+				value.include(includeAllChildrenRecursively);
 			}
 		}
 	}
 
-	includeWithAllDeclaredVariables() {
-		this.include();
+	includeWithAllDeclaredVariables(includeAllChildrenRecursively: boolean) {
+		this.include(includeAllChildrenRecursively);
 	}
 
 	/**

@@ -35,17 +35,18 @@ export default class VariableDeclaration extends NodeBase {
 		return false;
 	}
 
-	includeWithAllDeclaredVariables() {
+	includeWithAllDeclaredVariables(includeAllChildrenRecursively: boolean) {
 		this.included = true;
 		for (const declarator of this.declarations) {
-			declarator.include();
+			declarator.include(includeAllChildrenRecursively);
 		}
 	}
 
-	include() {
+	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;
 		for (const declarator of this.declarations) {
-			if (declarator.shouldBeIncluded()) declarator.include();
+			if (includeAllChildrenRecursively || declarator.shouldBeIncluded())
+				declarator.include(includeAllChildrenRecursively);
 		}
 	}
 
