@@ -201,7 +201,7 @@ export default class Module {
 		this.importMetas = [];
 		this.dynamicImportResolutions = [];
 		this.isEntryPoint = false;
-		this.execIndex = null;
+		this.execIndex = Infinity;
 		this.entryPointsHash = new Uint8Array(10);
 
 		this.excludeFromSourcemap = /\0/.test(id);
@@ -623,9 +623,7 @@ export default class Module {
 		const namespace = this.getOrCreateNamespace();
 		if (namespace.needsNamespaceBlock) return;
 
-		let hasReexports = false;
 		for (const importName in this.reexports) {
-			hasReexports = true;
 			const reexport = this.reexports[importName];
 			this.imports[importName] = {
 				source: reexport.source,
@@ -635,8 +633,6 @@ export default class Module {
 			};
 			namespace.originals[importName] = reexport.module.traceExport(reexport.localName);
 		}
-
-		if (this.chunk && this.chunk.linked && hasReexports) this.chunk.linkModule(this);
 	}
 
 	render(options: RenderOptions): MagicString {

@@ -1,11 +1,11 @@
-System.register(['external', './chunk-9a21be24.js'], function (exports, module) {
+System.register(['./chunk-9a21be24.js', 'external'], function (exports, module) {
   'use strict';
-  var fn, fn$1;
+  var fn$1, fn;
   return {
     setters: [function (module) {
-      fn = module.fn;
-    }, function (module) {
       fn$1 = module.a;
+    }, function (module) {
+      fn = module.fn;
     }],
     execute: function () {
 

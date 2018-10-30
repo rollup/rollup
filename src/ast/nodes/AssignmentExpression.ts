@@ -52,7 +52,7 @@ export default class AssignmentExpression extends NodeBase {
 				code.original.indexOf('=', this.left.end) + 1,
 				` exports('${this.left.variable.exportName}',`
 			);
-			code.prependRight(this.right.end, `)`);
+			code.appendLeft(this.right.end, `)`);
 		}
 	}
 }

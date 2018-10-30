@@ -168,9 +168,11 @@ export default function rollup(
 
 		const graph = new Graph(inputOptions, curWatcher);
 		curWatcher = undefined;
-		
+
 		// remove the cache option from the memory after graph creation (cache is not used anymore)
+		const useCache = rawInputOptions.cache !== false;
 		delete inputOptions.cache;
+		delete rawInputOptions.cache;
 
 		timeStart('BUILD', 1);
 
@@ -377,7 +379,7 @@ export default function rollup(
 						});
 				}
 
-				const cache = rawInputOptions.cache === false ? undefined : graph.getCache();
+				const cache = useCache ? graph.getCache() : undefined;
 				const result: RollupSingleFileBuild | RollupBuild = {
 					cache,
 					watchFiles: Object.keys(graph.watchFiles),
