@@ -2,6 +2,7 @@
 
 ## 0.67.0
 *unreleased*
+* Create chunks for virtual modules when preserving modules ([#2511](https://github.com/rollup/rollup/pull/2511))
 * Improve execution order of chunks and externals ([#2508](https://github.com/rollup/rollup/pull/2508))
 * Do not tree-shake children of unknown nodes to e.g. properly handle do-expressions via acorn plugin ([#2510](https://github.com/rollup/rollup/pull/2510))
 * Fix mis-placed semicolons for certain SystemJS exports ([#2529](https://github.com/rollup/rollup/pull/2529))
