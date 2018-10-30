@@ -2,6 +2,7 @@
 
 ## 0.67.0
 *unreleased*
+* add `sourcemapExcludeSources` option to exclude the source content from sourcemaps ([#2531](https://github.com/rollup/rollup/pull/2531))
 * Create chunks for virtual modules when preserving modules ([#2511](https://github.com/rollup/rollup/pull/2511))
 * Improve execution order of chunks and externals ([#2508](https://github.com/rollup/rollup/pull/2508))
 * Do not tree-shake children of unknown nodes to e.g. properly handle do-expressions via acorn plugin ([#2510](https://github.com/rollup/rollup/pull/2510))
