@@ -31,7 +31,7 @@ function runSingleFileTest(code, configContext) {
 
 function runCodeSplitTest(output, configContext) {
 	const requireFromOutputVia = importer => importee => {
-		const outputId = path.join(path.dirname(importer), importee);
+		const outputId = path.posix.join(path.posix.dirname(importer), importee);
 		const chunk = output[outputId];
 		if (chunk) {
 			return requireWithContext(

@@ -26,7 +26,7 @@ import error from './utils/error';
 import { sortByExecutionOrder } from './utils/execution-order';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
-import { basename, dirname, normalize, relative, resolve } from './utils/path';
+import { basename, dirname, isAbsolute, normalize, relative, resolve } from './utils/path';
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
@@ -1010,8 +1010,19 @@ export default class Chunk {
 		this.preRender(options, inputBase);
 	}
 
-	generateIdPreserveModules(preserveModulesRelativeDir: string) {
-		return (this.id = normalize(relative(preserveModulesRelativeDir, this.entryModule.id)));
+	generateIdPreserveModules(
+		preserveModulesRelativeDir: string,
+		existingNames: Record<string, true>
+	) {
+		const sanitizedId = this.entryModule.id.replace('\0', '_');
+		this.id = makeUnique(
+			normalize(
+				isAbsolute(this.entryModule.id)
+					? relative(preserveModulesRelativeDir, sanitizedId)
+					: '_virtual/' + basename(sanitizedId)
+			),
+			existingNames
+		);
 	}
 
 	generateId(
@@ -1019,7 +1030,7 @@ export default class Chunk {
 		patternName: string,
 		addons: Addons,
 		options: OutputOptions,
-		existingNames: { [name: string]: any }
+		existingNames: Record<string, true>
 	) {
 		this.id = makeUnique(
 			renderNamePattern(pattern, patternName, type => {
