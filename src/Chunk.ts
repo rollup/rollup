@@ -1147,9 +1147,16 @@ export default class Chunk {
 
 				if (this.graph.pluginDriver.hasLoadersOrTransforms) {
 					const decodedMap = magicString.generateDecodedMap({});
-					map = collapseSourcemaps(this, file, decodedMap, this.usedModules, chunkSourcemapChain);
+					map = collapseSourcemaps(
+						this,
+						file,
+						decodedMap,
+						this.usedModules,
+						chunkSourcemapChain,
+						options.sourcemapExcludeSources
+					);
 				} else {
-					map = magicString.generateMap({ file, includeContent: true });
+					map = magicString.generateMap({ file, includeContent: !options.sourcemapExcludeSources });
 				}
 
 				map.sources = map.sources.map(sourcePath =>
