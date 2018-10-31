@@ -107,7 +107,7 @@
     "signal-exit": "^3.0.2",
     "source-map": "^0.6.1",
     "source-map-support": "^0.5.9",
-    "sourcemap-codec": "^1.4.1",
+    "sourcemap-codec": "^1.4.4",
     "terser": "^3.8.2",
     "tslib": "^1.9.3",
     "tslint": "^5.11.0",
