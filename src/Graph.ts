@@ -654,15 +654,14 @@ export default class Graph {
 					.then(() => {
 						const resolvedId = module.resolvedIds[source];
 						if (resolvedId) return resolvedId;
-						const isExternal = this.isExternal(source, module.id, false);
-						if (isExternal) return false;
+						if (this.isExternal(source, module.id, false)) return false;
 						return this.pluginDriver.hookFirst<string | boolean | void>('resolveId', [
 							source,
 							module.id
 						]);
 					})
 					.then(resolvedId => {
-						// TODO types of `resolvedId` are not compatable with 'externalId'.
+						// TODO types of `resolvedId` are not compatible with 'externalId'.
 						// `this.resolveId` returns `string`, `void`, and `boolean`
 						const externalId =
 							<string>resolvedId ||
