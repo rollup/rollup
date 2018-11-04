@@ -1,10 +1,11 @@
 # rollup changelog
 
 ## 0.67.0
-*unreleased*
+*2018-11-04*
 * add `sourcemapExcludeSources` option to exclude the source content from sourcemaps ([#2531](https://github.com/rollup/rollup/pull/2531))
 * Create chunks for virtual modules when preserving modules ([#2511](https://github.com/rollup/rollup/pull/2511))
 * Improve execution order of chunks and externals ([#2508](https://github.com/rollup/rollup/pull/2508))
+* Do not resolve external dynamic imports via plugins ([#2505](https://github.com/rollup/rollup/pull/2505))
 * Do not tree-shake children of unknown nodes to e.g. properly handle do-expressions via acorn plugin ([#2510](https://github.com/rollup/rollup/pull/2510))
 * Fix mis-placed semicolons for certain SystemJS exports ([#2529](https://github.com/rollup/rollup/pull/2529))
 * Prevent memory leak when using the bundle as cache ([#2522](https://github.com/rollup/rollup/pull/2522))
