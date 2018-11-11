@@ -1,4 +1,5 @@
 require('./acorn-plugins');
+require('./bundle-information');
 require('./deprecations');
 require('./in-memory-sourcemaps');
 require('./misc');
