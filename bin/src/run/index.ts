@@ -20,26 +20,22 @@ export default function runRollup(command: any) {
 	}
 
 	if (command.dir) {
-		if (command._.length && !command._.some((input: string) => input.indexOf('=') !== -1)) {
-			command.input = command._;
-		} else if (
-			command._.length ||
-			Array.isArray(command.input) ||
-			typeof command.input === 'string'
-		) {
-			let input: string[];
-			if (command._.length) input = command._;
-			else input = typeof command.input === 'string' ? [command.input] : command.input;
-			command.input = {};
-			input.forEach((input: string) => {
-				const equalsIndex = input.indexOf('=');
-				const value = input.substr(equalsIndex + 1);
-				let key = input.substr(0, equalsIndex);
-				if (!key) key = getAliasName(input);
-				command.input[key] = value;
-			});
+		if (command._.length) {
+			if (command._.some((input: string) => input.indexOf('=') !== -1)) {
+				command.input = {};
+				command._.forEach((input: string) => {
+					const equalsIndex = input.indexOf('=');
+					const value = input.substr(equalsIndex + 1);
+					let key = input.substr(0, equalsIndex);
+					if (!key) key = getAliasName(input);
+					command.input[key] = value;
+				});
+			} else {
+				command.input = command._;
+			}
+		} else if (typeof command.input === 'string') {
+			command.input = [command.input];
 		}
-		command._ = [];
 	} else if (command._.length === 1) {
 		command.input = command._[0];
 	}
