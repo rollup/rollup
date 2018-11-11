@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.67.1
+*2018-11-11*
+* Deconflict CLI entry points with same name but on different paths if no explicit naming is used ([#2548](https://github.com/rollup/rollup/pull/2548))
+
 ## 0.67.0
 *2018-11-04*
 * add `sourcemapExcludeSources` option to exclude the source content from sourcemaps ([#2531](https://github.com/rollup/rollup/pull/2531))
