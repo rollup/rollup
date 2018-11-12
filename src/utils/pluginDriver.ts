@@ -11,7 +11,7 @@ import {
 	Watcher
 } from '../rollup/types';
 import { createAssetPluginHooks, EmitAsset } from './assetHooks';
-import { getRollupDefaultPlugin } from './default-plugin';
+import { getRollupDefaultPlugin } from './defaultPlugin';
 import error from './error';
 
 export interface PluginDriver {

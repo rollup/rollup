@@ -3,6 +3,7 @@ import { optimizeChunks } from '../chunk-optimization';
 import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
 import { createAssetPluginHooks, finaliseAsset } from '../utils/assetHooks';
+import { assignChunkIds } from '../utils/assignChunkIds';
 import commondir from '../utils/commondir';
 import { Deprecation } from '../utils/deprecateOptions';
 import error from '../utils/error';
@@ -287,33 +288,7 @@ export default function rollup(
 								optimized = true;
 							}
 
-							// name all chunks
-							const usedIds: Record<string, true> = {};
-							for (let i = 0; i < chunks.length; i++) {
-								const chunk = chunks[i];
-
-								if (chunk === singleChunk) {
-									singleChunk.id = basename(
-										outputOptions.file ||
-											(inputOptions.input instanceof Array
-												? inputOptions.input[0]
-												: <string>inputOptions.input)
-									);
-								} else if (inputOptions.experimentalPreserveModules) {
-									chunk.generateIdPreserveModules(inputBase, usedIds);
-								} else {
-									let pattern, patternName;
-									if (chunk.isEntryModuleFacade) {
-										pattern = outputOptions.entryFileNames || '[name].js';
-										patternName = 'output.entryFileNames';
-									} else {
-										pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
-										patternName = 'output.chunkFileNames';
-									}
-									chunk.generateId(pattern, patternName, addons, outputOptions, usedIds);
-								}
-								usedIds[chunk.id] = true;
-							}
+							assignChunkIds(chunks, singleChunk, inputOptions, outputOptions, inputBase, addons);
 
 							// assign to outputBundle
 							for (let i = 0; i < chunks.length; i++) {
@@ -321,7 +296,8 @@ export default function rollup(
 
 								outputBundle[chunk.id] = {
 									fileName: chunk.id,
-									isEntry: chunk.entryModule !== undefined,
+									isEntry: chunk.isEntryModuleFacade,
+									entryModuleId: chunk.isEntryModuleFacade ? chunk.entryModule.id : null,
 									imports: chunk.getImportIds(),
 									exports: chunk.getExportNames(),
 									modules: chunk.renderedModules,

@@ -25,7 +25,7 @@ import {
 import { finaliseAsset } from './utils/assetHooks';
 import { Uint8ArrayToHexString } from './utils/entryHashing';
 import error from './utils/error';
-import { analyzeModuleExecution, sortByExecutionOrder } from './utils/execution-order';
+import { analyzeModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { isRelative, resolve } from './utils/path';
 import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
