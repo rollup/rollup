@@ -30,7 +30,6 @@ export function analyzeModuleExecution(
 	let analyzedModuleCount = 0;
 
 	const dynamicImports: Module[] = [];
-	const dynamicImportAliases: string[] = [];
 
 	let parents: { [id: string]: string };
 
@@ -80,7 +79,6 @@ export function analyzeModuleExecution(
 			) {
 				if (dynamicImports.indexOf(dynamicModule.resolution) === -1) {
 					dynamicImports.push(dynamicModule.resolution);
-					dynamicImportAliases.push(dynamicModule.alias);
 				}
 			}
 		}
@@ -123,14 +121,17 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 
 	// new items can be added during this loop
 	for (curEntry of dynamicImports) {
-		if (curEntry.isEntryPoint) continue;
-		if (!inlineDynamicImports) curEntry.isEntryPoint = true;
+		if (curEntry.isEntryPoint || curEntry.isDynamicEntryPoint) {
+			if (!inlineDynamicImports) curEntry.isDynamicEntryPoint = true;
+			continue;
+		}
+		if (!inlineDynamicImports) curEntry.isDynamicEntryPoint = true;
 		curEntryHash = randomUint8Array(10);
 		parents = { [curEntry.id]: null };
 		visit(curEntry);
 	}
 
-	return { orderedModules, dynamicImports, dynamicImportAliases, cyclePaths };
+	return { orderedModules, dynamicImports, cyclePaths };
 }
 
 function getCyclePath(id: string, parentId: string, parents: { [id: string]: string | null }) {

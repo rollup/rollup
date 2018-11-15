@@ -83,6 +83,7 @@ export interface AstContext {
 	imports: { [name: string]: ImportDescription };
 	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	includeNamespace: () => void;
+	includeDynamicImport: (node: Import) => void;
 	magicString: MagicString;
 	moduleContext: string;
 	nodeConstructors: { [name: string]: typeof NodeBase };
@@ -176,6 +177,7 @@ export default class Module {
 
 	execIndex: number;
 	isEntryPoint: boolean;
+	isDynamicEntryPoint: boolean;
 	chunkAlias: string;
 	entryPointsHash: Uint8Array;
 	chunk: Chunk;
@@ -201,6 +203,7 @@ export default class Module {
 		this.importMetas = [];
 		this.dynamicImportResolutions = [];
 		this.isEntryPoint = false;
+		this.isDynamicEntryPoint = false;
 		this.execIndex = Infinity;
 		this.entryPointsHash = new Uint8Array(10);
 
@@ -272,6 +275,7 @@ export default class Module {
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
 			imports: this.imports,
+			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeNamespace: this.includeNamespace.bind(this),
 			isCrossChunkImport: importDescription => importDescription.module.chunk !== this.chunk,
 			magicString: this.magicString,
@@ -445,13 +449,15 @@ export default class Module {
 		return makeLegal(ext ? base.slice(0, -ext.length) : base);
 	}
 
-	markPublicExports() {
+	includeAllExports() {
 		for (const exportName of this.getExports()) {
 			const variable = this.traceExport(exportName);
 
-			variable.exportName = exportName;
 			variable.deoptimizePath(UNKNOWN_PATH);
-			variable.include();
+			if (!variable.included) {
+				variable.include();
+				this.needsTreeshakingPass = true;
+			}
 
 			if (variable.isNamespace) {
 				(<NamespaceVariable>variable).needsNamespaceBlock = true;
@@ -461,13 +467,12 @@ export default class Module {
 		for (const name of this.getReexports()) {
 			const variable = this.traceExport(name);
 
-			variable.exportName = name;
-
 			if (variable.isExternal) {
 				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
-			} else {
+			} else if (!variable.included) {
 				variable.include();
 				variable.deoptimizePath(UNKNOWN_PATH);
+				this.needsTreeshakingPass = true;
 			}
 		}
 	}
@@ -617,6 +622,13 @@ export default class Module {
 		if (this.namespaceVariable) return this.namespaceVariable;
 
 		return (this.namespaceVariable = new NamespaceVariable(this.astContext, this));
+	}
+
+	private includeDynamicImport(node: Import) {
+		const resolution = this.dynamicImportResolutions[this.dynamicImports.indexOf(node)].resolution;
+		if (resolution instanceof Module) {
+			resolution.includeAllExports();
+		}
 	}
 
 	private includeNamespace() {

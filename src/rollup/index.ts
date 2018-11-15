@@ -297,6 +297,7 @@ export default function rollup(
 								outputBundle[chunk.id] = {
 									fileName: chunk.id,
 									isEntry: chunk.isEntryModuleFacade,
+									isDynamicEntry: chunk.isDynamicEntryPoint,
 									entryModuleId: chunk.isEntryModuleFacade ? chunk.entryModule.id : null,
 									imports: chunk.getImportIds(),
 									exports: chunk.getExportNames(),
