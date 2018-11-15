@@ -1,3 +1,3 @@
-import foo from "./foo.js";
+import './foo.js';
 
 export default import("./foo.js");

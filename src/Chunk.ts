@@ -131,6 +131,7 @@ export default class Chunk {
 	// an input entry point module
 	entryModule: Module = undefined;
 	isEntryModuleFacade: boolean = false;
+	isDynamicEntryPoint: boolean = false;
 	isManualChunk: boolean = false;
 
 	private renderedHash: string = undefined;
@@ -161,6 +162,12 @@ export default class Chunk {
 			if (module.isEntryPoint && !this.entryModule) {
 				this.entryModule = module;
 				this.isEntryModuleFacade = true;
+			}
+			if (module.isDynamicEntryPoint) {
+				this.isDynamicEntryPoint = true;
+				if (!this.entryModule) {
+					this.entryModule = module;
+				}
 			}
 		}
 
@@ -282,7 +289,7 @@ export default class Chunk {
 			}
 		}
 
-		if (preserveModules || this.isEntryModuleFacade) {
+		if (preserveModules || this.isEntryModuleFacade || this.isDynamicEntryPoint) {
 			for (const [index, exportName] of entryExportEntries) {
 				const traced = tracedExports[index];
 				if (!traced) {
@@ -393,7 +400,7 @@ export default class Chunk {
 	}
 
 	generateInternalExports(options: OutputOptions) {
-		if (this.isEntryModuleFacade) return;
+		if (this.isEntryModuleFacade || this.isDynamicEntryPoint) return;
 		const mangle = options.format === 'system' || options.format === 'es' || options.compact;
 		let i = 0,
 			safeExportName: string;
@@ -460,7 +467,7 @@ export default class Chunk {
 
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
-					if (resolution.chunk !== this) {
+					if (resolution.chunk && resolution.chunk !== this && resolution.chunk.id) {
 						let relPath = normalize(relative(dirname(this.id), resolution.chunk.id));
 						if (!relPath.startsWith('../')) relPath = './' + relPath;
 						node.renderFinalResolution(code, `"${relPath}"`);
@@ -808,8 +815,8 @@ export default class Chunk {
 			format: options.format
 		};
 
-		// if an entry point facade, inline the execution list to avoid loading latency
-		if (this.isEntryModuleFacade) {
+		// if an entry point facade or dynamic entry point, inline the execution list to avoid loading latency
+		if (this.isEntryModuleFacade || this.isDynamicEntryPoint) {
 			for (const dep of this.dependencies) {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
 			}

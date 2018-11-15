@@ -49,6 +49,11 @@ export default class Import extends NodeBase {
 	private resolutionInterop: boolean;
 	private rendered: boolean;
 
+	include() {
+		this.included = true;
+		this.context.includeDynamicImport(this);
+	}
+
 	initialise() {
 		this.included = false;
 		this.resolutionNamespace = undefined;

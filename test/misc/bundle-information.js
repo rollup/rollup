@@ -10,9 +10,9 @@ describe('The bundle object', () => {
 				experimentalCodeSplitting: true,
 				plugins: [
 					loader({
-						input1: 'import "shared";\nconsole.log("input1");\nexport const out = true;',
-						input2: 'import "shared";\nconsole.log("input2");',
-						shared: 'console.log("shared");\nexport const unused = null;'
+						input1: 'import "shared";console.log("input1");export const out = true;',
+						input2: 'import "shared";console.log("input2");',
+						shared: 'console.log("shared");export const unused = null;'
 					})
 				]
 			})
@@ -36,14 +36,18 @@ describe('The bundle object', () => {
 					sortedOutput.map(chunk => chunk.code),
 					[
 						'console.log("shared");\n',
-						'import \'./generated-chunk.js\';\n\nconsole.log("input1");\nconst out = true;\n\nexport { out };\n',
+						'import \'./generated-chunk.js\';\n\nconsole.log("input1");const out = true;\n\nexport { out };\n',
 						'import \'./generated-chunk.js\';\n\nconsole.log("input2");\n'
 					],
 					'code'
 				);
 				assert.deepEqual(sortedOutput.map(chunk => chunk.map), [null, null, null], 'map');
 				assert.deepEqual(sortedOutput.map(chunk => chunk.isEntry), [false, true, true], 'isEntry');
-				assert.deepEqual(sortedOutput.map(chunk => chunk.entryModuleId), [null, 'input1', 'input2'], 'entryModuleId');
+				assert.deepEqual(
+					sortedOutput.map(chunk => chunk.entryModuleId),
+					[null, 'input1', 'input2'],
+					'entryModuleId'
+				);
 				assert.deepEqual(
 					sortedOutput.map(chunk => chunk.imports),
 					[[], ['generated-chunk.js'], ['generated-chunk.js']],
@@ -55,7 +59,7 @@ describe('The bundle object', () => {
 					[
 						{
 							shared: {
-								originalLength: 50,
+								originalLength: 49,
 								removedExports: ['unused'],
 								renderedExports: [],
 								renderedLength: 22
@@ -63,15 +67,15 @@ describe('The bundle object', () => {
 						},
 						{
 							input1: {
-								originalLength: 64,
+								originalLength: 62,
 								removedExports: [],
 								renderedExports: ['out'],
-								renderedLength: 40
+								renderedLength: 39
 							}
 						},
 						{
 							input2: {
-								originalLength: 39,
+								originalLength: 38,
 								removedExports: [],
 								renderedExports: [],
 								renderedLength: 22
@@ -119,7 +123,11 @@ describe('The bundle object', () => {
 					'modules'
 				);
 				assert.deepEqual(sortedOutput.map(chunk => chunk.isEntry), [false, true, true], 'isEntry');
-				assert.deepEqual(sortedOutput.map(chunk => chunk.entryModuleId), [null, 'input1', 'input2'], 'entryModuleId');
+				assert.deepEqual(
+					sortedOutput.map(chunk => chunk.entryModuleId),
+					[null, 'input1', 'input2'],
+					'entryModuleId'
+				);
 			});
 	});
 
@@ -154,7 +162,60 @@ describe('The bundle object', () => {
 					['input1.js', 'input2.js', 'input22.js'],
 					'fileName'
 				);
-				assert.deepEqual(sortedOutput.map(chunk => chunk.entryModuleId), ['input1', 'input2', null], 'entryModuleId');
+				assert.deepEqual(
+					sortedOutput.map(chunk => chunk.entryModuleId),
+					['input1', 'input2', null],
+					'entryModuleId'
+				);
+			});
+	});
+
+	it('marks dynamic entry points but only marks them as normal entry points if they actually are', () => {
+		return rollup
+			.rollup({
+				input: ['input', 'dynamic1'],
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({
+						input:
+							'Promise.all([import("dynamic1"), import("dynamic2")]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));',
+						dynamic1: 'export const dynamic1 = "dynamic1"',
+						dynamic2: 'export const dynamic2 = "dynamic2"'
+					})
+				]
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'esm',
+					dir: 'dist',
+					entryFileNames: '[name].js',
+					chunkFileNames: 'generated-[name].js'
+				})
+			)
+			.then(({ output }) => {
+				const sortedOutput = Object.keys(output)
+					.sort()
+					.map(key => output[key]);
+				assert.deepEqual(
+					sortedOutput.map(chunk => chunk.fileName),
+					['dynamic1.js', 'generated-chunk.js', 'input.js'],
+					'fileName'
+				);
+				assert.deepEqual(sortedOutput.map(chunk => chunk.isEntry), [true, false, true], 'isEntry');
+				assert.deepEqual(
+					sortedOutput.map(chunk => chunk.code),
+					[
+						'const dynamic1 = "dynamic1";\n\nexport { dynamic1 };\n',
+						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n',
+						'Promise.all([import("./dynamic1.js"), import("./generated-chunk.js")]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n'
+					],
+					'code'
+				);
+				assert.deepEqual(
+					sortedOutput.map(chunk => chunk.isDynamicEntry),
+					[true, true, false],
+					'isDynamicEntry'
+				);
 			});
 	});
 });

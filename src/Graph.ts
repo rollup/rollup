@@ -371,12 +371,7 @@ export default class Graph {
 
 				this.link();
 
-				const {
-					orderedModules,
-					dynamicImports,
-					dynamicImportAliases,
-					cyclePaths
-				} = analyzeModuleExecution(
+				const { orderedModules, dynamicImports, cyclePaths } = analyzeModuleExecution(
 					entryModules,
 					!preserveModules && !inlineDynamicImports,
 					inlineDynamicImports,
@@ -397,23 +392,12 @@ export default class Graph {
 				}
 
 				if (inlineDynamicImports) {
-					const entryModule = entryModules[0];
 					if (entryModules.length > 1)
 						throw new Error(
 							'Internal Error: can only inline dynamic imports for single-file builds.'
 						);
 					for (const dynamicImportModule of dynamicImports) {
-						if (entryModule !== dynamicImportModule) dynamicImportModule.markPublicExports();
 						dynamicImportModule.getOrCreateNamespace().include();
-					}
-				} else {
-					for (let i = 0; i < dynamicImports.length; i++) {
-						const dynamicImportModule = dynamicImports[i];
-						if (entryModules.indexOf(dynamicImportModule) === -1) {
-							entryModules.push(dynamicImportModule);
-							if (!dynamicImportModule.chunkAlias)
-								dynamicImportModule.chunkAlias = dynamicImportAliases[i];
-						}
 					}
 				}
 
@@ -422,8 +406,7 @@ export default class Graph {
 				// Phase 3 – marking. We include all statements that should be included
 				timeStart('mark included statements', 2);
 
-				for (const entryModule of entryModules) entryModule.markPublicExports();
-
+				for (const entryModule of entryModules) entryModule.includeAllExports();
 				// only include statements that should appear in the bundle
 				this.includeMarked(orderedModules);
 
@@ -474,7 +457,9 @@ export default class Graph {
 				}
 
 				// filter out empty dependencies
-				chunks = chunks.filter(chunk => !chunk.isEmpty || chunk.entryModule || chunk.isManualChunk);
+				chunks = chunks.filter(
+					chunk => !chunk.isEmpty || chunk.isEntryModuleFacade || chunk.isManualChunk
+				);
 
 				// then go over and ensure all entry chunks export their variables
 				for (const chunk of chunks) {

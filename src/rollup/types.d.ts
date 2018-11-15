@@ -365,6 +365,7 @@ export interface RenderedModule {
 export interface RenderedChunk {
 	fileName: string;
 	isEntry: boolean;
+	isDynamicEntry: boolean;
 	entryModuleId: string | null;
 	imports: string[];
 	exports: string[];
