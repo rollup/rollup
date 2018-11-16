@@ -117,6 +117,11 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	}
 
 	if (inputOptions.inlineDynamicImports) {
+		if (inputOptions.experimentalPreserveModules)
+			error({
+				code: 'INVALID_OPTION',
+				message: `experimentalPreserveModules does not support the inlineDynamicImports option.`
+			});
 		if (inputOptions.manualChunks)
 			error({
 				code: 'INVALID_OPTION',
@@ -134,11 +139,6 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 				message: 'Multiple inputs are not supported for inlineDynamicImports.'
 			});
 	} else if (inputOptions.experimentalPreserveModules) {
-		if (inputOptions.inlineDynamicImports)
-			error({
-				code: 'INVALID_OPTION',
-				message: `experimentalPreserveModules does not support the inlineDynamicImports option.`
-			});
 		if (inputOptions.manualChunks)
 			error({
 				code: 'INVALID_OPTION',
