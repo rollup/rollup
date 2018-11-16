@@ -298,7 +298,10 @@ export default function rollup(
 									fileName: chunk.id,
 									isEntry: chunk.isEntryModuleFacade,
 									isDynamicEntry: chunk.isDynamicEntryPoint,
-									entryModuleId: chunk.isEntryModuleFacade ? chunk.entryModule.id : null,
+									entryModuleId:
+										chunk.isEntryModuleFacade || chunk.isDynamicEntryPoint
+											? chunk.entryModule.id
+											: null,
 									imports: chunk.getImportIds(),
 									exports: chunk.getExportNames(),
 									modules: chunk.renderedModules,
