@@ -216,6 +216,11 @@ describe('The bundle object', () => {
 					[true, true, false],
 					'isDynamicEntry'
 				);
+				assert.deepEqual(
+					sortedOutput.map(chunk => chunk.entryModuleId),
+					['dynamic1', 'dynamic2', 'input'],
+					'entryModuleId'
+				);
 			});
 	});
 });
