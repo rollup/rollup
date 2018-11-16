@@ -51,7 +51,6 @@ export default class Graph {
 	context: string;
 	externalModules: ExternalModule[] = [];
 	getModuleContext: (id: string) => string;
-	hasLoaders: boolean;
 	isPureExternalModule: (id: string) => boolean;
 	moduleById = new Map<string, Module | ExternalModule>();
 	assetsById = new Map<string, Asset>();

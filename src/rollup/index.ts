@@ -295,18 +295,21 @@ export default function rollup(
 								const chunk = chunks[i];
 
 								outputBundle[chunk.id] = {
-									fileName: chunk.id,
-									isEntry: chunk.isEntryModuleFacade,
-									isDynamicEntry: chunk.isDynamicEntryPoint,
+									code: undefined,
 									entryModuleId:
 										chunk.isEntryModuleFacade || chunk.isDynamicEntryPoint
 											? chunk.entryModule.id
 											: null,
-									imports: chunk.getImportIds(),
 									exports: chunk.getExportNames(),
+									fileName: chunk.id,
+									imports: chunk.getImportIds(),
+									isDynamicEntry: chunk.isDynamicEntryPoint,
+									isEntry: chunk.isEntryModuleFacade,
+									map: undefined,
 									modules: chunk.renderedModules,
-									code: undefined,
-									map: undefined
+									get name() {
+										return chunk.getChunkName();
+									}
 								};
 							}
 
