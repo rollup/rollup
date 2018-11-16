@@ -363,15 +363,16 @@ export interface RenderedModule {
 }
 
 export interface RenderedChunk {
-	fileName: string;
-	isEntry: boolean;
-	isDynamicEntry: boolean;
 	entryModuleId: string | null;
-	imports: string[];
 	exports: string[];
+	fileName: string;
+	imports: string[];
+	isDynamicEntry: boolean;
+	isEntry: boolean;
 	modules: {
 		[id: string]: RenderedModule;
 	};
+	name: string;
 }
 
 export interface OutputChunk extends RenderedChunk {

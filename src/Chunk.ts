@@ -90,12 +90,12 @@ function getGlobalName(
 		graph.warn({
 			code: 'MISSING_GLOBAL_NAME',
 			source: module.id,
-			guess: module.name,
+			guess: module.variableName,
 			message: `No name was provided for external module '${
 				module.id
-			}' in output.globals – guessing '${module.name}'`
+			}' in output.globals – guessing '${module.variableName}'`
 		});
-		return module.name;
+		return module.variableName;
 	}
 }
 
@@ -109,7 +109,7 @@ export default class Chunk {
 	exportMode: string = 'named';
 	usedModules: Module[] = undefined;
 	id: string = undefined;
-	name: string;
+	variableName: string;
 	graph: Graph;
 	orderedModules: Module[];
 	execIndex: number;
@@ -132,6 +132,7 @@ export default class Chunk {
 	entryModule: Module = undefined;
 	isEntryModuleFacade: boolean = false;
 	isDynamicEntryPoint: boolean = false;
+	isEmpty: boolean;
 	isManualChunk: boolean = false;
 
 	private renderedHash: string = undefined;
@@ -143,7 +144,7 @@ export default class Chunk {
 		dependencies: ChunkDependencies;
 		exports: ChunkExports;
 	} = undefined;
-	isEmpty: boolean;
+	private chunkName: string | void;
 
 	constructor(graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
@@ -172,12 +173,12 @@ export default class Chunk {
 		}
 
 		if (this.entryModule)
-			this.name = makeLegal(
+			this.variableName = makeLegal(
 				basename(
 					this.entryModule.chunkAlias || this.orderedModules[0].chunkAlias || this.entryModule.id
 				)
 			);
-		else this.name = '__chunk_' + ++graph.curChunkIndex;
+		else this.variableName = '__chunk_' + ++graph.curChunkIndex;
 	}
 
 	getImportIds(): string[] {
@@ -521,9 +522,9 @@ export default class Chunk {
 
 		if (!esm) {
 			this.dependencies.forEach(module => {
-				const safeName = getSafeName(module.name);
+				const safeName = getSafeName(module.variableName);
 				toDeshadow.add(safeName);
-				module.name = safeName;
+				module.variableName = safeName;
 			});
 		}
 
@@ -539,18 +540,18 @@ export default class Chunk {
 
 			if (module instanceof ExternalModule) {
 				if (variable.name === '*') {
-					safeName = module.name;
+					safeName = module.variableName;
 				} else if (variable.name === 'default') {
 					if (
 						options.interop !== false &&
 						(module.exportsNamespace || (!esm && module.exportsNames))
 					) {
-						safeName = `${module.name}__default`;
+						safeName = `${module.variableName}__default`;
 					} else {
-						safeName = module.name;
+						safeName = module.variableName;
 					}
 				} else {
-					safeName = esm ? variable.name : `${module.name}.${variable.name}`;
+					safeName = esm ? variable.name : `${module.variableName}.${variable.name}`;
 				}
 				if (esm) {
 					safeName = getSafeName(safeName);
@@ -561,8 +562,8 @@ export default class Chunk {
 				toDeshadow.add(safeName);
 			} else {
 				const chunk = module.chunk;
-				if (chunk.exportMode === 'default') safeName = chunk.name;
-				else safeName = `${chunk.name}.${module.chunk.getVariableExportName(variable)}`;
+				if (chunk.exportMode === 'default') safeName = chunk.variableName;
+				else safeName = `${chunk.variableName}.${module.chunk.getVariableExportName(variable)}`;
 			}
 			if (safeName) variable.setSafeName(safeName);
 		});
@@ -691,7 +692,7 @@ export default class Chunk {
 				id, // chunk id updated on render
 				namedExportsMode,
 				globalName,
-				name: dep.name,
+				name: dep.variableName,
 				isChunk: !(<ExternalModule>dep).isExternal,
 				exportsNames,
 				exportsDefault,
@@ -771,7 +772,7 @@ export default class Chunk {
 		return visitDep(this);
 	}
 
-	private computeFullHash(addons: Addons, options: OutputOptions): string {
+	private computeContentHashWithDependencies(addons: Addons, options: OutputOptions): string {
 		const hash = sha256();
 
 		// own rendered source, except for finalizer wrapping
@@ -984,7 +985,7 @@ export default class Chunk {
 			if (!into.exportsDefault && from.exportsDefault) {
 				into.exportsDefault = true;
 			}
-			into.name = this.name;
+			into.name = this.variableName;
 		};
 
 		// go through the other chunks and update their dependencies
@@ -1045,17 +1046,25 @@ export default class Chunk {
 					case 'format':
 						return options.format === 'es' ? 'esm' : options.format;
 					case 'hash':
-						return this.computeFullHash(addons, options);
+						return this.computeContentHashWithDependencies(addons, options);
 					case 'name':
-						if (this.entryModule && this.entryModule.chunkAlias) return this.entryModule.chunkAlias;
-						for (const module of this.orderedModules) {
-							if (module.chunkAlias) return module.chunkAlias;
-						}
-						return 'chunk';
+						return this.getChunkName();
 				}
 			}),
 			existingNames
 		);
+	}
+
+	getChunkName(): string {
+		return this.chunkName || (this.chunkName = this.computeChunkName());
+	}
+
+	private computeChunkName(): string {
+		if (this.entryModule && this.entryModule.chunkAlias) return this.entryModule.chunkAlias;
+		for (const module of this.orderedModules) {
+			if (module.chunkAlias) return module.chunkAlias;
+		}
+		return 'chunk';
 	}
 
 	render(options: OutputOptions, addons: Addons, outputChunk: RenderedChunk) {

@@ -20,7 +20,8 @@ describe('The bundle object', () => {
 				bundle.generate({
 					format: 'esm',
 					dir: 'dist',
-					chunkFileNames: 'generated-[name].js'
+					chunkFileNames: 'generated-[name]-[hash].js',
+					entryFileNames: '[name]-[hash].js'
 				})
 			)
 			.then(({ output }) => {
@@ -29,20 +30,25 @@ describe('The bundle object', () => {
 					.map(key => output[key]);
 				assert.deepEqual(
 					sortedOutput.map(chunk => chunk.fileName),
-					['generated-chunk.js', 'input1.js', 'input2.js'],
+					['generated-chunk-dc742c8f.js', 'input1-00b2c9b1.js', 'input2-815cf3ef.js'],
 					'fileName'
 				);
 				assert.deepEqual(
 					sortedOutput.map(chunk => chunk.code),
 					[
 						'console.log("shared");\n',
-						'import \'./generated-chunk.js\';\n\nconsole.log("input1");const out = true;\n\nexport { out };\n',
-						'import \'./generated-chunk.js\';\n\nconsole.log("input2");\n'
+						'import \'./generated-chunk-dc742c8f.js\';\n\nconsole.log("input1");const out = true;\n\nexport { out };\n',
+						'import \'./generated-chunk-dc742c8f.js\';\n\nconsole.log("input2");\n'
 					],
 					'code'
 				);
 				assert.deepEqual(sortedOutput.map(chunk => chunk.map), [null, null, null], 'map');
 				assert.deepEqual(sortedOutput.map(chunk => chunk.isEntry), [false, true, true], 'isEntry');
+				assert.deepEqual(
+					sortedOutput.map(chunk => chunk.name),
+					['chunk', 'input1', 'input2'],
+					'name'
+				);
 				assert.deepEqual(
 					sortedOutput.map(chunk => chunk.entryModuleId),
 					[null, 'input1', 'input2'],
@@ -50,7 +56,7 @@ describe('The bundle object', () => {
 				);
 				assert.deepEqual(
 					sortedOutput.map(chunk => chunk.imports),
-					[[], ['generated-chunk.js'], ['generated-chunk.js']],
+					[[], ['generated-chunk-dc742c8f.js'], ['generated-chunk-dc742c8f.js']],
 					'imports'
 				);
 				assert.deepEqual(sortedOutput.map(chunk => chunk.exports), [[], ['out'], []], 'exports');
