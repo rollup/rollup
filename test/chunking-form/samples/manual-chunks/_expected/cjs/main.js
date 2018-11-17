@@ -1,6 +1,6 @@
 'use strict';
 
-var __chunk_2 = require('./deps2and3-9aeb2d5b.js');
+var __chunk_1 = require('./deps2and3-c8fe246d.js');
 require('./lib1-569e10cd.js');
 
 function fn () {
@@ -10,8 +10,8 @@ function fn () {
 class Main {
   constructor () {
     fn();
-    __chunk_2.fn();
-    __chunk_2.fn$1();
+    __chunk_1.fn();
+    __chunk_1.fn$1();
   }
 }
 

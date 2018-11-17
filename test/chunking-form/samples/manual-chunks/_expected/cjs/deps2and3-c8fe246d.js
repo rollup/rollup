@@ -1,6 +1,6 @@
 'use strict';
 
-var __chunk_1 = require('./lib1-569e10cd.js');
+var __chunk_2 = require('./lib1-569e10cd.js');
 
 function fn () {
   console.log('lib2 fn');
@@ -12,7 +12,7 @@ function fn$1 () {
 }
 
 function fn$2 () {
-  __chunk_1.fn();
+  __chunk_2.fn();
   console.log('dep3 fn');
 }
 

@@ -205,11 +205,9 @@ export default function rollup(
 				const singleInput =
 					typeof inputOptions.input === 'string' ||
 					(inputOptions.input instanceof Array && inputOptions.input.length === 1);
-				//let imports: string[], exports: string[];
 				if (!inputOptions.experimentalPreserveModules) {
 					if (singleInput) {
 						for (const chunk of chunks) {
-							if (chunk.entryModule === undefined) continue;
 							if (singleChunk) {
 								singleChunk = undefined;
 								break;

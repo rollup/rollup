@@ -1,4 +1,4 @@
-define(['exports', './lib1-4c530ea2.js'], function (exports, __chunk_1) { 'use strict';
+define(['exports', './lib1-4c530ea2.js'], function (exports, __chunk_2) { 'use strict';
 
   function fn () {
     console.log('lib2 fn');
@@ -10,7 +10,7 @@ define(['exports', './lib1-4c530ea2.js'], function (exports, __chunk_1) { 'use s
   }
 
   function fn$2 () {
-    __chunk_1.fn();
+    __chunk_2.fn();
     console.log('dep3 fn');
   }
 

@@ -23,9 +23,10 @@ import {
 	Watcher
 } from './rollup/types';
 import { finaliseAsset } from './utils/assetHooks';
+import { assignChunkColouringHashes } from './utils/chunkColouring';
 import { Uint8ArrayToHexString } from './utils/entryHashing';
 import error from './utils/error';
-import { analyzeModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
+import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { isRelative, resolve } from './utils/path';
 import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
@@ -153,7 +154,7 @@ export default class Graph {
 		this.shimMissingExports = options.shimMissingExports;
 
 		this.scope = new GlobalScope();
-		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
+		// Strictly speaking, this only applies with non-ES6, non-default-only bundles
 		for (const name of ['module', 'exports', '_interopDefault']) {
 			this.scope.findVariable(name); // creates global variable as side-effect
 		}
@@ -370,11 +371,9 @@ export default class Graph {
 
 				this.link();
 
-				const { orderedModules, dynamicImports, cyclePaths } = analyzeModuleExecution(
+				const { orderedModules, dynamicImports, cyclePaths } = analyseModuleExecution(
 					entryModules,
-					!preserveModules && !inlineDynamicImports,
-					inlineDynamicImports,
-					manualChunkModules
+					inlineDynamicImports
 				);
 				for (const cyclePath of cyclePaths) {
 					this.warn({
@@ -382,6 +381,9 @@ export default class Graph {
 						importer: cyclePath[0],
 						message: `Circular dependency: ${cyclePath.join(' -> ')}`
 					});
+				}
+				if (!preserveModules && !inlineDynamicImports) {
+					assignChunkColouringHashes(entryModules, dynamicImports, manualChunkModules);
 				}
 
 				if (entryModuleAliases) {
