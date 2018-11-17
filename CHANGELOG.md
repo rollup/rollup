@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.67.2
+*2018-11-17*
+* Prevent crash when not returning sourcemaps from `renderChunk` ([#2588](https://github.com/rollup/rollup/pull/2588))
+
 ## 0.67.1
 *2018-11-11*
 * Deconflict CLI entry points with same name but on different paths if no explicit naming is used ([#2548](https://github.com/rollup/rollup/pull/2548))
