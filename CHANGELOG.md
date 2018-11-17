@@ -1,5 +1,10 @@
 # rollup changelog
 
+## 0.67.3
+*2018-11-17*
+* Show proper error when using `inlineDynamicImports` with `experimentalPreserveModules` ([#2560](https://github.com/rollup/rollup/pull/2560))
+* Properly include ESM browser build in package ([#2552](https://github.com/rollup/rollup/pull/2552))
+
 ## 0.67.2
 *2018-11-17*
 * Prevent crash when not returning sourcemaps from `renderChunk` ([#2588](https://github.com/rollup/rollup/pull/2588))
