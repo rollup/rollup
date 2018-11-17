@@ -143,6 +143,26 @@ export default function collapseSourcemaps(
 	bundleSourcemapChain: RawSourceMap[],
 	excludeContent: boolean
 ) {
+	function linkMap(source: Source, map: any) {
+		if (map.missing) {
+			bundle.graph.warn({
+				code: 'SOURCEMAP_BROKEN',
+				plugin: map.plugin,
+				message: `Sourcemap is likely to be incorrect: a plugin${
+					map.plugin ? ` ('${map.plugin}')` : ``
+				} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
+				url: `https://rollupjs.org/guide/en#warning-sourcemap-is-likely-to-be-incorrect`
+			});
+
+			map = {
+				names: [],
+				mappings: ''
+			};
+		}
+
+		return <any>new Link(map, [source]);
+	}
+
 	const moduleSources = modules.filter(module => !module.excludeFromSourcemap).map(module => {
 		let sourcemapChain = module.sourcemapChain;
 
@@ -170,34 +190,14 @@ export default function collapseSourcemaps(
 			}
 		}
 
-		sourcemapChain.forEach((map: any) => {
-			if (map.missing) {
-				bundle.graph.warn({
-					code: 'SOURCEMAP_BROKEN',
-					plugin: map.plugin,
-					message: `Sourcemap is likely to be incorrect: a plugin${
-						map.plugin ? ` ('${map.plugin}')` : ``
-					} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
-					url: `https://rollupjs.org/guide/en#warning-sourcemap-is-likely-to-be-incorrect`
-				});
-
-				map = {
-					names: [],
-					mappings: ''
-				};
-			}
-
-			source = <any>new Link(map, [source]);
-		});
+		source = sourcemapChain.reduce(linkMap, source);
 
 		return source;
 	});
 
 	let source = new Link(<any>map, moduleSources);
 
-	bundleSourcemapChain.forEach(map => {
-		source = new Link(<any>map, [<any>source]);
-	});
+	source = bundleSourcemapChain.reduce(linkMap, source);
 
 	let { sources, sourcesContent, names, mappings } = source.traceMappings();
 
