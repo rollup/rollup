@@ -81,7 +81,7 @@ export default command => {
 			external: ['fs', 'path', 'events', 'module', 'util', 'crypto'],
 			output: [
 				{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
-				{ file: 'dist/rollup.es.js', format: 'es', sourcemap: true, banner }
+				{ file: 'dist/rollup.es.js', format: 'esm', banner }
 			]
 		},
 		/* Rollup CLI */
@@ -134,8 +134,8 @@ export default command => {
 				terser({ module: true, output: { comments: 'some' } })
 			],
 			output: [
-				{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', sourcemap: true, banner },
-				{ file: 'dist/rollup.browser.mjs', format: 'es', sourcemap: true, banner }
+				{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner },
+				{ file: 'dist/rollup.browser.es.js', format: 'esm', banner }
 			]
 		}
 	]);

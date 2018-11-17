@@ -116,12 +116,9 @@
     "url-parse": "^1.4.3"
   },
   "files": [
-    "dist/rollup.browser.js",
-    "dist/rollup.es.js",
-    "dist/rollup.js",
-    "dist/**/*.d.ts",
-    "bin/rollup",
-    "README.md"
+    "dist/*.js",
+    "dist/*.d.ts",
+    "bin/rollup"
   ],
   "lint-staged": {
     "{src,bin,browser,typings}/**/*.ts": [
