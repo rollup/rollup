@@ -6,7 +6,7 @@ import { createAssetPluginHooks, finaliseAsset } from '../utils/assetHooks';
 import { assignChunkIds } from '../utils/assignChunkIds';
 import commondir from '../utils/commondir';
 import { Deprecation } from '../utils/deprecateOptions';
-import error from '../utils/error';
+import { error } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';

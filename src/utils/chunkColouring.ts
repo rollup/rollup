@@ -1,7 +1,7 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import { randomUint8Array, Uint8ArrayXor } from './entryHashing';
-import error from './error';
+import { error } from './error';
 import { relative } from './path';
 
 export function assignChunkColouringHashes(

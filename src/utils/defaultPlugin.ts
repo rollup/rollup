@@ -1,5 +1,5 @@
 import { InputOptions, Plugin } from '../rollup/types';
-import error from './error';
+import { error } from './error';
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path';
 

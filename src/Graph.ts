@@ -25,7 +25,7 @@ import {
 import { finaliseAsset } from './utils/assetHooks';
 import { assignChunkColouringHashes } from './utils/chunkColouring';
 import { Uint8ArrayToHexString } from './utils/entryHashing';
-import error from './utils/error';
+import { error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { isRelative, resolve } from './utils/path';
 import { createPluginDriver, PluginDriver } from './utils/pluginDriver';

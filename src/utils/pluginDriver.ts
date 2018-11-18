@@ -12,7 +12,7 @@ import {
 } from '../rollup/types';
 import { createAssetPluginHooks, EmitAsset } from './assetHooks';
 import { getRollupDefaultPlugin } from './defaultPlugin';
-import error from './error';
+import { error } from './error';
 
 export interface PluginDriver {
 	emitAsset: EmitAsset;

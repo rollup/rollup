@@ -1,6 +1,6 @@
 import Graph from '../Graph';
 import { OutputOptions } from '../rollup/types';
-import error from './error';
+import { error } from './error';
 
 export interface Addons {
 	intro?: string;

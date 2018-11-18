@@ -13,7 +13,7 @@ import {
 	TransformSourceDescription
 } from '../rollup/types';
 import { createTransformEmitAsset, EmitAsset } from './assetHooks';
-import error, { augmentCodeLocation } from './error';
+import { augmentCodeLocation, error } from './error';
 import { dirname, resolve } from './path';
 import { trackPluginCache } from './pluginDriver';
 

@@ -28,7 +28,7 @@ import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import { Asset, IdMap, ModuleJSON, RawSourceMap, RollupError, RollupWarning } from './rollup/types';
-import error from './utils/error';
+import { error } from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';

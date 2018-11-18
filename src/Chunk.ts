@@ -22,7 +22,7 @@ import {
 import { Addons } from './utils/addons';
 import { toBase64 } from './utils/base64';
 import collapseSourcemaps from './utils/collapseSourcemaps';
-import error from './utils/error';
+import { error } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
