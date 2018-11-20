@@ -56,6 +56,7 @@ export default class Graph {
 	moduleById = new Map<string, Module | ExternalModule>();
 	assetsById = new Map<string, Asset>();
 	modules: Module[] = [];
+	needsTreeshakingPass: boolean = false;
 	onwarn: WarningHandler;
 	deoptimizationTracker: EntityPathTracker;
 	scope: GlobalScope;
@@ -262,18 +263,15 @@ export default class Graph {
 
 	includeMarked(modules: Module[]) {
 		if (this.treeshake) {
-			let needsTreeshakingPass,
-				treeshakingPass = 1;
+			let treeshakingPass = 1;
 			do {
 				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
-				needsTreeshakingPass = false;
+				this.needsTreeshakingPass = false;
 				for (const module of modules) {
-					if (module.include()) {
-						needsTreeshakingPass = true;
-					}
+					module.include();
 				}
 				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
-			} while (needsTreeshakingPass);
+			} while (this.needsTreeshakingPass);
 		} else {
 			// Necessary to properly replace namespace imports
 			for (const module of modules) module.includeAllInBundle();
@@ -371,10 +369,7 @@ export default class Graph {
 
 				this.link();
 
-				const { orderedModules, dynamicImports, cyclePaths } = analyseModuleExecution(
-					entryModules,
-					inlineDynamicImports
-				);
+				const { orderedModules, cyclePaths } = analyseModuleExecution(entryModules);
 				for (const cyclePath of cyclePaths) {
 					this.warn({
 						code: 'CIRCULAR_DEPENDENCY',
@@ -382,33 +377,19 @@ export default class Graph {
 						message: `Circular dependency: ${cyclePath.join(' -> ')}`
 					});
 				}
-				if (!preserveModules && !inlineDynamicImports) {
-					assignChunkColouringHashes(entryModules, dynamicImports, manualChunkModules);
-				}
-
-				if (entryModuleAliases) {
-					for (let i = entryModules.length - 1; i >= 0; i--) {
-						entryModules[i].chunkAlias = entryModuleAliases[i];
-					}
-				}
-
-				if (inlineDynamicImports) {
-					if (entryModules.length > 1)
-						throw new Error(
-							'Internal Error: can only inline dynamic imports for single-file builds.'
-						);
-					for (const dynamicImportModule of dynamicImports) {
-						dynamicImportModule.getOrCreateNamespace().include();
-					}
-				}
 
 				timeEnd('analyse dependency graph', 2);
 
 				// Phase 3 – marking. We include all statements that should be included
 				timeStart('mark included statements', 2);
 
+				if (inlineDynamicImports) {
+					if (entryModules.length > 1)
+						throw new Error(
+							'Internal Error: can only inline dynamic imports for single-file builds.'
+						);
+				}
 				for (const entryModule of entryModules) entryModule.includeAllExports();
-				// only include statements that should appear in the bundle
 				this.includeMarked(orderedModules);
 
 				// check for unused external imports
@@ -420,6 +401,16 @@ export default class Graph {
 				// entry point graph colouring, before generating the import and export facades
 				timeStart('generate chunks', 2);
 
+				if (!preserveModules && !inlineDynamicImports) {
+					assignChunkColouringHashes(entryModules, manualChunkModules);
+				}
+
+				if (entryModuleAliases) {
+					for (let i = entryModules.length - 1; i >= 0; i--) {
+						entryModules[i].chunkAlias = entryModuleAliases[i];
+					}
+				}
+
 				// TODO: there is one special edge case unhandled here and that is that any module
 				//       exposed as an unresolvable export * (to a graph external export *,
 				//       either as a namespace import reexported or top-level export *)
@@ -427,7 +418,7 @@ export default class Graph {
 				let chunks: Chunk[] = [];
 				if (preserveModules) {
 					for (const module of orderedModules) {
-						const chunk = new Chunk(this, [module]);
+						const chunk = new Chunk(this, [module], inlineDynamicImports);
 						if (module.isEntryPoint || !chunk.isEmpty) chunk.entryModule = module;
 						chunks.push(chunk);
 					}
@@ -446,7 +437,7 @@ export default class Graph {
 					for (const entryHashSum in chunkModules) {
 						const chunkModulesOrdered = chunkModules[entryHashSum];
 						sortByExecutionOrder(chunkModulesOrdered);
-						const chunk = new Chunk(this, chunkModulesOrdered);
+						const chunk = new Chunk(this, chunkModulesOrdered, inlineDynamicImports);
 						chunks.push(chunk);
 					}
 				}
@@ -473,7 +464,7 @@ export default class Graph {
 				if (!preserveModules) {
 					for (const entryModule of entryModules) {
 						if (!entryModule.chunk.isEntryModuleFacade) {
-							const entryPointFacade = new Chunk(this, []);
+							const entryPointFacade = new Chunk(this, [], inlineDynamicImports);
 							entryPointFacade.linkFacade(entryModule);
 							chunks.push(entryPointFacade);
 						}

@@ -1,7 +1,6 @@
 module.exports = {
-	skip: true,
 	description: 'Dynamic import inlining for static colouring',
 	options: {
-		input: ['main.js']
+		input: ['main1.js', 'main2.js']
 	}
 };

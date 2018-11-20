@@ -190,7 +190,6 @@ export default class Module {
 	private namespaceVariable: NamespaceVariable = undefined;
 	private esTreeAst: ESTree.Program;
 	private magicString: MagicString;
-	private needsTreeshakingPass: boolean = false;
 	private transformDependencies: string[];
 
 	constructor(graph: Graph, id: string) {
@@ -284,7 +283,7 @@ export default class Module {
 			propertyReadSideEffects:
 				!this.graph.treeshake || this.graph.treeshakingOptions.propertyReadSideEffects,
 			deoptimizationTracker: this.graph.deoptimizationTracker,
-			requestTreeshakingPass: () => (this.needsTreeshakingPass = true),
+			requestTreeshakingPass: () => (this.graph.needsTreeshakingPass = true),
 			traceExport: this.traceExport.bind(this),
 			traceVariable: this.traceVariable.bind(this),
 			treeshake: this.graph.treeshake,
@@ -456,7 +455,7 @@ export default class Module {
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
 				variable.include();
-				this.needsTreeshakingPass = true;
+				this.graph.needsTreeshakingPass = true;
 			}
 
 			if (variable.isNamespace) {
@@ -472,7 +471,7 @@ export default class Module {
 			} else if (!variable.included) {
 				variable.include();
 				variable.deoptimizePath(UNKNOWN_PATH);
-				this.needsTreeshakingPass = true;
+				this.graph.needsTreeshakingPass = true;
 			}
 		}
 	}
@@ -612,10 +611,8 @@ export default class Module {
 		return this.ast.included;
 	}
 
-	include(): boolean {
-		this.needsTreeshakingPass = false;
+	include(): void {
 		if (this.ast.shouldBeIncluded()) this.ast.include(false);
-		return this.needsTreeshakingPass;
 	}
 
 	getOrCreateNamespace(): NamespaceVariable {

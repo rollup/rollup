@@ -146,7 +146,7 @@ export default class Chunk {
 	} = undefined;
 	private chunkName: string | void;
 
-	constructor(graph: Graph, orderedModules: Module[]) {
+	constructor(graph: Graph, orderedModules: Module[], inlineDynamicImports: boolean) {
 		this.graph = graph;
 		this.orderedModules = orderedModules;
 		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
@@ -164,7 +164,7 @@ export default class Chunk {
 				this.entryModule = module;
 				this.isEntryModuleFacade = true;
 			}
-			if (module.isDynamicEntryPoint) {
+			if (module.isDynamicEntryPoint && !inlineDynamicImports) {
 				this.isDynamicEntryPoint = true;
 				if (!this.entryModule) {
 					this.entryModule = module;

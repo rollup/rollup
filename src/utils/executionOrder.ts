@@ -13,7 +13,7 @@ export function sortByExecutionOrder(units: OrderedExecutionUnit[]) {
 	units.sort(compareExecIndex);
 }
 
-export function analyseModuleExecution(entryModules: Module[], inlineDynamicImports: boolean) {
+export function analyseModuleExecution(entryModules: Module[]) {
 	let nextExecIndex = 0;
 	const cyclePaths: string[][] = [];
 	const analysedModules: { [id: string]: boolean } = {};
@@ -42,8 +42,10 @@ export function analyseModuleExecution(entryModules: Module[], inlineDynamicImpo
 		}
 
 		for (const dynamicModule of module.dynamicImportResolutions) {
-			if (!(dynamicModule.resolution instanceof Module)) continue;
-			if (dynamicImports.indexOf(dynamicModule.resolution) === -1) {
+			if (
+				dynamicModule.resolution instanceof Module &&
+				dynamicImports.indexOf(dynamicModule.resolution) === -1
+			) {
 				dynamicImports.push(dynamicModule.resolution);
 			}
 		}
@@ -62,14 +64,14 @@ export function analyseModuleExecution(entryModules: Module[], inlineDynamicImpo
 	}
 
 	for (const curEntry of dynamicImports) {
-		if (!inlineDynamicImports) curEntry.isDynamicEntryPoint = true;
+		curEntry.isDynamicEntryPoint = true;
 		if (!parents[curEntry.id]) {
 			parents[curEntry.id] = null;
 		}
 		analyseModule(curEntry);
 	}
 
-	return { orderedModules, dynamicImports, cyclePaths };
+	return { orderedModules, cyclePaths };
 }
 
 function getCyclePath(id: string, parentId: string, parents: { [id: string]: string | null }) {
