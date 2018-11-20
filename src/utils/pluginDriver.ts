@@ -1,5 +1,6 @@
 import { version as rollupVersion } from 'package.json';
 import Graph from '../Graph';
+import Module from '../Module';
 import {
 	InputOptions,
 	Plugin,
@@ -113,6 +114,24 @@ export function createPluginDriver(
 				warning.code = 'PLUGIN_WARNING';
 				warning.plugin = plugin.name || '(anonymous plugin)';
 				graph.warn(warning);
+			},
+			modules: () => {
+				return {
+					allModules: () => graph.moduleById.keys(),
+					getModuleInfo: (moduleId: string) => {
+						const foundModule = graph.moduleById.get(moduleId);
+						if (foundModule == null) {
+							throw new Error(`Unable to find module ${moduleId}`);
+						}
+
+						return {
+							id: foundModule.id,
+							isExternal: foundModule.isExternal,
+							sourceIds: foundModule.isExternal ? [] : (foundModule as Module).sources,
+							sourceIdToSourceFile: (key: string) => (foundModule as Module).resolvedIds[key]
+						};
+					}
+				};
 			},
 			watcher
 		};
