@@ -7,7 +7,7 @@
 
 ## 0.67.2
 *2018-11-17*
-* Prevent crash when not returning sourcemaps from `renderChunk` ([#2588](https://github.com/rollup/rollup/pull/2588))
+* Prevent crash when not returning sourcemaps from `renderChunk` ([#2558](https://github.com/rollup/rollup/pull/2558))
 
 ## 0.67.1
 *2018-11-11*
