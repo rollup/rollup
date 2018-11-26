@@ -3,7 +3,11 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var multiplier = exports('a', 7);
+			console.log('dep');
+
+			var value = 1;
+
+			console.log('main1', value);
 
 		}
 	};

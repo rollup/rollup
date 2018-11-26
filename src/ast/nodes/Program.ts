@@ -18,8 +18,9 @@ export default class Program extends NodeBase {
 	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;
 		for (const node of this.body) {
-			if (includeAllChildrenRecursively || node.shouldBeIncluded())
+			if (includeAllChildrenRecursively || node.shouldBeIncluded()) {
 				node.include(includeAllChildrenRecursively);
+			}
 		}
 	}
 

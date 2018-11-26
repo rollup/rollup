@@ -37,6 +37,7 @@ import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
+import { visitStaticDependencies } from './utils/traverseStaticDependencies';
 
 export interface CommentDescription {
 	block: boolean;
@@ -158,6 +159,7 @@ export default class Module {
 	exportAllSources: string[];
 	id: string;
 	imports: { [name: string]: ImportDescription };
+	isExecuted: boolean = false;
 	isExternal: false;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
@@ -449,6 +451,15 @@ export default class Module {
 	}
 
 	includeAllExports() {
+		if (!this.isExecuted) {
+			this.graph.needsTreeshakingPass = true;
+			visitStaticDependencies(this, module => {
+				if (module instanceof ExternalModule || module.isExecuted) return true;
+				module.isExecuted = true;
+				return false;
+			});
+		}
+
 		for (const exportName of this.getExports()) {
 			const variable = this.traceExport(exportName);
 

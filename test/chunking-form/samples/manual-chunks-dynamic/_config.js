@@ -1,7 +1,5 @@
 module.exports = {
-	description: 'manual chunks to an empty dynamic chunk',
-
-	// manual chunks which are also dynamic entry points do not work yet
+	description: 'supports dynamic manual chunks',
 	skip: true,
 	options: {
 		input: ['main.js'],

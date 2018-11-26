@@ -268,7 +268,7 @@ export default class Graph {
 				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
 				this.needsTreeshakingPass = false;
 				for (const module of modules) {
-					module.include();
+					if (module.isExecuted) module.include();
 				}
 				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
 			} while (this.needsTreeshakingPass);

@@ -31,7 +31,7 @@ export function assignChunkColouringHashes(
 		}
 
 		for (const dynamicModule of module.dynamicImportResolutions) {
-			if (dynamicModule.resolution instanceof Module) {
+			if (dynamicModule.resolution instanceof Module && dynamicModule.resolution.isExecuted) {
 				if (
 					dynamicModule.resolution.chunkAlias ||
 					Uint8ArrayEqual(dynamicModule.resolution.entryPointsHash, currentEntry.entryPointsHash)
