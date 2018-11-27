@@ -635,6 +635,7 @@ export default class Module {
 	private includeDynamicImport(node: Import) {
 		const resolution = this.dynamicImportResolutions[this.dynamicImports.indexOf(node)].resolution;
 		if (resolution instanceof Module) {
+			resolution.isDynamicEntryPoint = true;
 			resolution.includeAllExports();
 		}
 	}

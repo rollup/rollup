@@ -63,20 +63,19 @@ export function analyseModuleExecution(entryModules: Module[]) {
 		curEntry.isEntryPoint = true;
 		if (!parents[curEntry.id]) {
 			parents[curEntry.id] = null;
+			analyseModule(curEntry);
 		}
-		analyseModule(curEntry);
 	}
 
 	inStaticGraph = false;
 	for (const curEntry of dynamicImports) {
-		curEntry.isDynamicEntryPoint = true;
 		if (!parents[curEntry.id]) {
 			parents[curEntry.id] = null;
+			analyseModule(curEntry);
 		}
-		analyseModule(curEntry);
 	}
 
-	return { orderedModules, cyclePaths };
+	return { orderedModules, dynamicImports, cyclePaths };
 }
 
 function getCyclePath(id: string, parentId: string, parents: { [id: string]: string | null }) {

@@ -369,7 +369,7 @@ export default class Graph {
 
 				this.link();
 
-				const { orderedModules, cyclePaths } = analyseModuleExecution(entryModules);
+				const { orderedModules, cyclePaths, dynamicImports } = analyseModuleExecution(entryModules);
 				for (const cyclePath of cyclePaths) {
 					this.warn({
 						code: 'CIRCULAR_DEPENDENCY',
@@ -450,7 +450,11 @@ export default class Graph {
 
 				// filter out empty dependencies
 				chunks = chunks.filter(
-					chunk => !chunk.isEmpty || chunk.isEntryModuleFacade || chunk.isManualChunk
+					chunk =>
+						!chunk.isEmpty ||
+						chunk.isEntryModuleFacade ||
+						chunk.isDynamicEntryFacade ||
+						chunk.isManualChunk
 				);
 
 				// then go over and ensure all entry chunks export their variables
@@ -465,8 +469,23 @@ export default class Graph {
 					for (const entryModule of entryModules) {
 						if (!entryModule.chunk.isEntryModuleFacade) {
 							const entryPointFacade = new Chunk(this, [], inlineDynamicImports);
-							entryPointFacade.linkFacade(entryModule);
+							entryPointFacade.turnIntoFacade(entryModule);
+							entryPointFacade.isEntryModuleFacade = true;
 							chunks.push(entryPointFacade);
+						}
+					}
+					if (!inlineDynamicImports) {
+						for (const entryModule of dynamicImports) {
+							if (
+								entryModule.isDynamicEntryPoint &&
+								!entryModule.chunk.isDynamicEntryFacade &&
+								!entryModule.chunk.facadeChunk
+							) {
+								const entryPointFacade = new Chunk(this, [], inlineDynamicImports);
+								entryPointFacade.turnIntoFacade(entryModule);
+								entryPointFacade.isDynamicEntryFacade = true;
+								chunks.push(entryPointFacade);
+							}
 						}
 					}
 				}

@@ -1,6 +1,6 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
-import { randomUint8Array, Uint8ArrayEqual, Uint8ArrayXor } from './entryHashing';
+import { randomUint8Array, Uint8ArrayXor } from './entryHashing';
 import { error } from './error';
 import { relative } from './path';
 
@@ -31,13 +31,14 @@ export function assignChunkColouringHashes(
 		}
 
 		for (const dynamicModule of module.dynamicImportResolutions) {
-			if (dynamicModule.resolution instanceof Module && dynamicModule.resolution.isExecuted) {
-				if (
-					dynamicModule.resolution.chunkAlias ||
-					Uint8ArrayEqual(dynamicModule.resolution.entryPointsHash, currentEntry.entryPointsHash)
-				) {
+			if (
+				dynamicModule.resolution instanceof Module &&
+				dynamicModule.resolution.isDynamicEntryPoint
+			) {
+				if (dynamicModule.resolution.chunkAlias) {
 					// We only assign separate colouring to a dynamic entry if it is not already
-					// part of the graph of a single entry point or a manual chunk
+					// part of the graph of a manual chunk
+					// TODO Lukas test this
 					dynamicModule.resolution.isDynamicEntryPoint = false;
 				} else {
 					dynamicModule.resolution.isDynamicEntryPoint = true;

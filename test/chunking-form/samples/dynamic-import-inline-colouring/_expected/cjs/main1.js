@@ -2,18 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+require('./chunk-e4f8b8db.js');
 require('./chunk-bc97caee.js');
 
-var inlined = 'inlined';
-const x = 1;
-
-var inlined$1 = /*#__PURE__*/Object.freeze({
-	default: inlined,
-	x: x
-});
-
-const inlined$2 = Promise.resolve().then(function () { return inlined$1; });
+const inlined = Promise.resolve(require("./chunk-e4f8b8db.js"));
 const separate = Promise.resolve(require("./chunk-bc97caee.js"));
 
-exports.inlined = inlined$2;
+exports.inlined = inlined;
 exports.separate = separate;

@@ -131,7 +131,8 @@ export default class Chunk {
 	// an input entry point module
 	entryModule: Module = undefined;
 	isEntryModuleFacade: boolean = false;
-	isDynamicEntryPoint: boolean = false;
+	isDynamicEntryFacade: boolean = false;
+	facadeChunk: Chunk | null = null;
 	isEmpty: boolean;
 	isManualChunk: boolean = false;
 
@@ -165,7 +166,7 @@ export default class Chunk {
 				this.isEntryModuleFacade = true;
 			}
 			if (module.isDynamicEntryPoint && !inlineDynamicImports) {
-				this.isDynamicEntryPoint = true;
+				this.isDynamicEntryFacade = true;
 				if (!this.entryModule) {
 					this.entryModule = module;
 				}
@@ -201,15 +202,13 @@ export default class Chunk {
 		}
 	}
 
-	// note we assume the facade module chunk is itself linked
-	// with generateEntryExports called
-	linkFacade(entryFacade: Module) {
-		this.dependencies = [entryFacade.chunk];
-		this.entryModule = entryFacade;
-		this.isEntryModuleFacade = true;
-		for (const exportName of entryFacade.getAllExports()) {
-			const tracedVariable = entryFacade.traceExport(exportName);
-			this.exports.set(tracedVariable, entryFacade);
+	turnIntoFacade(facadedModule: Module) {
+		this.dependencies = [facadedModule.chunk];
+		this.entryModule = facadedModule;
+		facadedModule.chunk.facadeChunk = this;
+		for (const exportName of facadedModule.getAllExports()) {
+			const tracedVariable = facadedModule.traceExport(exportName);
+			this.exports.set(tracedVariable, facadedModule);
 			this.exportNames[exportName] = tracedVariable;
 		}
 	}
@@ -280,17 +279,19 @@ export default class Chunk {
 			// tainted entryModule boundary
 			if (existingExport && existingExport !== traced.variable) {
 				this.isEntryModuleFacade = false;
+				this.isDynamicEntryFacade = false;
 			}
 		}
 		// tainted if we've already exposed something not corresponding to entry exports
 		for (const exposedVariable of Array.from(this.exports.keys())) {
 			if (tracedExports.every(({ variable }) => variable !== exposedVariable)) {
 				this.isEntryModuleFacade = false;
+				this.isDynamicEntryFacade = false;
 				return;
 			}
 		}
 
-		if (preserveModules || this.isEntryModuleFacade || this.isDynamicEntryPoint) {
+		if (preserveModules || this.isEntryModuleFacade || this.isDynamicEntryFacade) {
 			for (const [index, exportName] of entryExportEntries) {
 				const traced = tracedExports[index];
 				if (!traced) {
@@ -401,7 +402,7 @@ export default class Chunk {
 	}
 
 	generateInternalExports(options: OutputOptions) {
-		if (this.isEntryModuleFacade || this.isDynamicEntryPoint) return;
+		if (this.isEntryModuleFacade || this.isDynamicEntryFacade) return;
 		const mangle = options.format === 'system' || options.format === 'es' || options.compact;
 		let i = 0,
 			safeExportName: string;
@@ -468,8 +469,9 @@ export default class Chunk {
 
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
-					if (resolution.chunk && resolution.chunk !== this && resolution.chunk.id) {
-						let relPath = normalize(relative(dirname(this.id), resolution.chunk.id));
+					const resolutionChunk = resolution.chunk.facadeChunk || resolution.chunk;
+					if (resolutionChunk && resolutionChunk !== this && resolutionChunk.id) {
+						let relPath = normalize(relative(dirname(this.id), resolutionChunk.id));
 						if (!relPath.startsWith('../')) relPath = './' + relPath;
 						node.renderFinalResolution(code, `"${relPath}"`);
 					}
@@ -817,7 +819,7 @@ export default class Chunk {
 		};
 
 		// if an entry point facade or dynamic entry point, inline the execution list to avoid loading latency
-		if (this.isEntryModuleFacade || this.isDynamicEntryPoint) {
+		if (this.isEntryModuleFacade || this.isDynamicEntryFacade) {
 			for (const dep of this.dependencies) {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
 			}

@@ -1,17 +1,9 @@
-define(['require', 'exports', './chunk-a2558f00.js'], function (require, exports, separate_js) { 'use strict';
+define(['require', 'exports', './chunk-d309b27d.js', './chunk-a2558f00.js'], function (require, exports, inlined_js, separate_js) { 'use strict';
 
-	var inlined = 'inlined';
-	const x = 1;
-
-	var inlined$1 = /*#__PURE__*/Object.freeze({
-		default: inlined,
-		x: x
-	});
-
-	const inlined$2 = Promise.resolve().then(function () { return inlined$1; });
+	const inlined = new Promise(function (resolve, reject) { require(["./chunk-d309b27d.js"], resolve, reject) });
 	const separate = new Promise(function (resolve, reject) { require(["./chunk-a2558f00.js"], resolve, reject) });
 
-	exports.inlined = inlined$2;
+	exports.inlined = inlined;
 	exports.separate = separate;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
