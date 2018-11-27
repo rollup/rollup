@@ -230,6 +230,55 @@ describe('The bundle object', () => {
 			});
 	});
 
+	it('handles dynamic entry facades as dynamic entries but not the facaded chunk', () => {
+		return rollup
+			.rollup({
+				input: ['input1', 'input2'],
+				experimentalCodeSplitting: true,
+				plugins: [
+					loader({
+						input1: `import('dynamic').then(({dynamic}) => console.log(dynamic));`,
+						input2: `import {dep} from 'dep'; import {dynamic} from 'dynamic'; console.log(dep, dynamic);`,
+						dynamic: `import {dep} from 'dep'; console.log(dep); export const dynamic = 'dynamic';`,
+						dep: `export const dep = 'dep';`
+					})
+				]
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'esm',
+					dir: 'dist',
+					entryFileNames: '[name].js',
+					chunkFileNames: 'generated-[name].js'
+				})
+			)
+			.then(({ output }) => {
+				const sortedOutput = Object.keys(output)
+					.sort()
+					.map(key => output[key]);
+				assert.deepEqual(
+					sortedOutput.map(chunk => chunk.fileName),
+					['generated-chunk.js', 'generated-chunk2.js', 'input1.js', 'input2.js'],
+					'fileName'
+				);
+				assert.deepEqual(
+					sortedOutput.map(chunk => Object.keys(chunk.modules)),
+					[['dep', 'dynamic'], [], ['input1'], ['input2']],
+					'modules'
+				);
+				assert.deepEqual(
+					sortedOutput.map(chunk => chunk.isDynamicEntry),
+					[false, true, false, false],
+					'isDynamicEntry'
+				);
+				assert.deepEqual(
+					sortedOutput.map(chunk => chunk.entryModuleId),
+					[null, 'dynamic', 'input1', 'input2'],
+					'entryModuleId'
+				);
+			});
+	});
+
 	it('adds correct flags to files when preserving modules', () => {
 		return rollup
 			.rollup({
