@@ -1,1 +1,1 @@
-import("./dynamic-included.js").then(result => console.log(result));
+import('./dynamic-included.js').then(result => console.log(result));

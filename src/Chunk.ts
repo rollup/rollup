@@ -473,10 +473,10 @@ export default class Chunk {
 					if (resolutionChunk && resolutionChunk !== this && resolutionChunk.id) {
 						let relPath = normalize(relative(dirname(this.id), resolutionChunk.id));
 						if (!relPath.startsWith('../')) relPath = './' + relPath;
-						node.renderFinalResolution(code, `"${relPath}"`);
+						node.renderFinalResolution(code, `'${relPath}'`);
 					}
 				} else if (resolution instanceof ExternalModule) {
-					node.renderFinalResolution(code, `"${resolution.id}"`);
+					node.renderFinalResolution(code, `'${resolution.id}'`);
 					// AST Node -> source replacement
 				} else {
 					node.renderFinalResolution(code, resolution);

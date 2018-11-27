@@ -37,8 +37,8 @@ describe('The bundle object', () => {
 					sortedOutput.map(chunk => chunk.code),
 					[
 						'console.log("shared");\n',
-						'import \'./generated-chunk-dc742c8f.js\';\n\nconsole.log("input1");const out = true;\n\nexport { out };\n',
-						'import \'./generated-chunk-dc742c8f.js\';\n\nconsole.log("input2");\n'
+						`import './generated-chunk-dc742c8f.js';\n\nconsole.log("input1");const out = true;\n\nexport { out };\n`,
+						`import './generated-chunk-dc742c8f.js';\n\nconsole.log("input2");\n`
 					],
 					'code'
 				);
@@ -184,7 +184,7 @@ describe('The bundle object', () => {
 				plugins: [
 					loader({
 						input:
-							'Promise.all([import("dynamic1"), import("dynamic2")]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));',
+							`Promise.all([import('dynamic1'), import('dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));`,
 						dynamic1: 'export const dynamic1 = "dynamic1"',
 						dynamic2: 'export const dynamic2 = "dynamic2"'
 					})
@@ -213,7 +213,7 @@ describe('The bundle object', () => {
 					[
 						'const dynamic1 = "dynamic1";\n\nexport { dynamic1 };\n',
 						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n',
-						'Promise.all([import("./dynamic1.js"), import("./generated-chunk.js")]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n'
+						`Promise.all([import('./dynamic1.js'), import('./generated-chunk.js')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`
 					],
 					'code'
 				);
@@ -239,7 +239,7 @@ describe('The bundle object', () => {
 				plugins: [
 					loader({
 						input:
-							'import {other} from "other";console.log(other);Promise.all([import("dynamic1"), import("dynamic2")]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));',
+							`import {other} from "other";console.log(other);Promise.all([import('dynamic1'), import('dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));`,
 						dynamic1: 'export const dynamic1 = "dynamic1"',
 						dynamic2: 'export const dynamic2 = "dynamic2"',
 						other: 'export const other = "other"'
@@ -269,7 +269,9 @@ describe('The bundle object', () => {
 					[
 						'const dynamic1 = "dynamic1";\n\nexport { dynamic1 };\n',
 						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n',
-						'import { other } from \'./other\';\n\nconsole.log(other);Promise.all([import("./dynamic1"), import("./dynamic2")]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n',
+						`import { other } from './other';
+
+console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
 						'const other = "other";\n\nexport { other };\n'
 					],
 					'code'

@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			module.import("./dynamic-included.js").then(result => console.log(result));
+			module.import('./dynamic-included.js').then(result => console.log(result));
 
 		}
 	};
