@@ -479,7 +479,7 @@ export default class Graph {
 							if (
 								entryModule.isDynamicEntryPoint &&
 								!entryModule.chunk.isDynamicEntryFacade &&
-								!entryModule.chunk.facadeChunk
+								!entryModule.facadeChunk
 							) {
 								const entryPointFacade = new Chunk(this, [], inlineDynamicImports);
 								entryPointFacade.turnIntoFacade(entryModule);

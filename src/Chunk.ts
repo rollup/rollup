@@ -132,7 +132,6 @@ export default class Chunk {
 	entryModule: Module = undefined;
 	isEntryModuleFacade: boolean = false;
 	isDynamicEntryFacade: boolean = false;
-	facadeChunk: Chunk | null = null;
 	isEmpty: boolean;
 	isManualChunk: boolean = false;
 
@@ -205,7 +204,7 @@ export default class Chunk {
 	turnIntoFacade(facadedModule: Module) {
 		this.dependencies = [facadedModule.chunk];
 		this.entryModule = facadedModule;
-		facadedModule.chunk.facadeChunk = this;
+		facadedModule.facadeChunk = this;
 		for (const exportName of facadedModule.getAllExports()) {
 			const tracedVariable = facadedModule.traceExport(exportName);
 			this.exports.set(tracedVariable, facadedModule);
@@ -255,8 +254,10 @@ export default class Chunk {
 		}
 	}
 
-	// Note preserveModules implementation is not a comprehensive technique
-	// this will likely need to be reworked at some stage for edge cases
+	// TODO Lukas:
+	// * understand taint cases
+	// * separate in a way that we can work with multiple entry modules in a chunk
+	// * improve name so that it better matches the internal export generation?
 	populateEntryExports(preserveModules: boolean) {
 		const entryExportEntries = Array.from(this.entryModule.getAllExports().entries());
 		const tracedExports: { variable: Variable; module: Module | ExternalModule }[] = [];
@@ -469,7 +470,7 @@ export default class Chunk {
 
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
-					const resolutionChunk = resolution.chunk.facadeChunk || resolution.chunk;
+					const resolutionChunk = resolution.facadeChunk || resolution.chunk;
 					if (resolutionChunk && resolutionChunk !== this && resolutionChunk.id) {
 						let relPath = normalize(relative(dirname(this.id), resolutionChunk.id));
 						if (!relPath.startsWith('../')) relPath = './' + relPath;

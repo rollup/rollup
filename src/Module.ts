@@ -185,6 +185,7 @@ export default class Module {
 	chunk: Chunk;
 	exportAllModules: (Module | ExternalModule)[];
 	usesTopLevelAwait: boolean = false;
+	facadeChunk: Chunk | null = null;
 
 	private ast: Program;
 	private astContext: AstContext;
