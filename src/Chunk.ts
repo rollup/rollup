@@ -255,59 +255,54 @@ export default class Chunk {
 	}
 
 	// TODO Lukas:
-	// * understand taint cases
 	// * separate in a way that we can work with multiple entry modules in a chunk
-	// * improve name so that it better matches the internal export generation?
-	populateEntryExports(preserveModules: boolean) {
-		const entryExportEntries = Array.from(this.entryModule.getAllExports().entries());
-		const tracedExports: { variable: Variable; module: Module | ExternalModule }[] = [];
-		for (const [index, exportName] of entryExportEntries) {
-			const traced = this.traceExport(exportName, this.entryModule);
-			if (
-				!traced ||
-				(traced.variable && !traced.variable.included && !traced.variable.isExternal)
-			) {
-				continue;
-			}
-			tracedExports[index] = traced;
-			if (!traced.variable) {
-				continue;
-			}
-			if (traced.module.chunk) {
-				traced.module.chunk.exports.set(traced.variable, traced.module);
-			}
-			const existingExport = this.exportNames[exportName];
-			// tainted entryModule boundary
-			if (existingExport && existingExport !== traced.variable) {
-				this.isEntryModuleFacade = false;
-				this.isDynamicEntryFacade = false;
-			}
-		}
-		// tainted if we've already exposed something not corresponding to entry exports
+	generateEntryExportsOrMarkAsTainted(preserveModules: boolean) {
+		const tracedEntryExports = this.getExportVariableMapForModule(this.entryModule);
 		for (const exposedVariable of Array.from(this.exports.keys())) {
-			if (tracedExports.every(({ variable }) => variable !== exposedVariable)) {
+			if (!tracedEntryExports.has(exposedVariable)) {
 				this.isEntryModuleFacade = false;
 				this.isDynamicEntryFacade = false;
 				return;
 			}
 		}
-
 		if (preserveModules || this.isEntryModuleFacade || this.isDynamicEntryFacade) {
-			for (const [index, exportName] of entryExportEntries) {
-				const traced = tracedExports[index];
-				if (!traced) {
-					continue;
+			for (const [variable, { exportNames, module }] of Array.from(tracedEntryExports.entries())) {
+				for (const exportName of exportNames) {
+					this.exports.set(variable, module);
+					this.exportNames[exportName] = variable;
 				}
-				if (traced.variable) {
-					if (!traced.variable.included && !traced.variable.isExternal) {
-						continue;
-					}
-					this.exports.set(traced.variable, traced.module);
-				}
-				// can be undefined for star external exports (exportName[0] === '*')
-				this.exportNames[exportName] = traced.variable;
 			}
 		}
+	}
+
+	private getExportVariableMapForModule(module: Module) {
+		const tracedEntryExports: Map<
+			Variable,
+			{ exportNames: string[]; module: Module | ExternalModule }
+		> = new Map();
+		for (const exportName of module.getAllExports()) {
+			const tracedExport = this.traceExport(exportName, module);
+			if (
+				!tracedExport ||
+				!tracedExport.variable ||
+				!(tracedExport.variable.included || tracedExport.variable.isExternal)
+			) {
+				continue;
+			}
+			const existingExport = tracedEntryExports.get(tracedExport.variable);
+			if (existingExport) {
+				existingExport.exportNames.push(exportName);
+			} else {
+				tracedEntryExports.set(tracedExport.variable, {
+					exportNames: [exportName],
+					module: tracedExport.module
+				});
+			}
+			if (tracedExport.module.chunk && tracedExport.module.chunk !== this) {
+				tracedExport.module.chunk.exports.set(tracedExport.variable, tracedExport.module);
+			}
+		}
+		return tracedEntryExports;
 	}
 
 	private traceAndInitializeImport(exportName: string, module: Module | ExternalModule) {

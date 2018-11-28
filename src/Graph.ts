@@ -460,7 +460,7 @@ export default class Graph {
 				// then go over and ensure all entry chunks export their variables
 				for (const chunk of chunks) {
 					if (preserveModules || chunk.entryModule) {
-						chunk.populateEntryExports(preserveModules);
+						chunk.generateEntryExportsOrMarkAsTainted(preserveModules);
 					}
 				}
 
