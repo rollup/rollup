@@ -129,7 +129,7 @@ export default class Chunk {
 	private dependencies: (ExternalModule | Chunk)[] = undefined;
 	// an entry module chunk is a chunk that exactly exports the exports of
 	// an input entry point module
-	entryModule: Module = undefined;
+	entryModules: Set<Module> = new Set();
 	isEntryModuleFacade: boolean = false;
 	isDynamicEntryFacade: boolean = false;
 	isEmpty: boolean;
@@ -160,25 +160,22 @@ export default class Chunk {
 				this.isManualChunk = true;
 			}
 			module.chunk = this;
-			if (module.isEntryPoint && !this.entryModule) {
-				this.entryModule = module;
+			if (module.isEntryPoint) {
+				this.entryModules.add(module);
 				this.isEntryModuleFacade = true;
 			}
 			if (module.isDynamicEntryPoint && !inlineDynamicImports) {
+				this.entryModules.add(module);
 				this.isDynamicEntryFacade = true;
-				if (!this.entryModule) {
-					this.entryModule = module;
-				}
 			}
 		}
 
-		if (this.entryModule)
+		if (this.entryModules.size > 0) {
+			const entryModules = Array.from(this.entryModules);
 			this.variableName = makeLegal(
-				basename(
-					this.entryModule.chunkAlias || this.orderedModules[0].chunkAlias || this.entryModule.id
-				)
+				basename(entryModules.map(module => module.chunkAlias).find(Boolean) || entryModules[0].id)
 			);
-		else this.variableName = '__chunk_' + ++graph.curChunkIndex;
+		} else this.variableName = '__chunk_' + ++graph.curChunkIndex;
 	}
 
 	getImportIds(): string[] {
@@ -203,7 +200,7 @@ export default class Chunk {
 
 	turnIntoFacade(facadedModule: Module) {
 		this.dependencies = [facadedModule.chunk];
-		this.entryModule = facadedModule;
+		this.entryModules.add(facadedModule);
 		facadedModule.facadeChunk = this;
 		for (const exportName of facadedModule.getAllExports()) {
 			const tracedVariable = facadedModule.traceExport(exportName);
@@ -256,8 +253,10 @@ export default class Chunk {
 
 	// TODO Lukas:
 	// * separate in a way that we can work with multiple entry modules in a chunk
+	// * maybe each chunk has a Set of facaded modules. The type is determined by looking into the module
+	// TODO Lukas: fail if a name is used more than once
 	generateEntryExportsOrMarkAsTainted(preserveModules: boolean) {
-		const tracedEntryExports = this.getExportVariableMapForModule(this.entryModule);
+		const tracedEntryExports = this.getExportVariableMapForModule(Array.from(this.entryModules)[0]);
 		for (const exposedVariable of Array.from(this.exports.keys())) {
 			if (!tracedEntryExports.has(exposedVariable)) {
 				this.isEntryModuleFacade = false;
@@ -357,6 +356,7 @@ export default class Chunk {
 			// we follow reexports if they are not entry points in the hope
 			// that we can get an entry point reexport to reduce the chance of
 			// tainting an entryModule chunk by exposing other unnecessary exports
+			// TODO Lukas this should also stop for dynamic entries, test this
 			if (module.isEntryPoint && !module.chunk.isEmpty)
 				return { variable: module.traceExport(name), module };
 			return module.chunk.traceExport(name, module);
@@ -1020,10 +1020,10 @@ export default class Chunk {
 		preserveModulesRelativeDir: string,
 		existingNames: Record<string, true>
 	) {
-		const sanitizedId = this.entryModule.id.replace('\0', '_');
+		const sanitizedId = this.orderedModules[0].id.replace('\0', '_');
 		this.id = makeUnique(
 			normalize(
-				isAbsolute(this.entryModule.id)
+				isAbsolute(this.orderedModules[0].id)
 					? relative(preserveModulesRelativeDir, sanitizedId)
 					: '_virtual/' + basename(sanitizedId)
 			),
@@ -1058,7 +1058,11 @@ export default class Chunk {
 	}
 
 	private computeChunkName(): string {
-		if (this.entryModule && this.entryModule.chunkAlias) return this.entryModule.chunkAlias;
+		if (this.entryModules.size > 0) {
+			for (const entryModule of Array.from(this.entryModules)) {
+				if (entryModule.chunkAlias) return entryModule.chunkAlias;
+			}
+		}
 		for (const module of this.orderedModules) {
 			if (module.chunkAlias) return module.chunkAlias;
 		}

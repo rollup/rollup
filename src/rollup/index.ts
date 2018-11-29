@@ -65,6 +65,18 @@ function checkOutputOptions(options: OutputOptions) {
 	}
 }
 
+function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
+	const absoluteEntryModulePaths: string[] = [];
+	for (const chunk of chunks) {
+		for (const entryModule of Array.from(chunk.entryModules)) {
+			if (isAbsolute(entryModule.id)) {
+				absoluteEntryModulePaths.push(entryModule.id);
+			}
+		}
+	}
+	return absoluteEntryModulePaths;
+}
+
 const throwAsyncGenerateError = {
 	get() {
 		throw new Error(`bundle.generate(...) now returns a Promise instead of a { code, map } object`);
@@ -258,14 +270,9 @@ export default function rollup(
 
 					timeStart('GENERATE', 1);
 
-					// populate asset files into output
 					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
 					const outputBundle: OutputBundle = graph.finaliseAssets(assetFileNames);
-					const inputBase = commondir(
-						chunks
-							.filter(chunk => chunk.entryModule && isAbsolute(chunk.entryModule.id))
-							.map(chunk => chunk.entryModule.id)
-					);
+					const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
 
 					return graph.pluginDriver
 						.hookParallel('renderStart')
@@ -294,10 +301,10 @@ export default function rollup(
 
 								outputBundle[chunk.id] = {
 									code: undefined,
-									entryModuleId:
+									entryModuleIds:
 										chunk.isEntryModuleFacade || chunk.isDynamicEntryFacade
-											? chunk.entryModule.id
-											: null,
+											? Array.from(chunk.entryModules).map(module => module.id)
+											: [],
 									exports: chunk.getExportNames(),
 									fileName: chunk.id,
 									imports: chunk.getImportIds(),

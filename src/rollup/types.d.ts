@@ -363,7 +363,7 @@ export interface RenderedModule {
 }
 
 export interface RenderedChunk {
-	entryModuleId: string | null;
+	entryModuleIds: string[];
 	exports: string[];
 	fileName: string;
 	imports: string[];

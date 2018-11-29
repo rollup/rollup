@@ -419,7 +419,7 @@ export default class Graph {
 				if (preserveModules) {
 					for (const module of orderedModules) {
 						const chunk = new Chunk(this, [module], inlineDynamicImports);
-						if (module.isEntryPoint || !chunk.isEmpty) chunk.entryModule = module;
+						if (module.isEntryPoint || !chunk.isEmpty) chunk.entryModules.add(module);
 						chunks.push(chunk);
 					}
 				} else {
@@ -459,7 +459,7 @@ export default class Graph {
 
 				// then go over and ensure all entry chunks export their variables
 				for (const chunk of chunks) {
-					if (preserveModules || chunk.entryModule) {
+					if (preserveModules || chunk.entryModules.size > 0) {
 						chunk.generateEntryExportsOrMarkAsTainted(preserveModules);
 					}
 				}
