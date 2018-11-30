@@ -11,7 +11,7 @@ export function assignChunkColouringHashes(
 	let currentEntry: Module, currentEntryHash: Uint8Array;
 	let modulesVisitedForCurrentEntry: { [id: string]: boolean };
 	const handledEntryPoints: { [id: string]: boolean } = {};
-	const dynamicImports: Module[] = [];
+	const dynamicImports: Set<Module> = new Set();
 
 	const addCurrentEntryColourToModule = (module: Module) => {
 		if (currentEntry.chunkAlias) {
@@ -33,19 +33,10 @@ export function assignChunkColouringHashes(
 		for (const dynamicModule of module.dynamicImportResolutions) {
 			if (
 				dynamicModule.resolution instanceof Module &&
-				dynamicModule.resolution.isDynamicEntryPoint
+				dynamicModule.resolution.isDynamicEntryPoint &&
+				!dynamicModule.resolution.chunkAlias
 			) {
-				if (dynamicModule.resolution.chunkAlias) {
-					// We only assign separate colouring to a dynamic entry if it is not already
-					// part of the graph of a manual chunk
-					// TODO Lukas test this
-					dynamicModule.resolution.isDynamicEntryPoint = false;
-				} else {
-					dynamicModule.resolution.isDynamicEntryPoint = true;
-					if (dynamicImports.indexOf(dynamicModule.resolution) === -1) {
-						dynamicImports.push(dynamicModule.resolution);
-					}
-				}
+				dynamicImports.add(dynamicModule.resolution);
 			}
 		}
 	};
@@ -81,7 +72,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 		addCurrentEntryColourToModule(currentEntry);
 	}
 
-	for (currentEntry of dynamicImports) {
+	for (currentEntry of Array.from(dynamicImports)) {
 		if (handledEntryPoints[currentEntry.id]) {
 			continue;
 		}

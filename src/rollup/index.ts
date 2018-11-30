@@ -282,7 +282,7 @@ export default function rollup(
 							for (const chunk of chunks) {
 								if (!inputOptions.experimentalPreserveModules)
 									chunk.generateInternalExports(outputOptions);
-								if (chunk.isEntryModuleFacade)
+								if (Array.from(chunk.entryModules).find(module => module.isEntryPoint))
 									chunk.exportMode = getExportMode(chunk, outputOptions);
 							}
 							for (const chunk of chunks) {
@@ -301,15 +301,14 @@ export default function rollup(
 
 								outputBundle[chunk.id] = {
 									code: undefined,
-									entryModuleIds:
-										chunk.isEntryModuleFacade || chunk.isDynamicEntryFacade
-											? Array.from(chunk.entryModules).map(module => module.id)
-											: [],
+									entryModuleIds: Array.from(chunk.entryModules).map(module => module.id),
 									exports: chunk.getExportNames(),
 									fileName: chunk.id,
 									imports: chunk.getImportIds(),
-									isDynamicEntry: chunk.isDynamicEntryFacade,
-									isEntry: chunk.isEntryModuleFacade,
+									isDynamicEntry: !!Array.from(chunk.entryModules).find(
+										module => module.isDynamicEntryPoint
+									),
+									isEntry: !!Array.from(chunk.entryModules).find(module => module.isEntryPoint),
 									map: undefined,
 									modules: chunk.renderedModules,
 									get name() {

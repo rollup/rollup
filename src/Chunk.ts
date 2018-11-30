@@ -130,8 +130,6 @@ export default class Chunk {
 	// an entry module chunk is a chunk that exactly exports the exports of
 	// an input entry point module
 	entryModules: Set<Module> = new Set();
-	isEntryModuleFacade: boolean = false;
-	isDynamicEntryFacade: boolean = false;
 	isEmpty: boolean;
 	isManualChunk: boolean = false;
 
@@ -160,13 +158,8 @@ export default class Chunk {
 				this.isManualChunk = true;
 			}
 			module.chunk = this;
-			if (module.isEntryPoint) {
+			if (module.isEntryPoint || (module.isDynamicEntryPoint && !inlineDynamicImports)) {
 				this.entryModules.add(module);
-				this.isEntryModuleFacade = true;
-			}
-			if (module.isDynamicEntryPoint && !inlineDynamicImports) {
-				this.entryModules.add(module);
-				this.isDynamicEntryFacade = true;
 			}
 		}
 
@@ -252,20 +245,33 @@ export default class Chunk {
 	}
 
 	// TODO Lukas:
-	// * separate in a way that we can work with multiple entry modules in a chunk
 	// * maybe each chunk has a Set of facaded modules. The type is determined by looking into the module
 	// TODO Lukas: fail if a name is used more than once
-	generateEntryExportsOrMarkAsTainted(preserveModules: boolean) {
-		const tracedEntryExports = this.getExportVariableMapForModule(Array.from(this.entryModules)[0]);
-		for (const exposedVariable of Array.from(this.exports.keys())) {
-			if (!tracedEntryExports.has(exposedVariable)) {
-				this.isEntryModuleFacade = false;
-				this.isDynamicEntryFacade = false;
-				return;
+	// TODO Lukas can this be simplified to directly set the exports?
+	// TODO Lukas dynamic imports -> always named export mode!
+	// TODO Lukas multiple entry points -> always generate facade for more than one
+	generateEntryExportsOrMarkAsTainted() {
+		const exportVariableMaps = Array.from(this.entryModules).map(module => ({
+			module,
+			map: this.getExportVariableMapForModule(module)
+		}));
+		const exposedVariables: Set<Variable> = new Set();
+		for (const { map } of exportVariableMaps) {
+			for (const exposedVariable of Array.from(map.keys())) {
+				exposedVariables.add(exposedVariable);
 			}
 		}
-		if (preserveModules || this.isEntryModuleFacade || this.isDynamicEntryFacade) {
-			for (const [variable, { exportNames, module }] of Array.from(tracedEntryExports.entries())) {
+		for (const exposedVariable of Array.from(this.exports.keys())) {
+			exposedVariables.add(exposedVariable);
+		}
+		checkNextEntryModule: for (const { map, module } of exportVariableMaps) {
+			for (const exposedVariable of Array.from(exposedVariables)) {
+				if (!map.has(exposedVariable)) {
+					this.entryModules.delete(module);
+					continue checkNextEntryModule;
+				}
+			}
+			for (const [variable, { exportNames, module }] of Array.from(map.entries())) {
 				for (const exportName of exportNames) {
 					this.exports.set(variable, module);
 					this.exportNames[exportName] = variable;
@@ -398,7 +404,7 @@ export default class Chunk {
 	}
 
 	generateInternalExports(options: OutputOptions) {
-		if (this.isEntryModuleFacade || this.isDynamicEntryFacade) return;
+		if (this.entryModules.size > 0) return;
 		const mangle = options.format === 'system' || options.format === 'es' || options.compact;
 		let i = 0,
 			safeExportName: string;
@@ -815,7 +821,7 @@ export default class Chunk {
 		};
 
 		// if an entry point facade or dynamic entry point, inline the execution list to avoid loading latency
-		if (this.isEntryModuleFacade || this.isDynamicEntryFacade) {
+		if (this.entryModules.size > 0) {
 			for (const dep of this.dependencies) {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
 			}
@@ -916,7 +922,7 @@ export default class Chunk {
 	 * A new facade will be added to chunkList if tainting exports of either as an entry point
 	 */
 	merge(chunk: Chunk, chunkList: Chunk[], options: OutputOptions, inputBase: string) {
-		if (this.isEntryModuleFacade || chunk.isEntryModuleFacade)
+		if (this.entryModules.size > 0 || chunk.entryModules.size > 0)
 			throw new Error('Internal error: Code splitting chunk merges not supported for facades');
 
 		for (const module of chunk.orderedModules) {
@@ -1133,7 +1139,7 @@ export default class Chunk {
 				dependencies: this.renderedDeclarations.dependencies,
 				exports: this.renderedDeclarations.exports,
 				graph: this.graph,
-				isEntryModuleFacade: this.isEntryModuleFacade,
+				isEntryModuleFacade: !!Array.from(this.entryModules).find(module => module.isEntryPoint),
 				usesTopLevelAwait
 			},
 			options

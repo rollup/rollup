@@ -450,27 +450,22 @@ export default class Graph {
 
 				// filter out empty dependencies
 				chunks = chunks.filter(
-					chunk =>
-						!chunk.isEmpty ||
-						chunk.isEntryModuleFacade ||
-						chunk.isDynamicEntryFacade ||
-						chunk.isManualChunk
+					chunk => !chunk.isEmpty || chunk.entryModules.size > 0 || chunk.isManualChunk
 				);
 
 				// then go over and ensure all entry chunks export their variables
 				for (const chunk of chunks) {
 					if (preserveModules || chunk.entryModules.size > 0) {
-						chunk.generateEntryExportsOrMarkAsTainted(preserveModules);
+						chunk.generateEntryExportsOrMarkAsTainted();
 					}
 				}
 
 				// create entry point facades for entry module chunks that have tainted exports
 				if (!preserveModules) {
 					for (const entryModule of entryModules) {
-						if (!entryModule.chunk.isEntryModuleFacade) {
+						if (!entryModule.chunk.entryModules.has(entryModule)) {
 							const entryPointFacade = new Chunk(this, [], inlineDynamicImports);
 							entryPointFacade.turnIntoFacade(entryModule);
-							entryPointFacade.isEntryModuleFacade = true;
 							chunks.push(entryPointFacade);
 						}
 					}
@@ -478,12 +473,11 @@ export default class Graph {
 						for (const entryModule of dynamicImports) {
 							if (
 								entryModule.isDynamicEntryPoint &&
-								!entryModule.chunk.isDynamicEntryFacade &&
+								!entryModule.chunk.entryModules.has(entryModule) &&
 								!entryModule.facadeChunk
 							) {
 								const entryPointFacade = new Chunk(this, [], inlineDynamicImports);
 								entryPointFacade.turnIntoFacade(entryModule);
-								entryPointFacade.isDynamicEntryFacade = true;
 								chunks.push(entryPointFacade);
 							}
 						}

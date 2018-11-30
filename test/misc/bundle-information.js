@@ -382,7 +382,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 				);
 				assert.deepEqual(
 					sortedOutput.map(chunk => chunk.entryModuleIds),
-					[['dynamic1'], ['dynamic2'], ['input'], []],
+					[['dynamic1'], ['dynamic2'], ['input'], ['other']],
 					'entryModuleIds'
 				);
 			});

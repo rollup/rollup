@@ -1,9 +1,9 @@
 module.exports = {
-	description: 'supports dynamic manual chunks',
+	description: 'creates facades for dynamic manual chunks if necessary',
 	options: {
 		input: ['main.js'],
 		manualChunks: {
-			dynamic: ['dynamic.js']
+			dynamic: ['dynamic1.js']
 		},
 		output: {
 			chunkFileNames: 'generated-[name].js'
