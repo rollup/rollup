@@ -1,12 +1,12 @@
-System.register(['./hsl2hsv.js', './index-8b381a8d.js'], function (exports, module) {
+System.register(['./hsl2hsv.js', './index-51f0f10d.js'], function (exports, module) {
 	'use strict';
-	var p, hsl2hsv, lib;
+	var hsl2hsv, p, lib;
 	return {
 		setters: [function (module) {
+			hsl2hsv = module.default;
 			p = module.p;
 		}, function (module) {
-			hsl2hsv = module.a;
-			lib = module.b;
+			lib = module.a;
 		}],
 		execute: function () {
 

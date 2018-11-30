@@ -244,7 +244,6 @@ export default class Chunk {
 		}
 	}
 
-	// TODO Lukas can this be simplified to directly set the exports?
 	// TODO Lukas dynamic imports -> always named export mode!
 	// TODO Lukas multiple entry points -> always generate facade for more than one
 	// TODO Lukas handle circularly connected entries
@@ -253,21 +252,17 @@ export default class Chunk {
 			module,
 			map: this.getExportVariableMapForModule(module)
 		}));
-		const exposedVariables: Set<Variable> = new Set();
 		const variableByExportName: Map<string, Variable> = new Map();
 		for (const { map } of exportVariableMaps) {
 			for (const exposedVariable of Array.from(map.keys())) {
-				exposedVariables.add(exposedVariable);
+				this.exports.set(exposedVariable, map.get(exposedVariable).module);
 				for (const exportName of map.get(exposedVariable).exportNames) {
 					variableByExportName.set(exportName, exposedVariable);
 				}
 			}
 		}
-		for (const exposedVariable of Array.from(this.exports.keys())) {
-			exposedVariables.add(exposedVariable);
-		}
 		checkNextEntryModule: for (const { map, module } of exportVariableMaps) {
-			for (const exposedVariable of Array.from(exposedVariables)) {
+			for (const exposedVariable of Array.from(this.exports.keys())) {
 				if (
 					!map.has(exposedVariable) ||
 					map
@@ -280,9 +275,8 @@ export default class Chunk {
 					continue checkNextEntryModule;
 				}
 			}
-			for (const [variable, { exportNames, module }] of Array.from(map)) {
+			for (const [variable, { exportNames }] of Array.from(map)) {
 				for (const exportName of exportNames) {
-					this.exports.set(variable, module);
 					this.exportNames[exportName] = variable;
 				}
 			}
@@ -368,12 +362,6 @@ export default class Chunk {
 		}
 
 		if (module.chunk !== this) {
-			// we follow reexports if they are not entry points in the hope
-			// that we can get an entry point reexport to reduce the chance of
-			// tainting an entryModule chunk by exposing other unnecessary exports
-			// TODO Lukas this should also stop for dynamic entries, test this
-			if (module.isEntryPoint && !module.chunk.isEmpty)
-				return { variable: module.traceExport(name), module };
 			return module.chunk.traceExport(name, module);
 		}
 

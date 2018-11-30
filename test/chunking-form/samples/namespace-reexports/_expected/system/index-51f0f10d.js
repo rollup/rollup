@@ -4,6 +4,7 @@ System.register(['./hsl2hsv.js'], function (exports, module) {
 	return {
 		setters: [function (module) {
 			hsl2hsv = module.default;
+			exports('b', module.default);
 		}],
 		execute: function () {
 
@@ -14,7 +15,7 @@ System.register(['./hsl2hsv.js'], function (exports, module) {
 			var lib = /*#__PURE__*/Object.freeze({
 				hsl2hsv: hsl2hsv
 			});
-			exports('b', lib);
+			exports('a', lib);
 
 		}
 	};
