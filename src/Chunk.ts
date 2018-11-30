@@ -244,21 +244,23 @@ export default class Chunk {
 		}
 	}
 
-	// TODO Lukas:
-	// * maybe each chunk has a Set of facaded modules. The type is determined by looking into the module
-	// TODO Lukas: fail if a name is used more than once
 	// TODO Lukas can this be simplified to directly set the exports?
 	// TODO Lukas dynamic imports -> always named export mode!
 	// TODO Lukas multiple entry points -> always generate facade for more than one
+	// TODO Lukas handle circularly connected entries
 	generateEntryExportsOrMarkAsTainted() {
 		const exportVariableMaps = Array.from(this.entryModules).map(module => ({
 			module,
 			map: this.getExportVariableMapForModule(module)
 		}));
 		const exposedVariables: Set<Variable> = new Set();
+		const variableByExportName: Map<string, Variable> = new Map();
 		for (const { map } of exportVariableMaps) {
 			for (const exposedVariable of Array.from(map.keys())) {
 				exposedVariables.add(exposedVariable);
+				for (const exportName of map.get(exposedVariable).exportNames) {
+					variableByExportName.set(exportName, exposedVariable);
+				}
 			}
 		}
 		for (const exposedVariable of Array.from(this.exports.keys())) {
@@ -266,12 +268,19 @@ export default class Chunk {
 		}
 		checkNextEntryModule: for (const { map, module } of exportVariableMaps) {
 			for (const exposedVariable of Array.from(exposedVariables)) {
-				if (!map.has(exposedVariable)) {
+				if (
+					!map.has(exposedVariable) ||
+					map
+						.get(exposedVariable)
+						.exportNames.some(
+							exportName => variableByExportName.get(exportName) !== exposedVariable
+						)
+				) {
 					this.entryModules.delete(module);
 					continue checkNextEntryModule;
 				}
 			}
-			for (const [variable, { exportNames, module }] of Array.from(map.entries())) {
+			for (const [variable, { exportNames, module }] of Array.from(map)) {
 				for (const exportName of exportNames) {
 					this.exports.set(variable, module);
 					this.exportNames[exportName] = variable;
