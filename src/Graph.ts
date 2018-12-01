@@ -369,7 +369,7 @@ export default class Graph {
 
 				this.link();
 
-				const { orderedModules, cyclePaths, dynamicImports } = analyseModuleExecution(entryModules);
+				const { orderedModules, cyclePaths } = analyseModuleExecution(entryModules);
 				for (const cyclePath of cyclePaths) {
 					this.warn({
 						code: 'CIRCULAR_DEPENDENCY',
@@ -419,7 +419,9 @@ export default class Graph {
 				if (preserveModules) {
 					for (const module of orderedModules) {
 						const chunk = new Chunk(this, [module], inlineDynamicImports);
-						if (module.isEntryPoint || !chunk.isEmpty) chunk.entryModules.add(module);
+						if (module.isEntryPoint || !chunk.isEmpty) {
+							chunk.entryModules = [module];
+						}
 						chunks.push(chunk);
 					}
 				} else {
@@ -450,35 +452,25 @@ export default class Graph {
 
 				// filter out empty dependencies
 				chunks = chunks.filter(
-					chunk => !chunk.isEmpty || chunk.entryModules.size > 0 || chunk.isManualChunk
+					chunk => !chunk.isEmpty || chunk.entryModules.length > 0 || chunk.isManualChunk
 				);
 
 				// then go over and ensure all entry chunks export their variables
 				for (const chunk of chunks) {
-					if (preserveModules || chunk.entryModules.size > 0) {
+					if (preserveModules || chunk.entryModules.length > 0) {
 						chunk.generateEntryExportsOrMarkAsTainted();
 					}
 				}
 
 				// create entry point facades for entry module chunks that have tainted exports
+				const facades = [];
 				if (!preserveModules) {
-					for (const entryModule of entryModules) {
-						if (!entryModule.chunk.entryModules.has(entryModule)) {
-							const entryPointFacade = new Chunk(this, [], inlineDynamicImports);
-							entryPointFacade.turnIntoFacade(entryModule);
-							chunks.push(entryPointFacade);
-						}
-					}
-					if (!inlineDynamicImports) {
-						for (const entryModule of dynamicImports) {
-							if (
-								entryModule.isDynamicEntryPoint &&
-								!entryModule.chunk.entryModules.has(entryModule) &&
-								!entryModule.facadeChunk
-							) {
+					for (const chunk of chunks) {
+						for (const entryModule of chunk.entryModules) {
+							if (chunk.facadeModule !== entryModule) {
 								const entryPointFacade = new Chunk(this, [], inlineDynamicImports);
 								entryPointFacade.turnIntoFacade(entryModule);
-								chunks.push(entryPointFacade);
+								facades.push(entryPointFacade);
 							}
 						}
 					}
@@ -487,7 +479,7 @@ export default class Graph {
 				timeEnd('generate chunks', 2);
 
 				this.finished = true;
-				return chunks;
+				return chunks.concat(facades);
 			}
 		);
 	}

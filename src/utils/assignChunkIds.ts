@@ -14,10 +14,9 @@ export function assignChunkIds(
 	const usedIds: Record<string, true> = {};
 	const [entryChunks, otherChunks] = chunks.reduce(
 		([entryChunks, otherChunks], chunk) => {
-			(Array.from(chunk.entryModules).find(module => module.isEntryPoint)
-				? entryChunks
-				: otherChunks
-			).push(chunk);
+			(chunk.facadeModule && chunk.facadeModule.isEntryPoint ? entryChunks : otherChunks).push(
+				chunk
+			);
 			return [entryChunks, otherChunks];
 		},
 		[[], []]
@@ -37,7 +36,7 @@ export function assignChunkIds(
 			chunk.generateIdPreserveModules(inputBase, usedIds);
 		} else {
 			let pattern, patternName;
-			if (Array.from(chunk.entryModules).find(module => module.isEntryPoint)) {
+			if (chunk.facadeModule && chunk.facadeModule.isEntryPoint) {
 				pattern = outputOptions.entryFileNames || '[name].js';
 				patternName = 'output.entryFileNames';
 			} else {

@@ -75,7 +75,7 @@ export function analyseModuleExecution(entryModules: Module[]) {
 		}
 	}
 
-	return { orderedModules, dynamicImports, cyclePaths };
+	return { orderedModules, cyclePaths };
 }
 
 function getCyclePath(id: string, parentId: string, parents: { [id: string]: string | null }) {

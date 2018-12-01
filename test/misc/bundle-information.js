@@ -2,7 +2,6 @@ const assert = require('assert');
 const rollup = require('../../dist/rollup');
 const { loader } = require('../utils.js');
 
-// TODO Lukas test multiple entry module ids
 describe('The bundle object', () => {
 	it('contains information about the generated chunks', () => {
 		return rollup
@@ -51,9 +50,9 @@ describe('The bundle object', () => {
 					'name'
 				);
 				assert.deepEqual(
-					sortedOutput.map(chunk => chunk.entryModuleIds),
-					[[], ['input1'], ['input2']],
-					'entryModuleIds'
+					sortedOutput.map(chunk => chunk.facadeModuleId),
+					[null, 'input1', 'input2'],
+					'facadeModuleId'
 				);
 				assert.deepEqual(
 					sortedOutput.map(chunk => chunk.imports),
@@ -131,9 +130,9 @@ describe('The bundle object', () => {
 				);
 				assert.deepEqual(sortedOutput.map(chunk => chunk.isEntry), [false, true, true], 'isEntry');
 				assert.deepEqual(
-					sortedOutput.map(chunk => chunk.entryModuleIds),
-					[[], ['input1'], ['input2']],
-					'entryModuleIds'
+					sortedOutput.map(chunk => chunk.facadeModuleId),
+					[null, 'input1', 'input2'],
+					'facadeModuleId'
 				);
 			});
 	});
@@ -170,9 +169,9 @@ describe('The bundle object', () => {
 					'fileName'
 				);
 				assert.deepEqual(
-					sortedOutput.map(chunk => chunk.entryModuleIds),
-					[['input1'], ['input2'], []],
-					'entryModuleIds'
+					sortedOutput.map(chunk => chunk.facadeModuleId),
+					['input1', 'input2', null],
+					'facadeModuleId'
 				);
 			});
 	});
@@ -224,9 +223,9 @@ describe('The bundle object', () => {
 					'isDynamicEntry'
 				);
 				assert.deepEqual(
-					sortedOutput.map(chunk => chunk.entryModuleIds),
-					[['dynamic1'], ['dynamic2'], ['input']],
-					'entryModuleIds'
+					sortedOutput.map(chunk => chunk.facadeModuleId),
+					['dynamic1', 'dynamic2', 'input'],
+					'facadeModuleId'
 				);
 			});
 	});
@@ -273,9 +272,9 @@ describe('The bundle object', () => {
 					'isDynamicEntry'
 				);
 				assert.deepEqual(
-					sortedOutput.map(chunk => chunk.entryModuleIds),
-					[[], ['dynamic'], ['input1'], ['input2']],
-					'entryModuleIds'
+					sortedOutput.map(chunk => chunk.facadeModuleId),
+					[null, 'dynamic', 'input1', 'input2'],
+					'facadeModuleId'
 				);
 			});
 	});
@@ -381,9 +380,9 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 					'isDynamicEntry'
 				);
 				assert.deepEqual(
-					sortedOutput.map(chunk => chunk.entryModuleIds),
-					[['dynamic1'], ['dynamic2'], ['input'], ['other']],
-					'entryModuleIds'
+					sortedOutput.map(chunk => chunk.facadeModuleId),
+					['dynamic1', 'dynamic2', 'input', 'other'],
+					'facadeModuleId'
 				);
 			});
 	});

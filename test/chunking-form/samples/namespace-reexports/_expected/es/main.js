@@ -1,4 +1,4 @@
-import { p } from './hsl2hsv.js';
+import hsl2hsv, { p } from './hsl2hsv.js';
 import { a as lib } from './index-6a71658c.js';
 
 console.log(p);

@@ -36,10 +36,10 @@ export function optimizeChunks(
 			nextChunk = execGroup[1];
 
 		const isMergeCandidate = (chunk: Chunk) => {
-			if (chunk.entryModules.size > 0 || chunk.isManualChunk) {
+			if (chunk.facadeModule !== null || chunk.isManualChunk) {
 				return false;
 			}
-			if (!nextChunk || nextChunk.entryModules.size > 0) {
+			if (!nextChunk || nextChunk.facadeModule !== null) {
 				return false;
 			}
 			if (chunk.getRenderedSourceLength() > CHUNK_GROUPING_SIZE) {

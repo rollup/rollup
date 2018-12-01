@@ -7,7 +7,7 @@ define(['exports'], function (exports) { 'use strict';
 
 	console.log('dynamic1');
 
-	exports.DYNAMIC_B = DYNAMIC_A;
-	exports.DYNAMIC_A = DYNAMIC_B;
+	exports.DYNAMIC_A = DYNAMIC_A;
+	exports.DYNAMIC_B = DYNAMIC_B;
 
 });

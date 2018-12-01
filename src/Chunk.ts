@@ -127,9 +127,8 @@ export default class Chunk {
 	private exportNames: { [name: string]: Variable } = Object.create(null);
 
 	private dependencies: (ExternalModule | Chunk)[] = undefined;
-	// an entry module chunk is a chunk that exactly exports the exports of
-	// an input entry point module
-	entryModules: Set<Module> = new Set();
+	entryModules: Module[] = [];
+	facadeModule: Module | null = null;
 	isEmpty: boolean;
 	isManualChunk: boolean = false;
 
@@ -159,14 +158,16 @@ export default class Chunk {
 			}
 			module.chunk = this;
 			if (module.isEntryPoint || (module.isDynamicEntryPoint && !inlineDynamicImports)) {
-				this.entryModules.add(module);
+				this.entryModules.push(module);
 			}
 		}
 
-		if (this.entryModules.size > 0) {
-			const entryModules = Array.from(this.entryModules);
+		if (this.entryModules.length > 0) {
 			this.variableName = makeLegal(
-				basename(entryModules.map(module => module.chunkAlias).find(Boolean) || entryModules[0].id)
+				basename(
+					this.entryModules.map(module => module.chunkAlias).find(Boolean) ||
+						this.entryModules[0].id
+				)
 			);
 		} else this.variableName = '__chunk_' + ++graph.curChunkIndex;
 	}
@@ -193,7 +194,7 @@ export default class Chunk {
 
 	turnIntoFacade(facadedModule: Module) {
 		this.dependencies = [facadedModule.chunk];
-		this.entryModules.add(facadedModule);
+		this.facadeModule = facadedModule;
 		facadedModule.facadeChunk = this;
 		for (const exportName of facadedModule.getAllExports()) {
 			const tracedVariable = facadedModule.traceExport(exportName);
@@ -244,42 +245,29 @@ export default class Chunk {
 		}
 	}
 
-	// TODO Lukas dynamic imports -> always named export mode!
-	// TODO Lukas multiple entry points -> always generate facade for more than one
-	// TODO Lukas handle circularly connected entries
 	generateEntryExportsOrMarkAsTainted() {
-		const exportVariableMaps = Array.from(this.entryModules).map(module => ({
+		const exportVariableMaps = this.entryModules.map(module => ({
 			module,
 			map: this.getExportVariableMapForModule(module)
 		}));
-		const variableByExportName: Map<string, Variable> = new Map();
 		for (const { map } of exportVariableMaps) {
 			for (const exposedVariable of Array.from(map.keys())) {
 				this.exports.set(exposedVariable, map.get(exposedVariable).module);
-				for (const exportName of map.get(exposedVariable).exportNames) {
-					variableByExportName.set(exportName, exposedVariable);
-				}
 			}
 		}
 		checkNextEntryModule: for (const { map, module } of exportVariableMaps) {
 			for (const exposedVariable of Array.from(this.exports.keys())) {
-				if (
-					!map.has(exposedVariable) ||
-					map
-						.get(exposedVariable)
-						.exportNames.some(
-							exportName => variableByExportName.get(exportName) !== exposedVariable
-						)
-				) {
-					this.entryModules.delete(module);
+				if (!map.has(exposedVariable)) {
 					continue checkNextEntryModule;
 				}
 			}
+			this.facadeModule = module;
 			for (const [variable, { exportNames }] of Array.from(map)) {
 				for (const exportName of exportNames) {
 					this.exportNames[exportName] = variable;
 				}
 			}
+			return;
 		}
 	}
 
@@ -333,7 +321,9 @@ export default class Chunk {
 						this.traceAndInitializeImport(importName, traced.variable.module);
 					} else {
 						const externalVariable = traced.variable.module.traceExport(importName);
-						if (externalVariable.included) this.imports.set(original, traced.variable.module);
+						if (externalVariable.included) {
+							this.imports.set(original, traced.variable.module);
+						}
 					}
 				}
 			}
@@ -401,7 +391,7 @@ export default class Chunk {
 	}
 
 	generateInternalExports(options: OutputOptions) {
-		if (this.entryModules.size > 0) return;
+		if (this.facadeModule !== null) return;
 		const mangle = options.format === 'system' || options.format === 'es' || options.compact;
 		let i = 0,
 			safeExportName: string;
@@ -818,7 +808,7 @@ export default class Chunk {
 		};
 
 		// if an entry point facade or dynamic entry point, inline the execution list to avoid loading latency
-		if (this.entryModules.size > 0) {
+		if (this.facadeModule !== null) {
 			for (const dep of this.dependencies) {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
 			}
@@ -919,7 +909,7 @@ export default class Chunk {
 	 * A new facade will be added to chunkList if tainting exports of either as an entry point
 	 */
 	merge(chunk: Chunk, chunkList: Chunk[], options: OutputOptions, inputBase: string) {
-		if (this.entryModules.size > 0 || chunk.entryModules.size > 0)
+		if (this.facadeModule !== null || chunk.facadeModule !== null)
 			throw new Error('Internal error: Code splitting chunk merges not supported for facades');
 
 		for (const module of chunk.orderedModules) {
@@ -1061,10 +1051,8 @@ export default class Chunk {
 	}
 
 	private computeChunkName(): string {
-		if (this.entryModules.size > 0) {
-			for (const entryModule of Array.from(this.entryModules)) {
-				if (entryModule.chunkAlias) return entryModule.chunkAlias;
-			}
+		if (this.facadeModule !== null && this.facadeModule.chunkAlias) {
+			return this.facadeModule.chunkAlias;
 		}
 		for (const module of this.orderedModules) {
 			if (module.chunkAlias) return module.chunkAlias;
@@ -1136,7 +1124,7 @@ export default class Chunk {
 				dependencies: this.renderedDeclarations.dependencies,
 				exports: this.renderedDeclarations.exports,
 				graph: this.graph,
-				isEntryModuleFacade: !!Array.from(this.entryModules).find(module => module.isEntryPoint),
+				isEntryModuleFacade: this.facadeModule !== null && this.facadeModule.isEntryPoint,
 				usesTopLevelAwait
 			},
 			options

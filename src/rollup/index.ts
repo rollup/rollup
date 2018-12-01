@@ -68,7 +68,7 @@ function checkOutputOptions(options: OutputOptions) {
 function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
 	const absoluteEntryModulePaths: string[] = [];
 	for (const chunk of chunks) {
-		for (const entryModule of Array.from(chunk.entryModules)) {
+		for (const entryModule of chunk.entryModules) {
 			if (isAbsolute(entryModule.id)) {
 				absoluteEntryModulePaths.push(entryModule.id);
 			}
@@ -282,7 +282,7 @@ export default function rollup(
 							for (const chunk of chunks) {
 								if (!inputOptions.experimentalPreserveModules)
 									chunk.generateInternalExports(outputOptions);
-								if (Array.from(chunk.entryModules).find(module => module.isEntryPoint))
+								if (chunk.facadeModule && chunk.facadeModule.isEntryPoint)
 									chunk.exportMode = getExportMode(chunk, outputOptions);
 							}
 							for (const chunk of chunks) {
@@ -298,17 +298,16 @@ export default function rollup(
 							// assign to outputBundle
 							for (let i = 0; i < chunks.length; i++) {
 								const chunk = chunks[i];
+								const facadeModule = chunk.facadeModule;
 
 								outputBundle[chunk.id] = {
 									code: undefined,
-									entryModuleIds: Array.from(chunk.entryModules).map(module => module.id),
+									facadeModuleId: facadeModule && facadeModule.id,
 									exports: chunk.getExportNames(),
 									fileName: chunk.id,
 									imports: chunk.getImportIds(),
-									isDynamicEntry: !!Array.from(chunk.entryModules).find(
-										module => module.isDynamicEntryPoint
-									),
-									isEntry: !!Array.from(chunk.entryModules).find(module => module.isEntryPoint),
+									isDynamicEntry: facadeModule !== null && facadeModule.isDynamicEntryPoint,
+									isEntry: facadeModule !== null && facadeModule.isEntryPoint,
 									map: undefined,
 									modules: chunk.renderedModules,
 									get name() {

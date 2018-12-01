@@ -32,7 +32,8 @@ export default function getExportMode(
 			exportMode = 'default';
 		} else {
 			if (
-				Array.from(chunk.entryModules).find(module => module.isEntryPoint) &&
+				chunk.facadeModule !== null &&
+				chunk.facadeModule.isEntryPoint &&
 				format !== 'es' &&
 				exportKeys.indexOf('default') !== -1
 			) {
