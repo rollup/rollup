@@ -4,10 +4,10 @@ module.exports = {
 		input: ['main.js'],
 		experimentalCodeSplitting: true,
 		experimentalPreserveModules: true,
-		optimizeChunks: true
+		experimentalOptimizeChunks: true
 	},
 	error: {
 		code: 'INVALID_OPTION',
-		message: 'experimentalPreserveModules does not support the optimizeChunks option.'
+		message: 'experimentalPreserveModules does not support the experimentalOptimizeChunks option.'
 	}
 };

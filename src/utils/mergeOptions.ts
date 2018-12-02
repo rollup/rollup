@@ -212,7 +212,7 @@ function getInputOptions(
 		input: getOption('input'),
 		manualChunks: getOption('manualChunks'),
 		chunkGroupingSize: getOption('chunkGroupingSize', 5000),
-		optimizeChunks: getOption('optimizeChunks'),
+		experimentalOptimizeChunks: getOption('experimentalOptimizeChunks'),
 		moduleContext: config.moduleContext,
 		onwarn: getOnWarn(config, command, defaultOnWarnHandler),
 		perf: getOption('perf', false),

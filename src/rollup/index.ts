@@ -117,10 +117,11 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 				code: 'INVALID_OPTION',
 				message: '"manualChunks" option is only supported for experimentalCodeSplitting.'
 			});
-		if (inputOptions.optimizeChunks)
+		if (inputOptions.experimentalOptimizeChunks)
 			error({
 				code: 'INVALID_OPTION',
-				message: '"optimizeChunks" option is only supported for experimentalCodeSplitting.'
+				message:
+					'"experimentalOptimizeChunks" option is only supported for experimentalCodeSplitting.'
 			});
 		if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
 			error({
@@ -141,10 +142,10 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 				message: '"manualChunks" option is not supported for inlineDynamicImports.'
 			});
 
-		if (inputOptions.optimizeChunks)
+		if (inputOptions.experimentalOptimizeChunks)
 			error({
 				code: 'INVALID_OPTION',
-				message: '"optimizeChunks" option is not supported for inlineDynamicImports.'
+				message: '"experimentalOptimizeChunks" option is not supported for inlineDynamicImports.'
 			});
 		if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
 			error({
@@ -157,10 +158,11 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 				code: 'INVALID_OPTION',
 				message: 'experimentalPreserveModules does not support the manualChunks option.'
 			});
-		if (inputOptions.optimizeChunks)
+		if (inputOptions.experimentalOptimizeChunks)
 			error({
 				code: 'INVALID_OPTION',
-				message: 'experimentalPreserveModules does not support the optimizeChunks option.'
+				message:
+					'experimentalPreserveModules does not support the experimentalOptimizeChunks option.'
 			});
 	}
 
@@ -288,7 +290,7 @@ export default function rollup(
 							for (const chunk of chunks) {
 								chunk.preRender(outputOptions, inputBase);
 							}
-							if (!optimized && inputOptions.optimizeChunks) {
+							if (!optimized && inputOptions.experimentalOptimizeChunks) {
 								optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize, inputBase);
 								optimized = true;
 							}

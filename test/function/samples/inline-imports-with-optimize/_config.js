@@ -4,10 +4,10 @@ module.exports = {
 		input: ['main.js'],
 		experimentalCodeSplitting: true,
 		inlineDynamicImports: true,
-		optimizeChunks: true
+		experimentalOptimizeChunks: true
 	},
 	error: {
 		code: 'INVALID_OPTION',
-		message: '"optimizeChunks" option is not supported for inlineDynamicImports.'
+		message: '"experimentalOptimizeChunks" option is not supported for inlineDynamicImports.'
 	}
 };

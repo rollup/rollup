@@ -242,7 +242,7 @@ export interface InputOptions {
 	inlineDynamicImports?: boolean;
 	preserveSymlinks?: boolean;
 	experimentalPreserveModules?: boolean;
-	optimizeChunks?: boolean;
+	experimentalOptimizeChunks?: boolean;
 	chunkGroupingSize?: number;
 	shimMissingExports?: boolean;
 
