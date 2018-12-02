@@ -45,12 +45,9 @@ export function analyseModuleExecution(entryModules: Module[]) {
 			analyseModule(dependency);
 		}
 
-		for (const dynamicModule of module.dynamicImportResolutions) {
-			if (
-				dynamicModule.resolution instanceof Module &&
-				dynamicImports.indexOf(dynamicModule.resolution) === -1
-			) {
-				dynamicImports.push(dynamicModule.resolution);
+		for (const { resolution } of module.dynamicImports) {
+			if (resolution instanceof Module && dynamicImports.indexOf(resolution) === -1) {
+				dynamicImports.push(resolution);
 			}
 		}
 

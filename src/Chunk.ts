@@ -127,6 +127,7 @@ export default class Chunk {
 	private exportNames: { [name: string]: Variable } = Object.create(null);
 
 	private dependencies: (ExternalModule | Chunk)[] = undefined;
+	private dynamicDependencies: (ExternalModule | Chunk)[] = undefined;
 	entryModules: Module[] = [];
 	facadeModule: Module | null = null;
 	isEmpty: boolean;
@@ -173,7 +174,11 @@ export default class Chunk {
 	}
 
 	getImportIds(): string[] {
-		return this.dependencies.map(module => module.id);
+		return this.dependencies.map(chunk => chunk.id);
+	}
+
+	getDynamicImportIds(): string[] {
+		return this.dynamicDependencies.map(chunk => chunk.id);
 	}
 
 	getExportNames(): string[] {
@@ -194,6 +199,7 @@ export default class Chunk {
 
 	turnIntoFacade(facadedModule: Module) {
 		this.dependencies = [facadedModule.chunk];
+		this.dynamicDependencies = [];
 		this.facadeModule = facadedModule;
 		facadedModule.facadeChunk = this;
 		for (const exportName of facadedModule.getAllExports()) {
@@ -204,16 +210,23 @@ export default class Chunk {
 	}
 
 	link() {
-		this.dependencies = [];
+		const dependencies: Set<Chunk | ExternalModule> = new Set();
+		const dynamicDependencies: Set<Chunk | ExternalModule> = new Set();
 		for (const module of this.orderedModules) {
-			this.addModuleDependenciesToChunk(module);
+			this.addChunksFromDependencies(module.dependencies, dependencies);
+			this.addChunksFromDependencies(module.dynamicDependencies, dynamicDependencies);
 			this.setUpModuleImports(module);
 		}
+		this.dependencies = Array.from(dependencies);
+		this.dynamicDependencies = Array.from(dynamicDependencies);
 		sortByExecutionOrder(this.dependencies);
 	}
 
-	private addModuleDependenciesToChunk(module: Module) {
-		for (const depModule of module.dependencies) {
+	private addChunksFromDependencies(
+		moduleDependencies: (Module | ExternalModule)[],
+		chunkDependencies: Set<Chunk | ExternalModule>
+	) {
+		for (const depModule of moduleDependencies) {
 			if (depModule.chunk === this) {
 				continue;
 			}
@@ -221,15 +234,12 @@ export default class Chunk {
 			if (depModule instanceof Module) {
 				dependency = depModule.chunk;
 			} else {
-				// unused pure external modules can be skipped
 				if (!depModule.used && this.graph.isPureExternalModule(depModule.id)) {
 					continue;
 				}
 				dependency = depModule;
 			}
-			if (this.dependencies.indexOf(dependency) === -1) {
-				this.dependencies.push(dependency);
-			}
+			chunkDependencies.add(dependency);
 		}
 	}
 
@@ -238,7 +248,7 @@ export default class Chunk {
 			const declaration = module.imports[importName];
 			this.traceAndInitializeImport(declaration.name, declaration.module);
 		}
-		for (const { resolution } of module.dynamicImportResolutions) {
+		for (const { resolution } of module.dynamicImports) {
 			this.hasDynamicImport = true;
 			if (resolution instanceof Module && resolution.chunk === this)
 				resolution.getOrCreateNamespace().include();
@@ -421,26 +431,17 @@ export default class Chunk {
 
 	private prepareDynamicImports() {
 		for (const module of this.orderedModules) {
-			for (let i = 0; i < module.dynamicImportResolutions.length; i++) {
-				const node = module.dynamicImports[i];
-				const resolution = module.dynamicImportResolutions[i].resolution;
-
+			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
-
 				if (resolution instanceof Module) {
-					// if we have the module in the chunk, inline as Promise.resolve(namespace)
-					// ensuring that we create a namespace import of it as well
 					if (resolution.chunk === this) {
 						const namespace = resolution.getOrCreateNamespace();
 						node.setResolution(false, namespace.getName());
-						// for the module in another chunk, import that other chunk directly
 					} else {
 						node.setResolution(false);
 					}
-					// external dynamic import resolution
 				} else if (resolution instanceof ExternalModule) {
 					node.setResolution(true);
-					// AST Node -> source replacement
 				} else {
 					node.setResolution(false);
 				}
@@ -452,10 +453,7 @@ export default class Chunk {
 		for (let i = 0; i < this.orderedModules.length; i++) {
 			const module = this.orderedModules[i];
 			const code = this.renderedModuleSources[i];
-			for (let j = 0; j < module.dynamicImportResolutions.length; j++) {
-				const node = module.dynamicImports[j];
-				const resolution = module.dynamicImportResolutions[j].resolution;
-
+			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
 					const resolutionChunk = resolution.facadeChunk || resolution.chunk;
@@ -466,7 +464,6 @@ export default class Chunk {
 					}
 				} else if (resolution instanceof ExternalModule) {
 					node.renderFinalResolution(code, `'${resolution.id}'`);
-					// AST Node -> source replacement
 				} else {
 					node.renderFinalResolution(code, resolution);
 				}

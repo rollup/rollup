@@ -302,8 +302,9 @@ export default function rollup(
 
 								outputBundle[chunk.id] = {
 									code: undefined,
-									facadeModuleId: facadeModule && facadeModule.id,
+									dynamicImports: chunk.getDynamicImportIds(),
 									exports: chunk.getExportNames(),
+									facadeModuleId: facadeModule && facadeModule.id,
 									fileName: chunk.id,
 									imports: chunk.getImportIds(),
 									isDynamicEntry: facadeModule !== null && facadeModule.isDynamicEntryPoint,

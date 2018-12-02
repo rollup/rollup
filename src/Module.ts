@@ -149,81 +149,57 @@ function handleMissingExport(
 
 export default class Module {
 	type: 'Module';
-	private graph: Graph;
+	chunk: Chunk;
+	chunkAlias: string = undefined;
 	code: string;
-	comments: CommentDescription[];
-	dependencies: (Module | ExternalModule)[];
+	comments: CommentDescription[] = [];
+	customTransformCache: boolean;
+	dependencies: (Module | ExternalModule)[] = [];
+	dynamicDependencies: (Module | ExternalModule)[] = [];
+	dynamicImports: {
+		node: Import;
+		alias: string | null;
+		resolution: Module | ExternalModule | string | void;
+	}[] = [];
+	entryPointsHash: Uint8Array = new Uint8Array(10);
+	exportAllModules: (Module | ExternalModule)[] = null;
 	excludeFromSourcemap: boolean;
-	exports: { [name: string]: ExportDescription };
-	exportsAll: { [name: string]: string };
-	exportAllSources: string[];
+	execIndex: number = Infinity;
+	exports: { [name: string]: ExportDescription } = Object.create(null);
+	exportsAll: { [name: string]: string } = Object.create(null);
+	exportAllSources: string[] = [];
+	facadeChunk: Chunk | null = null;
 	id: string;
-	imports: { [name: string]: ImportDescription };
+	importMetas: MetaProperty[] = [];
+	imports: { [name: string]: ImportDescription } = Object.create(null);
+	isDynamicEntryPoint: boolean = false;
+	isEntryPoint: boolean = false;
 	isExecuted: boolean = false;
 	isExternal: false;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
-	reexports: { [name: string]: ReexportDescription };
+	reexports: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds: IdMap;
 	scope: ModuleScope;
 	sourcemapChain: RawSourceMap[];
-	sources: string[];
-	dynamicImports: Import[];
-	importMetas: MetaProperty[];
-	dynamicImportResolutions: {
-		alias: string;
-		resolution: Module | ExternalModule | string | void;
-	}[];
+	sources: string[] = [];
 	transformAssets: Asset[];
-	customTransformCache: boolean;
-
-	execIndex: number;
-	isEntryPoint: boolean;
-	isDynamicEntryPoint: boolean;
-	chunkAlias: string;
-	entryPointsHash: Uint8Array;
-	chunk: Chunk;
-	exportAllModules: (Module | ExternalModule)[];
 	usesTopLevelAwait: boolean = false;
-	facadeChunk: Chunk | null = null;
 
 	private ast: Program;
 	private astContext: AstContext;
 	private context: string;
-	private namespaceVariable: NamespaceVariable = undefined;
 	private esTreeAst: ESTree.Program;
+	private graph: Graph;
 	private magicString: MagicString;
+	private namespaceVariable: NamespaceVariable = undefined;
 	private transformDependencies: string[];
 
 	constructor(graph: Graph, id: string) {
 		this.id = id;
-		this.chunkAlias = undefined;
 		this.graph = graph;
-		this.comments = [];
-
-		this.dynamicImports = [];
-		this.importMetas = [];
-		this.dynamicImportResolutions = [];
-		this.isEntryPoint = false;
-		this.isDynamicEntryPoint = false;
-		this.execIndex = Infinity;
-		this.entryPointsHash = new Uint8Array(10);
-
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = graph.getModuleContext(id);
-
-		// all dependencies
-		this.sources = [];
-		this.dependencies = [];
-
-		// imports and exports, indexed by local name
-		this.imports = Object.create(null);
-		this.exports = Object.create(null);
-		this.exportsAll = Object.create(null);
-		this.reexports = Object.create(null);
-
-		this.exportAllSources = [];
-		this.exportAllModules = null;
 	}
 
 	setSource({
@@ -437,7 +413,7 @@ export default class Module {
 	}
 
 	private addDynamicImport(node: Import) {
-		this.dynamicImports.push(node);
+		this.dynamicImports.push({ node, alias: undefined, resolution: undefined });
 	}
 
 	private addImportMeta(node: MetaProperty) {
@@ -497,6 +473,11 @@ export default class Module {
 				this.dependencies.push(<Module>module);
 			}
 		}
+		for (const { resolution } of this.dynamicImports) {
+			if (resolution instanceof Module || resolution instanceof ExternalModule) {
+				this.dynamicDependencies.push(resolution);
+			}
+		}
 
 		const resolveSpecifiers = (specifiers: {
 			[name: string]: ImportDescription | ReexportDescription;
@@ -523,7 +504,7 @@ export default class Module {
 	}
 
 	getDynamicImportExpressions(): (string | Node)[] {
-		return this.dynamicImports.map(node => {
+		return this.dynamicImports.map(({ node }) => {
 			const importArgument = node.parent.arguments[0];
 			if (isTemplateLiteral(importArgument)) {
 				if (importArgument.expressions.length === 0 && importArgument.quasis.length === 1) {
@@ -634,7 +615,8 @@ export default class Module {
 	}
 
 	private includeDynamicImport(node: Import) {
-		const resolution = this.dynamicImportResolutions[this.dynamicImports.indexOf(node)].resolution;
+		const resolution = this.dynamicImports.find(dynamicImport => dynamicImport.node === node)
+			.resolution;
 		if (resolution instanceof Module) {
 			resolution.isDynamicEntryPoint = true;
 			resolution.includeAllExports();

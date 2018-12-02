@@ -587,47 +587,41 @@ export default class Graph {
 	}
 
 	private fetchAllDependencies(module: Module) {
-		// resolve and fetch dynamic imports where possible
 		const fetchDynamicImportsPromise = Promise.all(
-			module.getDynamicImportExpressions().map((dynamicImportExpression, index) => {
-				return Promise.resolve(
-					this.pluginDriver.hookFirst('resolveDynamicImport', [dynamicImportExpression, module.id])
-				).then(replacement => {
-					if (!replacement) {
-						module.dynamicImportResolutions[index] = {
-							alias: undefined,
-							resolution: undefined
-						};
-						return;
-					}
-					const alias = getAliasName(
-						replacement,
-						typeof dynamicImportExpression === 'string' ? dynamicImportExpression : undefined
-					);
-					if (typeof dynamicImportExpression !== 'string') {
-						module.dynamicImportResolutions[index] = { alias, resolution: replacement };
-					} else if (this.isExternal(replacement, module.id, true)) {
-						let externalModule;
-						if (!this.moduleById.has(replacement)) {
-							externalModule = new ExternalModule({
-								graph: this,
-								id: replacement
-							});
-							this.externalModules.push(externalModule);
-							this.moduleById.set(replacement, module);
+			module.getDynamicImportExpressions().map((dynamicImportExpression, index) =>
+				this.pluginDriver
+					.hookFirst('resolveDynamicImport', [dynamicImportExpression, module.id])
+					.then(replacement => {
+						if (!replacement) return;
+						const dynamicImport = module.dynamicImports[index];
+						dynamicImport.alias = getAliasName(
+							replacement,
+							typeof dynamicImportExpression === 'string' ? dynamicImportExpression : undefined
+						);
+						if (typeof dynamicImportExpression !== 'string') {
+							dynamicImport.resolution = replacement;
+						} else if (this.isExternal(replacement, module.id, true)) {
+							let externalModule;
+							if (!this.moduleById.has(replacement)) {
+								externalModule = new ExternalModule({
+									graph: this,
+									id: replacement
+								});
+								this.externalModules.push(externalModule);
+								this.moduleById.set(replacement, module);
+							} else {
+								externalModule = <ExternalModule>this.moduleById.get(replacement);
+							}
+							dynamicImport.resolution = externalModule;
+							externalModule.exportsNamespace = true;
 						} else {
-							externalModule = <ExternalModule>this.moduleById.get(replacement);
+							return this.fetchModule(replacement, module.id).then(depModule => {
+								dynamicImport.resolution = depModule;
+							});
 						}
-						module.dynamicImportResolutions[index] = { alias, resolution: externalModule };
-						externalModule.exportsNamespace = true;
-					} else {
-						return this.fetchModule(replacement, module.id).then(depModule => {
-							module.dynamicImportResolutions[index] = { alias, resolution: depModule };
-						});
-					}
-				});
-			})
-		).then(() => {});
+					})
+			)
+		);
 		fetchDynamicImportsPromise.catch(() => {});
 
 		return Promise.all(

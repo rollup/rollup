@@ -30,13 +30,13 @@ export function assignChunkColouringHashes(
 				addCurrentEntryColourToModule(dependency);
 		}
 
-		for (const dynamicModule of module.dynamicImportResolutions) {
+		for (const { resolution } of module.dynamicImports) {
 			if (
-				dynamicModule.resolution instanceof Module &&
-				dynamicModule.resolution.isDynamicEntryPoint &&
-				!dynamicModule.resolution.chunkAlias
+				resolution instanceof Module &&
+				resolution.isDynamicEntryPoint &&
+				!resolution.chunkAlias
 			) {
-				dynamicImports.add(dynamicModule.resolution);
+				dynamicImports.add(resolution);
 			}
 		}
 	};

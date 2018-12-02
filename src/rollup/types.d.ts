@@ -363,6 +363,7 @@ export interface RenderedModule {
 }
 
 export interface RenderedChunk {
+	dynamicImports: string[];
 	exports: string[];
 	facadeModuleId: string | null;
 	fileName: string;
