@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.67.4
+*2018-12-03*
+* Fix an issue with long lines in sourcemaps ([#2571](https://github.com/rollup/rollup/pull/2571))
+
 ## 0.67.3
 *2018-11-17*
 * Show proper error when using `inlineDynamicImports` with `experimentalPreserveModules` ([#2560](https://github.com/rollup/rollup/pull/2560))
