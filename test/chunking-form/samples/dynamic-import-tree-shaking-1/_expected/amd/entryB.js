@@ -1,4 +1,4 @@
-define(['require'], function (require) { 'use strict';
+define(function () { 'use strict';
 
 	console.log('main2');
 

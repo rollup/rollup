@@ -248,10 +248,12 @@ export default class Chunk {
 			const declaration = module.imports[importName];
 			this.traceAndInitializeImport(declaration.name, declaration.module);
 		}
-		for (const { resolution } of module.dynamicImports) {
-			this.hasDynamicImport = true;
-			if (resolution instanceof Module && resolution.chunk === this)
-				resolution.getOrCreateNamespace().include();
+		for (const { node, resolution } of module.dynamicImports) {
+			if (node.included) {
+				this.hasDynamicImport = true;
+				if (resolution instanceof Module && resolution.chunk === this)
+					resolution.getOrCreateNamespace().include();
+			}
 		}
 	}
 
