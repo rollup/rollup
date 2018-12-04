@@ -56,14 +56,13 @@
     "url": "https://github.com/rollup/rollup/issues"
   },
   "homepage": "https://github.com/rollup/rollup",
-  "dependencies": {
-    "@types/estree": "0.0.39",
-    "@types/node": "*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/acorn": "^4.0.3",
     "@types/chokidar": "^1.7.5",
+    "@types/estree": "0.0.39",
     "@types/minimist": "^1.2.0",
+    "@types/node": "*",
     "@types/pretty-ms": "^3.0.0",
     "acorn": "^5.7.3",
     "acorn-dynamic-import": "^3.0.0",
