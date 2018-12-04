@@ -7,21 +7,20 @@ import Variable from './Variable';
 export default class NamespaceVariable extends Variable {
 	isNamespace: true;
 	context: AstContext;
+	module: Module;
 
 	// Not initialised during construction
 	originals: { [name: string]: Variable } = Object.create(null);
 	needsNamespaceBlock: boolean = false;
 
-	// only to be used for chunk-to-chunk import tracing, use context for data manipulation
-	module: Module;
 	private referencedEarly: boolean = false;
 	private references: Identifier[] = [];
 	private containsExternalNamespace: boolean = false;
 
-	constructor(context: AstContext, module: Module) {
+	constructor(context: AstContext) {
 		super(context.getModuleName());
 		this.context = context;
-		this.module = module;
+		this.module = context.module;
 		for (const name of this.context.getExports().concat(this.context.getReexports())) {
 			if (name[0] === '*' && name.length > 1) this.containsExternalNamespace = true;
 			this.originals[name] = this.context.traceExport(name);

@@ -87,6 +87,9 @@ export interface AstContext {
 	includeDynamicImport: (node: Import) => void;
 	magicString: MagicString;
 	moduleContext: string;
+
+	// not to be used for tree-shaking
+	module: Module;
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	propertyReadSideEffects: boolean;
 	deoptimizationTracker: EntityPathTracker;
@@ -257,6 +260,7 @@ export default class Module {
 			includeNamespace: this.includeNamespace.bind(this),
 			isCrossChunkImport: importDescription => importDescription.module.chunk !== this.chunk,
 			magicString: this.magicString,
+			module: this,
 			moduleContext: this.context,
 			nodeConstructors,
 			propertyReadSideEffects:
@@ -601,7 +605,7 @@ export default class Module {
 	}
 
 	isIncluded() {
-		return this.ast.included;
+		return this.ast.included || (this.namespaceVariable && this.namespaceVariable.included);
 	}
 
 	include(): void {
@@ -611,7 +615,7 @@ export default class Module {
 	getOrCreateNamespace(): NamespaceVariable {
 		if (this.namespaceVariable) return this.namespaceVariable;
 
-		return (this.namespaceVariable = new NamespaceVariable(this.astContext, this));
+		return (this.namespaceVariable = new NamespaceVariable(this.astContext));
 	}
 
 	private includeDynamicImport(node: Import) {
@@ -662,8 +666,7 @@ export default class Module {
 		};
 	}
 
-	traceVariable(name: string): Variable {
-		// TODO this is slightly circular
+	traceVariable(name: string): Variable | null {
 		if (name in this.scope.variables) {
 			return this.scope.variables[name];
 		}
@@ -699,7 +702,7 @@ export default class Module {
 		return { renderedExports, removedExports };
 	}
 
-	traceExport(name: string, isExportAllSearch?: boolean): Variable {
+	traceExport(name: string, isExportAllSearch?: boolean): Variable | null {
 		if (name[0] === '*') {
 			// namespace
 			if (name.length === 1) {
@@ -731,9 +734,7 @@ export default class Module {
 		const exportDeclaration = this.exports[name];
 		if (exportDeclaration) {
 			const name = exportDeclaration.localName;
-			const declaration = this.traceVariable(name) || this.graph.scope.findVariable(name);
-
-			return declaration;
+			return this.traceVariable(name) || this.graph.scope.findVariable(name);
 		}
 
 		if (name !== 'default') {
@@ -766,7 +767,7 @@ export default class Module {
 		this.graph.warn(warning);
 	}
 
-	shimMissingExport(name: string) {
+	shimMissingExport(name: string): Variable {
 		// could have already been generated
 		if (!this.exports[name])
 			this.graph.warn({

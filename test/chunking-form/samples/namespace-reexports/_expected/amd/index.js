@@ -2,7 +2,7 @@ define(['exports', './index-583b88ec.js', './hsl2hsv.js'], function (exports, in
 
 
 
-	exports.hsl2hsv = index.hsl2hsv;
+	exports.hsl2hsv = hsl2hsv.default;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

@@ -1,13 +1,13 @@
+import { AstContext } from '../../Module';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import LocalVariable from './LocalVariable';
 
 export default class ThisVariable extends LocalVariable {
-	constructor(deoptimizationTracker: EntityPathTracker) {
-		super('this', null, null, deoptimizationTracker);
+	constructor(context: AstContext) {
+		super('this', null, null, context);
 	}
 
 	getLiteralValueAtPath(): LiteralValueOrUnknown {

@@ -45,22 +45,12 @@ export default class Identifier extends NodeBase {
 		switch (kind) {
 			case 'var':
 			case 'function':
-				this.variable = this.scope.addDeclaration(
-					this,
-					this.context.deoptimizationTracker,
-					init,
-					true
-				);
+				this.variable = this.scope.addDeclaration(this, this.context, init, true);
 				break;
 			case 'let':
 			case 'const':
 			case 'class':
-				this.variable = this.scope.addDeclaration(
-					this,
-					this.context.deoptimizationTracker,
-					init,
-					false
-				);
+				this.variable = this.scope.addDeclaration(this, this.context, init, false);
 				break;
 			case 'parameter':
 				this.variable = (<FunctionScope>this.scope).addParameterDeclaration(this);

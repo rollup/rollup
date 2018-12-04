@@ -1,9 +1,9 @@
+import { AstContext } from '../../Module';
 import ClassDeclaration from '../nodes/ClassDeclaration';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import LocalVariable from './LocalVariable';
 import Variable from './Variable';
 
@@ -21,14 +21,9 @@ export default class ExportDefaultVariable extends LocalVariable {
 	constructor(
 		name: string,
 		exportDefaultDeclaration: ExportDefaultDeclaration,
-		deoptimizationTracker: EntityPathTracker
+		context: AstContext
 	) {
-		super(
-			name,
-			exportDefaultDeclaration,
-			exportDefaultDeclaration.declaration,
-			deoptimizationTracker
-		);
+		super(name, exportDefaultDeclaration, exportDefaultDeclaration.declaration, context);
 		const declaration = exportDefaultDeclaration.declaration;
 		if (
 			(declaration.type === NodeType.FunctionDeclaration ||

@@ -204,7 +204,8 @@ export default class Chunk {
 		facadedModule.facadeChunk = this;
 		for (const exportName of facadedModule.getAllExports()) {
 			const tracedVariable = facadedModule.traceExport(exportName);
-			this.exports.set(tracedVariable, facadedModule);
+			// TODO Lukas is this necessary?
+			this.exports.set(tracedVariable, tracedVariable.module);
 			this.exportNames[exportName] = tracedVariable;
 		}
 	}
@@ -352,13 +353,13 @@ export default class Chunk {
 
 	// trace a module export to its exposed chunk module export
 	// either in this chunk or in another
-	traceExport(
+	private traceExport(
 		name: string,
 		module: Module | ExternalModule
 	): {
 		variable: Variable;
 		module: Module | ExternalModule;
-	} | void {
+	} | null {
 		if (name[0] === '*' || module instanceof ExternalModule) {
 			return { variable: module.traceExport(name), module };
 		}

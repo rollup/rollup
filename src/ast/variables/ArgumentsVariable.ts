@@ -1,6 +1,6 @@
+import { AstContext } from '../../Module';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from './LocalVariable';
 
@@ -17,8 +17,8 @@ const getParameterVariable = (path: ObjectPath, options: ExecutionPathOptions) =
 export default class ArgumentsVariable extends LocalVariable {
 	private parameters: LocalVariable[];
 
-	constructor(parameters: LocalVariable[], deoptimizationTracker: EntityPathTracker) {
-		super('arguments', null, UNKNOWN_EXPRESSION, deoptimizationTracker);
+	constructor(parameters: LocalVariable[], context: AstContext) {
+		super('arguments', null, UNKNOWN_EXPRESSION, context);
 		this.parameters = parameters;
 	}
 
