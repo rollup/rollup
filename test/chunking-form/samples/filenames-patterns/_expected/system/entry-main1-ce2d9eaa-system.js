@@ -1,4 +1,4 @@
-System.register(['./main2-c713bf1b.js'], function (exports, module) {
+System.register(['./chunk-main2-c713bf1b-system.js'], function (exports, module) {
 	'use strict';
 	var log, dep;
 	return {

@@ -1,10 +1,10 @@
 System.register(['foo'], function (exports, module) {
 	'use strict';
-	var foo__default, bar;
+	var bar, foo__default;
 	return {
 		setters: [function (module) {
-			foo__default = module.default;
 			bar = module.bar;
+			foo__default = module.default;
 		}],
 		execute: function () {
 

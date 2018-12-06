@@ -1,9 +1,8 @@
 System.register(['./hsl2hsv.js', './index-51f0f10d.js'], function (exports, module) {
 	'use strict';
-	var hsl2hsv, p, lib;
+	var p, lib;
 	return {
 		setters: [function (module) {
-			hsl2hsv = module.default;
 			p = module.p;
 		}, function (module) {
 			lib = module.a;

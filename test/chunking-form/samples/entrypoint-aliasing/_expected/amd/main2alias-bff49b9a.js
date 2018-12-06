@@ -8,7 +8,7 @@ define(['exports'], function (exports) { 'use strict';
     }
   }
 
-  exports.dep = dep;
   exports.log = log;
+  exports.dep = dep;
 
 });

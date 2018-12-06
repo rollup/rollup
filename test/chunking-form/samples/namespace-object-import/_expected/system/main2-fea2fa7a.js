@@ -4,13 +4,13 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			var a = exports('a', 'a');
-			var b = exports('b', 'a');
+			var b = exports('c', 'a');
 
 			var main2 = /*#__PURE__*/Object.freeze({
 				a: a,
 				b: b
 			});
-			exports('c', main2);
+			exports('b', main2);
 
 		}
 	};

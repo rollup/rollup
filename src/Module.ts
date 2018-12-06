@@ -83,16 +83,16 @@ export interface AstContext {
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
 	getReexports: () => string[];
-	imports: { [name: string]: ImportDescription };
+	importDescriptions: { [name: string]: ImportDescription };
 	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	includeDynamicImport: (node: Import) => void;
+	includeVariable: (variable: Variable) => void;
 	magicString: MagicString;
 	moduleContext: string;
 	module: Module; // not to be used for tree-shaking
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	propertyReadSideEffects: boolean;
 	deoptimizationTracker: EntityPathTracker;
-	requestTreeshakingPass: () => void;
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable;
 	treeshake: boolean;
@@ -177,8 +177,9 @@ export default class Module {
 	exportAllSources: string[] = [];
 	facadeChunk: Chunk | null = null;
 	id: string;
+	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
 	importMetas: MetaProperty[] = [];
-	imports: { [name: string]: ImportDescription } = Object.create(null);
+	imports = new Set<Variable>();
 	isDynamicEntryPoint: boolean = false;
 	isEntryPoint: boolean = false;
 	isExecuted: boolean = false;
@@ -259,8 +260,9 @@ export default class Module {
 			getReexports: this.getReexports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
-			imports: this.imports,
+			importDescriptions: this.importDescriptions,
 			includeDynamicImport: this.includeDynamicImport.bind(this),
+			includeVariable: this.includeVariable.bind(this),
 			isCrossChunkImport: importDescription => importDescription.module.chunk !== this.chunk,
 			magicString: this.magicString,
 			module: this,
@@ -269,8 +271,7 @@ export default class Module {
 			propertyReadSideEffects:
 				!this.graph.treeshake || this.graph.treeshakingOptions.propertyReadSideEffects,
 			deoptimizationTracker: this.graph.deoptimizationTracker,
-			requestTreeshakingPass: () => (this.graph.needsTreeshakingPass = true),
-			traceExport: this.traceExport.bind(this),
+			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
 			treeshake: this.graph.treeshake,
 			usesTopLevelAwait: false,
@@ -397,7 +398,7 @@ export default class Module {
 		for (const specifier of node.specifiers) {
 			const localName = specifier.local.name;
 
-			if (this.imports[localName]) {
+			if (this.importDescriptions[localName]) {
 				this.error(
 					{
 						code: 'DUPLICATE_IMPORT',
@@ -415,7 +416,7 @@ export default class Module {
 				: isNamespace
 					? '*'
 					: (<ImportSpecifier>specifier).imported.name;
-			this.imports[localName] = { source, start: specifier.start, name, module: null };
+			this.importDescriptions[localName] = { source, start: specifier.start, name, module: null };
 		}
 	}
 
@@ -445,7 +446,7 @@ export default class Module {
 		}
 
 		for (const exportName of this.getExports()) {
-			const variable = this.traceExport(exportName);
+			const variable = this.getVariableForExportName(exportName);
 
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
@@ -455,7 +456,7 @@ export default class Module {
 		}
 
 		for (const name of this.getReexports()) {
-			const variable = this.traceExport(name);
+			const variable = this.getVariableForExportName(name);
 
 			if (variable.isExternal) {
 				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
@@ -482,7 +483,7 @@ export default class Module {
 			}
 		}
 
-		this.addModulesToSpecifiers(this.imports);
+		this.addModulesToSpecifiers(this.importDescriptions);
 		this.addModulesToSpecifiers(this.reexports);
 
 		this.exportAllModules = this.exportAllSources.map(source => {
@@ -624,6 +625,14 @@ export default class Module {
 		}
 	}
 
+	private includeVariable(variable: Variable) {
+		variable.include();
+		this.graph.needsTreeshakingPass = true;
+		if (variable.module && variable.module !== this) {
+			this.imports.add(variable);
+		}
+	}
+
 	render(options: RenderOptions): MagicString {
 		const magicString = this.magicString.clone();
 		this.ast.render(magicString, options);
@@ -652,15 +661,15 @@ export default class Module {
 			return this.scope.variables[name];
 		}
 
-		if (name in this.imports) {
-			const importDeclaration = this.imports[name];
+		if (name in this.importDescriptions) {
+			const importDeclaration = this.importDescriptions[name];
 			const otherModule = importDeclaration.module;
 
 			if (!otherModule.isExternal && importDeclaration.name === '*') {
 				return (<Module>otherModule).getOrCreateNamespace();
 			}
 
-			const declaration = otherModule.traceExport(importDeclaration.name);
+			const declaration = otherModule.getVariableForExportName(importDeclaration.name);
 
 			if (!declaration) {
 				handleMissingExport(importDeclaration.name, this, otherModule.id, importDeclaration.start);
@@ -683,22 +692,23 @@ export default class Module {
 		return { renderedExports, removedExports };
 	}
 
-	traceExport(name: string, isExportAllSearch?: boolean): Variable | null {
+	getVariableForExportName(name: string, isExportAllSearch?: boolean): Variable | null {
 		if (name[0] === '*') {
-			// namespace
 			if (name.length === 1) {
 				return this.getOrCreateNamespace();
-				// export * from 'external'
 			} else {
+				// export * from 'external'
 				const module = <ExternalModule>this.graph.moduleById.get(name.slice(1));
-				return module.traceExport('*');
+				return module.getVariableForExportName('*');
 			}
 		}
 
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexports[name];
 		if (reexportDeclaration) {
-			const declaration = reexportDeclaration.module.traceExport(reexportDeclaration.localName);
+			const declaration = reexportDeclaration.module.getVariableForExportName(
+				reexportDeclaration.localName
+			);
 
 			if (!declaration) {
 				handleMissingExport(
@@ -724,7 +734,7 @@ export default class Module {
 		if (name !== 'default') {
 			for (let i = 0; i < this.exportAllModules.length; i += 1) {
 				const module = this.exportAllModules[i];
-				const declaration = module.traceExport(name, true);
+				const declaration = module.getVariableForExportName(name, true);
 
 				if (declaration) return declaration;
 			}

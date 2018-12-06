@@ -684,12 +684,12 @@ export default class Graph {
 								});
 							}
 
-							// add external declarations so we can detect which are never used
-							for (const name in module.imports) {
-								const importDeclaration = module.imports[name];
+							for (const name in module.importDescriptions) {
+								const importDeclaration = module.importDescriptions[name];
 								if (importDeclaration.source !== source) return;
 
-								externalModule.traceExport(importDeclaration.name);
+								// this will trigger a warning for unused external imports
+								externalModule.getVariableForExportName(importDeclaration.name);
 							}
 						} else {
 							module.resolvedIds[source] = <string>resolvedId;

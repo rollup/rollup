@@ -6,4 +6,4 @@ function log (x) {
   }
 }
 
-export { dep as a, log as b };
+export { log as a, dep as b };

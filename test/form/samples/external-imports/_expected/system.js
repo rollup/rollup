@@ -1,6 +1,6 @@
 System.register(['factory', 'baz', 'shipping-port', 'alphabet'], function (exports, module) {
 	'use strict';
-	var factory, foo, bar, port, forEach, alphabet, a;
+	var factory, foo, bar, port, forEach, a, alphabet;
 	return {
 		setters: [function (module) {
 			factory = module.default;
@@ -11,8 +11,8 @@ System.register(['factory', 'baz', 'shipping-port', 'alphabet'], function (expor
 			port = module.port;
 			forEach = module.forEach;
 		}, function (module) {
-			alphabet = module.default;
 			a = module.a;
+			alphabet = module.default;
 		}],
 		execute: function () {
 

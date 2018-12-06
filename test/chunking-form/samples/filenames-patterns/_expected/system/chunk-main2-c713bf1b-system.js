@@ -3,9 +3,9 @@ System.register([], function (exports, module) {
   return {
     execute: function () {
 
-      exports('b', log);
+      exports('a', log);
 
-      var dep = exports('a', { x: 42 });
+      var dep = exports('b', { x: 42 });
 
       function log (x) {
         if (dep) {

@@ -101,10 +101,8 @@ export default class Identifier extends NodeBase {
 	include(_includeAllChildrenRecursively: boolean) {
 		if (!this.included) {
 			this.included = true;
-			if (this.variable !== null && !this.variable.included) {
-				// TODO Lukas could this collect the imports?
-				this.variable.include();
-				this.context.requestTreeshakingPass();
+			if (this.variable !== null) {
+				this.context.includeVariable(this.variable);
 			}
 		}
 	}
@@ -123,7 +121,7 @@ export default class Identifier extends NodeBase {
 		if (this.variable !== null) {
 			if (
 				path.length === 0 &&
-				this.name in this.context.imports &&
+				this.name in this.context.importDescriptions &&
 				!this.scope.contains(this.name)
 			) {
 				this.disallowImportReassignment();

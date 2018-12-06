@@ -1,3 +1,5 @@
 import './generated-chunk2.js';
-import './generated-chunk.js';
+import { a as reexported } from './generated-chunk.js';
 import 'external';
+
+console.log(reexported);

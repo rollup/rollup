@@ -4,10 +4,8 @@ import * as NodeType from './ast/nodes/NodeType';
 import { UNDEFINED_EXPRESSION } from './ast/values';
 import { isExportDefaultVariable } from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
-import ExternalVariable from './ast/variables/ExternalVariable';
 import GlobalVariable from './ast/variables/GlobalVariable';
 import LocalVariable from './ast/variables/LocalVariable';
-import NamespaceVariable from './ast/variables/NamespaceVariable';
 import Variable from './ast/variables/Variable';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
@@ -194,7 +192,7 @@ export default class Chunk {
 		this.facadeModule = facadedModule;
 		facadedModule.facadeChunk = this;
 		for (const exportName of facadedModule.getAllExports()) {
-			const tracedVariable = facadedModule.traceExport(exportName);
+			const tracedVariable = facadedModule.getVariableForExportName(exportName);
 			this.exports.add(tracedVariable);
 			this.exportNames[exportName] = tracedVariable;
 		}
@@ -235,14 +233,18 @@ export default class Chunk {
 	}
 
 	private setUpModuleImports(module: Module) {
-		for (const importName of Object.keys(module.imports)) {
-			const declaration = module.imports[importName];
-			this.traceAndInitializeImport(declaration.name, declaration.module);
+		for (const variable of Array.from(module.imports)) {
+			if (variable.module.chunk !== this) {
+				this.imports.add(variable);
+				if (variable.module instanceof Module) {
+					variable.module.chunk.exports.add(variable);
+				}
+			}
 		}
 		if (module.getOrCreateNamespace().included) {
 			for (const reexportName of Object.keys(module.reexports)) {
 				const reexport = module.reexports[reexportName];
-				this.imports.add(reexport.module.traceExport(reexport.localName));
+				this.imports.add(reexport.module.getVariableForExportName(reexport.localName));
 			}
 		}
 		for (const { node, resolution } of module.dynamicImports) {
@@ -284,7 +286,7 @@ export default class Chunk {
 	private getVariableExportNamesForModule(module: Module) {
 		const exportNamesByVariable: Map<Variable, string[]> = new Map();
 		for (const exportName of module.getAllExports()) {
-			const tracedVariable = this.traceExport(exportName, module);
+			const tracedVariable = module.getVariableForExportName(exportName);
 			if (!tracedVariable || !(tracedVariable.included || tracedVariable.isExternal)) {
 				continue;
 			}
@@ -300,81 +302,6 @@ export default class Chunk {
 			}
 		}
 		return exportNamesByVariable;
-	}
-
-	// TODO Lukas could this be replaced by a logic collecting imports while they happen and adding them to the module?
-	private traceAndInitializeImport(
-		exportName: string,
-		module: Module | ExternalModule
-	): Variable | null {
-		const tracedVariable = this.traceExport(exportName, module);
-		if (!tracedVariable) return null;
-
-		if (tracedVariable.isNamespace) {
-			const namespaceMembers =
-				(<NamespaceVariable>tracedVariable).memberVariables ||
-				(<ExternalVariable>tracedVariable).module.declarations;
-
-			for (const importName of Object.keys(namespaceMembers)) {
-				const namespaceMember = namespaceMembers[importName];
-				if (namespaceMember.included) {
-					// namespace exports could be imported themselves, so retrace
-					// this handles recursive namespace exported on namespace cases as well
-					if (tracedVariable.module instanceof Module) {
-						this.traceAndInitializeImport(importName, tracedVariable.module);
-					} else {
-						const externalVariable = tracedVariable.module.traceExport(importName);
-						if (externalVariable.included) {
-							this.imports.add(namespaceMember);
-						}
-					}
-				}
-			}
-		}
-
-		if (!tracedVariable.module || tracedVariable.module.chunk === this || !tracedVariable.included)
-			return tracedVariable;
-
-		this.imports.add(tracedVariable);
-		if (tracedVariable.module instanceof Module)
-			tracedVariable.module.chunk.exports.add(tracedVariable);
-		return tracedVariable;
-	}
-
-	private traceExport(name: string, module: Module | ExternalModule): Variable | null {
-		if (name[0] === '*' || module instanceof ExternalModule) {
-			return module.traceExport(name);
-		}
-
-		if (module.chunk !== this) {
-			return module.chunk.traceExport(name, module);
-		}
-
-		const exportDeclaration = module.exports[name];
-		if (exportDeclaration) {
-			// if export binding is itself an import binding then continue tracing
-			const importDeclaration = module.imports[exportDeclaration.localName];
-			if (importDeclaration) {
-				return this.traceAndInitializeImport(importDeclaration.name, importDeclaration.module);
-			}
-			return module.traceExport(name);
-		}
-
-		const reexportDeclaration = module.reexports[name];
-		if (reexportDeclaration) {
-			return this.traceExport(reexportDeclaration.localName, reexportDeclaration.module);
-		}
-
-		if (name === 'default') {
-			return;
-		}
-
-		for (let i = 0; i < module.exportAllModules.length; i++) {
-			const exportAllModule = module.exportAllModules[i];
-			if (exportAllModule.traceExport(name, true)) {
-				return this.traceExport(name, exportAllModule);
-			}
-		}
 	}
 
 	getVariableExportName(variable: Variable) {
@@ -730,7 +657,7 @@ export default class Chunk {
 
 	/*
 	 * Chunk dependency output graph post-visitor
-	 * Visitor can return "true" to indicate a propogated stop condition
+	 * Visitor can return "true" to indicate a propagated stop condition
 	 */
 	postVisitChunkDependencies(visitor: (dep: Chunk | ExternalModule) => any): boolean {
 		const seen = new Set<Chunk | ExternalModule>();
@@ -753,11 +680,7 @@ export default class Chunk {
 
 		// own rendered source, except for finalizer wrapping
 		hash.update(this.getRenderedHash());
-
-		// hash of addons
 		hash.update(addons.hash);
-
-		// output options
 		hash.update(options.format);
 
 		// import names of dependency sources

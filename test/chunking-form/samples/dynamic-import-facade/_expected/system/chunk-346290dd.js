@@ -1,8 +1,8 @@
-System.register(['./chunk-55e635b3.js'], function (exports, module) {
+System.register(['./chunk-22c305f4.js'], function (exports, module) {
 	'use strict';
 	return {
 		setters: [function (module) {
-			exports('dynamic', module.b);
+			exports('dynamic', module.a);
 		}],
 		execute: function () {
 

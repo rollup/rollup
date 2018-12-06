@@ -28,17 +28,19 @@ export default class ModuleScope extends Scope {
 	deshadow(names: Set<string>, children = this.children) {
 		const localNames = new Set(names);
 
-		for (const importName of Object.keys(this.context.imports)) {
-			const importDescription = this.context.imports[importName];
+		for (const importName of Object.keys(this.context.importDescriptions)) {
+			const importDescription = this.context.importDescriptions[importName];
 
 			if (importDescription.module.isExternal || this.context.isCrossChunkImport(importDescription))
 				continue;
 
 			for (const name of (<Module>importDescription.module).getAllExports())
-				addDeclaredNames(importDescription.module.traceExport(name), localNames);
+				addDeclaredNames(importDescription.module.getVariableForExportName(name), localNames);
 
 			if (importDescription.name !== '*') {
-				const declaration = importDescription.module.traceExport(importDescription.name);
+				const declaration = importDescription.module.getVariableForExportName(
+					importDescription.name
+				);
 				if (!declaration) {
 					this.context.warn(
 						{

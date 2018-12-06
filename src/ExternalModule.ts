@@ -86,7 +86,7 @@ export default class ExternalModule {
 		});
 	}
 
-	traceExport(name: string, _isExportAllSearch?: boolean): ExternalVariable {
+	getVariableForExportName(name: string, _isExportAllSearch?: boolean): ExternalVariable {
 		if (name !== 'default' && name !== '*') this.exportsNames = true;
 		if (name === '*') this.exportsNamespace = true;
 
