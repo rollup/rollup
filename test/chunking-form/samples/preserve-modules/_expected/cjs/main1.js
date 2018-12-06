@@ -2,7 +2,6 @@
 
 var __chunk_1 = require('./deps/dep1.js');
 var __chunk_3 = require('./deps/dep2.js');
-require('./lib/lib2.js');
 
 class Main1 {
   constructor () {

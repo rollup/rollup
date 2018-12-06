@@ -1,5 +1,5 @@
 'use strict';
 
-var __chunk_1 = require('./two.js');
+var __chunk_3 = require('./m1.js');
 
-window.APP = { a: __chunk_1.default };
+console.log(__chunk_3);

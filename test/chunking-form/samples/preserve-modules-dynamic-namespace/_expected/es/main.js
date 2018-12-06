@@ -1,3 +1,3 @@
-import a from './two.js';
+import * as ms from './m1.js';
 
-window.APP = { a };
+console.log(ms);

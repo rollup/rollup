@@ -63,6 +63,7 @@ export default class Graph {
 	shimMissingExports: boolean;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
+	preserveModules: boolean;
 
 	isExternal: IsExternal;
 
@@ -96,6 +97,7 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
+		this.preserveModules = options.experimentalPreserveModules;
 
 		this.cacheExpiry = options.experimentalCacheExpiry;
 
@@ -332,8 +334,7 @@ export default class Graph {
 	build(
 		entryModules: string | string[] | Record<string, string>,
 		manualChunks: Record<string, string[]> | void,
-		inlineDynamicImports: boolean,
-		preserveModules: boolean
+		inlineDynamicImports: boolean
 	): Promise<Chunk[]> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
@@ -398,7 +399,7 @@ export default class Graph {
 				// entry point graph colouring, before generating the import and export facades
 				timeStart('generate chunks', 2);
 
-				if (!preserveModules && !inlineDynamicImports) {
+				if (!this.preserveModules && !inlineDynamicImports) {
 					assignChunkColouringHashes(entryModules, manualChunkModules);
 				}
 
@@ -413,7 +414,7 @@ export default class Graph {
 				//       either as a namespace import reexported or top-level export *)
 				//       should be made to be its own entry point module before chunking
 				let chunks: Chunk[] = [];
-				if (preserveModules) {
+				if (this.preserveModules) {
 					for (const module of orderedModules) {
 						const chunk = new Chunk(this, [module], inlineDynamicImports);
 						if (module.isEntryPoint || !chunk.isEmpty) {
@@ -454,14 +455,14 @@ export default class Graph {
 
 				// then go over and ensure all entry chunks export their variables
 				for (const chunk of chunks) {
-					if (preserveModules || chunk.entryModules.length > 0) {
+					if (this.preserveModules || chunk.entryModules.length > 0) {
 						chunk.generateEntryExportsOrMarkAsTainted();
 					}
 				}
 
 				// create entry point facades for entry module chunks that have tainted exports
 				const facades = [];
-				if (!preserveModules) {
+				if (!this.preserveModules) {
 					for (const chunk of chunks) {
 						for (const entryModule of chunk.entryModules) {
 							if (chunk.facadeModule !== entryModule) {

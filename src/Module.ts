@@ -91,6 +91,7 @@ export interface AstContext {
 	moduleContext: string;
 	module: Module; // not to be used for tree-shaking
 	nodeConstructors: { [name: string]: typeof NodeBase };
+	preserveModules: boolean;
 	propertyReadSideEffects: boolean;
 	deoptimizationTracker: EntityPathTracker;
 	traceExport: (name: string) => Variable;
@@ -268,6 +269,7 @@ export default class Module {
 			module: this,
 			moduleContext: this.context,
 			nodeConstructors,
+			preserveModules: this.graph.preserveModules,
 			propertyReadSideEffects:
 				!this.graph.treeshake || this.graph.treeshakingOptions.propertyReadSideEffects,
 			deoptimizationTracker: this.graph.deoptimizationTracker,
@@ -626,8 +628,10 @@ export default class Module {
 	}
 
 	private includeVariable(variable: Variable) {
-		variable.include();
-		this.graph.needsTreeshakingPass = true;
+		if (!variable.included) {
+			variable.include();
+			this.graph.needsTreeshakingPass = true;
+		}
 		if (variable.module && variable.module !== this) {
 			this.imports.add(variable);
 		}

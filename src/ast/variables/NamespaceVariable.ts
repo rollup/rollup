@@ -50,8 +50,13 @@ export default class NamespaceVariable extends Variable {
 					break;
 				}
 			}
-			for (const memberName of Object.keys(this.memberVariables))
-				this.context.includeVariable(this.memberVariables[memberName]);
+			if (this.context.preserveModules) {
+				for (const memberName of Object.keys(this.memberVariables))
+					this.memberVariables[memberName].include();
+			} else {
+				for (const memberName of Object.keys(this.memberVariables))
+					this.context.includeVariable(this.memberVariables[memberName]);
+			}
 		}
 	}
 

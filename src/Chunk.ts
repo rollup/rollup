@@ -6,6 +6,7 @@ import { isExportDefaultVariable } from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import GlobalVariable from './ast/variables/GlobalVariable';
 import LocalVariable from './ast/variables/LocalVariable';
+import NamespaceVariable from './ast/variables/NamespaceVariable';
 import Variable from './ast/variables/Variable';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
@@ -268,9 +269,11 @@ export default class Chunk {
 		}
 		const exposedVariables = Array.from(this.exports);
 		checkNextEntryModule: for (const { map, module } of exportVariableMaps) {
-			for (const exposedVariable of exposedVariables) {
-				if (!map.has(exposedVariable)) {
-					continue checkNextEntryModule;
+			if (!this.graph.preserveModules) {
+				for (const exposedVariable of exposedVariables) {
+					if (!map.has(exposedVariable)) {
+						continue checkNextEntryModule;
+					}
 				}
 			}
 			this.facadeModule = module;
@@ -305,6 +308,9 @@ export default class Chunk {
 	}
 
 	getVariableExportName(variable: Variable) {
+		if (this.graph.preserveModules && variable instanceof NamespaceVariable) {
+			return '*';
+		}
 		for (const exportName of Object.keys(this.exportNames)) {
 			if (this.exportNames[exportName] === variable) return exportName;
 		}
@@ -461,11 +467,16 @@ export default class Chunk {
 				toDeshadow.add(safeName);
 			} else {
 				const chunk = variable.module.chunk;
-				if (chunk.exportMode === 'default') safeName = chunk.variableName;
-				else
+				if (
+					chunk.exportMode === 'default' ||
+					(this.graph.preserveModules && variable.isNamespace)
+				) {
+					safeName = chunk.variableName;
+				} else {
 					safeName = `${chunk.variableName}.${variable.module.chunk.getVariableExportName(
 						variable
 					)}`;
+				}
 			}
 			if (safeName) variable.setSafeName(safeName);
 		}
@@ -716,7 +727,7 @@ export default class Chunk {
 		};
 
 		// if an entry point facade or dynamic entry point, inline the execution list to avoid loading latency
-		if (this.facadeModule !== null) {
+		if (!this.graph.preserveModules && this.facadeModule !== null) {
 			for (const dep of this.dependencies) {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
 			}
@@ -766,7 +777,7 @@ export default class Chunk {
 				magicString.addSource(source);
 				this.usedModules.push(module);
 
-				if (namespace.included) {
+				if (namespace.included && !this.graph.preserveModules) {
 					const rendered = namespace.renderBlock(renderOptions);
 					if (namespace.renderFirst()) hoistedSource += n + rendered;
 					else magicString.addSource(new MagicString(rendered));

@@ -1,13 +1,13 @@
-System.register(['./two.js'], function (exports, module) {
+System.register(['./m1.js'], function (exports, module) {
 	'use strict';
-	var a;
+	var ms;
 	return {
 		setters: [function (module) {
-			a = module.default;
+			ms = module;
 		}],
 		execute: function () {
 
-			window.APP = { a };
+			console.log(ms);
 
 		}
 	};
