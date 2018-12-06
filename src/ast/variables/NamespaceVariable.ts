@@ -10,8 +10,7 @@ export default class NamespaceVariable extends Variable {
 	module: Module;
 
 	// Not initialised during construction
-	originals: { [name: string]: Variable } = Object.create(null);
-	needsNamespaceBlock: boolean = false;
+	memberVariables: { [name: string]: Variable } = Object.create(null);
 
 	private referencedEarly: boolean = false;
 	private references: Identifier[] = [];
@@ -23,7 +22,7 @@ export default class NamespaceVariable extends Variable {
 		this.module = context.module;
 		for (const name of this.context.getExports().concat(this.context.getReexports())) {
 			if (name[0] === '*' && name.length > 1) this.containsExternalNamespace = true;
-			this.originals[name] = this.context.traceExport(name);
+			this.memberVariables[name] = this.context.traceExport(name);
 		}
 	}
 
@@ -44,16 +43,15 @@ export default class NamespaceVariable extends Variable {
 					undefined
 				);
 			}
-			this.context.includeNamespace();
 			this.included = true;
-			this.needsNamespaceBlock = true;
 			for (const identifier of this.references) {
 				if (identifier.context.getModuleExecIndex() <= this.context.getModuleExecIndex()) {
 					this.referencedEarly = true;
 					break;
 				}
 			}
-			for (const original of Object.keys(this.originals)) this.originals[original].include();
+			for (const memberName of Object.keys(this.memberVariables))
+				this.memberVariables[memberName].include();
 		}
 	}
 
@@ -66,8 +64,8 @@ export default class NamespaceVariable extends Variable {
 	// the reassignment to the right variable. This means we lost track of this variable and thus
 	// need to reassign all exports.
 	deoptimizePath() {
-		for (const key in this.originals) {
-			this.originals[key].deoptimizePath(UNKNOWN_PATH);
+		for (const key in this.memberVariables) {
+			this.memberVariables[key].deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 
@@ -76,8 +74,8 @@ export default class NamespaceVariable extends Variable {
 		const n = options.compact ? '' : '\n';
 		const t = options.indent;
 
-		const members = Object.keys(this.originals).map(name => {
-			const original = this.originals[name];
+		const members = Object.keys(this.memberVariables).map(name => {
+			const original = this.memberVariables[name];
 
 			if (this.referencedEarly || original.isReassigned) {
 				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${

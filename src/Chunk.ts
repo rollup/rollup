@@ -239,6 +239,12 @@ export default class Chunk {
 			const declaration = module.imports[importName];
 			this.traceAndInitializeImport(declaration.name, declaration.module);
 		}
+		if (module.getOrCreateNamespace().included) {
+			for (const reexportName of Object.keys(module.reexports)) {
+				const reexport = module.reexports[reexportName];
+				this.imports.add(reexport.module.traceExport(reexport.localName));
+			}
+		}
 		for (const { node, resolution } of module.dynamicImports) {
 			if (node.included) {
 				this.hasDynamicImport = true;
@@ -258,8 +264,9 @@ export default class Chunk {
 				this.exports.add(exposedVariable);
 			}
 		}
+		const exposedVariables = Array.from(this.exports);
 		checkNextEntryModule: for (const { map, module } of exportVariableMaps) {
-			for (const exposedVariable of Array.from(this.exports.keys())) {
+			for (const exposedVariable of exposedVariables) {
 				if (!map.has(exposedVariable)) {
 					continue checkNextEntryModule;
 				}
@@ -295,6 +302,7 @@ export default class Chunk {
 		return exportNamesByVariable;
 	}
 
+	// TODO Lukas could this be replaced by a logic collecting imports while they happen and adding them to the module?
 	private traceAndInitializeImport(
 		exportName: string,
 		module: Module | ExternalModule
@@ -304,12 +312,12 @@ export default class Chunk {
 
 		if (tracedVariable.isNamespace) {
 			const namespaceMembers =
-				(<NamespaceVariable>tracedVariable).originals ||
+				(<NamespaceVariable>tracedVariable).memberVariables ||
 				(<ExternalVariable>tracedVariable).module.declarations;
 
 			for (const importName of Object.keys(namespaceMembers)) {
-				const original = namespaceMembers[importName];
-				if (original.included) {
+				const namespaceMember = namespaceMembers[importName];
+				if (namespaceMember.included) {
 					// namespace exports could be imported themselves, so retrace
 					// this handles recursive namespace exported on namespace cases as well
 					if (tracedVariable.module instanceof Module) {
@@ -317,7 +325,7 @@ export default class Chunk {
 					} else {
 						const externalVariable = tracedVariable.module.traceExport(importName);
 						if (externalVariable.included) {
-							this.imports.add(original);
+							this.imports.add(namespaceMember);
 						}
 					}
 				}
@@ -381,7 +389,7 @@ export default class Chunk {
 		let i = 0,
 			safeExportName: string;
 		this.exportNames = Object.create(null);
-		const exportedVariables = Array.from(this.exports.keys());
+		const exportedVariables = Array.from(this.exports);
 		if (mangle) {
 			for (const variable of exportedVariables) {
 				safeExportName = toBase64(++i);
@@ -572,7 +580,7 @@ export default class Chunk {
 
 		// deconflict reified namespaces
 		const namespace = module.getOrCreateNamespace();
-		if (namespace.needsNamespaceBlock) {
+		if (namespace.included) {
 			namespace.setSafeName(getSafeName(namespace.name));
 		}
 	}
@@ -831,11 +839,11 @@ export default class Chunk {
 			};
 
 			const namespace = module.getOrCreateNamespace();
-			if (namespace.needsNamespaceBlock || !source.isEmpty()) {
+			if (namespace.included || !source.isEmpty()) {
 				magicString.addSource(source);
 				this.usedModules.push(module);
 
-				if (namespace.needsNamespaceBlock) {
+				if (namespace.included) {
 					const rendered = namespace.renderBlock(renderOptions);
 					if (namespace.renderFirst()) hoistedSource += n + rendered;
 					else magicString.addSource(new MagicString(rendered));

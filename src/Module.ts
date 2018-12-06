@@ -85,13 +85,10 @@ export interface AstContext {
 	getReexports: () => string[];
 	imports: { [name: string]: ImportDescription };
 	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
-	includeNamespace: () => void;
 	includeDynamicImport: (node: Import) => void;
 	magicString: MagicString;
 	moduleContext: string;
-
-	// not to be used for tree-shaking
-	module: Module;
+	module: Module; // not to be used for tree-shaking
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	propertyReadSideEffects: boolean;
 	deoptimizationTracker: EntityPathTracker;
@@ -264,7 +261,6 @@ export default class Module {
 			getModuleName: this.basename.bind(this),
 			imports: this.imports,
 			includeDynamicImport: this.includeDynamicImport.bind(this),
-			includeNamespace: this.includeNamespace.bind(this),
 			isCrossChunkImport: importDescription => importDescription.module.chunk !== this.chunk,
 			magicString: this.magicString,
 			module: this,
@@ -456,10 +452,6 @@ export default class Module {
 				variable.include();
 				this.graph.needsTreeshakingPass = true;
 			}
-
-			if (variable.isNamespace) {
-				(<NamespaceVariable>variable).needsNamespaceBlock = true;
-			}
 		}
 
 		for (const name of this.getReexports()) {
@@ -490,24 +482,22 @@ export default class Module {
 			}
 		}
 
-		const resolveSpecifiers = (specifiers: {
-			[name: string]: ImportDescription | ReexportDescription;
-		}) => {
-			for (const name of Object.keys(specifiers)) {
-				const specifier = specifiers[name];
-
-				const id = this.resolvedIds[specifier.source];
-				specifier.module = this.graph.moduleById.get(id);
-			}
-		};
-
-		resolveSpecifiers(this.imports);
-		resolveSpecifiers(this.reexports);
+		this.addModulesToSpecifiers(this.imports);
+		this.addModulesToSpecifiers(this.reexports);
 
 		this.exportAllModules = this.exportAllSources.map(source => {
 			const id = this.resolvedIds[source];
 			return this.graph.moduleById.get(id);
 		});
+	}
+
+	private addModulesToSpecifiers(specifiers: {
+		[name: string]: ImportDescription | ReexportDescription;
+	}) {
+		for (const name of Object.keys(specifiers)) {
+			const specifier = specifiers[name];
+			specifier.module = this.graph.moduleById.get(this.resolvedIds[specifier.source]);
+		}
 	}
 
 	bindReferences() {
@@ -620,9 +610,9 @@ export default class Module {
 	}
 
 	getOrCreateNamespace(): NamespaceVariable {
-		if (this.namespaceVariable) return this.namespaceVariable;
-
-		return (this.namespaceVariable = new NamespaceVariable(this.astContext));
+		return (
+			this.namespaceVariable || (this.namespaceVariable = new NamespaceVariable(this.astContext))
+		);
 	}
 
 	private includeDynamicImport(node: Import) {
@@ -631,22 +621,6 @@ export default class Module {
 		if (resolution instanceof Module) {
 			resolution.isDynamicEntryPoint = true;
 			resolution.includeAllExports();
-		}
-	}
-
-	private includeNamespace() {
-		const namespace = this.getOrCreateNamespace();
-		if (namespace.needsNamespaceBlock) return;
-
-		for (const importName in this.reexports) {
-			const reexport = this.reexports[importName];
-			this.imports[importName] = {
-				source: reexport.source,
-				start: reexport.start,
-				name: reexport.localName,
-				module: reexport.module
-			};
-			namespace.originals[importName] = reexport.module.traceExport(reexport.localName);
 		}
 	}
 

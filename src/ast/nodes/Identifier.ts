@@ -102,6 +102,7 @@ export default class Identifier extends NodeBase {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null && !this.variable.included) {
+				// TODO Lukas could this collect the imports?
 				this.variable.include();
 				this.context.requestTreeshakingPass();
 			}
