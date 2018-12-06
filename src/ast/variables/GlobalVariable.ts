@@ -3,7 +3,6 @@ import { ObjectPath } from '../values';
 import Variable from './Variable';
 
 export default class GlobalVariable extends Variable {
-	isExternal: true;
 	included = true;
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {

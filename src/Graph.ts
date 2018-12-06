@@ -4,7 +4,6 @@ import injectImportMeta from 'acorn-import-meta/inject';
 import { Program } from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
-import GlobalVariable from './ast/variables/GlobalVariable';
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
@@ -32,6 +31,7 @@ import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
+import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 function makeOnwarn() {
 	const warned = Object.create(null);
@@ -61,7 +61,6 @@ export default class Graph {
 	deoptimizationTracker: EntityPathTracker;
 	scope: GlobalScope;
 	shimMissingExports: boolean;
-	exportShimVariable: GlobalVariable;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
 
@@ -155,11 +154,9 @@ export default class Graph {
 		this.shimMissingExports = options.shimMissingExports;
 
 		this.scope = new GlobalScope();
-		// Strictly speaking, this only applies with non-ES6, non-default-only bundles
-		for (const name of ['module', 'exports', '_interopDefault']) {
+		for (const name of ['module', 'exports', '_interopDefault', MISSING_EXPORT_SHIM_VARIABLE]) {
 			this.scope.findVariable(name); // creates global variable as side-effect
 		}
-		this.exportShimVariable = this.scope.findVariable('_missingExportShim');
 
 		this.context = String(options.context);
 

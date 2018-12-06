@@ -21,6 +21,7 @@ import ModuleScope from './ast/scopes/ModuleScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
 import extractNames from './ast/utils/extractNames';
 import { UNKNOWN_PATH } from './ast/values';
+import ExportShimVariable from './ast/variables/ExportShimVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import Variable from './ast/variables/Variable';
@@ -38,6 +39,7 @@ import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
 import { visitStaticDependencies } from './utils/traverseStaticDependencies';
+import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 export interface CommentDescription {
 	block: boolean;
@@ -150,6 +152,10 @@ function handleMissingExport(
 	);
 }
 
+const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
+	localName: MISSING_EXPORT_SHIM_VARIABLE
+};
+
 export default class Module {
 	type: 'Module';
 	chunk: Chunk;
@@ -166,6 +172,7 @@ export default class Module {
 	}[] = [];
 	entryPointsHash: Uint8Array = new Uint8Array(10);
 	exportAllModules: (Module | ExternalModule)[] = null;
+	exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
 	excludeFromSourcemap: boolean;
 	execIndex: number = Infinity;
 	exports: { [name: string]: ExportDescription } = Object.create(null);
@@ -733,6 +740,9 @@ export default class Module {
 
 		const exportDeclaration = this.exports[name];
 		if (exportDeclaration) {
+			if (exportDeclaration === MISSING_EXPORT_SHIM_DESCRIPTION) {
+				return this.exportShimVariable;
+			}
 			const name = exportDeclaration.localName;
 			return this.traceVariable(name) || this.graph.scope.findVariable(name);
 		}
@@ -749,7 +759,8 @@ export default class Module {
 		// we don't want to create shims when we are just
 		// probing export * modules for exports
 		if (this.graph.shimMissingExports && !isExportAllSearch) {
-			return this.shimMissingExport(name);
+			this.shimMissingExport(name);
+			return this.exportShimVariable;
 		}
 	}
 
@@ -767,18 +778,15 @@ export default class Module {
 		this.graph.warn(warning);
 	}
 
-	shimMissingExport(name: string): Variable {
-		// could have already been generated
-		if (!this.exports[name])
+	private shimMissingExport(name: string): void {
+		if (!this.exports[name]) {
 			this.graph.warn({
 				message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`,
 				code: 'SHIMMED_EXPORT',
 				exportName: name,
 				exporter: relativeId(this.id)
 			});
-		this.exports[name] = {
-			localName: '_missingExportShim'
-		};
-		return this.graph.exportShimVariable;
+			this.exports[name] = MISSING_EXPORT_SHIM_DESCRIPTION;
+		}
 	}
 }
