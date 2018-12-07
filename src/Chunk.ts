@@ -209,7 +209,6 @@ export default class Chunk {
 		}
 		this.dependencies = Array.from(dependencies);
 		this.dynamicDependencies = Array.from(dynamicDependencies);
-		sortByExecutionOrder(this.dependencies);
 	}
 
 	private addChunksFromDependencies(
@@ -245,7 +244,13 @@ export default class Chunk {
 		if (module.getOrCreateNamespace().included) {
 			for (const reexportName of Object.keys(module.reexports)) {
 				const reexport = module.reexports[reexportName];
-				this.imports.add(reexport.module.getVariableForExportName(reexport.localName));
+				const variable = reexport.module.getVariableForExportName(reexport.localName);
+				if (variable.module.chunk !== this) {
+					this.imports.add(variable);
+					if (variable.module instanceof Module) {
+						variable.module.chunk.exports.add(variable);
+					}
+				}
 			}
 		}
 		for (const { node, resolution } of module.dynamicImports) {
@@ -726,18 +731,18 @@ export default class Chunk {
 			format: options.format
 		};
 
-		// if an entry point facade or dynamic entry point, inline the execution list to avoid loading latency
+		// Make sure the direct dependencies of a chunk are present to maintain execution order
+		for (const { module } of Array.from(this.imports)) {
+			if (module.chunk === this) console.log(module.id);
+			const chunkOrExternal = module instanceof Module ? module.chunk : module;
+			if (this.dependencies.indexOf(chunkOrExternal) === -1) {
+				this.dependencies.push(chunkOrExternal);
+			}
+		}
+		// for static and dynamic entry points, inline the execution list to avoid loading latency
 		if (!this.graph.preserveModules && this.facadeModule !== null) {
 			for (const dep of this.dependencies) {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
-			}
-		} else {
-			// shortcut cross-chunk relations can be added by traceExport
-			for (const { module } of Array.from(this.imports)) {
-				const chunkOrExternal = module instanceof Module ? module.chunk : module;
-				if (this.dependencies.indexOf(chunkOrExternal) === -1) {
-					this.dependencies.push(chunkOrExternal);
-				}
 			}
 		}
 		// prune empty dependency chunks, inlining their side-effect dependencies
@@ -748,6 +753,7 @@ export default class Chunk {
 				this.inlineChunkDependencies(dep, false);
 			}
 		}
+		sortByExecutionOrder(this.dependencies);
 
 		this.setIdentifierRenderResolutions(options);
 		this.prepareDynamicImports();

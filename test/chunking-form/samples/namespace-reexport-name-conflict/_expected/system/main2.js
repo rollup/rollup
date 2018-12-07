@@ -1,10 +1,10 @@
-System.register(['./generated-chunk2.js', './generated-chunk.js', 'external'], function (exports, module) {
+System.register(['./generated-chunk.js', 'external', './generated-chunk2.js'], function (exports, module) {
 	'use strict';
 	var reexported;
 	return {
-		setters: [function () {}, function (module) {
+		setters: [function (module) {
 			reexported = module.a;
-		}, function () {}],
+		}, function () {}, function () {}],
 		execute: function () {
 
 			console.log(reexported);

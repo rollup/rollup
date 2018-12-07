@@ -1,4 +1,4 @@
-define(['./generated-chunk2.js', './generated-chunk.js', 'external'], function (__chunk_2, __chunk_1, external) { 'use strict';
+define(['./generated-chunk.js', 'external', './generated-chunk2.js'], function (__chunk_1, external, __chunk_2) { 'use strict';
 
 	console.log(__chunk_2.lib);
 
