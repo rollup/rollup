@@ -634,8 +634,8 @@ export default class Chunk {
 		const dependencies: ChunkDependencies = [];
 
 		this.dependencies.forEach(dep => {
-			const importSpecifiers = Array.from(this.imports.entries()).filter(
-				([, module]) => (module instanceof Module ? module.chunk === dep : module === dep)
+			const importSpecifiers = Array.from(this.imports.entries()).filter(([, module]) =>
+				module instanceof Module ? module.chunk === dep : module === dep
 			);
 
 			let imports: ImportSpecifier[];
