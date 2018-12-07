@@ -1,5 +1,9 @@
 # rollup changelog
 
+## 0.68.0
+*unreleased*
+* Update dependencies ([#2577](https://github.com/rollup/rollup/pull/2577))
+
 ## 0.67.4
 *2018-12-03*
 * Fix an issue with long lines in sourcemaps ([#2571](https://github.com/rollup/rollup/pull/2571))
