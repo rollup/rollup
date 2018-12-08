@@ -10,7 +10,7 @@ import { EMPTY_PATH, ObjectPath } from '../values';
 import Variable from '../variables/Variable';
 import { isIdentifier } from './Identifier';
 import * as NodeType from './NodeType';
-import { Node, NodeBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
 
 function isReassignedExportsMember(variable: Variable): boolean {
@@ -22,8 +22,41 @@ function isReassignedExportsMember(variable: Variable): boolean {
 	);
 }
 
-export function isVariableDeclaration(node: Node): node is VariableDeclaration {
-	return node.type === NodeType.VariableDeclaration;
+function areAllDeclarationsIncludedAndNotExported(declarations: VariableDeclarator[]): boolean {
+	for (const declarator of declarations) {
+		if (!declarator.included) {
+			return false;
+		}
+		if (declarator.id.type === NodeType.Identifier) {
+			if (declarator.id.variable.exportName) return false;
+		} else {
+			const exportedVariables: Variable[] = [];
+			declarator.id.addExportedVariables(exportedVariables);
+			if (exportedVariables.length > 0) return false;
+		}
+	}
+	return true;
+}
+
+function renderSystemExports(
+	code: MagicString,
+	systemPatternExports: Variable[],
+	appendPosition: number
+) {
+	if (systemPatternExports.length === 1) {
+		code.appendRight(
+			appendPosition,
+			` exports('${systemPatternExports[0].safeExportName ||
+				systemPatternExports[0].exportName}', ${systemPatternExports[0].getName()});`
+		);
+	} else {
+		code.appendRight(
+			appendPosition,
+			` exports({${systemPatternExports
+				.map(variable => `${variable.safeExportName || variable.exportName}: ${variable.getName()}`)
+				.join(', ')}});`
+		);
+	}
 }
 
 export default class VariableDeclaration extends NodeBase {
@@ -64,12 +97,7 @@ export default class VariableDeclaration extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {
-		if (
-			this.declarations.every(
-				declarator =>
-					declarator.included && (!declarator.id.variable || !declarator.id.variable.exportName)
-			)
-		) {
+		if (areAllDeclarationsIncludedAndNotExported(this.declarations)) {
 			for (const declarator of this.declarations) {
 				declarator.render(code, options);
 			}
@@ -88,7 +116,7 @@ export default class VariableDeclaration extends NodeBase {
 		code: MagicString,
 		options: RenderOptions,
 		{ start = this.start, end = this.end, isNoStatement }: NodeRenderOptions
-	) {
+	): void {
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
 			code,
@@ -108,6 +136,7 @@ export default class VariableDeclaration extends NodeBase {
 		let separatorString = '',
 			leadingString,
 			nextSeparatorString;
+		const systemPatternExports: Variable[] = [];
 		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
 			if (
 				!node.included ||
@@ -124,17 +153,16 @@ export default class VariableDeclaration extends NodeBase {
 				}
 				isInDeclaration = false;
 			} else {
-				if (
-					options.format === 'system' &&
-					node.init !== null &&
-					isIdentifier(node.id) &&
-					node.id.variable.exportName
-				) {
-					code.prependLeft(
-						code.original.indexOf('=', node.id.end) + 1,
-						` exports('${node.id.variable.safeExportName || node.id.variable.exportName}',`
-					);
-					nextSeparatorString += ')';
+				if (options.format === 'system' && node.init !== null) {
+					if (node.id.type !== NodeType.Identifier) {
+						node.id.addExportedVariables(systemPatternExports);
+					} else if (node.id.variable.exportName) {
+						code.prependLeft(
+							code.original.indexOf('=', node.id.end) + 1,
+							` exports('${node.id.variable.safeExportName || node.id.variable.exportName}',`
+						);
+						nextSeparatorString += ')';
+					}
 				}
 				if (isInDeclaration) {
 					separatorString += ',';
@@ -166,7 +194,8 @@ export default class VariableDeclaration extends NodeBase {
 				lastSeparatorPos,
 				actualContentEnd,
 				renderedContentEnd,
-				!isNoStatement
+				!isNoStatement,
+				systemPatternExports
 			);
 		} else {
 			code.remove(start, end);
@@ -179,8 +208,9 @@ export default class VariableDeclaration extends NodeBase {
 		lastSeparatorPos: number,
 		actualContentEnd: number,
 		renderedContentEnd: number,
-		addSemicolon: boolean
-	) {
+		addSemicolon: boolean,
+		systemPatternExports: Variable[]
+	): void {
 		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
 			code.remove(this.end - 1, this.end);
 		}
@@ -207,6 +237,8 @@ export default class VariableDeclaration extends NodeBase {
 		} else {
 			code.appendLeft(renderedContentEnd, separatorString);
 		}
-		return separatorString;
+		if (systemPatternExports.length > 0) {
+			renderSystemExports(code, systemPatternExports, renderedContentEnd);
+		}
 	}
 }
