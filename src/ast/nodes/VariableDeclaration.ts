@@ -5,6 +5,7 @@ import {
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
+import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath } from '../values';
 import Variable from '../variables/Variable';
@@ -36,27 +37,6 @@ function areAllDeclarationsIncludedAndNotExported(declarations: VariableDeclarat
 		}
 	}
 	return true;
-}
-
-function renderSystemExports(
-	code: MagicString,
-	systemPatternExports: Variable[],
-	appendPosition: number
-) {
-	if (systemPatternExports.length === 1) {
-		code.appendRight(
-			appendPosition,
-			` exports('${systemPatternExports[0].safeExportName ||
-				systemPatternExports[0].exportName}', ${systemPatternExports[0].getName()});`
-		);
-	} else {
-		code.appendRight(
-			appendPosition,
-			` exports({${systemPatternExports
-				.map(variable => `${variable.safeExportName || variable.exportName}: ${variable.getName()}`)
-				.join(', ')}});`
-		);
-	}
 }
 
 export default class VariableDeclaration extends NodeBase {
@@ -238,7 +218,7 @@ export default class VariableDeclaration extends NodeBase {
 			code.appendLeft(renderedContentEnd, separatorString);
 		}
 		if (systemPatternExports.length > 0) {
-			renderSystemExports(code, systemPatternExports, renderedContentEnd);
+			code.appendLeft(renderedContentEnd, ' ' + getSystemExportStatement(systemPatternExports));
 		}
 	}
 }
