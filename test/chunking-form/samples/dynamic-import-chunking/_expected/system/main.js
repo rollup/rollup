@@ -16,7 +16,7 @@ System.register(['./chunk-4d8f4e43.js'], function (exports, module) {
       }
 
       function dynamic (num) {
-        return module.import("./dep2.js")
+        return module.import('./chunk-b7f9caf2.js')
         .then(dep2 => {
           return dep2.mult(num);
         });

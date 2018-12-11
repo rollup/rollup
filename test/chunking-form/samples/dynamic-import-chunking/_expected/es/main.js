@@ -9,7 +9,7 @@ function fn (num) {
 }
 
 function dynamic (num) {
-  return import("./dep2.js")
+  return import('./chunk-a97cfc63.js')
   .then(dep2 => {
     return dep2.mult(num);
   });

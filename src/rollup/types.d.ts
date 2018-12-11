@@ -242,7 +242,7 @@ export interface InputOptions {
 	inlineDynamicImports?: boolean;
 	preserveSymlinks?: boolean;
 	experimentalPreserveModules?: boolean;
-	optimizeChunks?: boolean;
+	experimentalOptimizeChunks?: boolean;
 	chunkGroupingSize?: number;
 	shimMissingExports?: boolean;
 
@@ -363,13 +363,17 @@ export interface RenderedModule {
 }
 
 export interface RenderedChunk {
-	fileName: string;
-	isEntry: boolean;
-	imports: string[];
+	dynamicImports: string[];
 	exports: string[];
+	facadeModuleId: string | null;
+	fileName: string;
+	imports: string[];
+	isDynamicEntry: boolean;
+	isEntry: boolean;
 	modules: {
 		[id: string]: RenderedModule;
 	};
+	name: string;
 }
 
 export interface OutputChunk extends RenderedChunk {

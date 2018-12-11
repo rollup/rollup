@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			module.import("./dynamic-e8bd5876.js");
+			module.import('./generated-dynamic.js').then(({DYNAMIC_USED_BY_A}) => console.log(DYNAMIC_USED_BY_A));
 
 		}
 	};

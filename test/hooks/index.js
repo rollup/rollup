@@ -1102,7 +1102,7 @@ module.exports = input;
 			.then(bundle =>
 				bundle.generate({
 					entryFileNames: '[name].js',
-					chunkFileNames: '[name].js',
+					chunkFileNames: 'generated-[name].js',
 					format: 'esm'
 				})
 			)
@@ -1114,18 +1114,18 @@ module.exports = input;
 						modules: ['input']
 					},
 					{
-						fileName: 'a.js',
-						imports: ['chunk.js'],
+						fileName: 'generated-chunk.js',
+						imports: ['generated-chunk2.js'],
 						modules: ['d', 'a']
 					},
 					{
-						fileName: 'chunk.js',
+						fileName: 'generated-chunk2.js',
 						imports: [],
 						modules: ['c']
 					},
 					{
-						fileName: 'b.js',
-						imports: ['chunk.js'],
+						fileName: 'generated-chunk3.js',
+						imports: ['generated-chunk2.js'],
 						modules: ['b']
 					}
 				]);

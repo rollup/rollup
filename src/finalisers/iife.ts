@@ -1,6 +1,6 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/types';
-import error from '../utils/error';
+import { error } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
 import { FinaliserOptions } from './index';
 import getExportBlock from './shared/getExportBlock';

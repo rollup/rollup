@@ -1,3 +1,3 @@
 'use strict';
 
-Promise.resolve(require("./dynamic-5ab72169.js"));
+Promise.resolve(require('./generated-dynamic.js')).then(({DYNAMIC_USED_BY_A}) => console.log(DYNAMIC_USED_BY_A));

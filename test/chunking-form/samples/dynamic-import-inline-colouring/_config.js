@@ -1,6 +1,6 @@
 module.exports = {
-	description: 'Dynamic import inlining for static colouring',
+	description: 'Handle dynamic imports that are part of a static graph',
 	options: {
-		input: ['main.js']
+		input: ['main1.js', 'main2.js']
 	}
 };

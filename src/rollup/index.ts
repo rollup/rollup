@@ -3,9 +3,10 @@ import { optimizeChunks } from '../chunk-optimization';
 import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
 import { createAssetPluginHooks, finaliseAsset } from '../utils/assetHooks';
+import { assignChunkIds } from '../utils/assignChunkIds';
 import commondir from '../utils/commondir';
 import { Deprecation } from '../utils/deprecateOptions';
-import error from '../utils/error';
+import { error } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
@@ -64,6 +65,18 @@ function checkOutputOptions(options: OutputOptions) {
 	}
 }
 
+function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
+	const absoluteEntryModulePaths: string[] = [];
+	for (const chunk of chunks) {
+		for (const entryModule of chunk.entryModules) {
+			if (isAbsolute(entryModule.id)) {
+				absoluteEntryModulePaths.push(entryModule.id);
+			}
+		}
+	}
+	return absoluteEntryModulePaths;
+}
+
 const throwAsyncGenerateError = {
 	get() {
 		throw new Error(`bundle.generate(...) now returns a Promise instead of a { code, map } object`);
@@ -104,10 +117,11 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 				code: 'INVALID_OPTION',
 				message: '"manualChunks" option is only supported for experimentalCodeSplitting.'
 			});
-		if (inputOptions.optimizeChunks)
+		if (inputOptions.experimentalOptimizeChunks)
 			error({
 				code: 'INVALID_OPTION',
-				message: '"optimizeChunks" option is only supported for experimentalCodeSplitting.'
+				message:
+					'"experimentalOptimizeChunks" option is only supported for experimentalCodeSplitting.'
 			});
 		if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
 			error({
@@ -128,10 +142,10 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 				message: '"manualChunks" option is not supported for inlineDynamicImports.'
 			});
 
-		if (inputOptions.optimizeChunks)
+		if (inputOptions.experimentalOptimizeChunks)
 			error({
 				code: 'INVALID_OPTION',
-				message: '"optimizeChunks" option is not supported for inlineDynamicImports.'
+				message: '"experimentalOptimizeChunks" option is not supported for inlineDynamicImports.'
 			});
 		if (inputOptions.input instanceof Array || typeof inputOptions.input === 'object')
 			error({
@@ -144,10 +158,11 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 				code: 'INVALID_OPTION',
 				message: 'experimentalPreserveModules does not support the manualChunks option.'
 			});
-		if (inputOptions.optimizeChunks)
+		if (inputOptions.experimentalOptimizeChunks)
 			error({
 				code: 'INVALID_OPTION',
-				message: 'experimentalPreserveModules does not support the optimizeChunks option.'
+				message:
+					'experimentalPreserveModules does not support the experimentalOptimizeChunks option.'
 			});
 	}
 
@@ -204,11 +219,9 @@ export default function rollup(
 				const singleInput =
 					typeof inputOptions.input === 'string' ||
 					(inputOptions.input instanceof Array && inputOptions.input.length === 1);
-				//let imports: string[], exports: string[];
 				if (!inputOptions.experimentalPreserveModules) {
 					if (singleInput) {
 						for (const chunk of chunks) {
-							if (chunk.entryModule === undefined) continue;
 							if (singleChunk) {
 								singleChunk = undefined;
 								break;
@@ -259,14 +272,9 @@ export default function rollup(
 
 					timeStart('GENERATE', 1);
 
-					// populate asset files into output
 					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
 					const outputBundle: OutputBundle = graph.finaliseAssets(assetFileNames);
-					const inputBase = commondir(
-						chunks
-							.filter(chunk => chunk.entryModule && isAbsolute(chunk.entryModule.id))
-							.map(chunk => chunk.entryModule.id)
-					);
+					const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
 
 					return graph.pluginDriver
 						.hookParallel('renderStart')
@@ -276,57 +284,38 @@ export default function rollup(
 							for (const chunk of chunks) {
 								if (!inputOptions.experimentalPreserveModules)
 									chunk.generateInternalExports(outputOptions);
-								if (chunk.isEntryModuleFacade)
+								if (chunk.facadeModule && chunk.facadeModule.isEntryPoint)
 									chunk.exportMode = getExportMode(chunk, outputOptions);
 							}
 							for (const chunk of chunks) {
 								chunk.preRender(outputOptions, inputBase);
 							}
-							if (!optimized && inputOptions.optimizeChunks) {
+							if (!optimized && inputOptions.experimentalOptimizeChunks) {
 								optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize, inputBase);
 								optimized = true;
 							}
 
-							// name all chunks
-							const usedIds: Record<string, true> = {};
-							for (let i = 0; i < chunks.length; i++) {
-								const chunk = chunks[i];
-
-								if (chunk === singleChunk) {
-									singleChunk.id = basename(
-										outputOptions.file ||
-											(inputOptions.input instanceof Array
-												? inputOptions.input[0]
-												: <string>inputOptions.input)
-									);
-								} else if (inputOptions.experimentalPreserveModules) {
-									chunk.generateIdPreserveModules(inputBase, usedIds);
-								} else {
-									let pattern, patternName;
-									if (chunk.isEntryModuleFacade) {
-										pattern = outputOptions.entryFileNames || '[name].js';
-										patternName = 'output.entryFileNames';
-									} else {
-										pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
-										patternName = 'output.chunkFileNames';
-									}
-									chunk.generateId(pattern, patternName, addons, outputOptions, usedIds);
-								}
-								usedIds[chunk.id] = true;
-							}
+							assignChunkIds(chunks, singleChunk, inputOptions, outputOptions, inputBase, addons);
 
 							// assign to outputBundle
 							for (let i = 0; i < chunks.length; i++) {
 								const chunk = chunks[i];
+								const facadeModule = chunk.facadeModule;
 
 								outputBundle[chunk.id] = {
-									fileName: chunk.id,
-									isEntry: chunk.entryModule !== undefined,
-									imports: chunk.getImportIds(),
-									exports: chunk.getExportNames(),
-									modules: chunk.renderedModules,
 									code: undefined,
-									map: undefined
+									dynamicImports: chunk.getDynamicImportIds(),
+									exports: chunk.getExportNames(),
+									facadeModuleId: facadeModule && facadeModule.id,
+									fileName: chunk.id,
+									imports: chunk.getImportIds(),
+									isDynamicEntry: facadeModule !== null && facadeModule.isDynamicEntryPoint,
+									isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+									map: undefined,
+									modules: chunk.renderedModules,
+									get name() {
+										return chunk.getChunkName();
+									}
 								};
 							}
 
