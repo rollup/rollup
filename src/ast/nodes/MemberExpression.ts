@@ -179,9 +179,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	include(includeAllChildrenRecursively: boolean) {
 		if (!this.included) {
 			this.included = true;
-			if (this.variable !== null && !this.variable.included) {
-				this.variable.include();
-				this.context.requestTreeshakingPass();
+			if (this.variable !== null) {
+				this.context.includeVariable(this.variable);
 			}
 		}
 		this.object.include(includeAllChildrenRecursively);
@@ -253,7 +252,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (!baseVariable.isNamespace) return null;
 		const exportName = path[0].key;
 		const variable = baseVariable.isExternal
-			? (<ExternalVariable>baseVariable).module.traceExport(exportName)
+			? (<ExternalVariable>baseVariable).module.getVariableForExportName(exportName)
 			: (<NamespaceVariable>baseVariable).context.traceExport(exportName);
 		if (!variable) {
 			const fileName = baseVariable.isExternal

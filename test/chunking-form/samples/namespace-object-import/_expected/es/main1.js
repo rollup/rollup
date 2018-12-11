@@ -1,4 +1,4 @@
-import { a, b, c as main2 } from './main2-530714f0.js';
+import { a, b as main2 } from './main2-530714f0.js';
 
 console.log(a);
 

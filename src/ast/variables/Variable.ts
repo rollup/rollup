@@ -1,3 +1,5 @@
+import ExternalModule from '../../ExternalModule';
+import Module from '../../Module';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
@@ -12,6 +14,7 @@ export default class Variable implements ExpressionEntity {
 	isExternal?: boolean;
 	isDefault?: boolean;
 	isNamespace?: boolean;
+	module: Module | ExternalModule | null;
 
 	// Not initialised during construction
 	exportName: string | null = null;
@@ -40,7 +43,7 @@ export default class Variable implements ExpressionEntity {
 			this.safeName[this.name.length] === '$' &&
 			this.safeName[this.name.length + 1] === '$'
 		) {
-			this.safeName = undefined;
+			this.safeName = null;
 			return this.name;
 		}
 		return this.safeName || this.name;

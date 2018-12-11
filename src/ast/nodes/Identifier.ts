@@ -45,22 +45,12 @@ export default class Identifier extends NodeBase {
 		switch (kind) {
 			case 'var':
 			case 'function':
-				this.variable = this.scope.addDeclaration(
-					this,
-					this.context.deoptimizationTracker,
-					init,
-					true
-				);
+				this.variable = this.scope.addDeclaration(this, this.context, init, true);
 				break;
 			case 'let':
 			case 'const':
 			case 'class':
-				this.variable = this.scope.addDeclaration(
-					this,
-					this.context.deoptimizationTracker,
-					init,
-					false
-				);
+				this.variable = this.scope.addDeclaration(this, this.context, init, false);
 				break;
 			case 'parameter':
 				this.variable = (<FunctionScope>this.scope).addParameterDeclaration(this);
@@ -111,9 +101,8 @@ export default class Identifier extends NodeBase {
 	include(_includeAllChildrenRecursively: boolean) {
 		if (!this.included) {
 			this.included = true;
-			if (this.variable !== null && !this.variable.included) {
-				this.variable.include();
-				this.context.requestTreeshakingPass();
+			if (this.variable !== null) {
+				this.context.includeVariable(this.variable);
 			}
 		}
 	}
@@ -132,7 +121,7 @@ export default class Identifier extends NodeBase {
 		if (this.variable !== null) {
 			if (
 				path.length === 0 &&
-				this.name in this.context.imports &&
+				this.name in this.context.importDescriptions &&
 				!this.scope.contains(this.name)
 			) {
 				this.disallowImportReassignment();

@@ -1,11 +1,11 @@
-System.register(['./chunk-adb756c4.js', './chunk-4b433a97.js'], function (exports, module) {
+System.register(['./chunk-4b433a97.js', './chunk-adb756c4.js'], function (exports, module) {
 	'use strict';
-	var bar, broken;
+	var broken, bar;
 	return {
 		setters: [function (module) {
-			bar = module.a;
-		}, function (module) {
 			broken = module.a;
+		}, function (module) {
+			bar = module.a;
 		}],
 		execute: function () {
 

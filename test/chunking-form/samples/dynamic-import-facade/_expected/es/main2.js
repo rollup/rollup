@@ -1,3 +1,3 @@
-import { a as dep, b as dynamic } from './chunk-fa3f0c72.js';
+import { a as dynamic, b as dep } from './chunk-fa3f0c72.js';
 
 console.log('main2', dynamic, dep);

@@ -1,5 +1,4 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
-import Variable from './ast/variables/Variable';
 import Graph from './Graph';
 import { OutputOptions } from './rollup/types';
 import { makeLegal } from './utils/identifierHelpers';
@@ -87,7 +86,7 @@ export default class ExternalModule {
 		});
 	}
 
-	traceExport(name: string, _isExportAllSearch?: boolean): Variable {
+	getVariableForExportName(name: string, _isExportAllSearch?: boolean): ExternalVariable {
 		if (name !== 'default' && name !== '*') this.exportsNames = true;
 		if (name === '*') this.exportsNamespace = true;
 

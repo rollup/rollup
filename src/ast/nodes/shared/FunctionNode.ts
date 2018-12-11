@@ -20,7 +20,7 @@ export default class FunctionNode extends NodeBase {
 	private isPrototypeDeoptimized: boolean;
 
 	createScope(parentScope: FunctionScope) {
-		this.scope = new FunctionScope(parentScope, this.context.deoptimizationTracker);
+		this.scope = new FunctionScope(parentScope, this.context);
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {

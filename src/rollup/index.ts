@@ -197,8 +197,7 @@ export default function rollup(
 				graph.build(
 					inputOptions.input,
 					inputOptions.manualChunks,
-					inputOptions.inlineDynamicImports,
-					inputOptions.experimentalPreserveModules
+					inputOptions.inlineDynamicImports
 				)
 			)
 			.then(

@@ -1,5 +1,5 @@
+import { AstContext } from '../../Module';
 import Identifier from '../nodes/Identifier';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import Scope from './Scope';
@@ -9,11 +9,11 @@ export default class ParameterScope extends Scope {
 	hoistedBodyVarScope: Scope;
 
 	private parameters: LocalVariable[] = [];
-	private deoptimizationTracker: EntityPathTracker;
+	private context: AstContext;
 
-	constructor(parent: Scope, deoptimizationTracker: EntityPathTracker) {
+	constructor(parent: Scope, context: AstContext) {
 		super(parent);
-		this.deoptimizationTracker = deoptimizationTracker;
+		this.context = context;
 		this.hoistedBodyVarScope = new Scope(this);
 	}
 
@@ -28,12 +28,7 @@ export default class ParameterScope extends Scope {
 			variable = this.hoistedBodyVarScope.variables[name] as LocalVariable;
 			variable.addDeclaration(identifier, null);
 		} else {
-			variable = new LocalVariable(
-				name,
-				identifier,
-				UNKNOWN_EXPRESSION,
-				this.deoptimizationTracker
-			);
+			variable = new LocalVariable(name, identifier, UNKNOWN_EXPRESSION, this.context);
 		}
 		this.variables[name] = variable;
 		this.parameters.push(variable);
