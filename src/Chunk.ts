@@ -30,6 +30,7 @@ import { basename, dirname, isAbsolute, normalize, relative, resolve } from './u
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
+import { sanitizeFileName } from './utils/sanitize-file-name';
 import { timeEnd, timeStart } from './utils/timers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
@@ -561,11 +562,8 @@ export default class Chunk {
 		const dependencies: ChunkDependencies = [];
 
 		this.dependencies.forEach(dep => {
-			const importsFromDependency = Array.from(this.imports).filter(
-				variable =>
-					variable.module instanceof Module
-						? variable.module.chunk === dep
-						: variable.module === dep
+			const importsFromDependency = Array.from(this.imports).filter(variable =>
+				variable.module instanceof Module ? variable.module.chunk === dep : variable.module === dep
 			);
 
 			let imports: ImportSpecifier[];
@@ -733,7 +731,6 @@ export default class Chunk {
 
 		// Make sure the direct dependencies of a chunk are present to maintain execution order
 		for (const { module } of Array.from(this.imports)) {
-			if (module.chunk === this) console.log(module.id);
 			const chunkOrExternal = module instanceof Module ? module.chunk : module;
 			if (this.dependencies.indexOf(chunkOrExternal) === -1) {
 				this.dependencies.push(chunkOrExternal);
@@ -938,7 +935,7 @@ export default class Chunk {
 		preserveModulesRelativeDir: string,
 		existingNames: Record<string, true>
 	) {
-		const sanitizedId = this.orderedModules[0].id.replace('\0', '_');
+		const sanitizedId = sanitizeFileName(this.orderedModules[0].id);
 		this.id = makeUnique(
 			normalize(
 				isAbsolute(this.orderedModules[0].id)
@@ -977,10 +974,10 @@ export default class Chunk {
 
 	private computeChunkName(): string {
 		if (this.facadeModule !== null && this.facadeModule.chunkAlias) {
-			return this.facadeModule.chunkAlias;
+			return sanitizeFileName(this.facadeModule.chunkAlias);
 		}
 		for (const module of this.orderedModules) {
-			if (module.chunkAlias) return module.chunkAlias;
+			if (module.chunkAlias) return sanitizeFileName(module.chunkAlias);
 		}
 		return 'chunk';
 	}
