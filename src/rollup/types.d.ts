@@ -102,16 +102,13 @@ export interface PluginContext {
 	getAssetFileName: (assetId: string) => string;
 	warn(warning: RollupWarning | string, pos?: { line: number; column: number }): void;
 	error(err: RollupError | string, pos?: { line: number; column: number }): void;
-	modules: () => {
-		allModules: () => IterableIterator<string>;
-		getModuleInfo: (
-			moduleId: string
-		) => {
-			id: string;
-			isExternal: boolean;
-			sourceIds: string[];
-			sourceIdToSourceFile: (key: string) => string;
-		};
+	moduleIds: IterableIterator<string>;
+	getModuleInfo: (
+		moduleId: string
+	) => {
+		id: string;
+		isExternal: boolean;
+		importedIds: string[];
 	};
 }
 
