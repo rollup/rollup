@@ -2,6 +2,9 @@
 
 ## 0.68.0
 *unreleased*
+* Support exports using destructuring declarations and assignments in SystemJS ([#2587](https://github.com/rollup/rollup/pull/2587))
+* Extend bundle information, tree-shake dynamic imports, fix dynamic import facade creation, support manual chunks with multiple entry points, make `optimitzeImports` experimental ([#2575](https://github.com/rollup/rollup/pull/2575))
+* Prune tree-shaken chunk imports, fix missing export shimming, support dynamic namespaces when preserving modules, improve chunk execution order ([#2584](https://github.com/rollup/rollup/pull/2584))
 * Update dependencies ([#2577](https://github.com/rollup/rollup/pull/2577))
 
 ## 0.67.4
