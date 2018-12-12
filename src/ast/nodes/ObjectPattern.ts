@@ -1,5 +1,6 @@
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath } from '../values';
+import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import Property from './Property';
 import RestElement from './RestElement';
@@ -10,6 +11,16 @@ import { PatternNode } from './shared/Pattern';
 export default class ObjectPattern extends NodeBase implements PatternNode {
 	type: NodeType.tObjectPattern;
 	properties: (Property | RestElement)[];
+
+	addExportedVariables(variables: Variable[]): void {
+		for (const property of this.properties) {
+			if (property.type === NodeType.Property) {
+				(<PatternNode>(<unknown>property.value)).addExportedVariables(variables);
+			} else {
+				property.argument.addExportedVariables(variables);
+			}
+		}
+	}
 
 	declare(kind: string, init: ExpressionEntity) {
 		for (const property of this.properties) {
