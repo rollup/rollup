@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('external')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'external'], factory) :
-	(factory((global.bundle = {}),global.myExternal));
-}(this, (function (exports,myExternal) { 'use strict';
+	factory(global.bundle = {},global.myExternal);
+}(typeof self !== 'undefined' ? self : this, function (exports,myExternal) { 'use strict';
 
 	myExternal = myExternal && myExternal.hasOwnProperty('default') ? myExternal['default'] : myExternal;
 
@@ -15,4 +15,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));

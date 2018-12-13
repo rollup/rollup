@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () { 'use strict';
+	factory();
+}(typeof self !== 'undefined' ? self : this, function () { 'use strict';
 
 	function foo () {
 		console.log( 'foo' );
@@ -14,4 +14,4 @@
 
 	( Math.random() < 0.5 ? foo : bar )();
 
-})));
+}));

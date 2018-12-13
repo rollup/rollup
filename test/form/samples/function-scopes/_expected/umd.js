@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () { 'use strict';
+	factory();
+}(typeof self !== 'undefined' ? self : this, function () { 'use strict';
 
 	var effect1 = () => console.log( 'effect' ); // must not be removed!
 	function isKept1 ( x = effect1 ) {
@@ -22,4 +22,4 @@
 	};
 	isKept3();
 
-})));
+}));

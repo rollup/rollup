@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () { 'use strict';
+	factory();
+}(typeof self !== 'undefined' ? self : this, function () { 'use strict';
 
 	const a = 1;
 	const b = 2;
@@ -10,4 +10,4 @@
 	const [ d = b ] = [];
 	console.log(c, d);
 
-})));
+}));

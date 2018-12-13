@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () { 'use strict';
+	factory();
+}(typeof self !== 'undefined' ? self : this, function () { 'use strict';
 
 	var a = 1, b = 2;
 
@@ -15,4 +15,4 @@
 	assert.equal( b, 4 );
 	assert.equal( c, 5 );
 
-})));
+}));

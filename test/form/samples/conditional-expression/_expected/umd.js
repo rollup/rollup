@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () { 'use strict';
+	factory();
+}(typeof self !== 'undefined' ? self : this, function () { 'use strict';
 
 	// side-effect in condition
 	var a = foo() ? 1 : 2;
@@ -22,4 +22,4 @@
 	var i2 = (function () {this.x = 1;})();
 	var i3 = (() => () => console.log( 'effect' ))()();
 
-})));
+}));

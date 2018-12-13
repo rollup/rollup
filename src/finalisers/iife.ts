@@ -54,7 +54,7 @@ export default function iife(
 	}
 
 	if (extend) {
-		deps.unshift(`(${thisProp(name)}${_}=${_}${thisProp(name)}${_}||${_}{})`);
+		deps.unshift(`${thisProp(name)}${_}=${_}${thisProp(name)}${_}||${_}{}`);
 		args.unshift('exports');
 	} else if (namedExportsMode && hasExports) {
 		deps.unshift('{}');

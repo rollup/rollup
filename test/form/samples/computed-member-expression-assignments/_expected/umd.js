@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () { 'use strict';
+	factory();
+}(typeof self !== 'undefined' ? self : this, function () { 'use strict';
 
 	const retained1 = { foo: {} };
 	retained1[ 'f' + 'oo' ] = globalVar;
@@ -21,4 +21,4 @@
 	const retained5 = { foo: function () {this.x = 1;} };
 	retained5[ 'f' + 'oo' ]();
 
-})));
+}));

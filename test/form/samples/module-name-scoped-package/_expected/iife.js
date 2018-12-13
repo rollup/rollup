@@ -5,4 +5,4 @@
 
 	exports.foo = foo;
 
-}((this['@scoped/npm-package'] = this['@scoped/npm-package'] || {})));
+}(this['@scoped/npm-package'] = this['@scoped/npm-package'] || {}));

@@ -7,10 +7,10 @@
 		global.conflictyName = exports;
 		exports.noConflict = function() { global.conflictyName = current; return exports; };
 	})();
-}(this, (function () { 'use strict';
+}(typeof self !== 'undefined' ? self : this, function () { 'use strict';
 
 	var main = {};
 
 	return main;
 
-})));
+}));

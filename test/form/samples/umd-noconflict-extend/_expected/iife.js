@@ -13,4 +13,4 @@
 	exports.number = number;
 	exports.setting = setting;
 
-}((this.FooBar = this.FooBar || {})));
+}(this.FooBar = this.FooBar || {}));
