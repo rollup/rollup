@@ -1,8 +1,7 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('https://external.com/external.js')) :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(['https://external.com/external.js'], factory) :
 	factory(global.external);
-}(typeof self !== 'undefined' ? self : this, function (external) { 'use strict';
+}(function (external) { 'use strict';
 
 	external = external && external.hasOwnProperty('default') ? external['default'] : external;
 

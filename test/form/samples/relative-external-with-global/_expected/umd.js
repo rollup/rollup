@@ -1,8 +1,7 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('./lib/throttle.js')) :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(['./lib/throttle.js'], factory) :
 	factory(global.Lib.throttle);
-}(typeof self !== 'undefined' ? self : this, function (throttle) { 'use strict';
+}(function (throttle) { 'use strict';
 
 	throttle = throttle && throttle.hasOwnProperty('default') ? throttle['default'] : throttle;
 

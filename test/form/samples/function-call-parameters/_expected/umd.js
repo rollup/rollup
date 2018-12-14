@@ -1,8 +1,7 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}(typeof self !== 'undefined' ? self : this, function () { 'use strict';
+}(function () { 'use strict';
 
 	// parameters are associated correctly
 	const retained1 = function ( func, obj ) { return func( obj ); };

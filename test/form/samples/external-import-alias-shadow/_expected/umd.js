@@ -1,8 +1,7 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('acorn')) :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(['acorn'], factory) :
 	factory(global.acorn);
-}(typeof self !== 'undefined' ? self : this, function (acorn) { 'use strict';
+}(function (acorn) { 'use strict';
 
 	function parse(source) {
 		return acorn.parse(source, { ecmaVersion: 6 });

@@ -2,11 +2,10 @@
 /* first banner */
 /* second banner */
 /* 3rd banner */
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}(typeof self !== 'undefined' ? self : this, function () { 'use strict';
+}(function () { 'use strict';
 
 	console.log( 'hello world' );
 

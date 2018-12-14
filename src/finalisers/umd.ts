@@ -51,11 +51,11 @@ export default function umd(
 	const amdDeps = dependencies.map(m => `'${m.id}'`);
 	const cjsDeps = dependencies.map(m => `require('${m.id}')`);
 
-	const trimmed = trimEmptyImports(dependencies);
-	const globalDeps = trimmed.map(module => globalProp(module.globalName));
-	const args = trimmed.map(m => m.name);
+	const trimmedImports = trimEmptyImports(dependencies);
+	const globalDeps = trimmedImports.map(module => globalProp(module.globalName));
+	const factoryArgs = trimmedImports.map(m => m.name);
 
-	if (namedExportsMode && hasExports) {
+	if (namedExportsMode && (hasExports || options.noConflict === true)) {
 		amdDeps.unshift(`'exports'`);
 		cjsDeps.unshift(`exports`);
 		globalDeps.unshift(
@@ -64,7 +64,7 @@ export default function umd(
 			}{}`
 		);
 
-		args.unshift('exports');
+		factoryArgs.unshift('exports');
 	}
 
 	const amdOptions = options.amd || {};
@@ -110,13 +110,22 @@ export default function umd(
 		globalExport = `${defaultExport}factory(${globalDeps})`;
 	}
 
+	const iifeNeedsGlobal = hasExports || (options.noConflict === true && namedExportsMode);
+	const globalParam = iifeNeedsGlobal ? `global,${_}` : '';
+	const globalArg = iifeNeedsGlobal
+		? `typeof self${_}!==${_}'undefined'${_}?${_}self${_}:${_}this,${_}`
+		: '';
+	const cjsIntro = iifeNeedsGlobal
+		? `${t}typeof exports${_}===${_}'object'${_}&&${_}typeof module${_}!==${_}'undefined'${_}?` +
+		  `${_}${cjsExport}factory(${cjsDeps.join(`,${_}`)})${_}:${n}`
+		: '';
+
 	const wrapperIntro =
-		`(function${_}(global,${_}factory)${_}{${n}` +
-		`${t}typeof exports${_}===${_}'object'${_}&&${_}typeof module${_}!==${_}'undefined'${_}?` +
-		`${_}${cjsExport}factory(${cjsDeps.join(`,${_}`)})${_}:${n}` +
+		`(function${_}(${globalParam}factory)${_}{${n}` +
+		cjsIntro +
 		`${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}factory)${_}:${n}` +
 		`${t}${globalExport};${n}` +
-		`}(typeof self${_}!==${_}'undefined'${_}?${_}self${_}:${_}this,${_}function${_}(${args})${_}{${useStrict}${n}`;
+		`}(${globalArg}function${_}(${factoryArgs})${_}{${useStrict}${n}`;
 
 	const wrapperOutro = n + n + '}));';
 
