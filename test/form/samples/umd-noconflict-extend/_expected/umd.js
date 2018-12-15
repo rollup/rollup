@@ -3,12 +3,12 @@
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(function() {
 		var current = global.FooBar;
-		var exports = (global.FooBar = global.FooBar || {});
+		var exports = global.FooBar = global.FooBar || {};
 		factory(exports);
 		global.FooBar = exports;
 		exports.noConflict = function() { global.FooBar = current; return exports; };
 	})();
-}(this, (function (exports) { 'use strict';
+}(typeof self !== 'undefined' ? self : this, function (exports) { 'use strict';
 
 	function doThings() {
 		console.log( 'doing things...' );
@@ -24,4 +24,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));

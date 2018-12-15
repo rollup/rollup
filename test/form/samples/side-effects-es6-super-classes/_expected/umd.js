@@ -1,8 +1,7 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () { 'use strict';
+	factory();
+}(function () { 'use strict';
 
 	class GlobalSuper extends GlobalClass {}
 	const globalSuper = new GlobalSuper();
@@ -41,4 +40,4 @@
 	}
 	const sideEffectsSuperMethod = new SideEffectsSuperMethod();
 
-})));
+}));

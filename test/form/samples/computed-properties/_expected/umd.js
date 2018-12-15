@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.computedProperties = {})));
-}(this, (function (exports) { 'use strict';
+	factory(global.computedProperties = {});
+}(typeof self !== 'undefined' ? self : this, function (exports) { 'use strict';
 
 	var foo = 'foo';
 	var bar = 'bar';
@@ -22,4 +22,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));

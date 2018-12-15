@@ -39,8 +39,6 @@ export default function umd(
 	const _ = options.compact ? '' : ' ';
 	const n = options.compact ? '' : '\n';
 
-	const wrapperOutro = n + n + '})));';
-
 	if (hasExports && !options.name) {
 		error({
 			code: 'INVALID_OPTION',
@@ -53,20 +51,20 @@ export default function umd(
 	const amdDeps = dependencies.map(m => `'${m.id}'`);
 	const cjsDeps = dependencies.map(m => `require('${m.id}')`);
 
-	const trimmed = trimEmptyImports(dependencies);
-	const globalDeps = trimmed.map(module => globalProp(module.globalName));
-	const args = trimmed.map(m => m.name);
+	const trimmedImports = trimEmptyImports(dependencies);
+	const globalDeps = trimmedImports.map(module => globalProp(module.globalName));
+	const factoryArgs = trimmedImports.map(m => m.name);
 
-	if (namedExportsMode && hasExports) {
+	if (namedExportsMode && (hasExports || options.noConflict === true)) {
 		amdDeps.unshift(`'exports'`);
 		cjsDeps.unshift(`exports`);
 		globalDeps.unshift(
-			`(${setupNamespace(options.name, 'global', true, options.globals, options.compact)}${_}=${_}${
+			`${setupNamespace(options.name, 'global', true, options.globals, options.compact)}${_}=${_}${
 				options.extend ? `${globalProp(options.name)}${_}||${_}` : ''
-			}{})`
+			}{}`
 		);
 
-		args.unshift('exports');
+		factoryArgs.unshift('exports');
 	}
 
 	const amdOptions = options.amd || {};
@@ -94,28 +92,42 @@ export default function umd(
 			factory = `var exports${_}=${_}factory(${globalDeps});`;
 		} else if (namedExportsMode) {
 			const module = globalDeps.shift();
-			factory = `var exports${_}=${_}${module};${n}`;
-			factory += `${t}${t}factory(${['exports'].concat(globalDeps)});`;
+			factory =
+				`var exports${_}=${_}${module};${n}` +
+				`${t}${t}factory(${['exports'].concat(globalDeps)});`;
 		}
-		globalExport = `(function()${_}{${n}`;
-		globalExport += `${t}${t}var current${_}=${_}${safeAccess(options.name, options.compact)};${n}`;
-		globalExport += `${t}${t}${factory}${n}`;
-		globalExport += `${t}${t}${globalProp(options.name)}${_}=${_}exports;${n}`;
-		globalExport += `${t}${t}exports.noConflict${_}=${_}function()${_}{${_}`;
-		globalExport += `${globalProp(options.name)}${_}=${_}current;${_}return exports${
-			options.compact ? '' : '; '
-		}};${n}`;
-		globalExport += `${t}})()`;
+		globalExport =
+			`(function()${_}{${n}` +
+			`${t}${t}var current${_}=${_}${safeAccess(options.name, options.compact)};${n}` +
+			`${t}${t}${factory}${n}` +
+			`${t}${t}${globalProp(options.name)}${_}=${_}exports;${n}` +
+			`${t}${t}exports.noConflict${_}=${_}function()${_}{${_}` +
+			`${globalProp(options.name)}${_}=${_}current;${_}return exports${
+				options.compact ? '' : '; '
+			}};${n}` +
+			`${t}})()`;
 	} else {
-		globalExport = `(${defaultExport}factory(${globalDeps}))`;
+		globalExport = `${defaultExport}factory(${globalDeps})`;
 	}
 
-	let wrapperIntro = `(function${_}(global,${_}factory)${_}{${n}`;
-	wrapperIntro += `${t}typeof exports${_}===${_}'object'${_}&&${_}typeof module${_}!==${_}'undefined'${_}?`;
-	wrapperIntro += `${_}${cjsExport}factory(${cjsDeps.join(`,${_}`)})${_}:${n}`;
-	wrapperIntro += `${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}factory)${_}:${n}`;
-	wrapperIntro += `${t}${globalExport};${n}`;
-	wrapperIntro += `}(this,${_}(function${_}(${args})${_}{${useStrict}${n}`;
+	const iifeNeedsGlobal = hasExports || (options.noConflict === true && namedExportsMode);
+	const globalParam = iifeNeedsGlobal ? `global,${_}` : '';
+	const globalArg = iifeNeedsGlobal
+		? `typeof self${_}!==${_}'undefined'${_}?${_}self${_}:${_}this,${_}`
+		: '';
+	const cjsIntro = iifeNeedsGlobal
+		? `${t}typeof exports${_}===${_}'object'${_}&&${_}typeof module${_}!==${_}'undefined'${_}?` +
+		  `${_}${cjsExport}factory(${cjsDeps.join(`,${_}`)})${_}:${n}`
+		: '';
+
+	const wrapperIntro =
+		`(function${_}(${globalParam}factory)${_}{${n}` +
+		cjsIntro +
+		`${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}factory)${_}:${n}` +
+		`${t}${globalExport};${n}` +
+		`}(${globalArg}function${_}(${factoryArgs})${_}{${useStrict}${n}`;
+
+	const wrapperOutro = n + n + '}));';
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
 	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);

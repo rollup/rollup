@@ -1,8 +1,7 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () { 'use strict';
+	factory();
+}(function () { 'use strict';
 
 	const callArg = arg => arg();
 	callArg( () => console.log( 'effect' ) );
@@ -34,4 +33,4 @@
 	const multiArgument2 = ( func, obj ) => func( obj );
 	multiArgument2( obj => obj.foo.bar = 1, {} );
 
-})));
+}));

@@ -1,8 +1,7 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('factory'), require('baz'), require('shipping-port'), require('alphabet')) :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(['factory', 'baz', 'shipping-port', 'alphabet'], factory) :
-	(factory(global.factory,global.baz,global.containers,global.alphabet));
-}(this, (function (factory,baz,containers,alphabet) { 'use strict';
+	factory(global.factory,global.baz,global.containers,global.alphabet);
+}(function (factory,baz,containers,alphabet) { 'use strict';
 
 	factory = factory && factory.hasOwnProperty('default') ? factory['default'] : factory;
 	var alphabet__default = 'default' in alphabet ? alphabet['default'] : alphabet;
@@ -13,4 +12,4 @@
 	console.log( alphabet.a );
 	console.log( alphabet__default.length );
 
-})));
+}));
