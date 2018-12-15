@@ -1,4 +1,4 @@
-System.register(['./main2alias-c713bf1b.js'], function (exports, module) {
+System.register(['./generated-main2alias.js'], function (exports, module) {
 	'use strict';
 	return {
 		setters: [function (module) {

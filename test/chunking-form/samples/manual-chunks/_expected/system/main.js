@@ -1,4 +1,4 @@
-System.register(['./deps2and3-0a7aba06.js', './lib1-f3edc83a.js'], function (exports, module) {
+System.register(['./generated-deps2and3.js', './generated-lib1.js'], function (exports, module) {
   'use strict';
   var fn, fn$1;
   return {

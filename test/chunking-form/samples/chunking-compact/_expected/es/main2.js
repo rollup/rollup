@@ -1,4 +1,4 @@
-import {a as fn$1}from'./chunk-5b60a9d9.js';import {fn}from'external';function fn$2 () {
+import {a as fn$1}from'./generated-chunk.js';import {fn}from'external';function fn$2 () {
   console.log('lib1 fn');
   fn();
 }function fn$3 () {

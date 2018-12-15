@@ -1,4 +1,4 @@
-System.register(['./m2.js', './m1-1f88c681.js'], function (exports, module) {
+System.register(['./m2.js', './generated-m1.js'], function (exports, module) {
 	'use strict';
 	var ms;
 	return {

@@ -1,4 +1,4 @@
-System.register(['./chunk-ad0e6b97.js','external'],function(exports,module){'use strict';var fn$1,fn;return{setters:[function(module){fn$1=module.a;},function(module){fn=module.fn;}],execute:function(){function fn$2 () {
+System.register(['./generated-chunk.js','external'],function(exports,module){'use strict';var fn$1,fn;return{setters:[function(module){fn$1=module.a;},function(module){fn=module.fn;}],execute:function(){function fn$2 () {
   console.log('lib1 fn');
   fn();
 }function fn$3 () {

@@ -1,6 +1,6 @@
 'use strict';
 
-var __chunk_1 = require('./chunk-c5a70eda.js');
+var __chunk_1 = require('./generated-chunk.js');
 
 class Main2 {
   constructor () {

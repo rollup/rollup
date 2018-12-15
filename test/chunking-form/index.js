@@ -35,7 +35,8 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 							extend(
 								{
 									dir: dir + '/_actual/' + format,
-									format
+									format,
+									chunkFileNames: 'generated-[name].js'
 								},
 								(config.options || {}).output || {}
 							),

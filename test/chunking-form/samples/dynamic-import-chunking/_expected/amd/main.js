@@ -1,4 +1,4 @@
-define(['require', './chunk-7b720877.js'], function (require, __chunk_1) { 'use strict';
+define(['require', './generated-chunk.js'], function (require, __chunk_1) { 'use strict';
 
   function calc (num) {
     return num * __chunk_1.multiplier;
@@ -9,7 +9,7 @@ define(['require', './chunk-7b720877.js'], function (require, __chunk_1) { 'use 
   }
 
   function dynamic (num) {
-    return new Promise(function (resolve, reject) { require(['./chunk-8ea4f89e.js'], resolve, reject) })
+    return new Promise(function (resolve, reject) { require(['./generated-chunk2.js'], resolve, reject) })
     .then(dep2 => {
       return dep2.mult(num);
     });

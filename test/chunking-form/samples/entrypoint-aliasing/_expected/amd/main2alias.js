@@ -1,4 +1,4 @@
-define(['./main2alias-bff49b9a.js'], function (main2alias) { 'use strict';
+define(['./generated-main2alias.js'], function (main2alias) { 'use strict';
 
 
 

@@ -1,5 +1,5 @@
-import { a as x } from './chunk-7931c64f.js';
-import { a as y } from './chunk-38c61baa.js';
+import { a as x } from './generated-chunk.js';
+import { a as y } from './generated-chunk2.js';
 
 var main1 = x + y;
 

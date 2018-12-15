@@ -1,6 +1,6 @@
 'use strict';
 
-var __chunk_1 = require('./chunk-ca3a1cbb.js');
+var __chunk_1 = require('./generated-chunk.js');
 var external = require('external');
 
 function fn () {

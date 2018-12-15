@@ -19,7 +19,7 @@ export function optimizeChunks(
 	for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
 		const mainChunk = chunks[chunkIndex];
 		const execGroup: Chunk[] = [];
-		mainChunk.postVisitChunkDependencies(dep => {
+		mainChunk.visitStaticDependenciesUntilCondition(dep => {
 			if (dep instanceof Chunk) {
 				execGroup.push(dep);
 			}
@@ -68,11 +68,11 @@ export function optimizeChunks(
 			// if (!chunk.isPure()) continue;
 
 			const chunkDependencies = new Set<Chunk | ExternalModule>();
-			chunk.postVisitChunkDependencies(dep => chunkDependencies.add(dep));
+			chunk.visitStaticDependenciesUntilCondition(dep => chunkDependencies.add(dep));
 
 			const ignoreSizeChunks = new Set<Chunk | ExternalModule>([chunk, lastChunk]);
 			if (
-				lastChunk.postVisitChunkDependencies(dep => {
+				lastChunk.visitStaticDependenciesUntilCondition(dep => {
 					if (dep === chunk || dep === lastChunk) {
 						return false;
 					}
@@ -96,7 +96,7 @@ export function optimizeChunks(
 			}
 
 			if (
-				chunk.postVisitChunkDependencies(dep => {
+				chunk.visitStaticDependenciesUntilCondition(dep => {
 					if (ignoreSizeChunks.has(dep)) {
 						return false;
 					}

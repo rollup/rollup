@@ -1,4 +1,4 @@
-System.register(['./chunk-9a21be24.js', 'external'], function (exports, module) {
+System.register(['./generated-chunk.js', 'external'], function (exports, module) {
   'use strict';
   var fn$1, fn;
   return {

@@ -1,4 +1,4 @@
-import { a as fn$1 } from './chunk-54f33655.js';
+import { a as fn$1 } from './generated-chunk.js';
 import { fn } from 'external';
 
 function fn$2 () {

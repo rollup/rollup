@@ -1,4 +1,4 @@
-System.register(['./main2-fea2fa7a.js'], function (exports, module) {
+System.register(['./generated-main2.js'], function (exports, module) {
 	'use strict';
 	var a, main2;
 	return {

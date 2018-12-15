@@ -4,9 +4,6 @@ module.exports = {
 		input: ['main.js'],
 		manualChunks: {
 			dynamic: ['dynamic.js']
-		},
-		output: {
-			chunkFileNames: 'generated-[name].js'
 		}
 	}
 };

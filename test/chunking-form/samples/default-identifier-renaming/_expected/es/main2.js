@@ -1,4 +1,4 @@
-import { a as d } from './chunk-3a2c5050.js';
+import { a as d } from './generated-chunk.js';
 
 var main2 = d.map(d$$1 => d$$1 + 2);
 

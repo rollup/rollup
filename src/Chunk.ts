@@ -669,13 +669,10 @@ export default class Chunk {
 		return (this.renderedHash = hash.digest('hex'));
 	}
 
-	/*
-	 * Chunk dependency output graph post-visitor
-	 * Visitor can return "true" to indicate a propagated stop condition
-	 */
-	postVisitChunkDependencies(visitor: (dep: Chunk | ExternalModule) => any): boolean {
+	visitStaticDependenciesUntilCondition(
+		isConditionSatisfied: (dep: Chunk | ExternalModule) => any
+	): boolean {
 		const seen = new Set<Chunk | ExternalModule>();
-		// add in hashes of all dependent chunks and resolved external ids
 		function visitDep(dep: Chunk | ExternalModule): boolean {
 			if (seen.has(dep)) return;
 			seen.add(dep);
@@ -684,24 +681,32 @@ export default class Chunk {
 					if (visitDep(subDep)) return true;
 				}
 			}
-			return visitor(dep) === true;
+			return isConditionSatisfied(dep) === true;
 		}
 		return visitDep(this);
+	}
+
+	visitDependencies(handleDependency: (dependency: Chunk | ExternalModule) => void) {
+		const toBeVisited: (Chunk | ExternalModule)[] = [this];
+		const visited: Set<Chunk | ExternalModule> = new Set();
+		for (const current of toBeVisited) {
+			handleDependency(current);
+			if (current instanceof ExternalModule) continue;
+			for (const dependency of current.dependencies.concat(current.dynamicDependencies)) {
+				if (!visited.has(dependency)) {
+					visited.add(dependency);
+					toBeVisited.push(dependency);
+				}
+			}
+		}
 	}
 
 	private computeContentHashWithDependencies(addons: Addons, options: OutputOptions): string {
 		const hash = sha256();
 
-		// own rendered source, except for finalizer wrapping
-		hash.update(this.getRenderedHash());
 		hash.update(addons.hash);
 		hash.update(options.format);
-
-		// import names of dependency sources
-		hash.update(this.dependencies.length);
-
-		// add in hashes of all dependent chunks and resolved external ids
-		this.postVisitChunkDependencies(dep => {
+		this.visitDependencies(dep => {
 			if (dep instanceof ExternalModule) hash.update(':' + dep.renderPath);
 			else hash.update(dep.getRenderedHash());
 		});
