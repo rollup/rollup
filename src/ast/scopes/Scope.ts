@@ -1,8 +1,8 @@
+import { AstContext } from '../../Module';
 import { toBase64 } from '../../utils/base64';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
@@ -30,7 +30,7 @@ export default class Scope {
 
 	addDeclaration(
 		identifier: Identifier,
-		deoptimizationTracker: EntityPathTracker,
+		context: AstContext,
 		init: ExpressionEntity | null = null,
 		_isHoisted: boolean
 	) {
@@ -42,7 +42,7 @@ export default class Scope {
 				identifier.name,
 				identifier,
 				init || UNDEFINED_EXPRESSION,
-				deoptimizationTracker
+				context
 			);
 		}
 		return this.variables[name];
@@ -51,13 +51,9 @@ export default class Scope {
 	addExportDefaultDeclaration(
 		name: string,
 		exportDefaultDeclaration: ExportDefaultDeclaration,
-		deoptimizationTracker: EntityPathTracker
+		context: AstContext
 	): ExportDefaultVariable {
-		this.variables.default = new ExportDefaultVariable(
-			name,
-			exportDefaultDeclaration,
-			deoptimizationTracker
-		);
+		this.variables.default = new ExportDefaultVariable(name, exportDefaultDeclaration, context);
 		return this.variables.default;
 	}
 

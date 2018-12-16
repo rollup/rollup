@@ -1,6 +1,6 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/types';
-import error from '../utils/error';
+import { error } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
 import { FinaliserOptions } from './index';
 import getExportBlock from './shared/getExportBlock';
@@ -54,7 +54,7 @@ export default function iife(
 	}
 
 	if (extend) {
-		deps.unshift(`(${thisProp(name)}${_}=${_}${thisProp(name)}${_}||${_}{})`);
+		deps.unshift(`${thisProp(name)}${_}=${_}${thisProp(name)}${_}||${_}{}`);
 		args.unshift('exports');
 	} else if (namedExportsMode && hasExports) {
 		deps.unshift('{}');

@@ -7,9 +7,9 @@ define(['exports'], function (exports) { 'use strict';
   }
 
   exports.x = x;
-  exports.missingFn = dep.missingFn;
-  exports.missingExport = dep.missingFn;
-  exports.default = dep.missingFn;
+  exports.missingFn = _missingExportShim;
+  exports.missingExport = _missingExportShim;
+  exports.default = _missingExportShim;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

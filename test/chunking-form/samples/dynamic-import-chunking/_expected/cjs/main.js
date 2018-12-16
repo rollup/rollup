@@ -11,7 +11,7 @@ function fn (num) {
 }
 
 function dynamic (num) {
-  return Promise.resolve(require("./dep2.js"))
+  return Promise.resolve(require('./chunk-38762abc.js'))
   .then(dep2 => {
     return dep2.mult(num);
   });

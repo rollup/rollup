@@ -1,5 +1,4 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
-import Variable from './ast/variables/Variable';
 import Graph from './Graph';
 import { OutputOptions } from './rollup/types';
 import { makeLegal } from './utils/identifierHelpers';
@@ -17,7 +16,7 @@ export default class ExternalModule {
 	renormalizeRenderPath = false;
 	isExternal = true;
 	isEntryPoint = false;
-	name: string;
+	variableName: string;
 	mostCommonSuggestion: number = 0;
 	nameSuggestions: { [name: string]: number };
 	reexported: boolean = false;
@@ -30,7 +29,7 @@ export default class ExternalModule {
 		this.execIndex = Infinity;
 
 		const parts = id.split(/[\\/]/);
-		this.name = makeLegal(parts.pop());
+		this.variableName = makeLegal(parts.pop());
 
 		this.nameSuggestions = Object.create(null);
 		this.declarations = Object.create(null);
@@ -58,7 +57,7 @@ export default class ExternalModule {
 
 		if (this.nameSuggestions[name] > this.mostCommonSuggestion) {
 			this.mostCommonSuggestion = this.nameSuggestions[name];
-			this.name = name;
+			this.variableName = name;
 		}
 	}
 
@@ -87,7 +86,7 @@ export default class ExternalModule {
 		});
 	}
 
-	traceExport(name: string, _isExportAllSearch?: boolean): Variable {
+	getVariableForExportName(name: string, _isExportAllSearch?: boolean): ExternalVariable {
 		if (name !== 'default' && name !== '*') this.exportsNames = true;
 		if (name === '*') this.exportsNamespace = true;
 

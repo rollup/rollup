@@ -2,7 +2,7 @@ import { DecodedSourceMap, SourceMap } from 'magic-string';
 import Chunk from '../Chunk';
 import Module from '../Module';
 import { ExistingRawSourceMap, RawSourceMap } from '../rollup/types';
-import error from './error';
+import { error } from './error';
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {

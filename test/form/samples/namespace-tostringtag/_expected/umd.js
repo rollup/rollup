@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.iife = {})));
-}(this, (function (exports) { 'use strict';
+	factory(global.iife = {});
+}(typeof self !== 'undefined' ? self : this, function (exports) { 'use strict';
 
 	var self = {
 		get p () { return p$$1; }
@@ -21,4 +21,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));

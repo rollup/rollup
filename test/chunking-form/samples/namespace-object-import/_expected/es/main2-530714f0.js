@@ -6,4 +6,4 @@ var main2 = /*#__PURE__*/Object.freeze({
 	b: b
 });
 
-export { a, b, main2 as c };
+export { a, main2 as b, b as c };

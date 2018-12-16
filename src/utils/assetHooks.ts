@@ -1,6 +1,6 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
 import { Asset, OutputBundle } from '../rollup/types';
-import error from './error';
+import { error } from './error';
 import { extname } from './path';
 import { isPlainName } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';

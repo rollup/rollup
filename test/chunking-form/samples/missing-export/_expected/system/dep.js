@@ -3,18 +3,19 @@ System.register([], function (exports, module) {
   return {
     execute: function () {
 
-      exports({
-        x: x,
-        missingFn: dep.missingFn,
-        missingExport: dep.missingFn,
-        default: dep.missingFn
-      });
+      exports('x', x);
 
       var _missingExportShim = void 0;
 
       function x () {
         sideEffect();
       }
+
+      exports({
+        missingFn: _missingExportShim,
+        missingExport: _missingExportShim,
+        default: _missingExportShim
+      });
 
     }
   };

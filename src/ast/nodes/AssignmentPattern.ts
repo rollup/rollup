@@ -3,6 +3,7 @@ import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../values';
+import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -12,6 +13,10 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 	type: NodeType.tAssignmentPattern;
 	left: PatternNode;
 	right: ExpressionNode;
+
+	addExportedVariables(variables: Variable[]): void {
+		this.left.addExportedVariables(variables);
+	}
 
 	bind() {
 		super.bind();

@@ -1,18 +1,18 @@
-System.register(['./deps/dep2.js', './deps/dep3.js', './lib/lib2.js', './lib/lib1.js'], function (exports, module) {
+System.register(['./deps/dep2.js', './deps/dep3.js'], function (exports, module) {
   'use strict';
-  var fn, fn$1;
+  var fn$1, fn;
   return {
     setters: [function (module) {
-      fn = module.fn;
-    }, function (module) {
       fn$1 = module.fn;
-    }, function () {}, function () {}],
+    }, function (module) {
+      fn = module.fn;
+    }],
     execute: function () {
 
       class Main2 {
         constructor () {
-          fn$1();
           fn();
+          fn$1();
         }
       } exports('default', Main2);
 

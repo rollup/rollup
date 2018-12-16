@@ -4,7 +4,6 @@ import injectImportMeta from 'acorn-import-meta/inject';
 import { Program } from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
-import GlobalVariable from './ast/variables/GlobalVariable';
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
@@ -23,14 +22,16 @@ import {
 	Watcher
 } from './rollup/types';
 import { finaliseAsset } from './utils/assetHooks';
+import { assignChunkColouringHashes } from './utils/chunkColouring';
 import { Uint8ArrayToHexString } from './utils/entryHashing';
-import error from './utils/error';
-import { analyzeModuleExecution, sortByExecutionOrder } from './utils/execution-order';
+import { error } from './utils/error';
+import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { isRelative, resolve } from './utils/path';
 import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
+import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 function makeOnwarn() {
 	const warned = Object.create(null);
@@ -51,18 +52,18 @@ export default class Graph {
 	context: string;
 	externalModules: ExternalModule[] = [];
 	getModuleContext: (id: string) => string;
-	hasLoaders: boolean;
 	isPureExternalModule: (id: string) => boolean;
 	moduleById = new Map<string, Module | ExternalModule>();
 	assetsById = new Map<string, Asset>();
 	modules: Module[] = [];
+	needsTreeshakingPass: boolean = false;
 	onwarn: WarningHandler;
 	deoptimizationTracker: EntityPathTracker;
 	scope: GlobalScope;
 	shimMissingExports: boolean;
-	exportShimVariable: GlobalVariable;
 	treeshakingOptions: TreeshakingOptions;
 	varOrConst: 'var' | 'const';
+	preserveModules: boolean;
 
 	isExternal: IsExternal;
 
@@ -96,6 +97,7 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
+		this.preserveModules = options.experimentalPreserveModules;
 
 		this.cacheExpiry = options.experimentalCacheExpiry;
 
@@ -154,11 +156,9 @@ export default class Graph {
 		this.shimMissingExports = options.shimMissingExports;
 
 		this.scope = new GlobalScope();
-		// TODO strictly speaking, this only applies with non-ES6, non-default-only bundles
-		for (const name of ['module', 'exports', '_interopDefault']) {
+		for (const name of ['module', 'exports', '_interopDefault', MISSING_EXPORT_SHIM_VARIABLE]) {
 			this.scope.findVariable(name); // creates global variable as side-effect
 		}
-		this.exportShimVariable = this.scope.findVariable('_missingExportShim');
 
 		this.context = String(options.context);
 
@@ -262,18 +262,15 @@ export default class Graph {
 
 	includeMarked(modules: Module[]) {
 		if (this.treeshake) {
-			let needsTreeshakingPass,
-				treeshakingPass = 1;
+			let treeshakingPass = 1;
 			do {
 				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
-				needsTreeshakingPass = false;
+				this.needsTreeshakingPass = false;
 				for (const module of modules) {
-					if (module.include()) {
-						needsTreeshakingPass = true;
-					}
+					if (module.isExecuted) module.include();
 				}
 				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
-			} while (needsTreeshakingPass);
+			} while (this.needsTreeshakingPass);
 		} else {
 			// Necessary to properly replace namespace imports
 			for (const module of modules) module.includeAllInBundle();
@@ -337,8 +334,7 @@ export default class Graph {
 	build(
 		entryModules: string | string[] | Record<string, string>,
 		manualChunks: Record<string, string[]> | void,
-		inlineDynamicImports: boolean,
-		preserveModules: boolean
+		inlineDynamicImports: boolean
 	): Promise<Chunk[]> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
@@ -371,17 +367,7 @@ export default class Graph {
 
 				this.link();
 
-				const {
-					orderedModules,
-					dynamicImports,
-					dynamicImportAliases,
-					cyclePaths
-				} = analyzeModuleExecution(
-					entryModules,
-					!preserveModules && !inlineDynamicImports,
-					inlineDynamicImports,
-					manualChunkModules
-				);
+				const { orderedModules, cyclePaths } = analyseModuleExecution(entryModules);
 				for (const cyclePath of cyclePaths) {
 					this.warn({
 						code: 'CIRCULAR_DEPENDENCY',
@@ -390,41 +376,18 @@ export default class Graph {
 					});
 				}
 
-				if (entryModuleAliases) {
-					for (let i = entryModules.length - 1; i >= 0; i--) {
-						entryModules[i].chunkAlias = entryModuleAliases[i];
-					}
-				}
-
-				if (inlineDynamicImports) {
-					const entryModule = entryModules[0];
-					if (entryModules.length > 1)
-						throw new Error(
-							'Internal Error: can only inline dynamic imports for single-file builds.'
-						);
-					for (const dynamicImportModule of dynamicImports) {
-						if (entryModule !== dynamicImportModule) dynamicImportModule.markPublicExports();
-						dynamicImportModule.getOrCreateNamespace().include();
-					}
-				} else {
-					for (let i = 0; i < dynamicImports.length; i++) {
-						const dynamicImportModule = dynamicImports[i];
-						if (entryModules.indexOf(dynamicImportModule) === -1) {
-							entryModules.push(dynamicImportModule);
-							if (!dynamicImportModule.chunkAlias)
-								dynamicImportModule.chunkAlias = dynamicImportAliases[i];
-						}
-					}
-				}
-
 				timeEnd('analyse dependency graph', 2);
 
 				// Phase 3 – marking. We include all statements that should be included
 				timeStart('mark included statements', 2);
 
-				for (const entryModule of entryModules) entryModule.markPublicExports();
-
-				// only include statements that should appear in the bundle
+				if (inlineDynamicImports) {
+					if (entryModules.length > 1)
+						throw new Error(
+							'Internal Error: can only inline dynamic imports for single-file builds.'
+						);
+				}
+				for (const entryModule of entryModules) entryModule.includeAllExports();
 				this.includeMarked(orderedModules);
 
 				// check for unused external imports
@@ -436,15 +399,27 @@ export default class Graph {
 				// entry point graph colouring, before generating the import and export facades
 				timeStart('generate chunks', 2);
 
+				if (!this.preserveModules && !inlineDynamicImports) {
+					assignChunkColouringHashes(entryModules, manualChunkModules);
+				}
+
+				if (entryModuleAliases) {
+					for (let i = entryModules.length - 1; i >= 0; i--) {
+						entryModules[i].chunkAlias = entryModuleAliases[i];
+					}
+				}
+
 				// TODO: there is one special edge case unhandled here and that is that any module
 				//       exposed as an unresolvable export * (to a graph external export *,
 				//       either as a namespace import reexported or top-level export *)
 				//       should be made to be its own entry point module before chunking
 				let chunks: Chunk[] = [];
-				if (preserveModules) {
+				if (this.preserveModules) {
 					for (const module of orderedModules) {
-						const chunk = new Chunk(this, [module]);
-						if (module.isEntryPoint || !chunk.isEmpty) chunk.entryModule = module;
+						const chunk = new Chunk(this, [module], inlineDynamicImports);
+						if (module.isEntryPoint || !chunk.isEmpty) {
+							chunk.entryModules = [module];
+						}
 						chunks.push(chunk);
 					}
 				} else {
@@ -462,7 +437,7 @@ export default class Graph {
 					for (const entryHashSum in chunkModules) {
 						const chunkModulesOrdered = chunkModules[entryHashSum];
 						sortByExecutionOrder(chunkModulesOrdered);
-						const chunk = new Chunk(this, chunkModulesOrdered);
+						const chunk = new Chunk(this, chunkModulesOrdered, inlineDynamicImports);
 						chunks.push(chunk);
 					}
 				}
@@ -474,22 +449,27 @@ export default class Graph {
 				}
 
 				// filter out empty dependencies
-				chunks = chunks.filter(chunk => !chunk.isEmpty || chunk.entryModule || chunk.isManualChunk);
+				chunks = chunks.filter(
+					chunk => !chunk.isEmpty || chunk.entryModules.length > 0 || chunk.isManualChunk
+				);
 
 				// then go over and ensure all entry chunks export their variables
 				for (const chunk of chunks) {
-					if (preserveModules || chunk.entryModule) {
-						chunk.populateEntryExports(preserveModules);
+					if (this.preserveModules || chunk.entryModules.length > 0) {
+						chunk.generateEntryExportsOrMarkAsTainted();
 					}
 				}
 
 				// create entry point facades for entry module chunks that have tainted exports
-				if (!preserveModules) {
-					for (const entryModule of entryModules) {
-						if (!entryModule.chunk.isEntryModuleFacade) {
-							const entryPointFacade = new Chunk(this, []);
-							entryPointFacade.linkFacade(entryModule);
-							chunks.push(entryPointFacade);
+				const facades = [];
+				if (!this.preserveModules) {
+					for (const chunk of chunks) {
+						for (const entryModule of chunk.entryModules) {
+							if (chunk.facadeModule !== entryModule) {
+								const entryPointFacade = new Chunk(this, [], inlineDynamicImports);
+								entryPointFacade.turnIntoFacade(entryModule);
+								facades.push(entryPointFacade);
+							}
 						}
 					}
 				}
@@ -497,7 +477,7 @@ export default class Graph {
 				timeEnd('generate chunks', 2);
 
 				this.finished = true;
-				return chunks;
+				return chunks.concat(facades);
 			}
 		);
 	}
@@ -605,47 +585,41 @@ export default class Graph {
 	}
 
 	private fetchAllDependencies(module: Module) {
-		// resolve and fetch dynamic imports where possible
 		const fetchDynamicImportsPromise = Promise.all(
-			module.getDynamicImportExpressions().map((dynamicImportExpression, index) => {
-				return Promise.resolve(
-					this.pluginDriver.hookFirst('resolveDynamicImport', [dynamicImportExpression, module.id])
-				).then(replacement => {
-					if (!replacement) {
-						module.dynamicImportResolutions[index] = {
-							alias: undefined,
-							resolution: undefined
-						};
-						return;
-					}
-					const alias = getAliasName(
-						replacement,
-						typeof dynamicImportExpression === 'string' ? dynamicImportExpression : undefined
-					);
-					if (typeof dynamicImportExpression !== 'string') {
-						module.dynamicImportResolutions[index] = { alias, resolution: replacement };
-					} else if (this.isExternal(replacement, module.id, true)) {
-						let externalModule;
-						if (!this.moduleById.has(replacement)) {
-							externalModule = new ExternalModule({
-								graph: this,
-								id: replacement
-							});
-							this.externalModules.push(externalModule);
-							this.moduleById.set(replacement, module);
+			module.getDynamicImportExpressions().map((dynamicImportExpression, index) =>
+				this.pluginDriver
+					.hookFirst('resolveDynamicImport', [dynamicImportExpression, module.id])
+					.then(replacement => {
+						if (!replacement) return;
+						const dynamicImport = module.dynamicImports[index];
+						dynamicImport.alias = getAliasName(
+							replacement,
+							typeof dynamicImportExpression === 'string' ? dynamicImportExpression : undefined
+						);
+						if (typeof dynamicImportExpression !== 'string') {
+							dynamicImport.resolution = replacement;
+						} else if (this.isExternal(replacement, module.id, true)) {
+							let externalModule;
+							if (!this.moduleById.has(replacement)) {
+								externalModule = new ExternalModule({
+									graph: this,
+									id: replacement
+								});
+								this.externalModules.push(externalModule);
+								this.moduleById.set(replacement, module);
+							} else {
+								externalModule = <ExternalModule>this.moduleById.get(replacement);
+							}
+							dynamicImport.resolution = externalModule;
+							externalModule.exportsNamespace = true;
 						} else {
-							externalModule = <ExternalModule>this.moduleById.get(replacement);
+							return this.fetchModule(replacement, module.id).then(depModule => {
+								dynamicImport.resolution = depModule;
+							});
 						}
-						module.dynamicImportResolutions[index] = { alias, resolution: externalModule };
-						externalModule.exportsNamespace = true;
-					} else {
-						return this.fetchModule(replacement, module.id).then(depModule => {
-							module.dynamicImportResolutions[index] = { alias, resolution: depModule };
-						});
-					}
-				});
-			})
-		).then(() => {});
+					})
+			)
+		);
 		fetchDynamicImportsPromise.catch(() => {});
 
 		return Promise.all(
@@ -711,12 +685,12 @@ export default class Graph {
 								});
 							}
 
-							// add external declarations so we can detect which are never used
-							for (const name in module.imports) {
-								const importDeclaration = module.imports[name];
+							for (const name in module.importDescriptions) {
+								const importDeclaration = module.importDescriptions[name];
 								if (importDeclaration.source !== source) return;
 
-								externalModule.traceExport(importDeclaration.name);
+								// this will trigger a warning for unused external imports
+								externalModule.getVariableForExportName(importDeclaration.name);
 							}
 						} else {
 							module.resolvedIds[source] = <string>resolvedId;

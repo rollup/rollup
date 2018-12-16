@@ -17,7 +17,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 	preventChildBlockScope: true;
 
 	createScope(parentScope: Scope) {
-		this.scope = new ReturnValueScope(parentScope, this.context.deoptimizationTracker);
+		this.scope = new ReturnValueScope(parentScope, this.context);
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {

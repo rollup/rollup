@@ -1,8 +1,7 @@
-(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+(function (factory) {
     typeof define === 'function' && define.amd ? define(factory) :
-    (factory());
-}(this, (function () { 'use strict';
+    factory();
+}(function () { 'use strict';
 
     function foo$1 () {
         console.log( 'foo' );
@@ -28,4 +27,4 @@
     module$1.bar = function () { console.log( 'bar' );};
     var h = (0, module$1.bar)();
 
-})));
+}));

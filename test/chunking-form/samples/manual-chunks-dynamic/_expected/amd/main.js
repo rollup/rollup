@@ -1,5 +1,5 @@
 define(['require'], function (require) { 'use strict';
 
-	new Promise(function (resolve, reject) { require(["./dynamic-10698fc3.js"], resolve, reject) });
+	new Promise(function (resolve, reject) { require(['./generated-dynamic.js'], resolve, reject) }).then(({DYNAMIC_USED_BY_A}) => console.log(DYNAMIC_USED_BY_A));
 
 });

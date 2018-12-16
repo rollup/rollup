@@ -1,6 +1,6 @@
+import { AstContext } from '../../Module';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { UNKNOWN_EXPRESSION, UnknownObjectExpression } from '../values';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
@@ -19,13 +19,10 @@ export default class FunctionScope extends ReturnValueScope {
 		[name: string]: LocalVariable | GlobalVariable | ExternalVariable | ArgumentsVariable;
 	};
 
-	constructor(parent: Scope, deoptimizationTracker: EntityPathTracker) {
-		super(parent, deoptimizationTracker);
-		this.variables.arguments = new ArgumentsVariable(
-			super.getParameterVariables(),
-			deoptimizationTracker
-		);
-		this.variables.this = new ThisVariable(deoptimizationTracker);
+	constructor(parent: Scope, context: AstContext) {
+		super(parent, context);
+		this.variables.arguments = new ArgumentsVariable(super.getParameterVariables(), context);
+		this.variables.this = new ThisVariable(context);
 	}
 
 	findLexicalBoundary() {

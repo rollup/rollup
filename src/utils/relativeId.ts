@@ -19,7 +19,5 @@ export function isPlainName(name: string) {
 		(name[1] === '.' && (name[2] === '/' || (name[2] === '.' && name[3] === '/')))
 	)
 		return false;
-	// not a URL
-	if (name.indexOf(':') !== -1) return false;
 	return true;
 }

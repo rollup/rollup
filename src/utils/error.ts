@@ -2,7 +2,7 @@ import { locate } from 'locate-character';
 import { RollupError, RollupWarning } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
 
-export default function error(base: Error | RollupError, props?: RollupError) {
+export function error(base: Error | RollupError, props?: RollupError) {
 	if (base instanceof Error === false) base = Object.assign(new Error(base.message), base);
 	if (props) Object.assign(base, props);
 	throw base;

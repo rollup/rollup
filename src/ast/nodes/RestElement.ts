@@ -1,5 +1,6 @@
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY } from '../values';
+import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
@@ -10,6 +11,10 @@ export default class RestElement extends NodeBase implements PatternNode {
 	argument: PatternNode;
 
 	private declarationInit: ExpressionEntity | null = null;
+
+	addExportedVariables(variables: Variable[]): void {
+		this.argument.addExportedVariables(variables);
+	}
 
 	bind() {
 		super.bind();

@@ -1,3 +1,4 @@
+import Module, { AstContext } from '../../Module';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
@@ -24,6 +25,7 @@ export default class LocalVariable extends Variable {
 	declarations: (Identifier | ExportDefaultDeclaration)[];
 	init: ExpressionEntity | null;
 	isLocal: true;
+	module: Module;
 	additionalInitializers: ExpressionEntity[] | null = null;
 
 	// Caching and deoptimization:
@@ -35,12 +37,13 @@ export default class LocalVariable extends Variable {
 		name: string,
 		declarator: Identifier | ExportDefaultDeclaration | null,
 		init: ExpressionEntity | null,
-		deoptimizationTracker: EntityPathTracker
+		context: AstContext
 	) {
 		super(name);
 		this.declarations = declarator ? [declarator] : [];
 		this.init = init;
-		this.deoptimizationTracker = deoptimizationTracker;
+		this.deoptimizationTracker = context.deoptimizationTracker;
+		this.module = context.module;
 	}
 
 	addDeclaration(identifier: Identifier, init: ExpressionEntity | null) {

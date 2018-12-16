@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 0.68.0
+*unreleased*
+* Extend bundle information, tree-shake dynamic imports, fix dynamic import facade creation, support manual chunks with multiple entry points, make `optimitzeImports` experimental ([#2575](https://github.com/rollup/rollup/pull/2575))
+* Prune tree-shaken chunk imports, fix missing export shimming, support dynamic namespaces when preserving modules, improve chunk execution order ([#2584](https://github.com/rollup/rollup/pull/2584))
+* Simplify UMD wrapper code and make sure it works in strict mode ([#2594](https://github.com/rollup/rollup/pull/2594))
+* Support exports using destructuring declarations and assignments in SystemJS ([#2587](https://github.com/rollup/rollup/pull/2587))
+* Make sure chunk ids do not contain invalid characters to allow for chunks to correspond to virtual modules ([#2590](https://github.com/rollup/rollup/pull/2590))
+* Update dependencies ([#2577](https://github.com/rollup/rollup/pull/2577))
+
+## 0.67.4
+*2018-12-03*
+* Fix an issue with long lines in sourcemaps ([#2571](https://github.com/rollup/rollup/pull/2571))
+
 ## 0.67.3
 *2018-11-17*
 * Show proper error when using `inlineDynamicImports` with `experimentalPreserveModules` ([#2560](https://github.com/rollup/rollup/pull/2560))

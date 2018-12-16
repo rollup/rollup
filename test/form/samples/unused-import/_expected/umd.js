@@ -1,9 +1,8 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('external')) :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(['external'], factory) :
-	(factory(global.external));
-}(this, (function (external) { 'use strict';
+	factory(global.external);
+}(function (external) { 'use strict';
 
 
 
-})));
+}));

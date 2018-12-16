@@ -1,6 +1,5 @@
 {
 	"defaultSeverity": "error",
-	"jsRules": {},
 	"rules": {
 		"arrow-return-shorthand": true,
 		"interface-over-type-literal": true,
@@ -10,6 +9,5 @@
 		"ordered-imports": true,
 		"prefer-const": [true, { "destructuring": "all" }],
         "prefer-object-spread": true
-	},
-	"rulesDirectory": []
+	}
 }
