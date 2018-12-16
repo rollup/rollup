@@ -6,6 +6,7 @@
 * Prune tree-shaken chunk imports, fix missing export shimming, support dynamic namespaces when preserving modules, improve chunk execution order ([#2584](https://github.com/rollup/rollup/pull/2584))
 * Provide module graph information on the plugin context ([#2565](https://github.com/rollup/rollup/pull/2565))
 * Simplify UMD wrapper code and make sure it works in strict mode ([#2594](https://github.com/rollup/rollup/pull/2594))
+* Take both static and dynamic dependencies into account when calculating hashes ([#2596](https://github.com/rollup/rollup/pull/2596))
 * Support exports using destructuring declarations and assignments in SystemJS ([#2587](https://github.com/rollup/rollup/pull/2587))
 * Make sure chunk ids do not contain invalid characters to allow for chunks to correspond to virtual modules ([#2590](https://github.com/rollup/rollup/pull/2590))
 * Update dependencies ([#2577](https://github.com/rollup/rollup/pull/2577))
