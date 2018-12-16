@@ -1,4 +1,4 @@
-import { a as x, c as z } from './chunk-afd977c3.js';
+import { a as x, c as z } from './generated-chunk.js';
 
 var main2 = x + z;
 

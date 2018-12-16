@@ -2,6 +2,6 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-const separate = Promise.resolve(require('./chunk-bc97caee.js'));
+const separate = Promise.resolve(require('./generated-chunk2.js'));
 
 exports.separate = separate;

@@ -1,6 +1,6 @@
 'use strict';
 
-var __chunk_1 = require('./chunk-ac5efa52.js');
+var __chunk_1 = require('./generated-chunk.js');
 
 var main1 = __chunk_1.x + __chunk_1.y;
 

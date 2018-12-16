@@ -1,4 +1,4 @@
-import { a as multiplier } from './chunk-713732d9.js';
+import { a as multiplier } from './generated-chunk.js';
 
 function calc (num) {
   return num * multiplier;
@@ -9,7 +9,7 @@ function fn (num) {
 }
 
 function dynamic (num) {
-  return import('./chunk-a97cfc63.js')
+  return import('./generated-chunk2.js')
   .then(dep2 => {
     return dep2.mult(num);
   });

@@ -1,3 +1,3 @@
-import { a as dep } from './chunk-0110bac8.js';
+import { a as dep } from './generated-chunk.js';
 
 console.log('1', dep);

@@ -4,8 +4,7 @@ module.exports = {
 		input: ['main1.js', 'main2.js', 'main3.js'],
 		external: ['external'],
 		output: {
-			exports: 'named',
-			chunkFileNames: 'generated-[name].js'
+			exports: 'named'
 		}
 	}
 };

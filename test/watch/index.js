@@ -1006,5 +1006,73 @@ describe('rollup.watch', () => {
 					]);
 				});
 		});
+
+		it('updates the right hashes on dependency changes', () => {
+			let dynamicName;
+			let staticName;
+			let chunkName;
+			return sander
+				.copydir('test/watch/samples/hashing')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: ['test/_tmp/input/main-static.js', 'test/_tmp/input/main-dynamic.js'],
+						output: {
+							dir: 'test/_tmp/output',
+							format: 'cjs',
+							entryFileNames: '[name].[hash].js',
+							chunkFileNames: '[name].[hash].js'
+						},
+						watch: { chokidar },
+						experimentalCodeSplitting: true
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							[chunkName, dynamicName, staticName] = sander.readdirSync('test/_tmp/output').sort();
+							sander.rimrafSync('test/_tmp/output');
+
+							// this should only update the hash of that particular entry point
+							sander.writeFileSync(
+								'test/_tmp/input/main-static.js',
+								"import {value} from './shared';export default 2*value;"
+							);
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							const [newChunkName, newDynamicName, newStaticName] = sander
+								.readdirSync('test/_tmp/output')
+								.sort();
+							sander.rimrafSync('test/_tmp/output');
+							assert.notEqual(newStaticName, staticName);
+							assert.equal(newDynamicName, dynamicName);
+							assert.equal(newChunkName, chunkName);
+							staticName = newStaticName;
+
+							// this should update all hashes
+							sander.writeFileSync('test/_tmp/input/shared.js', 'export const value = 42;');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							const [newChunkName, newDynamicName, newStaticName] = sander
+								.readdirSync('test/_tmp/output')
+								.sort();
+							assert.notEqual(newStaticName, staticName);
+							assert.notEqual(newDynamicName, dynamicName);
+							assert.notEqual(newChunkName, chunkName);
+						}
+					]);
+				});
+		});
 	}
 });

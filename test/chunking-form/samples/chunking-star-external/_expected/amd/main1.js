@@ -1,4 +1,4 @@
-define(['exports', 'starexternal1', 'external1', 'starexternal2', 'external2', './chunk-57fd7dbc.js'], function (exports, starexternal1, external1, starexternal2, external2, __chunk_1) { 'use strict';
+define(['exports', 'starexternal1', 'external1', 'starexternal2', 'external2', './generated-chunk.js'], function (exports, starexternal1, external1, starexternal2, external2, __chunk_1) { 'use strict';
 
 	var main = '1';
 

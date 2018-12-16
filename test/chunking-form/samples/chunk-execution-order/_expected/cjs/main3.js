@@ -1,4 +1,4 @@
 'use strict';
 
-require('./chunk-631287c1.js');
+require('./generated-chunk.js');
 

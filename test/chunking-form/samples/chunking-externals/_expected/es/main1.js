@@ -1,4 +1,4 @@
-import { a as fn } from './chunk-54f33655.js';
+import { a as fn } from './generated-chunk.js';
 
 function fn$1 () {
   console.log('dep1 fn');

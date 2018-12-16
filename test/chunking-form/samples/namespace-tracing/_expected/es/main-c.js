@@ -1,5 +1,5 @@
-import { a as broken } from './chunk-77a3d20f.js';
-import { a as bar } from './chunk-ef0a1a76.js';
+import { a as broken } from './generated-chunk.js';
+import { a as bar } from './generated-chunk3.js';
 
 bar();
 broken();

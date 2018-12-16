@@ -1,4 +1,4 @@
-System.register(['./chunk-ebd5007a.js'], function (exports, module) {
+System.register(['./generated-chunk.js'], function (exports, module) {
 	'use strict';
 	var commonjsGlobal, d;
 	return {

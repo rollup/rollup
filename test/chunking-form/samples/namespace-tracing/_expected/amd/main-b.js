@@ -1,4 +1,4 @@
-define(['./chunk-747bf861.js', './chunk-71f1648d.js', './chunk-67ec8019.js'], function (__chunk_1, __chunk_2, __chunk_3) { 'use strict';
+define(['./generated-chunk.js', './generated-chunk2.js', './generated-chunk3.js'], function (__chunk_1, __chunk_2, __chunk_3) { 'use strict';
 
 	__chunk_2.foo();
 	__chunk_1.broken();

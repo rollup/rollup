@@ -1,6 +1,6 @@
 'use strict';
 
-var __chunk_1 = require('./chunk-c1ddad24.js');
+var __chunk_1 = require('./generated-chunk.js');
 
 var main2 = __chunk_1.d.map(d => d + 2);
 

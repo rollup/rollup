@@ -38,7 +38,7 @@ import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
-import { visitStaticDependencies } from './utils/traverseStaticDependencies';
+import { visitStaticModuleDependencies } from './utils/traverseStaticDependencies';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 export interface CommentDescription {
@@ -416,8 +416,8 @@ export default class Module {
 			const name = isDefault
 				? 'default'
 				: isNamespace
-					? '*'
-					: (<ImportSpecifier>specifier).imported.name;
+				? '*'
+				: (<ImportSpecifier>specifier).imported.name;
 			this.importDescriptions[localName] = { source, start: specifier.start, name, module: null };
 		}
 	}
@@ -440,7 +440,7 @@ export default class Module {
 	includeAllExports() {
 		if (!this.isExecuted) {
 			this.graph.needsTreeshakingPass = true;
-			visitStaticDependencies(this, module => {
+			visitStaticModuleDependencies(this, module => {
 				if (module instanceof ExternalModule || module.isExecuted) return true;
 				module.isExecuted = true;
 				return false;
