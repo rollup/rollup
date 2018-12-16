@@ -3,10 +3,10 @@
 ## 0.68.0
 *2018-12-16*
 
-## Breaking Changes
+### Breaking Changes
 * `optimizeImports` is renamed to `experimentalOptimizeImports` to reflect this feature is not production-ready yet (#2575)
 
-## Features
+### Features
 * Plugins can iterate all module ids via `this.moduleIds` (#2565)
 * Plugins can get graph information about a module via `this.getModuleInfo(id)` (#2565)
 * Plugins and JS API users get more information about the generated chunks: `dynamicImports`, `facadeModuleId`, `isDynamicEntry`, `name` (#2575)
@@ -21,7 +21,7 @@
 * Simplify the UMD wrapper code as much as possible, especially if there are no exports (#2594)
 * The UMD wrapper will now work in strict mode by checking for `self` before `this` when determining the global variable (#2594)
 
-## Bug Fixes
+### Bug Fixes
 * If a facade is created for a dynamic entry point, this facade will be imported instead of the facaded chunk (#2575)
 * Manual chunks that include multiple entry points will have proper facades created for all entry points if necessary  (#2575)
 * If missing exports are shimmed, the shim variable will not be global but created on a per-module basis and is deconflicted with variables having the same name (#2584)
@@ -31,7 +31,7 @@
 * Exports and assignments using destructuring syntax will properly update the exported variables when generating SystemJS output (#2587)
 * Hashes in chunk names will now also take dynamic imports into account (#2596)
 
-## Pull Requests
+### Pull Requests
 * [#2565](https://github.com/rollup/rollup/pull/2565): Provide module graph information on the plugin context (@samccone)
 * [#2575](https://github.com/rollup/rollup/pull/2575): Extend bundle information, tree-shake dynamic imports, fix dynamic import facade creation, support manual chunks with multiple entry points, make `optimizeImports` experimental (@lukastaegert)
 * [#2577](https://github.com/rollup/rollup/pull/2577): Update dependencies (@lukastaegert)
@@ -43,31 +43,69 @@
 
 ## 0.67.4
 *2018-12-03*
-* Fix an issue with long lines in sourcemaps ([#2571](https://github.com/rollup/rollup/pull/2571))
+
+### Bug Fixes
+* Prevent corrupt source maps for files with very long lines (#2571)
+
+### Pull Requests
+* [#2571](https://github.com/rollup/rollup/pull/2571): Fix an issue with long lines in sourcemaps (@mislav)
 
 ## 0.67.3
 *2018-11-17*
-* Show proper error when using `inlineDynamicImports` with `experimentalPreserveModules` ([#2560](https://github.com/rollup/rollup/pull/2560))
-* Properly include ESM browser build in package ([#2552](https://github.com/rollup/rollup/pull/2552))
+
+### Bug Fixes
+* Make sure the ESM browser build is actually published to npm (#2560)
+* Throw proper error when using `inlineDynamicImports` with `experimentalPreserveModules` (#2560)
+
+### Pull Requests
+* [#2552](https://github.com/rollup/rollup/pull/2552): Properly include ESM browser build in package (@lukastaegert)
+* [#2560](https://github.com/rollup/rollup/pull/2560): Show proper error when using `inlineDynamicImports` with `experimentalPreserveModules` (@clarkdo)
 
 ## 0.67.2
 *2018-11-17*
-* Prevent crash when not returning sourcemaps from `renderChunk` ([#2558](https://github.com/rollup/rollup/pull/2558))
+
+### Bug Fixes
+*  Prevent crash when not returning sourcemaps from `renderChunk` plugin hook (#2558)
+
+### Pull Requests
+* [#2558](https://github.com/rollup/rollup/pull/2558): Prevent crash when not returning sourcemaps from `renderChunk` (@kyle1320)
 
 ## 0.67.1
 *2018-11-11*
-* Deconflict CLI entry points with same name but on different paths if no explicit naming is used ([#2548](https://github.com/rollup/rollup/pull/2548))
+
+### Bug Fixes
+* Deconflict CLI entry points with same name but on different paths if no explicit naming is used (#2548)
+
+### Pull Requests
+* [#2548](https://github.com/rollup/rollup/pull/2548): Deconflict CLI entry points with same name but on different paths if no explicit naming is used (@lukastaegert)
 
 ## 0.67.0
 *2018-11-04*
-* add `sourcemapExcludeSources` option to exclude the source content from sourcemaps ([#2531](https://github.com/rollup/rollup/pull/2531))
-* Create chunks for virtual modules when preserving modules ([#2511](https://github.com/rollup/rollup/pull/2511))
-* Improve execution order of chunks and externals ([#2508](https://github.com/rollup/rollup/pull/2508))
-* Do not resolve external dynamic imports via plugins ([#2505](https://github.com/rollup/rollup/pull/2505))
-* Do not tree-shake children of unknown nodes to e.g. properly handle do-expressions via acorn plugin ([#2510](https://github.com/rollup/rollup/pull/2510))
-* Fix mis-placed semicolons for certain SystemJS exports ([#2529](https://github.com/rollup/rollup/pull/2529))
-* Prevent memory leak when using the bundle as cache ([#2522](https://github.com/rollup/rollup/pull/2522))
-* Fix public sourcemap type ([#2507](https://github.com/rollup/rollup/pull/2507))
+
+### Breaking Changes
+none
+
+### Features
+* Do not resolve external dynamic imports via plugins to match the logic for static external imports again (#2505)
+* Support virtual modules created by plugins when preserving modules (#2511)
+* Add new `output.sourcemapExcludeSources` option to exclude the actual sources from sourcemaps (#2531)
+
+### Bug Fixes
+* Fix TypeScript type for sourcemaps (#2507)
+* Fix order of external and inter-chunk imports to match the proper execution order (#2508) 
+* Do not tree-shake children of unknown nodes to e.g. properly handle do-expressions via acorn plugin (#2510) 
+* Prevent memory leak when using the bundle as cache (#2522) 
+* Fix mis-placed semicolons for certain SystemJS exports (#2529)
+
+### Pull Requests
+* [#2505](https://github.com/rollup/rollup/pull/2505): Do not resolve external dynamic imports via plugins (@lukastaegert)
+* [#2507](https://github.com/rollup/rollup/pull/2507): Fix public sourcemap type (@aMarCruz)
+* [#2508](https://github.com/rollup/rollup/pull/2508): Improve execution order of chunks and externals (@lukastaegert)
+* [#2510](https://github.com/rollup/rollup/pull/2510): Do not tree-shake children of unknown nodes to e.g. properly handle do-expressions via acorn plugin (@devsnek)
+* [#2511](https://github.com/rollup/rollup/pull/2511): Create chunks for virtual modules when preserving modules (@lukastaegert)
+* [#2522](https://github.com/rollup/rollup/pull/2522): Prevent memory leak when using the bundle as cache (@kyle1320)
+* [#2529](https://github.com/rollup/rollup/pull/2529): Fix mis-placed semicolons for certain SystemJS exports (@kyle1320)
+* [#2531](https://github.com/rollup/rollup/pull/2531): add `sourcemapExcludeSources` option to exclude the source content from sourcemaps (@kitsonk)
 
 ## 0.66.6
 *2018-10-10*
