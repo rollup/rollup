@@ -2,14 +2,44 @@
 
 ## 0.68.0
 *2018-12-16*
-* Extend bundle information, tree-shake dynamic imports, fix dynamic import facade creation, support manual chunks with multiple entry points, make `optimitzeImports` experimental ([#2575](https://github.com/rollup/rollup/pull/2575))
-* Prune tree-shaken chunk imports, fix missing export shimming, support dynamic namespaces when preserving modules, improve chunk execution order ([#2584](https://github.com/rollup/rollup/pull/2584))
-* Provide module graph information on the plugin context ([#2565](https://github.com/rollup/rollup/pull/2565))
-* Simplify UMD wrapper code and make sure it works in strict mode ([#2594](https://github.com/rollup/rollup/pull/2594))
-* Take both static and dynamic dependencies into account when calculating hashes ([#2596](https://github.com/rollup/rollup/pull/2596))
-* Support exports using destructuring declarations and assignments in SystemJS ([#2587](https://github.com/rollup/rollup/pull/2587))
-* Make sure chunk ids do not contain invalid characters to allow for chunks to correspond to virtual modules ([#2590](https://github.com/rollup/rollup/pull/2590))
-* Update dependencies ([#2577](https://github.com/rollup/rollup/pull/2577))
+
+## Breaking Changes
+* `optimizeImports` is renamed to `experimentalOptimizeImports` to reflect this feature is not production-ready yet (#2575)
+
+## Features
+* Plugins can iterate all module ids via `this.moduleIds` (#2565)
+* Plugins can get graph information about a module via `this.getModuleInfo(id)` (#2565)
+* Plugins and JS API users get more information about the generated chunks: `dynamicImports`, `facadeModuleId`, `isDynamicEntry`, `name` (#2575)
+* Tree-shaken dynamic imports will no longer create chunks or influence chunking in any way (#2575)
+* Dynamic imports will no longer follow the `entryFileNames` but the `chunkFileNames` property reflecting those are solely internally used (#2575)
+* If there are chunk naming conflicts, entry chunks will always take precedence (#2575)
+* If an entry facade is created, only the facade chunk is marked as `isEntry` (#2575)
+* Dynamic chunks will only be marked as `isEntry` if they are actually entry chunks as well; thus there is now a 1-to-1 correspondence between modules listed in `input` and chunks marked as `isEntry` (#2575)
+* Chunks no longer contain imports for variables that are tree-shaken in the chunk but used in other chunks (#2584)
+* Chunks will always import re-exported variables directly from the chunk where they are originally exported from (#2584)
+* Null characters will be pruned from chunk ids to allow for virtually created chunks and make `rollup-plugin-multi-entry` compatible with code-splitting and thus the upcoming 1.0 version (#2590)
+* Simplify the UMD wrapper code as much as possible, especially if there are no exports (#2594)
+* The UMD wrapper will now work in strict mode by checking for `self` before `this` when determining the global variable (#2594)
+
+## Bug Fixes
+* If a facade is created for a dynamic entry point, this facade will be imported instead of the facaded chunk (#2575)
+* Manual chunks that include multiple entry points will have proper facades created for all entry points if necessary  (#2575)
+* If missing exports are shimmed, the shim variable will not be global but created on a per-module basis and is deconflicted with variables having the same name (#2584)
+* Missing export shims work properly in SystemJS (#2584)
+* `preserveModules` now handles dynamic namespace imports (#2584)
+* Fix chunk execution order in certain scenarios (#2584)
+* Exports and assignments using destructuring syntax will properly update the exported variables when generating SystemJS output (#2587)
+* Hashes in chunk names will now also take dynamic imports into account (#2596)
+
+## Pull Requests
+* #2565: Provide module graph information on the plugin context (@samccone)
+* #2575: Extend bundle information, tree-shake dynamic imports, fix dynamic import facade creation, support manual chunks with multiple entry points, make `optimizeImports` experimental (@lukastaegert)
+* #2577: Update dependencies (@lukastaegert)
+* #2584: Prune tree-shaken chunk imports, fix missing export shimming, support dynamic namespaces when preserving modules, improve chunk execution order (@lukastaegert)
+* #2587: Support exports using destructuring declarations and assignments in SystemJS (@lukastaegert)
+* #2590: Make sure chunk ids do not contain invalid characters to allow for chunks to correspond to virtual modules (@lukastaegert)
+* #2594: Simplify UMD wrapper code and make sure it works in strict mode (@lukastaegert)
+* #2596: Take both static and dynamic dependencies into account when calculating hashes (@lukastaegert)
 
 ## 0.67.4
 *2018-12-03*
