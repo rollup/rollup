@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 0.68.0
-*unreleased*
+*2018-12-16*
 * Extend bundle information, tree-shake dynamic imports, fix dynamic import facade creation, support manual chunks with multiple entry points, make `optimitzeImports` experimental ([#2575](https://github.com/rollup/rollup/pull/2575))
 * Prune tree-shaken chunk imports, fix missing export shimming, support dynamic namespaces when preserving modules, improve chunk execution order ([#2584](https://github.com/rollup/rollup/pull/2584))
 * Provide module graph information on the plugin context ([#2565](https://github.com/rollup/rollup/pull/2565))
