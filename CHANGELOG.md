@@ -32,14 +32,14 @@
 * Hashes in chunk names will now also take dynamic imports into account (#2596)
 
 ## Pull Requests
-* #2565: Provide module graph information on the plugin context (@samccone)
-* #2575: Extend bundle information, tree-shake dynamic imports, fix dynamic import facade creation, support manual chunks with multiple entry points, make `optimizeImports` experimental (@lukastaegert)
-* #2577: Update dependencies (@lukastaegert)
-* #2584: Prune tree-shaken chunk imports, fix missing export shimming, support dynamic namespaces when preserving modules, improve chunk execution order (@lukastaegert)
-* #2587: Support exports using destructuring declarations and assignments in SystemJS (@lukastaegert)
-* #2590: Make sure chunk ids do not contain invalid characters to allow for chunks to correspond to virtual modules (@lukastaegert)
-* #2594: Simplify UMD wrapper code and make sure it works in strict mode (@lukastaegert)
-* #2596: Take both static and dynamic dependencies into account when calculating hashes (@lukastaegert)
+* [#2565](https://github.com/rollup/rollup/pull/2565): Provide module graph information on the plugin context (@samccone)
+* [#2575](https://github.com/rollup/rollup/pull/2575): Extend bundle information, tree-shake dynamic imports, fix dynamic import facade creation, support manual chunks with multiple entry points, make `optimizeImports` experimental (@lukastaegert)
+* [#2577](https://github.com/rollup/rollup/pull/2577): Update dependencies (@lukastaegert)
+* [#2584](https://github.com/rollup/rollup/pull/2584): Prune tree-shaken chunk imports, fix missing export shimming, support dynamic namespaces when preserving modules, improve chunk execution order (@lukastaegert)
+* [#2587](https://github.com/rollup/rollup/pull/2587): Support exports using destructuring declarations and assignments in SystemJS (@lukastaegert)
+* [#2590](https://github.com/rollup/rollup/pull/2590): Make sure chunk ids do not contain invalid characters to allow for chunks to correspond to virtual modules (@lukastaegert)
+* [#2594](https://github.com/rollup/rollup/pull/2594): Simplify UMD wrapper code and make sure it works in strict mode (@lukastaegert)
+* [#2596](https://github.com/rollup/rollup/pull/2596): Take both static and dynamic dependencies into account when calculating hashes (@lukastaegert)
 
 ## 0.67.4
 *2018-12-03*
