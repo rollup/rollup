@@ -6,7 +6,7 @@ import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
 import getExportBlock from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { keypath, property } from './shared/sanitize';
-import setupNamespace from './shared/setupNamespace';
+import { assignToDeepVariable } from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
@@ -59,9 +59,9 @@ export default function umd(
 		amdDeps.unshift(`'exports'`);
 		cjsDeps.unshift(`exports`);
 		globalDeps.unshift(
-			`${setupNamespace(options.name, 'global', true, options.globals, options.compact)}${_}=${_}${
-				options.extend ? `${globalProp(options.name)}${_}||${_}` : ''
-			}{}`
+			assignToDeepVariable(options.name, 'global', options.globals, options.compact)(
+				`${options.extend ? `${globalProp(options.name)}${_}||${_}` : ''}{}`
+			)
 		);
 
 		factoryArgs.unshift('exports');
@@ -74,47 +74,47 @@ export default function umd(
 		(amdDeps.length ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
 
 	const define = amdOptions.define || 'define';
-
 	const cjsExport = !namedExportsMode && hasExports ? `module.exports${_}=${_}` : ``;
-	const defaultExport =
-		!namedExportsMode && hasExports
-			? `${setupNamespace(options.name, 'global', true, options.globals, options.compact)}${_}=${_}`
-			: '';
-
 	const useStrict = options.strict !== false ? `${_}'use strict';${n}` : ``;
 
-	let globalExport;
+	let iifeExport;
 
 	if (options.noConflict === true) {
 		let factory;
 
 		if (!namedExportsMode && hasExports) {
-			factory = `var exports${_}=${_}factory(${globalDeps});`;
+			factory = `var exports${_}=${_}factory(${globalDeps.join(`,${_}`)});`;
 		} else if (namedExportsMode) {
 			const module = globalDeps.shift();
 			factory =
 				`var exports${_}=${_}${module};${n}` +
-				`${t}${t}factory(${['exports'].concat(globalDeps)});`;
+				`${t}${t}factory(${['exports'].concat(globalDeps).join(`,${_}`)});`;
 		}
-		globalExport =
-			`(function()${_}{${n}` +
+		iifeExport =
+			`(function${_}()${_}{${n}` +
 			`${t}${t}var current${_}=${_}${safeAccess(options.name, options.compact)};${n}` +
 			`${t}${t}${factory}${n}` +
 			`${t}${t}${globalProp(options.name)}${_}=${_}exports;${n}` +
-			`${t}${t}exports.noConflict${_}=${_}function()${_}{${_}` +
+			`${t}${t}exports.noConflict${_}=${_}function${_}()${_}{${_}` +
 			`${globalProp(options.name)}${_}=${_}current;${_}return exports${
 				options.compact ? '' : '; '
 			}};${n}` +
-			`${t}})()`;
+			`${t}}())`;
 	} else {
-		globalExport = `${defaultExport}factory(${globalDeps})`;
+		iifeExport = `factory(${globalDeps.join(`,${_}`)})`;
+		if (!namedExportsMode && hasExports) {
+			iifeExport = assignToDeepVariable(options.name, 'global', options.globals, options.compact)(
+				iifeExport
+			);
+		}
 	}
 
-	const iifeNeedsGlobal = hasExports || (options.noConflict === true && namedExportsMode);
+	const iifeNeedsGlobal =
+		hasExports || (options.noConflict === true && namedExportsMode) || globalDeps.length > 0;
 	const globalParam = iifeNeedsGlobal ? `global,${_}` : '';
-	const globalArg = iifeNeedsGlobal
-		? `typeof self${_}!==${_}'undefined'${_}?${_}self${_}:${_}this,${_}`
-		: '';
+	const globalArg = iifeNeedsGlobal ? `this,${_}` : '';
+	const iifeStart = iifeNeedsGlobal ? `(global${_}=${_}global${_}||${_}self,${_}` : '';
+	const iifeEnd = iifeNeedsGlobal ? ')' : '';
 	const cjsIntro = iifeNeedsGlobal
 		? `${t}typeof exports${_}===${_}'object'${_}&&${_}typeof module${_}!==${_}'undefined'${_}?` +
 		  `${_}${cjsExport}factory(${cjsDeps.join(`,${_}`)})${_}:${n}`
@@ -124,7 +124,7 @@ export default function umd(
 		`(function${_}(${globalParam}factory)${_}{${n}` +
 		cjsIntro +
 		`${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}factory)${_}:${n}` +
-		`${t}${globalExport};${n}` +
+		`${t}${iifeStart}${iifeExport}${iifeEnd};${n}` +
 		`}(${globalArg}function${_}(${factoryArgs})${_}{${useStrict}${n}`;
 
 	const wrapperOutro = n + n + '}));';

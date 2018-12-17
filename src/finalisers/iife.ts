@@ -71,8 +71,7 @@ export default function iife(
 	}
 
 	if (isNamespaced) {
-		wrapperIntro =
-			setupNamespace(name, 'this', false, options.globals, options.compact) + wrapperIntro;
+		wrapperIntro = setupNamespace(name, 'this', options.globals, options.compact) + wrapperIntro;
 	}
 
 	let wrapperOutro = `${n}${n}}(${deps}));`;
