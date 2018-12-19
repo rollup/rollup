@@ -5,7 +5,6 @@
 		var current = global.my && global.my.name && global.my.name.spaced && global.my.name.spaced.module;
 		var exports = (global.my = global.my || {}, global.my.name = global.my.name || {}, global.my.name.spaced = global.my.name.spaced || {}, global.my.name.spaced.module = {});
 		factory(exports);
-		global.my.name.spaced.module = exports;
 		exports.noConflict = function () { global.my.name.spaced.module = current; return exports; };
 	}()));
 }(this, function (exports) { 'use strict';

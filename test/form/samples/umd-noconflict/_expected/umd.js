@@ -5,7 +5,6 @@
 		var current = global.FooBar;
 		var exports = global.FooBar = {};
 		factory(exports);
-		global.FooBar = exports;
 		exports.noConflict = function () { global.FooBar = current; return exports; };
 	}()));
 }(this, function (exports) { 'use strict';

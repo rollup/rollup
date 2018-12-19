@@ -59,7 +59,11 @@ export default function umd(
 		amdDeps.unshift(`'exports'`);
 		cjsDeps.unshift(`exports`);
 		globalDeps.unshift(
-			assignToDeepVariable(options.name, 'global', options.globals, options.compact)(
+			assignToDeepVariable(
+				options.name,
+				'global',
+				options.globals,
+				options.compact,
 				`${options.extend ? `${globalProp(options.name)}${_}||${_}` : ''}{}`
 			)
 		);
@@ -83,7 +87,13 @@ export default function umd(
 		let factory;
 
 		if (!namedExportsMode && hasExports) {
-			factory = `var exports${_}=${_}factory(${globalDeps.join(`,${_}`)});`;
+			factory = `var exports${_}=${_}${assignToDeepVariable(
+				options.name,
+				'global',
+				options.globals,
+				options.compact,
+				`factory(${globalDeps.join(`,${_}`)})`
+			)};`;
 		} else if (namedExportsMode) {
 			const module = globalDeps.shift();
 			factory =
@@ -94,7 +104,6 @@ export default function umd(
 			`(function${_}()${_}{${n}` +
 			`${t}${t}var current${_}=${_}${safeAccess(options.name, options.compact)};${n}` +
 			`${t}${t}${factory}${n}` +
-			`${t}${t}${globalProp(options.name)}${_}=${_}exports;${n}` +
 			`${t}${t}exports.noConflict${_}=${_}function${_}()${_}{${_}` +
 			`${globalProp(options.name)}${_}=${_}current;${_}return exports${
 				options.compact ? '' : '; '
@@ -103,7 +112,11 @@ export default function umd(
 	} else {
 		iifeExport = `factory(${globalDeps.join(`,${_}`)})`;
 		if (!namedExportsMode && hasExports) {
-			iifeExport = assignToDeepVariable(options.name, 'global', options.globals, options.compact)(
+			iifeExport = assignToDeepVariable(
+				options.name,
+				'global',
+				options.globals,
+				options.compact,
 				iifeExport
 			);
 		}
@@ -125,7 +138,7 @@ export default function umd(
 		cjsIntro +
 		`${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}factory)${_}:${n}` +
 		`${t}${iifeStart}${iifeExport}${iifeEnd};${n}` +
-		`}(${globalArg}function${_}(${factoryArgs})${_}{${useStrict}${n}`;
+		`}(${globalArg}function${_}(${factoryArgs.join(', ')})${_}{${useStrict}${n}`;
 
 	const wrapperOutro = n + n + '}));';
 

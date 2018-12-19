@@ -3,8 +3,7 @@
 	typeof define === 'function' && define.amd ? define(factory) :
 	(global = global || self, (function () {
 		var current = global.conflictyName;
-		var exports = factory();
-		global.conflictyName = exports;
+		var exports = global.conflictyName = factory();
 		exports.noConflict = function () { global.conflictyName = current; return exports; };
 	}()));
 }(this, function () { 'use strict';

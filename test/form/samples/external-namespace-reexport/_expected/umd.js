@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('highcharts')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'highcharts'], factory) :
 	(global = global || self, factory(global.myBundle = {}, global.highcharts));
-}(this, function (exports,highcharts) { 'use strict';
+}(this, function (exports, highcharts) { 'use strict';
 
 	exports.Highcharts = highcharts;
 

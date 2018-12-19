@@ -25,12 +25,13 @@ export default function setupNamespace(
 	);
 }
 
-export const assignToDeepVariable = (
+export function assignToDeepVariable(
 	deepName: string,
 	root: string,
 	globals: GlobalsOption,
-	compact: boolean
-) => (assignment: string): string => {
+	compact: boolean,
+	assignment: string
+): string {
 	const _ = compact ? '' : ' ';
 	const parts = deepName.split('.');
 	if (globals) {
@@ -48,4 +49,4 @@ export const assignToDeepVariable = (
 		deepAssignment = `(${deepAssignment})`;
 	}
 	return deepAssignment;
-};
+}
