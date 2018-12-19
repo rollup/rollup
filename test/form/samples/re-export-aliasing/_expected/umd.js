@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd'], factory) :
-	factory(global.reexportsAliasingExternal = {},global.d);
-}(typeof self !== 'undefined' ? self : this, function (exports,d) { 'use strict';
+	(global = global || self, factory(global.reexportsAliasingExternal = {}, global.d));
+}(this, function (exports, d) { 'use strict';
 
 	exports.b = d.d;
 

@@ -31,9 +31,9 @@ export default function iife(
 
 	const { extend, name } = options;
 	const isNamespaced = name && name.indexOf('.') !== -1;
-	const possibleVariableAssignment = !extend && !isNamespaced;
+	const useVariableAssignment = !extend && !isNamespaced;
 
-	if (name && possibleVariableAssignment && !isLegal(name)) {
+	if (name && useVariableAssignment && !isLegal(name)) {
 		error({
 			code: 'ILLEGAL_IDENTIFIER_AS_NAME',
 			message: `Given name (${name}) is not legal JS identifier. If you need this you can try --extend option`
@@ -53,29 +53,31 @@ export default function iife(
 		});
 	}
 
-	if (extend) {
-		deps.unshift(`${thisProp(name)}${_}=${_}${thisProp(name)}${_}||${_}{}`);
-		args.unshift('exports');
-	} else if (namedExportsMode && hasExports) {
-		deps.unshift('{}');
-		args.unshift('exports');
+	if (namedExportsMode && hasExports) {
+		if (extend) {
+			deps.unshift(`${thisProp(name)}${_}=${_}${thisProp(name)}${_}||${_}{}`);
+			args.unshift('exports');
+		} else {
+			deps.unshift('{}');
+			args.unshift('exports');
+		}
 	}
 
 	const useStrict = options.strict !== false ? `${t}'use strict';${n}${n}` : ``;
 
-	let wrapperIntro = `(function${_}(${args})${_}{${n}${useStrict}`;
+	let wrapperIntro = `(function${_}(${args.join(`,${_}`)})${_}{${n}${useStrict}`;
 
-	if (hasExports && !extend) {
+	if (hasExports && (!extend || !namedExportsMode)) {
 		wrapperIntro =
-			(isNamespaced ? thisProp(name) : `${graph.varOrConst} ${name}`) + `${_}=${_}${wrapperIntro}`;
+			(useVariableAssignment ? `${graph.varOrConst} ${name}` : thisProp(name)) +
+			`${_}=${_}${wrapperIntro}`;
 	}
 
-	if (isNamespaced) {
-		wrapperIntro =
-			setupNamespace(name, 'this', false, options.globals, options.compact) + wrapperIntro;
+	if (isNamespaced && hasExports) {
+		wrapperIntro = setupNamespace(name, 'this', options.globals, options.compact) + wrapperIntro;
 	}
 
-	let wrapperOutro = `${n}${n}}(${deps}));`;
+	let wrapperOutro = `${n}${n}}(${deps.join(`,${_}`)}));`;
 
 	if (!extend && namedExportsMode && hasExports) {
 		wrapperOutro = `${n}${n}${t}return exports;${wrapperOutro}`;

@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('babel-polyfill'), require('other')) :
 	typeof define === 'function' && define.amd ? define(['babel-polyfill', 'other'], factory) :
-	global.myBundle = factory(null,global.other);
-}(typeof self !== 'undefined' ? self : this, function (babelPolyfill,other) { 'use strict';
+	(global = global || self, global.myBundle = factory(null, global.other));
+}(this, function (babelPolyfill, other) { 'use strict';
 
 	other.x();
 

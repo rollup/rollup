@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('a'), require('b')) :
   typeof define === 'function' && define.amd ? define(['exports', 'a', 'b'], factory) :
-  factory(global.myBundle = {},global.a,global.Test);
-}(typeof self !== 'undefined' ? self : this, function (exports,a,Test) { 'use strict';
+  (global = global || self, factory(global.myBundle = {}, global.a, global.Test));
+}(this, function (exports, a, Test) { 'use strict';
 
   Test = Test && Test.hasOwnProperty('default') ? Test['default'] : Test;
 

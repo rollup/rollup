@@ -1,4 +1,4 @@
-var iife = (function (exports,externalPackage) {
+var iife = (function (exports, externalPackage) {
 	'use strict';
 
 
@@ -7,4 +7,4 @@ var iife = (function (exports,externalPackage) {
 
 	return exports;
 
-}({},externalPackage));
+}({}, externalPackage));

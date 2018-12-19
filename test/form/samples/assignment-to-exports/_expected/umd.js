@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	factory(global.bundle = {});
-}(typeof self !== 'undefined' ? self : this, function (exports) { 'use strict';
+	(global = global || self, factory(global.bundle = {}));
+}(this, function (exports) { 'use strict';
 
 	// Unassigned export
 	var foo1;

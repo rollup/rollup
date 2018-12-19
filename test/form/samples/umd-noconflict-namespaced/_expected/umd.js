@@ -1,14 +1,13 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(function() {
+	(global = global || self, (function () {
 		var current = global.my && global.my.name && global.my.name.spaced && global.my.name.spaced.module;
-		var exports = global.my = global.my || {}, global.my.name = global.my.name || {}, global.my.name.spaced = global.my.name.spaced || {}, global.my.name.spaced.module = {};
+		var exports = (global.my = global.my || {}, global.my.name = global.my.name || {}, global.my.name.spaced = global.my.name.spaced || {}, global.my.name.spaced.module = {});
 		factory(exports);
-		global.my.name.spaced.module = exports;
-		exports.noConflict = function() { global.my.name.spaced.module = current; return exports; };
-	})();
-}(typeof self !== 'undefined' ? self : this, function (exports) { 'use strict';
+		exports.noConflict = function () { global.my.name.spaced.module = current; return exports; };
+	}()));
+}(this, function (exports) { 'use strict';
 
 	function doThings() {
 		console.log( 'doing things...' );

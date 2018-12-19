@@ -1,4 +1,4 @@
-var stirred = (function (exports,external) {
+var stirred = (function (exports, external) {
 	'use strict';
 
 	var foo = 13;
@@ -38,4 +38,4 @@ var stirred = (function (exports,external) {
 
 	return exports;
 
-}({},external));
+}({}, external));

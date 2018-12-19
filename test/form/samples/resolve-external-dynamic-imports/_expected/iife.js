@@ -1,4 +1,4 @@
-var bundle = (function (exports,myExternal) {
+var bundle = (function (exports, myExternal) {
 	'use strict';
 
 	myExternal = myExternal && myExternal.hasOwnProperty('default') ? myExternal['default'] : myExternal;
@@ -12,4 +12,4 @@ var bundle = (function (exports,myExternal) {
 
 	return exports;
 
-}({},myExternal));
+}({}, myExternal));

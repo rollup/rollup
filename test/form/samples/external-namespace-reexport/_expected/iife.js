@@ -1,4 +1,4 @@
-var myBundle = (function (exports,highcharts) {
+var myBundle = (function (exports, highcharts) {
 	'use strict';
 
 
@@ -7,4 +7,4 @@ var myBundle = (function (exports,highcharts) {
 
 	return exports;
 
-}({},highcharts));
+}({}, highcharts));

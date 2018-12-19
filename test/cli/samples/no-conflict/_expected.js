@@ -1,13 +1,12 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
-	(function() {
+	(global = global || self, (function () {
 		var current = global.conflictyName;
-		var exports = factory();
-		global.conflictyName = exports;
-		exports.noConflict = function() { global.conflictyName = current; return exports; };
-	})();
-}(typeof self !== 'undefined' ? self : this, function () { 'use strict';
+		var exports = global.conflictyName = factory();
+		exports.noConflict = function () { global.conflictyName = current; return exports; };
+	}()));
+}(this, function () { 'use strict';
 
 	var main = {};
 
