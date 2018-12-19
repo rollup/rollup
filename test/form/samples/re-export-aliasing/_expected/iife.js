@@ -1,4 +1,4 @@
-var reexportsAliasingExternal = (function (exports,d) {
+var reexportsAliasingExternal = (function (exports, d) {
 	'use strict';
 
 
@@ -7,4 +7,4 @@ var reexportsAliasingExternal = (function (exports,d) {
 
 	return exports;
 
-}({},d));
+}({}, d));

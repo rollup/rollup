@@ -1,4 +1,4 @@
-var myBundle = (function (babelPolyfill,other) {
+var myBundle = (function (babelPolyfill, other) {
 	'use strict';
 
 	other.x();
@@ -7,4 +7,4 @@ var myBundle = (function (babelPolyfill,other) {
 
 	return main;
 
-}(null,other));
+}(null, other));

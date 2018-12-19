@@ -1,4 +1,4 @@
-var foo = (function (exports,external) {
+var foo = (function (exports, external) {
 	'use strict';
 
 
@@ -8,4 +8,4 @@ var foo = (function (exports,external) {
 
 	return exports;
 
-}({},external));
+}({}, external));
