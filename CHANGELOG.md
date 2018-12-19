@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 0.68.1
+*2018-12-19*
+
+### Bug Fixes
+* Fix an issue with UMD wrappers where a variable is used without being defined (#2600)
+
+### Pull Requests
+* [#2600](https://github.com/rollup/rollup/pull/2600): Fix UMD and IIFE wrapper issues and add comprehensive functional wrapper tests (@lukastaegert)
+
 ## 0.68.0
 *2018-12-16*
 
