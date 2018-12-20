@@ -59,18 +59,22 @@ this.a.b.c = ...
 
 #### plugins
 
-`Array` of plugin objects (or a single plugin object) – see [Using plugins](guide/en#using-plugins) for more information. Remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`).
+`Array` of plugin objects (or a single plugin object) – see [Using plugins](guide/en#using-plugins) for more information. Remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins.
 
 ```js
 // rollup.config.js
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
+import {terser} from 'rollup-plugin-terser';
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 export default {
   entry: 'main.js',
   plugins: [
     resolve(),
-    commonjs()
+    commonjs(),
+    isProduction && terser()
   ]
 };
 ```
@@ -303,6 +307,10 @@ If `true`, a separate sourcemap file will be created. If `inline`, the sourcemap
 `String` The location of the generated bundle. If this is an absolute path, all the `sources` paths in the sourcemap will be relative to it. The `map.file` property is the basename of `sourcemapFile`, as the location of the sourcemap is assumed to be adjacent to the bundle.
 
 `sourcemapFile` is not required if `output` is specified, in which case an output filename will be inferred by adding ".map"  to the output filename for the bundle.
+
+#### output.sourcemapExcludeSources *`--sourcemapExcludeSources`*
+
+`true` or `false` (defaults to `false`) – if `true`, the actual sources will not be added to the sourcemaps making them considerably smaller.
 
 #### output.sourcemapPathTransform
 
@@ -555,7 +563,7 @@ These options reflect new features that have not yet been fully finalized. Speci
 #### inlineDynamicImports *`--inlineDynamicImports`*
 `true` or `false` (defaults to `false)` - will inline dynamic imports instead of creating new chunks when code-splitting is enabled. Only possible if a single input is provided.
 
-#### optimizeChunks *`--optimizeChunks`*
+#### experimentalOptimizeChunks *`--experimentalOptimizeChunks`*
 
 `true` or `false` (defaults to `false)` - experimental feature to optimize chunk groupings. When a large number of chunks are generated in code-splitting, this allows smaller chunks to group together as long as they are within the `chunkGroupingSize` limit. It results in unnecessary code being loaded in some cases in order to have a smaller number of chunks overall. Disabled by default as it may cause unwanted side effects when loading unexpected code.
 

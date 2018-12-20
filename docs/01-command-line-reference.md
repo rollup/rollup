@@ -49,7 +49,7 @@ export default { // can be an array (for multiple inputs)
   // experimental
   experimentalCodeSplitting,
   manualChunks,
-  optimizeChunks,
+  experimentalOptimizeChunks,
   chunkGroupingSize,
 
   output: {  // required (can be an array, for multiple outputs)
