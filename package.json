@@ -20,7 +20,7 @@
     "lint:nofix": "npm run lint:ts && npm run lint:js && npm run lint:markdown",
     "lint:ts": "tslint --project .",
     "lint:js": "eslint test/test.js test/*/index.js test/utils.js test/**/_config.js",
-    "lint:markdown": "markdownlint --config markdownlint.json guide/**/*.md",
+    "lint:markdown": "markdownlint --config markdownlint.json docs/**/*.md",
     "perf": "npm run build:test && node --expose-gc scripts/perf.js",
     "perf:debug": "node --inspect-brk scripts/perf-debug.js",
     "perf:init": "node scripts/perf-init.js",
