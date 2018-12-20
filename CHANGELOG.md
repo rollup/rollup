@@ -13,7 +13,7 @@
 *2018-12-16*
 
 ### Breaking Changes
-* `optimizeImports` is renamed to `experimentalOptimizeImports` to reflect this feature is not production-ready yet (#2575)
+* `optimizeChunks` is renamed to `experimentalOptimizeChunks` to reflect this feature is not production-ready yet (#2575)
 
 ### Features
 * Plugins can iterate all module ids via `this.moduleIds` (#2565)
@@ -42,7 +42,7 @@
 
 ### Pull Requests
 * [#2565](https://github.com/rollup/rollup/pull/2565): Provide module graph information on the plugin context (@samccone)
-* [#2575](https://github.com/rollup/rollup/pull/2575): Extend bundle information, tree-shake dynamic imports, fix dynamic import facade creation, support manual chunks with multiple entry points, make `optimizeImports` experimental (@lukastaegert)
+* [#2575](https://github.com/rollup/rollup/pull/2575): Extend bundle information, tree-shake dynamic imports, fix dynamic import facade creation, support manual chunks with multiple entry points, make `optimizeChunks` experimental (@lukastaegert)
 * [#2577](https://github.com/rollup/rollup/pull/2577): Update dependencies (@lukastaegert)
 * [#2584](https://github.com/rollup/rollup/pull/2584): Prune tree-shaken chunk imports, fix missing export shimming, support dynamic namespaces when preserving modules, improve chunk execution order (@lukastaegert)
 * [#2587](https://github.com/rollup/rollup/pull/2587): Support exports using destructuring declarations and assignments in SystemJS (@lukastaegert)

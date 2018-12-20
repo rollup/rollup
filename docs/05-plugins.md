@@ -63,20 +63,14 @@ Type: `String`
 
 The name of the plugin, for use in error messages and warnings.
 
-#### `banner`
-Type: `String|Function`
-
-A `String`, or a `Function` that returns a `String` or `Promise`.
-
-#### `options`
-Type: `Function`<br>
-Signature: `( inputOptions ) => options`
-
-Replaces or manipulates the options object passed to `rollup.rollup`. Returning `null` does not replace anything.
-
 ### Hooks
 
 In addition to properties defining the identity of your plugin, you may also specify properties that correspond to available build hooks. Hooks can affect how a build is run, provide information about a build, or modify a build once complete.
+
+#### `banner`
+Type: `String|Function`
+
+A `String`, or a `Function` that returns a `String` or `Promise`. Cf. [output.banner/output.footer](output-banner-output-footer-banner-footer).
 
 #### `buildEnd`
 Type: `Function`<br>
@@ -93,7 +87,7 @@ Called on each `rollup.rollup` build.
 #### `footer`
 Type: `String|Function`
 
-A `String`, or a `Function` that returns a `String` or `Promise`.
+A `String`, or a `Function` that returns a `String` or `Promise`. Cf. [output.banner/output.footer](output-banner-output-footer-banner-footer).
 
 #### `generateBundle`
 Type: `Function`<br>
@@ -104,7 +98,7 @@ Called at the end of `bundle.generate()` or `bundle.write()`. `bundle` provides 
 #### `intro`
 Type: `String|Function`
 
-A `String`, or a `Function` that returns a `String` or `Promise`.
+A `String`, or a `Function` that returns a `String` or `Promise`. Cf. [output.intro/output.outro](output-intro-output-outro-intro-outro).
 
 #### `load`
 Type: `Function`<br>
@@ -112,10 +106,16 @@ Signature: `( id ) => (code | { code, map } | Promise)`
 
 Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system).
 
+#### `options`
+Type: `Function`<br>
+Signature: `( inputOptions ) => options`
+
+Reads and replaces or manipulates the options object passed to `rollup.rollup`. Returning `null` does not replace anything.
+
 #### `outro`
 Type: `String|Function`
 
-A `String`, or a `Function` that returns a `String` or `Promise`.
+A `String`, or a `Function` that returns a `String` or `Promise`. Cf. [output.intro/output.outro](output-intro-output-outro-intro-outro).
 
 #### `renderChunk`
 Type: `Function`<br>
@@ -188,6 +188,20 @@ Structurally equivalent to `this.warn`, except that it will also abort the bundl
 
 Get the file name of an asset, according to the `assetFileNames` output option pattern.
 
+#### `this.getModuleInfo( moduleId )`
+
+Returns additional information about the module in question in the form
+
+```js
+{
+  id, // the id of the module, for convenience
+  isExternal, // for external modules that are not included in the graph
+  importedIds // the module ids imported by this module
+}
+```
+
+If the module id cannot be found, an error is thrown.
+
 ####  `this.isExternal( id, parentId, isResolved )`
 
 Determine if a given module ID is external.
@@ -197,11 +211,21 @@ Determine if a given module ID is external.
 An `Object` containing potentially useful Rollup metadata. eg.
 `this.meta.rollupVersion`
 
+#### `this.moduleIds`
+
+An `Iterator` that gives access to all module ids in the current graph. It can be iterated via
+
+```js
+for (const moduleId of this.moduleIds) { /* ... */ }
+```
+
+or converted into an Array via `Array.from(this.moduleIds)`.
+
 #### `this.parse( code, acornOptions )`
 
 Use Rollup's internal acorn instance to parse code to an AST.
 
-#### `this.resolveId(importee, importer)`
+#### `this.resolveId( importee, importer )`
 
 Resolve imports to module ids (i.e. file names). Uses the same hooks as Rollup itself.
 

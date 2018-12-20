@@ -24,7 +24,26 @@ async function build() {
   console.log(bundle.modules); // an array of module objects
 
   // generate code and a sourcemap
-  const { code, map } = await bundle.generate(outputOptions);
+  const output = await bundle.generate(outputOptions);
+  
+  // output contains the following information about the generated bundle:
+  // {
+  //   code: string, // the generated JS code
+  //   map: string | null, // sourcemaps if present
+  //   dynamicImports: string[], // external modules imported dynamically by the bundle
+  //   exports: string[], // exported variable names
+  //   fileName: string, // the generated bundle file name
+  //   imports: string[], // external modules imported statically by the bundle
+  //   modules: { // a list of all modules in the bundle with tree-shaking statistics
+  //     [id: string]: {
+  //       renderedExports: string[];
+  //       removedExports: string[];
+  //       renderedLength: number;
+  //       originalLength: number;
+  //     };
+  //   }
+  // }
+  console.log(output);
 
   // or write the bundle to disk
   await bundle.write(outputOptions);
@@ -60,7 +79,7 @@ const inputOptions = {
   // experimental
   experimentalCodeSplitting,
   manualChunks,
-  optimizeChunks,
+  experimentalOptimizeChunks,
   chunkGroupingSize
 };
 ```
