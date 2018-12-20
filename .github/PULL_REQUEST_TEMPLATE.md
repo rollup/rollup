@@ -8,6 +8,7 @@
   Pull Request Requirements:
   * Please include tests to illustrate the problem this PR resolves.
   * Please lint your changes by running `npm run lint` before creating a PR.
+  * Please update the documentation in `/docs` where necessary
 
   Please place an x (no spaces - [x]) in all [ ] that apply.
 -->
