@@ -10,31 +10,35 @@ import loadConfigFile from './loadConfigFile';
 import watch from './watch';
 
 export default function runRollup(command: any) {
-	if (command._.length >= 1) {
+	let inputSource;
+	if (command._.length > 0) {
 		if (command.input) {
 			handleError({
 				code: 'DUPLICATE_IMPORT_OPTIONS',
 				message: 'use --input, or pass input path as argument'
 			});
 		}
+		inputSource = command._;
+	} else if (typeof command.input === 'string') {
+		inputSource = [command.input];
+	} else {
+		inputSource = command.input;
 	}
 
-		if (command._.length) {
-			if (command._.some((input: string) => input.indexOf('=') !== -1)) {
-				command.input = {};
-				command._.forEach((input: string) => {
-					const equalsIndex = input.indexOf('=');
-					const value = input.substr(equalsIndex + 1);
-					let key = input.substr(0, equalsIndex);
-					if (!key) key = getAliasName(input);
-					command.input[key] = value;
-				});
-			} else {
-				command.input = command._;
-			}
-		} else if (typeof command.input === 'string') {
-			command.input = [command.input];
+	if (inputSource && inputSource.length > 0) {
+		if (inputSource.some((input: string) => input.indexOf('=') !== -1)) {
+			command.input = {};
+			inputSource.forEach((input: string) => {
+				const equalsIndex = input.indexOf('=');
+				const value = input.substr(equalsIndex + 1);
+				let key = input.substr(0, equalsIndex);
+				if (!key) key = getAliasName(input);
+				command.input[key] = value;
+			});
+		} else {
+			command.input = inputSource;
 		}
+	}
 
 	if (command.environment) {
 		const environment = Array.isArray(command.environment)
