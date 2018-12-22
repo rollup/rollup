@@ -80,7 +80,8 @@ export default command => {
 				typescript(),
 				commonjs()
 			],
-			external: ['fs', 'path', 'events', 'module', 'util', 'crypto'],
+			// acorn needs to be external as some plugins rely on a shared acorn instance
+			external: ['fs', 'path', 'events', 'module', 'util', 'crypto', 'acorn'],
 			output: [
 				{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
 				{ file: 'dist/rollup.es.js', format: 'esm', banner }
