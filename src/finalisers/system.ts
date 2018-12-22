@@ -81,13 +81,13 @@ const getMissingExportsBlock = (exports: ChunkExports, _: string, t: string, n: 
 export default function system(
 	magicString: MagicStringBundle,
 	{
-		graph,
+		dependencies,
+		exports,
 		indentString: t,
 		intro,
 		outro,
-		dependencies,
-		exports,
-		usesTopLevelAwait
+		usesTopLevelAwait,
+		varOrConst
 	}: FinaliserOptions,
 	options: OutputOptions
 ) {
@@ -99,7 +99,6 @@ export default function system(
 	const importBindings: string[] = [];
 	let starExcludes: Set<string>;
 	const setters: string[] = [];
-	const varOrConst = graph.varOrConst;
 
 	dependencies.forEach(({ imports, reexports }) => {
 		const setter: string[] = [];
@@ -174,11 +173,10 @@ export default function system(
 		`${n}${t}return${_}{${
 			setters.length
 				? `${n}${t}${t}setters:${_}[${setters
-						.map(
-							s =>
-								s
-									? `function${_}(module)${_}{${n}${t}${t}${t}${s}${n}${t}${t}}`
-									: `function${_}()${_}{}`
+						.map(s =>
+							s
+								? `function${_}(module)${_}{${n}${t}${t}${t}${s}${n}${t}${t}}`
+								: `function${_}()${_}{}`
 						)
 						.join(`,${_}`)}],`
 				: ''

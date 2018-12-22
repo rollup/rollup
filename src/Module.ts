@@ -98,7 +98,6 @@ export interface AstContext {
 	traceVariable: (name: string) => Variable;
 	treeshake: boolean;
 	usesTopLevelAwait: boolean;
-	varOrConst: string;
 	warn: (warning: RollupWarning, pos: number) => void;
 }
 
@@ -278,7 +277,6 @@ export default class Module {
 			traceVariable: this.traceVariable.bind(this),
 			treeshake: this.graph.treeshake,
 			usesTopLevelAwait: false,
-			varOrConst: this.graph.varOrConst,
 			warn: this.warn.bind(this)
 		};
 

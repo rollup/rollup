@@ -95,7 +95,7 @@ export default class NamespaceVariable extends Variable {
 
 		const callee = options.freeze ? `/*#__PURE__*/Object.freeze` : '';
 
-		let output = `${this.context.varOrConst} ${name} = ${
+		let output = `${options.varOrConst} ${name} = ${
 			options.namespaceToStringTag
 				? `{${n}${members.join(`,${n}`)}${n}};`
 				: `${callee}({${n}${members.join(`,${n}`)}${n}});`

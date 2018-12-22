@@ -15,14 +15,15 @@ const thisProp = (name: string) => `this${keypath(name)}`;
 export default function iife(
 	magicString: MagicStringBundle,
 	{
-		graph,
-		namedExportsMode,
+		dependencies,
+		exports,
 		hasExports,
 		indentString: t,
 		intro,
+		namedExportsMode,
 		outro,
-		dependencies,
-		exports
+		varOrConst,
+		warn
 	}: FinaliserOptions,
 	options: OutputOptions
 ) {
@@ -40,7 +41,7 @@ export default function iife(
 		});
 	}
 
-	warnOnBuiltins(graph, dependencies);
+	warnOnBuiltins(warn, dependencies);
 
 	const external = trimEmptyImports(dependencies);
 	const deps = external.map(dep => dep.globalName || 'null');
@@ -69,7 +70,7 @@ export default function iife(
 
 	if (hasExports && (!extend || !namedExportsMode)) {
 		wrapperIntro =
-			(useVariableAssignment ? `${graph.varOrConst} ${name}` : thisProp(name)) +
+			(useVariableAssignment ? `${varOrConst} ${name}` : thisProp(name)) +
 			`${_}=${_}${wrapperIntro}`;
 	}
 
@@ -84,7 +85,7 @@ export default function iife(
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
+	const interopBlock = getInteropBlock(dependencies, options, varOrConst);
 	if (interopBlock) magicString.prepend(interopBlock + n + n);
 
 	if (intro) magicString.prepend(intro);

@@ -143,7 +143,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		code.overwrite(
 			this.start,
 			declarationStart,
-			`${this.context.varOrConst} ${this.variable.getName()} = ${systemBinding}`
+			`${options.varOrConst} ${this.variable.getName()} = ${systemBinding}`
 		);
 		const hasTrailingSemicolon = code.original.charCodeAt(this.end - 1) === 59; /*";"*/
 		if (systemBinding) {

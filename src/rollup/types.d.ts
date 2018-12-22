@@ -239,31 +239,27 @@ export type GlobalsOption = { [name: string]: string } | ((name: string) => stri
 export type InputOption = string | string[] | { [entryAlias: string]: string };
 
 export interface InputOptions {
-	input: InputOption;
-	manualChunks?: { [chunkAlias: string]: string[] };
-	external?: ExternalOption;
-	plugins?: Plugin[];
-
-	experimentalTopLevelAwait?: boolean;
-
-	onwarn?: WarningHandler;
-	cache?: false | RollupCache;
-	perf?: boolean;
-	experimentalCacheExpiry?: number;
-
 	acorn?: {};
 	acornInjectPlugins?: Function[];
-	treeshake?: boolean | TreeshakingOptions;
-	context?: string;
-	moduleContext?: string | ((id: string) => string) | { [id: string]: string };
-	watch?: WatcherOptions;
-	inlineDynamicImports?: boolean;
-	preferConst?: boolean;
-	preserveSymlinks?: boolean;
-	preserveModules?: boolean;
-	experimentalOptimizeChunks?: boolean;
+	cache?: false | RollupCache;
 	chunkGroupingSize?: number;
+	context?: string;
+	experimentalCacheExpiry?: number;
+	experimentalOptimizeChunks?: boolean;
+	experimentalTopLevelAwait?: boolean;
+	external?: ExternalOption;
+	inlineDynamicImports?: boolean;
+	input: InputOption;
+	manualChunks?: { [chunkAlias: string]: string[] };
+	moduleContext?: string | ((id: string) => string) | { [id: string]: string };
+	onwarn?: WarningHandler;
+	perf?: boolean;
+	plugins?: Plugin[];
+	preserveModules?: boolean;
+	preserveSymlinks?: boolean;
 	shimMissingExports?: boolean;
+	treeshake?: boolean | TreeshakingOptions;
+	watch?: WatcherOptions;
 }
 
 export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'iife' | 'umd';
@@ -271,44 +267,42 @@ export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'iife' | 'u
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
 export interface OutputOptions {
-	// only required for bundle.write
-	file?: string;
-	// only required for bundles.write
-	dir?: string;
-	// this is optional at the base-level of RollupWatchOptions,
-	// which extends from this interface through config merge
-	format?: ModuleFormat;
-	name?: string;
-	globals?: GlobalsOption;
-	chunkFileNames?: string;
-	entryFileNames?: string;
-	assetFileNames?: string;
-
-	paths?: OptionsPaths;
-	banner?: string | (() => string | Promise<string>);
-	footer?: string | (() => string | Promise<string>);
-	intro?: string | (() => string | Promise<string>);
-	outro?: string | (() => string | Promise<string>);
-	sourcemap?: boolean | 'inline';
-	sourcemapExcludeSources?: boolean;
-	sourcemapFile?: string;
-	sourcemapPathTransform?: (sourcePath: string) => string;
-	interop?: boolean;
-	extend?: boolean;
-
-	exports?: 'default' | 'named' | 'none' | 'auto';
 	amd?: {
 		id?: string;
 		define?: string;
 	};
-	indent?: boolean;
-	strict?: boolean;
-	freeze?: boolean;
-	esModule?: boolean;
-	namespaceToStringTag?: boolean;
+	assetFileNames?: string;
+	banner?: string | (() => string | Promise<string>);
+	chunkFileNames?: string;
 	compact?: boolean;
-
+	// only required for bundle.write
+	dir?: string;
+	exports?: 'default' | 'named' | 'none' | 'auto';
+	entryFileNames?: string;
+	esModule?: boolean;
+	extend?: boolean;
+	// only required for bundle.write
+	file?: string;
+	footer?: string | (() => string | Promise<string>);
+	// this is optional at the base-level of RollupWatchOptions,
+	// which extends from this interface through config merge
+	format?: ModuleFormat;
+	freeze?: boolean;
+	globals?: GlobalsOption;
+	indent?: boolean;
+	interop?: boolean;
+	intro?: string | (() => string | Promise<string>);
+	name?: string;
+	namespaceToStringTag?: boolean;
 	noConflict?: boolean;
+	outro?: string | (() => string | Promise<string>);
+	paths?: OptionsPaths;
+	preferConst?: boolean;
+	sourcemap?: boolean | 'inline';
+	sourcemapExcludeSources?: boolean;
+	sourcemapFile?: string;
+	sourcemapPathTransform?: (sourcePath: string) => string;
+	strict?: boolean;
 }
 
 export type WarningHandler = (warning: string | RollupWarning) => void;

@@ -11,8 +11,8 @@ const createGetOption = (config: GenericConfigObject, command: GenericConfigObje
 	command[name] !== undefined
 		? command[name]
 		: config[name] !== undefined
-			? config[name]
-			: defaultValue;
+		? config[name]
+		: defaultValue;
 
 const normalizeObjectOptionValue = (optionValue: any) => {
 	if (!optionValue) {
@@ -53,8 +53,8 @@ const getOnWarn = (
 	command.silent
 		? () => {}
 		: config.onwarn
-			? warning => config.onwarn(warning, defaultOnWarnHandler)
-			: defaultOnWarnHandler;
+		? warning => config.onwarn(warning, defaultOnWarnHandler)
+		: defaultOnWarnHandler;
 
 const getExternal = (config: GenericConfigObject, command: GenericConfigObject) => {
 	const configExternal = config.external;
@@ -209,7 +209,6 @@ function getInputOptions(
 		onwarn: getOnWarn(config, command, defaultOnWarnHandler),
 		perf: getOption('perf', false),
 		plugins: config.plugins,
-		preferConst: getOption('preferConst'),
 		preserveModules: getOption('preserveModules'),
 		preserveSymlinks: getOption('preserveSymlinks'),
 		treeshake: getObjectOption(config, command, 'treeshake'),
@@ -255,6 +254,7 @@ function getOutputOptions(
 		noConflict: getOption('noConflict'),
 		outro: getOption('outro'),
 		paths: getOption('paths'),
+		preferConst: getOption('preferConst'),
 		sourcemap: getOption('sourcemap'),
 		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),
 		sourcemapFile: getOption('sourcemapFile'),

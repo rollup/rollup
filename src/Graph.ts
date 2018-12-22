@@ -62,7 +62,6 @@ export default class Graph {
 	scope: GlobalScope;
 	shimMissingExports: boolean;
 	treeshakingOptions: TreeshakingOptions;
-	varOrConst: 'var' | 'const';
 	preserveModules: boolean;
 
 	isExternal: IsExternal;
@@ -180,9 +179,6 @@ export default class Graph {
 		}
 
 		this.onwarn = options.onwarn || makeOnwarn();
-
-		this.varOrConst = options.preferConst ? 'const' : 'var';
-
 		this.acornOptions = options.acorn || {};
 		const acornPluginsToInject = [];
 
@@ -198,8 +194,8 @@ export default class Graph {
 			...(Array.isArray(acornInjectPlugins)
 				? acornInjectPlugins
 				: acornInjectPlugins
-					? [acornInjectPlugins]
-					: [])
+				? [acornInjectPlugins]
+				: [])
 		);
 		this.acornParser = <any>acorn.Parser.extend(...acornPluginsToInject);
 	}

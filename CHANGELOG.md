@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 1.0.0
+*unreleased*
+
+### Breaking Changes
+* `preferConst` is now `output.preferConst`
+
+### Features
+### Bug Fixes
+* Both the `--input` option as well as the default CLI option now support named inputs
+
+### Pull Requests
+
 ## 0.68.2
 *2018-12-23*
 

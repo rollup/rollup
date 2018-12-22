@@ -7,14 +7,14 @@ import getExportBlock from './shared/getExportBlock';
 export default function cjs(
 	magicString: MagicStringBundle,
 	{
-		graph,
-		isEntryModuleFacade,
-		namedExportsMode,
+		dependencies,
+		exports,
 		hasExports,
 		intro,
+		isEntryModuleFacade,
+		namedExportsMode,
 		outro,
-		dependencies,
-		exports
+		varOrConst
 	}: FinaliserOptions,
 	options: OutputOptions
 ) {
@@ -28,10 +28,7 @@ export default function cjs(
 			: '');
 
 	let needsInterop = false;
-
-	const varOrConst = graph.varOrConst;
 	const interop = options.interop !== false;
-
 	let importBlock: string;
 
 	if (options.compact) {

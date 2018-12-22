@@ -727,11 +727,11 @@ export default class Chunk {
 
 		const renderOptions: RenderOptions = {
 			compact: options.compact,
+			format: options.format,
 			freeze: options.freeze !== false,
-			esModule: options.esModule !== false,
-			namespaceToStringTag: options.namespaceToStringTag === true,
 			indent: this.indentString,
-			format: options.format
+			namespaceToStringTag: options.namespaceToStringTag === true,
+			varOrConst: options.preferConst ? 'const' : 'var'
 		};
 
 		// Make sure the direct dependencies of a chunk are present to maintain execution order
@@ -797,7 +797,7 @@ export default class Chunk {
 
 		if (this.needsExportsShim) {
 			magicString.prepend(
-				`${n}${this.graph.varOrConst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
+				`${n}${renderOptions.varOrConst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
 			);
 		}
 
@@ -1041,18 +1041,19 @@ export default class Chunk {
 		const magicString = finalise(
 			this.renderedSource,
 			{
-				indentString: this.indentString,
-				namedExportsMode: this.exportMode !== 'default',
-				hasExports,
-				intro: addons.intro,
-				outro: addons.outro,
-				dynamicImport: this.hasDynamicImport,
-				needsAmdModule,
 				dependencies: this.renderedDeclarations.dependencies,
+				dynamicImport: this.hasDynamicImport,
 				exports: this.renderedDeclarations.exports,
-				graph: this.graph,
+				hasExports,
+				indentString: this.indentString,
+				intro: addons.intro,
 				isEntryModuleFacade: this.facadeModule !== null && this.facadeModule.isEntryPoint,
-				usesTopLevelAwait
+				namedExportsMode: this.exportMode !== 'default',
+				needsAmdModule,
+				outro: addons.outro,
+				usesTopLevelAwait,
+				varOrConst: options.preferConst ? 'const' : 'var',
+				warn: this.graph.warn.bind(this.graph)
 			},
 			options
 		);
