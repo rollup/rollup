@@ -128,7 +128,7 @@ export function createPluginDriver(
 			},
 			setAssetSource,
 			warn: (warning: RollupWarning | string) => {
-				if (typeof warning === 'string') warning = { message: warning };
+				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 				if (warning.code) warning.pluginCode = warning.code;
 				warning.code = 'PLUGIN_WARNING';
 				warning.plugin = plugin.name || `Plugin at position ${pidx + 1}`;

@@ -8,27 +8,39 @@ export interface IdMap {
 }
 
 export interface RollupError extends RollupLogProps {
-	message?: string;
 	stack?: string;
 }
 
 export interface RollupWarning extends RollupLogProps {
-	message?: string;
+	code: string;
+	exporter?: string;
+	exportName?: string;
+	guess?: string;
+	importer?: string;
+	missing?: string;
+	modules?: string[];
+	names?: string[];
+	reexporter?: string;
+	source?: string;
+	sources?: string[];
 }
 
 export interface RollupLogProps {
 	code?: string;
-	url?: string;
-	plugin?: string;
-	pluginCode?: string;
+	frame?: string;
 	hook?: string;
+	id?: string;
 	loc?: {
 		file?: string;
 		line: number;
 		column: number;
 	};
-	frame?: string;
-	[key: string]: any;
+	message: string;
+	name?: string;
+	plugin?: string;
+	pluginCode?: string;
+	pos?: number;
+	url?: string;
 }
 
 export interface ExistingRawSourceMap {
@@ -239,7 +251,7 @@ export type GlobalsOption = { [name: string]: string } | ((name: string) => stri
 export type InputOption = string | string[] | { [entryAlias: string]: string };
 
 export interface InputOptions {
-	acorn?: {};
+	acorn?: any;
 	acornInjectPlugins?: Function[];
 	cache?: false | RollupCache;
 	chunkGroupingSize?: number;

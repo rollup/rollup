@@ -116,7 +116,7 @@ export default function transform(
 					...pluginContext,
 					cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
 					warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
-						if (typeof warning === 'string') warning = { message: warning };
+						if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 						if (pos) augmentCodeLocation(warning, pos, curSource, id);
 						warning.id = id;
 						warning.hook = 'transform';
