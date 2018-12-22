@@ -137,14 +137,14 @@ export type ResolveIdHook = (
 	this: PluginContext,
 	id: string,
 	parent: string
-) => Promise<string | boolean | void | null> | string | boolean | void | null;
+) => Promise<string | false | null> | string | false | void | null;
 
 export type IsExternal = (id: string, parentId: string, isResolved: boolean) => boolean | void;
 
 export type LoadHook = (
 	this: PluginContext,
 	id: string
-) => Promise<SourceDescription | string | void | null> | SourceDescription | string | void | null;
+) => Promise<SourceDescription | string | null> | SourceDescription | string | null;
 
 export type TransformHook = (
 	this: PluginContext,
@@ -172,9 +172,9 @@ export type RenderChunkHook = (
 	chunk: RenderedChunk,
 	options: OutputOptions
 ) =>
-	| Promise<{ code: string; map: RawSourceMap } | void>
+	| Promise<{ code: string; map: RawSourceMap } | null>
 	| { code: string; map: RawSourceMap }
-	| void
+	| string
 	| null;
 
 export type ResolveDynamicImportHook = (
@@ -202,19 +202,20 @@ export interface OutputBundle {
 }
 
 export interface Plugin {
-	name: string;
-	cacheKey?: string;
-	options?: (options: InputOptions) => InputOptions | void | null;
-	load?: LoadHook;
-	resolveId?: ResolveIdHook;
-	transform?: TransformHook;
-	/** @deprecated */
-	transformBundle?: TransformChunkHook;
-	/** @deprecated */
-	transformChunk?: TransformChunkHook;
-	renderChunk?: RenderChunkHook;
+	banner?: AddonHook;
+	buildEnd?: (this: PluginContext, err?: Error) => Promise<void> | void;
 	buildStart?: (this: PluginContext, options: InputOptions) => Promise<void> | void;
-	buildEnd?: (this: PluginContext, err?: any) => Promise<void> | void;
+	cacheKey?: string;
+	footer?: AddonHook;
+	generateBundle?: (
+		this: PluginContext,
+		options: OutputOptions,
+		bundle: OutputBundle,
+		isWrite: boolean
+	) => void | Promise<void>;
+	intro?: AddonHook;
+	load?: LoadHook;
+	name: string;
 	/** @deprecated */
 	ongenerate?: (
 		this: PluginContext,
@@ -227,17 +228,18 @@ export interface Plugin {
 		options: OutputOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
-	generateBundle?: (
-		this: PluginContext,
-		options: OutputOptions,
-		bundle: OutputBundle,
-		isWrite: boolean
-	) => void | Promise<void>;
-	resolveDynamicImport?: ResolveDynamicImportHook;
-	banner?: AddonHook;
-	footer?: AddonHook;
-	intro?: AddonHook;
+	options?: (options: InputOptions) => InputOptions | void | null;
 	outro?: AddonHook;
+	renderChunk?: RenderChunkHook;
+	renderError?: (this: PluginContext, err?: Error) => Promise<void> | void;
+	renderStart?: (this: PluginContext) => Promise<void> | void;
+	resolveDynamicImport?: ResolveDynamicImportHook;
+	resolveId?: ResolveIdHook;
+	transform?: TransformHook;
+	/** @deprecated */
+	transformBundle?: TransformChunkHook;
+	/** @deprecated */
+	transformChunk?: TransformChunkHook;
 	watchChange?: (id: string) => void;
 }
 
