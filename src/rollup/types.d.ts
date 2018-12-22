@@ -263,7 +263,7 @@ export interface InputOptions {
 	inlineDynamicImports?: boolean;
 	input: InputOption;
 	manualChunks?: { [chunkAlias: string]: string[] };
-	moduleContext?: string | ((id: string) => string) | { [id: string]: string };
+	moduleContext?: ((id: string) => string) | { [id: string]: string };
 	onwarn?: WarningHandler;
 	perf?: boolean;
 	plugins?: Plugin[];

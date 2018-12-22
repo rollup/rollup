@@ -66,14 +66,15 @@ const getExternal = (config: GenericConfigObject, command: GenericConfigObject) 
 
 export const commandAliases: { [key: string]: string } = {
 	c: 'config',
+	d: 'dir',
 	e: 'external',
+	o: 'file',
 	f: 'format',
 	g: 'globals',
 	h: 'help',
 	i: 'input',
-	m: 'sourcemap',
 	n: 'name',
-	o: 'file',
+	m: 'sourcemap',
 	v: 'version',
 	w: 'watch'
 };
