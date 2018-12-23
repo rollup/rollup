@@ -28,14 +28,14 @@ function checkOutputOptions(options: OutputOptions) {
 	if (<string>options.format === 'es6') {
 		error({
 			message: 'The `es6` output format is deprecated – use `esm` instead',
-			url: `https://rollupjs.org/guide/en#output-format-f-format`
+			url: `https://rollupjs.org/guide/en#output-format`
 		});
 	}
 
 	if (!options.format) {
 		error({
 			message: `You must specify output.format, which can be one of 'amd', 'cjs', 'system', 'esm', 'iife' or 'umd'`,
-			url: `https://rollupjs.org/guide/en#output-format-f-format`
+			url: `https://rollupjs.org/guide/en#output-format`
 		});
 	}
 }
@@ -78,8 +78,8 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	inputOptions.plugins = Array.isArray(plugins)
 		? plugins.filter(Boolean)
 		: plugins
-			? [plugins]
-			: [];
+		? [plugins]
+		: [];
 	inputOptions = inputOptions.plugins.reduce(applyOptionHook, inputOptions);
 
 	if (inputOptions.inlineDynamicImports) {
@@ -116,8 +116,7 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 		if (inputOptions.experimentalOptimizeChunks)
 			error({
 				code: 'INVALID_OPTION',
-				message:
-					'preserveModules does not support the experimentalOptimizeChunks option.'
+				message: 'preserveModules does not support the experimentalOptimizeChunks option.'
 			});
 	}
 

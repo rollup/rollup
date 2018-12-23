@@ -41,7 +41,7 @@ export default function getExportMode(
 					code: 'MIXED_EXPORTS',
 					message: `Using named and default exports together. Consumers of your bundle will have to use ${name ||
 						'bundle'}['default'] to access the default export, which may not be what you want. Use \`output.exports: 'named'\` to disable this warning`,
-					url: `https://rollupjs.org/guide/en#output-exports-exports`
+					url: `https://rollupjs.org/guide/en#output-exports`
 				});
 			}
 			exportMode = 'named';
@@ -52,7 +52,7 @@ export default function getExportMode(
 		error({
 			code: 'INVALID_EXPORT_OPTION',
 			message: `output.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')`,
-			url: `https://rollupjs.org/guide/en#output-exports-exports`
+			url: `https://rollupjs.org/guide/en#output-exports`
 		});
 	}
 

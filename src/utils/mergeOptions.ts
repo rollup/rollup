@@ -68,13 +68,13 @@ export const commandAliases: { [key: string]: string } = {
 	c: 'config',
 	d: 'dir',
 	e: 'external',
-	o: 'file',
 	f: 'format',
 	g: 'globals',
 	h: 'help',
 	i: 'input',
-	n: 'name',
 	m: 'sourcemap',
+	n: 'name',
+	o: 'file',
 	v: 'version',
 	w: 'watch'
 };

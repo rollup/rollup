@@ -14,7 +14,6 @@ module.exports = commands => ({
 		replace({ 'ANSWER': commands.configAnswer }),
 	],
 	onwarn(warning) {
-		console.error(warning.message)
 		warnings++;
 		if (warnings === 1) {
 			assert.equal(warning.code, 'UNKNOWN_OPTION');

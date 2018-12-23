@@ -19,31 +19,45 @@ async function build() {
   // create a bundle
   const bundle = await rollup.rollup(inputOptions);
 
-  console.log(bundle.imports); // an array of external dependencies
-  console.log(bundle.exports); // an array of names exported by the entry point
-  console.log(bundle.modules); // an array of module objects
+  console.log(bundle.watchFiles); // an array of file names this bundle depends on
 
-  // generate code and a sourcemap
-  const output = await bundle.generate(outputOptions);
-  
-  // output contains the following information about the generated bundle:
-  // {
-  //   code: string, // the generated JS code
-  //   map: string | null, // sourcemaps if present
-  //   dynamicImports: string[], // external modules imported dynamically by the bundle
-  //   exports: string[], // exported variable names
-  //   fileName: string, // the generated bundle file name
-  //   imports: string[], // external modules imported statically by the bundle
-  //   modules: { // a list of all modules in the bundle with tree-shaking statistics
-  //     [id: string]: {
-  //       renderedExports: string[];
-  //       removedExports: string[];
-  //       renderedLength: number;
-  //       originalLength: number;
-  //     };
-  //   }
-  // }
-  console.log(output);
+  // generate code
+  const { output } = await bundle.generate(outputOptions);
+
+  for (const chunkOrAsset of output) {
+    if (chunkOrAsset.isAsset) {
+      // For assets, this contains
+      // {
+      //   isAsset: true,                 // signifies that this is an asset
+      //   fileName: string,              // the asset file name
+      //   source: string | Buffer        // the asset source
+      // }
+      console.log('Asset', chunkOrAsset);
+    } else {
+      // For chunks, this contains
+      // {
+      //   code: string,                  // the generated JS code
+      //   dynamicImports: string[],      // external modules imported dynamically by the chunk
+      //   exports: string[],             // exported variable names
+      //   facadeModuleId: string | null, // the id of a module that this chunk corresponds to
+      //   fileName: string,              // the chunk file name
+      //   imports: string[],             // external modules imported statically by the chunk
+      //   isDynamicEntry: boolean,       // is this chunk a dynamic entry point
+      //   isEntry: boolean,              // is this chunk a static entry point
+      //   map: string | null,            // sourcemaps if present
+      //   modules: {                     // information about the modules in this chunk
+      //     [id: string]: {
+      //       renderedExports: string[]; // exported variable names that were included
+      //       removedExports: string[];  // exported variable names that were removed
+      //       renderedLength: number;    // the length of the remaining code in this module
+      //       originalLength: number;    // the original length of the code in this module
+      //     };
+      //   },
+      //   name: string                   // the name of this chunk as used in naming patterns
+      // }
+      console.log('Chunk', chunkOrAsset.modules);
+    }
+  }
 
   // or write the bundle to disk
   await bundle.write(outputOptions);
@@ -52,38 +66,41 @@ async function build() {
 build();
 ```
 
-
 #### inputOptions
 
 The `inputOptions` object can contain the following properties (see the [big list of options](guide/en#big-list-of-options) for full details on these):
 
 ```js
 const inputOptions = {
-  // core options
-  input, // the only required option
+  // core input options
   external,
+  input, // required
   plugins,
 
-  // advanced options
-  onwarn,
+  // advanced input options
   cache,
-  perf,
+  inlineDynamicImports,
+  manualChunks,
+  onwarn,
+  preserveModules,
 
   // danger zone
   acorn,
   acornInjectPlugins,
-  treeshake,
   context,
   moduleContext,
+  preserveSymlinks,
+  shimMissingExports,
+  treeshake,
 
   // experimental
-  experimentalCodeSplitting,
-  manualChunks,
+  chunkGroupingSize,
+  experimentalCacheExpiry,
   experimentalOptimizeChunks,
-  chunkGroupingSize
+  experimentalTopLevelAwait,
+  perf
 };
 ```
-
 
 #### outputOptions
 
@@ -91,40 +108,42 @@ The `outputOptions` object can contain the following properties (see the [big li
 
 ```js
 const outputOptions = {
-  // core options
-  format, // required
-  file,
-  dir,
-  name,
-  globals,
+    // core output options
+    dir,
+    file,
+    format, // required
+    globals,
+    name,
 
-  // advanced options
-  paths,
-  banner,
-  footer,
-  intro,
-  outro,
-  sourcemap,
-  sourcemapFile,
-  sourcemapPathTransform,
-  interop,
-  extend,
+    // advanced output options
+    assetFileNames,
+    banner,
+    chunkFileNames,
+    compact,
+    entryFileNames,
+    extend,
+    footer,
+    interop,
+    intro,
+    outro,
+    paths,
+    sourcemap,
+    sourcemapExcludeSources,
+    sourcemapFile,
+    sourcemapPathTransform,
 
-  // danger zone
-  exports,
-  amd,
-  indent,
-  strict,
-  freeze,
-  namespaceToStringTag,
-
-  // experimental
-  entryFileNames,
-  chunkFileNames,
-  assetFileNames
+    // danger zone
+    amd,
+    esModule,
+    exports,
+    freeze,
+    indent,
+    namespaceToStringTag,
+    noConflict,
+    preferConst,
+    strict
 };
 ```
-
 
 ### rollup.watch
 
@@ -160,22 +179,11 @@ const watchOptions = {
   output: [outputOptions],
   watch: {
     chokidar,
-    include,
+    clearScreen,
     exclude,
-    clearScreen
+    include
   }
 };
 ```
 
 See above for details on `inputOptions` and `outputOptions`, or consult the [big list of options](guide/en#big-list-of-options) for info on `chokidar`, `include` and `exclude`.
-
-
-### TypeScript Declarations
-
-If you'd like to use the API in a TypeScript environment you can do so, as now we ship TypeScript declarations.
-
-You need to install some dependencies in case you have [skipLibCheck](https://www.typescriptlang.org/docs/handbook/compiler-options.html) turned off.
-
-```console
-npm install @types/acorn @types/chokidar source-map magic-string --only=dev
-```

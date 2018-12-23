@@ -8,7 +8,7 @@ Rollup should typically be used from the command line. You can provide an  optio
 
 Rollup configuration files are optional, but they are powerful and convenient and thus **recommended**.
 
-A config file is an ES6 module that exports a default object with the desired options. Typically, it is called `rollup.config.js` and sits in the root directory of your project.
+A config file is an ES module that exports a default object with the desired options. Typically, it is called `rollup.config.js` and sits in the root directory of your project.
 
 Also you can use CJS modules syntax for the config file.
 
@@ -31,66 +31,75 @@ Consult the [big list of options](guide/en#big-list-of-options) for details on e
 
 export default { // can be an array (for multiple inputs)
   // core input options
-  input,     // required
   external,
+  input, // required
   plugins,
 
   // advanced input options
+  cache,
+  inlineDynamicImports,
+  manualChunks,
   onwarn,
-  perf,
+  preserveModules,
 
   // danger zone
   acorn,
   acornInjectPlugins,
-  treeshake,
   context,
   moduleContext,
+  preserveSymlinks,
+  shimMissingExports,
+  treeshake,
 
   // experimental
-  experimentalCodeSplitting,
-  manualChunks,
-  experimentalOptimizeChunks,
   chunkGroupingSize,
+  experimentalCacheExpiry,
+  experimentalOptimizeChunks,
+  experimentalTopLevelAwait,
+  perf,
 
-  output: {  // required (can be an array, for multiple outputs)
+  output: { // required (can be an array, for multiple outputs)
     // core output options
-    format,  // required
-    file,
     dir,
-    name,
+    file,
+    format, // required
     globals,
+    name,
 
     // advanced output options
-    paths,
+    assetFileNames,
     banner,
+    chunkFileNames,
+    compact,
+    entryFileNames,
+    extend,
     footer,
+    interop,
     intro,
     outro,
+    paths,
     sourcemap,
+    sourcemapExcludeSources,
     sourcemapFile,
     sourcemapPathTransform,
-    interop,
-    extend,
 
     // danger zone
-    exports,
     amd,
-    indent,
-    strict,
+    esModule,
+    exports,
     freeze,
+    indent,
     namespaceToStringTag,
-
-    // experimental
-    entryFileNames,
-    chunkFileNames,
-    assetFileNames
+    noConflict,
+    preferConst,
+    strict
   },
 
   watch: {
     chokidar,
-    include,
+    clearScreen,
     exclude,
-    clearScreen
+    include
   }
 };
 ```
@@ -125,7 +134,7 @@ If you want to create your config asynchronously, Rollup can also handle a `Prom
 
 ```javascript
 // rollup.config.js
-import fetch from  'node-fetch';
+import fetch from 'node-fetch';
 export default fetch('/some-remote-service-or-file-which-returns-actual-config');
 ```
 
@@ -179,26 +188,44 @@ Many options have command line equivalents. Any arguments passed here will overr
 ```text
 -c, --config                Use this config file (if argument is used but value
                               is unspecified, defaults to rollup.config.js)
--i, --input                 Input (alternative to <entry file>)
--o, --file <output>         Output (if absent, prints to stdout)
--f, --format [esm]          Type of output (amd, cjs, esm, iife, umd)
+-d, --dir                   Directory for chunks (if absent, prints to stdout)
 -e, --external              Comma-separate list of module IDs to exclude
--g, --globals               Comma-separate list of `module ID:Global` pairs
-                              Any module IDs defined here are added to external
--n, --name                  Name for UMD export
+-f, --format <format>       Type of output (amd, cjs, esm, iife, umd)
+-g, --globals               Comma-separate list of `moduleID:Global` pairs
+-i, --input                 Input (alternative to <entry file>)
 -m, --sourcemap             Generate sourcemap (`-m inline` for inline map)
---amd.id                    ID for AMD module (default is anonymous)
---amd.define                Function to use in place of `define`
---no-strict                 Don't emit a `"use strict";` in the generated modules.
+-n, --name                  Name for UMD export
+-o, --file <output>         Single output file (if absent, prints to stdout)
+--amd.id <id>               ID for AMD module (default is anonymous)
+--amd.define <name>         Function to use in place of `define`
+--assetFileNames <pattern>  Name pattern for emitted assets
+--banner <text>             Code to insert at top of bundle (outside wrapper)
+--chunkFileNames <pattern>  Name pattern for emitted secondary chunks
+--compact                   Minify wrapper code
+--context <variable>        Specify top-level `this` value
+--entryFileNames <pattern>  Name pattern for emitted entry chunks
+--no-esModule               Do not add __esModule property
+--exports <mode>            Specify export mode (auto, default, named, none)
+--extend                    Extend global variable defined by --name
+--footer <text>             Code to insert at end of bundle (outside wrapper)
+--no-freeze                 Do not freeze namespace objects
 --no-indent                 Don't indent result
---environment <values>      Environment variables passed to config file
---noConflict                Generate a noConflict method for UMD globals
---no-treeshake              Disable tree-shaking
---intro                     Content to insert at top of bundle (inside wrapper)
---outro                     Content to insert at end of bundle (inside wrapper)
---banner                    Content to insert at top of bundle (outside wrapper)
---footer                    Content to insert at end of bundle (outside wrapper)
 --no-interop                Do not include interop block
+--inlineDynamicImports      Create single bundle when using dynamic imports
+--intro <text>              Code to insert at top of bundle (inside wrapper)
+--namespaceToStringTag      Create proper `.toString` methods for namespaces
+--noConflict                Generate a noConflict method for UMD globals
+--no-strict                 Don't emit `"use strict";` in the generated modules
+--outro <text>              Code to insert at end of bundle (inside wrapper)
+--preferConst               Use `const` instead of `var` for exports
+--preserveModules           Preserve module structure
+--preserveSymlinks          Do not follow symlinks when resolving files
+--shimMissingExports        Create shim variables for missing exports
+--sourcemapExcludeSources   Do not include source code in source maps
+--sourcemapFile <file>      Specify bundle position for source maps
+--no-treeshake              Disable tree-shaking optimisations
+--no-treeshake.propertyReadSideEffects Ignore property access side-effects
+--treeshake.pureExternalModules        Assume side-effect free externals
 ```
 
 In addition, the following arguments can be used:
