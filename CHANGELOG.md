@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 0.68.2
+*2018-12-23*
+
+### Bug Fixes
+* Do not assume hoisted variables to have been initialized (#2607)
+
+### Pull Requests
+* [#2607](https://github.com/rollup/rollup/pull/2607): Fix an issues where hoisted variables were assumed to have been initialized (@lye)
+
 ## 0.68.1
 *2018-12-19*
 
