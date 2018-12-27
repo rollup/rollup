@@ -720,7 +720,7 @@ module.exports = input;
 			});
 	});
 
-	it('supports processBundle hook including reporting rendered exports and source length', () => {
+	it('supports generateBundle hook including reporting rendered exports and source length', () => {
 		return rollup
 			.rollup({
 				input: 'input',
