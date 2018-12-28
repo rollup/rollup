@@ -141,7 +141,7 @@ export default {
 /*
 const MyBundle = (function ($) {
   // code goes here
-}(window.jQuery));
+}(window.$));
 */
 ```
 
