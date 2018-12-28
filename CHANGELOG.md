@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 1.0.0
-*unreleased*
+*2018-12-28*
 
 ### Breaking Changes
 * Several (mostly deprecated) options have been removed or renamed (#2293, #2409):
@@ -61,6 +61,8 @@
 * [#2293](https://github.com/rollup/rollup/pull/2293): Unify code paths for 1.0 relase and update documentation (@guybedford and @lukastaegert)
 * [#2409](https://github.com/rollup/rollup/pull/2409): Remove old deprecated features and add new deprecation warnings (@guybedford)
 * [#2486](https://github.com/rollup/rollup/pull/2486): Upgrade to acorn 6 (@marijnh)
+* [#2611](https://github.com/rollup/rollup/pull/2611): Fix hook's name in test description (@Andarist)
+* [#2612](https://github.com/rollup/rollup/pull/2612): Fix a self-contradicting comment in the docs (@LongTengDao)
 
 ## 0.68.2
 *2018-12-23*
