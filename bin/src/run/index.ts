@@ -10,34 +10,34 @@ import loadConfigFile from './loadConfigFile';
 import watch from './watch';
 
 export default function runRollup(command: any) {
-	if (command._.length >= 1) {
+	let inputSource;
+	if (command._.length > 0) {
 		if (command.input) {
 			handleError({
 				code: 'DUPLICATE_IMPORT_OPTIONS',
 				message: 'use --input, or pass input path as argument'
 			});
 		}
+		inputSource = command._;
+	} else if (typeof command.input === 'string') {
+		inputSource = [command.input];
+	} else {
+		inputSource = command.input;
 	}
 
-	if (command.dir) {
-		if (command._.length) {
-			if (command._.some((input: string) => input.indexOf('=') !== -1)) {
-				command.input = {};
-				command._.forEach((input: string) => {
-					const equalsIndex = input.indexOf('=');
-					const value = input.substr(equalsIndex + 1);
-					let key = input.substr(0, equalsIndex);
-					if (!key) key = getAliasName(input);
-					command.input[key] = value;
-				});
-			} else {
-				command.input = command._;
-			}
-		} else if (typeof command.input === 'string') {
-			command.input = [command.input];
+	if (inputSource && inputSource.length > 0) {
+		if (inputSource.some((input: string) => input.indexOf('=') !== -1)) {
+			command.input = {};
+			inputSource.forEach((input: string) => {
+				const equalsIndex = input.indexOf('=');
+				const value = input.substr(equalsIndex + 1);
+				let key = input.substr(0, equalsIndex);
+				if (!key) key = getAliasName(input);
+				command.input[key] = value;
+			});
+		} else {
+			command.input = inputSource;
 		}
-	} else if (command._.length === 1) {
-		command.input = command._[0];
 	}
 
 	if (command.environment) {
@@ -101,21 +101,11 @@ function execute(configFile: string, configs: InputOptions[], command: any) {
 		for (const config of configs) {
 			promise = promise.then(() => {
 				const warnings = batchWarnings();
-				const { inputOptions, outputOptions, deprecations, optionError } = mergeOptions({
+				const { inputOptions, outputOptions, optionError } = mergeOptions({
 					config,
 					command,
 					defaultOnWarnHandler: warnings.add
 				});
-
-				if (deprecations.length) {
-					inputOptions.onwarn({
-						code: 'DEPRECATED_OPTIONS',
-						message: `The following options have been renamed — please update your config: ${deprecations
-							.map(option => `${option.old} -> ${option.new}`)
-							.join(', ')}`,
-						deprecations
-					});
-				}
 
 				if (optionError) inputOptions.onwarn({ code: 'UNKNOWN_OPTION', message: optionError });
 				return build(inputOptions, outputOptions, warnings, command.silent);

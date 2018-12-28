@@ -19,7 +19,7 @@ describe('in-memory sourcemaps', () => {
 					sourcemapFile: path.resolve('bundle.js')
 				});
 			})
-			.then(generated => {
+			.then(({ output: [generated] }) => {
 				const smc = new SourceMapConsumer(generated.map);
 				const locator = getLocator(generated.code, { offsetLine: 1 });
 

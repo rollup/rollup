@@ -87,7 +87,7 @@ describe('bundle.write()', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					return bundle.generate({ format: 'es6' });
-				}, /The `es6` output format is deprecated – use `es` instead/);
+				}, /The `es6` output format is deprecated – use `esm` instead/);
 			});
 	});
 

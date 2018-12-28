@@ -1,4 +1,4 @@
-import { IParse, Options as AcornOptions } from 'acorn';
+import * as acorn from 'acorn';
 import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
@@ -98,20 +98,18 @@ export interface AstContext {
 	traceVariable: (name: string) => Variable;
 	treeshake: boolean;
 	usesTopLevelAwait: boolean;
-	varOrConst: string;
 	warn: (warning: RollupWarning, pos: number) => void;
 }
 
-export const defaultAcornOptions: AcornOptions = {
-	// TODO TypeScript waiting for acorn types to be updated
-	ecmaVersion: <any>2019,
+export const defaultAcornOptions: acorn.Options = {
+	ecmaVersion: 2019,
 	sourceType: 'module',
 	preserveParens: false
 };
 
-function tryParse(module: Module, parse: IParse, acornOptions: AcornOptions) {
+function tryParse(module: Module, Parser: typeof acorn.Parser, acornOptions: acorn.Options) {
 	try {
-		return parse(module.code, {
+		return Parser.parse(module.code, {
 			...defaultAcornOptions,
 			...acornOptions,
 			onComment: (block: boolean, text: string, start: number, end: number) =>
@@ -230,7 +228,9 @@ export default class Module {
 
 		timeStart('generate ast', 3);
 
-		this.esTreeAst = ast || tryParse(this, this.graph.acornParse, this.graph.acornOptions);
+		this.esTreeAst = <ESTree.Program>(
+			(ast || tryParse(this, this.graph.acornParser, this.graph.acornOptions))
+		);
 
 		timeEnd('generate ast', 3);
 
@@ -277,7 +277,6 @@ export default class Module {
 			traceVariable: this.traceVariable.bind(this),
 			treeshake: this.graph.treeshake,
 			usesTopLevelAwait: false,
-			varOrConst: this.graph.varOrConst,
 			warn: this.warn.bind(this)
 		};
 

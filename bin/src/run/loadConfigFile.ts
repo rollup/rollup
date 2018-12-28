@@ -1,7 +1,7 @@
 import path from 'path';
 import rollup from 'rollup';
 import tc from 'turbocolor';
-import { InputOptions, RollupSingleFileBuild } from '../../../src/rollup/types';
+import { InputOptions, RollupBuild, RollupOutput } from '../../../src/rollup/types';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import batchWarnings from './batchWarnings';
@@ -20,12 +20,13 @@ export default function loadConfigFile(
 	return rollup
 		.rollup({
 			input: configFile,
+			treeshake: false,
 			external: (id: string) => {
 				return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json';
 			},
 			onwarn: warnings.add
 		})
-		.then((bundle: RollupSingleFileBuild) => {
+		.then((bundle: RollupBuild) => {
 			if (!silent && warnings.count > 0) {
 				stderr(tc.bold(`loaded ${relativeId(configFile)} with warnings`));
 				warnings.flush();
@@ -35,7 +36,7 @@ export default function loadConfigFile(
 				format: 'cjs'
 			});
 		})
-		.then(({ code }: { code: string }) => {
+		.then(({ output: [{ code }] }: RollupOutput) => {
 			// temporarily override require
 			const defaultLoader = require.extensions['.js'];
 			require.extensions['.js'] = (module: NodeModuleWithCompile, filename: string) => {

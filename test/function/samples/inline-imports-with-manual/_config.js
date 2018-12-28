@@ -2,7 +2,6 @@ module.exports = {
 	description: 'Manual chunks are not supported when inlining dynamic imports',
 	options: {
 		input: ['main.js'],
-		experimentalCodeSplitting: true,
 		inlineDynamicImports: true,
 		manualChunks: {
 			lib: ['lib.js']

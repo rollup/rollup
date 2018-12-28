@@ -9,21 +9,22 @@ import warnOnBuiltins from './shared/warnOnBuiltins';
 export default function amd(
 	magicString: MagicStringBundle,
 	{
-		graph,
-		namedExportsMode,
+		dependencies,
+		dynamicImport,
+		exports,
 		hasExports,
 		indentString,
 		intro,
-		outro,
-		dynamicImport,
+		isEntryModuleFacade,
+		namedExportsMode,
 		needsAmdModule,
-		dependencies,
-		exports,
-		isEntryModuleFacade
+		outro,
+		varOrConst,
+		warn
 	}: FinaliserOptions,
 	options: OutputOptions
 ) {
-	warnOnBuiltins(graph, dependencies);
+	warnOnBuiltins(warn, dependencies);
 
 	const deps = dependencies.map(m => `'${m.id}'`);
 	const args = dependencies.map(m => m.name);
@@ -58,7 +59,7 @@ export default function amd(
 	)})${_}{${useStrict}${n}${n}`;
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
+	const interopBlock = getInteropBlock(dependencies, options, varOrConst);
 	if (interopBlock) magicString.prepend(interopBlock + n + n);
 
 	if (intro) magicString.prepend(intro);

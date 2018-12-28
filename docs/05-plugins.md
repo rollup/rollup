@@ -4,7 +4,7 @@ title: Plugins
 
 ### Plugins Overview
 
-A Rollup plugin is a package which exports a function that returns an object with one or more of the [properties](guide/en#properties) and [hooks](guide/en#hooks) described below, and which follows our [conventions](guide/en#conventions).
+A Rollup plugin is an object with one or more of the [properties](guide/en#properties) and [hooks](guide/en#hooks) described below, and which follows our [conventions](guide/en#conventions). A plugin should be distributed as a packages which exports a function that can be called with plugin specific options and returns such an object.
 
 Plugins allow you to customise Rollup's behaviour by, for example, transpiling code before bundling, or finding third-party modules in your `node_modules` folder. For an example on how to use them, see [Using plugins](guide/en#using-plugins).
 
@@ -59,7 +59,7 @@ export default ({
 ### Properties
 
 #### `name`
-Type: `String`
+Type: `string`
 
 The name of the plugin, for use in error messages and warnings.
 
@@ -68,88 +68,111 @@ The name of the plugin, for use in error messages and warnings.
 In addition to properties defining the identity of your plugin, you may also specify properties that correspond to available build hooks. Hooks can affect how a build is run, provide information about a build, or modify a build once complete.
 
 #### `banner`
-Type: `String|Function`
+Type: `string | (() => string | Promise<string>)`
 
-A `String`, or a `Function` that returns a `String` or `Promise`. Cf. [output.banner/output.footer](output-banner-output-footer-banner-footer).
+Cf. [`output.banner/output.footer`](guide/en#output-banner-output-footer).
 
 #### `buildEnd`
-Type: `Function`<br>
-Signature: `( error ) => void`
+Type: `(error?: Error) => void | Promise<void>`
 
 Called when rollup has finished bundling, but before `generate` or `write` is called; you can also return a Promise. If an error occurred during the build, it is passed on to this hook.
 
 #### `buildStart`
-Type: `Function`<br>
-Signature: `( ) => (void|Promise)`
+Type: `(options: InputOptions) => void | Promise<void>`
 
 Called on each `rollup.rollup` build.
 
 #### `footer`
-Type: `String|Function`
+Type: `string | (() => string | Promise<string>)`
 
-A `String`, or a `Function` that returns a `String` or `Promise`. Cf. [output.banner/output.footer](output-banner-output-footer-banner-footer).
+Cf. [`output.banner/output.footer`](guide/en#output-banner-output-footer).
 
 #### `generateBundle`
-Type: `Function`<br>
-Signature: `( outputOptions, bundle, isWrite ) => (void|Promise)`
+Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }, isWrite: boolean) => void | Promise<void>`
 
-Called at the end of `bundle.generate()` or `bundle.write()`. `bundle` provides the full list of files being written or generated along with their details.
+Called at the end of `bundle.generate()` or `bundle.write()`. `bundle` provides the full list of files being written or generated along with their details:
+
+```
+// AssetInfo
+{
+  fileName: string,
+  isAsset: true,
+  source: string | Buffer
+}
+
+// ChunkInfo
+{
+  dynamicImports: string[],
+  exports: string[],
+  facadeModuleId: string | null,
+  fileName: string,
+  imports: string[],
+  isDynamicEntry: boolean,
+  isEntry: boolean,
+  modules: {
+    [id: string]: {
+      renderedExports: string[],
+      removedExports: string[],
+      renderedLength: number,
+      originalLength: number
+    },
+  },
+  name: string
+}
+```
 
 #### `intro`
-Type: `String|Function`
+Type: `string | (() => string | Promise<string>)`
 
-A `String`, or a `Function` that returns a `String` or `Promise`. Cf. [output.intro/output.outro](output-intro-output-outro-intro-outro).
+Cf. [`output.intro/output.outro`](guide/en#output-intro-output-outro).
 
 #### `load`
-Type: `Function`<br>
-Signature: `( id ) => (code | { code, map } | Promise)`
+Type: `(id: string) => string | null | { code: string, map?: string | SourceMap } | Promise<...>`
 
 Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system).
 
 #### `options`
-Type: `Function`<br>
-Signature: `( inputOptions ) => options`
+Type: `(options: InputOptions) => InputOptions | null`
 
 Reads and replaces or manipulates the options object passed to `rollup.rollup`. Returning `null` does not replace anything.
 
 #### `outro`
-Type: `String|Function`
+Type: `string | (() => string | Promise<string>)`
 
-A `String`, or a `Function` that returns a `String` or `Promise`. Cf. [output.intro/output.outro](output-intro-output-outro-intro-outro).
+Cf. [`output.intro/output.outro`](guide/en#output-intro-output-outro).
 
 #### `renderChunk`
-Type: `Function`<br>
-Signature: `(code, { modules, exports, imports, fileName, isEntry }, outputOptions) => (code | { code, map} | Promise)`
+Type: `(code: string, chunk: ChunkInfo, options: OutputOptions) => string | { code: string, map: SourceMap } | null | Promise<...>`
 
 Can be used to transform individual chunks. Called for each Rollup output chunk file. Returning `null` will apply no transformations.
 
 #### `renderError`
-Type: `Function`<br>
-Signature: `( error ) => void`
+Type: `(error: Error) => void | Promise<void>`
 
 Called when rollup encounters an error during `bundle.generate()` or `bundle.write()`. The error is passed to this hook. To get notified when generation completes successfully, use the `generateBundle` hook.
 
 #### `renderStart`
-Type: `Function`<br>
-Signature: `( ) => (void|Promise)`
+Type: `() => void | Promise<void>`
 
 Called initially each time `bundle.generate()` or `bundle.write()` is called. To get notified when generation has completed, use the `generateBundle` and `renderError` hooks.
 
-#### `resolveId`
-Type: `Function`<br>
-Signature: `( importee, importer ) => (id|Promise)`
+#### `resolveDynamicImport`
+Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null | Promise<...>`
 
-Defines a custom resolver. A resolver loader can be useful for e.g. locating third-party dependencies. Returning `null` or `undefined` defers to other `resolveId` functions (and eventually the default resolution behavior); returning `false` signals that `importee` should be treated as an external module and not included in the bundle.
+Defines a custom resolver for dynamic imports. In case a dynamic import is not passed a string as argument, this hook gets access to the raw AST nodes to analyze. Returning `null` will defer to other resolvers and eventually to `resolveId` if this is possible; returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use `this.resolveId(importee, importer)` on the plugin context.
+
+#### `resolveId`
+Type: `(importee: string, importer: string) => string | false | null | Promise<...>`
+
+Defines a custom resolver. A resolver loader can be useful for e.g. locating third-party dependencies. Returning `null` defers to other `resolveId` functions (and eventually the default resolution behavior); returning `false` signals that `importee` should be treated as an external module and not included in the bundle.
 
 #### `transform`
-Type: `Function`<br>
-Signature: `( source, id ) => (code|{ code, map, dependencies }|Promise)`
+Type: `(code: string, id: string) => string | { code: string, map?: string | SourceMap, ast? : ESTree.Program } | null | Promise<...>`
 
-Can be used to transform individual modules. In `--watch` mode, also watch for changes in any of the files or directories in the `dependencies` array.
+Can be used to transform individual modules.
 
 #### `watchChange`
-Type: `Function`<br>
-Signature: `(file) => { }`
+Type: `(id: string) => void`
 
 Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode.
 
@@ -172,23 +195,23 @@ chunk ) => code | { code, map}` chunk transformer function.
 
 More properties may be supported in future, as and when they prove necessary.
 
-### Context
+### Plugin Context
 
 A number of utility functions and informational bits can be accessed from within all [hooks](guide/en#hooks) via `this`:
 
-#### `this.emitAsset( assetName, source )`
+#### `this.emitAsset(assetName: string, source: string) => void`
 
 Emits a custom file to include in the build output, returning its `assetId`. You can defer setting the source if you provide it later via `this.setAssetSource(assetId)`. A string or Buffer source must be set for each asset through either method or an error will be thrown on generate completion.
 
-#### `this.error( error [, position] )`
+#### `this.error(error: string | Error, position?: number) => void`
 
 Structurally equivalent to `this.warn`, except that it will also abort the bundling process.
 
-#### `this.getAssetFileName( assetId )`
+#### `this.getAssetFileName(assetId: string) => string`
 
 Get the file name of an asset, according to the `assetFileNames` output option pattern.
 
-#### `this.getModuleInfo( moduleId )`
+#### `this.getModuleInfo(moduleId: string) => ModuleInfo`
 
 Returns additional information about the module in question in the form
 
@@ -202,16 +225,15 @@ Returns additional information about the module in question in the form
 
 If the module id cannot be found, an error is thrown.
 
-####  `this.isExternal( id, parentId, isResolved )`
+#### `this.isExternal(id: string, parentId: string, isResolved: boolean): boolean`
 
 Determine if a given module ID is external.
 
-#### `this.meta`
+#### `this.meta: {rollupVersion: string}`
 
-An `Object` containing potentially useful Rollup metadata. eg.
-`this.meta.rollupVersion`
+An `Object` containing potentially useful Rollup metadata.
 
-#### `this.moduleIds`
+#### `this.moduleIds: IterableIterator<string>`
 
 An `Iterator` that gives access to all module ids in the current graph. It can be iterated via
 
@@ -221,23 +243,23 @@ for (const moduleId of this.moduleIds) { /* ... */ }
 
 or converted into an Array via `Array.from(this.moduleIds)`.
 
-#### `this.parse( code, acornOptions )`
+#### `this.parse(code: string, acornOptions: AcornOptions) => ESTree.Program`
 
 Use Rollup's internal acorn instance to parse code to an AST.
 
-#### `this.resolveId( importee, importer )`
+#### `this.resolveId(importee: string, importer: string) => string`
 
 Resolve imports to module ids (i.e. file names). Uses the same hooks as Rollup itself.
 
-#### `this.setAssetSource( assetId, source )`
+#### `this.setAssetSource(assetId: string, source: string | Buffer) => void`
 
 Set the deferred source of an asset.
 
-#### `this.warn( warning [, position] )`
+#### `this.warn(warning: string | RollupWarning, position?: number )`
 
 Using this method will queue warnings for a build. These warnings will be printed by the CLI just like internally-generated warnings (except with the plugin name), or captured by custom `onwarn` handlers.
 
-The `warning` argument can be a `String` or an `Object` with (at minimum) a `message` property:
+The `warning` argument can be a `string` or an object with (at minimum) a `message` property:
 
 ```js
 this.warn( 'hmm...' );

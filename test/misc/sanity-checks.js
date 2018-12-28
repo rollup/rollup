@@ -23,26 +23,25 @@ describe('sanity checks', () => {
 	});
 
 	it('node API passes warning and default handler to custom onwarn function', () => {
-		let args = [];
+		let args;
 		return rollup
 			.rollup({
-				entry: 'x',
-				plugins: [loader({ x: `console.log( 42 );` })],
+				input: 'x',
+				plugins: [loader({ x: `console.log( 42 );` }), { ongenerate() {} }],
 				onwarn(warning, onwarn) {
 					args = [warning, onwarn];
 				}
 			})
+			.then(bundle => {
+				return bundle.generate({ format: 'es' });
+			})
 			.then(() => {
-				assert.deepEqual(args[0], {
-					code: 'DEPRECATED_OPTIONS',
-					deprecations: [
-						{
-							new: 'input',
-							old: 'entry'
-						}
-					],
-					message: `The following options have been renamed — please update your config: entry -> input`
-				});
+				assert.equal(args[0].code, 'PLUGIN_WARNING');
+				assert.equal(args[0].pluginCode, 'ONGENERATE_HOOK_DEPRECATED');
+				assert.equal(
+					args[0].message,
+					'The ongenerate hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.'
+				);
 				assert.equal(typeof args[1], 'function');
 			});
 	});
@@ -92,7 +91,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				return bundle.generate({ format: 'iife' });
 			})
-			.then(({ code }) => {
+			.then(({ output: [{ code }] }) => {
 				assert.ok(code[code.length - 1] === '\n');
 			});
 	});
@@ -154,6 +153,96 @@ describe('sanity checks', () => {
 			})
 			.catch(e => {
 				assert.equal(e, error);
+			});
+	});
+
+	it('throws when using multiple inputs together with the "file" option', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: ['x', 'y'],
+				plugins: [loader({ x: 'console.log( "x" );', y: 'console.log( "y" );' })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => {
+				assert.throws(() => {
+					bundle.generate({ file: 'x', format: 'es' });
+				}, /You must set output\.dir instead of output\.file when generating multiple chunks\./);
+			});
+	});
+
+	it('does not throw when using a single element array of inputs together with the "file" option', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: ['x'],
+				plugins: [loader({ x: 'console.log( "x" );' })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => bundle.generate({ file: 'x', format: 'es' }));
+	});
+
+	it('throws when using dynamic imports with the "file" option', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins: [loader({ x: 'console.log( "x" );import("y");', y: 'console.log( "y" );' })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => {
+				assert.throws(() => {
+					bundle.generate({ file: 'x', format: 'es' });
+				}, /You must set output\.dir instead of output\.file when generating multiple chunks\./);
+			});
+	});
+
+	it('does not throw when using dynamic imports with the "file" option and "inlineDynamicImports"', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: 'x',
+				inlineDynamicImports: true,
+				plugins: [loader({ x: 'console.log( "x" );import("y");', y: 'console.log( "y" );' })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => bundle.generate({ file: 'x', format: 'es' }));
+	});
+
+	it('throws when using the object form of "input" together with the "file" option', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: { main: 'x' },
+				plugins: [loader({ x: 'console.log( "x" );' })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => {
+				assert.throws(() => {
+					bundle.generate({ file: 'x', format: 'es' });
+				}, /You must set output\.dir instead of output\.file when providing named inputs\./);
+			});
+	});
+
+	it('throws when using preserveModules together with the "file" option', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: 'x',
+				preserveModules: true,
+				plugins: [loader({ x: 'console.log( "x" );' })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => {
+				assert.throws(() => {
+					bundle.generate({ file: 'x', format: 'es' });
+				}, /You must set output\.dir instead of output\.file when using the preserveModules option\./);
 			});
 	});
 });

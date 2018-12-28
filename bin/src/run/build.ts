@@ -3,9 +3,10 @@ import * as rollup from 'rollup';
 import tc from 'turbocolor';
 import {
 	InputOptions,
+	OutputAsset,
+	OutputChunk,
 	OutputOptions,
-	RollupBuild,
-	RollupSingleFileBuild
+	RollupBuild
 } from '../../../src/rollup/types';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
@@ -19,12 +20,7 @@ export default function build(
 	warnings: BatchWarnings,
 	silent = false
 ) {
-	const useStdout =
-		outputOptions.length === 1 &&
-		!outputOptions[0].file &&
-		!outputOptions[0].dir &&
-		inputOptions.input instanceof Array === false &&
-		typeof inputOptions.input !== 'object';
+	const useStdout = !outputOptions[0].file && !outputOptions[0].dir;
 
 	const start = Date.now();
 	const files = useStdout ? ['stdout'] : outputOptions.map(t => relativeId(t.file || t.dir));
@@ -44,7 +40,7 @@ export default function build(
 
 	return rollup
 		.rollup(inputOptions)
-		.then((bundle: RollupSingleFileBuild | RollupBuild) => {
+		.then((bundle: RollupBuild) => {
 			if (useStdout) {
 				const output = outputOptions[0];
 				if (output.sourcemap && output.sourcemap !== 'inline') {
@@ -54,13 +50,21 @@ export default function build(
 					});
 				}
 
-				return (<RollupSingleFileBuild>bundle).generate(output).then(({ code, map }) => {
-					if (!code) return;
-					if (output.sourcemap === 'inline') {
-						code += `\n//# ${SOURCEMAPPING_URL}=${map.toUrl()}\n`;
+				return bundle.generate(output).then(({ output: outputs }) => {
+					for (const file of outputs) {
+						let source: string | Buffer;
+						if ((<OutputAsset>file).isAsset) {
+							source = (<OutputAsset>file).source;
+						} else {
+							source = (<OutputChunk>file).code;
+							if (output.sourcemap === 'inline') {
+								source += `\n//# ${SOURCEMAPPING_URL}=${(<OutputChunk>file).map.toUrl()}\n`;
+							}
+						}
+						if (outputs.length > 1)
+							process.stdout.write('\n' + tc.cyan(tc.bold('//→ ' + file.fileName + ':')) + '\n');
+						process.stdout.write(source);
 					}
-
-					process.stdout.write(code);
 				});
 			}
 
@@ -68,7 +72,7 @@ export default function build(
 				() => bundle
 			);
 		})
-		.then((bundle?: RollupSingleFileBuild | RollupBuild) => {
+		.then((bundle?: RollupBuild) => {
 			warnings.flush();
 			if (!silent)
 				stderr(

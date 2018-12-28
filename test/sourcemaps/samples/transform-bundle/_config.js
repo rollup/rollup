@@ -20,6 +20,12 @@ module.exports = {
 			}
 		]
 	},
+	warnings: [{
+		code: 'PLUGIN_WARNING',
+		message: 'The transformBundle hook used by plugin at position 1 is deprecated. The renderChunk hook should be used instead.',
+		plugin: 'Plugin at position 1',
+		pluginCode: 'TRANSFORMBUNDLE_HOOK_DEPRECATED'
+	}],
 	test(code, map) {
 		const smc = new SourceMapConsumer(map);
 

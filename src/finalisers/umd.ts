@@ -25,14 +25,15 @@ function safeAccess(name: string, globalVar: string, _: string) {
 export default function umd(
 	magicString: MagicStringBundle,
 	{
-		graph,
-		namedExportsMode,
+		dependencies,
+		exports,
 		hasExports,
 		indentString: t,
 		intro,
+		namedExportsMode,
 		outro,
-		dependencies,
-		exports
+		varOrConst,
+		warn
 	}: FinaliserOptions,
 	options: OutputOptions
 ) {
@@ -48,7 +49,7 @@ export default function umd(
 		});
 	}
 
-	warnOnBuiltins(graph, dependencies);
+	warnOnBuiltins(warn, dependencies);
 
 	const amdDeps = dependencies.map(m => `'${m.id}'`);
 	const cjsDeps = dependencies.map(m => `require('${m.id}')`);
@@ -146,7 +147,7 @@ export default function umd(
 	const wrapperOutro = n + n + '}));';
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
+	const interopBlock = getInteropBlock(dependencies, options, varOrConst);
 	if (interopBlock) magicString.prepend(interopBlock + n + n);
 
 	if (intro) magicString.prepend(intro);

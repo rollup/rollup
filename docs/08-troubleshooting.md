@@ -62,44 +62,6 @@ In a JavaScript module, `this` is `undefined` at the top level (i.e., outside fu
 There are occasional valid reasons for `this` to mean something else. If you're getting errors in your bundle, you can use `options.context` and `options.moduleContext` to change this behaviour.
 
 
-### Warning: "Ambiguous default export"
-
-This warning is given when Rollup encounters a default export that *looks* like a function declaration, but is in fact parsed as a call expression:
-
-```js
-export default function foo () {
-  // this looks like a function declaration, but it isn't!
-}
-
-(function iife () {
-  // `foo` is immediately invoked because the parentheses
-  // around this block turn it into a function expression
-}())
-```
-
-If you want to export the function declaration, separate the declaration from the export:
-
-```js
-function foo () {
-  // ...
-}
-
-export default foo;
-```
-
-If you want to export the call expression but suppress the warning, wrap the function expression in parentheses to eliminate the ambiguity:
-
-```js
-export default (function foo () {
-  // ...
-})
-
-(function iife () {
-  // ...
-}())
-```
-
-
 ### Warning: "Sourcemap is likely to be incorrect"
 
 You'll see this warning if you generate a sourcemap with your bundle (`sourceMap: true` or `sourceMap: 'inline'`) but you're using one or more plugins that transformed code without generating a sourcemap for the transformation.

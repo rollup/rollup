@@ -7,6 +7,7 @@ import {
 	Asset,
 	Plugin,
 	PluginCache,
+	PluginContext,
 	RawSourceMap,
 	RollupError,
 	RollupWarning,
@@ -39,9 +40,10 @@ export default function transform(
 	let assets: Asset[];
 	let customTransformCache = false;
 	let trackedPluginCache: { used: boolean; cache: PluginCache };
+	let curPlugin: Plugin;
 	const curSource: string = source.code;
 
-	function transformReducer(code: string, result: any, plugin: Plugin) {
+	function transformReducer(this: PluginContext, code: string, result: any, plugin: Plugin) {
 		// track which plugins use the custom this.cache to opt-out of transform caching
 		if (!customTransformCache && trackedPluginCache.used) customTransformCache = true;
 		if (customTransformCache) {
@@ -56,6 +58,13 @@ export default function transform(
 			if (assets.length) module.transformAssets = assets;
 
 			if (result && Array.isArray(result.dependencies)) {
+				// not great, but a useful way to track this without assuming WeakMap
+				if (!(<any>curPlugin).warnedTransformDependencies)
+					this.warn({
+						code: 'TRANSFORM_DEPENDENCIES_DEPRECATED',
+						message: `Returning "dependencies" from plugin transform hook is deprecated for using this.addWatchFile() instead.`
+					});
+				(<any>curPlugin).warnedTransformDependencies = true;
 				if (!transformDependencies) transformDependencies = [];
 				for (const dep of result.dependencies)
 					transformDependencies.push(resolve(dirname(id), dep));
@@ -97,6 +106,7 @@ export default function transform(
 			[curSource, id],
 			transformReducer,
 			(pluginContext, plugin) => {
+				curPlugin = plugin;
 				if (plugin.cacheKey) customTransformCache = true;
 				else trackedPluginCache = trackPluginCache(pluginContext.cache);
 
@@ -106,24 +116,18 @@ export default function transform(
 					...pluginContext,
 					cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
 					warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
-						if (typeof warning === 'string') warning = { message: warning };
+						if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 						if (pos) augmentCodeLocation(warning, pos, curSource, id);
-						if (warning.code) warning.pluginCode = warning.code;
 						warning.id = id;
-						warning.code = 'PLUGIN_WARNING';
-						warning.plugin = plugin.name || '(anonymous plugin)';
 						warning.hook = 'transform';
-						graph.warn(warning);
+						pluginContext.warn(warning);
 					},
 					error(err: RollupError | string, pos?: { line: number; column: number }) {
 						if (typeof err === 'string') err = { message: err };
 						if (pos) augmentCodeLocation(err, pos, curSource, id);
-						if (err.code) err.pluginCode = err.code;
 						err.id = id;
-						err.code = 'PLUGIN_ERROR';
-						err.plugin = plugin.name || '(anonymous plugin)';
 						err.hook = 'transform';
-						error(err);
+						pluginContext.error(err);
 					},
 					emitAsset,
 					setAssetSource(assetId, source) {

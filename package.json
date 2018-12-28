@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "0.68.2",
+  "version": "1.0.0-0",
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/rollup.es.js",
@@ -59,16 +59,16 @@
   "homepage": "https://github.com/rollup/rollup",
   "dependencies": {
     "@types/estree": "0.0.39",
-    "@types/node": "*"
+    "@types/node": "*",
+    "acorn": "^6.0.4"
   },
   "devDependencies": {
-    "@types/acorn": "^4.0.3",
     "@types/chokidar": "^1.7.5",
     "@types/minimist": "^1.2.0",
     "@types/pretty-ms": "^3.0.0",
-    "acorn": "^5.7.3",
-    "acorn-dynamic-import": "^3.0.0",
-    "acorn-import-meta": "^0.2.1",
+    "acorn-dynamic-import": "^4.0.0",
+    "acorn-import-meta": "^0.3.0",
+    "acorn-jsx": "^5.0.1",
     "ansi-escapes": "^3.1.0",
     "buble": "^0.19.6",
     "chokidar": "^2.0.4",

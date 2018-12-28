@@ -1,5 +1,67 @@
 # rollup changelog
 
+## 1.0.0
+*unreleased*
+
+### Breaking Changes
+* Several (mostly deprecated) options have been removed or renamed (#2293, #2409):
+  - banner -> output.banner
+  - dest -> output.file
+  - entry -> input
+  - experimentalCodeSplitting -> now always active
+  - experimentalDynamicImport -> now always active
+  - experimentalPreserveModules -> preserveModules
+  - exports -> output.exports
+  - extend -> output.extend
+  - footer -> output.footer
+  - format -> output.format
+  - freeze -> output.freeze
+  - globals -> output.globals
+  - indent -> output.indent
+  - interop -> output.interop
+  - intro -> output.intro 
+  - load -> use plugin API
+  - moduleName -> output.name
+  - name -> output.name
+  - noConflict -> output.noConflict
+  - output.moduleId -> output.amd.id
+  - outro -> output.outro
+  - paths -> output.paths
+  - preferConst -> output.preferConst
+  - pureExternalModules -> treeshake.pureExternalModules
+  - resolveExternal -> use plugin API
+  - resolveId -> use plugin API
+  - sourcemap -> output.sourcemap
+  - sourceMap -> output.sourcemap
+  - sourceMapFile -> output.sourcemapFile
+  - strict -> output.strict
+  - targets -> use output as an array
+  - transform -> use plugin API
+  - useStrict -> output.strict
+* In general, output options can no longer be used as input options (#2409)
+* `bundle.generate` and `bundle.write` now return a new format (#2293)
+* Several plugin hooks have become deprecated and will display warnings when used (#2409):
+  - transformBundle
+  - transformChunk
+  - ongenerate
+  - onwrite
+* Plugin transform dependencies are deprecated in favour of the `watchChange` plugin hook (#2409)
+* Accessing `this.watcher` in plugin hooks is deprecated in favour of the `watchChange` plugin hook (#2409)
+* Using dynamic import statements will by default create a new chunk unless `inlineDynamicImports` is used (#2293)
+* Rollup now uses acorn@6 which means that acorn plugins must be compatible with this version; acorn is now external for non-browser builds to make plugins work (#2293)
+
+### Features
+* The `--dir` ClI option can now be aliased as `-d` (#2293)
+* The `--input` option now supports named entry points via `=` (#2293)
+
+### Bug Fixes
+* Both the `--input` option as well as the default CLI option now support named inputs (#2293)
+
+### Pull Requests
+* [#2293](https://github.com/rollup/rollup/pull/2293): Unify code paths for 1.0 relase and update documentation (@guybedford and @lukastaegert)
+* [#2409](https://github.com/rollup/rollup/pull/2409): Remove old deprecated features and add new deprecation warnings (@guybedford)
+* [#2486](https://github.com/rollup/rollup/pull/2486): Upgrade to acorn 6 (@marijnh)
+
 ## 0.68.2
 *2018-12-23*
 

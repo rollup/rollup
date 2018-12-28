@@ -64,7 +64,7 @@ function executeBundle(bundle) {
 		.generate({
 			format: 'cjs'
 		})
-		.then(cjs => {
+		.then(({ output: [cjs] }) => {
 			const m = new Function('module', 'exports', cjs.code);
 
 			const module = { exports: {} };
@@ -108,6 +108,7 @@ function removeOldOutput(dir) {
 }
 
 function removeOldTest(dir) {
+	removeOldOutput(dir);
 	console.warn(
 		`Test configuration in ${dir} not found.\nTrying to clean up no longer existing test...`
 	);

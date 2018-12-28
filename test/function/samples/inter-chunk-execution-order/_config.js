@@ -5,7 +5,6 @@ module.exports = {
 	description: 'sorts imports between chunks to closely match the actual execution order',
 	context: { execution },
 	options: {
-		experimentalCodeSplitting: true,
 		input: ['main.js', 'chunk1.js', 'chunk2.js']
 	},
 	exports() {

@@ -2,7 +2,6 @@ module.exports = {
 	description: 'Optimizing chunks is not supported when inlining dynamic imports',
 	options: {
 		input: ['main.js'],
-		experimentalCodeSplitting: true,
 		inlineDynamicImports: true,
 		experimentalOptimizeChunks: true
 	},

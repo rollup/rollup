@@ -4,6 +4,6 @@ module.exports = {
 	generateError: {
 		code: 'INVALID_EXPORT_OPTION',
 		message: `output.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')`,
-		url: 'https://rollupjs.org/guide/en#output-exports-exports'
+		url: 'https://rollupjs.org/guide/en#output-exports'
 	}
 };

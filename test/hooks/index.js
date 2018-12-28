@@ -151,17 +151,35 @@ describe('hooks', () => {
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
 			})
-			.then(output => {
+			.then(({ output: [output] }) => {
 				assert.equal(output.code, `alert('hello');\n`);
 			});
 	});
 
-	it('passes bundle & output object to ongenerate & onwrite hooks', () => {
+	it('passes bundle & output object to ongenerate & onwrite hooks, with deprecation warnings', () => {
 		const file = path.join(__dirname, 'tmp/bundle.js');
+
+		let deprecationCnt = 0;
 
 		return rollup
 			.rollup({
 				input: 'input',
+				onwarn(warning) {
+					deprecationCnt++;
+					if (deprecationCnt === 1) {
+						assert.equal(warning.pluginCode, 'ONGENERATE_HOOK_DEPRECATED');
+						assert.equal(
+							warning.message,
+							'The ongenerate hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.'
+						);
+					} else {
+						assert.equal(warning.pluginCode, 'ONWRITE_HOOK_DEPRECATED');
+						assert.equal(
+							warning.message,
+							'The onwrite hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.'
+						);
+					}
+				},
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -182,6 +200,7 @@ describe('hooks', () => {
 				});
 			})
 			.then(() => {
+				assert.equal(deprecationCnt, 2);
 				return sander.unlink(file);
 			});
 	});
@@ -255,7 +274,6 @@ describe('hooks', () => {
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: '' }),
 					{
@@ -270,9 +288,13 @@ describe('hooks', () => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(({ output }) => {
-				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
+				assert.equal(output[1].isAsset, true);
+				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output[1].source, 'hello world');
+				assert.equal(output[0].fileName, 'input.js');
+				assert.equal(output[0].isEntry, true);
 				assert.equal(
-					output['input.js'].code,
+					output[0].code,
 					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
 			});
@@ -283,7 +305,6 @@ describe('hooks', () => {
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: '' }),
 					{
@@ -299,16 +320,18 @@ describe('hooks', () => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(({ output }) => {
-				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
 				assert.equal(
-					output['input.js'].code,
+					output[0].code,
 					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
+				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output[1].source, 'hello world');
+				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output[1].source, 'hello world');
 
 				return rollup.rollup({
 					cache,
 					input: 'input',
-					experimentalCodeSplitting: true,
 					plugins: [
 						loader({ input: '' }),
 						{
@@ -323,11 +346,14 @@ describe('hooks', () => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(({ output }) => {
-				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
 				assert.equal(
-					output['input.js'].code,
+					output[0].code,
 					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
+				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output[1].source, 'hello world');
+				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output[1].source, 'hello world');
 			});
 	});
 
@@ -337,7 +363,6 @@ describe('hooks', () => {
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: '' }),
 					{
@@ -356,16 +381,18 @@ describe('hooks', () => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(({ output }) => {
-				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
 				assert.equal(
-					output['input.js'].code,
+					output[0].code,
 					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
+				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output[1].source, 'hello world');
+				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output[1].source, 'hello world');
 
 				return rollup.rollup({
 					cache,
 					input: 'input',
-					experimentalCodeSplitting: true,
 					plugins: [
 						loader({ input: '' }),
 						{
@@ -383,8 +410,8 @@ describe('hooks', () => {
 			})
 			.then(({ output }) => {
 				assert.equal(runs, 2);
-				assert.equal(output['assets/test-19916f7d.ext'], undefined);
-				assert.equal(output['input.js'].code.trim(), `alert('hello world');`);
+				assert.equal(output[0].code.trim(), `alert('hello world');`);
+				assert.equal(output.length, 1);
 			});
 	});
 
@@ -392,7 +419,6 @@ describe('hooks', () => {
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: '' }),
 					{
@@ -406,9 +432,9 @@ describe('hooks', () => {
 			.then(bundle => {
 				return bundle.generate({ format: 'cjs' });
 			})
-			.then(({ output }) => {
+			.then(({ output: [{ code }] }) => {
 				assert.equal(
-					output['input.js'].code,
+					code,
 					`'use strict';
 
 var input = new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)((process.browser ? '' : 'file:') + __dirname + '/assets/test-19916f7d.ext', process.browser && document.baseURI).href;
@@ -423,7 +449,6 @@ module.exports = input;
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -440,8 +465,9 @@ module.exports = input;
 					assetFileNames: '[name][extname]'
 				});
 			})
-			.then(({ output }) => {
-				assert.equal(output['test.ext'], 'hello world');
+			.then(({ output: [, output] }) => {
+				assert.equal(output.fileName, 'test.ext');
+				assert.equal(output.source, 'hello world');
 			});
 	});
 
@@ -450,7 +476,6 @@ module.exports = input;
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -467,8 +492,9 @@ module.exports = input;
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
 			})
-			.then(({ output }) => {
-				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
+			.then(({ output: [, output] }) => {
+				assert.equal(output.fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output.source, 'hello world');
 			});
 	});
 
@@ -476,7 +502,6 @@ module.exports = input;
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -502,7 +527,6 @@ module.exports = input;
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -524,8 +548,8 @@ module.exports = input;
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
 			})
-			.then(({ output }) => {
-				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
+			.then(({ output: [, output] }) => {
+				assert.equal(output.source, 'hello world');
 				assert.equal(thrown, true);
 			});
 	});
@@ -535,7 +559,6 @@ module.exports = input;
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -552,22 +575,65 @@ module.exports = input;
 			.then(bundle => {
 				return bundle.generate({ format: 'es' });
 			})
-			.then(({ output }) => {
-				assert.equal(output['assets/test-19916f7d.ext'], 'hello world');
+			.then(({ output: [, output] }) => {
+				assert.equal(output.source, 'hello world');
 			});
 	});
 
-	it('supports transformChunk in place of transformBundle', () => {
+	it('supports transformChunk in place of transformBundle, with deprecation warning', () => {
 		let calledHook = false;
+		let deprecationCnt = 0;
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
+				onwarn(warning) {
+					deprecationCnt++;
+					assert.equal(warning.pluginCode, 'TRANSFORMCHUNK_HOOK_DEPRECATED');
+					assert.equal(
+						warning.message,
+						'The transformChunk hook used by plugin at position 2 is deprecated. The renderChunk hook should be used instead.'
+					);
+				},
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
 						transformChunk(code, id) {
 							calledHook = true;
+							try {
+								this.emitAsset('test.ext', 'hello world');
+							} catch (e) {
+								assert.equal(e.code, 'ASSETS_ALREADY_FINALISED');
+							}
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({
+					format: 'es',
+					assetFileNames: '[name][extname]'
+				});
+			})
+			.then(() => {
+				assert.equal(deprecationCnt, 1);
+				assert.equal(calledHook, true);
+			});
+	});
+
+	it('supports renderChunk in place of transformBundle and transformChunk', () => {
+		let calledHook = false;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						renderChunk(code, chunk, options) {
+							calledHook = true;
+							assert.equal(chunk.fileName, 'input.js');
+							assert.equal(chunk.isEntry, true);
+							assert.equal(chunk.exports.length, 0);
+							assert.ok(chunk.modules['input']);
 							try {
 								this.emitAsset('test.ext', 'hello world');
 							} catch (e) {
@@ -593,7 +659,6 @@ module.exports = input;
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -627,7 +692,6 @@ module.exports = input;
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -636,7 +700,7 @@ module.exports = input;
 							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
 						},
 						generateBundle(options, outputBundle, isWrite) {
-							assert.equal(outputBundle['assets/test-19916f7d.ext'], 'hello world');
+							assert.equal(outputBundle['assets/test-19916f7d.ext'].source, 'hello world');
 							assert.equal(
 								outputBundle['input.js'].code,
 								`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
@@ -654,7 +718,6 @@ module.exports = input;
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -680,21 +743,15 @@ module.exports = input;
 					)
 			)
 			.then(([{ output: output1 }, { output: output2 }]) => {
-				assert.equal(output1['input.js'].code, `alert('hello');\n`);
-				assert.equal(output1['assets/lateDepAsset-671f747d'], `custom source`);
-				assert.equal(
-					output1['assets/lateMainAsset-863ea4b5'],
-					`references assets/lateDepAsset-671f747d`
-				);
+				assert.equal(output1.length, 3);
+				assert.equal(output1[0].code, `alert('hello');\n`);
+				assert.equal(output1[1].source, 'custom source');
+				assert.equal(output1[2].source, `references assets/lateDepAsset-671f747d`);
 
-				assert.equal(output2['input.js'].code, `'use strict';\n\nalert('hello');\n`);
-				assert.equal(output2['assets/lateDepAsset-671f747d'], undefined);
-				assert.equal(output2['assets/lateMainAsset-863ea4b5'], undefined);
-				assert.equal(output2['assets/lateDepAsset-c107f5fc'], `different source`);
-				assert.equal(
-					output2['assets/lateMainAsset-6dc2262b'],
-					`references assets/lateDepAsset-c107f5fc`
-				);
+				assert.equal(output2.length, 3);
+				assert.equal(output2[0].code, `'use strict';\n\nalert('hello');\n`);
+				assert.equal(output2[1].source, 'different source');
+				assert.equal(output2[2].source, `references assets/lateDepAsset-c107f5fc`);
 			});
 	});
 
@@ -702,7 +759,6 @@ module.exports = input;
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
@@ -724,7 +780,6 @@ module.exports = input;
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({
 						input: `export { a as default } from 'dep';`,
@@ -996,8 +1051,8 @@ module.exports = input;
 					format: 'es'
 				});
 			})
-			.then(bundle => {
-				assert.equal(bundle.code.trim(), `alert('hello');`);
+			.then(({ output }) => {
+				assert.equal(output[0].code.trim(), `alert('hello');`);
 			});
 	});
 
@@ -1074,12 +1129,85 @@ module.exports = input;
 			});
 	});
 
+	it('Warns when using deprecated this.watcher in plugins', () => {
+		let warned = false;
+		const watcher = rollup.watch({
+			input: 'input',
+			onwarn(warning) {
+				warned = true;
+				assert.equal(warning.code, 'PLUGIN_WARNING');
+				assert.equal(warning.pluginCode, 'PLUGIN_WATCHER_DEPRECATED');
+				assert.equal(
+					warning.message,
+					'this.watcher usage is deprecated in plugins. Use the watchChange plugin hook instead.'
+				);
+			},
+			plugins: [
+				loader({ input: `alert('hello')` }),
+				{
+					name: 'x',
+					buildStart() {
+						this.watcher.on('change', () => {});
+					}
+				}
+			]
+		});
+		return new Promise((resolve, reject) => {
+			watcher.on('event', evt => {
+				if (evt.code === 'BUNDLE_END') resolve();
+				else if (evt.code === 'ERROR' || evt.code === 'FATAL') reject(evt.error);
+			});
+		}).catch(err => {
+			assert.equal(err.message, 'You must specify output.file or output.dir for the build.');
+			assert.equal(warned, true);
+		});
+	});
+
+	it('Warns when using deprecated transform dependencies in plugins', () => {
+		let warned = false;
+		const watcher = rollup.watch({
+			input: 'input',
+			output: {
+				file: 'asdf',
+				format: 'es'
+			},
+			onwarn(warning) {
+				warned = true;
+				assert.equal(warning.code, 'PLUGIN_WARNING');
+				assert.equal(warning.pluginCode, 'TRANSFORM_DEPENDENCIES_DEPRECATED');
+				assert.equal(
+					warning.message,
+					'Returning "dependencies" from plugin transform hook is deprecated for using this.addWatchFile() instead.'
+				);
+				// throw here to stop file system write
+				throw new Error('STOP');
+			},
+			plugins: [
+				loader({ input: `alert('hello')` }),
+				{
+					name: 'x',
+					transform(code) {
+						return { code, dependencies: [] };
+					}
+				}
+			]
+		});
+		return new Promise((resolve, reject) => {
+			watcher.on('event', evt => {
+				if (evt.code === 'END') resolve();
+				else if (evt.code === 'ERROR' || evt.code === 'FATAL') reject(evt.error);
+			});
+		}).catch(err => {
+			assert.equal(err.message, 'STOP');
+			assert.equal(warned, true);
+		});
+	});
+
 	it('assigns chunk IDs before creating outputBundle chunks', () => {
 		const chunks = [];
 		return rollup
 			.rollup({
 				input: 'input',
-				experimentalCodeSplitting: true,
 				plugins: [
 					loader({
 						input: `export default [import('a'), import('b')];`,

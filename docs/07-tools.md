@@ -70,7 +70,7 @@ This time, when you `npm run build`, no warning is emitted — the bundle contai
 
 #### rollup-plugin-commonjs
 
-Some libraries expose ES6 modules that you can import as-is — `the-answer` is one such module. But at the moment, the majority of packages on NPM are exposed as CommonJS modules instead. Until that changes, we need to convert CommonJS to ES2015 before Rollup can process them.
+Some libraries expose ES modules that you can import as-is — `the-answer` is one such module. But at the moment, the majority of packages on NPM are exposed as CommonJS modules instead. Until that changes, we need to convert CommonJS to ES2015 before Rollup can process them.
 
 The [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs) plugin does exactly that.
 
@@ -135,7 +135,7 @@ The array form of `external` does not handle wildcards, so this import will only
 
 Many developers use [Babel](https://babeljs.io/) in their projects in order to use the latest JavaScript features that aren't yet supported by browsers and Node.js.
 
-The easiest way to use both Babel and Rollup is with [rollup-plugin-babel](https://github.com/rollup/rollup-plugin-babel). First; install the plugin:
+The easiest way to use both Babel and Rollup is with [rollup-plugin-babel](https://github.com/rollup/rollup-plugin-babel). First, install the plugin:
 
 ```console
 npm i -D rollup-plugin-babel rollup-plugin-node-resolve
@@ -165,21 +165,17 @@ export default {
 
 Before Babel will actually compile your code, it needs to be configured. Create a new file, `src/.babelrc`:
 
-```js
+```json
 {
   "presets": [
-    ["@babel/env", {
-      "modules": false
-    }]
-  ],
+    ["@babel/env", {"modules": false}]
+  ]
 }
 ```
 
 There are a few unusual elements to this setup. First, we're setting `"modules": false`, otherwise Babel will convert our modules to CommonJS before Rollup gets a chance to do its thing, causing it to fail.
 
-Secondly; we're using the `external-helpers` plugin, which allows Rollup to include any 'helpers' just once at the top of the bundle, rather than including them in every module that uses them (which is the default behaviour).
-
-Thirdly; we're putting our `.babelrc` file in `src`, rather than the project root. This allows us to have a different `.babelrc` for things like tests, if we need that later – it's generally a good idea to have separate configuration for separate tasks.
+Secondly, we're putting our `.babelrc` file in `src`, rather than the project root. This allows us to have a different `.babelrc` for things like tests, if we need that later – it's generally a good idea to have separate configuration for separate tasks.
 
 Now, before we run rollup, we need to install
 [`babel-core`](https://babeljs.io/docs/en/babel-core)

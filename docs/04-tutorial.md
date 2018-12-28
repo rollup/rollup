@@ -198,37 +198,108 @@ module.exports = main;
 
 _Note: Only the data we actually need gets imported – `name` and `devDependencies` and other parts of `package.json` are ignored. That's **tree-shaking** in action!_
 
-### Experimental Code Splitting
+### Code Splitting
 
-To use the new experimental code splitting feature, we add a second *entry point* called `src/main2.js` that itself dynamically loads main.js:
+To use the code splitting feature, we got back to the original example and modify `src/main.js` to load `src/foo.js` dynamically instead of statically:
 
 ```js
-// src/main2.js
+// src/main.js
 export default function () {
-  return import('./main.js').then(({ default: main }) => {
-    main();
-  });
+  import('./foo.js').then(({ default: foo }) => console.log(foo));
 }
 ```
 
-We can then pass both entry points to the rollup build, and instead of an output file we set a folder to output to with the `--dir` option (also passing the experimental flags):
+Rollup will use the dynamic import to create a separate chunk that is only loaded on demand. In order for Rollup to know where to place the second chunk, instead of passing the `--file` option we set a folder to output to with the `--dir` option:
 
 ```console
-rollup src/main.js src/main2.js -f cjs --dir dist --experimentalCodeSplitting
+rollup src/main.js -f cjs -d dist
 ```
 
-Either built entry point can then be run in NodeJS without duplicating any code between the modules:
+This will create a folder `dist` containing two files, `main.js` and `chunk-[hash].js`, where `[hash]` is a content based hash string. You can supply your own naming patterns by specifying the [`output.chunkFileNames`](guide/en#output-chunkfilenames) and [`output.entryFileNames`](guide/en#output-entryfilenames) options.
+
+You can still run your code as before with the same output, albeit a little slower as loading and parsing of `./foo.js` will only commence once we call the exported function for the first time.
 
 ```console
-node -e "require('./dist/main2.js')()"
+node -e "require('./dist/main.js')()"
 ```
 
-You can build the same code for the browser, for native ES modules, an AMD loader or SystemJS.
+If we do not use the `--dir` option, Rollup will again print the chunks to `stdout`, adding comments to highlight the chunk boundaries:
+
+```js
+//→ main.js:
+'use strict';
+
+function main () {
+  Promise.resolve(require('./chunk-b8774ea3.js')).then(({ default: foo }) => console.log(foo));
+}
+
+module.exports = main;
+
+//→ chunk-b8774ea3.js:
+'use strict';
+
+var foo = 'hello world!';
+
+exports.default = foo;
+```
+
+This is very useful if you want to load and parse expensive features only once they are used.
+
+A different use for code-splitting is the ability to specify several entry points that share some dependencies. Again we extend our example to add a second entry point `src/main2.js` that statically imports `src/foo.js` just like we did in the original example:
+
+```js
+// src/main2.js
+import foo from './foo.js';
+export default function () {
+  console.log(foo);
+}
+```
+
+If we supply both entry points to rollup, three chunks are created:
+
+```console
+rollup src/main.js src/main2.js -f cjs
+```
+
+will output
+
+```js
+//→ main.js:
+'use strict';
+
+function main () {
+  Promise.resolve(require('./chunk-b8774ea3.js')).then(({ default: foo }) => console.log(foo));
+}
+
+module.exports = main;
+
+//→ main2.js:
+'use strict';
+
+var foo_js = require('./chunk-b8774ea3.js');
+
+function main2 () {
+  console.log(foo_js.default);
+}
+
+module.exports = main2;
+
+//→ chunk-b8774ea3.js:
+'use strict';
+
+var foo = 'hello world!';
+
+exports.default = foo;
+```
+
+Notice how both entry points import the same shared chunk. Rollup will never duplicate code and instead create additional chunks to only ever load the bare minimum necessary. Again, passing the `--dir` option will write the files to disk.
+
+You can build the same code for the browser via native ES modules, an AMD loader or SystemJS.
 
 For example, with `-f esm` for native modules:
 
 ```console
-rollup src/main.js src/main2.js -f esm --dir dist --experimentalCodeSplitting
+rollup src/main.js src/main2.js -f esm -d dist
 ```
 
 ```html
@@ -242,7 +313,7 @@ rollup src/main.js src/main2.js -f esm --dir dist --experimentalCodeSplitting
 Or alternatively, for SystemJS with `-f system`:
 
 ```console
-rollup src/main.js src/main2.js -f system --dir dist --experimentalCodeSplitting
+rollup src/main.js src/main2.js -f system -d dist
 ```
 
 Install SystemJS via
@@ -261,3 +332,5 @@ And then load either or both entry points in an HTML page as needed:
   .then(({ default: main }) => main());
 </script>
 ```
+
+See [rollup-starter-code-splitting](https://github.com/rollup/rollup-starter-code-splitting) for an example on how to set up a web app that uses native ES modules on browsers that support them with a fallback to SystemJS if necessary.

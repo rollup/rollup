@@ -64,6 +64,34 @@ describe('misc', () => {
 			});
 	});
 
+	it('sorts chunks in the output', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: ['main1', 'main2'],
+				plugins: [
+					loader({
+						main1: 'import "dep";console.log("main1");',
+						main2: 'import "dep";console.log("main2");',
+						dep: 'console.log("dep");import("dyndep");',
+						dyndep: 'console.log("dyndep");'
+					})
+				],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => bundle.generate({ format: 'es' }))
+			.then(({ output }) => {
+				assert.equal(warnings.length, 0);
+				assert.deepEqual(output.map(({ fileName }) => fileName), [
+					'main1.js',
+					'main2.js',
+					'chunk-82df00d2.js',
+					'chunk-b9217e30.js'
+				]);
+			});
+	});
+
 	it('ignores falsy plugins', () => {
 		return rollup.rollup({
 			input: 'x',

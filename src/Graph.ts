@@ -1,7 +1,7 @@
 import * as acorn from 'acorn';
-import injectDynamicImportPlugin from 'acorn-dynamic-import/lib/inject';
-import injectImportMeta from 'acorn-import-meta/inject';
-import { Program } from 'estree';
+import injectDynamicImportPlugin from 'acorn-dynamic-import';
+import injectImportMeta from 'acorn-import-meta';
+import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
 import Chunk from './Chunk';
@@ -15,11 +15,11 @@ import {
 	OutputBundle,
 	RollupCache,
 	RollupWarning,
+	RollupWatcher,
 	SerializablePluginCache,
 	SourceDescription,
 	TreeshakingOptions,
-	WarningHandler,
-	Watcher
+	WarningHandler
 } from './rollup/types';
 import { finaliseAsset } from './utils/assetHooks';
 import { assignChunkColouringHashes } from './utils/chunkColouring';
@@ -47,7 +47,7 @@ function makeOnwarn() {
 export default class Graph {
 	curChunkIndex = 0;
 	acornOptions: acorn.Options;
-	acornParse: acorn.IParse;
+	acornParser: typeof acorn.Parser;
 	cachedModules: Map<string, ModuleJSON>;
 	context: string;
 	externalModules: ExternalModule[] = [];
@@ -62,12 +62,11 @@ export default class Graph {
 	scope: GlobalScope;
 	shimMissingExports: boolean;
 	treeshakingOptions: TreeshakingOptions;
-	varOrConst: 'var' | 'const';
 	preserveModules: boolean;
 
 	isExternal: IsExternal;
 
-	contextParse: (code: string, acornOptions?: acorn.Options) => Program;
+	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
 
 	pluginDriver: PluginDriver;
 	pluginCache: Record<string, SerializablePluginCache>;
@@ -80,7 +79,7 @@ export default class Graph {
 	// deprecated
 	treeshake: boolean;
 
-	constructor(options: InputOptions, watcher?: Watcher) {
+	constructor(options: InputOptions, watcher?: RollupWatcher) {
 		this.curChunkIndex = 0;
 		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
@@ -97,7 +96,7 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		this.preserveModules = options.experimentalPreserveModules;
+		this.preserveModules = options.preserveModules;
 
 		this.cacheExpiry = options.experimentalCacheExpiry;
 
@@ -130,7 +129,11 @@ export default class Graph {
 		}
 
 		this.contextParse = (code: string, options: acorn.Options = {}) => {
-			return this.acornParse(code, { ...defaultAcornOptions, ...options, ...this.acornOptions });
+			return this.acornParser.parse(code, {
+				...defaultAcornOptions,
+				...options,
+				...this.acornOptions
+			}) as any;
 		};
 
 		this.pluginDriver = createPluginDriver(this, options, this.pluginCache, watcher);
@@ -176,17 +179,11 @@ export default class Graph {
 		}
 
 		this.onwarn = options.onwarn || makeOnwarn();
-
-		this.varOrConst = options.preferConst ? 'const' : 'var';
-
 		this.acornOptions = options.acorn || {};
 		const acornPluginsToInject = [];
 
 		acornPluginsToInject.push(injectDynamicImportPlugin);
 		acornPluginsToInject.push(injectImportMeta);
-		this.acornOptions.plugins = this.acornOptions.plugins || {};
-		this.acornOptions.plugins.dynamicImport = true;
-		this.acornOptions.plugins.importMeta = true;
 
 		if (options.experimentalTopLevelAwait) {
 			(<any>this.acornOptions).allowAwaitOutsideFunction = true;
@@ -197,10 +194,10 @@ export default class Graph {
 			...(Array.isArray(acornInjectPlugins)
 				? acornInjectPlugins
 				: acornInjectPlugins
-					? [acornInjectPlugins]
-					: [])
+				? [acornInjectPlugins]
+				: [])
 		);
-		this.acornParse = acornPluginsToInject.reduce((acc, plugin) => plugin(acc), acorn).parse;
+		this.acornParser = <any>acorn.Parser.extend(...acornPluginsToInject);
 	}
 
 	getCache(): RollupCache {

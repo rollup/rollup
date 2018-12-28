@@ -31,6 +31,8 @@ const banner = `/*
 */`;
 
 const onwarn = warning => {
+	if (warning.pluginCode === 'ONWRITE_HOOK_DEPRECATED')
+		return;
 	// eslint-disable-next-line no-console
 	console.error(
 		'Building Rollup produced warnings that need to be resolved. ' +
@@ -78,7 +80,8 @@ export default command => {
 				typescript(),
 				commonjs()
 			],
-			external: ['fs', 'path', 'events', 'module', 'util', 'crypto'],
+			// acorn needs to be external as some plugins rely on a shared acorn instance
+			external: ['fs', 'path', 'events', 'module', 'util', 'crypto', 'acorn'],
 			output: [
 				{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
 				{ file: 'dist/rollup.es.js', format: 'esm', banner }

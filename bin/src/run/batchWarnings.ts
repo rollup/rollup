@@ -55,7 +55,7 @@ export default function batchWarnings() {
 					handler.fn(warnings);
 				} else {
 					warnings.forEach(warning => {
-						stderr(`${tc.bold.yellow('(!)')} ${tc.bold.yellow(warning.message)}`);
+						title(warning.message);
 
 						if (warning.url) info(warning.url);
 
@@ -87,14 +87,6 @@ const immediateHandlers: {
 		stderr(warning.message);
 	},
 
-	DEPRECATED_OPTIONS: warning => {
-		title(`Some options have been renamed`);
-		info(`https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32`);
-		warning.deprecations.forEach(option => {
-			stderr(`${tc.bold(option.old)} is now ${option.new}`);
-		});
-	},
-
 	MISSING_NODE_BUILTINS: warning => {
 		title(`Missing shims for Node.js built-ins`);
 
@@ -103,7 +95,7 @@ const immediateHandlers: {
 				? `'${warning.modules[0]}'`
 				: `${warning.modules
 						.slice(0, -1)
-						.map(name => `'${name}'`)
+						.map((name: string) => `'${name}'`)
 						.join(', ')} and '${warning.modules.slice(-1)}'`;
 		stderr(
 			`Creating a browser bundle that depends on ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`
@@ -263,11 +255,13 @@ const deferredHandlers: {
 					items.forEach(warning => {
 						if (warning.url !== lastUrl) info((lastUrl = warning.url));
 
-						const loc = warning.loc
-							? `${relativeId(warning.id)}: (${warning.loc.line}:${warning.loc.column})`
-							: relativeId(warning.id);
-
-						stderr(tc.bold(relativeId(loc)));
+						if (warning.id) {
+							let loc = relativeId(warning.id);
+							if (warning.loc) {
+								loc += `: (${warning.loc.line}:${warning.loc.column})`;
+							}
+							stderr(tc.bold(loc));
+						}
 						if (warning.frame) info(warning.frame);
 					});
 				});
