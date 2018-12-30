@@ -383,8 +383,6 @@ export interface RollupBuild {
 }
 
 export interface RollupOptions extends InputOptions {
-	cache?: RollupCache;
-	input: string | string[] | { [entryName: string]: string };
 	output?: OutputOptions;
 }
 
