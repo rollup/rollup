@@ -62,8 +62,15 @@ export default function getExportBlock(
 							reexports.some(
 								specifier => specifier.imported !== 'default' && specifier.imported !== '*'
 							));
+
+					const reexportsDefaultAsDefault =
+						reexports &&
+						reexports.some(
+							specifier => specifier.imported === 'default' && specifier.reexported === 'default'
+						);
+
 					if (exportBlock && !compact) exportBlock += '\n';
-					if (exportsNamesOrNamespace)
+					if (exportsNamesOrNamespace || reexportsDefaultAsDefault)
 						exportBlock += `exports.${specifier.reexported}${_}=${_}${name}${
 							interop !== false ? '__default' : '.default'
 						};`;
