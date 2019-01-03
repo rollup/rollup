@@ -210,19 +210,20 @@ See [Using plugins](guide/en#using-plugins) for more information on how to use p
 // rollup.config.js
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
-import {terser} from 'rollup-plugin-terser';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-export default {
+export default (async () => ({
   entry: 'main.js',
   plugins: [
     resolve(),
     commonjs(),
-    isProduction && terser()
+    isProduction && (await import('rollup-plugin-terser')).terser()
   ]
-};
+})();
 ```
+
+(This example also demonstrates how to use an async IIFE and dynamic imports to avoid unnecessary module loading, which can be surprisingly slow.)
 
 ### Advanced functionality
 
