@@ -57,18 +57,17 @@ export function createPluginDriver(
 ): PluginDriver {
 	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
 	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
-	const existingPluginKeys: string[] = [];
+	const existingPluginKeys: { [key: string]: true } = {};
 
 	let hasLoadersOrTransforms = false;
 
 	const pluginContexts: PluginContext[] = plugins.map((plugin, pidx) => {
 		let cacheable = true;
 		if (typeof plugin.cacheKey !== 'string') {
-			if (typeof plugin.name !== 'string') {
+			if (typeof plugin.name !== 'string' || existingPluginKeys[plugin.name]) {
 				cacheable = false;
 			} else {
-				if (existingPluginKeys.indexOf(plugin.name) !== -1) cacheable = false;
-				existingPluginKeys.push(plugin.name);
+				existingPluginKeys[plugin.name] = true;
 			}
 		}
 
@@ -90,14 +89,16 @@ export function createPluginDriver(
 			cacheInstance = uncacheablePlugin(plugin.name);
 		}
 
-		const firstWatchHandler = true;
+		let watcherDeprecationWarningShown = false;
 
 		function deprecatedWatchListener(event: string, handler: () => void): EventEmitter {
-			if (firstWatchHandler)
+			if (!watcherDeprecationWarningShown) {
 				context.warn({
 					code: 'PLUGIN_WATCHER_DEPRECATED',
-					message: `this.watcher usage is deprecated in plugins. Use the watchChange plugin hook instead.`
+					message: `this.watcher usage is deprecated in plugins. Use the watchChange plugin hook and this.addWatchFile() instead.`
 				});
+				watcherDeprecationWarningShown = true;
+			}
 			return watcher.on(event, handler);
 		}
 

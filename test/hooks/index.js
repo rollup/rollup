@@ -1139,7 +1139,7 @@ module.exports = input;
 				assert.equal(warning.pluginCode, 'PLUGIN_WATCHER_DEPRECATED');
 				assert.equal(
 					warning.message,
-					'this.watcher usage is deprecated in plugins. Use the watchChange plugin hook instead.'
+					'this.watcher usage is deprecated in plugins. Use the watchChange plugin hook and this.addWatchFile() instead.'
 				);
 			},
 			plugins: [

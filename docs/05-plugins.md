@@ -169,7 +169,7 @@ Defines a custom resolver. A resolver loader can be useful for e.g. locating thi
 #### `transform`
 Type: `(code: string, id: string) => string | { code: string, map?: string | SourceMap, ast? : ESTree.Program } | null | Promise<...>`
 
-Can be used to transform individual modules.
+Can be used to transform individual modules. Note that in watch mode, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` the last time the hook was triggered for this module.
 
 #### `watchChange`
 Type: `(id: string) => void`
@@ -198,6 +198,14 @@ More properties may be supported in future, as and when they prove necessary.
 ### Plugin Context
 
 A number of utility functions and informational bits can be accessed from within all [hooks](guide/en#hooks) via `this`:
+
+#### `this.addWatchFile(id: string) => void`
+
+Adds additional files to be monitored in watch mode so that changes to these files will trigger rebuilds. `id` can be an absolute path to a file or directory or a path relative to the current working directory. This context function can only be used in hooks during the build phase, i.e. in `buildStart`, `load`, `resolveId`, and `transform`.
+
+**Note:** Usually in watch mode to improve rebuild speed, the `transform` hook will only be triggered for a given module if its contents actually changed. Using `this.addWatchFile` from within the `transform` hook will make sure the `transform` hook is also reevaluated for this module if the watched file changes.
+
+In general, it is recommended to use `this.addWatchfile` from within the hook that depends on the watched file.
 
 #### `this.emitAsset(assetName: string, source: string) => void`
 
