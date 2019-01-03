@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 1.0.1
-*unreleased*
+*2019-01-03*
 
 ### Bug Fixes
 * Properly handle reexporting an external default export for non-ESM targets when using named exports mode (#2620)
