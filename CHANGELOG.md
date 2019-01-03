@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 1.0.1
+*unreleased*
+
+### Bug Fixes
+* Properly handle reexporting an external default export for non-ESM targets when using named exports mode (#2620)
+* Do not (wrongly) re-declare input options in the merged `RollupOptions` type (#2622)
+
+### Pull Requests
+* [#2620](https://github.com/rollup/rollup/pull/2620): Fixed issue with reexporting default as default with `{exports: named, interop: true}` options (@Andarist)
+* [#2622](https://github.com/rollup/rollup/pull/2622): Simplify RollupOptions (@Kinrany)
+* [#2627](https://github.com/rollup/rollup/pull/2627): Show how to skip imports for optional plugins (@chris-morgan)
+
 ## 1.0.0
 *2018-12-28*
 
