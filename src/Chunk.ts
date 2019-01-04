@@ -132,7 +132,7 @@ export default class Chunk {
 	} = undefined;
 	private renderedHash: string = undefined;
 	private renderedModuleSources: MagicString[] = undefined;
-	private renderedSource: MagicStringBundle = undefined;
+	private renderedSource: MagicStringBundle | null = null;
 	private renderedSourceLength: number = undefined;
 
 	constructor(graph: Graph, orderedModules: Module[], inlineDynamicImports: boolean) {
@@ -662,8 +662,9 @@ export default class Chunk {
 		return exports;
 	}
 
-	getRenderedHash() {
+	getRenderedHash(): string {
 		if (this.renderedHash) return this.renderedHash;
+		if (!this.renderedSource) return '';
 		const hash = sha256();
 		hash.update(this.renderedSource.toString());
 		return (this.renderedHash = hash.digest('hex'));
