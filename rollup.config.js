@@ -119,8 +119,7 @@ export default command => {
 		}
 	];
 
-	if (command.noBrowser) {
-		delete command.noBrowser;
+	if (command.configNoBrowser) {
 		return nodeBuilds;
 	}
 	return nodeBuilds.concat([
