@@ -5,16 +5,16 @@ Usage: rollup [options] <entry file>
 
 Basic options:
 
--c, --config                Use this config file (if argument is used but value
+-c, --config <filename>     Use this config file (if argument is used but value
                               is unspecified, defaults to rollup.config.js)
--d, --dir                   Directory for chunks (if absent, prints to stdout)
--e, --external              Comma-separate list of module IDs to exclude
+-d, --dir <dirname>         Directory for chunks (if absent, prints to stdout)
+-e, --external <ids>        Comma-separate list of module IDs to exclude
 -f, --format <format>       Type of output (amd, cjs, esm, iife, umd)
--g, --globals               Comma-separate list of `moduleID:Global` pairs
+-g, --globals <pairs>       Comma-separate list of `moduleID:Global` pairs
 -h, --help                  Show this help message
--i, --input                 Input (alternative to <entry file>)
+-i, --input <filename>      Input (alternative to <entry file>)
 -m, --sourcemap             Generate sourcemap (`-m inline` for inline map)
--n, --name                  Name for UMD export
+-n, --name <name>           Name for UMD export
 -o, --file <output>         Single output file (if absent, prints to stdout)
 -v, --version               Show version number
 -w, --watch                 Watch files in bundle and rebuild on changes

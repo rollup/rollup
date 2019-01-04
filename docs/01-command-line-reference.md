@@ -183,19 +183,22 @@ If you now run `rollup --config --configDebug`, the debug configuration will be 
 
 ### Command line flags
 
-Many options have command line equivalents. Any arguments passed here will override the config file, if you're using one. See the [big list of options](guide/en#big-list-of-options) for details.
+Many options have command line equivalents. In those cases, any arguments passed here will override the config file, if you're using one. This is a list of all supported options:
 
 ```text
--c, --config                Use this config file (if argument is used but value
+-c, --config <filename>     Use this config file (if argument is used but value
                               is unspecified, defaults to rollup.config.js)
--d, --dir                   Directory for chunks (if absent, prints to stdout)
--e, --external              Comma-separate list of module IDs to exclude
+-d, --dir <dirname>         Directory for chunks (if absent, prints to stdout)
+-e, --external <ids>        Comma-separate list of module IDs to exclude
 -f, --format <format>       Type of output (amd, cjs, esm, iife, umd)
--g, --globals               Comma-separate list of `moduleID:Global` pairs
--i, --input                 Input (alternative to <entry file>)
+-g, --globals <pairs>       Comma-separate list of `moduleID:Global` pairs
+-h, --help                  Show this help message
+-i, --input <filename>      Input (alternative to <entry file>)
 -m, --sourcemap             Generate sourcemap (`-m inline` for inline map)
--n, --name                  Name for UMD export
+-n, --name <name>           Name for UMD export
 -o, --file <output>         Single output file (if absent, prints to stdout)
+-v, --version               Show version number
+-w, --watch                 Watch files in bundle and rebuild on changes
 --amd.id <id>               ID for AMD module (default is anonymous)
 --amd.define <name>         Function to use in place of `define`
 --assetFileNames <pattern>  Name pattern for emitted assets
@@ -204,6 +207,7 @@ Many options have command line equivalents. Any arguments passed here will overr
 --compact                   Minify wrapper code
 --context <variable>        Specify top-level `this` value
 --entryFileNames <pattern>  Name pattern for emitted entry chunks
+--environment <values>      Settings passed to config file (see example)
 --no-esModule               Do not add __esModule property
 --exports <mode>            Specify export mode (auto, default, named, none)
 --extend                    Extend global variable defined by --name
@@ -221,6 +225,7 @@ Many options have command line equivalents. Any arguments passed here will overr
 --preserveModules           Preserve module structure
 --preserveSymlinks          Do not follow symlinks when resolving files
 --shimMissingExports        Create shim variables for missing exports
+--silent                    Don't print warnings
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
 --no-treeshake              Disable tree-shaking optimisations
@@ -228,7 +233,7 @@ Many options have command line equivalents. Any arguments passed here will overr
 --treeshake.pureExternalModules        Assume side-effect free externals
 ```
 
-In addition, the following arguments can be used:
+The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](guide/en#big-list-of-options) for details.
 
 #### `-h`/`--help`
 
