@@ -320,7 +320,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 									return writeOutputFile(graph, result, bundle[chunkId], outputOptions);
 								})
 							)
-								.then(() => graph.pluginDriver.hookSeq('writeBundle', [bundle]))
+								.then(() => graph.pluginDriver.hookParallel('writeBundle', [bundle]))
 								.then(() => createOutput(bundle));
 						});
 					})
