@@ -28,11 +28,15 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 	private members: { [key: string]: MemberDescription };
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
-		if (path.length > 0) {
+		if (
+			path.length > 0 ||
+			// unknown literals such as bigints can also be null but do not start with an "n"
+			(this.value === null && this.context.code.charCodeAt(this.start) !== 110) ||
+			typeof this.value === 'bigint'
+		) {
 			return UNKNOWN_VALUE;
 		}
-		// not sure why we need this type cast here
-		return <any>this.value;
+		return this.value as any;
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {

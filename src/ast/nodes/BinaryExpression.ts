@@ -28,7 +28,8 @@ const binaryOperators: {
 	'|': (left: any, right: any) => left | right,
 	'^': (left: any, right: any) => left ^ right,
 	'&': (left: any, right: any) => left & right,
-	'**': (left: any, right: any) => Math.pow(left, right),
+	// At the moment, "**" will be transpiled to Math.pow
+	'**': (left: any, right: any) => left ** right,
 	in: () => UNKNOWN_VALUE,
 	instanceof: () => UNKNOWN_VALUE
 };

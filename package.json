@@ -66,6 +66,7 @@
     "@types/chokidar": "^1.7.5",
     "@types/minimist": "^1.2.0",
     "@types/pretty-ms": "^3.0.0",
+    "acorn-bigint": "^0.3.1",
     "acorn-dynamic-import": "^4.0.0",
     "acorn-import-meta": "^0.3.0",
     "acorn-jsx": "^5.0.1",
