@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 1.0.2
+*2019-01-05*
+
+### Bug Fixes
+* Make sure the transform hook is always reevaluated when a file watched by the hook changes (#2633)
+* Fix a crash when generating hashes for tree-shaken dynamic imports (#2638)
+* Fix a crash and some inconsistencies when using the acorn-bigint plugin (#2640)
+
+### Pull Requests
+* [#2633](https://github.com/rollup/rollup/pull/2633): Document `this.addWatchFile` and make sure it also declares transform dependencies (@lukastaegert)
+* [#2635](https://github.com/rollup/rollup/pull/2635): Make sure `code` is optional in warning type (@lukastaegert)
+* [#2638](https://github.com/rollup/rollup/pull/2638): Do not fail when generating hashes for tree-shaken dynamic imports (@lukastaegert)
+* [#2640](https://github.com/rollup/rollup/pull/2640): Always treat bigints as unknown (@lukastaegert)
+* [#2641](https://github.com/rollup/rollup/pull/2641): Make sure all CLI options are listed in the summary (@lukastaegert)
+
 ## 1.0.1
 *2019-01-03*
 
