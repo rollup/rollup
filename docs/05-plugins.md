@@ -90,7 +90,7 @@ Cf. [`output.banner/output.footer`](guide/en#output-banner-output-footer).
 #### `generateBundle`
 Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }, isWrite: boolean) => void | Promise<void>`
 
-Called at the end of `bundle.generate()` or `bundle.write()`. `bundle` provides the full list of files being written or generated along with their details:
+Called at the end of `bundle.generate()` or immediately before the files are written in `bundle.write()`. To modify the files after they have been written, use the [`writeBundle`](guide/en#writebundle) hook. `bundle` provides the full list of files being written or generated along with their details:
 
 ```
 // AssetInfo
@@ -175,6 +175,11 @@ Can be used to transform individual modules. Note that in watch mode, the result
 Type: `(id: string) => void`
 
 Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode.
+
+#### `writeBundle`
+Type: `( bundle: { [fileName: string]: AssetInfo | ChunkInfo }) => void | Promise<void>`
+
+Called only at the end of `bundle.write()` once all files have been written. Similar to the [`generateBundle`](guide/en#generatebundle) hook, `bundle` provides the full list of files being written along with their details.
 
 ### Deprecated
 
