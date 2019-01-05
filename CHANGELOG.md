@@ -57,8 +57,8 @@
   - transformChunk
   - ongenerate
   - onwrite
-* Plugin transform dependencies are deprecated in favour of the `watchChange` plugin hook (#2409)
-* Accessing `this.watcher` in plugin hooks is deprecated in favour of the `watchChange` plugin hook (#2409)
+* Plugin transform dependencies are deprecated in favour of using the `this.addWatchFile` plugin context function (#2409)
+* Accessing `this.watcher` in plugin hooks is deprecated in favour of the `watchChange` plugin hook and the `this.addWatchFile` plugin context function (#2409)
 * Using dynamic import statements will by default create a new chunk unless `inlineDynamicImports` is used (#2293)
 * Rollup now uses acorn@6 which means that acorn plugins must be compatible with this version; acorn is now external for non-browser builds to make plugins work (#2293)
 

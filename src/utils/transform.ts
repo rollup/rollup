@@ -130,6 +130,11 @@ export default function transform(
 						pluginContext.error(err);
 					},
 					emitAsset,
+					addWatchFile(id: string) {
+						if (!transformDependencies) transformDependencies = [];
+						transformDependencies.push(id);
+						pluginContext.addWatchFile(id);
+					},
 					setAssetSource(assetId, source) {
 						pluginContext.setAssetSource(assetId, source);
 						if (!customTransformCache && !setAssetSourceErr) {
