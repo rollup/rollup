@@ -147,7 +147,7 @@ Defines a custom loader. Returning `null` defers to other `load` functions (and 
 Type: `(options: InputOptions) => InputOptions | null`<br>
 Kind: `sync, sequential`
 
-Reads and replaces or manipulates the options object passed to `rollup.rollup`. Returning `null` does not replace anything.
+Reads and replaces or manipulates the options object passed to `rollup.rollup`. Returning `null` does not replace anything. This is the only hook that does not have access to most [plugin context](guide/en#plugin-context) utility functions as it is run before rollup is fully configured.
 
 #### `outro`
 Type: `string | (() => string)`<br>
@@ -225,7 +225,7 @@ More properties may be supported in future, as and when they prove necessary.
 
 ### Plugin Context
 
-A number of utility functions and informational bits can be accessed from within all [hooks](guide/en#hooks) via `this`:
+A number of utility functions and informational bits can be accessed from within most [hooks](guide/en#hooks) via `this`:
 
 #### `this.addWatchFile(id: string) => void`
 
@@ -267,7 +267,7 @@ Determine if a given module ID is external.
 
 #### `this.meta: {rollupVersion: string}`
 
-An `Object` containing potentially useful Rollup metadata.
+An `Object` containing potentially useful Rollup metadata. `meta` is the only context property accessible from the [`options`](guide/en#options) hook.
 
 #### `this.moduleIds: IterableIterator<string>`
 

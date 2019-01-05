@@ -104,14 +104,17 @@ export interface PluginCache {
 	delete(id: string): boolean;
 }
 
-export interface PluginContext {
+export interface MinimalPluginContext {
+	meta: PluginContextMeta;
+}
+
+export interface PluginContext extends MinimalPluginContext {
 	/** @deprecated */
 	watcher: EventEmitter;
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
 	resolveId: ResolveIdHook;
 	isExternal: IsExternal;
-	meta: PluginContextMeta;
 	parse: (input: string, options: any) => ESTree.Program;
 	emitAsset(name: string, source?: string | Buffer): string;
 	setAssetSource: (assetId: string, source: string | Buffer) => void;
@@ -228,7 +231,7 @@ export interface Plugin {
 		options: OutputOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
-	options?: (options: InputOptions) => InputOptions | void | null;
+	options?: (this: MinimalPluginContext, options: InputOptions) => InputOptions | void | null;
 	outro?: AddonHook;
 	renderChunk?: RenderChunkHook;
 	renderError?: (this: PluginContext, err?: Error) => Promise<void> | void;
