@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import alias from 'rollup-plugin-alias';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
 import resolve from 'rollup-plugin-node-resolve';
@@ -31,8 +32,6 @@ const banner = `/*
 */`;
 
 const onwarn = warning => {
-	if (warning.pluginCode === 'ONWRITE_HOOK_DEPRECATED')
-		return;
 	// eslint-disable-next-line no-console
 	console.error(
 		'Building Rollup produced warnings that need to be resolved. ' +
@@ -41,31 +40,39 @@ const onwarn = warning => {
 	throw new Error(warning.message);
 };
 
-const src = path.resolve('src');
-const bin = path.resolve('bin');
+const expectedAcornImport = "import acorn__default, { tokTypes, Parser } from 'acorn';";
+const newAcornImport =
+	"import * as acorn__default from 'acorn';\nimport { tokTypes, Parser } from 'acorn';";
 
-function resolveTypescript() {
+// by default, rollup-plugin-commonjs will translate require statements as default imports
+// which can cause issues for secondary tools that use the ESM version of acorn
+function fixAcornEsmImport() {
 	return {
-		name: 'resolve-typescript',
-		resolveId(importee, importer) {
-			// work around typescript's inability to resolve other extensions
-			if (~importee.indexOf('help.md')) return path.resolve('bin/src/help.md');
-			if (~importee.indexOf('package.json')) return path.resolve('package.json');
-
-			// bit of a hack — TypeScript only really works if it can resolve imports,
-			// but they misguidedly chose to reject imports with file extensions. This
-			// means we need to resolve them here
-			if (
-				importer &&
-				(importer.startsWith(src) || importer.startsWith(bin)) &&
-				importee[0] === '.' &&
-				path.extname(importee) === ''
-			) {
-				return path.resolve(path.dirname(importer), `${importee}.ts`);
+		name: 'fix-acorn-esm-import',
+		renderChunk(code, chunk, options) {
+			if (/esm?/.test(options.format)) {
+				let found = false;
+				const fixedCode = code.replace(expectedAcornImport, () => {
+					found = true;
+					return newAcornImport;
+				});
+				if (!found) {
+					this.error(
+						'Could not find expected acorn import, please deactive this plugin and examine generated code.'
+					);
+				}
+				return fixedCode;
 			}
 		}
 	};
 }
+
+const moduleAliases = {
+	resolve: ['.js', '.json', '.md'],
+	'acorn-dynamic-import': path.resolve('node_modules/acorn-dynamic-import/src/index.js'),
+	'help.md': path.resolve('bin/src/help.md'),
+	'package.json': path.resolve('package.json')
+};
 
 export default command => {
 	const nodeBuilds = [
@@ -74,11 +81,12 @@ export default command => {
 			input: 'src/node-entry.ts',
 			onwarn,
 			plugins: [
-				json(),
-				resolveTypescript(),
+				alias(moduleAliases),
 				resolve(),
+				json(),
 				typescript(),
-				commonjs()
+				commonjs({ include: 'node_modules/**' }),
+				fixAcornEsmImport()
 			],
 			// acorn needs to be external as some plugins rely on a shared acorn instance
 			external: ['fs', 'path', 'events', 'module', 'util', 'crypto', 'acorn'],
@@ -92,14 +100,12 @@ export default command => {
 			input: 'bin/src/index.ts',
 			onwarn,
 			plugins: [
-				string({ include: '**/*.md' }),
-				json(),
-				resolveTypescript(),
+				alias(moduleAliases),
 				resolve(),
+				json(),
+				string({ include: '**/*.md' }),
 				typescript(),
-				commonjs({
-					include: 'node_modules/**'
-				})
+				commonjs({ include: 'node_modules/**' })
 			],
 			external: ['fs', 'path', 'module', 'events', 'rollup', 'assert', 'os', 'util'],
 			output: {
@@ -113,8 +119,7 @@ export default command => {
 		}
 	];
 
-	if (command.noBrowser) {
-		delete command.noBrowser;
+	if (command.configNoBrowser) {
 		return nodeBuilds;
 	}
 	return nodeBuilds.concat([
@@ -123,6 +128,8 @@ export default command => {
 			input: 'src/browser-entry.ts',
 			onwarn,
 			plugins: [
+				alias(moduleAliases),
+				resolve({ browser: true }),
 				json(),
 				{
 					load: id => {
@@ -130,8 +137,6 @@ export default command => {
 						if (~id.indexOf('path.ts')) return fs.readFileSync('browser/path.ts', 'utf-8');
 					}
 				},
-				resolveTypescript(),
-				resolve({ browser: true }),
 				typescript(),
 				commonjs(),
 				terser({ module: true, output: { comments: 'some' } })
