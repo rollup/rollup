@@ -1,3 +1,4 @@
+import { version as rollupVersion } from 'package.json';
 import Chunk from '../Chunk';
 import { optimizeChunks } from '../chunk-optimization';
 import Graph from '../Graph';
@@ -59,7 +60,8 @@ const throwAsyncGenerateError = {
 };
 
 function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
-	if (plugin.options) return plugin.options(inputOptions) || inputOptions;
+	if (plugin.options)
+		return plugin.options.call({ meta: { rollupVersion } }, inputOptions) || inputOptions;
 
 	return inputOptions;
 }
@@ -144,7 +146,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 		timeStart('BUILD', 1);
 
 		return graph.pluginDriver
-			.hookParallel('buildStart')
+			.hookParallel('buildStart', [inputOptions])
 			.then(() =>
 				graph.build(
 					inputOptions.input,

@@ -5,6 +5,30 @@ const { loader } = require('../utils.js');
 const rollup = require('../../dist/rollup.js');
 
 describe('hooks', () => {
+	it('allows to read and modify options in the options hook', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				treeshake: false,
+				plugins: [
+					loader({ newInput: `alert('hello')` }),
+					{
+						buildStart(options) {
+							assert.strictEqual(options.input, 'newInput');
+							assert.strictEqual(options.treeshake, false);
+						},
+						options(options) {
+							assert.strictEqual(options.input, 'input');
+							assert.strictEqual(options.treeshake, false);
+							assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
+							return Object.assign({}, options, { input: 'newInput' });
+						}
+					}
+				]
+			})
+			.then(bundle => {});
+	});
+
 	it('supports buildStart and buildEnd hooks', () => {
 		let buildStartCnt = 0;
 		let buildEndCnt = 0;
