@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 1.1.0
+*2019-01-09*
+
+### Features
+* Make `this.meta` available from the `options` plugin hook (#2642)
+* Add a new `writeBundle` plugin hook that is called *after* all files have been written (#2643)
+
+### Bug Fixes
+* Make sure the `acorn` import of the bundled non-ESM acorn plugins is correctly translated to ESM (#2636)
+* Make sure input options are actually passed to the `buildStart` hook (#2642)
+
+### Pull Requests
+* [#2636](https://github.com/rollup/rollup/pull/2636): Improve how acorn is imported, update dependencies (@lukastaegert)
+* [#2642](https://github.com/rollup/rollup/pull/2642): Make this.meta available in options hook, pass input options to buildStart (@lukastaegert)
+* [#2643](https://github.com/rollup/rollup/pull/2643): Implement writeBundle hook (@lukastaegert)
+
 ## 1.0.2
 *2019-01-05*
 
