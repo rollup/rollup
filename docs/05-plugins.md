@@ -65,32 +65,42 @@ The name of the plugin, for use in error messages and warnings.
 
 ### Hooks
 
-In addition to properties defining the identity of your plugin, you may also specify properties that correspond to available build hooks. Hooks can affect how a build is run, provide information about a build, or modify a build once complete.
+In addition to properties defining the identity of your plugin, you may also specify properties that correspond to available build hooks. Hooks can affect how a build is run, provide information about a build, or modify a build once complete. There are different kinds of hooks:
+
+* `async`: The hook can also return a promise resolving to the same type of value; otherwise, the hook is marked as `sync`
+* `first`: If several plugins implement this hook, the hooks are run sequentially until a hook returns a value other than `null` or `undefined`
+* `sequential`: If this hook returns a promise, then other hooks of this kind will only be executed once this hook has resolved
+* `parallel`: If this hook returns a promise, then other hooks of this kind will not wait for this hook to be resolved
 
 #### `banner`
-Type: `string | (() => string | Promise<string>)`
+Type: `string | (() => string)`<br>
+Kind: `async, parallel`
 
 Cf. [`output.banner/output.footer`](guide/en#output-banner-output-footer).
 
 #### `buildEnd`
-Type: `(error?: Error) => void | Promise<void>`
+Type: `(error?: Error) => void`<br>
+Kind: `async, parallel`
 
 Called when rollup has finished bundling, but before `generate` or `write` is called; you can also return a Promise. If an error occurred during the build, it is passed on to this hook.
 
 #### `buildStart`
-Type: `(options: InputOptions) => void | Promise<void>`
+Type: `(options: InputOptions) => void`<br>
+Kind: `async, parallel`
 
 Called on each `rollup.rollup` build.
 
 #### `footer`
-Type: `string | (() => string | Promise<string>)`
+Type: `string | (() => string)`<br>
+Kind: `async, parallel`
 
 Cf. [`output.banner/output.footer`](guide/en#output-banner-output-footer).
 
 #### `generateBundle`
-Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }, isWrite: boolean) => void | Promise<void>`
+Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }, isWrite: boolean) => void`<br>
+Kind: `async, sequential`
 
-Called at the end of `bundle.generate()` or `bundle.write()`. `bundle` provides the full list of files being written or generated along with their details:
+Called at the end of `bundle.generate()` or immediately before the files are written in `bundle.write()`. To modify the files after they have been written, use the [`writeBundle`](guide/en#writebundle) hook. `bundle` provides the full list of files being written or generated along with their details:
 
 ```
 // AssetInfo
@@ -122,59 +132,77 @@ Called at the end of `bundle.generate()` or `bundle.write()`. `bundle` provides 
 ```
 
 #### `intro`
-Type: `string | (() => string | Promise<string>)`
+Type: `string | (() => string)`<br>
+Kind: `async, parallel`
 
 Cf. [`output.intro/output.outro`](guide/en#output-intro-output-outro).
 
 #### `load`
-Type: `(id: string) => string | null | { code: string, map?: string | SourceMap } | Promise<...>`
+Type: `(id: string) => string | null | { code: string, map?: string | SourceMap }`<br>
+Kind: `async, first`
 
 Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system).
 
 #### `options`
-Type: `(options: InputOptions) => InputOptions | null`
+Type: `(options: InputOptions) => InputOptions | null`<br>
+Kind: `sync, sequential`
 
 Reads and replaces or manipulates the options object passed to `rollup.rollup`. Returning `null` does not replace anything.
 
 #### `outro`
-Type: `string | (() => string | Promise<string>)`
+Type: `string | (() => string)`<br>
+Kind: `async, parallel`
 
 Cf. [`output.intro/output.outro`](guide/en#output-intro-output-outro).
 
 #### `renderChunk`
-Type: `(code: string, chunk: ChunkInfo, options: OutputOptions) => string | { code: string, map: SourceMap } | null | Promise<...>`
+Type: `(code: string, chunk: ChunkInfo, options: OutputOptions) => string | { code: string, map: SourceMap } | null`<br>
+Kind: `async, sequential`
 
 Can be used to transform individual chunks. Called for each Rollup output chunk file. Returning `null` will apply no transformations.
 
 #### `renderError`
-Type: `(error: Error) => void | Promise<void>`
+Type: `(error: Error) => void`<br>
+Kind: `async, parallel`
 
 Called when rollup encounters an error during `bundle.generate()` or `bundle.write()`. The error is passed to this hook. To get notified when generation completes successfully, use the `generateBundle` hook.
 
 #### `renderStart`
-Type: `() => void | Promise<void>`
+Type: `() => void`<br>
+Kind: `async, parallel`
 
 Called initially each time `bundle.generate()` or `bundle.write()` is called. To get notified when generation has completed, use the `generateBundle` and `renderError` hooks.
 
 #### `resolveDynamicImport`
-Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null | Promise<...>`
+Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null`<br>
+Kind: `async, first`
 
 Defines a custom resolver for dynamic imports. In case a dynamic import is not passed a string as argument, this hook gets access to the raw AST nodes to analyze. Returning `null` will defer to other resolvers and eventually to `resolveId` if this is possible; returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use `this.resolveId(importee, importer)` on the plugin context.
 
 #### `resolveId`
-Type: `(importee: string, importer: string) => string | false | null | Promise<...>`
+Type: `(importee: string, importer: string) => string | false | null`<br>
+Kind: `async, first`
 
 Defines a custom resolver. A resolver loader can be useful for e.g. locating third-party dependencies. Returning `null` defers to other `resolveId` functions (and eventually the default resolution behavior); returning `false` signals that `importee` should be treated as an external module and not included in the bundle.
 
 #### `transform`
-Type: `(code: string, id: string) => string | { code: string, map?: string | SourceMap, ast? : ESTree.Program } | null | Promise<...>`
+Type: `(code: string, id: string) => string | { code: string, map?: string | SourceMap, ast? : ESTree.Program } | null`
+<br>
+Kind: `async, sequential`
 
 Can be used to transform individual modules. Note that in watch mode, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` the last time the hook was triggered for this module.
 
 #### `watchChange`
-Type: `(id: string) => void`
+Type: `(id: string) => void`<br>
+Kind: `sync, sequential`
 
 Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode.
+
+#### `writeBundle`
+Type: `( bundle: { [fileName: string]: AssetInfo | ChunkInfo }) => void`<br>
+Kind: `async, parallel`
+
+Called only at the end of `bundle.write()` once all files have been written. Similar to the [`generateBundle`](guide/en#generatebundle) hook, `bundle` provides the full list of files being written along with their details.
 
 ### Deprecated
 

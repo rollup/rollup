@@ -787,6 +787,7 @@ module.exports = input;
 					}),
 					{
 						generateBundle(options, outputBundle, isWrite) {
+							assert.strictEqual(isWrite, false);
 							const chunk = outputBundle['input.js'];
 
 							// can detect that b has been tree-shaken this way
@@ -802,9 +803,37 @@ module.exports = input;
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({ format: 'es' });
-			});
+			.then(bundle => bundle.generate({ format: 'es' }));
+	});
+
+	it('supports writeBundle hook', () => {
+		const file = path.join(__dirname, 'tmp/bundle.js');
+		let bundle;
+		let callCount = 0;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({
+						input: `export { a as default } from 'dep';`,
+						dep: `export var a = 1; export var b = 2;`
+					}),
+					{
+						generateBundle(options, outputBundle, isWrite) {
+							bundle = outputBundle;
+							assert.strictEqual(isWrite, true);
+						}
+					},
+					{
+						writeBundle(outputBundle) {
+							assert.deepStrictEqual(outputBundle, bundle);
+							callCount++;
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.write({ format: 'esm', file }))
+			.then(() => assert.strictEqual(callCount, 1));
 	});
 
 	it('supports this.cache for plugins', () => {

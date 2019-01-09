@@ -212,6 +212,7 @@ export interface Plugin {
 		bundle: OutputBundle,
 		isWrite: boolean
 	) => void | Promise<void>;
+	writeBundle?: (this: PluginContext, bundle: OutputBundle) => void | Promise<void>;
 	intro?: AddonHook;
 	load?: LoadHook;
 	name: string;
