@@ -83,7 +83,7 @@ export default function runRollup(command: any) {
 			configFile = realpathSync(configFile);
 		}
 
-		if (command.watch) process.env.ROLLUP_WATCH = 'true';
+		if (command.watch || command.watchStdin) process.env.ROLLUP_WATCH = 'true';
 
 		loadConfigFile(configFile, command)
 			.then(configs => execute(configFile, configs, command))
@@ -94,7 +94,7 @@ export default function runRollup(command: any) {
 }
 
 function execute(configFile: string, configs: InputOptions[], command: any) {
-	if (command.watch) {
+	if (command.watch || command.watchStdin) {
 		watch(configFile, configs, command, command.silent);
 	} else {
 		let promise = Promise.resolve();

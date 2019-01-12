@@ -135,7 +135,8 @@ export default function mergeOptions({
 			Object.keys(commandAliases),
 			'config',
 			'environment',
-			'silent'
+			'silent',
+			'watchStdin'
 		),
 		'CLI flag',
 		/^_|output|(config.*)$/

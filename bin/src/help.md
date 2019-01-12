@@ -50,6 +50,7 @@ Basic options:
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.propertyReadSideEffects Ignore property access side-effects
 --treeshake.pureExternalModules        Assume side-effect free externals
+--watchStdin                Same as `-w`, but listens on stdin to detect closing
 
 Examples:
 
