@@ -78,6 +78,7 @@ export default class ObjectExpression extends NodeBase {
 		if (
 			path.length === 1 &&
 			!this.propertyMap[key] &&
+			!objectMembers[key] &&
 			this.unmatchablePropertiesRead.length === 0
 		) {
 			if (!this.expressionsToBeDeoptimized[key]) {
@@ -167,8 +168,8 @@ export default class ObjectExpression extends NodeBase {
 		for (const property of typeof key !== 'string'
 			? this.properties
 			: this.propertyMap[key]
-				? this.propertyMap[key].propertiesRead
-				: []) {
+			? this.propertyMap[key].propertiesRead
+			: []) {
 			if (property.hasEffectsWhenAccessedAtPath(subPath, options)) return true;
 		}
 		return false;
@@ -191,10 +192,10 @@ export default class ObjectExpression extends NodeBase {
 		for (const property of typeof key !== 'string'
 			? this.properties
 			: path.length > 1
-				? this.propertyMap[key].propertiesRead
-				: this.propertyMap[key]
-					? this.propertyMap[key].propertiesSet
-					: []) {
+			? this.propertyMap[key].propertiesRead
+			: this.propertyMap[key]
+			? this.propertyMap[key].propertiesSet
+			: []) {
 			if (property.hasEffectsWhenAssignedAtPath(subPath, options)) return true;
 		}
 		return false;
