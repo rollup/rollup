@@ -237,7 +237,7 @@ In general, it is recommended to use `this.addWatchfile` from within the hook th
 
 #### `this.emitAsset(assetName: string, source: string) => void`
 
-Emits a custom file to include in the build output, returning its `assetId`. You can defer setting the source if you provide it later via `this.setAssetSource(assetId)`. A string or Buffer source must be set for each asset through either method or an error will be thrown on generate completion.
+Emits a custom file to include in the build output, returning its `assetId`. You can defer setting the source if you provide it later via `this.setAssetSource(assetId, source)`. A string or Buffer source must be set for each asset through either method or an error will be thrown on generate completion.
 
 #### `this.error(error: string | Error, position?: number) => void`
 
