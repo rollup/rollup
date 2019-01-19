@@ -265,6 +265,46 @@ describe('The bundle object', () => {
 			});
 	});
 
+	it('removes tree-shaken dynamic imports', () => {
+		return rollup
+			.rollup({
+				input: ['input'],
+				plugins: [
+					loader({
+						input: `export default false ? import('dynamic') : null`,
+						dynamic: `export default 'dynamic'`
+					})
+				]
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'esm',
+					dir: 'dist',
+					entryFileNames: '[name].js',
+					chunkFileNames: 'generated-[name].js'
+				})
+			)
+			.then(({ output }) => {
+				assert.deepEqual(output.map(chunk => chunk.fileName), ['input.js'], 'fileName');
+				assert.deepEqual(output.map(chunk => chunk.imports), [[]], 'imports');
+				assert.deepEqual(output.map(chunk => chunk.dynamicImports), [[]], 'dynamicImports');
+				assert.deepEqual(
+					output.map(chunk => chunk.modules),
+					[
+						{
+							input: {
+								originalLength: 47,
+								removedExports: [],
+								renderedExports: ['default'],
+								renderedLength: 17
+							}
+						}
+					],
+					'modules'
+				);
+			});
+	});
+
 	it('adds correct flags to files when preserving modules', () => {
 		return rollup
 			.rollup({
