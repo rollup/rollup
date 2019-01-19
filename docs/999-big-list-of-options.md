@@ -317,8 +317,8 @@ CLI: `--assetFileNames <pattern>`<br>
 Default: `"assets/[name]-[hash][extname]"`
 
 The pattern to use for naming custom emitted assets to include in the build output. Pattern supports the following placeholders:
- * `[ext]`: The file extension of the asset including a leading dot, e.g. `.css`.
- * `[extname]`: The file extension without a leading dot, e.g. `css`.
+ * `[extname]`: The file extension of the asset including a leading dot, e.g. `.css`.
+ * `[ext]`: The file extension without a leading dot, e.g. `css`.
  * `[hash]`: A hash based on the name and content of the asset.
  * `[name]`: The file name of the asset excluding any extension.
 
