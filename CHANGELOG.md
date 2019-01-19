@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.1.1
+*2019-01-19*
+
+### Bug Fixes
+* Make sure object prototype methods are not considered to be falsy when tree-shaking (#2652)
+
+### Pull Requests
+* [#2652](https://github.com/rollup/rollup/pull/2652): Make sure object prototype methods are not considered to be falsy (@lukastaegert)
+* [#2654](https://github.com/rollup/rollup/pull/2654): Use correct signature for `this.setAssetSource` in docs (@everdimension)
+* [#2656](https://github.com/rollup/rollup/pull/2656): Swap descriptions for `[extname]` and `[ext]` in docs (@tivac)
+
 ## 1.1.0
 *2019-01-09*
 
