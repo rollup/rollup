@@ -11,7 +11,7 @@ export function assignChunkColouringHashes(
 	let currentEntry: Module, currentEntryHash: Uint8Array;
 	let modulesVisitedForCurrentEntry: { [id: string]: boolean };
 	const handledEntryPoints: { [id: string]: boolean } = {};
-	const dynamicImports: Set<Module> = new Set();
+	const dynamicImports: Module[] = [];
 
 	const addCurrentEntryColourToModule = (module: Module) => {
 		if (currentEntry.chunkAlias) {
@@ -36,7 +36,7 @@ export function assignChunkColouringHashes(
 				resolution.isDynamicEntryPoint &&
 				!resolution.chunkAlias
 			) {
-				dynamicImports.add(resolution);
+				dynamicImports.push(resolution);
 			}
 		}
 	};
@@ -72,10 +72,11 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 		addCurrentEntryColourToModule(currentEntry);
 	}
 
-	for (currentEntry of Array.from(dynamicImports)) {
+	for (currentEntry of dynamicImports) {
 		if (handledEntryPoints[currentEntry.id]) {
 			continue;
 		}
+		handledEntryPoints[currentEntry.id] = true;
 		currentEntryHash = randomUint8Array(10);
 		modulesVisitedForCurrentEntry = { [currentEntry.id]: null };
 		addCurrentEntryColourToModule(currentEntry);
