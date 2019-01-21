@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.1.2
+*2019-01-21*
+
+### Bug Fixes
+* Tree-shaken dynamic imports no longer leave behind `undefined` entries in the bundle information (#2663)
+* Dynamic imports in dynamically imported files could lead to crashes and would not always create new chunks (#2664)
+
+### Pull Requests
+* [#2663](https://github.com/rollup/rollup/pull/2663): Do not include tree-shaken dynamic imports in bundle information (@lukastaegert)
+* [#2664](https://github.com/rollup/rollup/pull/2664): Properly handle dynamic imports declared in dynamically imported files (@everdimension)
+
 ## 1.1.1
 *2019-01-19*
 
