@@ -169,7 +169,7 @@ export default class Chunk {
 	}
 
 	getDynamicImportIds(): string[] {
-		return this.dynamicDependencies.map(chunk => chunk.id);
+		return this.dynamicDependencies.map(chunk => chunk.id).filter(Boolean);
 	}
 
 	getExportNames(): string[] {
