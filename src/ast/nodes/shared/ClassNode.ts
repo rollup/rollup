@@ -1,5 +1,6 @@
 import CallOptions from '../../CallOptions';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
+import ChildScope from '../../scopes/ChildScope';
 import Scope from '../../scopes/Scope';
 import { ObjectPath } from '../../values';
 import ClassBody from '../ClassBody';
@@ -12,7 +13,7 @@ export default class ClassNode extends NodeBase {
 	id: Identifier | null;
 
 	createScope(parentScope: Scope) {
-		this.scope = new Scope(parentScope);
+		this.scope = new ChildScope(parentScope);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {

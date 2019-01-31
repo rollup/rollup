@@ -2,6 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import BlockScope from '../scopes/BlockScope';
+import ChildScope from '../scopes/ChildScope';
 import Scope from '../scopes/Scope';
 import { UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
@@ -24,7 +25,7 @@ export default class BlockStatement extends StatementBase {
 
 	createScope(parentScope: Scope) {
 		this.scope = (<Node>this.parent).preventChildBlockScope
-			? parentScope
+			? <ChildScope>parentScope
 			: new BlockScope(parentScope);
 	}
 

@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import ModuleScope from '../scopes/ModuleScope';
 import { ObjectPath } from '../values';
 import ThisVariable from '../variables/ThisVariable';
 import * as NodeType from './NodeType';
@@ -28,7 +29,8 @@ export default class ThisExpression extends NodeBase {
 	initialise() {
 		this.included = false;
 		this.variable = null;
-		this.alias = this.scope.findLexicalBoundary().isModuleScope ? this.context.moduleContext : null;
+		this.alias =
+			this.scope.findLexicalBoundary() instanceof ModuleScope ? this.context.moduleContext : null;
 		if (this.alias === 'undefined') {
 			this.context.warn(
 				{

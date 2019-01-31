@@ -1,10 +1,13 @@
 import Module, { AstContext } from '../../Module';
 import relativeId from '../../utils/relativeId';
+import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import { UNDEFINED_EXPRESSION } from '../values';
+import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import LocalVariable from '../variables/LocalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import Variable from '../variables/Variable';
-import Scope from './Scope';
+import ChildScope from './ChildScope';
+import GlobalScope from './GlobalScope';
 
 const addDeclaredNames = (variable: Variable, names: Set<string>) => {
 	if (variable.isNamespace && !variable.isExternal) {
@@ -14,15 +17,23 @@ const addDeclaredNames = (variable: Variable, names: Set<string>) => {
 	names.add(variable.getName());
 };
 
-export default class ModuleScope extends Scope {
-	parent: Scope;
+export default class ModuleScope extends ChildScope {
+	parent: GlobalScope;
 	context: AstContext;
 
-	constructor(parent: Scope, context: AstContext) {
+	constructor(parent: GlobalScope, context: AstContext) {
 		super(parent);
 		this.context = context;
-		this.isModuleScope = true;
 		this.variables.this = new LocalVariable('this', null, UNDEFINED_EXPRESSION, context);
+	}
+
+	addExportDefaultDeclaration(
+		name: string,
+		exportDefaultDeclaration: ExportDefaultDeclaration,
+		context: AstContext
+	): ExportDefaultVariable {
+		this.variables.default = new ExportDefaultVariable(name, exportDefaultDeclaration, context);
+		return this.variables.default;
 	}
 
 	deshadow(names: Set<string>, children = this.children) {

@@ -1,3 +1,4 @@
+import ChildScope from '../scopes/ChildScope';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
@@ -19,10 +20,10 @@ export default class FunctionDeclaration extends FunctionNode {
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
 		if (esTreeNode.id !== null) {
-			this.id = <Identifier>new this.context.nodeConstructors.Identifier(
-				esTreeNode.id,
-				this,
-				this.scope.parent
+			this.id = <Identifier>(
+				new this.context.nodeConstructors.Identifier(esTreeNode.id, this, <ChildScope>(
+					this.scope.parent
+				))
 			);
 		}
 		super.parseNode(esTreeNode);
