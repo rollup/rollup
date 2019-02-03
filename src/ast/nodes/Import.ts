@@ -47,6 +47,7 @@ export default class Import extends NodeBase {
 
 	private resolutionNamespace: string;
 	private resolutionInterop: boolean;
+	private rendered: boolean;
 
 	include() {
 		this.included = true;
@@ -55,13 +56,14 @@ export default class Import extends NodeBase {
 
 	initialise() {
 		this.included = false;
+		this.rendered = false;
 		this.resolutionNamespace = undefined;
 		this.resolutionInterop = false;
 		this.context.addDynamicImport(this);
 	}
 
 	renderFinalResolution(code: MagicString, resolution: string) {
-		if (this.included) {
+		if (this.included && !this.rendered) {
 			code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, resolution);
 		}
 	}
@@ -75,6 +77,8 @@ export default class Import extends NodeBase {
 				this.parent.end,
 				`Promise.resolve().then(function${_}()${_}{${_}return ${this.resolutionNamespace}${s}${_}})`
 			);
+
+			this.rendered = true;
 			return;
 		}
 
@@ -87,6 +91,8 @@ export default class Import extends NodeBase {
 			const rightMechanism =
 				(this.resolutionInterop && importMechanism.interopRight) || importMechanism.right;
 			code.overwrite(this.parent.arguments[0].end, this.parent.end, rightMechanism);
+
+			this.rendered = true;
 		}
 	}
 
