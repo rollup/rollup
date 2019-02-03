@@ -18,7 +18,8 @@ export default function build(
 	inputOptions: InputOptions,
 	outputOptions: OutputOptions[],
 	warnings: BatchWarnings,
-	silent = false
+	silent = false,
+	recover = false,
 ) {
 	const useStdout = !outputOptions[0].file && !outputOptions[0].dir;
 
@@ -84,6 +85,6 @@ export default function build(
 		})
 		.catch((err: any) => {
 			if (warnings.count > 0) warnings.flush();
-			handleError(err);
+			handleError(err, recover);
 		});
 }
