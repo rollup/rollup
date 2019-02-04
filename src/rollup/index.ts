@@ -360,7 +360,7 @@ function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset>): 
 				const fileTypeB = getSortingFileType(outputFileB);
 				if (fileTypeA === fileTypeB) return 0;
 				return fileTypeA < fileTypeB ? -1 : 1;
-			})
+			}) as [OutputChunk, ...(OutputChunk | OutputAsset)[]]
 	};
 }
 
