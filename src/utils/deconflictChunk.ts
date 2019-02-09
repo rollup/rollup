@@ -125,7 +125,7 @@ export function deconflictChunk(
 			const variable = moduleVariables[name];
 			if (
 				!(
-					variable.baseName ||
+					variable.renderBaseName ||
 					(variable instanceof ExportDefaultVariable && variable.referencesOriginal())
 				)
 			) {

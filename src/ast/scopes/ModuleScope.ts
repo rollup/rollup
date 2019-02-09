@@ -5,18 +5,9 @@ import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ExternalVariable from '../variables/ExternalVariable';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
-import NamespaceVariable from '../variables/NamespaceVariable';
 import Variable from '../variables/Variable';
 import ChildScope from './ChildScope';
 import GlobalScope from './GlobalScope';
-
-const addDeclaredNames = (variable: Variable, names: Set<string>) => {
-	if (variable.isNamespace && !variable.isExternal) {
-		for (const name of (<NamespaceVariable>variable).context.getExports())
-			addDeclaredNames((<NamespaceVariable>variable).context.traceExport(name), names);
-	}
-	names.add(variable.getName());
-};
 
 export default class ModuleScope extends ChildScope {
 	parent: GlobalScope;

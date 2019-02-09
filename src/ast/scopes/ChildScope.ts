@@ -34,12 +34,11 @@ export default class ChildScope extends Scope {
 			usedNames.add(variable.getBaseVariableName());
 		});
 		for (const name of Object.keys(this.variables)) {
-			const variable = this.variables[name];
-			if (!variable.baseName) {
-				variable.setSafeName(getSafeName(variable.name, usedNames));
-			}
+			this.variables[name].setSafeName(getSafeName(name, usedNames));
 		}
-		for (const scope of this.children) scope.deshadow(esmOrSystem);
+		for (const scope of this.children) {
+			scope.deshadow(esmOrSystem);
+		}
 	}
 
 	findLexicalBoundary(): ChildScope {
