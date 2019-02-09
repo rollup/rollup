@@ -1,6 +1,7 @@
 const path = require('path');
 
 module.exports = {
+	description: 'replaces missing namespace members with undefined and warns about them',
 	warnings: [
 		{
 			code: 'MISSING_EXPORT',

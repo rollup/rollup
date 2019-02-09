@@ -4,7 +4,7 @@ System.register('iife', [], function (exports, module) {
 		execute: function () {
 
 			var self = {
-				get p () { return p$$1; }
+				get p () { return p; }
 			};
 			if (typeof Symbol !== 'undefined' && Symbol.toStringTag)
 				Object.defineProperty(self, Symbol.toStringTag, { value: 'Module' });
@@ -14,7 +14,7 @@ System.register('iife', [], function (exports, module) {
 
 			console.log(Object.keys(self));
 
-			var p$$1 = exports('p', 5);
+			var p = exports('p', 5);
 
 		}
 	};

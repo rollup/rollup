@@ -751,7 +751,7 @@ export default class Module {
 		}
 	}
 
-	private warn(warning: RollupWarning, pos: number) {
+	warn(warning: RollupWarning, pos: number) {
 		if (pos !== undefined) {
 			warning.pos = pos;
 

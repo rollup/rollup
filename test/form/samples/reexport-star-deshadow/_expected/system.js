@@ -5,7 +5,7 @@ System.register('myBundle', [], function (exports, module) {
 
 			function foo() { return true; }
 
-			var baz = function foo$$1() {
+			var baz = function foo$1() {
 				return foo();
 			};
 

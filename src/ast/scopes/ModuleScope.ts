@@ -1,8 +1,9 @@
-import Module, { AstContext } from '../../Module';
-import relativeId from '../../utils/relativeId';
+import { AstContext } from '../../Module';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
+import ExternalVariable from '../variables/ExternalVariable';
+import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import Variable from '../variables/Variable';
@@ -32,50 +33,22 @@ export default class ModuleScope extends ChildScope {
 		exportDefaultDeclaration: ExportDefaultDeclaration,
 		context: AstContext
 	): ExportDefaultVariable {
-		this.variables.default = new ExportDefaultVariable(name, exportDefaultDeclaration, context);
-		return this.variables.default;
+		return (this.variables.default = new ExportDefaultVariable(
+			name,
+			exportDefaultDeclaration,
+			context
+		));
 	}
 
-	deshadow(names: Set<string>, children = this.children) {
-		const localNames = new Set(names);
-
-		for (const importName of Object.keys(this.context.importDescriptions)) {
-			const importDescription = this.context.importDescriptions[importName];
-
-			if (importDescription.module.isExternal || this.context.isCrossChunkImport(importDescription))
-				continue;
-
-			for (const name of (<Module>importDescription.module).getAllExports())
-				addDeclaredNames(importDescription.module.getVariableForExportName(name), localNames);
-
-			if (importDescription.name !== '*') {
-				const declaration = importDescription.module.getVariableForExportName(
-					importDescription.name
-				);
-				if (!declaration) {
-					this.context.warn(
-						{
-							code: 'NON_EXISTENT_EXPORT',
-							name: importDescription.name,
-							source: importDescription.module.id,
-							message: `Non-existent export '${
-								importDescription.name
-							}' is imported from ${relativeId(importDescription.module.id)}`
-						},
-						importDescription.start
-					);
-					continue;
-				}
-
-				const name = declaration.getName();
-				if (name !== importDescription.name) localNames.add(name);
-
-				if (importDescription.name !== 'default' && importDescription.name !== importName)
-					localNames.add(importDescription.name);
-			}
+	addNamespaceMemberAccess(variable: Variable) {
+		if (variable instanceof ExternalVariable || variable instanceof GlobalVariable) {
+			this.accessedOutsideVariables.add(variable);
 		}
+	}
 
-		super.deshadow(localNames, children);
+	deshadow(esmOrSystem: boolean) {
+		// all module level variables are already deshadowed in the chunk
+		for (const scope of this.children) scope.deshadow(esmOrSystem);
 	}
 
 	findLexicalBoundary() {
@@ -87,6 +60,10 @@ export default class ModuleScope extends ChildScope {
 			return this.variables[name];
 		}
 
-		return this.context.traceVariable(name) || this.parent.findVariable(name);
+		const variable = this.context.traceVariable(name) || this.parent.findVariable(name);
+		if (variable instanceof ExternalVariable || variable instanceof GlobalVariable) {
+			this.accessedOutsideVariables.add(variable);
+		}
+		return variable;
 	}
 }

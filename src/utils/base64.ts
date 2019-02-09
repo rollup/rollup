@@ -1,8 +1,8 @@
 const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$';
+const base = 64;
 
-export function toBase64(num: number, base63 = false) {
+export function toBase64(num: number) {
 	let outStr = '';
-	const base = base63 ? 63 : 64;
 	do {
 		const curDigit = num % base;
 		num = Math.floor(num / base);

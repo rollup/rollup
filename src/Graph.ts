@@ -31,7 +31,6 @@ import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
-import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 function makeOnwarn() {
 	const warned = Object.create(null);
@@ -157,12 +156,7 @@ export default class Graph {
 		}
 
 		this.shimMissingExports = options.shimMissingExports;
-
 		this.scope = new GlobalScope();
-		for (const name of ['module', 'exports', '_interopDefault', MISSING_EXPORT_SHIM_VARIABLE]) {
-			this.scope.findVariable(name); // creates global variable as side-effect
-		}
-
 		this.context = String(options.context);
 
 		const optionsModuleContext = options.moduleContext;

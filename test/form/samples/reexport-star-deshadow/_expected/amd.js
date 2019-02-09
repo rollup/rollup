@@ -2,7 +2,7 @@ define(function () { 'use strict';
 
 	function foo() { return true; }
 
-	var baz = function foo$$1() {
+	var baz = function foo$1() {
 		return foo();
 	};
 
