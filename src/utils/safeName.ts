@@ -1,8 +1,9 @@
 import { toBase64 } from './base64';
-import { MISSING_EXPORT_SHIM_VARIABLE } from './variableNames';
+import { INTEROP_DEFAULT_VARIABLE, MISSING_EXPORT_SHIM_VARIABLE } from './variableNames';
 
 const RESERVED_NAMES: { [name: string]: true } = {
 	[MISSING_EXPORT_SHIM_VARIABLE]: true,
+	[INTEROP_DEFAULT_VARIABLE]: true,
 	exports: true,
 	module: true
 };

@@ -1,5 +1,6 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/types';
+import { INTEROP_DEFAULT_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
 import getExportBlock from './shared/getExportBlock';
@@ -59,8 +60,8 @@ export default function cjs(
 					} else {
 						needsInterop = true;
 						if (exportsNames)
-							importBlock += `${name}=require('${id}'),${name}__default=_interopDefault(${name})`;
-						else importBlock += `${name}=_interopDefault(require('${id}'))`;
+							importBlock += `${name}=require('${id}'),${name}__default=${INTEROP_DEFAULT_VARIABLE}(${name})`;
+						else importBlock += `${name}=${INTEROP_DEFAULT_VARIABLE}(require('${id}'))`;
 					}
 				}
 			}
@@ -89,10 +90,10 @@ export default function cjs(
 					if (exportsNames)
 						return (
 							`${varOrConst} ${name} = require('${id}');` +
-							`\n${varOrConst} ${name}__default = _interopDefault(${name});`
+							`\n${varOrConst} ${name}__default = ${INTEROP_DEFAULT_VARIABLE}(${name});`
 						);
 
-					return `${varOrConst} ${name} = _interopDefault(require('${id}'));`;
+					return `${varOrConst} ${name} = ${INTEROP_DEFAULT_VARIABLE}(require('${id}'));`;
 				}
 			)
 			.join('\n');
@@ -100,9 +101,9 @@ export default function cjs(
 
 	if (needsInterop) {
 		if (options.compact)
-			intro += `function _interopDefault(e){return(e&&(typeof e==='object')&&'default'in e)?e['default']:e}`;
+			intro += `function ${INTEROP_DEFAULT_VARIABLE}(e){return(e&&(typeof e==='object')&&'default'in e)?e['default']:e}`;
 		else
-			intro += `function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }\n\n`;
+			intro += `function ${INTEROP_DEFAULT_VARIABLE} (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }\n\n`;
 	}
 
 	if (importBlock) intro += importBlock + n + n;
