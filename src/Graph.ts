@@ -249,6 +249,31 @@ export default class Graph {
 		for (const module of this.modules) {
 			module.bindReferences();
 		}
+		this.warnForMissingExports();
+	}
+
+	private warnForMissingExports() {
+		for (const module of this.modules) {
+			for (const importName of Object.keys(module.importDescriptions)) {
+				const importDescription = module.importDescriptions[importName];
+				if (
+					importDescription.name !== '*' &&
+					!importDescription.module.getVariableForExportName(importDescription.name)
+				) {
+					module.warn(
+						{
+							code: 'NON_EXISTENT_EXPORT',
+							name: importDescription.name,
+							source: importDescription.module.id,
+							message: `Non-existent export '${
+								importDescription.name
+							}' is imported from ${relativeId(importDescription.module.id)}`
+						},
+						importDescription.start
+					);
+				}
+			}
+		}
 	}
 
 	includeMarked(modules: Module[]) {

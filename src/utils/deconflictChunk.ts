@@ -3,7 +3,6 @@ import Variable from '../ast/variables/Variable';
 import Chunk from '../Chunk';
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
-import relativeId from './relativeId';
 import { getSafeName } from './safeName';
 
 export function deconflictChunk(
@@ -66,28 +65,6 @@ export function deconflictChunk(
 
 	// deconflict module level variables
 	for (const module of modules) {
-		for (const importName of Object.keys(module.importDescriptions)) {
-			const importDescription = module.importDescriptions[importName];
-			if (importDescription.name !== '*' && importDescription.module.chunk === module.chunk) {
-				const declaration = importDescription.module.getVariableForExportName(
-					importDescription.name
-				);
-				if (!declaration) {
-					module.warn(
-						{
-							code: 'NON_EXISTENT_EXPORT',
-							name: importDescription.name,
-							source: importDescription.module.id,
-							message: `Non-existent export '${
-								importDescription.name
-							}' is imported from ${relativeId(importDescription.module.id)}`
-						},
-						importDescription.start
-					);
-				}
-			}
-		}
-
 		const moduleVariables = module.scope.variables;
 		for (const name of Object.keys(moduleVariables)) {
 			const variable = moduleVariables[name];
@@ -105,6 +82,7 @@ export function deconflictChunk(
 			namespace.setRenderNames(null, getSafeName(namespace.name, usedNames));
 		}
 	}
+
 	for (const module of modules) {
 		module.scope.deconflict();
 	}
