@@ -8,12 +8,12 @@ const RESERVED_NAMES: { [name: string]: true } = {
 	module: true
 };
 
-export function getSafeName(baseName: string, usedNames: Set<string>): string {
+export function getSafeName(baseName: string, usedNames: { [name: string]: true }): string {
 	let safeName = baseName;
 	let count = 1;
-	while (usedNames.has(safeName) || RESERVED_NAMES[safeName]) {
+	while (usedNames[safeName] || RESERVED_NAMES[safeName]) {
 		safeName = `${baseName}$${toBase64(count++)}`;
 	}
-	usedNames.add(safeName);
+	usedNames[safeName] = true;
 	return safeName;
 }

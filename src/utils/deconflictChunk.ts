@@ -15,7 +15,7 @@ export function deconflictChunk(
 	interop: boolean,
 	preserveModules: boolean
 ) {
-	const usedNames: Set<string> = new Set();
+	const usedNames: { [name: string]: true } = Object.create(null);
 
 	// add names of globals and find external variables
 	const externalVariablesByModuleAndName: Map<
@@ -36,7 +36,7 @@ export function deconflictChunk(
 				}
 				moduleVariablesWithSameName.push(variable);
 			} else {
-				usedNames.add(variable.getBaseVariableName());
+				usedNames[variable.getBaseVariableName()] = true;
 			}
 		}
 	}

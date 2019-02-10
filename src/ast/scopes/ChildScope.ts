@@ -29,9 +29,9 @@ export default class ChildScope extends Scope {
 	}
 
 	deconflict() {
-		const usedNames = new Set();
+		const usedNames: { [name: string]: true } = Object.create(null);
 		for (const name of Object.keys(this.accessedOutsideVariables)) {
-			usedNames.add(this.accessedOutsideVariables[name].getBaseVariableName());
+			usedNames[this.accessedOutsideVariables[name].getBaseVariableName()] = true;
 		}
 		for (const name of Object.keys(this.variables)) {
 			this.variables[name].setSafeName(getSafeName(name, usedNames));
