@@ -2,7 +2,6 @@ import { AstContext } from '../../Module';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
-import ExternalVariable from '../variables/ExternalVariable';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
@@ -31,9 +30,9 @@ export default class ModuleScope extends ChildScope {
 		));
 	}
 
-	addNamespaceMemberAccess(name: string, variable: Variable) {
-		if (variable instanceof ExternalVariable || variable instanceof GlobalVariable) {
-			this.accessedOutsideVariables[name] = variable;
+	addNamespaceMemberAccess(_name: string, variable: Variable) {
+		if (variable instanceof GlobalVariable) {
+			this.accessedOutsideVariables[variable.name] = variable;
 		}
 	}
 
@@ -52,7 +51,7 @@ export default class ModuleScope extends ChildScope {
 			return knownVariable;
 		}
 		const variable = this.context.traceVariable(name) || this.parent.findVariable(name);
-		if (variable instanceof ExternalVariable || variable instanceof GlobalVariable) {
+		if (variable instanceof GlobalVariable) {
 			this.accessedOutsideVariables[name] = variable;
 		}
 		return variable;

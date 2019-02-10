@@ -1,5 +1,4 @@
 import ExportDefaultVariable from '../ast/variables/ExportDefaultVariable';
-import ExternalVariable from '../ast/variables/ExternalVariable';
 import Variable from '../ast/variables/Variable';
 import Chunk from '../Chunk';
 import ExternalModule from '../ExternalModule';
@@ -17,82 +16,50 @@ export function deconflictChunk(
 ) {
 	const usedNames: { [name: string]: true } = Object.create(null);
 
-	// add names of globals and find external variables
-	const externalVariablesByModuleAndName: Map<
-		ExternalModule,
-		{ [name: string]: ExternalVariable[] }
-	> = new Map();
+	// add names of globals
 	for (const module of modules) {
-		for (const name of Object.keys(module.scope.accessedOutsideVariables)) {
-			const variable = module.scope.accessedOutsideVariables[name];
-			if (variable instanceof ExternalVariable) {
-				let moduleVariablesByName = externalVariablesByModuleAndName.get(variable.module);
-				if (!moduleVariablesByName) {
-					externalVariablesByModuleAndName.set(variable.module, (moduleVariablesByName = {}));
-				}
-				let moduleVariablesWithSameName = moduleVariablesByName[variable.name];
-				if (!moduleVariablesWithSameName) {
-					moduleVariablesByName[variable.name] = moduleVariablesWithSameName = [];
-				}
-				moduleVariablesWithSameName.push(variable);
-			} else {
-				usedNames[variable.getBaseVariableName()] = true;
-			}
-		}
+		Object.assign(usedNames, module.scope.accessedOutsideVariables);
 	}
 
-	// deconflict external variables
+	// deconflict chunk imports
 	if (esmOrSystem) {
-		externalVariablesByModuleAndName.forEach((moduleVariablesByName, module) => {
-			for (const name of Object.keys(moduleVariablesByName)) {
-				let proposedName: string;
+		for (const variable of Array.from(imports)) {
+			const module = variable.module;
+			const name = variable.name;
+			let proposedName: string;
+			if (module instanceof ExternalModule && (name === '*' || name === 'default')) {
 				if (name === 'default' && interop && module.exportsNamespace) {
 					proposedName = module.variableName + '__default';
-				} else if (name === '*' || name === 'default') {
-					proposedName = module.variableName;
 				} else {
-					proposedName = name;
+					proposedName = module.variableName;
 				}
-				const variableName = getSafeName(proposedName, usedNames);
-				for (const variable of moduleVariablesByName[name]) {
-					variable.setRenderNames(null, variableName);
-				}
+			} else {
+				proposedName = name;
 			}
-		});
+			variable.setRenderNames(null, getSafeName(proposedName, usedNames));
+		}
 	} else {
 		for (const dependency of dependencies) {
 			dependency.variableName = getSafeName(dependency.variableName, usedNames);
 		}
-		externalVariablesByModuleAndName.forEach((moduleVariablesByName, module) => {
-			// deconflict external module variable names first
-			for (const name of Object.keys(moduleVariablesByName)) {
-				for (const variable of moduleVariablesByName[name]) {
-					if (name === 'default' && interop && (module.exportsNamespace || module.exportsNames)) {
-						variable.setRenderNames(null, module.variableName + '__default');
-					} else if (name === '*' || name === 'default') {
-						variable.setRenderNames(null, module.variableName);
-					} else {
-						variable.setRenderNames(module.variableName, null);
-					}
+		for (const variable of Array.from(imports)) {
+			const module = variable.module;
+			if (module instanceof ExternalModule) {
+				const name = variable.name;
+				if (name === 'default' && interop && (module.exportsNamespace || module.exportsNames)) {
+					variable.setRenderNames(null, module.variableName + '__default');
+				} else if (name === '*' || name === 'default') {
+					variable.setRenderNames(null, module.variableName);
+				} else {
+					variable.setRenderNames(module.variableName, null);
 				}
-			}
-		});
-	}
-
-	// deconflict cross-chunk imports
-	for (const variable of Array.from(imports)) {
-		if (variable.module instanceof ExternalModule) continue;
-		if (esmOrSystem) {
-			variable.setRenderNames(null, getSafeName(variable.name, usedNames));
-		} else {
-			const chunk = variable.module.chunk;
-			if (chunk.exportMode === 'default' || (preserveModules && variable.isNamespace)) {
-				variable.setRenderNames(null, chunk.variableName);
 			} else {
-				variable.setRenderNames(
-					chunk.variableName,
-					variable.module.chunk.getVariableExportName(variable)
-				);
+				const chunk = module.chunk;
+				if (chunk.exportMode === 'default' || (preserveModules && variable.isNamespace)) {
+					variable.setRenderNames(null, chunk.variableName);
+				} else {
+					variable.setRenderNames(chunk.variableName, module.chunk.getVariableExportName(variable));
+				}
 			}
 		}
 	}
