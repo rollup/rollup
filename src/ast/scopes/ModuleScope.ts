@@ -37,9 +37,9 @@ export default class ModuleScope extends ChildScope {
 		}
 	}
 
-	deshadow(esmOrSystem: boolean) {
-		// all module level variables are already deshadowed in the chunk
-		for (const scope of this.children) scope.deshadow(esmOrSystem);
+	deconflict() {
+		// all module level variables are already deconflicted in the chunk
+		for (const scope of this.children) scope.deconflict();
 	}
 
 	findLexicalBoundary() {

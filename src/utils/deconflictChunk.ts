@@ -139,6 +139,6 @@ export function deconflictChunk(
 		}
 	}
 	for (const module of modules) {
-		module.scope.deshadow(esmOrSystem);
+		module.scope.deconflict();
 	}
 }

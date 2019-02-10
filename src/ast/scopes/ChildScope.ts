@@ -28,7 +28,7 @@ export default class ChildScope extends Scope {
 		return name in this.variables || this.parent.contains(name);
 	}
 
-	deshadow(esmOrSystem: boolean) {
+	deconflict() {
 		const usedNames = new Set();
 		for (const name of Object.keys(this.accessedOutsideVariables)) {
 			usedNames.add(this.accessedOutsideVariables[name].getBaseVariableName());
@@ -37,7 +37,7 @@ export default class ChildScope extends Scope {
 			this.variables[name].setSafeName(getSafeName(name, usedNames));
 		}
 		for (const scope of this.children) {
-			scope.deshadow(esmOrSystem);
+			scope.deconflict();
 		}
 	}
 
