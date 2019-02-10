@@ -4,7 +4,7 @@ import Variable from '../variables/Variable';
 import Scope from './Scope';
 
 export default class ChildScope extends Scope {
-	accessedOutsideVariables: Set<Variable> = new Set();
+	accessedOutsideVariables: { [name: string]: Variable } = Object.create(null);
 	parent: Scope;
 
 	constructor(parent: Scope) {
@@ -13,10 +13,10 @@ export default class ChildScope extends Scope {
 		parent.children.push(this);
 	}
 
-	addNamespaceMemberAccess(variable: Variable) {
-		this.accessedOutsideVariables.add(variable);
+	addNamespaceMemberAccess(name: string, variable: Variable) {
+		this.accessedOutsideVariables[name] = variable;
 		if (this.parent instanceof ChildScope) {
-			this.parent.addNamespaceMemberAccess(variable);
+			this.parent.addNamespaceMemberAccess(name, variable);
 		}
 	}
 
@@ -30,9 +30,9 @@ export default class ChildScope extends Scope {
 
 	deshadow(esmOrSystem: boolean) {
 		const usedNames = new Set();
-		this.accessedOutsideVariables.forEach(variable => {
-			usedNames.add(variable.getBaseVariableName());
-		});
+		for (const name of Object.keys(this.accessedOutsideVariables)) {
+			usedNames.add(this.accessedOutsideVariables[name].getBaseVariableName());
+		}
 		for (const name of Object.keys(this.variables)) {
 			this.variables[name].setSafeName(getSafeName(name, usedNames));
 		}
@@ -46,11 +46,10 @@ export default class ChildScope extends Scope {
 	}
 
 	findVariable(name: string): Variable {
-		if (this.variables[name]) {
-			return this.variables[name];
+		const knownVariable = this.variables[name] || this.accessedOutsideVariables[name];
+		if (knownVariable) {
+			return knownVariable;
 		}
-		const variable = this.parent.findVariable(name);
-		this.accessedOutsideVariables.add(variable);
-		return variable;
+		return (this.accessedOutsideVariables[name] = this.parent.findVariable(name));
 	}
 }

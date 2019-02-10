@@ -31,9 +31,9 @@ export default class ModuleScope extends ChildScope {
 		));
 	}
 
-	addNamespaceMemberAccess(variable: Variable) {
+	addNamespaceMemberAccess(name: string, variable: Variable) {
 		if (variable instanceof ExternalVariable || variable instanceof GlobalVariable) {
-			this.accessedOutsideVariables.add(variable);
+			this.accessedOutsideVariables[name] = variable;
 		}
 	}
 
@@ -47,13 +47,13 @@ export default class ModuleScope extends ChildScope {
 	}
 
 	findVariable(name: string) {
-		if (this.variables[name]) {
-			return this.variables[name];
+		const knownVariable = this.variables[name] || this.accessedOutsideVariables[name];
+		if (knownVariable) {
+			return knownVariable;
 		}
-
 		const variable = this.context.traceVariable(name) || this.parent.findVariable(name);
 		if (variable instanceof ExternalVariable || variable instanceof GlobalVariable) {
-			this.accessedOutsideVariables.add(variable);
+			this.accessedOutsideVariables[name] = variable;
 		}
 		return variable;
 	}

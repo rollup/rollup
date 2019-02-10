@@ -23,7 +23,8 @@ export function deconflictChunk(
 		{ [name: string]: ExternalVariable[] }
 	> = new Map();
 	for (const module of modules) {
-		module.scope.accessedOutsideVariables.forEach(variable => {
+		for (const name of Object.keys(module.scope.accessedOutsideVariables)) {
+			const variable = module.scope.accessedOutsideVariables[name];
 			if (variable instanceof ExternalVariable) {
 				let moduleVariablesByName = externalVariablesByModuleAndName.get(variable.module);
 				if (!moduleVariablesByName) {
@@ -37,7 +38,7 @@ export function deconflictChunk(
 			} else {
 				usedNames.add(variable.getBaseVariableName());
 			}
-		});
+		}
 	}
 
 	// deconflict external variables
