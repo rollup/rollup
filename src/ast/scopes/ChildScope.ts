@@ -31,10 +31,16 @@ export default class ChildScope extends Scope {
 	deconflict() {
 		const usedNames: { [name: string]: true } = Object.create(null);
 		for (const name of Object.keys(this.accessedOutsideVariables)) {
-			usedNames[this.accessedOutsideVariables[name].getBaseVariableName()] = true;
+			const variable = this.accessedOutsideVariables[name];
+			if (variable.included) {
+				usedNames[variable.getBaseVariableName()] = true;
+			}
 		}
 		for (const name of Object.keys(this.variables)) {
-			this.variables[name].setSafeName(getSafeName(name, usedNames));
+			const variable = this.variables[name];
+			if (variable.included) {
+				variable.setSafeName(getSafeName(name, usedNames));
+			}
 		}
 		for (const scope of this.children) {
 			scope.deconflict();

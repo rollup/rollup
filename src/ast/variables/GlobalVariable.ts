@@ -3,8 +3,6 @@ import { ObjectPath } from '../values';
 import Variable from './Variable';
 
 export default class GlobalVariable extends Variable {
-	included = true;
-
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		// path.length == 0 can also have an effect but we postpone this for now
 		return (

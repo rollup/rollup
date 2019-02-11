@@ -13,11 +13,17 @@ export function deconflictChunk(
 	interop: boolean,
 	preserveModules: boolean
 ) {
-	const usedNames: { [name: string]: true } = Object.create(null);
+	const accessedGlobals: { [name: string]: Variable } = Object.assign(
+		{},
+		...modules.map(module => module.scope.accessedOutsideVariables)
+	);
 
-	// add names of globals
-	for (const module of modules) {
-		Object.assign(usedNames, module.scope.accessedOutsideVariables);
+	const usedNames: { [name: string]: true } = Object.create(null);
+	for (const name of Object.keys(accessedGlobals)) {
+		const variable = accessedGlobals[name];
+		if (variable.included) {
+			usedNames[name] = true;
+		}
 	}
 
 	// deconflict chunk imports
@@ -69,6 +75,7 @@ export function deconflictChunk(
 		for (const name of Object.keys(moduleVariables)) {
 			const variable = moduleVariables[name];
 			if (
+				variable.included &&
 				!(
 					variable.renderBaseName ||
 					(variable instanceof ExportDefaultVariable && variable.referencesOriginal())
