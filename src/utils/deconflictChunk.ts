@@ -36,6 +36,7 @@ export function deconflictChunk(
 	Object.assign(usedNames, forbiddenNames);
 	Object.assign(usedNames, formatGlobals);
 	addUsedGlobalNames(usedNames, modules);
+	deconflictTopLevelVariables(usedNames, modules);
 	DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT[format](
 		usedNames,
 		imports,
@@ -43,7 +44,6 @@ export function deconflictChunk(
 		interop,
 		preserveModules
 	);
-	deconflictTopLevelVariables(usedNames, modules);
 
 	for (const module of modules) {
 		module.scope.deconflict(forbiddenNames);
@@ -126,8 +126,8 @@ function deconflictTopLevelVariables(usedNames: NameCollection, modules: Module[
 			const variable = moduleVariables[name];
 			if (
 				variable.included &&
-				!// this will only happen for exports in some formats
-				(
+				// this will only happen for exports in some formats
+				!(
 					variable.renderBaseName ||
 					(variable instanceof ExportDefaultVariable && variable.referencesOriginal())
 				)

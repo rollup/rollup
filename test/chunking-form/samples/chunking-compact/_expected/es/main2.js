@@ -1,12 +1,12 @@
-import {a as fn$1}from'./generated-chunk.js';import {fn}from'external';function fn$2 () {
+import {a as fn$3}from'./generated-chunk.js';import {fn as fn$2}from'external';function fn () {
   console.log('lib1 fn');
-  fn();
-}function fn$3 () {
   fn$2();
+}function fn$1 () {
+  fn();
   console.log('dep3 fn');
 }class Main2 {
   constructor () {
-    fn$3();
     fn$1();
+    fn$3();
   }
 }export default Main2;

@@ -1,20 +1,20 @@
 System.register(['./generated-chunk.js'], function (exports, module) {
   'use strict';
-  var fn;
+  var fn$1;
   return {
     setters: [function (module) {
-      fn = module.a;
+      fn$1 = module.a;
     }],
     execute: function () {
 
-      function fn$1 () {
+      function fn () {
         console.log('dep1 fn');
       }
 
       class Main1 {
         constructor () {
-          fn$1();
           fn();
+          fn$1();
         }
       } exports('default', Main1);
 

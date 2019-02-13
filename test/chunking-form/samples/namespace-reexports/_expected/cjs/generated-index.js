@@ -1,14 +1,14 @@
 'use strict';
 
-var hsl2hsv = require('./hsl2hsv.js');
+var hsl2hsv$1 = require('./hsl2hsv.js');
 
-var hsl2hsv$1 = 'asdf';
+var hsl2hsv = 'asdf';
 
-console.log(hsl2hsv$1);
+console.log(hsl2hsv);
 
 var lib = /*#__PURE__*/Object.freeze({
-	hsl2hsv: hsl2hsv.default
+	hsl2hsv: hsl2hsv$1.default
 });
 
-exports.hsl2hsv = hsl2hsv.default;
+exports.hsl2hsv = hsl2hsv$1.default;
 exports.lib = lib;
