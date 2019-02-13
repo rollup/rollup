@@ -1,4 +1,5 @@
-import { getSafeName, NameCollection } from '../../utils/safeName';
+import { NameCollection } from '../../utils/reservedNames';
+import { getSafeName } from '../../utils/safeName';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import Variable from '../variables/Variable';
 import Scope from './Scope';

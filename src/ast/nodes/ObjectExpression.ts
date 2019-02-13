@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { NameCollection } from '../../utils/safeName';
+import { NameCollection } from '../../utils/reservedNames';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';

@@ -1,4 +1,4 @@
-import { NameCollection } from '../../../utils/safeName';
+import { NameCollection } from '../../../utils/reservedNames';
 
 const pureFunctions: NameCollection = {};
 

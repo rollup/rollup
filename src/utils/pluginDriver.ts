@@ -15,7 +15,7 @@ import {
 import { createAssetPluginHooks, EmitAsset } from './assetHooks';
 import { getRollupDefaultPlugin } from './defaultPlugin';
 import { error } from './error';
-import { NameCollection } from './safeName';
+import { NameCollection } from './reservedNames';
 
 export interface PluginDriver {
 	emitAsset: EmitAsset;

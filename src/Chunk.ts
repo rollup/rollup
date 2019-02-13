@@ -31,7 +31,6 @@ import { basename, dirname, isAbsolute, normalize, relative, resolve } from './u
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
-import { ADDITIONAL_NAMES_BY_FORMAT } from './utils/safeName';
 import { sanitizeFileName } from './utils/sanitizeFileName';
 import { timeEnd, timeStart } from './utils/timers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
@@ -412,8 +411,6 @@ export default class Chunk {
 	}
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
-		const esmOrSystem = options.format === 'es' || options.format === 'system';
-
 		for (const exportName of Object.keys(this.exportNames)) {
 			const exportVariable = this.exportNames[exportName];
 			if (exportVariable) {
@@ -422,7 +419,8 @@ export default class Chunk {
 				}
 				exportVariable.exportName = exportName;
 				if (
-					!esmOrSystem &&
+					options.format !== 'es' &&
+					options.format !== 'system' &&
 					exportVariable.isReassigned &&
 					!exportVariable.isId &&
 					(!isExportDefaultVariable(exportVariable) || !exportVariable.hasId)
@@ -434,11 +432,7 @@ export default class Chunk {
 			}
 		}
 
-		const additionalNames = ADDITIONAL_NAMES_BY_FORMAT[options.format];
-		const usedNames = Object.assign(Object.create(null), additionalNames.globals);
-		const forbiddenNames = Object.assign(Object.create(null), additionalNames.forbidden);
-		Object.assign(usedNames, forbiddenNames);
-
+		const usedNames = Object.create(null);
 		if (this.needsExportsShim) {
 			usedNames[MISSING_EXPORT_SHIM_VARIABLE] = true;
 		}
@@ -448,8 +442,7 @@ export default class Chunk {
 			this.dependencies,
 			this.imports,
 			usedNames,
-			forbiddenNames,
-			esmOrSystem,
+			options.format,
 			options.interop !== false,
 			this.graph.preserveModules
 		);

@@ -1,6 +1,6 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
-import { NameCollection } from './safeName';
+import { NameCollection } from './reservedNames';
 
 export function visitStaticModuleDependencies(
 	baseModule: Module | ExternalModule,

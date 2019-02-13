@@ -1,5 +1,5 @@
 import { AstContext } from '../../Module';
-import { NameCollection } from '../../utils/safeName';
+import { NameCollection } from '../../utils/reservedNames';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
@@ -38,7 +38,7 @@ export default class ModuleScope extends ChildScope {
 	}
 
 	deconflict(forbiddenNames: NameCollection) {
-		// all module level variables are already deconflicted in the chunk
+		// all module level variables are already deconflicted when deconflicting the chunk
 		for (const scope of this.children) scope.deconflict(forbiddenNames);
 	}
 
