@@ -1,4 +1,4 @@
-import { getSafeName } from '../../utils/safeName';
+import { getSafeName, NameCollection } from '../../utils/safeName';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import Variable from '../variables/Variable';
 import Scope from './Scope';
@@ -28,8 +28,8 @@ export default class ChildScope extends Scope {
 		return name in this.variables || this.parent.contains(name);
 	}
 
-	deconflict() {
-		const usedNames: { [name: string]: true } = Object.create(null);
+	deconflict(forbiddenNames: NameCollection) {
+		const usedNames: NameCollection = Object.assign(Object.create(null), forbiddenNames);
 		for (const name of Object.keys(this.accessedOutsideVariables)) {
 			const variable = this.accessedOutsideVariables[name];
 			if (variable.included) {
@@ -43,7 +43,7 @@ export default class ChildScope extends Scope {
 			}
 		}
 		for (const scope of this.children) {
-			scope.deconflict();
+			scope.deconflict(forbiddenNames);
 		}
 	}
 

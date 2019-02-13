@@ -1,2 +1,4 @@
-var x = function await () {}
-assert.equal( x.name, 'await' );
+var x = function await() {
+	return 42;
+};
+assert.equal(x(), 42);

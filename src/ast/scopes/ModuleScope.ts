@@ -1,4 +1,5 @@
 import { AstContext } from '../../Module';
+import { NameCollection } from '../../utils/safeName';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
@@ -36,9 +37,9 @@ export default class ModuleScope extends ChildScope {
 		}
 	}
 
-	deconflict() {
+	deconflict(forbiddenNames: NameCollection) {
 		// all module level variables are already deconflicted in the chunk
-		for (const scope of this.children) scope.deconflict();
+		for (const scope of this.children) scope.deconflict(forbiddenNames);
 	}
 
 	findLexicalBoundary() {

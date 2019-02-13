@@ -1,0 +1,27 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+const exports$1 = {
+	x: 42
+};
+console.log(exports$1);
+
+function nestedConflict() {
+	const exports$1 = {
+		x: 42
+	};
+	console.log(exports$1);
+	exports.x++;
+}
+
+function nestedNoConflict() {
+	const exports = {
+		x: 42
+	};
+	console.log(exports);
+}
+
+exports.x = 43;
+nestedConflict();
+nestedNoConflict();

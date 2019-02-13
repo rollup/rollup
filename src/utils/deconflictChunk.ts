@@ -3,22 +3,24 @@ import Variable from '../ast/variables/Variable';
 import Chunk from '../Chunk';
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
-import { getSafeName } from './safeName';
+import { getSafeName, NameCollection } from './safeName';
 
 export function deconflictChunk(
 	modules: Module[],
 	dependencies: (ExternalModule | Chunk)[],
 	imports: Set<Variable>,
+	usedNames: NameCollection,
+	forbiddenNames: NameCollection,
 	esmOrSystem: boolean,
 	interop: boolean,
 	preserveModules: boolean
 ) {
+	// register globals
 	const accessedGlobals: { [name: string]: Variable } = Object.assign(
 		{},
 		...modules.map(module => module.scope.accessedOutsideVariables)
 	);
 
-	const usedNames: { [name: string]: true } = Object.create(null);
 	for (const name of Object.keys(accessedGlobals)) {
 		const variable = accessedGlobals[name];
 		if (variable.included) {
@@ -91,6 +93,6 @@ export function deconflictChunk(
 	}
 
 	for (const module of modules) {
-		module.scope.deconflict();
+		module.scope.deconflict(forbiddenNames);
 	}
 }
