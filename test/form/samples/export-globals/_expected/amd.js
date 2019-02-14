@@ -1,8 +1,10 @@
 define(['exports'], function (exports) { 'use strict';
 
-	const isNaN$1 = isNaN;
+	const localIsNan = isNan;
 
-	exports.isNaN = isNaN$1;
+	const isNaN = localIsNan;
+
+	exports.isNaN = isNaN;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

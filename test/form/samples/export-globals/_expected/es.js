@@ -1,3 +1,5 @@
-const isNaN$1 = isNaN;
+const localIsNan = isNan;
 
-export { isNaN$1 as isNaN };
+const isNaN = localIsNan;
+
+export { isNaN };

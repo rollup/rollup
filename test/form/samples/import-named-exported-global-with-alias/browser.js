@@ -1,1 +1,2 @@
-export { document };
+const localDocument = document;
+export { localDocument as document };
