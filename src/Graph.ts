@@ -413,7 +413,7 @@ export default class Graph {
 				let chunks: Chunk[] = [];
 				if (this.preserveModules) {
 					for (const module of orderedModules) {
-						const chunk = new Chunk(this, [module], inlineDynamicImports);
+						const chunk = new Chunk(this, [module]);
 						if (module.isEntryPoint || !chunk.isEmpty) {
 							chunk.entryModules = [module];
 						}
@@ -434,7 +434,7 @@ export default class Graph {
 					for (const entryHashSum in chunkModules) {
 						const chunkModulesOrdered = chunkModules[entryHashSum];
 						sortByExecutionOrder(chunkModulesOrdered);
-						const chunk = new Chunk(this, chunkModulesOrdered, inlineDynamicImports);
+						const chunk = new Chunk(this, chunkModulesOrdered);
 						chunks.push(chunk);
 					}
 				}
@@ -463,7 +463,7 @@ export default class Graph {
 					for (const chunk of chunks) {
 						for (const entryModule of chunk.entryModules) {
 							if (chunk.facadeModule !== entryModule) {
-								const entryPointFacade = new Chunk(this, [], inlineDynamicImports);
+								const entryPointFacade = new Chunk(this, []);
 								entryPointFacade.turnIntoFacade(entryModule);
 								facades.push(entryPointFacade);
 							}
