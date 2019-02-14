@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.2.0
+*unreleased*
+
+### Bug Fixes
+* Treat global re-export in a spec-compliant way (#2691)
+
+### Pull Requests
+* [#2691](https://github.com/rollup/rollup/pull/2691): Fix CI issues and update acorn dependency (@lukastaegert)
+
 ## 1.1.2
 *2019-01-21*
 

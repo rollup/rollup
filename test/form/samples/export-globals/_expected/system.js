@@ -3,7 +3,9 @@ System.register('myBundle', [], function (exports, module) {
 	return {
 		execute: function () {
 
-			const isNaN$1 = exports('isNaN', isNaN);
+			const localIsNan = isNan;
+
+			const isNaN = exports('isNaN', localIsNan);
 
 		}
 	};

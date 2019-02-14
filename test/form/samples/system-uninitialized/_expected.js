@@ -5,8 +5,7 @@ System.register([], function (exports, module) {
 
       exports({
         p: void 0,
-        q: q,
-        globalVar: globalVar
+        q: q
       });
 
       var p;
