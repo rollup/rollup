@@ -6,9 +6,6 @@ unit_tests: &unit_tests
     - restore_cache:
         key: dependency-cache-{{ checksum "package-lock.json" }}
     - run:
-        name: NPM Rebuild
-        command: npm ci
-    - run:
         name: Run unit tests.
         command: npm run ci:test
 
@@ -36,23 +33,7 @@ jobs:
   node-v6-latest:
     docker:
       - image: rollupcabal/circleci-node-v6:latest
-    steps:
-      - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "package-lock.json" }}
-      - run:
-          name: NPM Rebuild
-          command: npm install --global npm@5 && npm ci
-      - run:
-          name: Run unit tests.
-          command: npm run ci:test
-      # - run:
-      #     name: Run unit tests.
-      #     command: npm run ci:coverage
-      # - run:
-      #     name: Submit coverage data to codecov.
-      #     command: bash <(curl -s https://codecov.io/bash)
-      #     when: on_success
+    <<: *unit_tests
   node-v8-latest:
     docker:
       - image: rollupcabal/circleci-node-v8:latest
@@ -61,6 +42,13 @@ jobs:
     docker:
       - image: rollupcabal/circleci-node-v10:latest
     <<: *unit_tests
+      # - run:
+      #     name: Run unit tests.
+      #     command: npm run ci:coverage
+      # - run:
+      #     name: Submit coverage data to codecov.
+      #     command: bash <(curl -s https://codecov.io/bash)
+      #     when: on_success
 
 workflows:
   version: 2
