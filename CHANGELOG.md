@@ -8,6 +8,7 @@
 
 ### Pull Requests
 * [#2691](https://github.com/rollup/rollup/pull/2691): Fix CI issues and update acorn dependency (@lukastaegert)
+* [#2693](https://github.com/rollup/rollup/pull/2693): Fix typo in export-globals test (@MattiasBuelens)
 
 ## 1.1.2
 *2019-01-21*
