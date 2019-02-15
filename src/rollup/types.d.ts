@@ -372,9 +372,7 @@ export interface RollupCache {
 }
 
 export interface RollupOutput {
-	// when supported in TypeScript (https://github.com/Microsoft/TypeScript/pull/24897):
-	// output: [OutputChunk, ...(OutputChunk | OutputAsset)[]];
-	output: (OutputChunk | OutputAsset)[];
+	output: [OutputChunk, ...(OutputChunk | OutputAsset)[]];
 }
 
 export interface RollupBuild {
