@@ -707,6 +707,7 @@ export default class Chunk {
 
 		hash.update(addons.hash);
 		hash.update(options.format);
+		hash.update(Object.keys(this.exportNames).join(','));
 		this.visitDependencies(dep => {
 			if (dep instanceof ExternalModule) hash.update(':' + dep.renderPath);
 			else hash.update(dep.getRenderedHash());
