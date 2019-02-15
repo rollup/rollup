@@ -4,9 +4,11 @@
 *unreleased*
 
 ### Bug Fixes
-* Treat global re-export in a spec-compliant way (#2691)
+* Treat re-exported globals in a spec-compliant way (#2691)
+* Improve type of `RollupOutput.output` to guarantee at least one chunk (#2679)
 
 ### Pull Requests
+* [#2679](https://github.com/rollup/rollup/pull/2679): Improve type of `RollupOutput.output` (@MattiasBuelens)
 * [#2691](https://github.com/rollup/rollup/pull/2691): Fix CI issues and update acorn dependency (@lukastaegert)
 * [#2693](https://github.com/rollup/rollup/pull/2693): Fix typo in export-globals test (@MattiasBuelens)
 
