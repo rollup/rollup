@@ -1,58 +1,15 @@
+version: 2
+
 unit_tests: &unit_tests
   steps:
     - checkout
     - restore_cache:
         key: dependency-cache-{{ checksum "package-lock.json" }}
     - run:
-        name: NPM Rebuild
-        command: npm install
-    - run:
         name: Run unit tests.
         command: npm run ci:test
-version: 2
+
 jobs:
-  dependency_cache:
-    docker:
-      - image: rollupcabal/circleci-node-base:latest
-    steps:
-      - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "package-lock.json" }}
-      - run:
-          name: Install Dependencies
-          command: npm install
-      - save_cache:
-          key: dependency-cache-{{ checksum "package-lock.json" }}
-          paths:
-            - ./node_modules
-  node-v6-latest:
-    docker:
-      - image: rollupcabal/circleci-node-v6:latest
-    steps:
-      - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "package-lock.json" }}
-      - run:
-          name: NPM Rebuild
-          command: npm install
-      - run:
-          name: Run unit tests.
-          command: npm run ci:test
-      # - run:
-      #     name: Run unit tests.
-      #     command: npm run ci:coverage
-      # - run:
-      #     name: Submit coverage data to codecov.
-      #     command: bash <(curl -s https://codecov.io/bash)
-      #     when: on_success
-  node-v8-latest:
-    docker:
-      - image: rollupcabal/circleci-node-v8:latest
-    <<: *unit_tests
-  node-v10-latest:
-    docker:
-      - image: rollupcabal/circleci-node-v10:latest
-    <<: *unit_tests
   analysis:
     docker:
       - image: rollupcabal/circleci-node-base:latest
@@ -61,24 +18,43 @@ jobs:
       - restore_cache:
           key: dependency-cache-{{ checksum "package-lock.json" }}
       - run:
-          name: NPM Rebuild
-          command: npm install
+          name: Install Dependencies
+          command: npm ci
       - run:
           name: Run linting.
           command: npm run lint
       - run:
           name: Run NPM Security Audit
           command: npm run security
+      - save_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules
+  node-v6-latest:
+    docker:
+      - image: rollupcabal/circleci-node-v6:latest
+    <<: *unit_tests
+  node-v8-latest:
+    docker:
+      - image: rollupcabal/circleci-node-v8:latest
+    <<: *unit_tests
+  node-v10-latest:
+    docker:
+      - image: rollupcabal/circleci-node-v10:latest
+    <<: *unit_tests
+      # - run:
+      #     name: Run unit tests.
+      #     command: npm run ci:coverage
+      # - run:
+      #     name: Submit coverage data to codecov.
+      #     command: bash <(curl -s https://codecov.io/bash)
+      #     when: on_success
 
-version: 2.0
 workflows:
   version: 2
   validate-test:
     jobs:
-      - dependency_cache
       - analysis:
-          requires:
-            - dependency_cache
           filters:
             tags:
               only: /.*/

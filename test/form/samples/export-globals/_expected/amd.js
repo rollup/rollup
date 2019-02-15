@@ -1,6 +1,8 @@
 define(['exports'], function (exports) { 'use strict';
 
-	const isNaN$1 = isNaN;
+	const localIsNaN = isNaN;
+
+	const isNaN$1 = localIsNaN;
 
 	exports.isNaN = isNaN$1;
 
