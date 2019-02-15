@@ -5,9 +5,11 @@
 
 ### Bug Fixes
 * Treat re-exported globals in a spec-compliant way (#2691)
+* Do not throw an error if config files contain non-default exports (#2673)
 * Improve type of `RollupOutput.output` to guarantee at least one chunk (#2679)
 
 ### Pull Requests
+* [#2673](https://github.com/rollup/rollup/pull/2673): Allow config files to have non-default exports (@swansontec)
 * [#2679](https://github.com/rollup/rollup/pull/2679): Improve type of `RollupOutput.output` (@MattiasBuelens)
 * [#2691](https://github.com/rollup/rollup/pull/2691): Fix CI issues and update acorn dependency (@lukastaegert)
 * [#2693](https://github.com/rollup/rollup/pull/2693): Fix typo in export-globals test (@MattiasBuelens)
