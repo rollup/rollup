@@ -29,7 +29,7 @@ runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir,
 						assert.equal(
 							hashMap1[name],
 							hashMap2[name],
-							`Expected hashes for chunk containing "${name}" to be equal but they were different.`
+							`Expected hashes for chunk "${name}" to be equal but they were different.`
 						);
 					}
 					for (const name of config.expectedDifferentHashes || []) {
@@ -37,7 +37,7 @@ runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir,
 						assert.notEqual(
 							hashMap1[name],
 							hashMap2[name],
-							`Expected hashes for chunk containing "${name}" to be different but they were equal.`
+							`Expected hashes for chunk "${name}" to be different but they were equal.`
 						);
 					}
 				});
@@ -48,11 +48,13 @@ runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir,
 
 function mapGeneratedToHashMap(generated) {
 	const hashMap = {};
-	const dirLength = process.cwd().length + 1;
 	for (const chunk of generated.output) {
-		for (const moduleName of Object.keys(chunk.modules)) {
-			hashMap[moduleName.slice(dirLength)] = chunk.fileName;
+		let name = chunk.name;
+		let index = 1;
+		while (hashMap[name]) {
+			name = `${chunk.name}${index++}`;
 		}
+		hashMap[name] = chunk.fileName;
 	}
 	return hashMap;
 }
@@ -61,9 +63,9 @@ function checkChunkExists(hashMap1, hashMap2, name) {
 	[hashMap1, hashMap2].forEach((hashMap, index) =>
 		assert.ok(
 			hashMap[name],
-			`Bundle ${index} did not contain a chunk containing module "${name}", found chunks for modules: ${Object.keys(
-				hashMap
-			).join(', ')}`
+			`Bundle ${index + 1} did not contain chunk "${name}", found chunks: ${Object.keys(hashMap)
+				.map(key => `"${key}"`)
+				.join(', ')}`
 		)
 	);
 }

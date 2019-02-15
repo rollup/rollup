@@ -705,7 +705,9 @@ export default class Chunk {
 	private computeContentHashWithDependencies(addons: Addons, options: OutputOptions): string {
 		const hash = sha256();
 
-		hash.update(addons.hash);
+		hash.update(
+			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon || '').join(':')
+		);
 		hash.update(options.format);
 		hash.update(Object.keys(this.exportNames).join(','));
 		this.visitDependencies(dep => {
