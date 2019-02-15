@@ -7,7 +7,5 @@ module.exports = {
 	options2: {
 		input: { mainA: 'main2a', mainB: 'main2b' },
 		external: ['external', 'external2']
-	},
-	expectedEqualHashes: ['mainA'],
-	expectedDifferentHashes: ['mainB']
+	}
 };

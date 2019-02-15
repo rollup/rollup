@@ -5,6 +5,5 @@ module.exports = {
 	},
 	options2: {
 		input: ['main2', 'other']
-	},
-	expectedDifferentHashes: ['chunk']
+	}
 };

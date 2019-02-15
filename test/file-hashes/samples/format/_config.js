@@ -11,6 +11,5 @@ module.exports = {
 		output: {
 			format: 'cjs'
 		}
-	},
-	expectedDifferentHashes: ['main']
+	}
 };

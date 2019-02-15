@@ -11,6 +11,5 @@ module.exports = {
 		output: {
 			footer: 'console.log(2);'
 		}
-	},
-	expectedDifferentHashes: ['main']
+	}
 };

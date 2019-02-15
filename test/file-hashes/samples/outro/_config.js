@@ -11,6 +11,5 @@ module.exports = {
 		output: {
 			outro: 'console.log(2);'
 		}
-	},
-	expectedDifferentHashes: ['main']
+	}
 };

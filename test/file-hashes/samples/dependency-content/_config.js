@@ -5,6 +5,5 @@ module.exports = {
 	},
 	options2: {
 		input: { main: 'main2', dep: 'dep2' }
-	},
-	expectedDifferentHashes: ['main', 'dep']
+	}
 };
