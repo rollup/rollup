@@ -64,6 +64,7 @@
   },
   "devDependencies": {
     "@types/chokidar": "^1.7.5",
+    "@types/micromatch": "^3.1.0",
     "@types/minimist": "^1.2.0",
     "@types/pretty-ms": "^4.0.0",
     "acorn-bigint": "^0.3.1",
