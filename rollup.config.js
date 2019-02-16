@@ -85,11 +85,11 @@ export default command => {
 				resolve(),
 				json(),
 				typescript(),
-				commonjs({ include: 'node_modules/**' }),
+				commonjs({ include: 'node_modules/**', namedExports: { micromatch: ['matcher' ] } }),
 				fixAcornEsmImport()
 			],
 			// acorn needs to be external as some plugins rely on a shared acorn instance
-			external: ['fs', 'path', 'events', 'module', 'util', 'crypto', 'acorn'],
+			external: ['fs', 'path', 'events', 'module', 'util', 'crypto', 'acorn', 'tty', 'net', 'url'],
 			output: [
 				{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
 				{ file: 'dist/rollup.es.js', format: 'esm', banner }
