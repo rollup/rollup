@@ -32,6 +32,9 @@ export class Watcher {
 			constructor(close: () => void) {
 				super();
 				this.close = close;
+				// Allows more than 10 bundles to be watched without
+				// showing the `MaxListenersExceededWarning` to the user.
+				this.setMaxListeners(Infinity);
 			}
 		}(this.close.bind(this));
 		this.tasks = (Array.isArray(configs) ? configs : configs ? [configs] : []).map(
