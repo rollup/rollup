@@ -7,7 +7,6 @@ export interface Addons {
 	outro?: string;
 	banner?: string;
 	footer?: string;
-	hash: Uint8Array;
 }
 
 function evalIfFn(strOrFn: string | (() => string | Promise<string>)): string | Promise<string> {
@@ -38,9 +37,7 @@ export function createAddons(graph: Graph, options: OutputOptions): Promise<Addo
 			if (banner.length) banner += '\n';
 			if (footer.length) footer = '\n' + footer;
 
-			const hash = new Uint8Array(4);
-
-			return { intro, outro, banner, footer, hash };
+			return { intro, outro, banner, footer };
 		})
 		.catch(
 			(err): any => {

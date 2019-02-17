@@ -86,8 +86,8 @@ describe('misc', () => {
 				assert.deepEqual(output.map(({ fileName }) => fileName), [
 					'main1.js',
 					'main2.js',
-					'chunk-82df00d2.js',
-					'chunk-b9217e30.js'
+					'chunk-9d1272f4.js',
+					'chunk-80285050.js'
 				]);
 			});
 	});

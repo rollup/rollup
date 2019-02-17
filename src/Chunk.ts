@@ -667,6 +667,7 @@ export default class Chunk {
 		if (!this.renderedSource) return '';
 		const hash = sha256();
 		hash.update(this.renderedSource.toString());
+		hash.update(Object.keys(this.exportNames).join(','));
 		return (this.renderedHash = hash.digest('hex'));
 	}
 
@@ -705,7 +706,9 @@ export default class Chunk {
 	private computeContentHashWithDependencies(addons: Addons, options: OutputOptions): string {
 		const hash = sha256();
 
-		hash.update(addons.hash);
+		hash.update(
+			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon || '').join(':')
+		);
 		hash.update(options.format);
 		this.visitDependencies(dep => {
 			if (dep instanceof ExternalModule) hash.update(':' + dep.renderPath);

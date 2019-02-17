@@ -17,13 +17,13 @@ module.exports = {
 		assert.equal(
 			code,
 			'\n' +
-				`${color}//→ entry1-a47394dc.js:${standard}\n` +
+				`${color}//→ entry1-d8c4343d.js:${standard}\n` +
 				"console.log('main1');\n" +
 				'\n' +
-				`${color}//→ Entry 2-d6c85f3f.js:${standard}\n` +
+				`${color}//→ Entry 2-99f48ca0.js:${standard}\n` +
 				"console.log('main2');\n" +
 				'\n' +
-				`${color}//→ main3-22d8845f.js:${standard}\n` +
+				`${color}//→ main3-a6240449.js:${standard}\n` +
 				"console.log('main3');\n"
 		);
 	}
