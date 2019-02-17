@@ -40,9 +40,9 @@ const onwarn = warning => {
 	throw new Error(warning.message);
 };
 
-const expectedAcornImport = /import acorn__default, { tokTypes, Parser( as [\w$]+)? } from 'acorn';/;
+const expectedAcornImport = "import acorn__default, { tokTypes, Parser as Parser$1 } from 'acorn';";
 const newAcornImport =
-	"import * as acorn__default from 'acorn';\nimport { tokTypes, Parser } from 'acorn';";
+	"import * as acorn__default from 'acorn';\nimport { tokTypes, Parser as Parser$1 } from 'acorn';";
 
 // by default, rollup-plugin-commonjs will translate require statements as default imports
 // which can cause issues for secondary tools that use the ESM version of acorn
@@ -85,7 +85,7 @@ export default command => {
 				resolve(),
 				json(),
 				typescript(),
-				commonjs({ include: 'node_modules/**', namedExports: { micromatch: ['matcher' ] } }),
+				commonjs({ include: 'node_modules/**', namedExports: { micromatch: ['matcher'] } }),
 				fixAcornEsmImport()
 			],
 			// acorn needs to be external as some plugins rely on a shared acorn instance
