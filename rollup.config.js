@@ -40,7 +40,7 @@ const onwarn = warning => {
 	throw new Error(warning.message);
 };
 
-const expectedAcornImport = "import acorn__default, { tokTypes, Parser } from 'acorn';";
+const expectedAcornImport = /import acorn__default, { tokTypes, Parser( as [\w$]+)? } from 'acorn';/;
 const newAcornImport =
 	"import * as acorn__default from 'acorn';\nimport { tokTypes, Parser } from 'acorn';";
 
