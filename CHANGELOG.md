@@ -4,15 +4,24 @@
 *unreleased*
 
 ### Bug Fixes
+* Respect rendered and tree-shaken exports when determining chunk hashes (#2695)
+* Fix an error when dynamic imports end up in the same chunk as one of their importees (#2677)
+* Do not generate invalid code when expressions containing IIFEs are simplified (#2696)
+* Do not throw an error when more than ten bundles are watched (#2700)
 * Treat re-exported globals in a spec-compliant way (#2691)
 * Do not throw an error if config files contain non-default exports (#2673)
 * Improve type of `RollupOutput.output` to guarantee at least one chunk (#2679)
 
 ### Pull Requests
 * [#2673](https://github.com/rollup/rollup/pull/2673): Allow config files to have non-default exports (@swansontec)
+* [#2677](https://github.com/rollup/rollup/pull/2677): Prevent final resolution and facade creation for inlined dynamic imports (@Rich-Harris and @lukastaegert)
 * [#2679](https://github.com/rollup/rollup/pull/2679): Improve type of `RollupOutput.output` (@MattiasBuelens)
 * [#2691](https://github.com/rollup/rollup/pull/2691): Fix CI issues and update acorn dependency (@lukastaegert)
 * [#2693](https://github.com/rollup/rollup/pull/2693): Fix typo in export-globals test (@MattiasBuelens)
+* [#2695](https://github.com/rollup/rollup/pull/2695): Respect rendered exports when generating chunk hashes (@lukastaegert)
+* [#2696](https://github.com/rollup/rollup/pull/2696): Correctly render function expression inside simplified expression statements (@lukastaegert)
+* [#2700](https://github.com/rollup/rollup/pull/2700): Add a fix for MaxListenersExceededWarning (@luwes)
+* [#2703](https://github.com/rollup/rollup/pull/2703): Update rollup-pluginutils (@lukastaegert)
 
 ## 1.1.2
 *2019-01-21*
