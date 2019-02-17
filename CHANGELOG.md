@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.2.1
+*2019-02-17*
+
+### Bug Fixes
+* Fix ESM version of Rollup (#2705)
+
+### Pull Requests
+* [#2705](https://github.com/rollup/rollup/pull/2705): Fix ESM version of Rollup (@lukastaegert)
+
 ## 1.2.0
 *2019-02-17*
 
