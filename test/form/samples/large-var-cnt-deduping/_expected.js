@@ -250,9 +250,13 @@ var x$_ = "_";
 
 var result$_ = `63 = ${x$_}`;
 
+var x$$ = "$";
+
+var result$$ = `64 = ${x$$}`;
+
 var x$10 = "0";
 
-var result$10 = `64 = ${x$10}`;
+var result$10 = `65 = ${x$10}`;
 
 var results = [result,
 result$1,
@@ -317,9 +321,8 @@ result$X,
 result$Y,
 result$Z,
 result$_,
+result$$,
 result$10
 ];
 
-results.forEach( ( result$$1 ) => {
-    console.log( result$$1 );
-} );
+console.log(results);

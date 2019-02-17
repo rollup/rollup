@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
+import ChildScope from '../scopes/ChildScope';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import ClassNode from './shared/ClassNode';
@@ -22,10 +23,10 @@ export default class ClassDeclaration extends ClassNode {
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
 		if (esTreeNode.id !== null) {
-			this.id = <Identifier>new this.context.nodeConstructors.Identifier(
-				esTreeNode.id,
-				this,
-				this.scope.parent
+			this.id = <Identifier>(
+				new this.context.nodeConstructors.Identifier(esTreeNode.id, this, <ChildScope>(
+					this.scope.parent
+				))
 			);
 		}
 		super.parseNode(esTreeNode);

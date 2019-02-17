@@ -8,8 +8,8 @@ import ExternalVariable from '../variables/ExternalVariable';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import ThisVariable from '../variables/ThisVariable';
+import ChildScope from './ChildScope';
 import ReturnValueScope from './ReturnValueScope';
-import Scope from './Scope';
 
 export default class FunctionScope extends ReturnValueScope {
 	variables: {
@@ -19,7 +19,7 @@ export default class FunctionScope extends ReturnValueScope {
 		[name: string]: LocalVariable | GlobalVariable | ExternalVariable | ArgumentsVariable;
 	};
 
-	constructor(parent: Scope, context: AstContext) {
+	constructor(parent: ChildScope, context: AstContext) {
 		super(parent, context);
 		this.variables.arguments = new ArgumentsVariable(super.getParameterVariables(), context);
 		this.variables.this = new ThisVariable(context);

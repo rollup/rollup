@@ -17,10 +17,10 @@ System.register([], function (exports, module) {
         console.log(text$1);
       }
 
-      var text$$1 = 'dep1 fn';
+      var text = 'dep1 fn';
 
       function fn$2 () {
-        console.log(text$$1);
+        console.log(text);
       }
 
       var text$1 = 'dep2 fn';

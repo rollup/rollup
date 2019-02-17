@@ -4,12 +4,12 @@ System.register('iife', [], function (exports, module) {
 		execute: function () {
 
 			var self = /*#__PURE__*/Object.freeze({
-				get p () { return p$$1; }
+				get p () { return p; }
 			});
 
 			console.log(Object.keys(self));
 
-			var p$$1 = exports('p', 5);
+			var p = exports('p', 5);
 
 		}
 	};

@@ -8,8 +8,8 @@ System.register(['./generated-chunk.js'], function (exports, module) {
     execute: function () {
 
       function fn () {
-        var emptyFunction$$1 = emptyFunction;
-        console.log(emptyFunction$$1);
+        var emptyFunction$1 = emptyFunction;
+        console.log(emptyFunction$1);
       }
 
       fn();

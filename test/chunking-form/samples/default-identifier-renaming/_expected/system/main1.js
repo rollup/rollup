@@ -7,7 +7,7 @@ System.register(['./generated-chunk.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			var main1 = exports('default', d.map(d$$1 => d$$1 + 1));
+			var main1 = exports('default', d.map(d => d + 1));
 
 		}
 	};

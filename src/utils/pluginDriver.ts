@@ -15,6 +15,7 @@ import {
 import { createAssetPluginHooks, EmitAsset } from './assetHooks';
 import { getRollupDefaultPlugin } from './defaultPlugin';
 import { error } from './error';
+import { NameCollection } from './reservedNames';
 
 export interface PluginDriver {
 	emitAsset: EmitAsset;
@@ -57,7 +58,7 @@ export function createPluginDriver(
 ): PluginDriver {
 	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
 	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
-	const existingPluginKeys: { [key: string]: true } = {};
+	const existingPluginKeys: NameCollection = {};
 
 	let hasLoadersOrTransforms = false;
 

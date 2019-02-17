@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { NameCollection } from '../../utils/reservedNames';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
@@ -45,7 +46,7 @@ export default class ObjectExpression extends NodeBase {
 	private propertyMap: PropertyMap | null;
 	private unmatchablePropertiesRead: (Property | SpreadElement)[] | null;
 	private unmatchablePropertiesWrite: Property[] | null;
-	private deoptimizedPaths: { [key: string]: true };
+	private deoptimizedPaths: NameCollection;
 	private hasUnknownDeoptimizedProperty: boolean;
 	private expressionsToBeDeoptimized: { [key: string]: DeoptimizableEntity[] };
 

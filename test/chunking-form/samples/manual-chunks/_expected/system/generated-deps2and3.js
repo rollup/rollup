@@ -1,28 +1,28 @@
 System.register(['./generated-lib1.js'], function (exports, module) {
   'use strict';
-  var fn;
+  var fn$3;
   return {
     setters: [function (module) {
-      fn = module.a;
+      fn$3 = module.a;
     }],
     execute: function () {
 
       exports({
-        a: fn$2,
-        b: fn$3
+        a: fn$1,
+        b: fn$2
       });
 
-      function fn$1 () {
+      function fn () {
         console.log('lib2 fn');
       }
 
-      function fn$2 () {
-        fn$1();
+      function fn$1 () {
+        fn();
         console.log('dep2 fn');
       }
 
-      function fn$3 () {
-        fn();
+      function fn$2 () {
+        fn$3();
         console.log('dep3 fn');
       }
 

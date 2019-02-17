@@ -60,6 +60,14 @@ function getPathIfNotComputed(memberExpression: MemberExpression): PathWithPosit
 	return null;
 }
 
+function getStringFromPath(path: PathWithPositions): string {
+	let pathString = path[0].key;
+	for (let index = 1; index < path.length; index++) {
+		pathString += '.' + path[index].key;
+	}
+	return pathString;
+}
+
 export function isMemberExpression(node: Node): node is MemberExpression {
 	return node.type === NodeType.MemberExpression;
 }
@@ -92,6 +100,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 					(<ExternalVariable>resolvedVariable).module.suggestName(path[0].key);
 				}
 				this.variable = resolvedVariable;
+				this.scope.addNamespaceMemberAccess(getStringFromPath(path), resolvedVariable);
 			}
 		} else {
 			super.bind();

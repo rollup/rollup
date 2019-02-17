@@ -5,7 +5,7 @@
 }(this, function (exports) { 'use strict';
 
 	var self = {
-		get p () { return p$$1; }
+		get p () { return p; }
 	};
 	if (typeof Symbol !== 'undefined' && Symbol.toStringTag)
 		Object.defineProperty(self, Symbol.toStringTag, { value: 'Module' });
@@ -15,9 +15,9 @@
 
 	console.log(Object.keys(self));
 
-	var p$$1 = 5;
+	var p = 5;
 
-	exports.p = p$$1;
+	exports.p = p;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

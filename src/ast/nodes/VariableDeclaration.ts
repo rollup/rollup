@@ -15,12 +15,7 @@ import { NodeBase } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
 
 function isReassignedExportsMember(variable: Variable): boolean {
-	return (
-		variable.safeName &&
-		variable.safeName.indexOf('.') !== -1 &&
-		variable.exportName &&
-		variable.isReassigned
-	);
+	return variable.renderBaseName && variable.exportName && variable.isReassigned;
 }
 
 function areAllDeclarationsIncludedAndNotExported(declarations: VariableDeclarator[]): boolean {

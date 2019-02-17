@@ -5,6 +5,7 @@ import {
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
+import ModuleScope from '../scopes/ModuleScope';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration, { isClassDeclaration } from './ClassDeclaration';
 import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaration';
@@ -39,6 +40,7 @@ export function isExportDefaultDeclaration(node: Node): node is ExportDefaultDec
 export default class ExportDefaultDeclaration extends NodeBase {
 	type: NodeType.tExportDefaultDeclaration;
 	declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
+	scope: ModuleScope;
 
 	needsBoundaries: true;
 	variable: ExportDefaultVariable;

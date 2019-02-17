@@ -2,11 +2,11 @@ import { AstContext } from '../../Module';
 import Identifier from '../nodes/Identifier';
 import { UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from '../variables/LocalVariable';
+import ChildScope from './ChildScope';
 import Scope from './Scope';
 
-export default class ParameterScope extends Scope {
-	parent: Scope;
-	hoistedBodyVarScope: Scope;
+export default class ParameterScope extends ChildScope {
+	hoistedBodyVarScope: ChildScope;
 
 	private parameters: LocalVariable[] = [];
 	private context: AstContext;
@@ -14,7 +14,7 @@ export default class ParameterScope extends Scope {
 	constructor(parent: Scope, context: AstContext) {
 		super(parent);
 		this.context = context;
-		this.hoistedBodyVarScope = new Scope(this);
+		this.hoistedBodyVarScope = new ChildScope(this);
 	}
 
 	/**

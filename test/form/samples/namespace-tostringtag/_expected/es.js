@@ -1,5 +1,5 @@
 var self = {
-	get p () { return p$$1; }
+	get p () { return p; }
 };
 if (typeof Symbol !== 'undefined' && Symbol.toStringTag)
 	Object.defineProperty(self, Symbol.toStringTag, { value: 'Module' });
@@ -9,6 +9,6 @@ else
 
 console.log(Object.keys(self));
 
-var p$$1 = 5;
+var p = 5;
 
-export { p$$1 as p };
+export { p };

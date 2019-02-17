@@ -10,7 +10,8 @@ import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } 
 
 export default class Variable implements ExpressionEntity {
 	name: string;
-	safeName: string;
+	renderName: string | null = null;
+	renderBaseName: string | null = null;
 	isExternal?: boolean;
 	isDefault?: boolean;
 	isNamespace?: boolean;
@@ -26,7 +27,6 @@ export default class Variable implements ExpressionEntity {
 
 	constructor(name: string) {
 		this.name = name;
-		this.safeName = null;
 	}
 
 	/**
@@ -35,18 +35,13 @@ export default class Variable implements ExpressionEntity {
 	 */
 	addReference(_identifier: Identifier) {}
 
-	getName(reset?: boolean): string {
-		if (
-			reset &&
-			this.safeName &&
-			this.safeName !== this.name &&
-			this.safeName[this.name.length] === '$' &&
-			this.safeName[this.name.length + 1] === '$'
-		) {
-			this.safeName = null;
-			return this.name;
-		}
-		return this.safeName || this.name;
+	getBaseVariableName(): string {
+		return this.renderBaseName || this.renderName || this.name;
+	}
+
+	getName(): string {
+		const name = this.renderName || this.name;
+		return this.renderBaseName ? `${this.renderBaseName}.${name}` : name;
 	}
 
 	getLiteralValueAtPath(
@@ -93,8 +88,13 @@ export default class Variable implements ExpressionEntity {
 
 	deoptimizePath(_path: ObjectPath) {}
 
-	setSafeName(name: string) {
-		this.safeName = name;
+	setRenderNames(baseName: string | null, name: string | null) {
+		this.renderBaseName = baseName;
+		this.renderName = name;
+	}
+
+	setSafeName(name: string | null) {
+		this.renderName = name;
 	}
 
 	toString() {

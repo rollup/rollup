@@ -22,6 +22,7 @@ import {
 import { Addons } from './utils/addons';
 import { toBase64 } from './utils/base64';
 import collapseSourcemaps from './utils/collapseSourcemaps';
+import { deconflictChunk } from './utils/deconflictChunk';
 import { error } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import getIndentString from './utils/getIndentString';
@@ -30,7 +31,7 @@ import { basename, dirname, isAbsolute, normalize, relative, resolve } from './u
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
-import { sanitizeFileName } from './utils/sanitize-file-name';
+import { sanitizeFileName } from './utils/sanitizeFileName';
 import { timeEnd, timeStart } from './utils/timers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
@@ -410,126 +411,41 @@ export default class Chunk {
 	}
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
-		this.needsExportsShim = false;
-		const used = Object.create(null);
-		const esm = options.format === 'es' || options.format === 'system';
-
-		// ensure no conflicts with globals
-		Object.keys(this.graph.scope.variables).forEach(name => (used[name] = 1));
-
-		function getSafeName(name: string): string {
-			let safeName = name;
-			while (used[safeName]) {
-				safeName = `${name}$${toBase64(used[name]++, true)}`;
-			}
-			used[safeName] = 1;
-			return safeName;
-		}
-
-		// reserved internal binding names for system format wiring
-		if (options.format === 'system') {
-			used._setter = used._starExcludes = used._$p = 1;
-		}
-
-		const toDeshadow: Set<string> = new Set();
-
-		if (!esm) {
-			this.dependencies.forEach(module => {
-				const safeName = getSafeName(module.variableName);
-				toDeshadow.add(safeName);
-				module.variableName = safeName;
-			});
-		}
-
 		for (const exportName of Object.keys(this.exportNames)) {
 			const exportVariable = this.exportNames[exportName];
-			if (exportVariable instanceof ExportShimVariable) this.needsExportsShim = true;
-			if (exportVariable && exportVariable.exportName !== exportName) {
+			if (exportVariable) {
+				if (exportVariable instanceof ExportShimVariable) {
+					this.needsExportsShim = true;
+				}
 				exportVariable.exportName = exportName;
-			}
-		}
-
-		for (const variable of Array.from(this.imports)) {
-			let safeName;
-
-			if (variable.module instanceof ExternalModule) {
-				if (variable.name === '*') {
-					safeName = variable.module.variableName;
-				} else if (variable.name === 'default') {
-					if (
-						options.interop !== false &&
-						(variable.module.exportsNamespace || (!esm && variable.module.exportsNames))
-					) {
-						safeName = `${variable.module.variableName}__default`;
-					} else {
-						safeName = variable.module.variableName;
-					}
-				} else {
-					safeName = esm ? variable.name : `${variable.module.variableName}.${variable.name}`;
-				}
-				if (esm) {
-					safeName = getSafeName(safeName);
-					toDeshadow.add(safeName);
-				}
-			} else if (esm) {
-				safeName = getSafeName(variable.name);
-				toDeshadow.add(safeName);
-			} else {
-				const chunk = variable.module.chunk;
 				if (
-					chunk.exportMode === 'default' ||
-					(this.graph.preserveModules && variable.isNamespace)
+					options.format !== 'es' &&
+					options.format !== 'system' &&
+					exportVariable.isReassigned &&
+					!exportVariable.isId &&
+					(!isExportDefaultVariable(exportVariable) || !exportVariable.hasId)
 				) {
-					safeName = chunk.variableName;
+					exportVariable.setRenderNames('exports', exportName);
 				} else {
-					safeName = `${chunk.variableName}.${variable.module.chunk.getVariableExportName(
-						variable
-					)}`;
+					exportVariable.setRenderNames(null, null);
 				}
 			}
-			if (safeName) variable.setSafeName(safeName);
 		}
 
-		this.orderedModules.forEach(module => {
-			this.deconflictExportsOfModule(module, getSafeName, esm);
-		});
-
-		this.graph.scope.deshadow(toDeshadow, this.orderedModules.map(module => module.scope));
-	}
-
-	private deconflictExportsOfModule(
-		module: Module,
-		getSafeName: (name: string) => string,
-		esm: boolean
-	) {
-		Object.keys(module.scope.variables).forEach(variableName => {
-			const variable = module.scope.variables[variableName];
-			if (isExportDefaultVariable(variable) && variable.referencesOriginal()) {
-				variable.setSafeName(null);
-				return;
-			}
-			if (!(isExportDefaultVariable(variable) && variable.hasId)) {
-				let safeName;
-				if (esm || !variable.isReassigned || variable.isId) {
-					safeName = getSafeName(variable.name);
-				} else {
-					const safeExportName = variable.exportName;
-					if (safeExportName) {
-						safeName = `exports.${safeExportName}`;
-					} else {
-						safeName = getSafeName(variable.name);
-					}
-				}
-				variable.setSafeName(safeName);
-			}
-		});
-		module.exportShimVariable.setSafeName(null);
-
-		// deconflict reified namespaces
-		const namespace = module.getOrCreateNamespace();
-		if (namespace.included) {
-			namespace.setSafeName(getSafeName(namespace.name));
+		const usedNames = Object.create(null);
+		if (this.needsExportsShim) {
+			usedNames[MISSING_EXPORT_SHIM_VARIABLE] = true;
 		}
+
+		deconflictChunk(
+			this.orderedModules,
+			this.dependencies,
+			this.imports,
+			usedNames,
+			options.format,
+			options.interop !== false,
+			this.graph.preserveModules
+		);
 	}
 
 	private getChunkDependencyDeclarations(
@@ -573,13 +489,11 @@ export default class Chunk {
 			if (importsFromDependency.length) {
 				imports = [];
 				for (const variable of importsFromDependency) {
-					const local = variable.safeName || variable.name;
-					let imported;
-					if (variable.module instanceof ExternalModule) {
-						imported = variable.name;
-					} else {
-						imported = variable.module.chunk.getVariableExportName(variable);
-					}
+					const local = variable.getName();
+					const imported =
+						variable.module instanceof ExternalModule
+							? variable.name
+							: variable.module.chunk.getVariableExportName(variable);
 					imports.push({ local, imported });
 				}
 			}

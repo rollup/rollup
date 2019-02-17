@@ -31,7 +31,6 @@ import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
-import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 function makeOnwarn() {
 	const warned = Object.create(null);
@@ -157,12 +156,7 @@ export default class Graph {
 		}
 
 		this.shimMissingExports = options.shimMissingExports;
-
 		this.scope = new GlobalScope();
-		for (const name of ['module', 'exports', '_interopDefault', MISSING_EXPORT_SHIM_VARIABLE]) {
-			this.scope.findVariable(name); // creates global variable as side-effect
-		}
-
 		this.context = String(options.context);
 
 		const optionsModuleContext = options.moduleContext;
@@ -254,6 +248,31 @@ export default class Graph {
 		}
 		for (const module of this.modules) {
 			module.bindReferences();
+		}
+		this.warnForMissingExports();
+	}
+
+	private warnForMissingExports() {
+		for (const module of this.modules) {
+			for (const importName of Object.keys(module.importDescriptions)) {
+				const importDescription = module.importDescriptions[importName];
+				if (
+					importDescription.name !== '*' &&
+					!importDescription.module.getVariableForExportName(importDescription.name)
+				) {
+					module.warn(
+						{
+							code: 'NON_EXISTENT_EXPORT',
+							name: importDescription.name,
+							source: importDescription.module.id,
+							message: `Non-existent export '${
+								importDescription.name
+							}' is imported from ${relativeId(importDescription.module.id)}`
+						},
+						importDescription.start
+					);
+				}
+			}
 		}
 	}
 

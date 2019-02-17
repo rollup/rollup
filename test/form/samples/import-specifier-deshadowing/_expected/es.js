@@ -1,11 +1,11 @@
-import { Sticky } from 'react-sticky';
+import { Sticky as Sticky$1 } from 'react-sticky';
 
-var Sticky$1 = function () {
-	function Sticky$$1() {}
+var Sticky = function () {
+	function Sticky() {}
 
-	Sticky$$1.foo = Sticky;
+	Sticky.foo = Sticky$1;
 
-	return Sticky$$1;
+	return Sticky;
 }();
 
-export default Sticky$1;
+export default Sticky;

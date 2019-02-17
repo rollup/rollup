@@ -7,7 +7,7 @@ import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { Entity } from '../../Entity';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import { getAndCreateKeys, keys } from '../../keys';
-import Scope from '../../scopes/Scope';
+import ChildScope from '../../scopes/ChildScope';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import Variable from '../../variables/Variable';
@@ -81,7 +81,7 @@ const NEW_EXECUTION_PATH = ExecutionPathOptions.create();
 export class NodeBase implements ExpressionNode {
 	type: string;
 	keys: string[];
-	scope: Scope;
+	scope: ChildScope;
 	start: number;
 	end: number;
 	context: AstContext;
@@ -92,7 +92,7 @@ export class NodeBase implements ExpressionNode {
 		esTreeNode: GenericEsTreeNode,
 		// we need to pass down the node constructors to avoid a circular dependency
 		parent: Node | { type: string; context: AstContext },
-		parentScope: Scope
+		parentScope: ChildScope
 	) {
 		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
 		this.parent = parent;
@@ -125,7 +125,7 @@ export class NodeBase implements ExpressionNode {
 	/**
 	 * Override if this node should receive a different scope than the parent scope.
 	 */
-	createScope(parentScope: Scope) {
+	createScope(parentScope: ChildScope) {
 		this.scope = parentScope;
 	}
 

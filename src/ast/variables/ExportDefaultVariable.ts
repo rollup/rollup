@@ -43,19 +43,35 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
-	getName(reset?: boolean) {
-		if (!reset && this.safeName) return this.safeName;
-		if (this.referencesOriginal()) return this.originalId.variable.getName();
-		return this.name;
+	getName() {
+		return this.referencesOriginal() ? this.originalId.variable.getName() : super.getName();
+	}
+
+	getOriginalVariableName(): string | null {
+		return (this.originalId && this.originalId.name) || null;
 	}
 
 	referencesOriginal() {
 		return this.originalId && (this.hasId || !this.originalId.variable.isReassigned);
 	}
 
-	getOriginalVariableName(): string | null {
-		return (this.originalId && this.originalId.name) || null;
+	setRenderNames(baseName: string | null, name: string | null) {
+		if (this.referencesOriginal()) {
+			this.originalId.variable.setRenderNames(baseName, name);
+		} else {
+			super.setRenderNames(baseName, name);
+		}
+	}
+
+	setSafeName(name: string | null) {
+		if (this.referencesOriginal()) {
+			this.originalId.variable.setSafeName(name);
+		} else {
+			super.setSafeName(name);
+		}
 	}
 }
+
+ExportDefaultVariable.prototype.getBaseVariableName = ExportDefaultVariable.prototype.getName;
 
 ExportDefaultVariable.prototype.isDefault = true;

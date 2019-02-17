@@ -1,16 +1,16 @@
 System.register(['../lib/lib2.js'], function (exports, module) {
   'use strict';
-  var fn;
+  var fn$1;
   return {
     setters: [function (module) {
-      fn = module.fn;
+      fn$1 = module.fn;
     }],
     execute: function () {
 
-      exports('fn', fn$1);
+      exports('fn', fn);
 
-      function fn$1 () {
-        fn();
+      function fn () {
+        fn$1();
         console.log('dep2 fn');
       }
 
