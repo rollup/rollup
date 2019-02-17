@@ -1,7 +1,10 @@
 # rollup changelog
 
 ## 1.2.0
-*unreleased*
+*2019-02-17*
+
+### Features
+* Fewer renamed variables due to a completely reimplemented deconflicting logic (#2689)
 
 ### Bug Fixes
 * Respect rendered and tree-shaken exports when determining chunk hashes (#2695)
@@ -9,6 +12,7 @@
 * Do not generate invalid code when expressions containing IIFEs are simplified (#2696)
 * Do not throw an error when more than ten bundles are watched (#2700)
 * Treat re-exported globals in a spec-compliant way (#2691)
+* Fix issues related to wrongly renamed variables (#2689)
 * Do not throw an error if config files contain non-default exports (#2673)
 * Improve type of `RollupOutput.output` to guarantee at least one chunk (#2679)
 
@@ -16,6 +20,7 @@
 * [#2673](https://github.com/rollup/rollup/pull/2673): Allow config files to have non-default exports (@swansontec)
 * [#2677](https://github.com/rollup/rollup/pull/2677): Prevent final resolution and facade creation for inlined dynamic imports (@Rich-Harris and @lukastaegert)
 * [#2679](https://github.com/rollup/rollup/pull/2679): Improve type of `RollupOutput.output` (@MattiasBuelens)
+* [#2689](https://github.com/rollup/rollup/pull/2689): Reimplement variable deconflicting logic (@lukastaegert)
 * [#2691](https://github.com/rollup/rollup/pull/2691): Fix CI issues and update acorn dependency (@lukastaegert)
 * [#2693](https://github.com/rollup/rollup/pull/2693): Fix typo in export-globals test (@MattiasBuelens)
 * [#2695](https://github.com/rollup/rollup/pull/2695): Respect rendered exports when generating chunk hashes (@lukastaegert)
