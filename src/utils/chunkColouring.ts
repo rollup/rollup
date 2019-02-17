@@ -33,7 +33,7 @@ export function assignChunkColouringHashes(
 		for (const { resolution } of module.dynamicImports) {
 			if (
 				resolution instanceof Module &&
-				resolution.isDynamicEntryPoint &&
+				resolution.dynamicallyImportedBy.length > 0 &&
 				!resolution.chunkAlias
 			) {
 				dynamicImports.push(resolution);

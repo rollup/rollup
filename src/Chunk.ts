@@ -135,7 +135,7 @@ export default class Chunk {
 	private renderedSource: MagicStringBundle | null = null;
 	private renderedSourceLength: number = undefined;
 
-	constructor(graph: Graph, orderedModules: Module[], inlineDynamicImports: boolean) {
+	constructor(graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
 		this.orderedModules = orderedModules;
 		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
@@ -149,7 +149,10 @@ export default class Chunk {
 				this.isManualChunk = true;
 			}
 			module.chunk = this;
-			if (module.isEntryPoint || (module.isDynamicEntryPoint && !inlineDynamicImports)) {
+			if (
+				module.isEntryPoint ||
+				module.dynamicallyImportedBy.some(module => orderedModules.indexOf(module) === -1)
+			) {
 				this.entryModules.push(module);
 			}
 		}
@@ -378,8 +381,8 @@ export default class Chunk {
 			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
-					const resolutionChunk = resolution.facadeChunk || resolution.chunk;
-					if (resolutionChunk && resolutionChunk !== this && resolutionChunk.id) {
+					if (resolution.isIncluded() && resolution.chunk !== this) {
+						const resolutionChunk = resolution.facadeChunk || resolution.chunk;
 						let relPath = normalize(relative(dirname(this.id), resolutionChunk.id));
 						if (!relPath.startsWith('../')) relPath = './' + relPath;
 						node.renderFinalResolution(code, `'${relPath}'`);

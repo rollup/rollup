@@ -160,6 +160,7 @@ export default class Module {
 	comments: CommentDescription[] = [];
 	customTransformCache: boolean;
 	dependencies: (Module | ExternalModule)[] = [];
+	dynamicallyImportedBy: Module[] = [];
 	dynamicDependencies: (Module | ExternalModule)[] = [];
 	dynamicImports: {
 		node: Import;
@@ -179,7 +180,6 @@ export default class Module {
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
 	importMetas: MetaProperty[] = [];
 	imports = new Set<Variable>();
-	isDynamicEntryPoint: boolean = false;
 	isEntryPoint: boolean = false;
 	isExecuted: boolean = false;
 	isExternal: false;
@@ -621,7 +621,7 @@ export default class Module {
 		const resolution = this.dynamicImports.find(dynamicImport => dynamicImport.node === node)
 			.resolution;
 		if (resolution instanceof Module) {
-			resolution.isDynamicEntryPoint = true;
+			resolution.dynamicallyImportedBy.push(this);
 			resolution.includeAllExports();
 		}
 	}

@@ -215,7 +215,8 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 									facadeModuleId: facadeModule && facadeModule.id,
 									fileName: chunk.id,
 									imports: chunk.getImportIds(),
-									isDynamicEntry: facadeModule !== null && facadeModule.isDynamicEntryPoint,
+									isDynamicEntry:
+										facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
 									isEntry: facadeModule !== null && facadeModule.isEntryPoint,
 									map: undefined,
 									modules: chunk.renderedModules,
