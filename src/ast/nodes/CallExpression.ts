@@ -1,3 +1,6 @@
+import MagicString from 'magic-string';
+import { BLANK } from '../../utils/blank';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
@@ -208,6 +211,21 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 				);
 			}
 			this.returnExpression.deoptimizePath(path);
+		}
+	}
+
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		{ renderedParentType }: NodeRenderOptions = BLANK
+	) {
+		super.render(code, options);
+		if (
+			renderedParentType === NodeType.ExpressionStatement &&
+			this.callee.type === NodeType.FunctionExpression
+		) {
+			code.appendRight(this.start, '(');
+			code.prependLeft(this.end, ')');
 		}
 	}
 }
