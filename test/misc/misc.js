@@ -98,4 +98,28 @@ describe('misc', () => {
 			plugins: [loader({ x: `console.log( 42 );` }), null, false, undefined]
 		});
 	});
+
+	it('handles different import paths for different outputs', () => {
+		return rollup
+			.rollup({
+				input: 'x',
+				external: ['the-answer'],
+				plugins: [loader({ x: `import 'the-answer'` })]
+			})
+			.then(bundle =>
+				Promise.all([
+					bundle
+						.generate({ format: 'esm' })
+						.then(generated => assert.equal(generated.output[0].code, "import 'the-answer';\n", 'no render path 1')),
+					bundle
+						.generate({ format: 'esm', paths: id => `//unpkg.com/${id}@?module` })
+						.then(generated =>
+							assert.equal(generated.output[0].code, "import '//unpkg.com/the-answer@?module';\n", 'with render path')
+						),
+					bundle
+						.generate({ format: 'esm' })
+						.then(generated => assert.equal(generated.output[0].code, "import 'the-answer';\n", 'no render path 2'))
+				])
+			);
+	});
 });

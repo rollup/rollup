@@ -37,10 +37,10 @@ export default class ExternalModule {
 	}
 
 	setRenderPath(options: OutputOptions, inputBase: string) {
-		if (options.paths)
+		if (options.paths) {
 			this.renderPath =
 				typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id];
-		if (!this.renderPath) {
+		} else {
 			if (!isAbsolute(this.id)) {
 				this.renderPath = this.id;
 			} else {
