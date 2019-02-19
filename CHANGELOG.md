@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.2.2
+*2019-02-19*
+
+### Bug Fixes
+* Fix wrong external imports when using the `paths` options only for some outputs (#2706)
+
+### Pull Requests
+* [#2706](https://github.com/rollup/rollup/pull/2706): Always recreate paths for external modules (@lukastaegert)
+
 ## 1.2.1
 *2019-02-17*
 
