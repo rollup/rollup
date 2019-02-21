@@ -8,7 +8,8 @@ type NodeHandler = (node: ESTree.Node) => void;
 
 function checkCommentsBeforeNode(
 	node: ESTree.Node & acorn.Node,
-	state: { handleNode: NodeHandler; commentIndex: number; commentNodes: CommentDescription[] }
+	state: { handleNode: NodeHandler; commentIndex: number; commentNodes: CommentDescription[] },
+	type: string = node.type
 ) {
 	if (
 		state.commentIndex === state.commentNodes.length ||
@@ -26,7 +27,7 @@ function checkCommentsBeforeNode(
 		}
 		state.commentIndex++;
 	}
-	basicWalker[node.type](node, state, checkCommentsBeforeNode);
+	basicWalker[type](node, state, checkCommentsBeforeNode);
 }
 
 function forEachNodeAfterComment(
