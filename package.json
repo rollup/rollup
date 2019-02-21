@@ -71,6 +71,7 @@
     "acorn-dynamic-import": "^4.0.0",
     "acorn-import-meta": "^1.0.0",
     "acorn-jsx": "^5.0.1",
+    "acorn-walk": "^6.1.1",
     "ansi-escapes": "^3.2.0",
     "buble": "^0.19.6",
     "chokidar": "^2.1.1",

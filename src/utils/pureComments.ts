@@ -1,29 +1,32 @@
+import * as acorn from 'acorn';
 // @ts-ignore
-import walk from 'acorn/dist/walk';
+import { base as basicWalker } from 'acorn-walk';
 import * as ESTree from 'estree';
 import { CommentDescription } from '../Module';
 
-type ESTreeNodeWithLocation = ESTree.Node & { start: number; end: number };
 type NodeHandler = (node: ESTree.Node) => void;
 
 function checkCommentsBeforeNode(
-	node: ESTreeNodeWithLocation,
-	st: { handleNode: NodeHandler; commentIdx: number; commentNodes: CommentDescription[] }
+	node: ESTree.Node & acorn.Node,
+	state: { handleNode: NodeHandler; commentIndex: number; commentNodes: CommentDescription[] }
 ) {
-	if (st.commentIdx === st.commentNodes.length || st.commentNodes[st.commentIdx].end > node.end)
+	if (
+		state.commentIndex === state.commentNodes.length ||
+		state.commentNodes[state.commentIndex].end > node.end
+	)
 		return;
 	let isFound = false;
 	while (
-		st.commentIdx < st.commentNodes.length &&
-		node.start >= st.commentNodes[st.commentIdx].end
+		state.commentIndex < state.commentNodes.length &&
+		node.start >= state.commentNodes[state.commentIndex].end
 	) {
 		if (!isFound) {
-			st.handleNode(node);
+			state.handleNode(node);
 			isFound = true;
 		}
-		st.commentIdx++;
+		state.commentIndex++;
 	}
-	walk.base[node.type](node, st, checkCommentsBeforeNode);
+	basicWalker[node.type](node, state, checkCommentsBeforeNode);
 }
 
 function forEachNodeAfterComment(
@@ -31,15 +34,15 @@ function forEachNodeAfterComment(
 	commentNodes: CommentDescription[],
 	handleNode: NodeHandler
 ): void {
-	checkCommentsBeforeNode(<any>ast, { commentNodes, commentIdx: 0, handleNode });
+	checkCommentsBeforeNode(<any>ast, { commentNodes, commentIndex: 0, handleNode });
 }
 
 function markPureNode(node: ESTree.Node) {
-	while (node.type === 'ExpressionStatement') {
+	if (node.type === 'ExpressionStatement') {
 		node = node.expression;
 	}
 	if (node.type === 'CallExpression') {
-		(<any>node).pure = true;
+		(<any>node).annotatedPure = true;
 	}
 }
 

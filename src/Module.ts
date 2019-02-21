@@ -1,5 +1,4 @@
 import * as acorn from 'acorn';
-import walk from 'acorn/dist/walk';
 import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';

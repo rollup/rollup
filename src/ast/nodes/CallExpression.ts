@@ -26,7 +26,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	type: NodeType.tCallExpression;
 	callee: ExpressionNode;
 	arguments: (ExpressionNode | SpreadElement)[];
-	pure?: boolean;
+	annotatedPure?: boolean;
 
 	private callOptions: CallOptions;
 
@@ -139,7 +139,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(options)) return true;
 		}
-		if (this.pure) return false;
+		if (this.annotatedPure) return false;
 		return (
 			this.callee.hasEffects(options) ||
 			this.callee.hasEffectsWhenCalledAtPath(
