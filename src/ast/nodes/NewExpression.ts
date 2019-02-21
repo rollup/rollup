@@ -8,6 +8,7 @@ export default class NewExpression extends NodeBase {
 	type: NodeType.tNewExpression;
 	callee: ExpressionNode;
 	arguments: ExpressionNode[];
+	annotatedPure?: boolean;
 
 	private callOptions: CallOptions;
 
@@ -23,6 +24,7 @@ export default class NewExpression extends NodeBase {
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(options)) return true;
 		}
+		if (this.annotatedPure) return false;
 		return this.callee.hasEffectsWhenCalledAtPath(
 			EMPTY_PATH,
 			this.callOptions,

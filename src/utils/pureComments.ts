@@ -41,12 +41,12 @@ function markPureNode(node: ESTree.Node) {
 	if (node.type === 'ExpressionStatement') {
 		node = node.expression;
 	}
-	if (node.type === 'CallExpression') {
+	if (node.type === 'CallExpression' || node.type === 'NewExpression') {
 		(<any>node).annotatedPure = true;
 	}
 }
 
-const pureCommentRegex = /^ ?#__PURE__\s*$/;
+const pureCommentRegex = /[@#]__PURE__/;
 
 export function markPureCallExpressions(comments: CommentDescription[], esTreeAst: ESTree.Program) {
 	forEachNodeAfterComment(
