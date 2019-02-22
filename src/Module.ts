@@ -77,6 +77,7 @@ export interface AstContext {
 	addImport: (node: ImportDeclaration) => void;
 	addImportMeta: (node: MetaProperty) => void;
 	code: string;
+	deoptimizationTracker: EntityPathTracker;
 	error: (props: RollupError, pos: number) => void;
 	fileName: string;
 	getAssetFileName: (assetId: string) => string;
@@ -94,7 +95,7 @@ export interface AstContext {
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	preserveModules: boolean;
 	propertyReadSideEffects: boolean;
-	deoptimizationTracker: EntityPathTracker;
+	pureAnnotations: boolean;
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable;
 	treeshake: boolean;
@@ -274,6 +275,7 @@ export default class Module {
 			preserveModules: this.graph.preserveModules,
 			propertyReadSideEffects:
 				!this.graph.treeshake || this.graph.treeshakingOptions.propertyReadSideEffects,
+			pureAnnotations: this.graph.treeshake && this.graph.treeshakingOptions.pureAnnotations,
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),

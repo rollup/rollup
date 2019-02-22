@@ -49,6 +49,7 @@ Basic options:
 --sourcemapFile <file>      Specify bundle position for source maps
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.propertyReadSideEffects Ignore property access side-effects
+--no-treeshake.pureAnnotations         Ignore pure call annotations
 --treeshake.pureExternalModules        Assume side-effect free externals
 
 Examples:

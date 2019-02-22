@@ -111,7 +111,7 @@ export class NodeBase implements ExpressionNode {
 	bind() {
 		for (const key of this.keys) {
 			const value = (<GenericEsTreeNode>this)[key];
-			if (value === null) continue;
+			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					if (child !== null) child.bind();
@@ -222,7 +222,7 @@ export class NodeBase implements ExpressionNode {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
 			if (this.hasOwnProperty(key)) continue;
 			const value = esTreeNode[key];
-			if (typeof value !== 'object' || value === null) {
+			if (typeof value !== 'object' || value === null || key === 'annotations') {
 				(<GenericEsTreeNode>this)[key] = value;
 			} else if (Array.isArray(value)) {
 				(<GenericEsTreeNode>this)[key] = [];

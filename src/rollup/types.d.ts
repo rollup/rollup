@@ -248,6 +248,7 @@ export interface Plugin {
 
 export interface TreeshakingOptions {
 	propertyReadSideEffects: boolean;
+	pureAnnotations: boolean;
 	pureExternalModules: boolean;
 }
 
