@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { removeAnnotations } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
@@ -164,6 +165,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		if (!this.left.included || !this.right.included) {
 			code.remove(this.start, this.usedBranch.start);
 			code.remove(this.usedBranch.end, this.end);
+			removeAnnotations(this, code);
 			this.usedBranch.render(code, options, {
 				renderedParentType: renderedParentType || this.parent.type,
 				isCalleeOfRenderedParent: renderedParentType

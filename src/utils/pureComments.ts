@@ -4,41 +4,32 @@ import { base as basicWalker } from 'acorn-walk';
 import * as ESTree from 'estree';
 import { CommentDescription } from '../Module';
 
-type NodeHandler = (node: ESTree.Node) => void;
+type NodeHandler = (node: ESTree.Node, comment: CommentDescription) => void;
 
 function checkCommentsBeforeNode(
 	node: ESTree.Node & acorn.Node,
 	state: { handleNode: NodeHandler; commentIndex: number; commentNodes: CommentDescription[] },
 	type: string = node.type
 ) {
-	if (
-		state.commentIndex === state.commentNodes.length ||
-		state.commentNodes[state.commentIndex].end > node.end
-	)
-		return;
-	let isFound = false;
-	while (
-		state.commentIndex < state.commentNodes.length &&
-		node.start >= state.commentNodes[state.commentIndex].end
-	) {
-		if (!isFound) {
-			state.handleNode(node);
-			isFound = true;
-		}
-		state.commentIndex++;
+	let commentNode = state.commentNodes[state.commentIndex];
+	while (commentNode && node.start >= commentNode.end) {
+		state.handleNode(node, commentNode);
+		commentNode = state.commentNodes[++state.commentIndex];
 	}
-	basicWalker[type](node, state, checkCommentsBeforeNode);
+	if (commentNode && commentNode.end <= node.end) {
+		basicWalker[type](node, state, checkCommentsBeforeNode);
+	}
 }
 
-function forEachNodeAfterComment(
-	ast: ESTree.Program,
-	commentNodes: CommentDescription[],
-	handleNode: NodeHandler
-): void {
-	checkCommentsBeforeNode(<any>ast, { commentNodes, commentIndex: 0, handleNode });
-}
-
-function markPureNode(node: ESTree.Node) {
+function markPureNode(
+	node: ESTree.Node & { annotations?: CommentDescription[] },
+	comment: CommentDescription
+) {
+	if (node.annotations) {
+		node.annotations.push(comment);
+	} else {
+		node.annotations = [comment];
+	}
 	if (node.type === 'ExpressionStatement') {
 		node = node.expression;
 	}
@@ -48,11 +39,12 @@ function markPureNode(node: ESTree.Node) {
 }
 
 const pureCommentRegex = /[@#]__PURE__/;
+const isPureComment = (comment: CommentDescription) => pureCommentRegex.test(comment.text);
 
 export function markPureCallExpressions(comments: CommentDescription[], esTreeAst: ESTree.Program) {
-	forEachNodeAfterComment(
-		esTreeAst,
-		comments.filter(comment => pureCommentRegex.test(comment.text)),
-		markPureNode
-	);
+	checkCommentsBeforeNode(<any>esTreeAst, {
+		commentNodes: comments.filter(isPureComment),
+		commentIndex: 0,
+		handleNode: markPureNode
+	});
 }

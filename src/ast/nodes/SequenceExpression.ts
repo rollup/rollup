@@ -5,6 +5,7 @@ import {
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
+import { treeshakeNode } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
@@ -92,7 +93,7 @@ export default class SequenceExpression extends NodeBase {
 			this.end
 		)) {
 			if (!node.included) {
-				code.remove(start, end);
+				treeshakeNode(node, code, start, end);
 				continue;
 			}
 			includedNodes++;

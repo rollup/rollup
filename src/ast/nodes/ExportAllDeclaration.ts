@@ -11,6 +11,10 @@ export default class ExportAllDeclaration extends NodeBase {
 
 	needsBoundaries: true;
 
+	hasEffects() {
+		return false;
+	}
+
 	initialise() {
 		this.included = false;
 		this.context.addExport(this);

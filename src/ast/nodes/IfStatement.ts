@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
+import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_IMMUTABLE_TRACKER } from '../utils/ImmutableEntityPathTracker';
@@ -83,6 +84,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			const singleRetainedBranch = this.testValue ? this.consequent : this.alternate;
 			code.remove(this.start, singleRetainedBranch.start);
 			code.remove(singleRetainedBranch.end, this.end);
+			removeAnnotations(this, code);
 			singleRetainedBranch.render(code, options);
 		} else {
 			if (this.test.included) {

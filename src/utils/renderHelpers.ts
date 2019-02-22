@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import { Node, StatementNode } from '../ast/nodes/shared/Node';
+import { treeshakeNode } from './treeshakeNode';
 
 export interface RenderOptions {
 	compact: boolean;
@@ -104,7 +105,7 @@ export function renderStatementList(
 					  })
 					: currentNode.render(code, options);
 			} else {
-				code.remove(currentNodeStart, nextNodeStart);
+				treeshakeNode(currentNode, code, currentNodeStart, nextNodeStart);
 			}
 		} else {
 			currentNode.render(code, options);

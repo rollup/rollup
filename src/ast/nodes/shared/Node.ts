@@ -1,6 +1,6 @@
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
-import { AstContext } from '../../../Module';
+import { AstContext, CommentDescription } from '../../../Module';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import CallOptions from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
@@ -19,15 +19,16 @@ export interface GenericEsTreeNode {
 }
 
 export interface Node extends Entity {
+	annotations?: CommentDescription[];
+	context: AstContext;
 	end: number;
 	included: boolean;
 	keys: string[];
-	context: AstContext;
+	needsBoundaries?: boolean;
 	parent: Node | { type?: string };
+	preventChildBlockScope?: boolean;
 	start: number;
 	type: string;
-	needsBoundaries?: boolean;
-	preventChildBlockScope?: boolean;
 	variable?: Variable | null;
 
 	/**
