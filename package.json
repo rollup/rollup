@@ -26,7 +26,7 @@
     "perf:init": "node scripts/perf-init.js",
     "posttest:coverage": "remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.json -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.lcov -t lcovonly -b dist && remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped -t html -b dist",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run lint:nofix && npm run security && npm run build && npm run build:bootstrap && npm run test:only && npm run test:typescript && npm run test:leak",
+    "prepublishOnly": "npm ci && npm run lint:nofix && npm run security && npm run build:bootstrap && npm run test:only && npm run test:typescript && npm run test:leak",
     "pretest": "npm run build:test",
     "pretest:coverage": "npm run build:test",
     "pretest:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/",
