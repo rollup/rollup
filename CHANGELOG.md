@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.2.3
+*2019-02-23*
+
+### Bug Fixes
+* Use correct path when rendering dynamic imports where the entry module is empty (#2714)
+
+### Pull Requests
+* [#2714](https://github.com/rollup/rollup/pull/2714): Properly render dynamic imports when imported module is empty (@lukastaegert)
+
 ## 1.2.2
 *2019-02-19*
 
