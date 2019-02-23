@@ -382,7 +382,7 @@ export default class Chunk {
 			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
-					if (resolution.isIncluded() && resolution.chunk !== this) {
+					if (!resolution.chunk.isEmpty && resolution.chunk !== this) {
 						const resolutionChunk = resolution.facadeChunk || resolution.chunk;
 						let relPath = normalize(relative(dirname(this.id), resolutionChunk.id));
 						if (!relPath.startsWith('../')) relPath = './' + relPath;
