@@ -4,7 +4,7 @@ import { EventEmitter } from 'events';
 export const VERSION: string;
 
 export interface IdMap {
-	[key: string]: string;
+	[key: string]: { id: string; external: boolean };
 }
 
 export interface RollupError extends RollupLogProps {

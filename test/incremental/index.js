@@ -240,8 +240,8 @@ describe('incremental', () => {
 				assert.equal(bundle.cache.modules[0].id, 'entry');
 
 				assert.deepEqual(bundle.cache.modules[0].resolvedIds, {
-					foo: 'foo',
-					external: 'external'
+					foo: { id: 'foo', external: false },
+					external: { id: 'external', external: true }
 				});
 			});
 	});
