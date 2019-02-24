@@ -11,7 +11,7 @@ describe('incremental', () => {
 	const plugin = {
 		resolveId: id => {
 			resolveIdCalls += 1;
-			return id;
+			return id === 'external' ? false : id;
 		},
 
 		load: id => {
@@ -128,6 +128,42 @@ describe('incremental', () => {
 			})
 			.then(result => {
 				assert.equal(result, 21);
+			});
+	});
+
+	it('respects externals from resolveId', () => {
+		let cache;
+		modules.foo = `import p from 'external'; export default p;`;
+
+		const require = id => id === 'external' && 43;
+
+		return rollup
+			.rollup({
+				input: 'entry',
+				plugins: [plugin]
+			})
+			.then(bundle => {
+				assert.equal(resolveIdCalls, 3);
+
+				return executeBundle(bundle, require).then(result => {
+					assert.equal(result, 43);
+					cache = bundle.cache;
+				});
+			})
+			.then(() => {
+				return rollup.rollup({
+					input: 'entry',
+					plugins: [plugin],
+					cache
+				});
+			})
+			.then(bundle => {
+				assert.equal(resolveIdCalls, 4);
+
+				return executeBundle(bundle, require);
+			})
+			.then(result => {
+				assert.equal(result, 43);
 			});
 	});
 
