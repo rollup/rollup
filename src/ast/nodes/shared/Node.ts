@@ -150,7 +150,7 @@ export class NodeBase implements ExpressionNode {
 	hasEffects(options: ExecutionPathOptions): boolean {
 		for (const key of this.keys) {
 			const value = (<GenericEsTreeNode>this)[key];
-			if (value === null) continue;
+			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					if (child !== null && child.hasEffects(options)) return true;
@@ -180,7 +180,7 @@ export class NodeBase implements ExpressionNode {
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (<GenericEsTreeNode>this)[key];
-			if (value === null) continue;
+			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					if (child !== null) child.include(includeAllChildrenRecursively);
@@ -246,7 +246,7 @@ export class NodeBase implements ExpressionNode {
 	render(code: MagicString, options: RenderOptions) {
 		for (const key of this.keys) {
 			const value = (<GenericEsTreeNode>this)[key];
-			if (value === null) continue;
+			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					if (child !== null) child.render(code, options);
