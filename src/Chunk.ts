@@ -2,7 +2,9 @@ import sha256 from 'hash.js/lib/hash/sha/256';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
 import * as NodeType from './ast/nodes/NodeType';
 import { UNDEFINED_EXPRESSION } from './ast/values';
-import { isExportDefaultVariable } from './ast/variables/ExportDefaultVariable';
+import ExportDefaultVariable, {
+	isExportDefaultVariable
+} from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import GlobalVariable from './ast/variables/GlobalVariable';
 import LocalVariable from './ast/variables/LocalVariable';
@@ -478,17 +480,22 @@ export default class Chunk {
 			exportDeclaration.push({ imported: importName, reexported: exportName });
 		}
 
+		const importsAsArray = Array.from(this.imports);
 		const dependencies: ChunkDependencies = [];
 
-		this.dependencies.forEach(dep => {
-			const importsFromDependency = Array.from(this.imports).filter(variable =>
-				variable.module instanceof Module ? variable.module.chunk === dep : variable.module === dep
-			);
-
-			let imports: ImportSpecifier[];
-			if (importsFromDependency.length) {
-				imports = [];
-				for (const variable of importsFromDependency) {
+		for (const dep of this.dependencies) {
+			const imports: ImportSpecifier[] = [];
+			for (const variable of importsAsArray) {
+				if (
+					(variable.module instanceof Module
+						? variable.module.chunk === dep
+						: variable.module === dep) &&
+					!(
+						variable instanceof ExportDefaultVariable &&
+						variable.referencesOriginal() &&
+						this.imports.has(variable.getOriginalVariable())
+					)
+				) {
 					const local = variable.getName();
 					const imported =
 						variable.module instanceof ExternalModule
@@ -534,9 +541,9 @@ export default class Chunk {
 				exportsNames,
 				exportsDefault,
 				reexports,
-				imports
+				imports: imports.length > 0 ? imports : null
 			});
-		});
+		}
 
 		return dependencies;
 	}

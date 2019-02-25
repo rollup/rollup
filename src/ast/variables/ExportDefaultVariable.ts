@@ -47,6 +47,10 @@ export default class ExportDefaultVariable extends LocalVariable {
 		return this.referencesOriginal() ? this.originalId.variable.getName() : super.getName();
 	}
 
+	getOriginalVariable(): Variable | null {
+		return (this.originalId && this.originalId.variable) || null;
+	}
+
 	getOriginalVariableName(): string | null {
 		return (this.originalId && this.originalId.name) || null;
 	}
