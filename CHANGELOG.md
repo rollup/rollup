@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.2.4
+*2019-02-25*
+
+### Bug Fixes
+* Fix an issue where a variable was imported twice under the same name (#2715)
+
+### Pull Requests
+* [#2715](https://github.com/rollup/rollup/pull/2715): Deduplicate imports referencing default exports and their original variables (@lukastaegert)
+
 ## 1.2.3
 *2019-02-23*
 
