@@ -34,6 +34,7 @@ import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, extname } from './utils/path';
+import { markPureCallExpressions } from './utils/pureComments';
 import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
@@ -76,6 +77,7 @@ export interface AstContext {
 	addImport: (node: ImportDeclaration) => void;
 	addImportMeta: (node: MetaProperty) => void;
 	code: string;
+	deoptimizationTracker: EntityPathTracker;
 	error: (props: RollupError, pos: number) => void;
 	fileName: string;
 	getAssetFileName: (assetId: string) => string;
@@ -93,7 +95,7 @@ export interface AstContext {
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	preserveModules: boolean;
 	propertyReadSideEffects: boolean;
-	deoptimizationTracker: EntityPathTracker;
+	annotations: boolean;
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable;
 	treeshake: boolean;
@@ -231,6 +233,7 @@ export default class Module {
 		this.esTreeAst = <ESTree.Program>(
 			(ast || tryParse(this, this.graph.acornParser, this.graph.acornOptions))
 		);
+		markPureCallExpressions(this.comments, this.esTreeAst);
 
 		timeEnd('generate ast', 3);
 
@@ -272,6 +275,7 @@ export default class Module {
 			preserveModules: this.graph.preserveModules,
 			propertyReadSideEffects:
 				!this.graph.treeshake || this.graph.treeshakingOptions.propertyReadSideEffects,
+			annotations: this.graph.treeshake && this.graph.treeshakingOptions.annotations,
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),

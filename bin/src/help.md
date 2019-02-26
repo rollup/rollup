@@ -48,6 +48,7 @@ Basic options:
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
 --no-treeshake              Disable tree-shaking optimisations
+--no-treeshake.annotations  Ignore pure call annotations
 --no-treeshake.propertyReadSideEffects Ignore property access side-effects
 --treeshake.pureExternalModules        Assume side-effect free externals
 

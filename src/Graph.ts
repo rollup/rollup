@@ -105,14 +105,14 @@ export default class Graph {
 
 		this.treeshake = options.treeshake !== false;
 		if (this.treeshake) {
-			this.treeshakingOptions = {
-				propertyReadSideEffects: options.treeshake
-					? (<TreeshakingOptions>options.treeshake).propertyReadSideEffects !== false
-					: true,
-				pureExternalModules: options.treeshake
-					? (<TreeshakingOptions>options.treeshake).pureExternalModules
-					: false
-			};
+			this.treeshakingOptions = options.treeshake
+				? {
+						propertyReadSideEffects:
+							(<TreeshakingOptions>options.treeshake).propertyReadSideEffects !== false,
+						annotations: (<TreeshakingOptions>options.treeshake).annotations !== false,
+						pureExternalModules: (<TreeshakingOptions>options.treeshake).pureExternalModules
+				  }
+				: { propertyReadSideEffects: true, annotations: true, pureExternalModules: false };
 			if (this.treeshakingOptions.pureExternalModules === true) {
 				this.isPureExternalModule = () => true;
 			} else if (typeof this.treeshakingOptions.pureExternalModules === 'function') {

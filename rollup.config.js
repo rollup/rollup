@@ -4,7 +4,7 @@ import alias from 'rollup-plugin-alias';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
 import resolve from 'rollup-plugin-node-resolve';
-import string from 'rollup-plugin-string';
+import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
 import pkg from './package.json';
@@ -90,6 +90,10 @@ export default command => {
 			],
 			// acorn needs to be external as some plugins rely on a shared acorn instance
 			external: ['fs', 'path', 'events', 'module', 'util', 'crypto', 'acorn', 'tty', 'net', 'url'],
+			treeshake: {
+				pureExternalModules: true,
+				propertyReadSideEffects: false
+			},
 			output: [
 				{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
 				{ file: 'dist/rollup.es.js', format: 'esm', banner }
@@ -108,6 +112,10 @@ export default command => {
 				commonjs({ include: 'node_modules/**' })
 			],
 			external: ['fs', 'path', 'module', 'events', 'rollup', 'assert', 'os', 'util'],
+			treeshake: {
+				pureExternalModules: true,
+				propertyReadSideEffects: false
+			},
 			output: {
 				file: 'bin/rollup',
 				format: 'cjs',
@@ -141,6 +149,10 @@ export default command => {
 				commonjs(),
 				terser({ module: true, output: { comments: 'some' } })
 			],
+			treeshake: {
+				pureExternalModules: true,
+				propertyReadSideEffects: false
+			},
 			output: [
 				{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner },
 				{ file: 'dist/rollup.browser.es.js', format: 'esm', banner }

@@ -702,7 +702,7 @@ Default: `false`
 If this option is provided, bundling will not fail if bindings are imported from a file that does not define these bindings. Instead, new variables will be created for these bindings with the value `undefined`.
 
 #### treeshake
-Type: `boolean | { propertyReadSideEffects?: boolean, pureExternalModules?: boolean }`<br>
+Type: `boolean | { propertyReadSideEffects?: boolean, annotations?: boolean, pureExternalModules?: boolean }`<br>
 CLI: `--treeshake`/`--no-treeshake`<br>
 Default: `true`
 
@@ -726,6 +726,25 @@ const foo = {
 }
 const result = foo.bar;
 const illegalAccess = foo.quux.tooDeep;
+```
+
+**treeshake.annotations**<br>
+Type: `boolean`<br>
+CLI: `--treeshake.annotations`/`--no-treeshake.annotations`<br>
+Default: `true`
+
+If `false`, ignore hints from pure annotations, i.e. comments containing `@__PURE__` or `#__PURE__`, when determining side-effects of function calls and constructor invocations. These annotations need to immediately precede the call invocation to take effect. The following code will be completely removed unless this option is set to `false`, in which case it will remain unchanged.
+
+```javascript
+/*@__PURE__*/console.log('side-effect');
+
+class Impure {
+  constructor() {
+    console.log('side-effect')
+  }
+}
+
+/*@__PURE__*/new Impure();
 ```
 
 **treeshake.pureExternalModules**<br>

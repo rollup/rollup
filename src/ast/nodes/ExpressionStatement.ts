@@ -1,10 +1,11 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import * as NodeType from './NodeType';
-import { StatementBase } from './shared/Node';
+import { ExpressionNode, StatementBase } from './shared/Node';
 
 export default class ExpressionStatement extends StatementBase {
 	directive?: string;
+	expression: ExpressionNode;
 
 	initialise() {
 		this.included = false;

@@ -5,6 +5,7 @@ import {
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
+import { treeshakeNode } from '../../utils/treeshakeNode';
 import ModuleScope from '../scopes/ModuleScope';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration, { isClassDeclaration } from './ClassDeclaration';
@@ -88,7 +89,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 					`exports('${this.variable.exportName}', ${this.variable.getName()});`
 				);
 			} else {
-				code.remove(start, end);
+				treeshakeNode(this, code, start, end);
 			}
 			return;
 		} else if (this.variable.included) {
