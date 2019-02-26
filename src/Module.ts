@@ -471,7 +471,7 @@ export default class Module {
 
 	linkDependencies() {
 		for (const source of this.sources) {
-			const id = this.resolvedIds[source];
+			const id = this.resolvedIds[source].id;
 
 			if (id) {
 				const module = this.graph.moduleById.get(id);
@@ -488,7 +488,7 @@ export default class Module {
 		this.addModulesToSpecifiers(this.reexports);
 
 		this.exportAllModules = this.exportAllSources.map(source => {
-			const id = this.resolvedIds[source];
+			const id = this.resolvedIds[source].id;
 			return this.graph.moduleById.get(id);
 		});
 	}
@@ -498,7 +498,8 @@ export default class Module {
 	}) {
 		for (const name of Object.keys(specifiers)) {
 			const specifier = specifiers[name];
-			specifier.module = this.graph.moduleById.get(this.resolvedIds[specifier.source]);
+			const id = this.resolvedIds[specifier.source].id;
+			specifier.module = this.graph.moduleById.get(id);
 		}
 	}
 

@@ -571,7 +571,7 @@ export default class Graph {
 						}
 					}
 					module.exportAllSources.forEach(source => {
-						const id = module.resolvedIds[source];
+						const id = module.resolvedIds[source].id;
 						const exportAllModule = this.moduleById.get(id);
 						if (exportAllModule.isExternal) return;
 
@@ -642,8 +642,8 @@ export default class Graph {
 			module.sources.map(source => {
 				return Promise.resolve()
 					.then(() => {
-						const resolvedId = module.resolvedIds[source];
-						if (resolvedId) return resolvedId;
+						const resolved = module.resolvedIds[source];
+						if (resolved) return !resolved.external && resolved.id;
 						if (this.isExternal(source, module.id, false)) return false;
 						return this.pluginDriver.hookFirst<string | boolean | void>('resolveId', [
 							source,
@@ -682,7 +682,7 @@ export default class Graph {
 						}
 
 						if (isExternal) {
-							module.resolvedIds[source] = externalId;
+							module.resolvedIds[source] = { id: externalId, external: true };
 
 							if (!this.moduleById.has(externalId)) {
 								const module = new ExternalModule({ graph: this, id: externalId });
@@ -709,7 +709,7 @@ export default class Graph {
 								externalModule.getVariableForExportName(importDeclaration.name);
 							}
 						} else {
-							module.resolvedIds[source] = <string>resolvedId;
+							module.resolvedIds[source] = { id: <string>resolvedId, external: false };
 							return this.fetchModule(<string>resolvedId, module.id);
 						}
 					});

@@ -59,16 +59,16 @@ function deindent(str) {
 		.trim();
 }
 
-function executeBundle(bundle) {
+function executeBundle(bundle, require) {
 	return bundle
 		.generate({
 			format: 'cjs'
 		})
 		.then(({ output: [cjs] }) => {
-			const m = new Function('module', 'exports', cjs.code);
+			const m = new Function('module', 'exports', 'require', cjs.code);
 
 			const module = { exports: {} };
-			m(module, module.exports);
+			m(module, module.exports, require);
 
 			return module.exports;
 		});
