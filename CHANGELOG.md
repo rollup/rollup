@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.2.5
+*2019-02-26*
+
+### Bug Fixes
+* Store external ids reported by plugins in watch mode (#2718)
+
+### Pull Requests
+* [#2718](https://github.com/rollup/rollup/pull/2718): Incremental external (@andreas-karlsson)
+
 ## 1.2.4
 *2019-02-26*
 
