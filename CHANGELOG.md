@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.3.0
+*2019-02-26*
+
+### Features
+* Treeshake call expressions prefixed with UglifyJS style `@__PURE__` annotations (#2429)
+
+### Pull Requests
+* [#2429](https://github.com/rollup/rollup/pull/2429): Add support for /*#__PURE__*/ comments (@conartist6 and @lukastaegert)
+
 ## 1.2.5
 *2019-02-26*
 
