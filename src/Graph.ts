@@ -109,10 +109,10 @@ export default class Graph {
 				? {
 						propertyReadSideEffects:
 							(<TreeshakingOptions>options.treeshake).propertyReadSideEffects !== false,
-						pureAnnotations: (<TreeshakingOptions>options.treeshake).pureAnnotations !== false,
+						annotations: (<TreeshakingOptions>options.treeshake).annotations !== false,
 						pureExternalModules: (<TreeshakingOptions>options.treeshake).pureExternalModules
 				  }
-				: { propertyReadSideEffects: true, pureAnnotations: true, pureExternalModules: false };
+				: { propertyReadSideEffects: true, annotations: true, pureExternalModules: false };
 			if (this.treeshakingOptions.pureExternalModules === true) {
 				this.isPureExternalModule = () => true;
 			} else if (typeof this.treeshakingOptions.pureExternalModules === 'function') {

@@ -95,7 +95,7 @@ export interface AstContext {
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	preserveModules: boolean;
 	propertyReadSideEffects: boolean;
-	pureAnnotations: boolean;
+	annotations: boolean;
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable;
 	treeshake: boolean;
@@ -275,7 +275,7 @@ export default class Module {
 			preserveModules: this.graph.preserveModules,
 			propertyReadSideEffects:
 				!this.graph.treeshake || this.graph.treeshakingOptions.propertyReadSideEffects,
-			pureAnnotations: this.graph.treeshake && this.graph.treeshakingOptions.pureAnnotations,
+			annotations: this.graph.treeshake && this.graph.treeshakingOptions.annotations,
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
