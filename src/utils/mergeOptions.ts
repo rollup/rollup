@@ -260,6 +260,7 @@ function getOutputOptions(
 		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),
 		sourcemapFile: getOption('sourcemapFile'),
 		sourcemapPathTransform: getOption('sourcemapPathTransform'),
-		strict: getOption('strict', true)
+		strict: getOption('strict', true),
+		dynamicImportFunction: getOption('dynamicImportFunction', 'import')
 	};
 }

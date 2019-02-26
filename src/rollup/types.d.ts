@@ -321,6 +321,7 @@ export interface OutputOptions {
 	sourcemapFile?: string;
 	sourcemapPathTransform?: (sourcePath: string) => string;
 	strict?: boolean;
+	dynamicImportFunction?: string;
 }
 
 export type WarningHandler = (warning: string | RollupWarning) => void;

@@ -659,7 +659,8 @@ export default class Chunk {
 			freeze: options.freeze !== false,
 			indent: this.indentString,
 			namespaceToStringTag: options.namespaceToStringTag === true,
-			varOrConst: options.preferConst ? 'const' : 'var'
+			varOrConst: options.preferConst ? 'const' : 'var',
+			dynamicImportFunction: options.dynamicImportFunction || 'import'
 		};
 
 		// Make sure the direct dependencies of a chunk are present to maintain execution order

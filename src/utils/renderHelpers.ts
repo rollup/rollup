@@ -9,6 +9,7 @@ export interface RenderOptions {
 	indent: string;
 	namespaceToStringTag: boolean;
 	varOrConst: 'var' | 'const';
+	dynamicImportFunction: string;
 }
 
 export interface NodeRenderOptions {
