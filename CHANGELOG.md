@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 1.2.4
-*2019-02-25*
+*2019-02-26*
 
 ### Bug Fixes
 * Fix an issue where a variable was imported twice under the same name (#2715)
