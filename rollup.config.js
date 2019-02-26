@@ -4,7 +4,7 @@ import alias from 'rollup-plugin-alias';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
 import resolve from 'rollup-plugin-node-resolve';
-import string from 'rollup-plugin-string';
+import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
 import pkg from './package.json';
