@@ -6,7 +6,7 @@ define(['exports', './m2.js'], function (exports, m2) { 'use strict';
 		m2: m2
 	});
 
-	exports.m2 = m2.default;
+	exports.m2 = m2;
 	exports.ms = ms;
 
 });
