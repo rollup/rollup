@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.3.1
+*2019-02-27*
+
+### Bug Fixes
+* Correctly reexport the default export from entry chunks (#2727)
+
+### Pull Requests
+* [#2727](https://github.com/rollup/rollup/pull/2727): Take chunk export mode into account when reexporting default (@lukastaegert)
+
 ## 1.3.0
 *2019-02-26*
 
