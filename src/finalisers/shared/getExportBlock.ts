@@ -49,42 +49,48 @@ export default function getExportBlock(
 		}
 	});
 
-	dependencies.forEach(({ name, imports, reexports, isChunk }) => {
-		if (reexports && namedExportsMode) {
-			reexports.forEach(specifier => {
-				if (specifier.imported === 'default' && !isChunk) {
-					const exportsNamesOrNamespace =
-						(imports &&
-							imports.some(
-								specifier => specifier.imported === '*' || specifier.imported !== 'default'
-							)) ||
-						(reexports &&
+	dependencies.forEach(
+		({ name, imports, reexports, isChunk, namedExportsMode: depNamedExportsMode }) => {
+			if (reexports && namedExportsMode) {
+				reexports.forEach(specifier => {
+					if (specifier.imported === 'default' && !isChunk) {
+						const exportsNamesOrNamespace =
+							(imports &&
+								imports.some(
+									specifier => specifier.imported === '*' || specifier.imported !== 'default'
+								)) ||
+							(reexports &&
+								reexports.some(
+									specifier => specifier.imported !== 'default' && specifier.imported !== '*'
+								));
+
+						const reexportsDefaultAsDefault =
+							reexports &&
 							reexports.some(
-								specifier => specifier.imported !== 'default' && specifier.imported !== '*'
-							));
+								specifier => specifier.imported === 'default' && specifier.reexported === 'default'
+							);
 
-					const reexportsDefaultAsDefault =
-						reexports &&
-						reexports.some(
-							specifier => specifier.imported === 'default' && specifier.reexported === 'default'
-						);
-
-					if (exportBlock && !compact) exportBlock += '\n';
-					if (exportsNamesOrNamespace || reexportsDefaultAsDefault)
-						exportBlock += `exports.${specifier.reexported}${_}=${_}${name}${
-							interop !== false ? '__default' : '.default'
-						};`;
-					else exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
-				} else if (specifier.imported !== '*') {
-					if (exportBlock && !compact) exportBlock += '\n';
-					exportBlock += `exports.${specifier.reexported}${_}=${_}${name}.${specifier.imported};`;
-				} else if (specifier.reexported !== '*') {
-					if (exportBlock && !compact) exportBlock += '\n';
-					exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
-				}
-			});
+						if (exportBlock && !compact) exportBlock += '\n';
+						if (exportsNamesOrNamespace || reexportsDefaultAsDefault)
+							exportBlock += `exports.${specifier.reexported}${_}=${_}${name}${
+								interop !== false ? '__default' : '.default'
+							};`;
+						else exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
+					} else if (specifier.imported !== '*') {
+						if (exportBlock && !compact) exportBlock += '\n';
+						const importName =
+							specifier.imported === 'default' && !depNamedExportsMode
+								? name
+								: `${name}.${specifier.imported}`;
+						exportBlock += `exports.${specifier.reexported}${_}=${_}${importName};`;
+					} else if (specifier.reexported !== '*') {
+						if (exportBlock && !compact) exportBlock += '\n';
+						exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
+					}
+				});
+			}
 		}
-	});
+	);
 
 	exports.forEach(expt => {
 		const lhs = `exports.${expt.exported}`;
