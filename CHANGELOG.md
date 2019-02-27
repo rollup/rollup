@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.3.2
+*2019-02-27*
+
+### Bug Fixes
+* Allow ids of default exported classes to be exported separately (#2728)
+
+### Pull Requests
+* [#2728](https://github.com/rollup/rollup/pull/2728): Update dependencies (@lukastaegert)
+
 ## 1.3.1
 *2019-02-27*
 
