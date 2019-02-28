@@ -94,11 +94,11 @@ function getGlobalName(
 	if (hasExports) {
 		graph.warn({
 			code: 'MISSING_GLOBAL_NAME',
-			source: module.id,
 			guess: module.variableName,
 			message: `No name was provided for external module '${
 				module.id
-			}' in output.globals – guessing '${module.variableName}'`
+			}' in output.globals – guessing '${module.variableName}'`,
+			source: module.id
 		});
 		return module.variableName;
 	}
@@ -172,8 +172,8 @@ export default class Chunk {
 
 	generateEntryExportsOrMarkAsTainted() {
 		const exportVariableMaps = this.entryModules.map(module => ({
-			module,
-			map: this.getVariableExportNamesForModule(module)
+			map: this.getVariableExportNamesForModule(module),
+			module
 		}));
 		for (const { map } of exportVariableMaps) {
 			for (const exposedVariable of Array.from(map.keys())) {
@@ -482,10 +482,10 @@ export default class Chunk {
 
 			const { renderedExports, removedExports } = module.getRenderedExports();
 			this.renderedModules[module.id] = {
-				renderedExports,
+				originalLength: module.originalCode.length,
 				removedExports,
-				renderedLength: source.length(),
-				originalLength: module.originalCode.length
+				renderedExports,
+				renderedLength: source.length()
 			};
 
 			const namespace = module.getOrCreateNamespace();
@@ -613,12 +613,12 @@ export default class Chunk {
 		const chunkSourcemapChain: RawSourceMap[] = [];
 
 		return renderChunk({
-			graph: this.graph,
 			chunk: this,
-			renderChunk: outputChunk,
 			code: prevCode,
-			sourcemapChain: chunkSourcemapChain,
-			options
+			graph: this.graph,
+			options,
+			renderChunk: outputChunk,
+			sourcemapChain: chunkSourcemapChain
 		}).then((code: string) => {
 			if (options.sourcemap) {
 				timeStart('sourcemap', 3);
@@ -865,15 +865,15 @@ export default class Chunk {
 			}
 
 			dependencies.push({
-				id, // chunk id updated on render
-				namedExportsMode,
-				globalName,
-				name: dep.variableName,
-				isChunk: !(<ExternalModule>dep).isExternal,
-				exportsNames,
 				exportsDefault,
-				reexports,
-				imports: imports.length > 0 ? imports : null
+				exportsNames,
+				globalName,
+				id, // chunk id updated on render
+				imports: imports.length > 0 ? imports : null,
+				isChunk: !(<ExternalModule>dep).isExternal,
+				name: dep.variableName,
+				namedExportsMode,
+				reexports
 			});
 		}
 
@@ -909,9 +909,9 @@ export default class Chunk {
 			const localName = variable.getName();
 
 			exports.push({
-				local: localName,
 				exported: exportName === '*' ? localName : exportName,
 				hoisted,
+				local: localName,
 				uninitialized
 			});
 		}

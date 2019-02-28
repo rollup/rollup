@@ -207,9 +207,9 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		this.included = false;
 		this.returnExpression = null;
 		this.callOptions = CallOptions.create({
-			withNew: false,
 			args: this.arguments,
-			callIdentifier: this
+			callIdentifier: this,
+			withNew: false
 		});
 		this.expressionsToBeDeoptimized = [];
 	}

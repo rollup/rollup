@@ -57,8 +57,8 @@ export default function watch(
 	function processConfigs(configs: RollupWatchOptions[]): RollupWatchOptions[] {
 		return configs.map(options => {
 			const merged = mergeOptions({
-				config: options,
 				command,
+				config: options,
 				defaultOnWarnHandler: warnings.add
 			});
 
@@ -71,8 +71,8 @@ export default function watch(
 
 			if (merged.optionError)
 				merged.inputOptions.onwarn({
-					message: merged.optionError,
-					code: 'UNKNOWN_OPTION'
+					code: 'UNKNOWN_OPTION',
+					message: merged.optionError
 				});
 
 			if (

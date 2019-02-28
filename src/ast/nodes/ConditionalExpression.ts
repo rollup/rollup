@@ -162,10 +162,10 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			code.remove(this.usedBranch.end, this.end);
 			removeAnnotations(this, code);
 			this.usedBranch.render(code, options, {
-				renderedParentType: renderedParentType || this.parent.type,
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
-					: (<CallExpression>this.parent).callee === this
+					: (<CallExpression>this.parent).callee === this,
+				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {
 			super.render(code, options);

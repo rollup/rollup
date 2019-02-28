@@ -44,10 +44,10 @@ export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin)
 export type HookContext = (context: PluginContext, plugin?: Plugin) => PluginContext;
 
 const deprecatedHookNames: Record<string, string> = {
-	transformBundle: 'renderChunk',
-	transformChunk: 'renderChunk',
 	ongenerate: 'generateBundle',
-	onwrite: 'generateBundle'
+	onwrite: 'generateBundle',
+	transformBundle: 'renderChunk',
+	transformChunk: 'renderChunk'
 };
 
 export function createPluginDriver(
@@ -121,9 +121,24 @@ export function createPluginDriver(
 				return graph.isExternal(id, parentId, isResolved);
 			},
 			getAssetFileName,
+			getModuleInfo: (moduleId: string) => {
+				const foundModule = graph.moduleById.get(moduleId);
+				if (foundModule == null) {
+					throw new Error(`Unable to find module ${moduleId}`);
+				}
+
+				return {
+					id: foundModule.id,
+					importedIds: foundModule.isExternal
+						? []
+						: (foundModule as Module).sources.map(id => (foundModule as Module).resolvedIds[id].id),
+					isExternal: !!foundModule.isExternal
+				};
+			},
 			meta: {
 				rollupVersion
 			},
+			moduleIds: graph.moduleById.keys(),
 			parse: graph.contextParse,
 			resolveId(id: string, parent: string) {
 				return pluginDriver.hookFirst('resolveId', [id, parent]);
@@ -136,26 +151,11 @@ export function createPluginDriver(
 				warning.plugin = plugin.name || `Plugin at position ${pidx + 1}`;
 				graph.warn(warning);
 			},
-			moduleIds: graph.moduleById.keys(),
-			getModuleInfo: (moduleId: string) => {
-				const foundModule = graph.moduleById.get(moduleId);
-				if (foundModule == null) {
-					throw new Error(`Unable to find module ${moduleId}`);
-				}
-
-				return {
-					id: foundModule.id,
-					isExternal: !!foundModule.isExternal,
-					importedIds: foundModule.isExternal
-						? []
-						: (foundModule as Module).sources.map(id => (foundModule as Module).resolvedIds[id].id)
-				};
-			},
 			watcher: watcher
 				? <EventEmitter>{
 						...(<EventEmitter>watcher),
-						on: deprecatedWatchListener,
-						addListener: deprecatedWatchListener
+						addListener: deprecatedWatchListener,
+						on: deprecatedWatchListener
 				  }
 				: undefined
 		};

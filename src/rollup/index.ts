@@ -279,13 +279,13 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 				const cache = useCache ? graph.getCache() : undefined;
 				const result: RollupBuild = {
 					cache,
-					watchFiles: Object.keys(graph.watchFiles),
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
 						const promise = generate(rawOutputOptions, false).then(result => createOutput(result));
 						Object.defineProperty(promise, 'code', throwAsyncGenerateError);
 						Object.defineProperty(promise, 'map', throwAsyncGenerateError);
 						return promise;
 					}),
+					watchFiles: Object.keys(graph.watchFiles),
 					write: <any>((outputOptions: OutputOptions) => {
 						if (!outputOptions || (!outputOptions.dir && !outputOptions.file)) {
 							error({

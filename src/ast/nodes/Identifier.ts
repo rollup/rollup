@@ -147,8 +147,8 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 			if (name !== this.name) {
 				code.overwrite(this.start, this.end, name, {
-					storeName: true,
-					contentOnly: true
+					contentOnly: true,
+					storeName: true
 				});
 				if (isShorthandProperty) {
 					code.prependRight(this.start, `${this.name}: `);

@@ -102,8 +102,8 @@ function execute(configFile: string, configs: InputOptions[], command: any) {
 			promise = promise.then(() => {
 				const warnings = batchWarnings();
 				const { inputOptions, outputOptions, optionError } = mergeOptions({
-					config,
 					command,
+					config,
 					defaultOnWarnHandler: warnings.add
 				});
 

@@ -55,8 +55,8 @@ export default class TaggedTemplateExpression extends NodeBase {
 	initialise() {
 		this.included = false;
 		this.callOptions = CallOptions.create({
-			withNew: false,
-			callIdentifier: this
+			callIdentifier: this,
+			withNew: false
 		});
 	}
 }

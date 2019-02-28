@@ -52,11 +52,11 @@ function timeStartImpl(label: string, level: number = 3) {
 	label = getPersistedLabel(label, level);
 	if (!timers.hasOwnProperty(label)) {
 		timers[label] = {
-			totalMemory: 0,
-			startTime: undefined,
+			memory: 0,
 			startMemory: undefined,
+			startTime: undefined,
 			time: 0,
-			memory: 0
+			totalMemory: 0
 		};
 	}
 	const currentMemory = getMemory();
@@ -86,13 +86,13 @@ export let timeStart: (label: string, level?: number) => void = NOOP,
 	timeEnd: (label: string, level?: number) => void = NOOP;
 
 const TIMED_PLUGIN_HOOKS: { [hook: string]: boolean } = {
-	transform: true,
-	transformBundle: true,
 	load: true,
-	resolveId: true,
 	ongenerate: true,
 	onwrite: true,
-	resolveDynamicImport: true
+	resolveDynamicImport: true,
+	resolveId: true,
+	transform: true,
+	transformBundle: true
 };
 
 function getPluginWithTimers(plugin: any, index: number): Plugin {

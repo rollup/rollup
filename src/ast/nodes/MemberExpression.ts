@@ -227,8 +227,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			let replacement = this.variable ? this.variable.getName() : this.replacement;
 			if (isCalleeOfDifferentParent) replacement = '0, ' + replacement;
 			code.overwrite(this.start, this.end, replacement, {
-				storeName: true,
-				contentOnly: true
+				contentOnly: true,
+				storeName: true
 			});
 		} else {
 			if (isCalleeOfDifferentParent) {
@@ -276,10 +276,10 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.context.warn(
 				{
 					code: 'MISSING_EXPORT',
-					missing: exportName,
-					importer: relativeId(this.context.fileName),
 					exporter: relativeId(fileName),
+					importer: relativeId(this.context.fileName),
 					message: `'${exportName}' is not exported by '${relativeId(fileName)}'`,
+					missing: exportName,
 					url: `https://rollupjs.org/guide/en#error-name-is-not-exported-by-module-`
 				},
 				path[0].pos

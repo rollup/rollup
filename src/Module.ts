@@ -105,8 +105,8 @@ export interface AstContext {
 
 export const defaultAcornOptions: acorn.Options = {
 	ecmaVersion: 2019,
-	sourceType: 'module',
-	preserveParens: false
+	preserveParens: false,
+	sourceType: 'module'
 };
 
 function tryParse(module: Module, Parser: typeof acorn.Parser, acornOptions: acorn.Options) {
@@ -232,23 +232,23 @@ export default class Module {
 			} catch (e) {
 				this.warn(
 					{
+						code: 'SOURCEMAP_ERROR',
 						loc: {
+							column: location.column,
 							file: this.id,
-							line: location.line,
-							column: location.column
+							line: location.line
 						},
-						pos,
 						message: `Error when using sourcemap for reporting an error: ${e.message}`,
-						code: 'SOURCEMAP_ERROR'
+						pos
 					},
 					undefined
 				);
 			}
 
 			props.loc = {
+				column: location.column,
 				file: this.id,
-				line: location.line,
-				column: location.column
+				line: location.line
 			};
 			props.frame = getCodeFrame(this.originalCode, location.line, location.column);
 		}
@@ -509,14 +509,16 @@ export default class Module {
 			addExport: this.addExport.bind(this),
 			addImport: this.addImport.bind(this),
 			addImportMeta: this.addImportMeta.bind(this),
+			annotations: this.graph.treeshake && this.graph.treeshakingOptions.annotations,
 			code, // Only needed for debugging
+			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
 			getAssetFileName: this.graph.pluginDriver.getAssetFileName,
 			getExports: this.getExports.bind(this),
-			getReexports: this.getReexports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
+			getReexports: this.getReexports.bind(this),
 			importDescriptions: this.importDescriptions,
 			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeVariable: this.includeVariable.bind(this),
@@ -528,8 +530,6 @@ export default class Module {
 			preserveModules: this.graph.preserveModules,
 			propertyReadSideEffects:
 				!this.graph.treeshake || this.graph.treeshakingOptions.propertyReadSideEffects,
-			annotations: this.graph.treeshake && this.graph.treeshakingOptions.annotations,
-			deoptimizationTracker: this.graph.deoptimizationTracker,
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
 			treeshake: this.graph.treeshake,
@@ -549,17 +549,17 @@ export default class Module {
 
 	toJSON(): ModuleJSON {
 		return {
-			id: this.id,
-			dependencies: this.dependencies.map(module => module.id),
-			transformDependencies: this.transformDependencies,
-			transformAssets: this.transformAssets,
+			ast: this.esTreeAst,
 			code: this.code,
+			customTransformCache: this.customTransformCache,
+			dependencies: this.dependencies.map(module => module.id),
+			id: this.id,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,
-			ast: this.esTreeAst,
-			sourcemapChain: this.sourcemapChain,
 			resolvedIds: this.resolvedIds,
-			customTransformCache: this.customTransformCache
+			sourcemapChain: this.sourcemapChain,
+			transformAssets: this.transformAssets,
+			transformDependencies: this.transformDependencies
 		};
 	}
 
@@ -634,10 +634,10 @@ export default class Module {
 					}
 
 					this.reexports[name] = {
-						start: specifier.start,
-						source,
 						localName: specifier.local.name,
-						module: null // filled in later
+						module: null, // filled in later,
+						source,
+						start: specifier.start
 					};
 				}
 			}
@@ -656,8 +656,8 @@ export default class Module {
 			}
 
 			this.exports.default = {
-				localName: 'default',
 				identifier: node.variable.getOriginalVariableName(),
+				localName: 'default',
 				node
 			};
 		} else if ((<ExportNamedDeclaration>node).declaration) {
@@ -773,10 +773,10 @@ export default class Module {
 	private shimMissingExport(name: string): void {
 		if (!this.exports[name]) {
 			this.graph.warn({
-				message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`,
 				code: 'SHIMMED_EXPORT',
+				exporter: relativeId(this.id),
 				exportName: name,
-				exporter: relativeId(this.id)
+				message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`
 			});
 			this.exports[name] = MISSING_EXPORT_SHIM_DESCRIPTION;
 		}

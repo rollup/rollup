@@ -150,8 +150,8 @@ export class Task {
 		if (chokidarOptions) {
 			chokidarOptions = {
 				...(chokidarOptions === true ? {} : chokidarOptions),
-				ignoreInitial: true,
-				disableGlobbing: true
+				disableGlobbing: true,
+				ignoreInitial: true
 			};
 		}
 
@@ -238,9 +238,9 @@ export class Task {
 			.then((result: RollupBuild) => {
 				this.watcher.emit('event', {
 					code: 'BUNDLE_END',
+					duration: Date.now() - start,
 					input: this.inputOptions.input,
 					output: this.outputFiles,
-					duration: Date.now() - start,
 					result
 				});
 			})

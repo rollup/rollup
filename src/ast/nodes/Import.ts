@@ -16,10 +16,10 @@ const getDynamicImportMechanism = (format: string, compact: boolean): DynamicImp
 		case 'cjs': {
 			const _ = compact ? '' : ' ';
 			return {
-				left: 'Promise.resolve(require(',
-				right: '))',
 				interopLeft: `Promise.resolve({${_}default:${_}require(`,
-				interopRight: `)${_}})`
+				interopRight: `)${_}})`,
+				left: 'Promise.resolve(require(',
+				right: '))'
 			};
 		}
 		case 'amd': {
@@ -27,10 +27,10 @@ const getDynamicImportMechanism = (format: string, compact: boolean): DynamicImp
 			const resolve = compact ? 'c' : 'resolve';
 			const reject = compact ? 'e' : 'reject';
 			return {
-				left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
-				right: `],${_}${resolve},${_}${reject})${_}})`,
 				interopLeft: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
-				interopRight: `],${_}function${_}(m)${_}{${_}${resolve}({${_}default:${_}m${_}})${_}},${_}${reject})${_}})`
+				interopRight: `],${_}function${_}(m)${_}{${_}${resolve}({${_}default:${_}m${_}})${_}},${_}${reject})${_}})`,
+				left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
+				right: `],${_}${resolve},${_}${reject})${_}})`
 			};
 		}
 		case 'system':

@@ -100,8 +100,8 @@ export function renderStatementList(
 			if (currentNode.included) {
 				currentNodeNeedsBoundaries
 					? currentNode.render(code, options, {
-							start: currentNodeStart,
-							end: nextNodeStart
+							end: nextNodeStart,
+							start: currentNodeStart
 					  })
 					: currentNode.render(code, options);
 			} else {
@@ -148,22 +148,22 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 			nextNodeStart++;
 		if (node !== undefined) {
 			splitUpNodes.push({
-				node,
-				start,
 				contentEnd,
+				end: nextNodeStart,
+				node,
 				separator,
-				end: nextNodeStart
+				start
 			});
 		}
 		node = nextNode;
 		start = nextNodeStart;
 	}
 	splitUpNodes.push({
-		node,
-		start,
-		separator: null,
 		contentEnd: end,
-		end
+		end,
+		node,
+		separator: null,
+		start
 	});
 	return splitUpNodes;
 }

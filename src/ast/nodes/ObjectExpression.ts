@@ -318,8 +318,8 @@ export default class ObjectExpression extends NodeBase {
 			if (!propertyMapProperty) {
 				this.propertyMap[key] = {
 					exactMatchRead: isRead ? property : null,
-					propertiesRead: isRead ? [property, ...this.unmatchablePropertiesRead] : [],
 					exactMatchWrite: isWrite ? property : null,
+					propertiesRead: isRead ? [property, ...this.unmatchablePropertiesRead] : [],
 					propertiesSet: isWrite && !isRead ? [property, ...this.unmatchablePropertiesWrite] : []
 				};
 				continue;

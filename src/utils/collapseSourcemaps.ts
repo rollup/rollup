@@ -147,16 +147,16 @@ export default function collapseSourcemaps(
 		if (map.missing) {
 			bundle.graph.warn({
 				code: 'SOURCEMAP_BROKEN',
-				plugin: map.plugin,
 				message: `Sourcemap is likely to be incorrect: a plugin${
 					map.plugin ? ` ('${map.plugin}')` : ``
 				} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
+				plugin: map.plugin,
 				url: `https://rollupjs.org/guide/en#warning-sourcemap-is-likely-to-be-incorrect`
 			});
 
 			map = {
-				names: [],
-				mappings: ''
+				mappings: '',
+				names: []
 			};
 		}
 

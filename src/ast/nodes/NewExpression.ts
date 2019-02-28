@@ -39,9 +39,9 @@ export default class NewExpression extends NodeBase {
 	initialise() {
 		this.included = false;
 		this.callOptions = CallOptions.create({
-			withNew: true,
 			args: this.arguments,
-			callIdentifier: this
+			callIdentifier: this,
+			withNew: true
 		});
 	}
 }

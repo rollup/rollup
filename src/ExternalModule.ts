@@ -95,9 +95,9 @@ export default class ExternalModule {
 
 		this.graph.warn({
 			code: 'UNUSED_EXTERNAL_IMPORT',
-			source: this.id,
+			message: `${names} imported from external module '${this.id}' but never used`,
 			names: unused,
-			message: `${names} imported from external module '${this.id}' but never used`
+			source: this.id
 		});
 	}
 }

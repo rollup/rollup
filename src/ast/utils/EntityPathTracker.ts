@@ -8,9 +8,9 @@ interface TrackedPaths {
 }
 
 const getNewTrackedPaths = (): TrackedPaths => ({
+	paths: Object.create(null),
 	tracked: false,
-	unknownPath: null,
-	paths: Object.create(null)
+	unknownPath: null
 });
 
 export class EntityPathTracker {

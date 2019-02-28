@@ -146,8 +146,8 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		this.included = false;
 		this.returnExpression = null;
 		this.accessorCallOptions = CallOptions.create({
-			withNew: false,
-			callIdentifier: this
+			callIdentifier: this,
+			withNew: false
 		});
 	}
 

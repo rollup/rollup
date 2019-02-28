@@ -101,10 +101,10 @@ export default class SequenceExpression extends NodeBase {
 			lastEnd = end;
 			if (node === this.expressions[this.expressions.length - 1] && includedNodes === 1) {
 				node.render(code, options, {
-					renderedParentType: renderedParentType || this.parent.type,
 					isCalleeOfRenderedParent: renderedParentType
 						? isCalleeOfRenderedParent
-						: (<CallExpression>this.parent).callee === this
+						: (<CallExpression>this.parent).callee === this,
+					renderedParentType: renderedParentType || this.parent.type
 				});
 			} else {
 				node.render(code, options);

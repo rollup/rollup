@@ -2,27 +2,27 @@ import { ChunkDependencies } from '../../Chunk';
 import { RollupWarning } from '../../rollup/types';
 
 const builtins = {
-	process: true,
-	events: true,
-	stream: true,
-	util: true,
-	path: true,
+	assert: true,
 	buffer: true,
-	querystring: true,
-	url: true,
-	string_decoder: true,
-	punycode: true,
+	console: true,
+	constants: true,
+	domain: true,
+	events: true,
 	http: true,
 	https: true,
 	os: true,
-	assert: true,
-	constants: true,
+	path: true,
+	process: true,
+	punycode: true,
+	querystring: true,
+	stream: true,
+	string_decoder: true,
 	timers: true,
-	console: true,
-	vm: true,
-	zlib: true,
 	tty: true,
-	domain: true
+	url: true,
+	util: true,
+	vm: true,
+	zlib: true
 };
 
 // Creating a browser chunk that depends on Node.js built-in modules ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins
@@ -45,7 +45,7 @@ export default function warnOnBuiltins(
 
 	warn({
 		code: 'MISSING_NODE_BUILTINS',
-		modules: externalBuiltins,
-		message: `Creating a browser bundle that depends on Node.js built-in ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`
+		message: `Creating a browser bundle that depends on Node.js built-in ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`,
+		modules: externalBuiltins
 	});
 }

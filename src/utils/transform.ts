@@ -72,8 +72,8 @@ export default function transform(
 
 		if (typeof result === 'string') {
 			result = {
-				code: result,
 				ast: undefined,
+				code: result,
 				map: undefined
 			};
 		} else if (typeof result.map === 'string') {
@@ -161,13 +161,13 @@ export default function transform(
 			if (!customTransformCache && setAssetSourceErr) throw setAssetSourceErr;
 
 			return {
+				ast: <ESTree.Program>ast,
 				code,
-				transformDependencies,
+				customTransformCache,
 				originalCode,
 				originalSourcemap,
-				ast: <ESTree.Program>ast,
 				sourcemapChain,
-				customTransformCache
+				transformDependencies
 			};
 		});
 }

@@ -102,9 +102,9 @@ export default class Graph {
 		if (this.treeshake) {
 			this.treeshakingOptions = options.treeshake
 				? {
+						annotations: (<TreeshakingOptions>options.treeshake).annotations !== false,
 						propertyReadSideEffects:
 							(<TreeshakingOptions>options.treeshake).propertyReadSideEffects !== false,
-						annotations: (<TreeshakingOptions>options.treeshake).annotations !== false,
 						pureExternalModules: (<TreeshakingOptions>options.treeshake).pureExternalModules
 				  }
 				: { propertyReadSideEffects: true, annotations: true, pureExternalModules: false };
@@ -467,11 +467,11 @@ export default class Graph {
 							if (resolvedId !== false) {
 								this.warn({
 									code: 'UNRESOLVED_IMPORT',
-									source,
 									importer: relativeId(module.id),
 									message: `'${source}' is imported by ${relativeId(
 										module.id
 									)}, but could not be resolved – treating it as an external dependency`,
+									source,
 									url:
 										'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
 								});
@@ -554,8 +554,8 @@ export default class Graph {
 				const sourceDescription: SourceDescription =
 					typeof source === 'string'
 						? {
-								code: source,
-								ast: null
+								ast: null,
+								code: source
 						  }
 						: source;
 
@@ -596,16 +596,16 @@ export default class Graph {
 							if (name in module.exportsAll) {
 								this.warn({
 									code: 'NAMESPACE_CONFLICT',
-									reexporter: module.id,
-									name,
-									sources: [module.exportsAll[name], (<Module>exportAllModule).exportsAll[name]],
 									message: `Conflicting namespaces: ${relativeId(
 										module.id
 									)} re-exports '${name}' from both ${relativeId(
 										module.exportsAll[name]
 									)} and ${relativeId(
 										(<Module>exportAllModule).exportsAll[name]
-									)} (will be ignored)`
+									)} (will be ignored)`,
+									name,
+									reexporter: module.id,
+									sources: [module.exportsAll[name], (<Module>exportAllModule).exportsAll[name]]
 								});
 							} else {
 								module.exportsAll[name] = (<Module>exportAllModule).exportsAll[name];
@@ -714,11 +714,11 @@ export default class Graph {
 					module.warn(
 						{
 							code: 'NON_EXISTENT_EXPORT',
-							name: importDescription.name,
-							source: importDescription.module.id,
 							message: `Non-existent export '${
 								importDescription.name
-							}' is imported from ${relativeId(importDescription.module.id)}`
+							}' is imported from ${relativeId(importDescription.module.id)}`,
+							name: importDescription.name,
+							source: importDescription.module.id
 						},
 						importDescription.start
 					);

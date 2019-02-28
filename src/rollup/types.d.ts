@@ -4,7 +4,7 @@ import { EventEmitter } from 'events';
 export const VERSION: string;
 
 export interface IdMap {
-	[key: string]: { id: string; external: boolean };
+	[key: string]: { external: boolean; id: string };
 }
 
 export interface RollupError extends RollupLogProps {
@@ -30,9 +30,9 @@ export interface RollupLogProps {
 	hook?: string;
 	id?: string;
 	loc?: {
+		column: number;
 		file?: string;
 		line: number;
-		column: number;
 	};
 	message: string;
 	name?: string;
@@ -43,25 +43,24 @@ export interface RollupLogProps {
 }
 
 export interface ExistingRawSourceMap {
-	version: number;
-	sources: string[];
+	file?: string;
+	mappings: string;
 	names: string[];
 	sourceRoot?: string;
+	sources: string[];
 	sourcesContent?: string[];
-	mappings: string;
-	file?: string;
+	version: number;
 }
 
 export type RawSourceMap = { mappings: '' } | ExistingRawSourceMap;
 
 export interface SourceMap {
-	version: string;
 	file: string;
+	mappings: string;
+	names: string[];
 	sources: string[];
 	sourcesContent: string[];
-	names: string[];
-	mappings: string;
-
+	version: string;
 	toString(): string;
 	toUrl(): string;
 }
@@ -77,31 +76,31 @@ export interface TransformSourceDescription extends SourceDescription {
 }
 
 export interface ModuleJSON {
-	id: string;
-	dependencies: string[];
-	transformDependencies: string[] | null;
-	transformAssets: Asset[] | void;
-	code: string;
-	originalCode: string;
-	originalSourcemap: RawSourceMap | void;
 	ast: ESTree.Program;
-	sourcemapChain: RawSourceMap[];
-	resolvedIds: IdMap;
+	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
+	dependencies: string[];
+	id: string;
+	originalCode: string;
+	originalSourcemap: RawSourceMap | void;
+	resolvedIds: IdMap;
+	sourcemapChain: RawSourceMap[];
+	transformAssets: Asset[] | void;
+	transformDependencies: string[] | null;
 }
 
 export interface Asset {
+	fileName: string;
 	name: string;
 	source: string | Buffer;
-	fileName: string;
 }
 
 export interface PluginCache {
-	has(id: string): boolean;
-	get<T = any>(id: string): T;
-	set<T = any>(id: string, value: T): void;
 	delete(id: string): boolean;
+	get<T = any>(id: string): T;
+	has(id: string): boolean;
+	set<T = any>(id: string, value: T): void;
 }
 
 export interface MinimalPluginContext {
@@ -109,26 +108,26 @@ export interface MinimalPluginContext {
 }
 
 export interface PluginContext extends MinimalPluginContext {
-	/** @deprecated */
-	watcher: EventEmitter;
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
-	resolveId: ResolveIdHook;
-	isExternal: IsExternal;
-	parse: (input: string, options: any) => ESTree.Program;
-	emitAsset(name: string, source?: string | Buffer): string;
-	setAssetSource: (assetId: string, source: string | Buffer) => void;
 	getAssetFileName: (assetId: string) => string;
-	warn(warning: RollupWarning | string, pos?: { line: number; column: number }): void;
-	error(err: RollupError | string, pos?: { line: number; column: number }): void;
-	moduleIds: IterableIterator<string>;
 	getModuleInfo: (
 		moduleId: string
 	) => {
 		id: string;
-		isExternal: boolean;
 		importedIds: string[];
+		isExternal: boolean;
 	};
+	isExternal: IsExternal;
+	moduleIds: IterableIterator<string>;
+	parse: (input: string, options: any) => ESTree.Program;
+	resolveId: ResolveIdHook;
+	setAssetSource: (assetId: string, source: string | Buffer) => void;
+	/** @deprecated */
+	watcher: EventEmitter;
+	emitAsset(name: string, source?: string | Buffer): string;
+	error(err: RollupError | string, pos?: { column: number; line: number }): void;
+	warn(warning: RollupWarning | string, pos?: { column: number; line: number }): void;
 }
 
 export interface PluginContextMeta {
@@ -215,7 +214,6 @@ export interface Plugin {
 		bundle: OutputBundle,
 		isWrite: boolean
 	) => void | Promise<void>;
-	writeBundle?: (this: PluginContext, bundle: OutputBundle) => void | Promise<void>;
 	intro?: AddonHook;
 	load?: LoadHook;
 	name: string;
@@ -244,11 +242,12 @@ export interface Plugin {
 	/** @deprecated */
 	transformChunk?: TransformChunkHook;
 	watchChange?: (id: string) => void;
+	writeBundle?: (this: PluginContext, bundle: OutputBundle) => void | Promise<void>;
 }
 
 export interface TreeshakingOptions {
-	propertyReadSideEffects: boolean;
 	annotations: boolean;
+	propertyReadSideEffects: boolean;
 	pureExternalModules: boolean;
 }
 
@@ -286,8 +285,8 @@ export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
 export interface OutputOptions {
 	amd?: {
-		id?: string;
 		define?: string;
+		id?: string;
 	};
 	assetFileNames?: string;
 	banner?: string | (() => string | Promise<string>);
@@ -295,9 +294,9 @@ export interface OutputOptions {
 	compact?: boolean;
 	// only required for bundle.write
 	dir?: string;
-	exports?: 'default' | 'named' | 'none' | 'auto';
 	entryFileNames?: string;
 	esModule?: boolean;
+	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
 	// only required for bundle.write
 	file?: string;
@@ -330,17 +329,17 @@ export interface SerializedTimings {
 }
 
 export interface OutputAsset {
-	isAsset: true;
 	code?: undefined;
 	fileName: string;
+	isAsset: true;
 	source: string | Buffer;
 }
 
 export interface RenderedModule {
-	renderedExports: string[];
-	removedExports: string[];
-	renderedLength: number;
 	originalLength: number;
+	removedExports: string[];
+	renderedExports: string[];
+	renderedLength: number;
 }
 
 export interface RenderedChunk {
@@ -378,10 +377,10 @@ export interface RollupOutput {
 
 export interface RollupBuild {
 	cache: RollupCache;
-	watchFiles: string[];
 	generate: (outputOptions: OutputOptions) => Promise<RollupOutput>;
-	write: (options: OutputOptions) => Promise<RollupOutput>;
 	getTimings?: () => SerializedTimings;
+	watchFiles: string[];
+	write: (options: OutputOptions) => Promise<RollupOutput>;
 }
 
 export interface RollupOptions extends InputOptions {
@@ -391,33 +390,33 @@ export interface RollupOptions extends InputOptions {
 export function rollup(options: RollupOptions): Promise<RollupBuild>;
 // chokidar watch options
 export interface WatchOptions {
-	persistent?: boolean;
-	ignored?: any;
-	ignoreInitial?: boolean;
-	followSymlinks?: boolean;
-	cwd?: string;
-	disableGlobbing?: boolean;
-	usePolling?: boolean;
-	useFsEvents?: boolean;
 	alwaysStat?: boolean;
-	depth?: number;
-	interval?: number;
-	binaryInterval?: number;
-	ignorePermissionErrors?: boolean;
 	atomic?: boolean | number;
 	awaitWriteFinish?:
 		| {
-				stabilityThreshold?: number;
 				pollInterval?: number;
+				stabilityThreshold?: number;
 		  }
 		| boolean;
+	binaryInterval?: number;
+	cwd?: string;
+	depth?: number;
+	disableGlobbing?: boolean;
+	followSymlinks?: boolean;
+	ignored?: any;
+	ignoreInitial?: boolean;
+	ignorePermissionErrors?: boolean;
+	interval?: number;
+	persistent?: boolean;
+	useFsEvents?: boolean;
+	usePolling?: boolean;
 }
 
 export interface WatcherOptions {
 	chokidar?: boolean | WatchOptions;
-	include?: string[];
-	exclude?: string[];
 	clearScreen?: boolean;
+	exclude?: string[];
+	include?: string[];
 }
 
 export interface RollupWatchOptions extends InputOptions {
