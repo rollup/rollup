@@ -178,10 +178,10 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		options: ExecutionPathOptions
 	): boolean {
 		if (options.hasReturnExpressionBeenCalledAtPath(path, this)) return false;
-		const innerOptions = options.addCalledReturnExpressionAtPath(path, this);
-		return (
-			this.hasEffects(innerOptions) ||
-			this.returnExpression.hasEffectsWhenCalledAtPath(path, callOptions, innerOptions)
+		return this.returnExpression.hasEffectsWhenCalledAtPath(
+			path,
+			callOptions,
+			options.addCalledReturnExpressionAtPath(path, this)
 		);
 	}
 
