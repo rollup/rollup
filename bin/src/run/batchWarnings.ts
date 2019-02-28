@@ -4,8 +4,8 @@ import relativeId from '../../../src/utils/relativeId';
 import { stderr } from '../logging';
 
 export interface BatchWarnings {
-	readonly count: number;
 	add: (warning: string | RollupWarning) => void;
+	readonly count: number;
 	flush: () => void;
 }
 
@@ -117,8 +117,8 @@ const immediateHandlers: {
 // TODO select sensible priorities
 const deferredHandlers: {
 	[code: string]: {
-		priority: number;
 		fn: (warnings: RollupWarning[]) => void;
+		priority: number;
 	};
 } = {
 	UNUSED_EXTERNAL_IMPORT: {
@@ -230,11 +230,11 @@ const deferredHandlers: {
 				plugins.length === 0
 					? ''
 					: plugins.length > 1
-						? ` (such as ${plugins
-								.slice(0, -1)
-								.map(p => `'${p}'`)
-								.join(', ')} and '${plugins.slice(-1)}')`
-						: ` (such as '${plugins[0]}')`;
+					? ` (such as ${plugins
+							.slice(0, -1)
+							.map(p => `'${p}'`)
+							.join(', ')} and '${plugins.slice(-1)}')`
+					: ` (such as '${plugins[0]}')`;
 
 			stderr(`Plugins that transform code${detail} should generate accompanying sourcemaps`);
 		}
@@ -279,8 +279,8 @@ function info(url: string) {
 }
 
 function nest<T>(array: T[], prop: string) {
-	const nested: { key: string; items: T[] }[] = [];
-	const lookup = new Map<string, { key: string; items: T[] }>();
+	const nested: { items: T[]; key: string }[] = [];
+	const lookup = new Map<string, { items: T[]; key: string }>();
 
 	array.forEach(item => {
 		const key = (<any>item)[prop];

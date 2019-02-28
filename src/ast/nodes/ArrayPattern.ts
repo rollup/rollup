@@ -7,8 +7,8 @@ import { NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class ArrayPattern extends NodeBase implements PatternNode {
-	type: NodeType.tArrayPattern;
 	elements: (PatternNode | null)[];
+	type: NodeType.tArrayPattern;
 
 	addExportedVariables(variables: Variable[]): void {
 		for (const element of this.elements) {
@@ -26,15 +26,6 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (path.length > 0) return true;
-		for (const element of this.elements) {
-			if (element !== null && element.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options))
-				return true;
-		}
-		return false;
-	}
-
 	deoptimizePath(path: ObjectPath) {
 		if (path.length === 0) {
 			for (const element of this.elements) {
@@ -43,5 +34,14 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 				}
 			}
 		}
+	}
+
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+		if (path.length > 0) return true;
+		for (const element of this.elements) {
+			if (element !== null && element.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options))
+				return true;
+		}
+		return false;
 	}
 }

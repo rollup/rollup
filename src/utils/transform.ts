@@ -31,15 +31,12 @@ export default function transform(
 		originalSourcemap.mappings = decode(originalSourcemap.mappings);
 
 	const baseEmitAsset = graph.pluginDriver.emitAsset;
-
 	const originalCode = source.code;
 	let ast = <Program>source.ast;
-
 	let transformDependencies: string[];
-
 	let assets: Asset[];
 	let customTransformCache = false;
-	let trackedPluginCache: { used: boolean; cache: PluginCache };
+	let trackedPluginCache: { cache: PluginCache; used: boolean };
 	let curPlugin: Plugin;
 	const curSource: string = source.code;
 
@@ -115,14 +112,14 @@ export default function transform(
 				return {
 					...pluginContext,
 					cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
-					warn(warning: RollupWarning | string, pos?: { line: number; column: number }) {
+					warn(warning: RollupWarning | string, pos?: { column: number; line: number }) {
 						if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 						if (pos) augmentCodeLocation(warning, pos, curSource, id);
 						warning.id = id;
 						warning.hook = 'transform';
 						pluginContext.warn(warning);
 					},
-					error(err: RollupError | string, pos?: { line: number; column: number }) {
+					error(err: RollupError | string, pos?: { column: number; line: number }) {
 						if (typeof err === 'string') err = { message: err };
 						if (pos) augmentCodeLocation(err, pos, curSource, id);
 						err.id = id;

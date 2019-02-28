@@ -26,32 +26,16 @@ const RESULT_KEY: RESULT_KEY = {};
 type KeyTypes = OptionTypes | Entity | RESULT_KEY;
 
 export class ExecutionPathOptions {
-	private optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>;
-
 	static create() {
 		return new this(Immutable.Map());
 	}
+
+	private optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>;
 
 	private constructor(
 		optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>
 	) {
 		this.optionValues = optionValues;
-	}
-
-	private get(option: OptionTypes) {
-		return this.optionValues.get(option);
-	}
-
-	private remove(option: OptionTypes) {
-		return new ExecutionPathOptions(this.optionValues.remove(option));
-	}
-
-	private set(option: OptionTypes, value: boolean | ExpressionEntity[]) {
-		return new ExecutionPathOptions(this.optionValues.set(option, value));
-	}
-
-	private setIn(optionPath: (string | Entity | RESULT_KEY)[], value: boolean | Entity) {
-		return new ExecutionPathOptions(this.optionValues.setIn(optionPath, value));
 	}
 
 	addAccessedNodeAtPath(path: ObjectPath, node: ExpressionEntity) {
@@ -205,5 +189,21 @@ export class ExecutionPathOptions {
 
 	setIgnoreReturnAwaitYield(value = true) {
 		return this.set(OptionTypes.IGNORE_RETURN_AWAIT_YIELD, value);
+	}
+
+	private get(option: OptionTypes) {
+		return this.optionValues.get(option);
+	}
+
+	private remove(option: OptionTypes) {
+		return new ExecutionPathOptions(this.optionValues.remove(option));
+	}
+
+	private set(option: OptionTypes, value: boolean | ExpressionEntity[]) {
+		return new ExecutionPathOptions(this.optionValues.set(option, value));
+	}
+
+	private setIn(optionPath: (string | Entity | RESULT_KEY)[], value: boolean | Entity) {
+		return new ExecutionPathOptions(this.optionValues.setIn(optionPath, value));
 	}
 }

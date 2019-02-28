@@ -12,12 +12,12 @@ export interface RenderOptions {
 }
 
 export interface NodeRenderOptions {
-	start?: number;
 	end?: number;
-	isNoStatement?: boolean;
-	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
 	isCalleeOfRenderedParent?: boolean;
+	isNoStatement?: boolean;
 	isShorthandProperty?: boolean;
+	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
+	start?: number;
 }
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
@@ -120,11 +120,11 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 	start: number,
 	end: number
 ): ({
-	node: N;
-	start: number;
-	separator: number | null;
 	contentEnd: number;
 	end: number;
+	node: N;
+	separator: number | null;
+	start: number;
 })[] {
 	const splitUpNodes = [];
 	let node, nextNode, nextNodeStart, contentEnd, char;

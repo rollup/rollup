@@ -10,7 +10,7 @@ export function error(base: Error | RollupError, props?: RollupError) {
 
 export function augmentCodeLocation(
 	object: RollupError | RollupWarning,
-	pos: { line: number; column: number },
+	pos: { column: number; line: number },
 	source: string,
 	id: string
 ): void {

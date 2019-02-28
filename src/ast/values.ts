@@ -14,10 +14,10 @@ export const EMPTY_PATH: ObjectPath = [];
 export const UNKNOWN_PATH: ObjectPath = [UNKNOWN_KEY];
 
 export interface MemberDescription {
+	callsArgs: number[] | null;
+	mutatesSelf: boolean;
 	returns: { new (): ExpressionEntity } | null;
 	returnsPrimitive: ExpressionEntity | null;
-	mutatesSelf: boolean;
-	callsArgs: number[] | null;
 }
 
 export interface MemberDescriptions {
@@ -81,6 +81,8 @@ const callsArgReturnsUnknown: RawMemberDescription = {
 export class UnknownArrayExpression implements ExpressionEntity {
 	included: boolean = false;
 
+	deoptimizePath() {}
+
 	getLiteralValueAtPath() {
 		return UNKNOWN_VALUE;
 	}
@@ -114,8 +116,6 @@ export class UnknownArrayExpression implements ExpressionEntity {
 	include() {
 		this.included = true;
 	}
-
-	deoptimizePath() {}
 
 	toString() {
 		return '[[UNKNOWN ARRAY]]';
@@ -277,6 +277,8 @@ const returnsString: RawMemberDescription = {
 export class UnknownObjectExpression implements ExpressionEntity {
 	included: boolean = false;
 
+	deoptimizePath() {}
+
 	getLiteralValueAtPath() {
 		return UNKNOWN_VALUE;
 	}
@@ -310,8 +312,6 @@ export class UnknownObjectExpression implements ExpressionEntity {
 	include() {
 		this.included = true;
 	}
-
-	deoptimizePath() {}
 
 	toString() {
 		return '[[UNKNOWN OBJECT]]';

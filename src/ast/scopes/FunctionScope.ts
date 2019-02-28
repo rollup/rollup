@@ -13,10 +13,10 @@ import ReturnValueScope from './ReturnValueScope';
 
 export default class FunctionScope extends ReturnValueScope {
 	variables: {
-		this: ThisVariable;
-		default: ExportDefaultVariable;
-		arguments: ArgumentsVariable;
 		[name: string]: LocalVariable | GlobalVariable | ExternalVariable | ArgumentsVariable;
+		arguments: ArgumentsVariable;
+		default: ExportDefaultVariable;
+		this: ThisVariable;
 	};
 
 	constructor(parent: ChildScope, context: AstContext) {

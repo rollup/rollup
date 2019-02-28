@@ -5,10 +5,10 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
-	type: NodeType.tNewExpression;
-	callee: ExpressionNode;
-	arguments: ExpressionNode[];
 	annotatedPure?: boolean;
+	arguments: ExpressionNode[];
+	callee: ExpressionNode;
+	type: NodeType.tNewExpression;
 
 	private callOptions: CallOptions;
 

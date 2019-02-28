@@ -9,13 +9,13 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
 
 export default class IfStatement extends StatementBase implements DeoptimizableEntity {
-	type: NodeType.tIfStatement;
-	test: ExpressionNode;
-	consequent: StatementNode;
 	alternate: StatementNode | null;
+	consequent: StatementNode;
+	test: ExpressionNode;
+	type: NodeType.tIfStatement;
 
-	private testValue: LiteralValueOrUnknown;
 	private isTestValueAnalysed: boolean;
+	private testValue: LiteralValueOrUnknown;
 
 	bind() {
 		super.bind();

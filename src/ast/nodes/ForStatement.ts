@@ -12,11 +12,11 @@ export function isForStatement(node: Node): node is ForStatement {
 }
 
 export default class ForStatement extends StatementBase {
-	type: NodeType.tForStatement;
+	body: StatementNode;
 	init: VariableDeclaration | ExpressionNode | null;
 	test: ExpressionNode | null;
+	type: NodeType.tForStatement;
 	update: ExpressionNode | null;
-	body: StatementNode;
 
 	createScope(parentScope: Scope) {
 		this.scope = new BlockScope(parentScope);

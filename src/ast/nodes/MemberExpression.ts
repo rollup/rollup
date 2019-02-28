@@ -73,16 +73,16 @@ export function isMemberExpression(node: Node): node is MemberExpression {
 }
 
 export default class MemberExpression extends NodeBase implements DeoptimizableEntity {
-	type: NodeType.tMemberExpression;
+	computed: boolean;
 	object: ExpressionNode;
 	property: ExpressionNode;
-	computed: boolean;
-
 	propertyKey: ObjectPathKey | null;
+	type: NodeType.tMemberExpression;
 	variable: Variable = null;
+
 	private bound: boolean;
-	private replacement: string | null;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[];
+	private replacement: string | null;
 
 	bind() {
 		if (this.bound) return;
@@ -111,6 +111,17 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	deoptimizeCache() {
 		for (const expression of this.expressionsToBeDeoptimized) {
 			expression.deoptimizeCache();
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (!this.bound) this.bind();
+		if (path.length === 0) this.disallowNamespaceReassignment();
+		if (this.variable) {
+			this.variable.deoptimizePath(path);
+		} else {
+			if (this.propertyKey === null) this.analysePropertyKey();
+			this.object.deoptimizePath([this.propertyKey, ...path]);
 		}
 	}
 
@@ -205,17 +216,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.expressionsToBeDeoptimized = [];
 	}
 
-	deoptimizePath(path: ObjectPath) {
-		if (!this.bound) this.bind();
-		if (path.length === 0) this.disallowNamespaceReassignment();
-		if (this.variable) {
-			this.variable.deoptimizePath(path);
-		} else {
-			if (this.propertyKey === null) this.analysePropertyKey();
-			this.object.deoptimizePath([this.propertyKey, ...path]);
-		}
-	}
-
 	render(
 		code: MagicString,
 		options: RenderOptions,
@@ -236,6 +236,12 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			}
 			super.render(code, options);
 		}
+	}
+
+	private analysePropertyKey() {
+		this.propertyKey = UNKNOWN_KEY;
+		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
+		this.propertyKey = value === UNKNOWN_VALUE ? UNKNOWN_KEY : String(value);
 	}
 
 	private disallowNamespaceReassignment() {
@@ -281,11 +287,5 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			return 'undefined';
 		}
 		return this.resolveNamespaceVariables(variable, path.slice(1));
-	}
-
-	private analysePropertyKey() {
-		this.propertyKey = UNKNOWN_KEY;
-		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
-		this.propertyKey = value === UNKNOWN_VALUE ? UNKNOWN_KEY : String(value);
 	}
 }

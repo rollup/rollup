@@ -84,13 +84,13 @@ export default function mergeOptions({
 	command: rawCommandOptions = {},
 	defaultOnWarnHandler
 }: {
-	config: GenericConfigObject;
 	command?: GenericConfigObject;
+	config: GenericConfigObject;
 	defaultOnWarnHandler?: WarningHandler;
 }): {
 	inputOptions: any;
-	outputOptions: any;
 	optionError: string | null;
+	outputOptions: any;
 } {
 	const command = getCommandOptions(rawCommandOptions);
 	const inputOptions = getInputOptions(config, command, defaultOnWarnHandler);

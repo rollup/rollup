@@ -25,17 +25,16 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 export type LogicalOperator = '||' | '&&';
 
 export default class LogicalExpression extends NodeBase implements DeoptimizableEntity {
-	type: NodeType.tLogicalExpression;
-	operator: LogicalOperator;
 	left: ExpressionNode;
+	operator: LogicalOperator;
 	right: ExpressionNode;
+	type: NodeType.tLogicalExpression;
 
-	// Caching and deoptimization:
 	// We collect deoptimization information if usedBranch !== null
-	private isBranchResolutionAnalysed: boolean;
-	private usedBranch: ExpressionNode | null;
-	private unusedBranch: ExpressionNode | null;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[];
+	private isBranchResolutionAnalysed: boolean;
+	private unusedBranch: ExpressionNode | null;
+	private usedBranch: ExpressionNode | null;
 
 	bind() {
 		super.bind();
@@ -50,6 +49,18 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			this.unusedBranch.deoptimizePath(UNKNOWN_PATH);
 			for (const expression of this.expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
+			}
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0) {
+			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+			if (this.usedBranch === null) {
+				this.left.deoptimizePath(path);
+				this.right.deoptimizePath(path);
+			} else {
+				this.usedBranch.deoptimizePath(path);
 			}
 		}
 	}
@@ -143,18 +154,6 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		this.usedBranch = null;
 		this.unusedBranch = null;
 		this.expressionsToBeDeoptimized = [];
-	}
-
-	deoptimizePath(path: ObjectPath) {
-		if (path.length > 0) {
-			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
-			if (this.usedBranch === null) {
-				this.left.deoptimizePath(path);
-				this.right.deoptimizePath(path);
-			} else {
-				this.usedBranch.deoptimizePath(path);
-			}
-		}
 	}
 
 	render(

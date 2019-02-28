@@ -5,10 +5,10 @@ import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 interface DynamicImportMechanism {
-	left: string;
-	right: string;
 	interopLeft?: string;
 	interopRight?: string;
+	left: string;
+	right: string;
 }
 
 const getDynamicImportMechanism = (format: string, compact: boolean): DynamicImportMechanism => {
@@ -42,11 +42,11 @@ const getDynamicImportMechanism = (format: string, compact: boolean): DynamicImp
 };
 
 export default class Import extends NodeBase {
-	type: NodeType.tImport;
 	parent: CallExpression;
+	type: NodeType.tImport;
 
-	private resolutionNamespace: string;
 	private resolutionInterop: boolean;
+	private resolutionNamespace: string;
 
 	include() {
 		this.included = true;
@@ -58,12 +58,6 @@ export default class Import extends NodeBase {
 		this.resolutionNamespace = undefined;
 		this.resolutionInterop = false;
 		this.context.addDynamicImport(this);
-	}
-
-	renderFinalResolution(code: MagicString, resolution: string) {
-		if (this.included) {
-			code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, resolution);
-		}
 	}
 
 	render(code: MagicString, options: RenderOptions) {
@@ -87,6 +81,12 @@ export default class Import extends NodeBase {
 			const rightMechanism =
 				(this.resolutionInterop && importMechanism.interopRight) || importMechanism.right;
 			code.overwrite(this.parent.arguments[0].end, this.parent.end, rightMechanism);
+		}
+	}
+
+	renderFinalResolution(code: MagicString, resolution: string) {
+		if (this.included) {
+			code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, resolution);
 		}
 	}
 

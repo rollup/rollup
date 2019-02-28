@@ -19,9 +19,8 @@ import { NameCollection } from './reservedNames';
 
 export interface PluginDriver {
 	emitAsset: EmitAsset;
+	hasLoadersOrTransforms: boolean;
 	getAssetFileName(assetId: string): string;
-	hookSeq(hook: string, args?: any[], context?: HookContext): Promise<void>;
-	hookSeqSync(hook: string, args?: any[], context?: HookContext): void;
 	hookFirst<T = any>(hook: string, args?: any[], hookContext?: HookContext): Promise<T>;
 	hookParallel(hook: string, args?: any[], hookContext?: HookContext): Promise<void>;
 	hookReduceArg0<R = any, T = any>(
@@ -37,7 +36,8 @@ export interface PluginDriver {
 		reduce: Reduce<R, T>,
 		hookContext?: HookContext
 	): Promise<T>;
-	hasLoadersOrTransforms: boolean;
+	hookSeq(hook: string, args?: any[], context?: HookContext): Promise<void>;
+	hookSeqSync(hook: string, args?: any[], context?: HookContext): void;
 }
 
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;

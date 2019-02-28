@@ -1,23 +1,23 @@
 import { InputOptions, SerializedTimings } from '../rollup/types';
 
 type StartTime = [number, number] | number;
+
 interface Timer {
-	time: number;
 	memory: number;
-	totalMemory: number;
-	startTime: StartTime;
 	startMemory: number;
+	startTime: StartTime;
+	time: number;
+	totalMemory: number;
 }
+
 interface Timers {
 	[label: string]: Timer;
 }
 
 const NOOP = () => {};
-
 let getStartTime: () => StartTime = () => 0;
 let getElapsedTime: (previous: StartTime) => number = () => 0;
 let getMemory: () => number = () => 0;
-
 let timers: Timers = {};
 
 const normalizeHrTime = (time: [number, number]) => time[0] * 1e3 + time[1] / 1e6;

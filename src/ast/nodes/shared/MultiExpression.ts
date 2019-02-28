@@ -14,6 +14,12 @@ export class MultiExpression implements ExpressionEntity {
 		this.expressions = expressions;
 	}
 
+	deoptimizePath(path: ObjectPath): void {
+		for (const expression of this.expressions) {
+			expression.deoptimizePath(path);
+		}
+	}
+
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
 	}
@@ -56,10 +62,4 @@ export class MultiExpression implements ExpressionEntity {
 	}
 
 	include(): void {}
-
-	deoptimizePath(path: ObjectPath): void {
-		for (const expression of this.expressions) {
-			expression.deoptimizePath(path);
-		}
-	}
 }

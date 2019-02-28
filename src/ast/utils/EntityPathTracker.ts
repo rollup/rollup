@@ -2,9 +2,9 @@ import { Entity } from '../Entity';
 import { ObjectPath } from '../values';
 
 interface TrackedPaths {
+	paths: { [key: string]: TrackedPaths };
 	tracked: boolean;
 	unknownPath: TrackedPaths | null;
-	paths: { [key: string]: TrackedPaths };
 }
 
 const getNewTrackedPaths = (): TrackedPaths => ({

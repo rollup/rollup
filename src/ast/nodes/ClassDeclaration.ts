@@ -11,8 +11,8 @@ export function isClassDeclaration(node: Node): node is ClassDeclaration {
 }
 
 export default class ClassDeclaration extends ClassNode {
-	type: NodeType.tClassDeclaration;
 	id: Identifier;
+	type: NodeType.tClassDeclaration;
 
 	initialise() {
 		super.initialise();

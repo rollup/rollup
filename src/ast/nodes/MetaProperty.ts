@@ -50,10 +50,10 @@ const relUrlMechanisms: Record<string, (relPath: string, compact: boolean) => st
 };
 
 export default class MetaProperty extends NodeBase {
-	type: NodeType.tMetaProperty;
 	meta: Identifier;
 	property: Identifier;
 	rendered: boolean;
+	type: NodeType.tMetaProperty;
 
 	initialise() {
 		if (this.meta.name === 'import') {

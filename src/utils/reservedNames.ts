@@ -56,7 +56,7 @@ const NONE: NameCollection = {};
 const EXPORTS: NameCollection = { exports: true };
 
 export const RESERVED_NAMES_BY_FORMAT: {
-	[format: string]: { formatGlobals: NameCollection; forbiddenNames: NameCollection };
+	[format: string]: { forbiddenNames: NameCollection; formatGlobals: NameCollection };
 } = {
 	cjs: {
 		formatGlobals: { exports: true, module: true, [INTEROP_DEFAULT_VARIABLE]: true },

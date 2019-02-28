@@ -10,9 +10,9 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class AssignmentPattern extends NodeBase implements PatternNode {
-	type: NodeType.tAssignmentPattern;
 	left: PatternNode;
 	right: ExpressionNode;
+	type: NodeType.tAssignmentPattern;
 
 	addExportedVariables(variables: Variable[]): void {
 		this.left.addExportedVariables(variables);
@@ -28,12 +28,12 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		this.left.declare(kind, init);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options);
-	}
-
 	deoptimizePath(path: ObjectPath) {
 		path.length === 0 && this.left.deoptimizePath(path);
+	}
+
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options);
 	}
 
 	render(

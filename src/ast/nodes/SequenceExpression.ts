@@ -16,8 +16,12 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
-	type: NodeType.tSequenceExpression;
 	expressions: ExpressionNode[];
+	type: NodeType.tSequenceExpression;
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0) this.expressions[this.expressions.length - 1].deoptimizePath(path);
+	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
@@ -72,10 +76,6 @@ export default class SequenceExpression extends NodeBase {
 				node.include(includeAllChildrenRecursively);
 		}
 		this.expressions[this.expressions.length - 1].include(includeAllChildrenRecursively);
-	}
-
-	deoptimizePath(path: ObjectPath) {
-		if (path.length > 0) this.expressions[this.expressions.length - 1].deoptimizePath(path);
 	}
 
 	render(

@@ -5,16 +5,14 @@ import { UNKNOWN_PATH } from '../values';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
-	isNamespace: true;
 	context: AstContext;
+	isNamespace: true;
+	memberVariables: { [name: string]: Variable } = Object.create(null);
 	module: Module;
 
-	// Not initialised during construction
-	memberVariables: { [name: string]: Variable } = Object.create(null);
-
+	private containsExternalNamespace: boolean = false;
 	private referencedEarly: boolean = false;
 	private references: Identifier[] = [];
-	private containsExternalNamespace: boolean = false;
 
 	constructor(context: AstContext) {
 		super(context.getModuleName());
@@ -29,6 +27,16 @@ export default class NamespaceVariable extends Variable {
 	addReference(identifier: Identifier) {
 		this.references.push(identifier);
 		this.name = identifier.name;
+	}
+
+	// This is only called if "UNKNOWN_PATH" is reassigned as in all other situations, either the
+	// build fails due to an illegal namespace reassignment or MemberExpression already forwards
+	// the reassignment to the right variable. This means we lost track of this variable and thus
+	// need to reassign all exports.
+	deoptimizePath() {
+		for (const key in this.memberVariables) {
+			this.memberVariables[key].deoptimizePath(UNKNOWN_PATH);
+		}
 	}
 
 	include() {
@@ -57,20 +65,6 @@ export default class NamespaceVariable extends Variable {
 				for (const memberName of Object.keys(this.memberVariables))
 					this.context.includeVariable(this.memberVariables[memberName]);
 			}
-		}
-	}
-
-	renderFirst() {
-		return this.referencedEarly;
-	}
-
-	// This is only called if "UNKNOWN_PATH" is reassigned as in all other situations, either the
-	// build fails due to an illegal namespace reassignment or MemberExpression already forwards
-	// the reassignment to the right variable. This means we lost track of this variable and thus
-	// need to reassign all exports.
-	deoptimizePath() {
-		for (const key in this.memberVariables) {
-			this.memberVariables[key].deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 
@@ -116,6 +110,10 @@ export default class NamespaceVariable extends Variable {
 		}
 
 		return output;
+	}
+
+	renderFirst() {
+		return this.referencedEarly;
 	}
 }
 

@@ -6,9 +6,9 @@ import { ExpressionNode, StatementBase } from './shared/Node';
 import SwitchCase from './SwitchCase';
 
 export default class SwitchStatement extends StatementBase {
-	type: NodeType.tSwitchStatement;
-	discriminant: ExpressionNode;
 	cases: SwitchCase[];
+	discriminant: ExpressionNode;
+	type: NodeType.tSwitchStatement;
 
 	createScope(parentScope: Scope) {
 		this.scope = new BlockScope(parentScope);

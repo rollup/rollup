@@ -14,11 +14,11 @@ export function isForOfStatement(node: Node): node is ForOfStatement {
 }
 
 export default class ForOfStatement extends StatementBase {
-	type: NodeType.tForOfStatement;
+	await: boolean;
+	body: StatementNode;
 	left: VariableDeclaration | PatternNode;
 	right: ExpressionNode;
-	body: StatementNode;
-	await: boolean;
+	type: NodeType.tForOfStatement;
 
 	bind() {
 		this.left.bind();

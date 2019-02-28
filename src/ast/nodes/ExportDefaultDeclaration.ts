@@ -39,11 +39,10 @@ export function isExportDefaultDeclaration(node: Node): node is ExportDefaultDec
 }
 
 export default class ExportDefaultDeclaration extends NodeBase {
-	type: NodeType.tExportDefaultDeclaration;
 	declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
-	scope: ModuleScope;
-
 	needsBoundaries: true;
+	scope: ModuleScope;
+	type: NodeType.tExportDefaultDeclaration;
 	variable: ExportDefaultVariable;
 	private declarationName: string;
 

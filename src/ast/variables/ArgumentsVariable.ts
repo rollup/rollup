@@ -22,6 +22,15 @@ export default class ArgumentsVariable extends LocalVariable {
 		this.parameters = parameters;
 	}
 
+	deoptimizePath(path: ObjectPath) {
+		const firstArgNum = parseInt(<string>path[0], 10);
+		if (path.length > 0) {
+			if (firstArgNum >= 0 && this.parameters[firstArgNum]) {
+				this.parameters[firstArgNum].deoptimizePath(path.slice(1));
+			}
+		}
+	}
+
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
 		return (
 			path.length > 1 &&
@@ -50,14 +59,5 @@ export default class ArgumentsVariable extends LocalVariable {
 			callOptions,
 			options
 		);
-	}
-
-	deoptimizePath(path: ObjectPath) {
-		const firstArgNum = parseInt(<string>path[0], 10);
-		if (path.length > 0) {
-			if (firstArgNum >= 0 && this.parameters[firstArgNum]) {
-				this.parameters[firstArgNum].deoptimizePath(path.slice(1));
-			}
-		}
 	}
 }

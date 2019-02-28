@@ -6,8 +6,8 @@ import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ClassBody extends NodeBase {
-	type: NodeType.tClassBody;
 	body: MethodDefinition[];
+	type: NodeType.tClassBody;
 
 	private classConstructor: MethodDefinition | null;
 

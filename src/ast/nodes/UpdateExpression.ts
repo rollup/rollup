@@ -7,10 +7,10 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
-	type: NodeType.tUpdateExpression;
-	operator: '++' | '--';
 	argument: ExpressionNode;
+	operator: '++' | '--';
 	prefix: boolean;
+	type: NodeType.tUpdateExpression;
 
 	bind() {
 		super.bind();

@@ -12,12 +12,12 @@ export default function renderChunk({
 	sourcemapChain,
 	options
 }: {
-	graph: Graph;
 	chunk: Chunk;
-	renderChunk: RenderedChunk;
 	code: string;
-	sourcemapChain: RawSourceMap[];
+	graph: Graph;
 	options: OutputOptions;
+	renderChunk: RenderedChunk;
+	sourcemapChain: RawSourceMap[];
 }) {
 	const renderChunkReducer = (code: string, result: any, plugin: Plugin): string => {
 		if (result == null) return code;
