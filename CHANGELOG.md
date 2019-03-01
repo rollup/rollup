@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.3.3
+*unreleased*
+
+### Bug Fixes
+* Fix performance regression when handling long chains of calls to property methods (#2729)
+
+### Pull Requests
+* [#2729](https://github.com/rollup/rollup/pull/2729): Do not check if the node itself has effects when checking call effects (@lukastaegert)
+
 ## 1.3.2
 *2019-02-27*
 
