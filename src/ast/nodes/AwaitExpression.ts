@@ -4,12 +4,15 @@ import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
-import { Node } from './shared/Node';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, Node, NodeBase } from './shared/Node';
 
 export default class AwaitExpression extends NodeBase {
-	type: NodeType.tAwaitExpression;
 	argument: ExpressionNode;
+	type: NodeType.tAwaitExpression;
+
+	hasEffects(options: ExecutionPathOptions) {
+		return super.hasEffects(options) || !options.ignoreReturnAwaitYield();
+	}
 
 	include(includeAllChildrenRecursively: boolean) {
 		super.include(includeAllChildrenRecursively);
@@ -20,10 +23,6 @@ export default class AwaitExpression extends NodeBase {
 			} while ((parent = <Node>(<Node>parent).parent));
 			this.context.usesTopLevelAwait = true;
 		}
-	}
-
-	hasEffects(options: ExecutionPathOptions) {
-		return super.hasEffects(options) || !options.ignoreReturnAwaitYield();
 	}
 
 	render(code: MagicString, options: RenderOptions) {

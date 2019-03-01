@@ -4,21 +4,21 @@ import { treeshakeNode } from './treeshakeNode';
 
 export interface RenderOptions {
 	compact: boolean;
+	dynamicImportFunction: string;
 	format: string;
 	freeze: boolean;
 	indent: string;
 	namespaceToStringTag: boolean;
 	varOrConst: 'var' | 'const';
-	dynamicImportFunction: string;
 }
 
 export interface NodeRenderOptions {
-	start?: number;
 	end?: number;
-	isNoStatement?: boolean;
-	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
 	isCalleeOfRenderedParent?: boolean;
+	isNoStatement?: boolean;
 	isShorthandProperty?: boolean;
+	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
+	start?: number;
 }
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
@@ -101,8 +101,8 @@ export function renderStatementList(
 			if (currentNode.included) {
 				currentNodeNeedsBoundaries
 					? currentNode.render(code, options, {
-							start: currentNodeStart,
-							end: nextNodeStart
+							end: nextNodeStart,
+							start: currentNodeStart
 					  })
 					: currentNode.render(code, options);
 			} else {
@@ -121,11 +121,11 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 	start: number,
 	end: number
 ): ({
-	node: N;
-	start: number;
-	separator: number | null;
 	contentEnd: number;
 	end: number;
+	node: N;
+	separator: number | null;
+	start: number;
 })[] {
 	const splitUpNodes = [];
 	let node, nextNode, nextNodeStart, contentEnd, char;
@@ -149,22 +149,22 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 			nextNodeStart++;
 		if (node !== undefined) {
 			splitUpNodes.push({
-				node,
-				start,
 				contentEnd,
+				end: nextNodeStart,
+				node,
 				separator,
-				end: nextNodeStart
+				start
 			});
 		}
 		node = nextNode;
 		start = nextNodeStart;
 	}
 	splitUpNodes.push({
-		node,
-		start,
-		separator: null,
 		contentEnd: end,
-		end
+		end,
+		node,
+		separator: null,
+		start
 	});
 	return splitUpNodes;
 }

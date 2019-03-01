@@ -3,9 +3,20 @@
 	"rules": {
 		"arrow-return-shorthand": true,
 		"interface-over-type-literal": true,
+		"member-ordering": [
+			true,
+			{
+				"order": "statics-first",
+				"alphabetize": true
+			}
+		],
 		"no-string-literal": true,
 		"no-unnecessary-type-assertion": true,
 		"object-literal-shorthand": true,
+		"object-literal-sort-keys": [
+			true,
+			"ignore-case"
+		],
 		"ordered-imports": true,
 		"prefer-const": [true, { "destructuring": "all" }],
         "prefer-object-spread": true

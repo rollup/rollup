@@ -10,6 +10,10 @@ export default class ThisVariable extends LocalVariable {
 		super('this', null, null, context);
 	}
 
+	_getInit(options: ExecutionPathOptions): ExpressionEntity {
+		return options.getReplacedVariableInit(this) || UNKNOWN_EXPRESSION;
+	}
+
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
 	}
@@ -37,9 +41,5 @@ export default class ThisVariable extends LocalVariable {
 			this._getInit(options).hasEffectsWhenCalledAtPath(path, callOptions, options) ||
 			super.hasEffectsWhenCalledAtPath(path, callOptions, options)
 		);
-	}
-
-	_getInit(options: ExecutionPathOptions): ExpressionEntity {
-		return options.getReplacedVariableInit(this) || UNKNOWN_EXPRESSION;
 	}
 }

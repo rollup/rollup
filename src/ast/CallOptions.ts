@@ -12,19 +12,19 @@ export type CallExpressionType =
 	| Property;
 
 export interface CallCreateOptions {
-	withNew: boolean;
 	args?: (ExpressionEntity | SpreadElement)[];
 	callIdentifier: Object;
+	withNew: boolean;
 }
 
 export default class CallOptions implements CallCreateOptions {
-	withNew: boolean;
-	args: (ExpressionEntity | SpreadElement)[];
-	callIdentifier: Object;
-
 	static create(callOptions: CallCreateOptions) {
 		return new this(callOptions);
 	}
+
+	args: (ExpressionEntity | SpreadElement)[];
+	callIdentifier: Object;
+	withNew: boolean;
 
 	constructor(
 		{ withNew = false, args = [], callIdentifier = undefined }: CallCreateOptions = {} as any

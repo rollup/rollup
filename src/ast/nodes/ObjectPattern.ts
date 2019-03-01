@@ -9,8 +9,8 @@ import { NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class ObjectPattern extends NodeBase implements PatternNode {
-	type: NodeType.tObjectPattern;
 	properties: (Property | RestElement)[];
+	type: NodeType.tObjectPattern;
 
 	addExportedVariables(variables: Variable[]): void {
 		for (const property of this.properties) {
@@ -28,19 +28,19 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (path.length > 0) return true;
-		for (const property of this.properties) {
-			if (property.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options)) return true;
-		}
-		return false;
-	}
-
 	deoptimizePath(path: ObjectPath) {
 		if (path.length === 0) {
 			for (const property of this.properties) {
 				property.deoptimizePath(path);
 			}
 		}
+	}
+
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+		if (path.length > 0) return true;
+		for (const property of this.properties) {
+			if (property.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options)) return true;
+		}
+		return false;
 	}
 }

@@ -80,18 +80,18 @@ export interface ExpressionNode extends ExpressionEntity, Node {}
 const NEW_EXECUTION_PATH = ExecutionPathOptions.create();
 
 export class NodeBase implements ExpressionNode {
-	type: string;
+	context: AstContext;
+	end: number;
+	included: boolean;
 	keys: string[];
+	parent: Node | { context: AstContext; type: string };
 	scope: ChildScope;
 	start: number;
-	end: number;
-	context: AstContext;
-	parent: Node | { type: string; context: AstContext };
-	included: boolean;
+	type: string;
 
 	constructor(
 		esTreeNode: GenericEsTreeNode,
-		parent: Node | { type: string; context: AstContext },
+		parent: Node | { context: AstContext; type: string },
 		parentScope: ChildScope
 	) {
 		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
@@ -130,6 +130,8 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	declare(_kind: string, _init: ExpressionEntity | null) {}
+
+	deoptimizePath(_path: ObjectPath) {}
 
 	getLiteralValueAtPath(
 		_path: ObjectPath,
@@ -240,8 +242,6 @@ export class NodeBase implements ExpressionNode {
 			}
 		}
 	}
-
-	deoptimizePath(_path: ObjectPath) {}
 
 	render(code: MagicString, options: RenderOptions) {
 		for (const key of this.keys) {

@@ -7,4 +7,4 @@ require('./generated-m1.js');
 
 
 
-exports.m2 = m2.default;
+exports.m2 = m2;

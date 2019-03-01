@@ -13,8 +13,8 @@ export function isBlockStatement(node: Node): node is BlockStatement {
 }
 
 export default class BlockStatement extends StatementBase {
-	type: NodeType.tBlockStatement;
 	body: StatementNode[];
+	type: NodeType.tBlockStatement;
 
 	addImplicitReturnExpressionToScope() {
 		const lastStatement = this.body[this.body.length - 1];

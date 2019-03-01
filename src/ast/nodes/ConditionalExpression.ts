@@ -23,17 +23,16 @@ import { MultiExpression } from './shared/MultiExpression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
-	type: NodeType.tConditionalExpression;
-	test: ExpressionNode;
 	alternate: ExpressionNode;
 	consequent: ExpressionNode;
+	test: ExpressionNode;
+	type: NodeType.tConditionalExpression;
 
-	// Caching and deoptimization:
 	// We collect deoptimization information if usedBranch !== null
-	private isBranchResolutionAnalysed: boolean;
-	private usedBranch: ExpressionNode | null;
-	private unusedBranch: ExpressionNode | null;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[];
+	private isBranchResolutionAnalysed: boolean;
+	private unusedBranch: ExpressionNode | null;
+	private usedBranch: ExpressionNode | null;
 
 	bind() {
 		super.bind();
@@ -48,6 +47,18 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			this.unusedBranch.deoptimizePath(UNKNOWN_PATH);
 			for (const expression of this.expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
+			}
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0) {
+			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+			if (this.usedBranch === null) {
+				this.consequent.deoptimizePath(path);
+				this.alternate.deoptimizePath(path);
+			} else {
+				this.usedBranch.deoptimizePath(path);
 			}
 		}
 	}
@@ -122,14 +133,6 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	initialise() {
-		this.included = false;
-		this.isBranchResolutionAnalysed = false;
-		this.usedBranch = null;
-		this.unusedBranch = null;
-		this.expressionsToBeDeoptimized = [];
-	}
-
 	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;
 		if (includeAllChildrenRecursively || this.usedBranch === null || this.test.shouldBeIncluded()) {
@@ -141,16 +144,12 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 	}
 
-	deoptimizePath(path: ObjectPath) {
-		if (path.length > 0) {
-			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
-			if (this.usedBranch === null) {
-				this.consequent.deoptimizePath(path);
-				this.alternate.deoptimizePath(path);
-			} else {
-				this.usedBranch.deoptimizePath(path);
-			}
-		}
+	initialise() {
+		this.included = false;
+		this.isBranchResolutionAnalysed = false;
+		this.usedBranch = null;
+		this.unusedBranch = null;
+		this.expressionsToBeDeoptimized = [];
 	}
 
 	render(
@@ -163,10 +162,10 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			code.remove(this.usedBranch.end, this.end);
 			removeAnnotations(this, code);
 			this.usedBranch.render(code, options, {
-				renderedParentType: renderedParentType || this.parent.type,
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
-					: (<CallExpression>this.parent).callee === this
+					: (<CallExpression>this.parent).callee === this,
+				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {
 			super.render(code, options);

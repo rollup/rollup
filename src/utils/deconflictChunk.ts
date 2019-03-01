@@ -15,12 +15,12 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 		preserveModules: boolean
 	) => void;
 } = {
-	cjs: deconflictImportsOther,
-	iife: deconflictImportsOther,
 	amd: deconflictImportsOther,
-	umd: deconflictImportsOther,
+	cjs: deconflictImportsOther,
+	es: deconflictImportsEsm,
+	iife: deconflictImportsOther,
 	system: deconflictImportsEsm,
-	es: deconflictImportsEsm
+	umd: deconflictImportsOther
 };
 
 export function deconflictChunk(

@@ -5,23 +5,24 @@ import { makeLegal } from './utils/identifierHelpers';
 import { isAbsolute, normalize, relative } from './utils/path';
 
 export default class ExternalModule {
-	private graph: Graph;
 	chunk: void;
 	declarations: { [name: string]: ExternalVariable };
+	execIndex: number;
 	exportedVariables: Map<ExternalVariable, string>;
 	exportsNames = false;
 	exportsNamespace: boolean = false;
 	id: string;
-	renderPath: string = undefined;
-	renormalizeRenderPath = false;
-	isExternal = true;
 	isEntryPoint = false;
-	variableName: string;
+	isExternal = true;
 	mostCommonSuggestion: number = 0;
 	nameSuggestions: { [name: string]: number };
 	reexported: boolean = false;
+	renderPath: string = undefined;
+	renormalizeRenderPath = false;
 	used = false;
-	execIndex: number;
+	variableName: string;
+
+	private graph: Graph;
 
 	constructor({ graph, id }: { graph: Graph; id: string }) {
 		this.graph = graph;
@@ -34,6 +35,18 @@ export default class ExternalModule {
 		this.nameSuggestions = Object.create(null);
 		this.declarations = Object.create(null);
 		this.exportedVariables = new Map();
+	}
+
+	getVariableForExportName(name: string, _isExportAllSearch?: boolean): ExternalVariable {
+		if (name !== 'default' && name !== '*') this.exportsNames = true;
+		if (name === '*') this.exportsNamespace = true;
+
+		let declaration = this.declarations[name];
+		if (declaration) return declaration;
+
+		this.declarations[name] = declaration = new ExternalVariable(this, name);
+		this.exportedVariables.set(declaration, name);
+		return declaration;
 	}
 
 	setRenderPath(options: OutputOptions, inputBase: string) {
@@ -82,21 +95,9 @@ export default class ExternalModule {
 
 		this.graph.warn({
 			code: 'UNUSED_EXTERNAL_IMPORT',
-			source: this.id,
+			message: `${names} imported from external module '${this.id}' but never used`,
 			names: unused,
-			message: `${names} imported from external module '${this.id}' but never used`
+			source: this.id
 		});
-	}
-
-	getVariableForExportName(name: string, _isExportAllSearch?: boolean): ExternalVariable {
-		if (name !== 'default' && name !== '*') this.exportsNames = true;
-		if (name === '*') this.exportsNamespace = true;
-
-		let declaration = this.declarations[name];
-		if (declaration) return declaration;
-
-		this.declarations[name] = declaration = new ExternalVariable(this, name);
-		this.exportedVariables.set(declaration, name);
-		return declaration;
 	}
 }

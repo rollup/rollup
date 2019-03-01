@@ -14,10 +14,10 @@ export function isForInStatement(node: Node): node is ForInStatement {
 }
 
 export default class ForInStatement extends StatementBase {
-	type: NodeType.tForInStatement;
+	body: StatementNode;
 	left: VariableDeclaration | PatternNode;
 	right: ExpressionNode;
-	body: StatementNode;
+	type: NodeType.tForInStatement;
 
 	bind() {
 		this.left.bind();

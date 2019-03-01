@@ -1,5 +1,33 @@
 # rollup changelog
 
+## 1.3.3
+*2019-03-01*
+
+### Bug Fixes
+* Fix performance regression when handling long chains of calls to property methods (#2732)
+
+### Pull Requests
+* [#2730](https://github.com/rollup/rollup/pull/2730): Order types, interfaces, classes, and object members (@lukastaegert)
+* [#2732](https://github.com/rollup/rollup/pull/2732): Take chunk export mode into account when reexporting default (@lukastaegert)
+
+## 1.3.2
+*2019-02-27*
+
+### Bug Fixes
+* Allow ids of default exported classes to be exported separately (#2728)
+
+### Pull Requests
+* [#2728](https://github.com/rollup/rollup/pull/2728): Update dependencies (@lukastaegert)
+
+## 1.3.1
+*2019-02-27*
+
+### Bug Fixes
+* Correctly reexport the default export from entry chunks (#2727)
+
+### Pull Requests
+* [#2727](https://github.com/rollup/rollup/pull/2727): Take chunk export mode into account when reexporting default (@lukastaegert)
+
 ## 1.3.0
 *2019-02-26*
 

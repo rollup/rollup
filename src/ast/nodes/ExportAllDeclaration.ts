@@ -6,10 +6,9 @@ import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ExportAllDeclaration extends NodeBase {
-	type: NodeType.tExportAllDeclaration;
-	source: Literal<string>;
-
 	needsBoundaries: true;
+	source: Literal<string>;
+	type: NodeType.tExportAllDeclaration;
 
 	hasEffects() {
 		return false;

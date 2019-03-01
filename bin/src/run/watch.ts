@@ -20,16 +20,16 @@ import { printTimings } from './timings';
 
 interface WatchEvent {
 	code?: string;
+	duration?: number;
 	error?: RollupError | Error;
 	input?: InputOption;
 	output?: string[];
-	duration?: number;
 	result?: RollupBuild;
 }
 
 interface Watcher {
-	on: (event: string, fn: (event: WatchEvent) => void) => void;
 	close: () => void;
+	on: (event: string, fn: (event: WatchEvent) => void) => void;
 }
 
 export default function watch(
@@ -57,8 +57,8 @@ export default function watch(
 	function processConfigs(configs: RollupWatchOptions[]): RollupWatchOptions[] {
 		return configs.map(options => {
 			const merged = mergeOptions({
-				config: options,
 				command,
+				config: options,
 				defaultOnWarnHandler: warnings.add
 			});
 
@@ -71,8 +71,8 @@ export default function watch(
 
 			if (merged.optionError)
 				merged.inputOptions.onwarn({
-					message: merged.optionError,
-					code: 'UNKNOWN_OPTION'
+					code: 'UNKNOWN_OPTION',
+					message: merged.optionError
 				});
 
 			if (
@@ -117,8 +117,8 @@ export default function watch(
 							input = Array.isArray(input)
 								? input.join(', ')
 								: Object.keys(input)
-									.map(key => (<Record<string, string>>input)[key])
-									.join(', ');
+										.map(key => (<Record<string, string>>input)[key])
+										.join(', ');
 						}
 						stderr(
 							tc.cyan(

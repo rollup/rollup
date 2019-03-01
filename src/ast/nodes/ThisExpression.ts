@@ -46,8 +46,8 @@ export default class ThisExpression extends NodeBase {
 	render(code: MagicString, _options: RenderOptions) {
 		if (this.alias !== null) {
 			code.overwrite(this.start, this.end, this.alias, {
-				storeName: true,
-				contentOnly: false
+				contentOnly: false,
+				storeName: true
 			});
 		}
 	}

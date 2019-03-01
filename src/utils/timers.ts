@@ -1,23 +1,23 @@
 import { InputOptions, SerializedTimings } from '../rollup/types';
 
 type StartTime = [number, number] | number;
+
 interface Timer {
-	time: number;
 	memory: number;
-	totalMemory: number;
-	startTime: StartTime;
 	startMemory: number;
+	startTime: StartTime;
+	time: number;
+	totalMemory: number;
 }
+
 interface Timers {
 	[label: string]: Timer;
 }
 
 const NOOP = () => {};
-
 let getStartTime: () => StartTime = () => 0;
 let getElapsedTime: (previous: StartTime) => number = () => 0;
 let getMemory: () => number = () => 0;
-
 let timers: Timers = {};
 
 const normalizeHrTime = (time: [number, number]) => time[0] * 1e3 + time[1] / 1e6;
@@ -52,11 +52,11 @@ function timeStartImpl(label: string, level: number = 3) {
 	label = getPersistedLabel(label, level);
 	if (!timers.hasOwnProperty(label)) {
 		timers[label] = {
-			totalMemory: 0,
-			startTime: undefined,
+			memory: 0,
 			startMemory: undefined,
+			startTime: undefined,
 			time: 0,
-			memory: 0
+			totalMemory: 0
 		};
 	}
 	const currentMemory = getMemory();
@@ -86,13 +86,13 @@ export let timeStart: (label: string, level?: number) => void = NOOP,
 	timeEnd: (label: string, level?: number) => void = NOOP;
 
 const TIMED_PLUGIN_HOOKS: { [hook: string]: boolean } = {
-	transform: true,
-	transformBundle: true,
 	load: true,
-	resolveId: true,
 	ongenerate: true,
 	onwrite: true,
-	resolveDynamicImport: true
+	resolveDynamicImport: true,
+	resolveId: true,
+	transform: true,
+	transformBundle: true
 };
 
 function getPluginWithTimers(plugin: any, index: number): Plugin {

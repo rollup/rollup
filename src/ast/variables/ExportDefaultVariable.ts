@@ -12,8 +12,8 @@ export function isExportDefaultVariable(variable: Variable): variable is ExportD
 }
 
 export default class ExportDefaultVariable extends LocalVariable {
-	isDefault: true;
 	hasId: boolean;
+	isDefault: true;
 
 	// Not initialised during construction
 	private originalId: Identifier | null = null;

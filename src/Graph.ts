@@ -44,39 +44,34 @@ function makeOnwarn() {
 }
 
 export default class Graph {
-	curChunkIndex = 0;
 	acornOptions: acorn.Options;
 	acornParser: typeof acorn.Parser;
+	assetsById = new Map<string, Asset>();
 	cachedModules: Map<string, ModuleJSON>;
+	cacheExpiry: number;
 	context: string;
+	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
+	curChunkIndex = 0;
+	deoptimizationTracker: EntityPathTracker;
 	externalModules: ExternalModule[] = [];
+	// track graph build status as each graph instance is used only once
+	finished = false;
 	getModuleContext: (id: string) => string;
+	isExternal: IsExternal;
 	isPureExternalModule: (id: string) => boolean;
 	moduleById = new Map<string, Module | ExternalModule>();
-	assetsById = new Map<string, Asset>();
 	modules: Module[] = [];
 	needsTreeshakingPass: boolean = false;
 	onwarn: WarningHandler;
-	deoptimizationTracker: EntityPathTracker;
+	pluginCache: Record<string, SerializablePluginCache>;
+	pluginDriver: PluginDriver;
+	preserveModules: boolean;
 	scope: GlobalScope;
 	shimMissingExports: boolean;
-	treeshakingOptions: TreeshakingOptions;
-	preserveModules: boolean;
-
-	isExternal: IsExternal;
-
-	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
-
-	pluginDriver: PluginDriver;
-	pluginCache: Record<string, SerializablePluginCache>;
-	watchFiles: Record<string, true> = Object.create(null);
-	cacheExpiry: number;
-
-	// track graph build status as each graph instance is used only once
-	finished = false;
-
 	// deprecated
 	treeshake: boolean;
+	treeshakingOptions: TreeshakingOptions;
+	watchFiles: Record<string, true> = Object.create(null);
 
 	constructor(options: InputOptions, watcher?: RollupWatcher) {
 		this.curChunkIndex = 0;
@@ -107,9 +102,9 @@ export default class Graph {
 		if (this.treeshake) {
 			this.treeshakingOptions = options.treeshake
 				? {
+						annotations: (<TreeshakingOptions>options.treeshake).annotations !== false,
 						propertyReadSideEffects:
 							(<TreeshakingOptions>options.treeshake).propertyReadSideEffects !== false,
-						annotations: (<TreeshakingOptions>options.treeshake).annotations !== false,
 						pureExternalModules: (<TreeshakingOptions>options.treeshake).pureExternalModules
 				  }
 				: { propertyReadSideEffects: true, annotations: true, pureExternalModules: false };
@@ -192,159 +187,6 @@ export default class Graph {
 				: [])
 		);
 		this.acornParser = <any>acorn.Parser.extend(...acornPluginsToInject);
-	}
-
-	getCache(): RollupCache {
-		// handle plugin cache eviction
-		for (const name in this.pluginCache) {
-			const cache = this.pluginCache[name];
-			let allDeleted = true;
-			for (const key of Object.keys(cache)) {
-				if (cache[key][0] >= this.cacheExpiry) delete cache[key];
-				else allDeleted = false;
-			}
-			if (allDeleted) delete this.pluginCache[name];
-		}
-
-		return <any>{
-			modules: this.modules.map(module => module.toJSON()),
-			plugins: this.pluginCache
-		};
-	}
-
-	finaliseAssets(assetFileNames: string) {
-		const outputBundle: OutputBundle = Object.create(null);
-		this.assetsById.forEach(asset => {
-			if (asset.source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
-		});
-		return outputBundle;
-	}
-
-	private loadModule(entryName: string) {
-		return this.pluginDriver
-			.hookFirst<string | boolean | void>('resolveId', [entryName, undefined])
-			.then(id => {
-				if (id === false) {
-					error({
-						code: 'UNRESOLVED_ENTRY',
-						message: `Entry module cannot be external`
-					});
-				}
-
-				if (id == null) {
-					error({
-						code: 'UNRESOLVED_ENTRY',
-						message: `Could not resolve entry (${entryName})`
-					});
-				}
-
-				return this.fetchModule(<string>id, undefined);
-			});
-	}
-
-	private link() {
-		for (const module of this.modules) {
-			module.linkDependencies();
-		}
-		for (const module of this.modules) {
-			module.bindReferences();
-		}
-		this.warnForMissingExports();
-	}
-
-	private warnForMissingExports() {
-		for (const module of this.modules) {
-			for (const importName of Object.keys(module.importDescriptions)) {
-				const importDescription = module.importDescriptions[importName];
-				if (
-					importDescription.name !== '*' &&
-					!importDescription.module.getVariableForExportName(importDescription.name)
-				) {
-					module.warn(
-						{
-							code: 'NON_EXISTENT_EXPORT',
-							name: importDescription.name,
-							source: importDescription.module.id,
-							message: `Non-existent export '${
-								importDescription.name
-							}' is imported from ${relativeId(importDescription.module.id)}`
-						},
-						importDescription.start
-					);
-				}
-			}
-		}
-	}
-
-	includeMarked(modules: Module[]) {
-		if (this.treeshake) {
-			let treeshakingPass = 1;
-			do {
-				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
-				this.needsTreeshakingPass = false;
-				for (const module of modules) {
-					if (module.isExecuted) module.include();
-				}
-				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
-			} while (this.needsTreeshakingPass);
-		} else {
-			// Necessary to properly replace namespace imports
-			for (const module of modules) module.includeAllInBundle();
-		}
-	}
-
-	private loadEntryModules(
-		entryModules: string | string[] | Record<string, string>,
-		manualChunks: Record<string, string[]> | void
-	) {
-		let removeAliasExtensions = false;
-		let entryModuleIds: string[];
-		let entryModuleAliases: string[];
-		if (typeof entryModules === 'string') entryModules = [entryModules];
-
-		if (Array.isArray(entryModules)) {
-			removeAliasExtensions = true;
-			entryModuleAliases = entryModules.concat([]);
-			entryModuleIds = entryModules;
-		} else {
-			entryModuleAliases = Object.keys(entryModules);
-			entryModuleIds = entryModuleAliases.map(name => (<Record<string, string>>entryModules)[name]);
-		}
-
-		const entryAndManualChunkIds = entryModuleIds.concat([]);
-		if (manualChunks) {
-			Object.keys(manualChunks).forEach(name => {
-				const manualChunkIds = manualChunks[name];
-				manualChunkIds.forEach(id => {
-					if (entryAndManualChunkIds.indexOf(id) === -1) entryAndManualChunkIds.push(id);
-				});
-			});
-		}
-
-		return Promise.all(entryAndManualChunkIds.map(id => this.loadModule(id))).then(
-			entryAndChunkModules => {
-				if (removeAliasExtensions) {
-					for (let i = 0; i < entryModuleAliases.length; i++)
-						entryModuleAliases[i] = getAliasName(entryAndChunkModules[i].id, entryModuleAliases[i]);
-				}
-
-				const entryModules = entryAndChunkModules.slice(0, entryModuleIds.length);
-
-				let manualChunkModules: { [chunkName: string]: Module[] };
-				if (manualChunks) {
-					manualChunkModules = {};
-					for (const chunkName of Object.keys(manualChunks)) {
-						const chunk = manualChunks[chunkName];
-						manualChunkModules[chunkName] = chunk.map(entryId => {
-							const entryIndex = entryAndManualChunkIds.indexOf(entryId);
-							return entryAndChunkModules[entryIndex];
-						});
-					}
-				}
-
-				return { entryModules, entryModuleAliases, manualChunkModules };
-			}
-		);
 	}
 
 	build(
@@ -498,106 +340,62 @@ export default class Graph {
 		);
 	}
 
-	private fetchModule(id: string, importer: string): Promise<Module> {
-		// short-circuit cycles
-		const existingModule = this.moduleById.get(id);
-		if (existingModule) {
-			if (existingModule.isExternal) throw new Error(`Cannot fetch external module ${id}`);
-			return Promise.resolve(<Module>existingModule);
+	finaliseAssets(assetFileNames: string) {
+		const outputBundle: OutputBundle = Object.create(null);
+		this.assetsById.forEach(asset => {
+			if (asset.source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
+		});
+		return outputBundle;
+	}
+
+	getCache(): RollupCache {
+		// handle plugin cache eviction
+		for (const name in this.pluginCache) {
+			const cache = this.pluginCache[name];
+			let allDeleted = true;
+			for (const key of Object.keys(cache)) {
+				if (cache[key][0] >= this.cacheExpiry) delete cache[key];
+				else allDeleted = false;
+			}
+			if (allDeleted) delete this.pluginCache[name];
 		}
 
-		const module: Module = new Module(this, id);
-		this.moduleById.set(id, module);
-		this.watchFiles[id] = true;
+		return <any>{
+			modules: this.modules.map(module => module.toJSON()),
+			plugins: this.pluginCache
+		};
+	}
 
-		timeStart('load modules', 3);
-		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
-			.catch((err: Error) => {
-				timeEnd('load modules', 3);
-				let msg = `Could not load ${id}`;
-				if (importer) msg += ` (imported by ${importer})`;
-
-				msg += `: ${err.message}`;
-				throw new Error(msg);
-			})
-			.then(source => {
-				timeEnd('load modules', 3);
-				if (typeof source === 'string') return source;
-				if (source && typeof source === 'object' && typeof source.code === 'string') return source;
-
-				// TODO report which plugin failed
-				error({
-					code: 'BAD_LOADER',
-					message: `Error loading ${relativeId(
-						id
-					)}: plugin load hook should return a string, a { code, map } object, or nothing/null`
-				});
-			})
-			.then(source => {
-				const sourceDescription: SourceDescription =
-					typeof source === 'string'
-						? {
-								code: source,
-								ast: null
-						  }
-						: source;
-
-				const cachedModule = this.cachedModules.get(id);
-				if (
-					cachedModule &&
-					!cachedModule.customTransformCache &&
-					cachedModule.originalCode === sourceDescription.code
-				) {
-					// re-emit transform assets
-					if (cachedModule.transformAssets) {
-						for (const asset of cachedModule.transformAssets)
-							this.pluginDriver.emitAsset(asset.name, asset.source);
-					}
-					return cachedModule;
+	includeMarked(modules: Module[]) {
+		if (this.treeshake) {
+			let treeshakingPass = 1;
+			do {
+				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
+				this.needsTreeshakingPass = false;
+				for (const module of modules) {
+					if (module.isExecuted) module.include();
 				}
+				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
+			} while (this.needsTreeshakingPass);
+		} else {
+			// Necessary to properly replace namespace imports
+			for (const module of modules) module.includeAllInBundle();
+		}
+	}
 
-				return transform(this, sourceDescription, module);
-			})
-			.then((source: ModuleJSON) => {
-				module.setSource(source);
+	warn(warning: RollupWarning) {
+		warning.toString = () => {
+			let str = '';
 
-				this.modules.push(module);
-				this.moduleById.set(id, module);
+			if (warning.plugin) str += `(${warning.plugin} plugin) `;
+			if (warning.loc)
+				str += `${relativeId(warning.loc.file)} (${warning.loc.line}:${warning.loc.column}) `;
+			str += warning.message;
 
-				return this.fetchAllDependencies(module).then(() => {
-					for (const name in module.exports) {
-						if (name !== 'default') {
-							module.exportsAll[name] = module.id;
-						}
-					}
-					module.exportAllSources.forEach(source => {
-						const id = module.resolvedIds[source].id;
-						const exportAllModule = this.moduleById.get(id);
-						if (exportAllModule.isExternal) return;
+			return str;
+		};
 
-						for (const name in (<Module>exportAllModule).exportsAll) {
-							if (name in module.exportsAll) {
-								this.warn({
-									code: 'NAMESPACE_CONFLICT',
-									reexporter: module.id,
-									name,
-									sources: [module.exportsAll[name], (<Module>exportAllModule).exportsAll[name]],
-									message: `Conflicting namespaces: ${relativeId(
-										module.id
-									)} re-exports '${name}' from both ${relativeId(
-										module.exportsAll[name]
-									)} and ${relativeId(
-										(<Module>exportAllModule).exportsAll[name]
-									)} (will be ignored)`
-								});
-							} else {
-								module.exportsAll[name] = (<Module>exportAllModule).exportsAll[name];
-							}
-						}
-					});
-					return module;
-				});
-			});
+		this.onwarn(warning);
 	}
 
 	private fetchAllDependencies(module: Module) {
@@ -669,11 +467,11 @@ export default class Graph {
 							if (resolvedId !== false) {
 								this.warn({
 									code: 'UNRESOLVED_IMPORT',
-									source,
 									importer: relativeId(module.id),
 									message: `'${source}' is imported by ${relativeId(
 										module.id
 									)}, but could not be resolved – treating it as an external dependency`,
+									source,
 									url:
 										'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
 								});
@@ -717,18 +515,215 @@ export default class Graph {
 		).then(() => fetchDynamicImportsPromise);
 	}
 
-	warn(warning: RollupWarning) {
-		warning.toString = () => {
-			let str = '';
+	private fetchModule(id: string, importer: string): Promise<Module> {
+		// short-circuit cycles
+		const existingModule = this.moduleById.get(id);
+		if (existingModule) {
+			if (existingModule.isExternal) throw new Error(`Cannot fetch external module ${id}`);
+			return Promise.resolve(<Module>existingModule);
+		}
 
-			if (warning.plugin) str += `(${warning.plugin} plugin) `;
-			if (warning.loc)
-				str += `${relativeId(warning.loc.file)} (${warning.loc.line}:${warning.loc.column}) `;
-			str += warning.message;
+		const module: Module = new Module(this, id);
+		this.moduleById.set(id, module);
+		this.watchFiles[id] = true;
 
-			return str;
-		};
+		timeStart('load modules', 3);
+		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
+			.catch((err: Error) => {
+				timeEnd('load modules', 3);
+				let msg = `Could not load ${id}`;
+				if (importer) msg += ` (imported by ${importer})`;
 
-		this.onwarn(warning);
+				msg += `: ${err.message}`;
+				throw new Error(msg);
+			})
+			.then(source => {
+				timeEnd('load modules', 3);
+				if (typeof source === 'string') return source;
+				if (source && typeof source === 'object' && typeof source.code === 'string') return source;
+
+				// TODO report which plugin failed
+				error({
+					code: 'BAD_LOADER',
+					message: `Error loading ${relativeId(
+						id
+					)}: plugin load hook should return a string, a { code, map } object, or nothing/null`
+				});
+			})
+			.then(source => {
+				const sourceDescription: SourceDescription =
+					typeof source === 'string'
+						? {
+								ast: null,
+								code: source
+						  }
+						: source;
+
+				const cachedModule = this.cachedModules.get(id);
+				if (
+					cachedModule &&
+					!cachedModule.customTransformCache &&
+					cachedModule.originalCode === sourceDescription.code
+				) {
+					// re-emit transform assets
+					if (cachedModule.transformAssets) {
+						for (const asset of cachedModule.transformAssets)
+							this.pluginDriver.emitAsset(asset.name, asset.source);
+					}
+					return cachedModule;
+				}
+
+				return transform(this, sourceDescription, module);
+			})
+			.then((source: ModuleJSON) => {
+				module.setSource(source);
+
+				this.modules.push(module);
+				this.moduleById.set(id, module);
+
+				return this.fetchAllDependencies(module).then(() => {
+					for (const name in module.exports) {
+						if (name !== 'default') {
+							module.exportsAll[name] = module.id;
+						}
+					}
+					module.exportAllSources.forEach(source => {
+						const id = module.resolvedIds[source].id;
+						const exportAllModule = this.moduleById.get(id);
+						if (exportAllModule.isExternal) return;
+
+						for (const name in (<Module>exportAllModule).exportsAll) {
+							if (name in module.exportsAll) {
+								this.warn({
+									code: 'NAMESPACE_CONFLICT',
+									message: `Conflicting namespaces: ${relativeId(
+										module.id
+									)} re-exports '${name}' from both ${relativeId(
+										module.exportsAll[name]
+									)} and ${relativeId(
+										(<Module>exportAllModule).exportsAll[name]
+									)} (will be ignored)`,
+									name,
+									reexporter: module.id,
+									sources: [module.exportsAll[name], (<Module>exportAllModule).exportsAll[name]]
+								});
+							} else {
+								module.exportsAll[name] = (<Module>exportAllModule).exportsAll[name];
+							}
+						}
+					});
+					return module;
+				});
+			});
+	}
+
+	private link() {
+		for (const module of this.modules) {
+			module.linkDependencies();
+		}
+		for (const module of this.modules) {
+			module.bindReferences();
+		}
+		this.warnForMissingExports();
+	}
+
+	private loadEntryModules(
+		entryModules: string | string[] | Record<string, string>,
+		manualChunks: Record<string, string[]> | void
+	) {
+		let removeAliasExtensions = false;
+		let entryModuleIds: string[];
+		let entryModuleAliases: string[];
+		if (typeof entryModules === 'string') entryModules = [entryModules];
+
+		if (Array.isArray(entryModules)) {
+			removeAliasExtensions = true;
+			entryModuleAliases = entryModules.concat([]);
+			entryModuleIds = entryModules;
+		} else {
+			entryModuleAliases = Object.keys(entryModules);
+			entryModuleIds = entryModuleAliases.map(name => (<Record<string, string>>entryModules)[name]);
+		}
+
+		const entryAndManualChunkIds = entryModuleIds.concat([]);
+		if (manualChunks) {
+			Object.keys(manualChunks).forEach(name => {
+				const manualChunkIds = manualChunks[name];
+				manualChunkIds.forEach(id => {
+					if (entryAndManualChunkIds.indexOf(id) === -1) entryAndManualChunkIds.push(id);
+				});
+			});
+		}
+
+		return Promise.all(entryAndManualChunkIds.map(id => this.loadModule(id))).then(
+			entryAndChunkModules => {
+				if (removeAliasExtensions) {
+					for (let i = 0; i < entryModuleAliases.length; i++)
+						entryModuleAliases[i] = getAliasName(entryAndChunkModules[i].id, entryModuleAliases[i]);
+				}
+
+				const entryModules = entryAndChunkModules.slice(0, entryModuleIds.length);
+
+				let manualChunkModules: { [chunkName: string]: Module[] };
+				if (manualChunks) {
+					manualChunkModules = {};
+					for (const chunkName of Object.keys(manualChunks)) {
+						const chunk = manualChunks[chunkName];
+						manualChunkModules[chunkName] = chunk.map(entryId => {
+							const entryIndex = entryAndManualChunkIds.indexOf(entryId);
+							return entryAndChunkModules[entryIndex];
+						});
+					}
+				}
+
+				return { entryModules, entryModuleAliases, manualChunkModules };
+			}
+		);
+	}
+
+	private loadModule(entryName: string) {
+		return this.pluginDriver
+			.hookFirst<string | boolean | void>('resolveId', [entryName, undefined])
+			.then(id => {
+				if (id === false) {
+					error({
+						code: 'UNRESOLVED_ENTRY',
+						message: `Entry module cannot be external`
+					});
+				}
+
+				if (id == null) {
+					error({
+						code: 'UNRESOLVED_ENTRY',
+						message: `Could not resolve entry (${entryName})`
+					});
+				}
+
+				return this.fetchModule(<string>id, undefined);
+			});
+	}
+
+	private warnForMissingExports() {
+		for (const module of this.modules) {
+			for (const importName of Object.keys(module.importDescriptions)) {
+				const importDescription = module.importDescriptions[importName];
+				if (
+					importDescription.name !== '*' &&
+					!importDescription.module.getVariableForExportName(importDescription.name)
+				) {
+					module.warn(
+						{
+							code: 'NON_EXISTENT_EXPORT',
+							message: `Non-existent export '${
+								importDescription.name
+							}' is imported from ${relativeId(importDescription.module.id)}`,
+							name: importDescription.name,
+							source: importDescription.module.id
+						},
+						importDescription.start
+					);
+				}
+			}
+		}
 	}
 }

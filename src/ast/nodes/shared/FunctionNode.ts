@@ -9,18 +9,31 @@ import { GenericEsTreeNode, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
 
 export default class FunctionNode extends NodeBase {
-	id: Identifier | null;
-	body: BlockStatement;
-	params: PatternNode[];
 	async: boolean;
-
-	scope: BlockScope;
+	body: BlockStatement;
+	id: Identifier | null;
+	params: PatternNode[];
 	preventChildBlockScope: true;
+	scope: BlockScope;
 
 	private isPrototypeDeoptimized: boolean;
 
 	createScope(parentScope: FunctionScope) {
 		this.scope = new FunctionScope(parentScope, this.context);
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length === 1) {
+			if (path[0] === 'prototype') {
+				this.isPrototypeDeoptimized = true;
+			} else if (path[0] === UNKNOWN_KEY) {
+				this.isPrototypeDeoptimized = true;
+
+				// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
+				// which means the return expression needs to be reassigned as well
+				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
+			}
+		}
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
@@ -86,20 +99,6 @@ export default class FunctionNode extends NodeBase {
 			)
 		);
 		super.parseNode(esTreeNode);
-	}
-
-	deoptimizePath(path: ObjectPath) {
-		if (path.length === 1) {
-			if (path[0] === 'prototype') {
-				this.isPrototypeDeoptimized = true;
-			} else if (path[0] === UNKNOWN_KEY) {
-				this.isPrototypeDeoptimized = true;
-
-				// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
-				// which means the return expression needs to be reassigned as well
-				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
-			}
-		}
 	}
 }
 
