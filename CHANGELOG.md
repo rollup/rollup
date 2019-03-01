@@ -1,13 +1,14 @@
 # rollup changelog
 
 ## 1.3.3
-*unreleased*
+*2019-03-01*
 
 ### Bug Fixes
-* Fix performance regression when handling long chains of calls to property methods (#2729)
+* Fix performance regression when handling long chains of calls to property methods (#2732)
 
 ### Pull Requests
-* [#2729](https://github.com/rollup/rollup/pull/2729): Do not check if the node itself has effects when checking call effects (@lukastaegert)
+* [#2730](https://github.com/rollup/rollup/pull/2730): Order types, interfaces, classes, and object members (@lukastaegert)
+* [#2732](https://github.com/rollup/rollup/pull/2732): Take chunk export mode into account when reexporting default (@lukastaegert)
 
 ## 1.3.2
 *2019-02-27*
