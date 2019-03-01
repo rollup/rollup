@@ -51,6 +51,7 @@ Basic options:
 --no-treeshake.annotations  Ignore pure call annotations
 --no-treeshake.propertyReadSideEffects Ignore property access side-effects
 --treeshake.pureExternalModules        Assume side-effect free externals
+--dynamicImportFunction <name> Rename the dynamic `import()` function
 
 Examples:
 
