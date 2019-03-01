@@ -66,6 +66,13 @@ function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	return inputOptions;
 }
 
+function applyOutputOptionHook(outputOptions: OutputOptions, plugin: Plugin) {
+	if (plugin.outputOptions)
+		return plugin.outputOptions.call({ meta: { rollupVersion } }, outputOptions) || outputOptions;
+
+	return outputOptions;
+}
+
 function getInputOptions(rawInputOptions: GenericConfigObject): any {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
@@ -427,7 +434,15 @@ function normalizeOutputOptions(
 	if (mergedOptions.optionError) throw new Error(mergedOptions.optionError);
 
 	// now outputOptions is an array, but rollup.rollup API doesn't support arrays
-	const outputOptions = mergedOptions.outputOptions[0];
+	const mergedOutputOptions = mergedOptions.outputOptions[0];
+
+	const plugins = inputOptions.plugins;
+	inputOptions.plugins = Array.isArray(plugins)
+		? plugins.filter(Boolean)
+		: plugins
+		? [plugins]
+		: [];
+	const outputOptions = inputOptions.plugins.reduce(applyOutputOptionHook, mergedOutputOptions);
 
 	checkOutputOptions(outputOptions);
 
