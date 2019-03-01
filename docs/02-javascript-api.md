@@ -134,6 +134,7 @@ const outputOptions = {
 
     // danger zone
     amd,
+    dynamicImportFunction,
     esModule,
     exports,
     freeze,

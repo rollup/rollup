@@ -85,6 +85,7 @@ export default { // can be an array (for multiple inputs)
 
     // danger zone
     amd,
+    dynamicImportFunction,
     esModule,
     exports,
     freeze,

@@ -25,6 +25,7 @@ Basic options:
 --chunkFileNames <pattern>  Name pattern for emitted secondary chunks
 --compact                   Minify wrapper code
 --context <variable>        Specify top-level `this` value
+--dynamicImportFunction <name>         Rename the dynamic `import()` function
 --entryFileNames <pattern>  Name pattern for emitted entry chunks
 --environment <values>      Settings passed to config file (see example)
 --no-esModule               Do not add __esModule property
@@ -51,7 +52,6 @@ Basic options:
 --no-treeshake.annotations  Ignore pure call annotations
 --no-treeshake.propertyReadSideEffects Ignore property access side-effects
 --treeshake.pureExternalModules        Assume side-effect free externals
---dynamicImportFunction <name> Rename the dynamic `import()` function
 
 Examples:
 
