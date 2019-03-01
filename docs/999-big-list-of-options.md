@@ -667,6 +667,13 @@ Default: `true`
 
 Whether to include the 'use strict' pragma at the top of generated non-ESM bundles. Strictly-speaking, ES modules are *always* in strict mode, so you shouldn't disable this without good reason.
 
+#### output.dynamicImportFunction
+Type: `string`<br>
+CLI: `--dynamicImportFunction <name>`<br>
+Default: `import`
+
+This will rename the dynamic import function to the chosen name when outputting ESM bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
+
 #### preserveSymlinks
 Type: `boolean`<br>
 CLI: `--preserveSymlinks`<br>

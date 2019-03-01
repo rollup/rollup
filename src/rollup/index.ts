@@ -28,14 +28,14 @@ import {
 function checkOutputOptions(options: OutputOptions) {
 	if (<string>options.format === 'es6') {
 		error({
-			message: 'The `es6` output format is deprecated – use `esm` instead',
+			message: 'The "es6" output format is deprecated – use "esm" instead',
 			url: `https://rollupjs.org/guide/en#output-format`
 		});
 	}
 
 	if (!options.format) {
 		error({
-			message: `You must specify output.format, which can be one of 'amd', 'cjs', 'system', 'esm', 'iife' or 'umd'`,
+			message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "esm", "iife" or "umd".`,
 			url: `https://rollupjs.org/guide/en#output-format`
 		});
 	}
@@ -88,18 +88,18 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 		if (inputOptions.preserveModules)
 			error({
 				code: 'INVALID_OPTION',
-				message: `preserveModules does not support the inlineDynamicImports option.`
+				message: `"preserveModules" does not support the "inlineDynamicImports" option.`
 			});
 		if (inputOptions.manualChunks)
 			error({
 				code: 'INVALID_OPTION',
-				message: '"manualChunks" option is not supported for inlineDynamicImports.'
+				message: '"manualChunks" option is not supported for "inlineDynamicImports".'
 			});
 
 		if (inputOptions.experimentalOptimizeChunks)
 			error({
 				code: 'INVALID_OPTION',
-				message: '"experimentalOptimizeChunks" option is not supported for inlineDynamicImports.'
+				message: '"experimentalOptimizeChunks" option is not supported for "inlineDynamicImports".'
 			});
 		if (
 			(inputOptions.input instanceof Array && inputOptions.input.length > 1) ||
@@ -107,18 +107,18 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 		)
 			error({
 				code: 'INVALID_OPTION',
-				message: 'Multiple inputs are not supported for inlineDynamicImports.'
+				message: 'Multiple inputs are not supported for "inlineDynamicImports".'
 			});
 	} else if (inputOptions.preserveModules) {
 		if (inputOptions.manualChunks)
 			error({
 				code: 'INVALID_OPTION',
-				message: 'preserveModules does not support the manualChunks option.'
+				message: '"preserveModules" does not support the "manualChunks" option.'
 			});
 		if (inputOptions.experimentalOptimizeChunks)
 			error({
 				code: 'INVALID_OPTION',
-				message: 'preserveModules does not support the experimentalOptimizeChunks option.'
+				message: '"preserveModules" does not support the "experimentalOptimizeChunks" option.'
 			});
 	}
 
@@ -290,7 +290,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 						if (!outputOptions || (!outputOptions.dir && !outputOptions.file)) {
 							error({
 								code: 'MISSING_OPTION',
-								message: 'You must specify output.file or output.dir for the build.'
+								message: 'You must specify "output.file" or "output.dir" for the build.'
 							});
 						}
 						return generate(outputOptions, true).then(bundle => {
@@ -305,17 +305,17 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 								if (outputOptions.sourcemapFile)
 									error({
 										code: 'INVALID_OPTION',
-										message: '"sourcemapFile" is only supported for single-file builds.'
+										message: '"output.sourcemapFile" is only supported for single-file builds.'
 									});
 								if (typeof outputOptions.file === 'string')
 									error({
 										code: 'INVALID_OPTION',
 										message:
-											'When building multiple chunks, the output.dir option must be used, not output.file.' +
+											'When building multiple chunks, the "output.dir" option must be used, not "output.file".' +
 											(typeof inputOptions.input !== 'string' ||
 											inputOptions.inlineDynamicImports === true
 												? ''
-												: ' To inline dynamic imports set the inlineDynamicImports: true option.')
+												: ' To inline dynamic imports, set the "inlineDynamicImports" option.')
 									});
 							}
 							return Promise.all(
@@ -436,19 +436,19 @@ function normalizeOutputOptions(
 			error({
 				code: 'INVALID_OPTION',
 				message:
-					'You must set either output.file for a single-file build or output.dir when generating multiple chunks.'
+					'You must set either "output.file" for a single-file build or "output.dir" when generating multiple chunks.'
 			});
 		if (inputOptions.preserveModules) {
 			error({
 				code: 'INVALID_OPTION',
 				message:
-					'You must set output.dir instead of output.file when using the preserveModules option.'
+					'You must set "output.dir" instead of "output.file" when using the "preserveModules" option.'
 			});
 		}
 		if (typeof inputOptions.input === 'object' && !Array.isArray(inputOptions.input))
 			error({
 				code: 'INVALID_OPTION',
-				message: 'You must set output.dir instead of output.file when providing named inputs.'
+				message: 'You must set "output.dir" instead of "output.file" when providing named inputs.'
 			});
 	}
 
@@ -461,7 +461,8 @@ function normalizeOutputOptions(
 		if (typeof outputOptions.file === 'string')
 			error({
 				code: 'INVALID_OPTION',
-				message: 'You must set output.dir instead of output.file when generating multiple chunks.'
+				message:
+					'You must set "output.dir" instead of "output.file" when generating multiple chunks.'
 			});
 	}
 

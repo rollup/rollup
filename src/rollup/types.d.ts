@@ -294,6 +294,7 @@ export interface OutputOptions {
 	compact?: boolean;
 	// only required for bundle.write
 	dir?: string;
+	dynamicImportFunction?: string;
 	entryFileNames?: string;
 	esModule?: boolean;
 	exports?: 'default' | 'named' | 'none' | 'auto';

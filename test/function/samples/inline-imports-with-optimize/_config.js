@@ -7,6 +7,6 @@ module.exports = {
 	},
 	error: {
 		code: 'INVALID_OPTION',
-		message: '"experimentalOptimizeChunks" option is not supported for inlineDynamicImports.'
+		message: '"experimentalOptimizeChunks" option is not supported for "inlineDynamicImports".'
 	}
 };

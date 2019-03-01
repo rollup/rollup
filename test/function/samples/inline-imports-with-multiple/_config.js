@@ -6,6 +6,6 @@ module.exports = {
 	},
 	error: {
 		code: 'INVALID_OPTION',
-		message: 'Multiple inputs are not supported for inlineDynamicImports.'
+		message: 'Multiple inputs are not supported for "inlineDynamicImports".'
 	}
 };

@@ -45,7 +45,7 @@ export default function umd(
 	if (hasExports && !options.name) {
 		error({
 			code: 'INVALID_OPTION',
-			message: 'You must supply output.name for UMD bundles'
+			message: 'You must supply "output.name" for UMD bundles.'
 		});
 	}
 

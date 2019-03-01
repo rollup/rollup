@@ -21,11 +21,11 @@ describe('bundle.write()', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.write();
-				}, /You must specify output\.file/);
+				}, /You must specify "output\.file"/);
 
 				assert.throws(() => {
 					bundle.write({});
-				}, /You must specify output\.file/);
+				}, /You must specify "output\.file"/);
 			});
 	});
 
@@ -55,7 +55,7 @@ describe('bundle.write()', () => {
 			.catch(err => {
 				assert.throws(() => {
 					throw err;
-				}, /You must supply output\.name for UMD bundles/);
+				}, /You must supply "output\.name" for UMD bundles/);
 			})
 			.then(() => {
 				return bundle.generate({
@@ -65,7 +65,7 @@ describe('bundle.write()', () => {
 			.catch(err => {
 				assert.throws(() => {
 					throw err;
-				}, /You must supply output\.name for IIFE bundles/);
+				}, /You must supply "output\.name" for IIFE bundles/);
 			});
 	});
 
@@ -87,7 +87,7 @@ describe('bundle.write()', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					return bundle.generate({ format: 'es6' });
-				}, /The `es6` output format is deprecated – use `esm` instead/);
+				}, /The "es6" output format is deprecated – use "esm" instead/);
 			});
 	});
 
@@ -110,7 +110,7 @@ describe('bundle.write()', () => {
 			assert.equal(warnings.length, 0, 'No warnings for UNKNOWN');
 			assert.throws(() => {
 				return Promise.all(options.output.map(o => bundle.write(o)));
-			}, /You must specify output\.file/);
+			}, /You must specify "output\.file"./);
 		});
 	});
 });

@@ -7,6 +7,6 @@ module.exports = {
 	},
 	error: {
 		code: 'INVALID_OPTION',
-		message: 'preserveModules does not support the experimentalOptimizeChunks option.'
+		message: '"preserveModules" does not support the "experimentalOptimizeChunks" option.'
 	}
 };

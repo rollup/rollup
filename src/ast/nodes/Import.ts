@@ -11,10 +11,10 @@ interface DynamicImportMechanism {
 	right: string;
 }
 
-const getDynamicImportMechanism = (format: string, compact: boolean): DynamicImportMechanism => {
-	switch (format) {
+const getDynamicImportMechanism = (options: RenderOptions): DynamicImportMechanism => {
+	switch (options.format) {
 		case 'cjs': {
-			const _ = compact ? '' : ' ';
+			const _ = options.compact ? '' : ' ';
 			return {
 				interopLeft: `Promise.resolve({${_}default:${_}require(`,
 				interopRight: `)${_}})`,
@@ -23,9 +23,9 @@ const getDynamicImportMechanism = (format: string, compact: boolean): DynamicImp
 			};
 		}
 		case 'amd': {
-			const _ = compact ? '' : ' ';
-			const resolve = compact ? 'c' : 'resolve';
-			const reject = compact ? 'e' : 'reject';
+			const _ = options.compact ? '' : ' ';
+			const resolve = options.compact ? 'c' : 'resolve';
+			const reject = options.compact ? 'e' : 'reject';
 			return {
 				interopLeft: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
 				interopRight: `],${_}function${_}(m)${_}{${_}${resolve}({${_}default:${_}m${_}})${_}},${_}${reject})${_}})`,
@@ -36,6 +36,11 @@ const getDynamicImportMechanism = (format: string, compact: boolean): DynamicImp
 		case 'system':
 			return {
 				left: 'module.import(',
+				right: ')'
+			};
+		case 'es':
+			return {
+				left: `${options.dynamicImportFunction || 'import'}(`,
 				right: ')'
 			};
 	}
@@ -72,7 +77,7 @@ export default class Import extends NodeBase {
 			return;
 		}
 
-		const importMechanism = getDynamicImportMechanism(options.format, options.compact);
+		const importMechanism = getDynamicImportMechanism(options);
 		if (importMechanism) {
 			const leftMechanism =
 				(this.resolutionInterop && importMechanism.interopLeft) || importMechanism.left;

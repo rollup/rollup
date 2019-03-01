@@ -9,6 +9,6 @@ module.exports = {
 	},
 	error: {
 		code: 'INVALID_OPTION',
-		message: '"manualChunks" option is not supported for inlineDynamicImports.'
+		message: '"manualChunks" option is not supported for "inlineDynamicImports".'
 	}
 };

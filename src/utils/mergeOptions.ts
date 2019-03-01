@@ -238,6 +238,7 @@ function getOutputOptions(
 		chunkFileNames: getOption('chunkFileNames'),
 		compact: getOption('compact', false),
 		dir: getOption('dir'),
+		dynamicImportFunction: getOption('dynamicImportFunction'),
 		entryFileNames: getOption('entryFileNames'),
 		esModule: getOption('esModule', true),
 		exports: getOption('exports'),

@@ -124,7 +124,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate({ file: 'x' });
-				}, /You must specify output\.format, which can be one of 'amd', 'cjs', 'system', 'esm', 'iife' or 'umd'/);
+				}, /You must specify "output\.format", which can be one of "amd", "cjs", "system", "esm", "iife" or "umd"./);
 			});
 	});
 
@@ -168,7 +168,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate({ file: 'x', format: 'es' });
-				}, /You must set output\.dir instead of output\.file when generating multiple chunks\./);
+				}, /You must set "output\.dir" instead of "output\.file" when generating multiple chunks\./);
 			});
 	});
 
@@ -196,7 +196,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate({ file: 'x', format: 'es' });
-				}, /You must set output\.dir instead of output\.file when generating multiple chunks\./);
+				}, /You must set "output\.dir" instead of "output\.file" when generating multiple chunks\./);
 			});
 	});
 
@@ -225,7 +225,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate({ file: 'x', format: 'es' });
-				}, /You must set output\.dir instead of output\.file when providing named inputs\./);
+				}, /You must set "output\.dir" instead of "output\.file" when providing named inputs\./);
 			});
 	});
 
@@ -242,7 +242,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate({ file: 'x', format: 'es' });
-				}, /You must set output\.dir instead of output\.file when using the preserveModules option\./);
+				}, /You must set "output\.dir" instead of "output\.file" when using the "preserveModules" option\./);
 			});
 	});
 });

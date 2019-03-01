@@ -9,6 +9,6 @@ module.exports = {
 	},
 	error: {
 		code: 'INVALID_OPTION',
-		message: 'preserveModules does not support the manualChunks option.'
+		message: '"preserveModules" does not support the "manualChunks" option.'
 	}
 };
