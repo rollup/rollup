@@ -83,9 +83,9 @@ export const nodeConstructors: {
 	ExportDefaultDeclaration,
 	ExportNamedDeclaration,
 	ExpressionStatement,
-	ForStatement,
 	ForInStatement,
 	ForOfStatement,
+	ForStatement,
 	FunctionDeclaration,
 	FunctionExpression,
 	Identifier,
@@ -118,8 +118,8 @@ export const nodeConstructors: {
 	UnaryExpression,
 	UnknownNode,
 	UpdateExpression,
-	VariableDeclarator,
 	VariableDeclaration,
+	VariableDeclarator,
 	WhileStatement,
 	YieldExpression
 };

@@ -20,8 +20,8 @@ export function isIdentifier(node: Node): node is Identifier {
 }
 
 export default class Identifier extends NodeBase implements PatternNode {
-	type: NodeType.tIdentifier;
 	name: string;
+	type: NodeType.tIdentifier;
 
 	variable: Variable;
 	private bound: boolean;
@@ -64,6 +64,20 @@ export default class Identifier extends NodeBase implements PatternNode {
 				break;
 			default:
 				throw new Error(`Unexpected identifier kind ${kind}.`);
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (!this.bound) this.bind();
+		if (this.variable !== null) {
+			if (
+				path.length === 0 &&
+				this.name in this.context.importDescriptions &&
+				!this.scope.contains(this.name)
+			) {
+				this.disallowImportReassignment();
+			}
+			this.variable.deoptimizePath(path);
 		}
 	}
 
@@ -123,20 +137,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	deoptimizePath(path: ObjectPath) {
-		if (!this.bound) this.bind();
-		if (this.variable !== null) {
-			if (
-				path.length === 0 &&
-				this.name in this.context.importDescriptions &&
-				!this.scope.contains(this.name)
-			) {
-				this.disallowImportReassignment();
-			}
-			this.variable.deoptimizePath(path);
-		}
-	}
-
 	render(
 		code: MagicString,
 		_options: RenderOptions,
@@ -147,8 +147,8 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 			if (name !== this.name) {
 				code.overwrite(this.start, this.end, name, {
-					storeName: true,
-					contentOnly: true
+					contentOnly: true,
+					storeName: true
 				});
 				if (isShorthandProperty) {
 					code.prependRight(this.start, `${this.name}: `);

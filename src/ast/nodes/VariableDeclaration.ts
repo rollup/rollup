@@ -35,19 +35,18 @@ function areAllDeclarationsIncludedAndNotExported(declarations: VariableDeclarat
 }
 
 export default class VariableDeclaration extends NodeBase {
-	type: NodeType.tVariableDeclaration;
 	declarations: VariableDeclarator[];
 	kind: 'var' | 'let' | 'const';
+	type: NodeType.tVariableDeclaration;
+
+	deoptimizePath(_path: ObjectPath) {
+		for (const declarator of this.declarations) {
+			declarator.deoptimizePath(EMPTY_PATH);
+		}
+	}
 
 	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
 		return false;
-	}
-
-	includeWithAllDeclaredVariables(includeAllChildrenRecursively: boolean) {
-		this.included = true;
-		for (const declarator of this.declarations) {
-			declarator.include(includeAllChildrenRecursively);
-		}
 	}
 
 	include(includeAllChildrenRecursively: boolean) {
@@ -58,16 +57,17 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
+	includeWithAllDeclaredVariables(includeAllChildrenRecursively: boolean) {
+		this.included = true;
+		for (const declarator of this.declarations) {
+			declarator.include(includeAllChildrenRecursively);
+		}
+	}
+
 	initialise() {
 		this.included = false;
 		for (const declarator of this.declarations) {
 			declarator.declareDeclarator(this.kind);
-		}
-	}
-
-	deoptimizePath(_path: ObjectPath) {
-		for (const declarator of this.declarations) {
-			declarator.deoptimizePath(EMPTY_PATH);
 		}
 	}
 
@@ -84,6 +84,46 @@ export default class VariableDeclaration extends NodeBase {
 			}
 		} else {
 			this.renderReplacedDeclarations(code, options, nodeRenderOptions);
+		}
+	}
+
+	private renderDeclarationEnd(
+		code: MagicString,
+		separatorString: string,
+		lastSeparatorPos: number,
+		actualContentEnd: number,
+		renderedContentEnd: number,
+		addSemicolon: boolean,
+		systemPatternExports: Variable[]
+	): void {
+		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
+			code.remove(this.end - 1, this.end);
+		}
+		if (addSemicolon) {
+			separatorString += ';';
+		}
+		if (lastSeparatorPos !== null) {
+			if (
+				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
+				(code.original.charCodeAt(this.end) === 10 /*"\n"*/ ||
+					code.original.charCodeAt(this.end) === 13) /*"\r"*/
+			) {
+				actualContentEnd--;
+				if (code.original.charCodeAt(actualContentEnd) === 13 /*"\r"*/) {
+					actualContentEnd--;
+				}
+			}
+			if (actualContentEnd === lastSeparatorPos + 1) {
+				code.overwrite(lastSeparatorPos, renderedContentEnd, separatorString);
+			} else {
+				code.overwrite(lastSeparatorPos, lastSeparatorPos + 1, separatorString);
+				code.remove(actualContentEnd, renderedContentEnd);
+			}
+		} else {
+			code.appendLeft(renderedContentEnd, separatorString);
+		}
+		if (systemPatternExports.length > 0) {
+			code.appendLeft(renderedContentEnd, ' ' + getSystemExportStatement(systemPatternExports));
 		}
 	}
 
@@ -174,46 +214,6 @@ export default class VariableDeclaration extends NodeBase {
 			);
 		} else {
 			code.remove(start, end);
-		}
-	}
-
-	private renderDeclarationEnd(
-		code: MagicString,
-		separatorString: string,
-		lastSeparatorPos: number,
-		actualContentEnd: number,
-		renderedContentEnd: number,
-		addSemicolon: boolean,
-		systemPatternExports: Variable[]
-	): void {
-		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
-			code.remove(this.end - 1, this.end);
-		}
-		if (addSemicolon) {
-			separatorString += ';';
-		}
-		if (lastSeparatorPos !== null) {
-			if (
-				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
-				(code.original.charCodeAt(this.end) === 10 /*"\n"*/ ||
-					code.original.charCodeAt(this.end) === 13) /*"\r"*/
-			) {
-				actualContentEnd--;
-				if (code.original.charCodeAt(actualContentEnd) === 13 /*"\r"*/) {
-					actualContentEnd--;
-				}
-			}
-			if (actualContentEnd === lastSeparatorPos + 1) {
-				code.overwrite(lastSeparatorPos, renderedContentEnd, separatorString);
-			} else {
-				code.overwrite(lastSeparatorPos, lastSeparatorPos + 1, separatorString);
-				code.remove(actualContentEnd, renderedContentEnd);
-			}
-		} else {
-			code.appendLeft(renderedContentEnd, separatorString);
-		}
-		if (systemPatternExports.length > 0) {
-			code.appendLeft(renderedContentEnd, ' ' + getSystemExportStatement(systemPatternExports));
 		}
 	}
 }

@@ -30,25 +30,24 @@ import SpreadElement from './SpreadElement';
 
 interface PropertyMap {
 	[key: string]: {
-		exactMatchWrite: Property | null;
-		propertiesSet: Property[];
 		exactMatchRead: Property | null;
+		exactMatchWrite: Property | null;
 		propertiesRead: (Property | SpreadElement)[];
+		propertiesSet: Property[];
 	};
 }
 
 export default class ObjectExpression extends NodeBase {
-	type: NodeType.tObjectExpression;
 	properties: (Property | SpreadElement)[];
+	type: NodeType.tObjectExpression;
 
-	// Caching and deoptimization:
+	private deoptimizedPaths: NameCollection;
 	// We collect deoptimization information if we can resolve a computed property access
+	private expressionsToBeDeoptimized: { [key: string]: DeoptimizableEntity[] };
+	private hasUnknownDeoptimizedProperty: boolean;
 	private propertyMap: PropertyMap | null;
 	private unmatchablePropertiesRead: (Property | SpreadElement)[] | null;
 	private unmatchablePropertiesWrite: Property[] | null;
-	private deoptimizedPaths: NameCollection;
-	private hasUnknownDeoptimizedProperty: boolean;
-	private expressionsToBeDeoptimized: { [key: string]: DeoptimizableEntity[] };
 
 	bind() {
 		super.bind();
@@ -58,6 +57,41 @@ export default class ObjectExpression extends NodeBase {
 	// We could also track this per-property but this would quickly become much more complex
 	deoptimizeCache() {
 		if (!this.hasUnknownDeoptimizedProperty) this.deoptimizeAllProperties();
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (this.hasUnknownDeoptimizedProperty) return;
+		if (this.propertyMap === null) this.buildPropertyMap();
+		if (path.length === 0) {
+			this.deoptimizeAllProperties();
+			return;
+		}
+		const key = path[0];
+		if (path.length === 1) {
+			if (typeof key !== 'string') {
+				this.deoptimizeAllProperties();
+				return;
+			}
+			if (!this.deoptimizedPaths[key]) {
+				this.deoptimizedPaths[key] = true;
+
+				// we only deoptimizeCache exact matches as in all other cases,
+				// we do not return a literal value or return expression
+				if (this.expressionsToBeDeoptimized[key]) {
+					for (const expression of this.expressionsToBeDeoptimized[key]) {
+						expression.deoptimizeCache();
+					}
+				}
+			}
+		}
+		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
+		for (const property of typeof key === 'string'
+			? this.propertyMap[key]
+				? this.propertyMap[key].propertiesRead
+				: []
+			: this.properties) {
+			property.deoptimizePath(subPath);
+		}
 	}
 
 	getLiteralValueAtPath(
@@ -235,53 +269,6 @@ export default class ObjectExpression extends NodeBase {
 		this.expressionsToBeDeoptimized = Object.create(null);
 	}
 
-	deoptimizePath(path: ObjectPath) {
-		if (this.hasUnknownDeoptimizedProperty) return;
-		if (this.propertyMap === null) this.buildPropertyMap();
-		if (path.length === 0) {
-			this.deoptimizeAllProperties();
-			return;
-		}
-		const key = path[0];
-		if (path.length === 1) {
-			if (typeof key !== 'string') {
-				this.deoptimizeAllProperties();
-				return;
-			}
-			if (!this.deoptimizedPaths[key]) {
-				this.deoptimizedPaths[key] = true;
-
-				// we only deoptimizeCache exact matches as in all other cases,
-				// we do not return a literal value or return expression
-				if (this.expressionsToBeDeoptimized[key]) {
-					for (const expression of this.expressionsToBeDeoptimized[key]) {
-						expression.deoptimizeCache();
-					}
-				}
-			}
-		}
-		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
-		for (const property of typeof key === 'string'
-			? this.propertyMap[key]
-				? this.propertyMap[key].propertiesRead
-				: []
-			: this.properties) {
-			property.deoptimizePath(subPath);
-		}
-	}
-
-	private deoptimizeAllProperties() {
-		this.hasUnknownDeoptimizedProperty = true;
-		for (const property of this.properties) {
-			property.deoptimizePath(UNKNOWN_PATH);
-		}
-		for (const key of Object.keys(this.expressionsToBeDeoptimized)) {
-			for (const expression of this.expressionsToBeDeoptimized[key]) {
-				expression.deoptimizeCache();
-			}
-		}
-	}
-
 	render(
 		code: MagicString,
 		options: RenderOptions,
@@ -331,8 +318,8 @@ export default class ObjectExpression extends NodeBase {
 			if (!propertyMapProperty) {
 				this.propertyMap[key] = {
 					exactMatchRead: isRead ? property : null,
-					propertiesRead: isRead ? [property, ...this.unmatchablePropertiesRead] : [],
 					exactMatchWrite: isWrite ? property : null,
+					propertiesRead: isRead ? [property, ...this.unmatchablePropertiesRead] : [],
 					propertiesSet: isWrite && !isRead ? [property, ...this.unmatchablePropertiesWrite] : []
 				};
 				continue;
@@ -344,6 +331,18 @@ export default class ObjectExpression extends NodeBase {
 			if (isWrite && !isRead && propertyMapProperty.exactMatchWrite === null) {
 				propertyMapProperty.exactMatchWrite = property;
 				propertyMapProperty.propertiesSet.push(property, ...this.unmatchablePropertiesWrite);
+			}
+		}
+	}
+
+	private deoptimizeAllProperties() {
+		this.hasUnknownDeoptimizedProperty = true;
+		for (const property of this.properties) {
+			property.deoptimizePath(UNKNOWN_PATH);
+		}
+		for (const key of Object.keys(this.expressionsToBeDeoptimized)) {
+			for (const expression of this.expressionsToBeDeoptimized[key]) {
+				expression.deoptimizeCache();
 			}
 		}
 	}

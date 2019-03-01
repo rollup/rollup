@@ -19,12 +19,13 @@ const DELAY = 200;
 
 export class Watcher {
 	emitter: RollupWatcher;
+
 	private buildTimeout: NodeJS.Timer;
-	private running: boolean;
-	private rerun: boolean = false;
-	private tasks: Task[];
-	private succeeded: boolean = false;
 	private invalidatedIds: Set<string> = new Set();
+	private rerun: boolean = false;
+	private running: boolean;
+	private succeeded: boolean = false;
+	private tasks: Task[];
 
 	constructor(configs: RollupWatchOptions[]) {
 		this.emitter = new class extends EventEmitter implements RollupWatcher {
@@ -44,10 +45,6 @@ export class Watcher {
 		process.nextTick(() => this.run());
 	}
 
-	emit(event: string, value?: any) {
-		this.emitter.emit(event, value);
-	}
-
 	close() {
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
 		this.tasks.forEach(task => {
@@ -55,6 +52,10 @@ export class Watcher {
 		});
 
 		this.emitter.removeAllListeners();
+	}
+
+	emit(event: string, value?: any) {
+		this.emitter.emit(event, value);
 	}
 
 	invalidate(id?: string) {
@@ -112,19 +113,19 @@ export class Watcher {
 }
 
 export class Task {
-	private watcher: Watcher;
-	private closed: boolean;
-	private watched: Set<string>;
-	private inputOptions: InputOptions;
 	cache: RollupCache;
 	watchFiles: string[];
+
 	private chokidarOptions: WatchOptions;
 	private chokidarOptionsHash: string;
+	private closed: boolean;
+	private filter: (id: string) => boolean;
+	private inputOptions: InputOptions;
+	private invalidated = true;
 	private outputFiles: string[];
 	private outputs: OutputOptions[];
-	private invalidated = true;
-
-	private filter: (id: string) => boolean;
+	private watched: Set<string>;
+	private watcher: Watcher;
 
 	constructor(watcher: Watcher, config: RollupWatchOptions) {
 		this.cache = null;
@@ -149,8 +150,8 @@ export class Task {
 		if (chokidarOptions) {
 			chokidarOptions = {
 				...(chokidarOptions === true ? {} : chokidarOptions),
-				ignoreInitial: true,
-				disableGlobbing: true
+				disableGlobbing: true,
+				ignoreInitial: true
 			};
 		}
 
@@ -237,9 +238,9 @@ export class Task {
 			.then((result: RollupBuild) => {
 				this.watcher.emit('event', {
 					code: 'BUNDLE_END',
+					duration: Date.now() - start,
 					input: this.inputOptions.input,
 					output: this.outputFiles,
-					duration: Date.now() - start,
 					result
 				});
 			})

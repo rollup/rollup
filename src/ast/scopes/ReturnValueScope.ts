@@ -3,8 +3,8 @@ import { UNKNOWN_EXPRESSION, UNKNOWN_PATH } from '../values';
 import ParameterScope from './ParameterScope';
 
 export default class ReturnValueScope extends ParameterScope {
-	private returnExpressions: ExpressionEntity[] = [];
 	private returnExpression: ExpressionEntity | null = null;
+	private returnExpressions: ExpressionEntity[] = [];
 
 	addReturnExpression(expression: ExpressionEntity) {
 		this.returnExpressions.push(expression);

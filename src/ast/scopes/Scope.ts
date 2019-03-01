@@ -10,13 +10,13 @@ import Variable from '../variables/Variable';
 import ChildScope from './ChildScope';
 
 export default class Scope {
-	variables: {
-		this?: ThisVariable | LocalVariable;
-		default?: ExportDefaultVariable;
-		arguments?: ArgumentsVariable;
-		[name: string]: Variable;
-	} = Object.create(null);
 	children: ChildScope[] = [];
+	variables: {
+		[name: string]: Variable;
+		arguments?: ArgumentsVariable;
+		default?: ExportDefaultVariable;
+		this?: ThisVariable | LocalVariable;
+	} = Object.create(null);
 
 	addDeclaration(
 		identifier: Identifier,

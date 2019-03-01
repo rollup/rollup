@@ -23,17 +23,15 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
-	type: NodeType.tCallExpression;
-	callee: ExpressionNode;
-	arguments: (ExpressionNode | SpreadElement)[];
 	annotatedPure?: boolean;
+	arguments: (ExpressionNode | SpreadElement)[];
+	callee: ExpressionNode;
+	type: NodeType.tCallExpression;
 
 	private callOptions: CallOptions;
-
-	// Caching and deoptimization:
 	// We collect deoptimization information if returnExpression !== UNKNOWN_EXPRESSION
-	private returnExpression: ExpressionEntity | null;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[];
+	private returnExpression: ExpressionEntity | null;
 
 	bind() {
 		super.bind();
@@ -80,6 +78,19 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			for (const expression of this.expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0 && !this.context.deoptimizationTracker.track(this, path)) {
+			if (this.returnExpression === null) {
+				this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
+					EMPTY_PATH,
+					EMPTY_IMMUTABLE_TRACKER,
+					this
+				);
+			}
+			this.returnExpression.deoptimizePath(path);
 		}
 	}
 
@@ -196,24 +207,11 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		this.included = false;
 		this.returnExpression = null;
 		this.callOptions = CallOptions.create({
-			withNew: false,
 			args: this.arguments,
-			callIdentifier: this
+			callIdentifier: this,
+			withNew: false
 		});
 		this.expressionsToBeDeoptimized = [];
-	}
-
-	deoptimizePath(path: ObjectPath) {
-		if (path.length > 0 && !this.context.deoptimizationTracker.track(this, path)) {
-			if (this.returnExpression === null) {
-				this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
-					EMPTY_PATH,
-					EMPTY_IMMUTABLE_TRACKER,
-					this
-				);
-			}
-			this.returnExpression.deoptimizePath(path);
-		}
 	}
 
 	render(

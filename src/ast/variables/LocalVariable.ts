@@ -22,11 +22,11 @@ import Variable from './Variable';
 const MAX_PATH_DEPTH = 7;
 
 export default class LocalVariable extends Variable {
+	additionalInitializers: ExpressionEntity[] | null = null;
 	declarations: (Identifier | ExportDefaultDeclaration)[];
 	init: ExpressionEntity | null;
 	isLocal: true;
 	module: Module;
-	additionalInitializers: ExpressionEntity[] | null = null;
 
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
@@ -64,6 +64,25 @@ export default class LocalVariable extends Variable {
 				initializer.deoptimizePath(UNKNOWN_PATH);
 			}
 			this.additionalInitializers = null;
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > MAX_PATH_DEPTH) return;
+		if (!(this.isReassigned || this.deoptimizationTracker.track(this, path))) {
+			if (path.length === 0) {
+				if (!this.isReassigned) {
+					this.isReassigned = true;
+					for (const expression of this.expressionsToBeDeoptimized) {
+						expression.deoptimizeCache();
+					}
+					if (this.init) {
+						this.init.deoptimizePath(UNKNOWN_PATH);
+					}
+				}
+			} else if (this.init) {
+				this.init.deoptimizePath(path);
+			}
 		}
 	}
 
@@ -165,25 +184,6 @@ export default class LocalVariable extends Variable {
 					if (node.type === NodeType.Program) break;
 					node = <Node>node.parent;
 				}
-			}
-		}
-	}
-
-	deoptimizePath(path: ObjectPath) {
-		if (path.length > MAX_PATH_DEPTH) return;
-		if (!(this.isReassigned || this.deoptimizationTracker.track(this, path))) {
-			if (path.length === 0) {
-				if (!this.isReassigned) {
-					this.isReassigned = true;
-					for (const expression of this.expressionsToBeDeoptimized) {
-						expression.deoptimizeCache();
-					}
-					if (this.init) {
-						this.init.deoptimizePath(UNKNOWN_PATH);
-					}
-				}
-			} else if (this.init) {
-				this.init.deoptimizePath(path);
 			}
 		}
 	}

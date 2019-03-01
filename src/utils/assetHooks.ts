@@ -114,8 +114,8 @@ export function finaliseAsset(asset: Asset, outputBundle: OutputBundle, assetFil
 	const fileName = getAssetFileName(asset, outputBundle, assetFileNames);
 	asset.fileName = fileName;
 	outputBundle[fileName] = {
-		isAsset: true,
 		fileName,
+		isAsset: true,
 		source: asset.source
 	};
 }
@@ -129,9 +129,9 @@ export function createTransformEmitAsset(assetsById: Map<string, Asset>, emitAss
 			const asset = assetsById.get(assetId);
 			// distinguish transform assets
 			assets.push({
+				fileName: undefined,
 				name: asset.name,
-				source: asset.source,
-				fileName: undefined
+				source: asset.source
 			});
 			return assetId;
 		}

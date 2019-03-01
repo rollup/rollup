@@ -3,10 +3,10 @@ import { OutputOptions } from '../rollup/types';
 import { error } from './error';
 
 export interface Addons {
-	intro?: string;
-	outro?: string;
 	banner?: string;
 	footer?: string;
+	intro?: string;
+	outro?: string;
 }
 
 function evalIfFn(strOrFn: string | (() => string | Promise<string>)): string | Promise<string> {

@@ -7,8 +7,8 @@ import { NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class RestElement extends NodeBase implements PatternNode {
-	type: NodeType.tRestElement;
 	argument: PatternNode;
+	type: NodeType.tRestElement;
 
 	private declarationInit: ExpressionEntity | null = null;
 
@@ -28,11 +28,11 @@ export default class RestElement extends NodeBase implements PatternNode {
 		this.declarationInit = init;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return path.length > 0 || this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options);
-	}
-
 	deoptimizePath(path: ObjectPath) {
 		path.length === 0 && this.argument.deoptimizePath(EMPTY_PATH);
+	}
+
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+		return path.length > 0 || this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options);
 	}
 }

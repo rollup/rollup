@@ -23,12 +23,12 @@ export default function loadConfigFile(
 
 	return rollup
 		.rollup({
-			input: configFile,
-			treeshake: false,
 			external: (id: string) => {
 				return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json';
 			},
-			onwarn: warnings.add
+			input: configFile,
+			onwarn: warnings.add,
+			treeshake: false
 		})
 		.then((bundle: RollupBuild) => {
 			if (!silent && warnings.count > 0) {

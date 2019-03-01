@@ -20,17 +20,17 @@ import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class Property extends NodeBase implements DeoptimizableEntity {
-	type: NodeType.tProperty;
+	computed: boolean;
 	key: ExpressionNode;
-	value: ExpressionNode;
 	kind: 'init' | 'get' | 'set';
 	method: boolean;
 	shorthand: boolean;
-	computed: boolean;
+	type: NodeType.tProperty;
+	value: ExpressionNode;
 
 	private accessorCallOptions: CallOptions;
-	private returnExpression: ExpressionEntity | null;
 	private declarationInit: ExpressionEntity | null = null;
+	private returnExpression: ExpressionEntity | null;
 
 	bind() {
 		super.bind();
@@ -49,6 +49,17 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		// As getter properties directly receive their values from function expressions that always
 		// have a fixed return value, there is no known situation where a getter is deoptimized.
 		throw new Error('Unexpected deoptimization');
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (this.kind === 'get') {
+			if (path.length > 0) {
+				if (this.returnExpression === null) this.updateReturnExpression();
+				this.returnExpression.deoptimizePath(path);
+			}
+		} else if (this.kind !== 'set') {
+			this.value.deoptimizePath(path);
+		}
 	}
 
 	getLiteralValueAtPath(
@@ -135,20 +146,9 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		this.included = false;
 		this.returnExpression = null;
 		this.accessorCallOptions = CallOptions.create({
-			withNew: false,
-			callIdentifier: this
+			callIdentifier: this,
+			withNew: false
 		});
-	}
-
-	deoptimizePath(path: ObjectPath) {
-		if (this.kind === 'get') {
-			if (path.length > 0) {
-				if (this.returnExpression === null) this.updateReturnExpression();
-				this.returnExpression.deoptimizePath(path);
-			}
-		} else if (this.kind !== 'set') {
-			this.value.deoptimizePath(path);
-		}
 	}
 
 	render(code: MagicString, options: RenderOptions) {

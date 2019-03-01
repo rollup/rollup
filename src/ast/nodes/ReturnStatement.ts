@@ -6,8 +6,8 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
 
 export default class ReturnStatement extends StatementBase {
-	type: NodeType.tReturnStatement;
 	argument: ExpressionNode | null;
+	type: NodeType.tReturnStatement;
 
 	hasEffects(options: ExecutionPathOptions) {
 		return (

@@ -9,21 +9,19 @@ import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker'
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 
 export default class Variable implements ExpressionEntity {
-	name: string;
-	renderName: string | null = null;
-	renderBaseName: string | null = null;
-	isExternal?: boolean;
-	isDefault?: boolean;
-	isNamespace?: boolean;
-	module: Module | ExternalModule | null;
-
-	// Not initialised during construction
 	exportName: string | null = null;
-	safeExportName: string | null = null;
 	included: boolean = false;
+	isDefault?: boolean;
+	isExternal?: boolean;
 	isId: boolean = false;
-	reexported: boolean = false;
+	isNamespace?: boolean;
 	isReassigned: boolean = false;
+	module: Module | ExternalModule | null;
+	name: string;
+	reexported: boolean = false;
+	renderBaseName: string | null = null;
+	renderName: string | null = null;
+	safeExportName: string | null = null;
 
 	constructor(name: string) {
 		this.name = name;
@@ -35,13 +33,10 @@ export default class Variable implements ExpressionEntity {
 	 */
 	addReference(_identifier: Identifier) {}
 
+	deoptimizePath(_path: ObjectPath) {}
+
 	getBaseVariableName(): string {
 		return this.renderBaseName || this.renderName || this.name;
-	}
-
-	getName(): string {
-		const name = this.renderName || this.name;
-		return this.renderBaseName ? `${this.renderBaseName}.${name}` : name;
 	}
 
 	getLiteralValueAtPath(
@@ -50,6 +45,11 @@ export default class Variable implements ExpressionEntity {
 		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
+	}
+
+	getName(): string {
+		const name = this.renderName || this.name;
+		return this.renderBaseName ? `${this.renderBaseName}.${name}` : name;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -85,8 +85,6 @@ export default class Variable implements ExpressionEntity {
 	include() {
 		this.included = true;
 	}
-
-	deoptimizePath(_path: ObjectPath) {}
 
 	setRenderNames(baseName: string | null, name: string | null) {
 		this.renderBaseName = baseName;

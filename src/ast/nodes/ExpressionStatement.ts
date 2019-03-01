@@ -27,15 +27,15 @@ export default class ExpressionStatement extends StatementBase {
 		}
 	}
 
+	render(code: MagicString, options: RenderOptions) {
+		super.render(code, options);
+		if (this.included) this.insertSemicolon(code);
+	}
+
 	shouldBeIncluded() {
 		if (this.directive && this.directive !== 'use strict')
 			return this.parent.type !== NodeType.Program;
 
 		return super.shouldBeIncluded();
-	}
-
-	render(code: MagicString, options: RenderOptions) {
-		super.render(code, options);
-		if (this.included) this.insertSemicolon(code);
 	}
 }

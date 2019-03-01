@@ -9,8 +9,8 @@ import { ExpressionNode, NodeBase } from './Node';
 
 export default class ClassNode extends NodeBase {
 	body: ClassBody;
-	superClass: ExpressionNode | null;
 	id: Identifier | null;
+	superClass: ExpressionNode | null;
 
 	createScope(parentScope: Scope) {
 		this.scope = new ChildScope(parentScope);

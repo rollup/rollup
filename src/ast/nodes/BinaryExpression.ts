@@ -9,36 +9,36 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 const binaryOperators: {
 	[operator: string]: (left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown;
 } = {
-	'==': (left, right) => left == right,
 	'!=': (left, right) => left != right,
-	'===': (left, right) => left === right,
 	'!==': (left, right) => left !== right,
-	'<': (left, right) => left < right,
-	'<=': (left, right) => left <= right,
-	'>': (left, right) => left > right,
-	'>=': (left, right) => left >= right,
-	'<<': (left: any, right: any) => left << right,
-	'>>': (left: any, right: any) => left >> right,
-	'>>>': (left: any, right: any) => left >>> right,
-	'+': (left: any, right: any) => left + right,
-	'-': (left: any, right: any) => left - right,
-	'*': (left: any, right: any) => left * right,
-	'/': (left: any, right: any) => left / right,
 	'%': (left: any, right: any) => left % right,
-	'|': (left: any, right: any) => left | right,
-	'^': (left: any, right: any) => left ^ right,
 	'&': (left: any, right: any) => left & right,
+	'*': (left: any, right: any) => left * right,
 	// At the moment, "**" will be transpiled to Math.pow
 	'**': (left: any, right: any) => left ** right,
+	'+': (left: any, right: any) => left + right,
+	'-': (left: any, right: any) => left - right,
+	'/': (left: any, right: any) => left / right,
+	'<': (left, right) => left < right,
+	'<<': (left: any, right: any) => left << right,
+	'<=': (left, right) => left <= right,
+	'==': (left, right) => left == right,
+	'===': (left, right) => left === right,
+	'>': (left, right) => left > right,
+	'>=': (left, right) => left >= right,
+	'>>': (left: any, right: any) => left >> right,
+	'>>>': (left: any, right: any) => left >>> right,
+	'^': (left: any, right: any) => left ^ right,
 	in: () => UNKNOWN_VALUE,
-	instanceof: () => UNKNOWN_VALUE
+	instanceof: () => UNKNOWN_VALUE,
+	'|': (left: any, right: any) => left | right
 };
 
 export default class BinaryExpression extends NodeBase {
-	type: NodeType.tBinaryExpression;
 	left: ExpressionNode;
-	right: ExpressionNode;
 	operator: keyof typeof binaryOperators;
+	right: ExpressionNode;
+	type: NodeType.tBinaryExpression;
 
 	getLiteralValueAtPath(
 		path: ObjectPath,

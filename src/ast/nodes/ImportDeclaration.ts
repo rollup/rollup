@@ -9,21 +9,20 @@ import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ImportDeclaration extends NodeBase {
-	type: NodeType.tImportDeclaration;
-	specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
-	source: Literal<string>;
-
 	needsBoundaries: true;
+	source: Literal<string>;
+	specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
+	type: NodeType.tImportDeclaration;
 
 	bind() {}
+
+	hasEffects() {
+		return false;
+	}
 
 	initialise() {
 		this.included = false;
 		this.context.addImport(this);
-	}
-
-	hasEffects() {
-		return false;
 	}
 
 	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {

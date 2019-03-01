@@ -9,15 +9,22 @@ import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends NodeBase {
-	type: NodeType.tArrowFunctionExpression;
 	body: BlockStatement | ExpressionNode;
 	params: PatternNode[];
-
-	scope: ReturnValueScope;
 	preventChildBlockScope: true;
+	scope: ReturnValueScope;
+	type: NodeType.tArrowFunctionExpression;
 
 	createScope(parentScope: Scope) {
 		this.scope = new ReturnValueScope(parentScope, this.context);
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
+		// which means the return expression needs to be reassigned
+		if (path.length === 1 && path[0] === UNKNOWN_KEY) {
+			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
+		}
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
@@ -71,14 +78,6 @@ export default class ArrowFunctionExpression extends NodeBase {
 			);
 		}
 		super.parseNode(esTreeNode);
-	}
-
-	deoptimizePath(path: ObjectPath) {
-		// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
-		// which means the return expression needs to be reassigned
-		if (path.length === 1 && path[0] === UNKNOWN_KEY) {
-			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
-		}
 	}
 }
 

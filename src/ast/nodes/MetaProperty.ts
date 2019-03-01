@@ -41,19 +41,19 @@ const relUrlMechanisms: Record<string, (relPath: string, compact: boolean) => st
 		const _ = compact ? '' : ' ';
 		return `new URL('../${relPath}',${_}import.meta.url).href`;
 	},
+	iife: globalRelUrlMechanism,
 	system: (relPath: string, compact: boolean) => {
 		const _ = compact ? '' : ' ';
 		return `new URL('../${relPath}',${_}module.url).href`;
 	},
-	iife: globalRelUrlMechanism,
 	umd: globalRelUrlMechanism
 };
 
 export default class MetaProperty extends NodeBase {
-	type: NodeType.tMetaProperty;
 	meta: Identifier;
 	property: Identifier;
 	rendered: boolean;
+	type: NodeType.tMetaProperty;
 
 	initialise() {
 		if (this.meta.name === 'import') {

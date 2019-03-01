@@ -6,9 +6,9 @@ import { error } from './error';
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {
-	isOriginal: boolean;
-	filename: string;
 	content: string;
+	filename: string;
+	isOriginal: boolean;
 
 	constructor(filename: string, content: string) {
 		this.isOriginal = true;
@@ -26,18 +26,18 @@ type SourceMapSegmentVector =
 	| [number, number, number, number];
 
 interface SourceMapSegmentObject {
-	line: number;
 	column: number;
+	line: number;
 	name: string;
 	source: Source;
 }
 
 class Link {
-	sources: Source[];
-	names: string[];
 	mappings: SourceMapSegmentVector[][];
+	names: string[];
+	sources: Source[];
 
-	constructor(map: { names: string[]; mappings: SourceMapSegmentVector[][] }, sources: Source[]) {
+	constructor(map: { mappings: SourceMapSegmentVector[][]; names: string[] }, sources: Source[]) {
 		this.sources = sources;
 		this.names = map.names;
 		this.mappings = map.mappings;
@@ -147,53 +147,55 @@ export default function collapseSourcemaps(
 		if (map.missing) {
 			bundle.graph.warn({
 				code: 'SOURCEMAP_BROKEN',
-				plugin: map.plugin,
 				message: `Sourcemap is likely to be incorrect: a plugin${
 					map.plugin ? ` ('${map.plugin}')` : ``
 				} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
+				plugin: map.plugin,
 				url: `https://rollupjs.org/guide/en#warning-sourcemap-is-likely-to-be-incorrect`
 			});
 
 			map = {
-				names: [],
-				mappings: ''
+				mappings: '',
+				names: []
 			};
 		}
 
 		return <any>new Link(map, [source]);
 	}
 
-	const moduleSources = modules.filter(module => !module.excludeFromSourcemap).map(module => {
-		let sourcemapChain = module.sourcemapChain;
+	const moduleSources = modules
+		.filter(module => !module.excludeFromSourcemap)
+		.map(module => {
+			let sourcemapChain = module.sourcemapChain;
 
-		let source: Source;
-		const originalSourcemap = <ExistingRawSourceMap>module.originalSourcemap;
-		if (!originalSourcemap) {
-			source = new Source(module.id, module.originalCode);
-		} else {
-			const sources = originalSourcemap.sources;
-			const sourcesContent = originalSourcemap.sourcesContent || [];
-
-			if (sources == null || (sources.length <= 1 && sources[0] == null)) {
-				source = new Source(module.id, sourcesContent[0]);
-				sourcemapChain = [<RawSourceMap>originalSourcemap].concat(sourcemapChain);
+			let source: Source;
+			const originalSourcemap = <ExistingRawSourceMap>module.originalSourcemap;
+			if (!originalSourcemap) {
+				source = new Source(module.id, module.originalCode);
 			} else {
-				// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
-				const directory = dirname(module.id) || '.';
-				const sourceRoot = originalSourcemap.sourceRoot || '.';
+				const sources = originalSourcemap.sources;
+				const sourcesContent = originalSourcemap.sourcesContent || [];
 
-				const baseSources = sources.map((source, i) => {
-					return new Source(resolve(directory, sourceRoot, source), sourcesContent[i]);
-				});
+				if (sources == null || (sources.length <= 1 && sources[0] == null)) {
+					source = new Source(module.id, sourcesContent[0]);
+					sourcemapChain = [<RawSourceMap>originalSourcemap].concat(sourcemapChain);
+				} else {
+					// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
+					const directory = dirname(module.id) || '.';
+					const sourceRoot = originalSourcemap.sourceRoot || '.';
 
-				source = <any>new Link(<any>originalSourcemap, baseSources);
+					const baseSources = sources.map((source, i) => {
+						return new Source(resolve(directory, sourceRoot, source), sourcesContent[i]);
+					});
+
+					source = <any>new Link(<any>originalSourcemap, baseSources);
+				}
 			}
-		}
 
-		source = sourcemapChain.reduce(linkMap, source);
+			source = sourcemapChain.reduce(linkMap, source);
 
-		return source;
-	});
+			return source;
+		});
 
 	let source = new Link(<any>map, moduleSources);
 

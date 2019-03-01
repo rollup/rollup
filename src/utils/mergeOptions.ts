@@ -84,13 +84,13 @@ export default function mergeOptions({
 	command: rawCommandOptions = {},
 	defaultOnWarnHandler
 }: {
-	config: GenericConfigObject;
 	command?: GenericConfigObject;
+	config: GenericConfigObject;
 	defaultOnWarnHandler?: WarningHandler;
 }): {
 	inputOptions: any;
-	outputOptions: any;
 	optionError: string | null;
+	outputOptions: any;
 } {
 	const command = getCommandOptions(rawCommandOptions);
 	const inputOptions = getInputOptions(config, command, defaultOnWarnHandler);
@@ -143,8 +143,8 @@ export default function mergeOptions({
 
 	return {
 		inputOptions,
-		outputOptions,
-		optionError: unknownOptionErrors.length > 0 ? unknownOptionErrors.join('\n') : null
+		optionError: unknownOptionErrors.length > 0 ? unknownOptionErrors.join('\n') : null,
+		outputOptions
 	};
 }
 
@@ -197,23 +197,23 @@ function getInputOptions(
 		acorn: config.acorn,
 		acornInjectPlugins: config.acornInjectPlugins,
 		cache: getOption('cache'),
-		experimentalCacheExpiry: getOption('experimentalCacheExpiry', 10),
+		chunkGroupingSize: getOption('chunkGroupingSize', 5000),
 		context: config.context,
+		experimentalCacheExpiry: getOption('experimentalCacheExpiry', 10),
+		experimentalOptimizeChunks: getOption('experimentalOptimizeChunks'),
 		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
 		external: getExternal(config, command),
 		inlineDynamicImports: getOption('inlineDynamicImports', false),
 		input: getOption('input'),
 		manualChunks: getOption('manualChunks'),
-		chunkGroupingSize: getOption('chunkGroupingSize', 5000),
-		experimentalOptimizeChunks: getOption('experimentalOptimizeChunks'),
 		moduleContext: config.moduleContext,
 		onwarn: getOnWarn(config, command, defaultOnWarnHandler),
 		perf: getOption('perf', false),
 		plugins: config.plugins,
 		preserveModules: getOption('preserveModules'),
 		preserveSymlinks: getOption('preserveSymlinks'),
-		treeshake: getObjectOption(config, command, 'treeshake'),
 		shimMissingExports: getOption('shimMissingExports'),
+		treeshake: getObjectOption(config, command, 'treeshake'),
 		watch: config.watch
 	};
 
@@ -235,9 +235,9 @@ function getOutputOptions(
 		amd: { ...config.amd, ...command.amd },
 		assetFileNames: getOption('assetFileNames'),
 		banner: getOption('banner'),
-		dir: getOption('dir'),
 		chunkFileNames: getOption('chunkFileNames'),
 		compact: getOption('compact', false),
+		dir: getOption('dir'),
 		entryFileNames: getOption('entryFileNames'),
 		esModule: getOption('esModule', true),
 		exports: getOption('exports'),

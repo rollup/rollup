@@ -9,20 +9,20 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 const unaryOperators: {
 	[operator: string]: (value: LiteralValue) => LiteralValueOrUnknown;
 } = {
-	'-': value => -value,
-	'+': value => +value,
 	'!': value => !value,
-	'~': value => ~value,
+	'+': value => +value,
+	'-': value => -value,
+	delete: () => UNKNOWN_VALUE,
 	typeof: value => typeof value,
 	void: () => undefined,
-	delete: () => UNKNOWN_VALUE
+	'~': value => ~value
 };
 
 export default class UnaryExpression extends NodeBase {
-	type: NodeType.tUnaryExpression;
+	argument: ExpressionNode;
 	operator: keyof typeof unaryOperators;
 	prefix: boolean;
-	argument: ExpressionNode;
+	type: NodeType.tUnaryExpression;
 
 	bind() {
 		super.bind();

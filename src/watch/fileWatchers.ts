@@ -32,8 +32,9 @@ export function deleteTask(id: string, target: Task, chokidarOptionsHash: string
 }
 
 export default class FileWatcher {
-	fsWatcher: FSWatcher | fs.FSWatcher;
 	fileExists: boolean;
+	fsWatcher: FSWatcher | fs.FSWatcher;
+
 	private id: string;
 	private tasks: Set<Task>;
 	private transformDependencyTasks: Set<Task>;
@@ -96,6 +97,10 @@ export default class FileWatcher {
 		else this.tasks.add(task);
 	}
 
+	close() {
+		this.fsWatcher.close();
+	}
+
 	deleteTask(task: Task, group: Map<string, FileWatcher>) {
 		let deleted = this.tasks.delete(task);
 		deleted = this.transformDependencyTasks.delete(task) || deleted;
@@ -104,10 +109,6 @@ export default class FileWatcher {
 			group.delete(this.id);
 			this.close();
 		}
-	}
-
-	close() {
-		this.fsWatcher.close();
 	}
 
 	trigger(id: string) {

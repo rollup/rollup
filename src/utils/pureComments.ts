@@ -41,7 +41,7 @@ const isPureComment = (comment: CommentDescription) => pureCommentRegex.test(com
 
 export function markPureCallExpressions(comments: CommentDescription[], esTreeAst: ESTree.Program) {
 	handlePureAnnotationsOfNode(<any>esTreeAst, {
-		commentNodes: comments.filter(isPureComment),
-		commentIndex: 0
+		commentIndex: 0,
+		commentNodes: comments.filter(isPureComment)
 	});
 }

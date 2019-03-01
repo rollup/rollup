@@ -44,29 +44,29 @@ import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 export interface CommentDescription {
 	block: boolean;
-	text: string;
-	start: number;
 	end: number;
+	start: number;
+	text: string;
 }
 
 export interface ImportDescription {
+	module: Module | ExternalModule | null;
+	name: string;
 	source: string;
 	start: number;
-	name: string;
-	module: Module | ExternalModule | null;
 }
 
 export interface ExportDescription {
-	localName: string;
 	identifier?: string;
+	localName: string;
 	node?: Node;
 }
 
 export interface ReexportDescription {
 	localName: string;
-	start: number;
-	source: string;
 	module: Module;
+	source: string;
+	start: number;
 }
 
 export interface AstContext {
@@ -76,6 +76,7 @@ export interface AstContext {
 	) => void;
 	addImport: (node: ImportDeclaration) => void;
 	addImportMeta: (node: MetaProperty) => void;
+	annotations: boolean;
 	code: string;
 	deoptimizationTracker: EntityPathTracker;
 	error: (props: RollupError, pos: number) => void;
@@ -86,16 +87,15 @@ export interface AstContext {
 	getModuleName: () => string;
 	getReexports: () => string[];
 	importDescriptions: { [name: string]: ImportDescription };
-	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	includeDynamicImport: (node: Import) => void;
 	includeVariable: (variable: Variable) => void;
+	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	magicString: MagicString;
-	moduleContext: string;
 	module: Module; // not to be used for tree-shaking
+	moduleContext: string;
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	preserveModules: boolean;
 	propertyReadSideEffects: boolean;
-	annotations: boolean;
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable;
 	treeshake: boolean;
@@ -105,8 +105,8 @@ export interface AstContext {
 
 export const defaultAcornOptions: acorn.Options = {
 	ecmaVersion: 2019,
-	sourceType: 'module',
-	preserveParens: false
+	preserveParens: false,
+	sourceType: 'module'
 };
 
 function tryParse(module: Module, Parser: typeof acorn.Parser, acornOptions: acorn.Options) {
@@ -155,7 +155,6 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 };
 
 export default class Module {
-	type: 'Module';
 	chunk: Chunk;
 	chunkAlias: string = undefined;
 	code: string;
@@ -165,18 +164,18 @@ export default class Module {
 	dynamicallyImportedBy: Module[] = [];
 	dynamicDependencies: (Module | ExternalModule)[] = [];
 	dynamicImports: {
-		node: Import;
 		alias: string | null;
+		node: Import;
 		resolution: Module | ExternalModule | string | void;
 	}[] = [];
 	entryPointsHash: Uint8Array = new Uint8Array(10);
-	exportAllModules: (Module | ExternalModule)[] = null;
-	exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
 	excludeFromSourcemap: boolean;
 	execIndex: number = Infinity;
+	exportAllModules: (Module | ExternalModule)[] = null;
+	exportAllSources: string[] = [];
 	exports: { [name: string]: ExportDescription } = Object.create(null);
 	exportsAll: { [name: string]: string } = Object.create(null);
-	exportAllSources: string[] = [];
+	exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
 	facadeChunk: Chunk | null = null;
 	id: string;
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
@@ -193,6 +192,7 @@ export default class Module {
 	sourcemapChain: RawSourceMap[];
 	sources: string[] = [];
 	transformAssets: Asset[];
+	type: 'Module';
 	usesTopLevelAwait: boolean = false;
 
 	private ast: Program;
@@ -209,6 +209,259 @@ export default class Module {
 		this.graph = graph;
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = graph.getModuleContext(id);
+	}
+
+	basename() {
+		const base = basename(this.id);
+		const ext = extname(this.id);
+
+		return makeLegal(ext ? base.slice(0, -ext.length) : base);
+	}
+
+	bindReferences() {
+		this.ast.bind();
+	}
+
+	error(props: RollupError, pos: number) {
+		if (pos !== undefined) {
+			props.pos = pos;
+
+			let location = locate(this.code, pos, { offsetLine: 1 });
+			try {
+				location = getOriginalLocation(this.sourcemapChain, location);
+			} catch (e) {
+				this.warn(
+					{
+						code: 'SOURCEMAP_ERROR',
+						loc: {
+							column: location.column,
+							file: this.id,
+							line: location.line
+						},
+						message: `Error when using sourcemap for reporting an error: ${e.message}`,
+						pos
+					},
+					undefined
+				);
+			}
+
+			props.loc = {
+				column: location.column,
+				file: this.id,
+				line: location.line
+			};
+			props.frame = getCodeFrame(this.originalCode, location.line, location.column);
+		}
+
+		error(props);
+	}
+
+	getAllExports() {
+		const allExports = Object.assign(Object.create(null), this.exports, this.reexports);
+
+		this.exportAllModules.forEach(module => {
+			if (module.isExternal) {
+				allExports[`*${module.id}`] = true;
+				return;
+			}
+
+			for (const name of (<Module>module).getAllExports()) {
+				if (name !== 'default') allExports[name] = true;
+			}
+		});
+
+		return Object.keys(allExports);
+	}
+
+	getDynamicImportExpressions(): (string | Node)[] {
+		return this.dynamicImports.map(({ node }) => {
+			const importArgument = node.parent.arguments[0];
+			if (isTemplateLiteral(importArgument)) {
+				if (importArgument.expressions.length === 0 && importArgument.quasis.length === 1) {
+					return importArgument.quasis[0].value.cooked;
+				}
+			} else if (isLiteral(importArgument)) {
+				if (typeof importArgument.value === 'string') {
+					return importArgument.value;
+				}
+			} else {
+				return importArgument;
+			}
+		});
+	}
+
+	getExports() {
+		return Object.keys(this.exports);
+	}
+
+	getOrCreateNamespace(): NamespaceVariable {
+		return (
+			this.namespaceVariable || (this.namespaceVariable = new NamespaceVariable(this.astContext))
+		);
+	}
+
+	getReexports() {
+		const reexports = Object.create(null);
+
+		for (const name in this.reexports) {
+			reexports[name] = true;
+		}
+
+		this.exportAllModules.forEach(module => {
+			if (module.isExternal) {
+				reexports[`*${module.id}`] = true;
+				return;
+			}
+
+			for (const name of (<Module>module).getExports().concat((<Module>module).getReexports())) {
+				if (name !== 'default') reexports[name] = true;
+			}
+		});
+
+		return Object.keys(reexports);
+	}
+
+	getRenderedExports() {
+		// only direct exports are counted here, not reexports at all
+		const renderedExports: string[] = [];
+		const removedExports: string[] = [];
+		for (const exportName in this.exports) {
+			const expt = this.exports[exportName];
+			(expt.node && expt.node.included ? renderedExports : removedExports).push(exportName);
+		}
+		return { renderedExports, removedExports };
+	}
+
+	getVariableForExportName(name: string, isExportAllSearch?: boolean): Variable | null {
+		if (name[0] === '*') {
+			if (name.length === 1) {
+				return this.getOrCreateNamespace();
+			} else {
+				// export * from 'external'
+				const module = <ExternalModule>this.graph.moduleById.get(name.slice(1));
+				return module.getVariableForExportName('*');
+			}
+		}
+
+		// export { foo } from './other'
+		const reexportDeclaration = this.reexports[name];
+		if (reexportDeclaration) {
+			const declaration = reexportDeclaration.module.getVariableForExportName(
+				reexportDeclaration.localName
+			);
+
+			if (!declaration) {
+				handleMissingExport(
+					reexportDeclaration.localName,
+					this,
+					reexportDeclaration.module.id,
+					reexportDeclaration.start
+				);
+			}
+
+			return declaration;
+		}
+
+		const exportDeclaration = this.exports[name];
+		if (exportDeclaration) {
+			if (exportDeclaration === MISSING_EXPORT_SHIM_DESCRIPTION) {
+				return this.exportShimVariable;
+			}
+			const name = exportDeclaration.localName;
+			return this.traceVariable(name) || this.graph.scope.findVariable(name);
+		}
+
+		if (name !== 'default') {
+			for (let i = 0; i < this.exportAllModules.length; i += 1) {
+				const module = this.exportAllModules[i];
+				const declaration = module.getVariableForExportName(name, true);
+
+				if (declaration) return declaration;
+			}
+		}
+
+		// we don't want to create shims when we are just
+		// probing export * modules for exports
+		if (this.graph.shimMissingExports && !isExportAllSearch) {
+			this.shimMissingExport(name);
+			return this.exportShimVariable;
+		}
+	}
+
+	include(): void {
+		if (this.ast.shouldBeIncluded()) this.ast.include(false);
+	}
+
+	includeAllExports() {
+		if (!this.isExecuted) {
+			this.graph.needsTreeshakingPass = true;
+			visitStaticModuleDependencies(this, module => {
+				if (module instanceof ExternalModule || module.isExecuted) return true;
+				module.isExecuted = true;
+				return false;
+			});
+		}
+
+		for (const exportName of this.getExports()) {
+			const variable = this.getVariableForExportName(exportName);
+
+			variable.deoptimizePath(UNKNOWN_PATH);
+			if (!variable.included) {
+				variable.include();
+				this.graph.needsTreeshakingPass = true;
+			}
+		}
+
+		for (const name of this.getReexports()) {
+			const variable = this.getVariableForExportName(name);
+
+			if (variable.isExternal) {
+				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
+			} else if (!variable.included) {
+				variable.include();
+				variable.deoptimizePath(UNKNOWN_PATH);
+				this.graph.needsTreeshakingPass = true;
+			}
+		}
+	}
+
+	includeAllInBundle() {
+		this.ast.include(true);
+	}
+
+	isIncluded() {
+		return this.ast.included || (this.namespaceVariable && this.namespaceVariable.included);
+	}
+
+	linkDependencies() {
+		for (const source of this.sources) {
+			const id = this.resolvedIds[source].id;
+
+			if (id) {
+				const module = this.graph.moduleById.get(id);
+				this.dependencies.push(<Module>module);
+			}
+		}
+		for (const { resolution } of this.dynamicImports) {
+			if (resolution instanceof Module || resolution instanceof ExternalModule) {
+				this.dynamicDependencies.push(resolution);
+			}
+		}
+
+		this.addModulesToSpecifiers(this.importDescriptions);
+		this.addModulesToSpecifiers(this.reexports);
+
+		this.exportAllModules = this.exportAllSources.map(source => {
+			const id = this.resolvedIds[source].id;
+			return this.graph.moduleById.get(id);
+		});
+	}
+
+	render(options: RenderOptions): MagicString {
+		const magicString = this.magicString.clone();
+		this.ast.render(magicString, options);
+		this.usesTopLevelAwait = this.astContext.usesTopLevelAwait;
+		return magicString;
 	}
 
 	setSource({
@@ -256,14 +509,16 @@ export default class Module {
 			addExport: this.addExport.bind(this),
 			addImport: this.addImport.bind(this),
 			addImportMeta: this.addImportMeta.bind(this),
+			annotations: this.graph.treeshake && this.graph.treeshakingOptions.annotations,
 			code, // Only needed for debugging
+			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
 			getAssetFileName: this.graph.pluginDriver.getAssetFileName,
 			getExports: this.getExports.bind(this),
-			getReexports: this.getReexports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
+			getReexports: this.getReexports.bind(this),
 			importDescriptions: this.importDescriptions,
 			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeVariable: this.includeVariable.bind(this),
@@ -275,8 +530,6 @@ export default class Module {
 			preserveModules: this.graph.preserveModules,
 			propertyReadSideEffects:
 				!this.graph.treeshake || this.graph.treeshakingOptions.propertyReadSideEffects,
-			annotations: this.graph.treeshake && this.graph.treeshakingOptions.annotations,
-			deoptimizationTracker: this.graph.deoptimizationTracker,
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
 			treeshake: this.graph.treeshake,
@@ -294,12 +547,63 @@ export default class Module {
 		timeEnd('analyse ast', 3);
 	}
 
-	private removeExistingSourceMap() {
-		for (const comment of this.comments) {
-			if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
-				this.magicString.remove(comment.start, comment.end);
-			}
+	toJSON(): ModuleJSON {
+		return {
+			ast: this.esTreeAst,
+			code: this.code,
+			customTransformCache: this.customTransformCache,
+			dependencies: this.dependencies.map(module => module.id),
+			id: this.id,
+			originalCode: this.originalCode,
+			originalSourcemap: this.originalSourcemap,
+			resolvedIds: this.resolvedIds,
+			sourcemapChain: this.sourcemapChain,
+			transformAssets: this.transformAssets,
+			transformDependencies: this.transformDependencies
+		};
+	}
+
+	traceVariable(name: string): Variable | null {
+		if (name in this.scope.variables) {
+			return this.scope.variables[name];
 		}
+
+		if (name in this.importDescriptions) {
+			const importDeclaration = this.importDescriptions[name];
+			const otherModule = importDeclaration.module;
+
+			if (!otherModule.isExternal && importDeclaration.name === '*') {
+				return (<Module>otherModule).getOrCreateNamespace();
+			}
+
+			const declaration = otherModule.getVariableForExportName(importDeclaration.name);
+
+			if (!declaration) {
+				handleMissingExport(importDeclaration.name, this, otherModule.id, importDeclaration.start);
+			}
+
+			return declaration;
+		}
+
+		return null;
+	}
+
+	warn(warning: RollupWarning, pos: number) {
+		if (pos !== undefined) {
+			warning.pos = pos;
+
+			const { line, column } = locate(this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps, cf. error()
+
+			warning.loc = { file: this.id, line, column };
+			warning.frame = getCodeFrame(this.code, line, column);
+		}
+
+		warning.id = this.id;
+		this.graph.warn(warning);
+	}
+
+	private addDynamicImport(node: Import) {
+		this.dynamicImports.push({ node, alias: undefined, resolution: undefined });
 	}
 
 	private addExport(
@@ -330,10 +634,10 @@ export default class Module {
 					}
 
 					this.reexports[name] = {
-						start: specifier.start,
-						source,
 						localName: specifier.local.name,
-						module: null // filled in later
+						module: null, // filled in later,
+						source,
+						start: specifier.start
 					};
 				}
 			}
@@ -352,8 +656,8 @@ export default class Module {
 			}
 
 			this.exports.default = {
-				localName: 'default',
 				identifier: node.variable.getOriginalVariableName(),
+				localName: 'default',
 				node
 			};
 		} else if ((<ExportNamedDeclaration>node).declaration) {
@@ -425,76 +729,8 @@ export default class Module {
 		}
 	}
 
-	private addDynamicImport(node: Import) {
-		this.dynamicImports.push({ node, alias: undefined, resolution: undefined });
-	}
-
 	private addImportMeta(node: MetaProperty) {
 		this.importMetas.push(node);
-	}
-
-	basename() {
-		const base = basename(this.id);
-		const ext = extname(this.id);
-
-		return makeLegal(ext ? base.slice(0, -ext.length) : base);
-	}
-
-	includeAllExports() {
-		if (!this.isExecuted) {
-			this.graph.needsTreeshakingPass = true;
-			visitStaticModuleDependencies(this, module => {
-				if (module instanceof ExternalModule || module.isExecuted) return true;
-				module.isExecuted = true;
-				return false;
-			});
-		}
-
-		for (const exportName of this.getExports()) {
-			const variable = this.getVariableForExportName(exportName);
-
-			variable.deoptimizePath(UNKNOWN_PATH);
-			if (!variable.included) {
-				variable.include();
-				this.graph.needsTreeshakingPass = true;
-			}
-		}
-
-		for (const name of this.getReexports()) {
-			const variable = this.getVariableForExportName(name);
-
-			if (variable.isExternal) {
-				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
-			} else if (!variable.included) {
-				variable.include();
-				variable.deoptimizePath(UNKNOWN_PATH);
-				this.graph.needsTreeshakingPass = true;
-			}
-		}
-	}
-
-	linkDependencies() {
-		for (const source of this.sources) {
-			const id = this.resolvedIds[source].id;
-
-			if (id) {
-				const module = this.graph.moduleById.get(id);
-				this.dependencies.push(<Module>module);
-			}
-		}
-		for (const { resolution } of this.dynamicImports) {
-			if (resolution instanceof Module || resolution instanceof ExternalModule) {
-				this.dynamicDependencies.push(resolution);
-			}
-		}
-
-		this.addModulesToSpecifiers(this.importDescriptions);
-		this.addModulesToSpecifiers(this.reexports);
-
-		this.exportAllModules = this.exportAllSources.map(source => {
-			const id = this.resolvedIds[source].id;
-			return this.graph.moduleById.get(id);
-		});
 	}
 
 	private addModulesToSpecifiers(specifiers: {
@@ -505,121 +741,6 @@ export default class Module {
 			const id = this.resolvedIds[specifier.source].id;
 			specifier.module = this.graph.moduleById.get(id);
 		}
-	}
-
-	bindReferences() {
-		this.ast.bind();
-	}
-
-	getDynamicImportExpressions(): (string | Node)[] {
-		return this.dynamicImports.map(({ node }) => {
-			const importArgument = node.parent.arguments[0];
-			if (isTemplateLiteral(importArgument)) {
-				if (importArgument.expressions.length === 0 && importArgument.quasis.length === 1) {
-					return importArgument.quasis[0].value.cooked;
-				}
-			} else if (isLiteral(importArgument)) {
-				if (typeof importArgument.value === 'string') {
-					return importArgument.value;
-				}
-			} else {
-				return importArgument;
-			}
-		});
-	}
-
-	error(props: RollupError, pos: number) {
-		if (pos !== undefined) {
-			props.pos = pos;
-
-			let location = locate(this.code, pos, { offsetLine: 1 });
-			try {
-				location = getOriginalLocation(this.sourcemapChain, location);
-			} catch (e) {
-				this.warn(
-					{
-						loc: {
-							file: this.id,
-							line: location.line,
-							column: location.column
-						},
-						pos,
-						message: `Error when using sourcemap for reporting an error: ${e.message}`,
-						code: 'SOURCEMAP_ERROR'
-					},
-					undefined
-				);
-			}
-
-			props.loc = {
-				file: this.id,
-				line: location.line,
-				column: location.column
-			};
-			props.frame = getCodeFrame(this.originalCode, location.line, location.column);
-		}
-
-		error(props);
-	}
-
-	getAllExports() {
-		const allExports = Object.assign(Object.create(null), this.exports, this.reexports);
-
-		this.exportAllModules.forEach(module => {
-			if (module.isExternal) {
-				allExports[`*${module.id}`] = true;
-				return;
-			}
-
-			for (const name of (<Module>module).getAllExports()) {
-				if (name !== 'default') allExports[name] = true;
-			}
-		});
-
-		return Object.keys(allExports);
-	}
-
-	getExports() {
-		return Object.keys(this.exports);
-	}
-
-	getReexports() {
-		const reexports = Object.create(null);
-
-		for (const name in this.reexports) {
-			reexports[name] = true;
-		}
-
-		this.exportAllModules.forEach(module => {
-			if (module.isExternal) {
-				reexports[`*${module.id}`] = true;
-				return;
-			}
-
-			for (const name of (<Module>module).getExports().concat((<Module>module).getReexports())) {
-				if (name !== 'default') reexports[name] = true;
-			}
-		});
-
-		return Object.keys(reexports);
-	}
-
-	includeAllInBundle() {
-		this.ast.include(true);
-	}
-
-	isIncluded() {
-		return this.ast.included || (this.namespaceVariable && this.namespaceVariable.included);
-	}
-
-	include(): void {
-		if (this.ast.shouldBeIncluded()) this.ast.include(false);
-	}
-
-	getOrCreateNamespace(): NamespaceVariable {
-		return (
-			this.namespaceVariable || (this.namespaceVariable = new NamespaceVariable(this.astContext))
-		);
 	}
 
 	private includeDynamicImport(node: Import) {
@@ -641,142 +762,21 @@ export default class Module {
 		}
 	}
 
-	render(options: RenderOptions): MagicString {
-		const magicString = this.magicString.clone();
-		this.ast.render(magicString, options);
-		this.usesTopLevelAwait = this.astContext.usesTopLevelAwait;
-		return magicString;
-	}
-
-	toJSON(): ModuleJSON {
-		return {
-			id: this.id,
-			dependencies: this.dependencies.map(module => module.id),
-			transformDependencies: this.transformDependencies,
-			transformAssets: this.transformAssets,
-			code: this.code,
-			originalCode: this.originalCode,
-			originalSourcemap: this.originalSourcemap,
-			ast: this.esTreeAst,
-			sourcemapChain: this.sourcemapChain,
-			resolvedIds: this.resolvedIds,
-			customTransformCache: this.customTransformCache
-		};
-	}
-
-	traceVariable(name: string): Variable | null {
-		if (name in this.scope.variables) {
-			return this.scope.variables[name];
-		}
-
-		if (name in this.importDescriptions) {
-			const importDeclaration = this.importDescriptions[name];
-			const otherModule = importDeclaration.module;
-
-			if (!otherModule.isExternal && importDeclaration.name === '*') {
-				return (<Module>otherModule).getOrCreateNamespace();
-			}
-
-			const declaration = otherModule.getVariableForExportName(importDeclaration.name);
-
-			if (!declaration) {
-				handleMissingExport(importDeclaration.name, this, otherModule.id, importDeclaration.start);
-			}
-
-			return declaration;
-		}
-
-		return null;
-	}
-
-	getRenderedExports() {
-		// only direct exports are counted here, not reexports at all
-		const renderedExports: string[] = [];
-		const removedExports: string[] = [];
-		for (const exportName in this.exports) {
-			const expt = this.exports[exportName];
-			(expt.node && expt.node.included ? renderedExports : removedExports).push(exportName);
-		}
-		return { renderedExports, removedExports };
-	}
-
-	getVariableForExportName(name: string, isExportAllSearch?: boolean): Variable | null {
-		if (name[0] === '*') {
-			if (name.length === 1) {
-				return this.getOrCreateNamespace();
-			} else {
-				// export * from 'external'
-				const module = <ExternalModule>this.graph.moduleById.get(name.slice(1));
-				return module.getVariableForExportName('*');
+	private removeExistingSourceMap() {
+		for (const comment of this.comments) {
+			if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
+				this.magicString.remove(comment.start, comment.end);
 			}
 		}
-
-		// export { foo } from './other'
-		const reexportDeclaration = this.reexports[name];
-		if (reexportDeclaration) {
-			const declaration = reexportDeclaration.module.getVariableForExportName(
-				reexportDeclaration.localName
-			);
-
-			if (!declaration) {
-				handleMissingExport(
-					reexportDeclaration.localName,
-					this,
-					reexportDeclaration.module.id,
-					reexportDeclaration.start
-				);
-			}
-
-			return declaration;
-		}
-
-		const exportDeclaration = this.exports[name];
-		if (exportDeclaration) {
-			if (exportDeclaration === MISSING_EXPORT_SHIM_DESCRIPTION) {
-				return this.exportShimVariable;
-			}
-			const name = exportDeclaration.localName;
-			return this.traceVariable(name) || this.graph.scope.findVariable(name);
-		}
-
-		if (name !== 'default') {
-			for (let i = 0; i < this.exportAllModules.length; i += 1) {
-				const module = this.exportAllModules[i];
-				const declaration = module.getVariableForExportName(name, true);
-
-				if (declaration) return declaration;
-			}
-		}
-
-		// we don't want to create shims when we are just
-		// probing export * modules for exports
-		if (this.graph.shimMissingExports && !isExportAllSearch) {
-			this.shimMissingExport(name);
-			return this.exportShimVariable;
-		}
-	}
-
-	warn(warning: RollupWarning, pos: number) {
-		if (pos !== undefined) {
-			warning.pos = pos;
-
-			const { line, column } = locate(this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps, cf. error()
-
-			warning.loc = { file: this.id, line, column };
-			warning.frame = getCodeFrame(this.code, line, column);
-		}
-
-		warning.id = this.id;
-		this.graph.warn(warning);
 	}
 
 	private shimMissingExport(name: string): void {
 		if (!this.exports[name]) {
 			this.graph.warn({
-				message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`,
 				code: 'SHIMMED_EXPORT',
+				exporter: relativeId(this.id),
 				exportName: name,
-				exporter: relativeId(this.id)
+				message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`
 			});
 			this.exports[name] = MISSING_EXPORT_SHIM_DESCRIPTION;
 		}

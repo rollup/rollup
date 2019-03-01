@@ -39,11 +39,10 @@ export function isExportDefaultDeclaration(node: Node): node is ExportDefaultDec
 }
 
 export default class ExportDefaultDeclaration extends NodeBase {
-	type: NodeType.tExportDefaultDeclaration;
 	declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
-	scope: ModuleScope;
-
 	needsBoundaries: true;
+	scope: ModuleScope;
+	type: NodeType.tExportDefaultDeclaration;
 	variable: ExportDefaultVariable;
 	private declarationName: string;
 
@@ -97,8 +96,8 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		} else {
 			code.remove(this.start, declarationStart);
 			this.declaration.render(code, options, {
-				renderedParentType: NodeType.ExpressionStatement,
-				isCalleeOfRenderedParent: false
+				isCalleeOfRenderedParent: false,
+				renderedParentType: NodeType.ExpressionStatement
 			});
 			if (code.original[this.end - 1] !== ';') {
 				code.appendLeft(this.end, ';');

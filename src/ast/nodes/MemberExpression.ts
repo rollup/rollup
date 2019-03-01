@@ -73,16 +73,16 @@ export function isMemberExpression(node: Node): node is MemberExpression {
 }
 
 export default class MemberExpression extends NodeBase implements DeoptimizableEntity {
-	type: NodeType.tMemberExpression;
+	computed: boolean;
 	object: ExpressionNode;
 	property: ExpressionNode;
-	computed: boolean;
-
 	propertyKey: ObjectPathKey | null;
+	type: NodeType.tMemberExpression;
 	variable: Variable = null;
+
 	private bound: boolean;
-	private replacement: string | null;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[];
+	private replacement: string | null;
 
 	bind() {
 		if (this.bound) return;
@@ -111,6 +111,17 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	deoptimizeCache() {
 		for (const expression of this.expressionsToBeDeoptimized) {
 			expression.deoptimizeCache();
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (!this.bound) this.bind();
+		if (path.length === 0) this.disallowNamespaceReassignment();
+		if (this.variable) {
+			this.variable.deoptimizePath(path);
+		} else {
+			if (this.propertyKey === null) this.analysePropertyKey();
+			this.object.deoptimizePath([this.propertyKey, ...path]);
 		}
 	}
 
@@ -205,17 +216,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.expressionsToBeDeoptimized = [];
 	}
 
-	deoptimizePath(path: ObjectPath) {
-		if (!this.bound) this.bind();
-		if (path.length === 0) this.disallowNamespaceReassignment();
-		if (this.variable) {
-			this.variable.deoptimizePath(path);
-		} else {
-			if (this.propertyKey === null) this.analysePropertyKey();
-			this.object.deoptimizePath([this.propertyKey, ...path]);
-		}
-	}
-
 	render(
 		code: MagicString,
 		options: RenderOptions,
@@ -227,8 +227,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			let replacement = this.variable ? this.variable.getName() : this.replacement;
 			if (isCalleeOfDifferentParent) replacement = '0, ' + replacement;
 			code.overwrite(this.start, this.end, replacement, {
-				storeName: true,
-				contentOnly: true
+				contentOnly: true,
+				storeName: true
 			});
 		} else {
 			if (isCalleeOfDifferentParent) {
@@ -236,6 +236,12 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			}
 			super.render(code, options);
 		}
+	}
+
+	private analysePropertyKey() {
+		this.propertyKey = UNKNOWN_KEY;
+		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
+		this.propertyKey = value === UNKNOWN_VALUE ? UNKNOWN_KEY : String(value);
 	}
 
 	private disallowNamespaceReassignment() {
@@ -270,10 +276,10 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.context.warn(
 				{
 					code: 'MISSING_EXPORT',
-					missing: exportName,
-					importer: relativeId(this.context.fileName),
 					exporter: relativeId(fileName),
+					importer: relativeId(this.context.fileName),
 					message: `'${exportName}' is not exported by '${relativeId(fileName)}'`,
+					missing: exportName,
 					url: `https://rollupjs.org/guide/en#error-name-is-not-exported-by-module-`
 				},
 				path[0].pos
@@ -281,11 +287,5 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			return 'undefined';
 		}
 		return this.resolveNamespaceVariables(variable, path.slice(1));
-	}
-
-	private analysePropertyKey() {
-		this.propertyKey = UNKNOWN_KEY;
-		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
-		this.propertyKey = value === UNKNOWN_VALUE ? UNKNOWN_KEY : String(value);
 	}
 }

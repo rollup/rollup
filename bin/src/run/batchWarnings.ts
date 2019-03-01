@@ -4,8 +4,8 @@ import relativeId from '../../../src/utils/relativeId';
 import { stderr } from '../logging';
 
 export interface BatchWarnings {
-	readonly count: number;
 	add: (warning: string | RollupWarning) => void;
+	readonly count: number;
 	flush: () => void;
 }
 
@@ -117,22 +117,21 @@ const immediateHandlers: {
 // TODO select sensible priorities
 const deferredHandlers: {
 	[code: string]: {
-		priority: number;
 		fn: (warnings: RollupWarning[]) => void;
+		priority: number;
 	};
 } = {
 	UNUSED_EXTERNAL_IMPORT: {
-		priority: 1,
 		fn: warnings => {
 			title('Unused external imports');
 			warnings.forEach(warning => {
 				stderr(`${warning.names} imported from external module '${warning.source}' but never used`);
 			});
-		}
+		},
+		priority: 1
 	},
 
 	UNRESOLVED_IMPORT: {
-		priority: 1,
 		fn: warnings => {
 			title('Unresolved dependencies');
 			info('https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency');
@@ -147,11 +146,11 @@ const deferredHandlers: {
 				const importers = dependencies.get(dependency);
 				stderr(`${tc.bold(dependency)} (imported by ${importers.join(', ')})`);
 			});
-		}
+		},
+		priority: 1
 	},
 
 	MISSING_EXPORT: {
-		priority: 1,
 		fn: warnings => {
 			title('Missing exports');
 			info('https://rollupjs.org/guide/en#error-name-is-not-exported-by-module-');
@@ -161,37 +160,37 @@ const deferredHandlers: {
 				stderr(`${warning.missing} is not exported by ${warning.exporter}`);
 				stderr(tc.gray(warning.frame));
 			});
-		}
+		},
+		priority: 1
 	},
 
 	THIS_IS_UNDEFINED: {
-		priority: 1,
 		fn: warnings => {
 			title('`this` has been rewritten to `undefined`');
 			info('https://rollupjs.org/guide/en#error-this-is-undefined');
 			showTruncatedWarnings(warnings);
-		}
+		},
+		priority: 1
 	},
 
 	EVAL: {
-		priority: 1,
 		fn: warnings => {
 			title('Use of eval is strongly discouraged');
 			info('https://rollupjs.org/guide/en#avoiding-eval');
 			showTruncatedWarnings(warnings);
-		}
+		},
+		priority: 1
 	},
 
 	NON_EXISTENT_EXPORT: {
-		priority: 1,
 		fn: warnings => {
 			title(`Import of non-existent ${warnings.length > 1 ? 'exports' : 'export'}`);
 			showTruncatedWarnings(warnings);
-		}
+		},
+		priority: 1
 	},
 
 	NAMESPACE_CONFLICT: {
-		priority: 1,
 		fn: warnings => {
 			title(`Conflicting re-exports`);
 			warnings.forEach(warning => {
@@ -203,11 +202,11 @@ const deferredHandlers: {
 					)} (will be ignored)`
 				);
 			});
-		}
+		},
+		priority: 1
 	},
 
 	MISSING_GLOBAL_NAME: {
-		priority: 1,
 		fn: warnings => {
 			title(`Missing global variable ${warnings.length > 1 ? 'names' : 'name'}`);
 			stderr(
@@ -216,11 +215,11 @@ const deferredHandlers: {
 			warnings.forEach(warning => {
 				stderr(`${tc.bold(warning.source)} (guessing '${warning.guess}')`);
 			});
-		}
+		},
+		priority: 1
 	},
 
 	SOURCEMAP_BROKEN: {
-		priority: 1,
 		fn: warnings => {
 			title(`Broken sourcemap`);
 			info('https://rollupjs.org/guide/en#warning-sourcemap-is-likely-to-be-incorrect');
@@ -230,18 +229,18 @@ const deferredHandlers: {
 				plugins.length === 0
 					? ''
 					: plugins.length > 1
-						? ` (such as ${plugins
-								.slice(0, -1)
-								.map(p => `'${p}'`)
-								.join(', ')} and '${plugins.slice(-1)}')`
-						: ` (such as '${plugins[0]}')`;
+					? ` (such as ${plugins
+							.slice(0, -1)
+							.map(p => `'${p}'`)
+							.join(', ')} and '${plugins.slice(-1)}')`
+					: ` (such as '${plugins[0]}')`;
 
 			stderr(`Plugins that transform code${detail} should generate accompanying sourcemaps`);
-		}
+		},
+		priority: 1
 	},
 
 	PLUGIN_WARNING: {
-		priority: 1,
 		fn: warnings => {
 			const nestedByPlugin = nest(warnings, 'plugin');
 
@@ -266,7 +265,8 @@ const deferredHandlers: {
 					});
 				});
 			});
-		}
+		},
+		priority: 1
 	}
 };
 
@@ -279,15 +279,15 @@ function info(url: string) {
 }
 
 function nest<T>(array: T[], prop: string) {
-	const nested: { key: string; items: T[] }[] = [];
-	const lookup = new Map<string, { key: string; items: T[] }>();
+	const nested: { items: T[]; key: string }[] = [];
+	const lookup = new Map<string, { items: T[]; key: string }>();
 
 	array.forEach(item => {
 		const key = (<any>item)[prop];
 		if (!lookup.has(key)) {
 			lookup.set(key, {
-				key,
-				items: []
+				items: [],
+				key
 			});
 
 			nested.push(lookup.get(key));

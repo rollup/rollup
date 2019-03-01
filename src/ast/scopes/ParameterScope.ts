@@ -8,8 +8,8 @@ import Scope from './Scope';
 export default class ParameterScope extends ChildScope {
 	hoistedBodyVarScope: ChildScope;
 
-	private parameters: LocalVariable[] = [];
 	private context: AstContext;
+	private parameters: LocalVariable[] = [];
 
 	constructor(parent: Scope, context: AstContext) {
 		super(parent);
