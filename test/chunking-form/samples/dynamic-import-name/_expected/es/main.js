@@ -1,1 +1,1 @@
-foobar('./foo.js');
+foobar('./foo.js').then(result => console.log(result));

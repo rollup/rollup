@@ -1211,7 +1211,7 @@ module.exports = input;
 				else if (evt.code === 'ERROR' || evt.code === 'FATAL') reject(evt.error);
 			});
 		}).catch(err => {
-			assert.equal(err.message, 'You must specify output.file or output.dir for the build.');
+			assert.equal(err.message, 'You must specify "output.file" or "output.dir" for the build.');
 			assert.equal(warned, true);
 		});
 	});

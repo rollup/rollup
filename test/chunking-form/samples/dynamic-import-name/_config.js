@@ -1,9 +1,10 @@
 module.exports = {
-	description: 'marks dynamic imports as external when resolveDynamicImport returns false',
+	description: 'allows specifying a custom importer function',
 	options: {
 		input: 'main.js',
+		onwarn() {},
 		plugins: {
-			resolveDynamicImport(specifier) {
+			resolveDynamicImport() {
 				return false;
 			}
 		},

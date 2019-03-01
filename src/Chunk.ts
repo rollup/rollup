@@ -546,7 +546,13 @@ export default class Chunk {
 				code: 'INVALID_OPTION',
 				message: `Invalid format: ${options.format} - valid options are ${Object.keys(
 					finalisers
-				).join(', ')}`
+				).join(', ')}.`
+			});
+		}
+		if (options.dynamicImportFunction && options.format !== 'es') {
+			this.graph.warn({
+				code: 'INVALID_OPTION',
+				message: '"output.dynamicImportFunction" is ignored for formats other than "esm".'
 			});
 		}
 
