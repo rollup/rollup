@@ -177,15 +177,6 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 						chunks.length > 1
 					);
 
-					if (outputOptions.format !== 'esm' && outputOptions.dynamicImportFunction !== 'import') {
-						inputOptions.onwarn({
-							code: 'INVALID_OPTION',
-							message: `dynamicImportFunction is not used when outputting ${
-								outputOptions.format
-							}. This setting will be ignored.`
-						});
-					}
-
 					timeStart('GENERATE', 1);
 
 					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
