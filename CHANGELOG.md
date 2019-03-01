@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.4.0
+*2019-03-01*
+
+### Features
+* Add option to change the name of the dynamic import function to allow polyfilling it (#2723)
+
+### Pull Requests
+* [#2723](https://github.com/rollup/rollup/pull/2723): Add dynamicImportFunction option (@keithamus)
+
 ## 1.3.3
 *2019-03-01*
 
