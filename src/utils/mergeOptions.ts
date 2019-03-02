@@ -168,7 +168,7 @@ function addUnknownOptionErrors(
 
 function getCommandOptions(rawCommandOptions: GenericConfigObject): GenericConfigObject {
 	const command = { ...rawCommandOptions };
-	command.external = (rawCommandOptions.external || '').split(',');
+	command.external = rawCommandOptions.external ? rawCommandOptions.external.split(',') : [];
 
 	if (rawCommandOptions.globals) {
 		command.globals = Object.create(null);
