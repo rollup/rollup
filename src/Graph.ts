@@ -13,6 +13,8 @@ import {
 	IsExternal,
 	ModuleJSON,
 	OutputBundle,
+	ResolvedId,
+	ResolveIdResult,
 	RollupCache,
 	RollupWarning,
 	RollupWatcher,
@@ -437,81 +439,7 @@ export default class Graph {
 		fetchDynamicImportsPromise.catch(() => {});
 
 		return Promise.all(
-			module.sources.map(source => {
-				return Promise.resolve()
-					.then(() => {
-						const resolved = module.resolvedIds[source];
-						if (resolved) return !resolved.external && resolved.id;
-						if (this.isExternal(source, module.id, false)) return false;
-						return this.pluginDriver.hookFirst<string | boolean | void>('resolveId', [
-							source,
-							module.id
-						]);
-					})
-					.then(resolvedId => {
-						// TODO types of `resolvedId` are not compatible with 'externalId'.
-						// `this.resolveId` returns `string`, `void`, and `boolean`
-						const externalId =
-							<string>resolvedId ||
-							(isRelative(source) ? resolve(module.id, '..', source) : source);
-						let isExternal = resolvedId === false || this.isExternal(externalId, module.id, true);
-
-						if (!resolvedId && !isExternal) {
-							if (isRelative(source)) {
-								error({
-									code: 'UNRESOLVED_IMPORT',
-									message: `Could not resolve '${source}' from ${relativeId(module.id)}`
-								});
-							}
-
-							if (resolvedId !== false) {
-								this.warn({
-									code: 'UNRESOLVED_IMPORT',
-									importer: relativeId(module.id),
-									message: `'${source}' is imported by ${relativeId(
-										module.id
-									)}, but could not be resolved – treating it as an external dependency`,
-									source,
-									url:
-										'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
-								});
-							}
-							isExternal = true;
-						}
-
-						if (isExternal) {
-							module.resolvedIds[source] = { id: externalId, external: true };
-
-							if (!this.moduleById.has(externalId)) {
-								const module = new ExternalModule({ graph: this, id: externalId });
-								this.externalModules.push(module);
-								this.moduleById.set(externalId, module);
-							}
-
-							const externalModule = this.moduleById.get(externalId);
-
-							if (externalModule instanceof ExternalModule === false) {
-								error({
-									code: 'INVALID_EXTERNAL_ID',
-									message: `'${source}' is imported as an external by ${relativeId(
-										module.id
-									)}, but is already an existing non-external module id.`
-								});
-							}
-
-							for (const name in module.importDescriptions) {
-								const importDeclaration = module.importDescriptions[name];
-								if (importDeclaration.source !== source) return;
-
-								// this will trigger a warning for unused external imports
-								externalModule.getVariableForExportName(importDeclaration.name);
-							}
-						} else {
-							module.resolvedIds[source] = { id: <string>resolvedId, external: false };
-							return this.fetchModule(<string>resolvedId, module.id);
-						}
-					});
-			})
+			module.sources.map(source => this.resolveAndFetchDependency(module, source))
 		).then(() => fetchDynamicImportsPromise);
 	}
 
@@ -701,6 +629,70 @@ export default class Graph {
 
 				return this.fetchModule(<string>id, undefined);
 			});
+	}
+
+	private normalizeResolveIdResult(
+		resolveIdResult: ResolveIdResult,
+		module: Module,
+		source: string
+	): ResolvedId {
+		if (resolveIdResult) {
+			if (typeof resolveIdResult === 'object') {
+				return resolveIdResult;
+			}
+			return { id: resolveIdResult, external: this.isExternal(resolveIdResult, module.id, true) };
+		}
+		const externalId = isRelative(source) ? resolve(module.id, '..', source) : source;
+		if (resolveIdResult !== false && !this.isExternal(externalId, module.id, true)) {
+			if (isRelative(source)) {
+				error({
+					code: 'UNRESOLVED_IMPORT',
+					message: `Could not resolve '${source}' from ${relativeId(module.id)}`
+				});
+			}
+			this.warn({
+				code: 'UNRESOLVED_IMPORT',
+				importer: relativeId(module.id),
+				message: `'${source}' is imported by ${relativeId(
+					module.id
+				)}, but could not be resolved – treating it as an external dependency`,
+				source,
+				url: 'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
+			});
+		}
+		return { id: externalId, external: true };
+	}
+
+	private resolveAndFetchDependency(module: Module, source: string) {
+		return Promise.resolve(
+			module.resolvedIds[source] ||
+				(this.isExternal(source, module.id, false)
+					? { id: source, external: true }
+					: this.pluginDriver
+							.hookFirst<ResolveIdResult>('resolveId', [source, module.id])
+							.then(result => this.normalizeResolveIdResult(result, module, source)))
+		).then((resolvedId: ResolvedId) => {
+			module.resolvedIds[source] = resolvedId;
+			if (resolvedId.external) {
+				if (!this.moduleById.has(resolvedId.id)) {
+					const module = new ExternalModule({ graph: this, id: resolvedId.id });
+					this.externalModules.push(module);
+					this.moduleById.set(resolvedId.id, module);
+				}
+
+				const externalModule = this.moduleById.get(resolvedId.id);
+				if (externalModule instanceof ExternalModule === false) {
+					error({
+						code: 'INVALID_EXTERNAL_ID',
+						message: `'${source}' is imported as an external by ${relativeId(
+							module.id
+						)}, but is already an existing non-external module id.`
+					});
+				}
+			} else {
+				return this.fetchModule(resolvedId.id, module.id);
+			}
+		});
 	}
 
 	private warnForMissingExports() {

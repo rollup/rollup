@@ -3,10 +3,6 @@ import { EventEmitter } from 'events';
 
 export const VERSION: string;
 
-export interface IdMap {
-	[key: string]: { external: boolean; id: string };
-}
-
 export interface RollupError extends RollupLogProps {
 	stack?: string;
 }
@@ -84,7 +80,7 @@ export interface ModuleJSON {
 	id: string;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
-	resolvedIds: IdMap;
+	resolvedIds: ResolvedIdMap;
 	sourcemapChain: RawSourceMap[];
 	transformAssets: Asset[] | void;
 	transformDependencies: string[] | null;
@@ -134,11 +130,22 @@ export interface PluginContextMeta {
 	rollupVersion: string;
 }
 
+export interface ResolvedId {
+	external?: boolean | void;
+	id: string;
+}
+
+export type ResolveIdResult = string | false | void | ResolvedId;
+
+export interface ResolvedIdMap {
+	[key: string]: ResolvedId;
+}
+
 export type ResolveIdHook = (
 	this: PluginContext,
 	id: string,
 	parent: string
-) => Promise<string | false | null> | string | false | void | null;
+) => Promise<ResolveIdResult> | ResolveIdResult;
 
 export type IsExternal = (id: string, parentId: string, isResolved: boolean) => boolean | void;
 

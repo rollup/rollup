@@ -1,13 +1,14 @@
 module.exports = {
 	description: 'warns on unused imports ([#595])',
+	options: {
+		external: ['external']
+	},
+	context: {
+		require(id) {
+			return {};
+		}
+	},
 	warnings: [
-		{
-			code: 'UNRESOLVED_IMPORT',
-			importer: 'main.js',
-			source: 'external',
-			message: `'external' is imported by main.js, but could not be resolved – treating it as an external dependency`,
-			url: `https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency`
-		},
 		{
 			code: 'UNUSED_EXTERNAL_IMPORT',
 			source: 'external',
