@@ -34,27 +34,31 @@ describe('hooks', () => {
 			.rollup({
 				input: 'input',
 				treeshake: false,
-				output: {
-					format: 'esm',
-					banner: 'banner'
-				},
 				plugins: [
 					loader({ input: `alert('hello')` }),
 					{
 						renderChunk(code, chunk, options) {
+							assert.strictEqual(options.banner, 'new banner');
 							assert.strictEqual(options.format, 'cjs');
-							assert.strictEqual(options.banner, 'banner');
 						},
 						outputOptions(options) {
-							assert.strictEqual(options.format, 'esm');
 							assert.strictEqual(options.banner, 'banner');
+							assert.strictEqual(options.format, 'cjs');
 							assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
-							return Object.assign({}, options, { format: 'cjs' });
+							return Object.assign({}, options, { banner: 'new banner' });
 						}
 					}
 				]
 			})
-			.then(bundle => {});
+			.then(bundle => {
+				return bundle.generate({
+					format: 'cjs',
+					banner: 'banner'
+				});
+			})
+			.then(({ output }) => {
+				assert.equal(output[0].code, `new banner\n'use strict';\n\nalert('hello');\n`);
+			});
 	});
 
 	it('supports buildStart and buildEnd hooks', () => {
