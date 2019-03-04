@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.4.1
+*2019-03-04*
+
+### Features
+* Do not treat the import target "" as external by default (#2733)
+
+### Pull Requests
+* [#2733](https://github.com/rollup/rollup/pull/2733):Do not treat the import target "" as external by default (@LongTengDao)
+
 ## 1.4.0
 *2019-03-01*
 
