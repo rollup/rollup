@@ -235,7 +235,7 @@ Adds additional files to be monitored in watch mode so that changes to these fil
 
 In general, it is recommended to use `this.addWatchfile` from within the hook that depends on the watched file.
 
-#### `this.emitAsset(assetName: string, source: string) => void`
+#### `this.emitAsset(assetName: string, source: string) => string`
 
 Emits a custom file to include in the build output, returning its `assetId`. You can defer setting the source if you provide it later via `this.setAssetSource(assetId, source)`. A string or Buffer source must be set for each asset through either method or an error will be thrown on generate completion.
 
