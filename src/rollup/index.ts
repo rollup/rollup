@@ -11,6 +11,7 @@ import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
 import { basename, dirname, isAbsolute, resolve } from '../utils/path';
+import { PluginDriver } from '../utils/pluginDriver';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import {
@@ -64,13 +65,6 @@ function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 		return plugin.options.call({ meta: { rollupVersion } }, inputOptions) || inputOptions;
 
 	return inputOptions;
-}
-
-function applyOutputOptionHook(outputOptions: OutputOptions, plugin: Plugin) {
-	if (plugin.outputOptions)
-		return plugin.outputOptions.call({ meta: { rollupVersion } }, outputOptions) || outputOptions;
-
-	return outputOptions;
 }
 
 function getInputOptions(rawInputOptions: GenericConfigObject): any {
@@ -181,7 +175,8 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 					const outputOptions = normalizeOutputOptions(
 						inputOptions,
 						rawOutputOptions,
-						chunks.length > 1
+						chunks.length > 1,
+						graph.pluginDriver
 					);
 
 					timeStart('GENERATE', 1);
@@ -420,7 +415,8 @@ function writeOutputFile(
 function normalizeOutputOptions(
 	inputOptions: GenericConfigObject,
 	rawOutputOptions: GenericConfigObject,
-	hasMultipleChunks: boolean
+	hasMultipleChunks: boolean,
+	pluginDriver: PluginDriver
 ): OutputOptions {
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
@@ -435,14 +431,16 @@ function normalizeOutputOptions(
 
 	// now outputOptions is an array, but rollup.rollup API doesn't support arrays
 	const mergedOutputOptions = mergedOptions.outputOptions[0];
+	const outputOptionsReducer = (outputOptions: OutputOptions, result: OutputOptions) => {
+		if (!result) return outputOptions;
 
-	const plugins = inputOptions.plugins;
-	inputOptions.plugins = Array.isArray(plugins)
-		? plugins.filter(Boolean)
-		: plugins
-		? [plugins]
-		: [];
-	const outputOptions = inputOptions.plugins.reduce(applyOutputOptionHook, mergedOutputOptions);
+		return {...outputOptions, ...result};
+	};
+	const outputOptions = pluginDriver.hookReduceArg0Sync(
+		'outputOptions',
+		[mergedOutputOptions],
+		outputOptionsReducer
+	);
 
 	checkOutputOptions(outputOptions);
 
