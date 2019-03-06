@@ -30,6 +30,7 @@ import { sortByExecutionOrder } from './utils/executionOrder';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, dirname, isAbsolute, normalize, relative, resolve } from './utils/path';
+import relativeId from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
@@ -286,7 +287,16 @@ export default class Chunk {
 		if (!this.renderedSource) return '';
 		const hash = sha256();
 		hash.update(this.renderedSource.toString());
-		hash.update(Object.keys(this.exportNames).join(','));
+		hash.update(
+			Object.keys(this.exportNames)
+				.map(exportName => {
+					const variable = this.exportNames[exportName];
+					return `${relativeId(variable.module.id).replace(/\\/g, '/')}:${
+						variable.name
+					}:${exportName}`;
+				})
+				.join(',')
+		);
 		return (this.renderedHash = hash.digest('hex'));
 	}
 
