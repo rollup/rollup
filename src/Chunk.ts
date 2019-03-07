@@ -830,21 +830,23 @@ export default class Chunk {
 		}
 
 		const importsAsArray = Array.from(this.imports);
+		const renderedImports = new Set<Variable>();
 		const dependencies: ChunkDependencies = [];
 
 		for (const dep of this.dependencies) {
 			const imports: ImportSpecifier[] = [];
 			for (const variable of importsAsArray) {
+				const renderedVariable =
+					variable instanceof ExportDefaultVariable && variable.referencesOriginal()
+						? variable.getOriginalVariable()
+						: variable;
 				if (
 					(variable.module instanceof Module
 						? variable.module.chunk === dep
 						: variable.module === dep) &&
-					!(
-						variable instanceof ExportDefaultVariable &&
-						variable.referencesOriginal() &&
-						this.imports.has(variable.getOriginalVariable())
-					)
+					!renderedImports.has(renderedVariable)
 				) {
+					renderedImports.add(renderedVariable);
 					const local = variable.getName();
 					const imported =
 						variable.module instanceof ExternalModule
