@@ -1,13 +1,15 @@
 # rollup changelog
 
 ## 1.4.2
-*unreleased*
+*2019-03-07*
 
 ### Bug Fixes
 * Respect variable identity of exports when hashing (#2741)
+* Resolve a situations where a variable was imported twice with the same name (#2737)
 
 ### Pull Requests
 * [#2741](https://github.com/rollup/rollup/pull/2741): Fix hashing when different variable are exported using the same name (@lukastaegert)
+* [#2737](https://github.com/rollup/rollup/pull/2737): Fix duplicate imports with conflicting names (@lukastaegert)
 
 ## 1.4.1
 *2019-03-04*
