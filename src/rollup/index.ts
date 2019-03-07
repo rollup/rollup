@@ -432,9 +432,7 @@ function normalizeOutputOptions(
 	// now outputOptions is an array, but rollup.rollup API doesn't support arrays
 	const mergedOutputOptions = mergedOptions.outputOptions[0];
 	const outputOptionsReducer = (outputOptions: OutputOptions, result: OutputOptions) => {
-		if (!result) return outputOptions;
-
-		return {...outputOptions, ...result};
+		return result || outputOptions;
 	};
 	const outputOptions = pluginDriver.hookReduceArg0Sync(
 		'outputOptions',
