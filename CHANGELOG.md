@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.5.0
+*2019-03-07*
+
+### Features
+* Allow resolving to a different id while marking it as external at the same time (#2734)
+
+### Pull Requests
+* [#2734](https://github.com/rollup/rollup/pull/2734): Allow resolveId to return an object (@lukastaegert)
+
 ## 1.4.2
 *2019-03-07*
 
