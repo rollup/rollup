@@ -28,7 +28,14 @@ import Variable from './ast/variables/Variable';
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
-import { Asset, IdMap, ModuleJSON, RawSourceMap, RollupError, RollupWarning } from './rollup/types';
+import {
+	Asset,
+	ModuleJSON,
+	RawSourceMap,
+	ResolvedIdMap,
+	RollupError,
+	RollupWarning
+} from './rollup/types';
 import { error } from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -187,7 +194,7 @@ export default class Module {
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);
-	resolvedIds: IdMap;
+	resolvedIds: ResolvedIdMap;
 	scope: ModuleScope;
 	sourcemapChain: RawSourceMap[];
 	sources: string[] = [];

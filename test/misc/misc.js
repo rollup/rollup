@@ -34,15 +34,16 @@ describe('misc', () => {
 			});
 	});
 
-	it('warns when globals option is specified and a global module name is guessed in a UMD bundle (#2358)', () => {
+	it('warns when a global module name is guessed in a UMD bundle (#2358)', () => {
 		const warnings = [];
 
 		return rollup
 			.rollup({
 				input: 'input',
+				external: ['lodash'],
 				plugins: [
 					loader({
-						input: `import * as _ from 'lodash'`
+						input: `import * as _ from 'lodash'; console.log(_);`
 					})
 				],
 				onwarn: warning => warnings.push(warning)
@@ -55,12 +56,16 @@ describe('misc', () => {
 				})
 			)
 			.then(() => {
-				const relevantWarnings = warnings.filter(warning => warning.code === 'MISSING_GLOBAL_NAME');
-				assert.equal(relevantWarnings.length, 1);
-				assert.equal(
-					relevantWarnings[0].message,
-					`No name was provided for external module 'lodash' in output.globals – guessing 'lodash'`
-				);
+				delete warnings[0].toString;
+				assert.deepEqual(warnings, [
+					{
+						code: 'MISSING_GLOBAL_NAME',
+						guess: '_',
+						message:
+							"No name was provided for external module 'lodash' in output.globals – guessing '_'",
+						source: 'lodash'
+					}
+				]);
 			});
 	});
 
@@ -110,15 +115,23 @@ describe('misc', () => {
 				Promise.all([
 					bundle
 						.generate({ format: 'esm' })
-						.then(generated => assert.equal(generated.output[0].code, "import 'the-answer';\n", 'no render path 1')),
+						.then(generated =>
+							assert.equal(generated.output[0].code, "import 'the-answer';\n", 'no render path 1')
+						),
 					bundle
 						.generate({ format: 'esm', paths: id => `//unpkg.com/${id}@?module` })
 						.then(generated =>
-							assert.equal(generated.output[0].code, "import '//unpkg.com/the-answer@?module';\n", 'with render path')
+							assert.equal(
+								generated.output[0].code,
+								"import '//unpkg.com/the-answer@?module';\n",
+								'with render path'
+							)
 						),
 					bundle
 						.generate({ format: 'esm' })
-						.then(generated => assert.equal(generated.output[0].code, "import 'the-answer';\n", 'no render path 2'))
+						.then(generated =>
+							assert.equal(generated.output[0].code, "import 'the-answer';\n", 'no render path 2')
+						)
 				])
 			);
 	});

@@ -180,10 +180,21 @@ Kind: `async, first`
 Defines a custom resolver for dynamic imports. In case a dynamic import is not passed a string as argument, this hook gets access to the raw AST nodes to analyze. Returning `null` will defer to other resolvers and eventually to `resolveId` if this is possible; returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use `this.resolveId(importee, importer)` on the plugin context.
 
 #### `resolveId`
-Type: `(importee: string, importer: string) => string | false | null`<br>
+Type: `(importee: string, importer: string) => string | false | null | {id: string, external?: boolean}`<br>
 Kind: `async, first`
 
-Defines a custom resolver. A resolver loader can be useful for e.g. locating third-party dependencies. Returning `null` defers to other `resolveId` functions (and eventually the default resolution behavior); returning `false` signals that `importee` should be treated as an external module and not included in the bundle.
+Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Returning `null` defers to other `resolveId` functions (and eventually the default resolution behavior); returning `false` signals that `importee` should be treated as an external module and not included in the bundle.
+
+If you return an object, then it is possible to resolve an import to a different id while excluding it from the bundle at the same time. This allows you to replace dependencies with external dependencies without the need for the user to mark them as "external" manually via the `external` option:
+
+```js
+resolveId(id) {
+	if (id === 'my-dependency') {
+		return {id: 'my-dependency-develop', external: true};
+	}
+	return null;
+}
+```
 
 #### `transform`
 Type: `(code: string, id: string) => string | { code: string, map?: string | SourceMap, ast? : ESTree.Program } | null`
