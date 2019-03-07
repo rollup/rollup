@@ -1,13 +1,22 @@
 # rollup changelog
 
+## 1.4.2
+*unreleased*
+
+### Bug Fixes
+* Respect variable identity of exports when hashing (#2741)
+
+### Pull Requests
+* [#2741](https://github.com/rollup/rollup/pull/2741): Fix hashing when different variable are exported using the same name (@lukastaegert)
+
 ## 1.4.1
 *2019-03-04*
 
-### Features
+### Bug Fixes
 * Do not treat the import target "" as external by default (#2733)
 
 ### Pull Requests
-* [#2733](https://github.com/rollup/rollup/pull/2733):Do not treat the import target "" as external by default (@LongTengDao)
+* [#2733](https://github.com/rollup/rollup/pull/2733): Do not treat the import target "" as external by default (@LongTengDao)
 
 ## 1.4.0
 *2019-03-01*
