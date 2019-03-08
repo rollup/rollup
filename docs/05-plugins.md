@@ -149,6 +149,12 @@ Kind: `sync, sequential`
 
 Reads and replaces or manipulates the options object passed to `rollup.rollup`. Returning `null` does not replace anything. This is the only hook that does not have access to most [plugin context](guide/en#plugin-context) utility functions as it is run before rollup is fully configured.
 
+#### `outputOptions`
+Type: `(outputOptions: OutputOptions) => OutputOptions | null`<br>
+Kind: `sync, sequential`
+
+Reads and replaces or manipulates the output options object passed to `bundle.generate`. Returning `null` does not replace anything.
+
 #### `outro`
 Type: `string | (() => string)`<br>
 Kind: `async, parallel`

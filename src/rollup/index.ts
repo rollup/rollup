@@ -11,6 +11,7 @@ import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
 import { basename, dirname, isAbsolute, resolve } from '../utils/path';
+import { PluginDriver } from '../utils/pluginDriver';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import {
@@ -174,7 +175,8 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 					const outputOptions = normalizeOutputOptions(
 						inputOptions,
 						rawOutputOptions,
-						chunks.length > 1
+						chunks.length > 1,
+						graph.pluginDriver
 					);
 
 					timeStart('GENERATE', 1);
@@ -413,7 +415,8 @@ function writeOutputFile(
 function normalizeOutputOptions(
 	inputOptions: GenericConfigObject,
 	rawOutputOptions: GenericConfigObject,
-	hasMultipleChunks: boolean
+	hasMultipleChunks: boolean,
+	pluginDriver: PluginDriver
 ): OutputOptions {
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
@@ -427,7 +430,15 @@ function normalizeOutputOptions(
 	if (mergedOptions.optionError) throw new Error(mergedOptions.optionError);
 
 	// now outputOptions is an array, but rollup.rollup API doesn't support arrays
-	const outputOptions = mergedOptions.outputOptions[0];
+	const mergedOutputOptions = mergedOptions.outputOptions[0];
+	const outputOptionsReducer = (outputOptions: OutputOptions, result: OutputOptions) => {
+		return result || outputOptions;
+	};
+	const outputOptions = pluginDriver.hookReduceArg0Sync(
+		'outputOptions',
+		[mergedOutputOptions],
+		outputOptionsReducer
+	);
 
 	checkOutputOptions(outputOptions);
 

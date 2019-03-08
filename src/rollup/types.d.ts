@@ -237,6 +237,7 @@ export interface Plugin {
 		chunk: OutputChunk
 	) => void | Promise<void>;
 	options?: (this: MinimalPluginContext, options: InputOptions) => InputOptions | void | null;
+	outputOptions?: (this: PluginContext, options: OutputOptions) => OutputOptions | void | null;
 	outro?: AddonHook;
 	renderChunk?: RenderChunkHook;
 	renderError?: (this: PluginContext, err?: Error) => Promise<void> | void;

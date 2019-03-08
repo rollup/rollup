@@ -29,6 +29,38 @@ describe('hooks', () => {
 			.then(bundle => {});
 	});
 
+	it('allows to read and modify output options in the outputOptions hook', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				treeshake: false,
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						renderChunk(code, chunk, options) {
+							assert.strictEqual(options.banner, 'new banner');
+							assert.strictEqual(options.format, 'cjs');
+						},
+						outputOptions(options) {
+							assert.strictEqual(options.banner, 'banner');
+							assert.strictEqual(options.format, 'cjs');
+							assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
+							return Object.assign({}, options, { banner: 'new banner' });
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				return bundle.generate({
+					format: 'cjs',
+					banner: 'banner'
+				});
+			})
+			.then(({ output }) => {
+				assert.equal(output[0].code, `new banner\n'use strict';\n\nalert('hello');\n`);
+			});
+	});
+
 	it('supports buildStart and buildEnd hooks', () => {
 		let buildStartCnt = 0;
 		let buildEndCnt = 0;
