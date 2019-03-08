@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.6.0
+*2019-03-08*
+
+### Features
+* Add plugin hook to modify output options (#2736)
+
+### Pull Requests
+* [#2736](https://github.com/rollup/rollup/pull/2736): Add hook for modifying OutputOptions (@Comandeer)
+
 ## 1.5.0
 *2019-03-07*
 
