@@ -229,11 +229,7 @@ export class Task {
 					if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
 				});
 
-				return Promise.all(
-					this.outputs.map(output => {
-						return result.write(output);
-					})
-				).then(() => result);
+				return Promise.all(this.outputs.map(output => result.write(output))).then(() => result);
 			})
 			.then((result: RollupBuild) => {
 				this.watcher.emit('event', {

@@ -268,9 +268,7 @@ export function createPluginDriver(
 		hookSeq(name, args, hookContext) {
 			let promise: Promise<void> = <any>Promise.resolve();
 			for (let i = 0; i < plugins.length; i++)
-				promise = promise.then(() => {
-					return runHook<void>(name, args, i, false, hookContext);
-				});
+				promise = promise.then(() => runHook<void>(name, args, i, false, hookContext));
 			return promise;
 		},
 
@@ -342,9 +340,9 @@ export function createPluginDriver(
 				promise = promise.then(value => {
 					const hookPromise = runHook(name, args, i, true, hookContext);
 					if (!hookPromise) return value;
-					return hookPromise.then((result: any) => {
-						return reduce.call(pluginContexts[i], value, result, plugins[i]);
-					});
+					return hookPromise.then((result: any) =>
+						reduce.call(pluginContexts[i], value, result, plugins[i])
+					);
 				});
 			}
 			return promise;

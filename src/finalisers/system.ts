@@ -57,8 +57,8 @@ function getExportsBlock(
 	);
 }
 
-const getHoistedExportsBlock = (exports: ChunkExports, _: string, t: string, n: string): string => {
-	return getExportsBlock(
+const getHoistedExportsBlock = (exports: ChunkExports, _: string, t: string, n: string): string =>
+	getExportsBlock(
 		exports
 			.filter(expt => expt.hoisted || expt.uninitialized)
 			.map(expt => ({ name: expt.exported, value: expt.uninitialized ? 'void 0' : expt.local })),
@@ -66,7 +66,6 @@ const getHoistedExportsBlock = (exports: ChunkExports, _: string, t: string, n: 
 		t,
 		n
 	);
-};
 
 const getMissingExportsBlock = (exports: ChunkExports, _: string, t: string, n: string): string =>
 	getExportsBlock(

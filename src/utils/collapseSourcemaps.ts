@@ -184,9 +184,9 @@ export default function collapseSourcemaps(
 					const directory = dirname(module.id) || '.';
 					const sourceRoot = originalSourcemap.sourceRoot || '.';
 
-					const baseSources = sources.map((source, i) => {
-						return new Source(resolve(directory, sourceRoot, source), sourcesContent[i]);
-					});
+					const baseSources = sources.map(
+						(source, i) => new Source(resolve(directory, sourceRoot, source), sourcesContent[i])
+					);
 
 					source = <any>new Link(<any>originalSourcemap, baseSources);
 				}
