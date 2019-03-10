@@ -9,8 +9,8 @@ export function assignChunkColouringHashes(
 	manualChunkModules: Record<string, Module[]>
 ) {
 	let currentEntry: Module, currentEntryHash: Uint8Array;
-	let modulesVisitedForCurrentEntry: { [id: string]: boolean };
-	const handledEntryPoints: { [id: string]: boolean } = {};
+	let modulesVisitedForCurrentEntry: Set<string>;
+	const handledEntryPoints: Set<string> = new Set();
 	const dynamicImports: Module[] = [];
 
 	const addCurrentEntryColourToModule = (module: Module) => {
@@ -22,11 +22,14 @@ export function assignChunkColouringHashes(
 		}
 
 		for (const dependency of module.dependencies) {
-			if (dependency instanceof ExternalModule || dependency.id in modulesVisitedForCurrentEntry) {
+			if (
+				dependency instanceof ExternalModule ||
+				modulesVisitedForCurrentEntry.has(dependency.id)
+			) {
 				continue;
 			}
-			modulesVisitedForCurrentEntry[dependency.id] = true;
-			if (!handledEntryPoints[dependency.id] && !dependency.chunkAlias)
+			modulesVisitedForCurrentEntry.add(dependency.id);
+			if (!handledEntryPoints.has(dependency.id) && !dependency.chunkAlias)
 				addCurrentEntryColourToModule(dependency);
 		}
 
@@ -59,26 +62,26 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 					});
 				}
 				currentEntry.chunkAlias = chunkName;
-				modulesVisitedForCurrentEntry = { [currentEntry.id]: true };
+				modulesVisitedForCurrentEntry = new Set(currentEntry.id);
 				addCurrentEntryColourToModule(currentEntry);
 			}
 		}
 	}
 
 	for (currentEntry of entryModules) {
-		handledEntryPoints[currentEntry.id] = true;
+		handledEntryPoints.add(currentEntry.id);
 		currentEntryHash = randomUint8Array(10);
-		modulesVisitedForCurrentEntry = { [currentEntry.id]: null };
+		modulesVisitedForCurrentEntry = new Set(currentEntry.id);
 		addCurrentEntryColourToModule(currentEntry);
 	}
 
 	for (currentEntry of dynamicImports) {
-		if (handledEntryPoints[currentEntry.id]) {
+		if (handledEntryPoints.has(currentEntry.id)) {
 			continue;
 		}
-		handledEntryPoints[currentEntry.id] = true;
+		handledEntryPoints.add(currentEntry.id);
 		currentEntryHash = randomUint8Array(10);
-		modulesVisitedForCurrentEntry = { [currentEntry.id]: null };
+		modulesVisitedForCurrentEntry = new Set(currentEntry.id);
 		addCurrentEntryColourToModule(currentEntry);
 	}
 }
