@@ -26,14 +26,14 @@ export class ModuleLoader {
 		entryModules: string | string[] | Record<string, string>,
 		manualChunks: Record<string, string[]> | void
 	) {
-		// TODO Lukas the parsing of entry modules could happen outside
-		let removeAliasExtensions = false;
+		// TODO Lukas the aliasing of entry modules could happen outside
+		let deriveAliasFromId = false;
 		let entryModuleIds: string[];
 		let entryModuleAliases: string[];
 		if (typeof entryModules === 'string') entryModules = [entryModules];
 
 		if (Array.isArray(entryModules)) {
-			removeAliasExtensions = true;
+			deriveAliasFromId = true;
 			entryModuleAliases = entryModules.concat([]);
 			entryModuleIds = entryModules;
 		} else {
@@ -57,9 +57,9 @@ export class ModuleLoader {
 		// - First collect all entries
 		return Promise.all(entryAndManualChunkIds.map(id => this.loadEntryModule(id))).then(
 			entryAndChunkModules => {
-				if (removeAliasExtensions) {
+				if (deriveAliasFromId) {
 					for (let i = 0; i < entryModuleAliases.length; i++)
-						entryModuleAliases[i] = getAliasName(entryAndChunkModules[i].id, entryModuleAliases[i]);
+						entryModuleAliases[i] = getAliasName(entryAndChunkModules[i].id);
 				}
 
 				const entryModules = entryAndChunkModules.slice(0, entryModuleIds.length);
@@ -97,10 +97,7 @@ export class ModuleLoader {
 					.then(replacement => {
 						if (!replacement) return;
 						const dynamicImport = module.dynamicImports[index];
-						dynamicImport.alias = getAliasName(
-							replacement,
-							typeof dynamicImportExpression === 'string' ? dynamicImportExpression : undefined
-						);
+						dynamicImport.alias = getAliasName(replacement);
 						if (typeof dynamicImportExpression !== 'string') {
 							dynamicImport.resolution = replacement;
 						} else if (this.graph.isExternal(replacement, module.id, true)) {
