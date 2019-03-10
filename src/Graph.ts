@@ -264,10 +264,8 @@ export default class Graph {
 					assignChunkColouringHashes(entryModules, manualChunkModules);
 				}
 
-				if (entryModuleAliases) {
-					for (let i = entryModules.length - 1; i >= 0; i--) {
-						entryModules[i].chunkAlias = entryModuleAliases[i];
-					}
+				for (let i = entryModules.length - 1; i >= 0; i--) {
+					entryModules[i].chunkAlias = entryModuleAliases[i];
 				}
 
 				// TODO: there is one special edge case unhandled here and that is that any module
