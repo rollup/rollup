@@ -19,9 +19,8 @@ export default function loadConfigFile(
 
 	return rollup
 		.rollup({
-			external: (id: string) => {
-				return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json';
-			},
+			external: (id: string) =>
+				(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 			input: configFile,
 			onwarn: warnings.add,
 			treeshake: false
