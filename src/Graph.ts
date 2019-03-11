@@ -236,8 +236,11 @@ export default class Graph {
 		timeStart('parse modules', 2);
 		const moduleLoader = new ModuleLoader(this, this.moduleById);
 
+		if (manualChunks) {
+			moduleLoader.addManualChunks(manualChunks);
+		}
 		return moduleLoader
-			.loadEntryModules(normalizeEntryModules(entryModules), manualChunks)
+			.addEntryModules(normalizeEntryModules(entryModules))
 			.then(({ entryModulesWithAliases, manualChunkModulesByAlias }) => {
 				for (const module of Array.from(this.moduleById.values())) {
 					if (module instanceof Module) {
