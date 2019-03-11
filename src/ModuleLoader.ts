@@ -8,12 +8,20 @@ import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
 
+interface ModuleWithAlias {
+	alias: string;
+	module: Module;
+}
+
 function normalizeRelativeExternalId(importee: string, source: string) {
 	return isRelative(source) ? resolve(importee, '..', source) : source;
 }
 
 export class ModuleLoader {
+	private currentLoadModulesPromise: Promise<any> = Promise.resolve();
+	private readonly entryModules: ModuleWithAlias[] = [];
 	private readonly graph: Graph;
+	private readonly manualChunkModules: Record<string, Module[]> = {};
 	private readonly modulesById: Map<string, Module | ExternalModule>;
 
 	// TODO Lukas get rid of graph dependency
@@ -22,13 +30,34 @@ export class ModuleLoader {
 		this.modulesById = modulesById;
 	}
 
-	loadEntryModules(
-		unresolvedEntryModules: { alias: string | null; unresolvedId: string }[],
-		manualChunks: Record<string, string[]> | void
+	addEntryModules(
+		unresolvedEntryModules: { alias: string | null; unresolvedId: string }[]
 	): Promise<{
 		entryModulesWithAliases: { alias: string; module: Module }[];
 		manualChunkModulesByAlias: Record<string, Module[]>;
 	}> {
+		const loadNewEntryModulesPromise = Promise.all(
+			unresolvedEntryModules.map(({ unresolvedId }) => this.loadEntryModule(unresolvedId))
+		).then(entryModules =>
+			this.entryModules.push(
+				...entryModules.map((module, entryIndex) => ({
+					alias: unresolvedEntryModules[entryIndex].alias || getAliasName(module.id),
+					module
+				}))
+			)
+		);
+
+		this.currentLoadModulesPromise = Promise.all([
+			this.currentLoadModulesPromise,
+			loadNewEntryModulesPromise
+		]);
+		return this.currentLoadModulesPromise.then(() => ({
+			entryModulesWithAliases: this.entryModules,
+			manualChunkModulesByAlias: this.manualChunkModules
+		}));
+	}
+
+	addManualChunks(manualChunks: Record<string, string[]> | void): void {
 		const unresolvedManualChunks: { alias: string; unresolvedId: string }[] = [];
 		if (manualChunks) {
 			for (const alias of Object.keys(manualChunks)) {
@@ -38,43 +67,23 @@ export class ModuleLoader {
 				}
 			}
 		}
-
-		// TODO Lukas We want to return a Promise which we do not know completely yet
-		// - We create a manual Promise
-		// - The resolved Promise.all checks if new entries are added. If not, it resolves, otherwise it does another Promise.all
-		// - First collect all entries
-		return Promise.all([
-			Promise.all(
-				unresolvedEntryModules.map(({ unresolvedId }) => this.loadEntryModule(unresolvedId))
-			),
-			Promise.all(
-				unresolvedManualChunks.map(({ unresolvedId }) => this.loadEntryModule(unresolvedId))
-			)
-		]).then(([entryModules, manualChunkModules]) => {
-			const entryModulesWithAliases = entryModules.map((module, entryIndex) => ({
-				alias: unresolvedEntryModules[entryIndex].alias || getAliasName(module.id),
-				module
-			}));
-			const manualChunkModulesByAlias: Record<string, Module[]> = {};
-
+		const loadNewManualChunkModulesModulesPromise = Promise.all(
+			unresolvedManualChunks.map(({ unresolvedId }) => this.loadEntryModule(unresolvedId))
+		).then(manualChunkModules => {
 			for (let i = 0; i < manualChunkModules.length; i++) {
 				const { alias } = unresolvedManualChunks[i];
-				if (!manualChunkModulesByAlias[alias]) {
-					manualChunkModulesByAlias[alias] = [];
+				if (!this.manualChunkModules[alias]) {
+					this.manualChunkModules[alias] = [];
 				}
-				manualChunkModulesByAlias[alias].push(manualChunkModules[i]);
+				this.manualChunkModules[alias].push(manualChunkModules[i]);
 			}
-
-			return { entryModulesWithAliases, manualChunkModulesByAlias };
 		});
-	}
 
-	// // TODO Lukas in an ideal world, all entries pass through here
-	// public addEntries() {
-	// }
-	//
-	// public addManualChunks() {
-	// }
+		this.currentLoadModulesPromise = Promise.all([
+			this.currentLoadModulesPromise,
+			loadNewManualChunkModulesModulesPromise
+		]);
+	}
 
 	private fetchAllDependencies(module: Module) {
 		const fetchDynamicImportsPromise = Promise.all(
