@@ -43,6 +43,39 @@ function makeOnwarn() {
 	};
 }
 
+// TODO Lukas extract type for entry module
+function normalizeEntryModules(
+	entryModules: string | string[] | Record<string, string>
+): { alias: string | null; unresolvedId: string }[] {
+	if (typeof entryModules === 'string') {
+		return [{ alias: null, unresolvedId: entryModules }];
+	}
+	if (Array.isArray(entryModules)) {
+		return entryModules.map(unresolvedId => ({ alias: null, unresolvedId }));
+	}
+	return Object.keys(entryModules).map(alias => ({ alias, unresolvedId: entryModules[alias] }));
+}
+
+function detectDuplicateEntryPoints(
+	entryModulesWithAliases: { alias: string | null; module: Module }[]
+) {
+	const foundEntryModules = new Set<Module>();
+	for (let i = 0; i < entryModulesWithAliases.length; i++) {
+		const entryModule = entryModulesWithAliases[i].module;
+		if (foundEntryModules.has(entryModule)) {
+			error({
+				code: 'DUPLICATE_ENTRY_POINTS',
+				message: `Duplicate entry points detected. The input entries ${
+					entryModulesWithAliases[i].alias
+				} and ${
+					entryModulesWithAliases.find(({ module }) => module === entryModule).alias
+				} both point to the same module, ${entryModule.id}`
+			});
+		}
+		foundEntryModules.add(entryModule);
+	}
+}
+
 export default class Graph {
 	acornOptions: acorn.Options;
 	acornParser: typeof acorn.Parser;
@@ -204,8 +237,8 @@ export default class Graph {
 		const moduleLoader = new ModuleLoader(this, this.moduleById);
 
 		return moduleLoader
-			.loadEntryModules(entryModules, manualChunks)
-			.then(({ entryModules, entryModuleAliases, manualChunkModules }) => {
+			.loadEntryModules(normalizeEntryModules(entryModules), manualChunks)
+			.then(({ entryModulesWithAliases, manualChunkModulesByAlias }) => {
 				for (const module of Array.from(this.moduleById.values())) {
 					if (module instanceof Module) {
 						this.modules.push(module);
@@ -220,22 +253,9 @@ export default class Graph {
 				// determine the topological execution order for the bundle
 				timeStart('analyse dependency graph', 2);
 
-				for (let i = 0; i < entryModules.length; i++) {
-					const entryModule = entryModules[i];
-					const duplicateIndex = entryModules.indexOf(entryModule, i + 1);
-					if (duplicateIndex !== -1) {
-						error({
-							code: 'DUPLICATE_ENTRY_POINTS',
-							message: `Duplicate entry points detected. The input entries ${
-								entryModuleAliases[i]
-							} and ${entryModuleAliases[duplicateIndex]} both point to the same module, ${
-								entryModule.id
-							}`
-						});
-					}
-				}
+				detectDuplicateEntryPoints(entryModulesWithAliases);
 
-				this.link(entryModules);
+				this.link(entryModulesWithAliases.map(({ module }) => module));
 
 				timeEnd('analyse dependency graph', 2);
 
@@ -243,12 +263,15 @@ export default class Graph {
 				timeStart('mark included statements', 2);
 
 				if (inlineDynamicImports) {
-					if (entryModules.length > 1)
+					if (entryModulesWithAliases.length > 1) {
 						throw new Error(
 							'Internal Error: can only inline dynamic imports for single-file builds.'
 						);
+					}
 				}
-				for (const entryModule of entryModules) entryModule.includeAllExports();
+				for (const { module } of entryModulesWithAliases) {
+					module.includeAllExports();
+				}
 				this.includeMarked(this.modules);
 
 				// check for unused external imports
@@ -260,12 +283,16 @@ export default class Graph {
 				// entry point graph colouring, before generating the import and export facades
 				timeStart('generate chunks', 2);
 
+				// TODO Lukas can we move the alias assigment into the colouring?
 				if (!this.preserveModules && !inlineDynamicImports) {
-					assignChunkColouringHashes(entryModules, manualChunkModules);
+					assignChunkColouringHashes(
+						entryModulesWithAliases.map(({ module }) => module),
+						manualChunkModulesByAlias
+					);
 				}
 
-				for (let i = entryModules.length - 1; i >= 0; i--) {
-					entryModules[i].chunkAlias = entryModuleAliases[i];
+				for (let i = entryModulesWithAliases.length - 1; i >= 0; i--) {
+					entryModulesWithAliases[i].module.chunkAlias = entryModulesWithAliases[i].alias;
 				}
 
 				// TODO: there is one special edge case unhandled here and that is that any module
