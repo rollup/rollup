@@ -16,70 +16,57 @@ export class ModuleLoader {
 	private readonly graph: Graph;
 	private readonly modulesById: Map<string, Module | ExternalModule>;
 
-	// TODO Lukas get rid of graph dependence
+	// TODO Lukas get rid of graph dependency
 	constructor(graph: Graph, modulesById: Map<string, Module | ExternalModule>) {
 		this.graph = graph;
 		this.modulesById = modulesById;
 	}
 
 	loadEntryModules(
-		entryModules: string | string[] | Record<string, string>,
+		unresolvedEntryModules: { alias: string | null; unresolvedId: string }[],
 		manualChunks: Record<string, string[]> | void
-	) {
-		// TODO Lukas the aliasing of entry modules could happen outside
-		let deriveAliasFromId = false;
-		let entryModuleIds: string[];
-		let entryModuleAliases: string[];
-		if (typeof entryModules === 'string') entryModules = [entryModules];
-
-		if (Array.isArray(entryModules)) {
-			deriveAliasFromId = true;
-			entryModuleAliases = entryModules.concat([]);
-			entryModuleIds = entryModules;
-		} else {
-			entryModuleAliases = Object.keys(entryModules);
-			entryModuleIds = entryModuleAliases.map(name => (<Record<string, string>>entryModules)[name]);
-		}
-
-		const entryAndManualChunkIds = entryModuleIds.concat([]);
+	): Promise<{
+		entryModulesWithAliases: { alias: string; module: Module }[];
+		manualChunkModulesByAlias: Record<string, Module[]>;
+	}> {
+		const unresolvedManualChunks: { alias: string; unresolvedId: string }[] = [];
 		if (manualChunks) {
-			Object.keys(manualChunks).forEach(name => {
-				const manualChunkIds = manualChunks[name];
-				manualChunkIds.forEach(id => {
-					if (entryAndManualChunkIds.indexOf(id) === -1) entryAndManualChunkIds.push(id);
-				});
-			});
+			for (const alias of Object.keys(manualChunks)) {
+				const manualChunkIds = manualChunks[alias];
+				for (const unresolvedId of manualChunkIds) {
+					unresolvedManualChunks.push({ unresolvedId, alias });
+				}
+			}
 		}
 
 		// TODO Lukas We want to return a Promise which we do not know completely yet
 		// - We create a manual Promise
 		// - The resolved Promise.all checks if new entries are added. If not, it resolves, otherwise it does another Promise.all
 		// - First collect all entries
-		return Promise.all(entryAndManualChunkIds.map(id => this.loadEntryModule(id))).then(
-			entryAndChunkModules => {
-				if (deriveAliasFromId) {
-					for (let i = 0; i < entryModuleAliases.length; i++)
-						entryModuleAliases[i] = getAliasName(entryAndChunkModules[i].id);
+		return Promise.all([
+			Promise.all(
+				unresolvedEntryModules.map(({ unresolvedId }) => this.loadEntryModule(unresolvedId))
+			),
+			Promise.all(
+				unresolvedManualChunks.map(({ unresolvedId }) => this.loadEntryModule(unresolvedId))
+			)
+		]).then(([entryModules, manualChunkModules]) => {
+			const entryModulesWithAliases = entryModules.map((module, entryIndex) => ({
+				alias: unresolvedEntryModules[entryIndex].alias || getAliasName(module.id),
+				module
+			}));
+			const manualChunkModulesByAlias: Record<string, Module[]> = {};
+
+			for (let i = 0; i < manualChunkModules.length; i++) {
+				const { alias } = unresolvedManualChunks[i];
+				if (!manualChunkModulesByAlias[alias]) {
+					manualChunkModulesByAlias[alias] = [];
 				}
-
-				const entryModules = entryAndChunkModules.slice(0, entryModuleIds.length);
-
-				let manualChunkModules: { [chunkName: string]: Module[] };
-				if (manualChunks) {
-					manualChunkModules = {};
-					for (const chunkName of Object.keys(manualChunks)) {
-						const chunk = manualChunks[chunkName];
-						console.log(entryAndChunkModules);
-						manualChunkModules[chunkName] = chunk.map(
-							entryId => entryAndChunkModules[entryAndManualChunkIds.indexOf(entryId)]
-						);
-					}
-				}
-
-				// TODO Lukas at this point, the entry modules need to contain all entry points
-				return { entryModules, entryModuleAliases, manualChunkModules };
+				manualChunkModulesByAlias[alias].push(manualChunkModules[i]);
 			}
-		);
+
+			return { entryModulesWithAliases, manualChunkModulesByAlias };
+		});
 	}
 
 	// // TODO Lukas in an ideal world, all entries pass through here
