@@ -36,6 +36,7 @@ export function getAssetFileName(
 				case 'ext':
 					return extname(asset.name).substr(1);
 			}
+			return undefined as any;
 		}),
 		existingNames
 	);
@@ -54,7 +55,7 @@ export function createAssetPluginHooks(
 					message: `Plugin error creating asset, name is not a plain (non relative or absolute URL) string name.`
 				});
 
-			let assetId: string;
+			let assetId: string = undefined as any;
 			do {
 				const assetHash = sha256();
 				if (assetId) {
@@ -66,8 +67,9 @@ export function createAssetPluginHooks(
 				assetId = assetHash.digest('hex').substr(0, 8);
 			} while (assetsById.has(assetId));
 
-			const asset: Asset = { name, source, fileName: undefined };
-			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
+			const asset: Asset = { name, source: source as any, fileName: undefined as any };
+			if (outputBundle && source !== undefined)
+				finaliseAsset(asset, outputBundle, assetFileNames as string);
 			assetsById.set(assetId, asset);
 			return assetId;
 		},
@@ -78,11 +80,11 @@ export function createAssetPluginHooks(
 					code: 'ASSET_NOT_FOUND',
 					message: `Plugin error - Unable to set asset source for unknown asset ${assetId}.`
 				});
-			if (asset.source !== undefined)
+			if ((asset as Asset).source !== undefined)
 				error({
 					code: 'ASSET_SOURCE_ALREADY_SET',
 					message: `Plugin error - Unable to set asset source for ${
-						asset.name
+						(asset as Asset).name
 					}, source already set.`
 				});
 			if (typeof source !== 'string' && !source)
@@ -90,8 +92,8 @@ export function createAssetPluginHooks(
 					code: 'ASSET_SOURCE_MISSING',
 					message: `Plugin error creating asset ${name}, setAssetSource call without a source.`
 				});
-			asset.source = source;
-			if (outputBundle) finaliseAsset(asset, outputBundle, assetFileNames);
+			(asset as Asset).source = source as string | Buffer;
+			if (outputBundle) finaliseAsset(asset as Asset, outputBundle, assetFileNames as string);
 		},
 		getAssetFileName(assetId: string) {
 			const asset = assetsById.get(assetId);
@@ -100,12 +102,12 @@ export function createAssetPluginHooks(
 					code: 'ASSET_NOT_FOUND',
 					message: `Plugin error - Unable to get asset filename for unknown asset ${assetId}.`
 				});
-			if (asset.fileName === undefined)
+			if ((asset as Asset).fileName === undefined)
 				error({
 					code: 'ASSET_NOT_FINALISED',
 					message: `Plugin error - Unable to get asset file name for asset ${assetId}. Ensure that the source is set and that generate is called first.`
 				});
-			return asset.fileName;
+			return (asset as Asset).fileName;
 		}
 	};
 }
@@ -126,10 +128,10 @@ export function createTransformEmitAsset(assetsById: Map<string, Asset>, emitAss
 		assets,
 		emitAsset: (name: string, source?: string | Buffer) => {
 			const assetId = emitAsset(name, source);
-			const asset = assetsById.get(assetId);
+			const asset = assetsById.get(assetId) as Asset;
 			// distinguish transform assets
 			assets.push({
-				fileName: undefined,
+				fileName: undefined as any,
 				name: asset.name,
 				source: asset.source
 			});

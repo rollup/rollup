@@ -93,7 +93,7 @@ export default function mergeOptions({
 	outputOptions: any;
 } {
 	const command = getCommandOptions(rawCommandOptions);
-	const inputOptions = getInputOptions(config, command, defaultOnWarnHandler);
+	const inputOptions = getInputOptions(config, command, defaultOnWarnHandler as WarningHandler);
 
 	if (command.output) {
 		Object.assign(command, command.output);
@@ -119,7 +119,7 @@ export default function mergeOptions({
 	const validOutputOptions = Object.keys(outputOptions[0]);
 	addUnknownOptionErrors(
 		unknownOptionErrors,
-		outputOptions.reduce((allKeys, options) => allKeys.concat(Object.keys(options)), []),
+		outputOptions.reduce<string[]>((allKeys, options) => allKeys.concat(Object.keys(options)), []),
 		validOutputOptions,
 		'output option'
 	);

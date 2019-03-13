@@ -26,7 +26,7 @@ export default class ImportDeclaration extends NodeBase {
 	}
 
 	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
-		code.remove(start, end);
+		code.remove(start as number, end as number);
 	}
 }
 

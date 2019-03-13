@@ -78,7 +78,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	property: ExpressionNode;
 	propertyKey: ObjectPathKey | null;
 	type: NodeType.tMemberExpression;
-	variable: Variable = null;
+	variable: Variable = null as any;
 
 	private bound: boolean;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[];
@@ -88,24 +88,26 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.bound) return;
 		this.bound = true;
 		const path = getPathIfNotComputed(this);
-		const baseVariable = path && this.scope.findVariable(path[0].key);
-		if (baseVariable && baseVariable.isNamespace) {
-			const resolvedVariable = this.resolveNamespaceVariables(baseVariable, path.slice(1));
-			if (!resolvedVariable) {
-				super.bind();
-			} else if (typeof resolvedVariable === 'string') {
-				this.replacement = resolvedVariable;
-			} else {
-				if (resolvedVariable.isExternal && (<ExternalVariable>resolvedVariable).module) {
-					(<ExternalVariable>resolvedVariable).module.suggestName(path[0].key);
+		if (path) {
+			const baseVariable = this.scope.findVariable(path[0].key);
+			if (baseVariable && baseVariable.isNamespace) {
+				const resolvedVariable = this.resolveNamespaceVariables(baseVariable, path.slice(1));
+				if (!resolvedVariable) {
+					super.bind();
+				} else if (typeof resolvedVariable === 'string') {
+					this.replacement = resolvedVariable;
+				} else {
+					if (resolvedVariable.isExternal && (<ExternalVariable>resolvedVariable).module) {
+						(<ExternalVariable>resolvedVariable).module.suggestName(path[0].key);
+					}
+					this.variable = resolvedVariable;
+					this.scope.addNamespaceMemberAccess(getStringFromPath(path), resolvedVariable);
 				}
-				this.variable = resolvedVariable;
-				this.scope.addNamespaceMemberAccess(getStringFromPath(path), resolvedVariable);
 			}
-		} else {
-			super.bind();
-			if (this.propertyKey === null) this.analysePropertyKey();
+			return;
 		}
+		super.bind();
+		if (this.propertyKey === null) this.analysePropertyKey();
 	}
 
 	deoptimizeCache() {
@@ -121,7 +123,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.variable.deoptimizePath(path);
 		} else {
 			if (this.propertyKey === null) this.analysePropertyKey();
-			this.object.deoptimizePath([this.propertyKey, ...path]);
+			this.object.deoptimizePath([this.propertyKey as ObjectPathKey, ...path]);
 		}
 	}
 
@@ -135,7 +137,11 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 		if (this.propertyKey === null) this.analysePropertyKey();
 		this.expressionsToBeDeoptimized.push(origin);
-		return this.object.getLiteralValueAtPath([this.propertyKey, ...path], recursionTracker, origin);
+		return this.object.getLiteralValueAtPath(
+			[this.propertyKey as ObjectPathKey, ...path],
+			recursionTracker,
+			origin
+		);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -149,7 +155,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.propertyKey === null) this.analysePropertyKey();
 		this.expressionsToBeDeoptimized.push(origin);
 		return this.object.getReturnExpressionWhenCalledAtPath(
-			[this.propertyKey, ...path],
+			[this.propertyKey as ObjectPathKey, ...path],
 			recursionTracker,
 			origin
 		);
@@ -160,7 +166,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.property.hasEffects(options) ||
 			this.object.hasEffects(options) ||
 			(this.context.propertyReadSideEffects &&
-				this.object.hasEffectsWhenAccessedAtPath([this.propertyKey], options))
+				this.object.hasEffectsWhenAccessedAtPath([this.propertyKey as ObjectPathKey], options))
 		);
 	}
 
@@ -171,14 +177,20 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, options);
 		}
-		return this.object.hasEffectsWhenAccessedAtPath([this.propertyKey, ...path], options);
+		return this.object.hasEffectsWhenAccessedAtPath(
+			[this.propertyKey as ObjectPathKey, ...path],
+			options
+		);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, options);
 		}
-		return this.object.hasEffectsWhenAssignedAtPath([this.propertyKey, ...path], options);
+		return this.object.hasEffectsWhenAssignedAtPath(
+			[this.propertyKey as ObjectPathKey, ...path],
+			options
+		);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -190,7 +202,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 		}
 		return this.object.hasEffectsWhenCalledAtPath(
-			[this.propertyKey, ...path],
+			[this.propertyKey as ObjectPathKey, ...path],
 			callOptions,
 			options
 		);
@@ -210,7 +222,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	initialise() {
 		this.included = false;
 		this.propertyKey = getResolvablePropertyKey(this);
-		this.variable = null;
+		this.variable = null as any;
 		this.bound = false;
 		this.replacement = null;
 		this.expressionsToBeDeoptimized = [];
@@ -226,7 +238,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable || this.replacement) {
 			let replacement = this.variable ? this.variable.getName() : this.replacement;
 			if (isCalleeOfDifferentParent) replacement = '0, ' + replacement;
-			code.overwrite(this.start, this.end, replacement, {
+			code.overwrite(this.start, this.end, replacement as string, {
 				contentOnly: true,
 				storeName: true
 			});

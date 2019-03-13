@@ -19,7 +19,7 @@ function guessIndentString(code: string) {
 
 	// Otherwise, we need to guess the multiple
 	const min = spaced.reduce((previous, current) => {
-		const numSpaces = /^ +/.exec(current)[0].length;
+		const numSpaces = (/^ +/.exec(current) as RegExpExecArray)[0].length;
 		return Math.min(numSpaces, previous);
 	}, Infinity);
 

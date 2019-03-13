@@ -1,4 +1,4 @@
-import { InputOptions, Plugin } from '../rollup/types';
+import { InputOptions, Plugin, ResolveIdHook } from '../rollup/types';
 import { error } from './error';
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // eslint-disable-line
 import { basename, dirname, isAbsolute, resolve } from './path';
@@ -6,7 +6,7 @@ import { basename, dirname, isAbsolute, resolve } from './path';
 export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 	return {
 		name: 'Rollup Core',
-		resolveId: createResolveId(options),
+		resolveId: createResolveId(options) as ResolveIdHook,
 		load(id) {
 			return readFileSync(id, 'utf-8');
 		},
@@ -63,7 +63,7 @@ function createResolveId(options: InputOptions) {
 		// See https://nodejs.org/api/path.html#path_path_resolve_paths
 		return addJsExtensionIfNecessary(
 			resolve(importer ? dirname(importer) : resolve(), importee),
-			options.preserveSymlinks
+			options.preserveSymlinks as boolean
 		);
 	};
 }

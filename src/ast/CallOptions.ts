@@ -27,7 +27,7 @@ export default class CallOptions implements CallCreateOptions {
 	withNew: boolean;
 
 	constructor(
-		{ withNew = false, args = [], callIdentifier = undefined }: CallCreateOptions = {} as any
+		{ withNew = false, args = [], callIdentifier = undefined as any }: CallCreateOptions = {} as any
 	) {
 		this.withNew = withNew;
 		this.args = args;

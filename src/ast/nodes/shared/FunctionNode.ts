@@ -41,7 +41,7 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	hasEffects(options: ExecutionPathOptions) {
-		return this.id && this.id.hasEffects(options);
+		return !!(this.id && this.id.hasEffects(options));
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {

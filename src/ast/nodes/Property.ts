@@ -55,7 +55,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		if (this.kind === 'get') {
 			if (path.length > 0) {
 				if (this.returnExpression === null) this.updateReturnExpression();
-				this.returnExpression.deoptimizePath(path);
+				(this.returnExpression as ExpressionEntity).deoptimizePath(path);
 			}
 		} else if (this.kind !== 'set') {
 			this.value.deoptimizePath(path);
@@ -72,7 +72,11 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		}
 		if (this.kind === 'get') {
 			if (this.returnExpression === null) this.updateReturnExpression();
-			return this.returnExpression.getLiteralValueAtPath(path, recursionTracker, origin);
+			return (this.returnExpression as ExpressionEntity).getLiteralValueAtPath(
+				path,
+				recursionTracker,
+				origin
+			);
 		}
 		return this.value.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
@@ -87,7 +91,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		}
 		if (this.kind === 'get') {
 			if (this.returnExpression === null) this.updateReturnExpression();
-			return this.returnExpression.getReturnExpressionWhenCalledAtPath(
+			return (this.returnExpression as ExpressionEntity).getReturnExpressionWhenCalledAtPath(
 				path,
 				recursionTracker,
 				origin
@@ -108,7 +112,8 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 					this.accessorCallOptions,
 					options.getHasEffectsWhenCalledOptions()
 				) ||
-				(path.length > 0 && this.returnExpression.hasEffectsWhenAccessedAtPath(path, options))
+				(path.length > 0 &&
+					(this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, options))
 			);
 		}
 		return this.value.hasEffectsWhenAccessedAtPath(path, options);
@@ -116,7 +121,10 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (this.kind === 'get') {
-			return path.length === 0 || this.returnExpression.hasEffectsWhenAssignedAtPath(path, options);
+			return (
+				path.length === 0 ||
+				(this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(path, options)
+			);
 		}
 		if (this.kind === 'set') {
 			return (
@@ -137,7 +145,11 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		options: ExecutionPathOptions
 	) {
 		if (this.kind === 'get') {
-			return this.returnExpression.hasEffectsWhenCalledAtPath(path, callOptions, options);
+			return (this.returnExpression as ExpressionEntity).hasEffectsWhenCalledAtPath(
+				path,
+				callOptions,
+				options
+			);
 		}
 		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}

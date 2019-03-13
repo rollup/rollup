@@ -33,6 +33,7 @@ export default class BlockStatement extends StatementBase {
 		for (const node of this.body) {
 			if (node.hasEffects(options)) return true;
 		}
+		return false;
 	}
 
 	include(includeAllChildrenRecursively: boolean) {

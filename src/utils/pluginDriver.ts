@@ -106,7 +106,7 @@ export function createPluginDriver(
 				});
 				watcherDeprecationWarningShown = true;
 			}
-			return watcher.on(event, handler);
+			return (watcher as RollupWatcher).on(event, handler);
 		}
 
 		const context: PluginContext = {
@@ -126,7 +126,7 @@ export function createPluginDriver(
 			isExternal(id: string, parentId: string, isResolved = false) {
 				return graph.isExternal(id, parentId, isResolved);
 			},
-			getAssetFileName,
+			getAssetFileName: getAssetFileName as (assetId: string) => string,
 			getModuleInfo: (moduleId: string) => {
 				const foundModule = graph.moduleById.get(moduleId);
 				if (foundModule == null) {
@@ -163,7 +163,7 @@ export function createPluginDriver(
 						addListener: deprecatedWatchListener,
 						on: deprecatedWatchListener
 				  }
-				: undefined
+				: (undefined as any)
 		};
 		return context;
 	});
@@ -178,7 +178,7 @@ export function createPluginDriver(
 		const plugin = plugins[pidx];
 		let context = pluginContexts[pidx];
 		const hook = (<any>plugin)[hookName];
-		if (!hook) return;
+		if (!hook) return undefined as any;
 
 		const deprecatedHookNewName = deprecatedHookNames[hookName];
 		if (deprecatedHookNewName)
@@ -210,6 +210,7 @@ export function createPluginDriver(
 			err.hook = hookName;
 			error(err);
 		}
+		return undefined as any;
 	}
 
 	function runHook<T>(
@@ -222,7 +223,7 @@ export function createPluginDriver(
 		const plugin = plugins[pidx];
 		let context = pluginContexts[pidx];
 		const hook = (<any>plugin)[hookName];
-		if (!hook) return;
+		if (!hook) return undefined as any;
 
 		const deprecatedHookNewName = deprecatedHookNames[hookName];
 		if (deprecatedHookNewName)
@@ -260,7 +261,7 @@ export function createPluginDriver(
 
 	const pluginDriver: PluginDriver = {
 		emitAsset,
-		getAssetFileName,
+		getAssetFileName: getAssetFileName as (assetId: string) => string,
 		hasLoadersOrTransforms,
 
 		// chains, ignores returns
@@ -268,14 +269,15 @@ export function createPluginDriver(
 			let promise: Promise<void> = <any>Promise.resolve();
 			for (let i = 0; i < plugins.length; i++)
 				promise = promise.then(() => {
-					return runHook<void>(name, args, i, false, hookContext);
+					return runHook<void>(name, args as any[], i, false, hookContext);
 				});
 			return promise;
 		},
 
 		// chains, ignores returns
 		hookSeqSync(name, args, hookContext) {
-			for (let i = 0; i < plugins.length; i++) runHookSync<void>(name, args, i, false, hookContext);
+			for (let i = 0; i < plugins.length; i++)
+				runHookSync<void>(name, args as any[], i, false, hookContext);
 		},
 
 		// chains, first non-null result stops and returns
@@ -284,7 +286,7 @@ export function createPluginDriver(
 			for (let i = 0; i < plugins.length; i++) {
 				promise = promise.then((result: any) => {
 					if (result != null) return result;
-					return runHook(name, args, i, false, hookContext);
+					return runHook(name, args as any[], i, false, hookContext);
 				});
 			}
 			return promise;
@@ -293,7 +295,7 @@ export function createPluginDriver(
 		hookParallel(name, args, hookContext) {
 			const promises: Promise<void>[] = [];
 			for (let i = 0; i < plugins.length; i++) {
-				const hookPromise = runHook<void>(name, args, i, false, hookContext);
+				const hookPromise = runHook<void>(name, args as any[], i, false, hookContext);
 				if (!hookPromise) continue;
 				promises.push(hookPromise);
 			}
@@ -364,7 +366,7 @@ export function createPluginCache(cache: SerializablePluginCache): PluginCache {
 }
 
 export function trackPluginCache(pluginCache: PluginCache) {
-	const result = { used: false, cache: <PluginCache>undefined };
+	const result = { used: false, cache: (undefined as any) as PluginCache };
 	result.cache = {
 		has(id: string) {
 			result.used = true;
@@ -391,7 +393,7 @@ const noCache: PluginCache = {
 		return false;
 	},
 	get() {
-		return undefined;
+		return undefined as any;
 	},
 	set() {},
 	delete() {
@@ -420,7 +422,7 @@ const uncacheablePlugin: (pluginName: string) => PluginCache = pluginName => ({
 	},
 	get() {
 		uncacheablePluginError(pluginName);
-		return undefined;
+		return undefined as any;
 	},
 	set() {
 		uncacheablePluginError(pluginName);

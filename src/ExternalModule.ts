@@ -17,7 +17,7 @@ export default class ExternalModule {
 	mostCommonSuggestion: number = 0;
 	nameSuggestions: { [name: string]: number };
 	reexported: boolean = false;
-	renderPath: string = undefined;
+	renderPath: string = undefined as any;
 	renormalizeRenderPath = false;
 	used = false;
 	variableName: string;
@@ -30,7 +30,7 @@ export default class ExternalModule {
 		this.execIndex = Infinity;
 
 		const parts = id.split(/[\\/]/);
-		this.variableName = makeLegal(parts.pop());
+		this.variableName = makeLegal(parts.pop() as string);
 
 		this.nameSuggestions = Object.create(null);
 		this.declarations = Object.create(null);

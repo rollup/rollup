@@ -10,12 +10,12 @@ const unaryOperators: {
 	[operator: string]: (value: LiteralValue) => LiteralValueOrUnknown;
 } = {
 	'!': value => !value,
-	'+': value => +value,
-	'-': value => -value,
+	'+': value => +(value as NonNullable<LiteralValue>),
+	'-': value => -(value as NonNullable<LiteralValue>),
 	delete: () => UNKNOWN_VALUE,
 	typeof: value => typeof value,
 	void: () => undefined,
-	'~': value => ~value
+	'~': value => ~(value as NonNullable<LiteralValue>)
 };
 
 export default class UnaryExpression extends NodeBase {

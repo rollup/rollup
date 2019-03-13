@@ -21,7 +21,9 @@ import {
 	OutputChunk,
 	OutputOptions,
 	Plugin,
+	PluginContext,
 	RollupBuild,
+	RollupCache,
 	RollupOutput,
 	RollupWatcher
 } from './types';
@@ -137,7 +139,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 		initialiseTimers(inputOptions);
 
 		const graph = new Graph(inputOptions, curWatcher);
-		curWatcher = undefined;
+		curWatcher = undefined as any;
 
 		// remove the cache option from the memory after graph creation (cache is not used anymore)
 		const useCache = rawInputOptions.cache !== false;
@@ -211,7 +213,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 								const facadeModule = chunk.facadeModule;
 
 								outputBundle[chunk.id] = {
-									code: undefined,
+									code: undefined as any,
 									dynamicImports: chunk.getDynamicImportIds(),
 									exports: chunk.getExportNames(),
 									facadeModuleId: facadeModule && facadeModule.id,
@@ -225,7 +227,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 									get name() {
 										return chunk.getChunkName();
 									}
-								};
+								} as OutputChunk;
 							}
 
 							return Promise.all(
@@ -260,10 +262,15 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 							);
 
 							return graph.pluginDriver
-								.hookSeq('generateBundle', [outputOptions, outputBundle, isWrite], context => ({
-									...context,
-									...generateAssetPluginHooks
-								}))
+								.hookSeq(
+									'generateBundle',
+									[outputOptions, outputBundle, isWrite],
+									context =>
+										({
+											...context,
+											...generateAssetPluginHooks
+										} as PluginContext)
+								)
 								.then(() => {
 									// throw errors for assets not finalised with a source
 									assets.forEach(asset => {
@@ -280,7 +287,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 
 				const cache = useCache ? graph.getCache() : undefined;
 				const result: RollupBuild = {
-					cache,
+					cache: cache as RollupCache,
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
 						const promise = generate(rawOutputOptions, false).then(result => createOutput(result));
 						Object.defineProperty(promise, 'code', throwAsyncGenerateError);
@@ -377,7 +384,10 @@ function writeOutputFile(
 	outputFile: OutputAsset | OutputChunk,
 	outputOptions: OutputOptions
 ): Promise<void> {
-	const filename = resolve(outputOptions.dir || dirname(outputOptions.file), outputFile.fileName);
+	const filename = resolve(
+		outputOptions.dir || dirname(outputOptions.file as string),
+		outputFile.fileName
+	);
 	let writeSourceMapPromise: Promise<void>;
 	let source: string | Buffer;
 	if (isOutputAsset(outputFile)) {
@@ -400,7 +410,7 @@ function writeOutputFile(
 		.then(() => writeSourceMapPromise)
 		.then(
 			() =>
-				!isOutputAsset(outputFile) &&
+				(!isOutputAsset(outputFile) as any) &&
 				graph.pluginDriver.hookSeq('onwrite', [
 					{
 						bundle: build,

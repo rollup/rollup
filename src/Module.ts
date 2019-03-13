@@ -2,11 +2,14 @@ import * as acorn from 'acorn';
 import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
+import ClassDeclaration from './ast/nodes/ClassDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration, {
 	isExportDefaultDeclaration
 } from './ast/nodes/ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
+import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
+import Identifier from './ast/nodes/Identifier';
 import Import from './ast/nodes/Import';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
@@ -17,6 +20,7 @@ import * as NodeType from './ast/nodes/NodeType';
 import Program from './ast/nodes/Program';
 import { Node, NodeBase } from './ast/nodes/shared/Node';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
+import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
 import extractNames from './ast/utils/extractNames';
@@ -153,7 +157,7 @@ function handleMissingExport(
 			message: `'${exportName}' is not exported by ${relativeId(importedModule)}`,
 			url: `https://rollupjs.org/guide/en#error-name-is-not-exported-by-module-`
 		},
-		importerStart
+		importerStart as number
 	);
 }
 
@@ -163,7 +167,7 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 
 export default class Module {
 	chunk: Chunk;
-	chunkAlias: string = undefined;
+	chunkAlias: string = undefined as any;
 	code: string;
 	comments: CommentDescription[] = [];
 	customTransformCache: boolean;
@@ -178,7 +182,7 @@ export default class Module {
 	entryPointsHash: Uint8Array = new Uint8Array(10);
 	excludeFromSourcemap: boolean;
 	execIndex: number = Infinity;
-	exportAllModules: (Module | ExternalModule)[] = null;
+	exportAllModules: (Module | ExternalModule)[] = null as any;
 	exportAllSources: string[] = [];
 	exports: { [name: string]: ExportDescription } = Object.create(null);
 	exportsAll: { [name: string]: string } = Object.create(null);
@@ -208,7 +212,7 @@ export default class Module {
 	private esTreeAst: ESTree.Program;
 	private graph: Graph;
 	private magicString: MagicString;
-	private namespaceVariable: NamespaceVariable = undefined;
+	private namespaceVariable: NamespaceVariable = undefined as any;
 	private transformDependencies: string[];
 
 	constructor(graph: Graph, id: string) {
@@ -248,7 +252,7 @@ export default class Module {
 						message: `Error when using sourcemap for reporting an error: ${e.message}`,
 						pos
 					},
-					undefined
+					undefined as any
 				);
 			}
 
@@ -294,6 +298,7 @@ export default class Module {
 			} else {
 				return importArgument;
 			}
+			return undefined as any;
 		});
 	}
 
@@ -393,6 +398,7 @@ export default class Module {
 			this.shimMissingExport(name);
 			return this.exportShimVariable;
 		}
+		return undefined as any;
 	}
 
 	include(): void {
@@ -410,7 +416,7 @@ export default class Module {
 		}
 
 		for (const exportName of this.getExports()) {
-			const variable = this.getVariableForExportName(exportName);
+			const variable = this.getVariableForExportName(exportName) as Variable;
 
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
@@ -420,7 +426,7 @@ export default class Module {
 		}
 
 		for (const name of this.getReexports()) {
-			const variable = this.getVariableForExportName(name);
+			const variable = this.getVariableForExportName(name) as Variable;
 
 			if (variable.isExternal) {
 				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
@@ -460,7 +466,7 @@ export default class Module {
 
 		this.exportAllModules = this.exportAllSources.map(source => {
 			const id = this.resolvedIds[source].id;
-			return this.graph.moduleById.get(id);
+			return this.graph.moduleById.get(id) as any;
 		});
 	}
 
@@ -485,14 +491,12 @@ export default class Module {
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain;
-		this.transformDependencies = transformDependencies;
+		this.transformDependencies = transformDependencies as string[];
 		this.customTransformCache = customTransformCache;
 
 		timeStart('generate ast', 3);
 
-		this.esTreeAst = <ESTree.Program>(
-			(ast || tryParse(this, this.graph.acornParser, this.graph.acornOptions))
-		);
+		this.esTreeAst = ast || tryParse(this, this.graph.acornParser, this.graph.acornOptions);
 		markPureCallExpressions(this.comments, this.esTreeAst);
 
 		timeEnd('generate ast', 3);
@@ -504,7 +508,7 @@ export default class Module {
 		const fileName = this.id;
 
 		this.magicString = new MagicString(code, {
-			filename: this.excludeFromSourcemap ? null : fileName, // don't include plugin helpers in sourcemap
+			filename: (this.excludeFromSourcemap ? null : fileName) as string, // don't include plugin helpers in sourcemap
 			indentExclusionRanges: []
 		});
 		this.removeExistingSourceMap();
@@ -529,7 +533,8 @@ export default class Module {
 			importDescriptions: this.importDescriptions,
 			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeVariable: this.includeVariable.bind(this),
-			isCrossChunkImport: importDescription => importDescription.module.chunk !== this.chunk,
+			isCrossChunkImport: importDescription =>
+				(importDescription.module as Module).chunk !== this.chunk,
 			magicString: this.magicString,
 			module: this,
 			moduleContext: this.context,
@@ -577,7 +582,7 @@ export default class Module {
 
 		if (name in this.importDescriptions) {
 			const importDeclaration = this.importDescriptions[name];
-			const otherModule = importDeclaration.module;
+			const otherModule = importDeclaration.module as Module | ExternalModule;
 
 			if (!otherModule.isExternal && importDeclaration.name === '*') {
 				return (<Module>otherModule).getOrCreateNamespace();
@@ -610,7 +615,7 @@ export default class Module {
 	}
 
 	private addDynamicImport(node: Import) {
-		this.dynamicImports.push({ node, alias: undefined, resolution: undefined });
+		this.dynamicImports.push({ node, alias: undefined as any, resolution: undefined });
 	}
 
 	private addExport(
@@ -642,7 +647,7 @@ export default class Module {
 
 					this.reexports[name] = {
 						localName: specifier.local.name,
-						module: null, // filled in later,
+						module: null as any, // filled in later,
 						source,
 						start: specifier.start
 					};
@@ -663,7 +668,7 @@ export default class Module {
 			}
 
 			this.exports.default = {
-				identifier: node.variable.getOriginalVariableName(),
+				identifier: node.variable.getOriginalVariableName() as string | undefined,
 				localName: 'default',
 				node
 			};
@@ -672,7 +677,10 @@ export default class Module {
 			// export var foo = 42;
 			// export var a = 1, b = 2, c = 3;
 			// export function foo () {}
-			const declaration = (<ExportNamedDeclaration>node).declaration;
+			const declaration = (<ExportNamedDeclaration>node).declaration as
+				| FunctionDeclaration
+				| ClassDeclaration
+				| VariableDeclaration;
 
 			if (declaration.type === NodeType.VariableDeclaration) {
 				for (const decl of declaration.declarations) {
@@ -682,7 +690,7 @@ export default class Module {
 				}
 			} else {
 				// export function foo () {}
-				const localName = declaration.id.name;
+				const localName = (declaration.id as Identifier).name;
 				this.exports[localName] = { localName, node };
 			}
 		} else {
@@ -746,13 +754,14 @@ export default class Module {
 		for (const name of Object.keys(specifiers)) {
 			const specifier = specifiers[name];
 			const id = this.resolvedIds[specifier.source].id;
-			specifier.module = this.graph.moduleById.get(id);
+			specifier.module = this.graph.moduleById.get(id) as Module | ExternalModule | null;
 		}
 	}
 
 	private includeDynamicImport(node: Import) {
-		const resolution = this.dynamicImports.find(dynamicImport => dynamicImport.node === node)
-			.resolution;
+		const resolution = (this.dynamicImports.find(dynamicImport => dynamicImport.node === node) as {
+			resolution: string | Module | ExternalModule | undefined;
+		}).resolution;
 		if (resolution instanceof Module) {
 			resolution.dynamicallyImportedBy.push(this);
 			resolution.includeAllExports();

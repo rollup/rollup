@@ -133,7 +133,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		this.bound = false;
 		// To avoid later shape mutations
 		if (!this.variable) {
-			this.variable = null;
+			this.variable = null as any;
 		}
 	}
 

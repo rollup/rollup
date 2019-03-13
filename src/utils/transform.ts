@@ -103,8 +103,8 @@ export default function transform(
 			[curSource, id],
 			transformReducer,
 			(pluginContext, plugin) => {
-				curPlugin = plugin;
-				if (plugin.cacheKey) customTransformCache = true;
+				curPlugin = plugin as Plugin;
+				if (curPlugin.cacheKey) customTransformCache = true;
 				else trackedPluginCache = trackPluginCache(pluginContext.cache);
 
 				let emitAsset: EmitAsset;

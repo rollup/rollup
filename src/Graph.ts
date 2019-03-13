@@ -92,9 +92,9 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		this.preserveModules = options.preserveModules;
+		this.preserveModules = options.preserveModules as boolean;
 
-		this.cacheExpiry = options.experimentalCacheExpiry;
+		this.cacheExpiry = options.experimentalCacheExpiry as number;
 
 		if (!options.input) {
 			throw new Error('You must supply options.input to rollup');
@@ -152,7 +152,7 @@ export default class Graph {
 			this.isExternal = id => ids.has(id);
 		}
 
-		this.shimMissingExports = options.shimMissingExports;
+		this.shimMissingExports = options.shimMissingExports as boolean;
 		this.scope = new GlobalScope();
 		this.context = String(options.context);
 
@@ -391,7 +391,9 @@ export default class Graph {
 
 			if (warning.plugin) str += `(${warning.plugin} plugin) `;
 			if (warning.loc)
-				str += `${relativeId(warning.loc.file)} (${warning.loc.line}:${warning.loc.column}) `;
+				str += `${relativeId(warning.loc.file as string)} (${warning.loc.line}:${
+					warning.loc.column
+				}) `;
 			str += warning.message;
 
 			return str;
@@ -501,7 +503,7 @@ export default class Graph {
 					return cachedModule;
 				}
 
-				return transform(this, sourceDescription, module);
+				return transform(this, sourceDescription, module) as Promise<ModuleJSON>;
 			})
 			.then((source: ModuleJSON) => {
 				module.setSource(source);
@@ -518,7 +520,7 @@ export default class Graph {
 					module.exportAllSources.forEach(source => {
 						const id = module.resolvedIds[source].id;
 						const exportAllModule = this.moduleById.get(id);
-						if (exportAllModule.isExternal) return;
+						if ((exportAllModule as Module | ExternalModule).isExternal) return;
 
 						for (const name in (<Module>exportAllModule).exportsAll) {
 							if (name in module.exportsAll) {
@@ -592,7 +594,7 @@ export default class Graph {
 
 				const entryModules = entryAndChunkModules.slice(0, entryModuleIds.length);
 
-				let manualChunkModules: { [chunkName: string]: Module[] };
+				let manualChunkModules: { [chunkName: string]: Module[] } = undefined as any;
 				if (manualChunks) {
 					manualChunkModules = {};
 					for (const chunkName of Object.keys(manualChunks)) {
@@ -627,7 +629,7 @@ export default class Graph {
 					});
 				}
 
-				return this.fetchModule(<string>id, undefined);
+				return this.fetchModule(<string>id, undefined as any);
 			});
 	}
 
@@ -689,6 +691,7 @@ export default class Graph {
 						)}, but is already an existing non-external module id.`
 					});
 				}
+				return (undefined as any) as Module;
 			} else {
 				return this.fetchModule(resolvedId.id, module.id);
 			}
@@ -701,16 +704,16 @@ export default class Graph {
 				const importDescription = module.importDescriptions[importName];
 				if (
 					importDescription.name !== '*' &&
-					!importDescription.module.getVariableForExportName(importDescription.name)
+					!(importDescription.module as Module).getVariableForExportName(importDescription.name)
 				) {
 					module.warn(
 						{
 							code: 'NON_EXISTENT_EXPORT',
 							message: `Non-existent export '${
 								importDescription.name
-							}' is imported from ${relativeId(importDescription.module.id)}`,
+							}' is imported from ${relativeId((importDescription.module as Module).id)}`,
 							name: importDescription.name,
-							source: importDescription.module.id
+							source: (importDescription.module as Module).id
 						},
 						importDescription.start
 					);

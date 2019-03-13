@@ -57,7 +57,11 @@ class Link {
 				const source = this.sources[segment[1]];
 				if (!source) continue;
 
-				const traced = source.traceSegment(segment[2], segment[3], this.names[segment[4]]);
+				const traced = source.traceSegment(
+					segment[2],
+					segment[3],
+					this.names[segment[4] as number]
+				);
 
 				if (traced) {
 					// newer sources are more likely to be used, so search backwards.
@@ -121,7 +125,11 @@ class Link {
 				const source = this.sources[segment[1]];
 				if (!source) return null;
 
-				return source.traceSegment(segment[2], segment[3], this.names[segment[4]] || name);
+				return source.traceSegment(
+					segment[2],
+					segment[3],
+					this.names[segment[4] as number] || name
+				);
 			}
 			if (segment[0] > column) {
 				j = m - 1;
@@ -209,7 +217,7 @@ export default function collapseSourcemaps(
 		file = basename(file);
 	}
 
-	sourcesContent = excludeContent ? null : sourcesContent;
+	sourcesContent = (excludeContent ? null : sourcesContent) as string[];
 
 	return new SourceMap({ file, sources, sourcesContent, names, mappings });
 }

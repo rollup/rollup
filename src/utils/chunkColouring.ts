@@ -68,7 +68,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 	for (currentEntry of entryModules) {
 		handledEntryPoints[currentEntry.id] = true;
 		currentEntryHash = randomUint8Array(10);
-		modulesVisitedForCurrentEntry = { [currentEntry.id]: null };
+		modulesVisitedForCurrentEntry = { [currentEntry.id]: false };
 		addCurrentEntryColourToModule(currentEntry);
 	}
 
@@ -78,7 +78,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 		}
 		handledEntryPoints[currentEntry.id] = true;
 		currentEntryHash = randomUint8Array(10);
-		modulesVisitedForCurrentEntry = { [currentEntry.id]: null };
+		modulesVisitedForCurrentEntry = { [currentEntry.id]: false };
 		addCurrentEntryColourToModule(currentEntry);
 	}
 }

@@ -6,7 +6,7 @@ let chokidar: typeof chokidarType;
 try {
 	chokidar = relative('chokidar', process.cwd());
 } catch (err) {
-	chokidar = null;
+	chokidar = null as any;
 }
 
 export default chokidar;

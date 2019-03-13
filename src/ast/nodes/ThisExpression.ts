@@ -28,7 +28,7 @@ export default class ThisExpression extends NodeBase {
 
 	initialise() {
 		this.included = false;
-		this.variable = null;
+		this.variable = null as any;
 		this.alias =
 			this.scope.findLexicalBoundary() instanceof ModuleScope ? this.context.moduleContext : null;
 		if (this.alias === 'undefined') {

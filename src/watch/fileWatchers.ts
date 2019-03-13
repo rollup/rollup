@@ -15,7 +15,7 @@ export function addTask(
 	isTransformDependency: boolean
 ) {
 	if (!watchers.has(chokidarOptionsHash)) watchers.set(chokidarOptionsHash, new Map());
-	const group = watchers.get(chokidarOptionsHash);
+	const group = watchers.get(chokidarOptionsHash) as Map<string, FileWatcher>;
 
 	const watcher = group.get(id) || new FileWatcher(id, chokidarOptions, group);
 	if (!watcher.fileExists) {
@@ -26,7 +26,7 @@ export function addTask(
 }
 
 export function deleteTask(id: string, target: Task, chokidarOptionsHash: string) {
-	const group = watchers.get(chokidarOptionsHash);
+	const group = watchers.get(chokidarOptionsHash) as Map<string, FileWatcher>;
 	const watcher = group.get(id);
 	if (watcher) watcher.deleteTask(target, group);
 }

@@ -106,7 +106,7 @@ export function renderStatementList(
 					  })
 					: currentNode.render(code, options);
 			} else {
-				treeshakeNode(currentNode, code, currentNodeStart, nextNodeStart);
+				treeshakeNode(currentNode, code, currentNodeStart as number, nextNodeStart);
 			}
 		} else {
 			currentNode.render(code, options);
@@ -162,7 +162,7 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 	splitUpNodes.push({
 		contentEnd: end,
 		end,
-		node,
+		node: node as N,
 		separator: null,
 		start
 	});

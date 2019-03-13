@@ -113,7 +113,7 @@ export default class SequenceExpression extends NodeBase {
 		// Round brackets are part of the actual parent and should be re-added in case the parent changed
 		if (includedNodes > 1 && renderedParentType) {
 			code.prependRight(firstStart, '(');
-			code.appendLeft(lastEnd, ')');
+			code.appendLeft(lastEnd as number, ')');
 		}
 	}
 }

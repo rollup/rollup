@@ -31,7 +31,7 @@ export function optimizeChunks(
 
 		let execGroupIndex = 1;
 		let seekingFirstMergeCandidate = true;
-		let lastChunk: Chunk,
+		let lastChunk: Chunk = undefined as any,
 			chunk = execGroup[0],
 			nextChunk = execGroup[1];
 

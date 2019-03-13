@@ -2,10 +2,7 @@ import { AstContext } from '../../Module';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { UNDEFINED_EXPRESSION } from '../values';
-import ArgumentsVariable from '../variables/ArgumentsVariable';
-import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import LocalVariable from '../variables/LocalVariable';
-import ThisVariable from '../variables/ThisVariable';
 import Variable from '../variables/Variable';
 import ChildScope from './ChildScope';
 
@@ -13,9 +10,6 @@ export default class Scope {
 	children: ChildScope[] = [];
 	variables: {
 		[name: string]: Variable;
-		arguments?: ArgumentsVariable;
-		default?: ExportDefaultVariable;
-		this?: ThisVariable | LocalVariable;
 	} = Object.create(null);
 
 	addDeclaration(
