@@ -80,6 +80,7 @@ export default class Graph {
 	acornOptions: acorn.Options;
 	acornParser: typeof acorn.Parser;
 	assetsById = new Map<string, Asset>();
+	cachedModules: Map<string, ModuleJSON>;
 	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
 	curChunkIndex = 0;
 	deoptimizationTracker: EntityPathTracker;
@@ -99,10 +100,10 @@ export default class Graph {
 	treeshakingOptions: TreeshakingOptions;
 	watchFiles: Record<string, true> = Object.create(null);
 
-	private cachedModules: Map<string, ModuleJSON>;
 	private cacheExpiry: number;
 	private context: string;
 	private externalModules: ExternalModule[] = [];
+	private moduleLoader: ModuleLoader;
 	private modules: Module[] = [];
 	private onwarn: WarningHandler;
 	private pluginCache: Record<string, SerializablePluginCache>;
@@ -222,6 +223,7 @@ export default class Graph {
 				: [])
 		);
 		this.acornParser = <any>acorn.Parser.extend(...acornPluginsToInject);
+		this.moduleLoader = new ModuleLoader(this, this.moduleById, this.pluginDriver);
 	}
 
 	build(
@@ -234,12 +236,11 @@ export default class Graph {
 		// of the entry module's dependencies
 
 		timeStart('parse modules', 2);
-		const moduleLoader = new ModuleLoader(this, this.moduleById);
 
 		if (manualChunks) {
-			moduleLoader.addManualChunks(manualChunks);
+			this.moduleLoader.addManualChunks(manualChunks);
 		}
-		return moduleLoader
+		return this.moduleLoader
 			.addEntryModules(normalizeEntryModules(entryModules))
 			.then(({ entryModulesWithAliases, manualChunkModulesByAlias }) => {
 				for (const module of Array.from(this.moduleById.values())) {
