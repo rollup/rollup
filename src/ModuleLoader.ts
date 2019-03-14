@@ -4,6 +4,7 @@ import Module from './Module';
 import { ModuleJSON, ResolvedId, ResolveIdResult, SourceDescription } from './rollup/types';
 import { error } from './utils/error';
 import { isRelative, resolve } from './utils/path';
+import { PluginDriver } from './utils/pluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
@@ -11,6 +12,11 @@ import transform from './utils/transform';
 interface ModuleWithAlias {
 	alias: string;
 	module: Module;
+}
+
+interface UnresolvedModuleWithAlias {
+	alias: string | null;
+	unresolvedId: string;
 }
 
 function normalizeRelativeExternalId(importee: string, source: string) {
@@ -23,29 +29,28 @@ export class ModuleLoader {
 	private readonly graph: Graph;
 	private readonly manualChunkModules: Record<string, Module[]> = {};
 	private readonly modulesById: Map<string, Module | ExternalModule>;
+	private readonly pluginDriver: PluginDriver;
 
 	// TODO Lukas get rid of graph dependency
-	constructor(graph: Graph, modulesById: Map<string, Module | ExternalModule>) {
+	constructor(
+		graph: Graph,
+		modulesById: Map<string, Module | ExternalModule>,
+		pluginDriver: PluginDriver
+	) {
 		this.graph = graph;
 		this.modulesById = modulesById;
+		this.pluginDriver = pluginDriver;
 	}
 
 	addEntryModules(
-		unresolvedEntryModules: { alias: string | null; unresolvedId: string }[]
+		unresolvedEntryModules: UnresolvedModuleWithAlias[]
 	): Promise<{
-		entryModulesWithAliases: { alias: string; module: Module }[];
+		entryModulesWithAliases: ModuleWithAlias[];
 		manualChunkModulesByAlias: Record<string, Module[]>;
 	}> {
 		const loadNewEntryModulesPromise = Promise.all(
-			unresolvedEntryModules.map(({ unresolvedId }) => this.loadEntryModule(unresolvedId))
-		).then(entryModules =>
-			this.entryModules.push(
-				...entryModules.map((module, entryIndex) => ({
-					alias: unresolvedEntryModules[entryIndex].alias || getAliasName(module.id),
-					module
-				}))
-			)
-		);
+			unresolvedEntryModules.map(this.loadEntryModule)
+		).then(entryModules => this.entryModules.push(...entryModules));
 
 		this.currentLoadModulesPromise = Promise.all([
 			this.currentLoadModulesPromise,
@@ -57,25 +62,22 @@ export class ModuleLoader {
 		}));
 	}
 
-	addManualChunks(manualChunks: Record<string, string[]> | void): void {
-		const unresolvedManualChunks: { alias: string; unresolvedId: string }[] = [];
-		if (manualChunks) {
-			for (const alias of Object.keys(manualChunks)) {
-				const manualChunkIds = manualChunks[alias];
-				for (const unresolvedId of manualChunkIds) {
-					unresolvedManualChunks.push({ unresolvedId, alias });
-				}
+	addManualChunks(manualChunks: Record<string, string[]>): void {
+		const unresolvedManualChunks: UnresolvedModuleWithAlias[] = [];
+		for (const alias of Object.keys(manualChunks)) {
+			const manualChunkIds = manualChunks[alias];
+			for (const unresolvedId of manualChunkIds) {
+				unresolvedManualChunks.push({ unresolvedId, alias });
 			}
 		}
 		const loadNewManualChunkModulesModulesPromise = Promise.all(
-			unresolvedManualChunks.map(({ unresolvedId }) => this.loadEntryModule(unresolvedId))
+			unresolvedManualChunks.map(this.loadEntryModule)
 		).then(manualChunkModules => {
-			for (let i = 0; i < manualChunkModules.length; i++) {
-				const { alias } = unresolvedManualChunks[i];
+			for (const { alias, module } of manualChunkModules) {
 				if (!this.manualChunkModules[alias]) {
 					this.manualChunkModules[alias] = [];
 				}
-				this.manualChunkModules[alias].push(manualChunkModules[i]);
+				this.manualChunkModules[alias].push(module);
 			}
 		});
 
@@ -88,7 +90,7 @@ export class ModuleLoader {
 	private fetchAllDependencies(module: Module) {
 		const fetchDynamicImportsPromise = Promise.all(
 			module.getDynamicImportExpressions().map((dynamicImportExpression, index) =>
-				this.graph.pluginDriver
+				this.pluginDriver
 					.hookFirst('resolveDynamicImport', [dynamicImportExpression, module.id])
 					.then(replacement => {
 						if (!replacement) return;
@@ -135,7 +137,7 @@ export class ModuleLoader {
 		this.modulesById.set(id, module);
 
 		timeStart('load modules', 3);
-		return Promise.resolve(this.graph.pluginDriver.hookFirst('load', [id]))
+		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
 			.catch((err: Error) => {
 				timeEnd('load modules', 3);
 				let msg = `Could not load ${id}`;
@@ -174,7 +176,7 @@ export class ModuleLoader {
 					// re-emit transform assets
 					if (cachedModule.transformAssets) {
 						for (const asset of cachedModule.transformAssets)
-							this.graph.pluginDriver.emitAsset(asset.name, asset.source);
+							this.pluginDriver.emitAsset(asset.name, asset.source);
 					}
 					return cachedModule;
 				}
@@ -222,9 +224,12 @@ export class ModuleLoader {
 			});
 	}
 
-	private loadEntryModule(entryName: string) {
-		return this.graph.pluginDriver
-			.hookFirst<string | false | void>('resolveId', [entryName, undefined])
+	private loadEntryModule = ({
+		alias,
+		unresolvedId
+	}: UnresolvedModuleWithAlias): Promise<ModuleWithAlias> => {
+		return this.pluginDriver
+			.hookFirst<string | false | void>('resolveId', [unresolvedId, undefined])
 			.then(id => {
 				if (id === false) {
 					error({
@@ -236,13 +241,16 @@ export class ModuleLoader {
 				if (id == null) {
 					error({
 						code: 'UNRESOLVED_ENTRY',
-						message: `Could not resolve entry (${entryName})`
+						message: `Could not resolve entry (${unresolvedId})`
 					});
 				}
 
-				return this.fetchModule(<string>id, undefined);
+				return this.fetchModule(<string>id, undefined).then(module => ({
+					alias: alias || getAliasName(module.id),
+					module
+				}));
 			});
-	}
+	};
 
 	private normalizeResolveIdResult(
 		resolveIdResult: ResolveIdResult,
@@ -296,7 +304,7 @@ export class ModuleLoader {
 			Promise.resolve(
 				this.graph.isExternal(source, module.id, false)
 					? { id: source, external: true }
-					: this.graph.pluginDriver.hookFirst<ResolveIdResult>('resolveId', [source, module.id])
+					: this.pluginDriver.hookFirst<ResolveIdResult>('resolveId', [source, module.id])
 			).then(result => this.normalizeResolveIdResult(result, module, source))
 		).then(resolvedId => {
 			module.resolvedIds[source] = resolvedId;
