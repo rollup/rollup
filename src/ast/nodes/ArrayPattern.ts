@@ -13,6 +13,11 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	addExportedVariables(variables: Variable[]): void {
 		for (const element of this.elements) {
 			if (element !== null) {
+				if (!element.addExportedVariables) {
+					console.log('=== Unexpected pattern element:', element.type, '\n');
+					console.log('pattern:', this.toString());
+					console.log('parent:', this.parent.toString());
+				}
 				element.addExportedVariables(variables);
 			}
 		}
