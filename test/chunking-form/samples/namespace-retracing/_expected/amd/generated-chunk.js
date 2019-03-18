@@ -12,7 +12,7 @@ define(['exports'], function (exports) { 'use strict';
 
 	Other.doSomething = function() { console.log('other'); };
 
-	exports.Other = Other;
 	exports.Broken = Broken;
+	exports.Other = Other;
 
 });

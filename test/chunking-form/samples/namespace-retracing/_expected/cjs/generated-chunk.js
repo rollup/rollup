@@ -12,5 +12,5 @@ class Other {
 
 Other.doSomething = function() { console.log('other'); };
 
-exports.Other = Other;
 exports.Broken = Broken;
+exports.Other = Other;

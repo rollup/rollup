@@ -6,5 +6,5 @@ var external = require('external');
 
 
 
-exports.q = external.p;
 exports.p = external.default;
+exports.q = external.p;

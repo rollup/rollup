@@ -4,8 +4,8 @@
 	(global = global || self, factory(global.foo = {}, global.external));
 }(this, function (exports, external) { 'use strict';
 
-	exports.q = external.p;
 	exports.p = external.default;
+	exports.q = external.p;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

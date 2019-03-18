@@ -8,5 +8,5 @@ function log (x) {
   }
 }
 
-exports.log = log;
 exports.dep = dep;
+exports.log = log;

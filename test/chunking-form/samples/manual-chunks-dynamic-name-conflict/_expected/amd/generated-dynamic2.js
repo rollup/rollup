@@ -2,7 +2,7 @@ define(['exports', './generated-dynamic.js'], function (exports, dynamic) { 'use
 
 
 
-	exports.DYNAMIC_B = dynamic.DYNAMIC_A;
 	exports.DYNAMIC_A = dynamic.DYNAMIC_B;
+	exports.DYNAMIC_B = dynamic.DYNAMIC_A;
 
 });

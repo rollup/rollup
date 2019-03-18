@@ -11,4 +11,4 @@ class X {
 	set [bam] ( value ) {}
 }
 
-export { x, X };
+export { X, x };

@@ -8,5 +8,5 @@ var _missingExportShim$1 = void 0;
 
 console.log(_missingExportShim$1);
 
-exports.previousShimmedExport = _missingExportShim$1;
 exports.missing2 = _missingExportShim;
+exports.previousShimmedExport = _missingExportShim$1;
