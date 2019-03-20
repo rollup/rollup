@@ -7,4 +7,9 @@ require('./generated-chunk.js');
 
 
 
-exports.dep = external.asdf;
+Object.defineProperty(exports, 'dep', {
+	enumerable: true,
+	get: function () {
+		return external.asdf;
+	}
+});

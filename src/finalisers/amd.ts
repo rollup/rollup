@@ -13,7 +13,7 @@ export default function amd(
 		dynamicImport,
 		exports,
 		hasExports,
-		indentString,
+		indentString: t,
 		intro,
 		isEntryModuleFacade,
 		namedExportsMode,
@@ -69,7 +69,8 @@ export default function amd(
 		dependencies,
 		namedExportsMode,
 		options.interop,
-		options.compact
+		options.compact,
+		t
 	);
 	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (namedExportsMode && hasExports && isEntryModuleFacade && options.esModule)
@@ -77,7 +78,7 @@ export default function amd(
 	if (outro) magicString.append(outro);
 
 	return magicString
-		.indent(indentString)
+		.indent(t)
 		.append(n + n + '});')
 		.prepend(wrapperStart);
 }

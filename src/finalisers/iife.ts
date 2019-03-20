@@ -95,7 +95,8 @@ export default function iife(
 		dependencies,
 		namedExportsMode,
 		options.interop,
-		options.compact
+		options.compact,
+		t
 	);
 	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (outro) magicString.append(outro);

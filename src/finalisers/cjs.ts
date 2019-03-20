@@ -11,6 +11,7 @@ export default function cjs(
 		dependencies,
 		exports,
 		hasExports,
+		indentString: t,
 		intro,
 		isEntryModuleFacade,
 		namedExportsMode,
@@ -32,6 +33,7 @@ export default function cjs(
 	const interop = options.interop !== false;
 	let importBlock: string;
 
+	// TODO Lukas investigate if those cases can be united
 	if (options.compact) {
 		let definingVariable = false;
 		importBlock = '';
@@ -114,6 +116,7 @@ export default function cjs(
 		namedExportsMode,
 		options.interop,
 		options.compact,
+		t,
 		`module.exports${_}=${_}`
 	);
 

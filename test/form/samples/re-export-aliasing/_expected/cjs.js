@@ -6,4 +6,9 @@ var d = require('d');
 
 
 
-exports.b = d.d;
+Object.defineProperty(exports, 'b', {
+	enumerable: true,
+	get: function () {
+		return d.d;
+	}
+});
