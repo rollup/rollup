@@ -4,9 +4,9 @@ System.register('iife', [], function (exports, module) {
     execute: function () {
 
       exports({
-        updateFoo: update,
         updateBar: update$1,
-        updateBaz: update$2
+        updateBaz: update$2,
+        updateFoo: update
       });
 
       function update () {

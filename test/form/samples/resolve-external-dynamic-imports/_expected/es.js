@@ -4,4 +4,4 @@ const test = () => myExternal;
 
 const someDynamicImport = () => import('external');
 
-export { test, someDynamicImport };
+export { someDynamicImport, test };

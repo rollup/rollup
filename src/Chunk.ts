@@ -138,6 +138,7 @@ export default class Chunk {
 	private renderedModuleSources: MagicString[] = undefined;
 	private renderedSource: MagicStringBundle | null = null;
 	private renderedSourceLength: number = undefined;
+	private sortedExportNames: string[] | null = null;
 
 	constructor(graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
@@ -243,6 +244,7 @@ export default class Chunk {
 		let i = 0,
 			safeExportName: string;
 		this.exportNames = Object.create(null);
+		this.sortedExportNames = null;
 		const exportedVariables = Array.from(this.exports);
 		if (mangle) {
 			for (const variable of exportedVariables) {
@@ -275,7 +277,9 @@ export default class Chunk {
 	}
 
 	getExportNames(): string[] {
-		return Object.keys(this.exportNames);
+		return (
+			this.sortedExportNames || (this.sortedExportNames = Object.keys(this.exportNames).sort())
+		);
 	}
 
 	getImportIds(): string[] {
@@ -288,7 +292,7 @@ export default class Chunk {
 		const hash = sha256();
 		hash.update(this.renderedSource.toString());
 		hash.update(
-			Object.keys(this.exportNames)
+			this.getExportNames()
 				.map(exportName => {
 					const variable = this.exportNames[exportName];
 					return `${relativeId(variable.module.id).replace(/\\/g, '/')}:${
@@ -805,7 +809,7 @@ export default class Chunk {
 	): ChunkDependencies {
 		const reexportDeclarations = new Map<Chunk | ExternalModule, ReexportSpecifier[]>();
 
-		for (let exportName of Object.keys(this.exportNames)) {
+		for (let exportName of this.getExportNames()) {
 			let exportModule: Chunk | ExternalModule;
 			let importName: string;
 			if (exportName[0] === '*') {
@@ -901,7 +905,7 @@ export default class Chunk {
 
 	private getChunkExportDeclarations(): ChunkExports {
 		const exports: ChunkExports = [];
-		for (const exportName of Object.keys(this.exportNames)) {
+		for (const exportName of this.getExportNames()) {
 			if (exportName[0] === '*') continue;
 
 			const variable = this.exportNames[exportName];
@@ -991,7 +995,7 @@ export default class Chunk {
 	}
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
-		for (const exportName of Object.keys(this.exportNames)) {
+		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportNames[exportName];
 			if (exportVariable) {
 				if (exportVariable instanceof ExportShimVariable) {

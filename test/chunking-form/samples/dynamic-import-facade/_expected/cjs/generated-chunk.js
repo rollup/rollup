@@ -7,5 +7,5 @@ const dep = 'dep';
 console.log('dynamic', dep);
 const dynamic = 'dynamic';
 
-exports.dynamic = dynamic;
 exports.dep = dep;
+exports.dynamic = dynamic;

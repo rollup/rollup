@@ -49,23 +49,16 @@ export default class Graph {
 	acornOptions: acorn.Options;
 	acornParser: typeof acorn.Parser;
 	assetsById = new Map<string, Asset>();
-	cachedModules: Map<string, ModuleJSON>;
-	cacheExpiry: number;
-	context: string;
 	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
 	curChunkIndex = 0;
 	deoptimizationTracker: EntityPathTracker;
-	externalModules: ExternalModule[] = [];
 	// track graph build status as each graph instance is used only once
 	finished = false;
 	getModuleContext: (id: string) => string;
 	isExternal: IsExternal;
 	isPureExternalModule: (id: string) => boolean;
 	moduleById = new Map<string, Module | ExternalModule>();
-	modules: Module[] = [];
 	needsTreeshakingPass: boolean = false;
-	onwarn: WarningHandler;
-	pluginCache: Record<string, SerializablePluginCache>;
 	pluginDriver: PluginDriver;
 	preserveModules: boolean;
 	scope: GlobalScope;
@@ -74,6 +67,14 @@ export default class Graph {
 	treeshake: boolean;
 	treeshakingOptions: TreeshakingOptions;
 	watchFiles: Record<string, true> = Object.create(null);
+
+	private cachedModules: Map<string, ModuleJSON>;
+	private cacheExpiry: number;
+	private context: string;
+	private externalModules: ExternalModule[] = [];
+	private modules: Module[] = [];
+	private onwarn: WarningHandler;
+	private pluginCache: Record<string, SerializablePluginCache>;
 
 	constructor(options: InputOptions, watcher?: RollupWatcher) {
 		this.curChunkIndex = 0;
@@ -225,16 +226,7 @@ export default class Graph {
 					}
 				}
 
-				this.link();
-
-				const { orderedModules, cyclePaths } = analyseModuleExecution(entryModules);
-				for (const cyclePath of cyclePaths) {
-					this.warn({
-						code: 'CIRCULAR_DEPENDENCY',
-						importer: cyclePath[0],
-						message: `Circular dependency: ${cyclePath.join(' -> ')}`
-					});
-				}
+				this.link(entryModules);
 
 				timeEnd('analyse dependency graph', 2);
 
@@ -248,7 +240,7 @@ export default class Graph {
 						);
 				}
 				for (const entryModule of entryModules) entryModule.includeAllExports();
-				this.includeMarked(orderedModules);
+				this.includeMarked(this.modules);
 
 				// check for unused external imports
 				for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
@@ -275,7 +267,7 @@ export default class Graph {
 				//       should be made to be its own entry point module before chunking
 				let chunks: Chunk[] = [];
 				if (this.preserveModules) {
-					for (const module of orderedModules) {
+					for (const module of this.modules) {
 						const chunk = new Chunk(this, [module]);
 						if (module.isEntryPoint || !chunk.isEmpty) {
 							chunk.entryModules = [module];
@@ -284,7 +276,7 @@ export default class Graph {
 					}
 				} else {
 					const chunkModules: { [entryHashSum: string]: Module[] } = {};
-					for (const module of orderedModules) {
+					for (const module of this.modules) {
 						const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
 						const curChunk = chunkModules[entryPointsHashStr];
 						if (curChunk) {
@@ -545,10 +537,19 @@ export default class Graph {
 			});
 	}
 
-	private link() {
+	private link(entryModules: Module[]) {
 		for (const module of this.modules) {
 			module.linkDependencies();
 		}
+		const { orderedModules, cyclePaths } = analyseModuleExecution(entryModules);
+		for (const cyclePath of cyclePaths) {
+			this.warn({
+				code: 'CIRCULAR_DEPENDENCY',
+				importer: cyclePath[0],
+				message: `Circular dependency: ${cyclePath.join(' -> ')}`
+			});
+		}
+		this.modules = orderedModules;
 		for (const module of this.modules) {
 			module.bindReferences();
 		}

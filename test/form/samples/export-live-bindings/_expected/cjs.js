@@ -30,6 +30,6 @@ console.log(exports.baz);
 update$2();
 console.log(exports.baz);
 
-exports.updateFoo = update;
 exports.updateBar = update$1;
 exports.updateBaz = update$2;
+exports.updateFoo = update;

@@ -6,4 +6,4 @@ var _missingExportShim$1 = void 0;
 
 console.log(_missingExportShim$1);
 
-export { _missingExportShim$1 as previousShimmedExport, _missingExportShim as missing2 };
+export { _missingExportShim as missing2, _missingExportShim$1 as previousShimmedExport };

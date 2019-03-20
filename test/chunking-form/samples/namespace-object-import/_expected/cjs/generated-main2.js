@@ -9,5 +9,5 @@ var main2 = /*#__PURE__*/Object.freeze({
 });
 
 exports.a = a;
-exports.main2 = main2;
 exports.b = b;
+exports.main2 = main2;

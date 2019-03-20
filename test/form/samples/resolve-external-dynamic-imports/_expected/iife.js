@@ -7,8 +7,8 @@ var bundle = (function (exports, myExternal) {
 
 	const someDynamicImport = () => import('external');
 
-	exports.test = test;
 	exports.someDynamicImport = someDynamicImport;
+	exports.test = test;
 
 	return exports;
 

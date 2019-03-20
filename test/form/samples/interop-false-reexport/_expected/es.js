@@ -1,1 +1,1 @@
-export { p as q, default as p } from 'external';
+export { default as p, p as q } from 'external';

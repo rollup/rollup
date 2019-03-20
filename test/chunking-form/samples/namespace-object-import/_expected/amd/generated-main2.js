@@ -9,7 +9,7 @@ define(['exports'], function (exports) { 'use strict';
 	});
 
 	exports.a = a;
-	exports.main2 = main2;
 	exports.b = b;
+	exports.main2 = main2;
 
 });

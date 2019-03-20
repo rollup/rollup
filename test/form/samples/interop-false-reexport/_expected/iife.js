@@ -3,8 +3,8 @@ var foo = (function (exports, external) {
 
 
 
-	exports.q = external.p;
 	exports.p = external.default;
+	exports.q = external.p;
 
 	return exports;
 
