@@ -44,6 +44,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	scope: ModuleScope;
 	type: NodeType.tExportDefaultDeclaration;
 	variable: ExportDefaultVariable;
+
 	private declarationName: string;
 
 	include(includeAllChildrenRecursively: boolean) {
