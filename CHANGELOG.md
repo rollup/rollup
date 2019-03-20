@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 1.7.0
+*2019-03-20*
+
+### Features
+* Sort chunk exports by name for greater consistency (#2757)
+
+### Bug Fixes
+* Fix a situation where tree-shakeable code would not be removed in an indeterminate manner (#2757)
+
+### Pull Requests
+* [#2757](https://github.com/rollup/rollup/pull/2757): Sort modules before binding, sort exports (@lukastaegert)
+
 ## 1.6.1
 *2019-03-20*
 
