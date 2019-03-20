@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.6.1
+*2019-03-20*
+
+### Bug Fixes
+* Avoid name clashes of unused default exports when tree-shaking is false (#2758)
+* Do not crash when generating SystemJS bundles containing array patterns with member expressions (#2760)
+
+### Pull Requests
+* [#2758](https://github.com/rollup/rollup/pull/2758): Make sure unused default exports are deconflicted when tree-shaking is false (@lukastaegert)
+* [#2760](https://github.com/rollup/rollup/pull/2760): Handle member expressions in array patterns (@lukastaegert)
+
 ## 1.6.0
 *2019-03-08*
 
