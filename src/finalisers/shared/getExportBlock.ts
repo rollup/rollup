@@ -94,7 +94,6 @@ export default function getExportBlock(
 							  `${t}${t}return ${importName};${n}${t}}${n}});`
 							: `exports.${specifier.reexported}${_}=${_}${importName};`;
 					} else if (specifier.reexported !== '*') {
-						// TODO Lukas which case is this?
 						if (exportBlock && !compact) exportBlock += '\n';
 						exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
 					}

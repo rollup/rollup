@@ -817,7 +817,6 @@ export default class Chunk {
 			let exportModule: Chunk | ExternalModule;
 			let importName: string;
 			let needsLiveBinding = false;
-			// TODO Lukas handle * reexports
 			if (exportName[0] === '*') {
 				exportModule = <ExternalModule>this.graph.moduleById.get(exportName.substr(1));
 				importName = exportName = '*';
