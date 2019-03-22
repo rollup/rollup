@@ -34,6 +34,7 @@ import relativeId from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
+import { RESERVED_NAMES } from './utils/reservedNames';
 import { sanitizeFileName } from './utils/sanitizeFileName';
 import { timeEnd, timeStart } from './utils/timers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
@@ -248,12 +249,14 @@ export default class Chunk {
 		const exportedVariables = Array.from(this.exports);
 		if (mangle) {
 			for (const variable of exportedVariables) {
-				safeExportName = toBase64(++i);
-				// skip past leading number identifiers
-				if (safeExportName.charCodeAt(0) === 49 /* '1' */) {
-					i += 9 * 64 ** (safeExportName.length - 1);
-					safeExportName = toBase64(i);
-				}
+				do {
+					safeExportName = toBase64(++i);
+					// skip past leading number identifiers
+					if (safeExportName.charCodeAt(0) === 49 /* '1' */) {
+						i += 9 * 64 ** (safeExportName.length - 1);
+						safeExportName = toBase64(i);
+					}
+				} while (RESERVED_NAMES[safeExportName]);
 				this.exportNames[safeExportName] = variable;
 			}
 		} else {
