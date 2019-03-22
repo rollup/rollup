@@ -208,13 +208,16 @@ export default class Chunk {
 		options: OutputOptions,
 		existingNames: Record<string, true>
 	) {
+		const hash = () => this.computeContentHashWithDependencies(addons, options);
 		this.id = makeUnique(
 			renderNamePattern(pattern, patternName, type => {
 				switch (type) {
 					case 'format':
 						return options.format === 'es' ? 'esm' : options.format;
 					case 'hash':
-						return this.computeContentHashWithDependencies(addons, options);
+						return hash().substr(0, 8);
+					case 'fullhash':
+						return hash();
 					case 'name':
 						return this.getChunkName();
 				}
@@ -765,7 +768,7 @@ export default class Chunk {
 			else hash.update(dep.getRenderedHash());
 		});
 
-		return hash.digest('hex').substr(0, 8);
+		return hash.digest('hex');
 	}
 
 	private finaliseDynamicImports() {

@@ -22,13 +22,19 @@ export function getAssetFileName(
 
 	return makeUnique(
 		renderNamePattern(assetFileNames, 'assetFileNames', name => {
+			function computeHash() {
+				const hash = sha256();
+				hash.update(name);
+				hash.update(':');
+				hash.update(asset.source);
+				return hash.digest('hex');
+			}
+
 			switch (name) {
 				case 'hash':
-					const hash = sha256();
-					hash.update(name);
-					hash.update(':');
-					hash.update(asset.source);
-					return hash.digest('hex').substr(0, 8);
+					return computeHash().substr(0, 8);
+				case 'fullhash':
+					return computeHash();
 				case 'name':
 					return asset.name.substr(0, asset.name.length - extname(asset.name).length);
 				case 'extname':
