@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 1.7.1
+*unreleased*
+
+### Bug Fixes
+
+### Pull Requests
+* [#2769](https://github.com/rollup/rollup/pull/2769): Update dependencies and fix security issue (@lukastaegert)
+
 ## 1.7.0
 *2019-03-20*
 
