@@ -5,10 +5,12 @@
 
 ### Bug Fixes
 * Prevent invalid code when exporting several hundred identifiers from a chunk (#2768)
+* Do not wrongly deconflict labels (#2776)
 
 ### Pull Requests
 * [#2768](https://github.com/rollup/rollup/pull/2768): Sanitize shortened internal export names (@lukastaegert)
 * [#2769](https://github.com/rollup/rollup/pull/2769): Update dependencies and fix security issue (@lukastaegert)
+* [#2776](https://github.com/rollup/rollup/pull/2776): Do not treat break labels as identifiers (@lukastaegert)
 
 ## 1.7.0
 *2019-03-20*
