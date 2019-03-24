@@ -1,11 +1,13 @@
 # rollup changelog
 
 ## 1.7.1
-*unreleased*
+*2019-03-24*
 
 ### Bug Fixes
+* Prevent invalid code when exporting several hundred identifiers from a chunk (#2768)
 
 ### Pull Requests
+* [#2768](https://github.com/rollup/rollup/pull/2768): Sanitize shortened internal export names (@lukastaegert)
 * [#2769](https://github.com/rollup/rollup/pull/2769): Update dependencies and fix security issue (@lukastaegert)
 
 ## 1.7.0
