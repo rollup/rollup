@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.7.2
+*2019-03-24*
+
+### Bug Fixes
+* Make sure relative external ids are resolved correctly (#2774)
+
+### Pull Requests
+* [#2774](https://github.com/rollup/rollup/pull/2774): Resolve relative external ids (@lukastaegert)
+
 ## 1.7.1
 *2019-03-24*
 
