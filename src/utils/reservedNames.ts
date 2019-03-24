@@ -4,7 +4,7 @@ export interface NameCollection {
 	[name: string]: true;
 }
 
-const RESERVED_NAMES: NameCollection = Object.assign(Object.create(null), {
+export const RESERVED_NAMES: NameCollection = Object.assign(Object.create(null), {
 	await: true,
 	break: true,
 	case: true,
