@@ -45,6 +45,10 @@ function makeOnwarn() {
 	};
 }
 
+function normalizeRelativeExternalId(importee: string, source: string) {
+	return isRelative(source) ? resolve(importee, '..', source) : source;
+}
+
 export default class Graph {
 	acornOptions: acorn.Options;
 	acornParser: typeof acorn.Parser;
@@ -637,42 +641,56 @@ export default class Graph {
 		module: Module,
 		source: string
 	): ResolvedId {
+		let id = '';
+		let external = false;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
-				return resolveIdResult;
+				id = resolveIdResult.id;
+				if (resolveIdResult.external) {
+					external = true;
+				}
+			} else {
+				id = resolveIdResult;
+				if (this.isExternal(id, module.id, true)) {
+					external = true;
+				}
 			}
-			return { id: resolveIdResult, external: this.isExternal(resolveIdResult, module.id, true) };
-		}
-		const externalId = isRelative(source) ? resolve(module.id, '..', source) : source;
-		if (resolveIdResult !== false && !this.isExternal(externalId, module.id, true)) {
-			if (isRelative(source)) {
-				error({
+			if (external) {
+				id = normalizeRelativeExternalId(module.id, id);
+			}
+		} else {
+			id = normalizeRelativeExternalId(module.id, source);
+			external = true;
+			if (resolveIdResult !== false && !this.isExternal(id, module.id, true)) {
+				if (isRelative(source)) {
+					error({
+						code: 'UNRESOLVED_IMPORT',
+						message: `Could not resolve '${source}' from ${relativeId(module.id)}`
+					});
+				}
+				this.warn({
 					code: 'UNRESOLVED_IMPORT',
-					message: `Could not resolve '${source}' from ${relativeId(module.id)}`
+					importer: relativeId(module.id),
+					message: `'${source}' is imported by ${relativeId(
+						module.id
+					)}, but could not be resolved – treating it as an external dependency`,
+					source,
+					url: 'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
 				});
 			}
-			this.warn({
-				code: 'UNRESOLVED_IMPORT',
-				importer: relativeId(module.id),
-				message: `'${source}' is imported by ${relativeId(
-					module.id
-				)}, but could not be resolved – treating it as an external dependency`,
-				source,
-				url: 'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
-			});
 		}
-		return { id: externalId, external: true };
+		return { id, external };
 	}
 
-	private resolveAndFetchDependency(module: Module, source: string) {
+	private resolveAndFetchDependency(module: Module, source: string): Promise<any> {
 		return Promise.resolve(
 			module.resolvedIds[source] ||
-				(this.isExternal(source, module.id, false)
-					? { id: source, external: true }
-					: this.pluginDriver
-							.hookFirst<ResolveIdResult>('resolveId', [source, module.id])
-							.then(result => this.normalizeResolveIdResult(result, module, source)))
-		).then((resolvedId: ResolvedId) => {
+				Promise.resolve(
+					this.isExternal(source, module.id, false)
+						? { id: source, external: true }
+						: this.pluginDriver.hookFirst<ResolveIdResult>('resolveId', [source, module.id])
+				).then(result => this.normalizeResolveIdResult(result, module, source))
+		).then(resolvedId => {
 			module.resolvedIds[source] = resolvedId;
 			if (resolvedId.external) {
 				if (!this.moduleById.has(resolvedId.id)) {
