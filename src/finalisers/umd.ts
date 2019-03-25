@@ -157,7 +157,8 @@ export default function umd(
 		dependencies,
 		namedExportsMode,
 		options.interop,
-		options.compact
+		options.compact,
+		t
 	);
 	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (namedExportsMode && hasExports && options.esModule)

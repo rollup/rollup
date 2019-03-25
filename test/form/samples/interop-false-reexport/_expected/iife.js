@@ -4,7 +4,12 @@ var foo = (function (exports, external) {
 
 
 	exports.p = external.default;
-	exports.q = external.p;
+	Object.defineProperty(exports, 'q', {
+		enumerable: true,
+		get: function () {
+			return external.p;
+		}
+	});
 
 	return exports;
 

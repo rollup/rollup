@@ -4,7 +4,12 @@
 	(global = global || self, factory(global.myBundle = {}, global.external));
 }(this, function (exports, external) { 'use strict';
 
-	exports.s = external.p;
+	Object.defineProperty(exports, 's', {
+		enumerable: true,
+		get: function () {
+			return external.p;
+		}
+	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

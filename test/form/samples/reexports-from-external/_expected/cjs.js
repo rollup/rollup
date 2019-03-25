@@ -6,4 +6,11 @@ var external = require('external');
 
 
 
-Object.keys(external).forEach(function (key) { exports[key] = external[key]; });
+Object.keys(external).forEach(function (key) {
+	Object.defineProperty(exports, key, {
+		enumerable: true,
+		get: function () {
+			return external[key];
+		}
+	});
+});

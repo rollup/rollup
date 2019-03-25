@@ -68,6 +68,7 @@ export type ChunkExports = {
 
 export interface ReexportSpecifier {
 	imported: string;
+	needsLiveBinding: boolean;
 	reexported: string;
 }
 
@@ -815,6 +816,7 @@ export default class Chunk {
 		for (let exportName of this.getExportNames()) {
 			let exportModule: Chunk | ExternalModule;
 			let importName: string;
+			let needsLiveBinding = false;
 			if (exportName[0] === '*') {
 				exportModule = <ExternalModule>this.graph.moduleById.get(exportName.substr(1));
 				importName = exportName = '*';
@@ -826,14 +828,16 @@ export default class Chunk {
 				if (module instanceof Module) {
 					exportModule = module.chunk;
 					importName = module.chunk.getVariableExportName(variable);
+					needsLiveBinding = variable.isReassigned;
 				} else {
 					exportModule = module;
 					importName = variable.name;
+					needsLiveBinding = true;
 				}
 			}
 			let exportDeclaration = reexportDeclarations.get(exportModule);
 			if (!exportDeclaration) reexportDeclarations.set(exportModule, (exportDeclaration = []));
-			exportDeclaration.push({ imported: importName, reexported: exportName });
+			exportDeclaration.push({ imported: importName, reexported: exportName, needsLiveBinding });
 		}
 
 		const importsAsArray = Array.from(this.imports);

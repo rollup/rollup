@@ -6,4 +6,9 @@ var external = require('external');
 
 
 
-exports.s = external.p;
+Object.defineProperty(exports, 's', {
+	enumerable: true,
+	get: function () {
+		return external.p;
+	}
+});
