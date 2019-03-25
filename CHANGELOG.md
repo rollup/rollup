@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.7.3
+*2019-03-24*
+
+### Bug Fixes
+* Use getters when re-exporting live-bindings (#2765)
+
+### Pull Requests
+* [#2765](https://github.com/rollup/rollup/pull/2765): Support exporting live-bindings from other chunks or external dependencies (@lukastaegert)
+
 ## 1.7.2
 *2019-03-24*
 
