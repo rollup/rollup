@@ -254,9 +254,9 @@ export interface Plugin {
 }
 
 export interface TreeshakingOptions {
-	annotations: boolean;
-	propertyReadSideEffects: boolean;
-	pureExternalModules: boolean;
+	annotations?: boolean;
+	propertyReadSideEffects?: boolean;
+	pureExternalModules?: boolean;
 }
 
 export type ExternalOption = string[] | IsExternal;
