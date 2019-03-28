@@ -7,6 +7,9 @@ import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
+// TODO Lukas unite compact and non-compact similar to relative mechanism
+// TODO Lukas reference absolute mechanism in relative mechanism
+
 const globalImportMetaUrlMechanism = `(typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || document.baseURI : new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)('file:' + __filename).href)`;
 const importMetaUrlMechanisms: Record<string, string> = {
 	amd: `new URL((typeof process !== 'undefined' && process.versions && process.versions.node ? 'file:' : '') + module.uri).href`,
