@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.7.4
+*2019-03-28*
+
+### Bug Fixes
+* Improve TypeScript type of the treeshaking options (#2779)
+
+### Pull Requests
+* [#2779](https://github.com/rollup/rollup/pull/2779): Make all properties in TreeshakingOptions optional (@ndelangen)
+
 ## 1.7.3
 *2019-03-24*
 
