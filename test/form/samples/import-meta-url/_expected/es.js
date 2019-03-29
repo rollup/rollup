@@ -1,1 +1,1 @@
-console.log(import.meta.url);
+document.body.innerText = import.meta.url;

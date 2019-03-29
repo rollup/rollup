@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			console.log(module.meta.url);
+			document.body.innerText = module.meta.url;
 
 		}
 	};

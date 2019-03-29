@@ -7,33 +7,45 @@ import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
-// TODO Lukas extract more common elements from mechanisms
+// TODO Lukas make relative mechanism more uniform
 // TODO Lukas reference absolute mechanism in relative mechanism
 
-const globalImportMetaUrlMechanism = (_: string) =>
-	`(typeof document${_}!==${_}'undefined'${_}?${_}document.currentScript${_}&&${_}document.currentScript.src${_}||${_}document.baseURI${_}:${_}new${_}(typeof URL${_}!==${_}'undefined'${_}?${_}URL${_}:${_}require('ur'+'l').URL)('file:'${_}+${_}__filename).href)`;
+const getResolveUrl = (path: string, URL: string = 'URL') => `new ${URL}(${path}).href`;
+const amdModuleUrl = `(typeof process !== 'undefined' && process.versions && process.versions.node ? 'file:' : '') + module.uri`;
+const getURLFromGlobalOrCjs = `(typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)`;
 
-const importMetaUrlMechanisms: Record<string, (_: string) => string> = {
-	amd: (_: string) =>
-		`new URL((typeof process${_}!==${_}'undefined'${_}&&${_}process.versions${_}&&${_}process.versions.node${_}?${_}'file:'${_}:${_}'')${_}+${_}module.uri).href`,
-	cjs: (_: string) =>
-		`new${_}(typeof URL${_}!==${_}'undefined'${_}?${_}URL${_}:${_}require('ur'+'l').URL)((process.browser${_}?${_}''${_}:${_}'file:')${_}+${_}__filename,${_}process.browser${_}&&${_}document.baseURI).href`,
+const globalImportMetaUrlMechanism = `(typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || document.baseURI : ${getResolveUrl(
+	`'file:' + __filename`,
+	getURLFromGlobalOrCjs
+)})`;
+
+const importMetaUrlMechanisms: Record<string, string> = {
+	amd: getResolveUrl(amdModuleUrl),
+	cjs: getResolveUrl(
+		`(process.browser ? '' : 'file:') + __filename, process.browser && document.baseURI`,
+		getURLFromGlobalOrCjs
+	),
 	iife: globalImportMetaUrlMechanism,
 	umd: globalImportMetaUrlMechanism
 };
 
-const globalRelUrlMechanism = (relPath: string, _: string) => {
-	return `new${_}(typeof URL${_}!==${_}'undefined'${_}?${_}URL${_}:${_}require('ur'+'l').URL)((typeof document${_}!==${_}'undefined'${_}?${_}document.currentScript${_}&&${_}document.currentScript.src${_}||${_}document.baseURI${_}:${_}'file:'${_}+${_}__filename)${_}+${_}'/../${relPath}').href`;
+const globalRelUrlMechanism = (relPath: string) => {
+	return getResolveUrl(
+		`(typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || document.baseURI : 'file:' + __filename) + '/../${relPath}'`,
+		getURLFromGlobalOrCjs
+	);
 };
 
-const relUrlMechanisms: Record<string, (relPath: string, _: string) => string> = {
-	amd: (relPath: string, _: string) =>
-		`new URL((typeof process${_}!==${_}'undefined'${_}&&${_}process.versions${_}&&${_}process.versions.node${_}?${_}'file:'${_}:${_}'')${_}+${_}module.uri${_}+${_}'/../${relPath}').href`,
-	cjs: (relPath: string, _: string) =>
-		`new${_}(typeof URL${_}!==${_}'undefined'${_}?${_}URL${_}:${_}require('ur'+'l').URL)((process.browser${_}?${_}''${_}:${_}'file:')${_}+${_}__dirname${_}+${_}'/${relPath}',${_}process.browser${_}&&${_}document.baseURI).href`,
-	es: (relPath: string, _: string) => `new URL('../${relPath}',${_}import.meta.url).href`,
+const relUrlMechanisms: Record<string, (relPath: string) => string> = {
+	amd: (relPath: string) => getResolveUrl(`${amdModuleUrl} + '/../${relPath}'`),
+	cjs: (relPath: string) =>
+		getResolveUrl(
+			`(process.browser ? '' : 'file:') + __dirname + '/${relPath}', process.browser && document.baseURI`,
+			getURLFromGlobalOrCjs
+		),
+	es: (relPath: string) => getResolveUrl(`'../${relPath}', import.meta.url`), // TODO Lukas does this pattern make sense in more situations?
 	iife: globalRelUrlMechanism,
-	system: (relPath: string, _: string) => `new URL('../${relPath}',${_}module.url).href`,
+	system: (relPath: string) => getResolveUrl(`'../${relPath}', module.url`),
 	umd: globalRelUrlMechanism
 };
 
@@ -56,16 +68,10 @@ export default class MetaProperty extends NodeBase {
 		super.render(code, options);
 	}
 
-	renderFinalMechanism(
-		code: MagicString,
-		chunkId: string,
-		format: string,
-		compact: boolean
-	): boolean {
+	renderFinalMechanism(code: MagicString, chunkId: string, format: string): boolean {
 		// TODO Lukas why?
 		if (!this.rendered) return false;
 
-		const _ = compact ? '' : ' ';
 		if (this.parent instanceof MemberExpression === false) return false;
 
 		const parent = <MemberExpression>this.parent;
@@ -80,7 +86,7 @@ export default class MetaProperty extends NodeBase {
 		if (importMetaProperty.startsWith('ROLLUP_ASSET_URL_')) {
 			const assetFileName = this.context.getAssetFileName(importMetaProperty.substr(17));
 			const relPath = normalize(relative(dirname(chunkId), assetFileName));
-			code.overwrite(parent.start, parent.end, relUrlMechanisms[format](relPath, _));
+			code.overwrite(parent.start, parent.end, relUrlMechanisms[format](relPath));
 			return true;
 		}
 
@@ -88,8 +94,7 @@ export default class MetaProperty extends NodeBase {
 			code.overwrite(this.meta.start, this.meta.end, 'module');
 		} else if (importMetaProperty === 'url') {
 			const importMetaUrlMechanism = importMetaUrlMechanisms[format];
-			if (importMetaUrlMechanism)
-				code.overwrite(parent.start, parent.end, importMetaUrlMechanism(_));
+			if (importMetaUrlMechanism) code.overwrite(parent.start, parent.end, importMetaUrlMechanism);
 			return true;
 		}
 

@@ -800,8 +800,7 @@ export default class Chunk {
 			const module = this.orderedModules[i];
 			const code = this.renderedModuleSources[i];
 			for (const importMeta of module.importMetas) {
-				if (importMeta.renderFinalMechanism(code, this.id, options.format, options.compact))
-					usesMechanism = true;
+				if (importMeta.renderFinalMechanism(code, this.id, options.format)) usesMechanism = true;
 			}
 		}
 		return usesMechanism;
