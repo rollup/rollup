@@ -9,11 +9,12 @@ import { NodeBase } from './shared/Node';
 const getResolveUrl = (path: string, URL: string = 'URL') => `new ${URL}(${path}).href`;
 
 const amdModuleUrl = `(typeof process !== 'undefined' && process.versions && process.versions.node ? 'file:' : '') + module.uri`;
+const getURLFromGlobalOrCjs = `(typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)`;
 
 const globalRelUrlMechanism = (relPath: string) => {
 	return getResolveUrl(
 		`(typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || document.baseURI : 'file:' + __filename) + '/../${relPath}'`,
-		`(typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)`
+		getURLFromGlobalOrCjs
 	);
 };
 
@@ -22,7 +23,7 @@ const relUrlMechanisms: Record<string, (relPath: string) => string> = {
 	cjs: (relPath: string) =>
 		getResolveUrl(
 			`(process.browser ? '' : 'file:') + __dirname + '/${relPath}', process.browser && document.baseURI`,
-			`(typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)`
+			getURLFromGlobalOrCjs
 		),
 	es: (relPath: string) => getResolveUrl(`'../${relPath}', import.meta.url`),
 	iife: globalRelUrlMechanism,
