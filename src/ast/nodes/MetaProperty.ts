@@ -7,32 +7,32 @@ import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
-// TODO Lukas make relative mechanism more uniform
-// TODO Lukas reference absolute mechanism in relative mechanism
-
 const getResolveUrl = (path: string, URL: string = 'URL') => `new ${URL}(${path}).href`;
+
+const getUrlFromDocument = (chunkId: string) =>
+	`(document.currentScript && document.currentScript.src || new URL('${chunkId}', document.baseURI).href)`;
+
 const amdModuleUrl = `(typeof process !== 'undefined' && process.versions && process.versions.node ? 'file:' : '') + module.uri`;
-const getURLFromGlobalOrCjs = `(typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)`;
 
-const globalImportMetaUrlMechanism = `(typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || document.baseURI : ${getResolveUrl(
-	`'file:' + __filename`,
-	getURLFromGlobalOrCjs
-)})`;
-
-const importMetaUrlMechanisms: Record<string, string> = {
-	amd: getResolveUrl(amdModuleUrl),
-	cjs: getResolveUrl(
-		`(process.browser ? '' : 'file:') + __filename, process.browser && document.baseURI`,
-		getURLFromGlobalOrCjs
-	),
-	iife: globalImportMetaUrlMechanism,
-	umd: globalImportMetaUrlMechanism
+const importMetaUrlMechanisms: Record<string, (chunkId: string) => string> = {
+	amd: () => getResolveUrl(`module.uri, document.baseURI`),
+	cjs: chunkId =>
+		`(typeof document === 'undefined' ? ${getResolveUrl(
+			`'file:' + __filename`,
+			`(require('u' + 'rl').URL)`
+		)} : ${getUrlFromDocument(chunkId)})`,
+	iife: chunkId => getUrlFromDocument(chunkId),
+	umd: chunkId =>
+		`(typeof document === 'undefined' ? ${getResolveUrl(
+			`'file:' + __filename`,
+			`(require('u' + 'rl').URL)`
+		)} : ${getUrlFromDocument(chunkId)})`
 };
 
 const globalRelUrlMechanism = (relPath: string) => {
 	return getResolveUrl(
 		`(typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || document.baseURI : 'file:' + __filename) + '/../${relPath}'`,
-		getURLFromGlobalOrCjs
+		`(typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)`
 	);
 };
 
@@ -41,9 +41,9 @@ const relUrlMechanisms: Record<string, (relPath: string) => string> = {
 	cjs: (relPath: string) =>
 		getResolveUrl(
 			`(process.browser ? '' : 'file:') + __dirname + '/${relPath}', process.browser && document.baseURI`,
-			getURLFromGlobalOrCjs
+			`(typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)`
 		),
-	es: (relPath: string) => getResolveUrl(`'../${relPath}', import.meta.url`), // TODO Lukas does this pattern make sense in more situations?
+	es: (relPath: string) => getResolveUrl(`'../${relPath}', import.meta.url`),
 	iife: globalRelUrlMechanism,
 	system: (relPath: string) => getResolveUrl(`'../${relPath}', module.url`),
 	umd: globalRelUrlMechanism
@@ -69,7 +69,6 @@ export default class MetaProperty extends NodeBase {
 	}
 
 	renderFinalMechanism(code: MagicString, chunkId: string, format: string): boolean {
-		// TODO Lukas why?
 		if (!this.rendered) return false;
 
 		if (this.parent instanceof MemberExpression === false) return false;
@@ -94,7 +93,8 @@ export default class MetaProperty extends NodeBase {
 			code.overwrite(this.meta.start, this.meta.end, 'module');
 		} else if (importMetaProperty === 'url') {
 			const importMetaUrlMechanism = importMetaUrlMechanisms[format];
-			if (importMetaUrlMechanism) code.overwrite(parent.start, parent.end, importMetaUrlMechanism);
+			if (importMetaUrlMechanism)
+				code.overwrite(parent.start, parent.end, importMetaUrlMechanism(chunkId));
 			return true;
 		}
 

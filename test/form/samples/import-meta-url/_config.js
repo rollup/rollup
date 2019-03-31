@@ -1,4 +1,3 @@
 module.exports = {
-	solo: true,
-	description: 'import.meta.url support'
+	description: 'supports import.meta.url'
 };

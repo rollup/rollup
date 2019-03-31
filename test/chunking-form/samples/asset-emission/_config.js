@@ -1,5 +1,4 @@
 module.exports = {
-	solo: true,
 	description: 'supports emitting assets from plugin hooks',
 	options: {
 		input: ['main.js'],

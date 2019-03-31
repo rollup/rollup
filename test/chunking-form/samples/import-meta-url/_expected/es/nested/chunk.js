@@ -2,8 +2,8 @@ function log(url) {
 	if (typeof document === 'undefined') {
 		console.log(url);
 	} else {
-		document.body.innerText = url;
+		document.body.innerHTML += url + '<br>';
 	}
 }
 
-log(import.meta.url);
+export { log as a };
