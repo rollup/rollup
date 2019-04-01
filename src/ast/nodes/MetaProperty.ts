@@ -22,6 +22,7 @@ const importMetaUrlMechanisms: Record<string, (chunkId: string) => string> = {
 			`(require('u' + 'rl').URL)`
 		)} : ${getUrlFromDocument(chunkId)})`,
 	iife: chunkId => getUrlFromDocument(chunkId),
+	system: () => `module.meta.url`,
 	umd: chunkId =>
 		`(typeof document === 'undefined' ? ${getResolveUrl(
 			`'file:' + __filename`,
@@ -68,12 +69,15 @@ export default class MetaProperty extends NodeBase {
 		super.render(code, options);
 	}
 
-	renderFinalMechanism(code: MagicString, chunkId: string, format: string): boolean {
-		if (!this.rendered) return false;
+	renderFinalMechanism(
+		code: MagicString,
+		chunkId: string,
+		format: string,
+		renderImportMetaUrl: ((chunkId: string, moduleId: string) => string) | void
+	): boolean {
+		if (!this.included || !(this.parent instanceof MemberExpression)) return false;
 
-		if (this.parent instanceof MemberExpression === false) return false;
-
-		const parent = <MemberExpression>this.parent;
+		const parent = this.parent;
 
 		let importMetaProperty: string;
 		if (parent.property instanceof Identifier) importMetaProperty = parent.property.name;
@@ -89,12 +93,11 @@ export default class MetaProperty extends NodeBase {
 			return true;
 		}
 
-		if (format === 'system') {
-			code.overwrite(this.meta.start, this.meta.end, 'module');
-		} else if (importMetaProperty === 'url') {
-			const importMetaUrlMechanism = importMetaUrlMechanisms[format];
-			if (importMetaUrlMechanism)
-				code.overwrite(parent.start, parent.end, importMetaUrlMechanism(chunkId));
+		if (importMetaProperty === 'url') {
+			const getImportMetaUrl = renderImportMetaUrl || importMetaUrlMechanisms[format];
+			if (getImportMetaUrl) {
+				code.overwrite(parent.start, parent.end, getImportMetaUrl(chunkId, this.context.module.id));
+			}
 			return true;
 		}
 

@@ -614,6 +614,31 @@ Default: `true`
 
 Whether to `Object.freeze()` namespace import objects (i.e. `import * as namespaceImportObject from...`) that are accessed dynamically.
 
+#### output.importMetaUrl
+Type: `((chunkId: string, moduleId: string) => string)`<br>
+
+This allows the user to configure how Rollup handles `import.meta.url`. In ES modules, `import.meta.url` returns the URL of the current module, e.g. `http://server.net/bundle.js` for browsers or `file:///path/to/bundle.js` in Node.
+
+By default for formats other than ES modules, Rollup replaces `import.meta.url` with code that attempts to match this behaviour by returning the dynamic URL of the current chunk. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available.
+ 
+ This behaviour can be customized by supplying a function, which will replace `import.meta.url` for all formats:
+
+```javascript
+// rollup.config.js
+export default {
+  ...,
+  output: {
+    ...,
+    
+    // this will use the original module id when resolving import.meta.url
+    importMetaUrl(chunkId, moduleId) {
+    	return `"${moduleId}"`;
+    }
+  }
+};
+
+```
+
 #### output.indent
 Type: `boolean | string`<br>
 CLI: `--indent`/`--no-indent`<br>
@@ -621,7 +646,7 @@ Default: `true`
 
 The indent string to use, for formats that require code to be indented (`amd`, `iife`, `umd`, `system`). Can also be `false` (no indent), or `true` (the default – auto-indent)
 
-```js
+```javascript
 // rollup.config.js
 export default {
   ...,
