@@ -239,7 +239,6 @@ function getOutputOptions(
 			break;
 		case 'commonjs':
 			format = 'cjs';
-			break;
 	}
 
 	return {
