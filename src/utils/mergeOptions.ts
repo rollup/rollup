@@ -229,7 +229,17 @@ function getOutputOptions(
 	command: GenericConfigObject = {}
 ): OutputOptions {
 	const getOption = createGetOption(config, command);
-	const format = getOption('format');
+	let format = getOption('format');
+
+	// Handle format aliases
+	switch (format) {
+		case 'esm':
+		case 'module':
+			format = 'es';
+			break;
+		case 'commonjs':
+			format = 'cjs';
+	}
 
 	return {
 		amd: { ...config.amd, ...command.amd },
