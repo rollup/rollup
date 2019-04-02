@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 1.8.0
+*2019-04-02*
+
+### Features
+* Support `module` as alias for `esm` and `commonjs` for `cjs` to match Node (#2783)
+
+### Pull Requests
+* [#2782](https://github.com/rollup/rollup/pull/2782): Inline interopDefault in config loading (@guybedford)
+* [#2783](https://github.com/rollup/rollup/pull/2783): Support Node-style format aliases (@guybedford)
+
 ## 1.7.4
 *2019-03-28*
 
