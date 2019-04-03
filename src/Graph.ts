@@ -1,6 +1,7 @@
 import * as acorn from 'acorn';
 import injectDynamicImportPlugin from 'acorn-dynamic-import';
 import injectImportMeta from 'acorn-import-meta';
+import injectBigInt from 'acorn-bigint';
 import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
@@ -180,6 +181,7 @@ export default class Graph {
 
 		acornPluginsToInject.push(injectDynamicImportPlugin);
 		acornPluginsToInject.push(injectImportMeta);
+		acornPluginsToInject.push(injectBigInt);
 
 		if (options.experimentalTopLevelAwait) {
 			(<any>this.acornOptions).allowAwaitOutsideFunction = true;

@@ -19,3 +19,4 @@ declare module 'require-relative';
 declare module 'rollup-pluginutils/src/createFilter.js';
 declare module 'acorn-dynamic-import';
 declare module 'acorn-import-meta';
+declare module 'acorn-bigint';
