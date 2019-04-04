@@ -2,6 +2,7 @@ import * as acorn from 'acorn';
 import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
+import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration, {
 	isExportDefaultDeclaration
@@ -19,7 +20,6 @@ import { Node, NodeBase } from './ast/nodes/shared/Node';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
-import extractNames from './ast/utils/extractNames';
 import { UNKNOWN_PATH } from './ast/values';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
@@ -676,7 +676,7 @@ export default class Module {
 
 			if (declaration.type === NodeType.VariableDeclaration) {
 				for (const decl of declaration.declarations) {
-					for (const localName of extractNames(decl.id)) {
+					for (const localName of extractAssignedNames(decl.id)) {
 						this.exports[localName] = { localName, node };
 					}
 				}
