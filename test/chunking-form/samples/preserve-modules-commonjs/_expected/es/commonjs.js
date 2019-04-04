@@ -1,6 +1,6 @@
 import 'external';
 import './other.js';
-import external from './_virtual/_commonjs-external_external';
+import external from './_virtual/_commonjs-external-external';
 import require$$0 from './_virtual/other.js';
 
 const { value } = require$$0;
