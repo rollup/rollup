@@ -1,7 +1,7 @@
 import { WatchOptions } from 'chokidar';
 import { EventEmitter } from 'events';
 import path from 'path';
-import createFilter from 'rollup-pluginutils/src/createFilter.js';
+import createFilter from 'rollup-pluginutils/src/createFilter';
 import rollup, { setWatcher } from '../rollup/index';
 import {
 	InputOptions,
