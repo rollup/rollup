@@ -191,6 +191,11 @@ export type ResolveDynamicImportHook = (
 	parentId: string
 ) => Promise<string | void> | string | void;
 
+export type ResolveImportMetaUrlHook = (
+	this: PluginContext,
+	options: { chunkId: string; moduleId: string }
+) => string | void;
+
 export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);
 
 /**
@@ -244,6 +249,7 @@ export interface Plugin {
 	renderStart?: (this: PluginContext) => Promise<void> | void;
 	resolveDynamicImport?: ResolveDynamicImportHook;
 	resolveId?: ResolveIdHook;
+	resolveImportMetaUrl?: ResolveImportMetaUrlHook;
 	transform?: TransformHook;
 	/** @deprecated */
 	transformBundle?: TransformChunkHook;
@@ -324,7 +330,6 @@ export interface OutputOptions {
 	format?: ModuleFormat;
 	freeze?: boolean;
 	globals?: GlobalsOption;
-	importMetaUrl?: (chunkId: string, moduleId: string) => string;
 	indent?: boolean;
 	interop?: boolean;
 	intro?: string | (() => string | Promise<string>);

@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import { dirname, normalize, relative } from '../../utils/path';
+import { PluginDriver } from '../../utils/pluginDriver';
 import { RenderOptions } from '../../utils/renderHelpers';
 import Identifier from './Identifier';
 import Literal from './Literal';
@@ -73,7 +74,7 @@ export default class MetaProperty extends NodeBase {
 		code: MagicString,
 		chunkId: string,
 		format: string,
-		renderImportMetaUrl: ((chunkId: string, moduleId: string) => string) | void
+		pluginDriver: PluginDriver
 	): boolean {
 		if (!this.included || !(this.parent instanceof MemberExpression)) return false;
 
@@ -94,9 +95,16 @@ export default class MetaProperty extends NodeBase {
 		}
 
 		if (importMetaProperty === 'url') {
-			const getImportMetaUrl = renderImportMetaUrl || importMetaUrlMechanisms[format];
-			if (getImportMetaUrl) {
-				code.overwrite(parent.start, parent.end, getImportMetaUrl(chunkId, this.context.module.id));
+			const replacement =
+				pluginDriver.hookFirstSync<string | void>('resolveImportMetaUrl', [
+					{
+						chunkId,
+						moduleId: this.context.module.id
+					}
+				]) ||
+				(importMetaUrlMechanisms[format] && importMetaUrlMechanisms[format](chunkId));
+			if (typeof replacement === 'string') {
+				code.overwrite(parent.start, parent.end, replacement);
 			}
 			return true;
 		}

@@ -202,6 +202,25 @@ resolveId(id) {
 }
 ```
 
+#### `resolveImportMetaUrl`
+Type: `({chunkId: string, moduleId: string}) => string | null`<br>
+Kind: `sync, first`
+
+Allows to customize how Rollup handles `import.meta.url`. In ES modules, `import.meta.url` returns the URL of the current module, e.g. `http://server.net/bundle.js` for browsers or `file:///path/to/bundle.js` in Node.
+
+By default for formats other than ES modules, Rollup replaces `import.meta.url` with code that attempts to match this behaviour by returning the dynamic URL of the current chunk. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available.
+ 
+ This behaviour can be changed by returning a replacement for `import.meta.url`. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
+
+```javascript
+// rollup.config.js
+resolveImportMetaUrl({moduleId}) {
+	return `new URL('${path.relative(process.cwd(), moduleId)}', document.baseURI).href`;
+}
+```
+
+Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
+
 #### `transform`
 Type: `(code: string, id: string) => string | { code: string, map?: string | SourceMap, ast? : ESTree.Program } | null`
 <br>
