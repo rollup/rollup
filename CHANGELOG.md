@@ -1,11 +1,13 @@
 # rollup changelog
 
-## 1.8.1
-*unreleased*
+## 1.9.0
+*2019-04-05*
 
-### Bug Fixes
+### Features
+* Add built-in support for bigint (#2789)
 
 ### Pull Requests
+* [#2789](https://github.com/rollup/rollup/pull/2789): Ship with bigint support built-in (@danielgindi)
 * [#2791](https://github.com/rollup/rollup/pull/2791): Use shared extractAssignedNames from rollup-pluginutils (@lukastaegert)
 * [#2792](https://github.com/rollup/rollup/pull/2792): Test that rollup-plugin-commonjs works with preserveModules (@lukastaegert)
 
