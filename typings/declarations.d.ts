@@ -18,3 +18,4 @@ declare module 'sourcemap-codec';
 declare module 'require-relative';
 declare module 'acorn-dynamic-import';
 declare module 'acorn-import-meta';
+declare module 'acorn-bigint';
