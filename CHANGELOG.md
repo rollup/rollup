@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.8.1
+*unreleased*
+
+### Bug Fixes
+
+### Pull Requests
+* [#2791](https://github.com/rollup/rollup/pull/2791): Use shared extractAssignedNames from rollup-pluginutils (@lukastaegert)
+* [#2792](https://github.com/rollup/rollup/pull/2792): Test that rollup-plugin-commonjs works with preserveModules (@lukastaegert)
+
 ## 1.8.0
 *2019-04-02*
 
