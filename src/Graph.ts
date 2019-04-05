@@ -1,7 +1,7 @@
 import * as acorn from 'acorn';
+import injectBigInt from 'acorn-bigint';
 import injectDynamicImportPlugin from 'acorn-dynamic-import';
 import injectImportMeta from 'acorn-import-meta';
-import injectBigInt from 'acorn-bigint';
 import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
