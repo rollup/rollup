@@ -1,7 +1,8 @@
-define(['module'], function (module) { 'use strict';
+define(['module', 'require', './nested/chunk.js'], function (module, require, __chunk_1) { 'use strict';
 
-	var main = new URL((typeof process !== 'undefined' && process.versions && process.versions.node ? 'file:' : '') + module.uri + '/../assets/test-19916f7d.ext').href;
+	var logo = new URL(module.uri + '/../assets/logo1-25253976.svg', document.baseURI).href;
 
-	return main;
+	__chunk_1.showImage(logo);
+	new Promise(function (resolve, reject) { require(['./nested/chunk2.js'], resolve, reject) });
 
 });

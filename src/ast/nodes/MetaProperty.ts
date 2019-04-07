@@ -8,27 +8,26 @@ import { NodeBase } from './shared/Node';
 
 const getResolveUrl = (path: string, URL: string = 'URL') => `new ${URL}(${path}).href`;
 
-const amdModuleUrl = `(typeof process !== 'undefined' && process.versions && process.versions.node ? 'file:' : '') + module.uri`;
-const getURLFromGlobalOrCjs = `(typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)`;
-
-const globalRelUrlMechanism = (relPath: string) => {
-	return getResolveUrl(
-		`(typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || document.baseURI : 'file:' + __filename) + '/../${relPath}'`,
-		getURLFromGlobalOrCjs
+const getRelativeUrlFromDocument = (relativePath: string) =>
+	getResolveUrl(
+		`(document.currentScript && document.currentScript.src || document.baseURI) + '/../${relativePath}'`
 	);
-};
 
-const relUrlMechanisms: Record<string, (relPath: string) => string> = {
-	amd: (relPath: string) => getResolveUrl(`${amdModuleUrl} + '/../${relPath}'`),
-	cjs: (relPath: string) =>
-		getResolveUrl(
-			`(process.browser ? '' : 'file:') + __dirname + '/${relPath}', process.browser && document.baseURI`,
-			getURLFromGlobalOrCjs
-		),
-	es: (relPath: string) => getResolveUrl(`'../${relPath}', import.meta.url`),
-	iife: globalRelUrlMechanism,
-	system: (relPath: string) => getResolveUrl(`'../${relPath}', module.url`),
-	umd: globalRelUrlMechanism
+const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = {
+	amd: relativePath => getResolveUrl(`module.uri + '/../${relativePath}', document.baseURI`),
+	cjs: relativePath =>
+		`(typeof document === 'undefined' ? ${getResolveUrl(
+			`'file:' + __dirname + '/${relativePath}'`,
+			`(require('u' + 'rl').URL)`
+		)} : ${getRelativeUrlFromDocument(relativePath)})`,
+	es: relativePath => getResolveUrl(`'${relativePath}', import.meta.url`),
+	iife: relativePath => getRelativeUrlFromDocument(relativePath),
+	system: relativePath => getResolveUrl(`'${relativePath}', module.meta.url`),
+	umd: relativePath =>
+		`(typeof document === 'undefined' ? ${getResolveUrl(
+			`'file:' + __dirname + '/${relativePath}'`,
+			`(require('u' + 'rl').URL)`
+		)} : ${getRelativeUrlFromDocument(relativePath)})`
 };
 
 export default class MetaProperty extends NodeBase {
@@ -63,7 +62,7 @@ export default class MetaProperty extends NodeBase {
 			code.overwrite(
 				(parent as MemberExpression).start,
 				(parent as MemberExpression).end,
-				relUrlMechanisms[format](relPath)
+				relativeUrlMechanisms[format](relPath)
 			);
 			return true;
 		}

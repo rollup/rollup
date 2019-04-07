@@ -348,14 +348,36 @@ The `position` argument is a character index where the warning was raised. If pr
 
 ### Asset URLs
 
-To reference an asset URL reference from within JS code, use the `import.meta.ROLLUP_ASSET_URL_[assetId]` replacement. The following example represents emitting a CSS file for a module that then exports a URL that is constructed to correctly point to the emitted file from the target runtime environment.
+To reference an asset URL reference from within JS code, use the `import.meta.ROLLUP_ASSET_URL_[assetId]` replacement. This will generate code that depends on the output format and generates a URL that points to the emitted file in the target environment. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available.
 
+The following example will detect imports of `.svg` files, emit the imported files as assets, and return their URLs to be used e.g. as the `src` attribute of an `img` tag:
 
 ```js
-load (id) {
-  const assetId = this.emitAsset('style.css', fs.readFileSync(path.resolve(assets, 'style.css')));
-  return `export default import.meta.ROLLUP_ASSET_URL_${assetId}`;
+// plugin
+export default function svgResolverPlugin () {
+  return ({
+    resolveId(id, importee) {
+      if (id.endsWith('.svg')) {
+        return path.resolve(path.dirname(importee), id);
+      }
+    },
+    load(id) {
+      if (id.endsWith('.svg')) {
+      	const assetId = this.emitAsset(
+          path.basename(id),
+          fs.readFileSync(id)
+        );
+        return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
+      }
+    }
+  });
 }
+
+// usage
+import logo from '../images/logo.svg';
+const image = document.createElement('img');
+image.src = logo;
+document.body.appendChild(image);
 ```
 
 ### Advanced Loaders

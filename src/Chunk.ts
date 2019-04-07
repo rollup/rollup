@@ -795,7 +795,7 @@ export default class Chunk {
 	}
 
 	private finaliseImportMetas(options: OutputOptions): boolean {
-		let usesMechanism = false;
+		let needsAmdModule = false;
 		for (let i = 0; i < this.orderedModules.length; i++) {
 			const module = this.orderedModules[i];
 			const code = this.renderedModuleSources[i];
@@ -803,11 +803,11 @@ export default class Chunk {
 				if (
 					importMeta.renderFinalMechanism(code, this.id, options.format, this.graph.pluginDriver)
 				) {
-					usesMechanism = true;
+					needsAmdModule = true;
 				}
 			}
 		}
-		return usesMechanism;
+		return needsAmdModule;
 	}
 
 	private getChunkDependencyDeclarations(

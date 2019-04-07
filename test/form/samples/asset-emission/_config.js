@@ -4,10 +4,6 @@ const path = require('path');
 module.exports = {
 	description: 'supports emitting assets from plugin hooks',
 	options: {
-		input: ['main.js'],
-		output: {
-			chunkFileNames: 'nested/chunk.js'
-		},
 		plugins: {
 			resolveId(id, importee) {
 				if (id.endsWith('.svg')) {
