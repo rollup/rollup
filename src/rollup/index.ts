@@ -477,5 +477,9 @@ function normalizeOutputOptions(
 			});
 	}
 
+	if (outputOptions.format === 'iife') {
+		outputOptions.context = outputOptions.context || inputOptions.context;
+	}
+
 	return outputOptions;
 }
