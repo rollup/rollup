@@ -1,6 +1,6 @@
 import { InputOptions, Plugin } from '../rollup/types';
 import { error } from './error';
-import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs'; // eslint-disable-line
+import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
 
 export function getRollupDefaultPlugin(options: InputOptions): Plugin {
@@ -13,6 +13,9 @@ export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 		resolveDynamicImport(specifier, parentId) {
 			if (typeof specifier === 'string' && !this.isExternal(specifier, parentId, false))
 				return <Promise<string>>this.resolveId(specifier, parentId);
+		},
+		resolveImportMetaUrl({ chunkId, format }) {
+			return importMetaUrlMechanisms[format] && importMetaUrlMechanisms[format](chunkId);
 		}
 	};
 }
@@ -67,3 +70,24 @@ function createResolveId(options: InputOptions) {
 		);
 	};
 }
+
+const getResolveUrl = (path: string, URL: string = 'URL') => `new ${URL}(${path}).href`;
+
+const getUrlFromDocument = (chunkId: string) =>
+	`(document.currentScript && document.currentScript.src || new URL('${chunkId}', document.baseURI).href)`;
+
+const importMetaUrlMechanisms: Record<string, (chunkId: string) => string> = {
+	amd: () => getResolveUrl(`module.uri, document.baseURI`),
+	cjs: chunkId =>
+		`(typeof document === 'undefined' ? ${getResolveUrl(
+			`'file:' + __filename`,
+			`(require('u' + 'rl').URL)`
+		)} : ${getUrlFromDocument(chunkId)})`,
+	iife: chunkId => getUrlFromDocument(chunkId),
+	system: () => `module.meta.url`,
+	umd: chunkId =>
+		`(typeof document === 'undefined' ? ${getResolveUrl(
+			`'file:' + __filename`,
+			`(require('u' + 'rl').URL)`
+		)} : ${getUrlFromDocument(chunkId)})`
+};

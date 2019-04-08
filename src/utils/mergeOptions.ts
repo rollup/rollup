@@ -39,9 +39,9 @@ const getObjectOption = (
 
 const defaultOnWarn: WarningHandler = warning => {
 	if (typeof warning === 'string') {
-		console.warn(warning); // eslint-disable-line no-console
+		console.warn(warning);
 	} else {
-		console.warn(warning.message); // eslint-disable-line no-console
+		console.warn(warning.message);
 	}
 };
 

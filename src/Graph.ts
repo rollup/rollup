@@ -41,7 +41,7 @@ function makeOnwarn() {
 	return (warning: any) => {
 		const str = warning.toString();
 		if (str in warned) return;
-		console.error(str); //eslint-disable-line no-console
+		console.error(str);
 		warned[str] = true;
 	};
 }

@@ -193,7 +193,7 @@ export type ResolveDynamicImportHook = (
 
 export type ResolveImportMetaUrlHook = (
 	this: PluginContext,
-	options: { chunkId: string; moduleId: string }
+	options: { chunkId: string; format: string; moduleId: string }
 ) => string | void;
 
 export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);

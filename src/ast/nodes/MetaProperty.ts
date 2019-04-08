@@ -10,26 +10,7 @@ import { NodeBase } from './shared/Node';
 
 const getResolveUrl = (path: string, URL: string = 'URL') => `new ${URL}(${path}).href`;
 
-const getUrlFromDocument = (chunkId: string) =>
-	`(document.currentScript && document.currentScript.src || new URL('${chunkId}', document.baseURI).href)`;
-
 const amdModuleUrl = `(typeof process !== 'undefined' && process.versions && process.versions.node ? 'file:' : '') + module.uri`;
-
-const importMetaUrlMechanisms: Record<string, (chunkId: string) => string> = {
-	amd: () => getResolveUrl(`module.uri, document.baseURI`),
-	cjs: chunkId =>
-		`(typeof document === 'undefined' ? ${getResolveUrl(
-			`'file:' + __filename`,
-			`(require('u' + 'rl').URL)`
-		)} : ${getUrlFromDocument(chunkId)})`,
-	iife: chunkId => getUrlFromDocument(chunkId),
-	system: () => `module.meta.url`,
-	umd: chunkId =>
-		`(typeof document === 'undefined' ? ${getResolveUrl(
-			`'file:' + __filename`,
-			`(require('u' + 'rl').URL)`
-		)} : ${getUrlFromDocument(chunkId)})`
-};
 
 const globalRelUrlMechanism = (relPath: string) => {
 	return getResolveUrl(
@@ -95,14 +76,13 @@ export default class MetaProperty extends NodeBase {
 		}
 
 		if (importMetaProperty === 'url') {
-			const replacement =
-				pluginDriver.hookFirstSync<string | void>('resolveImportMetaUrl', [
-					{
-						chunkId,
-						moduleId: this.context.module.id
-					}
-				]) ||
-				(importMetaUrlMechanisms[format] && importMetaUrlMechanisms[format](chunkId));
+			const replacement = pluginDriver.hookFirstSync<string | void>('resolveImportMetaUrl', [
+				{
+					chunkId,
+					format,
+					moduleId: this.context.module.id
+				}
+			]);
 			if (typeof replacement === 'string') {
 				code.overwrite(parent.start, parent.end, replacement);
 			}

@@ -203,7 +203,7 @@ resolveId(id) {
 ```
 
 #### `resolveImportMetaUrl`
-Type: `({chunkId: string, moduleId: string}) => string | null`<br>
+Type: `({chunkId: string, moduleId: string, format: string}) => string | null`<br>
 Kind: `sync, first`
 
 Allows to customize how Rollup handles `import.meta.url`. In ES modules, `import.meta.url` returns the URL of the current module, e.g. `http://server.net/bundle.js` for browsers or `file:///path/to/bundle.js` in Node.
