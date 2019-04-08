@@ -10,7 +10,7 @@ import setupNamespace from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
-const thisProp = (name: string) => `this${keypath(name)}`;
+const thisProp = (name: string, context: string = 'this') => `${context}${keypath(name)}`;
 
 export default function iife(
 	magicString: MagicStringBundle,
@@ -56,7 +56,7 @@ export default function iife(
 
 	if (namedExportsMode && hasExports) {
 		if (extend) {
-			deps.unshift(`${thisProp(name)}${_}=${_}${thisProp(name)}${_}||${_}{}`);
+			deps.unshift(`${thisProp(name, options.context)}${_}=${_}${thisProp(name, options.context)}${_}||${_}{}`);
 			args.unshift('exports');
 		} else {
 			deps.unshift('{}');
@@ -70,7 +70,7 @@ export default function iife(
 
 	if (hasExports && (!extend || !namedExportsMode)) {
 		wrapperIntro =
-			(useVariableAssignment ? `${varOrConst} ${name}` : thisProp(name)) +
+			(useVariableAssignment ? `${varOrConst} ${name}` : thisProp(name, options.context)) +
 			`${_}=${_}${wrapperIntro}`;
 	}
 
