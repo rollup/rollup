@@ -131,3 +131,25 @@ const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = 
 			`(require('u' + 'rl').URL)`
 		)} : ${getRelativeUrlFromDocument(relativePath)})`
 };
+
+const getRelativeUrlFromDocument = (relativePath: string) =>
+	getResolveUrl(
+		`(document.currentScript && document.currentScript.src || document.baseURI) + '/../${relativePath}'`
+	);
+
+const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = {
+	amd: relativePath => getResolveUrl(`module.uri + '/../${relativePath}', document.baseURI`),
+	cjs: relativePath =>
+		`(typeof document === 'undefined' ? ${getResolveUrl(
+			`'file:' + __dirname + '/${relativePath}'`,
+			`(require('u' + 'rl').URL)`
+		)} : ${getRelativeUrlFromDocument(relativePath)})`,
+	es: relativePath => getResolveUrl(`'${relativePath}', import.meta.url`),
+	iife: relativePath => getRelativeUrlFromDocument(relativePath),
+	system: relativePath => getResolveUrl(`'${relativePath}', module.meta.url`),
+	umd: relativePath =>
+		`(typeof document === 'undefined' ? ${getResolveUrl(
+			`'file:' + __dirname + '/${relativePath}'`,
+			`(require('u' + 'rl').URL)`
+		)} : ${getRelativeUrlFromDocument(relativePath)})`
+};
