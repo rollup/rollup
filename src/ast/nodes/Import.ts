@@ -81,11 +81,11 @@ export default class Import extends NodeBase {
 		if (importMechanism) {
 			const leftMechanism =
 				(this.resolutionInterop && importMechanism.interopLeft) || importMechanism.left;
-			code.overwrite(this.parent.start, this.parent.arguments[0].start, leftMechanism);
+			code.overwrite(this.parent.start, this.parent.callee.end + 1, leftMechanism);
 
 			const rightMechanism =
 				(this.resolutionInterop && importMechanism.interopRight) || importMechanism.right;
-			code.overwrite(this.parent.arguments[0].end, this.parent.end, rightMechanism);
+			code.overwrite(this.parent.end - 1, this.parent.end, rightMechanism);
 		}
 	}
 
