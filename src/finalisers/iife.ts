@@ -75,7 +75,7 @@ export default function iife(
 	}
 
 	if (isNamespaced && hasExports) {
-		wrapperIntro = setupNamespace(name, 'this', options.globals, options.compact) + wrapperIntro;
+		wrapperIntro = setupNamespace(name, options.context || 'this', options.globals, options.compact) + wrapperIntro;
 	}
 
 	let wrapperOutro = `${n}${n}}(${deps.join(`,${_}`)}));`;
