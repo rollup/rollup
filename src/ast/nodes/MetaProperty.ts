@@ -6,30 +6,6 @@ import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
-const getResolveUrl = (path: string, URL: string = 'URL') => `new ${URL}(${path}).href`;
-
-const getRelativeUrlFromDocument = (relativePath: string) =>
-	getResolveUrl(
-		`(document.currentScript && document.currentScript.src || document.baseURI) + '/../${relativePath}'`
-	);
-
-const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = {
-	amd: relativePath => getResolveUrl(`module.uri + '/../${relativePath}', document.baseURI`),
-	cjs: relativePath =>
-		`(typeof document === 'undefined' ? ${getResolveUrl(
-			`'file:' + __dirname + '/${relativePath}'`,
-			`(require('u' + 'rl').URL)`
-		)} : ${getRelativeUrlFromDocument(relativePath)})`,
-	es: relativePath => getResolveUrl(`'${relativePath}', import.meta.url`),
-	iife: relativePath => getRelativeUrlFromDocument(relativePath),
-	system: relativePath => getResolveUrl(`'${relativePath}', module.meta.url`),
-	umd: relativePath =>
-		`(typeof document === 'undefined' ? ${getResolveUrl(
-			`'file:' + __dirname + '/${relativePath}'`,
-			`(require('u' + 'rl').URL)`
-		)} : ${getRelativeUrlFromDocument(relativePath)})`
-};
-
 export default class MetaProperty extends NodeBase {
 	meta: Identifier;
 	property: Identifier;
@@ -59,19 +35,21 @@ export default class MetaProperty extends NodeBase {
 		if (importMetaProperty && importMetaProperty.startsWith('ROLLUP_ASSET_URL_')) {
 			const assetFileName = this.context.getAssetFileName(importMetaProperty.substr(17));
 			const relativeAssetPath = normalize(relative(dirname(chunkId), assetFileName));
-			const replacement =
-				pluginDriver.hookFirstSync<string | void>('resolveAssetUrl', [
-					{
-						assetFileName,
-						chunkId,
-						moduleId: this.context.module.id,
-						relativeAssetPath
-					}
-				]) || relativeUrlMechanisms[format](relativeAssetPath);
+			const replacement = pluginDriver.hookFirstSync<string>('resolveAssetUrl', [
+				{
+					assetFileName,
+					chunkId,
+					format,
+					moduleId: this.context.module.id,
+					relativeAssetPath
+				}
+			]);
 
-			code.overwrite((parent as MemberExpression).start,
+			code.overwrite(
+				(parent as MemberExpression).start,
 				(parent as MemberExpression).end,
-				replacement);
+				replacement
+			);
 			return true;
 		}
 

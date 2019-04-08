@@ -199,7 +199,13 @@ export type ResolveImportMetaHook = (
 
 export type ResolveAssetUrlHook = (
 	this: PluginContext,
-	options: { assetFileName: string; chunkId: string; moduleId: string; relativeAssetPath: string }
+	options: {
+		assetFileName: string;
+		chunkId: string;
+		format: string;
+		moduleId: string;
+		relativeAssetPath: string;
+	}
 ) => string | void;
 
 export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);

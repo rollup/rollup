@@ -180,7 +180,7 @@ Kind: `async, parallel`
 Called initially each time `bundle.generate()` or `bundle.write()` is called. To get notified when generation has completed, use the `generateBundle` and `renderError` hooks.
 
 #### `resolveAssetUrl`
-Type: `({assetFileName: string, relativeAssetPath: string, chunkId: string, moduleId: string}) => string | null`<br>
+Type: `({assetFileName: string, relativeAssetPath: string, chunkId: string, moduleId: string, format: string}) => string | null`<br>
 Kind: `sync, first`
 
 Allows to customize how Rollup resolves URLs of assets emitted via `this.emitAsset` by plugins. By default, Rollup will generate code for `import.meta.ROLLUP_ASSET_URL_[assetId]` that should correctly generate absolute URLs of emitted assets independent of the output format and the host system where the code is deployed.
@@ -191,6 +191,7 @@ For that, all formats except CommonJS and UMD assume that they run in a browser 
 - `relativeAssetPath`: The path and file name of the emitted asset, relative to the chunk from which the asset is referenced via `import.meta.ROLLUP_ASSET_URL_[assetId]`. This will also contain no leading `./` but may contain a leading `../`.
 - `moduleId`: The id of the original module this asset is referenced from. Useful for conditionally resolving certain assets differently.
 - `chunkId`: The id of the chunk this asset is referenced from.
+- `format`: The rendered output format.
 
 Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
 
