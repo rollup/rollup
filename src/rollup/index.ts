@@ -382,7 +382,7 @@ function writeOutputFile(
 	outputFile: OutputAsset | OutputChunk,
 	outputOptions: OutputOptions
 ): Promise<void> {
-	const filename = resolve(outputOptions.dir || dirname(outputOptions.file), outputFile.fileName);
+	const fileName = resolve(outputOptions.dir || dirname(outputOptions.file), outputFile.fileName);
 	let writeSourceMapPromise: Promise<void>;
 	let source: string | Buffer;
 	if (isOutputAsset(outputFile)) {
@@ -395,13 +395,13 @@ function writeOutputFile(
 				url = outputFile.map.toUrl();
 			} else {
 				url = `${basename(outputFile.fileName)}.map`;
-				writeSourceMapPromise = writeFile(`${filename}.map`, outputFile.map.toString());
+				writeSourceMapPromise = writeFile(`${fileName}.map`, outputFile.map.toString());
 			}
 			source += `//# ${SOURCEMAPPING_URL}=${url}\n`;
 		}
 	}
 
-	return writeFile(filename, source)
+	return writeFile(fileName, source)
 		.then(() => writeSourceMapPromise)
 		.then(
 			() =>

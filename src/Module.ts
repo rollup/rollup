@@ -499,8 +499,8 @@ export default class Module {
 
 		this.resolvedIds = resolvedIds || Object.create(null);
 
-		// By default, `id` is the filename. Custom resolvers and loaders
-		// can change that, but it makes sense to use it for the source filename
+		// By default, `id` is the file name. Custom resolvers and loaders
+		// can change that, but it makes sense to use it for the source file name
 		const fileName = this.id;
 
 		this.magicString = new MagicString(code, {
