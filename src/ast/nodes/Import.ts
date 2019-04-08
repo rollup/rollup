@@ -16,9 +16,9 @@ const getDynamicImportMechanism = (options: RenderOptions): DynamicImportMechani
 		case 'cjs': {
 			const _ = options.compact ? '' : ' ';
 			return {
-				interopLeft: `Promise.resolve({${_}default:${_}require(`,
+				interopLeft: `Promise.resolve({${_}default:${_}require`,
 				interopRight: `)${_}})`,
-				left: 'Promise.resolve(require(',
+				left: 'Promise.resolve(require',
 				right: '))'
 			};
 		}
@@ -28,19 +28,19 @@ const getDynamicImportMechanism = (options: RenderOptions): DynamicImportMechani
 			const reject = options.compact ? 'e' : 'reject';
 			return {
 				interopLeft: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
-				interopRight: `],${_}function${_}(m)${_}{${_}${resolve}({${_}default:${_}m${_}})${_}},${_}${reject})${_}})`,
+				interopRight: `)],${_}function${_}(m)${_}{${_}${resolve}({${_}default:${_}m${_}})${_}},${_}${reject})${_}})`,
 				left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
-				right: `],${_}${resolve},${_}${reject})${_}})`
+				right: `)],${_}${resolve},${_}${reject})${_}})`
 			};
 		}
 		case 'system':
 			return {
-				left: 'module.import(',
+				left: 'module.import',
 				right: ')'
 			};
 		case 'es':
 			return {
-				left: `${options.dynamicImportFunction || 'import'}(`,
+				left: `${options.dynamicImportFunction || 'import'}`,
 				right: ')'
 			};
 	}
@@ -81,7 +81,7 @@ export default class Import extends NodeBase {
 		if (importMechanism) {
 			const leftMechanism =
 				(this.resolutionInterop && importMechanism.interopLeft) || importMechanism.left;
-			code.overwrite(this.parent.start, this.parent.callee.end + 1, leftMechanism);
+			code.overwrite(this.parent.start, this.parent.callee.end, leftMechanism);
 
 			const rightMechanism =
 				(this.resolutionInterop && importMechanism.interopRight) || importMechanism.right;

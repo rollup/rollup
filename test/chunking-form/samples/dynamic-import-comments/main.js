@@ -1,1 +1,1 @@
-import( /* webpackChunkName: "chunk-name" */ './foo.js'/*suffix*/);
+import  ( /* webpackChunkName: "chunk-name" */ './foo.js'/*suffix*/);

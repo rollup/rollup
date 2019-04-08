@@ -4,7 +4,7 @@ define(['require', 'exports', 'external'], function (require, exports, myExterna
 
 	const test = () => myExternal;
 
-	const someDynamicImport = () => new Promise(function (resolve, reject) { require(['external'], resolve, reject) });
+	const someDynamicImport = () => new Promise(function (resolve, reject) { require([('external')], resolve, reject) });
 
 	exports.someDynamicImport = someDynamicImport;
 	exports.test = test;
