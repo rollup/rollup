@@ -18,9 +18,9 @@ export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 			return relativeUrlMechanisms[format](relativeAssetPath);
 		},
 		resolveImportMeta(prop, { chunkId, format }) {
-			const mechanism = importMetaUrlMechanisms[format] && importMetaUrlMechanisms[format](chunkId);
+			const mechanism = importMetaMechanisms[format] && importMetaMechanisms[format](prop, chunkId);
 			if (mechanism) {
-				return prop === null ? `({ url: ${mechanism} })` : prop === 'url' ? mechanism : 'undefined';
+				return mechanism;
 			}
 		}
 	};
@@ -82,20 +82,32 @@ const getResolveUrl = (path: string, URL: string = 'URL') => `new ${URL}(${path}
 const getUrlFromDocument = (chunkId: string) =>
 	`(document.currentScript && document.currentScript.src || new URL('${chunkId}', document.baseURI).href)`;
 
-const importMetaUrlMechanisms: Record<string, (chunkId: string) => string> = {
-	amd: () => getResolveUrl(`module.uri, document.baseURI`),
-	cjs: chunkId =>
-		`(typeof document === 'undefined' ? ${getResolveUrl(
-			`'file:' + __filename`,
-			`(require('u' + 'rl').URL)`
-		)} : ${getUrlFromDocument(chunkId)})`,
-	iife: chunkId => getUrlFromDocument(chunkId),
-	system: () => `module.meta.url`,
-	umd: chunkId =>
-		`(typeof document === 'undefined' ? ${getResolveUrl(
-			`'file:' + __filename`,
-			`(require('u' + 'rl').URL)`
-		)} : ${getUrlFromDocument(chunkId)})`
+const getGenericImportMetaMechanism = (getUrl: (chunkId: string) => string) => (
+	prop: string | null,
+	chunkId: string
+) => {
+	const urlMechanism = getUrl(chunkId);
+	return prop === null ? `({ url: ${urlMechanism} })` : prop === 'url' ? urlMechanism : 'undefined';
+};
+
+const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string) => string> = {
+	amd: getGenericImportMetaMechanism(() => getResolveUrl(`module.uri, document.baseURI`)),
+	cjs: getGenericImportMetaMechanism(
+		chunkId =>
+			`(typeof document === 'undefined' ? ${getResolveUrl(
+				`'file:' + __filename`,
+				`(require('u' + 'rl').URL)`
+			)} : ${getUrlFromDocument(chunkId)})`
+	),
+	iife: getGenericImportMetaMechanism(chunkId => getUrlFromDocument(chunkId)),
+	system: prop => (prop === null ? `module.meta` : `module.meta.${prop}`),
+	umd: getGenericImportMetaMechanism(
+		chunkId =>
+			`(typeof document === 'undefined' ? ${getResolveUrl(
+				`'file:' + __filename`,
+				`(require('u' + 'rl').URL)`
+			)} : ${getUrlFromDocument(chunkId)})`
+	)
 };
 
 const getRelativeUrlFromDocument = (relativePath: string) =>
