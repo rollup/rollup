@@ -1,1 +1,3 @@
-import  ( /* webpackChunkName: "chunk-name" */ './foo.js'/*suffix*/);
+import /* () should not break */     (
+/* webpackChunkName: "chunk-name" */
+'./foo.js'/*suffix*/);

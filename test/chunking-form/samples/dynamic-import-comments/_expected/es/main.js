@@ -1,1 +1,3 @@
-foobar  ( /* webpackChunkName: "chunk-name" */ './foo.js'/*suffix*/);
+foobar(
+/* webpackChunkName: "chunk-name" */
+'./foo.js'/*suffix*/);

@@ -3,7 +3,9 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			module.import  ( /* webpackChunkName: "chunk-name" */ './foo.js'/*suffix*/);
+			module.import(
+			/* webpackChunkName: "chunk-name" */
+			'./foo.js'/*suffix*/);
 
 		}
 	};
