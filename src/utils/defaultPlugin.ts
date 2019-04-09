@@ -14,8 +14,11 @@ export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 			if (typeof specifier === 'string' && !this.isExternal(specifier, parentId, false))
 				return <Promise<string>>this.resolveId(specifier, parentId);
 		},
-		resolveImportMetaUrl({ chunkId, format }) {
-			return importMetaUrlMechanisms[format] && importMetaUrlMechanisms[format](chunkId);
+		resolveImportMeta(prop, { chunkId, format }) {
+			const mechanism = importMetaUrlMechanisms[format] && importMetaUrlMechanisms[format](chunkId);
+			if (mechanism) {
+				return prop === null ? `({ url: ${mechanism} })` : prop === 'url' ? mechanism : 'undefined';
+			}
 		}
 	};
 }

@@ -1,9 +1,7 @@
 import MagicString from 'magic-string';
 import { dirname, normalize, relative } from '../../utils/path';
 import { PluginDriver } from '../../utils/pluginDriver';
-import { RenderOptions } from '../../utils/renderHelpers';
 import Identifier from './Identifier';
-import Literal from './Literal';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
@@ -35,20 +33,13 @@ const relUrlMechanisms: Record<string, (relPath: string) => string> = {
 export default class MetaProperty extends NodeBase {
 	meta: Identifier;
 	property: Identifier;
-	rendered: boolean;
 	type: NodeType.tMetaProperty;
 
 	initialise() {
 		if (this.meta.name === 'import') {
-			this.rendered = false;
 			this.context.addImportMeta(this);
 		}
 		this.included = false;
-	}
-
-	render(code: MagicString, options: RenderOptions) {
-		if (this.meta.name === 'import') this.rendered = true;
-		super.render(code, options);
 	}
 
 	renderFinalMechanism(
@@ -57,38 +48,41 @@ export default class MetaProperty extends NodeBase {
 		format: string,
 		pluginDriver: PluginDriver
 	): boolean {
-		if (!this.included || !(this.parent instanceof MemberExpression)) return false;
-
+		if (!this.included) return false;
 		const parent = this.parent;
-
-		let importMetaProperty: string;
-		if (parent.property instanceof Identifier) importMetaProperty = parent.property.name;
-		else if (parent.property instanceof Literal && typeof parent.property.value === 'string')
-			importMetaProperty = parent.property.value;
-		else return false;
+		const importMetaProperty =
+			parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
+				? parent.propertyKey
+				: null;
 
 		// support import.meta.ROLLUP_ASSET_URL_[ID]
-		if (importMetaProperty.startsWith('ROLLUP_ASSET_URL_')) {
+		if (importMetaProperty && importMetaProperty.startsWith('ROLLUP_ASSET_URL_')) {
 			const assetFileName = this.context.getAssetFileName(importMetaProperty.substr(17));
 			const relPath = normalize(relative(dirname(chunkId), assetFileName));
-			code.overwrite(parent.start, parent.end, relUrlMechanisms[format](relPath));
+			code.overwrite(
+				(parent as MemberExpression).start,
+				(parent as MemberExpression).end,
+				relUrlMechanisms[format](relPath)
+			);
 			return true;
 		}
 
-		if (importMetaProperty === 'url') {
-			const replacement = pluginDriver.hookFirstSync<string | void>('resolveImportMetaUrl', [
-				{
-					chunkId,
-					format,
-					moduleId: this.context.module.id
-				}
-			]);
-			if (typeof replacement === 'string') {
+		const replacement = pluginDriver.hookFirstSync<string | void>('resolveImportMeta', [
+			importMetaProperty,
+			{
+				chunkId,
+				format,
+				moduleId: this.context.module.id
+			}
+		]);
+		if (typeof replacement === 'string') {
+			if (parent instanceof MemberExpression) {
 				code.overwrite(parent.start, parent.end, replacement);
+			} else {
+				code.overwrite(this.start, this.end, replacement);
 			}
 			return true;
 		}
-
 		return false;
 	}
 }
