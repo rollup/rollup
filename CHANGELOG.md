@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.9.3
+*2019-04-10*
+
+### Bug Fixes
+* Simplify return expressions that are evaluated before the surrounding function is bound (#2803)
+
+### Pull Requests
+* [#2803](https://github.com/rollup/rollup/pull/2803): Handle out-of-order binding of identifiers to improve tree-shaking (@lukastaegert)
+
 ## 1.9.2
 *2019-04-10*
 
