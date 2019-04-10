@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
+import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
@@ -81,11 +81,13 @@ export default class Import extends NodeBase {
 		if (importMechanism) {
 			const leftMechanism =
 				(this.resolutionInterop && importMechanism.interopLeft) || importMechanism.left;
-			code.overwrite(this.parent.start, this.parent.arguments[0].start, leftMechanism);
+			const leftMechanismEnd =
+				findFirstOccurrenceOutsideComment(code.original, '(', this.parent.callee.end) + 1;
+			code.overwrite(this.parent.start, leftMechanismEnd, leftMechanism);
 
 			const rightMechanism =
 				(this.resolutionInterop && importMechanism.interopRight) || importMechanism.right;
-			code.overwrite(this.parent.arguments[0].end, this.parent.end, rightMechanism);
+			code.overwrite(this.parent.end - 1, this.parent.end, rightMechanism);
 		}
 	}
 
