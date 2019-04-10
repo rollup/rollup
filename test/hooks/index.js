@@ -4,6 +4,8 @@ const sander = require('sander');
 const { loader } = require('../utils.js');
 const rollup = require('../../dist/rollup.js');
 
+const TEMP_DIR = path.join(__dirname, 'tmp');
+
 describe('hooks', () => {
 	it('allows to read and modify options in the options hook', () => {
 		return rollup
@@ -58,6 +60,41 @@ describe('hooks', () => {
 			})
 			.then(({ output }) => {
 				assert.equal(output[0].code, `new banner\n'use strict';\n\nalert('hello');\n`);
+			});
+	});
+
+	it('allows to replace file with dir in the outputOptions hook', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				treeshake: false,
+				plugins: [
+					loader({
+						input: `console.log('input');import('other');`,
+						other: `console.log('other');`
+					}),
+					{
+						outputOptions(options) {
+							const newOptions = Object.assign({}, options, {
+								dir: TEMP_DIR,
+								chunkFileNames: 'chunk.js'
+							});
+							delete newOptions.file;
+							return newOptions;
+						}
+					}
+				]
+			})
+			.then(bundle =>
+				bundle.write({
+					file: path.join(TEMP_DIR, 'bundle.js'),
+					format: 'esm'
+				})
+			)
+			.then(() => {
+				const fileNames = sander.readdirSync(TEMP_DIR).sort();
+				assert.deepStrictEqual(fileNames, ['chunk.js', 'input.js']);
+				return sander.rimraf(TEMP_DIR);
 			});
 	});
 
@@ -213,8 +250,6 @@ describe('hooks', () => {
 	});
 
 	it('passes bundle & output object to ongenerate & onwrite hooks, with deprecation warnings', () => {
-		const file = path.join(__dirname, 'tmp/bundle.js');
-
 		let deprecationCnt = 0;
 
 		return rollup
@@ -251,13 +286,13 @@ describe('hooks', () => {
 			})
 			.then(bundle => {
 				return bundle.write({
-					file,
+					file: path.join(TEMP_DIR, 'bundle.js'),
 					format: 'es'
 				});
 			})
 			.then(() => {
 				assert.equal(deprecationCnt, 2);
-				return sander.unlink(file);
+				return sander.rimraf(TEMP_DIR);
 			});
 	});
 
@@ -289,7 +324,7 @@ describe('hooks', () => {
 
 	it('calls onwrite hooks in sequence', () => {
 		const result = [];
-		const file = path.join(__dirname, 'tmp/bundle.js');
+		const file = path.join(TEMP_DIR, 'bundle.js');
 
 		return rollup
 			.rollup({
@@ -321,8 +356,7 @@ describe('hooks', () => {
 			})
 			.then(() => {
 				assert.deepEqual(result, [{ a: file, format: 'cjs' }, { b: file, format: 'cjs' }]);
-
-				return sander.unlink(file);
+				return sander.rimraf(TEMP_DIR);
 			});
 	});
 
@@ -863,7 +897,7 @@ module.exports = input;
 	});
 
 	it('supports writeBundle hook', () => {
-		const file = path.join(__dirname, 'tmp/bundle.js');
+		const file = path.join(TEMP_DIR, 'bundle.js');
 		let bundle;
 		let callCount = 0;
 		return rollup
@@ -889,7 +923,10 @@ module.exports = input;
 				]
 			})
 			.then(bundle => bundle.write({ format: 'esm', file }))
-			.then(() => assert.strictEqual(callCount, 1));
+			.then(() => {
+				assert.strictEqual(callCount, 1);
+				return sander.rimraf(TEMP_DIR);
+			});
 	});
 
 	it('supports this.cache for plugins', () => {
@@ -1226,6 +1263,9 @@ module.exports = input;
 					warning.message,
 					'this.watcher usage is deprecated in plugins. Use the watchChange plugin hook and this.addWatchFile() instead.'
 				);
+			},
+			output: {
+				format: 'esm'
 			},
 			plugins: [
 				loader({ input: `alert('hello')` }),

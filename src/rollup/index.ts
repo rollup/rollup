@@ -171,14 +171,16 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 				// ensure we only do one optimization pass per build
 				let optimized = false;
 
-				function generate(rawOutputOptions: GenericConfigObject, isWrite: boolean) {
-					const outputOptions = normalizeOutputOptions(
+				function getOutputOptions(rawOutputOptions: GenericConfigObject) {
+					return normalizeOutputOptions(
 						inputOptions,
 						rawOutputOptions,
 						chunks.length > 1,
 						graph.pluginDriver
 					);
+				}
 
+				function generate(outputOptions: OutputOptions, isWrite: boolean) {
 					timeStart('GENERATE', 1);
 
 					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
@@ -282,14 +284,17 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 				const result: RollupBuild = {
 					cache,
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
-						const promise = generate(rawOutputOptions, false).then(result => createOutput(result));
+						const promise = generate(getOutputOptions(rawOutputOptions), false).then(result =>
+							createOutput(result)
+						);
 						Object.defineProperty(promise, 'code', throwAsyncGenerateError);
 						Object.defineProperty(promise, 'map', throwAsyncGenerateError);
 						return promise;
 					}),
 					watchFiles: Object.keys(graph.watchFiles),
-					write: <any>((outputOptions: OutputOptions) => {
-						if (!outputOptions || (!outputOptions.dir && !outputOptions.file)) {
+					write: <any>((rawOutputOptions: OutputOptions) => {
+						const outputOptions = getOutputOptions(rawOutputOptions);
+						if (!outputOptions.dir && !outputOptions.file) {
 							error({
 								code: 'MISSING_OPTION',
 								message: 'You must specify "output.file" or "output.dir" for the build.'
