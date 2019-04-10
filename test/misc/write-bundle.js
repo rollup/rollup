@@ -21,10 +21,10 @@ describe('bundle.write()', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.write();
-				}, /You must specify "output\.file"/);
+				}, /You must supply an options object/);
 
 				assert.throws(() => {
-					bundle.write({});
+					bundle.write({format: 'esm'});
 				}, /You must specify "output\.file"/);
 			});
 	});
