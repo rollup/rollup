@@ -86,6 +86,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: ImmutableEntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
+		if (!this.bound) this.bind();
 		if (this.variable !== null) {
 			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
 		}
@@ -97,6 +98,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: ImmutableEntityPathTracker,
 		origin: DeoptimizableEntity
 	) {
+		if (!this.bound) this.bind();
 		if (this.variable !== null) {
 			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 		}
