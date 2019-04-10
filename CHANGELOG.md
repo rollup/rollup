@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.9.2
+*2019-04-10*
+
+### Bug Fixes
+* Allowing replacing `output.file` with `output.dir` in the `outputOptions` hook (#2802)
+
+### Pull Requests
+* [#2802](https://github.com/rollup/rollup/pull/2802): Observe modified output options in bundle.write (@lukastaegert)
+
 ## 1.9.1
 *2019-04-10*
 
