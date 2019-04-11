@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 1.10.0
+*2019-04-11*
+
+### Features
+* Improve generated code to polyfill `import.meta.url` (#2785)
+* Add plugin hook to configure handling of `import.meta` (#2785)
+* Improve generated code when accessing URLs of emitted assets (#2796)
+* Add plugin hook to configure the generated code when accessing URLs of emitted assets (#2796)
+
+### Bug Fixes
+* No longer resolve assets to their parent URL in some cases (#2796)
+
+### Pull Requests
+* [#2785](https://github.com/rollup/rollup/pull/2785): Refactor handling of import.meta.url and add option to configure behaviour (@lukastaegert)
+* [#2796](https://github.com/rollup/rollup/pull/2796): Improve and fix asset emission (@lukastaegert)
+
 ## 1.9.3
 *2019-04-10*
 
