@@ -3,7 +3,15 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			console.log(module.meta.url);
+			function log(url) {
+				if (typeof document === 'undefined') {
+					console.log(url);
+				} else {
+					document.body.innerText = url;
+				}
+			}
+
+			log(module.meta.url);
 
 		}
 	};

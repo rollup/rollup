@@ -1,3 +1,11 @@
 'use strict';
 
-console.log(new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)((process.browser ? '' : 'file:') + __filename, process.browser && document.baseURI).href);
+function log(url) {
+	if (typeof document === 'undefined') {
+		console.log(url);
+	} else {
+		document.body.innerText = url;
+	}
+}
+
+log((typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('cjs.js', document.baseURI).href)));

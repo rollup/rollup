@@ -22,6 +22,7 @@ export interface PluginDriver {
 	hasLoadersOrTransforms: boolean;
 	getAssetFileName(assetId: string): string;
 	hookFirst<T = any>(hook: string, args?: any[], hookContext?: HookContext): Promise<T>;
+	hookFirstSync<T = any>(hook: string, args?: any[], hookContext?: HookContext): T;
 	hookParallel(hook: string, args?: any[], hookContext?: HookContext): Promise<void>;
 	hookReduceArg0<R = any, T = any>(
 		hook: string,
@@ -171,22 +172,22 @@ export function createPluginDriver(
 	function runHookSync<T>(
 		hookName: string,
 		args: any[],
-		pidx: number,
+		pluginIndex: number,
 		permitValues = false,
 		hookContext?: HookContext
-	): Promise<T> {
-		const plugin = plugins[pidx];
-		let context = pluginContexts[pidx];
+	): T {
+		const plugin = plugins[pluginIndex];
+		let context = pluginContexts[pluginIndex];
 		const hook = (<any>plugin)[hookName];
 		if (!hook) return;
 
 		const deprecatedHookNewName = deprecatedHookNames[hookName];
 		if (deprecatedHookNewName)
-			context.warn(hookDeprecationWarning(hookName, deprecatedHookNewName, plugin, pidx));
+			context.warn(hookDeprecationWarning(hookName, deprecatedHookNewName, plugin, pluginIndex));
 
 		if (hookContext) {
 			context = hookContext(context, plugin);
-			if (!context || context === pluginContexts[pidx])
+			if (!context || context === pluginContexts[pluginIndex])
 				throw new Error('Internal Rollup error: hookContext must return a new context object.');
 		}
 		try {
@@ -196,7 +197,7 @@ export function createPluginDriver(
 				error({
 					code: 'INVALID_PLUGIN_HOOK',
 					message: `Error running plugin hook ${hookName} for ${plugin.name ||
-						`Plugin at position ${pidx + 1}`}, expected a function hook.`
+						`Plugin at position ${pluginIndex + 1}`}, expected a function hook.`
 				});
 			}
 			return hook.apply(context, args);
@@ -206,7 +207,7 @@ export function createPluginDriver(
 				if (err.code) err.pluginCode = err.code;
 				err.code = 'PLUGIN_ERROR';
 			}
-			err.plugin = plugin.name || `Plugin at position ${pidx + 1}`;
+			err.plugin = plugin.name || `Plugin at position ${pluginIndex + 1}`;
 			err.hook = hookName;
 			error(err);
 		}
@@ -215,22 +216,22 @@ export function createPluginDriver(
 	function runHook<T>(
 		hookName: string,
 		args: any[],
-		pidx: number,
+		pluginIndex: number,
 		permitValues = false,
 		hookContext?: HookContext
 	): Promise<T> {
-		const plugin = plugins[pidx];
-		let context = pluginContexts[pidx];
+		const plugin = plugins[pluginIndex];
+		let context = pluginContexts[pluginIndex];
 		const hook = (<any>plugin)[hookName];
 		if (!hook) return;
 
 		const deprecatedHookNewName = deprecatedHookNames[hookName];
 		if (deprecatedHookNewName)
-			context.warn(hookDeprecationWarning(hookName, deprecatedHookNewName, plugin, pidx));
+			context.warn(hookDeprecationWarning(hookName, deprecatedHookNewName, plugin, pluginIndex));
 
 		if (hookContext) {
 			context = hookContext(context, plugin);
-			if (!context || context === pluginContexts[pidx])
+			if (!context || context === pluginContexts[pluginIndex])
 				throw new Error('Internal Rollup error: hookContext must return a new context object.');
 		}
 		return Promise.resolve()
@@ -241,7 +242,7 @@ export function createPluginDriver(
 					error({
 						code: 'INVALID_PLUGIN_HOOK',
 						message: `Error running plugin hook ${hookName} for ${plugin.name ||
-							`Plugin at position ${pidx + 1}`}, expected a function hook.`
+							`Plugin at position ${pluginIndex + 1}`}, expected a function hook.`
 					});
 				}
 				return hook.apply(context, args);
@@ -252,7 +253,7 @@ export function createPluginDriver(
 					if (err.code) err.pluginCode = err.code;
 					err.code = 'PLUGIN_ERROR';
 				}
-				err.plugin = plugin.name || `Plugin at position ${pidx + 1}`;
+				err.plugin = plugin.name || `Plugin at position ${pluginIndex + 1}`;
 				err.hook = hookName;
 				error(err);
 			});
@@ -289,6 +290,16 @@ export function createPluginDriver(
 			}
 			return promise;
 		},
+
+		// chains synchronously, first non-null result stops and returns
+		hookFirstSync(name, args?, hookContext?) {
+			for (let i = 0; i < plugins.length; i++) {
+				const result = runHookSync(name, args, i, false, hookContext);
+				if (result != null) return result as any;
+			}
+			return null;
+		},
+
 		// parallel, ignores returns
 		hookParallel(name, args, hookContext) {
 			const promises: Promise<void>[] = [];
@@ -299,6 +310,7 @@ export function createPluginDriver(
 			}
 			return Promise.all(promises).then(() => {});
 		},
+
 		// chains, reduces returns of type R, to type T, handling the reduced value as the first hook argument
 		hookReduceArg0(name, [arg0, ...args], reduce, hookContext) {
 			let promise = Promise.resolve(arg0);
@@ -313,7 +325,8 @@ export function createPluginDriver(
 			}
 			return promise;
 		},
-		// chains, synchronically reduces returns of type R, to type T, handling the reduced value as the first hook argument
+
+		// chains synchronously, reduces returns of type R, to type T, handling the reduced value as the first hook argument
 		hookReduceArg0Sync(name, [arg0, ...args], reduce, hookContext) {
 			for (let i = 0; i < plugins.length; i++) {
 				const result = runHookSync(name, [arg0, ...args], i, false, hookContext);
@@ -321,6 +334,7 @@ export function createPluginDriver(
 			}
 			return arg0;
 		},
+
 		// chains, reduces returns of type R, to type T, handling the reduced value separately. permits hooks as values.
 		hookReduceValue(name, initial, args, reduce, hookContext) {
 			let promise = Promise.resolve(initial);
@@ -431,10 +445,15 @@ const uncacheablePlugin: (pluginName: string) => PluginCache = pluginName => ({
 	}
 });
 
-function hookDeprecationWarning(name: string, newName: string, plugin: Plugin, pidx: number) {
+function hookDeprecationWarning(
+	name: string,
+	newName: string,
+	plugin: Plugin,
+	pluginIndex: number
+) {
 	return {
 		code: name.toUpperCase() + '_HOOK_DEPRECATED',
 		message: `The ${name} hook used by plugin ${plugin.name ||
-			`at position ${pidx + 1}`} is deprecated. The ${newName} hook should be used instead.`
+			`at position ${pluginIndex + 1}`} is deprecated. The ${newName} hook should be used instead.`
 	};
 }

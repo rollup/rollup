@@ -3,7 +3,7 @@ import { RollupError } from '../../src/rollup/types';
 import relativeId from '../../src/utils/relativeId';
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
-export const stderr = console.error.bind(console); // eslint-disable-line no-console
+export const stderr = console.error.bind(console);
 
 export function handleError(err: RollupError, recover = false) {
 	let description = err.message || err;

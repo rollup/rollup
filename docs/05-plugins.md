@@ -195,12 +195,34 @@ If you return an object, then it is possible to resolve an import to a different
 
 ```js
 resolveId(id) {
-	if (id === 'my-dependency') {
-		return {id: 'my-dependency-develop', external: true};
-	}
-	return null;
+  if (id === 'my-dependency') {
+    return {id: 'my-dependency-develop', external: true};
+  }
+  return null;
 }
 ```
+
+#### `resolveImportMeta`
+Type: `(property: string | null, {chunkId: string, moduleId: string, format: string}) => string | null`<br>
+Kind: `sync, first`
+
+Allows to customize how Rollup handles `import.meta` and `import.meta.someProperty`, in particular `import.meta.url`. In ES modules, `import.meta` is an object and `import.meta.url` contains the URL of the current module, e.g. `http://server.net/bundle.js` for browsers or `file:///path/to/bundle.js` in Node.
+
+By default for formats other than ES modules, Rollup replaces `import.meta.url` with code that attempts to match this behaviour by returning the dynamic URL of the current chunk. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. For other properties, `import.meta.someProperty` is replaced with `undefined` while `import.meta` is replaced with an object containing a `url` property.
+ 
+ This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
+
+```javascript
+// rollup.config.js
+resolveImportMeta(property, {moduleId}) {
+  if (property === 'url') {
+    return `new URL('${path.relative(process.cwd(), moduleId)}', document.baseURI).href`;
+  }
+  return null;
+}
+```
+
+Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
 
 #### `transform`
 Type: `(code: string, id: string) => string | { code: string, map?: string | SourceMap, ast? : ESTree.Program } | null`

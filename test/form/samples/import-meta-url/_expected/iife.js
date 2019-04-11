@@ -1,6 +1,14 @@
 (function () {
 	'use strict';
 
-	console.log((typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || document.baseURI : new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)('file:' + __filename).href));
+	function log(url) {
+		if (typeof document === 'undefined') {
+			console.log(url);
+		} else {
+			document.body.innerText = url;
+		}
+	}
+
+	log((document.currentScript && document.currentScript.src || new URL('iife.js', document.baseURI).href));
 
 }());

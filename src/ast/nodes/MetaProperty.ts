@@ -1,109 +1,88 @@
 import MagicString from 'magic-string';
 import { dirname, normalize, relative } from '../../utils/path';
-import { RenderOptions } from '../../utils/renderHelpers';
+import { PluginDriver } from '../../utils/pluginDriver';
 import Identifier from './Identifier';
-import Literal from './Literal';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
-const globalImportMetaUrlMechanism = `(typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || document.baseURI : new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)('file:' + __filename).href)`;
-const importMetaUrlMechanisms: Record<string, string> = {
-	amd: `new URL((typeof process !== 'undefined' && process.versions && process.versions.node ? 'file:' : '') + module.uri).href`,
-	cjs: `new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)((process.browser ? '' : 'file:') + __filename, process.browser && document.baseURI).href`,
-	iife: globalImportMetaUrlMechanism,
-	umd: globalImportMetaUrlMechanism
+const getResolveUrl = (path: string, URL: string = 'URL') => `new ${URL}(${path}).href`;
+
+const amdModuleUrl = `(typeof process !== 'undefined' && process.versions && process.versions.node ? 'file:' : '') + module.uri`;
+
+const globalRelUrlMechanism = (relPath: string) => {
+	return getResolveUrl(
+		`(typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || document.baseURI : 'file:' + __filename) + '/../${relPath}'`,
+		`(typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)`
+	);
 };
 
-const globalImportMetaUrlMechanismCompact = `(typeof document!=='undefined'?document.currentScript&&document.currentScript.src||document.baseURI:new(typeof URL!=='undefined'?URL:require('ur'+'l').URL)('file:'+__filename).href)`;
-const importMetaUrlMechanismsCompact: Record<string, string> = {
-	amd: `new URL((typeof process!=='undefined'&&process.versions&&process.versions.node?'file:':'')+module.uri).href`,
-	cjs: `new(typeof URL!=='undefined'?URL:require('ur'+'l').URL)((process.browser?'':'file:')+__filename,process.browser&&document.baseURI).href`,
-	iife: globalImportMetaUrlMechanismCompact,
-	umd: globalImportMetaUrlMechanismCompact
-};
-
-const globalRelUrlMechanism = (relPath: string, compact: boolean) => {
-	const _ = compact ? '' : ' ';
-	return `new${_}(typeof URL${_}!==${_}'undefined'${_}?${_}URL${_}:${_}require('ur'+'l').URL)((typeof document${_}!==${_}'undefined'${_}?${_}document.currentScript${_}&&${_}document.currentScript.src${_}||${_}document.baseURI${_}:${_}'file:'${_}+${_}__filename)${_}+${_}'/../${relPath}').href`;
-};
-
-const relUrlMechanisms: Record<string, (relPath: string, compact: boolean) => string> = {
-	amd: (relPath: string, compact: boolean) => {
-		const _ = compact ? '' : ' ';
-		return `new URL((typeof process${_}!==${_}'undefined'${_}&&${_}process.versions${_}&&${_}process.versions.node${_}?${_}'file:'${_}:${_}'')${_}+${_}module.uri${_}+${_}'/../${relPath}').href`;
-	},
-	cjs: (relPath: string, compact: boolean) => {
-		const _ = compact ? '' : ' ';
-		return `new${_}(typeof URL${_}!==${_}'undefined'${_}?${_}URL${_}:${_}require('ur'+'l').URL)((process.browser${_}?${_}''${_}:${_}'file:')${_}+${_}__dirname${_}+${_}'/${relPath}',${_}process.browser${_}&&${_}document.baseURI).href`;
-	},
-	es: (relPath: string, compact: boolean) => {
-		const _ = compact ? '' : ' ';
-		return `new URL('../${relPath}',${_}import.meta.url).href`;
-	},
+const relUrlMechanisms: Record<string, (relPath: string) => string> = {
+	amd: (relPath: string) => getResolveUrl(`${amdModuleUrl} + '/../${relPath}'`),
+	cjs: (relPath: string) =>
+		getResolveUrl(
+			`(process.browser ? '' : 'file:') + __dirname + '/${relPath}', process.browser && document.baseURI`,
+			`(typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)`
+		),
+	es: (relPath: string) => getResolveUrl(`'../${relPath}', import.meta.url`),
 	iife: globalRelUrlMechanism,
-	system: (relPath: string, compact: boolean) => {
-		const _ = compact ? '' : ' ';
-		return `new URL('../${relPath}',${_}module.url).href`;
-	},
+	system: (relPath: string) => getResolveUrl(`'../${relPath}', module.url`),
 	umd: globalRelUrlMechanism
 };
 
 export default class MetaProperty extends NodeBase {
 	meta: Identifier;
 	property: Identifier;
-	rendered: boolean;
 	type: NodeType.tMetaProperty;
 
 	initialise() {
 		if (this.meta.name === 'import') {
-			this.rendered = false;
 			this.context.addImportMeta(this);
 		}
 		this.included = false;
-	}
-
-	render(code: MagicString, options: RenderOptions) {
-		if (this.meta.name === 'import') this.rendered = true;
-		super.render(code, options);
 	}
 
 	renderFinalMechanism(
 		code: MagicString,
 		chunkId: string,
 		format: string,
-		compact: boolean
+		pluginDriver: PluginDriver
 	): boolean {
-		if (!this.rendered) return false;
-
-		if (this.parent instanceof MemberExpression === false) return false;
-
-		const parent = <MemberExpression>this.parent;
-
-		let importMetaProperty: string;
-		if (parent.property instanceof Identifier) importMetaProperty = parent.property.name;
-		else if (parent.property instanceof Literal && typeof parent.property.value === 'string')
-			importMetaProperty = parent.property.value;
-		else return false;
+		if (!this.included) return false;
+		const parent = this.parent;
+		const importMetaProperty =
+			parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
+				? parent.propertyKey
+				: null;
 
 		// support import.meta.ROLLUP_ASSET_URL_[ID]
-		if (importMetaProperty.startsWith('ROLLUP_ASSET_URL_')) {
+		if (importMetaProperty && importMetaProperty.startsWith('ROLLUP_ASSET_URL_')) {
 			const assetFileName = this.context.getAssetFileName(importMetaProperty.substr(17));
 			const relPath = normalize(relative(dirname(chunkId), assetFileName));
-			code.overwrite(parent.start, parent.end, relUrlMechanisms[format](relPath, compact));
+			code.overwrite(
+				(parent as MemberExpression).start,
+				(parent as MemberExpression).end,
+				relUrlMechanisms[format](relPath)
+			);
 			return true;
 		}
 
-		if (format === 'system') {
-			code.overwrite(this.meta.start, this.meta.end, 'module');
-		} else if (importMetaProperty === 'url') {
-			const importMetaUrlMechanism = (compact
-				? importMetaUrlMechanismsCompact
-				: importMetaUrlMechanisms)[format];
-			if (importMetaUrlMechanism) code.overwrite(parent.start, parent.end, importMetaUrlMechanism);
+		const replacement = pluginDriver.hookFirstSync<string | void>('resolveImportMeta', [
+			importMetaProperty,
+			{
+				chunkId,
+				format,
+				moduleId: this.context.module.id
+			}
+		]);
+		if (typeof replacement === 'string') {
+			if (parent instanceof MemberExpression) {
+				code.overwrite(parent.start, parent.end, replacement);
+			} else {
+				code.overwrite(this.start, this.end, replacement);
+			}
 			return true;
 		}
-
 		return false;
 	}
 }
