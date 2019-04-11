@@ -41,7 +41,7 @@
 * Make sure inline comments in dynamic imports are preserved (#2797)
 
 ### Pull Requests
-* [#2797](https://github.com/rollup/rollup/pull/2797): Emit inline comments inside dynamic import (@ndelangen)
+* [#2797](https://github.com/rollup/rollup/pull/2797): Emit inline comments inside dynamic import (@manucorporat)
 
 ## 1.9.0
 *2019-04-05*
