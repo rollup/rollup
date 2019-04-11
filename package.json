@@ -59,7 +59,7 @@
   "homepage": "https://github.com/rollup/rollup",
   "dependencies": {
     "@types/estree": "0.0.39",
-    "@types/node": "^11.13.2",
+    "@types/node": "^11.13.4",
     "acorn": "^6.1.1"
   },
   "devDependencies": {
@@ -98,12 +98,12 @@
     "remap-istanbul": "^0.13.0",
     "require-relative": "^0.8.7",
     "requirejs": "^2.3.6",
-    "rollup": "^1.9.1",
+    "rollup": "^1.9.3",
     "rollup-plugin-alias": "^1.5.1",
     "rollup-plugin-buble": "^0.19.6",
     "rollup-plugin-commonjs": "^9.3.4",
     "rollup-plugin-json": "^4.0.0",
-    "rollup-plugin-node-resolve": "^4.2.2",
+    "rollup-plugin-node-resolve": "^4.2.3",
     "rollup-plugin-replace": "^2.2.0",
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-terser": "^4.0.4",
@@ -115,7 +115,7 @@
     "source-map": "^0.6.1",
     "source-map-support": "^0.5.12",
     "sourcemap-codec": "^1.4.4",
-    "systemjs": "^3.1.0",
+    "systemjs": "^3.1.1",
     "terser": "^3.17.0",
     "tslib": "^1.9.3",
     "tslint": "^5.15.0",

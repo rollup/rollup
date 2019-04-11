@@ -197,6 +197,17 @@ export type ResolveImportMetaHook = (
 	options: { chunkId: string; format: string; moduleId: string }
 ) => string | void;
 
+export type ResolveAssetUrlHook = (
+	this: PluginContext,
+	options: {
+		assetFileName: string;
+		chunkId: string;
+		format: string;
+		moduleId: string;
+		relativeAssetPath: string;
+	}
+) => string | void;
+
 export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);
 
 /**
@@ -248,6 +259,7 @@ export interface Plugin {
 	renderChunk?: RenderChunkHook;
 	renderError?: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart?: (this: PluginContext) => Promise<void> | void;
+	resolveAssetUrl?: ResolveAssetUrlHook;
 	resolveDynamicImport?: ResolveDynamicImportHook;
 	resolveId?: ResolveIdHook;
 	resolveImportMeta?: ResolveImportMetaHook;
@@ -331,6 +343,7 @@ export interface OutputOptions {
 	format?: ModuleFormat;
 	freeze?: boolean;
 	globals?: GlobalsOption;
+	importMetaUrl?: (chunkId: string, moduleId: string) => string;
 	indent?: boolean;
 	interop?: boolean;
 	intro?: string | (() => string | Promise<string>);

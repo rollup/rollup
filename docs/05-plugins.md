@@ -179,6 +179,31 @@ Kind: `async, parallel`
 
 Called initially each time `bundle.generate()` or `bundle.write()` is called. To get notified when generation has completed, use the `generateBundle` and `renderError` hooks.
 
+#### `resolveAssetUrl`
+Type: `({assetFileName: string, relativeAssetPath: string, chunkId: string, moduleId: string, format: string}) => string | null`<br>
+Kind: `sync, first`
+
+Allows to customize how Rollup resolves URLs of assets emitted via `this.emitAsset` by plugins. By default, Rollup will generate code for `import.meta.ROLLUP_ASSET_URL_[assetId]` that should correctly generate absolute URLs of emitted assets independent of the output format and the host system where the code is deployed.
+
+For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
+
+- `assetFileName`: The path and file name of the emitted asset, relative to `output.dir` without a leading `./`.
+- `relativeAssetPath`: The path and file name of the emitted asset, relative to the chunk from which the asset is referenced via `import.meta.ROLLUP_ASSET_URL_[assetId]`. This will also contain no leading `./` but may contain a leading `../`.
+- `moduleId`: The id of the original module this asset is referenced from. Useful for conditionally resolving certain assets differently.
+- `chunkId`: The id of the chunk this asset is referenced from.
+- `format`: The rendered output format.
+
+Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
+
+The following plugin will always resolve all assets relative to the current document:
+
+```javascript
+// rollup.config.js
+resolveAssetUrl({assetFileName}) {
+	return `new URL('${assetFileName}', document.baseURI).href`;
+}
+```
+
 #### `resolveDynamicImport`
 Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null`<br>
 Kind: `async, first`
@@ -348,14 +373,36 @@ The `position` argument is a character index where the warning was raised. If pr
 
 ### Asset URLs
 
-To reference an asset URL reference from within JS code, use the `import.meta.ROLLUP_ASSET_URL_[assetId]` replacement. The following example represents emitting a CSS file for a module that then exports a URL that is constructed to correctly point to the emitted file from the target runtime environment.
+To reference an asset URL reference from within JS code, use the `import.meta.ROLLUP_ASSET_URL_[assetId]` replacement. This will generate code that depends on the output format and generates a URL that points to the emitted file in the target environment. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available.
 
+The following example will detect imports of `.svg` files, emit the imported files as assets, and return their URLs to be used e.g. as the `src` attribute of an `img` tag:
 
 ```js
-load (id) {
-  const assetId = this.emitAsset('style.css', fs.readFileSync(path.resolve(assets, 'style.css')));
-  return `export default import.meta.ROLLUP_ASSET_URL_${assetId}`;
+// plugin
+export default function svgResolverPlugin () {
+  return ({
+    resolveId(id, importee) {
+      if (id.endsWith('.svg')) {
+        return path.resolve(path.dirname(importee), id);
+      }
+    },
+    load(id) {
+      if (id.endsWith('.svg')) {
+      	const assetId = this.emitAsset(
+          path.basename(id),
+          fs.readFileSync(id)
+        );
+        return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
+      }
+    }
+  });
 }
+
+// usage
+import logo from '../images/logo.svg';
+const image = document.createElement('img');
+image.src = logo;
+document.body.appendChild(image);
 ```
 
 ### Advanced Loaders
