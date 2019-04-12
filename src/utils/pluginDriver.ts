@@ -3,6 +3,7 @@ import { version as rollupVersion } from 'package.json';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
+	EmitAsset,
 	InputOptions,
 	Plugin,
 	PluginCache,
@@ -12,7 +13,7 @@ import {
 	RollupWatcher,
 	SerializablePluginCache
 } from '../rollup/types';
-import { createAssetPluginHooks, EmitAsset } from './assetHooks';
+import { createAssetPluginHooks } from './assetHooks';
 import { getRollupDefaultPlugin } from './defaultPlugin';
 import { error } from './error';
 import { NameCollection } from './reservedNames';
@@ -20,7 +21,7 @@ import { NameCollection } from './reservedNames';
 export interface PluginDriver {
 	emitAsset: EmitAsset;
 	hasLoadersOrTransforms: boolean;
-	getAssetFileName(assetId: string): string;
+	getAssetFileName(assetMetaId: string): string;
 	hookFirst<T = any>(hook: string, args?: any[], hookContext?: HookContext): Promise<T>;
 	hookFirstSync<T = any>(hook: string, args?: any[], hookContext?: HookContext): T;
 	hookParallel(hook: string, args?: any[], hookContext?: HookContext): Promise<void>;
@@ -111,7 +112,11 @@ export function createPluginDriver(
 		}
 
 		const context: PluginContext = {
+			addEntry(id: string) {
+				return graph.moduleLoader.addEntryModuleAndGetMetaId({ alias: null, unresolvedId: id });
+			},
 			addWatchFile(id: string) {
+				// TODO Lukas is this tested?
 				if (graph.finished) this.error('addWatchFile can only be called during the build.');
 				graph.watchFiles[id] = true;
 			},
@@ -128,7 +133,10 @@ export function createPluginDriver(
 				return graph.isExternal(id, parentId, isResolved);
 			},
 			getAssetFileName,
-			getModuleInfo: (moduleId: string) => {
+			getChunkFileName(chunkMetaId: string): string {
+				return graph.moduleLoader.getChunkFileName(chunkMetaId);
+			},
+			getModuleInfo(moduleId: string) {
 				const foundModule = graph.moduleById.get(moduleId);
 				if (foundModule == null) {
 					throw new Error(`Unable to find module ${moduleId}`);

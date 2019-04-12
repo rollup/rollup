@@ -1,11 +1,10 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
-import { Asset, OutputBundle } from '../rollup/types';
+import { Asset, EmitAsset, OutputBundle } from '../rollup/types';
 import { error } from './error';
+import { addWithNewMetaId } from './metaIds';
 import { extname } from './path';
 import { isPlainName } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
-
-export type EmitAsset = (name: string, source?: string | Buffer) => string;
 
 export function getAssetFileName(
 	asset: Asset,
@@ -42,7 +41,7 @@ export function getAssetFileName(
 }
 
 export function createAssetPluginHooks(
-	assetsById: Map<string, Asset>,
+	assetsByMetaId: Map<string, Asset>,
 	outputBundle?: OutputBundle,
 	assetFileNames?: string
 ) {
@@ -53,30 +52,16 @@ export function createAssetPluginHooks(
 					code: 'INVALID_ASSET_NAME',
 					message: `Plugin error creating asset, name is not a plain (non relative or absolute URL) string name.`
 				});
-
-			let assetId: string;
-			do {
-				const assetHash = sha256();
-				if (assetId) {
-					// if there is a collision, chain until there isn't
-					assetHash.update(assetId);
-				} else {
-					assetHash.update(name);
-				}
-				assetId = assetHash.digest('hex').substr(0, 8);
-			} while (assetsById.has(assetId));
-
 			const asset: Asset = { name, source, fileName: undefined };
 			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
-			assetsById.set(assetId, asset);
-			return assetId;
+			return addWithNewMetaId(asset, assetsByMetaId, name);
 		},
-		setAssetSource(assetId: string, source?: string | Buffer) {
-			const asset = assetsById.get(assetId);
+		setAssetSource(assetMetaId: string, source?: string | Buffer) {
+			const asset = assetsByMetaId.get(assetMetaId);
 			if (!asset)
 				error({
 					code: 'ASSET_NOT_FOUND',
-					message: `Plugin error - Unable to set asset source for unknown asset ${assetId}.`
+					message: `Plugin error - Unable to set asset source for unknown asset ${assetMetaId}.`
 				});
 			if (asset.source !== undefined)
 				error({
@@ -93,17 +78,18 @@ export function createAssetPluginHooks(
 			asset.source = source;
 			if (outputBundle) finaliseAsset(asset, outputBundle, assetFileNames);
 		},
-		getAssetFileName(assetId: string) {
-			const asset = assetsById.get(assetId);
+		// TODO Lukas we also need this for chunks. Can this be shared?
+		getAssetFileName(assetMetaId: string) {
+			const asset = assetsByMetaId.get(assetMetaId);
 			if (!asset)
 				error({
 					code: 'ASSET_NOT_FOUND',
-					message: `Plugin error - Unable to get asset filename for unknown asset ${assetId}.`
+					message: `Plugin error - Unable to get asset filename for unknown asset ${assetMetaId}.`
 				});
 			if (asset.fileName === undefined)
 				error({
 					code: 'ASSET_NOT_FINALISED',
-					message: `Plugin error - Unable to get asset file name for asset ${assetId}. Ensure that the source is set and that generate is called first.`
+					message: `Plugin error - Unable to get asset file name for asset ${assetMetaId}. Ensure that the source is set and that generate is called first.`
 				});
 			return asset.fileName;
 		}
@@ -125,15 +111,15 @@ export function createTransformEmitAsset(assetsById: Map<string, Asset>, emitAss
 	return {
 		assets,
 		emitAsset: (name: string, source?: string | Buffer) => {
-			const assetId = emitAsset(name, source);
-			const asset = assetsById.get(assetId);
+			const assetMetaId = emitAsset(name, source);
+			const asset = assetsById.get(assetMetaId);
 			// distinguish transform assets
 			assets.push({
 				fileName: undefined,
 				name: asset.name,
 				source: asset.source
 			});
-			return assetId;
+			return assetMetaId;
 		}
 	};
 }

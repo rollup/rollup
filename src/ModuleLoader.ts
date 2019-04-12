@@ -3,6 +3,7 @@ import Graph from './Graph';
 import Module from './Module';
 import { ModuleJSON, ResolvedId, ResolveIdResult, SourceDescription } from './rollup/types';
 import { error } from './utils/error';
+import { addWithNewMetaId } from './utils/metaIds';
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/pluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
@@ -14,7 +15,7 @@ interface ModuleWithAlias {
 	module: Module;
 }
 
-interface UnresolvedModuleWithAlias {
+export interface UnresolvedModuleWithAlias {
 	alias: string | null;
 	unresolvedId: string;
 }
@@ -23,10 +24,12 @@ function normalizeRelativeExternalId(importee: string, source: string) {
 	return isRelative(source) ? resolve(importee, '..', source) : source;
 }
 
+// TODO Lukas this.addEntry -> addEntryChunk
 export class ModuleLoader {
-	private currentLoadModulesPromise: Promise<any> = Promise.resolve();
+	private readonly entriesByMetaId = new Map<string, { module: Module | null }>();
 	private readonly entryModules: ModuleWithAlias[] = [];
 	private readonly graph: Graph;
+	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
 	private readonly modulesById: Map<string, Module | ExternalModule>;
 	private readonly pluginDriver: PluginDriver;
@@ -42,35 +45,49 @@ export class ModuleLoader {
 		this.pluginDriver = pluginDriver;
 	}
 
+	addEntryModuleAndGetMetaId(unresolvedEntryModule: UnresolvedModuleWithAlias): string {
+		const entryRecord: { module: Module | null } = { module: null };
+		const metaId = addWithNewMetaId(
+			entryRecord,
+			this.entriesByMetaId,
+			unresolvedEntryModule.unresolvedId
+		);
+		this.addEntryModules([unresolvedEntryModule]).then(({ newEntryModules: [{ module }] }) => {
+			entryRecord.module = module;
+		});
+		return metaId;
+	}
+
+	// TODO Lukas fail if finished
 	addEntryModules(
 		unresolvedEntryModules: UnresolvedModuleWithAlias[]
 	): Promise<{
 		entryModulesWithAliases: ModuleWithAlias[];
 		manualChunkModulesByAlias: Record<string, Module[]>;
+		newEntryModules: ModuleWithAlias[];
 	}> {
 		const loadNewEntryModulesPromise = Promise.all(
 			unresolvedEntryModules.map(this.loadEntryModule)
-		).then(entryModules => this.entryModules.push(...entryModules));
-
-		this.currentLoadModulesPromise = Promise.all([
-			this.currentLoadModulesPromise,
-			loadNewEntryModulesPromise
-		]);
-		return this.currentLoadModulesPromise.then(() => ({
+		).then(entryModules => {
+			this.entryModules.push(...entryModules);
+			return entryModules;
+		});
+		return this.awaitLoadModulesPromise(loadNewEntryModulesPromise).then(newEntryModules => ({
 			entryModulesWithAliases: this.entryModules,
-			manualChunkModulesByAlias: this.manualChunkModules
+			manualChunkModulesByAlias: this.manualChunkModules,
+			newEntryModules
 		}));
 	}
 
-	addManualChunks(manualChunks: Record<string, string[]>): void {
+	addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
 		const unresolvedManualChunks: UnresolvedModuleWithAlias[] = [];
 		for (const alias of Object.keys(manualChunks)) {
 			const manualChunkIds = manualChunks[alias];
 			for (const unresolvedId of manualChunkIds) {
-				unresolvedManualChunks.push({ unresolvedId, alias });
+				unresolvedManualChunks.push({ alias, unresolvedId });
 			}
 		}
-		const loadNewManualChunkModulesModulesPromise = Promise.all(
+		const loadNewManualChunkModulesPromise = Promise.all(
 			unresolvedManualChunks.map(this.loadEntryModule)
 		).then(manualChunkModules => {
 			for (const { alias, module } of manualChunkModules) {
@@ -81,10 +98,42 @@ export class ModuleLoader {
 			}
 		});
 
-		this.currentLoadModulesPromise = Promise.all([
-			this.currentLoadModulesPromise,
-			loadNewManualChunkModulesModulesPromise
+		return this.awaitLoadModulesPromise(loadNewManualChunkModulesPromise);
+	}
+
+	getChunkFileName(metaId: string): string {
+		const entryRecord = this.entriesByMetaId.get(metaId);
+		if (!entryRecord)
+			error({
+				code: 'CHUNK_NOT_FOUND',
+				message: `Plugin error - Unable to get chunk filename for unknown chunk ${metaId}.`
+			});
+		// TODO Lukas check correct file name
+		if (entryRecord.module === null)
+			error({
+				code: 'XXX',
+				message: `Plugin error - Unable to get chunk file name for chunk ${metaId}. Ensure that generate is called first.`
+			});
+		// TODO Lukas facadeChunk?
+		return entryRecord.module.chunk.id;
+	}
+
+	private awaitLoadModulesPromise<T>(loadNewModulesPromise: Promise<T>): Promise<T> {
+		this.latestLoadModulesPromise = Promise.all([
+			loadNewModulesPromise,
+			this.latestLoadModulesPromise
 		]);
+
+		const getCombinedPromise = (): Promise<never> => {
+			const startingPromise = this.latestLoadModulesPromise;
+			return startingPromise.then(() => {
+				if (this.latestLoadModulesPromise !== startingPromise) {
+					return getCombinedPromise();
+				}
+			});
+		};
+
+		return getCombinedPromise().then(() => loadNewModulesPromise);
 	}
 
 	private fetchAllDependencies(module: Module) {
@@ -274,7 +323,7 @@ export class ModuleLoader {
 			if (external) {
 				id = normalizeRelativeExternalId(module.id, id);
 			}
-		}else {
+		} else {
 			id = normalizeRelativeExternalId(module.id, source);
 			external = true;
 			if (resolveIdResult !== false && !this.graph.isExternal(id, module.id, true)) {
@@ -301,16 +350,19 @@ export class ModuleLoader {
 	private resolveAndFetchDependency(module: Module, source: string): Promise<any> {
 		return Promise.resolve(
 			module.resolvedIds[source] ||
-			Promise.resolve(
-				this.graph.isExternal(source, module.id, false)
-					? { id: source, external: true }
-					: this.pluginDriver.hookFirst<ResolveIdResult>('resolveId', [source, module.id])
-			).then(result => this.normalizeResolveIdResult(result, module, source))
+				Promise.resolve(
+					this.graph.isExternal(source, module.id, false)
+						? { id: source, external: true }
+						: this.pluginDriver.hookFirst<ResolveIdResult>('resolveId', [source, module.id])
+				).then(result => this.normalizeResolveIdResult(result, module, source))
 		).then(resolvedId => {
 			module.resolvedIds[source] = resolvedId;
 			if (resolvedId.external) {
 				if (!this.modulesById.has(resolvedId.id)) {
-					this.modulesById.set(resolvedId.id, new ExternalModule({ graph: this.graph, id: resolvedId.id }));
+					this.modulesById.set(
+						resolvedId.id,
+						new ExternalModule({ graph: this.graph, id: resolvedId.id })
+					);
 				}
 
 				const externalModule = this.modulesById.get(resolvedId.id);

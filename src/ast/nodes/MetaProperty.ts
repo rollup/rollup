@@ -6,6 +6,9 @@ import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
+const ASSET_PREFIX = 'ROLLUP_ASSET_URL_';
+const CHUNK_PREFIX = 'ROLLUP_CHUNK_URL_';
+
 export default class MetaProperty extends NodeBase {
 	meta: Identifier;
 	property: Identifier;
@@ -31,9 +34,11 @@ export default class MetaProperty extends NodeBase {
 				? parent.propertyKey
 				: null;
 
-		// support import.meta.ROLLUP_ASSET_URL_[ID]
-		if (importMetaProperty && importMetaProperty.startsWith('ROLLUP_ASSET_URL_')) {
-			const assetFileName = this.context.getAssetFileName(importMetaProperty.substr(17));
+		// TODO Lukas extract, use same hook
+		if (importMetaProperty && importMetaProperty.startsWith(ASSET_PREFIX)) {
+			const assetFileName = this.context.getAssetFileName(
+				importMetaProperty.substr(ASSET_PREFIX.length)
+			);
 			const relativeAssetPath = normalize(relative(dirname(chunkId), assetFileName));
 			const replacement = pluginDriver.hookFirstSync<string>('resolveAssetUrl', [
 				{
@@ -42,6 +47,29 @@ export default class MetaProperty extends NodeBase {
 					format,
 					moduleId: this.context.module.id,
 					relativeAssetPath
+				}
+			]);
+
+			code.overwrite(
+				(parent as MemberExpression).start,
+				(parent as MemberExpression).end,
+				replacement
+			);
+			return true;
+		}
+
+		if (importMetaProperty && importMetaProperty.startsWith(CHUNK_PREFIX)) {
+			const chunkFileName = this.context.getChunkFileName(
+				importMetaProperty.substr(CHUNK_PREFIX.length)
+			);
+			const relativeChunkPath = normalize(relative(dirname(chunkId), chunkFileName));
+			const replacement = pluginDriver.hookFirstSync<string>('resolveChunkUrl', [
+				{
+					chunkFileName,
+					chunkId,
+					format,
+					moduleId: this.context.module.id,
+					relativeChunkPath
 				}
 			]);
 

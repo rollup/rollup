@@ -88,7 +88,8 @@ export interface AstContext {
 	deoptimizationTracker: EntityPathTracker;
 	error: (props: RollupError, pos: number) => void;
 	fileName: string;
-	getAssetFileName: (assetId: string) => string;
+	getAssetFileName: (assetMetaId: string) => string;
+	getChunkFileName: (metaId: string) => string;
 	getExports: () => string[];
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
@@ -521,7 +522,9 @@ export default class Module {
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
+			// TODO Lukas move asset handling to graph?
 			getAssetFileName: this.graph.pluginDriver.getAssetFileName,
+			getChunkFileName: this.graph.moduleLoader.getChunkFileName.bind(this.graph.moduleLoader),
 			getExports: this.getExports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
