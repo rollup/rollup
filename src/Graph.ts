@@ -8,7 +8,7 @@ import { EntityPathTracker } from './ast/utils/EntityPathTracker';
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
-import { ModuleLoader } from './ModuleLoader';
+import { ModuleLoader, UnresolvedModuleWithAlias } from './ModuleLoader';
 import {
 	Asset,
 	InputOptions,
@@ -43,17 +43,20 @@ function makeOnwarn() {
 	};
 }
 
-// TODO Lukas extract type for entry module
 function normalizeEntryModules(
 	entryModules: string | string[] | Record<string, string>
-): { alias: string | null; unresolvedId: string }[] {
+): UnresolvedModuleWithAlias[] {
 	if (typeof entryModules === 'string') {
 		return [{ alias: null, unresolvedId: entryModules }];
 	}
 	if (Array.isArray(entryModules)) {
 		return entryModules.map(unresolvedId => ({ alias: null, unresolvedId }));
 	}
-	return Object.keys(entryModules).map(alias => ({ alias, unresolvedId: entryModules[alias] }));
+	return Object.keys(entryModules).map(alias => ({
+		alias,
+		metaId: null,
+		unresolvedId: entryModules[alias]
+	}));
 }
 
 function detectDuplicateEntryPoints(
@@ -90,6 +93,7 @@ export default class Graph {
 	isExternal: IsExternal;
 	isPureExternalModule: (id: string) => boolean;
 	moduleById = new Map<string, Module | ExternalModule>();
+	moduleLoader: ModuleLoader;
 	needsTreeshakingPass: boolean = false;
 	pluginDriver: PluginDriver;
 	preserveModules: boolean;
@@ -103,7 +107,6 @@ export default class Graph {
 	private cacheExpiry: number;
 	private context: string;
 	private externalModules: ExternalModule[] = [];
-	private moduleLoader: ModuleLoader;
 	private modules: Module[] = [];
 	private onwarn: WarningHandler;
 	private pluginCache: Record<string, SerializablePluginCache>;

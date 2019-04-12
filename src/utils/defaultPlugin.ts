@@ -17,6 +17,9 @@ export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 		resolveAssetUrl({ relativeAssetPath, format }) {
 			return relativeUrlMechanisms[format](relativeAssetPath);
 		},
+		resolveChunkUrl({ relativeChunkPath, format }) {
+			return relativeUrlMechanisms[format](relativeChunkPath);
+		},
 		resolveImportMeta(prop, { chunkId, format }) {
 			const mechanism = importMetaMechanisms[format] && importMetaMechanisms[format](prop, chunkId);
 			if (mechanism) {
@@ -108,28 +111,6 @@ const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string
 				`(require('u' + 'rl').URL)`
 			)} : ${getUrlFromDocument(chunkId)})`
 	)
-};
-
-const getRelativeUrlFromDocument = (relativePath: string) =>
-	getResolveUrl(
-		`(document.currentScript && document.currentScript.src || document.baseURI) + '/../${relativePath}'`
-	);
-
-const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = {
-	amd: relativePath => getResolveUrl(`module.uri + '/../${relativePath}', document.baseURI`),
-	cjs: relativePath =>
-		`(typeof document === 'undefined' ? ${getResolveUrl(
-			`'file:' + __dirname + '/${relativePath}'`,
-			`(require('u' + 'rl').URL)`
-		)} : ${getRelativeUrlFromDocument(relativePath)})`,
-	es: relativePath => getResolveUrl(`'${relativePath}', import.meta.url`),
-	iife: relativePath => getRelativeUrlFromDocument(relativePath),
-	system: relativePath => getResolveUrl(`'${relativePath}', module.meta.url`),
-	umd: relativePath =>
-		`(typeof document === 'undefined' ? ${getResolveUrl(
-			`'file:' + __dirname + '/${relativePath}'`,
-			`(require('u' + 'rl').URL)`
-		)} : ${getRelativeUrlFromDocument(relativePath)})`
 };
 
 const getRelativeUrlFromDocument = (relativePath: string) =>

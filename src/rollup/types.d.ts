@@ -103,10 +103,17 @@ export interface MinimalPluginContext {
 	meta: PluginContextMeta;
 }
 
+export type EmitAsset = (name: string, source?: string | Buffer) => string;
+export type AddEntry = (name: string) => string;
+
 export interface PluginContext extends MinimalPluginContext {
+	addEntry: AddEntry;
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
-	getAssetFileName: (assetId: string) => string;
+	emitAsset: EmitAsset;
+	error: (err: RollupError | string, pos?: { column: number; line: number }) => void;
+	getAssetFileName: (assetMetaId: string) => string;
+	getChunkFileName: (chunkMetaId: string) => string;
 	getModuleInfo: (
 		moduleId: string
 	) => {
@@ -118,12 +125,10 @@ export interface PluginContext extends MinimalPluginContext {
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options: any) => ESTree.Program;
 	resolveId: ResolveIdHook;
-	setAssetSource: (assetId: string, source: string | Buffer) => void;
+	setAssetSource: (assetMetaId: string, source: string | Buffer) => void;
+	warn: (warning: RollupWarning | string, pos?: { column: number; line: number }) => void;
 	/** @deprecated */
 	watcher: EventEmitter;
-	emitAsset(name: string, source?: string | Buffer): string;
-	error(err: RollupError | string, pos?: { column: number; line: number }): void;
-	warn(warning: RollupWarning | string, pos?: { column: number; line: number }): void;
 }
 
 export interface PluginContextMeta {
@@ -208,6 +213,17 @@ export type ResolveAssetUrlHook = (
 	}
 ) => string | void;
 
+export type ResolveChunkUrlHook = (
+	this: PluginContext,
+	options: {
+		chunkFileName: string;
+		chunkId: string;
+		format: string;
+		moduleId: string;
+		relativeChunkPath: string;
+	}
+) => string | void;
+
 export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);
 
 /**
@@ -260,6 +276,7 @@ export interface Plugin {
 	renderError?: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart?: (this: PluginContext) => Promise<void> | void;
 	resolveAssetUrl?: ResolveAssetUrlHook;
+	resolveChunkUrl?: ResolveChunkUrlHook;
 	resolveDynamicImport?: ResolveDynamicImportHook;
 	resolveId?: ResolveIdHook;
 	resolveImportMeta?: ResolveImportMetaHook;
