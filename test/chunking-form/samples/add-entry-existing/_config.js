@@ -9,11 +9,11 @@ module.exports = {
 		plugins: {
 			buildStart() {
 				// it should be possible to add existing entry points while not overriding their alias
-				this.addEntry('main1');
+				this.emitEntryChunk('main1');
 
 				// if an existing dependency is added, all references should use the new name
-				this.addEntry('dep.js');
-				this.addEntry('dep');
+				this.emitEntryChunk('dep.js');
+				this.emitEntryChunk('dep');
 			}
 		}
 	}

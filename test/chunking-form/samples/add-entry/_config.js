@@ -7,7 +7,7 @@ module.exports = {
 		input: 'main',
 		plugins: {
 			buildStart() {
-				metaId = this.addEntry('buildStart');
+				metaId = this.emitEntryChunk('buildStart');
 			},
 			renderChunk() {
 				assert.strictEqual(this.getChunkFileName(metaId), 'buildStart.js');
