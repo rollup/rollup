@@ -1,5 +1,9 @@
 let metaId;
 
+// TODO Lukas can we load requirejs via renderChunk?
+// importScripts('../../../../../../node_modules/requirejs/require.js');
+// requirejs([], function () { ...
+// also test shared modules
 module.exports = {
 	description: 'allows adding additional entry points',
 	options: {
@@ -11,12 +15,11 @@ module.exports = {
 			load(id) {
 				if (id === 'merged' || id === 'nested') {
 					if (!metaId) {
-						// TODO Lukas is there a way to prevent reemitting the same entry point? What about already existing ones?
 						metaId = this.addEntry('worker');
 					}
 					return `
 export const getWorkerMessage = () => new Promise(resolve => {
-  const worker = new Worker(import.meta.ROLLUP_CHUNK_URL_${metaId});
+  const worker = new Worker(import.meta.ROLLUP_CHUNK_URL_${metaId}, {type: 'module'});
   worker.onmessage = resolve;
 });`;
 				}

@@ -1,7 +1,7 @@
 define(['module', 'require'], function (module, require) { 'use strict';
 
   const getWorkerMessage = () => new Promise(resolve => {
-    const worker = new Worker(new URL(module.uri + '/../worker.js', document.baseURI).href);
+    const worker = new Worker(new URL(module.uri + '/../worker.js', document.baseURI).href, {type: 'module'});
     worker.onmessage = resolve;
   });
 

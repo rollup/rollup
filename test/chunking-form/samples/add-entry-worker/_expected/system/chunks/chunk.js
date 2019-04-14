@@ -4,7 +4,7 @@ System.register([], function (exports, module) {
     execute: function () {
 
       const getWorkerMessage = exports('getWorkerMessage', () => new Promise(resolve => {
-        const worker = new Worker(new URL('../worker.js', module.meta.url).href);
+        const worker = new Worker(new URL('../worker.js', module.meta.url).href, {type: 'module'});
         worker.onmessage = resolve;
       }));
 

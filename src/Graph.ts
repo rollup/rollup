@@ -25,11 +25,10 @@ import {
 import { finaliseAsset } from './utils/assetHooks';
 import { assignChunkColouringHashes } from './utils/chunkColouring';
 import { Uint8ArrayToHexString } from './utils/entryHashing';
-import { error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { resolve } from './utils/path';
 import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
-import relativeId from './utils/relativeId';
+import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 
 function makeOnwarn() {
@@ -57,26 +56,6 @@ function normalizeEntryModules(
 		metaId: null,
 		unresolvedId: entryModules[alias]
 	}));
-}
-
-function detectDuplicateEntryPoints(
-	entryModulesWithAliases: { alias: string | null; module: Module }[]
-) {
-	const foundEntryModules = new Set<Module>();
-	for (let i = 0; i < entryModulesWithAliases.length; i++) {
-		const entryModule = entryModulesWithAliases[i].module;
-		if (foundEntryModules.has(entryModule)) {
-			error({
-				code: 'DUPLICATE_ENTRY_POINTS',
-				message: `Duplicate entry points detected. The input entries ${
-					entryModulesWithAliases[i].alias
-				} and ${
-					entryModulesWithAliases.find(({ module }) => module === entryModule).alias
-				} both point to the same module, ${entryModule.id}`
-			});
-		}
-		foundEntryModules.add(entryModule);
-	}
 }
 
 export default class Graph {
@@ -246,6 +225,11 @@ export default class Graph {
 		return this.moduleLoader
 			.addEntryModules(normalizeEntryModules(entryModules))
 			.then(({ entryModulesWithAliases, manualChunkModulesByAlias }) => {
+				for (const entryModuleWithAlias of entryModulesWithAliases) {
+					if (entryModuleWithAlias.alias === null) {
+						entryModuleWithAlias.alias = getAliasName(entryModuleWithAlias.module.id);
+					}
+				}
 				for (const module of Array.from(this.moduleById.values())) {
 					if (module instanceof Module) {
 						this.modules.push(module);
@@ -259,8 +243,6 @@ export default class Graph {
 				// Phase 2 - linking. We populate the module dependency links and
 				// determine the topological execution order for the bundle
 				timeStart('analyse dependency graph', 2);
-
-				detectDuplicateEntryPoints(entryModulesWithAliases);
 
 				this.link(entryModulesWithAliases.map(({ module }) => module));
 
@@ -290,7 +272,6 @@ export default class Graph {
 				// entry point graph colouring, before generating the import and export facades
 				timeStart('generate chunks', 2);
 
-				// TODO Lukas can we move the alias assigment into the colouring?
 				if (!this.preserveModules && !inlineDynamicImports) {
 					assignChunkColouringHashes(
 						entryModulesWithAliases.map(({ module }) => module),
