@@ -104,13 +104,13 @@ export interface MinimalPluginContext {
 }
 
 export type EmitAsset = (name: string, source?: string | Buffer) => string;
-export type AddEntry = (name: string) => string;
+export type EmitEntryChunk = (name: string) => string;
 
 export interface PluginContext extends MinimalPluginContext {
-	addEntry: AddEntry;
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
 	emitAsset: EmitAsset;
+	emitEntryChunk: EmitEntryChunk;
 	error: (err: RollupError | string, pos?: { column: number; line: number }) => void;
 	getAssetFileName: (assetMetaId: string) => string;
 	getChunkFileName: (chunkMetaId: string) => string;

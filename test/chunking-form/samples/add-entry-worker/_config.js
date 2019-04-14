@@ -15,7 +15,7 @@ module.exports = {
 			load(id) {
 				if (id === 'merged' || id === 'nested') {
 					if (!metaId) {
-						metaId = this.addEntry('worker');
+						metaId = this.emitEntryChunk('worker');
 					}
 					return `
 export const getWorkerMessage = () => new Promise(resolve => {

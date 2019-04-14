@@ -112,7 +112,7 @@ export function createPluginDriver(
 		}
 
 		const context: PluginContext = {
-			addEntry(id: string) {
+			emitEntryChunk(id: string) {
 				return graph.moduleLoader.addEntryModuleAndGetMetaId({ alias: null, unresolvedId: id });
 			},
 			addWatchFile(id: string) {

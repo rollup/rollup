@@ -24,7 +24,6 @@ function normalizeRelativeExternalId(importee: string, source: string) {
 	return isRelative(source) ? resolve(importee, '..', source) : source;
 }
 
-// TODO Lukas this.addEntry -> addEntryChunk
 export class ModuleLoader {
 	private readonly entriesByMetaId = new Map<string, { module: Module | null }>();
 	private readonly entryModulesWithAliases: ModuleWithAlias[] = [];
