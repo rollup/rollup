@@ -164,7 +164,7 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 
 export default class Module {
 	chunk: Chunk;
-	chunkAlias: string = undefined;
+	chunkAlias: string = null;
 	code: string;
 	comments: CommentDescription[] = [];
 	customTransformCache: boolean;
@@ -192,6 +192,7 @@ export default class Module {
 	isEntryPoint: boolean = false;
 	isExecuted: boolean = false;
 	isExternal: false;
+	manualChunkAlias: string = null;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);

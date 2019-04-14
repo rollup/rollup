@@ -14,8 +14,8 @@ export function assignChunkColouringHashes(
 	const dynamicImports: Module[] = [];
 
 	const addCurrentEntryColourToModule = (module: Module) => {
-		if (currentEntry.chunkAlias) {
-			module.chunkAlias = currentEntry.chunkAlias;
+		if (currentEntry.manualChunkAlias) {
+			module.manualChunkAlias = currentEntry.manualChunkAlias;
 			module.entryPointsHash = currentEntryHash;
 		} else {
 			Uint8ArrayXor(module.entryPointsHash, currentEntryHash);
@@ -29,7 +29,7 @@ export function assignChunkColouringHashes(
 				continue;
 			}
 			modulesVisitedForCurrentEntry.add(dependency.id);
-			if (!handledEntryPoints.has(dependency.id) && !dependency.chunkAlias)
+			if (!handledEntryPoints.has(dependency.id) && !dependency.manualChunkAlias)
 				addCurrentEntryColourToModule(dependency);
 		}
 
@@ -37,7 +37,7 @@ export function assignChunkColouringHashes(
 			if (
 				resolution instanceof Module &&
 				resolution.dynamicallyImportedBy.length > 0 &&
-				!resolution.chunkAlias
+				!resolution.manualChunkAlias
 			) {
 				dynamicImports.push(resolution);
 			}
@@ -49,19 +49,19 @@ export function assignChunkColouringHashes(
 			currentEntryHash = randomUint8Array(10);
 
 			for (currentEntry of manualChunkModules[chunkName]) {
-				if (currentEntry.chunkAlias) {
+				if (currentEntry.manualChunkAlias) {
 					error({
 						code: 'INVALID_CHUNK',
 						message: `Cannot assign ${relative(
 							process.cwd(),
 							currentEntry.id
 						)} to the "${chunkName}" chunk as it is already in the "${
-							currentEntry.chunkAlias
+							currentEntry.manualChunkAlias
 						}" chunk.
 Try defining "${chunkName}" first in the manualChunks definitions of the Rollup configuration.`
 					});
 				}
-				currentEntry.chunkAlias = chunkName;
+				currentEntry.manualChunkAlias = chunkName;
 				modulesVisitedForCurrentEntry = new Set(currentEntry.id);
 				addCurrentEntryColourToModule(currentEntry);
 			}
