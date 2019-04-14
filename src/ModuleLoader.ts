@@ -11,7 +11,7 @@ import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
 
 interface ModuleWithAlias {
-	alias: string;
+	alias: string | null;
 	module: Module;
 }
 
@@ -27,7 +27,7 @@ function normalizeRelativeExternalId(importee: string, source: string) {
 // TODO Lukas this.addEntry -> addEntryChunk
 export class ModuleLoader {
 	private readonly entriesByMetaId = new Map<string, { module: Module | null }>();
-	private readonly entryModules: ModuleWithAlias[] = [];
+	private readonly entryModulesWithAliases: ModuleWithAlias[] = [];
 	private readonly graph: Graph;
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
@@ -68,12 +68,37 @@ export class ModuleLoader {
 	}> {
 		const loadNewEntryModulesPromise = Promise.all(
 			unresolvedEntryModules.map(this.loadEntryModule)
-		).then(entryModules => {
-			this.entryModules.push(...entryModules);
-			return entryModules;
+		).then(entryModulesWithAliases => {
+			for (const entryModuleWithAlias of entryModulesWithAliases) {
+				const existingEntryModuleWithAlias = this.entryModulesWithAliases.find(
+					({ module: { id } }) => id === entryModuleWithAlias.module.id
+				);
+				if (existingEntryModuleWithAlias) {
+					// TODO Lukas: Do not assign aliases here
+					// TODO Lukas: Introduce separate manual chunk alias variable
+					if (entryModuleWithAlias.alias) {
+						if (!existingEntryModuleWithAlias.alias) {
+							existingEntryModuleWithAlias.alias = entryModuleWithAlias.alias;
+						} else if (existingEntryModuleWithAlias.alias !== entryModuleWithAlias.alias) {
+							// TODO Lukas can this even happen?
+							error({
+								code: 'DUPLICATE_ENTRY_POINTS',
+								message: `Duplicate entry points with different aliases detected. The input entries ${
+									existingEntryModuleWithAlias.alias
+								} and ${entryModuleWithAlias.alias} both point to the same module, ${
+									entryModuleWithAlias.module.id
+								}`
+							});
+						}
+					}
+				} else {
+					this.entryModulesWithAliases.push(entryModuleWithAlias);
+				}
+			}
+			return entryModulesWithAliases;
 		});
 		return this.awaitLoadModulesPromise(loadNewEntryModulesPromise).then(newEntryModules => ({
-			entryModulesWithAliases: this.entryModules,
+			entryModulesWithAliases: this.entryModulesWithAliases,
 			manualChunkModulesByAlias: this.manualChunkModules,
 			newEntryModules
 		}));
@@ -144,6 +169,7 @@ export class ModuleLoader {
 					.then(replacement => {
 						if (!replacement) return;
 						const dynamicImport = module.dynamicImports[index];
+						// TODO Lukas why can we assign to the module here?
 						dynamicImport.alias = getAliasName(replacement);
 						if (typeof dynamicImportExpression !== 'string') {
 							dynamicImport.resolution = replacement;
@@ -295,7 +321,7 @@ export class ModuleLoader {
 				}
 
 				return this.fetchModule(<string>id, undefined).then(module => ({
-					alias: alias || getAliasName(module.id),
+					alias,
 					module
 				}));
 			});
