@@ -1,5 +1,5 @@
 import { DEP } from './generated-dynamic.js';
 
-Promise.all([import('./generated-dynamic.js'), import('./generated-dynamic2.js'), import('./generated-dynamic3.js')]).then(
+Promise.all([import('./generated-dynamic.js'), import('./generated-chunk.js'), import('./generated-chunk2.js')]).then(
 	results => console.log(results, DEP)
 );

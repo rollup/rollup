@@ -7,7 +7,7 @@ System.register(['./generated-dynamic.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			Promise.all([module.import('./generated-dynamic.js'), module.import('./generated-dynamic2.js'), module.import('./generated-dynamic3.js')]).then(
+			Promise.all([module.import('./generated-dynamic.js'), module.import('./generated-chunk.js'), module.import('./generated-chunk2.js')]).then(
 				results => console.log(results, DEP)
 			);
 

@@ -152,6 +152,7 @@ export default class Chunk {
 			if (this.isEmpty && module.isIncluded()) {
 				this.isEmpty = false;
 			}
+			// TODO Lukas can this be done via manualChunkAlias?
 			if (module.chunkAlias) {
 				this.isManualChunk = true;
 			}
@@ -167,6 +168,7 @@ export default class Chunk {
 		if (this.entryModules.length > 0) {
 			this.variableName = makeLegal(
 				basename(
+					// TODO Lukas is searching necessary as all entryModules should have a chunkAlias by now?
 					this.entryModules.map(module => module.chunkAlias).find(Boolean) ||
 						this.entryModules[0].id
 				)

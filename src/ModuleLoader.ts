@@ -10,11 +10,6 @@ import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
 
-interface ModuleWithAlias {
-	alias: string | null;
-	module: Module;
-}
-
 export interface UnresolvedModuleWithAlias {
 	alias: string | null;
 	unresolvedId: string;
@@ -26,7 +21,7 @@ function normalizeRelativeExternalId(importee: string, source: string) {
 
 export class ModuleLoader {
 	private readonly entriesByMetaId = new Map<string, { module: Module | null }>();
-	private readonly entryModulesWithAliases: ModuleWithAlias[] = [];
+	private readonly entryModules: Module[] = [];
 	private readonly graph: Graph;
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
@@ -51,7 +46,7 @@ export class ModuleLoader {
 			this.entriesByMetaId,
 			unresolvedEntryModule.unresolvedId
 		);
-		this.addEntryModules([unresolvedEntryModule]).then(({ newEntryModules: [{ module }] }) => {
+		this.addEntryModules([unresolvedEntryModule]).then(({ newEntryModules: [module] }) => {
 			entryRecord.module = module;
 		});
 		return metaId;
@@ -61,43 +56,23 @@ export class ModuleLoader {
 	addEntryModules(
 		unresolvedEntryModules: UnresolvedModuleWithAlias[]
 	): Promise<{
-		entryModulesWithAliases: ModuleWithAlias[];
+		entryModules: Module[];
 		manualChunkModulesByAlias: Record<string, Module[]>;
-		newEntryModules: ModuleWithAlias[];
+		newEntryModules: Module[];
 	}> {
 		const loadNewEntryModulesPromise = Promise.all(
 			unresolvedEntryModules.map(this.loadEntryModule)
-		).then(entryModulesWithAliases => {
-			for (const entryModuleWithAlias of entryModulesWithAliases) {
-				const existingEntryModuleWithAlias = this.entryModulesWithAliases.find(
-					({ module: { id } }) => id === entryModuleWithAlias.module.id
-				);
-				if (existingEntryModuleWithAlias) {
-					// TODO Lukas: Do not assign aliases here
-					// TODO Lukas: Introduce separate manual chunk alias variable
-					if (entryModuleWithAlias.alias) {
-						if (!existingEntryModuleWithAlias.alias) {
-							existingEntryModuleWithAlias.alias = entryModuleWithAlias.alias;
-						} else if (existingEntryModuleWithAlias.alias !== entryModuleWithAlias.alias) {
-							// TODO Lukas can this even happen?
-							error({
-								code: 'DUPLICATE_ENTRY_POINTS',
-								message: `Duplicate entry points with different aliases detected. The input entries ${
-									existingEntryModuleWithAlias.alias
-								} and ${entryModuleWithAlias.alias} both point to the same module, ${
-									entryModuleWithAlias.module.id
-								}`
-							});
-						}
-					}
-				} else {
-					this.entryModulesWithAliases.push(entryModuleWithAlias);
+		).then(entryModules => {
+			for (const entryModule of entryModules) {
+				const existingEntryModule = this.entryModules.find(module => module.id === entryModule.id);
+				if (!existingEntryModule) {
+					this.entryModules.push(entryModule);
 				}
 			}
-			return entryModulesWithAliases;
+			return entryModules;
 		});
 		return this.awaitLoadModulesPromise(loadNewEntryModulesPromise).then(newEntryModules => ({
-			entryModulesWithAliases: this.entryModulesWithAliases,
+			entryModules: this.entryModules,
 			manualChunkModulesByAlias: this.manualChunkModules,
 			newEntryModules
 		}));
@@ -114,11 +89,11 @@ export class ModuleLoader {
 		const loadNewManualChunkModulesPromise = Promise.all(
 			unresolvedManualChunks.map(this.loadEntryModule)
 		).then(manualChunkModules => {
-			for (const { alias, module } of manualChunkModules) {
-				if (!this.manualChunkModules[alias]) {
-					this.manualChunkModules[alias] = [];
+			for (const module of manualChunkModules) {
+				if (!this.manualChunkModules[module.chunkAlias]) {
+					this.manualChunkModules[module.chunkAlias] = [];
 				}
-				this.manualChunkModules[alias].push(module);
+				this.manualChunkModules[module.chunkAlias].push(module);
 			}
 		});
 
@@ -301,7 +276,7 @@ export class ModuleLoader {
 	private loadEntryModule = ({
 		alias,
 		unresolvedId
-	}: UnresolvedModuleWithAlias): Promise<ModuleWithAlias> => {
+	}: UnresolvedModuleWithAlias): Promise<Module> => {
 		return this.pluginDriver
 			.hookFirst<string | false | void>('resolveId', [unresolvedId, undefined])
 			.then(id => {
@@ -319,10 +294,21 @@ export class ModuleLoader {
 					});
 				}
 
-				return this.fetchModule(<string>id, undefined).then(module => ({
-					alias,
-					module
-				}));
+				// TODO Handle entry points as manual chunks?
+				return this.fetchModule(<string>id, undefined).then(module => {
+					if (alias !== null) {
+						if (module.chunkAlias !== null) {
+							error({
+								code: 'DUPLICATE_ENTRY_POINTS',
+								message: `Duplicate entry points with different aliases detected. The entries ${
+									module.chunkAlias
+								} and ${alias} both point to the same module, ${module.id}`
+							});
+						}
+						module.chunkAlias = alias;
+					}
+					return module;
+				});
 			});
 	};
 

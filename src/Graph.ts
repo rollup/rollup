@@ -224,10 +224,10 @@ export default class Graph {
 		}
 		return this.moduleLoader
 			.addEntryModules(normalizeEntryModules(entryModules))
-			.then(({ entryModulesWithAliases, manualChunkModulesByAlias }) => {
-				for (const entryModuleWithAlias of entryModulesWithAliases) {
-					if (entryModuleWithAlias.alias === null) {
-						entryModuleWithAlias.alias = getAliasName(entryModuleWithAlias.module.id);
+			.then(({ entryModules, manualChunkModulesByAlias }) => {
+				for (const entryModule of entryModules) {
+					if (entryModule.chunkAlias === null) {
+						entryModule.chunkAlias = getAliasName(entryModule.id);
 					}
 				}
 				for (const module of Array.from(this.moduleById.values())) {
@@ -244,7 +244,7 @@ export default class Graph {
 				// determine the topological execution order for the bundle
 				timeStart('analyse dependency graph', 2);
 
-				this.link(entryModulesWithAliases.map(({ module }) => module));
+				this.link(entryModules);
 
 				timeEnd('analyse dependency graph', 2);
 
@@ -252,13 +252,13 @@ export default class Graph {
 				timeStart('mark included statements', 2);
 
 				if (inlineDynamicImports) {
-					if (entryModulesWithAliases.length > 1) {
+					if (entryModules.length > 1) {
 						throw new Error(
 							'Internal Error: can only inline dynamic imports for single-file builds.'
 						);
 					}
 				}
-				for (const { module } of entryModulesWithAliases) {
+				for (const module of entryModules) {
 					module.includeAllExports();
 				}
 				this.includeMarked(this.modules);
@@ -273,14 +273,7 @@ export default class Graph {
 				timeStart('generate chunks', 2);
 
 				if (!this.preserveModules && !inlineDynamicImports) {
-					assignChunkColouringHashes(
-						entryModulesWithAliases.map(({ module }) => module),
-						manualChunkModulesByAlias
-					);
-				}
-
-				for (let i = entryModulesWithAliases.length - 1; i >= 0; i--) {
-					entryModulesWithAliases[i].module.chunkAlias = entryModulesWithAliases[i].alias;
+					assignChunkColouringHashes(entryModules, manualChunkModulesByAlias);
 				}
 
 				// TODO: there is one special edge case unhandled here and that is that any module
