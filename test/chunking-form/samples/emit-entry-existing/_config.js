@@ -1,4 +1,3 @@
-// TODO Lukas entry not found -> unhandled Promise rejection?
 module.exports = {
 	description: 'allows adding modules already in the graph as entry points',
 	options: {
