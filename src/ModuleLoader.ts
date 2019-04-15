@@ -3,6 +3,7 @@ import Graph from './Graph';
 import Module from './Module';
 import { ModuleJSON, ResolvedId, ResolveIdResult, SourceDescription } from './rollup/types';
 import { error } from './utils/error';
+import { errorCannotAssignModuleToChunk } from './utils/errors';
 import { addWithNewMetaId } from './utils/metaIds';
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/pluginDriver';
@@ -46,9 +47,14 @@ export class ModuleLoader {
 			this.entriesByMetaId,
 			unresolvedEntryModule.unresolvedId
 		);
-		this.addEntryModules([unresolvedEntryModule]).then(({ newEntryModules: [module] }) => {
-			entryRecord.module = module;
-		});
+		this.addEntryModules([unresolvedEntryModule])
+			.then(({ newEntryModules: [module] }) => {
+				entryRecord.module = module;
+			})
+			.catch(() => {
+				// Avoid unhandled Promise rejection as the error will be thrown later
+				// once module loading has finished
+			});
 		return metaId;
 	}
 
@@ -94,6 +100,7 @@ export class ModuleLoader {
 					this.manualChunkModules[module.chunkAlias] = [];
 				}
 				this.manualChunkModules[module.chunkAlias].push(module);
+				module.manualChunkAlias = module.chunkAlias;
 			}
 		});
 
@@ -294,16 +301,10 @@ export class ModuleLoader {
 					});
 				}
 
-				// TODO Handle entry points as manual chunks?
 				return this.fetchModule(<string>id, undefined).then(module => {
 					if (alias !== null) {
-						if (module.chunkAlias !== null) {
-							error({
-								code: 'DUPLICATE_ENTRY_POINTS',
-								message: `Duplicate entry points with different aliases detected. The entries ${
-									module.chunkAlias
-								} and ${alias} both point to the same module, ${module.id}`
-							});
+						if (module.chunkAlias !== null && module.chunkAlias !== alias) {
+							errorCannotAssignModuleToChunk(module.id, alias, module.chunkAlias);
 						}
 						module.chunkAlias = alias;
 					}

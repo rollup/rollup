@@ -219,133 +219,131 @@ export default class Graph {
 
 		timeStart('parse modules', 2);
 
-		if (manualChunks) {
-			this.moduleLoader.addManualChunks(manualChunks);
-		}
-		return this.moduleLoader
-			.addEntryModules(normalizeEntryModules(entryModules))
-			.then(({ entryModules, manualChunkModulesByAlias }) => {
-				for (const entryModule of entryModules) {
-					if (entryModule.chunkAlias === null) {
-						entryModule.chunkAlias = getAliasName(entryModule.id);
-					}
+		return Promise.all([
+			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModules)),
+			manualChunks && this.moduleLoader.addManualChunks(manualChunks)
+		]).then(([{ entryModules, manualChunkModulesByAlias }]) => {
+			for (const entryModule of entryModules) {
+				if (entryModule.chunkAlias === null) {
+					entryModule.chunkAlias = getAliasName(entryModule.id);
 				}
-				for (const module of Array.from(this.moduleById.values())) {
-					if (module instanceof Module) {
-						this.modules.push(module);
-						this.watchFiles[module.id] = true;
-					} else {
-						this.externalModules.push(module);
-					}
-				}
-				timeEnd('parse modules', 2);
-
-				// Phase 2 - linking. We populate the module dependency links and
-				// determine the topological execution order for the bundle
-				timeStart('analyse dependency graph', 2);
-
-				this.link(entryModules);
-
-				timeEnd('analyse dependency graph', 2);
-
-				// Phase 3 – marking. We include all statements that should be included
-				timeStart('mark included statements', 2);
-
-				if (inlineDynamicImports) {
-					if (entryModules.length > 1) {
-						throw new Error(
-							'Internal Error: can only inline dynamic imports for single-file builds.'
-						);
-					}
-				}
-				for (const module of entryModules) {
-					module.includeAllExports();
-				}
-				this.includeMarked(this.modules);
-
-				// check for unused external imports
-				for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
-
-				timeEnd('mark included statements', 2);
-
-				// Phase 4 – we construct the chunks, working out the optimal chunking using
-				// entry point graph colouring, before generating the import and export facades
-				timeStart('generate chunks', 2);
-
-				if (!this.preserveModules && !inlineDynamicImports) {
-					assignChunkColouringHashes(entryModules, manualChunkModulesByAlias);
-				}
-
-				// TODO: there is one special edge case unhandled here and that is that any module
-				//       exposed as an unresolvable export * (to a graph external export *,
-				//       either as a namespace import reexported or top-level export *)
-				//       should be made to be its own entry point module before chunking
-				let chunks: Chunk[] = [];
-				if (this.preserveModules) {
-					for (const module of this.modules) {
-						const chunk = new Chunk(this, [module]);
-						if (module.isEntryPoint || !chunk.isEmpty) {
-							chunk.entryModules = [module];
-						}
-						chunks.push(chunk);
-					}
+			}
+			for (const module of Array.from(this.moduleById.values())) {
+				if (module instanceof Module) {
+					this.modules.push(module);
+					this.watchFiles[module.id] = true;
 				} else {
-					const chunkModules: { [entryHashSum: string]: Module[] } = {};
-					for (const module of this.modules) {
-						const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
-						const curChunk = chunkModules[entryPointsHashStr];
-						if (curChunk) {
-							curChunk.push(module);
-						} else {
-							chunkModules[entryPointsHashStr] = [module];
+					this.externalModules.push(module);
+				}
+			}
+			timeEnd('parse modules', 2);
+
+			// Phase 2 - linking. We populate the module dependency links and
+			// determine the topological execution order for the bundle
+			timeStart('analyse dependency graph', 2);
+
+			this.link(entryModules);
+
+			timeEnd('analyse dependency graph', 2);
+
+			// Phase 3 – marking. We include all statements that should be included
+			timeStart('mark included statements', 2);
+
+			if (inlineDynamicImports) {
+				if (entryModules.length > 1) {
+					throw new Error(
+						'Internal Error: can only inline dynamic imports for single-file builds.'
+					);
+				}
+			}
+			for (const module of entryModules) {
+				module.includeAllExports();
+			}
+			this.includeMarked(this.modules);
+
+			// check for unused external imports
+			for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
+
+			timeEnd('mark included statements', 2);
+
+			// Phase 4 – we construct the chunks, working out the optimal chunking using
+			// entry point graph colouring, before generating the import and export facades
+			timeStart('generate chunks', 2);
+
+			if (!this.preserveModules && !inlineDynamicImports) {
+				assignChunkColouringHashes(entryModules, manualChunkModulesByAlias);
+			}
+
+			// TODO: there is one special edge case unhandled here and that is that any module
+			//       exposed as an unresolvable export * (to a graph external export *,
+			//       either as a namespace import reexported or top-level export *)
+			//       should be made to be its own entry point module before chunking
+			let chunks: Chunk[] = [];
+			if (this.preserveModules) {
+				for (const module of this.modules) {
+					const chunk = new Chunk(this, [module]);
+					if (module.isEntryPoint || !chunk.isEmpty) {
+						chunk.entryModules = [module];
+					}
+					chunks.push(chunk);
+				}
+			} else {
+				const chunkModules: { [entryHashSum: string]: Module[] } = {};
+				for (const module of this.modules) {
+					const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
+					const curChunk = chunkModules[entryPointsHashStr];
+					if (curChunk) {
+						curChunk.push(module);
+					} else {
+						chunkModules[entryPointsHashStr] = [module];
+					}
+				}
+
+				for (const entryHashSum in chunkModules) {
+					const chunkModulesOrdered = chunkModules[entryHashSum];
+					sortByExecutionOrder(chunkModulesOrdered);
+					const chunk = new Chunk(this, chunkModulesOrdered);
+					chunks.push(chunk);
+				}
+			}
+
+			// for each chunk module, set up its imports to other
+			// chunks, if those variables are included after treeshaking
+			for (const chunk of chunks) {
+				chunk.link();
+			}
+
+			// filter out empty dependencies
+			chunks = chunks.filter(
+				chunk => !chunk.isEmpty || chunk.entryModules.length > 0 || chunk.isManualChunk
+			);
+
+			// then go over and ensure all entry chunks export their variables
+			for (const chunk of chunks) {
+				if (this.preserveModules || chunk.entryModules.length > 0) {
+					chunk.generateEntryExportsOrMarkAsTainted();
+				}
+			}
+
+			// create entry point facades for entry module chunks that have tainted exports
+			const facades = [];
+			if (!this.preserveModules) {
+				for (const chunk of chunks) {
+					for (const entryModule of chunk.entryModules) {
+						if (chunk.facadeModule !== entryModule) {
+							const entryPointFacade = new Chunk(this, []);
+							entryPointFacade.turnIntoFacade(entryModule);
+							facades.push(entryPointFacade);
 						}
 					}
-
-					for (const entryHashSum in chunkModules) {
-						const chunkModulesOrdered = chunkModules[entryHashSum];
-						sortByExecutionOrder(chunkModulesOrdered);
-						const chunk = new Chunk(this, chunkModulesOrdered);
-						chunks.push(chunk);
-					}
 				}
+			}
 
-				// for each chunk module, set up its imports to other
-				// chunks, if those variables are included after treeshaking
-				for (const chunk of chunks) {
-					chunk.link();
-				}
+			timeEnd('generate chunks', 2);
 
-				// filter out empty dependencies
-				chunks = chunks.filter(
-					chunk => !chunk.isEmpty || chunk.entryModules.length > 0 || chunk.isManualChunk
-				);
-
-				// then go over and ensure all entry chunks export their variables
-				for (const chunk of chunks) {
-					if (this.preserveModules || chunk.entryModules.length > 0) {
-						chunk.generateEntryExportsOrMarkAsTainted();
-					}
-				}
-
-				// create entry point facades for entry module chunks that have tainted exports
-				const facades = [];
-				if (!this.preserveModules) {
-					for (const chunk of chunks) {
-						for (const entryModule of chunk.entryModules) {
-							if (chunk.facadeModule !== entryModule) {
-								const entryPointFacade = new Chunk(this, []);
-								entryPointFacade.turnIntoFacade(entryModule);
-								facades.push(entryPointFacade);
-							}
-						}
-					}
-				}
-
-				timeEnd('generate chunks', 2);
-
-				this.finished = true;
-				return chunks.concat(facades);
-			});
+			this.finished = true;
+			return chunks.concat(facades);
+		});
 	}
 
 	finaliseAssets(assetFileNames: string) {
