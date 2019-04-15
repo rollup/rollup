@@ -123,8 +123,9 @@ export class ModuleLoader {
 				code: 'XXX',
 				message: `Plugin error - Unable to get chunk file name for chunk ${metaId}. Ensure that generate is called first.`
 			});
-		// TODO Lukas what if this is a facadeChunk?
-		return entryRecord.module.chunk.id;
+		return entryRecord.module.facadeChunk
+			? entryRecord.module.facadeChunk.id
+			: entryRecord.module.chunk.id;
 	}
 
 	private awaitLoadModulesPromise<T>(loadNewModulesPromise: Promise<T>): Promise<T> {
