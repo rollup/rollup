@@ -16,6 +16,10 @@ export interface UnresolvedModuleWithAlias {
 	unresolvedId: string;
 }
 
+interface UnresolvedEntryModuleWithAlias extends UnresolvedModuleWithAlias {
+	isManualChunkEntry?: boolean;
+}
+
 function normalizeRelativeExternalId(importee: string, source: string) {
 	return isRelative(source) ? resolve(importee, '..', source) : source;
 }
@@ -85,22 +89,21 @@ export class ModuleLoader {
 	}
 
 	addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
-		const unresolvedManualChunks: UnresolvedModuleWithAlias[] = [];
+		const unresolvedManualChunks: UnresolvedEntryModuleWithAlias[] = [];
 		for (const alias of Object.keys(manualChunks)) {
 			const manualChunkIds = manualChunks[alias];
 			for (const unresolvedId of manualChunkIds) {
-				unresolvedManualChunks.push({ alias, unresolvedId });
+				unresolvedManualChunks.push({ alias, unresolvedId, isManualChunkEntry: true });
 			}
 		}
 		const loadNewManualChunkModulesPromise = Promise.all(
 			unresolvedManualChunks.map(this.loadEntryModule)
 		).then(manualChunkModules => {
 			for (const module of manualChunkModules) {
-				if (!this.manualChunkModules[module.chunkAlias]) {
-					this.manualChunkModules[module.chunkAlias] = [];
+				if (!this.manualChunkModules[module.manualChunkAlias]) {
+					this.manualChunkModules[module.manualChunkAlias] = [];
 				}
-				this.manualChunkModules[module.chunkAlias].push(module);
-				module.manualChunkAlias = module.chunkAlias;
+				this.manualChunkModules[module.manualChunkAlias].push(module);
 			}
 		});
 
@@ -120,7 +123,7 @@ export class ModuleLoader {
 				code: 'XXX',
 				message: `Plugin error - Unable to get chunk file name for chunk ${metaId}. Ensure that generate is called first.`
 			});
-		// TODO Lukas facadeChunk?
+		// TODO Lukas what if this is a facadeChunk?
 		return entryRecord.module.chunk.id;
 	}
 
@@ -150,7 +153,6 @@ export class ModuleLoader {
 					.then(replacement => {
 						if (!replacement) return;
 						const dynamicImport = module.dynamicImports[index];
-						// TODO Lukas why can we assign to the module here?
 						dynamicImport.alias = getAliasName(replacement);
 						if (typeof dynamicImportExpression !== 'string') {
 							dynamicImport.resolution = replacement;
@@ -282,8 +284,9 @@ export class ModuleLoader {
 
 	private loadEntryModule = ({
 		alias,
-		unresolvedId
-	}: UnresolvedModuleWithAlias): Promise<Module> => {
+		unresolvedId,
+		isManualChunkEntry
+	}: UnresolvedEntryModuleWithAlias): Promise<Module> => {
 		return this.pluginDriver
 			.hookFirst<string | false | void>('resolveId', [unresolvedId, undefined])
 			.then(id => {
@@ -303,6 +306,13 @@ export class ModuleLoader {
 
 				return this.fetchModule(<string>id, undefined).then(module => {
 					if (alias !== null) {
+						if (isManualChunkEntry) {
+							if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
+								errorCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias);
+							}
+							module.manualChunkAlias = alias;
+							return module;
+						}
 						if (module.chunkAlias !== null && module.chunkAlias !== alias) {
 							errorCannotAssignModuleToChunk(module.id, alias, module.chunkAlias);
 						}

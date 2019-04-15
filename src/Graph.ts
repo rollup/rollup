@@ -315,7 +315,7 @@ export default class Graph {
 
 			// filter out empty dependencies
 			chunks = chunks.filter(
-				chunk => !chunk.isEmpty || chunk.entryModules.length > 0 || chunk.isManualChunk
+				chunk => !chunk.isEmpty || chunk.entryModules.length > 0 || chunk.manualChunkAlias !== null
 			);
 
 			// then go over and ensure all entry chunks export their variables
