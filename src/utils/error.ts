@@ -1,6 +1,7 @@
 import { locate } from 'locate-character';
 import { RollupError, RollupWarning } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
+import { relative } from './path';
 
 export function error(base: Error | RollupError, props?: RollupError) {
 	if (base instanceof Error === false) base = Object.assign(new Error(base.message), base);
@@ -27,4 +28,24 @@ export function augmentCodeLocation(
 		const { line, column } = object.loc;
 		object.frame = getCodeFrame(source, line, column);
 	}
+}
+
+enum Errors {
+	INVALID_CHUNK = 'INVALID_CHUNK'
+}
+
+// TODO Lukas polyfill process.cwd()
+// TODO Lukas other errors
+export function errorCannotAssignModuleToChunk(
+	moduleId: string,
+	assignToAlias: string,
+	currentAlias: string
+) {
+	error({
+		code: Errors.INVALID_CHUNK,
+		message: `Cannot assign ${relative(
+			process.cwd(),
+			moduleId
+		)} to the "${assignToAlias}" chunk as it is already in the "${currentAlias}" chunk.`
+	});
 }
