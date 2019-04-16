@@ -8,6 +8,7 @@ import {
 	Plugin,
 	PluginCache,
 	PluginContext,
+	PluginHooks,
 	RollupError,
 	RollupWarning,
 	RollupWatcher,
@@ -18,25 +19,40 @@ import { getRollupDefaultPlugin } from './defaultPlugin';
 import { error } from './error';
 import { NameCollection } from './reservedNames';
 
+type Args<T> = T extends (...args: infer K) => any ? K : never;
+
+// TODO Lukas include defaultPlugin type
 export interface PluginDriver {
 	emitAsset: EmitAsset;
 	hasLoadersOrTransforms: boolean;
 	getAssetFileName(assetMetaId: string): string;
-	hookFirst<T = any>(hook: string, args?: any[], hookContext?: HookContext): Promise<T>;
-	hookFirstSync<T = any>(hook: string, args?: any[], hookContext?: HookContext): T;
-	hookParallel(hook: string, args?: any[], hookContext?: HookContext): Promise<void>;
-	hookReduceArg0<R = any, T = any>(
-		hook: string,
-		args: any[],
-		reduce: Reduce<R, T>,
+	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
 		hookContext?: HookContext
-	): Promise<T>;
-	hookReduceArg0Sync<R = any, T = any>(
-		hook: string,
-		args: any[],
-		reduce: Reduce<R, T>,
+	): Promise<R>;
+	hookFirstSync<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
 		hookContext?: HookContext
-	): T;
+	): R;
+	hookParallel<H extends keyof PluginHooks>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
+		hookContext?: HookContext
+	): Promise<void>;
+	hookReduceArg0<H extends keyof PluginHooks, V, R = ReturnType<PluginHooks[H]>>(
+		hook: H,
+		args: any[],
+		reduce: Reduce<V, R>,
+		hookContext?: HookContext
+	): Promise<R>;
+	hookReduceArg0Sync<H extends keyof PluginHooks, V, R = ReturnType<PluginHooks[H]>>(
+		hook: H,
+		args: any[],
+		reduce: Reduce<V, R>,
+		hookContext?: HookContext
+	): R;
 	hookReduceValue<R = any, T = any>(
 		hook: string,
 		value: T | Promise<T>,
@@ -44,8 +60,16 @@ export interface PluginDriver {
 		reduce: Reduce<R, T>,
 		hookContext?: HookContext
 	): Promise<T>;
-	hookSeq(hook: string, args?: any[], context?: HookContext): Promise<void>;
-	hookSeqSync(hook: string, args?: any[], context?: HookContext): void;
+	hookSeq<H extends keyof PluginHooks>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
+		context?: HookContext
+	): Promise<void>;
+	hookSeqSync<H extends keyof PluginHooks>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
+		context?: HookContext
+	): void;
 }
 
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;

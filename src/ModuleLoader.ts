@@ -1,3 +1,4 @@
+import * as ESTree from 'estree';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
@@ -148,8 +149,12 @@ export class ModuleLoader {
 	private fetchAllDependencies(module: Module) {
 		const fetchDynamicImportsPromise = Promise.all(
 			module.getDynamicImportExpressions().map((dynamicImportExpression, index) =>
+				// TODO we only should expose the acorn AST here
 				this.pluginDriver
-					.hookFirst('resolveDynamicImport', [dynamicImportExpression, module.id])
+					.hookFirst<'resolveDynamicImport', string>('resolveDynamicImport', [
+						dynamicImportExpression as string | ESTree.Node,
+						module.id
+					])
 					.then(replacement => {
 						if (!replacement) return;
 						const dynamicImport = module.dynamicImports[index];
@@ -195,7 +200,9 @@ export class ModuleLoader {
 		this.modulesById.set(id, module);
 
 		timeStart('load modules', 3);
-		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
+		return Promise.resolve(
+			this.pluginDriver.hookFirst<'load', string | SourceDescription>('load', [id])
+		)
 			.catch((err: Error) => {
 				timeEnd('load modules', 3);
 				let msg = `Could not load ${id}`;
@@ -287,40 +294,38 @@ export class ModuleLoader {
 		unresolvedId,
 		isManualChunkEntry
 	}: UnresolvedEntryModuleWithAlias): Promise<Module> => {
-		return this.pluginDriver
-			.hookFirst<string | false | void>('resolveId', [unresolvedId, undefined])
-			.then(id => {
-				if (id === false) {
-					error({
-						code: 'UNRESOLVED_ENTRY',
-						message: `Entry module cannot be external`
-					});
-				}
-
-				if (id == null) {
-					error({
-						code: 'UNRESOLVED_ENTRY',
-						message: `Could not resolve entry (${unresolvedId})`
-					});
-				}
-
-				return this.fetchModule(<string>id, undefined).then(module => {
-					if (alias !== null) {
-						if (isManualChunkEntry) {
-							if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
-								errorCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias);
-							}
-							module.manualChunkAlias = alias;
-							return module;
-						}
-						if (module.chunkAlias !== null && module.chunkAlias !== alias) {
-							errorCannotAssignModuleToChunk(module.id, alias, module.chunkAlias);
-						}
-						module.chunkAlias = alias;
-					}
-					return module;
+		return this.pluginDriver.hookFirst('resolveId', [unresolvedId, undefined]).then(id => {
+			if (id === false) {
+				error({
+					code: 'UNRESOLVED_ENTRY',
+					message: `Entry module cannot be external`
 				});
+			}
+
+			if (id == null) {
+				error({
+					code: 'UNRESOLVED_ENTRY',
+					message: `Could not resolve entry (${unresolvedId})`
+				});
+			}
+
+			return this.fetchModule(<string>id, undefined).then(module => {
+				if (alias !== null) {
+					if (isManualChunkEntry) {
+						if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
+							errorCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias);
+						}
+						module.manualChunkAlias = alias;
+						return module;
+					}
+					if (module.chunkAlias !== null && module.chunkAlias !== alias) {
+						errorCannotAssignModuleToChunk(module.id, alias, module.chunkAlias);
+					}
+					module.chunkAlias = alias;
+				}
+				return module;
 			});
+		});
 	};
 
 	private normalizeResolveIdResult(
@@ -375,8 +380,8 @@ export class ModuleLoader {
 				Promise.resolve(
 					this.graph.isExternal(source, module.id, false)
 						? { id: source, external: true }
-						: this.pluginDriver.hookFirst<ResolveIdResult>('resolveId', [source, module.id])
-				).then(result => this.normalizeResolveIdResult(result, module, source))
+						: this.pluginDriver.hookFirst('resolveId', [source, module.id])
+				).then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, module, source))
 		).then(resolvedId => {
 			module.resolvedIds[source] = resolvedId;
 			if (resolvedId.external) {

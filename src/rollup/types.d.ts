@@ -62,12 +62,12 @@ export interface SourceMap {
 }
 
 export interface SourceDescription {
+	ast?: ESTree.Program;
 	code: string;
 	map?: string | RawSourceMap;
 }
 
 export interface TransformSourceDescription extends SourceDescription {
-	ast?: ESTree.Program;
 	dependencies?: string[];
 }
 
@@ -213,14 +213,18 @@ export type ResolveAssetUrlHook = (
 	}
 ) => string | void;
 
-export type ResolveChunkUrlHook = (
+type EmittedFileType = 'ASSET' | 'CHUNK';
+
+// TODO Lukas are all properties tested?
+export type ResolveFileUrlHook = (
 	this: PluginContext,
 	options: {
-		chunkFileName: string;
 		chunkId: string;
+		fileName: string;
 		format: string;
 		moduleId: string;
-		relativeChunkPath: string;
+		relativePath: string;
+		type: EmittedFileType;
 	}
 ) => string | void;
 
@@ -242,42 +246,45 @@ export interface OutputBundle {
 	[fileName: string]: OutputAsset | OutputChunk;
 }
 
-export interface Plugin {
-	banner?: AddonHook;
+interface OnGenerateOptions extends OutputOptions {
+	bundle: OutputChunk;
+}
+
+interface OnWriteOptions extends OutputOptions {
+	bundle: RollupBuild;
+}
+
+export interface PluginHooks {
 	buildEnd?: (this: PluginContext, err?: Error) => Promise<void> | void;
 	buildStart?: (this: PluginContext, options: InputOptions) => Promise<void> | void;
-	cacheKey?: string;
-	footer?: AddonHook;
 	generateBundle?: (
 		this: PluginContext,
 		options: OutputOptions,
 		bundle: OutputBundle,
 		isWrite: boolean
 	) => void | Promise<void>;
-	intro?: AddonHook;
 	load?: LoadHook;
-	name: string;
 	/** @deprecated */
 	ongenerate?: (
 		this: PluginContext,
-		options: OutputOptions,
+		options: OnGenerateOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
 	/** @deprecated */
 	onwrite?: (
 		this: PluginContext,
-		options: OutputOptions,
+		options: OnWriteOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
 	options?: (this: MinimalPluginContext, options: InputOptions) => InputOptions | void | null;
 	outputOptions?: (this: PluginContext, options: OutputOptions) => OutputOptions | void | null;
-	outro?: AddonHook;
 	renderChunk?: RenderChunkHook;
 	renderError?: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart?: (this: PluginContext) => Promise<void> | void;
+	/** @deprecated */
 	resolveAssetUrl?: ResolveAssetUrlHook;
-	resolveChunkUrl?: ResolveChunkUrlHook;
 	resolveDynamicImport?: ResolveDynamicImportHook;
+	resolveFileUrl?: ResolveFileUrlHook;
 	resolveId?: ResolveIdHook;
 	resolveImportMeta?: ResolveImportMetaHook;
 	transform?: TransformHook;
@@ -287,6 +294,15 @@ export interface Plugin {
 	transformChunk?: TransformChunkHook;
 	watchChange?: (id: string) => void;
 	writeBundle?: (this: PluginContext, bundle: OutputBundle) => void | Promise<void>;
+}
+
+export interface Plugin extends PluginHooks {
+	banner?: AddonHook;
+	cacheKey?: string;
+	footer?: AddonHook;
+	intro?: AddonHook;
+	name: string;
+	outro?: AddonHook;
 }
 
 export interface TreeshakingOptions {
