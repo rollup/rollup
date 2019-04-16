@@ -14,11 +14,8 @@ export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 			if (typeof specifier === 'string' && !this.isExternal(specifier, parentId, false))
 				return <Promise<string>>this.resolveId(specifier, parentId);
 		},
-		resolveAssetUrl({ relativeAssetPath, format }) {
-			return relativeUrlMechanisms[format](relativeAssetPath);
-		},
-		resolveChunkUrl({ relativeChunkPath, format }) {
-			return relativeUrlMechanisms[format](relativeChunkPath);
+		resolveFileUrl({ relativePath, format }) {
+			return relativeUrlMechanisms[format](relativePath);
 		},
 		resolveImportMeta(prop, { chunkId, format }) {
 			const mechanism = importMetaMechanisms[format] && importMetaMechanisms[format](prop, chunkId);

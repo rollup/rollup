@@ -56,6 +56,7 @@ export function createAssetPluginHooks(
 			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
 			return addWithNewMetaId(asset, assetsByMetaId, name);
 		},
+
 		setAssetSource(assetMetaId: string, source?: string | Buffer) {
 			const asset = assetsByMetaId.get(assetMetaId);
 			if (!asset)
@@ -78,7 +79,7 @@ export function createAssetPluginHooks(
 			asset.source = source;
 			if (outputBundle) finaliseAsset(asset, outputBundle, assetFileNames);
 		},
-		// TODO Lukas we also need this for chunks. Can this be shared?
+
 		getAssetFileName(assetMetaId: string) {
 			const asset = assetsByMetaId.get(assetMetaId);
 			if (!asset)
@@ -106,14 +107,13 @@ export function finaliseAsset(asset: Asset, outputBundle: OutputBundle, assetFil
 	};
 }
 
-export function createTransformEmitAsset(assetsById: Map<string, Asset>, emitAsset: EmitAsset) {
+export function createTransformEmitAsset(assetsByMetaId: Map<string, Asset>, emitAsset: EmitAsset) {
 	const assets: Asset[] = [];
 	return {
 		assets,
 		emitAsset: (name: string, source?: string | Buffer) => {
 			const assetMetaId = emitAsset(name, source);
-			const asset = assetsById.get(assetMetaId);
-			// distinguish transform assets
+			const asset = assetsByMetaId.get(assetMetaId);
 			assets.push({
 				fileName: undefined,
 				name: asset.name,

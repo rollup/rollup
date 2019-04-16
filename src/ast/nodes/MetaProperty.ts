@@ -1,4 +1,5 @@
 import MagicString from 'magic-string';
+import { EmittedFileType } from '../../rollup/types';
 import { dirname, normalize, relative } from '../../utils/path';
 import { PluginDriver } from '../../utils/pluginDriver';
 import Identifier from './Identifier';
@@ -34,21 +35,43 @@ export default class MetaProperty extends NodeBase {
 				? parent.propertyKey
 				: null;
 
-		// TODO Lukas extract, use same hook
-		if (importMetaProperty && importMetaProperty.startsWith(ASSET_PREFIX)) {
-			const assetFileName = this.context.getAssetFileName(
-				importMetaProperty.substr(ASSET_PREFIX.length)
-			);
-			const relativeAssetPath = normalize(relative(dirname(chunkId), assetFileName));
-			const replacement = pluginDriver.hookFirstSync<string>('resolveAssetUrl', [
-				{
-					assetFileName,
-					chunkId,
-					format,
-					moduleId: this.context.module.id,
-					relativeAssetPath
-				}
-			]);
+		// TODO Lukas duplicate asset tests with new hook
+		if (
+			importMetaProperty &&
+			(importMetaProperty.startsWith(ASSET_PREFIX) || importMetaProperty.startsWith(CHUNK_PREFIX))
+		) {
+			const [type, fileName]: [EmittedFileType, string] = importMetaProperty.startsWith(
+				ASSET_PREFIX
+			)
+				? ['ASSET', this.context.getAssetFileName(importMetaProperty.substr(ASSET_PREFIX.length))]
+				: ['CHUNK', this.context.getChunkFileName(importMetaProperty.substr(CHUNK_PREFIX.length))];
+
+			const relativePath = normalize(relative(dirname(chunkId), fileName));
+			let replacement;
+			if (type === 'ASSET') {
+				// deprecated hook for assets
+				replacement = pluginDriver.hookFirstSync('resolveAssetUrl', [
+					{
+						assetFileName: fileName,
+						chunkId,
+						format,
+						moduleId: this.context.module.id,
+						relativeAssetPath: relativePath
+					}
+				]);
+			}
+			if (!replacement) {
+				replacement = pluginDriver.hookFirstSync<'resolveFileUrl', string>('resolveFileUrl', [
+					{
+						chunkId,
+						fileName,
+						format,
+						moduleId: this.context.module.id,
+						relativePath,
+						type
+					}
+				]);
+			}
 
 			code.overwrite(
 				(parent as MemberExpression).start,
@@ -58,30 +81,7 @@ export default class MetaProperty extends NodeBase {
 			return true;
 		}
 
-		if (importMetaProperty && importMetaProperty.startsWith(CHUNK_PREFIX)) {
-			const chunkFileName = this.context.getChunkFileName(
-				importMetaProperty.substr(CHUNK_PREFIX.length)
-			);
-			const relativeChunkPath = normalize(relative(dirname(chunkId), chunkFileName));
-			const replacement = pluginDriver.hookFirstSync<string>('resolveChunkUrl', [
-				{
-					chunkFileName,
-					chunkId,
-					format,
-					moduleId: this.context.module.id,
-					relativeChunkPath
-				}
-			]);
-
-			code.overwrite(
-				(parent as MemberExpression).start,
-				(parent as MemberExpression).end,
-				replacement
-			);
-			return true;
-		}
-
-		const replacement = pluginDriver.hookFirstSync<string | void>('resolveImportMeta', [
+		const replacement = pluginDriver.hookFirstSync('resolveImportMeta', [
 			importMetaProperty,
 			{
 				chunkId,
