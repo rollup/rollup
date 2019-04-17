@@ -37,6 +37,7 @@ enum Errors {
 	ASSET_SOURCE_MISSING = 'ASSET_SOURCE_MISSING',
 	ASSET_SOURCE_NOT_FOUND = 'ASSET_SOURCE_NOT_FOUND',
 	CHUNK_NOT_FOUND = 'CHUNK_NOT_FOUND',
+	CHUNK_NOT_GENERATED = 'CHUNK_NOT_GENERATED',
 	INVALID_ASSET_NAME = 'INVALID_ASSET_NAME',
 	INVALID_CHUNK = 'INVALID_CHUNK'
 }
@@ -47,6 +48,15 @@ export function errorAssetNotFinalisedForFileName(asset: Asset) {
 		message: `Plugin error - Unable to get file name for asset "${
 			asset.name
 		}". Ensure that the source is set and that generate is called first.`
+	});
+}
+
+export function errorChunkNotGeneratedForFileName(entry: { name: string }) {
+	error({
+		code: Errors.CHUNK_NOT_GENERATED,
+		message: `Plugin error - Unable to get file name for chunk "${
+			entry.name
+		}". Ensure that generate is called first.`
 	});
 }
 
