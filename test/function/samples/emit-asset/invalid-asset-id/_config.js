@@ -10,6 +10,6 @@ module.exports = {
 	},
 	generateError: {
 		code: 'ASSET_NOT_FOUND',
-		message: 'Plugin error - Unable to get asset filename for unknown asset "invalid".'
+		message: 'Plugin error - Unable to get file name for unknown asset "invalid".'
 	}
 };

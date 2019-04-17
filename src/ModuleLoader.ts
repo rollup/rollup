@@ -3,7 +3,11 @@ import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
 import { ModuleJSON, ResolvedId, ResolveIdResult, SourceDescription } from './rollup/types';
-import { error, errorCannotAssignModuleToChunk } from './utils/error';
+import {
+	error,
+	errorCannotAssignModuleToChunk,
+	errorChunkMetaIdNotFoundForFilename
+} from './utils/error';
 import { addWithNewMetaId } from './utils/metaIds';
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/pluginDriver';
@@ -112,11 +116,7 @@ export class ModuleLoader {
 
 	getChunkFileName(metaId: string): string {
 		const entryRecord = this.entriesByMetaId.get(metaId);
-		if (!entryRecord)
-			error({
-				code: 'CHUNK_NOT_FOUND',
-				message: `Plugin error - Unable to get chunk filename for unknown chunk ${metaId}.`
-			});
+		if (!entryRecord) errorChunkMetaIdNotFoundForFilename(metaId);
 		// TODO Lukas check correct file name
 		if (entryRecord.module === null)
 			error({

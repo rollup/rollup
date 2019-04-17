@@ -36,6 +36,7 @@ enum Errors {
 	ASSET_SOURCE_ALREADY_SET = 'ASSET_SOURCE_ALREADY_SET',
 	ASSET_SOURCE_MISSING = 'ASSET_SOURCE_MISSING',
 	ASSET_SOURCE_NOT_FOUND = 'ASSET_SOURCE_NOT_FOUND',
+	CHUNK_NOT_FOUND = 'CHUNK_NOT_FOUND',
 	INVALID_ASSET_NAME = 'INVALID_ASSET_NAME',
 	INVALID_CHUNK = 'INVALID_CHUNK'
 }
@@ -43,7 +44,7 @@ enum Errors {
 export function errorAssetNotFinalisedForFileName(asset: Asset) {
 	error({
 		code: Errors.ASSET_NOT_FINALISED,
-		message: `Plugin error - Unable to get asset file name for "${
+		message: `Plugin error - Unable to get file name for asset "${
 			asset.name
 		}". Ensure that the source is set and that generate is called first.`
 	});
@@ -52,21 +53,23 @@ export function errorAssetNotFinalisedForFileName(asset: Asset) {
 export function errorAssetMetaIdNotFoundForFilename(assetMetaId: string) {
 	error({
 		code: Errors.ASSET_NOT_FOUND,
-		message: `Plugin error - Unable to get asset filename for unknown asset "${assetMetaId}".`
+		message: `Plugin error - Unable to get file name for unknown asset "${assetMetaId}".`
 	});
 }
 
 export function errorAssetMetaIdNotFoundForSetSource(assetMetaId: string) {
 	error({
 		code: Errors.ASSET_NOT_FOUND,
-		message: `Plugin error - Unable to set asset source for unknown asset "${assetMetaId}".`
+		message: `Plugin error - Unable to set the source for unknown asset "${assetMetaId}".`
 	});
 }
 
 export function errorAssetSourceAlreadySet(asset: Asset) {
 	error({
 		code: Errors.ASSET_SOURCE_ALREADY_SET,
-		message: `Plugin error - Unable to set asset source for "${asset.name}", source already set.`
+		message: `Plugin error - Unable to set the source for asset "${
+			asset.name
+		}", source already set.`
 	});
 }
 
@@ -81,6 +84,13 @@ export function errorNoAssetSourceSet(asset: Asset) {
 	error({
 		code: Errors.ASSET_SOURCE_NOT_FOUND,
 		message: `Plugin error creating asset "${asset.name}" - no asset source set.`
+	});
+}
+
+export function errorChunkMetaIdNotFoundForFilename(chunkMetaId: string) {
+	error({
+		code: Errors.CHUNK_NOT_FOUND,
+		message: `Plugin error - Unable to get file name for unknown chunk "${chunkMetaId}".`
 	});
 }
 
