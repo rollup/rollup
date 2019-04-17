@@ -215,7 +215,6 @@ export type ResolveAssetUrlHook = (
 
 type EmittedFileType = 'ASSET' | 'CHUNK';
 
-// TODO Lukas are all properties tested?
 export type ResolveFileUrlHook = (
 	this: PluginContext,
 	options: {

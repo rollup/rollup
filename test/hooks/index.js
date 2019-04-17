@@ -588,62 +588,6 @@ module.exports = input;
 			});
 	});
 
-	it('throws when calling setAssetSource in transform', () => {
-		return rollup
-			.rollup({
-				input: 'input',
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						transform() {
-							const assetId = this.emitAsset('test.ext');
-							this.setAssetSource(assetId, 'asdf');
-							return '';
-						}
-					}
-				]
-			})
-			.then(({ output }) => {
-				throw new Error('should fail');
-			})
-			.catch(err => {
-				assert.equal(err.code, 'PLUGIN_ERROR');
-				assert.equal(err.pluginCode, 'INVALID_SETASSETSOURCE');
-			});
-	});
-
-	it('throws when setting asset source twice', () => {
-		let thrown = false;
-		return rollup
-			.rollup({
-				input: 'input',
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						buildEnd() {
-							const assetId = this.emitAsset('test.ext');
-							this.setAssetSource(assetId, 'hello world');
-							try {
-								this.setAssetSource(assetId, 'another');
-							} catch (e) {
-								assert.equal(e.code, 'ASSET_SOURCE_ALREADY_SET');
-								thrown = true;
-								return '';
-							}
-							assert.fail();
-						}
-					}
-				]
-			})
-			.then(bundle => {
-				return bundle.generate({ format: 'es' });
-			})
-			.then(({ output: [, output] }) => {
-				assert.equal(output.source, 'hello world');
-				assert.equal(thrown, true);
-			});
-	});
-
 	it('allows setting asset source at generateBundle', () => {
 		let assetId;
 		return rollup
