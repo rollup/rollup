@@ -2,6 +2,7 @@ import MagicString from 'magic-string';
 import { EmittedFileType } from '../../rollup/types';
 import { dirname, normalize, relative } from '../../utils/path';
 import { PluginDriver } from '../../utils/pluginDriver';
+import { ObjectPathKey } from '../values';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
@@ -14,6 +15,10 @@ export default class MetaProperty extends NodeBase {
 	meta: Identifier;
 	property: Identifier;
 	type: NodeType.tMetaProperty;
+
+	hasEffectsWhenAccessedAtPath(path: ObjectPathKey[]): boolean {
+		return path.length > 1;
+	}
 
 	initialise() {
 		if (this.meta.name === 'import') {
@@ -35,7 +40,6 @@ export default class MetaProperty extends NodeBase {
 				? parent.propertyKey
 				: null;
 
-		// TODO Lukas duplicate asset tests with new hook
 		if (
 			importMetaProperty &&
 			(importMetaProperty.startsWith(ASSET_PREFIX) || importMetaProperty.startsWith(CHUNK_PREFIX))
