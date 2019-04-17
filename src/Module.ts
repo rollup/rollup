@@ -523,7 +523,6 @@ export default class Module {
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
-			// TODO Lukas move asset handling to graph?
 			getAssetFileName: this.graph.pluginDriver.getAssetFileName,
 			getChunkFileName: this.graph.moduleLoader.getChunkFileName.bind(this.graph.moduleLoader),
 			getExports: this.getExports.bind(this),

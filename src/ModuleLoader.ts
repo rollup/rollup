@@ -6,7 +6,8 @@ import { ModuleJSON, ResolvedId, ResolveIdResult, SourceDescription } from './ro
 import {
 	error,
 	errorCannotAssignModuleToChunk,
-	errorChunkMetaIdNotFoundForFilename
+	errorChunkMetaIdNotFoundForFilename,
+	errorChunkNotGeneratedForFileName
 } from './utils/error';
 import { addWithNewMetaId } from './utils/metaIds';
 import { isRelative, resolve } from './utils/path';
@@ -29,7 +30,7 @@ function normalizeRelativeExternalId(importee: string, source: string) {
 }
 
 export class ModuleLoader {
-	private readonly entriesByMetaId = new Map<string, { module: Module | null }>();
+	private readonly entriesByMetaId = new Map<string, { module: Module | null; name: string }>();
 	private readonly entryModules: Module[] = [];
 	private readonly graph: Graph;
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
@@ -49,7 +50,10 @@ export class ModuleLoader {
 	}
 
 	addEntryModuleAndGetMetaId(unresolvedEntryModule: UnresolvedModuleWithAlias): string {
-		const entryRecord: { module: Module | null } = { module: null };
+		const entryRecord: { module: Module | null; name: string } = {
+			module: null,
+			name: unresolvedEntryModule.unresolvedId
+		};
 		const metaId = addWithNewMetaId(
 			entryRecord,
 			this.entriesByMetaId,
@@ -114,18 +118,17 @@ export class ModuleLoader {
 		return this.awaitLoadModulesPromise(loadNewManualChunkModulesPromise);
 	}
 
+	// TODO Lukas use graph phases
 	getChunkFileName(metaId: string): string {
 		const entryRecord = this.entriesByMetaId.get(metaId);
 		if (!entryRecord) errorChunkMetaIdNotFoundForFilename(metaId);
-		// TODO Lukas check correct file name
-		if (entryRecord.module === null)
-			error({
-				code: 'XXX',
-				message: `Plugin error - Unable to get chunk file name for chunk ${metaId}. Ensure that generate is called first.`
-			});
-		return entryRecord.module.facadeChunk
-			? entryRecord.module.facadeChunk.id
-			: entryRecord.module.chunk.id;
+		const fileName =
+			entryRecord.module &&
+			(entryRecord.module.facadeChunk
+				? entryRecord.module.facadeChunk.id
+				: entryRecord.module.chunk.id);
+		if (!fileName) errorChunkNotGeneratedForFileName(entryRecord);
+		return fileName;
 	}
 
 	private awaitLoadModulesPromise<T>(loadNewModulesPromise: Promise<T>): Promise<T> {
