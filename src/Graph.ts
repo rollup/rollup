@@ -12,7 +12,6 @@ import { ModuleLoader, UnresolvedModuleWithAlias } from './ModuleLoader';
 import {
 	Asset,
 	InputOptions,
-	IsExternal,
 	ModuleJSON,
 	OutputBundle,
 	RollupCache,
@@ -68,7 +67,6 @@ export default class Graph {
 	curChunkIndex = 0;
 	deoptimizationTracker: EntityPathTracker;
 	getModuleContext: (id: string) => string;
-	isExternal: IsExternal;
 	isPureExternalModule: (id: string) => boolean;
 	moduleById = new Map<string, Module | ExternalModule>();
 	moduleLoader: ModuleLoader;
@@ -156,17 +154,6 @@ export default class Graph {
 			});
 		}
 
-		// TODO Lukas move this to the module loader
-		if (typeof options.external === 'function') {
-			const external = options.external;
-			this.isExternal = (id, parentId, isResolved) =>
-				!id.startsWith('\0') && external(id, parentId, isResolved);
-		} else {
-			const external = options.external;
-			const ids = new Set(Array.isArray(external) ? external : external ? [external] : []);
-			this.isExternal = id => ids.has(id);
-		}
-
 		this.shimMissingExports = options.shimMissingExports;
 		this.scope = new GlobalScope();
 		this.context = String(options.context);
@@ -205,7 +192,12 @@ export default class Graph {
 				: [])
 		);
 		this.acornParser = <any>acorn.Parser.extend(...acornPluginsToInject);
-		this.moduleLoader = new ModuleLoader(this, this.moduleById, this.pluginDriver);
+		this.moduleLoader = new ModuleLoader(
+			this,
+			this.moduleById,
+			this.pluginDriver,
+			options.external
+		);
 	}
 
 	build(

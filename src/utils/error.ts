@@ -111,7 +111,6 @@ export function errorInvalidAssetName(name: string) {
 	});
 }
 
-// TODO Lukas other errors
 export function errorCannotAssignModuleToChunk(
 	moduleId: string,
 	assignToAlias: string,

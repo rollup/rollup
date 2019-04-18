@@ -163,7 +163,7 @@ export function createPluginDriver(
 				error(err);
 			},
 			isExternal(id: string, parentId: string, isResolved = false) {
-				return graph.isExternal(id, parentId, isResolved);
+				return graph.moduleLoader.isExternal(id, parentId, isResolved);
 			},
 			getAssetFileName,
 			getChunkFileName(chunkMetaId: string): string {
